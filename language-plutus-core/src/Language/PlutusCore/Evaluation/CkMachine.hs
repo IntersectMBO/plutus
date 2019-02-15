@@ -143,7 +143,7 @@ applyEvaluate stack fun                    arg =
                     ConstAppError err     ->
                         throwCkMachineException (ConstAppMachineError err) term
 
-applyEvaluateCkBuiltinName :: BuiltinName -> [Value TyName Name ()] -> ConstAppResult
+applyEvaluateCkBuiltinName :: BuiltinName -> [Value TyName Name ()] -> ConstAppResultDef
 applyEvaluateCkBuiltinName name =
     runIdentity . runEvaluate (const $ Identity . evaluateCk) . applyBuiltinName name
 

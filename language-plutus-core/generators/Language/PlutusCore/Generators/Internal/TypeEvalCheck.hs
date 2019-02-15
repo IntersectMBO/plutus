@@ -32,7 +32,6 @@ import           PlutusPrelude
 
 import           Control.Lens.TH
 import           Control.Monad.Except
-import           Data.Traversable
 
 {- Note [Type-eval checking]
 We generate terms along with values they are supposed to evaluate to. Before evaluating a term,

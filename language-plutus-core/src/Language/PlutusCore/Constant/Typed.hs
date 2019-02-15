@@ -4,6 +4,7 @@
 
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GADTs                     #-}
+{-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE OverloadedStrings         #-}
 {-# LANGUAGE RankNTypes                #-}
 
@@ -295,11 +296,10 @@ class KnownDynamicBuiltinType dyn where
 
     -- | Convert a Haskell value to the corresponding PLC value.
     -- 'Nothing' represents a conversion failure.
-    makeDynamicBuiltin :: dyn -> Convert (Term TyName Name ())
+    makeDynamicBuiltin :: dyn -> Maybe (Term TyName Name ())
 
     -- See Note [Evaluators].
     -- | Convert a PLC value to the corresponding Haskell value.
-    -- 'Nothing' represents a conversion failure.
     readDynamicBuiltin :: Monad m => Evaluator Term m -> Term TyName Name () -> m (Convert dyn)
 
 readDynamicBuiltinM
@@ -340,5 +340,10 @@ instance KnownDynamicBuiltinType () where
     -- for side effects the evaluation may cause.
     makeDynamicBuiltin () = pure unitval
 
-    -- We do not check here that the term is indeed @unitval@. TODO: check.
-    readDynamicBuiltin _ _ = pure $ pure ()
+    readDynamicBuiltin eval term = do
+        let int1 = TyApp () (TyBuiltin () TyInteger) (TyInt () 4)
+            asInt1 = Constant () . BuiltinInt () 1
+        res <- eval mempty . Apply () (TyInst () term int1) $ asInt1 1
+        pure $ lift res >>= \case
+            Constant () (BuiltinInt () 1 1) -> pure ()
+            _                               -> throwError "Not a builtin ()"

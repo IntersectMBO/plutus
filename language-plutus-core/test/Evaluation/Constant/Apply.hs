@@ -34,7 +34,7 @@ import           Hedgehog                                 hiding (Size, Var)
 -- underapplication on the PLC side is a stuck application.
 prop_applyBuiltinName
     :: PrettyDynamic r
-    => (forall b. PrettyDynamic b => TypedBuiltin Size b -> b -> ConstAppResult)
+    => (forall b. PrettyDynamic b => TypedBuiltin Size b -> b -> ConstAppResultDef)
                              -- ^ How to get a 'ConstAppResult' having a Haskell value of
                              -- one of the builtin types. See 'TypedBuiltin' for the list of such types.
     -> TypedBuiltinName a r  -- ^ A (typed) builtin name to apply.

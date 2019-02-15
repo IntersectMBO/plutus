@@ -148,8 +148,8 @@ app loc t (t' :| ts) = Apply loc (app loc t (t':|init ts)) (last ts)
 
 handleInteger :: AlexPosn -> Natural -> Integer -> Parse (Constant AlexPosn)
 handleInteger x sz i = case makeBuiltinInt sz i of
-    Left _   -> throwError (Overflow x sz i)
-    Right bi -> pure $ x <$ bi
+    Nothing -> throwError (Overflow x sz i)
+    Just bi -> pure $ x <$ bi
 
 parseST :: BSL.ByteString -> StateT IdentifierState (Except (ParseError AlexPosn)) (Program TyName Name AlexPosn)
 parseST str =  runAlexST' str (runExceptT parsePlutusCoreProgram) >>= liftEither

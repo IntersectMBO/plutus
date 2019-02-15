@@ -1,6 +1,7 @@
 -- | Tests of dynamic strings and characters.
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module DynamicBuiltins.MakeRead
     ( test_dynamicMakeRead
@@ -11,6 +12,7 @@ import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.StdLib.Data.Unit
+import           PlutusPrelude
 
 import           Language.PlutusCore.Interpreter.CekMachine
 
@@ -22,12 +24,21 @@ import qualified Hedgehog.Gen                               as Gen
 import qualified Hedgehog.Range                             as Range
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
+import           Test.Tasty.HUnit
+
+readMakeHetero
+    :: (KnownDynamicBuiltinType a, KnownDynamicBuiltinType b)
+    => a -> Maybe (Either CekMachineException b)
+readMakeHetero = makeDynamicBuiltin >=> sequence . readDynamicBuiltinCek
+
+readMake
+    :: KnownDynamicBuiltinType a => a -> Maybe (Either CekMachineException a)
+readMake = readMakeHetero
 
 dynamicBuiltinRoundtrip :: (KnownDynamicBuiltinType a, Show a, Eq a) => Gen a -> Property
 dynamicBuiltinRoundtrip genX = property $ do
     x <- forAll genX
-    let mayX' = makeDynamicBuiltin x >>= sequence . readDynamicBuiltinCek
-    mayX' === Just (Right x)
+    readMake x === Just (Right x)
 
 test_stringRoundtrip :: TestTree
 test_stringRoundtrip =
@@ -57,12 +68,13 @@ test_plcListOfSumsRoundtrip =
 
 -- | Generate a bunch of 'Char's, put each of them into a 'Term', apply a dynamic built-in name over
 -- each of these terms such that being evaluated it calls a Haskell function that appends a char to
--- the contents of an external 'IORef' and assemble all the resulting terms together in a single term
--- where all characters are passed to lambdas and ignored, so that only 'unitval' is returned in the end.
--- After evaluation of the CEK machine finishes, read the 'IORef' and check that you got the exact same
--- sequence of 'Char's that was originally generated.
--- Calls 'unsafePerformIO' internally while evaluating the term, because the CEK machine can only handle
--- pure things and 'unsafePerformIO' is the way to pretend an effecful thing is pure.
+-- the contents of an external 'IORef' and assemble all the resulting terms together in a single
+-- term where all characters are passed to lambdas and ignored, so that only 'unitval' is returned
+-- in the end.
+-- After evaluation of the CEK machine finishes, read the 'IORef' and check that you got the exact
+-- same sequence of 'Char's that was originally generated.
+-- Calls 'unsafePerformIO' internally while evaluating the term, because the CEK machine can only
+-- handle pure things and 'unsafePerformIO' is the way to pretend an effecful thing is pure.
 test_collectChars :: TestTree
 test_collectChars = testProperty "collectChars" . property $ do
     str <- forAll $ Gen.string (Range.linear 0 20) Gen.unicode
@@ -76,6 +88,27 @@ test_collectChars = testProperty "collectChars" . property $ do
         Right (EvaluationSuccess _) -> return ()
     str === str'
 
+test_noticeEvaluationFailure :: TestTree
+test_noticeEvaluationFailure =
+    testCase "noticeEvaluationFailure" . assertBool "'EvaluationFailure' ignored" . isNothing $ do
+        _ <- readMake True
+        _ <- readMakeHetero @(EvaluationResult ()) @() EvaluationFailure
+        readMake 'a'
+
+test_ignoreEvaluationFailure :: TestTree
+test_ignoreEvaluationFailure =
+    testCase "ignoreEvaluationFailure" . assertBool "'EvaluationFailure' not ignored" . isJust $ do
+        _ <- readMake True
+        _ <- readMake @(EvaluationResult ()) EvaluationFailure
+        readMake 'a'
+
+test_EvaluationFailure :: TestTree
+test_EvaluationFailure =
+    testGroup "EvaluationFailure"
+        [ test_noticeEvaluationFailure
+        , test_ignoreEvaluationFailure
+        ]
+
 test_dynamicMakeRead :: TestTree
 test_dynamicMakeRead =
     testGroup "dynamicMakeRead"
@@ -84,4 +117,5 @@ test_dynamicMakeRead =
         , test_plcListOfPairsRoundtrip
         , test_plcListOfSumsRoundtrip
         , test_collectChars
+        , test_EvaluationFailure
         ]

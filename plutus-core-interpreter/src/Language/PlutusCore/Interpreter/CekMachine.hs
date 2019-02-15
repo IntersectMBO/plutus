@@ -33,6 +33,7 @@ import           PlutusPrelude                                   hiding (hoist)
 import           Control.Lens.TH                                 (makeLenses)
 import           Control.Monad.Except
 import           Control.Monad.Reader
+import           Data.Bifunctor                                  (bimap)
 import qualified Data.Map                                        as Map
 
 type Plain f = f TyName Name ()
@@ -189,7 +190,7 @@ evaluateInCekM a =
             in runEvaluate eval a
 
 -- | Apply a 'StagedBuiltinName' to a list of 'Value's.
-applyStagedBuiltinName :: StagedBuiltinName -> [Plain Value] -> CekM ConstAppResult
+applyStagedBuiltinName :: StagedBuiltinName -> [Plain Value] -> CekM ConstAppResultDef
 applyStagedBuiltinName (DynamicStagedBuiltinName name) args = do
     DynamicBuiltinNameMeaning sch x <- lookupDynamicBuiltinName name
     evaluateInCekM $ applyTypeSchemed sch x args
@@ -210,9 +211,19 @@ evaluateCekCatch means = evaluateCekCatchIn $ CekEnv means mempty
 evaluateCek :: DynamicBuiltinNameMeanings -> Term TyName Name () -> EvaluationResultDef
 evaluateCek = either throw id .* evaluateCekCatch
 
+-- The implementation is a bit of a hack.
 readDynamicBuiltinCek
-    :: KnownDynamicBuiltinType dyn => Term TyName Name () -> Either CekMachineException (Maybe dyn)
-readDynamicBuiltinCek = readDynamicBuiltin evaluateCekCatch
+    :: KnownDynamicBuiltinType dyn
+    => Term TyName Name () -> Either CekMachineException (Maybe dyn)
+readDynamicBuiltinCek term = do
+    res <- readDynamicBuiltin evaluateCekCatch term
+    case runExceptT res of
+        EvaluationFailure        -> Right Nothing
+        EvaluationSuccess errOrX -> bimap unreadableBuiltin Just errOrX where
+            unreadableBuiltin err =
+                MachineException
+                    (ConstAppMachineError $ UnreadableBuiltinConstAppError term err)
+                    term
 
 -- | Run a program using the CEK machine. May throw a 'CekMachineException'.
 -- Calls 'evaluateCek' under the hood.

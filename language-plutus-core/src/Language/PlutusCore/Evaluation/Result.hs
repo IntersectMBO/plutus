@@ -16,6 +16,8 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Type
 
+import           Control.Applicative
+
 -- | The parameterized type of results various evaluation engines return.
 -- On the PLC side this becomes (via @makeDynamicBuiltin@) either a call to 'error' or
 -- a value of the PLC counterpart of type @a@.
@@ -36,6 +38,12 @@ instance Applicative EvaluationResult where
 instance Monad EvaluationResult where
     EvaluationSuccess x >>= f = f x
     EvaluationFailure   >>= _ = EvaluationFailure
+
+instance Alternative EvaluationResult where
+    empty = EvaluationFailure
+
+    EvaluationSuccess x <|> _ = EvaluationSuccess x
+    EvaluationFailure   <|> a = a
 
 instance PrettyBy config a => PrettyBy config (EvaluationResult a) where
     prettyBy config (EvaluationSuccess value) = prettyBy config value

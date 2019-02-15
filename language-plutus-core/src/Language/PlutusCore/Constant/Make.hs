@@ -1,7 +1,6 @@
 -- | Smart constructors of PLC constants.
 
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE GADTs #-}
 
 module Language.PlutusCore.Constant.Make
     ( builtinNameAsTerm
@@ -30,16 +29,13 @@ module Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Dynamic.Pretty
 import           Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
-import           Control.Monad.Except
 import           Data.Bits                                   (bit)
 import qualified Data.ByteString.Lazy                        as BSL
-import           Data.Text                                   (Text)
 
 -- | Lift a 'BuiltinName' to 'Term'.
 builtinNameAsTerm :: BuiltinName -> Term tyname name ()
@@ -124,33 +120,26 @@ makeDynBuiltinIntSizedAs sTy intAs = makeDynBuiltinInt sTy sTerm where
     sTerm = Apply () (TyInst () (builtinNameAsTerm SizeOfInteger) sTy) intAs
 
 -- | Check whether an 'Integer' is in bounds (see 'checkBoundsInt') and return it as a 'Constant'.
-makeBuiltinInt :: MonadError Text m => Size -> Integer -> m (Constant ())
-makeBuiltinInt size int
-    | checkBoundsInt size int = pure $ BuiltinInt () size int
-    | otherwise               =
-        throwError $ showText int <> " does not fit into size " <> showText size
+makeBuiltinInt :: Size -> Integer -> Maybe (Constant ())
+makeBuiltinInt size int = checkBoundsInt size int ? BuiltinInt () size int
 
 -- | Check whether a 'ByteString' is in bounds (see 'checkBoundsBS') and return it as a 'Constant'.
-makeBuiltinBS :: MonadError Text m => Size -> BSL.ByteString -> m (Constant ())
-makeBuiltinBS size bs
-    | checkBoundsBS size bs = pure $ BuiltinBS () size bs
-    | otherwise             =
-        -- TODO: @showText bs@ does not look appropriate.
-        throwError $ showText bs <> " does not fit into size " <> showText size
+makeBuiltinBS :: Size -> BSL.ByteString -> Maybe (Constant ())
+makeBuiltinBS size bs = checkBoundsBS size bs ? BuiltinBS () size bs
 
 makeBuiltinStr :: String -> Constant ()
 makeBuiltinStr = BuiltinStr ()
 
 -- | Convert a Haskell value to the corresponding PLC constant indexed by size
 -- checking all constraints (e.g. an 'Integer' is in appropriate bounds) along the way.
-makeSizedConstant :: Size -> TypedBuiltinSized a -> a -> Convert (Constant ())
+makeSizedConstant :: Size -> TypedBuiltinSized a -> a -> Maybe (Constant ())
 makeSizedConstant size TypedBuiltinSizedInt  int = makeBuiltinInt size int
 makeSizedConstant size TypedBuiltinSizedBS   bs  = makeBuiltinBS  size bs
-makeSizedConstant size TypedBuiltinSizedSize ()  = pure $ BuiltinSize () size
+makeSizedConstant size TypedBuiltinSizedSize ()  = Just $ BuiltinSize () size
 
 -- | Convert a Haskell value to the corresponding PLC value checking all constraints
 -- (e.g. an 'Integer' is in appropriate bounds) along the way.
-makeBuiltin :: TypedBuiltinValue Size a -> Convert (Term TyName Name ())
+makeBuiltin :: TypedBuiltinValue Size a -> Maybe (Term TyName Name ())
 makeBuiltin (TypedBuiltinValue tb x) = case tb of
     TypedBuiltinSized se tbs -> Constant () <$> makeSizedConstant (flattenSizeEntry se) tbs x
     TypedBuiltinDyn          -> makeDynamicBuiltin x
@@ -159,11 +148,8 @@ makeBuiltin (TypedBuiltinValue tb x) = case tb of
 -- (e.g. an 'Integer' is in appropriate bounds) along the way and
 -- fail in case constraints are not satisfied.
 unsafeMakeBuiltin :: PrettyDynamic a => TypedBuiltinValue Size a -> Term TyName Name ()
-unsafeMakeBuiltin tbv =
-    case runExceptT $ makeBuiltin tbv of
-        EvaluationSuccess (Right x) -> x
-        _                           ->
-            error $ "unsafeMakeBuiltin: could not convert from a denotation: " ++ prettyString tbv
+unsafeMakeBuiltin tbv = fromMaybe err $ makeBuiltin tbv where
+    err = error $ "unsafeMakeBuiltin: could not convert from a denotation: " ++ prettyString tbv
 
 -- | Convert a Haskell value to a PLC value of a dynamic built-in type.
 unsafeMakeDynamicBuiltin

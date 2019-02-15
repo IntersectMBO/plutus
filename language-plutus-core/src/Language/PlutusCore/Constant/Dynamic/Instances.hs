@@ -36,9 +36,16 @@ import           System.IO.Unsafe                            (unsafePerformIO)
 instance KnownDynamicBuiltinType a => KnownDynamicBuiltinType (EvaluationResult a) where
     toTypeEncoding _ = toTypeEncoding $ Proxy @a
 
+    -- 'EvaluationFailure' on the Haskell side becomes 'Error' on the PLC side.
     makeDynamicBuiltin EvaluationFailure     = pure . Error () . toTypeEncoding $ Proxy @a
     makeDynamicBuiltin (EvaluationSuccess x) = makeDynamicBuiltin x
 
+    -- There are two 'EvaluationResult's here: an external one (which any 'KnownDynamicBuiltinType'
+    -- instance has to deal with) and an internal one (specific to this particular instance).
+    -- Our approach is to always return 'EvaluationSuccess' for the external 'EvaluationResult'
+    -- and catch all 'EvaluationFailure's in the internal 'EvaluationResult'.
+    -- This allows *not* to short-circuit when 'readDynamicBuiltin' fails to read a Haskell value.
+    -- Instead the user gets an explicit @EvaluationResult a@ and the evaluation proceeds normally.
     readDynamicBuiltin eval term = ExceptT . EvaluationSuccess <$> do
         res <- eval mempty term
         sequence . (>>= runExceptT) <$> traverse (readDynamicBuiltin eval) res
@@ -54,15 +61,15 @@ instance KnownDynamicBuiltinType [Char] where
             Constant () (BuiltinStr () s) -> pure s
             _                             -> throwError "Not a builtin String"
 
--- Encode 'Bool' from Haskell as @integer 1@ from PLC.
 instance KnownDynamicBuiltinType Bool where
     toTypeEncoding _ = bool
 
-    makeDynamicBuiltin = fmap (Constant ()) . makeBuiltinInt 1 . fromIntegral . fromEnum
+    makeDynamicBuiltin b = Just $ if b then true else false
 
     readDynamicBuiltin eval b = do
         let int1 = TyApp () (TyBuiltin () TyInteger) (TyInt () 4)
             asInt1 = Constant () . BuiltinInt () 1
+        -- Encode 'Bool' from Haskell as @integer 1@ from PLC.
         res <- eval mempty (mkIterApp () (TyInst () b int1) [asInt1 1, asInt1 0])
         pure $ lift res >>= \case
             Constant () (BuiltinInt () 1 1) -> pure True
@@ -76,6 +83,8 @@ instance KnownDynamicBuiltinType Char where
     makeDynamicBuiltin = fmap (Constant ()) . makeBuiltinInt 4 . fromIntegral . ord
 
     readDynamicBuiltin eval term = do
+        -- 'term' is supposed to be already evaluated, but calling 'eval' is the easiest way
+        -- to turn 'Error' into 'EvaluationFailure', which we later 'lift' to 'Convert'.
         res <- eval mempty term
         pure $ lift res >>= \case
             Constant () (BuiltinInt () 4 int) -> pure . chr $ fromIntegral int
@@ -85,7 +94,7 @@ proxyOf :: a -> Proxy a
 proxyOf _ = Proxy
 
 makeTypeAndDynamicBuiltin
-    :: KnownDynamicBuiltinType a => a -> Convert (Type TyName (), Term TyName Name ())
+    :: KnownDynamicBuiltinType a => a -> Maybe (Type TyName (), Term TyName Name ())
 makeTypeAndDynamicBuiltin x = do
     let da = toTypeEncoding $ proxyOf x
     dx <- makeDynamicBuiltin x
