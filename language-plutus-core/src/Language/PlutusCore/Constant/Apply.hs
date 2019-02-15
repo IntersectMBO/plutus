@@ -152,9 +152,6 @@ extractBuiltin (TypedBuiltinSized sizeEntry tbs) (SizeValues sizes) value = retu
             unPairT . fmap SizeValues $ IntMap.alterF upd sizeIndex sizes where
                 upd maySize = fmap Just . PairT $ extractSizedBuiltin tbs maySize constant
     _                    -> Left $ SizedNonConstantConstAppError value
-extractBuiltin TypedBuiltinBool                  _                  _     =
-    -- TODO: move to dynamic built-ins here as well.
-    error "Not implemented."
 extractBuiltin TypedBuiltinDyn                   sizeValues         value =
     maybe (Left $ UnreadableBuiltinConstAppError value) (\x -> Right (x, sizeValues)) <$>
         readDynamicBuiltinM value
@@ -237,11 +234,14 @@ applyBuiltinName EqInteger            = applyTypedBuiltinName typedEqInteger    
 applyBuiltinName ResizeInteger        = applyTypedBuiltinName typedResizeInteger        (const id)
 applyBuiltinName IntToByteString      = applyTypedBuiltinName typedIntToByteString      undefined
 applyBuiltinName Concatenate          = applyTypedBuiltinName typedConcatenate          (<>)
-applyBuiltinName TakeByteString       = applyTypedBuiltinName typedTakeByteString       (BSL.take . fromIntegral)
-applyBuiltinName DropByteString       = applyTypedBuiltinName typedDropByteString       (BSL.drop . fromIntegral)
+applyBuiltinName TakeByteString       = applyTypedBuiltinName typedTakeByteString
+                                          (BSL.take . fromIntegral)
+applyBuiltinName DropByteString       = applyTypedBuiltinName typedDropByteString
+                                          (BSL.drop . fromIntegral)
 applyBuiltinName ResizeByteString     = applyTypedBuiltinName typedResizeByteString     (const id)
 applyBuiltinName SHA2                 = applyTypedBuiltinName typedSHA2                 Hash.sha2
 applyBuiltinName SHA3                 = applyTypedBuiltinName typedSHA3                 Hash.sha3
-applyBuiltinName VerifySignature      = applyTypedBuiltinName typedVerifySignature      verifySignature
+applyBuiltinName VerifySignature      = applyTypedBuiltinName typedVerifySignature
+                                          (\p m s -> EitherError $ verifySignature p m s)
 applyBuiltinName EqByteString         = applyTypedBuiltinName typedEqByteString         (==)
 applyBuiltinName SizeOfInteger        = applyTypedBuiltinName typedSizeOfInteger        (const ())

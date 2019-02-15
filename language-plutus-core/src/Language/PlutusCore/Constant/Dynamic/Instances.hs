@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
@@ -16,6 +17,7 @@ import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
+import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Sum         as Plc
 import           Language.PlutusCore.StdLib.Data.Unit
@@ -24,11 +26,25 @@ import           Language.PlutusCore.StdLib.Meta.Data.Tuple
 import           Language.PlutusCore.StdLib.Type
 import           Language.PlutusCore.Type
 
+import           Control.Monad
 import           Data.Bitraversable
 import           Data.Char
 import           Data.Proxy
 import qualified Data.Text.Prettyprint.Doc                   as Doc
 import           System.IO.Unsafe                            (unsafePerformIO)
+
+instance KnownDynamicBuiltinType a => KnownDynamicBuiltinType (EitherError a) where
+    toTypeEncoding _ = toTypeEncoding $ Proxy @a
+
+    makeDynamicBuiltin (EitherError mayX) = case mayX of
+        Nothing -> Just . Error () . toTypeEncoding $ Proxy @a
+        Just x  -> makeDynamicBuiltin x
+
+    readDynamicBuiltin eval term = do
+        evalRes <- eval mempty term
+        let mayRes = evaluationResultToMaybe evalRes
+        mayX <- join <$> traverse (readDynamicBuiltin eval) mayRes
+        pure . Just $ EitherError mayX
 
 instance KnownDynamicBuiltinType [Char] where
     toTypeEncoding _ = TyBuiltin () TyString
@@ -38,6 +54,21 @@ instance KnownDynamicBuiltinType [Char] where
     readDynamicBuiltin _ (Constant () (BuiltinStr () s)) = pure $ Just s
     readDynamicBuiltin _ _                               = pure Nothing
 
+-- Encode 'Bool' from Haskell as @integer 1@ from PLC.
+instance KnownDynamicBuiltinType Bool where
+    toTypeEncoding _ = bool
+
+    makeDynamicBuiltin b = Just $ if b then true else false
+
+    readDynamicBuiltin eval b = do
+        let int1 = TyApp () (TyBuiltin () TyInteger) (TyInt () 4)
+            asInt1 = Constant () . BuiltinInt () 1
+        evalRes <- eval mempty $ mkIterApp () (TyInst () b int1) [asInt1 1, asInt1 0]
+        pure $ evaluationResultToMaybe evalRes >>= \case
+            Constant () (BuiltinInt () 1 1) -> Just True
+            Constant () (BuiltinInt () 1 0) -> Just False
+            _                               -> Nothing
+
 -- Encode 'Char' from Haskell as @integer 4@ from PLC.
 instance KnownDynamicBuiltinType Char where
     toTypeEncoding _ = TyApp () (TyBuiltin () TyInteger) (TyInt () 4)
@@ -46,8 +77,6 @@ instance KnownDynamicBuiltinType Char where
 
     readDynamicBuiltin _ (Constant () (BuiltinInt () 4 int)) = pure . Just . chr $ fromIntegral int
     readDynamicBuiltin _ _                                   = pure Nothing
-
-instance PrettyDynamic Char
 
 proxyOf :: a -> Proxy a
 proxyOf _ = Proxy

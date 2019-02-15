@@ -1,5 +1,8 @@
+{-# LANGUAGE RankNTypes #-}
+
 module Language.PlutusCore.Constant.Name
-    ( typedAddInteger
+    ( withTypedBuiltinName
+    , typedAddInteger
     , typedSubtractInteger
     , typedMultiplyInteger
     , typedDivideInteger
@@ -24,10 +27,37 @@ module Language.PlutusCore.Constant.Name
     , typedSizeOfInteger
     ) where
 
+import           Language.PlutusCore.Constant.Dynamic.Instances ()
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Lexer.Type
 
-import qualified Data.ByteString.Lazy.Char8         as BSL
+import qualified Data.ByteString.Lazy.Char8                     as BSL
+
+-- | Apply a continuation to the typed version of a 'BuiltinName'.
+withTypedBuiltinName :: BuiltinName -> (forall a r. TypedBuiltinName a r -> c) -> c
+withTypedBuiltinName AddInteger           k = k typedAddInteger
+withTypedBuiltinName SubtractInteger      k = k typedSubtractInteger
+withTypedBuiltinName MultiplyInteger      k = k typedMultiplyInteger
+withTypedBuiltinName DivideInteger        k = k typedDivideInteger
+withTypedBuiltinName QuotientInteger      k = k typedQuotientInteger
+withTypedBuiltinName RemainderInteger     k = k typedRemainderInteger
+withTypedBuiltinName ModInteger           k = k typedModInteger
+withTypedBuiltinName LessThanInteger      k = k typedLessThanInteger
+withTypedBuiltinName LessThanEqInteger    k = k typedLessThanEqInteger
+withTypedBuiltinName GreaterThanInteger   k = k typedGreaterThanInteger
+withTypedBuiltinName GreaterThanEqInteger k = k typedGreaterThanEqInteger
+withTypedBuiltinName EqInteger            k = k typedEqInteger
+withTypedBuiltinName ResizeInteger        k = k typedResizeInteger
+withTypedBuiltinName IntToByteString      k = k typedIntToByteString
+withTypedBuiltinName Concatenate          k = k typedConcatenate
+withTypedBuiltinName TakeByteString       k = k typedTakeByteString
+withTypedBuiltinName DropByteString       k = k typedDropByteString
+withTypedBuiltinName SHA2                 k = k typedSHA2
+withTypedBuiltinName SHA3                 k = k typedSHA3
+withTypedBuiltinName VerifySignature      k = k typedVerifySignature
+withTypedBuiltinName ResizeByteString     k = k typedResizeByteString
+withTypedBuiltinName EqByteString         k = k typedEqByteString
+withTypedBuiltinName SizeOfInteger        k = k typedSizeOfInteger
 
 sizeIntIntInt :: TypeScheme size (Integer -> Integer -> Integer) Integer
 sizeIntIntInt =
@@ -41,7 +71,7 @@ sizeIntIntBool =
     TypeSchemeAllSize $ \s ->
         TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt) `TypeSchemeArrow`
         TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt) `TypeSchemeArrow`
-        TypeSchemeBuiltin TypedBuiltinBool
+        TypeSchemeBuiltin TypedBuiltinDyn
 
 -- | Typed 'AddInteger'.
 typedAddInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
@@ -152,14 +182,14 @@ typedSHA3 =
             TypeSchemeBuiltin (TypedBuiltinSized (SizeValue 32) TypedBuiltinSizedBS)
 
 -- | Typed 'VerifySignature'.
-typedVerifySignature :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> BSL.ByteString -> Bool) Bool
+typedVerifySignature :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> BSL.ByteString -> EitherError Bool) (EitherError Bool)
 typedVerifySignature =
     TypedBuiltinName VerifySignature $
         TypeSchemeAllSize $ \s0 -> TypeSchemeAllSize $ \s1 -> TypeSchemeAllSize $ \s2 ->
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s0) TypedBuiltinSizedBS) `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s1) TypedBuiltinSizedBS) `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s2) TypedBuiltinSizedBS) `TypeSchemeArrow`
-            TypeSchemeBuiltin TypedBuiltinBool
+            TypeSchemeBuiltin TypedBuiltinDyn
 
 -- | Typed 'ResizeByteString'.
 typedResizeByteString :: TypedBuiltinName (() -> BSL.ByteString -> BSL.ByteString) BSL.ByteString
@@ -177,7 +207,7 @@ typedEqByteString =
         TypeSchemeAllSize $ \s ->
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedBS) `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedBS) `TypeSchemeArrow`
-            TypeSchemeBuiltin TypedBuiltinBool
+            TypeSchemeBuiltin TypedBuiltinDyn
 
 -- | Typed 'SizeOfInteger'.
 typedSizeOfInteger :: TypedBuiltinName (Integer -> ()) ()

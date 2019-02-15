@@ -19,7 +19,6 @@ module Language.PlutusCore.Constant.Make
     , makeBuiltinBS
     , makeBuiltinStr
     , makeSizedConstant
-    , makeBuiltinBool
     , makeBuiltin
     , unsafeMakeBuiltin
     , unsafeMakeDynamicBuiltin
@@ -32,7 +31,6 @@ import           Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -139,16 +137,11 @@ makeSizedConstant size TypedBuiltinSizedInt  int = makeBuiltinInt size int
 makeSizedConstant size TypedBuiltinSizedBS   bs  = makeBuiltinBS  size bs
 makeSizedConstant size TypedBuiltinSizedSize ()  = Just $ BuiltinSize () size
 
--- | Convert a 'Bool' to the corresponding PLC's @boolean@.
-makeBuiltinBool :: Bool -> Term TyName Name ()
-makeBuiltinBool b = if b then true else false
-
 -- | Convert a Haskell value to the corresponding PLC value checking all constraints
 -- (e.g. an 'Integer' is in appropriate bounds) along the way.
 makeBuiltin :: TypedBuiltinValue Size a -> Maybe (Term TyName Name ())
 makeBuiltin (TypedBuiltinValue tb x) = case tb of
     TypedBuiltinSized se tbs -> Constant () <$> makeSizedConstant (flattenSizeEntry se) tbs x
-    TypedBuiltinBool         -> Just $ makeBuiltinBool x
     TypedBuiltinDyn          -> makeDynamicBuiltin x
 
 -- | Convert a Haskell value to a PLC value checking all constraints
@@ -179,5 +172,4 @@ makeSizedConstantNOCHECK size TypedBuiltinSizedSize ()  = BuiltinSize () size
 makeBuiltinNOCHECK :: PrettyDynamic a => TypedBuiltinValue Size a -> Term TyName Name ()
 makeBuiltinNOCHECK tbv@(TypedBuiltinValue tb x) = case tb of
     TypedBuiltinSized se tbs -> Constant () $ makeSizedConstantNOCHECK (flattenSizeEntry se) tbs x
-    TypedBuiltinBool         -> makeBuiltinBool x
     TypedBuiltinDyn          -> unsafeMakeBuiltin tbv

@@ -19,6 +19,7 @@ module Language.PlutusCore.Constant.Typed
     , DynamicBuiltinNameMeaning(..)
     , DynamicBuiltinNameDefinition(..)
     , DynamicBuiltinNameMeanings(..)
+    , EitherError (..)
     , Evaluator
     , Evaluate
     , KnownDynamicBuiltinType (..)
@@ -39,7 +40,6 @@ import           PlutusPrelude
 
 import           Control.Monad.Reader
 import qualified Data.ByteString.Lazy.Char8                  as BSL
-import           Data.GADT.Compare
 import           Data.Map                                    (Map)
 
 infixr 9 `TypeSchemeArrow`
@@ -107,16 +107,12 @@ data SizeEntry size
 -- | Built-in types.
 data BuiltinType size
     = BuiltinSized (SizeEntry size) BuiltinSized
-    | BuiltinBool
 
 -- | Built-in types. A type is considired "built-in" if it can appear in the type signature
 -- of a primitive operation. So @boolean@ is considered built-in even though it is defined in PLC
 -- and is not primitive.
 data TypedBuiltin size a where
     TypedBuiltinSized :: SizeEntry size -> TypedBuiltinSized a -> TypedBuiltin size a
-    -- TODO: this is now more or less obsolete and should be removed,
-    -- because 'TypedBuiltinDyn' is enough.
-    TypedBuiltinBool  :: TypedBuiltin size Bool
     -- Any type that implements 'KnownDynamicBuiltinType' can be lifted to a 'TypedBuiltin',
     -- because any such type has a PLC representation and provides conversions back and forth
     -- between Haskell and PLC and that's all we need.
@@ -179,6 +175,17 @@ data DynamicBuiltinNameDefinition =
 newtype DynamicBuiltinNameMeanings = DynamicBuiltinNameMeanings
     { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName DynamicBuiltinNameMeaning
     } deriving (Semigroup, Monoid)
+
+-- | On the PLC side this becomes either a call to 'error' or
+-- a value of the PLC equivalent of type @a@.
+newtype EitherError a = EitherError
+    { unEitherError :: Maybe a
+    } deriving
+        ( Semigroup, Monoid
+        , Functor, Foldable, Traversable
+        , Applicative, Alternative
+        , Monad, MonadPlus
+        )
 
 type Evaluator f m = DynamicBuiltinNameMeanings -> f TyName Name () -> m EvaluationResult
 
@@ -321,54 +328,13 @@ instance Pretty size => Pretty (SizeEntry size) where
 
 instance Pretty size => Pretty (TypedBuiltin size a) where
     pretty (TypedBuiltinSized se tbs) = parens $ pretty tbs <+> pretty se
-    pretty TypedBuiltinBool           = "bool"
     -- TODO: do we want this entire thing to be 'PrettyBy' rather than 'Pretty'?
     -- This is just used in errors, so we probably do not care much.
     pretty dyn@TypedBuiltinDyn        = prettyPlcDef $ toTypeEncoding dyn
 
 instance (size ~ Size, PrettyDynamic a) => Pretty (TypedBuiltinValue size a) where
     pretty (TypedBuiltinValue (TypedBuiltinSized se _) x) = pretty se <+> "!" <+> prettyDynamic x
-    pretty (TypedBuiltinValue TypedBuiltinBool         b) = prettyDynamic b
     pretty (TypedBuiltinValue TypedBuiltinDyn          x) = prettyDynamic x
-
-liftOrdering :: Ordering -> GOrdering a a
-liftOrdering LT = GLT
-liftOrdering EQ = GEQ
-liftOrdering GT = GGT
-
--- I tried using the 'dependent-sum-template' package,
--- but see https://stackoverflow.com/q/50048842/3237465
-instance GEq TypedBuiltinSized where
-    TypedBuiltinSizedInt  `geq` TypedBuiltinSizedInt  = Just Refl
-    TypedBuiltinSizedBS   `geq` TypedBuiltinSizedBS   = Just Refl
-    TypedBuiltinSizedSize `geq` TypedBuiltinSizedSize = Just Refl
-    _                     `geq` _                     = Nothing
-
-comparedDynamicBuiltinTypesError :: a
-comparedDynamicBuiltinTypesError = error "Dynamic built-in types cannot be compared"
-
-instance Eq size => GEq (TypedBuiltin size) where
-    TypedBuiltinSized size1 tbs1 `geq` TypedBuiltinSized size2 tbs2 = do
-        guard $ size1 == size2
-        tbs1 `geq` tbs2
-    TypedBuiltinBool             `geq` TypedBuiltinBool             = Just Refl
-    TypedBuiltinDyn              `geq` _                            = comparedDynamicBuiltinTypesError
-    _                            `geq` TypedBuiltinDyn              = comparedDynamicBuiltinTypesError
-    _                            `geq` _                            = Nothing
-
-instance Ord size => GCompare (TypedBuiltin size) where
-    TypedBuiltinSized size1 tbs1 `gcompare` TypedBuiltinSized size2 tbs2
-        | Just Refl <- tbs1 `geq` tbs2 = liftOrdering $ size1 `compare` size2
-        | otherwise                    = case (tbs1, tbs2) of
-            (TypedBuiltinSizedInt , _                    ) -> GLT
-            (TypedBuiltinSizedBS  , TypedBuiltinSizedInt ) -> GGT
-            (TypedBuiltinSizedBS  , _                    ) -> GLT
-            (TypedBuiltinSizedSize, _                    ) -> GGT
-    TypedBuiltinBool             `gcompare` TypedBuiltinBool      = GEQ
-    TypedBuiltinSized _ _        `gcompare` TypedBuiltinBool      = GLT
-    TypedBuiltinBool             `gcompare` TypedBuiltinSized _ _ = GGT
-    TypedBuiltinDyn              `gcompare` _                     = comparedDynamicBuiltinTypesError
-    _                            `gcompare` TypedBuiltinDyn       = comparedDynamicBuiltinTypesError
 
 -- Encode '()' from Haskell as @all r. r -> r@ from PLC.
 -- This is a very special instance, because it's used to define functions that are needed for

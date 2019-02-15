@@ -2,6 +2,7 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module Language.PlutusCore.Generators.Interesting
     ( TermGen
@@ -224,7 +225,7 @@ genIfIntegers = do
     size <- genSizeDef
     let typedIntS = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
         intS = typedBuiltinToType typedIntS
-    TermOf b bv <- genTermLoose TypedBuiltinBool
+    TermOf b bv <- genTermLoose $ TypedBuiltinDyn @Bool
     TermOf i iv <- genTermLoose typedIntS
     TermOf j jv <- genTermLoose typedIntS
     let instConst = Apply () $ mkIterInst () Function.const [intS, unit]

@@ -47,7 +47,6 @@ test_evalOutOfBounds =
                 -- 'genTypedBuiltinOutOfBounds' only generates out-of-bounds constants for
                 -- @integer@s and @bytestring@s, hence we explicitly ignore other built-ins here.
                 return $ case tb of
-                    TypedBuiltinBool                          -> Nothing
                     TypedBuiltinSized _ TypedBuiltinSizedSize -> Nothing
                     _                                         -> mayTermWithValue
         assert $ isNothing mayTermWithValue
