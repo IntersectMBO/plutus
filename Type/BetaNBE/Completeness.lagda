@@ -26,7 +26,7 @@ open import Function
 CR : ∀{Φ} K → Val Φ K → Val Φ K → Set
 CR #       n        n'        = n ≡ n'
 CR *       n        n'        = n ≡ n'
-CR (K ⇒ J) (inj₁ n) (inj₁ n') = reify (inj₁ n) ≡ reify (inj₁ n')
+CR (K ⇒ J) (inj₁ n) (inj₁ n') = n ≡ n' -- reify (inj₁ n) ≡ reify (inj₁ n')
 CR (K ⇒ J) (inj₂ f) (inj₁ n') = ⊥
 CR (K ⇒ J) (inj₁ n) (inj₂ f)  = ⊥
 CR (K ⇒ J) (inj₂ f) (inj₂ f') =
@@ -110,7 +110,7 @@ reflectCR : ∀{Φ K} → {n n' : Φ ⊢NeN⋆ K}
   → CR K (reflect n) (reflect n')
 reflectCR {K = #}     p = cong ne p
 reflectCR {K = *}     p = cong ne p
-reflectCR {K = K ⇒ J} p = cong ne p
+reflectCR {K = K ⇒ J} p = p
 
 reifyCR : ∀{Φ K} → {v v' : Val Φ K}
   → CR K v v'
@@ -118,7 +118,7 @@ reifyCR : ∀{Φ K} → {v v' : Val Φ K}
   → reify v ≡ reify v'
 reifyCR {K = #    }                    p              = p
 reifyCR {K = *    }                    p              = p
-reifyCR {K = K ⇒ J} {inj₁ n} {inj₁ n'} p              = p
+reifyCR {K = K ⇒ J} {inj₁ n} {inj₁ n'} p              = cong ne p
 reifyCR {K = K ⇒ J} {inj₁ n} {inj₂ f'} ()             
 reifyCR {K = K ⇒ J} {inj₂ f} {inj₁ n'} ()             
 reifyCR {K = K ⇒ J} {inj₂ f} {inj₂ f'} (p , p' , p'') =
@@ -199,7 +199,7 @@ renameVal-id : ∀ {K Φ}{v v' : Val Φ K}
   → CR K (renameVal id v) v'
 renameVal-id {#}                            refl = renameNf-id _
 renameVal-id {*}                            refl = renameNf-id _
-renameVal-id {K ⇒ J} {v = inj₁ n} {inj₁ n'} refl = cong ne (renameNeN-id _)
+renameVal-id {K ⇒ J} {v = inj₁ n} {inj₁ n'} refl = renameNeN-id _
 renameVal-id {K ⇒ J} {v = inj₁ n} {inj₂ f'} ()
 renameVal-id {K ⇒ J} {v = inj₂ f} {inj₁ n'} () 
 renameVal-id {K ⇒ J} {v = inj₂ f} {inj₂ f'} p    = p
@@ -219,7 +219,7 @@ renameVal-comp {#}      ρ ρ'                    refl           =
 renameVal-comp {*}      ρ ρ'                    refl           =
   renameNf-comp _
 renameVal-comp {K ⇒ K₁} ρ ρ' {inj₁ n} {inj₁ n'} refl           =
-  cong ne (renameNeN-comp _)
+  renameNeN-comp _
 renameVal-comp {K ⇒ K₁} ρ ρ' {inj₁ x} {inj₂ y} ()
 renameVal-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₁ x} ()
 renameVal-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₂ y₁} (p , p' , p'') =
@@ -267,7 +267,7 @@ renameVal·V {J = *} ρ {inj₁ n} {inj₁ .n} refl {v}{v'} q =
   cong (ne ∘ (renameNeN ρ n ·_))
        (trans ( rename-reify (reflCR q) ρ ) (reifyCR (renCR ρ q)))
 renameVal·V {J = J ⇒ K} ρ {inj₁ n} {inj₁ .n} refl     q =
-  cong (ne ∘ (renameNeN ρ n ·_))
+  cong (renameNeN ρ n ·_)
        (trans ( rename-reify (reflCR q) ρ ) (reifyCR (renCR ρ q)))
 renameVal·V ρ {inj₁ n} {inj₂ f}  ()                   q
 renameVal·V ρ {inj₂ f} {inj₁ n'} ()                   q

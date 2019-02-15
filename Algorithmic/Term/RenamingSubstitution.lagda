@@ -276,10 +276,8 @@ subst {Γ}{Δ} σ⋆ σ (wrap1 {K = K} pat arg term) = wrap1
          (AppCR
            (fund idCR (soundness (⋆.subst (embNf ∘ σ⋆) (embNf pat))))
            (cong
-             ne
-             (cong
                (μ1 ·_)
-               (completeness (soundness (⋆.subst (embNf ∘ σ⋆) (embNf pat)))))))
+               (completeness (soundness (⋆.subst (embNf ∘ σ⋆) (embNf pat))))))
          (fund idCR (soundness (⋆.subst (embNf ∘ σ⋆) (embNf arg))))))
     (subst σ⋆ σ term))
 subst {Γ}{Δ} σ⋆ σ (unwrap1 {pat = pat}{arg} term)       = substEq
@@ -291,10 +289,8 @@ subst {Γ}{Δ} σ⋆ σ (unwrap1 {pat = pat}{arg} term)       = substEq
          (AppCR
            (fund idCR (soundness (⋆.subst (embNf ∘ σ⋆) (embNf pat))))
            (cong
-             ne
-             (cong
                (μ1 ·_)
-               (completeness (soundness (⋆.subst (embNf ∘ σ⋆) (embNf pat)))))))
+               (completeness (soundness (⋆.subst (embNf ∘ σ⋆) (embNf pat))))))
          (fund idCR (soundness (⋆.subst (embNf ∘ σ⋆) (embNf arg)))))))
   (unwrap1 (subst σ⋆ σ term))
 subst σ⋆ σ (con c) = con (substTermCon σ⋆ c)
