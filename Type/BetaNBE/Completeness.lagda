@@ -30,27 +30,27 @@ CR (K ⇒ J) (inj₁ n) (inj₁ n') = n ≡ n' -- reify (inj₁ n) ≡ reify (in
 CR (K ⇒ J) (inj₂ f) (inj₁ n') = ⊥
 CR (K ⇒ J) (inj₁ n) (inj₂ f)  = ⊥
 CR (K ⇒ J) (inj₂ f) (inj₂ f') =
-  Unif (inj₂ f)
+  Unif f
   ×
-  Unif (inj₂ f')
+  Unif f'
   ×
   ∀ {Ψ}
      → (ρ : Ren _ Ψ)
      → {v v' : Val Ψ K}
      → CR K v v'
        ---------------------------------------------------------
-     → CR J (renameVal ρ (inj₂ f) ·V v) (renameVal ρ (inj₂ f') ·V v')
+     → CR J (f ρ v) (f' ρ v')
   where
     -- Uniformity
-    Unif : ∀{Φ K J} → Val Φ (K ⇒ J) → Set
+    Unif : ∀{Φ K J} → (∀ {Ψ} → Ren Φ Ψ → Val Ψ K → Val Ψ J) → Set
     Unif {Φ}{K}{J} f = ∀{Ψ Ψ'}
       → (ρ : Ren Φ Ψ)
       → (ρ' : Ren Ψ Ψ')
       → (v v' : Val Ψ K)
       → CR K v v'
         --------————————————————————————————————————————————————————————————————
-      → CR J (renameVal ρ' (renameVal ρ f ·V v))
-             (renameVal (ρ' ∘ ρ) f ·V renameVal ρ' v')
+      → CR J (renameVal ρ' (f ρ v))
+             (f (ρ' ∘ ρ) (renameVal ρ' v'))
 \end{code}
 
 CR is symmetric and transitive, it is not reflexive, but we if we
