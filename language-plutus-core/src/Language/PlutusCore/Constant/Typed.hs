@@ -284,6 +284,11 @@ received evaluator
 (3) seems best, so it's what is implemented.
 -}
 
+-- | The monad in which we convert PLC terms into Haskell values.
+-- Conversion can fail with
+--
+-- 1. 'EvaluationFailure' if at some point constants stop fitting into specified sizes.
+-- 2. A textual error if a PLC term can't be converted to a Haskell value of a specified type.
 type Convert a = ExceptT Text EvaluationResult a
 
 -- See Note [Semantics of dynamic built-in types].
