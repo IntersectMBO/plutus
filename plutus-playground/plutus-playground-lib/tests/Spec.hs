@@ -7,16 +7,15 @@
 
 module Main where
 
-import           Data.Aeson            (FromJSON (..), ToJSON (..))
-import           Data.Proxy            (Proxy (..))
-import           Data.Swagger          (Schema, ToSchema (..), toSchema)
+import           Data.Aeson            (FromJSON, ToJSON)
+import           Data.Proxy            (Proxy (Proxy))
+import           Data.Swagger          (Schema, ToSchema, toSchema)
 import           Data.Text             (Text)
 import           GHC.Generics          (Generic)
-import           Test.Tasty
-import           Test.Tasty.HUnit
-
-import           Playground.API
-import           Playground.TH
+import           Playground.API        (Fn (Fn), FunctionSchema (FunctionSchema))
+import           Playground.TH         (mkFunctions, mkSingleFunction)
+import           Test.Tasty            (TestTree, defaultMain, testGroup)
+import           Test.Tasty.HUnit      (testCase, (@?=))
 import           Wallet.Emulator.Types (MockWallet)
 
 -- f1..fn are functions that we should be able to generate schemas
