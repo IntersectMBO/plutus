@@ -1,1 +1,1 @@
-(error (all a (type) (fun a (fun a a))))
+(abs a (type) (lam x a (lam y a x)))
