@@ -91,7 +91,7 @@ actionPane index action =
                               [ type_ InputNumber
                               , value $ show blocks
                               , placeholder "Int"
-                              , onValueChange $ map (\time -> HQ.action $ ModifyActions $ SetWaitTime index time) <<< Int.fromString
+                              , onValueChange $ map (HQ.action <<< ModifyActions <<< SetWaitTime index) <<< Int.fromString
                               ]
                           ]
                         ]
