@@ -1,5 +1,7 @@
 module Wallet where
 
+import Types
+
 import Bootstrap (btn, btnSecondary, btnSmall, card, cardBody_, cardTitle_, card_, col4_, col_, pullRight, row, row_)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
@@ -14,9 +16,8 @@ import Halogen.HTML.Events (input_, onClick, onValueChange)
 import Halogen.HTML.Properties (InputType(..), class_, classes, placeholder, type_, value)
 import Halogen.Query as HQ
 import Icons (Icon(..), icon)
-import Playground.API (FunctionSchema, SimpleArgumentSchema, _Fn, _FunctionSchema)
+import Playground.API (FunctionSchema, MockWallet, SimpleArgumentSchema, _Fn, _FunctionSchema)
 import Prelude (map, show, ($), (<$>), (<<<))
-import Types (Action(..), ActionEvent(..), MockWallet, Query(..), Signatures, _MockWallet, _balance, _functionName, _wallet, toValueLevel)
 import Wallet.Emulator.Types (Wallet)
 
 walletsPane ::
@@ -51,15 +52,15 @@ walletPane signatures index mockWallet =
                       , onClick $ input_ $ RemoveWallet index
                       ]
                       [ icon Close ]
-                  , cardTitle_ [ h3_ [ walletIdPane (view (_MockWallet <<< _wallet) mockWallet) ] ]
+                  , cardTitle_ [ h3_ [ walletIdPane (view _mockWalletWallet mockWallet) ] ]
                   , row_
                       [ col_ [ text "ADA" ]
                       , col_ [
                           input
                             [ type_ InputNumber
-                            , value $ show $ view (_MockWallet <<< _balance) mockWallet
+                            , value $ show $ view _mockWalletBalance mockWallet
                             , placeholder "Int"
-                            , onValueChange $ map (HQ.action <<< SetBalance (view (_MockWallet <<< _wallet) mockWallet)) <<< Int.fromString
+                            , onValueChange $ map (HQ.action <<< SetBalance (view _mockWalletWallet mockWallet)) <<< Int.fromString
                             ]
                         ]
                       ]

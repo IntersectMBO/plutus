@@ -22,10 +22,10 @@ import Halogen.HTML.Properties (InputType(InputText, InputNumber), class_, class
 import Halogen.Query as HQ
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
-import Playground.API (EvaluationResult, _EvaluationResult, _Fn, _FunctionSchema)
+import Playground.API (EvaluationResult, MockWallet, _EvaluationResult, _Fn, _FunctionSchema)
 import Prelude (map, show, unit, ($), (+), (/=), (<$>), (<<<), (<>))
 import Servant.PureScript.Affjax (AjaxError)
-import Types (Action(..), ActionEvent(..), Blockchain, ChildQuery, ChildSlot, FormEvent(..), MockWallet, Query(..), Signatures, SimpleArgument(..), ValidationError, _MockWallet, _argumentSchema, _functionName, _wallet, validate)
+import Types (Action(..), ActionEvent(..), Blockchain, ChildQuery, ChildSlot, FormEvent(..), Query(..), Signatures, SimpleArgument(..), ValidationError, _argumentSchema, _functionName, _mockWalletWallet, validate)
 import Wallet (walletIdPane, walletsPane)
 
 simulationPane ::
@@ -76,7 +76,7 @@ actionPane index action =
                 Action {mockWallet, functionSchema} ->
                   div_
                     [ h3_
-                        [ walletIdPane (view (_MockWallet <<< _wallet) mockWallet)
+                        [ walletIdPane (view _mockWalletWallet mockWallet)
                         , text ": "
                         , text $ view (_FunctionSchema <<< _functionName <<< _Fn) functionSchema
                         ]

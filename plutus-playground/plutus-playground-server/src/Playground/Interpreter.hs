@@ -25,7 +25,7 @@ import           Playground.API             (CompilationResult (CompilationResul
                                              Expression (Action, Wait), Fn (Fn), FunctionSchema (FunctionSchema),
                                              FunctionSchema,
                                              PlaygroundError (CompilationErrors, DecodeJsonTypeError, InterpreterError, OtherError),
-                                             SourceCode, Warning (Warning), parseErrorsText, program,
+                                             SourceCode, Warning (Warning), mockWalletWallet, parseErrorsText, program,
                                              toSimpleArgumentSchema, wallets)
 import           System.Directory           (removeFile)
 import           System.Environment         (lookupEnv)
@@ -196,7 +196,7 @@ jsonToString = show . JSON.encode
 
 mkExpr :: (MonadError PlaygroundError m) => Evaluation -> m ByteString
 mkExpr evaluation = do
-    let allWallets = fst <$> wallets evaluation
+    let allWallets = mockWalletWallet <$> wallets evaluation
     exprs <- traverse (walletActionExpr allWallets) (program evaluation)
     pure . BS8.pack $
         "runTrace (decode' " <> jsonToString (wallets evaluation) <> ") [" <>

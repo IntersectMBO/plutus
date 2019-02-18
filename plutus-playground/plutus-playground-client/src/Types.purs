@@ -16,7 +16,6 @@ import Data.Lens (Lens', Prism', Lens, _2, over, prism', traversed, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
-import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested (type (/\))
@@ -25,29 +24,16 @@ import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.ECharts (EChartsMessage, EChartsQuery)
 import Ledger.Types (Tx)
 import Network.RemoteData (RemoteData)
-import Playground.API (CompilationError, CompilationResult, EvaluationResult, FunctionSchema, SimpleArgumentSchema(SimpleObjectArgument, UnknownArgument, SimpleStringArgument, SimpleIntArgument), _FunctionSchema)
+import Playground.API (CompilationError, CompilationResult, EvaluationResult, FunctionSchema, MockWallet, SimpleArgumentSchema(UnknownArgument, SimpleObjectArgument, SimpleStringArgument, SimpleIntArgument), _FunctionSchema, _MockWallet)
 import Servant.PureScript.Affjax (AjaxError)
 import Wallet.Emulator.Types (Wallet)
 
--- | A mock wallet combines an actual Plutus wallet record with a
--- | pretend opening balance.
-newtype MockWallet = MockWallet
-  { wallet :: Wallet
-  , balance :: Int
-  }
-derive instance genericMockWallet :: Generic MockWallet
-derive instance newtypeMockWallet :: Newtype MockWallet _
+_mockWalletWallet :: Lens' MockWallet Wallet
+_mockWalletWallet = _MockWallet <<< prop (SProxy :: SProxy "mockWalletWallet")
 
-_MockWallet :: forall a. Newtype MockWallet a => Lens' MockWallet a
-_MockWallet = _Newtype
 
-_wallet :: forall s a. Lens' {wallet :: a | s} a
-_wallet = prop (SProxy :: SProxy "wallet")
-
-_balance :: forall s a. Lens' {balance :: a | s} a
-_balance = prop (SProxy :: SProxy "balance")
-
-------------------------------------------------------------
+_mockWalletBalance :: Lens' MockWallet Int
+_mockWalletBalance = _MockWallet <<< prop (SProxy :: SProxy "mockWalletBalance")
 
 data Action
   = Action

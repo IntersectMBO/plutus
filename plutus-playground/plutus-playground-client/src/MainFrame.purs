@@ -57,7 +57,7 @@ import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
-import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SourceCode(SourceCode), _CompilationResult, _FunctionSchema)
+import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), MockWallet(..), SourceCode(SourceCode), _CompilationResult, _FunctionSchema)
 import Playground.API as API
 import Playground.Server (SPParams_, getOauthStatus, patchGistsByGistId, postContract, postEvaluate, postGists)
 import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, show, unit, unless, void, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
@@ -66,11 +66,17 @@ import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
 import Wallet.Emulator.Types (Wallet(..), _Wallet)
 
+mkMockWallet :: Int -> MockWallet
+mkMockWallet id =
+  MockWallet { mockWalletWallet: Wallet { getWallet: id }
+             , mockWalletBalance: 10
+             }
+
 initialState :: State
 initialState =
   { view: Editor
   , compilationResult: NotAsked
-  , wallets: (\n -> MockWallet { wallet: Wallet { getWallet: n }, balance: 10 }) <$> 1..2
+  , wallets: mkMockWallet <$> 1..2
   , simulation: Nothing
   , evaluationResult: NotAsked
   , authStatus: NotAsked
@@ -256,11 +262,8 @@ eval (EvaluateActions next) = do
 
 eval (AddWallet next) = do
   wallets <- use _wallets
-  let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _MockWallet <<< _wallet <<< _Wallet <<< to _.getWallet ) wallets
-  let newWallet = MockWallet
-        { wallet: Wallet { getWallet: (maxWalletId + 1) }
-        , balance: 10
-        }
+  let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _mockWalletWallet <<< _Wallet <<< to _.getWallet ) wallets
+  let newWallet = mkMockWallet (maxWalletId + 1)
   modifying _wallets (flip Array.snoc newWallet)
   pure next
 
@@ -271,8 +274,8 @@ eval (RemoveWallet index next) = do
 
 eval (SetBalance wallet newBalance next) = do
   modifying _wallets
-    (map (\mockWallet -> if view (_MockWallet <<< _wallet) mockWallet == wallet
-                         then set (_MockWallet <<< _balance) newBalance mockWallet
+    (map (\mockWallet -> if view _mockWalletWallet mockWallet == wallet
+                         then set _mockWalletBalance newBalance mockWallet
                          else mockWallet))
   pure next
 
@@ -317,7 +320,7 @@ replaceViewOnSuccess result source target = do
 
 currentEvaluation :: forall m. MonadState State m => SourceCode -> m (Maybe Evaluation)
 currentEvaluation sourceCode = do
-  wallets <- map toPair <$> use _wallets
+  wallets <- use _wallets
   simulation <- use _simulation
   pure $ case simulation of
     Nothing -> Nothing
@@ -327,17 +330,11 @@ currentEvaluation sourceCode = do
                         , sourceCode
                         , blockchain: []
                         }
-  where
-    toPair :: MockWallet -> Tuple Wallet Int
-    toPair mockWallet =
-      view (_MockWallet <<< _wallet) mockWallet
-      /\
-      view (_MockWallet <<< _balance) mockWallet
 
 toExpression :: Action -> API.Expression
 toExpression (Wait wait) = API.Wait wait
 toExpression (Action action) = API.Action
-  { wallet: view (_MockWallet <<< _wallet) action.mockWallet
+  { wallet: view _mockWalletWallet action.mockWallet
   , function: functionSchema.functionName
   , arguments: jsonArguments
   }
