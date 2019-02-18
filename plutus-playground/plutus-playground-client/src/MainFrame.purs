@@ -28,7 +28,7 @@ import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Generic (gEq)
 import Data.Int as Int
-import Data.Lens (_1, _2, _Just, _Right, assign, maximumOf, modifying, over, preview, set, to, traversed, use, view)
+import Data.Lens (_2, _Just, _Right, assign, maximumOf, modifying, over, preview, set, to, traversed, use, view)
 import Data.Lens.Index (ix)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -231,9 +231,9 @@ eval (CompileProgram next) = do
       -- change means we'll have to clear out the existing simulation.
       case preview (_Success <<< _Right <<< _CompilationResult <<< _functionSchema) result of
         Just newSignatures -> do
-          oldSignatures <- use (_simulation <<< _Just <<< _1)
+          oldSignatures <- use (_simulation <<< _Just <<< _signatures)
           unless (oldSignatures `gEq` newSignatures)
-            (assign _simulation (Just (newSignatures /\ [])))
+            (assign _simulation (Just { signatures: newSignatures, actions: [] }))
         _ -> pure unit
 
       pure next
@@ -243,7 +243,7 @@ eval (ScrollTo {row, column} next) = do
   pure next
 
 eval (ModifyActions actionEvent next) = do
-  modifying (_simulation <<< _Just <<< _2) (evalActionEvent actionEvent)
+  modifying (_simulation <<< _Just <<< _actions) (evalActionEvent actionEvent)
   pure next
 
 eval (EvaluateActions next) = do
@@ -269,7 +269,7 @@ eval (AddWallet next) = do
 
 eval (RemoveWallet index next) = do
   modifying _wallets (fromMaybe <*> Array.deleteAt index)
-  assign (_simulation <<< _Just <<< _2) []
+  assign (_simulation <<< _Just <<< _actions) []
   pure next
 
 eval (SetBalance wallet newBalance next) = do
@@ -283,7 +283,7 @@ eval (PopulateAction n l event) = do
   modifying
     (_simulation
        <<< _Just
-       <<< _2
+       <<< _actions
        <<< ix n
        <<< _Action
        <<< _functionSchema
@@ -324,7 +324,7 @@ currentEvaluation sourceCode = do
   simulation <- use _simulation
   pure $ case simulation of
     Nothing -> Nothing
-    Just (signature /\ actions) -> do
+    Just {actions} -> do
       Just $ Evaluation { wallets
                         , program: toExpression <$> actions
                         , sourceCode
@@ -410,11 +410,10 @@ render state =
             , strong_ [ text "Editor" ]
             , text " tab above to fix them and recompile."
             ]
-          Success (Right _), Just (signature /\ actions) ->
+          Success (Right _), Just simulation ->
             [ simulationPane
+                simulation
                 state.wallets
-                signature
-                actions
                 state.evaluationResult
             ]
           Failure error, _ -> [ ajaxErrorPane error ]

@@ -18,7 +18,6 @@ import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
-import Data.Tuple.Nested (type (/\))
 import Gist (Gist)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.ECharts (EChartsMessage, EChartsQuery)
@@ -202,12 +201,16 @@ cpBalancesChart = cp3
 
 type Blockchain = Array (Array Tx)
 type Signatures = Array (FunctionSchema SimpleArgumentSchema)
+type Simulation =
+  { signatures :: Signatures
+  , actions :: Array Action
+  }
 
 type State =
   { view :: View
   , compilationResult :: RemoteData AjaxError (Either (Array CompilationError) CompilationResult)
   , wallets :: Array MockWallet
-  , simulation :: Maybe (Signatures /\ Array Action)
+  , simulation :: Maybe Simulation
   , evaluationResult :: RemoteData AjaxError EvaluationResult
   , authStatus :: RemoteData AjaxError AuthStatus
   , createGistResult :: RemoteData AjaxError Gist
@@ -218,6 +221,12 @@ _view = prop (SProxy :: SProxy "view")
 
 _simulation :: forall s a. Lens' {simulation :: a | s} a
 _simulation = prop (SProxy :: SProxy "simulation")
+
+_signatures :: forall s a. Lens' {signatures :: a | s} a
+_signatures = prop (SProxy :: SProxy "signatures")
+
+_actions :: forall s a. Lens' {actions :: a | s} a
+_actions = prop (SProxy :: SProxy "actions")
 
 _wallets :: forall s a. Lens' {wallets :: a | s} a
 _wallets = prop (SProxy :: SProxy "wallets")

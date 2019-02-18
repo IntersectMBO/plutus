@@ -25,22 +25,21 @@ import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
 import Playground.API (EvaluationResult, MockWallet, _EvaluationResult, _Fn, _FunctionSchema)
 import Prelude (map, show, unit, ($), (+), (/=), (<$>), (<<<), (<>))
 import Servant.PureScript.Affjax (AjaxError)
-import Types (Action(..), ActionEvent(..), Blockchain, ChildQuery, ChildSlot, FormEvent(..), Query(..), Signatures, SimpleArgument(..), ValidationError, _argumentSchema, _functionName, _mockWalletWallet, validate)
+import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, FormEvent(SetSubField, SetStringField, SetIntField), Query(EvaluateActions, ModifyActions, PopulateAction), SimpleArgument(Unknowable, SimpleObject, SimpleString, SimpleInt), Simulation, ValidationError, _argumentSchema, _functionName, _mockWalletWallet, validate)
 import Wallet (walletIdPane, walletsPane)
 
 simulationPane ::
   forall m aff.
   MonadAff (EChartsEffects aff) m
-  => Array MockWallet
-  -> Signatures
-  -> Array Action
+  => Simulation
+  -> Array MockWallet
   -> RemoteData AjaxError EvaluationResult
   -> ParentHTML Query ChildQuery ChildSlot m
-simulationPane wallets signature actions evaluationResult =
+simulationPane simulation wallets evaluationResult =
   div_
-    [ walletsPane signature wallets
+    [ walletsPane simulation.signatures wallets
     , br_
-    , actionsPane actions (view (_EvaluationResult <<< to _.resultBlockchain) <$> evaluationResult)
+    , actionsPane simulation.actions (view (_EvaluationResult <<< to _.resultBlockchain) <$> evaluationResult)
     ]
 
 actionsPane :: forall p. Array Action -> RemoteData AjaxError Blockchain -> HTML p Query
