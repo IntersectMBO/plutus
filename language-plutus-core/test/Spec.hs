@@ -271,7 +271,6 @@ tests = testCase "example programs" $ fold
     , testRebindShadowedVariable @?= True
     , testRebindCapturedVariable @?= True
     , testEqTerm @?= True
-    , unitTestCrypto @?= True
     ]
     where
         fmt :: BSL.ByteString -> Either (Error AlexPosn) T.Text
