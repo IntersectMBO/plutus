@@ -218,12 +218,11 @@ readDynamicBuiltinCek
 readDynamicBuiltinCek term = do
     res <- readDynamicBuiltin evaluateCekCatch term
     case runExceptT res of
-        EvaluationFailure        -> Right Nothing
-        EvaluationSuccess errOrX -> bimap unreadableBuiltin Just errOrX where
-            unreadableBuiltin err =
-                MachineException
-                    (ConstAppMachineError $ UnreadableBuiltinConstAppError term err)
-                    term
+        EvaluationFailure            -> Right Nothing
+        EvaluationSuccess (Left err) -> Left $ MachineException
+            (ConstAppMachineError $ UnreadableBuiltinConstAppError term err)
+            term
+        EvaluationSuccess (Right x)  -> Right $ Just x
 
 -- | Run a program using the CEK machine. May throw a 'CekMachineException'.
 -- Calls 'evaluateCek' under the hood.

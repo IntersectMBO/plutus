@@ -45,7 +45,7 @@ instance KnownDynamicBuiltinType a => KnownDynamicBuiltinType (EvaluationResult 
     -- Our approach is to always return 'EvaluationSuccess' for the external 'EvaluationResult'
     -- and catch all 'EvaluationFailure's in the internal 'EvaluationResult'.
     -- This allows *not* to short-circuit when 'readDynamicBuiltin' fails to read a Haskell value.
-    -- Instead the user gets an explicit @EvaluationResult a@ and the evaluation proceeds normally.
+    -- Instead the user gets an explicit @EvaluationResult a@ and evaluation proceeds normally.
     readDynamicBuiltin eval term = ExceptT . EvaluationSuccess <$> do
         res <- eval mempty term
         sequence . (>>= runExceptT) <$> traverse (readDynamicBuiltin eval) res
