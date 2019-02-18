@@ -12,7 +12,6 @@ license-files:
   LICENSE
   NOTICE
 build-type:     Simple
-cabal-version:  >= 1.10
 extra-source-files:
 
 source-repository head
