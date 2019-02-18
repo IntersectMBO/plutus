@@ -4,23 +4,25 @@
 
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GADTs                     #-}
+{-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE OverloadedStrings         #-}
 {-# LANGUAGE RankNTypes                #-}
 
 module Language.PlutusCore.Constant.Typed
-    ( BuiltinSized(..)
-    , TypedBuiltinSized(..)
-    , SizeEntry(..)
-    , BuiltinType(..)
-    , TypedBuiltin(..)
-    , TypedBuiltinValue(..)
-    , TypeScheme(..)
-    , TypedBuiltinName(..)
-    , DynamicBuiltinNameMeaning(..)
-    , DynamicBuiltinNameDefinition(..)
-    , DynamicBuiltinNameMeanings(..)
+    ( BuiltinSized (..)
+    , TypedBuiltinSized (..)
+    , SizeEntry (..)
+    , BuiltinType (..)
+    , TypedBuiltin (..)
+    , TypedBuiltinValue (..)
+    , TypeScheme (..)
+    , TypedBuiltinName (..)
+    , DynamicBuiltinNameMeaning (..)
+    , DynamicBuiltinNameDefinition (..)
+    , DynamicBuiltinNameMeanings (..)
     , Evaluator
     , Evaluate
+    , Convert
     , KnownDynamicBuiltinType (..)
     , eraseTypedBuiltinSized
     , runEvaluate
@@ -37,10 +39,11 @@ import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
+import           Control.Monad.Except
 import           Control.Monad.Reader
 import qualified Data.ByteString.Lazy.Char8                  as BSL
-import           Data.GADT.Compare
 import           Data.Map                                    (Map)
+import           Data.Text                                   (Text)
 
 infixr 9 `TypeSchemeArrow`
 
@@ -107,16 +110,12 @@ data SizeEntry size
 -- | Built-in types.
 data BuiltinType size
     = BuiltinSized (SizeEntry size) BuiltinSized
-    | BuiltinBool
 
 -- | Built-in types. A type is considired "built-in" if it can appear in the type signature
 -- of a primitive operation. So @boolean@ is considered built-in even though it is defined in PLC
 -- and is not primitive.
 data TypedBuiltin size a where
     TypedBuiltinSized :: SizeEntry size -> TypedBuiltinSized a -> TypedBuiltin size a
-    -- TODO: this is now more or less obsolete and should be removed,
-    -- because 'TypedBuiltinDyn' is enough.
-    TypedBuiltinBool  :: TypedBuiltin size Bool
     -- Any type that implements 'KnownDynamicBuiltinType' can be lifted to a 'TypedBuiltin',
     -- because any such type has a PLC representation and provides conversions back and forth
     -- between Haskell and PLC and that's all we need.
@@ -180,7 +179,7 @@ newtype DynamicBuiltinNameMeanings = DynamicBuiltinNameMeanings
     { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName DynamicBuiltinNameMeaning
     } deriving (Semigroup, Monoid)
 
-type Evaluator f m = DynamicBuiltinNameMeanings -> f TyName Name () -> m EvaluationResult
+type Evaluator f m = DynamicBuiltinNameMeanings -> f TyName Name () -> m EvaluationResultDef
 
 type Evaluate m = ReaderT (Evaluator Term m) m
 
@@ -285,6 +284,13 @@ received evaluator
 (3) seems best, so it's what is implemented.
 -}
 
+-- | The monad in which we convert PLC terms to Haskell values.
+-- Conversion can fail with
+--
+-- 1. 'EvaluationFailure' if at some point constants stop fitting into specified sizes.
+-- 2. A textual error if a PLC term can't be converted to a Haskell value of a specified type.
+type Convert a = ExceptT Text EvaluationResult a
+
 -- See Note [Semantics of dynamic built-in types].
 -- See Note [Converting PLC values to Haskell values].
 -- Types and terms are supposed to be closed, hence no 'Quote'.
@@ -299,12 +305,11 @@ class KnownDynamicBuiltinType dyn where
 
     -- See Note [Evaluators].
     -- | Convert a PLC value to the corresponding Haskell value.
-    -- 'Nothing' represents a conversion failure.
-    readDynamicBuiltin :: Monad m => Evaluator Term m -> Term TyName Name () -> m (Maybe dyn)
+    readDynamicBuiltin :: Monad m => Evaluator Term m -> Term TyName Name () -> m (Convert dyn)
 
 readDynamicBuiltinM
     :: (Monad m, KnownDynamicBuiltinType dyn)
-    => Term TyName Name () -> Evaluate m (Maybe dyn)
+    => Term TyName Name () -> Evaluate m (Convert dyn)
 readDynamicBuiltinM term = withEvaluator $ \eval -> readDynamicBuiltin eval term
 
 instance Pretty BuiltinSized where
@@ -321,54 +326,13 @@ instance Pretty size => Pretty (SizeEntry size) where
 
 instance Pretty size => Pretty (TypedBuiltin size a) where
     pretty (TypedBuiltinSized se tbs) = parens $ pretty tbs <+> pretty se
-    pretty TypedBuiltinBool           = "bool"
     -- TODO: do we want this entire thing to be 'PrettyBy' rather than 'Pretty'?
     -- This is just used in errors, so we probably do not care much.
     pretty dyn@TypedBuiltinDyn        = prettyPlcDef $ toTypeEncoding dyn
 
 instance (size ~ Size, PrettyDynamic a) => Pretty (TypedBuiltinValue size a) where
     pretty (TypedBuiltinValue (TypedBuiltinSized se _) x) = pretty se <+> "!" <+> prettyDynamic x
-    pretty (TypedBuiltinValue TypedBuiltinBool         b) = prettyDynamic b
     pretty (TypedBuiltinValue TypedBuiltinDyn          x) = prettyDynamic x
-
-liftOrdering :: Ordering -> GOrdering a a
-liftOrdering LT = GLT
-liftOrdering EQ = GEQ
-liftOrdering GT = GGT
-
--- I tried using the 'dependent-sum-template' package,
--- but see https://stackoverflow.com/q/50048842/3237465
-instance GEq TypedBuiltinSized where
-    TypedBuiltinSizedInt  `geq` TypedBuiltinSizedInt  = Just Refl
-    TypedBuiltinSizedBS   `geq` TypedBuiltinSizedBS   = Just Refl
-    TypedBuiltinSizedSize `geq` TypedBuiltinSizedSize = Just Refl
-    _                     `geq` _                     = Nothing
-
-comparedDynamicBuiltinTypesError :: a
-comparedDynamicBuiltinTypesError = error "Dynamic built-in types cannot be compared"
-
-instance Eq size => GEq (TypedBuiltin size) where
-    TypedBuiltinSized size1 tbs1 `geq` TypedBuiltinSized size2 tbs2 = do
-        guard $ size1 == size2
-        tbs1 `geq` tbs2
-    TypedBuiltinBool             `geq` TypedBuiltinBool             = Just Refl
-    TypedBuiltinDyn              `geq` _                            = comparedDynamicBuiltinTypesError
-    _                            `geq` TypedBuiltinDyn              = comparedDynamicBuiltinTypesError
-    _                            `geq` _                            = Nothing
-
-instance Ord size => GCompare (TypedBuiltin size) where
-    TypedBuiltinSized size1 tbs1 `gcompare` TypedBuiltinSized size2 tbs2
-        | Just Refl <- tbs1 `geq` tbs2 = liftOrdering $ size1 `compare` size2
-        | otherwise                    = case (tbs1, tbs2) of
-            (TypedBuiltinSizedInt , _                    ) -> GLT
-            (TypedBuiltinSizedBS  , TypedBuiltinSizedInt ) -> GGT
-            (TypedBuiltinSizedBS  , _                    ) -> GLT
-            (TypedBuiltinSizedSize, _                    ) -> GGT
-    TypedBuiltinBool             `gcompare` TypedBuiltinBool      = GEQ
-    TypedBuiltinSized _ _        `gcompare` TypedBuiltinBool      = GLT
-    TypedBuiltinBool             `gcompare` TypedBuiltinSized _ _ = GGT
-    TypedBuiltinDyn              `gcompare` _                     = comparedDynamicBuiltinTypesError
-    _                            `gcompare` TypedBuiltinDyn       = comparedDynamicBuiltinTypesError
 
 -- Encode '()' from Haskell as @all r. r -> r@ from PLC.
 -- This is a very special instance, because it's used to define functions that are needed for
@@ -379,7 +343,12 @@ instance KnownDynamicBuiltinType () where
     -- We need this matching, because otherwise Haskell expressions are thrown away rather than being
     -- evaluated and we use 'unsafePerformIO' in multiple places, so we want to compute the '()' just
     -- for side effects the evaluation may cause.
-    makeDynamicBuiltin () = Just unitval
+    makeDynamicBuiltin () = pure unitval
 
-    -- We do not check here that the term is indeed @unitval@. TODO: check.
-    readDynamicBuiltin _ _ = return $ Just ()
+    readDynamicBuiltin eval term = do
+        let int1 = TyApp () (TyBuiltin () TyInteger) (TyInt () 4)
+            asInt1 = Constant () . BuiltinInt () 1
+        res <- eval mempty . Apply () (TyInst () term int1) $ asInt1 1
+        pure $ lift res >>= \case
+            Constant () (BuiltinInt () 1 1) -> pure ()
+            _                               -> throwError "Not a builtin ()"

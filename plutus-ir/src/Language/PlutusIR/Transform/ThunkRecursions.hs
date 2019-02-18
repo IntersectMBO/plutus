@@ -17,11 +17,9 @@ import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Data.Unit   as Unit
 
 import           Control.Lens
-import           Control.Monad                          ((>=>))
 
 import           Data.List
 import qualified Data.Map                               as Map
-import           Data.Traversable
 
 {- Note [Thunking recursions]
 Our fixpoint combinators in Plutus Core know how to handle mutually recursive values

@@ -44,7 +44,7 @@ rethrow = fmap (either throw id) . runExceptT
 trivialProgram :: Term TyName Name () -> Program TyName Name ()
 trivialProgram = Program () (defaultVersion ())
 
-runPlc :: GetProgram a => [a] -> ExceptT SomeException IO EvaluationResult
+runPlc :: GetProgram a => [a] -> ExceptT SomeException IO EvaluationResultDef
 runPlc values = do
     ps <- traverse getProgram values
     let p = foldl1 applyProgram ps
