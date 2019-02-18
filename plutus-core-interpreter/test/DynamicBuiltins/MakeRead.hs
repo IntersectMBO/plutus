@@ -26,11 +26,15 @@ import           Test.Tasty
 import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
 
+-- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
+-- of a different type.
 readMakeHetero
     :: (KnownDynamicBuiltinType a, KnownDynamicBuiltinType b)
     => a -> Maybe (Either CekMachineException b)
 readMakeHetero = makeDynamicBuiltin >=> sequence . readDynamicBuiltinCek
 
+-- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
+-- of the same type.
 readMake
     :: KnownDynamicBuiltinType a => a -> Maybe (Either CekMachineException a)
 readMake = readMakeHetero

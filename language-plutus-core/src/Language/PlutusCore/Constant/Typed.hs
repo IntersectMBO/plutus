@@ -284,7 +284,7 @@ received evaluator
 (3) seems best, so it's what is implemented.
 -}
 
--- | The monad in which we convert PLC terms into Haskell values.
+-- | The monad in which we convert PLC terms to Haskell values.
 -- Conversion can fail with
 --
 -- 1. 'EvaluationFailure' if at some point constants stop fitting into specified sizes.

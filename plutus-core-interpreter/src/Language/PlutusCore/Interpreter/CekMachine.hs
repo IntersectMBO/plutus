@@ -33,7 +33,6 @@ import           PlutusPrelude                                   hiding (hoist)
 import           Control.Lens.TH                                 (makeLenses)
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import           Data.Bifunctor                                  (bimap)
 import qualified Data.Map                                        as Map
 
 type Plain f = f TyName Name ()
@@ -219,9 +218,8 @@ readDynamicBuiltinCek term = do
     res <- readDynamicBuiltin evaluateCekCatch term
     case runExceptT res of
         EvaluationFailure            -> Right Nothing
-        EvaluationSuccess (Left err) -> Left $ MachineException
-            (ConstAppMachineError $ UnreadableBuiltinConstAppError term err)
-            term
+        EvaluationSuccess (Left err) -> Left $ MachineException appErr term where
+            appErr = ConstAppMachineError $ UnreadableBuiltinConstAppError term err
         EvaluationSuccess (Right x)  -> Right $ Just x
 
 -- | Run a program using the CEK machine. May throw a 'CekMachineException'.

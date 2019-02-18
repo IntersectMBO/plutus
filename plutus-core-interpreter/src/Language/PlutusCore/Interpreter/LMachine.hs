@@ -222,33 +222,33 @@ evaluateFun ctx heap (Closure fun funEnv) argClosure =
               env' = updateEnvironment var l funEnv
           in  computeL ctx heap' (Closure body env')
 
-      _ ->
+      _ -> do
           -- Not a lambda: look for evaluation of a built-in function, possibly with some args already supplied.
           -- We have to force the arguments, which means that we need to get the new heap back as well.
           -- This bit is messy but should be much easier when we have n-ary application for builtins.
-          computeL [] heap argClosure >>= \(Closure arg' env', heap') ->
+          (Closure arg' env', heap') <- computeL [] heap argClosure
               -- Force the argument, but only at the top level.
               -- This is a bit of a hack.  We're not in the main compute/return process here.
               -- We're preserving ctx, the context at entry, and we'll use that when we return.
               -- We could also add a new type of stack frame for this.  Exactly what we do will
               -- depend on the final interface to builtins.
-              let term = Apply () fun arg'
-              in case termAsPrimIterApp term of
-                   Nothing ->
-                       throwLMachineException NonPrimitiveInstantiationMachineError term
-                       -- Was "Cannot reduce a not immediately reducible application."  This message isn't very helpful.
-                   Just (IterApp (StaticStagedBuiltinName name) spine) ->
-                       case applyEvaluateBuiltinName heap' env' name spine of
-                         ConstAppSuccess term' -> computeL ctx heap' (Closure term' funEnv)
-                         -- The spec has return above, but compute seems more sensible.
-                         ConstAppStuck         -> returnL ctx heap' (Closure term  funEnv)
-                         -- It's arguable what the env should be here. That depends on what the built-in can return.
-                         -- Ideally it'd always return a closed term, so the environment should be irrelevant.
-                         ConstAppFailure       -> EvaluationFailure
-                         ConstAppError err     -> throwLMachineException (ConstAppMachineError err) fun
+          let term = Apply () fun arg'
+          case termAsPrimIterApp term of
+            Nothing ->
+                throwLMachineException NonPrimitiveInstantiationMachineError term
+                -- Was "Cannot reduce a not immediately reducible application."  This message isn't very helpful.
+            Just (IterApp (StaticStagedBuiltinName name) spine) ->
+                case applyEvaluateBuiltinName heap' env' name spine of
+                  ConstAppSuccess term' -> computeL ctx heap' (Closure term' funEnv)
+                  -- The spec has return above, but compute seems more sensible.
+                  ConstAppStuck         -> returnL ctx heap' (Closure term  funEnv)
+                  -- It's arguable what the env should be here. That depends on what the built-in can return.
+                  -- Ideally it'd always return a closed term, so the environment should be irrelevant.
+                  ConstAppFailure       -> EvaluationFailure
+                  ConstAppError err     -> throwLMachineException (ConstAppMachineError err) fun
 
-                   Just (IterApp DynamicStagedBuiltinName{}     _    ) ->
-                       throwLMachineException (OtherMachineError NoDynamicBuiltinsYet) term
+            Just (IterApp DynamicStagedBuiltinName{}     _    ) ->
+                throwLMachineException (OtherMachineError NoDynamicBuiltinsYet) term
 
 
 -- | This is a workaround (thanks to Roman) to get things working while the dynamic builtins interface is under development.
