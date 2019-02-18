@@ -7,7 +7,7 @@ import Control.Monad.Aff.Class (class MonadAff)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Int as Int
-import Data.Lens (to, view)
+import Data.Lens (view)
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
@@ -25,7 +25,7 @@ import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
 import Playground.API (EvaluationResult, MockWallet, _EvaluationResult, _Fn, _FunctionSchema)
 import Prelude (map, show, unit, ($), (+), (/=), (<$>), (<<<), (<>))
 import Servant.PureScript.Affjax (AjaxError)
-import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, FormEvent(SetSubField, SetStringField, SetIntField), Query(EvaluateActions, ModifyActions, PopulateAction), SimpleArgument(Unknowable, SimpleObject, SimpleString, SimpleInt), Simulation, ValidationError, _argumentSchema, _functionName, _mockWalletWallet, validate)
+import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, FormEvent(SetSubField, SetStringField, SetIntField), Query(EvaluateActions, ModifyActions, PopulateAction), SimpleArgument(Unknowable, SimpleObject, SimpleString, SimpleInt), Simulation, ValidationError, _argumentSchema, _functionName, _mockWalletWallet, _resultBlockchain, validate)
 import Wallet (walletIdPane, walletsPane)
 
 simulationPane ::
@@ -39,7 +39,7 @@ simulationPane simulation wallets evaluationResult =
   div_
     [ walletsPane simulation.signatures wallets
     , br_
-    , actionsPane simulation.actions (view (_EvaluationResult <<< to _.resultBlockchain) <$> evaluationResult)
+    , actionsPane simulation.actions (view (_EvaluationResult <<< _resultBlockchain) <$> evaluationResult)
     ]
 
 actionsPane :: forall p. Array Action -> RemoteData AjaxError Blockchain -> HTML p Query

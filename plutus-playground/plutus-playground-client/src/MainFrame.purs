@@ -28,7 +28,7 @@ import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Generic (gEq)
 import Data.Int as Int
-import Data.Lens (_2, _Just, _Right, assign, maximumOf, modifying, over, preview, set, to, traversed, use, view)
+import Data.Lens (_2, _Just, _Right, assign, maximumOf, modifying, over, preview, set, traversed, use, view)
 import Data.Lens.Index (ix)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -64,7 +64,7 @@ import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, sh
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
-import Wallet.Emulator.Types (Wallet(..), _Wallet)
+import Wallet.Emulator.Types (Wallet(Wallet))
 
 mkMockWallet :: Int -> MockWallet
 mkMockWallet id =
@@ -262,7 +262,7 @@ eval (EvaluateActions next) = do
 
 eval (AddWallet next) = do
   wallets <- use _wallets
-  let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _mockWalletWallet <<< _Wallet <<< to _.getWallet ) wallets
+  let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _mockWalletWallet <<< _walletId) wallets
   let newWallet = mkMockWallet (maxWalletId + 1)
   modifying _wallets (flip Array.snoc newWallet)
   pure next

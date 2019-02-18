@@ -25,7 +25,7 @@ import Ledger.Types (Tx)
 import Network.RemoteData (RemoteData)
 import Playground.API (CompilationError, CompilationResult, EvaluationResult, FunctionSchema, MockWallet, SimpleArgumentSchema(UnknownArgument, SimpleObjectArgument, SimpleStringArgument, SimpleIntArgument), _FunctionSchema, _MockWallet)
 import Servant.PureScript.Affjax (AjaxError)
-import Wallet.Emulator.Types (Wallet)
+import Wallet.Emulator.Types (Wallet, _Wallet)
 
 _mockWalletWallet :: Lens' MockWallet Wallet
 _mockWalletWallet = _MockWallet <<< prop (SProxy :: SProxy "mockWalletWallet")
@@ -33,6 +33,9 @@ _mockWalletWallet = _MockWallet <<< prop (SProxy :: SProxy "mockWalletWallet")
 
 _mockWalletBalance :: Lens' MockWallet Int
 _mockWalletBalance = _MockWallet <<< prop (SProxy :: SProxy "mockWalletBalance")
+
+_walletId :: Lens' Wallet Int
+_walletId = _Wallet <<< prop (SProxy :: SProxy "getWallet")
 
 data Action
   = Action
@@ -243,6 +246,8 @@ _authStatus = prop (SProxy :: SProxy "authStatus")
 _createGistResult :: forall s a. Lens' {createGistResult :: a | s} a
 _createGistResult = prop (SProxy :: SProxy "createGistResult")
 
+_resultBlockchain :: forall s a. Lens' {resultBlockchain :: a | s} a
+_resultBlockchain = prop (SProxy :: SProxy "resultBlockchain")
 
 data View
   = Editor
