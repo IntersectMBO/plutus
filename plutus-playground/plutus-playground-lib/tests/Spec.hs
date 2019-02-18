@@ -4,6 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
+
 module Main where
 
 import           Data.Aeson            (FromJSON (..), ToJSON (..))
@@ -20,7 +21,6 @@ import           Wallet.Emulator.Types (MockWallet)
 
 -- f1..fn are functions that we should be able to generate schemas
 -- for, using `mkFunction`. The schemas will be called f1Schema etc.
-
 f0 :: MockWallet ()
 f0 = pure ()
 
@@ -36,7 +36,9 @@ f3 _ _ = pure ()
 f4 :: Text -> Text -> (Int, Int) -> [Text] -> MockWallet ()
 f4 _ _ _ _ = pure ()
 
-data Value = Value Int Int
+data Value =
+    Value Int
+          Int
     deriving (Generic, FromJSON, ToJSON, ToSchema)
 
 $(mkSingleFunction 'f0)
@@ -47,17 +49,28 @@ main :: IO ()
 main = defaultMain tests
 
 tests :: TestTree
-tests = testGroup "TH" [
-    testCase "f0" (f0Schema @?= FunctionSchema @Schema (Fn "f0") []),
-    testCase "f1" (f1Schema @?= FunctionSchema @Schema (Fn "f1") []),
-    testCase "f2" (f2Schema @?= FunctionSchema (Fn "f2") [
-        toSchema (Proxy @String)]),
-    testCase "f3" (f3Schema @?= FunctionSchema (Fn "f3") [
-        toSchema (Proxy @String),
-        toSchema (Proxy @Value)]),
-    testCase "f4" (f4Schema @?= FunctionSchema (Fn "f4") [
-        toSchema (Proxy @Text),
-        toSchema (Proxy @Text),
-        toSchema (Proxy @(Int, Int)),
-        toSchema (Proxy @[Text]) ])
-    ]
+tests =
+    testGroup
+        "TH"
+        [ testCase "f0" (f0Schema @?= FunctionSchema @Schema (Fn "f0") [])
+        , testCase "f1" (f1Schema @?= FunctionSchema @Schema (Fn "f1") [])
+        , testCase
+              "f2"
+              (f2Schema @?= FunctionSchema (Fn "f2") [toSchema (Proxy @String)])
+        , testCase
+              "f3"
+              (f3Schema @?=
+               FunctionSchema
+                   (Fn "f3")
+                   [toSchema (Proxy @String), toSchema (Proxy @Value)])
+        , testCase
+              "f4"
+              (f4Schema @?=
+               FunctionSchema
+                   (Fn "f4")
+                   [ toSchema (Proxy @Text)
+                   , toSchema (Proxy @Text)
+                   , toSchema (Proxy @(Int, Int))
+                   , toSchema (Proxy @[Text])
+                   ])
+        ]
