@@ -1,3 +1,4 @@
+cabal-version:  2.0
 name:           plutus-playground-lib
 version:        0.1.0.0
 description:    Please see the README on GitHub at <https://github.com/input-output-hk/plutus#readme>
@@ -6,10 +7,11 @@ bug-reports:    https://github.com/iohk/plutus/issues
 author:         Kris Jenkins
 maintainer:     kris.jenkins@tweag.io
 copyright:      2018 IOHK
-license:        BSD3
-license-file:   LICENSE
+license:        Apache-2.0
+license-files:   
+  LICENSE
+  NOTICE
 build-type:     Simple
-cabal-version:  >= 1.10
 extra-source-files:
 
 source-repository head

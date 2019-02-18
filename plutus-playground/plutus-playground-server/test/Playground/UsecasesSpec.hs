@@ -13,7 +13,7 @@ import           Data.Either            (isRight)
 import qualified Data.Text              as Text
 import qualified Data.Text.Lazy         as TL
 import qualified Ledger.Ada             as Ada
-import           Ledger.Types           (Blockchain, Value)
+import           Ledger.Types           (Blockchain)
 import           Playground.API         (Evaluation (Evaluation), Expression (Action, Wait), Fn (Fn), FunctionSchema,
                                          PlaygroundError, SimpleArgumentSchema, SourceCode (SourceCode), functionSchema)
 import qualified Playground.Interpreter as PI
@@ -63,11 +63,11 @@ gameSpec =
         it "should unlock the funds" $
             evaluate gameEvalSuccess >>=
             (`shouldSatisfy` hasFundsDistribution
-                                 [(Wallet 1, Ada.adaValueOf 12), (Wallet 2, Ada.adaValueOf 8)])
+                                 [(Wallet 1, Ada.fromInt  12), (Wallet 2, Ada.fromInt  8)])
         it "should keep the funds" $
             evaluate gameEvalFailure >>=
             (`shouldSatisfy` hasFundsDistribution
-                                 [(Wallet 1, ten), (Wallet 2, Ada.adaValueOf 8)])
+                                 [(Wallet 1, ten), (Wallet 2, Ada.fromInt  8)])
         it
             "Sequential fund transfer fails - 'Game' script - 'payToPublicKey_' action" $
             evaluate payAll >>=
@@ -77,7 +77,7 @@ gameSpec =
                                  , (Wallet 3, ten)
                                  ])
   where
-    ten = Ada.adaValueOf 10
+    ten = Ada.fromInt 10
     gameEvalFailure =
         Evaluation
             [(Wallet 1, 10), (Wallet 2, 10)]
@@ -109,21 +109,21 @@ gameSpec =
                   (Fn "payToPublicKey_")
                   (Wallet 1)
                   [ slotRange
-                  , JSON.String "{\"getValue\":9}"
+                  , JSON.String "{\"getValue\":[[0,9]]}"
                   , JSON.String "{\"getPubKey\":2}"
                   ]
             , Action
                   (Fn "payToPublicKey_")
                   (Wallet 2)
                   [ slotRange
-                  , JSON.String "{\"getValue\":9}"
+                  , JSON.String "{\"getValue\":[[0,9]]}"
                   , JSON.String "{\"getPubKey\":3}"
                   ]
             , Action
                   (Fn "payToPublicKey_")
                   (Wallet 3)
                   [ slotRange
-                  , JSON.String "{\"getValue\":9}"
+                  , JSON.String "{\"getValue\":[[0,9]]}"
                   , JSON.String "{\"getPubKey\":1}"
                   ]
             ]
@@ -132,8 +132,8 @@ gameSpec =
     slotRange = JSON.String "{\"ivTo\":null,\"ivFrom\":null}"
 
 hasFundsDistribution ::
-       [(Wallet, Value)]
-    -> Either PlaygroundError (Blockchain, [EmulatorEvent], [(Wallet, Value)])
+       [(Wallet, Ada.Ada)]
+    -> Either PlaygroundError (Blockchain, [EmulatorEvent], [(Wallet, Ada.Ada)])
     -> Bool
 hasFundsDistribution _ (Left _) = False
 hasFundsDistribution requiredDistribution (Right (_, _, actualDistribution)) =
@@ -151,7 +151,7 @@ crowdfundingSpec =
         it "should run successful campaign" $
             evaluate successfulCampaign >>=
             (`shouldSatisfy` hasFundsDistribution
-                                 [(Wallet 1, Ada.adaValueOf 26), (Wallet 2, Ada.adaValueOf 2), (Wallet 3, Ada.adaValueOf 2)])
+                                 [(Wallet 1, Ada.fromInt  26), (Wallet 2, Ada.fromInt  2), (Wallet 3, Ada.fromInt  2)])
         it "should run failed campaign" $
             evaluate failedCampaign >>=
             (`shouldSatisfy` hasFundsDistribution
@@ -160,7 +160,7 @@ crowdfundingSpec =
                                  , (Wallet 3, ten)
                                  ])
   where
-    ten = Ada.adaValueOf 10
+    ten = Ada.fromInt  10
     failedCampaign =
         Evaluation
             [(Wallet 1, 10), (Wallet 2, 10), (Wallet 3, 10)]
@@ -208,5 +208,5 @@ evaluate ::
        Evaluation
     -> IO (Either PlaygroundError ( Blockchain
                                   , [EmulatorEvent]
-                                  , [(Wallet, Value)]))
+                                  , [(Wallet, Ada.Ada)]))
 evaluate evaluation = runExceptT $ PI.runFunction evaluation

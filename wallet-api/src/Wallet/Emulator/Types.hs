@@ -244,15 +244,15 @@ selectCoin fnds vl =
                     $ T.unwords
                         [ "Total:", T.pack $ show total
                         , "expected:", T.pack $ show vl]
-        in  if total < vl
+        in  if total `Value.lt` vl
             then err
             else
                 let
-                    fundsToSpend   = takeUntil (\(_, runningTotal) -> vl <= runningTotal) fundsWithTotal
+                    fundsToSpend   = takeUntil (\(_, runningTotal) -> vl `Value.leq` runningTotal) fundsWithTotal
                     totalSpent     = case reverse fundsToSpend of
                                         []            -> Value.zero
                                         (_, total'):_ -> total'
-                    change         = Value.minus totalSpent vl
+                    change         = totalSpent `Value.minus` vl
                 in pure (fst <$> fundsToSpend, change)
 
 -- | Take elements from a list until the predicate is satisfied.

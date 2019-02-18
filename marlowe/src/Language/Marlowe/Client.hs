@@ -48,7 +48,7 @@ import           Ledger                         ( DataScript(..)
                                                 , scriptTxOut
                                                 )
 import qualified Ledger                         as Ledger
-import           Ledger.Ada.TH                  (Ada(..))
+import           Ledger.Ada.TH                  (Ada)
 import qualified Ledger.Ada                     as Ada
 import           Ledger.Validation
 import           Language.Marlowe
@@ -129,7 +129,7 @@ marloweTx ::
     -> m ()
 marloweTx inputState txOut validator f = let
     (TxOutOf _ vl _, ref) = txOut
-    Ada contractValue = Ada.fromValue vl
+    contractValue = Ada.toInt $ Ada.fromValue vl
     lifted = Ledger.lifted inputState
     scriptIn = scriptTxIn ref validator $ Ledger.RedeemerScript lifted
     dataScript = DataScript lifted
@@ -211,8 +211,8 @@ commit txOut validator oracles choices identCC value inputState inputContract = 
     sig <- signature <$> myKeyPair
     let inputCommand = Commit identCC sig
     let input = Input inputCommand oracles choices
-    let scriptInValue@(Ada contractValue) = Ada.fromValue . txOutValue . fst $ txOut
-    let scriptOutValue = Ada $ contractValue + value
+    let scriptInValue = Ada.fromValue . txOutValue . fst $ txOut
+    let scriptOutValue = scriptInValue + Ada.fromInt value
     let (expectedState, expectedCont, isValid) =
             evalContract (PubKey 1) input bh scriptInValue scriptOutValue inputState inputContract
     when (not isValid) $ throwOtherError "Invalid commit"

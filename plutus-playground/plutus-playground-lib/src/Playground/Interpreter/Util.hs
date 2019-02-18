@@ -13,8 +13,6 @@ import qualified Data.Set                   as Set
 import qualified Data.Typeable              as T
 import qualified Ledger.Ada                 as Ada
 import           Ledger.Types               (Blockchain, PubKey (PubKey), Tx, TxOutOf (txOutValue))
-import           Ledger.Value               (Value)
-import qualified Ledger.Value               as Value
 import           Playground.API             (PlaygroundError (OtherError))
 import           Wallet.Emulator.Types      (EmulatorEvent, EmulatorState (_chainNewestFirst, _emulatorLog), MockWallet,
                                              Trace, Wallet (Wallet), ownFunds, processPending, runTraceTxPool,
@@ -26,7 +24,7 @@ import qualified Wallet.Generators          as Gen
 runTrace ::
      [(Wallet, Int)]
   -> [Either PlaygroundError (Trace MockWallet [Tx])]
-  -> Either PlaygroundError (Blockchain, [EmulatorEvent], [(Wallet, Value)])
+  -> Either PlaygroundError (Blockchain, [EmulatorEvent], [(Wallet, Ada.Ada)])
 runTrace wallets actions =
   let walletToBalance (Wallet i, v) = (PubKey i, Ada.adaValueOf v)
       initialBalance = Map.fromList $ fmap walletToBalance wallets
@@ -46,7 +44,7 @@ runTrace wallets actions =
               blockchain = _chainNewestFirst newState
               emulatorLog = _emulatorLog newState
               fundsDistribution =
-                Map.map (foldl' Value.plus Value.zero . fmap txOutValue . view ownFunds) .
+                Map.map (foldl' (+) 0 . fmap (Ada.fromValue . txOutValue) . view ownFunds) .
                 view walletStates $
                 newState
            in case eRes of

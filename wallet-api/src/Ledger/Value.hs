@@ -1,13 +1,20 @@
 {-# LANGUAGE TemplateHaskell #-}
+
+-- need orphan instances due to staging restriction
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 module Ledger.Value(
       Value
+    , CurrencySymbol
+    , currencySymbol
+    , singleton
+    , valueOf
+    , scale
       -- * Constants
     , zero
       -- * Num operations
     , plus
     , minus
     , multiply
-    , divide
     , negate
     , geq
     , gt
@@ -16,12 +23,29 @@ module Ledger.Value(
     , eq
       -- * Etc.
     , isZero
-    , size
     ) where
 
 import qualified Ledger.Value.TH as TH
-import           Ledger.Value.TH (Value)
+import           Ledger.Value.TH (CurrencySymbol, Value)
 import           Prelude         hiding (negate)
+
+currencySymbol :: Int -> CurrencySymbol
+currencySymbol = $$(TH.currencySymbol)
+
+instance Eq Value where
+  (==) = $$(TH.eq)
+
+instance Ord Value where
+  (<=) = $$(TH.leq)
+
+singleton :: CurrencySymbol -> Int -> Value
+singleton = $$(TH.singleton)
+
+valueOf :: Value -> CurrencySymbol -> Int
+valueOf = $$(TH.valueOf)
+
+scale :: Int -> Value -> Value
+scale = $$(TH.scale)
 
 zero :: Value
 zero = $$(TH.zero)
@@ -34,9 +58,6 @@ minus = $$(TH.minus)
 
 multiply :: Value -> Value -> Value
 multiply = $$(TH.multiply)
-
-divide :: Value -> Value -> Value
-divide = $$(TH.divide)
 
 negate :: Value -> Value
 negate = $$(TH.negate)
@@ -58,6 +79,3 @@ eq = $$(TH.eq)
 
 isZero :: Value -> Bool
 isZero = $$(TH.isZero)
-
-size :: Value -> Int
-size = $$(TH.size)
