@@ -1,9 +1,10 @@
-cabal-version: 1.18
+cabal-version: 2.0
 name: plutus-ir
 version: 0.1.0.0
-license: BSD3
-license-file: LICENSE
-copyright: Copyright: (c) 2018 Input Output
+license: Apache-2.0
+license-files: 
+  LICENSE
+  NOTICE
 maintainer: michael.peyton-jones@iohk.io
 author: Michael Peyton Jones
 synopsis: Plutus IR language
