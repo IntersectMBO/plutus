@@ -1,0 +1,13 @@
+diff --git a/cbits/win_patch.h b/cbits/win_patch.h
+index 3ee2479..d9fb404 100644
+--- a/cbits/win_patch.h
++++ b/cbits/win_patch.h
+@@ -14,7 +14,7 @@
+ #include <pthread.h>
+ 
+ #if defined(_WIN32)
+-#include <Windows.h>
++#include <windows.h>
+ #endif
+ 
+ #if !defined(TM_YEAR_BASE)

@@ -1,0 +1,14 @@
+diff --git a/ghc.cabal b/ghc.cabal
+index 352e9af..29a064a 100644
+--- a/ghc.cabal
++++ b/ghc.cabal
+@@ -55,7 +55,8 @@ Library
+     Default-Language: Haskell2010
+     Exposed: False
+ 
+-    Build-Depends: base       >= 4.9 && < 5,
++    Build-Depends: rts,
++                   base       >= 4.9 && < 5,
+                    deepseq    >= 1.4 && < 1.5,
+                    directory  >= 1   && < 1.4,
+                    process    >= 1   && < 1.7,
