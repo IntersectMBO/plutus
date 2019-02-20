@@ -79,193 +79,190 @@ runTrace wallets actions =
 
 decode' :: (FromJSON a, T.Typeable a) => String -> a
 decode' v =
-  let x = JSON.eitherDecode . BSL.pack $ v
-   in case x of
-        Right a -> a
-        Left e ->
-          error $
-          "couldn't decode " ++
-          v ++ " :: " ++ show (T.typeOf x) ++ " (" ++ show e ++ ")"
+    let x = JSON.eitherDecode . BSL.pack $ v
+     in case x of
+            Right a -> a
+            Left e ->
+                error $
+                "couldn't decode " ++
+                v ++ " :: " ++ show (T.typeOf x) ++ " (" ++ show e ++ ")"
 
 decode ::
-     (FromJSON a, T.Typeable a, MonadError PlaygroundError m) => String -> m a
+       (FromJSON a, T.Typeable a, MonadError PlaygroundError m) => String -> m a
 decode v =
-  let x = JSON.eitherDecode . BSL.pack $ v
-   in case x of
-        Right a -> pure a
-        Left e ->
-          throwError . OtherError $
-          "couldn't decode " ++
-          v ++ " :: " ++ show (T.typeOf x) ++ " (" ++ show e ++ ")"
+    let x = JSON.eitherDecode . BSL.pack $ v
+     in case x of
+            Right a -> pure a
+            Left e ->
+                throwError . OtherError $
+                "couldn't decode " ++
+                v ++ " :: " ++ show (T.typeOf x) ++ " (" ++ show e ++ ")"
 
 {-# ANN module ("HLint: ignore Reduce duplication" :: String) #-}
 
-apply ::
-     (MonadError PlaygroundError m)
-  => a
-  -> m a
+apply :: (MonadError PlaygroundError m) => a -> m a
 apply = pure
 
 apply1 ::
-     (T.Typeable a, FromJSON a, MonadError PlaygroundError m)
-  => (a -> b)
-  -> String
-  -> m b
+       (T.Typeable a, FromJSON a, MonadError PlaygroundError m)
+    => (a -> b)
+    -> String
+    -> m b
 apply1 fun v = fun <$> decode v
 
 apply2 ::
-     ( T.Typeable a
-     , FromJSON a
-     , T.Typeable b
-     , FromJSON b
-     , MonadError PlaygroundError m
-     )
-  => (a -> b -> c)
-  -> String
-  -> String
-  -> m c
+       ( T.Typeable a
+       , FromJSON a
+       , T.Typeable b
+       , FromJSON b
+       , MonadError PlaygroundError m
+       )
+    => (a -> b -> c)
+    -> String
+    -> String
+    -> m c
 apply2 fun a b = do
-  a' <- decode a
-  b' <- decode b
-  pure $ fun a' b'
+    a' <- decode a
+    b' <- decode b
+    pure $ fun a' b'
 
 apply3 ::
-     ( T.Typeable a
-     , T.Typeable a
-     , FromJSON a
-     , T.Typeable b
-     , FromJSON b
-     , T.Typeable c
-     , FromJSON c
-     , MonadError PlaygroundError m
-     )
-  => (a -> b -> c -> d)
-  -> String
-  -> String
-  -> String
-  -> m d
+       ( T.Typeable a
+       , T.Typeable a
+       , FromJSON a
+       , T.Typeable b
+       , FromJSON b
+       , T.Typeable c
+       , FromJSON c
+       , MonadError PlaygroundError m
+       )
+    => (a -> b -> c -> d)
+    -> String
+    -> String
+    -> String
+    -> m d
 apply3 fun a b c = do
-  a' <- decode a
-  b' <- decode b
-  c' <- decode c
-  pure $ fun a' b' c'
+    a' <- decode a
+    b' <- decode b
+    c' <- decode c
+    pure $ fun a' b' c'
 
 apply4 ::
-     ( T.Typeable a
-     , FromJSON a
-     , T.Typeable b
-     , FromJSON b
-     , T.Typeable c
-     , FromJSON c
-     , T.Typeable d
-     , FromJSON d
-     , MonadError PlaygroundError m
-     )
-  => (a -> b -> c -> d -> e)
-  -> String
-  -> String
-  -> String
-  -> String
-  -> m e
+       ( T.Typeable a
+       , FromJSON a
+       , T.Typeable b
+       , FromJSON b
+       , T.Typeable c
+       , FromJSON c
+       , T.Typeable d
+       , FromJSON d
+       , MonadError PlaygroundError m
+       )
+    => (a -> b -> c -> d -> e)
+    -> String
+    -> String
+    -> String
+    -> String
+    -> m e
 apply4 fun a b c d = do
-  a' <- decode a
-  b' <- decode b
-  c' <- decode c
-  d' <- decode d
-  pure $ fun a' b' c' d'
+    a' <- decode a
+    b' <- decode b
+    c' <- decode c
+    d' <- decode d
+    pure $ fun a' b' c' d'
 
 apply5 ::
-     ( T.Typeable a
-     , FromJSON a
-     , T.Typeable b
-     , FromJSON b
-     , T.Typeable c
-     , FromJSON c
-     , T.Typeable d
-     , FromJSON d
-     , T.Typeable e
-     , FromJSON e
-     , MonadError PlaygroundError m
-     )
-  => (a -> b -> c -> d -> e -> f)
-  -> String
-  -> String
-  -> String
-  -> String
-  -> String
-  -> m f
+       ( T.Typeable a
+       , FromJSON a
+       , T.Typeable b
+       , FromJSON b
+       , T.Typeable c
+       , FromJSON c
+       , T.Typeable d
+       , FromJSON d
+       , T.Typeable e
+       , FromJSON e
+       , MonadError PlaygroundError m
+       )
+    => (a -> b -> c -> d -> e -> f)
+    -> String
+    -> String
+    -> String
+    -> String
+    -> String
+    -> m f
 apply5 fun a b c d e = do
-  a' <- decode a
-  b' <- decode b
-  c' <- decode c
-  d' <- decode d
-  e' <- decode e
-  pure $ fun a' b' c' d' e'
+    a' <- decode a
+    b' <- decode b
+    c' <- decode c
+    d' <- decode d
+    e' <- decode e
+    pure $ fun a' b' c' d' e'
 
 apply6 ::
-     ( T.Typeable a
-     , FromJSON a
-     , T.Typeable b
-     , FromJSON b
-     , T.Typeable c
-     , FromJSON c
-     , T.Typeable d
-     , FromJSON d
-     , T.Typeable e
-     , FromJSON e
-     , T.Typeable f
-     , FromJSON f
-     , MonadError PlaygroundError m
-     )
-  => (a -> b -> c -> d -> e -> f -> g)
-  -> String
-  -> String
-  -> String
-  -> String
-  -> String
-  -> String
-  -> m g
+       ( T.Typeable a
+       , FromJSON a
+       , T.Typeable b
+       , FromJSON b
+       , T.Typeable c
+       , FromJSON c
+       , T.Typeable d
+       , FromJSON d
+       , T.Typeable e
+       , FromJSON e
+       , T.Typeable f
+       , FromJSON f
+       , MonadError PlaygroundError m
+       )
+    => (a -> b -> c -> d -> e -> f -> g)
+    -> String
+    -> String
+    -> String
+    -> String
+    -> String
+    -> String
+    -> m g
 apply6 fun a b c d e f = do
-  a' <- decode a
-  b' <- decode b
-  c' <- decode c
-  d' <- decode d
-  e' <- decode e
-  f' <- decode f
-  pure $ fun a' b' c' d' e' f'
+    a' <- decode a
+    b' <- decode b
+    c' <- decode c
+    d' <- decode d
+    e' <- decode e
+    f' <- decode f
+    pure $ fun a' b' c' d' e' f'
 
 apply7 ::
-     ( T.Typeable a
-     , FromJSON a
-     , T.Typeable b
-     , FromJSON b
-     , T.Typeable c
-     , FromJSON c
-     , T.Typeable d
-     , FromJSON d
-     , T.Typeable e
-     , FromJSON e
-     , T.Typeable f
-     , FromJSON f
-     , T.Typeable g
-     , FromJSON g
-     , MonadError PlaygroundError m
-     )
-  => (a -> b -> c -> d -> e -> f -> g -> h)
-  -> String
-  -> String
-  -> String
-  -> String
-  -> String
-  -> String
-  -> String
-  -> m h
+       ( T.Typeable a
+       , FromJSON a
+       , T.Typeable b
+       , FromJSON b
+       , T.Typeable c
+       , FromJSON c
+       , T.Typeable d
+       , FromJSON d
+       , T.Typeable e
+       , FromJSON e
+       , T.Typeable f
+       , FromJSON f
+       , T.Typeable g
+       , FromJSON g
+       , MonadError PlaygroundError m
+       )
+    => (a -> b -> c -> d -> e -> f -> g -> h)
+    -> String
+    -> String
+    -> String
+    -> String
+    -> String
+    -> String
+    -> String
+    -> m h
 apply7 fun a b c d e f g = do
-  a' <- decode a
-  b' <- decode b
-  c' <- decode c
-  d' <- decode d
-  e' <- decode e
-  f' <- decode f
-  g' <- decode g
-  pure $ fun a' b' c' d' e' f' g'
+    a' <- decode a
+    b' <- decode b
+    c' <- decode c
+    d' <- decode d
+    e' <- decode e
+    f' <- decode f
+    g' <- decode g
+    pure $ fun a' b' c' d' e' f' g'
