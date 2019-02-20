@@ -21,25 +21,29 @@ import Data.Tuple (Tuple(..))
 import Gist (Gist)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.ECharts (EChartsMessage, EChartsQuery)
+import Ledger.Ada.TH (Ada, _Ada)
 import Ledger.Types (Tx)
 import Network.RemoteData (RemoteData)
-import Playground.API (CompilationError, CompilationResult, EvaluationResult, FunctionSchema, MockWallet, SimpleArgumentSchema(UnknownArgument, SimpleObjectArgument, SimpleStringArgument, SimpleIntArgument), _FunctionSchema, _MockWallet)
+import Playground.API (CompilationError, CompilationResult, EvaluationResult, FunctionSchema, SimulatorWallet, SimpleArgumentSchema(UnknownArgument, SimpleObjectArgument, SimpleStringArgument, SimpleIntArgument), _FunctionSchema, _SimulatorWallet)
 import Servant.PureScript.Affjax (AjaxError)
 import Wallet.Emulator.Types (Wallet, _Wallet)
 
-_mockWalletWallet :: Lens' MockWallet Wallet
-_mockWalletWallet = _MockWallet <<< prop (SProxy :: SProxy "mockWalletWallet")
+_simulatorWalletWallet :: Lens' SimulatorWallet Wallet
+_simulatorWalletWallet = _SimulatorWallet <<< prop (SProxy :: SProxy "simulatorWalletWallet")
 
 
-_mockWalletBalance :: Lens' MockWallet Int
-_mockWalletBalance = _MockWallet <<< prop (SProxy :: SProxy "mockWalletBalance")
+_simulatorWalletBalance :: Lens' SimulatorWallet Ada
+_simulatorWalletBalance = _SimulatorWallet <<< prop (SProxy :: SProxy "simulatorWalletBalance")
 
 _walletId :: Lens' Wallet Int
 _walletId = _Wallet <<< prop (SProxy :: SProxy "getWallet")
 
+_ada :: Lens' Ada Int
+_ada = _Ada <<< prop (SProxy :: SProxy "getAda")
+
 data Action
   = Action
-      { mockWallet :: MockWallet
+      { simulatorWallet :: SimulatorWallet
       , functionSchema :: FunctionSchema SimpleArgument
       }
   | Wait { blocks :: Int }
@@ -52,7 +56,7 @@ instance showAction :: Show Action where
 _Action ::
   Prism'
     Action
-    { mockWallet :: MockWallet
+    { simulatorWallet :: SimulatorWallet
     , functionSchema :: FunctionSchema SimpleArgument
     }
 _Action = prism' Action f
@@ -145,7 +149,7 @@ data Query a
   -- Wallets.
   | AddWallet a
   | RemoveWallet Int a
-  | SetBalance Wallet Int a
+  | SetBalance Wallet Ada a
   -- Actions.
   | ModifyActions ActionEvent a
   | EvaluateActions a
@@ -212,7 +216,7 @@ type Simulation =
 type State =
   { view :: View
   , compilationResult :: RemoteData AjaxError (Either (Array CompilationError) CompilationResult)
-  , wallets :: Array MockWallet
+  , wallets :: Array SimulatorWallet
   , simulation :: Maybe Simulation
   , evaluationResult :: RemoteData AjaxError EvaluationResult
   , authStatus :: RemoteData AjaxError AuthStatus

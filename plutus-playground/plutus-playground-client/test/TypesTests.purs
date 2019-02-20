@@ -6,7 +6,8 @@ import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Random (RANDOM)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
-import Playground.API (Fn(Fn), FunctionSchema(FunctionSchema), MockWallet(MockWallet))
+import Ledger.Ada.TH (Ada(..))
+import Playground.API (Fn(Fn), FunctionSchema(FunctionSchema), SimulatorWallet(SimulatorWallet))
 import Prelude (discard, unit, ($))
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (equal)
@@ -44,7 +45,9 @@ validateTests = do
 makeTestAction :: Array SimpleArgument -> Action
 makeTestAction arguments =
   Action
-    { mockWallet: MockWallet { mockWalletWallet: Wallet { getWallet: 1 }, mockWalletBalance: 10 }
+    { simulatorWallet: SimulatorWallet { simulatorWalletWallet: Wallet { getWallet: 1 }
+                                       , simulatorWalletBalance: Ada { getAda: 10 }
+                                       }
     , functionSchema: FunctionSchema
                         { functionName: Fn "test"
                         , argumentSchema: arguments

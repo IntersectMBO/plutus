@@ -53,11 +53,12 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href)
 import Halogen.Query (HalogenM)
 import Icons (Icon(..), icon)
+import Ledger.Ada.TH (Ada(..))
 import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
-import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), MockWallet(..), SourceCode(SourceCode), _CompilationResult, _FunctionSchema)
+import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SimulatorWallet(..), SourceCode(SourceCode), _CompilationResult, _FunctionSchema)
 import Playground.API as API
 import Playground.Server (SPParams_, getOauthStatus, patchGistsByGistId, postContract, postEvaluate, postGists)
 import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, show, unit, unless, void, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
@@ -66,17 +67,17 @@ import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
 import Wallet.Emulator.Types (Wallet(Wallet))
 
-mkMockWallet :: Int -> MockWallet
-mkMockWallet id =
-  MockWallet { mockWalletWallet: Wallet { getWallet: id }
-             , mockWalletBalance: 10
-             }
+mkSimulatorWallet :: Int -> SimulatorWallet
+mkSimulatorWallet id =
+  SimulatorWallet { simulatorWalletWallet: Wallet { getWallet: id }
+                  , simulatorWalletBalance: Ada {getAda: 10}
+                  }
 
 initialState :: State
 initialState =
   { view: Editor
   , compilationResult: NotAsked
-  , wallets: mkMockWallet <$> 1..2
+  , wallets: mkSimulatorWallet <$> 1..2
   , simulation: Nothing
   , evaluationResult: NotAsked
   , authStatus: NotAsked
@@ -262,8 +263,8 @@ eval (EvaluateActions next) = do
 
 eval (AddWallet next) = do
   wallets <- use _wallets
-  let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _mockWalletWallet <<< _walletId) wallets
-  let newWallet = mkMockWallet (maxWalletId + 1)
+  let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _simulatorWalletWallet <<< _walletId) wallets
+  let newWallet = mkSimulatorWallet (maxWalletId + 1)
   modifying _wallets (flip Array.snoc newWallet)
   pure next
 
@@ -274,9 +275,9 @@ eval (RemoveWallet index next) = do
 
 eval (SetBalance wallet newBalance next) = do
   modifying _wallets
-    (map (\mockWallet -> if view _mockWalletWallet mockWallet == wallet
-                         then set _mockWalletBalance newBalance mockWallet
-                         else mockWallet))
+    (map (\simulatorWallet -> if view _simulatorWalletWallet simulatorWallet == wallet
+                              then set _simulatorWalletBalance newBalance simulatorWallet
+                              else simulatorWallet))
   pure next
 
 eval (PopulateAction n l event) = do
@@ -334,7 +335,7 @@ currentEvaluation sourceCode = do
 toExpression :: Action -> API.Expression
 toExpression (Wait wait) = API.Wait wait
 toExpression (Action action) = API.Action
-  { wallet: view _mockWalletWallet action.mockWallet
+  { wallet: view _simulatorWalletWallet action.simulatorWallet
   , function: functionSchema.functionName
   , arguments: jsonArguments
   }

@@ -1,9 +1,11 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RecordWildCards  #-}
 
 module Playground.Interpreter.Util where
 
 import           Control.Lens               (view)
 import           Control.Monad.Error.Class  (MonadError, throwError)
+import           Control.Newtype.Generics   (unpack)
 import           Data.Aeson                 (FromJSON)
 import qualified Data.Aeson                 as JSON
 import qualified Data.ByteString.Lazy.Char8 as BSL
@@ -13,44 +15,62 @@ import qualified Data.Set                   as Set
 import qualified Data.Typeable              as T
 import qualified Ledger.Ada                 as Ada
 import           Ledger.Types               (Blockchain, PubKey (PubKey), Tx, TxOutOf (txOutValue))
-import           Playground.API             (PlaygroundError (OtherError))
+import           Playground.API             (PlaygroundError (OtherError), SimulatorWallet (SimulatorWallet),
+                                             simulatorWalletBalance, simulatorWalletBalance, simulatorWalletWallet,
+                                             simulatorWalletWallet)
 import           Wallet.Emulator.Types      (EmulatorEvent, EmulatorState (_chainNewestFirst, _emulatorLog), MockWallet,
                                              Trace, Wallet (Wallet), ownFunds, processPending, runTraceTxPool,
                                              walletStates, walletsNotifyBlock)
 import           Wallet.Generators          (GeneratorModel (GeneratorModel))
 import qualified Wallet.Generators          as Gen
 
--- | Unfortunately any uncaught errors in the interpreter kill the thread that is running it rather than returning the error. This means we need to handle all expected errors in the expression we are interpreting. This gets a little tricky because we have to decode JSON inside the interpreter (since we don't have access to it's type outside) so we need to wrap the @apply functions up in something that can throw errors.
+-- | Unfortunately any uncaught errors in the interpreter kill the
+-- thread that is running it rather than returning the error. This
+-- means we need to handle all expected errors in the expression we
+-- are interpreting. This gets a little tricky because we have to
+-- decode JSON inside the interpreter (since we don't have access to
+-- it's type outside) so we need to wrap the @apply functions up in
+-- something that can throw errors.
 runTrace ::
-     [(Wallet, Int)]
-  -> [Either PlaygroundError (Trace MockWallet [Tx])]
-  -> Either PlaygroundError (Blockchain, [EmulatorEvent], [(Wallet, Ada.Ada)])
+       [SimulatorWallet]
+    -> [Either PlaygroundError (Trace MockWallet [Tx])]
+    -> Either PlaygroundError (Blockchain, [EmulatorEvent], [SimulatorWallet])
 runTrace wallets actions =
-  let walletToBalance (Wallet i, v) = (PubKey i, Ada.adaValueOf v)
-      initialBalance = Map.fromList $ fmap walletToBalance wallets
-      pubKeys = Set.fromList $ fmap (\(Wallet i, _) -> PubKey i) wallets
-      eActions = sequence actions
-   in case eActions of
-        Left e -> Left e
-        Right actions' ->
-          let notifyAll =
-                processPending >>=
-                walletsNotifyBlock (Wallet <$> [1 .. length wallets])
-              action = notifyAll >> sequence actions'
-              (initialTx, _) =
-                Gen.genInitialTransaction $
-                GeneratorModel initialBalance pubKeys
-              (eRes, newState) = runTraceTxPool [initialTx] action
-              blockchain = _chainNewestFirst newState
-              emulatorLog = _emulatorLog newState
-              fundsDistribution =
-                Map.map (foldl' (+) 0 . fmap (Ada.fromValue . txOutValue) . view ownFunds) .
-                view walletStates $
-                newState
-           in case eRes of
-                Right _ ->
-                  Right (blockchain, emulatorLog, Map.toList fundsDistribution)
-                Left e -> Left . OtherError . show $ e
+    let walletToBalance SimulatorWallet {..} =
+            ( PubKey $ unpack simulatorWalletWallet
+            , Ada.toValue simulatorWalletBalance)
+        initialBalance = Map.fromList $ fmap walletToBalance wallets
+        pubKeys =
+            Set.fromList $
+            fmap (PubKey . unpack . simulatorWalletWallet) wallets
+        eActions = sequence actions
+     in case eActions of
+            Left e -> Left e
+            Right actions' ->
+                let notifyAll =
+                        processPending >>=
+                        walletsNotifyBlock (Wallet <$> [1 .. length wallets])
+                    action = notifyAll >> sequence actions'
+                    (initialTx, _) =
+                        Gen.genInitialTransaction $
+                        GeneratorModel initialBalance pubKeys
+                    (eRes, newState) = runTraceTxPool [initialTx] action
+                    blockchain = _chainNewestFirst newState
+                    emulatorLog = _emulatorLog newState
+                    fundsDistribution =
+                        Map.map
+                            (foldl' (+) 0 .
+                             fmap (Ada.fromValue . txOutValue) . view ownFunds) .
+                        view walletStates $
+                        newState
+                 in case eRes of
+                        Right _ ->
+                            Right
+                                ( blockchain
+                                , emulatorLog
+                                , uncurry SimulatorWallet <$>
+                                  Map.toList fundsDistribution)
+                        Left e -> Left . OtherError . show $ e
 
 -- | This will throw an exception if it cannot decode the json however it should
 --   never do this as long as it is only called in places where we have already

@@ -22,17 +22,17 @@ import Halogen.HTML.Properties (InputType(InputText, InputNumber), class_, class
 import Halogen.Query as HQ
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
-import Playground.API (EvaluationResult, MockWallet, _EvaluationResult, _Fn, _FunctionSchema)
+import Playground.API (EvaluationResult, SimulatorWallet, _EvaluationResult, _Fn, _FunctionSchema)
 import Prelude (map, show, unit, ($), (+), (/=), (<$>), (<<<), (<>))
 import Servant.PureScript.Affjax (AjaxError)
-import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, FormEvent(SetSubField, SetStringField, SetIntField), Query(EvaluateActions, ModifyActions, PopulateAction), SimpleArgument(Unknowable, SimpleObject, SimpleString, SimpleInt), Simulation, ValidationError, _argumentSchema, _functionName, _mockWalletWallet, _resultBlockchain, validate)
+import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, FormEvent(SetSubField, SetStringField, SetIntField), Query(EvaluateActions, ModifyActions, PopulateAction), SimpleArgument(Unknowable, SimpleObject, SimpleString, SimpleInt), Simulation, ValidationError, _argumentSchema, _functionName, _simulatorWalletWallet, _resultBlockchain, validate)
 import Wallet (walletIdPane, walletsPane)
 
 simulationPane ::
   forall m aff.
   MonadAff (EChartsEffects aff) m
   => Simulation
-  -> Array MockWallet
+  -> Array SimulatorWallet
   -> RemoteData AjaxError EvaluationResult
   -> ParentHTML Query ChildQuery ChildSlot m
 simulationPane simulation wallets evaluationResult =
@@ -72,10 +72,10 @@ actionPane index action =
                 ]
                 [ icon Close ]
             , case action of
-                Action {mockWallet, functionSchema} ->
+                Action {simulatorWallet, functionSchema} ->
                   div_
                     [ h3_
-                        [ walletIdPane (view _mockWalletWallet mockWallet)
+                        [ walletIdPane (view _simulatorWalletWallet simulatorWallet)
                         , text ": "
                         , text $ view (_FunctionSchema <<< _functionName <<< _Fn) functionSchema
                         ]

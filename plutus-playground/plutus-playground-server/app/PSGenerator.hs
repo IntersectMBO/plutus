@@ -41,7 +41,7 @@ import           Ledger.Types                              (AddressOf, DataScrip
 import           Ledger.Value.TH                           (CurrencySymbol, Value)
 import           Playground.API                            (CompilationError, CompilationResult, Evaluation,
                                                             EvaluationResult, Expression, Fn, FunctionSchema,
-                                                            SimpleArgumentSchema, SourceCode, Warning)
+                                                            SimpleArgumentSchema, SimulatorWallet, SourceCode, Warning)
 import qualified Playground.API                            as API
 import           Playground.Usecases                       (crowdfunding, game, messages, vesting)
 import           Servant                                   ((:<|>))
@@ -154,7 +154,7 @@ myTypes =
     , mkSumType (Proxy @Fn)
     , mkSumType (Proxy @SourceCode)
     , (equal <*> mkSumType) (Proxy @Wallet)
-    , (equal <*> mkSumType) (Proxy @API.MockWallet)
+    , (equal <*> mkSumType) (Proxy @SimulatorWallet)
     , mkSumType (Proxy @DataScript)
     , mkSumType (Proxy @ValidatorScript)
     , mkSumType (Proxy @RedeemerScript)
@@ -183,7 +183,7 @@ myTypes =
     , mkSumType (Proxy @UtxoLocation)
     , mkSumType (Proxy @FlowGraph)
     , mkSumType (Proxy @(Interval A))
-    , mkSumType (Proxy @Ada)
+    , (equal <*> mkSumType) (Proxy @Ada)
     , mkSumType (Proxy @AuthStatus)
     , mkSumType (Proxy @AuthRole)
     , mkSumType (Proxy @GistId)

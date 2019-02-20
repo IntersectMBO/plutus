@@ -16,31 +16,32 @@ import Halogen.HTML.Events (input_, onClick, onValueChange)
 import Halogen.HTML.Properties (InputType(..), class_, classes, placeholder, type_, value)
 import Halogen.Query as HQ
 import Icons (Icon(..), icon)
-import Playground.API (FunctionSchema, MockWallet, SimpleArgumentSchema, _Fn, _FunctionSchema)
+import Ledger.Ada.TH (Ada(..))
+import Playground.API (FunctionSchema, SimulatorWallet, SimpleArgumentSchema, _Fn, _FunctionSchema)
 import Prelude (map, show, ($), (<$>), (<<<))
 import Wallet.Emulator.Types (Wallet)
 
 walletsPane ::
   forall p.
   Signatures
-  -> Array MockWallet
+  -> Array SimulatorWallet
   -> HTML p Query
-walletsPane signatures mockWallets =
+walletsPane signatures simulatorWallets =
   div_
     [ h2_ [ text "Wallets" ]
     , p_ [ text "Add some initial wallets, then click one of your function calls inside the wallet to begin a chain of actions." ]
     , Keyed.div
         [ class_ row ]
-        (Array.snoc (mapWithIndex (walletPane signatures) mockWallets) addWalletPane)
+        (Array.snoc (mapWithIndex (walletPane signatures) simulatorWallets) addWalletPane)
     ]
 
 walletPane ::
   forall p.
   Signatures
   -> Int
-  -> MockWallet
+  -> SimulatorWallet
   -> Tuple String (HTML p Query)
-walletPane signatures index mockWallet =
+walletPane signatures index simulatorWallet =
   Tuple (show index) $
     col4_
       [ div
@@ -52,21 +53,21 @@ walletPane signatures index mockWallet =
                       , onClick $ input_ $ RemoveWallet index
                       ]
                       [ icon Close ]
-                  , cardTitle_ [ h3_ [ walletIdPane (view _mockWalletWallet mockWallet) ] ]
+                  , cardTitle_ [ h3_ [ walletIdPane (view _simulatorWalletWallet simulatorWallet) ] ]
                   , row_
                       [ col_ [ text "ADA" ]
                       , col_ [
                           input
                             [ type_ InputNumber
-                            , value $ show $ view _mockWalletBalance mockWallet
+                            , value $ show $ view (_simulatorWalletBalance <<< _ada) simulatorWallet
                             , placeholder "Int"
-                            , onValueChange $ map (HQ.action <<< SetBalance (view _mockWalletWallet mockWallet)) <<< Int.fromString
+                            , onValueChange $ map (HQ.action <<< SetBalance (view _simulatorWalletWallet simulatorWallet) <<< \v -> Ada {getAda: v}) <<< Int.fromString
                             ]
                         ]
                       ]
                   , h4_ [ text "Available functions" ]
                   , div_
-                      (actionButton mockWallet <$> signatures)
+                      (actionButton simulatorWallet <$> signatures)
                   ]
               ]
           ]
@@ -91,16 +92,16 @@ addWalletPane =
 
 actionButton ::
   forall p.
-  MockWallet
+  SimulatorWallet
   -> FunctionSchema SimpleArgumentSchema
   -> HTML p Query
-actionButton mockWallet functionSchema =
+actionButton simulatorWallet functionSchema =
   button
     [ classes [ btn, btnSecondary, btnSmall, ClassName "action-button" ]
     , onClick $ input_ $ ModifyActions $ AddAction $
         Action
           { functionSchema: toValueLevel functionSchema
-          , mockWallet
+          , simulatorWallet
           }
     ]
     [ text $ view (_FunctionSchema <<< _functionName <<< _Fn) functionSchema
