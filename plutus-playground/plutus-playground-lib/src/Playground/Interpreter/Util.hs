@@ -128,7 +128,6 @@ apply2 fun a b = do
 
 apply3 ::
        ( T.Typeable a
-       , T.Typeable a
        , FromJSON a
        , T.Typeable b
        , FromJSON b

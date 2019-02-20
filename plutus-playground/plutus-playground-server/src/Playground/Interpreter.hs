@@ -60,11 +60,7 @@ avoidUnsafe s =
     throwError $ OtherError "Cannot interpret unsafe functions"
 
 runscript ::
-       (MonadIO m, MonadError PlaygroundError m)
-    => Handle
-    -> FilePath
-    -> Text
-    -> m (ExitCode, String, String)
+       MonadIO m => Handle -> FilePath -> Text -> m (ExitCode, String, String)
 runscript handle file script = do
     liftIO . Text.hPutStr handle $ script
     liftIO $ hFlush handle
@@ -158,7 +154,7 @@ runghcOpts =
     , "-package plutus-tx"
     ]
 
-lookupRunghc :: (MonadIO m, MonadError PlaygroundError m) => m String
+lookupRunghc :: MonadIO m => m String
 lookupRunghc = do
     mBinDir <- liftIO $ lookupEnv "GHC_BIN_DIR"
     case mBinDir of
@@ -176,7 +172,7 @@ ignoringIOErrors :: MonadCatch m => m () -> m ()
 ignoringIOErrors ioe = ioe `catch` (\e -> const (return ()) (e :: IOError))
 
 withSystemTempFile ::
-       (MonadMask m, MonadIO m, MonadError PlaygroundError m)
+       (MonadMask m, MonadIO m)
     => FilePath
     -> (FilePath -> Handle -> m a)
     -> m a
