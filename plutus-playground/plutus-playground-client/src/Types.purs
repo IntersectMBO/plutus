@@ -16,42 +16,34 @@ import Data.Lens (Lens', Prism', Lens, _2, over, prism', traversed, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
-import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
-import Data.Tuple.Nested (type (/\))
 import Gist (Gist)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.ECharts (EChartsMessage, EChartsQuery)
+import Ledger.Ada.TH (Ada, _Ada)
 import Ledger.Types (Tx)
 import Network.RemoteData (RemoteData)
-import Playground.API (CompilationError, CompilationResult, EvaluationResult, FunctionSchema, SimpleArgumentSchema(SimpleObjectArgument, UnknownArgument, SimpleStringArgument, SimpleIntArgument), _FunctionSchema)
+import Playground.API (CompilationError, CompilationResult, EvaluationResult, FunctionSchema, SimulatorWallet, SimpleArgumentSchema(UnknownArgument, SimpleObjectArgument, SimpleStringArgument, SimpleIntArgument), _FunctionSchema, _SimulatorWallet)
 import Servant.PureScript.Affjax (AjaxError)
-import Wallet.Emulator.Types (Wallet)
+import Wallet.Emulator.Types (Wallet, _Wallet)
 
--- | A mock wallet combines an actual Plutus wallet record with a
--- | pretend opening balance.
-newtype MockWallet = MockWallet
-  { wallet :: Wallet
-  , balance :: Int
-  }
-derive instance genericMockWallet :: Generic MockWallet
-derive instance newtypeMockWallet :: Newtype MockWallet _
+_simulatorWalletWallet :: Lens' SimulatorWallet Wallet
+_simulatorWalletWallet = _SimulatorWallet <<< prop (SProxy :: SProxy "simulatorWalletWallet")
 
-_MockWallet :: forall a. Newtype MockWallet a => Lens' MockWallet a
-_MockWallet = _Newtype
 
-_wallet :: forall s a. Lens' {wallet :: a | s} a
-_wallet = prop (SProxy :: SProxy "wallet")
+_simulatorWalletBalance :: Lens' SimulatorWallet Ada
+_simulatorWalletBalance = _SimulatorWallet <<< prop (SProxy :: SProxy "simulatorWalletBalance")
 
-_balance :: forall s a. Lens' {balance :: a | s} a
-_balance = prop (SProxy :: SProxy "balance")
+_walletId :: Lens' Wallet Int
+_walletId = _Wallet <<< prop (SProxy :: SProxy "getWallet")
 
-------------------------------------------------------------
+_ada :: Lens' Ada Int
+_ada = _Ada <<< prop (SProxy :: SProxy "getAda")
 
 data Action
   = Action
-      { mockWallet :: MockWallet
+      { simulatorWallet :: SimulatorWallet
       , functionSchema :: FunctionSchema SimpleArgument
       }
   | Wait { blocks :: Int }
@@ -64,7 +56,7 @@ instance showAction :: Show Action where
 _Action ::
   Prism'
     Action
-    { mockWallet :: MockWallet
+    { simulatorWallet :: SimulatorWallet
     , functionSchema :: FunctionSchema SimpleArgument
     }
 _Action = prism' Action f
@@ -157,14 +149,17 @@ data Query a
   -- Wallets.
   | AddWallet a
   | RemoveWallet Int a
-  | SetBalance Wallet Int a
+  | SetBalance Wallet Ada a
   -- Actions.
-  | AddAction Action a
-  | AddWaitAction Int a
-  | RemoveAction Int a
+  | ModifyActions ActionEvent a
   | EvaluateActions a
   | PopulateAction Int Int (FormEvent a)
-  | SetWaitTime Int Int a
+
+data ActionEvent
+  = AddAction Action
+  | AddWaitAction Int
+  | RemoveAction Int
+  | SetWaitTime Int Int
 
 data FormEvent a
   = SetIntField (Maybe Int) a
@@ -213,12 +208,16 @@ cpBalancesChart = cp3
 
 type Blockchain = Array (Array Tx)
 type Signatures = Array (FunctionSchema SimpleArgumentSchema)
+type Simulation =
+  { signatures :: Signatures
+  , actions :: Array Action
+  }
 
 type State =
   { view :: View
   , compilationResult :: RemoteData AjaxError (Either (Array CompilationError) CompilationResult)
-  , wallets :: Array MockWallet
-  , simulation :: Maybe (Signatures /\ Array Action)
+  , wallets :: Array SimulatorWallet
+  , simulation :: Maybe Simulation
   , evaluationResult :: RemoteData AjaxError EvaluationResult
   , authStatus :: RemoteData AjaxError AuthStatus
   , createGistResult :: RemoteData AjaxError Gist
@@ -229,6 +228,12 @@ _view = prop (SProxy :: SProxy "view")
 
 _simulation :: forall s a. Lens' {simulation :: a | s} a
 _simulation = prop (SProxy :: SProxy "simulation")
+
+_signatures :: forall s a. Lens' {signatures :: a | s} a
+_signatures = prop (SProxy :: SProxy "signatures")
+
+_actions :: forall s a. Lens' {actions :: a | s} a
+_actions = prop (SProxy :: SProxy "actions")
 
 _wallets :: forall s a. Lens' {wallets :: a | s} a
 _wallets = prop (SProxy :: SProxy "wallets")
@@ -245,6 +250,8 @@ _authStatus = prop (SProxy :: SProxy "authStatus")
 _createGistResult :: forall s a. Lens' {createGistResult :: a | s} a
 _createGistResult = prop (SProxy :: SProxy "createGistResult")
 
+_resultBlockchain :: forall s a. Lens' {resultBlockchain :: a | s} a
+_resultBlockchain = prop (SProxy :: SProxy "resultBlockchain")
 
 data View
   = Editor

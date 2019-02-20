@@ -19,7 +19,7 @@ import Types (Blockchain)
 
 all :: forall eff. TestSuite (exception :: EXCEPTION, fs :: FS, random :: RANDOM | eff)
 all =
-  suite "Types" do
+  suite "Bridge" do
     jsonHandling
 
 jsonHandling :: forall eff. TestSuite (exception :: EXCEPTION, fs :: FS, random :: RANDOM | eff)

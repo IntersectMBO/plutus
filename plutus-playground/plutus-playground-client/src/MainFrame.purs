@@ -28,7 +28,7 @@ import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Generic (gEq)
 import Data.Int as Int
-import Data.Lens (_1, _2, _Just, _Right, assign, maximumOf, modifying, over, preview, set, to, traversed, use, view)
+import Data.Lens (_2, _Just, _Right, assign, maximumOf, modifying, over, preview, set, traversed, use, view)
 import Data.Lens.Index (ix)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -53,24 +53,31 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href)
 import Halogen.Query (HalogenM)
 import Icons (Icon(..), icon)
+import Ledger.Ada.TH (Ada(..))
 import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
-import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SourceCode(SourceCode), _CompilationResult, _FunctionSchema)
+import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SimulatorWallet(..), SourceCode(SourceCode), _CompilationResult, _FunctionSchema)
 import Playground.API as API
 import Playground.Server (SPParams_, getOauthStatus, patchGistsByGistId, postContract, postEvaluate, postGists)
 import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, show, unit, unless, void, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
-import Wallet.Emulator.Types (Wallet(..), _Wallet)
+import Wallet.Emulator.Types (Wallet(Wallet))
+
+mkSimulatorWallet :: Int -> SimulatorWallet
+mkSimulatorWallet id =
+  SimulatorWallet { simulatorWalletWallet: Wallet { getWallet: id }
+                  , simulatorWalletBalance: Ada {getAda: 10}
+                  }
 
 initialState :: State
 initialState =
   { view: Editor
   , compilationResult: NotAsked
-  , wallets: (\n -> MockWallet { wallet: Wallet { getWallet: n }, balance: 10 }) <$> 1..2
+  , wallets: mkSimulatorWallet <$> 1..2
   , simulation: Nothing
   , evaluationResult: NotAsked
   , authStatus: NotAsked
@@ -126,12 +133,12 @@ toEvent (ScrollTo _ _) = Nothing
 toEvent (AddWallet _) = Just $ (defaultEvent "AddWallet") { category = Just "Wallet" }
 toEvent (RemoveWallet _ _) = Just $ (defaultEvent "RemoveWallet") { category = Just "Wallet" }
 toEvent (SetBalance _ _ _) = Just $ (defaultEvent "SetBalance") { category = Just "Wallet" }
-toEvent (AddAction _ _) = Just $ (defaultEvent "AddAction") { category = Just "Action" }
-toEvent (AddWaitAction _ _) = Just $ (defaultEvent "AddWaitAction") { category = Just "Action" }
-toEvent (RemoveAction _ _) = Just $ (defaultEvent "RemoveAction") { category = Just "Action" }
+toEvent (ModifyActions (AddAction _) _) = Just $ (defaultEvent "AddAction") { category = Just "Action" }
+toEvent (ModifyActions (AddWaitAction _) _) = Just $ (defaultEvent "AddWaitAction") { category = Just "Action" }
+toEvent (ModifyActions (RemoveAction _) _) = Just $ (defaultEvent "RemoveAction") { category = Just "Action" }
+toEvent (ModifyActions (SetWaitTime _ _) _) = Just $ (defaultEvent "SetWaitTime") { category = Just "Action" }
 toEvent (EvaluateActions _) = Just $ (defaultEvent "EvaluateActions") { category = Just "Action" }
 toEvent (PopulateAction _ _ _) = Just $ (defaultEvent "PopulateAction") { category = Just "Action" }
-toEvent (SetWaitTime _ _ _) = Just $ (defaultEvent "SetWaitTime") { category = Just "Action" }
 
 saveBuffer :: forall eff. String -> Eff (localStorage :: LOCALSTORAGE | eff) Unit
 saveBuffer text = LocalStorage.setItem bufferLocalStorageKey text
@@ -225,9 +232,9 @@ eval (CompileProgram next) = do
       -- change means we'll have to clear out the existing simulation.
       case preview (_Success <<< _Right <<< _CompilationResult <<< _functionSchema) result of
         Just newSignatures -> do
-          oldSignatures <- use (_simulation <<< _Just <<< _1)
+          oldSignatures <- use (_simulation <<< _Just <<< _signatures)
           unless (oldSignatures `gEq` newSignatures)
-            (assign _simulation (Just (newSignatures /\ [])))
+            (assign _simulation (Just { signatures: newSignatures, actions: [] }))
         _ -> pure unit
 
       pure next
@@ -236,16 +243,8 @@ eval (ScrollTo {row, column} next) = do
   void $ withEditor $ Editor.gotoLine row (Just column) (Just true)
   pure next
 
-eval (AddAction action next) = do
-  modifying (_simulation <<< _Just <<< _2) $ flip Array.snoc action
-  pure next
-
-eval (AddWaitAction blocks next) = do
-  modifying (_simulation <<< _Just <<< _2) $ flip Array.snoc (Wait { blocks })
-  pure next
-
-eval (RemoveAction index next) = do
-  modifying (_simulation <<< _Just <<< _2) $ fromMaybe <*> Array.deleteAt index
+eval (ModifyActions actionEvent next) = do
+  modifying (_simulation <<< _Just <<< _actions) (evalActionEvent actionEvent)
   pure next
 
 eval (EvaluateActions next) = do
@@ -264,31 +263,28 @@ eval (EvaluateActions next) = do
 
 eval (AddWallet next) = do
   wallets <- use _wallets
-  let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _MockWallet <<< _wallet <<< _Wallet <<< to _.getWallet ) wallets
-  let newWallet = MockWallet
-        { wallet: Wallet { getWallet: (maxWalletId + 1) }
-        , balance: 10
-        }
+  let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _simulatorWalletWallet <<< _walletId) wallets
+  let newWallet = mkSimulatorWallet (maxWalletId + 1)
   modifying _wallets (flip Array.snoc newWallet)
   pure next
 
 eval (RemoveWallet index next) = do
   modifying _wallets (fromMaybe <*> Array.deleteAt index)
-  assign (_simulation <<< _Just <<< _2) []
+  assign (_simulation <<< _Just <<< _actions) []
   pure next
 
 eval (SetBalance wallet newBalance next) = do
   modifying _wallets
-    (map (\mockWallet -> if view (_MockWallet <<< _wallet) mockWallet == wallet
-                         then set (_MockWallet <<< _balance) newBalance mockWallet
-                         else mockWallet))
+    (map (\simulatorWallet -> if view _simulatorWalletWallet simulatorWallet == wallet
+                              then set _simulatorWalletBalance newBalance simulatorWallet
+                              else simulatorWallet))
   pure next
 
 eval (PopulateAction n l event) = do
   modifying
     (_simulation
        <<< _Just
-       <<< _2
+       <<< _actions
        <<< ix n
        <<< _Action
        <<< _functionSchema
@@ -298,16 +294,11 @@ eval (PopulateAction n l event) = do
     (evalForm event)
   pure $ extract event
 
-eval (SetWaitTime index time next) = do
-  assign
-    (_simulation
-       <<< _Just
-       <<< _2
-       <<< ix index
-       <<< _Wait
-       <<< _blocks)
-    time
-  pure next
+evalActionEvent :: ActionEvent -> Array Action -> Array Action
+evalActionEvent (AddAction action) = flip Array.snoc action
+evalActionEvent (AddWaitAction blocks) = flip Array.snoc (Wait { blocks })
+evalActionEvent (RemoveAction index) = fromMaybe <*> Array.deleteAt index
+evalActionEvent (SetWaitTime index time) = set (ix index <<< _Wait <<< _blocks) time
 
 evalForm :: forall a. FormEvent a -> SimpleArgument -> SimpleArgument
 evalForm (SetIntField n next) (SimpleInt _) = SimpleInt n
@@ -330,27 +321,21 @@ replaceViewOnSuccess result source target = do
 
 currentEvaluation :: forall m. MonadState State m => SourceCode -> m (Maybe Evaluation)
 currentEvaluation sourceCode = do
-  wallets <- map toPair <$> use _wallets
+  wallets <- use _wallets
   simulation <- use _simulation
   pure $ case simulation of
     Nothing -> Nothing
-    Just (signature /\ actions) -> do
+    Just {actions} -> do
       Just $ Evaluation { wallets
                         , program: toExpression <$> actions
                         , sourceCode
                         , blockchain: []
                         }
-  where
-    toPair :: MockWallet -> Tuple Wallet Int
-    toPair mockWallet =
-      view (_MockWallet <<< _wallet) mockWallet
-      /\
-      view (_MockWallet <<< _balance) mockWallet
 
 toExpression :: Action -> API.Expression
 toExpression (Wait wait) = API.Wait wait
 toExpression (Action action) = API.Action
-  { wallet: view (_MockWallet <<< _wallet) action.mockWallet
+  { wallet: view _simulatorWalletWallet action.simulatorWallet
   , function: functionSchema.functionName
   , arguments: jsonArguments
   }
@@ -426,11 +411,10 @@ render state =
             , strong_ [ text "Editor" ]
             , text " tab above to fix them and recompile."
             ]
-          Success (Right _), Just (signature /\ actions) ->
+          Success (Right _), Just simulation ->
             [ simulationPane
+                simulation
                 state.wallets
-                signature
-                actions
                 state.evaluationResult
             ]
           Failure error, _ -> [ ajaxErrorPane error ]

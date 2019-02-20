@@ -3,8 +3,8 @@
     "tag": "CompilationError",
     "text": [
       " error:",
-      " • Couldn't match type ‘()’ with ‘MockWallet ()’",
-      " Expected type: Either PlaygroundError (MockWallet ())",
+      " • Couldn't match type ‘()’ with ‘SimulatorWallet ()’",
+      " Expected type: Either PlaygroundError (SimulatorWallet ())",
       " Actual type: Either PlaygroundError ()",
       " • In the second argument of ‘(<$>)’, namely ‘(submitInvalidTxn)’",
       " In the expression:",
