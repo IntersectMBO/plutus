@@ -61,7 +61,7 @@ data Expression
 type Program = [Expression]
 
 data SimulatorWallet = SimulatorWallet
-  { simulatorWalletWallet :: Wallet
+  { simulatorWalletWallet  :: Wallet
   , simulatorWalletBalance :: Ada
   }
   deriving (Show, Generic, Eq, ToJSON, FromJSON)

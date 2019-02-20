@@ -16,8 +16,7 @@ import qualified Data.Typeable              as T
 import qualified Ledger.Ada                 as Ada
 import           Ledger.Types               (Blockchain, PubKey (PubKey), Tx, TxOutOf (txOutValue))
 import           Playground.API             (PlaygroundError (OtherError), SimulatorWallet (SimulatorWallet),
-                                             simulatorWalletBalance, simulatorWalletBalance, simulatorWalletWallet,
-                                             simulatorWalletWallet)
+                                             simulatorWalletBalance, simulatorWalletWallet)
 import           Wallet.Emulator.Types      (EmulatorEvent, EmulatorState (_chainNewestFirst, _emulatorLog), MockWallet,
                                              Trace, Wallet (Wallet), ownFunds, processPending, runTraceTxPool,
                                              walletStates, walletsNotifyBlock)
