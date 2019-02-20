@@ -128,6 +128,151 @@ The key is the `nftBootstrapTxOut` field. Condition `con1` ensures that there is
 
 It is of course possible to produce multiple script outputs to the same address of `nftValidator nft` but only one of them can be spent, because the referenced tx output can only be spent once.
 
+Note that creating an NFT with this contract requires three transactions: One for the `nftBootstrapTxOut` transaction output, one for producing an output to the NFT address, and one that forges the token, consuming the output from the NFT address and the `nftBootstrapTxOut`. Note that the bootstrap transaction output can be any unspent transaction output owned by us, in particular it can be the same output that pays the fees for the forging transaction.
+
+## Example (Currency with monetary policy)
+
+The following contract implements a monetary policy of a currency `c` that can be forged repeatedly, up to a predefined maximum amount. 
+
+We use the data script to keep track of how much `c` has been issued so far. However, when authorising the forging of new `c` (that is, when running the validator script whose hash is `c`) we cannot verify that the data script we received contains the correct amount of `c` in circulation, because anyone can produce a pay-to-script transaction output locked by `c` and with an arbitrary data script. To prevent this kind of unauthorised forging of `c` we use a *mirror currency*, `c*`. This mirror currency represents the potential amount of `c` that can still be forged. Whenever we increase the supply of `c`, we destroy the same amount of `c*` and vice versa. The total circulation of `c` plus the total supply of `c*` equals the maximum supply of `c` at all times. To legitimise the forging of `c` we require the forger to present the entire amount of `c*` that exists. 
+
+We can think of `c` as paper notes and `c*` as a gold bar that we keep in our vault. Every unit of `c` is a claim to some of our gold bar. We can trade this claim away but we always keep the gold (although now the amount of gold that is available is smaller).
+
+See below the script for an example.
+
+```haskell
+
+data CurRole = ActualCurrency | MirrorCurrency
+
+newtype Currency = Currency {
+    curMaxCirculation :: Int,
+    -- ^ Maximum amount of currency that can be forged
+    curRole :: CurRole,
+    -- ^ Which of the two currencies (c or c*) lives at this address
+    curBootstrapTxOut :: TxOut
+    -- ^ Transaction output for initialising the currency
+  }
+
+-- | Current state of the state machine
+newtype CurState = 
+  InitialState
+  -- ^ Initial state, the mirror currency has not been forged
+  | Circulating { 
+      csCurrentSupply :: Int,
+      -- ^ How much of c has been issued
+      csMirrorAddr :: ByteString,
+      -- ^ Identifier of the mirror currency
+      csCurAddr    :: ByteString
+      -- ^ Identifier of the currency itself
+      }
+
+-- | State machine input
+data CurAction = 
+  Initialise { caMirror :: ByteString, caActual :: ByteString }
+  | CurForge { cfForge :: Int }
+
+-- | Data needed to verify a change in the circulation of the currency
+--   (forging or destroying value)
+data CirculationChange = CirculationChange {
+    ccMirrorAddr         :: ByteString,
+    -- ^ Address of the mirror currency
+    ccCurAddr            :: ByteString,
+    -- ^ Address of the currency itself
+    ccCurrentSupply      :: Int,
+    -- ^ How much of the currency has already been forged
+    ccForge              :: Int
+    -- ^ How much we want to forge (can be negative)
+  }
+
+-- | Create the validator script for a `Currency`.
+currencyScript :: Currency -> ValidatorScript
+currencyScript cur = ValidatorScript val where
+  val = Ledger.applyScript inner (Ledger.lifted cur)
+  inner = $$(Ledger.compileScript [|| \(Currency maxCirc role txout) ->
+    let 
+    
+      -- Check whether a transaction (PendingTx) that changes the supply of c
+      -- and c* preserves the invariant of "supply(c) + supply(c*) = maxSupply",
+      -- and produces the entire amount of c* that is left.
+      balancesOk :: CirculationChange -> PendingTx -> Bool
+      balancesOk (CirculationChange mirrorAdr curAdr currentCirc forged) ptx =
+        let newCirc = currentCirc + forged
+        in
+             -- the required amount of c is forged by ptx
+             ptx `forges` forged curAdr
+
+             -- the same amount of c* is destroyed
+          && ptx `forges` (negate forged) mirrorAdr
+
+             -- ptx produces the entire remaining amount of c*
+          && ptx `outputs` (maxCirc - newCirc) mirrorAdr
+
+      -- A state machine for the mirror currency, c*. 
+      -- In the initial state we verify the transaction forges an amount of 
+      -- c* equal to `maxCirc`, and 0 of c. We also check that the script addresses
+      -- from the `Initialise` argument match those of the pending transaction.
+      -- In all other states we check that the action preserves the currency invariant.
+      mirrorStateMachine :: CurState -> CurAction -> PendingTx -> CurState
+      mirrorStateMachine InitialState (Initialise mirror actual) ptx =
+        if
+             ptx `forges` 0 actual
+          && ptx `forges`  maxCirc (ownAddress ptx)
+          && ptx `spends` txout
+          && addressEq mirror (ownAddress ptx)
+          && ptx `spendsFrom` actual
+        then Circulating 0 mirror actual
+        else $$(P.error)
+      mirrorStateMachine (Circulating currentCirc mirrorAdr curAdr) (CurForge forged) ptx =
+        if balancesOk (CirculationChange mirrorAdr curAdr currentCirc forged)
+           && addressEq mirrorAdr (ownAddress ptx)
+        then Circulating newCirc actualCur
+        else $$(P.error)
+
+      -- A state machine for the actual currency, c. 
+      -- In the initial state we verify the transaction forges an amount of 
+      -- c* equal to `maxCirc`, and 0 of c. We also check that the script addresses
+      -- from the `Initialise` argument match those of the pending transaction.
+      -- In all other states we check that the action preserves the currency
+      -- invariant.
+      currencyStateMachine :: CurState -> CurAction -> PendingTx -> CurState
+      currencyStateMachine InitialState (Initialise mirror actual) ptx =
+        if
+             ptx `forges` 0 (ownAddress ptx)
+          && ptx `forges`  maxCirc mirror
+          && ptx `spends` txout
+          && addressEq actual (ownAddress ptx)
+        then Circulating 0 mirror actual
+        else $$(P.error)
+      currencyStateMachine (Circulating currentCirc mirrorAdr curAdr) (CurForge forged) ptx =
+        if balancesOk (CirculationChange mirrorAdr curAdr currentCirc forged)
+           && addressEq curAdr (ownAddress ptx)
+        then Circulating newCirc actualCur
+        else $$(P.error)
+
+    in
+      case role of
+        ActualCurrency -> $$(P.mkStateMachine) currencyStateMachine
+        MirrorCurrency -> $$(P.mkStateMachine) mirrorStateMachine
+
+    ||]
+```
+
+#### Transactions
+
+To create a new currency with a maximum supply of 10000 and an initial supply of 100 we need to do the following. Steps 1-4 cover the initial setup and are only needed once. Step 5 demonstrates a regular interaction with the currency (changing its supply).
+
+1. Select an unspent transaction output `txout` owned by us
+2. Define `dsCur :: ValidatorScript, dsMirror :: ValidatorScript` with `dsCur = currencyScript (Currency 10000 ActualCurrency txout)` and `dsMirror = currencyScript (Currency 10000 MirrorCurrency txout)`. Their hashes are `hCur :: ByteString = hash dsCur` and `hMir :: ByteString = hash dsMirror`. `hCur` identifies the new currency, and `hMir` identifies its mirror currency.
+3. Create a transaction `tx1`. `tx1` produces two pay-to-script outputs: `cur1` and `mir1`. The address of `cur1` is `hCur`. The address of `mir1` is `hMir`. `cur1` and `mir1` have the same data script, `(InitialState, Initialise hMir hCur)` (see below for an explanation of the (state, action) tuples in data and redeemer scripts). The `valueForged` field of `tx1` is empty.
+4. Create a transaction `tx2`. `tx2` spends `cur1` and `mir1`, using the redeemer `r = (Circulating hMir hCur 0, Initialise hMir hCur)` for both outputs. `tx2` also spends `txout` and potentially other outputs that are needed to cover the fee. `tx2` produces pay-to-script outputs `cur2` and `mir2`. The address of `cur2` is `hCur` and the address of `mir2` is `hMir`. The outputs `cur2` and `mir2` have the same data script: `r`, and their value is zero. In addition `tx2` produces an output `o` of `10000 hMir` to a pubkey address owned by us. The `valueForged` field of `tx2` is `{ hMirror -> 10000 }`.
+5. To issue `100 hCur` currency, create a transaction `tx3`. `tx3` spends `o` as well as `cur2` and `mir2`, using the redeemer `r = (Circulating hMir hCur 100, Forge 100)`. `tx3` produces outputs `cur3` and `mir3` to the addresses `hCur` and `hMir` respectively, using the data script `r`. In addition, `tx3` produces an output `p` with a value of `100 hCur`, and an output `q` with a value of `9900 hMir`. The address of `q` is a public key address owned by us. The address of `p` can be any public key or script address (wherever we want to send the new currency). The `valueForged` field of `tx3` is `{ hMirror -> -100, hCur -> 100 }`.
+
+The reason why the data and redeemer scripts used in steps 2-5 are of the form `(state, input)` is that this is currently the only way we have of [validating the next data script](https://github.com/input-output-hk/plutus/issues/426). The linked github issue explains the encoding under the heading "Possible Solutions", third item.
+
+#### A different monetary policy
+
+Suppose we wanted define a currency with a variable maximum supply, for example bound to interest rate. We can use the same pattern (mirror currency), we just need to change the `mirrorStateMachine` function to allow transactions that forge the mirror currency without destroying the same amount of the actual currency at the same time.
+
 ## References
 
 [1] "An Abstract Model of UTxO-based Cryptocurrencies with Scripts"
