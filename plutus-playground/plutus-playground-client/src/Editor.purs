@@ -25,10 +25,11 @@ import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, h3_, p
 import Halogen.HTML.Events (input, input_, onClick, onDragOver, onDrop)
 import Halogen.HTML.Properties (class_, classes, disabled)
 import Icons (Icon(..), icon)
+import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError))
 import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Network.RemoteData (RemoteData(..), _Success, isLoading)
-import Playground.API (_CompilationResult, CompilationError(CompilationError, RawError), Warning, _Warning)
+import Playground.API (_CompilationResult, Warning, _Warning)
 import Prelude (Unit, bind, discard, pure, show, unit, void, ($), (<$>), (<<<), (<>))
 import StaticData as StaticData
 import Types (ChildQuery, ChildSlot, EditorSlot(..), Query(..), State, _authStatus, _compilationResult, _createGistResult, _warnings, cpEditor)

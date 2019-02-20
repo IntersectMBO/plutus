@@ -41,6 +41,7 @@ library
     Language.Marlowe
     Language.Marlowe.Client
     Language.Marlowe.Escrow
+    Marlowe
   other-modules:
     Language.Marlowe.Common
   ghc-options:

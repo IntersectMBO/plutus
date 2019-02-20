@@ -9,9 +9,10 @@ import Data.Argonaut.Generic.Aeson (decodeJson)
 import Data.Argonaut.Parser (jsonParser)
 import Data.Either (Either(..))
 import Data.Generic (class Generic)
+import Language.Haskell.Interpreter (CompilationError)
 import Node.Encoding (Encoding(UTF8))
 import Node.FS (FS)
-import Playground.API (CompilationError, EvaluationResult)
+import Playground.API (EvaluationResult)
 import Node.FS.Sync as FS
 import Prelude
 import Test.Unit (TestSuite, Test, failure, success, suite, test)

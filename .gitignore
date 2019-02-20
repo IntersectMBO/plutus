@@ -40,3 +40,6 @@ result*
 
 gh-pages
 .psc-ide-port
+
+.importify/
+meadow/meadow.yaml

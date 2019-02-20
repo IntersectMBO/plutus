@@ -8,8 +8,10 @@ let
   };
   playgroundA = mkInstance machines.playgroundA;
   playgroundB = mkInstance machines.playgroundB;
+  meadowA = mkInstance machines.meadowA;
+  meadowB = mkInstance machines.meadowB;
 in
-  { inherit playgroundA playgroundB;
+  { inherit playgroundA playgroundB meadowA meadowB;
     network.description = "Plutus Playground";
     network.enableRollback = true;
   }

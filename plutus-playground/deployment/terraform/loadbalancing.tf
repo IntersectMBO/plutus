@@ -42,7 +42,13 @@ resource "aws_security_group" "public_alb" {
 }
 
 data "aws_acm_certificate" "kevm_private" {
-  domain      = "*.${var.tld}"
+  domain      = "*.${var.plutus_tld}"
+  statuses    = ["ISSUED"]
+  most_recent = true
+}
+
+data "aws_acm_certificate" "meadow_private" {
+  domain      = "*.${var.meadow_tld}"
   statuses    = ["ISSUED"]
   most_recent = true
 }
@@ -93,13 +99,67 @@ resource "aws_elb" "plutus" {
 }
 
 resource "aws_route53_record" "alb" {
-  zone_id = "Z3HMYGFV3CT1GJ"
-  name    = "${var.env}.playground.plutus.iohkdev.io"
+  zone_id = "${var.plutus_public_zone}"
+  name    = "${var.env}.${var.plutus_tld}"
   type    = "A"
 
   alias {
     name                   = "${aws_elb.plutus.dns_name}"
     zone_id                = "${aws_elb.plutus.zone_id}"
+    evaluate_target_health = true
+  }
+}
+
+
+resource "aws_elb" "meadow" {
+  name        = "${var.env}-meadow-lb"
+  subnets = ["${aws_subnet.public.*.id}"]
+  security_groups = ["${aws_security_group.public_alb.id}"]
+
+  listener {
+    instance_port     = 80
+    instance_protocol = "http"
+    lb_port           = 80
+    lb_protocol       = "http"
+  }
+
+  listener {
+    instance_port      = 80
+    instance_protocol  = "http"
+    lb_port            = 443
+    lb_protocol        = "https"
+    ssl_certificate_id = "${data.aws_acm_certificate.meadow_private.arn}"
+  }
+
+  health_check {
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    timeout             = 3
+    target              = "HTTP:80/"
+    interval            = 30
+  }
+
+  instances                   = ["${aws_instance.meadow_a.id}", "${aws_instance.meadow_b.id}"]
+  cross_zone_load_balancing   = false
+  idle_timeout                = 400
+  connection_draining         = true
+  connection_draining_timeout = 400
+
+  tags {
+    Name        = "${var.project}_${var.env}_meadow_alb"
+    Project     = "${var.project}"
+    Environment = "${var.env}"
+  }
+}
+
+resource "aws_route53_record" "alb_meadow" {
+  zone_id = "${var.meadow_public_zone}"
+  name    = "${var.env}.${var.meadow_tld}"
+  type    = "A"
+
+  alias {
+    name                   = "${aws_elb.meadow.dns_name}"
+    zone_id                = "${aws_elb.meadow.zone_id}"
     evaluate_target_health = true
   }
 }

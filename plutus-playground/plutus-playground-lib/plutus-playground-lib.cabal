@@ -41,15 +41,16 @@ library
     , bytestring
     , containers
     , insert-ordered-containers
+    , interpreter
+    , lens
     , memory
     , mtl
-    , transformers
-    , lens
     , newtype-generics
     , servant
     , swagger2
     , template-haskell
     , text
+    , transformers
     , wallet-api
   default-language: Haskell2010
 
