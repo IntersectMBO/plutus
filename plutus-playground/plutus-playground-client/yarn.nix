@@ -5259,11 +5259,11 @@
     }
 
     {
-      name = "purs-loader-3.2.0.tgz";
+      name = "purs-loader-3.3.0.tgz";
       path = fetchurl {
-        name = "purs-loader-3.2.0.tgz";
-        url  = "https://registry.yarnpkg.com/purs-loader/-/purs-loader-3.2.0.tgz";
-        sha1 = "90dea335976fb87199f721969eaee95ad6810721";
+        name = "purs-loader-3.3.0.tgz";
+        url  = "https://registry.yarnpkg.com/purs-loader/-/purs-loader-3.3.0.tgz";
+        sha1 = "70e76a895ae41e5729631a202305bebfe8970a7c";
       };
     }
 
