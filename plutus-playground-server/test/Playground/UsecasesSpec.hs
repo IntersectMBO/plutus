@@ -10,17 +10,20 @@ import qualified Data.Aeson.Text        as JSON
 import           Data.Aeson.Types       (object, (.=))
 import qualified Data.ByteString.Char8  as BSC
 import           Data.Either            (isRight)
+import           Data.Swagger
 import qualified Data.Text              as Text
 import qualified Data.Text.Lazy         as TL
 import qualified Ledger.Ada             as Ada
 import           Ledger.Types           (Blockchain)
+import           Playground.API         (FunctionSchema (FunctionSchema), SimpleArgumentSchema (..), functionName,
+                                         toSimpleArgumentSchema)
 import           Playground.API         (Evaluation (Evaluation), Expression (Action, Wait), Fn (Fn), FunctionSchema,
                                          PlaygroundError, SimpleArgumentSchema, SimulatorWallet (SimulatorWallet),
-                                         SourceCode (SourceCode), functionSchema, simulatorWalletBalance,
-                                         simulatorWalletWallet)
+                                         SourceCode (SourceCode), argumentSchema, functionSchema, isSupportedByFrontend,
+                                         simulatorWalletBalance, simulatorWalletWallet)
 import qualified Playground.Interpreter as PI
 import           Playground.Usecases    (crowdfunding, game, messages, vesting)
-import           Test.Hspec             (Spec, describe, it, shouldSatisfy)
+import           Test.Hspec             (Spec, describe, hspec, it, shouldBe, shouldSatisfy)
 import           Wallet.Emulator.Types  (EmulatorEvent, Wallet (Wallet))
 
 spec :: Spec
@@ -33,7 +36,107 @@ spec = do
 vestingSpec :: Spec
 vestingSpec =
     describe "vesting" $ do
-        it "should compile" $ compile vesting >>= (`shouldSatisfy` isRight)
+        compilationChecks vesting
+        it "should compile with the expected schema" $ do
+            Right result <- compile vesting
+            result `shouldBe`
+                [ FunctionSchema
+                      { functionName = Fn "vestFunds"
+                      , argumentSchema =
+                            [ SimpleObjectArgument
+                                  [ ( "vestingOwner"
+                                    , SimpleObjectArgument
+                                          [("getPubKey", SimpleIntArgument)])
+                                  , ( "vestingTranche2"
+                                    , SimpleObjectArgument
+                                          [ ( "vestingTrancheAmount"
+                                            , SimpleObjectArgument
+                                                  [ ( "getAda"
+                                                    , SimpleIntArgument)
+                                                  ])
+                                          , ( "vestingTrancheDate"
+                                            , SimpleObjectArgument
+                                                  [ ( "getSlot"
+                                                    , SimpleIntArgument)
+                                                  ])
+                                          ])
+                                  , ( "vestingTranche1"
+                                    , SimpleObjectArgument
+                                          [ ( "vestingTrancheAmount"
+                                            , SimpleObjectArgument
+                                                  [ ( "getAda"
+                                                    , SimpleIntArgument)
+                                                  ])
+                                          , ( "vestingTrancheDate"
+                                            , SimpleObjectArgument
+                                                  [ ( "getSlot"
+                                                    , SimpleIntArgument)
+                                                  ])
+                                          ])
+                                  ]
+                            , SimpleObjectArgument
+                                  [("getAda", SimpleIntArgument)]
+                            ]
+                      }
+                , FunctionSchema
+                      { functionName = Fn "registerVestingOwner"
+                      , argumentSchema =
+                            [ SimpleObjectArgument
+                                  [ ( "vestingOwner"
+                                    , SimpleObjectArgument
+                                          [("getPubKey", SimpleIntArgument)])
+                                  , ( "vestingTranche2"
+                                    , SimpleObjectArgument
+                                          [ ( "vestingTrancheAmount"
+                                            , SimpleObjectArgument
+                                                  [ ( "getAda"
+                                                    , SimpleIntArgument)
+                                                  ])
+                                          , ( "vestingTrancheDate"
+                                            , SimpleObjectArgument
+                                                  [ ( "getSlot"
+                                                    , SimpleIntArgument)
+                                                  ])
+                                          ])
+                                  , ( "vestingTranche1"
+                                    , SimpleObjectArgument
+                                          [ ( "vestingTrancheAmount"
+                                            , SimpleObjectArgument
+                                                  [ ( "getAda"
+                                                    , SimpleIntArgument)
+                                                  ])
+                                          , ( "vestingTrancheDate"
+                                            , SimpleObjectArgument
+                                                  [ ( "getSlot"
+                                                    , SimpleIntArgument)
+                                                  ])
+                                          ])
+                                  ]
+                            ]
+                      }
+                , FunctionSchema
+                      { functionName = Fn "payToPublicKey_"
+                      , argumentSchema =
+                            [ SimpleObjectArgument
+                                  [ ( "ivTo"
+                                    , SimpleObjectArgument
+                                          [("getSlot", SimpleIntArgument)])
+                                  , ( "ivFrom"
+                                    , SimpleObjectArgument
+                                          [("getSlot", SimpleIntArgument)])
+                                  ]
+                            , SimpleObjectArgument
+                                  [ ( "getValue"
+                                    , SimpleArrayArgument
+                                          (SimpleTupleArgument
+                                               ( SimpleIntArgument
+                                               , SimpleIntArgument)))
+                                  ]
+                            , SimpleObjectArgument
+                                  [("getPubKey", SimpleIntArgument)]
+                            ]
+                      }
+                ]
         it "should run simple evaluation" $
             evaluate simpleEvaluation >>= (`shouldSatisfy` isRight)
         it "should run simple wait evaluation" $
@@ -82,7 +185,7 @@ vestingSpec =
 gameSpec :: Spec
 gameSpec =
     describe "game" $ do
-        it "should compile" $ compile game >>= (`shouldSatisfy` isRight)
+        compilationChecks game
         it "should unlock the funds" $
             evaluate gameEvalSuccess >>=
             (`shouldSatisfy` hasFundsDistribution
@@ -216,14 +319,12 @@ hasFundsDistribution requiredDistribution (Right (_, _, actualDistribution)) =
     requiredDistribution == actualDistribution
 
 messagesSpec :: Spec
-messagesSpec =
-    describe "messages" $
-    it "should compile" $ compile messages >>= (`shouldSatisfy` isRight)
+messagesSpec = describe "messages" $ compilationChecks messages
 
 crowdfundingSpec :: Spec
 crowdfundingSpec =
     describe "crowdfunding" $ do
-        it "should compile" $ compile crowdfunding >>= (`shouldSatisfy` isRight)
+        compilationChecks crowdfunding
         it "should run successful campaign" $
             evaluate successfulCampaign >>=
             (`shouldSatisfy` hasFundsDistribution
@@ -331,3 +432,15 @@ evaluate ::
                                   , [EmulatorEvent]
                                   , [SimulatorWallet]))
 evaluate evaluation = runExceptT $ PI.runFunction evaluation
+
+compilationChecks :: BSC.ByteString -> Spec
+compilationChecks f = do
+    it "should compile" $ compile f >>= (`shouldSatisfy` isRight)
+    it "should be representable on the frontend" $
+        compile f >>= (`shouldSatisfy` isSupportedCompilationResult)
+
+isSupportedCompilationResult ::
+       Either PlaygroundError [FunctionSchema SimpleArgumentSchema] -> Bool
+isSupportedCompilationResult (Left _) = False
+isSupportedCompilationResult (Right functionSchemas) =
+    all (all isSupportedByFrontend . argumentSchema) functionSchemas
