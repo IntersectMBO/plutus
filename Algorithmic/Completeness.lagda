@@ -363,9 +363,7 @@ nfType {Γ} (Syn.builtin bn σ tel) = let
         (nfTypeTel' σ As (sym (nfTypeSIG≡₁ bn)) As' (lemList bn) tel ))
 nfType {Γ} (Syn.error A) = Norm.error (substEq  (_⊢Nf⋆ *) (nfCtx∥ Γ) (nf A))
 
-completenessT : ∀{Γ K}
-  → {A : Syn.∥ Γ ∥ ⊢⋆ K}
-  → Γ Syn.⊢ A
+completenessT : ∀{Γ K}{A : Syn.∥ Γ ∥ ⊢⋆ K} → Γ Syn.⊢ A
   → nfCtx Γ Norm.⊢ substEq (_⊢Nf⋆ K) (nfCtx∥ Γ) (nf A) × (A ≡β embNf (nf A))
 completenessT {A = A} t = nfType t ,, soundness A
 \end{code}

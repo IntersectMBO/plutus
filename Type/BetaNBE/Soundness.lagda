@@ -25,8 +25,8 @@ type is beta-eta-equal to the result of reifying the value.
 
 \begin{code}
 SR : ∀{Φ} K → Φ ⊢⋆ K → Val Φ K → Set
-SR #       A v        = A ≡β embNf (reify v)
-SR *       A v        = A ≡β embNf (reify v)
+SR #       A v        = A ≡β embNf v
+SR *       A v        = A ≡β embNf v
 SR (K ⇒ J) A (inj₁ n) = A ≡β embNeN n
 SR (K ⇒ J) A (inj₂ f) = Σ (_ ,⋆ K ⊢⋆ J) λ B →
   (A ≡β ƛ B) -- this bit of indirection is needed as we have only β not βη

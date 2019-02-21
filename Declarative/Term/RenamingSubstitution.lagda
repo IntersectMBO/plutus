@@ -231,7 +231,7 @@ _[_] : ∀ {J Γ} {A B : ∥ Γ ∥ ⊢⋆ J}
           ---------
         → Γ ⊢ A
 _[_]  {J} {Γ}{A}{B} t s =
-  substEq (λ A → Γ ⊢ A)
+  substEq (Γ ⊢_)
           (⋆.subst-id A)
           (subst _
                  (substcons `
