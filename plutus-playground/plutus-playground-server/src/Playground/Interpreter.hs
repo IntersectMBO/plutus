@@ -14,19 +14,17 @@ import           Data.ByteString            (ByteString)
 import qualified Data.ByteString.Char8      as BS8
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import           Data.List                  (intercalate)
-import           Data.Swagger               (Schema)
 import           Data.Text                  (Text)
 import qualified Data.Text                  as Text
 import qualified Data.Text.Internal.Search  as Text
 import qualified Data.Text.IO               as Text
-import           Ledger.Ada                 (Ada)
-import           Ledger.Types               (Blockchain, Value)
+import           Ledger.Types               (Blockchain)
 import           Playground.API             (CompilationResult (CompilationResult), Evaluation (sourceCode),
-                                             Expression (Action, Wait), Fn (Fn), FunctionSchema (FunctionSchema),
-                                             FunctionSchema,
+                                             Expression (Action, Wait), Fn (Fn),
                                              PlaygroundError (CompilationErrors, DecodeJsonTypeError, InterpreterError, OtherError),
-                                             SourceCode, Warning (Warning), parseErrorsText, program,
-                                             toSimpleArgumentSchema, wallets)
+                                             SimulatorWallet, SourceCode, Warning (Warning), parseErrorsText, program,
+                                             simulatorWalletWallet, toSimpleArgumentSchema, wallets)
+
 import           System.Directory           (removeFile)
 import           System.Environment         (lookupEnv)
 import           System.Exit                (ExitCode (ExitSuccess))
@@ -62,11 +60,7 @@ avoidUnsafe s =
     throwError $ OtherError "Cannot interpret unsafe functions"
 
 runscript ::
-       (MonadIO m, MonadError PlaygroundError m)
-    => Handle
-    -> FilePath
-    -> Text
-    -> m (ExitCode, String, String)
+       MonadIO m => Handle -> FilePath -> Text -> m (ExitCode, String, String)
 runscript handle file script = do
     liftIO . Text.hPutStr handle $ script
     liftIO $ hFlush handle
@@ -105,7 +99,7 @@ compile source = do
 runFunction ::
        (MonadMask m, MonadIO m, MonadError PlaygroundError m)
     => Evaluation
-    -> m (Blockchain, [EmulatorEvent], [(Wallet, Ada)])
+    -> m (Blockchain, [EmulatorEvent], [SimulatorWallet])
 runFunction evaluation = do
     let source = sourceCode evaluation
     avoidUnsafe source
@@ -121,8 +115,7 @@ runFunction evaluation = do
         let decodeResult =
                 JSON.eitherDecodeStrict . BS8.pack $ result :: Either String (Either PlaygroundError ( Blockchain
                                                                                                      , [EmulatorEvent]
-                                                                                                     , [( Wallet
-                                                                                                        , Ada)]))
+                                                                                                     , [SimulatorWallet]))
         case decodeResult of
             Left err ->
                 throwError . OtherError $
@@ -161,7 +154,7 @@ runghcOpts =
     , "-package plutus-tx"
     ]
 
-lookupRunghc :: (MonadIO m, MonadError PlaygroundError m) => m String
+lookupRunghc :: MonadIO m => m String
 lookupRunghc = do
     mBinDir <- liftIO $ lookupEnv "GHC_BIN_DIR"
     case mBinDir of
@@ -179,7 +172,7 @@ ignoringIOErrors :: MonadCatch m => m () -> m ()
 ignoringIOErrors ioe = ioe `catch` (\e -> const (return ()) (e :: IOError))
 
 withSystemTempFile ::
-       (MonadMask m, MonadIO m, MonadError PlaygroundError m)
+       (MonadMask m, MonadIO m)
     => FilePath
     -> (FilePath -> Handle -> m a)
     -> m a
@@ -196,7 +189,7 @@ jsonToString = show . JSON.encode
 
 mkExpr :: (MonadError PlaygroundError m) => Evaluation -> m ByteString
 mkExpr evaluation = do
-    let allWallets = fst <$> wallets evaluation
+    let allWallets = simulatorWalletWallet <$> wallets evaluation
     exprs <- traverse (walletActionExpr allWallets) (program evaluation)
     pure . BS8.pack $
         "runTrace (decode' " <> jsonToString (wallets evaluation) <> ") [" <>

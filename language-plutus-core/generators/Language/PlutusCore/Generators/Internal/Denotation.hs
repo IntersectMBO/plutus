@@ -3,7 +3,7 @@
 
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GADTs                     #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 module Language.PlutusCore.Generators.Internal.Denotation
     ( Denotation(..)
     , DenotationContextMember(..)
@@ -19,9 +19,11 @@ import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 
-import qualified Data.ByteString.Lazy         as BSL
-import           Data.Dependent.Map           (DMap)
-import qualified Data.Dependent.Map           as DMap
+import           Language.PlutusCore.Generators.Internal.Dependent ()
+
+import qualified Data.ByteString.Lazy                              as BSL
+import           Data.Dependent.Map                                (DMap)
+import qualified Data.Dependent.Map                                as DMap
 import           Data.Functor.Compose
 
 -- | Haskell denotation of a PLC object. An object can be a 'BuiltinName' or a variable for example.

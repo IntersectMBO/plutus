@@ -206,6 +206,7 @@ which aren't supported by RAML.  Thus I wasn't able to get any results
 for the Scott-encoded Peano numbers.
 
 [I was trying to defunctionalise the Scott encoding to see what happened,
+
  but had some difficulty and then had to do something else. I'll look at
  this again later.]
 

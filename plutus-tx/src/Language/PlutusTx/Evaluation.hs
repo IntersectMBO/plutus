@@ -16,7 +16,7 @@ stringBuiltins =
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins.
 evaluateCek
     :: Program TyName Name ()
-    -> EvaluationResult
+    -> EvaluationResultDef
 evaluateCek = runCek stringBuiltins
 
 -- TODO: pretty sure we shouldn't need the unsafePerformIOs here, we should expose a pure interface even if it has IO hacks under the hood
@@ -25,7 +25,7 @@ evaluateCek = runCek stringBuiltins
 -- returning the trace output.
 evaluateCekTrace
     :: Program TyName Name ()
-    -> ([String], EvaluationResult)
+    -> ([String], EvaluationResultDef)
 evaluateCekTrace p =
     unsafePerformIO $ withEmit $ \emit -> do
         let logName       = dynamicTraceName

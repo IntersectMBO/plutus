@@ -7,16 +7,19 @@
 module PlutusPrelude ( -- * Reëxports from base
                        (&)
                      , (&&&)
+                     , (<&>)
                      , toList
                      , bool
                      , first
                      , second
                      , on
+                     , isNothing
                      , isJust
                      , fromMaybe
                      , guard
                      , foldl'
                      , fold
+                     , for
                      , throw
                      , join
                      , (<=<)
@@ -108,17 +111,18 @@ import           Data.Coerce                             (Coercible, coerce)
 import           Data.Either                             (fromRight, isRight)
 import           Data.Foldable                           (fold, toList)
 import           Data.Function                           (on)
-import           Data.Functor                            (void, ($>))
+import           Data.Functor                            (void, ($>), (<&>))
 import           Data.Functor.Foldable                   (Base, Corecursive, Recursive, embed, project)
 import           Data.List                               (foldl')
 import           Data.List.NonEmpty                      (NonEmpty (..))
-import           Data.Maybe                              (fromMaybe, isJust)
+import           Data.Maybe                              (fromMaybe, isJust, isNothing)
 import qualified Data.Text                               as T
 import qualified Data.Text.Encoding                      as TE
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Custom        as X
 import           Data.Text.Prettyprint.Doc.Render.String (renderString)
 import           Data.Text.Prettyprint.Doc.Render.Text   (renderStrict)
+import           Data.Traversable                        (for)
 import           Data.Typeable                           (Typeable)
 import           Data.Word                               (Word8)
 import           Debug.Trace

@@ -16,20 +16,17 @@ module Language.PlutusCore.Constant.Function
     , typeSchemeToType
     , dynamicBuiltinNameMeaningToType
     , insertDynamicBuiltinNameDefinition
-    , withTypedBuiltinName
     , typeOfTypedBuiltinName
     ) where
 
-import           Language.PlutusCore.Constant.Name
 import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Lexer.Type       hiding (name)
+import           Language.PlutusCore.Lexer.Type     hiding (name)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.Type
 
-import qualified Data.Map                             as Map
+import qualified Data.Map                           as Map
 
 -- | Extract the 'Size' from a 'SizeEntry'.
 flattenSizeEntry :: SizeEntry Size -> Size
@@ -40,7 +37,6 @@ flattenSizeEntry (SizeBound size) = size
 mapSizeEntryTypedBuiltin
     :: (SizeEntry size -> SizeEntry size') -> TypedBuiltin size a -> TypedBuiltin size' a
 mapSizeEntryTypedBuiltin f (TypedBuiltinSized se tbs) = TypedBuiltinSized (f se) tbs
-mapSizeEntryTypedBuiltin _ TypedBuiltinBool           = TypedBuiltinBool
 mapSizeEntryTypedBuiltin _ TypedBuiltinDyn            = TypedBuiltinDyn
 
 -- | Alter the 'size' of a @TypedBuiltin size@.
@@ -68,7 +64,6 @@ withTypedBuiltinSized BuiltinSizedSize k = k TypedBuiltinSizedSize
 -- | Apply a continuation to the typed version of a 'Builtin'.
 withTypedBuiltin :: BuiltinType size -> (forall a. TypedBuiltin size a -> c) -> c
 withTypedBuiltin (BuiltinSized se b) k = withTypedBuiltinSized b $ k . TypedBuiltinSized se
-withTypedBuiltin BuiltinBool         k = k TypedBuiltinBool
 
 -- | The resulting 'TypedBuiltin' of a 'TypeScheme'.
 typeSchemeResult :: TypeScheme () a r -> TypedBuiltin () r
@@ -82,7 +77,6 @@ typedBuiltinToType (TypedBuiltinSized se tbs) =
     TyApp () (typedBuiltinSizedToType tbs) $ case se of
         SizeValue size -> TyInt () size
         SizeBound ty   -> ty
-typedBuiltinToType TypedBuiltinBool           = bool
 typedBuiltinToType dyn@TypedBuiltinDyn        = toTypeEncoding dyn
 
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
@@ -109,32 +103,6 @@ insertDynamicBuiltinNameDefinition
 insertDynamicBuiltinNameDefinition
     (DynamicBuiltinNameDefinition name mean) (DynamicBuiltinNameMeanings nameMeans) =
         DynamicBuiltinNameMeanings $ Map.insert name mean nameMeans
-
--- | Apply a continuation to the typed version of a 'BuiltinName'.
-withTypedBuiltinName :: BuiltinName -> (forall a r. TypedBuiltinName a r -> c) -> c
-withTypedBuiltinName AddInteger           k = k typedAddInteger
-withTypedBuiltinName SubtractInteger      k = k typedSubtractInteger
-withTypedBuiltinName MultiplyInteger      k = k typedMultiplyInteger
-withTypedBuiltinName DivideInteger        k = k typedDivideInteger
-withTypedBuiltinName QuotientInteger      k = k typedQuotientInteger
-withTypedBuiltinName RemainderInteger     k = k typedRemainderInteger
-withTypedBuiltinName ModInteger           k = k typedModInteger
-withTypedBuiltinName LessThanInteger      k = k typedLessThanInteger
-withTypedBuiltinName LessThanEqInteger    k = k typedLessThanEqInteger
-withTypedBuiltinName GreaterThanInteger   k = k typedGreaterThanInteger
-withTypedBuiltinName GreaterThanEqInteger k = k typedGreaterThanEqInteger
-withTypedBuiltinName EqInteger            k = k typedEqInteger
-withTypedBuiltinName ResizeInteger        k = k typedResizeInteger
-withTypedBuiltinName IntToByteString      k = k typedIntToByteString
-withTypedBuiltinName Concatenate          k = k typedConcatenate
-withTypedBuiltinName TakeByteString       k = k typedTakeByteString
-withTypedBuiltinName DropByteString       k = k typedDropByteString
-withTypedBuiltinName SHA2                 k = k typedSHA2
-withTypedBuiltinName SHA3                 k = k typedSHA3
-withTypedBuiltinName VerifySignature      k = k typedVerifySignature
-withTypedBuiltinName ResizeByteString     k = k typedResizeByteString
-withTypedBuiltinName EqByteString         k = k typedEqByteString
-withTypedBuiltinName SizeOfInteger        k = k typedSizeOfInteger
 
 -- | Return the 'Type' of a 'TypedBuiltinName'.
 typeOfTypedBuiltinName :: TypedBuiltinName a r -> Type TyName ()
