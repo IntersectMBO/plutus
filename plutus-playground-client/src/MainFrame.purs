@@ -335,15 +335,14 @@ currentEvaluation :: forall m. MonadState State m => SourceCode -> m (Maybe Eval
 currentEvaluation sourceCode = do
   wallets <- use _wallets
   simulation <- use _simulation
-  pure $ case simulation of
-    Nothing -> Nothing
-    Just {actions} -> do
-      program <- traverse toExpression actions
-      Just $ Evaluation { wallets
-                        , program
-                        , sourceCode
-                        , blockchain: []
-                        }
+  pure $ do
+    {actions} <- simulation
+    program <- traverse toExpression actions
+    pure $ Evaluation { wallets
+                      , program
+                      , sourceCode
+                      , blockchain: []
+                      }
 
 updateChartsIfPossible :: forall m i o. HalogenM State i ChildQuery ChildSlot o m Unit
 updateChartsIfPossible = do
