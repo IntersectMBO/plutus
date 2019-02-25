@@ -340,12 +340,12 @@ instance showSimpleArgument :: Show SimpleArgument where
   show = gShow
 
 toValue :: SimpleArgumentSchema -> SimpleArgument
-toValue SimpleIntArgument = SimpleInt Nothing
-toValue SimpleStringArgument = SimpleString Nothing
-toValue (SimpleArrayArgument field) = SimpleArray field []
-toValue (SimpleTupleArgument (fieldA /\ fieldB)) = SimpleTuple (toValue fieldA /\ toValue fieldB)
-toValue schema@(SimpleObjectArgument fields) = SimpleObject schema (over (traversed <<< _2) toValue fields)
-toValue (UnknownArgument context description) = Unknowable { context, description }
+toValue SimpleIntSchema = SimpleInt Nothing
+toValue SimpleStringSchema = SimpleString Nothing
+toValue (SimpleArraySchema field) = SimpleArray field []
+toValue (SimpleTupleSchema (fieldA /\ fieldB)) = SimpleTuple (toValue fieldA /\ toValue fieldB)
+toValue schema@(SimpleObjectSchema fields) = SimpleObject schema (over (traversed <<< _2) toValue fields)
+toValue (UnknownSchema context description) = Unknowable { context, description }
 
 -- | This should just be `map` but we can't put an orphan instance on FunctionSchema. :-(
 toValueLevel :: FunctionSchema SimpleArgumentSchema -> FunctionSchema SimpleArgument

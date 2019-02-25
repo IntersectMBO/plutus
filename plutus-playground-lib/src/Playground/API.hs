@@ -119,12 +119,12 @@ data FunctionSchema a = FunctionSchema
 -- the user to change that field's type. Much more useful than
 -- rejecting the entire description.
 data SimpleArgumentSchema
-    = SimpleIntArgument
-    | SimpleStringArgument
-    | SimpleArrayArgument SimpleArgumentSchema
-    | SimpleTupleArgument (SimpleArgumentSchema, SimpleArgumentSchema)
-    | SimpleObjectArgument [(Text, SimpleArgumentSchema)]
-    | UnknownArgument Text
+    = SimpleIntSchema
+    | SimpleStringSchema
+    | SimpleArraySchema SimpleArgumentSchema
+    | SimpleTupleSchema (SimpleArgumentSchema, SimpleArgumentSchema)
+    | SimpleObjectSchema [(Text, SimpleArgumentSchema)]
+    | UnknownSchema Text
                       Text
     deriving (Show, Eq, Generic, ToJSON)
 
@@ -133,43 +133,43 @@ toSimpleArgumentSchema schema@Schema {..} =
     case _schemaParamSchema of
         ParamSchema {..} ->
             case _paramSchemaType of
-                SwaggerInteger -> SimpleIntArgument
-                SwaggerString -> SimpleStringArgument
+                SwaggerInteger -> SimpleIntSchema
+                SwaggerString -> SimpleStringSchema
                 SwaggerArray ->
                     case ( view minItems _schemaParamSchema
                          , view maxItems _schemaParamSchema
                          , view items schema) of
                         (Nothing, Nothing, Just (SwaggerItemsObject x)) ->
-                            SimpleArrayArgument $ extractReference x
+                            SimpleArraySchema $ extractReference x
                         (Just 2, Just 2, Just (SwaggerItemsArray [x, y])) ->
-                            SimpleTupleArgument
+                            SimpleTupleSchema
                                 (extractReference x, extractReference y)
                         _ ->
-                            UnknownArgument "While handling array." $
+                            UnknownSchema "While handling array." $
                             Text.pack $ show schema
                 SwaggerObject ->
-                    SimpleObjectArgument $
+                    SimpleObjectSchema $
                     HM.toList $ extractReference <$> view properties schema
                 _ ->
-                    UnknownArgument "Unrecognised type." $
+                    UnknownSchema "Unrecognised type." $
                     Text.pack $ show schema
   where
     extractReference :: Referenced Schema -> SimpleArgumentSchema
     extractReference (Inline v) = toSimpleArgumentSchema v
     extractReference (Ref _) =
-        UnknownArgument "Cannot handle Ref types, online Inline ones." $
+        UnknownSchema "Cannot handle Ref types, online Inline ones." $
         Text.pack $ show schema
 
 isSupportedByFrontend :: SimpleArgumentSchema -> Bool
-isSupportedByFrontend SimpleIntArgument = True
-isSupportedByFrontend SimpleStringArgument = True
-isSupportedByFrontend (SimpleObjectArgument subSchema) =
+isSupportedByFrontend SimpleIntSchema = True
+isSupportedByFrontend SimpleStringSchema = True
+isSupportedByFrontend (SimpleObjectSchema subSchema) =
     all isSupportedByFrontend (snd <$> subSchema)
-isSupportedByFrontend (SimpleArrayArgument subSchema) =
+isSupportedByFrontend (SimpleArraySchema subSchema) =
     isSupportedByFrontend subSchema
-isSupportedByFrontend (SimpleTupleArgument (subSchemaX, subSchemaY)) =
+isSupportedByFrontend (SimpleTupleSchema (subSchemaX, subSchemaY)) =
     all isSupportedByFrontend [subSchemaX, subSchemaY]
-isSupportedByFrontend (UnknownArgument _ _) = False
+isSupportedByFrontend (UnknownSchema _ _) = False
 ------------------------------------------------------------
 
 data PlaygroundError

@@ -10,20 +10,20 @@ import qualified Data.Aeson.Text        as JSON
 import           Data.Aeson.Types       (object, (.=))
 import qualified Data.ByteString.Char8  as BSC
 import           Data.Either            (isRight)
-import           Data.Swagger
+import           Data.Swagger           ()
 import qualified Data.Text              as Text
 import qualified Data.Text.Lazy         as TL
 import qualified Ledger.Ada             as Ada
 import           Ledger.Types           (Blockchain)
-import           Playground.API         (FunctionSchema (FunctionSchema), SimpleArgumentSchema (..), functionName,
-                                         toSimpleArgumentSchema)
-import           Playground.API         (Evaluation (Evaluation), Expression (Action, Wait), Fn (Fn), FunctionSchema,
-                                         PlaygroundError, SimpleArgumentSchema, SimulatorWallet (SimulatorWallet),
-                                         SourceCode (SourceCode), argumentSchema, functionSchema, isSupportedByFrontend,
-                                         simulatorWalletBalance, simulatorWalletWallet)
+import           Playground.API         (Evaluation (Evaluation), Expression (Action, Wait), Fn (Fn),
+                                         FunctionSchema (FunctionSchema), FunctionSchema, PlaygroundError,
+                                         SimpleArgumentSchema (SimpleArraySchema, SimpleIntSchema, SimpleObjectSchema, SimpleTupleSchema),
+                                         SimulatorWallet (SimulatorWallet), SourceCode (SourceCode), argumentSchema,
+                                         functionName, functionSchema, isSupportedByFrontend, simulatorWalletBalance,
+                                         simulatorWalletWallet)
 import qualified Playground.Interpreter as PI
 import           Playground.Usecases    (crowdfunding, game, messages, vesting)
-import           Test.Hspec             (Spec, describe, hspec, it, shouldBe, shouldSatisfy)
+import           Test.Hspec             (Spec, describe, it, shouldBe, shouldSatisfy)
 import           Wallet.Emulator.Types  (EmulatorEvent, Wallet (Wallet))
 
 spec :: Spec
@@ -43,73 +43,56 @@ vestingSpec =
                 [ FunctionSchema
                       { functionName = Fn "vestFunds"
                       , argumentSchema =
-                            [ SimpleObjectArgument
+                            [ SimpleObjectSchema
                                   [ ( "vestingOwner"
-                                    , SimpleObjectArgument
-                                          [("getPubKey", SimpleIntArgument)])
+                                    , SimpleObjectSchema
+                                          [("getPubKey", SimpleIntSchema)])
                                   , ( "vestingTranche2"
-                                    , SimpleObjectArgument
+                                    , SimpleObjectSchema
                                           [ ( "vestingTrancheAmount"
-                                            , SimpleObjectArgument
-                                                  [ ( "getAda"
-                                                    , SimpleIntArgument)
-                                                  ])
+                                            , SimpleObjectSchema
+                                                  [("getAda", SimpleIntSchema)])
                                           , ( "vestingTrancheDate"
-                                            , SimpleObjectArgument
-                                                  [ ( "getSlot"
-                                                    , SimpleIntArgument)
-                                                  ])
+                                            , SimpleObjectSchema
+                                                  [("getSlot", SimpleIntSchema)])
                                           ])
                                   , ( "vestingTranche1"
-                                    , SimpleObjectArgument
+                                    , SimpleObjectSchema
                                           [ ( "vestingTrancheAmount"
-                                            , SimpleObjectArgument
-                                                  [ ( "getAda"
-                                                    , SimpleIntArgument)
-                                                  ])
+                                            , SimpleObjectSchema
+                                                  [("getAda", SimpleIntSchema)])
                                           , ( "vestingTrancheDate"
-                                            , SimpleObjectArgument
-                                                  [ ( "getSlot"
-                                                    , SimpleIntArgument)
-                                                  ])
+                                            , SimpleObjectSchema
+                                                  [("getSlot", SimpleIntSchema)])
                                           ])
                                   ]
-                            , SimpleObjectArgument
-                                  [("getAda", SimpleIntArgument)]
+                            , SimpleObjectSchema [("getAda", SimpleIntSchema)]
                             ]
                       }
                 , FunctionSchema
                       { functionName = Fn "registerVestingOwner"
                       , argumentSchema =
-                            [ SimpleObjectArgument
+                            [ SimpleObjectSchema
                                   [ ( "vestingOwner"
-                                    , SimpleObjectArgument
-                                          [("getPubKey", SimpleIntArgument)])
+                                    , SimpleObjectSchema
+                                          [("getPubKey", SimpleIntSchema)])
                                   , ( "vestingTranche2"
-                                    , SimpleObjectArgument
+                                    , SimpleObjectSchema
                                           [ ( "vestingTrancheAmount"
-                                            , SimpleObjectArgument
-                                                  [ ( "getAda"
-                                                    , SimpleIntArgument)
-                                                  ])
+                                            , SimpleObjectSchema
+                                                  [("getAda", SimpleIntSchema)])
                                           , ( "vestingTrancheDate"
-                                            , SimpleObjectArgument
-                                                  [ ( "getSlot"
-                                                    , SimpleIntArgument)
-                                                  ])
+                                            , SimpleObjectSchema
+                                                  [("getSlot", SimpleIntSchema)])
                                           ])
                                   , ( "vestingTranche1"
-                                    , SimpleObjectArgument
+                                    , SimpleObjectSchema
                                           [ ( "vestingTrancheAmount"
-                                            , SimpleObjectArgument
-                                                  [ ( "getAda"
-                                                    , SimpleIntArgument)
-                                                  ])
+                                            , SimpleObjectSchema
+                                                  [("getAda", SimpleIntSchema)])
                                           , ( "vestingTrancheDate"
-                                            , SimpleObjectArgument
-                                                  [ ( "getSlot"
-                                                    , SimpleIntArgument)
-                                                  ])
+                                            , SimpleObjectSchema
+                                                  [("getSlot", SimpleIntSchema)])
                                           ])
                                   ]
                             ]
@@ -117,23 +100,23 @@ vestingSpec =
                 , FunctionSchema
                       { functionName = Fn "payToPublicKey_"
                       , argumentSchema =
-                            [ SimpleObjectArgument
+                            [ SimpleObjectSchema
                                   [ ( "ivTo"
-                                    , SimpleObjectArgument
-                                          [("getSlot", SimpleIntArgument)])
+                                    , SimpleObjectSchema
+                                          [("getSlot", SimpleIntSchema)])
                                   , ( "ivFrom"
-                                    , SimpleObjectArgument
-                                          [("getSlot", SimpleIntArgument)])
+                                    , SimpleObjectSchema
+                                          [("getSlot", SimpleIntSchema)])
                                   ]
-                            , SimpleObjectArgument
+                            , SimpleObjectSchema
                                   [ ( "getValue"
-                                    , SimpleArrayArgument
-                                          (SimpleTupleArgument
-                                               ( SimpleIntArgument
-                                               , SimpleIntArgument)))
+                                    , SimpleArraySchema
+                                          (SimpleTupleSchema
+                                               ( SimpleIntSchema
+                                               , SimpleIntSchema)))
                                   ]
-                            , SimpleObjectArgument
-                                  [("getPubKey", SimpleIntArgument)]
+                            , SimpleObjectSchema
+                                  [("getPubKey", SimpleIntSchema)]
                             ]
                       }
                 ]
