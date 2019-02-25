@@ -8,15 +8,6 @@ import qualified Data.Text                  as T
 import           Language.PlutusCore
 import           Language.PlutusCore.Pretty
 
-renameConcrete :: Program TyName Name AlexPosn -> Program TyName Name AlexPosn
-renameConcrete = runQuote . rename
-
-typeCheckConcrete :: Program TyName Name AlexPosn -> Either (Error AlexPosn) (Normalized (Type TyName ()))
-typeCheckConcrete = runQuoteT . inferTypeOfProgram defOffChainConfig
-
-parsed :: BSL.ByteString -> Either (Error AlexPosn) (Program TyName Name AlexPosn)
-parsed = runQuoteT . parseScoped
-
 main :: IO ()
 main =
     defaultMain [ env envFile $ \ f ->
@@ -39,25 +30,27 @@ main =
                       ]
 
                 , env largeTypeFiles $ \ ~(f, g, h) ->
-                   bgroup "type-check"
-                      [ bench "typeCheck" $ nf (typeCheckConcrete =<<) (parsed f)
-                      , bench "typeCheck" $ nf (typeCheckConcrete =<<) (parsed g)
-                      , bench "typeCheck" $ nf (typeCheckConcrete =<<) (parsed h)
-                      ]
+                  let typeCheckConcrete :: Program TyName Name AlexPosn -> Either (Error AlexPosn) (Normalized (Type TyName ()))
+                      typeCheckConcrete = runQuoteT . inferTypeOfProgram defOffChainConfig
+                      parsed :: BSL.ByteString -> Either (Error AlexPosn) (Program TyName Name AlexPosn)
+                      parsed = runQuoteT . parseScoped
+                      mkBench = bench "typeCheck" . nf (typeCheckConcrete =<<) . parsed
+                  in
+
+                   bgroup "type-check" $ mkBench <$> [f, g, h]
 
                 , env largeTypeFiles $ \ ~(f, g, h) ->
-                   bgroup "normal-form check"
-                      [ bench "check" $ nf (fmap check) (parse f)
-                      , bench "check" $ nf (fmap check) (parse g)
-                      , bench "check" $ nf (fmap check) (parse h)
-                      ]
+                   let mkBench = bench "check" . nf (fmap check) . parse
+                   in
+                   bgroup "normal-form check" $ mkBench <$> [f, g, h]
 
                 , env largeTypeFiles $ \ ~(f, g, h) ->
-                    bgroup "renamer"
-                      [ bench "rename" $ nf (fmap renameConcrete) (parse f)
-                      , bench "rename" $ nf (fmap renameConcrete) (parse g)
-                      , bench "rename" $ nf (fmap renameConcrete) (parse h)
-                      ]
+                    let renameConcrete :: Program TyName Name AlexPosn -> Program TyName Name AlexPosn
+                        renameConcrete = runQuote . rename
+                        mkBench = bench "rename" . nf (fmap renameConcrete) . parse
+                    in
+
+                    bgroup "renamer" $ mkBench <$> [f, g, h]
 
                 , env largeTypeFiles $ \ ~(f, g, h) ->
                     let mkBench src = bench "serialise" $ nf (fmap (serialise . void)) $ parse src
