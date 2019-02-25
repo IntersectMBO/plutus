@@ -21,20 +21,14 @@ import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State (class MonadState)
 import Control.Monad.Trans.Class (lift)
-import Data.Argonaut.Core (Json)
-import Data.Argonaut.Core as Json
 import Data.Array (catMaybes, (..))
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Generic (gEq)
-import Data.Int as Int
-import Data.Lens (_1, _2, _Just, _Right, assign, maximumOf, modifying, over, preview, set, to, traversed, use, view)
+import Data.Lens (_1, _2, _Just, _Right, assign, maximumOf, modifying, over, preview, set, traversed, use, view)
 import Data.Lens.Index (ix)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Newtype (unwrap)
-import Data.RawJson (RawJson(..))
-import Data.StrMap as M
 import Data.String as String
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(Tuple))
@@ -61,7 +55,6 @@ import LocalStorage as LocalStorage
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
 import Playground.API (Evaluation(Evaluation), EvaluationResult(EvaluationResult), SimulatorWallet(SimulatorWallet), SourceCode(SourceCode), _CompilationResult, _FunctionSchema)
-import Playground.API as API
 import Playground.Server (SPParams_, getOauthStatus, patchGistsByGistId, postContract, postEvaluate, postGists)
 import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, show, unit, unless, void, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
 import Servant.PureScript.Settings (SPSettings_)
@@ -351,35 +344,6 @@ currentEvaluation sourceCode = do
                         , sourceCode
                         , blockchain: []
                         }
-
-toExpression :: Action -> Maybe API.Expression
-toExpression (Wait wait) = Just $ API.Wait wait
-toExpression (Action action) = do
-  let wallet = view _simulatorWalletWallet action.simulatorWallet
-  arguments <- jsonArguments
-  pure $ API.Action { wallet, function, arguments }
-  where
-    function = view (_functionSchema <<< to unwrap <<< _functionName) action
-    argumentSchema = view (_functionSchema <<< to unwrap <<< _argumentSchema) action
-
-    jsonArguments = do
-      jsonValues <- traverse toJson argumentSchema
-      pure $ RawJson <<< Json.stringify <$> jsonValues
-
-    toJson :: SimpleArgument -> Maybe Json
-    toJson (SimpleInt (Just str)) = Just $ Json.fromNumber $ Int.toNumber str
-    toJson (SimpleInt Nothing) = Nothing
-    toJson (SimpleString (Just str)) = Just $ Json.fromString str
-    toJson (SimpleString Nothing) = Nothing
-    toJson (SimpleTuple (fieldA /\ fieldB)) = do
-      valueA <- toJson fieldA
-      valueB <- toJson fieldB
-      pure $ Json.fromArray [ valueA, valueB ]
-    toJson (SimpleArray _ fields) = Json.fromArray <$> traverse toJson fields
-    toJson (SimpleObject _ fields) = do
-      arrayOfPairs <- traverse (traverse toJson) fields
-      pure $ Json.fromObject $ M.fromFoldable arrayOfPairs
-    toJson (Unknowable _) = Nothing
 
 updateChartsIfPossible :: forall m i o. HalogenM State i ChildQuery ChildSlot o m Unit
 updateChartsIfPossible = do

@@ -7,16 +7,23 @@ import Auth (AuthStatus)
 import Control.Comonad (class Comonad, extract)
 import Control.Extend (class Extend, extend)
 import DOM.HTML.Event.Types (DragEvent)
+import Data.Argonaut.Core (Json)
+import Data.Argonaut.Core as Json
 import Data.Array as Array
 import Data.Either (Either)
 import Data.Either.Nested (Either3)
 import Data.Functor.Coproduct.Nested (Coproduct3)
 import Data.Generic (class Generic, gShow)
-import Data.Lens (Lens', Prism', Lens, _2, over, prism', traversed, view)
+import Data.Int as Int
+import Data.Lens (Lens, Lens', Prism', _2, over, prism', to, traversed, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
+import Data.Newtype (unwrap)
+import Data.RawJson (RawJson(..))
+import Data.StrMap as M
 import Data.Symbol (SProxy(..))
+import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Gist (Gist)
@@ -27,6 +34,7 @@ import Ledger.Ada.TH (Ada, _Ada)
 import Ledger.Types (Tx)
 import Network.RemoteData (RemoteData)
 import Playground.API (CompilationResult, EvaluationResult, FunctionSchema, SimpleArgumentSchema(..), SimulatorWallet, _FunctionSchema, _SimulatorWallet)
+import Playground.API as API
 import Servant.PureScript.Affjax (AjaxError)
 import Wallet.Emulator.Types (Wallet, _Wallet)
 
@@ -143,6 +151,35 @@ instance simpleArgumentValidation :: Validation String SimpleArgument where
 addPath :: String -> ValidationError -> ValidationError
 addPath path (Required subpath) = Required $ path <> "." <> subpath
 addPath path (Unsupported subpath) = Unsupported $ path <> "." <> subpath
+
+toExpression :: Action -> Maybe API.Expression
+toExpression (Wait wait) = Just $ API.Wait wait
+toExpression (Action action) = do
+  let wallet = view _simulatorWalletWallet action.simulatorWallet
+  arguments <- jsonArguments
+  pure $ API.Action { wallet, function, arguments }
+  where
+    function = view (_functionSchema <<< to unwrap <<< _functionName) action
+    argumentSchema = view (_functionSchema <<< to unwrap <<< _argumentSchema) action
+
+    jsonArguments = do
+      jsonValues <- traverse toJson argumentSchema
+      pure $ RawJson <<< Json.stringify <$> jsonValues
+
+    toJson :: SimpleArgument -> Maybe Json
+    toJson (SimpleInt (Just str)) = Just $ Json.fromNumber $ Int.toNumber str
+    toJson (SimpleInt Nothing) = Nothing
+    toJson (SimpleString (Just str)) = Just $ Json.fromString str
+    toJson (SimpleString Nothing) = Nothing
+    toJson (SimpleTuple (fieldA /\ fieldB)) = do
+      valueA <- toJson fieldA
+      valueB <- toJson fieldB
+      pure $ Json.fromArray [ valueA, valueB ]
+    toJson (SimpleArray _ fields) = Json.fromArray <$> traverse toJson fields
+    toJson (SimpleObject _ fields) = do
+      arrayOfPairs <- traverse (traverse toJson) fields
+      pure $ Json.fromObject $ M.fromFoldable arrayOfPairs
+    toJson (Unknowable _) = Nothing
 
 ------------------------------------------------------------
 
