@@ -4,16 +4,16 @@ import           Codec.Serialise
 import           Control.Monad
 import           Criterion.Main
 import qualified Data.ByteString.Lazy       as BSL
-import qualified Data.Text                  as T
 import           Language.PlutusCore
 import           Language.PlutusCore.Pretty
 
 main :: IO ()
 main =
-    defaultMain [ env envFile $ \ f ->
-                    bgroup "format"
-                      [ bench "format" $ nf (format cfg :: BSL.ByteString -> Either (Error AlexPosn) T.Text) f
-                      ]
+    defaultMain [ env largeTypeFiles $ \ ~(f, g, h) ->
+                    let mkBench = bench "pretty" . nf (fmap prettyPlcDefText) . parse
+                    in
+
+                    bgroup "prettyprinterA" $ mkBench <$> [f, g, h]
 
                 , env typeCompare $ \ ~(f, g) ->
                   let parsed0 = parse f
@@ -77,7 +77,6 @@ main =
           largeTypeFile1 = BSL.readFile "test/types/tail.plc"
           largeTypeFile2 = BSL.readFile "test/types/verifyIdentity.plc"
           largeTypeFiles = (,,) <$> largeTypeFile0 <*> largeTypeFile1 <*> largeTypeFile2
-          cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
           typeCompare0 = BSL.readFile "test/types/example.plc"
           typeCompare1 = BSL.readFile "bench/example-compare.plc"
           typeCompare = (,) <$> typeCompare0 <*> typeCompare1
