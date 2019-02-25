@@ -1,8 +1,11 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main (main) where
 
 import           Codec.Serialise
 import           Control.Monad
 import           Criterion.Main
+import           Crypto
 import qualified Data.ByteString.Lazy                     as BSL
 import qualified Data.Text                                as T
 import           Language.PlutusCore
@@ -75,9 +78,13 @@ main =
                       , bench "invalid" $ nf (fmap runCk) g'
                       ]
 
-                ,   bgroup "verifySignature"
-                      [ bench "valid" $ nf (verifySignature pubKey msg) sig
-                      , bench "invalid" $ nf (verifySignature msg pubKey) sig
+                ,   bgroup "verifySignature" $
+                      let verify :: BSL.ByteString -> BSL.ByteString -> BSL.ByteString -> Maybe Bool
+                          verify = verifySignature
+                      in
+
+                      [ bench "valid" $ nf (verify pubKey msg) sig
+                      , bench "invalid" $ nf (verify msg pubKey) sig
                       ]
 
                 ]
