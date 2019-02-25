@@ -13,7 +13,7 @@ main =
                     let mkBench = bench "pretty" . nf (fmap prettyPlcDefText) . parse
                     in
 
-                    bgroup "prettyprinterA" $ mkBench <$> [f, g, h]
+                    bgroup "prettyprint" $ mkBench <$> [f, g, h]
 
                 , env typeCompare $ \ ~(f, g) ->
                   let parsed0 = parse f
@@ -32,9 +32,7 @@ main =
                 , env largeTypeFiles $ \ ~(f, g, h) ->
                   let typeCheckConcrete :: Program TyName Name AlexPosn -> Either (Error AlexPosn) (Normalized (Type TyName ()))
                       typeCheckConcrete = runQuoteT . inferTypeOfProgram defOffChainConfig
-                      parsed :: BSL.ByteString -> Either (Error AlexPosn) (Program TyName Name AlexPosn)
-                      parsed = runQuoteT . parseScoped
-                      mkBench = bench "typeCheck" . nf (typeCheckConcrete =<<) . parsed
+                      mkBench = bench "typeCheck" . nf (typeCheckConcrete =<<) . runQuoteT . parseScoped
                   in
 
                    bgroup "type-check" $ mkBench <$> [f, g, h]
