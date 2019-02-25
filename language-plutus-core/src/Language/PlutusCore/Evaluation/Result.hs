@@ -1,5 +1,6 @@
 -- | This module defines a common type various evaluation machine use to return their results.
 
+{-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -17,6 +18,7 @@ import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Type
 
 import           Control.Applicative
+import           PlutusPrelude
 
 -- | The parameterized type of results various evaluation engines return.
 -- On the PLC side this becomes (via @makeDynamicBuiltin@) either a call to 'error' or
@@ -24,7 +26,7 @@ import           Control.Applicative
 data EvaluationResult a
     = EvaluationSuccess a
     | EvaluationFailure
-    deriving (Show, Eq, Functor, Foldable, Traversable)
+    deriving (Show, Eq, Generic, Functor, Foldable, Traversable, NFData)
 
 -- | The default type of results various evaluation engines return.
 type EvaluationResultDef = EvaluationResult (Value TyName Name ())

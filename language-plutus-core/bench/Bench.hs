@@ -3,9 +3,10 @@ module Main (main) where
 import           Codec.Serialise
 import           Control.Monad
 import           Criterion.Main
-import qualified Data.ByteString.Lazy       as BSL
-import qualified Data.Text                  as T
+import qualified Data.ByteString.Lazy                     as BSL
+import qualified Data.Text                                as T
 import           Language.PlutusCore
+import           Language.PlutusCore.Evaluation.CkMachine (runCk)
 import           Language.PlutusCore.Pretty
 
 main :: IO ()
@@ -57,6 +58,18 @@ main =
                       , bench "writeProgram" $ nf (fmap (serialise . void)) $ parse h
                       ]
 
+                , env evalFiles $ \ ~(f, g) ->
+                    let processor :: BSL.ByteString -> Either (Error AlexPosn) (Program TyName Name ())
+                        processor contents = void <$> (runQuoteT $ parseScoped contents)
+                        f' = processor f
+                        g' = processor g
+                    in
+
+                    bgroup "runCk"
+                      [ bench "valid" $ nf (fmap runCk) f'
+                      , bench "invalid" $ nf (fmap runCk) g'
+                      ]
+
                 ]
 
     where envFile = BSL.readFile "test/data/addInteger.plc"
@@ -70,6 +83,9 @@ main =
           typeCompare0 = BSL.readFile "test/types/example.plc"
           typeCompare1 = BSL.readFile "bench/example-compare.plc"
           typeCompare = (,) <$> typeCompare0 <*> typeCompare1
+          evalFile0 = BSL.readFile "test/Evaluation/Golden/verifySignature.plc"
+          evalFile1 = BSL.readFile "test/Evaluation/Golden/verifySignatureError.plc"
+          evalFiles = (,) <$> evalFile0 <*> evalFile1
 
 renameConcrete :: Program TyName Name AlexPosn -> Program TyName Name AlexPosn
 renameConcrete = runQuote . rename
