@@ -3822,9 +3822,9 @@ purescript-psa@^0.7.2:
   version "0.7.3"
   resolved "https://registry.yarnpkg.com/purescript-psa/-/purescript-psa-0.7.3.tgz#0e1ff29cbd6a0fe2429717e7147d0c1cbd4760a9"
 
-purs-loader@3.2.0:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/purs-loader/-/purs-loader-3.2.0.tgz#90dea335976fb87199f721969eaee95ad6810721"
+purs-loader@3.3.0:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/purs-loader/-/purs-loader-3.3.0.tgz#70e76a895ae41e5729631a202305bebfe8970a7c"
   dependencies:
     bluebird "^3.3.5"
     chalk "^1.1.3"
@@ -3836,6 +3836,7 @@ purs-loader@3.2.0:
     loader-utils "^1.0.2"
     lodash.difference "^4.5.0"
     promise-retry "^1.1.0"
+  integrity sha512-tNv3k0hapAbu6q9hCTNgFOWsf5JXhVCiiLZd7QN89jX9HbHR2gd9xX+q3foG5w0gHQOB6+bdI2RezH6MEED/qA==
 
 qs@6.5.2, qs@~6.5.2:
   version "6.5.2"
