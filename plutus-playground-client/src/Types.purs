@@ -152,6 +152,10 @@ addPath :: String -> ValidationError -> ValidationError
 addPath path (Required subpath) = Required $ path <> "." <> subpath
 addPath path (Unsupported subpath) = Unsupported $ path <> "." <> subpath
 
+
+-- | TODO: It should always be true that either toExpression returns a
+-- `Just value` OR validate returns a non-empty array.
+-- This suggests they should be the same function, returning either a group of error messages, or a valid expression.
 toExpression :: Action -> Maybe API.Expression
 toExpression (Wait wait) = Just $ API.Wait wait
 toExpression (Action action) = do
