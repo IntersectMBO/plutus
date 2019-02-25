@@ -28,7 +28,7 @@ import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Generic (gEq)
 import Data.Int as Int
-import Data.Lens (_2, _Just, _Right, assign, maximumOf, modifying, over, preview, set, traversed, use, view)
+import Data.Lens (_1, _2, _Just, _Right, assign, maximumOf, modifying, over, preview, set, to, traversed, use, view)
 import Data.Lens.Index (ix)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -36,6 +36,7 @@ import Data.Newtype (unwrap)
 import Data.RawJson (RawJson(..))
 import Data.StrMap as M
 import Data.String as String
+import Data.Traversable (traverse)
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
 import ECharts.Monad (interpret)
@@ -59,7 +60,7 @@ import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
-import Playground.API (Evaluation(Evaluation), EvaluationResult(EvaluationResult), SimulatorWallet(..), SourceCode(SourceCode), _CompilationResult, _FunctionSchema)
+import Playground.API (Evaluation(Evaluation), EvaluationResult(EvaluationResult), SimulatorWallet(SimulatorWallet), SourceCode(SourceCode), _CompilationResult, _FunctionSchema)
 import Playground.API as API
 import Playground.Server (SPParams_, getOauthStatus, patchGistsByGistId, postContract, postEvaluate, postGists)
 import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, show, unit, unless, void, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
@@ -303,16 +304,33 @@ evalActionEvent (SetWaitTime index time) = set (ix index <<< _Wait <<< _blocks) 
 
 evalForm :: forall a. FormEvent a -> SimpleArgument -> SimpleArgument
 evalForm (SetIntField n next) (SimpleInt _) = SimpleInt n
+evalForm (SetIntField _ _) arg = arg
+
 evalForm (SetStringField s next) (SimpleString _) = SimpleString (Just s)
-evalForm (SetSubField n subEvent) old@(SimpleObject fields) =
-  case Array.index fields n of
-    Nothing -> old
-    Just (name /\ oldArg) ->
-      let newArg = evalForm subEvent oldArg
-      in case Array.updateAt n (name /\ newArg) fields of
-           Nothing -> old
-           Just newFields -> SimpleObject newFields
-evalForm other arg = arg
+evalForm (SetStringField _ _) arg = arg
+
+evalForm (SetSubField 1 subEvent) (SimpleTuple fields) = SimpleTuple $ over _1 (evalForm subEvent) fields
+evalForm (SetSubField 2 subEvent) (SimpleTuple fields) = SimpleTuple $ over _2 (evalForm subEvent) fields
+evalForm (SetSubField _ subEvent) arg@(SimpleTuple fields) = arg
+evalForm (SetSubField _ subEvent) arg@(SimpleString fields) = arg
+evalForm (SetSubField _ subEvent) arg@(SimpleInt fields) = arg
+
+evalForm (AddSubField _) (SimpleArray schema fields) =
+  -- As the code stands, this is the only guarantee we get that every
+  -- value in the array will conform to the schema: the fact that we
+  -- create the 'empty' version from the same schema template.
+  --
+  -- Is more type safety than that possible? Probably.
+  -- Is it worth the research effort? Perhaps. :thinking_face:
+  SimpleArray schema $ Array.snoc fields (toValue schema)
+evalForm (AddSubField _) arg = arg
+
+evalForm (SetSubField n subEvent) (SimpleArray schema fields) =
+  SimpleArray schema $ over (ix n) (evalForm subEvent) fields
+
+evalForm (SetSubField n subEvent) s@(SimpleObject schema fields) =
+  SimpleObject schema $ over (ix n <<< _2) (evalForm subEvent) fields
+evalForm (SetSubField n subEvent) arg@(Unknowable _) = arg
 
 replaceViewOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> View -> View -> m Unit
 replaceViewOnSuccess result source target = do
@@ -327,28 +345,41 @@ currentEvaluation sourceCode = do
   pure $ case simulation of
     Nothing -> Nothing
     Just {actions} -> do
+      program <- traverse toExpression actions
       Just $ Evaluation { wallets
-                        , program: toExpression <$> actions
+                        , program
                         , sourceCode
                         , blockchain: []
                         }
 
-toExpression :: Action -> API.Expression
-toExpression (Wait wait) = API.Wait wait
-toExpression (Action action) = API.Action
-  { wallet: view _simulatorWalletWallet action.simulatorWallet
-  , function: functionSchema.functionName
-  , arguments: jsonArguments
-  }
+toExpression :: Action -> Maybe API.Expression
+toExpression (Wait wait) = Just $ API.Wait wait
+toExpression (Action action) = do
+  let wallet = view _simulatorWalletWallet action.simulatorWallet
+  arguments <- jsonArguments
+  pure $ API.Action { wallet, function, arguments }
   where
-    functionSchema = unwrap $ action.functionSchema
-    jsonArguments = RawJson <<< Json.stringify <<< toJson <$> functionSchema.argumentSchema
-    toJson :: SimpleArgument -> Json
-    toJson (SimpleInt (Just str)) = Json.fromNumber $ Int.toNumber str
-    toJson (SimpleString (Just str)) = Json.fromString str
-    toJson (SimpleObject fields) =
-      Json.fromObject $ M.fromFoldable $ over (traversed <<< _2) toJson fields
-    toJson _ = Json.fromNull Json.jNull -- TODO
+    function = view (_functionSchema <<< to unwrap <<< _functionName) action
+    argumentSchema = view (_functionSchema <<< to unwrap <<< _argumentSchema) action
+
+    jsonArguments = do
+      jsonValues <- traverse toJson argumentSchema
+      pure $ RawJson <<< Json.stringify <$> jsonValues
+
+    toJson :: SimpleArgument -> Maybe Json
+    toJson (SimpleInt (Just str)) = Just $ Json.fromNumber $ Int.toNumber str
+    toJson (SimpleInt Nothing) = Nothing
+    toJson (SimpleString (Just str)) = Just $ Json.fromString str
+    toJson (SimpleString Nothing) = Nothing
+    toJson (SimpleTuple (fieldA /\ fieldB)) = do
+      valueA <- toJson fieldA
+      valueB <- toJson fieldB
+      pure $ Json.fromArray [ valueA, valueB ]
+    toJson (SimpleArray _ fields) = Json.fromArray <$> traverse toJson fields
+    toJson (SimpleObject _ fields) = do
+      arrayOfPairs <- traverse (traverse toJson) fields
+      pure $ Json.fromObject $ M.fromFoldable arrayOfPairs
+    toJson (Unknowable _) = Nothing
 
 updateChartsIfPossible :: forall m i o. HalogenM State i ChildQuery ChildSlot o m Unit
 updateChartsIfPossible = do

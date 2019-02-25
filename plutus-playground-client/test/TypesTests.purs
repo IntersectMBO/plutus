@@ -7,7 +7,7 @@ import Control.Monad.Eff.Random (RANDOM)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Ledger.Ada.TH (Ada(..))
-import Playground.API (Fn(Fn), FunctionSchema(FunctionSchema), SimulatorWallet(SimulatorWallet))
+import Playground.API (Fn(Fn), FunctionSchema(FunctionSchema), SimpleArgumentSchema(..), SimulatorWallet(SimulatorWallet))
 import Prelude (discard, unit, ($))
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (equal)
@@ -21,26 +21,41 @@ all =
 
 validateTests :: forall eff. TestSuite (exception :: EXCEPTION, random :: RANDOM | eff)
 validateTests = do
-  test "Validation errors" do
+  test "No validation errors" do
     equal [] $ validate unit (Wait {blocks: 1})
     equal [] $ validate unit (makeTestAction [ SimpleInt (Just 5) ])
     equal [] $ validate unit (makeTestAction [ SimpleString (Just "TEST") ])
-    equal [] $ validate unit (makeTestAction [ SimpleObject [] ])
+    equal [] $ validate unit (makeTestAction [ SimpleTuple (Tuple (SimpleInt (Just 5)) (SimpleInt (Just 6))) ])
+    equal [] $ validate unit (makeTestAction [ SimpleArray SimpleIntArgument [] ])
+    equal [] $ validate unit (makeTestAction [ SimpleObject (SimpleObjectArgument []) [] ])
     --
-    equal [ Unsupported "0" ] $ validate unit (makeTestAction [ Unknowable ])
+  test "Validation errors" do
+    equal [ Unsupported "0" ] $ validate unit (makeTestAction [ Unknowable { context: "TEST", description: "Test case."} ])
     equal [ Required "0" ] $ validate unit (makeTestAction [ SimpleInt Nothing ])
     equal [ Required "0" ] $ validate unit (makeTestAction [ SimpleString Nothing ])
+    equal [ Required "0._1" ] $ validate unit (makeTestAction [ SimpleTuple (Tuple (SimpleInt Nothing) (SimpleInt (Just 5))) ])
+    equal [ Required "0._2" ] $ validate unit (makeTestAction [ SimpleTuple (Tuple (SimpleInt (Just 5)) (SimpleInt Nothing)) ])
+    equal [ Required "0.2" ] $ validate unit (makeTestAction [ SimpleArray SimpleIntArgument [ SimpleInt (Just 5)
+                                                                                             , SimpleInt (Just 6)
+                                                                                             , SimpleInt Nothing
+                                                                                             , SimpleInt (Just 7)
+                                                                                             ]
+                                                           ])
     equal
       [ Required "0.name"
       , Required "1.test"
       ]
-      (validate unit (makeTestAction [ SimpleObject [ Tuple "name" (SimpleString Nothing)
-                                                    , Tuple "test" (SimpleInt (Just 5))
-                                                    ]
-                                     , SimpleObject [ Tuple "name" (SimpleString (Just "test"))
-                                                    , Tuple "test" (SimpleInt Nothing)
-                                                    ]
-                                     ]))
+      (let objectSchema = SimpleObjectArgument [ Tuple "name" SimpleStringArgument
+                                               , Tuple "test" SimpleIntArgument
+                                               ]
+       in validate unit (makeTestAction [ SimpleObject objectSchema  [ Tuple "name" (SimpleString Nothing)
+                                                                     , Tuple "test" (SimpleInt (Just 5))
+                                                                     ]
+                                        , SimpleObject objectSchema  [ Tuple "name" (SimpleString (Just "burt"))
+                                                                     , Tuple "test" (SimpleInt Nothing)
+                                                                     ]
+                                        ])
+      )
 
 makeTestAction :: Array SimpleArgument -> Action
 makeTestAction arguments =

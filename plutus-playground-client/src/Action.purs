@@ -14,7 +14,7 @@ import Data.Tuple.Nested ((/\))
 import Halogen (HTML)
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
-import Halogen.HTML (ClassName(ClassName), br_, button, div, div_, form, h2_, h3_, input, label, p_, small_, text)
+import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, form, h2_, h3_, input, label, p_, small_, text)
 import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (input_, onClick, onValueChange)
 import Halogen.HTML.Events as HE
@@ -25,7 +25,7 @@ import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
 import Playground.API (EvaluationResult, SimulatorWallet, _EvaluationResult, _Fn, _FunctionSchema)
 import Prelude (map, show, unit, ($), (+), (/=), (<$>), (<<<), (<>))
 import Servant.PureScript.Affjax (AjaxError)
-import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, FormEvent(SetSubField, SetStringField, SetIntField), Query(EvaluateActions, ModifyActions, PopulateAction), SimpleArgument(Unknowable, SimpleObject, SimpleString, SimpleInt), Simulation, ValidationError, _argumentSchema, _functionName, _simulatorWalletWallet, _resultBlockchain, validate)
+import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, FormEvent(..), Query(EvaluateActions, ModifyActions, PopulateAction), SimpleArgument(..), Simulation, ValidationError, _argumentSchema, _functionName, _resultBlockchain, _simulatorWalletWallet, validate)
 import Wallet (walletIdPane, walletsPane)
 
 simulationPane ::
@@ -146,11 +146,32 @@ actionArgumentField context _ arg@(SimpleString s) =
       ]
     , validationFeedback $ validate context arg
   ]
-actionArgumentField context nested (SimpleObject subFields) =
+actionArgumentField context nested (SimpleTuple (subFieldA /\subFieldB)) =
+  row_
+    [ col_ [ SetSubField 1 <$> actionArgumentField "_1" true subFieldA ]
+    , col_ [ SetSubField 2 <$> actionArgumentField "_2" true subFieldA ]
+    ]
+actionArgumentField context nested (SimpleArray schema subFields) =
+    div_ [(if nested
+           then div [ classes [  ClassName "nested" ] ]
+           else div_) $ mapWithIndex (\i field -> map (SetSubField i) (subForm (show i) field)) subFields
+         , button
+             [ classes [ btn, btnInfo ]
+             , onClick $ input_ AddSubField
+             ]
+             [ icon Plus ]
+         ]
+  where
+    subForm name  arg =
+      (formGroup_
+         [ label [ for name ] [ text name ]
+         , actionArgumentField name true arg
+         ]
+      )
+actionArgumentField context nested (SimpleObject _ subFields) =
     (if nested
        then div [ classes [  ClassName "nested" ] ]
-       else div_)
-        (mapWithIndex (\i field -> map (SetSubField i) (subForm field)) subFields)
+       else div_) $ mapWithIndex (\i field -> map (SetSubField i) (subForm field)) subFields
   where
     subForm (name /\ arg) =
       (formGroup_
@@ -158,8 +179,9 @@ actionArgumentField context nested (SimpleObject subFields) =
          , actionArgumentField name true arg
          ]
       )
-actionArgumentField _ _ Unknowable =
-  div_ [ text "Unsupported."
+actionArgumentField _ _ (Unknowable { context, description }) =
+  div_ [ text $ "Unsupported: " <> context
+       , code_ [ text description ]
        ]
 
 validationFeedback :: forall p i. Array ValidationError -> HTML p i

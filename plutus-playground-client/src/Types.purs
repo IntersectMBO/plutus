@@ -18,6 +18,7 @@ import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
+import Data.Tuple.Nested ((/\))
 import Gist (Gist)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.ECharts (EChartsMessage, EChartsQuery)
@@ -25,7 +26,7 @@ import Language.Haskell.Interpreter (CompilationError)
 import Ledger.Ada.TH (Ada, _Ada)
 import Ledger.Types (Tx)
 import Network.RemoteData (RemoteData)
-import Playground.API (CompilationResult, EvaluationResult, FunctionSchema, SimulatorWallet, SimpleArgumentSchema(UnknownArgument, SimpleObjectArgument, SimpleStringArgument, SimpleIntArgument), _FunctionSchema, _SimulatorWallet)
+import Playground.API (CompilationResult, EvaluationResult, FunctionSchema, SimpleArgumentSchema(..), SimulatorWallet, _FunctionSchema, _SimulatorWallet)
 import Servant.PureScript.Affjax (AjaxError)
 import Wallet.Emulator.Types (Wallet, _Wallet)
 
@@ -114,12 +115,26 @@ instance actionValidation :: Validation Unit Action where
       args = view (_functionSchema <<< _FunctionSchema <<< _argumentSchema) action
 
 instance simpleArgumentValidation :: Validation String SimpleArgument where
-  validate path Unknowable = [ Unsupported path ]
+  validate path (Unknowable _) = [ Unsupported path ]
   validate path (SimpleInt Nothing) = [ Required path ]
   validate path (SimpleInt (Just _)) = []
   validate path (SimpleString Nothing) = [ Required path ]
   validate path (SimpleString (Just _)) = []
-  validate path (SimpleObject subArguments) =
+
+  validate path (SimpleTuple (fieldA /\ fieldB)) =
+    Array.concat $
+      [ addPath path <$> validate "_1" fieldA
+      , addPath path <$> validate "_2" fieldB
+      ]
+
+  -- TODO We're not checking the schema still matches.
+  validate path (SimpleArray schema xs) =
+    Array.concat $
+      Array.mapWithIndex (\i x -> addPath path <$> validate (show i) x)
+      xs
+
+  -- TODO We're not checking the schema still matches.
+  validate path (SimpleObject _ subArguments) =
     Array.concat $
       (\(Tuple name subArgument) -> addPath path <$> validate name subArgument)
       <$>
@@ -165,6 +180,7 @@ data ActionEvent
 data FormEvent a
   = SetIntField (Maybe Int) a
   | SetStringField String a
+  | AddSubField a
   | SetSubField Int (FormEvent a)
 
 derive instance functorFormEvent :: Functor FormEvent
@@ -172,11 +188,13 @@ derive instance functorFormEvent :: Functor FormEvent
 instance extendFormEvent :: Extend FormEvent where
   extend f event@(SetIntField n _) = SetIntField n $ f event
   extend f event@(SetStringField s _) = SetStringField s $ f event
+  extend f event@(AddSubField _) = AddSubField $ f event
   extend f event@(SetSubField n _) = SetSubField n $ extend f event
 
 instance comonadFormEvent :: Comonad FormEvent where
   extract (SetIntField _ a) = a
   extract (SetStringField _ a) = a
+  extract (AddSubField a) = a
   extract (SetSubField _ e) = extract e
 
 ------------------------------------------------------------
@@ -270,8 +288,10 @@ instance showView :: Show View where
 data SimpleArgument
   = SimpleInt (Maybe Int)
   | SimpleString (Maybe String)
-  | SimpleObject (Array (Tuple String SimpleArgument))
-  | Unknowable
+  | SimpleArray SimpleArgumentSchema (Array SimpleArgument)
+  | SimpleTuple (Tuple SimpleArgument SimpleArgument)
+  | SimpleObject SimpleArgumentSchema (Array (Tuple String SimpleArgument))
+  | Unknowable { context :: String, description :: String }
 
 derive instance genericSimpleArgument :: Generic SimpleArgument
 
@@ -281,8 +301,10 @@ instance showSimpleArgument :: Show SimpleArgument where
 toValue :: SimpleArgumentSchema -> SimpleArgument
 toValue SimpleIntArgument = SimpleInt Nothing
 toValue SimpleStringArgument = SimpleString Nothing
-toValue (SimpleObjectArgument fields) = SimpleObject (over (traversed <<< _2) toValue fields)
-toValue (UnknownArgument _) = Unknowable
+toValue (SimpleArrayArgument field) = SimpleArray field []
+toValue (SimpleTupleArgument (fieldA /\ fieldB)) = SimpleTuple (toValue fieldA /\ toValue fieldB)
+toValue schema@(SimpleObjectArgument fields) = SimpleObject schema (over (traversed <<< _2) toValue fields)
+toValue (UnknownArgument context description) = Unknowable { context, description }
 
 -- | This should just be `map` but we can't put an orphan instance on FunctionSchema. :-(
 toValueLevel :: FunctionSchema SimpleArgumentSchema -> FunctionSchema SimpleArgument
