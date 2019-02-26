@@ -3,36 +3,39 @@
 
 module Playground.Interpreter where
 
-import           Control.Monad              (unless)
-import           Control.Monad.Catch        (MonadCatch, MonadMask, bracket, catch)
-import           Control.Monad.Error.Class  (MonadError, throwError)
-import           Control.Monad.IO.Class     (MonadIO, liftIO)
-import qualified Control.Newtype.Generics   as Newtype
-import           Data.Aeson                 (ToJSON)
-import qualified Data.Aeson                 as JSON
-import           Data.ByteString            (ByteString)
-import qualified Data.ByteString.Char8      as BS8
-import qualified Data.ByteString.Lazy.Char8 as BSL
-import           Data.List                  (intercalate)
-import           Data.Text                  (Text)
-import qualified Data.Text                  as Text
-import qualified Data.Text.Internal.Search  as Text
-import qualified Data.Text.IO               as Text
-import           Ledger.Types               (Blockchain)
-import           Playground.API             (CompilationResult (CompilationResult), Evaluation (sourceCode),
-                                             Expression (Action, Wait), Fn (Fn),
-                                             PlaygroundError (CompilationErrors, DecodeJsonTypeError, InterpreterError, OtherError),
-                                             SimulatorWallet, SourceCode, Warning (Warning), parseErrorsText, program,
-                                             simulatorWalletWallet, toSimpleArgumentSchema, wallets)
-
-import           System.Directory           (removeFile)
-import           System.Environment         (lookupEnv)
-import           System.Exit                (ExitCode (ExitSuccess))
-import           System.IO                  (Handle, hClose, hFlush)
-import           System.IO.Temp             (getCanonicalTemporaryDirectory, openTempFile)
-import           System.Process             (readProcessWithExitCode)
-import qualified Text.Regex                 as Regex
-import           Wallet.Emulator.Types      (EmulatorEvent, Wallet)
+import           Control.Monad                (unless)
+import           Control.Monad.Catch          (MonadCatch, MonadMask, bracket, catch)
+import           Control.Monad.Error.Class    (MonadError, throwError)
+import           Control.Monad.Except.Extras  (mapError)
+import           Control.Monad.IO.Class       (MonadIO, liftIO)
+import qualified Control.Newtype.Generics     as Newtype
+import           Data.Aeson                   (ToJSON)
+import qualified Data.Aeson                   as JSON
+import           Data.ByteString              (ByteString)
+import qualified Data.ByteString.Char8        as BS8
+import qualified Data.ByteString.Lazy.Char8   as BSL
+import           Data.List                    (intercalate)
+import           Data.Swagger                 (Schema)
+import           Data.Text                    (Text)
+import qualified Data.Text                    as Text
+import qualified Data.Text.Internal.Search    as Text
+import qualified Data.Text.IO                 as Text
+import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), runghc)
+import           Ledger.Ada                   (Ada)
+import           Ledger.Types                 (Blockchain, Value)
+import           Playground.API               (CompilationResult (CompilationResult), Evaluation (sourceCode),
+                                               Expression (Action, Wait), Fn (Fn),
+                                               PlaygroundError (CompilationErrors, DecodeJsonTypeError, InterpreterError, OtherError),
+                                               SimulatorWallet, SourceCode, Warning (Warning), parseErrorsText, program,
+                                               simulatorWalletWallet, toSimpleArgumentSchema, wallets)
+import           System.Directory             (removeFile)
+import           System.Environment           (lookupEnv)
+import           System.Exit                  (ExitCode (ExitSuccess))
+import           System.IO                    (Handle, hClose, hFlush)
+import           System.IO.Temp.Extras        (withSystemTempFile)
+import           System.Process               (readProcessWithExitCode)
+import qualified Text.Regex                   as Regex
+import           Wallet.Emulator.Types        (EmulatorEvent, Wallet)
 
 replaceModuleName :: Text -> Text
 replaceModuleName script =
@@ -59,13 +62,16 @@ avoidUnsafe s =
     unless (null . Text.indices "unsafe" . Newtype.unpack $ s) $
     throwError $ OtherError "Cannot interpret unsafe functions"
 
-runscript ::
-       MonadIO m => Handle -> FilePath -> Text -> m (ExitCode, String, String)
+runscript
+    :: (MonadMask m, MonadIO m, MonadError [CompilationError] m)
+    => Handle
+    -> FilePath
+    -> Text
+    -> m String
 runscript handle file script = do
-    liftIO . Text.hPutStr handle $ script
+    liftIO $ Text.hPutStr handle script
     liftIO $ hFlush handle
-    runghc <- lookupRunghc
-    liftIO $ readProcessWithExitCode runghc (runghcOpts <> [file]) ""
+    runghc runghcOpts file
 
 compile ::
        (MonadMask m, MonadIO m, MonadError PlaygroundError m)
@@ -74,14 +80,8 @@ compile ::
 compile source = do
     avoidUnsafe source
     withSystemTempFile "Main.hs" $ \file handle -> do
-        (exitCode, stdout, stderr) <-
-            runscript handle file . mkCompileScript . Newtype.unpack $ source
         result <-
-            case exitCode of
-                ExitSuccess -> pure stdout
-                _ ->
-                    throwError . CompilationErrors . parseErrorsText . Text.pack $
-                    stderr
+            mapError CompilationErrors . runscript handle file . mkCompileScript . Newtype.unpack $ source
         let eSchema = JSON.eitherDecodeStrict . BS8.pack $ result
         case eSchema of
             Left err ->
@@ -105,13 +105,10 @@ runFunction evaluation = do
     avoidUnsafe source
     expr <- mkExpr evaluation
     withSystemTempFile "Main.hs" $ \file handle -> do
-        (exitCode, stdout, stderr) <-
+        result <-
+            mapError CompilationErrors .
             runscript handle file $
             mkRunScript (Newtype.unpack source) (Text.pack . BS8.unpack $ expr)
-        result <-
-            case exitCode of
-                ExitSuccess -> pure stdout
-                _           -> throwError . InterpreterError $ [stderr]
         let decodeResult =
                 JSON.eitherDecodeStrict . BS8.pack $ result :: Either String (Either PlaygroundError ( Blockchain
                                                                                                      , [EmulatorEvent]
@@ -153,36 +150,6 @@ runghcOpts =
     -- blaming the GHC bug.
     , "-package plutus-tx"
     ]
-
-lookupRunghc :: MonadIO m => m String
-lookupRunghc = do
-    mBinDir <- liftIO $ lookupEnv "GHC_BIN_DIR"
-    case mBinDir of
-        Nothing  -> pure "runghc"
-        Just val -> pure $ val <> "/runghc"
-
--- ignoringIOErrors and withSystemTempFile are clones of the functions
--- in System.IO.Temp however they are generalized over the monad
--- This could be done using unliftio I think however it looked to be
--- more pain that it was worth so I simply copied and pasted the
--- definitions and changed the types.
-{-# ANN ignoringIOErrors ("HLint: ignore Evaluate" :: String) #-}
-
-ignoringIOErrors :: MonadCatch m => m () -> m ()
-ignoringIOErrors ioe = ioe `catch` (\e -> const (return ()) (e :: IOError))
-
-withSystemTempFile ::
-       (MonadMask m, MonadIO m)
-    => FilePath
-    -> (FilePath -> Handle -> m a)
-    -> m a
-withSystemTempFile template action = do
-    tmpDir <- liftIO getCanonicalTemporaryDirectory
-    bracket
-        (liftIO $ openTempFile tmpDir template)
-        (\(name, handle) ->
-             liftIO (hClose handle >> ignoringIOErrors (removeFile name)))
-        (uncurry action)
 
 jsonToString :: ToJSON a => a -> String
 jsonToString = show . JSON.encode

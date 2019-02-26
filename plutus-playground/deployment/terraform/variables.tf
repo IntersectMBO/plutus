@@ -12,8 +12,24 @@ variable "nixops_root" {}
 
 variable "ssh_config_root" {}
 
-variable "tld" {
-  default = "playground.plutus.iohkdev.io"
+variable "plutus_tld" {
+  default = "plutus.iohkdev.io"
+}
+
+variable "plutus_public_zone" {
+  default = "ZBC2AQBA8QH4G"
+}
+
+variable "meadow_tld" {
+  default = "marlowe.iohkdev.io"
+}
+
+variable "meadow_public_zone" {
+  default = "Z1VIYCTCY8RMLZ"
+}
+
+variable "meadow_instance_type" {
+  default = "t2.large"
 }
 
 variable "playground_instance_type" {

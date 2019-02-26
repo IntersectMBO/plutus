@@ -10,24 +10,24 @@ module Playground.Server
     ( mkHandlers
     ) where
 
-import           Control.Monad.Except       (MonadError, runExceptT, throwError)
-import           Control.Monad.IO.Class     (MonadIO, liftIO)
-import           Control.Monad.Logger       (MonadLogger, logInfoN)
-import           Data.Aeson                 (ToJSON, encode)
-import qualified Data.ByteString.Lazy.Char8 as BSL
-import qualified Data.Text                  as Text
-import           Network.HTTP.Types         (hContentType)
-import           Playground.API             (API, CompilationError, CompilationResult, Evaluation,
-                                             EvaluationResult (EvaluationResult), FunctionSchema,
-                                             PlaygroundError (PlaygroundTimeout), SimpleArgumentSchema, SourceCode,
-                                             parseErrorText, toSimpleArgumentSchema)
-import qualified Playground.API             as PA
-import qualified Playground.Interpreter     as PI
-import           Servant                    (ServantErr, err400, errBody, errHeaders)
-import           Servant.API                ((:<|>) ((:<|>)))
-import           Servant.Server             (Handler, Server)
-import           System.Timeout             (timeout)
-import qualified Wallet.Graph               as V
+import           Control.Monad.Except         (MonadError, runExceptT, throwError)
+import           Control.Monad.IO.Class       (MonadIO, liftIO)
+import           Control.Monad.Logger         (MonadLogger, logInfoN)
+import           Data.Aeson                   (ToJSON, encode)
+import qualified Data.ByteString.Lazy.Char8   as BSL
+import qualified Data.Text                    as Text
+import           Language.Haskell.Interpreter (CompilationError)
+import           Network.HTTP.Types           (hContentType)
+import           Playground.API               (API, CompilationResult, Evaluation, EvaluationResult (EvaluationResult),
+                                               FunctionSchema, PlaygroundError (PlaygroundTimeout),
+                                               SimpleArgumentSchema, SourceCode, parseErrorText, toSimpleArgumentSchema)
+import qualified Playground.API               as PA
+import qualified Playground.Interpreter       as PI
+import           Servant                      (ServantErr, err400, errBody, errHeaders)
+import           Servant.API                  ((:<|>) ((:<|>)))
+import           Servant.Server               (Handler, Server)
+import           System.Timeout               (timeout)
+import qualified Wallet.Graph                 as V
 
 acceptSourceCode ::
        SourceCode -> Handler (Either [CompilationError] CompilationResult)

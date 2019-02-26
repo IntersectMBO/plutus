@@ -27,6 +27,7 @@ import qualified Data.Text                                 as T ()
 import qualified Data.Text.Encoding                        as T ()
 import qualified Data.Text.IO                              as T ()
 import           Gist                                      (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
+import           Language.Haskell.Interpreter              (CompilationError)
 import           Language.PureScript.Bridge                (BridgePart, Language (Haskell), PSType, SumType,
                                                             TypeInfo (TypeInfo), buildBridge, equal, mkSumType,
                                                             psTypeParameters, typeModule, typeName, writePSTypes, (^==))
@@ -39,9 +40,9 @@ import           Ledger.Types                              (AddressOf, DataScrip
                                                             Tx, TxIdOf, TxInOf, TxInType, TxOutOf, TxOutRefOf,
                                                             TxOutType, ValidatorScript)
 import           Ledger.Value.TH                           (CurrencySymbol, Value)
-import           Playground.API                            (CompilationError, CompilationResult, Evaluation,
-                                                            EvaluationResult, Expression, Fn, FunctionSchema,
-                                                            SimpleArgumentSchema, SimulatorWallet, SourceCode, Warning)
+import           Playground.API                            (CompilationResult, Evaluation, EvaluationResult, Expression,
+                                                            Fn, FunctionSchema, SimpleArgumentSchema, SimulatorWallet,
+                                                            SourceCode, Warning)
 import qualified Playground.API                            as API
 import           Playground.Usecases                       (crowdfunding, game, messages, vesting)
 import           Servant                                   ((:<|>))

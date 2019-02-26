@@ -19,6 +19,17 @@ locals {
     ip   = "${element(concat(aws_instance.playground_b.*.private_ip, list("")), 0)}"
     dns  = "playground-b.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
   }
+  meadowA = {
+    name = "meadowA"
+    ip   = "${element(concat(aws_instance.meadow_a.*.private_ip, list("")), 0)}"
+    dns  = "meadow-a.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
+  }
+
+  meadowB = {
+    name = "meadowB"
+    ip   = "${element(concat(aws_instance.meadow_b.*.private_ip, list("")), 0)}"
+    dns  = "meadow-b.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
+  }
 
   nixops = {
     name = "nixops"
@@ -35,13 +46,15 @@ locals {
   machines = {
     playgroundA       = "${local.playgroundA}"
     playgroundB       = "${local.playgroundB}"
+    meadowA       = "${local.meadowA}"
+    meadowB       = "${local.meadowB}"
     nixops         = "${local.nixops}"
     playgroundSshKeys = "${data.template_file.playground_ssh_keys.*.rendered}"
     rootSshKeys = "${data.template_file.nixops_ssh_keys.*.rendered}"
     awsRegion      = "${var.aws_region}"
     environment    = "${var.env}"
     project        = "${var.project}"
-    tld            = "${var.tld}"
+    tld            = "${var.plutus_tld}"
   }
 
   bastionMachines = {

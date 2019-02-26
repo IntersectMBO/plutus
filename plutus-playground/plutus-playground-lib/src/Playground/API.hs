@@ -14,27 +14,29 @@
 
 module Playground.API where
 
-import           Control.Lens               (over, _2)
-import           Control.Monad.Trans.Class  (lift)
-import           Control.Monad.Trans.State  (StateT, evalStateT, get, put)
-import           Control.Newtype.Generics   (Newtype, pack, unpack)
-import           Data.Aeson                 (FromJSON, ToJSON, Value)
-import           Data.Bifunctor             (second)
-import qualified Data.HashMap.Strict.InsOrd as HM
-import           Data.Maybe                 (fromMaybe)
-import           Data.Swagger               (ParamSchema (ParamSchema), Referenced (Inline, Ref), Schema (Schema),
-                                             SwaggerType (SwaggerInteger, SwaggerObject, SwaggerString))
-import qualified Data.Swagger               as Swagger
-import           Data.Text                  (Text)
-import qualified Data.Text                  as Text
-import           GHC.Generics               (Generic)
-import qualified Language.Haskell.TH.Syntax as TH
-import           Ledger.Ada                 (Ada)
-import           Ledger.Types               (Blockchain, PubKey)
-import           Servant.API                ((:<|>), (:>), JSON, Post, ReqBody)
-import           Text.Read                  (readMaybe)
-import           Wallet.Emulator.Types      (EmulatorEvent, Wallet)
-import           Wallet.Graph               (FlowGraph)
+import           Control.Lens                 (over, _2)
+import           Control.Monad.Trans.Class    (lift)
+import           Control.Monad.Trans.State    (StateT, evalStateT, get, put)
+import           Control.Newtype.Generics     (Newtype, pack, unpack)
+import           Data.Aeson                   (FromJSON, ToJSON, Value)
+import           Data.Bifunctor               (second)
+import qualified Data.HashMap.Strict.InsOrd   as HM
+import           Data.Maybe                   (fromMaybe)
+import           Data.Swagger                 (ParamSchema (ParamSchema), Referenced (Inline, Ref), Schema (Schema),
+                                               SwaggerType (SwaggerInteger, SwaggerObject, SwaggerString))
+import qualified Data.Swagger                 as Swagger
+import           Data.Text                    (Text)
+import qualified Data.Text                    as Text
+import           GHC.Generics                 (Generic)
+import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), column, filename, row,
+                                               text)
+import qualified Language.Haskell.TH.Syntax   as TH
+import           Ledger.Ada                   (Ada)
+import           Ledger.Types                 (Blockchain, PubKey)
+import           Servant.API                  ((:<|>), (:>), JSON, Post, ReqBody)
+import           Text.Read                    (readMaybe)
+import           Wallet.Emulator.Types        (EmulatorEvent, Wallet)
+import           Wallet.Graph                 (FlowGraph)
 
 type API
    = "contract" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either [CompilationError] CompilationResult)
@@ -127,15 +129,6 @@ toSimpleArgumentSchema schema@Schema {..} =
     unknown = UnknownArgument $ Text.pack $ show schema
 
 ------------------------------------------------------------
-
-data CompilationError
-  = RawError Text
-  | CompilationError { filename :: !Text
-                     , row      :: !Int
-                     , column   :: !Int
-                     , text     :: ![Text] }
-  deriving stock (Show, Eq, Generic)
-  deriving anyclass (ToJSON, FromJSON)
 
 data PlaygroundError
   = CompilationErrors [CompilationError]

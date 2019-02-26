@@ -34,7 +34,9 @@ let
     "plutus-tx"
     "plutus-tutorial"
     "plutus-use-cases"
+    "interpreter"
     "marlowe"
+    "meadow"
     "wallet-api"
   ];
 

@@ -4,23 +4,25 @@ module Playground.APISpec
   ( spec
   ) where
 
-import           Data.HashMap.Strict.InsOrd (fromList)
-import           Data.Swagger               (ParamSchema (ParamSchema), Referenced (Inline), Schema (Schema),
-                                             SwaggerType (SwaggerInteger, SwaggerObject, SwaggerString),
-                                             _paramSchemaDefault, _paramSchemaEnum, _paramSchemaExclusiveMaximum,
-                                             _paramSchemaExclusiveMinimum, _paramSchemaFormat, _paramSchemaItems,
-                                             _paramSchemaMaxItems, _paramSchemaMaxLength, _paramSchemaMaximum,
-                                             _paramSchemaMinItems, _paramSchemaMinLength, _paramSchemaMinimum,
-                                             _paramSchemaMultipleOf, _paramSchemaPattern, _paramSchemaType,
-                                             _paramSchemaUniqueItems, _schemaAdditionalProperties, _schemaAllOf,
-                                             _schemaDescription, _schemaDiscriminator, _schemaExample,
-                                             _schemaExternalDocs, _schemaMaxProperties, _schemaMinProperties,
-                                             _schemaParamSchema, _schemaProperties, _schemaReadOnly, _schemaRequired,
-                                             _schemaTitle, _schemaXml)
-import           Data.Text                  ()
-import           Playground.API             (CompilationError (CompilationError, RawError), SimpleArgumentSchema (SimpleIntArgument, SimpleObjectArgument, SimpleStringArgument),
-                                             column, filename, parseErrorText, row, text, toSimpleArgumentSchema)
-import           Test.Hspec                 (Spec, describe, it, shouldBe)
+import           Data.HashMap.Strict.InsOrd   (fromList)
+import           Data.Swagger                 (ParamSchema (ParamSchema), Referenced (Inline), Schema (Schema),
+                                               SwaggerType (SwaggerInteger, SwaggerObject, SwaggerString),
+                                               _paramSchemaDefault, _paramSchemaEnum, _paramSchemaExclusiveMaximum,
+                                               _paramSchemaExclusiveMinimum, _paramSchemaFormat, _paramSchemaItems,
+                                               _paramSchemaMaxItems, _paramSchemaMaxLength, _paramSchemaMaximum,
+                                               _paramSchemaMinItems, _paramSchemaMinLength, _paramSchemaMinimum,
+                                               _paramSchemaMultipleOf, _paramSchemaPattern, _paramSchemaType,
+                                               _paramSchemaUniqueItems, _schemaAdditionalProperties, _schemaAllOf,
+                                               _schemaDescription, _schemaDiscriminator, _schemaExample,
+                                               _schemaExternalDocs, _schemaMaxProperties, _schemaMinProperties,
+                                               _schemaParamSchema, _schemaProperties, _schemaReadOnly, _schemaRequired,
+                                               _schemaTitle, _schemaXml)
+import           Data.Text                    ()
+import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), column, filename, row,
+                                               text)
+import           Playground.API               (SimpleArgumentSchema (SimpleIntArgument, SimpleObjectArgument, SimpleStringArgument),
+                                               parseErrorText, toSimpleArgumentSchema)
+import           Test.Hspec                   (Spec, describe, it, shouldBe)
 
 spec :: Spec
 spec = do

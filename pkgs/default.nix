@@ -40871,6 +40871,64 @@ description = "piecewise linear and cubic Hermite interpolation";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
+"interpreter" = callPackage
+({
+  mkDerivation
+, aeson
+, base
+, bytestring
+, directory
+, exceptions
+, file-embed
+, filepath
+, http-types
+, marlowe
+, monad-logger
+, mtl
+, newtype-generics
+, process
+, servant
+, servant-server
+, stdenv
+, temporary
+, text
+, time
+, transformers
+, wai
+, warp
+}:
+mkDerivation {
+
+pname = "interpreter";
+version = "0.1.0.0";
+src = .././interpreter;
+libraryHaskellDepends = [
+aeson
+base
+bytestring
+directory
+exceptions
+file-embed
+filepath
+http-types
+marlowe
+monad-logger
+mtl
+newtype-generics
+process
+servant
+servant-server
+temporary
+text
+time
+transformers
+wai
+warp
+];
+doHaddock = false;
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
 "intervals" = callPackage
 ({
   mkDerivation
@@ -43888,7 +43946,7 @@ text
 ];
 doHaddock = false;
 description = "Language library for Plutus Core";
-license = stdenv.lib.licenses.bsd3;
+license = stdenv.lib.licenses.asl20;
 
 }) {};
 "language-puppet" = callPackage
@@ -46801,10 +46859,8 @@ license = "GPL";
 ({
   mkDerivation
 , base
-, bytestring
 , containers
 , hedgehog
-, lens
 , mtl
 , plutus-tx
 , stdenv
@@ -46822,9 +46878,7 @@ version = "0.1.0.0";
 src = .././marlowe;
 libraryHaskellDepends = [
 base
-bytestring
 containers
-lens
 mtl
 plutus-tx
 template-haskell
@@ -46845,7 +46899,7 @@ wallet-api
 ];
 doHaddock = false;
 description = "Marlowe: financial contracts on Cardano Computation Layer";
-license = stdenv.lib.licenses.bsd3;
+license = stdenv.lib.licenses.asl20;
 
 }) {};
 "marvin-interpolate" = callPackage
@@ -47315,6 +47369,136 @@ doCheck = false;
 homepage = "http://github.com/jtobin/mcmc-types";
 description = "Common types for sampling";
 license = stdenv.lib.licenses.mit;
+
+}) {};
+"meadow" = callPackage
+({
+  mkDerivation
+, aeson
+, aeson-casing
+, base
+, bytestring
+, containers
+, cookie
+, data-default-class
+, directory
+, exceptions
+, file-embed
+, filepath
+, gitrev
+, hspec
+, hspec-wai
+, hspec-wai-json
+, http-client
+, http-client-tls
+, http-conduit
+, http-types
+, interpreter
+, jwt
+, lens
+, marlowe
+, monad-logger
+, mtl
+, newtype-generics
+, optparse-applicative
+, process
+, purescript-bridge
+, raw-strings-qq
+, servant
+, servant-client
+, servant-client-core
+, servant-foreign
+, servant-purescript
+, servant-server
+, stdenv
+, temporary
+, text
+, time
+, transformers
+, wai
+, wai-cors
+, wai-extra
+, warp
+, yaml
+}:
+mkDerivation {
+
+pname = "meadow";
+version = "0.1.0.0";
+src = .././meadow;
+isLibrary = true;
+isExecutable = true;
+libraryHaskellDepends = [
+aeson
+aeson-casing
+base
+bytestring
+containers
+cookie
+directory
+exceptions
+file-embed
+filepath
+http-client
+http-client-tls
+http-conduit
+http-types
+interpreter
+jwt
+lens
+marlowe
+monad-logger
+mtl
+newtype-generics
+process
+servant
+servant-client
+servant-client-core
+servant-purescript
+servant-server
+temporary
+text
+time
+transformers
+];
+executableHaskellDepends = [
+aeson
+base
+bytestring
+containers
+data-default-class
+filepath
+gitrev
+http-types
+interpreter
+lens
+monad-logger
+mtl
+optparse-applicative
+purescript-bridge
+servant-foreign
+servant-purescript
+servant-server
+text
+wai
+wai-cors
+wai-extra
+warp
+yaml
+];
+testHaskellDepends = [
+aeson
+base
+bytestring
+hspec
+hspec-wai
+hspec-wai-json
+mtl
+raw-strings-qq
+text
+];
+doHaddock = false;
+license = stdenv.lib.licenses.bsd3;
 
 }) {};
 "med-module" = callPackage
@@ -56385,7 +56569,6 @@ license = stdenv.lib.licenses.mit;
 , hedgehog
 , language-plutus-core
 , lens
-, mmorph
 , mtl
 , stdenv
 , tasty
@@ -56402,7 +56585,6 @@ base
 containers
 language-plutus-core
 lens
-mmorph
 mtl
 ];
 testHaskellDepends = [
@@ -56416,7 +56598,7 @@ tasty-hunit
 ];
 doHaddock = false;
 description = "Virtual machine for Plutus Core";
-license = stdenv.lib.licenses.bsd3;
+license = stdenv.lib.licenses.asl20;
 
 }) {};
 "plutus-exe" = callPackage
@@ -56453,7 +56635,7 @@ transformers
 ];
 doHaddock = false;
 description = "Executable for Plutus Core tools";
-license = stdenv.lib.licenses.bsd3;
+license = stdenv.lib.licenses.asl20;
 
 }) {};
 "plutus-ir" = callPackage
@@ -56463,6 +56645,7 @@ license = stdenv.lib.licenses.bsd3;
 , base
 , bytestring
 , containers
+, filepath
 , hedgehog
 , language-plutus-core
 , lens
@@ -56500,7 +56683,7 @@ transformers
 ];
 testHaskellDepends = [
 base
-bytestring
+filepath
 hedgehog
 language-plutus-core
 megaparsec
@@ -56514,7 +56697,7 @@ text
 ];
 doHaddock = false;
 description = "Plutus IR language";
-license = stdenv.lib.licenses.bsd3;
+license = stdenv.lib.licenses.asl20;
 
 }) {};
 "plutus-playground-lib" = callPackage
@@ -56522,22 +56705,16 @@ license = stdenv.lib.licenses.bsd3;
   mkDerivation
 , aeson
 , base
-, base64-bytestring
 , bytestring
 , containers
 , hedgehog
-, hint
-, http-media
 , insert-ordered-containers
+, interpreter
 , lens
 , memory
 , mtl
-, network
 , newtype-generics
-, plutus-tx
-, plutus-use-cases
 , servant
-, split
 , stdenv
 , swagger2
 , tasty
@@ -56555,21 +56732,15 @@ src = .././plutus-playground/plutus-playground-lib;
 libraryHaskellDepends = [
 aeson
 base
-base64-bytestring
 bytestring
 containers
-hint
-http-media
 insert-ordered-containers
+interpreter
 lens
 memory
 mtl
-network
 newtype-generics
-plutus-tx
-plutus-use-cases
 servant
-split
 swagger2
 template-haskell
 text
@@ -56590,7 +56761,7 @@ wallet-api
 ];
 doHaddock = false;
 homepage = "https://github.com/iohk/plutus#readme";
-license = stdenv.lib.licenses.bsd3;
+license = stdenv.lib.licenses.asl20;
 
 }) {};
 "plutus-playground-server" = callPackage
@@ -56607,7 +56778,6 @@ license = stdenv.lib.licenses.bsd3;
 , exceptions
 , file-embed
 , filepath
-, generics-sop
 , gitrev
 , hspec
 , hspec-discover
@@ -56616,6 +56786,7 @@ license = stdenv.lib.licenses.bsd3;
 , http-conduit
 , http-types
 , insert-ordered-containers
+, interpreter
 , jwt
 , lens
 , monad-logger
@@ -56625,7 +56796,6 @@ license = stdenv.lib.licenses.bsd3;
 , plutus-playground-lib
 , process
 , purescript-bridge
-, QuickCheck
 , regex-compat
 , servant
 , servant-client
@@ -56664,11 +56834,11 @@ cookie
 directory
 exceptions
 file-embed
-generics-sop
 http-client
 http-client-tls
 http-conduit
 http-types
+interpreter
 jwt
 lens
 monad-logger
@@ -56698,6 +56868,7 @@ data-default-class
 filepath
 gitrev
 http-types
+interpreter
 lens
 monad-logger
 mtl
@@ -56723,9 +56894,9 @@ base
 bytestring
 hspec
 insert-ordered-containers
+interpreter
 mtl
 plutus-playground-lib
-QuickCheck
 swagger2
 text
 transformers
@@ -56736,14 +56907,13 @@ hspec-discover
 ];
 doHaddock = false;
 homepage = "https://github.com/iohk/plutus#readme";
-license = stdenv.lib.licenses.bsd3;
+license = stdenv.lib.licenses.asl20;
 
 }) {};
 "plutus-tutorial" = callPackage
 ({
   mkDerivation
 , base
-, bytestring
 , doctest
 , language-plutus-core
 , markdown-unlit
@@ -56759,7 +56929,6 @@ version = "0.1.0.0";
 src = .././plutus-tutorial;
 libraryHaskellDepends = [
 base
-bytestring
 language-plutus-core
 plutus-tx
 template-haskell
@@ -56771,7 +56940,7 @@ markdown-unlit
 ];
 doHaddock = false;
 description = "PlutusTx tutorial";
-license = stdenv.lib.licenses.bsd3;
+license = stdenv.lib.licenses.asl20;
 
 }) {};
 "plutus-tx" = callPackage
@@ -56833,7 +57002,7 @@ template-haskell
 ];
 doHaddock = false;
 description = "The PlutusTx compiler frontend";
-license = stdenv.lib.licenses.bsd3;
+license = stdenv.lib.licenses.asl20;
 
 }) {};
 "plutus-use-cases" = callPackage
@@ -56883,7 +57052,7 @@ wallet-api
 ];
 doHaddock = false;
 description = "Collection of smart contracts to develop the plutus/wallet interface";
-license = stdenv.lib.licenses.bsd3;
+license = stdenv.lib.licenses.asl20;
 
 }) {};
 "pointed" = callPackage
@@ -79052,7 +79221,6 @@ license = stdenv.lib.licenses.mit;
 , deriving-compat
 , hashable
 , hedgehog
-, http-media
 , language-plutus-core
 , lens
 , memory
@@ -79094,7 +79262,6 @@ cryptonite
 deriving-compat
 hashable
 hedgehog
-http-media
 language-plutus-core
 lens
 memory
@@ -79130,7 +79297,7 @@ transformers
 ];
 doHaddock = false;
 description = "Wallet API";
-license = stdenv.lib.licenses.bsd3;
+license = stdenv.lib.licenses.asl20;
 
 }) {};
 "warp" = callPackage

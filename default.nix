@@ -67,6 +67,12 @@ let
   localLib = import ./lib.nix { inherit config system; } ;
   src = localLib.iohkNix.cleanSourceHaskell ./.;
 
+  # We have to use purescript 0.11.7 - because purescript-bridge
+  # hasn't been updated for 0.12 yet - but our pinned nixpkgs
+  # has 0.12, and overriding doesn't work easily because we
+  # can't built 0.11.7 with the default compiler either.
+  purescriptNixpkgs = import (localLib.iohkNix.fetchNixpkgs ./plutus-playground/plutus-playground-client/nixpkgs-src.json) {};
+
   packages = self: (rec {
     inherit pkgs localLib;
 
@@ -102,6 +108,7 @@ let
             "plutus-tutorial"
             # Broken for things which pick up other files at test runtime
             "plutus-playground-server"
+            "meadow"
           ];
         haddock = localButNot [
             # Haddock is broken for things with internal libraries
@@ -152,7 +159,7 @@ let
           haskellPackages.plutus-use-cases
         ]);
       in pkgs.runCommand "plutus-server-invoker" { buildInputs = [pkgs.makeWrapper]; } ''
-        # We need to provide the ghc interpreter (hint) with the location of the ghc lib dir and the package db
+        # We need to provide the ghc interpreter with the location of the ghc lib dir and the package db
         mkdir -p $out/bin
         ln -s ${haskellPackages.plutus-playground-server}/bin/plutus-playground-server $out/bin/plutus-playground-server
         wrapProgram $out/bin/plutus-playground-server \
@@ -166,11 +173,6 @@ let
           mkdir $out
           ${haskellPackages.plutus-playground-server}/bin/plutus-playground-server psgenerator $out
         '';
-        # We have to use purescript 0.11.7 - because purescript-bridge
-        # hasn't been updated for 0.12 yet - but our pinned nixpkgs
-        # has 0.12, and overriding doesn't work easily because we
-        # can't built 0.11.7 with the default compiler either.
-        purescriptNixpkgs = import (localLib.iohkNix.fetchNixpkgs ./plutus-playground/plutus-playground-client/nixpkgs-src.json) {};
         in
         pkgs.callPackage ./plutus-playground/plutus-playground-client {
           pkgs = purescriptNixpkgs;
@@ -182,6 +184,43 @@ let
         contents = [ client server-invoker ];
         config = {
           Cmd = ["${server-invoker}/bin/plutus-playground-server" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
+        };
+      };
+    };
+
+    meadow = rec {
+      server-invoker = let
+        # meadow uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
+        runtimeGhc = haskellPackages.ghcWithPackages (ps: [
+          haskellPackages.marlowe
+          haskellPackages.meadow
+        ]);
+      in pkgs.runCommand "meadow-server-invoker" { buildInputs = [pkgs.makeWrapper]; } ''
+        # We need to provide the ghc interpreter with the location of the ghc lib dir and the package db
+        mkdir -p $out/bin
+        ln -s ${haskellPackages.meadow}/bin/meadow-exe $out/bin/meadow
+        wrapProgram $out/bin/meadow \
+          --set GHC_LIB_DIR "${runtimeGhc}/lib/ghc-${runtimeGhc.version}" \
+          --set GHC_BIN_DIR "${runtimeGhc}/bin" \
+          --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d"
+      ''; 
+
+      client = let
+        generated-purescript = pkgs.runCommand "meadow-purescript" {} ''
+          mkdir $out
+          ${haskellPackages.meadow}/bin/meadow-exe psgenerator $out
+        '';
+        in
+        pkgs.callPackage ./meadow/client {
+          pkgs = purescriptNixpkgs;
+          psSrc = generated-purescript;
+        };
+
+      docker = pkgs.dockerTools.buildImage {
+        name = "meadow";
+        contents = [ client server-invoker ];
+        config = {
+          Cmd = ["${server-invoker}/bin/meadow" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
         };
       };
     };

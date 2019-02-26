@@ -2,7 +2,7 @@ terraform {
   required_version = "~> 0.11.0"
 
   backend "s3" {
-    bucket = "production-plutus-playground-tf"
+    bucket = "plutus-playground-tf"
     key    = "state"
     region = "eu-west-1"
     profile = "plutus-playground"
