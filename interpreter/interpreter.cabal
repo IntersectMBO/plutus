@@ -17,7 +17,6 @@ library
     build-depends:
         base >=4.7 && <5,
         aeson -any,
-        bytestring -any,
         exceptions -any,
         transformers -any,
         directory -any,

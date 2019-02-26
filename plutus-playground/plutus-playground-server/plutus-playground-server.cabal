@@ -74,7 +74,6 @@ library
         servant-client-core -any,
         servant-server -any,
         swagger2 -any,
-        temporary -any,
         text -any,
         time -any,
         wallet-api -any

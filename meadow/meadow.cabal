@@ -45,8 +45,6 @@ library
         interpreter -any,
         jwt -any,
         lens -any,
-        marlowe -any,
-        marlowe -any,
         monad-logger -any,
         mtl -any,
         newtype-generics -any,
@@ -110,7 +108,4 @@ test-suite meadow-test
         text -any,
         mtl -any,
         hspec -any,
-        hspec-wai -any,
-        hspec-wai-json -any,
-        raw-strings-qq -any,
-        aeson -any
+        raw-strings-qq -any
