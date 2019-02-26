@@ -1,9 +1,10 @@
 cabal-version: >=1.10
 name: meadow
 version: 0.1.0.0
-license: BSD3
-license-file: LICENSE
-copyright: 2018 IOHK
+license: Apache-2.0
+license-files: 
+  LICENSE
+  NOTICE
 author: Pablo Lamela
 category: Web
 build-type: Simple
