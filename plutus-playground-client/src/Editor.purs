@@ -34,6 +34,26 @@ import Prelude (Unit, bind, discard, pure, show, unit, void, ($), (<$>), (<<<), 
 import StaticData as StaticData
 import Types (ChildQuery, ChildSlot, EditorSlot(..), Query(..), State, _authStatus, _compilationResult, _createGistResult, _warnings, cpEditor)
 
+loadBuffer :: forall eff. Eff (localStorage :: LOCALSTORAGE | eff) (Maybe String)
+loadBuffer = LocalStorage.getItem StaticData.bufferLocalStorageKey
+
+initialContents :: Maybe String
+initialContents = Map.lookup "Vesting" StaticData.demoFiles
+
+initEditor ∷
+  forall m aff.
+  MonadAff (ace :: ACE, localStorage :: LOCALSTORAGE | aff) m
+  => Editor -> m Unit
+initEditor editor = liftEff $ do
+  savedContents <- liftEff loadBuffer
+  let contents = fromMaybe "" (savedContents <|> initialContents)
+  void $ Editor.setValue contents (Just 1) editor
+
+  Editor.setTheme "ace/theme/monokai" editor
+  --
+  session <- Editor.getSession editor
+  Session.setMode "ace/mode/haskell" session
+
 editorPane ::
   forall m aff.
   MonadAff (AceEffects (localStorage :: LOCALSTORAGE | aff)) m
@@ -94,26 +114,6 @@ editorPane state =
              _warnings <<<
              to compilationWarningsPane)
           state
-
-loadBuffer :: forall eff. Eff (localStorage :: LOCALSTORAGE | eff) (Maybe String)
-loadBuffer = LocalStorage.getItem StaticData.bufferLocalStorageKey
-
-initialContents :: Maybe String
-initialContents = Map.lookup "Vesting" StaticData.demoFiles
-
-initEditor ∷
-  forall m aff.
-  MonadAff (ace :: ACE, localStorage :: LOCALSTORAGE | aff) m
-  => Editor -> m Unit
-initEditor editor = liftEff $ do
-  savedContents <- liftEff loadBuffer
-  let contents = fromMaybe "" (savedContents <|> initialContents)
-  void $ Editor.setValue contents (Just 1) editor
-
-  Editor.setTheme "ace/theme/monokai" editor
-  --
-  session <- Editor.getSession editor
-  Session.setMode "ace/mode/haskell" session
 
 demoScriptsPane :: forall p. HTML p Query
 demoScriptsPane =
