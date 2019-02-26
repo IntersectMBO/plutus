@@ -16,7 +16,7 @@ import qualified Data.Text.Lazy         as TL
 import qualified Ledger.Ada             as Ada
 import           Ledger.Types           (Blockchain)
 import           Playground.API         (Evaluation (Evaluation), Expression (Action, Wait), Fn (Fn),
-                                         FunctionSchema (FunctionSchema), FunctionSchema, PlaygroundError,
+                                         FunctionSchema (FunctionSchema), PlaygroundError,
                                          SimpleArgumentSchema (SimpleArraySchema, SimpleIntSchema, SimpleObjectSchema, SimpleTupleSchema),
                                          SimulatorWallet (SimulatorWallet), SourceCode (SourceCode), argumentSchema,
                                          functionName, functionSchema, isSupportedByFrontend, simulatorWalletBalance,

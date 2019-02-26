@@ -23,9 +23,10 @@ import Halogen.Query as HQ
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
 import Playground.API (EvaluationResult, SimulatorWallet, _EvaluationResult, _Fn, _FunctionSchema)
-import Prelude (map, show, unit, ($), (+), (/=), (<$>), (<<<), (<>))
+import Prelude (map, pure, show, ($), (+), (/=), (<$>), (<<<), (<>))
 import Servant.PureScript.Affjax (AjaxError)
-import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, FormEvent(..), Query(EvaluateActions, ModifyActions, PopulateAction), SimpleArgument(..), Simulation, ValidationError, _argumentSchema, _functionName, _resultBlockchain, _simulatorWalletWallet, validate)
+import Types (Action(..), ActionEvent(..), Blockchain, ChildQuery, ChildSlot, FormEvent(..), Query(..), SimpleArgument(..), Simulation, _argumentSchema, _functionName, _resultBlockchain, _simulatorWalletWallet)
+import Validation (ValidationError, WithPath, addPath, validate)
 import Wallet (walletIdPane, walletsPane)
 
 simulationPane ::
@@ -132,7 +133,7 @@ actionArgumentField context _ arg@(SimpleInt n) =
       , placeholder "Int"
       , onValueChange $ (Just <<< HQ.action <<< SetIntField <<< Int.fromString)
       ]
-    , validationFeedback $ validate context arg
+    , validationFeedback (addPath context <$> validate arg)
   ]
 actionArgumentField context _ arg@(SimpleString s) =
   div_ [
@@ -144,7 +145,7 @@ actionArgumentField context _ arg@(SimpleString s) =
       , placeholder "String"
       , onValueChange $ HE.input SetStringField
       ]
-    , validationFeedback $ validate context arg
+    , validationFeedback (addPath context <$> validate arg)
   ]
 actionArgumentField context nested (SimpleTuple (subFieldA /\subFieldB)) =
   row_
@@ -184,11 +185,11 @@ actionArgumentField _ _ (Unknowable { context, description }) =
        , code_ [ text description ]
        ]
 
-validationFeedback :: forall p i. Array ValidationError -> HTML p i
+validationFeedback :: forall p i. Array (WithPath ValidationError) -> HTML p i
 validationFeedback [] =
   validFeedback_ [ nbsp ]
 validationFeedback errors =
-  invalidFeedback_ (text <<< show <$> errors)
+  invalidFeedback_ (div_ <<< pure <<< text <<< show <$> errors)
 
 addWaitActionPane :: forall p. Tuple String (HTML p Query)
 addWaitActionPane =
@@ -228,6 +229,6 @@ evaluateActionsPane evaluationResult actions =
     btnText _ true = text "Fix Errors"
     btnText _ _ = text "Evaluate"
 
-    validationErrors = Array.concat $ validate unit <$> actions
+    validationErrors = Array.concat $ validate <$> actions
 
     hasErrors = validationErrors /= []
