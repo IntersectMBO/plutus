@@ -98,14 +98,16 @@ editorPane state =
 loadBuffer :: forall eff. Eff (localStorage :: LOCALSTORAGE | eff) (Maybe String)
 loadBuffer = LocalStorage.getItem StaticData.bufferLocalStorageKey
 
+initialContents :: Maybe String
+initialContents = Map.lookup "Vesting" StaticData.demoFiles
+
 initEditor ∷
   forall m aff.
   MonadAff (ace :: ACE, localStorage :: LOCALSTORAGE | aff) m
   => Editor -> m Unit
 initEditor editor = liftEff $ do
   savedContents <- liftEff loadBuffer
-  let defaultContents = Map.lookup "Vesting" StaticData.demoFiles
-  let contents = fromMaybe "" (savedContents <|> defaultContents)
+  let contents = fromMaybe "" (savedContents <|> initialContents)
   void $ Editor.setValue contents (Just 1) editor
 
   Editor.setTheme "ace/theme/monokai" editor
