@@ -40876,26 +40876,16 @@ license = stdenv.lib.licenses.bsd3;
   mkDerivation
 , aeson
 , base
-, bytestring
 , directory
 , exceptions
-, file-embed
 , filepath
-, http-types
-, marlowe
-, monad-logger
 , mtl
 , newtype-generics
 , process
-, servant
-, servant-server
 , stdenv
 , temporary
 , text
-, time
 , transformers
-, wai
-, warp
 }:
 mkDerivation {
 
@@ -40905,25 +40895,15 @@ src = .././interpreter;
 libraryHaskellDepends = [
 aeson
 base
-bytestring
 directory
 exceptions
-file-embed
 filepath
-http-types
-marlowe
-monad-logger
 mtl
 newtype-generics
 process
-servant
-servant-server
 temporary
 text
-time
 transformers
-wai
-warp
 ];
 doHaddock = false;
 license = stdenv.lib.licenses.bsd3;
@@ -47387,8 +47367,6 @@ license = stdenv.lib.licenses.mit;
 , filepath
 , gitrev
 , hspec
-, hspec-wai
-, hspec-wai-json
 , http-client
 , http-client-tls
 , http-conduit
@@ -47396,7 +47374,6 @@ license = stdenv.lib.licenses.mit;
 , interpreter
 , jwt
 , lens
-, marlowe
 , monad-logger
 , mtl
 , newtype-generics
@@ -47446,7 +47423,6 @@ http-types
 interpreter
 jwt
 lens
-marlowe
 monad-logger
 mtl
 newtype-generics
@@ -47467,6 +47443,7 @@ base
 bytestring
 containers
 data-default-class
+directory
 filepath
 gitrev
 http-types
@@ -47487,18 +47464,15 @@ warp
 yaml
 ];
 testHaskellDepends = [
-aeson
 base
 bytestring
 hspec
-hspec-wai
-hspec-wai-json
 mtl
 raw-strings-qq
 text
 ];
 doHaddock = false;
-license = stdenv.lib.licenses.bsd3;
+license = stdenv.lib.licenses.asl20;
 
 }) {};
 "med-module" = callPackage
@@ -56805,7 +56779,6 @@ license = stdenv.lib.licenses.asl20;
 , servant-server
 , stdenv
 , swagger2
-, temporary
 , text
 , time
 , transformers
@@ -56853,7 +56826,6 @@ servant-client-core
 servant-purescript
 servant-server
 swagger2
-temporary
 text
 time
 transformers
