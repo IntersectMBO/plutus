@@ -47467,6 +47467,7 @@ base
 bytestring
 containers
 data-default-class
+directory
 filepath
 gitrev
 http-types
@@ -47498,7 +47499,7 @@ raw-strings-qq
 text
 ];
 doHaddock = false;
-license = stdenv.lib.licenses.bsd3;
+license = stdenv.lib.licenses.asl20;
 
 }) {};
 "med-module" = callPackage
@@ -56728,7 +56729,7 @@ mkDerivation {
 
 pname = "plutus-playground-lib";
 version = "0.1.0.0";
-src = .././plutus-playground/plutus-playground-lib;
+src = .././plutus-playground-lib;
 libraryHaskellDepends = [
 aeson
 base
@@ -56820,7 +56821,7 @@ mkDerivation {
 
 pname = "plutus-playground-server";
 version = "0.1.0.0";
-src = .././plutus-playground/plutus-playground-server;
+src = .././plutus-playground-server;
 isLibrary = true;
 isExecutable = true;
 enableSeparateDataOutput = true;

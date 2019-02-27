@@ -71,7 +71,7 @@ let
   # hasn't been updated for 0.12 yet - but our pinned nixpkgs
   # has 0.12, and overriding doesn't work easily because we
   # can't built 0.11.7 with the default compiler either.
-  purescriptNixpkgs = import (localLib.iohkNix.fetchNixpkgs ./plutus-playground/plutus-playground-client/nixpkgs-src.json) {};
+  purescriptNixpkgs = import (localLib.iohkNix.fetchNixpkgs ./purescript-11-nixpkgs-src.json) {};
 
   packages = self: (rec {
     inherit pkgs localLib;
@@ -126,11 +126,7 @@ let
       shellcheck = pkgs.callPackage localLib.iohkNix.tests.shellcheck { inherit src; };
       hlint = pkgs.callPackage localLib.iohkNix.tests.hlint {
         inherit src;
-        projects = let
-                     fixPlaygroundServer = v: if v != "plutus-playground-server" then v else "plutus-playground/plutus-playground-server";
-                     fixPlaygroundLib = v: if v != "plutus-playground-lib" then v else "plutus-playground/plutus-playground-lib";
-                   in
-                     map (localLib.comp fixPlaygroundServer fixPlaygroundLib) localLib.plutusHaskellPkgList;
+        projects = localLib.plutusHaskellPkgList;
       };
       stylishHaskell = pkgs.callPackage localLib.iohkNix.tests.stylishHaskell {
         inherit (self.haskellPackages) stylish-haskell;
@@ -174,7 +170,7 @@ let
           ${haskellPackages.plutus-playground-server}/bin/plutus-playground-server psgenerator $out
         '';
         in
-        pkgs.callPackage ./plutus-playground/plutus-playground-client {
+        pkgs.callPackage ./plutus-playground-client {
           pkgs = purescriptNixpkgs;
           psSrc = generated-purescript;
         };
@@ -211,7 +207,7 @@ let
           ${haskellPackages.meadow}/bin/meadow-exe psgenerator $out
         '';
         in
-        pkgs.callPackage ./meadow/client {
+        pkgs.callPackage ./meadow-client {
           pkgs = purescriptNixpkgs;
           psSrc = generated-purescript;
         };
