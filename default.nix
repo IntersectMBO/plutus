@@ -170,7 +170,7 @@ let
           ${haskellPackages.plutus-playground-server}/bin/plutus-playground-server psgenerator $out
         '';
         in
-        pkgs.callPackage ./playground-client {
+        pkgs.callPackage ./plutus-playground-client {
           pkgs = purescriptNixpkgs;
           psSrc = generated-purescript;
         };

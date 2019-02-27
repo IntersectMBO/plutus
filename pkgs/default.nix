@@ -56729,7 +56729,7 @@ mkDerivation {
 
 pname = "plutus-playground-lib";
 version = "0.1.0.0";
-src = .././playground-lib;
+src = .././plutus-playground-lib;
 libraryHaskellDepends = [
 aeson
 base
@@ -56821,7 +56821,7 @@ mkDerivation {
 
 pname = "plutus-playground-server";
 version = "0.1.0.0";
-src = .././playground-server;
+src = .././plutus-playground-server;
 isLibrary = true;
 isExecutable = true;
 enableSeparateDataOutput = true;
