@@ -12,7 +12,7 @@ We use `terraform` to manage the AWS infrastructure including networking, loadba
 2. Authenticate your account in the current shell session
 3. Create the Route 53 zone you want to use (e.g. playground.plutus.iohkdev.io) and add an NS record in the parent zone.
 4. Setup ACM for wildcard on that zone.
-5. Move into the `plutus-playground/deployment/terraform` directory
+5. Move into the `deployment/terraform` directory
 6. Initialize terraform with `terraform init`
 7. Optionally, if you need to manage multiple workspaces, create a new terraform workspace with `terraform workspace new myname`
 8. In `variables.tf` make sure that your ssh key is in the variable `ssh_keys` under the entry `myname`. You then need to add and entry in each of the `*_ssh_keys` variables with `myname = ["myname"]`. Then key is the environment name and the value is a list of people who can have ssh access to those machines.
@@ -34,13 +34,13 @@ The individual machines now exist but have nothing installed on them. We configu
 ### Configure the machines
 
 1. ssh onto the nixops machine `ssh nixops.plutus_playground` and accept the fingerprints
-2. exit the machine and from the project root copy the generated json files onto the nixops machine `scp plutus-playground/deployment/nixops/*.json root@nixops.plutus_playground:~/plutus/plutus-playground/deployment/nixops`
+2. exit the machine and from the project root copy the generated json files onto the nixops machine `scp ./deployment/nixops/*.json root@nixops.plutus_playground:~/plutus/deployment/nixops`
 3. ssh onto the nixops machine again `ssh nixops.plutus_playground`
 4. Make sure ssh agent forwarding is setup correctly so nixops can use your ssh key needed to login to playground servers
 5. Clone the plutus repository `git clone https://github.com/input-output-hk/plutus.git`
 6. Enter the project `cd plutus`
 7. Switch to the branch you want to work with e.g. `git checkout master`
-8. Move into the nixops directory `cd plutus-playground/deployment/nixops/`
+8. Move into the nixops directory `cd deployment/nixops/`
 9. Create a new deployment `nixops create ./default.nix ./network.nix -d plutus-playground`
 10. Deploy the new deployment `nixops deploy`
 11. You should now be able to reach the playground at [https://myname.playground.plutus.iohkdev.io] (https://myname.playground.plutus.iohkdev.io) or the tld set in tfvars file.

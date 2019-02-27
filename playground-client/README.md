@@ -1,31 +1,16 @@
 # Building
 
-## Server
-
-### stack
-
-```sh
-cd plutus-playground-server
-cp playground.yaml.sample playground.yaml
-
-vi playground.yaml # Fill in this file.
-
-stack build
-stack exec -- plutus-playground-server psgenerator ../plutus-playground-client/src/
-stack exec -- plutus-playground-server webserver ../plutus-playground-client/dist/
-```
-
 ### nix
 
 ```sh
-nix build -f default.nix plutus-playground.server-invoker 
+nix build -f default.nix playground-client 
 result/bin/plutus-server-invoker webserver -p 4000 ./plutus-playground/plutus-playground-client/dist
 ```
 
 ## Client
 
 ```sh
-cd plutus-playground-client
+cd playground-client
 yarn
 yarn run bower install
 ```

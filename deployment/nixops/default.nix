@@ -1,5 +1,5 @@
 let
-  plutus = import ../../../. {};
+  plutus = import ../../. {};
   playgroundMachine = import ./playground.nix;
   meadowMachine = import ./meadow.nix;
   machines = (plutus.pkgs.lib.importJSON ./machines.json);
