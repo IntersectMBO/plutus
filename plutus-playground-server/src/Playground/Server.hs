@@ -11,7 +11,7 @@ module Playground.Server
     ) where
 
 import           Control.Monad.Except         (MonadError, runExceptT, throwError)
-import           Control.Monad.IO.Class       (MonadIO, liftIO)
+import           Control.Monad.IO.Class       (liftIO)
 import           Control.Monad.Logger         (MonadLogger, logInfoN)
 import           Data.Aeson                   (ToJSON, encode)
 import qualified Data.ByteString.Char8        as BS
@@ -20,9 +20,8 @@ import qualified Data.Text                    as Text
 import           Language.Haskell.Interpreter (CompilationError)
 import           Network.HTTP.Types           (hContentType)
 import           Playground.API               (API, CompilationResult, Evaluation, EvaluationResult (EvaluationResult),
-                                               FunctionSchema, PlaygroundError (PlaygroundTimeout),
-                                               SimpleArgumentSchema, SourceCode (SourceCode), parseErrorText,
-                                               toSimpleArgumentSchema)
+                                               PlaygroundError (PlaygroundTimeout), PlaygroundError (PlaygroundTimeout),
+                                               SourceCode (SourceCode), SourceCode, parseErrorText, parseErrorText)
 import qualified Playground.API               as PA
 import qualified Playground.Interpreter       as PI
 import           Playground.Usecases          (vesting)
@@ -91,7 +90,7 @@ timeoutInterpreter n action = do
           ("HLint: ignore Avoid restricted function" :: String)
         #-}
 
-mkHandlers :: (MonadLogger m, MonadIO m) => m (Server API)
+mkHandlers :: MonadLogger m => m (Server API)
 mkHandlers = do
     logInfoN "Interpreter ready"
     pure $ acceptSourceCode :<|> runFunction :<|> checkHealth
