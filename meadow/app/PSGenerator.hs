@@ -31,10 +31,9 @@ import qualified Data.Text.IO                              as T ()
 import           Gist                                      (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
 import           Language.Haskell.Interpreter              (CompilationError)
 import           Language.PureScript.Bridge                (BridgePart, Language (Haskell), PSType, SumType,
-                                                            TypeInfo (TypeInfo), buildBridge, equal, mkSumType,
+                                                            TypeInfo (TypeInfo), buildBridge, mkSumType,
                                                             psTypeParameters, typeModule, typeName, writePSTypes, (^==))
-import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psString)
-import           Language.PureScript.Bridge.TypeParameters (A)
+import           Language.PureScript.Bridge.PSTypes        (psArray, psInt)
 import           Meadow.Contracts                          (basicContract)
 import           Servant                                   ((:<|>))
 import           Servant.PureScript                        (HasBridge, Settings, apiModuleName, defaultBridge,

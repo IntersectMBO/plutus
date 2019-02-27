@@ -11,6 +11,16 @@ build-type: Simple
 extra-source-files:
     README.md
 
+source-repository head
+    type: git
+    location: https://github.com/iohk/plutus
+
+flag development
+    description:
+        Enable `-Werror`
+    default: False
+    manual: True
+
 library
     exposed-modules:
         Server
@@ -69,7 +79,9 @@ executable meadow-exe
         Types
     hs-source-dirs: app
     default-language: Haskell2010
-    ghc-options: -threaded -rtsopts -with-rtsopts=-N
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wmissing-import-lists
     build-depends:
         aeson -any,
         base -any,
@@ -77,6 +89,8 @@ executable meadow-exe
         containers -any,
         data-default-class -any,
         directory -any,
+        ekg-core -any,
+        ekg-statsd -any,
         filepath -any,
         gitrev -any,
         http-types -any,
@@ -87,6 +101,7 @@ executable meadow-exe
         mtl -any,
         purescript-bridge -any,
         optparse-applicative -any,
+        servant-ekg -any,
         servant-foreign -any,
         servant-server -any,
         servant-purescript -any,

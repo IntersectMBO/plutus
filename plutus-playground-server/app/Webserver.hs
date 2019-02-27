@@ -19,6 +19,7 @@ module Webserver
   ) where
 
 import qualified Auth
+import           Control.Monad                        (void)
 import           Control.Monad.Except                 (ExceptT)
 import           Control.Monad.IO.Class               (MonadIO, liftIO)
 import           Control.Monad.Logger                 (LoggingT, MonadLogger, logInfoN, runStderrLoggingT)
@@ -37,8 +38,11 @@ import qualified Playground.API                       as PA
 import qualified Playground.Server                    as PS
 import           Servant                              ((:<|>) ((:<|>)), (:>), Get, Handler (Handler), JSON, PlainText,
                                                        Raw, ServantErr, hoistServer, serve, serveDirectoryFileServer)
+import           Servant.Ekg                          (monitorEndpoints)
 import           Servant.Foreign                      (GenerateList, NoContent, Req, generateList)
 import           Servant.Server                       (Server)
+import           System.Metrics                       (Store, newStore)
+import           System.Remote.Monitoring.Statsd      (defaultStatsdOptions, forkStatsd)
 import           Types                                (Config (Config, _authConfig))
 
 instance GenerateList NoContent (Method -> Req NoContent) where
@@ -79,9 +83,17 @@ app handlers _staticDir githubEndpoints config =
       simpleCorsResourcePolicy
         {corsRequestHeaders = ["content-type", "set-cookie"]}
 
+startStatsd :: MonadIO m => m Store
+startStatsd = liftIO $ do
+    store <- newStore
+    void $ forkStatsd defaultStatsdOptions store
+    pure store
+
 run :: (MonadLogger m, MonadIO m) => Settings -> FilePath -> Config -> m ()
 run settings _staticDir config = do
+  store <- startStatsd
   githubEndpoints <- liftIO Auth.mkGithubEndpoints
   handlers <- PS.mkHandlers
+  appMonitor <- liftIO $ monitorEndpoints (Proxy @PA.API) store
   logInfoN "Starting webserver."
-  liftIO . runSettings settings $ app handlers _staticDir githubEndpoints config
+  liftIO . runSettings settings . appMonitor $ app handlers _staticDir githubEndpoints config
