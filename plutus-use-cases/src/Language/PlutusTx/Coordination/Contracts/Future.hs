@@ -203,9 +203,9 @@ validatorScript ft = ValidatorScript val where
         \Future{..} FutureData{..} (r :: FutureRedeemer) (p :: PendingTx) ->
 
             let
-                PendingTx _ outs _ _ (PendingTxIn _ witness _) range = p
+                PendingTx _ outs _ _ (PendingTxIn _ witness _) range _ _ = p
                 ownHash = case witness of
-                    Left (vhash, _) -> vhash
+                    Just (vhash, _) -> vhash
                     _ -> $$(PlutusTx.error) ()
 
                 eqPk :: PubKey -> PubKey -> Bool

@@ -21,6 +21,10 @@ import qualified Wallet.Generators                             as Gen
 
 import           Language.PlutusTx.Coordination.Contracts.Game (gameValidator, guess, lock, startGame)
 
+w1, w2 :: Wallet
+w1 = Gen.wallet1
+w2 = Gen.wallet2
+
 tests :: TestTree
 tests = testGroup "game" [
     testProperty "lock" lockProp,
@@ -68,14 +72,6 @@ guessWrongProp = checkTrace $ do
 startingBalance :: Ledger.Value
 startingBalance = Ada.adaValueOf 1000000
 
--- | Wallet 1
-w1 :: Wallet
-w1 = Wallet 1
-
--- | Wallet 2
-w2 :: Wallet
-w2 = Wallet 2
-
 lockFunds :: Trace MockWallet ()
 lockFunds = void $ walletAction w1 (lock "abcde" 10) >> updateAll
 
@@ -83,8 +79,8 @@ checkTrace :: Trace MockWallet () -> Property
 checkTrace t = property $ do
     let
         ib = Map.fromList [
-            (PubKey 1, startingBalance),
-            (PubKey 2, startingBalance)]
+            (walletPubKey w1, startingBalance),
+            (walletPubKey w2, startingBalance)]
         model = Gen.generatorModel { Gen.gmInitialBalance = ib }
     (result, st) <- forAll $ Gen.runTraceOn model (updateAll >> t)
     Hedgehog.assert (isRight result)

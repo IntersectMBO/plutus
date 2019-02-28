@@ -46,7 +46,8 @@ module Language.PlutusTx.Prelude (
     equalsByteString,
     takeByteString,
     dropByteString,
-    concatenate
+    concatenate,
+    verifySignature
     ) where
 
 import           Data.ByteString.Lazy             (ByteString)

@@ -1,6 +1,7 @@
 {-# LANGUAGE RecordWildCards  #-}
 {-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE OverloadedStrings #-}
 -- | Generators for constructing blockchains and transactions for use in property-based testing.
 module Wallet.Generators(
     -- * Mockchain
@@ -20,6 +21,11 @@ module Wallet.Generators(
     genInitialTransaction,
     -- * Assertions
     assertValid,
+    -- * Wallets for testing
+    -- $wallets
+    wallet1,
+    wallet2,
+    wallet3,
     -- * Etc.
     genAda,
     genValue,
@@ -27,7 +33,8 @@ module Wallet.Generators(
     Wallet.Generators.runTrace,
     runTraceOn,
     splitVal,
-    validateMockchain
+    validateMockchain,
+    signAll
     ) where
 
 import           Data.Bifunctor  (Bifunctor (..))
@@ -46,9 +53,28 @@ import qualified Ledger.Index    as Index
 import qualified Ledger.Interval as Interval
 import qualified Ledger.Value    as Value
 
+import           KeyBytes                    (fromHex)
 import           Ledger
 import qualified Wallet.API      as W
 import           Wallet.Emulator as Emulator
+
+-- $wallets
+-- 'wallet1', 'wallet2' and 'wallet3' are three predefined 'Wallet' values 
+-- each with its own private-public key pair. Don't use them outside
+-- of the emulator.
+
+wallet1, wallet2, wallet3 :: Wallet
+wallet1 = Wallet $ fromHex "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
+wallet2 = Wallet $ fromHex "4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6fb3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
+wallet3 = Wallet $ fromHex "c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
+
+-- | Attach signatures of all known wallets to a transaction.
+signAll :: Tx -> Tx
+signAll tx = foldl (flip signWithWallet) tx [wallet1, wallet2, wallet3]
+
+-- TODO: Get private keys for the following two public keys:
+-- "e61a185bcef2613a6c7cb79763ce945d3b245d76114dd440bcf5f2dc1aa57057"
+-- "c0dac102c4533186e25dc43128472353eaabdb878b152aeb8e001f92d90233a7"
 
 -- | The parameters for the generators in this module.
 data GeneratorModel = GeneratorModel {
@@ -60,11 +86,14 @@ data GeneratorModel = GeneratorModel {
 
 -- | A generator model with some sensible defaults.
 generatorModel :: GeneratorModel
-generatorModel =
-    let vl = Ada.toValue $ Ada.fromInt 100000 in
-    GeneratorModel
-    { gmInitialBalance = Map.fromList $ first PubKey <$> zip [1..5] (repeat vl)
-    , gmPubKeys        = Set.fromList $ PubKey <$> [1..5]
+generatorModel = 
+    let vl = Ada.toValue $ Ada.fromInt 100000
+        pubKeys = walletPubKey <$> [wallet1, wallet2, wallet3]
+
+    in
+    GeneratorModel 
+    { gmInitialBalance = Map.fromList $ zip pubKeys (repeat vl)
+    , gmPubKeys        = Set.fromList pubKeys
     }
 
 -- | A function that estimates a transaction fee based on the number of its inputs and outputs.
@@ -121,7 +150,8 @@ genInitialTransaction GeneratorModel{..} =
         txOutputs = o,
         txForge = t,
         txFee = 0,
-        txValidRange = W.intervalFrom 0
+        txValidRange = W.intervalFrom 0,
+        txSignatures = Map.empty
         }, o)
 
 -- | Generate a valid transaction, using the unspent outputs provided.
@@ -146,13 +176,12 @@ genValidTransaction' g f (Mockchain bc ops) = do
                 then Gen.discard
                 else Gen.int (Range.linear 1 (Map.size ops))
     let ins = Set.fromList
-                    $ uncurry pubKeyTxIn . second mkSig
+                    $ uncurry pubKeyTxIn
                     <$> (catMaybes
                         $ traverse (pubKeyTxo [bc]) . (di . fst) <$> inUTXO)
         inUTXO = take nUtxo $ Map.toList ops
         totalVal = foldl' (+) 0 $ (map (Ada.fromValue . txOutValue . snd) inUTXO)
         di a = (a, a)
-        mkSig (PubKey i) = Signature i
     genValidTransactionSpending' g f ins totalVal
 
 genValidTransactionSpending :: MonadGen m
@@ -174,12 +203,18 @@ genValidTransactionSpending' g f ins totalVal = do
         then do
             let sz = totalVal - fee
             outVals <- fmap (Ada.toValue) <$> splitVal numOut sz
-            pure Tx {
-                    txInputs = ins,
-                    txOutputs = uncurry pubKeyTxOut <$> zip outVals (Set.toList $ gmPubKeys g),
-                    txForge = Value.zero,
-                    txFee = fee,
-                    txValidRange = $$(Interval.always) }
+            let tx = Tx 
+                        { txInputs = ins
+                        , txOutputs = uncurry pubKeyTxOut <$> zip outVals (Set.toList $ gmPubKeys g)
+                        , txForge = Value.zero
+                        , txFee = fee
+                        , txValidRange = $$(Interval.always)
+                        , txSignatures = Map.empty
+                        }
+
+                -- sign the transaction with all three known wallets
+                -- this is somewhat crude (but technically valid)
+            pure (signAll tx)
         else Gen.discard
 
 genAda :: MonadGen m => m Ada

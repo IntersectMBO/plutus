@@ -12,6 +12,9 @@
 module Wallet.Emulator.Types(
     -- * Wallets
     Wallet(..),
+    walletPubKey,
+    walletPrivKey,
+    signWithWallet,
     TxPool,
     -- * Emulator
     Assertion(OwnFundsEqual, IsValidated),
@@ -88,22 +91,40 @@ import           Prelude                    as P
 import           Servant.API                (FromHttpApiData, ToHttpApiData)
 
 import           Data.Hashable              (Hashable)
-import           Ledger                     (Address, Block, Blockchain, Slot, Tx (..), TxId, TxOut, TxOutOf (..),
+import           KeyBytes
+import           Ledger                     (Address, Block, Blockchain, PrivateKey(..), PubKey(..), Slot, Tx (..), TxId, TxOut, TxOutOf (..),
                                              TxOutRef, Value, hashTx, lastSlot, pubKeyAddress, pubKeyTxIn, pubKeyTxOut,
-                                             txOutAddress)
+                                             sign, signatures, txOutAddress)
 import qualified Ledger.Index               as Index
 import qualified Ledger.Slot                as Slot
 import qualified Ledger.Value               as Value
 import           Wallet.API                 (EventHandler (..), EventTrigger, KeyPair (..), WalletAPI (..),
                                              WalletAPIError (..), WalletDiagnostics (..), WalletLog (..), addresses,
-                                             annTruthValue, getAnnot, keyPair, pubKey, signature)
+                                             annTruthValue, getAnnot, keyPair, pubKey)
 import qualified Wallet.Emulator.AddressMap as AM
 
 -- | A wallet in the emulator model.
-newtype Wallet = Wallet { getWallet :: Int }
+newtype Wallet = Wallet { getWallet :: KeyBytes }
     deriving (Show, Eq, Ord, Generic)
     deriving newtype (ToHttpApiData, FromHttpApiData, Hashable)
     deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey)
+
+-- | Get a wallet's public key.
+walletPubKey :: Wallet -> PubKey
+walletPubKey = PubKey . dropPrivKey . getWallet
+
+-- | Get a wallet's private key.
+walletPrivKey :: Wallet -> PrivateKey
+walletPrivKey = PrivateKey . takePrivKey . getWallet
+
+-- | Add the wallet's signature to the transaction's list of signatures.
+addSignature :: PrivateKey -> PubKey -> Tx -> Tx
+addSignature privK pubK tx = tx & signatures . at pubK .~ Just sig where
+    sig = Ledger.sign (hashTx tx) privK
+
+-- | Sign a 'Tx' using the wallet's privat key.
+signWithWallet :: Wallet -> Tx -> Tx
+signWithWallet wlt = addSignature (walletPrivKey wlt) (walletPubKey wlt)
 
 -- | A pool of transactions which have yet to be validated.
 type TxPool = [Tx]
@@ -223,11 +244,15 @@ instance WalletAPI MockWallet where
 
     myKeyPair = use ownKeyPair
 
+    signTxn tx = do
+        (privK, pubK) <- getKeyPair <$> use ownKeyPair
+        pure (addSignature privK pubK tx)
+
     createPaymentWithChange vl = do
         ws <- get
         let fnds = ws ^. ownFunds
             kp    = ws ^. ownKeyPair
-            sig   = signature kp
+            sig   = snd (getKeyPair kp)
         (spend, change) <- selectCoin (second txOutValue <$> Map.toList fnds) vl
         let
             txOutput = if Value.gt change Value.zero then Just (pubKeyTxOut change (pubKey kp)) else Nothing

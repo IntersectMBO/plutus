@@ -260,6 +260,9 @@ sha2_256 = [|| Builtins.sha2_256 ||]
 sha3_256 :: Q (TExp (ByteString -> ByteString))
 sha3_256 = [|| Builtins.sha3_256 ||]
 
+verifySignature :: Q (TExp (ByteString -> ByteString -> ByteString -> Bool))
+verifySignature = [|| Builtins.verifySignature ||]
+
 -- | Check if two 'ByteString's are equal
 equalsByteString :: Q (TExp (ByteString -> ByteString -> Bool))
 equalsByteString = [|| Builtins.equalsByteString ||]

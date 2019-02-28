@@ -31,7 +31,6 @@ module Ledger.Validation
     -- * Validator functions
     -- ** Signatures
     , txSignedBy
-    , txInSignedBy
     -- ** Transactions
     , pubKeyOutput
     , scriptOutput
@@ -43,6 +42,7 @@ module Ledger.Validation
     , adaLockedBy
     , ownHash
     , signsTransaction
+    , txHash
     -- * Hashes
     , plcSHA2_256
     , plcSHA3_256
@@ -61,6 +61,7 @@ import           GHC.Generics                 (Generic)
 import           Language.Haskell.TH          (Q, TExp)
 import           Language.PlutusTx.Lift       (makeLift)
 import qualified Language.PlutusTx.Builtins   as Builtins
+import qualified Language.PlutusTx.Prelude    as P
 
 import           Ledger.Ada                   (Ada)
 import qualified Ledger.Ada.TH                as Ada
@@ -69,6 +70,7 @@ import           Ledger.Scripts
 import           Ledger.Slot                  (Slot, SlotRange)
 import qualified Ledger.Tx                    as Tx
 import           Ledger.Value                 (Value)
+import           KeyBytes                     (KeyBytes(..))
 
 -- Ignore newtype warnings related to `Oracle` and `Signed` because it causes
 -- problems with the plugin
@@ -109,7 +111,7 @@ data PendingTxOutRef = PendingTxOutRef
 -- | An input of a pending transaction.
 data PendingTxIn = PendingTxIn
     { pendingTxInRef       :: PendingTxOutRef
-    , pendingTxInWitness   :: Either (ValidatorHash, RedeemerHash) Signature
+    , pendingTxInWitness   :: Maybe (ValidatorHash, RedeemerHash)
     -- ^ Tx input witness, hashes for Script input, or signature for a PubKey
     , pendingTxInValue     :: Value -- ^ Value consumed by this txn input
     } deriving (Generic)
@@ -121,7 +123,11 @@ data PendingTx = PendingTx
     , pendingTxFee         :: Ada -- ^ The fee paid by this transaction.
     , pendingTxForge       :: Value -- ^ The 'Value' forged by this transaction.
     , pendingTxIn          :: PendingTxIn -- ^ The 'PendingTxIn' being validated against currently.
-    , pendingTxValidRange  :: SlotRange -- ^ The valid range for the transaction.
+    , pendingTxValidRange  :: SlotRange -- ^ The valid range for the transaction.    
+    , pendingTxSignatures  :: [(PubKey, Signature)]
+    -- ^ Signatures provided with the transaction
+    , pendingTxHash        :: TxHash
+    -- ^ Hash of the pending transaction (excluding witnesses)
     } deriving (Generic)
 
 {- Note [Oracles]
@@ -241,29 +247,29 @@ plcDigest = serialise
 -- | Check if a transaction was signed by the given public key.
 txSignedBy :: Q (TExp (PendingTx -> PubKey -> Bool))
 txSignedBy = [||
-    \(p :: PendingTx) (PubKey k) ->
+    \(p :: PendingTx) k ->
         let
-            PendingTx txins _ _ _ _ _ = p
+            PendingTx _ _ _ _ _ _ sigs hsh = p
 
             signedBy' :: Signature -> Bool
-            signedBy' (Signature s) = Builtins.equalsInteger s k
+            signedBy' (Signature (KeyBytes sig)) = 
+                let 
+                    PubKey (KeyBytes pk) = k
+                    TxHash msg           = hsh
+                in $$(P.verifySignature) sig pk msg
 
-            go :: [PendingTxIn] -> Bool
+            go :: [(PubKey, Signature)] -> Bool
             go l = case l of
-                        PendingTxIn _ (Right sig) _ : r -> if signedBy' sig then True else go r
+                        (pk, sig):r -> if $$(P.and) ($$(eqPubKey) k pk) (signedBy' sig) then True else $$(P.traceH) "matching pub key with invalid signature" (go r)
                         _ : r -> go r
                         []  -> False
         in
-            go txins
+            go sigs
     ||]
 
--- | Check if the input of a pending transaction was signed by the given public key.
-txInSignedBy :: Q (TExp (PendingTxIn -> PubKey -> Bool))
-txInSignedBy = [||
-    \(i :: PendingTxIn) (PubKey k) -> case i of
-        PendingTxIn _ (Right (Signature sig)) _ -> Builtins.equalsInteger sig k
-        _ -> False
-    ||]
+-- | Get the 'TxHash' of a 'PendingTx'.
+txHash :: Q (TExp (PendingTx -> TxHash))
+txHash = [|| \(PendingTx _ _ _ _ _ _ _ h) -> h||]
 
 -- | Get the public key that locks the transaction output, if any.
 pubKeyOutput :: Q (TExp (PendingTxOut -> Maybe PubKey))
@@ -280,7 +286,10 @@ scriptOutput = [|| \(o:: PendingTxOut) -> case o of
 
 -- | Check if two public keys are equal.
 eqPubKey :: Q (TExp (PubKey -> PubKey -> Bool))
-eqPubKey = [|| \(PubKey l) (PubKey r) -> Builtins.equalsInteger l r ||]
+eqPubKey = [|| 
+    \(PubKey (KeyBytes l)) (PubKey (KeyBytes r)) -> $$(P.equalsByteString) l r
+    ||]
+
 
 -- | Check if two data script hashes are equal.
 eqDataScript :: Q (TExp (DataScriptHash -> DataScriptHash -> Bool))
@@ -300,11 +309,11 @@ eqTx = [|| \(TxHash l) (TxHash r) -> Builtins.equalsByteString l r ||]
 
 -- | Get the hash of the validator script that is currently being validated.
 ownHash :: Q (TExp (PendingTx -> ValidatorHash))
-ownHash = [|| \(PendingTx _ _ _ _ i _) -> let PendingTxIn _ (Left (h, _)) _ = i in h ||]
+ownHash = [|| \(PendingTx _ _ _ _ i _ _ _) -> let PendingTxIn _ (Just (h, _)) _ = i in h ||]
 
 -- | Get the total amount of 'Ada' locked by the given validator in this transaction.
 adaLockedBy :: Q (TExp (PendingTx -> ValidatorHash -> Ada))
-adaLockedBy = [|| \(PendingTx _ outs _ _ _ _) h ->
+adaLockedBy = [|| \(PendingTx _ outs _ _ _ _ _ _) h ->
     let
 
         go :: [PendingTxOut] -> Ada
@@ -323,7 +332,10 @@ adaLockedBy = [|| \(PendingTx _ outs _ _ _ _) h ->
 -- | Check if the provided signature is the result of signing the pending
 --   transaction (without witnesses) with the given public key.
 signsTransaction :: Q (TExp (Signature -> PubKey -> PendingTx -> Bool))
-signsTransaction = [|| \(Signature i) (PubKey j) (_ :: PendingTx) -> Builtins.equalsInteger i j ||]
+signsTransaction = [|| 
+    \(Signature (KeyBytes sig)) (PubKey (KeyBytes pk)) (p :: PendingTx) -> 
+        $$(P.verifySignature)  sig pk (let TxHash h = $$(txHash) p in h)
+    ||]
 
 makeLift ''PendingTxOutType
 

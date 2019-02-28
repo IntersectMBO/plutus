@@ -33,7 +33,7 @@ import           Wallet.API                 (KeyPair, WalletAPI (..))
 import           Wallet.Emulator.AddressMap (AddressMap)
 import           Wallet.Emulator.Http       (API)
 import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqual), Event (..),
-                                             Notification (BlockValidated, CurrentSlot), Trace, Wallet)
+                                             Notification (BlockValidated, CurrentSlot), Trace, Wallet, signWithWallet)
 
 api :: Proxy API
 api = Proxy
@@ -93,6 +93,9 @@ runWalletAction clientEnv wallet action = do
 
 instance WalletAPI WalletClient where
   submitTxn tx = liftWallet (`submitTxn'` tx) >> tell [tx]
+  signTxn tx = do
+    wlt <- asks getWallet
+    pure (signWithWallet wlt tx)
   myKeyPair = liftWallet myKeyPair'
   createPaymentWithChange value = liftWallet (`createPaymentWithChange'` value)
   register _ _ = pure () -- TODO: Keep track of triggers in emulated wallet

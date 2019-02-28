@@ -29,6 +29,11 @@ import           Wallet                                           (PubKey (..))
 import           Wallet.Emulator
 import qualified Wallet.Generators                                as Gen
 
+w1, w2, w3 :: Wallet
+w1 = Gen.wallet1
+w2 = Gen.wallet2
+w3 = Gen.wallet3
+
 tests :: TestTree
 tests = testGroup "vesting" [
     testProperty "secure some funds with the vesting script" secureFunds,
@@ -54,11 +59,11 @@ scen1 = VestingScenario{..} where
     vsVestingScheme = Vesting {
         vestingTranche1 = VestingTranche (Ledger.Slot 10) 200,
         vestingTranche2 = VestingTranche (Ledger.Slot 20) 400,
-        vestingOwner    = PubKey 1 }
-    vsWallets = Wallet <$> [1, 2]
+        vestingOwner    = walletPubKey w1 }
+    vsWallets = [w1, w2]
     vsInitialBalances = Map.fromList [
-        (PubKey 1, startingBalance),
-        (PubKey 2, startingBalance)]
+        (walletPubKey w1, startingBalance),
+        (walletPubKey w2, startingBalance)]
     vsScriptHash = validatorScriptHash vsVestingScheme
 
 -- | Commit some funds from a wallet to a vesting scheme. Returns the reference
