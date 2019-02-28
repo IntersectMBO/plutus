@@ -1,6 +1,6 @@
-# Plutus Playground Infrastructure
+# Plutus Playground and Meadow Infrastructure
 
-The infrastructure is comprised of 2 parts:
+The infrastructure is comprised of 2 parts, terraform and nixops:
 
 ## Terraform
 
@@ -34,29 +34,25 @@ The individual machines now exist but have nothing installed on them. We configu
 ### Configure the machines
 
 1. ssh onto the nixops machine `ssh nixops.plutus_playground` and accept the fingerprints
-2. exit the machine and from the project root copy the generated json files onto the nixops machine `scp ./deployment/nixops/*.json root@nixops.plutus_playground:~/plutus/deployment/nixops`
-3. ssh onto the nixops machine again `ssh nixops.plutus_playground`
-4. Make sure ssh agent forwarding is setup correctly so nixops can use your ssh key needed to login to playground servers
-5. Clone the plutus repository `git clone https://github.com/input-output-hk/plutus.git`
-6. Enter the project `cd plutus`
-7. Switch to the branch you want to work with e.g. `git checkout master`
-8. Move into the nixops directory `cd deployment/nixops/`
+2. Clone the plutus repository `git clone https://github.com/input-output-hk/plutus.git`
+3. exit the machine and from the project root copy the generated json files onto the nixops machine `scp ./deployment/nixops/*.json root@nixops.plutus_playground:~/plutus/deployment/nixops`
+4. ssh onto the nixops machine again `ssh -A nixops.plutus_playground` (notice `-A` you will need agent forwarding)
+5. Enter the project `cd plutus`
+6. Switch to the branch you want to work with e.g. `git checkout master`
+7. Move into the nixops directory `cd deployment/nixops/`
+8. Create a file called `secrets.json` that is based on [the example file](./nixops/secrets.json.example)
 9. Create a new deployment `nixops create ./default.nix ./network.nix -d plutus-playground`
 10. Deploy the new deployment `nixops deploy`
-11. You should now be able to reach the playground at [https://myname.playground.plutus.iohkdev.io] (https://myname.playground.plutus.iohkdev.io) or the tld set in tfvars file.
-
-Note:
-
-Currently there is a bug where the first time you submit some code to the playground, it will take 2 mins to evaluate. From the front end you will see a gateway timeout error. This is made even worse as we have multiple instances however there will be some workarounds soon.
+11. You should now be able to reach the playground at [https://myname.plutus.iohkdev.io] (https://myname.plutus.iohkdev.io) and meadow at [https://myname.marlowe.iohkdev.io] (https://myname.marlowe.iohkdev.io)
 
 ## Updating an environment
 
 Most of the time, an environment can be updated without touching terraform at all.
 
-1. ssh onto the nixops machine again `ssh nixops.plutus_playground`
+1. ssh onto the nixops machine again `ssh -A nixops.plutus_playground`
 2. update plutus with `cd plutus && git pull`
 3. deploy the latest with `nixops deploy`
 
-In the case that terraform code is altered, you may need to go through the entire `Configure the machines` section above. If the nixops machine is not altered, you may be able to copy `machine.json` and just `nixops deploy` after applying terraform code.
+In the case that terraform code is altered in a way that re-created the nixops machine, you will need to go through the entire `Configure the machines` section above. If the nixops machine is not altered, you will be able to copy `machine.json` and just `nixops deploy` after applying terraform code.
 
-WARNING: altering user ssh keys in terraform WILL result in machines being recreated. Ensure with others using machines that it's okay to bring down everything before running any terraform commands. Also a close inspection of `terraform plan` can help assess the danger of running `terraform apply`.
+WARNING: altering some ssh keys in terraform instances can result in machines being recreated. Ensure with others using machines that it's okay to bring down everything before running any terraform commands. Also a close inspection of `terraform plan` can help assess the danger of running `terraform apply`. Usually you don't want to change these keys anyway as user keys are managed by nixops. As an example, changing `var.nixops_ssh_keys` will result in the nixops machine being re-created however changing `var.playground_ssh_keys` will only change the `machines.json` file that nixops uses.

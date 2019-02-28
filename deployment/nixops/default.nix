@@ -1,7 +1,6 @@
 let
   plutus = import ../../. {};
-  playgroundMachine = import ./playground.nix;
-  meadowMachine = import ./meadow.nix;
+  serverTemplate = import ./server.nix;
   machines = (plutus.pkgs.lib.importJSON ./machines.json);
   overlays = import ./overlays.nix;
   secrets = (plutus.pkgs.lib.importJSON ./secrets.json);
@@ -23,11 +22,21 @@ let
   playgroundConfig = mkConfig "https://david.plutus.iohkdev.io" "playground.yaml";
   meadowConfig = mkConfig "https://david.marlowe.iohkdev.io" "marlowe.yaml";
   stdOverlays = [ overlays.journalbeat ];
-  options = { inherit stdOverlays machines defaultMachine plutus playgroundConfig meadowConfig; datadogKey = secrets.datadogKey; };
+  options = { inherit stdOverlays machines defaultMachine plutus; datadogKey = secrets.datadogKey; };
   defaultMachine = (import ./default-machine.nix) options;
-  playgroundA = playgroundMachine.mkInstance options machines.playgroundA;
-  playgroundB = playgroundMachine.mkInstance options machines.playgroundB;
-  meadowA = meadowMachine.mkInstance options machines.meadowA;
-  meadowB = meadowMachine.mkInstance options machines.meadowB;
+  meadowOptions = options // { serviceConfig = meadowConfig; 
+                               serviceName = "meadow"; 
+                               server-invoker = plutus.meadow.server-invoker; 
+                               client = plutus.meadow.client; 
+                               }; 
+  playgroundOptions = options // { serviceConfig = playgroundConfig; 
+                                   serviceName = "plutus-playground"; 
+                                   server-invoker = plutus.plutus-playground.server-invoker; 
+                                   client = plutus.plutus-playground.client; 
+                                   }; 
+  playgroundA = serverTemplate.mkInstance playgroundOptions machines.playgroundA;
+  playgroundB = serverTemplate.mkInstance playgroundOptions machines.playgroundB;
+  meadowA = serverTemplate.mkInstance meadowOptions machines.meadowA;
+  meadowB = serverTemplate.mkInstance meadowOptions machines.meadowB;
 in
   { inherit playgroundA playgroundB meadowA meadowB; }
