@@ -41,7 +41,7 @@ resource "aws_security_group" "public_alb" {
   }
 }
 
-data "aws_acm_certificate" "kevm_private" {
+data "aws_acm_certificate" "plutus_private" {
   domain      = "*.${var.plutus_tld}"
   statuses    = ["ISSUED"]
   most_recent = true
@@ -53,44 +53,10 @@ data "aws_acm_certificate" "meadow_private" {
   most_recent = true
 }
 
-# An ALB requires multiple availability zones but for now we only
-# need 1 availability zone. We will use a classic load balancer now
-# and then move to an ALB if we use more AZs later
-
-resource "aws_elb" "plutus" {
-  name        = "${var.env}-plutus-lb"
+resource "aws_alb" "plutus" {
   subnets = ["${aws_subnet.public.*.id}"]
   security_groups = ["${aws_security_group.public_alb.id}"]
-
-  listener {
-    instance_port     = 80
-    instance_protocol = "http"
-    lb_port           = 80
-    lb_protocol       = "http"
-  }
-
-  listener {
-    instance_port      = 80
-    instance_protocol  = "http"
-    lb_port            = 443
-    lb_protocol        = "https"
-    ssl_certificate_id = "${data.aws_acm_certificate.kevm_private.arn}"
-  }
-
-  health_check {
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
-    timeout             = 3
-    target              = "HTTP:80/"
-    interval            = 30
-  }
-
-  instances                   = ["${aws_instance.playground_a.id}", "${aws_instance.playground_b.id}"]
-  cross_zone_load_balancing   = false
-  idle_timeout                = 400
-  connection_draining         = true
-  connection_draining_timeout = 400
-
+  internal        = false
   tags {
     Name        = "${var.project}_${var.env}_public_alb"
     Project     = "${var.project}"
@@ -98,144 +64,104 @@ resource "aws_elb" "plutus" {
   }
 }
 
-resource "aws_route53_record" "alb" {
+resource "aws_alb_listener" "playground" {
+  load_balancer_arn = "${aws_alb.plutus.arn}"
+  port              = "443"
+  protocol          = "HTTPS"
+  certificate_arn   = "${data.aws_acm_certificate.plutus_private.arn}"
+  default_action {
+    target_group_arn = "${aws_alb_target_group.playground.arn}"
+    type             = "forward"
+  }
+}
+
+resource "aws_lb_listener_certificate" "meadow" {
+  listener_arn    = "${aws_alb_listener.playground.arn}"
+  certificate_arn = "${data.aws_acm_certificate.meadow_private.arn}"
+}
+
+# Playground
+resource "aws_alb_target_group" "playground" {
+  port     = "80"
+  protocol = "HTTP"
+  vpc_id   = "${aws_vpc.plutus.id}"
+}
+
+resource "aws_alb_listener_rule" "playground" {
+  depends_on   = ["aws_alb_target_group.playground"]
+  listener_arn = "${aws_alb_listener.playground.arn}"
+  priority     = 100
+  action {
+    type             = "forward"
+    target_group_arn = "${aws_alb_target_group.playground.id}"
+  }
+  condition {
+    field  = "host-header"
+    values = ["*.plutus.*"]
+  }
+}
+
+resource "aws_alb_target_group_attachment" "playground_a" {
+  target_group_arn = "${aws_alb_target_group.playground.arn}"
+  target_id        = "${aws_instance.playground_a.id}"
+  port             = "80"
+}
+resource "aws_alb_target_group_attachment" "playground_b" {
+  target_group_arn = "${aws_alb_target_group.playground.arn}"
+  target_id        = "${aws_instance.playground_b.id}"
+  port             = "80"
+}
+
+resource "aws_route53_record" "playground_alb" {
   zone_id = "${var.plutus_public_zone}"
   name    = "${var.env}.${var.plutus_tld}"
   type    = "A"
-
   alias {
-    name                   = "${aws_elb.plutus.dns_name}"
-    zone_id                = "${aws_elb.plutus.zone_id}"
+    name                   = "${aws_alb.plutus.dns_name}"
+    zone_id                = "${aws_alb.plutus.zone_id}"
     evaluate_target_health = true
   }
 }
 
+# Meadow
+resource "aws_alb_target_group" "meadow" {
+  port     = "80"
+  protocol = "HTTP"
+  vpc_id   = "${aws_vpc.plutus.id}"
+}
 
-resource "aws_elb" "meadow" {
-  name        = "${var.env}-meadow-lb"
-  subnets = ["${aws_subnet.public.*.id}"]
-  security_groups = ["${aws_security_group.public_alb.id}"]
-
-  listener {
-    instance_port     = 80
-    instance_protocol = "http"
-    lb_port           = 80
-    lb_protocol       = "http"
+resource "aws_alb_listener_rule" "meadow" {
+  depends_on   = ["aws_alb_target_group.meadow"]
+  listener_arn = "${aws_alb_listener.playground.arn}"
+  priority     = 101
+  action {
+    type             = "forward"
+    target_group_arn = "${aws_alb_target_group.meadow.id}"
   }
-
-  listener {
-    instance_port      = 80
-    instance_protocol  = "http"
-    lb_port            = 443
-    lb_protocol        = "https"
-    ssl_certificate_id = "${data.aws_acm_certificate.meadow_private.arn}"
-  }
-
-  health_check {
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
-    timeout             = 3
-    target              = "HTTP:80/"
-    interval            = 30
-  }
-
-  instances                   = ["${aws_instance.meadow_a.id}", "${aws_instance.meadow_b.id}"]
-  cross_zone_load_balancing   = false
-  idle_timeout                = 400
-  connection_draining         = true
-  connection_draining_timeout = 400
-
-  tags {
-    Name        = "${var.project}_${var.env}_meadow_alb"
-    Project     = "${var.project}"
-    Environment = "${var.env}"
+  condition {
+    field  = "host-header"
+    values = ["*.marlowe.*"]
   }
 }
 
-resource "aws_route53_record" "alb_meadow" {
+resource "aws_alb_target_group_attachment" "meadow_a" {
+  target_group_arn = "${aws_alb_target_group.meadow.arn}"
+  target_id        = "${aws_instance.meadow_a.id}"
+  port             = "80"
+}
+resource "aws_alb_target_group_attachment" "meadow_b" {
+  target_group_arn = "${aws_alb_target_group.meadow.arn}"
+  target_id        = "${aws_instance.meadow_b.id}"
+  port             = "80"
+}
+
+resource "aws_route53_record" "meadow_alb" {
   zone_id = "${var.meadow_public_zone}"
   name    = "${var.env}.${var.meadow_tld}"
   type    = "A"
-
   alias {
-    name                   = "${aws_elb.meadow.dns_name}"
-    zone_id                = "${aws_elb.meadow.zone_id}"
+    name                   = "${aws_alb.plutus.dns_name}"
+    zone_id                = "${aws_alb.plutus.zone_id}"
     evaluate_target_health = true
   }
 }
-
-## Use this ALB config if we want to switch to an ALB
-
-#resource "aws_alb" "plutus" {
-#  subnets = ["${aws_subnet.public.*.id}"]
-#
-#  security_groups = ["${aws_security_group.public_alb.id}"]
-#  internal        = false
-#
-#  tags {
-#    Name        = "${var.project}_${var.env}_public_alb"
-#    Project     = "${var.project}"
-#    Environment = "${var.env}"
-#  }
-#
-#  # access_logs {
-#  #   bucket = "${var.s3_bucket}"
-#  #   prefix = "ELB_logs"
-#  # }
-#}
-#
-#resource "aws_alb_listener" "playground" {
-#  load_balancer_arn = "${aws_alb.plutus.arn}"
-#  port              = "443"
-#  protocol          = "HTTPS"
-#  certificate_arn   = "${data.aws_acm_certificate.kevm_private.arn}"
-#
-#  default_action {
-#    target_group_arn = "${aws_alb_target_group.playground.arn}"
-#    type             = "forward"
-#  }
-#}
-#
-#resource "aws_alb_target_group" "playground" {
-#  port     = "80"
-#  protocol = "HTTP"
-#  vpc_id   = "${aws_vpc.plutus.id}"
-#
-#  # health_check {
-#  #   path = "/healthcheck"
-#  # }
-#}
-#
-#resource "aws_alb_listener_rule" "playground" {
-#  depends_on   = ["aws_alb_target_group.playground"]
-#  listener_arn = "${aws_alb_listener.playground.arn}"
-#  priority     = 100
-#
-#  action {
-#    type             = "forward"
-#    target_group_arn = "${aws_alb_target_group.playground.id}"
-#  }
-#
-#  condition {
-#    field  = "path-pattern"
-#    values = ["*"]
-#  }
-#}
-#
-#resource "aws_alb_target_group_attachment" "playground_a" {
-#  target_group_arn = "${aws_alb_target_group.playground.arn}"
-#  target_id        = "${aws_instance.playground_a.id}"
-#  port             = "80"
-#}
-#
-#resource "aws_route53_record" "alb" {
-#  zone_id = "Z3HMYGFV3CT1GJ"
-#  name    = "${var.env}.${var.tld}"
-#  type    = "A"
-#
-#  alias {
-#    name                   = "${aws_alb.plutus.dns_name}"
-#    zone_id                = "${aws_alb.plutus.zone_id}"
-#    evaluate_target_health = true
-#  }
-#}

@@ -11,32 +11,12 @@ resource "aws_security_group" "meadow" {
   }
 
   ## inbound (world): http
-  ingress {
-    from_port   = 9200
-    to_port     = 9200
-    protocol    = "TCP"
-    cidr_blocks = ["${var.private_subnet_cidrs}"]
-  }
-
-  ingress {
-    from_port   = 9300
-    to_port     = 9300
-    protocol    = "TCP"
-    cidr_blocks = ["${var.private_subnet_cidrs}"]
-  }
 
   ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "TCP"
     cidr_blocks = ["${var.public_subnet_cidrs}", "${var.private_subnet_cidrs}"]
-  }
-
-  ingress {
-    from_port   = 8080
-    to_port     = 8080
-    protocol    = "TCP"
-    cidr_blocks = ["${var.private_subnet_cidrs}"]
   }
 
   ## outgoing: all
@@ -68,7 +48,6 @@ resource "aws_instance" "meadow_a" {
   instance_type        = "${var.meadow_instance_type}"
   subnet_id            = "${aws_subnet.private.*.id[0]}"
   user_data            = "${data.template_file.meadow_user_data.rendered}"
-  #iam_instance_profile = "elasticsearch_profile"
 
   vpc_security_group_ids = [
     "${aws_security_group.meadow.id}",
@@ -99,7 +78,6 @@ resource "aws_instance" "meadow_b" {
   instance_type        = "${var.meadow_instance_type}"
   subnet_id            = "${aws_subnet.private.*.id[1]}"
   user_data            = "${data.template_file.meadow_user_data.rendered}"
-  #iam_instance_profile = "elasticsearch_profile"
 
   vpc_security_group_ids = [
     "${aws_security_group.meadow.id}",
