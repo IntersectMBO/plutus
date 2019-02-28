@@ -1,4 +1,4 @@
-{ mkInstance = { plutus, defaultMachine, machines, playgroundConfig, ... }: node: { config, pkgs, lib, ... }:
+{ mkInstance = { plutus, defaultMachine, machines, meadowConfig, datadogKey, ... }: node: { config, pkgs, lib, ... }:
 let
   meadow_systemctl = pkgs.writeScriptBin "meadow-systemctl" ''
   COMMAND="$1"
@@ -29,6 +29,7 @@ networking.firewall = {
   allowedTCPPorts = [ 80 ];
 };
 
+# a user for people who want to ssh in and fiddle with meadow only
 users.users.meadow = {
   isNormalUser = true;
   home = "/home/meadow";
@@ -36,6 +37,19 @@ users.users.meadow = {
   extraGroups = [ "systemd-journal" ];
   openssh.authorizedKeys.keys = machines.playgroundSshKeys;
   packages = [ meadow_systemctl ];
+};
+
+services.dd-agent = {
+  enable = true;
+  hostname = "${node.dns}";
+  api_key = datadogKey;
+  tags = [];
+};
+
+systemd.services.dogstatsd.serviceConfig = pkgs.lib.mkForce {
+  ExecStart = "${pkgs.dd-agent}/bin/dogstatsd";
+  User = "datadog";
+  Group = "datadog";
 };
 
 # lets make things a bit more secure
@@ -112,7 +126,7 @@ systemd.services.meadow = {
     CapabilityBoundingSet = "~CAP_SYS_ADMIN";
   };
   
-  script = "meadow  --config ${playgroundConfig} webserver -b 127.0.0.1 -p 4000 ${plutus.meadow.client}";
+  script = "meadow  --config ${meadowConfig} webserver -b 127.0.0.1 -p 4000 ${plutus.meadow.client}";
 }; 
 };
 }

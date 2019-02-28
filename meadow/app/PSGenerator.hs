@@ -15,33 +15,31 @@ module PSGenerator
     ( generate
     ) where
 
-import           API                                       (MeadowError, RunResult, SourceCode)
+import           API                                (MeadowError, RunResult, SourceCode)
 import qualified API
-import           Auth                                      (AuthRole, AuthStatus)
+import           Auth                               (AuthRole, AuthStatus)
 import qualified Auth
-import           Control.Applicative                       (empty, (<|>))
-import           Control.Lens                              (set, (&))
-import qualified Data.ByteString                           as BS
-import           Data.Monoid                               ()
-import           Data.Proxy                                (Proxy (Proxy))
-import qualified Data.Set                                  as Set ()
-import qualified Data.Text                                 as T ()
-import qualified Data.Text.Encoding                        as T ()
-import qualified Data.Text.IO                              as T ()
-import           Gist                                      (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
-import           Language.Haskell.Interpreter              (CompilationError)
-import           Language.PureScript.Bridge                (BridgePart, Language (Haskell), PSType, SumType,
-                                                            TypeInfo (TypeInfo), buildBridge, equal, mkSumType,
-                                                            psTypeParameters, typeModule, typeName, writePSTypes, (^==))
-import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psString)
-import           Language.PureScript.Bridge.TypeParameters (A)
-import           Meadow.Contracts                          (basicContract)
-import           Servant                                   ((:<|>))
-import           Servant.PureScript                        (HasBridge, Settings, apiModuleName, defaultBridge,
-                                                            defaultSettings, languageBridge, writeAPIModuleWithSettings,
-                                                            _generateSubscriberAPI)
-import           System.Directory                          (createDirectoryIfMissing)
-import           System.FilePath                           ((</>))
+import           Control.Applicative                (empty, (<|>))
+import           Control.Lens                       (set, (&))
+import qualified Data.ByteString                    as BS
+import           Data.Monoid                        ()
+import           Data.Proxy                         (Proxy (Proxy))
+import qualified Data.Set                           as Set ()
+import qualified Data.Text                          as T ()
+import qualified Data.Text.Encoding                 as T ()
+import qualified Data.Text.IO                       as T ()
+import           Gist                               (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
+import           Language.Haskell.Interpreter       (CompilationError)
+import           Language.PureScript.Bridge         (BridgePart, Language (Haskell), PSType, SumType,
+                                                     TypeInfo (TypeInfo), buildBridge, mkSumType, psTypeParameters,
+                                                     typeModule, typeName, writePSTypes, (^==))
+import           Language.PureScript.Bridge.PSTypes (psArray, psInt)
+import           Meadow.Contracts                   (basicContract)
+import           Servant                            ((:<|>))
+import           Servant.PureScript                 (HasBridge, Settings, apiModuleName, defaultBridge, defaultSettings,
+                                                     languageBridge, writeAPIModuleWithSettings, _generateSubscriberAPI)
+import           System.Directory                   (createDirectoryIfMissing)
+import           System.FilePath                    ((</>))
 
 integerBridge :: BridgePart
 integerBridge = do

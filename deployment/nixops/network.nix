@@ -1,5 +1,5 @@
 let
-  playground = import ../../../. {};
+  playground = import ../../. {};
   machines = (playground.pkgs.lib.importJSON ./machines.json);
   mkInstance = node:
   {

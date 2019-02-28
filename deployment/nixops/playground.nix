@@ -1,4 +1,4 @@
-{ mkInstance = { plutus, defaultMachine, machines, playgroundConfig, ... }: node: { config, pkgs, lib, ... }:
+{ mkInstance = { plutus, defaultMachine, machines, playgroundConfig, datadogKey, ... }: node: { config, pkgs, lib, ... }:
 let
   plutus_systemctl = pkgs.writeScriptBin "plutus-systemctl" ''
   COMMAND="$1"
@@ -29,6 +29,7 @@ networking.firewall = {
   allowedTCPPorts = [ 80 ];
 };
 
+# a user for people who want to ssh in and fiddle with plutus only
 users.users.plutus = {
   isNormalUser = true;
   home = "/home/plutus";
@@ -36,6 +37,19 @@ users.users.plutus = {
   extraGroups = [ "systemd-journal" ];
   openssh.authorizedKeys.keys = machines.playgroundSshKeys;
   packages = [ plutus_systemctl ];
+};
+
+services.dd-agent = {
+  enable = true;
+  hostname = "${node.dns}";
+  api_key = datadogKey;
+  tags = [];
+};
+
+systemd.services.dogstatsd.serviceConfig = pkgs.lib.mkForce {
+  ExecStart = "${pkgs.dd-agent}/bin/dogstatsd";
+  User = "datadog";
+  Group = "datadog";
 };
 
 # lets make things a bit more secure
