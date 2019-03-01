@@ -33,7 +33,7 @@ import           Language.Haskell.Interpreter (CompilationError (CompilationErro
 import qualified Language.Haskell.TH.Syntax   as TH
 import           Ledger.Ada                   (Ada)
 import           Ledger.Types                 (Blockchain, PubKey)
-import           Servant.API                  ((:<|>), (:>), JSON, Post, ReqBody)
+import           Servant.API                  ((:<|>), (:>), Get, JSON, Post, ReqBody)
 import           Text.Read                    (readMaybe)
 import           Wallet.Emulator.Types        (EmulatorEvent, Wallet)
 import           Wallet.Graph                 (FlowGraph)
@@ -41,6 +41,7 @@ import           Wallet.Graph                 (FlowGraph)
 type API
    = "contract" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either [CompilationError] CompilationResult)
      :<|> "evaluate" :> ReqBody '[ JSON] Evaluation :> Post '[ JSON] EvaluationResult
+     :<|> "health" :> Get '[ JSON] ()
 
 newtype SourceCode = SourceCode Text
   deriving stock (Generic)

@@ -47481,6 +47481,7 @@ process
 servant
 servant-client
 servant-client-core
+servant-ekg
 servant-purescript
 servant-server
 temporary
@@ -56808,6 +56809,7 @@ license = stdenv.lib.licenses.asl20;
 , cookie
 , data-default-class
 , directory
+, ekg
 , ekg-core
 , ekg-statsd
 , exceptions
@@ -56886,6 +56888,7 @@ regex-compat
 servant
 servant-client
 servant-client-core
+servant-ekg
 servant-purescript
 servant-server
 swagger2
@@ -56901,6 +56904,7 @@ base
 bytestring
 containers
 data-default-class
+ekg
 ekg-core
 ekg-statsd
 filepath
