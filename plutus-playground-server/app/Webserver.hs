@@ -94,6 +94,6 @@ run settings _staticDir config = do
   store <- startStatsd
   githubEndpoints <- liftIO Auth.mkGithubEndpoints
   handlers <- PS.mkHandlers
-  appMonitor <- liftIO $ monitorEndpoints (Proxy @PA.API) store
+  appMonitor <- liftIO $ monitorEndpoints (Proxy @Web) store
   logInfoN "Starting webserver."
   liftIO . runSettings settings . appMonitor $ app handlers _staticDir githubEndpoints config

@@ -64,6 +64,7 @@ library
         servant <0.15,
         servant-client -any,
         servant-client-core -any,
+        servant-ekg -any,
         servant-purescript -any,
         servant-server -any,
         temporary -any,
