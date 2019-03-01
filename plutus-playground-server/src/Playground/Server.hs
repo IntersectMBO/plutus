@@ -14,15 +14,18 @@ import           Control.Monad.Except         (MonadError, runExceptT, throwErro
 import           Control.Monad.IO.Class       (MonadIO, liftIO)
 import           Control.Monad.Logger         (MonadLogger, logInfoN)
 import           Data.Aeson                   (ToJSON, encode)
+import qualified Data.ByteString.Char8        as BS
 import qualified Data.ByteString.Lazy.Char8   as BSL
 import qualified Data.Text                    as Text
 import           Language.Haskell.Interpreter (CompilationError)
 import           Network.HTTP.Types           (hContentType)
 import           Playground.API               (API, CompilationResult, Evaluation, EvaluationResult (EvaluationResult),
                                                FunctionSchema, PlaygroundError (PlaygroundTimeout),
-                                               SimpleArgumentSchema, SourceCode, parseErrorText, toSimpleArgumentSchema)
+                                               SimpleArgumentSchema, SourceCode (SourceCode), parseErrorText,
+                                               toSimpleArgumentSchema)
 import qualified Playground.API               as PA
 import qualified Playground.Interpreter       as PI
+import           Playground.Usecases          (vesting)
 import           Servant                      (ServantErr, err400, errBody, errHeaders)
 import           Servant.API                  ((:<|>) ((:<|>)))
 import           Servant.Server               (Handler, Server)
@@ -69,6 +72,13 @@ runFunction evaluation = do
             throwJSONError err400 $ map (parseErrorText . Text.pack) errors
         Left err -> throwError $ err400 {errBody = BSL.pack . show $ err}
 
+checkHealth :: Handler ()
+checkHealth = do
+    res <- acceptSourceCode . SourceCode . Text.pack . BS.unpack $ vesting
+    case res of
+        Left e  -> throwError $ err400 {errBody = BSL.pack . show $ e}
+        Right _ -> pure ()
+
 timeoutInterpreter ::
        Int -> IO (Either PlaygroundError a) -> IO (Either PlaygroundError a)
 timeoutInterpreter n action = do
@@ -84,4 +94,4 @@ timeoutInterpreter n action = do
 mkHandlers :: (MonadLogger m, MonadIO m) => m (Server API)
 mkHandlers = do
     logInfoN "Interpreter ready"
-    pure $ acceptSourceCode :<|> runFunction
+    pure $ acceptSourceCode :<|> runFunction :<|> checkHealth
