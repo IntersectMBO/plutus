@@ -1,3 +1,4 @@
+{-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingStrategies    #-}
@@ -78,6 +79,7 @@ import qualified Data.Map                   as Map
 import           Data.Maybe
 import qualified Data.Set                   as Set
 import qualified Data.Text                  as T
+import           Data.Traversable           (for)
 import           GHC.Generics               (Generic)
 import           Prelude                    as P
 import           Servant.API                (FromHttpApiData, ToHttpApiData)
@@ -357,11 +359,15 @@ emulatorState' tp = emptyEmulatorState
     & txPool .~ tp
 
 -- | Validate a transaction in the current emulator state
-validateEm :: EmulatorState -> Tx -> Maybe Index.ValidationError
-validateEm EmulatorState{_index=idx, _chainNewestFirst = ch} txn =
-    let h = lastSlot ch
-        result = Index.runValidation (Index.validateTransaction h txn) idx in
-    either Just (const Nothing) result
+validateEm :: MonadState Index.UtxoIndex m => Slot -> Tx -> m (Maybe Index.ValidationError)
+validateEm h txn = do
+    idx <- get
+    let result = Index.runValidation (Index.validateTransaction h txn) idx
+    case result of
+        Left e -> pure (Just e)
+        Right idx' -> do
+            _ <- put idx'
+            pure Nothing
 
 liftMockWallet :: (MonadState EmulatorState m) => Wallet -> MockWallet a -> m ([Tx], Either WalletAPIError a)
 liftMockWallet wallet act = do
@@ -388,12 +394,17 @@ evalEmulated = \case
     WalletRecvNotification wallet trigger -> fst <$> liftMockWallet wallet (handleNotifications trigger)
     BlockchainProcessPending -> do
         emState <- get
-        let (ValidatedBlock block events rest) = validateBlock emState (_txPool emState)
+        let 
+            currentSlot = lastSlot (_chainNewestFirst emState)
+            idx         = _index emState
+            pool        = _txPool emState
+            (ValidatedBlock block events rest idx') = 
+                validateBlock currentSlot idx pool
             newChain = block : _chainNewestFirst emState
         put emState {
             _chainNewestFirst = newChain,
             _txPool = rest,
-            _index = Index.insertBlock block (_index emState),
+            _index = idx',
             _emulatorLog   = SlotAdd (lastSlot newChain) : events ++ _emulatorLog emState
             }
         pure block
@@ -408,23 +419,44 @@ data ValidatedBlock = ValidatedBlock
     , vlbRest   :: [Tx]
     -- ^ Transactions that haven't been validated because the current slot is
     --   not in their validation interval
+    , vlbIndex  :: Index.UtxoIndex
+    -- ^ Update UTXO index
     }
 
--- | Validate a block in an [[EmulatorState]], returning the valid transactions
---   and all success/failure events
-validateBlock :: EmulatorState -> [Tx] -> ValidatedBlock
-validateBlock emState txns = ValidatedBlock block events rest where
-    (eligibleTxns, rest) = partition canValidateNow txns
-    processed = (\tx -> (tx, validateEm emState tx)) <$> eligibleTxns
-    validTxns = fst <$> filter (isNothing . snd) processed
-    block = validTxns
-    mkEvent (t, result) =
-        case result of
-            Nothing  -> TxnValidate (hashTx t)
-            Just err -> TxnValidationFail (hashTx t) err
-    events = mkEvent <$> processed
-    canValidateNow tx = $$(Interval.member) currentSlot (txValidRange tx)
-    currentSlot = emState ^. chainNewestFirst . to lastSlot
+-- | Validate a block given the current slot and UTXO set, returning the valid 
+--   transactions, success/failure events, remaining transactions and the 
+--   updated UTXO set.
+validateBlock :: Slot -> Index.UtxoIndex -> [Tx] -> ValidatedBlock
+validateBlock currentSlot idx txns = 
+    let
+        -- Select those transactions that can be validated in the 
+        -- current slot
+        (eligibleTxns, rest) = partition (canValidateNow currentSlot) txns
+
+        -- Validate eligible transactions, updating the UTXO index each time
+        (processed, idx') = 
+            flip runState idx $ for eligibleTxns $ \t -> do
+                r <- validateEm currentSlot t
+                pure (t, r)
+
+        -- The new block contains all transaction that were validated
+        -- successfully
+        block = fst <$> filter (isNothing . snd) processed
+
+        -- Also return an `EmulatorEvent` for each transaction that was 
+        -- processed
+        events = uncurry mkEvent <$> processed
+
+    in ValidatedBlock block events rest idx'
+
+canValidateNow :: Slot -> Tx -> Bool
+canValidateNow currentSlot tx = $$(Interval.member) currentSlot (txValidRange tx)
+
+mkEvent :: Tx -> Maybe Index.ValidationError -> EmulatorEvent
+mkEvent t result = 
+    case result of
+        Nothing  -> TxnValidate (hashTx t)
+        Just err -> TxnValidationFail (hashTx t) err
 
 processEmulated :: (MonadEmulator m) => Trace MockWallet a -> m a
 processEmulated = interpretWithMonad evalEmulated
