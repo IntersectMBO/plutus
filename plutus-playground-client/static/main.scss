@@ -11,7 +11,7 @@
 @import './node_modules/bootstrap/scss/images';
 @import './node_modules/bootstrap/scss/code';
 @import './node_modules/bootstrap/scss/grid';
-//  @import './node_modules/bootstrap/scss/tables';
+@import './node_modules/bootstrap/scss/tables';
 @import './node_modules/bootstrap/scss/forms';
 @import './node_modules/bootstrap/scss/buttons';
 @import './node_modules/bootstrap/scss/transitions';
@@ -40,7 +40,7 @@
 
 body {
     font-family: 'Open Sans', sans-serif;
-    background:#121326;
+    background: $body-bg;
     padding-top: 15px;
     padding-bottom: 15px;
 }
@@ -205,7 +205,7 @@ h2 {
     font-size: 100%;
     background: $lightPurple;
     border-radius: 1.5rem;
-    color: #1e1f30;
+    color: $gray-900;
     line-height: inherit;
     position: absolute;
     top: -1rem;
@@ -241,7 +241,7 @@ h2 {
 }
 
 .ace-monokai {
-    background: #1e1f30;
+    background: $gray-900;
     .ace_gutter, .ace_marker-layer .ace_active-line {
         background:#1a1b2c;
     }
@@ -253,5 +253,85 @@ h2 {
     }
     .ace_storage.ace_type, .ace_support.ace_class, .ace_support.ace_type {
         color:#9bfbfa;
+    }
+}
+
+.nav-tabs {
+    border-bottom: dashed 1px $lightPurple;
+
+    .nav-link {
+        &.active,
+        &:hover {
+            color: $lightPurple;
+            border: dashed 1px $lightPurple;
+            border-bottom: solid 1px transparent;
+        }
+    }
+}
+
+table.balance-map {
+    overflow: hidden;
+    border: 2px solid $gray-700;
+
+    thead {
+        h3 {
+            font-size: 0.6rem;
+        }
+    }
+
+    tbody {
+        tr:hover {
+            background-color: $gray-800;
+
+            .balance-remainder::after {
+                content: "";
+                position: absolute;
+                background-color: $gray-800;
+                bottom: 0;
+                left: -10%;
+                height: 10000px;
+                width: 120%;
+                z-index: -1;
+            }
+        }
+    }
+
+    .forge {
+        .balance {
+            border-color: darken($green, 20%);
+            background-color: $green;
+        }
+    }
+
+    .balance {
+        position: relative;
+        border: solid 1px darken($blue, 20%);
+        background-color: $blue;
+        color: $gray-300;
+        min-height: 3rem;
+        padding: 3px;
+        min-width: 5rem;
+
+        &.balance-remainder {
+            background: url(./tx-arrows.svg);
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            border: none;
+        }
+
+        &.balance-no-currencies {
+            background-color: transparent;
+            border: none;
+        }
+
+        & div {
+            min-height: 2rem;
+            border-top: dashed 1px $blue;
+        }
+
+        & div:first-child {
+            border-top: none;
+        }
     }
 }

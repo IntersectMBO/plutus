@@ -32,7 +32,7 @@ import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.ECharts (EChartsMessage, EChartsQuery)
 import Language.Haskell.Interpreter (CompilationError)
 import Ledger.Ada.TH (Ada, _Ada)
-import Ledger.Types (Tx)
+import Ledger.Types (Tx, TxIdOf)
 import Matryoshka (class Corecursive, class Recursive, Algebra, cata)
 import Network.RemoteData (RemoteData)
 import Playground.API (CompilationResult, EvaluationResult, FunctionSchema, SimpleArgumentSchema(..), SimulatorWallet, _FunctionSchema, _SimulatorWallet)
@@ -213,7 +213,7 @@ cpBalancesChart = cp3
 
 -----------------------------------------------------------
 
-type Blockchain = Array (Array Tx)
+type Blockchain = Array (Array (Tuple (TxIdOf String) Tx))
 type Signatures = Array (FunctionSchema SimpleArgumentSchema)
 type Simulation =
   { signatures :: Signatures
