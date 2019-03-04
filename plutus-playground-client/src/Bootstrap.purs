@@ -193,6 +193,9 @@ btnDanger = ClassName "btn-danger"
 btnSmall :: ClassName
 btnSmall = ClassName "btn-sm"
 
+btnLink :: ClassName
+btnLink = ClassName "btn-link"
+
 pullLeft :: ClassName
 pullLeft = ClassName "pull-left"
 

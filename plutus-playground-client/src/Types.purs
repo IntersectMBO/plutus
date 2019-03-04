@@ -167,6 +167,7 @@ data FormEvent a
   | SetStringField String a
   | AddSubField a
   | SetSubField Int (FormEvent a)
+  | RemoveSubField Int a
 
 derive instance functorFormEvent :: Functor FormEvent
 
@@ -175,12 +176,14 @@ instance extendFormEvent :: Extend FormEvent where
   extend f event@(SetStringField s _) = SetStringField s $ f event
   extend f event@(AddSubField _) = AddSubField $ f event
   extend f event@(SetSubField n _) = SetSubField n $ extend f event
+  extend f event@(RemoveSubField n _) = RemoveSubField n $ f event
 
 instance comonadFormEvent :: Comonad FormEvent where
   extract (SetIntField _ a) = a
   extract (SetStringField _ a) = a
   extract (AddSubField a) = a
   extract (SetSubField _ e) = extract e
+  extract (RemoveSubField _ e) = e
 
 ------------------------------------------------------------
 

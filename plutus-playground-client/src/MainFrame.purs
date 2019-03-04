@@ -325,6 +325,11 @@ evalForm (SetSubField n subEvent) s@(SimpleObject schema fields) =
   SimpleObject schema $ over (ix n <<< _2) (evalForm subEvent) fields
 evalForm (SetSubField n subEvent) arg@(Unknowable _) = arg
 
+evalForm (RemoveSubField n subEvent) arg@(SimpleArray schema fields ) =
+  (SimpleArray schema (fromMaybe fields (Array.deleteAt n fields)))
+evalForm (RemoveSubField n subEvent) arg =
+  arg
+
 replaceViewOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> View -> View -> m Unit
 replaceViewOnSuccess result source target = do
   currentView <- use _view

@@ -2,7 +2,7 @@ module Action
        ( simulationPane
        ) where
 
-import Bootstrap (badge, badgePrimary, btn, btnDanger, btnInfo, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, col4_, col_, nbsp, formControl, formGroup_, invalidFeedback_, pullRight, row, row_, validFeedback_)
+import Bootstrap (badge, badgePrimary, btn, btnDanger, btnInfo, btnLink, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, col10_, col2_, col4_, col_, formControl, formGroup_, invalidFeedback_, nbsp, pullRight, row, row_, validFeedback_)
 import Control.Monad.Aff.Class (class MonadAff)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
@@ -154,8 +154,8 @@ actionArgumentField context nested (SimpleTuple (subFieldA /\subFieldB)) =
     ]
 actionArgumentField context nested (SimpleArray schema subFields) =
     div_ [(if nested
-           then div [ classes [  ClassName "nested" ] ]
-           else div_) $ mapWithIndex (\i field -> map (SetSubField i) (subForm (show i) field)) subFields
+           then Keyed.div [ classes [  ClassName "nested" ] ]
+           else Keyed.div_) (mapWithIndex subFormContainer subFields)
          , button
              [ classes [ btn, btnInfo ]
              , onClick $ input_ AddSubField
@@ -163,12 +163,23 @@ actionArgumentField context nested (SimpleArray schema subFields) =
              [ icon Plus ]
          ]
   where
-    subForm name  arg =
-      (formGroup_
-         [ label [ for name ] [ text name ]
-         , actionArgumentField name true arg
-         ]
-      )
+    subFormContainer i field =
+      show i
+      /\
+      formGroup_ [
+        row_
+          [ col10_
+              [ SetSubField i <$> actionArgumentField (show i) true field ]
+          , col2_
+            [ button
+              [ classes [ btn, btnLink ]
+              , onClick $ input_ (RemoveSubField i)
+              ]
+              [ icon Trash ]
+            ]
+          ]
+        ]
+
 actionArgumentField context nested (SimpleObject _ subFields) =
     (if nested
        then div [ classes [  ClassName "nested" ] ]
