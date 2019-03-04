@@ -150,7 +150,7 @@ actionArgumentField context _ arg@(SimpleString s) =
 actionArgumentField context nested (SimpleTuple (subFieldA /\subFieldB)) =
   row_
     [ col_ [ SetSubField 1 <$> actionArgumentField "_1" true subFieldA ]
-    , col_ [ SetSubField 2 <$> actionArgumentField "_2" true subFieldA ]
+    , col_ [ SetSubField 2 <$> actionArgumentField "_2" true subFieldB ]
     ]
 actionArgumentField context nested (SimpleArray schema subFields) =
     div_ [(if nested
