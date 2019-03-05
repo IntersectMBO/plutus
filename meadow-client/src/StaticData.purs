@@ -1,6 +1,8 @@
 module StaticData
   ( demoFiles
   , bufferLocalStorageKey
+  , marloweBufferLocalStorageKey
+  , marloweContract
   ) where
 
 import Data.Map (Map)
@@ -18,5 +20,11 @@ demoFiles =
     [ "BasicContract" /\ basicContract
     ]
 
+marloweContract :: Contents
+marloweContract = "(Some Marlowe Code)"
+
 bufferLocalStorageKey :: LocalStorage.Key
 bufferLocalStorageKey  = LocalStorage.Key "PlutusPlaygroundBuffer"
+
+marloweBufferLocalStorageKey :: LocalStorage.Key
+marloweBufferLocalStorageKey = LocalStorage.Key "MarloweBuffer"

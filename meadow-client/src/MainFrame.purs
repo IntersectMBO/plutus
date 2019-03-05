@@ -4,6 +4,8 @@ module MainFrame
 
 import Types
 
+import API (SourceCode(SourceCode), _RunResult)
+import API as API
 import Ace.EditSession as Session
 import Ace.Editor as Editor
 import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged), AceQuery(GetEditor))
@@ -28,6 +30,7 @@ import Data.Generic (gEq)
 import Data.Int as Int
 import Data.Lens (_2, _Just, _Right, assign, maximumOf, modifying, over, preview, set, traversed, use, view)
 import Data.Lens.Index (ix)
+import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
@@ -54,16 +57,39 @@ import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError))
 import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
+import Meadow (SPParams_, getOauthStatus, patchGistsByGistId, postGists)
 import Meadow (postContractHaskell)
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
-import API (SourceCode(SourceCode), _RunResult)
-import API as API
-import Meadow (SPParams_, getOauthStatus, patchGistsByGistId, postGists)
 import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, show, unit, unless, void, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
 import Servant.PureScript.Settings (SPSettings_)
+import Simulation (simulationPane)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
+
+examplePeople :: Map PersonId Person
+examplePeople = Map.fromFoldable
+                  [ Tuple (PersonId 1) 
+                          { id: (PersonId 1)
+                          , actions: [ Commit 1 2 3
+                                     , Redeem 4 5
+                                     ]
+                          , suggestedActions: [ Choose 1 2
+                                              , Claim 3 4
+                                              ]
+                          , signed: true
+                          }
+                  , Tuple (PersonId 2)
+                          { id: (PersonId 2)
+                          , actions: [ Choose 1 2
+                                     , Claim 3 4
+                                     ]
+                          , suggestedActions: [ Commit 1 2 3
+                                              , Claim 3 4
+                                              ]
+                          , signed: false
+                          }
+                  ]
 
 initialState :: State
 initialState =
@@ -71,6 +97,7 @@ initialState =
   , runResult: NotAsked
   , authStatus: NotAsked
   , createGistResult: NotAsked
+  , marloweState: { people: examplePeople, state: [] }
   }
 
 ------------------------------------------------------------
@@ -117,6 +144,7 @@ toEvent (ChangeView view _) = Just $ (defaultEvent "View") { label = Just $ show
 toEvent (LoadScript script a) = Just $ (defaultEvent "LoadScript") { label = Just script}
 toEvent (CompileProgram a) = Just $ defaultEvent "CompileProgram"
 toEvent (ScrollTo _ _) = Nothing
+toEvent (UpdatePerson _ _) = Nothing
 
 saveBuffer :: forall eff. String -> Eff (localStorage :: LOCALSTORAGE | eff) Unit
 saveBuffer text = LocalStorage.setItem bufferLocalStorageKey text
@@ -188,6 +216,13 @@ eval (ScrollTo {row, column} next) = do
   void $ withEditor $ Editor.gotoLine row (Just column) (Just true)
   pure next
 
+eval (UpdatePerson person next) = do
+  -- updating a person will require running the simulation so that the next suggested actions can be added
+  -- although I'm not sure from the design what are suggested and what are manual
+  currentState <- use _marloweState
+  assign (_marloweState <<< _people) $ Map.update (const <<< Just $ person) person.id currentState.people
+  pure next
+
 ------------------------------------------------------------
 
 -- | Handles the messy business of running an editor command if the
@@ -235,6 +270,9 @@ render state =
     , viewContainer state.view Editor $
         [ editorPane state
         ]
+    , viewContainer state.view Simulation $
+        [ simulationPane state
+        ]
     ]
 
 viewContainer :: forall p i. View -> View -> Array (HTML p i) -> HTML p i
@@ -269,6 +307,7 @@ mainTabBar activeView =
   navTabs_ (mkTab <$> tabs)
   where
     tabs = [ Editor /\ "Haskell Editor"
+           , Simulation /\ "Simulation"
            ]
     mkTab (link /\ title ) =
       navItem_ [
