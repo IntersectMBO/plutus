@@ -35,6 +35,7 @@ library
         Playground.Server
         Playground.Interpreter
         Playground.Usecases
+        Git
         Gist
         Auth
         Auth.Types
@@ -99,7 +100,6 @@ executable plutus-playground-server
         containers -any,
         data-default-class -any,
         filepath -any,
-        gitrev -any,
         http-types -any,
         interpreter -any,
         lens -any,

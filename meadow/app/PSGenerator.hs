@@ -29,6 +29,7 @@ import qualified Data.Text                                 as T ()
 import qualified Data.Text.Encoding                        as T ()
 import qualified Data.Text.IO                              as T ()
 import           Gist                                      (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
+import           Git                                       (gitHead)
 import           Language.Haskell.Interpreter              (CompilationError, InterpreterError, InterpreterResult,
                                                             SourceCode, Warning)
 import           Language.PureScript.Bridge                (BridgePart, Language (Haskell), PSType, SumType,
@@ -133,7 +134,8 @@ psModule name body = "module " <> name <> " where" <> body
 writeUsecases :: FilePath -> IO ()
 writeUsecases outputDir = do
     let usecases =
-            multilineString "escrow" escrow
+            multilineString "gitHead" (CBS.pack gitHead)
+         <> multilineString "escrow" escrow
          <> multilineString "zeroCouponBond" zeroCouponBond
         usecasesModule = psModule "Meadow.Contracts" usecases
     createDirectoryIfMissing True (outputDir </> "Meadow")
