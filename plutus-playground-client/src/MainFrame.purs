@@ -18,7 +18,7 @@ import Control.Monad.Aff.Class (class MonadAff, liftAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
-import Control.Monad.Reader.Class (class MonadAsk)
+import Control.Monad.Reader.Class (class MonadAsk, ask)
 import Control.Monad.State (class MonadState)
 import Control.Monad.Trans.Class (lift)
 import Data.Array (catMaybes, (..))
@@ -30,7 +30,6 @@ import Data.Lens.Index (ix)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String as String
-import Data.Traversable (traverse)
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
 import ECharts.Monad (interpret)
@@ -54,9 +53,9 @@ import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
-import Playground.API (Evaluation(Evaluation), EvaluationResult(EvaluationResult), SimulatorWallet(SimulatorWallet), SourceCode(SourceCode), _CompilationResult, _FunctionSchema)
+import Playground.API (EvaluationResult(EvaluationResult), SimulatorWallet(SimulatorWallet), SourceCode(SourceCode), _CompilationResult, _FunctionSchema)
 import Playground.Server (SPParams_, getOauthStatus, patchGistsByGistId, postContract, postEvaluate, postGists)
-import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, show, unit, unless, void, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
+import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, map, pure, show, unit, unless, void, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
@@ -177,8 +176,10 @@ eval (CheckAuthStatus next) = do
   pure next
 
 eval (PublishGist next) = do
-  mContents <- withEditor Editor.getValue
-  case mkNewGist mContents of
+  serverParameters <- ask
+  mContents <- getEditorContents
+  simulation <- use _simulation
+  case mkNewGist serverParameters { source: mContents, simulation } of
     Nothing -> pure next
     Just newGist ->
       do mGist <- use _createGistResult
@@ -203,12 +204,12 @@ eval (LoadScript key next) = do
       pure next
 
 eval (CompileProgram next) = do
-  mContents <- withEditor Editor.getValue
+  mContents <- getEditorContents
 
   case mContents of
     Nothing -> pure next
     Just contents -> do
-      result <- runAjaxTo _compilationResult $ postContract $ SourceCode contents
+      result <- runAjaxTo _compilationResult $ postContract contents
 
       -- If we got a successful result, switch tab.
       case result of
@@ -245,10 +246,12 @@ eval (ModifyActions actionEvent next) = do
   pure next
 
 eval (EvaluateActions next) = do
-  mContents <- withEditor $ Editor.getValue
   _ <- runMaybeT $
-       do contents <- MaybeT $ withEditor $ Editor.getValue
-          evaluation <- MaybeT $ currentEvaluation (SourceCode contents)
+       do evaluation <- MaybeT do
+            contents <- getEditorContents
+            simulation <- use _simulation
+            pure $ join $ toEvaluation <$> contents <*> simulation
+
           result <- lift $ runAjaxTo  _evaluationResult $ postEvaluate evaluation
 
           replaceViewOnSuccess result Simulation Transactions
@@ -338,18 +341,6 @@ replaceViewOnSuccess result source target = do
   when (isSuccess result && currentView == source)
     (assign _view target)
 
-currentEvaluation :: forall m. MonadState State m => SourceCode -> m (Maybe Evaluation)
-currentEvaluation sourceCode = do
-  simulation <- use _simulation
-  pure $ do
-    {actions, wallets} <- simulation
-    program <- traverse toExpression actions
-    pure $ Evaluation { wallets
-                      , program
-                      , sourceCode
-                      , blockchain: []
-                      }
-
 updateChartsIfPossible :: forall m i o. HalogenM State i ChildQuery ChildSlot o m Unit
 updateChartsIfPossible = do
   use _evaluationResult >>= case _ of
@@ -372,6 +363,11 @@ withEditor action = do
     Just (Just editor) -> do
       liftEff $ Just <$> action editor
     _ -> pure Nothing
+
+getEditorContents :: forall m eff.
+  MonadEff (ace :: ACE | eff) m
+  => HalogenM State Query ChildQuery ChildSlot Void m (Maybe SourceCode)
+getEditorContents = map SourceCode <$> (withEditor $ Editor.getValue)
 
 showCompilationErrorAnnotations :: forall m.
   Array CompilationError

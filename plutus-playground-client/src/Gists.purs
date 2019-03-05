@@ -7,19 +7,23 @@ module Gists
 import AjaxUtils (showAjaxError)
 import Auth (AuthRole(..), AuthStatus, authStatusAuthRole)
 import Bootstrap (btn, btnDanger, btnInfo, btnPrimary, nbsp)
+import Data.Argonaut.Core (stringify)
 import Data.Array (catMaybes)
 import Data.Array as Array
 import Data.Lens (view)
 import Data.Maybe (Maybe(..))
+import Data.Newtype (unwrap)
 import Gist (Gist, NewGist(NewGist), NewGistFile(NewGistFile), gistHtmlUrl)
 import Halogen.HTML (ClassName(ClassName), HTML, a, br_, div, div_, text)
 import Halogen.HTML.Events (input_, onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_, target)
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success))
-import Prelude (Unit, ($), (<$>), (<>))
+import Playground.API (Evaluation, SourceCode)
+import Prelude (Unit, join, ($), (<$>), (<*>), (<<<), (<>))
 import Servant.PureScript.Affjax (AjaxError)
-import Types (Query(..))
+import Servant.PureScript.Settings (SPSettingsEncodeJson_(..), SPSettings_(..))
+import Types (Query(PublishGist), Simulation, toEvaluation)
 
 gistControls ::
   forall p.
@@ -96,8 +100,14 @@ gistPane gist =
       [ text $ "View on Github" ]
     ]
 
-mkNewGist :: Maybe String -> Maybe NewGist
-mkNewGist mSource =
+mkNewGist ::
+  forall params.
+  SPSettings_ params ->
+  { source :: Maybe SourceCode
+  , simulation :: Maybe Simulation
+  }
+  -> Maybe NewGist
+mkNewGist (SPSettings_ {encodeJson: (SPSettingsEncodeJson_ encodeJson)}) { source, simulation } =
   if Array.null gistFiles
   then Nothing
   else Just $ NewGist { _newGistDescription: "Plutus Playground Smart Contract"
@@ -105,8 +115,12 @@ mkNewGist mSource =
                       , _newGistFiles: gistFiles
                       }
     where
+      evaluation :: Maybe Evaluation
+      evaluation = join $ toEvaluation <$> source <*> simulation
+
       gistFiles =
-        catMaybes [ mkNewGistFile "Playground.hs" <$> mSource
+        catMaybes [ mkNewGistFile "Playground.hs" <<< unwrap <$> source
+                  , mkNewGistFile "Simulation.json" <<< stringify <<< encodeJson <$> evaluation
                   ]
 
       mkNewGistFile _newGistFilename _newGistFileContent =

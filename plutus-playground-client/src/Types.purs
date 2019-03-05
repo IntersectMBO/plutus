@@ -35,7 +35,7 @@ import Ledger.Ada.TH (Ada, _Ada)
 import Ledger.Types (Tx, TxIdOf)
 import Matryoshka (class Corecursive, class Recursive, Algebra, cata)
 import Network.RemoteData (RemoteData)
-import Playground.API (CompilationResult, EvaluationResult, FunctionSchema, SimpleArgumentSchema(..), SimulatorWallet, _FunctionSchema, _SimulatorWallet)
+import Playground.API (CompilationResult, Evaluation(Evaluation), EvaluationResult, FunctionSchema, SimpleArgumentSchema(UnknownSchema, SimpleObjectSchema, SimpleTupleSchema, SimpleArraySchema, SimpleStringSchema, SimpleIntSchema), SimulatorWallet, SourceCode, _FunctionSchema, _SimulatorWallet)
 import Playground.API as API
 import Servant.PureScript.Affjax (AjaxError)
 import Validation (class Validation, ValidationError(Unsupported, Required), WithPath, addPath, noPath, validate)
@@ -128,6 +128,15 @@ toExpression (Action action) = do
     jsonArguments = do
       jsonValues <- traverse simpleArgumentToJson argumentSchema
       pure $ RawJson <<< Json.stringify <$> jsonValues
+
+toEvaluation :: SourceCode -> Simulation -> Maybe Evaluation
+toEvaluation sourceCode {actions, wallets} = do
+    program <- traverse toExpression actions
+    pure $ Evaluation { wallets
+                      , program
+                      , sourceCode
+                      , blockchain: []
+                      }
 
 ------------------------------------------------------------
 
