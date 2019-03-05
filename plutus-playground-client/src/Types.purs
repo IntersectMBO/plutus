@@ -218,12 +218,12 @@ type Signatures = Array (FunctionSchema SimpleArgumentSchema)
 type Simulation =
   { signatures :: Signatures
   , actions :: Array Action
+  , wallets :: Array SimulatorWallet
   }
 
 type State =
   { view :: View
   , compilationResult :: RemoteData AjaxError (Either (Array CompilationError) CompilationResult)
-  , wallets :: Array SimulatorWallet
   , simulation :: Maybe Simulation
   , evaluationResult :: RemoteData AjaxError EvaluationResult
   , authStatus :: RemoteData AjaxError AuthStatus

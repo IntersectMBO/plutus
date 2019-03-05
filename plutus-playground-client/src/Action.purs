@@ -22,7 +22,7 @@ import Halogen.HTML.Properties (InputType(InputText, InputNumber), class_, class
 import Halogen.Query as HQ
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
-import Playground.API (EvaluationResult, SimulatorWallet, _EvaluationResult, _Fn, _FunctionSchema)
+import Playground.API (EvaluationResult, _EvaluationResult, _Fn, _FunctionSchema)
 import Prelude (map, pure, show, ($), (+), (/=), (<$>), (<<<), (<>))
 import Servant.PureScript.Affjax (AjaxError)
 import Types (Action(..), ActionEvent(..), Blockchain, ChildQuery, ChildSlot, FormEvent(..), Query(..), SimpleArgument(..), Simulation, _argumentSchema, _functionName, _resultBlockchain, _simulatorWalletWallet)
@@ -33,12 +33,11 @@ simulationPane ::
   forall m aff.
   MonadAff (EChartsEffects aff) m
   => Simulation
-  -> Array SimulatorWallet
   -> RemoteData AjaxError EvaluationResult
   -> ParentHTML Query ChildQuery ChildSlot m
-simulationPane simulation wallets evaluationResult =
+simulationPane simulation evaluationResult =
   div_
-    [ walletsPane simulation.signatures wallets
+    [ walletsPane simulation.signatures simulation.wallets
     , br_
     , actionsPane simulation.actions (view (_EvaluationResult <<< _resultBlockchain) <$> evaluationResult)
     ]

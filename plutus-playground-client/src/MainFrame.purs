@@ -72,7 +72,6 @@ initialState :: State
 initialState =
   { view: Editor
   , compilationResult: NotAsked
-  , wallets: mkSimulatorWallet <$> 1..2
   , simulation: Nothing
   , evaluationResult: NotAsked
   , authStatus: NotAsked
@@ -229,7 +228,10 @@ eval (CompileProgram next) = do
         Just newSignatures -> do
           oldSignatures <- use (_simulation <<< _Just <<< _signatures)
           unless (oldSignatures `gEq` newSignatures)
-            (assign _simulation (Just { signatures: newSignatures, actions: [] }))
+            (assign _simulation (Just { signatures: newSignatures
+                                      , actions: []
+                                      , wallets: mkSimulatorWallet <$> 1..2
+                                      }))
         _ -> pure unit
 
       pure next
@@ -257,19 +259,19 @@ eval (EvaluateActions next) = do
   pure next
 
 eval (AddWallet next) = do
-  wallets <- use _wallets
+  wallets <- use (_simulation <<< _Just <<< _wallets)
   let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _simulatorWalletWallet <<< _walletId) wallets
   let newWallet = mkSimulatorWallet (maxWalletId + 1)
-  modifying _wallets (flip Array.snoc newWallet)
+  modifying (_simulation <<< _Just <<< _wallets) (flip Array.snoc newWallet)
   pure next
 
 eval (RemoveWallet index next) = do
-  modifying _wallets (fromMaybe <*> Array.deleteAt index)
+  modifying (_simulation <<< _Just <<< _wallets) (fromMaybe <*> Array.deleteAt index)
   assign (_simulation <<< _Just <<< _actions) []
   pure next
 
 eval (SetBalance wallet newBalance next) = do
-  modifying _wallets
+  modifying (_simulation <<< _Just <<< _wallets)
     (map (\simulatorWallet -> if view _simulatorWalletWallet simulatorWallet == wallet
                               then set _simulatorWalletBalance newBalance simulatorWallet
                               else simulatorWallet))
@@ -338,10 +340,9 @@ replaceViewOnSuccess result source target = do
 
 currentEvaluation :: forall m. MonadState State m => SourceCode -> m (Maybe Evaluation)
 currentEvaluation sourceCode = do
-  wallets <- use _wallets
   simulation <- use _simulation
   pure $ do
-    {actions} <- simulation
+    {actions, wallets} <- simulation
     program <- traverse toExpression actions
     pure $ Evaluation { wallets
                       , program
@@ -414,7 +415,6 @@ render state =
           Success (Right _), Just simulation ->
             [ simulationPane
                 simulation
-                state.wallets
                 state.evaluationResult
             ]
           Failure error, _ -> [ ajaxErrorPane error ]
