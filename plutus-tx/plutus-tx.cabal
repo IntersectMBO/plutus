@@ -43,6 +43,9 @@ library
         Language.PlutusTx.TH
         Language.PlutusTx.Prelude
         Language.PlutusTx.Evaluation
+        Language.PlutusTx.Map
+        Language.PlutusTx.RBTree
+        Language.PlutusTx.These
     reexported-modules:
         Language.PlutusTx.Code,
         Language.PlutusTx.Lift,
@@ -54,6 +57,7 @@ library
         base >=4.9 && <5,
         bytestring -any,
         template-haskell >=2.13.0.0,
+        serialise -any,
         language-plutus-core -any,
         plutus-core-interpreter -any,
         plutus-tx-compiler -any
@@ -118,10 +122,12 @@ test-suite plutus-tx-tests
         Plugin.Lib
         TH.Spec
         TH.TestTH
+        Map.Spec
     default-language: Haskell2010
     build-depends:
         base >=4.9 && <5,
         language-plutus-core -any,
+        hedgehog -any,
         plutus-core-interpreter -any,
         plutus-tx -any,
         plutus-ir -any,
@@ -130,6 +136,7 @@ test-suite plutus-tx-tests
         bytestring -any,
         template-haskell -any,
         tasty -any,
+        tasty-hedgehog -any,
         tasty-hunit -any
     -- this makes the plugin give better errors
     ghc-options: -g

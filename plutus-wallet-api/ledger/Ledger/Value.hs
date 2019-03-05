@@ -17,10 +17,12 @@ module Ledger.Value(
       CurrencySymbol(..)
     , currencySymbol
     , eqCurSymbol
+    , compareCurSymbol
     -- ** Token names
     , TokenName(..)
     , tokenName
     , eqTokenName
+    , compareTokenName
     , toString
     -- ** Value
     , Value(..)
@@ -105,6 +107,10 @@ makeLift ''CurrencySymbol
 eqCurSymbol :: CurrencySymbol -> CurrencySymbol -> Bool
 eqCurSymbol (CurrencySymbol l) (CurrencySymbol r) = equalsByteString l r
 
+{-# INLINABLE compareCurSymbol #-}
+compareCurSymbol :: CurrencySymbol -> CurrencySymbol -> Ordering
+compareCurSymbol (CurrencySymbol l) (CurrencySymbol r) = compareByteString l r
+
 {-# INLINABLE currencySymbol #-}
 currencySymbol :: ByteString -> CurrencySymbol
 currencySymbol = CurrencySymbol
@@ -143,6 +149,10 @@ makeLift ''TokenName
 eqTokenName :: TokenName -> TokenName -> Bool
 eqTokenName (TokenName l) (TokenName r) = equalsByteString l r
 
+{-# INLINABLE compareTokenName #-}
+compareTokenName :: TokenName -> TokenName -> Ordering
+compareTokenName (TokenName l) (TokenName r) = compareByteString l r
+
 {-# INLINABLE tokenName #-}
 tokenName :: ByteString -> TokenName
 tokenName = TokenName
@@ -163,11 +173,17 @@ tokenName = TokenName
 --
 -- See note [Currencies] for more details.
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
-    deriving stock (Show, Generic)
+    deriving stock (Generic)
     deriving anyclass (ToJSON, FromJSON, Hashable)
     deriving newtype (Serialise)
 
 makeLift ''Value
+
+toLists :: Value -> [(CurrencySymbol, [(TokenName, Integer)])]
+toLists (Value vl) = Map.toList (Map.map Map.toList vl)
+
+instance Show Value where
+    show = show . toLists
 
 instance Eq Value where
     (==) = eq
@@ -218,9 +234,9 @@ similar to 'Ledger.Ada' for their own currencies.
 -- | Get the quantity of the given currency in the 'Value'.
 valueOf :: Value -> CurrencySymbol -> TokenName -> Integer
 valueOf (Value mp) cur tn =
-    case Map.lookup eqCurSymbol cur mp of
+    case Map.lookup compareCurSymbol cur mp of
         Nothing -> 0 :: Integer
-        Just i  -> case Map.lookup eqTokenName tn i of
+        Just i  -> case Map.lookup compareTokenName tn i of
             Nothing -> 0
             Just v  -> v
 
@@ -239,11 +255,11 @@ singleton c tn i = Value (Map.singleton c (Map.singleton tn i))
 unionVal :: Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (Map.These Integer Integer))
 unionVal (Value l) (Value r) =
     let
-        combined = Map.union eqCurSymbol l r
+        combined = Map.unionThese compareCurSymbol l r
         unThese k = case k of
             Map.This a    -> Map.map Map.This a
             Map.That b    -> Map.map Map.That b
-            Map.These a b -> Map.union eqTokenName a b
+            Map.These a b -> Map.unionThese compareTokenName a b
     in Map.map unThese combined
 
 {-# INLINABLE unionWith #-}
@@ -287,7 +303,7 @@ multiply = unionWith P.multiply
 {-# INLINABLE zero #-}
 -- | The empty 'Value'.
 zero :: Value
-zero = Value (Map.empty ())
+zero = Value Map.empty
 
 {-# INLINABLE isZero #-}
 -- | Check whether a 'Value' is zero.

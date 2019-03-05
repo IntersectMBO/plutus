@@ -1,11 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
-{-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module Ledger.These(
-    These(..)
-  , these
-  , theseWithDefault
-  ) where
+module Language.PlutusTx.These where
 
 -- | A 'These' @a@ @b@ is either an @a@, or a @b@ or an @a@ and a @b@.
 -- Plutus version of 'Data.These'.
@@ -25,3 +20,19 @@ these f g h = \case
     This a -> f a
     That b -> g b
     These a b -> h a b
+
+{-# INLINABLE mergeThese #-}
+mergeThese :: (a -> a -> a) -> These a a -> a
+mergeThese = these (\a -> a) (\a -> a)
+
+{-# INLINABLE andDefinitely #-}
+andDefinitely :: Maybe a -> b -> These a b
+andDefinitely ma b = case ma of
+    Just a -> These a b
+    Nothing -> That b
+
+{-# INLINABLE andMaybe #-}
+andMaybe :: a -> Maybe b -> These a b
+andMaybe a mb = case mb of
+    Just b -> These a b
+    Nothing -> This a

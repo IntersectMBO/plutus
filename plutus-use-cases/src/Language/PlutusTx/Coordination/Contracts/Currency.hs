@@ -58,7 +58,7 @@ mkCurrency :: TxOutRef -> [(String, Integer)] -> Currency
 mkCurrency (TxOutRefOf h i) amts =
     Currency
         { curRefTransactionOutput = (V.plcTxHash h, i)
-        , curAmounts              = LMap.fromList (fmap (first fromString) amts)
+        , curAmounts              = LMap.fromList Value.compareTokenName (fmap (first fromString) amts)
         }
 
 validate :: Currency -> () -> () -> V.PendingTx -> Bool

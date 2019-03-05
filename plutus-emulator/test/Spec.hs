@@ -238,7 +238,6 @@ invalidScript = property $ do
         validator :: () -> () -> PendingTx -> Bool
         validator _ _ _ = PlutusTx.traceErrorH "I always fail everything"
 
-
 txnFlowsTest :: Property
 txnFlowsTest = property $ do
     (_, e) <- forAll $ Gen.runTraceOn Gen.generatorModel pubKeyTransactions

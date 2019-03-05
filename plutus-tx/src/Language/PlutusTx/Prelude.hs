@@ -23,6 +23,7 @@ module Language.PlutusTx.Prelude (
     lt,
     leq,
     eq,
+    compareInteger,
     plus,
     minus,
     multiply,
@@ -54,6 +55,7 @@ module Language.PlutusTx.Prelude (
     equalsByteString,
     lessThanByteString,
     greaterThanByteString,
+    compareByteString,
     takeByteString,
     dropByteString,
     concatenate,
@@ -207,6 +209,10 @@ leq = Builtins.lessThanEqInteger
 eq :: Integer -> Integer -> Bool
 eq = Builtins.equalsInteger
 
+{-# INLINABLE compareInteger #-}
+compareInteger :: Integer -> Integer -> Ordering
+compareInteger x y = if gt x y then GT else if lt x y then LT else EQ
+
 {-# INLINABLE plus #-}
 -- | Addition
 --
@@ -251,6 +257,10 @@ divide = Builtins.divideInteger
 --
 remainder :: Integer -> Integer -> Integer
 remainder = Builtins.remainderInteger
+
+{-# INLINABLE compareByteString #-}
+compareByteString :: ByteString -> ByteString -> Ordering
+compareByteString x y = if Builtins.greaterThanByteString x y then GT else if Builtins.lessThanByteString x y then LT else EQ
 
 {-# INLINABLE min #-}
 -- | The smaller of two 'Integer's
