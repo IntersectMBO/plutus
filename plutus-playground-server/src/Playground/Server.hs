@@ -20,8 +20,8 @@ import qualified Data.Text                    as Text
 import           Language.Haskell.Interpreter (CompilationError)
 import           Network.HTTP.Types           (hContentType)
 import           Playground.API               (API, CompilationResult, Evaluation, EvaluationResult (EvaluationResult),
-                                               PlaygroundError (PlaygroundTimeout), PlaygroundError (PlaygroundTimeout),
-                                               SourceCode (SourceCode), SourceCode, parseErrorText, parseErrorText)
+                                               PlaygroundError (PlaygroundTimeout), SourceCode (SourceCode),
+                                               parseErrorText)
 import qualified Playground.API               as PA
 import qualified Playground.Interpreter       as PI
 import           Playground.Usecases          (vesting)
