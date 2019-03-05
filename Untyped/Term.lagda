@@ -9,6 +9,7 @@ open import Data.Integer hiding (suc)
 open import Data.List
 
 open import Builtin.Constant.Type -- perhaps the postulates should be elsewhere
+open import Builtin
 \end{code}
 
 
@@ -25,7 +26,7 @@ data _⊢ : ℕ → Set where
   ƛ       : ∀{n} → suc n ⊢ → n ⊢
   _·_     : ∀{n} → n ⊢ → n ⊢ → n ⊢
   con     : ∀{n} → TermCon → n ⊢
-  builtin : ∀{n} → List (n ⊢) → n ⊢
+  builtin : ∀{n} → Builtin → List (n ⊢) → n ⊢
   error   : ∀{n} → n ⊢
 \end{code}
 
@@ -65,7 +66,7 @@ erase (wrap1 pat arg t) = erase t
 erase (unwrap1 t)       = erase t
 erase (conv p t)        = erase t
 erase {Γ} (con t)       = con (eraseTC {Γ} t)
-erase (builtin bn σ ts) = builtin (eraseTel ts)
+erase (builtin bn σ ts) = builtin bn (eraseTel ts)
 erase (error A)         = error
 
 open import Data.Product renaming (_,_ to _,,_)

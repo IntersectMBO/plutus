@@ -21,12 +21,12 @@ ext ρ (suc x) = suc (ρ x)
 ren     : ∀{m n} → Ren m n → m ⊢ → n ⊢
 renList : ∀{m n} → Ren m n → List (m ⊢) → List (n ⊢)
 
-ren ρ (` x)        = ` (ρ x)
-ren ρ (ƛ t)        = ƛ (ren (ext ρ) t)
-ren ρ (t · u)      = ren ρ t · ren ρ u
-ren ρ (con tcn)    = con tcn
-ren ρ (builtin ts) = builtin (renList ρ ts)
-ren ρ error        = error
+ren ρ (` x)          = ` (ρ x)
+ren ρ (ƛ t)          = ƛ (ren (ext ρ) t)
+ren ρ (t · u)        = ren ρ t · ren ρ u
+ren ρ (con tcn)      = con tcn
+ren ρ (builtin b ts) = builtin b (renList ρ ts)
+ren ρ error          = error
 
 renList ρ []       = []
 renList ρ (t ∷ ts) = ren ρ t ∷ renList ρ ts
@@ -41,12 +41,12 @@ exts ρ (suc x) = ren suc (ρ x)
 sub     : ∀{m n} → Sub m n → m ⊢ → n ⊢
 subList : ∀{m n} → Sub m n → List (m ⊢) → List (n ⊢)
 
-sub σ (` x)        = σ x
-sub σ (ƛ t)        = ƛ (sub (exts σ) t) 
-sub σ (t · u)      = sub σ t · sub σ u
-sub σ (con tcn)    = con tcn
-sub σ (builtin ts) = builtin (subList σ ts)
-sub σ error        = error
+sub σ (` x)          = σ x
+sub σ (ƛ t)          = ƛ (sub (exts σ) t) 
+sub σ (t · u)        = sub σ t · sub σ u
+sub σ (con tcn)      = con tcn
+sub σ (builtin b ts) = builtin b (subList σ ts)
+sub σ error          = error
 
 subList σ []       = []
 subList σ (t ∷ ts) = sub σ t ∷ subList σ ts
