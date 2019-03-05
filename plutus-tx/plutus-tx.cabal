@@ -69,6 +69,7 @@ library
     PlutusTx.Lift
     PlutusTx.Lift.Class
     PlutusTx.List
+    PlutusTx.Map
     PlutusTx.Maybe
     PlutusTx.Monoid
     PlutusTx.Numeric
@@ -76,6 +77,7 @@ library
     PlutusTx.Plugin.Utils
     PlutusTx.Prelude
     PlutusTx.Ratio
+    PlutusTx.RBTree
     PlutusTx.Semigroup
     PlutusTx.Show
     PlutusTx.Show.TH
@@ -160,6 +162,7 @@ test-suite plutus-tx-test
   main-is:            Spec.hs
   other-modules:
     List.Spec
+    Map.Spec
     Rational.Laws
     Rational.Laws.Additive
     Rational.Laws.Construction

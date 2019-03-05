@@ -18,9 +18,9 @@ import Test.Tasty.Extras
 import Data.Bifunctor
 import Data.String
 import PlutusLedgerApi.V1.Value
-import PlutusTx.AssocMap as Map
 import PlutusTx.Code
 import PlutusTx.Lift (liftCodeDef)
+import PlutusTx.Map as Map
 import PlutusTx.Test
 import PlutusTx.TH (compile)
 

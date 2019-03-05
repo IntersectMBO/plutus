@@ -2,6 +2,840 @@ let
   data Bool | Bool_match where
     True : Bool
     False : Bool
+  !f : integer -> integer -> Bool
+    = \(x : integer) (y : integer) ->
+        ifThenElse {Bool} (lessThanEqualsInteger x y) True False
+  data (These :: * -> * -> *) a b | These_match where
+    That : b -> These a b
+    These : a -> b -> These a b
+    This : a -> These a b
+  !fInner : bytestring -> These integer integer -> Bool -> Bool
+    = \(ds : bytestring) (ds : These integer integer) (ds : Bool) ->
+        Bool_match
+          ds
+          {all dead. Bool}
+          (/\dead ->
+             These_match
+               {integer}
+               {integer}
+               ds
+               {Bool}
+               (\(b : integer) -> f 0 b)
+               (\(a : integer) (b : integer) -> f a b)
+               (\(a : integer) -> f a 0))
+          (/\dead -> False)
+          {all dead. dead}
+  data Ordering | Ordering_match where
+    EQ : Ordering
+    GT : Ordering
+    LT : Ordering
+  !`$fOrdBuiltinByteString_$ccompare` : bytestring -> bytestring -> Ordering
+    = \(eta : bytestring) (eta : bytestring) ->
+        ifThenElse
+          {all dead. Ordering}
+          (equalsByteString eta eta)
+          (/\dead -> EQ)
+          (/\dead ->
+             ifThenElse
+               {all dead. Ordering}
+               (lessThanEqualsByteString eta eta)
+               (/\dead -> LT)
+               (/\dead -> GT)
+               {all dead. dead})
+          {all dead. dead}
+  !`$fOrdBuiltinByteString_$cmax` : bytestring -> bytestring -> bytestring
+    = \(x : bytestring) (y : bytestring) ->
+        ifThenElse
+          {all dead. bytestring}
+          (lessThanEqualsByteString x y)
+          (/\dead -> y)
+          (/\dead -> x)
+          {all dead. dead}
+  !`$fOrdBuiltinByteString_$cmin` : bytestring -> bytestring -> bytestring
+    = \(x : bytestring) (y : bytestring) ->
+        ifThenElse
+          {all dead. bytestring}
+          (lessThanEqualsByteString x y)
+          (/\dead -> x)
+          (/\dead -> y)
+          {all dead. dead}
+  !greaterThanByteString : bytestring -> bytestring -> Bool
+    = \(x : bytestring) (y : bytestring) ->
+        ifThenElse {Bool} (lessThanEqualsByteString x y) False True
+  !greaterThanEqualsByteString : bytestring -> bytestring -> Bool
+    = \(x : bytestring) (y : bytestring) ->
+        ifThenElse {Bool} (lessThanByteString x y) False True
+  !equalsByteString : bytestring -> bytestring -> Bool
+    = \(x : bytestring) (y : bytestring) ->
+        ifThenElse {Bool} (equalsByteString x y) True False
+  !lessThanByteString : bytestring -> bytestring -> Bool
+    = \(x : bytestring) (y : bytestring) ->
+        ifThenElse {Bool} (lessThanByteString x y) True False
+  !lessThanEqualsByteString : bytestring -> bytestring -> Bool
+    = \(x : bytestring) (y : bytestring) ->
+        ifThenElse {Bool} (lessThanEqualsByteString x y) True False
+  data (Ord :: * -> *) a | Ord_match where
+    CConsOrd :
+      (\a -> a -> a -> Bool) a ->
+      (a -> a -> Ordering) ->
+      (a -> a -> Bool) ->
+      (a -> a -> Bool) ->
+      (a -> a -> Bool) ->
+      (a -> a -> Bool) ->
+      (a -> a -> a) ->
+      (a -> a -> a) ->
+      Ord a
+  !`$fOrdTokenName` : Ord bytestring
+    = CConsOrd
+        {bytestring}
+        equalsByteString
+        `$fOrdBuiltinByteString_$ccompare`
+        lessThanByteString
+        lessThanEqualsByteString
+        greaterThanByteString
+        greaterThanEqualsByteString
+        `$fOrdBuiltinByteString_$cmax`
+        `$fOrdBuiltinByteString_$cmin`
+  data Color | Color_match where
+    B : Color
+    R : Color
+in
+letrec
+  data (RBTree :: * -> * -> *) k v | RBTree_match where
+    Branch :
+      Color -> integer -> RBTree k v -> k -> v -> RBTree k v -> RBTree k v
+    Leaf : RBTree k v
+in
+let
+  !foldr : all k v b. (k -> v -> b -> b) -> b -> RBTree k v -> b
+    = /\k v b ->
+        \(f : k -> v -> b -> b) ->
+          letrec
+            !go : b -> RBTree k v -> b
+              = \(acc : b) (ds : RBTree k v) ->
+                  RBTree_match
+                    {k}
+                    {v}
+                    ds
+                    {all dead. b}
+                    (\(ds : Color)
+                      (ds : integer)
+                      (l : RBTree k v)
+                      (k : k)
+                      (v : v)
+                      (r : RBTree k v) ->
+                       /\dead -> go (f k v (go acc r)) l)
+                    (/\dead -> acc)
+                    {all dead. dead}
+          in
+          \(eta : b) (eta : RBTree k v) -> go eta eta
+  data (Tuple3 :: * -> * -> * -> *) a b c | Tuple3_match where
+    Tuple3 : a -> b -> c -> Tuple3 a b c
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
+  !balanceL : all k v. RBTree k v -> RBTree k v
+    = /\k v ->
+        \(t : RBTree k v) ->
+          RBTree_match
+            {k}
+            {v}
+            t
+            {all dead. RBTree k v}
+            (\(ds : Color)
+              (h : integer)
+              (toSplit : RBTree k v)
+              (k : k)
+              (v : v)
+              (t : RBTree k v) ->
+               /\dead ->
+                 Color_match
+                   ds
+                   {all dead. RBTree k v}
+                   (/\dead ->
+                      RBTree_match
+                        {k}
+                        {v}
+                        toSplit
+                        {all dead. RBTree k v}
+                        (\(ds : Color)
+                          (ds : integer)
+                          (ds : RBTree k v)
+                          (k : k)
+                          (v : v)
+                          (t : RBTree k v) ->
+                           let
+                             !fail : unit -> RBTree k v
+                               = \(ds : unit) ->
+                                   RBTree_match
+                                     {k}
+                                     {v}
+                                     t
+                                     {all dead. RBTree k v}
+                                     (\(ds : Color)
+                                       (ds : integer)
+                                       (t : RBTree k v)
+                                       (k : k)
+                                       (v : v)
+                                       (t : RBTree k v) ->
+                                        /\dead ->
+                                          Color_match
+                                            ds
+                                            {all dead. RBTree k v}
+                                            (/\dead -> t)
+                                            (/\dead ->
+                                               Branch
+                                                 {k}
+                                                 {v}
+                                                 R
+                                                 (addInteger 1 h)
+                                                 (Branch {k} {v} B h ds k v t)
+                                                 k
+                                                 v
+                                                 (Branch {k} {v} B h t k v t))
+                                            {all dead. dead})
+                                     (/\dead -> t)
+                                     {all dead. dead}
+                           in
+                           /\dead ->
+                             Color_match
+                               ds
+                               {all dead. RBTree k v}
+                               (/\dead -> t)
+                               (/\dead ->
+                                  RBTree_match
+                                    {k}
+                                    {v}
+                                    ds
+                                    {all dead. RBTree k v}
+                                    (\(ds : Color)
+                                      (ds : integer)
+                                      (t : RBTree k v)
+                                      (k : k)
+                                      (v : v)
+                                      (t : RBTree k v) ->
+                                       /\dead ->
+                                         Color_match
+                                           ds
+                                           {all dead. RBTree k v}
+                                           (/\dead -> fail ())
+                                           (/\dead ->
+                                              Branch
+                                                {k}
+                                                {v}
+                                                R
+                                                (addInteger 1 h)
+                                                (Branch {k} {v} B h t k v t)
+                                                k
+                                                v
+                                                (Branch {k} {v} B h t k v t))
+                                           {all dead. dead})
+                                    (/\dead -> fail ())
+                                    {all dead. dead})
+                               {all dead. dead})
+                        (/\dead -> t)
+                        {all dead. dead})
+                   (/\dead -> t)
+                   {all dead. dead})
+            (/\dead -> Leaf {k} {v})
+            {all dead. dead}
+  !balanceR : all k v. RBTree k v -> RBTree k v
+    = /\k v ->
+        \(t : RBTree k v) ->
+          RBTree_match
+            {k}
+            {v}
+            t
+            {all dead. RBTree k v}
+            (\(ds : Color)
+              (h : integer)
+              (t : RBTree k v)
+              (k : k)
+              (v : v)
+              (toSplit : RBTree k v) ->
+               /\dead ->
+                 Color_match
+                   ds
+                   {all dead. RBTree k v}
+                   (/\dead ->
+                      RBTree_match
+                        {k}
+                        {v}
+                        toSplit
+                        {all dead. RBTree k v}
+                        (\(ds : Color)
+                          (ds : integer)
+                          (t : RBTree k v)
+                          (k : k)
+                          (v : v)
+                          (ds : RBTree k v) ->
+                           let
+                             !fail : unit -> RBTree k v
+                               = \(ds : unit) ->
+                                   RBTree_match
+                                     {k}
+                                     {v}
+                                     t
+                                     {all dead. RBTree k v}
+                                     (\(ds : Color)
+                                       (ds : integer)
+                                       (t : RBTree k v)
+                                       (k : k)
+                                       (v : v)
+                                       (t : RBTree k v) ->
+                                        /\dead ->
+                                          Color_match
+                                            ds
+                                            {all dead. RBTree k v}
+                                            (/\dead -> t)
+                                            (/\dead ->
+                                               Branch
+                                                 {k}
+                                                 {v}
+                                                 R
+                                                 (addInteger 1 h)
+                                                 (Branch {k} {v} B h t k v t)
+                                                 k
+                                                 v
+                                                 (Branch {k} {v} B h t k v ds))
+                                            {all dead. dead})
+                                     (/\dead -> t)
+                                     {all dead. dead}
+                           in
+                           /\dead ->
+                             Color_match
+                               ds
+                               {all dead. RBTree k v}
+                               (/\dead -> t)
+                               (/\dead ->
+                                  RBTree_match
+                                    {k}
+                                    {v}
+                                    ds
+                                    {all dead. RBTree k v}
+                                    (\(ds : Color)
+                                      (ds : integer)
+                                      (t : RBTree k v)
+                                      (k : k)
+                                      (v : v)
+                                      (t : RBTree k v) ->
+                                       /\dead ->
+                                         Color_match
+                                           ds
+                                           {all dead. RBTree k v}
+                                           (/\dead -> fail ())
+                                           (/\dead ->
+                                              Branch
+                                                {k}
+                                                {v}
+                                                R
+                                                (addInteger 1 h)
+                                                (Branch {k} {v} B h t k v t)
+                                                k
+                                                v
+                                                (Branch {k} {v} B h t k v t))
+                                           {all dead. dead})
+                                    (/\dead -> fail ())
+                                    {all dead. dead})
+                               {all dead. dead})
+                        (/\dead -> t)
+                        {all dead. dead})
+                   (/\dead -> t)
+                   {all dead. dead})
+            (/\dead -> Leaf {k} {v})
+            {all dead. dead}
+  !compare : all a. Ord a -> a -> a -> Ordering
+    = /\a ->
+        \(v : Ord a) ->
+          Ord_match
+            {a}
+            v
+            {a -> a -> Ordering}
+            (\(v : (\a -> a -> a -> Bool) a)
+              (v : a -> a -> Ordering)
+              (v : a -> a -> Bool)
+              (v : a -> a -> Bool)
+              (v : a -> a -> Bool)
+              (v : a -> a -> Bool)
+              (v : a -> a -> a)
+              (v : a -> a -> a) ->
+               v)
+  !insert : all k v. Ord k -> k -> v -> RBTree k v -> RBTree k v
+    = /\k v ->
+        \(`$dOrd` : Ord k) (k : k) (v : v) ->
+          letrec
+            !go : RBTree k v -> RBTree k v
+              = \(ds : RBTree k v) ->
+                  RBTree_match
+                    {k}
+                    {v}
+                    ds
+                    {all dead. RBTree k v}
+                    (\(ds : Color)
+                      (h : integer)
+                      (l : RBTree k v)
+                      (k' : k)
+                      (v' : v)
+                      (r : RBTree k v) ->
+                       /\dead ->
+                         Color_match
+                           ds
+                           {all dead. RBTree k v}
+                           (/\dead ->
+                              Ordering_match
+                                (compare {k} `$dOrd` k k')
+                                {all dead. RBTree k v}
+                                (/\dead -> Branch {k} {v} B h l k' v r)
+                                (/\dead ->
+                                   balanceR
+                                     {k}
+                                     {v}
+                                     (Branch {k} {v} B h l k' v' (go r)))
+                                (/\dead ->
+                                   balanceL
+                                     {k}
+                                     {v}
+                                     (Branch {k} {v} B h (go l) k' v' r))
+                                {all dead. dead})
+                           (/\dead ->
+                              Ordering_match
+                                (compare {k} `$dOrd` k k')
+                                {all dead. RBTree k v}
+                                (/\dead -> Branch {k} {v} R h l k' v r)
+                                (/\dead -> Branch {k} {v} R h l k' v' (go r))
+                                (/\dead -> Branch {k} {v} R h (go l) k' v' r)
+                                {all dead. dead})
+                           {all dead. dead})
+                    (/\dead ->
+                       Branch {k} {v} R 1 (Leaf {k} {v}) k v (Leaf {k} {v}))
+                    {all dead. dead}
+          in
+          \(t : RBTree k v) ->
+            RBTree_match
+              {k}
+              {v}
+              (go t)
+              {all dead. RBTree k v}
+              (\(ds : Color)
+                (h : integer)
+                (l : RBTree k v)
+                (k : k)
+                (v : v)
+                (r : RBTree k v) ->
+                 /\dead -> Branch {k} {v} B h l k v r)
+              (/\dead -> Leaf {k} {v})
+              {all dead. dead}
+  !join : all k v. Ord k -> k -> v -> RBTree k v -> RBTree k v -> RBTree k v
+    = /\k v ->
+        \(`$dOrd` : Ord k) (k : k) (v : v) ->
+          letrec
+            !joinLT : RBTree k v -> RBTree k v -> integer -> RBTree k v
+              = \(t : RBTree k v) (t : RBTree k v) (h : integer) ->
+                  RBTree_match
+                    {k}
+                    {v}
+                    t
+                    {all dead. RBTree k v}
+                    (\(c : Color)
+                      (h : integer)
+                      (l : RBTree k v)
+                      (k' : k)
+                      (v' : v)
+                      (r : RBTree k v) ->
+                       /\dead ->
+                         ifThenElse
+                           {all dead. RBTree k v}
+                           (equalsInteger h h)
+                           (/\dead -> Branch {k} {v} R (addInteger 1 h) t k v t)
+                           (/\dead ->
+                              balanceL
+                                {k}
+                                {v}
+                                (Branch {k} {v} c h (joinLT t l h) k' v' r))
+                           {all dead. dead})
+                    (/\dead -> t)
+                    {all dead. dead}
+          in
+          letrec
+            !joinGT : RBTree k v -> RBTree k v -> integer -> RBTree k v
+              = \(t : RBTree k v) (t : RBTree k v) (h : integer) ->
+                  RBTree_match
+                    {k}
+                    {v}
+                    t
+                    {all dead. RBTree k v}
+                    (\(c : Color)
+                      (h : integer)
+                      (l : RBTree k v)
+                      (k' : k)
+                      (v' : v)
+                      (r : RBTree k v) ->
+                       /\dead ->
+                         ifThenElse
+                           {all dead. RBTree k v}
+                           (equalsInteger h h)
+                           (/\dead -> Branch {k} {v} R (addInteger 1 h) t k v t)
+                           (/\dead ->
+                              balanceR
+                                {k}
+                                {v}
+                                (Branch {k} {v} c h l k' v' (joinGT r t h)))
+                           {all dead. dead})
+                    (/\dead -> t)
+                    {all dead. dead}
+          in
+          \(eta : RBTree k v) (eta : RBTree k v) ->
+            RBTree_match
+              {k}
+              {v}
+              eta
+              {all dead. RBTree k v}
+              (\(ipv : Color)
+                (ipv : integer)
+                (ipv : RBTree k v)
+                (ipv : k)
+                (ipv : v)
+                (ipv : RBTree k v) ->
+                 /\dead ->
+                   RBTree_match
+                     {k}
+                     {v}
+                     eta
+                     {all dead. RBTree k v}
+                     (\(ipv : Color)
+                       (ipv : integer)
+                       (ipv : RBTree k v)
+                       (ipv : k)
+                       (ipv : v)
+                       (ipv : RBTree k v) ->
+                        /\dead ->
+                          Ordering_match
+                            (ifThenElse
+                               {all dead. Ordering}
+                               (equalsInteger ipv ipv)
+                               (/\dead -> EQ)
+                               (/\dead ->
+                                  ifThenElse
+                                    {all dead. Ordering}
+                                    (lessThanEqualsInteger ipv ipv)
+                                    (/\dead -> LT)
+                                    (/\dead -> GT)
+                                    {all dead. dead})
+                               {all dead. dead})
+                            {all dead. RBTree k v}
+                            (/\dead ->
+                               Branch {k} {v} B (addInteger 1 ipv) eta k v eta)
+                            (/\dead ->
+                               RBTree_match
+                                 {k}
+                                 {v}
+                                 (joinGT eta eta ipv)
+                                 {all dead. RBTree k v}
+                                 (\(ds : Color)
+                                   (h : integer)
+                                   (l : RBTree k v)
+                                   (k : k)
+                                   (v : v)
+                                   (r : RBTree k v) ->
+                                    /\dead -> Branch {k} {v} B h l k v r)
+                                 (/\dead -> Leaf {k} {v})
+                                 {all dead. dead})
+                            (/\dead ->
+                               RBTree_match
+                                 {k}
+                                 {v}
+                                 (joinLT eta eta ipv)
+                                 {all dead. RBTree k v}
+                                 (\(ds : Color)
+                                   (h : integer)
+                                   (l : RBTree k v)
+                                   (k : k)
+                                   (v : v)
+                                   (r : RBTree k v) ->
+                                    /\dead -> Branch {k} {v} B h l k v r)
+                                 (/\dead -> Leaf {k} {v})
+                                 {all dead. dead})
+                            {all dead. dead})
+                     (/\dead -> insert {k} {v} `$dOrd` k v eta)
+                     {all dead. dead})
+              (/\dead -> insert {k} {v} `$dOrd` k v eta)
+              {all dead. dead}
+  !biFoldr :
+     all k a b c.
+       Ord k -> (k -> These a b -> c -> c) -> c -> RBTree k a -> RBTree k b -> c
+    = /\k a b c ->
+        \(`$dOrd` : Ord k) (f : k -> These a b -> c -> c) ->
+          letrec
+            !go : c -> RBTree k a -> RBTree k b -> c
+              = \(acc : c) (l : RBTree k a) (ds : RBTree k b) ->
+                  RBTree_match
+                    {k}
+                    {b}
+                    ds
+                    {all dead. c}
+                    (\(ipv : Color)
+                      (ipv : integer)
+                      (ipv : RBTree k b)
+                      (ipv : k)
+                      (ipv : b)
+                      (ipv : RBTree k b) ->
+                       /\dead ->
+                         RBTree_match
+                           {k}
+                           {a}
+                           l
+                           {all dead. c}
+                           (\(ds : Color)
+                             (ds : integer)
+                             (l : RBTree k a)
+                             (k : k) ->
+                              letrec
+                                !go :
+                                   RBTree k b ->
+                                   Tuple3 (RBTree k b) (Maybe b) (RBTree k b)
+                                  = \(ds : RBTree k b) ->
+                                      RBTree_match
+                                        {k}
+                                        {b}
+                                        ds
+                                        {all dead.
+                                           Tuple3
+                                             (RBTree k b)
+                                             (Maybe b)
+                                             (RBTree k b)}
+                                        (\(ds : Color)
+                                          (ds : integer)
+                                          (l : RBTree k b)
+                                          (k : k)
+                                          (v : b)
+                                          (r : RBTree k b) ->
+                                           /\dead ->
+                                             Ordering_match
+                                               (compare {k} `$dOrd` k k)
+                                               {all dead.
+                                                  Tuple3
+                                                    (RBTree k b)
+                                                    (Maybe b)
+                                                    (RBTree k b)}
+                                               (/\dead ->
+                                                  Tuple3
+                                                    {RBTree k b}
+                                                    {Maybe b}
+                                                    {RBTree k b}
+                                                    (RBTree_match
+                                                       {k}
+                                                       {b}
+                                                       l
+                                                       {all dead. RBTree k b}
+                                                       (\(ds : Color)
+                                                         (h : integer)
+                                                         (l : RBTree k b)
+                                                         (k : k)
+                                                         (v : b)
+                                                         (r : RBTree k b) ->
+                                                          /\dead ->
+                                                            Branch
+                                                              {k}
+                                                              {b}
+                                                              B
+                                                              h
+                                                              l
+                                                              k
+                                                              v
+                                                              r)
+                                                       (/\dead -> Leaf {k} {b})
+                                                       {all dead. dead})
+                                                    (Just {b} v)
+                                                    (RBTree_match
+                                                       {k}
+                                                       {b}
+                                                       r
+                                                       {all dead. RBTree k b}
+                                                       (\(ds : Color)
+                                                         (h : integer)
+                                                         (l : RBTree k b)
+                                                         (k : k)
+                                                         (v : b)
+                                                         (r : RBTree k b) ->
+                                                          /\dead ->
+                                                            Branch
+                                                              {k}
+                                                              {b}
+                                                              B
+                                                              h
+                                                              l
+                                                              k
+                                                              v
+                                                              r)
+                                                       (/\dead -> Leaf {k} {b})
+                                                       {all dead. dead}))
+                                               (/\dead ->
+                                                  Tuple3_match
+                                                    {RBTree k b}
+                                                    {Maybe b}
+                                                    {RBTree k b}
+                                                    (go r)
+                                                    {Tuple3
+                                                       (RBTree k b)
+                                                       (Maybe b)
+                                                       (RBTree k b)}
+                                                    (\(ipv : RBTree k b)
+                                                      (ipv : Maybe b)
+                                                      (ipv : RBTree k b) ->
+                                                       Tuple3
+                                                         {RBTree k b}
+                                                         {Maybe b}
+                                                         {RBTree k b}
+                                                         (join
+                                                            {k}
+                                                            {b}
+                                                            `$dOrd`
+                                                            k
+                                                            v
+                                                            (RBTree_match
+                                                               {k}
+                                                               {b}
+                                                               l
+                                                               {all dead.
+                                                                  RBTree k b}
+                                                               (\(ds : Color)
+                                                                 (h : integer)
+                                                                 (l :
+                                                                    RBTree k b)
+                                                                 (k : k)
+                                                                 (v : b)
+                                                                 (r :
+                                                                    RBTree
+                                                                      k
+                                                                      b) ->
+                                                                  /\dead ->
+                                                                    Branch
+                                                                      {k}
+                                                                      {b}
+                                                                      B
+                                                                      h
+                                                                      l
+                                                                      k
+                                                                      v
+                                                                      r)
+                                                               (/\dead ->
+                                                                  Leaf {k} {b})
+                                                               {all dead. dead})
+                                                            ipv)
+                                                         ipv
+                                                         ipv))
+                                               (/\dead ->
+                                                  Tuple3_match
+                                                    {RBTree k b}
+                                                    {Maybe b}
+                                                    {RBTree k b}
+                                                    (go l)
+                                                    {Tuple3
+                                                       (RBTree k b)
+                                                       (Maybe b)
+                                                       (RBTree k b)}
+                                                    (\(ipv : RBTree k b)
+                                                      (ipv : Maybe b)
+                                                      (ipv : RBTree k b) ->
+                                                       Tuple3
+                                                         {RBTree k b}
+                                                         {Maybe b}
+                                                         {RBTree k b}
+                                                         ipv
+                                                         ipv
+                                                         (join
+                                                            {k}
+                                                            {b}
+                                                            `$dOrd`
+                                                            k
+                                                            v
+                                                            ipv
+                                                            (RBTree_match
+                                                               {k}
+                                                               {b}
+                                                               r
+                                                               {all dead.
+                                                                  RBTree k b}
+                                                               (\(ds : Color)
+                                                                 (h : integer)
+                                                                 (l :
+                                                                    RBTree k b)
+                                                                 (k : k)
+                                                                 (v : b)
+                                                                 (r :
+                                                                    RBTree
+                                                                      k
+                                                                      b) ->
+                                                                  /\dead ->
+                                                                    Branch
+                                                                      {k}
+                                                                      {b}
+                                                                      B
+                                                                      h
+                                                                      l
+                                                                      k
+                                                                      v
+                                                                      r)
+                                                               (/\dead ->
+                                                                  Leaf {k} {b})
+                                                               {all dead.
+                                                                  dead}))))
+                                               {all dead. dead})
+                                        (/\dead ->
+                                           Tuple3
+                                             {RBTree k b}
+                                             {Maybe b}
+                                             {RBTree k b}
+                                             (Leaf {k} {b})
+                                             (Nothing {b})
+                                             (Leaf {k} {b}))
+                                        {all dead. dead}
+                              in
+                              \(v : a) (r : RBTree k a) ->
+                                /\dead ->
+                                  Tuple3_match
+                                    {RBTree k b}
+                                    {Maybe b}
+                                    {RBTree k b}
+                                    (go ds)
+                                    {c}
+                                    (\(ipv : RBTree k b)
+                                      (ipv : Maybe b)
+                                      (ipv : RBTree k b) ->
+                                       go
+                                         (f
+                                            k
+                                            (Maybe_match
+                                               {b}
+                                               ipv
+                                               {all dead. These a b}
+                                               (\(b : b) ->
+                                                  /\dead -> These {a} {b} v b)
+                                               (/\dead -> This {a} {b} v)
+                                               {all dead. dead})
+                                            (go acc r ipv))
+                                         l
+                                         ipv))
+                           (/\dead ->
+                              foldr
+                                {k}
+                                {b}
+                                {c}
+                                (\(k : k) (v : b) -> f k (That {a} {b} v))
+                                acc
+                                ds)
+                           {all dead. dead})
+                    (/\dead ->
+                       foldr
+                         {k}
+                         {a}
+                         {c}
+                         (\(k : k) (v : a) -> f k (This {a} {b} v))
+                         acc
+                         l)
+                    {all dead. dead}
+          in
+          \(z : c) (eta : RBTree k a) (eta : RBTree k b) -> go z eta eta
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
 in
@@ -10,42 +844,14 @@ letrec
     Nil : List a
     Cons : a -> List a -> List a
 in
-letrec
-  !go : List (Tuple2 bytestring integer) -> Bool
-    = \(ds : List (Tuple2 bytestring integer)) ->
-        List_match
-          {Tuple2 bytestring integer}
-          ds
-          {all dead. Bool}
-          (/\dead -> True)
-          (\(ds : Tuple2 bytestring integer)
-            (xs : List (Tuple2 bytestring integer)) ->
-             /\dead ->
-               Tuple2_match
-                 {bytestring}
-                 {integer}
-                 ds
-                 {Bool}
-                 (\(ds : bytestring) (x : integer) ->
-                    ifThenElse
-                      {all dead. Bool}
-                      (equalsInteger 0 x)
-                      (/\dead -> go xs)
-                      (/\dead -> False)
-                      {all dead. dead}))
-          {all dead. dead}
-in
 let
-  !equalsByteString : bytestring -> bytestring -> Bool
-    = \(x : bytestring) (y : bytestring) ->
-        ifThenElse {Bool} (equalsByteString x y) True False
-  !unordEqWith :
+  !eqMapWith :
      all k v.
        (\a -> a -> a -> Bool) k ->
        (v -> Bool) ->
        (v -> v -> Bool) ->
-       List (Tuple2 k v) ->
-       List (Tuple2 k v) ->
+       RBTree k v ->
+       RBTree k v ->
        Bool
     = /\k v ->
         \(`$dEq` : (\a -> a -> a -> Bool) k)
@@ -307,226 +1113,132 @@ let
                              {all dead. dead})
                       {all dead. dead}
             in
-            \(eta : List (Tuple2 k v)) (eta : List (Tuple2 k v)) ->
+            \(ds : RBTree k v) (ds : RBTree k v) ->
+              let
+                !eta : List (Tuple2 k v)
+                  = foldr
+                      {k}
+                      {v}
+                      {List (Tuple2 k v)}
+                      (\(k : k) (v : v) (ms : List (Tuple2 k v)) ->
+                         Cons {Tuple2 k v} (Tuple2 {k} {v} k v) ms)
+                      (Nil {Tuple2 k v})
+                      ds
+                !eta : List (Tuple2 k v)
+                  = foldr
+                      {k}
+                      {v}
+                      {List (Tuple2 k v)}
+                      (\(k : k) (v : v) (ms : List (Tuple2 k v)) ->
+                         Cons {Tuple2 k v} (Tuple2 {k} {v} k v) ms)
+                      (Nil {Tuple2 k v})
+                      ds
+              in
               goBoth eta eta
 in
-\(l :
-    (\k v -> List (Tuple2 k v))
-      bytestring
-      ((\k v -> List (Tuple2 k v)) bytestring integer)) ->
-  letrec
-    !go :
-       List
-         (Tuple2 bytestring ((\k v -> List (Tuple2 k v)) bytestring integer)) ->
-       Bool
-      = \(ds :
-            List
-              (Tuple2
-                 bytestring
-                 ((\k v -> List (Tuple2 k v)) bytestring integer))) ->
-          List_match
-            {Tuple2 bytestring ((\k v -> List (Tuple2 k v)) bytestring integer)}
+\(x : RBTree bytestring (RBTree bytestring integer))
+ (y : RBTree bytestring (RBTree bytestring integer)) ->
+  Bool_match
+    (biFoldr
+       {bytestring}
+       {RBTree bytestring integer}
+       {RBTree bytestring integer}
+       {Bool}
+       (CConsOrd
+          {bytestring}
+          equalsByteString
+          `$fOrdBuiltinByteString_$ccompare`
+          lessThanByteString
+          lessThanEqualsByteString
+          greaterThanByteString
+          greaterThanEqualsByteString
+          `$fOrdBuiltinByteString_$cmax`
+          `$fOrdBuiltinByteString_$cmin`)
+       (\(ds : bytestring)
+         (ds : These (RBTree bytestring integer) (RBTree bytestring integer))
+         (ds : Bool) ->
+          Bool_match
             ds
             {all dead. Bool}
-            (/\dead -> True)
-            (\(x :
-                 Tuple2
-                   bytestring
-                   ((\k v -> List (Tuple2 k v)) bytestring integer))
-              (xs :
-                 List
-                   (Tuple2
-                      bytestring
-                      ((\k v -> List (Tuple2 k v)) bytestring integer))) ->
-               /\dead ->
-                 Tuple2_match
-                   {bytestring}
-                   {(\k v -> List (Tuple2 k v)) bytestring integer}
-                   x
-                   {Bool}
-                   (\(currency : bytestring) ->
-                      letrec
-                        !go :
-                           List (Tuple2 bytestring integer) -> Bool
-                          = \(ds : List (Tuple2 bytestring integer)) ->
-                              List_match
-                                {Tuple2 bytestring integer}
-                                ds
-                                {all dead. Bool}
-                                (/\dead -> go xs)
-                                (\(x : Tuple2 bytestring integer)
-                                  (xs : List (Tuple2 bytestring integer)) ->
-                                   /\dead ->
-                                     Tuple2_match
-                                       {bytestring}
-                                       {integer}
-                                       x
-                                       {Bool}
-                                       (\(token : bytestring) ->
-                                          letrec
-                                            !go :
-                                               List
-                                                 (Tuple2 bytestring integer) ->
-                                               integer
-                                              = \(ds :
-                                                    List
-                                                      (Tuple2
-                                                         bytestring
-                                                         integer)) ->
-                                                  List_match
-                                                    {Tuple2 bytestring integer}
-                                                    ds
-                                                    {all dead. integer}
-                                                    (/\dead -> 0)
-                                                    (\(ds :
-                                                         Tuple2
-                                                           bytestring
-                                                           integer)
-                                                      (xs' :
-                                                         List
-                                                           (Tuple2
-                                                              bytestring
-                                                              integer)) ->
-                                                       /\dead ->
-                                                         Tuple2_match
-                                                           {bytestring}
-                                                           {integer}
-                                                           ds
-                                                           {integer}
-                                                           (\(c' : bytestring)
-                                                             (i : integer) ->
-                                                              ifThenElse
-                                                                {all dead.
-                                                                   integer}
-                                                                (equalsByteString
-                                                                   c'
-                                                                   token)
-                                                                (/\dead -> i)
-                                                                (/\dead ->
-                                                                   go xs')
-                                                                {all dead.
-                                                                   dead}))
-                                                    {all dead. dead}
-                                          in
-                                          letrec
-                                            !go :
-                                               List
-                                                 (Tuple2
-                                                    bytestring
-                                                    ((\k v -> List (Tuple2 k v))
-                                                       bytestring
-                                                       integer)) ->
-                                               integer
-                                              = \(ds :
-                                                    List
-                                                      (Tuple2
-                                                         bytestring
-                                                         ((\k v ->
-                                                             List (Tuple2 k v))
-                                                            bytestring
-                                                            integer))) ->
-                                                  List_match
-                                                    {Tuple2
-                                                       bytestring
-                                                       ((\k v ->
-                                                           List (Tuple2 k v))
-                                                          bytestring
-                                                          integer)}
-                                                    ds
-                                                    {all dead. integer}
-                                                    (/\dead -> 0)
-                                                    (\(ds :
-                                                         Tuple2
-                                                           bytestring
-                                                           ((\k v ->
-                                                               List
-                                                                 (Tuple2 k v))
-                                                              bytestring
-                                                              integer))
-                                                      (xs' :
-                                                         List
-                                                           (Tuple2
-                                                              bytestring
-                                                              ((\k v ->
-                                                                  List
-                                                                    (Tuple2
-                                                                       k
-                                                                       v))
-                                                                 bytestring
-                                                                 integer))) ->
-                                                       /\dead ->
-                                                         Tuple2_match
-                                                           {bytestring}
-                                                           {(\k v ->
-                                                               List
-                                                                 (Tuple2 k v))
-                                                              bytestring
-                                                              integer}
-                                                           ds
-                                                           {integer}
-                                                           (\(c' : bytestring)
-                                                             (i :
-                                                                (\k v ->
-                                                                   List
-                                                                     (Tuple2
-                                                                        k
-                                                                        v))
-                                                                  bytestring
-                                                                  integer) ->
-                                                              ifThenElse
-                                                                {all dead.
-                                                                   integer}
-                                                                (equalsByteString
-                                                                   c'
-                                                                   currency)
-                                                                (/\dead -> go i)
-                                                                (/\dead ->
-                                                                   go xs')
-                                                                {all dead.
-                                                                   dead}))
-                                                    {all dead. dead}
-                                          in
-                                          \(n : integer) ->
-                                            ifThenElse
-                                              {all dead. Bool}
-                                              (lessThanInteger (go l) n)
-                                              (/\dead -> False)
-                                              (/\dead -> go xs)
-                                              {all dead. dead}))
-                                {all dead. dead}
-                      in
-                      \(tokens :
-                          (\k v -> List (Tuple2 k v)) bytestring integer) ->
-                        go tokens))
-            {all dead. dead}
-  in
-  \(r :
-      (\k v -> List (Tuple2 k v))
-        bytestring
-        ((\k v -> List (Tuple2 k v)) bytestring integer)) ->
-    Bool_match
-      (go r)
-      {all dead. Bool}
-      (/\dead ->
-         Bool_match
-           (unordEqWith
-              {bytestring}
-              {(\k v -> List (Tuple2 k v)) bytestring integer}
-              equalsByteString
-              (\(ds : (\k v -> List (Tuple2 k v)) bytestring integer) -> go ds)
-              (unordEqWith
+            (/\dead ->
+               These_match
+                 {RBTree bytestring integer}
+                 {RBTree bytestring integer}
+                 ds
+                 {Bool}
+                 (\(b : RBTree bytestring integer) ->
+                    biFoldr
+                      {bytestring}
+                      {integer}
+                      {integer}
+                      {Bool}
+                      `$fOrdTokenName`
+                      fInner
+                      True
+                      (Leaf {bytestring} {integer})
+                      b)
+                 (\(a : RBTree bytestring integer)
+                   (b : RBTree bytestring integer) ->
+                    biFoldr
+                      {bytestring}
+                      {integer}
+                      {integer}
+                      {Bool}
+                      `$fOrdTokenName`
+                      fInner
+                      True
+                      a
+                      b)
+                 (\(a : RBTree bytestring integer) ->
+                    biFoldr
+                      {bytestring}
+                      {integer}
+                      {integer}
+                      {Bool}
+                      `$fOrdTokenName`
+                      fInner
+                      True
+                      a
+                      (Leaf {bytestring} {integer})))
+            (/\dead -> False)
+            {all dead. dead})
+       True
+       y
+       x)
+    {all dead. Bool}
+    (/\dead ->
+       Bool_match
+         (eqMapWith
+            {bytestring}
+            {RBTree bytestring integer}
+            equalsByteString
+            (\(eta : RBTree bytestring integer) ->
+               foldr
                  {bytestring}
                  {integer}
-                 equalsByteString
-                 (\(v : integer) ->
-                    ifThenElse {Bool} (equalsInteger 0 v) True False)
-                 (\(x : integer) (y : integer) ->
-                    ifThenElse {Bool} (equalsInteger x y) True False))
-              l
-              r)
-           {all dead. Bool}
-           (/\dead -> False)
-           (/\dead -> True)
-           {all dead. dead})
-      (/\dead -> False)
-      {all dead. dead}
+                 {Bool}
+                 (\(k : bytestring) (v : integer) (acc : Bool) ->
+                    ifThenElse
+                      {all dead. Bool}
+                      (equalsInteger 0 v)
+                      (/\dead -> acc)
+                      (/\dead -> False)
+                      {all dead. dead})
+                 True
+                 eta)
+            (eqMapWith
+               {bytestring}
+               {integer}
+               equalsByteString
+               (\(v : integer) ->
+                  ifThenElse {Bool} (equalsInteger 0 v) True False)
+               (\(x : integer) (y : integer) ->
+                  ifThenElse {Bool} (equalsInteger x y) True False))
+            y
+            x)
+         {all dead. Bool}
+         (/\dead -> False)
+         (/\dead -> True)
+         {all dead. dead})
+    (/\dead -> False)
+    {all dead. dead}

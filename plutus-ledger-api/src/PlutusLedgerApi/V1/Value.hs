@@ -14,6 +14,7 @@
 {-# OPTIONS_GHC -fno-spec-constr #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
+{-# LANGUAGE LambdaCase         #-}
 -- We need -fexpose-all-unfoldings to compile the Marlowe validator
 -- with GHC 9.6.2.
 -- TODO. Look into this more closely: see PLT-7976.
@@ -67,8 +68,8 @@ import Data.Text.Encoding qualified as E
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (LedgerBytes), encodeByteString)
 import PlutusTx qualified
-import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Lift (makeLift)
+import PlutusTx.Map qualified as Map
 import PlutusTx.Ord qualified as Ord
 import PlutusTx.Prelude as PlutusTx hiding (sort)
 import PlutusTx.Show qualified as PlutusTx
@@ -281,28 +282,16 @@ assetClassValue (AssetClass (c, t)) i = singleton c t i
 assetClassValueOf :: Value -> AssetClass -> Integer
 assetClassValueOf v (AssetClass (c, t)) = valueOf v c t
 
-{-# INLINABLE unionVal #-}
--- | Combine two 'Value' maps
-unionVal :: Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (These Integer Integer))
-unionVal (Value l) (Value r) =
-    let
-        combined = Map.union l r
-        unThese k = case k of
-            This a    -> This <$> a
-            That b    -> That <$> b
-            These a b -> Map.union a b
-    in unThese <$> combined
-
 {-# INLINABLE unionWith #-}
 unionWith :: (Integer -> Integer -> Integer) -> Value -> Value -> Value
-unionWith f ls rs =
+unionWith f (Value ls) (Value rs) =
     let
-        combined = unionVal ls rs
-        unThese k' = case k' of
-            This a    -> f a 0
-            That b    -> f 0 b
-            These a b -> f a b
-    in Value (fmap (fmap unThese) combined)
+        unThese = \case
+            This a    -> fmap (\v -> f v 0) a
+            That b    -> fmap (\v -> f 0 v) b
+            These a b -> Map.unionWith f a b
+        combined = Map.unionThese unThese ls rs
+    in Value combined
 
 {-# INLINABLE flattenValue #-}
 -- | Convert a 'Value' to a simple list, keeping only the non-zero amounts.
@@ -326,35 +315,47 @@ flattenValue v = goOuter [] (Map.toList $ getValue v)
 isZero :: Value -> Bool
 isZero (Value xs) = Map.all (Map.all (\i -> 0 == i)) xs
 
+{-# INLINABLE checkBinRel #-}
+-- | Check whether a binary relation holds for all value pairs of two 'Value' maps,
+-- supplying 0 where a key is only present in one of them.
+checkBinRel :: (Integer -> Integer -> Bool) -> Value -> Value -> Bool
+checkBinRel f (Value l) (Value r) =
+    let
+        fInner :: TokenName -> These Integer Integer -> Bool -> Bool
+        fInner _ _ False = False
+        fInner _ v True = case v of
+            This a    -> f a 0
+            That b    -> f 0 b
+            These a b -> f a b
+        fOuter :: CurrencySymbol -> These (Map.Map TokenName Integer) (Map.Map TokenName Integer) -> Bool -> Bool
+        fOuter _ _ False = False
+        fOuter _ inner True = case inner of
+            This a    -> Map.biFoldr fInner True a Map.empty
+            That b    -> Map.biFoldr fInner True Map.empty b
+            These a b -> Map.biFoldr fInner True a b
+    in Map.biFoldr fOuter True l r
+
 {-# INLINABLE geq #-}
 -- | Check whether one 'Value' is greater than or equal to another. See 'Value' for an explanation
 -- of how operations on 'Value's work.
 geq :: Value -> Value -> Bool
-geq l (Value r) =
-  -- This is more efficient than first flattening the second `Value` with `flattenValue`, because
-  -- the latter traverses the second `Value` and creates the entire intermediate result.
-  all
-    ( \(currency, tokens) ->
-        all (\(token, n) -> valueOf l currency token >= n) (Map.toList tokens)
-    )
-    (Map.toList r)
+geq = flip leq
 
 {-# INLINABLE leq #-}
 -- | Check whether one 'Value' is less than or equal to another. See 'Value' for an explanation of
 -- how operations on 'Value's work.
 leq :: Value -> Value -> Bool
-leq = flip geq
+leq = checkBinRel (<=)
 
 {-# INLINABLE gt #-}
 -- | Check whether one 'Value' is strictly greater than another.
--- This is *not* a pointwise operation. @gt l r@ means @geq l r && not (eq l r)@.
 gt :: Value -> Value -> Bool
-gt l r = geq l r && not (eq l r)
+gt = flip lt
 
 {-# INLINABLE lt #-}
 -- | Check whether one 'Value' is strictly less than another.
--- This is *not* a pointwise operation. @lt l r@ means @leq l r && not (eq l r)@.
 lt :: Value -> Value -> Bool
+-- can't be checkBinRel (<), consider 'empty < empty'
 lt l r = leq l r && not (eq l r)
 
 -- | Split a 'Value' into its positive and negative parts. The first element of
@@ -451,6 +452,8 @@ eqMapWith is0 eqV (Map.toList -> xs1) (Map.toList -> xs2) = unordEqWith is0 eqV 
 -- currency have multiple entries.
 eq :: Value -> Value -> Bool
 eq (Value currs1) (Value currs2) = eqMapWith (Map.all (0 ==)) (eqMapWith (0 ==) (==)) currs1 currs2
+-- This is faster sometimes, but not always. Maybe we can make it competitive?
+--eq = checkBinRel (==)
 
 newtype Lovelace = Lovelace { getLovelace :: Integer }
   deriving stock (Generic)
