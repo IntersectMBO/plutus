@@ -33,7 +33,7 @@ import           Language.Haskell.Interpreter (CompilationError (CompilationErro
                                                text)
 import qualified Language.Haskell.TH.Syntax   as TH
 import           Ledger.Ada                   (Ada)
-import           Ledger.Types                 (Tx, TxId, Blockchain, PubKey)
+import           Ledger.Types                 (Blockchain, PubKey, Tx, TxId)
 import           Servant.API                  ((:<|>), (:>), Get, JSON, Post, ReqBody)
 import           Text.Read                    (readMaybe)
 import           Wallet.Emulator.Types        (EmulatorEvent, Wallet)
