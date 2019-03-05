@@ -7,6 +7,7 @@ open import Data.Nat
 open import Data.Fin
 
 open import Builtin.Constant.Type
+open import Builtin
 open import Raw
 \end{code}
 
@@ -23,6 +24,7 @@ data ScopedTy : ℕ → Set where
   ƛ   : ∀{n} → ScopedKind → ScopedTy (suc n) → ScopedTy n
   _·_ : ∀{n} → ScopedTy n → ScopedTy n → ScopedTy n
   con : ∀{n} → TyCon → ScopedTy n
+  size : ∀{n} → ℕ → ScopedTy n
 
 data Weirdℕ : Set where
   Z : Weirdℕ
@@ -33,8 +35,9 @@ data WeirdFin : Weirdℕ → Set where
   Z : ∀{n} → WeirdFin (S n)
   S : ∀{n} → WeirdFin n → WeirdFin (S n)
   T : ∀{n} → WeirdFin n → WeirdFin (T n)
+  
 ∥_∥ : Weirdℕ → ℕ
-∥ Z ∥   = zero
+∥ Z   ∥ = zero
 ∥ S n ∥ = ∥ n ∥
 ∥ T n ∥ = suc ∥ n ∥
 
@@ -62,6 +65,7 @@ data ScopedTm : Weirdℕ → Set where
   _·_  : ∀{n} → ScopedTm n → ScopedTm n → ScopedTm n
   con  : ∀{n} → SizedTermCon → ScopedTm n
   error : ∀{n} → ScopedTy ∥ n ∥ → ScopedTm n
+  builtin : ∀{n} → Builtin → ScopedTm n
 
 -- should just use ordinary kind for everything
 deBruijnifyK : RawKind → ScopedKind
@@ -97,7 +101,9 @@ deBruijnifyTy g (A · B) = do
   A ← deBruijnifyTy g A
   B ← deBruijnifyTy g B
   return (A · B)
-deBruijnifyTy g (con b) = just (con b)
+deBruijnifyTy g (con b)     = just (con b)
+deBruijnifyTy g (size n)    = just (size n)
+
 data WeirdVec (X : Set) : Weirdℕ → Set where
   nil : WeirdVec X Z
   consS : ∀{n} → X → WeirdVec X n → WeirdVec X (S n)
@@ -144,3 +150,4 @@ deBruijnifyTm g (L ·⋆ A) = do
   return (L ·⋆ A)
 deBruijnifyTm g (con t) = map con (checkSize t)
 deBruijnifyTm g (error A) = map error (deBruijnifyTy ∥ g ∥Vec A)
+deBruijnifyTm g (builtin b) = just (builtin b) 

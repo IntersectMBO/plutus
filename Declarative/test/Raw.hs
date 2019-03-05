@@ -23,6 +23,7 @@ data RType = RTyVar T.Text
            | RTyLambda T.Text RKind RType
            | RTyApp RType RType
            | RTyCon TypeBuiltin
+           | RTySize Integer
            deriving Show
 
 data RConstant = RConInt Integer Integer
@@ -38,6 +39,7 @@ data RTerm = RVar T.Text
            | RApp RTerm RTerm
            | RCon RConstant
            | RError RType
+           | RBuiltin BuiltinName
   deriving Show
 
 
@@ -60,7 +62,7 @@ convT (TyLam _ x _K _A)    =
   RTyLambda (nameString $ unTyName x) (convK _K) (convT _A)
 convT (TyApp _ _A _B)      = RTyApp (convT _A) (convT _B)
 convT (TyBuiltin _ b)      = RTyCon b
-convT (TyInt _ n)          = undefined
+convT (TyInt _ n)          = RTySize (toInteger n)
 convT (TyIFix _ _ _)       = undefined
 
 convC :: Constant a -> RConstant
@@ -75,8 +77,9 @@ conv (TyAbs _ x _K t)  = RTLambda (nameString $ unTyName x) (convK _K) (conv t)
 conv (TyInst _ t _A)   = RTApp (conv t) (convT _A)
 conv (LamAbs _ x _A t) = RLambda (nameString x) (convT _A) (conv t)
 conv (Apply _ t u)    = RApp (conv t) (conv u)
-conv (Builtin _ b)    = undefined
+conv (Builtin _ (BuiltinName _ b)) = RBuiltin b
+conv (Builtin _ (DynBuiltinName _ b)) = undefined
 conv (Constant _ c)   = RCon (convC c)
 conv (Unwrap _ _)     = undefined
 conv (IWrap _ _ _ _)  = undefined
-conv (Error _ _)      = undefined
+conv (Error _ _A)      = RError (convT _A)

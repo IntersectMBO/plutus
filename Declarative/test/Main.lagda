@@ -184,7 +184,7 @@ main = do
   -- the overflow is a parse error
   t ← fmap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/integerOverflow.plc")
   putStrLn "integerOverflow.plc:"
-  putStrLn (showTerm t)
+--  putStrLn (showTerm t)
   t ← fmap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/addInteger.plc")
   putStrLn "addInteger.plc:"
   putStrLn (showTerm t)

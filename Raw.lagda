@@ -4,8 +4,10 @@ module Raw where
 
 \begin{code}
 open import Agda.Builtin.String
+open import Data.Nat
 
 open import Builtin.Constant.Type
+open import Builtin
 \end{code}
 
 The raw un-scope-checked and un-type-checked syntax
@@ -24,6 +26,7 @@ data RawTy : Set where
   ƛ   : String → RawKind → RawTy → RawTy
   _·_ : RawTy → RawTy → RawTy
   con : TyCon → RawTy
+  size : ℕ → RawTy
 
 open import Data.Nat
 open import Data.Integer
@@ -34,18 +37,20 @@ data RawTermCon : Set where
   size : ℕ → RawTermCon
   string : String → RawTermCon
 
+
 data RawTm : Set where
-  `     : String → RawTm
-  Λ     : String → RawKind → RawTm → RawTm
-  _·⋆_  : RawTm → RawTy → RawTm
-  ƛ     : String → RawTy → RawTm → RawTm
-  _·_   : RawTm → RawTm → RawTm
-  con   : RawTermCon → RawTm
-  error : RawTy → RawTm
+  `       : String → RawTm
+  Λ       : String → RawKind → RawTm → RawTm
+  _·⋆_    : RawTm → RawTy → RawTm
+  ƛ       : String → RawTy → RawTm → RawTm
+  _·_     : RawTm → RawTm → RawTm
+  con     : RawTermCon → RawTm
+  error   : RawTy → RawTm
+  builtin : Builtin → RawTm
 
 {-# FOREIGN GHC import Raw #-}
 {-# COMPILE GHC RawTermCon = data RConstant (RConInt | RConBS | RConSize | RConStr) #-}
-{-# COMPILE GHC RawTm = data RTerm (RVar | RTLambda  | RTApp | RLambda  | RApp | RCon | RError) #-}
-{-# COMPILE GHC RawTy = data RType (RTyVar | RTyFun | RTyPi | RTyLambda | RTyApp | RTyCon) #-}
+{-# COMPILE GHC RawTm = data RTerm (RVar | RTLambda  | RTApp | RLambda  | RApp | RCon | RError | RBuiltin) #-}
+{-# COMPILE GHC RawTy = data RType (RTyVar | RTyFun | RTyPi | RTyLambda | RTyApp | RTyCon | RTySize) #-}
 {-# COMPILE GHC RawKind = data RKind (RKiStar | RKiFun | RKiSize) #-}
 \end{code}
