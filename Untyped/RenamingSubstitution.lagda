@@ -18,7 +18,7 @@ ext : ∀{m n} → Ren m n → Ren (suc m) (suc n)
 ext ρ zero = zero
 ext ρ (suc x) = suc (ρ x)
 
-ren : ∀{m n} → Ren m n → m ⊢ → n ⊢
+ren     : ∀{m n} → Ren m n → m ⊢ → n ⊢
 renList : ∀{m n} → Ren m n → List (m ⊢) → List (n ⊢)
 
 ren ρ (` x)        = ` (ρ x)
@@ -38,7 +38,7 @@ exts : ∀{m n} → Sub m n → Sub (suc m) (suc n)
 exts ρ zero = ` zero
 exts ρ (suc x) = ren suc (ρ x)
 
-sub : ∀{m n} → Sub m n → m ⊢ → n ⊢
+sub     : ∀{m n} → Sub m n → m ⊢ → n ⊢
 subList : ∀{m n} → Sub m n → List (m ⊢) → List (n ⊢)
 
 sub σ (` x)        = σ x
@@ -50,4 +50,11 @@ sub σ error        = error
 
 subList σ []       = []
 subList σ (t ∷ ts) = sub σ t ∷ subList σ ts
+
+extend : ∀{m n} → Sub m n → n ⊢ → Sub (suc m) n
+extend σ t zero    = t
+extend σ t (suc x) = σ x
+
+_[_] : ∀{n} → suc n ⊢ → n ⊢ → n ⊢
+t [ u ] = sub (extend ` u) t
 \end{code}
