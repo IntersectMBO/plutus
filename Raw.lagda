@@ -15,6 +15,7 @@ The raw un-scope-checked and un-type-checked syntax
 data RawKind : Set where
   *   : RawKind
   _⇒_ : RawKind → RawKind → RawKind
+  #   : RawKind
 
 data RawTy : Set where
   `   : String → RawTy
@@ -46,5 +47,5 @@ data RawTm : Set where
 {-# COMPILE GHC RawTermCon = data RConstant (RConInt | RConBS | RConSize | RConStr) #-}
 {-# COMPILE GHC RawTm = data RTerm (RVar | RTLambda  | RTApp | RLambda  | RApp | RCon | RError) #-}
 {-# COMPILE GHC RawTy = data RType (RTyVar | RTyFun | RTyPi | RTyLambda | RTyApp | RTyCon) #-}
-{-# COMPILE GHC RawKind = data RKind (RKiStar | RKiFun) #-}
+{-# COMPILE GHC RawKind = data RKind (RKiStar | RKiFun | RKiSize) #-}
 \end{code}

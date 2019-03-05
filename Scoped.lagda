@@ -14,6 +14,7 @@ open import Raw
 data ScopedKind : Set where
   *   : ScopedKind
   _⇒_ : ScopedKind → ScopedKind → ScopedKind
+  #   : ScopedKind
 
 data ScopedTy : ℕ → Set where
   `   : ∀{n} → Fin n → ScopedTy n
@@ -66,7 +67,7 @@ data ScopedTm : Weirdℕ → Set where
 deBruijnifyK : RawKind → ScopedKind
 deBruijnifyK * = *
 deBruijnifyK (K ⇒ J) = deBruijnifyK K ⇒ deBruijnifyK J
-
+deBruijnifyK # = #
 
 open import Data.Vec hiding (_>>=_; map)
 open import Data.Maybe

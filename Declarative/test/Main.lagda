@@ -173,14 +173,19 @@ main : IO ⊤
 main = do
   -- plutus/language-plutus-core/test/data
   t ← fmap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/integerLiteral.plc")
+  putStrLn "integerLiteral.plc:"
   putStrLn (showTerm t)
   t ← fmap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/negation.plc")
+  putStrLn "negation.plc:"
   putStrLn (showTerm t)
   t ← fmap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/stringLiteral.plc")
+  putStrLn "stringLiteral.plc:"
   putStrLn (showTerm t)
   -- the overflow is a parse error
   t ← fmap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/integerOverflow.plc")
+  putStrLn "integerOverflow.plc:"
   putStrLn (showTerm t)
   t ← fmap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/addInteger.plc")
+  putStrLn "addInteger.plc:"
   putStrLn (showTerm t)
 \end{code}

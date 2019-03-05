@@ -13,6 +13,7 @@ import           Data.ByteString.Lazy       as BSL
 import Data.Either
 
 data RKind = RKiStar
+           | RKiSize
            | RKiFun RKind RKind
            deriving Show
 
@@ -48,7 +49,7 @@ convP (Program _ _ t) = conv t
 convK :: Kind a -> RKind
 convK (Type _) = RKiStar
 convK (KindArrow _ _K _J) = RKiFun (convK _K) (convK _J)
-convK (Size _) = undefined
+convK (Size _) = RKiSize
 
 convT :: Type TyName a -> RType
 convT (TyVar _ x)          = RTyVar (nameString $ unTyName x)
