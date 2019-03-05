@@ -17,6 +17,7 @@ import Node.FS (FS)
 import Node.FS.Sync as FS
 import Playground.API (CompilationResult, EvaluationResult)
 import Test.Unit (TestSuite, Test, failure, success, suite, test)
+import Type.Proxy (Proxy(..))
 
 all :: forall eff. TestSuite (exception :: EXCEPTION, fs :: FS, random :: RANDOM | eff)
 all =
@@ -27,18 +28,26 @@ jsonHandling :: forall eff. TestSuite (exception :: EXCEPTION, fs :: FS, random 
 jsonHandling = do
     suite "Json handling" do
       test "Decode a CompilationResult." do
-        compilation1 :: Either String (Either (Array CompilationError) CompilationResult) <- decodeFile "test/compilation_response1.json"
-        assertRight compilation1
+        assertDecodesTo
+          (Proxy :: Proxy (Either (Array CompilationError) CompilationResult))
+          "test/compilation_response1.json"
       test "Decode an EvaluationResult." do
-        evaluation1 :: Either String EvaluationResult <- decodeFile "test/evaluation_response1.json"
-        assertRight evaluation1
+        assertDecodesTo
+          (Proxy :: Proxy EvaluationResult)
+          "test/evaluation_response1.json"
       test "Decode a CompilationError." do
-        error1 :: Either String (Array CompilationError) <- decodeFile "test/evaluation_error1.json"
-        assertRight error1
+        assertDecodesTo
+          (Proxy :: Proxy (Array CompilationError))
+          "test/evaluation_error1.json"
 
 assertRight :: forall e a. Either String a -> Test e
 assertRight (Left err) = failure err
 assertRight (Right _) = success
+
+assertDecodesTo :: forall eff a. Generic a => Proxy a -> String -> Test (fs :: FS, exception :: EXCEPTION | eff)
+assertDecodesTo proxy filename = do
+  result :: Either String a <- decodeFile filename
+  assertRight result
 
 decodeFile :: forall m a eff.
   MonadEff (fs :: FS, exception :: EXCEPTION | eff) m
