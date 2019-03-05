@@ -7,26 +7,38 @@ import Auth (AuthStatus)
 import Control.Comonad (class Comonad, extract)
 import Control.Extend (class Extend, extend)
 import DOM.HTML.Event.Types (DragEvent)
+import Data.Argonaut.Core (Json)
+import Data.Argonaut.Core as Json
+import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Either (Either)
 import Data.Either.Nested (Either3)
 import Data.Functor.Coproduct.Nested (Coproduct3)
 import Data.Generic (class Generic, gShow)
-import Data.Lens (Lens', Prism', Lens, _2, over, prism', traversed, view)
+import Data.Int as Int
+import Data.Lens (Lens, Lens', Prism', _2, over, prism', to, traversed, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
+import Data.Newtype (unwrap)
+import Data.RawJson (RawJson(..))
+import Data.StrMap as M
 import Data.Symbol (SProxy(..))
+import Data.Traversable (sequence, traverse)
 import Data.Tuple (Tuple(..))
+import Data.Tuple.Nested ((/\))
 import Gist (Gist)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.ECharts (EChartsMessage, EChartsQuery)
 import Language.Haskell.Interpreter (CompilationError)
 import Ledger.Ada.TH (Ada, _Ada)
 import Ledger.Types (Tx)
+import Matryoshka (class Corecursive, class Recursive, Algebra, cata)
 import Network.RemoteData (RemoteData)
-import Playground.API (CompilationResult, EvaluationResult, FunctionSchema, SimulatorWallet, SimpleArgumentSchema(UnknownArgument, SimpleObjectArgument, SimpleStringArgument, SimpleIntArgument), _FunctionSchema, _SimulatorWallet)
+import Playground.API (CompilationResult, EvaluationResult, FunctionSchema, SimpleArgumentSchema(..), SimulatorWallet, _FunctionSchema, _SimulatorWallet)
+import Playground.API as API
 import Servant.PureScript.Affjax (AjaxError)
+import Validation (class Validation, ValidationError(Unsupported, Required), WithPath, addPath, noPath, validate)
 import Wallet.Emulator.Types (Wallet, _Wallet)
 
 _simulatorWalletWallet :: Lens' SimulatorWallet Wallet
@@ -90,44 +102,32 @@ _functionName = prop (SProxy :: SProxy "functionName")
 _blocks :: forall a b r. Lens { blocks :: a | r} { blocks :: b | r} a b
 _blocks = prop (SProxy :: SProxy "blocks")
 
-------------------------------------------------------------
-
-data ValidationError
-  = Required String
-  | Unsupported String
-
-derive instance eqValidationError :: Eq ValidationError
-
-instance showValidationError :: Show ValidationError where
-  show (Required path) = path <> " is required."
-  show (Unsupported path) = path <> " is unsupported."
-
-class Validation ctx a where
-  validate :: ctx -> a -> Array ValidationError
-
-instance actionValidation :: Validation Unit Action where
-  validate _ (Wait _) = []
-  validate _ (Action action) =
-    Array.concat $ Array.mapWithIndex (validate <<< show) args
+instance actionValidation :: Validation Action where
+  validate (Wait _) = []
+  validate (Action action) =
+    Array.concat $ Array.mapWithIndex (\i v -> addPath (show i) <$> validate v) args
     where
       args :: Array SimpleArgument
       args = view (_functionSchema <<< _FunctionSchema <<< _argumentSchema) action
 
-instance simpleArgumentValidation :: Validation String SimpleArgument where
-  validate path Unknowable = [ Unsupported path ]
-  validate path (SimpleInt Nothing) = [ Required path ]
-  validate path (SimpleInt (Just _)) = []
-  validate path (SimpleString Nothing) = [ Required path ]
-  validate path (SimpleString (Just _)) = []
-  validate path (SimpleObject subArguments) =
-    Array.concat $
-      (\(Tuple name subArgument) -> addPath path <$> validate name subArgument)
-      <$>
-      subArguments
+------------------------------------------------------------
 
-addPath :: String -> ValidationError -> ValidationError
-addPath path (Required subpath) = Required $ path <> "." <> subpath
-addPath path (Unsupported subpath) = Unsupported $ path <> "." <> subpath
+-- | TODO: It should always be true that either toExpression returns a
+-- `Just value` OR validate returns a non-empty array.
+-- This suggests they should be the same function, returning either a group of error messages, or a valid expression.
+toExpression :: Action -> Maybe API.Expression
+toExpression (Wait wait) = Just $ API.Wait wait
+toExpression (Action action) = do
+  let wallet = view _simulatorWalletWallet action.simulatorWallet
+  arguments <- jsonArguments
+  pure $ API.Action { wallet, function, arguments }
+  where
+    function = view (_functionSchema <<< to unwrap <<< _functionName) action
+    argumentSchema = view (_functionSchema <<< to unwrap <<< _argumentSchema) action
+
+    jsonArguments = do
+      jsonValues <- traverse simpleArgumentToJson argumentSchema
+      pure $ RawJson <<< Json.stringify <$> jsonValues
 
 ------------------------------------------------------------
 
@@ -165,19 +165,25 @@ data ActionEvent
 data FormEvent a
   = SetIntField (Maybe Int) a
   | SetStringField String a
+  | AddSubField a
   | SetSubField Int (FormEvent a)
+  | RemoveSubField Int a
 
 derive instance functorFormEvent :: Functor FormEvent
 
 instance extendFormEvent :: Extend FormEvent where
   extend f event@(SetIntField n _) = SetIntField n $ f event
   extend f event@(SetStringField s _) = SetStringField s $ f event
+  extend f event@(AddSubField _) = AddSubField $ f event
   extend f event@(SetSubField n _) = SetSubField n $ extend f event
+  extend f event@(RemoveSubField n _) = RemoveSubField n $ f event
 
 instance comonadFormEvent :: Comonad FormEvent where
   extract (SetIntField _ a) = a
   extract (SetStringField _ a) = a
+  extract (AddSubField a) = a
   extract (SetSubField _ e) = extract e
+  extract (RemoveSubField _ e) = e
 
 ------------------------------------------------------------
 
@@ -270,8 +276,10 @@ instance showView :: Show View where
 data SimpleArgument
   = SimpleInt (Maybe Int)
   | SimpleString (Maybe String)
-  | SimpleObject (Array (Tuple String SimpleArgument))
-  | Unknowable
+  | SimpleArray SimpleArgumentSchema (Array SimpleArgument)
+  | SimpleTuple (Tuple SimpleArgument SimpleArgument)
+  | SimpleObject SimpleArgumentSchema (Array (Tuple String SimpleArgument))
+  | Unknowable { context :: String, description :: String }
 
 derive instance genericSimpleArgument :: Generic SimpleArgument
 
@@ -279,11 +287,91 @@ instance showSimpleArgument :: Show SimpleArgument where
   show = gShow
 
 toValue :: SimpleArgumentSchema -> SimpleArgument
-toValue SimpleIntArgument = SimpleInt Nothing
-toValue SimpleStringArgument = SimpleString Nothing
-toValue (SimpleObjectArgument fields) = SimpleObject (over (traversed <<< _2) toValue fields)
-toValue (UnknownArgument _) = Unknowable
+toValue SimpleIntSchema = SimpleInt Nothing
+toValue SimpleStringSchema = SimpleString Nothing
+toValue (SimpleArraySchema field) = SimpleArray field []
+toValue (SimpleTupleSchema (fieldA /\ fieldB)) = SimpleTuple (toValue fieldA /\ toValue fieldB)
+toValue schema@(SimpleObjectSchema fields) = SimpleObject schema (over (traversed <<< _2) toValue fields)
+toValue (UnknownSchema context description) = Unknowable { context, description }
 
 -- | This should just be `map` but we can't put an orphan instance on FunctionSchema. :-(
 toValueLevel :: FunctionSchema SimpleArgumentSchema -> FunctionSchema SimpleArgument
 toValueLevel = over (_Newtype <<< _argumentSchema <<< traversed) toValue
+
+------------------------------------------------------------
+
+-- | This type serves as a functorised version of `SimpleArgument` so
+-- we can do some recursive processing of the data without cluttering
+-- the transformation with the iteration.
+data SimpleArgumentF a
+  = SimpleIntF (Maybe Int)
+  | SimpleStringF (Maybe String)
+  | SimpleTupleF (Tuple a a)
+  | SimpleArrayF SimpleArgumentSchema (Array a)
+  | SimpleObjectF SimpleArgumentSchema (Array (Tuple String a))
+  | UnknowableF { context :: String, description :: String }
+
+instance functorSimpleArgumentF :: Functor SimpleArgumentF where
+  map f (SimpleIntF x) = SimpleIntF x
+  map f (SimpleStringF x) = SimpleStringF x
+  map f (SimpleTupleF (Tuple x y)) = SimpleTupleF (Tuple (f x) (f y))
+  map f (SimpleArrayF schema xs) = SimpleArrayF schema (map f xs)
+  map f (SimpleObjectF schema xs) = SimpleObjectF schema (map (map f) xs)
+  map f (UnknowableF x) = UnknowableF x
+
+derive instance eqSimpleArgumentF :: Eq a => Eq (SimpleArgumentF a)
+
+instance recursiveSimpleArgument :: Recursive SimpleArgument SimpleArgumentF where
+  project (SimpleInt x) = SimpleIntF x
+  project (SimpleString x) = SimpleStringF x
+  project (SimpleTuple x) = SimpleTupleF x
+  project (SimpleArray schema xs) = SimpleArrayF schema xs
+  project (SimpleObject schema xs) = SimpleObjectF schema xs
+  project (Unknowable x) = UnknowableF x
+
+instance corecursiveSimpleArgument :: Corecursive SimpleArgument SimpleArgumentF where
+  embed (SimpleIntF x) = SimpleInt x
+  embed (SimpleStringF x) = SimpleString x
+  embed (SimpleTupleF xs) = SimpleTuple xs
+  embed (SimpleArrayF schema xs) = SimpleArray schema xs
+  embed (SimpleObjectF schema xs) = SimpleObject schema xs
+  embed (UnknowableF x) = Unknowable x
+
+------------------------------------------------------------
+
+instance validationSimpleArgument :: Validation SimpleArgument where
+  validate = cata algebra
+    where
+      algebra :: Algebra SimpleArgumentF (Array (WithPath ValidationError))
+      algebra (SimpleIntF (Just _)) = []
+      algebra (SimpleIntF Nothing) = [ noPath Required ]
+
+      algebra (SimpleStringF (Just _)) = []
+      algebra (SimpleStringF Nothing) = [ noPath Required ]
+
+      algebra (SimpleTupleF (Tuple xs ys)) =
+        Array.concat [ addPath "_1" <$> xs
+                     , addPath "_2" <$> ys
+                     ]
+
+      algebra (SimpleArrayF schema xs) =
+        Array.concat $ mapWithIndex (\i values-> addPath (show i) <$> values) xs
+
+      algebra (SimpleObjectF schema xs) =
+        Array.concat $ map (\(Tuple name values) -> addPath name <$> values) xs
+
+      algebra (UnknowableF _) = [ noPath Unsupported ]
+
+simpleArgumentToJson :: SimpleArgument -> Maybe Json
+simpleArgumentToJson = cata algebra
+  where
+    algebra :: Algebra SimpleArgumentF (Maybe Json)
+    algebra (SimpleIntF (Just str)) = Just $ Json.fromNumber $ Int.toNumber str
+    algebra (SimpleIntF Nothing) = Nothing
+    algebra (SimpleStringF (Just str)) = Just $ Json.fromString str
+    algebra (SimpleStringF Nothing) = Nothing
+    algebra (SimpleTupleF (Just fieldA /\ Just fieldB)) = Just $ Json.fromArray [ fieldA, fieldB ]
+    algebra (SimpleTupleF _) = Nothing
+    algebra (SimpleArrayF _ fields) = Json.fromArray <$> sequence fields
+    algebra (SimpleObjectF _ fields) = (Json.fromObject <<< M.fromFoldable) <$> sequence (map sequence fields)
+    algebra (UnknowableF _) = Nothing

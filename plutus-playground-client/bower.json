@@ -31,7 +31,8 @@
     "purescript-js-date": "^4.0.0",
     "purescript-argonaut-codecs": "3.2.0",
     "purescript-undefinable": "3.0.0",
-    "purescript-aff": "4.1.1"
+    "purescript-aff": "4.1.1",
+    "purescript-matryoshka": "0.3.0"
   },
   "devDependencies": {
     "purescript-psci-support": "3.0.0",

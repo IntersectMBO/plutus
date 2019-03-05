@@ -6,7 +6,6 @@
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE RecordWildCards            #-}
@@ -14,7 +13,7 @@
 
 module Playground.API where
 
-import           Control.Lens                 (over, _2)
+import           Control.Lens                 (view)
 import           Control.Monad.Trans.Class    (lift)
 import           Control.Monad.Trans.State    (StateT, evalStateT, get, put)
 import           Control.Newtype.Generics     (Newtype, pack, unpack)
@@ -23,8 +22,10 @@ import           Data.Bifunctor               (second)
 import qualified Data.HashMap.Strict.InsOrd   as HM
 import           Data.Maybe                   (fromMaybe)
 import           Data.Swagger                 (ParamSchema (ParamSchema), Referenced (Inline, Ref), Schema (Schema),
-                                               SwaggerType (SwaggerInteger, SwaggerObject, SwaggerString))
+                                               Schema (Schema), SwaggerItems (SwaggerItemsArray, SwaggerItemsObject),
+                                               SwaggerType (SwaggerArray, SwaggerInteger, SwaggerObject, SwaggerString))
 import qualified Data.Swagger                 as Swagger
+import           Data.Swagger.Lens            (items, maxItems, minItems, properties)
 import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
 import           GHC.Generics                 (Generic)
@@ -103,32 +104,72 @@ data FunctionSchema a = FunctionSchema
   , argumentSchema :: [a]
   } deriving (Eq, Show, Generic, ToJSON, FromJSON, Functor)
 
+-- | We could ship the Swagger Schema to the frontend and work with
+-- that directly. But it's verbose and pretty complicated, and
+-- supports expressions we have no intention of supporting. So, we
+-- convert from Swagger to a much simpler schema type.
+--
+-- But because the Swagger schema is more expressive, there will be
+-- cases where we can't convert. We don't give up. We don't just
+-- return an error. Instead we transfer a simplified version of, "We
+-- don't know what this Swagger schema represents." This way if
+-- there's a nested structure we don't understand, we can tell the
+-- frontend in detail. We can say, "We understood the whole object
+-- except for this particular field." Then there's some feedback for
+-- the user to change that field's type. Much more useful than
+-- rejecting the entire description.
 data SimpleArgumentSchema
-  = SimpleIntArgument
-  | SimpleStringArgument
-  | SimpleObjectArgument [(Text, SimpleArgumentSchema)]
-  | UnknownArgument Text
-  deriving (Show, Eq, Generic, ToJSON)
+    = SimpleIntSchema
+    | SimpleStringSchema
+    | SimpleArraySchema SimpleArgumentSchema
+    | SimpleTupleSchema (SimpleArgumentSchema, SimpleArgumentSchema)
+    | SimpleObjectSchema [(Text, SimpleArgumentSchema)]
+    | UnknownSchema Text
+                      Text
+    deriving (Show, Eq, Generic, ToJSON)
 
 toSimpleArgumentSchema :: Schema -> SimpleArgumentSchema
 toSimpleArgumentSchema schema@Schema {..} =
-  case _schemaParamSchema of
-    ParamSchema {..} ->
-      case _paramSchemaType of
-        SwaggerInteger -> SimpleIntArgument
-        SwaggerString -> SimpleStringArgument
-        SwaggerObject ->
-          SimpleObjectArgument $
-          over
-            _2
-            (\case
-               Inline v -> toSimpleArgumentSchema v
-               Ref _ -> unknown) <$>
-          HM.toList _schemaProperties
-        _ -> unknown
+    case _schemaParamSchema of
+        ParamSchema {..} ->
+            case _paramSchemaType of
+                SwaggerInteger -> SimpleIntSchema
+                SwaggerString -> SimpleStringSchema
+                SwaggerArray ->
+                    case ( view minItems _schemaParamSchema
+                         , view maxItems _schemaParamSchema
+                         , view items schema) of
+                        (Nothing, Nothing, Just (SwaggerItemsObject x)) ->
+                            SimpleArraySchema $ extractReference x
+                        (Just 2, Just 2, Just (SwaggerItemsArray [x, y])) ->
+                            SimpleTupleSchema
+                                (extractReference x, extractReference y)
+                        _ ->
+                            UnknownSchema "While handling array." $
+                            Text.pack $ show schema
+                SwaggerObject ->
+                    SimpleObjectSchema $
+                    HM.toList $ extractReference <$> view properties schema
+                _ ->
+                    UnknownSchema "Unrecognised type." $
+                    Text.pack $ show schema
   where
-    unknown = UnknownArgument $ Text.pack $ show schema
+    extractReference :: Referenced Schema -> SimpleArgumentSchema
+    extractReference (Inline v) = toSimpleArgumentSchema v
+    extractReference (Ref _) =
+        UnknownSchema "Cannot handle Ref types, online Inline ones." $
+        Text.pack $ show schema
 
+isSupportedByFrontend :: SimpleArgumentSchema -> Bool
+isSupportedByFrontend SimpleIntSchema = True
+isSupportedByFrontend SimpleStringSchema = True
+isSupportedByFrontend (SimpleObjectSchema subSchema) =
+    all isSupportedByFrontend (snd <$> subSchema)
+isSupportedByFrontend (SimpleArraySchema subSchema) =
+    isSupportedByFrontend subSchema
+isSupportedByFrontend (SimpleTupleSchema (subSchemaX, subSchemaY)) =
+    all isSupportedByFrontend [subSchemaX, subSchemaY]
+isSupportedByFrontend (UnknownSchema _ _) = False
 ------------------------------------------------------------
 
 data PlaygroundError

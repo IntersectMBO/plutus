@@ -2,7 +2,7 @@ module Action
        ( simulationPane
        ) where
 
-import Bootstrap (badge, badgePrimary, btn, btnDanger, btnInfo, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, col4_, col_, nbsp, formControl, formGroup_, invalidFeedback_, pullRight, row, row_, validFeedback_)
+import Bootstrap (badge, badgePrimary, btn, btnDanger, btnInfo, btnLink, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, col10_, col2_, col4_, col_, formControl, formGroup_, invalidFeedback_, nbsp, pullRight, row, row_, validFeedback_)
 import Control.Monad.Aff.Class (class MonadAff)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
@@ -14,7 +14,7 @@ import Data.Tuple.Nested ((/\))
 import Halogen (HTML)
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
-import Halogen.HTML (ClassName(ClassName), br_, button, div, div_, form, h2_, h3_, input, label, p_, small_, text)
+import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, form, h2_, h3_, input, label, p_, small_, text)
 import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (input_, onClick, onValueChange)
 import Halogen.HTML.Events as HE
@@ -23,9 +23,10 @@ import Halogen.Query as HQ
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
 import Playground.API (EvaluationResult, SimulatorWallet, _EvaluationResult, _Fn, _FunctionSchema)
-import Prelude (map, show, unit, ($), (+), (/=), (<$>), (<<<), (<>))
+import Prelude (map, pure, show, ($), (+), (/=), (<$>), (<<<), (<>))
 import Servant.PureScript.Affjax (AjaxError)
-import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, FormEvent(SetSubField, SetStringField, SetIntField), Query(EvaluateActions, ModifyActions, PopulateAction), SimpleArgument(Unknowable, SimpleObject, SimpleString, SimpleInt), Simulation, ValidationError, _argumentSchema, _functionName, _simulatorWalletWallet, _resultBlockchain, validate)
+import Types (Action(..), ActionEvent(..), Blockchain, ChildQuery, ChildSlot, FormEvent(..), Query(..), SimpleArgument(..), Simulation, _argumentSchema, _functionName, _resultBlockchain, _simulatorWalletWallet)
+import Validation (ValidationError, WithPath, addPath, validate)
 import Wallet (walletIdPane, walletsPane)
 
 simulationPane ::
@@ -132,7 +133,7 @@ actionArgumentField context _ arg@(SimpleInt n) =
       , placeholder "Int"
       , onValueChange $ (Just <<< HQ.action <<< SetIntField <<< Int.fromString)
       ]
-    , validationFeedback $ validate context arg
+    , validationFeedback (addPath context <$> validate arg)
   ]
 actionArgumentField context _ arg@(SimpleString s) =
   div_ [
@@ -144,13 +145,45 @@ actionArgumentField context _ arg@(SimpleString s) =
       , placeholder "String"
       , onValueChange $ HE.input SetStringField
       ]
-    , validationFeedback $ validate context arg
+    , validationFeedback (addPath context <$> validate arg)
   ]
-actionArgumentField context nested (SimpleObject subFields) =
+actionArgumentField context nested (SimpleTuple (subFieldA /\subFieldB)) =
+  row_
+    [ col_ [ SetSubField 1 <$> actionArgumentField "_1" true subFieldA ]
+    , col_ [ SetSubField 2 <$> actionArgumentField "_2" true subFieldB ]
+    ]
+actionArgumentField context nested (SimpleArray schema subFields) =
+    div_ [(if nested
+           then Keyed.div [ classes [  ClassName "nested" ] ]
+           else Keyed.div_) (mapWithIndex subFormContainer subFields)
+         , button
+             [ classes [ btn, btnInfo ]
+             , onClick $ input_ AddSubField
+             ]
+             [ icon Plus ]
+         ]
+  where
+    subFormContainer i field =
+      show i
+      /\
+      formGroup_ [
+        row_
+          [ col10_
+              [ SetSubField i <$> actionArgumentField (show i) true field ]
+          , col2_
+            [ button
+              [ classes [ btn, btnLink ]
+              , onClick $ input_ (RemoveSubField i)
+              ]
+              [ icon Trash ]
+            ]
+          ]
+        ]
+
+actionArgumentField context nested (SimpleObject _ subFields) =
     (if nested
        then div [ classes [  ClassName "nested" ] ]
-       else div_)
-        (mapWithIndex (\i field -> map (SetSubField i) (subForm field)) subFields)
+       else div_) $ mapWithIndex (\i field -> map (SetSubField i) (subForm field)) subFields
   where
     subForm (name /\ arg) =
       (formGroup_
@@ -158,15 +191,16 @@ actionArgumentField context nested (SimpleObject subFields) =
          , actionArgumentField name true arg
          ]
       )
-actionArgumentField _ _ Unknowable =
-  div_ [ text "Unsupported."
+actionArgumentField _ _ (Unknowable { context, description }) =
+  div_ [ text $ "Unsupported: " <> context
+       , code_ [ text description ]
        ]
 
-validationFeedback :: forall p i. Array ValidationError -> HTML p i
+validationFeedback :: forall p i. Array (WithPath ValidationError) -> HTML p i
 validationFeedback [] =
   validFeedback_ [ nbsp ]
 validationFeedback errors =
-  invalidFeedback_ (text <<< show <$> errors)
+  invalidFeedback_ (div_ <<< pure <<< text <<< show <$> errors)
 
 addWaitActionPane :: forall p. Tuple String (HTML p Query)
 addWaitActionPane =
@@ -206,6 +240,6 @@ evaluateActionsPane evaluationResult actions =
     btnText _ true = text "Fix Errors"
     btnText _ _ = text "Evaluate"
 
-    validationErrors = Array.concat $ validate unit <$> actions
+    validationErrors = Array.concat $ validate <$> actions
 
     hasErrors = validationErrors /= []

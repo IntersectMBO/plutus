@@ -148,7 +148,7 @@ instance HasBridge MyBridge where
 
 myTypes :: [SumType 'Haskell]
 myTypes =
-    [ mkSumType (Proxy @SimpleArgumentSchema)
+    [ (equal <*> mkSumType) (Proxy @SimpleArgumentSchema)
     , mkSumType (Proxy @(FunctionSchema A))
     , mkSumType (Proxy @CompilationResult)
     , mkSumType (Proxy @Warning)
