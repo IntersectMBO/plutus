@@ -1,4 +1,4 @@
-module Declarative.test.AddInteger where
+module test.AddInteger where
 
 open import Type
 open import Declarative.Term

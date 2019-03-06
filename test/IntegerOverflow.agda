@@ -1,4 +1,4 @@
-module Declarative.test.IntegerOverflow where
+module test.IntegerOverflow where
 
 open import Type
 open import Declarative.Term

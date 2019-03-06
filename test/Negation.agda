@@ -1,4 +1,4 @@
-module Declarative.test.Negation where
+module test.Negation where
 
 open import Type
 open import Declarative.Term

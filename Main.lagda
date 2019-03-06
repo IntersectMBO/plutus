@@ -1,5 +1,5 @@
 \begin{code}
-module Declarative.test.Main where
+module Main where
 open import Agda.Builtin.IO
 open import Agda.Builtin.Unit
 open import Agda.Builtin.String
@@ -106,11 +106,11 @@ help {_} M (steps x (done n v)) = "it worked"
 help M (steps x out-of-gas) = "out of gas..."
 help M error = "something went wrong"
 
-open import Declarative.test.AddInteger
-open import Declarative.test.IntegerLiteral
-open import Declarative.test.IntegerOverflow -- can't be used
-open import Declarative.test.Negation -- TODO
-open import Declarative.test.StringLiteral
+open import test.AddInteger
+open import test.IntegerLiteral
+open import test.IntegerOverflow -- can't be used
+open import test.Negation -- TODO
+open import test.StringLiteral
 
 open Agda.Builtin.IO
 open import Data.String
@@ -145,9 +145,11 @@ main = do
 
 open import Raw
 open import Scoped
+open import Data.Maybe
 
 postulate
-  fmap : ∀{A B : Set} → (A → B) → IO A → IO B
+  imap : ∀{A B : Set} → (A → B) → IO A → IO B
+  mmap : ∀{A B : Set} → (A → B) → Maybe A → Maybe B
   Program : Set
   convP : Program → RawTm
   readFile : String → IO ByteString
@@ -160,32 +162,38 @@ postulate
 {-# FOREIGN GHC import Raw #-}
 {-# COMPILE GHC convP = convP #-}
 {-# FOREIGN GHC import qualified Data.ByteString.Lazy as BSL #-}
-{-# COMPILE GHC fmap = \_ _ -> fmap #-}
+{-# COMPILE GHC imap = \_ _ -> fmap #-}
 {-# FOREIGN GHC import Data.Either #-}
-{-# COMPILE GHC parse = fromRight undefined . parse #-}
+{-# COMPILE GHC parse = fromRight  (error "parse error") . parse #-}
 {-# FOREIGN GHC import Language.PlutusCore.Type #-}
 {-# COMPILE GHC Program = type Language.PlutusCore.Type.Program TyName Name Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC readFile = \ s -> BSL.readFile (T.unpack s) #-}
 {-# COMPILE GHC showTerm = T.pack . show #-}
 open import Function
+open import Untyped.Term
+open import Scoped
 
 main : IO ⊤
 main = do
   -- plutus/language-plutus-core/test/data
-  t ← fmap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/integerLiteral.plc")
+  t ← imap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/integerLiteral.plc")
   putStrLn "integerLiteral.plc:"
   putStrLn (showTerm t)
-  t ← fmap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/negation.plc")
+  t ← imap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/negation.plc")
   putStrLn "negation.plc:"
   putStrLn (showTerm t)
-  t ← fmap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/stringLiteral.plc")
+  t ← imap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/stringLiteral.plc")
   putStrLn "stringLiteral.plc:"
   putStrLn (showTerm t)
   -- the overflow is a parse error
-  t ← fmap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/integerOverflow.plc")
+  t ← imap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/integerOverflow.plc")
   putStrLn "integerOverflow.plc:"
 --  putStrLn (showTerm t)
-  t ← fmap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/addInteger.plc")
+  t ← imap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/addInteger.plc")
   putStrLn "addInteger.plc:"
+  putStrLn (showTerm t)
+  t ← imap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/normalize-types/addIntegerCorrect.plc")
+  t' ← imap (mmap erase⊢ ∘ deBruijnifyTm nil ∘ convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/normalize-types/addIntegerCorrect.plc")
+  putStrLn "addIntegerCorrect.plc:"
   putStrLn (showTerm t)
 \end{code}

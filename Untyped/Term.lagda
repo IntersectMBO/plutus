@@ -73,4 +73,40 @@ open import Data.Product renaming (_,_ to _,,_)
 
 eraseTel {As = []}     _          = []
 eraseTel {As = x ∷ As} (t ,, tel) = erase t ∷ eraseTel tel
+
+-- conversion for scoped to untyped
+
+open import Scoped
+
+eraseℕ : Weirdℕ → ℕ
+eraseℕ Z     = zero
+eraseℕ (S n) = suc (eraseℕ n)
+eraseℕ (T n) = eraseℕ n
+
+eraseFin : ∀{n} → WeirdFin n → Fin (eraseℕ n)
+eraseFin Z     = zero
+eraseFin (S x) = suc (eraseFin x)
+eraseFin (T x) = eraseFin x
+
+eraseCon : SizedTermCon → TermCon
+eraseCon (integer s i x) = integer i
+eraseCon (bytestring s b x) = bytestring b
+eraseCon (size x) = size
+eraseCon (string x) = size -- this is wrong
+
+erase⊢ : ∀{n} → ScopedTm n → eraseℕ n ⊢
+erase⊢ (` x)    = ` (eraseFin x)
+erase⊢ (Λ K t)  = erase⊢ t
+erase⊢ (t ·⋆ A) = erase⊢ t
+erase⊢ (ƛ A t)  = ƛ (erase⊢ t)
+
+-- could add a special case for all builtins
+erase⊢ (builtin addInteger · u · u') = 
+  builtin addInteger (erase⊢ u ∷ erase⊢ u' ∷ []) 
+
+erase⊢ (t · u) = erase⊢ t · erase⊢ u
+erase⊢ (con c) = con (eraseCon c)
+erase⊢ (error A) = error
+erase⊢ (builtin b) = builtin b []
+
 \end{code}

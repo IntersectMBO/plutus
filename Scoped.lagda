@@ -151,3 +151,4 @@ deBruijnifyTm g (L ·⋆ A) = do
 deBruijnifyTm g (con t) = map con (checkSize t)
 deBruijnifyTm g (error A) = map error (deBruijnifyTy ∥ g ∥Vec A)
 deBruijnifyTm g (builtin b) = just (builtin b) 
+

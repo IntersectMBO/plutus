@@ -1,4 +1,4 @@
-module Declarative.test.IntegerLiteral where
+module test.IntegerLiteral where
 
 open import Type
 open import Declarative.Term
