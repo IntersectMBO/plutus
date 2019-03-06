@@ -44,6 +44,9 @@ data Query a
   | ScrollTo { row :: Int, column :: Int } a
   -- Marlowe
   | UpdatePerson Person a
+  | ApplyTrasaction a
+  | Simplify a
+  | NextBlock a
 
 ------------------------------------------------------------
 
@@ -126,7 +129,7 @@ _signed = prop (SProxy :: SProxy "signed")
 
 type MarloweState =
   { people :: Map PersonId Person
-  , state :: Array SimulationState
+  , state :: SimulationState
   }
 
 _people :: forall s a. Lens' {people :: a | s} a
@@ -135,10 +138,10 @@ _people = prop (SProxy :: SProxy "people")
 _state :: forall s a. Lens' {state :: a | s} a
 _state = prop (SProxy :: SProxy "state")
 
-data SimulationState
-  = Commited Int Person Value
-  | Chosen Int Person Value
-  | Oracle Value Block
+data SimulationState = SimulationState Int
+
+instance showSimulationState :: Show SimulationState where
+  show (SimulationState v) = show v
 
 data Value = Value Int
 

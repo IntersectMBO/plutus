@@ -97,7 +97,7 @@ initialState =
   , runResult: NotAsked
   , authStatus: NotAsked
   , createGistResult: NotAsked
-  , marloweState: { people: examplePeople, state: [] }
+  , marloweState: { people: examplePeople, state: SimulationState 0 }
   }
 
 ------------------------------------------------------------
@@ -145,6 +145,9 @@ toEvent (LoadScript script a) = Just $ (defaultEvent "LoadScript") { label = Jus
 toEvent (CompileProgram a) = Just $ defaultEvent "CompileProgram"
 toEvent (ScrollTo _ _) = Nothing
 toEvent (UpdatePerson _ _) = Nothing
+toEvent (ApplyTrasaction _) = Just $ defaultEvent "ApplyTransaction"
+toEvent (Simplify _) = Just $ defaultEvent "Simplify"
+toEvent (NextBlock _) = Just $ defaultEvent "NextBlock"
 
 saveBuffer :: forall eff. String -> Eff (localStorage :: LOCALSTORAGE | eff) Unit
 saveBuffer text = LocalStorage.setItem bufferLocalStorageKey text
@@ -221,6 +224,14 @@ eval (UpdatePerson person next) = do
   -- although I'm not sure from the design what are suggested and what are manual
   currentState <- use _marloweState
   assign (_marloweState <<< _people) $ Map.update (const <<< Just $ person) person.id currentState.people
+  pure next
+
+eval (ApplyTrasaction next) = pure next
+
+eval (Simplify next) = pure next
+
+eval (NextBlock next) = do
+  modifying (_marloweState <<< _state) (\(SimulationState block) -> SimulationState (block + 1))
   pure next
 
 ------------------------------------------------------------

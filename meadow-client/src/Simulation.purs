@@ -11,6 +11,7 @@ import Control.Alternative (map, (<|>))
 import Control.Monad.Aff.Class (class MonadAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
+import DOM.HTML.History (state)
 import Data.Array (concatMap, fromFoldable, mapWithIndex, updateAt)
 import Data.Array as Array
 import Data.Either (Either(..))
@@ -23,7 +24,7 @@ import Data.String as String
 import Gists (gistControls)
 import Halogen (HTML, action)
 import Halogen.Component (ParentHTML)
-import Halogen.HTML (ClassName(ClassName), b_, br_, button, code_, div, div_, h2_, h3_, input, pre_, slot', small, strong_, text)
+import Halogen.HTML (ClassName(ClassName), b_, br_, button, code_, col, colgroup, div, div_, h2_, h3_, input, pre_, slot', small, strong_, table_, td_, text, th_, tr)
 import Halogen.HTML.Events (input_, onChecked, onClick, onDragOver, onDrop, onValueChange)
 import Halogen.HTML.Events as Events
 import Halogen.HTML.Properties (InputType(..), class_, classes, disabled, placeholder, type_, value)
@@ -33,9 +34,9 @@ import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError
 import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Network.RemoteData (RemoteData(Success, Failure, Loading, NotAsked), isLoading)
-import Prelude (Unit, bind, discard, pure, show, unit, void, ($), (<$>), (<<<), (<>))
+import Prelude (Unit, bind, const, discard, pure, show, unit, void, ($), (<$>), (<<<), (<>))
 import StaticData as StaticData
-import Types (ChildQuery, ChildSlot, MarloweAction(..), MarloweEditorSlot(MarloweEditorSlot), Person, Query(ScrollTo, LoadScript, CompileProgram, HandleEditorMessage, HandleDropEvent, HandleDragEvent, UpdatePerson), State, _authStatus, _createGistResult, cpMarloweEditor, _marloweState, _people, _suggestedActions, _signed)
+import Types (ChildQuery, ChildSlot, MarloweAction(..), MarloweEditorSlot(MarloweEditorSlot), Person, Query(..), State, _authStatus, _createGistResult, _marloweState, _people, _signed, _suggestedActions, cpMarloweEditor)
 
 simulationPane :: forall m aff. MonadAff (AceEffects (localStorage :: LOCALSTORAGE | aff )) m =>
     State -> ParentHTML Query ChildQuery ChildSlot m
@@ -43,6 +44,7 @@ simulationPane state =
   div_
     [ row_ [ inputComposerPane state
            , transactionComposerPane state
+           , statePane state
            ]
     , demoScriptsPane
     , div
@@ -58,29 +60,12 @@ simulationPane state =
     , div_
         [ div [ class_ pullRight ]
             [ gistControls (view _authStatus state) (view _createGistResult state) ]
-        , div_
-            [ button
-                [ classes [ btn, btnClass ]
-                , onClick $ input_ CompileProgram
-                , disabled (isLoading state.runResult)
-                ]
-                [ btnText ]
-            ]
         ]
     , br_
     , runResult
     , errorList
     ]
   where
-    btnClass = case state.runResult of
-                 Success (Right _) -> btnSuccess
-                 Success (Left _) -> btnDanger
-                 Failure _ -> btnDanger
-                 Loading -> btnSecondary
-                 NotAsked -> btnPrimary
-    btnText = case state.runResult of
-                 Loading -> icon Spinner
-                 _ -> text "Compile"
     errorList = case state.runResult of
                   Success (Left errors) ->
                     listGroup_
@@ -259,7 +244,9 @@ transactionButtons = [ row_
                                 [ classes [btn, btnPrimary ] ]
                                 [ text "Simplify" ]
                             , button 
-                                [ classes [btn, btnPrimary ] ]
+                                [ classes [btn, btnPrimary ] 
+                                , onClick $ Just <<< HQ.action <<< const NextBlock
+                                ]
                                 [ text "Next Block" ]
                             ]
                         ]
@@ -278,12 +265,14 @@ signature person = col_ [ input [ type_ InputCheckbox
                         ]
 
 transactionComposerPerson :: forall p. Person -> Array (HTML p Query)
-transactionComposerPerson person = [ h3_ [ text ("Person " <> show person.id)]] <> map actionRow person.actions
+transactionComposerPerson person = [ h3_ [ text ("Person " <> show person.id)]] <> mapWithIndex (actionRow person) person.actions
 
-actionRow :: forall p. MarloweAction -> HTML p Query
-actionRow (Commit v i e) = row_
+actionRow :: forall p. Person -> Int -> MarloweAction -> HTML p Query
+actionRow person idx (Commit v i e) = row_
                             [ col_
-                                [ button [ class_ $ ClassName "composer-add-button" ]
+                                [ button [ class_ $ ClassName "composer-add-button"
+                                         , onClick <<< input_ <<< UpdatePerson $ demoteAction person idx
+                                         ]
                                          [ text "-" ]
                                 , text "Commit "
                                 , b_ [ text (show v) ]
@@ -293,9 +282,11 @@ actionRow (Commit v i e) = row_
                                 , b_ [ text (show e) ]
                                 ]
                             ]
-actionRow (Redeem v i) = row_
+actionRow person idx (Redeem v i) = row_
                             [ col_
-                                [ button [ class_ $ ClassName "composer-add-button" ]
+                                [ button [ class_ $ ClassName "composer-add-button"
+                                         , onClick <<< input_ <<< UpdatePerson $ demoteAction person idx
+                                         ]
                                          [ text "-" ]
                                 , text "Redeem " 
                                 , b_ [ text (show v) ]
@@ -303,9 +294,11 @@ actionRow (Redeem v i) = row_
                                 , b_ [ text (show i) ]
                                 ]
                             ]
-actionRow (Claim v i) = row_
+actionRow person idx (Claim v i) = row_
                             [ col_
-                                [ button [ class_ $ ClassName "composer-add-button" ]
+                                [ button [ class_ $ ClassName "composer-add-button"
+                                         , onClick <<< input_ <<< UpdatePerson $ demoteAction person idx
+                                         ]
                                          [ text "-" ]
                                 , text "Claim " 
                                 , b_ [ text (show v) ]
@@ -313,9 +306,11 @@ actionRow (Claim v i) = row_
                                 , b_ [ text (show i) ]
                                 ]
                             ]
-actionRow (Choose v i) = row_
+actionRow person idx (Choose v i) = row_
                             [ col_
-                                [ button [ class_ $ ClassName "composer-add-button" ]
+                                [ button [ class_ $ ClassName "composer-add-button" 
+                                         , onClick <<< input_ <<< UpdatePerson $ demoteAction person idx
+                                         ]
                                          [ text "-" ]
                                 , text "Choose value " 
                                 , b_ [ text (show v) ]
@@ -323,3 +318,45 @@ actionRow (Choose v i) = row_
                                 , b_ [ text (show i) ]
                                 ]
                             ]
+
+demoteAction :: Person -> Int -> Person
+demoteAction person idx = fromMaybe person $ do
+    act <- Array.index person.actions idx 
+    actions <- Array.deleteAt idx person.actions
+    let suggestedActions = Array.snoc person.suggestedActions act
+    pure $ person { actions = actions
+                  , suggestedActions = suggestedActions
+                  }           
+
+statePane :: forall p. State -> HTML p Query
+statePane state = div [ class_ $ ClassName "demos" ] 
+                        [ strong_ [ text "Current Block:" ]
+                        , text (show state.marloweState.state)
+                        , h2_ [ text "Transaction Composer" ]
+                        , stateTable state
+                        ]
+
+stateTable :: forall p. State -> HTML p Query
+stateTable state = div [ class_ $ ClassName "full-width-card" ]
+                       [ card_ [ cardBody_ [ row_ [ stateRow state ]
+                                           , row_ [ stateRow state ]
+                                           , row_ [ stateRow state ]
+                                           ]
+                               ]
+                       ]
+
+stateRow :: forall p. State -> HTML p Query
+stateRow state = table_ [ colgroup []
+                                   [ col []
+                                   , col []
+                                   , col []
+                                   ]
+                        , tr [] [ th_ [ text "Commit"
+                                      , text "Person"
+                                      , text "Value"
+                                      ] ]
+                        , tr [] [ td_ [ text "1"
+                                      , text "2"
+                                      , text "50 ADA"
+                                      ]]
+                        ]

@@ -40,8 +40,7 @@ editorPane ::
   => State -> ParentHTML Query ChildQuery ChildSlot m
 editorPane state =
   div_
-    [ demoScriptsPane
-    , div
+    [ div
         [ onDragOver $ Just <<< action <<< HandleDragEvent
         , onDrop $ Just <<< action <<< HandleDropEvent
         ]
@@ -107,21 +106,6 @@ initEditor editor = liftEff $ do
   --
   session <- Editor.getSession editor
   Session.setMode "ace/mode/haskell" session
-
-demoScriptsPane :: forall p. HTML p Query
-demoScriptsPane =
-  div [ class_ $ ClassName "demos" ]
-   (Array.cons
-      (strong_ [ text "Demos: " ])
-      (demoScriptButton <$> Array.fromFoldable (Map.keys StaticData.demoFiles)))
-
-demoScriptButton :: forall p. String -> HTML p Query
-demoScriptButton key =
-  button
-    [ classes [ btn, btnInfo, btnSmall ]
-    , onClick $ input_ $ LoadScript key
-    ]
-    [ text key ]
 
 compilationResultPane :: forall p. RunResult -> HTML p Query
 compilationResultPane (RunResult stdout) =
