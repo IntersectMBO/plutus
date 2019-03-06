@@ -24,7 +24,7 @@ import Data.String as String
 import Gists (gistControls)
 import Halogen (HTML, action)
 import Halogen.Component (ParentHTML)
-import Halogen.HTML (ClassName(ClassName), b_, br_, button, code_, col, colgroup, div, div_, h2_, h3_, input, pre_, slot', small, strong_, table_, td_, text, th_, tr)
+import Halogen.HTML (ClassName(ClassName), b_, br_, button, code_, col, colgroup, div, div_, h2_, h3_, input, pre_, slot', small, strong_, table_, td, td_, text, th, th_, tr)
 import Halogen.HTML.Events (input_, onChecked, onClick, onDragOver, onDrop, onValueChange)
 import Halogen.HTML.Events as Events
 import Halogen.HTML.Properties (InputType(..), class_, classes, disabled, placeholder, type_, value)
@@ -238,11 +238,10 @@ transactionButtons :: forall p. Array (HTML p Query)
 transactionButtons = [ row_
                         [ col_ 
                             [ button 
-                                [ classes [btn, btnPrimary ] ]
+                                [ classes [btn, btnPrimary ]
+                                , onClick $ Just <<< HQ.action <<< const ApplyTrasaction
+                                ]
                                 [ text "Apply Transaction" ]
-                            , button 
-                                [ classes [btn, btnPrimary ] ]
-                                [ text "Simplify" ]
                             , button 
                                 [ classes [btn, btnPrimary ] 
                                 , onClick $ Just <<< HQ.action <<< const NextBlock
@@ -329,10 +328,10 @@ demoteAction person idx = fromMaybe person $ do
                   }           
 
 statePane :: forall p. State -> HTML p Query
-statePane state = div [ class_ $ ClassName "demos" ] 
+statePane state = div [ class_ $ ClassName "col" ] 
                         [ strong_ [ text "Current Block:" ]
                         , text (show state.marloweState.state)
-                        , h2_ [ text "Transaction Composer" ]
+                        , h2_ [ text "State" ]
                         , stateTable state
                         ]
 
@@ -351,12 +350,12 @@ stateRow state = table_ [ colgroup []
                                    , col []
                                    , col []
                                    ]
-                        , tr [] [ th_ [ text "Commit"
-                                      , text "Person"
-                                      , text "Value"
-                                      ] ]
-                        , tr [] [ td_ [ text "1"
-                                      , text "2"
-                                      , text "50 ADA"
-                                      ]]
+                        , tr [] [ th_ [ text "Commit" ]
+                                , th [ class_ $ ClassName "middle-column" ] [ text "Person" ]
+                                , th_ [ text "Value"  ]
+                                ]
+                        , tr [] [ td_ [ text "1" ]
+                                , td [ class_ $ ClassName "middle-column" ] [ text "2" ]
+                                , td_ [ text "50 ADA" ]
+                                ]
                         ]

@@ -45,7 +45,6 @@ data Query a
   -- Marlowe
   | UpdatePerson Person a
   | ApplyTrasaction a
-  | Simplify a
   | NextBlock a
 
 ------------------------------------------------------------

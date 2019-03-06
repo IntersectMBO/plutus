@@ -146,7 +146,6 @@ toEvent (CompileProgram a) = Just $ defaultEvent "CompileProgram"
 toEvent (ScrollTo _ _) = Nothing
 toEvent (UpdatePerson _ _) = Nothing
 toEvent (ApplyTrasaction _) = Just $ defaultEvent "ApplyTransaction"
-toEvent (Simplify _) = Just $ defaultEvent "Simplify"
 toEvent (NextBlock _) = Just $ defaultEvent "NextBlock"
 
 saveBuffer :: forall eff. String -> Eff (localStorage :: LOCALSTORAGE | eff) Unit
@@ -227,8 +226,6 @@ eval (UpdatePerson person next) = do
   pure next
 
 eval (ApplyTrasaction next) = pure next
-
-eval (Simplify next) = pure next
 
 eval (NextBlock next) = do
   modifying (_marloweState <<< _state) (\(SimulationState block) -> SimulationState (block + 1))
