@@ -224,6 +224,8 @@ generate outputDir = do
         mySettings
         outputDir
         myBridgeProxy
-        (Proxy @(API.API :<|> Auth.FrontendAPI))
+        (Proxy
+             @(API.API
+               :<|> Auth.FrontendAPI))
     writePSTypes outputDir (buildBridge myBridge) myTypes
     writeUsecases outputDir

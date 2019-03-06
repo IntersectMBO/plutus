@@ -13,23 +13,23 @@
 {-# LANGUAGE TypeOperators         #-}
 
 module Gist
-  ( API
-  , GistAPI
-  , getGists
-  , createNewGist
-  , getGist
-  , updateGist
-  , Owner(..)
-  , GistId(..)
-  , Gist(..)
-  , GistFile(..)
-  , NewGist(..)
-  , NewGistFile(..)
-  ) where
+    ( API
+    , GistAPI
+    , getGists
+    , createNewGist
+    , getGist
+    , updateGist
+    , Owner(..)
+    , GistId(..)
+    , Gist(..)
+    , GistFile(..)
+    , NewGist(..)
+    , NewGistFile(..)
+    ) where
 
 import           Auth.Types        (Token, TokenProvider (Github))
 import           Data.Aeson        (FromJSON, GFromJSON, GToJSON, ToJSON, Value, Zero, genericParseJSON, genericToJSON,
-                                    object, parseJSON, toJSON, withObject, (.:), (.=))
+                                    object, parseJSON, toJSON, withObject, (.:), (.:?), (.=))
 import           Data.Aeson.Casing (aesonPrefix, snakeCase)
 import           Data.Aeson.Types  (Parser)
 import           Data.Map          (Map)
@@ -45,17 +45,17 @@ import qualified Servant.Extra
 type API = Header "Authorization" (Token 'Github) :> "gists" :> GistAPI
 
 type GistAPI
-   = Get '[ JSON] [Gist]
-     :<|> ReqBody '[ JSON] NewGist :> Post '[ JSON] Gist
-     :<|> Capture "GistId" GistId :> Get '[ JSON] Gist
-     :<|> Capture "GistId" GistId :> ReqBody '[ JSON] NewGist :> Patch '[ JSON] Gist
+     = Get '[ JSON] [Gist]
+       :<|> ReqBody '[ JSON] NewGist :> Post '[ JSON] Gist
+       :<|> Capture "GistId" GistId :> Get '[ JSON] Gist
+       :<|> Capture "GistId" GistId :> ReqBody '[ JSON] NewGist :> Patch '[ JSON] Gist
 
 apiClient ::
-     Maybe (Token 'Github)
-  -> ClientM [Gist]
-     :<|> (NewGist -> ClientM Gist)
-     :<|> (GistId -> ClientM Gist)
-     :<|> (GistId -> NewGist -> ClientM Gist)
+       Maybe (Token 'Github)
+    -> ClientM [Gist]
+       :<|> (NewGist -> ClientM Gist)
+       :<|> (GistId -> ClientM Gist)
+       :<|> (GistId -> NewGist -> ClientM Gist)
 apiClient = client (Proxy @API)
 
 getGists :: Maybe (Token 'Github) -> ClientM [Gist]
@@ -66,11 +66,11 @@ createNewGist = Servant.Extra.left . Servant.Extra.right . apiClient
 
 getGist :: Maybe (Token 'Github) -> GistId -> ClientM Gist
 getGist =
-  Servant.Extra.left . Servant.Extra.right . Servant.Extra.right . apiClient
+    Servant.Extra.left . Servant.Extra.right . Servant.Extra.right . apiClient
 
 updateGist :: Maybe (Token 'Github) -> GistId -> NewGist -> ClientM Gist
 updateGist =
-  Servant.Extra.right . Servant.Extra.right . Servant.Extra.right . apiClient
+    Servant.Extra.right . Servant.Extra.right . Servant.Extra.right . apiClient
 
 ------------------------------------------------------------
 data Owner = Owner
@@ -79,36 +79,36 @@ data Owner = Owner
   } deriving (Show, Eq, Generic, ToJSON)
 
 data NewGist = NewGist
-  { _newGistDescription :: !Text
-  , _newGistPublic      :: !Bool
-  , _newGistFiles       :: ![NewGistFile]
-  } deriving (Show, Eq, Generic, FromJSON)
+    { _newGistDescription :: !Text
+    , _newGistPublic      :: !Bool
+    , _newGistFiles       :: ![NewGistFile]
+    } deriving (Show, Eq, Generic, FromJSON)
 
 instance ToJSON NewGist where
-  toJSON NewGist {..} =
-    object
-      [ "description" .= _newGistDescription
-      , "public" .= _newGistPublic
-      , "files" .= object (toPair <$> _newGistFiles)
-      ]
-    where
-      toPair NewGistFile {..} =
-        (_newGistFilename, object ["content" .= _newGistFileContent])
+    toJSON NewGist {..} =
+        object
+            [ "description" .= _newGistDescription
+            , "public" .= _newGistPublic
+            , "files" .= object (toPair <$> _newGistFiles)
+            ]
+      where
+        toPair NewGistFile {..} =
+            (_newGistFilename, object ["content" .= _newGistFileContent])
 
 data NewGistFile = NewGistFile
-  { _newGistFilename    :: !Text
-  , _newGistFileContent :: !Text
-  } deriving (Show, Eq, Generic, FromJSON)
+    { _newGistFilename    :: !Text
+    , _newGistFileContent :: !Text
+    } deriving (Show, Eq, Generic, FromJSON)
 
 newtype GistId =
-  GistId Text
-  deriving (Show, Eq, Generic, FromJSON, ToJSON)
+    GistId Text
+    deriving (Show, Eq, Generic, FromJSON, ToJSON)
 
 instance ToHttpApiData GistId where
-  toQueryParam (GistId gistId) = gistId
+    toQueryParam (GistId gistId) = gistId
 
 instance FromHttpApiData GistId where
-  parseQueryParam = Right . GistId
+    parseQueryParam = Right . GistId
 
 data Gist = Gist
   { _gistId         :: !GistId

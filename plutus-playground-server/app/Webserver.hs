@@ -15,8 +15,8 @@
 {-# OPTIONS_GHC   -Wno-orphans #-}
 
 module Webserver
-  ( run
-  ) where
+    ( run
+    ) where
 
 import qualified Auth
 import           Control.Monad                        (void)
@@ -46,54 +46,59 @@ import           System.Remote.Monitoring.Statsd      (defaultStatsdOptions, for
 import           Types                                (Config (Config, _authConfig))
 
 instance GenerateList NoContent (Method -> Req NoContent) where
-  generateList _ = []
+    generateList _ = []
 
 type Web
-   = "version" :> Get '[ PlainText, JSON] Text
-     :<|> "api" :> (PA.API
-                    :<|> Auth.API)
-     :<|> Raw
+     = "version" :> Get '[ PlainText, JSON] Text
+       :<|> "api" :> (PA.API
+                      :<|> Auth.API)
+       :<|> Raw
 
 liftedAuthServer :: Auth.GithubEndpoints -> Auth.Config -> Server Auth.API
 liftedAuthServer githubEndpoints config =
-  hoistServer (Proxy @Auth.API) liftAuthToHandler Auth.server
+    hoistServer (Proxy @Auth.API) liftAuthToHandler Auth.server
   where
     liftAuthToHandler ::
-         ReaderT (Auth.GithubEndpoints, Auth.Config) (LoggingT (ExceptT ServantErr IO)) a
-      -> Handler a
+           ReaderT (Auth.GithubEndpoints, Auth.Config) (LoggingT (ExceptT ServantErr IO)) a
+        -> Handler a
     liftAuthToHandler =
-      Handler . runStderrLoggingT . flip runReaderT (githubEndpoints, config)
+        Handler . runStderrLoggingT . flip runReaderT (githubEndpoints, config)
 
 server ::
-     Server PA.API -> FilePath -> Auth.GithubEndpoints -> Config -> Server Web
+       Server PA.API -> FilePath -> Auth.GithubEndpoints -> Config -> Server Web
 server handlers _staticDir githubEndpoints Config {..} =
-  version :<|> (handlers :<|> liftedAuthServer githubEndpoints _authConfig) :<|>
-  serveDirectoryFileServer _staticDir
+    version :<|> (handlers :<|> liftedAuthServer githubEndpoints _authConfig) :<|>
+    serveDirectoryFileServer _staticDir
 
 version :: Applicative m => m Text
 version = pure $(gitHash)
 
-app ::
-     Server PA.API -> FilePath -> Auth.GithubEndpoints -> Config -> Application
+app :: Server PA.API
+    -> FilePath
+    -> Auth.GithubEndpoints
+    -> Config
+    -> Application
 app handlers _staticDir githubEndpoints config =
-  gzip def . logStdout . cors (const $ Just policy) . serve (Proxy @Web) $
-  server handlers _staticDir githubEndpoints config
+    gzip def . logStdout . cors (const $ Just policy) . serve (Proxy @Web) $
+    server handlers _staticDir githubEndpoints config
   where
     policy =
-      simpleCorsResourcePolicy
-        {corsRequestHeaders = ["content-type", "set-cookie"]}
+        simpleCorsResourcePolicy
+            {corsRequestHeaders = ["content-type", "set-cookie"]}
 
 startStatsd :: MonadIO m => m Store
-startStatsd = liftIO $ do
-    store <- newStore
-    void $ forkStatsd defaultStatsdOptions store
-    pure store
+startStatsd =
+    liftIO $ do
+        store <- newStore
+        void $ forkStatsd defaultStatsdOptions store
+        pure store
 
 run :: (MonadLogger m, MonadIO m) => Settings -> FilePath -> Config -> m ()
 run settings _staticDir config = do
-  store <- startStatsd
-  githubEndpoints <- liftIO Auth.mkGithubEndpoints
-  handlers <- PS.mkHandlers
-  appMonitor <- liftIO $ monitorEndpoints (Proxy @Web) store
-  logInfoN "Starting webserver."
-  liftIO . runSettings settings . appMonitor $ app handlers _staticDir githubEndpoints config
+    store <- startStatsd
+    githubEndpoints <- liftIO Auth.mkGithubEndpoints
+    handlers <- PS.mkHandlers
+    appMonitor <- liftIO $ monitorEndpoints (Proxy @Web) store
+    logInfoN "Starting webserver."
+    liftIO . runSettings settings . appMonitor $
+        app handlers _staticDir githubEndpoints config
