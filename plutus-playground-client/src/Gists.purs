@@ -14,10 +14,10 @@ import Data.Maybe (Maybe(..))
 import Gist (Gist, NewGist(NewGist), NewGistFile(NewGistFile), gistHtmlUrl)
 import Halogen.HTML (ClassName(ClassName), HTML, a, br_, div, div_, text)
 import Halogen.HTML.Events (input_, onClick)
-import Halogen.HTML.Properties (class_, classes, href, target)
+import Halogen.HTML.Properties (class_, classes, href, id_, target)
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success))
-import Prelude (Unit, ($), (<$>))
+import Prelude (Unit, ($), (<$>), (<>))
 import Servant.PureScript.Affjax (AjaxError)
 import Types (Query(..))
 
@@ -28,7 +28,8 @@ gistControls ::
   -> HTML p (Query Unit)
 gistControls authStatus createGistResult =
   div_
-    [ a publishAttributes publishContent
+    [ a ([ id_ "publish-gist" ] <> publishAttributes)
+        publishContent
     , br_
     , div_
         [ case createGistResult of

@@ -45,7 +45,7 @@ import Halogen.ECharts (EChartsEffects)
 import Halogen.ECharts as EC
 import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, strong_, text)
 import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (class_, classes, href)
+import Halogen.HTML.Properties (class_, classes, href, id_)
 import Halogen.Query (HalogenM)
 import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError))
@@ -472,10 +472,13 @@ mainTabBar activeView =
            , Simulation /\ "Simulation"
            , Transactions /\ "Transactions"
            ]
-    mkTab (link /\ title ) =
+
+    mkTab :: Tuple View String -> HTML p (Query Unit)
+    mkTab (link /\ title) =
       navItem_ [
         a
-          [ classes $ [ navLink ] <> activeClass
+          [ id_ $ "tab-" <> String.toLower (show link)
+          , classes $ [ navLink ] <> activeClass
           , onClick $ const $ Just $ action $ ChangeView link
           ]
           [ text title ]

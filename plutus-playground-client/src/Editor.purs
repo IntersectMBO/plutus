@@ -23,7 +23,7 @@ import Halogen (HTML, action)
 import Halogen.Component (ParentHTML)
 import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, h3_, pre_, slot', small, strong_, text)
 import Halogen.HTML.Events (input, input_, onClick, onDragOver, onDrop)
-import Halogen.HTML.Properties (class_, classes, disabled)
+import Halogen.HTML.Properties (class_, classes, disabled, id_)
 import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError))
 import LocalStorage (LOCALSTORAGE)
@@ -62,7 +62,8 @@ editorPane state =
   div_
     [ demoScriptsPane
     , div
-        [ onDragOver $ Just <<< action <<< HandleDragEvent
+        [ id_ "editor"
+        , onDragOver $ Just <<< action <<< HandleDragEvent
         , onDrop $ Just <<< action <<< HandleDropEvent
         ]
         [ slot' cpEditor EditorSlot
@@ -76,7 +77,8 @@ editorPane state =
             [ gistControls (view _authStatus state) (view _createGistResult state) ]
         , div_
             [ button
-                [ classes [ btn, btnClass ]
+                [ id_ "compile"
+                , classes [ btn, btnClass ]
                 , onClick $ input_ CompileProgram
                 , disabled (isLoading state.compilationResult)
                 ]
@@ -117,7 +119,7 @@ editorPane state =
 
 demoScriptsPane :: forall p. HTML p Query
 demoScriptsPane =
-  div [ class_ $ ClassName "demos" ]
+  div [ id_ "demos" ]
    (Array.cons
       (strong_ [ text "Demos: " ])
       (demoScriptButton <$> Array.fromFoldable (Map.keys StaticData.demoFiles)))

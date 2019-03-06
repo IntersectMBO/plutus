@@ -2,7 +2,7 @@ module Wallet where
 
 import Types
 
-import Bootstrap (btn, btnSecondary, btnSmall, card, cardBody_, cardTitle_, card_, col4_, col_, pullRight, row, row_)
+import Bootstrap (btn, btnSecondary, btnSmall, card, cardBody_, cardTitle_, card_, col4_, col_, formControl, pullRight, row, row_)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Int as Int
@@ -18,7 +18,7 @@ import Halogen.Query as HQ
 import Icons (Icon(..), icon)
 import Ledger.Ada.TH (Ada(..))
 import Playground.API (FunctionSchema, SimulatorWallet, SimpleArgumentSchema, _Fn, _FunctionSchema)
-import Prelude (map, show, ($), (<$>), (<<<))
+import Prelude (map, show, ($), (<$>), (<<<), (<>))
 import Wallet.Emulator.Types (Wallet)
 
 walletsPane ::
@@ -44,8 +44,7 @@ walletPane ::
 walletPane signatures index simulatorWallet =
   Tuple (show index) $
     col4_
-      [ div
-          [class_ $ ClassName "wallet"]
+      [ div [ classes [ ClassName "wallet", ClassName ("wallet-" <> show index) ] ]
           [ card_
               [ cardBody_
                   [ button
@@ -59,6 +58,7 @@ walletPane signatures index simulatorWallet =
                       , col_ [
                           input
                             [ type_ InputNumber
+                            , class_ formControl
                             , value $ show $ view (_simulatorWalletBalance <<< _ada) simulatorWallet
                             , placeholder "Int"
                             , onValueInput $ map (HQ.action <<< SetBalance (view _simulatorWalletWallet simulatorWallet) <<< \v -> Ada {getAda: v}) <<< Int.fromString
