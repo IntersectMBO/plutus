@@ -6,7 +6,7 @@ module Untyped.Term where
 open import Data.Nat hiding (erase)
 open import Data.Fin
 open import Data.Integer hiding (suc)
-open import Data.List
+open import Data.List hiding (_++_)
 
 open import Builtin.Constant.Type -- perhaps the postulates should be elsewhere
 open import Builtin
@@ -94,19 +94,67 @@ eraseCon (bytestring s b x) = bytestring b
 eraseCon (size x) = size
 eraseCon (string x) = size -- this is wrong
 
+open import Data.Sum
+
+builtinMatcher : ∀{n} → n ⊢ → (Builtin × List (n ⊢)) ⊎ n ⊢
+builtinMatcher (` x) = inj₂ (` x)
+builtinMatcher (ƛ t) = inj₂ (ƛ t)
+builtinMatcher (t · u) = inj₂ (t · u)
+builtinMatcher (con c) = inj₂ (con c)
+builtinMatcher (builtin b ts) = inj₁ (b ,, ts)
+builtinMatcher error = inj₂ error
+
+arity : Builtin → ℕ
+arity _ = 2
+
+open import Relation.Nullary
+
+builtinEater : ∀{n} → Builtin → List (n ⊢) → n ⊢ → n ⊢
+builtinEater b ts u with Data.List.length ts Data.Nat.+ 1 Data.Nat.≤? arity b
+builtinEater b ts u | Dec.yes p = builtin b (ts Data.List.++ [ u ])
+builtinEater b ts u | Dec.no ¬p = builtin b ts · u
+
+
 erase⊢ : ∀{n} → ScopedTm n → eraseℕ n ⊢
 erase⊢ (` x)    = ` (eraseFin x)
 erase⊢ (Λ K t)  = erase⊢ t
 erase⊢ (t ·⋆ A) = erase⊢ t
 erase⊢ (ƛ A t)  = ƛ (erase⊢ t)
-
--- could add a special case for all builtins
-erase⊢ (builtin addInteger · u · u') = 
-  builtin addInteger (erase⊢ u ∷ erase⊢ u' ∷ []) 
-
-erase⊢ (t · u) = erase⊢ t · erase⊢ u
+erase⊢ (t · u) with builtinMatcher (erase⊢ t)
+erase⊢ (t · u) | inj₁ (b ,, ts) = builtinEater b ts (erase⊢ u)
+erase⊢ (t · u) | inj₂ t' = t' · erase⊢ u
 erase⊢ (con c) = con (eraseCon c)
 erase⊢ (error A) = error
 erase⊢ (builtin b) = builtin b []
 
+\end{code}
+
+\begin{code}
+open import Data.String
+
+uglyFin : ∀{n} → Fin n → String
+uglyFin zero = "0"
+uglyFin (suc x) = "(S " ++ uglyFin x ++ ")"
+
+
+uglyTermCon : TermCon → String
+uglyTermCon (integer x) = "(integer " ++ Data.Integer.show x ++ ")"
+uglyTermCon (bytestring x) = "bytestring"
+uglyTermCon size = "size"
+
+postulate showNat : ℕ → String
+
+{-# FOREIGN GHC import qualified Data.Text as T #-}
+{-# COMPILE GHC showNat = T.pack . show #-}
+
+uglyBuiltin : Builtin → String
+uglyBuiltin addInteger = "addInteger"
+uglyBuiltin _ = "other"
+ugly : ∀{n} → n  ⊢ → String
+ugly (` x) = "(` " ++ uglyFin x ++ ")"
+ugly (ƛ t) = "(ƛ " ++ ugly t ++ ")"
+ugly (t · u) = "( " ++ ugly t ++ " · " ++ ugly u ++ ")"
+ugly (con c) = "(con " ++ uglyTermCon c ++ ")"
+ugly (builtin b ts) = "(builtin " ++ uglyBuiltin b ++ " " ++ showNat (Data.List.length ts) ++ ")"
+ugly error = "error"
 \end{code}

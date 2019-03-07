@@ -14,17 +14,23 @@ open import Raw
 \begin{code}
 data ScopedKind : Set where
   *   : ScopedKind
-  _⇒_ : ScopedKind → ScopedKind → ScopedKind
   #   : ScopedKind
+  _⇒_ : ScopedKind → ScopedKind → ScopedKind
 
-data ScopedTy : ℕ → Set where
-  `   : ∀{n} → Fin n → ScopedTy n
-  _⇒_ : ∀{n} → ScopedTy n → ScopedTy n → ScopedTy n
-  Π   : ∀{n} → ScopedKind → ScopedTy (suc n) → ScopedTy n
-  ƛ   : ∀{n} → ScopedKind → ScopedTy (suc n) → ScopedTy n
-  _·_ : ∀{n} → ScopedTy n → ScopedTy n → ScopedTy n
-  con : ∀{n} → TyCon → ScopedTy n
-  size : ∀{n} → ℕ → ScopedTy n
+
+{-# FOREIGN GHC import Scoped #-}
+{-# COMPILE GHC ScopedKind = data ScKind (ScKiStar | ScKiSize | ScKiFun) #-}
+
+data ScopedTy (n : ℕ) : Set where
+  `    : Fin n → ScopedTy n
+  _⇒_  : ScopedTy n → ScopedTy n → ScopedTy n
+  Π    : ScopedKind → ScopedTy (suc n) → ScopedTy n
+  ƛ    : ScopedKind → ScopedTy (suc n) → ScopedTy n
+  _·_  : ScopedTy n → ScopedTy n → ScopedTy n
+  con  : TyCon → ScopedTy n
+  size : ℕ → ScopedTy n
+
+--{-# COMPILE GHC ScopedTy = data ScTy (ScTyVar | ScTyFun | ScTyPi | ScTyLambda | ScTyApp | ScTyCon | ScTySize) #-}
 
 data Weirdℕ : Set where
   Z : Weirdℕ

@@ -163,6 +163,7 @@ postulate
 {-# COMPILE GHC convP = convP #-}
 {-# FOREIGN GHC import qualified Data.ByteString.Lazy as BSL #-}
 {-# COMPILE GHC imap = \_ _ -> fmap #-}
+{-# COMPILE GHC mmap = \_ _ -> fmap #-}
 {-# FOREIGN GHC import Data.Either #-}
 {-# COMPILE GHC parse = fromRight  (error "parse error") . parse #-}
 {-# FOREIGN GHC import Language.PlutusCore.Type #-}
@@ -171,29 +172,32 @@ postulate
 {-# COMPILE GHC showTerm = T.pack . show #-}
 open import Function
 open import Untyped.Term
+open import Untyped.Reduction
 open import Scoped
 
 main : IO ⊤
 main = do
   -- plutus/language-plutus-core/test/data
-  t ← imap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/integerLiteral.plc")
+  t ← imap (convP ∘ parse) (readFile "../plutus/language-plutus-core/test/data/integerLiteral.plc")
   putStrLn "integerLiteral.plc:"
   putStrLn (showTerm t)
-  t ← imap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/negation.plc")
+  t ← imap (convP ∘ parse) (readFile "../plutus/language-plutus-core/test/data/negation.plc")
   putStrLn "negation.plc:"
   putStrLn (showTerm t)
-  t ← imap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/stringLiteral.plc")
+  t ← imap (convP ∘ parse) (readFile "../plutus/language-plutus-core/test/data/stringLiteral.plc")
   putStrLn "stringLiteral.plc:"
   putStrLn (showTerm t)
   -- the overflow is a parse error
-  t ← imap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/integerOverflow.plc")
+  t ← imap (convP ∘ parse) (readFile "../plutus/language-plutus-core/test/data/integerOverflow.plc")
   putStrLn "integerOverflow.plc:"
 --  putStrLn (showTerm t)
-  t ← imap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/addInteger.plc")
+  t ← imap (convP ∘ parse) (readFile "../plutus/language-plutus-core/test/data/addInteger.plc")
   putStrLn "addInteger.plc:"
   putStrLn (showTerm t)
-  t ← imap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/normalize-types/addIntegerCorrect.plc")
-  t' ← imap (mmap erase⊢ ∘ deBruijnifyTm nil ∘ convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/normalize-types/addIntegerCorrect.plc")
+  t ← imap (convP ∘ parse) (readFile "../plutus/language-plutus-core/test/normalize-types/addIntegerCorrect.plc")
+  t' ← imap (mmap (ugly ∘ (λ (t : 0 ⊢) → proj₁ (run t 100)) ∘ erase⊢) ∘ deBruijnifyTm nil ∘ convP ∘ parse) (readFile "../plutus/language-plutus-core/test/normalize-types/addIntegerCorrect.plc")
   putStrLn "addIntegerCorrect.plc:"
   putStrLn (showTerm t)
+  putStrLn (maybe id "I think it failed to deBruijnify" t')
+  
 \end{code}
