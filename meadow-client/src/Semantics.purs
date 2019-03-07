@@ -659,14 +659,14 @@ expireManyCommits commitIds (CommitInfo commitInfo) = foldr expireOneCommit semi
 expireCommitsCI :: BlockNumber -> CommitInfo -> CommitInfo
 expireCommitsCI blockNumber (CommitInfo commitInfo) = case M.findMin timData of
   Just res -> let minBlock = res.key
-              in let commIds = res.value
-                 in let remTimData = M.delete minBlock timData
-                    in if isExpired blockNumber minBlock
-                      then let partUpdatedCommitInfo = CommitInfo (commitInfo { timeoutData = remTimData
-                                                                              })
-                           in let updatedCommitInfo = expireManyCommits commIds partUpdatedCommitInfo
-                              in expireCommitsCI blockNumber updatedCommitInfo
-                      else CommitInfo commitInfo
+                  commIds = res.value
+                  remTimData = M.delete minBlock timData
+              in if isExpired blockNumber minBlock
+                then let partUpdatedCommitInfo = CommitInfo (commitInfo { timeoutData = remTimData
+                                                                        })
+                         updatedCommitInfo = expireManyCommits commIds partUpdatedCommitInfo
+                     in expireCommitsCI blockNumber updatedCommitInfo
+                else CommitInfo commitInfo
   Nothing -> CommitInfo commitInfo
   where
   timData = commitInfo.timeoutData
@@ -936,9 +936,9 @@ reduceRec blockNum state env (Let label boundContract contract) = case lookupEnv
   Nothing -> let newEnv = addToEnvironment label checkedBoundContract env
              in Let label checkedBoundContract (reduceRec blockNum state newEnv contract)
   Just _ -> let freshLabel = getFreshLabel env contract
-            in let newEnv = addToEnvironment freshLabel checkedBoundContract env
-               in let fixedContract = relabel label freshLabel contract
-                  in Let freshLabel checkedBoundContract (reduceRec blockNum state newEnv fixedContract)
+                newEnv = addToEnvironment freshLabel checkedBoundContract env
+                fixedContract = relabel label freshLabel contract
+            in Let freshLabel checkedBoundContract (reduceRec blockNum state newEnv fixedContract)
   where
   checkedBoundContract = nullifyInvalidUses env boundContract
 
@@ -963,60 +963,60 @@ simplify_aux ::
 simplify_aux Null = { contract: Null, uses: S.empty }
 
 simplify_aux (Commit idAction idCommit person value timeout1 timeout2 contract1 contract2) = let v1 = simplify_aux contract1
-                                                                                             in let v2 = simplify_aux contract2
-                                                                                                in let nc = Commit idAction idCommit person value timeout1 timeout2 v1.contract v2.contract
-                                                                                                   in let sl = S.union (v1.uses) (v2.uses)
-                                                                                                      in { contract: nc
-                                                                                                         , uses: sl
-                                                                                                         }
+                                                                                                 v2 = simplify_aux contract2
+                                                                                                 nc = Commit idAction idCommit person value timeout1 timeout2 v1.contract v2.contract
+                                                                                                 sl = S.union (v1.uses) (v2.uses)
+                                                                                             in { contract: nc
+                                                                                                , uses: sl
+                                                                                                }
 
 simplify_aux (Pay idAction idCommit person value timeout contract1 contract2) = let v1 = simplify_aux contract1
-                                                                                in let v2 = simplify_aux contract2
-                                                                                   in let nc = Pay idAction idCommit person value timeout v1.contract v2.contract
-                                                                                      in let sl = S.union (v1.uses) (v2.uses)
-                                                                                         in { contract: nc
-                                                                                            , uses: sl
-                                                                                            }
+                                                                                    v2 = simplify_aux contract2
+                                                                                    nc = Pay idAction idCommit person value timeout v1.contract v2.contract
+                                                                                    sl = S.union (v1.uses) (v2.uses)
+                                                                                in { contract: nc
+                                                                                   , uses: sl
+                                                                                   }
 
 simplify_aux (Both contract1 contract2) = let v1 = simplify_aux contract1
-                                          in let v2 = simplify_aux contract2
-                                             in if (v1.contract == Null)
-                                               then v2
-                                               else (if (v2.contract == Null)
-                                                 then v1
-                                                 else { contract: (Both v1.contract v2.contract)
-                                                      , uses: S.union v1.uses v2.uses
-                                                      })
+                                              v2 = simplify_aux contract2
+                                          in if (v1.contract == Null)
+                                            then v2
+                                            else (if (v2.contract == Null)
+                                              then v1
+                                              else { contract: (Both v1.contract v2.contract)
+                                                   , uses: S.union v1.uses v2.uses
+                                                   })
 
 simplify_aux (Choice observation contract1 contract2) = let v1 = simplify_aux contract1
-                                                        in let v2 = simplify_aux contract2
-                                                           in let nc = if (v1.contract == Null) && (v2.contract == Null)
-                                                                    then Null
-                                                                    else Choice observation v1.contract v2.contract
-                                                              in let sl = S.union v1.uses v2.uses
-                                                                 in { contract: nc
-                                                                    , uses: sl
-                                                                    }
+                                                            v2 = simplify_aux contract2
+                                                            nc = if (v1.contract == Null) && (v2.contract == Null)
+                                                              then Null
+                                                              else Choice observation v1.contract v2.contract
+                                                            sl = S.union v1.uses v2.uses
+                                                        in { contract: nc
+                                                           , uses: sl
+                                                           }
 
 simplify_aux (When observation timeout contract1 contract2) = let v1 = simplify_aux contract1
-                                                              in let v2 = simplify_aux contract2
-                                                                 in let nc = if (v1.contract == Null) && (v2.contract == Null)
-                                                                          then Null
-                                                                          else When observation timeout v1.contract v2.contract
-                                                                    in let sl = S.union v1.uses v2.uses
-                                                                       in { contract: nc
-                                                                          , uses: sl
-                                                                          }
+                                                                  v2 = simplify_aux contract2
+                                                                  nc = if (v1.contract == Null) && (v2.contract == Null)
+                                                                    then Null
+                                                                    else When observation timeout v1.contract v2.contract
+                                                                  sl = S.union v1.uses v2.uses
+                                                              in { contract: nc
+                                                                 , uses: sl
+                                                                 }
 
 simplify_aux (While observation timeout contract1 contract2) = let v1 = simplify_aux contract1
-                                                               in let v2 = simplify_aux contract2
-                                                                  in if (v1.contract == Null) && (v2.contract == Null)
-                                                                    then { contract: Null
-                                                                         , uses: S.empty
-                                                                         }
-                                                                    else { contract: While observation timeout v1.contract v2.contract
-                                                                         , uses: S.union v1.uses v2.uses
-                                                                         }
+                                                                   v2 = simplify_aux contract2
+                                                               in if (v1.contract == Null) && (v2.contract == Null)
+                                                                 then { contract: Null
+                                                                      , uses: S.empty
+                                                                      }
+                                                                 else { contract: While observation timeout v1.contract v2.contract
+                                                                      , uses: S.union v1.uses v2.uses
+                                                                      }
 
 simplify_aux (Scale value1 value2 value3 contract) = let v = simplify_aux contract
                                                      in if (v.contract == Null)
@@ -1028,14 +1028,14 @@ simplify_aux (Scale value1 value2 value3 contract) = let v = simplify_aux contra
                                                             }
 
 simplify_aux (Let letLabel contract1 contract2) = (let v1 = simplify_aux contract1
-                                                   in (let v2 = simplify_aux contract2
-                                                       in (if S.member letLabel v2.uses
-                                                         then { contract: Let letLabel v1.contract v2.contract
-                                                              , uses: S.union v1.uses (S.delete letLabel v2.uses)
-                                                              }
-                                                         else { contract: v2.contract
-                                                              , uses: v2.uses
-                                                              })))
+                                                       v2 = simplify_aux contract2
+                                                   in (if S.member letLabel v2.uses
+                                                     then { contract: Let letLabel v1.contract v2.contract
+                                                          , uses: S.union v1.uses (S.delete letLabel v2.uses)
+                                                          }
+                                                     else { contract: v2.contract
+                                                          , uses: v2.uses
+                                                          }))
 
 simplify_aux (Use letLabel) = { contract: Use letLabel
                               , uses: S.singleton letLabel
@@ -1335,24 +1335,24 @@ applyAnyInputs ::
   List DynamicProblem ->
   MApplicationResult {funds :: BigInt, outcome :: TransactionOutcomes, state :: State, contract :: Contract}
 applyAnyInputs Nil sigs _ _ state contract value trOut dynProbList = let v = redeemMoney sigs state
-                                                                     in let newValue = value + outcomeEffect v.outcome
-                                                                        in if newValue < fromInt 0
-                                                                          then MCouldNotApply InternalError
-                                                                          else let newTrOut = combineOutcomes v.outcome trOut
-                                                                               in let simplifiedContract = simplify contract
-                                                                                  in MSuccessfullyApplied { funds: newValue
-                                                                                                          , outcome: newTrOut
-                                                                                                          , state: v.state
-                                                                                                          , contract: simplifiedContract
-                                                                                                          } dynProbList
+                                                                         newValue = value + outcomeEffect v.outcome
+                                                                     in if newValue < fromInt 0
+                                                                       then MCouldNotApply InternalError
+                                                                       else let newTrOut = combineOutcomes v.outcome trOut
+                                                                                simplifiedContract = simplify contract
+                                                                            in MSuccessfullyApplied { funds: newValue
+                                                                                                    , outcome: newTrOut
+                                                                                                    , state: v.state
+                                                                                                    , contract: simplifiedContract
+                                                                                                    } dynProbList
 
 applyAnyInputs (Cons h t) sigs neededInputs blockNum state contract value trOut dynProbList = case applyAnyInput h sigs neededInputs blockNum state contract of
   SuccessfullyApplied v newDynProb -> let newValue = value + outcomeEffect v.outcome
                                       in if newValue < fromInt 0
                                         then MCouldNotApply InternalError
                                         else let newTrOut = combineOutcomes v.outcome trOut
-                                             in let reducedNewContract = reduce blockNum v.state v.contract
-                                                in applyAnyInputs t sigs neededInputs blockNum v.state reducedNewContract newValue newTrOut (concat (Cons dynProbList (Cons (Cons newDynProb Nil) Nil)))
+                                                 reducedNewContract = reduce blockNum v.state v.contract
+                                             in applyAnyInputs t sigs neededInputs blockNum v.state reducedNewContract newValue newTrOut (concat (Cons dynProbList (Cons (Cons newDynProb Nil) Nil)))
   CouldNotApply currError -> MCouldNotApply currError
 
 -- Expire commits and apply applyAnyInputs
