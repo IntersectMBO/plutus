@@ -21,10 +21,11 @@ import Data.Map as Map
 import Data.Maybe (Maybe(Just), fromMaybe)
 import Data.Maybe as Maybe
 import Data.String as String
+import ECharts.Commands (x)
 import Gists (gistControls)
 import Halogen (HTML, action)
 import Halogen.Component (ParentHTML)
-import Halogen.HTML (ClassName(ClassName), b_, br_, button, code_, col, colgroup, div, div_, h2_, h3_, input, pre_, slot', small, strong_, table_, td, td_, text, th, th_, tr)
+import Halogen.HTML (ClassName(ClassName), b_, br_, button, code_, col, colgroup, div, div_, h2_, h3_, input, pre_, slot', small, span_, strong_, table_, tbody_, td, td_, text, th, th_, thead_, tr)
 import Halogen.HTML.Events (input_, onChecked, onClick, onDragOver, onDrop, onValueChange)
 import Halogen.HTML.Events as Events
 import Halogen.HTML.Properties (InputType(..), class_, classes, disabled, placeholder, type_, value)
@@ -44,10 +45,20 @@ simulationPane state =
   div_
     [ row_ [ inputComposerPane state
            , transactionComposerPane state
-           , statePane state
            ]
-    , demoScriptsPane
-    , h2_ [ text "Debugger" ]
+    , stateTitle state
+    , row_ [ statePane state ]
+    , div [ classes [ ClassName "demos"
+                    , ClassName "d-flex"
+                    , ClassName "flex-row"
+                    , ClassName "align-items-center"
+                    , ClassName "justify-content-between"
+                    , ClassName "mt-5"
+                    , ClassName "mb-3"
+                    ]]
+          [ h2_ [ text "Debugger" ]
+          , demoScriptsPane
+          ]
     , div
         [ onDragOver $ Just <<< action <<< HandleDragEvent
         , onDrop $ Just <<< action <<< HandleDropEvent
@@ -100,7 +111,7 @@ initEditor editor = liftEff $ do
 
 demoScriptsPane :: forall p. HTML p Query
 demoScriptsPane =
-  div [ class_ $ ClassName "demos" ]
+  div_
    (Array.cons
       (strong_ [ text "Demos: " ])
       (demoScriptButton <$> Array.fromFoldable (Map.keys StaticData.demoFiles)))
@@ -155,6 +166,7 @@ marloweActionInput :: forall p. Person -> Int -> (Int -> MarloweAction) -> Int -
 marloweActionInput person idx f current
     = input [ type_ InputNumber
             , placeholder "Int"
+            , class_ $ ClassName "action-input"
             , value $ show current
             , onValueChange $ map (HQ.action <<< UpdatePerson <<< \val -> (updateSuggestedAction person idx (f val))) <<< Int.fromString
             ]
@@ -168,23 +180,26 @@ promoteAction person idx = fromMaybe person $ do
                   , suggestedActions = suggestedActions
                   }
 
+flexRow_ :: forall p. Array (HTML p Query) -> HTML p Query
+flexRow_ html = div [ classes [ ClassName "d-flex"
+                              , ClassName "flex-row"
+                              ]]
+                    html
+
 suggestedActionRow :: forall p. Person -> Int -> MarloweAction -> HTML p Query
-suggestedActionRow person idx (Commit v i e) = row_
-                            [ col_
-                                [ button [ class_ $ ClassName "composer-add-button" 
-                                         , onClick <<< input_ <<< UpdatePerson $ promoteAction person idx
-                                         ]
-                                         [ text "+" ]
-                                , text "Commit " 
-                                , marloweActionInput person idx (\val -> (Commit val i e)) v
-                                , text " ADA with id "
-                                , marloweActionInput person idx (\val -> (Commit v val e)) i
-                                , text " to expire by "
-                                , marloweActionInput person idx (\val -> (Commit v i val)) e
-                                ]
+suggestedActionRow person idx (Commit v i e) = flexRow_
+                            [ button [ class_ $ ClassName "composer-add-button" 
+                                     , onClick <<< input_ <<< UpdatePerson $ promoteAction person idx
+                                     ]
+                                     [ text "+" ]
+                            , text "Commit " 
+                            , marloweActionInput person idx (\val -> (Commit val i e)) v
+                            , text " ADA with id "
+                            , marloweActionInput person idx (\val -> (Commit v val e)) i
+                            , text " to expire by "
+                            , marloweActionInput person idx (\val -> (Commit v i val)) e
                             ]
-suggestedActionRow person idx (Redeem v i) = row_
-                            [ col_
+suggestedActionRow person idx (Redeem v i) = flexRow_
                                 [ button [ class_ $ ClassName "composer-add-button"
                                          , onClick <<< input_ <<< UpdatePerson $ promoteAction person idx
                                          ]
@@ -194,9 +209,7 @@ suggestedActionRow person idx (Redeem v i) = row_
                                 , text " ADA from id "
                                 , marloweActionInput person idx (\val -> (Redeem v val)) i
                                 ]
-                            ]
-suggestedActionRow person idx (Claim v i) = row_
-                            [ col_
+suggestedActionRow person idx (Claim v i) = flexRow_
                                 [ button [ class_ $ ClassName "composer-add-button"
                                          , onClick <<< input_ <<< UpdatePerson $ promoteAction person idx
                                          ]
@@ -206,9 +219,7 @@ suggestedActionRow person idx (Claim v i) = row_
                                 , text " ADA from id "
                                 , marloweActionInput person idx (\val -> (Claim v val)) i
                                 ]
-                            ]
-suggestedActionRow person idx (Choose v i) = row_
-                            [ col_
+suggestedActionRow person idx (Choose v i) = flexRow_
                                 [ button [ class_ $ ClassName "composer-add-button"
                                          , onClick <<< input_ <<< UpdatePerson $ promoteAction person idx
                                          ]
@@ -218,7 +229,6 @@ suggestedActionRow person idx (Choose v i) = row_
                                 , text " for id "
                                 , marloweActionInput person idx (\val -> (Choose v val)) i
                                 ]
-                            ]
 
 
 transactionComposerPane :: forall p. State -> HTML p Query
@@ -236,33 +246,45 @@ transactionComposerPane state =
         ]
 
 transactionButtons :: forall p. Array (HTML p Query)
-transactionButtons = [ row_
-                        [ col_ 
-                            [ button 
-                                [ classes [btn, btnPrimary ]
-                                , onClick $ Just <<< HQ.action <<< const ApplyTrasaction
-                                ]
-                                [ text "Apply Transaction" ]
-                            , button 
-                                [ classes [btn, btnPrimary ] 
-                                , onClick $ Just <<< HQ.action <<< const NextBlock
-                                ]
-                                [ text "Next Block" ]
+transactionButtons = [ div
+                        [ classes [ ClassName "d-flex"
+                                  , ClassName "flex-row"
+                                  , ClassName "align-items-center"
+                                  , ClassName "justify-content-between"
+                                  , ClassName "col-sm-10"
+                                  ]
+                        ]
+                        [ button 
+                            [ classes [btn, btnPrimary ]
+                            , onClick $ Just <<< HQ.action <<< const ApplyTrasaction
                             ]
+                            [ text "Apply Transaction" ]
+                        , button 
+                            [ classes [btn, btnPrimary ] 
+                            , onClick $ Just <<< HQ.action <<< const NextBlock
+                            ]
+                            [ text "Next Block" ]
                         ]
                      ]
 
 signatures :: forall p. Array Person -> Array (HTML p Query)
 signatures people = [ h3_ [ text "Signatures" ]
-                    , row_ (map signature people)
+                    , div [ classes [ ClassName "d-flex"
+                                    , ClassName "flex-row"
+                                    , ClassName "align-items-center"
+                                    , ClassName "justify-content-between"
+                                    , ClassName "col-sm-6"
+                                    ]
+                          ]
+                          (map signature people)
                     ]
 
 signature :: forall p. Person -> HTML p Query
-signature person = col_ [ input [ type_ InputCheckbox
+signature person = span_ [ input [ type_ InputCheckbox
                                 , onChecked $ Just <<< HQ.action <<< UpdatePerson <<< (\checked -> set _signed checked person)
                                 ]
-                        , text $ "Person " <> show person.id
-                        ]
+                         , span_ [ text $ " Person " <> show person.id ]
+                         ]
 
 transactionComposerPerson :: forall p. Person -> Array (HTML p Query)
 transactionComposerPerson person = [ h3_ [ text ("Person " <> show person.id)]] <> mapWithIndex (actionRow person) person.actions
@@ -328,13 +350,22 @@ demoteAction person idx = fromMaybe person $ do
                   , suggestedActions = suggestedActions
                   }           
 
+stateTitle :: forall p. State -> HTML p Query
+stateTitle state = div [ classes [ ClassName "demos"
+                                 , ClassName "d-flex"
+                                 , ClassName "flex-row"
+                                 , ClassName "align-items-center"
+                                 , ClassName "justify-content-between"
+                                 , ClassName "mt-3"
+                                 , ClassName "mb-3"
+                                 ]]
+                       [ h2_ [ text "State" ]
+                       , span_ [ strong_ [ text "Current Block:" ]
+                               , text (show state.marloweState.state) ]
+                       ]
+
 statePane :: forall p. State -> HTML p Query
-statePane state = div [ class_ $ ClassName "col" ] 
-                        [ strong_ [ text "Current Block:" ]
-                        , text (show state.marloweState.state)
-                        , h2_ [ text "State" ]
-                        , stateTable state
-                        ]
+statePane state = div [ class_ $ ClassName "col" ] [ stateTable state ]
 
 stateTable :: forall p. State -> HTML p Query
 stateTable state = div [ class_ $ ClassName "full-width-card" ]
@@ -351,12 +382,12 @@ stateRow state = table_ [ colgroup []
                                    , col []
                                    , col []
                                    ]
-                        , tr [] [ th_ [ text "Commit" ]
-                                , th [ class_ $ ClassName "middle-column" ] [ text "Person" ]
-                                , th_ [ text "Value"  ]
-                                ]
-                        , tr [] [ td_ [ text "1" ]
-                                , td [ class_ $ ClassName "middle-column" ] [ text "2" ]
-                                , td_ [ text "50 ADA" ]
-                                ]
+                        , thead_ [ tr [] [ th_ [ text "Commit" ]
+                                 , th [ class_ $ ClassName "middle-column" ] [ text "Person" ]
+                                 , th_ [ text "Value"  ]
+                                 ] ]
+                        , tbody_ [ tr [] [ td_ [ text "1" ]
+                                 , td [ class_ $ ClassName "middle-column" ] [ text "2" ]
+                                 , td_ [ text "50 ADA" ]
+                                 ] ]
                         ]
