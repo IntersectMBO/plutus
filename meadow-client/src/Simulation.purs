@@ -25,7 +25,7 @@ import ECharts.Commands (x)
 import Gists (gistControls)
 import Halogen (HTML, action)
 import Halogen.Component (ParentHTML)
-import Halogen.HTML (ClassName(ClassName), b_, br_, button, code_, col, colgroup, div, div_, h2_, h3_, input, pre_, slot', small, span_, strong_, table_, tbody_, td, td_, text, th, th_, thead_, tr)
+import Halogen.HTML (ClassName(ClassName), b_, br_, button, code_, col, colgroup, div, div_, h2_, h2, h3_, input, pre_, slot', small, span_, span, strong_, table_, tbody_, td, td_, text, th, th_, thead_, tr)
 import Halogen.HTML.Events (input_, onChecked, onClick, onDragOver, onDrop, onValueChange)
 import Halogen.HTML.Events as Events
 import Halogen.HTML.Properties (InputType(..), class_, classes, disabled, placeholder, type_, value)
@@ -38,6 +38,9 @@ import Network.RemoteData (RemoteData(Success, Failure, Loading, NotAsked), isLo
 import Prelude (Unit, bind, const, discard, pure, show, unit, void, ($), (<$>), (<<<), (<>))
 import StaticData as StaticData
 import Types (ChildQuery, ChildSlot, MarloweAction(..), MarloweEditorSlot(MarloweEditorSlot), Person, Query(..), State, _authStatus, _createGistResult, _marloweState, _people, _signed, _suggestedActions, cpMarloweEditor)
+
+paneHeader :: forall p. String -> HTML p Query
+paneHeader s = h2 [ class_ $ ClassName "pane-header" ] [ text s ]
 
 simulationPane :: forall m aff. MonadAff (AceEffects (localStorage :: LOCALSTORAGE | aff )) m =>
     State -> ParentHTML Query ChildQuery ChildSlot m
@@ -56,7 +59,7 @@ simulationPane state =
                     , ClassName "mt-5"
                     , ClassName "mb-3"
                     ]]
-          [ h2_ [ text "Debugger" ]
+          [ paneHeader "Debugger"
           , demoScriptsPane
           ]
     , div
@@ -146,7 +149,7 @@ compilationErrorPane (CompilationError error) =
 inputComposerPane :: forall p. State -> HTML p Query
 inputComposerPane state =
     col6_ 
-        [ h2_ [ text "Input Composer" ]
+        [ paneHeader "Input Composer"
         , div [ class_ $ ClassName "wallet" ]
               [ card_
                   [ cardBody_ (concatMap inputComposerPerson (view (_marloweState <<< _people <<< to Map.values <<< to fromFoldable) state))
@@ -237,7 +240,7 @@ suggestedActionRow person idx (Choose v i) = flexRow_
 transactionComposerPane :: forall p. State -> HTML p Query
 transactionComposerPane state =
     col6_
-        [ h2_ [ text "Transaction Composer" ]
+        [ paneHeader "Transaction Composer"
         , div [ class_ $ ClassName "wallet" ]
               [ card_
                   [ cardBody_ $
@@ -362,9 +365,12 @@ stateTitle state = div [ classes [ ClassName "demos"
                                  , ClassName "mt-3"
                                  , ClassName "mb-3"
                                  ]]
-                       [ h2_ [ text "State" ]
-                       , span_ [ strong_ [ text "Current Block:" ]
-                               , text (show state.marloweState.state) ]
+                       [ paneHeader "State"
+                       , span [ classes [ ClassName "btn"
+                                        , ClassName "btn-sm"
+                                        , ClassName "btn-info"
+                                        ] ] [ strong_ [ text "Current Block:" ]
+                              , span [ class_ $ ClassName "block-number" ] [ text (show state.marloweState.state) ] ]
                        ]
 
 statePane :: forall p. State -> HTML p Query
