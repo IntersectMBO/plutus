@@ -47,6 +47,7 @@ simulationPane state =
            , statePane state
            ]
     , demoScriptsPane
+    , h2_ [ text "Debugger" ]
     , div
         [ onDragOver $ Just <<< action <<< HandleDragEvent
         , onDrop $ Just <<< action <<< HandleDropEvent
