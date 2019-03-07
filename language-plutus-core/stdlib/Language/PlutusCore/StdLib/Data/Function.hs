@@ -1,6 +1,6 @@
 -- | Combinators.
 
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings   #-}
 
 module Language.PlutusCore.StdLib.Data.Function
     ( const
@@ -29,18 +29,18 @@ import           Control.Monad
 -- | 'const' as a PLC term.
 --
 -- > /\ (A B :: *) -> \(x : A) (y : B) -> x
-const :: Term TyName Name ()
+const :: TermLike term TyName Name => term ()
 const = runQuote $ do
     a <- freshTyName () "a"
     b <- freshTyName () "b"
     x <- freshName () "x"
     y <- freshName () "y"
     return
-        . TyAbs () a (Type ())
-        . TyAbs () b (Type ())
-        . LamAbs () x (TyVar () a)
-        . LamAbs () y (TyVar () b)
-        $ Var () x
+        . tyAbs () a (Type ())
+        . tyAbs () b (Type ())
+        . lamAbs () x (TyVar () a)
+        . lamAbs () y (TyVar () b)
+        $ var () x
 
 -- | @Self@ as a PLC type.
 --
@@ -56,16 +56,16 @@ selfData = runQuote $ do
 -- | @unroll@ as a PLC term.
 --
 -- > /\(a :: *) -> \(s : self a) -> unwrap s s
-unroll :: Term TyName Name ()
+unroll :: TermLike term TyName Name => term ()
 unroll = runQuote $ do
     let self = _recursiveType selfData
     a <- freshTyName () "a"
     s <- freshName () "s"
     return
-        . TyAbs () a (Type ())
-        . LamAbs () s (TyApp () self $ TyVar () a)
-        . Apply () (Unwrap () $ Var () s)
-        $ Var () s
+        . tyAbs () a (Type ())
+        . lamAbs () s (TyApp () self $ TyVar () a)
+        . apply () (unwrap () $ var () s)
+        $ var () s
 
 -- | 'fix' as a PLC term.
 --
@@ -73,7 +73,7 @@ unroll = runQuote $ do
 -- >    unroll {a -> b} (iwrap selfF (a -> b) \(s : self (a -> b)) \(x : a) -> f (unroll {a -> b} s) x)
 --
 -- See @plutus/runQuote $ docs/fomega/z-combinator-benchmarks@ for details.
-fix :: Term TyName Name ()
+fix :: TermLike term TyName Name => term ()
 fix = runQuote $ do
     let RecursiveType self wrapSelf = selfData
     a <- freshTyName () "a"
@@ -82,19 +82,19 @@ fix = runQuote $ do
     s <- freshName () "s"
     x <- freshName () "x"
     let funAB = TyFun () (TyVar () a) $ TyVar () b
-        unrollFunAB = TyInst () unroll funAB
+        unrollFunAB = tyInst () unroll funAB
     let selfFunAB = TyApp () self funAB
     return
-        . TyAbs () a (Type ())
-        . TyAbs () b (Type ())
-        . LamAbs () f (TyFun () funAB funAB)
-        . Apply () unrollFunAB
+        . tyAbs () a (Type ())
+        . tyAbs () b (Type ())
+        . lamAbs () f (TyFun () funAB funAB)
+        . apply () unrollFunAB
         . wrapSelf [funAB]
-        . LamAbs () s selfFunAB
-        . LamAbs () x (TyVar () a)
-        $ mkIterApp () (Var () f)
-          [ Apply () unrollFunAB $ Var () s
-          , Var () x
+        . lamAbs () s selfFunAB
+        . lamAbs () x (TyVar () a)
+        $ mkIterApp () (var () f)
+          [ apply () unrollFunAB $ var () s
+          , var () x
           ]
 
 -- | A type that looks like a transformation.
@@ -123,7 +123,7 @@ natTransId f = do
 -- >     forall (F :: * -> *) .
 -- >     ((F ~> Id) -> (F ~> Id)) ->
 -- >     ((F ~> F) -> (F ~> Id))
-fixBy :: Term TyName Name ()
+fixBy :: TermLike term TyName Name => term ()
 fixBy = runQuote $ do
     f <- freshTyName () "F"
 
@@ -138,7 +138,7 @@ fixBy = runQuote $ do
     instantiatedFix <- do
         nt1 <- natTrans (TyVar () f) (TyVar () f)
         nt2 <- natTransId (TyVar () f)
-        pure $ TyInst () (TyInst () fix nt1) nt2
+        pure $ tyInst () (tyInst () fix nt1) nt2
 
     -- rec : (F ~> F) -> (F ~> Id)
     recc <- freshName () "rec"
@@ -165,20 +165,20 @@ fixBy = runQuote $ do
 
     -- inner = (/\ (Q :: *) -> \ q : F Q -> rec h {Q} (h {Q} q))
     let inner =
-            Apply () (Var () by) $
-                TyAbs () q (Type ()) $
-                LamAbs () fq fqTy $
-                Apply () (TyInst () (Apply () (Var () recc) (Var () h)) (TyVar () q)) $
-                Apply () (TyInst () (Var () h) (TyVar () q)) (Var () fq)
+            apply () (var () by) $
+                tyAbs () q (Type ()) $
+                lamAbs () fq fqTy $
+                apply () (tyInst () (apply () (var () recc) (var () h)) (TyVar () q)) $
+                apply () (tyInst () (var () h) (TyVar () q)) (var () fq)
     pure $
-        TyAbs () f (KindArrow () (Type ()) (Type ())) $
-        LamAbs () by byTy $
-        Apply () instantiatedFix $
-        LamAbs () recc reccTy $
-        LamAbs () h hty $
-        TyAbs () r (Type ()) $
-        LamAbs () fr frTy $
-        Apply () (TyInst () inner (TyVar () r)) (Var () fr)
+        tyAbs () f (KindArrow () (Type ()) (Type ())) $
+        lamAbs () by byTy $
+        apply () instantiatedFix $
+        lamAbs () recc reccTy $
+        lamAbs () h hty $
+        tyAbs () r (Type ()) $
+        lamAbs () fr frTy $
+        apply () (tyInst () inner (TyVar () r)) (var () fr)
 
 -- | Make a @n@-ary fixpoint combinator.
 --
@@ -191,7 +191,7 @@ fixBy = runQuote $ do
 -- >         (An -> Bn) ->
 -- >         Q) ->
 -- >     (forall R :: * . ((A1 -> B1) -> ... (An -> Bn) -> R) -> R)
-fixN :: Int -> Term TyName Name ()
+fixN :: TermLike term TyName Name => Int -> term ()
 fixN n = runQuote $ do
     -- the list of pairs of A and B types
     asbs <- replicateM n $ do
@@ -207,7 +207,7 @@ fixN n = runQuote $ do
     -- instantiatedFix = fixBy { \X :: * -> (A1 -> B1) -> ... -> (An -> Bn) -> X }
     instantiatedFix <- do
         x <- freshTyName () "X"
-        pure $ TyInst () fixBy (TyLam () x (Type ()) (funTysTo (TyVar () x)))
+        pure $ tyInst () fixBy (TyLam () x (Type ()) (funTysTo (TyVar () x)))
 
     -- f : forall Q :: * . ((A1 -> B1) -> ... -> (An -> Bn) -> Q) -> (A1 -> B1) -> ... -> (An -> Bn) -> Q)
     f <- freshName () "f"
@@ -237,11 +237,11 @@ fixN n = runQuote $ do
             x <- freshName () "x"
 
             pure $
-                LamAbs () x (TyVar () a) $
-                Apply () (TyInst () (Var () k) (TyVar () b)) $
+                lamAbs () x (TyVar () a) $
+                apply () (tyInst () (var () k) (TyVar () b)) $
                 mkIterLamAbs fs $
                 -- this is an ugly but straightforward way of getting the right fi
-                Apply () (mkVar () (fs !! i)) (Var () x)
+                apply () (mkVar () (fs !! i)) (var () x)
 
     -- a list of all the branches
     branches <- forM (zip asbs [0..]) $ uncurry branch
@@ -251,13 +251,13 @@ fixN n = runQuote $ do
     pure $
         -- abstract out all the As and Bs
         mkIterTyAbs (fmap (\tn -> TyVarDecl () tn (Type ())) allAsBs) $
-        LamAbs () f fTy $
+        lamAbs () f fTy $
         mkIterApp () instantiatedFix
-            [ LamAbs () k kTy $
-              TyAbs () s (Type ()) $
-              LamAbs () h hTy $
-              mkIterApp () (Var () h) branches
-            , Var () f
+            [ lamAbs () k kTy $
+              tyAbs () s (Type ()) $
+              lamAbs () h hTy $
+              mkIterApp () (var () h) branches
+            , var () f
             ]
 
 -- | Get the fixed-point of a list of mutually recursive functions.
@@ -270,7 +270,9 @@ fixN n = runQuote $ do
 -- >         fixN {a1} {b1} ... {an} {bn}
 -- >             /\(q :: *) -> \(choose : (a1 -> b1) -> ... -> (an -> bn) -> q) ->
 -- >                 \(fN1 : a1 -> b1) ... (fNn : an -> bn) -> choose f1 ... fn
-getMutualFixOf :: ann -> [FunctionDef TyName Name ann] -> Quote (Tuple ann)
+getMutualFixOf
+    :: (TermLike term TyName Name, Functor term)
+    => ann -> [FunctionDef term TyName Name ann] -> Quote (Tuple term ann)
 getMutualFixOf ann funs = do
     let funTys = map functionDefToType funs
 
@@ -281,17 +283,17 @@ getMutualFixOf ann funs = do
 
     -- \v1 ... vn -> choose f1 ... fn
     let rhss    = map _functionDefTerm funs
-        chosen  = mkIterApp ann (Var ann choose) rhss
+        chosen  = mkIterApp ann (var ann choose) rhss
         vsLam   = mkIterLamAbs (map functionDefVarDecl funs) chosen
 
     -- abstract out Q and choose
-    let cLam = TyAbs ann q (Type ann) $ LamAbs ann choose chooseTy vsLam
+    let cLam = tyAbs ann q (Type ann) $ lamAbs ann choose chooseTy vsLam
 
     -- fixN {A1} {B1} ... {An} {Bn}
     instantiatedFix <- do
         let domCods = foldMap (\(FunctionDef _ _ (FunctionType _ dom cod) _) -> [dom, cod]) funs
         pure $ mkIterInst ann (ann <$ fixN (length funs)) domCods
 
-    let term = Apply ann instantiatedFix cLam
+    let term = apply ann instantiatedFix cLam
 
     pure $ Tuple funTys term

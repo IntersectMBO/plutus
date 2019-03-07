@@ -1,6 +1,7 @@
 -- | @list@ and related functions.
 
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Language.PlutusCore.StdLib.Data.List
     ( listData
@@ -45,7 +46,7 @@ listData = runQuote $ do
 -- |  '[]' as a PLC term.
 --
 -- >  /\(a :: *) -> wrapList [a] /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> z)
-nil :: Term TyName Name ()
+nil :: TermLike term TyName Name => term ()
 nil = runQuote $ do
     let RecursiveType list wrapList = listData
     a <- freshTyName () "a"
@@ -54,18 +55,18 @@ nil = runQuote $ do
     f <- freshName () "f"
     let listA = TyApp () list (TyVar () a)
     return
-        . TyAbs () a (Type ())
+        . tyAbs () a (Type ())
         . wrapList [TyVar () a]
-        . TyAbs () r (Type ())
-        . LamAbs () z (TyVar () r)
-        . LamAbs () f (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)
-        $ Var () z
+        . tyAbs () r (Type ())
+        . lamAbs () z (TyVar () r)
+        . lamAbs () f (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)
+        $ var () z
 
 -- |  '(:)' as a PLC term.
 --
 -- > /\(a :: *) -> \(x : a) (xs : list a) ->
 -- >     wrapList [a] /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> f x xs
-cons :: Term TyName Name ()
+cons :: TermLike term TyName Name => term ()
 cons = runQuote $ do
     let RecursiveType list wrapList = listData
     a  <- freshTyName () "a"
@@ -76,16 +77,16 @@ cons = runQuote $ do
     f  <- freshName () "f"
     let listA = TyApp () list (TyVar () a)
     return
-        . TyAbs () a (Type ())
-        . LamAbs () x (TyVar () a)
-        . LamAbs () xs listA
+        . tyAbs () a (Type ())
+        . lamAbs () x (TyVar () a)
+        . lamAbs () xs listA
         . wrapList [TyVar () a]
-        . TyAbs () r (Type ())
-        . LamAbs () z (TyVar () r)
-        . LamAbs () f (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)
-        $ mkIterApp () (Var () f)
-          [ Var () x
-          , Var () xs
+        . tyAbs () r (Type ())
+        . lamAbs () z (TyVar () r)
+        . lamAbs () f (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)
+        $ mkIterApp () (var () f)
+          [ var () x
+          , var () xs
           ]
 
 -- |  @foldrList@ as a PLC term.
@@ -93,7 +94,7 @@ cons = runQuote $ do
 -- > /\(a :: *) (r :: *) -> \(f : a -> r -> r) (z : r) ->
 -- >     fix {list a} {r} \(rec : list a -> r) (xs : list a) ->
 -- >         unwrap xs {r} z \(x : a) (xs' : list a) -> f x (rec xs')
-foldrList :: Term TyName Name ()
+foldrList :: TermLike term TyName Name => term ()
 foldrList = runQuote $ do
     let list = _recursiveType listData
     a   <- freshTyName () "a"
@@ -106,19 +107,19 @@ foldrList = runQuote $ do
     xs' <- freshName () "xs'"
     let listA = TyApp () list (TyVar () a)
     return
-        . TyAbs () a (Type ())
-        . TyAbs () r (Type ())
-        . LamAbs () f (TyFun () (TyVar () a) . TyFun () (TyVar () r) $ TyVar () r)
-        . LamAbs () z (TyVar () r)
-        . Apply () (mkIterInst () fix [listA, TyVar () r])
-        . LamAbs () rec (TyFun () listA $ TyVar () r)
-        . LamAbs () xs listA
-        . Apply () (Apply () (TyInst () (Unwrap () (Var () xs)) $ TyVar () r) $ Var () z)
-        . LamAbs () x (TyVar () a)
-        . LamAbs () xs' listA
-        $ mkIterApp () (Var () f)
-          [ Var () x
-          , Apply () (Var () rec) $ Var () xs'
+        . tyAbs () a (Type ())
+        . tyAbs () r (Type ())
+        . lamAbs () f (TyFun () (TyVar () a) . TyFun () (TyVar () r) $ TyVar () r)
+        . lamAbs () z (TyVar () r)
+        . apply () (mkIterInst () fix [listA, TyVar () r])
+        . lamAbs () rec (TyFun () listA $ TyVar () r)
+        . lamAbs () xs listA
+        . apply () (apply () (tyInst () (unwrap () (var () xs)) $ TyVar () r) $ var () z)
+        . lamAbs () x (TyVar () a)
+        . lamAbs () xs' listA
+        $ mkIterApp () (var () f)
+          [ var () x
+          , apply () (var () rec) $ var () xs'
           ]
 
 -- |  'foldl\'' as a PLC term.
@@ -126,7 +127,7 @@ foldrList = runQuote $ do
 -- > /\(a :: *) (r :: *) -> \(f : r -> a -> r) ->
 -- >     fix {r} {list a -> r} \(rec : r -> list a -> r) (z : r) (xs : list a) ->
 -- >         unwrap xs {r} z \(x : a) (xs' : list a) -> rec (f z x) xs'
-foldList :: Term TyName Name ()
+foldList :: TermLike term TyName Name => term ()
 foldList = runQuote $ do
     let list = _recursiveType listData
     a   <- freshTyName () "a"
@@ -139,19 +140,19 @@ foldList = runQuote $ do
     xs' <- freshName () "xs'"
     let listA = TyApp () list (TyVar () a)
     return
-        . TyAbs () a (Type ())
-        . TyAbs () r (Type ())
-        . LamAbs () f (TyFun () (TyVar () r) . TyFun () (TyVar () a) $ TyVar () r)
-        . Apply () (mkIterInst () fix [TyVar () r, TyFun () listA $ TyVar () r])
-        . LamAbs () rec (TyFun () (TyVar () r) . TyFun () listA $ TyVar () r)
-        . LamAbs () z (TyVar () r)
-        . LamAbs () xs listA
-        . Apply () (Apply () (TyInst () (Unwrap () (Var () xs)) $ TyVar () r) $ Var () z)
-        . LamAbs () x (TyVar () a)
-        . LamAbs () xs' listA
-        . mkIterApp () (Var () rec)
-        $ [ mkIterApp () (Var () f) [Var () z, Var () x]
-          , Var () xs'
+        . tyAbs () a (Type ())
+        . tyAbs () r (Type ())
+        . lamAbs () f (TyFun () (TyVar () r) . TyFun () (TyVar () a) $ TyVar () r)
+        . apply () (mkIterInst () fix [TyVar () r, TyFun () listA $ TyVar () r])
+        . lamAbs () rec (TyFun () (TyVar () r) . TyFun () listA $ TyVar () r)
+        . lamAbs () z (TyVar () r)
+        . lamAbs () xs listA
+        . apply () (apply () (tyInst () (unwrap () (var () xs)) $ TyVar () r) $ var () z)
+        . lamAbs () x (TyVar () a)
+        . lamAbs () xs' listA
+        . mkIterApp () (var () rec)
+        $ [ mkIterApp () (var () f) [var () z, var () x]
+          , var () xs'
           ]
 
 -- | 'enumFromTo' as a PLC term
@@ -164,7 +165,7 @@ foldList = runQuote $ do
 -- >                 (nil {integer s})
 -- >                 (cons {integer s} n' (rec (succInteger {s} n'))))
 -- >         n
-enumFromTo :: Term TyName Name ()
+enumFromTo :: TermLike term TyName Name => term ()
 enumFromTo = runQuote $ do
     let list = _recursiveType listData
     s   <- freshTyName () "s"
@@ -173,66 +174,66 @@ enumFromTo = runQuote $ do
     rec <- freshName () "rec"
     n'  <- freshName () "n'"
     u   <- freshName () "u"
-    let gtInteger  = Builtin () $ BuiltinName () GreaterThanInteger
+    let gtInteger  = builtin () $ BuiltinName () GreaterThanInteger
         int = TyApp () (TyBuiltin () TyInteger) $ TyVar () s
         listInt = TyApp () list int
     return
-        . TyAbs () s (Size ())
-        . LamAbs () n int
-        . LamAbs () m int
+        . tyAbs () s (Size ())
+        . lamAbs () n int
+        . lamAbs () m int
         . mkIterApp () (mkIterInst () fix [int, listInt])
-        $ [   LamAbs () rec (TyFun () int listInt)
-            . LamAbs () n' int
-            . mkIterApp () (TyInst () ifThenElse listInt)
-            $ [ mkIterApp () (TyInst () gtInteger $ TyVar () s)
-                    [ Var () n'
-                    , Var () m
+        $ [   lamAbs () rec (TyFun () int listInt)
+            . lamAbs () n' int
+            . mkIterApp () (tyInst () ifThenElse listInt)
+            $ [ mkIterApp () (tyInst () gtInteger $ TyVar () s)
+                    [ var () n'
+                    , var () m
                     ]
-              , LamAbs () u unit $ TyInst () nil int
-              , LamAbs () u unit $ mkIterApp () (TyInst () cons int)
-                    [ Var () n'
-                    ,    Apply () (Var () rec)
-                       . Apply () (TyInst () succInteger (TyVar () s))
-                       $ Var () n'
+              , lamAbs () u unit $ tyInst () nil int
+              , lamAbs () u unit $ mkIterApp () (tyInst () cons int)
+                    [ var () n'
+                    ,    apply () (var () rec)
+                       . apply () (tyInst () succInteger (TyVar () s))
+                       $ var () n'
                     ]
               ]
-          , Var () n
+          , var () n
           ]
 
 -- |  'sum' as a PLC term.
 --
 -- > /\(s :: *) -> \(ss : size s) ->
 -- >     foldList {integer s} {integer s} (addInteger {s}) (resizeInteger {1} {s} ss 1!0)
-sum :: Term TyName Name ()
+sum :: TermLike term TyName Name => term ()
 sum = runQuote $ do
     s  <- freshTyName () "s"
     ss <- freshName () "ss"
     let sv  = TyVar () s
         int = TyApp () (TyBuiltin () TyInteger) sv
-        add = TyInst () (Builtin () (BuiltinName () AddInteger)) sv
+        add = tyInst () (builtin () (BuiltinName () AddInteger)) sv
     return
-        . TyAbs () s (Size ())
-        . LamAbs () ss (TyApp () (TyBuiltin () TySize) sv)
+        . tyAbs () s (Size ())
+        . lamAbs () ss (TyApp () (TyBuiltin () TySize) sv)
         . mkIterApp () (mkIterInst () foldList [int, int])
         $ [ add
-          , makeDynBuiltinInt sv (Var () ss) 0
+          , makeDynBuiltinInt sv (var () ss) 0
           ]
 
 -- |  'product' as a PLC term.
 --
 -- > /\(s :: *) -> \(ss : size s) ->
 -- >     foldList {integer s} {integer s} (multiplyInteger {s}) (resizeInteger {1} {s} ss 1!1)
-product :: Term TyName Name ()
+product :: TermLike term TyName Name => term ()
 product = runQuote $ do
     s  <- freshTyName () "s"
     ss <- freshName () "ss"
     let sv  = TyVar () s
         int = TyApp () (TyBuiltin () TyInteger) sv
-        mul = TyInst () (Builtin () (BuiltinName () MultiplyInteger)) sv
+        mul = tyInst () (builtin () (BuiltinName () MultiplyInteger)) sv
     return
-        . TyAbs () s (Size ())
-        . LamAbs () ss (TyApp () (TyBuiltin () TySize) sv)
+        . tyAbs () s (Size ())
+        . lamAbs () ss (TyApp () (TyBuiltin () TySize) sv)
         . mkIterApp () (mkIterInst () foldList [int, int])
         $ [ mul
-          , makeDynBuiltinInt sv (Var () ss) 1
+          , makeDynBuiltinInt sv (var () ss) 1
           ]

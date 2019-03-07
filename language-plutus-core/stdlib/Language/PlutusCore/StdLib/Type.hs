@@ -1,6 +1,7 @@
 -- | This module defines Haskell data types that simplify construction of PLC types and terms.
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE Rank2Types        #-}
 
 module Language.PlutusCore.StdLib.Type
     ( RecursiveType (..)
@@ -489,7 +490,8 @@ are rather high while the benefits are minor, and thus we go with the semantic p
 -- of this type.
 data RecursiveType ann = RecursiveType
     { _recursiveType :: Type TyName ann
-    , _recursiveWrap :: [Type TyName ann] -> Term TyName Name ann -> Term TyName Name ann
+    , _recursiveWrap :: forall term . TermLike term TyName Name
+                     => [Type TyName ann] -> term ann -> term ann
     }
 
 -- | This exception is thrown when @_recursiveWrap@ is applied to a spine the length of which
@@ -638,19 +640,26 @@ getTyFix ann name argVars patBodyN = do
     withSpine <- getWithSpine ann argVars
     withSpine . TyIFix ann <$> packPatternFunctorBodyN ann name argVars patBodyN
 
+-- | An auxiliary type for returning a polymorphic @wrap@. Haskell's support for impredicative
+-- polymorphism isn't good enough to do without this.
+newtype PolymorphicWrap ann =
+    PolymorphicWrap { wrap :: forall term . TermLike term TyName Name
+                           => [Type TyName ann] -> term ann -> term ann
+                    }
+
 -- | Make a generic @wrap@ that takes a spine of type arguments and the rest of a term, packs
 -- the spine using the CPS trick and passes the spine and the term to 'IWrap' along with a 1-ary
 -- pattern functor constructed from pieces of a data type passed as arguments to 'getWrap'.
-getWrap :: FromDataPieces ann ([Type TyName ann] -> Term TyName Name ann -> Term TyName Name ann)
+getWrap :: FromDataPieces ann (PolymorphicWrap ann)
 getWrap ann name argVars patBody = do
     pat1 <- packPatternFunctorBodyN ann name argVars patBody
     toSpine <- getToSpine ann
-    let instVar var ty = TyDecl ann ty $ tyVarDeclKind var
-    return $ \args ->
+    let instVar v ty = TyDecl ann ty $ tyVarDeclKind v
+    return $ PolymorphicWrap $ \args ->
         let argVarsLen = length argVars
             argsLen = length args
             in if argVarsLen == argsLen
-                then IWrap ann pat1 . toSpine $ zipWith instVar argVars args
+                then iWrap ann pat1 . toSpine $ zipWith instVar argVars args
                 else throw . IndicesLengthsMismatchException argVarsLen argsLen $ void name
 
 -- See all the Notes above.
@@ -658,5 +667,7 @@ getWrap ann name argVars patBody = do
 -- and passing it to 'TyIFix' and 'IWrap'. @n@ type arguments get packaged together as a CPS-encoded
 -- spine.
 makeRecursiveType :: FromDataPieces ann (RecursiveType ann)
-makeRecursiveType ann name argVars patBody =
-    RecursiveType <$> getTyFix ann name argVars patBody <*> getWrap ann name argVars patBody
+makeRecursiveType ann name argVars patBody = do
+    recType <- getTyFix ann name argVars patBody
+    polyWrapper <- getWrap ann name argVars patBody
+    pure $ RecursiveType recType (wrap polyWrapper)
