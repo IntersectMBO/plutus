@@ -186,17 +186,20 @@ flexRow_ html = div [ classes [ ClassName "d-flex"
                               ]]
                     html
 
+spanText :: forall p. String -> HTML p Query
+spanText s = span_ [ text s ]
+
 suggestedActionRow :: forall p. Person -> Int -> MarloweAction -> HTML p Query
 suggestedActionRow person idx (Commit v i e) = flexRow_
                             [ button [ class_ $ ClassName "composer-add-button" 
                                      , onClick <<< input_ <<< UpdatePerson $ promoteAction person idx
                                      ]
                                      [ text "+" ]
-                            , text "Commit " 
+                            , spanText "Commit " 
                             , marloweActionInput person idx (\val -> (Commit val i e)) v
-                            , text " ADA with id "
+                            , spanText " ADA with id "
                             , marloweActionInput person idx (\val -> (Commit v val e)) i
-                            , text " to expire by "
+                            , spanText " to expire by "
                             , marloweActionInput person idx (\val -> (Commit v i val)) e
                             ]
 suggestedActionRow person idx (Redeem v i) = flexRow_
@@ -204,9 +207,9 @@ suggestedActionRow person idx (Redeem v i) = flexRow_
                                          , onClick <<< input_ <<< UpdatePerson $ promoteAction person idx
                                          ]
                                          [ text "+" ]
-                                , text "Redeem " 
+                                , spanText "Redeem " 
                                 , marloweActionInput person idx (\val -> (Redeem val i)) v
-                                , text " ADA from id "
+                                , spanText " ADA from id "
                                 , marloweActionInput person idx (\val -> (Redeem v val)) i
                                 ]
 suggestedActionRow person idx (Claim v i) = flexRow_
@@ -214,9 +217,9 @@ suggestedActionRow person idx (Claim v i) = flexRow_
                                          , onClick <<< input_ <<< UpdatePerson $ promoteAction person idx
                                          ]
                                          [ text "+" ]
-                                , text "Claim " 
+                                , spanText "Claim " 
                                 , marloweActionInput person idx (\val -> (Claim val i)) v
-                                , text " ADA from id "
+                                , spanText " ADA from id "
                                 , marloweActionInput person idx (\val -> (Claim v val)) i
                                 ]
 suggestedActionRow person idx (Choose v i) = flexRow_
@@ -224,9 +227,9 @@ suggestedActionRow person idx (Choose v i) = flexRow_
                                          , onClick <<< input_ <<< UpdatePerson $ promoteAction person idx
                                          ]
                                          [ text "+" ]
-                                , text "Choose value " 
+                                , spanText "Choose value " 
                                 , marloweActionInput person idx (\val -> (Choose val i)) v
-                                , text " for id "
+                                , spanText " for id "
                                 , marloweActionInput person idx (\val -> (Choose v val)) i
                                 ]
 
