@@ -452,10 +452,10 @@ resetRedeemedForPerson person (State state) = State (state { commits = CommitInf
 
 discountAvailableMoneyFromCommit :: IdCommit -> BigInt -> State -> Maybe State
 discountAvailableMoneyFromCommit idCommit discount (State state) = case M.lookup idCommit commById of
-  Just v -> Just (State (state { commits = CommitInfo (ci { currentCommitsById = M.insert idCommit ({ person: v.person
-                                                                                                    , amount: v.amount - discount
-                                                                                                    , timeout: v.timeout
-                                                                                                    }) commById }) }))
+  Just { person, amount, timeout } -> Just (State (state { commits = CommitInfo (ci { currentCommitsById = M.insert idCommit ({ person
+                                                                                                                              , amount: amount - discount
+                                                                                                                              , timeout
+                                                                                                                              }) commById }) }))
   Nothing -> Nothing
   where
   CommitInfo ci = state.commits
@@ -964,48 +964,43 @@ simplify_aux Null = { contract: Null, uses: S.empty }
 
 simplify_aux (Commit idAction idCommit person value timeout1 timeout2 contract1 contract2) = let v1 = simplify_aux contract1
                                                                                                  v2 = simplify_aux contract2
-                                                                                                 nc = Commit idAction idCommit person value timeout1 timeout2 v1.contract v2.contract
-                                                                                                 sl = S.union (v1.uses) (v2.uses)
-                                                                                             in { contract: nc
-                                                                                                , uses: sl
+                                                                                                 contract = Commit idAction idCommit person value timeout1 timeout2 v1.contract v2.contract
+                                                                                                 uses = S.union (v1.uses) (v2.uses)
+                                                                                             in { contract
+                                                                                                , uses
                                                                                                 }
 
 simplify_aux (Pay idAction idCommit person value timeout contract1 contract2) = let v1 = simplify_aux contract1
                                                                                     v2 = simplify_aux contract2
-                                                                                    nc = Pay idAction idCommit person value timeout v1.contract v2.contract
-                                                                                    sl = S.union (v1.uses) (v2.uses)
-                                                                                in { contract: nc
-                                                                                   , uses: sl
+                                                                                    contract = Pay idAction idCommit person value timeout v1.contract v2.contract
+                                                                                    uses = S.union (v1.uses) (v2.uses)
+                                                                                in { contract
+                                                                                   , uses
                                                                                    }
 
-simplify_aux (Both contract1 contract2) = let v1 = simplify_aux contract1
-                                              v2 = simplify_aux contract2
-                                          in if (v1.contract == Null)
-                                            then v2
-                                            else (if (v2.contract == Null)
-                                              then v1
-                                              else { contract: (Both v1.contract v2.contract)
-                                                   , uses: S.union v1.uses v2.uses
-                                                   })
+simplify_aux (Both contract1 contract2) = case simplify_aux contract1, simplify_aux contract2 of
+  v1@{ contract: Null }, v2 -> v2
+  v1, v2@{ contract: Null } -> v1
+  v1, v2 -> { contract: Both v1.contract v2.contract
+            , uses: S.union v1.uses v2.uses
+            }
 
 simplify_aux (Choice observation contract1 contract2) = let v1 = simplify_aux contract1
                                                             v2 = simplify_aux contract2
-                                                            nc = if (v1.contract == Null) && (v2.contract == Null)
+                                                            contract = if (v1.contract == Null) && (v2.contract == Null)
                                                               then Null
                                                               else Choice observation v1.contract v2.contract
-                                                            sl = S.union v1.uses v2.uses
-                                                        in { contract: nc
-                                                           , uses: sl
-                                                           }
+                                                            uses = S.union v1.uses v2.uses
+                                                        in { contract, uses }
 
 simplify_aux (When observation timeout contract1 contract2) = let v1 = simplify_aux contract1
                                                                   v2 = simplify_aux contract2
-                                                                  nc = if (v1.contract == Null) && (v2.contract == Null)
+                                                                  contract = if (v1.contract == Null) && (v2.contract == Null)
                                                                     then Null
                                                                     else When observation timeout v1.contract v2.contract
-                                                                  sl = S.union v1.uses v2.uses
-                                                              in { contract: nc
-                                                                 , uses: sl
+                                                                  uses = S.union v1.uses v2.uses
+                                                              in { contract
+                                                                 , uses
                                                                  }
 
 simplify_aux (While observation timeout contract1 contract2) = let v1 = simplify_aux contract1
