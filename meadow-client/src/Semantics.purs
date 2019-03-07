@@ -1,9 +1,15 @@
 module Semantics where
 
+import Control.Monad
+
 import Data.BigInt
   ( BigInt
   , fromInt
   , toString
+  , fromString
+  )
+import Data.Either
+  ( Either(..)
   )
 import Data.Eq
   ( class Eq
@@ -24,6 +30,8 @@ import Data.List
   , concat
   , foldl
   , foldr
+  , fromFoldable
+  , reverse
   )
 import Data.Maybe
   ( Maybe(..)
@@ -48,6 +56,13 @@ import Data.Show
   )
 import Data.String
   ( joinWith
+  )
+import Data.String.Regex
+  ( split
+  , regex
+  )
+import Data.String.Regex.Flags
+  ( RegexFlags(..)
   )
 import Data.Tuple
   ( Tuple(..)
@@ -103,6 +118,16 @@ showIdChoice { choice, person } = joinWith "" [ "("
                                               , ")"
                                               ]
 
+showBigInt ::
+  BigInt ->
+  String
+showBigInt x = if (x >= fromInt 0)
+  then toString x
+  else joinWith "" [ "("
+                   , toString x
+                   , ")"
+                   ]
+
 data Value
   = CurrentBlock
   | Committed IdCommit
@@ -128,11 +153,11 @@ showValue ::
 showValue CurrentBlock = "CurrentBlock"
 
 showValue (Committed idCommit) = joinWith "" [ "Committed "
-                                             , toString idCommit
+                                             , showBigInt idCommit
                                              ]
 
 showValue (Constant bigInt) = joinWith "" [ "Constant "
-                                          , toString bigInt
+                                          , showBigInt bigInt
                                           ]
 
 showValue (NegValue value1) = joinWith "" [ "NegValue ("
@@ -187,7 +212,7 @@ showValue (ValueFromChoice idChoice value) = joinWith "" [ "ValueFromChoice "
                                                          ]
 
 showValue (ValueFromOracle idOracle value) = joinWith "" [ "ValueFromOracle "
-                                                         , toString idOracle
+                                                         , showBigInt idOracle
                                                          , " ("
                                                          , showValue value
                                                          , ")"
@@ -222,7 +247,7 @@ showObservation ::
   Observation ->
   String
 showObservation (BelowTimeout timeout) = joinWith " " [ "BelowTimeout"
-                                                      , toString timeout
+                                                      , showBigInt timeout
                                                       ]
 
 showObservation (AndObs observation1 observation2) = joinWith "" [ "AndObs ("
@@ -246,7 +271,7 @@ showObservation (NotObs observation) = joinWith "" [ "NotObs ("
 
 showObservation (ChoseThis idChoice choice) = joinWith " " [ "ChoseThis"
                                                            , showIdChoice idChoice
-                                                           , toString choice
+                                                           , showBigInt choice
                                                            ]
 
 showObservation (ChoseSomething idChoice) = joinWith " " [ "ChoseSomething"
@@ -320,17 +345,17 @@ showContract ::
 showContract Null = "Null"
 
 showContract (Commit idAction idCommit person value timeout1 timeout2 contract1 contract2) = joinWith "" [ "Commit "
-                                                                                                         , toString idAction
+                                                                                                         , showBigInt idAction
                                                                                                          , " "
-                                                                                                         , toString idCommit
+                                                                                                         , showBigInt idCommit
                                                                                                          , " "
-                                                                                                         , toString person
+                                                                                                         , showBigInt person
                                                                                                          , " ("
                                                                                                          , showValue value
                                                                                                          , ") "
-                                                                                                         , toString timeout1
+                                                                                                         , showBigInt timeout1
                                                                                                          , " "
-                                                                                                         , toString timeout2
+                                                                                                         , showBigInt timeout2
                                                                                                          , " ("
                                                                                                          , showContract contract1
                                                                                                          , ") ("
@@ -339,15 +364,15 @@ showContract (Commit idAction idCommit person value timeout1 timeout2 contract1 
                                                                                                          ]
 
 showContract (Pay idAction idCommit person value timeout contract1 contract2) = joinWith "" [ "Pay "
-                                                                                            , toString idAction
+                                                                                            , showBigInt idAction
                                                                                             , " "
-                                                                                            , toString idCommit
+                                                                                            , showBigInt idCommit
                                                                                             , " "
-                                                                                            , toString person
+                                                                                            , showBigInt person
                                                                                             , " ("
                                                                                             , showValue value
                                                                                             , ") "
-                                                                                            , toString timeout
+                                                                                            , showBigInt timeout
                                                                                             , " ("
                                                                                             , showContract contract1
                                                                                             , ") ("
@@ -374,7 +399,7 @@ showContract (Choice observation contract1 contract2) = joinWith "" [ "Choice ("
 showContract (When observation timeout contract1 contract2) = joinWith "" [ "When ("
                                                                           , showObservation observation
                                                                           , ") "
-                                                                          , toString timeout
+                                                                          , showBigInt timeout
                                                                           , " ("
                                                                           , showContract contract1
                                                                           , ") ("
@@ -385,7 +410,7 @@ showContract (When observation timeout contract1 contract2) = joinWith "" [ "Whe
 showContract (While observation timeout contract1 contract2) = joinWith "" [ "While ("
                                                                            , showObservation observation
                                                                            , ") "
-                                                                           , toString timeout
+                                                                           , showBigInt timeout
                                                                            , " ("
                                                                            , showContract contract1
                                                                            , ") ("
@@ -405,7 +430,7 @@ showContract (Scale value1 value2 value3 contract) = joinWith "" [ "Scale ("
                                                                  ]
 
 showContract (Let letLabel contract1 contract2) = joinWith "" [ "Let "
-                                                              , toString letLabel
+                                                              , showBigInt letLabel
                                                               , " ("
                                                               , showContract contract1
                                                               , ") ("
@@ -414,8 +439,302 @@ showContract (Let letLabel contract1 contract2) = joinWith "" [ "Let "
                                                               ]
 
 showContract (Use letLabel) = joinWith "" [ "Use "
-                                          , toString letLabel
+                                          , showBigInt letLabel
                                           ]
+
+instance showContractI ::
+  Show Contract where
+    show = showContract
+
+newtype Parser a
+  = Parser {runParser :: List String -> Maybe (Tuple a (List String))}
+
+instance functorParser ::
+  Functor Parser where
+    map ::
+      forall a b.
+      (a -> b) ->
+      Parser a ->
+      Parser b
+    map x (Parser y) = Parser { runParser: (\z ->
+                                case y.runParser z of
+                                  Nothing -> Nothing
+                                  Just (Tuple q1 q2) -> Just (Tuple (x q1) q2))
+                              }
+
+instance applyParser ::
+  Apply Parser where
+    apply ::
+      forall a b.
+      Parser (a -> b) ->
+      Parser a ->
+      Parser b
+    apply (Parser p) (Parser a) = Parser { runParser: (\y ->
+                                           case a.runParser y of
+                                             Nothing -> Nothing
+                                             Just (Tuple z1 z2) -> (case p.runParser z2 of
+                                               Nothing -> Nothing
+                                               Just (Tuple p1 p2) -> Just (Tuple (p1 z1) p2)))
+                                         }
+
+instance applicativeParser ::
+  Applicative Parser where
+    pure ::
+      forall a.
+      a ->
+      Parser a
+    pure x = Parser { runParser: (\y ->
+                      Just (Tuple x y))
+                    }
+
+instance bindParser ::
+  Bind Parser where
+    bind ::
+      forall a b.
+      Parser a ->
+      (a -> Parser b) ->
+      Parser b
+    bind (Parser a) fb = Parser { runParser: (\y ->
+                                  case a.runParser y of
+                                    Nothing -> Nothing
+                                    Just (Tuple z1 z2) -> let Parser b = fb z1
+                                                          in b.runParser z2)
+                                }
+
+instance monadParser ::
+  Monad Parser
+
+getToken ::
+  Parser String
+getToken = Parser { runParser: (\x ->
+                    case x of
+                      Nil -> Nothing
+                      (Cons y z) -> Just (Tuple y z))
+                  }
+
+wrongParse ::
+  forall a.
+  Parser a
+wrongParse = Parser { runParser: (\y ->
+                      Nothing)
+                    }
+
+runParser ::
+  forall a.
+  List String ->
+  Parser a ->
+  Maybe a
+runParser l (Parser p) = case p.runParser l of
+  Just (Tuple x Nil) -> Just x
+  _ -> Nothing
+
+bigIntParser ::
+  Parser BigInt
+bigIntParser = do
+  tok <- getToken
+  case fromString tok of
+    Just v -> pure v
+    Nothing -> wrongParse
+
+valueParser ::
+  Parser Value
+valueParser = do
+  tok <- getToken
+  case tok of
+    "CurrentBlock" -> pure CurrentBlock
+    "Committed" -> do
+      idCommit <- bigIntParser
+      pure (Committed idCommit)
+    "Constant" -> do
+      bigInt <- bigIntParser
+      pure (Constant bigInt)
+    "NegValue" -> do
+      value <- valueParser
+      pure (NegValue value)
+    "AddValue" -> do
+      value1 <- valueParser
+      value2 <- valueParser
+      pure (AddValue value1 value2)
+    "SubValue" -> do
+      value1 <- valueParser
+      value2 <- valueParser
+      pure (SubValue value1 value2)
+    "MulValue" -> do
+      value1 <- valueParser
+      value2 <- valueParser
+      pure (MulValue value1 value2)
+    "DivValue" -> do
+      value1 <- valueParser
+      value2 <- valueParser
+      value3 <- valueParser
+      pure (DivValue value1 value2 value3)
+    "ModValue" -> do
+      value1 <- valueParser
+      value2 <- valueParser
+      value3 <- valueParser
+      pure (ModValue value1 value2 value3)
+    "ValueFromChoice" -> do
+      choice <- bigIntParser
+      person <- bigIntParser
+      value <- valueParser
+      pure (ValueFromChoice { choice
+                            , person
+                            } value)
+    "ValueFromOracle" -> do
+      idOracle <- bigIntParser
+      value <- valueParser
+      pure (ValueFromOracle idOracle value)
+    _ -> wrongParse
+
+observationParser ::
+  Parser Observation
+observationParser = do
+  tok <- getToken
+  case tok of
+    "BelowTimeout" -> do
+      timeout <- bigIntParser
+      pure (BelowTimeout timeout)
+    "AndObs" -> do
+      observation1 <- observationParser
+      observation2 <- observationParser
+      pure (AndObs observation1 observation2)
+    "OrObs" -> do
+      observation1 <- observationParser
+      observation2 <- observationParser
+      pure (OrObs observation1 observation2)
+    "NotObs" -> do
+      observation <- observationParser
+      pure (NotObs observation)
+    "ChoseThis" -> do
+      choice <- bigIntParser
+      person <- bigIntParser
+      choice2 <- bigIntParser
+      pure (ChoseThis { choice
+                      , person
+                      } choice2)
+    "ChoseSomething" -> do
+      choice <- bigIntParser
+      person <- bigIntParser
+      pure (ChoseSomething { choice
+                           , person
+                           })
+    "ValueGE" -> do
+      value1 <- valueParser
+      value2 <- valueParser
+      pure (ValueGE value1 value2)
+    "ValueGT" -> do
+      value1 <- valueParser
+      value2 <- valueParser
+      pure (ValueGT value1 value2)
+    "ValueLT" -> do
+      value1 <- valueParser
+      value2 <- valueParser
+      pure (ValueLT value1 value2)
+    "ValueLE" -> do
+      value1 <- valueParser
+      value2 <- valueParser
+      pure (ValueLE value1 value2)
+    "ValueEQ" -> do
+      value1 <- valueParser
+      value2 <- valueParser
+      pure (ValueEQ value1 value2)
+    "TrueObs" -> pure TrueObs
+    "FalseObs" -> pure FalseObs
+    _ -> wrongParse
+
+contractParser ::
+  Parser Contract
+contractParser = do
+  tok <- getToken
+  case tok of
+    "Null" -> pure Null
+    "Commit" -> do
+      idAction <- bigIntParser
+      idCommit <- bigIntParser
+      person <- bigIntParser
+      value <- valueParser
+      timeout1 <- bigIntParser
+      timeout2 <- bigIntParser
+      contract1 <- contractParser
+      contract2 <- contractParser
+      pure (Commit idAction idCommit person value timeout1 timeout2 contract1 contract2)
+    "Pay" -> do
+      idAction <- bigIntParser
+      idCommit <- bigIntParser
+      person <- bigIntParser
+      value <- valueParser
+      timeout <- bigIntParser
+      contract1 <- contractParser
+      contract2 <- contractParser
+      pure (Pay idAction idCommit person value timeout contract1 contract2)
+    "Both" -> do
+      contract1 <- contractParser
+      contract2 <- contractParser
+      pure (Both contract1 contract2)
+    "Choice" -> do
+      observation <- observationParser
+      contract1 <- contractParser
+      contract2 <- contractParser
+      pure (Choice observation contract1 contract2)
+    "When" -> do
+      observation <- observationParser
+      timeout <- bigIntParser
+      contract1 <- contractParser
+      contract2 <- contractParser
+      pure (When observation timeout contract1 contract2)
+    "While" -> do
+      observation <- observationParser
+      timeout <- bigIntParser
+      contract1 <- contractParser
+      contract2 <- contractParser
+      pure (While observation timeout contract1 contract2)
+    "Scale" -> do
+      value1 <- valueParser
+      value2 <- valueParser
+      value3 <- valueParser
+      contract <- contractParser
+      pure (Scale value1 value2 value3 contract)
+    "Let" -> do
+      letLabel <- bigIntParser
+      contract1 <- contractParser
+      contract2 <- contractParser
+      pure (Let letLabel contract1 contract2)
+    "Use" -> do
+      letLabel <- bigIntParser
+      pure (Use letLabel)
+    _ -> wrongParse
+
+alternateRemove ::
+  forall a.
+  Boolean ->
+  List a ->
+  List a ->
+  List a
+alternateRemove _ Nil x = reverse x
+
+alternateRemove true (Cons x y) l = alternateRemove false y (Cons x l)
+
+alternateRemove false (Cons _ x) l = alternateRemove true x l
+
+removeOdd ::
+  forall a.
+  List a ->
+  List a
+removeOdd x = alternateRemove false x Nil
+
+readContract ::
+  String ->
+  Maybe Contract
+readContract x = case mr of
+  Left _ -> Nothing
+  Right re -> runParser (removeOdd (fromFoldable (split re x))) contractParser
+  where
+  mr = regex ("([a-zA-Z]+|-?[0-9]+)") (RegexFlags { global: true
+                                                  , ignoreCase: false
+                                                  , multiline: true
+                                                  , sticky: false
+                                                  , unicode: true
+                                                  })
 
 -- Data type for Inputs with their information 
 data Input
