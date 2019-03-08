@@ -306,7 +306,8 @@ h2 {
 }
 
 @media (max-width:990px) {
-    .input-composer, .transaction-composer {
+    .input-composer.col.col-sm-6,  .transaction-composer.col.col-sm-6 {
        width:100%;
+       flex: none !important;
     }
  }
