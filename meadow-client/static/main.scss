@@ -259,7 +259,7 @@ h2 {
 }
 
 .action-input {
-    width: 15%;
+    width: 10%;
 }
 
 .block-number {
@@ -269,6 +269,20 @@ h2 {
 
 .pane-header {
     font-weight: normal;
+}
+
+.signature-row {
+    padding-left: 1rem;
+}
+
+.transaction-btn-row {
+    margin-left: 1rem;
+}
+
+.transaction-btn {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    margin-right: 0.5rem;
 }
 
 .full-width-card {

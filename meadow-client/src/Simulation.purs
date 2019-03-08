@@ -190,7 +190,7 @@ flexRow_ html = div [ classes [ ClassName "d-flex"
                     html
 
 spanText :: forall p. String -> HTML p Query
-spanText s = span_ [ text s ]
+spanText s = span [ class_ $ ClassName "pr-1" ] [ text s ]
 
 suggestedActionRow :: forall p. Person -> Int -> MarloweAction -> HTML p Query
 suggestedActionRow person idx (Commit v i e) = flexRow_
@@ -256,17 +256,17 @@ transactionButtons = [ div
                         [ classes [ ClassName "d-flex"
                                   , ClassName "flex-row"
                                   , ClassName "align-items-center"
-                                  , ClassName "justify-content-between"
-                                  , ClassName "col-sm-10"
+                                  , ClassName "justify-content-start"
+                                  , ClassName "transaction-btn-row"
                                   ]
                         ]
                         [ button 
-                            [ classes [btn, btnPrimary ]
+                            [ classes [btn, btnPrimary, ClassName "transaction-btn" ]
                             , onClick $ Just <<< HQ.action <<< const ApplyTrasaction
                             ]
                             [ text "Apply Transaction" ]
                         , button 
-                            [ classes [btn, btnPrimary ] 
+                            [ classes [btn, btnPrimary, ClassName "transaction-btn" ]
                             , onClick $ Just <<< HQ.action <<< const NextBlock
                             ]
                             [ text "Next Block" ]
@@ -278,15 +278,15 @@ signatures people = [ h3_ [ text "Signatures" ]
                     , div [ classes [ ClassName "d-flex"
                                     , ClassName "flex-row"
                                     , ClassName "align-items-center"
-                                    , ClassName "justify-content-between"
-                                    , ClassName "col-sm-6"
+                                    , ClassName "justify-content-start"
+                                    , ClassName "signature-row"
                                     ]
                           ]
                           (map signature people)
                     ]
 
 signature :: forall p. Person -> HTML p Query
-signature person = span_ [ input [ type_ InputCheckbox
+signature person = span [ class_ $ ClassName "pr-2" ] [ input [ type_ InputCheckbox
                                 , onChecked $ Just <<< HQ.action <<< UpdatePerson <<< (\checked -> set _signed checked person)
                                 ]
                          , span_ [ text $ " Person " <> show person.id ]
@@ -368,7 +368,6 @@ stateTitle state = div [ classes [ ClassName "demos"
                        [ paneHeader "State"
                        , span [ classes [ ClassName "btn"
                                         , ClassName "btn-sm"
-                                        , ClassName "btn-info"
                                         ] ] [ strong_ [ text "Current Block:" ]
                               , span [ class_ $ ClassName "block-number" ] [ text (show state.marloweState.state) ] ]
                        ]
