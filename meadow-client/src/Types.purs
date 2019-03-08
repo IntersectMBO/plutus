@@ -33,6 +33,10 @@ data Query a
   = HandleEditorMessage AceMessage a
   | HandleDragEvent DragEvent a
   | HandleDropEvent DragEvent a
+  -- MarloweSubEvents.
+  | MarloweHandleEditorMessage AceMessage a
+  | MarloweHandleDragEvent DragEvent a
+  | MarloweHandleDropEvent DragEvent a
   -- Gist support.
   | CheckAuthStatus a
   | PublishGist a

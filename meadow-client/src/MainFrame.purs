@@ -64,7 +64,7 @@ import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Suc
 import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, show, unit, unless, void, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation (simulationPane)
-import StaticData (bufferLocalStorageKey)
+import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
 import StaticData as StaticData
 
 examplePeople :: Map PersonId Person
@@ -139,6 +139,9 @@ toEvent :: forall a. Query a -> Maybe Event
 toEvent (HandleEditorMessage _ _) = Nothing
 toEvent (HandleDragEvent _ _) = Nothing
 toEvent (HandleDropEvent _ _) = Just $ defaultEvent "DropScript"
+toEvent (MarloweHandleEditorMessage _ _) = Nothing
+toEvent (MarloweHandleDragEvent _ _) = Nothing
+toEvent (MarloweHandleDropEvent _ _) = Just $ defaultEvent "MarloweDropScript"
 toEvent (CheckAuthStatus _) = Nothing
 toEvent (PublishGist _) = Just $ (defaultEvent "Publish") { label = Just "Gist"}
 toEvent (ChangeView view _) = Just $ (defaultEvent "View") { label = Just $ show view}
@@ -153,6 +156,9 @@ toEvent (CompileMarlowe _) = Just $ defaultEvent "CompileMarlowe"
 
 saveBuffer :: forall eff. String -> Eff (localStorage :: LOCALSTORAGE | eff) Unit
 saveBuffer text = LocalStorage.setItem bufferLocalStorageKey text
+
+saveMarloweBuffer :: forall eff. String -> Eff (localStorage :: LOCALSTORAGE | eff) Unit
+saveMarloweBuffer text = LocalStorage.setItem marloweBufferLocalStorageKey text
 
 eval ::
   forall m aff.
@@ -171,6 +177,20 @@ eval (HandleDropEvent event next) = do
   liftEff $ preventDefault event
   contents <- liftAff $ readFileFromDragEvent event
   void $ withEditor $ Editor.setValue contents (Just 1)
+  pure next
+
+eval (MarloweHandleEditorMessage (TextChanged text) next) = do
+  liftEff $ saveMarloweBuffer text
+  pure next
+
+eval (MarloweHandleDragEvent event next) = do
+  liftEff $ preventDefault event
+  pure next
+
+eval (MarloweHandleDropEvent event next) = do
+  liftEff $ preventDefault event
+  contents <- liftAff $ readFileFromDragEvent event
+  void $ withMarloweEditor $ Editor.setValue contents (Just 1)
   pure next
 
 eval (CheckAuthStatus next) = do

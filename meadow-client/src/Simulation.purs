@@ -59,13 +59,13 @@ simulationPane state =
           , demoScriptsPane
           ]
     , div
-        [ onDragOver $ Just <<< action <<< HandleDragEvent
-        , onDrop $ Just <<< action <<< HandleDropEvent
+        [ onDragOver $ Just <<< action <<< MarloweHandleDragEvent
+        , onDrop $ Just <<< action <<< MarloweHandleDropEvent
         ]
         [ slot' cpMarloweEditor MarloweEditorSlot
             (aceComponent initEditor (Just Live))
             unit
-            (Events.input HandleEditorMessage)
+            (Events.input MarloweHandleEditorMessage)
         ]
     , br_
     , errorList
