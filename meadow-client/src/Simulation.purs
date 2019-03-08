@@ -6,12 +6,11 @@ import Ace.Editor as Editor
 import Ace.Halogen.Component (AceEffects, Autocomplete(Live), aceComponent)
 import Ace.Types (ACE, Editor)
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (btn, btnDanger, btnInfo, btnPrimary, btnSecondary, btnSmall, btnSuccess, cardBody_, card_, col6, col6_, col_, empty, listGroupItem_, listGroup_, pullRight, row_)
+import Bootstrap (btn, btnInfo, btnPrimary, btnSmall, cardBody_, card_, col6, col_, empty, listGroupItem_, listGroup_, pullRight, row_)
 import Control.Alternative (map, (<|>))
 import Control.Monad.Aff.Class (class MonadAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
-import DOM.HTML.History (state)
 import Data.Array (concatMap, fromFoldable, mapWithIndex, updateAt)
 import Data.Array as Array
 import Data.Either (Either(..))
@@ -21,23 +20,20 @@ import Data.Map as Map
 import Data.Maybe (Maybe(Just), fromMaybe)
 import Data.Maybe as Maybe
 import Data.String as String
-import ECharts.Commands (x)
-import Gists (gistControls)
 import Halogen (HTML, action)
 import Halogen.Component (ParentHTML)
-import Halogen.HTML (ClassName(ClassName), b_, br_, button, code_, col, colgroup, div, div_, h2_, h2, h3_, input, pre_, slot', small, span_, span, strong_, table_, tbody_, td, td_, text, th, th_, thead_, tr)
+import Halogen.HTML (ClassName(ClassName), b_, br_, button, code_, col, colgroup, div, div_, h2, h3_, input, pre_, slot', small, span_, span, strong_, table_, tbody_, td, td_, text, th, th_, thead_, tr)
 import Halogen.HTML.Events (input_, onChecked, onClick, onDragOver, onDrop, onValueChange)
 import Halogen.HTML.Events as Events
-import Halogen.HTML.Properties (InputType(..), class_, classes, disabled, placeholder, type_, value)
+import Halogen.HTML.Properties (InputType(..), class_, classes, placeholder, type_, value)
 import Halogen.Query as HQ
-import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError))
 import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
-import Network.RemoteData (RemoteData(Success, Failure, Loading, NotAsked), isLoading)
+import Network.RemoteData (RemoteData(Success, Failure))
 import Prelude (Unit, bind, const, discard, pure, show, unit, void, ($), (<$>), (<<<), (<>))
 import StaticData as StaticData
-import Types (ChildQuery, ChildSlot, MarloweAction(..), MarloweEditorSlot(MarloweEditorSlot), Person, Query(..), State, _authStatus, _createGistResult, _marloweState, _people, _signed, _suggestedActions, cpMarloweEditor)
+import Types (ChildQuery, ChildSlot, MarloweAction(..), MarloweEditorSlot(MarloweEditorSlot), MarloweError(..), Person, Query(..), State, _marloweState, _people, _signed, _suggestedActions, cpMarloweEditor)
 
 paneHeader :: forall p. String -> HTML p Query
 paneHeader s = h2 [ class_ $ ClassName "pane-header" ] [ text s ]
@@ -72,21 +68,13 @@ simulationPane state =
             (Events.input HandleEditorMessage)
         ]
     , br_
-    , runResult
     , errorList
     ]
   where
-    errorList = case state.runResult of
-                  Success (Left errors) ->
+    errorList = case state.marloweCompileResult of
+                  Left errors ->
                     listGroup_
                       (listGroupItem_ <<< pure <<< compilationErrorPane <$> errors)
-                  Failure error ->
-                    ajaxErrorPane error
-                  _ -> empty
-    runResult = case state.runResult of
-                  Success (Right stdout) ->
-                    listGroup_
-                      [(listGroupItem_ <<< pure <<< compilationResultPane $ stdout)]
                   _ -> empty
 
 loadBuffer :: forall eff. Eff (localStorage :: LOCALSTORAGE | eff) (Maybe String)
@@ -98,7 +86,7 @@ initEditor ∷
   => Editor -> m Unit
 initEditor editor = liftEff $ do
   savedContents <- liftEff loadBuffer
-  let defaultContents = Just StaticData.marloweContract
+  let defaultContents = Map.lookup "Deposit Insentive" StaticData.marloweContracts
   let contents = fromMaybe "" (savedContents <|> defaultContents)
   void $ Editor.setValue contents (Just 1) editor
 
@@ -112,13 +100,13 @@ demoScriptsPane =
   div_
    (Array.cons
       (strong_ [ text "Demos: " ])
-      (demoScriptButton <$> Array.fromFoldable (Map.keys StaticData.demoFiles)))
+      (demoScriptButton <$> Array.fromFoldable (Map.keys StaticData.marloweContracts)))
 
 demoScriptButton :: forall p. String -> HTML p Query
 demoScriptButton key =
   button
     [ classes [ btn, btnInfo, btnSmall ]
-    , onClick $ input_ $ LoadScript key
+    , onClick $ input_ $ LoadMarloweScript key
     ]
     [ text key ]
 
@@ -126,20 +114,9 @@ compilationResultPane :: forall p. RunResult -> HTML p Query
 compilationResultPane (RunResult stdout) =
   div_ [ code_ [ pre_ [ text stdout ] ] ]
 
-compilationErrorPane :: forall p. CompilationError -> HTML p Query
-compilationErrorPane (RawError error) =
+compilationErrorPane :: forall p. MarloweError -> HTML p Query
+compilationErrorPane (MarloweError error) =
   div_ [ text error ]
-compilationErrorPane (CompilationError error) =
-  div [ class_ $ ClassName "compilation-error"
-      , onClick $ input_ $ ScrollTo {row: error.row, column: error.column}
-      ]
-    [ small [ class_ pullRight ]
-        [ text "jump" ]
-    , h3_
-        [ text $ "Line " <> show error.row <> ", Column " <> show error.column <> ":" ]
-    , code_
-        [ pre_ [ text $ String.joinWith "\n" error.text ] ]
-    ]
 
 inputComposerPane :: forall p. State -> HTML p Query
 inputComposerPane state =
@@ -265,6 +242,11 @@ transactionButtons = [ div
                             , onClick $ Just <<< HQ.action <<< const NextBlock
                             ]
                             [ text "Next Block" ]
+                        , button 
+                            [ classes [btn, btnPrimary, ClassName "transaction-btn" ]
+                            , onClick $ Just <<< HQ.action <<< const CompileMarlowe
+                            ]
+                            [ text "Compile" ]
                         ]
                      ]
 

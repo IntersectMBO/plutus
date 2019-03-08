@@ -40,7 +40,8 @@ editorPane ::
   => State -> ParentHTML Query ChildQuery ChildSlot m
 editorPane state =
   div_
-    [ div
+    [ demoScriptsPane
+    , div
         [ onDragOver $ Just <<< action <<< HandleDragEvent
         , onDrop $ Just <<< action <<< HandleDropEvent
         ]
@@ -98,7 +99,7 @@ initEditor ∷
   => Editor -> m Unit
 initEditor editor = liftEff $ do
   savedContents <- liftEff loadBuffer
-  let defaultContents = Map.lookup "Vesting" StaticData.demoFiles
+  let defaultContents = Map.lookup "BasicContract" StaticData.demoFiles
   let contents = fromMaybe "" (savedContents <|> defaultContents)
   void $ Editor.setValue contents (Just 1) editor
 
@@ -106,6 +107,21 @@ initEditor editor = liftEff $ do
   --
   session <- Editor.getSession editor
   Session.setMode "ace/mode/haskell" session
+
+demoScriptsPane :: forall p. HTML p Query
+demoScriptsPane =
+  div [ class_ $ ClassName "demos" ]
+   (Array.cons
+      (strong_ [ text "Demos: " ])
+      (demoScriptButton <$> Array.fromFoldable (Map.keys StaticData.demoFiles)))
+
+demoScriptButton :: forall p. String -> HTML p Query
+demoScriptButton key =
+  button
+    [ classes [ btn, btnInfo, btnSmall ]
+    , onClick $ input_ $ LoadScript key
+    ]
+    [ text key ]
 
 compilationResultPane :: forall p. RunResult -> HTML p Query
 compilationResultPane (RunResult stdout) =

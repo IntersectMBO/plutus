@@ -43,9 +43,11 @@ data Query a
   | CompileProgram a
   | ScrollTo { row :: Int, column :: Int } a
   -- Marlowe
+  | LoadMarloweScript String a
   | UpdatePerson Person a
   | ApplyTrasaction a
   | NextBlock a
+  | CompileMarlowe a
 
 ------------------------------------------------------------
 
@@ -71,6 +73,7 @@ cpMarloweEditor = cpR
 type State =
   { view :: View
   , runResult :: RemoteData AjaxError (Either (Array CompilationError) RunResult)
+  , marloweCompileResult :: Either (Array MarloweError) Unit
   , authStatus :: RemoteData AjaxError AuthStatus
   , createGistResult :: RemoteData AjaxError Gist
   , marloweState :: MarloweState
@@ -100,6 +103,8 @@ derive instance genericView :: Generic View
 
 instance showView :: Show View where
   show = gShow
+
+data MarloweError = MarloweError String
 
 data MarloweAction
   = Commit Int Int Int

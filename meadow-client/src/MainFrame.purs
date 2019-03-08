@@ -95,6 +95,7 @@ initialState :: State
 initialState =
   { view: Editor
   , runResult: NotAsked
+  , marloweCompileResult: Right unit
   , authStatus: NotAsked
   , createGistResult: NotAsked
   , marloweState: { people: examplePeople, state: SimulationState 0 }
@@ -142,11 +143,13 @@ toEvent (CheckAuthStatus _) = Nothing
 toEvent (PublishGist _) = Just $ (defaultEvent "Publish") { label = Just "Gist"}
 toEvent (ChangeView view _) = Just $ (defaultEvent "View") { label = Just $ show view}
 toEvent (LoadScript script a) = Just $ (defaultEvent "LoadScript") { label = Just script}
+toEvent (LoadMarloweScript script a) = Just $ (defaultEvent "LoadMarloweScript") { label = Just script}
 toEvent (CompileProgram a) = Just $ defaultEvent "CompileProgram"
 toEvent (ScrollTo _ _) = Nothing
 toEvent (UpdatePerson _ _) = Nothing
 toEvent (ApplyTrasaction _) = Just $ defaultEvent "ApplyTransaction"
 toEvent (NextBlock _) = Just $ defaultEvent "NextBlock"
+toEvent (CompileMarlowe _) = Just $ defaultEvent "CompileMarlowe"
 
 saveBuffer :: forall eff. String -> Eff (localStorage :: LOCALSTORAGE | eff) Unit
 saveBuffer text = LocalStorage.setItem bufferLocalStorageKey text
@@ -198,6 +201,13 @@ eval (LoadScript key next) = do
       assign _runResult NotAsked
       pure next
 
+eval (LoadMarloweScript key next) = do
+  case Map.lookup key StaticData.marloweContracts of
+    Nothing -> pure next
+    Just contents -> do
+      void $ withMarloweEditor $ Editor.setValue contents (Just 1)
+      pure next
+
 eval (CompileProgram next) = do
   mContents <- withEditor Editor.getValue
 
@@ -231,6 +241,8 @@ eval (NextBlock next) = do
   modifying (_marloweState <<< _state) (\(SimulationState block) -> SimulationState (block + 1))
   pure next
 
+eval (CompileMarlowe next) = pure next
+
 ------------------------------------------------------------
 
 -- | Handles the messy business of running an editor command if the
@@ -241,6 +253,17 @@ withEditor :: forall m eff a.
   -> HalogenM State Query ChildQuery ChildSlot Void m (Maybe a)
 withEditor action = do
   mEditor <- H.query' cpEditor EditorSlot $ H.request GetEditor
+  case mEditor of
+    Just (Just editor) -> do
+      liftEff $ Just <$> action editor
+    _ -> pure Nothing
+
+withMarloweEditor :: forall m eff a.
+  MonadEff (ace :: ACE | eff) m
+  => (Editor -> Eff (ace :: ACE | eff) a)
+  -> HalogenM State Query ChildQuery ChildSlot Void m (Maybe a)
+withMarloweEditor action = do
+  mEditor <- H.query' cpMarloweEditor MarloweEditorSlot $ H.request GetEditor
   case mEditor of
     Just (Just editor) -> do
       liftEff $ Just <$> action editor
