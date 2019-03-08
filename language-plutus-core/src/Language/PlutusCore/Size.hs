@@ -6,7 +6,7 @@ module Language.PlutusCore.Size ( termSize
                                 ) where
 
 import           Codec.Serialise
-import qualified Data.ByteString.Lazy                       as BSL
+import qualified Data.ByteString.Lazy     as BSL
 import           Data.Functor.Foldable
 import           Language.PlutusCore.Type
 

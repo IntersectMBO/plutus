@@ -20,6 +20,8 @@ module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     -- * Functionality for campaign owners
     , collect
     , campaignAddress
+    -- * Validator script
+    , contributionScript
     ) where
 
 import           Control.Applicative          (Applicative (..))
@@ -63,7 +65,7 @@ type CampaignActor = PubKey
 PlutusTx.makeLift ''Campaign
 
 collectionRange :: Campaign -> SlotRange
-collectionRange cmp = 
+collectionRange cmp =
     W.interval (campaignDeadline cmp) (campaignCollectionDeadline cmp)
 
 refundRange :: Campaign -> SlotRange
