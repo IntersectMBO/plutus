@@ -6,7 +6,7 @@ import Ace.Editor as Editor
 import Ace.Halogen.Component (AceEffects, Autocomplete(Live), aceComponent)
 import Ace.Types (ACE, Editor)
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (btn, btnDanger, btnInfo, btnPrimary, btnSecondary, btnSmall, btnSuccess, cardBody_, card_, col6_, col_, empty, listGroupItem_, listGroup_, pullRight, row_)
+import Bootstrap (btn, btnDanger, btnInfo, btnPrimary, btnSecondary, btnSmall, btnSuccess, cardBody_, card_, col6, col6_, col_, empty, listGroupItem_, listGroup_, pullRight, row_)
 import Control.Alternative (map, (<|>))
 import Control.Monad.Aff.Class (class MonadAff)
 import Control.Monad.Eff (Eff)
@@ -70,11 +70,6 @@ simulationPane state =
             (aceComponent initEditor (Just Live))
             unit
             (Events.input HandleEditorMessage)
-        ]
-    , br_
-    , div_
-        [ div [ class_ pullRight ]
-            [ gistControls (view _authStatus state) (view _createGistResult state) ]
         ]
     , br_
     , runResult
@@ -148,7 +143,7 @@ compilationErrorPane (CompilationError error) =
 
 inputComposerPane :: forall p. State -> HTML p Query
 inputComposerPane state =
-    col6_ 
+    div [ classes [ col6, ClassName "input-composer" ] ]
         [ paneHeader "Input Composer"
         , div [ class_ $ ClassName "wallet" ]
               [ card_
@@ -239,7 +234,7 @@ suggestedActionRow person idx (Choose v i) = flexRow_
 
 transactionComposerPane :: forall p. State -> HTML p Query
 transactionComposerPane state =
-    col6_
+    div [ classes [ col6, ClassName "input-composer"] ]
         [ paneHeader "Transaction Composer"
         , div [ class_ $ ClassName "wallet" ]
               [ card_

@@ -304,3 +304,9 @@ h2 {
         border-left: 1px solid grey;
     }
 }
+
+@media (max-width:990px) {
+    .input-composer, .transaction-composer {
+       width:100%;
+    }
+ }
