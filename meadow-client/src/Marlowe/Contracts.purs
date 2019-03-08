@@ -1,112 +1,13 @@
 module Marlowe.Contracts where
 
-depositInsentive :: String
-depositInsentive = """CommitCash (IdentCC 1) 1
-           (ConstMoney 100)
-           10 200
-           (CommitCash (IdentCC 2) 2
-                       (ConstMoney 20)
-                       20 200
-                       (When (PersonChoseSomething (IdentChoice 1) 1)
-                             100
-                             (Both (RedeemCC (IdentCC 1) Null)
-                                   (RedeemCC (IdentCC 2) Null))
-                             (Pay (IdentPay 1) 2 1
-                                  (ConstMoney 20)
-                                  200
-                                  (Both (RedeemCC (IdentCC 1) Null)
-                                        (RedeemCC (IdentCC 2) Null))))
-                       (RedeemCC (IdentCC 1) Null))
-           Null
-"""
+depositInsentive ::
+  String
+depositInsentive = "CommitCash (IdentCC 1) 1\n           (ConstMoney 100)\n           10 200\n           (CommitCash (IdentCC 2) 2\n                       (ConstMoney 20)\n                       20 200\n                       (When (PersonChoseSomething (IdentChoice 1) 1)\n                             100\n                             (Both (RedeemCC (IdentCC 1) Null)\n                                   (RedeemCC (IdentCC 2) Null))\n                             (Pay (IdentPay 1) 2 1\n                                  (ConstMoney 20)\n                                  200\n                                  (Both (RedeemCC (IdentCC 1) Null)\n                                        (RedeemCC (IdentCC 2) Null))))\n                       (RedeemCC (IdentCC 1) Null))\n           Null\n"
 
-crowdFunding :: String
-crowdFunding = """Both (Both (Both (When (AndObs (PersonChoseSomething (IdentChoice 1) 1)
-                               (ValueGE (MoneyFromChoice (IdentChoice 1) 1
-                                                         (ConstMoney 0))
-                                        (ConstMoney 1)))
-                       10
-                       (CommitCash (IdentCC 1) 1
-                                   (MoneyFromChoice (IdentChoice 1) 1
-                                                    (ConstMoney 0))
-                                   10 20 Null Null)
-                       Null)
-                 (When (AndObs (PersonChoseSomething (IdentChoice 2) 2)
-                               (ValueGE (MoneyFromChoice (IdentChoice 2) 2
-                                                         (ConstMoney 0))
-                                        (ConstMoney 1)))
-                       10
-                       (CommitCash (IdentCC 2) 2
-                                   (MoneyFromChoice (IdentChoice 2) 2
-                                                    (ConstMoney 0))
-                                   10 20 Null Null)
-                       Null))
-           (Both (When (AndObs (PersonChoseSomething (IdentChoice 3) 3)
-                               (ValueGE (MoneyFromChoice (IdentChoice 3) 3
-                                                         (ConstMoney 0))
-                                        (ConstMoney 1)))
-                       10
-                       (CommitCash (IdentCC 3) 3
-                                   (MoneyFromChoice (IdentChoice 3) 3
-                                                    (ConstMoney 0))
-                                   10 20 Null Null)
-                       Null)
-                 (When (AndObs (PersonChoseSomething (IdentChoice 4) 4)
-                               (ValueGE (MoneyFromChoice (IdentChoice 4) 4
-                                                         (ConstMoney 0))
-                                        (ConstMoney 1)))
-                       10
-                       (CommitCash (IdentCC 4) 4
-                                   (MoneyFromChoice (IdentChoice 4) 4
-                                                    (ConstMoney 0))
-                                   10 20 Null Null)
-                       Null)))
-     (When FalseObs 10 Null
-           (Choice (ValueGE (AddMoney (AddMoney (AvailableMoney (IdentCC 1))
-                                                (AvailableMoney (IdentCC 2)))
-                                      (AddMoney (AvailableMoney (IdentCC 3))
-                                                (AvailableMoney (IdentCC 4))))
-                            (ConstMoney 1000))
-                   (Both (Both (Pay (IdentPay 1) 1 5
-                                    (AvailableMoney (IdentCC 1))
-                                    20 Null)
-                               (Pay (IdentPay 2) 2 5
-                                    (AvailableMoney (IdentCC 2))
-                                    20 Null))
-                         (Both (Pay (IdentPay 3) 3 5
-                                    (AvailableMoney (IdentCC 3))
-                                    20 Null)
-                               (Pay (IdentPay 4) 4 5
-                                    (AvailableMoney (IdentCC 4))
-                                    20 Null)))
-                   Null))
-"""
+crowdFunding ::
+  String
+crowdFunding = "Both (Both (Both (When (AndObs (PersonChoseSomething (IdentChoice 1) 1)\n                               (ValueGE (MoneyFromChoice (IdentChoice 1) 1\n                                                         (ConstMoney 0))\n                                        (ConstMoney 1)))\n                       10\n                       (CommitCash (IdentCC 1) 1\n                                   (MoneyFromChoice (IdentChoice 1) 1\n                                                    (ConstMoney 0))\n                                   10 20 Null Null)\n                       Null)\n                 (When (AndObs (PersonChoseSomething (IdentChoice 2) 2)\n                               (ValueGE (MoneyFromChoice (IdentChoice 2) 2\n                                                         (ConstMoney 0))\n                                        (ConstMoney 1)))\n                       10\n                       (CommitCash (IdentCC 2) 2\n                                   (MoneyFromChoice (IdentChoice 2) 2\n                                                    (ConstMoney 0))\n                                   10 20 Null Null)\n                       Null))\n           (Both (When (AndObs (PersonChoseSomething (IdentChoice 3) 3)\n                               (ValueGE (MoneyFromChoice (IdentChoice 3) 3\n                                                         (ConstMoney 0))\n                                        (ConstMoney 1)))\n                       10\n                       (CommitCash (IdentCC 3) 3\n                                   (MoneyFromChoice (IdentChoice 3) 3\n                                                    (ConstMoney 0))\n                                   10 20 Null Null)\n                       Null)\n                 (When (AndObs (PersonChoseSomething (IdentChoice 4) 4)\n                               (ValueGE (MoneyFromChoice (IdentChoice 4) 4\n                                                         (ConstMoney 0))\n                                        (ConstMoney 1)))\n                       10\n                       (CommitCash (IdentCC 4) 4\n                                   (MoneyFromChoice (IdentChoice 4) 4\n                                                    (ConstMoney 0))\n                                   10 20 Null Null)\n                       Null)))\n     (When FalseObs 10 Null\n           (Choice (ValueGE (AddMoney (AddMoney (AvailableMoney (IdentCC 1))\n                                                (AvailableMoney (IdentCC 2)))\n                                      (AddMoney (AvailableMoney (IdentCC 3))\n                                                (AvailableMoney (IdentCC 4))))\n                            (ConstMoney 1000))\n                   (Both (Both (Pay (IdentPay 1) 1 5\n                                    (AvailableMoney (IdentCC 1))\n                                    20 Null)\n                               (Pay (IdentPay 2) 2 5\n                                    (AvailableMoney (IdentCC 2))\n                                    20 Null))\n                         (Both (Pay (IdentPay 3) 3 5\n                                    (AvailableMoney (IdentCC 3))\n                                    20 Null)\n                               (Pay (IdentPay 4) 4 5\n                                    (AvailableMoney (IdentCC 4))\n                                    20 Null)))\n                   Null))\n"
 
-escrow :: String
-escrow = """CommitCash (IdentCC 1) 1
-           (ConstMoney 450)
-           10 100
-           (When (OrObs (OrObs (AndObs (PersonChoseThis (IdentChoice 1) 1 0)
-                                       (OrObs (PersonChoseThis (IdentChoice 2) 2 0)
-                                              (PersonChoseThis (IdentChoice 3) 3 0)))
-                               (AndObs (PersonChoseThis (IdentChoice 2) 2 0)
-                                       (PersonChoseThis (IdentChoice 3) 3 0)))
-                        (OrObs (AndObs (PersonChoseThis (IdentChoice 1) 1 1)
-                                       (OrObs (PersonChoseThis (IdentChoice 2) 2 1)
-                                              (PersonChoseThis (IdentChoice 3) 3 1)))
-                               (AndObs (PersonChoseThis (IdentChoice 2) 2 1)
-                                       (PersonChoseThis (IdentChoice 3) 3 1))))
-                 90
-                 (Choice (OrObs (AndObs (PersonChoseThis (IdentChoice 1) 1 1)
-                                        (OrObs (PersonChoseThis (IdentChoice 2) 2 1)
-                                               (PersonChoseThis (IdentChoice 3) 3 1)))
-                                (AndObs (PersonChoseThis (IdentChoice 2) 2 1)
-                                        (PersonChoseThis (IdentChoice 3) 3 1)))
-                         (Pay (IdentPay 1) 1 2
-                              (AvailableMoney (IdentCC 1))
-                              100
-                              (RedeemCC (IdentCC 1) Null))
-                         (RedeemCC (IdentCC 1) Null))
-                 (RedeemCC (IdentCC 1) Null))
-           Null
-"""
+escrow ::
+  String
+escrow = "CommitCash (IdentCC 1) 1\n           (ConstMoney 450)\n           10 100\n           (When (OrObs (OrObs (AndObs (PersonChoseThis (IdentChoice 1) 1 0)\n                                       (OrObs (PersonChoseThis (IdentChoice 2) 2 0)\n                                              (PersonChoseThis (IdentChoice 3) 3 0)))\n                               (AndObs (PersonChoseThis (IdentChoice 2) 2 0)\n                                       (PersonChoseThis (IdentChoice 3) 3 0)))\n                        (OrObs (AndObs (PersonChoseThis (IdentChoice 1) 1 1)\n                                       (OrObs (PersonChoseThis (IdentChoice 2) 2 1)\n                                              (PersonChoseThis (IdentChoice 3) 3 1)))\n                               (AndObs (PersonChoseThis (IdentChoice 2) 2 1)\n                                       (PersonChoseThis (IdentChoice 3) 3 1))))\n                 90\n                 (Choice (OrObs (AndObs (PersonChoseThis (IdentChoice 1) 1 1)\n                                        (OrObs (PersonChoseThis (IdentChoice 2) 2 1)\n                                               (PersonChoseThis (IdentChoice 3) 3 1)))\n                                (AndObs (PersonChoseThis (IdentChoice 2) 2 1)\n                                        (PersonChoseThis (IdentChoice 3) 3 1)))\n                         (Pay (IdentPay 1) 1 2\n                              (AvailableMoney (IdentCC 1))\n                              100\n                              (RedeemCC (IdentCC 1) Null))\n                         (RedeemCC (IdentCC 1) Null))\n                 (RedeemCC (IdentCC 1) Null))\n           Null\n"
