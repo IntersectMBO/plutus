@@ -1,20 +1,39 @@
 module Semantics where
 
 import Control.Monad
-import Data.BigInt (BigInt, fromInt, toString, fromString)
+
+import Data.BigInteger (BigInteger, fromInt, fromString)
+-- import Data.BigInt (BigInt, fromInt, toString, fromString)
+import Data.Either (Either(..))
 import Data.Either (Either(..))
 import Data.Eq (class Eq, (/=), (==))
+import Data.Eq (class Eq, (/=), (==))
 import Data.EuclideanRing (div, mod)
+import Data.EuclideanRing (div, mod)
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Show (genericShow)
+import Data.HeytingAlgebra (not, (&&), (||))
 import Data.HeytingAlgebra (not, (&&), (||))
 import Data.List (List(..), concat, foldl, foldr, fromFoldable, reverse)
+import Data.List (List(..), concat, foldl, foldr, fromFoldable, reverse)
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Newtype (class Newtype, unwrap)
+import Data.Ord (class Ord, max, (<), (<=), (>), (>=))
 import Data.Ord (class Ord, max, (<), (<=), (>), (>=))
 import Data.Ring (negate, (*), (+), (-))
+import Data.Ring (negate, (*), (+), (-))
+import Data.Show (class Show)
 import Data.Show (class Show)
 import Data.String (joinWith)
+import Data.String (joinWith)
 import Data.String.Regex (split, regex)
-import Data.String.Regex.Flags ( RegexFlags(..) )
+import Data.String.Regex (split, regex)
+import Data.String.Regex.Flags (RegexFlags(..))
+import Data.String.Regex.Flags (RegexFlags(..))
 import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..))
+import Prelude (show)
 import Prelude (show)
 
 import Data.Foldable as F
@@ -22,25 +41,41 @@ import Data.Map as M
 import Data.Set as S
 
 type BlockNumber
-  = BigInt
+  = BigInteger
 
 type Timeout
   = BlockNumber
 
 type Person
-  = BigInt
+  = BigInteger
 
 type Choice
-  = BigInt
+  = BigInteger
 
 type IdAction
-  = BigInt
+  = BigInteger
 
 type IdCommit
-  = BigInt
+  = BigInteger
 
-type IdChoice
-  = {choice :: BigInt, person :: Person}
+newtype IdChoice
+  = IdChoice {choice :: BigInteger, person :: Person}
+
+derive instance eqIdChoice :: Eq IdChoice
+
+derive instance ordIdChoice :: Ord IdChoice
+
+derive instance genericIdChoice :: Generic IdChoice _
+
+derive instance newtypeIdChoice :: Newtype IdChoice _
+
+instance showIdChoice :: Show IdChoice where
+  show (IdChoice { choice, person }) = joinWith "" [ "("
+                                                   , show choice
+                                                   , ", "
+                                                   , show person
+                                                   , ")"
+                                                   ]
 
 data WIdChoice
   = WIdChoice IdChoice
@@ -50,33 +85,15 @@ derive instance eqWIdChoice :: Eq WIdChoice
 derive instance ordWIdChoice :: Ord WIdChoice
 
 type IdOracle
-  = BigInt
+  = BigInteger
 
 type LetLabel
-  = BigInt
-
-showIdChoice :: IdChoice -> String
-showIdChoice { choice, person } = joinWith "" [ "("
-                                              , toString choice
-                                              , ", "
-                                              , toString person
-                                              , ")"
-                                              ]
-
-showBigInt ::
-  BigInt ->
-  String
-showBigInt x = if (x >= fromInt 0)
-  then toString x
-  else joinWith "" [ "("
-                   , toString x
-                   , ")"
-                   ]
+  = BigInteger
 
 data Value
   = CurrentBlock
   | Committed IdCommit
-  | Constant BigInt
+  | Constant BigInteger
   | NegValue Value
   | AddValue Value Value
   | SubValue Value Value
@@ -90,57 +107,10 @@ derive instance eqValue :: Eq Value
 
 derive instance ordValue :: Ord Value
 
+derive instance genericValue :: Generic Value _
+
 instance showValue :: Show Value where
-  show CurrentBlock = "CurrentBlock"
-  show (Committed idCommit) = joinWith "" ["Committed ", toString idCommit]
-  show (Constant bigInt) = joinWith "" ["Constant ", toString bigInt]
-  show (NegValue value1) = joinWith "" ["NegValue (", show value1, ")"]
-  show (AddValue value1 value2) = joinWith "" [ "AddValue ("
-                                              , show value1
-                                              , ") ("
-                                              , show value2
-                                              , ")"
-                                              ]
-  show (SubValue value1 value2) = joinWith "" [ "SubValue ("
-                                              , show value1
-                                              , ") ("
-                                              , show value2
-                                              , ")"
-                                              ]
-  show (MulValue value1 value2) = joinWith "" [ "MulValue ("
-                                              , show value1
-                                              , ") ("
-                                              , show value2
-                                              , ")"
-                                              ]
-  show (DivValue value1 value2 value3) = joinWith "" [ "DivValue ("
-                                                     , show value1
-                                                     , ") ("
-                                                     , show value2
-                                                     , ") ("
-                                                     , show value3
-                                                     , ")"
-                                                     ]
-  show (ModValue value1 value2 value3) = joinWith "" [ "ModValue ("
-                                                     , show value1
-                                                     , ") ("
-                                                     , show value2
-                                                     , ") ("
-                                                     , show value3
-                                                     , ")"
-                                                     ]
-  show (ValueFromChoice idChoice value) = joinWith "" [ "ValueFromChoice "
-                                                      , showIdChoice idChoice
-                                                      , " ("
-                                                      , show value
-                                                      , ")"
-                                                      ]
-  show (ValueFromOracle idOracle value) = joinWith "" [ "ValueFromOracle "
-                                                      , toString idOracle
-                                                      , " ("
-                                                      , show value
-                                                      , ")"
-                                                      ]
+  show v = genericShow v
 
 data Observation
   = BelowTimeout Timeout
@@ -161,61 +131,10 @@ derive instance eqObservation :: Eq Observation
 
 derive instance ordObservation :: Ord Observation
 
-instance showObservation :: Show Observation where
-  show (BelowTimeout timeout) = joinWith " " ["BelowTimeout", toString timeout]
-  show (AndObs observation1 observation2) = joinWith "" [ "AndObs ("
-                                                        , show observation1
-                                                        , ") ("
-                                                        , show observation2
-                                                        , ")"
-                                                        ]
-  show (OrObs observation1 observation2) = joinWith "" [ "OrObs ("
-                                                       , show observation1
-                                                       , ") ("
-                                                       , show observation2
-                                                       , ")"
-                                                       ]
-  show (NotObs observation) = joinWith "" ["NotObs (", show observation, ")"]
-  show (ChoseThis idChoice choice) = joinWith " " [ "ChoseThis"
-                                                  , showIdChoice idChoice
-                                                  , toString choice
-                                                  ]
-  show (ChoseSomething idChoice) = joinWith " " [ "ChoseSomething"
-                                                , showIdChoice idChoice
-                                                ]
-  show (ValueGE value1 value2) = joinWith "" [ "ValueGE ("
-                                             , show value1
-                                             , ") ("
-                                             , show value2
-                                             , ")"
-                                             ]
-  show (ValueGT value1 value2) = joinWith "" [ "ValueGT ("
-                                             , show value1
-                                             , ") ("
-                                             , show value2
-                                             , ")"
-                                             ]
-  show (ValueLT value1 value2) = joinWith "" [ "ValueLT ("
-                                             , show value1
-                                             , ") ("
-                                             , show value2
-                                             , ")"
-                                             ]
-  show (ValueLE value1 value2) = joinWith "" [ "ValueLE ("
-                                             , show value1
-                                             , ") ("
-                                             , show value2
-                                             , ")"
-                                             ]
-  show (ValueEQ value1 value2) = joinWith "" [ "ValueEQ ("
-                                             , show value1
-                                             , ") ("
-                                             , show value2
-                                             , ")"
-                                             ]
-  show TrueObs = "TrueObs"
-  show FalseObs = "FalseObs"
+derive instance genericObservation :: Generic Observation _
 
+instance showObservation :: Show Observation where
+  show o = genericShow o
 
 data Contract
   = Null
@@ -233,188 +152,74 @@ derive instance eqContract :: Eq Contract
 
 derive instance ordContract :: Ord Contract
 
+derive instance genericContract :: Generic Contract _
+
 instance showContract :: Show Contract where
-  show Null = "Null"
-  show (Commit idAction idCommit person value timeout1 timeout2 contract1 contract2) = joinWith "" [ "Commit "
-                                                                                                   , toString idAction
-                                                                                                   , " "
-                                                                                                   , toString idCommit
-                                                                                                   , " "
-                                                                                                   , toString person
-                                                                                                   , " ("
-                                                                                                   , show value
-                                                                                                   , ") "
-                                                                                                   , toString timeout1
-                                                                                                   , " "
-                                                                                                   , toString timeout2
-                                                                                                   , " ("
-                                                                                                   , show contract1
-                                                                                                   , ") ("
-                                                                                                   , show contract2
-                                                                                                   , ")"
-                                                                                                   ]
-  show (Pay idAction idCommit person value timeout contract1 contract2) = joinWith "" [ "Pay "
-                                                                                      , toString idAction
-                                                                                      , " "
-                                                                                      , toString idCommit
-                                                                                      , " "
-                                                                                      , toString person
-                                                                                      , " ("
-                                                                                      , show value
-                                                                                      , ") "
-                                                                                      , toString timeout
-                                                                                      , " ("
-                                                                                      , show contract1
-                                                                                      , ") ("
-                                                                                      , show contract2
-                                                                                      , ")"
-                                                                                      ]
-  show (Both contract1 contract2) = joinWith "" [ "Both ("
-                                                , show contract1
-                                                , ") ("
-                                                , show contract2
-                                                , ")"
-                                                ]
-  show (Choice observation contract1 contract2) = joinWith "" [ "Choice ("
-                                                              , show observation
-                                                              , ") ("
-                                                              , show contract1
-                                                              , ") ("
-                                                              , show contract2
-                                                              , ")"
-                                                              ]
-  show (When observation timeout contract1 contract2) = joinWith "" [ "When ("
-                                                                    , show observation
-                                                                    , ") "
-                                                                    , toString timeout
-                                                                    , " ("
-                                                                    , show contract1
-                                                                    , ") ("
-                                                                    , show contract2
-                                                                    , ")"
-                                                                    ]
-  show (While observation timeout contract1 contract2) = joinWith "" [ "While ("
-                                                                     , show observation
-                                                                     , ") "
-                                                                     , toString timeout
-                                                                     , " ("
-                                                                     , show contract1
-                                                                     , ") ("
-                                                                     , show contract2
-                                                                     , ")"
-                                                                     ]
-  show (Scale value1 value2 value3 contract) = joinWith "" [ "Scale ("
-                                                           , show value1
-                                                           , ") ("
-                                                           , show value2
-                                                           , ") ("
-                                                           , show value3
-                                                           , ") ("
-                                                           , show contract
-                                                           , ")"
-                                                           ]
-  show (Let letLabel contract1 contract2) = joinWith "" [ "Let "
-                                                        , toString letLabel
-                                                        , " ("
-                                                        , show contract1
-                                                        , ") ("
-                                                        , show contract2
-                                                        , ")"
-                                                        ]
-  show (Use letLabel) = joinWith "" ["Use ", toString letLabel]
+  show c = genericShow c
 
 newtype Parser a
   = Parser {runParser :: List String -> Maybe (Tuple a (List String))}
 
-instance functorParser ::
-  Functor Parser where
-    map ::
-      forall a b.
-      (a -> b) ->
-      Parser a ->
-      Parser b
-    map x (Parser y) = Parser { runParser: (\z ->
-                                case y.runParser z of
+instance functorParser :: Functor Parser where
+  map :: forall a b. (a -> b) -> Parser a -> Parser b
+  map x (Parser y) = Parser { runParser: (\z ->
+                              case y.runParser z of
+                                Nothing -> Nothing
+                                Just (Tuple q1 q2) -> Just (Tuple (x q1) q2))
+                            }
+
+instance applyParser :: Apply Parser where
+  apply ::
+    forall a b.
+    Parser (a -> b) ->
+    Parser a ->
+    Parser b
+  apply (Parser p) (Parser a) = Parser { runParser: (\y ->
+                                         case a.runParser y of
+                                           Nothing -> Nothing
+                                           Just (Tuple z1 z2) -> (case p.runParser z2 of
+                                             Nothing -> Nothing
+                                             Just (Tuple p1 p2) -> Just (Tuple (p1 z1) p2)))
+                                       }
+
+instance applicativeParser :: Applicative Parser where
+  pure :: forall a. a -> Parser a
+  pure x = Parser { runParser: (\y ->   Just (Tuple x y)) }
+
+instance bindParser :: Bind Parser where
+  bind :: forall a b. Parser a -> (a -> Parser b) -> Parser b
+  bind (Parser a) fb = Parser { runParser: (\y ->
+                                case a.runParser y of
                                   Nothing -> Nothing
-                                  Just (Tuple q1 q2) -> Just (Tuple (x q1) q2))
+                                  Just (Tuple z1 z2) -> let Parser b = fb z1
+                                                        in b.runParser z2)
                               }
 
-instance applyParser ::
-  Apply Parser where
-    apply ::
-      forall a b.
-      Parser (a -> b) ->
-      Parser a ->
-      Parser b
-    apply (Parser p) (Parser a) = Parser { runParser: (\y ->
-                                           case a.runParser y of
-                                             Nothing -> Nothing
-                                             Just (Tuple z1 z2) -> (case p.runParser z2 of
-                                               Nothing -> Nothing
-                                               Just (Tuple p1 p2) -> Just (Tuple (p1 z1) p2)))
-                                         }
+instance monadParser :: Monad Parser
 
-instance applicativeParser ::
-  Applicative Parser where
-    pure ::
-      forall a.
-      a ->
-      Parser a
-    pure x = Parser { runParser: (\y ->
-                      Just (Tuple x y))
-                    }
-
-instance bindParser ::
-  Bind Parser where
-    bind ::
-      forall a b.
-      Parser a ->
-      (a -> Parser b) ->
-      Parser b
-    bind (Parser a) fb = Parser { runParser: (\y ->
-                                  case a.runParser y of
-                                    Nothing -> Nothing
-                                    Just (Tuple z1 z2) -> let Parser b = fb z1
-                                                          in b.runParser z2)
-                                }
-
-instance monadParser ::
-  Monad Parser
-
-getToken ::
-  Parser String
+getToken :: Parser String
 getToken = Parser { runParser: (\x ->
                     case x of
                       Nil -> Nothing
                       (Cons y z) -> Just (Tuple y z))
                   }
 
-wrongParse ::
-  forall a.
-  Parser a
-wrongParse = Parser { runParser: (\y ->
-                      Nothing)
-                    }
+wrongParse :: forall a. Parser a
+wrongParse = Parser { runParser: (\y ->   Nothing) }
 
-runParser ::
-  forall a.
-  List String ->
-  Parser a ->
-  Maybe a
+runParser :: forall a. List String -> Parser a -> Maybe a
 runParser l (Parser p) = case p.runParser l of
   Just (Tuple x Nil) -> Just x
   _ -> Nothing
 
-bigIntParser ::
-  Parser BigInt
+bigIntParser :: Parser BigInteger
 bigIntParser = do
   tok <- getToken
   case fromString tok of
     Just v -> pure v
     Nothing -> wrongParse
 
-valueParser ::
-  Parser Value
+valueParser :: Parser Value
 valueParser = do
   tok <- getToken
   case tok of
@@ -423,8 +228,8 @@ valueParser = do
       idCommit <- bigIntParser
       pure (Committed idCommit)
     "Constant" -> do
-      bigInt <- bigIntParser
-      pure (Constant bigInt)
+      bigInteger <- bigIntParser
+      pure (Constant bigInteger)
     "NegValue" -> do
       value <- valueParser
       pure (NegValue value)
@@ -454,17 +259,14 @@ valueParser = do
       choice <- bigIntParser
       person <- bigIntParser
       value <- valueParser
-      pure (ValueFromChoice { choice
-                            , person
-                            } value)
+      pure (ValueFromChoice (IdChoice { choice, person }) value)
     "ValueFromOracle" -> do
       idOracle <- bigIntParser
       value <- valueParser
       pure (ValueFromOracle idOracle value)
     _ -> wrongParse
 
-observationParser ::
-  Parser Observation
+observationParser :: Parser Observation
 observationParser = do
   tok <- getToken
   case tok of
@@ -486,15 +288,11 @@ observationParser = do
       choice <- bigIntParser
       person <- bigIntParser
       choice2 <- bigIntParser
-      pure (ChoseThis { choice
-                      , person
-                      } choice2)
+      pure (ChoseThis (IdChoice { choice, person }) choice2)
     "ChoseSomething" -> do
       choice <- bigIntParser
       person <- bigIntParser
-      pure (ChoseSomething { choice
-                           , person
-                           })
+      pure (ChoseSomething (IdChoice { choice, person }))
     "ValueGE" -> do
       value1 <- valueParser
       value2 <- valueParser
@@ -519,8 +317,7 @@ observationParser = do
     "FalseObs" -> pure FalseObs
     _ -> wrongParse
 
-contractParser ::
-  Parser Contract
+contractParser :: Parser Contract
 contractParser = do
   tok <- getToken
   case tok of
@@ -581,27 +378,17 @@ contractParser = do
       pure (Use letLabel)
     _ -> wrongParse
 
-alternateRemove ::
-  forall a.
-  Boolean ->
-  List a ->
-  List a ->
-  List a
+alternateRemove :: forall a. Boolean -> List a -> List a -> List a
 alternateRemove _ Nil x = reverse x
 
 alternateRemove true (Cons x y) l = alternateRemove false y (Cons x l)
 
 alternateRemove false (Cons _ x) l = alternateRemove true x l
 
-removeOdd ::
-  forall a.
-  List a ->
-  List a
+removeOdd :: forall a. List a -> List a
 removeOdd x = alternateRemove false x Nil
 
-readContract ::
-  String ->
-  Maybe Contract
+readContract :: String -> Maybe Contract
 readContract x = case mr of
   Left _ -> Nothing
   Right re -> runParser (removeOdd (fromFoldable (split re x))) contractParser
@@ -616,7 +403,7 @@ readContract x = case mr of
 -- Data type for Inputs with their information
 data Input
   = IChoice IdChoice Choice
-  | IOracle IdOracle BlockNumber BigInt
+  | IOracle IdOracle BlockNumber BigInteger
 
 derive instance eqInput :: Eq Input
 
@@ -631,7 +418,7 @@ derive instance eqAnyInput :: Eq AnyInput
 derive instance ordAnyInput :: Ord AnyInput
 
 data IdInput
-  = IdChoice IdChoice
+  = InputIdChoice IdChoice
   | IdOracle IdOracle
 
 derive instance eqIdInput :: Eq IdInput
@@ -642,13 +429,13 @@ type TimeoutData
   = M.Map Timeout (S.Set IdCommit)
 
 type CommitInfoRecord
-  = {person :: Person, amount :: BigInt, timeout :: Timeout}
+  = {person :: Person, amount :: BigInteger, timeout :: Timeout}
 
 data CommitInfo
-  = CommitInfo {redeemedPerPerson :: M.Map Person BigInt, currentCommitsById :: M.Map IdCommit CommitInfoRecord, expiredCommitIds :: S.Set IdCommit, timeoutData :: TimeoutData}
+  = CommitInfo {redeemedPerPerson :: M.Map Person BigInteger, currentCommitsById :: M.Map IdCommit CommitInfoRecord, expiredCommitIds :: S.Set IdCommit, timeoutData :: TimeoutData}
 
 type OracleDataPoint
-  = {blockNumber :: BlockNumber, value :: BigInt}
+  = {blockNumber :: BlockNumber, value :: BigInteger}
 
 data State
   = State {commits :: CommitInfo, choices :: M.Map WIdChoice Choice, oracles :: M.Map IdOracle OracleDataPoint, usedIds :: S.Set IdAction}
@@ -668,13 +455,21 @@ emptyState = State { commits: emptyCommitInfo
                    }
 
 -- Adds a commit identifier to the timeout data map
-addToCommByTim :: Timeout -> IdCommit -> TimeoutData -> TimeoutData
+addToCommByTim ::
+  Timeout ->
+  IdCommit ->
+  TimeoutData ->
+  TimeoutData
 addToCommByTim timeout idCommit timData = case M.lookup timeout timData of
   Just commSet -> M.insert timeout (S.insert idCommit commSet) timData
   Nothing -> M.insert timeout (S.singleton idCommit) timData
 
 -- Remove a commit identifier from the timeout data map
-removeFromCommByTim :: Timeout -> IdCommit -> TimeoutData -> TimeoutData
+removeFromCommByTim ::
+  Timeout ->
+  IdCommit ->
+  TimeoutData ->
+  TimeoutData
 removeFromCommByTim timeout idCommit timData = case M.lookup timeout timData of
   Just commSet -> let newCommSet = S.delete idCommit commSet
                   in if S.isEmpty newCommSet
@@ -683,7 +478,13 @@ removeFromCommByTim timeout idCommit timData = case M.lookup timeout timData of
   Nothing -> timData
 
 -- Add a commit to CommitInfo
-addCommit :: IdCommit -> Person -> BigInt -> Timeout -> State -> State
+addCommit ::
+  IdCommit ->
+  Person ->
+  BigInteger ->
+  Timeout ->
+  State ->
+  State
 addCommit idCommit person value timeout (State state) = State (state { commits = CommitInfo (ci { currentCommitsById = M.insert idCommit ({ person
                                                                                                                                           , amount: value
                                                                                                                                           , timeout
@@ -692,7 +493,10 @@ addCommit idCommit person value timeout (State state) = State (state { commits =
   (CommitInfo ci) = state.commits
 
 -- Return the person corresponding to a commit
-personForCurrentCommit :: IdCommit -> State -> Maybe Person
+personForCurrentCommit ::
+  IdCommit ->
+  State ->
+  Maybe Person
 personForCurrentCommit idCommit (State state) = case M.lookup idCommit ci.currentCommitsById of
   Just v -> Just v.person
   Nothing -> Nothing
@@ -700,22 +504,28 @@ personForCurrentCommit idCommit (State state) = case M.lookup idCommit ci.curren
   (CommitInfo ci) = state.commits
 
 -- Check whether the commit is current (committed not expired)
-isCurrentCommit :: IdCommit -> State -> Boolean
+isCurrentCommit ::
+  IdCommit ->
+  State ->
+  Boolean
 isCurrentCommit idCommit (State { commits: (CommitInfo ci) }) = M.member idCommit ci.currentCommitsById
 
 -- Check whether the commit is expired
-isExpiredCommit :: IdCommit -> State -> Boolean
+isExpiredCommit ::
+  IdCommit ->
+  State ->
+  Boolean
 isExpiredCommit idCommit (State state) = idCommit `S.member` ci.expiredCommitIds
   where
   CommitInfo ci = state.commits
 
 -- Remove a current commit from CommitInfo
-removeCurrentCommit :: IdCommit -> State -> State
+removeCurrentCommit ::
+  IdCommit ->
+  State ->
+  State
 removeCurrentCommit idCommit (State state) = case M.lookup idCommit commById of
-  Just v -> State (state { commits = CommitInfo (ci { currentCommitsById = M.delete idCommit commById
-                                                    , timeoutData = removeFromCommByTim v.timeout idCommit timData
-                                                    })
-                         })
+  Just v -> State (state { commits = CommitInfo (ci { currentCommitsById = M.delete idCommit commById, timeoutData = removeFromCommByTim v.timeout idCommit timData }) })
   Nothing -> State state
   where
   CommitInfo ci = state.commits
@@ -723,20 +533,30 @@ removeCurrentCommit idCommit (State state) = case M.lookup idCommit commById of
   timData = ci.timeoutData
 
 -- Get expired not collected for person
-getRedeemedForPersonCI :: Person -> CommitInfo -> BigInt
+getRedeemedForPersonCI ::
+  Person ->
+  CommitInfo ->
+  BigInteger
 getRedeemedForPersonCI person (CommitInfo ci) = fromMaybe (fromInt 0) (M.lookup person ci.redeemedPerPerson)
 
-getRedeemedForPerson :: Person -> State -> BigInt
+getRedeemedForPerson :: Person -> State -> BigInteger
 getRedeemedForPerson person (State state) = getRedeemedForPersonCI person state.commits
 
 -- Set the amount in redeemedPerPerson to zero
-resetRedeemedForPerson :: Person -> State -> State
+resetRedeemedForPerson ::
+  Person ->
+  State ->
+  State
 resetRedeemedForPerson person (State state) = State (state { commits = CommitInfo (ci { redeemedPerPerson = M.delete person rppm }) })
   where
   (CommitInfo ci) = state.commits
   rppm = ci.redeemedPerPerson
 
-discountAvailableMoneyFromCommit :: IdCommit -> BigInt -> State -> Maybe State
+discountAvailableMoneyFromCommit ::
+  IdCommit ->
+  BigInteger ->
+  State ->
+  Maybe State
 discountAvailableMoneyFromCommit idCommit discount (State state) = case M.lookup idCommit commById of
   Just { person, amount, timeout } -> Just (State (state { commits = CommitInfo (ci { currentCommitsById = M.insert idCommit ({ person
                                                                                                                               , amount: amount - discount
@@ -747,7 +567,7 @@ discountAvailableMoneyFromCommit idCommit discount (State state) = case M.lookup
   CommitInfo ci = state.commits
   commById = ci.currentCommitsById
 
-getAvailableAmountInCommit :: IdCommit -> State -> BigInt
+getAvailableAmountInCommit :: IdCommit -> State -> BigInteger
 getAvailableAmountInCommit idCommit (State state) = case M.lookup idCommit ci.currentCommitsById of
   Just v -> v.amount
   Nothing -> fromInt 0
@@ -755,7 +575,9 @@ getAvailableAmountInCommit idCommit (State state) = case M.lookup idCommit ci.cu
   CommitInfo ci = state.commits
 
 -- Collect inputs needed by a contract
-collectNeededInputsFromValue :: Value -> S.Set IdInput
+collectNeededInputsFromValue ::
+  Value ->
+  S.Set IdInput
 collectNeededInputsFromValue (CurrentBlock) = S.empty
 
 collectNeededInputsFromValue (Committed _) = S.empty
@@ -786,7 +608,7 @@ collectNeededInputsFromValue (ModValue value1 value2 value3) = S.unions [ collec
                                                                         , collectNeededInputsFromValue value3
                                                                         ]
 
-collectNeededInputsFromValue (ValueFromChoice idChoice value) = S.unions [ S.singleton (IdChoice idChoice)
+collectNeededInputsFromValue (ValueFromChoice idChoice value) = S.unions [ S.singleton (InputIdChoice idChoice)
                                                                          , collectNeededInputsFromValue value
                                                                          ]
 
@@ -807,9 +629,9 @@ collectNeededInputsFromObservation (OrObs observation1 observation2) = S.unions 
 
 collectNeededInputsFromObservation (NotObs observation) = collectNeededInputsFromObservation observation
 
-collectNeededInputsFromObservation (ChoseThis idChoice _) = S.singleton (IdChoice idChoice)
+collectNeededInputsFromObservation (ChoseThis idChoice _) = S.singleton (InputIdChoice idChoice)
 
-collectNeededInputsFromObservation (ChoseSomething idChoice) = S.singleton (IdChoice idChoice)
+collectNeededInputsFromObservation (ChoseSomething idChoice) = S.singleton (InputIdChoice idChoice)
 
 collectNeededInputsFromObservation (ValueGE value1 value2) = S.unions [ collectNeededInputsFromValue value1
                                                                       , collectNeededInputsFromValue value2
@@ -896,8 +718,7 @@ addAnyInput _ (Action idInput) _ (State state)
 
 addAnyInput _ (Input (IChoice idChoice choice)) neededInputs (State state)
   | (WIdChoice idChoice) `M.member` state.choices = Nothing
-  | (IdChoice idChoice) `S.member` neededInputs = Just (State (state { choices = M.insert (WIdChoice idChoice) choice state.choices
-                                                                     }))
+  | (InputIdChoice idChoice) `S.member` neededInputs = Just (State (state { choices = M.insert (WIdChoice idChoice) choice state.choices }))
   | true = Nothing
 
 addAnyInput blockNumber (Input (IOracle idOracle timestamp value)) neededInputs (State state) = case M.lookup idOracle oracleMap of
@@ -913,18 +734,22 @@ addAnyInput blockNumber (Input (IOracle idOracle timestamp value)) neededInputs 
   oracleMap = state.oracles
 
 -- Decides whether something has expired
-isExpired :: BlockNumber -> BlockNumber -> Boolean
+isExpired ::
+  BlockNumber ->
+  BlockNumber ->
+  Boolean
 isExpired currBlockNum expirationBlockNum = currBlockNum >= expirationBlockNum
 
 -- Expire commits
-expireOneCommit :: IdCommit -> CommitInfo -> CommitInfo
+expireOneCommit ::
+  IdCommit ->
+  CommitInfo ->
+  CommitInfo
 expireOneCommit idCommit (CommitInfo commitInfo) = CommitInfo case M.lookup idCommit currentCommits of
   Just { person, amount } -> let redeemedBefore = case M.lookup person redPerPer of
                                    Just x -> x
                                    Nothing -> fromInt 0
-                             in commitInfo { redeemedPerPerson = M.insert person (redeemedBefore + amount) redPerPer
-                                           , currentCommitsById = M.delete idCommit currentCommits
-                                           }
+                             in commitInfo { redeemedPerPerson = M.insert person (redeemedBefore + amount) redPerPer, currentCommitsById = M.delete idCommit currentCommits }
   Nothing -> commitInfo
   where
   redPerPer = commitInfo.redeemedPerPerson
@@ -958,7 +783,11 @@ expireCommits blockNumber (State state) = State (state { commits = expireCommits
   commitInfo = state.commits
 
 -- Evaluate a value
-evalValue :: BlockNumber -> State -> Value -> BigInt
+evalValue ::
+  BlockNumber ->
+  State ->
+  Value ->
+  BigInteger
 evalValue blockNumber _ CurrentBlock = blockNumber
 
 evalValue _ state (Committed idCommit) = getAvailableAmountInCommit idCommit state
@@ -1000,7 +829,11 @@ evalValue blockNumber (State state) (ValueFromOracle idOracle val) = case M.look
   Nothing -> evalValue blockNumber (State state) val
 
 -- Evaluate an observation
-evalObservation :: BlockNumber -> State -> Observation -> Boolean
+evalObservation ::
+  BlockNumber ->
+  State ->
+  Observation ->
+  Boolean
 evalObservation blockNumber _ (BelowTimeout timeout) = not (isExpired blockNumber timeout)
 
 evalObservation blockNumber state (AndObs obs1 obs2) = (go obs1) && (go obs2)
@@ -1043,11 +876,11 @@ evalObservation _ _ TrueObs = true
 
 evalObservation _ _ FalseObs = false
 
-isNormalised :: BigInt -> BigInt -> Boolean
+isNormalised :: BigInteger -> BigInteger -> Boolean
 isNormalised divid divis = divid == divis && divid /= (fromInt 0)
 
 type Environment
-  = M.Map BigInt Contract
+  = M.Map BigInteger Contract
 
 emptyEnvironment :: Environment
 emptyEnvironment = M.empty
@@ -1084,7 +917,10 @@ maxIdFromContract (Use letLabel) = letLabel
 
 -- Looks for an unused label in the Environment and Contract provided
 -- (assuming that labels are numbers)
-getFreshLabel :: Environment -> Contract -> LetLabel
+getFreshLabel ::
+  Environment ->
+  Contract ->
+  LetLabel
 getFreshLabel env c = (fromInt 1) + (max (case M.findMax env of
   Nothing -> fromInt 0
   Just v -> v.key) (maxIdFromContract c))
@@ -1095,7 +931,10 @@ getFreshLabel env c = (fromInt 1) + (max (case M.findMax env of
 -- contracts are nullified before being added to Environment;
 -- Ensures all Use are defined in Environment, if they are not
 -- they are replaced with Null
-nullifyInvalidUses :: Environment -> Contract -> Contract
+nullifyInvalidUses ::
+  Environment ->
+  Contract ->
+  Contract
 nullifyInvalidUses _ Null = Null
 
 nullifyInvalidUses env (Commit idAction idCommit person value timeout1 timeout2 contract1 contract2) = Commit idAction idCommit person value timeout1 timeout2 (nullifyInvalidUses env contract1) (nullifyInvalidUses env contract2)
@@ -1122,7 +961,11 @@ nullifyInvalidUses env (Use letLabel) = case lookupEnvironment letLabel env of
   Just _ -> Use letLabel
 
 -- Replaces a label with another one (unless it is shadowed)
-relabel :: LetLabel -> LetLabel -> Contract -> Contract
+relabel ::
+  LetLabel ->
+  LetLabel ->
+  Contract ->
+  Contract
 relabel _ _ Null = Null
 
 relabel startLabel endLabel (Commit idAction idCommit person value timeout1 timeout2 contract1 contract2) = Commit idAction idCommit person value timeout1 timeout2 (relabel startLabel endLabel contract1) (relabel startLabel endLabel contract2)
@@ -1148,7 +991,12 @@ relabel startLabel endLabel (Use letLabel) = if (letLabel == startLabel)
   else Use letLabel
 
 -- Reduce non actionable primitives and remove expired
-reduceRec :: BlockNumber -> State -> Environment -> Contract -> Contract
+reduceRec ::
+  BlockNumber ->
+  State ->
+  Environment ->
+  Contract ->
+  Contract
 reduceRec _ _ _ Null = Null
 
 reduceRec blockNum state env c@(Commit _ _ _ _ timeout_start timeout_end _ continuation) = if (isExpired blockNum timeout_start) || (isExpired blockNum timeout_end)
@@ -1207,14 +1055,18 @@ reduceRec blockNum state env (Use label) = case lookupEnvironment label env of
 -- Optimisation: We do not need to restore environment of the binding because:
 --  * We ensure entries are not overwritten in Environment
 --  * We check that all entries of Environment had their Use defined when added
-reduce :: BlockNumber -> State -> Contract -> Contract
+reduce ::
+  BlockNumber ->
+  State ->
+  Contract ->
+  Contract
 reduce blockNum state contract = reduceRec blockNum state emptyEnvironment contract
 
 -- Reduce useless primitives to Null
-simplify_aux :: Contract -> {contract :: Contract, uses :: S.Set LetLabel}
-simplify_aux Null = { contract: Null
-                    , uses: S.empty
-                    }
+simplify_aux ::
+  Contract ->
+  {contract :: Contract, uses :: S.Set LetLabel}
+simplify_aux Null = { contract: Null, uses: S.empty }
 
 simplify_aux (Commit idAction idCommit person value timeout1 timeout2 contract1 contract2) = let v1 = simplify_aux contract1
                                                                                                  v2 = simplify_aux contract2
@@ -1245,9 +1097,7 @@ simplify_aux (Choice observation contract1 contract2) = let v1 = simplify_aux co
                                                               then Null
                                                               else Choice observation v1.contract v2.contract
                                                             uses = S.union v1.uses v2.uses
-                                                        in { contract
-                                                           , uses
-                                                           }
+                                                        in { contract, uses }
 
 simplify_aux (When observation timeout contract1 contract2) = let v1 = simplify_aux contract1
                                                                   v2 = simplify_aux contract2
@@ -1298,7 +1148,7 @@ simplify c = let v = simplify_aux c
 
 -- How much everybody pays or receives in transaction
 type TransactionOutcomes
-  = M.Map Person BigInt
+  = M.Map Person BigInteger
 
 emptyOutcome :: TransactionOutcomes
 emptyOutcome = M.empty
@@ -1308,7 +1158,11 @@ isEmptyOutcome trOut = F.all (\x ->
   x == (fromInt 0)) trOut
 
 -- Adds a value to the map of outcomes
-addOutcome :: Person -> BigInt -> TransactionOutcomes -> TransactionOutcomes
+addOutcome ::
+  Person ->
+  BigInteger ->
+  TransactionOutcomes ->
+  TransactionOutcomes
 addOutcome person diffValue trOut = M.insert person newValue trOut
   where
   newValue = case M.lookup person trOut of
@@ -1316,11 +1170,16 @@ addOutcome person diffValue trOut = M.insert person newValue trOut
     Nothing -> diffValue
 
 -- Get effect of outcomes on the bank of the contract
-outcomeEffect :: TransactionOutcomes -> BigInt
+outcomeEffect ::
+  TransactionOutcomes ->
+  BigInteger
 outcomeEffect trOut = foldl (-) (fromInt 0) trOut
 
 -- Add two transaction outcomes together
-combineOutcomes :: TransactionOutcomes -> TransactionOutcomes -> TransactionOutcomes
+combineOutcomes ::
+  TransactionOutcomes ->
+  TransactionOutcomes ->
+  TransactionOutcomes
 combineOutcomes = M.unionWith (+)
 
 data FetchResult a
@@ -1329,21 +1188,30 @@ data FetchResult a
   | MultipleMatches
 
 data DetachedPrimitive
-  = DCommit IdCommit Person BigInt Timeout
-  | DPay IdCommit Person BigInt
+  = DCommit IdCommit Person BigInteger Timeout
+  | DPay IdCommit Person BigInteger
 
 derive instance eqDetachedPrimitive :: Eq DetachedPrimitive
 
 derive instance ordDetachedPrimitive :: Ord DetachedPrimitive
 
 -- Semantics of Scale
-scaleValue :: BigInt -> BigInt -> BigInt -> BigInt -> BigInt
-scaleValue divid divis def val =
-  if (divis == fromInt 0)
+scaleValue ::
+  BigInteger ->
+  BigInteger ->
+  BigInteger ->
+  BigInteger ->
+  BigInteger
+scaleValue divid divis def val = if (divis == fromInt 0)
   then def
   else ((val * divid) `div` divis)
 
-scaleResult :: BigInt -> BigInt -> BigInt -> DetachedPrimitive -> DetachedPrimitive
+scaleResult ::
+  BigInteger ->
+  BigInteger ->
+  BigInteger ->
+  DetachedPrimitive ->
+  DetachedPrimitive
 scaleResult divid divis def (DCommit idCommit person val tim) = DCommit idCommit person (scaleValue divid divis def val) tim
 
 scaleResult divid divis def (DPay idCommit person val) = DPay idCommit person (scaleValue divid divis def val)
@@ -1351,8 +1219,12 @@ scaleResult divid divis def (DPay idCommit person val) = DPay idCommit person (s
 -- Find out whether the Action is allowed given the current state
 -- and contract, and, if so, pick the corresponding primitive in the contract.
 -- Also return the contract without the selected primitive.
-fetchPrimitive :: IdAction -> BlockNumber -> State -> Contract ->
-                  FetchResult {prim :: DetachedPrimitive, contract :: Contract}
+fetchPrimitive ::
+  IdAction ->
+  BlockNumber ->
+  State ->
+  Contract ->
+  FetchResult {prim :: DetachedPrimitive, contract :: Contract}
 --                                 Remaining contract --^
 fetchPrimitive idAction blockNum state (Commit idActionC idCommit person value _ timeout continuation _) = if (idAction == idActionC && notCurrentCommit && notExpiredCommit)
   then Picked { prim: (DCommit idCommit person actualValue timeout)
@@ -1427,48 +1299,53 @@ data EvaluationResult a
 
 -- This should not happen when using fetchPrimitive result
 -- Evaluation of actionable input
-eval :: DetachedPrimitive -> State -> EvaluationResult {outcome :: TransactionOutcomes, state :: State}
-eval (DCommit idCommit person value timeout) state =
-  if (isCurrentCommit idCommit state) || (isExpiredCommit idCommit state)
+eval ::
+  DetachedPrimitive ->
+  State ->
+  EvaluationResult {outcome :: TransactionOutcomes, state :: State}
+eval (DCommit idCommit person value timeout) state = if (isCurrentCommit idCommit state) || (isExpiredCommit idCommit state)
   then InconsistentState
   else Result { outcome: addOutcome person (-value) emptyOutcome
               , state: addCommit idCommit person value timeout state
               } NoProblem
 
-eval (DPay idCommit person value) state =
-  if (not (isCurrentCommit idCommit state))
+eval (DPay idCommit person value) state = if (not (isCurrentCommit idCommit state))
   then (if (not (isExpiredCommit idCommit state))
-        then Result { outcome: emptyOutcome, state } CommitNotMade
-        else Result { outcome: emptyOutcome, state } CommitIsExpired)
+    then Result { outcome: emptyOutcome, state } CommitNotMade
+    else Result { outcome: emptyOutcome, state } CommitIsExpired)
   else (if value > maxValue
-        then case discountAvailableMoneyFromCommit idCommit maxValue state of
-               Just newState -> Result { outcome: addOutcome person maxValue emptyOutcome
-                                       , state: newState
-                                       } NotEnoughMoneyLeftInCommit
-               Nothing -> InconsistentState
-        else case discountAvailableMoneyFromCommit idCommit value state of
-               Just newState -> Result { outcome: addOutcome person value emptyOutcome
-                                       , state: newState
-                                       } NoProblem
-               Nothing -> InconsistentState)
+    then case discountAvailableMoneyFromCommit idCommit maxValue state of
+      Just newState -> Result { outcome: addOutcome person maxValue emptyOutcome
+                              , state: newState
+                              } NotEnoughMoneyLeftInCommit
+      Nothing -> InconsistentState
+    else case discountAvailableMoneyFromCommit idCommit value state of
+      Just newState -> Result { outcome: addOutcome person value emptyOutcome
+                              , state: newState
+                              } NoProblem
+      Nothing -> InconsistentState)
   where
   maxValue = getAvailableAmountInCommit idCommit state
 
 -- Check whether the person who must sign has signed
-areActionPermissionsValid :: DetachedPrimitive -> S.Set Person -> Boolean
+areActionPermissionsValid ::
+  DetachedPrimitive ->
+  S.Set Person ->
+  Boolean
 areActionPermissionsValid (DCommit _ person _ _) sigs = person `S.member` sigs
 
 areActionPermissionsValid (DPay _ person _) sigs = person `S.member` sigs
 
 areInputPermissionsValid :: Input -> S.Set Person -> Boolean
-areInputPermissionsValid (IChoice cid _) sigs = cid.person `S.member` sigs
+areInputPermissionsValid (IChoice cid _) sigs = (unwrap cid).person `S.member` sigs
 
 areInputPermissionsValid (IOracle _ _ _) _ = true
 
 -- Implementation ToDo: need to check signature
-
 -- Check whether a commit or payment has negative value
-isTransactionNegative :: DetachedPrimitive -> Boolean
+isTransactionNegative ::
+  DetachedPrimitive ->
+  Boolean
 isTransactionNegative (DCommit _ _ val _) = val < (fromInt 0)
 
 isTransactionNegative (DPay _ _ val) = val < (fromInt 0)
@@ -1490,12 +1367,17 @@ data ApplicationResult a
 
 -- High level wrapper that calls the appropriate update function on contract and state.
 -- Does not take care of reducing, that must be done before and after applyAnyInput.
-applyAnyInput :: AnyInput -> S.Set Person -> S.Set IdInput -> BlockNumber -> State -> Contract ->
-                 ApplicationResult {outcome :: TransactionOutcomes, state :: State, contract :: Contract}
+applyAnyInput ::
+  AnyInput ->
+  S.Set Person ->
+  S.Set IdInput ->
+  BlockNumber ->
+  State ->
+  Contract ->
+  ApplicationResult {outcome :: TransactionOutcomes, state :: State, contract :: Contract}
 applyAnyInput anyInput sigs neededInputs blockNum state contract = case addAnyInput blockNum anyInput neededInputs state of
   Just updatedState -> case anyInput of
-    Input input ->
-      if areInputPermissionsValid input sigs
+    Input input -> if areInputPermissionsValid input sigs
       then SuccessfullyApplied { outcome: emptyOutcome
                                , state: updatedState
                                , contract
@@ -1503,23 +1385,25 @@ applyAnyInput anyInput sigs neededInputs blockNum state contract = case addAnyIn
       else CouldNotApply NoValidSignature
     Action idAction -> case fetchPrimitive idAction blockNum updatedState contract of
       Picked v -> case eval v.prim updatedState of
-        Result v2 dynamicProblem ->
-          if isTransactionNegative v.prim
+        Result v2 dynamicProblem -> if isTransactionNegative v.prim
           then CouldNotApply NegativeTransaction
           else if areActionPermissionsValid v.prim sigs
-               then SuccessfullyApplied { outcome: v2.outcome
-                                        , state: v2.state
-                                        , contract: v.contract
-                                        } dynamicProblem
-               else CouldNotApply NoValidSignature
+            then SuccessfullyApplied { outcome: v2.outcome
+                                     , state: v2.state
+                                     , contract: v.contract
+                                     } dynamicProblem
+            else CouldNotApply NoValidSignature
         InconsistentState -> CouldNotApply InternalError
       NoMatch -> CouldNotApply InvalidInput
       MultipleMatches -> CouldNotApply AmbiguousId
   Nothing -> CouldNotApply InvalidInput
 
 -- Give redeemed money to owners
-redeemMoneyLoop :: List Person -> TransactionOutcomes -> State ->
-                   {outcome :: TransactionOutcomes, state :: State}
+redeemMoneyLoop ::
+  List Person ->
+  TransactionOutcomes ->
+  State ->
+  {outcome :: TransactionOutcomes, state :: State}
 redeemMoneyLoop Nil trOut state = { outcome: trOut, state }
 
 redeemMoneyLoop (Cons h t) trOut state = redeemMoneyLoop t (addOutcome h redeemed trOut) newState
@@ -1527,7 +1411,10 @@ redeemMoneyLoop (Cons h t) trOut state = redeemMoneyLoop t (addOutcome h redeeme
   redeemed = getRedeemedForPerson h state
   newState = resetRedeemedForPerson h state
 
-redeemMoney :: S.Set Person -> State -> {outcome :: TransactionOutcomes, state :: State}
+redeemMoney ::
+  S.Set Person ->
+  State ->
+  {outcome :: TransactionOutcomes, state :: State}
 redeemMoney sigs state = redeemMoneyLoop (S.toUnfoldable sigs) emptyOutcome state
 
 data MApplicationResult a
@@ -1537,47 +1424,52 @@ data MApplicationResult a
 -- Fold applyAnyInput through a list of AnyInputs.
 -- Check that balance is positive at every step
 -- In the last step: simplify
-applyAnyInputs :: List AnyInput -> S.Set Person -> S.Set IdInput -> BlockNumber -> State ->
-                  Contract -> BigInt -> TransactionOutcomes -> List DynamicProblem ->
-                  MApplicationResult {funds :: BigInt
-                                     , outcome :: TransactionOutcomes
-                                     , state :: State, contract :: Contract}
-applyAnyInputs Nil sigs _ _ state contract value trOut dynProbList =
-  let v = redeemMoney sigs state
-      newValue = value + outcomeEffect v.outcome
-  in if newValue < fromInt 0
-     then MCouldNotApply InternalError
-     else let newTrOut = combineOutcomes v.outcome trOut
-              simplifiedContract = simplify contract
-          in MSuccessfullyApplied { funds: newValue
-                                  , outcome: newTrOut
-                                  , state: v.state
-                                  , contract: simplifiedContract
-                                  } dynProbList
+applyAnyInputs ::
+  List AnyInput ->
+  S.Set Person ->
+  S.Set IdInput ->
+  BlockNumber ->
+  State ->
+  Contract ->
+  BigInteger ->
+  TransactionOutcomes ->
+  List DynamicProblem ->
+  MApplicationResult {funds :: BigInteger, outcome :: TransactionOutcomes, state :: State, contract :: Contract}
+applyAnyInputs Nil sigs _ _ state contract value trOut dynProbList = let v = redeemMoney sigs state
+                                                                         newValue = value + outcomeEffect v.outcome
+                                                                     in if newValue < fromInt 0
+                                                                       then MCouldNotApply InternalError
+                                                                       else let newTrOut = combineOutcomes v.outcome trOut
+                                                                                simplifiedContract = simplify contract
+                                                                            in MSuccessfullyApplied { funds: newValue
+                                                                                                    , outcome: newTrOut
+                                                                                                    , state: v.state
+                                                                                                    , contract: simplifiedContract
+                                                                                                    } dynProbList
 
-applyAnyInputs (Cons h t) sigs neededInputs blockNum state contract value trOut dynProbList =
-  case applyAnyInput h sigs neededInputs blockNum state contract of
-    SuccessfullyApplied v newDynProb -> let newValue = value + outcomeEffect v.outcome
-                                        in if newValue < fromInt 0
-                                           then MCouldNotApply InternalError
-                                           else let newTrOut = combineOutcomes v.outcome trOut
-                                                    reducedNewContract = reduce blockNum v.state v.contract
-                                                in applyAnyInputs t sigs neededInputs blockNum v.state reducedNewContract
-                                                                  newValue newTrOut (concat (Cons dynProbList (Cons (Cons newDynProb Nil) Nil)))
-    CouldNotApply currError -> MCouldNotApply currError
+applyAnyInputs (Cons h t) sigs neededInputs blockNum state contract value trOut dynProbList = case applyAnyInput h sigs neededInputs blockNum state contract of
+  SuccessfullyApplied v newDynProb -> let newValue = value + outcomeEffect v.outcome
+                                      in if newValue < fromInt 0
+                                        then MCouldNotApply InternalError
+                                        else let newTrOut = combineOutcomes v.outcome trOut
+                                                 reducedNewContract = reduce blockNum v.state v.contract
+                                             in applyAnyInputs t sigs neededInputs blockNum v.state reducedNewContract newValue newTrOut (concat (Cons dynProbList (Cons (Cons newDynProb Nil) Nil)))
+  CouldNotApply currError -> MCouldNotApply currError
 
 -- Expire commits and apply applyAnyInputs
-applyTransaction :: List AnyInput -> S.Set Person -> BlockNumber -> State -> Contract -> BigInt ->
-                    MApplicationResult {funds :: BigInt
-                                       , outcome :: TransactionOutcomes
-                                       , state :: State, contract :: Contract}
-applyTransaction inputs sigs blockNum state contract value =
-  case appResult of
-    MSuccessfullyApplied v _ ->
-            if (inputs == Nil) && (reducedContract == contract) && (isEmptyOutcome v.outcome)
-            then MCouldNotApply InvalidInput
-            else appResult
-    _ -> appResult
+applyTransaction ::
+  List AnyInput ->
+  S.Set Person ->
+  BlockNumber ->
+  State ->
+  Contract ->
+  BigInteger ->
+  MApplicationResult {funds :: BigInteger, outcome :: TransactionOutcomes, state :: State, contract :: Contract}
+applyTransaction inputs sigs blockNum state contract value = case appResult of
+  MSuccessfullyApplied v _ -> if (inputs == Nil) && (reducedContract == contract) && (isEmptyOutcome v.outcome)
+    then MCouldNotApply InvalidInput
+    else appResult
+  _ -> appResult
   where
   neededInputs = collectNeededInputsFromContract contract
   expiredState = expireCommits blockNum state
@@ -1585,114 +1477,88 @@ applyTransaction inputs sigs blockNum state contract value =
   appResult = applyAnyInputs inputs sigs neededInputs blockNum expiredState reducedContract value emptyOutcome Nil
 
 -- Extract participants from state and contract
-peopleFromCommitInfo :: CommitInfo -> S.Set Person
-peopleFromCommitInfo (CommitInfo { redeemedPerPerson : rpp
-                                 , currentCommitsById : ccbi
-                                 }) =
-   S.union (S.fromFoldable (M.keys rpp))
-           (S.fromFoldable (map (\x -> x.person) (M.values ccbi)))
+peopleFromCommitInfo ::
+  CommitInfo ->
+  S.Set Person
+peopleFromCommitInfo (CommitInfo { redeemedPerPerson: rpp, currentCommitsById: ccbi }) = S.union (S.fromFoldable (M.keys rpp)) (S.fromFoldable (map (\x ->
+  x.person) (M.values ccbi)))
 
 peopleFromState :: State -> S.Set Person
-peopleFromState (State { commits : comm }) = peopleFromCommitInfo comm
+peopleFromState (State { commits: comm }) = peopleFromCommitInfo comm
 
 peopleFromValue :: Value -> S.Set Person
 peopleFromValue CurrentBlock = S.empty
+
 peopleFromValue (Committed _) = S.empty
+
 peopleFromValue (Constant _) = S.empty
-peopleFromValue (NegValue value) =
-  peopleFromValue value
-peopleFromValue (AddValue value1 value2) =
-  S.union (peopleFromValue value1)
-          (peopleFromValue value2)
-peopleFromValue (SubValue value1 value2) =
-  S.union (peopleFromValue value1)
-          (peopleFromValue value2)
-peopleFromValue (MulValue value1 value2) =
-  S.union (peopleFromValue value1)
-          (peopleFromValue value2)
-peopleFromValue (DivValue value1 value2 value3) =
-  S.union (peopleFromValue value1)
-  (S.union (peopleFromValue value2)
-           (peopleFromValue value3))
-peopleFromValue (ModValue value1 value2 value3) =
-  S.union (peopleFromValue value1)
-  (S.union (peopleFromValue value2)
-           (peopleFromValue value3))
-peopleFromValue (ValueFromChoice v value) =
-  S.insert v.person (peopleFromValue value)
-peopleFromValue (ValueFromOracle _ value) =
-  peopleFromValue value
+
+peopleFromValue (NegValue value) = peopleFromValue value
+
+peopleFromValue (AddValue value1 value2) = S.union (peopleFromValue value1) (peopleFromValue value2)
+
+peopleFromValue (SubValue value1 value2) = S.union (peopleFromValue value1) (peopleFromValue value2)
+
+peopleFromValue (MulValue value1 value2) = S.union (peopleFromValue value1) (peopleFromValue value2)
+
+peopleFromValue (DivValue value1 value2 value3) = S.union (peopleFromValue value1) (S.union (peopleFromValue value2) (peopleFromValue value3))
+
+peopleFromValue (ModValue value1 value2 value3) = S.union (peopleFromValue value1) (S.union (peopleFromValue value2) (peopleFromValue value3))
+
+peopleFromValue (ValueFromChoice v value) = S.insert (unwrap v).person (peopleFromValue value)
+
+peopleFromValue (ValueFromOracle _ value) = peopleFromValue value
 
 peopleFromObservation :: Observation -> S.Set Person
 peopleFromObservation (BelowTimeout _) = S.empty
-peopleFromObservation (AndObs observation1 observation2) =
-  S.union (peopleFromObservation observation1)
-          (peopleFromObservation observation2)
-peopleFromObservation (OrObs observation1 observation2) =
-  S.union (peopleFromObservation observation1)
-          (peopleFromObservation observation2)
-peopleFromObservation (NotObs observation) =
-  peopleFromObservation observation
-peopleFromObservation (ChoseThis v _) =
-  S.insert v.person S.empty
-peopleFromObservation (ChoseSomething v) = 
-  S.insert v.person S.empty
-peopleFromObservation (ValueGE value1 value2) =
-  S.union (peopleFromValue value1)
-          (peopleFromValue value2)
-peopleFromObservation (ValueGT value1 value2) =
-  S.union (peopleFromValue value1)
-          (peopleFromValue value2)
-peopleFromObservation (ValueLT value1 value2) =
-  S.union (peopleFromValue value1)
-          (peopleFromValue value2)
-peopleFromObservation (ValueLE value1 value2) =
-  S.union (peopleFromValue value1)
-          (peopleFromValue value2)
-peopleFromObservation (ValueEQ value1 value2) =
-  S.union (peopleFromValue value1)
-          (peopleFromValue value2)
+
+peopleFromObservation (AndObs observation1 observation2) = S.union (peopleFromObservation observation1) (peopleFromObservation observation2)
+
+peopleFromObservation (OrObs observation1 observation2) = S.union (peopleFromObservation observation1) (peopleFromObservation observation2)
+
+peopleFromObservation (NotObs observation) = peopleFromObservation observation
+
+peopleFromObservation (ChoseThis v _) = S.insert (unwrap v).person S.empty
+
+peopleFromObservation (ChoseSomething v) = S.insert (unwrap v).person S.empty
+
+peopleFromObservation (ValueGE value1 value2) = S.union (peopleFromValue value1) (peopleFromValue value2)
+
+peopleFromObservation (ValueGT value1 value2) = S.union (peopleFromValue value1) (peopleFromValue value2)
+
+peopleFromObservation (ValueLT value1 value2) = S.union (peopleFromValue value1) (peopleFromValue value2)
+
+peopleFromObservation (ValueLE value1 value2) = S.union (peopleFromValue value1) (peopleFromValue value2)
+
+peopleFromObservation (ValueEQ value1 value2) = S.union (peopleFromValue value1) (peopleFromValue value2)
+
 peopleFromObservation TrueObs = S.empty
+
 peopleFromObservation FalseObs = S.empty
 
 peopleFromContract :: Contract -> S.Set Person
 peopleFromContract Null = S.empty
-peopleFromContract (Commit _ _ person value _ _ contract1 contract2) =
-  S.insert person (S.union (peopleFromValue value)
-                   (S.union (peopleFromContract contract1)
-                            (peopleFromContract contract2)))
-peopleFromContract (Pay _ _ person value _ contract1 contract2) =
-  S.insert person (S.union (peopleFromValue value)
-                   (S.union (peopleFromContract contract1)
-                            (peopleFromContract contract2)))
-peopleFromContract (Both contract1 contract2) =
-  S.union (peopleFromContract contract1)
-          (peopleFromContract contract2)
-peopleFromContract (Choice observation contract1 contract2) =
-  S.union (peopleFromObservation observation)
-  (S.union (peopleFromContract contract1)
-           (peopleFromContract contract2))
-peopleFromContract (When observation timeout contract1 contract2) =
-  S.union (peopleFromObservation observation)
-  (S.union (peopleFromContract contract1)
-           (peopleFromContract contract2))
-peopleFromContract (While observation timeout contract1 contract2) =
-  S.union (peopleFromObservation observation)
-  (S.union (peopleFromContract contract1)
-           (peopleFromContract contract2))
-peopleFromContract (Scale value1 value2 value3 contract) =
-  S.union (peopleFromValue value1)
-  (S.union (peopleFromValue value2)
-   (S.union (peopleFromValue value3)
-            (peopleFromContract contract)))
-peopleFromContract (Let _ contract1 contract2) =
-  S.union (peopleFromContract contract1)
-          (peopleFromContract contract2)
+
+peopleFromContract (Commit _ _ person value _ _ contract1 contract2) = S.insert person (S.union (peopleFromValue value) (S.union (peopleFromContract contract1) (peopleFromContract contract2)))
+
+peopleFromContract (Pay _ _ person value _ contract1 contract2) = S.insert person (S.union (peopleFromValue value) (S.union (peopleFromContract contract1) (peopleFromContract contract2)))
+
+peopleFromContract (Both contract1 contract2) = S.union (peopleFromContract contract1) (peopleFromContract contract2)
+
+peopleFromContract (Choice observation contract1 contract2) = S.union (peopleFromObservation observation) (S.union (peopleFromContract contract1) (peopleFromContract contract2))
+
+peopleFromContract (When observation timeout contract1 contract2) = S.union (peopleFromObservation observation) (S.union (peopleFromContract contract1) (peopleFromContract contract2))
+
+peopleFromContract (While observation timeout contract1 contract2) = S.union (peopleFromObservation observation) (S.union (peopleFromContract contract1) (peopleFromContract contract2))
+
+peopleFromContract (Scale value1 value2 value3 contract) = S.union (peopleFromValue value1) (S.union (peopleFromValue value2) (S.union (peopleFromValue value3) (peopleFromContract contract)))
+
+peopleFromContract (Let _ contract1 contract2) = S.union (peopleFromContract contract1) (peopleFromContract contract2)
+
 peopleFromContract (Use _) = S.empty
 
 peopleFromStateAndContract :: State -> Contract -> List Person
-peopleFromStateAndContract sta con =
-  S.toUnfoldable (S.union psta pcon)
-  where psta = peopleFromState sta
-	pcon = peopleFromContract con
-
+peopleFromStateAndContract sta con = S.toUnfoldable (S.union psta pcon)
+  where
+  psta = peopleFromState sta
+  pcon = peopleFromContract con

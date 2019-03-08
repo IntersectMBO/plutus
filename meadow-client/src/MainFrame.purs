@@ -1,17 +1,6 @@
-module MainFrame
-  ( mainFrame
-  ) where
+module MainFrame (mainFrame) where
 
-import Types
-import Data.BigInt
-import Data.List
-import Semantics
-import API
-  ( SourceCode
-      ( SourceCode
-      )
-  , _RunResult
-  )
+import API (SourceCode(SourceCode))
 import Ace.Halogen.Component
   ( AceEffects
   , AceMessage
@@ -21,21 +10,9 @@ import Ace.Halogen.Component
       ( GetEditor
       )
   )
-import Ace.Types
-  ( ACE
-  , Editor
-  , Annotation
-  )
-import AjaxUtils
-  ( ajaxErrorPane
-  , runAjaxTo
-  )
-import Analytics
-  ( Event
-  , defaultEvent
-  , trackEvent
-  , ANALYTICS
-  )
+import Ace.Types (ACE, Editor, Annotation)
+import AjaxUtils (runAjaxTo)
+import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
 import Bootstrap
   ( active
   , btn
@@ -49,169 +26,46 @@ import Bootstrap
   , navTabs_
   , pullRight
   )
-import Control.Comonad
-  ( extract
-  )
-import Control.Monad.Aff.Class
-  ( class MonadAff
-  , liftAff
-  )
-import Control.Monad.Eff
-  ( Eff
-  )
-import Control.Monad.Eff.Class
-  ( class MonadEff
-  , liftEff
-  )
-import Control.Monad.Maybe.Trans
-  ( MaybeT(..)
-  , runMaybeT
-  )
-import Control.Monad.Reader.Class
-  ( class MonadAsk
-  )
-import Control.Monad.State
-  ( class MonadState
-  )
-import Control.Monad.Trans.Class
-  ( lift
-  )
-import Data.Argonaut.Core
-  ( Json
-  )
-import Data.Array
-  ( catMaybes
-  , (..)
-  )
-import Data.Either
-  ( Either(..)
-  )
-import Data.Generic
-  ( gEq
-  )
-import Data.Lens
-  ( _2
-  , _Just
-  , _Right
-  , assign
-  , maximumOf
-  , modifying
-  , over
-  , preview
-  , set
-  , traversed
-  , use
-  , view
-  )
-import Data.Lens.Index
-  ( ix
-  )
-import Data.Map
-  ( Map
-  )
-import Data.Maybe
-  ( Maybe(..)
-  , fromMaybe
-  )
-import Data.Newtype
-  ( unwrap
-  )
-import Data.RawJson
-  ( RawJson(..)
-  )
-import Data.Tuple
-  ( Tuple
-      ( Tuple
-      )
-  )
-import Data.Tuple.Nested
-  ( (/\)
-  )
-import ECharts.Monad
-  ( interpret
-  )
-import Editor
-  ( editorPane
-  )
-import FileEvents
-  ( FILE
-  , preventDefault
-  , readFileFromDragEvent
-  )
-import Gist
-  ( gistId
-  )
-import Gists
-  ( mkNewGist
-  )
-import Halogen
-  ( Component
-  , action
-  )
-import Halogen.Component
-  ( ParentHTML
-  )
-import Halogen.ECharts
-  ( EChartsEffects
-  )
-import Halogen.HTML
-  ( ClassName
-      ( ClassName
-      )
-  , HTML
-  , a
-  , div
-  , div_
-  , h1
-  , strong_
-  , text
-  )
-import Halogen.HTML.Events
-  ( onClick
-  )
-import Halogen.HTML.Properties
-  ( class_
-  , classes
-  , href
-  )
-import Halogen.Query
-  ( HalogenM
-  )
-import Icons
-  ( Icon(..)
-  , icon
-  )
+import Control.Monad.Aff.Class (class MonadAff, liftAff)
+import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Class (class MonadEff, liftEff)
+import Control.Monad.Reader.Class (class MonadAsk)
+import Data.Array (catMaybes)
+import Data.BigInteger (BigInteger, fromInt)
+import Data.Either (Either(..))
+import Data.Lens (assign, modifying, over, preview, set, use)
+import Data.List (List(..))
+import Data.Map (Map)
+import Data.Maybe (Maybe(Just, Nothing))
+import Data.Tuple (Tuple(Tuple))
+import Data.Tuple.Nested ((/\))
+import Editor (editorPane)
+import FileEvents (FILE, preventDefault, readFileFromDragEvent)
+import Gist (gistId)
+import Gists (mkNewGist)
+import Halogen (Component, action)
+import Halogen.Component (ParentHTML)
+import Halogen.ECharts (EChartsEffects)
+import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, text)
+import Halogen.HTML.Events (onClick)
+import Halogen.HTML.Properties (class_, classes, href)
+import Halogen.Query (HalogenM)
 import Language.Haskell.Interpreter
   ( CompilationError
       ( CompilationError
       , RawError
       )
   )
-import LocalStorage
-  ( LOCALSTORAGE
-  )
+import LocalStorage (LOCALSTORAGE)
 import Meadow
   ( SPParams_
   , getOauthStatus
   , patchGistsByGistId
   , postGists
+  , postContractHaskell
   )
-import Meadow
-  ( postContractHaskell
-  )
-import Network.HTTP.Affjax
-  ( AJAX
-  )
-import Network.RemoteData
-  ( RemoteData
-      ( NotAsked
-      , Loading
-      , Failure
-      , Success
-      )
-  , _Success
-  , isSuccess
-  )
+import Network.HTTP.Affjax (AJAX)
+import Network.RemoteData (RemoteData(Success, NotAsked), _Success)
 import Prelude
   ( type (~>)
   , Unit
@@ -219,59 +73,71 @@ import Prelude
   , bind
   , const
   , discard
-  , flip
-  , map
   , pure
   , show
   , unit
-  , unless
   , void
-  , when
   , ($)
-  , (&&)
   , (+)
   , (-)
   , (<$>)
-  , (<*>)
   , (<<<)
   , (<>)
   , (==)
-  , (>>=)
   )
-import Servant.PureScript.Settings
-  ( SPSettings_
+import Semantics
+  ( Contract(..)
+  , Person
+  , emptyState
+  , peopleFromStateAndContract
+  , readContract
   )
-import Simulation
-  ( simulationPane
-  )
-import StaticData
-  ( bufferLocalStorageKey
-  , marloweBufferLocalStorageKey
+import Servant.PureScript.Settings (SPSettings_)
+import Simulation (simulationPane)
+import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
+import Text.Parsing.Simple (parse)
+import Types
+  ( ChildQuery
+  , ChildSlot
+  , EditorSlot(..)
+  , FrontendState
+  , InputData
+  , MarloweEditorSlot(..)
+  , MarloweError(..)
+  , MarloweState
+  , Query(..)
+  , TransactionData
+  , View(..)
+  , _authStatus
+  , _blockNum
+  , _contract
+  , _createGistResult
+  , _marloweCompileResult
+  , _marloweState
+  , _runResult
+  , _signatures
+  , _transaction
+  , _view
+  , cpEditor
+  , cpMarloweEditor
   )
 
-import API as API
 import Ace.EditSession as Session
 import Ace.Editor as Editor
-import Data.Argonaut.Core as Json
-import Data.Array as Array
-import Data.Int as Int
 import Data.Map as Map
-import Data.StrMap as M
 import Data.String as String
 import Halogen as H
-import Halogen.ECharts as EC
 import LocalStorage as LocalStorage
+import Marlowe.Parser as Parser
 import StaticData as StaticData
 
 emptyInputData :: InputData
-emptyInputData = { oracleData: Map.empty
-                 , inputs: Map.empty
-                 }
+emptyInputData = { oracleData: Map.empty, inputs: Map.empty }
 
 emptyTransactionData :: TransactionData
 emptyTransactionData = { inputs: []
                        , signatures: Map.empty
-		       , outcomes: Map.empty
+                       , outcomes: Map.empty
                        }
 
 emptyMarloweState :: MarloweState
@@ -279,7 +145,7 @@ emptyMarloweState = { input: emptyInputData
                     , transaction: emptyTransactionData
                     , state: emptyState
                     , blockNum: (fromInt 0)
-		    , contract: Null
+                    , contract: Null
                     }
 
 initialState :: FrontendState
@@ -344,17 +210,13 @@ toEvent (MarloweHandleDropEvent _ _) = Just $ defaultEvent "MarloweDropScript"
 
 toEvent (CheckAuthStatus _) = Nothing
 
-toEvent (PublishGist _) = Just $ (defaultEvent "Publish") { label = Just "Gist"
-                                                          }
+toEvent (PublishGist _) = Just $ (defaultEvent "Publish") { label = Just "Gist" }
 
-toEvent (ChangeView view _) = Just $ (defaultEvent "View") { label = Just $ show view
-                                                           }
+toEvent (ChangeView view _) = Just $ (defaultEvent "View") { label = Just $ show view }
 
-toEvent (LoadScript script a) = Just $ (defaultEvent "LoadScript") { label = Just script
-                                                                   }
+toEvent (LoadScript script a) = Just $ (defaultEvent "LoadScript") { label = Just script }
 
-toEvent (LoadMarloweScript script a) = Just $ (defaultEvent "LoadMarloweScript") { label = Just script
-                                                                                 }
+toEvent (LoadMarloweScript script a) = Just $ (defaultEvent "LoadMarloweScript") { label = Just script }
 
 toEvent (CompileProgram a) = Just $ defaultEvent "CompileProgram"
 
@@ -380,27 +242,26 @@ saveMarloweBuffer ::
   Eff (localStorage :: LOCALSTORAGE | eff) Unit
 saveMarloweBuffer text = LocalStorage.setItem marloweBufferLocalStorageKey text
 
-resizeSigsAux :: Map Person Boolean -> Map Person Boolean -> List Person -> Map Person Boolean
+resizeSigsAux ::
+  Map Person Boolean ->
+  Map Person Boolean ->
+  List Person ->
+  Map Person Boolean
 resizeSigsAux ma ma2 Nil = ma2
-resizeSigsAux ma ma2 (Cons x y) =
-  case Map.lookup x ma of
-    Just z -> resizeSigsAux ma (Map.insert x z ma2) y
-    Nothing -> resizeSigsAux ma (Map.insert x false ma2) y
+
+resizeSigsAux ma ma2 (Cons x y) = case Map.lookup x ma of
+  Just z -> resizeSigsAux ma (Map.insert x z ma2) y
+  Nothing -> resizeSigsAux ma (Map.insert x false ma2) y
 
 resizeSigs :: List Person -> Map Person Boolean -> Map Person Boolean
 resizeSigs li ma = resizeSigsAux ma Map.empty li
 
 updateContractInState :: String -> MarloweState -> MarloweState
-updateContractInState text state =
-  let con = case readContract text of
-               Just con -> con
-	       Nothing -> Null in
-  let newState = set (_contract) con state in
-  over (_transaction <<< _signatures)
-       (resizeSigs (peopleFromStateAndContract
-                      (newState.state)
-                      (newState.contract)))
-        newState
+updateContractInState text state = let con = case readContract text of
+                                         Just con -> con
+                                         Nothing -> Null
+                                   in let newState = set (_contract) con state
+                                      in over (_transaction <<< _signatures) (resizeSigs (peopleFromStateAndContract (newState.state) (newState.contract))) newState
 
 evalF ::
   forall m aff.
@@ -423,7 +284,7 @@ evalF (HandleDropEvent event next) = do
   pure next
 
 evalF (MarloweHandleEditorMessage (TextChanged text) next) = do
-  liftEff $ saveMarloweBuffer text 
+  liftEff $ saveMarloweBuffer text
   currentState <- use _marloweState
   assign (_marloweState) $ updateContractInState text currentState
   pure next
@@ -481,6 +342,8 @@ evalF (CompileProgram next) = do
       result <- runAjaxTo _runResult $ postContractHaskell $ SourceCode contents
       -- Update the error display.
       -- Update the error display.
+      -- Update the error display.
+      -- Update the error display.
       void $ withEditor $ showCompilationErrorAnnotations $ case result of
         Success (Left errors) -> errors
         _ -> []
@@ -496,22 +359,34 @@ evalF (SetSignature { person, isChecked } next) = do
 
 --evalF (UpdatePerson person next) = do
 --  pure next
-  -- updating a person will require running the simulation so that the next suggested actions can be added
-  -- although I'm not sure from the design what are suggested and what are manual
-  -- updating a person will require running the simulation so that the next suggested actions can be added
-  -- although I'm not sure from the design what are suggested and what are manual
-  -- updating a person will require running the simulation so that the next suggested actions can be added
-  -- although I'm not sure from the design what are suggested and what are manual
+-- updating a person will require running the simulation so that the next suggested actions can be added
+-- although I'm not sure from the design what are suggested and what are manual
+-- updating a person will require running the simulation so that the next suggested actions can be added
+-- although I'm not sure from the design what are suggested and what are manual
+-- updating a person will require running the simulation so that the next suggested actions can be added
+-- although I'm not sure from the design what are suggested and what are manual
 --  currentState <- use _marloweState
 --  assign (_marloweState <<< _people) $ Map.update (const <<< Just $ person) person.id currentState.people
-
 evalF (ApplyTrasaction next) = pure next
 
 evalF (NextBlock next) = do
-  modifying (_marloweState <<< _blockNum) (\x -> x + ((fromInt 1) :: BigInt))
+  modifying (_marloweState <<< _blockNum) (\x ->
+    x + ((fromInt 1) :: BigInteger))
   pure next
 
-evalF (CompileMarlowe next) = pure next
+evalF (CompileMarlowe next) = do
+  mContents <- withMarloweEditor Editor.getValue
+  case mContents of
+    Nothing -> pure next
+    Just contents -> do
+      let contract = parse Parser.contract contents
+      case contract of
+        Right c -> do
+          assign _marloweCompileResult $ Left [MarloweError "oh no"]
+          pure next
+        Left err -> do
+          assign _marloweCompileResult $ Left [MarloweError err]
+          pure next
 
 ------------------------------------------------------------
 -- | Handles the messy business of running an editor command if the
@@ -549,9 +424,7 @@ showCompilationErrorAnnotations errors editor = do
   session <- Editor.getSession editor
   Session.setAnnotations (catMaybes (toAnnotation <$> errors)) session
 
-toAnnotation ::
-  CompilationError ->
-  Maybe Annotation
+toAnnotation :: CompilationError -> Maybe Annotation
 toAnnotation (RawError _) = Nothing
 
 toAnnotation (CompilationError { row, column, text }) = Just { "type": "error"
@@ -569,37 +442,19 @@ render state = div [ class_ $ ClassName "main-frame"
                    ] [ container_ [ mainHeader
                                   , mainTabBar state.view
                                   ]
-                     , viewContainer state.view Editor $ [ editorPane state
-                                                         ]
+                     , viewContainer state.view Editor $ [editorPane state]
                      , viewContainer state.view Simulation $ [ simulationPane state
                                                              ]
                      ]
 
-viewContainer ::
-  forall p i.
-  View ->
-  View ->
-  Array (HTML p i) ->
-  HTML p i
+viewContainer :: forall p i. View -> View -> Array (HTML p i) -> HTML p i
 viewContainer currentView targetView = if currentView == targetView
-  then div [ classes [ container
-                     ]
-           ]
-  else div [ classes [ container
-                     , hidden
-                     ]
-           ]
+  then div [classes [container]]
+  else div [classes [container, hidden]]
 
-mainHeader ::
-  forall p.
-  HTML p (Query Unit)
-mainHeader = div_ [ div [ classes [ btnGroup
-                                  , pullRight
-                                  ]
-                        ] (makeLink <$> links)
-                  , h1 [ class_ $ ClassName "main-title"
-                       ] [ text "Meadow"
-                         ]
+mainHeader :: forall p. HTML p (Query Unit)
+mainHeader = div_ [ div [classes [btnGroup, pullRight]] (makeLink <$> links)
+                  , h1 [class_ $ ClassName "main-title"] [text "Meadow"]
                   ]
   where
   links = [ Tuple "Getting Started" "https://testnet.iohkdev.io/plutus/get-started/writing-contracts-in-plutus/"
@@ -614,10 +469,7 @@ mainHeader = div_ [ div [ classes [ btnGroup
                                  ] [ text name
                                    ]
 
-mainTabBar ::
-  forall p.
-  View ->
-  HTML p (Query Unit)
+mainTabBar :: forall p. View -> HTML p (Query Unit)
 mainTabBar activeView = navTabs_ (mkTab <$> tabs)
   where
   tabs = [ Editor /\ "Haskell Editor"
