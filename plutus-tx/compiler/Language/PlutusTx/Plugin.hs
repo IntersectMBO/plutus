@@ -14,6 +14,7 @@ module Language.PlutusTx.Plugin (
     getSerializedPlc,
     getSerializedPir,
     getPlc,
+    sizePlc,
     getPir,
     plugin,
     plc) where
@@ -52,6 +53,7 @@ import           Control.Monad.Reader
 import qualified Data.ByteString                        as BS
 import qualified Data.ByteString.Lazy                   as BSL
 import qualified Data.ByteString.Unsafe                 as BSUnsafe
+import           Data.Int                               (Int64)
 import qualified Data.Map                               as Map
 import qualified Data.Text.Prettyprint.Doc              as PP
 
@@ -76,6 +78,10 @@ getSerializedPlc = BSL.fromStrict . serializedPlc
 
 getSerializedPir :: CompiledCode a -> BSL.ByteString
 getSerializedPir = BSL.fromStrict . serializedPir
+
+-- | The size of a `CompiledCode a` when embedded into a transaction, in bytes.
+sizePlc :: CompiledCode a -> Int64
+sizePlc = BSL.length . getSerializedPlc
 
 {- Note [Deserializing the AST]
 The types suggest that we can fail to deserialize the AST that we embedded in the program.

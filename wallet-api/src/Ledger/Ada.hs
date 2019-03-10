@@ -7,6 +7,7 @@ module Ledger.Ada(
       , toValue
       , toInt
       , adaValueOf
+      , zero
       -- * Num operations
       , plus
       , minus
@@ -39,6 +40,9 @@ fromInt = $$(TH.fromInt)
 
 adaValueOf :: Int -> Value
 adaValueOf = $$(TH.adaValueOf)
+
+zero :: Ada
+zero = $$(TH.zero)
 
 plus :: Ada -> Ada -> Ada
 plus = $$(TH.plus)
