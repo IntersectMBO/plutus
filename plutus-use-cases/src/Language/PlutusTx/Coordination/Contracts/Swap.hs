@@ -6,6 +6,7 @@
 {-# OPTIONS_GHC -O0 #-}
 module Language.PlutusTx.Coordination.Contracts.Swap(
     Swap(..),
+    -- * Script
     swapValidator
     ) where
 

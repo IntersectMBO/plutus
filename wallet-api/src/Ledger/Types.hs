@@ -31,6 +31,7 @@ module Ledger.Types(
     scriptAddress,
     -- ** Scripts
     Script,
+    scriptSize,
     fromCompiledCode,
     compileScript,
     lifted,
@@ -250,6 +251,9 @@ instance Eq Script where
 
 instance Ord Script where
     a `compare` b = serialise a `compare` serialise b
+
+scriptSize :: Script -> Integer
+scriptSize (Script s) = PLC.programSize s
 
 -- TODO: possibly this belongs with CompiledCode
 fromCompiledCode :: CompiledCode a -> Script
