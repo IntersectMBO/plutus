@@ -342,16 +342,12 @@ type CommitInfoRecord
 data CommitInfo
   = CommitInfo {redeemedPerPerson :: M.Map Person BigInt, currentCommitsById :: M.Map IdCommit CommitInfoRecord, expiredCommitIds :: S.Set IdCommit, timeoutData :: TimeoutData}
 
---derive instance eqCommitInfo :: Eq CommitInfo
---derive instance ordCommitInfo :: Ord CommitInfo
 type OracleDataPoint
   = {blockNumber :: BlockNumber, value :: BigInt}
 
 data State
   = State {commits :: CommitInfo, choices :: M.Map WIdChoice Choice, oracles :: M.Map IdOracle OracleDataPoint, usedIds :: S.Set IdAction}
 
---derive instance eqState :: Eq State
---derive instance ordState :: Ord State
 -- Adds a commit identifier to the timeout data map
 addToCommByTim ::
   Timeout ->
