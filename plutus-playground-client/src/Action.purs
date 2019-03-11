@@ -16,7 +16,7 @@ import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
 import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, form, h2_, h3_, input, label, p_, small_, text)
 import Halogen.HTML.Elements.Keyed as Keyed
-import Halogen.HTML.Events (input_, onClick, onValueChange)
+import Halogen.HTML.Events (input_, onClick, onValueInput)
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties (InputType(InputText, InputNumber), class_, classes, disabled, for, placeholder, required, type_, value)
 import Halogen.Query as HQ
@@ -92,7 +92,7 @@ actionPane index action =
                               [ type_ InputNumber
                               , value $ show blocks
                               , placeholder "Int"
-                              , onValueChange $ map (HQ.action <<< ModifyActions <<< SetWaitTime index) <<< Int.fromString
+                              , onValueInput $ map (HQ.action <<< ModifyActions <<< SetWaitTime index) <<< Int.fromString
                               ]
                           ]
                         ]
@@ -131,7 +131,7 @@ actionArgumentField context _ arg@(SimpleInt n) =
       , value $ maybe "" show n
       , required true
       , placeholder "Int"
-      , onValueChange $ (Just <<< HQ.action <<< SetIntField <<< Int.fromString)
+      , onValueInput $ (Just <<< HQ.action <<< SetIntField <<< Int.fromString)
       ]
     , validationFeedback (addPath context <$> validate arg)
   ]
@@ -143,7 +143,7 @@ actionArgumentField context _ arg@(SimpleString s) =
       , value $ fromMaybe "" s
       , required true
       , placeholder "String"
-      , onValueChange $ HE.input SetStringField
+      , onValueInput $ HE.input SetStringField
       ]
     , validationFeedback (addPath context <$> validate arg)
   ]

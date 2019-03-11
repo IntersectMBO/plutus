@@ -12,7 +12,7 @@ import Data.Tuple (Tuple(..))
 import Halogen (HTML)
 import Halogen.HTML (ClassName(ClassName), button, div, div_, h2_, h3_, h4_, input, p_, span, text)
 import Halogen.HTML.Elements.Keyed as Keyed
-import Halogen.HTML.Events (input_, onClick, onValueChange)
+import Halogen.HTML.Events (input_, onClick, onValueInput)
 import Halogen.HTML.Properties (InputType(..), class_, classes, placeholder, type_, value)
 import Halogen.Query as HQ
 import Icons (Icon(..), icon)
@@ -61,7 +61,7 @@ walletPane signatures index simulatorWallet =
                             [ type_ InputNumber
                             , value $ show $ view (_simulatorWalletBalance <<< _ada) simulatorWallet
                             , placeholder "Int"
-                            , onValueChange $ map (HQ.action <<< SetBalance (view _simulatorWalletWallet simulatorWallet) <<< \v -> Ada {getAda: v}) <<< Int.fromString
+                            , onValueInput $ map (HQ.action <<< SetBalance (view _simulatorWalletWallet simulatorWallet) <<< \v -> Ada {getAda: v}) <<< Int.fromString
                             ]
                         ]
                       ]
