@@ -1,6 +1,6 @@
 -- | Combinators.
 
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Language.PlutusCore.StdLib.Data.Function
     ( const
