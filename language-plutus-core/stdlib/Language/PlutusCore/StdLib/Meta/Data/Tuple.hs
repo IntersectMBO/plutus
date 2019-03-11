@@ -1,6 +1,7 @@
 -- | @tuple@s of various sizees and related functions.
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE GADTs #-}
 
 module Language.PlutusCore.StdLib.Meta.Data.Tuple
     ( Tuple (..)
@@ -26,10 +27,11 @@ import           Control.Lens.Indexed      (ifor, itraverse)
 import           Data.Traversable
 
 -- | A Plutus Core tuple.
-data Tuple term ann = Tuple
-    { _tupleElementTypes :: [Type TyName ann]     -- ^ The types of elements of a tuple.
-    , _tupleTerm         :: term ann              -- ^ A term representation of the tuple.
-    }
+data Tuple term ann where
+    Tuple :: TermLike term TyName Name =>
+        { _tupleElementTypes :: [Type TyName ann] -- ^ The types of elements of a tuple.
+        , _tupleTerm         :: term ann          -- ^ A term representation of the tuple.
+        } -> Tuple term ann
 
 -- | Get the type of a 'Tuple'.
 --
