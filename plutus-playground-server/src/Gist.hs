@@ -74,9 +74,12 @@ updateGist =
 
 ------------------------------------------------------------
 data Owner = Owner
-  { _ownerLogin   :: !Text
-  , _ownerHtmlUrl :: !Text
-  } deriving (Show, Eq, Generic, ToJSON)
+    { _ownerLogin   :: !Text
+    , _ownerHtmlUrl :: !Text
+    } deriving (Show, Eq, Generic, ToJSON)
+
+instance FromJSON Owner where
+    parseJSON = githubParseJSON
 
 data NewGist = NewGist
     { _newGistDescription :: !Text
@@ -111,37 +114,43 @@ instance FromHttpApiData GistId where
     parseQueryParam = Right . GistId
 
 data Gist = Gist
-  { _gistId         :: !GistId
-  , _gistGitPushUrl :: !Text
-  , _gistHtmlUrl    :: !Text
-  , _gistOwner      :: !Owner
-  , _gistFiles      :: ![GistFile]
-  , _gistTruncated  :: !Bool
-  } deriving (Show, Eq, Generic, ToJSON)
-
-data GistFile = GistFile
-  { _gistFilename :: !Text
-  , _gistLanguage :: !(Maybe Text)
-  , _gistType     :: !Text
-  } deriving (Show, Eq, Generic, ToJSON)
+    { _gistId         :: !GistId
+    , _gistGitPushUrl :: !Text
+    , _gistHtmlUrl    :: !Text
+    , _gistOwner      :: !Owner
+    , _gistFiles      :: ![GistFile]
+    , _gistTruncated  :: !Bool
+    } deriving (Show, Eq, Generic, ToJSON)
 
 instance FromJSON Gist where
-  parseJSON =
-    withObject "gist" $ \o -> do
-      _gistId <- o .: "id"
-      _gistGitPushUrl <- o .: "git_push_url"
-      _gistHtmlUrl <- o .: "html_url"
-      _gistOwner <- o .: "owner"
-      _gistFiles <-
-        Map.elems <$> ((o .: "files") :: Parser (Map String GistFile))
-      _gistTruncated <- o .: "truncated"
-      pure Gist {..}
+    parseJSON =
+        withObject "gist" $ \o -> do
+            _gistId <- o .: "id"
+            _gistGitPushUrl <- o .: "git_push_url"
+            _gistHtmlUrl <- o .: "html_url"
+            _gistOwner <- o .: "owner"
+            _gistFiles <-
+                Map.elems <$> ((o .: "files") :: Parser (Map String GistFile))
+            _gistTruncated <- o .: "truncated"
+            pure Gist {..}
 
-instance FromJSON Owner where
-  parseJSON = githubParseJSON
+data GistFile = GistFile
+    { _gistFileFilename  :: !Text
+    , _gistFileLanguage  :: !(Maybe Text)
+    , _gistFileType      :: !Text
+    , _gistFileTruncated :: !(Maybe Bool)
+    , _gistFileContent   :: !(Maybe Text)
+    } deriving (Show, Eq, Generic, ToJSON)
 
 instance FromJSON GistFile where
-  parseJSON = githubParseJSON
+    parseJSON =
+        withObject "gistfile" $ \o -> do
+            _gistFileFilename <- o .: "filename"
+            _gistFileLanguage <- o .:? "language"
+            _gistFileType <- o .: "type"
+            _gistFileTruncated <- o .:? "truncated"
+            _gistFileContent <- o .:? "content"
+            pure GistFile {..}
 
 ------------------------------------------------------------
 githubParseJSON :: (Generic a, GFromJSON Zero (Rep a)) => Value -> Parser a

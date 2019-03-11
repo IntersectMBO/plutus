@@ -62,7 +62,8 @@ h2 {
 }
 
 .main-title {
-    font-size:1.5rem;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
 }
 
 .main-frame {
@@ -77,10 +78,12 @@ h2 {
     padding: 5px 0;
 }
 
-.gist-link {
-    text-align: center;
-    text-decoration: underline;
-    padding: 5px;
+.gist-controls {
+    .gist-link {
+        text-align: center;
+        text-decoration: underline;
+        padding: 5px;
+    }
 }
 
 .ace_editor, .ace_content {

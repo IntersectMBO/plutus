@@ -25,7 +25,7 @@ import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
 import Playground.API (EvaluationResult, _EvaluationResult, _Fn, _FunctionSchema)
 import Prelude (map, pure, show, ($), (+), (/=), (<$>), (<<<), (<>))
 import Servant.PureScript.Affjax (AjaxError)
-import Types (Action(..), ActionEvent(..), Blockchain, ChildQuery, ChildSlot, FormEvent(..), Query(..), SimpleArgument(..), Simulation, _argumentSchema, _functionName, _resultBlockchain, _simulatorWalletWallet)
+import Types (Action(..), ActionEvent(..), Blockchain, ChildQuery, ChildSlot, FormEvent(..), Query(..), SimpleArgument(..), Simulation(..), _argumentSchema, _functionName, _resultBlockchain, _simulatorWalletWallet)
 import Validation (ValidationError, WithPath, joinPath, showPathValue, validate)
 import Wallet (walletIdPane, walletsPane)
 
@@ -35,7 +35,7 @@ simulationPane ::
   => Simulation
   -> RemoteData AjaxError EvaluationResult
   -> ParentHTML Query ChildQuery ChildSlot m
-simulationPane simulation evaluationResult =
+simulationPane (Simulation simulation) evaluationResult =
   div_
     [ walletsPane simulation.signatures simulation.wallets
     , br_

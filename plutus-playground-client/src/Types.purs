@@ -20,7 +20,7 @@ import Data.Lens (Lens, Lens', Prism', _2, over, prism', to, traversed, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
-import Data.Newtype (unwrap)
+import Data.Newtype (class Newtype, unwrap)
 import Data.RawJson (RawJson(..))
 import Data.StrMap as M
 import Data.Symbol (SProxy(..))
@@ -43,7 +43,6 @@ import Wallet.Emulator.Types (Wallet, _Wallet)
 
 _simulatorWalletWallet :: Lens' SimulatorWallet Wallet
 _simulatorWalletWallet = _SimulatorWallet <<< prop (SProxy :: SProxy "simulatorWalletWallet")
-
 
 _simulatorWalletBalance :: Lens' SimulatorWallet Ada
 _simulatorWalletBalance = _SimulatorWallet <<< prop (SProxy :: SProxy "simulatorWalletBalance")
@@ -130,7 +129,7 @@ toExpression (Action action) = do
       pure $ RawJson <<< Json.stringify <$> jsonValues
 
 toEvaluation :: SourceCode -> Simulation -> Maybe Evaluation
-toEvaluation sourceCode {actions, wallets} = do
+toEvaluation sourceCode (Simulation {actions, wallets}) = do
     program <- traverse toExpression actions
     pure $ Evaluation { wallets
                       , program
@@ -150,6 +149,8 @@ data Query a
   -- Gist support.
   | CheckAuthStatus a
   | PublishGist a
+  | SetGistUrl String a
+  | LoadGist a
   -- Tabs.
   | ChangeView View a
   -- Editor.
@@ -224,11 +225,13 @@ cpBalancesChart = cp3
 
 type Blockchain = Array (Array (Tuple (TxIdOf String) Tx))
 type Signatures = Array (FunctionSchema SimpleArgumentSchema)
-type Simulation =
+newtype Simulation = Simulation
   { signatures :: Signatures
   , actions :: Array Action
   , wallets :: Array SimulatorWallet
   }
+derive instance newtypeSimulation :: Newtype Simulation _
+derive instance genericSimulation :: Generic Simulation
 
 type State =
   { view :: View
@@ -237,6 +240,7 @@ type State =
   , evaluationResult :: RemoteData AjaxError EvaluationResult
   , authStatus :: RemoteData AjaxError AuthStatus
   , createGistResult :: RemoteData AjaxError Gist
+  , gistUrl :: Maybe String
   }
 
 _view :: forall s a. Lens' {view :: a | s} a
@@ -266,12 +270,15 @@ _authStatus = prop (SProxy :: SProxy "authStatus")
 _createGistResult :: forall s a. Lens' {createGistResult :: a | s} a
 _createGistResult = prop (SProxy :: SProxy "createGistResult")
 
+_gistUrl :: forall s a. Lens' {gistUrl :: a | s} a
+_gistUrl = prop (SProxy :: SProxy "gistUrl")
+
 _resultBlockchain :: forall s a. Lens' {resultBlockchain :: a | s} a
 _resultBlockchain = prop (SProxy :: SProxy "resultBlockchain")
 
 data View
   = Editor
-  | Simulation
+  | Simulations
   | Transactions
 
 derive instance eqView :: Eq View
@@ -279,7 +286,7 @@ derive instance genericView :: Generic View
 
 instance showView :: Show View where
   show Editor = "Editor"
-  show Simulation = "Simulation"
+  show Simulations = "Simulation"
   show Transactions = "Transactions"
 
 ------------------------------------------------------------

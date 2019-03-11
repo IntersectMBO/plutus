@@ -53,7 +53,10 @@ editorPane state =
     , br_
     , div_
         [ div [ class_ pullRight ]
-            [ gistControls (view _authStatus state) (view _createGistResult state) ]
+            [ gistControls
+                (view _authStatus state)
+                (view _createGistResult state)
+            ]
         , div_
             [ button
                 [ classes [ btn, btnClass ]

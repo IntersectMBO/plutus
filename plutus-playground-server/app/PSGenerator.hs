@@ -187,7 +187,7 @@ myTypes =
     , (equal <*> mkSumType) (Proxy @Ada)
     , mkSumType (Proxy @AuthStatus)
     , mkSumType (Proxy @AuthRole)
-    , mkSumType (Proxy @GistId)
+    , (equal <*> mkSumType) (Proxy @GistId)
     , mkSumType (Proxy @Gist)
     , mkSumType (Proxy @GistFile)
     , mkSumType (Proxy @NewGist)

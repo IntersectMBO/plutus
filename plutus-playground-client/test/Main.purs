@@ -3,15 +3,16 @@ module Test.Main where
 import Prelude
 
 import BridgeTests as BridgeTests
-import TypesTests as TypesTests
 import Control.Monad.Aff.AVar (AVAR)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Random (RANDOM)
+import GistsTests as GistsTests
 import Node.FS (FS)
 import Test.Unit.Console (TESTOUTPUT)
 import Test.Unit.Main (runTest)
+import TypesTests as TypesTests
 
 foreign import forDeps :: forall a. Eff a Unit
 
@@ -19,3 +20,4 @@ main :: forall eff. Eff (testOutput :: TESTOUTPUT, exception :: EXCEPTION, fs ::
 main = runTest do
   BridgeTests.all
   TypesTests.all
+  GistsTests.all

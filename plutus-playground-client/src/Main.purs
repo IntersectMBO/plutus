@@ -47,8 +47,6 @@ isInstanceOf :: forall a b. Generic a => Generic b => Proxy a -> b -> Boolean
 isInstanceOf proxy value =
   isValidSpine (toSignature proxy) (toSpine value)
 
-
-
 main :: Eff (HalogenEffects (EChartsEffects (AceEffects (console :: CONSOLE, ajax :: AJAX, analytics :: ANALYTICS, localStorage :: LOCALSTORAGE, file :: FILE)))) Unit
 main = runHalogenAff do
   body <- awaitBody

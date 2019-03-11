@@ -9,10 +9,11 @@ import Ace.Editor as Editor
 import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged), AceQuery(GetEditor))
 import Ace.Types (ACE, Editor, Annotation)
 import Action (simulationPane)
-import AjaxUtils (ajaxErrorPane, runAjaxTo)
+import AjaxUtils (ajaxErrorPane, runAjax, runAjaxTo)
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
-import Bootstrap (active, btn, btnGroup, btnSmall, container, container_, hidden, navItem_, navLink, navTabs_, pullRight)
+import Bootstrap (active, btn, btnGroup, btnSmall, col10_, col2_, container, container_, empty, hidden, navItem_, navLink, navTabs_, pullRight, row_)
 import Chain (mockchainChartOptions, balancesChartOptions, evaluationPane)
+import Control.Bind (bindFlipped)
 import Control.Comonad (extract)
 import Control.Monad.Aff.Class (class MonadAff, liftAff)
 import Control.Monad.Eff (Eff)
@@ -21,22 +22,27 @@ import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader.Class (class MonadAsk, ask)
 import Control.Monad.State (class MonadState)
 import Control.Monad.Trans.Class (lift)
+import Data.Argonaut.Parser (jsonParser)
 import Data.Array (catMaybes, (..))
 import Data.Array as Array
-import Data.Either (Either(..))
+import Data.Either (Either(..), note)
 import Data.Generic (gEq)
-import Data.Lens (_1, _2, _Just, _Right, assign, maximumOf, modifying, over, preview, set, traversed, use, view)
+import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, traversed, use, view)
+import Data.Lens.Fold (findOf, maximumOf, preview)
 import Data.Lens.Index (ix)
+import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Newtype (unwrap)
 import Data.String as String
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
 import ECharts.Monad (interpret)
 import Editor (editorPane)
 import FileEvents (FILE, preventDefault, readFileFromDragEvent)
-import Gist (gistId)
-import Gists (mkNewGist)
+import Gist (gistFileContent, gistFileFilename, gistFiles, gistId)
+import Gists (gistControls, gistSimulationFilename, gistSourceFilename, mkNewGist)
+import Gists as Gists
 import Halogen (Component, action)
 import Halogen as H
 import Halogen.Component (ParentHTML)
@@ -54,9 +60,9 @@ import LocalStorage as LocalStorage
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
 import Playground.API (EvaluationResult(EvaluationResult), SimulatorWallet(SimulatorWallet), SourceCode(SourceCode), _CompilationResult, _FunctionSchema)
-import Playground.Server (SPParams_, getOauthStatus, patchGistsByGistId, postContract, postEvaluate, postGists)
-import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, map, pure, show, unit, unless, void, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
-import Servant.PureScript.Settings (SPSettings_)
+import Playground.Server (SPParams_, getGistsByGistId, getOauthStatus, patchGistsByGistId, postContract, postEvaluate, postGists)
+import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, map, pure, show, unit, unless, void, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (=<<), (==), (>>=))
+import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettings_(..))
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
 import Wallet.Emulator.Types (Wallet(Wallet))
@@ -75,6 +81,7 @@ initialState =
   , evaluationResult: NotAsked
   , authStatus: NotAsked
   , createGistResult: NotAsked
+  , gistUrl: Nothing
   }
 
 ------------------------------------------------------------
@@ -118,9 +125,11 @@ toEvent (HandleDropEvent _ _) = Just $ defaultEvent "DropScript"
 toEvent (HandleMockchainChartMessage _ _) = Nothing
 toEvent (HandleBalancesChartMessage _ _) = Nothing
 toEvent (CheckAuthStatus _) = Nothing
-toEvent (PublishGist _) = Just $ (defaultEvent "Publish") { label = Just "Gist"}
-toEvent (ChangeView view _) = Just $ (defaultEvent "View") { label = Just $ show view}
-toEvent (LoadScript script a) = Just $ (defaultEvent "LoadScript") { label = Just script}
+toEvent (PublishGist _) = Just $ (defaultEvent "Publish") { category = Just "Gist" }
+toEvent (SetGistUrl _ _) = Nothing
+toEvent (LoadGist _) = Just $ (defaultEvent "LoadGist") { category = Just "Gist" }
+toEvent (ChangeView view _) = Just $ (defaultEvent "View") { label = Just $ show view }
+toEvent (LoadScript script a) = Just $ (defaultEvent "LoadScript") { label = Just script }
 toEvent (CompileProgram a) = Just $ defaultEvent "CompileProgram"
 toEvent (ScrollTo _ _) = Nothing
 toEvent (AddWallet _) = Just $ (defaultEvent "AddWallet") { category = Just "Wallet" }
@@ -186,9 +195,56 @@ eval (PublishGist next) = do
          let apiCall = case preview (_Success <<< gistId) mGist of
                Nothing -> postGists newGist
                Just gistId -> patchGistsByGistId newGist gistId
-         void $ runAjaxTo _createGistResult  apiCall
+         newResult <- runAjax apiCall
+
+         assign _createGistResult newResult
+
+         case preview (_Success <<< gistId) newResult of
+               Nothing -> pure unit
+               Just gistId -> assign _gistUrl (Just (unwrap gistId))
 
          pure next
+
+eval (SetGistUrl newGistUrl next) = do
+  assign _gistUrl (Just newGistUrl)
+  pure next
+
+eval (LoadGist next) = do
+  eGistUrl <- (bindFlipped Gists.parseGistUrl <<< note "Gist Url not set.") <$> use _gistUrl
+  case eGistUrl of
+    Left _ -> pure unit
+    Right gistId -> do (SPSettings_ {decodeJson: (SPSettingsDecodeJson_ decodeJson)}) <- ask
+                       aGist <- runAjax $ getGistsByGistId gistId
+                       case aGist of
+                         Success gist -> do
+                           assign _createGistResult aGist
+                           let firstMatch filename = findOf (gistFiles <<< traversed) (\gistFile -> view gistFileFilename gistFile == filename) gist
+                               playgroundGistFile = firstMatch gistSourceFilename
+                               simulationGistFile = firstMatch gistSimulationFilename
+
+                           -- Load the source, if available.
+                           -- TODO There's a clearout happening here that should be in sync with other places.
+                           -- TODO We should be saving to local storage, right?
+                           case preview (_Just <<< gistFileContent <<< _Just) playgroundGistFile of
+                             Nothing -> pure unit
+                             Just content -> do void $ withEditor $ Editor.setValue content (Just 1)
+                                                assign _simulation Nothing
+                                                assign _evaluationResult NotAsked
+
+                           -- Load the simulation, if available.
+                           -- TODO There's a clearout happening here that should be in sync with other places.
+                           case preview (_Just <<< gistFileContent <<< _Just) simulationGistFile of
+                             Nothing -> pure unit
+                             Just simulationString -> do
+                               case (decodeJson =<< jsonParser simulationString) of
+                                 Left err -> pure unit
+                                 Right simulation -> do
+                                                     assign _simulation $ Just simulation
+                                                     assign _evaluationResult NotAsked
+
+                         _ -> pure unit
+
+  pure next
 
 eval (ChangeView view next) = do
   assign _view view
@@ -214,7 +270,7 @@ eval (CompileProgram next) = do
       -- If we got a successful result, switch tab.
       case result of
         Success (Left _) -> pure unit
-        _ -> replaceViewOnSuccess result Editor Simulation
+        _ -> replaceViewOnSuccess result Editor Simulations
 
       -- Update the error display.
       void $ withEditor $ showCompilationErrorAnnotations $
@@ -227,12 +283,12 @@ eval (CompileProgram next) = do
       -- change means we'll have to clear out the existing simulation.
       case preview (_Success <<< _Right <<< _CompilationResult <<< _functionSchema) result of
         Just newSignatures -> do
-          oldSignatures <- use (_simulation <<< _Just <<< _signatures)
+          oldSignatures <- use (_simulation <<< _Just <<< _Newtype <<< _signatures)
           unless (oldSignatures `gEq` newSignatures)
-            (assign _simulation (Just { signatures: newSignatures
-                                      , actions: []
-                                      , wallets: mkSimulatorWallet <$> 1..2
-                                      }))
+            (assign _simulation $ Just $ Simulation { signatures: newSignatures
+                                                    , actions: []
+                                                    , wallets: mkSimulatorWallet <$> 1..2
+                                                    })
         _ -> pure unit
 
       pure next
@@ -242,7 +298,7 @@ eval (ScrollTo {row, column} next) = do
   pure next
 
 eval (ModifyActions actionEvent next) = do
-  modifying (_simulation <<< _Just <<< _actions) (evalActionEvent actionEvent)
+  modifying (_simulation <<< _Just <<< _Newtype <<< _actions) (evalActionEvent actionEvent)
   pure next
 
 eval (EvaluateActions next) = do
@@ -254,7 +310,7 @@ eval (EvaluateActions next) = do
 
           result <- lift $ runAjaxTo  _evaluationResult $ postEvaluate evaluation
 
-          replaceViewOnSuccess result Simulation Transactions
+          replaceViewOnSuccess result Simulations Transactions
 
           lift updateChartsIfPossible
 
@@ -262,28 +318,35 @@ eval (EvaluateActions next) = do
   pure next
 
 eval (AddWallet next) = do
-  wallets <- use (_simulation <<< _Just <<< _wallets)
+  wallets <- use (_simulation <<< _Just <<< _Newtype <<< _wallets)
   let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _simulatorWalletWallet <<< _walletId) wallets
   let newWallet = mkSimulatorWallet (maxWalletId + 1)
-  modifying (_simulation <<< _Just <<< _wallets) (flip Array.snoc newWallet)
+  modifying (_simulation <<< _Just <<< _Newtype <<< _wallets) (flip Array.snoc newWallet)
+
+  modifying (_simulation <<< _Just <<< _Newtype <<< _wallets)
+    (\wallets -> let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _simulatorWalletWallet <<< _walletId) wallets
+                     newWallet = mkSimulatorWallet (maxWalletId + 1)
+                 in Array.snoc wallets newWallet)
+
   pure next
 
 eval (RemoveWallet index next) = do
-  modifying (_simulation <<< _Just <<< _wallets) (fromMaybe <*> Array.deleteAt index)
-  assign (_simulation <<< _Just <<< _actions) []
+  modifying (_simulation <<< _Just <<< _Newtype <<< _wallets) (fromMaybe <*> Array.deleteAt index)
+  assign (_simulation <<< _Just <<< _Newtype <<< _actions) []
   pure next
 
 eval (SetBalance wallet newBalance next) = do
-  modifying (_simulation <<< _Just <<< _wallets)
-    (map (\simulatorWallet -> if view _simulatorWalletWallet simulatorWallet == wallet
-                              then set _simulatorWalletBalance newBalance simulatorWallet
-                              else simulatorWallet))
+  modifying (_simulation <<< _Just <<< _Newtype <<< _wallets <<< traversed)
+    (\simulatorWallet -> if view _simulatorWalletWallet simulatorWallet == wallet
+                         then set _simulatorWalletBalance newBalance simulatorWallet
+                         else simulatorWallet)
   pure next
 
 eval (PopulateAction n l event) = do
   modifying
     (_simulation
        <<< _Just
+       <<< _Newtype
        <<< _actions
        <<< ix n
        <<< _Action
@@ -396,26 +459,32 @@ render state =
     [ class_ $ ClassName "main-frame" ]
     [ container_
         [ mainHeader
-        , mainTabBar state.view
+        , row_
+            [ col10_ [ mainTabBar state.view ]
+            , col2_ [ gistControls
+                        (view _authStatus state)
+                        (view _createGistResult state)
+                        (view _gistUrl state)
+                    ]
+            ]
         ]
     , viewContainer state.view Editor $
         [ editorPane state
+        , case state.compilationResult of
+            Failure error -> ajaxErrorPane error
+            _ -> empty
         ]
-    , viewContainer state.view Simulation $
-        case state.compilationResult, state.simulation of
-          Success (Left error), _ ->
-            [ text "Your contract has errors. Click the "
-            , strong_ [ text "Editor" ]
-            , text " tab above to fix them and recompile."
-            ]
-          Success (Right _), Just simulation ->
+    , viewContainer state.view Simulations $
+        case state.simulation of
+          Just simulation ->
             [ simulationPane
                 simulation
                 state.evaluationResult
+            , case state.evaluationResult of
+                Failure error -> ajaxErrorPane error
+                _ -> empty
             ]
-          Failure error, _ -> [ ajaxErrorPane error ]
-          Loading, _ -> [ icon Spinner ]
-          _, _ ->
+          Nothing ->
             [ text "Click the "
             , strong_ [ text "Editor" ]
             , text " tab above and compile a contract to get started."
@@ -424,7 +493,11 @@ render state =
         case state.evaluationResult of
           Success evaluation ->
             [ evaluationPane evaluation ]
-          Failure error -> [ ajaxErrorPane error ]
+          Failure error ->
+            [ text "Your simulation has errors. Click the "
+            , strong_ [ text "Simulation" ]
+            , text " tab above to fix them and recompile."
+            ]
           Loading -> [ icon Spinner ]
           NotAsked ->
             [ text "Click the "
@@ -465,7 +538,7 @@ mainTabBar activeView =
   navTabs_ (mkTab <$> tabs)
   where
     tabs = [ Editor /\ "Editor"
-           , Simulation /\ "Simulation"
+           , Simulations /\ "Simulation"
            , Transactions /\ "Transactions"
            ]
 
