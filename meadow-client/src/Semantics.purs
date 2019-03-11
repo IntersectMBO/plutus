@@ -612,8 +612,7 @@ readContract x = case mr of
                                                   , unicode: true
                                                   })
 
--- Data type for Inputs with their information 
-
+-- Data type for Inputs with their information
 data Input
   = IChoice IdChoice Choice
   | IOracle IdOracle BlockNumber BigInt
@@ -654,21 +653,13 @@ data State
   = State {commits :: CommitInfo, choices :: M.Map WIdChoice Choice, oracles :: M.Map IdOracle OracleDataPoint, usedIds :: S.Set IdAction}
 
 -- Adds a commit identifier to the timeout data map
-addToCommByTim ::
-  Timeout ->
-  IdCommit ->
-  TimeoutData ->
-  TimeoutData
+addToCommByTim :: Timeout -> IdCommit -> TimeoutData -> TimeoutData
 addToCommByTim timeout idCommit timData = case M.lookup timeout timData of
   Just commSet -> M.insert timeout (S.insert idCommit commSet) timData
   Nothing -> M.insert timeout (S.singleton idCommit) timData
 
 -- Remove a commit identifier from the timeout data map
-removeFromCommByTim ::
-  Timeout ->
-  IdCommit ->
-  TimeoutData ->
-  TimeoutData
+removeFromCommByTim :: Timeout -> IdCommit -> TimeoutData -> TimeoutData
 removeFromCommByTim timeout idCommit timData = case M.lookup timeout timData of
   Just commSet -> let newCommSet = S.delete idCommit commSet
                   in if S.isEmpty newCommSet
@@ -677,13 +668,7 @@ removeFromCommByTim timeout idCommit timData = case M.lookup timeout timData of
   Nothing -> timData
 
 -- Add a commit to CommitInfo
-addCommit ::
-  IdCommit ->
-  Person ->
-  BigInt ->
-  Timeout ->
-  State ->
-  State
+addCommit :: IdCommit -> Person -> BigInt -> Timeout -> State -> State
 addCommit idCommit person value timeout (State state) = State (state { commits = CommitInfo (ci { currentCommitsById = M.insert idCommit ({ person
                                                                                                                                           , amount: value
                                                                                                                                           , timeout
@@ -692,10 +677,7 @@ addCommit idCommit person value timeout (State state) = State (state { commits =
   (CommitInfo ci) = state.commits
 
 -- Return the person corresponding to a commit
-personForCurrentCommit ::
-  IdCommit ->
-  State ->
-  Maybe Person
+personForCurrentCommit :: IdCommit -> State -> Maybe Person
 personForCurrentCommit idCommit (State state) = case M.lookup idCommit ci.currentCommitsById of
   Just v -> Just v.person
   Nothing -> Nothing
@@ -703,26 +685,17 @@ personForCurrentCommit idCommit (State state) = case M.lookup idCommit ci.curren
   (CommitInfo ci) = state.commits
 
 -- Check whether the commit is current (committed not expired)
-isCurrentCommit ::
-  IdCommit ->
-  State ->
-  Boolean
+isCurrentCommit :: IdCommit -> State -> Boolean
 isCurrentCommit idCommit (State { commits: (CommitInfo ci) }) = M.member idCommit ci.currentCommitsById
 
 -- Check whether the commit is expired
-isExpiredCommit ::
-  IdCommit ->
-  State ->
-  Boolean
+isExpiredCommit :: IdCommit -> State -> Boolean
 isExpiredCommit idCommit (State state) = idCommit `S.member` ci.expiredCommitIds
   where
   CommitInfo ci = state.commits
 
 -- Remove a current commit from CommitInfo
-removeCurrentCommit ::
-  IdCommit ->
-  State ->
-  State
+removeCurrentCommit :: IdCommit -> State -> State
 removeCurrentCommit idCommit (State state) = case M.lookup idCommit commById of
   Just v -> State (state { commits = CommitInfo (ci { currentCommitsById = M.delete idCommit commById
                                                     , timeoutData = removeFromCommByTim v.timeout idCommit timData
@@ -735,20 +708,14 @@ removeCurrentCommit idCommit (State state) = case M.lookup idCommit commById of
   timData = ci.timeoutData
 
 -- Get expired not collected for person
-getRedeemedForPersonCI ::
-  Person ->
-  CommitInfo ->
-  BigInt
+getRedeemedForPersonCI :: Person -> CommitInfo -> BigInt
 getRedeemedForPersonCI person (CommitInfo ci) = fromMaybe (fromInt 0) (M.lookup person ci.redeemedPerPerson)
 
 getRedeemedForPerson :: Person -> State -> BigInt
 getRedeemedForPerson person (State state) = getRedeemedForPersonCI person state.commits
 
 -- Set the amount in redeemedPerPerson to zero
-resetRedeemedForPerson ::
-  Person ->
-  State ->
-  State
+resetRedeemedForPerson :: Person -> State -> State
 resetRedeemedForPerson person (State state) = State (state { commits = CommitInfo (ci { redeemedPerPerson = M.delete person rppm }) })
   where
   (CommitInfo ci) = state.commits
@@ -773,9 +740,7 @@ getAvailableAmountInCommit idCommit (State state) = case M.lookup idCommit ci.cu
   CommitInfo ci = state.commits
 
 -- Collect inputs needed by a contract
-collectNeededInputsFromValue ::
-  Value ->
-  S.Set IdInput
+collectNeededInputsFromValue :: Value -> S.Set IdInput
 collectNeededInputsFromValue (CurrentBlock) = S.empty
 
 collectNeededInputsFromValue (Committed _) = S.empty
@@ -933,17 +898,11 @@ addAnyInput blockNumber (Input (IOracle idOracle timestamp value)) neededInputs 
   oracleMap = state.oracles
 
 -- Decides whether something has expired
-isExpired ::
-  BlockNumber ->
-  BlockNumber ->
-  Boolean
+isExpired :: BlockNumber -> BlockNumber -> Boolean
 isExpired currBlockNum expirationBlockNum = currBlockNum >= expirationBlockNum
 
 -- Expire commits
-expireOneCommit ::
-  IdCommit ->
-  CommitInfo ->
-  CommitInfo
+expireOneCommit :: IdCommit -> CommitInfo -> CommitInfo
 expireOneCommit idCommit (CommitInfo commitInfo) = CommitInfo case M.lookup idCommit currentCommits of
   Just { person, amount } -> let redeemedBefore = case M.lookup person redPerPer of
                                    Just x -> x
@@ -984,11 +943,7 @@ expireCommits blockNumber (State state) = State (state { commits = expireCommits
   commitInfo = state.commits
 
 -- Evaluate a value
-evalValue ::
-  BlockNumber ->
-  State ->
-  Value ->
-  BigInt
+evalValue :: BlockNumber -> State -> Value -> BigInt
 evalValue blockNumber _ CurrentBlock = blockNumber
 
 evalValue _ state (Committed idCommit) = getAvailableAmountInCommit idCommit state
@@ -1030,11 +985,7 @@ evalValue blockNumber (State state) (ValueFromOracle idOracle val) = case M.look
   Nothing -> evalValue blockNumber (State state) val
 
 -- Evaluate an observation
-evalObservation ::
-  BlockNumber ->
-  State ->
-  Observation ->
-  Boolean
+evalObservation :: BlockNumber -> State -> Observation -> Boolean
 evalObservation blockNumber _ (BelowTimeout timeout) = not (isExpired blockNumber timeout)
 
 evalObservation blockNumber state (AndObs obs1 obs2) = (go obs1) && (go obs2)
@@ -1118,10 +1069,7 @@ maxIdFromContract (Use letLabel) = letLabel
 
 -- Looks for an unused label in the Environment and Contract provided
 -- (assuming that labels are numbers)
-getFreshLabel ::
-  Environment ->
-  Contract ->
-  LetLabel
+getFreshLabel :: Environment -> Contract -> LetLabel
 getFreshLabel env c = (fromInt 1) + (max (case M.findMax env of
   Nothing -> fromInt 0
   Just v -> v.key) (maxIdFromContract c))
@@ -1132,10 +1080,7 @@ getFreshLabel env c = (fromInt 1) + (max (case M.findMax env of
 -- contracts are nullified before being added to Environment;
 -- Ensures all Use are defined in Environment, if they are not
 -- they are replaced with Null
-nullifyInvalidUses ::
-  Environment ->
-  Contract ->
-  Contract
+nullifyInvalidUses :: Environment -> Contract -> Contract
 nullifyInvalidUses _ Null = Null
 
 nullifyInvalidUses env (Commit idAction idCommit person value timeout1 timeout2 contract1 contract2) = Commit idAction idCommit person value timeout1 timeout2 (nullifyInvalidUses env contract1) (nullifyInvalidUses env contract2)
@@ -1162,11 +1107,7 @@ nullifyInvalidUses env (Use letLabel) = case lookupEnvironment letLabel env of
   Just _ -> Use letLabel
 
 -- Replaces a label with another one (unless it is shadowed)
-relabel ::
-  LetLabel ->
-  LetLabel ->
-  Contract ->
-  Contract
+relabel :: LetLabel -> LetLabel -> Contract -> Contract
 relabel _ _ Null = Null
 
 relabel startLabel endLabel (Commit idAction idCommit person value timeout1 timeout2 contract1 contract2) = Commit idAction idCommit person value timeout1 timeout2 (relabel startLabel endLabel contract1) (relabel startLabel endLabel contract2)
@@ -1192,12 +1133,7 @@ relabel startLabel endLabel (Use letLabel) = if (letLabel == startLabel)
   else Use letLabel
 
 -- Reduce non actionable primitives and remove expired
-reduceRec ::
-  BlockNumber ->
-  State ->
-  Environment ->
-  Contract ->
-  Contract
+reduceRec :: BlockNumber -> State -> Environment -> Contract -> Contract
 reduceRec _ _ _ Null = Null
 
 reduceRec blockNum state env c@(Commit _ _ _ _ timeout_start timeout_end _ continuation) = if (isExpired blockNum timeout_start) || (isExpired blockNum timeout_end)
@@ -1256,17 +1192,11 @@ reduceRec blockNum state env (Use label) = case lookupEnvironment label env of
 -- Optimisation: We do not need to restore environment of the binding because:
 --  * We ensure entries are not overwritten in Environment
 --  * We check that all entries of Environment had their Use defined when added
-reduce ::
-  BlockNumber ->
-  State ->
-  Contract ->
-  Contract
+reduce :: BlockNumber -> State -> Contract -> Contract
 reduce blockNum state contract = reduceRec blockNum state emptyEnvironment contract
 
 -- Reduce useless primitives to Null
-simplify_aux ::
-  Contract ->
-  {contract :: Contract, uses :: S.Set LetLabel}
+simplify_aux :: Contract -> {contract :: Contract, uses :: S.Set LetLabel}
 simplify_aux Null = { contract: Null
                     , uses: S.empty
                     }
@@ -1363,11 +1293,7 @@ isEmptyOutcome trOut = F.all (\x ->
   x == (fromInt 0)) trOut
 
 -- Adds a value to the map of outcomes
-addOutcome ::
-  Person ->
-  BigInt ->
-  TransactionOutcomes ->
-  TransactionOutcomes
+addOutcome :: Person -> BigInt -> TransactionOutcomes -> TransactionOutcomes
 addOutcome person diffValue trOut = M.insert person newValue trOut
   where
   newValue = case M.lookup person trOut of
@@ -1375,16 +1301,11 @@ addOutcome person diffValue trOut = M.insert person newValue trOut
     Nothing -> diffValue
 
 -- Get effect of outcomes on the bank of the contract
-outcomeEffect ::
-  TransactionOutcomes ->
-  BigInt
+outcomeEffect :: TransactionOutcomes -> BigInt
 outcomeEffect trOut = foldl (-) (fromInt 0) trOut
 
 -- Add two transaction outcomes together
-combineOutcomes ::
-  TransactionOutcomes ->
-  TransactionOutcomes ->
-  TransactionOutcomes
+combineOutcomes :: TransactionOutcomes -> TransactionOutcomes -> TransactionOutcomes
 combineOutcomes = M.unionWith (+)
 
 data FetchResult a
@@ -1401,22 +1322,13 @@ derive instance eqDetachedPrimitive :: Eq DetachedPrimitive
 derive instance ordDetachedPrimitive :: Ord DetachedPrimitive
 
 -- Semantics of Scale
-scaleValue ::
-  BigInt ->
-  BigInt ->
-  BigInt ->
-  BigInt ->
-  BigInt
-scaleValue divid divis def val = if (divis == fromInt 0)
+scaleValue :: BigInt -> BigInt -> BigInt -> BigInt -> BigInt
+scaleValue divid divis def val =
+  if (divis == fromInt 0)
   then def
   else ((val * divid) `div` divis)
 
-scaleResult ::
-  BigInt ->
-  BigInt ->
-  BigInt ->
-  DetachedPrimitive ->
-  DetachedPrimitive
+scaleResult :: BigInt -> BigInt -> BigInt -> DetachedPrimitive -> DetachedPrimitive
 scaleResult divid divis def (DCommit idCommit person val tim) = DCommit idCommit person (scaleValue divid divis def val) tim
 
 scaleResult divid divis def (DPay idCommit person val) = DPay idCommit person (scaleValue divid divis def val)
@@ -1424,12 +1336,8 @@ scaleResult divid divis def (DPay idCommit person val) = DPay idCommit person (s
 -- Find out whether the Action is allowed given the current state
 -- and contract, and, if so, pick the corresponding primitive in the contract.
 -- Also return the contract without the selected primitive.
-fetchPrimitive ::
-  IdAction ->
-  BlockNumber ->
-  State ->
-  Contract ->
-  FetchResult {prim :: DetachedPrimitive, contract :: Contract}
+fetchPrimitive :: IdAction -> BlockNumber -> State -> Contract ->
+                  FetchResult {prim :: DetachedPrimitive, contract :: Contract}
 --                                 Remaining contract --^
 fetchPrimitive idAction blockNum state (Commit idActionC idCommit person value _ timeout continuation _) = if (idAction == idActionC && notCurrentCommit && notExpiredCommit)
   then Picked { prim: (DCommit idCommit person actualValue timeout)
@@ -1504,39 +1412,35 @@ data EvaluationResult a
 
 -- This should not happen when using fetchPrimitive result
 -- Evaluation of actionable input
-eval ::
-  DetachedPrimitive ->
-  State ->
-  EvaluationResult {outcome :: TransactionOutcomes, state :: State}
-eval (DCommit idCommit person value timeout) state = if (isCurrentCommit idCommit state) || (isExpiredCommit idCommit state)
+eval :: DetachedPrimitive -> State -> EvaluationResult {outcome :: TransactionOutcomes, state :: State}
+eval (DCommit idCommit person value timeout) state =
+  if (isCurrentCommit idCommit state) || (isExpiredCommit idCommit state)
   then InconsistentState
   else Result { outcome: addOutcome person (-value) emptyOutcome
               , state: addCommit idCommit person value timeout state
               } NoProblem
 
-eval (DPay idCommit person value) state = if (not (isCurrentCommit idCommit state))
+eval (DPay idCommit person value) state =
+  if (not (isCurrentCommit idCommit state))
   then (if (not (isExpiredCommit idCommit state))
-    then Result { outcome: emptyOutcome, state } CommitNotMade
-    else Result { outcome: emptyOutcome, state } CommitIsExpired)
+        then Result { outcome: emptyOutcome, state } CommitNotMade
+        else Result { outcome: emptyOutcome, state } CommitIsExpired)
   else (if value > maxValue
-    then case discountAvailableMoneyFromCommit idCommit maxValue state of
-      Just newState -> Result { outcome: addOutcome person maxValue emptyOutcome
-                              , state: newState
-                              } NotEnoughMoneyLeftInCommit
-      Nothing -> InconsistentState
-    else case discountAvailableMoneyFromCommit idCommit value state of
-      Just newState -> Result { outcome: addOutcome person value emptyOutcome
-                              , state: newState
-                              } NoProblem
-      Nothing -> InconsistentState)
+        then case discountAvailableMoneyFromCommit idCommit maxValue state of
+               Just newState -> Result { outcome: addOutcome person maxValue emptyOutcome
+                                       , state: newState
+                                       } NotEnoughMoneyLeftInCommit
+               Nothing -> InconsistentState
+        else case discountAvailableMoneyFromCommit idCommit value state of
+               Just newState -> Result { outcome: addOutcome person value emptyOutcome
+                                       , state: newState
+                                       } NoProblem
+               Nothing -> InconsistentState)
   where
   maxValue = getAvailableAmountInCommit idCommit state
 
 -- Check whether the person who must sign has signed
-areActionPermissionsValid ::
-  DetachedPrimitive ->
-  S.Set Person ->
-  Boolean
+areActionPermissionsValid :: DetachedPrimitive -> S.Set Person -> Boolean
 areActionPermissionsValid (DCommit _ person _ _) sigs = person `S.member` sigs
 
 areActionPermissionsValid (DPay _ person _) sigs = person `S.member` sigs
@@ -1547,10 +1451,9 @@ areInputPermissionsValid (IChoice cid _) sigs = cid.person `S.member` sigs
 areInputPermissionsValid (IOracle _ _ _) _ = true
 
 -- Implementation ToDo: need to check signature
+
 -- Check whether a commit or payment has negative value
-isTransactionNegative ::
-  DetachedPrimitive ->
-  Boolean
+isTransactionNegative :: DetachedPrimitive -> Boolean
 isTransactionNegative (DCommit _ _ val _) = val < (fromInt 0)
 
 isTransactionNegative (DPay _ _ val) = val < (fromInt 0)
@@ -1572,17 +1475,12 @@ data ApplicationResult a
 
 -- High level wrapper that calls the appropriate update function on contract and state.
 -- Does not take care of reducing, that must be done before and after applyAnyInput.
-applyAnyInput ::
-  AnyInput ->
-  S.Set Person ->
-  S.Set IdInput ->
-  BlockNumber ->
-  State ->
-  Contract ->
-  ApplicationResult {outcome :: TransactionOutcomes, state :: State, contract :: Contract}
+applyAnyInput :: AnyInput -> S.Set Person -> S.Set IdInput -> BlockNumber -> State -> Contract ->
+                 ApplicationResult {outcome :: TransactionOutcomes, state :: State, contract :: Contract}
 applyAnyInput anyInput sigs neededInputs blockNum state contract = case addAnyInput blockNum anyInput neededInputs state of
   Just updatedState -> case anyInput of
-    Input input -> if areInputPermissionsValid input sigs
+    Input input ->
+      if areInputPermissionsValid input sigs
       then SuccessfullyApplied { outcome: emptyOutcome
                                , state: updatedState
                                , contract
@@ -1590,25 +1488,23 @@ applyAnyInput anyInput sigs neededInputs blockNum state contract = case addAnyIn
       else CouldNotApply NoValidSignature
     Action idAction -> case fetchPrimitive idAction blockNum updatedState contract of
       Picked v -> case eval v.prim updatedState of
-        Result v2 dynamicProblem -> if isTransactionNegative v.prim
+        Result v2 dynamicProblem ->
+	  if isTransactionNegative v.prim
           then CouldNotApply NegativeTransaction
           else if areActionPermissionsValid v.prim sigs
-            then SuccessfullyApplied { outcome: v2.outcome
-                                     , state: v2.state
-                                     , contract: v.contract
-                                     } dynamicProblem
-            else CouldNotApply NoValidSignature
+               then SuccessfullyApplied { outcome: v2.outcome
+                                        , state: v2.state
+                                        , contract: v.contract
+                                        } dynamicProblem
+               else CouldNotApply NoValidSignature
         InconsistentState -> CouldNotApply InternalError
       NoMatch -> CouldNotApply InvalidInput
       MultipleMatches -> CouldNotApply AmbiguousId
   Nothing -> CouldNotApply InvalidInput
 
 -- Give redeemed money to owners
-redeemMoneyLoop ::
-  List Person ->
-  TransactionOutcomes ->
-  State ->
-  {outcome :: TransactionOutcomes, state :: State}
+redeemMoneyLoop :: List Person -> TransactionOutcomes -> State ->
+                   {outcome :: TransactionOutcomes, state :: State}
 redeemMoneyLoop Nil trOut state = { outcome: trOut, state }
 
 redeemMoneyLoop (Cons h t) trOut state = redeemMoneyLoop t (addOutcome h redeemed trOut) newState
@@ -1616,10 +1512,7 @@ redeemMoneyLoop (Cons h t) trOut state = redeemMoneyLoop t (addOutcome h redeeme
   redeemed = getRedeemedForPerson h state
   newState = resetRedeemedForPerson h state
 
-redeemMoney ::
-  S.Set Person ->
-  State ->
-  {outcome :: TransactionOutcomes, state :: State}
+redeemMoney :: S.Set Person -> State -> {outcome :: TransactionOutcomes, state :: State}
 redeemMoney sigs state = redeemMoneyLoop (S.toUnfoldable sigs) emptyOutcome state
 
 data MApplicationResult a
@@ -1629,54 +1522,50 @@ data MApplicationResult a
 -- Fold applyAnyInput through a list of AnyInputs.
 -- Check that balance is positive at every step
 -- In the last step: simplify
-applyAnyInputs ::
-  List AnyInput ->
-  S.Set Person ->
-  S.Set IdInput ->
-  BlockNumber ->
-  State ->
-  Contract ->
-  BigInt ->
-  TransactionOutcomes ->
-  List DynamicProblem ->
-  MApplicationResult {funds :: BigInt, outcome :: TransactionOutcomes, state :: State, contract :: Contract}
-applyAnyInputs Nil sigs _ _ state contract value trOut dynProbList = let v = redeemMoney sigs state
-                                                                         newValue = value + outcomeEffect v.outcome
-                                                                     in if newValue < fromInt 0
-                                                                       then MCouldNotApply InternalError
-                                                                       else let newTrOut = combineOutcomes v.outcome trOut
-                                                                                simplifiedContract = simplify contract
-                                                                            in MSuccessfullyApplied { funds: newValue
-                                                                                                    , outcome: newTrOut
-                                                                                                    , state: v.state
-                                                                                                    , contract: simplifiedContract
-                                                                                                    } dynProbList
+applyAnyInputs :: List AnyInput -> S.Set Person -> S.Set IdInput -> BlockNumber -> State ->
+                  Contract -> BigInt -> TransactionOutcomes -> List DynamicProblem ->
+                  MApplicationResult {funds :: BigInt
+				     , outcome :: TransactionOutcomes
+	                             , state :: State, contract :: Contract}
+applyAnyInputs Nil sigs _ _ state contract value trOut dynProbList =
+  let v = redeemMoney sigs state
+      newValue = value + outcomeEffect v.outcome
+  in if newValue < fromInt 0
+     then MCouldNotApply InternalError
+     else let newTrOut = combineOutcomes v.outcome trOut
+              simplifiedContract = simplify contract
+          in MSuccessfullyApplied { funds: newValue
+                                  , outcome: newTrOut
+                                  , state: v.state
+                                  , contract: simplifiedContract
+                                  } dynProbList
 
-applyAnyInputs (Cons h t) sigs neededInputs blockNum state contract value trOut dynProbList = case applyAnyInput h sigs neededInputs blockNum state contract of
-  SuccessfullyApplied v newDynProb -> let newValue = value + outcomeEffect v.outcome
-                                      in if newValue < fromInt 0
-                                        then MCouldNotApply InternalError
-                                        else let newTrOut = combineOutcomes v.outcome trOut
-                                                 reducedNewContract = reduce blockNum v.state v.contract
-                                             in applyAnyInputs t sigs neededInputs blockNum v.state reducedNewContract newValue newTrOut (concat (Cons dynProbList (Cons (Cons newDynProb Nil) Nil)))
-  CouldNotApply currError -> MCouldNotApply currError
+applyAnyInputs (Cons h t) sigs neededInputs blockNum state contract value trOut dynProbList =
+  case applyAnyInput h sigs neededInputs blockNum state contract of
+    SuccessfullyApplied v newDynProb -> let newValue = value + outcomeEffect v.outcome
+                                        in if newValue < fromInt 0
+                                           then MCouldNotApply InternalError
+                                           else let newTrOut = combineOutcomes v.outcome trOut
+                                                    reducedNewContract = reduce blockNum v.state v.contract
+                                                in applyAnyInputs t sigs neededInputs blockNum v.state reducedNewContract
+                                                                  newValue newTrOut (concat (Cons dynProbList (Cons (Cons newDynProb Nil) Nil)))
+    CouldNotApply currError -> MCouldNotApply currError
 
 -- Expire commits and apply applyAnyInputs
-applyTransaction ::
-  List AnyInput ->
-  S.Set Person ->
-  BlockNumber ->
-  State ->
-  Contract ->
-  BigInt ->
-  MApplicationResult {funds :: BigInt, outcome :: TransactionOutcomes, state :: State, contract :: Contract}
-applyTransaction inputs sigs blockNum state contract value = case appResult of
-  MSuccessfullyApplied v _ -> if (inputs == Nil) && (reducedContract == contract) && (isEmptyOutcome v.outcome)
-    then MCouldNotApply InvalidInput
-    else appResult
-  _ -> appResult
+applyTransaction :: List AnyInput -> S.Set Person -> BlockNumber -> State -> Contract -> BigInt ->
+                    MApplicationResult {funds :: BigInt
+				       , outcome :: TransactionOutcomes
+	                               , state :: State, contract :: Contract}
+applyTransaction inputs sigs blockNum state contract value =
+  case appResult of
+    MSuccessfullyApplied v _ ->
+            if (inputs == Nil) && (reducedContract == contract) && (isEmptyOutcome v.outcome)
+            then MCouldNotApply InvalidInput
+            else appResult
+    _ -> appResult
   where
   neededInputs = collectNeededInputsFromContract contract
   expiredState = expireCommits blockNum state
   reducedContract = reduce blockNum expiredState contract
   appResult = applyAnyInputs inputs sigs neededInputs blockNum expiredState reducedContract value emptyOutcome Nil
+
