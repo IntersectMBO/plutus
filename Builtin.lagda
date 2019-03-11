@@ -26,9 +26,7 @@ data Builtin : Set where
   verifySignature  : Builtin
   resizeByteString : Builtin
   equalsByteString : Builtin
-  txh              : Builtin
-  blocknum         : Builtin
 
 {-# FOREIGN GHC import Language.PlutusCore.Lexer.Type #-}
-{-# COMPILE GHC Builtin = data BuiltinName (AddInteger | SubtractInteger | MultiplyInteger | DivideInteger | QuotientInteger | RemainderInteger | ModInteger | LessThanInteger | LessThanEqInteger | GreaterThanInteger | GreaterThanEqInteger | EqInteger | ResizeInteger | SizeOfInteger | IntToByteString | Concatenate | TakeByteString | DropByteString | SHA2 | SHA3 | VerifySignature | ResizeByteString | EqByteString | TxHash | BlockNum) #-}
+{-# COMPILE GHC Builtin = data BuiltinName (AddInteger | SubtractInteger | MultiplyInteger | DivideInteger | QuotientInteger | RemainderInteger | ModInteger | LessThanInteger | LessThanEqInteger | GreaterThanInteger | GreaterThanEqInteger | EqInteger | ResizeInteger | SizeOfInteger | IntToByteString | Concatenate | TakeByteString | DropByteString | SHA2 | SHA3 | VerifySignature | ResizeByteString | EqByteString) #-}
 \end{code}

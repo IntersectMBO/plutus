@@ -296,19 +296,6 @@ BUILTIN
   with equals b b'
 ... | Bool.true  = just true
 ... | Bool.false = just false
-BUILTIN txh σ tt with boundedB? 32 txhash
-... | yes p = just (con (bytestring 32 txhash p))
-... | no  _ = nothing
--- ^ should this be impossible?
-BUILTIN blocknum σ vtel with σ Z
-BUILTIN
-  blocknum
-  σ
-  (_ ,, V-con (size s) ,, tt)
-  | size⋆ s
-  with boundedN? s bnum
-... | yes p = just (con (integer s bnum (bN2I s bnum p)))
-... | no  _ = nothing
 \end{code}
 
 # recontructing the telescope after a reduction step

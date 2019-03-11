@@ -10,11 +10,19 @@ open import Data.Product
 \end{code}
 
 \begin{code}
-data Value : ∀{n} → ScopedTm n → Set where
+infix 2 _—→_
+\end{code}
+
+\begin{code}
+data Value {n} : ScopedTm n → Set where
+  V-ƛ : (A : ScopedTy ∥ n ∥)(t : ScopedTm (S n)) → Value (ƛ A t)
+--  V-con : (tcn : TermCon) → Value (con {n} tcn)
 data Error : ∀{n} → ScopedTm n → Set where
 
 data _—→_ {n} : ScopedTm n → ScopedTm n → Set where
-  
+  ξ-· : {L L' M : ScopedTm n} → L —→ L' → L · M —→ L' · M
+  E-· : {L M : ScopedTm n} → Error L → L · M —→ error {!!}
+
 \end{code}
 
 \begin{code}
@@ -30,7 +38,10 @@ progress (` ())
 progress (Λ K t) = {!!}
 progress (t ·⋆ A) = {!!}
 progress (ƛ A t) = {!!}
-progress (t · u) = {!!}
+progress (t · u) with progress t
+progress (.(ƛ A t) · u) | inl (inl (V-ƛ A t)) = {!!}
+progress (t · u) | inl (inr p) = inr ((error {!!}) , {!!})
+progress (t · u) | inr y = {!!}
 progress (con x) = {!!}
 progress (error x) = {!!}
 progress (builtin x) = {!!}

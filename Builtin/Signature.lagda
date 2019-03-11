@@ -166,11 +166,4 @@ SIG equalsByteString =
   con bytestring (` Z) ∷ con bytestring (` Z) ∷ []
   ,,
   boolean
-SIG txh = ∅ ,, [] ,, con bytestring (size⋆ 32)
-SIG blocknum =
-  ∅ ,⋆ #
-  ,,
-  con size (` Z) ∷ []
-  ,,
-  con integer (` Z)
 \end{code}
