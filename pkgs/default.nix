@@ -40904,7 +40904,6 @@ license = stdenv.lib.licenses.bsd3;
 , filepath
 , hashable
 , http-types
-, marlowe
 , monad-logger
 , mtl
 , newtype-generics
@@ -40938,7 +40937,6 @@ file-embed
 filepath
 hashable
 http-types
-marlowe
 monad-logger
 mtl
 newtype-generics

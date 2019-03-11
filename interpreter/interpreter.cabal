@@ -30,7 +30,6 @@ library
         filepath -any,
         hashable -any,
         http-types -any,
-        marlowe -any,
         monad-logger -any,
         mtl -any,
         newtype-generics -any,
