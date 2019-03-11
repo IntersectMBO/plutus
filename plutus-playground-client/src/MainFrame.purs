@@ -21,21 +21,16 @@ import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State (class MonadState)
 import Control.Monad.Trans.Class (lift)
-import Data.Argonaut.Core (Json)
-import Data.Argonaut.Core as Json
 import Data.Array (catMaybes, (..))
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Generic (gEq)
-import Data.Int as Int
-import Data.Lens (_2, _Just, _Right, assign, maximumOf, modifying, over, preview, set, traversed, use, view)
+import Data.Lens (_1, _2, _Just, _Right, assign, maximumOf, modifying, over, preview, set, traversed, use, view)
 import Data.Lens.Index (ix)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Newtype (unwrap)
-import Data.RawJson (RawJson(..))
-import Data.StrMap as M
 import Data.String as String
+import Data.Traversable (traverse)
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
 import ECharts.Monad (interpret)
@@ -59,8 +54,7 @@ import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
-import Playground.API (Evaluation(Evaluation), EvaluationResult(EvaluationResult), SimulatorWallet(..), SourceCode(SourceCode), _CompilationResult, _FunctionSchema)
-import Playground.API as API
+import Playground.API (Evaluation(Evaluation), EvaluationResult(EvaluationResult), SimulatorWallet(SimulatorWallet), SourceCode(SourceCode), _CompilationResult, _FunctionSchema)
 import Playground.Server (SPParams_, getOauthStatus, patchGistsByGistId, postContract, postEvaluate, postGists)
 import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, show, unit, unless, void, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
 import Servant.PureScript.Settings (SPSettings_)
@@ -303,16 +297,38 @@ evalActionEvent (SetWaitTime index time) = set (ix index <<< _Wait <<< _blocks) 
 
 evalForm :: forall a. FormEvent a -> SimpleArgument -> SimpleArgument
 evalForm (SetIntField n next) (SimpleInt _) = SimpleInt n
+evalForm (SetIntField _ _) arg = arg
+
 evalForm (SetStringField s next) (SimpleString _) = SimpleString (Just s)
-evalForm (SetSubField n subEvent) old@(SimpleObject fields) =
-  case Array.index fields n of
-    Nothing -> old
-    Just (name /\ oldArg) ->
-      let newArg = evalForm subEvent oldArg
-      in case Array.updateAt n (name /\ newArg) fields of
-           Nothing -> old
-           Just newFields -> SimpleObject newFields
-evalForm other arg = arg
+evalForm (SetStringField _ _) arg = arg
+
+evalForm (SetSubField 1 subEvent) (SimpleTuple fields) = SimpleTuple $ over _1 (evalForm subEvent) fields
+evalForm (SetSubField 2 subEvent) (SimpleTuple fields) = SimpleTuple $ over _2 (evalForm subEvent) fields
+evalForm (SetSubField _ subEvent) arg@(SimpleTuple fields) = arg
+evalForm (SetSubField _ subEvent) arg@(SimpleString fields) = arg
+evalForm (SetSubField _ subEvent) arg@(SimpleInt fields) = arg
+
+evalForm (AddSubField _) (SimpleArray schema fields) =
+  -- As the code stands, this is the only guarantee we get that every
+  -- value in the array will conform to the schema: the fact that we
+  -- create the 'empty' version from the same schema template.
+  --
+  -- Is more type safety than that possible? Probably.
+  -- Is it worth the research effort? Perhaps. :thinking_face:
+  SimpleArray schema $ Array.snoc fields (toValue schema)
+evalForm (AddSubField _) arg = arg
+
+evalForm (SetSubField n subEvent) (SimpleArray schema fields) =
+  SimpleArray schema $ over (ix n) (evalForm subEvent) fields
+
+evalForm (SetSubField n subEvent) s@(SimpleObject schema fields) =
+  SimpleObject schema $ over (ix n <<< _2) (evalForm subEvent) fields
+evalForm (SetSubField n subEvent) arg@(Unknowable _) = arg
+
+evalForm (RemoveSubField n subEvent) arg@(SimpleArray schema fields ) =
+  (SimpleArray schema (fromMaybe fields (Array.deleteAt n fields)))
+evalForm (RemoveSubField n subEvent) arg =
+  arg
 
 replaceViewOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> View -> View -> m Unit
 replaceViewOnSuccess result source target = do
@@ -324,31 +340,14 @@ currentEvaluation :: forall m. MonadState State m => SourceCode -> m (Maybe Eval
 currentEvaluation sourceCode = do
   wallets <- use _wallets
   simulation <- use _simulation
-  pure $ case simulation of
-    Nothing -> Nothing
-    Just {actions} -> do
-      Just $ Evaluation { wallets
-                        , program: toExpression <$> actions
-                        , sourceCode
-                        , blockchain: []
-                        }
-
-toExpression :: Action -> API.Expression
-toExpression (Wait wait) = API.Wait wait
-toExpression (Action action) = API.Action
-  { wallet: view _simulatorWalletWallet action.simulatorWallet
-  , function: functionSchema.functionName
-  , arguments: jsonArguments
-  }
-  where
-    functionSchema = unwrap $ action.functionSchema
-    jsonArguments = RawJson <<< Json.stringify <<< toJson <$> functionSchema.argumentSchema
-    toJson :: SimpleArgument -> Json
-    toJson (SimpleInt (Just str)) = Json.fromNumber $ Int.toNumber str
-    toJson (SimpleString (Just str)) = Json.fromString str
-    toJson (SimpleObject fields) =
-      Json.fromObject $ M.fromFoldable $ over (traversed <<< _2) toJson fields
-    toJson _ = Json.fromNull Json.jNull -- TODO
+  pure $ do
+    {actions} <- simulation
+    program <- traverse toExpression actions
+    pure $ Evaluation { wallets
+                      , program
+                      , sourceCode
+                      , blockchain: []
+                      }
 
 updateChartsIfPossible :: forall m i o. HalogenM State i ChildQuery ChildSlot o m Unit
 updateChartsIfPossible = do

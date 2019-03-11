@@ -11,6 +11,7 @@ data Icon
   | Bitcoin
   | Github
   | Plus
+  | Trash
   | Spinner
 
 icon :: forall p i. Icon -> HTML p i
@@ -26,4 +27,5 @@ iconClass Check = ClassName "fa-check"
 iconClass Bitcoin = ClassName "fa-bitcoin"
 iconClass Github = ClassName "fa-github"
 iconClass Plus = ClassName "fa-plus"
+iconClass Trash = ClassName "fa-trash"
 iconClass Spinner = ClassName "fa-spinner fa-pulse"

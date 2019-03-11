@@ -8,9 +8,9 @@
 
 ## Current State
 
-We have implemented a blockchain emulator (mockchain) as a Haskell library. An important feature of the mockchain is that it faithfully emulates the behaviour of Plutus smart contracts in a UTXO-style ledger, by storing, deserialising and running Plutus scripts the same way they will be run when Plutus is integrated with the Cardano blockchain. 
+We have implemented a blockchain emulator (mockchain) as a Haskell library. An important feature of the mockchain is that it faithfully emulates the behaviour of Plutus smart contracts in a UTXO-style ledger, by storing, deserialising and running Plutus scripts the same way they will be run when Plutus is integrated with the Cardano blockchain.
 
-The mockchain is implemented in the [Wallet.Emulator.Types](../../wallet-api/src/Wallet/Emulator/Types.hs) module. The data types are defined in [Ledger.Types](../../wallet-api/src/Ledger/Types.hs) and the transaction validation rules are implemented in [Ledger.Index](../../wallet-api/src/Ledger/Index.hs). 
+The mockchain is implemented in the [Wallet.Emulator.Types](../../wallet-api/src/Wallet/Emulator/Types.hs) module. The data types are defined in [Ledger.Types](../../wallet-api/src/Ledger/Types.hs) and the transaction validation rules are implemented in [Ledger.Index](../../wallet-api/src/Ledger/Index.hs).
 
 The mockchain extends the model described in [1] in two ways, by adding data scripts to pay-to-script outputs, and by adding a validity range to transactions. We provide a brief summary here. More details can be found in [this document](../extended-utxo/README.md).
 
@@ -30,7 +30,7 @@ data Tx = Tx {
 
 Note the `txValidRange` field. This field contains an interval of slot numbers during which the transaction may be validated. The value of a transaction's `txValidRange` is passed to any validator scripts that are run during validation of that transaction's inputs, in order to make Plutus scripts deterministic. See [here](https://github.com/input-output-hk/fm-ledger-rules/issues/139) for the planned work to integrate this into the formal ledger rules for the Shelley release. The `SlotRange` type is defined in [`Ledger.Interval`](../../wallet-api/src/Ledger/Interval.hs).
 
-The `Value` and `Ada` types represent currency in the mockchain. `Ada` is the designated currency in which fees are paid, and `Value` a map of currency identifiers to quantities, following Def. 1 in [2]. 
+The `Value` and `Ada` types represent currency in the mockchain. `Ada` is the designated currency in which fees are paid, and `Value` a map of currency identifiers to quantities, following Def. 1 in [2].
 
 ### Scripts
 
@@ -44,14 +44,14 @@ The function `s` [1, Def. 13], providing information about the current state of 
 
 ```haskell
 
-data TxOut = 
+data TxOut =
   PayToPubKey PubKey Value
   | PayToScript ScriptHash DataScript Value
 
 data TxOutRef = TxOutRef { txOutRefId :: TxHash, txOutRefIndex :: Int }
 
 data TxIn =
-  ConsumeScriptAddress TxOutRef ValidatorScript RedeemerScript 
+  ConsumeScriptAddress TxOutRef ValidatorScript RedeemerScript
   | ConsumePublicKeyAddress TxOutRef Signature
 
 ```
@@ -71,11 +71,11 @@ For details of the implementation of the ledger rules please refer to `validateT
 
 ## Problem
 
-The `Value` type used in transactions has been introduced in preparation for the multi-currency ledger. This is only one half of adding multi-currency support at the ledger level because we still need a way to actually generate (forge) values of new currencies. 
+The `Value` type used in transactions has been introduced in preparation for the multi-currency ledger. This is only one half of adding multi-currency support at the ledger level because we still need a way to actually generate (forge) values of new currencies.
 
-To enable the forging of currency value, the paper [2] envisages a new type of transaction called `CurrencyTx` (see [2, Def. 2]). `CurrencyTx` creates a new *known currency*, by registering the currency's name as a unique (across the ledger) string, and associating it with a `Script` representing the monetary policy for that currency. 
+To enable the forging of currency value, the paper [2] envisages a new type of transaction called `CurrencyTx` (see [2, Def. 2]). `CurrencyTx` creates a new *known currency*, by registering the currency's name as a unique (across the ledger) string, and associating it with a `Script` representing the monetary policy for that currency.
 
-Adding the `CurrencyTx` type results in additional work for core nodes: They need to keep track of the name and monetary policy of every currency that has ever been created. So `CurrencyTx` adds a new kind of ledger-wide, global state (in addition to the UTXO set), in form of the registry of currencies and their policies. Unlike the UTXO set this new global state can only ever grow larger, because there is no way to destroy a currency. While at the moment neither the cost model of regular UTXO-with-script transactions nor that of `CurrencyTx` transactions has been developed, it seems likely that the cost of a `CurrencyTx` is going to be higher than the effect an added `PayToScript` output has on the cost of a regular transaction. 
+Adding the `CurrencyTx` type results in additional work for core nodes: They need to keep track of the name and monetary policy of every currency that has ever been created. So `CurrencyTx` adds a new kind of ledger-wide, global state (in addition to the UTXO set), in form of the registry of currencies and their policies. Unlike the UTXO set this new global state can only ever grow larger, because there is no way to destroy a currency. While at the moment neither the cost model of regular UTXO-with-script transactions nor that of `CurrencyTx` transactions has been developed, it seems likely that the cost of a `CurrencyTx` is going to be higher than the effect an added `PayToScript` output has on the cost of a regular transaction.
 
 This makes multi-currency based on the `CurrencyTx` proposal potentially unsuitable for applications that require lightweight currencies, in particular the implementation of [Non-Fungible Tokens](https://eips.ethereum.org/EIPS/eip-721) (NFTs).
 
@@ -94,7 +94,7 @@ With this proposal a custom currency is no different from any other smart contra
 
 We can write monetary policy as a state machine that keeps track of the current supply and forges more value when necessary.
 
-By allowing values in the `txForge` field to be negative, we can reduce the supply of a currency. 
+By allowing values in the `txForge` field to be negative, we can reduce the supply of a currency.
 
 ## Example (creating a currency)
 
@@ -110,13 +110,13 @@ An important example that motivated the search for an alternative to the `Curren
 Here is an example of a validator script that implements a non-fungible token using our proposal.
 
 ```haskell
-data NFT = NFT { nftName :: String, nftBootstrapTxOut :: TxOutput } 
+data NFT = NFT { nftName :: String, nftBootstrapTxOut :: TxOutput }
 
 -- the validator script (in reality this would be a quoted TH expression)
- nftValidator :: NFT -> Data -> Redeemer -> PendingTx -> () 
- nftValidator (NFT nm txout) _ _ ptx = 
-  let con1 = ptx `spends` txout 
-      con2 = ptx `forges` 1 (ownAdress ptx) 
+ nftValidator :: NFT -> Data -> Redeemer -> PendingTx -> ()
+ nftValidator (NFT nm txout) _ _ ptx =
+  let con1 = ptx `spends` txout
+      con2 = ptx `forges` 1 (ownAdress ptx)
   in if con1 && con2 then () else error
 ```
 
@@ -132,9 +132,9 @@ Note that creating an NFT with this contract requires three transactions: One fo
 
 ## Example (Currency with monetary policy)
 
-The following contract implements a monetary policy of a currency `c` that can be forged repeatedly, up to a predefined maximum amount. 
+The following contract implements a monetary policy of a currency `c` that can be forged repeatedly, up to a predefined maximum amount.
 
-We use the data script to keep track of how much `c` has been issued so far. However, when authorising the forging of new `c` (that is, when running the validator script whose hash is `c`) we cannot verify that the data script we received contains the correct amount of `c` in circulation, because anyone can produce a pay-to-script transaction output locked by `c` and with an arbitrary data script. To prevent this kind of unauthorised forging of `c` we use a *mirror currency*, `c*`. This mirror currency represents the potential amount of `c` that can still be forged. Whenever we increase the supply of `c`, we destroy the same amount of `c*` and vice versa. The total circulation of `c` plus the total supply of `c*` equals the maximum supply of `c` at all times. To legitimise the forging of `c` we require the forger to present the entire amount of `c*` that exists. 
+We use the data script to keep track of how much `c` has been issued so far. However, when authorising the forging of new `c` (that is, when running the validator script whose hash is `c`) we cannot verify that the data script we received contains the correct amount of `c` in circulation, because anyone can produce a pay-to-script transaction output locked by `c` and with an arbitrary data script. To prevent this kind of unauthorised forging of `c` we use a *mirror currency*, `c*`. This mirror currency represents the potential amount of `c` that can still be forged. Whenever we increase the supply of `c`, we destroy the same amount of `c*` and vice versa. The total circulation of `c` plus the total supply of `c*` equals the maximum supply of `c` at all times. To legitimise the forging of `c` we require the forger to present the entire amount of `c*` that exists.
 
 We can think of `c` as paper notes and `c*` as a gold bar that we keep in our vault. Every unit of `c` is a claim to some of our gold bar. We can trade this claim away but we always keep the gold (although now the amount of gold that is available is smaller).
 
@@ -154,10 +154,10 @@ newtype Currency = Currency {
   }
 
 -- | Current state of the state machine
-newtype CurState = 
+newtype CurState =
   InitialState
   -- ^ Initial state, the mirror currency has not been forged
-  | Circulating { 
+  | Circulating {
       csCurrentSupply :: Int,
       -- ^ How much of c has been issued
       csMirrorAddr :: ByteString,
@@ -167,7 +167,7 @@ newtype CurState =
       }
 
 -- | State machine input
-data CurAction = 
+data CurAction =
   Initialise { caMirror :: ByteString, caActual :: ByteString }
   | CurForge { cfForge :: Int }
 
@@ -189,8 +189,8 @@ currencyScript :: Currency -> ValidatorScript
 currencyScript cur = ValidatorScript val where
   val = Ledger.applyScript inner (Ledger.lifted cur)
   inner = $$(Ledger.compileScript [|| \(Currency maxCirc role txout) ->
-    let 
-    
+    let
+
       -- Check whether a transaction (PendingTx) that changes the supply of c
       -- and c* preserves the invariant of "supply(c) + supply(c*) = maxSupply",
       -- and produces the entire amount of c* that is left.
@@ -207,8 +207,8 @@ currencyScript cur = ValidatorScript val where
              -- ptx produces the entire remaining amount of c*
           && ptx `outputs` (maxCirc - newCirc) mirrorAdr
 
-      -- A state machine for the mirror currency, c*. 
-      -- In the initial state we verify the transaction forges an amount of 
+      -- A state machine for the mirror currency, c*.
+      -- In the initial state we verify the transaction forges an amount of
       -- c* equal to `maxCirc`, and 0 of c. We also check that the script addresses
       -- from the `Initialise` argument match those of the pending transaction.
       -- In all other states we check that the action preserves the currency invariant.
@@ -228,8 +228,8 @@ currencyScript cur = ValidatorScript val where
         then Circulating newCirc actualCur
         else $$(P.error)
 
-      -- A state machine for the actual currency, c. 
-      -- In the initial state we verify the transaction forges an amount of 
+      -- A state machine for the actual currency, c.
+      -- In the initial state we verify the transaction forges an amount of
       -- c* equal to `maxCirc`, and 0 of c. We also check that the script addresses
       -- from the `Initialise` argument match those of the pending transaction.
       -- In all other states we check that the action preserves the currency
@@ -273,7 +273,98 @@ The reason why the data and redeemer scripts used in steps 2-5 are of the form `
 
 Suppose we wanted define a currency with a variable maximum supply, for example bound to interest rate. We can use the same pattern (mirror currency), we just need to change the `mirrorStateMachine` function to allow transactions that forge the mirror currency without destroying the same amount of the actual currency at the same time.
 
-## References
+# Native NFT support
+
+Ethereum has support for so-called "non-fungible tokens" (NFTs). These have been
+wildly popular, as they are useful for representing items with distinct
+identities.
+
+We would also like to support these. We might be able to encode them using the
+multi-currency support described above, but we could also implement support for
+them directly. This proposal is compatible with either the multi-currency
+proposal above or the one in [2].
+
+## Generalizing Value
+
+This proposal suggests a change to the `Value` type used above and in [2], which
+supports both fungible and non-fungible tokens, with no need to change any of
+the other ledger rules.
+
+The new definition of `Value` is:
+
+```
+type Value = Map CurrencyId (Map Token Quantity)
+```
+
+where:
+- `CurrencyId` is the type we are using to identify currencies, either `String`
+  in [2] or `ScriptHash` above.
+- `Token` is an identifier for an individual token, probably a hash.
+- `Quantity` is a type used to measure the amount of a token that is present.
+  [2] and above use `Int`, but the ledger rules only require that it be a
+  monoid with equality.
+
+The ledger rules talk about *comparing* and *summing* values, so we must define
+those operations for our `Value` type. In this case they are simply defined pointwise.
+
+## Ledger rules
+
+The ledger rules remain the same. In particular:
+
+- The **(balanced)** rule now states that the quantity of each token on each
+  side must be equal.
+- If we are adopting the earlier proposal, the **(forging2)** rule does not need to change since
+  it only talks about the keys of the value, which are still `CurrencyId`s.
+
+Of course, the implementation of the ledger rules will change, because we have
+changed what `Value`s are and what addition of `Value`s means, but at a logical
+level they are unchanged.
+
+## Implications
+
+This model allows us to implement fungible (normal) and non-fungible token currencies, as well as
+"mixed states":
+- Fungible token currencies are implemented by only ever issuing
+  `Quantity`s of a single `Token`.
+- Non-fungible token currencies are implemented by only ever issuing unit
+  `Quantity`s of many unique `Token`s.
+    - Note that there is nothing in this proposal which enforces uniqueness:
+      having multiples of a single `Token` merely means that those can be used
+      fungibly. If a currency wants to make sure it only issues unique tokens it
+      must track this itself.
+- "Mixed" token currencies can have many `Token`s, but these can have more than
+  unit `Quantity` in circulation.
+    - These can be useful to model distinct categories of thing where there are
+      fungible quantities within those, e.g. share classes.
+
+## Performance
+
+Care must be taken to ensure that we don't make transactions which only use Ada
+significantly less efficient. This could be accomplished by adding specialized
+cases to `Value`, e.g.:
+```
+data Value = SingleTokenQuantity CurrencyId Token Quantity
+           | Map CurrencyId (Map Token Quantity)
+```
+
+Thus in the normal case we would only add:
+- a case discrimination (needed to special-case any multi-currency value type)
+- a check that the currency id matches (needed in any multi-currency proposal)
+- a check that the token id matches (a new cost)
+
+This seems like an acceptable overhead.
+
+A more significant cost may be that we can no longer use `{-# UNPACK #-}` when
+our `Value` type stops being a simple combination of wrappers and products
+around primitives, but this is again an issue with any multi-currency proposal.
+
+## Further generalizations
+
+Nothing here requires that `Quantity` be anything more than an arbitrary monoid.
+However, we gain something if we require it to be a group: inverses. That means
+that we can destroy tokens, which may well be desirable.
+
+# References
 
 [1] "An Abstract Model of UTxO-based Cryptocurrencies with Scripts"
 [2] "Multi-Currency Ledger"
