@@ -139,8 +139,23 @@ cpMarloweEditor ::
 cpMarloweEditor = cpR
 
 -----------------------------------------------------------
-type State
+
+data View
+ = Editor
+ | Simulation
+
+derive instance eqView :: Eq View
+
+derive instance genericView :: Generic View
+
+instance showView :: Show View where
+    show = gShow
+
+type FrontendState
   = {view :: View, runResult :: RemoteData AjaxError (Either (Array CompilationError) RunResult), marloweCompileResult :: Either (Array MarloweError) Unit, authStatus :: RemoteData AjaxError AuthStatus, createGistResult :: RemoteData AjaxError Gist, marloweState :: MarloweState}
+
+data MarloweError
+  = MarloweError String
 
 _view ::
   forall s a.
@@ -167,64 +182,6 @@ _marloweState ::
   Lens' {marloweState :: a | s} a
 _marloweState = prop (SProxy :: SProxy "marloweState")
 
-data View
-  = Editor
-  | Simulation
-
-derive instance eqView ::
-  Eq View
-
-derive instance genericView ::
-  Generic View
-
-instance showView ::
-  Show View where
-    show = gShow
-
-data MarloweError
-  = MarloweError String
-
-data MarloweAction
-  = Commit Int Int Int
-  | Redeem Int Int
-  | Claim Int Int
-  | Choose Int Int
-
-type Person
-  = {id :: PersonId, actions :: Array MarloweAction, suggestedActions :: Array MarloweAction, signed :: Boolean}
-
-_id ::
-  forall s a.
-  Lens' {id :: a | s} a
-_id = prop (SProxy :: SProxy "id")
-
-_actions ::
-  forall s a.
-  Lens' {actions :: a | s} a
-_actions = prop (SProxy :: SProxy "actions")
-
-_suggestedActions ::
-  forall s a.
-  Lens' {suggestedActions :: a | s} a
-_suggestedActions = prop (SProxy :: SProxy "suggestedActions")
-
-_signed ::
-  forall s a.
-  Lens' {signed :: a | s} a
-_signed = prop (SProxy :: SProxy "signed")
-
-type MarloweState
-  = {people :: Map PersonId Person, state :: SimulationState}
-
-_people ::
-  forall s a.
-  Lens' {people :: a | s} a
-_people = prop (SProxy :: SProxy "people")
-
-_state ::
-  forall s a.
-  Lens' {state :: a | s} a
-_state = prop (SProxy :: SProxy "state")
 
 -- Oracles should not be grouped (only one line per oracle) like:
 --    Oracle 3: Provide value [$value] for block [$timestamp]
@@ -247,28 +204,13 @@ data PersonInput =
  | ProvideChoice IdChoice Choice -- "Choice $IdChoice: Choose value [$Choice]"
 
 
-data SimulationState
-  = SimulationState Int
+type MarloweState = { input :: InputData
+                    , transaction :: TransactionData
+                    , state :: State
+		    , blockNum :: BlockNumber }
 
-instance showSimulationState ::
-  Show SimulationState where
-    show (SimulationState v) = show v
+_blockNum ::
+  forall s a.
+  Lens' {blockNum :: a | s} a
+_blockNum = prop (SProxy :: SProxy "blockNum")
 
-data Value
-  = Value Int
-
-data Block
-  = Block Int
-
-data PersonId
-  = PersonId Int
-
-derive instance eqPersonId ::
-  Eq PersonId
-
-derive instance ordPersonId ::
-  Ord PersonId
-
-instance showPersonId ::
-  Show PersonId where
-    show (PersonId v) = show v

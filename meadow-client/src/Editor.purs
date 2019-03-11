@@ -134,7 +134,7 @@ import Types
   , ChildSlot
   , EditorSlot(..)
   , Query(..)
-  , State
+  , FrontendState
   , _authStatus
   , _runResult
   , _createGistResult
@@ -152,7 +152,7 @@ import StaticData as StaticData
 editorPane ::
   forall m aff.
   MonadAff (AceEffects (localStorage :: LOCALSTORAGE | aff)) m =>
-  State ->
+  FrontendState ->
   ParentHTML Query ChildQuery ChildSlot m
 editorPane state = div_ [ demoScriptsPane
                         , div [ onDragOver $ Just <<< action <<< HandleDragEvent

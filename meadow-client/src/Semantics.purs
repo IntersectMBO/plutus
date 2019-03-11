@@ -652,6 +652,20 @@ type OracleDataPoint
 data State
   = State {commits :: CommitInfo, choices :: M.Map WIdChoice Choice, oracles :: M.Map IdOracle OracleDataPoint, usedIds :: S.Set IdAction}
 
+emptyCommitInfo :: CommitInfo
+emptyCommitInfo = CommitInfo { redeemedPerPerson: M.empty
+                             , currentCommitsById: M.empty
+                             , expiredCommitIds: S.empty
+                             , timeoutData: M.empty
+                             }
+
+emptyState :: State
+emptyState = State { commits: emptyCommitInfo
+                   , choices: M.empty
+                   , oracles: M.empty
+                   , usedIds: S.empty
+                   }
+
 -- Adds a commit identifier to the timeout data map
 addToCommByTim :: Timeout -> IdCommit -> TimeoutData -> TimeoutData
 addToCommByTim timeout idCommit timData = case M.lookup timeout timData of
@@ -1489,7 +1503,7 @@ applyAnyInput anyInput sigs neededInputs blockNum state contract = case addAnyIn
     Action idAction -> case fetchPrimitive idAction blockNum updatedState contract of
       Picked v -> case eval v.prim updatedState of
         Result v2 dynamicProblem ->
-	  if isTransactionNegative v.prim
+          if isTransactionNegative v.prim
           then CouldNotApply NegativeTransaction
           else if areActionPermissionsValid v.prim sigs
                then SuccessfullyApplied { outcome: v2.outcome
@@ -1525,8 +1539,8 @@ data MApplicationResult a
 applyAnyInputs :: List AnyInput -> S.Set Person -> S.Set IdInput -> BlockNumber -> State ->
                   Contract -> BigInt -> TransactionOutcomes -> List DynamicProblem ->
                   MApplicationResult {funds :: BigInt
-				     , outcome :: TransactionOutcomes
-	                             , state :: State, contract :: Contract}
+                                     , outcome :: TransactionOutcomes
+                                     , state :: State, contract :: Contract}
 applyAnyInputs Nil sigs _ _ state contract value trOut dynProbList =
   let v = redeemMoney sigs state
       newValue = value + outcomeEffect v.outcome
@@ -1554,8 +1568,8 @@ applyAnyInputs (Cons h t) sigs neededInputs blockNum state contract value trOut 
 -- Expire commits and apply applyAnyInputs
 applyTransaction :: List AnyInput -> S.Set Person -> BlockNumber -> State -> Contract -> BigInt ->
                     MApplicationResult {funds :: BigInt
-				       , outcome :: TransactionOutcomes
-	                               , state :: State, contract :: Contract}
+                                       , outcome :: TransactionOutcomes
+                                       , state :: State, contract :: Contract}
 applyTransaction inputs sigs blockNum state contract value =
   case appResult of
     MSuccessfullyApplied v _ ->

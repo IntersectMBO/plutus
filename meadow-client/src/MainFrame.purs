@@ -3,7 +3,9 @@ module MainFrame
   ) where
 
 import Types
+import Data.BigInt
 
+import Semantics
 import API
   ( SourceCode
       ( SourceCode
@@ -261,38 +263,31 @@ import Halogen.ECharts as EC
 import LocalStorage as LocalStorage
 import StaticData as StaticData
 
-examplePeople ::
-  Map PersonId Person
-examplePeople = Map.fromFoldable [ Tuple (PersonId 1) { id: (PersonId 1)
-                                                      , actions: [ Commit 1 2 3
-                                                                 , Redeem 4 5
-                                                                 ]
-                                                      , suggestedActions: [ Choose 1 2
-                                                                          , Claim 3 4
-                                                                          ]
-                                                      , signed: true
-                                                      }
-                                 , Tuple (PersonId 2) { id: (PersonId 2)
-                                                      , actions: [ Choose 1 2
-                                                                 , Claim 3 4
-                                                                 ]
-                                                      , suggestedActions: [ Commit 1 2 3
-                                                                          , Claim 3 4
-                                                                          ]
-                                                      , signed: false
-                                                      }
-                                 ]
+emptyInputData :: InputData
+emptyInputData = { oracleData: Map.empty
+                 , inputs: Map.empty
+                 }
 
-initialState ::
-  State
+emptyTransactionData :: TransactionData
+emptyTransactionData = { inputs: []
+                       , signatures: Map.empty
+		       , outcomes: Map.empty
+                       }
+
+emptyMarloweState :: MarloweState
+emptyMarloweState = { input: emptyInputData
+                    , transaction: emptyTransactionData
+                    , state: emptyState
+                    , blockNum: (fromInt 0)
+                    }
+
+initialState :: FrontendState
 initialState = { view: Editor
                , runResult: NotAsked
                , marloweCompileResult: Right unit
                , authStatus: NotAsked
                , createGistResult: NotAsked
-               , marloweState: { people: examplePeople
-                               , state: SimulationState 0
-                               }
+               , marloweState: emptyMarloweState
                }
 
 ------------------------------------------------------------
@@ -314,10 +309,10 @@ evalWithAnalyticsTracking ::
   MonadAff (localStorage :: LOCALSTORAGE, file :: FILE, ace :: ACE, ajax :: AJAX, analytics :: ANALYTICS | aff) m =>
   MonadAsk (SPSettings_ SPParams_) m =>
   Query
-    ~> HalogenM State Query ChildQuery ChildSlot Void m
+    ~> HalogenM FrontendState Query ChildQuery ChildSlot Void m
 evalWithAnalyticsTracking query = do
   liftEff $ analyticsTracking query
-  eval query
+  evalF query
 
 analyticsTracking ::
   forall eff a.
@@ -384,50 +379,50 @@ saveMarloweBuffer ::
   Eff (localStorage :: LOCALSTORAGE | eff) Unit
 saveMarloweBuffer text = LocalStorage.setItem marloweBufferLocalStorageKey text
 
-updateContractInState :: forall a. String -> MarloweState -> MarloweState
+updateContractInState :: String -> MarloweState -> MarloweState
 updateContractInState text rec = rec
 
-eval ::
+evalF ::
   forall m aff.
   MonadAff (localStorage :: LOCALSTORAGE, file :: FILE, ace :: ACE, ajax :: AJAX | aff) m =>
   MonadAsk (SPSettings_ SPParams_) m =>
   Query
-    ~> HalogenM State Query ChildQuery ChildSlot Void m
-eval (HandleEditorMessage (TextChanged text) next) = do
+    ~> HalogenM FrontendState Query ChildQuery ChildSlot Void m
+evalF (HandleEditorMessage (TextChanged text) next) = do
   liftEff $ saveBuffer text
   pure next
 
-eval (HandleDragEvent event next) = do
+evalF (HandleDragEvent event next) = do
   liftEff $ preventDefault event
   pure next
 
-eval (HandleDropEvent event next) = do
+evalF (HandleDropEvent event next) = do
   liftEff $ preventDefault event
   contents <- liftAff $ readFileFromDragEvent event
   void $ withEditor $ Editor.setValue contents (Just 1)
   pure next
 
-eval (MarloweHandleEditorMessage (TextChanged text) next) = do
+evalF (MarloweHandleEditorMessage (TextChanged text) next) = do
   liftEff $ saveMarloweBuffer text 
   currentState <- use _marloweState
   assign (_marloweState) $ updateContractInState text currentState
   pure next
 
-eval (MarloweHandleDragEvent event next) = do
+evalF (MarloweHandleDragEvent event next) = do
   liftEff $ preventDefault event
   pure next
 
-eval (MarloweHandleDropEvent event next) = do
+evalF (MarloweHandleDropEvent event next) = do
   liftEff $ preventDefault event
   contents <- liftAff $ readFileFromDragEvent event
   void $ withMarloweEditor $ Editor.setValue contents (Just 1)
   pure next
 
-eval (CheckAuthStatus next) = do
+evalF (CheckAuthStatus next) = do
   authResult <- runAjaxTo _authStatus getOauthStatus
   pure next
 
-eval (PublishGist next) = do
+evalF (PublishGist next) = do
   mContents <- withEditor Editor.getValue
   case mkNewGist mContents of
     Nothing -> pure next
@@ -439,11 +434,11 @@ eval (PublishGist next) = do
       void $ runAjaxTo _createGistResult apiCall
       pure next
 
-eval (ChangeView view next) = do
+evalF (ChangeView view next) = do
   assign _view view
   pure next
 
-eval (LoadScript key next) = do
+evalF (LoadScript key next) = do
   case Map.lookup key StaticData.demoFiles of
     Nothing -> pure next
     Just contents -> do
@@ -451,14 +446,14 @@ eval (LoadScript key next) = do
       assign _runResult NotAsked
       pure next
 
-eval (LoadMarloweScript key next) = do
+evalF (LoadMarloweScript key next) = do
   case Map.lookup key StaticData.marloweContracts of
     Nothing -> pure next
     Just contents -> do
       void $ withMarloweEditor $ Editor.setValue contents (Just 1)
       pure next
 
-eval (CompileProgram next) = do
+evalF (CompileProgram next) = do
   mContents <- withEditor Editor.getValue
   case mContents of
     Nothing -> pure next
@@ -471,29 +466,28 @@ eval (CompileProgram next) = do
         _ -> []
       pure next
 
-eval (ScrollTo { row, column } next) = do
+evalF (ScrollTo { row, column } next) = do
   void $ withEditor $ Editor.gotoLine row (Just column) (Just true)
   pure next
 
-eval (UpdatePerson person next) = do
+evalF (UpdatePerson person next) = do
+  pure next
   -- updating a person will require running the simulation so that the next suggested actions can be added
   -- although I'm not sure from the design what are suggested and what are manual
   -- updating a person will require running the simulation so that the next suggested actions can be added
   -- although I'm not sure from the design what are suggested and what are manual
   -- updating a person will require running the simulation so that the next suggested actions can be added
   -- although I'm not sure from the design what are suggested and what are manual
-  currentState <- use _marloweState
-  assign (_marloweState <<< _people) $ Map.update (const <<< Just $ person) person.id currentState.people
+--  currentState <- use _marloweState
+--  assign (_marloweState <<< _people) $ Map.update (const <<< Just $ person) person.id currentState.people
+
+evalF (ApplyTrasaction next) = pure next
+
+evalF (NextBlock next) = do
+  modifying (_marloweState <<< _blockNum) (\x -> x + ((fromInt 1) :: BigInt))
   pure next
 
-eval (ApplyTrasaction next) = pure next
-
-eval (NextBlock next) = do
-  modifying (_marloweState <<< _state) (\(SimulationState block) ->
-    SimulationState (block + 1))
-  pure next
-
-eval (CompileMarlowe next) = pure next
+evalF (CompileMarlowe next) = pure next
 
 ------------------------------------------------------------
 -- | Handles the messy business of running an editor command if the
@@ -502,7 +496,7 @@ withEditor ::
   forall m eff a.
   MonadEff (ace :: ACE | eff) m =>
   (Editor -> Eff (ace :: ACE | eff) a) ->
-  HalogenM State Query ChildQuery ChildSlot Void m (Maybe a)
+  HalogenM FrontendState Query ChildQuery ChildSlot Void m (Maybe a)
 withEditor action = do
   mEditor <- H.query' cpEditor EditorSlot $ H.request GetEditor
   case mEditor of
@@ -514,7 +508,7 @@ withMarloweEditor ::
   forall m eff a.
   MonadEff (ace :: ACE | eff) m =>
   (Editor -> Eff (ace :: ACE | eff) a) ->
-  HalogenM State Query ChildQuery ChildSlot Void m (Maybe a)
+  HalogenM FrontendState Query ChildQuery ChildSlot Void m (Maybe a)
 withMarloweEditor action = do
   mEditor <- H.query' cpMarloweEditor MarloweEditorSlot $ H.request GetEditor
   case mEditor of
@@ -545,7 +539,7 @@ toAnnotation (CompilationError { row, column, text }) = Just { "type": "error"
 render ::
   forall m aff.
   MonadAff (EChartsEffects (AceEffects (localStorage :: LOCALSTORAGE | aff))) m =>
-  State ->
+  FrontendState ->
   ParentHTML Query ChildQuery ChildSlot m
 render state = div [ class_ $ ClassName "main-frame"
                    ] [ container_ [ mainHeader
