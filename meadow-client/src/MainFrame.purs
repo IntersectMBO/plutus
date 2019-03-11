@@ -384,6 +384,9 @@ saveMarloweBuffer ::
   Eff (localStorage :: LOCALSTORAGE | eff) Unit
 saveMarloweBuffer text = LocalStorage.setItem marloweBufferLocalStorageKey text
 
+updateContractInState :: forall a. String -> MarloweState -> MarloweState
+updateContractInState text rec = rec
+
 eval ::
   forall m aff.
   MonadAff (localStorage :: LOCALSTORAGE, file :: FILE, ace :: ACE, ajax :: AJAX | aff) m =>
@@ -405,7 +408,9 @@ eval (HandleDropEvent event next) = do
   pure next
 
 eval (MarloweHandleEditorMessage (TextChanged text) next) = do
-  liftEff $ saveMarloweBuffer text
+  liftEff $ saveMarloweBuffer text 
+  currentState <- use _marloweState
+  assign (_marloweState) $ updateContractInState text currentState
   pure next
 
 eval (MarloweHandleDragEvent event next) = do

@@ -687,6 +687,15 @@
     }
 
     {
+      name = "big-integer-1.6.42.tgz";
+      path = fetchurl {
+        name = "big-integer-1.6.42.tgz";
+        url  = "https://registry.yarnpkg.com/big-integer/-/big-integer-1.6.42.tgz";
+        sha1 = "91623ae5ceeff9a47416c56c9440a66f12f534f1";
+      };
+    }
+
+    {
       name = "big.js-3.2.0.tgz";
       path = fetchurl {
         name = "big.js-3.2.0.tgz";

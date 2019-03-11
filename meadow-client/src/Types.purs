@@ -1,7 +1,8 @@
 module Types where
 
 import Prelude
-
+import Semantics
+import Data.BigInt
 import API
   ( RunResult
   )
@@ -224,6 +225,27 @@ _state ::
   forall s a.
   Lens' {state :: a | s} a
 _state = prop (SProxy :: SProxy "state")
+
+-- Oracles should not be grouped (only one line per oracle) like:
+--    Oracle 3: Provide value [$value] for block [$timestamp]
+type OracleEntry = { timestamp :: BlockNumber -- editable
+                   , value :: BigInt }        -- editable
+
+type InputData = { oracleData :: Map IdOracle OracleEntry -- oracle inputs (before person
+                 , inputs :: Map Person PersonInput } -- inputs (grouped by Person id)
+
+type TransactionData = { inputs :: Array (Either (Tuple Person PersonInput) (Tuple IdOracle OracleEntry))
+                                  -- ^ not grouped (but participants and oracles labelled inline)
+                                  -- e.g: Participant 1 - Action $IdAction - Commit ....
+                                  --      Oracle 3 - Provide value $value for block $timestamp
+                       , signatures :: Map Person Boolean -- checkboxes
+                       , outcomes :: Map Person BigInt } -- table under checkboxes
+
+data PersonInput =
+   CommitAction IdAction IdCommit Value Timeout -- "Action $IdAction: Commit $Value ADA with id $IdCommit until block $Timeout"
+ | PayClaim IdAction IdCommit Value -- "Action $IdAction: Claim a payment of $Value ADA from commit $IdCommit"
+ | ProvideChoice IdChoice Choice -- "Choice $IdChoice: Choose value [$Choice]"
+
 
 data SimulationState
   = SimulationState Int
