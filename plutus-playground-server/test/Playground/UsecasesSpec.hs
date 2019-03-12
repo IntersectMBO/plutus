@@ -66,11 +66,10 @@ vestingSpec =
                                                   [("getSlot", SimpleIntSchema)])
                                           ])
                                   ]
-                            , SimpleObjectSchema [("getAda", SimpleIntSchema)]
                             ]
                       }
                 , FunctionSchema
-                      { functionName = Fn "registerVestingOwner"
+                      { functionName = Fn "registerVestingScheme"
                       , argumentSchema =
                             [ SimpleObjectSchema
                                   [ ( "vestingOwner"
@@ -97,6 +96,35 @@ vestingSpec =
                                   ]
                             ]
                       }
+                  , FunctionSchema
+                        { functionName = Fn "withdraw"
+                        , argumentSchema =
+                              [ SimpleObjectSchema
+                                    [ ( "vestingOwner"
+                                    , SimpleObjectSchema
+                                          [("getPubKey", SimpleIntSchema)])
+                                    , ( "vestingTranche2"
+                                    , SimpleObjectSchema
+                                          [ ( "vestingTrancheAmount"
+                                                , SimpleObjectSchema
+                                                      [("getAda", SimpleIntSchema)])
+                                          , ( "vestingTrancheDate"
+                                                , SimpleObjectSchema
+                                                      [("getSlot", SimpleIntSchema)])
+                                          ])
+                                    , ( "vestingTranche1"
+                                    , SimpleObjectSchema
+                                          [ ( "vestingTrancheAmount"
+                                                , SimpleObjectSchema
+                                                      [("getAda", SimpleIntSchema)])
+                                          , ( "vestingTrancheDate"
+                                                , SimpleObjectSchema
+                                                      [("getSlot", SimpleIntSchema)])
+                                          ])
+                                    ]
+                              , SimpleObjectSchema [("getAda", SimpleIntSchema)]
+                              ]
+                        }
                 , FunctionSchema
                       { functionName = Fn "payToPublicKey_"
                       , argumentSchema =
@@ -159,7 +187,6 @@ vestingSpec =
                   (Wallet 1)
                   [ JSON.String
                         "{\"vestingTranche1\":{\"vestingTrancheDate\":{\"getSlot\":1},\"vestingTrancheAmount\":{\"getAda\":1}},\"vestingTranche2\":{\"vestingTrancheDate\":{\"getSlot\":1},\"vestingTrancheAmount\":{\"getAda\":1}},\"vestingOwner\":{\"getPubKey\":1}}"
-                  , JSON.String "{\"getAda\": 1}"
                   ]
             ]
             (sourceCode vesting)
