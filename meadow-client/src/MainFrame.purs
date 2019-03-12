@@ -4,7 +4,7 @@ module MainFrame
 
 import Types
 import Data.BigInt
-
+import Data.List
 import Semantics
 import API
   ( SourceCode
@@ -279,6 +279,7 @@ emptyMarloweState = { input: emptyInputData
                     , transaction: emptyTransactionData
                     , state: emptyState
                     , blockNum: (fromInt 0)
+		    , contract: Null
                     }
 
 initialState :: FrontendState
@@ -359,7 +360,7 @@ toEvent (CompileProgram a) = Just $ defaultEvent "CompileProgram"
 
 toEvent (ScrollTo _ _) = Nothing
 
-toEvent (UpdatePerson _ _) = Nothing
+toEvent (SetSignature _ _) = Nothing
 
 toEvent (ApplyTrasaction _) = Just $ defaultEvent "ApplyTransaction"
 
@@ -379,8 +380,27 @@ saveMarloweBuffer ::
   Eff (localStorage :: LOCALSTORAGE | eff) Unit
 saveMarloweBuffer text = LocalStorage.setItem marloweBufferLocalStorageKey text
 
+resizeSigsAux :: Map Person Boolean -> Map Person Boolean -> List Person -> Map Person Boolean
+resizeSigsAux ma ma2 Nil = ma2
+resizeSigsAux ma ma2 (Cons x y) =
+  case Map.lookup x ma of
+    Just z -> resizeSigsAux ma (Map.insert x z ma2) y
+    Nothing -> resizeSigsAux ma (Map.insert x false ma2) y
+
+resizeSigs :: List Person -> Map Person Boolean -> Map Person Boolean
+resizeSigs li ma = resizeSigsAux ma Map.empty li
+
 updateContractInState :: String -> MarloweState -> MarloweState
-updateContractInState text rec = rec
+updateContractInState text state =
+  let con = case readContract text of
+               Just con -> con
+	       Nothing -> Null in
+  let newState = set (_contract) con state in
+  over (_transaction <<< _signatures)
+       (resizeSigs (peopleFromStateAndContract
+                      (newState.state)
+                      (newState.contract)))
+        newState
 
 evalF ::
   forall m aff.
@@ -470,8 +490,12 @@ evalF (ScrollTo { row, column } next) = do
   void $ withEditor $ Editor.gotoLine row (Just column) (Just true)
   pure next
 
-evalF (UpdatePerson person next) = do
+evalF (SetSignature { person, isChecked } next) = do
+  modifying (_marloweState <<< _transaction <<< _signatures) (Map.insert person isChecked)
   pure next
+
+--evalF (UpdatePerson person next) = do
+--  pure next
   -- updating a person will require running the simulation so that the next suggested actions can be added
   -- although I'm not sure from the design what are suggested and what are manual
   -- updating a person will require running the simulation so that the next suggested actions can be added

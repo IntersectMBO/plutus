@@ -2,6 +2,8 @@ module Simulation where
 
 import Semantics
 import Data.BigInt
+import Data.Eq ((==))
+import Data.Tuple (Tuple(..))
 import API
   ( RunResult
       ( RunResult
@@ -118,6 +120,7 @@ import Halogen.HTML.Events
   )
 import Halogen.HTML.Properties
   ( InputType(..)
+  , checked
   , class_
   , classes
   , placeholder
@@ -286,8 +289,8 @@ inputComposerPane state = div [ classes [ col6
                               ] [ paneHeader "Input Composer"
                                 , div [ class_ $ ClassName "wallet"
                                       ] [ card_ [ cardBody_ [ h3_ [ text ("Person " <> "3")
-			                                          ]
-				                            ]
+                                                                  ]
+                                                            ]
                                                 ]
                                         ]
                                 ]
@@ -410,7 +413,9 @@ transactionComposerPane state = div [ classes [ col6
                                               ]
                                     ] [ paneHeader "Transaction Composer"
                                       , div [ class_ $ ClassName "wallet"
-                                            ] [ card_ [ cardBody_ $ transactionButtons
+                                            ] [ card_ [ cardBody_ $
+                                        (signatures state.marloweState.transaction.signatures)
+                                     <> transactionButtons
                                                       ]
                                               ]
                                       ]
@@ -448,33 +453,39 @@ transactionButtons = [ div [ classes [ ClassName "d-flex"
                              ]
                      ]
 
---signatures ::
---  forall p.
---  Array Person ->
---  Array (HTML p Query)
---signatures people = [ h3_ [ text "Signatures"
---                          ]
---                    , div [ classes [ ClassName "d-flex"
---                                    , ClassName "flex-row"
---                                    , ClassName "align-items-center"
---                                    , ClassName "justify-content-start"
---                                    , ClassName "signature-row"
---                                    ]
---                          ] (map signature people)
---                    ]
+signatures ::
+  forall p.
+  Map.Map Person Boolean ->
+  Array (HTML p Query)
+signatures people =
+  [ h3_ [ text "Signatures"
+        ]
+  , if ((Map.size people) == 0)
+    then div []
+             [ text "No participants in contract"
+             ]
+    else div [ classes [ ClassName "d-flex"
+                       , ClassName "flex-row"
+                       , ClassName "align-items-center"
+                       , ClassName "justify-content-start"
+                       , ClassName "signature-row"
+                       ]
+             ] (map signature $ Map.toAscUnfoldable people)
+  ]
 
---signature ::
---  forall p.
---  Person ->
---  HTML p Query
---signature person = span [ class_ $ ClassName "pr-2"
---                        ] [ input [ type_ InputCheckbox
---                                  , onChecked $ Just <<< HQ.action <<< UpdatePerson <<< (\checked ->
---                                    set _signed checked person)
---                                  ]
---                          , span_ [ text $ " Person " <> show person.id
---                                  ]
---                          ]
+signature ::
+  forall p.
+  Tuple Person Boolean ->
+  HTML p Query
+signature (Tuple person isChecked) =
+	span [ class_ $ ClassName "pr-2"
+             ] [ input [ type_ InputCheckbox
+                       , onChecked $ Just <<< HQ.action <<< const (SetSignature {person, isChecked})
+		       , checked isChecked
+		       ]
+                       , span_ [ text $ " Person " <> toString person
+                               ]
+               ]
 
 --transactionComposerPerson ::
 --  forall p.

@@ -216,6 +216,7 @@ instance showObservation :: Show Observation where
   show TrueObs = "TrueObs"
   show FalseObs = "FalseObs"
 
+
 data Contract
   = Null
   | Commit IdAction IdCommit Person Value Timeout Timeout Contract Contract
@@ -1582,4 +1583,116 @@ applyTransaction inputs sigs blockNum state contract value =
   expiredState = expireCommits blockNum state
   reducedContract = reduce blockNum expiredState contract
   appResult = applyAnyInputs inputs sigs neededInputs blockNum expiredState reducedContract value emptyOutcome Nil
+
+-- Extract participants from state and contract
+peopleFromCommitInfo :: CommitInfo -> S.Set Person
+peopleFromCommitInfo (CommitInfo { redeemedPerPerson : rpp
+                                 , currentCommitsById : ccbi
+                                 }) =
+   S.union (S.fromFoldable (M.keys rpp))
+           (S.fromFoldable (map (\x -> x.person) (M.values ccbi)))
+
+peopleFromState :: State -> S.Set Person
+peopleFromState (State { commits : comm }) = peopleFromCommitInfo comm
+
+peopleFromValue :: Value -> S.Set Person
+peopleFromValue CurrentBlock = S.empty
+peopleFromValue (Committed _) = S.empty
+peopleFromValue (Constant _) = S.empty
+peopleFromValue (NegValue value) =
+  peopleFromValue value
+peopleFromValue (AddValue value1 value2) =
+  S.union (peopleFromValue value1)
+          (peopleFromValue value2)
+peopleFromValue (SubValue value1 value2) =
+  S.union (peopleFromValue value1)
+          (peopleFromValue value2)
+peopleFromValue (MulValue value1 value2) =
+  S.union (peopleFromValue value1)
+          (peopleFromValue value2)
+peopleFromValue (DivValue value1 value2 value3) =
+  S.union (peopleFromValue value1)
+  (S.union (peopleFromValue value2)
+           (peopleFromValue value3))
+peopleFromValue (ModValue value1 value2 value3) =
+  S.union (peopleFromValue value1)
+  (S.union (peopleFromValue value2)
+           (peopleFromValue value3))
+peopleFromValue (ValueFromChoice v value) =
+  S.insert v.person (peopleFromValue value)
+peopleFromValue (ValueFromOracle _ value) =
+  peopleFromValue value
+
+peopleFromObservation :: Observation -> S.Set Person
+peopleFromObservation (BelowTimeout _) = S.empty
+peopleFromObservation (AndObs observation1 observation2) =
+  S.union (peopleFromObservation observation1)
+          (peopleFromObservation observation2)
+peopleFromObservation (OrObs observation1 observation2) =
+  S.union (peopleFromObservation observation1)
+          (peopleFromObservation observation2)
+peopleFromObservation (NotObs observation) =
+  peopleFromObservation observation
+peopleFromObservation (ChoseThis v _) =
+  S.insert v.person S.empty
+peopleFromObservation (ChoseSomething v) = 
+  S.insert v.person S.empty
+peopleFromObservation (ValueGE value1 value2) =
+  S.union (peopleFromValue value1)
+          (peopleFromValue value2)
+peopleFromObservation (ValueGT value1 value2) =
+  S.union (peopleFromValue value1)
+          (peopleFromValue value2)
+peopleFromObservation (ValueLT value1 value2) =
+  S.union (peopleFromValue value1)
+          (peopleFromValue value2)
+peopleFromObservation (ValueLE value1 value2) =
+  S.union (peopleFromValue value1)
+          (peopleFromValue value2)
+peopleFromObservation (ValueEQ value1 value2) =
+  S.union (peopleFromValue value1)
+          (peopleFromValue value2)
+peopleFromObservation TrueObs = S.empty
+peopleFromObservation FalseObs = S.empty
+
+peopleFromContract :: Contract -> S.Set Person
+peopleFromContract Null = S.empty
+peopleFromContract (Commit _ _ person value _ _ contract1 contract2) =
+  S.insert person (S.union (peopleFromValue value)
+                   (S.union (peopleFromContract contract1)
+                            (peopleFromContract contract2)))
+peopleFromContract (Pay _ _ person value _ contract1 contract2) =
+  S.insert person (S.union (peopleFromValue value)
+                   (S.union (peopleFromContract contract1)
+                            (peopleFromContract contract2)))
+peopleFromContract (Both contract1 contract2) =
+  S.union (peopleFromContract contract1)
+          (peopleFromContract contract2)
+peopleFromContract (Choice observation contract1 contract2) =
+  S.union (peopleFromObservation observation)
+  (S.union (peopleFromContract contract1)
+           (peopleFromContract contract2))
+peopleFromContract (When observation timeout contract1 contract2) =
+  S.union (peopleFromObservation observation)
+  (S.union (peopleFromContract contract1)
+           (peopleFromContract contract2))
+peopleFromContract (While observation timeout contract1 contract2) =
+  S.union (peopleFromObservation observation)
+  (S.union (peopleFromContract contract1)
+           (peopleFromContract contract2))
+peopleFromContract (Scale value1 value2 value3 contract) =
+  S.union (peopleFromValue value1)
+  (S.union (peopleFromValue value2)
+   (S.union (peopleFromValue value3)
+            (peopleFromContract contract)))
+peopleFromContract (Let _ contract1 contract2) =
+  S.union (peopleFromContract contract1)
+          (peopleFromContract contract2)
+peopleFromContract (Use _) = S.empty
+
+peopleFromStateAndContract :: State -> Contract -> List Person
+peopleFromStateAndContract sta con =
+  S.toUnfoldable (S.union psta pcon)
+  where psta = peopleFromState sta
+	pcon = peopleFromContract con
 

@@ -100,7 +100,7 @@ data Query a
   | CompileProgram a
   | ScrollTo {row :: Int, column :: Int} a
   | LoadMarloweScript String a
-  | UpdatePerson Person a
+  | SetSignature {person :: Person, isChecked :: Boolean} a
   | ApplyTrasaction a
   | NextBlock a
   | CompileMarlowe a
@@ -188,8 +188,28 @@ _marloweState = prop (SProxy :: SProxy "marloweState")
 type OracleEntry = { timestamp :: BlockNumber -- editable
                    , value :: BigInt }        -- editable
 
+_timestamp ::
+  forall s a.
+  Lens' {timestamp :: a | s} a
+_timestamp = prop (SProxy :: SProxy "timestamp")
+
+_value ::
+  forall s a.
+  Lens' {value :: a | s} a
+_value = prop (SProxy :: SProxy "value")
+
 type InputData = { oracleData :: Map IdOracle OracleEntry -- oracle inputs (before person
                  , inputs :: Map Person PersonInput } -- inputs (grouped by Person id)
+
+_oracleData ::
+  forall s a.
+  Lens' {oracleData :: a | s} a
+_oracleData = prop (SProxy :: SProxy "oracleData")
+
+_inputs ::
+  forall s a.
+  Lens' {inputs :: a | s} a
+_inputs = prop (SProxy :: SProxy "inputs")
 
 type TransactionData = { inputs :: Array (Either (Tuple Person PersonInput) (Tuple IdOracle OracleEntry))
                                   -- ^ not grouped (but participants and oracles labelled inline)
@@ -197,6 +217,16 @@ type TransactionData = { inputs :: Array (Either (Tuple Person PersonInput) (Tup
                                   --      Oracle 3 - Provide value $value for block $timestamp
                        , signatures :: Map Person Boolean -- checkboxes
                        , outcomes :: Map Person BigInt } -- table under checkboxes
+
+_signatures ::
+  forall s a.
+  Lens' {signatures :: a | s} a
+_signatures = prop (SProxy :: SProxy "signatures")
+
+_outcomes ::
+  forall s a.
+  Lens' {outcomes :: a | s} a
+_outcomes = prop (SProxy :: SProxy "outcomes")
 
 data PersonInput =
    CommitAction IdAction IdCommit Value Timeout -- "Action $IdAction: Commit $Value ADA with id $IdCommit until block $Timeout"
@@ -207,10 +237,32 @@ data PersonInput =
 type MarloweState = { input :: InputData
                     , transaction :: TransactionData
                     , state :: State
-		    , blockNum :: BlockNumber }
+                    , blockNum :: BlockNumber
+		    , contract :: Contract
+                    }
+
+_input ::
+  forall s a.
+  Lens' {input :: a | s} a
+_input = prop (SProxy :: SProxy "input")
+
+_transaction ::
+  forall s a.
+  Lens' {transaction :: a | s} a
+_transaction = prop (SProxy :: SProxy "transaction")
+
+_state ::
+  forall s a.
+  Lens' {state :: a | s} a
+_state = prop (SProxy :: SProxy "state")
 
 _blockNum ::
   forall s a.
   Lens' {blockNum :: a | s} a
 _blockNum = prop (SProxy :: SProxy "blockNum")
+
+_contract ::
+  forall s a.
+  Lens' {contract :: a | s} a
+_contract = prop (SProxy :: SProxy "contract")
 
