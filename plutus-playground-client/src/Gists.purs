@@ -7,9 +7,10 @@ module Gists
        )
        where
 
-import AjaxUtils (showAjaxError)
+import AjaxUtils (getEncodeJson, showAjaxError)
 import Auth (AuthRole(..), AuthStatus, authStatusAuthRole)
 import Bootstrap (btn, btnBlock, btnDanger, btnInfo, btnPrimary, btnSecondary, nbsp)
+import Control.Monad.Reader.Trans (class MonadAsk)
 import DOM.HTML.Indexed.InputType (InputType(..))
 import Data.Argonaut.Core (stringify)
 import Data.Array (catMaybes)
@@ -28,9 +29,9 @@ import Halogen.HTML.Properties (class_, classes, disabled, href, id_, placeholde
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success))
 import Playground.API (SourceCode)
-import Prelude (Unit, bind, not, ($), (<$>), (<<<), (<>), (=<<))
+import Prelude (Unit, bind, not, pure, ($), (<$>), (<<<), (<>), (=<<))
 import Servant.PureScript.Affjax (AjaxError)
-import Servant.PureScript.Settings (SPSettingsEncodeJson_(..), SPSettings_(..))
+import Servant.PureScript.Settings (SPSettings_)
 import Types (Query(..), Simulation)
 
 gistControls ::
@@ -125,29 +126,28 @@ gistPane gist =
     ]
 
 mkNewGist ::
-  forall params.
-  SPSettings_ params ->
-  { source :: Maybe SourceCode
-  , simulation :: Maybe Simulation
-  }
-  -> Maybe NewGist
-mkNewGist (SPSettings_ {encodeJson: (SPSettingsEncodeJson_ encodeJson)}) { source, simulation } =
-  if Array.null gistFiles
-  then Nothing
-  else Just $ NewGist { _newGistDescription: "Plutus Playground Smart Contract"
-                      , _newGistPublic: true
-                      , _newGistFiles: gistFiles
-                      }
-    where
-      gistFiles =
-        catMaybes [ mkNewGistFile gistSourceFilename <<< unwrap <$> source
-                  , mkNewGistFile gistSimulationFilename <<< stringify <<< encodeJson <$> simulation
-                  ]
-
-      mkNewGistFile _newGistFilename _newGistFileContent =
-        NewGistFile { _newGistFilename
-                    , _newGistFileContent
-                    }
+  forall m params.
+  MonadAsk (SPSettings_ params) m
+  => { source :: Maybe SourceCode
+     , simulation :: Maybe Simulation
+     }
+  -> m (Maybe NewGist)
+mkNewGist  { source, simulation } = do
+  encodeJson <- getEncodeJson
+  let gistFiles = catMaybes [ mkNewGistFile gistSourceFilename <<< unwrap <$> source
+                            , mkNewGistFile gistSimulationFilename <<< stringify <<< encodeJson <$> simulation
+                            ]
+  pure $ if Array.null gistFiles
+    then Nothing
+    else Just $ NewGist { _newGistDescription: "Plutus Playground Smart Contract"
+                        , _newGistPublic: true
+                        , _newGistFiles: gistFiles
+                        }
+  where
+    mkNewGistFile _newGistFilename _newGistFileContent =
+      NewGistFile { _newGistFilename
+                  , _newGistFileContent
+                  }
 
 gistSourceFilename :: String
 gistSourceFilename = "Playground.hs"

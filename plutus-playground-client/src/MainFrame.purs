@@ -1,25 +1,25 @@
 module MainFrame
   ( mainFrame
+  , eval
+  , initialState
   ) where
 
 import Types
 
-import Ace.EditSession as Session
-import Ace.Editor as Editor
-import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged), AceQuery(GetEditor))
-import Ace.Types (ACE, Editor, Annotation)
+import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged))
+import Ace.Types (ACE, Annotation)
 import Action (simulationPane)
-import AjaxUtils (ajaxErrorPane, runAjax, runAjaxTo)
+import AjaxUtils (ajaxErrorPane, getDecodeJson)
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
 import Bootstrap (active, btn, btnGroup, btnSmall, col10_, col2_, container, container_, empty, hidden, navItem_, navLink, navTabs_, pullRight, row_)
-import Chain (mockchainChartOptions, balancesChartOptions, evaluationPane)
+import Chain (evaluationPane)
 import Control.Bind (bindFlipped)
 import Control.Comonad (extract)
-import Control.Monad.Aff.Class (class MonadAff, liftAff)
+import Control.Monad.Aff.Class (class MonadAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
-import Control.Monad.Reader.Class (class MonadAsk, ask)
+import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State (class MonadState)
 import Control.Monad.Trans.Class (lift)
 import Data.Argonaut.Parser (jsonParser)
@@ -37,9 +37,8 @@ import Data.Newtype (unwrap)
 import Data.String as String
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
-import ECharts.Monad (interpret)
 import Editor (editorPane)
-import FileEvents (FILE, preventDefault, readFileFromDragEvent)
+import FileEvents (FILE)
 import Gist (gistFileContent, gistFileFilename, gistFiles, gistId)
 import Gists (gistControls, gistSimulationFilename, gistSourceFilename, mkNewGist)
 import Gists as Gists
@@ -56,14 +55,13 @@ import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError))
 import Ledger.Ada.TH (Ada(..))
 import LocalStorage (LOCALSTORAGE)
-import LocalStorage as LocalStorage
+import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, updateChartsIfPossible)
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
-import Playground.API (EvaluationResult(EvaluationResult), SimulatorWallet(SimulatorWallet), SourceCode(SourceCode), _CompilationResult, _FunctionSchema)
-import Playground.Server (SPParams_, getGistsByGistId, getOauthStatus, patchGistsByGistId, postContract, postEvaluate, postGists)
-import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, map, pure, show, unit, unless, void, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (=<<), (==), (>>=))
-import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettings_(..))
-import StaticData (bufferLocalStorageKey)
+import Playground.API (SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
+import Playground.Server (SPParams_)
+import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, pure, show, unit, unless, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (=<<), (==))
+import Servant.PureScript.Settings (SPSettings_)
 import StaticData as StaticData
 import Wallet.Emulator.Types (Wallet(Wallet))
 
@@ -88,7 +86,7 @@ initialState =
 
 mainFrame ::
   forall m aff.
-  MonadAff (EChartsEffects (AceEffects (localStorage :: LOCALSTORAGE, file :: FILE, ajax :: AJAX, analytics :: ANALYTICS | aff))) m
+  MonadAff (EChartsEffects (AceEffects (ajax :: AJAX, analytics :: ANALYTICS, file :: FILE, localStorage :: LOCALSTORAGE | aff))) m
   => MonadAsk (SPSettings_ SPParams_) m
   => Component HTML Query Unit Void m
 mainFrame =
@@ -101,14 +99,14 @@ mainFrame =
     , finalizer: Nothing
     }
 
-evalWithAnalyticsTracking ::
-  forall m aff.
-  MonadAff (localStorage :: LOCALSTORAGE, file :: FILE, ace :: ACE, ajax :: AJAX, analytics :: ANALYTICS | aff) m
+evalWithAnalyticsTracking :: forall m eff aff.
+  MonadEff (analytics :: ANALYTICS, ace :: ACE, localStorage :: LOCALSTORAGE | eff) m
   => MonadAsk (SPSettings_ SPParams_) m
+  => MonadAff (ajax :: AJAX, file :: FILE | aff) m
   => Query ~> HalogenM State Query ChildQuery ChildSlot Void m
 evalWithAnalyticsTracking query = do
   liftEff $ analyticsTracking query
-  eval query
+  runHalogenApp $ eval query
 
 analyticsTracking :: forall eff a. Query a -> Eff (analytics :: ANALYTICS | eff) Unit
 analyticsTracking query = do
@@ -142,26 +140,25 @@ toEvent (ModifyActions (SetWaitTime _ _) _) = Just $ (defaultEvent "SetWaitTime"
 toEvent (EvaluateActions _) = Just $ (defaultEvent "EvaluateActions") { category = Just "Action" }
 toEvent (PopulateAction _ _ _) = Just $ (defaultEvent "PopulateAction") { category = Just "Action" }
 
-saveBuffer :: forall eff. String -> Eff (localStorage :: LOCALSTORAGE | eff) Unit
-saveBuffer text = LocalStorage.setItem bufferLocalStorageKey text
-
 eval ::
-  forall m aff.
-  MonadAff (localStorage :: LOCALSTORAGE, file :: FILE, ace :: ACE, ajax :: AJAX | aff) m
+  forall m.
+  MonadState State m
   => MonadAsk (SPSettings_ SPParams_) m
-  => Query ~> HalogenM State Query ChildQuery ChildSlot Void m
+  => MonadApp m
+  => Query ~> m
 eval (HandleEditorMessage (TextChanged text) next) = do
-  liftEff $ saveBuffer text
+  saveBuffer text
   pure next
 
 eval (HandleDragEvent event next) = do
-  liftEff $ preventDefault event
+  preventDefault event
   pure next
 
 eval (HandleDropEvent event next) = do
-  liftEff $ preventDefault event
-  contents <- liftAff $ readFileFromDragEvent event
-  void $ withEditor $ Editor.setValue contents (Just 1)
+  preventDefault event
+  contents <- readFileFromDragEvent event
+  editorSetContents contents (Just 1)
+  saveBuffer contents
   pure next
 
 eval (HandleMockchainChartMessage EC.Initialized next) = do
@@ -181,21 +178,22 @@ eval (HandleBalancesChartMessage (EC.EventRaised event) next) =
   pure next
 
 eval (CheckAuthStatus next) = do
-  authResult <- runAjaxTo _authStatus getOauthStatus
+  authResult <- getOauthStatus
+  assign _authStatus authResult
   pure next
 
 eval (PublishGist next) = do
-  serverParameters <- ask
-  mContents <- getEditorContents
+  mContents <- editorGetContents
   simulation <- use _simulation
-  case mkNewGist serverParameters { source: mContents, simulation } of
+  mNewGist <- mkNewGist { source: mContents, simulation }
+  case mNewGist of
     Nothing -> pure next
     Just newGist ->
       do mGist <- use _createGistResult
-         let apiCall = case preview (_Success <<< gistId) mGist of
-               Nothing -> postGists newGist
-               Just gistId -> patchGistsByGistId newGist gistId
-         newResult <- runAjax apiCall
+
+         newResult <- case preview (_Success <<< gistId) mGist of
+               Nothing -> postGist newGist
+               Just gistId -> patchGistByGistId newGist gistId
 
          assign _createGistResult newResult
 
@@ -213,8 +211,7 @@ eval (LoadGist next) = do
   eGistUrl <- (bindFlipped Gists.parseGistUrl <<< note "Gist Url not set.") <$> use _gistUrl
   case eGistUrl of
     Left _ -> pure unit
-    Right gistId -> do (SPSettings_ {decodeJson: (SPSettingsDecodeJson_ decodeJson)}) <- ask
-                       aGist <- runAjax $ getGistsByGistId gistId
+    Right gistId -> do aGist <- getGistByGistId gistId
                        case aGist of
                          Success gist -> do
                            assign _createGistResult aGist
@@ -224,15 +221,16 @@ eval (LoadGist next) = do
 
                            -- Load the source, if available.
                            -- TODO There's a clearout happening here that should be in sync with other places.
-                           -- TODO We should be saving to local storage, right?
                            case preview (_Just <<< gistFileContent <<< _Just) playgroundGistFile of
                              Nothing -> pure unit
-                             Just content -> do void $ withEditor $ Editor.setValue content (Just 1)
+                             Just content -> do editorSetContents content (Just 1)
+                                                saveBuffer content
                                                 assign _simulation Nothing
                                                 assign _evaluationResult NotAsked
 
                            -- Load the simulation, if available.
                            -- TODO There's a clearout happening here that should be in sync with other places.
+                           decodeJson <- getDecodeJson
                            case preview (_Just <<< gistFileContent <<< _Just) simulationGistFile of
                              Nothing -> pure unit
                              Just simulationString -> do
@@ -254,18 +252,20 @@ eval (LoadScript key next) = do
   case Map.lookup key StaticData.demoFiles of
     Nothing -> pure next
     Just contents -> do
-      void $ withEditor $ Editor.setValue contents (Just 1)
+      editorSetContents contents (Just 1)
+      saveBuffer contents
       assign _evaluationResult NotAsked
       assign _compilationResult NotAsked
       pure next
 
 eval (CompileProgram next) = do
-  mContents <- getEditorContents
+  mContents <- editorGetContents
 
   case mContents of
     Nothing -> pure next
     Just contents -> do
-      result <- runAjaxTo _compilationResult $ postContract contents
+      result <- postContract contents
+      assign _compilationResult result
 
       -- If we got a successful result, switch tab.
       case result of
@@ -273,9 +273,9 @@ eval (CompileProgram next) = do
         _ -> replaceViewOnSuccess result Editor Simulations
 
       -- Update the error display.
-      void $ withEditor $ showCompilationErrorAnnotations $
+      editorSetAnnotations $
         case result of
-          Success (Left errors) -> errors
+          Success (Left errors) -> catMaybes $ toAnnotation <$> errors
           _ -> []
 
       -- If we have a result with new signatures, we can only hold
@@ -294,7 +294,7 @@ eval (CompileProgram next) = do
       pure next
 
 eval (ScrollTo {row, column} next) = do
-  void $ withEditor $ Editor.gotoLine row (Just column) (Just true)
+  editorGotoLine row (Just column)
   pure next
 
 eval (ModifyActions actionEvent next) = do
@@ -304,11 +304,12 @@ eval (ModifyActions actionEvent next) = do
 eval (EvaluateActions next) = do
   _ <- runMaybeT $
        do evaluation <- MaybeT do
-            contents <- getEditorContents
+            contents <- editorGetContents
             simulation <- use _simulation
             pure $ join $ toEvaluation <$> contents <*> simulation
 
-          result <- lift $ runAjaxTo  _evaluationResult $ postEvaluate evaluation
+          result <- lift $ postEvaluation evaluation
+          assign _evaluationResult result
 
           replaceViewOnSuccess result Simulations Transactions
 
@@ -399,41 +400,7 @@ replaceViewOnSuccess result source target = do
   when (isSuccess result && currentView == source)
     (assign _view target)
 
-updateChartsIfPossible :: forall m i o. HalogenM State i ChildQuery ChildSlot o m Unit
-updateChartsIfPossible = do
-  use _evaluationResult >>= case _ of
-    Success (EvaluationResult result) -> do
-      void $ H.query' cpMockchainChart MockchainChartSlot $ H.action $ EC.Set $ interpret $ mockchainChartOptions result.resultGraph
-      void $ H.query' cpBalancesChart BalancesChartSlot $ H.action $ EC.Set $ interpret $ balancesChartOptions result.fundsDistribution
-    _ -> pure unit
-
 ------------------------------------------------------------
-
--- | Handles the messy business of running an editor command iff the
--- editor is up and running.
-withEditor :: forall m eff a.
-  MonadEff (ace :: ACE | eff) m
-  => (Editor -> Eff (ace :: ACE | eff) a)
-  -> HalogenM State Query ChildQuery ChildSlot Void m (Maybe a)
-withEditor action = do
-  mEditor <- H.query' cpEditor EditorSlot $ H.request GetEditor
-  case mEditor of
-    Just (Just editor) -> do
-      liftEff $ Just <$> action editor
-    _ -> pure Nothing
-
-getEditorContents :: forall m eff.
-  MonadEff (ace :: ACE | eff) m
-  => HalogenM State Query ChildQuery ChildSlot Void m (Maybe SourceCode)
-getEditorContents = map SourceCode <$> (withEditor $ Editor.getValue)
-
-showCompilationErrorAnnotations :: forall m.
-  Array CompilationError
-  -> Editor
-  -> Eff (ace :: ACE | m) Unit
-showCompilationErrorAnnotations errors editor = do
-  session <- Editor.getSession editor
-  Session.setAnnotations (catMaybes (toAnnotation <$> errors)) session
 
 toAnnotation :: CompilationError -> Maybe Annotation
 toAnnotation (RawError _) = Nothing

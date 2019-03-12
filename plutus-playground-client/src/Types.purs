@@ -14,13 +14,14 @@ import Data.Array as Array
 import Data.Either (Either)
 import Data.Either.Nested (Either3)
 import Data.Functor.Coproduct.Nested (Coproduct3)
-import Data.Generic (class Generic, gShow)
+import Data.Generic (class Generic, gEq, gShow)
 import Data.Int as Int
 import Data.Lens (Lens, Lens', Prism', _2, over, prism', to, traversed, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap)
+import Data.NonEmpty ((:|))
 import Data.RawJson (RawJson(..))
 import Data.StrMap as M
 import Data.Symbol (SProxy(..))
@@ -38,6 +39,8 @@ import Network.RemoteData (RemoteData)
 import Playground.API (CompilationResult, Evaluation(Evaluation), EvaluationResult, FunctionSchema, SimpleArgumentSchema(UnknownSchema, SimpleObjectSchema, SimpleTupleSchema, SimpleArraySchema, SimpleStringSchema, SimpleIntSchema), SimulatorWallet, SourceCode, _FunctionSchema, _SimulatorWallet)
 import Playground.API as API
 import Servant.PureScript.Affjax (AjaxError)
+import Test.QuickCheck.Arbitrary (class Arbitrary)
+import Test.QuickCheck.Gen as Gen
 import Validation (class Validation, ValidationError(Unsupported, Required), WithPath, addPath, noPath, validate)
 import Wallet.Emulator.Types (Wallet, _Wallet)
 
@@ -59,6 +62,9 @@ data Action
       , functionSchema :: FunctionSchema SimpleArgument
       }
   | Wait { blocks :: Int }
+
+instance eqAction :: Eq Action where
+  eq = gEq
 
 derive instance genericAction :: Generic Action
 
@@ -283,6 +289,9 @@ data View
 
 derive instance eqView :: Eq View
 derive instance genericView :: Generic View
+
+instance arbitraryView :: Arbitrary View where
+  arbitrary = Gen.elements (Editor :| [ Simulations, Transactions ])
 
 instance showView :: Show View where
   show Editor = "Editor"

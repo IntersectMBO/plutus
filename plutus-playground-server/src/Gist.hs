@@ -105,7 +105,7 @@ data NewGistFile = NewGistFile
 
 newtype GistId =
     GistId Text
-    deriving (Show, Eq, Generic, FromJSON, ToJSON)
+    deriving (Show, Eq, Ord, Generic, FromJSON, ToJSON)
 
 instance ToHttpApiData GistId where
     toQueryParam (GistId gistId) = gistId

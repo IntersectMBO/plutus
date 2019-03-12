@@ -1,21 +1,20 @@
 module AjaxUtils where
 
 import Bootstrap (alertDanger_)
-import Control.Monad.Except (ExceptT, runExceptT)
-import Control.Monad.Reader (class MonadAsk, ReaderT, ask, runReaderT)
-import Control.Monad.State (class MonadState)
+import Control.Monad.Reader.Class (class MonadAsk, ask)
 import Control.MonadPlus ((=<<))
+import Data.Argonaut.Core (Json)
 import Data.Argonaut.Generic.Aeson (decodeJson)
 import Data.Argonaut.Parser (jsonParser)
 import Data.Array (intercalate)
 import Data.Either (Either(..))
-import Data.Lens (Lens', assign)
+import Data.Generic (class Generic)
 import Halogen.HTML (HTML, br_, div_, pre_, text)
 import Language.Haskell.Interpreter (CompilationError(..))
 import Network.HTTP.StatusCode (StatusCode(..))
-import Network.RemoteData (RemoteData(..), fromEither)
-import Prelude (discard, bind, pure, show, ($), (<$>), (<>), (>>>))
+import Prelude (bind, pure, show, ($), (<$>), (<>), (>>>))
 import Servant.PureScript.Affjax (AjaxError, ErrorDescription(ConnectionError, DecodingError, ParsingError, UnexpectedHTTPStatus), runAjaxError)
+import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettingsEncodeJson_(..), SPSettings_(..))
 
 showAjaxError :: forall p i. AjaxError -> HTML p i
 showAjaxError =
@@ -51,24 +50,12 @@ ajaxErrorPane error =
         ]
     ]
 
-runAjax ::
-  forall m env a e.
-  MonadAsk env m
-  => ReaderT env (ExceptT e m) a -> m (RemoteData e a)
-runAjax action = do
-  settings <- ask
-  result <- runExceptT $ runReaderT action settings
-  pure $ fromEither result
+getEncodeJson :: forall m params a. MonadAsk (SPSettings_ params) m => Generic a => m (a -> Json)
+getEncodeJson = do
+  SPSettings_ {encodeJson: (SPSettingsEncodeJson_ encodeJson)} <- ask
+  pure encodeJson
 
-
--- | Run an Ajax action, tracking its state and result into the target lens.
-runAjaxTo :: forall m a e env state.
-  MonadState state m
-  => MonadAsk env m
-  => Lens' state (RemoteData e a)
-  -> ReaderT env (ExceptT e m) a -> m (RemoteData e a)
-runAjaxTo lens action = do
-  assign lens Loading
-  result <- runAjax action
-  assign lens result
-  pure result
+getDecodeJson :: forall m params a. MonadAsk (SPSettings_ params) m => Generic a => m (Json -> Either String a)
+getDecodeJson = do
+  SPSettings_ {decodeJson: (SPSettingsDecodeJson_ decodeJson)} <- ask
+  pure decodeJson
