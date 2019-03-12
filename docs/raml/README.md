@@ -50,7 +50,7 @@ and modules.  RAML also includes some extensions such as a destructive
 match which releases the heap space used by an object and makes it
 available for re-use.
 
-#### Implementation 
+#### Implementation
 The current RAML implementation (as of January 2019) has the following
 features, amongst others.
 
@@ -58,7 +58,7 @@ features, amongst others.
   evaluation steps and the heap space used.  RAML also includes a
   `tick` function which can be used to tell the evaluator that some
   quantity of a user-defined resource (for example, bytes transmitted
-  along some channel) and the evaluator will also print the total amount of 
+  along some channel) and the evaluator will also print the total amount of
   resources consumed by `tick`.
 
 * An analyser which performs static type analysis of RAML programs and
@@ -128,7 +128,7 @@ RAML has a number of limitations.
   the RAML techniques.  This would be a lot of work though, and it's
   more of an implementation problem than a research problem, so it's
   probably not something that's worth the RAML implementers' trouble.
-  
+
 
 * Actual resource usage of course depends on the behaviour of compiled
   code.  The RAML evaluator is quite straightforward and doesn't make
@@ -145,7 +145,7 @@ RAML has a number of limitations.
   * A related issue is that a compiler may allocate objects on the heap
     (closures, for example) which aren't obtained from datatypes in the
     source program.  HOW DOES RAML DEAL WITH THIS?
-  
+
 ### RAML and Church/Scott encoding
 
 We're interested in whether RAML can be used with the Scott encoding
@@ -161,7 +161,7 @@ to RAML analyses.
 
 #### Standard Peano numbers
 
-The file xxx contains a simple RAML program involving Peano numbers.
+The file [Peano.raml](./Peano.raml) contains a simple RAML program involving Peano numbers.
 The output of RAML's analyser is in yyy, and the output of the
 evaluator, including the actual resource consumption, is in zzz.  As
 can be seen, RAML is able to predict the resource usage precisely. The
@@ -206,8 +206,8 @@ which aren't supported by RAML.  Thus I wasn't able to get any results
 for the Scott-encoded Peano numbers.
 
 [I was trying to defunctionalise the Scott encoding to see what happened,
- but had some difficulty and then had to do something else. I'll look at
- this again later.]
+but had some difficulty and then had to do something else. I'll look at
+this again later.]
 
 --------
 ### Other Analyses
@@ -249,7 +249,7 @@ applicable to code which is actually executed.
 
 It's conceivable that techniques from implicit computational complexity
 would be directly applicable to Plutus Core, but I don't know how
-usable these methods are in pratice.
+usable these methods are in practice.
 
 --------
 
@@ -282,4 +282,3 @@ S. Lindley.\
 Embedding F.\
 WGP '12.\
 [pdf](http://homepages.inf.ed.ac.uk/slindley/papers/embedding-f.pdf)
-
