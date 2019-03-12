@@ -187,33 +187,114 @@ testPLC plc = mmap (ugly ∘ (λ (t : 0 ⊢) → proj₁ (run t 100)) ∘ erase�
 testFile : String → IO String
 testFile fn = do
   t ← readFile fn
-  return (maybe id "error" (testPLC t))
+  return (maybe id "blerk" (testPLC t))
 
 main : IO ⊤
 main = do
+  -- plutus/language-plutus-core/type-errors
+  putStrLn "errorKind.plc:"
+  testFile "../plutus/language-plutus-core/test/type-errors/errorKind.plc" >>= putStrLn
+  
+  putStrLn "instType.plc:"
+  testFile "../plutus/language-plutus-core/test/type-errors/instType.plc" >>= putStrLn
+
+  putStrLn "applyType.plc:"
+  testFile "../plutus/language-plutus-core/test/type-errors/applyType.plc" >>= putStrLn
+{- uses ifix  
+  putStrLn "unwrapType.plc:"
+  testFile "../plutus/language-plutus-core/test/type-errors/unwrapType.plc" >>= putStrLn
+-}
+
+  -- plutus/language-plutus-core/types
+  -- these test are intended to check type inference
+
+  putStrLn "addInteger.plc:"
+  testFile "../plutus/language-plutus-core/test/types/addInteger.plc" >>= putStrLn
+
+  putStrLn "case.plc:"
+  testFile "../plutus/language-plutus-core/test/types/case.plc" >>= putStrLn
+
+  putStrLn "correctType.plc:"
+  testFile "../plutus/language-plutus-core/test/types/correctType.plc" >>= putStrLn
+
+{- uses ifix
+  putStrLn "example.plc:"
+  testFile "../plutus/language-plutus-core/test/types/example.plc" >>= putStrLn
+-}
+  
+  putStrLn "negation.plc:"
+  testFile "../plutus/language-plutus-core/test/types/negation.plc" >>= putStrLn
+  
+
+  putStrLn "not.plc:"
+  testFile "../plutus/language-plutus-core/test/types/not.plc" >>= putStrLn
+  
+{- uses ifix
+  putStrLn "recursiveWrap.plc:"
+  testFile "../plutus/language-plutus-core/test/types/recursiveWrap.plc" >>= putStrLn
+-}
+
+  putStrLn "reduce.plc:"
+  testFile "../plutus/language-plutus-core/test/types/reduce.plc" >>= putStrLn
+  
+{- uses ifix  
+  putStrLn "tail.plc:"
+  testFile "../plutus/language-plutus-core/test/types/tail.plc" >>= putStrLn
+-}
+  
+  putStrLn "verifyIdentity.plc:"
+  testFile "../plutus/language-plutus-core/test/types/verifyIdentity.plc" >>= putStrLn
+
+  -- plutus/language-plutus-core/normalize-types
+  putStrLn "addIntegerCorrect.plc:"
+  testFile "../plutus/language-plutus-core/test/normalize-types/addIntegerCorrect.plc"
+    >>= putStrLn
+
+  putStrLn "ntm.plc:"
+  testFile "../plutus/language-plutus-core/test/normalize-types/ntm.plc" >>= putStrLn
+
+
+  -- plutus/language-plutus-core/test/Evaluation/Golden
+  putStrLn "verifySignature.plc:"
+  testFile "../plutus/language-plutus-core/test/Evaluation/Golden/verifySignature.plc"
+    >>= putStrLn
+
+  putStrLn "verifySignatureError.plc:"
+  testFile
+    "../plutus/language-plutus-core/test/Evaluation/Golden/verifySignatureError.plc"
+    >>= putStrLn
+
   -- plutus/language-plutus-core/test/data
   putStrLn "integerLiteral.plc:"
-  t ← testFile "../plutus/language-plutus-core/test/data/integerLiteral.plc"
-  putStrLn t
+  testFile "../plutus/language-plutus-core/test/data/integerLiteral.plc" >>= putStrLn
 
   putStrLn "negation.plc:"
-  t ← testFile "../plutus/language-plutus-core/test/data/negation.plc"
-  putStrLn t
+  testFile "../plutus/language-plutus-core/test/data/negation.plc" >>= putStrLn
 
   putStrLn "stringLiteral.plc:"
-  t ← testFile "../plutus/language-plutus-core/test/data/stringLiteral.plc"
-  putStrLn t
+  testFile "../plutus/language-plutus-core/test/data/stringLiteral.plc" >>= putStrLn
 
   -- the overflow is a parse error
   putStrLn "integerOverflow.plc:"
-  t ← testFile "../plutus/language-plutus-core/test/data/integerOverflow.plc"
-  putStrLn t
+  testFile "../plutus/language-plutus-core/test/data/integerOverflow.plc" >>= putStrLn
 
   putStrLn "addInteger.plc:"
-  t ← testFile "../plutus/language-plutus-core/test/data/addInteger.plc"
-  putStrLn t
+  testFile "../plutus/language-plutus-core/test/data/addInteger.plc" >>= putStrLn
 
-  putStrLn "addIntegerCorrect.plc:"
-  t ← testFile "../plutus/language-plutus-core/test/normalize-types/addIntegerCorrect.plc"
-  putStrLn t
+  -- plutus/language-plutus-core/test/scopes
+  putStrLn "negation.plc:"
+  testFile "../plutus/language-plutus-core/test/scopes/negation.plc" >>= putStrLn
+
+  putStrLn "negation.plc:"
+  testFile "../plutus/language-plutus-core/test/scopes/negation.plc" >>= putStrLn
+
+  putStrLn "apply.plc:"
+  testFile "../plutus/language-plutus-core/test/scopes/apply.plc" >>= putStrLn
+
+  putStrLn "lambda2.plc:"
+  testFile "../plutus/language-plutus-core/test/scopes/lambda2.plc" >>= putStrLn
+
+  putStrLn "lambda.plc:"
+  testFile "../plutus/language-plutus-core/test/scopes/lambda.plc" >>= putStrLn
+
 \end{code}
