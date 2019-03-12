@@ -41,6 +41,7 @@ library
     Language.Marlowe
     Language.Marlowe.Client
     Language.Marlowe.Escrow
+    Language.Marlowe.Actus
     Marlowe
   other-modules:
     Language.Marlowe.Common
@@ -56,6 +57,7 @@ test-suite marlowe-test
     main-is: Spec.hs
     other-modules:
       Spec.Marlowe
+      Spec.Actus
     build-depends:
         base >=4.9 && <5,
         containers -any,
