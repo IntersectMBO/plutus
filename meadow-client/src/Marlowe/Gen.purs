@@ -14,7 +14,7 @@ import Control.Monad.Gen as Gen
 import Data.BigInteger as BigInteger
 
 genBigInteger :: forall m. MonadGen m => MonadRec m => m BigInteger
-genBigInteger = BigInteger.fromInt <$> chooseInt (negate 2147483648) 2147483647
+genBigInteger = BigInteger.fromInt <$> chooseInt bottom top
 
 genIdChoice :: forall m. MonadGen m => MonadRec m => m IdChoice
 genIdChoice = do
