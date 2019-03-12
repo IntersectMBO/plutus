@@ -235,7 +235,7 @@ initEditor ::
   m Unit
 initEditor editor = liftEff $ do
   savedContents <- liftEff loadBuffer
-  let defaultContents = Map.lookup "Deposit Insentive" StaticData.marloweContracts
+  let defaultContents = Map.lookup "Deposit Incentive" StaticData.marloweContracts
   let contents = fromMaybe "" (savedContents <|> defaultContents)
   void $ Editor.setValue contents (Just 1) editor
   Editor.setTheme "ace/theme/monokai" editor

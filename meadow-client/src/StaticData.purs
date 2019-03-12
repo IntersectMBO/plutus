@@ -14,7 +14,7 @@ import Data.Tuple.Nested
   )
 import Marlowe.Contracts
   ( crowdFunding
-  , depositInsentive
+  , depositIncentive
   , escrow
   )
 import Meadow.Contracts
@@ -37,7 +37,7 @@ demoFiles = Map.fromFoldable [ "BasicContract" /\ basicContract
 
 marloweContracts ::
   Map Label Contents
-marloweContracts = Map.fromFoldable [ "Deposit Insentive" /\ depositInsentive
+marloweContracts = Map.fromFoldable [ "Deposit Incentive" /\ depositIncentive
                                     , "Crowd Funding" /\ crowdFunding
                                     , "Escrow" /\ escrow
                                     ]

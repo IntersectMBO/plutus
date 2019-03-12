@@ -1,8 +1,8 @@
 module Marlowe.Contracts where
 
-depositInsentive ::
+depositIncentive ::
   String
-depositInsentive = "Commit 1 1 1\n       (Constant 100)\n       10 200\n       (Commit 2 2 2\n               (Constant 20)\n               20 200\n               (When (ChoseSomething (1, 1))\n                     100\n                     (Both (Pay 3 1 1 (Constant 100) 200 Null Null)\n                           (Pay 4 2 1 (Constant 20) 200 Null Null))\n                     (Both (Pay 5 1 1 (Constant 100) 200 Null Null)\n                           (Pay 6 2 2 (Constant 20) 200 Null Null)))\n               (Pay 7 1 1 (Constant 100) 200 Null Null))\n       Null"
+depositIncentive = "Commit 1 1 1\n       (Constant 100)\n       10 200\n       (Commit 2 2 2\n               (Constant 20)\n               20 200\n               (When (ChoseSomething (1, 1))\n                     100\n                     (Both (Pay 3 1 1 (Constant 100) 200 Null Null)\n                           (Pay 4 2 1 (Constant 20) 200 Null Null))\n                     (Both (Pay 5 1 1 (Constant 100) 200 Null Null)\n                           (Pay 6 2 2 (Constant 20) 200 Null Null)))\n               (Pay 7 1 1 (Constant 100) 200 Null Null))\n       Null"
 
 crowdFunding ::
   String
