@@ -2,6 +2,7 @@
 module Main(main) where
 
 import qualified Spec.Marlowe
+import qualified Spec.Actus
 import           Test.Tasty
 import           Test.Tasty.Hedgehog (HedgehogTestLimit (..))
 
@@ -16,4 +17,4 @@ limit :: HedgehogTestLimit
 limit = HedgehogTestLimit (Just 30)
 
 tests :: TestTree
-tests = localOption limit $ testGroup "Marlowe Contract" [Spec.Marlowe.tests]
+tests = localOption limit $ testGroup "Marlowe Contract" [Spec.Actus.tests]
