@@ -318,11 +318,6 @@ eval (EvaluateActions next) = do
   pure next
 
 eval (AddWallet next) = do
-  wallets <- use (_simulation <<< _Just <<< _Newtype <<< _wallets)
-  let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _simulatorWalletWallet <<< _walletId) wallets
-  let newWallet = mkSimulatorWallet (maxWalletId + 1)
-  modifying (_simulation <<< _Just <<< _Newtype <<< _wallets) (flip Array.snoc newWallet)
-
   modifying (_simulation <<< _Just <<< _Newtype <<< _wallets)
     (\wallets -> let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _simulatorWalletWallet <<< _walletId) wallets
                      newWallet = mkSimulatorWallet (maxWalletId + 1)
