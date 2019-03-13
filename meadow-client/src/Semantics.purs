@@ -6,6 +6,7 @@ import Data.BigInteger (BigInteger, fromInt, fromString)
 import Data.Either (Either(..))
 import Data.Eq (class Eq, (/=), (==))
 import Data.EuclideanRing (div, mod)
+import Data.FoldableWithIndex (foldrWithIndexDefault)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.HeytingAlgebra (not, (&&), (||))
@@ -1267,6 +1268,68 @@ fetchPrimitive idAction blockNum state (Scale divid divis def subContract) = cas
   sDef = evalValue blockNum state def
 
 fetchPrimitive _ _ _ _ = NoMatch
+
+-- Gather all the primitives that are reachable given the current state of the contract 
+scoutPrimitivesAux :: BlockNumber -> State -> Contract -> M.Map IdAction (Maybe DetachedPrimitive)
+scoutPrimitivesAux blockNum state (Commit idActionC idCommit person value _ timeout continuation _) =
+  if (notCurrentCommit && notExpiredCommit)
+  then M.insert idActionC (Just (DCommit idCommit person actualValue timeout)) M.empty
+  else M.empty 
+  where
+  notCurrentCommit = isCurrentCommit idCommit state
+  notExpiredCommit = isExpiredCommit idCommit state
+  actualValue = evalValue blockNum state value
+
+scoutPrimitivesAux blockNum state (Pay idActionC idCommit person value _ continuation _) =
+  M.insert idActionC (Just (DPay idCommit person actualValue)) M.empty
+  where
+  actualValue = evalValue blockNum state value
+
+scoutPrimitivesAux blockNum state (Both leftContract rightContract) =
+  M.unionWith (\_ _ -> Nothing) leftC rightC 
+  where
+  leftC = go leftContract
+  rightC = go rightContract
+  go = scoutPrimitivesAux blockNum state
+
+scoutPrimitivesAux blockNum state (While obs timeout contract1 contract2) =
+  scoutPrimitivesAux blockNum state contract1
+
+scoutPrimitivesAux blockNum state (Let label boundContract subContract) =
+  scoutPrimitivesAux blockNum state subContract
+
+scoutPrimitivesAux blockNum state (Scale divid divis def subContract) =
+  map (\x -> (scaleResult sDivid sDivis sDef) <$> x) subC
+  where
+  subC = scoutPrimitivesAux blockNum state subContract
+  sDivid = evalValue blockNum state divid
+  sDivis = evalValue blockNum state divis
+  sDef = evalValue blockNum state def
+
+scoutPrimitivesAux _ _ _ = M.empty 
+
+data DetachedPrimitiveWIA =
+    DWAICommit IdAction IdCommit BigInteger Timeout
+  | DWAIPay IdAction IdCommit BigInteger
+
+addMaybePrimitive :: IdAction -> Maybe DetachedPrimitive -> M.Map Person (List DetachedPrimitiveWIA) -> M.Map Person (List DetachedPrimitiveWIA)
+addMaybePrimitive _ Nothing x = x
+addMaybePrimitive idAction (Just (DCommit idCommit person val timeout)) pmap =
+    M.insert person (Cons (DWAICommit idAction idCommit val timeout) plist) pmap
+  where
+  plist = case M.lookup person pmap of
+            Just l -> l
+            Nothing -> Nil
+addMaybePrimitive idAction (Just (DPay idCommit person val)) pmap =
+    M.insert person (Cons (DWAIPay idAction idCommit val) plist) pmap
+  where
+  plist = case M.lookup person pmap of
+            Just l -> l
+            Nothing -> Nil
+
+scoutPrimitives blockNum state contract =
+  foldrWithIndexDefault addMaybePrimitive M.empty res
+  where res = scoutPrimitivesAux blockNum state contract
 
 data DynamicProblem
   = NoProblem

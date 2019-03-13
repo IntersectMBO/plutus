@@ -23,7 +23,7 @@ import Semantics
   , BlockNumber
   , Choice
   , Contract
-  , DetachedPrimitive
+  , DetachedPrimitiveWIA
   , IdAction
   , IdChoice
   , IdCommit
@@ -137,7 +137,7 @@ _value :: forall s a. Lens' {value :: a | s} a
 _value = prop (SProxy :: SProxy "value")
 
 type InputData
-  = { inputs :: Map Person (List DetachedPrimitive) 
+  = { inputs :: Map Person (List DetachedPrimitiveWIA)
     , choiceData :: Map BigInteger ChoiceEntry 
     , oracleData :: Map IdOracle OracleEntry
     }
@@ -167,7 +167,7 @@ _outcomes = prop (SProxy :: SProxy "outcomes")
 
 -- "Choice $IdChoice: Choose value [$Choice]"
 type MarloweState
-	= {input :: InputData, transaction :: TransactionData, state :: State, blockNum :: BlockNumber, moneyInContract :: BigInteger, contract :: Contract}
+        = {input :: InputData, transaction :: TransactionData, state :: State, blockNum :: BlockNumber, moneyInContract :: BigInteger, contract :: Contract}
 
 _input :: forall s a. Lens' {input :: a | s} a
 _input = prop (SProxy :: SProxy "input")

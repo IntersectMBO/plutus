@@ -133,8 +133,8 @@ import StaticData as StaticData
 
 emptyInputData :: InputData
 emptyInputData = { inputs: Map.empty
-	         , choiceData: Map.empty
-	         , oracleData: Map.empty }
+                 , choiceData: Map.empty
+                 , oracleData: Map.empty }
 
 emptyTransactionData :: TransactionData
 emptyTransactionData = { inputs: []
@@ -147,7 +147,7 @@ emptyMarloweState = { input: emptyInputData
                     , transaction: emptyTransactionData
                     , state: emptyState
                     , blockNum: (fromInt 0)
-		    , moneyInContract: (fromInt 0)
+                    , moneyInContract: (fromInt 0)
                     , contract: Null
                     }
 
