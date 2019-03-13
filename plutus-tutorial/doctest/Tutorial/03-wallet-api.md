@@ -104,10 +104,10 @@ In the crowdfunding campaign the data script contains a `Contributor` value, whi
 
 ## 1.2 The Validator Script
 
-The general form of a validator script is `RedeemerScript -> DataScript -> PendingTx -> Answer`. The types of data and redeemer scripts are `Contributor` and `CampaignRedeemer`, respectively, so the signature of the validator script is:
+The general form of a validator script is `DataScript -> RedeemerScript -> PendingTx -> Answer`. The types of data and redeemer scripts are `Contributor` and `CampaignRedeemer`, respectively, so the signature of the validator script is:
 
 ```haskell
-type CampaignValidator = CampaignRedeemer -> Contributor -> PendingTx -> ()
+type CampaignValidator = Contributor -> CampaignRedeemer -> PendingTx -> ()
 ```
 
 If we want to implement `CampaignValidator` we need to have access to the parameters of the campaign, so that we can check if the selected `CampaignAction` is allowed. In Haskell we can do this by writing a function `mkValidator :: Campaign -> CampaignValidator` that takes a `Campaign` and produces a `CampaignValidator`. However, we need to wrap `mkValidator` in Template Haskell quotes so that it can be compiled to Plutus Core. To apply the compiled `mkValidator` function to the `campaign :: Campaign` argument that is provided at runtime, we use `Ledger.lifted` to get the on-chain representation of `campaign`, and apply `mkValidator` to it with `Ledger.applyScript`:
@@ -117,7 +117,7 @@ mkValidatorScript :: Campaign -> ValidatorScript
 mkValidatorScript campaign = ValidatorScript val where
   val = L.applyScript mkValidator (L.lifted campaign)
   mkValidator = L.fromCompiledCode $$(P.compile [||
-              \(c :: Campaign) (act :: CampaignRedeemer) (con :: Contributor) (p :: PendingTx) ->
+              \(c :: Campaign) (con :: Contributor) (act :: CampaignRedeemer) (p :: PendingTx) ->
 ```
 
 Before we check whether `act` is permitted, we define a number of intermediate values that will make the checking code much more readable. These definitions are placed inside a `let` block, which is closed by a corresponding `in` below.

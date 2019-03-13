@@ -752,8 +752,8 @@ mergeChoices = [|| \ input choices -> let
 validatorScript :: Q (TExp (PubKey -> (Input, MarloweData) -> (Input, MarloweData) -> PendingTx -> ()))
 validatorScript = [|| \
         creator
-        (input@(Input inputCommand _ inputChoices :: Input), MarloweData expectedState expectedContract)
         (_ :: Input, MarloweData{..} :: MarloweData)
+        (input@(Input inputCommand _ inputChoices :: Input), MarloweData expectedState expectedContract)
         (PendingTx{ pendingTxOutputs, pendingTxValidRange, pendingTxIn } :: PendingTx) -> let
 
         {-  Embed contract creator public key. This makes validator script unique,

@@ -93,9 +93,9 @@ mkRedeemerScript word =
 
 ## 1.2 The Validator Script
 
-The general form of a validator script is `Redeemer -> DataScript -> PendingTx -> Answer`. That is, the validator script is a function of three arguments that produces a value of type `Answer` (or fails with an error). As contract authors we can freely choose the types of `Redeemer`, `DataScript` and `Answer`. The third argument has to be of type [`PendingTx`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html#t:PendingTx) because that is the information about the current transaction, provided by the slot leader. When the evaluation of the script has finished without an error, the result is discarded and never used again. The value of `Answer` is not relevant, and therefore we usually choose `Answer` to be the unit type `()`.
+The general form of a validator script is `DataScript -> Redeemer -> PendingTx -> Answer`. That is, the validator script is a function of three arguments that produces a value of type `Answer` (or fails with an error). As contract authors we can freely choose the types of `DataScript`, `Redeemer` and `Answer`. The third argument has to be of type [`PendingTx`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html#t:PendingTx) because that is the information about the current transaction, provided by the slot leader. When the evaluation of the script has finished without an error, the result is discarded and never used again. The value of `Answer` is not relevant, and therefore we usually choose `Answer` to be the unit type `()`.
 
-In our case, the redeemer is a `ClearText`, and the data script is a `HashedText`. This gives us a script with the signature `ClearText -> HashedText -> PendingTx -> ()`. The function needs to be wrapped in Template Haskell quotes, beginning with `[||` and ending with `||]`.
+In our case, the data script is a `HashedText`, and the redeemer is a `ClearText`. This gives us a script with the signature `HashedText -> ClearText -> PendingTx -> ()`. The function needs to be wrapped in Template Haskell quotes, beginning with `[||` and ending with `||]`.
 
 We can then use `L.compileScript`, a function exported by the `Ledger` module, to compile the TH quote to its on-chain representation:
 
@@ -104,7 +104,7 @@ We can then use `L.compileScript`, a function exported by the `Ledger` module, t
 gameValidator :: ValidatorScript
 gameValidator = ValidatorScript ($$(L.compileScript [||
     -- The code between the '[||' and  '||]' quotes is on-chain code.
-    \(ClearText guessed) (HashedText actual) (_ :: PendingTx) ->
+    \(HashedText actual) (ClearText guessed) (_ :: PendingTx) ->
 ```
 
 The actual game logic is very simple: We compare the hash of the `guessed` argument with the `actual` secret hash, and throw an error if the two don't match. In on-chain code, we can use the `$$()` splicing operator to access functions from the Plutus prelude, imported as `P`. For example, `$$(P.equalsByteString) :: ByteString -> ByteString -> Bool`  compares two `ByteString` values for equality.

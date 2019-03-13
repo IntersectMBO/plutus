@@ -63,13 +63,13 @@ contributionScript cmp  = ValidatorScript val where
         --    The Campaign{..} syntax means that all fields of the 'Campaign' value are in scope (for example 'campaignDeadline' in l. 70).
         --    See note [RecordWildCards].
         --
-        -- 2. A 'CampaignAction'. This is the redeemer script. It is provided by the redeeming transaction.
+        -- 2. A 'PubKey'. This is the data script. It is provided by the producing transaction (the contribution)
         --
-        -- 3. A 'PubKey'. This is the data script. It is provided by the producing transaction (the contribution)
+        -- 3. A 'CampaignAction'. This is the redeemer script. It is provided by the redeeming transaction.
         --
         -- 4. A 'PendingTx value. It contains information about the current transaction and is provided by the slot leader.
         --    See note [PendingTx]
-        \Campaign{..} (act :: CampaignAction) (con :: PubKey) (p :: PendingTx) ->
+        \Campaign{..} (con :: PubKey) (act :: CampaignAction) (p :: PendingTx) ->
             let
 
                 -- In Haskell we can define new operators. We import

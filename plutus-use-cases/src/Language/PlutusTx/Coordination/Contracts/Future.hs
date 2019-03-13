@@ -200,7 +200,7 @@ validatorScript :: Future -> ValidatorScript
 validatorScript ft = ValidatorScript val where
     val = Ledger.applyScript inner (Ledger.lifted ft)
     inner = $$(Ledger.compileScript [||
-        \Future{..} (r :: FutureRedeemer) FutureData{..} (p :: PendingTx) ->
+        \Future{..} FutureData{..} (r :: FutureRedeemer) (p :: PendingTx) ->
 
             let
                 PendingTx _ outs _ _ (PendingTxIn _ witness _) range = p

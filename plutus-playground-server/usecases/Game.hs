@@ -41,7 +41,7 @@ mkRedeemerScript word =
 gameValidator :: ValidatorScript
 gameValidator = ValidatorScript ($$(Ledger.compileScript [||
     -- The code between the '[||' and  '||]' quotes is on-chain code.
-    \(ClearString guess) (HashedString actual) (p :: PendingTx) ->
+    \(HashedString actual) (ClearString guess) (p :: PendingTx) ->
 
     -- inside the on-chain code we can write $$(P.xxx) to use functions
     -- from the PlutusTx Prelude (imported qualified at the top of the
