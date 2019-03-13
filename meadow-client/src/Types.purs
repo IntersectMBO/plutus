@@ -4,7 +4,7 @@ import API (RunResult)
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
 import DOM.HTML.Event.Types (DragEvent)
-import Data.BigInt (BigInt)
+import Data.BigInteger (BigInteger)
 import Data.Either (Either)
 import Data.Functor.Coproduct (Coproduct)
 import Data.Generic (class Generic, gShow)
@@ -12,14 +12,14 @@ import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Map (Map)
 import Data.Symbol (SProxy(..))
-import Data.Tuple (Tuple)
 import Gist (Gist)
 import Halogen.Component.ChildPath (ChildPath, cpL, cpR)
 import Language.Haskell.Interpreter (CompilationError)
 import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Ord, class Show, Unit)
 import Semantics
-  ( BlockNumber
+  ( AnyInput
+  , BlockNumber
   , Choice
   , Contract
   , IdAction
@@ -120,7 +120,7 @@ _marloweState = prop (SProxy :: SProxy "marloweState")
 -- Oracles should not be grouped (only one line per oracle) like:
 --    Oracle 3: Provide value [$value] for block [$timestamp]
 type OracleEntry
-  = {timestamp :: BlockNumber, value :: BigInt}
+  = {timestamp :: BlockNumber, value :: BigInteger}
 
 -- editable
 _timestamp ::
@@ -144,7 +144,7 @@ _inputs :: forall s a. Lens' {inputs :: a | s} a
 _inputs = prop (SProxy :: SProxy "inputs")
 
 type TransactionData
-  = {inputs :: Array (Either (Tuple Person PersonInput) (Tuple IdOracle OracleEntry)), signatures :: Map Person Boolean, outcomes :: Map Person BigInt}
+  = {inputs :: Array AnyInput, signatures :: Map Person Boolean, outcomes :: Map Person BigInteger}
 
 -- table under checkboxes
 _signatures ::
@@ -162,7 +162,7 @@ data PersonInput
 
 -- "Choice $IdChoice: Choose value [$Choice]"
 type MarloweState
-  = {input :: InputData, transaction :: TransactionData, state :: State, blockNum :: BlockNumber, contract :: Contract}
+	= {input :: InputData, transaction :: TransactionData, state :: State, blockNum :: BlockNumber, moneyInContract :: BigInteger, contract :: Contract}
 
 _input :: forall s a. Lens' {input :: a | s} a
 _input = prop (SProxy :: SProxy "input")
@@ -175,6 +175,9 @@ _state = prop (SProxy :: SProxy "state")
 
 _blockNum :: forall s a. Lens' {blockNum :: a | s} a
 _blockNum = prop (SProxy :: SProxy "blockNum")
+
+_moneyInContract :: forall s a. Lens' {moneyInContract :: a | s} a
+_moneyInContract = prop (SProxy :: SProxy "moneyInContract")
 
 _contract :: forall s a. Lens' {contract :: a | s} a
 _contract = prop (SProxy :: SProxy "contract")

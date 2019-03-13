@@ -145,6 +145,7 @@ emptyMarloweState = { input: emptyInputData
                     , transaction: emptyTransactionData
                     , state: emptyState
                     , blockNum: (fromInt 0)
+		    , moneyInContract: (fromInt 0)
                     , contract: Null
                     }
 

@@ -468,6 +468,12 @@ stateTitle state = div [ classes [ ClassName "demos"
                                   , span [ class_ $ ClassName "block-number"
                                          ] [ text (show state.marloweState.blockNum)
                                            ]
+                                  , strong_ [ text "Money in contract:"
+                                            ]
+                                  , span [ class_ $ ClassName "money-in-contract"
+                                         ] [ text (show state.marloweState.moneyInContract)
+                                           ]
+                                  , strong_ [ text "ADA" ]
                                   ]
                          ]
 
