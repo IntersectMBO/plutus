@@ -239,16 +239,15 @@ newtype Simulation = Simulation
 derive instance newtypeSimulation :: Newtype Simulation _
 derive instance genericSimulation :: Generic Simulation
 
--- | TODO Change this to a newtype, as the type alias interferes with typeclasses.
 type WebData = RemoteData AjaxError
 
 newtype State = State
   { currentView :: View
-  , compilationResult :: RemoteData AjaxError (Either (Array CompilationError) CompilationResult)
+  , compilationResult :: WebData (Either (Array CompilationError) CompilationResult)
   , simulation :: Maybe Simulation
-  , evaluationResult :: RemoteData AjaxError EvaluationResult
-  , authStatus :: RemoteData AjaxError AuthStatus
-  , createGistResult :: RemoteData AjaxError Gist
+  , evaluationResult :: WebData EvaluationResult
+  , authStatus :: WebData AuthStatus
+  , createGistResult :: WebData Gist
   , gistUrl :: Maybe String
   }
 

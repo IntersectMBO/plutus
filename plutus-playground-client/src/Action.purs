@@ -24,8 +24,7 @@ import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
 import Playground.API (EvaluationResult, _Fn, _FunctionSchema)
 import Prelude (map, pure, show, ($), (+), (/=), (<$>), (<<<), (<>))
-import Servant.PureScript.Affjax (AjaxError)
-import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, FormEvent(SetSubField, AddSubField, RemoveSubField, SetStringField, SetIntField), Query(EvaluateActions, ModifyActions, PopulateAction), SimpleArgument(Unknowable, SimpleObject, SimpleArray, SimpleTuple, SimpleString, SimpleInt), Simulation(Simulation), _argumentSchema, _functionName, _resultBlockchain, _simulatorWalletWallet)
+import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, FormEvent(SetSubField, AddSubField, RemoveSubField, SetStringField, SetIntField), Query(EvaluateActions, ModifyActions, PopulateAction), SimpleArgument(Unknowable, SimpleObject, SimpleArray, SimpleTuple, SimpleString, SimpleInt), Simulation(Simulation), WebData, _argumentSchema, _functionName, _resultBlockchain, _simulatorWalletWallet)
 import Validation (ValidationError, WithPath, joinPath, showPathValue, validate)
 import Wallet (walletIdPane, walletsPane)
 
@@ -33,7 +32,7 @@ simulationPane ::
   forall m aff.
   MonadAff (EChartsEffects aff) m
   => Simulation
-  -> RemoteData AjaxError EvaluationResult
+  -> WebData EvaluationResult
   -> ParentHTML Query ChildQuery ChildSlot m
 simulationPane (Simulation simulation) evaluationResult =
   div_
@@ -42,7 +41,7 @@ simulationPane (Simulation simulation) evaluationResult =
     , actionsPane simulation.actions (view _resultBlockchain <$> evaluationResult)
     ]
 
-actionsPane :: forall p. Array Action -> RemoteData AjaxError Blockchain -> HTML p Query
+actionsPane :: forall p. Array Action -> WebData Blockchain -> HTML p Query
 actionsPane actions evaluationResult =
   div_
     [ h2_ [ text "Actions" ]
@@ -225,7 +224,7 @@ addWaitActionPane =
           ]
       ]
 
-evaluateActionsPane :: forall p. RemoteData AjaxError Blockchain -> Array Action -> HTML p Query
+evaluateActionsPane :: forall p. WebData Blockchain -> Array Action -> HTML p Query
 evaluateActionsPane evaluationResult actions =
   col_
     [ button

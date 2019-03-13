@@ -30,14 +30,13 @@ import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success))
 import Playground.API (SourceCode)
 import Prelude (Unit, bind, not, pure, ($), (<$>), (<<<), (<>), (=<<))
-import Servant.PureScript.Affjax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
-import Types (Query(..), Simulation)
+import Types (Query(..), Simulation, WebData)
 
 gistControls ::
   forall p.
-  RemoteData AjaxError AuthStatus
-  -> RemoteData AjaxError Gist
+  WebData AuthStatus
+  -> WebData Gist
   -> Maybe String
   -> HTML p (Query Unit)
 gistControls authStatus createGistResult gistUrl =
