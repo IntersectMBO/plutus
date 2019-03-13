@@ -108,7 +108,7 @@ totalVested (Vesting l r _) = Ada.plus (vestingTrancheAmount l) (vestingTrancheA
 vestingValidator :: Vesting -> ValidatorScript
 vestingValidator v = ValidatorScript val where
     val = L.applyScript inner (L.lifted v)
-    inner = $$(L.compileScript [|| \(scheme :: Vesting) (sig :: Signature) () (p :: V.PendingTx) ->
+    inner = $$(L.compileScript [|| \(scheme :: Vesting) () (sig :: Signature) (p :: V.PendingTx) ->
         let
             
             Vesting tranche1 tranche2 owner = scheme

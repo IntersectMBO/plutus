@@ -640,10 +640,10 @@ instance Show ValidationData where
     show = const "ValidationData { <script> }"
 
 -- | Evaluate a validator script with the given inputs
-runScript :: ValidationData -> ValidatorScript -> RedeemerScript -> DataScript -> ([String], Bool)
-runScript (ValidationData valData) (ValidatorScript validator) (RedeemerScript redeemer) (DataScript dataScript) =
+runScript :: ValidationData -> ValidatorScript -> DataScript -> RedeemerScript -> ([String], Bool)
+runScript (ValidationData valData) (ValidatorScript validator) (DataScript dataScript) (RedeemerScript redeemer) =
     let
-        applied = ((validator `applyScript` redeemer) `applyScript` dataScript) `applyScript` valData
+        applied = ((validator `applyScript` dataScript) `applyScript` redeemer) `applyScript` valData
         -- TODO: do something with the error
     in evaluateScript applied
         -- TODO: Enable type checking of the program

@@ -142,7 +142,7 @@ contributionScript cmp  = ValidatorScript val where
 
     --   See note [Contracts and Validator Scripts] in
     --       Language.Plutus.Coordination.Contracts
-    inner = $$(Ledger.compileScript [|| (\Campaign{..} (act :: CampaignAction) (a :: CampaignActor) (p :: PendingTx) ->
+    inner = $$(Ledger.compileScript [|| (\Campaign{..} (a :: CampaignActor) (act :: CampaignAction) (p :: PendingTx) ->
         let
 
             infixr 3 &&

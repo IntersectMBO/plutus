@@ -51,7 +51,7 @@ trickier10Light = $$(P.compile [|| $$(TH.trickierLight 10) ||])
 -}
 intGameValidator :: ValidatorScript
 intGameValidator = ValidatorScript ($$(L.compileScript [||
-  \(ClearNumber guess') (SecretNumber actual) (_ :: PendingTx) ->
+  \(SecretNumber actual) (ClearNumber guess') (_ :: PendingTx) ->
     if $$(P.eq) actual ($$(TH.trickier 2) guess')
     then ()
     else $$(P.error) ($$(P.traceH) "Wrong number" ())
