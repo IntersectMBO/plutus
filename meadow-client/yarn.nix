@@ -1263,6 +1263,15 @@
     }
 
     {
+      name = "commander-2.19.0.tgz";
+      path = fetchurl {
+        name = "commander-2.19.0.tgz";
+        url  = "https://registry.yarnpkg.com/commander/-/commander-2.19.0.tgz";
+        sha1 = "f6198aa84e5b83c46054b94ddedbfed5ee9ff12a";
+      };
+    }
+
+    {
       name = "commondir-1.0.1.tgz";
       path = fetchurl {
         name = "commondir-1.0.1.tgz";
@@ -2379,11 +2388,11 @@
     }
 
     {
-      name = "find-cache-dir-2.0.0.tgz";
+      name = "find-cache-dir-2.1.0.tgz";
       path = fetchurl {
-        name = "find-cache-dir-2.0.0.tgz";
-        url  = "https://registry.yarnpkg.com/find-cache-dir/-/find-cache-dir-2.0.0.tgz";
-        sha1 = "4c1faed59f45184530fb9d7fa123a4d04a98472d";
+        name = "find-cache-dir-2.1.0.tgz";
+        url  = "https://registry.yarnpkg.com/find-cache-dir/-/find-cache-dir-2.1.0.tgz";
+        sha1 = "8d0f94cd13fe43c6c7c261a0d86115ca918c05f7";
       };
     }
 
@@ -3981,11 +3990,11 @@
     }
 
     {
-      name = "make-dir-1.3.0.tgz";
+      name = "make-dir-2.1.0.tgz";
       path = fetchurl {
-        name = "make-dir-1.3.0.tgz";
-        url  = "https://registry.yarnpkg.com/make-dir/-/make-dir-1.3.0.tgz";
-        sha1 = "79c1033b80515bd6d24ec9933e860ca75ee27f0c";
+        name = "make-dir-2.1.0.tgz";
+        url  = "https://registry.yarnpkg.com/make-dir/-/make-dir-2.1.0.tgz";
+        sha1 = "5f0310e18b8be898cc07009295a30ae41e91e6f5";
       };
     }
 
@@ -4053,11 +4062,11 @@
     }
 
     {
-      name = "mem-4.1.0.tgz";
+      name = "mem-4.2.0.tgz";
       path = fetchurl {
-        name = "mem-4.1.0.tgz";
-        url  = "https://registry.yarnpkg.com/mem/-/mem-4.1.0.tgz";
-        sha1 = "aeb9be2d21f47e78af29e4ac5978e8afa2ca5b8a";
+        name = "mem-4.2.0.tgz";
+        url  = "https://registry.yarnpkg.com/mem/-/mem-4.2.0.tgz";
+        sha1 = "5ee057680ed9cb8dad8a78d820f9a8897a102025";
       };
     }
 
@@ -4161,11 +4170,11 @@
     }
 
     {
-      name = "mimic-fn-1.2.0.tgz";
+      name = "mimic-fn-2.0.0.tgz";
       path = fetchurl {
-        name = "mimic-fn-1.2.0.tgz";
-        url  = "https://registry.yarnpkg.com/mimic-fn/-/mimic-fn-1.2.0.tgz";
-        sha1 = "820c86a39334640e99516928bd03fca88057d022";
+        name = "mimic-fn-2.0.0.tgz";
+        url  = "https://registry.yarnpkg.com/mimic-fn/-/mimic-fn-2.0.0.tgz";
+        sha1 = "0913ff0b121db44ef5848242c38bbb35d44cabde";
       };
     }
 
@@ -5052,6 +5061,15 @@
     }
 
     {
+      name = "pify-4.0.1.tgz";
+      path = fetchurl {
+        name = "pify-4.0.1.tgz";
+        url  = "https://registry.yarnpkg.com/pify/-/pify-4.0.1.tgz";
+        sha1 = "4b2cd25c50d598735c50292224fd8c6df41e3231";
+      };
+    }
+
+    {
       name = "pinkie-promise-2.0.1.tgz";
       path = fetchurl {
         name = "pinkie-promise-2.0.1.tgz";
@@ -5336,6 +5354,15 @@
         name = "purs-loader-3.2.0.tgz";
         url  = "https://registry.yarnpkg.com/purs-loader/-/purs-loader-3.2.0.tgz";
         sha1 = "90dea335976fb87199f721969eaee95ad6810721";
+      };
+    }
+
+    {
+      name = "purty-3.0.7.tgz";
+      path = fetchurl {
+        name = "purty-3.0.7.tgz";
+        url  = "https://registry.yarnpkg.com/purty/-/purty-3.0.7.tgz";
+        sha1 = "ed2ddee11e19b11d0c6ce32b1abb7b22790bfee9";
       };
     }
 
@@ -6096,11 +6123,11 @@
     }
 
     {
-      name = "source-map-support-0.5.10.tgz";
+      name = "source-map-support-0.5.11.tgz";
       path = fetchurl {
-        name = "source-map-support-0.5.10.tgz";
-        url  = "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.5.10.tgz";
-        sha1 = "2214080bc9d51832511ee2bab96e3c2f9353120c";
+        name = "source-map-support-0.5.11.tgz";
+        url  = "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.5.11.tgz";
+        sha1 = "efac2ce0800355d026326a0ca23e162aeac9a4e2";
       };
     }
 
@@ -6528,11 +6555,11 @@
     }
 
     {
-      name = "terser-3.16.1.tgz";
+      name = "terser-3.17.0.tgz";
       path = fetchurl {
-        name = "terser-3.16.1.tgz";
-        url  = "https://registry.yarnpkg.com/terser/-/terser-3.16.1.tgz";
-        sha1 = "5b0dd4fa1ffd0b0b43c2493b2c364fd179160493";
+        name = "terser-3.17.0.tgz";
+        url  = "https://registry.yarnpkg.com/terser/-/terser-3.17.0.tgz";
+        sha1 = "f88ffbeda0deb5637f9d24b0da66f4e15ab10cb2";
       };
     }
 
@@ -6807,11 +6834,11 @@
     }
 
     {
-      name = "upath-1.1.1.tgz";
+      name = "upath-1.1.2.tgz";
       path = fetchurl {
-        name = "upath-1.1.1.tgz";
-        url  = "https://registry.yarnpkg.com/upath/-/upath-1.1.1.tgz";
-        sha1 = "497f7c1090b0818f310bbfb06783586a68d28014";
+        name = "upath-1.1.2.tgz";
+        url  = "https://registry.yarnpkg.com/upath/-/upath-1.1.2.tgz";
+        sha1 = "3db658600edaeeccbe6db5e684d67ee8c2acd068";
       };
     }
 
