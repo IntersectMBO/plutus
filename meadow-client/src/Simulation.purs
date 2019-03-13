@@ -1,5 +1,11 @@
 module Simulation where
 
+import Data.BigInteger (BigInteger)
+import Semantics
+import Data.Map (Map)
+import Data.List (List)
+import Data.Set (Set)
+import Data.Set as Set
 import API (RunResult(RunResult))
 import Ace.Halogen.Component (AceEffects, Autocomplete(Live), aceComponent)
 import Ace.Types (ACE, Editor)
@@ -33,6 +39,8 @@ import Halogen.HTML
   , br_
   , button
   , code_
+  , col
+  , colgroup
   , div
   , div_
   , h2
@@ -43,7 +51,15 @@ import Halogen.HTML
   , span
   , span_
   , strong_
+  , table_
+  , tbody_
+  , td
+  , td_
   , text
+  , th
+  , th_
+  , thead_
+  , tr
   )
 import Halogen.HTML.Events (input_, onChecked, onClick, onDragOver, onDrop)
 import Halogen.HTML.Properties
@@ -117,7 +133,6 @@ simulationPane state = div_ [ row_ [ inputComposerPane state
                                    , transactionComposerPane state
                                    ]
                             , stateTitle state
-                            , text $ show $ Constant $ (BigInteger.fromInt 1)
                             , row_ [statePane state]
                             , div [ classes [ ClassName "demos"
                                             , ClassName "d-flex"
@@ -332,7 +347,7 @@ transactionButtons = [ div [ classes [ ClassName "d-flex"
                              ]
                      ]
 
-signatures :: forall p. Map.Map Person Boolean -> Array (HTML p Query)
+signatures :: forall p. Map Person Boolean -> Array (HTML p Query)
 signatures people = [ h3_ [text "Signatures"]
                     , if ((Map.size people) == 0)
                       then div [] [text "No participants in contract"]
@@ -457,4 +472,152 @@ stateTitle state = div [ classes [ ClassName "demos"
                          ]
 
 statePane :: forall p. FrontendState -> HTML p Query
-statePane state = div [class_ $ ClassName "col"] []
+statePane state = div [ class_ $ ClassName "col"
+                      ] [ stateTable state
+                        ]
+
+stateTable :: forall p. FrontendState -> HTML p Query
+stateTable state =
+  div [ class_ $ ClassName "full-width-card"
+      ] [ card_ [ cardBody_ [ h3_ [ text "Money owed"
+                                  ]
+                            , row_ [ renderMoneyOwed mState.commits
+                                   ]
+                            , h3_ [ text "Commits"
+                                  ]
+                            , row_ [ renderCommits mState.commits
+                                   ]
+                            , h3_ [ text "Choices"
+                                  ]
+                            , row_ [ renderChoices mState.choices 
+                                   ]
+                            , h3_ [ text "Oracle values"
+                                  ]
+                            , row_ [ renderOracles mState.oracles 
+                                   ]
+                            ]
+                ]
+        ]
+  where (State mState) = state.marloweState.state
+
+renderMoneyOwed :: forall p. CommitInfo -> HTML p Query
+renderMoneyOwed (CommitInfo ci) =
+  table_ [ colgroup [] [ col []
+                       , col []
+                       ]
+         , thead_ [ tr [] [ th_ [ text "Participant id"
+                                ]
+                          , th [ class_ $ ClassName "left-border-column"
+                               ] [ text "Owed amount"
+                                 ]
+                          ]
+                  ]
+         , tbody_ (Array.fromFoldable (map renderMoneyOwedIndividual owedList))
+         ]
+  where owedList = Map.toAscUnfoldable ci.redeemedPerPerson :: List (Tuple Person BigInteger)
+
+renderMoneyOwedIndividual :: forall p. Tuple Person BigInteger -> HTML p Query
+renderMoneyOwedIndividual (Tuple person amount) =
+  tr [] [ td_ [ text (show person)
+              ]
+        , td_ [ text (show amount <> " ADA")
+              ]
+        ]
+
+renderCommits :: forall p. CommitInfo -> HTML p Query
+renderCommits (CommitInfo ci) =
+  table_ [ colgroup [] [ col []
+                       , col []
+                       , col []
+                       , col []
+                       ]
+         , thead_ [ tr [] [ th_ [ text "Commit id"
+                                ]
+                          , th [ class_ $ ClassName "middle-column"
+                               ] [ text "Owner"
+                                 ]
+                          , th [ class_ $ ClassName "middle-column"
+                               ] [ text "Amount"
+                                 ]
+                          , th_ [ text "Expiration"
+                                ]
+                          ]
+                  ]
+         , tbody_ (Array.fromFoldable (map renderCommit owedList))
+         ]
+  where owedList = Map.toAscUnfoldable ci.currentCommitsById :: List (Tuple IdCommit CommitInfoRecord)
+
+renderCommit :: forall p. Tuple IdCommit CommitInfoRecord -> HTML p Query
+renderCommit (Tuple idCommit {person, amount, timeout}) =
+  tr [] [ td_ [ text (show idCommit)
+              ]
+        , td [ class_ $ ClassName "middle-column"
+             ] [ text (show person)
+               ]
+        , td [ class_ $ ClassName "middle-column"
+             ] [ text (show amount <> " ADA")
+               ]
+        , td_ [ text (show timeout)
+              ]
+        ]
+
+renderChoices :: forall p. Map WIdChoice Choice -> HTML p Query
+renderChoices choices =
+  table_ [ colgroup [] [ col []
+                       , col []
+                       , col []
+                       ]
+         , thead_ [ tr [] [ th_ [ text "Choice id"
+                                ]
+                          , th [ class_ $ ClassName "middle-column"
+                               ] [ text "Participant"
+                                 ]
+                          , th_ [ text "Chosen value"
+                                ]
+                          ]
+                  ]
+         , tbody_ (Array.fromFoldable (map renderChoice choiceList))
+         ]
+  where choiceList = Map.toAscUnfoldable choices :: List (Tuple WIdChoice Choice)
+
+renderChoice :: forall p. Tuple WIdChoice Choice -> HTML p Query
+renderChoice (Tuple (WIdChoice (IdChoice {choice, person})) value) =
+  tr [] [ td_ [ text (show choice)
+              ]
+        , td [ class_ $ ClassName "middle-column"
+             ] [ text (show person)
+               ]
+        , td_ [ text (show value)
+              ]
+        ]
+
+renderOracles :: forall p. Map IdOracle OracleDataPoint -> HTML p Query
+renderOracles oracles =
+  table_ [ colgroup [] [ col []
+                       , col []
+                       , col []
+                       ]
+         , thead_ [ tr [] [ th_ [ text "Oracle id"
+                                ]
+                          , th [ class_ $ ClassName "middle-column"
+                               ] [ text "Timestamp"
+                                 ]
+                          , th_ [ text "Value"
+                                ]
+                          ]
+                  ]
+         , tbody_ (Array.fromFoldable (map renderOracle oracleList))
+         ]
+  where oracleList = Map.toAscUnfoldable oracles :: List (Tuple IdOracle OracleDataPoint)
+
+renderOracle :: forall p. Tuple IdOracle OracleDataPoint -> HTML p Query
+renderOracle (Tuple idOracle {blockNumber, value}) =
+  tr [] [ td_ [ text (show idOracle)
+              ]
+        , td [ class_ $ ClassName "middle-column"
+             ] [ text (show blockNumber)
+               ]
+        , td_ [ text (show value)
+              ]
+        ]
+
