@@ -10,6 +10,7 @@ import Data.Functor.Coproduct (Coproduct)
 import Data.Generic (class Generic, gShow)
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
+import Data.List (List)
 import Data.Map (Map)
 import Data.Symbol (SProxy(..))
 import Gist (Gist)
@@ -22,6 +23,7 @@ import Semantics
   , BlockNumber
   , Choice
   , Contract
+  , DetachedPrimitive
   , IdAction
   , IdChoice
   , IdCommit
@@ -117,6 +119,9 @@ _createGistResult = prop (SProxy :: SProxy "createGistResult")
 _marloweState :: forall s a. Lens' {marloweState :: a | s} a
 _marloweState = prop (SProxy :: SProxy "marloweState")
 
+type ChoiceEntry
+  = {idChoice :: BigInteger, value :: Choice}
+
 -- Oracles should not be grouped (only one line per oracle) like:
 --    Oracle 3: Provide value [$value] for block [$timestamp]
 type OracleEntry
@@ -132,16 +137,21 @@ _value :: forall s a. Lens' {value :: a | s} a
 _value = prop (SProxy :: SProxy "value")
 
 type InputData
-  = {oracleData :: Map IdOracle OracleEntry, inputs :: Map Person PersonInput}
+  = { inputs :: Map Person (List DetachedPrimitive) 
+    , choiceData :: Map BigInteger ChoiceEntry 
+    , oracleData :: Map IdOracle OracleEntry
+    }
 
--- inputs (grouped by Person id)
+_inputs :: forall s a. Lens' {inputs :: a | s} a
+_inputs = prop (SProxy :: SProxy "inputs")
+
+_choiceData :: forall s a. Lens' {choiceData :: a | s} a
+_choiceData = prop (SProxy :: SProxy "choiceData")
+
 _oracleData ::
   forall s a.
   Lens' {oracleData :: a | s} a
 _oracleData = prop (SProxy :: SProxy "oracleData")
-
-_inputs :: forall s a. Lens' {inputs :: a | s} a
-_inputs = prop (SProxy :: SProxy "inputs")
 
 type TransactionData
   = {inputs :: Array AnyInput, signatures :: Map Person Boolean, outcomes :: Map Person BigInteger}
@@ -154,11 +164,6 @@ _signatures = prop (SProxy :: SProxy "signatures")
 
 _outcomes :: forall s a. Lens' {outcomes :: a | s} a
 _outcomes = prop (SProxy :: SProxy "outcomes")
-
-data PersonInput
-  = CommitAction IdAction IdCommit Value Timeout
-  | PayClaim IdAction IdCommit Value
-  | ProvideChoice IdChoice Choice
 
 -- "Choice $IdChoice: Choose value [$Choice]"
 type MarloweState

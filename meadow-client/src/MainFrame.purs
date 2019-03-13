@@ -132,7 +132,9 @@ import Marlowe.Parser as Parser
 import StaticData as StaticData
 
 emptyInputData :: InputData
-emptyInputData = { oracleData: Map.empty, inputs: Map.empty }
+emptyInputData = { inputs: Map.empty
+	         , choiceData: Map.empty
+	         , oracleData: Map.empty }
 
 emptyTransactionData :: TransactionData
 emptyTransactionData = { inputs: []
