@@ -30,7 +30,6 @@ import Data.Generic (gEq)
 import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, traversed, use, view)
 import Data.Lens.Fold (findOf, maximumOf, preview)
 import Data.Lens.Index (ix)
-import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
@@ -72,8 +71,8 @@ mkSimulatorWallet id =
                   }
 
 initialState :: State
-initialState =
-  { view: Editor
+initialState = State
+  { currentView: Editor
   , compilationResult: NotAsked
   , simulation: Nothing
   , evaluationResult: NotAsked
@@ -245,7 +244,7 @@ eval (LoadGist next) = do
   pure next
 
 eval (ChangeView view next) = do
-  assign _view view
+  assign _currentView view
   pure next
 
 eval (LoadScript key next) = do
@@ -283,7 +282,7 @@ eval (CompileProgram next) = do
       -- change means we'll have to clear out the existing simulation.
       case preview (_Success <<< _Right <<< _CompilationResult <<< _functionSchema) result of
         Just newSignatures -> do
-          oldSignatures <- use (_simulation <<< _Just <<< _Newtype <<< _signatures)
+          oldSignatures <- use (_simulation <<< _Just <<< _signatures)
           unless (oldSignatures `gEq` newSignatures)
             (assign _simulation $ Just $ Simulation { signatures: newSignatures
                                                     , actions: []
@@ -298,7 +297,7 @@ eval (ScrollTo {row, column} next) = do
   pure next
 
 eval (ModifyActions actionEvent next) = do
-  modifying (_simulation <<< _Just <<< _Newtype <<< _actions) (evalActionEvent actionEvent)
+  modifying (_simulation <<< _Just <<< _actions) (evalActionEvent actionEvent)
   pure next
 
 eval (EvaluateActions next) = do
@@ -319,7 +318,7 @@ eval (EvaluateActions next) = do
   pure next
 
 eval (AddWallet next) = do
-  modifying (_simulation <<< _Just <<< _Newtype <<< _wallets)
+  modifying (_simulation <<< _Just <<< _wallets)
     (\wallets -> let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _simulatorWalletWallet <<< _walletId) wallets
                      newWallet = mkSimulatorWallet (maxWalletId + 1)
                  in Array.snoc wallets newWallet)
@@ -327,12 +326,12 @@ eval (AddWallet next) = do
   pure next
 
 eval (RemoveWallet index next) = do
-  modifying (_simulation <<< _Just <<< _Newtype <<< _wallets) (fromMaybe <*> Array.deleteAt index)
-  assign (_simulation <<< _Just <<< _Newtype <<< _actions) []
+  modifying (_simulation <<< _Just <<< _wallets) (fromMaybe <*> Array.deleteAt index)
+  assign (_simulation <<< _Just <<< _actions) []
   pure next
 
 eval (SetBalance wallet newBalance next) = do
-  modifying (_simulation <<< _Just <<< _Newtype <<< _wallets <<< traversed)
+  modifying (_simulation <<< _Just <<< _wallets <<< traversed)
     (\simulatorWallet -> if view _simulatorWalletWallet simulatorWallet == wallet
                          then set _simulatorWalletBalance newBalance simulatorWallet
                          else simulatorWallet)
@@ -342,7 +341,6 @@ eval (PopulateAction n l event) = do
   modifying
     (_simulation
        <<< _Just
-       <<< _Newtype
        <<< _actions
        <<< ix n
        <<< _Action
@@ -396,9 +394,9 @@ evalForm (RemoveSubField n subEvent) arg =
 
 replaceViewOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> View -> View -> m Unit
 replaceViewOnSuccess result source target = do
-  currentView <- use _view
+  currentView <- use _currentView
   when (isSuccess result && currentView == source)
-    (assign _view target)
+    (assign _currentView target)
 
 ------------------------------------------------------------
 
@@ -416,13 +414,13 @@ render ::
   forall m aff.
   MonadAff (EChartsEffects (AceEffects (localStorage :: LOCALSTORAGE | aff))) m
   => State -> ParentHTML Query ChildQuery ChildSlot m
-render state =
+render state@(State {currentView})  =
   div
     [ class_ $ ClassName "main-frame" ]
     [ container_
         [ mainHeader
         , row_
-            [ col10_ [ mainTabBar state.view ]
+            [ col10_ [ mainTabBar currentView ]
             , col2_ [ gistControls
                         (view _authStatus state)
                         (view _createGistResult state)
@@ -430,19 +428,19 @@ render state =
                     ]
             ]
         ]
-    , viewContainer state.view Editor $
+    , viewContainer currentView Editor $
         [ editorPane state
-        , case state.compilationResult of
+        , case view _compilationResult state of
             Failure error -> ajaxErrorPane error
             _ -> empty
         ]
-    , viewContainer state.view Simulations $
-        case state.simulation of
+    , viewContainer currentView Simulations $
+        case view _simulation state of
           Just simulation ->
             [ simulationPane
                 simulation
-                state.evaluationResult
-            , case state.evaluationResult of
+                (view _evaluationResult state)
+            , case (view _evaluationResult state) of
                 Failure error -> ajaxErrorPane error
                 _ -> empty
             ]
@@ -451,8 +449,8 @@ render state =
             , strong_ [ text "Editor" ]
             , text " tab above and compile a contract to get started."
             ]
-    , viewContainer state.view Transactions $
-        case state.evaluationResult of
+    , viewContainer currentView Transactions $
+        case view _evaluationResult state of
           Success evaluation ->
             [ evaluationPane evaluation ]
           Failure error ->

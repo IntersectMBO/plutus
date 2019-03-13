@@ -39,9 +39,7 @@ import Playground.Server as Server
 import Servant.PureScript.Affjax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey)
-import Types (BalancesChartSlot(..), ChildQuery, ChildSlot, EditorSlot(..), MockchainChartSlot(..), Query, Simulation, State, View, _evaluationResult, cpBalancesChart, cpEditor, cpMockchainChart)
-
-type WebData = RemoteData AjaxError
+import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, EditorSlot(EditorSlot), MockchainChartSlot(MockchainChartSlot), Query, State, WebData, _evaluationResult, cpBalancesChart, cpEditor, cpMockchainChart)
 
 class Monad m <= MonadApp m where
   editorGetContents :: m (Maybe SourceCode)
@@ -84,14 +82,7 @@ instance monadHalogenApp :: Monad m => Monad (HalogenApp m)
 instance monadTransHalogenApp :: MonadTrans HalogenApp where
   lift = wrap <<< lift
 
-instance monadStateApp :: Monad m => MonadState { view :: View
-  , compilationResult :: RemoteData AjaxError (Either (Array CompilationError) CompilationResult)
-  , simulation :: Maybe Simulation
-  , evaluationResult :: RemoteData AjaxError EvaluationResult
-  , authStatus :: RemoteData AjaxError AuthStatus
-  , createGistResult :: RemoteData AjaxError Gist
-  , gistUrl :: Maybe String
-  } (HalogenApp m) where
+instance monadStateApp :: Monad m => MonadState State (HalogenApp m) where
   state = wrap <<< state
 
 instance monadAskHalogenApp :: MonadAsk env m => MonadAsk env (HalogenApp m) where

@@ -16,7 +16,7 @@ import Control.Monad.State.Class (class MonadState, get)
 import Data.Argonaut.Generic.Aeson (decodeJson)
 import Data.Argonaut.Parser (jsonParser)
 import Data.Array as Array
-import Data.Either (Either, fromRight)
+import Data.Either (fromRight)
 import Data.Identity (Identity)
 import Data.Lens (Lens', _1, assign, preview, set, use, view)
 import Data.Lens.At (at)
@@ -30,7 +30,6 @@ import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(Tuple))
 import FileEvents (FILE)
 import Gist (Gist, GistId, gistId)
-import Language.Haskell.Interpreter (CompilationError)
 import MainFrame (eval, initialState)
 import MonadApp (class MonadApp)
 import Network.RemoteData (RemoteData(..), isNotAsked, isSuccess)
@@ -39,15 +38,14 @@ import Node.Encoding (Encoding(..))
 import Node.FS (FS)
 import Node.FS.Sync as FS
 import Partial.Unsafe (unsafePartial)
-import Playground.API (CompilationResult, EvaluationResult, SourceCode(..))
+import Playground.API (SourceCode(SourceCode))
 import Playground.Server (SPParams_(..))
-import Servant.PureScript.Affjax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import StaticData (bufferLocalStorageKey)
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (assert, equal')
 import Test.Unit.QuickCheck (quickCheck)
-import Types (Query(..), Simulation, State, View, _authStatus, _createGistResult)
+import Types (Query(LoadGist, SetGistUrl, ChangeView, CheckAuthStatus), State, _authStatus, _createGistResult, _currentView)
 
 all :: forall aff. TestSuite (exception :: EXCEPTION, fs :: FS, random :: RANDOM, file :: FILE | aff)
 all =
@@ -91,17 +89,7 @@ instance bindMockApp :: Monad m => Bind (MockApp m) where
 
 instance monadMockApp :: Monad m => Monad (MockApp m)
 
-instance monadStateMockApp ::
-  Monad m
-  => MonadState { view :: View
-                , compilationResult :: RemoteData AjaxError (Either (Array CompilationError) CompilationResult)
-                , simulation :: Maybe Simulation
-                , evaluationResult :: RemoteData AjaxError EvaluationResult
-                , authStatus :: RemoteData AjaxError AuthStatus
-                , createGistResult :: RemoteData AjaxError Gist
-                , gistUrl :: Maybe String
-                }
-                (MockApp m) where
+instance monadStateMockApp :: Monad m => MonadState State (MockApp m) where
   state f = MockApp $ RWST \r (Tuple world state) ->
     case f state
     of (Tuple a state') -> pure $ RWSResult (Tuple world state') a unit
@@ -178,7 +166,7 @@ evalTests =
     test "ChangeView" do
       quickCheck \aView -> do
         let Tuple _ finalState = unwrap (execMockApp mockWorld (send $ ChangeView aView) :: Identity (Tuple World State))
-        aView == finalState.view
+        aView == view _currentView finalState
 
     suite "LoadGist" do
       test "Bad URL" do

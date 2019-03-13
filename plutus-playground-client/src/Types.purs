@@ -239,8 +239,11 @@ newtype Simulation = Simulation
 derive instance newtypeSimulation :: Newtype Simulation _
 derive instance genericSimulation :: Generic Simulation
 
-type State =
-  { view :: View
+-- | TODO Change this to a newtype, as the type alias interferes with typeclasses.
+type WebData = RemoteData AjaxError
+
+newtype State = State
+  { currentView :: View
   , compilationResult :: RemoteData AjaxError (Either (Array CompilationError) CompilationResult)
   , simulation :: Maybe Simulation
   , evaluationResult :: RemoteData AjaxError EvaluationResult
@@ -249,38 +252,40 @@ type State =
   , gistUrl :: Maybe String
   }
 
-_view :: forall s a. Lens' {view :: a | s} a
-_view = prop (SProxy :: SProxy "view")
+derive instance newtypeState :: Newtype State _
 
-_simulation :: forall s a. Lens' {simulation :: a | s} a
-_simulation = prop (SProxy :: SProxy "simulation")
+_currentView :: Lens' State View
+_currentView = _Newtype <<< prop (SProxy :: SProxy "currentView")
 
-_signatures :: forall s a. Lens' {signatures :: a | s} a
-_signatures = prop (SProxy :: SProxy "signatures")
+_simulation :: Lens' State (Maybe Simulation)
+_simulation = _Newtype <<< prop (SProxy :: SProxy "simulation")
 
-_actions :: forall s a. Lens' {actions :: a | s} a
-_actions = prop (SProxy :: SProxy "actions")
+_signatures :: Lens' Simulation Signatures
+_signatures = _Newtype <<< prop (SProxy :: SProxy "signatures")
 
-_wallets :: forall s a. Lens' {wallets :: a | s} a
-_wallets = prop (SProxy :: SProxy "wallets")
+_actions :: Lens' Simulation (Array Action)
+_actions = _Newtype <<< prop (SProxy :: SProxy "actions")
 
-_evaluationResult :: forall s a. Lens' {evaluationResult :: a | s} a
-_evaluationResult = prop (SProxy :: SProxy "evaluationResult")
+_wallets :: Lens' Simulation (Array SimulatorWallet)
+_wallets = _Newtype <<< prop (SProxy :: SProxy "wallets")
 
-_compilationResult :: forall s a. Lens' {compilationResult :: a | s} a
-_compilationResult = prop (SProxy :: SProxy "compilationResult")
+_evaluationResult :: Lens' State (WebData EvaluationResult)
+_evaluationResult = _Newtype <<< prop (SProxy :: SProxy "evaluationResult")
 
-_authStatus :: forall s a. Lens' {authStatus :: a | s} a
-_authStatus = prop (SProxy :: SProxy "authStatus")
+_compilationResult :: Lens' State (WebData (Either (Array CompilationError) CompilationResult))
+_compilationResult = _Newtype <<< prop (SProxy :: SProxy "compilationResult")
 
-_createGistResult :: forall s a. Lens' {createGistResult :: a | s} a
-_createGistResult = prop (SProxy :: SProxy "createGistResult")
+_authStatus :: Lens' State (WebData AuthStatus)
+_authStatus = _Newtype <<< prop (SProxy :: SProxy "authStatus")
 
-_gistUrl :: forall s a. Lens' {gistUrl :: a | s} a
-_gistUrl = prop (SProxy :: SProxy "gistUrl")
+_createGistResult :: Lens' State (WebData Gist)
+_createGistResult = _Newtype <<< prop (SProxy :: SProxy "createGistResult")
 
-_resultBlockchain :: forall s a. Lens' {resultBlockchain :: a | s} a
-_resultBlockchain = prop (SProxy :: SProxy "resultBlockchain")
+_gistUrl :: Lens' State (Maybe String)
+_gistUrl = _Newtype <<< prop (SProxy :: SProxy "gistUrl")
+
+_resultBlockchain :: Lens' EvaluationResult Blockchain
+_resultBlockchain = _Newtype <<< prop (SProxy :: SProxy "resultBlockchain")
 
 data View
   = Editor

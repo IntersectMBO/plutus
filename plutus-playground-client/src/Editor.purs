@@ -76,7 +76,7 @@ editorPane state =
             [ id_ "compile"
             , classes [ btn, btnClass ]
             , onClick $ input_ CompileProgram
-            , disabled (isLoading state.compilationResult)
+            , disabled (isLoading (view _compilationResult state))
             ]
             [ btnText ]
         ]
@@ -85,16 +85,16 @@ editorPane state =
     , warningList
     ]
   where
-    btnClass = case state.compilationResult of
+    btnClass = case view _compilationResult state of
                  Success (Right _) -> btnSuccess
                  Success (Left _) -> btnDanger
                  Failure _ -> btnDanger
                  Loading -> btnSecondary
                  NotAsked -> btnPrimary
-    btnText = case state.compilationResult of
+    btnText = case view _compilationResult state of
                  Loading -> icon Spinner
                  _ -> text "Compile"
-    errorList = case state.compilationResult of
+    errorList = case view _compilationResult state of
                   Success (Left errors) ->
                     listGroup_
                       (listGroupItem_ <<< pure <<< compilationErrorPane <$> errors)
