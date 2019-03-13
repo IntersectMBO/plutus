@@ -122,7 +122,7 @@ _marloweState = prop (SProxy :: SProxy "marloweState")
 -- Oracles should not be grouped (only one line per oracle) like:
 --    Oracle 3: Provide value [$value] for block [$timestamp]
 type OracleEntry
-  = {timestamp :: BlockNumber, value :: BigInteger}
+  = {blockNumber :: BlockNumber, value :: BigInteger}
 
 -- editable
 _timestamp ::

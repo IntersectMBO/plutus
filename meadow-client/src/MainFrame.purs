@@ -71,6 +71,7 @@ import Meadow
   )
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(Success, NotAsked), _Success)
+import Data.Ord (min, max, (>=))
 import Prelude
   ( type (~>)
   , Unit
@@ -92,14 +93,15 @@ import Prelude
   , (==)
   )
 import Semantics
-  ( Choice
+  ( BlockNumber
+  , Choice
   , Contract(..)
   , IdChoice(..)
   , IdInput(..)
   , IdOracle
   , MApplicationResult(..)
   , Person
-  , State
+  , State(..)
   , applyTransaction
   , collectNeededInputsFromContract
   , emptyState
@@ -283,13 +285,13 @@ updateSignatures oldState =
   over (_transaction <<< _signatures) (resizeSigs (peopleFromStateAndContract (oldState.state) (oldState.contract))) oldState
 
 updateChoices :: State -> Set IdInput -> Map Person (Map BigInteger Choice)
-	         -> Map Person (Map BigInteger Choice)
+                 -> Map Person (Map BigInteger Choice)
 updateChoices state inputs cmap =
   foldrDefault addChoice Map.empty inputs
   where
     addChoice (InputIdChoice (IdChoice {choice: idChoice, person})) a =
       let pmap = case Map.lookup person a of
-	           Nothing -> Map.empty
+                   Nothing -> Map.empty
                    Just y -> y in
       let dval = case Map.lookup person cmap of
                     Nothing -> fromInt 0
@@ -299,14 +301,30 @@ updateChoices state inputs cmap =
       Map.insert person (Map.insert idChoice dval pmap) cmap
     addChoice _ a = a
 
-updateOracles :: State -> Set IdInput -> Map IdOracle OracleEntry -> Map IdOracle OracleEntry
-updateOracles _ _ x = x
+updateOracles :: BlockNumber -> State -> Set IdInput -> Map IdOracle OracleEntry -> Map IdOracle OracleEntry
+updateOracles cbn (State state) inputs omap =
+  foldrDefault addOracle Map.empty inputs
+  where
+    addOracle (IdOracle idOracle) a =
+        case Map.lookup idOracle omap, Map.lookup idOracle state.oracles of
+             Nothing, Nothing -> Map.insert idOracle {blockNumber: cbn, value: fromInt 0} a
+             Just {blockNumber: bn, value}, Just {blockNumber: lbn} ->
+               if (lbn >= cbn)
+               then a
+               else Map.insert idOracle {blockNumber: max lbn bn, value} a
+             Just {blockNumber, value}, Nothing ->
+               Map.insert idOracle {blockNumber: min blockNumber cbn, value} a
+             Nothing, Just {blockNumber, value} ->
+               if (blockNumber >= cbn)
+               then a
+               else Map.insert idOracle {blockNumber: cbn, value} a
+    addOracle _ a = a
 
 updateActions :: MarloweState -> {state :: State, contract :: Contract} -> MarloweState
 updateActions oldState {state, contract} =
   set (_input <<< _inputs) (scoutPrimitives oldState.blockNum state contract)
   (over (_input <<< _choiceData) (updateChoices state neededInputs)
-  (over (_input <<< _oracleData) (updateOracles state neededInputs)
+  (over (_input <<< _oracleData) (updateOracles oldState.blockNum state neededInputs)
    oldState))
   where
     neededInputs = collectNeededInputsFromContract contract
@@ -315,7 +333,7 @@ simulateState :: MarloweState -> {state :: State, contract :: Contract}
 simulateState state =
   case applyTransaction inps sigs bn st c mic of
     MSuccessfullyApplied {state: newState, contract: newContract} _ ->
-	    {state: newState, contract: newContract}
+            {state: newState, contract: newContract}
     MCouldNotApply _ -> {state: emptyState, contract: Null}
   where
     inps = Array.toUnfoldable (state.transaction.inputs)
