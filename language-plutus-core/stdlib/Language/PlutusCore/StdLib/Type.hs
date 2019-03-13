@@ -642,20 +642,20 @@ getTyFix ann name argVars patBodyN = do
 
 -- | An auxiliary type for returning a polymorphic @wrap@. Haskell's support for impredicative
 -- polymorphism isn't good enough to do without this.
-newtype PolymorphicWrap ann =
-    PolymorphicWrap { wrap :: forall term . TermLike term TyName Name
-                           => [Type TyName ann] -> term ann -> term ann
-                    }
+newtype PolyWrap ann =
+  PolyWrap { unPolyWrap :: forall term . TermLike term TyName Name
+                        => [Type TyName ann] -> term ann -> term ann
+           }
 
 -- | Make a generic @wrap@ that takes a spine of type arguments and the rest of a term, packs
 -- the spine using the CPS trick and passes the spine and the term to 'IWrap' along with a 1-ary
 -- pattern functor constructed from pieces of a data type passed as arguments to 'getWrap'.
-getWrap :: FromDataPieces ann (PolymorphicWrap ann)
+getWrap :: FromDataPieces ann (PolyWrap ann)
 getWrap ann name argVars patBody = do
     pat1 <- packPatternFunctorBodyN ann name argVars patBody
     toSpine <- getToSpine ann
     let instVar v ty = TyDecl ann ty $ tyVarDeclKind v
-    return $ PolymorphicWrap $ \args ->
+    return $ PolyWrap $ \args ->
         let argVarsLen = length argVars
             argsLen = length args
             in if argVarsLen == argsLen
@@ -670,4 +670,4 @@ makeRecursiveType :: FromDataPieces ann (RecursiveType ann)
 makeRecursiveType ann name argVars patBody = do
     recType <- getTyFix ann name argVars patBody
     polyWrapper <- getWrap ann name argVars patBody
-    pure $ RecursiveType recType (wrap polyWrapper)
+    pure $ RecursiveType recType (unPolyWrap polyWrapper)
