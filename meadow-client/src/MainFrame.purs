@@ -30,12 +30,17 @@ import Control.Monad.Aff.Class (class MonadAff, liftAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
 import Control.Monad.Reader.Class (class MonadAsk)
+import Data.Array as Array
 import Data.Array (catMaybes)
 import Data.BigInteger (BigInteger, fromInt)
 import Data.Either (Either(..))
+import Data.Foldable (foldrDefault)
 import Data.Lens (assign, modifying, over, preview, set, use)
 import Data.List (List(..))
 import Data.Map (Map)
+import Data.Map as Map
+import Data.Set (Set)
+import Data.Set as Set
 import Data.Maybe (Maybe(Just, Nothing))
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
@@ -73,6 +78,7 @@ import Prelude
   , bind
   , const
   , discard
+  , id
   , pure
   , show
   , unit
@@ -86,11 +92,20 @@ import Prelude
   , (==)
   )
 import Semantics
-  ( Contract(..)
+  ( Choice
+  , Contract(..)
+  , IdChoice(..)
+  , IdInput(..)
+  , IdOracle
+  , MApplicationResult(..)
   , Person
+  , State
+  , applyTransaction
+  , collectNeededInputsFromContract
   , emptyState
   , peopleFromStateAndContract
   , readContract
+  , scoutPrimitives
   )
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation (simulationPane)
@@ -105,15 +120,20 @@ import Types
   , MarloweEditorSlot(..)
   , MarloweError(..)
   , MarloweState
+  , OracleEntry
   , Query(..)
   , TransactionData
   , View(..)
   , _authStatus
   , _blockNum
+  , _choiceData
   , _contract
   , _createGistResult
   , _marloweCompileResult
   , _marloweState
+  , _input
+  , _inputs
+  , _oracleData
   , _runResult
   , _signatures
   , _transaction
@@ -124,7 +144,6 @@ import Types
 
 import Ace.EditSession as Session
 import Ace.Editor as Editor
-import Data.Map as Map
 import Data.String as String
 import Halogen as H
 import LocalStorage as LocalStorage
@@ -259,12 +278,66 @@ resizeSigsAux ma ma2 (Cons x y) = case Map.lookup x ma of
 resizeSigs :: List Person -> Map Person Boolean -> Map Person Boolean
 resizeSigs li ma = resizeSigsAux ma Map.empty li
 
+updateSignatures :: MarloweState -> MarloweState
+updateSignatures oldState =
+  over (_transaction <<< _signatures) (resizeSigs (peopleFromStateAndContract (oldState.state) (oldState.contract))) oldState
+
+updateChoices :: State -> Set IdInput -> Map Person (Map BigInteger Choice)
+	         -> Map Person (Map BigInteger Choice)
+updateChoices state inputs cmap =
+  foldrDefault addChoice Map.empty inputs
+  where
+    addChoice (InputIdChoice (IdChoice {choice: idChoice, person})) a =
+      let pmap = case Map.lookup person a of
+	           Nothing -> Map.empty
+                   Just y -> y in
+      let dval = case Map.lookup person cmap of
+                    Nothing -> fromInt 0
+                    Just z -> case Map.lookup idChoice z of
+                                Nothing -> fromInt 0
+                                Just v -> v in
+      Map.insert person (Map.insert idChoice dval pmap) cmap
+    addChoice _ a = a
+
+updateOracles :: State -> Set IdInput -> Map IdOracle OracleEntry -> Map IdOracle OracleEntry
+updateOracles _ _ x = x
+
+updateActions :: MarloweState -> {state :: State, contract :: Contract} -> MarloweState
+updateActions oldState {state, contract} =
+  set (_input <<< _inputs) (scoutPrimitives oldState.blockNum state contract)
+  (over (_input <<< _choiceData) (updateChoices state neededInputs)
+  (over (_input <<< _oracleData) (updateOracles state neededInputs)
+   oldState))
+  where
+    neededInputs = collectNeededInputsFromContract contract
+
+simulateState :: MarloweState -> {state :: State, contract :: Contract}
+simulateState state =
+  case applyTransaction inps sigs bn st c mic of
+    MSuccessfullyApplied {state: newState, contract: newContract} _ ->
+	    {state: newState, contract: newContract}
+    MCouldNotApply _ -> {state: emptyState, contract: Null}
+  where
+    inps = Array.toUnfoldable (state.transaction.inputs)
+    sigs = Set.fromFoldable (Map.keys (Map.filter id (state.transaction.signatures)))
+    bn = state.blockNum
+    st = state.state
+    c = state.contract
+    mic = state.moneyInContract
+
+updateState :: MarloweState -> MarloweState
+updateState oldState = actState
+  where
+    sigState = updateSignatures oldState
+    actState = updateActions sigState (simulateState sigState)
+
 updateContractInState :: String -> MarloweState -> MarloweState
-updateContractInState text state = let con = case readContract text of
-                                         Just con -> con
-                                         Nothing -> Null
-                                   in let newState = set (_contract) con state
-                                      in over (_transaction <<< _signatures) (resizeSigs (peopleFromStateAndContract (newState.state) (newState.contract))) newState
+updateContractInState text state = updateState newState 
+  where
+    con = case readContract text of
+            Just pcon -> pcon
+            Nothing -> Null
+    newState = set (_contract) con state
 
 evalF ::
   forall m aff.

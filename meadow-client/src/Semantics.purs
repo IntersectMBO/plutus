@@ -1327,6 +1327,7 @@ addMaybePrimitive idAction (Just (DPay idCommit person val)) pmap =
             Just l -> l
             Nothing -> Nil
 
+scoutPrimitives :: BlockNumber -> State -> Contract -> M.Map Person (List DetachedPrimitiveWIA)
 scoutPrimitives blockNum state contract =
   foldrWithIndexDefault addMaybePrimitive M.empty res
   where res = scoutPrimitivesAux blockNum state contract

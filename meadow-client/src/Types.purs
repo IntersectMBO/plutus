@@ -119,9 +119,6 @@ _createGistResult = prop (SProxy :: SProxy "createGistResult")
 _marloweState :: forall s a. Lens' {marloweState :: a | s} a
 _marloweState = prop (SProxy :: SProxy "marloweState")
 
-type ChoiceEntry
-  = {idChoice :: BigInteger, value :: Choice}
-
 -- Oracles should not be grouped (only one line per oracle) like:
 --    Oracle 3: Provide value [$value] for block [$timestamp]
 type OracleEntry
@@ -138,7 +135,7 @@ _value = prop (SProxy :: SProxy "value")
 
 type InputData
   = { inputs :: Map Person (List DetachedPrimitiveWIA)
-    , choiceData :: Map BigInteger ChoiceEntry 
+    , choiceData :: Map Person (Map BigInteger Choice)
     , oracleData :: Map IdOracle OracleEntry
     }
 
@@ -157,6 +154,7 @@ type TransactionData
   = {inputs :: Array AnyInput, signatures :: Map Person Boolean, outcomes :: Map Person BigInteger}
 
 -- table under checkboxes
+
 _signatures ::
   forall s a.
   Lens' {signatures :: a | s} a
