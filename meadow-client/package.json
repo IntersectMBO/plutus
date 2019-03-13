@@ -8,7 +8,8 @@
     "purs:ide": "purs ide server --log-level=debug 'bower_components/purescript-*/src/**/*.purs' 'src/**/*.purs' 'generated/**/*.purs'",
     "purs:bundle": "purs bundle output/**/*.js",
     "start": "node bundle.js",
-    "test": "pulp test -I generated"
+    "test": "pulp test -I generated",
+    "repl": "purs repl 'src/**/*.purs' 'bower_components/purescript-*/src/**/*.purs' 'generated/**/*.purs'"
   },
   "dependencies": {
     "ace-builds": "^1.4.1",
@@ -27,6 +28,7 @@
     "pulp": "^12.3.0",
     "purescript-psa": "^0.7.2",
     "purs-loader": "3.2.0",
+    "purty": "^3.0.7",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.23.1",
     "url-loader": "^1.1.2",
