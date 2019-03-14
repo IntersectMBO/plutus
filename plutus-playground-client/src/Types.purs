@@ -269,7 +269,9 @@ derive instance eqView :: Eq View
 derive instance genericView :: Generic View
 
 instance showView :: Show View where
-  show = gShow
+  show Editor = "Editor"
+  show Simulation = "Simulation"
+  show Transactions = "Transactions"
 
 ------------------------------------------------------------
 
