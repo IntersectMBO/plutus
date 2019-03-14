@@ -769,9 +769,10 @@ zeroCouponBondTest = checkMarloweTrace (MarloweScenario {
         discount = 80
         startDate = 50
         maturityDate = 500
+        gracePeriod = 30240 -- about a week, 20sec * 3 * 60 * 24 * 7
     update
 
-    let contract = zeroCouponBond (PubKey 1) (PubKey 2) notional discount startDate maturityDate
+    let contract = zeroCouponBond (PubKey 1) (PubKey 2) notional discount startDate maturityDate gracePeriod
 
     withContract [issuer, investor] contract $ \txOut validator -> do
         txOut <- investor `performs` commit'

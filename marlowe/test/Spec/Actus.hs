@@ -73,7 +73,10 @@ emptyBounds = Bounds Map.empty Map.empty
 
 
 tests :: TestTree
-tests = testGroup "Actus" [testCase "zcb" checkZeroCouponBond]
+tests = testGroup "Actus"
+        [ testCase "Safe zero coupon bond" checkZeroCouponBond
+        , testCase "Trusted zero coupon bond" checkTrustedZeroCouponBond
+        ]
 
 
 checkZeroCouponBond :: IO ()
@@ -84,8 +87,9 @@ checkZeroCouponBond = do
         discount = 80
         startDate = 50
         maturityDate = 500
+        gracePeriod = 30240 -- about a week, 20sec * 3 * 60 * 24 * 7
         deposit = 12
-        contract = zeroCouponBond (PubKey 1) (PubKey 2) notional discount startDate maturityDate
+        contract = zeroCouponBond (PubKey 1) (PubKey 2) notional discount startDate maturityDate gracePeriod
         eval = evalContract (PubKey 1)
     -- investor commits money for a bond with discount
     let (state1, con1, v) = eval (input $ Commit (IdentCC 1) (Signature 2)) (Slot 10)
@@ -101,15 +105,13 @@ checkZeroCouponBond = do
                                     state1
                                     con1
     v @?= True
-    -- issues receives payment for a bond
+    -- issuer receives payment for a bond
     let (state3, con3, v) = eval (input $ Payment (IdentPay 1) (Signature 1)) (Slot 60)
                                     (Ada.fromInt (2*notional - discount + deposit))
                                     (Ada.fromInt (notional + deposit))
                                     state2
                                     con2
     v @?= True
-    putStrLn (show con3)
-    putStrLn (show state3)
     -- investor redeems a bond
     let (_, _, v) = eval (input $ Payment (IdentPay 2) (Signature 2)) (Slot 510)
                                     (Ada.fromInt (notional + deposit))
@@ -117,10 +119,67 @@ checkZeroCouponBond = do
                                     state3
                                     con3
     v @?= True
-    -- issues can't receive payment for a bond before start date
+    -- issuer can't receive payment for a bond before start date
     let (_, _, v) = eval (input $ Payment (IdentPay 1) (Signature 1)) (Slot 49)
                                     (Ada.fromInt (2*notional - discount + deposit))
                                     (Ada.fromInt (notional + deposit))
                                     state2
                                     con2
+    v @?= False
+
+
+checkTrustedZeroCouponBond :: IO ()
+checkTrustedZeroCouponBond = do
+    let input cmd = Input cmd [] []
+        state = State [] []
+        notional = 1000
+        discount = 80
+        startDate = 50
+        maturityDate = 500
+        gracePeriod = 30240 -- about a week, 20sec * 3 * 60 * 24 * 7
+        deposit = 12
+        contract = trustedZeroCouponBond
+                        (PubKey 1)
+                        (PubKey 2)
+                        notional
+                        discount
+                        startDate
+                        maturityDate
+                        gracePeriod
+        eval = evalContract (PubKey 1)
+    -- investor commits money for a bond with discount
+    let (state1, con1, v) = eval (input $ Commit (IdentCC 1) (Signature 2)) (Slot 10)
+                                    (Ada.fromInt deposit)
+                                    (Ada.fromInt (notional - discount + deposit))
+                                    state
+                                    contract
+    v @?= True
+    -- issuer receives payment for a bond
+    let (state2, con2, v) = eval (input $ Payment (IdentPay 1) (Signature 1)) (Slot 60)
+                                    (Ada.fromInt (notional - discount + deposit))
+                                    (Ada.fromInt deposit)
+                                    state1
+                                    con1
+    v @?= True
+    -- issuer commits money for a bond redeem
+    let (state3, con3, v) = eval (input $ Commit (IdentCC 2) (Signature 1)) (Slot 450)
+                                    (Ada.fromInt deposit)
+                                    (Ada.fromInt (notional + deposit))
+                                    state2
+                                    con2
+    v @?= True
+
+    -- investor redeems a bond
+    let (_, _, v) = eval (input $ Payment (IdentPay 2) (Signature 2)) (Slot 510)
+                                    (Ada.fromInt (notional + deposit))
+                                    (Ada.fromInt deposit)
+                                    state3
+                                    con3
+    v @?= True
+    -- issuer can't receive payment for a bond before start date
+    let (_, _, v) = eval (input $ Payment (IdentPay 1) (Signature 1)) (Slot 49)
+                                    (Ada.fromInt (2*notional - discount + deposit))
+                                    (Ada.fromInt (notional + deposit))
+                                    state1
+                                    con1
     v @?= False
