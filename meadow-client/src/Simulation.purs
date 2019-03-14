@@ -307,39 +307,6 @@ inputComposerOracle (Tuple idOracle {blockNumber, value}) =
            , spanText (show blockNumber)
            ]
 
-  
---updateSuggestedAction ::
---  Person ->
---  Int ->
---  MarloweAction ->
---  Person
---updateSuggestedAction person idx val = over _suggestedActions (\acts ->
---  Maybe.fromMaybe acts (updateAt idx val acts)) person
---marloweActionInput ::
---  forall p.
---  Person ->
---  Int ->
---  (Int -> MarloweAction) ->
---  Int ->
---  HTML p Query
---marloweActionInput person idx f current = input [ type_ InputNumber
---                                                , placeholder "Int"
---                                                , class_ $ ClassName "action-input"
---                                                , value $ show current
---                                                , onValueChange $ map (HQ.action <<< UpdatePerson <<< \val ->
---                                                  (updateSuggestedAction person idx (f val))) <<< Int.fromString
---                                                ]
---promoteAction ::
---  Person ->
---  Int ->
---  Person
---promoteAction person idx = fromMaybe person $ do
---  act <- Array.index person.suggestedActions idx
---  suggestedActions <- Array.deleteAt idx person.suggestedActions
---  let actions = Array.snoc person.actions act
---  pure $ person { actions = actions
---                , suggestedActions = suggestedActions
---                }
 flexRow_ ::
   forall p.
   Array (HTML p Query) ->
@@ -349,72 +316,19 @@ flexRow_ html = div [classes [ClassName "d-flex", ClassName "flex-row"]] html
 spanText :: forall p. String -> HTML p Query
 spanText s = span [class_ $ ClassName "pr-1"] [text s]
 
---suggestedActionRow ::
---  forall p.
---  Person ->
--- Int ->
---  MarloweAction ->
---  HTML p Query
---suggestedActionRow person idx (Commit v i e) = flexRow_ [ button [ class_ $ ClassName "composer-add-button"
---                                                                 , onClick <<< input_ <<< UpdatePerson $ promoteAction person idx
---                                                                 ] [ text "+"
---                                                                   ]
---                                                        , spanText "Commit "
---                                                        , marloweActionInput person idx (\val ->
---                                                          (Commit val i e)) v
---                                                        , spanText " ADA with id "
---                                                        , marloweActionInput person idx (\val ->
---                                                          (Commit v val e)) i
---                                                        , spanText " to expire by "
---                                                        , marloweActionInput person idx (\val ->
---                                                          (Commit v i val)) e
---                                                        ]
---suggestedActionRow person idx (Redeem v i) = flexRow_ [ button [ class_ $ ClassName "composer-add-button"
---                                                               , onClick <<< input_ <<< UpdatePerson $ promoteAction person idx
---                                                               ] [ text "+"
---                                                                 ]
---                                                      , spanText "Redeem "
---                                                      , marloweActionInput person idx (\val ->
---                                                        (Redeem val i)) v
---                                                      , spanText " ADA from id "
---                                                      , marloweActionInput person idx (\val ->
---                                                        (Redeem v val)) i
---                                                      ]
---suggestedActionRow person idx (Claim v i) = flexRow_ [ button [ class_ $ ClassName "composer-add-button"
---                                                              , onClick <<< input_ <<< UpdatePerson $ promoteAction person idx
---                                                              ] [ text "+"
---                                                                ]
---                                                     , spanText "Claim "
---                                                     , marloweActionInput person idx (\val ->
---                                                       (Claim val i)) v
---                                                     , spanText " ADA from id "
---                                                     , marloweActionInput person idx (\val ->
---                                                       (Claim v val)) i
---                                                     ]
---suggestedActionRow person idx (Choose v i) = flexRow_ [ button [ class_ $ ClassName "composer-add-button"
---                                                               , onClick <<< input_ <<< UpdatePerson $ promoteAction person idx
---                                                               ] [ text "+"
---                                                                 ]
---                                                      , spanText "Choose value "
---                                                      , marloweActionInput person idx (\val ->
---                                                        (Choose val i)) v
---                                                      , spanText " for id "
---                                                      , marloweActionInput person idx (\val ->
---                                                        (Choose v val)) i
---                                                      ]
 transactionComposerPane ::
   forall p.
   FrontendState ->
   HTML p Query
 transactionComposerPane state =
-	div [ classes [ col6
+        div [ classes [ col6
                       , ClassName "input-composer"
                       ]
             ] [ paneHeader "Transaction Composer"
               , div [ class_ $ ClassName "wallet"
                     ] [ card_ [ cardBody_ $ transactionInputs state.marloweState
-		           <> (signatures state.marloweState.transaction.signatures)
-	                   <> transactionButtons
+                           <> (signatures state.marloweState.transaction.signatures)
+                           <> transactionButtons
                               ]
                       ]
               ]
@@ -523,74 +437,6 @@ inputRow (Input (IOracle idOracle bn val)) =
               ]
        ]
 
---actionRow ::
---  forall p.
---  Person ->
---  Int ->
---  MarloweAction ->
---  HTML p Query
---actionRow person idx (Commit v i e) = row_ [ col_ [ button [ class_ $ ClassName "composer-add-button"
---                                                           , onClick <<< input_ <<< UpdatePerson $ demoteAction person idx
---                                                           ] [ text "-"
---                                                             ]
---                                                  , text "Commit "
---                                                  , b_ [ text (show v)
---                                                       ]
---                                                  , text " ADA with id "
---                                                  , b_ [ text (show i)
---                                                       ]
---                                                  , text " to expire by "
---                                                  , b_ [ text (show e)
---                                                       ]
---                                                  ]
---                                           ]
---actionRow person idx (Redeem v i) = row_ [ col_ [ button [ class_ $ ClassName "composer-add-button"
---                                                         , onClick <<< input_ <<< UpdatePerson $ demoteAction person idx
---                                                         ] [ text "-"
---                                                           ]
---                                                , text "Redeem "
---                                                , b_ [ text (show v)
---                                                     ]
---                                                , text " ADA from id "
---                                                , b_ [ text (show i)
---                                                     ]
---                                                ]
---                                         ]
---actionRow person idx (Claim v i) = row_ [ col_ [ button [ class_ $ ClassName "composer-add-button"
---                                                        , onClick <<< input_ <<< UpdatePerson $ demoteAction person idx
---                                                        ] [ text "-"
---                                                          ]
---                                               , text "Claim "
---                                               , b_ [ text (show v)
---                                                    ]
---                                               , text " ADA from id "
---                                               , b_ [ text (show i)
---                                                    ]
---                                               ]
---                                        ]
---actionRow person idx (Choose v i) = row_ [ col_ [ button [ class_ $ ClassName "composer-add-button"
---                                                         , onClick <<< input_ <<< UpdatePerson $ demoteAction person idx
---                                                         ] [ text "-"
---                                                           ]
---                                                , text "Choose value "
---                                                , b_ [ text (show v)
---                                                     ]
---                                                , text " for id "
---                                                , b_ [ text (show i)
---                                                     ]
---                                                ]
---                                         ]
---demoteAction ::
---  Person ->
---  Int ->
---  Person
---demoteAction person idx = fromMaybe person $ do
---  act <- Array.index person.actions idx
---  actions <- Array.deleteAt idx person.actions
---  let suggestedActions = Array.snoc person.suggestedActions act
---  pure $ person { actions = actions
---                , suggestedActions = suggestedActions
---                }
 stateTitle ::
   forall p.
   FrontendState ->
