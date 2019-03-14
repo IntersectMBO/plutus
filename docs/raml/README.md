@@ -19,7 +19,7 @@ individual functions and an entire program.
 The analysis was later extended to handle single-variable polynomial
 bounds in [[HH2011](#hh2011)] and multi-variable polynomial bounds
 in [[HAH2012](#hah2012)].  These extensions reduce polynomial bounds
-to collections of linear bounds, using a clever re-indexing techinque to
+to collections of linear bounds, using a clever re-indexing technique to
 deal with recursive invocation.  This is important because analysis of
 non-linear functions is a very difficult task in general, whereas
 linear bounds can be dealt with using linear programming, which is
@@ -31,12 +31,12 @@ file handle usage.
 
 Note that the problems of deciding time and heap usage are both
 undecidable in general, since both subsume the halting problem.  In
-the case of time, we're asking not just whether a progam halts, but
+the case of time, we're asking not just whether a program halts, but
 how long it takes to do so.  To see that space usage is undecidable,
 take any program and insert operations which allocate heap space along
 every possible execution path: the heap usage will then be finite if
 and only if the program terminates, so even deciding whether heap
-alloction is finite is as hard as deciding termination.
+allocation is finite is as hard as deciding termination.
 
 ### RAML
 
@@ -116,7 +116,7 @@ RAML has a number of limitations.
 * Complex use of higher order functions can be problematic.  For example,
   a partially-applied function `f` might capture a list `L` and the resource
   usage when `f` was eventually fully applied could depend on the size of `L`;
-  the RAML type system can't deal with situtations like this.
+  the RAML type system can't deal with situations like this.
 
 * RAML only works on functions which iterate over algebraic datatypes,
   and can't deal with things whose resource usage depends on numerical
@@ -154,7 +154,6 @@ it's not immediately clear that it's applicable to types encoded as
 higher-order functions.  However, the technique of
 _defunctionalisation_, due to John Reynolds, can be used to convert
 higher-order programs to first-order ones, representing higher-order
-functions as members of algebraic datatypes (essentially closures
 represented in the source language).  I tried some examples with Peano
 numbers to see if this would make Church and Scott encoded data amenable
 to RAML analyses.
@@ -162,11 +161,13 @@ to RAML analyses.
 #### Standard Peano numbers
 
 The file [Peano.raml](./Peano.raml) contains a simple RAML program involving Peano numbers.
-The output of RAML's analyser is in yyy, and the output of the
-evaluator, including the actual resource consumption, is in zzz.  As
-can be seen, RAML is able to predict the resource usage precisely. The
+The output of RAML's heap usage analysis is in [Peano.heap-analysis](./Peano.heap-analysis)
+and the output of the
+evaluator, including the actual heap consumption, is in [Peano.evaluation](./Peano.evaluation).  As
+can be seen, RAML is able to predict the heap usage precisely. The
 RAML documentation doesn't describe how members of algebraic datatypes
 are represented in the heap, but examination of the intermediate code
+functions as members of algebraic datatypes (essentially closures
 suggests that a Peano number requires 4 heap cells for each `S`
 constructor and 2 for the `Z` constructor.
 
@@ -174,15 +175,15 @@ constructor and 2 for the `Z` constructor.
 RAML gives the heap bounds `4*M` for addition of the Peano numbers,
 and `4*M*N+2` for multiplication, which are correct (addition reuses
 the second argument and only has to allocate cells for a copy of the
-first argument, but mulitplication allocates heap cells for the whole
+first argument, but multiplication allocates heap cells for the whole
 of the product, including a Z node).  Since RAML can only deal with
 polynomial bounds, it isn't able to come up with a bound for
 exponentiation, reporting an infeasible linear program.
 
 RAML can also predict bounds for the number of evaluation steps: see
-xxx.  It's more difficult to see whether these are correct because
+[Peano.steps-analysis](./Peano.steps-analysis).  It's more difficult to see whether these are correct because
 evaluation is more complicated than heap allocation, but the results
-reported in xxx do agree exactly.
+do agree exactly with the actual number of steps reported in [Peano.evaluation](./Peano.evaluation).
 
 #### Church-encoded Peano numbers
 
@@ -194,10 +195,10 @@ produce good results (see uuu).  Somewhat surprisingly, RAML also
 produces good predictions for the version using higher-order
 functions: see xxx and yyy.  I don't know what to make of this.
 
-#### Scott-endcoded Peano numbers
+#### Scott-encoded Peano numbers
 
 I wasn't able to use the Scott encoding directly in RAML or OCaml, due
-to restrictions of the OCaml type system.  It is possbile to use the
+to restrictions of the OCaml type system.  It is possible to use the
 Scott encoding using records in OCaml (see ttt), but RAML can't deal
 with this because it doesn't support records.  Other methods for
 embedding complicated System F types and terms are described in
@@ -239,7 +240,7 @@ RAML alone is not suitable for programs where recursion or iteration
 is controlled by numeric values: to deal with these we'd also need
 some analysis such as one of those mentioned in the previous section.
 Things are complicated by the fact that Plutus Core doesn't have
-explicit contructs for recursion or branching, which makes it very
+explicit constructs for recursion or branching, which makes it very
 difficult to construct a control flow graph, something which is
 central to many static analysis techniques.  Again, an intermediate
 language with suitable constructs might help with this, although we'd
