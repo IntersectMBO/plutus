@@ -2,7 +2,7 @@ cabal-version: 2.0
 name: marlowe
 version: 0.1.0.0
 license: Apache-2.0
-license-files: 
+license-files:
   LICENSE
   NOTICE
 build-type: Simple
@@ -56,6 +56,7 @@ test-suite marlowe-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     other-modules:
+      Spec.Common
       Spec.Marlowe
       Spec.Actus
     build-depends:

@@ -11,71 +11,31 @@ module Spec.Actus
     )
 where
 
-import           Data.Either                    ( isRight )
-import           Data.Maybe
-import           Control.Monad                  ( void, when )
-import           Data.Set                       ( Set )
-import qualified Data.List                      as List
-import qualified Data.Set                       as Set
-import           Data.Map.Strict                ( Map )
 import qualified Data.Map.Strict                as Map
-
-import           Hedgehog                       ( Gen
-                                                , Property
-                                                , Size(..)
-                                                , forAll
-                                                , property
+import           Hedgehog                       ( Property
                                                 )
-import qualified Hedgehog.Range                 as Range
-import           Hedgehog.Gen                   ( element
-                                                , int
-                                                , choice
-                                                , list
-                                                , sized
-                                                )
-import qualified Hedgehog
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.Hedgehog            ( testProperty
-                                                , HedgehogTestLimit(..)
                                                 )
 
 import           Ledger                  hiding ( Value )
 import qualified Ledger.Ada                     as Ada
-import qualified Ledger
-import           Ledger.Validation              ( OracleValue(..) )
-import           Wallet                         ( PubKey(..)
-                                                , startWatching
-                                                )
 import           Wallet.Emulator
-import qualified Wallet.Generators              as Gen
 import           Language.Marlowe        hiding (insertCommit, discountFromPairList, mergeChoices)
-import qualified Language.Marlowe               as Marlowe
 import           Language.Marlowe.Client        ( commit'
-                                                , commit
-                                                , redeem
-                                                , createContract
-                                                , spendDeposit
                                                 , receivePayment
-                                                , marloweValidator
                                                 , evalContract
                                                 )
 import           Language.Marlowe.Actus        as Actus
-
-newtype MarloweScenario = MarloweScenario { mlInitialBalances :: Map.Map PubKey Ledger.Value }
-data Bounds = Bounds {
-    oracleBounds :: Map PubKey (Integer, Integer),
-    choiceBounds :: Map IdentChoice (Integer, Integer)
-}
-
-emptyBounds :: Bounds
-emptyBounds = Bounds Map.empty Map.empty
+import           Spec.Common
 
 
 tests :: TestTree
 tests = testGroup "Actus"
         [ testCase "Safe zero coupon bond" checkZeroCouponBond
         , testCase "Trusted zero coupon bond" checkTrustedZeroCouponBond
+        , testProperty "Trusted zero coupon bond" zeroCouponBondTest
         ]
 
 
@@ -183,3 +143,84 @@ checkTrustedZeroCouponBond = do
                                     state1
                                     con1
     v @?= False
+
+
+zeroCouponBondTest :: Property
+zeroCouponBondTest = checkMarloweTrace (MarloweScenario {
+    mlInitialBalances = Map.fromList [ (PubKey 1, Ada.adaValueOf 1000000), (PubKey 2, Ada.adaValueOf 1000000) ] }) $ do
+    -- Init a contract
+    let issuer = Wallet 1
+        issuerPk = PubKey 1
+        investor = Wallet 2
+        investorPk = PubKey 2
+        update = updateAll [issuer, investor]
+        notional = 1000
+        discount = 80
+        startDate = 50
+        maturityDate = 500
+        gracePeriod = 30240 -- about a week, 20sec * 3 * 60 * 24 * 7
+    update
+
+    let contract = zeroCouponBond (PubKey 1) (PubKey 2) notional discount startDate maturityDate gracePeriod
+
+    withContract [issuer, investor] contract $ \txOut validator -> do
+        txOut <- investor `performs` commit'
+            txOut
+            validator
+            [] []
+            (IdentCC 1)
+            (notional-discount)
+            (State [(IdentCC 1, (PubKey 1, NotRedeemed (notional-discount) maturityDate))] [])
+            (CommitCash (IdentCC 2) issuerPk (Value notional) startDate (maturityDate+1000)
+                (When FalseObs startDate Null
+                    (Pay (IdentPay 1) investorPk issuerPk (Committed (IdentCC 1)) maturityDate
+                        (When FalseObs maturityDate Null
+                            (Pay (IdentPay 2) issuerPk investorPk (Committed (IdentCC 2)) (maturityDate+1000) Null)
+                        )
+                    )
+                )
+                Null
+            )
+
+        update
+
+        txOut <- issuer `performs` commit'
+            txOut
+            validator
+            [] []
+            (IdentCC 2)
+            notional
+            (State [ (IdentCC 1, (PubKey 1, NotRedeemed (notional-discount) maturityDate)),
+                        (IdentCC 2, (PubKey 2, NotRedeemed notional maturityDate))] [])
+            (When FalseObs startDate Null
+                (Pay (IdentPay 1) investorPk issuerPk (Committed (IdentCC 1)) maturityDate
+                    (When FalseObs maturityDate Null
+                        (Pay (IdentPay 2) issuerPk investorPk (Committed (IdentCC 2)) (maturityDate+1000) Null)
+                    )
+                )
+            )
+
+        addBlocksAndNotify [issuer, investor] startDate
+
+        txOut <- issuer `performs` receivePayment txOut
+            validator
+            [] []
+            (IdentPay 1)
+            (notional-discount)
+            (State [(IdentCC 2, (PubKey 2, NotRedeemed notional (maturityDate+1000)))] [])
+            (When FalseObs maturityDate Null
+                (Pay (IdentPay 2) issuerPk investorPk (Committed (IdentCC 2)) (maturityDate+1000) Null)
+            )
+
+        addBlocksAndNotify [issuer, investor] maturityDate
+
+        txOut <- investor `performs` receivePayment txOut
+            validator
+            [] []
+            (IdentPay 1)
+            notional
+            (State [] [])
+            Null
+
+        return (txOut, State [] [])
+    return ()
