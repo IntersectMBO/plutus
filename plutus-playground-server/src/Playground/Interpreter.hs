@@ -148,7 +148,7 @@ runghcOpts =
     -- This appears to sometimes be necessary and sometimes not be, depending
     -- on apparently unrelated changes in the packages this depends on. I'm
     -- blaming the GHC bug.
-    , "-package plutus-tx"
+    --, "-package plutus-tx"
     ]
 
 jsonToString :: ToJSON a => a -> String
