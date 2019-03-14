@@ -11,6 +11,8 @@ import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Ord (genericCompare)
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype, over2, unwrap)
+import Marlowe.Pretty (class Pretty)
+import Text.PrettyPrint.Leijen (text)
 
 newtype BigInteger
   = BigInteger BigInt
@@ -27,6 +29,9 @@ instance ordBigInteger :: Ord BigInteger where
 
 instance showBigInteger :: Show BigInteger where
   show = toString <<< unwrap
+
+instance prettyBigInteger :: Pretty BigInteger where
+  pretty = text <<< show
 
 fromInt :: Int -> BigInteger
 fromInt = BigInteger <<< BigInt.fromInt

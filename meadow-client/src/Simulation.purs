@@ -4,8 +4,7 @@ import Data.BigInteger (BigInteger, fromString, fromInt)
 import Semantics
 import Data.Show as Show
 import Data.Map (Map)
-import Data.List (List(..), concatMap)
-import Data.Set (Set)
+import Data.List (List)
 import Data.Set as Set
 import API (RunResult(RunResult))
 import Ace.Halogen.Component (AceEffects, Autocomplete(Live), aceComponent)
@@ -93,8 +92,7 @@ import Prelude
   , (<<<)
   , (<>)
   )
-import Semantics (Person, Value(..))
-import Semantics (Value(..))
+import Marlowe.Types (Person, IdOracle, Choice, IdAction, IdCommit, Timeout, WIdChoice(..), IdChoice(..))
 import Types
   ( ChildQuery
   , ChildSlot
@@ -129,7 +127,6 @@ import Types
 import Ace.EditSession as Session
 import Ace.Editor as Editor
 import Data.Array as Array
-import Data.BigInteger as BigInteger
 import Data.Map as Map
 import Halogen.HTML.Events as Events
 import Halogen.Query as HQ
