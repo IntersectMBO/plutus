@@ -16,7 +16,7 @@
 @import './node_modules/bootstrap/scss/buttons';
 @import './node_modules/bootstrap/scss/transitions';
 @import './node_modules/bootstrap/scss/dropdown';
-//  @import './node_modules/bootstrap/scss/button-group';
+@import './node_modules/bootstrap/scss/button-group';
 //  @import './node_modules/bootstrap/scss/input-group';
 //  @import './node_modules/bootstrap/scss/custom-forms';
 @import './node_modules/bootstrap/scss/nav';
@@ -159,6 +159,12 @@ h2 {
 
 .btn {
     border-radius: 1.5rem;
+
+    &:focus,
+    &:active {
+        outline: none !important;
+        box-shadow: none;
+    }
 }
 
 .fa-close {
@@ -337,4 +343,12 @@ table.balance-map {
             border-top: none;
         }
     }
+}
+
+#simulation-nav {
+  margin-bottom: 1.5rem;
+
+  .simulation-nav-item .fa {
+      font-size: 20px;
+  }
 }

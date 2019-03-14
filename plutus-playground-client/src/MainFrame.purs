@@ -22,12 +22,15 @@ import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State (class MonadState)
 import Control.Monad.Trans.Class (lift)
+import Cursor (_current)
+import Cursor as Cursor
 import Data.Argonaut.Parser (jsonParser)
 import Data.Array (catMaybes, (..))
 import Data.Array as Array
 import Data.Either (Either(..), note)
 import Data.Generic (gEq)
 import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, traversed, use, view)
+import Data.Lens.Extra (peruse)
 import Data.Lens.Fold (findOf, maximumOf, preview)
 import Data.Lens.Index (ix)
 import Data.Map as Map
@@ -70,11 +73,18 @@ mkSimulatorWallet id =
                   , simulatorWalletBalance: Ada {getAda: 10}
                   }
 
+mkSimulation :: Signatures -> Simulation
+mkSimulation signatures = Simulation
+  { signatures
+  , actions: []
+  , wallets: mkSimulatorWallet <$> 1..2
+  }
+
 initialState :: State
 initialState = State
   { currentView: Editor
   , compilationResult: NotAsked
-  , simulation: Nothing
+  , simulations: Cursor.empty
   , evaluationResult: NotAsked
   , authStatus: NotAsked
   , createGistResult: NotAsked
@@ -129,6 +139,9 @@ toEvent (ChangeView view _) = Just $ (defaultEvent "View") { label = Just $ show
 toEvent (LoadScript script a) = Just $ (defaultEvent "LoadScript") { label = Just script }
 toEvent (CompileProgram a) = Just $ defaultEvent "CompileProgram"
 toEvent (ScrollTo _ _) = Nothing
+toEvent (AddSimulationSlot _) = Just $ (defaultEvent "AddSimulationSlot") { category = Just "Simulation" }
+toEvent (SetSimulationSlot _ _) = Just $ (defaultEvent "SetSimulationSlot") { category = Just "Simulation" }
+toEvent (RemoveSimulationSlot _ _) = Just $ (defaultEvent "RemoveSimulationSlot") { category = Just "Simulation" }
 toEvent (AddWallet _) = Just $ (defaultEvent "AddWallet") { category = Just "Wallet" }
 toEvent (RemoveWallet _ _) = Just $ (defaultEvent "RemoveWallet") { category = Just "Wallet" }
 toEvent (SetBalance _ _ _) = Just $ (defaultEvent "SetBalance") { category = Just "Wallet" }
@@ -183,8 +196,8 @@ eval (CheckAuthStatus next) = do
 
 eval (PublishGist next) = do
   mContents <- editorGetContents
-  simulation <- use _simulation
-  mNewGist <- mkNewGist { source: mContents, simulation }
+  simulations <- use _simulations
+  mNewGist <- mkNewGist { source: mContents, simulations }
   case mNewGist of
     Nothing -> pure next
     Just newGist ->
@@ -224,7 +237,7 @@ eval (LoadGist next) = do
                              Nothing -> pure unit
                              Just content -> do editorSetContents content (Just 1)
                                                 saveBuffer content
-                                                assign _simulation Nothing
+                                                assign _simulations Cursor.empty
                                                 assign _evaluationResult NotAsked
 
                            -- Load the simulation, if available.
@@ -235,9 +248,9 @@ eval (LoadGist next) = do
                              Just simulationString -> do
                                case (decodeJson =<< jsonParser simulationString) of
                                  Left err -> pure unit
-                                 Right simulation -> do
-                                                     assign _simulation $ Just simulation
-                                                     assign _evaluationResult NotAsked
+                                 Right simulations -> do
+                                   assign _simulations simulations
+                                   assign _evaluationResult NotAsked
 
                          _ -> pure unit
 
@@ -282,12 +295,9 @@ eval (CompileProgram next) = do
       -- change means we'll have to clear out the existing simulation.
       case preview (_Success <<< _Right <<< _CompilationResult <<< _functionSchema) result of
         Just newSignatures -> do
-          oldSignatures <- use (_simulation <<< _Just <<< _signatures)
+          oldSignatures <- use (_simulations <<< _current <<< _signatures)
           unless (oldSignatures `gEq` newSignatures)
-            (assign _simulation $ Just $ Simulation { signatures: newSignatures
-                                                    , actions: []
-                                                    , wallets: mkSimulatorWallet <$> 1..2
-                                                    })
+            (assign _simulations $ Cursor.singleton $ mkSimulation newSignatures)
         _ -> pure unit
 
       pure next
@@ -297,14 +307,14 @@ eval (ScrollTo {row, column} next) = do
   pure next
 
 eval (ModifyActions actionEvent next) = do
-  modifying (_simulation <<< _Just <<< _actions) (evalActionEvent actionEvent)
+  modifying (_simulations <<< _current <<< _actions) (evalActionEvent actionEvent)
   pure next
 
 eval (EvaluateActions next) = do
   _ <- runMaybeT $
        do evaluation <- MaybeT do
             contents <- editorGetContents
-            simulation <- use _simulation
+            simulation <- peruse (_simulations <<< _current)
             pure $ join $ toEvaluation <$> contents <*> simulation
 
           result <- lift $ postEvaluation evaluation
@@ -317,8 +327,24 @@ eval (EvaluateActions next) = do
           pure unit
   pure next
 
+eval (AddSimulationSlot next) = do
+  mSignatures <- peruse (_compilationResult <<< _Success <<< _Right <<< _CompilationResult <<< _functionSchema)
+
+  case mSignatures of
+    Just signatures -> modifying _simulations (flip Cursor.snoc (mkSimulation signatures))
+    Nothing -> pure unit
+  pure next
+
+eval (SetSimulationSlot index next) = do
+  modifying _simulations (Cursor.setIndex index)
+  pure next
+
+eval (RemoveSimulationSlot index next) = do
+  modifying _simulations (Cursor.deleteAt index)
+  pure next
+
 eval (AddWallet next) = do
-  modifying (_simulation <<< _Just <<< _wallets)
+  modifying (_simulations <<< _current <<< _wallets)
     (\wallets -> let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _simulatorWalletWallet <<< _walletId) wallets
                      newWallet = mkSimulatorWallet (maxWalletId + 1)
                  in Array.snoc wallets newWallet)
@@ -326,12 +352,12 @@ eval (AddWallet next) = do
   pure next
 
 eval (RemoveWallet index next) = do
-  modifying (_simulation <<< _Just <<< _wallets) (fromMaybe <*> Array.deleteAt index)
-  assign (_simulation <<< _Just <<< _actions) []
+  modifying (_simulations <<< _current <<< _wallets) (fromMaybe <*> Array.deleteAt index)
+  assign (_simulations <<< _current <<< _actions) []
   pure next
 
 eval (SetBalance wallet newBalance next) = do
-  modifying (_simulation <<< _Just <<< _wallets <<< traversed)
+  modifying (_simulations <<< _current <<< _wallets <<< traversed)
     (\simulatorWallet -> if view _simulatorWalletWallet simulatorWallet == wallet
                          then set _simulatorWalletBalance newBalance simulatorWallet
                          else simulatorWallet)
@@ -339,8 +365,8 @@ eval (SetBalance wallet newBalance next) = do
 
 eval (PopulateAction n l event) = do
   modifying
-    (_simulation
-       <<< _Just
+    (_simulations
+       <<< _current
        <<< _actions
        <<< ix n
        <<< _Action
@@ -435,19 +461,12 @@ render state@(State {currentView})  =
             _ -> empty
         ]
     , viewContainer currentView Simulations $
-        case view _simulation state of
-          Just simulation ->
             [ simulationPane
-                simulation
+                (view _simulations state)
                 (view _evaluationResult state)
             , case (view _evaluationResult state) of
                 Failure error -> ajaxErrorPane error
                 _ -> empty
-            ]
-          Nothing ->
-            [ text "Click the "
-            , strong_ [ text "Editor" ]
-            , text " tab above and compile a contract to get started."
             ]
     , viewContainer currentView Transactions $
         case view _evaluationResult state of

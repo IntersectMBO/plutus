@@ -2,8 +2,10 @@ module Action
        ( simulationPane
        ) where
 
-import Bootstrap (badge, badgePrimary, btn, btnDanger, btnInfo, btnLink, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, col10_, col2_, col4_, col_, formControl, formGroup_, invalidFeedback_, nbsp, pullRight, row, row_, validFeedback_)
+import Bootstrap (badge, badgePrimary, btn, btnDanger, btnGroup, btnGroupSmall, btnInfo, btnLink, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, col10_, col2_, col4_, col_, formControl, formGroup_, invalidFeedback_, nbsp, pullRight, row, row_, validFeedback_)
 import Control.Monad.Aff.Class (class MonadAff)
+import Cursor (Cursor, current)
+import Cursor as Cursor
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Int as Int
@@ -14,7 +16,7 @@ import Data.Tuple.Nested ((/\))
 import Halogen (HTML)
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
-import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, form, h2_, h3_, input, label, p_, small_, text)
+import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, form, h2_, h3_, input, label, p_, small_, strong_, text)
 import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (input_, onClick, onValueInput)
 import Halogen.HTML.Events as HE
@@ -23,23 +25,78 @@ import Halogen.Query as HQ
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
 import Playground.API (EvaluationResult, _Fn, _FunctionSchema)
-import Prelude (map, pure, show, ($), (+), (/=), (<$>), (<<<), (<>))
-import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, FormEvent(SetSubField, AddSubField, RemoveSubField, SetStringField, SetIntField), Query(EvaluateActions, ModifyActions, PopulateAction), SimpleArgument(Unknowable, SimpleObject, SimpleArray, SimpleTuple, SimpleString, SimpleInt), Simulation(Simulation), WebData, _argumentSchema, _functionName, _resultBlockchain, _simulatorWalletWallet)
+import Prelude (map, pure, show, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==))
+import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, FormEvent(SetSubField, AddSubField, RemoveSubField, SetStringField, SetIntField), Query(..), SimpleArgument(Unknowable, SimpleObject, SimpleArray, SimpleTuple, SimpleString, SimpleInt), Simulation(Simulation), WebData, _argumentSchema, _functionName, _resultBlockchain, _simulatorWalletWallet)
 import Validation (ValidationError, WithPath, joinPath, showPathValue, validate)
 import Wallet (walletIdPane, walletsPane)
 
 simulationPane ::
   forall m aff.
   MonadAff (EChartsEffects aff) m
-  => Simulation
+  => Cursor Simulation
   -> WebData EvaluationResult
   -> ParentHTML Query ChildQuery ChildSlot m
-simulationPane (Simulation simulation) evaluationResult =
-  div_
-    [ walletsPane simulation.signatures simulation.wallets
-    , br_
-    , actionsPane simulation.actions (view _resultBlockchain <$> evaluationResult)
+simulationPane simulations evaluationResult =
+  case current simulations of
+    Just (Simulation simulation) ->
+      div_
+        [ simulationsNav simulations
+        , walletsPane simulation.signatures simulation.wallets
+        , br_
+        , actionsPane simulation.actions (view _resultBlockchain <$> evaluationResult)
+        ]
+    Nothing ->
+      div_
+        [ text "Click the "
+        , strong_ [ text "Editor" ]
+        , text " tab above and compile a contract to get started."
+        ]
+
+simulationsNav :: forall p . Cursor Simulation -> HTML p Query
+simulationsNav simulations =
+  div
+    [ id_ "simulation-nav"
+    , classes [ btnGroup, btnGroupSmall ]
     ]
+    ((simulations
+      # Cursor.mapWithIndex (simulationNavItem (Cursor.getIndex simulations))
+      # Cursor.toArray
+      # Array.concat
+     )
+     <>
+     [ addSimulationControl ]
+    )
+
+simulationNavItem :: forall p. Int -> Int -> Simulation -> Array (HTML p Query)
+simulationNavItem activeIndex index simulation =
+  [ button
+      [ id_ $ "simulation-nav-item-" <> show index
+      , buttonClasses
+      , onClick $ input_ $ SetSimulationSlot index
+      ]
+      [ text $ "Simulation #" <> show (index + 1) ]
+  , button
+      [ id_ $ "simulation-nav-item-" <> show index <> "-remove"
+      , buttonClasses
+      , onClick $ input_ $ RemoveSimulationSlot index
+      ]
+      [ icon Close ]
+  ]
+  where
+    buttonClasses =
+      classes ([ btn, simulationNavItemClass ] <> if activeIndex == index then [ btnPrimary ] else [ btnInfo ])
+
+simulationNavItemClass :: ClassName
+simulationNavItemClass = ClassName "simulation-nav-item"
+
+addSimulationControl :: forall p. HTML p Query
+addSimulationControl =
+  button
+    [ id_ "simulation-nav-item-add"
+    , classes [ btn, btnInfo, simulationNavItemClass ]
+    , onClick $ input_ $ AddSimulationSlot
+    ]
+    [ icon Plus ]
 
 actionsPane :: forall p. Array Action -> WebData Blockchain -> HTML p Query
 actionsPane actions evaluationResult =

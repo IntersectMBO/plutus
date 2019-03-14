@@ -11,6 +11,7 @@ import AjaxUtils (getEncodeJson, showAjaxError)
 import Auth (AuthRole(..), AuthStatus, authStatusAuthRole)
 import Bootstrap (btn, btnBlock, btnDanger, btnInfo, btnPrimary, btnSecondary, nbsp)
 import Control.Monad.Reader.Trans (class MonadAsk)
+import Cursor (Cursor)
 import DOM.HTML.Indexed.InputType (InputType(..))
 import Data.Argonaut.Core (stringify)
 import Data.Array (catMaybes)
@@ -128,13 +129,13 @@ mkNewGist ::
   forall m params.
   MonadAsk (SPSettings_ params) m
   => { source :: Maybe SourceCode
-     , simulation :: Maybe Simulation
+     , simulations :: Cursor Simulation
      }
   -> m (Maybe NewGist)
-mkNewGist  { source, simulation } = do
+mkNewGist  { source, simulations } = do
   encodeJson <- getEncodeJson
   let gistFiles = catMaybes [ mkNewGistFile gistSourceFilename <<< unwrap <$> source
-                            , mkNewGistFile gistSimulationFilename <<< stringify <<< encodeJson <$> simulation
+                            , Just (mkNewGistFile gistSimulationFilename $ stringify $ encodeJson simulations)
                             ]
   pure $ if Array.null gistFiles
     then Nothing

@@ -8,6 +8,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Random (RANDOM)
+import CursorTests as CursorTests
 import FileEvents (FILE)
 import GistsTests as GistsTests
 import MainFrameTests as MainFrameTests
@@ -23,4 +24,5 @@ main = runTest do
   BridgeTests.all
   TypesTests.all
   GistsTests.all
+  CursorTests.all
   MainFrameTests.all

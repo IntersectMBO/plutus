@@ -139,6 +139,9 @@ btnBlock = ClassName "btn-block"
 btnGroup :: ClassName
 btnGroup = ClassName "btn-group"
 
+btnGroupSmall :: ClassName
+btnGroupSmall = ClassName "btn-group-sm"
+
 btnGroup_ :: forall p i. Array (HTML p i) -> HTML p i
 btnGroup_ = div [ class_ btnGroup ]
 
@@ -273,6 +276,9 @@ disabled = ClassName "disabled"
 
 nav :: ClassName
 nav = ClassName "nav"
+
+navPills_ :: forall p i. Array (HTML p i) -> HTML p i
+navPills_ = ul [ classes [ nav, ClassName "nav-pills" ] ]
 
 navTabs_ :: forall p i. Array (HTML p i) -> HTML p i
 navTabs_ = ul [ classes [ nav, ClassName "nav-tabs" ] ]

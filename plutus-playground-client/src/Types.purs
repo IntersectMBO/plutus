@@ -6,6 +6,7 @@ import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
 import Control.Comonad (class Comonad, extract)
 import Control.Extend (class Extend, extend)
+import Cursor (Cursor)
 import DOM.HTML.Event.Types (DragEvent)
 import Data.Argonaut.Core (Json)
 import Data.Argonaut.Core as Json
@@ -163,6 +164,10 @@ data Query a
   | LoadScript String a
   | CompileProgram a
   | ScrollTo { row :: Int, column :: Int } a
+  -- Simulations
+  | AddSimulationSlot a
+  | SetSimulationSlot Int a
+  | RemoveSimulationSlot Int a
   -- Wallets.
   | AddWallet a
   | RemoveWallet Int a
@@ -236,6 +241,7 @@ newtype Simulation = Simulation
   , actions :: Array Action
   , wallets :: Array SimulatorWallet
   }
+
 derive instance newtypeSimulation :: Newtype Simulation _
 derive instance genericSimulation :: Generic Simulation
 
@@ -244,7 +250,7 @@ type WebData = RemoteData AjaxError
 newtype State = State
   { currentView :: View
   , compilationResult :: WebData (Either (Array CompilationError) CompilationResult)
-  , simulation :: Maybe Simulation
+  , simulations :: Cursor Simulation
   , evaluationResult :: WebData EvaluationResult
   , authStatus :: WebData AuthStatus
   , createGistResult :: WebData Gist
@@ -256,8 +262,8 @@ derive instance newtypeState :: Newtype State _
 _currentView :: Lens' State View
 _currentView = _Newtype <<< prop (SProxy :: SProxy "currentView")
 
-_simulation :: Lens' State (Maybe Simulation)
-_simulation = _Newtype <<< prop (SProxy :: SProxy "simulation")
+_simulations :: Lens' State (Cursor Simulation)
+_simulations = _Newtype <<< prop (SProxy :: SProxy "simulations")
 
 _signatures :: Lens' Simulation Signatures
 _signatures = _Newtype <<< prop (SProxy :: SProxy "signatures")
