@@ -3,7 +3,7 @@ module Simulation where
 import Data.BigInteger (BigInteger)
 import Semantics
 import Data.Map (Map)
-import Data.List (List)
+import Data.List (List(..), concatMap)
 import Data.Set (Set)
 import Data.Set as Set
 import API (RunResult(RunResult))
@@ -28,7 +28,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Data.Either (Either(..))
 import Data.Eq ((==))
-import Data.Maybe (Maybe(Just), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (Tuple(..))
 import Halogen (HTML, action)
 import Halogen.Component (ParentHTML)
@@ -92,12 +92,14 @@ import Types
   ( ChildQuery
   , ChildSlot
   , FrontendState
+  , InputData
   , MarloweEditorSlot
       ( MarloweEditorSlot
       )
   , MarloweError
       ( MarloweError
       )
+  , OracleEntry
   , Query
       ( SetSignature
       , CompileMarlowe
@@ -204,13 +206,105 @@ inputComposerPane state = div [ classes [ col6
                                         ]
                               ] [ paneHeader "Input Composer"
                                 , div [ class_ $ ClassName "wallet"
-                                      ] [ card_ [ cardBody_ [ h3_ [ text ("Person " <> "3")
-                                                                  ]
-                                                            ]
+                                      ] [ card_ [ cardBody_ (inputComposer (state.marloweState.input))
                                                 ]
                                         ]
                                 ]
 
+inputComposer :: forall p. InputData -> Array (HTML p Query)
+inputComposer { inputs, choiceData, oracleData } =
+    Array.concat [ Array.concat (Array.fromFoldable (map (\x -> inputComposerPerson x inputs choiceData) people))
+                 , if (Map.isEmpty oracleData)
+		   then []
+                   else [ h3_ [ text ("Oracles") ] ]
+                 , Array.fromFoldable (map inputComposerOracle oracles)
+                 ]
+  where
+   ik = Set.fromFoldable (Map.keys inputs)
+   cdk = Set.fromFoldable (Map.keys choiceData)
+   people = Set.toUnfoldable (Set.union ik cdk) :: List Person
+   oracles = Map.toUnfoldable oracleData :: List (Tuple IdOracle OracleEntry)
+
+inputComposerPerson :: forall p. Person -> Map Person (List DetachedPrimitiveWIA)
+                       -> Map Person (Map BigInteger Choice)
+                       -> Array (HTML p Query)
+inputComposerPerson person inputs choices =
+  Array.concat
+  [ [ h3_ [ text ("Person " <> show person)
+          ] ]
+  , case Map.lookup person inputs of
+      Nothing -> []
+      Just x -> Array.fromFoldable
+	        do y <- x
+                   case y of
+                     DWAICommit idAction idCommit val tim ->
+                       pure (inputCommit person idAction idCommit val tim)
+                     DWAIPay idAction idCommit val ->
+                       pure (inputPay person idAction idCommit val)
+  , case Map.lookup person choices of
+      Nothing -> []
+      Just x -> do (Tuple idChoice choice) <- Map.toUnfoldable x
+                   pure (inputChoice person idChoice choice)
+  ]
+
+inputCommit :: forall p. Person -> IdAction -> IdCommit -> BigInteger -> Timeout
+                -> HTML p Query
+inputCommit person idAction idCommit val tim =
+  flexRow_ [ button [ class_ $ ClassName "composer-add-button"
+--                    , onClick <<< input_ <<< UpdatePerson $ promoteAction person idx
+                    ] [ text "+"
+                      ]
+           , spanText "Action "
+           , spanText (show idAction)
+           , spanText ": Commit "
+           , spanText (show val)
+           , spanText " ADA with id "
+           , spanText (show idCommit)
+           , spanText " to expire by "
+           , spanText (show tim)
+           ]
+
+inputPay :: forall p. Person -> IdAction -> IdCommit -> BigInteger -> HTML p Query
+inputPay person idAction idCommit val =
+  flexRow_ [ button [ class_ $ ClassName "composer-add-button"
+--                    , onClick <<< input_ <<< UpdatePerson $ promoteAction person idx
+                    ] [ text "+"
+                      ]
+           , spanText "Action "
+           , spanText (show idAction)
+           , spanText ": Claim "
+           , spanText (show val)
+           , spanText " ADA from commit "
+           , spanText (show idCommit)
+           ]
+
+inputChoice :: forall p. Person -> BigInteger -> BigInteger -> HTML p Query
+inputChoice person idChoice val =
+  flexRow_ [ button [ class_ $ ClassName "composer-add-button"
+--                    , onClick <<< input_ <<< UpdatePerson $ promoteAction person idx
+                    ] [ text "+"
+                      ]
+	   , spanText "Choice "
+           , spanText (show idChoice)
+           , spanText ": Choose value "
+           , spanText (show val)
+           ]
+
+inputComposerOracle :: forall p. Tuple IdOracle OracleEntry -> HTML p Query
+inputComposerOracle (Tuple idOracle {blockNumber, value}) =
+  flexRow_ [ button [ class_ $ ClassName "composer-add-button"
+--                    , onClick <<< input_ <<< UpdatePerson $ promoteAction person idx
+                    ] [ text "+"
+                      ]
+           , spanText "Oracle " 
+           , spanText (show idOracle)
+           , spanText ": Provide "
+           , spanText (show value)
+           , spanText " as the value for block "
+           , spanText (show blockNumber)
+           ]
+
+  
 --updateSuggestedAction ::
 --  Person ->
 --  Int ->

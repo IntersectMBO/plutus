@@ -99,6 +99,7 @@ import Semantics
   , IdChoice(..)
   , IdInput(..)
   , IdOracle
+  , ErrorResult(..) 
   , MApplicationResult(..)
   , Person
   , State(..)
@@ -107,6 +108,7 @@ import Semantics
   , emptyState
   , peopleFromStateAndContract
   , readContract
+  , reduce
   , scoutPrimitives
   )
 import Servant.PureScript.Settings (SPSettings_)
@@ -334,6 +336,10 @@ simulateState state =
   case applyTransaction inps sigs bn st c mic of
     MSuccessfullyApplied {state: newState, contract: newContract} _ ->
             {state: newState, contract: newContract}
+    MCouldNotApply InvalidInput ->
+	    if inps == Nil
+	    then {state: st, contract: reduce state.blockNum state.state c}
+	    else {state: emptyState, contract: Null}
     MCouldNotApply _ -> {state: emptyState, contract: Null}
   where
     inps = Array.toUnfoldable (state.transaction.inputs)
@@ -466,6 +472,8 @@ evalF (ApplyTrasaction next) = pure next
 evalF (NextBlock next) = do
   modifying (_marloweState <<< _blockNum) (\x ->
     x + ((fromInt 1) :: BigInteger))
+  currentState <- use _marloweState
+  assign (_marloweState) $ updateState currentState
   pure next
 
 evalF (CompileMarlowe next) = do

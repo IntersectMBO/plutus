@@ -1001,7 +1001,7 @@ reduceRec blockNum state env (Choice obs cont1 cont2) = reduceRec blockNum state
   then cont1
   else cont2)
 
-reduceRec blockNum state env c@(When obs timeout cont1 cont2) = if isExpired timeout blockNum
+reduceRec blockNum state env c@(When obs timeout cont1 cont2) = if isExpired blockNum timeout
   then go cont2
   else if evalObservation blockNum state obs
     then go cont1
@@ -1218,8 +1218,8 @@ fetchPrimitive idAction blockNum state (Commit idActionC idCommit person value _
               }
   else NoMatch
   where
-  notCurrentCommit = isCurrentCommit idCommit state
-  notExpiredCommit = isExpiredCommit idCommit state
+  notCurrentCommit = not (isCurrentCommit idCommit state)
+  notExpiredCommit = not (isExpiredCommit idCommit state)
   actualValue = evalValue blockNum state value
 
 fetchPrimitive idAction blockNum state (Pay idActionC idCommit person value _ continuation _) = if (idAction == idActionC)
@@ -1276,8 +1276,8 @@ scoutPrimitivesAux blockNum state (Commit idActionC idCommit person value _ time
   then M.insert idActionC (Just (DCommit idCommit person actualValue timeout)) M.empty
   else M.empty 
   where
-  notCurrentCommit = isCurrentCommit idCommit state
-  notExpiredCommit = isExpiredCommit idCommit state
+  notCurrentCommit = not (isCurrentCommit idCommit state)
+  notExpiredCommit = not (isExpiredCommit idCommit state)
   actualValue = evalValue blockNum state value
 
 scoutPrimitivesAux blockNum state (Pay idActionC idCommit person value _ continuation _) =
