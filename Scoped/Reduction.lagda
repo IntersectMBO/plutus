@@ -17,12 +17,12 @@ infix 2 _—→_
 data Value {n} : ScopedTm n → Set where
   V-ƛ : (A : ScopedTy ∥ n ∥)(t : ScopedTm (S n)) → Value (ƛ A t)
 --  V-con : (tcn : TermCon) → Value (con {n} tcn)
-data Error : ∀{n} → ScopedTm n → Set where
-
+data Error {n} : ScopedTm n → Set where
+   E-error : (A : ScopedTy ∥ n ∥) → Error (error A)
+   E-· : {L M : ScopedTm n} → Error L → Error (L · M)
 data _—→_ {n} : ScopedTm n → ScopedTm n → Set where
   ξ-· : {L L' M : ScopedTm n} → L —→ L' → L · M —→ L' · M
-  E-· : {L M : ScopedTm n} → Error L → L · M —→ error {!!}
-
+  β-· : {L L' M : ScopedTm (suc n)}
 \end{code}
 
 \begin{code}
@@ -40,10 +40,10 @@ progress (t ·⋆ A) = {!!}
 progress (ƛ A t) = {!!}
 progress (t · u) with progress t
 progress (.(ƛ A t) · u) | inl (inl (V-ƛ A t)) = {!!}
-progress (t · u) | inl (inr p) = inr ((error {!!}) , {!!})
-progress (t · u) | inr y = {!!}
+progress (t · u) | inl (inr p) = inl (inr (E-· p))
+progress (t · u) | inr (t' , p) = inr (t' · u , ξ-· p)
 progress (con x) = {!!}
-progress (error x) = {!!}
+progress (error p) = inl (inr (E-error p))
 progress (builtin x) = {!!}
 \end{code}
 
