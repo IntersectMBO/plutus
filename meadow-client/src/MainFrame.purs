@@ -31,10 +31,11 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Data.Array as Array
-import Data.Array (catMaybes)
+import Data.Array (catMaybes, delete, snoc)
 import Data.BigInteger (BigInteger, fromInt)
 import Data.Either (Either(..))
 import Data.Foldable (foldrDefault)
+import Data.Function (flip)
 import Data.Lens (assign, modifying, over, preview, set, use)
 import Data.List (List(..))
 import Data.Map (Map)
@@ -96,6 +97,7 @@ import Semantics
   ( BlockNumber
   , Choice
   , Contract(..)
+  , WIdChoice(..)
   , IdChoice(..)
   , IdInput(..)
   , IdOracle
@@ -254,6 +256,10 @@ toEvent (ApplyTrasaction _) = Just $ defaultEvent "ApplyTransaction"
 
 toEvent (NextBlock _) = Just $ defaultEvent "NextBlock"
 
+toEvent (AddAnyInput _ _) = Nothing
+
+toEvent (RemoveAnyInput _ _) = Nothing
+
 toEvent (CompileMarlowe _) = Just $ defaultEvent "CompileMarlowe"
 
 saveBuffer ::
@@ -288,7 +294,7 @@ updateSignatures oldState =
 
 updateChoices :: State -> Set IdInput -> Map Person (Map BigInteger Choice)
                  -> Map Person (Map BigInteger Choice)
-updateChoices state inputs cmap =
+updateChoices (State state) inputs cmap =
   foldrDefault addChoice Map.empty inputs
   where
     addChoice (InputIdChoice (IdChoice {choice: idChoice, person})) a =
@@ -300,7 +306,9 @@ updateChoices state inputs cmap =
                     Just z -> case Map.lookup idChoice z of
                                 Nothing -> fromInt 0
                                 Just v -> v in
-      Map.insert person (Map.insert idChoice dval pmap) cmap
+      if Map.member (WIdChoice (IdChoice {choice: idChoice, person})) state.choices
+      then a 
+      else Map.insert person (Map.insert idChoice dval pmap) a
     addChoice _ a = a
 
 updateOracles :: BlockNumber -> State -> Set IdInput -> Map IdOracle OracleEntry -> Map IdOracle OracleEntry
@@ -385,8 +393,7 @@ evalF (HandleDropEvent event next) = do
 
 evalF (MarloweHandleEditorMessage (TextChanged text) next) = do
   liftEff $ saveMarloweBuffer text
-  currentState <- use _marloweState
-  assign (_marloweState) $ updateContractInState text currentState
+  modifying (_marloweState) (updateContractInState text)
   pure next
 
 evalF (MarloweHandleDragEvent event next) = do
@@ -455,6 +462,7 @@ evalF (ScrollTo { row, column } next) = do
 
 evalF (SetSignature { person, isChecked } next) = do
   modifying (_marloweState <<< _transaction <<< _signatures) (Map.insert person isChecked)
+  modifying (_marloweState) updateState
   pure next
 
 --evalF (UpdatePerson person next) = do
@@ -472,8 +480,21 @@ evalF (ApplyTrasaction next) = pure next
 evalF (NextBlock next) = do
   modifying (_marloweState <<< _blockNum) (\x ->
     x + ((fromInt 1) :: BigInteger))
-  currentState <- use _marloweState
-  assign (_marloweState) $ updateState currentState
+  modifying (_marloweState) updateState
+  pure next
+
+evalF (AddAnyInput {person, anyInput} next) = do
+  modifying (_marloweState <<< _transaction <<< _inputs) ((flip snoc) anyInput)
+  case person of
+    Just per -> modifying (_marloweState <<< _transaction <<< _signatures)
+                          (Map.insert per true)
+    Nothing -> pure unit
+  modifying (_marloweState) updateState
+  pure next
+
+evalF (RemoveAnyInput anyInput next) = do
+  modifying (_marloweState <<< _transaction <<< _inputs) (delete anyInput)
+  modifying (_marloweState) updateState
   pure next
 
 evalF (CompileMarlowe next) = do

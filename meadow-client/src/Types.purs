@@ -12,6 +12,7 @@ import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.List (List)
 import Data.Map (Map)
+import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Gist (Gist)
 import Halogen.Component.ChildPath (ChildPath, cpL, cpR)
@@ -54,6 +55,8 @@ data Query a
   | SetSignature {person :: Person, isChecked :: Boolean} a
   | ApplyTrasaction a
   | NextBlock a
+  | AddAnyInput {person :: Maybe Person, anyInput :: AnyInput} a
+  | RemoveAnyInput AnyInput a
   | CompileMarlowe a
 
 ------------------------------------------------------------

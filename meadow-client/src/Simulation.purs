@@ -79,6 +79,7 @@ import Prelude
   , bind
   , const
   , discard
+  , not
   , pure
   , show
   , unit
@@ -105,6 +106,8 @@ import Types
   , OracleEntry
   , Query
       ( SetSignature
+      , AddAnyInput
+      , RemoveAnyInput
       , CompileMarlowe
       , NextBlock
       , ApplyTrasaction
@@ -254,57 +257,61 @@ inputCommit :: forall p. Person -> IdAction -> IdCommit -> BigInteger -> Timeout
                 -> HTML p Query
 inputCommit person idAction idCommit val tim =
   flexRow_ [ button [ class_ $ ClassName "composer-add-button"
---                    , onClick <<< input_ <<< UpdatePerson $ promoteAction person idx
+                    , onClick $ input_ $ AddAnyInput { person: Just person
+                                                     , anyInput: Action idAction }
                     ] [ text "+"
                       ]
            , spanText "Action "
-           , spanText (show idAction)
+           , b_ [ spanText (show idAction) ]
            , spanText ": Commit "
-           , spanText (show val)
+           , b_ [ spanText (show val) ]
            , spanText " ADA with id "
-           , spanText (show idCommit)
+           , b_ [ spanText (show idCommit) ]
            , spanText " to expire by "
-           , spanText (show tim)
+           , b_ [ spanText (show tim) ]
            ]
 
 inputPay :: forall p. Person -> IdAction -> IdCommit -> BigInteger -> HTML p Query
 inputPay person idAction idCommit val =
   flexRow_ [ button [ class_ $ ClassName "composer-add-button"
---                    , onClick <<< input_ <<< UpdatePerson $ promoteAction person idx
+                    , onClick $ input_ $ AddAnyInput { person: Just person
+                                                     , anyInput: Action idAction }
                     ] [ text "+"
                       ]
            , spanText "Action "
-           , spanText (show idAction)
+           , b_ [ spanText (show idAction) ]
            , spanText ": Claim "
-           , spanText (show val)
+           , b_ [ spanText (show val) ]
            , spanText " ADA from commit "
-           , spanText (show idCommit)
+           , b_ [ spanText (show idCommit) ]
            ]
 
 inputChoice :: forall p. Person -> BigInteger -> BigInteger -> HTML p Query
 inputChoice person idChoice val =
   flexRow_ [ button [ class_ $ ClassName "composer-add-button"
---                    , onClick <<< input_ <<< UpdatePerson $ promoteAction person idx
+                    , onClick $ input_ $ AddAnyInput { person: Just person
+                                                     , anyInput: Input (IChoice (IdChoice {choice: idChoice, person}) val) }
                     ] [ text "+"
                       ]
            , spanText "Choice "
-           , spanText (show idChoice)
+           , b_ [ spanText (show idChoice) ]
            , spanText ": Choose value "
-           , spanText (show val)
+           , b_ [ spanText (show val) ]
            ]
 
 inputComposerOracle :: forall p. Tuple IdOracle OracleEntry -> HTML p Query
 inputComposerOracle (Tuple idOracle {blockNumber, value}) =
   flexRow_ [ button [ class_ $ ClassName "composer-add-button"
---                    , onClick <<< input_ <<< UpdatePerson $ promoteAction person idx
+                    , onClick $ input_ $ AddAnyInput { person: Nothing 
+                                                     , anyInput: Input (IOracle idOracle blockNumber value) }
                     ] [ text "+"
                       ]
            , spanText "Oracle " 
-           , spanText (show idOracle)
+           , b_ [ spanText (show idOracle) ]
            , spanText ": Provide "
-           , spanText (show value)
+           , b_ [ spanText (show value) ]
            , spanText " as the value for block "
-           , spanText (show blockNumber)
+           , b_ [ spanText (show blockNumber) ]
            ]
 
 flexRow_ ::
@@ -375,26 +382,27 @@ signatures people = [ h3_ [text "Signatures"]
                     ]
 
 signature :: forall p. Tuple Person Boolean -> HTML p Query
-signature (Tuple person isChecked) = span [ class_ $ ClassName "pr-2"
-                                          ] [ input [ type_ InputCheckbox
-                                                    , onChecked $ Just <<< HQ.action <<< const (SetSignature { person
-                                                                                                             , isChecked
-                                                                                                             })
-                                                    , checked isChecked
-                                                    ]
-                                            , span_ [ text $ " Person " <> show person
-                                                    ]
-                                            ]
+signature (Tuple person isChecked) =
+  span [ class_ $ ClassName "pr-2"
+       ] [ input [ type_ InputCheckbox
+                 , onChecked $ Just <<< HQ.action <<< (\v -> SetSignature { person
+                                                                          , isChecked: v
+                                                                          })
+                 , checked isChecked
+                 ]
+         , span_ [ text $ " Person " <> show person
+                 ]
+         ]
 
 transactionInputs :: forall p. MarloweState -> Array (HTML p Query)
-transactionInputs state = [ h3_ [ text "Action list"
+transactionInputs state = [ h3_ [ text "Input list"
                                 ]
                           ] <> map (inputRow) state.transaction.inputs
 
 inputRow :: forall p. AnyInput -> HTML p Query
-inputRow (Action idAction) =
+inputRow idInput@(Action idAction) =
   row_ [ col_ [ button [ class_ $ ClassName "composer-add-button"
---                     , onClick <<< input_ <<< UpdatePerson $ demoteAction person idx
+                       , onClick $ input_ $ RemoveAnyInput idInput 
                        ] [ text "-"
                          ]
               , text "Action with id "
@@ -403,9 +411,9 @@ inputRow (Action idAction) =
               ]
        ]
 
-inputRow (Input (IChoice (IdChoice {choice, person}) val)) =
+inputRow idInput@(Input (IChoice (IdChoice {choice, person}) val)) =
   row_ [ col_ [ button [ class_ $ ClassName "composer-add-button"
---                     , onClick <<< input_ <<< UpdatePerson $ demoteAction person idx
+                       , onClick $ input_ $ RemoveAnyInput idInput 
                        ] [ text "-"
                          ]
               , text "Participant "
