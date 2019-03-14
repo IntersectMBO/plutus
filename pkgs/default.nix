@@ -56610,6 +56610,51 @@ description = "Haskell bindings to Plotly.js";
 license = stdenv.lib.licenses.mit;
 
 }) {};
+"plutus-contract-exe" = callPackage
+({
+  mkDerivation
+, aeson
+, base
+, containers
+, lens
+, plutus-use-cases
+, servant
+, servant-server
+, stdenv
+, text
+, wallet-api
+, warp
+}:
+mkDerivation {
+
+pname = "plutus-contract-exe";
+version = "0.1.0.0";
+src = .././plutus-contract-exe;
+isLibrary = true;
+isExecutable = true;
+libraryHaskellDepends = [
+aeson
+base
+text
+wallet-api
+];
+executableHaskellDepends = [
+aeson
+base
+containers
+lens
+plutus-use-cases
+servant
+servant-server
+text
+wallet-api
+warp
+];
+doHaddock = false;
+homepage = "https://github.com/iohk/plutus#readme";
+license = stdenv.lib.licenses.asl20;
+
+}) {};
 "plutus-core-interpreter" = callPackage
 ({
   mkDerivation
