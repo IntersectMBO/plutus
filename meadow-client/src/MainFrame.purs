@@ -260,6 +260,12 @@ toEvent (AddAnyInput _ _) = Nothing
 
 toEvent (RemoveAnyInput _ _) = Nothing
 
+toEvent (SetChoice _ _) = Nothing
+
+toEvent (SetOracleVal _ _) = Nothing
+
+toEvent (SetOracleBn _ _) = Nothing
+
 toEvent (CompileMarlowe _) = Just $ defaultEvent "CompileMarlowe"
 
 saveBuffer ::
@@ -321,7 +327,7 @@ updateOracles cbn (State state) inputs omap =
              Just {blockNumber: bn, value}, Just {blockNumber: lbn} ->
                if (lbn >= cbn)
                then a
-               else Map.insert idOracle {blockNumber: max lbn bn, value} a
+               else Map.insert idOracle {blockNumber: max (lbn + fromInt 1) bn, value} a
              Just {blockNumber, value}, Nothing ->
                Map.insert idOracle {blockNumber: min blockNumber cbn, value} a
              Nothing, Just {blockNumber, value} ->
@@ -486,14 +492,33 @@ evalF (NextBlock next) = do
 evalF (AddAnyInput {person, anyInput} next) = do
   modifying (_marloweState <<< _transaction <<< _inputs) ((flip snoc) anyInput)
   case person of
-    Just per -> modifying (_marloweState <<< _transaction <<< _signatures)
-                          (Map.insert per true)
-    Nothing -> pure unit
-  modifying (_marloweState) updateState
-  pure next
+    Just per -> do modifying (_marloweState <<< _transaction <<< _signatures)
+                             (Map.insert per true)
+                   modifying (_marloweState) updateState
+                   pure next
+    Nothing -> do modifying (_marloweState) updateState
+                  pure next
 
 evalF (RemoveAnyInput anyInput next) = do
   modifying (_marloweState <<< _transaction <<< _inputs) (delete anyInput)
+  modifying (_marloweState) updateState
+  pure next
+
+evalF (SetChoice {idChoice: (IdChoice {choice, person}), value} next) = do
+  modifying (_marloweState <<< _input <<< _choiceData)
+    (Map.update (Just <<< (Map.update (const $ Just value) choice)) person)
+  modifying (_marloweState) updateState
+  pure next
+
+evalF (SetOracleVal {idOracle, value} next) = do
+  modifying (_marloweState <<< _input <<< _oracleData)
+    (Map.update (\x -> Just (x {value = value})) idOracle)
+  modifying (_marloweState) updateState
+  pure next
+
+evalF (SetOracleBn {idOracle, blockNumber} next) = do
+  modifying (_marloweState <<< _input <<< _oracleData)
+    (Map.update (\x -> Just (x {blockNumber = blockNumber})) idOracle)
   modifying (_marloweState) updateState
   pure next
 

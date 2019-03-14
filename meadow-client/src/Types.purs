@@ -57,6 +57,9 @@ data Query a
   | NextBlock a
   | AddAnyInput {person :: Maybe Person, anyInput :: AnyInput} a
   | RemoveAnyInput AnyInput a
+  | SetChoice {idChoice :: IdChoice, value :: Choice} a
+  | SetOracleVal {idOracle :: IdOracle, value :: BigInteger} a
+  | SetOracleBn {idOracle :: IdOracle, blockNumber :: BlockNumber} a
   | CompileMarlowe a
 
 ------------------------------------------------------------

@@ -1,7 +1,8 @@
 module Simulation where
 
-import Data.BigInteger (BigInteger)
+import Data.BigInteger (BigInteger, fromString, fromInt)
 import Semantics
+import Data.Show as Show
 import Data.Map (Map)
 import Data.List (List(..), concatMap)
 import Data.Set (Set)
@@ -63,15 +64,18 @@ import Halogen.HTML
   , thead_
   , tr
   )
-import Halogen.HTML.Events (input_, onChecked, onClick, onDragOver, onDrop)
+import Halogen.HTML.Events (input_, onChecked, onClick, onDragOver, onDrop, onValueChange)
 import Halogen.HTML.Properties
   ( InputType
       ( InputCheckbox
+      , InputNumber
       )
   , checked
   , class_
   , classes
+  , placeholder
   , type_
+  , value
   )
 import LocalStorage (LOCALSTORAGE)
 import Prelude
@@ -108,6 +112,9 @@ import Types
       ( SetSignature
       , AddAnyInput
       , RemoveAnyInput
+      , SetChoice
+      , SetOracleVal
+      , SetOracleBn
       , CompileMarlowe
       , NextBlock
       , ApplyTrasaction
@@ -296,7 +303,9 @@ inputChoice person idChoice val =
            , spanText "Choice "
            , b_ [ spanText (show idChoice) ]
            , spanText ": Choose value "
-           , b_ [ spanText (show val) ]
+           , marloweActionInput (\x -> SetChoice { idChoice: (IdChoice {choice: idChoice
+                                                                       , person})
+                                                 , value: x}) val
            ]
 
 inputComposerOracle :: forall p. Tuple IdOracle OracleEntry -> HTML p Query
@@ -309,10 +318,23 @@ inputComposerOracle (Tuple idOracle {blockNumber, value}) =
            , spanText "Oracle " 
            , b_ [ spanText (show idOracle) ]
            , spanText ": Provide "
-           , b_ [ spanText (show value) ]
+           , marloweActionInput (\x -> SetOracleVal { idOracle
+                                                    , value: x}) value
            , spanText " as the value for block "
-           , b_ [ spanText (show blockNumber) ]
+           , marloweActionInput (\x -> SetOracleBn { idOracle
+                                                   , blockNumber: x}) blockNumber
            ]
+
+marloweActionInput f current =
+  input [ type_ InputNumber
+        , placeholder "BigInteger"
+        , class_ $ ClassName "action-input"
+        , value $ show current
+        , onValueChange $ (\x -> Just $ HQ.action $ f (case fromString x of
+                                                        Just y -> y
+                                                        Nothing -> fromInt 0))
+        ]
+
 
 flexRow_ ::
   forall p.
@@ -428,9 +450,9 @@ inputRow idInput@(Input (IChoice (IdChoice {choice, person}) val)) =
               ]
        ]
 
-inputRow (Input (IOracle idOracle bn val)) =
+inputRow idInput@(Input (IOracle idOracle bn val)) =
   row_ [ col_ [ button [ class_ $ ClassName "composer-add-button"
---                     , onClick <<< input_ <<< UpdatePerson $ demoteAction person idx
+                       , onClick $ input_ $ RemoveAnyInput idInput 
                        ] [ text "-"
                          ]
               , text "Oracle "
