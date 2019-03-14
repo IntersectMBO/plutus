@@ -41,6 +41,8 @@ library
         Tutorial.Emulator
         Tutorial.Vesting
         Tutorial.ExUtil
+        Tutorial.Solutions0
+        Tutorial.Solutions0Mockchain
         Tutorial.Solutions1
         Tutorial.Solutions2
     ghc-options: -Wno-unused-imports

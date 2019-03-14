@@ -3,8 +3,10 @@ module Tutorial.ExUtil(
       initialTx
     , w1
     , w2
+    , w3
     , pk1
     , pk2
+    , pk3
     , runTrace
     , runTraceDist
     , runTraceLog
@@ -26,8 +28,9 @@ initialTx =
         , txOutputs =
             [ pubKeyTxOut oneThousand pk1
             , pubKeyTxOut oneThousand pk2
+            , pubKeyTxOut oneThousand pk3
             ]
-        , txForge = oneThousand `Value.plus` oneThousand
+        , txForge = oneThousand `Value.plus` oneThousand `Value.plus` oneThousand
         , txFee = Ada.zero
         , txValidRange = WAPI.defaultSlotRange
         }
@@ -35,16 +38,18 @@ initialTx =
 -- Some wallets used for testing. Wallets are identified by an 'Int'. (Note.
 -- This will change soon! In the near future each wallet will be identified by
 -- a cryptographic key)
-w1, w2 :: EM.Wallet
+w1, w2, w3 :: EM.Wallet
 w1 = EM.Wallet 1
 w2 = EM.Wallet 2
+w3 = EM.Wallet 3
 
 -- To send money to a wallet we need to know its public key. We currently use
 -- 'Int's to represent public keys in the mockchain. (Note. This will change
 -- soon!)
-pk1, pk2 :: WAPI.PubKey
+pk1, pk2, pk3 :: WAPI.PubKey
 pk1 = WAPI.PubKey 1
 pk2 = WAPI.PubKey 2
+pk3 = WAPI.PubKey 3
 
 -- | A helper function for running traces. 'runTrace'
 --   * Forges some funds using the initial transaction from Ledger.ExUtils, to
@@ -59,7 +64,7 @@ runTrace trc = EM.runTraceTxPool [initialTx] $ do
     -- transaction and notify all wallets. If we don't do that, then the wallets
     -- will assume that they don't own any unspent transaction outputs, and all
     -- attempts to make non-zero payments will fail.
-    _ <- EM.addBlocksAndNotify [w1, w2] 1
+    _ <- EM.addBlocksAndNotify [w1, w2, w3] 1
 
     -- now we can run 'trc'.
     trc

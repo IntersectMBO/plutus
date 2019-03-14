@@ -416,9 +416,12 @@ You can run the test suite with `nix build -f default.nix localPackages.plutus-u
 ```
 data Campaign = Campaign {
       fundingTargets     :: [(Slot, Ada)],
+      collectionDeadline :: Slot,
       campaignOwner      :: PubKey
  }
 ```
 
 where `fundingTargets` is a list of slot numbers with associated Ada amounts. The campaign is successful if the funding target for one of the slots has been reached *before* that slot begins. For example, campaign with 
 `Campaign [(Slot 20, Ada 100), (Slot 30, Ada 200)]` is successful if the contributions amount to 100 Ada or more by slot 20, or 200 Ada or more by slot 30.
+
+Solutions to these problems can be found [`Solutions0.hs`](../../tutorial/Tutorial/Solutions0.hs).
