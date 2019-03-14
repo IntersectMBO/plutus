@@ -22,7 +22,6 @@ data Error {n} : ScopedTm n → Set where
    E-· : {L M : ScopedTm n} → Error L → Error (L · M)
 data _—→_ {n} : ScopedTm n → ScopedTm n → Set where
   ξ-· : {L L' M : ScopedTm n} → L —→ L' → L · M —→ L' · M
-  β-· : {L L' M : ScopedTm (suc n)}
 \end{code}
 
 \begin{code}
