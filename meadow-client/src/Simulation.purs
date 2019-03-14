@@ -117,7 +117,7 @@ import Types
       , SetOracleBn
       , CompileMarlowe
       , NextBlock
-      , ApplyTrasaction
+      , ApplyTransaction
       , LoadMarloweScript
       , MarloweHandleEditorMessage
       , MarloweHandleDropEvent
@@ -373,7 +373,7 @@ transactionButtons = [ div [ classes [ ClassName "d-flex"
                                                 , btnPrimary
                                                 , ClassName "transaction-btn"
                                                 ]
-                                      , onClick $ Just <<< HQ.action <<< const ApplyTrasaction
+                                      , onClick $ Just <<< HQ.action <<< const ApplyTransaction
                                       ] [text "Apply Transaction"]
                              , button [ classes [ btn
                                                 , btnPrimary

@@ -137,11 +137,13 @@ import Types
   , _createGistResult
   , _marloweCompileResult
   , _marloweState
+  , _moneyInContract
   , _input
   , _inputs
   , _oracleData
   , _runResult
   , _signatures
+  , _state
   , _transaction
   , _view
   , cpEditor
@@ -252,7 +254,7 @@ toEvent (ScrollTo _ _) = Nothing
 
 toEvent (SetSignature _ _) = Nothing
 
-toEvent (ApplyTrasaction _) = Just $ defaultEvent "ApplyTransaction"
+toEvent (ApplyTransaction _) = Just $ defaultEvent "ApplyTransaction"
 
 toEvent (NextBlock _) = Just $ defaultEvent "NextBlock"
 
@@ -363,6 +365,25 @@ simulateState state =
     c = state.contract
     mic = state.moneyInContract
 
+applyTransactionM :: MarloweState -> MarloweState
+applyTransactionM oldState =
+  case applyTransaction inps sigs bn st c mic of
+    MSuccessfullyApplied {funds, state, contract} _ ->
+       set (_transaction <<< _inputs) []
+       (set (_transaction <<< _signatures) Map.empty
+       (set (_state) state
+       (set (_moneyInContract) funds
+       (set (_contract) contract
+        oldState))))
+    MCouldNotApply _ -> oldState
+  where
+    inps = Array.toUnfoldable (oldState.transaction.inputs)
+    sigs = Set.fromFoldable (Map.keys (Map.filter id (oldState.transaction.signatures)))
+    bn = oldState.blockNum
+    st = oldState.state
+    c = oldState.contract
+    mic = oldState.moneyInContract
+
 updateState :: MarloweState -> MarloweState
 updateState oldState = actState
   where
@@ -471,17 +492,12 @@ evalF (SetSignature { person, isChecked } next) = do
   modifying (_marloweState) updateState
   pure next
 
---evalF (UpdatePerson person next) = do
---  pure next
--- updating a person will require running the simulation so that the next suggested actions can be added
--- although I'm not sure from the design what are suggested and what are manual
--- updating a person will require running the simulation so that the next suggested actions can be added
--- although I'm not sure from the design what are suggested and what are manual
--- updating a person will require running the simulation so that the next suggested actions can be added
--- although I'm not sure from the design what are suggested and what are manual
---  currentState <- use _marloweState
---  assign (_marloweState <<< _people) $ Map.update (const <<< Just $ person) person.id currentState.people
-evalF (ApplyTrasaction next) = pure next
+evalF (ApplyTransaction next) = do
+  modifying (_marloweState) applyTransactionM
+  currContract <- use (_marloweState <<< _contract)
+  void $ withMarloweEditor $ Editor.setValue (show currContract) (Just 1)
+  modifying (_marloweState) updateState
+  pure next
 
 evalF (NextBlock next) = do
   modifying (_marloweState <<< _blockNum) (\x ->

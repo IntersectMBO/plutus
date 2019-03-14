@@ -53,7 +53,7 @@ data Query a
   | ScrollTo {row :: Int, column :: Int} a
   | LoadMarloweScript String a
   | SetSignature {person :: Person, isChecked :: Boolean} a
-  | ApplyTrasaction a
+  | ApplyTransaction a
   | NextBlock a
   | AddAnyInput {person :: Maybe Person, anyInput :: AnyInput} a
   | RemoveAnyInput AnyInput a
