@@ -2,6 +2,12 @@
 
 This repository contains the various components and some documentation for the Plutus Platform, providing smart contract functionality for the Cardano blockchain.
 
+## Communication
+
+Talk to us! We're active on the [Cardano forum](https://forum.cardano.org/). Tag your post with the `plutus` tag so we'll see it.
+
+Do use the Github issue tracker for bugs and feature requests, but keep other discussions to the forum.
+
 ## Building
 
 `default.nix` defines a package set containing all the packages in this repository. These can be built directly.
