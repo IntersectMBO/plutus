@@ -1,8 +1,8 @@
-# Introduction to PlutusTx
+# Introduction to Plutus
 
-PlutusTx is the smart contract platform of the Cardano blockchain. PlutusTx contracts consist of pieces that go on the blockchain (on-chain code) and pieces that run on the user's machine (off-chain or client code). 
+Plutus is the smart contract platform of the Cardano blockchain. Plutus contracts consist of pieces that go on the blockchain (on-chain code) and pieces that run on the user's machine (off-chain or client code). 
 
-Both on-chain and off-chain code is written in Haskell, and PlutusTx smart contracts are Haskell programs. Off-chain code is compiled by GHC, the Haskell compiler, and on-chain code is compiled by the Plutus compiler. 
+Both on-chain and off-chain code is written in Haskell, and Plutus smart contracts are Haskell programs. Off-chain code is compiled by GHC, the Haskell compiler, and on-chain code is compiled by the Plutus compiler. 
 
 ## Smart contracts
 
