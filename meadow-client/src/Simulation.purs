@@ -17,10 +17,11 @@ import Bootstrap
   , cardBody_
   , card_
   , col6
+  , col_
+  , row_
   , empty
   , listGroupItem_
   , listGroup_
-  , row_
   )
 import Control.Alternative (map, (<|>))
 import Control.Monad.Aff.Class (class MonadAff)
@@ -36,6 +37,7 @@ import Halogen.HTML
   ( ClassName
       ( ClassName
       )
+  , b_ 
   , br_
   , button
   , code_
@@ -99,6 +101,7 @@ import Types
   , MarloweError
       ( MarloweError
       )
+  , MarloweState
   , OracleEntry
   , Query
       ( SetSignature
@@ -215,7 +218,7 @@ inputComposer :: forall p. InputData -> Array (HTML p Query)
 inputComposer { inputs, choiceData, oracleData } =
     Array.concat [ Array.concat (Array.fromFoldable (map (\x -> inputComposerPerson x inputs choiceData) people))
                  , if (Map.isEmpty oracleData)
-		   then []
+                   then []
                    else [ h3_ [ text ("Oracles") ] ]
                  , Array.fromFoldable (map inputComposerOracle oracles)
                  ]
@@ -235,7 +238,7 @@ inputComposerPerson person inputs choices =
   , case Map.lookup person inputs of
       Nothing -> []
       Just x -> Array.fromFoldable
-	        do y <- x
+                do y <- x
                    case y of
                      DWAICommit idAction idCommit val tim ->
                        pure (inputCommit person idAction idCommit val tim)
@@ -284,7 +287,7 @@ inputChoice person idChoice val =
 --                    , onClick <<< input_ <<< UpdatePerson $ promoteAction person idx
                     ] [ text "+"
                       ]
-	   , spanText "Choice "
+           , spanText "Choice "
            , spanText (show idChoice)
            , spanText ": Choose value "
            , spanText (show val)
@@ -403,15 +406,18 @@ transactionComposerPane ::
   forall p.
   FrontendState ->
   HTML p Query
-transactionComposerPane state = div [ classes [ col6
-                                              , ClassName "input-composer"
-                                              ]
-                                    ] [ paneHeader "Transaction Composer"
-                                      , div [ class_ $ ClassName "wallet"
-                                            ] [ card_ [ cardBody_ $ (signatures state.marloweState.transaction.signatures) <> transactionButtons
-                                                      ]
-                                              ]
-                                      ]
+transactionComposerPane state =
+	div [ classes [ col6
+                      , ClassName "input-composer"
+                      ]
+            ] [ paneHeader "Transaction Composer"
+              , div [ class_ $ ClassName "wallet"
+                    ] [ card_ [ cardBody_ $ transactionInputs state.marloweState
+		           <> (signatures state.marloweState.transaction.signatures)
+	                   <> transactionButtons
+                              ]
+                      ]
+              ]
 
 transactionButtons :: forall p. Array (HTML p Query)
 transactionButtons = [ div [ classes [ ClassName "d-flex"
@@ -466,13 +472,57 @@ signature (Tuple person isChecked) = span [ class_ $ ClassName "pr-2"
                                                     ]
                                             ]
 
---transactionComposerPerson ::
---  forall p.
---  Person ->
---  Array (HTML p Query)
---transactionComposerPerson person = [ h3_ [ text ("Person " <> show person.id)
---                                         ]
---                                   ] <> mapWithIndex (actionRow person) person.actions
+transactionInputs :: forall p. MarloweState -> Array (HTML p Query)
+transactionInputs state = [ h3_ [ text "Action list"
+                                ]
+                          ] <> map (inputRow) state.transaction.inputs
+
+inputRow :: forall p. AnyInput -> HTML p Query
+inputRow (Action idAction) =
+  row_ [ col_ [ button [ class_ $ ClassName "composer-add-button"
+--                     , onClick <<< input_ <<< UpdatePerson $ demoteAction person idx
+                       ] [ text "-"
+                         ]
+              , text "Action with id "
+              , b_ [ text (show idAction)
+                   ]
+              ]
+       ]
+
+inputRow (Input (IChoice (IdChoice {choice, person}) val)) =
+  row_ [ col_ [ button [ class_ $ ClassName "composer-add-button"
+--                     , onClick <<< input_ <<< UpdatePerson $ demoteAction person idx
+                       ] [ text "-"
+                         ]
+              , text "Participant "
+              , b_ [ text (show person)
+                   ]
+              , text " chooses the value "
+              , b_ [ text (show val)
+                   ]
+              , text " for choice with id "
+              , b_ [ text (show choice)
+                   ]
+              ]
+       ]
+
+inputRow (Input (IOracle idOracle bn val)) =
+  row_ [ col_ [ button [ class_ $ ClassName "composer-add-button"
+--                     , onClick <<< input_ <<< UpdatePerson $ demoteAction person idx
+                       ] [ text "-"
+                         ]
+              , text "Oracle "
+              , b_ [ text (show idOracle)
+                   ]
+              , text " had value "
+              , b_ [ text (show val)
+                   ]
+              , text " at block "
+              , b_ [ text (show bn)
+                   ]
+              ]
+       ]
+
 --actionRow ::
 --  forall p.
 --  Person ->
