@@ -8,6 +8,7 @@ import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
                     mul64, quot64, rem64, lt64, eq64, word64FromNat, word64ToNat)
 import qualified MAlonzo.RTE
 import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Nat
 import qualified MAlonzo.Code.Agda.Builtin.Sigma
 import qualified MAlonzo.Code.Agda.Builtin.String
 import qualified MAlonzo.Code.Builtin
@@ -18,10 +19,12 @@ import qualified MAlonzo.Code.Data.Maybe
 import qualified MAlonzo.Code.Data.Maybe.Base
 import qualified MAlonzo.Code.Data.Nat.Base
 import qualified MAlonzo.Code.Data.String
+import qualified MAlonzo.Code.Data.String.Base
 import qualified MAlonzo.Code.Data.Vec
 import qualified MAlonzo.Code.Raw
 import qualified MAlonzo.Code.Relation.Nullary
 
+import qualified Data.Text as T
 import Scoped
 name2 = "Scoped.ScopedKind"
 d2 = ()
@@ -331,4 +334,90 @@ d348 v0 v1 v2
         -> coe
              (MAlonzo.Code.Data.Maybe.Base.C18
                 (coe (\ v4 v5 -> C108 v5) erased v3))
+      _ -> MAlonzo.RTE.mazUnreachableError
+name408 = "Scoped.uglyWeirdFin"
+d408 :: T30 -> T38 -> MAlonzo.Code.Agda.Builtin.String.T6
+d408 v0 v1
+  = case coe v1 of
+      C42 -> coe (Data.Text.pack "0")
+      C46 v3
+        -> case coe v0 of
+             C34 v4
+               -> coe
+                    MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack "(S ")
+                    (coe
+                       MAlonzo.Code.Data.String.Base.d10 (d408 (coe v4) (coe v3))
+                       (Data.Text.pack ")"))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      C50 v3
+        -> case coe v0 of
+             C36 v4
+               -> coe
+                    MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack "(T ")
+                    (coe
+                       MAlonzo.Code.Data.String.Base.d10 (d408 (coe v4) (coe v3))
+                       (Data.Text.pack ")"))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
+name414 = "Scoped.showNat"
+d414 :: Integer -> MAlonzo.Code.Agda.Builtin.String.T6
+d414 = T.pack . show
+name416 = "Scoped.uglyBuiltin"
+d416 ::
+  MAlonzo.Code.Builtin.T2 -> MAlonzo.Code.Agda.Builtin.String.T6
+d416 v0
+  = let v1 = Data.Text.pack "other" in
+    case coe v0 of
+      MAlonzo.Code.Builtin.C4 -> coe (Data.Text.pack "addInteger")
+      _ -> coe v1
+name420 = "Scoped.ugly"
+d420 :: T30 -> T76 -> MAlonzo.Code.Agda.Builtin.String.T6
+d420 v0 v1
+  = case coe v1 of
+      C80 v3
+        -> coe
+             MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack "(` ")
+             (coe
+                MAlonzo.Code.Data.String.Base.d10 (d408 (coe v0) (coe v3))
+                (Data.Text.pack ")"))
+      C84 v3 v4
+        -> coe
+             MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack "(\923 ")
+             (coe
+                MAlonzo.Code.Data.String.Base.d10
+                (d420 (coe (C36 (coe v0))) (coe v4)) (Data.Text.pack ")"))
+      C88 v3 v4
+        -> coe
+             MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack "( ")
+             (coe
+                MAlonzo.Code.Data.String.Base.d10 (d420 (coe v0) (coe v3))
+                (coe
+                   MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack " \183\8902 ")
+                   (coe
+                      MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack "TYPE")
+                      (Data.Text.pack ")"))))
+      C92 v3 v4
+        -> coe
+             MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack "(\411 ")
+             (coe
+                MAlonzo.Code.Data.String.Base.d10
+                (d420 (coe (C34 (coe v0))) (coe v4)) (Data.Text.pack ")"))
+      C96 v3 v4
+        -> coe
+             MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack "( ")
+             (coe
+                MAlonzo.Code.Data.String.Base.d10 (d420 (coe v0) (coe v3))
+                (coe
+                   MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack " \183 ")
+                   (coe
+                      MAlonzo.Code.Data.String.Base.d10 (d420 (coe v0) (coe v4))
+                      (Data.Text.pack ")"))))
+      C100 v3 -> coe (Data.Text.pack "(con ")
+      C104 v3 -> coe (Data.Text.pack "error _")
+      C108 v3
+        -> coe
+             MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack "(builtin ")
+             (coe
+                MAlonzo.Code.Data.String.Base.d10 (d416 (coe v3))
+                (Data.Text.pack ")"))
       _ -> MAlonzo.RTE.mazUnreachableError

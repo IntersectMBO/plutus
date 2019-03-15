@@ -175,19 +175,25 @@ postulate
 {-# COMPILE GHC readFile = \ s -> BSL.readFile (T.unpack s) #-}
 {-# COMPILE GHC showTerm = T.pack . show #-}
 open import Function
-open import Untyped.Term
-open import Untyped.Reduction
-open import Scoped
+
+open import Untyped.Term as U
+import Untyped.Reduction as U
+import Scoped as S
+import Scoped.Reduction as S
 
 
+-- untyped evaluation
+utestPLC : ByteString → Maybe String
+utestPLC plc = mmap (U.ugly ∘ (λ (t : 0 ⊢) → proj₁ (U.run t 100)) ∘ erase⊢) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))
 
-testPLC : ByteString → Maybe String
-testPLC plc = mmap (ugly ∘ (λ (t : 0 ⊢) → proj₁ (run t 100)) ∘ erase⊢) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))
+-- extrinsically typed evaluation
+stestPLC : ByteString → Maybe String
+stestPLC plc = mmap (S.ugly ∘ (λ (t : ScopedTm Z) → proj₁ (S.run t 100))) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))
 
 testFile : String → IO String
 testFile fn = do
   t ← readFile fn
-  return (maybe id "blerk" (testPLC t))
+  return (maybe id "blerk" (utestPLC t))
 
 {-# FOREIGN GHC import System.Environment #-}
 

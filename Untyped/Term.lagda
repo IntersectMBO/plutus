@@ -76,26 +76,27 @@ eraseTel {As = x ∷ As} (t ,, tel) = erase t ∷ eraseTel tel
 
 -- conversion for scoped to untyped
 
-open import Scoped
+import Scoped as S
 
-eraseℕ : Weirdℕ → ℕ
-eraseℕ Z     = zero
-eraseℕ (S n) = suc (eraseℕ n)
-eraseℕ (T n) = eraseℕ n
+eraseℕ : S.Weirdℕ → ℕ
+eraseℕ S.Z     = zero
+eraseℕ (S.S n) = suc (eraseℕ n)
+eraseℕ (S.T n) = eraseℕ n
 
-eraseFin : ∀{n} → WeirdFin n → Fin (eraseℕ n)
-eraseFin Z     = zero
-eraseFin (S x) = suc (eraseFin x)
-eraseFin (T x) = eraseFin x
+eraseFin : ∀{n} → S.WeirdFin n → Fin (eraseℕ n)
+eraseFin S.Z     = zero
+eraseFin (S.S x) = suc (eraseFin x)
+eraseFin (S.T x) = eraseFin x
 
-eraseCon : SizedTermCon → TermCon
-eraseCon (integer s i x) = integer i
-eraseCon (bytestring s b x) = bytestring b
-eraseCon (size x) = size
-eraseCon (string x) = size -- this is wrong
+eraseCon : S.SizedTermCon → TermCon
+eraseCon (S.integer s i x) = integer i
+eraseCon (S.bytestring s b x) = bytestring b
+eraseCon (S.size x) = size
+eraseCon (S.string x) = size -- this is wrong
 
 open import Data.Sum
 
+-- should do this when de Bruijnifying so it can be shared
 builtinMatcher : ∀{n} → n ⊢ → (Builtin × List (n ⊢)) ⊎ n ⊢
 builtinMatcher (` x) = inj₂ (` x)
 builtinMatcher (ƛ t) = inj₂ (ƛ t)
@@ -115,17 +116,17 @@ builtinEater b ts u | Dec.yes p = builtin b (ts Data.List.++ [ u ])
 builtinEater b ts u | Dec.no ¬p = builtin b ts · u
 
 
-erase⊢ : ∀{n} → ScopedTm n → eraseℕ n ⊢
-erase⊢ (` x)    = ` (eraseFin x)
-erase⊢ (Λ K t)  = erase⊢ t
-erase⊢ (t ·⋆ A) = erase⊢ t
-erase⊢ (ƛ A t)  = ƛ (erase⊢ t)
-erase⊢ (t · u) with builtinMatcher (erase⊢ t)
-erase⊢ (t · u) | inj₁ (b ,, ts) = builtinEater b ts (erase⊢ u)
-erase⊢ (t · u) | inj₂ t' = t' · erase⊢ u
-erase⊢ (con c) = con (eraseCon c)
-erase⊢ (error A) = error
-erase⊢ (builtin b) = builtin b []
+erase⊢ : ∀{n} → S.ScopedTm n → eraseℕ n ⊢
+erase⊢ (S.` x)    = ` (eraseFin x)
+erase⊢ (S.Λ K t)  = erase⊢ t
+erase⊢ (t S.·⋆ A) = erase⊢ t
+erase⊢ (S.ƛ A t)  = ƛ (erase⊢ t)
+erase⊢ (t S.· u) with builtinMatcher (erase⊢ t)
+erase⊢ (t S.· u) | inj₁ (b ,, ts) = builtinEater b ts (erase⊢ u)
+erase⊢ (t S.· u) | inj₂ t' = t' · erase⊢ u
+erase⊢ (S.con c) = con (eraseCon c)
+erase⊢ (S.error A) = error
+erase⊢ (S.builtin b) = builtin b []
 
 \end{code}
 
@@ -142,10 +143,7 @@ uglyTermCon (integer x) = "(integer " ++ Data.Integer.show x ++ ")"
 uglyTermCon (bytestring x) = "bytestring"
 uglyTermCon size = "size"
 
-postulate showNat : ℕ → String
-
 {-# FOREIGN GHC import qualified Data.Text as T #-}
-{-# COMPILE GHC showNat = T.pack . show #-}
 
 uglyBuiltin : Builtin → String
 uglyBuiltin addInteger = "addInteger"
@@ -155,6 +153,6 @@ ugly (` x) = "(` " ++ uglyFin x ++ ")"
 ugly (ƛ t) = "(ƛ " ++ ugly t ++ ")"
 ugly (t · u) = "( " ++ ugly t ++ " · " ++ ugly u ++ ")"
 ugly (con c) = "(con " ++ uglyTermCon c ++ ")"
-ugly (builtin b ts) = "(builtin " ++ uglyBuiltin b ++ " " ++ showNat (Data.List.length ts) ++ ")"
+ugly (builtin b ts) = "(builtin " ++ uglyBuiltin b ++ " " ++ S.showNat (Data.List.length ts) ++ ")"
 ugly error = "error"
 \end{code}

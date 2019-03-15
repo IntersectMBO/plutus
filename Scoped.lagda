@@ -79,7 +79,7 @@ deBruijnifyK * = *
 deBruijnifyK (K ⇒ J) = deBruijnifyK K ⇒ deBruijnifyK J
 deBruijnifyK # = #
 
-open import Data.Vec hiding (_>>=_; map)
+open import Data.Vec hiding (_>>=_; map; _++_)
 open import Data.Maybe
 open import Data.String
 open import Relation.Nullary
@@ -157,4 +157,38 @@ deBruijnifyTm g (L ·⋆ A) = do
 deBruijnifyTm g (con t) = map con (checkSize t)
 deBruijnifyTm g (error A) = map error (deBruijnifyTy ∥ g ∥Vec A)
 deBruijnifyTm g (builtin b) = just (builtin b) 
+\end{code}
+
+\begin{code}
+open import Data.String
+
+uglyWeirdFin : ∀{n} → WeirdFin n → String
+uglyWeirdFin Z = "0"
+uglyWeirdFin (T x) = "(T " ++ uglyWeirdFin x ++ ")"
+uglyWeirdFin (S x) = "(S " ++ uglyWeirdFin x ++ ")"
+
+{-
+uglyTermCon : TermCon → String
+uglyTermCon (integer x) = "(integer " ++ Data.Integer.show x ++ ")"
+uglyTermCon (bytestring x) = "bytestring"
+uglyTermCon size = "size"
+-}
+postulate showNat : ℕ → String
+
+{-# FOREIGN GHC import qualified Data.Text as T #-}
+{-# COMPILE GHC showNat = T.pack . show #-}
+
+uglyBuiltin : Builtin → String
+uglyBuiltin addInteger = "addInteger"
+uglyBuiltin _ = "other"
+ugly : ∀{n} → ScopedTm n → String
+ugly (` x) = "(` " ++ uglyWeirdFin x ++ ")"
+ugly (ƛ _ t) = "(ƛ " ++ ugly t ++ ")"
+ugly (t · u) = "( " ++ ugly t ++ " · " ++ ugly u ++ ")"
+ugly (Λ _ t) = "(Λ " ++ ugly t ++ ")"
+ugly (t ·⋆ A) = "( " ++ ugly t ++ " ·⋆ " ++ "TYPE" ++ ")"
+
+ugly (con c) = "(con " -- ++ uglyTermCon c ++ ")"
+ugly (builtin b) = "(builtin " ++ uglyBuiltin b ++ ")"
+ugly (error _) = "error _"
 \end{code}
