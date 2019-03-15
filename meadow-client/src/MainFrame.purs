@@ -49,13 +49,15 @@ import Halogen.Query (HalogenM)
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError))
 import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
+import Marlowe.Parser (contract)
 import Marlowe.Parser as Parser
+import Marlowe.Pretty (pretty)
 import Marlowe.Types (BlockNumber, Choice, Person, Contract(..), WIdChoice(..), IdChoice(..), IdOracle(..))
 import Meadow (SPParams_, getOauthStatus, patchGistsByGistId, postGists, postContractHaskell)
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(Success, NotAsked), _Success)
 import Prelude (type (~>), Unit, Void, bind, const, discard, id, pure, show, unit, void, ($), (+), (-), (<$>), (<<<), (<>), (==))
-import Semantics (ErrorResult(..), IdInput(..), MApplicationResult(..), State(..), applyTransaction, collectNeededInputsFromContract, emptyState, peopleFromStateAndContract, readContract, reduce, scoutPrimitives)
+import Semantics (ErrorResult(..), IdInput(..), MApplicationResult(..), State(..), applyTransaction, collectNeededInputsFromContract, emptyState, peopleFromStateAndContract, reduce, scoutPrimitives)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation (simulationPane)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
@@ -300,9 +302,9 @@ updateState oldState = actState
 updateContractInState :: String -> MarloweState -> MarloweState
 updateContractInState text state = updateState newState 
   where
-    con = case readContract text of
-            Just pcon -> pcon
-            Nothing -> Null
+    con = case parse contract text of
+            Right pcon -> pcon
+            Left _ -> Null
     newState = set (_contract) con state
 
 evalF ::
@@ -402,7 +404,7 @@ evalF (SetSignature { person, isChecked } next) = do
 evalF (ApplyTransaction next) = do
   modifying (_marloweState) applyTransactionM
   currContract <- use (_marloweState <<< _contract)
-  void $ withMarloweEditor $ Editor.setValue (show currContract) (Just 1)
+  void $ withMarloweEditor $ Editor.setValue (show $ pretty currContract) (Just 1)
   modifying (_marloweState) updateState
   pure next
 
