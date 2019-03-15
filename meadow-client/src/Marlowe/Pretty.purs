@@ -4,34 +4,12 @@ import Prelude
 
 import Data.Array (uncons)
 import Data.Foldable (foldl)
-import Data.Generic.Rep
-  ( class Generic
-  , Argument(..)
-  , Constructor(..)
-  , NoArguments
-  , NoConstructors
-  , Product(..)
-  , Sum(..)
-  , from
-  )
+import Data.Generic.Rep (class Generic, Argument(..), Constructor(..), NoArguments, NoConstructors, Product(..), Sum(..), from)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Monoid (mempty)
 import Data.String (Pattern(..), charAt, contains, length)
 import Data.Symbol (class IsSymbol, SProxy(..), reflectSymbol)
-import Text.PrettyPrint.Leijen
-  ( Doc
-      ( Empty
-      )
-  , appendWithLine
-  , comma
-  , encloseSep
-  , hang
-  , lbracket
-  , parens
-  , rbracket
-  , text
-  , (<+>)
-  )
+import Text.PrettyPrint.Leijen (Doc(Empty), appendWithLine, comma, encloseSep, hang, lbracket, nest, parens, rbracket, text, (<+>), (</>))
 import Type.Data.Boolean (kind Boolean)
 
 class Pretty a where
@@ -57,6 +35,15 @@ instance genericPrettyArgsProduct ::
   GenericPrettyArgs (Product a b) where
   genericPrettyArgs' (Product a b) = genericPrettyArgs' a <> genericPrettyArgs' b
 
+-- FIXME: There are some monsters here, we use `show d` to render a document during the document
+-- building phase, not great but I couldn't find a way around it in 2 separate places:
+--
+-- 1. we want to not have parens around the top level expression but also make sure the indentation
+--    is still correct. The only way I could tell how to do this was to render the document and check
+--    if it looks like it should have parens
+-- 2. in @appendWithLine' what we really want is to appendWithSoftLine however that causes some issue
+--    in the renderFits algorithm that causes documents to take 10mins or more to render! The quick
+--    solution is to take care of the ribbon width ourselves and thus avoid Union x y
 instance genericPrettyConstructor ::
   ( GenericPrettyArgs a
   , IsSymbol name
@@ -64,10 +51,9 @@ instance genericPrettyConstructor ::
   Pretty (Constructor name a) where
   pretty (Constructor a) = case genericPrettyArgs' a of
     args -> case uncons args of
-      Just { head: x, tail: [] } -> hang ((length ctor) + 1) (text ctor <+> (parens' x))
-      Just { head: x, tail: xs } -> hang ((length ctor) + 1) (text ctor <+> (parens' x) `appendWithLine'` (foldl (\a b ->
-        (appendWithLine' a (parens' b))) mempty xs))
+      Just { head: x, tail: [] } -> hang 2 (text ctor <+> (parens' x))
       Nothing -> text ctor
+      _ -> hang 2 (foldl (\a b -> (appendWithLine' a (parens' b))) (text ctor) args)
     where
     ctor ::
       String
@@ -86,7 +72,9 @@ instance genericPrettyConstructor ::
       Doc
     appendWithLine' Empty d = d
     appendWithLine' d Empty = d
-    appendWithLine' a b = appendWithLine a b
+    appendWithLine' a b 
+      | surroundedByParens (show b) = appendWithLine a b
+      | otherwise = a </> b
 
 surroundedByParens :: String -> Boolean
 surroundedByParens s = fromMaybe false do
