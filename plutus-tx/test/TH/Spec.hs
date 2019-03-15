@@ -77,7 +77,7 @@ andPlc :: CompiledCode Bool
 andPlc = $$(compile [|| $$(andTH) True False ||])
 
 allPlc :: CompiledCode Bool
-allPlc = $$(compile [|| $$(all) (\(x::Int) -> x > 5) [7, 6] ||])
+allPlc = $$(compile [|| $$(all) (\(x::Int) -> $$gt x 5) [7, 6] ||])
 
 convertString :: CompiledCode Builtins.String
 convertString = $$(compile [|| $$(toPlutusString) "test" ||])
@@ -95,6 +95,6 @@ traceRepeatedly = $$(compile
                -- is the same behaviour as Debug.trace
                let i1 = $$(traceH) "Making my first int" (1::Int)
                    i2 = $$(traceH) "Making my second int" (2::Int)
-                   i3 = $$(traceH) "Adding them up" (i1 + i2)
+                   i3 = $$(traceH) "Adding them up" ($$plus i1 i2)
               in i3
     ||])

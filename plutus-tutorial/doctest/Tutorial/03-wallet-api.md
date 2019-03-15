@@ -227,7 +227,7 @@ In the `Collect` case, the current slot must be between `deadline` and `collecti
               in
 ```
 
-**Note (Operators in On-Chain Code)** We can use the operators `>`, `<`, `>=`, `<=` and `==` to compare `Int` values in PLC without having to define them in the script itself, as we did with `&&`. The compiler plugin that translates Haskell Core to Plutus Core knows about those operators because `Int` is a primitive type in Plutus Core and operations on it are built in. `Bool` on the other hand is treated like any other user-defined data type, and all functions that operate on it must be defined locally. More details can be found in the [PlutusTx tutorial](../plutus-tx/tutorial/Tutorial.md).
+**Note (Builtins in On-Chain Code)** We can use the functions `greaterThanInteger`, `lessThanInteger`, `greaterThanEqInteger`, `lessThanEqInteger` and `equalsInteger` from the `Language.PlutusTx.Builtins` module to compare `Int` values in PLC without having to define them in the script itself, as we did with `&&`. The compiler plugin that translates Haskell Core to Plutus Core knows about those functions because `Int` is a primitive type in Plutus Core and operations on it are built in. `Bool` on the other hand is treated like any other user-defined data type, and all functions that operate on it must be defined locally. More details can be found in the [PlutusTx tutorial](../plutus-tx/tutorial/Tutorial.md).
 
 Finally, we can return `()` if `isValid` is true, or fail with an error if it isn't.
 

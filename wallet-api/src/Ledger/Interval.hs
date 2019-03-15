@@ -30,6 +30,7 @@ import           GHC.Generics                             (Generic)
 import           Language.Haskell.TH
 
 import           Language.PlutusTx.Lift                   (makeLift)
+import           Language.PlutusTx.Prelude
 
 -- | Slot number
 newtype Slot = Slot { getSlot :: Int }
@@ -91,7 +92,7 @@ interval = [|| \s s' -> Interval (Just s) (Just s') ||]
 
 -- | A 'SlotRange' that covers only a single slot.
 singleton :: Q (TExp (Slot -> SlotRange))
-singleton = [|| \(Slot s) -> Interval (Just (Slot s)) (Just (Slot (s + 1))) ||]
+singleton = [|| \(Slot s) -> Interval (Just (Slot s)) (Just (Slot ($$plus s 1))) ||]
 
 -- | Check if a 'SlotRange' is empty
 empty :: Q (TExp (SlotRange -> Bool))
@@ -99,17 +100,17 @@ empty = [||
     \(Interval f t) -> 
         case f of 
             Nothing -> False
-            Just f' -> case t of
+            Just (Slot f') -> case t of
                 Nothing -> False
-                Just t' -> f' >= t'
+                Just (Slot t') -> $$geq f' t'
     ||]
 
 -- | Check if 'Slot' is contained in a 'SlotRange'.
 member :: Q (TExp (Slot -> SlotRange -> Bool))
 member = [|| 
     \(Slot s) (Interval f t) -> 
-        let lw = case f of { Nothing -> True; Just (Slot f') -> f' <= s; }
-            hg = case t of { Nothing -> True; Just (Slot t') -> t' > s; }
+        let lw = case f of { Nothing -> True; Just (Slot f') -> $$leq f' s; }
+            hg = case t of { Nothing -> True; Just (Slot t') -> $$gt t' s; }
         in
             if lw then hg else False
     ||]
@@ -122,7 +123,7 @@ width = [||
             Nothing -> Nothing
             Just (Slot f') -> case t of
                 Nothing -> Nothing
-                Just (Slot t') -> Just (t' - f')  ||]
+                Just (Slot t') -> Just ($$minus t' f')  ||]
 
 -- | @a `contains` b@ is true if the 'SlotRange' @b@ is entirely contained in 
 --   @a@. That is, @a `contains` b@ if for every slot @s@, if @member s b@ then
@@ -134,12 +135,12 @@ contains = [||
                 Nothing -> True
                 Just (Slot af') -> case bf of
                     Nothing -> False
-                    Just (Slot bf') -> af' <= bf'
+                    Just (Slot bf') -> $$leq af' bf'
             hg = case at of
                 Nothing -> True
                 Just (Slot at') -> case bt of
                     Nothing -> False
-                    Just (Slot bt') -> at' >= bt'
+                    Just (Slot bt') -> $$geq at' bt'
         in
             if lw then hg else False
     ||]
@@ -147,11 +148,11 @@ contains = [||
 -- | Check if a 'Slot' is earlier than the beginning of a 'SlotRange'
 before :: Q (TExp (Slot -> SlotRange -> Bool))
 before = [||
-    \(Slot h) (Interval f _) -> case f of { Nothing -> False; Just (Slot h') -> h' > h; }
+    \(Slot h) (Interval f _) -> case f of { Nothing -> False; Just (Slot h') -> $$gt h' h; }
     ||]
 
 -- | Check if a 'Slot' is later than the end of a 'SlotRange'
 after :: Q (TExp (Slot -> SlotRange -> Bool))
 after = [||
-    \(Slot h) (Interval _ t) -> case t of { Nothing -> False; Just (Slot t') -> h >= t'; }
+    \(Slot h) (Interval _ t) -> case t of { Nothing -> False; Just (Slot t') -> $$geq h t'; }
     ||]
