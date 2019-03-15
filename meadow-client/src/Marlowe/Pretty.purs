@@ -9,7 +9,7 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Monoid (mempty)
 import Data.String (Pattern(..), charAt, contains, length)
 import Data.Symbol (class IsSymbol, SProxy(..), reflectSymbol)
-import Text.PrettyPrint.Leijen (Doc(Empty), appendWithLine, comma, encloseSep, hang, lbracket, nest, parens, rbracket, text, (<+>), (</>))
+import Text.PrettyPrint.Leijen (Doc(Empty), appendWithLine, comma, encloseSep, hang, lbracket, parens, rbracket, text, (<+>), (</>))
 import Type.Data.Boolean (kind Boolean)
 
 class Pretty a where
