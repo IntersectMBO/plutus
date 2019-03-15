@@ -4,12 +4,16 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 module Main(main) where
 
+import qualified Data.Aeson.Internal        as Aeson
+import qualified Data.Aeson                 as JSON
 import           Control.Lens
 import           Control.Monad              (void)
 import           Control.Monad.Trans.Except (runExcept)
 import           Data.Either                (isLeft, isRight)
+import qualified Data.Aeson.Extras          as JSON
 import           Data.Foldable              (fold, foldl', traverse_)
 import           Data.List                  (sort)
+import qualified Data.ByteString            as BSS
 import qualified Data.Map                   as Map
 import qualified Data.Set                   as Set
 import           Data.Monoid                (Sum (..))
@@ -72,7 +76,9 @@ tests = testGroup "all tests" [
     testGroup "Etc." [
         testProperty "splitVal" splitVal,
         testProperty "selectCoin" selectCoinProp,
-        testProperty "txnFlows" txnFlowsTest
+        testProperty "txnFlows" txnFlowsTest,
+        testProperty "encodeByteString" encodeByteStringTest,
+        testProperty "encodeSerialise" encodeSerialiseTest
         ]
     ]
 
@@ -397,3 +403,19 @@ intvlContains = property $ do
         inner = W.interval i2 i3
         
     Hedgehog.assert $ W.contains outer inner
+
+encodeByteStringTest :: Property
+encodeByteStringTest = property $ do
+    bs <- forAll $ Gen.bytes $ Range.linear 0 1000
+    let enc    = JSON.String $ JSON.encodeByteString bs
+        result = Aeson.iparse JSON.decodeByteString enc
+
+    Hedgehog.assert $ result == Aeson.ISuccess bs
+
+encodeSerialiseTest :: Property
+encodeSerialiseTest = property $ do
+    txt <- forAll $ Gen.text (Range.linear 0 1000) Gen.unicode
+    let enc    = JSON.String $ JSON.encodeSerialise txt
+        result = Aeson.iparse JSON.decodeSerialise enc
+
+    Hedgehog.assert $ result == Aeson.ISuccess txt

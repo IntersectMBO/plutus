@@ -48,18 +48,15 @@ module Ledger.Validation
     , plcSHA3_256
     ) where
 
-import           Codec.Serialise              (Serialise, deserialiseOrFail, serialise)
+import           Codec.Serialise              (Serialise, serialise)
 import           Crypto.Hash                  (Digest, SHA256)
-import           Data.Aeson                   (FromJSON, ToJSON (toJSON), withText)
+import           Data.Aeson                   (FromJSON, ToJSON (toJSON))
 import qualified Data.Aeson                   as JSON
-import           Data.Bifunctor               (first)
+import qualified Data.Aeson.Extras            as JSON
 import qualified Data.ByteString.Lazy.Hash    as Hash
-import qualified Data.ByteString.Base64       as Base64
 import qualified Data.ByteString.Lazy         as BSL
 import           Data.Proxy                   (Proxy (Proxy))
 import           Data.Swagger.Internal.Schema (ToSchema (declareNamedSchema), paramSchemaToSchema, plain)
-import           Data.Text                    (Text)
-import qualified Data.Text.Encoding           as TE
 import           GHC.Generics                 (Generic)
 import           Language.Haskell.TH          (Q, TExp)
 import           Language.PlutusTx.Lift       (makeLift)
@@ -181,26 +178,17 @@ newtype ValidatorHash =
     deriving stock (Eq, Generic)
     deriving newtype (Serialise)
 
-validatorHashToText :: ValidatorHash -> Text
-validatorHashToText = TE.decodeUtf8 . Base64.encode . BSL.toStrict . serialise
-
 instance Show ValidatorHash where
-    show = show . validatorHashToText
+    show = show . JSON.encodeSerialise
 
 instance ToSchema ValidatorHash where
     declareNamedSchema _ = plain . paramSchemaToSchema $ (Proxy :: Proxy String)
 
 instance ToJSON ValidatorHash where
-    toJSON = JSON.String . validatorHashToText
+    toJSON = JSON.String . JSON.encodeSerialise
 
 instance FromJSON ValidatorHash where
-    parseJSON = withText "ValidatorScript" $ \s -> do
-        let ev = do
-                eun64 <- Base64.decode . TE.encodeUtf8 $ s
-                first show $ deserialiseOrFail $ BSL.fromStrict eun64
-        case ev of
-            Left e  -> fail e
-            Right v -> pure v
+    parseJSON = JSON.decodeSerialise
 
 newtype DataScriptHash =
     DataScriptHash BSL.ByteString
