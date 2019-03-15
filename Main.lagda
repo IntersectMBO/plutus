@@ -30,7 +30,7 @@ open import Agda.Builtin.Int
 open import Data.Integer
 
 open import Data.Product renaming (_,_ to _,,_)
-
+{-
 lemma : length empty ≡ 0
 lemma = primTrustMe
 
@@ -45,7 +45,6 @@ postulate
 {-# COMPILE GHC str2 = BS.pack "world"   #-}
 {-# COMPILE GHC printByteString = T.pack . BS.unpack #-}
 {-# FOREIGN GHC import qualified Crypto.Hash #-}
-
 
 lemma1 : length str1 ≡ 7
 lemma1 = primTrustMe 
@@ -105,7 +104,7 @@ help {con x₁ A} M (steps x (done n v)) = print n v
 help {_} M (steps x (done n v)) = "it worked"
 help M (steps x out-of-gas) = "out of gas..."
 help M error = "something went wrong"
-
+-}
 open import test.AddInteger
 open import test.IntegerLiteral
 open import test.IntegerOverflow -- can't be used
@@ -124,6 +123,7 @@ postulate
 _>>_  : ∀ {a b} {A : Set a} {B : Set b} → IO A → IO B → IO B
 x >> y = x >>= λ _ → y
 
+{-
 test : ∀{A : ∅ ⊢⋆ *}
   → ∅ ⊢ A → (name : String) → (expected : String) → IO ⊤
 test t name expected = do
@@ -132,7 +132,7 @@ test t name expected = do
   s ← return (help _ (eval (gas 100) t))
   putStrLn ("actual output:   " ++ s)
   putStrLn ""
-
+-}
 
 {-
 main : IO ⊤
@@ -189,8 +189,22 @@ testFile fn = do
   t ← readFile fn
   return (maybe id "blerk" (testPLC t))
 
+{-# FOREIGN GHC import System.Environment #-}
+
+open import Data.List
+
+postulate getArgs : IO (List String)
+
+{-# COMPILE GHC getArgs = (fmap . fmap) T.pack $ getArgs #-}
+
 main : IO ⊤
 main = do
+  (arg ∷ args) ← getArgs
+    where [] → return _
+  putStrLn arg
+  testFile arg >>= putStrLn
+
+{-
   -- plutus/language-plutus-core/type-errors
   putStrLn "errorKind.plc:"
   testFile "../plutus/language-plutus-core/test/type-errors/errorKind.plc" >>= putStrLn
@@ -296,5 +310,5 @@ main = do
 
   putStrLn "lambda.plc:"
   testFile "../plutus/language-plutus-core/test/scopes/lambda.plc" >>= putStrLn
-
+-}
 \end{code}
