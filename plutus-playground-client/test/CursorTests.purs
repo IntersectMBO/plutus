@@ -110,8 +110,8 @@ mapWithIndexTests :: forall eff. TestSuite (random :: RANDOM | eff)
 mapWithIndexTests =
   test "mapWithIndex works" do
     equal
-      (Cursor.fromArray [1+0,3+1,5+2,7+3,11+4])
-      (Cursor.mapWithIndex (+) (Cursor.fromArray [1,3,5,7,11]))
+      (Cursor.fromArray [1+0, 3+1, 5+2, 7+3, 11+4])
+      (Cursor.mapWithIndex (+) (Cursor.fromArray [1, 3, 5, 7, 11]))
 
     quickCheck \cursor -> Cursor.toArray (Cursor.mapWithIndex (+) cursor)
                           ==
