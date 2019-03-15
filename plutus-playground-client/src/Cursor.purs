@@ -30,7 +30,8 @@ import Data.Generic (class Generic)
 import Data.Lens (Traversal', wander)
 import Data.Lens.Index (class Index)
 import Data.Maybe (Maybe, fromMaybe, maybe)
-import Prelude (class Eq, class Functor, class Ord, class Show, bind, map, max, min, pure, show, (#), ($), (+), (-), (<<<), (<>), (==), (>), (>>>))
+import Data.Ord as Ord
+import Prelude (class Eq, class Functor, class Ord, class Show, bind, map, otherwise, pure, show, (#), ($), (+), (-), (<<<), (<>), (>=), (>>>))
 import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
 import Test.QuickCheck.Gen (arrayOf)
 
@@ -48,7 +49,7 @@ instance arbitraryCursor :: Arbitrary a => Arbitrary (Cursor a) where
   arbitrary = do
     xs <- arrayOf arbitrary
     index <- chooseInt 0 (Array.length xs - 1)
-    pure $ clamp $ Cursor index xs
+    pure $ Cursor index xs
 
 instance indexCursor :: Index (Cursor a) Int a where
   ix n = wander \coalg (Cursor index xs) ->
@@ -72,7 +73,7 @@ _current =
 clamp :: forall a. Cursor a -> Cursor a
 clamp (Cursor index xs) =
   Cursor
-    (min (max 0 index) (Array.length xs - 1))
+    (Ord.clamp 0 (Array.length xs - 1) index)
     xs
 
 empty :: forall a. Cursor a
@@ -86,11 +87,8 @@ snoc (Cursor index xs) x = last $ Cursor index (Array.snoc xs x)
 
 deleteAt :: forall a. Int -> Cursor a -> Cursor a
 deleteAt n cursor@(Cursor index xs) = fromMaybe cursor do
-  let newIndex = if n > index
-                 then index
-                 else if n == index
-                 then index
-                 else index - 1
+  let newIndex | n >= index = index
+               | otherwise = index - 1
   newXs <- Array.deleteAt n xs
   pure $ clamp $ Cursor newIndex newXs
 
@@ -125,7 +123,7 @@ right :: forall a. Cursor a -> Cursor a
 right (Cursor index xs) = clamp $ Cursor (index + 1) xs
 
 first :: forall a. Cursor a -> Cursor a
-first (Cursor _ xs) = clamp $ Cursor 0 xs
+first (Cursor _ xs) = Cursor 0 xs
 
 last :: forall a. Cursor a -> Cursor a
-last (Cursor _ xs) = clamp $ Cursor (Array.length xs - 1) xs
+last (Cursor _ xs) = Cursor (Array.length xs - 1) xs
