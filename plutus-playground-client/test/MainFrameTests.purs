@@ -90,9 +90,9 @@ instance bindMockApp :: Monad m => Bind (MockApp m) where
 instance monadMockApp :: Monad m => Monad (MockApp m)
 
 instance monadStateMockApp :: Monad m => MonadState State (MockApp m) where
-  state f = MockApp $ RWST \r (Tuple world state) ->
-    case f state
-    of (Tuple a state') -> pure $ RWSResult (Tuple world state') a unit
+  state f = MockApp $ RWST \r (Tuple world appState) ->
+    case f appState of
+      (Tuple a appState') -> pure $ RWSResult (Tuple world appState') a unit
 
 instance monadAskMockApp :: Monad m => MonadAsk (SPSettings_ SPParams_) (MockApp m) where
   ask = MockApp $ ask

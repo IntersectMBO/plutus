@@ -25,12 +25,12 @@ showErrorDescription (UnexpectedHTTPStatus {status, response}) =
   case status, response of
     (StatusCode 400), _ ->
       case (decodeJson =<< jsonParser response) :: Either String (Array CompilationError) of
-        Left _ -> defaultError status
+        Left _ -> defaultError
         Right compilationErrors ->
           div_ (showCompilationError <$> compilationErrors)
-    _, _ ->  defaultError status
+    _, _ ->  defaultError
   where
-    defaultError status =
+    defaultError =
       text $ "UnexpectedHTTPStatus: " <> response <> " " <> show status
 
     showCompilationError (RawError rawError) = text rawError
