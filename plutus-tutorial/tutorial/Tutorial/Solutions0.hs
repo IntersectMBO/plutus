@@ -24,6 +24,9 @@ import qualified Wallet                       as W
 import           Prelude                      hiding ((&&))
 import           GHC.Generics                 (Generic)
 
+-- to use this on the playground you also need to import
+-- Playground.Contract (for mkFunctions)
+
 {-
 
   Solutions for the wallet API tutorials
@@ -98,6 +101,17 @@ type CampaignRedeemer = (CampaignAction, Signature)
 data Contributor = Contributor PubKey
 P.makeLift ''Contributor
 
+-- | A crowdfunding campaign with two targets.
+--   The contract endpoints below do not take a 'Campaign' parameter
+--   (because there is no way to enter a list of items in the Playground UI). 
+--   Instead, all endpoints use 'aCampaign' directly.
+aCampaign :: Campaign
+aCampaign = Campaign
+    { fundingTargets = [(10, 100), (20, 200)]
+    , collectionDeadline = 25
+    , campaignOwner = PubKey 1
+    }   
+
 mkValidatorScript :: Campaign -> ValidatorScript
 mkValidatorScript campaign = ValidatorScript val where
   val = L.applyScript mkValidator (L.lifted campaign)
@@ -108,7 +122,6 @@ mkValidatorScript campaign = ValidatorScript val where
         (&&) :: Bool -> Bool -> Bool
         (&&) = $$(P.and)
 
-        
         signedBy :: PubKey -> Signature -> Bool
         signedBy (PubKey pk) (Signature s) = $$(P.eq) pk s
 
@@ -223,11 +236,12 @@ refundTrigger c = W.andT
     (W.fundsAtAddressT (campaignAddress c) (W.intervalFrom ($$(Ada.toValue) 1)))
     (W.slotRangeT (W.intervalFrom (collectionDeadline c)))
 
-contribute :: MonadWallet m => Campaign -> Ada -> m ()
-contribute cmp adaAmount = do
+contribute :: MonadWallet m => Ada -> m ()
+contribute adaAmount = do
         pk <- W.ownPubKey
         let dataScript = mkDataScript pk
             amount = $$(Ada.toValue) adaAmount
+            cmp = aCampaign
 
         -- payToScript returns the transaction that was submitted
         -- (unlike payToScript_ which returns unit)
@@ -271,11 +285,11 @@ collectionHandler cmp targetSlot = EventHandler (\_ -> do
         range          = W.interval currentSlot targetSlot
     W.collectFromScript range (mkValidatorScript cmp) redeemerScript)
 
-scheduleCollection :: MonadWallet m => Campaign -> m ()
-scheduleCollection cmp = 
+scheduleCollection :: MonadWallet m => m ()
+scheduleCollection = 
     let 
-        addr = campaignAddress cmp
-        ts = fundingTargets cmp 
-        regTarget (targetSlot, ada) = W.register (mkCollectTrigger addr targetSlot ada) (collectionHandler cmp targetSlot)
+        addr = campaignAddress aCampaign
+        ts = fundingTargets aCampaign
+        regTarget (targetSlot, ada) = W.register (mkCollectTrigger addr targetSlot ada) (collectionHandler aCampaign targetSlot)
     in
     traverse_ regTarget ts
