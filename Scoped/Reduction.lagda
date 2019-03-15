@@ -16,12 +16,25 @@ infix 2 _—→_
 \begin{code}
 data Value {n} : ScopedTm n → Set where
   V-ƛ : (A : ScopedTy ∥ n ∥)(t : ScopedTm (S n)) → Value (ƛ A t)
+  V-Λ : ∀ K (t : ScopedTm (T n)) → Value (Λ K t)
 --  V-con : (tcn : TermCon) → Value (con {n} tcn)
+
+-- a term that satisfies this predicate has an error term in it somewhere
+-- or we encounter a type error
 data Error {n} : ScopedTm n → Set where
    E-error : (A : ScopedTy ∥ n ∥) → Error (error A)
-   E-· : {L M : ScopedTm n} → Error L → Error (L · M)
+   E-·     : {L M : ScopedTm n} → Error L → Error (L · M)
+   E-·⋆    : {L : ScopedTm n}{A : ScopedTy ∥ n ∥} → Error L → Error (L ·⋆ A)
+   E-Λ·    : ∀{K}{L : ScopedTm (T n)}{M : ScopedTm n} → Error (Λ K L · M)
+   E-ƛ·⋆   : ∀{B : ScopedTy ∥ n ∥}{L : ScopedTm (S n)}{A : ScopedTy ∥ n ∥}
+           → Error (ƛ B L ·⋆ A)
 data _—→_ {n} : ScopedTm n → ScopedTm n → Set where
   ξ-· : {L L' M : ScopedTm n} → L —→ L' → L · M —→ L' · M
+  ξ-·⋆ : {L L' : ScopedTm n}{A : ScopedTy ∥ n ∥} → L —→ L' → L ·⋆ A —→ L' ·⋆ A
+  β-ƛ : {A : ScopedTy ∥ n ∥}{L : ScopedTm (S n)}{M : ScopedTm n}
+      → (ƛ A L) · M —→ {!!}
+  β-Λ : ∀{K}{L : ScopedTm (T n)}{A : ScopedTy ∥ n ∥}
+      → (Λ K L) ·⋆ A —→ {!!}
 \end{code}
 
 \begin{code}
@@ -30,15 +43,20 @@ data _—→⋆_ {n} : ScopedTm n → ScopedTm n → Set where
   trans : {t t' t'' : ScopedTm n} → t —→ t' → t' —→⋆ t'' → t —→⋆ t''
 \end{code}
 
-
 \begin{code}
 progress : (t : ScopedTm Z) → (Value {Z} t ⊎ Error t) ⊎ Σ (ScopedTm Z) λ t' → t —→ t'
 progress (` ())
-progress (Λ K t) = {!!}
-progress (t ·⋆ A) = {!!}
-progress (ƛ A t) = {!!}
+progress (Λ K t) = inl (inl (V-Λ K t))
+progress (t ·⋆ A) with progress t
+progress (.(ƛ B t) ·⋆ A) | inl (inl (V-ƛ B t)) = inl (inr E-ƛ·⋆)
+progress (.(Λ K t) ·⋆ A) | inl (inl (V-Λ K t)) = inr ({!!} , β-Λ)
+progress (t ·⋆ A) | inl (inr p) = inl (inr (E-·⋆ p))
+progress (t ·⋆ A) | inr (t' , p) = inr (t' ·⋆ A , ξ-·⋆ p)
+progress (ƛ A t) = inl (inl (V-ƛ A t))
 progress (t · u) with progress t
-progress (.(ƛ A t) · u) | inl (inl (V-ƛ A t)) = {!!}
+progress (.(ƛ A t) · u) | inl (inl (V-ƛ A t)) = inr ({!!} , β-ƛ)
+progress (.(Λ K t) · u) | inl (inl (V-Λ K t)) = inl (inr E-Λ·)
+
 progress (t · u) | inl (inr p) = inl (inr (E-· p))
 progress (t · u) | inr (t' , p) = inr (t' · u , ξ-· p)
 progress (con x) = {!!}
