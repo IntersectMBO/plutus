@@ -459,7 +459,7 @@ evalObservation blockNumber state (AndObs obs1 obs2) = (go obs1) && (go obs2)
   where
   go = evalObservation blockNumber state
 
-evalObservation blockNumber state (OrObs obs1 obs2) = (go obs1) && (go obs2)
+evalObservation blockNumber state (OrObs obs1 obs2) = (go obs1) || (go obs2)
   where
   go = evalObservation blockNumber state
 
