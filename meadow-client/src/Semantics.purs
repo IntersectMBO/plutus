@@ -7,141 +7,20 @@ import Data.Either (Either(..))
 import Data.Eq (class Eq, (/=), (==))
 import Data.EuclideanRing (div, mod)
 import Data.FoldableWithIndex (foldrWithIndexDefault)
-import Data.Generic.Rep (class Generic)
-import Data.Generic.Rep.Show (genericShow)
 import Data.HeytingAlgebra (not, (&&), (||))
 import Data.List (List(..), concat, foldl, foldr, fromFoldable, reverse)
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Newtype (class Newtype, unwrap)
+import Data.Newtype (unwrap)
 import Data.Ord (class Ord, max, (<), (<=), (>), (>=))
 import Data.Ring (negate, (*), (+), (-))
-import Data.Show (class Show)
-import Data.String (joinWith)
 import Data.String.Regex (split, regex)
 import Data.String.Regex.Flags (RegexFlags(..))
 import Data.Tuple (Tuple(..))
-import Prelude (show)
+import Marlowe.Types (BlockNumber, Choice, Contract(..), IdAction, IdChoice(..), IdCommit, IdOracle, Observation(..), Person, Timeout, Value(..), WIdChoice(..), LetLabel)
 
 import Data.Foldable as F
 import Data.Map as M
 import Data.Set as S
-
-type BlockNumber
-  = BigInteger
-
-type Timeout
-  = BlockNumber
-
-type Person
-  = BigInteger
-
-type Choice
-  = BigInteger
-
-type IdAction
-  = BigInteger
-
-type IdCommit
-  = BigInteger
-
-newtype IdChoice
-  = IdChoice {choice :: BigInteger, person :: Person}
-
-derive instance eqIdChoice :: Eq IdChoice
-
-derive instance ordIdChoice :: Ord IdChoice
-
-derive instance genericIdChoice :: Generic IdChoice _
-
-derive instance newtypeIdChoice :: Newtype IdChoice _
-
-instance showIdChoice :: Show IdChoice where
-  show (IdChoice { choice, person }) = joinWith "" [ "("
-                                                   , show choice
-                                                   , ", "
-                                                   , show person
-                                                   , ")"
-                                                   ]
-
-data WIdChoice
-  = WIdChoice IdChoice
-
-derive instance eqWIdChoice :: Eq WIdChoice
-
-derive instance ordWIdChoice :: Ord WIdChoice
-
-type IdOracle
-  = BigInteger
-
-type LetLabel
-  = BigInteger
-
-data Value
-  = CurrentBlock
-  | Committed IdCommit
-  | Constant BigInteger
-  | NegValue Value
-  | AddValue Value Value
-  | SubValue Value Value
-  | MulValue Value Value
-  | DivValue Value Value Value
-  | ModValue Value Value Value
-  | ValueFromChoice IdChoice Value
-  | ValueFromOracle IdOracle Value
-
-derive instance eqValue :: Eq Value
-
-derive instance ordValue :: Ord Value
-
-derive instance genericValue :: Generic Value _
-
-instance showValue :: Show Value where
-  show v = genericShow v
-
-data Observation
-  = BelowTimeout Timeout
-  | AndObs Observation Observation
-  | OrObs Observation Observation
-  | NotObs Observation
-  | ChoseThis IdChoice Choice
-  | ChoseSomething IdChoice
-  | ValueGE Value Value
-  | ValueGT Value Value
-  | ValueLT Value Value
-  | ValueLE Value Value
-  | ValueEQ Value Value
-  | TrueObs
-  | FalseObs
-
-derive instance eqObservation :: Eq Observation
-
-derive instance ordObservation :: Ord Observation
-
-derive instance genericObservation :: Generic Observation _
-
-instance showObservation :: Show Observation where
-  show o = genericShow o
-
-data Contract
-  = Null
-  | Commit IdAction IdCommit Person Value Timeout Timeout Contract Contract
-  | Pay IdAction IdCommit Person Value Timeout Contract Contract
-  | Both Contract Contract
-  | Choice Observation Contract Contract
-  | When Observation Timeout Contract Contract
-  | While Observation Timeout Contract Contract
-  | Scale Value Value Value Contract
-  | Let LetLabel Contract Contract
-  | Use LetLabel
-
-derive instance eqContract :: Eq Contract
-
-derive instance ordContract :: Ord Contract
-
-derive instance genericContract :: Generic Contract _
-
-instance showContract :: Show Contract where
-  show c = genericShow c
 
 newtype Parser a
   = Parser {runParser :: List String -> Maybe (Tuple a (List String))}

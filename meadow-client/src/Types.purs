@@ -12,28 +12,15 @@ import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.List (List)
 import Data.Map (Map)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
 import Gist (Gist)
 import Halogen.Component.ChildPath (ChildPath, cpL, cpR)
 import Language.Haskell.Interpreter (CompilationError)
+import Marlowe.Types (BlockNumber, Choice, Contract, IdChoice, IdOracle, Person)
 import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Ord, class Show, Unit)
-import Semantics
-  ( AnyInput
-  , BlockNumber
-  , Choice
-  , Contract
-  , DetachedPrimitiveWIA
-  , IdAction
-  , IdChoice
-  , IdCommit
-  , IdOracle
-  , Person
-  , State
-  , Timeout
-  , Value
-  )
+import Semantics (DetachedPrimitiveWIA, AnyInput, State)
 import Servant.PureScript.Affjax (AjaxError)
 import Type.Data.Boolean (kind Boolean)
 

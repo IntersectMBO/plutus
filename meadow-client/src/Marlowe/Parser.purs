@@ -8,13 +8,13 @@ import Data.BigInteger as BigInteger
 import Data.List (List)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (wrap)
-import Semantics (BlockNumber, Choice, Contract(..), IdAction, IdChoice, IdCommit, IdOracle, LetLabel, Observation(..), Person, Timeout, Value(..))
-import Text.Parsing.Simple (Parser, char, fail, fix, integral, parens, some, space, string)
+import Marlowe.Types (BlockNumber, Choice, Contract(..), IdAction, IdChoice, IdCommit, IdOracle, LetLabel, Observation(..), Person, Timeout, Value(..))
+import Text.Parsing.Simple (Parser, char, fail, fix, integral, parens, some, space, string, whitespace)
 
 -- All arguments are space separated so we add **> to reduce boilerplate
 
 spaces :: Parser String (List Char)
-spaces = some space
+spaces = some whitespace
 
 appRSpaces :: forall a b. Parser String a -> Parser String b -> Parser String b
 appRSpaces p q = p *> spaces *> q
@@ -120,7 +120,7 @@ recContract
     =   Commit <$> (string "Commit" **> idAction) 
                <**> idCommit 
                <**> person 
-               <**> value 
+               <**> value' 
                <**> timeout 
                <**> timeout
                <**> contract'
@@ -128,15 +128,15 @@ recContract
     <|> Pay <$> (string "Pay" **> idAction) 
             <**> idCommit
             <**> person
-            <**> value
+            <**> value'
             <**> timeout 
             <**> contract' 
             <**> contract'
     <|> Both <$> (string "Both" **> contract') <**> contract'
-    <|> Choice <$> (string "Choice" **> observation) <**> contract' <**> contract'
-    <|> When <$> (string "When" **> observation) <**> timeout <**> contract' <**> contract'
-    <|> While <$> (string "While" **> observation) <**> timeout <**> contract' <**> contract'
-    <|> Scale <$> (string "Scale" **> value) <**> value <**> value <**> contract'
+    <|> Choice <$> (string "Choice" **> observation') <**> contract' <**> contract'
+    <|> When <$> (string "When" **> observation') <**> timeout <**> contract' <**> contract'
+    <|> While <$> (string "While" **> observation') <**> timeout <**> contract' <**> contract'
+    <|> Scale <$> (string "Scale" **> value') <**> value' <**> value' <**> contract'
     <|> Let <$> (string "Let" **> letLabel) <**> contract' <**> contract'
     <|> Use <$> (string "Use" **> letLabel)
     <|> fail "not a valid Contract"

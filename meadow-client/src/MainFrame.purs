@@ -1,37 +1,21 @@
 module MainFrame (mainFrame) where
 
 import API (SourceCode(SourceCode))
-import Ace.Halogen.Component
-  ( AceEffects
-  , AceMessage
-      ( TextChanged
-      )
-  , AceQuery
-      ( GetEditor
-      )
-  )
+import Ace.EditSession as Session
+import Ace.EditSession as Session
+import Ace.Editor as Editor
+import Ace.Editor as Editor
+import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged), AceQuery(GetEditor))
 import Ace.Types (ACE, Editor, Annotation)
 import AjaxUtils (runAjaxTo)
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
-import Bootstrap
-  ( active
-  , btn
-  , btnGroup
-  , btnSmall
-  , container
-  , container_
-  , hidden
-  , navItem_
-  , navLink
-  , navTabs_
-  , pullRight
-  )
+import Bootstrap (active, btn, btnGroup, btnSmall, container, container_, hidden, navItem_, navLink, navTabs_, pullRight)
 import Control.Monad.Aff.Class (class MonadAff, liftAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
 import Control.Monad.Reader.Class (class MonadAsk)
-import Data.Array as Array
 import Data.Array (catMaybes, delete, snoc)
+import Data.Array as Array
 import Data.BigInteger (BigInteger, fromInt)
 import Data.Either (Either(..))
 import Data.Foldable (foldrDefault)
@@ -40,9 +24,13 @@ import Data.Lens (assign, modifying, over, preview, set, use)
 import Data.List (List(..))
 import Data.Map (Map)
 import Data.Map as Map
+import Data.Maybe (Maybe(Just, Nothing))
+import Data.Ord (min, max, (>=))
+import Data.Ord (min, max, (>=))
 import Data.Set (Set)
 import Data.Set as Set
-import Data.Maybe (Maybe(Just, Nothing))
+import Data.String as String
+import Data.String as String
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
 import Editor (editorPane)
@@ -50,113 +38,32 @@ import FileEvents (FILE, preventDefault, readFileFromDragEvent)
 import Gist (gistId)
 import Gists (mkNewGist)
 import Halogen (Component, action)
+import Halogen as H
+import Halogen as H
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
 import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href)
 import Halogen.Query (HalogenM)
-import Language.Haskell.Interpreter
-  ( CompilationError
-      ( CompilationError
-      , RawError
-      )
-  )
+import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError))
 import LocalStorage (LOCALSTORAGE)
-import Meadow
-  ( SPParams_
-  , getOauthStatus
-  , patchGistsByGistId
-  , postGists
-  , postContractHaskell
-  )
+import LocalStorage as LocalStorage
+import Marlowe.Parser as Parser
+import Marlowe.Types (BlockNumber, Choice, Person, Contract(..), WIdChoice(..), IdChoice(..), IdOracle(..))
+import Meadow (SPParams_, getOauthStatus, patchGistsByGistId, postGists, postContractHaskell)
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(Success, NotAsked), _Success)
-import Data.Ord (min, max, (>=))
-import Prelude
-  ( type (~>)
-  , Unit
-  , Void
-  , bind
-  , const
-  , discard
-  , id
-  , pure
-  , show
-  , unit
-  , void
-  , ($)
-  , (+)
-  , (-)
-  , (<$>)
-  , (<<<)
-  , (<>)
-  , (==)
-  )
-import Semantics
-  ( BlockNumber
-  , Choice
-  , Contract(..)
-  , WIdChoice(..)
-  , IdChoice(..)
-  , IdInput(..)
-  , IdOracle
-  , ErrorResult(..) 
-  , MApplicationResult(..)
-  , Person
-  , State(..)
-  , applyTransaction
-  , collectNeededInputsFromContract
-  , emptyState
-  , peopleFromStateAndContract
-  , readContract
-  , reduce
-  , scoutPrimitives
-  )
+import Prelude (type (~>), Unit, Void, bind, const, discard, id, pure, show, unit, void, ($), (+), (-), (<$>), (<<<), (<>), (==))
+import Semantics (ErrorResult(..), IdInput(..), MApplicationResult(..), State(..), applyTransaction, collectNeededInputsFromContract, emptyState, peopleFromStateAndContract, readContract, reduce, scoutPrimitives)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation (simulationPane)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
-import Text.Parsing.Simple (parse)
-import Types
-  ( ChildQuery
-  , ChildSlot
-  , EditorSlot(..)
-  , FrontendState
-  , InputData
-  , MarloweEditorSlot(..)
-  , MarloweError(..)
-  , MarloweState
-  , OracleEntry
-  , Query(..)
-  , TransactionData
-  , View(..)
-  , _authStatus
-  , _blockNum
-  , _choiceData
-  , _contract
-  , _createGistResult
-  , _marloweCompileResult
-  , _marloweState
-  , _moneyInContract
-  , _input
-  , _inputs
-  , _oracleData
-  , _runResult
-  , _signatures
-  , _state
-  , _transaction
-  , _view
-  , cpEditor
-  , cpMarloweEditor
-  )
-
-import Ace.EditSession as Session
-import Ace.Editor as Editor
-import Data.String as String
-import Halogen as H
-import LocalStorage as LocalStorage
-import Marlowe.Parser as Parser
 import StaticData as StaticData
+import Text.Parsing.Simple (parse)
+import Text.Parsing.Simple (parse)
+import Types (ChildQuery, ChildSlot, EditorSlot(..), FrontendState, InputData, MarloweEditorSlot(..), MarloweError(..), MarloweState, OracleEntry, Query(..), TransactionData, View(..), _authStatus, _blockNum, _choiceData, _contract, _createGistResult, _marloweCompileResult, _marloweState, _input, _inputs, _oracleData, _runResult, _signatures, _transaction, _view, cpEditor, cpMarloweEditor)
+import Types (ChildQuery, ChildSlot, EditorSlot(..), FrontendState, InputData, MarloweEditorSlot(..), MarloweError(..), MarloweState, OracleEntry, Query(..), TransactionData, View(..), _authStatus, _blockNum, _choiceData, _contract, _createGistResult, _marloweCompileResult, _marloweState, _moneyInContract, _input, _inputs, _oracleData, _runResult, _signatures, _state, _transaction, _view, cpEditor, cpMarloweEditor)
 
 emptyInputData :: InputData
 emptyInputData = { inputs: Map.empty
