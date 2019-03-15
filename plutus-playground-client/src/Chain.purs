@@ -15,7 +15,7 @@ import Data.Int as Int
 import Data.Lens (to, toListOf, traversed)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (Maybe(..), fromJust, maybe)
 import Data.Newtype (unwrap)
 import Data.Set (Set)
 import Data.Set as Set
@@ -39,7 +39,7 @@ import Ledger.Types (DataScript(..), PubKey(PubKey), RedeemerScript(..), Signatu
 import Ledger.Value.TH (CurrencySymbol(..), Value(..))
 import Partial.Unsafe (unsafePartial)
 import Playground.API (EvaluationResult(EvaluationResult), SimulatorWallet)
-import Prelude (class Eq, class Monad, class Ord, class Semigroup, class Show, Unit, discard, map, show, unit, (#), ($), (+), (<#>), (<$>), (<*>), (<<<), (<>), (==))
+import Prelude (class Eq, class Monad, class Ord, class Show, Unit, discard, map, show, unit, (#), ($), (+), (<#>), (<$>), (<*>), (<<<), (<>), (==))
 import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, MockchainChartSlot(MockchainChartSlot), Query(HandleBalancesChartMessage, HandleMockchainChartMessage), Blockchain, _ada, _simulatorWalletBalance, _simulatorWalletWallet, _walletId, cpBalancesChart, cpMockchainChart)
 import Wallet.Emulator.Types (EmulatorEvent(..), Wallet(..))
 import Wallet.Graph (FlowGraph(FlowGraph), FlowLink(FlowLink), TxRef(TxRef))
@@ -242,11 +242,11 @@ data Balance
   | CurrencyBalance (Array (Tuple CurrencySymbol Int))
   | Remainder
 
--- | TODO this is not even close to right.
-instance semigroupBalance :: Partial => Semigroup Balance where
-  append Remainder Remainder = Remainder
-  append (CurrencyBalance x) (CurrencyBalance y) = CurrencyBalance (x <> y)
-  append (AdaBalance (Ada {getAda: x})) (AdaBalance (Ada {getAda: y})) = AdaBalance (Ada { getAda: x + y })
+merge :: Balance -> Balance -> Maybe Balance
+merge Remainder Remainder = Just Remainder
+merge (CurrencyBalance x) (CurrencyBalance y) = Just $ CurrencyBalance (x <> y)
+merge (AdaBalance (Ada {getAda: x})) (AdaBalance (Ada {getAda: y})) = Just $ AdaBalance (Ada { getAda: x + y })
+merge _ _ = Nothing
 
 blockchainExploration :: forall p i. Blockchain -> HTML p i
 blockchainExploration blockchain =
@@ -322,7 +322,7 @@ blockchainExploration blockchain =
 
 toBalanceMap :: Blockchain -> Map (Tuple Column (Tuple Int Int)) Balance
 toBalanceMap =
-  Map.fromFoldableWith (unsafePartial (<>))
+  Map.fromFoldableWith (\a b -> unsafePartial $ fromJust $ merge a b)
   <<< Array.concat
   <<< Array.concat
   <<< mapWithIndex (\slotId -> mapWithIndex
