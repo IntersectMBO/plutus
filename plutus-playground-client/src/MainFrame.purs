@@ -204,14 +204,14 @@ eval (PublishGist next) = do
       do mGist <- use _createGistResult
 
          newResult <- case preview (_Success <<< gistId) mGist of
-               Nothing -> postGist newGist
-               Just gistId -> patchGistByGistId newGist gistId
+           Nothing -> postGist newGist
+           Just gistId -> patchGistByGistId newGist gistId
 
          assign _createGistResult newResult
 
          case preview (_Success <<< gistId) newResult of
-               Nothing -> pure unit
-               Just gistId -> assign _gistUrl (Just (unwrap gistId))
+           Nothing -> pure unit
+           Just gistId -> assign _gistUrl (Just (unwrap gistId))
 
          pure next
 
@@ -223,36 +223,37 @@ eval (LoadGist next) = do
   eGistUrl <- (bindFlipped Gists.parseGistUrl <<< note "Gist Url not set.") <$> use _gistUrl
   case eGistUrl of
     Left _ -> pure unit
-    Right gistId -> do aGist <- getGistByGistId gistId
-                       case aGist of
-                         Success gist -> do
-                           assign _createGistResult aGist
-                           let firstMatch filename = findOf (gistFiles <<< traversed) (\gistFile -> view gistFileFilename gistFile == filename) gist
-                               playgroundGistFile = firstMatch gistSourceFilename
-                               simulationGistFile = firstMatch gistSimulationFilename
+    Right gistId -> do
+      aGist <- getGistByGistId gistId
+      case aGist of
+        Success gist -> do
+          assign _createGistResult aGist
+          let firstMatch filename = findOf (gistFiles <<< traversed) (\gistFile -> view gistFileFilename gistFile == filename) gist
+              playgroundGistFile = firstMatch gistSourceFilename
+              simulationGistFile = firstMatch gistSimulationFilename
 
-                           -- Load the source, if available.
-                           -- TODO There's a clearout happening here that should be in sync with other places.
-                           case preview (_Just <<< gistFileContent <<< _Just) playgroundGistFile of
-                             Nothing -> pure unit
-                             Just content -> do editorSetContents content (Just 1)
-                                                saveBuffer content
-                                                assign _simulations Cursor.empty
-                                                assign _evaluationResult NotAsked
+          -- Load the source, if available.
+          -- TODO There's a clearout happening here that should be in sync with other places.
+          case preview (_Just <<< gistFileContent <<< _Just) playgroundGistFile of
+            Nothing -> pure unit
+            Just content -> do editorSetContents content (Just 1)
+                               saveBuffer content
+                               assign _simulations Cursor.empty
+                               assign _evaluationResult NotAsked
 
-                           -- Load the simulation, if available.
-                           -- TODO There's a clearout happening here that should be in sync with other places.
-                           decodeJson <- getDecodeJson
-                           case preview (_Just <<< gistFileContent <<< _Just) simulationGistFile of
-                             Nothing -> pure unit
-                             Just simulationString -> do
-                               case (decodeJson =<< jsonParser simulationString) of
-                                 Left err -> pure unit
-                                 Right simulations -> do
-                                   assign _simulations simulations
-                                   assign _evaluationResult NotAsked
+          -- Load the simulation, if available.
+          -- TODO There's a clearout happening here that should be in sync with other places.
+          decodeJson <- getDecodeJson
+          case preview (_Just <<< gistFileContent <<< _Just) simulationGistFile of
+            Nothing -> pure unit
+            Just simulationString -> do
+              case (decodeJson =<< jsonParser simulationString) of
+                Left err -> pure unit
+                Right simulations -> do
+                  assign _simulations simulations
+                  assign _evaluationResult NotAsked
 
-                         _ -> pure unit
+        _ -> pure unit
 
   pure next
 
