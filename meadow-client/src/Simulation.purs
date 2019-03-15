@@ -233,7 +233,7 @@ inputComposer { inputs, choiceData, oracleData } =
    ik = Set.fromFoldable (Map.keys inputs)
    cdk = Set.fromFoldable (Map.keys choiceData)
    people = Set.toUnfoldable (Set.union ik cdk) :: List Person
-   oracles = Map.toUnfoldable oracleData :: List (Tuple IdOracle OracleEntry)
+   oracles = Map.toAscUnfoldable oracleData :: List (Tuple IdOracle OracleEntry)
 
 inputComposerPerson :: forall p. Person -> Map Person (List DetachedPrimitiveWIA)
                        -> Map Person (Map BigInteger Choice)
@@ -244,8 +244,7 @@ inputComposerPerson person inputs choices =
           ] ]
   , case Map.lookup person inputs of
       Nothing -> []
-      Just x -> Array.fromFoldable
-                do y <- x
+      Just x -> do y <- Array.sortWith (idActionFromDWAI) (Array.fromFoldable x)
                    case y of
                      DWAICommit idAction idCommit val tim ->
                        pure (inputCommit person idAction idCommit val tim)
@@ -253,9 +252,12 @@ inputComposerPerson person inputs choices =
                        pure (inputPay person idAction idCommit val)
   , case Map.lookup person choices of
       Nothing -> []
-      Just x -> do (Tuple idChoice choice) <- Map.toUnfoldable x
+      Just x -> do (Tuple idChoice choice) <- Map.toAscUnfoldable x
                    pure (inputChoice person idChoice choice)
   ]
+  where
+  idActionFromDWAI (DWAICommit idAction _ _ _) = idAction
+  idActionFromDWAI (DWAIPay idAction _ _) = idAction
 
 inputCommit :: forall p. Person -> IdAction -> IdCommit -> BigInteger -> Timeout
                 -> HTML p Query
