@@ -184,7 +184,8 @@ open import Relation.Nullary
 
 builtinEater : ∀{n} → Builtin
  → List (ScopedTy ∥ n ∥) → List (ScopedTm n) → ScopedTm n → ScopedTm n
-builtinEater b As ts u with Data.List.length ts Data.Nat.+ 1 Data.Nat.≤? arity b
+builtinEater b As ts u
+  with Data.List.length ts Data.Nat.+ 1 Data.Nat.≤? arity b
 builtinEater b As ts u | yes p = builtin b As (ts Data.List.++ [ u ])
 builtinEater b As ts u | no ¬p = builtin b As ts · u
 
@@ -245,7 +246,7 @@ ugly (t ·⋆ A) = "( " ++ ugly t ++ " ·⋆ " ++ "TYPE" ++ ")"
 
 ugly (con c) = "(con " -- ++ uglyTermCon c ++ ")"
 ugly (builtin b As ts) =
-  "(builtin As " ++
+  "(builtin " ++
   uglyBuiltin b ++
   " " ++
   Data.Integer.show (Data.Integer.ℤ.pos (Data.List.length As)) ++

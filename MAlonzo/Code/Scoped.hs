@@ -552,7 +552,7 @@ d580 v0 v1
       C104 v3 -> coe (Data.Text.pack "error _")
       C108 v3 v4 v5
         -> coe
-             MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack "(builtin As ")
+             MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack "(builtin ")
              (coe
                 MAlonzo.Code.Data.String.Base.d10 (d576 (coe v3))
                 (coe
