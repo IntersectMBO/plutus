@@ -117,6 +117,8 @@ builtinEater b ts u | Dec.no ¬p = builtin b ts · u
 
 
 erase⊢ : ∀{n} → S.ScopedTm n → eraseℕ n ⊢
+eraseL : ∀{n} → List (S.ScopedTm n) → List (eraseℕ n ⊢)
+
 erase⊢ (S.` x)    = ` (eraseFin x)
 erase⊢ (S.Λ K t)  = erase⊢ t
 erase⊢ (t S.·⋆ A) = erase⊢ t
@@ -126,8 +128,10 @@ erase⊢ (t S.· u) | inj₁ (b ,, ts) = builtinEater b ts (erase⊢ u)
 erase⊢ (t S.· u) | inj₂ t' = t' · erase⊢ u
 erase⊢ (S.con c) = con (eraseCon c)
 erase⊢ (S.error A) = error
-erase⊢ (S.builtin b) = builtin b []
+erase⊢ (S.builtin b _ ts) = builtin b (eraseL ts)
 
+eraseL [] = []
+eraseL (t ∷ ts) = erase⊢ t ∷ eraseL ts
 \end{code}
 
 \begin{code}

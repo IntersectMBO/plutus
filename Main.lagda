@@ -188,12 +188,12 @@ utestPLC plc = mmap (U.ugly ∘ (λ (t : 0 ⊢) → proj₁ (U.run t 100)) ∘ e
 
 -- extrinsically typed evaluation
 stestPLC : ByteString → Maybe String
-stestPLC plc = mmap (S.ugly ∘ (λ (t : ScopedTm Z) → proj₁ (S.run t 100))) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))
+stestPLC plc = mmap (S.ugly ∘ (λ (t : ScopedTm Z) → proj₁ (S.run t 100)) ∘ saturate) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))
 
 testFile : String → IO String
 testFile fn = do
   t ← readFile fn
-  return (maybe id "blerk" (utestPLC t))
+  return (maybe id "blerk" (stestPLC t))
 
 {-# FOREIGN GHC import System.Environment #-}
 

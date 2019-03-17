@@ -7,6 +7,7 @@ open import Scoped
 
 open import Data.Nat
 open import Data.Fin hiding (lift)
+open import Data.List
 open import Function
 \end{code}
 
@@ -27,6 +28,10 @@ ren⋆ ρ (A · B) = ren⋆ ρ A · ren⋆ ρ B
 ren⋆ ρ (con x) = con x
 ren⋆ ρ (size x) = size x
 
+ren⋆L : ∀{m n} → Ren⋆ m n → List (ScopedTy m) → List (ScopedTy n)
+ren⋆L ρ⋆ []       = []
+ren⋆L ρ⋆ (A ∷ As) = ren⋆ ρ⋆ A ∷ ren⋆L ρ⋆ As
+
 Ren : Weirdℕ → Weirdℕ → Set
 Ren m n = WeirdFin m → WeirdFin n
 
@@ -38,6 +43,9 @@ lift ρ (S x) = S (ρ x)
 ⋆lift ρ (T x) = T (ρ x)
 
 ren : ∀{m n} → Ren⋆ ∥ m ∥ ∥ n ∥ → Ren m n → ScopedTm m → ScopedTm n
+renL : ∀{m n} → Ren⋆ ∥ m ∥ ∥ n ∥ → Ren m n
+      → List (ScopedTm m) → List (ScopedTm n)
+
 ren ρ⋆ ρ (` x) = ` (ρ x)
 ren ρ⋆ ρ (Λ K t) = Λ K (ren (lift⋆ ρ⋆) (⋆lift ρ) t) 
 ren ρ⋆ ρ (t ·⋆ A) = ren ρ⋆ ρ t ·⋆ ren⋆ ρ⋆ A
@@ -45,7 +53,10 @@ ren ρ⋆ ρ (ƛ A t)  = ƛ (ren⋆ ρ⋆ A) (ren ρ⋆ (lift ρ) t)
 ren ρ⋆ ρ (t · u) = ren ρ⋆ ρ t · ren ρ⋆ ρ u
 ren ρ⋆ ρ (con x) = con x
 ren ρ⋆ ρ (error A) = error (ren⋆ ρ⋆ A)
-ren ρ⋆ ρ (builtin x) = builtin x
+ren ρ⋆ ρ (builtin b As ts) = builtin b (ren⋆L ρ⋆ As) (renL ρ⋆ ρ ts)
+
+renL ρ⋆ ρ []       = []
+renL ρ⋆ ρ (t ∷ ts) = ren ρ⋆ ρ t ∷ renL ρ⋆ ρ ts
 
 -- substitution
 
@@ -65,6 +76,10 @@ sub⋆ σ (A · B) = sub⋆ σ A · sub⋆ σ B
 sub⋆ σ (con c) = con c
 sub⋆ σ (size n) = size n
 
+sub⋆L : ∀{m n} → Sub⋆ m n → List (ScopedTy m) → List (ScopedTy n)
+sub⋆L σ⋆ []       = []
+sub⋆L σ⋆ (A ∷ As) = sub⋆ σ⋆ A ∷ sub⋆L σ⋆ As
+
 Sub : Weirdℕ → Weirdℕ → Set
 Sub m n = WeirdFin m → ScopedTm n
 
@@ -76,6 +91,9 @@ slift σ (S x) = ren id S (σ x)
 ⋆slift σ (T x) = ren suc T (σ x)
 
 sub : ∀{m n} → Sub⋆ ∥ m ∥ ∥ n ∥ → Sub m n → ScopedTm m → ScopedTm n
+subL : ∀{m n} → Sub⋆ ∥ m ∥ ∥ n ∥ → Sub m n
+  → List (ScopedTm m) → List (ScopedTm n)
+
 sub σ⋆ σ (` x) = σ x
 sub σ⋆ σ (Λ K t) = Λ K (sub (slift⋆ σ⋆) (⋆slift σ) t)
 sub σ⋆ σ (t ·⋆ A) = sub σ⋆ σ t ·⋆ sub⋆ σ⋆ A
@@ -83,7 +101,10 @@ sub σ⋆ σ (ƛ A t) = ƛ (sub⋆ σ⋆ A) (sub σ⋆ (slift σ) t)
 sub σ⋆ σ (t · u) = sub σ⋆ σ t · sub σ⋆ σ u
 sub σ⋆ σ (con c) = con c
 sub σ⋆ σ (error A) = error (sub⋆ σ⋆ A)
-sub σ⋆ σ (builtin b) = builtin b
+sub σ⋆ σ (builtin b As ts) = builtin b (sub⋆L σ⋆ As) (subL σ⋆ σ ts)
+
+subL σ⋆ σ []       = []
+subL σ⋆ σ (t ∷ ts) = sub σ⋆ σ t ∷ subL σ⋆ σ ts
 
 ext : ∀{m n} → Sub m n → ScopedTm n → Sub (S m) n
 ext σ t Z = t

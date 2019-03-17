@@ -67,7 +67,7 @@ progress (t · u) | inl (inr p) = inl (inr (E-· p))
 progress (t · u) | inr (t' , p) = inr (t' · u , ξ-· p)
 progress (con x) = inl (inr todo)
 progress (error p) = inl (inr (E-error p))
-progress (builtin x) = inl (inr todo)
+progress (builtin b As ts) = inl (inr todo)
 \end{code}
 
 \begin{code}

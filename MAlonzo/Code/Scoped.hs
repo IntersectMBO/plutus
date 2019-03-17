@@ -8,6 +8,7 @@ import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
                     mul64, quot64, rem64, lt64, eq64, word64FromNat, word64ToNat)
 import qualified MAlonzo.RTE
 import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.List
 import qualified MAlonzo.Code.Agda.Builtin.Nat
 import qualified MAlonzo.Code.Agda.Builtin.Sigma
 import qualified MAlonzo.Code.Agda.Builtin.String
@@ -15,11 +16,14 @@ import qualified MAlonzo.Code.Builtin
 import qualified MAlonzo.Code.Builtin.Constant.Type
 import qualified MAlonzo.Code.Category.Monad.Indexed
 import qualified MAlonzo.Code.Data.Fin
+import qualified MAlonzo.Code.Data.Integer
+import qualified MAlonzo.Code.Data.List.Base
 import qualified MAlonzo.Code.Data.Maybe
 import qualified MAlonzo.Code.Data.Maybe.Base
 import qualified MAlonzo.Code.Data.Nat.Base
 import qualified MAlonzo.Code.Data.String
 import qualified MAlonzo.Code.Data.String.Base
+import qualified MAlonzo.Code.Data.Sum.Base
 import qualified MAlonzo.Code.Data.Vec
 import qualified MAlonzo.Code.Raw
 import qualified MAlonzo.Code.Relation.Nullary
@@ -75,7 +79,7 @@ name76 = "Scoped.ScopedTm"
 d76 a0 = ()
 data T76
   = C80 T38 | C84 T2 T76 | C88 T76 T12 | C92 T12 T76 | C96 T76 T76 |
-    C100 T58 | C104 T12 | C108 MAlonzo.Code.Builtin.T2
+    C100 T58 | C104 T12 | C108 MAlonzo.Code.Builtin.T2 [T12] [T76]
 name110 = "Scoped.deBruijnifyK"
 d110 :: MAlonzo.Code.Raw.T2 -> T2
 d110 v0
@@ -333,11 +337,143 @@ d348 v0 v1 v2
       MAlonzo.Code.Raw.C52 v3
         -> coe
              (MAlonzo.Code.Data.Maybe.Base.C18
-                (coe (\ v4 v5 -> C108 v5) erased v3))
+                (coe
+                   (\ v4 v5 v6 v7 -> C108 v5 v6 v7) erased v3
+                   MAlonzo.Code.Agda.Builtin.List.C16
+                   MAlonzo.Code.Agda.Builtin.List.C16))
       _ -> MAlonzo.RTE.mazUnreachableError
-name408 = "Scoped.uglyWeirdFin"
-d408 :: T30 -> T38 -> MAlonzo.Code.Agda.Builtin.String.T6
-d408 v0 v1
+name408 = "Scoped.builtinMatcher"
+d408 ::
+  T30 ->
+  T76 ->
+  MAlonzo.Code.Data.Sum.Base.T14
+    AgdaAny AgdaAny MAlonzo.Code.Agda.Builtin.Sigma.T14 T76
+d408 v0 v1 = du408 v1
+du408 ::
+  T76 ->
+  MAlonzo.Code.Data.Sum.Base.T14
+    AgdaAny AgdaAny MAlonzo.Code.Agda.Builtin.Sigma.T14 T76
+du408 v0
+  = let v1 = MAlonzo.Code.Data.Sum.Base.C30 (coe v0) in
+    case coe v0 of
+      C108 v3 v4 v5
+        -> coe
+             (MAlonzo.Code.Data.Sum.Base.C26
+                (coe
+                   (MAlonzo.Code.Agda.Builtin.Sigma.C32
+                      (coe v3)
+                      (coe (MAlonzo.Code.Agda.Builtin.Sigma.C32 (coe v4) (coe v5))))))
+      _ -> coe v1
+name418 = "Scoped.arity"
+d418 :: MAlonzo.Code.Builtin.T2 -> Integer
+d418 v0 = du418
+du418 :: Integer
+du418 = coe (2 :: Integer)
+name420 = "Scoped.arity⋆"
+d420 :: MAlonzo.Code.Builtin.T2 -> Integer
+d420 v0 = du420
+du420 :: Integer
+du420 = coe (1 :: Integer)
+name424 = "Scoped.builtinEater"
+d424 ::
+  T30 -> MAlonzo.Code.Builtin.T2 -> [T12] -> [T76] -> T76 -> T76
+d424 v0 v1 v2 v3 v4 = du424 v1 v2 v3 v4
+du424 :: MAlonzo.Code.Builtin.T2 -> [T12] -> [T76] -> T76 -> T76
+du424 v0 v1 v2 v3
+  = let v4
+          = MAlonzo.Code.Data.Nat.Base.d222
+              (coe
+                 (addInt
+                    (coe (1 :: Integer)) (coe MAlonzo.Code.Data.List.Base.du260 v2)))
+              (coe (2 :: Integer)) in
+    case coe v4 of
+      MAlonzo.Code.Relation.Nullary.C22 v5
+        -> coe
+             (\ v6 v7 v8 v9 -> C108 v7 v8 v9) erased v0 v1
+             (MAlonzo.Code.Data.List.Base.du64
+                (coe v2)
+                (coe
+                   (MAlonzo.Code.Agda.Builtin.List.C22
+                      (coe v3) (coe MAlonzo.Code.Agda.Builtin.List.C16))))
+      MAlonzo.Code.Relation.Nullary.C26
+        -> coe
+             (\ v6 v7 v8 -> C96 v7 v8) erased
+             (coe (\ v6 v7 v8 v9 -> C108 v7 v8 v9) erased v0 v1 v2) v3
+      _ -> MAlonzo.RTE.mazUnreachableError
+name460 = "Scoped.builtinEater⋆"
+d460 ::
+  T30 -> MAlonzo.Code.Builtin.T2 -> [T12] -> [T76] -> T12 -> T76
+d460 v0 v1 v2 v3 v4 = du460 v1 v2 v3 v4
+du460 :: MAlonzo.Code.Builtin.T2 -> [T12] -> [T76] -> T12 -> T76
+du460 v0 v1 v2 v3
+  = let v4
+          = MAlonzo.Code.Data.Nat.Base.d222
+              (coe
+                 (addInt
+                    (coe (1 :: Integer)) (coe MAlonzo.Code.Data.List.Base.du260 v2)))
+              (coe (1 :: Integer)) in
+    case coe v4 of
+      MAlonzo.Code.Relation.Nullary.C22 v5
+        -> coe
+             (\ v6 v7 v8 v9 -> C108 v7 v8 v9) erased v0
+             (MAlonzo.Code.Data.List.Base.du64
+                (coe v1)
+                (coe
+                   (MAlonzo.Code.Agda.Builtin.List.C22
+                      (coe v3) (coe MAlonzo.Code.Agda.Builtin.List.C16))))
+             v2
+      MAlonzo.Code.Relation.Nullary.C26
+        -> coe
+             (\ v6 v7 v8 -> C88 v7 v8) erased
+             (coe (\ v6 v7 v8 v9 -> C108 v7 v8 v9) erased v0 v1 v2) v3
+      _ -> MAlonzo.RTE.mazUnreachableError
+name496 = "Scoped.saturate"
+d496 :: T30 -> T76 -> T76
+d496 v0 v1 = du496 v1
+du496 :: T76 -> T76
+du496 v0
+  = case coe v0 of
+      C80 v2 -> coe (\ v3 v4 -> C80 v4) erased v2
+      C84 v2 v3
+        -> coe (\ v4 v5 v6 -> C84 v5 v6) erased v2 (du496 (coe v3))
+      C88 v2 v3
+        -> let v4 = du408 (coe (du496 (coe v2))) in
+           case coe v4 of
+             MAlonzo.Code.Data.Sum.Base.C26 v5
+               -> case coe v5 of
+                    MAlonzo.Code.Agda.Builtin.Sigma.C32 v6 v7
+                      -> case coe v7 of
+                           MAlonzo.Code.Agda.Builtin.Sigma.C32 v8 v9
+                             -> coe (du460 (coe v6) (coe v8) (coe v9) (coe v3))
+                           _ -> MAlonzo.RTE.mazUnreachableError
+                    _ -> MAlonzo.RTE.mazUnreachableError
+             MAlonzo.Code.Data.Sum.Base.C30 v5
+               -> coe (\ v6 v7 v8 -> C88 v7 v8) erased v5 v3
+             _ -> MAlonzo.RTE.mazUnreachableError
+      C92 v2 v3
+        -> coe (\ v4 v5 v6 -> C92 v5 v6) erased v2 (du496 (coe v3))
+      C96 v2 v3
+        -> let v4 = du408 (coe (du496 (coe v2))) in
+           case coe v4 of
+             MAlonzo.Code.Data.Sum.Base.C26 v5
+               -> case coe v5 of
+                    MAlonzo.Code.Agda.Builtin.Sigma.C32 v6 v7
+                      -> case coe v7 of
+                           MAlonzo.Code.Agda.Builtin.Sigma.C32 v8 v9
+                             -> coe (du424 (coe v6) (coe v8) (coe v9) (coe (du496 (coe v3))))
+                           _ -> MAlonzo.RTE.mazUnreachableError
+                    _ -> MAlonzo.RTE.mazUnreachableError
+             MAlonzo.Code.Data.Sum.Base.C30 v5
+               -> coe (\ v6 v7 v8 -> C96 v7 v8) erased v5 (du496 (coe v3))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      C100 v2 -> coe (\ v3 v4 -> C100 v4) erased v2
+      C104 v2 -> coe (\ v3 v4 -> C104 v4) erased v2
+      C108 v2 v3 v4
+        -> coe (\ v5 v6 v7 v8 -> C108 v6 v7 v8) erased v2 v3 v4
+      _ -> MAlonzo.RTE.mazUnreachableError
+name568 = "Scoped.uglyWeirdFin"
+d568 :: T30 -> T38 -> MAlonzo.Code.Agda.Builtin.String.T6
+d568 v0 v1
   = case coe v1 of
       C42 -> coe (Data.Text.pack "0")
       C46 v3
@@ -346,7 +482,7 @@ d408 v0 v1
                -> coe
                     MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack "(S ")
                     (coe
-                       MAlonzo.Code.Data.String.Base.d10 (d408 (coe v4) (coe v3))
+                       MAlonzo.Code.Data.String.Base.d10 (d568 (coe v4) (coe v3))
                        (Data.Text.pack ")"))
              _ -> MAlonzo.RTE.mazUnreachableError
       C50 v3
@@ -355,42 +491,42 @@ d408 v0 v1
                -> coe
                     MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack "(T ")
                     (coe
-                       MAlonzo.Code.Data.String.Base.d10 (d408 (coe v4) (coe v3))
+                       MAlonzo.Code.Data.String.Base.d10 (d568 (coe v4) (coe v3))
                        (Data.Text.pack ")"))
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
-name414 = "Scoped.showNat"
-d414 :: Integer -> MAlonzo.Code.Agda.Builtin.String.T6
-d414 = T.pack . show
-name416 = "Scoped.uglyBuiltin"
-d416 ::
+name574 = "Scoped.showNat"
+d574 :: Integer -> MAlonzo.Code.Agda.Builtin.String.T6
+d574 = T.pack . show
+name576 = "Scoped.uglyBuiltin"
+d576 ::
   MAlonzo.Code.Builtin.T2 -> MAlonzo.Code.Agda.Builtin.String.T6
-d416 v0
+d576 v0
   = let v1 = Data.Text.pack "other" in
     case coe v0 of
       MAlonzo.Code.Builtin.C4 -> coe (Data.Text.pack "addInteger")
       _ -> coe v1
-name420 = "Scoped.ugly"
-d420 :: T30 -> T76 -> MAlonzo.Code.Agda.Builtin.String.T6
-d420 v0 v1
+name580 = "Scoped.ugly"
+d580 :: T30 -> T76 -> MAlonzo.Code.Agda.Builtin.String.T6
+d580 v0 v1
   = case coe v1 of
       C80 v3
         -> coe
              MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack "(` ")
              (coe
-                MAlonzo.Code.Data.String.Base.d10 (d408 (coe v0) (coe v3))
+                MAlonzo.Code.Data.String.Base.d10 (d568 (coe v0) (coe v3))
                 (Data.Text.pack ")"))
       C84 v3 v4
         -> coe
              MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack "(\923 ")
              (coe
                 MAlonzo.Code.Data.String.Base.d10
-                (d420 (coe (C36 (coe v0))) (coe v4)) (Data.Text.pack ")"))
+                (d580 (coe (C36 (coe v0))) (coe v4)) (Data.Text.pack ")"))
       C88 v3 v4
         -> coe
              MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack "( ")
              (coe
-                MAlonzo.Code.Data.String.Base.d10 (d420 (coe v0) (coe v3))
+                MAlonzo.Code.Data.String.Base.d10 (d580 (coe v0) (coe v3))
                 (coe
                    MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack " \183\8902 ")
                    (coe
@@ -401,23 +537,35 @@ d420 v0 v1
              MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack "(\411 ")
              (coe
                 MAlonzo.Code.Data.String.Base.d10
-                (d420 (coe (C34 (coe v0))) (coe v4)) (Data.Text.pack ")"))
+                (d580 (coe (C34 (coe v0))) (coe v4)) (Data.Text.pack ")"))
       C96 v3 v4
         -> coe
              MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack "( ")
              (coe
-                MAlonzo.Code.Data.String.Base.d10 (d420 (coe v0) (coe v3))
+                MAlonzo.Code.Data.String.Base.d10 (d580 (coe v0) (coe v3))
                 (coe
                    MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack " \183 ")
                    (coe
-                      MAlonzo.Code.Data.String.Base.d10 (d420 (coe v0) (coe v4))
+                      MAlonzo.Code.Data.String.Base.d10 (d580 (coe v0) (coe v4))
                       (Data.Text.pack ")"))))
       C100 v3 -> coe (Data.Text.pack "(con ")
       C104 v3 -> coe (Data.Text.pack "error _")
-      C108 v3
+      C108 v3 v4 v5
         -> coe
-             MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack "(builtin ")
+             MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack "(builtin As ")
              (coe
-                MAlonzo.Code.Data.String.Base.d10 (d416 (coe v3))
-                (Data.Text.pack ")"))
+                MAlonzo.Code.Data.String.Base.d10 (d576 (coe v3))
+                (coe
+                   MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack " ")
+                   (coe
+                      MAlonzo.Code.Data.String.Base.d10
+                      (MAlonzo.Code.Data.Integer.d4
+                         (coe MAlonzo.Code.Data.List.Base.du260 v4))
+                      (coe
+                         MAlonzo.Code.Data.String.Base.d10 (Data.Text.pack " ")
+                         (coe
+                            MAlonzo.Code.Data.String.Base.d10
+                            (MAlonzo.Code.Data.Integer.d4
+                               (coe MAlonzo.Code.Data.List.Base.du260 v5))
+                            (Data.Text.pack ")"))))))
       _ -> MAlonzo.RTE.mazUnreachableError

@@ -5,6 +5,7 @@ module Scoped where
 \begin{code}
 open import Data.Nat
 open import Data.Fin
+open import Data.List hiding (map; _++_)
 
 open import Builtin.Constant.Type
 open import Builtin
@@ -71,7 +72,10 @@ data ScopedTm : Weirdℕ → Set where
   _·_  : ∀{n} → ScopedTm n → ScopedTm n → ScopedTm n
   con  : ∀{n} → SizedTermCon → ScopedTm n
   error : ∀{n} → ScopedTy ∥ n ∥ → ScopedTm n
-  builtin : ∀{n} → Builtin → ScopedTm n
+  builtin : ∀{n} → Builtin → List (ScopedTy ∥ n ∥) → List (ScopedTm n)
+          → ScopedTm n
+
+-- SCOPE CHECKING / CONVERSION FROM RAW TO SCOPED
 
 -- should just use ordinary kind for everything
 deBruijnifyK : RawKind → ScopedKind
@@ -79,7 +83,7 @@ deBruijnifyK * = *
 deBruijnifyK (K ⇒ J) = deBruijnifyK K ⇒ deBruijnifyK J
 deBruijnifyK # = #
 
-open import Data.Vec hiding (_>>=_; map; _++_)
+open import Data.Vec hiding (_>>=_; map; _++_; [_])
 open import Data.Maybe
 open import Data.String
 open import Relation.Nullary
@@ -156,8 +160,59 @@ deBruijnifyTm g (L ·⋆ A) = do
   return (L ·⋆ A)
 deBruijnifyTm g (con t) = map con (checkSize t)
 deBruijnifyTm g (error A) = map error (deBruijnifyTy ∥ g ∥Vec A)
-deBruijnifyTm g (builtin b) = just (builtin b) 
+deBruijnifyTm g (builtin b) = just (builtin b [] []) 
 \end{code}
+
+-- SATURATION OF BUILTINS
+
+
+\begin{code}
+open import Data.Product
+open import Data.Sum
+
+builtinMatcher : ∀{n} → ScopedTm n → (Builtin × List (ScopedTy ∥ n ∥) × List (ScopedTm n)) ⊎ ScopedTm n
+builtinMatcher (builtin b As ts) = inj₁ (b , As , ts)
+builtinMatcher t              = inj₂ t
+
+arity : Builtin → ℕ
+arity _ = 2
+
+arity⋆ : Builtin → ℕ
+arity⋆ _ = 1
+
+open import Relation.Nullary
+
+builtinEater : ∀{n} → Builtin
+ → List (ScopedTy ∥ n ∥) → List (ScopedTm n) → ScopedTm n → ScopedTm n
+builtinEater b As ts u with Data.List.length ts Data.Nat.+ 1 Data.Nat.≤? arity b
+builtinEater b As ts u | yes p = builtin b As (ts Data.List.++ [ u ])
+builtinEater b As ts u | no ¬p = builtin b As ts · u
+
+builtinEater⋆ : ∀{n} → Builtin
+  → List (ScopedTy ∥ n ∥) → List (ScopedTm n) → ScopedTy ∥ n ∥ → ScopedTm n
+builtinEater⋆ b As ts A
+  with Data.List.length ts Data.Nat.+ 1 Data.Nat.≤? arity⋆ b
+builtinEater⋆ b As ts A | yes p = builtin b (As Data.List.++ [ A ]) ts
+builtinEater⋆ b As ts A | no ¬p = builtin b As ts ·⋆ A
+
+saturate : ∀{n} → ScopedTm n → ScopedTm n
+saturate (` x)          = ` x
+saturate (Λ K t)        = Λ K (saturate t)
+saturate (t ·⋆ A)       with builtinMatcher (saturate t)
+saturate (t ·⋆ A) | inj₁ (b , As , ts) = builtinEater⋆ b As ts A
+saturate (t ·⋆ A) | inj₂ t'            = t' ·⋆ A
+saturate (ƛ A t)        = ƛ A (saturate t) 
+saturate (t · u)        with builtinMatcher (saturate t)
+saturate (t · u) | inj₁ (b , As , ts) = builtinEater b As ts (saturate u)
+saturate (t · u) | inj₂ t'            = t' · saturate u 
+saturate (con c)        = con c
+saturate (error A)      = error A
+saturate (builtin b As ts) = builtin b As ts
+  -- I don't think As or ts can be unsaturated, could be enforced by
+  -- seperate representations for sat and unsat terms
+\end{code}
+
+-- UGLY PRINTING
 
 \begin{code}
 open import Data.String
@@ -189,6 +244,13 @@ ugly (Λ _ t) = "(Λ " ++ ugly t ++ ")"
 ugly (t ·⋆ A) = "( " ++ ugly t ++ " ·⋆ " ++ "TYPE" ++ ")"
 
 ugly (con c) = "(con " -- ++ uglyTermCon c ++ ")"
-ugly (builtin b) = "(builtin " ++ uglyBuiltin b ++ ")"
+ugly (builtin b As ts) =
+  "(builtin As " ++
+  uglyBuiltin b ++
+  " " ++
+  Data.Integer.show (Data.Integer.ℤ.pos (Data.List.length As)) ++
+  " " ++ 
+  Data.Integer.show (Data.Integer.ℤ.pos (Data.List.length ts))
+  ++ ")"
 ugly (error _) = "error _"
 \end{code}
