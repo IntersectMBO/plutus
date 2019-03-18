@@ -160,6 +160,7 @@ postulate
 {-# FOREIGN GHC import Language.PlutusCore.Name #-}
 {-# FOREIGN GHC import Language.PlutusCore.Lexer #-}
 {-# FOREIGN GHC import Language.PlutusCore.Parser #-}
+{-# FOREIGN GHC import Language.PlutusCore.Pretty #-}
 {-# FOREIGN GHC import Data.Either #-}
 
 {-# FOREIGN GHC import Raw #-}
@@ -195,6 +196,19 @@ testFile fn = do
   t ← readFile fn
   return (maybe id "blerk" (stestPLC t))
 
+
+postulate prettyPrint : RawTm → String
+
+{-# COMPILE GHC prettyPrint = prettyText . unconv #-}
+
+prettyPLC : ByteString → Maybe String
+prettyPLC plc = mmap (prettyPrint ∘ convP) (parse plc)
+
+testPretty : String → IO String
+testPretty fn = do
+  t ← readFile fn
+  return (maybe id "blerk" (prettyPLC t))
+
 {-# FOREIGN GHC import System.Environment #-}
 
 open import Data.List
@@ -209,6 +223,8 @@ main = do
     where [] → return _
   putStrLn arg
   testFile arg >>= putStrLn
+  testPretty arg >>= putStrLn
+  
 
 {-
   -- plutus/language-plutus-core/type-errors

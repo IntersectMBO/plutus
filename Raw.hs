@@ -1,4 +1,6 @@
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Raw where
 
@@ -7,6 +9,7 @@ import GHC.Natural
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.Parser
+import           Language.PlutusCore.Pretty
 import qualified Data.Text                  as T
 import           Data.ByteString.Lazy       as BSL
 
@@ -83,3 +86,19 @@ conv (Constant _ c)   = RCon (convC c)
 conv (Unwrap _ _)     = undefined
 conv (IWrap _ _ _ _)  = undefined
 conv (Error _ _A)      = RError (convT _A)
+
+mkName :: T.Text -> Name ()
+mkName x = Name {nameAttribute = (), nameString = x, nameUnique = undefined}
+
+unconvT :: RType -> Type TyName ()
+unconvT = undefined
+
+unconv :: RTerm -> Term TyName Name ()
+unconv (RVar x) = Var () (mkName x)
+unconv (RTLambda x ty tm) = undefined
+unconv (RTApp _ _) = undefined
+unconv (RLambda x ty tm) = LamAbs () (mkName x) (unconvT ty) (unconv tm)
+unconv (RApp _ _) = undefined
+unconv (RCon _) = undefined
+unconv (RError _) = undefined
+unconv (RBuiltin _) = undefined
