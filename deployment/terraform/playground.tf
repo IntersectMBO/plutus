@@ -12,15 +12,8 @@ resource "aws_security_group" "playground" {
 
   ## inbound (world): http
   ingress {
-    from_port   = 9200
-    to_port     = 9200
-    protocol    = "TCP"
-    cidr_blocks = ["${var.private_subnet_cidrs}"]
-  }
-
-  ingress {
-    from_port   = 9300
-    to_port     = 9300
+    from_port   = 9100
+    to_port     = 9100
     protocol    = "TCP"
     cidr_blocks = ["${var.private_subnet_cidrs}"]
   }

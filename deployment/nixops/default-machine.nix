@@ -37,4 +37,11 @@
 
       users.extraUsers.root.openssh.authorizedKeys.keys = machines.rootSshKeys;
       services.fail2ban.enable = true;
+
+      services.prometheus.exporters = {
+        node = {
+            enable = true;
+            enabledCollectors = [ "systemd" ];
+        };
+      };
 }
