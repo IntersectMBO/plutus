@@ -40,6 +40,7 @@ import           Language.PlutusCore.Quote
 import qualified Language.PlutusIR                      as PIR
 import qualified Language.PlutusIR.Compiler             as PIR
 import qualified Language.PlutusIR.Compiler.Definitions as PIR
+import qualified Language.PlutusIR.MkPir                as PIR
 import qualified Language.PlutusIR.Optimizer.DeadCode   as PIR
 
 import           Language.Haskell.TH.Syntax             as TH
@@ -71,7 +72,7 @@ data CompiledCode a = CompiledCode {
 -- Note that we do *not* have a TypeablePlc instance, since we don't know what the type is. We could in principle store it after the plugin
 -- typechecks the code, but we don't currently.
 instance Lift.Lift (CompiledCode a) where
-    lift (getPlc -> (PLC.Program () _ body)) = PIR.embedIntoIR <$> PLC.rename body
+    lift (getPlc -> (PLC.Program () _ body)) = PIR.embed <$> PLC.rename body
 
 getSerializedPlc :: CompiledCode a -> BSL.ByteString
 getSerializedPlc = BSL.fromStrict . serializedPlc

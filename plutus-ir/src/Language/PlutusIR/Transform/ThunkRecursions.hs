@@ -173,7 +173,7 @@ constructThunkedLet ann okay needThunking body = do
     -- as we rename before typechecking.
     argName <- liftQuote $ freshName ann "arg"
     let unit = ann <$ Unit.unit
-        unitval = ann <$ embedIntoIR Unit.unitval
+        unitval = ann <$ Unit.unitval
 
     {-
     We need several pieces, and it is convenient to construct them simultaneously:
