@@ -6,6 +6,7 @@ import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
 import Control.Comonad (class Comonad, extract)
 import Control.Extend (class Extend, extend)
+import Cursor (Cursor)
 import DOM.HTML.Event.Types (DragEvent)
 import Data.Argonaut.Core (Json)
 import Data.Argonaut.Core as Json
@@ -14,13 +15,14 @@ import Data.Array as Array
 import Data.Either (Either)
 import Data.Either.Nested (Either3)
 import Data.Functor.Coproduct.Nested (Coproduct3)
-import Data.Generic (class Generic, gShow)
+import Data.Generic (class Generic, gEq, gShow)
 import Data.Int as Int
 import Data.Lens (Lens, Lens', Prism', _2, over, prism', to, traversed, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
-import Data.Newtype (unwrap)
+import Data.Newtype (class Newtype, unwrap)
+import Data.NonEmpty ((:|))
 import Data.RawJson (RawJson(..))
 import Data.StrMap as M
 import Data.Symbol (SProxy(..))
@@ -32,18 +34,19 @@ import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.ECharts (EChartsMessage, EChartsQuery)
 import Language.Haskell.Interpreter (CompilationError)
 import Ledger.Ada.TH (Ada, _Ada)
-import Ledger.Types (Tx)
+import Ledger.Types (Tx, TxIdOf)
 import Matryoshka (class Corecursive, class Recursive, Algebra, cata)
 import Network.RemoteData (RemoteData)
-import Playground.API (CompilationResult, EvaluationResult, FunctionSchema, SimpleArgumentSchema(..), SimulatorWallet, _FunctionSchema, _SimulatorWallet)
+import Playground.API (CompilationResult, Evaluation(Evaluation), EvaluationResult, FunctionSchema, SimpleArgumentSchema(UnknownSchema, SimpleObjectSchema, SimpleTupleSchema, SimpleArraySchema, SimpleStringSchema, SimpleIntSchema), SimulatorWallet, SourceCode, _FunctionSchema, _SimulatorWallet)
 import Playground.API as API
 import Servant.PureScript.Affjax (AjaxError)
+import Test.QuickCheck.Arbitrary (class Arbitrary)
+import Test.QuickCheck.Gen as Gen
 import Validation (class Validation, ValidationError(Unsupported, Required), WithPath, addPath, noPath, validate)
 import Wallet.Emulator.Types (Wallet, _Wallet)
 
 _simulatorWalletWallet :: Lens' SimulatorWallet Wallet
 _simulatorWalletWallet = _SimulatorWallet <<< prop (SProxy :: SProxy "simulatorWalletWallet")
-
 
 _simulatorWalletBalance :: Lens' SimulatorWallet Ada
 _simulatorWalletBalance = _SimulatorWallet <<< prop (SProxy :: SProxy "simulatorWalletBalance")
@@ -60,6 +63,9 @@ data Action
       , functionSchema :: FunctionSchema SimpleArgument
       }
   | Wait { blocks :: Int }
+
+instance eqAction :: Eq Action where
+  eq = gEq
 
 derive instance genericAction :: Generic Action
 
@@ -129,6 +135,15 @@ toExpression (Action action) = do
       jsonValues <- traverse simpleArgumentToJson argumentSchema
       pure $ RawJson <<< Json.stringify <$> jsonValues
 
+toEvaluation :: SourceCode -> Simulation -> Maybe Evaluation
+toEvaluation sourceCode (Simulation {actions, wallets}) = do
+    program <- traverse toExpression actions
+    pure $ Evaluation { wallets
+                      , program
+                      , sourceCode
+                      , blockchain: []
+                      }
+
 ------------------------------------------------------------
 
 data Query a
@@ -141,12 +156,18 @@ data Query a
   -- Gist support.
   | CheckAuthStatus a
   | PublishGist a
+  | SetGistUrl String a
+  | LoadGist a
   -- Tabs.
   | ChangeView View a
   -- Editor.
   | LoadScript String a
   | CompileProgram a
   | ScrollTo { row :: Int, column :: Int } a
+  -- Simulations
+  | AddSimulationSlot a
+  | SetSimulationSlot Int a
+  | RemoveSimulationSlot Int a
   -- Wallets.
   | AddWallet a
   | RemoveWallet Int a
@@ -213,64 +234,78 @@ cpBalancesChart = cp3
 
 -----------------------------------------------------------
 
-type Blockchain = Array (Array Tx)
+type Blockchain = Array (Array (Tuple (TxIdOf String) Tx))
 type Signatures = Array (FunctionSchema SimpleArgumentSchema)
-type Simulation =
+newtype Simulation = Simulation
   { signatures :: Signatures
   , actions :: Array Action
-  }
-
-type State =
-  { view :: View
-  , compilationResult :: RemoteData AjaxError (Either (Array CompilationError) CompilationResult)
   , wallets :: Array SimulatorWallet
-  , simulation :: Maybe Simulation
-  , evaluationResult :: RemoteData AjaxError EvaluationResult
-  , authStatus :: RemoteData AjaxError AuthStatus
-  , createGistResult :: RemoteData AjaxError Gist
   }
 
-_view :: forall s a. Lens' {view :: a | s} a
-_view = prop (SProxy :: SProxy "view")
+derive instance newtypeSimulation :: Newtype Simulation _
+derive instance genericSimulation :: Generic Simulation
 
-_simulation :: forall s a. Lens' {simulation :: a | s} a
-_simulation = prop (SProxy :: SProxy "simulation")
+type WebData = RemoteData AjaxError
 
-_signatures :: forall s a. Lens' {signatures :: a | s} a
-_signatures = prop (SProxy :: SProxy "signatures")
+newtype State = State
+  { currentView :: View
+  , compilationResult :: WebData (Either (Array CompilationError) CompilationResult)
+  , simulations :: Cursor Simulation
+  , evaluationResult :: WebData EvaluationResult
+  , authStatus :: WebData AuthStatus
+  , createGistResult :: WebData Gist
+  , gistUrl :: Maybe String
+  }
 
-_actions :: forall s a. Lens' {actions :: a | s} a
-_actions = prop (SProxy :: SProxy "actions")
+derive instance newtypeState :: Newtype State _
 
-_wallets :: forall s a. Lens' {wallets :: a | s} a
-_wallets = prop (SProxy :: SProxy "wallets")
+_currentView :: Lens' State View
+_currentView = _Newtype <<< prop (SProxy :: SProxy "currentView")
 
-_evaluationResult :: forall s a. Lens' {evaluationResult :: a | s} a
-_evaluationResult = prop (SProxy :: SProxy "evaluationResult")
+_simulations :: Lens' State (Cursor Simulation)
+_simulations = _Newtype <<< prop (SProxy :: SProxy "simulations")
 
-_compilationResult :: forall s a. Lens' {compilationResult :: a | s} a
-_compilationResult = prop (SProxy :: SProxy "compilationResult")
+_signatures :: Lens' Simulation Signatures
+_signatures = _Newtype <<< prop (SProxy :: SProxy "signatures")
 
-_authStatus :: forall s a. Lens' {authStatus :: a | s} a
-_authStatus = prop (SProxy :: SProxy "authStatus")
+_actions :: Lens' Simulation (Array Action)
+_actions = _Newtype <<< prop (SProxy :: SProxy "actions")
 
-_createGistResult :: forall s a. Lens' {createGistResult :: a | s} a
-_createGistResult = prop (SProxy :: SProxy "createGistResult")
+_wallets :: Lens' Simulation (Array SimulatorWallet)
+_wallets = _Newtype <<< prop (SProxy :: SProxy "wallets")
 
-_resultBlockchain :: forall s a. Lens' {resultBlockchain :: a | s} a
-_resultBlockchain = prop (SProxy :: SProxy "resultBlockchain")
+_evaluationResult :: Lens' State (WebData EvaluationResult)
+_evaluationResult = _Newtype <<< prop (SProxy :: SProxy "evaluationResult")
+
+_compilationResult :: Lens' State (WebData (Either (Array CompilationError) CompilationResult))
+_compilationResult = _Newtype <<< prop (SProxy :: SProxy "compilationResult")
+
+_authStatus :: Lens' State (WebData AuthStatus)
+_authStatus = _Newtype <<< prop (SProxy :: SProxy "authStatus")
+
+_createGistResult :: Lens' State (WebData Gist)
+_createGistResult = _Newtype <<< prop (SProxy :: SProxy "createGistResult")
+
+_gistUrl :: Lens' State (Maybe String)
+_gistUrl = _Newtype <<< prop (SProxy :: SProxy "gistUrl")
+
+_resultBlockchain :: Lens' EvaluationResult Blockchain
+_resultBlockchain = _Newtype <<< prop (SProxy :: SProxy "resultBlockchain")
 
 data View
   = Editor
-  | Simulation
+  | Simulations
   | Transactions
 
 derive instance eqView :: Eq View
 derive instance genericView :: Generic View
 
+instance arbitraryView :: Arbitrary View where
+  arbitrary = Gen.elements (Editor :| [ Simulations, Transactions ])
+
 instance showView :: Show View where
   show Editor = "Editor"
-  show Simulation = "Simulation"
+  show Simulations = "Simulation"
   show Transactions = "Transactions"
 
 ------------------------------------------------------------

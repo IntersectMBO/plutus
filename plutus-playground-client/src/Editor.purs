@@ -18,7 +18,6 @@ import Data.Lens (_Right, preview, to, view)
 import Data.Map as Map
 import Data.Maybe (Maybe(Just), fromMaybe)
 import Data.String as String
-import Gists (gistControls)
 import Halogen (HTML, action)
 import Halogen.Component (ParentHTML)
 import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, h3_, pre_, slot', small, strong_, text)
@@ -32,7 +31,7 @@ import Network.RemoteData (RemoteData(..), _Success, isLoading)
 import Playground.API (_CompilationResult, Warning, _Warning)
 import Prelude (Unit, bind, discard, pure, show, unit, void, ($), (<$>), (<<<), (<>))
 import StaticData as StaticData
-import Types (ChildQuery, ChildSlot, EditorSlot(..), Query(..), State, _authStatus, _compilationResult, _createGistResult, _warnings, cpEditor)
+import Types (ChildQuery, ChildSlot, EditorSlot(EditorSlot), Query(ScrollTo, LoadScript, CompileProgram, HandleEditorMessage, HandleDropEvent, HandleDragEvent), State, _compilationResult, _warnings, cpEditor)
 
 loadBuffer :: forall eff. Eff (localStorage :: LOCALSTORAGE | eff) (Maybe String)
 loadBuffer = LocalStorage.getItem StaticData.bufferLocalStorageKey
@@ -73,33 +72,29 @@ editorPane state =
         ]
     , br_
     , div_
-        [ div [ class_ pullRight ]
-            [ gistControls (view _authStatus state) (view _createGistResult state) ]
-        , div_
-            [ button
-                [ id_ "compile"
-                , classes [ btn, btnClass ]
-                , onClick $ input_ CompileProgram
-                , disabled (isLoading state.compilationResult)
-                ]
-                [ btnText ]
+        [ button
+            [ id_ "compile"
+            , classes [ btn, btnClass ]
+            , onClick $ input_ CompileProgram
+            , disabled (isLoading (view _compilationResult state))
             ]
+            [ btnText ]
         ]
     , br_
     , errorList
     , warningList
     ]
   where
-    btnClass = case state.compilationResult of
+    btnClass = case view _compilationResult state of
                  Success (Right _) -> btnSuccess
                  Success (Left _) -> btnDanger
                  Failure _ -> btnDanger
                  Loading -> btnSecondary
                  NotAsked -> btnPrimary
-    btnText = case state.compilationResult of
+    btnText = case view _compilationResult state of
                  Loading -> icon Spinner
                  _ -> text "Compile"
-    errorList = case state.compilationResult of
+    errorList = case view _compilationResult state of
                   Success (Left errors) ->
                     listGroup_
                       (listGroupItem_ <<< pure <<< compilationErrorPane <$> errors)

@@ -5,6 +5,7 @@ module Chain
        ) where
 
 import Bootstrap (empty, nbsp)
+import Chain.BlockchainExploration (blockchainExploration)
 import Color (Color, rgb, white)
 import Control.Monad.Aff.Class (class MonadAff)
 import Data.Array as Array
@@ -27,10 +28,10 @@ import Halogen.HTML (ClassName(ClassName), br_, div, div_, h2_, slot', text)
 import Halogen.HTML.Events (input)
 import Halogen.HTML.Properties (class_)
 import Ledger.Interval (Slot(..))
-import Ledger.Types (TxIdOf(..))
+import Ledger.Types (TxIdOf(TxIdOf))
 import Playground.API (EvaluationResult(EvaluationResult), SimulatorWallet)
 import Prelude (class Monad, Unit, discard, show, unit, ($), (<$>), (<<<), (<>))
-import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, MockchainChartSlot(MockchainChartSlot), Query(HandleBalancesChartMessage, HandleMockchainChartMessage), _ada, _simulatorWalletBalance, _simulatorWalletWallet, _walletId, cpBalancesChart, cpMockchainChart)
+import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, MockchainChartSlot(MockchainChartSlot), Query(HandleMockchainChartMessage, HandleBalancesChartMessage), _ada, _simulatorWalletBalance, _simulatorWalletWallet, _walletId, cpBalancesChart, cpMockchainChart)
 import Wallet.Emulator.Types (EmulatorEvent(..), Wallet(..))
 import Wallet.Graph (FlowGraph(FlowGraph), FlowLink(FlowLink), TxRef(TxRef))
 
@@ -39,14 +40,16 @@ evaluationPane::
   MonadAff (EChartsEffects aff) m
   => EvaluationResult
   -> ParentHTML Query ChildQuery ChildSlot m
-evaluationPane (EvaluationResult {emulatorLog}) =
+evaluationPane e@(EvaluationResult {emulatorLog, resultBlockchain}) =
   div_
-    [ div_
-        [ h2_ [ text "Chain" ]
-        , slot' cpMockchainChart MockchainChartSlot
+    [ blockchainExploration resultBlockchain
+    , br_
+    , div_
+        [ h2_ [ text "Final Balances" ]
+        , slot' cpBalancesChart BalancesChartSlot
             (echarts Nothing)
-            ({width: 930, height: 600} /\ unit)
-            (input HandleMockchainChartMessage)
+            ({width: 930, height: 300} /\ unit)
+            (input HandleBalancesChartMessage)
         ]
     , br_
     , div_
@@ -60,11 +63,11 @@ evaluationPane (EvaluationResult {emulatorLog}) =
         ]
     , br_
     , div_
-        [ h2_ [ text "Final Balances" ]
-        , slot' cpBalancesChart BalancesChartSlot
+        [ h2_ [ text "Chain" ]
+        , slot' cpMockchainChart MockchainChartSlot
             (echarts Nothing)
-            ({width: 930, height: 300} /\ unit)
-            (input HandleBalancesChartMessage)
+            ({width: 930, height: 600} /\ unit)
+            (input HandleMockchainChartMessage)
         ]
     ]
 
@@ -99,9 +102,6 @@ emulatorEventPane (WalletInfo (Wallet walletId) info) =
 
 ------------------------------------------------------------
 
-offWhite :: Color
-offWhite = rgb 188 188 193
-
 lightPurple :: Color
 lightPurple = rgb 163 128 188
 
@@ -110,13 +110,6 @@ lightBlue = rgb 88 119 182
 
 fadedBlue :: Color
 fadedBlue = rgb 35 39 64
-
-softPalette :: Array Color
-softPalette =
-  [ rgb 55 68 106
-  , rgb 54 93 72
-  , rgb 94 50 62
-  ]
 
 hardPalette :: Array Color
 hardPalette =
@@ -127,6 +120,7 @@ hardPalette =
   , rgb 163 128 188
   , rgb 112 156 240
   ]
+
 ------------------------------------------------------------
 
 -- | Remember here that the Blockchain is latest-block *first*.
@@ -206,3 +200,5 @@ balancesChartOptions wallets = do
       E.axisLine $ E.lineStyle $ E.color lightBlue
       E.splitLine $ E.lineStyle $ E.color lightBlue
     formatWalletId id = "Wallet #" <> show id
+
+------------------------------------------------------------
