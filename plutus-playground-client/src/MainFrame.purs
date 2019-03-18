@@ -11,7 +11,7 @@ import Ace.Types (ACE, Annotation)
 import Action (simulationPane)
 import AjaxUtils (ajaxErrorPane, getDecodeJson)
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
-import Bootstrap (active, btn, btnGroup, btnSmall, col10_, col2_, container, container_, empty, hidden, navItem_, navLink, navTabs_, pullRight, row_)
+import Bootstrap (active, btn, btnGroup, btnSmall, col3_, col9_, container, container_, empty, hidden, navItem_, navLink, navTabs_, pullRight, row_)
 import Chain (evaluationPane)
 import Control.Bind (bindFlipped)
 import Control.Comonad (extract)
@@ -31,7 +31,7 @@ import Data.Either (Either(..), note)
 import Data.Generic (gEq)
 import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, traversed, use, view)
 import Data.Lens.Extra (peruse)
-import Data.Lens.Fold (findOf, maximumOf, preview)
+import Data.Lens.Fold (maximumOf, preview)
 import Data.Lens.Index (ix)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -41,8 +41,8 @@ import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
 import Editor (editorPane)
 import FileEvents (FILE)
-import Gist (gistFileContent, gistFileFilename, gistFiles, gistId)
-import Gists (gistControls, gistSimulationFilename, gistSourceFilename, mkNewGist)
+import Gist (gistFileContent, gistId)
+import Gists (gistControls, mkNewGist, playgroundGistFile, simulationGistFile)
 import Gists as Gists
 import Halogen (Component, action)
 import Halogen as H
@@ -223,9 +223,9 @@ eval (SetGistUrl newGistUrl next) = do
   pure next
 
 eval (LoadGist next) = do
-  eGistUrl <- (bindFlipped Gists.parseGistUrl <<< note "Gist Url not set.") <$> use _gistUrl
-  case eGistUrl of
-    Left _ -> pure unit
+  eGistId <- (bindFlipped Gists.parseGistUrl <<< note "Gist Url not set.") <$> use _gistUrl
+  case eGistId of
+    Left err -> pure unit
     Right gistId -> do
       assign _createGistResult Loading
       aGist <- getGistByGistId gistId
@@ -233,13 +233,8 @@ eval (LoadGist next) = do
 
       case aGist of
         Success gist -> do
-          let firstMatch filename = findOf (gistFiles <<< traversed) (\gistFile -> view gistFileFilename gistFile == filename) gist
-              playgroundGistFile = firstMatch gistSourceFilename
-              simulationGistFile = firstMatch gistSimulationFilename
-
           -- Load the source, if available.
-          -- TODO There's a clearout happening here that should be in sync with other places.
-          case preview (_Just <<< gistFileContent <<< _Just) playgroundGistFile of
+          case preview (_Just <<< gistFileContent <<< _Just) (playgroundGistFile gist) of
             Nothing -> pure unit
             Just content -> do editorSetContents content (Just 1)
                                saveBuffer content
@@ -247,9 +242,8 @@ eval (LoadGist next) = do
                                assign _evaluationResult NotAsked
 
           -- Load the simulation, if available.
-          -- TODO There's a clearout happening here that should be in sync with other places.
           decodeJson <- getDecodeJson
-          case preview (_Just <<< gistFileContent <<< _Just) simulationGistFile of
+          case preview (_Just <<< gistFileContent <<< _Just) (simulationGistFile gist) of
             Nothing -> pure unit
             Just simulationString -> do
               case (decodeJson =<< jsonParser simulationString) of
@@ -454,12 +448,8 @@ render state@(State {currentView})  =
     [ container_
         [ mainHeader
         , row_
-            [ col10_ [ mainTabBar currentView ]
-            , col2_ [ gistControls
-                        (view _authStatus state)
-                        (view _createGistResult state)
-                        (view _gistUrl state)
-                    ]
+            [ col9_ [ mainTabBar currentView ]
+            , col3_ [ gistControls state ]
             ]
         ]
     , viewContainer currentView Editor $

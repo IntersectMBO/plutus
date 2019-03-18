@@ -244,6 +244,15 @@ badge = ClassName "badge"
 badgePrimary :: ClassName
 badgePrimary = ClassName "badge-primary"
 
+wasValidated :: ClassName
+wasValidated = ClassName "was-validated"
+
+isValid :: ClassName
+isValid = ClassName "is-valid"
+
+isInvalid :: ClassName
+isInvalid = ClassName "is-invalid"
+
 formControl :: ClassName
 formControl = ClassName "form-control"
 

@@ -79,6 +79,12 @@ h2 {
 }
 
 .gist-controls {
+    border-left: dashed 1px $lightPurple;
+    padding-left: 10px;
+
+    input {
+        padding: 0.375rem;
+    }
     .gist-link {
         text-align: center;
         text-decoration: underline;
@@ -135,7 +141,9 @@ h2 {
     }
 }
 
-.action, .wallet {
+.action,
+.wallet ,
+.gist-controls {
     h1, h2, h3, h4 {
         color: $lightPurple;
     }
