@@ -190,6 +190,7 @@ eval (HandleBalancesChartMessage (EC.EventRaised event) next) =
   pure next
 
 eval (CheckAuthStatus next) = do
+  assign _authStatus Loading
   authResult <- getOauthStatus
   assign _authStatus authResult
   pure next
@@ -202,6 +203,8 @@ eval (PublishGist next) = do
     Nothing -> pure next
     Just newGist ->
       do mGist <- use _createGistResult
+
+         assign _createGistResult Loading
 
          newResult <- case preview (_Success <<< gistId) mGist of
            Nothing -> postGist newGist
@@ -224,10 +227,12 @@ eval (LoadGist next) = do
   case eGistUrl of
     Left _ -> pure unit
     Right gistId -> do
+      assign _createGistResult Loading
       aGist <- getGistByGistId gistId
+      assign _createGistResult aGist
+
       case aGist of
         Success gist -> do
-          assign _createGistResult aGist
           let firstMatch filename = findOf (gistFiles <<< traversed) (\gistFile -> view gistFileFilename gistFile == filename) gist
               playgroundGistFile = firstMatch gistSourceFilename
               simulationGistFile = firstMatch gistSimulationFilename
@@ -277,6 +282,7 @@ eval (CompileProgram next) = do
   case mContents of
     Nothing -> pure next
     Just contents -> do
+      assign _compilationResult Loading
       result <- postContract contents
       assign _compilationResult result
 
@@ -318,6 +324,7 @@ eval (EvaluateActions next) = do
             simulation <- peruse (_simulations <<< _current)
             pure $ join $ toEvaluation <$> contents <*> simulation
 
+          assign _evaluationResult Loading
           result <- lift $ postEvaluation evaluation
           assign _evaluationResult result
 
