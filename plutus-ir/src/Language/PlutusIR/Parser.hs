@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE Rank2Types        #-}
+{-# LANGUAGE RankNTypes        #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Language.PlutusIR.Parser
