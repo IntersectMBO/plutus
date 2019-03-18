@@ -29,7 +29,7 @@ import Control.Monad.Aff.Class (class MonadAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Data.Either (Either(..))
-import Data.Eq ((==))
+import Data.Eq ((==), (/=))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (Tuple(..))
 import Halogen (HTML, action)
@@ -73,6 +73,7 @@ import Halogen.HTML.Properties
   , checked
   , class_
   , classes
+  , enabled
   , placeholder
   , type_
   , value
@@ -114,7 +115,7 @@ import Types
       , SetChoice
       , SetOracleVal
       , SetOracleBn
-      , CompileMarlowe
+      , ResetSimulator
       , NextBlock
       , ApplyTransaction
       , LoadMarloweScript
@@ -358,38 +359,39 @@ transactionComposerPane state =
                     ] [ card_ [ cardBody_ $ transactionInputs state.marloweState
                            <> (signatures state.marloweState.transaction.signatures
 			                  state.marloweState.transaction.outcomes)
-                           <> transactionButtons
+                           <> transactionButtons state
                               ]
                       ]
               ]
 
-transactionButtons :: forall p. Array (HTML p Query)
-transactionButtons = [ div [ classes [ ClassName "d-flex"
-                                     , ClassName "flex-row"
-                                     , ClassName "align-items-center"
-                                     , ClassName "justify-content-start"
-                                     , ClassName "transaction-btn-row"
-                                     ]
-                           ] [ button [ classes [ btn
-                                                , btnPrimary
-                                                , ClassName "transaction-btn"
-                                                ]
-                                      , onClick $ Just <<< HQ.action <<< const ApplyTransaction
-                                      ] [text "Apply Transaction"]
-                             , button [ classes [ btn
-                                                , btnPrimary
-                                                , ClassName "transaction-btn"
-                                                ]
-                                      , onClick $ Just <<< HQ.action <<< const NextBlock
-                                      ] [text "Next Block"]
-                             , button [ classes [ btn
-                                                , btnPrimary
-                                                , ClassName "transaction-btn"
-                                                ]
-                                      , onClick $ Just <<< HQ.action <<< const CompileMarlowe
-                                      ] [text "Compile"]
-                             ]
-                     ]
+transactionButtons :: FrontendState -> forall p. Array (HTML p Query)
+transactionButtons state = [ div [ classes [ ClassName "d-flex"
+                                           , ClassName "flex-row"
+                                           , ClassName "align-items-center"
+                                           , ClassName "justify-content-start"
+                                           , ClassName "transaction-btn-row"
+                                           ]
+                                 ] [ button [ classes [ btn
+                                                      , btnPrimary
+                                                      , ClassName "transaction-btn"
+                                                      ]
+                                            , onClick $ Just <<< HQ.action <<< const ApplyTransaction
+                                            ] [text "Apply Transaction"]
+                                   , button [ classes [ btn
+                                                      , btnPrimary
+                                                      , ClassName "transaction-btn"
+                                                      ]
+                                            , onClick $ Just <<< HQ.action <<< const NextBlock
+                                            ] [text "Next Block"]
+                                   , button [ classes [ btn
+                                                      , btnPrimary
+                                                      , ClassName "transaction-btn"
+                                                      ]
+      				            , enabled (state.oldContract /= Nothing)
+                                            , onClick $ Just <<< HQ.action <<< const ResetSimulator
+                                            ] [text "Reset"]
+                                   ]
+                           ]
 
 signatures :: forall p. Map Person Boolean -> Map Person BigInteger -> Array (HTML p Query)
 signatures people outcomes =

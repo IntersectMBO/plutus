@@ -57,15 +57,15 @@ import Meadow (SPParams_, getOauthStatus, patchGistsByGistId, postGists, postCon
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(Success, NotAsked), _Success)
 import Prelude (type (~>), Unit, Void, bind, const, discard, id, pure, show, unit, void, ($), (+), (-), (<$>), (<<<), (<>), (==))
-import Semantics (ErrorResult(..), IdInput(..), MApplicationResult(..), State(..), applyTransaction, collectNeededInputsFromContract, emptyState, peopleFromStateAndContract, reduce, scoutPrimitives)
+import Semantics (ErrorResult(..), IdInput(..), MApplicationResult(..), State(..), TransactionOutcomes(..), applyTransaction, collectNeededInputsFromContract, emptyState, peopleFromStateAndContract, reduce, scoutPrimitives)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation (simulationPane)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Parsing.Simple (parse)
 import Text.Parsing.Simple (parse)
-import Types (ChildQuery, ChildSlot, EditorSlot(..), FrontendState, InputData, MarloweEditorSlot(..), MarloweError(..), MarloweState, OracleEntry, Query(..), TransactionData, View(..), _authStatus, _blockNum, _choiceData, _contract, _createGistResult, _marloweCompileResult, _marloweState, _input, _inputs, _oracleData, _runResult, _signatures, _transaction, _view, cpEditor, cpMarloweEditor)
-import Types (ChildQuery, ChildSlot, EditorSlot(..), FrontendState, InputData, MarloweEditorSlot(..), MarloweError(..), MarloweState, OracleEntry, Query(..), TransactionData, View(..), _authStatus, _blockNum, _choiceData, _contract, _createGistResult, _marloweCompileResult, _marloweState, _moneyInContract, _input, _inputs, _oracleData, _runResult, _signatures, _state, _transaction, _view, cpEditor, cpMarloweEditor)
+import Types (ChildQuery, ChildSlot, EditorSlot(..), FrontendState, InputData, MarloweEditorSlot(..), MarloweError(..), MarloweState, OracleEntry, Query(..), TransactionData, View(..), _authStatus, _blockNum, _choiceData, _contract, _createGistResult, _marloweCompileResult, _marloweState, _input, _inputs, _oldContract, _oracleData, _runResult, _signatures, _transaction, _view, cpEditor, cpMarloweEditor)
+import Types (ChildQuery, ChildSlot, EditorSlot(..), FrontendState, InputData, MarloweEditorSlot(..), MarloweError(..), MarloweState, OracleEntry, Query(..), TransactionData, View(..), _authStatus, _blockNum, _choiceData, _contract, _createGistResult, _marloweCompileResult, _marloweState, _moneyInContract, _input, _inputs, _oracleData, _outcomes, _runResult, _signatures, _state, _transaction, _view, cpEditor, cpMarloweEditor)
 
 emptyInputData :: InputData
 emptyInputData = { inputs: Map.empty
@@ -94,6 +94,7 @@ initialState = { view: Editor
                , authStatus: NotAsked
                , createGistResult: NotAsked
                , marloweState: emptyMarloweState
+               , oldContract: Nothing
                }
 
 ------------------------------------------------------------
@@ -177,7 +178,7 @@ toEvent (SetOracleVal _ _) = Nothing
 
 toEvent (SetOracleBn _ _) = Nothing
 
-toEvent (CompileMarlowe _) = Just $ defaultEvent "CompileMarlowe"
+toEvent (ResetSimulator _) = Nothing 
 
 saveBuffer ::
   forall eff.
@@ -247,25 +248,26 @@ updateOracles cbn (State state) inputs omap =
                else Map.insert idOracle {blockNumber: cbn, value} a
     addOracle _ a = a
 
-updateActions :: MarloweState -> {state :: State, contract :: Contract} -> MarloweState
-updateActions oldState {state, contract} =
+updateActions :: MarloweState -> {state :: State, contract :: Contract, outcome :: TransactionOutcomes} -> MarloweState
+updateActions oldState {state, contract, outcome} =
   set (_input <<< _inputs) (scoutPrimitives oldState.blockNum state contract)
   (over (_input <<< _choiceData) (updateChoices state neededInputs)
   (over (_input <<< _oracleData) (updateOracles oldState.blockNum state neededInputs)
-   oldState))
+  (set (_transaction <<< _outcomes) outcome
+   oldState)))
   where
     neededInputs = collectNeededInputsFromContract contract
 
-simulateState :: MarloweState -> {state :: State, contract :: Contract}
+simulateState :: MarloweState -> {state :: State, contract :: Contract, outcome :: TransactionOutcomes}
 simulateState state =
   case applyTransaction inps sigs bn st c mic of
-    MSuccessfullyApplied {state: newState, contract: newContract} _ ->
-            {state: newState, contract: newContract}
+    MSuccessfullyApplied {state: newState, contract: newContract, outcome: outcome} _ ->
+            {state: newState, contract: newContract, outcome: outcome}
     MCouldNotApply InvalidInput ->
-	    if inps == Nil
-	    then {state: st, contract: reduce state.blockNum state.state c}
-	    else {state: emptyState, contract: Null}
-    MCouldNotApply _ -> {state: emptyState, contract: Null}
+            if inps == Nil
+            then {state: st, contract: reduce state.blockNum state.state c, outcome: Map.empty}
+            else {state: emptyState, contract: Null, outcome: Map.empty}
+    MCouldNotApply _ -> {state: emptyState, contract: Null, outcome: Map.empty}
   where
     inps = Array.toUnfoldable (state.transaction.inputs)
     sigs = Set.fromFoldable (Map.keys (Map.filter id (state.transaction.signatures)))
@@ -293,19 +295,43 @@ applyTransactionM oldState =
     c = oldState.contract
     mic = oldState.moneyInContract
 
-updateState :: MarloweState -> MarloweState
-updateState oldState = actState
+updateStateP :: MarloweState -> MarloweState
+updateStateP oldState = actState
   where
     sigState = updateSignatures oldState
     actState = updateActions sigState (simulateState sigState)
 
-updateContractInState :: String -> MarloweState -> MarloweState
-updateContractInState text state = updateState newState 
+updateState = do
+  saveInitialState
+  modifying (_marloweState) (updateStateP)
+
+updateContractInStateP :: String -> MarloweState -> MarloweState
+updateContractInStateP text state = set (_contract) con state
   where
     con = case parse contract text of
             Right pcon -> pcon
             Left _ -> Null
-    newState = set (_contract) con state
+
+updateContractInState text = do
+   modifying (_marloweState) (updateContractInStateP text)
+   modifying (_marloweState) (updateStateP)
+
+saveInitialState = do
+  oldContract <- withMarloweEditor Editor.getValue
+  modifying (_oldContract) (\x -> case x of
+                                    Nothing -> Just (case oldContract of
+                                                      Nothing -> ""
+                                                      Just y -> y)
+                                    _ -> x)
+
+resetContract = do
+  newContract <- withMarloweEditor Editor.getValue
+  modifying (_marloweState) (const emptyMarloweState)
+  modifying (_oldContract) (const Nothing)
+  updateContractInState (case newContract of
+                           Nothing -> ""
+                           Just x -> x)
+
 
 evalF ::
   forall m aff.
@@ -329,7 +355,7 @@ evalF (HandleDropEvent event next) = do
 
 evalF (MarloweHandleEditorMessage (TextChanged text) next) = do
   liftEff $ saveMarloweBuffer text
-  modifying (_marloweState) (updateContractInState text)
+  updateContractInState text
   pure next
 
 evalF (MarloweHandleDragEvent event next) = do
@@ -340,6 +366,7 @@ evalF (MarloweHandleDropEvent event next) = do
   liftEff $ preventDefault event
   contents <- liftAff $ readFileFromDragEvent event
   void $ withMarloweEditor $ Editor.setValue contents (Just 1)
+  updateContractInState contents
   pure next
 
 evalF (CheckAuthStatus next) = do
@@ -375,6 +402,8 @@ evalF (LoadMarloweScript key next) = do
     Nothing -> pure next
     Just contents -> do
       void $ withMarloweEditor $ Editor.setValue contents (Just 1)
+      updateContractInState contents
+      resetContract
       pure next
 
 evalF (CompileProgram next) = do
@@ -398,20 +427,21 @@ evalF (ScrollTo { row, column } next) = do
 
 evalF (SetSignature { person, isChecked } next) = do
   modifying (_marloweState <<< _transaction <<< _signatures) (Map.insert person isChecked)
-  modifying (_marloweState) updateState
+  updateState
   pure next
 
 evalF (ApplyTransaction next) = do
+  saveInitialState
   modifying (_marloweState) applyTransactionM
   currContract <- use (_marloweState <<< _contract)
   void $ withMarloweEditor $ Editor.setValue (show $ pretty currContract) (Just 1)
-  modifying (_marloweState) updateState
+  updateState
   pure next
 
 evalF (NextBlock next) = do
   modifying (_marloweState <<< _blockNum) (\x ->
     x + ((fromInt 1) :: BigInteger))
-  modifying (_marloweState) updateState
+  updateState
   pure next
 
 evalF (AddAnyInput {person, anyInput} next) = do
@@ -419,47 +449,57 @@ evalF (AddAnyInput {person, anyInput} next) = do
   case person of
     Just per -> do modifying (_marloweState <<< _transaction <<< _signatures)
                              (Map.insert per true)
-                   modifying (_marloweState) updateState
+                   updateState
                    pure next
-    Nothing -> do modifying (_marloweState) updateState
+    Nothing -> do updateState
                   pure next
 
 evalF (RemoveAnyInput anyInput next) = do
   modifying (_marloweState <<< _transaction <<< _inputs) (delete anyInput)
-  modifying (_marloweState) updateState
+  updateState
   pure next
 
 evalF (SetChoice {idChoice: (IdChoice {choice, person}), value} next) = do
   modifying (_marloweState <<< _input <<< _choiceData)
     (Map.update (Just <<< (Map.update (const $ Just value) choice)) person)
-  modifying (_marloweState) updateState
+  updateState
   pure next
 
 evalF (SetOracleVal {idOracle, value} next) = do
   modifying (_marloweState <<< _input <<< _oracleData)
     (Map.update (\x -> Just (x {value = value})) idOracle)
-  modifying (_marloweState) updateState
+  updateState
   pure next
 
 evalF (SetOracleBn {idOracle, blockNumber} next) = do
   modifying (_marloweState <<< _input <<< _oracleData)
     (Map.update (\x -> Just (x {blockNumber = blockNumber})) idOracle)
-  modifying (_marloweState) updateState
+  updateState
   pure next
 
-evalF (CompileMarlowe next) = do
-  mContents <- withMarloweEditor Editor.getValue
-  case mContents of
-    Nothing -> pure next
-    Just contents -> do
-      let contract = parse Parser.contract contents
-      case contract of
-        Right c -> do
-          assign _marloweCompileResult $ Left [MarloweError "oh no"]
-          pure next
-        Left err -> do
-          assign _marloweCompileResult $ Left [MarloweError err]
-          pure next
+evalF (ResetSimulator next) = do
+  oldContract <- use (_oldContract)
+  currContract <- withMarloweEditor Editor.getValue
+  let newContract = case oldContract of
+                      Just x -> x
+                      Nothing -> case currContract of
+                                   Nothing -> ""
+                                   Just y -> y
+  void $ withMarloweEditor $ Editor.setValue newContract (Just 1)
+  resetContract
+  pure next 
+--  mContents <- withMarloweEditor Editor.getValue
+--  case mContents of
+--    Nothing -> pure next
+--    Just contents -> do
+--      let contract = parse Parser.contract contents
+--      case contract of
+--        Right c -> do
+--          assign _marloweCompileResult $ Left [MarloweError "oh no"]
+--          pure next
+--        Left err -> do
+--          assign _marloweCompileResult $ Left [MarloweError err]
+--          pure next
 
 ------------------------------------------------------------
 -- | Handles the messy business of running an editor command if the

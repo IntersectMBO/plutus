@@ -47,7 +47,7 @@ data Query a
   | SetChoice {idChoice :: IdChoice, value :: Choice} a
   | SetOracleVal {idOracle :: IdOracle, value :: BigInteger} a
   | SetOracleBn {idOracle :: IdOracle, blockNumber :: BlockNumber} a
-  | CompileMarlowe a
+  | ResetSimulator a
 
 ------------------------------------------------------------
 type ChildQuery
@@ -89,7 +89,7 @@ instance showView :: Show View where
   show = gShow
 
 type FrontendState
-  = {view :: View, runResult :: RemoteData AjaxError (Either (Array CompilationError) RunResult), marloweCompileResult :: Either (Array MarloweError) Unit, authStatus :: RemoteData AjaxError AuthStatus, createGistResult :: RemoteData AjaxError Gist, marloweState :: MarloweState}
+  = {view :: View, runResult :: RemoteData AjaxError (Either (Array CompilationError) RunResult), marloweCompileResult :: Either (Array MarloweError) Unit, authStatus :: RemoteData AjaxError AuthStatus, createGistResult :: RemoteData AjaxError Gist, marloweState :: MarloweState, oldContract :: Maybe String}
 
 data MarloweError
   = MarloweError String
@@ -111,6 +111,9 @@ _createGistResult = prop (SProxy :: SProxy "createGistResult")
 
 _marloweState :: forall s a. Lens' {marloweState :: a | s} a
 _marloweState = prop (SProxy :: SProxy "marloweState")
+
+_oldContract :: forall s a. Lens' {oldContract :: a | s} a
+_oldContract = prop (SProxy :: SProxy "oldContract")
 
 -- Oracles should not be grouped (only one line per oracle) like:
 --    Oracle 3: Provide value [$value] for block [$timestamp]
@@ -158,7 +161,7 @@ _outcomes = prop (SProxy :: SProxy "outcomes")
 
 -- "Choice $IdChoice: Choose value [$Choice]"
 type MarloweState
-        = {input :: InputData, transaction :: TransactionData, state :: State, blockNum :: BlockNumber, moneyInContract :: BigInteger, contract :: Contract}
+	= {input :: InputData, transaction :: TransactionData, state :: State, blockNum :: BlockNumber, moneyInContract :: BigInteger, contract :: Contract}
 
 _input :: forall s a. Lens' {input :: a | s} a
 _input = prop (SProxy :: SProxy "input")
@@ -177,3 +180,4 @@ _moneyInContract = prop (SProxy :: SProxy "moneyInContract")
 
 _contract :: forall s a. Lens' {contract :: a | s} a
 _contract = prop (SProxy :: SProxy "contract")
+
