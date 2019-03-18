@@ -1,3 +1,4 @@
 *.agdai
 *.lagda~
 *.agda~
+MAlonzo/*
