@@ -2,7 +2,7 @@ module Action
        ( simulationPane
        ) where
 
-import Bootstrap (badge, badgePrimary, btn, btnDanger, btnGroup, btnGroupSmall, btnInfo, btnLink, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, col10_, col2_, col4_, col_, formControl, formGroup_, invalidFeedback_, nbsp, pullRight, row, row_, validFeedback_)
+import Bootstrap (badge, badgePrimary, btn, btnDanger, btnGroup, btnGroupSmall, btnInfo, btnLink, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, col10_, col2_, col4_, col_, formControl, formGroup_, invalidFeedback_, nbsp, pullRight, row, row_, validFeedback_, wasValidated)
 import Control.Monad.Aff.Class (class MonadAff)
 import Cursor (Cursor, current)
 import Cursor as Cursor
@@ -174,7 +174,7 @@ actionArgumentClass ancestors =
 
 actionArgumentForm :: forall p. Int -> Array SimpleArgument -> HTML p Query
 actionArgumentForm index arguments =
-  form [ class_ $ ClassName "was-validated" ]
+  form [ class_ wasValidated ]
     (Array.mapWithIndex
        (\i argument -> PopulateAction index i <$> actionArgumentField [ show i ] false argument)
        arguments)
