@@ -1,6 +1,7 @@
 module Simulation where
 
 import Data.BigInteger (BigInteger, fromString, fromInt)
+import Data.Ord ((>=))
 import Semantics
 import Data.Show as Show
 import Data.Map (Map)
@@ -355,7 +356,8 @@ transactionComposerPane state =
             ] [ paneHeader "Transaction Composer"
               , div [ class_ $ ClassName "wallet"
                     ] [ card_ [ cardBody_ $ transactionInputs state.marloweState
-                           <> (signatures state.marloweState.transaction.signatures)
+                           <> (signatures state.marloweState.transaction.signatures
+			                  state.marloweState.transaction.outcomes)
                            <> transactionButtons
                               ]
                       ]
@@ -389,21 +391,21 @@ transactionButtons = [ div [ classes [ ClassName "d-flex"
                              ]
                      ]
 
-signatures :: forall p. Map Person Boolean -> Array (HTML p Query)
-signatures people = [ h3_ [text "Signatures"]
-                    , if ((Map.size people) == 0)
-                      then div [] [text "No participants in contract"]
-                      else div [ classes [ ClassName "d-flex"
-                                         , ClassName "flex-row"
-                                         , ClassName "align-items-center"
-                                         , ClassName "justify-content-start"
-                                         , ClassName "signature-row"
-                                         ]
-                               ] (map signature $ Map.toAscUnfoldable people)
-                    ]
+signatures :: forall p. Map Person Boolean -> Map Person BigInteger -> Array (HTML p Query)
+signatures people outcomes =
+  [ h3_ [text "Signatures"]
+  , if ((Map.size people) == 0)
+    then div [] [text "No participants in contract"]
+    else div [ classes [ ClassName "d-flex"
+                       , ClassName "flex-row"
+                       , ClassName "align-items-center"
+                       , ClassName "justify-content-start"
+                       ]
+             ] (map (\x -> signature x outcomes) $ Map.toAscUnfoldable people)
+  ]
 
-signature :: forall p. Tuple Person Boolean -> HTML p Query
-signature (Tuple person isChecked) =
+signature :: forall p. Tuple Person Boolean -> Map Person BigInteger -> HTML p Query
+signature (Tuple person isChecked) outcomes =
   span [ class_ $ ClassName "pr-2"
        ] [ input [ type_ InputCheckbox
                  , onChecked $ Just <<< HQ.action <<< (\v -> SetSignature { person
@@ -413,7 +415,13 @@ signature (Tuple person isChecked) =
                  ]
          , span_ [ text $ " Person " <> show person
                  ]
+         , span  [ classes [ ClassName "outcome-block" ] ]
+                 [ text $ "(" <> outcome <> " ADA)"
+                 ]
          ]
+  where outcome = case Map.lookup person outcomes of
+                    Nothing -> "+0"
+                    Just x -> if (x >= fromInt 0) then "+" <> show x else show x
 
 transactionInputs :: forall p. MarloweState -> Array (HTML p Query)
 transactionInputs state = [ h3_ [ text "Input list"
