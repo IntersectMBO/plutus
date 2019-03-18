@@ -11,18 +11,6 @@ import           Language.PlutusIR
 
 import           Language.PlutusCore.MkPlc as MkPlc
 
-instance TermLike (Term tyname name) tyname name where
-    var      = Var
-    tyAbs    = TyAbs
-    lamAbs   = LamAbs
-    apply    = Apply
-    constant = Constant
-    builtin  = Builtin
-    tyInst   = TyInst
-    unwrap   = Unwrap
-    iWrap    = IWrap
-    error    = Error
-
 -- | A datatype definition as a type variable.
 type DatatypeDef tyname name a = Def (TyVarDecl tyname a) (Datatype tyname name a)
 

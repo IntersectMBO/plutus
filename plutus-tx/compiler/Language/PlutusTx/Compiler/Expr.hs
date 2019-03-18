@@ -83,7 +83,7 @@ convLiteral = \case
         in convExpr listExpr
     GHC.MachChar c     ->
         case PLC.makeDynamicBuiltin c of
-            Just t  -> pure $ PIR.embedIntoIR t
+            Just t  -> pure $ PIR.embed t
             Nothing -> throwPlain $ UnsupportedError "Conversion of character failed"
     GHC.LitInteger _ _ -> throwPlain $ UnsupportedError "Literal (unbounded) integer"
     GHC.MachWord _     -> throwPlain $ UnsupportedError "Literal word"

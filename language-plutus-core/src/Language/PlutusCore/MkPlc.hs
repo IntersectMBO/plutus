@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE LambdaCase             #-}
 
 module Language.PlutusCore.MkPlc ( TermLike (..)
                                  , VarDecl (..)
@@ -9,6 +10,7 @@ module Language.PlutusCore.MkPlc ( TermLike (..)
                                  , mkTyVar
                                  , tyDeclVar
                                  , Def (..)
+                                 , embed
                                  , TermDef
                                  , TypeDef
                                  , FunctionType (..)
@@ -29,6 +31,8 @@ module Language.PlutusCore.MkPlc ( TermLike (..)
                                  , mkIterTyApp
                                  , mkIterKindArrow
                                  ) where
+
+import           Prelude hiding (error)
 
 import           Language.PlutusCore.Type
 
@@ -59,6 +63,19 @@ instance TermLike (Term tyname name) tyname name where
     unwrap   = Unwrap
     iWrap    = IWrap
     error    = Error
+
+embed :: TermLike term tyname name => Term tyname name a -> term a
+embed = \case
+    Var a n           -> var a n
+    TyAbs a tn k t    -> tyAbs a tn k (embed t)
+    LamAbs a n ty t   -> lamAbs a n ty (embed t)
+    Apply a t1 t2     -> apply a (embed t1) (embed t2)
+    Constant a c      -> constant a c
+    Builtin a bi      -> builtin a bi
+    TyInst a t ty     -> tyInst a (embed t) ty
+    Error a ty        -> error a ty
+    Unwrap a t        -> unwrap a (embed t)
+    IWrap a ty1 ty2 t -> iWrap a ty1 ty2 (embed t)
 
 -- | A "variable declaration", i.e. a name and a type for a variable.
 data VarDecl tyname name a = VarDecl {varDeclAnn::a, varDeclName::name a, varDeclType::Type tyname a}
