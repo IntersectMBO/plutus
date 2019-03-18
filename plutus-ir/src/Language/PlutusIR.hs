@@ -27,7 +27,7 @@ import           PlutusPrelude
 import           Language.PlutusCore        (Kind, Name, TyName, Type (..))
 import qualified Language.PlutusCore        as PLC
 import           Language.PlutusCore.CBOR   ()
-import           Language.PlutusCore.MkPlc  (TyVarDecl (..), VarDecl (..), TermLike (..))
+import           Language.PlutusCore.MkPlc  (TermLike (..), TyVarDecl (..), VarDecl (..))
 import qualified Language.PlutusCore.Pretty as PLC
 
 import           Codec.Serialise            (Serialise)

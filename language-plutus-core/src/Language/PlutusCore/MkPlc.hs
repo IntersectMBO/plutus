@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE LambdaCase             #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
 
 module Language.PlutusCore.MkPlc ( TermLike (..)
                                  , VarDecl (..)
@@ -32,7 +33,7 @@ module Language.PlutusCore.MkPlc ( TermLike (..)
                                  , mkIterKindArrow
                                  ) where
 
-import           Prelude hiding (error)
+import           Prelude                  hiding (error)
 
 import           Language.PlutusCore.Type
 
@@ -73,7 +74,7 @@ embed = \case
     Constant a c      -> constant a c
     Builtin a bi      -> builtin a bi
     TyInst a t ty     -> tyInst a (embed t) ty
-    Error a ty        -> error a ty
+    Error a ty        -> Language.PlutusCore.MkPlc.error a ty
     Unwrap a t        -> unwrap a (embed t)
     IWrap a ty1 ty2 t -> iWrap a ty1 ty2 (embed t)
 
