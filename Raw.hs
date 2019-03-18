@@ -91,14 +91,20 @@ mkName :: T.Text -> Name ()
 mkName x = Name {nameAttribute = (), nameString = x, nameUnique = undefined}
 
 unconvT :: RType -> Type TyName ()
-unconvT = undefined
+unconvT (RTyVar x) = TyVar () (TyName $ mkName x)
+unconvT (RTyFun t u) = TyFun () (unconvT t) (unconvT u)
+unconvT (RTyPi _ _ _) = error "typi"
+unconvT (RTyLambda _ _ _) = error "tylam"
+unconvT (RTyApp _ _) =  error "typapp"
+unconvT (RTyCon _) = error "tycon"
+unconvT (RTySize _) = error "tysize"
 
 unconv :: RTerm -> Term TyName Name ()
 unconv (RVar x) = Var () (mkName x)
-unconv (RTLambda x ty tm) = undefined
-unconv (RTApp _ _) = undefined
+unconv (RTLambda x ty tm) = error "tlam"
+unconv (RTApp _ _) = error "tapp"
 unconv (RLambda x ty tm) = LamAbs () (mkName x) (unconvT ty) (unconv tm)
-unconv (RApp _ _) = undefined
-unconv (RCon _) = undefined
-unconv (RError _) = undefined
-unconv (RBuiltin _) = undefined
+unconv (RApp t u) = Apply () (unconv t) (unconv u)
+unconv (RCon _) = error "con"
+unconv (RError _) = error "error"
+unconv (RBuiltin b) = Builtin () (BuiltinName () b)
