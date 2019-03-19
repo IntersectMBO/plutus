@@ -107,9 +107,7 @@ benchmark language-plutus-core-bench
         language-plutus-core -any,
         plutus-core-interpreter -any,
         criterion -any,
-        bytestring -any,
-        serialise -any,
-        text -any
+        bytestring -any
 
     if flag(eventlog)
         ghc-options: -eventlog
