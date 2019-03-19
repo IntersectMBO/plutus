@@ -35,11 +35,13 @@ bigInteger = do
       (Just v) -> pure v
       Nothing -> fail "not a valid BigInt"
 
-mkIdChoice :: BigInteger -> BigInteger -> IdChoice
-mkIdChoice choice person = wrap { choice, person }
-
 idChoice :: Parser String IdChoice
-idChoice = parens (mkIdChoice <$> bigInteger <* char ',' <* space <*> bigInteger)
+idChoice = parens do
+  first <- bigInteger
+  void $ char ','
+  void space
+  second <- bigInteger
+  pure $ wrap { choice: first, person: second }
 
 choice :: Parser String Choice
 choice = bigInteger
