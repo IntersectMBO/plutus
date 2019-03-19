@@ -172,7 +172,7 @@ toEvent (SetOracleVal _ _) = Nothing
 
 toEvent (SetOracleBn _ _) = Nothing
 
-toEvent (ResetSimulator _) = Nothing 
+toEvent (ResetSimulator _) = Nothing
 
 saveBuffer ::
   forall eff.
@@ -219,7 +219,7 @@ updateChoices (State state) inputs cmap =
                                 Nothing -> fromInt 0
                                 Just v -> v in
       if Map.member (WIdChoice (IdChoice {choice: idChoice, person})) state.choices
-      then a 
+      then a
       else Map.insert person (Map.insert idChoice dval pmap) a
     addChoice _ a = a
 
@@ -493,7 +493,7 @@ evalF (ResetSimulator next) = do
                                    Just y -> y
   void $ withMarloweEditor $ Editor.setValue newContract (Just 1)
   resetContract
-  pure next 
+  pure next
 --  mContents <- withMarloweEditor Editor.getValue
 --  case mContents of
 --    Nothing -> pure next
