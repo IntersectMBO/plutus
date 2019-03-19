@@ -196,6 +196,9 @@ btnDanger = ClassName "btn-danger"
 btnSmall :: ClassName
 btnSmall = ClassName "btn-sm"
 
+btnExtraSmall :: ClassName
+btnExtraSmall = ClassName "btn-xs"
+
 btnLink :: ClassName
 btnLink = ClassName "btn-link"
 

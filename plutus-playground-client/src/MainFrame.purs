@@ -39,7 +39,7 @@ import Data.Newtype (unwrap)
 import Data.String as String
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
-import Editor (editorPane)
+import Editor (demoScriptsPane, editorPane)
 import FileEvents (FILE)
 import Gist (gistFileContent, gistId)
 import Gists (gistControls, mkNewGist, playgroundGistFile, simulationGistFile)
@@ -49,7 +49,7 @@ import Halogen as H
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
 import Halogen.ECharts as EC
-import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, strong_, text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, br_, div, div_, h1, strong_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_)
 import Halogen.Query (HalogenM)
@@ -448,7 +448,10 @@ render state@(State {currentView})  =
     [ container_
         [ mainHeader
         , row_
-            [ col9_ [ mainTabBar currentView ]
+            [ col9_ [ mainTabBar currentView
+                    , br_
+                    , demoScriptsPane
+                    ]
             , col3_ [ gistControls state ]
             ]
         ]

@@ -1,5 +1,6 @@
 module Editor
        ( editorPane
+       , demoScriptsPane
        ) where
 
 import Ace.EditSession as Session
@@ -59,8 +60,7 @@ editorPane ::
   => State -> ParentHTML Query ChildQuery ChildSlot m
 editorPane state =
   div_
-    [ demoScriptsPane
-    , div
+    [ div
         [ id_ "editor"
         , onDragOver $ Just <<< action <<< HandleDragEvent
         , onDrop $ Just <<< action <<< HandleDropEvent
