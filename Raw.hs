@@ -90,21 +90,27 @@ conv (Error _ _A)      = RError (convT _A)
 mkName :: T.Text -> Name ()
 mkName x = Name {nameAttribute = (), nameString = x, nameUnique = undefined}
 
+
 unconvT :: RType -> Type TyName ()
 unconvT (RTyVar x) = TyVar () (TyName $ mkName x)
 unconvT (RTyFun t u) = TyFun () (unconvT t) (unconvT u)
 unconvT (RTyPi _ _ _) = error "typi"
 unconvT (RTyLambda _ _ _) = error "tylam"
-unconvT (RTyApp _ _) =  error "typapp"
-unconvT (RTyCon _) = error "tycon"
-unconvT (RTySize _) = error "tysize"
+unconvT (RTyApp t u) = TyApp () (unconvT t) (unconvT u)
+unconvT (RTyCon c) = TyBuiltin () c
+unconvT (RTySize i) = TyInt () (naturalFromInteger i)
+
+unconvC :: RConstant -> Constant ()
+unconvC (RConInt n i) = BuiltinInt () (naturalFromInteger n) i
+unconvC _ = error "unconC"
+
 
 unconv :: RTerm -> Term TyName Name ()
 unconv (RVar x) = Var () (mkName x)
 unconv (RTLambda x ty tm) = error "tlam"
-unconv (RTApp _ _) = error "tapp"
+unconv (RTApp t ty) = TyInst () (unconv t) (unconvT ty)
 unconv (RLambda x ty tm) = LamAbs () (mkName x) (unconvT ty) (unconv tm)
 unconv (RApp t u) = Apply () (unconv t) (unconv u)
-unconv (RCon _) = error "con"
+unconv (RCon c) = Constant () (unconvC c)
 unconv (RError _) = error "error"
 unconv (RBuiltin b) = Builtin () (BuiltinName () b)
