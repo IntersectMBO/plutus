@@ -53,7 +53,7 @@ instance genericPrettyConstructor ::
     args -> case uncons args of
       Just { head: x, tail: [] } -> hang 2 (text ctor <+> (parens' x))
       Nothing -> text ctor
-      _ -> hang 2 (foldl (\a b -> (appendWithLine' a (parens' b))) (text ctor) args)
+      _ -> hang 2 (foldl (\x y -> (appendWithLine' x (parens' y))) (text ctor) args)
     where
     ctor ::
       String
@@ -72,9 +72,9 @@ instance genericPrettyConstructor ::
       Doc
     appendWithLine' Empty d = d
     appendWithLine' d Empty = d
-    appendWithLine' a b 
-      | surroundedByParens (show b) = appendWithLine a b
-      | otherwise = a </> b
+    appendWithLine' l r
+      | surroundedByParens (show r) = appendWithLine l r
+      | otherwise = l </> r
 
 surroundedByParens :: String -> Boolean
 surroundedByParens s = fromMaybe false do
