@@ -146,8 +146,16 @@ _oracleData ::
   Lens' {oracleData :: a | s} a
 _oracleData = prop (SProxy :: SProxy "oracleData")
 
+data TransactionValidity = EmptyTransaction
+                         | ValidTransaction
+                         | InvalidTransaction
+
+derive instance eqTransactionValidity :: Eq TransactionValidity
+
+derive instance ordTransactionValidity :: Ord TransactionValidity
+
 type TransactionData
-  = {inputs :: Array AnyInput, signatures :: Map Person Boolean, outcomes :: Map Person BigInteger}
+  = {inputs :: Array AnyInput, signatures :: Map Person Boolean, outcomes :: Map Person BigInteger, validity :: TransactionValidity}
 
 -- table under checkboxes
 
@@ -158,6 +166,9 @@ _signatures = prop (SProxy :: SProxy "signatures")
 
 _outcomes :: forall s a. Lens' {outcomes :: a | s} a
 _outcomes = prop (SProxy :: SProxy "outcomes")
+
+_validity :: forall s a. Lens' {validity :: a | s} a
+_validity = prop (SProxy :: SProxy "validity")
 
 -- "Choice $IdChoice: Choose value [$Choice]"
 type MarloweState

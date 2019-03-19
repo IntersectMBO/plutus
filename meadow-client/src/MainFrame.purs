@@ -20,6 +20,7 @@ import Data.Either (Either(..))
 import Data.Foldable (foldrDefault)
 import Data.Function (flip)
 import Data.Functor.Coproduct (Coproduct)
+import Data.HeytingAlgebra ((&&))
 import Data.Lens (assign, modifying, over, preview, set, use)
 import Data.List (List(..))
 import Data.Map (Map)
@@ -59,7 +60,7 @@ import Simulation (simulationPane)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Parsing.Simple (parse)
-import Types (ChildQuery, ChildSlot, EditorSlot(EditorSlot), FrontendState, InputData, MarloweEditorSlot(MarloweEditorSlot), MarloweState, OracleEntry, Query(ChangeView, ResetSimulator, SetOracleBn, SetOracleVal, SetChoice, RemoveAnyInput, AddAnyInput, NextBlock, ApplyTransaction, SetSignature, ScrollTo, CompileProgram, LoadMarloweScript, LoadScript, PublishGist, CheckAuthStatus, MarloweHandleDropEvent, MarloweHandleDragEvent, MarloweHandleEditorMessage, HandleDropEvent, HandleDragEvent, HandleEditorMessage), TransactionData, View(Simulation, Editor), _authStatus, _blockNum, _choiceData, _contract, _createGistResult, _input, _inputs, _marloweState, _moneyInContract, _oldContract, _oracleData, _outcomes, _runResult, _signatures, _state, _transaction, _view, cpEditor, cpMarloweEditor)
+import Types (ChildQuery, ChildSlot, EditorSlot(EditorSlot), FrontendState, InputData, MarloweEditorSlot(MarloweEditorSlot), MarloweState, OracleEntry, Query(ChangeView, ResetSimulator, SetOracleBn, SetOracleVal, SetChoice, RemoveAnyInput, AddAnyInput, NextBlock, ApplyTransaction, SetSignature, ScrollTo, CompileProgram, LoadMarloweScript, LoadScript, PublishGist, CheckAuthStatus, MarloweHandleDropEvent, MarloweHandleDragEvent, MarloweHandleEditorMessage, HandleDropEvent, HandleDragEvent, HandleEditorMessage), TransactionData, TransactionValidity(..), View(Simulation, Editor), _authStatus, _blockNum, _choiceData, _contract, _createGistResult, _input, _inputs, _marloweState, _moneyInContract, _oldContract, _oracleData, _outcomes, _runResult, _signatures, _state, _transaction, _validity, _view, cpEditor, cpMarloweEditor)
 
 emptyInputData :: InputData
 emptyInputData = { inputs: Map.empty
@@ -70,6 +71,7 @@ emptyTransactionData :: TransactionData
 emptyTransactionData = { inputs: []
                        , signatures: Map.empty
                        , outcomes: Map.empty
+                       , validity: EmptyTransaction
                        }
 
 emptyMarloweState :: MarloweState
@@ -242,26 +244,31 @@ updateOracles cbn (State state) inputs omap =
                else Map.insert idOracle {blockNumber: cbn, value} a
     addOracle _ a = a
 
-updateActions :: MarloweState -> {state :: State, contract :: Contract, outcome :: TransactionOutcomes} -> MarloweState
-updateActions oldState {state, contract, outcome} =
+updateActions :: MarloweState -> {state :: State, contract :: Contract, outcome :: TransactionOutcomes, validity :: TransactionValidity} -> MarloweState
+updateActions oldState {state, contract, outcome, validity} =
   set (_input <<< _inputs) (scoutPrimitives oldState.blockNum state contract)
   (over (_input <<< _choiceData) (updateChoices state neededInputs)
   (over (_input <<< _oracleData) (updateOracles oldState.blockNum state neededInputs)
   (set (_transaction <<< _outcomes) outcome
-   oldState)))
+  (set (_transaction <<< _validity) validity
+   oldState))))
   where
     neededInputs = collectNeededInputsFromContract contract
 
-simulateState :: MarloweState -> {state :: State, contract :: Contract, outcome :: TransactionOutcomes}
+simulateState :: MarloweState -> {state :: State, contract :: Contract, outcome :: TransactionOutcomes, validity :: TransactionValidity}
 simulateState state =
   case applyTransaction inps sigs bn st c mic of
     MSuccessfullyApplied {state: newState, contract: newContract, outcome: outcome} _ ->
-            {state: newState, contract: newContract, outcome: outcome}
+            {state: newState, contract: newContract,
+             outcome: outcome, validity: ValidTransaction}
     MCouldNotApply InvalidInput ->
-            if inps == Nil
-            then {state: st, contract: reduce state.blockNum state.state c, outcome: Map.empty}
-            else {state: emptyState, contract: Null, outcome: Map.empty}
-    MCouldNotApply _ -> {state: emptyState, contract: Null, outcome: Map.empty}
+            if (inps == Nil)
+            then {state: st, contract: reduce state.blockNum state.state c,
+                  outcome: Map.empty, validity: EmptyTransaction}
+            else {state: emptyState, contract: Null,
+                  outcome: Map.empty, validity: InvalidTransaction}
+    MCouldNotApply _ -> {state: emptyState, contract: Null,
+                         outcome: Map.empty, validity: InvalidTransaction}
   where
     inps = Array.toUnfoldable (state.transaction.inputs)
     sigs = Set.fromFoldable (Map.keys (Map.filter id (state.transaction.signatures)))

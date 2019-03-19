@@ -15,6 +15,7 @@ import Bootstrap
   , btnPrimary
   , btnSmall
   , cardBody_
+  , card
   , card_
   , col6
   , col_
@@ -83,6 +84,9 @@ import Prelude
   , bind
   , const
   , discard
+  , flip
+  , id
+  , not
   , pure
   , show
   , class Show
@@ -122,6 +126,7 @@ import Types
       , MarloweHandleDropEvent
       , MarloweHandleDragEvent
       )
+  , TransactionValidity(..)
   , cpMarloweEditor
   )
 
@@ -356,11 +361,14 @@ transactionComposerPane state =
                       ]
             ] [ paneHeader "Transaction Composer"
               , div [ class_ $ ClassName "wallet"
-                    ] [ card_ [ cardBody_ $ transactionInputs state.marloweState
-                           <> (signatures state.marloweState.transaction.signatures
-			                  state.marloweState.transaction.outcomes)
-                           <> transactionButtons state
-                              ]
+                    ] [ div [ classes ((if (state.marloweState.transaction.validity == InvalidTransaction)
+                                        then (flip Array.snoc) (ClassName "invalid-transaction")
+                                        else id) [card]) ]
+                            [ cardBody_ $ transactionInputs state.marloweState
+                               <> (signatures state.marloweState.transaction.signatures
+                                   state.marloweState.transaction.outcomes)
+                               <> transactionButtons state
+                            ]
                       ]
               ]
 
@@ -376,6 +384,7 @@ transactionButtons state = [ div [ classes [ ClassName "d-flex"
                                                       , ClassName "transaction-btn"
                                                       ]
                                             , onClick $ Just <<< HQ.action <<< const ApplyTransaction
+                                            , enabled (state.marloweState.transaction.validity == ValidTransaction)
                                             ] [text "Apply Transaction"]
                                    , button [ classes [ btn
                                                       , btnPrimary
@@ -387,7 +396,7 @@ transactionButtons state = [ div [ classes [ ClassName "d-flex"
                                                       , btnPrimary
                                                       , ClassName "transaction-btn"
                                                       ]
-      				            , enabled (state.oldContract /= Nothing)
+                                            , enabled (state.oldContract /= Nothing)
                                             , onClick $ Just <<< HQ.action <<< const ResetSimulator
                                             ] [text "Reset"]
                                    ]
