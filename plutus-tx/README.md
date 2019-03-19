@@ -12,8 +12,9 @@ In general, most "straightforward" Haskell should work.
 The things that don't work broadly fall into a few categories:
 - Not implemented yet
 - Incompatible with the design of Plutus Core
-- Access to function definitions required
-    - This *may* be solved in future
+- Requires access to function definitions 
+    - Normal function uage requires `INLINEABLE` in some circumstances (external packages)
+    - Typeclass dictionaries
 - Use of coercions required
 - Assumes "normal" codegen
 - Miscellaneous difficult features
@@ -24,13 +25,11 @@ Here are a few notable items that do not work:
 
 - Not implemented yet
     - Mutually recursive datatypes
-    - Record selectors 
 - Incompatible with the design of Plutus Core
     - `PolyKinds`, `DataKinds`, anything that moves towards "Dependent Haskell"
     - Literal patterns
     - `StrictData` and bang patterns (may be allowed in future)
 - Access to function definitions required (may be improved in future)
-    - Direct use of functions (i.e. not as a TH splice) defined outside the current Plutus Tx expression
     - Typeclasses (dictionary construction)
 - Use of coercions required
     - GADTs

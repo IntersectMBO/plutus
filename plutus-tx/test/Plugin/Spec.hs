@@ -4,8 +4,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:no-context #-}
--- the simplifier messes with things otherwise
-{-# OPTIONS_GHC   -O0 #-}
 {-# OPTIONS_GHC   -Wno-orphans #-}
 -- this adds source notes which helps the plugin give better errors
 {-# OPTIONS_GHC   -g #-}
@@ -14,6 +12,7 @@ module Plugin.Spec where
 
 import           Common
 import           PlcTestUtils
+import           Plugin.Lib
 import           Plugin.ReadValue
 
 import qualified Language.PlutusTx.Builtins as Builtins
@@ -42,7 +41,9 @@ tests = testNested "Plugin" [
   , recursiveTypes
   , recursion
   , pure readDyns
+  , unfoldings
   , errors
+  , wobbly
   ]
 
 basic :: TestNested
@@ -78,7 +79,6 @@ primitives = testNested "primitives" [
   , goldenPir "error" errorPlc
   , goldenPir "ifThenElse" ifThenElse
   , goldenEval "ifThenElseApply" [ getProgram $ ifThenElse, getProgram $ int, getProgram $ int2 ]
-  --, goldenPlc "blocknum" blocknumPlc
   , goldenPir "emptyByteString" emptyByteString
   , goldenEval "emptyByteStringApply" [ getPlc emptyByteString, unsafeLiftProgram (Builtins.emptyByteString) ]
   , goldenPir "bytestring" bytestring
@@ -134,9 +134,6 @@ errorPlc = plc @"errorPlc" (Builtins.error @Integer)
 
 ifThenElse :: CompiledCode (Integer -> Integer -> Integer)
 ifThenElse = plc @"ifThenElse" (\(x::Integer) (y::Integer) -> if Builtins.equalsInteger x y then x else y)
-
---blocknumPlc :: CompiledCode
---blocknumPlc = plc @"blocknumPlc" Builtins.blocknum
 
 emptyByteString :: CompiledCode (Builtins.ByteString -> Builtins.ByteString)
 emptyByteString = plc @"emptyByteString" (\(x :: Builtins.ByteString) -> x)
@@ -284,7 +281,7 @@ newtypeCreate :: CompiledCode (Integer -> MyNewtype)
 newtypeCreate = plc @"newtypeCreate" (\(x::Integer) -> MyNewtype x)
 
 newtypeId :: CompiledCode (MyNewtype -> MyNewtype)
-newtypeId = plc @"newtypeCreate" (\(MyNewtype x) -> MyNewtype x)
+newtypeId = plc @"newtypeId" (\(MyNewtype x) -> MyNewtype x)
 
 newtypeCreate2 :: CompiledCode MyNewtype
 newtypeCreate2 = plc @"newtypeCreate2" (MyNewtype 1)
@@ -317,6 +314,8 @@ recursiveTypes = testNested "recursiveTypes" [
 listConstruct :: CompiledCode [Integer]
 listConstruct = plc @"listConstruct" ([]::[Integer])
 
+-- This will generate code using 'build' if we're on greater than -O0. That's not optimal for
+-- us, since we don't have any rewrite rules to fire, but it's fine and we can handle it.
 listConstruct2 :: CompiledCode [Integer]
 listConstruct2 = plc @"listConstruct2" ([1]::[Integer])
 
@@ -374,13 +373,10 @@ sameEmptyRose = plc @"sameEmptyRose" (
 
 recursion :: TestNested
 recursion = testNested "recursiveFunctions" [
-    -- currently broken, will come back to this later
     goldenPir "fib" fib
     , goldenEval "fib4" [ getProgram $ fib, getProgram $ plc @"4" (4::Integer) ]
     , goldenPir "sum" sumDirect
     , goldenEval "sumList" [ getProgram $ sumDirect, getProgram $ listConstruct3 ]
-    --, golden "sumFold" sumViaFold
-    --, goldenEval "sumFoldList" [ sumViaFold, listConstruct3 ]
     , goldenPir "even" evenMutual
     , goldenEval "even3" [ getProgram $ evenMutual, getProgram $ plc @"3" (3::Integer) ]
     , goldenEval "even4" [ getProgram $ evenMutual, getProgram $ plc @"4" (4::Integer) ]
@@ -412,22 +408,62 @@ evenMutual = plc @"evenMutual" (
         odd n = if Builtins.equalsInteger n 0 then False else even (Builtins.subtractInteger n 1)
     in even)
 
+unfoldings :: TestNested
+unfoldings = testNested "unfoldings" [
+    goldenPir "nandDirect" nandPlcDirect
+    , goldenPir "andDirect" andPlcDirect
+    , goldenPir "andExternal" andPlcExternal
+    , goldenPir "allDirect" allPlcDirect
+    , goldenPir "mutualRecursionUnfoldings" mutualRecursionUnfoldings
+    , goldenPir "recordSelector" recordSelector
+    , goldenPir "recordSelectorExternal" recordSelectorExternal
+  ]
+
+andDirect :: Bool -> Bool -> Bool
+andDirect = \(a :: Bool) -> \(b::Bool) -> nandDirect (nandDirect a b) (nandDirect a b)
+
+nandDirect :: Bool -> Bool -> Bool
+nandDirect = \(a :: Bool) -> \(b::Bool) -> if a then False else if b then False else True
+
+nandPlcDirect :: CompiledCode Bool
+nandPlcDirect = plc @"nandPlcDirect" (nandDirect True False)
+
+andPlcDirect :: CompiledCode Bool
+andPlcDirect = plc @"andPlcDirect" (andDirect True False)
+
+andPlcExternal :: CompiledCode Bool
+andPlcExternal = plc @"andPlcExternal" (andExternal True False)
+
+-- self-recursion
+allDirect :: (a -> Bool) -> [a] -> Bool
+allDirect p l = case l of
+    []  -> True
+    h:t -> andDirect (p h) (allDirect p t)
+
+allPlcDirect :: CompiledCode Bool
+allPlcDirect = plc @"andPlcDirect" (allDirect (\(x::Integer) -> Builtins.greaterThanInteger x 5) [7, 6])
+
+mutualRecursionUnfoldings :: CompiledCode Bool
+mutualRecursionUnfoldings = plc @"mutualRecursionUnfoldings" (evenDirect 4)
+
+recordSelector :: CompiledCode (MyMonoRecord -> Integer)
+recordSelector = plc @"recordSelector" (\(x :: MyMonoRecord) -> mrA x)
+
+recordSelectorExternal :: CompiledCode (MyExternalRecord -> Integer)
+recordSelectorExternal = plc @"recordSelectorExternal" (\(x :: MyExternalRecord) -> myExternal x)
+
 errors :: TestNested
 errors = testNested "errors" [
     goldenPlcCatch "machInt" machInt
-    , goldenPlcCatch "free" free
-    , goldenPlcCatch "negativeInt" negativeInt
+    -- FIXME: This fails differently in nix, possibly due to slightly different optimization settings
+    --, goldenPlcCatch "negativeInt" negativeInt
     , goldenPlcCatch "valueRestriction" valueRestriction
-    , goldenPlcCatch "recordSelector" recordSelector
     , goldenPlcCatch "recursiveNewtype" recursiveNewtype
-    , goldenPlcCatch "emptyRoseId1" emptyRoseId1
+    , goldenPlcCatch "mutualRecursionUnfoldingsLocal" mutualRecursionUnfoldingsLocal
   ]
 
 machInt :: CompiledCode Int
 machInt = plc @"machInt" (1::Int)
-
-free :: CompiledCode Bool
-free = plc @"free" (True && False)
 
 negativeInt :: CompiledCode Integer
 negativeInt = plc @"negativeInt" (-1 :: Integer)
@@ -437,13 +473,31 @@ negativeInt = plc @"negativeInt" (-1 :: Integer)
 valueRestriction :: CompiledCode (Bool, Integer)
 valueRestriction = plc @"valueRestriction" (let { f :: forall a . a; f = Builtins.error (); } in (f @Bool, f @Integer))
 
-recordSelector :: CompiledCode (MyMonoRecord -> Integer)
-recordSelector = plc @"recordSelector" (\(x :: MyMonoRecord) -> mrA x)
-
 newtype RecursiveNewtype = RecursiveNewtype [RecursiveNewtype]
 
 recursiveNewtype :: CompiledCode (RecursiveNewtype)
 recursiveNewtype = plc @"recursiveNewtype" (RecursiveNewtype [])
+
+{-# INLINABLE evenDirectLocal #-}
+evenDirectLocal :: Integer -> Bool
+evenDirectLocal n = if Builtins.equalsInteger n 0 then True else oddDirectLocal (Builtins.subtractInteger n 1)
+
+{-# INLINABLE oddDirectLocal #-}
+oddDirectLocal :: Integer -> Bool
+oddDirectLocal n = if Builtins.equalsInteger n 0 then False else evenDirectLocal (Builtins.subtractInteger n 1)
+
+-- FIXME: these seem to only get unfoldings when they're in a separate module, even with the simplifier pass
+mutualRecursionUnfoldingsLocal :: CompiledCode Bool
+mutualRecursionUnfoldingsLocal = plc @"mutualRecursionUnfoldingsLocal" (evenDirectLocal 4)
+
+wobbly :: TestNested
+wobbly = testNested "wobbly" [
+    -- We used to have problems with polymorphic let bindings where the generalization was
+    -- on the outside of the let, which hit the value restriction. Now we hit the simplifier
+    -- it seems to sometimes float these in, but we should keep an eye on these.
+    goldenPir "emptyRoseId1" emptyRoseId1
+    , goldenPir "polyMap" polyMap
+  ]
 
 emptyRoseId1 :: CompiledCode (EmptyRose -> EmptyRose)
 emptyRoseId1 = plc @"emptyRoseId1" (
@@ -451,6 +505,14 @@ emptyRoseId1 = plc @"emptyRoseId1" (
         map f (x:xs) = f x : map f xs
         go (EmptyRose xs) = EmptyRose (map go xs)
     in go)
+
+mapDirect :: (a -> b) -> [a] -> [b]
+mapDirect f l = case l of
+    []   -> []
+    x:xs -> f x : mapDirect f xs
+
+polyMap :: CompiledCode ([Integer])
+polyMap = plc @"polyMap" (mapDirect (Builtins.addInteger 1) [0, 1])
 
 -- Unexpectedly results in
 --

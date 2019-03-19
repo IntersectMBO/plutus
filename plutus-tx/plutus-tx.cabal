@@ -110,6 +110,7 @@ test-suite plutus-tx-tests
         Lift.Spec
         Plugin.ReadValue
         Plugin.Spec
+        Plugin.Lib
         TH.Spec
         TH.TestTH
     default-language: Haskell2010

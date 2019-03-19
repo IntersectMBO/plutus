@@ -134,7 +134,6 @@ convTyCon tc = do
                         PIR.defineDatatype tcName (PIR.Def tvd datatype) (Set.fromList deps)
                     pure $ PIR.mkTyVar () tvd
 
-
 getUsedTcs :: (Converting m) => GHC.TyCon -> m [GHC.TyCon]
 getUsedTcs tc = do
     dcs <- getDataCons tc
@@ -231,10 +230,10 @@ getConstructors tc = do
     maybeConstrs <- PIR.lookupConstructors () (GHC.getName tc)
     case maybeConstrs of
         Just constrs -> pure constrs
-        Nothing      -> throwPlain $ CompilationError "Constructors have not been compiled"
+        Nothing      -> throwSd CompilationError $ "Constructors have not been compiled for:" GHC.<+> GHC.ppr tc
 
 -- | Get the constructors of the given 'Type' (which must be equal to a type constructor application) as PLC terms instantiated for
-    -- the type constructor argument types.
+-- the type constructor argument types.
 getConstructorsInstantiated :: Converting m => GHC.Type -> m [PIRTerm]
 getConstructorsInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated constructors for type:" GHC.<+> GHC.ppr t) $ case t of
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do
@@ -244,7 +243,7 @@ getConstructorsInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated
             args' <- mapM convType args
             pure $ PIR.mkIterInst () c args'
     -- must be a TC app
-    _ -> throwPlain $ CompilationError "Type was not a type constructor application"
+    _ -> throwSd CompilationError $ "Type was not a type constructor application:" GHC.<+> GHC.ppr t
 
 -- | Get the matcher of the given 'TyCon' as a PLC term
 getMatch :: Converting m => GHC.TyCon -> m PIRTerm
@@ -254,7 +253,7 @@ getMatch tc = do
     maybeMatch <- PIR.lookupDestructor () (GHC.getName tc)
     case maybeMatch of
         Just match -> pure match
-        Nothing    -> throwPlain $ CompilationError "Match has not been compiled"
+        Nothing    -> throwSd CompilationError $ "Match has not been compiled for:" GHC.<+> GHC.ppr tc
 
 -- | Get the matcher of the given 'Type' (which must be equal to a type constructor application) as a PLC term instantiated for
 -- the type constructor argument types.
@@ -266,7 +265,7 @@ getMatchInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated matche
         args' <- mapM convType args
         pure $ PIR.mkIterInst () match args'
     -- must be a TC app
-    _ -> throwPlain $ CompilationError "Type was not a type constructor application"
+    _ -> throwSd CompilationError $ "Type was not a type constructor application:" GHC.<+> GHC.ppr t
 
 -- | Make the alternative for a given 'CoreAlt'.
 convAlt

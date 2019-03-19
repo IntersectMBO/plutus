@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# OPTIONS_GHC -O0 #-}
 -- | Implements a custom currency with a monetary policy that allows
 --   the forging of a fixed amount of units.
 module Language.PlutusTx.Coordination.Contracts.Currency(

@@ -21,6 +21,7 @@ import           Language.PlutusTx.Compiler.Utils
 import           Language.PlutusTx.PIRTypes
 
 import qualified CoreUtils                              as GHC
+import qualified FV                                     as GHC
 import qualified GhcPlugins                             as GHC
 import qualified MkId                                   as GHC
 import qualified PrelNames                              as GHC
@@ -38,6 +39,7 @@ import           Control.Monad.Reader
 import qualified Data.ByteString.Lazy                   as BSL
 import           Data.List                              (elem, elemIndex)
 import qualified Data.List.NonEmpty                     as NE
+import qualified Data.Set                               as Set
 import           Data.Traversable
 
 {- Note [System FC and System FW]
@@ -159,6 +161,44 @@ The final point could get us into trouble with fancier uses of coercions (since 
 but those should fail when we typecheck the PLC. And we explicitly say we don't support such things.
 -}
 
+{- Note [Unfoldings]
+GHC stores the current RHS of bindings in "unfoldings". These are used for inlining, but
+also generally provide the compiler's view of the RHS of a binding. They are usually available
+for other modules in the same package, and can be available cross-package if GHC decides it's
+a good idea or if the binding is marked INLINABLE.
+
+We use unfoldings to get the definitions of non-locally bound names. We then hoist these into
+definitions using PIR's support for definitions. This allows a relatively direct form of code
+reuse - provided that the code you are reusing has unfoldings! In practice this means you may
+need to scatter some INLINABLE pragmas around, but we may be able to improve this in future,
+see e.g. https://gitlab.haskell.org/ghc/ghc/issues/10871.
+
+(Since unfoldings are updated as the compiler progresses, unfoldings for bindings in other
+modules are typically fully-optimized. The exception is the unfoldings for INLINABLE bindings,
+which get the *pre* optimization RHS. This is so that rewrite rules can fire. In practice, this
+means that we need to be okay getting either.)
+-}
+
+hoistExpr :: Converting m => GHC.Var -> GHC.CoreExpr -> m PIRTerm
+hoistExpr var t =
+    let
+        name = GHC.getName var
+    in withContextM 2 (sdToTxt $ "Converting definition of:" GHC.<+> GHC.ppr var) $ do
+        maybeDef <- PIR.lookupTerm () name
+        case maybeDef of
+            Just term -> pure term
+            Nothing -> do
+                let fvs = GHC.getName <$> (GHC.fvVarList $ GHC.expr_fvs t)
+                let tcs = GHC.getName <$> (GHC.nonDetEltsUniqSet $ tyConsOfExpr t)
+                let allFvs = fvs ++ tcs
+
+                var' <- convVarFresh var
+                -- See Note [Occurrences of recursive names]
+                PIR.defineTerm name (PIR.Def var' (PIR.mkVar () var')) mempty
+                t' <- convExpr t
+                PIR.defineTerm name (PIR.Def var' t') (Set.fromList allFvs)
+                pure $ PIR.mkVar () var'
+
 -- Expressions
 
 convExpr :: Converting m => GHC.CoreExpr -> m PIRTerm
@@ -185,17 +225,15 @@ convExpr e = withContextM 2 (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ d
         -- Special kinds of id
         GHC.Var (GHC.idDetails -> GHC.PrimOpId po) -> convPrimitiveOp po
         GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> convDataConRef dc
-        -- TODO: support record selectors. AFAICT GHC doesn't make a pattern-matching function that we can call, so we'd
-        -- have to make the pattern match ourselves
-        GHC.Var (GHC.idDetails -> GHC.RecSelId{}) -> throwPlain $ UnsupportedError "Record selectors, use pattern matching"
+        -- See Note [Unfoldings]
+        GHC.Var n@(GHC.realIdUnfolding -> GHC.CoreUnfolding{GHC.uf_tmpl=unfolding}) -> hoistExpr n unfolding
         GHC.Var n -> do
             -- Defined names, including builtin names
             maybeDef <- PIR.lookupTerm () (GHC.getName n)
             case maybeDef of
                 Just term -> pure term
-                -- the term we get must be closed - we don't resolve most references
-                -- TODO: possibly relax this?
-                Nothing -> throwSd FreeVariableError $ "Variable" GHC.<+> GHC.ppr n GHC.$+$ (GHC.ppr $ GHC.idDetails n)
+                Nothing -> throwSd FreeVariableError $
+                    "Variable" GHC.<+> GHC.ppr n GHC.$+$ (GHC.ppr $ GHC.idDetails n)
         GHC.Lit lit -> convLiteral lit
         -- arg can be a type here, in which case it's a type instantiation
         GHC.App l (GHC.Type t) -> PIR.TyInst () <$> convExpr l <*> convType t
@@ -225,6 +263,8 @@ convExpr e = withContextM 2 (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ d
             -- See Note [At patterns]
             scrutinee' <- convExpr scrutinee
             let scrutineeType = GHC.varType b
+            -- This is something of a stop-gap error, we should use Integer everywhere
+            when (scrutineeType `GHC.eqType` GHC.intTy) $ throwPlain $ UnsupportedError "Case on Int"
 
             -- the variable for the scrutinee is bound inside the cases, but not in the scrutinee expression itself
             withVarScoped b $ \v -> do
