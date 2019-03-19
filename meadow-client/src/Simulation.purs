@@ -86,7 +86,6 @@ import Prelude
   , discard
   , flip
   , id
-  , not
   , pure
   , show
   , class Show
