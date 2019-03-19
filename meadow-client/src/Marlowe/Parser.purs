@@ -95,7 +95,7 @@ atomObservation
   <|> pure FalseObs <* string "FalseObs"
 
 recObservation :: Parser String Observation
-recObservation 
+recObservation
     =   BelowTimeout <$> (string "BelowTimeout" **> timeout)
     <|> AndObs <$> (string "AndObs" **> observation') <**> observation'
     <|> OrObs <$> (string "OrObs" **> observation') <**> observation'
@@ -119,20 +119,20 @@ atomContract = pure Null <* string "Null"
 
 recContract :: Parser String Contract
 recContract
-    =   Commit <$> (string "Commit" **> idAction) 
-               <**> idCommit 
-               <**> person 
-               <**> value' 
-               <**> timeout 
+    =   Commit <$> (string "Commit" **> idAction)
+               <**> idCommit
+               <**> person
+               <**> value'
+               <**> timeout
                <**> timeout
                <**> contract'
                <**> contract'
-    <|> Pay <$> (string "Pay" **> idAction) 
+    <|> Pay <$> (string "Pay" **> idAction)
             <**> idCommit
             <**> person
             <**> value'
-            <**> timeout 
-            <**> contract' 
+            <**> timeout
+            <**> contract'
             <**> contract'
     <|> Both <$> (string "Both" **> contract') <**> contract'
     <|> Choice <$> (string "Choice" **> observation') <**> contract' <**> contract'
