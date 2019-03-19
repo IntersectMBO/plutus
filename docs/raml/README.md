@@ -201,11 +201,12 @@ to restrictions of the OCaml type system.  It is possbile to use the
 Scott encoding using records in OCaml (see ttt), but RAML can't deal
 with this because it doesn't support records.  Other methods for
 embedding complicated System F types and terms are described in
-[[Lindley2012](#lindley-2012), but again these use features of OCaml
+[[Lindley2012](#lindley-2012)], but again these use features of OCaml
 which aren't supported by RAML.  Thus I wasn't able to get any results
 for the Scott-encoded Peano numbers.
 
-[I was trying to defuncionalise the Scott encoding to see what happened,
+[I was trying to defunctionalise the Scott encoding to see what happened,
+
  but had some difficulty and then had to do something else. I'll look at
  this again later.]
 
@@ -214,10 +215,13 @@ for the Scott-encoded Peano numbers.
 
 There is a considerable amount of literature on static resource analysis.
 The following subsections contain brief descriptions of some other techniques.
+[... or they will do at some point]
 
 #### SPEED
+https://www.microsoft.com/en-us/research/publication/speed-precise-and-efficient-static-estimation-of-program-computational-complexity-2/
 
 #### COSTA
+http://costa.fdi.ucm.es/costa/costa.php
 
 #### Lattice point enumeration in polytopes
 

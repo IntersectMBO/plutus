@@ -6,6 +6,7 @@
 {-# OPTIONS_GHC -O0 #-}
 module Language.PlutusTx.Coordination.Contracts.Swap(
     Swap(..),
+    -- * Script
     swapValidator
     ) where
 
@@ -60,7 +61,7 @@ type SwapOracle = OracleValue (Ratio Int)
 --       Language.Plutus.Coordination.Contracts
 swapValidator :: Swap -> ValidatorScript
 swapValidator _ = ValidatorScript result where
-    result = $$(Ledger.compileScript [|| (\(redeemer :: SwapOracle) SwapOwners{..} (p :: PendingTx) Swap{..} ->
+    result = $$(Ledger.compileScript [|| (\SwapOwners{..} (redeemer :: SwapOracle) (p :: PendingTx) Swap{..} ->
         let
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool

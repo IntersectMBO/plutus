@@ -7,10 +7,12 @@ packages:
 - plutus-ir
 - plutus-tx
 - plutus-use-cases
+- interpreter
 - marlowe
+- meadow
 - wallet-api
-- plutus-playground/plutus-playground-server
-- plutus-playground/plutus-playground-lib
+- plutus-playground-server
+- plutus-playground-lib
 - plutus-tutorial
 
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
@@ -32,6 +34,7 @@ extra-deps:
 - purescript-bridge-0.13.0.0
 - servant-subscriber-0.6.0.2
 - jwt-0.9.0
+- servant-ekg-0.3
 flags:
   language-plutus-core:
     development: true

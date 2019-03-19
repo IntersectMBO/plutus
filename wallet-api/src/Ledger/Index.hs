@@ -117,9 +117,13 @@ lkpTxOut t = liftEither  . lookup t =<< ask
 validateTransaction :: ValidationMonad m
     => Ledger.Slot
     -> Tx
-    -> m ()
-validateTransaction h t =
-    checkSlotRange h t >> checkValuePreserved t >> checkPositiveValues t >> checkValidInputs t
+    -> m UtxoIndex
+validateTransaction h t = do
+    _ <- checkSlotRange h t
+    _ <- checkValuePreserved t
+    _ <- checkPositiveValues t
+    _ <- checkValidInputs t
+    insert t <$> ask
 
 -- | Check that a transaction can be validated in the given slot.
 checkSlotRange :: ValidationMonad m => Ledger.Slot -> Tx -> m ()
@@ -177,7 +181,7 @@ checkMatch v = \case
             let v' = ValidationData
                     $ lifted
                     $ v { pendingTxIn = pTxIn }
-                (logOut, success) = Ledger.runScript v' vl r d
+                (logOut, success) = Ledger.runScript v' vl d r
             if success
             then pure ()
             else throwError $ ScriptFailure logOut

@@ -1,0 +1,132 @@
+cabal-version: >=1.10
+name: meadow
+version: 0.1.0.0
+license: Apache-2.0
+license-files: 
+  LICENSE
+  NOTICE
+author: Pablo Lamela
+category: Web
+build-type: Simple
+extra-source-files:
+    README.md
+
+source-repository head
+    type: git
+    location: https://github.com/iohk/plutus
+
+flag development
+    description:
+        Enable `-Werror`
+    default: False
+    manual: True
+
+library
+    exposed-modules:
+        Server
+        API
+        Interpreter
+        Meadow.Contracts
+        Gist
+        Auth
+        Auth.Types
+        Servant.Extra
+        Control.Monad.Now
+        Control.Monad.Trace
+        Control.Monad.Web
+    hs-source-dirs: src
+    default-language: Haskell2010
+    build-depends:
+        aeson -any,
+        aeson-casing -any,
+        base >=4.7 && <5,
+        bytestring -any,
+        bytestring -any,
+        cookie -any,
+        containers -any,
+        directory -any,
+        exceptions -any,
+        file-embed -any,
+        filepath -any,
+        http-client-tls -any,
+        http-client -any,
+        http-conduit -any,
+        http-types -any,
+        interpreter -any,
+        jwt -any,
+        lens -any,
+        marlowe -any,
+        marlowe -any,
+        monad-logger -any,
+        mtl -any,
+        newtype-generics -any,
+        process -any,
+        servant <0.15,
+        servant-client -any,
+        servant-client-core -any,
+        servant-ekg -any,
+        servant-purescript -any,
+        servant-server -any,
+        temporary -any,
+        text -any,
+        time -any,
+        transformers -any
+
+executable meadow-exe
+    main-is: Main.hs
+    other-modules:
+        Webserver
+        PSGenerator
+        Types
+    hs-source-dirs: app
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wmissing-import-lists
+    build-depends:
+        aeson -any,
+        base -any,
+        bytestring -any,
+        containers -any,
+        data-default-class -any,
+        directory -any,
+        ekg-core -any,
+        ekg-statsd -any,
+        filepath -any,
+        gitrev -any,
+        http-types -any,
+        interpreter -any,
+        lens -any,
+        meadow -any,
+        monad-logger -any,
+        mtl -any,
+        purescript-bridge -any,
+        optparse-applicative -any,
+        servant-ekg -any,
+        servant-foreign -any,
+        servant-server -any,
+        servant-purescript -any,
+        text -any,
+        wai -any,
+        wai-cors -any,
+        wai-extra -any,
+        warp -any,
+        yaml -any
+
+test-suite meadow-test
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    hs-source-dirs: test
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N
+    build-depends:
+        base -any,
+        bytestring -any,
+        meadow -any,
+        text -any,
+        mtl -any,
+        hspec -any,
+        hspec-wai -any,
+        hspec-wai-json -any,
+        raw-strings-qq -any,
+        aeson -any

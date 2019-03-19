@@ -1,0 +1,39 @@
+cabal-version: >=1.10
+name: interpreter
+version: 0.1.0.0
+license: BSD3
+copyright: 2019 IOHK
+author: David Smith
+category: Web
+build-type: Simple
+
+library
+    exposed-modules:
+        System.IO.Temp.Extras
+        Control.Monad.Except.Extras
+        Language.Haskell.Interpreter
+    hs-source-dirs: src
+    default-language: Haskell2010
+    build-depends:
+        base >=4.7 && <5,
+        aeson -any,
+        bytestring -any,
+        exceptions -any,
+        file-embed -any,
+        transformers -any,
+        directory -any,
+        bytestring -any,
+        http-types -any,
+        monad-logger -any,
+        filepath -any,
+        marlowe -any,
+        mtl -any,
+        newtype-generics -any,
+        servant <0.15,
+        servant-server -any,
+        temporary -any,
+        time -any,
+        wai -any,
+        warp -any,
+        text -any,
+        process -any

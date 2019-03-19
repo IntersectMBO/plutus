@@ -37,7 +37,7 @@ let
       f = name: value: if value ? testdata then value.testrun else value;
     in pkgs.lib.mapAttrs f (lib.filterAttrs pred plutusPkgs.haskellPackages);
 in pkgs.lib.fix (jobsets:  mapped // {
-  inherit (plutusPkgs) tests docs plutus-playground;
+  inherit (plutusPkgs) tests docs plutus-playground meadow;
   all-plutus-tests = builtins.listToAttrs (map (arch: { name = arch; value = makePlutusTestRuns arch; }) supportedSystems);
   required = pkgs.lib.hydraJob (pkgs.releaseTools.aggregate {
     name = "plutus-required-checks";

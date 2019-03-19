@@ -33,13 +33,12 @@ import           Servant.API                ((:<|>) ((:<|>)), (:>), Capture, Get
 import           Wallet.API                 (KeyPair)
 import qualified Wallet.API                 as WAPI
 import           Wallet.Emulator.AddressMap (AddressMap)
-import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqual),
-                                             EmulatorState (_txPool, _walletStates), MockWallet,
-                                             Notification (BlockValidated, CurrentSlot), Wallet, WalletState, assert,
-                                             chainNewestFirst, emptyEmulatorState, emptyWalletState, liftMockWallet,
-                                             txPool, walletStates)
+import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqual), EmulatorState (_walletStates),
+                                             MockWallet, Notification (BlockValidated, CurrentSlot), Wallet,
+                                             WalletState, assert, chainNewestFirst, emptyEmulatorState,
+                                             emptyWalletState, index, liftMockWallet, txPool, walletStates)
 
-import           Ledger                     (Address, Block, Slot, Tx, TxIn, TxOut, Value)
+import           Ledger                     (Address, Block, Slot, Tx, TxIn, TxOut, Value, lastSlot)
 import qualified Wallet.Emulator.Types      as Types
 
 type WalletAPI
@@ -258,7 +257,11 @@ processPending = do
 processPendingSTM :: TVar EmulatorState -> STM [Tx]
 processPendingSTM var = do
   es <- readTVar var
-  let Types.ValidatedBlock block _ rest = Types.validateBlock es (_txPool es)
+  let
+      pool = view txPool es
+      currentSlot = lastSlot (view chainNewestFirst es)
+      idx  = view index es
+      Types.ValidatedBlock block _ rest _ = Types.validateBlock currentSlot idx pool
       newState = addBlock block . set txPool rest $ es
   writeTVar var newState
   pure block

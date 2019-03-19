@@ -8,6 +8,7 @@
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
+{-# OPTIONS_GHC   -O0 #-}
 module Ledger.Validation
     (
     -- * Pending transactions and related types
@@ -39,6 +40,9 @@ module Ledger.Validation
     , eqRedeemer
     , eqValidator
     , eqTx
+    , adaLockedBy
+    , ownHash
+    , signsTransaction
     -- * Hashes
     , plcSHA2_256
     , plcSHA3_256
@@ -58,10 +62,11 @@ import qualified Data.Text.Encoding           as TE
 import           GHC.Generics                 (Generic)
 import           Language.Haskell.TH          (Q, TExp)
 import           Language.PlutusTx.Lift       (makeLift)
-import qualified Language.PlutusTx.Builtins as Builtins
+import qualified Language.PlutusTx.Builtins   as Builtins
 import           Ledger.Interval              (SlotRange)
 import           Ledger.Types                 (Ada, PubKey (..), Signature (..), Value, Slot(..))
 import qualified Ledger.Types                 as Ledger
+import qualified Ledger.Ada.TH                as Ada
 
 -- Ignore newtype warnings related to `Oracle` and `Signed` because it causes
 -- problems with the plugin
@@ -286,7 +291,32 @@ eqRedeemer = [|| \(RedeemerHash l) (RedeemerHash r) -> Builtins.equalsByteString
 eqTx :: Q (TExp (TxHash -> TxHash -> Bool))
 eqTx = [|| \(TxHash l) (TxHash r) -> Builtins.equalsByteString l r ||]
 
+-- | The hash of the validator script that is currently being validated.
+ownHash :: Q (TExp (PendingTx -> ValidatorHash))
+ownHash = [|| \(PendingTx _ _ _ _ i _) -> let PendingTxIn _ (Left (h, _)) _ = i in h ||]
 
+-- | Total amount of ADa locked by the given script
+adaLockedBy :: Q (TExp (PendingTx -> ValidatorHash -> Ada))
+adaLockedBy = [|| \(PendingTx _ outs _ _ _ _) h ->
+    let
+
+        go :: [PendingTxOut] -> Ada
+        go c = case c of
+            [] -> $$(Ada.zero)
+            (PendingTxOut vl hashes _):xs ->
+                case hashes of
+                    Nothing -> go xs
+                    Just  (h', _) -> if $$(eqValidator) h h'
+                                     then $$(Ada.plus) ($$(Ada.fromValue) vl) (go xs)
+                                     else go xs
+
+    in go outs
+      ||]
+
+-- | Check if the provided signature is the result of signing the pending 
+--   transaction (without witnesses) with the public key.
+signsTransaction :: Q (TExp (Signature -> PubKey -> PendingTx -> Bool))
+signsTransaction = [|| \(Signature i) (PubKey j) (_ :: PendingTx) -> i == j ||]
 
 makeLift ''PendingTxOutType
 
