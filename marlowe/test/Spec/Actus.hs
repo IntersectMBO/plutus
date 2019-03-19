@@ -17,14 +17,16 @@ import           Hedgehog                       ( Property
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.Hedgehog            ( testProperty
+                                                , HedgehogTestLimit(..)
                                                 )
 
 import           Ledger                  hiding ( Value )
 import qualified Ledger.Ada                     as Ada
 import           Wallet.Emulator
 import           Language.Marlowe        hiding (insertCommit, discountFromPairList, mergeChoices)
-import           Language.Marlowe.Client        ( commit'
+import           Language.Marlowe.Client        ( commit
                                                 , receivePayment
+                                                , redeem
                                                 , evalContract
                                                 )
 import           Language.Marlowe.Actus        as Actus
@@ -35,7 +37,11 @@ tests :: TestTree
 tests = testGroup "Actus"
         [ testCase "Safe zero coupon bond" checkZeroCouponBond
         , testCase "Trusted zero coupon bond" checkTrustedZeroCouponBond
-        , testProperty "Trusted zero coupon bond" zeroCouponBondTest
+        , localOption (HedgehogTestLimit $ Just 3) $
+            testProperty "Safe zero coupon bond on mockchain" zeroCouponBondMockchainTest
+        , localOption (HedgehogTestLimit $ Just 3) $
+            testProperty "Safe zero coupon bond with guarantor on mockchain"
+                zeroCouponBondGuaranteedMockchainTest
         ]
 
 
@@ -145,8 +151,8 @@ checkTrustedZeroCouponBond = do
     v @?= False
 
 
-zeroCouponBondTest :: Property
-zeroCouponBondTest = checkMarloweTrace (MarloweScenario {
+zeroCouponBondMockchainTest :: Property
+zeroCouponBondMockchainTest = checkMarloweTrace (MarloweScenario {
     mlInitialBalances = Map.fromList [ (PubKey 1, Ada.adaValueOf 1000000), (PubKey 2, Ada.adaValueOf 1000000) ] }) $ do
     -- Init a contract
     let issuer = Wallet 1
@@ -164,52 +170,47 @@ zeroCouponBondTest = checkMarloweTrace (MarloweScenario {
     let contract = zeroCouponBond (PubKey 1) (PubKey 2) notional discount startDate maturityDate gracePeriod
 
     withContract [issuer, investor] contract $ \txOut validator -> do
-        txOut <- investor `performs` commit'
+        txOut <- investor `performs` commit
             txOut
             validator
             [] []
             (IdentCC 1)
-            (notional-discount)
-            (State [(IdentCC 1, (PubKey 1, NotRedeemed (notional-discount) maturityDate))] [])
-            (CommitCash (IdentCC 2) issuerPk (Value notional) startDate (maturityDate+1000)
+            (notional - discount)
+            emptyState
+            contract
+
+        update
+
+        txOut <- issuer `performs` commit
+            txOut
+            validator
+            [] []
+            (IdentCC 2)
+            notional
+            (State [ (IdentCC 1, (PubKey 2, NotRedeemed (notional - discount) maturityDate))] [])
+            (CommitCash (IdentCC 2) issuerPk (Value notional) startDate (maturityDate + gracePeriod)
                 (When FalseObs startDate Null
                     (Pay (IdentPay 1) investorPk issuerPk (Committed (IdentCC 1)) maturityDate
                         (When FalseObs maturityDate Null
-                            (Pay (IdentPay 2) issuerPk investorPk (Committed (IdentCC 2)) (maturityDate+1000) Null)
+                            (Pay (IdentPay 2) issuerPk investorPk (Committed (IdentCC 2))
+                                (maturityDate + gracePeriod) Null)
                         )
                     )
                 )
                 Null
             )
 
-        update
-
-        txOut <- issuer `performs` commit'
-            txOut
-            validator
-            [] []
-            (IdentCC 2)
-            notional
-            (State [ (IdentCC 1, (PubKey 1, NotRedeemed (notional-discount) maturityDate)),
-                        (IdentCC 2, (PubKey 2, NotRedeemed notional maturityDate))] [])
-            (When FalseObs startDate Null
-                (Pay (IdentPay 1) investorPk issuerPk (Committed (IdentCC 1)) maturityDate
-                    (When FalseObs maturityDate Null
-                        (Pay (IdentPay 2) issuerPk investorPk (Committed (IdentCC 2)) (maturityDate+1000) Null)
-                    )
-                )
-            )
-
-        addBlocksAndNotify [issuer, investor] startDate
+        addBlocksAndNotify [issuer, investor] (startDate + 10)
 
         txOut <- issuer `performs` receivePayment txOut
             validator
             [] []
             (IdentPay 1)
-            (notional-discount)
-            (State [(IdentCC 2, (PubKey 2, NotRedeemed notional (maturityDate+1000)))] [])
+            (notional - discount)
+            (State [(IdentCC 2, (PubKey 1, NotRedeemed notional (maturityDate + gracePeriod)))] [])
             (When FalseObs maturityDate Null
-                (Pay (IdentPay 2) issuerPk investorPk (Committed (IdentCC 2)) (maturityDate+1000) Null)
+                (Pay (IdentPay 2) issuerPk investorPk (Committed (IdentCC 2))
+                    (maturityDate + gracePeriod) Null)
             )
 
         addBlocksAndNotify [issuer, investor] maturityDate
@@ -217,7 +218,133 @@ zeroCouponBondTest = checkMarloweTrace (MarloweScenario {
         txOut <- investor `performs` receivePayment txOut
             validator
             [] []
+            (IdentPay 2)
+            notional
+            (State [] [])
+            Null
+
+        return (txOut, State [] [])
+    return ()
+
+
+zeroCouponBondGuaranteedMockchainTest :: Property
+zeroCouponBondGuaranteedMockchainTest = checkMarloweTrace (MarloweScenario {
+    mlInitialBalances = Map.fromList    [ (PubKey 1, Ada.adaValueOf 1000000)
+                                        , (PubKey 2, Ada.adaValueOf 1000000)
+                                        , (PubKey 3, Ada.adaValueOf 1000000) ] }) $ do
+    -- Init a contract
+    let issuer = Wallet 1
+        issuerPk = PubKey 1
+        investor = Wallet 2
+        investorPk = PubKey 2
+        guarantor = Wallet 3
+        guarantorPk = PubKey 3
+        update = updateAll [issuer, investor, guarantor]
+        notional = 1000
+        discount = 80
+        startDate = 50
+        maturityDate = 500
+        gracePeriod = 30240 -- about a week, 20sec * 3 * 60 * 24 * 7
+    update
+
+    let contract = zeroCouponBondGuaranteed
+                        (PubKey 1) (PubKey 2) (PubKey 3) -- parties
+                        notional discount -- values
+                        startDate maturityDate gracePeriod -- dates
+
+    withContract [issuer, investor, guarantor] contract $ \txOut validator -> do
+        -- investor commits money for a bond with discount
+        txOut <- investor `performs` commit
+            txOut
+            validator
+            [] []
+            (IdentCC 1)
+            (notional - discount)
+            emptyState
+            contract
+
+        update
+
+        -- guarantor commits a guarantee
+        txOut <- guarantor `performs` commit
+            txOut
+            validator
+            [] []
+            (IdentCC 2)
+            notional
+            (State [ (IdentCC 1, (PubKey 2, NotRedeemed (notional - discount) maturityDate))] [])
+            (CommitCash (IdentCC 2) guarantorPk (Value notional) startDate (maturityDate + gracePeriod)
+                (When FalseObs startDate Null
+                    (Pay (IdentPay 1) investorPk issuerPk (Committed (IdentCC 1)) maturityDate
+                        (CommitCash (IdentCC 3) issuerPk (Value notional) maturityDate (maturityDate + gracePeriod)
+                            -- if the issuer commits the notional before maturity date pay from it, redeem the 'guarantee'
+                            (Pay (IdentPay 2) issuerPk investorPk (Committed (IdentCC 3))
+                                (maturityDate + gracePeriod) (RedeemCC (IdentCC 2) Null))
+                            -- pay from the guarantor otherwise
+                            (Pay (IdentPay 3) guarantorPk investorPk (Committed (IdentCC 2))
+                                (maturityDate + gracePeriod) Null)
+                        )
+                    )
+                )
+                Null
+            )
+
+        addBlocksAndNotify [issuer, investor, guarantor] (startDate + 10)
+
+        -- after startDate the issuer recevies the bond payment
+        txOut <- issuer `performs` receivePayment txOut
+            validator
+            [] []
             (IdentPay 1)
+            (notional - discount)
+            (State [(IdentCC 2, (PubKey 3, NotRedeemed notional (maturityDate + gracePeriod)))] [])
+            (CommitCash (IdentCC 3) issuerPk (Value notional) maturityDate (maturityDate + gracePeriod)
+                -- if the issuer commits the notional before maturity date pay from it, redeem the 'guarantee'
+                (Pay (IdentPay 2) issuerPk investorPk (Committed (IdentCC 3))
+                    (maturityDate + gracePeriod) (RedeemCC (IdentCC 2) Null))
+                -- pay from the guarantor otherwise
+                (Pay (IdentPay 3) guarantorPk investorPk (Committed (IdentCC 2))
+                    (maturityDate + gracePeriod) Null)
+            )
+
+        addBlocksAndNotify [issuer, investor, guarantor] 100
+
+        -- before maturityDate the issuer commits the bond value
+        txOut <- issuer `performs` commit
+            txOut
+            validator
+            [] []
+            (IdentCC 3)
+            notional
+            (State [(IdentCC 2, (PubKey 3, NotRedeemed notional (maturityDate + gracePeriod)))] [])
+            (CommitCash (IdentCC 3) issuerPk (Value notional) maturityDate (maturityDate + gracePeriod)
+                -- if the issuer commits the notional before maturity date pay from it, redeem the 'guarantee'
+                (Pay (IdentPay 2) issuerPk investorPk (Committed (IdentCC 3))
+                    (maturityDate + gracePeriod) (RedeemCC (IdentCC 2) Null))
+                -- pay from the guarantor otherwise
+                (Pay (IdentPay 3) guarantorPk investorPk (Committed (IdentCC 2))
+                    (maturityDate + gracePeriod) Null)
+            )
+
+        addBlocksAndNotify [issuer, investor, guarantor] maturityDate
+
+        -- after maturity date the investor collects the bond payment
+        txOut <- investor `performs` receivePayment txOut
+            validator
+            [] []
+            (IdentPay 2)
+            notional
+            (State  [ (IdentCC 2, (PubKey 3, NotRedeemed notional (maturityDate + gracePeriod)))] [])
+            (RedeemCC (IdentCC 2) Null)
+
+        update
+
+        -- after that guarantor can recall the `guarantee` commit
+        txOut <- guarantor `performs` redeem
+            txOut
+            validator
+            [] []
+            (IdentCC 2)
             notional
             (State [] [])
             Null
