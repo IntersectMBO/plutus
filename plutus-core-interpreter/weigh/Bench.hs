@@ -16,7 +16,7 @@ main = do
 
     mainWith $ sequence_
         [ func "valid" (fmap (runCek mempty)) f'
-        , func "valid" (fmap (runCek mempty)) g'
+        , func "invalid" (fmap (runCek mempty)) g'
         ]
 
     where evalFile0 = BSL.readFile "../language-plutus-core/test/Evaluation/Golden/verifySignature.plc"
