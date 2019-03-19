@@ -9,6 +9,7 @@
     "purs:bundle": "purs bundle output/**/*.js",
     "start": "node bundle.js",
     "test": "pulp test -I generated",
+    "test:watch": "pulp -w test -I generated",
     "repl": "purs repl 'src/**/*.purs' 'bower_components/purescript-*/src/**/*.purs' 'generated/**/*.purs' 'test/**/*.purs'"
   },
   "dependencies": {
