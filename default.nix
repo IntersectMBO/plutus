@@ -97,8 +97,6 @@ let
       enableHaddockHydra enableBenchmarks fasterBuild enableDebugging
       enableSplitCheck customOverlays pkgsGenerated;
 
-      inherit (pkgsGenerated) ghc;
-
       filter = localLib.isPlutus;
       filterOverrides = {
         splitCheck = localButNot [
