@@ -19,6 +19,13 @@ resource "aws_security_group" "playground" {
   }
 
   ingress {
+    from_port   = 9091
+    to_port     = 9091
+    protocol    = "TCP"
+    cidr_blocks = ["${var.private_subnet_cidrs}"]
+  }
+
+  ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "TCP"

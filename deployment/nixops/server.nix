@@ -26,7 +26,7 @@
   
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [ 80 9100 ];
+    allowedTCPPorts = [ 80 9100 9091 ];
   };
   
   # a user for people who want to ssh in and fiddle with playground/meadow service only

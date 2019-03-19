@@ -1,8 +1,7 @@
 { mkInstance = { machines, defaultMachine, ... }: node: { config, pkgs, lib, ... }:
 
 let
-     x = 1;
-     nodeTarget = node: 
+    nodeTarget = node: 
         {
           targets = [
             "${node.ip}:9100"
@@ -11,7 +10,17 @@ let
             alias = "${node.dns}";
           };
         };
+    ekgTarget = node:
+        {
+          targets = [
+            "${node.ip}:9091"
+          ];
+          labels = {
+            alias = "${node.dns}";
+          };
+        };
     nodeTargets = map nodeTarget [machines.meadowA machines.meadowB machines.playgroundA machines.playgroundB];
+    ekgTargets = map ekgTarget [machines.meadowA machines.meadowB machines.playgroundA machines.playgroundB];
 in
 {
     imports = [ (defaultMachine node pkgs)
@@ -30,11 +39,12 @@ in
 
     services.prometheus = {
         enable = true;
+        package = pkgs.prometheus_2;
         scrapeConfigs = [
             {
               job_name = "node";
               scrape_interval = "10s";
-              static_configs = nodeTargets ++ [
+              static_configs = nodeTargets ++ ekgTargets ++ [
                 {
                   targets = [
                     "localhost:9100"

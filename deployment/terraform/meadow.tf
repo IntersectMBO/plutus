@@ -26,6 +26,13 @@ resource "aws_security_group" "meadow" {
     cidr_blocks = ["${var.private_subnet_cidrs}"]
   }
 
+  ingress {
+    from_port   = 9091
+    to_port     = 9091
+    protocol    = "TCP"
+    cidr_blocks = ["${var.private_subnet_cidrs}"]
+  }
+
   ## outgoing: all
   egress {
     from_port   = 0
