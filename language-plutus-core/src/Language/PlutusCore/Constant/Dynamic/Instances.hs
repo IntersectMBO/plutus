@@ -1,7 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
@@ -34,21 +33,21 @@ import qualified Data.Text.Prettyprint.Doc                   as Doc
 import           System.IO.Unsafe                            (unsafePerformIO)
 
 instance KnownDynamicBuiltinType a => KnownDynamicBuiltinType (EvaluationResult a) where
-    toTypeEncoding _ = toTypeEncoding $ Proxy @a
+    toTypeEncoding _ = toTypeEncoding @a Proxy
 
     -- 'EvaluationFailure' on the Haskell side becomes 'Error' on the PLC side.
-    makeDynamicBuiltin EvaluationFailure     = pure . Error () . toTypeEncoding $ Proxy @a
+    makeDynamicBuiltin EvaluationFailure     = pure . Error () $ toTypeEncoding @a Proxy
     makeDynamicBuiltin (EvaluationSuccess x) = makeDynamicBuiltin x
 
-    -- There are two 'EvaluationResult's here: an external one (which any 'KnownDynamicBuiltinType'
+    -- There are two 'EvaluationResult's here: an external one (which any 'KnownType'
     -- instance has to deal with) and an internal one (specific to this particular instance).
     -- Our approach is to always return 'EvaluationSuccess' for the external 'EvaluationResult'
     -- and catch all 'EvaluationFailure's in the internal 'EvaluationResult'.
-    -- This allows *not* to short-circuit when 'readDynamicBuiltin' fails to read a Haskell value.
+    -- This allows *not* to short-circuit when 'readKnown' fails to read a Haskell value.
     -- Instead the user gets an explicit @EvaluationResult a@ and evaluation proceeds normally.
-    readDynamicBuiltin eval term = ExceptT . EvaluationSuccess <$> do
+    readDynamicBuiltin eval term = makeReflectT $ EvaluationSuccess <$> do
         res <- eval mempty term
-        sequence . (>>= runExceptT) <$> traverse (readDynamicBuiltin eval) res
+        fmap (fmap join . sequence) . runReflectT $ traverse (readDynamicBuiltin eval) res
 
 instance KnownDynamicBuiltinType [Char] where
     toTypeEncoding _ = TyBuiltin () TyString
@@ -56,8 +55,8 @@ instance KnownDynamicBuiltinType [Char] where
     makeDynamicBuiltin = pure . Constant () . makeBuiltinStr
 
     readDynamicBuiltin eval term = do
-        res <- eval mempty term
-        pure $ lift res >>= \case
+        res <- makeRightReflectT $ eval mempty term
+        case res of
             Constant () (BuiltinStr () s) -> pure s
             _                             -> throwError "Not a builtin String"
 
@@ -69,9 +68,10 @@ instance KnownDynamicBuiltinType Bool where
     readDynamicBuiltin eval b = do
         let int1 = TyApp () (TyBuiltin () TyInteger) (TyInt () 4)
             asInt1 = Constant () . BuiltinInt () 1
-        -- Encode 'Bool' from Haskell as @integer 1@ from PLC.
-        res <- eval mempty (mkIterApp () (TyInst () b int1) [asInt1 1, asInt1 0])
-        pure $ lift res >>= \case
+            -- Encode 'Bool' from Haskell as @integer 1@ from PLC.
+            term = mkIterApp () (TyInst () b int1) [asInt1 1, asInt1 0]
+        res <- makeRightReflectT $ eval mempty term
+        case res of
             Constant () (BuiltinInt () 1 1) -> pure True
             Constant () (BuiltinInt () 1 0) -> pure False
             _                               -> throwError "Not an integer-encoded Bool"
@@ -85,8 +85,8 @@ instance KnownDynamicBuiltinType Char where
     readDynamicBuiltin eval term = do
         -- 'term' is supposed to be already evaluated, but calling 'eval' is the easiest way
         -- to turn 'Error' into 'EvaluationFailure', which we later 'lift' to 'Convert'.
-        res <- eval mempty term
-        pure $ lift res >>= \case
+        res <- makeRightReflectT $ eval mempty term
+        case res of
             Constant () (BuiltinInt () 4 int) -> pure . chr $ fromIntegral int
             _                                 -> throwError "Not an integer-encoded Char"
 
@@ -127,14 +127,14 @@ instance (KnownDynamicBuiltinType a, KnownDynamicBuiltinType b) =>
                         [ Apply () emitX $ Var () dx
                         , Apply () emitY $ Var () dy
                         ]
-        let (xs, (ys, getRes)) =
+            (xs, (ys, getRes)) =
                 unsafePerformIO . withEmitHandler eval $
                     withEmitTerm TypedBuiltinDyn $ \emitX ->
                     withEmitTerm TypedBuiltinDyn $ \emitY ->
                         feedEmitHandler $ go emitX emitY
-        res <- getRes
-        pure $ case (xs, ys) of
-            ([x], [y]) -> (x, y) <$ lift res
+        _ <- makeRightReflectT getRes
+        case (xs, ys) of
+            ([x], [y]) -> pure (x, y)
             _          -> throwError "Not a (,)"
 
 instance (KnownDynamicBuiltinType a, KnownDynamicBuiltinType b) =>
@@ -158,10 +158,10 @@ instance (KnownDynamicBuiltinType a, KnownDynamicBuiltinType b) =>
                     withEmitTerm TypedBuiltinDyn $ \emitX ->
                     withEmitTerm TypedBuiltinDyn $ \emitY ->
                         feedEmitHandler $ go emitX emitY
-        res <- getRes
-        pure $ case (l, r) of
-            ([x], []) -> Left  x <$ lift res
-            ([], [y]) -> Right y <$ lift res
+        _ <- makeRightReflectT getRes
+        case (l, r) of
+            ([x], []) -> pure $ Left  x
+            ([], [y]) -> pure $ Right y
             _         -> throwError "Not an Either"
 
 newtype PlcList a = PlcList
@@ -185,8 +185,8 @@ instance KnownDynamicBuiltinType a => KnownDynamicBuiltinType (PlcList a) where
                     mkIterApp () (mkIterInst () foldList [a, unit])
                         [LamAbs () u unit emit, unitval, list]
             (xs, getRes) = unsafePerformIO $ withEmitEvaluateBy eval TypedBuiltinDyn go
-        res <- getRes
-        pure $ PlcList xs <$ lift res
+        _ <- makeRightReflectT getRes
+        pure $ PlcList xs
 
 instance PrettyDynamic a => PrettyDynamic (PlcList a) where
     prettyDynamic = Doc.list . map prettyDynamic . unPlcList

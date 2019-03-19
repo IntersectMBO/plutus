@@ -2,7 +2,7 @@ cabal-version: 2.0
 name: language-plutus-core
 version: 0.1.0.0
 license: Apache-2.0
-license-files: 
+license-files:
   LICENSE
   NOTICE
 maintainer: vanessa.mchale@iohk.io
@@ -73,6 +73,7 @@ library
         Language.PlutusCore.Generators.Interesting
         Language.PlutusCore.Generators.Test
         PlutusPrelude
+        Control.Monad.Trans.Inner
         Common
         Data.ByteString.Lazy.Hash
         PlcTestUtils

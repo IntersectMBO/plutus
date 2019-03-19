@@ -2,11 +2,9 @@
 -- See the @plutus/language-plutus-core/docs/Constant application.md@
 -- article for how this emerged.
 
-{-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE GADTs                     #-}
-{-# LANGUAGE LambdaCase                #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE RankNTypes                #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes        #-}
 
 module Language.PlutusCore.Constant.Typed
     ( BuiltinSized (..)
@@ -21,12 +19,16 @@ module Language.PlutusCore.Constant.Typed
     , DynamicBuiltinNameDefinition (..)
     , DynamicBuiltinNameMeanings (..)
     , Evaluator
-    , Evaluate
-    , Convert
+    , EvaluateT (..)
+    , ReflectT
     , KnownDynamicBuiltinType (..)
+    , thoist
     , eraseTypedBuiltinSized
-    , runEvaluate
+    , runEvaluateT
     , withEvaluator
+    , runReflectT
+    , makeReflectT
+    , makeRightReflectT
     , readDynamicBuiltinM
     ) where
 
@@ -39,8 +41,10 @@ import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
+import Control.Monad.Morph as Morph
 import           Control.Monad.Except
 import           Control.Monad.Reader
+import           Control.Monad.Trans.Inner
 import qualified Data.ByteString.Lazy.Char8                  as BSL
 import           Data.Map                                    (Map)
 import           Data.Text                                   (Text)
@@ -181,13 +185,22 @@ newtype DynamicBuiltinNameMeanings = DynamicBuiltinNameMeanings
 
 type Evaluator f m = DynamicBuiltinNameMeanings -> f TyName Name () -> m EvaluationResultDef
 
-type Evaluate m = ReaderT (Evaluator Term m) m
+newtype EvaluateT t m a = EvaluateT
+    { unEvaluateT :: ReaderT (Evaluator Term m) (t m) a
+    } deriving
+        ( Functor, Applicative, Monad, Alternative, MonadPlus
+        , MonadReader (Evaluator Term m)
+        , MonadError e
+        )
 
-runEvaluate :: Evaluator Term m -> Evaluate m a -> m a
-runEvaluate = flip runReaderT
+runEvaluateT :: Evaluator Term m -> EvaluateT t m a -> t m a
+runEvaluateT eval (EvaluateT a) = runReaderT a eval
 
-withEvaluator :: (Evaluator Term m -> m a) -> Evaluate m a
-withEvaluator = ReaderT
+withEvaluator :: (Evaluator Term m -> t m a) -> EvaluateT t m a
+withEvaluator = EvaluateT . ReaderT
+
+thoist :: Monad (t m) => (forall b. t m b -> s m b) -> EvaluateT t m a -> EvaluateT s m a
+thoist f (EvaluateT a) = EvaluateT $ Morph.hoist f a
 
 {- Note [Semantics of dynamic built-in types]
 We only allow dynamic built-in types that
@@ -289,7 +302,31 @@ received evaluator
 --
 -- 1. 'EvaluationFailure' if at some point constants stop fitting into specified sizes.
 -- 2. A textual error if a PLC term can't be converted to a Haskell value of a specified type.
-type Convert a = ExceptT Text EvaluationResult a
+newtype ReflectT m a = ReflectT
+    { unReflectT :: ExceptT Text (InnerT EvaluationResult m) a
+    } deriving
+        ( Functor, Applicative, Monad
+        , MonadError Text
+        )
+
+-- GHC does not want to derive this for some reason.
+instance MonadTrans ReflectT where
+    lift = ReflectT . lift . lift
+
+-- Uses the 'Alternative' instance of 'EvaluationResult'.
+instance Monad m => Alternative (ReflectT m) where
+    empty = ReflectT . lift $ yield empty
+    ReflectT (ExceptT (InnerT m)) <|> ReflectT (ExceptT (InnerT n)) =
+        ReflectT . ExceptT . InnerT $ (<|>) <$> m <*> n
+
+runReflectT :: ReflectT m a -> m (EvaluationResult (Either Text a))
+runReflectT = unInnerT . runExceptT . unReflectT
+
+makeReflectT :: m (EvaluationResult (Either Text a)) -> ReflectT m a
+makeReflectT = ReflectT . ExceptT . InnerT
+
+makeRightReflectT :: Monad m => m (EvaluationResult a) -> ReflectT m a
+makeRightReflectT = ReflectT . lift . InnerT
 
 -- See Note [Semantics of dynamic built-in types].
 -- See Note [Converting PLC values to Haskell values].
@@ -305,11 +342,11 @@ class KnownDynamicBuiltinType dyn where
 
     -- See Note [Evaluators].
     -- | Convert a PLC value to the corresponding Haskell value.
-    readDynamicBuiltin :: Monad m => Evaluator Term m -> Term TyName Name () -> m (Convert dyn)
+    readDynamicBuiltin :: Monad m => Evaluator Term m -> Term TyName Name () -> ReflectT m dyn
 
 readDynamicBuiltinM
-    :: (Monad m, KnownDynamicBuiltinType dyn)
-    => Term TyName Name () -> Evaluate m (Convert dyn)
+    :: (Monad m, KnownDynamicBuiltinType a)
+    => Term TyName Name () -> EvaluateT ReflectT m a
 readDynamicBuiltinM term = withEvaluator $ \eval -> readDynamicBuiltin eval term
 
 instance Pretty BuiltinSized where
@@ -342,13 +379,13 @@ instance KnownDynamicBuiltinType () where
 
     -- We need this matching, because otherwise Haskell expressions are thrown away rather than being
     -- evaluated and we use 'unsafePerformIO' in multiple places, so we want to compute the '()' just
-    -- for side effects the evaluation may cause.
+    -- for side effects that the evaluation may cause.
     makeDynamicBuiltin () = pure unitval
 
     readDynamicBuiltin eval term = do
         let int1 = TyApp () (TyBuiltin () TyInteger) (TyInt () 4)
             asInt1 = Constant () . BuiltinInt () 1
-        res <- eval mempty . Apply () (TyInst () term int1) $ asInt1 1
-        pure $ lift res >>= \case
+        res <- makeRightReflectT . eval mempty . Apply () (TyInst () term int1) $ asInt1 1
+        case res of
             Constant () (BuiltinInt () 1 1) -> pure ()
             _                               -> throwError "Not a builtin ()"
