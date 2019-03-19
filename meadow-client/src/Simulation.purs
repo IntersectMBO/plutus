@@ -38,7 +38,7 @@ import Halogen.HTML
   ( ClassName
       ( ClassName
       )
-  , b_ 
+  , b_
   , br_
   , button
   , code_
@@ -312,11 +312,11 @@ inputChoice person idChoice val =
 inputComposerOracle :: forall p. Tuple IdOracle OracleEntry -> HTML p Query
 inputComposerOracle (Tuple idOracle {blockNumber, value}) =
   flexRow_ [ button [ class_ $ ClassName "composer-add-button"
-                    , onClick $ input_ $ AddAnyInput { person: Nothing 
+                    , onClick $ input_ $ AddAnyInput { person: Nothing
                                                      , anyInput: Input (IOracle idOracle blockNumber value) }
                     ] [ text "+"
                       ]
-           , spanText "Oracle " 
+           , spanText "Oracle "
            , b_ [ spanText (show idOracle) ]
            , spanText ": Provide "
            , marloweActionInput (\x -> SetOracleVal { idOracle
@@ -433,7 +433,7 @@ transactionInputs state = [ h3_ [ text "Input list"
 inputRow :: forall p. AnyInput -> HTML p Query
 inputRow idInput@(Action idAction) =
   row_ [ col_ [ button [ class_ $ ClassName "composer-add-button"
-                       , onClick $ input_ $ RemoveAnyInput idInput 
+                       , onClick $ input_ $ RemoveAnyInput idInput
                        ] [ text "-"
                          ]
               , text "Action with id "
@@ -444,7 +444,7 @@ inputRow idInput@(Action idAction) =
 
 inputRow idInput@(Input (IChoice (IdChoice {choice, person}) val)) =
   row_ [ col_ [ button [ class_ $ ClassName "composer-add-button"
-                       , onClick $ input_ $ RemoveAnyInput idInput 
+                       , onClick $ input_ $ RemoveAnyInput idInput
                        ] [ text "-"
                          ]
               , text "Participant "
@@ -461,7 +461,7 @@ inputRow idInput@(Input (IChoice (IdChoice {choice, person}) val)) =
 
 inputRow idInput@(Input (IOracle idOracle bn val)) =
   row_ [ col_ [ button [ class_ $ ClassName "composer-add-button"
-                       , onClick $ input_ $ RemoveAnyInput idInput 
+                       , onClick $ input_ $ RemoveAnyInput idInput
                        ] [ text "-"
                          ]
               , text "Oracle "
@@ -524,11 +524,11 @@ stateTable state =
                                    ]
                             , h3_ [ text "Choices"
                                   ]
-                            , row_ [ renderChoices mState.choices 
+                            , row_ [ renderChoices mState.choices
                                    ]
                             , h3_ [ text "Oracle values"
                                   ]
-                            , row_ [ renderOracles mState.oracles 
+                            , row_ [ renderOracles mState.oracles
                                    ]
                             ]
                 ]
@@ -655,4 +655,3 @@ renderOracle (Tuple idOracle {blockNumber, value}) =
         , td_ [ text (show value)
               ]
         ]
-
