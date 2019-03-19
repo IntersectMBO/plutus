@@ -3,8 +3,7 @@ module Editor
   ) where
 
 import API
-  ( _RunResult
-  , RunResult(..)
+  ( RunResult(..)
   )
 import Ace.Halogen.Component
   ( AceEffects
@@ -49,10 +48,7 @@ import Data.Either
   ( Either(..)
   )
 import Data.Lens
-  ( _Right
-  , preview
-  , to
-  , view
+  ( view
   )
 import Data.Maybe
   ( Maybe
@@ -113,7 +109,6 @@ import LocalStorage
   )
 import Network.RemoteData
   ( RemoteData(..)
-  , _Success
   , isLoading
   )
 import Prelude
@@ -136,7 +131,6 @@ import Types
   , Query(..)
   , FrontendState
   , _authStatus
-  , _runResult
   , _createGistResult
   , cpEditor
   )
