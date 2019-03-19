@@ -5,6 +5,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Constant.Apply
@@ -27,7 +28,8 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
-import           Control.Monad.Except
+import           Control.Monad.Trans.Class
+import           Control.Monad.Trans.Inner
 import           Crypto
 import qualified Data.ByteString.Lazy                           as BSL
 import qualified Data.ByteString.Lazy.Hash                      as Hash
@@ -125,9 +127,12 @@ instance Enum SizeVar where
     toEnum = SizeVar
     fromEnum (SizeVar sizeIndex) = sizeIndex
 
--- Who are you?
-forBind :: (Monad m, Traversable m, Applicative f) => m a -> (a -> f (m b)) -> f (m b)
-forBind a f = join <$> traverse f a
+type EvaluateConstApp m = EvaluateT (InnerT ConstAppResult) m
+type EvaluateConstAppDef m = EvaluateConstApp m (Value TyName Name ())
+
+liftConstAppResult :: Monad m => ConstAppResult a -> EvaluateConstApp m a
+-- Could it be @yield . yield@?
+liftConstAppResult = EvaluateT . lift . yield
 
 -- | Same as 'makeBuiltin', but returns a 'ConstAppResult'.
 makeConstAppResult :: TypedBuiltinValue Size a -> ConstAppResultDef
@@ -172,9 +177,9 @@ extractBuiltin
     => TypedBuiltin SizeVar a
     -> SizeValues
     -> Value TyName Name ()
-    -> Evaluate m (ConstAppResult (a, SizeValues))
+    -> EvaluateConstApp m (a, SizeValues)
 extractBuiltin (TypedBuiltinSized sizeEntry tbs) (SizeValues sizes) value =
-    return $ case value of
+    liftConstAppResult $ case value of
         Constant () constant -> case sizeEntry of
             SizeValue size                ->
                 (SizeValues sizes <$) <$> extractSizedBuiltin tbs (Just size) constant
@@ -183,10 +188,11 @@ extractBuiltin (TypedBuiltinSized sizeEntry tbs) (SizeValues sizes) value =
                     upd maySize = fmap Just . PairT $ extractSizedBuiltin tbs maySize constant
         _                    -> ConstAppError $ SizedNonConstantConstAppError value
 extractBuiltin TypedBuiltinDyn                   sizeValues         value =
-    readDynamicBuiltinM value <&> \conv -> case runExceptT conv of
-        EvaluationFailure            -> ConstAppFailure
-        EvaluationSuccess (Left err) -> ConstAppError $ UnreadableBuiltinConstAppError value err
-        EvaluationSuccess (Right x ) -> ConstAppSuccess (x, sizeValues)
+    fmap (, sizeValues) . thoist (InnerT . fmap nat . runReflectT) $ readDynamicBuiltinM value where
+        nat :: EvaluationResult (Either Text a) -> ConstAppResult a
+        nat EvaluationFailure              = ConstAppFailure
+        nat (EvaluationSuccess (Left err)) = ConstAppError $ UnreadableBuiltinConstAppError value err
+        nat (EvaluationSuccess (Right x )) = ConstAppSuccess x
 
 -- | Convert a PLC constant (unwrapped from 'Value') into the corresponding Haskell value.
 -- Checks that the constant is of a given type and there are no size mismatches.
@@ -197,7 +203,7 @@ extractSchemed
     => TypeScheme SizeVar a r
     -> SizeValues
     -> Value TyName Name ()
-    -> Evaluate m (ConstAppResult (a, SizeValues))
+    -> EvaluateConstApp m (a, SizeValues)
 extractSchemed (TypeSchemeBuiltin a) sizeValues value = extractBuiltin a sizeValues value
 extractSchemed (TypeSchemeArrow _ _) _          _     = error "Not implemented."
 extractSchemed (TypeSchemeAllSize _) _          _     = error "Not implemented."
@@ -205,8 +211,7 @@ extractSchemed (TypeSchemeAllSize _) _          _     = error "Not implemented."
 -- | Apply a function with a known 'TypeScheme' to a list of 'Constant's (unwrapped from 'Value's).
 -- Checks that the constants are of expected types and there are no size mismatches.
 applyTypeSchemed
-    :: Monad m
-    => TypeScheme SizeVar a r -> a -> [Value TyName Name ()] -> Evaluate m ConstAppResultDef
+    :: Monad m => TypeScheme SizeVar a r -> a -> [Value TyName Name ()] -> EvaluateConstAppDef m
 applyTypeSchemed schema = go schema (SizeVar 0) (SizeValues mempty) where
     go
         :: Monad m
@@ -215,22 +220,22 @@ applyTypeSchemed schema = go schema (SizeVar 0) (SizeValues mempty) where
         -> SizeValues
         -> a
         -> [Value TyName Name ()]
-        -> Evaluate m ConstAppResultDef
-    go (TypeSchemeBuiltin tb)      _       sizeValues y args = case args of  -- Computed the result.
-        -- This is where all the size checks prescribed by the specification happen.
-        -- We instantiate the size variable of a final 'TypedBuiltin' to its value and call
-        -- 'makeConstAppResult' which performs the final size check before converting
-        -- a Haskell value to the corresponding PLC one.
-        [] -> return . makeConstAppResult $ TypedBuiltinValue (substSizeVar sizeValues tb) y
-        _  -> return . ConstAppError $ ExcessArgumentsConstAppError args     -- Too many arguments.
+        -> EvaluateConstAppDef m
+    go (TypeSchemeBuiltin tb)      _       sizeValues y args =  -- Computed the result.
+        liftConstAppResult $ case args of
+            -- This is where all the size checks prescribed by the specification happen.
+            -- We instantiate the size variable of a final 'TypedBuiltin' to its value and call
+            -- 'makeConstAppResult' which performs the final size check before converting
+            -- a Haskell value to the corresponding PLC one.
+            [] -> makeConstAppResult $ TypedBuiltinValue (substSizeVar sizeValues tb) y
+            _  -> ConstAppError $ ExcessArgumentsConstAppError args  -- Too many arguments.
     go (TypeSchemeArrow schA schB) sizeVar sizeValues f args = case args of
-        []          -> return ConstAppStuck             -- Not enough arguments to compute.
-        arg : args' -> do                               -- Peel off one argument.
+        []          -> liftConstAppResult ConstAppStuck  -- Not enough arguments to compute.
+        arg : args' -> do                                -- Peel off one argument.
             -- Coerce the argument to a Haskell value.
-            res <- extractSchemed schA sizeValues arg
-            forBind res $ \(x, sizeValues') ->
-                -- Apply the function to the coerced argument and proceed recursively.
-                go schB sizeVar sizeValues' (f x) args'
+            (x, sizeValues') <- extractSchemed schA sizeValues arg
+            -- Apply the function to the coerced argument and proceed recursively.
+            go schB sizeVar sizeValues' (f x) args'
     go (TypeSchemeAllSize schK)    sizeVar sizeValues f args =
         -- Instantiate the `forall` with a fresh var and proceed recursively.
         go (schK sizeVar) (succ sizeVar) sizeValues f args
@@ -238,15 +243,13 @@ applyTypeSchemed schema = go schema (SizeVar 0) (SizeValues mempty) where
 -- | Apply a 'TypedBuiltinName' to a list of 'Constant's (unwrapped from 'Value's)
 -- Checks that the constants are of expected types and there are no size mismatches.
 applyTypedBuiltinName
-    :: Monad m
-    => TypedBuiltinName a r -> a -> [Value TyName Name ()] -> Evaluate m ConstAppResultDef
+    :: Monad m => TypedBuiltinName a r -> a -> [Value TyName Name ()] -> EvaluateConstAppDef m
 applyTypedBuiltinName (TypedBuiltinName _ schema) = applyTypeSchemed schema
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Constant's (unwrapped from 'Value's)
 -- Checks that the constants are of expected types and there are no size mismatches.
 applyBuiltinName
-    :: Monad m
-    => BuiltinName -> [Value TyName Name ()] -> Evaluate m ConstAppResultDef
+    :: Monad m => BuiltinName -> [Value TyName Name ()] -> EvaluateConstAppDef m
 applyBuiltinName AddInteger           = applyTypedBuiltinName typedAddInteger           (+)
 applyBuiltinName SubtractInteger      = applyTypedBuiltinName typedSubtractInteger      (-)
 applyBuiltinName MultiplyInteger      = applyTypedBuiltinName typedMultiplyInteger      (*)

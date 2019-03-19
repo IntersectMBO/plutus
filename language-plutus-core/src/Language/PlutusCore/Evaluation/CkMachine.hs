@@ -20,6 +20,7 @@ import           Language.PlutusCore.Type
 import           Language.PlutusCore.View
 import           PlutusPrelude
 
+import           Control.Monad.Trans.Inner
 import           Data.Functor.Identity
 
 infix 4 |>, <|
@@ -145,7 +146,7 @@ applyEvaluate stack fun                    arg =
 
 applyEvaluateCkBuiltinName :: BuiltinName -> [Value TyName Name ()] -> ConstAppResultDef
 applyEvaluateCkBuiltinName name =
-    runIdentity . runEvaluate (const $ Identity . evaluateCk) . applyBuiltinName name
+    runIdentity . unInnerT . runEvaluateT (const $ Identity . evaluateCk) . applyBuiltinName name
 
 -- | Evaluate a term using the CK machine. May throw a 'CkMachineException'.
 -- This differs from the spec version: we do not have the following rule:
