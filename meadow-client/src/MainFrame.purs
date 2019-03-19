@@ -295,6 +295,10 @@ updateStateP oldState = actState
     sigState = updateSignatures oldState
     actState = updateActions sigState (simulateState sigState)
 
+updateState ::
+  forall eff m.
+  MonadEff (ace :: ACE | eff) m
+  => HalogenM FrontendState Query (Coproduct AceQuery AceQuery) (Either EditorSlot MarloweEditorSlot) Void m Unit
 updateState = do
   saveInitialState
   modifying (_marloweState) (updateStateP)
@@ -306,10 +310,15 @@ updateContractInStateP text state = set (_contract) con state
             Right pcon -> pcon
             Left _ -> Null
 
+updateContractInState :: forall m. MonadState FrontendState m => String -> m Unit
 updateContractInState text = do
    modifying (_marloweState) (updateContractInStateP text)
    modifying (_marloweState) (updateStateP)
 
+saveInitialState ::
+  forall eff m.
+  MonadEff (ace :: ACE | eff) m
+  => HalogenM FrontendState Query (Coproduct AceQuery AceQuery) (Either EditorSlot MarloweEditorSlot) Void m Unit
 saveInitialState = do
   oldContract <- withMarloweEditor Editor.getValue
   modifying (_oldContract) (\x -> case x of
@@ -318,6 +327,9 @@ saveInitialState = do
                                                       Just y -> y)
                                     _ -> x)
 
+resetContract :: forall m eff.
+  MonadEff (ace :: ACE | eff) m
+  => HalogenM FrontendState Query (Coproduct AceQuery AceQuery) (Either EditorSlot MarloweEditorSlot) Void m Unit
 resetContract = do
   newContract <- withMarloweEditor Editor.getValue
   modifying (_marloweState) (const emptyMarloweState)
