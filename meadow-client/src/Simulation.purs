@@ -83,7 +83,6 @@ import Prelude
   , bind
   , const
   , discard
-  , not
   , pure
   , show
   , class Show
