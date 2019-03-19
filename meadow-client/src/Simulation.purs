@@ -3,7 +3,6 @@ module Simulation where
 import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.Ord ((>=))
 import Semantics
-import Data.Show as Show
 import Data.Map (Map)
 import Data.List (List)
 import Data.Set as Set
@@ -87,6 +86,7 @@ import Prelude
   , not
   , pure
   , show
+  , class Show
   , unit
   , void
   , ($)
@@ -326,6 +326,7 @@ inputComposerOracle (Tuple idOracle {blockNumber, value}) =
                                                    , blockNumber: x}) blockNumber
            ]
 
+marloweActionInput :: forall p a. Show a => (BigInteger -> Unit -> Query Unit) -> a -> HTML p Query
 marloweActionInput f current =
   input [ type_ InputNumber
         , placeholder "BigInteger"
