@@ -31,6 +31,7 @@ module Ledger.Types(
     scriptAddress,
     -- ** Scripts
     Script,
+    scriptSize,
     fromCompiledCode,
     compileScript,
     lifted,
@@ -250,6 +251,9 @@ instance Eq Script where
 
 instance Ord Script where
     a `compare` b = serialise a `compare` serialise b
+
+scriptSize :: Script -> Integer
+scriptSize (Script s) = PLC.programSize s
 
 -- TODO: possibly this belongs with CompiledCode
 fromCompiledCode :: CompiledCode a -> Script
@@ -636,10 +640,10 @@ instance Show ValidationData where
     show = const "ValidationData { <script> }"
 
 -- | Evaluate a validator script with the given inputs
-runScript :: ValidationData -> ValidatorScript -> RedeemerScript -> DataScript -> ([String], Bool)
-runScript (ValidationData valData) (ValidatorScript validator) (RedeemerScript redeemer) (DataScript dataScript) =
+runScript :: ValidationData -> ValidatorScript -> DataScript -> RedeemerScript -> ([String], Bool)
+runScript (ValidationData valData) (ValidatorScript validator) (DataScript dataScript) (RedeemerScript redeemer) =
     let
-        applied = ((validator `applyScript` redeemer) `applyScript` dataScript) `applyScript` valData
+        applied = ((validator `applyScript` dataScript) `applyScript` redeemer) `applyScript` valData
         -- TODO: do something with the error
     in evaluateScript applied
         -- TODO: Enable type checking of the program

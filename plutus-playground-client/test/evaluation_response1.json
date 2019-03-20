@@ -1,137 +1,278 @@
-[
-  [
+{
+  "emulatorLog": [
     {
-      "txInputs": [
-        {
-          "txInType": {
-            "tag": "ConsumePublicKeyAddress",
-            "contents": {
-              "getSignature": 2
-            }
-          },
-          "txInRef": {
-            "txOutRefIdx": 1,
-            "txOutRefId": {
-              "getTxId": "nxixGGwYuQ8Y4gAY8RjcGOQYVBjEARhUGOAYohhtGJgYmxMYcBhNGJcYwgQYPBisGOkYKRhGGIcYcBij/w=="
-            }
-          }
-        }
-      ],
-      "txFee": {
-        "getAda": 0
-      },
-      "txForge": {
-        "getValue": []
-      },
-      "txOutputs": [
-        {
-          "txOutValue": {
-            "getValue": [[0,26]]
-          },
-          "txOutAddress": {
-            "getAddress": "nxgcGMMYrRjqGEAY6xj9GJQYQxg6GMAEGHcYfRhoFQwYzhidGLQYxxhxGLwYfRjhGLIYlxinGLcYlRi7GLr/"
-          },
-          "txOutType": {
-            "tag": "PayToPubKey",
-            "contents": {
-              "getPubKey": 2
-            }
-          }
-        },
-        {
-          "txOutValue": {
-            "getValue": [[0,4]]
-          },
-          "txOutAddress": {
-            "getAddress": "nxicEhjPGNwEGMcYRRiEGNcYhxisGD0YIxh3GCEYMhjBGIUYJBi8GHoYshiNGOwYQhgZGLgY/BhbGEIYXxhw/w=="
-          },
-          "txOutType": {
-            "tag": "PayToPubKey",
-            "contents": {
-              "getPubKey": 1
-            }
-          }
-        }
-      ],
-      "txValidRange": { 
-        "ivTo" : null, 
-        "ivFrom" : null 
-      },
-      "txSignatures": [
-        {
-          "getSignature": 2
-        }
-      ]
+      "tag": "SlotAdd",
+      "contents": {
+        "getSlot": 2
+      }
+    },
+    {
+      "tag": "TxnValidate",
+      "contents": {
+        "getTxId": "nxh9GPUYYRjYGCAYjBg4GPgYbBh4GMgWGL4Y+BjxGIIYWBg5GMMYaBj/GEAYsRhCGNIYRRiHGMIYThh4GPcA/w=="
+      }
+    },
+    {
+      "tag": "TxnSubmit",
+      "contents": {
+        "getTxId": "nxh9GPUYYRjYGCAYjBg4GPgYbBh4GMgWGL4Y+BjxGIIYWBg5GMMYaBj/GEAYsRhCGNIYRRiHGMIYThh4GPcA/w=="
+      }
+    },
+    {
+      "tag": "SlotAdd",
+      "contents": {
+        "getSlot": 1
+      }
+    },
+    {
+      "tag": "TxnValidate",
+      "contents": {
+        "getTxId": "nxhZGNYYLRhkGOsYlxj2GNwYixhmGHEYrhh2GMoYQBhFGBsY0hj5GFgY9xgkGJEPGIkYehi9GMsY/hjvGDQYlP8="
+      }
     }
   ],
-  [],
-  [],
-  [],
-  [],
-  [],
-  [],
-  [],
-  [],
-  [],
-  [],
-  [
-    {
-      "txInputs": [],
-      "txFee": {
-        "getAda": 0
-      },
-      "txForge": {
-        "getValue": [[0,50]]
-      },
-      "txOutputs": [
+  "resultBlockchain": [
+    [
+      [
         {
-          "txOutValue": {
-            "getValue": [[0,10]]
-          },
-          "txOutAddress": {
-            "getAddress": "nxicEhjPGNwEGMcYRRiEGNcYhxisGD0YIxh3GCEYMhjBGIUYJBi8GHoYshiNGOwYQhgZGLgY/BhbGEIYXxhw/w=="
-          },
-          "txOutType": {
-            "tag": "PayToPubKey",
-            "contents": {
-              "getPubKey": 1
-            }
-          }
+          "getTxId": "nxh9GPUYYRjYGCAYjBg4GPgYbBh4GMgWGL4Y+BjxGIIYWBg5GMMYaBj/GEAYsRhCGNIYRRiHGMIYThh4GPcA/w=="
         },
         {
-          "txOutValue": {
-            "getValue": [[0,30]]
-          },
-          "txOutAddress": {
-            "getAddress": "nxgcGMMYrRjqGEAY6xj9GJQYQxg6GMAEGHcYfRhoFQwYzhidGLQYxxhxGLwYfRjhGLIYlxinGLcYlRi7GLr/"
-          },
-          "txOutType": {
-            "tag": "PayToPubKey",
-            "contents": {
-              "getPubKey": 2
+          "txInputs": [
+            {
+              "txInType": {
+                "tag": "ConsumePublicKeyAddress",
+                "contents": {
+                  "getSignature": 1
+                }
+              },
+              "txInRef": {
+                "txOutRefIdx": 0,
+                "txOutRefId": {
+                  "getTxId": "nxhZGNYYLRhkGOsYlxj2GNwYixhmGHEYrhh2GMoYQBhFGBsY0hj5GFgY9xgkGJEPGIkYehi9GMsY/hjvGDQYlP8="
+                }
+              }
             }
-          }
-        },
-        {
-          "txOutValue": {
-            "getValue": [[0,10]]
+          ],
+          "txFee": {
+            "getAda": 0
           },
-          "txOutAddress": {
-            "getAddress": "nxjJGEIYoBhsEhh8GCwYGAIYJhh3GOgYiAIKGPsXGEIIGNIYmRg1GE8YPhjPGO0YsRgkGKEY8xj6GEX/"
-          },
-          "txOutType": {
-            "tag": "PayToPubKey",
-            "contents": {
-              "getPubKey": 3
+          "txValidRange": {
+            "ivTo": {
+              "getSlot": 50
+            },
+            "ivFrom": {
+              "getSlot": 0
             }
-          }
+          },
+          "txForge": {
+            "getValue": []
+          },
+          "txOutputs": [
+            {
+              "txOutValue": {
+                "getValue": [
+                  [
+                    0,
+                    6
+                  ]
+                ]
+              },
+              "txOutAddress": {
+                "getAddress": "nxgcGMMYrRjqGEAY6xj9GJQYQxg6GMAEGHcYfRhoFQwYzhidGLQYxxhxGLwYfRjhGLIYlxinGLcYlRi7GLr/"
+              },
+              "txOutType": {
+                "tag": "PayToPubKey",
+                "contents": {
+                  "getPubKey": 2
+                }
+              }
+            },
+            {
+              "txOutValue": {
+                "getValue": [
+                  [
+                    0,
+                    4
+                  ]
+                ]
+              },
+              "txOutAddress": {
+                "getAddress": "nxicEhjPGNwEGMcYRRiEGNcYhxisGD0YIxh3GCEYMhjBGIUYJBi8GHoYshiNGOwYQhgZGLgY/BhbGEIYXxhw/w=="
+              },
+              "txOutType": {
+                "tag": "PayToPubKey",
+                "contents": {
+                  "getPubKey": 1
+                }
+              }
+            }
+          ]
         }
-      ],
-      "txValidRange": { 
-        "ivTo" : null, 
-        "ivFrom" : null 
+      ]
+    ],
+    [
+      [
+        {
+          "getTxId": "nxhZGNYYLRhkGOsYlxj2GNwYixhmGHEYrhh2GMoYQBhFGBsY0hj5GFgY9xgkGJEPGIkYehi9GMsY/hjvGDQYlP8="
+        },
+        {
+          "txInputs": [],
+          "txFee": {
+            "getAda": 0
+          },
+          "txValidRange": {
+            "ivTo": null,
+            "ivFrom": {
+              "getSlot": 0
+            }
+          },
+          "txForge": {
+            "getValue": [
+              [
+                0,
+                20
+              ]
+            ]
+          },
+          "txOutputs": [
+            {
+              "txOutValue": {
+                "getValue": [
+                  [
+                    0,
+                    10
+                  ]
+                ]
+              },
+              "txOutAddress": {
+                "getAddress": "nxicEhjPGNwEGMcYRRiEGNcYhxisGD0YIxh3GCEYMhjBGIUYJBi8GHoYshiNGOwYQhgZGLgY/BhbGEIYXxhw/w=="
+              },
+              "txOutType": {
+                "tag": "PayToPubKey",
+                "contents": {
+                  "getPubKey": 1
+                }
+              }
+            },
+            {
+              "txOutValue": {
+                "getValue": [
+                  [
+                    0,
+                    10
+                  ]
+                ]
+              },
+              "txOutAddress": {
+                "getAddress": "nxgcGMMYrRjqGEAY6xj9GJQYQxg6GMAEGHcYfRhoFQwYzhidGLQYxxhxGLwYfRjhGLIYlxinGLcYlRi7GLr/"
+              },
+              "txOutType": {
+                "tag": "PayToPubKey",
+                "contents": {
+                  "getPubKey": 2
+                }
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  ],
+  "resultGraph": {
+    "flowGraphNodes": [
+      "59d62d64",
+      "7df561d8",
+      "utxo 59d62d64 1",
+      "utxo 7df561d8 0",
+      "utxo 7df561d8 1"
+    ],
+    "flowGraphLinks": [
+      {
+        "flowLinkOwner": {
+          "tag": "PubKeyOwner",
+          "contents": {
+            "getPubKey": 2
+          }
+        },
+        "flowLinkValue": 10,
+        "flowLinkSourceLoc": {
+          "utxoLocBlock": 1,
+          "utxoLocBlockIdx": 1
+        },
+        "flowLinkSource": "59d62d64",
+        "flowLinkTargetLoc": null,
+        "flowLinkTarget": "utxo 59d62d64 1"
       },
-      "txSignatures": []
+      {
+        "flowLinkOwner": {
+          "tag": "PubKeyOwner",
+          "contents": {
+            "getPubKey": 2
+          }
+        },
+        "flowLinkValue": 6,
+        "flowLinkSourceLoc": {
+          "utxoLocBlock": 2,
+          "utxoLocBlockIdx": 1
+        },
+        "flowLinkSource": "7df561d8",
+        "flowLinkTargetLoc": null,
+        "flowLinkTarget": "utxo 7df561d8 0"
+      },
+      {
+        "flowLinkOwner": {
+          "tag": "PubKeyOwner",
+          "contents": {
+            "getPubKey": 1
+          }
+        },
+        "flowLinkValue": 4,
+        "flowLinkSourceLoc": {
+          "utxoLocBlock": 2,
+          "utxoLocBlockIdx": 1
+        },
+        "flowLinkSource": "7df561d8",
+        "flowLinkTargetLoc": null,
+        "flowLinkTarget": "utxo 7df561d8 1"
+      },
+      {
+        "flowLinkOwner": {
+          "tag": "PubKeyOwner",
+          "contents": {
+            "getPubKey": 1
+          }
+        },
+        "flowLinkValue": 10,
+        "flowLinkSourceLoc": {
+          "utxoLocBlock": 1,
+          "utxoLocBlockIdx": 1
+        },
+        "flowLinkSource": "59d62d64",
+        "flowLinkTargetLoc": {
+          "utxoLocBlock": 2,
+          "utxoLocBlockIdx": 1
+        },
+        "flowLinkTarget": "7df561d8"
+      }
+    ]
+  },
+  "fundsDistribution": [
+    {
+      "simulatorWalletBalance": {
+        "getAda": 4
+      },
+      "simulatorWalletWallet": {
+        "getWallet": 1
+      }
+    },
+    {
+      "simulatorWalletBalance": {
+        "getAda": 16
+      },
+      "simulatorWalletWallet": {
+        "getWallet": 2
+      }
     }
   ]
-]
+}

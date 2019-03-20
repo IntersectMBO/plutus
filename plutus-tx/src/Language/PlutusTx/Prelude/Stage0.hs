@@ -151,7 +151,7 @@ remainder = [|| Builtins.remainderInteger ||]
 --   5
 --
 min :: Q (TExp (Int -> Int -> Int))
-min = [|| \(a :: Int) (b :: Int) -> if a < b then a else b ||]
+min = [|| \(a :: Int) (b :: Int) -> if Builtins.lessThanInteger a b then a else b ||]
 
 -- | The larger of two 'Int's
 --
@@ -159,7 +159,7 @@ min = [|| \(a :: Int) (b :: Int) -> if a < b then a else b ||]
 --   10
 --
 max :: Q (TExp (Int -> Int -> Int))
-max = [|| \(a :: Int) (b :: Int) -> if a > b then a else b ||]
+max = [|| \(a :: Int) (b :: Int) -> if Builtins.greaterThanInteger a b then a else b ||]
 
 -- | Check if a 'Maybe' @a@ is @Just a@
 --

@@ -19,8 +19,7 @@ module Language.PlutusIR (
     Recursivity (..),
     Binding (..),
     Term (..),
-    Program (..),
-    embedIntoIR
+    Program (..)
     ) where
 
 import           PlutusPrelude
@@ -28,7 +27,7 @@ import           PlutusPrelude
 import           Language.PlutusCore        (Kind, Name, TyName, Type (..))
 import qualified Language.PlutusCore        as PLC
 import           Language.PlutusCore.CBOR   ()
-import           Language.PlutusCore.MkPlc  (TyVarDecl (..), VarDecl (..))
+import           Language.PlutusCore.MkPlc  (TermLike (..), TyVarDecl (..), VarDecl (..))
 import qualified Language.PlutusCore.Pretty as PLC
 
 import           Codec.Serialise            (Serialise)
@@ -118,18 +117,17 @@ data Term tyname name a =
 
 instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (Term tyname name a)
 
-embedIntoIR :: PLC.Term tyname name a -> Term tyname name a
-embedIntoIR = \case
-    PLC.Var a n -> Var a n
-    PLC.TyAbs a tn k t -> TyAbs a tn k (embedIntoIR t)
-    PLC.LamAbs a n ty t -> LamAbs a n ty (embedIntoIR t)
-    PLC.Apply a t1 t2 -> Apply a (embedIntoIR t1) (embedIntoIR t2)
-    PLC.Constant a c ->  Constant a c
-    PLC.Builtin a bi -> Builtin a bi
-    PLC.TyInst a t ty -> TyInst a (embedIntoIR t) ty
-    PLC.Error a ty -> Error a ty
-    PLC.Unwrap a t -> Unwrap a (embedIntoIR t)
-    PLC.IWrap a ty1 ty2 t -> IWrap a ty1 ty2 (embedIntoIR t)
+instance TermLike (Term tyname name) tyname name where
+    var      = Var
+    tyAbs    = TyAbs
+    lamAbs   = LamAbs
+    apply    = Apply
+    constant = Constant
+    builtin  = Builtin
+    tyInst   = TyInst
+    unwrap   = Unwrap
+    iWrap    = IWrap
+    error    = Error
 
 -- no version as PIR is not versioned
 data Program tyname name a = Program a (Term tyname name a) deriving Generic

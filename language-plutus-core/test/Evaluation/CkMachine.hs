@@ -27,7 +27,7 @@ import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
 
-evenAndOdd :: Tuple ()
+evenAndOdd :: Tuple (Term TyName Name) ()
 evenAndOdd = runQuote $ do
     let nat = _recursiveType natData
 
@@ -48,7 +48,7 @@ evenAndOdd = runQuote $ do
 even :: Term TyName Name ()
 even = runQuote $ tupleTermAt () 0 evenAndOdd
 
-evenAndOddList :: Tuple ()
+evenAndOddList :: Tuple (Term TyName Name) ()
 evenAndOddList = runQuote $ do
     let list = _recursiveType listData
         nat  = _recursiveType natData

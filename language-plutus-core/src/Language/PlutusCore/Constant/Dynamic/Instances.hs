@@ -29,15 +29,16 @@ import           Language.PlutusCore.Type
 import           Control.Monad.Except
 import           Data.Bitraversable
 import           Data.Char
+import           Data.Functor
 import           Data.Proxy
 import qualified Data.Text.Prettyprint.Doc                   as Doc
 import           System.IO.Unsafe                            (unsafePerformIO)
 
 instance KnownDynamicBuiltinType a => KnownDynamicBuiltinType (EvaluationResult a) where
-    toTypeEncoding _ = toTypeEncoding $ Proxy @a
+    toTypeEncoding _ = toTypeEncoding @a Proxy
 
     -- 'EvaluationFailure' on the Haskell side becomes 'Error' on the PLC side.
-    makeDynamicBuiltin EvaluationFailure     = pure . Error () . toTypeEncoding $ Proxy @a
+    makeDynamicBuiltin EvaluationFailure     = pure . Error () $ toTypeEncoding @a Proxy
     makeDynamicBuiltin (EvaluationSuccess x) = makeDynamicBuiltin x
 
     -- There are two 'EvaluationResult's here: an external one (which any 'KnownDynamicBuiltinType'
@@ -64,7 +65,7 @@ instance KnownDynamicBuiltinType [Char] where
 instance KnownDynamicBuiltinType Bool where
     toTypeEncoding _ = bool
 
-    makeDynamicBuiltin b = Just $ if b then true else false
+    makeDynamicBuiltin b = pure $ if b then true else false
 
     readDynamicBuiltin eval b = do
         let int1 = TyApp () (TyBuiltin () TyInteger) (TyInt () 4)
@@ -104,8 +105,8 @@ instance (KnownDynamicBuiltinType a, KnownDynamicBuiltinType b) =>
             KnownDynamicBuiltinType (a, b) where
     toTypeEncoding _ =
         mkIterTyApp () (prodN 2)
-            [ toTypeEncoding $ Proxy @a
-            , toTypeEncoding $ Proxy @b
+            [ toTypeEncoding @a Proxy
+            , toTypeEncoding @b Proxy
             ]
 
     makeDynamicBuiltin (x, y) = do
@@ -115,8 +116,8 @@ instance (KnownDynamicBuiltinType a, KnownDynamicBuiltinType b) =>
 
     readDynamicBuiltin eval dxy = do
         let go emitX emitY = runQuote $ do
-                let da = toTypeEncoding $ Proxy @a
-                    db = toTypeEncoding $ Proxy @b
+                let da = toTypeEncoding @a Proxy
+                    db = toTypeEncoding @b Proxy
                 dx <- freshName () "x"
                 dy <- freshName () "y"
                 pure
@@ -141,13 +142,13 @@ instance (KnownDynamicBuiltinType a, KnownDynamicBuiltinType b) =>
             KnownDynamicBuiltinType (Either a b) where
     toTypeEncoding _ =
         mkIterTyApp () Plc.sum
-            [ toTypeEncoding $ Proxy @a
-            , toTypeEncoding $ Proxy @b
+            [ toTypeEncoding @a Proxy
+            , toTypeEncoding @b Proxy
             ]
 
     makeDynamicBuiltin s = do
-        let da = toTypeEncoding $ Proxy @a
-            db = toTypeEncoding $ Proxy @b
+        let da = toTypeEncoding @a Proxy
+            db = toTypeEncoding @b Proxy
         ds <- bitraverse makeDynamicBuiltin makeDynamicBuiltin s
         pure $ metaEitherToSum da db ds
 
@@ -173,20 +174,47 @@ instance KnownDynamicBuiltinType a => KnownDynamicBuiltinType (PlcList a) where
 
     makeDynamicBuiltin (PlcList xs) = do
         dyns <- traverse makeDynamicBuiltin xs
-        let argTy = toTypeEncoding $ Proxy @a
+        let argTy = toTypeEncoding @a Proxy
         pure $ metaListToList argTy dyns
 
+    -- A natural implementation of this function would be to emit elements of a list one by one
+    -- until evaluation of a Plutus Core term finishes. However this approach doesn't scale to other
+    -- recursive types, because linear streaming is not suitable for handling tree-like structures.
+    -- Another option would be to collect a Haskell value inside a Plutus Core accumulator while
+    -- evaluating things on the Plutus Core side. However embedding the entire Haskell into
+    -- Plutus Core is a little bit weird and we would need runtime type equality checks
+    -- (the simplest way would probably be to use @Dynamic@) or some other trickery.
+    -- Here instead we do something very simple: we pattern match in Plutus Core on a list, return
+    -- the pieces we got from the pattern match and then recreate the list on the Haskell side.
+    -- And that's all.
+    -- How a single pattern match can handle a recursive data structure? All of the pieces that we
+    -- get from the pattern matching get converted to Haskell and one of those pieces is the tail
+    -- of the list. That is, we implicitly invoke 'readDynamicBuiltin' recursively until the list
+    -- is empty.
     readDynamicBuiltin eval list = do
-        let go emit = runQuote $ do
-                -- foldList {a} {unit} (\(r : unit) -> emit) unitval list
-                let a = toTypeEncoding $ Proxy @a
-                u <- freshName () "u"
-                pure $
-                    mkIterApp () (mkIterInst () foldList [a, unit])
-                        [LamAbs () u unit emit, unitval, list]
-            (xs, getRes) = unsafePerformIO $ withEmitEvaluateBy eval TypedBuiltinDyn go
-        res <- getRes
-        pure $ PlcList xs <$ lift res
+        let term = runQuote $ do
+                -- > unwrap list {sum unit (prodN 2 a (list a))} unitval
+                -- >     \(x : a) (xs : list a) -> prodNConstructor 2 {a} {list a} x xs
+                let listA = toTypeEncoding @(PlcList a) Proxy
+                    a     = toTypeEncoding @a           Proxy
+                    resL = unit
+                    resR = mkIterTyApp () (prodN 2) [a, listA]
+                    -- TODO: use 'maybe' instead of 'sum'.
+                    res  = mkIterTyApp () Plc.sum [resL, resR]
+                x  <- freshName () "x"
+                xs <- freshName () "xs"
+                pure $ mkIterApp () (TyInst () (Unwrap () list) res)
+                    [ Apply () (mkIterInst () Plc.left [resL, resR]) unitval
+                    ,   LamAbs () x  a
+                      . LamAbs () xs listA
+                      . Apply () (mkIterInst () Plc.right [resL, resR])
+                      $ mkIterApp () (mkIterInst () (prodNConstructor 2) [a, listA])
+                          [ Var () x, Var () xs ]
+                    ]
+        readDynamicBuiltin eval term <&> \conv -> conv <&> \res ->
+            PlcList $ case res of
+                Left  ()              -> []
+                Right (x, PlcList xs) -> x : xs
 
 instance PrettyDynamic a => PrettyDynamic (PlcList a) where
     prettyDynamic = Doc.list . map prettyDynamic . unPlcList

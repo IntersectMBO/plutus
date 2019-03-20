@@ -151,39 +151,46 @@ isNotSuccess _ = true
 
 editorPane ::
   forall m aff.
-  MonadAff (AceEffects (localStorage :: LOCALSTORAGE | aff)) m =>
-  FrontendState ->
-  ParentHTML Query ChildQuery ChildSlot m
-editorPane state = div_ [ demoScriptsPane
-                        , div [ onDragOver $ Just <<< action <<< HandleDragEvent
-                              , onDrop $ Just <<< action <<< HandleDropEvent
-                              ] [ slot' cpEditor EditorSlot (aceComponent initEditor (Just Live)) unit (input HandleEditorMessage)
-                                ]
-                        , br_
-                        , div_ [ div [ class_ pullRight
-                                     ] [ gistControls (view _authStatus state) (view _createGistResult state)
-                                       ]
-                               , div_ [ button [ classes [ btn
-                                                         , btnClass
-                                                         ]
-                                               , onClick $ input_ CompileProgram
-                                               , disabled (isLoading state.runResult)
-                                               ] [ btnText
-                                                 ]
-                                      , button [ classes [ btn
-                                                         , btnPrimary 
-                                                         ]
-                                               , onClick $ input_ SendResult
-                                               , disabled ((isLoading state.runResult) || (isNotSuccess state.runResult))
-                                               ] [ text "Send to Simulator" 
-                                                 ]
-
-                                      ]
+  MonadAff (AceEffects (localStorage :: LOCALSTORAGE | aff)) m
+  => State -> ParentHTML Query ChildQuery ChildSlot m
+editorPane state =
+  div_
+    [ demoScriptsPane
+    , div
+        [ onDragOver $ Just <<< action <<< HandleDragEvent
+        , onDrop $ Just <<< action <<< HandleDropEvent
+        ]
+        [ slot' cpEditor EditorSlot
+            (aceComponent initEditor (Just Live))
+            unit
+            (input HandleEditorMessage)
+        ]
+    , br_
+    , div_
+        [ div [ class_ pullRight ]
+            [ gistControls
+                (view _authStatus state)
+                (view _createGistResult state)
+            ]
+        , div_
+            [ button
+                [ classes [ btn, btnClass ]
+                , onClick $ input_ CompileProgram
+                , disabled (isLoading state.runResult)
+                ]
+                [ btnText ]
+            ]
+            , button [ classes [ btn
+                               , btnPrimary 
                                ]
-                        , br_
-                        , runResult
-                        , errorList
-                        ]
+                     , onClick $ input_ SendResult
+                     , disabled ((isLoading state.runResult) || (isNotSuccess state.runResult))
+                     ] [ text "Send to Simulator" ]
+        ]
+    , br_
+    , runResult
+    , errorList
+    ]
   where
   btnClass = case state.runResult of
     Success (Right _) -> btnSuccess
@@ -260,16 +267,17 @@ compilationErrorPane ::
 compilationErrorPane (RawError error) = div_ [ text error
                                              ]
 
-compilationErrorPane (CompilationError error) = div [ class_ $ ClassName "compilation-error"
-                                                    , onClick $ input_ $ ScrollTo { row: error.row
-                                                                                  , column: error.column
-                                                                                  }
-                                                    ] [ small [ class_ pullRight
-                                                              ] [ text "jump"
-                                                                ]
-                                                      , h3_ [ text $ "Line " <> show error.row <> ", Column " <> show error.column <> ":"
-                                                            ]
-                                                      , code_ [ pre_ [ text $ String.joinWith "\n" error.text
-                                                                     ]
-                                                              ]
-                                                      ]
+compilationErrorPane :: forall p. CompilationError -> HTML p Query
+compilationErrorPane (RawError error) =
+  div_ [ text error ]
+compilationErrorPane (CompilationError error) =
+  div [ class_ $ ClassName "compilation-error"
+      , onClick $ input_ $ ScrollTo {row: error.row, column: error.column}
+      ]
+    [ small [ class_ pullRight ]
+        [ text "jump" ]
+    , h3_
+        [ text $ "Line " <> show error.row <> ", Column " <> show error.column <> ":" ]
+    , code_
+        [ pre_ [ text $ String.joinWith "\n" error.text ] ]
+    ]

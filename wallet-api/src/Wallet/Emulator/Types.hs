@@ -32,6 +32,8 @@ module Wallet.Emulator.Types(
     Trace,
     runTraceChain,
     runTraceTxPool,
+    evalTraceTxPool,
+    execTraceTxPool,
     walletAction,
     walletRecvNotifications,
     walletNotifyBlock,
@@ -61,6 +63,7 @@ module Wallet.Emulator.Types(
     processEmulated,
     runWalletActionAndProcessPending,
     fundsDistribution,
+    emLog,
     selectCoin
     ) where
 
@@ -303,8 +306,13 @@ data EmulatorState = EmulatorState {
 
 makeLenses ''EmulatorState
 
+-- | The total value of each wallet's "own funds"
 fundsDistribution :: EmulatorState -> Map Wallet Value
 fundsDistribution = Map.map (Map.foldl' Value.plus Value.zero . fmap txOutValue . view ownFunds) . view walletStates
+
+-- | The emulator log
+emLog :: EmulatorState -> [EmulatorEvent]
+emLog = view emulatorLog
 
 -- | The blockchain as a list of blocks, starting with the oldest (genesis)
 --   block
@@ -510,6 +518,18 @@ runTraceChain ch t = runState (runExceptT $ processEmulated t) emState where
 runTraceTxPool :: TxPool -> Trace MockWallet a -> (Either AssertionError a, EmulatorState)
 runTraceTxPool tp t = runState (runExceptT $ processEmulated t) emState where
     emState = emulatorState' tp
+
+-- | Evaluate an emulator trace on an empty blockchain with a pool of pending 
+--   transactions and return the final value, discarding the final 
+--   `EmulatorState`.
+evalTraceTxPool :: TxPool -> Trace MockWallet a -> Either AssertionError a
+evalTraceTxPool pl = fst . runTraceTxPool pl
+
+-- | Evaluate an emulator trace on an empty blockchain with a pool of pending 
+--   transactions and return the final `EmulatorState`, discarding the final 
+--   value.
+execTraceTxPool :: TxPool -> Trace MockWallet a -> EmulatorState
+execTraceTxPool pl = snd . runTraceTxPool pl
 
 runWalletActionAndProcessPending :: [Wallet] -> Wallet -> m () -> Trace m [Tx]
 runWalletActionAndProcessPending allWallets wallet action = do

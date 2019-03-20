@@ -29,7 +29,7 @@ import qualified Data.Text.IO                              as T ()
 import           Gist                                      (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
 import           Language.Haskell.Interpreter              (CompilationError)
 import           Language.PureScript.Bridge                (BridgePart, Language (Haskell), PSType, SumType,
-                                                            TypeInfo (TypeInfo), buildBridge, equal, mkSumType,
+                                                            TypeInfo (TypeInfo), buildBridge, equal, mkSumType, order,
                                                             psTypeParameters, typeModule, typeName, writePSTypes, (^==))
 import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psString)
 import           Language.PureScript.Bridge.TypeParameters (A)
@@ -157,8 +157,9 @@ myTypes =
     , (equal <*> mkSumType) (Proxy @Wallet)
     , (equal <*> mkSumType) (Proxy @SimulatorWallet)
     , mkSumType (Proxy @DataScript)
-    , mkSumType (Proxy @ValidatorScript)
-    , mkSumType (Proxy @RedeemerScript)
+    , (equal <*> (order <*> mkSumType)) (Proxy @ValidatorScript)
+    , (equal <*> (order <*> mkSumType)) (Proxy @RedeemerScript)
+    , (equal <*> (order <*> mkSumType)) (Proxy @Signature)
     , mkSumType (Proxy @CompilationError)
     , mkSumType (Proxy @Expression)
     , mkSumType (Proxy @Evaluation)
@@ -173,10 +174,9 @@ myTypes =
     , mkSumType (Proxy @TxOutType)
     , mkSumType (Proxy @(TxOutOf A))
     , mkSumType (Proxy @(TxIdOf A))
-    , mkSumType (Proxy @TxInType)
-    , mkSumType (Proxy @Signature)
+    , (equal <*> (order <*> mkSumType)) (Proxy @TxInType)
     , mkSumType (Proxy @Value)
-    , mkSumType (Proxy @PubKey)
+    , (equal <*> (order <*> mkSumType)) (Proxy @PubKey)
     , mkSumType (Proxy @(AddressOf A))
     , mkSumType (Proxy @FlowLink)
     , mkSumType (Proxy @TxRef)
@@ -187,7 +187,7 @@ myTypes =
     , (equal <*> mkSumType) (Proxy @Ada)
     , mkSumType (Proxy @AuthStatus)
     , mkSumType (Proxy @AuthRole)
-    , mkSumType (Proxy @GistId)
+    , (equal <*> (order <*> mkSumType)) (Proxy @GistId)
     , mkSumType (Proxy @Gist)
     , mkSumType (Proxy @GistFile)
     , mkSumType (Proxy @NewGist)
@@ -224,6 +224,8 @@ generate outputDir = do
         mySettings
         outputDir
         myBridgeProxy
-        (Proxy @(API.API :<|> Auth.FrontendAPI))
+        (Proxy
+             @(API.API
+               :<|> Auth.FrontendAPI))
     writePSTypes outputDir (buildBridge myBridge) myTypes
     writeUsecases outputDir

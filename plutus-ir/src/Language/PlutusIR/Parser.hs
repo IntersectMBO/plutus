@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes        #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Language.PlutusIR.Parser
@@ -8,6 +9,8 @@ module Language.PlutusIR.Parser
     , term
     , typ
     , program
+    , plcTerm
+    , plcProgram
     , Parser
     , ParseError (..)
     , Error
@@ -22,6 +25,7 @@ import           Control.Monad.State          hiding (fail)
 import qualified Language.PlutusCore          as PLC
 import qualified Language.PlutusCore.Constant as PLC
 import           Language.PlutusIR            as PIR
+import qualified Language.PlutusIR.MkPir      as PIR
 import           PlutusPrelude                (prettyText)
 import           Text.Megaparsec              hiding (ParseError, State, parse)
 import qualified Text.Megaparsec              as Parsec
@@ -285,49 +289,51 @@ binding =  inParens $
     <|> (reservedWord "typebind" >> TypeBind <$> getPosition <*> tyVarDecl <*> typ)
     <|> (reservedWord "datatypebind" >> DatatypeBind <$> getPosition <*> datatype)
 
-absTerm :: Parser (Term TyName Name SourcePos)
-absTerm = TyAbs <$> reservedWord "abs" <*> tyVar <*> kind <*> term
+-- A small type wrapper for parsers that are parametric in the type of term they parse
+type Parametric = forall term. PIR.TermLike term TyName Name => Parser (term SourcePos) -> Parser (term SourcePos)
 
-lamTerm :: Parser (Term TyName Name SourcePos)
-lamTerm = LamAbs <$> reservedWord "lam" <*> name <*> typ <*> term
+absTerm :: Parametric
+absTerm tm = PIR.tyAbs <$> reservedWord "abs" <*> tyVar <*> kind <*> tm
 
-conTerm :: Parser (Term TyName Name SourcePos)
-conTerm = Constant <$> reservedWord "con" <*> constant
+lamTerm :: Parametric
+lamTerm tm = PIR.lamAbs <$> reservedWord "lam" <*> name <*> typ <*> tm
 
-iwrapTerm :: Parser (Term TyName Name SourcePos)
-iwrapTerm = IWrap <$> reservedWord "iwrap" <*> typ <*> typ <*> term
+conTerm :: Parametric
+conTerm _tm = PIR.constant <$> reservedWord "con" <*> constant
 
-builtinTerm :: Parser (Term TyName Name SourcePos)
-builtinTerm = Builtin <$> reservedWord "builtin" <*> builtinVar
+iwrapTerm :: Parametric
+iwrapTerm tm = PIR.iWrap <$> reservedWord "iwrap" <*> typ <*> typ <*> tm
 
-unwrapTerm :: Parser (Term TyName Name SourcePos)
-unwrapTerm = Unwrap <$> reservedWord "unwrap" <*> term
+builtinTerm :: Parametric
+builtinTerm _term = PIR.builtin <$> reservedWord "builtin" <*> builtinVar
 
-errorTerm :: Parser (Term TyName Name SourcePos)
-errorTerm = Error <$> reservedWord "error" <*> typ
+unwrapTerm :: Parametric
+unwrapTerm tm = PIR.unwrap <$> reservedWord "unwrap" <*> tm
+
+errorTerm :: Parametric
+errorTerm _tm = PIR.error <$> reservedWord "error" <*> typ
 
 letTerm :: Parser (Term TyName Name SourcePos)
 letTerm = Let <$> reservedWord "let" <*> recursivity <*> some (try binding) <*> term
 
-appTerm :: Parser (Term TyName Name SourcePos)
-appTerm = do
-    pos  <- getPosition
-    fn   <- term
-    args <- some term
-    pure $ foldl' (Apply pos) fn args
+appTerm :: Parametric
+appTerm tm = PIR.mkIterApp <$> getPosition <*> tm <*> some tm
 
-tyInstTerm :: Parser (Term TyName Name SourcePos)
-tyInstTerm = do
-    pos  <- getPosition
-    fn   <- term
-    args <- some typ
-    pure $ foldl' (TyInst pos) fn args
+tyInstTerm :: Parametric
+tyInstTerm tm = PIR.mkIterInst <$> getPosition <*> tm <*> some typ
+
+term' :: Parametric
+term' other = (var >>= (\n -> return $ PIR.var (nameAttribute n) n))
+    <|> (inParens $ absTerm self <|> lamTerm self <|> conTerm self <|> iwrapTerm self <|> builtinTerm self <|> unwrapTerm self <|> errorTerm self <|> other)
+    <|> inBraces (tyInstTerm self)
+    <|> inBrackets (appTerm self)
+    where self = term' other
 
 term :: Parser (Term TyName Name SourcePos)
-term = (var >>= (\n -> return $ Var (nameAttribute n) n))
-    <|> (inParens $ absTerm <|> lamTerm <|> conTerm <|> iwrapTerm <|> builtinTerm <|> unwrapTerm <|> errorTerm <|> letTerm)
-    <|> inBraces tyInstTerm
-    <|> inBrackets appTerm
+term = term' letTerm
+
+plcTerm :: Parser (PLC.Term TyName Name SourcePos)
+plcTerm = term' empty
 
 -- Note that PIR programs do not actually carry a version number
 -- we (optionally) parse it all the same so we can parse all PLC code
@@ -337,5 +343,11 @@ program = whitespace >> do
         p <- reservedWord "program"
         option () $ void version
         Program p <$> term
+    notFollowedBy anyChar
+    return prog
+
+plcProgram :: Parser (PLC.Program TyName Name SourcePos)
+plcProgram = whitespace >> do
+    prog <- inParens $ PLC.Program <$> reservedWord "program" <*> version <*> plcTerm
     notFollowedBy anyChar
     return prog

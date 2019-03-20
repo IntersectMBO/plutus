@@ -8,6 +8,7 @@ module Language.PlutusCore.StdLib.Data.Unit
     , sequ
     ) where
 
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
@@ -26,23 +27,23 @@ unit = runQuote $ do
 -- | '()' as a PLC term.
 --
 -- > /\(A :: *) -> \(x : A) -> x
-unitval :: Value TyName Name ()
+unitval :: TermLike term TyName Name => term ()
 unitval = runQuote $ do
     a <- freshTyName () "a"
     x <- freshName () "x"
     return
-        . TyAbs () a (Type ())
-        . LamAbs () x (TyVar () a)
-        $ Var () x
+        . tyAbs () a (Type ())
+        . lamAbs () x (TyVar () a)
+        $ var () x
 
 -- | @seq @() @()@ as a PLC term.
 --
 -- > \(x y : unit) -> unitval
-sequ :: Value TyName Name ()
+sequ :: TermLike term TyName Name => term ()
 sequ = runQuote $ do
     x <- freshName () "x"
     y <- freshName () "y"
     return
-        . LamAbs () x unit
-        . LamAbs () y unit
+        . lamAbs () x unit
+        . lamAbs () y unit
         $ unitval

@@ -14,6 +14,7 @@ module Language.PlutusTx.Plugin (
     getSerializedPlc,
     getSerializedPir,
     getPlc,
+    sizePlc,
     getPir,
     plugin,
     plc) where
@@ -39,6 +40,7 @@ import           Language.PlutusCore.Quote
 import qualified Language.PlutusIR                      as PIR
 import qualified Language.PlutusIR.Compiler             as PIR
 import qualified Language.PlutusIR.Compiler.Definitions as PIR
+import qualified Language.PlutusIR.MkPir                as PIR
 import qualified Language.PlutusIR.Optimizer.DeadCode   as PIR
 
 import           Language.Haskell.TH.Syntax             as TH
@@ -52,6 +54,7 @@ import           Control.Monad.Reader
 import qualified Data.ByteString                        as BS
 import qualified Data.ByteString.Lazy                   as BSL
 import qualified Data.ByteString.Unsafe                 as BSUnsafe
+import           Data.Int                               (Int64)
 import qualified Data.Map                               as Map
 import qualified Data.Text.Prettyprint.Doc              as PP
 
@@ -69,13 +72,17 @@ data CompiledCode a = CompiledCode {
 -- Note that we do *not* have a TypeablePlc instance, since we don't know what the type is. We could in principle store it after the plugin
 -- typechecks the code, but we don't currently.
 instance Lift.Lift (CompiledCode a) where
-    lift (getPlc -> (PLC.Program () _ body)) = PIR.embedIntoIR <$> PLC.rename body
+    lift (getPlc -> (PLC.Program () _ body)) = PIR.embed <$> PLC.rename body
 
 getSerializedPlc :: CompiledCode a -> BSL.ByteString
 getSerializedPlc = BSL.fromStrict . serializedPlc
 
 getSerializedPir :: CompiledCode a -> BSL.ByteString
 getSerializedPir = BSL.fromStrict . serializedPir
+
+-- | The size of a `CompiledCode a` when embedded into a transaction, in bytes.
+sizePlc :: CompiledCode a -> Int64
+sizePlc = BSL.length . getSerializedPlc
 
 {- Note [Deserializing the AST]
 The types suggest that we can fail to deserialize the AST that we embedded in the program.

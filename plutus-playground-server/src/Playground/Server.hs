@@ -18,6 +18,7 @@ import qualified Data.ByteString.Char8        as BS
 import qualified Data.ByteString.Lazy.Char8   as BSL
 import qualified Data.Text                    as Text
 import           Language.Haskell.Interpreter (CompilationError)
+import           Ledger.Types                 (hashTx)
 import           Network.HTTP.Types           (hContentType)
 import           Playground.API               (API, CompilationResult, Evaluation, EvaluationResult (EvaluationResult),
                                                PlaygroundError (PlaygroundTimeout), SourceCode (SourceCode),
@@ -63,7 +64,7 @@ runFunction evaluation = do
             let flowgraph = V.graph $ V.txnFlows pubKeys blockchain
             pure $
                 EvaluationResult
-                    blockchain
+                    (fmap (\tx -> (hashTx tx, tx)) <$> blockchain)
                     flowgraph
                     emulatorLog
                     fundsDistribution

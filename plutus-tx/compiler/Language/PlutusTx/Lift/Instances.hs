@@ -48,6 +48,7 @@ makeLift ''Bool
 makeLift ''Maybe
 makeLift ''Either
 makeLift ''[]
+makeLift ''()
 -- include a few tuple instances for convenience
 makeLift ''(,)
 makeLift ''(,,)

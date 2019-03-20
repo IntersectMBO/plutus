@@ -181,7 +181,7 @@ checkMatch v = \case
             let v' = ValidationData
                     $ lifted
                     $ v { pendingTxIn = pTxIn }
-                (logOut, success) = Ledger.runScript v' vl r d
+                (logOut, success) = Ledger.runScript v' vl d r
             if success
             then pure ()
             else throwError $ ScriptFailure logOut
