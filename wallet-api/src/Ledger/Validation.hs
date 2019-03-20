@@ -58,6 +58,7 @@ import qualified Data.ByteString.Base64       as Base64
 import qualified Data.ByteString.Lazy         as BSL
 import           Data.Proxy                   (Proxy (Proxy))
 import           Data.Swagger.Internal.Schema (ToSchema (declareNamedSchema), paramSchemaToSchema, plain)
+import           Data.Text                    (Text)
 import qualified Data.Text.Encoding           as TE
 import           GHC.Generics                 (Generic)
 import           Language.Haskell.TH          (Q, TExp)
@@ -180,11 +181,17 @@ newtype ValidatorHash =
     deriving stock (Eq, Generic)
     deriving newtype (Serialise)
 
+validatorHashToText :: ValidatorHash -> Text
+validatorHashToText = TE.decodeUtf8 . Base64.encode . BSL.toStrict . serialise
+
+instance Show ValidatorHash where
+    show = show . validatorHashToText
+
 instance ToSchema ValidatorHash where
     declareNamedSchema _ = plain . paramSchemaToSchema $ (Proxy :: Proxy String)
 
 instance ToJSON ValidatorHash where
-    toJSON = JSON.String . TE.decodeUtf8 . Base64.encode . BSL.toStrict . serialise
+    toJSON = JSON.String . validatorHashToText
 
 instance FromJSON ValidatorHash where
     parseJSON = withText "ValidatorScript" $ \s -> do

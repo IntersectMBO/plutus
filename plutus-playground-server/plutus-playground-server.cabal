@@ -91,6 +91,7 @@ executable plutus-playground-server
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wmissing-import-lists
     build-depends:
+        adjunctions -any,
         aeson -any,
         base >=4.7 && <5,
         bytestring -any,

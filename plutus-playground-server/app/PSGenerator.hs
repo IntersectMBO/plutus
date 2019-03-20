@@ -19,6 +19,7 @@ import           Auth                                      (AuthRole, AuthStatus
 import qualified Auth
 import           Control.Applicative                       (empty, (<|>))
 import           Control.Lens                              (set, (&))
+import           Control.Monad.Representable.Reader        (MonadReader)
 import qualified Data.ByteString                           as BS
 import           Data.Monoid                               ()
 import           Data.Proxy                                (Proxy (Proxy))
@@ -31,6 +32,7 @@ import           Language.Haskell.Interpreter              (CompilationError)
 import           Language.PureScript.Bridge                (BridgePart, Language (Haskell), PSType, SumType,
                                                             TypeInfo (TypeInfo), buildBridge, equal, mkSumType, order,
                                                             psTypeParameters, typeModule, typeName, writePSTypes, (^==))
+import           Language.PureScript.Bridge.Builder        (BridgeData)
 import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psString)
 import           Language.PureScript.Bridge.TypeParameters (A)
 import           Ledger.Ada                                (Ada)
@@ -41,8 +43,8 @@ import           Ledger.Types                              (AddressOf, DataScrip
                                                             TxOutType, ValidatorScript)
 import           Ledger.Value.TH                           (CurrencySymbol, Value)
 import           Playground.API                            (CompilationResult, Evaluation, EvaluationResult, Expression,
-                                                            Fn, FunctionSchema, SimpleArgumentSchema, SimulatorWallet,
-                                                            SourceCode, Warning)
+                                                            Fn, FunctionSchema, KnownCurrency, SimpleArgumentSchema,
+                                                            SimulatorWallet, SourceCode, TokenId, Warning)
 import qualified Playground.API                            as API
 import           Playground.Usecases                       (crowdfunding, game, messages, vesting)
 import           Servant                                   ((:<|>))
@@ -53,6 +55,12 @@ import           System.FilePath                           ((</>))
 import           Wallet.API                                (WalletAPIError)
 import           Wallet.Emulator.Types                     (EmulatorEvent, Wallet)
 import           Wallet.Graph                              (FlowGraph, FlowLink, TxRef, UtxOwner, UtxoLocation)
+
+psNonEmpty :: MonadReader BridgeData m => m PSType
+psNonEmpty = TypeInfo "purescript-lists" "Data.List.NonEmpty" "NonEmptyList" <$> psTypeParameters
+
+psJson :: PSType
+psJson = TypeInfo "" "Data.RawJson" "RawJson" []
 
 integerBridge :: BridgePart
 integerBridge = do
@@ -70,9 +78,6 @@ aesonBridge = do
     typeName ^== "Value"
     typeModule ^== "Data.Aeson.Types.Internal"
     pure psJson
-
-psJson :: PSType
-psJson = TypeInfo "" "Data.RawJson" "RawJson" []
 
 setBridge :: BridgePart
 setBridge = do
@@ -111,6 +116,12 @@ validatorBridge = do
     typeModule ^== "Ledger.Types"
     pure psString
 
+validatorHashBridge :: BridgePart
+validatorHashBridge = do
+    typeName ^== "ValidatorHash"
+    typeModule ^== "Ledger.Validation"
+    pure psString
+
 headersBridge :: BridgePart
 headersBridge = do
     typeModule ^== "Servant.API.ResponseHeaders"
@@ -126,6 +137,12 @@ headerBridge = do
     typeName ^== "Header'"
     empty
 
+nonEmptyBridge :: BridgePart
+nonEmptyBridge = do
+    typeName ^== "NonEmpty"
+    typeModule ^== "GHC.Base"
+    psNonEmpty
+
 myBridge :: BridgePart
 myBridge =
     defaultBridge <|> integerBridge <|> scientificBridge <|> aesonBridge <|>
@@ -136,7 +153,9 @@ myBridge =
     validatorBridge <|>
     scriptBridge <|>
     headersBridge <|>
-    headerBridge
+    headerBridge <|>
+    nonEmptyBridge <|>
+    validatorHashBridge
 
 data MyBridge
 
@@ -194,6 +213,8 @@ myTypes =
     , mkSumType (Proxy @NewGistFile)
     , mkSumType (Proxy @Owner)
     , mkSumType (Proxy @CurrencySymbol)
+    , mkSumType (Proxy @TokenId)
+    , mkSumType (Proxy @KnownCurrency)
     ]
 
 mySettings :: Settings

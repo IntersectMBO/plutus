@@ -72,10 +72,19 @@ ensureMinimumImports script =
                         in
                           throwError $ CompilationErrors errors
 
+ensureKnownCurrenciesExists :: Text -> Text
+ensureKnownCurrenciesExists script =
+    let scriptString = Text.unpack script
+        regex = Regex.mkRegex "^\\$\\(mkKnownCurrencies \\[.*])"
+        mMatches = Regex.matchRegexAll regex scriptString
+     in case mMatches of
+            Nothing -> script <> "\n$(mkKnownCurrencies [])"
+            Just _  -> script
+
 mkCompileScript :: Text -> Text
 mkCompileScript script =
-    (ensureMkFunctionExists . replaceModuleName) script <> "\n\nmain :: IO ()" <>
-    "\nmain = printSchemas schemas"
+    (ensureKnownCurrenciesExists . ensureMkFunctionExists . replaceModuleName) script <> "\n\nmain :: IO ()" <>
+    "\nmain = printSchemas (schemas, registeredKnownCurrencies)"
 
 avoidUnsafe :: (MonadError PlaygroundError m) => SourceCode -> m ()
 avoidUnsafe s =
@@ -109,14 +118,14 @@ compile source = do
             Left err ->
                 throwError . OtherError $
                 "unable to decode compilation result" <> err
-            Right [schema] ->
-                pure . CompilationResult [toSimpleArgumentSchema <$> schema] $
+            Right ([schema], currencies) ->
+                pure . CompilationResult [toSimpleArgumentSchema <$> schema] currencies $
                 [ Warning
                       "It looks like you have not made any functions available, use `$(mkFunctions ['functionA, 'functionB])` to be able to use `functionA` and `functionB`"
                 ]
-            Right schemas ->
+            Right (schemas, currencies) ->
                 pure $
-                CompilationResult (fmap toSimpleArgumentSchema <$> schemas) []
+                CompilationResult (fmap toSimpleArgumentSchema <$> schemas) currencies []
 
 runFunction ::
        (MonadMask m, MonadIO m, MonadError PlaygroundError m)
