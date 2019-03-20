@@ -1,6 +1,6 @@
 module MainFrame (mainFrame) where
 
-import API (SourceCode(SourceCode))
+import API (SourceCode(SourceCode), RunResult(..))
 import Ace.EditSession as Session
 import Ace.Editor as Editor
 import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged), AceQuery(GetEditor))
@@ -59,7 +59,7 @@ import Simulation (simulationPane)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Parsing.Simple (parse)
-import Types (ChildQuery, ChildSlot, EditorSlot(EditorSlot), FrontendState, InputData, MarloweEditorSlot(MarloweEditorSlot), MarloweState, OracleEntry, Query(ChangeView, ResetSimulator, SetOracleBn, SetOracleVal, SetChoice, RemoveAnyInput, AddAnyInput, NextBlock, ApplyTransaction, SetSignature, ScrollTo, CompileProgram, LoadMarloweScript, LoadScript, PublishGist, CheckAuthStatus, MarloweHandleDropEvent, MarloweHandleDragEvent, MarloweHandleEditorMessage, HandleDropEvent, HandleDragEvent, HandleEditorMessage), TransactionData, TransactionValidity(..), View(Simulation, Editor), _authStatus, _blockNum, _choiceData, _contract, _createGistResult, _input, _inputs, _marloweState, _moneyInContract, _oldContract, _oracleData, _outcomes, _runResult, _signatures, _state, _transaction, _validity, _view, cpEditor, cpMarloweEditor)
+import Types (ChildQuery, ChildSlot, EditorSlot(EditorSlot), FrontendState, InputData, MarloweEditorSlot(MarloweEditorSlot), MarloweState, OracleEntry, Query(ChangeView, ResetSimulator, SetOracleBn, SetOracleVal, SetChoice, RemoveAnyInput, AddAnyInput, NextBlock, ApplyTransaction, SetSignature, ScrollTo, CompileProgram, LoadMarloweScript, LoadScript, PublishGist, SendResult, CheckAuthStatus, MarloweHandleDropEvent, MarloweHandleDragEvent, MarloweHandleEditorMessage, HandleDropEvent, HandleDragEvent, HandleEditorMessage), TransactionData, TransactionValidity(..), View(Simulation, Editor), _authStatus, _blockNum, _choiceData, _contract, _createGistResult, _input, _inputs, _marloweState, _moneyInContract, _oldContract, _oracleData, _outcomes, _runResult, _signatures, _state, _transaction, _validity, _view, cpEditor, cpMarloweEditor)
 
 emptyInputData :: InputData
 emptyInputData = { inputs: Map.empty
@@ -154,6 +154,8 @@ toEvent (LoadScript script a) = Just $ (defaultEvent "LoadScript") { label = Jus
 toEvent (LoadMarloweScript script a) = Just $ (defaultEvent "LoadMarloweScript") { label = Just script }
 
 toEvent (CompileProgram a) = Just $ defaultEvent "CompileProgram"
+
+toEvent (SendResult a) = Nothing
 
 toEvent (ScrollTo _ _) = Nothing
 
@@ -406,7 +408,6 @@ evalF (LoadScript key next) = do
     Nothing -> pure next
     Just contents -> do
       void $ withEditor $ Editor.setValue contents (Just 1)
-      assign _runResult NotAsked
       pure next
 
 evalF (LoadMarloweScript key next) = do
@@ -432,6 +433,18 @@ evalF (CompileProgram next) = do
         Success (Left errors) -> errors
         _ -> []
       pure next
+
+evalF (SendResult next) = do
+  mContract <- use (_runResult)
+  let contract = case mContract of
+                   Success (Right (RunResult x)) -> x
+                   _ -> ""
+  void $ withMarloweEditor $ Editor.setValue contract (Just 1)
+  updateContractInState contract
+  resetContract
+  assign _view (Simulation)
+  pure next
+
 
 evalF (ScrollTo { row, column } next) = do
   void $ withEditor $ Editor.gotoLine row (Just column) (Just true)

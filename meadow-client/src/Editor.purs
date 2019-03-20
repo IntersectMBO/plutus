@@ -94,6 +94,9 @@ import Halogen.HTML.Properties
   , classes
   , disabled
   )
+import Data.HeytingAlgebra
+  ( (||)
+  )
 import Icons
   ( Icon(..)
   , icon
@@ -143,6 +146,9 @@ import Data.String as String
 import LocalStorage as LocalStorage
 import StaticData as StaticData
 
+isNotSuccess (Success (Right _)) = false
+isNotSuccess _ = true
+
 editorPane ::
   forall m aff.
   MonadAff (AceEffects (localStorage :: LOCALSTORAGE | aff)) m =>
@@ -164,6 +170,14 @@ editorPane state = div_ [ demoScriptsPane
                                                , disabled (isLoading state.runResult)
                                                ] [ btnText
                                                  ]
+                                      , button [ classes [ btn
+                                                         , btnPrimary 
+                                                         ]
+                                               , onClick $ input_ SendResult
+                                               , disabled ((isLoading state.runResult) || (isNotSuccess state.runResult))
+                                               ] [ text "Send to Simulator" 
+                                                 ]
+
                                       ]
                                ]
                         , br_

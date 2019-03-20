@@ -37,6 +37,7 @@ data Query a
   | ChangeView View a
   | LoadScript String a
   | CompileProgram a
+  | SendResult a
   | ScrollTo {row :: Int, column :: Int} a
   | LoadMarloweScript String a
   | SetSignature {person :: Person, isChecked :: Boolean} a
@@ -172,7 +173,7 @@ _validity = prop (SProxy :: SProxy "validity")
 
 -- "Choice $IdChoice: Choose value [$Choice]"
 type MarloweState
-	= {input :: InputData, transaction :: TransactionData, state :: State, blockNum :: BlockNumber, moneyInContract :: BigInteger, contract :: Contract}
+        = {input :: InputData, transaction :: TransactionData, state :: State, blockNum :: BlockNumber, moneyInContract :: BigInteger, contract :: Contract}
 
 _input :: forall s a. Lens' {input :: a | s} a
 _input = prop (SProxy :: SProxy "input")
