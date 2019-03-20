@@ -152,7 +152,7 @@ isNotSuccess _ = true
 editorPane ::
   forall m aff.
   MonadAff (AceEffects (localStorage :: LOCALSTORAGE | aff)) m
-  => State -> ParentHTML Query ChildQuery ChildSlot m
+  => FrontendState -> ParentHTML Query ChildQuery ChildSlot m
 editorPane state =
   div_
     [ demoScriptsPane
@@ -259,13 +259,6 @@ compilationResultPane (RunResult stdout) = div_ [ code_ [ pre_ [ text stdout
                                                                ]
                                                         ]
                                                 ]
-
-compilationErrorPane ::
-  forall p.
-  CompilationError ->
-  HTML p Query
-compilationErrorPane (RawError error) = div_ [ text error
-                                             ]
 
 compilationErrorPane :: forall p. CompilationError -> HTML p Query
 compilationErrorPane (RawError error) =
