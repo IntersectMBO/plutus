@@ -36,7 +36,7 @@ unitval = runQuote $ do
         . lamAbs () x (TyVar () a)
         $ var () x
 
--- | @seq @() @()@ as a PLC term.
+-- | 'seq' specified to '()' as a PLC term.
 --
 -- > \(x y : unit) -> unitval
 sequ :: TermLike term TyName Name => term ()
