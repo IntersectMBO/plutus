@@ -2,61 +2,30 @@
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns
 -fno-warn-name-shadowing
 -fno-warn-unused-do-bind #-}
 module Spec.Common where
 
-import           Data.Either                    ( isRight )
-import           Data.Maybe
-import           Control.Monad                  ( void, when )
-import           Data.Set                       ( Set )
-import qualified Data.List                      as List
-import qualified Data.Set                       as Set
-import           Data.Map.Strict                ( Map )
-import qualified Data.Map.Strict                as Map
+import           Control.Monad           (void)
+import           Data.Either             (isRight)
+import           Data.Map.Strict         (Map)
+import qualified Data.Map.Strict         as Map
+import           Data.Set                (Set)
+import qualified Data.Set                as Set
 
-import           Hedgehog                       ( Gen
-                                                , Property
-                                                , Size(..)
-                                                , forAll
-                                                , property
-                                                )
-import qualified Hedgehog.Range                 as Range
-import           Hedgehog.Gen                   ( element
-                                                , int
-                                                , choice
-                                                , list
-                                                , sized
-                                                )
+import           Hedgehog                (Gen, Property, Size (..), forAll, property)
 import qualified Hedgehog
-import           Test.Tasty
-import           Test.Tasty.HUnit
-import           Test.Tasty.Hedgehog            ( testProperty
-                                                , HedgehogTestLimit(..)
-                                                )
+import           Hedgehog.Gen            (choice, element, int, sized)
+import qualified Hedgehog.Range          as Range
 
-import           Ledger                  hiding ( Value )
-import qualified Ledger.Ada                     as Ada
+import           Language.Marlowe        hiding (discountFromPairList, insertCommit, mergeChoices)
+import           Language.Marlowe.Client (createContract, marloweValidator, spendDeposit)
+import           Ledger                  hiding (Value)
 import qualified Ledger
-import           Ledger.Validation              ( OracleValue(..) )
-import           Wallet                         ( PubKey(..)
-                                                , startWatching
-                                                )
+import           Wallet                  (PubKey (..))
 import           Wallet.Emulator
-import qualified Wallet.Generators              as Gen
-import           Language.Marlowe        hiding (insertCommit, discountFromPairList, mergeChoices)
-import qualified Language.Marlowe               as Marlowe
-import           Language.Marlowe.Client        ( commit
-                                                , redeem
-                                                , createContract
-                                                , spendDeposit
-                                                , receivePayment
-                                                , marloweValidator
-                                                )
-import           Language.Marlowe.Escrow        as Escrow
-import           Language.Marlowe.Actus
+import qualified Wallet.Generators       as Gen
 
 newtype MarloweScenario = MarloweScenario { mlInitialBalances :: Map.Map PubKey Ledger.Value }
 data Bounds = Bounds {
@@ -86,6 +55,7 @@ choiceGen = do
 boundedValue :: Set Person -> Set IdentCC -> Bounds -> Gen Value
 boundedValue participants commits bounds = sized $ boundedValueAux participants commits bounds
 
+{-# ANN boundedValueAux ("HLint: ignore Avoid restricted function" :: String) #-}
 boundedValueAux :: Set Person -> Set IdentCC -> Bounds -> Size -> Gen Value
 boundedValueAux participants commits bounds (Size s) = do
     let committed = Set.toList commits
@@ -105,6 +75,7 @@ boundedValueAux participants commits bounds (Size s) = do
                     , Value <$> positiveAmount ]
         LT -> error "Negative size in boundedValue"
 
+{-# ANN boundedObservationAux ("HLint: ignore Avoid restricted function" :: String) #-}
 boundedObservationAux :: Set Person -> Set IdentCC -> Bounds -> Size -> Gen Observation
 boundedObservationAux participants commits bounds (Size s) = do
     let parties   = Set.toList participants
@@ -137,6 +108,7 @@ boundedObservationAux participants commits bounds (Size s) = do
 boundedObservation :: Set Person -> Set IdentCC -> Bounds -> Gen Observation
 boundedObservation participants commits bounds = sized $ boundedObservationAux participants commits bounds
 
+{-# ANN boundedContractAux ("HLint: ignore Avoid restricted function" :: String) #-}
 boundedContractAux :: Set Person -> Set IdentCC -> Bounds -> Size -> Gen Contract
 boundedContractAux participants commits bounds (Size s) = do
     let committed       = Set.toList commits
@@ -159,7 +131,7 @@ boundedContractAux participants commits bounds (Size s) = do
             choice   [ pure Null
                     , commitCash
                     , RedeemCC <$> element committed <*> go s
-                    , (Pay . IdentPay)
+                    , Pay . IdentPay
                         <$> positiveAmount
                         <*> element parties
                         <*> element parties
@@ -199,7 +171,7 @@ updateAll :: [Wallet] -> Trace MockWallet ()
 updateAll wallets = processPending >>= void . walletsNotifyBlock wallets
 
 getScriptOutFromTx :: Tx -> (TxOut, TxOutRef)
-getScriptOutFromTx tx = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
+getScriptOutFromTx = head . filter (isPayToScriptOut . fst) . txOutRefs
 
 performs :: Wallet -> m () -> Trace m (TxOut, TxOutRef)
 performs actor action = do
