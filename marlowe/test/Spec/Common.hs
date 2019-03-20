@@ -48,8 +48,7 @@ import           Wallet.Emulator
 import qualified Wallet.Generators              as Gen
 import           Language.Marlowe        hiding (insertCommit, discountFromPairList, mergeChoices)
 import qualified Language.Marlowe               as Marlowe
-import           Language.Marlowe.Client        ( commit'
-                                                , commit
+import           Language.Marlowe.Client        ( commit
                                                 , redeem
                                                 , createContract
                                                 , spendDeposit

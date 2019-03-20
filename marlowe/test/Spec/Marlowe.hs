@@ -60,7 +60,6 @@ import           Language.Marlowe.Client        ( commit'
                                                 , marloweValidator
                                                 )
 import           Language.Marlowe.Escrow        as Escrow
-import           Language.Marlowe.Actus
 import           Spec.Common
 
 
@@ -88,8 +87,8 @@ contractsTests = localOption (HedgehogTestLimit $ Just 3) $ testGroup "Marlowe C
     testProperty "Oracle Commit/Pay works" oraclePayment,
     testProperty "Escrow Contract" escrowTest,
     testProperty "Futures" futuresTest,
-    testProperty "can't commit' after timeout" cantCommitAfterStartTimeout,
-    testProperty "redeem after commit' expired" redeemAfterCommitExpired
+    testProperty "can't commit after timeout" cantCommitAfterStartTimeout,
+    testProperty "redeem after commit expired" redeemAfterCommitExpired
     ]
 
 
@@ -328,7 +327,7 @@ oraclePayment = checkMarloweTrace (MarloweScenario {
     void $ walletAction bob $ startWatching (Ledger.scriptAddress validator)
 
     withContract [alice, bob] contract $ \txOut validator -> do
-        txOut <- bob `performs` commit
+        txOut <- bob `performs` commit'
             txOut
             validator
             [oracleValue] []
@@ -365,7 +364,7 @@ cantCommitAfterStartTimeout = checkMarloweTrace (MarloweScenario {
 
         addBlocksAndNotify [alice, bob] 200
 
-        walletAction bob $ commit'
+        walletAction bob $ commit
             txOut
             validator
             [] []
@@ -392,7 +391,7 @@ redeemAfterCommitExpired = checkMarloweTrace (MarloweScenario {
     let contract = CommitCash identCC (PubKey 2) (Value 100) 128 256 Null Null
     withContract [alice, bob] contract $ \txOut validator -> do
 
-        txOut <- bob `performs` commit'
+        txOut <- bob `performs` commit
             txOut
             validator
             [] []
@@ -427,7 +426,7 @@ escrowTest = checkMarloweTrace (MarloweScenario {
     let contract = Escrow.escrowContract
 
     withContract [alice, bob, carol] contract $ \txOut validator -> do
-        txOut <- alice `performs` commit'
+        txOut <- alice `performs` commit
             txOut
             validator
             [] []
@@ -507,7 +506,7 @@ futuresTest = checkMarloweTrace (MarloweScenario {
                         Null
 
     withContract [alice, bob] contract $ \txOut validator -> do
-        txOut <- alice `performs` commit'
+        txOut <- alice `performs` commit
             txOut
             validator
             [] []
@@ -530,7 +529,7 @@ futuresTest = checkMarloweTrace (MarloweScenario {
 
         update
 
-        txOut <- bob `performs` commit'
+        txOut <- bob `performs` commit
             txOut
             validator
             [] []
