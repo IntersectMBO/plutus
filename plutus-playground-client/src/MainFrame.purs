@@ -267,6 +267,7 @@ eval (LoadScript key next) = do
       editorSetContents contents (Just 1)
       saveBuffer contents
       assign _evaluationResult NotAsked
+      assign _simulations Cursor.empty
       assign _compilationResult NotAsked
       pure next
 

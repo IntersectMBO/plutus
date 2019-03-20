@@ -16,7 +16,7 @@ import Data.Tuple.Nested ((/\))
 import Halogen (HTML)
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
-import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, form, h2_, h3_, input, label, p_, small_, strong_, text)
+import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, h2_, h3_, input, label, p_, small_, strong_, text)
 import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (input_, onClick, onValueInput)
 import Halogen.HTML.Events as HE
@@ -174,7 +174,7 @@ actionArgumentClass ancestors =
 
 actionArgumentForm :: forall p. Int -> Array SimpleArgument -> HTML p Query
 actionArgumentForm index arguments =
-  form [ class_ wasValidated ]
+  div [ class_ wasValidated ]
     (Array.mapWithIndex
        (\i argument -> PopulateAction index i <$> actionArgumentField [ show i ] false argument)
        arguments)
