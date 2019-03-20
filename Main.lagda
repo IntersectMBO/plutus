@@ -196,9 +196,9 @@ postulate prettyPrint : RawTm → String
 
 -- extrinsically typed evaluation
 stestPLC : ByteString → Maybe String
-stestPLC plc = mmap ((prettyPrint ∘ unDeBruijnify zero Z) ∘ (λ (t : ScopedTm Z) → proj₁ (S.run t 100)) ∘ saturate) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))
--- don't run anything...
+stestPLC plc = mmap ((prettyPrint ∘ unDeBruijnify zero Z) ∘ unsaturate ∘ (λ (t : ScopedTm Z) → proj₁ (S.run t 100)) ∘ saturate) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))
 
+-- don't run anything...
 stestPLC' : ByteString → Maybe String
 stestPLC' plc = mmap ((prettyPrint ∘ unDeBruijnify zero Z)) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))
 
@@ -206,7 +206,7 @@ stestPLC' plc = mmap ((prettyPrint ∘ unDeBruijnify zero Z)) (mbind (deBruijnif
 testFile : String → IO String
 testFile fn = do
   t ← readFile fn
-  return (maybe id "blerk" (stestPLC' t))
+  return (maybe id "blerk" (stestPLC t))
 
 
 prettyPLC : ByteString → Maybe String
@@ -231,7 +231,6 @@ main = do
     where [] → return _
   putStrLn arg
   testFile arg >>= putStrLn
-  testPretty arg >>= putStrLn
   
 
 {-
