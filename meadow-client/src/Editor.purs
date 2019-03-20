@@ -179,13 +179,13 @@ editorPane state =
                 , disabled (isLoading state.runResult)
                 ]
                 [ btnText ]
-            ]
             , button [ classes [ btn
                                , btnPrimary 
                                ]
                      , onClick $ input_ SendResult
                      , disabled ((isLoading state.runResult) || (isNotSuccess state.runResult))
                      ] [ text "Send to Simulator" ]
+            ]
         ]
     , br_
     , runResult
