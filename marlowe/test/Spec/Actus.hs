@@ -24,7 +24,7 @@ import           Ledger                  hiding ( Value )
 import qualified Ledger.Ada                     as Ada
 import           Wallet.Emulator
 import           Language.Marlowe        hiding (insertCommit, discountFromPairList, mergeChoices)
-import           Language.Marlowe.Client        ( commit
+import           Language.Marlowe.Client        ( commit'
                                                 , receivePayment
                                                 , redeem
                                                 , evalContract
@@ -170,7 +170,7 @@ zeroCouponBondMockchainTest = checkMarloweTrace (MarloweScenario {
     let contract = zeroCouponBond (PubKey 1) (PubKey 2) notional discount startDate maturityDate gracePeriod
 
     withContract [issuer, investor] contract $ \txOut validator -> do
-        txOut <- investor `performs` commit
+        txOut <- investor `performs` commit'
             txOut
             validator
             [] []
@@ -181,7 +181,7 @@ zeroCouponBondMockchainTest = checkMarloweTrace (MarloweScenario {
 
         update
 
-        txOut <- issuer `performs` commit
+        txOut <- issuer `performs` commit'
             txOut
             validator
             [] []
@@ -254,7 +254,7 @@ zeroCouponBondGuaranteedMockchainTest = checkMarloweTrace (MarloweScenario {
 
     withContract [issuer, investor, guarantor] contract $ \txOut validator -> do
         -- investor commits money for a bond with discount
-        txOut <- investor `performs` commit
+        txOut <- investor `performs` commit'
             txOut
             validator
             [] []
@@ -266,7 +266,7 @@ zeroCouponBondGuaranteedMockchainTest = checkMarloweTrace (MarloweScenario {
         update
 
         -- guarantor commits a guarantee
-        txOut <- guarantor `performs` commit
+        txOut <- guarantor `performs` commit'
             txOut
             validator
             [] []
@@ -310,7 +310,7 @@ zeroCouponBondGuaranteedMockchainTest = checkMarloweTrace (MarloweScenario {
         addBlocksAndNotify [issuer, investor, guarantor] 100
 
         -- before maturityDate the issuer commits the bond value
-        txOut <- issuer `performs` commit
+        txOut <- issuer `performs` commit'
             txOut
             validator
             [] []
