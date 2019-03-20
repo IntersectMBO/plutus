@@ -3,7 +3,8 @@
   imports = [ <nixpkgs/nixos/modules/virtualisation/amazon-image.nix> ];
     ec2.hvm = true;
     nix = {
-        nixPath = [ "nixpkgs=https://github.com/NixOS/nixpkgs-channels/archive/nixos-18.09.tar.gz"
+        # FIXME: https://github.com/NixOS/nixpkgs/pull/57910
+        nixPath = [ "nixpkgs=https://github.com/shmish111/nixpkgs/archive/f67d3215edfe40b8d3e494833f10ee78a2adfced.tar.gz"
                     "nixos-config=/etc/nixos/configuration.nix"
                   ];
         binaryCaches = [ https://hydra.iohk.io https://cache.nixos.org ];

@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 {- 
   A small tutorial on Template Haskell as relevant to Plutus. It is split 
   split across two modules, `Tutorial.TH` (this module) and 
@@ -31,6 +32,7 @@
 module Tutorial.TH where
 
 import           Language.Haskell.TH
+import           Language.PlutusTx.Prelude hiding (error)
 
 {- |
   Part 1. Template Haskell
@@ -44,7 +46,19 @@ import           Language.Haskell.TH
 -}
 
 tricky :: Q (TExp (Int -> Int))
-tricky = [|| \i -> 2 * i - i * i + 5 * i * i * i - 6 * i * i * i - 8 ||]
+tricky = [|| 
+  let 
+    infixl 6 +
+    (+) :: Int -> Int -> Int
+    (+) = $$plus
+    infixl 6 -
+    (-) :: Int -> Int -> Int
+    (-) = $$minus
+    infixl 7 *
+    (*) :: Int -> Int -> Int
+    (*) = $$multiply
+  in \i -> (2 * i) - i * i + 5 * i * i * i - 6 * i * i * i - 8 
+  ||]
 
 {- |
     E1: Test `tricky` in the repl (ghci) on various values
@@ -70,7 +84,7 @@ tricky = [|| \i -> 2 * i - i * i + 5 * i * i * i - 6 * i * i * i - 8 ||]
     Then test it in GHCi.
 -}
 trickier :: Int -> Q (TExp (Int -> Int))
-trickier i = if i <= 1 then tricky else [|| error "exercise" ||]
+trickier i = if $$lt i 1 then tricky else [|| error "exercise" ||]
 
 {- 
 

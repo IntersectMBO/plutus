@@ -1,6 +1,7 @@
 let
   plutus = import ../../. {};
   serverTemplate = import ./server.nix;
+  prometheusTemplate = import ./prometheus.nix;
   machines = (plutus.pkgs.lib.importJSON ./machines.json);
   overlays = import ./overlays.nix;
   secrets = (plutus.pkgs.lib.importJSON ./secrets.json);
@@ -38,5 +39,8 @@ let
   playgroundB = serverTemplate.mkInstance playgroundOptions machines.playgroundB;
   meadowA = serverTemplate.mkInstance meadowOptions machines.meadowA;
   meadowB = serverTemplate.mkInstance meadowOptions machines.meadowB;
+  nixops = prometheusTemplate.mkInstance options {dns = "nixops.internal.david.plutus.iohkdev.io"; 
+                                                  ip = "127.0.0.1";
+                                                  name = "nixops"; };
 in
-  { inherit playgroundA playgroundB meadowA meadowB; }
+  { inherit playgroundA playgroundB meadowA meadowB nixops; }
