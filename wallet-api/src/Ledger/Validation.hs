@@ -239,7 +239,7 @@ txSignedBy = [||
             PendingTx txins _ _ _ _ _ = p
 
             signedBy' :: Signature -> Bool
-            signedBy' (Signature s) = s == k
+            signedBy' (Signature s) = Builtins.equalsInteger s k
 
             go :: [PendingTxIn] -> Bool
             go l = case l of
@@ -254,7 +254,7 @@ txSignedBy = [||
 txInSignedBy :: Q (TExp (PendingTxIn -> PubKey -> Bool))
 txInSignedBy = [||
     \(i :: PendingTxIn) (PubKey k) -> case i of
-        PendingTxIn _ (Right (Signature sig)) _ -> sig == k
+        PendingTxIn _ (Right (Signature sig)) _ -> Builtins.equalsInteger sig k
         _ -> False
     ||]
 
@@ -273,7 +273,7 @@ scriptOutput = [|| \(o:: PendingTxOut) -> case o of
 
 -- | Equality of public keys
 eqPubKey :: Q (TExp (PubKey -> PubKey -> Bool))
-eqPubKey = [|| \(PubKey l) (PubKey r) -> l == r ||]
+eqPubKey = [|| \(PubKey l) (PubKey r) -> Builtins.equalsInteger l r ||]
 
 -- | Equality of data scripts
 eqDataScript :: Q (TExp (DataScriptHash -> DataScriptHash -> Bool))
@@ -313,10 +313,10 @@ adaLockedBy = [|| \(PendingTx _ outs _ _ _ _) h ->
     in go outs
       ||]
 
--- | Check if the provided signature is the result of signing the pending 
+-- | Check if the provided signature is the result of signing the pending
 --   transaction (without witnesses) with the public key.
 signsTransaction :: Q (TExp (Signature -> PubKey -> PendingTx -> Bool))
-signsTransaction = [|| \(Signature i) (PubKey j) (_ :: PendingTx) -> i == j ||]
+signsTransaction = [|| \(Signature i) (PubKey j) (_ :: PendingTx) -> Builtins.equalsInteger i j ||]
 
 makeLift ''PendingTxOutType
 

@@ -149,18 +149,6 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
     case e of
         -- See Note [Literals]
         GHC.App (GHC.Var (isPrimitiveWrapper -> True)) arg -> convExpr arg
-        -- special typeclass method calls
-        GHC.App (GHC.App
-                (GHC.Var n@(GHC.idDetails -> GHC.ClassOpId (GHC.getName -> className)))
-                -- we only support applying to int
-                (GHC.Type (GHC.eqType GHC.intTy -> True)))
-            -- last arg is typeclass dictionary
-            _ -> case className of
-                     ((==) GHC.eqClassName -> True) -> convEqMethod (GHC.getName n)
-                     ((==) GHC.ordClassName -> True) -> convOrdMethod (GHC.getName n)
-                     ((==) GHC.numClassName -> True) -> convNumMethod (GHC.getName n)
-                     ((==) GHC.integralClassName -> True) -> convIntegralMethod (GHC.getName n)
-                     _ -> throwSd UnsupportedError $ "Typeclass method:" GHC.<+> GHC.ppr n
         -- void# - values of type void get represented as error, since they should be unreachable
         GHC.Var n | n == GHC.voidPrimId || n == GHC.voidArgId -> errorFunc
         -- See note [GHC runtime errors]
