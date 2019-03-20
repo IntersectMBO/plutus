@@ -4,7 +4,7 @@ module Scoped where
 
 \begin{code}
 open import Data.Nat
-open import Data.Fin
+open import Data.Fin hiding (_-_)
 open import Data.List hiding (map; _++_)
 
 open import Builtin.Constant.Type
@@ -17,7 +17,6 @@ data ScopedKind : Set where
   *   : ScopedKind
   #   : ScopedKind
   _⇒_ : ScopedKind → ScopedKind → ScopedKind
-
 
 {-# FOREIGN GHC import Scoped #-}
 {-# COMPILE GHC ScopedKind = data ScKind (ScKiStar | ScKiSize | ScKiFun) #-}
@@ -47,6 +46,7 @@ data WeirdFin : Weirdℕ → Set where
 ∥ Z   ∥ = zero
 ∥ S n ∥ = ∥ n ∥
 ∥ T n ∥ = suc ∥ n ∥
+
 
 open import Data.Integer
 open import Data.String
@@ -211,6 +211,64 @@ saturate (error A)      = error A
 saturate (builtin b As ts) = builtin b As ts
   -- I don't think As or ts can be unsaturated, could be enforced by
   -- seperate representations for sat and unsat terms
+\end{code}
+
+\begin{code}
+unDeBruijnifyK : ScopedKind → RawKind
+unDeBruijnifyK * = *
+unDeBruijnifyK (K ⇒ J) = unDeBruijnifyK K ⇒ unDeBruijnifyK J
+unDeBruijnifyK # = #
+\end{code}
+
+\begin{code}
+wtoℕ : ∀{n} → WeirdFin n → ℕ
+wtoℕ Z = zero
+wtoℕ (S i) = ℕ.suc (wtoℕ i)
+wtoℕ (T i) = ℕ.suc (wtoℕ i)
+\end{code}
+
+\begin{code}
+unDeBruijnifyC : SizedTermCon → RawTermCon
+unDeBruijnifyC (integer s i x) = integer s i
+unDeBruijnifyC (bytestring s b x) = bytestring s b
+unDeBruijnifyC (size x) = size x
+unDeBruijnifyC (string x) = string x
+\end{code}
+
+\begin{code}
+unDeBruijnify⋆ : ∀{n} → Fin n → ScopedTy n → RawTy
+unDeBruijnify⋆ i (` x) = ` ((Data.Integer.show (ℤ.pos (toℕ i) - ℤ.pos (toℕ x))))
+unDeBruijnify⋆ i (A ⇒ B) = unDeBruijnify⋆ i A ⇒ unDeBruijnify⋆ i B
+unDeBruijnify⋆ i (Π K A) = Π
+  ((Data.Integer.show (ℤ.pos (toℕ i))))
+  (unDeBruijnifyK K)
+  (unDeBruijnify⋆ (Fin.suc i) A)
+unDeBruijnify⋆ i (ƛ K A) = ƛ
+  (Data.Integer.show (ℤ.pos (toℕ i)))
+  (unDeBruijnifyK K)
+  (unDeBruijnify⋆ (Fin.suc i) A)
+unDeBruijnify⋆ i (A · B) = unDeBruijnify⋆ i A · unDeBruijnify⋆ i B
+unDeBruijnify⋆ i (con c) = con c
+unDeBruijnify⋆ i (size j) = size j
+\end{code}
+
+This should be run on unsaturated terms
+\begin{code}
+unDeBruijnify : ∀{n} → Fin ∥ n ∥ → WeirdFin n → ScopedTm n → RawTm
+unDeBruijnify i⋆ i (` x) = ` (Data.Integer.show (ℤ.pos (wtoℕ i) - ℤ.pos (wtoℕ x)))
+unDeBruijnify i⋆ i (Λ K t) = Λ
+  (Data.Integer.show (ℤ.pos (wtoℕ i)))
+  (unDeBruijnifyK K)
+  (unDeBruijnify (Fin.suc i⋆) (T i) t)
+unDeBruijnify i⋆ i (t ·⋆ A) = unDeBruijnify i⋆ i t ·⋆ unDeBruijnify⋆ i⋆ A
+unDeBruijnify i⋆ i (ƛ A t) = ƛ
+  ((Data.Integer.show (ℤ.pos (wtoℕ i))))
+  (unDeBruijnify⋆ i⋆ A)
+  (unDeBruijnify i⋆ (S i) t)
+unDeBruijnify i⋆ i (t · u) = unDeBruijnify i⋆ i t · unDeBruijnify i⋆ i u
+unDeBruijnify i⋆ i (con c) = con (unDeBruijnifyC c)
+unDeBruijnify i⋆ i (error A) = error (unDeBruijnify⋆ i⋆ A)
+unDeBruijnify i⋆ i (builtin b _ _) = builtin b
 \end{code}
 
 -- UGLY PRINTING
