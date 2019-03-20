@@ -120,6 +120,8 @@ mkValidatorScript campaign = ValidatorScript val where
               \(c :: Campaign) (con :: Contributor) (act :: CampaignRedeemer) (p :: PendingTx) ->
 ```
 
+You may wonder why we use `L.applyScript` to supply the `Campaign` argument. Why can we not write `$$(L.lifted campaign)` inside the validator script? The reason is that `campaign` is not known at the time the validator script is compiled. The names of `lifted` and `compile` indicate their chronological order: `mkValidator` is compiled (via a compiler plugin) to Plutus Core when GHC compiles the contract module, and the `campaign` value is lifted to Plutus Core at runtime, when the contract module is executed. But we know that `mkValidator` is a function, and that is why we can apply it to the campaign definition.
+
 Before we check whether `act` is permitted, we define a number of intermediate values that will make the checking code much more readable. These definitions are placed inside a `let` block, which is closed by a corresponding `in` below.
 
 ```haskell
