@@ -2,35 +2,29 @@
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns
 -fno-warn-name-shadowing
 -fno-warn-unused-do-bind #-}
+
+
 module Spec.Actus
     ( tests
     )
 where
 
-import qualified Data.Map.Strict                as Map
-import           Hedgehog                       ( Property
-                                                )
+import qualified Data.Map.Strict         as Map
+import           Hedgehog                (Property)
 import           Test.Tasty
+import           Test.Tasty.Hedgehog     (HedgehogTestLimit (..), testProperty)
 import           Test.Tasty.HUnit
-import           Test.Tasty.Hedgehog            ( testProperty
-                                                , HedgehogTestLimit(..)
-                                                )
 
-import           Ledger                  hiding ( Value )
-import qualified Ledger.Ada                     as Ada
-import           Wallet.Emulator
-import           Language.Marlowe        hiding (insertCommit, discountFromPairList, mergeChoices)
-import           Language.Marlowe.Client        ( commit'
-                                                , receivePayment
-                                                , redeem
-                                                , evalContract
-                                                )
-import           Language.Marlowe.Actus        as Actus
+import           Language.Marlowe        hiding (discountFromPairList, insertCommit, mergeChoices)
+import           Language.Marlowe.Actus  as Actus
+import           Language.Marlowe.Client (commit', evalContract, receivePayment, redeem)
+import           Ledger                  hiding (Value)
+import qualified Ledger.Ada              as Ada
 import           Spec.Common
+import           Wallet.Emulator
 
 
 tests :: TestTree

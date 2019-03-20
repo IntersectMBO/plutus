@@ -11,27 +11,18 @@ module Spec.Marlowe
     )
 where
 
-import           Data.Either                    ( isRight )
 import           Data.Maybe
 import           Control.Monad                  ( void, when )
-import           Data.Set                       ( Set )
 import qualified Data.List                      as List
 import qualified Data.Set                       as Set
-import           Data.Map.Strict                ( Map )
 import qualified Data.Map.Strict                as Map
 
-import           Hedgehog                       ( Gen
-                                                , Property
-                                                , Size(..)
+import           Hedgehog                       ( Property
                                                 , forAll
                                                 , property
                                                 )
 import qualified Hedgehog.Range                 as Range
-import           Hedgehog.Gen                   ( element
-                                                , int
-                                                , choice
-                                                , list
-                                                , sized
+import           Hedgehog.Gen                   (list
                                                 )
 import qualified Hedgehog
 import           Test.Tasty
@@ -42,20 +33,16 @@ import           Test.Tasty.Hedgehog            ( testProperty
 
 import           Ledger                  hiding ( Value )
 import qualified Ledger.Ada                     as Ada
-import qualified Ledger
 import           Ledger.Validation              ( OracleValue(..) )
 import           Wallet                         ( PubKey(..)
                                                 , startWatching
                                                 )
 import           Wallet.Emulator
-import qualified Wallet.Generators              as Gen
 import           Language.Marlowe        hiding (insertCommit, discountFromPairList, mergeChoices)
 import qualified Language.Marlowe               as Marlowe
 import           Language.Marlowe.Client        ( commit'
                                                 , commit
                                                 , redeem
-                                                , createContract
-                                                , spendDeposit
                                                 , receivePayment
                                                 , marloweValidator
                                                 )
