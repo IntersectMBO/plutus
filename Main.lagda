@@ -187,19 +187,27 @@ import Scoped.Reduction as S
 utestPLC : ByteString → Maybe String
 utestPLC plc = mmap (U.ugly ∘ (λ (t : 0 ⊢) → proj₁ (U.run t 100)) ∘ erase⊢) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))
 
--- extrinsically typed evaluation
-stestPLC : ByteString → Maybe String
-stestPLC plc = mmap (S.ugly ∘ (λ (t : ScopedTm Z) → proj₁ (S.run t 100)) ∘ saturate) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))
-
-testFile : String → IO String
-testFile fn = do
-  t ← readFile fn
-  return (maybe id "blerk" (stestPLC t))
-
+open import Data.Fin
 
 postulate prettyPrint : RawTm → String
 
 {-# COMPILE GHC prettyPrint = prettyText . unconv #-}
+
+
+-- extrinsically typed evaluation
+stestPLC : ByteString → Maybe String
+stestPLC plc = mmap ((prettyPrint ∘ unDeBruijnify zero Z) ∘ (λ (t : ScopedTm Z) → proj₁ (S.run t 100)) ∘ saturate) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))
+-- don't run anything...
+
+stestPLC' : ByteString → Maybe String
+stestPLC' plc = mmap ((prettyPrint ∘ unDeBruijnify zero Z)) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))
+
+
+testFile : String → IO String
+testFile fn = do
+  t ← readFile fn
+  return (maybe id "blerk" (stestPLC' t))
+
 
 prettyPLC : ByteString → Maybe String
 prettyPLC plc = mmap (prettyPrint ∘ convP) (parse plc)

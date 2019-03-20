@@ -47,6 +47,10 @@ data WeirdFin : Weirdℕ → Set where
 ∥ S n ∥ = ∥ n ∥
 ∥ T n ∥ = suc ∥ n ∥
 
+wtoℕ : Weirdℕ → ℕ
+wtoℕ Z = zero
+wtoℕ (S x) = suc (wtoℕ x)
+wtoℕ (T x) = suc (wtoℕ x)
 
 open import Data.Integer
 open import Data.String
@@ -221,10 +225,10 @@ unDeBruijnifyK # = #
 \end{code}
 
 \begin{code}
-wtoℕ : ∀{n} → WeirdFin n → ℕ
-wtoℕ Z = zero
-wtoℕ (S i) = ℕ.suc (wtoℕ i)
-wtoℕ (T i) = ℕ.suc (wtoℕ i)
+wftoℕ : ∀{n} → WeirdFin n → ℕ
+wftoℕ Z = zero
+wftoℕ (S i) = ℕ.suc (wftoℕ i)
+wftoℕ (T i) = ℕ.suc (wftoℕ i)
 \end{code}
 
 \begin{code}
@@ -236,17 +240,17 @@ unDeBruijnifyC (string x) = string x
 \end{code}
 
 \begin{code}
-unDeBruijnify⋆ : ∀{n} → Fin n → ScopedTy n → RawTy
-unDeBruijnify⋆ i (` x) = ` ((Data.Integer.show (ℤ.pos (toℕ i) - ℤ.pos (toℕ x))))
+unDeBruijnify⋆ : ∀{n} → ℕ → ScopedTy n → RawTy
+unDeBruijnify⋆ i (` x) = ` ("tvar" ++ Data.Integer.show (ℤ.pos i - ℤ.pos (ℕ.suc (toℕ x))))
 unDeBruijnify⋆ i (A ⇒ B) = unDeBruijnify⋆ i A ⇒ unDeBruijnify⋆ i B
 unDeBruijnify⋆ i (Π K A) = Π
-  ((Data.Integer.show (ℤ.pos (toℕ i))))
+  ("tvar" ++ Data.Integer.show (ℤ.pos i))
   (unDeBruijnifyK K)
-  (unDeBruijnify⋆ (Fin.suc i) A)
+  (unDeBruijnify⋆ (ℕ.suc i) A)
 unDeBruijnify⋆ i (ƛ K A) = ƛ
-  (Data.Integer.show (ℤ.pos (toℕ i)))
+  (Data.Integer.show (ℤ.pos i))
   (unDeBruijnifyK K)
-  (unDeBruijnify⋆ (Fin.suc i) A)
+  (unDeBruijnify⋆ (ℕ.suc i) A)
 unDeBruijnify⋆ i (A · B) = unDeBruijnify⋆ i A · unDeBruijnify⋆ i B
 unDeBruijnify⋆ i (con c) = con c
 unDeBruijnify⋆ i (size j) = size j
@@ -254,15 +258,15 @@ unDeBruijnify⋆ i (size j) = size j
 
 This should be run on unsaturated terms
 \begin{code}
-unDeBruijnify : ∀{n} → Fin ∥ n ∥ → WeirdFin n → ScopedTm n → RawTm
-unDeBruijnify i⋆ i (` x) = ` (Data.Integer.show (ℤ.pos (wtoℕ i) - ℤ.pos (wtoℕ x)))
+unDeBruijnify : ∀{n} →  ℕ → Weirdℕ → ScopedTm n → RawTm
+unDeBruijnify i⋆ i (` x) = ` ("var" ++ Data.Integer.show (ℤ.pos (wtoℕ i) - ℤ.pos (ℕ.suc (wftoℕ x))))
 unDeBruijnify i⋆ i (Λ K t) = Λ
-  (Data.Integer.show (ℤ.pos (wtoℕ i)))
+  ("tvar" ++ Data.Integer.show (ℤ.pos (wtoℕ i)))
   (unDeBruijnifyK K)
-  (unDeBruijnify (Fin.suc i⋆) (T i) t)
+  (unDeBruijnify (ℕ.suc i⋆) (T i) t)
 unDeBruijnify i⋆ i (t ·⋆ A) = unDeBruijnify i⋆ i t ·⋆ unDeBruijnify⋆ i⋆ A
 unDeBruijnify i⋆ i (ƛ A t) = ƛ
-  ((Data.Integer.show (ℤ.pos (wtoℕ i))))
+  ("var" ++ Data.Integer.show (ℤ.pos (wtoℕ i)))
   (unDeBruijnify⋆ i⋆ A)
   (unDeBruijnify i⋆ (S i) t)
 unDeBruijnify i⋆ i (t · u) = unDeBruijnify i⋆ i t · unDeBruijnify i⋆ i u
