@@ -40897,23 +40897,28 @@ license = stdenv.lib.licenses.bsd3;
 , aeson
 , base
 , bytestring
+, cookie
 , directory
 , exceptions
 , file-embed
 , filepath
+, hashable
 , http-types
 , marlowe
 , monad-logger
 , mtl
 , newtype-generics
 , process
+, prometheus
 , servant
+, servant-purescript
 , servant-server
 , stdenv
 , temporary
 , text
 , time
 , transformers
+, unordered-containers
 , wai
 , warp
 }:
@@ -40926,22 +40931,27 @@ libraryHaskellDepends = [
 aeson
 base
 bytestring
+cookie
 directory
 exceptions
 file-embed
 filepath
+hashable
 http-types
 marlowe
 monad-logger
 mtl
 newtype-generics
 process
+prometheus
 servant
+servant-purescript
 servant-server
 temporary
 text
 time
 transformers
+unordered-containers
 wai
 warp
 ];
@@ -47406,8 +47416,6 @@ license = stdenv.lib.licenses.mit;
 , cookie
 , data-default-class
 , directory
-, ekg-core
-, ekg-statsd
 , exceptions
 , file-embed
 , filepath
@@ -47428,12 +47436,12 @@ license = stdenv.lib.licenses.mit;
 , newtype-generics
 , optparse-applicative
 , process
+, prometheus
 , purescript-bridge
 , raw-strings-qq
 , servant
 , servant-client
 , servant-client-core
-, servant-ekg
 , servant-foreign
 , servant-purescript
 , servant-server
@@ -47478,16 +47486,17 @@ monad-logger
 mtl
 newtype-generics
 process
+prometheus
 servant
 servant-client
 servant-client-core
-servant-ekg
 servant-purescript
 servant-server
 temporary
 text
 time
 transformers
+wai
 ];
 executableHaskellDepends = [
 aeson
@@ -47496,8 +47505,6 @@ bytestring
 containers
 data-default-class
 directory
-ekg-core
-ekg-statsd
 filepath
 gitrev
 http-types
@@ -47506,8 +47513,8 @@ lens
 monad-logger
 mtl
 optparse-applicative
+prometheus
 purescript-bridge
-servant-ekg
 servant-foreign
 servant-purescript
 servant-server
@@ -56809,9 +56816,6 @@ license = stdenv.lib.licenses.asl20;
 , cookie
 , data-default-class
 , directory
-, ekg
-, ekg-core
-, ekg-statsd
 , exceptions
 , file-embed
 , filepath
@@ -56832,12 +56836,12 @@ license = stdenv.lib.licenses.asl20;
 , optparse-applicative
 , plutus-playground-lib
 , process
+, prometheus
 , purescript-bridge
 , regex-compat
 , servant
 , servant-client
 , servant-client-core
-, servant-ekg
 , servant-foreign
 , servant-purescript
 , servant-server
@@ -56888,7 +56892,6 @@ regex-compat
 servant
 servant-client
 servant-client-core
-servant-ekg
 servant-purescript
 servant-server
 swagger2
@@ -56904,9 +56907,6 @@ base
 bytestring
 containers
 data-default-class
-ekg
-ekg-core
-ekg-statsd
 filepath
 gitrev
 http-types
@@ -56916,9 +56916,9 @@ monad-logger
 mtl
 optparse-applicative
 plutus-playground-lib
+prometheus
 purescript-bridge
 servant
-servant-ekg
 servant-foreign
 servant-purescript
 servant-server
@@ -56957,6 +56957,8 @@ license = stdenv.lib.licenses.asl20;
 ({
   mkDerivation
 , base
+, bytestring
+, containers
 , doctest
 , language-plutus-core
 , markdown-unlit
@@ -56972,12 +56974,26 @@ version = "0.1.0.0";
 src = .././plutus-tutorial;
 libraryHaskellDepends = [
 base
+bytestring
+containers
 language-plutus-core
 plutus-tx
 template-haskell
 wallet-api
 ];
 libraryToolDepends = [
+doctest
+];
+testHaskellDepends = [
+base
+bytestring
+containers
+language-plutus-core
+plutus-tx
+template-haskell
+wallet-api
+];
+testToolDepends = [
 doctest
 markdown-unlit
 ];
@@ -58583,6 +58599,49 @@ doCheck = false;
 homepage = "https://github.com/yamadapc/haskell-projectroot";
 description = "Bindings to the projectroot C logic";
 license = stdenv.lib.licenses.mit;
+
+}) {};
+"prometheus" = callPackage
+({
+  mkDerivation
+, atomic-primops
+, base
+, bytestring
+, containers
+, http-client
+, http-types
+, network-uri
+, stdenv
+, text
+, transformers
+, wai
+, warp
+}:
+mkDerivation {
+
+pname = "prometheus";
+version = "2.1.1";
+sha256 = "27514a0ce3125e3504173d1e0caf62309780dd529eaf386e09d054d34dece325";
+revision = "1";
+editedCabalFile = "1jbs0p3ji5jz0qglkdw6gpr6x3i7ig044rcz58mcil04bsswymgq";
+libraryHaskellDepends = [
+atomic-primops
+base
+bytestring
+containers
+http-client
+http-types
+network-uri
+text
+transformers
+wai
+warp
+];
+doHaddock = false;
+doCheck = false;
+homepage = "http://github.com/bitnomial/prometheus";
+description = "Prometheus Haskell Client";
+license = stdenv.lib.licenses.bsd3;
 
 }) {};
 "prometheus-client" = callPackage
@@ -64954,42 +65013,6 @@ doHaddock = false;
 doCheck = false;
 homepage = "http://haskell-servant.readthedocs.org/";
 description = "generate API docs for your servant webservice";
-license = stdenv.lib.licenses.bsd3;
-
-}) {};
-"servant-ekg" = callPackage
-({
-  mkDerivation
-, base
-, ekg-core
-, hashable
-, http-types
-, servant
-, stdenv
-, text
-, time
-, unordered-containers
-, wai
-}:
-mkDerivation {
-
-pname = "servant-ekg";
-version = "0.3";
-sha256 = "5478275d0439e6353fb2fe31f6f380d01f405a79146f7af4bd319b01f1dd1a4f";
-libraryHaskellDepends = [
-base
-ekg-core
-hashable
-http-types
-servant
-text
-time
-unordered-containers
-wai
-];
-doHaddock = false;
-doCheck = false;
-description = "Helpers for using ekg with servant";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};

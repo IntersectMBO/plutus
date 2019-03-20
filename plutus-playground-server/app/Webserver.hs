@@ -19,31 +19,33 @@ module Webserver
     ) where
 
 import qualified Auth
-import           Control.Monad                        (void)
-import           Control.Monad.Except                 (ExceptT)
-import           Control.Monad.IO.Class               (MonadIO, liftIO)
-import           Control.Monad.Logger                 (LoggingT, MonadLogger, logInfoN, runStderrLoggingT)
-import           Control.Monad.Reader                 (ReaderT, runReaderT)
-import           Data.Default.Class                   (def)
-import           Data.Proxy                           (Proxy (Proxy))
-import           Data.Text                            (Text)
-import           Development.GitRev                   (gitHash)
-import           Network.HTTP.Types                   (Method)
-import           Network.Wai                          (Application)
-import           Network.Wai.Handler.Warp             (Settings, runSettings)
-import           Network.Wai.Middleware.Cors          (cors, corsRequestHeaders, simpleCorsResourcePolicy)
-import           Network.Wai.Middleware.Gzip          (gzip)
-import           Network.Wai.Middleware.RequestLogger (logStdout)
-import qualified Playground.API                       as PA
-import qualified Playground.Server                    as PS
-import           Servant                              ((:<|>) ((:<|>)), (:>), Get, Handler (Handler), JSON, PlainText,
-                                                       Raw, ServantErr, hoistServer, serve, serveDirectoryFileServer)
-import           Servant.Ekg                          (monitorEndpoints)
-import           Servant.Foreign                      (GenerateList, NoContent, Req, generateList)
-import           Servant.Server                       (Server)
-import           System.Metrics                       (Store, newStore)
-import           System.Remote.Monitoring.Statsd      (defaultStatsdOptions, forkStatsd)
-import           Types                                (Config (Config, _authConfig))
+import           Control.Concurrent                             (forkIO)
+import           Control.Monad                                  (void)
+import           Control.Monad.Except                           (ExceptT)
+import           Control.Monad.IO.Class                         (MonadIO, liftIO)
+import           Control.Monad.Logger                           (LoggingT, MonadLogger, logInfoN, runStderrLoggingT)
+import           Control.Monad.Reader                           (ReaderT, runReaderT)
+import           Data.Default.Class                             (def)
+import           Data.Proxy                                     (Proxy (Proxy))
+import           Data.Text                                      (Text)
+import           Development.GitRev                             (gitHash)
+import           Network.HTTP.Types                             (Method)
+import           Network.Wai                                    (Application)
+import           Network.Wai.Handler.Warp                       (Settings, runSettings)
+import           Network.Wai.Middleware.Cors                    (cors, corsRequestHeaders, simpleCorsResourcePolicy)
+import           Network.Wai.Middleware.Gzip                    (gzip)
+import           Network.Wai.Middleware.RequestLogger           (logStdout)
+import qualified Playground.API                                 as PA
+import qualified Playground.Server                              as PS
+import           Servant                                        ((:<|>) ((:<|>)), (:>), Get, Handler (Handler), JSON,
+                                                                 PlainText, Raw, ServantErr, hoistServer, serve,
+                                                                 serveDirectoryFileServer)
+import           Servant.Foreign                                (GenerateList, NoContent, Req, generateList)
+import           Servant.Prometheus                             (monitorEndpoints)
+import           Servant.Server                                 (Server)
+import           System.Metrics.Prometheus.Concurrent.RegistryT (runRegistryT)
+import           System.Metrics.Prometheus.Http.Scrape          (serveHttpTextMetricsT)
+import           Types                                          (Config (Config, _authConfig))
 
 instance GenerateList NoContent (Method -> Req NoContent) where
     generateList _ = []
@@ -86,19 +88,11 @@ app handlers _staticDir githubEndpoints config =
         simpleCorsResourcePolicy
             {corsRequestHeaders = ["content-type", "set-cookie"]}
 
-startStatsd :: MonadIO m => m Store
-startStatsd =
-    liftIO $ do
-        store <- newStore
-        void $ forkStatsd defaultStatsdOptions store
-        pure store
-
 run :: (MonadLogger m, MonadIO m) => Settings -> FilePath -> Config -> m ()
-run settings _staticDir config = do
-    store <- startStatsd
-    githubEndpoints <- liftIO Auth.mkGithubEndpoints
-    handlers <- PS.mkHandlers
-    appMonitor <- liftIO $ monitorEndpoints (Proxy @Web) store
-    logInfoN "Starting webserver."
-    liftIO . runSettings settings . appMonitor $
-        app handlers _staticDir githubEndpoints config
+run settings _staticDir config = runRegistryT $ do
+  githubEndpoints <- liftIO Auth.mkGithubEndpoints
+  handlers <- PS.mkHandlers
+  appMonitor <- monitorEndpoints (Proxy @Web)
+  logInfoN "Starting webserver."
+  void . liftIO . forkIO . runSettings settings . appMonitor $ app handlers _staticDir githubEndpoints config
+  serveHttpTextMetricsT 9091 ["metrics"]

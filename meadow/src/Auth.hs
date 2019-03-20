@@ -73,16 +73,12 @@ import           Servant                     ((:<|>) ((:<|>)), (:>), Get, Header
 import           Servant.API.BrowserHeader   (BrowserHeader)
 import           Servant.Client              (BaseUrl, ClientM, mkClientEnv, parseBaseUrl, runClientM)
 
-import           Servant.Ekg                 (HasEndpoint, enumerateEndpoints, getEndpoint)
 import           Servant.Extra               ()
+import           Servant.Prometheus          (HasEndpoint, enumerateEndpoints, getEndpoint)
 import           Web.Cookie                  (SetCookie, defaultSetCookie, parseCookies, setCookieExpires,
                                               setCookieHttpOnly, setCookieMaxAge, setCookieName, setCookiePath,
                                               setCookieSecure, setCookieValue)
 import qualified Web.JWT                     as JWT
-
-instance (HasEndpoint (a :: *)) => HasEndpoint (BrowserHeader "Cookie" Text :> a) where
-  getEndpoint      _ _ = Nothing
-  enumerateEndpoints _ = []
 
 -- | https://gist.github.com/alpmestan/757094ecf9401f85c5ba367ca20b8900
 type GetRedirect headers = Verb 'GET 302 '[ JSON] (headers NoContent)
