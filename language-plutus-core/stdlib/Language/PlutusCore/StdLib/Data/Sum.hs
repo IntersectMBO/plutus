@@ -27,7 +27,8 @@ sum = runQuote $ do
         . TyLam () a (Type ())
         . TyLam () b (Type ())
         . TyForall () r (Type ())
-        . TyFun () (TyFun () (TyVar () a) . TyFun () (TyVar () b) $ TyVar () r)
+        . TyFun () (TyFun () (TyVar () a) $ TyVar () r)
+        . TyFun () (TyFun () (TyVar () b) $ TyVar () r)
         $ TyVar () r
 
 -- | 'Left' as a PLC term.

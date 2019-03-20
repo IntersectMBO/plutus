@@ -1,6 +1,8 @@
+{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module Language.PlutusCore.Constant.Function
     ( flattenSizeEntry
@@ -11,7 +13,6 @@ module Language.PlutusCore.Constant.Function
     , typedBuiltinSizedToType
     , withTypedBuiltinSized
     , withTypedBuiltin
-    , typeSchemeResult
     , typedBuiltinToType
     , typeSchemeToType
     , dynamicBuiltinNameMeaningToType
@@ -27,6 +28,9 @@ import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 
 import qualified Data.Map                           as Map
+import           Data.Proxy
+import qualified Data.Text                          as Text
+import           GHC.TypeLits
 
 -- | Extract the 'Size' from a 'SizeEntry'.
 flattenSizeEntry :: SizeEntry Size -> Size
@@ -65,12 +69,6 @@ withTypedBuiltinSized BuiltinSizedSize k = k TypedBuiltinSizedSize
 withTypedBuiltin :: BuiltinType size -> (forall a. TypedBuiltin size a -> c) -> c
 withTypedBuiltin (BuiltinSized se b) k = withTypedBuiltinSized b $ k . TypedBuiltinSized se
 
--- | The resulting 'TypedBuiltin' of a 'TypeScheme'.
-typeSchemeResult :: TypeScheme () a r -> TypedBuiltin () r
-typeSchemeResult (TypeSchemeBuiltin tb)   = tb
-typeSchemeResult (TypeSchemeArrow _ schB) = typeSchemeResult schB
-typeSchemeResult (TypeSchemeAllSize schK) = typeSchemeResult (schK ())
-
 -- | Convert a 'TypedBuiltin' to the corresponding 'Type'.
 typedBuiltinToType :: TypedBuiltin (Type TyName ()) a -> Type TyName ()
 typedBuiltinToType (TypedBuiltinSized se tbs) =
@@ -84,10 +82,16 @@ typedBuiltinToType dyn@TypedBuiltinDyn        = toTypeEncoding dyn
 typeSchemeToType :: TypeScheme (Type TyName ()) a r -> Type TyName ()
 typeSchemeToType = runQuote . go 0 where
     go :: Int -> TypeScheme (Type TyName ()) a r -> Quote (Type TyName ())
-    go _ (TypeSchemeBuiltin tb)      = pure $ typedBuiltinToType tb
-    go i (TypeSchemeArrow schA schB) =
+    go _ (TypeSchemeBuiltin tb)         = pure $ typedBuiltinToType tb
+    go i (TypeSchemeArrow schA schB)    =
         TyFun () <$> go i schA <*> go i schB
-    go i (TypeSchemeAllSize schK)    = do
+    go i (TypeSchemeAllType proxy schK) = case proxy of
+        (_ :: Proxy '(text, uniq)) -> do
+            let text = Text.pack $ symbolVal @text Proxy
+                uniq = fromIntegral $ natVal @uniq Proxy
+                a    = TyName $ Name () text $ Unique uniq
+            TyForall () a (Type ()) <$> go i (schK TypedBuiltinDyn)
+    go i (TypeSchemeAllSize schK)       = do
         s <- freshTyName () $ "s" <> prettyText i
         a <- go (succ i) . schK $ TyVar () s
         return $ TyForall () s (Size ()) a

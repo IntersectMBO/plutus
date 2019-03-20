@@ -1,6 +1,7 @@
 -- | This module defines tools for associating PLC terms with their corresponding
 -- Haskell values.
 
+{-# LANGUAGE DataKinds                 #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GADTs                     #-}
 
@@ -55,6 +56,14 @@ newtype DenotationContext = DenotationContext
 -- Here the only search that we need to perform is the search for things that return an appropriate @r@,
 -- be them variables or functions. Better if we also take types of arguments into account, but it is
 -- not required as we can always generate an argument out of thin air in a rank-0 setting (without @Void@).
+
+-- | The resulting 'TypedBuiltin' of a 'TypeScheme'.
+typeSchemeResult :: TypeScheme () a r -> TypedBuiltin () r
+typeSchemeResult (TypeSchemeBuiltin tb)     = tb
+typeSchemeResult (TypeSchemeArrow _ schB)   = typeSchemeResult schB
+typeSchemeResult (TypeSchemeAllType _ schK) =
+    typeSchemeResult . schK $ error "A variable can't escape its scope"
+typeSchemeResult (TypeSchemeAllSize schK)   = typeSchemeResult (schK ())
 
 -- | Get the 'Denotation' of a variable.
 denoteVariable :: Name () -> TypedBuiltin size r -> r -> Denotation (Name ()) size r

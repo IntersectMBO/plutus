@@ -2,11 +2,14 @@
 -- See the @plutus/language-plutus-core/docs/Constant application.md@
 -- article for how this emerged.
 
+{-# LANGUAGE DataKinds                 #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GADTs                     #-}
+{-# LANGUAGE KindSignatures            #-}
 {-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE OverloadedStrings         #-}
 {-# LANGUAGE RankNTypes                #-}
+{-# LANGUAGE TypeApplications          #-}
 
 module Language.PlutusCore.Constant.Typed
     ( BuiltinSized (..)
@@ -24,6 +27,7 @@ module Language.PlutusCore.Constant.Typed
     , Evaluate
     , Convert
     , KnownDynamicBuiltinType (..)
+    , QuotedTerm (..)
     , eraseTypedBuiltinSized
     , runEvaluate
     , withEvaluator
@@ -43,7 +47,10 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import qualified Data.ByteString.Lazy.Char8                  as BSL
 import           Data.Map                                    (Map)
+import           Data.Proxy
 import           Data.Text                                   (Text)
+import qualified Data.Text                                   as Text
+import           GHC.TypeLits
 
 infixr 9 `TypeSchemeArrow`
 
@@ -131,11 +138,17 @@ data TypedBuiltinValue size a = TypedBuiltinValue (TypedBuiltin size a) a
 data TypeScheme size a r where
     TypeSchemeBuiltin :: TypedBuiltin size a -> TypeScheme size a a
     TypeSchemeArrow   :: TypeScheme size a q -> TypeScheme size b r -> TypeScheme size (a -> b) r
+    TypeSchemeAllType
+        :: (KnownSymbol text, KnownNat uniq)
+           -- Here we require the user to manually provide the unique of a type variable.
+           -- That's nothing but silly, but I do not see what else we can do with the current design.
+           -- Once the 'BuiltinPipe' thing gets implemented, we'll be able to bind 'uniq' inside
+           -- the continuation and also put there the @KnownNat uniq@ constraint
+           -- (i.e. use universal quantification for uniques) and that should work alright.
+        => Proxy '(text, uniq)
+        -> (forall qt. qt ~ QuotedTerm text uniq => TypedBuiltin size qt -> TypeScheme size a r)
+        -> TypeScheme size a r
     TypeSchemeAllSize :: (size -> TypeScheme size a r) -> TypeScheme size a r
-    -- This is nailed to @size@ rather than being a generic @TypeSchemeForall@ for simplicity
-    -- and because at the moment we do not need anything else.
-    -- We can make this generic by parametrising @TypeScheme@ by an
-    -- @f :: Kind () -> *@ rather than @size@.
 
     -- The @r@ is rather ad hoc and needed only for tests.
     -- We could use type families to compute it instead of storing as an index.
@@ -312,6 +325,10 @@ readDynamicBuiltinM
     => Term TyName Name () -> Evaluate m (Convert dyn)
 readDynamicBuiltinM term = withEvaluator $ \eval -> readDynamicBuiltin eval term
 
+newtype QuotedTerm (text :: Symbol) (unique :: Nat) = QuotedTerm
+    { unQuotedTerm :: Term TyName Name ()
+    }
+
 instance Pretty BuiltinSized where
     pretty BuiltinSizedInt  = "integer"
     pretty BuiltinSizedBS   = "bytestring"
@@ -352,3 +369,15 @@ instance KnownDynamicBuiltinType () where
         pure $ lift res >>= \case
             Constant () (BuiltinInt () 1 1) -> pure ()
             _                               -> throwError "Not a builtin ()"
+
+instance (KnownSymbol text, KnownNat uniq) =>
+        KnownDynamicBuiltinType (QuotedTerm text uniq) where
+    toTypeEncoding _ =
+        TyVar () . TyName $
+            Name ()
+                (Text.pack $ symbolVal @text Proxy)
+                (Unique . fromIntegral $ natVal @uniq Proxy)
+
+    makeDynamicBuiltin = pure . unQuotedTerm
+
+    readDynamicBuiltin eval term = lift . fmap QuotedTerm <$> eval mempty term

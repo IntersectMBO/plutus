@@ -20,7 +20,6 @@ import qualified Language.PlutusCore.Check.ValueRestriction              as VR
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.CkMachine
-import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 import           Language.PlutusCore.Generators.Internal.Utils
 import           Language.PlutusCore.Name
@@ -83,7 +82,7 @@ typeEvalCheckBy
 typeEvalCheckBy eval (TermOf term tbv) = TermOf term <$> do
     _ <- VR.checkTerm term
     termTy <- runQuoteT $ inferType defOffChainConfig term
-    let resExpected = maybeToEvaluationResult $ makeBuiltin tbv
+    let resExpected = reoption $ makeBuiltin tbv
     fmap (TypeEvalCheckResult termTy) $
         for ((,) <$> resExpected <*> eval term) $ \(valExpected, valActual) ->
             if valExpected == valActual
@@ -98,4 +97,4 @@ unsafeTypeEvalCheck termOfTbv = do
     let errOrRes = typeEvalCheckBy evaluateCk termOfTbv
     case errOrRes of
         Left err         -> errorPlc err
-        Right termOfTecr -> traverse (evaluationResultToMaybe . _termCheckResultValue) termOfTecr
+        Right termOfTecr -> traverse (reoption . _termCheckResultValue) termOfTecr
