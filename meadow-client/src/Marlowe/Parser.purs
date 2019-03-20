@@ -9,9 +9,12 @@ import Data.List (List)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (wrap)
 import Marlowe.Types (BlockNumber, Choice, Contract(..), IdAction, IdChoice, IdCommit, IdOracle, LetLabel, Observation(..), Person, Timeout, Value(..))
-import Text.Parsing.Simple (Parser, char, fail, fix, integral, parens, some, space, string, whitespace)
+import Text.Parsing.Simple (Parser, char, fail, fix, integral, many, parens, some, string, whitespace)
 
 -- All arguments are space separated so we add **> to reduce boilerplate
+
+maybeSpaces :: Parser String (List Char)
+maybeSpaces = many whitespace
 
 spaces :: Parser String (List Char)
 spaces = some whitespace
@@ -37,10 +40,13 @@ bigInteger = do
 
 idChoice :: Parser String IdChoice
 idChoice = parens do
+  void maybeSpaces 
   first <- bigInteger
+  void maybeSpaces 
   void $ char ','
-  void space
+  void maybeSpaces 
   second <- bigInteger
+  void maybeSpaces 
   pure $ wrap { choice: first, person: second }
 
 choice :: Parser String Choice
@@ -148,4 +154,8 @@ recContract
     value' = atomValue <|> fix (\p -> parens value)
 
 contract :: Parser String Contract
-contract = atomContract <|> recContract
+contract = do void maybeSpaces
+              c <- (atomContract <|> recContract)
+              void maybeSpaces
+              pure c
+
