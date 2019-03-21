@@ -57,6 +57,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      -- * Custom functions
                      , (<<$>>)
                      , (<<*>>)
+                     , forBind
                      , foldMapM
                      , repeatM
                      , (?)
@@ -216,6 +217,9 @@ f <<*>> a = getCompose $ Compose f <*> Compose a
 -- | Makes an effectful function ignore its result value and return its input value.
 through :: Functor f => (a -> f b) -> (a -> f a)
 through f x = f x $> x
+
+forBind :: (Monad m, Traversable m, Applicative f) => m a -> (a -> f (m b)) -> f (m b)
+forBind a f = join <$> traverse f a
 
 -- | Fold a monadic function over a 'Foldable'. The monadic version of 'foldMap'.
 foldMapM :: (Foldable f, Monad m, Monoid b) => (a -> m b) -> f a -> m b
