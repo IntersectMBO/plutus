@@ -46,8 +46,9 @@ in pkgs.lib.fix (jobsets:  mapped // {
         allLinux = x: map (system: x.${system}) [ "x86_64-linux" ];
         all = x: map (system: x.${system}) supportedSystems;
       in
-    [
-      (builtins.concatLists (map lib.attrValues (all jobsets.all-plutus-tests)))
-    ] ++ (builtins.attrValues jobsets.tests) ++ (builtins.attrValues jobsets.docs) ++ [jobsets.plutus-playground.client];
+      [ (builtins.concatLists (map lib.attrValues (all jobsets.all-plutus-tests))) ] 
+      ++ (builtins.attrValues jobsets.tests) 
+      ++ (builtins.attrValues jobsets.docs) 
+      ++ [ jobsets.plutus-playground.client ];
   });
 })
