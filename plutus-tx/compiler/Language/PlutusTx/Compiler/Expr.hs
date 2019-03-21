@@ -84,7 +84,7 @@ convLiteral = \case
     GHC.MachChar c     ->
         case PLC.makeDynamicBuiltin c of
             Just t  -> pure $ PIR.embed t
-            Nothing -> throwPlain $ UnsupportedError "Conversion of character failed"
+            Nothing -> throwPlain $ UnsupportedError "Compilation of character failed"
     GHC.LitInteger _ _ -> throwPlain $ UnsupportedError "Literal (unbounded) integer"
     GHC.MachWord _     -> throwPlain $ UnsupportedError "Literal word"
     GHC.MachWord64 _   -> throwPlain $ UnsupportedError "Literal word64"
@@ -114,7 +114,7 @@ convDataConRef dc =
         -- TODO: this is inelegant
         index <- case elemIndex dc dcs of
             Just i  -> pure i
-            Nothing -> throwPlain $ ConversionError "Data constructor not in the type constructor's list of constructors!"
+            Nothing -> throwPlain $ CompilationError "Data constructor not in the type constructor's list of constructors"
 
         pure $ constrs !! index
 
@@ -221,7 +221,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
 
                 (tc, argTys) <- case GHC.splitTyConApp_maybe scrutineeType of
                     Just (tc, argTys) -> pure (tc, argTys)
-                    Nothing      -> throwPlain $ ConversionError "Scrutinee's type was not a type constructor application"
+                    Nothing      -> throwPlain $ CompilationError "Scrutinee's type was not a type constructor application"
                 dcs <- getDataCons tc
 
                 branches <- forM dcs $ \dc -> case GHC.findAlt (GHC.DataAlt dc) alts of
@@ -231,7 +231,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
                             -- matching on Maybe Int it is [Int] (crucially, not [a])
                             instArgTys = GHC.dataConInstOrigArgTys dc argTys
                         in convAlt lazyCase instArgTys alt
-                    Nothing  -> throwPlain $ ConversionError "No case matched and no default case"
+                    Nothing  -> throwPlain $ CompilationError "No case matched and no default case"
 
                 let applied = PIR.mkIterApp () instantiated branches
                 -- See Note [Case expressions and laziness]
@@ -261,8 +261,8 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
                     constr <- head <$> getConstructorsInstantiated outer
                     pure $ PIR.Apply () constr body'
                 _ -> throwSd UnsupportedError $ "Coercion" GHC.$+$ GHC.ppr coerce
-        GHC.Type _ -> throwPlain $ ConversionError "Cannot convert types directly, only as arguments to applications"
-        GHC.Coercion _ -> throwPlain $ ConversionError "Coercions should not be converted"
+        GHC.Type _ -> throwPlain $ UnsupportedError "Types as standalone expressions"
+        GHC.Coercion _ -> throwPlain $ UnsupportedError "Coercions as expressions"
 
 convExprWithDefs :: Converting m => GHC.CoreExpr -> m PIRTerm
 convExprWithDefs e = do

@@ -59,10 +59,10 @@ instance (PP.Pretty c, PP.Pretty e) => PP.Pretty (WithContext c e) where
 
 data Error a = PLCError (PLC.Error a)
              | PIRError (PIR.Error (PIR.Provenance a))
-             | ConversionError T.Text
+             | CompilationError T.Text
              | UnsupportedError T.Text
              | FreeVariableError T.Text
-             | ValueRestrictionError T.Text
+             | ValueRestrictionError
              deriving Typeable
 makeClassyPrisms ''Error
 
@@ -77,9 +77,9 @@ instance PIR.AsError ConvError (PIR.Provenance ()) where
 
 instance (PP.Pretty a) => PLC.PrettyBy PLC.PrettyConfigPlc (Error a) where
     prettyBy config = \case
-        PLCError e -> PLC.prettyBy config e
-        PIRError e -> PLC.prettyBy config e
-        ConversionError e -> "Error during conversion:" PP.<+> PP.pretty e
-        UnsupportedError e -> "Unsupported:" PP.<+> PP.pretty e
-        FreeVariableError e -> "Used but not defined in the current conversion:" PP.<+> PP.pretty e
-        ValueRestrictionError e -> "Violation of the value restriction:" PP.<+> PP.pretty e
+        PLCError e -> PP.vsep [ "Error from the PLC compiler:", PLC.prettyBy config e ]
+        PIRError e -> PP.vsep [ "Error from the PIR compiler:", PLC.prettyBy config e ] 
+        CompilationError e -> "Unexpected error during compilation, please report this to the Plutus team:" PP.<+> PP.pretty e
+        UnsupportedError e -> "Unsupported feature:" PP.<+> PP.pretty e
+        FreeVariableError e -> "Reference to a value which is not a local, nor a builtin:" PP.<+> PP.pretty e
+        ValueRestrictionError -> "Attempt to polymorphically generalize something which is not a value (often a let-binding)"

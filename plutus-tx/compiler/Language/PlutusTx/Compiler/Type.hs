@@ -216,7 +216,7 @@ getConstructors tc = do
     maybeConstrs <- PIR.lookupConstructors () (GHC.getName tc)
     case maybeConstrs of
         Just constrs -> pure constrs
-        Nothing      -> throwPlain $ ConversionError "Constructors have not been converted"
+        Nothing      -> throwPlain $ CompilationError "Constructors have not been compiled"
 
 -- | Get the constructors of the given 'Type' (which must be equal to a type constructor application) as PLC terms instantiated for
     -- the type constructor argument types.
@@ -229,17 +229,17 @@ getConstructorsInstantiated t = withContextM (sdToTxt $ "Creating instantiated c
             args' <- mapM convType args
             pure $ PIR.mkIterInst () c args'
     -- must be a TC app
-    _ -> throwPlain $ ConversionError "Type was not a type constructor application"
+    _ -> throwPlain $ CompilationError "Type was not a type constructor application"
 
 -- | Get the matcher of the given 'TyCon' as a PLC term
 getMatch :: Converting m => GHC.TyCon -> m PIRTerm
 getMatch tc = do
-    -- ensure the tycon has been converted, which will create the matcher
+    -- ensure the tycon has been compiled, which will create the matcher
     _ <- convTyCon tc
     maybeMatch <- PIR.lookupDestructor () (GHC.getName tc)
     case maybeMatch of
         Just match -> pure match
-        Nothing    -> throwPlain $ ConversionError "Match has not been converted"
+        Nothing    -> throwPlain $ CompilationError "Match has not been compiled"
 
 -- | Get the matcher of the given 'Type' (which must be equal to a type constructor application) as a PLC term instantiated for
 -- the type constructor argument types.
@@ -251,7 +251,7 @@ getMatchInstantiated t = withContextM (sdToTxt $ "Creating instantiated matcher 
         args' <- mapM convType args
         pure $ PIR.mkIterInst () match args'
     -- must be a TC app
-    _ -> throwPlain $ ConversionError "Type was not a type constructor application"
+    _ -> throwPlain $ CompilationError "Type was not a type constructor application"
 
 -- | Make the alternative for a given 'CoreAlt'.
 convAlt
