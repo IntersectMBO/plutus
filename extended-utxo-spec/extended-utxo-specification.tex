@@ -1,0 +1,573 @@
+%% Plutus Core Specification
+
+\newcommand\version{0.0}
+
+\documentclass[a4paper]{article}
+% Let's try full width text to see if it makes 
+% it easier to get figures in the right place
+
+\usepackage{blindtext, graphicx}
+\usepackage{url}
+
+% *** MATHS PACKAGES ***
+%
+\usepackage[cmex10]{amsmath}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+\usepackage{amsthm}
+
+% *** ALIGNMENT PACKAGES ***
+%
+\usepackage{array}
+\usepackage{float}  %% Try to improve placement of figures.  Doesn't work well with subcaption package.
+\usepackage{subcaption}
+\usepackage{caption}
+
+% correct bad hyphenation here
+\hyphenation{}
+
+\usepackage{subfiles}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{verbatim}
+
+
+%%% General Misc. Definitions
+
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand{\redfootnote}[1]{\red{\footnote{\red{#1}}}}
+\newcommand{\blue}[1]{\textcolor{blue}{#1}}
+\newcommand{\bluefootnote}[1]{\blue{\footnote{\blue{#1}}}}
+
+\theoremstyle{definition}  %% This applies to all following \newtheorem items
+\newtheorem{definition}{Definition}
+\newtheorem{example}{Example}
+
+%% ------------- Start of document ------------- %%
+
+\begin{document}
+\title{Formal Specification of the Extended UTxO Model\\ Version \version}
+\maketitle
+
+\thispagestyle{plain}
+\pagestyle{plain}
+
+\section{The Extended UTXO Model}
+\label{sec:extended-utxo-model}
+There are currently two basic models for keeping track of assets
+owned by users on a blockchain: the \i{Unspent Transaction Output}
+(UTXO) model used by Bitcoin, and an account-based model used by
+Ethereum. Most existing blockchain systems use a variant of one or the
+other of these.
+
+\subsection{Accounts}
+In account-based models, each user has an account keeping track of all
+of their assets, similarly to a standard bank account.  When a
+transaction requires funds from a user, the user's account is
+consulted to make sure that the funds are available.  This model has
+the merits of simplicity and familiarity, but also presents some
+difficulties: in particular, accounts involve global mutable state,
+which leads to well-known problems, especially when multiple
+transactions access an account concurrently.
+
+
+\blue{This needs expansion by someone who knows what they're talking about.}
+
+\subsection{UTXO}
+The UTXO model~\cite[Chapter 3]{Narayanan-bitcoin} is more like a model of cash flowing through a network
+of transactions.  Each transaction consumes unspent outputs from
+previous transactions and produces new outputs which can be used in
+later transactions: UTXOs are outputs which have not yet been used and
+are thus available for spending.  Somewhat confusingly, unspent
+outputs which are consumed by a transaction are referred to as the
+transaction's \i{inputs}. Figure~\ref{fig:utxo} contains a schematic
+reperesentation of the flow of outputs; time progresses from left to
+right, transactions are represented by grey rectangles, outputs by
+black lines, and inputs by red lines.  Unspent outputs are ones which
+are not connected to any input.
+
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{figures/UTXO.pdf}
+\end{center}
+\caption{Flow of UTXOs \blue{(Find/make a better image)}}
+\label{fig:utxo}
+\end{figure}
+
+
+When a user wishes to provide funds as inputs to a transaction, they
+(in practice, their wallet) must select which particular UTXOs are to
+be spent.  It is important that an output cannot be spent twice, so
+all of the unspent transaction outputs are kept in the current block
+where this can easily be checked.  \blue{What impact does this have on
+  scalability?  If the UTXO set gets large then we could be in
+  trouble.  Also, haven't we just reintroduced a large lump of mutable
+  state, which we've just been complaining about wrt accounts? Ah, but
+  there's only one mutable thing instead of lots.}
+
+Note that a user cannot spend a fraction of a UTXO: for example, if
+they wish to provide 7 units of currency as input to a transaction but
+only have a UTXO of 10 units, then they must pay the entire 10 units
+and receive a new UTXO for 3 units in change.
+
+UTXOs are destroyed when they are consumed as inputs and new ones are
+created as outputs: they are thus similar to linearly typed objects,
+and we get a form of automatic garbage collection.  It is however
+possible to create UTXOs which can never be spent and thus persist
+for ever.  \blue{We might want to mention that you can view the ledger
+  as some kind of dataflow system.}
+
+Each UTXO has an address which can be used to identify it. A user's
+wallet will contain the addresses of UTXOs which the user owns or has
+some interest in.  In Cardano, it is possible for a contract to set
+\i{triggers} which inform a user's wallet when some particular event
+of interest occurs on the chain (for example, if a contract produces
+at output which can be claimed by the user, or if some decision is
+required by the user), and the wallet could respond in some
+appropriate way, either automatically or in response to some input by
+the user.  There is a formal specification of the Cardano wallet
+in~\cite{Cardano-wallet-spec}, although this does not at present
+reflect the extensions which we have introduced to the UTXO model.
+
+\subsection{Locking outputs with scripts}
+\label{sec:scripts}
+There is no well-defined notion of ownership for UTXOs.  In many
+transactions an output will accrue to a single user who is then
+entitled to spend it at a later date.  However, in general the notion
+of ownership is more complex: an output of a contract might require
+the cooperation of several users before it could be spent, or it might
+not be spendable until some other condition has been met (for example
+a certain period of time may have to pass).  At the extremes, an
+output could be spendable by anyone, or by no-one.
+
+In order to deal with this complexity, an output can be locked by a
+\i{script}, requiring another script to unlock it.  In Plutus, scripts
+are Plutus Core programs (equivalently, expressions). Three separate
+scripts are involved when a transaction $T$ wants to unlock an
+output $O$ which was produced by a transaction $S$:
+
+When $T$ wants to unlock $O$,
+the redeemer for the appropriate input of $T$ is applied to three arguments:
+\begin{itemize}
+\item A \textit{datascript}, provided by the producer $S$.
+\item A \textit{validator} script, provided by the producer $S$. 
+\item A \textit{redeemer} script, provided by the consumer $T$.  
+\end{itemize}
+
+\blue{The GitHub page on Extended UTXO at
+  https://github.com/input-output-hk/plutus/tree/master/docs/extended-utxo
+  says ``The validator script must be submitted as part of the
+  consuming transaction's input, but its content is determined by the
+  producing transaction.''. I'm finding this difficult to explain.}
+
+
+ When $T$ wants to unlock $O$, the validator for $O$ of $T$ is applied
+ to three arguments: the redeemer script, the data script, and
+ information (supplied by the slot leader) about the current
+ transaction and the state of the blockchain, described by some type
+ $P$.
+
+\begin{example} In a crowdfunding campaign, each contribution is recorded on the blockchain as an output locked by the campaign's validator script. The data script of the contribution's output contains the identity, in form of a public key, of the contributor. 
+
+\begin{verbatim}
+
+  -- The data script
+  newtype Contributor = Contributor PublicKey
+
+\end{verbatim}
+
+If the campaign is successful, the campaign owner collects all contributions as inputs of a single transaction. If it fails, then the contributors may claim a refund of their contribution using separate transactions, spending only a single output. The redeemer script is used to distinguish these two outcomes and authorise the payment, carrying the signature of either the campaign owner's or the contributor's private key.
+
+\begin{verbatim}
+  -- A type used in the redeemer script to indicate which of the two outcomes 
+  -- of the campaign has been realised
+  data Action = Refund | Collect 
+
+  -- The type of the redeemer script, containing a signed 'Action'
+  type SignedAction = (Action, Signature)
+\end{verbatim}
+
+\end{example}
+
+If the result evaluates to anything other than the Plutus Core
+\t{error} term then validation succeeds and the output is unlocked.
+
+Every input of a transaction has an associated redeemer and for the
+transaction to proceed the redemption of every input must be validated
+successfully.
+
+In the current Plutus implementation, the type $P$ contains the
+following information:
+
+\begin{itemize}
+\item The validity interval of $T$.
+\item The hash of $T$.
+\item For every input of $T$, its value and the hashes of its
+  validator, data, and redeemer scripts (if the input refers to an output locked by a script) or the public key and signature (if it refers to an output locked by a public key)
+\item For every output of $T$, its value and the hash of its validator
+  and data script, or the public key that owns it
+%\item The sum of the values of all unspent outputs (of the current
+  %blockchain without $T$) which are locked by $O$'s validator script.
+\end{itemize}
+
+The expressivity of contracts depends on the choice of $P$, and $P$
+may be extended in future to include more information if required.
+
+\begin{example} The type $P$ is called $\mathtt{PendingTx}$ in the Plutus 
+library. In the crowdfunding campaign we use the $\mathtt{PendingTx}$ 
+argument's information about inputs spent by the pending tranasction to ensure 
+that the funding target of the campaign has been reached:
+
+\begin{verbatim}
+  fundingTargetReached :: Q (TExp (PendingTx -> Ada -> Bool))
+  fundingTargetReached = [|| 
+    \p target -> 
+      let
+        totalInputs :: Ada
+        totalInputs =
+              let addToTotal (PendingTxIn _ _ vl) total = 
+                      let adaVl = $$(Ada.fromValue) vl 
+                      in $$(Ada.plus) total adaVl
+
+              in $$(P.foldr) addToTotal $$(Ada.zero) ins
+      in totalInputs >= target
+    ||]
+\end{verbatim}
+
+Note that we use the quoted $\mathtt{foldr}$ from the Plutus prelude instead of the (un-quoted) $\mathtt{foldr}$ from the Haskell prelude. 
+
+\end{example}
+
+\paragraph{Note.}  In Bitcoin parlance the type of transaction described
+above is known as a \i{pay-to-script} transaction.  There are a
+number of other standard transaction types covering common
+scenarios: for example \i{pay-to-pubkey}, where an output is locked
+by a public key and the redeemer unlocks it with the corresponding
+private key.  All of these can be expressed by our extended UTXO
+model, so we will not consider any other type of transaction here;
+however, in practice our implementation may provde special cases for
+common transaction patterns to simplify the process of writing
+contracts.
+
+\subsection{Extended UTXO and Standard UTXO}
+
+\blue{This is really feeble.}
+
+Our extended version of the UTXO model genuinely does offer more than
+the standard version, as implemented by Bitcoin.
+
+%% Duncan: Perhaps one approach to explaining this is to start by
+%% noting that classically we don't think of data values flowing along
+%% the edges of the utxo graph, but that this is very useful for
+%% scripts.
+
+\subsubsection{Datascripts}
+\label{sec:datascripts}
+Datascripts allow us to separate information about the state
+of the transaction from the validator script, meaning that we can
+have situations such as a single validator which refunds outputs
+to addresses contained in the data script (as in the crowdfunding
+example).  In the Bitcoin model, each output would require a
+specialised validator, increasing memory usage.
+    
+\subsubsection{Constraining outputs}
+\label{sec:constraining-outputs}
+The fact that the validator receives information about the
+state of the chain allows us to do things like restricting where
+the output of a transaction goes, so it's possible to construct
+graphs of transactions where values are constrained to flow down
+allowed paths. In the classic model if you can validate at all you
+can always take the money and keep it.
+
+\subsubsection{Deterministic Scripts}
+\label{sec:deterministic-scripts}
+When core nodes validate an input spending from a pay-to-script
+address, they supply two pieces of information to the validator
+script: The structure of the transaction that is being validated (in
+form of a list of hashes and signatures), and an indication of the
+current time (expressed in terms of the slot number: see
+\ref{subsection:blockchains}).  After a transaction has been submitted
+to the blockchain, it may linger in the transaction pool for some time
+before being processed by a core node. Allowing validator scripts to
+know the exact slot number of their validation would therefore make
+them non-deterministic, in the sense that their result depends on
+information that is not known at the time the transaction is
+submitted.  Non-determinism is a problem because it makes it
+impossible to accurately compute the gas cost of consuming a
+pay-to-script output, running counter to our stated goals of
+measurable and predictable resource consumption.
+
+In Plutus we add a \emph{validity interval}, an interval of slots, to each 
+transaction's metadata. Core nodes only attempt to validate transactions 
+whose validity interval contains the current slot. When a scripted transaction 
+input is validated, the transaction's validity interval is passed to the 
+validator script, providing information about the current time. Since the 
+validity interval is known at the time the transaction is submitted to the 
+chain, transaction validation in Plutus is completely deterministic.
+
+As a result, the exact amount of gas that is required to run the script can be 
+calculated in advance (by running it), and users do not risk being surprised by 
+failed validations that still incur fees.    
+
+\begin{example}
+
+
+
+The complete validator script of the crowdfunding campaign:
+
+\begin{verbatim}
+crowdfunding :: Campaign -> CompiledCode (Actor -> (Action, Signature) -> PendingTx -> ())
+crowdfunding cmp = applyScript compiledValidate liftedCmp where
+  liftedCmp = lifted cmp
+  compiledValidate = $$(compile [|| 
+    let 
+      validate :: Campaign -> Actor -> (Action, Signature) -> PendingTx -> ()
+      validate cmp act (action, sig) ptx =
+
+        case action of
+          Collect -> 
+            if $$(fundingTargetReached) ptx (fundingTarget campaign)
+               && $$(signedBy) action sig (campaignOwner sig)
+               && $$(before) (cpDeadline cmp) (validityInterval ptx) 
+          Refund -> (...) -- omitted for brevity
+    in validate
+    ||])
+\end{verbatim}
+
+The function
+
+\begin{verbatim}
+  applyScript :: CompiledCode (a -> b) -> CompiledCode a -> CompiledCode b
+\end{verbatim}
+
+applies a compiled function to a compiled argument. In the example above we use $\mathtt{applyScript}$ to implement a parameterised smart contract, by applying $\mathtt{compiledValidate}$ (produced by the GHC plugin while compiling the Haskell module) to $\mathtt{liftedCmp}$ (produced by the $\mathtt{Lift}$ instance of $\mathtt{Campaign}$ while running the Haskell module). The result is a compiled function of three arguments: data script, redeemer script, and pending transaction data, the shape required for all validator scripts.
+
+\end{example}
+
+
+\subsection{A Formal Description of the Extended UTXO Model}
+\label{subsection:extended-utxo}
+The papers~\cite{Zahnentferner18-UTxO}
+and~\cite{Zahnentferner18-Chimeric} contain a mathematical description
+of the UTXO model. In this section we extend this description to cover
+the Extended UTXO model.  The description is given in a
+straightforward set-theoretic form, which (a) admits an almost direct
+translation into Haskell, and (b) should easily be amenable to
+mechanical formalisation.  This will potentially allow us to argue
+formally about smart contracts and to develop tools for automatic
+contract analysis.
+
+A validator script is a function of three arguments: the data script
+of type $d$, redeemer script of type $r$, and information of type $P$
+about the pending transaction (see Section~\ref{sec:scripts}).  If the
+script terminates without producing an error, the input-output pair is
+valid. The types $d$ and $r$ vary from script to script, and they are
+not relevant for our model. $P$ on the other hand is the same for all
+pay-to-script transactions on the blockchain, and it plays a crucial
+role in determining the kinds of contracts we can write.
+
+$P$ is the only way for a validator script to see beyond its own
+input-output pair and get information about the transaction that it is
+part of, and about the blockchain.\footnote{Note that $P$ subsumes
+  $\mathtt{blockheight}$ and related primitives in the spec} That has
+two implications. First, for any definition of $P$ there should be a
+map $\sigma_P : \mathsf{Ledger} \times \mathsf{Transaction} \times
+\mathsf{Input} \rightarrow \mathsf{Script}$ that generates a script
+with a $P$ value from the ledger, the current transaction, and the
+input that is being validated. Second, by varying $P$ -- and hence
+the information available to validator scripts -- we can directly
+change the kinds of contracts that can be expressed in
+\textsc{Plutus}. For example, if we decide that $P = ()$, the unit
+type, then our validator scripts would not get any data about the
+wider transaction at all. In this setting even our crowdfunding
+campaign would be impossible to write because it requires the script
+to know the total value of all contributions, and hence the total
+value of all inputs to the transaction.  On the other hand, if $P$
+is too large (for example, if it requires searching far back in the
+history of the chain), then it could be expensive to calculate.
+Parameterising things over $P$ allows us to explore these 
+sorts of issues in a unified way.
+
+In the remainder of this section we are going to use the type
+$\mathsf{Script}$ for all scripts, ignoring the Plutus-language types
+$d$, $r$ and $P$, and focusing on the blockchain information
+generating function $\sigma$ (dropping the subscript).
+
+\subsubsection{Notation}
+We generally follow the notation established by
+\cite{Zahnentferner18-UTxO}. Types are typeset in
+$\mathsf{sans~serif}$. All scripts are of type $\mathsf{Script}$.  The
+only operation on $\mathsf{Script}$ from the ledger's perspective is
+applying a validator script to three arguments, which is denoted by
+$\llbracket \cdots \rrbracket : \mathsf{Script} \rightarrow
+\mathsf{Script} \times \mathsf{Script} \times \mathsf{Script}
+\rightarrow \mathbb{V}$ where $\mathbb{V}$ is some type containing a
+distiguished value \textsf{error} (we could equally well use the type
+of booleans, but the version involving \textsf{error} fits Plutus Core
+better).
+
+A record data type with fields $\phi_1, \ldots, \phi_n$ of types $T_1,
+\ldots, T_n$ is denoted $(\phi_1 : T_1, \ldots, \phi_n : T_n)$. If $t$
+is a value of a record data type $T$ and $\phi$ is the name of a field
+of $T$ then $t.\phi$ denotes the value of $\phi$ for $t$. A list
+$\lambda$ of type $\mathsf{List[}T\mathsf{]}$ is either the empty list
+$[]$ or a list $e :: \lambda'$ with $head$ $e$ of type $T$ and $tail$
+$\lambda'$ of type $\mathsf{List[T]}$. We denote the $i$-th element of
+a list $L$ by $L[i]$.  The concatenation of two lists $\lambda_1$ and
+$\lambda_2$ is denoted $\lambda_1 ::: \lambda_2$. $x \mapsto f(x)$
+denotes an anonymous function.  A cryptographic collision-resistant
+hash of a value $c$ is denoted $c^{\#}$.  If any operation fails (for
+example, indexing a list out of range or trying to spend an output
+which has already been spent) then we assume that the containing script
+returns \textsf{error} immediately.
+
+
+
+We have the following basic types, all of which we regard as aliases for
+the type of natural numbers:
+\begin{itemize}
+\item \textsf{Value}: a currency value
+\item \textsf{SlotNumber}: a slot number
+  \item \textsf{Address}: the address of an object in the blockchain
+\item \textsf{TxId}: the identifier of a previous transaction on the chain.
+\end{itemize}
+
+\noindent In practice an \textsf{Address} will usually be a hash of some object
+(for example, a script), and the blockchain will provide an efficient
+way to retrieve the original object given its hash.  Similarly, a
+\textsf{TxId} will be the hash of a transaction.  Accessing objects
+indirectly via addresses is helpful because it can help to reduce
+memory and disk usage: for example, there may be scripts for common
+validation scenarios used in many transactions, and it is more
+efficient to store single copies of such scripts rather than having
+hundreds of transactions each with their own copy.
+
+\subsubsection{The Definition of Extended UTXO}
+
+The definitions in this section are essentially the definitions of
+UTXO-based cryptocurrencies with scripts \cite{Zahnentferner18-UTxO},
+with the following additions:
+\begin{itemize}
+\item Every transaction now has a validity interval (see above).
+\item Every output has an asssociated datascript.
+\item The notion of validity (Definition
+  \ref{def:validity})is now parameterised by $\sigma$, the
+  function which provides state information.
+\end{itemize}
+
+\newcommand{\mi}[1]{\mathit{#1}}
+\newcommand{\inputs}{\mathit{inputs}}
+\newcommand{\outputs}{\mathit{outputs}}
+\newcommand{\forge}{\mathit{forge}}
+\newcommand{\fee}{\mathit{fee}}
+\newcommand{\addr}{\mathit{address}}
+\newcommand{\val}{\mathit{value}}
+
+\newcommand{\slotnum}{\mathsf{SlotNumber}}
+\newcommand{\spent}{\mathsf{spentOutputs}}
+\newcommand{\unspent}{\mathsf{unspentOutputs}}
+\newcommand{\xutox}{\mathsf{XUtxoTx}}
+
+\noindent\begin{definition}[Transaction]
+The datatype for script-address UTXO-based transactions is defined as 
+  \begin{align*}
+    \xutox = ( &\inputs: \mathsf{Set[Input]},\\
+    &\outputs: \mathsf{List[Output]},\\
+    &\mathit{validityInterval}: \slotnum \times \slotnum,\\
+                        &\forge: \mathsf{Value}, \fee: \mathsf{Value})\\
+  \end{align*}
+
+\noindent Note that we have a \textsf{Set} of inputs but a
+\textsf{List} of outputs; we use a list because any subsequent
+transaction attempting to use an output $O$ as an input will have to
+be able to determine exactly where $O$ came from.
+
+
+\noindent  The datatype for $outputs$ is:
+  \[
+      \mathsf{Output} = (\addr: \mathsf{Address}, \val: \mathsf{Value}, \mi{datascript}: \mathsf{Script})
+    \]
+  Output references are
+  \[
+    \mathsf{OutputRef} = (\mi{id}: \mathsf{Id}, \mi{index}: \mathsf{Int})
+  \]
+  and inputs
+  \begin{align*}
+    \mathsf{Input} = (& \mi{outputRef}: \mathsf{OutputRef},\\
+                      & \mi{validator}: \mathsf{Script},\\
+                      & \mi{redeemer}: \mathsf{Script})\\
+  \end{align*}
+\end{definition}
+
+
+\noindent The type $\mathsf{Ledger}$ is then a list of $\xutox$. From
+\cite{Zahnentferner18-UTxO} we also get the function
+
+\[
+  \unspent : \mathsf{Ledger} \rightarrow \mathsf{Set[OutputRef]}
+\]
+
+\noindent given by
+
+\begin{align*}
+   \unspent([]) &=\emptyset \\
+   \unspent(t:::\lambda) &= (\unspent(\lambda) \setminus \spent(\lambda)) \\
+    & \qquad \cup \unspent(t)
+\end{align*}
+
+\noindent where $\spent(t) = t.\inputs$ for $t \in \xutox$.
+
+Finally, we define transaction validity for a given $\sigma$. Our definition
+\ref{def:validity} combines Definitions 6 and 14 from
+\cite{Zahnentferner18-UTxO}, differing from the latter in condition
+\ref{all-inputs-validate}. Here we include the blockchain-information
+generating function $\sigma : \mathsf{Ledger} \times
+\mathsf{Transaction} \times \mathsf{Input} \rightarrow
+\mathsf{Script}$.
+
+\begin{definition}[$\sigma$-Validity]\label{def:validity} A transaction $t$ is $\sigma$-\emph{valid} for a ledger $\lambda$ if the following conditions hold:
+  \begin{enumerate} 
+    \item \label{all-inputs-refer-to-unspent-outputs} \textbf{all
+      inputs refer to unspent outputs:}
+      \[
+        \forall i \in t.\inputs: i \in \unspent(\lambda)
+      \]
+    \item \label{value-is-preserved} \textbf{value is preserved}:
+    \[
+      t.\forge + \sum_{i \in t.\inputs} t.\mi{value}(i, \lambda) = t.\fee + \sum_{o \in t.\outputs} o.\mi{value}
+    \]
+    \item \label{no-double-spending} \textbf{no output is double spent:}
+    \[
+      |t.\inputs| = |\mi{map}\, (i \mapsto i.outputRef)\, (t.\mi{inputs})|
+    \]
+    \item\label{all-inputs-validate} \textbf{all inputs validate:}
+    \[
+    \forall i \in t.\inputs,\enspace \llbracket
+    i.\mi{validator}(\mi{out}(i, \lambda).\mi{datascript},i.\mi{redeemer}, \sigma(\lambda, t, i)) \rrbracket \ne \textsf{error}
+      \]
+    \item\label{validator-scripts-hash} \textbf{validator scripts hash to their output addresses:}
+    \[
+      \forall i \in t.\inputs,\enspace i.\mi{validator}^{\#} = \mi{out}(i, \lambda).\mi{address}
+    \]
+  \end{enumerate}
+\end{definition}
+
+In practice, $\sigma$-validity imposes a limit on the size of the
+$\mathsf{Script}$ values of the $validator$, $redeemer$ and
+$datascript$ fields and the result of $\sigma$. The validation of a
+single transaction must take place within one slot, so the evaluation
+of $\llbracket ~ \rrbracket$ cannot take longer than one slot,
+approximately twenty seconds.
+
+By parameterising transaction validity by the blockchain information
+generating function $\sigma$, we obtain an equivalence class of
+transactions that are indistinguishable by validator scripts with
+access to the result of $\sigma$.
+
+\bibliographystyle{plain} %% ... or whatever
+\bibliography{extended-utxo-specification}
+
+
+\end{document}
