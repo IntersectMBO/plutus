@@ -125,10 +125,6 @@ instance Enum SizeVar where
     toEnum = SizeVar
     fromEnum (SizeVar sizeIndex) = sizeIndex
 
--- Who are you?
-forBind :: (Monad m, Traversable m, Applicative f) => m a -> (a -> f (m b)) -> f (m b)
-forBind a f = join <$> traverse f a
-
 -- | Same as 'makeBuiltin', but returns a 'ConstAppResult'.
 makeConstAppResult :: TypedBuiltinValue Size a -> ConstAppResultDef
 makeConstAppResult = maybe ConstAppFailure ConstAppSuccess . makeBuiltin

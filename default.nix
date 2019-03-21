@@ -159,7 +159,8 @@ let
         wrapProgram $out/bin/plutus-playground \
           --set GHC_LIB_DIR "${runtimeGhc}/lib/ghc-${runtimeGhc.version}" \
           --set GHC_BIN_DIR "${runtimeGhc}/bin" \
-          --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d"
+          --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d" \
+          --set GHC_RTS "-M2G"
       '';
 
       client = let
@@ -196,7 +197,8 @@ let
         wrapProgram $out/bin/meadow \
           --set GHC_LIB_DIR "${runtimeGhc}/lib/ghc-${runtimeGhc.version}" \
           --set GHC_BIN_DIR "${runtimeGhc}/bin" \
-          --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d"
+          --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d" \
+          --set GHC_RTS "-M2G"
       ''; 
 
       client = let
