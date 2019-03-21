@@ -1,6 +1,8 @@
 let
-  fixedLib     = import ./lib.nix { };
-  fixedNixpkgs = fixedLib.nixpkgs;
+  localLib     = import ./lib.nix { };
+  fixedNixpkgs = localLib.nixpkgs;
+  nixpkgs = import fixedNixpkgs { };
+  lib = nixpkgs.lib;
 in
   { supportedSystems ? [ "x86_64-linux" "x86_64-darwin" ]
   , scrubJobs ? true
@@ -18,37 +20,42 @@ with (import (fixedNixpkgs + "/pkgs/top-level/release-lib.nix") {
 });
 
 let
-  plutusPkgs = import ./. { };
-  pkgs = import fixedNixpkgs { };
-  haskellPackages = map (name: lib.nameValuePair name supportedSystems) fixedLib.plutusPkgList;
-  # don't need to build the docs on anything other than one platform
-  docs = map (name: lib.nameValuePair name [ "x86_64-linux" ]) (builtins.attrNames plutusPkgs.docs);
-  platforms = {
-    inherit haskellPackages;
-    inherit docs;
-  };
-  mapped = mapTestOn platforms;
-  makePlutusTestRuns = system:
-    let
-      pred = name: value: fixedLib.isPlutus name;
-      plutusPkgs = import ./. { inherit system; };
-      # for things which are split-check then take the test run, otherwise
-      # use the main derivation which will have the tests as part of it
-      f = name: value: if value ? testdata then value.testrun else value;
-    in pkgs.lib.mapAttrs f (lib.filterAttrs pred plutusPkgs.haskellPackages);
-in pkgs.lib.fix (jobsets:  mapped // {
-  inherit (plutusPkgs) tests docs plutus-playground meadow;
-  all-plutus-tests = builtins.listToAttrs (map (arch: { name = arch; value = makePlutusTestRuns arch; }) supportedSystems);
-  required = pkgs.lib.hydraJob (pkgs.releaseTools.aggregate {
+  packageSet = import ./. { };
+
+  # This is a mapping from attribute paths to systems. So it needs to mirror the structure of the
+  # attributes in default.nix exactly
+  systemMapping = supportedSystems: {
+    localPackages = 
+      # Due to the magical split test machinery, packages that have a 'testdata' attribute should
+      # have their tests run via the 'testrun' derivation. I don't know how to *also* have a mapping
+      # for the package itself, since it would collide with the attrset containing 'testrun', but 
+      # the tests will depend on the main package so that's okay.
+      lib.mapAttrs (n: p: if p ? testdata then { testrun = supportedSystems; } else supportedSystems)
+         packageSet.localPackages;
+    plutus-playground = lib.mapAttrs (_: _: supportedSystems) 
+        (lib.filterAttrs (n: v: n != "docker") packageSet.plutus-playground);  
+    meadow = lib.mapAttrs (_: _: supportedSystems) 
+        (lib.filterAttrs (n: v: n != "docker") packageSet.meadow);  
+    docs = lib.mapAttrs (_: _: supportedSystems) packageSet.docs;  
+    tests = lib.mapAttrs (_: _: supportedSystems) packageSet.tests;  
+    dev.packages = lib.mapAttrs (_: _: supportedSystems) packageSet.dev.packages;  
+    dev.scripts = lib.mapAttrs (_: _: supportedSystems) packageSet.dev.scripts;  
+  }; 
+  
+  testJobsets = mapTestOn (systemMapping supportedSystems);
+
+  # Recursively collect all jobs (derivations) in a jobset 
+  allJobs = jobset: lib.collect lib.isDerivation jobset;
+
+in lib.fix (jobsets: testJobsets // {
+  required = lib.hydraJob (nixpkgs.releaseTools.aggregate {
     name = "plutus-required-checks";
-    constituents =
-      let
-        allLinux = x: map (system: x.${system}) [ "x86_64-linux" ];
-        all = x: map (system: x.${system}) supportedSystems;
-      in
-      [ (builtins.concatLists (map lib.attrValues (all jobsets.all-plutus-tests))) ] 
-      ++ (builtins.attrValues jobsets.tests) 
-      ++ (builtins.attrValues jobsets.docs) 
-      ++ [ jobsets.plutus-playground.client ];
+    
+    constituents = (allJobs jobsets.localPackages)
+      ++ (allJobs jobsets.tests)
+      ++ (allJobs jobsets.docs) 
+      ++ (allJobs jobsets.plutus-playground)
+      ++ (allJobs jobsets.meadow)
+      ++ (allJobs jobsets.dev.scripts);
   });
 })

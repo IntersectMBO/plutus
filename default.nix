@@ -221,7 +221,7 @@ let
 
     dev = rec {
       packages = localLib.getPackages {
-        inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "ghcid" ];
+        inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" ];
       };
       scripts = {
         inherit (localLib) regeneratePackages fixStylishHaskell;
