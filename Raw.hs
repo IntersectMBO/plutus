@@ -99,7 +99,7 @@ unconvT :: RType -> Type TyName ()
 unconvT (RTyVar x) = TyVar () (TyName $ mkName x)
 unconvT (RTyFun t u) = TyFun () (unconvT t) (unconvT u)
 unconvT (RTyPi x k t) = TyForall () (TyName $ mkName x) (unconvK k) (unconvT t)
-unconvT (RTyLambda _ _ _) = error "tylam"
+unconvT (RTyLambda x k t) = TyLam () (TyName $ mkName x) (unconvK k) (unconvT t)
 unconvT (RTyApp t u) = TyApp () (unconvT t) (unconvT u)
 unconvT (RTyCon c) = TyBuiltin () c
 unconvT (RTySize i) = TyInt () (naturalFromInteger i)
@@ -116,5 +116,5 @@ unconv (RTApp t ty) = TyInst () (unconv t) (unconvT ty)
 unconv (RLambda x ty tm) = LamAbs () (mkName x) (unconvT ty) (unconv tm)
 unconv (RApp t u) = Apply () (unconv t) (unconv u)
 unconv (RCon c) = Constant () (unconvC c)
-unconv (RError _) = error "error"
+unconv (RError ty) = Error () (unconvT ty)
 unconv (RBuiltin b) = Builtin () (BuiltinName () b)

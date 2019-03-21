@@ -5,9 +5,13 @@ module Scoped.Reduction where
 \begin{code}
 open import Scoped
 open import Scoped.RenamingSubstitution
+open import Builtin
 
 open import Data.Sum renaming (inj₁ to inl; inj₂ to inr)
 open import Data.Product
+open import Data.List hiding ([_])
+open import Data.Maybe
+open import Function
 \end{code}
 
 \begin{code}
@@ -38,7 +42,12 @@ data Error {n} : ScopedTm n → Set where
 
    -- place holder for stuff that isn't implemented yet...
    todo : {M : ScopedTm n} → Error M
-   
+
+
+
+BUILTIN : ∀{n} → Builtin → List (Σ (ScopedTm n) (Value {n})) → ScopedTm n 
+BUILTIN = {!!}
+
 data _—→_ {n} : ScopedTm n → ScopedTm n → Set where
   ξ-· : {L L' M : ScopedTm n} → L —→ L' → L · M —→ L' · M
   ξ-·⋆ : {L L' : ScopedTm n}{A : ScopedTy ∥ n ∥} → L —→ L' → L ·⋆ A —→ L' ·⋆ A
@@ -46,6 +55,12 @@ data _—→_ {n} : ScopedTm n → ScopedTm n → Set where
       → (ƛ A L) · M —→ (L [ M ])
   β-Λ : ∀{K}{L : ScopedTm (T n)}{A : ScopedTy ∥ n ∥}
       → (Λ K L) ·⋆ A —→ (L [ A ]⋆)
+
+  β-builtin : {b : Builtin}
+              {As : List (ScopedTy ∥ n ∥)}
+              {ts : List (ScopedTm n)}
+              (vs : List (Σ (ScopedTm n) (Value {n})))
+            → builtin b As ts —→ BUILTIN b vs
 \end{code}
 
 \begin{code}
