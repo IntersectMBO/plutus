@@ -45,14 +45,21 @@ data Error {n} : ScopedTm n → Set where
    E-con·  : ∀{tcn}{M : ScopedTm n} → Error (con tcn · M)
    E-con·⋆ : ∀{tcn}{A : ScopedTy ∥ n ∥} → Error (con tcn ·⋆ A)
 
+   -- an error occured in one of reducing an argument
+   E-builtin : {b : Builtin}
+              {As : List (ScopedTy ∥ n ∥)}
+              {ts : List (ScopedTm n)}
+              {t : ScopedTm n}
+              → Error t
+              → Error (builtin b As ts)
+
    -- place holder for stuff that isn't implemented yet...
    todo : {M : ScopedTm n} → Error M
 
 
 
--- what should we do if we don't get enough type (i.e. size)
--- information to produce a proper error?
--- at the moment we cheat and plug in size 0
+
+-- doing minimal size checking
 
 BUILTIN : ∀{n} → Builtin
   → List (ScopedTy ∥ n ∥) → List (Σ (ScopedTm n) (Value {n})) → ScopedTm n 
@@ -75,6 +82,24 @@ data _—→_ {n} : ScopedTm n → ScopedTm n → Set where
   β-Λ : ∀{K}{L : ScopedTm (T n)}{A : ScopedTy ∥ n ∥}
       → (Λ K L) ·⋆ A —→ (L [ A ]⋆)
 
+  ξ-builtin : {b : Builtin}
+              {As : List (ScopedTy ∥ n ∥)}
+              {ts : List (ScopedTm n)}
+              (vs : List (Σ (ScopedTm n) (Value {n})))
+              {t t' : ScopedTm n}
+            → t —→ t'
+            → (ts' : List (ScopedTm n))
+            → builtin b As ts —→
+              builtin b As (Data.List.map proj₁ vs ++ Data.List.[ t' ] ++ ts')
+{-
+  E-builtin : {b : Builtin}
+              {As : List (ScopedTy ∥ n ∥)}
+              {ts : List (ScopedTm n)}
+              (vs : List (Σ (ScopedTm n) (Value {n})))
+              (ts' : List (ScopedTm n))
+              (ty : ScopedTy ∥ n ∥)
+              → builtin b As ts —→ error ty
+-}
   β-builtin : {b : Builtin}
               {As : List (ScopedTy ∥ n ∥)}
               {ts : List (ScopedTm n)}
@@ -89,8 +114,31 @@ data _—→⋆_ {n} : ScopedTm n → ScopedTm n → Set where
 \end{code}
 
 \begin{code}
+data ProgList {n} : Set where
+  done : List (Σ (ScopedTm n) (Value {n})) → ProgList
+  step : (vs : List (Σ (ScopedTm n) (Value {n}))){t t' : ScopedTm n} → t —→ t' → List (ScopedTm n)
+       → ProgList
+  error : (vs : List (Σ (ScopedTm n) (Value {n}))){t : ScopedTm n} → Error t → List (ScopedTm n)
+        → ProgList
+\end{code}
+
+
+
+\begin{code}
 progress : (t : ScopedTm Z)
          → (Value {Z} t ⊎ Error t) ⊎ Σ (ScopedTm Z) λ t' → t —→ t'
+progressList : List (ScopedTm Z) → ProgList {Z}
+progressList []       = done []
+progressList (t ∷ ts) with progress t
+progressList (t ∷ ts) | inl (inl vt) with progressList ts
+progressList (t ∷ ts) | inl (inl vt) | done  vs       = done ((t , vt) ∷ vs)
+progressList (t ∷ ts) | inl (inl vt) | step  vs p ts' =
+  step ((t , vt) ∷ vs) p ts'
+progressList (t ∷ ts) | inl (inl vt) | error vs e ts' =
+  error ((t , vt) ∷ vs) e ts'
+progressList (t ∷ ts) | inl (inr e) = error [] e ts
+progressList (t ∷ ts) | inr (t' , p) = step [] p ts
+
 progress (` ())
 progress (Λ K t) = inl (inl (V-Λ K t))
 progress (t ·⋆ A) with progress t
@@ -108,7 +156,11 @@ progress (t · u) | inl (inr p) = inl (inr (E-· p))
 progress (t · u) | inr (t' , p) = inr (t' · u , ξ-· p)
 progress (con c) = inl (inl (V-con c))
 progress (error A) = inl (inr (E-error A))
-progress (builtin b As ts) = inl (inr todo)
+progress (builtin b As ts) with progressList ts
+progress (builtin b As ts) | done  vs       = inr (BUILTIN b As vs , β-builtin vs)
+progress (builtin b As ts) | step  vs p ts' = inr (builtin b As _ , ξ-builtin vs p ts')
+progress (builtin b As ts) | error vs e ts' = inl (inr (E-builtin e))
+
 \end{code}
 
 \begin{code}
