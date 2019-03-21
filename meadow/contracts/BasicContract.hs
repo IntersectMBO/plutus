@@ -5,7 +5,7 @@ import           Marlowe
 {-# ANN module "HLint: ignore" #-}
 
 main :: IO ()
-main = putStrLn $ prettyPrintContract contract
+main = putStrLn $ show contract
 
 -------------------------------------
 -- Write your code below this line --
@@ -14,20 +14,21 @@ main = putStrLn $ prettyPrintContract contract
 -- Escrow example using embedding
 
 contract :: Contract
-contract = CommitCash iCC1 alice
-                      (ConstMoney 450)
-                      10 100
-                      (When (OrObs (majority_chose refund)
-                                   (majority_chose pay))
-                            90
-                            (Choice (majority_chose pay)
-                                    (Pay iP1 alice bob
-                                         (AvailableMoney iCC1)
-                                         100
-                                         redeem_original)
-                                    redeem_original)
-                            redeem_original)
-                      Null
+contract = Commit 1 iCC1 alice
+                  (Constant 450)
+                  10 100
+                  (When (OrObs (majority_chose refund)
+                               (majority_chose pay))
+                        90
+                        (Choice (majority_chose pay)
+                                (Pay 2 iCC1 bob
+                                     (Committed iCC1)
+                                     100
+                                     Null
+                                     Null)
+                                (redeem_original 3))
+                       (redeem_original 4))
+                  Null
     where majority_chose = two_chose alice bob carol
 
 -- Participants
@@ -39,35 +40,30 @@ carol = 3
 
 -- Possible votes
 
-refund, pay :: ConcreteChoice
+refund, pay :: Choice
 refund = 0
 pay = 1
 
 -- Vote counting
 
-chose :: Int -> ConcreteChoice -> Observation
-chose per c = PersonChoseThis (IdentChoice per) per c
+chose :: Integer -> Choice -> Observation
+chose per c = ChoseThis (1, per) c
 
-one_chose :: Person -> Person -> ConcreteChoice -> Observation
+one_chose :: Person -> Person -> Choice -> Observation
 one_chose per per' val = (OrObs (chose per val) (chose per' val))
 
-two_chose :: Person -> Person -> Person -> ConcreteChoice -> Observation
+two_chose :: Person -> Person -> Person -> Choice -> Observation
 two_chose p1 p2 p3 c = OrObs (AndObs (chose p1 c) (one_chose p2 p3 c))
                              (AndObs (chose p2 c) (chose p3 c))
 
 -- Redeem alias
 
-redeem_original :: Contract
-redeem_original = RedeemCC iCC1 Null
+redeem_original :: Integer -> Contract
+redeem_original x = Pay x iCC1 alice (Committed iCC1) 100 Null Null
 
 -- Commit identifier
 
-iCC1 :: IdentCC
-iCC1 = IdentCC 1
-
--- Payment identifier
-
-iP1 :: IdentPay
-iP1 = IdentPay 1
+iCC1 :: IdCommit
+iCC1 = 1
 
 
