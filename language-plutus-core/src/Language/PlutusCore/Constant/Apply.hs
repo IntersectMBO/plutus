@@ -126,10 +126,6 @@ instance Enum SizeVar where
     toEnum = SizeVar
     fromEnum (SizeVar sizeIndex) = sizeIndex
 
--- Who are you?
-forBind :: (Monad m, Traversable m, Applicative f) => m a -> (a -> f (m b)) -> f (m b)
-forBind a f = join <$> traverse f a
-
 -- | Same as 'makeBuiltin', but returns a 'ConstAppResult'.
 makeConstAppResult :: TypedBuiltinValue Size a -> ConstAppResultDef
 makeConstAppResult = maybe ConstAppFailure ConstAppSuccess . makeBuiltin
@@ -226,7 +222,7 @@ applyTypeSchemed schema = go schema (SizeVar 0) (SizeValues mempty) where
         [] -> return . makeConstAppResult $ TypedBuiltinValue (substSizeVar sizeValues tb) y
         _  -> return . ConstAppError $ ExcessArgumentsConstAppError args     -- Too many arguments.
     go (TypeSchemeAllType _ schK)  sizeVar sizeValues f args =
-        go (schK $ error "A dummy type accessed") sizeVar sizeValues f args
+        go (schK TypedBuiltinDyn) sizeVar sizeValues f args
     go (TypeSchemeArrow schA schB) sizeVar sizeValues f args = case args of
         []          -> return ConstAppStuck             -- Not enough arguments to compute.
         arg : args' -> do                               -- Peel off one argument.

@@ -27,7 +27,7 @@ module Language.PlutusCore.Constant.Typed
     , Evaluate
     , Convert
     , KnownDynamicBuiltinType (..)
-    , QuotedTerm (..)
+    , OpaqueTerm (..)
     , eraseTypedBuiltinSized
     , runEvaluate
     , withEvaluator
@@ -146,7 +146,22 @@ data TypeScheme size a r where
            -- the continuation and also put there the @KnownNat uniq@ constraint
            -- (i.e. use universal quantification for uniques) and that should work alright.
         => Proxy '(text, uniq)
-        -> (forall qt. qt ~ QuotedTerm text uniq => TypedBuiltin size qt -> TypeScheme size a r)
+           -- We use a funny trick here: instead of binding
+           --
+           -- > TypedBuiltin size (OpaqueTerm text uniq)
+           --
+           -- directly we introduce an additional and "redundant" type variable. The reason why we
+           -- do that is because this way we can also bind such a variable later when constructing
+           -- the 'TypeScheme' of a polymorphic builtin, so that for the user this looks exactly
+           -- like a single bound type variable instead of this weird @OpaqueTerm text uniq@ thing.
+           --
+           -- And note that in most cases we do not need to bind anything at the type level and can
+           -- use the variable bound at the term level directly, because it's of the type that
+           -- 'TypeSchemeBuiltin' expects. Type-level binding is only needed when you want to apply
+           -- a type constructor to the variable, like in
+           --
+           -- > reverse : all a. list a -> list a
+        -> (forall qt. qt ~ OpaqueTerm text uniq => TypedBuiltin size qt -> TypeScheme size a r)
         -> TypeScheme size a r
     TypeSchemeAllSize :: (size -> TypeScheme size a r) -> TypeScheme size a r
 
@@ -325,8 +340,13 @@ readDynamicBuiltinM
     => Term TyName Name () -> Evaluate m (Convert dyn)
 readDynamicBuiltinM term = withEvaluator $ \eval -> readDynamicBuiltin eval term
 
-newtype QuotedTerm (text :: Symbol) (unique :: Nat) = QuotedTerm
-    { unQuotedTerm :: Term TyName Name ()
+-- | The denotation of a term whose type is a bound variable.
+-- I.e. the denotation of such a term is the term itself.
+-- This is because we have parametricity in Haskell, so we can't inspect a value whose
+-- type is a bound variable, so we never need to convert such a term from Plutus Core to Haskell
+-- and back and instead can keep it intact.
+newtype OpaqueTerm (text :: Symbol) (unique :: Nat) = OpaqueTerm
+    { unOpaqueTerm :: Term TyName Name ()
     }
 
 instance Pretty BuiltinSized where
@@ -371,13 +391,13 @@ instance KnownDynamicBuiltinType () where
             _                               -> throwError "Not a builtin ()"
 
 instance (KnownSymbol text, KnownNat uniq) =>
-        KnownDynamicBuiltinType (QuotedTerm text uniq) where
+        KnownDynamicBuiltinType (OpaqueTerm text uniq) where
     toTypeEncoding _ =
         TyVar () . TyName $
             Name ()
                 (Text.pack $ symbolVal @text Proxy)
                 (Unique . fromIntegral $ natVal @uniq Proxy)
 
-    makeDynamicBuiltin = pure . unQuotedTerm
+    makeDynamicBuiltin = pure . unOpaqueTerm
 
-    readDynamicBuiltin eval term = lift . fmap QuotedTerm <$> eval mempty term
+    readDynamicBuiltin eval term = lift . fmap OpaqueTerm <$> eval mempty term

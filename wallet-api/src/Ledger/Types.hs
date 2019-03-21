@@ -119,10 +119,10 @@ import           Data.Swagger.Internal.Schema             (ToSchema(declareNamed
 import qualified Language.Haskell.TH                      as TH
 import qualified Language.PlutusCore                      as PLC
 import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
-import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusTx.Lift                   (makeLift, unsafeLiftProgram)
 import           Language.PlutusTx.Lift.Class             (Lift)
 import           Language.PlutusTx.TH                     (CompiledCode, compile, getSerializedPlc)
+import PlutusPrelude
 
 import           Ledger.Interval                          (Slot(..), SlotRange)
 import           Ledger.Ada                               (Ada)
@@ -267,7 +267,7 @@ applyScript :: Script -> Script -> Script
 applyScript (getPlc -> s1) (getPlc -> s2) = Script $ s1 `PLC.applyProgram` s2
 
 evaluateScript :: Script -> ([String], Bool)
-evaluateScript (getPlc -> s) = (isJust . evaluationResultToMaybe) <$> evaluateCekTrace s
+evaluateScript (getPlc -> s) = (isJust . reoption) <$> evaluateCekTrace s
 
 instance ToJSON Script where
   toJSON = JSON.String . TE.decodeUtf8 . Base64.encode . BSL.toStrict . serialise

@@ -52,6 +52,26 @@ ensureMkFunctionExists script =
             Nothing -> script <> "\n$(mkFunctions [])"
             Just _  -> script
 
+ensureMinimumImports :: (MonadError PlaygroundError m) => SourceCode -> m ()
+ensureMinimumImports script =
+    let scriptString = Text.unpack . Newtype.unpack $ script
+        regex = Regex.mkRegex "^import[ \t]+Playground.Contract([ ]*$|[ \t]+\\(.*mkFunctions.*printSchemas.*\\)|[ \t]+\\(.*printSchemas.*mkFunctions.*\\))"
+        mMatches = Regex.matchRegexAll regex scriptString
+     in case mMatches of
+            Just _ -> pure ()
+            Nothing -> let
+                          filename = ""
+                          row      = 1
+                          column   = 1
+                          text     = [ "You need to import the `mkFunctions` and `printSchemas` in order to compile successfully, you can do this with either"
+                                       , "`import Playground.Contract`"
+                                       , "or"
+                                       , "`import Playground.Contract (mkFunctions, printSchemas)`"
+                                       ]
+                          errors = [CompilationError filename row column text]
+                        in
+                          throwError $ CompilationErrors errors
+
 mkCompileScript :: Text -> Text
 mkCompileScript script =
     (ensureMkFunctionExists . replaceModuleName) script <> "\n\nmain :: IO ()" <>
@@ -78,7 +98,9 @@ compile ::
     => SourceCode
     -> m CompilationResult
 compile source = do
+    -- There are a couple of custom rules required for compilation
     avoidUnsafe source
+    ensureMinimumImports source
     withSystemTempFile "Main.hs" $ \file handle -> do
         result <-
             mapError CompilationErrors . runscript handle file . mkCompileScript . Newtype.unpack $ source
@@ -144,6 +166,12 @@ runghcOpts =
     , "-XTemplateHaskell"
     , "-XScopedTypeVariables"
     , "-O0"
+    -- FIXME: workaround for https://ghc.haskell.org/trac/ghc/ticket/16228
+    -- This appears to sometimes be necessary and sometimes not be, depending
+    -- on apparently unrelated changes in the packages this depends on.
+    -- This is fixed in GHC 8.1, and patched in our nix build, but this is
+    -- still here for people using external GHCs.
+    , "-package plutus-tx"
     ]
 
 jsonToString :: ToJSON a => a -> String

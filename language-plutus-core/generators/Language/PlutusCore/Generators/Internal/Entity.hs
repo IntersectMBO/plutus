@@ -177,9 +177,8 @@ genIterAppValue (Denotation object toTerm meta scheme) = result where
             args' = args . (v :)     -- Append the PLC value to the spine.
             y     = f x              -- Apply the Haskell function to the generated argument.
         go schB term' args' y
-    go (TypeSchemeAllType _ schK)  term args f = do
-        let err = error "Can't access a bound type variable"
-        go (schK err) term args f
+    go (TypeSchemeAllType _ schK)  term args f =
+        go (schK TypedBuiltinDyn) term args f
     go (TypeSchemeAllSize schK)    term args f = do
         BuiltinGensT genSize _ <- ask
         size <- liftT genSize                       -- Generate a size.
