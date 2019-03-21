@@ -1,6 +1,6 @@
-{-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase       #-}
 
 -- | Functions for dealing with the Plutus Core value restriction.
 module Language.PlutusTx.Compiler.ValueRestriction where

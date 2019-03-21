@@ -49,7 +49,7 @@ import           Data.Traversable
 -- Types
 
 convType :: Converting m => GHC.Type -> m PIRType
-convType t = withContextM (sdToTxt $ "Converting type:" GHC.<+> GHC.ppr t) $ do
+convType t = withContextM 2 (sdToTxt $ "Converting type:" GHC.<+> GHC.ppr t) $ do
     -- See Note [Scopes]
     ConvertingContext {ccScopes=stack} <- ask
     let top = NE.head stack
@@ -202,7 +202,7 @@ mkConstructorType dc =
     let argTys = GHC.dataConOrigArgTys dc
     in
         -- See Note [Scott encoding of datatypes]
-        withContextM (sdToTxt $ "Converting data constructor type:" GHC.<+> GHC.ppr dc) $ do
+        withContextM 3 (sdToTxt $ "Converting data constructor type:" GHC.<+> GHC.ppr dc) $ do
             args <- mapM convType argTys
             resultType <- convType (GHC.dataConOrigResTy dc)
             -- t_c_i_1 -> ... -> t_c_i_j -> resultType
@@ -221,7 +221,7 @@ getConstructors tc = do
 -- | Get the constructors of the given 'Type' (which must be equal to a type constructor application) as PLC terms instantiated for
     -- the type constructor argument types.
 getConstructorsInstantiated :: Converting m => GHC.Type -> m [PIRTerm]
-getConstructorsInstantiated t = withContextM (sdToTxt $ "Creating instantiated constructors for type:" GHC.<+> GHC.ppr t) $ case t of
+getConstructorsInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated constructors for type:" GHC.<+> GHC.ppr t) $ case t of
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do
         constrs <- getConstructors tc
 
@@ -244,7 +244,7 @@ getMatch tc = do
 -- | Get the matcher of the given 'Type' (which must be equal to a type constructor application) as a PLC term instantiated for
 -- the type constructor argument types.
 getMatchInstantiated :: Converting m => GHC.Type -> m PIRTerm
-getMatchInstantiated t = withContextM (sdToTxt $ "Creating instantiated matcher for type:" GHC.<+> GHC.ppr t) $ case t of
+getMatchInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated matcher for type:" GHC.<+> GHC.ppr t) $ case t of
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do
         match <- getMatch tc
 
@@ -260,7 +260,7 @@ convAlt
     -> [GHC.Type] -- ^ The instantiated type arguments for the data constructor.
     -> GHC.CoreAlt -- ^ The 'CoreAlt' representing the branch itself.
     -> m PIRTerm
-convAlt mustDelay instArgTys (alt, vars, body) = withContextM (sdToTxt $ "Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
+convAlt mustDelay instArgTys (alt, vars, body) = withContextM 3 (sdToTxt $ "Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
     GHC.LitAlt _  -> throwPlain $ UnsupportedError "Literal case"
     GHC.DEFAULT   -> do
         body' <- convExpr body >>= maybeDelay mustDelay

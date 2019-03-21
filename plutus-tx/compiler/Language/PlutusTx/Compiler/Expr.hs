@@ -142,7 +142,7 @@ where it's not used, the PIR dead-binding pass will remove it.
 -- Expressions
 
 convExpr :: Converting m => GHC.CoreExpr -> m PIRTerm
-convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
+convExpr e = withContextM 2 (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
     -- See Note [Scopes]
     ConvertingContext {ccScopes=stack} <- ask
     let top = NE.head stack
@@ -243,7 +243,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
         -- we can use source notes to get a better context for the inner expression
         -- these are put in when you compile with -g
         GHC.Tick GHC.SourceNote{GHC.sourceSpan=src} body ->
-            withContextM (sdToTxt $ "Converting expr at:" GHC.<+> GHC.ppr src) $ convExpr body
+            withContextM 1 (sdToTxt $ "Converting expr at:" GHC.<+> GHC.ppr src) $ convExpr body
         -- ignore other annotations
         GHC.Tick _ body -> convExpr body
         GHC.Cast body coerce -> do

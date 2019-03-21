@@ -1,1 +1,1 @@
-Reference to a value which is not a local, nor a builtin: Variable &&
+Error: Reference to a value which is not a local, nor a builtin: Variable &&
