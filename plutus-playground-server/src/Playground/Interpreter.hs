@@ -166,6 +166,12 @@ runghcOpts =
     , "-XTemplateHaskell"
     , "-XScopedTypeVariables"
     , "-O0"
+    -- FIXME: workaround for https://ghc.haskell.org/trac/ghc/ticket/16228
+    -- This appears to sometimes be necessary and sometimes not be, depending
+    -- on apparently unrelated changes in the packages this depends on.
+    -- This is fixed in GHC 8.1, and patched in our nix build, but this is
+    -- still here for people using external GHCs.
+    , "-package plutus-tx"
     ]
 
 jsonToString :: ToJSON a => a -> String
