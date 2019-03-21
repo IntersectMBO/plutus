@@ -6,12 +6,17 @@ module Scoped.Reduction where
 open import Scoped
 open import Scoped.RenamingSubstitution
 open import Builtin
+open import Builtin.Constant.Type
 
 open import Data.Sum renaming (inj₁ to inl; inj₂ to inr)
 open import Data.Product
 open import Data.List hiding ([_])
 open import Data.Maybe
 open import Function
+open import Data.Integer as I
+open import Data.Nat as N
+open import Relation.Nullary
+open import Relation.Binary.PropositionalEquality hiding ([_];trans)
 \end{code}
 
 \begin{code}
@@ -45,8 +50,22 @@ data Error {n} : ScopedTm n → Set where
 
 
 
-BUILTIN : ∀{n} → Builtin → List (Σ (ScopedTm n) (Value {n})) → ScopedTm n 
-BUILTIN = {!!}
+-- what should we do if we don't get enough type (i.e. size)
+-- information to produce a proper error?
+-- at the moment we cheat and plug in size 0
+
+BUILTIN : ∀{n} → Builtin
+  → List (ScopedTy ∥ n ∥) → List (Σ (ScopedTm n) (Value {n})) → ScopedTm n 
+BUILTIN addInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
+BUILTIN addInteger _ ((.(con (integer s' i p)) , V-con (integer .s' i p)) ∷ (.(con (integer s' i' p')) , V-con (integer s' i' p')) ∷ []) | yes refl with boundedI? s' (i I.+ i')
+BUILTIN addInteger _ ((.(con (integer s' i p)) , V-con (integer .s' i p)) ∷ (.(con (integer s' i' p')) , V-con (integer s' i' p')) ∷ []) | yes refl | yes r = con (integer s' (i I.+ i') r)
+BUILTIN addInteger _ ((.(con (integer s' i p)) , V-con (integer .s' i p)) ∷ (.(con (integer s' i' p')) , V-con (integer s' i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
+BUILTIN addInteger _ ((.(con (integer s i p)) , V-con (integer s i p)) ∷ (.(con (integer s' i' p')) , V-con (integer s' i' p')) ∷ []) | no ¬q
+  = error (con integer)
+BUILTIN addInteger _ _ = error (con integer)
+  -- this covers a multitude of sins
+BUILTIN _ _ _ = error (con integer)
+
 
 data _—→_ {n} : ScopedTm n → ScopedTm n → Set where
   ξ-· : {L L' M : ScopedTm n} → L —→ L' → L · M —→ L' · M
@@ -60,7 +79,7 @@ data _—→_ {n} : ScopedTm n → ScopedTm n → Set where
               {As : List (ScopedTy ∥ n ∥)}
               {ts : List (ScopedTm n)}
               (vs : List (Σ (ScopedTm n) (Value {n})))
-            → builtin b As ts —→ BUILTIN b vs
+            → builtin b As ts —→ BUILTIN b As vs
 \end{code}
 
 \begin{code}
