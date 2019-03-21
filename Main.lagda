@@ -229,7 +229,7 @@ main : IO ⊤
 main = do
   (arg ∷ args) ← getArgs
     where [] → return _
-  putStrLn arg
+  --putStrLn arg
   testFile arg >>= putStrLn
   
 
