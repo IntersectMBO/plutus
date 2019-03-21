@@ -11,7 +11,7 @@ buildEnv { name = "bower-env"; ignoreCollisions = true; paths = [
   (fetchbower "purescript-ace" "4.0.0" "^4.0.0" "0xg6ixrn1bcjlisqqlba70dlzy1ypsqnj96qbicnq4kayilqx61w")
   (fetchbower "purescript-servant-support" "9.0.1" "^9.0.1" "1x5j4m31z2iwriaalwvizkp2f254481h3ryngdks34hlx6yl81zw")
   (fetchbower "purescript-debug" "3.0.0" "^3.0.0" "08bibrvnhyv9jznj39w7zz825zfbdm79xyjn812hb3arzcp3k97a")
-  (fetchbower "purescript-remotedata" "3.0.0" "^3.0.0" "177f2caj5lyhxnjdnynfj8cb16sx54zh40mslhliqn7dbn41zl96")
+  (fetchbower "purescript-remotedata" "3.0.0" "^3.0.0" "1y5jg8nwzjaf6ql6mavq6izxna7m6kxrjv8qdq4klwdidjpkkkzv")
   (fetchbower "purescript-partial" "1.2.1" "^1.2.0" "0dlhcdqh6l5qgs64lxm1bpfd85mhcf41fr44fwb9p1g3xfks2dlb")
   (fetchbower "purescript-js-date" "4.0.0" "^4.0.0" "1qmaqyjcm3zhpmdw0044m7i2jdgyg7sc2fys7wp7b6dxjsnrz6ac")
   (fetchbower "purescript-argonaut-codecs" "3.2.0" "3.2.0" "0afl9j23vrsfqzd53w1v9i52k66mm78xzpw4n7hbsxxian3sgcsy")
