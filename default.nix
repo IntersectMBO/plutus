@@ -247,10 +247,11 @@ let
           exit
         '';
       };
-      withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ packages.cabal-install ]; });
-      shellTemplate = name: withDevTools haskellPackages."${name}".env;
-    };
 
+      withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ packages.cabal-install ]; });
+    };
+      
+    shellTemplate = name: dev.withDevTools haskellPackages."${name}".env;
   });
 
 
