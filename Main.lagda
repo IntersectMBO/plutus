@@ -182,7 +182,6 @@ import Untyped.Reduction as U
 import Scoped as S
 import Scoped.Reduction as S
 
-
 -- untyped evaluation
 utestPLC : ByteString → Maybe String
 utestPLC plc = mmap (U.ugly ∘ (λ (t : 0 ⊢) → proj₁ (U.run t 100)) ∘ erase⊢) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))

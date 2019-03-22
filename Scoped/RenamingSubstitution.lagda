@@ -27,6 +27,7 @@ ren⋆ ρ (ƛ K A) = ƛ K (ren⋆ (lift⋆ ρ) A)
 ren⋆ ρ (A · B) = ren⋆ ρ A · ren⋆ ρ B
 ren⋆ ρ (con x) = con x
 ren⋆ ρ (size x) = size x
+ren⋆ ρ (μ A B) = μ (ren⋆ ρ A) (ren⋆ ρ B)
 
 ren⋆L : ∀{m n} → Ren⋆ m n → List (ScopedTy m) → List (ScopedTy n)
 ren⋆L ρ⋆ []       = []
@@ -75,6 +76,7 @@ sub⋆ σ (ƛ K A) = ƛ K (sub⋆ (slift⋆ σ) A)
 sub⋆ σ (A · B) = sub⋆ σ A · sub⋆ σ B
 sub⋆ σ (con c) = con c
 sub⋆ σ (size n) = size n
+sub⋆ σ (μ A B) = μ (sub⋆ σ A) (sub⋆ σ B)
 
 sub⋆L : ∀{m n} → Sub⋆ m n → List (ScopedTy m) → List (ScopedTy n)
 sub⋆L σ⋆ []       = []

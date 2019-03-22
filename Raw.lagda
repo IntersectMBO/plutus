@@ -27,6 +27,7 @@ data RawTy : Set where
   _·_ : RawTy → RawTy → RawTy
   con : TyCon → RawTy
   size : ℕ → RawTy
+  μ    : RawTy → RawTy → RawTy
 
 open import Data.Nat
 open import Data.Integer
@@ -36,7 +37,6 @@ data RawTermCon : Set where
   bytestring : ℕ → ByteString → RawTermCon
   size : ℕ → RawTermCon
   string : String → RawTermCon
-
 
 data RawTm : Set where
   `       : String → RawTm

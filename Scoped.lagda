@@ -30,6 +30,8 @@ data ScopedTy (n : ℕ) : Set where
   con  : TyCon → ScopedTy n
   size : ℕ → ScopedTy n
 
+  μ    : ScopedTy n → ScopedTy n → ScopedTy n
+
 --{-# COMPILE GHC ScopedTy = data ScTy (ScTyVar | ScTyFun | ScTyPi | ScTyLambda | ScTyApp | ScTyCon | ScTySize) #-}
 
 data Weirdℕ : Set where
@@ -117,6 +119,11 @@ deBruijnifyTy g (A · B) = do
   return (A · B)
 deBruijnifyTy g (con b)     = just (con b)
 deBruijnifyTy g (size n)    = just (size n)
+deBruijnifyTy g (μ A B)     = do
+  A ← deBruijnifyTy g A
+  B ← deBruijnifyTy g B
+  return (μ A B)
+
 
 data WeirdVec (X : Set) : Weirdℕ → Set where
   nil : WeirdVec X Z
@@ -274,6 +281,7 @@ unDeBruijnify⋆ i (ƛ K A) = ƛ
 unDeBruijnify⋆ i (A · B) = unDeBruijnify⋆ i A · unDeBruijnify⋆ i B
 unDeBruijnify⋆ i (con c) = con c
 unDeBruijnify⋆ i (size j) = size j
+unDeBruijnify⋆ i (μ A B) = μ (unDeBruijnify⋆ i A) (unDeBruijnify⋆ i B)
 \end{code}
 
 This should be run on unsaturated terms
