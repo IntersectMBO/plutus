@@ -79325,7 +79325,7 @@ license = stdenv.lib.licenses.mit;
   mkDerivation
 , aeson
 , base
-, base64-bytestring
+, base16-bytestring
 , bytestring
 , cborg
 , containers
@@ -79366,7 +79366,7 @@ isExecutable = true;
 libraryHaskellDepends = [
 aeson
 base
-base64-bytestring
+base16-bytestring
 bytestring
 cborg
 containers
