@@ -48,5 +48,14 @@ let
 
   comp = f: g: (v: f(g v));
 in lib // {
-  inherit getPackages iohkNix isPlutus plutusHaskellPkgList plutusPkgList regeneratePackages pkgs nixpkgs comp;
+  inherit 
+  getPackages 
+  iohkNix 
+  isPlutus 
+  plutusHaskellPkgList 
+  plutusPkgList 
+  regeneratePackages 
+  nixpkgs 
+  pkgs
+  comp;
 }
