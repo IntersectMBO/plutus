@@ -28,6 +28,7 @@ data Value {n} : ScopedTm n → Set where
   V-ƛ : (A : ScopedTy ∥ n ∥)(t : ScopedTm (S n)) → Value (ƛ A t)
   V-Λ : ∀ K (t : ScopedTm (T n)) → Value (Λ K t)
   V-con : (tcn : SizedTermCon) → Value (con {n} tcn)
+  V-wrap : (A B : ScopedTy ∥ n ∥)(t : ScopedTm n) → Value (wrap A B t)
 
 -- a term that satisfies this predicate has an error term in it somewhere
 -- or we encountered a rumtime type error
@@ -37,13 +38,21 @@ data Error {n} : ScopedTm n → Set where
    -- error inside somewhere
    E-·     : {L M : ScopedTm n} → Error L → Error (L · M)
    E-·⋆    : {L : ScopedTm n}{A : ScopedTy ∥ n ∥} → Error L → Error (L ·⋆ A)
+   E-unwrap : {L : ScopedTm n} → Error L → Error (unwrap L)
    
    -- runtime type errors
    E-Λ·    : ∀{K}{L : ScopedTm (T n)}{M : ScopedTm n} → Error (Λ K L · M)
    E-ƛ·⋆   : ∀{B : ScopedTy ∥ n ∥}{L : ScopedTm (S n)}{A : ScopedTy ∥ n ∥}
-           → Error (ƛ B L ·⋆ A)
+     → Error (ƛ B L ·⋆ A)
    E-con·  : ∀{tcn}{M : ScopedTm n} → Error (con tcn · M)
    E-con·⋆ : ∀{tcn}{A : ScopedTy ∥ n ∥} → Error (con tcn ·⋆ A)
+   E-wrap· : {A B : ScopedTy ∥ n ∥}{t M : ScopedTm n} → Error (wrap A B t · M)
+   E-wrap·⋆ : {A' B A : ScopedTy ∥ n ∥}{t : ScopedTm n}
+     → Error (wrap A' B t ·⋆ A)
+   E-ƛunwrap : {A : ScopedTy ∥ n ∥}{t : ScopedTm (S n)}
+     → Error (unwrap (ƛ A t) )
+   E-Λunwrap : ∀{K}{t : ScopedTm (T n)} → Error (unwrap (Λ K t))
+   E-conunwrap : ∀{tcn} → Error (unwrap (con tcn))
 
    -- an error occured in one of reducing an argument
    E-builtin : {b : Builtin}
@@ -52,12 +61,6 @@ data Error {n} : ScopedTm n → Set where
               {t : ScopedTm n}
               → Error t
               → Error (builtin b As ts)
-
-   -- place holder for stuff that isn't implemented yet...
-   todo : {M : ScopedTm n} → Error M
-
-
-
 
 -- doing minimal size checking
 
@@ -81,7 +84,6 @@ data _—→_ {n} : ScopedTm n → ScopedTm n → Set where
       → (ƛ A L) · M —→ (L [ M ])
   β-Λ : ∀{K}{L : ScopedTm (T n)}{A : ScopedTy ∥ n ∥}
       → (Λ K L) ·⋆ A —→ (L [ A ]⋆)
-
   ξ-builtin : {b : Builtin}
               {As : List (ScopedTy ∥ n ∥)}
               {ts : List (ScopedTm n)}
@@ -91,20 +93,13 @@ data _—→_ {n} : ScopedTm n → ScopedTm n → Set where
             → (ts' : List (ScopedTm n))
             → builtin b As ts —→
               builtin b As (Data.List.map proj₁ vs ++ Data.List.[ t' ] ++ ts')
-{-
-  E-builtin : {b : Builtin}
-              {As : List (ScopedTy ∥ n ∥)}
-              {ts : List (ScopedTm n)}
-              (vs : List (Σ (ScopedTm n) (Value {n})))
-              (ts' : List (ScopedTm n))
-              (ty : ScopedTy ∥ n ∥)
-              → builtin b As ts —→ error ty
--}
   β-builtin : {b : Builtin}
               {As : List (ScopedTy ∥ n ∥)}
               {ts : List (ScopedTm n)}
               (vs : List (Σ (ScopedTm n) (Value {n})))
             → builtin b As ts —→ BUILTIN b As vs
+  ξ-unwrap : {t t' : ScopedTm n} → t —→ t' → unwrap t —→ unwrap t'
+  β-wrap : {A B : ScopedTy ∥ n ∥}{t : ScopedTm n} → unwrap (wrap A B t) —→ t
 \end{code}
 
 \begin{code}
@@ -145,6 +140,7 @@ progress (t ·⋆ A) with progress t
 progress (.(ƛ B t) ·⋆ A) | inl (inl (V-ƛ B t)) = inl (inr E-ƛ·⋆)
 progress (.(Λ K t) ·⋆ A) | inl (inl (V-Λ K t)) = inr (t [ A ]⋆ , β-Λ)
 progress (.(con tcn) ·⋆ A) | inl (inl (V-con tcn)) = inl (inr E-con·⋆)
+progress (.(wrap A' B t) ·⋆ A) | inl (inl (V-wrap A' B t)) = inl (inr E-wrap·⋆)
 progress (t ·⋆ A) | inl (inr p) = inl (inr (E-·⋆ p))
 progress (t ·⋆ A) | inr (t' , p) = inr (t' ·⋆ A , ξ-·⋆ p)
 progress (ƛ A t) = inl (inl (V-ƛ A t))
@@ -152,6 +148,7 @@ progress (t · u) with progress t
 progress (.(ƛ A t) · u) | inl (inl (V-ƛ A t)) = inr (t [ u ] , β-ƛ)
 progress (.(Λ K t) · u) | inl (inl (V-Λ K t)) = inl (inr E-Λ·)
 progress (.(con tcn) · u) | inl (inl (V-con tcn)) = inl (inr E-con·)
+progress (.(wrap A B t) · u) | inl (inl (V-wrap A B t)) = inl (inr E-wrap·)
 progress (t · u) | inl (inr p) = inl (inr (E-· p))
 progress (t · u) | inr (t' , p) = inr (t' · u , ξ-· p)
 progress (con c) = inl (inl (V-con c))
@@ -160,8 +157,14 @@ progress (builtin b As ts) with progressList ts
 progress (builtin b As ts) | done  vs       = inr (BUILTIN b As vs , β-builtin vs)
 progress (builtin b As ts) | step  vs p ts' = inr (builtin b As _ , ξ-builtin vs p ts')
 progress (builtin b As ts) | error vs e ts' = inl (inr (E-builtin e))
-progress (wrap {Z} x x₁ t) = inl (inr todo)
-progress (unwrap {Z} t) = inl (inr todo)
+progress (wrap A B t) = inl (inl (V-wrap A B t))
+progress (unwrap  t) with progress t
+progress (unwrap .(ƛ A t)) | inl (inl (V-ƛ A t)) = inl (inr E-ƛunwrap)
+progress (unwrap .(Λ K t)) | inl (inl (V-Λ K t)) = inl (inr E-Λunwrap)
+progress (unwrap .(con tcn)) | inl (inl (V-con tcn)) = inl (inr E-conunwrap)
+progress (unwrap .(wrap A B t)) | inl (inl (V-wrap A B t)) = inr (t , β-wrap)
+progress (unwrap t) | inl (inr e) = inl (inr (E-unwrap e))
+progress (unwrap t) | inr (t' , p) = inr (unwrap t' , ξ-unwrap p)
 \end{code}
 
 \begin{code}
