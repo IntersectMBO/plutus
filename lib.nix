@@ -46,25 +46,6 @@ let
 
   regeneratePackages = iohkNix.stack2nix.regeneratePackages { hackageSnapshot = "2019-02-28T09:58:14Z"; };
 
-  fixStylishHaskell = pkgs.writeScript "fix-stylish-haskell" ''
-    ${pkgs.git}/bin/git diff > pre-stylish.diff
-    ${pkgs.fd}/bin/fd \
-      --extension hs \
-      --exclude '*/dist/*' \
-      --exclude '*/docs/*' \
-      --exec ${pkgs.haskellPackages.stylish-haskell}/bin/stylish-haskell -i {}
-    ${pkgs.git}/bin/git diff > post-stylish.diff
-    diff pre-stylish.diff post-stylish.diff > /dev/null
-    if [ $? != 0 ]
-    then
-      echo "Changes by stylish have been made. Please commit them."
-    else
-      echo "No stylish changes were made."
-    fi
-    rm pre-stylish.diff post-stylish.diff
-    exit
-  '';
-
   comp = f: g: (v: f(g v));
 in lib // {
   inherit 
@@ -74,7 +55,6 @@ in lib // {
   plutusHaskellPkgList 
   plutusPkgList 
   regeneratePackages 
-  fixStylishHaskell
   nixpkgs 
   pkgs
   comp;
