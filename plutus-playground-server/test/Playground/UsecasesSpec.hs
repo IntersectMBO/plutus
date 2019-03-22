@@ -10,16 +10,19 @@ import qualified Data.Aeson.Text        as JSON
 import           Data.Aeson.Types       (object, (.=))
 import qualified Data.ByteString.Char8  as BSC
 import           Data.Either            (isRight)
+import           Data.List.NonEmpty     (NonEmpty ((:|)))
 import           Data.Swagger           ()
 import qualified Data.Text              as Text
 import qualified Data.Text.Lazy         as TL
 import qualified Ledger.Ada             as Ada
 import           Ledger.Types           (Blockchain)
-import           Playground.API         (Evaluation (Evaluation), Expression (Action, Wait), Fn (Fn),
-                                         FunctionSchema (FunctionSchema), PlaygroundError,
+import           Ledger.Validation      (ValidatorHash (ValidatorHash))
+import           Playground.API         (CompilationResult (CompilationResult), Evaluation (Evaluation),
+                                         Expression (Action, Wait), Fn (Fn), FunctionSchema (FunctionSchema),
+                                         KnownCurrency (KnownCurrency), PlaygroundError,
                                          SimpleArgumentSchema (SimpleArraySchema, SimpleIntSchema, SimpleObjectSchema, SimpleTupleSchema),
-                                         SimulatorWallet (SimulatorWallet), SourceCode (SourceCode), argumentSchema,
-                                         functionName, functionSchema, isSupportedByFrontend, simulatorWalletBalance,
+                                         SimulatorWallet (SimulatorWallet), SourceCode (SourceCode), TokenId (TokenId),
+                                         argumentSchema, functionName, isSupportedByFrontend, simulatorWalletBalance,
                                          simulatorWalletWallet)
 import qualified Playground.Interpreter as PI
 import           Playground.Usecases    (crowdfunding, game, messages, vesting)
@@ -32,13 +35,14 @@ spec = do
     gameSpec
     messagesSpec
     crowdfundingSpec
+    knownCurrencySpec
 
 vestingSpec :: Spec
 vestingSpec =
     describe "vesting" $ do
         compilationChecks vesting
         it "should compile with the expected schema" $ do
-            Right result <- compile vesting
+            Right (CompilationResult result [] []) <- compile vesting
             result `shouldBe`
                 [ FunctionSchema
                       { functionName = Fn "vestFunds"
@@ -428,13 +432,30 @@ crowdfundingSpec =
         JSON.String $
         TL.toStrict $ JSON.encodeToLazyText $ object ["getAda" .= mkI 8]
 
+knownCurrencySpec :: Spec
+knownCurrencySpec = describe "mkKnownCurrencies" $
+      it "should return registered known currencies" $
+            (runExceptT . PI.compile) code >>= (`shouldSatisfy` hasKnownCurrency)
+      where
+            code = SourceCode $ Text.unlines
+                  [ "import Playground.Contract"
+                  , "import Data.List.NonEmpty (NonEmpty ((:|)))"
+                  , "import Ledger.Validation (ValidatorHash (..))"
+                  , "import Playground.API (KnownCurrency (..), TokenId (..))"
+                  , "myCurrency :: KnownCurrency"
+                  , "myCurrency = KnownCurrency (ValidatorHash \"\") \"MyCurrency\" (TokenId \"MyToken\" :| [])"
+                  , "$(mkKnownCurrencies ['myCurrency])"
+                  ]
+            hasKnownCurrency (Right (CompilationResult _ [KnownCurrency (ValidatorHash "") "MyCurrency" (TokenId "MyToken" :| [])] _)) = True
+            hasKnownCurrency _ = False
+
 sourceCode :: BSC.ByteString -> SourceCode
 sourceCode = SourceCode . Text.pack . BSC.unpack
 
 compile ::
        BSC.ByteString
-    -> IO (Either PlaygroundError [FunctionSchema SimpleArgumentSchema])
-compile = runExceptT . fmap functionSchema . PI.compile . sourceCode
+    -> IO (Either PlaygroundError CompilationResult)
+compile = runExceptT . PI.compile . sourceCode
 
 evaluate ::
        Evaluation
@@ -450,7 +471,7 @@ compilationChecks f = do
         compile f >>= (`shouldSatisfy` isSupportedCompilationResult)
 
 isSupportedCompilationResult ::
-       Either PlaygroundError [FunctionSchema SimpleArgumentSchema] -> Bool
+       Either PlaygroundError CompilationResult -> Bool
 isSupportedCompilationResult (Left _) = False
-isSupportedCompilationResult (Right functionSchemas) =
+isSupportedCompilationResult (Right (CompilationResult functionSchemas _ _)) =
     all (all isSupportedByFrontend . argumentSchema) functionSchemas

@@ -94,35 +94,32 @@ module Ledger.Types(
     ) where
 
 import qualified Codec.CBOR.Write                         as Write
-import           Codec.Serialise                          (deserialise, deserialiseOrFail, serialise)
+import           Codec.Serialise                          (deserialise, serialise)
 import           Codec.Serialise.Class                    (Serialise, decode, encode)
 import           Control.Lens                             hiding (lifted)
 import           Control.Monad                            (join)
 import           Control.Newtype.Generics     (Newtype)
 import           Crypto.Hash                              (Digest, SHA256, digestFromByteString, hash)
-import           Data.Aeson                               (FromJSON (parseJSON), ToJSON (toJSON), withText)
+import           Data.Aeson                               (FromJSON (parseJSON), ToJSON (toJSON))
 import qualified Data.Aeson                               as JSON
-import           Data.Bifunctor                           (first)
+import qualified Data.Aeson.Extras                        as JSON
 import qualified Data.ByteArray                           as BA
 import qualified Data.ByteString                          as BSS
-import qualified Data.ByteString.Base64                   as Base64
 import qualified Data.ByteString.Char8                    as BS8
-import qualified Data.ByteString.Lazy                     as BSL
 import           Data.Map                                 (Map)
 import qualified Data.Map                                 as Map
 import           Data.Maybe                               (isJust, listToMaybe)
 import           Data.Proxy                               (Proxy(Proxy))
 import qualified Data.Set                                 as Set
-import qualified Data.Text.Encoding                       as TE
 import           GHC.Generics                             (Generic)
 import           Data.Swagger.Internal.Schema             (ToSchema(declareNamedSchema), plain, paramSchemaToSchema)
 import qualified Language.Haskell.TH                      as TH
 import qualified Language.PlutusCore                      as PLC
 import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
-import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusTx.Lift                   (makeLift, unsafeLiftProgram)
 import           Language.PlutusTx.Lift.Class             (Lift)
 import           Language.PlutusTx.TH                     (CompiledCode, compile, getSerializedPlc)
+import PlutusPrelude
 
 import           Ledger.Interval                          (Slot(..), SlotRange)
 import           Ledger.Ada                               (Ada)
@@ -197,19 +194,13 @@ instance Serialise (Digest SHA256) where
       Just v  -> pure v
 
 instance ToJSON (Digest SHA256) where
-  toJSON = JSON.String . TE.decodeUtf8 . Base64.encode . Write.toStrictByteString . encode
+  toJSON = JSON.String . JSON.encodeSerialise
 
 instance ToSchema (Digest SHA256) where
   declareNamedSchema _ = plain . paramSchemaToSchema $ (Proxy :: Proxy String)
 
 instance FromJSON (Digest SHA256) where
-  parseJSON = withText "SHA256" $ \s -> do
-    let ev = do
-          eun64 <- Base64.decode . TE.encodeUtf8 $ s
-          first show $ deserialiseOrFail $ BSL.fromStrict eun64
-    case ev of
-      Left e  -> fail e
-      Right v -> pure v
+  parseJSON = JSON.decodeSerialise
 
 -- | A payment address is a double SHA256 of a
 --   UTxO output's validator script (and presumably its data script).
@@ -267,19 +258,13 @@ applyScript :: Script -> Script -> Script
 applyScript (getPlc -> s1) (getPlc -> s2) = Script $ s1 `PLC.applyProgram` s2
 
 evaluateScript :: Script -> ([String], Bool)
-evaluateScript (getPlc -> s) = (isJust . evaluationResultToMaybe) <$> evaluateCekTrace s
+evaluateScript (getPlc -> s) = (isJust . reoption) <$> evaluateCekTrace s
 
 instance ToJSON Script where
-  toJSON = JSON.String . TE.decodeUtf8 . Base64.encode . BSL.toStrict . serialise
+  toJSON = JSON.String . JSON.encodeSerialise
 
 instance FromJSON Script where
-  parseJSON = withText "Script" $ \s -> do
-    let ev = do
-          eun64 <- Base64.decode . TE.encodeUtf8 $ s
-          first show $ deserialiseOrFail $ BSL.fromStrict eun64
-    case ev of
-      Left e  -> fail e
-      Right v -> pure v
+  parseJSON = JSON.decodeSerialise
 
 lifted :: Lift a => a -> Script
 lifted = Script . unsafeLiftProgram

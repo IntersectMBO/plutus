@@ -40904,6 +40904,7 @@ license = stdenv.lib.licenses.bsd3;
 , filepath
 , hashable
 , http-types
+, marlowe
 , monad-logger
 , mtl
 , newtype-generics
@@ -40937,6 +40938,7 @@ file-embed
 filepath
 hashable
 http-types
+marlowe
 monad-logger
 mtl
 newtype-generics
@@ -79323,7 +79325,7 @@ license = stdenv.lib.licenses.mit;
   mkDerivation
 , aeson
 , base
-, base64-bytestring
+, base16-bytestring
 , bytestring
 , cborg
 , containers
@@ -79364,7 +79366,7 @@ isExecutable = true;
 libraryHaskellDepends = [
 aeson
 base
-base64-bytestring
+base16-bytestring
 bytestring
 cborg
 containers
