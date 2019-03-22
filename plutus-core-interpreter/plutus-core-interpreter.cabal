@@ -2,7 +2,7 @@ cabal-version: 2.0
 name: plutus-core-interpreter
 version: 0.1.0.0
 license: Apache-2.0
-license-files: 
+license-files:
   LICENSE
   NOTICE
 maintainer: Plutus team
@@ -67,7 +67,7 @@ test-suite plutus-core-interpreter-test
     other-modules:
         CekMachine
         DynamicBuiltins.Common
-        DynamicBuiltins.Factorial
+        DynamicBuiltins.Definition
         DynamicBuiltins.Logging
         DynamicBuiltins.MakeRead
         DynamicBuiltins.Spec

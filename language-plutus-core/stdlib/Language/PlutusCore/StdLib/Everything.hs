@@ -56,6 +56,7 @@ stdLib =
                   , plcTermFile "Cons"       cons
                   , plcTermFile "FoldrList"  foldrList
                   , plcTermFile "FoldList"   foldList
+                  , plcTermFile "Reverse"    List.reverse
                   , plcTermFile "EnumFromTo" List.enumFromTo
                   , plcTermFile "Sum"        List.sum
                   , plcTermFile "Product"    List.product

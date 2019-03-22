@@ -59,6 +59,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , (<<*>>)
                      , forBind
                      , foldMapM
+                     , reoption
                      , repeatM
                      , (?)
                      , hoist
@@ -225,6 +226,11 @@ forBind a f = join <$> traverse f a
 foldMapM :: (Foldable f, Monad m, Monoid b) => (a -> m b) -> f a -> m b
 foldMapM f xs = foldr step return xs mempty where
     step x r z = f x >>= \y -> r $! z `mappend` y
+
+-- | This function generalizes 'eitherToMaybe', 'eitherToList',
+-- 'listToMaybe' and other such functions.
+reoption :: (Foldable f, Alternative g) => f a -> g a
+reoption = foldr (const . pure) empty
 
 -- | Make sure your 'Applicative' is sufficiently lazy!
 repeatM :: Applicative f => Int -> f a -> f [a]

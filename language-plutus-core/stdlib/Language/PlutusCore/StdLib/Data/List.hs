@@ -9,12 +9,13 @@ module Language.PlutusCore.StdLib.Data.List
     , cons
     , foldrList
     , foldList
+    , reverse
     , enumFromTo
     , sum
     , product
     ) where
 
-import           Prelude                                  hiding (enumFromTo, product, sum)
+import           Prelude                                  hiding (enumFromTo, product, reverse, sum)
 
 import           Language.PlutusCore.Constant.Make        (makeDynBuiltinInt)
 import           Language.PlutusCore.MkPlc
@@ -154,6 +155,29 @@ foldList = runQuote $ do
         $ [ mkIterApp () (var () f) [var () z, var () x]
           , var () xs'
           ]
+
+-- |  'reverse' as a PLC term.
+--
+-- > /\(a :: *) -> \(xs : list a) ->
+-- >     foldList {a} {list a} (\(r : list a) (x : a) -> cons {a} x r) (nil {a})
+reverse :: TermLike term TyName Name => term ()
+reverse = runQuote $ do
+    let list = _recursiveType listData
+    a   <- freshTyName () "a"
+    xs  <- freshName () "xs"
+    x   <- freshName () "x"
+    r   <- freshName () "r"
+    let vA = TyVar () a
+        listA = TyApp () list vA
+    return
+        . tyAbs () a (Type ())
+        . lamAbs () xs listA
+        $ mkIterApp () (mkIterInst () foldList [vA, listA])
+            [ lamAbs () r listA . lamAbs () x vA $
+                mkIterApp () (tyInst () cons vA) [var () x, var () r]
+            , tyInst () nil vA
+            , var () xs
+            ]
 
 -- | 'enumFromTo' as a PLC term
 --
