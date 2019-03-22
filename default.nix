@@ -247,7 +247,7 @@ let
           exit
         '';
       };
-      withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ packages.cabal-install packages.ghcid ]; });
+      withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ packages.cabal-install ]; });
       shellTemplate = name: withDevTools haskellPackages."${name}".env;
     };
 
