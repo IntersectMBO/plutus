@@ -28,6 +28,8 @@ data _⊢ : ℕ → Set where
   con     : ∀{n} → TermCon → n ⊢
   builtin : ∀{n} → Builtin → List (n ⊢) → n ⊢
   error   : ∀{n} → n ⊢
+  wrap    : ∀{n} → n ⊢ → n ⊢
+  unwrap  : ∀{n} → n ⊢ → n ⊢
 \end{code}
 
 \begin{code}
@@ -104,6 +106,8 @@ builtinMatcher (t · u) = inj₂ (t · u)
 builtinMatcher (con c) = inj₂ (con c)
 builtinMatcher (builtin b ts) = inj₁ (b ,, ts)
 builtinMatcher error = inj₂ error
+builtinMatcher (wrap t)   = inj₂ (wrap t)
+builtinMatcher (unwrap t) = inj₂ (unwrap t)
 
 arity : Builtin → ℕ
 arity _ = 2
@@ -129,6 +133,8 @@ erase⊢ (t S.· u) | inj₂ t' = t' · erase⊢ u
 erase⊢ (S.con c) = con (eraseCon c)
 erase⊢ (S.error A) = error
 erase⊢ (S.builtin b _ ts) = builtin b (eraseL ts)
+erase⊢ (S.wrap A B t) = wrap (erase⊢ t)
+erase⊢ (S.unwrap t)   = unwrap (erase⊢ t)
 
 eraseL [] = []
 eraseL (t ∷ ts) = erase⊢ t ∷ eraseL ts
@@ -159,4 +165,6 @@ ugly (t · u) = "( " ++ ugly t ++ " · " ++ ugly u ++ ")"
 ugly (con c) = "(con " ++ uglyTermCon c ++ ")"
 ugly (builtin b ts) = "(builtin " ++ uglyBuiltin b ++ " " ++ S.showNat (Data.List.length ts) ++ ")"
 ugly error = "error"
+ugly (wrap t) = "(wrap " ++ ugly t ++ ")"
+ugly (unwrap t) = "(unwrap " ++ ugly t ++ ")"
 \end{code}

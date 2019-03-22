@@ -80,6 +80,8 @@ data ScopedTm : Weirdℕ → Set where
   error : ∀{n} → ScopedTy ∥ n ∥ → ScopedTm n
   builtin : ∀{n} → Builtin → List (ScopedTy ∥ n ∥) → List (ScopedTm n)
           → ScopedTm n
+  wrap : ∀{n} → ScopedTy ∥ n ∥ → ScopedTy ∥ n ∥ → ScopedTm n → ScopedTm n
+  unwrap : ∀{n} → ScopedTm n → ScopedTm n
 
 -- SCOPE CHECKING / CONVERSION FROM RAW TO SCOPED
 
@@ -171,7 +173,15 @@ deBruijnifyTm g (L ·⋆ A) = do
   return (L ·⋆ A)
 deBruijnifyTm g (con t) = map con (checkSize t)
 deBruijnifyTm g (error A) = map error (deBruijnifyTy ∥ g ∥Vec A)
-deBruijnifyTm g (builtin b) = just (builtin b [] []) 
+deBruijnifyTm g (builtin b) = just (builtin b [] [])
+deBruijnifyTm g (wrap A B t) = do
+  A ← deBruijnifyTy ∥ g ∥Vec A
+  B ← deBruijnifyTy ∥ g ∥Vec B
+  t ← deBruijnifyTm g t
+  return (wrap A B t)
+deBruijnifyTm g (unwrap t) =  do
+  t ← deBruijnifyTm g t
+  return (unwrap t)
 \end{code}
 
 -- SATURATION OF BUILTINS
@@ -220,6 +230,8 @@ saturate (t · u) | inj₂ t'            = t' · saturate u
 saturate (con c)        = con c
 saturate (error A)      = error A
 saturate (builtin b As ts) = builtin b As ts
+saturate (wrap A B t) = wrap A B (saturate t)
+saturate (unwrap t)   = unwrap (saturate t)
   -- I don't think As or ts can be unsaturated, could be enforced by
   -- seperate representations for sat and unsat terms
 \end{code}
@@ -242,6 +254,8 @@ unsaturate (con c) = con c
 unsaturate (error A) = error A
 unsaturate (builtin b As bs) =
   builtinBuilder b (Data.List.reverse As) (Data.List.reverse bs)
+unsaturate (wrap A B t) = wrap A B (unsaturate t)
+unsaturate (unwrap t)   = unwrap (unsaturate t)
 \end{code}
 
 \begin{code}
@@ -301,6 +315,9 @@ unDeBruijnify i⋆ i (t · u) = unDeBruijnify i⋆ i t · unDeBruijnify i⋆ i u
 unDeBruijnify i⋆ i (con c) = con (unDeBruijnifyC c)
 unDeBruijnify i⋆ i (error A) = error (unDeBruijnify⋆ i⋆ A)
 unDeBruijnify i⋆ i (builtin b _ _) = builtin b
+unDeBruijnify i⋆ i (wrap A B t) =
+  wrap (unDeBruijnify⋆ i⋆ A) (unDeBruijnify⋆ i⋆ B) (unDeBruijnify i⋆ i t)
+unDeBruijnify i⋆ i (unwrap t) = unwrap (unDeBruijnify i⋆ i t)
 \end{code}
 
 -- UGLY PRINTING
@@ -344,4 +361,6 @@ ugly (builtin b As ts) =
   Data.Integer.show (Data.Integer.ℤ.pos (Data.List.length ts))
   ++ ")"
 ugly (error _) = "error _"
+ugly (wrap _ _ t) = "(wrap " ++ ugly t ++ ")"
+ugly (unwrap t) = "(unwrap " ++ ugly t ++ ")"
 \end{code}

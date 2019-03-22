@@ -160,7 +160,8 @@ progress (builtin b As ts) with progressList ts
 progress (builtin b As ts) | done  vs       = inr (BUILTIN b As vs , β-builtin vs)
 progress (builtin b As ts) | step  vs p ts' = inr (builtin b As _ , ξ-builtin vs p ts')
 progress (builtin b As ts) | error vs e ts' = inl (inr (E-builtin e))
-
+progress (wrap {Z} x x₁ t) = inl (inr todo)
+progress (unwrap {Z} t) = inl (inr todo)
 \end{code}
 
 \begin{code}

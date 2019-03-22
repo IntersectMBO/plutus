@@ -26,6 +26,9 @@ infix 2 _—→_
 -- applications
 data Error {n} : n ⊢ → Set where
   E-error : Error error
+
+  E-todo : ∀{t} → Error t
+
 \end{code}
 
 \begin{code}
@@ -147,7 +150,8 @@ progress (builtin b ts) | step  vs p ts' =
 progress (builtin b ts) | error vs e ts' =
   inr (error     , E-builtin vs e ts')
 progress error        = inl (inr E-error)
-
+progress (wrap {zero} t) = inl (inr E-todo)
+progress (unwrap {zero} t) = inl (inr E-todo)
 \end{code}
 
 \begin{code}

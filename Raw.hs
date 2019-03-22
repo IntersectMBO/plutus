@@ -27,6 +27,7 @@ data RType = RTyVar T.Text
            | RTyApp RType RType
            | RTyCon TypeBuiltin
            | RTySize Integer
+           | RTyMu RType RType
            deriving Show
 
 data RConstant = RConInt Integer Integer
@@ -43,6 +44,8 @@ data RTerm = RVar T.Text
            | RCon RConstant
            | RError RType
            | RBuiltin BuiltinName
+           | RWrap RType RType RTerm
+           | RUnWrap RTerm
   deriving Show
 
 
@@ -103,6 +106,7 @@ unconvT (RTyLambda x k t) = TyLam () (TyName $ mkName x) (unconvK k) (unconvT t)
 unconvT (RTyApp t u) = TyApp () (unconvT t) (unconvT u)
 unconvT (RTyCon c) = TyBuiltin () c
 unconvT (RTySize i) = TyInt () (naturalFromInteger i)
+unconvT (RTyMu t u) = TyIFix () (unconvT t) (unconvT u)
 
 unconvC :: RConstant -> Constant ()
 unconvC (RConInt n i) = BuiltinInt () (naturalFromInteger n) i
@@ -118,3 +122,5 @@ unconv (RApp t u) = Apply () (unconv t) (unconv u)
 unconv (RCon c) = Constant () (unconvC c)
 unconv (RError ty) = Error () (unconvT ty)
 unconv (RBuiltin b) = Builtin () (BuiltinName () b)
+unconv (RWrap tyA tyB t) = IWrap () (unconvT tyA) (unconvT tyB) (unconv t)
+unconv (RUnWrap t) = Unwrap () (unconv t)

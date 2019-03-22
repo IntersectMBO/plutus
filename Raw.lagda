@@ -47,10 +47,12 @@ data RawTm : Set where
   con     : RawTermCon → RawTm
   error   : RawTy → RawTm
   builtin : Builtin → RawTm
+  wrap    : RawTy → RawTy → RawTm → RawTm
+  unwrap  : RawTm → RawTm
 
 {-# FOREIGN GHC import Raw #-}
 {-# COMPILE GHC RawTermCon = data RConstant (RConInt | RConBS | RConSize | RConStr) #-}
-{-# COMPILE GHC RawTm = data RTerm (RVar | RTLambda  | RTApp | RLambda  | RApp | RCon | RError | RBuiltin) #-}
-{-# COMPILE GHC RawTy = data RType (RTyVar | RTyFun | RTyPi | RTyLambda | RTyApp | RTyCon | RTySize) #-}
+{-# COMPILE GHC RawTm = data RTerm (RVar | RTLambda  | RTApp | RLambda  | RApp | RCon | RError | RBuiltin | RWrap | RUnWrap) #-}
+{-# COMPILE GHC RawTy = data RType (RTyVar | RTyFun | RTyPi | RTyLambda | RTyApp | RTyCon | RTySize | RTyMu) #-}
 {-# COMPILE GHC RawKind = data RKind (RKiStar | RKiFun | RKiSize) #-}
 \end{code}
