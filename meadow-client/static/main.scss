@@ -1,4 +1,4 @@
-@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:400,700);
 
 @import 'variables.scss';
 
@@ -251,3 +251,79 @@ h2 {
         color:#9bfbfa;
     }
 }
+
+.composer-add-button {
+    color: $lightPurple;
+    background-color: rgba(255, 255, 255, 0);
+    border: none;
+}
+
+.action-input {
+    width: 10%;
+}
+
+.block-number {
+    margin-left: 10px;
+    margin-right: 20px;
+}
+
+.invalid-transaction {
+    background-color: #3c1b1b;
+}
+
+.money-in-contract {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.pane-header {
+    font-weight: normal;
+}
+
+.signature-row {
+    padding-left: 1rem;
+}
+
+.outcome-block {
+    display: block;
+}
+
+.transaction-btn-row {
+    margin-left: 1rem;
+}
+
+.transaction-btn {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    margin-right: 0.5rem;
+}
+
+.full-width-card {
+    table {
+        width: 100%;
+    }
+    col {
+        width: 30%;
+    }
+    th {
+        text-align: center;
+        border-bottom: 1px solid grey;
+    }
+    td {
+        text-align: center;
+    }
+    .left-border-column {
+        border-left: 1px solid grey;
+    }
+    .middle-column {
+        border-right: 1px solid grey;
+        border-left: 1px solid grey;
+    }
+}
+
+@media (max-width:990px) {
+    .input-composer.col.col-sm-6,  .transaction-composer.col.col-sm-6 {
+       width:100%;
+       flex: none !important;
+    }
+ }

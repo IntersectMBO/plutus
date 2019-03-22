@@ -59,6 +59,7 @@ module.exports = {
                             ],
                             bundle: true,
                             psc: 'psa',
+                            bundle: !(isWebpackDevServer || isWatch),
                             watch: isWebpackDevServer || isWatch,
                             pscIde: false
                         }
