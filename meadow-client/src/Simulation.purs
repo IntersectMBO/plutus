@@ -159,7 +159,7 @@ simulationPane state = div_ [ row_ [ inputComposerPane state
                                             , ClassName "mt-5"
                                             , ClassName "mb-3"
                                             ]
-                                  ] [paneHeader "Debugger", demoScriptsPane]
+                                  ] [paneHeader "Marlowe Contract", demoScriptsPane]
                             , div [ onDragOver $ Just <<< action <<< MarloweHandleDragEvent
                                   , onDrop $ Just <<< action <<< MarloweHandleDropEvent
                                   ] [ slot' cpMarloweEditor MarloweEditorSlot (aceComponent initEditor (Just Live)) unit (Events.input MarloweHandleEditorMessage)
