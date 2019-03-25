@@ -269,6 +269,7 @@ eval (LoadScript key next) = do
       assign _evaluationResult NotAsked
       assign _simulations Cursor.empty
       assign _compilationResult NotAsked
+      assign _currentView Editor
       pure next
 
 eval (CompileProgram next) = do

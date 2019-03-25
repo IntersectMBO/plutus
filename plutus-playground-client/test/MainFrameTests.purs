@@ -48,7 +48,7 @@ import StaticData as StaticData
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (assert, equal')
 import Test.Unit.QuickCheck (quickCheck)
-import Types (Query(LoadScript, CompileProgram, LoadGist, SetGistUrl, ChangeView, CheckAuthStatus), State, WebData, _authStatus, _compilationResult, _createGistResult, _currentView, _evaluationResult, _simulations)
+import Types (Query(LoadScript, CompileProgram, LoadGist, SetGistUrl, ChangeView, CheckAuthStatus), State, View(..), WebData, _authStatus, _compilationResult, _createGistResult, _currentView, _evaluationResult, _simulations)
 
 all :: forall aff. TestSuite (exception :: EXCEPTION, fs :: FS, random :: RANDOM, file :: FILE | aff)
 all =
@@ -223,6 +223,7 @@ evalTests =
         let compilationResult :: Either InterpreterError (InterpreterResult CompilationResult)
             compilationResult = unsafePartial $ fromRight (jsonParser contents >>= decodeJson)
         Tuple _ finalState <- execMockApp (mockWorld { compilationResult = Success compilationResult }) do
+          send $ ChangeView Simulations
           send $ LoadScript "Game"
           send $ CompileProgram
         assert "Simulations are non-empty." $ not $ Cursor.null $ view _simulations finalState
@@ -233,3 +234,4 @@ evalTests =
         assert "Simulations are empty." $ Cursor.null $ view _simulations finalState
         assert "Evaluation is cleared." $ isNotAsked $ view _evaluationResult finalState
         assert "Compilation is cleared." $ isNotAsked $ view _compilationResult finalState
+        equal' "View is reset." Editor $ view _currentView finalState
