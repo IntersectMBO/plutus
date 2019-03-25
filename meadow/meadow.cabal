@@ -52,7 +52,7 @@ library
         http-conduit -any,
         http-types -any,
         interpreter -any,
-        jwt -any,
+        jwt <0.10.0,
         lens -any,
         marlowe -any,
         marlowe -any,
