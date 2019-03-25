@@ -1,14 +1,11 @@
 module BridgeTests
-       ( all, k
+       ( all
        ) where
 
 import Prelude
 
 import AjaxUtils (ajaxSettings)
-import Control.Monad.Aff.AVar (AVAR)
-import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
-import Control.Monad.Eff.Console (CONSOLE)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Random (RANDOM)
 import Data.Argonaut.Parser (jsonParser)
@@ -23,22 +20,7 @@ import Node.FS.Sync as FS
 import Playground.API (CompilationResult, EvaluationResult, KnownCurrency, TokenId)
 import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettings_(..))
 import Test.Unit (TestSuite, Test, failure, success, suite, test)
-import Test.Unit.Console (TESTOUTPUT)
-import Test.Unit.Main (runTest)
 import Type.Proxy (Proxy(..))
-
-k :: forall t57.
-  Eff
-    ( console :: CONSOLE
-    , testOutput :: TESTOUTPUT
-    , avar :: AVAR
-    , exception :: EXCEPTION
-    , fs :: FS
-    , random :: RANDOM
-    | t57
-    )
-    Unit
-k = runTest all
 
 all :: forall eff. TestSuite (exception :: EXCEPTION, fs :: FS, random :: RANDOM | eff)
 all =
