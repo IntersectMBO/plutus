@@ -259,9 +259,9 @@ updateActions oldState {state, contract, outcome, validity} =
 simulateState :: MarloweState -> {state :: State, contract :: Contract, outcome :: TransactionOutcomes, validity :: TransactionValidity}
 simulateState state =
   case applyTransaction inps sigs bn st c mic of
-    MSuccessfullyApplied {state: newState, contract: newContract, outcome: outcome} de ->
+    MSuccessfullyApplied {state: newState, contract: newContract, outcome: outcome} inputWarnings ->
             {state: newState, contract: newContract,
-             outcome: outcome, validity: ValidTransaction de}
+             outcome: outcome, validity: ValidTransaction inputWarnings}
     MCouldNotApply InvalidInput ->
             if (inps == Nil)
             then {state: st, contract: reduce state.blockNum state.state c,
