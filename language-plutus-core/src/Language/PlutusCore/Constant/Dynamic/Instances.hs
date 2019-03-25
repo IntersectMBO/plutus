@@ -71,17 +71,6 @@ instance KnownDynamicBuiltinType Int where
             Constant () (BuiltinInt () 8 i) -> pure $ fromIntegral i
             _                               -> throwError "Not a builtin Int"
 
-instance KnownDynamicBuiltinType Int where
-    toTypeEncoding _ = TyApp () (TyBuiltin () TyInteger) (TyInt () 8)
-
-    makeDynamicBuiltin = fmap (Constant ()) . makeBuiltinInt 8 . fromIntegral
-
-    readDynamicBuiltin eval term = do
-        res <- eval mempty term
-        pure $ lift res >>= \case
-            Constant () (BuiltinInt () 8 i) -> pure $ fromIntegral i
-            _                               -> throwError "Not a builtin Int"
-
 instance KnownDynamicBuiltinType [Char] where
     toTypeEncoding _ = TyBuiltin () TyString
 

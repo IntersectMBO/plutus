@@ -25,6 +25,7 @@ import           Language.PlutusTx.Plugin
 import qualified Language.PlutusCore                        as PLC
 import qualified Language.PlutusCore.Constant               as PLC
 import qualified Language.PlutusCore.Constant.Dynamic       as PLC
+import qualified Language.PlutusCore.Evaluation.Result      as PLC
 import qualified Language.PlutusCore.Interpreter.CekMachine as PLC
 
 import           Data.ByteString.Lazy
@@ -409,9 +410,9 @@ evenMutual = plc @"evenMutual" (
 
 readCompiledCode :: PLC.KnownDynamicBuiltinType a => (a -> b) -> CompiledCode b -> b
 readCompiledCode inj compiled =
-    case PLC.readDynamicBuiltinCek term of
-        Right (Just x) -> inj x
-        Left _         -> error "Can't read compiled code"
+    case PLC.readDynamicBuiltinCek mempty term of
+        Right (PLC.EvaluationSuccess x) -> inj x
+        Left _                          -> error "Can't read compiled code"
   where
     PLC.Program _ _ term = getPlc compiled
 
