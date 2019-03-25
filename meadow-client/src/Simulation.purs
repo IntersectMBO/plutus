@@ -412,18 +412,18 @@ transactionButtons state = [ div [ classes [ ClassName "d-flex"
                                    ]
                            ]
 
-printTransWarnings :: forall p. BigInteger -> List DynamicProblem -> Array (HTML p Query)
+printTransWarnings :: forall p. Int -> List DynamicProblem -> Array (HTML p Query)
 printTransWarnings _ Nil = []
-printTransWarnings num (Cons NoProblem rest) = printTransWarnings (num + (fromInt 1)) rest
+printTransWarnings num (Cons NoProblem rest) = printTransWarnings (num + 1) rest
 printTransWarnings num (Cons CommitNotMade rest) =
   Array.cons (text ("Input number " <> (show num) <> " will have no effect because the commitment has not been made yet."))
-             (printTransWarnings (num + (fromInt 1)) rest)
+             (printTransWarnings (num + 1) rest)
 printTransWarnings num (Cons NotEnoughMoneyLeftInCommit rest) =
   Array.cons (text ("Input number " <> (show num) <> " will not have the expected effect because there is not enough money left in the commit."))
-             (printTransWarnings (num + (fromInt 1)) rest)
+             (printTransWarnings (num + 1) rest)
 printTransWarnings num (Cons CommitIsExpired rest) =
   Array.cons (text ("Input number " <> (show num) <> " will have no effect because the commitment has expired already."))
-             (printTransWarnings (num + (fromInt 1)) rest)
+             (printTransWarnings (num + 1) rest)
 
 printTransError :: forall p. ErrorResult -> Array (HTML p Query)
 printTransError InvalidInput = [ul_ [li_ [text "At least one of the inputs in the transaction is not acceptable given the state of the contract."]]]
@@ -445,7 +445,7 @@ transactionErrors (ValidTransaction l) = if (all (\x -> x == NoProblem) l)
                                                    ]
                                               ]
   where
-  transWarn = ul_ (map (li_ <<< pure) (printTransWarnings (fromInt 1) l)) 
+  transWarn = ul_ (map (li_ <<< pure) (printTransWarnings 1 l)) 
 transactionErrors (InvalidTransaction err) = [div [classes [ ClassName "invalid-transaction"
                                                            , ClassName "input-composer"
                                                            ]
