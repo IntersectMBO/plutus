@@ -32,12 +32,12 @@ import Data.Tuple.Nested ((/\))
 import Gist (Gist)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.ECharts (EChartsMessage, EChartsQuery)
-import Language.Haskell.Interpreter (CompilationError)
+import Language.Haskell.Interpreter (SourceCode, InterpreterError)
 import Ledger.Ada.TH (Ada, _Ada)
 import Ledger.Types (Tx, TxIdOf)
 import Matryoshka (class Corecursive, class Recursive, Algebra, cata)
 import Network.RemoteData (RemoteData)
-import Playground.API (CompilationResult, Evaluation(Evaluation), EvaluationResult, FunctionSchema, SimpleArgumentSchema(UnknownSchema, SimpleObjectSchema, SimpleTupleSchema, SimpleArraySchema, SimpleStringSchema, SimpleIntSchema), SimulatorWallet, SourceCode, _FunctionSchema, _SimulatorWallet)
+import Playground.API (CompilationResult, Evaluation(Evaluation), EvaluationResult, FunctionSchema, SimpleArgumentSchema(UnknownSchema, SimpleObjectSchema, SimpleTupleSchema, SimpleArraySchema, SimpleStringSchema, SimpleIntSchema), SimulatorWallet, _FunctionSchema, _SimulatorWallet)
 import Playground.API as API
 import Servant.PureScript.Affjax (AjaxError)
 import Test.QuickCheck.Arbitrary (class Arbitrary)
@@ -249,7 +249,7 @@ type WebData = RemoteData AjaxError
 
 newtype State = State
   { currentView :: View
-  , compilationResult :: WebData (Either (Array CompilationError) CompilationResult)
+  , compilationResult :: WebData (Either InterpreterError CompilationResult)
   , simulations :: Cursor Simulation
   , evaluationResult :: WebData EvaluationResult
   , authStatus :: WebData AuthStatus
@@ -277,7 +277,7 @@ _wallets = _Newtype <<< prop (SProxy :: SProxy "wallets")
 _evaluationResult :: Lens' State (WebData EvaluationResult)
 _evaluationResult = _Newtype <<< prop (SProxy :: SProxy "evaluationResult")
 
-_compilationResult :: Lens' State (WebData (Either (Array CompilationError) CompilationResult))
+_compilationResult :: Lens' State (WebData (Either InterpreterError CompilationResult))
 _compilationResult = _Newtype <<< prop (SProxy :: SProxy "compilationResult")
 
 _authStatus :: Lens' State (WebData AuthStatus)

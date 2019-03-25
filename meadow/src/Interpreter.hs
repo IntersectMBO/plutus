@@ -2,8 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Interpreter where
 
-import           API                          (MeadowError (CompilationErrors, OtherError), RunResult (RunResult),
-                                               SourceCode)
+import           API                          (RunResult (RunResult))
 import           Control.Monad                (unless)
 import           Control.Monad.Catch          (MonadCatch, MonadMask, bracket, catch)
 import           Control.Monad.Error.Class    (MonadError, catchError, throwError)
@@ -20,7 +19,9 @@ import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
 import qualified Data.Text.Internal.Search    as Text
 import qualified Data.Text.IO                 as Text
-import           Language.Haskell.Interpreter (CompilationError, runghc)
+import           Data.Time.Units              (TimeUnit)
+import           Language.Haskell.Interpreter (CompilationError (RawError), InterpreterError (CompilationErrors),
+                                               SourceCode, avoidUnsafe, runghc)
 import           System.Directory             (removeFile)
 import           System.FilePath              ((</>))
 import           System.IO                    (Handle, hFlush)
@@ -29,30 +30,23 @@ import           System.IO.Temp.Extras        (withSystemTempFile)
 import           System.Process               (cwd, proc, readProcessWithExitCode)
 
 runscript
-    :: (MonadMask m, MonadIO m, MonadError [CompilationError] m)
+    :: (Show t, TimeUnit t, MonadMask m, MonadIO m, MonadError InterpreterError m)
     => Handle
     -> FilePath
+    -> t
     -> Text
     -> m String
-runscript handle file script = do
+runscript handle file timeout script = do
     liftIO $ Text.hPutStr handle script
     liftIO $ hFlush handle
-    runghc [] file
+    runghc timeout [] file
 
-avoidUnsafe :: (MonadError MeadowError m) => SourceCode -> m ()
-avoidUnsafe s =
-    unless (null . Text.indices "unsafe" . Newtype.unpack $ s)
-        . throwError
-        . OtherError
-        $ "Cannot interpret unsafe functions"
-
-runHaskell :: (MonadIO m, MonadError MeadowError m, MonadMask m) => SourceCode -> m RunResult
-runHaskell source = do
+runHaskell :: (Show t, TimeUnit t, MonadIO m, MonadError InterpreterError m, MonadMask m) => t -> SourceCode -> m RunResult
+runHaskell t source = do
     avoidUnsafe source
     withSystemTempFile "Main.hs" $ \file handle ->
         fmap (RunResult . Text.pack)
-        . mapError CompilationErrors
-        . runscript handle file
+        . runscript handle file t
         . Newtype.unpack $ source
 
 -- Not implemented yet but this will turn a marlowe script into Haskell code
