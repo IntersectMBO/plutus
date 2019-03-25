@@ -11,9 +11,10 @@ module Language.PlutusTx.Coordination.Contracts.Vesting (
     VestingData(..),
     vestFunds,
     retrieveFunds,
-    validatorScript,
     totalAmount,
-    validatorScriptHash
+    validatorScriptHash,
+    -- * Script
+    validatorScript
     ) where
 
 import           Control.Monad.Error.Class    (MonadError (..))
@@ -88,11 +89,11 @@ retrieveFunds :: (
     WalletAPI m)
     => Vesting
     -- ^ Definition of vesting scheme
-    -> VestingData 
+    -> VestingData
     -- ^ Value that has already been taken out
-    -> TxOutRef    
+    -> TxOutRef
     -- ^ Transaction output locked by the vesting validator script
-    -> Ada         
+    -> Ada
     -- ^ Value we want to take out now
     -> m VestingData
 retrieveFunds vs vd r anow = do
@@ -118,7 +119,7 @@ validatorScriptHash =
 validatorScript :: Vesting -> ValidatorScript
 validatorScript v = ValidatorScript val where
     val = Ledger.applyScript inner (Ledger.lifted v)
-    inner = $$(Ledger.compileScript [|| \Vesting{..} () VestingData{..} (p :: PendingTx) ->
+    inner = $$(Ledger.compileScript [|| \Vesting{..} VestingData{..} () (p :: PendingTx) ->
         let
 
             eqBs :: ValidatorHash -> ValidatorHash -> Bool

@@ -10,6 +10,7 @@ module Language.PlutusCore.StdLib.Data.Sum
 
 import           Prelude                   hiding (sum)
 
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
@@ -26,13 +27,14 @@ sum = runQuote $ do
         . TyLam () a (Type ())
         . TyLam () b (Type ())
         . TyForall () r (Type ())
-        . TyFun () (TyFun () (TyVar () a) . TyFun () (TyVar () b) $ TyVar () r)
+        . TyFun () (TyFun () (TyVar () a) $ TyVar () r)
+        . TyFun () (TyFun () (TyVar () b) $ TyVar () r)
         $ TyVar () r
 
 -- | 'Left' as a PLC term.
 --
 -- > /\(a b :: *) -> \(x : a) -> /\(r :: *) -> \(f : a -> r) -> (g : b -> r) -> f x
-left :: Term TyName Name ()
+left :: TermLike term TyName Name => term ()
 left = runQuote $ do
     a <- freshTyName () "a"
     b <- freshTyName () "b"
@@ -41,19 +43,19 @@ left = runQuote $ do
     f <- freshName () "f"
     g <- freshName () "g"
     return
-        . TyAbs () a (Type ())
-        . TyAbs () b (Type ())
-        . LamAbs () x (TyVar () a)
-        . TyAbs () r (Type ())
-        . LamAbs () f (TyFun () (TyVar () a) $ TyVar () r)
-        . LamAbs () g (TyFun () (TyVar () b) $ TyVar () r)
-        . Apply () (Var () f)
-        $ Var () x
+        . tyAbs () a (Type ())
+        . tyAbs () b (Type ())
+        . lamAbs () x (TyVar () a)
+        . tyAbs () r (Type ())
+        . lamAbs () f (TyFun () (TyVar () a) $ TyVar () r)
+        . lamAbs () g (TyFun () (TyVar () b) $ TyVar () r)
+        . apply () (var () f)
+        $ var () x
 
 -- | 'Right' as a PLC term.
 --
 -- > /\(a b :: *) -> \(y : b) -> /\(r :: *) -> \(f : a -> r) -> (g : b -> r) -> g y
-right :: Term TyName Name ()
+right :: TermLike term TyName Name => term ()
 right = runQuote $ do
     a <- freshTyName () "a"
     b <- freshTyName () "b"
@@ -62,11 +64,11 @@ right = runQuote $ do
     f <- freshName () "f"
     g <- freshName () "g"
     return
-        . TyAbs () a (Type ())
-        . TyAbs () b (Type ())
-        . LamAbs () y (TyVar () b)
-        . TyAbs () r (Type ())
-        . LamAbs () f (TyFun () (TyVar () a) $ TyVar () r)
-        . LamAbs () g (TyFun () (TyVar () b) $ TyVar () r)
-        . Apply () (Var () g)
-        $ Var () y
+        . tyAbs () a (Type ())
+        . tyAbs () b (Type ())
+        . lamAbs () y (TyVar () b)
+        . tyAbs () r (Type ())
+        . lamAbs () f (TyFun () (TyVar () a) $ TyVar () r)
+        . lamAbs () g (TyFun () (TyVar () b) $ TyVar () r)
+        . apply () (var () g)
+        $ var () y

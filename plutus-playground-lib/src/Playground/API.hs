@@ -20,6 +20,7 @@ import           Control.Newtype.Generics     (Newtype, pack, unpack)
 import           Data.Aeson                   (FromJSON, ToJSON, Value)
 import           Data.Bifunctor               (second)
 import qualified Data.HashMap.Strict.InsOrd   as HM
+import           Data.List.NonEmpty           (NonEmpty)
 import           Data.Maybe                   (fromMaybe)
 import           Data.Swagger                 (ParamSchema (ParamSchema), Referenced (Inline, Ref), Schema (Schema),
                                                Schema (Schema), SwaggerItems (SwaggerItemsArray, SwaggerItemsObject),
@@ -33,7 +34,8 @@ import           Language.Haskell.Interpreter (CompilationError (CompilationErro
                                                text)
 import qualified Language.Haskell.TH.Syntax   as TH
 import           Ledger.Ada                   (Ada)
-import           Ledger.Types                 (Blockchain, PubKey)
+import           Ledger.Types                 (Blockchain, PubKey, Tx, TxId)
+import           Ledger.Validation            (ValidatorHash)
 import           Servant.API                  ((:<|>), (:>), Get, JSON, Post, ReqBody)
 import           Text.Read                    (readMaybe)
 import           Wallet.Emulator.Types        (EmulatorEvent, Wallet)
@@ -43,6 +45,19 @@ type API
    = "contract" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either [CompilationError] CompilationResult)
      :<|> "evaluate" :> ReqBody '[ JSON] Evaluation :> Post '[ JSON] EvaluationResult
      :<|> "health" :> Get '[ JSON] ()
+
+-- FIXME: These types will be defined elsewhere but I've added them here for now
+newtype TokenId = TokenId Text
+    deriving stock (Eq, Show, Generic)
+    deriving newtype (ToJSON, FromJSON)
+
+data KnownCurrency = KnownCurrency
+    { hash         :: ValidatorHash
+    , friendlyName :: String
+    , knownTokens  :: NonEmpty TokenId
+    }
+    deriving (Eq, Show, Generic, ToJSON, FromJSON)
+--------------------------------------------------------------------------------
 
 newtype SourceCode = SourceCode Text
   deriving stock (Generic)
@@ -82,7 +97,7 @@ pubKeys :: Evaluation -> [PubKey]
 pubKeys Evaluation{..} = pack . unpack . simulatorWalletWallet <$> wallets
 
 data EvaluationResult = EvaluationResult
-  { resultBlockchain  :: Blockchain
+  { resultBlockchain  :: [[(TxId, Tx)]] -- Blockchain annotated with hashes.
   , resultGraph       :: FlowGraph
   , emulatorLog       :: [EmulatorEvent]
   , fundsDistribution :: [SimulatorWallet]
@@ -94,10 +109,11 @@ newtype Warning = Warning Text
   deriving newtype (ToJSON)
 
 data CompilationResult = CompilationResult
-  { functionSchema :: [FunctionSchema SimpleArgumentSchema]
-  , warnings       :: [Warning]
+  { functionSchema  :: [FunctionSchema SimpleArgumentSchema]
+  , knownCurrencies :: [KnownCurrency]
+  , warnings        :: [Warning]
   }
-  deriving (Generic, ToJSON)
+  deriving (Show, Generic, ToJSON)
 
 data FunctionSchema a = FunctionSchema
   { functionName   :: Fn

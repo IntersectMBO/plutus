@@ -90,8 +90,6 @@ import           Prelude                        ( Show(..)
                                                 , Int
                                                 , Maybe(..)
                                                 , Either(..)
-                                                , Num(..)
-                                                , div
                                                 )
 
 import qualified Language.PlutusTx              as PlutusTx
@@ -265,7 +263,7 @@ makeLift ''State
 
 -- | 'IdentCC' equality
 eqIdentCC :: Q (TExp (IdentCC -> IdentCC -> Bool))
-eqIdentCC = [|| \(IdentCC a) (IdentCC b) -> a == b ||]
+eqIdentCC = [|| \(IdentCC a) (IdentCC b) -> a `Builtins.equalsInteger` b ||]
 
 -- | 'Value' equality
 equalValue :: Q (TExp (Value -> Value -> Bool))
@@ -280,7 +278,7 @@ equalValue = [|| \l r -> let
 
     eq l r = case (l, r) of
         (Committed idl, Committed idr) -> $$(eqIdentCC) idl idr
-        (Value vl, Value vr) -> vl == vr
+        (Value vl, Value vr) -> vl `Builtins.equalsInteger` vr
         (AddValue v1l v2l, AddValue v1r v2r) -> eq v1l v1r && eq v2l v2r
         (MulValue v1l v2l, MulValue v1r v2r) -> eq v1l v1r && eq v2l v2r
         (DivValue v1l v2l v3l, DivValue v1r v2r v3r) ->
@@ -288,7 +286,7 @@ equalValue = [|| \l r -> let
             && eq v2l v2r
             && eq v3l v3r
         (ValueFromChoice (IdentChoice idl) pkl vl, ValueFromChoice (IdentChoice idr) pkr vr) ->
-            idl == idr
+            idl `Builtins.equalsInteger` idr
             && pkl `eqPk` pkr
             && eq vl vr
         (ValueFromOracle pkl vl, ValueFromOracle pkr vr) -> pkl `eqPk` pkr && eq vl vr
@@ -308,14 +306,14 @@ equalObservation = [|| \eqValue l r -> let
 
     eq :: Observation -> Observation -> Bool
     eq l r = case (l, r) of
-        (BelowTimeout tl, BelowTimeout tr) -> tl == tr
+        (BelowTimeout tl, BelowTimeout tr) -> tl `Builtins.equalsInteger` tr
         (AndObs o1l o2l, AndObs o1r o2r) -> o1l `eq` o1r && o2l `eq` o2r
         (OrObs o1l o2l, OrObs o1r o2r) -> o1l `eq` o1r && o2l `eq` o2r
         (NotObs ol, NotObs or) -> ol `eq` or
         (PersonChoseThis (IdentChoice idl) pkl cl, PersonChoseThis (IdentChoice idr) pkr cr) ->
-            idl == idr && pkl `eqPk` pkr && cl == cr
+            idl `Builtins.equalsInteger` idr && pkl `eqPk` pkr && cl `Builtins.equalsInteger` cr
         (PersonChoseSomething (IdentChoice idl) pkl, PersonChoseSomething (IdentChoice idr) pkr) ->
-            idl == idr && pkl `eqPk` pkr
+            idl `Builtins.equalsInteger` idr && pkl `eqPk` pkr
         (ValueGE v1l v2l, ValueGE v1r v2r) -> v1l `eqValue` v1r && v2l `eqValue` v2r
         (TrueObs, TrueObs) -> True
         (FalseObs, FalseObs) -> True
@@ -337,18 +335,18 @@ equalContract = [|| \eqValue eqObservation l r -> let
     eq l r = case (l, r) of
         (Null, Null) -> True
         (CommitCash (IdentCC idl) pkl vl t1l t2l c1l c2l, CommitCash (IdentCC idr) pkr vr t1r t2r c1r c2r) ->
-            idl == idr
+            idl `Builtins.equalsInteger` idr
             && pkl `eqPk` pkr
             && vl `eqValue` vr
-            && t1l == t1r && t2l == t2r
+            && t1l `Builtins.equalsInteger` t1r && t2l `Builtins.equalsInteger` t2r
             && eq c1l c1r && eq c2l c2r
-        (RedeemCC (IdentCC idl) c1l, RedeemCC (IdentCC idr) c1r) -> idl == idr && eq c1l c1r
+        (RedeemCC (IdentCC idl) c1l, RedeemCC (IdentCC idr) c1r) -> idl `Builtins.equalsInteger` idr && eq c1l c1r
         (Pay (IdentPay idl) pk1l pk2l vl tl cl, Pay (IdentPay idr) pk1r pk2r vr tr cr) ->
-            idl == idr
+            idl `Builtins.equalsInteger` idr
             && pk1l `eqPk` pk1r
             && pk2l `eqPk` pk2r
             && vl `eqValue` vr
-            && tl == tr
+            && tl `Builtins.equalsInteger` tr
             && eq cl cr
         (Both c1l c2l, Both c1r c2r) -> eq c1l c1r && eq c2l c2r
         (Choice ol c1l c2l, Choice or c1r c2r) ->
@@ -357,7 +355,7 @@ equalContract = [|| \eqValue eqObservation l r -> let
             && eq c2l c2r
         (When ol tl c1l c2l, When or tr c1r c2r) ->
             ol `eqObservation` or
-            && tl == tr
+            && tl `Builtins.equalsInteger` tr
             && eq c1l c1r
             && eq c2l c2r
         _ -> False
@@ -382,9 +380,9 @@ validateContract = [|| \State{stateCommitted} contract (Slot bn) actualMoney' ->
 
     calcCommittedMoney :: [Commit] -> Cash -> Cash
     calcCommittedMoney [] r = r
-    calcCommittedMoney ((_, (_, NotRedeemed money timeout)) : cs) acc = if bn > timeout
+    calcCommittedMoney ((_, (_, NotRedeemed money timeout)) : cs) acc = if bn `Builtins.greaterThanInteger` timeout
         then calcCommittedMoney cs acc
-        else calcCommittedMoney cs (acc + money)
+        else calcCommittedMoney cs (acc `Builtins.addInteger` money)
 
     checkBoth :: ValidatorState -> Contract -> Contract -> (ValidatorState, Bool)
     checkBoth state c1 c2 = let
@@ -396,19 +394,19 @@ validateContract = [|| \State{stateCommitted} contract (Slot bn) actualMoney' ->
     validateIds state@(ValidatorState maxCCId maxPayId) contract = case contract of
         Null -> (state, True)
         CommitCash (IdentCC id) _ _ _ _ c1 c2 ->
-            if id > maxCCId
+            if id `Builtins.greaterThanInteger` maxCCId
             then checkBoth (ValidatorState id maxPayId) c1 c2
             else (state, False)
         RedeemCC _ c -> validateIds state c
         Pay (IdentPay id) _ _ _ _ c ->
-            if id > maxPayId
+            if id `Builtins.greaterThanInteger` maxPayId
             then validateIds (ValidatorState maxCCId id) c
             else (state, False)
         Both c1 c2 -> checkBoth state c1 c2
         Choice _ c1 c2 -> checkBoth state c1 c2
         When _ _ c1 c2 -> checkBoth state c1 c2
 
-    enoughMoney = calcCommittedMoney stateCommitted 0 <= actualMoney
+    enoughMoney = calcCommittedMoney stateCommitted 0 `Builtins.lessThanEqInteger` actualMoney
 
     in if enoughMoney then
             let (_, validIds) = validateIds (ValidatorState 0 0) contract
@@ -430,20 +428,20 @@ evaluateValue = [|| \pendingTxSlot inputOracles state value -> let
 
     findCommit :: IdentCC -> [Commit] -> Maybe CCStatus
     findCommit i@(IdentCC searchId) commits = case commits of
-        (IdentCC id, status) : _ | id == searchId -> Just status
+        (IdentCC id, status) : _ | id `Builtins.equalsInteger` searchId -> Just status
         _ : xs -> findCommit i xs
         _ -> Nothing
 
     fromOracle :: PubKey -> Slot -> [OracleValue Int] -> Maybe Int
     fromOracle pubKey h@(Slot blockNumber) oracles = case oracles of
         OracleValue pk (Slot bn) value : _
-            | pk `eqPk` pubKey && bn == blockNumber -> Just value
+            | pk `eqPk` pubKey && bn `Builtins.equalsInteger` blockNumber -> Just value
         _ : rest -> fromOracle pubKey h rest
         _ -> Nothing
 
     fromChoices :: IdentChoice -> PubKey -> [Choice] -> Maybe ConcreteChoice
     fromChoices identChoice@(IdentChoice id) pubKey choices = case choices of
-        ((IdentChoice i, party), value) : _ | id == i && party `eqPk` pubKey -> Just value
+        ((IdentChoice i, party), value) : _ | id `Builtins.equalsInteger` i && party `eqPk` pubKey -> Just value
         _ : rest -> fromChoices identChoice pubKey rest
         _ -> Nothing
 
@@ -453,13 +451,13 @@ evaluateValue = [|| \pendingTxSlot inputOracles state value -> let
             Just (_, NotRedeemed c _) -> c
             _ -> 0
         Value v -> v
-        AddValue lhs rhs -> evalValue state lhs + evalValue state rhs
-        MulValue lhs rhs -> evalValue state lhs * evalValue state rhs
+        AddValue lhs rhs -> evalValue state lhs `Builtins.addInteger` evalValue state rhs
+        MulValue lhs rhs -> evalValue state lhs `Builtins.multiplyInteger` evalValue state rhs
         DivValue lhs rhs def -> do
             let divident = evalValue state lhs
             let divisor  = evalValue state rhs
             let defVal   = evalValue state def
-            if divisor == 0 then defVal else divident `div` divisor
+            if divisor `Builtins.equalsInteger` 0 then defVal else divident `Builtins.divideInteger` divisor
         ValueFromChoice ident pubKey def -> case fromChoices ident pubKey choices of
             Just v -> v
             _ -> evalValue state def
@@ -498,20 +496,20 @@ interpretObservation = [|| \evalValue blockNumber state@(State _ choices) obs ->
     find :: IdentChoice -> Person -> [Choice] -> Maybe ConcreteChoice
     find choiceId@(IdentChoice cid) person choices = case choices of
         (((IdentChoice id, party), choice) : _)
-            | cid == id && party `eqPk` person -> Just choice
+            | cid `Builtins.equalsInteger` id && party `eqPk` person -> Just choice
         (_ : cs) -> find choiceId person cs
         _ -> Nothing
 
     go :: Observation -> Bool
     go obs = case obs of
-        BelowTimeout n -> blockNumber <= n
+        BelowTimeout n -> blockNumber `Builtins.lessThanEqInteger` n
         AndObs obs1 obs2 -> go obs1 && go obs2
         OrObs obs1 obs2 -> go obs1 || go obs2
         NotObs obs -> not (go obs)
         PersonChoseThis choiceId person referenceChoice ->
-            maybe False (== referenceChoice) (find choiceId person choices)
+            maybe False (Builtins.equalsInteger referenceChoice) (find choiceId person choices)
         PersonChoseSomething choiceId person -> isJust (find choiceId person choices)
-        ValueGE a b -> evalValue state a >= evalValue state b
+        ValueGE a b -> evalValue state a `Builtins.greaterThanEqInteger` evalValue state b
         TrueObs -> True
         FalseObs -> False
     in go obs
@@ -534,7 +532,7 @@ insertCommit = [|| \ commit commits -> let
         in case commits of
             [] -> commit : []
             (_, (pk, NotRedeemed _ t)) : _
-                | pk `eqPk` pubKey && endTimeout < t -> commit : commits
+                | pk `eqPk` pubKey && endTimeout `Builtins.lessThanInteger` t -> commit : commits
             c : cs -> c : insert commit cs
     in insert commit commits
     ||]
@@ -555,16 +553,16 @@ discountFromPairList = [|| \ from (Slot currentBlockNumber) value' commits -> le
     discount :: Int -> [Commit] -> Maybe [Commit]
     discount value commits = case commits of
         (ident, (party, NotRedeemed available expire)) : rest
-            | currentBlockNumber <= expire && $$(Validation.eqPubKey) from party ->
-            if available > value then let
-                change = available - value
+            | currentBlockNumber `Builtins.lessThanEqInteger` expire && $$(Validation.eqPubKey) from party ->
+            if available `Builtins.greaterThanInteger` value then let
+                change = available `Builtins.subtractInteger` value
                 updatedCommit = (ident, (party, NotRedeemed change expire))
                 in Just (updatedCommit : rest)
-            else discount (value - available) rest
+            else discount (value `Builtins.subtractInteger` available) rest
         commit : rest -> case discount value rest of
                             Just acc -> Just (commit : acc)
                             Nothing -> Nothing
-        [] -> if value == 0 then Just [] else Nothing
+        [] -> if value `Builtins.equalsInteger` 0 then Just [] else Nothing
     in discount value commits
     ||]
 
@@ -622,10 +620,10 @@ evaluateContract = [|| \
     (||) = $$(PlutusTx.or)
 
     signedBy :: Signature -> PubKey -> Bool
-    signedBy (Signature sig) (PubKey pk) = sig == pk
+    signedBy (Signature sig) (PubKey pk) = sig `Builtins.equalsInteger` pk
 
     eqIdentCC :: IdentCC -> IdentCC -> Bool
-    eqIdentCC (IdentCC a) (IdentCC b) = a == b
+    eqIdentCC (IdentCC a) (IdentCC b) = a `Builtins.equalsInteger` b
 
     nullContract :: Contract -> Bool
     nullContract Null = True
@@ -640,7 +638,7 @@ evaluateContract = [|| \
     eval :: InputCommand -> State -> Contract -> (State, Contract, Bool)
     eval input state@(State commits choices) contract = case (contract, input) of
         (When obs timeout con con2, _)
-            | currentBlockNumber > timeout -> eval input state con2
+            | currentBlockNumber `Builtins.greaterThanInteger` timeout -> eval input state con2
             | interpretObs currentBlockNumber state obs -> eval input state con
 
         (Choice obs conT conF, _) -> if interpretObs currentBlockNumber state obs
@@ -657,7 +655,7 @@ evaluateContract = [|| \
 
         -- expired CommitCash
         (CommitCash _ _ _ startTimeout endTimeout _ con2, _)
-            | currentBlockNumber > startTimeout || currentBlockNumber > endTimeout -> eval input state con2
+            | currentBlockNumber `Builtins.greaterThanInteger` startTimeout || currentBlockNumber `Builtins.greaterThanInteger` endTimeout -> eval input state con2
 
         (CommitCash id1 pubKey value _ endTimeout con1 _, Commit id2 signature) | id1 `eqIdentCC` id2 -> let
             vv = evalValue state value
@@ -665,8 +663,8 @@ evaluateContract = [|| \
             insert :: Commit -> [Commit] -> [Commit]
             insert a b = $$(insertCommit) a b
 
-            isValid = vv > 0
-                && scriptOutValue == scriptInValue + vv
+            isValid = vv `Builtins.greaterThanInteger` 0
+                && scriptOutValue `Builtins.equalsInteger` (scriptInValue `Builtins.addInteger` vv)
                 && signature `signedBy` pubKey
             in  if isValid then let
                     cns = (pubKey, NotRedeemed vv endTimeout)
@@ -676,14 +674,14 @@ evaluateContract = [|| \
                 else (state, contract, False)
 
         (Pay _ _ _ _ timeout con, _)
-            | currentBlockNumber > timeout -> eval input state con
+            | currentBlockNumber `Builtins.greaterThanInteger` timeout -> eval input state con
 
         (Pay (IdentPay contractIdentPay) from to payValue _ con, Payment (IdentPay pid) signature) -> let
             pv = evalValue state payValue
 
-            isValid = pid == contractIdentPay
-                && pv > 0
-                && scriptOutValue == scriptInValue - pv
+            isValid = pid `Builtins.equalsInteger` contractIdentPay
+                && pv `Builtins.greaterThanInteger` 0
+                && scriptOutValue `Builtins.equalsInteger` (scriptInValue `Builtins.subtractInteger` pv)
                 && signature `signedBy` to
             in  if isValid then let
                 in case $$(discountFromPairList) from blockHeight ($$(Ada.fromInt) pv) commits of
@@ -697,7 +695,7 @@ evaluateContract = [|| \
             predicate :: Commit -> Bool
             predicate (i, (pk, NotRedeemed val _)) =
                 i `eqIdentCC` id1
-                && scriptOutValue == scriptInValue - val
+                && scriptOutValue `Builtins.equalsInteger` (scriptInValue `Builtins.subtractInteger` val)
                 && signature `signedBy` pk
             -- validate and remove a Commit
             in case $$(findAndRemove) predicate commits of
@@ -708,8 +706,8 @@ evaluateContract = [|| \
             predicate :: Commit -> Bool
             predicate (i, (pk, NotRedeemed val expire)) =
                     i `eqIdentCC` identCC
-                    && scriptOutValue == scriptInValue - val
-                    && currentBlockNumber > expire
+                    && scriptOutValue `Builtins.equalsInteger` (scriptInValue `Builtins.subtractInteger` val)
+                    && currentBlockNumber `Builtins.greaterThanInteger` expire
                     && signature `signedBy` pk
             -- validate and remove a Commit
             in case $$(findAndRemove) predicate commits of
@@ -734,8 +732,8 @@ mergeChoices = [|| \ input choices -> let
             [] -> choice : []
             current@((IdentChoice id, pk), _) : rest -> let
                 ((IdentChoice insId, insPK), _) = choice
-                in   if insId < id then choice : choices
-                else if insId == id then
+                in   if insId `Builtins.lessThanInteger` id then choice : choices
+                else if insId `Builtins.equalsInteger` id then
                         if $$(Validation.eqPubKey) insPK pk
                         then choices
                         else current : insert choice rest
@@ -752,8 +750,8 @@ mergeChoices = [|| \ input choices -> let
 validatorScript :: Q (TExp (PubKey -> (Input, MarloweData) -> (Input, MarloweData) -> PendingTx -> ()))
 validatorScript = [|| \
         creator
-        (input@(Input inputCommand _ inputChoices :: Input), MarloweData expectedState expectedContract)
         (_ :: Input, MarloweData{..} :: MarloweData)
+        (input@(Input inputCommand _ inputChoices :: Input), MarloweData expectedState expectedContract)
         (PendingTx{ pendingTxOutputs, pendingTxValidRange, pendingTxIn } :: PendingTx) -> let
 
         {-  Embed contract creator public key. This makes validator script unique,
@@ -765,7 +763,7 @@ validatorScript = [|| \
         eqPk = $$(Validation.eqPubKey)
 
         eqIdentCC :: IdentCC -> IdentCC -> Bool
-        eqIdentCC (IdentCC a) (IdentCC b) = a == b
+        eqIdentCC (IdentCC a) (IdentCC b) = a `Builtins.equalsInteger` b
 
         infixr 3 &&
         (&&) :: Bool -> Bool -> Bool
@@ -788,11 +786,11 @@ validatorScript = [|| \
 
         eqCommit :: Commit -> Commit -> Bool
         eqCommit (id1, (pk1, (NotRedeemed val1 t1))) (id2, (pk2, (NotRedeemed val2 t2))) =
-            id1 `eqIdentCC` id2 && pk1 `eqPk` pk2 && val1 == val2 && t1 == t2
+            id1 `eqIdentCC` id2 && pk1 `eqPk` pk2 && val1 `Builtins.equalsInteger` val2 && t1 `Builtins.equalsInteger` t2
 
         eqChoice :: Choice -> Choice -> Bool
         eqChoice ((IdentChoice id1, pk1), c1) ((IdentChoice id2, pk2), c2) =
-            id1 == id2 && c1 == c2 && pk1 `eqPk` pk2
+            id1 `Builtins.equalsInteger` id2 && c1 `Builtins.equalsInteger` c2 && pk1 `eqPk` pk2
 
         eqState :: State -> State -> Bool
         eqState (State commits1 choices1) (State commits2 choices2) =

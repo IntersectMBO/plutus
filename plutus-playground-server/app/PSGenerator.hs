@@ -19,6 +19,7 @@ import           Auth                                      (AuthRole, AuthStatus
 import qualified Auth
 import           Control.Applicative                       (empty, (<|>))
 import           Control.Lens                              (set, (&))
+import           Control.Monad.Representable.Reader        (MonadReader)
 import qualified Data.ByteString                           as BS
 import           Data.Monoid                               ()
 import           Data.Proxy                                (Proxy (Proxy))
@@ -29,8 +30,9 @@ import qualified Data.Text.IO                              as T ()
 import           Gist                                      (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
 import           Language.Haskell.Interpreter              (CompilationError)
 import           Language.PureScript.Bridge                (BridgePart, Language (Haskell), PSType, SumType,
-                                                            TypeInfo (TypeInfo), buildBridge, equal, mkSumType,
+                                                            TypeInfo (TypeInfo), buildBridge, equal, mkSumType, order,
                                                             psTypeParameters, typeModule, typeName, writePSTypes, (^==))
+import           Language.PureScript.Bridge.Builder        (BridgeData)
 import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psString)
 import           Language.PureScript.Bridge.TypeParameters (A)
 import           Ledger.Ada                                (Ada)
@@ -41,8 +43,8 @@ import           Ledger.Types                              (AddressOf, DataScrip
                                                             TxOutType, ValidatorScript)
 import           Ledger.Value.TH                           (CurrencySymbol, Value)
 import           Playground.API                            (CompilationResult, Evaluation, EvaluationResult, Expression,
-                                                            Fn, FunctionSchema, SimpleArgumentSchema, SimulatorWallet,
-                                                            SourceCode, Warning)
+                                                            Fn, FunctionSchema, KnownCurrency, SimpleArgumentSchema,
+                                                            SimulatorWallet, SourceCode, TokenId, Warning)
 import qualified Playground.API                            as API
 import           Playground.Usecases                       (crowdfunding, game, messages, vesting)
 import           Servant                                   ((:<|>))
@@ -53,6 +55,12 @@ import           System.FilePath                           ((</>))
 import           Wallet.API                                (WalletAPIError)
 import           Wallet.Emulator.Types                     (EmulatorEvent, Wallet)
 import           Wallet.Graph                              (FlowGraph, FlowLink, TxRef, UtxOwner, UtxoLocation)
+
+psNonEmpty :: MonadReader BridgeData m => m PSType
+psNonEmpty = TypeInfo "purescript-lists" "Data.List.NonEmpty" "NonEmptyList" <$> psTypeParameters
+
+psJson :: PSType
+psJson = TypeInfo "" "Data.RawJson" "RawJson" []
 
 integerBridge :: BridgePart
 integerBridge = do
@@ -70,9 +78,6 @@ aesonBridge = do
     typeName ^== "Value"
     typeModule ^== "Data.Aeson.Types.Internal"
     pure psJson
-
-psJson :: PSType
-psJson = TypeInfo "" "Data.RawJson" "RawJson" []
 
 setBridge :: BridgePart
 setBridge = do
@@ -111,6 +116,12 @@ validatorBridge = do
     typeModule ^== "Ledger.Types"
     pure psString
 
+validatorHashBridge :: BridgePart
+validatorHashBridge = do
+    typeName ^== "ValidatorHash"
+    typeModule ^== "Ledger.Validation"
+    pure psString
+
 headersBridge :: BridgePart
 headersBridge = do
     typeModule ^== "Servant.API.ResponseHeaders"
@@ -126,6 +137,12 @@ headerBridge = do
     typeName ^== "Header'"
     empty
 
+nonEmptyBridge :: BridgePart
+nonEmptyBridge = do
+    typeName ^== "NonEmpty"
+    typeModule ^== "GHC.Base"
+    psNonEmpty
+
 myBridge :: BridgePart
 myBridge =
     defaultBridge <|> integerBridge <|> scientificBridge <|> aesonBridge <|>
@@ -136,7 +153,9 @@ myBridge =
     validatorBridge <|>
     scriptBridge <|>
     headersBridge <|>
-    headerBridge
+    headerBridge <|>
+    nonEmptyBridge <|>
+    validatorHashBridge
 
 data MyBridge
 
@@ -157,8 +176,9 @@ myTypes =
     , (equal <*> mkSumType) (Proxy @Wallet)
     , (equal <*> mkSumType) (Proxy @SimulatorWallet)
     , mkSumType (Proxy @DataScript)
-    , mkSumType (Proxy @ValidatorScript)
-    , mkSumType (Proxy @RedeemerScript)
+    , (equal <*> (order <*> mkSumType)) (Proxy @ValidatorScript)
+    , (equal <*> (order <*> mkSumType)) (Proxy @RedeemerScript)
+    , (equal <*> (order <*> mkSumType)) (Proxy @Signature)
     , mkSumType (Proxy @CompilationError)
     , mkSumType (Proxy @Expression)
     , mkSumType (Proxy @Evaluation)
@@ -173,10 +193,9 @@ myTypes =
     , mkSumType (Proxy @TxOutType)
     , mkSumType (Proxy @(TxOutOf A))
     , mkSumType (Proxy @(TxIdOf A))
-    , mkSumType (Proxy @TxInType)
-    , mkSumType (Proxy @Signature)
+    , (equal <*> (order <*> mkSumType)) (Proxy @TxInType)
     , mkSumType (Proxy @Value)
-    , mkSumType (Proxy @PubKey)
+    , (equal <*> (order <*> mkSumType)) (Proxy @PubKey)
     , mkSumType (Proxy @(AddressOf A))
     , mkSumType (Proxy @FlowLink)
     , mkSumType (Proxy @TxRef)
@@ -187,13 +206,15 @@ myTypes =
     , (equal <*> mkSumType) (Proxy @Ada)
     , mkSumType (Proxy @AuthStatus)
     , mkSumType (Proxy @AuthRole)
-    , mkSumType (Proxy @GistId)
+    , (equal <*> (order <*> mkSumType)) (Proxy @GistId)
     , mkSumType (Proxy @Gist)
     , mkSumType (Proxy @GistFile)
     , mkSumType (Proxy @NewGist)
     , mkSumType (Proxy @NewGistFile)
     , mkSumType (Proxy @Owner)
     , mkSumType (Proxy @CurrencySymbol)
+    , mkSumType (Proxy @TokenId)
+    , mkSumType (Proxy @KnownCurrency)
     ]
 
 mySettings :: Settings
@@ -224,6 +245,8 @@ generate outputDir = do
         mySettings
         outputDir
         myBridgeProxy
-        (Proxy @(API.API :<|> Auth.FrontendAPI))
+        (Proxy
+             @(API.API
+               :<|> Auth.FrontendAPI))
     writePSTypes outputDir (buildBridge myBridge) myTypes
     writeUsecases outputDir

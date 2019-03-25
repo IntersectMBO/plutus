@@ -97,8 +97,6 @@ let
       enableHaddockHydra enableBenchmarks fasterBuild enableDebugging
       enableSplitCheck customOverlays pkgsGenerated;
 
-      inherit (pkgsGenerated) ghc;
-
       filter = localLib.isPlutus;
       filterOverrides = {
         splitCheck = localButNot [
@@ -161,7 +159,8 @@ let
         wrapProgram $out/bin/plutus-playground \
           --set GHC_LIB_DIR "${runtimeGhc}/lib/ghc-${runtimeGhc.version}" \
           --set GHC_BIN_DIR "${runtimeGhc}/bin" \
-          --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d"
+          --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d" \
+          --set GHC_RTS "-M2G"
       '';
 
       client = let
@@ -198,7 +197,8 @@ let
         wrapProgram $out/bin/meadow \
           --set GHC_LIB_DIR "${runtimeGhc}/lib/ghc-${runtimeGhc.version}" \
           --set GHC_BIN_DIR "${runtimeGhc}/bin" \
-          --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d"
+          --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d" \
+          --set GHC_RTS "-M2G"
       ''; 
 
       client = let
@@ -221,12 +221,37 @@ let
       };
     };
 
-    devPackages = localLib.getPackages {
-      inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "ghcid" ];
-    };
+    dev = rec {
+      packages = localLib.getPackages {
+        inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "stylish-haskell" ];
+      };
+      scripts = {
+        inherit (localLib) regeneratePackages;
 
-    withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ devPackages.cabal-install devPackages.ghcid ]; });
-    shellTemplate = name: withDevTools haskellPackages."${name}".env;
+        fixStylishHaskell = pkgs.writeScript "fix-stylish-haskell" ''
+          ${pkgs.git}/bin/git diff > pre-stylish.diff
+          ${pkgs.fd}/bin/fd \
+            --extension hs \
+            --exclude '*/dist/*' \
+            --exclude '*/docs/*' \
+            --exec ${packages.stylish-haskell}/bin/stylish-haskell -i {}
+          ${pkgs.git}/bin/git diff > post-stylish.diff
+          diff pre-stylish.diff post-stylish.diff > /dev/null
+          if [ $? != 0 ]
+          then
+            echo "Changes by stylish have been made. Please commit them."
+          else
+            echo "No stylish changes were made."
+          fi
+          rm pre-stylish.diff post-stylish.diff
+          exit
+        '';
+      };
+
+      withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ packages.cabal-install ]; });
+    };
+      
+    shellTemplate = name: dev.withDevTools haskellPackages."${name}".env;
   });
 
 

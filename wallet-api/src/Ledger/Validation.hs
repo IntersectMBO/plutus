@@ -8,6 +8,7 @@
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
+{-# OPTIONS_GHC   -O0 #-}
 module Ledger.Validation
     (
     -- * Pending transactions and related types
@@ -39,29 +40,31 @@ module Ledger.Validation
     , eqRedeemer
     , eqValidator
     , eqTx
+    , adaLockedBy
+    , ownHash
+    , signsTransaction
     -- * Hashes
     , plcSHA2_256
     , plcSHA3_256
     ) where
 
-import           Codec.Serialise              (Serialise, deserialiseOrFail, serialise)
+import           Codec.Serialise              (Serialise, serialise)
 import           Crypto.Hash                  (Digest, SHA256)
-import           Data.Aeson                   (FromJSON, ToJSON (toJSON), withText)
+import           Data.Aeson                   (FromJSON, ToJSON (toJSON))
 import qualified Data.Aeson                   as JSON
-import           Data.Bifunctor               (first)
+import qualified Data.Aeson.Extras            as JSON
 import qualified Data.ByteString.Lazy.Hash    as Hash
-import qualified Data.ByteString.Base64       as Base64
 import qualified Data.ByteString.Lazy         as BSL
 import           Data.Proxy                   (Proxy (Proxy))
 import           Data.Swagger.Internal.Schema (ToSchema (declareNamedSchema), paramSchemaToSchema, plain)
-import qualified Data.Text.Encoding           as TE
 import           GHC.Generics                 (Generic)
 import           Language.Haskell.TH          (Q, TExp)
 import           Language.PlutusTx.Lift       (makeLift)
-import qualified Language.PlutusTx.Builtins as Builtins
+import qualified Language.PlutusTx.Builtins   as Builtins
 import           Ledger.Interval              (SlotRange)
 import           Ledger.Types                 (Ada, PubKey (..), Signature (..), Value, Slot(..))
 import qualified Ledger.Types                 as Ledger
+import qualified Ledger.Ada.TH                as Ada
 
 -- Ignore newtype warnings related to `Oracle` and `Signed` because it causes
 -- problems with the plugin
@@ -175,20 +178,17 @@ newtype ValidatorHash =
     deriving stock (Eq, Generic)
     deriving newtype (Serialise)
 
+instance Show ValidatorHash where
+    show = show . JSON.encodeSerialise
+
 instance ToSchema ValidatorHash where
     declareNamedSchema _ = plain . paramSchemaToSchema $ (Proxy :: Proxy String)
 
 instance ToJSON ValidatorHash where
-    toJSON = JSON.String . TE.decodeUtf8 . Base64.encode . BSL.toStrict . serialise
+    toJSON = JSON.String . JSON.encodeSerialise
 
 instance FromJSON ValidatorHash where
-    parseJSON = withText "ValidatorScript" $ \s -> do
-        let ev = do
-                eun64 <- Base64.decode . TE.encodeUtf8 $ s
-                first show $ deserialiseOrFail $ BSL.fromStrict eun64
-        case ev of
-            Left e  -> fail e
-            Right v -> pure v
+    parseJSON = JSON.decodeSerialise
 
 newtype DataScriptHash =
     DataScriptHash BSL.ByteString
@@ -234,7 +234,7 @@ txSignedBy = [||
             PendingTx txins _ _ _ _ _ = p
 
             signedBy' :: Signature -> Bool
-            signedBy' (Signature s) = s == k
+            signedBy' (Signature s) = Builtins.equalsInteger s k
 
             go :: [PendingTxIn] -> Bool
             go l = case l of
@@ -249,7 +249,7 @@ txSignedBy = [||
 txInSignedBy :: Q (TExp (PendingTxIn -> PubKey -> Bool))
 txInSignedBy = [||
     \(i :: PendingTxIn) (PubKey k) -> case i of
-        PendingTxIn _ (Right (Signature sig)) _ -> sig == k
+        PendingTxIn _ (Right (Signature sig)) _ -> Builtins.equalsInteger sig k
         _ -> False
     ||]
 
@@ -268,7 +268,7 @@ scriptOutput = [|| \(o:: PendingTxOut) -> case o of
 
 -- | Equality of public keys
 eqPubKey :: Q (TExp (PubKey -> PubKey -> Bool))
-eqPubKey = [|| \(PubKey l) (PubKey r) -> l == r ||]
+eqPubKey = [|| \(PubKey l) (PubKey r) -> Builtins.equalsInteger l r ||]
 
 -- | Equality of data scripts
 eqDataScript :: Q (TExp (DataScriptHash -> DataScriptHash -> Bool))
@@ -286,7 +286,32 @@ eqRedeemer = [|| \(RedeemerHash l) (RedeemerHash r) -> Builtins.equalsByteString
 eqTx :: Q (TExp (TxHash -> TxHash -> Bool))
 eqTx = [|| \(TxHash l) (TxHash r) -> Builtins.equalsByteString l r ||]
 
+-- | The hash of the validator script that is currently being validated.
+ownHash :: Q (TExp (PendingTx -> ValidatorHash))
+ownHash = [|| \(PendingTx _ _ _ _ i _) -> let PendingTxIn _ (Left (h, _)) _ = i in h ||]
 
+-- | Total amount of ADa locked by the given script
+adaLockedBy :: Q (TExp (PendingTx -> ValidatorHash -> Ada))
+adaLockedBy = [|| \(PendingTx _ outs _ _ _ _) h ->
+    let
+
+        go :: [PendingTxOut] -> Ada
+        go c = case c of
+            [] -> $$(Ada.zero)
+            (PendingTxOut vl hashes _):xs ->
+                case hashes of
+                    Nothing -> go xs
+                    Just  (h', _) -> if $$(eqValidator) h h'
+                                     then $$(Ada.plus) ($$(Ada.fromValue) vl) (go xs)
+                                     else go xs
+
+    in go outs
+      ||]
+
+-- | Check if the provided signature is the result of signing the pending
+--   transaction (without witnesses) with the public key.
+signsTransaction :: Q (TExp (Signature -> PubKey -> PendingTx -> Bool))
+signsTransaction = [|| \(Signature i) (PubKey j) (_ :: PendingTx) -> Builtins.equalsInteger i j ||]
 
 makeLift ''PendingTxOutType
 

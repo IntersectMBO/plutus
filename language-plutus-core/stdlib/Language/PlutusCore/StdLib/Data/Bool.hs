@@ -30,39 +30,39 @@ bool = runQuote $ do
 -- | 'True' as a PLC term.
 --
 -- > /\(A :: *) -> \(x y : A) -> x
-true :: Value TyName Name ()
+true :: TermLike term TyName Name => term ()
 true = runQuote $ do
     a <- freshTyName () "a"
     x <- freshName () "x"
     y <- freshName () "y"
     return
-       . TyAbs () a (Type ())
+       . tyAbs () a (Type ())
        $ mkIterLamAbs [
           VarDecl () x (TyVar () a),
           VarDecl () y (TyVar () a)
           ]
-       $ Var () x
+       $ var () x
 
 -- | 'False' as a PLC term.
 --
 -- > /\(A :: *) -> \(x y : A) -> y
-false :: Value TyName Name ()
+false :: TermLike term TyName Name => term ()
 false = runQuote $ do
     a <- freshTyName () "a"
     x <- freshName () "x"
     y <- freshName () "y"
     return
-       . TyAbs () a (Type ())
+       . tyAbs () a (Type ())
        $ mkIterLamAbs [
           VarDecl () x (TyVar () a),
           VarDecl () y (TyVar () a)
           ]
-       $ Var () y
+       $ var () y
 
 -- | @if_then_else_@ as a PLC term.
 --
 -- > /\(A :: *) -> \(b : Bool) (x y : () -> A) -> b {() -> A} x y ()
-ifThenElse :: Value TyName Name ()
+ifThenElse :: TermLike term TyName Name => term ()
 ifThenElse = runQuote $ do
     a <- freshTyName () "a"
     b <- freshName () "b"
@@ -70,12 +70,12 @@ ifThenElse = runQuote $ do
     y <- freshName () "y"
     let unitFunA = TyFun () unit (TyVar () a)
     return
-       . TyAbs () a (Type ())
+       . tyAbs () a (Type ())
       $ mkIterLamAbs [
           VarDecl () b bool,
           VarDecl () x unitFunA,
           VarDecl () y unitFunA
           ]
       $ mkIterApp ()
-          (TyInst () (Var () b) unitFunA)
-          [Var () x, Var () y, unitval]
+          (tyInst () (var () b) unitFunA)
+          [var () x, var () y, unitval]

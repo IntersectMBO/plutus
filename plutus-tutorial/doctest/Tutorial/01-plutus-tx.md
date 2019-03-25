@@ -1,9 +1,15 @@
 # Tutorial
 
 This tutorial will walk you through the basics of using the Plutus Tx compiler to create
-embedded programs that can be used when generating transactions. This tutorial will
-not go into detail about how to use these programs to make transactions, for that see
-the [following tutorial](./02-wallet-api.md).
+embedded programs that can be used when generating transactions.
+
+This is the first in a series of tutorials:
+
+1. Plutus Tx (this one)
+2. [A guessing game](./02-validator-scripts.md)
+3. [A crowdfunding campaign](./03-wallet-api.md)
+4. [Working with the emulator](../../tutorial/Tutorial/Emulator.hs)
+5. [A multi-stage contract](../../tutorial/Tutorial/Vesting.hs)
 
 ```haskell
 -- Necessary language extensions
@@ -16,6 +22,8 @@ module Tutorial.PlutusTx where
 import Language.PlutusTx
 -- Additional support for lifting
 import Language.PlutusTx.Lift
+-- Builtin functions
+import Language.PlutusTx.Builtins
 
 -- Used for examples
 import Language.PlutusCore
@@ -101,23 +109,26 @@ reusable functions.
 
 ```haskell
 plusOne :: Int -> Int
-plusOne x = x + 1
+plusOne x = x `addInteger` 1
 
 functions :: CompiledCode Int
 functions = $$(compile [||
     let
         plusOneLocal :: Int -> Int
-        plusOneLocal x = x + 1
+        plusOneLocal x = x `addInteger` 1
         -- This won't work.
         -- nonLocalDoesntWork = plusOne 1
         localWorks = plusOneLocal 1
         -- You can of course bind this to a name, but for the purposes
         -- of this tutorial we won't since TH requires it to be in
         -- another module.
-        thWorks = $$([|| \(x::Int) -> x + 1 ||]) 1
-    in localWorks + thWorks
+        thWorks = $$([|| \(x::Int) -> x `addInteger` 1 ||]) 1
+    in localWorks `addInteger` thWorks
     ||])
 ```
+
+Here we had to use the function `addInteger` from `Language.PlutusTx.Builtins`, 
+which is mapped on the builtin integer addition in Plutus Core.
 
 From this point on we're going to start dealing with more advanced features of
 Haskell, like datatypes. The way these are encoded into Plutus Core is quite
@@ -181,7 +192,7 @@ data EndDate = Fixed Int | Never
 
 shouldEnd :: CompiledCode (EndDate -> Int -> Bool)
 shouldEnd = $$(compile [|| \(end::EndDate) (current::Int) -> case end of
-    Fixed n -> n <= current
+    Fixed n -> n `lessThanEqInteger` current
     Never -> False
    ||])
 ```
@@ -242,7 +253,7 @@ very simple example, let's write an add-one function.
 -}
 addOneToN :: Int -> Program TyName Name ()
 addOneToN n =
-    let addOne = $$(compile [|| \(x:: Int) -> x + 1 ||])
+    let addOne = $$(compile [|| \(x:: Int) -> x `addInteger` 1 ||])
     in (getPlc addOne) `applyProgram` unsafeLiftProgram n
 ```
 

@@ -135,11 +135,12 @@ withCheckedTermGen genTb k =
 
 -- | Generate a 'TermOf' out of a 'TypeScheme'.
 genSchemedTermOf :: Monad m => TypeScheme Size a r -> PlcGenT m (TermOf a)
-genSchemedTermOf (TypeSchemeBuiltin tb) = do
+genSchemedTermOf (TypeSchemeBuiltin tb)  = do
     BuiltinGensT _ genTb <- ask
     liftT $ genTb tb
-genSchemedTermOf (TypeSchemeArrow _ _)  = error "Not implemented."
-genSchemedTermOf (TypeSchemeAllSize _)  = error "Not implemented."
+genSchemedTermOf (TypeSchemeArrow _ _)   = error "Not implemented."
+genSchemedTermOf (TypeSchemeAllType _ _) = error "Not implemented."
+genSchemedTermOf (TypeSchemeAllSize _)   = error "Not implemented."
 
 -- | Generate an 'IterAppValue' from a 'Denotation'.
 -- If the 'Denotation' has a functional type, then all arguments are generated and
@@ -176,6 +177,8 @@ genIterAppValue (Denotation object toTerm meta scheme) = result where
             args' = args . (v :)     -- Append the PLC value to the spine.
             y     = f x              -- Apply the Haskell function to the generated argument.
         go schB term' args' y
+    go (TypeSchemeAllType _ schK)  term args f =
+        go (schK TypedBuiltinDyn) term args f
     go (TypeSchemeAllSize schK)    term args f = do
         BuiltinGensT genSize _ <- ask
         size <- liftT genSize                       -- Generate a size.

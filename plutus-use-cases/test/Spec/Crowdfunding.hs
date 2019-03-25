@@ -7,6 +7,7 @@
 module Spec.Crowdfunding(tests) where
 
 import           Control.Monad                                         (void)
+import           Control.Monad.IO.Class
 import           Data.Either                                           (isRight)
 import           Data.Foldable                                         (traverse_)
 import qualified Data.Map                                              as Map
@@ -14,6 +15,7 @@ import           Hedgehog                                              (Property
 import qualified Hedgehog
 import           Test.Tasty
 import           Test.Tasty.Hedgehog                                   (testProperty)
+import qualified Test.Tasty.HUnit                                      as HUnit
 
 import           Wallet                                                (PubKey (..))
 import           Wallet.Emulator
@@ -33,8 +35,17 @@ tests = testGroup "crowdfunding" [
         testProperty "cannot collect money too early" cantCollectEarly,
         testProperty "cannot collect money too late" cantCollectLate,
         testProperty "cannot collect unless notified" cantCollectUnlessNotified,
-        testProperty "can claim a refund" canRefund
+        testProperty "can claim a refund" canRefund,
+        HUnit.testCase "script size is reasonable" size
         ]
+
+size :: HUnit.Assertion
+size = do
+    let Ledger.ValidatorScript s = CF.contributionScript (cfCampaign scenario1)
+    let sz = Ledger.scriptSize s
+    -- so the actual size is visible in the log
+    liftIO $ putStrLn ("Script size: " ++ show sz)
+    HUnit.assertBool "script too big" (sz <= 45000)
 
 -- | Make a contribution to the campaign from a wallet. Returns the reference
 --   to the transaction output that is locked by the campaign's validator

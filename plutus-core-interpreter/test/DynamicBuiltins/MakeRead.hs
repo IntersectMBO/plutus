@@ -11,6 +11,7 @@ import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.MkPlc
+import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.StdLib.Data.Unit
 import           PlutusPrelude
 
@@ -30,19 +31,29 @@ import           Test.Tasty.HUnit
 -- of a different type.
 readMakeHetero
     :: (KnownDynamicBuiltinType a, KnownDynamicBuiltinType b)
-    => a -> Maybe (Either CekMachineException b)
-readMakeHetero = makeDynamicBuiltin >=> sequence . readDynamicBuiltinCek
+    => a -> Maybe (Either (Error ()) (Either CekMachineException b))
+readMakeHetero =
+    makeDynamicBuiltin >=> reoption . traverse sequence . typecheckReadDynamicBuiltinCek mempty
 
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of the same type.
 readMake
-    :: KnownDynamicBuiltinType a => a -> Maybe (Either CekMachineException a)
+    :: KnownDynamicBuiltinType a => a -> Maybe (Either (Error ()) (Either CekMachineException a))
 readMake = readMakeHetero
 
 dynamicBuiltinRoundtrip :: (KnownDynamicBuiltinType a, Show a, Eq a) => Gen a -> Property
 dynamicBuiltinRoundtrip genX = property $ do
     x <- forAll genX
-    readMake x === Just (Right x)
+    case readMake x of
+        Nothing                 -> fail "EvaluationFailure"
+        Just (Left err)         -> fail $ "Type error" ++ prettyPlcCondensedErrorClassicString err
+        Just (Right (Left err)) -> fail $ "Evaluation error" ++ show err
+        Just (Right (Right x')) -> x === x'
+
+test_eitherRoundtrip :: TestTree
+test_eitherRoundtrip =
+    testProperty "eitherRoundtrip" . dynamicBuiltinRoundtrip $
+        Gen.choice [Left <$> Gen.unicode, Right <$> Gen.bool]
 
 test_stringRoundtrip :: TestTree
 test_stringRoundtrip =
@@ -103,20 +114,31 @@ test_ignoreEvaluationFailure :: TestTree
 test_ignoreEvaluationFailure =
     testCase "ignoreEvaluationFailure" . assertBool "'EvaluationFailure' not ignored" . isJust $ do
         _ <- readMake True
-        _ <- readMake @(EvaluationResult ()) EvaluationFailure
+        -- 'readMakeHetero' is used here instead of 'readMake' for clarity.
+        _ <- readMakeHetero @(EvaluationResult ()) @(EvaluationResult ()) EvaluationFailure
         readMake 'a'
+
+test_delayEvaluationFailure :: TestTree
+test_delayEvaluationFailure =
+    testCase "delayEvaluationFailure" . assertBool "'EvaluationFailure' not delayed" . isJust $ do
+        errOrErrOrF <- readMake $ \() -> EvaluationFailure
+        for errOrErrOrF $ \errOrF -> for errOrF $ \f -> case f () of
+            EvaluationFailure    -> Just ()
+            EvaluationSuccess () -> Nothing
 
 test_EvaluationFailure :: TestTree
 test_EvaluationFailure =
     testGroup "EvaluationFailure"
         [ test_noticeEvaluationFailure
         , test_ignoreEvaluationFailure
+        , test_delayEvaluationFailure
         ]
 
 test_dynamicMakeRead :: TestTree
 test_dynamicMakeRead =
     testGroup "dynamicMakeRead"
-        [ test_stringRoundtrip
+        [ test_eitherRoundtrip
+        , test_stringRoundtrip
         , test_plcListOfStringsRoundtrip
         , test_plcListOfPairsRoundtrip
         , test_plcListOfSumsRoundtrip

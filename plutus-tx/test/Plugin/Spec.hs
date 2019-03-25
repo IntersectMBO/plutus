@@ -118,26 +118,26 @@ tupleMatch :: CompiledCode ((Int, Int) -> Int)
 tupleMatch = plc @"tupleMatch" (\(x:: (Int, Int)) -> let (a, b) = x in a)
 
 intCompare :: CompiledCode (Int -> Int -> Bool)
-intCompare = plc @"intCompare" (\(x::Int) (y::Int) -> x < y)
+intCompare = plc @"intCompare" (\(x::Int) (y::Int) -> Builtins.lessThanInteger x y)
 
 intEq :: CompiledCode (Int -> Int -> Bool)
-intEq = plc @"intEq" (\(x::Int) (y::Int) -> x == y)
+intEq = plc @"intEq" (\(x::Int) (y::Int) -> Builtins.equalsInteger x y)
 
 -- Has a Void in it
 void :: CompiledCode (Int -> Int -> Bool)
-void = plc @"void" (\(x::Int) (y::Int) -> let a x' y' = case (x', y') of { (True, True) -> True; _ -> False; } in (x == y) `a` (y == x))
+void = plc @"void" (\(x::Int) (y::Int) -> let a x' y' = case (x', y') of { (True, True) -> True; _ -> False; } in (Builtins.equalsInteger x y) `a` (Builtins.equalsInteger y x))
 
 intPlus :: CompiledCode (Int -> Int -> Int)
-intPlus = plc @"intPlus" (\(x::Int) (y::Int) -> x + y)
+intPlus = plc @"intPlus" (\(x::Int) (y::Int) -> Builtins.addInteger x y)
 
 intDiv :: CompiledCode (Int -> Int -> Int)
-intDiv = plc @"intDiv" (\(x::Int) (y::Int) -> x `div` y)
+intDiv = plc @"intDiv" (\(x::Int) (y::Int) -> Builtins.divideInteger x y)
 
 errorPlc :: CompiledCode (() -> Int)
 errorPlc = plc @"errorPlc" (Builtins.error @Int)
 
 ifThenElse :: CompiledCode (Int -> Int -> Int)
-ifThenElse = plc @"ifThenElse" (\(x::Int) (y::Int) -> if x == y then x else y)
+ifThenElse = plc @"ifThenElse" (\(x::Int) (y::Int) -> if Builtins.equalsInteger x y then x else y)
 
 --blocknumPlc :: CompiledCode
 --blocknumPlc = plc @"blocknumPlc" Builtins.blocknum
@@ -164,7 +164,7 @@ structure = testNested "structure" [
 
 -- GHC acutually turns this into a lambda for us, try and make one that stays a let
 letFun :: CompiledCode (Int -> Int -> Bool)
-letFun = plc @"lefFun" (\(x::Int) (y::Int) -> let f z = x == z in f y)
+letFun = plc @"lefFun" (\(x::Int) (y::Int) -> let f z = Builtins.equalsInteger x z in f y)
 
 datat :: TestNested
 datat = testNested "data" [
@@ -218,7 +218,7 @@ irrefutableMatch :: CompiledCode (MyMonoData -> Int)
 irrefutableMatch = plc @"irrefutableMatch" (\(x :: MyMonoData) -> case x of { Mono2 a -> a })
 
 atPattern :: CompiledCode ((Int, Int) -> Int)
-atPattern = plc @"atPattern" (\t@(x::Int, y::Int) -> let fst (a, b) = a in y + fst t)
+atPattern = plc @"atPattern" (\t@(x::Int, y::Int) -> let fst (a, b) = a in Builtins.addInteger y (fst t))
 
 data MyMonoRecord = MyMonoRecord { mrA :: Int , mrB :: Int}
     deriving (Show, Eq)
@@ -338,7 +338,7 @@ polyRec = plc @"polyRec" (
         depth :: B a -> Int
         depth tree = case tree of
             One _     -> 1
-            Two inner -> 1 + depth inner
+            Two inner -> Builtins.addInteger 1 (depth inner)
     in \(t::B Int) -> depth t)
 
 ptreeFirst :: CompiledCode (B Int -> Int)
@@ -385,22 +385,26 @@ fib :: CompiledCode (Int -> Int)
 -- not using case to avoid literal cases
 fib = plc @"fib" (
     let fib :: Int -> Int
-        fib n = if n == 0 then 0 else if n == 1 then 1 else fib(n-1) + fib(n-2)
+        fib n = if Builtins.equalsInteger n 0
+            then 0
+            else if Builtins.equalsInteger n 1
+            then 1
+            else Builtins.addInteger (fib(Builtins.subtractInteger n 1)) (fib(Builtins.subtractInteger n 2))
     in fib)
 
 sumDirect :: CompiledCode ([Int] -> Int)
 sumDirect = plc @"sumDirect" (
     let sum :: [Int] -> Int
         sum []     = 0
-        sum (x:xs) = x + sum xs
+        sum (x:xs) = Builtins.addInteger x (sum xs)
     in sum)
 
 evenMutual :: CompiledCode (Int -> Bool)
 evenMutual = plc @"evenMutual" (
     let even :: Int -> Bool
-        even n = if n == 0 then True else odd (n-1)
+        even n = if Builtins.equalsInteger n 0 then True else odd (Builtins.subtractInteger n 1)
         odd :: Int -> Bool
-        odd n = if n == 0 then False else even (n-1)
+        odd n = if Builtins.equalsInteger n 0 then False else even (Builtins.subtractInteger n 1)
     in even)
 
 readCompiledCode :: PLC.KnownDynamicBuiltinType a => (a -> b) -> CompiledCode b -> b
