@@ -63,7 +63,7 @@ decodeTokenIdLists opts (SigProd "Data.List.Types.NonEmptyList" [{sigValues: [l]
         case a unit of
           (SigProd "Playground.API.TokenId" _) -> do
             tokenIds :: Array TokenId <- ExceptT $ Just $ ourDecodeJson json
-            nonEmpty <- ExceptT $ Just $ note "List is empty, expecting non-empty" $ NonEmpty.fromList $ List.fromFoldable tokenIds
+            nonEmpty <- ExceptT $ Just $ note "List is empty, expecting non-empty" $ NonEmpty.fromFoldable tokenIds
             pure $ toSpine nonEmpty
           _ -> empty
       _ -> empty
