@@ -3,8 +3,9 @@ module Simulation where
 import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.Ord ((>=))
 import Semantics
+import Data.Semiring ((+))
 import Data.Map (Map)
-import Data.List (List)
+import Data.List (List(..))
 import Data.Set as Set
 import API (RunResult(RunResult))
 import Ace.Halogen.Component (AceEffects, Autocomplete(Live), aceComponent)
@@ -30,6 +31,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Data.Either (Either(..))
 import Data.Eq ((==), (/=))
+import Data.Foldable (all)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (Tuple(..))
 import Halogen (HTML, action)
@@ -49,6 +51,7 @@ import Halogen.HTML
   , h2
   , h3_
   , input
+  , li_
   , pre_
   , slot'
   , span
@@ -63,6 +66,7 @@ import Halogen.HTML
   , th_
   , thead_
   , tr
+  , ul_
   )
 import Halogen.HTML.Events (input_, onChecked, onClick, onDragOver, onDrop, onValueChange)
 import Halogen.HTML.Properties
@@ -148,28 +152,33 @@ simulationPane ::
   MonadAff (AceEffects (localStorage :: LOCALSTORAGE | aff)) m =>
   FrontendState ->
   ParentHTML Query ChildQuery ChildSlot m
-simulationPane state = div_ [ row_ [ inputComposerPane state
-                                   , transactionComposerPane state
-                                   ]
-                            , stateTitle state
-                            , row_ [statePane state]
-                            , div [ classes [ ClassName "demos"
-                                            , ClassName "d-flex"
-                                            , ClassName "flex-row"
-                                            , ClassName "align-items-center"
-                                            , ClassName "justify-content-between"
-                                            , ClassName "mt-5"
-                                            , ClassName "mb-3"
-                                            ]
-                                  ] [paneHeader "Marlowe Contract", demoScriptsPane]
-                            , div [ onDragOver $ Just <<< action <<< MarloweHandleDragEvent
-                                  , onDrop $ Just <<< action <<< MarloweHandleDropEvent
-                                  ] [ slot' cpMarloweEditor MarloweEditorSlot (aceComponent initEditor (Just Live)) unit (Events.input MarloweHandleEditorMessage)
-                                    ]
-                            , br_
-                            , errorList
-                            ]
+simulationPane state =
+  div_ (Array.concat [ [ row_ [ inputComposerPane state
+                              , transactionComposerPane state
+                              ]
+                       , stateTitle state
+                       , row_ [statePane state]
+                       ]
+                     , transErrors
+                     , [ div [ classes [ ClassName "demos"
+                                       , ClassName "d-flex"
+                                       , ClassName "flex-row"
+                                       , ClassName "align-items-center"
+                                       , ClassName "justify-content-between"
+                                       , ClassName "mt-5"
+                                       , ClassName "mb-3"
+                                       ]
+                             ] [paneHeader "Marlowe Contract", demoScriptsPane]
+                       , div [ onDragOver $ Just <<< action <<< MarloweHandleDragEvent
+                             , onDrop $ Just <<< action <<< MarloweHandleDropEvent
+                             ] [ slot' cpMarloweEditor MarloweEditorSlot (aceComponent initEditor (Just Live)) unit (Events.input MarloweHandleEditorMessage)
+                               ]
+                       , br_
+                       , errorList
+                       ]
+                     ] )
   where
+  transErrors = transactionErrors state.marloweState.transaction.validity
   errorList = case state.marloweCompileResult of
     Left errors -> listGroup_ (listGroupItem_ <<< pure <<< compilationErrorPane <$> errors)
     _ -> empty
@@ -402,6 +411,47 @@ transactionButtons state = [ div [ classes [ ClassName "d-flex"
                                             ] [text "Reset"]
                                    ]
                            ]
+
+printTransWarnings :: forall p. BigInteger -> List DynamicProblem -> Array (HTML p Query)
+printTransWarnings _ Nil = []
+printTransWarnings num (Cons NoProblem rest) = printTransWarnings (num + (fromInt 1)) rest
+printTransWarnings num (Cons CommitNotMade rest) =
+  Array.cons (text ("Input number " <> (show num) <> " will have no effect because the commitment has not been made yet."))
+             (printTransWarnings (num + (fromInt 1)) rest)
+printTransWarnings num (Cons NotEnoughMoneyLeftInCommit rest) =
+  Array.cons (text ("Input number " <> (show num) <> " will not have the expected effect because there is not enough money left in the commit."))
+             (printTransWarnings (num + (fromInt 1)) rest)
+printTransWarnings num (Cons CommitIsExpired rest) =
+  Array.cons (text ("Input number " <> (show num) <> " will have no effect because the commitment has expired already."))
+             (printTransWarnings (num + (fromInt 1)) rest)
+
+printTransError :: forall p. ErrorResult -> Array (HTML p Query)
+printTransError InvalidInput = [ul_ [li_ [text "At least one of the inputs in the transaction is not acceptable given the state of the contract."]]]
+printTransError NoValidSignature = [ul_ [li_ [text "At least one of the inputs requires a signature that is not provided."]]]
+printTransError NegativeTransaction = [ul_ [li_ [text "At least one of transactions is for a negative amount of money."]]]
+printTransError AmbiguousId = [ul_ [li_ [text "At least one of the action identifiers appears more than once in the contract. Please, ensure that every contruct in the contract has a unique id."]]]
+printTransError InternalError = [ul_ [li_ [text "The internal state of the contract is inconsistent. This should not happen. Please, open an issue and let us know how you got to this error."]]]
+
+transactionErrors :: forall p. TransactionValidity -> Array (HTML p Query)
+transactionErrors EmptyTransaction = []
+transactionErrors (ValidTransaction l) = if (all (\x -> x == NoProblem) l)
+                                         then [] 
+                                         else [div [classes [ ClassName "warning-transaction"
+                                                            , ClassName "input-composer"
+                                                            ]
+                                                   ]
+                                                   [ h2 [] [text "Transaction is valid but:"]
+                                                   , transWarn 
+                                                   ]
+                                              ]
+  where
+  transWarn = ul_ (map (li_ <<< pure) (printTransWarnings (fromInt 1) l)) 
+transactionErrors (InvalidTransaction err) = [div [classes [ ClassName "invalid-transaction"
+                                                           , ClassName "input-composer"
+                                                           ]
+                                                  ]
+                                                  ([ h2 [] [text "The transaction is invalid:"]]
+                                                   <> printTransError err)]
 
 signatures :: forall p. Map Person Boolean -> Map Person BigInteger -> Array (HTML p Query)
 signatures people outcomes =
