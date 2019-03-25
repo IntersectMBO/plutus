@@ -25,12 +25,12 @@ import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, h3_, p
 import Halogen.HTML.Events (input, input_, onClick, onDragOver, onDrop)
 import Halogen.HTML.Properties (class_, classes, disabled, id_)
 import Icons (Icon(..), icon)
-import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError))
+import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError))
 import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Network.RemoteData (RemoteData(..), _Success, isLoading)
 import Playground.API (_CompilationResult, Warning, _Warning)
-import Prelude (Unit, bind, discard, pure, show, unit, void, ($), (<$>), (<<<), (<>))
+import Prelude (Unit, bind, discard, pure, show, unit, void, ($), (<$>), (<<<), (<>), map)
 import StaticData as StaticData
 import Types (ChildQuery, ChildSlot, EditorSlot(EditorSlot), Query(ScrollTo, LoadScript, CompileProgram, HandleEditorMessage, HandleDropEvent, HandleDragEvent), State, _compilationResult, _warnings, cpEditor)
 
@@ -95,11 +95,8 @@ editorPane state =
                  Loading -> icon Spinner
                  _ -> text "Compile"
     errorList = case view _compilationResult state of
-                  Success (Left errors) ->
-                    listGroup_
-                      (listGroupItem_ <<< pure <<< compilationErrorPane <$> errors)
-                  Failure error ->
-                    ajaxErrorPane error
+                  Success (Left error) -> listGroup_ (interpreterErrorPane error)
+                  Failure error -> ajaxErrorPane error
                   _ -> empty
     warningList =
       fromMaybe empty $
@@ -126,6 +123,10 @@ demoScriptButton key =
     , onClick $ input_ $ LoadScript key
     ]
     [ text key ]
+
+interpreterErrorPane :: forall p. InterpreterError -> Array (HTML p Query)
+interpreterErrorPane (TimeoutError error) = [listGroupItem_ [div_ [ text error ]]]
+interpreterErrorPane (CompilationErrors errors) = map compilationErrorPane errors
 
 compilationErrorPane :: forall p. CompilationError -> HTML p Query
 compilationErrorPane (RawError error) =

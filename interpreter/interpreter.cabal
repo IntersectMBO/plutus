@@ -41,6 +41,8 @@ library
         temporary -any,
         text -any,
         time -any,
+        time-out -any,
+        time-units -any,
         transformers -any,
         unordered-containers -any,
         wai -any,

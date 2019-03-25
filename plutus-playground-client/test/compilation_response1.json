@@ -381,6 +381,7 @@
         "functionName": "payToPublicKey_"
       }
     ],
-    "warnings": []
+    "warnings": [],
+    "knownCurrencies": []
   }
 }

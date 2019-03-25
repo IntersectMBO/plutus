@@ -1,6 +1,6 @@
 module MainFrame (mainFrame) where
 
-import API (SourceCode(SourceCode), RunResult(..))
+import API (RunResult(..))
 import Ace.EditSession as Session
 import Ace.Editor as Editor
 import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged), AceQuery(GetEditor))
@@ -43,7 +43,7 @@ import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href)
 import Halogen.Query (HalogenM)
-import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError))
+import Language.Haskell.Interpreter (SourceCode(SourceCode), InterpreterError(CompilationErrors, TimeoutError), CompilationError(CompilationError, RawError))
 import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Marlowe.Parser (contract)
@@ -430,7 +430,7 @@ evalF (CompileProgram next) = do
       -- Update the error display.
       -- Update the error display.
       void $ withEditor $ showCompilationErrorAnnotations $ case result of
-        Success (Left errors) -> errors
+        Success (Left errors) -> toAnnotations errors
         _ -> []
       pure next
 
@@ -555,12 +555,16 @@ withMarloweEditor action = do
 
 showCompilationErrorAnnotations ::
   forall m.
-  Array CompilationError ->
+  Array Annotation ->
   Editor ->
   Eff (ace :: ACE | m) Unit
-showCompilationErrorAnnotations errors editor = do
+showCompilationErrorAnnotations annotations editor = do
   session <- Editor.getSession editor
-  Session.setAnnotations (catMaybes (toAnnotation <$> errors)) session
+  Session.setAnnotations annotations session
+
+toAnnotations :: InterpreterError -> Array Annotation
+toAnnotations (TimeoutError _) = []
+toAnnotations (CompilationErrors errors) = catMaybes (toAnnotation <$> errors)
 
 toAnnotation :: CompilationError -> Maybe Annotation
 toAnnotation (RawError _) = Nothing

@@ -15,7 +15,7 @@ module PSGenerator
     ( generate
     ) where
 
-import           API                                (MeadowError, RunResult, SourceCode)
+import           API                                (RunResult)
 import qualified API
 import           Auth                               (AuthRole, AuthStatus)
 import qualified Auth
@@ -29,7 +29,7 @@ import qualified Data.Text                          as T ()
 import qualified Data.Text.Encoding                 as T ()
 import qualified Data.Text.IO                       as T ()
 import           Gist                               (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
-import           Language.Haskell.Interpreter       (CompilationError)
+import           Language.Haskell.Interpreter       (CompilationError, InterpreterError, SourceCode)
 import           Language.PureScript.Bridge         (BridgePart, Language (Haskell), PSType, SumType,
                                                      TypeInfo (TypeInfo), buildBridge, mkSumType, psTypeParameters,
                                                      typeModule, typeName, writePSTypes, (^==))
@@ -102,7 +102,7 @@ myTypes =
     [ mkSumType (Proxy @RunResult)
     , mkSumType (Proxy @SourceCode)
     , mkSumType (Proxy @CompilationError)
-    , mkSumType (Proxy @MeadowError)
+    , mkSumType (Proxy @InterpreterError)
     , mkSumType (Proxy @AuthStatus)
     , mkSumType (Proxy @AuthRole)
     , mkSumType (Proxy @GistId)

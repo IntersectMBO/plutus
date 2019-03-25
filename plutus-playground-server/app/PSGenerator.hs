@@ -28,7 +28,7 @@ import qualified Data.Text                                 as T ()
 import qualified Data.Text.Encoding                        as T ()
 import qualified Data.Text.IO                              as T ()
 import           Gist                                      (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
-import           Language.Haskell.Interpreter              (CompilationError)
+import           Language.Haskell.Interpreter              (CompilationError, InterpreterError, SourceCode)
 import           Language.PureScript.Bridge                (BridgePart, Language (Haskell), PSType, SumType,
                                                             TypeInfo (TypeInfo), buildBridge, equal, mkSumType, order,
                                                             psTypeParameters, typeModule, typeName, writePSTypes, (^==))
@@ -44,7 +44,7 @@ import           Ledger.Types                              (AddressOf, DataScrip
 import           Ledger.Value.TH                           (CurrencySymbol, Value)
 import           Playground.API                            (CompilationResult, Evaluation, EvaluationResult, Expression,
                                                             Fn, FunctionSchema, KnownCurrency, SimpleArgumentSchema,
-                                                            SimulatorWallet, SourceCode, TokenId, Warning)
+                                                            SimulatorWallet, TokenId, Warning)
 import qualified Playground.API                            as API
 import           Playground.Usecases                       (crowdfunding, game, messages, vesting)
 import           Servant                                   ((:<|>))
@@ -215,6 +215,7 @@ myTypes =
     , mkSumType (Proxy @CurrencySymbol)
     , (equal <*> (order <*> mkSumType)) (Proxy @TokenId)
     , mkSumType (Proxy @KnownCurrency)
+    , mkSumType (Proxy @InterpreterError)
     ]
 
 mySettings :: Settings

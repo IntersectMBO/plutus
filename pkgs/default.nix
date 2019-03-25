@@ -40904,7 +40904,6 @@ license = stdenv.lib.licenses.bsd3;
 , filepath
 , hashable
 , http-types
-, marlowe
 , monad-logger
 , mtl
 , newtype-generics
@@ -40917,6 +40916,8 @@ license = stdenv.lib.licenses.bsd3;
 , temporary
 , text
 , time
+, time-out
+, time-units
 , transformers
 , unordered-containers
 , wai
@@ -40938,7 +40939,6 @@ file-embed
 filepath
 hashable
 http-types
-marlowe
 monad-logger
 mtl
 newtype-generics
@@ -40950,13 +40950,15 @@ servant-server
 temporary
 text
 time
+time-out
+time-units
 transformers
 unordered-containers
 wai
 warp
 ];
 doHaddock = false;
-license = stdenv.lib.licenses.bsd3;
+license = stdenv.lib.licenses.asl20;
 
 }) {};
 "intervals" = callPackage
@@ -47449,6 +47451,7 @@ license = stdenv.lib.licenses.mit;
 , temporary
 , text
 , time
+, time-units
 , transformers
 , wai
 , wai-cors
@@ -47495,6 +47498,7 @@ servant-server
 temporary
 text
 time
+time-units
 transformers
 wai
 ];
@@ -47532,9 +47536,11 @@ bytestring
 hspec
 hspec-wai
 hspec-wai-json
+interpreter
 mtl
 raw-strings-qq
 text
+time-units
 ];
 doHaddock = false;
 license = stdenv.lib.licenses.asl20;
@@ -56808,6 +56814,7 @@ license = stdenv.lib.licenses.asl20;
 "plutus-playground-server" = callPackage
 ({
   mkDerivation
+, adjunctions
 , aeson
 , aeson-casing
 , base
@@ -56850,6 +56857,7 @@ license = stdenv.lib.licenses.asl20;
 , temporary
 , text
 , time
+, time-units
 , transformers
 , wai
 , wai-cors
@@ -56898,10 +56906,12 @@ swagger2
 temporary
 text
 time
+time-units
 transformers
 wallet-api
 ];
 executableHaskellDepends = [
+adjunctions
 aeson
 base
 bytestring
@@ -56942,6 +56952,7 @@ mtl
 plutus-playground-lib
 swagger2
 text
+time-units
 transformers
 wallet-api
 ];
@@ -74182,6 +74193,29 @@ description = "Compatibility with old-time for the time package";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
+"time-interval" = callPackage
+({
+  mkDerivation
+, base
+, stdenv
+, time-units
+}:
+mkDerivation {
+
+pname = "time-interval";
+version = "0.1.1";
+sha256 = "3473e1c2a35fecee898ed4d7afcc5353e5a663a4a627550ca6f7b624c152fe24";
+libraryHaskellDepends = [
+base
+time-units
+];
+doHaddock = false;
+doCheck = false;
+homepage = "http://hub.darcs.net/fr33domlover/time-interval";
+description = "Use a time unit class, but hold a concrete time type";
+license = stdenv.lib.licenses.publicDomain;
+
+}) {};
 "time-lens" = callPackage
 ({
   mkDerivation
@@ -74255,6 +74289,37 @@ description = "Vietnamese locale for date and time format";
 license = stdenv.lib.licenses.asl20;
 
 }) {};
+"time-out" = callPackage
+({
+  mkDerivation
+, base
+, data-default-class
+, exceptions
+, stdenv
+, time-interval
+, time-units
+, transformers
+}:
+mkDerivation {
+
+pname = "time-out";
+version = "0.2";
+sha256 = "2e3a1dcfe8eb6d283de6441894bd4ca2e3b56982f1fe0407b1216f5b2c109fda";
+libraryHaskellDepends = [
+base
+data-default-class
+exceptions
+time-interval
+time-units
+transformers
+];
+doHaddock = false;
+doCheck = false;
+homepage = "http://hub.darcs.net/fr33domlover/time-out";
+description = "Timers, timeouts, alarms, monadic wrappers";
+license = stdenv.lib.licenses.publicDomain;
+
+}) {};
 "time-parsers" = callPackage
 ({
   mkDerivation
@@ -74281,6 +74346,27 @@ doHaddock = false;
 doCheck = false;
 homepage = "https://github.com/phadej/time-parsers#readme";
 description = "Parsers for types in `time`";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
+"time-units" = callPackage
+({
+  mkDerivation
+, base
+, stdenv
+}:
+mkDerivation {
+
+pname = "time-units";
+version = "1.0.0";
+sha256 = "e181997dd05321f09b21c5e0bf38524ccab51ecc588a6017253cc96db289e099";
+libraryHaskellDepends = [
+base
+];
+doHaddock = false;
+doCheck = false;
+homepage = "http://github.com/acw/time-units";
+description = "A basic library for defining units of time as types";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
@@ -79398,7 +79484,9 @@ base
 warp
 ];
 testHaskellDepends = [
+aeson
 base
+bytestring
 containers
 hedgehog
 lens

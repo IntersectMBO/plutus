@@ -16,7 +16,7 @@ import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
 import Gist (Gist)
 import Halogen.Component.ChildPath (ChildPath, cpL, cpR)
-import Language.Haskell.Interpreter (CompilationError)
+import Language.Haskell.Interpreter (CompilationError, InterpreterError)
 import Marlowe.Types (BlockNumber, Choice, Contract, IdChoice, IdOracle, Person)
 import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Ord, class Show, Unit)
@@ -90,7 +90,7 @@ instance showView :: Show View where
   show = gShow
 
 type FrontendState
-  = {view :: View, runResult :: RemoteData AjaxError (Either (Array CompilationError) RunResult), marloweCompileResult :: Either (Array MarloweError) Unit, authStatus :: RemoteData AjaxError AuthStatus, createGistResult :: RemoteData AjaxError Gist, marloweState :: MarloweState, oldContract :: Maybe String}
+  = {view :: View, runResult :: RemoteData AjaxError (Either InterpreterError RunResult), marloweCompileResult :: Either (Array MarloweError) Unit, authStatus :: RemoteData AjaxError AuthStatus, createGistResult :: RemoteData AjaxError Gist, marloweState :: MarloweState, oldContract :: Maybe String}
 
 data MarloweError
   = MarloweError String
