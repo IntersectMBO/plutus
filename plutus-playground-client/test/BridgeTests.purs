@@ -4,13 +4,14 @@ module BridgeTests
 
 import Prelude
 
-import AjaxUtils (ajaxSettings)
+import AjaxUtils (ourDecodeJson)
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Random (RANDOM)
+import Data.Argonaut.Core as Argonaut
 import Data.Argonaut.Parser (jsonParser)
 import Data.Either (Either(..))
-import Data.Generic (class Generic)
+import Data.Generic (class Generic, gShow)
 import Data.List (List)
 import Data.List.Types (NonEmptyList)
 import Language.Haskell.Interpreter (CompilationError)
@@ -18,7 +19,6 @@ import Node.Encoding (Encoding(UTF8))
 import Node.FS (FS)
 import Node.FS.Sync as FS
 import Playground.API (CompilationResult, EvaluationResult, KnownCurrency, TokenId)
-import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettings_(..))
 import Test.Unit (TestSuite, Test, failure, success, suite, test)
 import Type.Proxy (Proxy(..))
 
@@ -34,7 +34,11 @@ jsonHandling = do
         assertDecodesTo
           (Proxy :: Proxy (List TokenId))
           "test/token_ids.json"
-      test ("Decode a NonEmptyList.") do
+      test ("Decode an empty NonEmptyList.") do
+        equalGShow
+          (Left "List is empty, expecting non-empty")
+          (ourDecodeJson (Argonaut.fromArray []) :: Either String (NonEmptyList TokenId))
+      test ("Decode a populated NonEmptyList.") do
         assertDecodesTo
           (Proxy :: Proxy (NonEmptyList TokenId))
           "test/token_ids.json"
@@ -55,6 +59,12 @@ jsonHandling = do
           (Proxy :: Proxy (Array CompilationError))
           "test/evaluation_error1.json"
 
+equalGShow :: forall eff a. Eq a => Generic a => a -> a -> Test eff
+equalGShow expected actual =
+  if expected == actual then success
+  else failure $ "expected " <> gShow expected <>
+       ", got " <> gShow actual
+
 assertRight :: forall e a. Either String a -> Test e
 assertRight (Left err) = failure err
 assertRight (Right _) = success
@@ -70,6 +80,5 @@ decodeFile :: forall m a eff.
   => String
   -> m (Either String a)
 decodeFile filename = do
-  let (SPSettings_ {decodeJson: SPSettingsDecodeJson_ decodeJson}) = ajaxSettings
   contents <- liftEff $ FS.readTextFile UTF8 filename
-  pure (jsonParser contents >>= decodeJson)
+  pure (jsonParser contents >>= ourDecodeJson)

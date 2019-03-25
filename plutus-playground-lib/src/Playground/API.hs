@@ -48,7 +48,7 @@ type API
 
 -- FIXME: These types will be defined elsewhere but I've added them here for now
 newtype TokenId = TokenId Text
-    deriving stock (Eq, Show, Generic)
+    deriving stock (Eq, Ord, Show, Generic)
     deriving newtype (ToJSON, FromJSON)
 
 data KnownCurrency = KnownCurrency
