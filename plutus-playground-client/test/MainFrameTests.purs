@@ -4,6 +4,7 @@ module MainFrameTests
 
 import Prelude
 
+import AjaxUtils (ourDecodeJson)
 import Auth (AuthRole(..), AuthStatus(..))
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Exception (EXCEPTION)
@@ -14,7 +15,6 @@ import Control.Monad.Reader.Class (class MonadAsk, ask)
 import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM)
 import Control.Monad.State.Class (class MonadState, get)
 import Cursor as Cursor
-import Data.Argonaut.Generic.Aeson (decodeJson)
 import Data.Argonaut.Parser (jsonParser)
 import Data.Array as Array
 import Data.Either (Either, fromRight)
@@ -194,7 +194,7 @@ evalTests =
       test "Successfully" do
         contents <- liftEff $ FS.readTextFile UTF8 "test/gist1.json"
         let gist :: Gist
-            gist = unsafePartial $ fromRight (jsonParser contents >>= decodeJson)
+            gist = unsafePartial $ fromRight (jsonParser contents >>= ourDecodeJson)
             steps = do
                 send $ SetGistUrl (unwrap (view gistId gist))
                 send $ LoadGist
@@ -221,7 +221,7 @@ evalTests =
     test "Loading a script clears out some state." do
         contents <- liftEff $ FS.readTextFile UTF8 "test/compilation_response1.json"
         let compilationResult :: Either (Array CompilationError) CompilationResult
-            compilationResult = unsafePartial $ fromRight (jsonParser contents >>= decodeJson)
+            compilationResult = unsafePartial $ fromRight (jsonParser contents >>= ourDecodeJson)
         Tuple _ finalState <- execMockApp (mockWorld { compilationResult = Success compilationResult }) do
           send $ LoadScript "Game"
           send $ CompileProgram
@@ -230,6 +230,6 @@ evalTests =
           send $ LoadScript "Game"
           send $ CompileProgram
           send $ LoadScript "Game"
-        assert "Simulations are cleared." $ Cursor.null $ view _simulations finalState
+        assert "Simulations are empty." $ Cursor.null $ view _simulations finalState
         assert "Evaluation is cleared." $ isNotAsked $ view _evaluationResult finalState
         assert "Compilation is cleared." $ isNotAsked $ view _compilationResult finalState
