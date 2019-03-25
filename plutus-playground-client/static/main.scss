@@ -354,6 +354,29 @@ table.balance-map {
 #simulation-nav {
   margin-bottom: 1.5rem;
 
+  button {
+      border-radius: 3px;
+  }
+
+  button.simulation-nav-item-name {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+  }
+
+  button.simulation-nav-item-close {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+  }
+
+  button.simulation-nav-item-close,
+  button#simulation-nav-item-add {
+      width: 32px;
+  }
+
+  button.simulation-nav-item-close {
+      margin-right: 5px;
+  }
+
   .simulation-nav-item .fa {
       font-size: 20px;
   }
