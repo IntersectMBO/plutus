@@ -127,6 +127,8 @@ import Types
       )
   , TransactionValidity(..)
   , cpMarloweEditor
+  , isValidTransaction
+  , isInvalidTransaction
   )
 
 import Ace.EditSession as Session
@@ -360,7 +362,7 @@ transactionComposerPane state =
                       ]
             ] [ paneHeader "Transaction Composer"
               , div [ class_ $ ClassName "wallet"
-                    ] [ div [ classes ((if (state.marloweState.transaction.validity == InvalidTransaction)
+                    ] [ div [ classes ((if (isInvalidTransaction state.marloweState.transaction.validity)
                                         then (flip Array.snoc) (ClassName "invalid-transaction")
                                         else id) [card]) ]
                             [ cardBody_ $ transactionInputs state.marloweState
@@ -383,7 +385,7 @@ transactionButtons state = [ div [ classes [ ClassName "d-flex"
                                                       , ClassName "transaction-btn"
                                                       ]
                                             , onClick $ Just <<< HQ.action <<< const ApplyTransaction
-                                            , enabled (state.marloweState.transaction.validity == ValidTransaction)
+                                            , enabled (isValidTransaction state.marloweState.transaction.validity)
                                             ] [text "Apply Transaction"]
                                    , button [ classes [ btn
                                                       , btnPrimary

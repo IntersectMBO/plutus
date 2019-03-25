@@ -259,17 +259,17 @@ updateActions oldState {state, contract, outcome, validity} =
 simulateState :: MarloweState -> {state :: State, contract :: Contract, outcome :: TransactionOutcomes, validity :: TransactionValidity}
 simulateState state =
   case applyTransaction inps sigs bn st c mic of
-    MSuccessfullyApplied {state: newState, contract: newContract, outcome: outcome} _ ->
+    MSuccessfullyApplied {state: newState, contract: newContract, outcome: outcome} de ->
             {state: newState, contract: newContract,
-             outcome: outcome, validity: ValidTransaction}
+             outcome: outcome, validity: ValidTransaction de}
     MCouldNotApply InvalidInput ->
             if (inps == Nil)
             then {state: st, contract: reduce state.blockNum state.state c,
                   outcome: Map.empty, validity: EmptyTransaction}
             else {state: emptyState, contract: Null,
-                  outcome: Map.empty, validity: InvalidTransaction}
-    MCouldNotApply _ -> {state: emptyState, contract: Null,
-                         outcome: Map.empty, validity: InvalidTransaction}
+                  outcome: Map.empty, validity: InvalidTransaction InvalidInput}
+    MCouldNotApply err -> {state: emptyState, contract: Null,
+                           outcome: Map.empty, validity: InvalidTransaction err}
   where
     inps = Array.toUnfoldable (state.transaction.inputs)
     sigs = Set.fromFoldable (Map.keys (Map.filter id (state.transaction.signatures)))
