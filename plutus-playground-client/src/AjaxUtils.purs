@@ -6,7 +6,6 @@ import Control.Monad.Except.Trans (ExceptT(ExceptT), runExceptT)
 import Control.Monad.Reader.Class (class MonadAsk, ask)
 import Control.MonadPlus (empty, (=<<))
 import Data.Argonaut.Core (Json)
-import Data.Argonaut.Generic.Aeson (decodeJson)
 import Data.Argonaut.Generic.Aeson as Aeson
 import Data.Argonaut.Generic.Decode (genericDecodeJson)
 import Data.Argonaut.Generic.Options (Options(..))
@@ -37,10 +36,10 @@ ajaxSettings = SPSettings_ $ settings
     SPSettings_ settings = defaultSettings $ SPParams_ { baseURL: "/api/" }
     Options options = Aeson.options
 
-ourDecodeJson :: forall a. Generic a => Json -> Either String a
-ourDecodeJson =
-  let (SPSettings_ {decodeJson: SPSettingsDecodeJson_ decodeJson}) = ajaxSettings
-  in decodeJson
+decodeJson :: forall a. Generic a => Json -> Either String a
+decodeJson =
+  let (SPSettings_ {decodeJson: SPSettingsDecodeJson_ decoder}) = ajaxSettings
+  in decoder
 
 userDecoding :: Options -> GenericSignature -> Json -> Maybe (Either String GenericSpine)
 userDecoding opts sig json =
@@ -53,7 +52,7 @@ decodeTokenIdLists opts sig@(SigProd "Data.List.Types.List" [{sigValues: [a, _]}
   runExceptT do
     case a unit of
       (SigProd "Playground.API.TokenId" _) -> do
-        tokenIds :: Array TokenId <- ExceptT $ Just $ ourDecodeJson json
+        tokenIds :: Array TokenId <- ExceptT $ Just $ decodeJson json
         pure $ toSpine $ List.fromFoldable tokenIds
       _ -> empty
 decodeTokenIdLists opts (SigProd "Data.List.Types.NonEmptyList" [{sigValues: [l]}]) json =
@@ -62,7 +61,7 @@ decodeTokenIdLists opts (SigProd "Data.List.Types.NonEmptyList" [{sigValues: [l]
       (SigProd "Data.List.Types.List" [{sigValues: [a, _]}, _])  -> do
         case a unit of
           (SigProd "Playground.API.TokenId" _) -> do
-            tokenIds :: Array TokenId <- ExceptT $ Just $ ourDecodeJson json
+            tokenIds :: Array TokenId <- ExceptT $ Just $ decodeJson json
             nonEmpty <- ExceptT $ Just $ note "List is empty, expecting non-empty" $ NonEmpty.fromFoldable tokenIds
             pure $ toSpine nonEmpty
           _ -> empty

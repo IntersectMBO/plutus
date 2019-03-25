@@ -4,7 +4,7 @@ module MainFrameTests
 
 import Prelude
 
-import AjaxUtils (ourDecodeJson)
+import AjaxUtils (decodeJson)
 import Auth (AuthRole(..), AuthStatus(..))
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Exception (EXCEPTION)
@@ -194,7 +194,7 @@ evalTests =
       test "Successfully" do
         contents <- liftEff $ FS.readTextFile UTF8 "test/gist1.json"
         let gist :: Gist
-            gist = unsafePartial $ fromRight (jsonParser contents >>= ourDecodeJson)
+            gist = unsafePartial $ fromRight (jsonParser contents >>= decodeJson)
             steps = do
                 send $ SetGistUrl (unwrap (view gistId gist))
                 send $ LoadGist
@@ -221,7 +221,7 @@ evalTests =
     test "Loading a script clears out some state." do
         contents <- liftEff $ FS.readTextFile UTF8 "test/compilation_response1.json"
         let compilationResult :: Either (Array CompilationError) CompilationResult
-            compilationResult = unsafePartial $ fromRight (jsonParser contents >>= ourDecodeJson)
+            compilationResult = unsafePartial $ fromRight (jsonParser contents >>= decodeJson)
         Tuple _ finalState <- execMockApp (mockWorld { compilationResult = Success compilationResult }) do
           send $ LoadScript "Game"
           send $ CompileProgram

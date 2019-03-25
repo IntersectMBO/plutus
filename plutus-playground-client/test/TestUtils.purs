@@ -1,6 +1,6 @@
 module TestUtils where
 
-import AjaxUtils (ourDecodeJson)
+import AjaxUtils (decodeJson)
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Data.Argonaut.Parser (jsonParser)
@@ -29,7 +29,7 @@ decodeFile :: forall m a eff.
   -> m (Either String a)
 decodeFile filename = do
   contents <- liftEff $ FS.readTextFile UTF8 filename
-  pure (jsonParser contents >>= ourDecodeJson)
+  pure (jsonParser contents >>= decodeJson)
 
 equalWithFormatter :: forall a e. Eq a => (a -> String) -> a -> a -> Test e
 equalWithFormatter f expected actual =

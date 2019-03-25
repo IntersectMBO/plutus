@@ -4,7 +4,7 @@ module BridgeTests
 
 import Prelude
 
-import AjaxUtils (ourDecodeJson)
+import AjaxUtils (decodeJson)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Random (RANDOM)
 import Data.Argonaut.Core as Argonaut
@@ -33,7 +33,7 @@ jsonHandling = do
       test ("Decode an empty NonEmptyList.") do
         equalGShow
           (Left "List is empty, expecting non-empty")
-          (ourDecodeJson (Argonaut.fromArray []) :: Either String (NonEmptyList TokenId))
+          (decodeJson (Argonaut.fromArray []) :: Either String (NonEmptyList TokenId))
       test ("Decode a populated NonEmptyList.") do
         assertDecodesTo
           (Proxy :: Proxy (NonEmptyList TokenId))
