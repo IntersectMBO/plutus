@@ -16,7 +16,7 @@ module Playground.API where
 import           Control.Lens                 (view)
 import           Control.Monad.Trans.Class    (lift)
 import           Control.Monad.Trans.State    (StateT, evalStateT, get, put)
-import           Control.Newtype.Generics     (Newtype, pack, unpack)
+import           Control.Newtype.Generics     (pack, unpack)
 import           Data.Aeson                   (FromJSON, ToJSON, Value)
 import           Data.Bifunctor               (second)
 import qualified Data.HashMap.Strict.InsOrd   as HM
@@ -30,8 +30,9 @@ import           Data.Swagger.Lens            (items, maxItems, minItems, proper
 import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
 import           GHC.Generics                 (Generic)
-import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), column, filename, row,
-                                               text)
+import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), SourceCode, column,
+                                               filename, row, text)
+import qualified Language.Haskell.Interpreter as HI
 import qualified Language.Haskell.TH.Syntax   as TH
 import           Ledger.Types                 (Blockchain, PubKey, Tx, TxId)
 import           Ledger.Validation            (ValidatorHash)
@@ -42,13 +43,13 @@ import           Wallet.Emulator.Types        (EmulatorEvent, Wallet)
 import           Wallet.Graph                 (FlowGraph)
 
 type API
-   = "contract" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either [CompilationError] CompilationResult)
+   = "contract" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either HI.InterpreterError CompilationResult)
      :<|> "evaluate" :> ReqBody '[ JSON] Evaluation :> Post '[ JSON] EvaluationResult
      :<|> "health" :> Get '[ JSON] ()
 
 -- FIXME: These types will be defined elsewhere but I've added them here for now
 newtype TokenId = TokenId Text
-    deriving stock (Eq, Show, Generic)
+    deriving stock (Eq, Ord, Show, Generic)
     deriving newtype (ToJSON, FromJSON)
 
 data KnownCurrency = KnownCurrency
@@ -58,11 +59,6 @@ data KnownCurrency = KnownCurrency
     }
     deriving (Eq, Show, Generic, ToJSON, FromJSON)
 --------------------------------------------------------------------------------
-
-newtype SourceCode = SourceCode Text
-  deriving stock (Generic)
-  deriving newtype (ToJSON, FromJSON)
-  deriving anyclass (Newtype)
 
 newtype Fn = Fn Text
   deriving stock (Eq, Show, Generic, TH.Lift)
@@ -190,7 +186,7 @@ isSupportedByFrontend (UnknownSchema _ _) = False
 
 data PlaygroundError
   = CompilationErrors [CompilationError]
-  | InterpreterError [String]
+  | InterpreterError HI.InterpreterError
   | FunctionSchemaError
   | DecodeJsonTypeError String String
   | PlaygroundTimeout

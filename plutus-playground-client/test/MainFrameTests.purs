@@ -4,6 +4,7 @@ module MainFrameTests
 
 import Prelude
 
+import AjaxUtils (decodeJson)
 import Auth (AuthRole(..), AuthStatus(..))
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Exception (EXCEPTION)
@@ -14,7 +15,6 @@ import Control.Monad.Reader.Class (class MonadAsk, ask)
 import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM)
 import Control.Monad.State.Class (class MonadState, get)
 import Cursor as Cursor
-import Data.Argonaut.Generic.Aeson (decodeJson)
 import Data.Argonaut.Parser (jsonParser)
 import Data.Array as Array
 import Data.Either (Either, fromRight)
@@ -31,7 +31,7 @@ import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(Tuple))
 import FileEvents (FILE)
 import Gist (Gist, GistId, gistId)
-import Language.Haskell.Interpreter (CompilationError)
+import Language.Haskell.Interpreter (CompilationError, SourceCode(SourceCode), InterpreterError)
 import MainFrame (eval, initialState)
 import MonadApp (class MonadApp)
 import Network.RemoteData (RemoteData(..), isNotAsked, isSuccess)
@@ -40,7 +40,7 @@ import Node.Encoding (Encoding(..))
 import Node.FS (FS)
 import Node.FS.Sync as FS
 import Partial.Unsafe (unsafePartial)
-import Playground.API (CompilationResult, EvaluationResult, SourceCode(SourceCode))
+import Playground.API (CompilationResult, EvaluationResult)
 import Playground.Server (SPParams_(..))
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import StaticData (bufferLocalStorageKey)
@@ -62,7 +62,7 @@ type World =
   , editorContents :: Maybe String
   , localStorage :: Map String String
   , evaluationResult :: WebData EvaluationResult
-  , compilationResult :: (WebData (Either (Array CompilationError) CompilationResult))
+  , compilationResult :: (WebData (Either InterpreterError CompilationResult))
   }
 
 _gists :: forall r a. Lens' {gists :: a | r} a
@@ -220,7 +220,7 @@ evalTests =
 
     test "Loading a script clears out some state." do
         contents <- liftEff $ FS.readTextFile UTF8 "test/compilation_response1.json"
-        let compilationResult :: Either (Array CompilationError) CompilationResult
+        let compilationResult :: Either InterpreterError CompilationResult
             compilationResult = unsafePartial $ fromRight (jsonParser contents >>= decodeJson)
         Tuple _ finalState <- execMockApp (mockWorld { compilationResult = Success compilationResult }) do
           send $ LoadScript "Game"
@@ -230,6 +230,6 @@ evalTests =
           send $ LoadScript "Game"
           send $ CompileProgram
           send $ LoadScript "Game"
-        assert "Simulations are cleared." $ Cursor.null $ view _simulations finalState
+        assert "Simulations are empty." $ Cursor.null $ view _simulations finalState
         assert "Evaluation is cleared." $ isNotAsked $ view _evaluationResult finalState
         assert "Compilation is cleared." $ isNotAsked $ view _compilationResult finalState

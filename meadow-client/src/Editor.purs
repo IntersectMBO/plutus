@@ -106,6 +106,7 @@ import Language.Haskell.Interpreter
       ( CompilationError
       , RawError
       )
+    , InterpreterError (CompilationErrors, TimeoutError)
   )
 import LocalStorage
   ( LOCALSTORAGE
@@ -122,6 +123,8 @@ import Prelude
   , show
   , unit
   , void
+  , map
+  , not
   , ($)
   , (<$>)
   , (<<<)
@@ -146,8 +149,9 @@ import Data.String as String
 import LocalStorage as LocalStorage
 import StaticData as StaticData
 
-isNotSuccess (Success (Right _)) = false
-isNotSuccess _ = true
+isSuccess :: forall r e a. RemoteData r (Either e a) -> Boolean
+isSuccess (Success (Right _)) = true
+isSuccess _ = false
 
 editorPane ::
   forall m aff.
@@ -183,7 +187,7 @@ editorPane state =
                                , btnPrimary 
                                ]
                      , onClick $ input_ SendResult
-                     , disabled ((isLoading state.runResult) || (isNotSuccess state.runResult))
+                     , disabled ((isLoading state.runResult) || ((not isSuccess) state.runResult))
                      ] [ text "Send to Simulator" ]
             ]
         ]
@@ -202,7 +206,7 @@ editorPane state =
     Loading -> icon Spinner
     _ -> text "Compile"
   errorList = case state.runResult of
-    Success (Left errors) -> listGroup_ (listGroupItem_ <<< pure <<< compilationErrorPane <$> errors)
+    Success (Left error) -> listGroup_ (interpreterErrorPane error)
     Failure error -> ajaxErrorPane error
     _ -> empty
   runResult = case state.runResult of
@@ -260,10 +264,13 @@ compilationResultPane (RunResult stdout) = div_ [ code_ [ pre_ [ text stdout
                                                         ]
                                                 ]
 
+interpreterErrorPane :: forall p. InterpreterError -> Array (HTML p Query)
+interpreterErrorPane (TimeoutError error) = [listGroupItem_ [div_ [ text error ]]]
+interpreterErrorPane (CompilationErrors errors) = map compilationErrorPane errors
+
 compilationErrorPane :: forall p. CompilationError -> HTML p Query
-compilationErrorPane (RawError error) =
-  div_ [ text error ]
-compilationErrorPane (CompilationError error) =
+compilationErrorPane (RawError error) = listGroupItem_ [div_ [ text error ]]
+compilationErrorPane (CompilationError error) = listGroupItem_ [
   div [ class_ $ ClassName "compilation-error"
       , onClick $ input_ $ ScrollTo {row: error.row, column: error.column}
       ]
@@ -274,3 +281,4 @@ compilationErrorPane (CompilationError error) =
     , code_
         [ pre_ [ text $ String.joinWith "\n" error.text ] ]
     ]
+  ]

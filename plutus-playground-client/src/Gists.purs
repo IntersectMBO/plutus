@@ -29,9 +29,9 @@ import Halogen.HTML (ClassName(ClassName), HTML, IProp, a, br_, button, div, div
 import Halogen.HTML.Events (input_, onClick, onValueInput)
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties (class_, classes, disabled, href, id_, placeholder, target, type_, value)
+import Language.Haskell.Interpreter (SourceCode)
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success))
-import Playground.API (SourceCode)
 import Prelude (Unit, bind, pure, ($), (<$>), (<<<), (<>), (=<<), (==))
 import Servant.PureScript.Settings (SPSettings_)
 import Types (Query(SetGistUrl, LoadGist, PublishGist), Simulation, State(State))

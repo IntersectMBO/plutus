@@ -54,7 +54,7 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_)
 import Halogen.Query (HalogenM)
 import Icons (Icon(..), icon)
-import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError))
+import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError))
 import Ledger.Ada.TH (Ada(..))
 import LocalStorage (LOCALSTORAGE)
 import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, updateChartsIfPossible)
@@ -289,7 +289,7 @@ eval (CompileProgram next) = do
       -- Update the error display.
       editorSetAnnotations $
         case result of
-          Success (Left errors) -> catMaybes $ toAnnotation <$> errors
+          Success (Left errors) -> toAnnotations errors
           _ -> []
 
       -- If we have a result with new signatures, we can only hold
@@ -428,6 +428,10 @@ replaceViewOnSuccess result source target = do
     (assign _currentView target)
 
 ------------------------------------------------------------
+
+toAnnotations :: InterpreterError -> Array Annotation
+toAnnotations (TimeoutError _) = []
+toAnnotations (CompilationErrors errors) = catMaybes (toAnnotation <$> errors)
 
 toAnnotation :: CompilationError -> Maybe Annotation
 toAnnotation (RawError _) = Nothing
