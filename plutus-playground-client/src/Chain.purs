@@ -31,7 +31,7 @@ import Ledger.Interval (Slot(..))
 import Ledger.Types (TxIdOf(TxIdOf))
 import Playground.API (EvaluationResult(EvaluationResult), SimulatorWallet)
 import Prelude (class Monad, Unit, discard, show, unit, ($), (<$>), (<<<), (<>))
-import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, MockchainChartSlot(MockchainChartSlot), Query(HandleMockchainChartMessage, HandleBalancesChartMessage), _ada, _simulatorWalletBalance, _simulatorWalletWallet, _walletId, cpBalancesChart, cpMockchainChart)
+import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, MockchainChartSlot(MockchainChartSlot), Query(HandleMockchainChartMessage, HandleBalancesChartMessage), _simulatorWalletBalance, _simulatorWalletWallet, _walletId, cpBalancesChart, cpMockchainChart)
 import Wallet.Emulator.Types (EmulatorEvent(..), Wallet(..))
 import Wallet.Graph (FlowGraph(FlowGraph), FlowLink(FlowLink), TxRef(TxRef))
 

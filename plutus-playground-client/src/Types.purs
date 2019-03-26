@@ -33,9 +33,8 @@ import Gist (Gist)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.ECharts (EChartsMessage, EChartsQuery)
 import Language.Haskell.Interpreter (SourceCode, InterpreterError)
-import Ledger.Ada.TH (Ada, _Ada)
-import Ledger.Value.TH (Value, _Value)
 import Ledger.Types (Tx, TxIdOf)
+import Ledger.Value.TH (CurrencySymbol, Value, _Value)
 import Matryoshka (class Corecursive, class Recursive, Algebra, cata)
 import Network.RemoteData (RemoteData)
 import Playground.API (CompilationResult, Evaluation(Evaluation), EvaluationResult, FunctionSchema, SimpleArgumentSchema(UnknownSchema, SimpleObjectSchema, SimpleTupleSchema, SimpleArraySchema, SimpleStringSchema, SimpleIntSchema), SimulatorWallet, _FunctionSchema, _SimulatorWallet)
@@ -55,8 +54,8 @@ _simulatorWalletBalance = _SimulatorWallet <<< prop (SProxy :: SProxy "simulator
 _walletId :: Lens' Wallet Int
 _walletId = _Wallet <<< prop (SProxy :: SProxy "getWallet")
 
-_ada :: Lens' Value Int
-_ada = _Ada <<< prop (SProxy :: SProxy "getAda")
+_value :: Lens' Value (Array (Tuple CurrencySymbol Int))
+_value = _Value <<< prop (SProxy :: SProxy "getValue")
 
 data Action
   = Action
@@ -170,13 +169,21 @@ data Query a
   | SetSimulationSlot Int a
   | RemoveSimulationSlot Int a
   -- Wallets.
-  | AddWallet a
-  | RemoveWallet Int a
-  | SetBalance Wallet Ada a
+  | ModifyWallets WalletEvent a
   -- Actions.
   | ModifyActions ActionEvent a
   | EvaluateActions a
   | PopulateAction Int Int (FormEvent a)
+
+data WalletEvent
+  = AddWallet
+  | RemoveWallet Int
+  | ModifyBalance Int ValueEvent
+
+data ValueEvent
+  = SetBalance Int (Tuple CurrencySymbol Int)
+  | AddBalance
+  | RemoveBalance Int
 
 data ActionEvent
   = AddAction Action

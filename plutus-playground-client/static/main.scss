@@ -85,6 +85,7 @@ h2 {
     input {
         padding: 0.375rem;
     }
+
     .gist-link {
         text-align: center;
         text-decoration: underline;
@@ -127,13 +128,7 @@ h2 {
             label {
                 margin-bottom: 0;
             }
-
-            input {
-                padding-left: 0;
-                padding-right: 0;
-            }
         }
-
 
         .nested {
             margin-left: 1rem;
@@ -142,7 +137,7 @@ h2 {
 }
 
 .action,
-.wallet ,
+.wallet,
 .gist-controls {
     h1, h2, h3, h4 {
         color: $lightPurple;
@@ -154,6 +149,8 @@ h2 {
         border: $input-border-color;
         outline:none;
         border-bottom:1px solid $purple05;
+        padding-left: 0;
+        padding-right: 0;
     }
 }
 

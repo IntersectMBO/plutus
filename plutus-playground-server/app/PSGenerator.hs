@@ -212,7 +212,7 @@ myTypes =
     , mkSumType (Proxy @NewGist)
     , mkSumType (Proxy @NewGistFile)
     , mkSumType (Proxy @Owner)
-    , (equal <*> mkSumType) (Proxy @CurrencySymbol)
+    , (equal <*> (order <*> mkSumType)) (Proxy @CurrencySymbol)
     , (equal <*> (order <*> mkSumType)) (Proxy @TokenId)
     , mkSumType (Proxy @KnownCurrency)
     , mkSumType (Proxy @InterpreterError)
