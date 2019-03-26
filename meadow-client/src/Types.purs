@@ -181,7 +181,7 @@ _validity = prop (SProxy :: SProxy "validity")
 
 -- "Choice $IdChoice: Choose value [$Choice]"
 type MarloweState
-        = {input :: InputData, transaction :: TransactionData, state :: State, blockNum :: BlockNumber, moneyInContract :: BigInteger, contract :: Contract}
+        = {input :: InputData, transaction :: TransactionData, state :: State, blockNum :: BlockNumber, moneyInContract :: BigInteger, contract :: Maybe Contract}
 
 _input :: forall s a. Lens' {input :: a | s} a
 _input = prop (SProxy :: SProxy "input")
