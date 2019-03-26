@@ -13,8 +13,8 @@ import           Data.Foldable              (foldl')
 import qualified Data.Map                   as Map
 import qualified Data.Set                   as Set
 import qualified Data.Typeable              as T
-import qualified Ledger.Ada                 as Ada
 import           Ledger.Types               (Blockchain, PubKey (PubKey), Tx, TxOutOf (txOutValue))
+import qualified Ledger.Value               as V
 import           Playground.API             (PlaygroundError (OtherError), SimulatorWallet (SimulatorWallet),
                                              simulatorWalletBalance, simulatorWalletWallet)
 import           Wallet.Emulator.Types      (EmulatorEvent, EmulatorState (_chainNewestFirst, _emulatorLog), MockWallet,
@@ -37,7 +37,7 @@ runTrace ::
 runTrace wallets actions =
     let walletToBalance SimulatorWallet {..} =
             ( PubKey $ unpack simulatorWalletWallet
-            , Ada.toValue simulatorWalletBalance)
+            , simulatorWalletBalance)
         initialBalance = Map.fromList $ fmap walletToBalance wallets
         pubKeys =
             Set.fromList $
@@ -58,8 +58,8 @@ runTrace wallets actions =
                     emulatorLog = _emulatorLog newState
                     fundsDistribution =
                         Map.map
-                            (foldl' (+) 0 .
-                             fmap (Ada.fromValue . txOutValue) . view ownFunds) .
+                            (foldl' V.plus V.zero .
+                             fmap txOutValue . view ownFunds) .
                         view walletStates $
                         newState
                  in case eRes of

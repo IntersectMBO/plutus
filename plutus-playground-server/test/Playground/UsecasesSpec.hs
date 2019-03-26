@@ -159,11 +159,12 @@ vestingSpec =
         it "should run vest funds evaluation" $
             evaluate vestFundsEval >>= (`shouldSatisfy` isRight)
   where
+    ten = Ada.adaValueOf 10
     simpleEvaluation =
         Evaluation
             [ SimulatorWallet
                   { simulatorWalletWallet = Wallet 1
-                  , simulatorWalletBalance = 10
+                  , simulatorWalletBalance = ten
                   }
             ]
             []
@@ -173,7 +174,7 @@ vestingSpec =
         Evaluation
             [ SimulatorWallet
                   { simulatorWalletWallet = Wallet 1
-                  , simulatorWalletBalance = 10
+                  , simulatorWalletBalance = ten
                   }
             ]
             [Wait 10]
@@ -183,7 +184,7 @@ vestingSpec =
         Evaluation
             [ SimulatorWallet
                   { simulatorWalletWallet = Wallet 1
-                  , simulatorWalletBalance = 10
+                  , simulatorWalletBalance = ten
                   }
             ]
             [ Action
@@ -205,11 +206,11 @@ gameSpec =
             (`shouldSatisfy` hasFundsDistribution
                                  [ SimulatorWallet
                                        { simulatorWalletWallet = Wallet 1
-                                       , simulatorWalletBalance = Ada.fromInt 12
+                                       , simulatorWalletBalance = Ada.adaValueOf 12
                                        }
                                  , SimulatorWallet
                                        { simulatorWalletWallet = Wallet 2
-                                       , simulatorWalletBalance = Ada.fromInt 8
+                                       , simulatorWalletBalance = Ada.adaValueOf 8
                                        }
                                  ])
         it "should keep the funds" $
@@ -221,7 +222,7 @@ gameSpec =
                                        }
                                  , SimulatorWallet
                                        { simulatorWalletWallet = Wallet 2
-                                       , simulatorWalletBalance = Ada.fromInt 8
+                                       , simulatorWalletBalance = Ada.adaValueOf 8
                                        }
                                  ])
         it
@@ -242,16 +243,16 @@ gameSpec =
                                        }
                                  ])
   where
-    ten = Ada.fromInt 10
+    ten = Ada.adaValueOf 10
     gameEvalFailure =
         Evaluation
             [ SimulatorWallet
                   { simulatorWalletWallet = Wallet 1
-                  , simulatorWalletBalance = 10
+                  , simulatorWalletBalance = ten
                   }
             , SimulatorWallet
                   { simulatorWalletWallet = Wallet 2
-                  , simulatorWalletBalance = 10
+                  , simulatorWalletBalance = ten
                   }
             ]
             [ Action (Fn "startGame") (Wallet 1) []
@@ -267,11 +268,11 @@ gameSpec =
         Evaluation
             [ SimulatorWallet
                   { simulatorWalletWallet = Wallet 1
-                  , simulatorWalletBalance = 10
+                  , simulatorWalletBalance = ten
                   }
             , SimulatorWallet
                   { simulatorWalletWallet = Wallet 2
-                  , simulatorWalletBalance = 10
+                  , simulatorWalletBalance = ten
                   }
             ]
             [ Action (Fn "startGame") (Wallet 1) []
@@ -287,15 +288,15 @@ gameSpec =
         Evaluation
             [ SimulatorWallet
                   { simulatorWalletWallet = Wallet 1
-                  , simulatorWalletBalance = 10
+                  , simulatorWalletBalance = ten
                   }
             , SimulatorWallet
                   { simulatorWalletWallet = Wallet 2
-                  , simulatorWalletBalance = 10
+                  , simulatorWalletBalance = ten
                   }
             , SimulatorWallet
                   { simulatorWalletWallet = Wallet 3
-                  , simulatorWalletBalance = 10
+                  , simulatorWalletBalance = ten
                   }
             ]
             [ Action
@@ -344,15 +345,15 @@ crowdfundingSpec =
             (`shouldSatisfy` hasFundsDistribution
                                  [ SimulatorWallet
                                        { simulatorWalletWallet = Wallet 1
-                                       , simulatorWalletBalance = Ada.fromInt 26
+                                       , simulatorWalletBalance = Ada.adaValueOf 26
                                        }
                                  , SimulatorWallet
                                        { simulatorWalletWallet = Wallet 2
-                                       , simulatorWalletBalance = Ada.fromInt 2
+                                       , simulatorWalletBalance = Ada.adaValueOf 2
                                        }
                                  , SimulatorWallet
                                        { simulatorWalletWallet = Wallet 3
-                                       , simulatorWalletBalance = Ada.fromInt 2
+                                       , simulatorWalletBalance = Ada.adaValueOf 2
                                        }
                                  ])
         it "should run failed campaign" $
@@ -372,20 +373,20 @@ crowdfundingSpec =
                                        }
                                  ])
   where
-    ten = Ada.fromInt 10
+    ten = Ada.adaValueOf 10
     failedCampaign =
         Evaluation
             [ SimulatorWallet
                   { simulatorWalletWallet = Wallet 1
-                  , simulatorWalletBalance = 10
+                  , simulatorWalletBalance = ten
                   }
             , SimulatorWallet
                   { simulatorWalletWallet = Wallet 2
-                  , simulatorWalletBalance = 10
+                  , simulatorWalletBalance = ten
                   }
             , SimulatorWallet
                   { simulatorWalletWallet = Wallet 3
-                  , simulatorWalletBalance = 10
+                  , simulatorWalletBalance = ten
                   }
             ]
             [ Action (Fn "scheduleCollection") (Wallet 1) [theCampaign]
@@ -398,15 +399,15 @@ crowdfundingSpec =
         Evaluation
             [ SimulatorWallet
                   { simulatorWalletWallet = Wallet 1
-                  , simulatorWalletBalance = 10
+                  , simulatorWalletBalance = ten
                   }
             , SimulatorWallet
                   { simulatorWalletWallet = Wallet 2
-                  , simulatorWalletBalance = 10
+                  , simulatorWalletBalance = ten
                   }
             , SimulatorWallet
                   { simulatorWalletWallet = Wallet 3
-                  , simulatorWalletBalance = 10
+                  , simulatorWalletBalance = ten
                   }
             ]
             [ Action (Fn "scheduleCollection") (Wallet 1) [theCampaign]

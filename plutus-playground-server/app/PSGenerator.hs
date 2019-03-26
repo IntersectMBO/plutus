@@ -194,7 +194,7 @@ myTypes =
     , mkSumType (Proxy @(TxOutOf A))
     , mkSumType (Proxy @(TxIdOf A))
     , (equal <*> (order <*> mkSumType)) (Proxy @TxInType)
-    , mkSumType (Proxy @Value)
+    , (equal <*> mkSumType) (Proxy @Value)
     , (equal <*> (order <*> mkSumType)) (Proxy @PubKey)
     , mkSumType (Proxy @(AddressOf A))
     , mkSumType (Proxy @FlowLink)
@@ -212,7 +212,7 @@ myTypes =
     , mkSumType (Proxy @NewGist)
     , mkSumType (Proxy @NewGistFile)
     , mkSumType (Proxy @Owner)
-    , mkSumType (Proxy @CurrencySymbol)
+    , (equal <*> mkSumType) (Proxy @CurrencySymbol)
     , mkSumType (Proxy @TokenId)
     , mkSumType (Proxy @KnownCurrency)
     ]

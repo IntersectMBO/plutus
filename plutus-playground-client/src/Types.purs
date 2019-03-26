@@ -34,6 +34,7 @@ import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.ECharts (EChartsMessage, EChartsQuery)
 import Language.Haskell.Interpreter (CompilationError)
 import Ledger.Ada.TH (Ada, _Ada)
+import Ledger.Value.TH (Value, _Value)
 import Ledger.Types (Tx, TxIdOf)
 import Matryoshka (class Corecursive, class Recursive, Algebra, cata)
 import Network.RemoteData (RemoteData)
@@ -48,13 +49,13 @@ import Wallet.Emulator.Types (Wallet, _Wallet)
 _simulatorWalletWallet :: Lens' SimulatorWallet Wallet
 _simulatorWalletWallet = _SimulatorWallet <<< prop (SProxy :: SProxy "simulatorWalletWallet")
 
-_simulatorWalletBalance :: Lens' SimulatorWallet Ada
+_simulatorWalletBalance :: Lens' SimulatorWallet Value
 _simulatorWalletBalance = _SimulatorWallet <<< prop (SProxy :: SProxy "simulatorWalletBalance")
 
 _walletId :: Lens' Wallet Int
 _walletId = _Wallet <<< prop (SProxy :: SProxy "getWallet")
 
-_ada :: Lens' Ada Int
+_ada :: Lens' Value Int
 _ada = _Ada <<< prop (SProxy :: SProxy "getAda")
 
 data Action
