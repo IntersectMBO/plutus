@@ -29,7 +29,7 @@ import Data.Array (catMaybes, (..))
 import Data.Array as Array
 import Data.Either (Either(..), note)
 import Data.Generic (gEq)
-import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, traversed, use, view, to)
+import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, traversed, use, view)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Fold (maximumOf, preview)
 import Data.Lens.Index (ix)
