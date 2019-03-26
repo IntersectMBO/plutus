@@ -97,7 +97,7 @@ open import Data.String
 open import Relation.Nullary
 open import Category.Monad
 import Level
-open RawMonad {f = Level.zero} monad
+open RawMonad {f = Level.zero} (record { return = just ; _>>=_ = λ { (just x) f → f x ; nothing x → nothing} })
 
 velemIndex : String → ∀{n} → Vec String n → Maybe (Fin n)
 velemIndex x [] = nothing

@@ -10,7 +10,7 @@ open import Data.Integer hiding (_*_)
 open import Data.Bool
 open import Data.Product
 open import Relation.Binary
-open import Data.Nat hiding (_^_; _≤_; _<_; _>_; _≥_; _≤?_) renaming (_*_ to _**_)
+open import Data.Nat hiding (_^_; _≤_; _<_; _>_; _≥_; _≤?_;_<?_;_>?_;_≥?_) renaming (_*_ to _**_)
 open import Relation.Nullary
 open import Function
 \end{code}
@@ -92,6 +92,7 @@ x ^ ℕ.suc n = x ** (x ^ n)
 -≤0 ℕ.zero = +≤+ z≤n
 -≤0 (ℕ.suc n) = -≤+
 
+
 _<?_ : Decidable _<_
 i <? j = Data.Integer.suc i ≤? j 
 
@@ -100,6 +101,7 @@ i >? j = j <? i
 
 _≥?_ : Decidable _≥_
 i ≥? j = j ≤? i 
+
 
 trans≤Nat : ∀{i j k} → i Data.Nat.≤ j → j Data.Nat.≤ k → i Data.Nat.≤ k
 trans≤Nat z≤n q = z≤n

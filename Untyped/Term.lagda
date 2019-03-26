@@ -3,7 +3,7 @@ module Untyped.Term where
 \end{code}
 
 \begin{code}
-open import Data.Nat hiding (erase)
+open import Data.Nat
 open import Data.Fin
 open import Data.Integer hiding (suc)
 open import Data.List hiding (_++_)

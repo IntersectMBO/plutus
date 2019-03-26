@@ -19,7 +19,7 @@ open import Declarative.StdLib.Bool
 
 open import Relation.Binary.PropositionalEquality hiding ([_]) renaming (subst to substEq)
 open import Data.Empty
-open import Data.Product renaming (_,_ to _,,_; ,_ to ,,_)
+open import Data.Product renaming (_,_ to _,,_)
 open import Data.List hiding ([_]; take; drop)
 open import Function
 open import Data.Unit hiding (_≤_; _≤?_; _≟_)
@@ -29,7 +29,7 @@ open import Relation.Nullary.Decidable
 open import Relation.Binary hiding (_⇒_)
 open import Data.Maybe
 open import Agda.Builtin.Int
-open import Data.Nat hiding (_<_; _≤?_; _^_; _+_; _≟_)
+open import Data.Nat hiding (_<_; _≤?_; _^_; _+_; _≟_;_<?_;_>?_;_≥?_)
 import Data.Bool as Bool
 \end{code}
 
