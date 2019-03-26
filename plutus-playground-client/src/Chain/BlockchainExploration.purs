@@ -48,6 +48,7 @@ type Row = Tuple SlotId StepId
 
 type BalanceMap =
   Map (Tuple Column Row) Balance
+
 blockchainExploration :: forall p i. Blockchain -> HTML p i
 blockchainExploration blockchain =
   div_ [ h2_ [ text "Blockchain" ]

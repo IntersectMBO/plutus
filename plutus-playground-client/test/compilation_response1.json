@@ -2,7 +2,7 @@
   "Right": {
     "knownCurrencies": [
       {
-        "hash": "X/8=",
+        "hash": "5fff",
         "friendlyName": "MyCurrency",
         "knownTokens": [
           "MyToken"
@@ -381,7 +381,6 @@
         "functionName": "payToPublicKey_"
       }
     ],
-    "warnings": [],
-    "knownCurrencies": []
+    "warnings": []
   }
 }

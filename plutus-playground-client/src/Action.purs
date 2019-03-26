@@ -217,7 +217,8 @@ actionArgumentField ancestors nested (SimpleTuple (subFieldA /\subFieldB)) =
 actionArgumentField ancestors nested (SimpleArray schema subFields) =
     div_ [(if nested
            then Keyed.div [ classes [  ClassName "nested" ] ]
-           else Keyed.div_) (mapWithIndex subFormContainer subFields)
+           else Keyed.div_)
+             (mapWithIndex subFormContainer subFields)
          , button
              [ classes [ btn, btnInfo ]
              , onClick $ input_ AddSubField

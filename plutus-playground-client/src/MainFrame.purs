@@ -55,7 +55,7 @@ import Halogen.HTML.Properties (class_, classes, href, id_)
 import Halogen.Query (HalogenM)
 import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError))
-import Ledger.Ada.TH (Ada(..))
+import Ledger.Value.TH (CurrencySymbol(CurrencySymbol), Value(Value), _CurrencySymbol)
 import LocalStorage (LOCALSTORAGE)
 import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, updateChartsIfPossible)
 import Network.HTTP.Affjax (AJAX)
@@ -70,7 +70,10 @@ import Wallet.Emulator.Types (Wallet(Wallet))
 mkSimulatorWallet :: Int -> SimulatorWallet
 mkSimulatorWallet id =
   SimulatorWallet { simulatorWalletWallet: Wallet { getWallet: id }
-                  , simulatorWalletBalance: Ada {getAda: 10}
+                  , simulatorWalletBalance: Value { getValue: [ Tuple (CurrencySymbol 1000) 10
+                                                              , Tuple (CurrencySymbol 1005) 20
+                                                              ]
+                                                  }
                   }
 
 mkSimulation :: Signatures -> Simulation
@@ -142,9 +145,11 @@ toEvent (ScrollTo _ _) = Nothing
 toEvent (AddSimulationSlot _) = Just $ (defaultEvent "AddSimulationSlot") { category = Just "Simulation" }
 toEvent (SetSimulationSlot _ _) = Just $ (defaultEvent "SetSimulationSlot") { category = Just "Simulation" }
 toEvent (RemoveSimulationSlot _ _) = Just $ (defaultEvent "RemoveSimulationSlot") { category = Just "Simulation" }
-toEvent (AddWallet _) = Just $ (defaultEvent "AddWallet") { category = Just "Wallet" }
-toEvent (RemoveWallet _ _) = Just $ (defaultEvent "RemoveWallet") { category = Just "Wallet" }
-toEvent (SetBalance _ _ _) = Just $ (defaultEvent "SetBalance") { category = Just "Wallet" }
+toEvent (ModifyWallets AddWallet _) = Just $ (defaultEvent "AddWallet") { category = Just "Wallet" }
+toEvent (ModifyWallets (RemoveWallet _) _) = Just $ (defaultEvent "RemoveWallet") { category = Just "Wallet" }
+toEvent (ModifyWallets (ModifyBalance _ (SetBalance _ _)) _) = Just $ (defaultEvent "SetBalance") { category = Just "Wallet" }
+toEvent (ModifyWallets (ModifyBalance _ AddBalance) _) = Just $ (defaultEvent "AddBalance") { category = Just "Wallet" }
+toEvent (ModifyWallets (ModifyBalance _ (RemoveBalance _)) _) = Just $ (defaultEvent "RemoveBalance") { category = Just "Wallet" }
 toEvent (ModifyActions (AddAction _) _) = Just $ (defaultEvent "AddAction") { category = Just "Action" }
 toEvent (ModifyActions (AddWaitAction _) _) = Just $ (defaultEvent "AddWaitAction") { category = Just "Action" }
 toEvent (ModifyActions (RemoveAction _) _) = Just $ (defaultEvent "RemoveAction") { category = Just "Action" }
@@ -346,24 +351,11 @@ eval (RemoveSimulationSlot index next) = do
   modifying _simulations (Cursor.deleteAt index)
   pure next
 
-eval (AddWallet next) = do
-  modifying (_simulations <<< _current <<< _wallets)
-    (\wallets -> let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _simulatorWalletWallet <<< _walletId) wallets
-                     newWallet = mkSimulatorWallet (maxWalletId + 1)
-                 in Array.snoc wallets newWallet)
-
-  pure next
-
-eval (RemoveWallet index next) = do
-  modifying (_simulations <<< _current <<< _wallets) (fromMaybe <*> Array.deleteAt index)
-  assign (_simulations <<< _current <<< _actions) []
-  pure next
-
-eval (SetBalance wallet newBalance next) = do
-  modifying (_simulations <<< _current <<< _wallets <<< traversed)
-    (\simulatorWallet -> if view _simulatorWalletWallet simulatorWallet == wallet
-                         then set _simulatorWalletBalance newBalance simulatorWallet
-                         else simulatorWallet)
+eval (ModifyWallets action next) = do
+  modifying (_simulations <<< _current <<< _wallets) (evalWalletEvent action)
+  case action of
+    (RemoveWallet _) -> assign (_simulations <<< _current <<< _actions) []
+    _ -> pure unit
   pure next
 
 eval (PopulateAction n l event) = do
@@ -379,6 +371,29 @@ eval (PopulateAction n l event) = do
        <<< ix l)
     (evalForm event)
   pure $ extract event
+
+evalWalletEvent :: WalletEvent -> Array SimulatorWallet -> Array SimulatorWallet
+evalWalletEvent AddWallet wallets =
+  let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _simulatorWalletWallet <<< _walletId) wallets
+      newWallet = mkSimulatorWallet (maxWalletId + 1)
+  in Array.snoc wallets newWallet
+evalWalletEvent (RemoveWallet index) wallets =
+  fromMaybe wallets $ Array.deleteAt index wallets
+evalWalletEvent (ModifyBalance walletIndex action) wallets =
+  over
+    (ix walletIndex <<< _simulatorWalletBalance <<< _value)
+    (evalValueEvent action)
+    wallets
+
+evalValueEvent :: ValueEvent -> Array (Tuple CurrencySymbol Int) -> Array (Tuple CurrencySymbol Int)
+evalValueEvent AddBalance balances =
+  let maxCurrencyId = fromMaybe 0 $ maximumOf (traversed <<< _1 <<< _CurrencySymbol) balances
+      newBalance = Tuple (CurrencySymbol (maxCurrencyId + 1)) 0
+  in Array.snoc balances newBalance
+evalValueEvent (RemoveBalance balanceIndex) balances =
+  fromMaybe balances $ Array.deleteAt balanceIndex balances
+evalValueEvent (SetBalance balanceIndex balance) balances =
+  set (ix balanceIndex) balance balances
 
 evalActionEvent :: ActionEvent -> Array Action -> Array Action
 evalActionEvent (AddAction action) = flip Array.snoc action
