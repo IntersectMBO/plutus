@@ -83,24 +83,26 @@ is provided by the `PendingTx` type. A `PendingTx` contains the hashes of
 redeemer and data scripts of all of its inputs and outputs.
 -}
 
+-- | The type of a transaction output in a pending transaction.
 data PendingTxOutType
     = PubKeyTxOut PubKey -- ^ Pub key address
     | DataTxOut -- ^ The data script of the pending transaction output (see note [Script types in pending transactions])
     deriving (Generic)
 
--- | Output of a pending transaction.
+-- | An output of a pending transaction.
 data PendingTxOut = PendingTxOut
     { pendingTxOutValue  :: Value
-    , pendingTxOutHashes :: Maybe (ValidatorHash, DataScriptHash) -- ^ Hashes of validator script and data script
+    , pendingTxOutHashes :: Maybe (ValidatorHash, DataScriptHash) -- ^ Hashes of validator script and data script.
     , pendingTxOutData   :: PendingTxOutType
     } deriving (Generic)
 
+-- | A reference to a transaction output in a pending transaction.
 data PendingTxOutRef = PendingTxOutRef
-    { pendingTxOutRefId  :: TxHash -- ^ Transaction whose outputs are consumed
-    , pendingTxOutRefIdx :: Int -- ^ Index into the referenced transaction's list of outputs
+    { pendingTxOutRefId  :: TxHash -- ^ Transaction whose output are consumed.
+    , pendingTxOutRefIdx :: Int -- ^ Index into the referenced transaction's list of outputs.
     } deriving (Generic)
 
--- | Input of a pending transaction.
+-- | An input of a pending transaction.
 data PendingTxIn = PendingTxIn
     { pendingTxInRef       :: PendingTxOutRef
     , pendingTxInWitness   :: Either (ValidatorHash, RedeemerHash) Signature
@@ -108,15 +110,14 @@ data PendingTxIn = PendingTxIn
     , pendingTxInValue     :: Value -- ^ Value consumed by this txn input
     } deriving (Generic)
 
--- | A pending transaction as seen by validator scripts.
+-- | A pending transaction. This is the view as seen by validator scripts, so some details are stripped out.
 data PendingTx = PendingTx
     { pendingTxInputs      :: [PendingTxIn] -- ^ Transaction inputs
-    , pendingTxOutputs     :: [PendingTxOut]
-    , pendingTxFee         :: Ada
-    , pendingTxForge       :: Value
-    , pendingTxIn          :: PendingTxIn
-    -- ^ PendingTxIn being validated
-    , pendingTxValidRange  :: SlotRange
+    , pendingTxOutputs     :: [PendingTxOut] -- ^ Transaction outputs
+    , pendingTxFee         :: Ada -- ^ The fee paid by this transaction.
+    , pendingTxForge       :: Value -- ^ The 'Value' forged by this transaction.
+    , pendingTxIn          :: PendingTxIn -- ^ The 'PendingTxIn' being validated against currently.
+    , pendingTxValidRange  :: SlotRange -- ^ The valid range for the transaction.
     } deriving (Generic)
 
 {- Note [Oracles]
@@ -140,8 +141,8 @@ Language.Plutus.Coordination.Contracts.Swap.swapValidator and
 Language.Plutus.Coordination.Contracts.Future.validatorScript scripts.
 -}
 
--- `OracleValue a` is the value observed at a time signed by
--- an oracle. See note [Oracles]
+-- | @OracleValue a@ is a value observed at a time signed by
+-- an oracle. See note [Oracles].
 data OracleValue a = OracleValue {
         ovSignature :: PubKey,
         ovSlot      :: Slot,
@@ -172,7 +173,7 @@ them from the correct types in Haskell, and for comparing them (in
 `Language.Plutus.Runtime.TH`).
 
 -}
--- | PLC runtime representation of a `Digest SHA256`
+-- | Script runtime representation of a @Digest SHA256@.
 newtype ValidatorHash =
     ValidatorHash BSL.ByteString
     deriving stock (Eq, Generic)
@@ -190,27 +191,34 @@ instance ToJSON ValidatorHash where
 instance FromJSON ValidatorHash where
     parseJSON = JSON.decodeSerialise
 
+-- | Script runtime representation of a @Digest SHA256@.
 newtype DataScriptHash =
     DataScriptHash BSL.ByteString
     deriving (Eq, Generic)
 
+-- | Script runtime representation of a @Digest SHA256@.
 newtype RedeemerHash =
     RedeemerHash BSL.ByteString
     deriving (Eq, Generic)
 
+-- | Script runtime representation of a @Digest SHA256@.
 newtype TxHash =
     TxHash BSL.ByteString
     deriving (Eq, Generic)
 
+-- | Compute the hash of a data script.
 plcDataScriptHash :: Ledger.DataScript -> DataScriptHash
 plcDataScriptHash = DataScriptHash . plcSHA2_256 . serialise
 
+-- | Compute the hash of a validator script.
 plcValidatorDigest :: Digest SHA256 -> ValidatorHash
 plcValidatorDigest = ValidatorHash . plcDigest
 
+-- | Compute the hash of a redeemer script.
 plcRedeemerHash :: Ledger.RedeemerScript -> RedeemerHash
 plcRedeemerHash = RedeemerHash . plcSHA2_256 . serialise
 
+-- | Compute the hash of a redeemer script.
 plcTxHash :: Ledger.TxId -> TxHash
 plcTxHash = TxHash . plcDigest . Ledger.getTxId
 
@@ -226,7 +234,7 @@ plcSHA3_256 = Hash.sha3
 plcDigest :: Digest SHA256 -> BSL.ByteString
 plcDigest = serialise
 
--- | Check if a transaction was signed by a public key
+-- | Check if a transaction was signed by the given public key.
 txSignedBy :: Q (TExp (PendingTx -> PubKey -> Bool))
 txSignedBy = [||
     \(p :: PendingTx) (PubKey k) ->
@@ -245,7 +253,7 @@ txSignedBy = [||
             go txins
     ||]
 
--- | Check if the input of a pending transaction was signed by a public key
+-- | Check if the input of a pending transaction was signed by the given public key.
 txInSignedBy :: Q (TExp (PendingTxIn -> PubKey -> Bool))
 txInSignedBy = [||
     \(i :: PendingTxIn) (PubKey k) -> case i of
@@ -253,44 +261,44 @@ txInSignedBy = [||
         _ -> False
     ||]
 
--- | Returns the public key that locks the transaction output
+-- | Get the public key that locks the transaction output, if any.
 pubKeyOutput :: Q (TExp (PendingTxOut -> Maybe PubKey))
 pubKeyOutput = [|| \(o:: PendingTxOut) -> case o of
     PendingTxOut _ _ (PubKeyTxOut pk) -> Just pk
     _                                 -> Nothing ||]
 
--- | Returns the data script that is part of the pay-to-script transaction
---   output
+-- | Get the validator and data script hashes from a pay-to-script transaction
+--   output, if there are any.
 scriptOutput :: Q (TExp (PendingTxOut -> Maybe (ValidatorHash, DataScriptHash)))
 scriptOutput = [|| \(o:: PendingTxOut) -> case o of
     PendingTxOut _ d DataTxOut -> d
     _                          -> Nothing ||]
 
--- | Equality of public keys
+-- | Check if two public keys are equal.
 eqPubKey :: Q (TExp (PubKey -> PubKey -> Bool))
 eqPubKey = [|| \(PubKey l) (PubKey r) -> Builtins.equalsInteger l r ||]
 
--- | Equality of data scripts
+-- | Check if two data script hashes are equal.
 eqDataScript :: Q (TExp (DataScriptHash -> DataScriptHash -> Bool))
 eqDataScript = [|| \(DataScriptHash l) (DataScriptHash r) -> Builtins.equalsByteString l r ||]
 
--- | Equality of validator scripts
+-- | Check if two validator script hashes are equal.
 eqValidator :: Q (TExp (ValidatorHash -> ValidatorHash -> Bool))
 eqValidator = [|| \(ValidatorHash l) (ValidatorHash r) -> Builtins.equalsByteString l r ||]
 
--- | Equality of redeemer scripts
+-- | Check if two redeemer script hashes are equal.
 eqRedeemer :: Q (TExp (RedeemerHash -> RedeemerHash -> Bool))
 eqRedeemer = [|| \(RedeemerHash l) (RedeemerHash r) -> Builtins.equalsByteString l r ||]
 
--- | Equality of transactions
+-- | Check if two transaction hashes are equal.
 eqTx :: Q (TExp (TxHash -> TxHash -> Bool))
 eqTx = [|| \(TxHash l) (TxHash r) -> Builtins.equalsByteString l r ||]
 
--- | The hash of the validator script that is currently being validated.
+-- | Get the hash of the validator script that is currently being validated.
 ownHash :: Q (TExp (PendingTx -> ValidatorHash))
 ownHash = [|| \(PendingTx _ _ _ _ i _) -> let PendingTxIn _ (Left (h, _)) _ = i in h ||]
 
--- | Total amount of ADa locked by the given script
+-- | Get the total amount of 'Ada' locked by the given validator in this transaction.
 adaLockedBy :: Q (TExp (PendingTx -> ValidatorHash -> Ada))
 adaLockedBy = [|| \(PendingTx _ outs _ _ _ _) h ->
     let
@@ -309,7 +317,7 @@ adaLockedBy = [|| \(PendingTx _ outs _ _ _ _) h ->
       ||]
 
 -- | Check if the provided signature is the result of signing the pending
---   transaction (without witnesses) with the public key.
+--   transaction (without witnesses) with the given public key.
 signsTransaction :: Q (TExp (Signature -> PubKey -> PendingTx -> Bool))
 signsTransaction = [|| \(Signature i) (PubKey j) (_ :: PendingTx) -> Builtins.equalsInteger i j ||]
 
