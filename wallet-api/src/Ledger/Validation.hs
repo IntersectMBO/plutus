@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE DeriveAnyClass       #-}
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE DerivingStrategies   #-}
@@ -48,11 +49,12 @@ module Ledger.Validation
     , plcSHA3_256
     ) where
 
-import           Codec.Serialise              (Serialise, serialise)
+import           Codec.Serialise              (Serialise)
 import           Crypto.Hash                  (Digest, SHA256)
 import           Data.Aeson                   (FromJSON, ToJSON (toJSON))
 import qualified Data.Aeson                   as JSON
 import qualified Data.Aeson.Extras            as JSON
+import qualified Data.ByteArray               as BA
 import qualified Data.ByteString.Lazy.Hash    as Hash
 import qualified Data.ByteString.Lazy         as BSL
 import           Data.Proxy                   (Proxy (Proxy))
@@ -185,7 +187,7 @@ them from the correct types in Haskell, and for comparing them (in
 -}
 -- | Script runtime representation of a @Digest SHA256@.
 newtype ValidatorHash =
-    ValidatorHash BSL.ByteString
+    ValidatorHash (Builtins.SizedByteString 32)
     deriving stock (Eq, Generic)
     deriving newtype (Serialise)
 
@@ -203,47 +205,51 @@ instance FromJSON ValidatorHash where
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype DataScriptHash =
-    DataScriptHash BSL.ByteString
+    DataScriptHash (Builtins.SizedByteString 32)
     deriving (Eq, Generic)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype RedeemerHash =
-    RedeemerHash BSL.ByteString
+    RedeemerHash (Builtins.SizedByteString 32)
     deriving (Eq, Generic)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype TxHash =
-    TxHash BSL.ByteString
+    TxHash (Builtins.SizedByteString 32)
     deriving (Eq, Generic)
 
--- | Compute the hash of a data script.
 plcDataScriptHash :: DataScript -> DataScriptHash
-plcDataScriptHash = DataScriptHash . plcSHA2_256 . serialise
+plcDataScriptHash = DataScriptHash . plcSHA2_256 . Builtins.SizedByteString . BSL.pack . BA.unpack
 
 -- | Compute the hash of a validator script.
 plcValidatorDigest :: Digest SHA256 -> ValidatorHash
-plcValidatorDigest = ValidatorHash . plcDigest
+plcValidatorDigest = ValidatorHash . Builtins.SizedByteString . BSL.pack . BA.unpack
 
--- | Compute the hash of a redeemer script.
 plcRedeemerHash :: RedeemerScript -> RedeemerHash
-plcRedeemerHash = RedeemerHash . plcSHA2_256 . serialise
+plcRedeemerHash = RedeemerHash . plcSHA2_256 . Builtins.SizedByteString . BSL.pack . BA.unpack
 
 -- | Compute the hash of a redeemer script.
 plcTxHash :: Tx.TxId -> TxHash
 plcTxHash = TxHash . plcDigest . Tx.getTxId
 
 -- | PLC-compatible SHA-256 hash of a hashable value
-plcSHA2_256 :: BSL.ByteString -> BSL.ByteString
-plcSHA2_256 = Hash.sha2
+plcSHA2_256 :: Builtins.ByteString -> Builtins.ByteString
+plcSHA2_256 = Builtins.SizedByteString . Hash.sha2 . Builtins.unSizedByteString
 
 -- | PLC-compatible SHA3-256 hash of a hashable value
-plcSHA3_256 :: BSL.ByteString -> BSL.ByteString
-plcSHA3_256 = Hash.sha3
+plcSHA3_256 :: Builtins.ByteString -> Builtins.ByteString
+plcSHA3_256 = Builtins.SizedByteString . Hash.sha3 . Builtins.unSizedByteString
 
 -- | Convert a `Digest SHA256` to a PLC `Hash`
-plcDigest :: Digest SHA256 -> BSL.ByteString
-plcDigest = serialise
+plcDigest :: Digest SHA256 -> P.SizedByteString 32
+plcDigest = P.SizedByteString . BSL.pack . BA.unpack
 
+-- | Check if two public keys are equal.
+eqPubKey :: Q (TExp (PubKey -> PubKey -> Bool))
+eqPubKey = [|| 
+    \(PubKey (KeyBytes l)) (PubKey (KeyBytes r)) -> $$(P.equalsByteString) l r
+    ||]
+    
 -- | Check if a transaction was signed by the given public key.
 txSignedBy :: Q (TExp (PendingTx -> PubKey -> Bool))
 txSignedBy = [||
@@ -252,16 +258,20 @@ txSignedBy = [||
             PendingTx _ _ _ _ _ _ sigs hsh = p
 
             signedBy' :: Signature -> Bool
-            signedBy' (Signature (KeyBytes sig)) = 
-                let 
+            signedBy' (Signature sig) =
+                let
                     PubKey (KeyBytes pk) = k
                     TxHash msg           = hsh
-                in $$(P.verifySignature) sig pk msg
+                in $$(P.verifySignature) pk msg sig
 
             go :: [(PubKey, Signature)] -> Bool
             go l = case l of
-                        (pk, sig):r -> if $$(P.and) ($$(eqPubKey) k pk) (signedBy' sig) then True else $$(P.traceH) "matching pub key with invalid signature" (go r)
-                        _ : r -> go r
+                        (pk, sig):r ->
+                            if $$(eqPubKey) k pk
+                            then if signedBy' sig
+                                 then True
+                                 else $$(P.traceH) "matching pub key with invalid signature" (go r)
+                            else go r
                         []  -> False
         in
             go sigs
@@ -283,13 +293,6 @@ scriptOutput :: Q (TExp (PendingTxOut -> Maybe (ValidatorHash, DataScriptHash)))
 scriptOutput = [|| \(o:: PendingTxOut) -> case o of
     PendingTxOut _ d DataTxOut -> d
     _                          -> Nothing ||]
-
--- | Check if two public keys are equal.
-eqPubKey :: Q (TExp (PubKey -> PubKey -> Bool))
-eqPubKey = [|| 
-    \(PubKey (KeyBytes l)) (PubKey (KeyBytes r)) -> $$(P.equalsByteString) l r
-    ||]
-
 
 -- | Check if two data script hashes are equal.
 eqDataScript :: Q (TExp (DataScriptHash -> DataScriptHash -> Bool))
@@ -333,8 +336,8 @@ adaLockedBy = [|| \(PendingTx _ outs _ _ _ _ _ _) h ->
 --   transaction (without witnesses) with the given public key.
 signsTransaction :: Q (TExp (Signature -> PubKey -> PendingTx -> Bool))
 signsTransaction = [|| 
-    \(Signature (KeyBytes sig)) (PubKey (KeyBytes pk)) (p :: PendingTx) -> 
-        $$(P.verifySignature)  sig pk (let TxHash h = $$(txHash) p in h)
+    \(Signature sig) (PubKey (KeyBytes pk)) (p :: PendingTx) -> 
+        $$(P.verifySignature) pk (let TxHash h = $$(txHash) p in h) sig
     ||]
 
 makeLift ''PendingTxOutType

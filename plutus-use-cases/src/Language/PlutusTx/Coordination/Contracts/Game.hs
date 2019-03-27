@@ -20,14 +20,13 @@ import qualified Ledger.Ada                   as Ada
 import           Ledger.Ada                   (Ada)
 import           Wallet
 
-import           Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy.Char8   as C
 
-data HashedString = HashedString ByteString
+data HashedString = HashedString (P.SizedByteString 32)
 
 PlutusTx.makeLift ''HashedString
 
-data ClearString = ClearString ByteString
+data ClearString = ClearString (P.SizedByteString 32)
 
 PlutusTx.makeLift ''ClearString
 
@@ -43,11 +42,11 @@ gameValidator = ValidatorScript ($$(Ledger.compileScript [||
 
 gameDataScript :: String -> DataScript
 gameDataScript = 
-    DataScript . Ledger.lifted . HashedString . plcSHA2_256 . C.pack
+    DataScript . Ledger.lifted . HashedString . plcSHA2_256 . P.SizedByteString . C.pack
 
 gameRedeemerScript :: String -> RedeemerScript
 gameRedeemerScript = 
-    RedeemerScript . Ledger.lifted . ClearString . C.pack
+    RedeemerScript . Ledger.lifted . ClearString . P.SizedByteString . C.pack
 
 gameAddress :: Address
 gameAddress = Ledger.scriptAddress gameValidator

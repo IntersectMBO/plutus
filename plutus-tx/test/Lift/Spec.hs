@@ -1,6 +1,8 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE DataKinds           #-}
 {-# OPTIONS_GHC   -Wno-orphans #-}
 module Lift.Spec where
 
@@ -11,6 +13,7 @@ import           PlcTestUtils
 
 import qualified Language.PlutusTx.Lift   as Lift
 import           Language.PlutusTx.Plugin
+import qualified Language.PlutusTx.Builtins as Builtins
 
 Lift.makeLift ''MyMonoData
 Lift.makeLift ''MyMonoRecord
@@ -18,6 +21,9 @@ Lift.makeLift ''MyPolyData
 
 newtype NestedRecord = NestedRecord { unNested :: Maybe (Int, Int) }
 Lift.makeLift ''NestedRecord
+
+newtype WrappedBS = WrappedBS { unWrap :: Builtins.SizedByteString 64 }
+Lift.makeLift ''WrappedBS
 
 tests :: TestNested
 tests = testNested "Lift" [
@@ -32,4 +38,5 @@ tests = testNested "Lift" [
     , goldenPlc "list" (Lift.unsafeLiftProgram ([1]::[Int]))
     , goldenEval "listInterop" [ getPlc listMatch, Lift.unsafeLiftProgram ([1]::[Int]) ]
     , goldenPlc "nested" (Lift.unsafeLiftProgram (NestedRecord (Just (1, 2))))
+    , goldenPlc "bytestring" (Lift.unsafeLiftProgram (WrappedBS "hello"))
  ]

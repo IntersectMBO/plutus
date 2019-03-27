@@ -29,10 +29,9 @@ import           Wallet                                           (PubKey (..))
 import           Wallet.Emulator
 import qualified Wallet.Generators                                as Gen
 
-w1, w2, w3 :: Wallet
+w1, w2 :: Wallet
 w1 = Gen.wallet1
 w2 = Gen.wallet2
-w3 = Gen.wallet3
 
 tests :: TestTree
 tests = testGroup "vesting" [
@@ -60,7 +59,6 @@ scen1 = VestingScenario{..} where
         vestingTranche1 = VestingTranche (Ledger.Slot 10) 200,
         vestingTranche2 = VestingTranche (Ledger.Slot 20) 400,
         vestingOwner    = walletPubKey w1 }
-    vsWallets = [w1, w2]
     vsInitialBalances = Map.fromList [
         (walletPubKey w1, startingBalance),
         (walletPubKey w2, startingBalance)]
@@ -75,25 +73,23 @@ commit w vv vl = exScriptOut <$> walletAction w (void $ vestFunds vv vl) where
 
 secureFunds :: Property
 secureFunds = checkVestingTrace scen1 $ do
-    let VestingScenario s [w1, w2] _ _ = scen1
-        updateAll' = updateAll scen1
-    updateAll'
+    let VestingScenario s _ _ = scen1
+    updateAll
     _ <- commit w2 s total
-    updateAll'
+    updateAll
     traverse_ (uncurry assertOwnFundsEq) [
         (w2, w2Funds),
         (w1, startingBalance)]
 
 canRetrieveFunds :: Property
 canRetrieveFunds = checkVestingTrace scen1 $ do
-    let VestingScenario s [w1, w2] _ _ = scen1
-        updateAll' = updateAll scen1
+    let VestingScenario s _ _ = scen1
         amt = Ada.fromInt 150
-    updateAll'
+    updateAll
 
     -- Wallet 2 locks 600 ada under the scheme described in `scen1`
     ref <- commit w2 s total
-    updateAll'
+    updateAll
 
     -- Advance the clock so that the first tranche (200 ada) becomes unlocked.
     addBlocks' 10
@@ -101,18 +97,17 @@ canRetrieveFunds = checkVestingTrace scen1 $ do
 
     -- Take 150 ada out of the scheme
     walletAction w1 $ void (retrieveFunds s ds ref amt)
-    updateAll'
+    updateAll
     traverse_ (uncurry assertOwnFundsEq) [
         (w2, w2Funds),
         (w1, Value.plus startingBalance (Ada.toValue amt))]
 
 cannotRetrieveTooMuch :: Property
 cannotRetrieveTooMuch = checkVestingTrace scen1 $ do
-    let VestingScenario s [w1, w2] _ _ = scen1
-        updateAll' = updateAll scen1
-    updateAll'
+    let VestingScenario s _ _ = scen1
+    updateAll
     ref <- commit w2 s total
-    updateAll'
+    updateAll
     addBlocks' 10
 
     -- at slot 11, not more than 200 may be taken out
@@ -120,24 +115,23 @@ cannotRetrieveTooMuch = checkVestingTrace scen1 $ do
     -- is invalid and will be rejected by the mockchain.
     let ds = VestingData (vsScriptHash scen1) 250
     walletAction w1 $ void (retrieveFunds s ds ref 250)
-    updateAll'
+    updateAll
 
     -- The funds of both wallets should be unchanged.
     traverse_ (uncurry assertOwnFundsEq) [(w2, w2Funds), (w1, startingBalance)]
 
 canRetrieveFundsAtEnd :: Property
 canRetrieveFundsAtEnd = checkVestingTrace scen1 $ do
-    let VestingScenario s [w1, w2] _ _ = scen1
-        updateAll' = updateAll scen1
-    updateAll'
+    let VestingScenario s _ _ = scen1
+    updateAll
     ref <- commit w2 s total
-    updateAll'
+    updateAll
     addBlocks' 20
 
     -- everything can be taken out at h=21
     let ds = VestingData (vsScriptHash scen1) 600
     walletAction w1 $ void (retrieveFunds s ds ref 600)
-    updateAll'
+    updateAll
 
     -- Wallet 1 now has control of all the funds that were locked in the
     -- vesting scheme.
@@ -148,7 +142,6 @@ canRetrieveFundsAtEnd = checkVestingTrace scen1 $ do
 -- | Vesting scenario with test parameters
 data VestingScenario = VestingScenario {
     vsVestingScheme   :: Vesting,
-    vsWallets         :: [Wallet],
     vsInitialBalances :: Map.Map PubKey Ledger.Value,
     vsScriptHash      :: Validation.ValidatorHash -- Hash of validator script for this scenario
     }
@@ -177,10 +170,10 @@ checkVestingTrace VestingScenario{vsInitialBalances} t = property $ do
     Hedgehog.assert ([] == _txPool st)
 
 -- | Validate all pending transactions and notify the wallets
-updateAll :: VestingScenario -> Trace MockWallet [Ledger.Tx]
-updateAll VestingScenario{vsWallets} =
-    processPending >>= walletsNotifyBlock vsWallets
+updateAll :: Trace MockWallet [Ledger.Tx]
+updateAll =
+    processPending >>= walletsNotifyBlock [w1, w2]
 
 -- | Add a number of blocks and notify the wallets
 addBlocks' :: Int -> Trace MockWallet ()
-addBlocks' i = traverse_ (const (updateAll scen1)) [1..i]
+addBlocks' i = traverse_ (const updateAll) [1..i]

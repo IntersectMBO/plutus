@@ -1,30 +1,33 @@
+{-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskell            #-}
+{-# OPTIONS_GHC -Wno-orphans            #-}
 
 module KeyBytes ( KeyBytes (..)
-                , dropPrivKey
-                , takePrivKey
                 , fromHex
+                , bytes
+                , fromBytes
                 ) where
 
 import           Codec.Serialise
-import           Data.Aeson             (FromJSON (..), ToJSON (..))
-import qualified Data.Aeson             as JSON
-import qualified Data.Aeson.Extras      as JSON
-import qualified Data.ByteString.Lazy   as BSL
-import           Data.Hashable          (Hashable)
-import           Data.String            (IsString (..))
+import           Data.Aeson                 (FromJSON (..), ToJSON (..))
+import qualified Data.Aeson                 as JSON
+import qualified Data.Aeson.Extras          as JSON
+import qualified Data.ByteString.Lazy       as BSL
+import           Data.String                (IsString (..))
 import           Data.Swagger.Internal
 import           Data.Swagger.Schema
-import qualified Data.Text              as Text
-import           Data.Word              (Word8)
+import qualified Data.Text                  as Text
+import           Data.Word                  (Word8)
+import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift
-import           Web.HttpApiData        (FromHttpApiData (..), ToHttpApiData (..))
+import           Web.HttpApiData            (FromHttpApiData (..), ToHttpApiData (..))
 
 fromHex :: BSL.ByteString -> KeyBytes
-fromHex = KeyBytes . asBSLiteral
+fromHex = KeyBytes . Builtins.SizedByteString . asBSLiteral
     where
 
     handleChar :: Word8 -> Word8
@@ -48,20 +51,25 @@ fromHex = KeyBytes . asBSLiteral
     asBSLiteral = withBytes asBytes
         where withBytes f = BSL.pack . f . BSL.unpack
 
-newtype KeyBytes = KeyBytes { getKeyBytes :: BSL.ByteString } -- TODO: use strict bytestring
-    deriving (Eq, Ord, IsString, Hashable, Serialise)
+newtype KeyBytes = KeyBytes { getKeyBytes :: Builtins.SizedByteString 32 } -- TODO: use strict bytestring
+    deriving (Eq, Ord, IsString, Serialise)
+
+bytes :: KeyBytes -> BSL.ByteString
+bytes = Builtins.unSizedByteString . getKeyBytes
+
+fromBytes :: BSL.ByteString -> KeyBytes
+fromBytes = KeyBytes . Builtins.SizedByteString
 
 instance Show KeyBytes where
-    show = Text.unpack . JSON.encodeSerialise
+    show = Text.unpack . JSON.encodeSerialise . bytes
 
 -- drop the first 32 bytes of a private-public key pair
 -- TODO: verify that this doesn't have sidechannels; maybe use ScrubbedBytes ??
-dropPrivKey :: KeyBytes -> KeyBytes
-dropPrivKey (KeyBytes bs) = KeyBytes (BSL.take 32 $ BSL.drop 32 bs)
+-- dropPrivKey :: KeyBytes -> KeyBytes
+-- dropPrivKey = KeyBytes . Builtins.SizedByteString . BSL.take 32 . BSL.drop 32 . Builtins.unSizedByteString . getKeyBytes
 
 -- take the first 32 bytes of a private-public key pair
-takePrivKey :: KeyBytes -> KeyBytes
-takePrivKey (KeyBytes bs) = KeyBytes (BSL.take 32 bs)
+-- takePrivKey (KeyBytes bs) = KeyBytes (BSL.take 32 bs)
 
 makeLift ''KeyBytes
 

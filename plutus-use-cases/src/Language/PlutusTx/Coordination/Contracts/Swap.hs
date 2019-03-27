@@ -151,12 +151,12 @@ swapValidator _ = ValidatorScript result where
             -- True if the transaction input is the margin payment of the
             -- fixed leg
             iP1 :: PendingTxIn -> Bool
-            iP1 t@(PendingTxIn _ _ v) = signedBy p swapOwnersFixedLeg && $$(PlutusTx.eq) (adaValueIn v) margin
+            iP1 (PendingTxIn _ _ v) = signedBy p swapOwnersFixedLeg && $$(PlutusTx.eq) (adaValueIn v) margin
 
             -- True if the transaction input is the margin payment of the
             -- floating leg
             iP2 :: PendingTxIn -> Bool
-            iP2 t@(PendingTxIn _ _ v) = signedBy p swapOwnersFloating && $$(PlutusTx.eq) (adaValueIn v) margin
+            iP2 (PendingTxIn _ _ v) = signedBy p swapOwnersFloating && $$(PlutusTx.eq) (adaValueIn v) margin
 
             inConditions = (iP1 t1  && iP2 t2) || (iP1 t2 && iP2 t1)
 

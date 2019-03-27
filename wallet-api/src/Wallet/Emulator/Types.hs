@@ -88,13 +88,12 @@ import qualified Data.Text                  as T
 import           Data.Traversable           (for)
 import           GHC.Generics               (Generic)
 import           Prelude                    as P
-import           Servant.API                (FromHttpApiData, ToHttpApiData)
+import           Servant.API                (FromHttpApiData(..), ToHttpApiData(..))
 
-import           Data.Hashable              (Hashable)
 import           KeyBytes
 import           Ledger                     (Address, Block, Blockchain, PrivateKey(..), PubKey(..), Slot, Tx (..), TxId, TxOut, TxOutOf (..),
                                              TxOutRef, Value, hashTx, lastSlot, pubKeyAddress, pubKeyTxIn, pubKeyTxOut,
-                                             sign, signatures, txOutAddress)
+                                             sign, signatures, toPublicKey, txOutAddress)
 import qualified Ledger.Index               as Index
 import qualified Ledger.Slot                as Slot
 import qualified Ledger.Value               as Value
@@ -104,18 +103,24 @@ import           Wallet.API                 (EventHandler (..), EventTrigger, Ke
 import qualified Wallet.Emulator.AddressMap as AM
 
 -- | A wallet in the emulator model.
-newtype Wallet = Wallet { getWallet :: KeyBytes }
+newtype Wallet = Wallet { getWallet :: PrivateKey }
     deriving (Show, Eq, Ord, Generic)
-    deriving newtype (ToHttpApiData, FromHttpApiData, Hashable)
+    -- deriving newtype (ToHttpApiData, FromHttpApiData) -- TODO Hashable
     deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey)
 
+instance ToHttpApiData Wallet where
+    toUrlPiece = undefined
+    
+instance FromHttpApiData Wallet where
+    parseUrlPiece = undefined
+            
 -- | Get a wallet's public key.
 walletPubKey :: Wallet -> PubKey
-walletPubKey = PubKey . dropPrivKey . getWallet
+walletPubKey = toPublicKey . getWallet
 
 -- | Get a wallet's private key.
 walletPrivKey :: Wallet -> PrivateKey
-walletPrivKey = PrivateKey . takePrivKey . getWallet
+walletPrivKey = getWallet
 
 -- | Add the wallet's signature to the transaction's list of signatures.
 addSignature :: PrivateKey -> PubKey -> Tx -> Tx

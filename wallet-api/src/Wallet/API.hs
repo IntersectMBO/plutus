@@ -89,7 +89,7 @@ import           GHC.Generics               (Generic)
 import           Ledger                     (Address, DataScript, PrivateKey (..), PubKey (..), RedeemerScript, Slot,
                                              SlotRange, Tx (..), TxId, TxIn, TxOut, TxOutOf (..), TxOutRef,
                                              TxOutType (..), ValidatorScript, Value, pubKeyTxOut, scriptAddress,
-                                             scriptTxIn, txOutRefId)
+                                             scriptTxIn, toPublicKey, txOutRefId)
 import           Ledger.Interval            (Interval (..))
 import qualified Ledger.Interval            as Interval
 import qualified Ledger.Slot                as Slot
@@ -116,8 +116,8 @@ privateKey :: KeyPair -> PrivateKey
 privateKey = fst . getKeyPair
 
 -- | Create a 'KeyPair' given a "private key"
-keyPair :: KeyBytes -> KeyPair
-keyPair i = KeyPair (PrivateKey (takePrivKey i), PubKey (dropPrivKey i))
+keyPair :: PrivateKey -> KeyPair
+keyPair pk = KeyPair (pk, toPublicKey pk)
 
 data EventTriggerF f =
     TAnd f f

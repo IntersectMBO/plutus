@@ -15,7 +15,6 @@ import qualified Test.Tasty.HUnit                              as HUnit
 import qualified Ledger
 import qualified Ledger.Ada                                    as Ada
 import qualified Ledger.Value                                  as Value
-import           Wallet.API                                    (PubKey (..))
 import           Wallet.Emulator
 import qualified Wallet.Generators                             as Gen
 

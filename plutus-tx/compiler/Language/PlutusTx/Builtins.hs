@@ -1,8 +1,13 @@
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE DataKinds #-}
 {-# OPTIONS_GHC -O0 #-}
 -- | Primitive names and functions for working with Plutus Core builtins.
 module Language.PlutusTx.Builtins (
                                 -- * Bytestring builtins
-                                concatenate
+                                SizedByteString(..)
+                                , ByteString
+                                , resizeByteString
+                                , concatenate
                                 , takeByteString
                                 , dropByteString
                                 , sha2_256
@@ -31,33 +36,45 @@ module Language.PlutusTx.Builtins (
                                 , trace
                                 ) where
 
-import           Data.ByteString.Lazy    (ByteString)
-import qualified Data.ByteString.Lazy    as BSL
 import           Prelude                 hiding (String, error)
+import           Codec.Serialise
+import qualified Data.ByteString.Lazy as BSL
+import           GHC.TypeLits
+import           Data.String (IsString)
 
 import           Language.PlutusTx.Utils (mustBeReplaced)
 
 -- TODO: resizing primitives? better handling of sizes?
 
-concatenate :: ByteString -> ByteString -> ByteString
-concatenate = BSL.append
+-- | A sized bytestring.
+newtype SizedByteString (s::Nat) = SizedByteString { unSizedByteString :: BSL.ByteString }
+        deriving (Eq, Ord, Show, IsString, Serialise)
 
-takeByteString :: Int -> ByteString -> ByteString
-takeByteString i = BSL.take (fromIntegral i)
+-- | A bytestring of default size (32 bytes).
+type ByteString = SizedByteString 32
 
-dropByteString :: Int -> ByteString -> ByteString
-dropByteString i = BSL.drop (fromIntegral i)
+resizeByteString :: SizedByteString s1 -> SizedByteString s2
+resizeByteString (SizedByteString b) = SizedByteString b
 
-sha2_256 :: ByteString -> ByteString
+concatenate :: SizedByteString s -> SizedByteString s -> SizedByteString s
+concatenate (SizedByteString l) (SizedByteString r) = SizedByteString (BSL.append l r)
+
+takeByteString :: Int -> SizedByteString s -> SizedByteString s
+takeByteString i (SizedByteString bs) = SizedByteString (BSL.take (fromIntegral i) bs)
+
+dropByteString :: Int -> SizedByteString s -> SizedByteString s
+dropByteString i (SizedByteString bs) = SizedByteString (BSL.drop (fromIntegral i) bs)
+
+sha2_256 :: SizedByteString s -> SizedByteString 32
 sha2_256 = mustBeReplaced
 
-sha3_256 :: ByteString -> ByteString
+sha3_256 :: SizedByteString s -> SizedByteString 32
 sha3_256 = mustBeReplaced
 
-verifySignature :: ByteString -> ByteString -> ByteString -> Bool
+verifySignature :: SizedByteString 32 -> SizedByteString 32 -> SizedByteString 64 -> Bool
 verifySignature = mustBeReplaced
 
-equalsByteString :: ByteString -> ByteString -> Bool
+equalsByteString :: SizedByteString s -> SizedByteString s -> Bool
 equalsByteString = (==)
 
 addInteger :: Int -> Int -> Int

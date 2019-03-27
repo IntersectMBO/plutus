@@ -37,7 +37,7 @@ import qualified Language.PlutusTx            as PlutusTx
 import qualified Ledger.Interval              as Interval
 import           Ledger.Slot                  (SlotRange)
 import qualified Ledger.Slot                  as Slot
-import           Ledger                       (DataScript (..), Signature(..), PubKey (..),
+import           Ledger                       (DataScript (..), PubKey (..),
                                                TxId, ValidatorScript (..), scriptTxIn, Slot(..))
 import qualified Ledger                       as Ledger
 import           Ledger.Validation            (PendingTx (..), PendingTxIn (..), PendingTxOut)
@@ -73,10 +73,10 @@ refundRange :: Campaign -> SlotRange
 refundRange cmp =
     W.intervalFrom (campaignCollectionDeadline cmp)
 
-data Redeemer = Collect | Refund
+data CampaignAction = Collect | Refund
     deriving Generic
 
-PlutusTx.makeLift ''Redeemer
+PlutusTx.makeLift ''CampaignAction
 
 -- | Contribute funds to the campaign (contributor)
 --
