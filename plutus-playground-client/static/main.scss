@@ -363,9 +363,11 @@ table.balance-map {
 
 #simulation-nav {
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
 
   button {
       border-radius: 3px;
+      margin-bottom: 3px;
   }
 
   button.simulation-nav-item-name {
