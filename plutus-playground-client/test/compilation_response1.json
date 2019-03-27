@@ -1,6 +1,207 @@
 {
   "Right": {
+    "knownCurrencies": [
+      {
+        "hash": "X/8=",
+        "friendlyName": "MyCurrency",
+        "knownTokens": [
+          "MyToken"
+        ]
+      }
+    ],
     "functionSchema": [
+      {
+        "argumentSchema": [
+          {
+            "tag": "SimpleObjectSchema",
+            "contents": [
+              [
+                "vestingOwner",
+                {
+                  "tag": "SimpleObjectSchema",
+                  "contents": [
+                    [
+                      "getPubKey",
+                      {
+                        "tag": "SimpleIntSchema"
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "vestingTranche2",
+                {
+                  "tag": "SimpleObjectSchema",
+                  "contents": [
+                    [
+                      "vestingTrancheAmount",
+                      {
+                        "tag": "SimpleObjectSchema",
+                        "contents": [
+                          [
+                            "getAda",
+                            {
+                              "tag": "SimpleIntSchema"
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    [
+                      "vestingTrancheDate",
+                      {
+                        "tag": "SimpleObjectSchema",
+                        "contents": [
+                          [
+                            "getSlot",
+                            {
+                              "tag": "SimpleIntSchema"
+                            }
+                          ]
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "vestingTranche1",
+                {
+                  "tag": "SimpleObjectSchema",
+                  "contents": [
+                    [
+                      "vestingTrancheAmount",
+                      {
+                        "tag": "SimpleObjectSchema",
+                        "contents": [
+                          [
+                            "getAda",
+                            {
+                              "tag": "SimpleIntSchema"
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    [
+                      "vestingTrancheDate",
+                      {
+                        "tag": "SimpleObjectSchema",
+                        "contents": [
+                          [
+                            "getSlot",
+                            {
+                              "tag": "SimpleIntSchema"
+                            }
+                          ]
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
+            ]
+          }
+        ],
+        "functionName": "vestFunds"
+      },
+      {
+        "argumentSchema": [
+          {
+            "tag": "SimpleObjectSchema",
+            "contents": [
+              [
+                "vestingOwner",
+                {
+                  "tag": "SimpleObjectSchema",
+                  "contents": [
+                    [
+                      "getPubKey",
+                      {
+                        "tag": "SimpleIntSchema"
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "vestingTranche2",
+                {
+                  "tag": "SimpleObjectSchema",
+                  "contents": [
+                    [
+                      "vestingTrancheAmount",
+                      {
+                        "tag": "SimpleObjectSchema",
+                        "contents": [
+                          [
+                            "getAda",
+                            {
+                              "tag": "SimpleIntSchema"
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    [
+                      "vestingTrancheDate",
+                      {
+                        "tag": "SimpleObjectSchema",
+                        "contents": [
+                          [
+                            "getSlot",
+                            {
+                              "tag": "SimpleIntSchema"
+                            }
+                          ]
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "vestingTranche1",
+                {
+                  "tag": "SimpleObjectSchema",
+                  "contents": [
+                    [
+                      "vestingTrancheAmount",
+                      {
+                        "tag": "SimpleObjectSchema",
+                        "contents": [
+                          [
+                            "getAda",
+                            {
+                              "tag": "SimpleIntSchema"
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    [
+                      "vestingTrancheDate",
+                      {
+                        "tag": "SimpleObjectSchema",
+                        "contents": [
+                          [
+                            "getSlot",
+                            {
+                              "tag": "SimpleIntSchema"
+                            }
+                          ]
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
+            ]
+          }
+        ],
+        "functionName": "registerVestingScheme"
+      },
       {
         "argumentSchema": [
           {
@@ -106,103 +307,7 @@
             ]
           }
         ],
-        "functionName": "vestFunds"
-      },
-      {
-        "argumentSchema": [
-          {
-            "tag": "SimpleObjectSchema",
-            "contents": [
-              [
-                "vestingOwner",
-                {
-                  "tag": "SimpleObjectSchema",
-                  "contents": [
-                    [
-                      "getPubKey",
-                      {
-                        "tag": "SimpleIntSchema"
-                      }
-                    ]
-                  ]
-                }
-              ],
-              [
-                "vestingTranche2",
-                {
-                  "tag": "SimpleObjectSchema",
-                  "contents": [
-                    [
-                      "vestingTrancheAmount",
-                      {
-                        "tag": "SimpleObjectSchema",
-                        "contents": [
-                          [
-                            "getAda",
-                            {
-                              "tag": "SimpleIntSchema"
-                            }
-                          ]
-                        ]
-                      }
-                    ],
-                    [
-                      "vestingTrancheDate",
-                      {
-                        "tag": "SimpleObjectSchema",
-                        "contents": [
-                          [
-                            "getSlot",
-                            {
-                              "tag": "SimpleIntSchema"
-                            }
-                          ]
-                        ]
-                      }
-                    ]
-                  ]
-                }
-              ],
-              [
-                "vestingTranche1",
-                {
-                  "tag": "SimpleObjectSchema",
-                  "contents": [
-                    [
-                      "vestingTrancheAmount",
-                      {
-                        "tag": "SimpleObjectSchema",
-                        "contents": [
-                          [
-                            "getAda",
-                            {
-                              "tag": "SimpleIntSchema"
-                            }
-                          ]
-                        ]
-                      }
-                    ],
-                    [
-                      "vestingTrancheDate",
-                      {
-                        "tag": "SimpleObjectSchema",
-                        "contents": [
-                          [
-                            "getSlot",
-                            {
-                              "tag": "SimpleIntSchema"
-                            }
-                          ]
-                        ]
-                      }
-                    ]
-                  ]
-                }
-              ]
-            ]
-          }
-        ],
-        "functionName": "registerVestingOwner"
+        "functionName": "withdraw"
       },
       {
         "argumentSchema": [
@@ -276,6 +381,7 @@
         "functionName": "payToPublicKey_"
       }
     ],
-    "warnings": []
+    "warnings": [],
+    "knownCurrencies": []
   }
 }

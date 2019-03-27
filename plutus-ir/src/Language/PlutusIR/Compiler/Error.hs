@@ -31,8 +31,8 @@ instance (PP.Pretty a) => Show (Error a) where
 
 instance PP.Pretty a => PLC.PrettyBy PLC.PrettyConfigPlc (Error a) where
     prettyBy config = \case
-        CompilationError x e -> "Error during compilation" <+> PP.pretty x <> ":" <+> PP.pretty e
-        UnsupportedError x e -> "Unsupported construct at" <+> PP.pretty x <> ":" <+> PP.pretty e
-        PLCError e -> PLC.prettyBy config e
+        CompilationError x e -> "Error during compilation:" <+> PP.pretty e <> "(" <> PP.pretty x <> ")"
+        UnsupportedError x e -> "Unsupported construct:" <+> PP.pretty e <+> "(" <> PP.pretty x <> ")"
+        PLCError e -> PP.vsep [ "Error from the PLC compiler:", PLC.prettyBy config e ]
 
 instance (PP.Pretty a, Typeable a) => Exception (Error a)

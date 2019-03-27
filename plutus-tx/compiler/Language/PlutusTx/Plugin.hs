@@ -112,7 +112,7 @@ plc _ = CompiledCode mustBeReplaced mustBeReplaced
 data PluginOptions = PluginOptions {
     poDoTypecheck    :: Bool
     , poDeferErrors  :: Bool
-    , poStripContext :: Bool
+    , poContextLevel :: Int
     }
 
 plugin :: GHC.Plugin
@@ -124,7 +124,7 @@ install args todo =
         opts = PluginOptions {
             poDoTypecheck = notElem "dont-typecheck" args
             , poDeferErrors = elem "defer-errors" args
-            , poStripContext = elem "strip-context" args
+            , poContextLevel = if elem "no-context" args then 0 else if elem "debug-context" args then 3 else 1
             }
     in
         pure (GHC.CoreDoPluginPass "Core to PLC" (pluginPass opts) : todo)
@@ -269,7 +269,7 @@ convertExpr opts locStr codeTy origE = do
     flags <- GHC.getDynFlags
     -- We need to do this out here, since it has to run in CoreM
     nameInfo <- makePrimitiveNameInfo builtinNames
-    let result = withContextM (sdToTxt $ "Converting expr at" GHC.<+> GHC.text locStr) $ do
+    let result = withContextM 1 (sdToTxt $ "Converting expr at" GHC.<+> GHC.text locStr) $ do
               (pirP::PIRProgram) <- PIR.Program () . PIR.removeDeadBindings <$> (PIR.runDefT () $ convExprWithDefs origE)
               (plcP::PLCProgram) <- void <$> (flip runReaderT PIR.NoProvenance $ PIR.compileProgram pirP)
               when (poDoTypecheck opts) $ void $ do
@@ -284,7 +284,7 @@ convertExpr opts locStr codeTy origE = do
             }
     case runExcept . runQuoteT . flip runReaderT context $ result of
         Left s ->
-            let shown = show $ if poStripContext opts then PP.pretty (stripContext s) else PP.pretty s in
+            let shown = show $ PP.pretty (pruneContext (poContextLevel opts) s) in
             -- TODO: is this the right way to do either of these things?
             if poDeferErrors opts
             -- this will blow up at runtime

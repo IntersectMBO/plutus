@@ -69,6 +69,7 @@ library
         temporary -any,
         text -any,
         time -any,
+        time-units -any,
         transformers -any,
         wai -any
 
@@ -124,7 +125,9 @@ test-suite meadow-test
         hspec -any,
         hspec-wai -any,
         hspec-wai-json -any,
+        interpreter -any,
         meadow -any,
         mtl -any,
         raw-strings-qq -any,
-        text -any
+        text -any,
+        time-units -any

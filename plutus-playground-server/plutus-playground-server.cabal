@@ -76,6 +76,7 @@ library
         temporary -any,
         text -any,
         time -any,
+        time-units -any,
         transformers -any,
         wallet-api -any
 
@@ -149,5 +150,6 @@ test-suite plutus-playground-server-test
         plutus-playground-server -any,
         swagger2 -any,
         text -any,
+        time-units -any,
         transformers -any,
         wallet-api -any
