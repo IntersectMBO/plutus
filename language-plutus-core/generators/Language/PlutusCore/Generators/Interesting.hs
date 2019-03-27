@@ -236,6 +236,37 @@ genIfIntegers = do
                 [b, instConst i, instConst j]
     return . TermOf term $ TypedBuiltinValue typedIntS value
 
+-- | Check that builtins can be partially applied.
+genApplyAdd1 :: TermGen size Integer
+genApplyAdd1 = do
+    size <- genSizeDef
+    let typedIntS = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
+        intS = typedBuiltinToType typedIntS
+    TermOf i iv <- genTermLoose typedIntS
+    TermOf j jv <- genTermLoose typedIntS
+    let term =
+            mkIterApp () (mkIterInst () applyFun [intS, intS])
+                [ Apply () (TyInst () (builtinNameAsTerm AddInteger) (TyInt () size)) i
+                , j
+                ]
+    return . TermOf term . TypedBuiltinValue typedIntS $ iv + jv
+
+-- | Check that builtins can be partially applied.
+genApplyAdd2 :: TermGen size Integer
+genApplyAdd2 = do
+    size <- genSizeDef
+    let typedIntS = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
+        intS = typedBuiltinToType typedIntS
+    TermOf i iv <- genTermLoose typedIntS
+    TermOf j jv <- genTermLoose typedIntS
+    let term =
+            mkIterApp () (mkIterInst () applyFun [intS, TyFun () intS intS])
+                [ TyInst () (builtinNameAsTerm AddInteger) $ TyInt () size
+                , i
+                , j
+                ]
+    return . TermOf term . TypedBuiltinValue typedIntS $ iv + jv
+
 -- | Apply a function to all interesting generators and collect the results.
 fromInterestingTermGens :: (forall a. String -> TermGen size a -> c) -> [c]
 fromInterestingTermGens f =
@@ -245,4 +276,6 @@ fromInterestingTermGens f =
     , f "NatRoundTrip"    genNatRoundtrip
     , f "ListSum"         genListSum
     , f "IfIntegers"      genIfIntegers
+    , f "ApplyAdd1"       genApplyAdd1
+    , f "ApplyAdd2"       genApplyAdd2
     ]
