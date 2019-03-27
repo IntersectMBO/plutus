@@ -18,7 +18,8 @@ import qualified Data.ByteString.Char8        as BS
 import qualified Data.ByteString.Lazy.Char8   as BSL
 import qualified Data.Text                    as Text
 import           Data.Time.Units              (Microsecond, fromMicroseconds)
-import           Language.Haskell.Interpreter (InterpreterError (CompilationErrors), SourceCode (SourceCode))
+import           Language.Haskell.Interpreter (InterpreterError (CompilationErrors),
+                                               InterpreterResult (InterpreterResult), SourceCode (SourceCode))
 import           Ledger.Types                 (hashTx)
 import           Network.HTTP.Types           (hContentType)
 import           Playground.API               (API, CompilationResult, Evaluation, EvaluationResult (EvaluationResult),
@@ -33,7 +34,7 @@ import           System.Timeout               (timeout)
 import qualified Wallet.Graph                 as V
 
 acceptSourceCode ::
-       SourceCode -> Handler (Either InterpreterError CompilationResult)
+       SourceCode -> Handler (Either InterpreterError (InterpreterResult CompilationResult))
 acceptSourceCode sourceCode = do
     let maxInterpretationTime :: Microsecond = fromMicroseconds 5000000
     r <-
@@ -58,7 +59,7 @@ runFunction evaluation = do
         runExceptT $ PI.runFunction maxInterpretationTime evaluation
     let pubKeys = PA.pubKeys evaluation
     case result of
-        Right (blockchain, emulatorLog, fundsDistribution) -> do
+        Right (InterpreterResult _ (blockchain, emulatorLog, fundsDistribution)) -> do
             let flowgraph = V.graph $ V.txnFlows pubKeys blockchain
             pure $
                 EvaluationResult

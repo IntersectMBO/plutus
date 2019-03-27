@@ -31,7 +31,7 @@ import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(Tuple))
 import FileEvents (FILE)
 import Gist (Gist, GistId, gistId)
-import Language.Haskell.Interpreter (CompilationError, SourceCode(SourceCode), InterpreterError)
+import Language.Haskell.Interpreter (CompilationError, SourceCode(SourceCode), InterpreterError, InterpreterResult(InterpreterResult))
 import MainFrame (eval, initialState)
 import MonadApp (class MonadApp)
 import Network.RemoteData (RemoteData(..), isNotAsked, isSuccess)
@@ -62,7 +62,7 @@ type World =
   , editorContents :: Maybe String
   , localStorage :: Map String String
   , evaluationResult :: WebData EvaluationResult
-  , compilationResult :: (WebData (Either InterpreterError CompilationResult))
+  , compilationResult :: (WebData (Either InterpreterError (InterpreterResult CompilationResult)))
   }
 
 _gists :: forall r a. Lens' {gists :: a | r} a
@@ -220,7 +220,7 @@ evalTests =
 
     test "Loading a script clears out some state." do
         contents <- liftEff $ FS.readTextFile UTF8 "test/compilation_response1.json"
-        let compilationResult :: Either InterpreterError CompilationResult
+        let compilationResult :: Either InterpreterError (InterpreterResult CompilationResult)
             compilationResult = unsafePartial $ fromRight (jsonParser contents >>= decodeJson)
         Tuple _ finalState <- execMockApp (mockWorld { compilationResult = Success compilationResult }) do
           send $ LoadScript "Game"

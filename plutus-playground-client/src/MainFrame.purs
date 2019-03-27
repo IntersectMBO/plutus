@@ -29,7 +29,7 @@ import Data.Array (catMaybes, (..))
 import Data.Array as Array
 import Data.Either (Either(..), note)
 import Data.Generic (gEq)
-import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, traversed, use, view)
+import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, traversed, use, view, to)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Fold (maximumOf, preview)
 import Data.Lens.Index (ix)
@@ -54,7 +54,7 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_)
 import Halogen.Query (HalogenM)
 import Icons (Icon(..), icon)
-import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError))
+import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), _InterpreterResult)
 import Ledger.Ada.TH (Ada(..))
 import LocalStorage (LOCALSTORAGE)
 import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, updateChartsIfPossible)
@@ -295,7 +295,7 @@ eval (CompileProgram next) = do
       -- If we have a result with new signatures, we can only hold
       -- onto the old actions if the signatures still match. Any
       -- change means we'll have to clear out the existing simulation.
-      case preview (_Success <<< _Right <<< _CompilationResult <<< _functionSchema) result of
+      case preview (_Success <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult <<< _functionSchema) result of
         Just newSignatures -> do
           oldSignatures <- use (_simulations <<< _current <<< _signatures)
           unless (oldSignatures `gEq` newSignatures)
@@ -331,7 +331,7 @@ eval (EvaluateActions next) = do
   pure next
 
 eval (AddSimulationSlot next) = do
-  mSignatures <- peruse (_compilationResult <<< _Success <<< _Right <<< _CompilationResult <<< _functionSchema)
+  mSignatures <- peruse (_compilationResult <<< _Success <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult <<< _functionSchema)
 
   case mSignatures of
     Just signatures -> modifying _simulations (flip Cursor.snoc (mkSimulation signatures))
@@ -461,7 +461,7 @@ render state@(State {currentView})  =
             ]
         ]
     , viewContainer currentView Editor $
-        [ editorPane state
+        [ editorPane defaultContents (view _compilationResult state)
         , case view _compilationResult state of
             Failure error -> ajaxErrorPane error
             _ -> empty
@@ -490,6 +490,8 @@ render state@(State {currentView})  =
             , text " tab above and evaluate a simulation to see some results."
             ]
     ]
+    where
+      defaultContents = Map.lookup "Vesting" StaticData.demoFiles
 
 viewContainer :: forall p i. View -> View -> Array (HTML p i) -> HTML p i
 viewContainer currentView targetView =

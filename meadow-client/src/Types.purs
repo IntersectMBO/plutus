@@ -16,7 +16,7 @@ import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
 import Gist (Gist)
 import Halogen.Component.ChildPath (ChildPath, cpL, cpR)
-import Language.Haskell.Interpreter (CompilationError, InterpreterError)
+import Language.Haskell.Interpreter (CompilationError, InterpreterError, Warning(..), InterpreterResult)
 import Marlowe.Types (BlockNumber, Choice, Contract, IdChoice, IdOracle, Person)
 import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Ord, class Show, Unit)
@@ -90,7 +90,14 @@ instance showView :: Show View where
   show = gShow
 
 type FrontendState
-  = {view :: View, runResult :: RemoteData AjaxError (Either InterpreterError RunResult), marloweCompileResult :: Either (Array MarloweError) Unit, authStatus :: RemoteData AjaxError AuthStatus, createGistResult :: RemoteData AjaxError Gist, marloweState :: MarloweState, oldContract :: Maybe String}
+  = { view :: View
+    , compilationResult :: RemoteData AjaxError (Either InterpreterError (InterpreterResult RunResult))
+    , marloweCompileResult :: Either (Array MarloweError) Unit
+    , authStatus :: RemoteData AjaxError AuthStatus
+    , createGistResult :: RemoteData AjaxError Gist
+    , marloweState :: MarloweState
+    , oldContract :: Maybe String
+    }
 
 data MarloweError
   = MarloweError String
@@ -98,8 +105,8 @@ data MarloweError
 _view :: forall s a. Lens' {view :: a | s} a
 _view = prop (SProxy :: SProxy "view")
 
-_runResult :: forall s a. Lens' {runResult :: a | s} a
-_runResult = prop (SProxy :: SProxy "runResult")
+_compilationResult :: forall s a. Lens' {compilationResult :: a | s} a
+_compilationResult = prop (SProxy :: SProxy "compilationResult")
 
 _marloweCompileResult :: forall s a. Lens' {marloweCompileResult :: a | s} a
 _marloweCompileResult = prop (SProxy :: SProxy "marloweCompileResult")
@@ -193,3 +200,10 @@ _moneyInContract = prop (SProxy :: SProxy "moneyInContract")
 _contract :: forall s a. Lens' {contract :: a | s} a
 _contract = prop (SProxy :: SProxy "contract")
 
+--- Language.Haskell.Interpreter ---
+
+_result :: forall s a. Lens' {result :: a | s} a
+_result = prop (SProxy :: SProxy "result")
+
+_warnings :: forall s a. Lens' {warnings :: a | s} a
+_warnings = prop (SProxy :: SProxy "warnings")
