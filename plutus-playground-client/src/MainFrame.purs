@@ -11,7 +11,7 @@ import Ace.Types (ACE, Annotation)
 import Action (simulationPane)
 import AjaxUtils (ajaxErrorPane, getDecodeJson)
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
-import Bootstrap (active, btn, btnGroup, btnSmall, col3_, col9_, container, container_, empty, hidden, navItem_, navLink, navTabs_, pullRight, row_)
+import Bootstrap (active, btn, btnGroup, btnSmall, clearfix_, col6_, container, container_, empty, floatRight, hidden, navItem_, navLink, navTabs_, noGutters, row)
 import Chain (evaluationPane)
 import Control.Bind (bindFlipped)
 import Control.Comonad (extract)
@@ -49,7 +49,7 @@ import Halogen as H
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
 import Halogen.ECharts as EC
-import Halogen.HTML (ClassName(ClassName), HTML, a, br_, div, div_, h1, strong_, text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, strong_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_)
 import Halogen.Query (HalogenM)
@@ -453,14 +453,15 @@ render state@(State {currentView})  =
     [ class_ $ ClassName "main-frame" ]
     [ container_
         [ mainHeader
-        , row_
-            [ col9_ [ mainTabBar currentView
-                    , br_
-                    , demoScriptsPane
-                    ]
-            , col3_ [ gistControls state ]
+        , div [ classes [ row, noGutters ] ]
+            [ col6_ [ mainTabBar currentView ]
+            , col6_ [ gistControls state ]
             ]
+        , div
+            [ classes [ floatRight ] ]
+            [ demoScriptsPane ]
         ]
+    , clearfix_
     , viewContainer currentView Editor $
         [ editorPane defaultContents (view _compilationResult state)
         , case view _compilationResult state of
@@ -503,7 +504,7 @@ viewContainer currentView targetView =
 mainHeader :: forall p. HTML p (Query Unit)
 mainHeader =
   div_
-    [ div [ classes [ btnGroup, pullRight ] ]
+    [ div [ classes [ btnGroup, floatRight ] ]
         (makeLink <$> links)
     , h1
         [ class_ $ ClassName "main-title" ]
