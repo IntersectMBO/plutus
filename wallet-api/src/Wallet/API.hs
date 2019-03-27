@@ -147,6 +147,11 @@ type AnnotatedEventTrigger a = Fix (Compose ((,) a) EventTriggerF)
 -- over some basic assertions about the slot range and the funds at a watched
 -- address. For example, a trigger could be "the slot is between 0 and 5 and the funds
 -- at my address are between 100 and 200".
+-- @
+--   andT
+--     (fundsAtAddressT addr (W.interval ($$(Ada.toValue) 100) ($$(Ada.toValue) 200))
+--     (slotRangeT (W.interval 0 5))
+-- @
 type EventTrigger = Fix EventTriggerF
 
 -- | Get the annotation on an 'AnnotatedEventTrigger'.
