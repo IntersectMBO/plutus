@@ -55,6 +55,10 @@ library
         Ledger
         Ledger.Ada
         Ledger.Ada.TH
+        Ledger.Map
+        Ledger.Map.TH
+        Ledger.These
+        Ledger.These.TH
         Ledger.Types
         Ledger.Validation
         Ledger.Index

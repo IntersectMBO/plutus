@@ -66,17 +66,21 @@
             }
           },
           "txForge": {
-            "getValue": []
+            "getValue": {
+              "unMap": []
+            }
           },
           "txOutputs": [
             {
               "txOutValue": {
-                "getValue": [
-                  [
-                    0,
-                    6
+                "getValue": {
+                  "unMap": [
+                    [
+                      0,
+                      6
+                    ]
                   ]
-                ]
+                }
               },
               "txOutAddress": {
                 "getAddress": "nxgcGMMYrRjqGEAY6xj9GJQYQxg6GMAEGHcYfRhoFQwYzhidGLQYxxhxGLwYfRjhGLIYlxinGLcYlRi7GLr/"
@@ -90,12 +94,14 @@
             },
             {
               "txOutValue": {
-                "getValue": [
-                  [
-                    0,
-                    4
+                "getValue": {
+                  "unMap": [
+                    [
+                      0,
+                      4
+                    ]
                   ]
-                ]
+                }
               },
               "txOutAddress": {
                 "getAddress": "nxicEhjPGNwEGMcYRRiEGNcYhxisGD0YIxh3GCEYMhjBGIUYJBi8GHoYshiNGOwYQhgZGLgY/BhbGEIYXxhw/w=="
@@ -128,22 +134,26 @@
             }
           },
           "txForge": {
-            "getValue": [
-              [
-                0,
-                20
+            "getValue": {
+              "unMap": [
+                [
+                  0,
+                  20
+                ]
               ]
-            ]
+            }
           },
           "txOutputs": [
             {
               "txOutValue": {
-                "getValue": [
-                  [
-                    0,
-                    10
+                "getValue": {
+                  "unMap": [
+                    [
+                      0,
+                      10
+                    ]
                   ]
-                ]
+                }
               },
               "txOutAddress": {
                 "getAddress": "nxicEhjPGNwEGMcYRRiEGNcYhxisGD0YIxh3GCEYMhjBGIUYJBi8GHoYshiNGOwYQhgZGLgY/BhbGEIYXxhw/w=="
@@ -157,12 +167,14 @@
             },
             {
               "txOutValue": {
-                "getValue": [
-                  [
-                    0,
-                    10
+                "getValue": {
+                  "unMap": [
+                    [
+                      0,
+                      10
+                    ]
                   ]
-                ]
+                }
               },
               "txOutAddress": {
                 "getAddress": "nxgcGMMYrRjqGEAY6xj9GJQYQxg6GMAEGHcYfRhoFQwYzhidGLQYxxhxGLwYfRjhGLIYlxinGLcYlRi7GLr/"
