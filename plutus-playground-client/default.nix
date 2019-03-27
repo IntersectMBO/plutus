@@ -50,9 +50,9 @@ in stdenv.mkDerivation {
     ${patchShebangs "node_modules/.bin/"}
 
     mkdir generated
-    mkdir web-common
+    mkdir ../web-common
     cp -R ${psSrc}/* generated/
-    cp -R ${webCommon}/* web-common/
+    cp -R ${webCommon}/* ../web-common/
     cp --reflink=auto --no-preserve=mode -R $bowerComponents/bower_components .
   '';
 
@@ -63,7 +63,7 @@ in stdenv.mkDerivation {
   doCheck = true;
 
   checkPhase = ''
-    yarn test-nix
+    yarn test
   '';
 
   installPhase = ''
