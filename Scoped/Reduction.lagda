@@ -66,14 +66,20 @@ data Error {n} : ScopedTm n → Set where
 
 BUILTIN : ∀{n} → Builtin
   → List (ScopedTy ∥ n ∥) → List (Σ (ScopedTm n) (Value {n})) → ScopedTm n 
-BUILTIN addInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
-BUILTIN addInteger _ ((.(con (integer s' i p)) , V-con (integer .s' i p)) ∷ (.(con (integer s' i' p')) , V-con (integer s' i' p')) ∷ []) | yes refl with boundedI? s' (i I.+ i')
-BUILTIN addInteger _ ((.(con (integer s' i p)) , V-con (integer .s' i p)) ∷ (.(con (integer s' i' p')) , V-con (integer s' i' p')) ∷ []) | yes refl | yes r = con (integer s' (i I.+ i') r)
-BUILTIN addInteger _ ((.(con (integer s' i p)) , V-con (integer .s' i p)) ∷ (.(con (integer s' i' p')) , V-con (integer s' i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
-BUILTIN addInteger _ ((.(con (integer s i p)) , V-con (integer s i p)) ∷ (.(con (integer s' i' p')) , V-con (integer s' i' p')) ∷ []) | no ¬q
+BUILTIN addInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
+BUILTIN addInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (i I.+ i')
+BUILTIN addInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (i I.+ i') r)
+BUILTIN addInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
+BUILTIN addInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q
   = error (con integer)
 BUILTIN addInteger _ _ = error (con integer)
   -- this covers a multitude of sins
+BUILTIN subtractInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
+BUILTIN subtractInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (i I.- i')
+BUILTIN subtractInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (i I.- i') r)
+BUILTIN subtractInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
+BUILTIN subtractInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
+BUILTIN subtractInteger _ _ = error (con integer)
 BUILTIN _ _ _ = error (con integer)
 
 
