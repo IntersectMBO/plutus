@@ -31,8 +31,8 @@ import           Data.Semigroup        (Semigroup (..))
 import qualified Data.Set              as Set
 import           GHC.Generics          (Generic)
 
-import           Ledger                (Address, Tx (..), TxInOf (..), TxOut, TxOutOf (..), TxOutRef,
-                                        TxOutRefOf (..), Value, hashTx)
+import           Ledger                (Address, Tx (..), TxInOf (..), TxOut, TxOutOf (..), TxOutRef, TxOutRefOf (..),
+                                        Value, hashTx)
 import qualified Ledger.Value.TH       as V
 
 -- | A map of 'Address'es and their unspent outputs.
