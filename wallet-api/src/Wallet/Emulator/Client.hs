@@ -1,6 +1,7 @@
 {-# LANGUAGE GADTs      #-}
 {-# LANGUAGE LambdaCase #-}
 
+-- | An HTTP client for working with the wallet interaction API. For use with 'Wallet.Emulator.Http'.
 module Wallet.Emulator.Client
   ( Environment(Environment)
   , WalletClient

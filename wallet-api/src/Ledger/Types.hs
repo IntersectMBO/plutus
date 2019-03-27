@@ -149,7 +149,7 @@ especially because we only need one direction (to binary).
 
 -}
 
--- | Public key
+-- | A cryptographic public key.
 newtype PubKey = PubKey { getPubKey :: Int }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
@@ -158,6 +158,8 @@ newtype PubKey = PubKey { getPubKey :: Int }
 
 makeLift ''PubKey
 
+-- | A message with a cryptographic signature.
+-- NOTE: relies on incorrect notion of signatures
 newtype Signature = Signature { getSignature :: Int }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
@@ -166,17 +168,18 @@ newtype Signature = Signature { getSignature :: Int }
 
 makeLift ''Signature
 
--- | True if the signature matches the public key
+-- | Check whether the given 'Signature' was signed by the private key corresponding to the given public key.
 signedBy :: Signature -> PubKey -> Bool
 signedBy (Signature k) (PubKey s) = k == s
 
--- | Transaction ID (double SHA256 hash of the transaction)
+-- | A transaction ID, using some id type.
 newtype TxIdOf h = TxIdOf { getTxId :: h }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
 
 makeLift ''TxIdOf
 
+-- | A transaction ID, using a double SHA256 hash of the transaction.
 type TxId = TxIdOf (Digest SHA256)
 
 deriving newtype instance Serialise TxId
@@ -202,19 +205,19 @@ instance ToSchema (Digest SHA256) where
 instance FromJSON (Digest SHA256) where
   parseJSON = JSON.decodeSerialise
 
--- | A payment address is a double SHA256 of a
---   UTxO output's validator script (and presumably its data script).
---   This corresponds to a Bitcoing pay-to-witness-script-hash
+-- | A payment address using some id type. This corresponds to a Bitcoin pay-to-witness-script-hash.
 newtype AddressOf h = AddressOf { getAddress :: h }
     deriving (Eq, Ord, Show, Generic)
 
+-- | A payment address using is a double SHA256 of a
+--   UTxO's validator script (and presumably its data script).
 type Address = AddressOf (Digest SHA256)
 
 deriving newtype instance Serialise Address
 deriving anyclass instance ToJSON Address
 deriving anyclass instance FromJSON Address
 
--- | Script
+-- | A script on the chain. This is an opaque type as far as the chain is concerned.
 newtype Script = Script { getPlc :: PLC.Program PLC.TyName PLC.Name () }
   deriving newtype (Serialise)
 
