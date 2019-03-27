@@ -1,2 +1,2 @@
-Used but not defined in the current conversion: Variable negate
-[ClassOp]
+Error: Reference to a value which is not a local, nor a builtin: Variable negate
+       [ClassOp]
