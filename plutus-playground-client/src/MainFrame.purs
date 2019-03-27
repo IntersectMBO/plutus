@@ -9,7 +9,8 @@ import Types
 import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged))
 import Ace.Types (ACE, Annotation)
 import Action (simulationPane)
-import AjaxUtils (ajaxErrorPane, getDecodeJson)
+import AjaxUtils (ajaxErrorPane)
+import AjaxUtils as AjaxUtils
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
 import Bootstrap (active, btn, btnGroup, btnSmall, col3_, col9_, container, container_, empty, hidden, navItem_, navLink, navTabs_, pullRight, row_)
 import Chain (evaluationPane)
@@ -203,8 +204,7 @@ eval (CheckAuthStatus next) = do
 eval (PublishGist next) = do
   mContents <- editorGetContents
   simulations <- use _simulations
-  mNewGist <- mkNewGist { source: mContents, simulations }
-  case mNewGist of
+  case mkNewGist { source: mContents, simulations } of
     Nothing -> pure next
     Just newGist ->
       do mGist <- use _createGistResult
@@ -247,11 +247,10 @@ eval (LoadGist next) = do
                                assign _evaluationResult NotAsked
 
           -- Load the simulation, if available.
-          decodeJson <- getDecodeJson
           case preview (_Just <<< gistFileContent <<< _Just) (simulationGistFile gist) of
             Nothing -> pure unit
             Just simulationString -> do
-              case (decodeJson =<< jsonParser simulationString) of
+              case (AjaxUtils.decodeJson =<< jsonParser simulationString) of
                 Left err -> pure unit
                 Right simulations -> do
                   assign _simulations simulations
