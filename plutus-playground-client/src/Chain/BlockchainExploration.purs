@@ -213,7 +213,7 @@ balanceView Remainder =
 
 valueView :: forall p i. Tuple CurrencySymbol Int -> HTML p i
 valueView (Tuple (CurrencySymbol sym) balance) =
-  amountView (show sym) balance
+  amountView ("λ" <> show sym) balance
 
 amountView :: forall p i. String -> Int -> HTML p i
 amountView name balance =
