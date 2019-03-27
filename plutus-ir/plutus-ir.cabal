@@ -74,8 +74,8 @@ library
         serialise -any,
         text -any,
         transformers -any,
-        algebraic-graphs <0.3,
-        megaparsec <7.0
+        algebraic-graphs >= 0.3,
+        megaparsec -any
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
@@ -104,4 +104,4 @@ test-suite plutus-ir-test
         tasty -any,
         tasty-hedgehog -any,
         text -any,
-        megaparsec <7.0
+        megaparsec -any

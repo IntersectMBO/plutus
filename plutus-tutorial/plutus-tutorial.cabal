@@ -75,6 +75,7 @@ test-suite tutorial-doctests
       language-plutus-core -any,
       plutus-tx -any,
       wallet-api -any,
+      prettyprinter -any,
       containers -any
 
 

@@ -116,7 +116,7 @@ data PluginOptions = PluginOptions {
     }
 
 plugin :: GHC.Plugin
-plugin = GHC.defaultPlugin { GHC.installCoreToDos = install }
+plugin = GHC.defaultPlugin { GHC.installCoreToDos = install, GHC.pluginRecompile = GHC.flagRecompile }
 
 install :: [GHC.CommandLineOption] -> [GHC.CoreToDo] -> GHC.CoreM [GHC.CoreToDo]
 install args todo =
@@ -157,7 +157,7 @@ failCompilation :: String -> GHC.CoreM a
 failCompilation message = liftIO $ GHC.throwGhcExceptionIO $ GHC.ProgramError $ messagePrefix ++ ": " ++ message
 
 failCompilationSDoc :: String -> GHC.SDoc -> GHC.CoreM a
-failCompilationSDoc message sdoc = liftIO $ GHC.throwGhcExceptionIO $ GHC.PprProgramError (messagePrefix ++ ":" ++ message) sdoc
+failCompilationSDoc message sdoc = liftIO $ GHC.throwGhcExceptionIO $ GHC.PprProgramError (messagePrefix ++ ": " ++ message) sdoc
 
 -- | Get the 'GHC.Name' corresponding to the given 'TH.Name', or throw a GHC exception if
 -- we can't get it.
@@ -208,6 +208,12 @@ makePrimitiveNameInfo names = do
         pure (name, thing)
     pure $ Map.fromList mapped
 
+-- | Strips all enclosing 'GHC.Tick's off an expression.
+stripTicks :: GHC.CoreExpr -> GHC.CoreExpr
+stripTicks = \case
+    GHC.Tick _ e -> stripTicks e
+    e -> e
+
 -- | Converts all the marked expressions in the given binder into PLC literals.
 convertMarkedExprsBind :: PluginOptions -> GHC.Name -> GHC.CoreBind -> GHC.CoreM GHC.CoreBind
 convertMarkedExprsBind opts markerName = \case
@@ -223,7 +229,8 @@ convertMarkedExprs opts markerName =
     in \case
       GHC.App (GHC.App (GHC.App
                           -- function id
-                          (GHC.Var fid)
+                          -- sometimes GHCi sticks ticks around this for some reason
+                          (stripTicks -> (GHC.Var fid))
                           -- first type argument, must be a string literal type
                           (GHC.Type (GHC.isStrLitTy -> Just fs_locStr)))
                      -- second type argument

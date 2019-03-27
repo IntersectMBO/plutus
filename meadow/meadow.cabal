@@ -61,7 +61,7 @@ library
         newtype-generics -any,
         process -any,
         prometheus >=2,
-        servant <0.15,
+        servant <0.16,
         servant-client -any,
         servant-client-core -any,
         servant-purescript -any,

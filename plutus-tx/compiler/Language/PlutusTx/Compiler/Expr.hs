@@ -69,8 +69,8 @@ This is a pain to recognize.
 convLiteral :: Converting m => GHC.Literal -> m PIRTerm
 convLiteral = \case
     -- TODO: better sizes
-    GHC.MachInt64 i    -> pure $ PIR.Constant () $ PLC.BuiltinInt () haskellIntSize i
-    GHC.MachInt i      -> pure $ PIR.Constant () $ PLC.BuiltinInt () haskellIntSize i
+    (GHC.LitNumber GHC.LitNumInt64 i _) -> pure $ PIR.Constant () $ PLC.BuiltinInt () haskellIntSize i
+    (GHC.LitNumber GHC.LitNumInt i _)   -> pure $ PIR.Constant () $ PLC.BuiltinInt () haskellIntSize i
     GHC.MachStr bs     ->
         -- Convert the bytestring into a core expression representing the list
         -- of characters, then compile that!
@@ -85,9 +85,7 @@ convLiteral = \case
         case PLC.makeDynamicBuiltin c of
             Just t  -> pure $ PIR.embed t
             Nothing -> throwPlain $ UnsupportedError "Compilation of character failed"
-    GHC.LitInteger _ _ -> throwPlain $ UnsupportedError "Literal (unbounded) integer"
-    GHC.MachWord _     -> throwPlain $ UnsupportedError "Literal word"
-    GHC.MachWord64 _   -> throwPlain $ UnsupportedError "Literal word64"
+    GHC.LitNumber {}   -> throwPlain $ UnsupportedError "Literal number"
     GHC.MachFloat _    -> throwPlain $ UnsupportedError "Literal float"
     GHC.MachDouble _   -> throwPlain $ UnsupportedError "Literal double"
     GHC.MachLabel {}   -> throwPlain $ UnsupportedError "Literal label"
