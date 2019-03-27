@@ -145,7 +145,7 @@ main = do
 
 open import Raw
 open import Scoped
-open import Data.Maybe
+open import Utils
 
 postulate
   imap : ∀{A B : Set} → (A → B) → IO A → IO B

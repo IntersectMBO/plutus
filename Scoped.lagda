@@ -92,7 +92,7 @@ deBruijnifyK (K ⇒ J) = deBruijnifyK K ⇒ deBruijnifyK J
 deBruijnifyK # = #
 
 open import Data.Vec hiding (_>>=_; map; _++_; [_])
-open import Data.Maybe
+open import Utils
 open import Data.String
 open import Relation.Nullary
 open import Category.Monad
