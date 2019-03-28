@@ -123,12 +123,15 @@ RAML has a number of limitations.
   inputs.  For example, if we had a function to create the list `L =
   [1..n]` then RAML would be able to recognize that the resource usage
   would depend on the length of `L`, but would not realize that this
-  is equal to `n`.  There are analyses which can handle numerical
+  is equal to `n`.  There are at least two possible ways to get round this:
+      * There are analyses which can handle numerical
   inputs (see [Other Analyses](#other-analyses) below), and in principle these could be combined with
   the RAML techniques.  This would be a lot of work though, and it's
   more of an implementation problem than a research problem, so it's
   probably not something that's worth the RAML implementers' trouble.
-
+      * Another possibility is to pretend that integral inputs are in fact Peano numbers, which RAML _can_ deal with.  Having got bounds
+      in terms of the sizes of Peano inputs, we could get bounds in terms of the bit-length of the inputs (which is what Plutus sizes refer to) by replacing each variable _n_ representing the size of a Peano number with _2^n_ .  Further investigation
+      would be required to check if this is in fact feasible.
 
 * Actual resource usage of course depends on the behaviour of compiled
   code.  The RAML evaluator is quite straightforward and doesn't make
@@ -154,6 +157,7 @@ it's not immediately clear that it's applicable to types encoded as
 higher-order functions.  However, the technique of
 _defunctionalisation_, due to John Reynolds, can be used to convert
 higher-order programs to first-order ones, representing higher-order
+functions as members of algebraic datatypes (essentially closures
 represented in the source language).  I tried some examples with Peano
 numbers to see if this would make Church and Scott encoded data amenable
 to RAML analyses.
@@ -167,7 +171,6 @@ evaluator, including the actual heap consumption, is in [Peano.evaluation](./Pea
 can be seen, RAML is able to predict the heap usage precisely. The
 RAML documentation doesn't describe how members of algebraic datatypes
 are represented in the heap, but examination of the intermediate code
-functions as members of algebraic datatypes (essentially closures
 suggests that a Peano number requires 4 heap cells for each `S`
 constructor and 2 for the `Z` constructor.
 
