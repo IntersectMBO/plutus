@@ -200,13 +200,21 @@ with the actual number of steps reported in
 
 #### Church-encoded Naturals
 
-A Church-encoded version of the test program appears in xxx, and a
-manually defunctionalised version in yyy.  Defunctionalising the
-Church encoding yields something very similar to the original program
-in xxx1 (this is no surprise: see [Danvy]), so RAML is again able to
-produce good results (see uuu).  Somewhat surprisingly, RAML also
-produces good predictions for the version using higher-order
-functions: see xxx and yyy.  I don't know what to make of this.
+A Church-encoded version of the test program appears in
+[ChurchNat.raml](./ChurchNat.raml), and a manually defunctionalised
+version in [ChurchNat-defun.raml](./ChurchNat-defun.raml).
+Defunctionalising the Church encoding yields something very similar to
+the original program in [Peano.raml](./Peano.raml) (this is no
+surprise: see section 2 of [Danvy2001](#danvy2001), so RAML is again able to produce good results:
+see [ChurchNat-defun.heap-analysis](./ChurchNat-defun.heap-analysis),
+[ChurchNat-defun.steps-analysis](./ChurchNat-defun.steps-analysis), and
+[ChurchNat-defun.evaluation](./ChurchNat-defun.evaluation).
+Somewhat surprisingly, RAML also produces good predictions
+for the version using higher-order functions: see
+[ChurchNat.heap-analysis](./ChurchNat.heap-analysis),
+[ChurchNat.steps-analysis](./ChurchNat.steps-analysis), and
+[ChurchNat.evaluation](./ChurchNat.evaluation).
+I don't know what to make of this.
 
 #### Scott-encoded Naturals
 
@@ -264,7 +272,7 @@ for (int i=0; i<=n; i++)
        // do something
 ```
 in a C-type language.  The iterations of the inner
-loop are constrained by the equations 0&le;i&le;n and 0&le;j&le;i,
+loop are constrained by the equations 0 &le; i &le; n and 0 &le; j &le; i,
 which describe a triangular region in the (i,j) plain, and the inner
 loop is executed once for each point with integer coordinates in this
 region.  There is a rich mathematical theory of the enumeration of
@@ -339,11 +347,18 @@ WGP '12.\
 [pdf](http://homepages.inf.ed.ac.uk/slindley/papers/embedding-f.pdf)
 
 
+##### Danvy2001
+O. Danvy and L. Nielsen\
+Defunctionalization at Work\
+BRICS report series RS-01-23, 2001.\
+[pdf](http://www.brics.dk/RS/01/23/BRICS-RS-01-23.pdf)
+
+
 ##### Beck2015
 Matthias Beck.\
-Computing the Continuous Discretely: Integer-point Enumeration in Polyhedra.\
+Computing the Continuous Discretely: Integer-point Enumeration in Polyhedra, 2nd Edition.\
 Springer-Verlag, 2015.\
-PDF of the first edition avalable [here](http://math.sfsu.edu/beck/papers/noprint.pdf).
+[pdf](http://math.sfsu.edu/beck/papers/noprint.pdf) of the first edition.
 
 ##### Braberman2006
 V. Braberman, D. Garbervetsky, and S.Yovine.\
@@ -354,5 +369,5 @@ Journal of Object Technology, 5(5), 2006.\
 ##### Aspinall2010
 D. Aspinall, R. Atkey, K. MacKenzie and D. Sannella.\
 Symbolic and Analytic Techniques for Resource Analysis of Java Bytecode.\
-TGC 2010.
+TGC 2010.\
 [pdf](http://groups.inf.ed.ac.uk/resa/tgc.pdf)
