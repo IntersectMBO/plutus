@@ -19,6 +19,7 @@ import Marlowe.Contracts
   )
 import Meadow.Contracts
   ( basicContract
+  , zeroCouponBond
   )
 
 import Data.Map as Map
@@ -33,6 +34,7 @@ type Contents
 demoFiles ::
   Map Label Contents
 demoFiles = Map.fromFoldable [ "BasicContract" /\ basicContract
+                             , "ZeroCouponBond" /\ zeroCouponBond
                              ]
 
 marloweContracts ::
