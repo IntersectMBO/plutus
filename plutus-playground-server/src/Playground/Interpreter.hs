@@ -3,8 +3,7 @@
 
 module Playground.Interpreter where
 
-import           Control.Monad                (unless)
-import           Control.Monad.Catch          (MonadCatch, MonadMask, bracket, catch)
+import           Control.Monad.Catch          (MonadMask)
 import           Control.Monad.Error.Class    (MonadError, throwError)
 import           Control.Monad.Except.Extras  (mapError)
 import           Control.Monad.IO.Class       (MonadIO, liftIO)
@@ -15,28 +14,21 @@ import           Data.ByteString              (ByteString)
 import qualified Data.ByteString.Char8        as BS8
 import qualified Data.ByteString.Lazy.Char8   as BSL
 import           Data.List                    (intercalate)
-import           Data.Swagger                 (Schema)
 import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
-import qualified Data.Text.Internal.Search    as Text
 import qualified Data.Text.IO                 as Text
 import           Data.Time.Units              (TimeUnit)
 import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError),
                                                InterpreterError (CompilationErrors), SourceCode, avoidUnsafe, runghc)
-import           Ledger.Ada                   (Ada)
-import           Ledger.Types                 (Blockchain, Value)
+import           Ledger.Types                 (Blockchain)
 import           Playground.API               (CompilationResult (CompilationResult), Evaluation (sourceCode),
                                                Expression (Action, Wait), Fn (Fn),
                                                PlaygroundError (DecodeJsonTypeError, OtherError), SimulatorWallet,
-                                               Warning (Warning), parseErrorsText, program, simulatorWalletWallet,
+                                               Warning (Warning), program, simulatorWalletWallet,
                                                toSimpleArgumentSchema, wallets)
 import qualified Playground.API               as API
-import           System.Directory             (removeFile)
-import           System.Environment           (lookupEnv)
-import           System.Exit                  (ExitCode (ExitSuccess))
-import           System.IO                    (Handle, hClose, hFlush)
+import           System.IO                    (Handle, hFlush)
 import           System.IO.Temp.Extras        (withSystemTempFile)
-import           System.Process               (readProcessWithExitCode)
 import qualified Text.Regex                   as Regex
 import           Wallet.Emulator.Types        (EmulatorEvent, Wallet)
 
