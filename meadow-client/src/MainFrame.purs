@@ -80,7 +80,7 @@ emptyMarloweState = { input: emptyInputData
                     , state: emptyState
                     , blockNum: (fromInt 0)
                     , moneyInContract: (fromInt 0)
-                    , contract: Null
+                    , contract: Nothing 
                     }
 
 initialState :: FrontendState
@@ -206,7 +206,9 @@ resizeSigs li ma = resizeSigsAux ma Map.empty li
 
 updateSignatures :: MarloweState -> MarloweState
 updateSignatures oldState =
-  over (_transaction <<< _signatures) (resizeSigs (peopleFromStateAndContract (oldState.state) (oldState.contract))) oldState
+  case oldState.contract of
+    Just oldContract -> over (_transaction <<< _signatures) (resizeSigs (peopleFromStateAndContract (oldState.state) oldContract)) oldState
+    Nothing -> oldState
 
 updateChoices :: State -> Set IdInput -> Map Person (Map BigInteger Choice)
                  -> Map Person (Map BigInteger Choice)
@@ -257,52 +259,57 @@ updateActions oldState {state, contract, outcome, validity} =
   where
     neededInputs = collectNeededInputsFromContract contract
 
-simulateState :: MarloweState -> {state :: State, contract :: Contract, outcome :: TransactionOutcomes, validity :: TransactionValidity}
+simulateState :: MarloweState -> Maybe {state :: State, contract :: Contract, outcome :: TransactionOutcomes, validity :: TransactionValidity}
 simulateState state =
-  case applyTransaction inps sigs bn st c mic of
-    MSuccessfullyApplied {state: newState, contract: newContract, outcome: outcome} _ ->
-            {state: newState, contract: newContract,
-             outcome: outcome, validity: ValidTransaction}
-    MCouldNotApply InvalidInput ->
-            if (inps == Nil)
-            then {state: st, contract: reduce state.blockNum state.state c,
-                  outcome: Map.empty, validity: EmptyTransaction}
-            else {state: emptyState, contract: Null,
-                  outcome: Map.empty, validity: InvalidTransaction}
-    MCouldNotApply _ -> {state: emptyState, contract: Null,
-                         outcome: Map.empty, validity: InvalidTransaction}
+  case state.contract of
+    Just c -> Just (case applyTransaction inps sigs bn st c mic of
+                      MSuccessfullyApplied {state: newState, contract: newContract, outcome: outcome} inputWarnings ->
+                              {state: newState, contract: newContract,
+                               outcome: outcome, validity: ValidTransaction inputWarnings}
+                      MCouldNotApply InvalidInput ->
+                              if (inps == Nil)
+                              then {state: st, contract: reduce state.blockNum state.state c,
+                                    outcome: Map.empty, validity: EmptyTransaction}
+                              else {state: emptyState, contract: Null,
+                                    outcome: Map.empty, validity: InvalidTransaction InvalidInput}
+                      MCouldNotApply err -> {state: emptyState, contract: Null,
+                                             outcome: Map.empty, validity: InvalidTransaction err})
+    Nothing -> Nothing
   where
     inps = Array.toUnfoldable (state.transaction.inputs)
     sigs = Set.fromFoldable (Map.keys (Map.filter id (state.transaction.signatures)))
     bn = state.blockNum
     st = state.state
-    c = state.contract
     mic = state.moneyInContract
 
 applyTransactionM :: MarloweState -> MarloweState
 applyTransactionM oldState =
-  case applyTransaction inps sigs bn st c mic of
-    MSuccessfullyApplied {funds, state, contract} _ ->
-       set (_transaction <<< _inputs) []
-       (set (_transaction <<< _signatures) Map.empty
-       (set (_state) state
-       (set (_moneyInContract) funds
-       (set (_contract) contract
-        oldState))))
-    MCouldNotApply _ -> oldState
+  case oldState.contract of
+    Nothing -> oldState
+    Just c -> case applyTransaction inps sigs bn st c mic of
+                MSuccessfullyApplied {funds, state, contract} _ ->
+                   set (_transaction <<< _inputs) []
+                   (set (_transaction <<< _signatures) Map.empty
+                   (set (_state) state
+                   (set (_moneyInContract) funds
+                   (set (_contract) (Just contract)
+                    oldState))))
+                MCouldNotApply _ -> oldState
   where
     inps = Array.toUnfoldable (oldState.transaction.inputs)
     sigs = Set.fromFoldable (Map.keys (Map.filter id (oldState.transaction.signatures)))
     bn = oldState.blockNum
     st = oldState.state
-    c = oldState.contract
     mic = oldState.moneyInContract
 
 updateStateP :: MarloweState -> MarloweState
 updateStateP oldState = actState
   where
     sigState = updateSignatures oldState
-    actState = updateActions sigState (simulateState sigState)
+    mSimulatedState = simulateState sigState
+    actState = case mSimulatedState of
+                 Just simulatedState -> updateActions sigState simulatedState
+                 Nothing -> sigState 
 
 updateState ::
   forall eff m.
@@ -316,8 +323,8 @@ updateContractInStateP :: String -> MarloweState -> MarloweState
 updateContractInStateP text state = set (_contract) con state
   where
     con = case parse contract text of
-            Right pcon -> pcon
-            Left _ -> Null
+            Right pcon -> Just pcon
+            Left _ -> Nothing
 
 updateContractInState :: forall m. MonadState FrontendState m => String -> m Unit
 updateContractInState text = do
@@ -459,14 +466,15 @@ evalF (SetSignature { person, isChecked } next) = do
 evalF (ApplyTransaction next) = do
   saveInitialState
   modifying (_marloweState) applyTransactionM
-  currContract <- use (_marloweState <<< _contract)
-  void $ withMarloweEditor $ Editor.setValue (show $ pretty currContract) (Just 1)
-  updateState
-  pure next
+  mCurrContract <- use (_marloweState <<< _contract)
+  case mCurrContract of
+   Just currContract -> do void $ withMarloweEditor $ Editor.setValue (show $ pretty currContract) (Just 1)
+                           updateState
+                           pure next
+   Nothing -> pure next
 
 evalF (NextBlock next) = do
-  modifying (_marloweState <<< _blockNum) (\x ->
-    x + ((fromInt 1) :: BigInteger))
+  modifying (_marloweState <<< _blockNum) (\x -> x + ((fromInt 1) :: BigInteger))
   updateState
   pure next
 

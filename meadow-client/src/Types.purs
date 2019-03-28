@@ -20,7 +20,7 @@ import Language.Haskell.Interpreter (CompilationError, InterpreterError, Warning
 import Marlowe.Types (BlockNumber, Choice, Contract, IdChoice, IdOracle, Person)
 import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Ord, class Show, Unit)
-import Semantics (DetachedPrimitiveWIA, AnyInput, State)
+import Semantics (DetachedPrimitiveWIA, AnyInput, State, ErrorResult, DynamicProblem)
 import Servant.PureScript.Affjax (AjaxError)
 import Type.Data.Boolean (kind Boolean)
 
@@ -155,12 +155,20 @@ _oracleData ::
 _oracleData = prop (SProxy :: SProxy "oracleData")
 
 data TransactionValidity = EmptyTransaction
-                         | ValidTransaction
-                         | InvalidTransaction
+                         | ValidTransaction (List DynamicProblem)
+                         | InvalidTransaction ErrorResult
 
 derive instance eqTransactionValidity :: Eq TransactionValidity
 
 derive instance ordTransactionValidity :: Ord TransactionValidity
+
+isValidTransaction :: TransactionValidity -> Boolean
+isValidTransaction (ValidTransaction _) = true
+isValidTransaction _ = false
+
+isInvalidTransaction :: TransactionValidity -> Boolean
+isInvalidTransaction (InvalidTransaction _) = true
+isInvalidTransaction _ = false
 
 type TransactionData
   = {inputs :: Array AnyInput, signatures :: Map Person Boolean, outcomes :: Map Person BigInteger, validity :: TransactionValidity}
@@ -180,7 +188,7 @@ _validity = prop (SProxy :: SProxy "validity")
 
 -- "Choice $IdChoice: Choose value [$Choice]"
 type MarloweState
-        = {input :: InputData, transaction :: TransactionData, state :: State, blockNum :: BlockNumber, moneyInContract :: BigInteger, contract :: Contract}
+        = {input :: InputData, transaction :: TransactionData, state :: State, blockNum :: BlockNumber, moneyInContract :: BigInteger, contract :: Maybe Contract}
 
 _input :: forall s a. Lens' {input :: a | s} a
 _input = prop (SProxy :: SProxy "input")

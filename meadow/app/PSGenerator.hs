@@ -36,7 +36,7 @@ import           Language.PureScript.Bridge                (BridgePart, Language
                                                             psTypeParameters, typeModule, typeName, writePSTypes, (^==))
 import           Language.PureScript.Bridge.PSTypes        (psArray, psInt)
 import           Language.PureScript.Bridge.TypeParameters (A)
-import           Meadow.Contracts                          (basicContract)
+import           Meadow.Contracts                          (basicContract, zeroCouponBond)
 import           Servant                                   ((:<|>))
 import           Servant.PureScript                        (HasBridge, Settings, apiModuleName, defaultBridge,
                                                             defaultSettings, languageBridge, writeAPIModuleWithSettings,
@@ -134,6 +134,7 @@ writeUsecases :: FilePath -> IO ()
 writeUsecases outputDir = do
     let usecases =
             multilineString "basicContract" basicContract
+         <> multilineString "zeroCouponBond" zeroCouponBond
         usecasesModule = psModule "Meadow.Contracts" usecases
     createDirectoryIfMissing True (outputDir </> "Meadow")
     BS.writeFile (outputDir </> "Meadow" </> "Contracts.purs") usecasesModule
