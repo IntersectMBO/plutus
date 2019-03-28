@@ -26,3 +26,4 @@ instance PrettyDynamic Integer
 instance PrettyDynamic BSL.ByteString where prettyDynamic = prettyBytes
 instance PrettyDynamic ()
 instance PrettyDynamic Bool
+instance PrettyDynamic Char

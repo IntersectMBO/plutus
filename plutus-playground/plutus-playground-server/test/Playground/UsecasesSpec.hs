@@ -15,7 +15,9 @@ import qualified Data.Text.Lazy         as TL
 import qualified Ledger.Ada             as Ada
 import           Ledger.Types           (Blockchain)
 import           Playground.API         (Evaluation (Evaluation), Expression (Action, Wait), Fn (Fn), FunctionSchema,
-                                         PlaygroundError, SimpleArgumentSchema, SourceCode (SourceCode), functionSchema)
+                                         PlaygroundError, SimpleArgumentSchema, SimulatorWallet (SimulatorWallet),
+                                         SourceCode (SourceCode), functionSchema, simulatorWalletBalance,
+                                         simulatorWalletWallet)
 import qualified Playground.Interpreter as PI
 import           Playground.Usecases    (crowdfunding, game, messages, vesting)
 import           Test.Hspec             (Spec, describe, it, shouldSatisfy)
@@ -39,12 +41,33 @@ vestingSpec =
         it "should run vest funds evaluation" $
             evaluate vestFundsEval >>= (`shouldSatisfy` isRight)
   where
-    simpleEvaluation = Evaluation [(Wallet 1, 10)] [] (sourceCode vesting) []
+    simpleEvaluation =
+        Evaluation
+            [ SimulatorWallet
+                  { simulatorWalletWallet = Wallet 1
+                  , simulatorWalletBalance = 10
+                  }
+            ]
+            []
+            (sourceCode vesting)
+            []
     simpleWaitEval =
-        Evaluation [(Wallet 1, 10)] [Wait 10] (sourceCode vesting) []
+        Evaluation
+            [ SimulatorWallet
+                  { simulatorWalletWallet = Wallet 1
+                  , simulatorWalletBalance = 10
+                  }
+            ]
+            [Wait 10]
+            (sourceCode vesting)
+            []
     vestFundsEval =
         Evaluation
-            [(Wallet 1, 10)]
+            [ SimulatorWallet
+                  { simulatorWalletWallet = Wallet 1
+                  , simulatorWalletBalance = 10
+                  }
+            ]
             [ Action
                   (Fn "vestFunds")
                   (Wallet 1)
@@ -63,24 +86,57 @@ gameSpec =
         it "should unlock the funds" $
             evaluate gameEvalSuccess >>=
             (`shouldSatisfy` hasFundsDistribution
-                                 [(Wallet 1, Ada.fromInt  12), (Wallet 2, Ada.fromInt  8)])
+                                 [ SimulatorWallet
+                                       { simulatorWalletWallet = Wallet 1
+                                       , simulatorWalletBalance = Ada.fromInt 12
+                                       }
+                                 , SimulatorWallet
+                                       { simulatorWalletWallet = Wallet 2
+                                       , simulatorWalletBalance = Ada.fromInt 8
+                                       }
+                                 ])
         it "should keep the funds" $
             evaluate gameEvalFailure >>=
             (`shouldSatisfy` hasFundsDistribution
-                                 [(Wallet 1, ten), (Wallet 2, Ada.fromInt  8)])
+                                 [ SimulatorWallet
+                                       { simulatorWalletWallet = Wallet 1
+                                       , simulatorWalletBalance = ten
+                                       }
+                                 , SimulatorWallet
+                                       { simulatorWalletWallet = Wallet 2
+                                       , simulatorWalletBalance = Ada.fromInt 8
+                                       }
+                                 ])
         it
             "Sequential fund transfer fails - 'Game' script - 'payToPublicKey_' action" $
             evaluate payAll >>=
             (`shouldSatisfy` hasFundsDistribution
-                                 [ (Wallet 1, ten)
-                                 , (Wallet 2, ten)
-                                 , (Wallet 3, ten)
+                                 [ SimulatorWallet
+                                       { simulatorWalletWallet = Wallet 1
+                                       , simulatorWalletBalance = ten
+                                       }
+                                 , SimulatorWallet
+                                       { simulatorWalletWallet = Wallet 2
+                                       , simulatorWalletBalance = ten
+                                       }
+                                 , SimulatorWallet
+                                       { simulatorWalletWallet = Wallet 3
+                                       , simulatorWalletBalance = ten
+                                       }
                                  ])
   where
     ten = Ada.fromInt 10
     gameEvalFailure =
         Evaluation
-            [(Wallet 1, 10), (Wallet 2, 10)]
+            [ SimulatorWallet
+                  { simulatorWalletWallet = Wallet 1
+                  , simulatorWalletBalance = 10
+                  }
+            , SimulatorWallet
+                  { simulatorWalletWallet = Wallet 2
+                  , simulatorWalletBalance = 10
+                  }
+            ]
             [ Action (Fn "startGame") (Wallet 1) []
             , Action
                   (Fn "lock")
@@ -92,7 +148,15 @@ gameSpec =
             []
     gameEvalSuccess =
         Evaluation
-            [(Wallet 1, 10), (Wallet 2, 10)]
+            [ SimulatorWallet
+                  { simulatorWalletWallet = Wallet 1
+                  , simulatorWalletBalance = 10
+                  }
+            , SimulatorWallet
+                  { simulatorWalletWallet = Wallet 2
+                  , simulatorWalletBalance = 10
+                  }
+            ]
             [ Action (Fn "startGame") (Wallet 1) []
             , Action
                   (Fn "lock")
@@ -104,7 +168,19 @@ gameSpec =
             []
     payAll =
         Evaluation
-            [(Wallet 1, 10), (Wallet 2, 10), (Wallet 3, 10)]
+            [ SimulatorWallet
+                  { simulatorWalletWallet = Wallet 1
+                  , simulatorWalletBalance = 10
+                  }
+            , SimulatorWallet
+                  { simulatorWalletWallet = Wallet 2
+                  , simulatorWalletBalance = 10
+                  }
+            , SimulatorWallet
+                  { simulatorWalletWallet = Wallet 3
+                  , simulatorWalletBalance = 10
+                  }
+            ]
             [ Action
                   (Fn "payToPublicKey_")
                   (Wallet 1)
@@ -132,8 +208,8 @@ gameSpec =
     slotRange = JSON.String "{\"ivTo\":null,\"ivFrom\":null}"
 
 hasFundsDistribution ::
-       [(Wallet, Ada.Ada)]
-    -> Either PlaygroundError (Blockchain, [EmulatorEvent], [(Wallet, Ada.Ada)])
+       [SimulatorWallet]
+    -> Either PlaygroundError (Blockchain, [EmulatorEvent], [SimulatorWallet])
     -> Bool
 hasFundsDistribution _ (Left _) = False
 hasFundsDistribution requiredDistribution (Right (_, _, actualDistribution)) =
@@ -151,19 +227,52 @@ crowdfundingSpec =
         it "should run successful campaign" $
             evaluate successfulCampaign >>=
             (`shouldSatisfy` hasFundsDistribution
-                                 [(Wallet 1, Ada.fromInt  26), (Wallet 2, Ada.fromInt  2), (Wallet 3, Ada.fromInt  2)])
+                                 [ SimulatorWallet
+                                       { simulatorWalletWallet = Wallet 1
+                                       , simulatorWalletBalance = Ada.fromInt 26
+                                       }
+                                 , SimulatorWallet
+                                       { simulatorWalletWallet = Wallet 2
+                                       , simulatorWalletBalance = Ada.fromInt 2
+                                       }
+                                 , SimulatorWallet
+                                       { simulatorWalletWallet = Wallet 3
+                                       , simulatorWalletBalance = Ada.fromInt 2
+                                       }
+                                 ])
         it "should run failed campaign" $
             evaluate failedCampaign >>=
             (`shouldSatisfy` hasFundsDistribution
-                                 [ (Wallet 1, ten)
-                                 , (Wallet 2, ten)
-                                 , (Wallet 3, ten)
+                                 [ SimulatorWallet
+                                       { simulatorWalletWallet = Wallet 1
+                                       , simulatorWalletBalance = ten
+                                       }
+                                 , SimulatorWallet
+                                       { simulatorWalletWallet = Wallet 2
+                                       , simulatorWalletBalance = ten
+                                       }
+                                 , SimulatorWallet
+                                       { simulatorWalletWallet = Wallet 3
+                                       , simulatorWalletBalance = ten
+                                       }
                                  ])
   where
-    ten = Ada.fromInt  10
+    ten = Ada.fromInt 10
     failedCampaign =
         Evaluation
-            [(Wallet 1, 10), (Wallet 2, 10), (Wallet 3, 10)]
+            [ SimulatorWallet
+                  { simulatorWalletWallet = Wallet 1
+                  , simulatorWalletBalance = 10
+                  }
+            , SimulatorWallet
+                  { simulatorWalletWallet = Wallet 2
+                  , simulatorWalletBalance = 10
+                  }
+            , SimulatorWallet
+                  { simulatorWalletWallet = Wallet 3
+                  , simulatorWalletBalance = 10
+                  }
+            ]
             [ Action (Fn "scheduleCollection") (Wallet 1) [theCampaign]
             , Action (Fn "contribute") (Wallet 2) [theCampaign, theContribution]
             , Wait 20
@@ -172,7 +281,19 @@ crowdfundingSpec =
             []
     successfulCampaign =
         Evaluation
-            [(Wallet 1, 10), (Wallet 2, 10), (Wallet 3, 10)]
+            [ SimulatorWallet
+                  { simulatorWalletWallet = Wallet 1
+                  , simulatorWalletBalance = 10
+                  }
+            , SimulatorWallet
+                  { simulatorWalletWallet = Wallet 2
+                  , simulatorWalletBalance = 10
+                  }
+            , SimulatorWallet
+                  { simulatorWalletWallet = Wallet 3
+                  , simulatorWalletBalance = 10
+                  }
+            ]
             [ Action (Fn "scheduleCollection") (Wallet 1) [theCampaign]
             , Action (Fn "contribute") (Wallet 2) [theCampaign, theContribution]
             , Action (Fn "contribute") (Wallet 3) [theCampaign, theContribution]
@@ -208,5 +329,5 @@ evaluate ::
        Evaluation
     -> IO (Either PlaygroundError ( Blockchain
                                   , [EmulatorEvent]
-                                  , [(Wallet, Ada.Ada)]))
+                                  , [SimulatorWallet]))
 evaluate evaluation = runExceptT $ PI.runFunction evaluation

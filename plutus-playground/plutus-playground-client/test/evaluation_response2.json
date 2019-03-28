@@ -3,19 +3,61 @@
     {
       "tag": "SlotAdd",
       "contents": {
+        "getSlot": 11
+      }
+    },
+    {
+      "tag": "SlotAdd",
+      "contents": {
+        "getSlot": 10
+      }
+    },
+    {
+      "tag": "SlotAdd",
+      "contents": {
+        "getSlot": 9
+      }
+    },
+    {
+      "tag": "SlotAdd",
+      "contents": {
+        "getSlot": 8
+      }
+    },
+    {
+      "tag": "SlotAdd",
+      "contents": {
+        "getSlot": 7
+      }
+    },
+    {
+      "tag": "SlotAdd",
+      "contents": {
+        "getSlot": 6
+      }
+    },
+    {
+      "tag": "SlotAdd",
+      "contents": {
+        "getSlot": 5
+      }
+    },
+    {
+      "tag": "SlotAdd",
+      "contents": {
+        "getSlot": 4
+      }
+    },
+    {
+      "tag": "SlotAdd",
+      "contents": {
+        "getSlot": 3
+      }
+    },
+    {
+      "tag": "SlotAdd",
+      "contents": {
         "getSlot": 2
-      }
-    },
-    {
-      "tag": "TxnValidate",
-      "contents": {
-        "getTxId": "nxixGNMY4xj5GOYYXRhiGHoYxAcYLxgfCxjPGLkYixiPGLwYqRhdGL4Ycxh7GDoYbhgYGHsYvxiFGJgYhhgn/w=="
-      }
-    },
-    {
-      "tag": "TxnSubmit",
-      "contents": {
-        "getTxId": "nxixGNMY4xj5GOYYXRhiGHoYxAcYLxgfCxjPGLkYixiPGLwYqRhdGL4Ycxh7GDoYbhgYGHsYvxiFGJgYhhgn/w=="
       }
     },
     {
@@ -27,89 +69,50 @@
     {
       "tag": "TxnValidate",
       "contents": {
-        "getTxId": "nxiaGOoYuRhEGKUUGGkYVBjgGHYYehgmGEYYJRjaGEEY3BgZGJ4YyRiLGL4Ynw8YwRiGGIEYuhhpGJ0YMBhr/w=="
+        "getTxId": "nxi5GGYYkxgjGJEYzBiAGB4YxBjyGFUYlRgtGLQYXxgbGNEYHBjTGM0YgxiOGEUYjBijGNgYJhhlGKEY7BjAGH7/"
       }
     }
   ],
   "resultBlockchain": [
-    [
-      {
-        "txInputs": [
-          {
-            "txInType": {
-              "tag": "ConsumePublicKeyAddress",
-              "contents": {
-                "getSignature": 1
-              }
-            },
-            "txInRef": {
-              "txOutRefIdx": 0,
-              "txOutRefId": {
-                "getTxId": "nxiaGOoYuRhEGKUUGGkYVBjgGHYYehgmGEYYJRjaGEEY3BgZGJ4YyRiLGL4Ynw8YwRiGGIEYuhhpGJ0YMBhr/w=="
-              }
-            }
-          }
-        ],
-        "txFee": {
-          "getAda": 0
-        },
-        "txForge": {
-          "getValue": []
-        },
-        "txOutputs": [
-          {
-            "txOutValue": {
-              "getValue": [[0,5]]
-            },
-            "txOutAddress": {
-              "getAddress": "nxgcGMMYrRjqGEAY6xj9GJQYQxg6GMAEGHcYfRhoFQwYzhidGLQYxxhxGLwYfRjhGLIYlxinGLcYlRi7GLr/"
-            },
-            "txOutType": {
-              "tag": "PayToPubKey",
-              "contents": {
-                "getPubKey": 2
-              }
-            }
-          },
-          {
-            "txOutValue": {
-              "getValue": [[0,5]]
-            },
-            "txOutAddress": {
-              "getAddress": "nxicEhjPGNwEGMcYRRiEGNcYhxisGD0YIxh3GCEYMhjBGIUYJBi8GHoYshiNGOwYQhgZGLgY/BhbGEIYXxhw/w=="
-            },
-            "txOutType": {
-              "tag": "PayToPubKey",
-              "contents": {
-                "getPubKey": 1
-              }
-            }
-          }
-        ],
-        "txValidRange": { 
-          "ivTo" : null, 
-          "ivFrom" : null 
-        },
-        "txSignatures": [
-          {
-            "getSignature": 1
-          }
-        ]
-      }
-    ],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
     [
       {
         "txInputs": [],
         "txFee": {
           "getAda": 0
         },
+        "txValidRange": {
+          "ivTo": null,
+          "ivFrom": {
+            "getSlot": 0
+          }
+        },
         "txForge": {
-          "getValue": [[0,20]]
+          "getValue": [
+            [
+              0,
+              21
+            ]
+          ]
         },
         "txOutputs": [
           {
             "txOutValue": {
-              "getValue": [[0,10]]
+              "getValue": [
+                [
+                  0,
+                  11
+                ]
+              ]
             },
             "txOutAddress": {
               "getAddress": "nxicEhjPGNwEGMcYRRiEGNcYhxisGD0YIxh3GCEYMhjBGIUYJBi8GHoYshiNGOwYQhgZGLgY/BhbGEIYXxhw/w=="
@@ -123,7 +126,12 @@
           },
           {
             "txOutValue": {
-              "getValue": [[0,10]]
+              "getValue": [
+                [
+                  0,
+                  10
+                ]
+              ]
             },
             "txOutAddress": {
               "getAddress": "nxgcGMMYrRjqGEAY6xj9GJQYQxg6GMAEGHcYfRhoFQwYzhidGLQYxxhxGLwYfRjhGLIYlxinGLcYlRi7GLr/"
@@ -135,28 +143,37 @@
               }
             }
           }
-        ],
-        "txValidRange": { 
-          "ivTo" : null, 
-          "ivFrom" : null 
-        },
-        "txSignatures": []
+        ]
       }
     ]
   ],
   "resultGraph": {
     "flowGraphNodes": [
-      "9aeab944",
-      "b1d3e3f9",
-      "utxo 9aeab944 1",
-      "utxo b1d3e3f9 0",
-      "utxo b1d3e3f9 1"
+      "b9669323",
+      "utxo b9669323 0",
+      "utxo b9669323 1"
     ],
     "flowGraphLinks": [
       {
         "flowLinkOwner": {
           "tag": "PubKeyOwner",
           "contents": {
+            "getPubKey": 1
+          }
+        },
+        "flowLinkValue": 11,
+        "flowLinkSourceLoc": {
+          "utxoLocBlock": 1,
+          "utxoLocBlockIdx": 1
+        },
+        "flowLinkSource": "b9669323",
+        "flowLinkTargetLoc": null,
+        "flowLinkTarget": "utxo b9669323 0"
+      },
+      {
+        "flowLinkOwner": {
+          "tag": "PubKeyOwner",
+          "contents": {
             "getPubKey": 2
           }
         },
@@ -165,79 +182,28 @@
           "utxoLocBlock": 1,
           "utxoLocBlockIdx": 1
         },
-        "flowLinkSource": "9aeab944",
+        "flowLinkSource": "b9669323",
         "flowLinkTargetLoc": null,
-        "flowLinkTarget": "utxo 9aeab944 1"
-      },
-      {
-        "flowLinkOwner": {
-          "tag": "PubKeyOwner",
-          "contents": {
-            "getPubKey": 2
-          }
-        },
-        "flowLinkValue": 5,
-        "flowLinkSourceLoc": {
-          "utxoLocBlock": 2,
-          "utxoLocBlockIdx": 1
-        },
-        "flowLinkSource": "b1d3e3f9",
-        "flowLinkTargetLoc": null,
-        "flowLinkTarget": "utxo b1d3e3f9 0"
-      },
-      {
-        "flowLinkOwner": {
-          "tag": "PubKeyOwner",
-          "contents": {
-            "getPubKey": 1
-          }
-        },
-        "flowLinkValue": 5,
-        "flowLinkSourceLoc": {
-          "utxoLocBlock": 2,
-          "utxoLocBlockIdx": 1
-        },
-        "flowLinkSource": "b1d3e3f9",
-        "flowLinkTargetLoc": null,
-        "flowLinkTarget": "utxo b1d3e3f9 1"
-      },
-      {
-        "flowLinkOwner": {
-          "tag": "PubKeyOwner",
-          "contents": {
-            "getPubKey": 1
-          }
-        },
-        "flowLinkValue": 10,
-        "flowLinkSourceLoc": {
-          "utxoLocBlock": 1,
-          "utxoLocBlockIdx": 1
-        },
-        "flowLinkSource": "9aeab944",
-        "flowLinkTargetLoc": {
-          "utxoLocBlock": 2,
-          "utxoLocBlockIdx": 1
-        },
-        "flowLinkTarget": "b1d3e3f9"
+        "flowLinkTarget": "utxo b9669323 1"
       }
     ]
   },
   "fundsDistribution": [
-    [
-      {
+    {
+      "simulatorWalletBalance": {
+        "getAda": 11
+      },
+      "simulatorWalletWallet": {
         "getWallet": 1
-      },
-      {
-        "getAda": 5
       }
-    ],
-    [
-      {
+    },
+    {
+      "simulatorWalletBalance": {
+        "getAda": 10
+      },
+      "simulatorWalletWallet": {
         "getWallet": 2
-      },
-      {
-        "getAda": 15
       }
-    ]
+    }
   ]
 }

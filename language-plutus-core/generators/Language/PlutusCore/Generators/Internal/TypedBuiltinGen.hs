@@ -6,6 +6,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Generators.Internal.TypedBuiltinGen
@@ -35,12 +36,14 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
-import qualified Data.ByteString.Lazy         as BSL
+import           Language.PlutusCore.Generators.Internal.Dependent ()
+
+import qualified Data.ByteString.Lazy                              as BSL
 import           Data.Functor.Identity
 import           Data.GADT.Compare
-import           Hedgehog                     hiding (Size, Var)
-import qualified Hedgehog.Gen                 as Gen
-import qualified Hedgehog.Range               as Range
+import           Hedgehog                                          hiding (Size, Var)
+import qualified Hedgehog.Gen                                      as Gen
+import qualified Hedgehog.Range                                    as Range
 
 -- | Generate a UTF-8 lazy 'ByteString' containg lower-case letters.
 genLowerBytes :: Monad m => Range Int -> GenT m BSL.ByteString
@@ -128,7 +131,7 @@ updateTypedBuiltinGenSize = updateTypedBuiltinGenSized TypedBuiltinSizedSize (\_
 updateTypedBuiltinGenBool
     :: Monad m
     => GenT m Bool -> TypedBuiltinGenT m -> TypedBuiltinGenT m
-updateTypedBuiltinGenBool = updateTypedBuiltinGen TypedBuiltinBool
+updateTypedBuiltinGenBool = updateTypedBuiltinGen $ TypedBuiltinDyn @Bool
 
 -- | A built-ins generator that always fails.
 genTypedBuiltinFail :: Monad m => TypedBuiltinGenT m

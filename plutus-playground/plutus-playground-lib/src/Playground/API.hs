@@ -60,8 +60,14 @@ data Expression
 
 type Program = [Expression]
 
+data SimulatorWallet = SimulatorWallet
+  { simulatorWalletWallet  :: Wallet
+  , simulatorWalletBalance :: Ada
+  }
+  deriving (Show, Generic, Eq, ToJSON, FromJSON)
+
 data Evaluation = Evaluation
-  { wallets    :: [(Wallet, Integer)]
+  { wallets    :: [SimulatorWallet]
   , program    :: Program
   , sourceCode :: SourceCode
   , blockchain :: Blockchain
@@ -69,13 +75,13 @@ data Evaluation = Evaluation
   deriving (Generic, ToJSON, FromJSON)
 
 pubKeys :: Evaluation -> [PubKey]
-pubKeys Evaluation{..} = fmap (pack . unpack . fst) wallets
+pubKeys Evaluation{..} = pack . unpack . simulatorWalletWallet <$> wallets
 
 data EvaluationResult = EvaluationResult
   { resultBlockchain  :: Blockchain
   , resultGraph       :: FlowGraph
   , emulatorLog       :: [EmulatorEvent]
-  , fundsDistribution :: [(Wallet, Ada)]
+  , fundsDistribution :: [SimulatorWallet]
   }
   deriving (Generic, ToJSON)
 

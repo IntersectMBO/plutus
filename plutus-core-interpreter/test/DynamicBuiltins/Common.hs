@@ -14,7 +14,7 @@ import           Control.Monad.Except
 -- | Type check and evaluate a term that can contain dynamic built-ins.
 typecheckEvaluateCek
     :: MonadError (Error ()) m
-    => DynamicBuiltinNameMeanings -> Term TyName Name () -> m EvaluationResult
+    => DynamicBuiltinNameMeanings -> Term TyName Name () -> m EvaluationResultDef
 typecheckEvaluateCek meanings term = runQuoteT $ do
     types <- dynamicBuiltinNameMeaningsToTypes () meanings
     _ <- inferType (offChainConfig types) term

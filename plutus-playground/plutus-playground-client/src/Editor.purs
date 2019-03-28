@@ -143,7 +143,11 @@ compilationErrorPane (CompilationError error) =
     ]
 
 compilationWarningsPane :: forall p. Array Warning -> HTML p Query
-compilationWarningsPane warnings = listGroup_ $ listGroupItem_ <<< pure <<< compilationWarningPane <$> warnings
+compilationWarningsPane warnings =
+  listGroup_
+    (listGroupItem_ <<< pure <<< compilationWarningPane <$> warnings)
 
 compilationWarningPane :: forall p. Warning -> HTML p Query
-compilationWarningPane warning = div [ class_ $ ClassName "compilation-warning" ] [ text (view _Warning warning) ]
+compilationWarningPane warning =
+  div [ class_ $ ClassName "compilation-warning" ]
+    [ text $ view _Warning warning ]

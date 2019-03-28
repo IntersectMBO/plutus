@@ -32,7 +32,6 @@ import           PlutusPrelude
 
 import           Control.Lens.TH
 import           Control.Monad.Except
-import           Data.Traversable
 
 {- Note [Type-eval checking]
 We generate terms along with values they are supposed to evaluate to. Before evaluating a term,
@@ -60,7 +59,7 @@ instance ann ~ () => AsTypeError TypeEvalCheckError ann where
 data TypeEvalCheckResult = TypeEvalCheckResult
     { _termCheckResultType  :: Normalized (Type TyName ())
       -- ^ The type of the term.
-    , _termCheckResultValue :: EvaluationResult
+    , _termCheckResultValue :: EvaluationResultDef
       -- ^ The result of evaluation of the term.
     }
 
@@ -78,7 +77,7 @@ type TypeEvalCheckM = Either TypeEvalCheckError
 -- See Note [Type-eval checking].
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 typeEvalCheckBy
-    :: (Term TyName Name () -> EvaluationResult) -- ^ An evaluator.
+    :: (Term TyName Name () -> EvaluationResultDef) -- ^ An evaluator.
     -> TermOf (TypedBuiltinValue Size a)
     -> TypeEvalCheckM (TermOf TypeEvalCheckResult)
 typeEvalCheckBy eval (TermOf term tbv) = TermOf term <$> do

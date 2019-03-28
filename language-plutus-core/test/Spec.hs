@@ -39,7 +39,7 @@ main = do
     typeFiles <- findByExtension [".plc"] "test/types"
     typeNormalizeFiles <- findByExtension [".plc"] "test/normalize-types"
     typeErrorFiles <- findByExtension [".plc"] "test/type-errors"
-    evalFiles <- findByExtension [".plc"] "test/evaluation"
+    evalFiles <- findByExtension [".plc"] "test/Evaluation/Golden"
     defaultMain (allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles evalFiles)
 
 compareName :: Name a -> Name a -> Bool

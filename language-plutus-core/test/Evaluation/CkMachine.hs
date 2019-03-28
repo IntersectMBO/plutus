@@ -94,7 +94,7 @@ smallNatList = metaListToList nat nats where
     nat = _recursiveType natData
 
 goldenVsPretty :: PrettyPlc a => String -> ExceptT BSL.ByteString IO a -> TestTree
-goldenVsPretty name value = goldenVsString name ("test/Evaluation/" ++ name ++ ".plc.golden") $ either id (BSL.fromStrict . encodeUtf8 . docText . prettyPlcClassicDebug) <$> runExceptT value
+goldenVsPretty name value = goldenVsString name ("test/Evaluation/Golden/" ++ name ++ ".plc.golden") $ either id (BSL.fromStrict . encodeUtf8 . docText . prettyPlcClassicDebug) <$> runExceptT value
 
 test_evaluateCk :: TestTree
 test_evaluateCk = testGroup "evaluateCk"

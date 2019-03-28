@@ -93,8 +93,8 @@ module Language.PlutusCore
     , plcTerm
     , plcProgram
     -- * Evaluation
-    , EvaluationResultF (EvaluationSuccess, EvaluationFailure)
-    , EvaluationResult
+    , EvaluationResult (..)
+    , EvaluationResultDef
     -- * Combining programs
     , applyProgram
     -- * Benchmarking

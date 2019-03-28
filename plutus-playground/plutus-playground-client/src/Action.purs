@@ -7,7 +7,7 @@ import Control.Monad.Aff.Class (class MonadAff)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Int as Int
-import Data.Lens (to, view)
+import Data.Lens (view)
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
@@ -22,25 +22,24 @@ import Halogen.HTML.Properties (InputType(InputText, InputNumber), class_, class
 import Halogen.Query as HQ
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
-import Playground.API (EvaluationResult, _EvaluationResult, _Fn, _FunctionSchema)
+import Playground.API (EvaluationResult, SimulatorWallet, _EvaluationResult, _Fn, _FunctionSchema)
 import Prelude (map, show, unit, ($), (+), (/=), (<$>), (<<<), (<>))
 import Servant.PureScript.Affjax (AjaxError)
-import Types (Action(Wait, Action), Blockchain, ChildQuery, ChildSlot, FormEvent(SetSubField, SetStringField, SetIntField), MockWallet, Query(EvaluateActions, AddWaitAction, PopulateAction, SetWaitTime, RemoveAction), SimpleArgument(Unknowable, SimpleObject, SimpleString, SimpleInt), ValidationError, Signatures, _MockWallet, _argumentSchema, _functionName, _wallet, validate)
+import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, FormEvent(SetSubField, SetStringField, SetIntField), Query(EvaluateActions, ModifyActions, PopulateAction), SimpleArgument(Unknowable, SimpleObject, SimpleString, SimpleInt), Simulation, ValidationError, _argumentSchema, _functionName, _simulatorWalletWallet, _resultBlockchain, validate)
 import Wallet (walletIdPane, walletsPane)
 
 simulationPane ::
   forall m aff.
   MonadAff (EChartsEffects aff) m
-  => Array MockWallet
-  -> Signatures
-  -> Array Action
+  => Simulation
+  -> Array SimulatorWallet
   -> RemoteData AjaxError EvaluationResult
   -> ParentHTML Query ChildQuery ChildSlot m
-simulationPane wallets signature actions evaluationResult =
+simulationPane simulation wallets evaluationResult =
   div_
-    [ walletsPane signature wallets
+    [ walletsPane simulation.signatures wallets
     , br_
-    , actionsPane actions (view (_EvaluationResult <<< to _.resultBlockchain) <$> evaluationResult)
+    , actionsPane simulation.actions (view (_EvaluationResult <<< _resultBlockchain) <$> evaluationResult)
     ]
 
 actionsPane :: forall p. Array Action -> RemoteData AjaxError Blockchain -> HTML p Query
@@ -69,14 +68,14 @@ actionPane index action =
                 [ text $ show (index + 1) ]
             , button
                 [ classes [ btn, btnInfo, pullRight ]
-                , onClick $ input_ $ RemoveAction index
+                , onClick $ input_ $ ModifyActions $ RemoveAction index
                 ]
                 [ icon Close ]
             , case action of
-                Action {mockWallet, functionSchema} ->
+                Action {simulatorWallet, functionSchema} ->
                   div_
                     [ h3_
-                        [ walletIdPane (view (_MockWallet <<< _wallet) mockWallet)
+                        [ walletIdPane (view _simulatorWalletWallet simulatorWallet)
                         , text ": "
                         , text $ view (_FunctionSchema <<< _functionName <<< _Fn) functionSchema
                         ]
@@ -92,7 +91,7 @@ actionPane index action =
                               [ type_ InputNumber
                               , value $ show blocks
                               , placeholder "Int"
-                              , onValueChange $ map (HQ.action <<< SetWaitTime index) <<< Int.fromString
+                              , onValueChange $ map (HQ.action <<< ModifyActions <<< SetWaitTime index) <<< Int.fromString
                               ]
                           ]
                         ]
@@ -176,7 +175,7 @@ addWaitActionPane =
       [ div
           [ class_ $ ClassName "add-wait-action" ]
           [ div [ class_ card
-                , onClick $ input_ $ AddWaitAction 10
+                , onClick $ input_ $ ModifyActions $ AddWaitAction 10
                 ]
               [ cardBody_
                   [ icon Plus
