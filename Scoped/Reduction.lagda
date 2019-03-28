@@ -121,6 +121,11 @@ BUILTIN greaterThanEqualsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (
 BUILTIN greaterThanEqualsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | yes q = true
 BUILTIN greaterThanEqualsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬p = false
 BUILTIN greaterThanEqualsInteger _ _ = error boolean
+BUILTIN equalsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with i I.≟ i'
+BUILTIN equalsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | yes q = true
+BUILTIN equalsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬p = false
+BUILTIN equalsInteger _ _ = error boolean
+
 BUILTIN _ _ _ = error (con integer)
 
 
