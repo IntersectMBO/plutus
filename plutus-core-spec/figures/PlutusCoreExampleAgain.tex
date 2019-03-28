@@ -9,9 +9,16 @@ one = (abs $a$ (type) (lam $x$ $a$ $x$))
 \end{lstlisting}
 for the element of the type $unit$ (defined in \ref{fig:Plutus_core_type_abbreviations}).
 
-We stress that declarations in this style are not part of the Plutus Core language. We merely use the familiar syntax to present out example. If the high-level definitions in our example were compiled to a Plutus Core expression, it would result in something like figure \ref{fig:Continuized_Let_Example}.
+We stress that declarations in this style are not part of the Plutus
+Core language. We merely use the familiar syntax to present out
+example. If the high-level definitions in our example were compiled to
+a Plutus Core expression, it would result in something like figure
+\ref{fig:Continuized_Let_Example}.
 
-We proceed by defining the booleans. Like $unit$, the type $boolean$ below is an abbreviation in the specification. Some built-in constants return values of type $boolean$. When needed, user programs should contain the declarations below. We have
+We proceed by defining the booleans. Like $unit$, the type $boolean$
+below is an abbreviation in the specification. Some built-in constants
+return values of type $boolean$. When needed, user programs should
+contain the declarations below. We have
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
 true : $boolean$
 true = (abs $a$ (type)
@@ -71,16 +78,34 @@ verifyIdentity =
       (lam u $unit$ (error $unit$))
     ]))
 \end{lstlisting}
-the idea being that the first arguemnt is a public key, and the second argument is the result of signing the hash of the current transaction (accessible via $txhash : \texttt{[(con bytestring) (con 32)]}$) with that public key. The function terminates if and only if the signature is valid, raising an \texttt{error} otherwise. Now, given Alice's public key we can apply our function to obtain one that verifies whether or not its input is the result of Alice signing the current block number. Again, we stress that the Plutus Core expression corresponding to $\texttt{verifyIdentity}$ is going to look something like figure \ref{fig:Continuized_Let_Example}.
+the idea being that the first argument is a public key, and the second
+argument is the result of signing the hash of the current transaction
+(accessible via $txhash : \texttt{[(con bytestring) (con 32)]}$) with
+that public key. The function terminates if and only if the signature
+is valid, raising an \texttt{error} otherwise. Now, given Alice's
+public key we can apply our function to obtain one that verifies
+whether or not its input is the result of Alice signing the current
+block number. Again, we stress that the Plutus Core expression
+corresponding to $\texttt{verifyIdentity}$ is going to look something
+like figure \ref{fig:Continuized_Let_Example}.
 
-With minimal modification we might turn our function into one that verifies a signature of the current block number. Specifically, by replacing $txhash$ with
+With minimal modification we might turn our function into one that
+verifies a signature of the current block number. Specifically, by
+replacing $txhash$ with
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
 [ {$intToByteString$ (con 16) (con 32)}
   256
   [{$blocknum$ (con 16)} 16]
 ]
 \end{lstlisting}
-Notice that we must supply $blocknum$ with the size we wish to use to store the result twice, once at the type level and again at the term level. This is necessary because we want to have the size information available both at the type level, to facilitate gas calculations, and at the term level, so that once types are erased the runtime will know how much memory to allocate. This quirk is present in a number of the built in functions.
+
+Notice that we must supply $blocknum$ with the size we wish to use to
+store the result twice, once at the type level and again at the term
+level. This is necessary because we want to have the size information
+available both at the type level, to facilitate gas calculations, and
+at the term level, so that once types are erased the runtime will know
+how much memory to allocate. This quirk is present in a number of the
+built in functions.
 
 \begin{figure*}[h]  % Using H here causes undefined references to this figure
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
