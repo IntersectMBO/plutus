@@ -85,6 +85,9 @@ data ScopedTm : Weirdℕ → Set where
 
 -- term/type synonyms
 
+boolean : ∀{Γ} → ScopedTy Γ
+boolean = Π * (` zero ⇒ (` zero ⇒ ` zero))
+
 void : ∀{n} → ScopedTm n
 void = Λ * (ƛ (` zero) (` Z))
 

@@ -15,7 +15,7 @@ open import Data.Product
 open import Data.List hiding ([_])
 open import Function
 open import Data.Integer as I
-open import Data.Nat as N hiding (_<?_)
+open import Data.Nat as N hiding (_<?_;_>?_;_≥?_)
 open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality hiding ([_];trans)
 \end{code}
@@ -108,11 +108,19 @@ BUILTIN remainderInteger _ _ = error (con integer)
 BUILTIN lessThanInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with i <? i'
 BUILTIN lessThanInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | yes q = true
 BUILTIN lessThanInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬p = false
-BUILTIN lessThanInteger _ _ = error (con integer)
+BUILTIN lessThanInteger _ _ = error boolean
 BUILTIN lessThanEqualsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with i I.≤? i'
 BUILTIN lessThanEqualsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | yes q = true
 BUILTIN lessThanEqualsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬p = false
-BUILTIN lessThanEqualsInteger _ _ = error (con integer)
+BUILTIN lessThanEqualsInteger _ _ = error boolean
+BUILTIN greaterThanInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with i >? i'
+BUILTIN greaterThanInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | yes q = true
+BUILTIN greaterThanInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬p = false
+BUILTIN greaterThanInteger _ _ = error boolean
+BUILTIN greaterThanEqualsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with i ≥? i'
+BUILTIN greaterThanEqualsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | yes q = true
+BUILTIN greaterThanEqualsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬p = false
+BUILTIN greaterThanEqualsInteger _ _ = error boolean
 BUILTIN _ _ _ = error (con integer)
 
 
