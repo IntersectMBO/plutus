@@ -127,8 +127,9 @@ BUILTIN equalsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' 
 BUILTIN equalsInteger _ _ = error boolean
 -- Int -> Int
 BUILTIN resizeInteger (_ ∷ size s' ∷ []) ((_ , V-con (integer s i p)) ∷ []) with boundedI? s' i
-BUILTIN resizeInteger (_ ∷ size s' ∷ []) ((.(con (integer s i p)) , V-con (integer s i p)) ∷ []) | yes q = con (integer s' i q)
-BUILTIN resizeInteger (_ ∷ size s' ∷ []) ((.(con (integer s i p)) , V-con (integer s i p)) ∷ []) | no ¬q = error (con integer)
+BUILTIN resizeInteger (_ ∷ size s' ∷ []) ((_ , V-con (integer s i p)) ∷ []) | yes q = con (integer s' i q)
+BUILTIN resizeInteger (_ ∷ size s' ∷ []) ((_ , V-con (integer s i p)) ∷ []) | no ¬q = error (con integer)
+BUILTIN sizeOfInteger _  ((_ , V-con (integer s i p)) ∷ []) = con (size s)
 BUILTIN _ _ _ = error (con integer)
 
 
