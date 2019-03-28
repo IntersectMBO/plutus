@@ -33,7 +33,7 @@ import qualified Data.Map             as Map
 import           Data.Semigroup       (Semigroup)
 import qualified Data.Set             as Set
 import           GHC.Generics         (Generic)
-import qualified Ledger.Interval      as Interval
+import qualified Ledger.Slot          as Slot
 import           Ledger.Types         (Blockchain, DataScript, PubKey, Signature, Slot (..), Tx (..), TxIn, TxInOf (..),
                                        TxOut, TxOutOf (..), TxOutRef, ValidationData (..), Value, lifted, updateUtxo,
                                        validValuesTx)
@@ -127,7 +127,7 @@ validateTransaction h t = do
 -- | Check that a transaction can be validated in the given slot.
 checkSlotRange :: ValidationMonad m => Ledger.Slot -> Tx -> m ()
 checkSlotRange sl tx =
-    if $$(Interval.member) sl (txValidRange tx)
+    if $$(Slot.member) sl (txValidRange tx)
     then pure ()
     else throwError $ CurrentSlotOutOfRange sl
 

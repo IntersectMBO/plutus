@@ -121,7 +121,7 @@ import           Language.PlutusTx.Lift.Class             (Lift)
 import           Language.PlutusTx.TH                     (CompiledCode, compile, getSerializedPlc)
 import           PlutusPrelude
 
-import           Ledger.Interval                          (Slot(..), SlotRange)
+import           Ledger.Slot                              (Slot(..), SlotRange)
 import           Ledger.Ada                               (Ada)
 import           Ledger.Value                             (Value)
 import qualified Ledger.Value.TH                          as V

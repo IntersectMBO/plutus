@@ -61,7 +61,7 @@ import           GHC.Generics                 (Generic)
 import           Language.Haskell.TH          (Q, TExp)
 import           Language.PlutusTx.Lift       (makeLift)
 import qualified Language.PlutusTx.Builtins   as Builtins
-import           Ledger.Interval              (SlotRange)
+import           Ledger.Slot                  (SlotRange)
 import           Ledger.Types                 (Ada, PubKey (..), Signature (..), Value, Slot(..))
 import qualified Ledger.Types                 as Ledger
 import qualified Ledger.Ada.TH                as Ada
