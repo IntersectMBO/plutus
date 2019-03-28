@@ -8,7 +8,56 @@
 {-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module Ledger.Tx where
+module Ledger.Tx(
+    -- * Transactions
+    Tx(..),
+    TxIdOf(..),
+    TxId,
+    inputs,
+    outputs,
+    txOutRefs,
+    unspentOutputsTx,
+    spentOutputs,
+    updateUtxo,
+    validValuesTx,
+    -- ** Hashing transactions
+    preHash,
+    hashTx,
+    -- ** Stripped transactions
+    TxStripped(..),
+    strip,
+    -- * Transaction outputs
+    TxOutOf(..),
+    TxOutType(..),
+    TxOut,
+    TxOutRefOf(..),
+    TxOutRef,
+    isPubKeyOut,
+    isPayToScriptOut,
+    outAddress,
+    outValue,
+    outType,
+    txOutPubKey,
+    txOutData,
+    pubKeyTxOut,
+    scriptTxOut,
+    -- * Transaction inputs
+    TxInOf(..),
+    TxInType(..),
+    TxIn,
+    inRef,
+    inType,
+    inScripts,
+    inSignature,
+    validRange,
+    pubKeyTxIn,
+    scriptTxIn,
+    -- * Addresses
+    AddressOf(..),
+    Address,
+    pubKeyAddress,
+    scriptAddress
+    ) where
 
 import qualified Codec.CBOR.Write                         as Write
 import           Codec.Serialise.Class                    (Serialise, decode, encode)

@@ -10,7 +10,25 @@
 {-# LANGUAGE ViewPatterns       #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -- | Functions for working with scripts on the ledger.
-module Ledger.Scripts where
+module Ledger.Scripts(
+    -- * Scripts
+    Script,
+    scriptSize,
+    fromCompiledCode,
+    compileScript,
+    lifted,
+    applyScript,
+    evaluateScript,
+    runScript,
+    -- * Script wrappers
+    ValidatorScript(..),
+    RedeemerScript(..),
+    DataScript(..),
+    ValidationData(..),
+    -- * Example scripts
+    unitRedeemer,
+    unitData
+    ) where
 
 import qualified Codec.CBOR.Write                         as Write
 import           Codec.Serialise                          (deserialise, serialise)

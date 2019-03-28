@@ -1,7 +1,23 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE FlexibleInstances  #-}
-module Ledger.Blockchain where
+module Ledger.Blockchain (
+    Block,
+    Blockchain,
+    ValidationData(..),
+    lastSlot,
+    transaction,
+    out,
+    value,
+    unspentOutputsTx,
+    spentOutputs,
+    unspentOutputs,
+    dataTxo,
+    updateUtxo,
+    txOutPubKey,
+    pubKeyTxo,
+    validValuesTx
+    ) where
 
 import           Control.Monad                            (join)
 import           Data.Map                                 (Map)

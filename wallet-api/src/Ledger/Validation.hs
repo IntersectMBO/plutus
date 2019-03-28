@@ -61,10 +61,14 @@ import           GHC.Generics                 (Generic)
 import           Language.Haskell.TH          (Q, TExp)
 import           Language.PlutusTx.Lift       (makeLift)
 import qualified Language.PlutusTx.Builtins   as Builtins
-import           Ledger.Slot                  (SlotRange)
-import           Ledger.Types                 (Ada, PubKey (..), Signature (..), Value, Slot(..))
-import qualified Ledger.Types                 as Ledger
+
+import           Ledger.Ada                   (Ada)
 import qualified Ledger.Ada.TH                as Ada
+import           Ledger.Crypto                (PubKey (..), Signature (..))
+import           Ledger.Scripts
+import           Ledger.Slot                  (Slot, SlotRange)
+import qualified Ledger.Tx                    as Tx
+import           Ledger.Value                 (Value)
 
 -- Ignore newtype warnings related to `Oracle` and `Signed` because it causes
 -- problems with the plugin
@@ -207,7 +211,7 @@ newtype TxHash =
     deriving (Eq, Generic)
 
 -- | Compute the hash of a data script.
-plcDataScriptHash :: Ledger.DataScript -> DataScriptHash
+plcDataScriptHash :: DataScript -> DataScriptHash
 plcDataScriptHash = DataScriptHash . plcSHA2_256 . serialise
 
 -- | Compute the hash of a validator script.
@@ -215,12 +219,12 @@ plcValidatorDigest :: Digest SHA256 -> ValidatorHash
 plcValidatorDigest = ValidatorHash . plcDigest
 
 -- | Compute the hash of a redeemer script.
-plcRedeemerHash :: Ledger.RedeemerScript -> RedeemerHash
+plcRedeemerHash :: RedeemerScript -> RedeemerHash
 plcRedeemerHash = RedeemerHash . plcSHA2_256 . serialise
 
 -- | Compute the hash of a redeemer script.
-plcTxHash :: Ledger.TxId -> TxHash
-plcTxHash = TxHash . plcDigest . Ledger.getTxId
+plcTxHash :: Tx.TxId -> TxHash
+plcTxHash = TxHash . plcDigest . Tx.getTxId
 
 -- | PLC-compatible SHA-256 hash of a hashable value
 plcSHA2_256 :: BSL.ByteString -> BSL.ByteString

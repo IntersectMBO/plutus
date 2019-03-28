@@ -12,7 +12,6 @@ module Language.PlutusTx.Coordination.Contracts.Game(
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Language.PlutusTx.Prelude    as P
 import           Ledger
-import           Ledger.Validation
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Ada                   (Ada)
 import           Wallet

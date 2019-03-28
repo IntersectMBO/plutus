@@ -63,7 +63,6 @@ library
         Ledger.Crypto
         Ledger.Slot
         Ledger.Scripts
-        Ledger.Types
         Ledger.Tx
         Ledger.Validation
         Ledger.Index
