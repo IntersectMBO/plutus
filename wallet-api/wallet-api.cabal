@@ -60,6 +60,7 @@ library
         Ledger.These
         Ledger.These.TH
         Ledger.Slot
+        Ledger.Scripts
         Ledger.Types
         Ledger.Validation
         Ledger.Index
