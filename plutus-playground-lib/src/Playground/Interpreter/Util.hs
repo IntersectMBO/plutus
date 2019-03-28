@@ -3,25 +3,25 @@
 
 module Playground.Interpreter.Util where
 
-import           Control.Lens               (view)
-import           Control.Monad.Error.Class  (MonadError, throwError)
-import           Control.Newtype.Generics   (unpack)
-import           Data.Aeson                 (FromJSON)
-import qualified Data.Aeson                 as JSON
-import qualified Data.ByteString.Lazy.Char8 as BSL
-import           Data.Foldable              (foldl')
-import qualified Data.Map                   as Map
-import qualified Data.Set                   as Set
-import qualified Data.Typeable              as T
-import           Ledger                     (Blockchain, PubKey (PubKey), Tx, TxOutOf (txOutValue))
-import qualified Ledger.Value               as V
-import           Playground.API             (PlaygroundError (OtherError), SimulatorWallet (SimulatorWallet),
-                                             simulatorWalletBalance, simulatorWalletWallet)
-import           Wallet.Emulator.Types      (EmulatorEvent, EmulatorState (_chainNewestFirst, _emulatorLog), MockWallet,
-                                             Trace, Wallet (Wallet), ownFunds, processPending, runTraceTxPool,
-                                             walletStates, walletsNotifyBlock)
-import           Wallet.Generators          (GeneratorModel (GeneratorModel))
-import qualified Wallet.Generators          as Gen
+import           Control.Lens                             (view)
+import           Control.Monad.Error.Class                (MonadError, throwError)
+import           Control.Newtype.Generics                 (unpack)
+import           Data.Aeson                               (FromJSON)
+import qualified Data.Aeson                               as JSON
+import qualified Data.ByteString.Lazy.Char8               as BSL
+import           Data.Foldable                            (foldl')
+import qualified Data.Map                                 as Map
+import qualified Data.Typeable                            as T
+import           Ledger                                   (Blockchain, PubKey (PubKey), Tx, TxOutOf (txOutValue))
+import qualified Ledger.Value                             as V
+import           Playground.API                           (PlaygroundError (OtherError),
+                                                           SimulatorWallet (SimulatorWallet), simulatorWalletBalance,
+                                                           simulatorWalletWallet)
+import           Wallet.Emulator.Types                    (EmulatorEvent,
+                                                           EmulatorState (_chainNewestFirst, _emulatorLog), MockWallet,
+                                                           Trace, Wallet (Wallet), ownFunds, processPending,
+                                                           runTraceTxPool, walletStates, walletsNotifyBlock)
+import qualified Wallet.Generators.Mockchain.StateMachine as Gen
 
 -- | Unfortunately any uncaught errors in the interpreter kill the
 -- thread that is running it rather than returning the error. This
@@ -39,9 +39,6 @@ runTrace wallets actions =
             ( PubKey $ unpack simulatorWalletWallet
             , simulatorWalletBalance)
         initialBalance = Map.fromList $ fmap walletToBalance wallets
-        pubKeys =
-            Set.fromList $
-            fmap (PubKey . unpack . simulatorWalletWallet) wallets
         eActions = sequence actions
      in case eActions of
             Left e -> Left e
@@ -50,9 +47,7 @@ runTrace wallets actions =
                         processPending >>=
                         walletsNotifyBlock (Wallet <$> [1 .. length wallets])
                     action = notifyAll >> sequence actions'
-                    (initialTx, _) =
-                        Gen.genInitialTransaction $
-                        GeneratorModel initialBalance pubKeys
+                    (initialTx, _) = Gen.initialTransaction initialBalance
                     (eRes, newState) = runTraceTxPool [initialTx] action
                     blockchain = _chainNewestFirst newState
                     emulatorLog = _emulatorLog newState

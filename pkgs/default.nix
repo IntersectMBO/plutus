@@ -57998,8 +57998,8 @@ license = stdenv.lib.licenses.bsd3;
 mkDerivation {
 
 pname = "pretty-show";
-version = "1.7";
-sha256 = "382b6ef4a78e4059611b5c86674ad72a6bfce821e8852da4f00b628cfbbc272f";
+version = "1.9.5";
+sha256 = "b095bebb79951d2e25a543a591844fb638165672d7b95d325844611297ba423f";
 isLibrary = true;
 isExecutable = true;
 enableSeparateDataOutput = true;
@@ -59823,6 +59823,47 @@ doCheck = false;
 homepage = "https://github.com/minad/quickcheck-special#readme";
 description = "Edge cases and special values for QuickCheck Arbitrary instances";
 license = stdenv.lib.licenses.mit;
+
+}) {};
+"quickcheck-state-machine" = callPackage
+({
+  mkDerivation
+, ansi-wl-pprint
+, base
+, containers
+, exceptions
+, matrix
+, mtl
+, pretty-show
+, QuickCheck
+, stdenv
+, tree-diff
+, unliftio
+, vector
+}:
+mkDerivation {
+
+pname = "quickcheck-state-machine";
+version = "0.6.0";
+sha256 = "3e5f7199282c185986eedbf7cd22e2c68d4ec6ef24bec80c27a33429c555727d";
+libraryHaskellDepends = [
+ansi-wl-pprint
+base
+containers
+exceptions
+matrix
+mtl
+pretty-show
+QuickCheck
+tree-diff
+unliftio
+vector
+];
+doHaddock = false;
+doCheck = false;
+homepage = "https://github.com/advancedtelematic/quickcheck-state-machine#readme";
+description = "Test monadic programs using state machine based models";
+license = stdenv.lib.licenses.bsd3;
 
 }) {};
 "quickcheck-text" = callPackage
@@ -65029,6 +65070,42 @@ doHaddock = false;
 doCheck = false;
 homepage = "http://haskell-servant.readthedocs.org/";
 description = "generate API docs for your servant webservice";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
+"servant-ekg" = callPackage
+({
+  mkDerivation
+, base
+, ekg-core
+, hashable
+, http-types
+, servant
+, stdenv
+, text
+, time
+, unordered-containers
+, wai
+}:
+mkDerivation {
+
+pname = "servant-ekg";
+version = "0.3";
+sha256 = "5478275d0439e6353fb2fe31f6f380d01f405a79146f7af4bd319b01f1dd1a4f";
+libraryHaskellDepends = [
+base
+ekg-core
+hashable
+http-types
+servant
+text
+time
+unordered-containers
+wai
+];
+doHaddock = false;
+doCheck = false;
+description = "Helpers for using ekg with servant";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
@@ -79422,6 +79499,7 @@ license = stdenv.lib.licenses.mit;
 , containers
 , cryptonite
 , deriving-compat
+, exceptions
 , hashable
 , hedgehog
 , language-plutus-core
@@ -79432,6 +79510,8 @@ license = stdenv.lib.licenses.mit;
 , newtype-generics
 , operational
 , plutus-tx
+, QuickCheck
+, quickcheck-state-machine
 , recursion-schemes
 , serialise
 , servant
@@ -79442,9 +79522,11 @@ license = stdenv.lib.licenses.mit;
 , swagger2
 , tasty
 , tasty-hedgehog
+, tasty-quickcheck
 , template-haskell
 , text
 , transformers
+, tree-diff
 , warp
 }:
 mkDerivation {
@@ -79463,6 +79545,7 @@ cborg
 containers
 cryptonite
 deriving-compat
+exceptions
 hashable
 hedgehog
 language-plutus-core
@@ -79473,6 +79556,8 @@ natural-transformation
 newtype-generics
 operational
 plutus-tx
+QuickCheck
+quickcheck-state-machine
 recursion-schemes
 serialise
 servant
@@ -79480,9 +79565,11 @@ servant-client
 servant-server
 stm
 swagger2
+tasty-quickcheck
 template-haskell
 text
 transformers
+tree-diff
 ];
 executableHaskellDepends = [
 base
@@ -79493,12 +79580,18 @@ aeson
 base
 bytestring
 containers
+exceptions
 hedgehog
 lens
+mtl
 plutus-tx
+QuickCheck
+quickcheck-state-machine
 tasty
 tasty-hedgehog
+tasty-quickcheck
 transformers
+tree-diff
 ];
 doHaddock = false;
 description = "Wallet API";

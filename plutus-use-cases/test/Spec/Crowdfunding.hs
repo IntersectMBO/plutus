@@ -11,7 +11,7 @@ import           Control.Monad.IO.Class
 import           Data.Either                                           (isRight)
 import           Data.Foldable                                         (traverse_)
 import qualified Data.Map                                              as Map
-import           Hedgehog                                              (Property, forAll, property)
+import           Hedgehog                                              (Property, property)
 import qualified Hedgehog
 import           Test.Tasty
 import           Test.Tasty.Hedgehog                                   (testProperty)
@@ -19,7 +19,7 @@ import qualified Test.Tasty.HUnit                                      as HUnit
 
 import           Wallet                                                (PubKey (..))
 import           Wallet.Emulator
-import qualified Wallet.Generators                                     as Gen
+import qualified Wallet.Generators.Mockchain.StateMachine              as Gen
 
 import           Language.PlutusTx.Coordination.Contracts.CrowdFunding (Campaign (..), contribute)
 import qualified Language.PlutusTx.Coordination.Contracts.CrowdFunding as CF
@@ -242,8 +242,9 @@ startingBalance = Ada.adaValueOf 1000
 --   successfully with an empty transaction pool.
 checkCFTrace :: CFScenario -> Trace MockWallet () -> Property
 checkCFTrace CFScenario{cfInitialBalances} t = property $ do
-    let model = Gen.generatorModel { Gen.gmInitialBalance = cfInitialBalances }
-    (result, st) <- forAll $ Gen.runTraceOn model (processPending >>= notifyBlock >> t)
+    let ib = Map.toList cfInitialBalances
+        es = emulatorState' [fst $ Gen.initialTransaction ib]
+        (result, st) = runTraceState es $ processPending >>= notifyBlock >> t
     Hedgehog.assert (isRight result)
     Hedgehog.assert ([] == _txPool st)
 

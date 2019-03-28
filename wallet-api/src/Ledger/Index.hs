@@ -6,7 +6,7 @@
 -- | An index of unspent transaction outputs, and some functions for validating
 --   transactions using the index.
 module Ledger.Index(
-    -- * Types for transaction validation based on UTXO index
+    -- * Types for transaction validation based on UTxO index
     ValidationMonad,
     UtxoIndex(..),
     insert,
@@ -20,7 +20,8 @@ module Ledger.Index(
     ValidationError(..),
     InOutMatch(..),
     -- * Actual validation
-    validateTransaction
+    validateTransaction,
+    checkValidInputs
     ) where
 
 import           Control.Monad.Except (MonadError (..))

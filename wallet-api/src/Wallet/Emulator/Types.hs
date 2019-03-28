@@ -34,6 +34,7 @@ module Wallet.Emulator.Types(
     runTraceTxPool,
     evalTraceTxPool,
     execTraceTxPool,
+    runTraceState,
     walletAction,
     walletRecvNotifications,
     walletNotifyBlock,
@@ -49,8 +50,10 @@ module Wallet.Emulator.Types(
     EmulatorState(..),
     emptyEmulatorState,
     emulatorState,
+    emulatorState',
     chainNewestFirst,
     chainOldestFirst,
+    emulatorLog,
     txPool,
     walletStates,
     index,
@@ -462,7 +465,7 @@ validateBlock currentSlot idx txns =
         -- current slot
         (eligibleTxns, rest) = partition (canValidateNow currentSlot) txns
 
-        -- Validate eligible transactions, updating the UTXO index each time
+        -- Validate eligible transactions, updating the UTxO index each time
         (processed, idx') =
             flip runState idx $ for eligibleTxns $ \t -> do
                 r <- validateEm currentSlot t
@@ -533,15 +536,17 @@ assertOwnFundsEq wallet = assertion . OwnFundsEqual wallet
 assertIsValidated :: Tx -> Trace m ()
 assertIsValidated = assertion . IsValidated
 
--- | Run an 'Trace' on a blockchain.
+-- | Run a 'Trace' on a blockchain
 runTraceChain :: Blockchain -> Trace MockWallet a -> (Either AssertionError a, EmulatorState)
-runTraceChain ch t = runState (runExceptT $ processEmulated t) emState where
-    emState = emulatorState ch
+runTraceChain ch = runTraceState (emulatorState ch)
 
 -- | Run a 'Trace' on an empty blockchain with a pool of pending transactions.
 runTraceTxPool :: TxPool -> Trace MockWallet a -> (Either AssertionError a, EmulatorState)
-runTraceTxPool tp t = runState (runExceptT $ processEmulated t) emState where
-    emState = emulatorState' tp
+runTraceTxPool tp = runTraceState (emulatorState' tp)
+
+-- | Run a 'Trace' on an intermediate emulator state
+runTraceState :: EmulatorState -> Trace MockWallet a -> (Either AssertionError a, EmulatorState)
+runTraceState emState t = runState (runExceptT $ processEmulated t) emState
 
 -- | Evaluate a 'Trace' on an empty blockchain with a pool of pending
 --   transactions and return the final value, discarding the final

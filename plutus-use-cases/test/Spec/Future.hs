@@ -6,8 +6,7 @@ import           Control.Monad                                   (void)
 import           Control.Monad.IO.Class
 import           Data.Either                                     (isRight)
 import           Data.Foldable                                   (traverse_)
-import qualified Data.Map                                        as Map
-import           Hedgehog                                        (Property, forAll, property)
+import           Hedgehog                                        (Property, property)
 import qualified Hedgehog
 import           Test.Tasty
 import           Test.Tasty.Hedgehog                             (testProperty)
@@ -21,7 +20,7 @@ import qualified Ledger.Value                                    as Value
 import           Prelude                                         hiding (init)
 import           Wallet.API                                      (PubKey (..))
 import           Wallet.Emulator
-import qualified Wallet.Generators                               as Gen
+import qualified Wallet.Generators.Mockchain.StateMachine        as Gen
 
 import           Language.PlutusTx.Coordination.Contracts.Future (Future (..), FutureData (..))
 import qualified Language.PlutusTx.Coordination.Contracts.Future as F
@@ -213,9 +212,9 @@ startingBalance = Ada.adaValueOf 1000000
 checkTrace :: Trace MockWallet () -> Property
 checkTrace t = property $ do
     let
-        ib = Map.fromList [(PubKey 1, startingBalance), (PubKey 2, startingBalance)]
-        model = Gen.generatorModel { Gen.gmInitialBalance = ib }
-    (result, st) <- forAll $ Gen.runTraceOn model t
+        ib = [(PubKey 1, startingBalance), (PubKey 2, startingBalance)]
+        es = emulatorState' [fst $ Gen.initialTransaction ib]
+        (result, st) = runTraceState es t
     Hedgehog.assert (isRight result)
     Hedgehog.assert ([] == _txPool st)
 

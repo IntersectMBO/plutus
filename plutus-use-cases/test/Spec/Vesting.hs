@@ -11,7 +11,7 @@ import           Control.Monad.IO.Class
 import           Data.Either                                      (isRight)
 import           Data.Foldable                                    (traverse_)
 import qualified Data.Map                                         as Map
-import           Hedgehog                                         (Property, forAll, property)
+import           Hedgehog                                         (Property, property)
 import qualified Hedgehog
 import           Test.Tasty
 import           Test.Tasty.Hedgehog                              (testProperty)
@@ -27,7 +27,7 @@ import qualified Ledger.Validation                                as Validation
 import qualified Ledger.Value                                     as Value
 import           Wallet                                           (PubKey (..))
 import           Wallet.Emulator
-import qualified Wallet.Generators                                as Gen
+import qualified Wallet.Generators.Mockchain.StateMachine         as Gen
 
 tests :: TestTree
 tests = testGroup "vesting" [
@@ -166,8 +166,8 @@ total = totalAmount $ vsVestingScheme scen1
 --   successfully with an empty transaction pool.
 checkVestingTrace :: VestingScenario -> Trace MockWallet () -> Property
 checkVestingTrace VestingScenario{vsInitialBalances} t = property $ do
-    let model = Gen.generatorModel { Gen.gmInitialBalance = vsInitialBalances }
-    (result, st) <- forAll $ Gen.runTraceOn model t
+    let es    = emulatorState' [fst $ Gen.initialTransaction $ Map.toList vsInitialBalances]
+        (result, st) = runTraceState es t
     Hedgehog.assert (isRight result)
     Hedgehog.assert ([] == _txPool st)
 

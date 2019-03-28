@@ -7,25 +7,25 @@
 -fno-warn-unused-do-bind #-}
 module Spec.Common where
 
-import           Control.Monad           (void)
-import           Data.Either             (isRight)
-import           Data.Map.Strict         (Map)
-import qualified Data.Map.Strict         as Map
-import           Data.Set                (Set)
-import qualified Data.Set                as Set
+import           Control.Monad                            (void)
+import           Data.Either                              (isRight)
+import           Data.Map.Strict                          (Map)
+import qualified Data.Map.Strict                          as Map
+import           Data.Set                                 (Set)
+import qualified Data.Set                                 as Set
 
-import           Hedgehog                (Gen, Property, Size (..), forAll, property)
+import           Hedgehog                                 (Gen, Property, Size (..), property)
 import qualified Hedgehog
-import           Hedgehog.Gen            (choice, element, int, sized)
-import qualified Hedgehog.Range          as Range
+import           Hedgehog.Gen                             (choice, element, int, sized)
+import qualified Hedgehog.Range                           as Range
 
-import           Language.Marlowe        hiding (discountFromPairList, insertCommit, mergeChoices)
-import           Language.Marlowe.Client (createContract, marloweValidator, spendDeposit)
-import           Ledger                  hiding (Value)
+import           Language.Marlowe                         hiding (discountFromPairList, insertCommit, mergeChoices)
+import           Language.Marlowe.Client                  (createContract, marloweValidator, spendDeposit)
+import           Ledger                                   hiding (Value)
 import qualified Ledger
-import           Wallet                  (PubKey (..))
+import           Wallet                                   (PubKey (..))
 import           Wallet.Emulator
-import qualified Wallet.Generators       as Gen
+import qualified Wallet.Generators.Mockchain.StateMachine as Gen
 
 newtype MarloweScenario = MarloweScenario { mlInitialBalances :: Map.Map PubKey Ledger.Value }
 data Bounds = Bounds {
@@ -161,8 +161,8 @@ boundedContract participants commits bounds = sized $ boundedContractAux partici
 --   successfully with an empty transaction pool.
 checkMarloweTrace :: MarloweScenario -> Trace MockWallet () -> Property
 checkMarloweTrace MarloweScenario{mlInitialBalances} t = property $ do
-    let model = Gen.generatorModel { Gen.gmInitialBalance = mlInitialBalances }
-    (result, st) <- forAll $ Gen.runTraceOn model t
+    let es = emulatorState' [ fst $ Gen.initialTransaction $ Map.toList mlInitialBalances ]
+        (result, st) = runTraceState es t
     Hedgehog.assert (isRight result)
     Hedgehog.assert ([] == _txPool st)
 
