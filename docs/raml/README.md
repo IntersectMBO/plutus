@@ -198,7 +198,7 @@ complicated than heap allocation, but the results do agree exactly
 with the actual number of steps reported in
 [Peano.evaluation](./Peano.evaluation).
 
-#### Church-encoded Peano numbers
+#### Church-encoded Naturals
 
 A Church-encoded version of the test program appears in xxx, and a
 manually defunctionalised version in yyy.  Defunctionalising the
@@ -208,41 +208,82 @@ produce good results (see uuu).  Somewhat surprisingly, RAML also
 produces good predictions for the version using higher-order
 functions: see xxx and yyy.  I don't know what to make of this.
 
-#### Scott-encoded Peano numbers
+#### Scott-encoded Naturals
 
-I wasn't able to use the Scott encoding directly in RAML or OCaml, due
-to restrictions of the OCaml type system.  It is possible to use the
+I attempted to implement Scott-encoded naturals as well, but I wasn't
+able to use the Scott encoding directly in RAML or OCaml due to
+restrictions of the OCaml type system.  It is possible to handle the
 Scott encoding using records in OCaml (see
-[ScottNat1.raml](./ScottNat1.raml)), but RAML can't deal with this
+[ScottNat2.raml](./ScottNat2.raml)), but RAML can't deal with this
 because it doesn't support records.  OCaml also has an option
 providing direct support for recursive types, but an attempt at using
 the Scott encoding with this didn't work too well (see
-[ScottNat2.raml](./ScottNat2.raml)) and RAML doesn't allow this anyway.
-Other methods for embedding complicated System F types and terms are
-described in [[Lindley2012](#lindley-2012)], but again these use
-features of OCaml which aren't supported by RAML.  Thus I wasn't able
-to get any results for the Scott-encoded Peano numbers.
+[ScottNat1.raml](./ScottNat1.raml)) and RAML doesn't support this
+anyway.  Other methods for embedding complicated System F types and
+terms are described in [[Lindley2012](#lindley-2012)], but again these
+use features of OCaml which aren't supported by RAML.  Thus I wasn't
+able to get any results for Scott-encoded naturals.
 
-[I was trying to defunctionalise the Scott encoding to see what happened,
-but had some difficulty and then had to do something else. I'll look at
-this again later.]
+[I was trying to defunctionalise the Scott encoding to see what
+happened, but had some difficulty and then had to do something
+else. I'll look at this again later.]
 
 --------
 ### Other Analyses
 
-There is a considerable amount of literature on static resource analysis.
-The following subsections contain brief descriptions of some other techniques.
-[... or they will do at some point]
+There is a considerable amount of literature on static resource
+analysis.  For reference, the following subsections contain very brief
+descriptions of some other techniques.  Most of these deal with
+imperative code of one kind or another, and would not be directly
+applicable to Plutus Core.
 
 #### SPEED
-https://www.microsoft.com/en-us/research/publication/speed-precise-and-efficient-static-estimation-of-program-computational-complexity-2/
 
-#### COSTA
-http://costa.fdi.ucm.es/costa/costa.php
+The [SPEED analysis](https://www.microsoft.com/en-us/research/publication/speed-precise-and-efficient-static-estimation-of-program-computational-complexity-2/)
+of Gulwani et al finds symbolic bounds for the number of statements
+executed by imperative programs.  It works by instrumenting the
+control flow graph of the program with counters and then finding
+invariants which describe overall execution costs.  The method depends
+strongly on having a CFG and would probably not be immdiately
+applicable in our situation.
+
+
+#### COSTA 
+The [COSTA project](http://costa.fdi.ucm.es/costa/costa.php)
+of Germ&aacute;n Puebla and others has done a lot of work on cost
+analysis for Java bytecode using logic programming techniques
+with specially-developed solvers for systems of cost equations.
+The basic method again requires a CFG.
 
 #### Lattice point enumeration in polytopes
+Consider a nest of loops
+such as
+```
+for (int i=0; i<=n; i++)
+   for (int j=0; j<=i; j++)
+       // do something
+```
+in a C-type language.  The iterations of the inner
+loop are constrained by the equations 0&le;i&le;n and 0&le;j&le;i,
+which describe a triangular region in the (i,j) plain, and the inner
+loop is executed once for each point with integer coordinates in this
+region.  There is a rich mathematical theory of the enumeration of
+lattice points in polytopes (higher-dimensional polyhedra): see
+[[Beck2015](#beck2015)].  This theory has been applied to program
+analysis, for example in [[Braberman2006](#braberman2006)] and
+[[Aspinall2010](#aspinall2010)], but is again most immediately applicable
+to imperative programs.
+
 
 #### Implicit Computational Complexity
+
+There's an extensive field of _implicit computational complexity_,
+which uses techniques from logic and type theory to analyse the
+complexity of computations in numerous different calculi.
+Unfortunately this is a large field and I'n not very familiar with the
+details. It's conceivable that techniques from implicit computational
+complexity would be directly applicable to Plutus Core, but I don't
+know how usable these methods are in practice.
 
 --------
 ## Conclusion
@@ -264,10 +305,6 @@ language with suitable constructs might help with this, although we'd
 need some guarantees about the translation to Plutus Core in order to
 be sure that any bounds derived from the intermediate language were
 applicable to code which is actually executed.
-
-It's conceivable that techniques from implicit computational complexity
-would be directly applicable to Plutus Core, but I don't know how
-usable these methods are in practice.
 
 --------
 
@@ -300,3 +337,22 @@ S. Lindley.\
 Embedding F.\
 WGP '12.\
 [pdf](http://homepages.inf.ed.ac.uk/slindley/papers/embedding-f.pdf)
+
+
+##### Beck2015
+Matthias Beck.\
+Computing the Continuous Discretely: Integer-point Enumeration in Polyhedra.\
+Springer-Verlag, 2015.\
+PDF of the first edition avalable [here](http://math.sfsu.edu/beck/papers/noprint.pdf).
+
+##### Braberman2006
+V. Braberman, D. Garbervetsky, and S.Yovine.\
+A Static Analysis for Synthesizing Parametric Specifications of Dynamic Memory Consumption.\
+Journal of Object Technology, 5(5), 2006.\
+[pdf](http://homepages.inf.ed.ac.uk/slindley/papers/embedding-f.pdf)
+
+##### Aspinall2010
+D. Aspinall, R. Atkey, K. MacKenzie and D. Sannella.\
+Symbolic and Analytic Techniques for Resource Analysis of Java Bytecode.\
+TGC 2010.
+[pdf](http://groups.inf.ed.ac.uk/resa/tgc.pdf)
