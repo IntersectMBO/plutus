@@ -95,10 +95,11 @@ import           Prelude                        ( Show(..)
 import qualified Language.PlutusTx              as PlutusTx
 import           Ledger                         ( PubKey(..)
                                                 , Signature(..)
+                                                , Slot(..)
                                                 )
 import qualified Ledger.Ada.TH                  as Ada
 import           Ledger.Ada.TH                  (Ada)
-import           Ledger.Interval                (Interval(..), Slot(..))
+import           Ledger.Interval                (Interval(..))
 import           Ledger.Validation
 import qualified Ledger.Validation              as Validation
 import qualified Language.PlutusTx.Builtins     as Builtins

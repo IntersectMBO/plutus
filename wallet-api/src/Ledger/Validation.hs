@@ -163,8 +163,8 @@ We need to deal with hashes of four different things in a validator script:
 3. Data scripts
 4. Redeemer scripts
 
-The mockchain code in [[Ledger.Types]] only deals with the hashes of(1)
-and (2), and uses the [[Ledger.TxId]] and `Digest SHA256` types for
+The mockchain code in 'Ledger.Tx' only deals with the hashes of(1)
+and (2), and uses the 'Ledger.Tx.TxId' and `Digest SHA256` types for
 them.
 
 In PLC validator scripts the situation is different: First, they need to work

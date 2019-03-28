@@ -34,9 +34,7 @@ import           Language.Haskell.Interpreter (CompilationError (CompilationErro
                                                SourceCode, column, filename, row, text)
 import qualified Language.Haskell.Interpreter as HI
 import qualified Language.Haskell.TH.Syntax   as TH
-import           Ledger.Ada                   (Ada)
-import           Ledger.Types                 (Blockchain, PubKey, Tx, TxId)
-import           Ledger.Validation            (ValidatorHash)
+import           Ledger                       (Ada, Blockchain, PubKey, Tx, TxId, ValidatorHash)
 import           Servant.API                  ((:<|>), (:>), Get, JSON, Post, ReqBody)
 import           Text.Read                    (readMaybe)
 import           Wallet.Emulator.Types        (EmulatorEvent, Wallet)

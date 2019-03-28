@@ -19,16 +19,16 @@ module Ledger.Blockchain (
     validValuesTx
     ) where
 
-import           Control.Monad                            (join)
-import           Data.Map                                 (Map)
-import qualified Data.Map                                 as Map
-import           Data.Maybe                               (listToMaybe)
+import           Control.Monad  (join)
+import           Data.Map       (Map)
+import qualified Data.Map       as Map
+import           Data.Maybe     (listToMaybe)
 
 import           Ledger.Crypto
-import           Ledger.Slot                              (Slot(..))
 import           Ledger.Scripts
-import           Ledger.Value                             (Value)
+import           Ledger.Slot    (Slot (..))
 import           Ledger.Tx
+import           Ledger.Value   (Value)
 
 -- | A block on the blockchain. This is just a list of transactions which
 -- successfully validate following on from the chain so far.
