@@ -32,7 +32,8 @@ import           Language.Haskell.TH
 import           Language.PlutusTx.Lift                   (makeLift)
 import           Language.PlutusTx.Prelude
 
--- | Slot number
+-- | The slot number. This is a good proxy for time, since on the Cardano blockchain
+-- slots pass at a constant rate.
 newtype Slot = Slot { getSlot :: Int }
     deriving (Eq, Ord, Show, Enum)
     deriving stock (Generic)
@@ -41,11 +42,10 @@ newtype Slot = Slot { getSlot :: Int }
 
 makeLift ''Slot
 
--- | An interval of @a@s. The interval is closed below and open above, meaning 
+-- | An interval of @a@s. The interval is closed below and open above, meaning
 --   that @Interval (Just (10 :: Int)) (Just 11)@ contains a single value @11@.
---   The interval is unbounded on either side: @Interval Nothing (Just 12)@ 
+--   The interval is unbounded on either side: @Interval Nothing (Just 12)@
 --   contains all numbers smaller than @12@.
---   
 data Interval a = Interval { ivFrom :: Maybe a, ivTo :: Maybe a }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
@@ -53,19 +53,20 @@ data Interval a = Interval { ivFrom :: Maybe a, ivTo :: Maybe a }
 
 makeLift ''Interval
 
+-- | An 'Interval' of 'Slot's.
 type SlotRange = Interval Slot
 
 {- note [Definition of Interval]
 
-The purpose of this module is to provide an interval data type that 
-can be used in on-chain and off-chain code alike. Its two main uses in the 
+The purpose of this module is to provide an interval data type that
+can be used in on-chain and off-chain code alike. Its two main uses in the
 'wallet-api' module are the validity range of transactions, and the ranges of
 funds and slot numbers for wallet triggers.
 
-To ensure that 'Interval' can be used in on-chain code, the functions in this 
-module do not use type classes or functions from the Haskell Prelude. The types 
+To ensure that 'Interval' can be used in on-chain code, the functions in this
+module do not use type classes or functions from the Haskell Prelude. The types
 of the query functions exported from here are specialised to
-'Interval Slot'. 
+'Interval Slot'.
 
 -}
 
@@ -94,11 +95,11 @@ interval = [|| \s s' -> Interval (Just s) (Just s') ||]
 singleton :: Q (TExp (Slot -> SlotRange))
 singleton = [|| \(Slot s) -> Interval (Just (Slot s)) (Just (Slot ($$plus s 1))) ||]
 
--- | Check if a 'SlotRange' is empty
+-- | Check if a 'SlotRange' is empty.
 empty :: Q (TExp (SlotRange -> Bool))
-empty = [|| 
-    \(Interval f t) -> 
-        case f of 
+empty = [||
+    \(Interval f t) ->
+        case f of
             Nothing -> False
             Just (Slot f') -> case t of
                 Nothing -> False
@@ -107,29 +108,29 @@ empty = [||
 
 -- | Check if 'Slot' is contained in a 'SlotRange'.
 member :: Q (TExp (Slot -> SlotRange -> Bool))
-member = [|| 
-    \(Slot s) (Interval f t) -> 
+member = [||
+    \(Slot s) (Interval f t) ->
         let lw = case f of { Nothing -> True; Just (Slot f') -> $$leq f' s; }
             hg = case t of { Nothing -> True; Just (Slot t') -> $$gt t' s; }
         in
             if lw then hg else False
     ||]
 
--- | Number of 'Slot's covered by the interval. @width (from x) == Nothing@
+-- | Number of 'Slot's covered by the interval. @width (from x) == Nothing@.
 width :: Q (TExp (SlotRange -> Maybe Int))
-width = [|| 
-    \(Interval f t) -> 
-        case f of 
+width = [||
+    \(Interval f t) ->
+        case f of
             Nothing -> Nothing
             Just (Slot f') -> case t of
                 Nothing -> Nothing
                 Just (Slot t') -> Just ($$minus t' f')  ||]
 
--- | @a `contains` b@ is true if the 'SlotRange' @b@ is entirely contained in 
+-- | @a `contains` b@ is true if the 'SlotRange' @b@ is entirely contained in
 --   @a@. That is, @a `contains` b@ if for every slot @s@, if @member s b@ then
 --   @member s a@.
 contains :: Q (TExp (SlotRange -> SlotRange -> Bool))
-contains = [|| 
+contains = [||
     \(Interval af at) (Interval bf bt) ->
         let lw = case af of
                 Nothing -> True
@@ -145,7 +146,7 @@ contains = [||
             if lw then hg else False
     ||]
 
--- | Check if a 'Slot' is earlier than the beginning of a 'SlotRange'
+-- | Check if a 'Slot' is earlier than the beginning of a 'SlotRange'.
 before :: Q (TExp (Slot -> SlotRange -> Bool))
 before = [||
     \(Slot h) (Interval f _) -> case f of { Nothing -> False; Just (Slot h') -> $$gt h' h; }

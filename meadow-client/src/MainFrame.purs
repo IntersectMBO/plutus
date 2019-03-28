@@ -1,13 +1,13 @@
 module MainFrame (mainFrame) where
 
-import API (SourceCode(SourceCode), RunResult(..))
+import API (_RunResult)
 import Ace.EditSession as Session
 import Ace.Editor as Editor
 import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged), AceQuery(GetEditor))
 import Ace.Types (ACE, Editor, Annotation)
 import AjaxUtils (runAjaxTo)
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
-import Bootstrap (active, btn, btnGroup, btnSmall, container, container_, hidden, navItem_, navLink, navTabs_, pullRight)
+import Bootstrap (active, btn, btnGroup, btnSmall, container, container_, empty, hidden, listGroupItem_, listGroup_, navItem_, navLink, navTabs_, pullRight)
 import Control.Monad.Aff.Class (class MonadAff, liftAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
@@ -20,11 +20,12 @@ import Data.Either (Either(..))
 import Data.Foldable (foldrDefault)
 import Data.Function (flip)
 import Data.Functor.Coproduct (Coproduct)
-import Data.Lens (assign, modifying, over, preview, set, use)
+import Data.Lens (assign, modifying, over, preview, set, use, view)
 import Data.List (List(..))
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(Just, Nothing))
+import Data.Newtype (unwrap)
 import Data.Ord (min, max, (>=))
 import Data.Set (Set)
 import Data.Set as Set
@@ -39,11 +40,11 @@ import Halogen (Component, action)
 import Halogen as H
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
-import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, code_, div, div_, h1, pre_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href)
 import Halogen.Query (HalogenM)
-import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError))
+import Language.Haskell.Interpreter (SourceCode(SourceCode), InterpreterError(CompilationErrors, TimeoutError), CompilationError(CompilationError, RawError), InterpreterResult(InterpreterResult), _InterpreterResult)
 import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Marlowe.Parser (contract)
@@ -59,7 +60,7 @@ import Simulation (simulationPane)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Parsing.Simple (parse)
-import Types (ChildQuery, ChildSlot, EditorSlot(EditorSlot), FrontendState, InputData, MarloweEditorSlot(MarloweEditorSlot), MarloweState, OracleEntry, Query(ChangeView, ResetSimulator, SetOracleBn, SetOracleVal, SetChoice, RemoveAnyInput, AddAnyInput, NextBlock, ApplyTransaction, SetSignature, ScrollTo, CompileProgram, LoadMarloweScript, LoadScript, PublishGist, SendResult, CheckAuthStatus, MarloweHandleDropEvent, MarloweHandleDragEvent, MarloweHandleEditorMessage, HandleDropEvent, HandleDragEvent, HandleEditorMessage), TransactionData, TransactionValidity(..), View(Simulation, Editor), _authStatus, _blockNum, _choiceData, _contract, _createGistResult, _input, _inputs, _marloweState, _moneyInContract, _oldContract, _oracleData, _outcomes, _runResult, _signatures, _state, _transaction, _validity, _view, cpEditor, cpMarloweEditor)
+import Types (ChildQuery, ChildSlot, EditorSlot(EditorSlot), FrontendState, InputData, MarloweEditorSlot(MarloweEditorSlot), MarloweState, OracleEntry, Query(ChangeView, ResetSimulator, SetOracleBn, SetOracleVal, SetChoice, RemoveAnyInput, AddAnyInput, NextBlock, ApplyTransaction, SetSignature, ScrollTo, CompileProgram, LoadMarloweScript, LoadScript, PublishGist, SendResult, CheckAuthStatus, MarloweHandleDropEvent, MarloweHandleDragEvent, MarloweHandleEditorMessage, HandleDropEvent, HandleDragEvent, HandleEditorMessage), TransactionData, TransactionValidity(..), View(Simulation, Editor), _authStatus, _blockNum, _choiceData, _contract, _createGistResult, _input, _inputs, _marloweState, _moneyInContract, _oldContract, _oracleData, _outcomes, _compilationResult, _signatures, _state, _transaction, _validity, _view, cpEditor, cpMarloweEditor, _result)
 
 emptyInputData :: InputData
 emptyInputData = { inputs: Map.empty
@@ -84,7 +85,7 @@ emptyMarloweState = { input: emptyInputData
 
 initialState :: FrontendState
 initialState = { view: Editor
-               , runResult: NotAsked
+               , compilationResult: NotAsked
                , marloweCompileResult: Right unit
                , authStatus: NotAsked
                , createGistResult: NotAsked
@@ -431,20 +432,20 @@ evalF (CompileProgram next) = do
   case mContents of
     Nothing -> pure next
     Just contents -> do
-      result <- runAjaxTo _runResult $ postContractHaskell $ SourceCode contents
+      result <- runAjaxTo _compilationResult $ postContractHaskell $ SourceCode contents
       -- Update the error display.
       -- Update the error display.
       -- Update the error display.
       -- Update the error display.
       void $ withEditor $ showCompilationErrorAnnotations $ case result of
-        Success (Left errors) -> errors
+        Success (Left errors) -> toAnnotations errors
         _ -> []
       pure next
 
 evalF (SendResult next) = do
-  mContract <- use (_runResult)
+  mContract <- use (_compilationResult)
   let contract = case mContract of
-                   Success (Right (RunResult x)) -> x
+                   Success (Right x) -> view (_InterpreterResult <<< _result <<< _RunResult) x
                    _ -> ""
   void $ withMarloweEditor $ Editor.setValue contract (Just 1)
   updateContractInState contract
@@ -563,12 +564,16 @@ withMarloweEditor action = do
 
 showCompilationErrorAnnotations ::
   forall m.
-  Array CompilationError ->
+  Array Annotation ->
   Editor ->
   Eff (ace :: ACE | m) Unit
-showCompilationErrorAnnotations errors editor = do
+showCompilationErrorAnnotations annotations editor = do
   session <- Editor.getSession editor
-  Session.setAnnotations (catMaybes (toAnnotation <$> errors)) session
+  Session.setAnnotations annotations session
+
+toAnnotations :: InterpreterError -> Array Annotation
+toAnnotations (TimeoutError _) = []
+toAnnotations (CompilationErrors errors) = catMaybes (toAnnotation <$> errors)
 
 toAnnotation :: CompilationError -> Maybe Annotation
 toAnnotation (RawError _) = Nothing
@@ -588,10 +593,14 @@ render state = div [ class_ $ ClassName "main-frame"
                    ] [ container_ [ mainHeader
                                   , mainTabBar state.view
                                   ]
-                     , viewContainer state.view Editor $ [editorPane state]
+                     , viewContainer state.view Editor $ [ editorPane defaultContents state.compilationResult
+                                                         , resultPane state 
+                                                         ]
                      , viewContainer state.view Simulation $ [ simulationPane state
                                                              ]
                      ]
+    where
+      defaultContents = Map.lookup "BasicContract" StaticData.demoFiles
 
 viewContainer :: forall p i. View -> View -> Array (HTML p i) -> HTML p i
 viewContainer currentView targetView = if currentView == targetView
@@ -632,3 +641,18 @@ mainTabBar activeView = navTabs_ (mkTab <$> tabs)
       then [ active
            ]
       else []
+
+resultPane :: forall p i. FrontendState -> HTML p i
+resultPane state = case state.compilationResult of
+    Success (Right (InterpreterResult result)) -> 
+      listGroup_ 
+        [ listGroupItem_ 
+          [ div_ 
+            [ code_ 
+              [ pre_ 
+                [ text (unwrap result.result) ]
+              ]
+            ]
+          ]
+        ]
+    _ -> empty

@@ -4,30 +4,33 @@ module Playground.UsecasesSpec
     ( spec
     ) where
 
-import           Control.Monad.Except   (runExceptT)
-import qualified Data.Aeson             as JSON
-import qualified Data.Aeson.Text        as JSON
-import           Data.Aeson.Types       (object, (.=))
-import qualified Data.ByteString.Char8  as BSC
-import           Data.Either            (isRight)
-import           Data.List.NonEmpty     (NonEmpty ((:|)))
-import           Data.Swagger           ()
-import qualified Data.Text              as Text
-import qualified Data.Text.Lazy         as TL
-import qualified Ledger.Ada             as Ada
-import           Ledger.Types           (Blockchain)
-import           Ledger.Validation      (ValidatorHash (ValidatorHash))
-import           Playground.API         (CompilationResult (CompilationResult), Evaluation (Evaluation),
-                                         Expression (Action, Wait), Fn (Fn), FunctionSchema (FunctionSchema),
-                                         KnownCurrency (KnownCurrency), PlaygroundError,
-                                         SimpleArgumentSchema (SimpleArraySchema, SimpleIntSchema, SimpleObjectSchema, SimpleTupleSchema),
-                                         SimulatorWallet (SimulatorWallet), SourceCode (SourceCode), TokenId (TokenId),
-                                         argumentSchema, functionName, isSupportedByFrontend, simulatorWalletBalance,
-                                         simulatorWalletWallet)
-import qualified Playground.Interpreter as PI
-import           Playground.Usecases    (crowdfunding, game, messages, vesting)
-import           Test.Hspec             (Spec, describe, it, shouldBe, shouldSatisfy)
-import           Wallet.Emulator.Types  (EmulatorEvent, Wallet (Wallet))
+import           Control.Monad.Except         (runExceptT)
+import qualified Data.Aeson                   as JSON
+import qualified Data.Aeson.Text              as JSON
+import           Data.Aeson.Types             (object, (.=))
+import qualified Data.ByteString.Char8        as BSC
+import           Data.Either                  (isRight)
+import           Data.List.NonEmpty           (NonEmpty ((:|)))
+import           Data.Swagger                 ()
+import qualified Data.Text                    as Text
+import qualified Data.Text.Lazy               as TL
+import           Data.Time.Units              (Microsecond, fromMicroseconds)
+import           Language.Haskell.Interpreter (InterpreterError, InterpreterResult (InterpreterResult),
+                                               SourceCode (SourceCode))
+import qualified Ledger.Ada                   as Ada
+import           Ledger.Types                 (Blockchain)
+import           Ledger.Validation            (ValidatorHash (ValidatorHash))
+import           Playground.API               (CompilationResult (CompilationResult), Evaluation (Evaluation),
+                                               Expression (Action, Wait), Fn (Fn), FunctionSchema (FunctionSchema),
+                                               KnownCurrency (KnownCurrency), PlaygroundError,
+                                               SimpleArgumentSchema (SimpleArraySchema, SimpleIntSchema, SimpleObjectSchema, SimpleTupleSchema),
+                                               SimulatorWallet (SimulatorWallet), TokenId (TokenId), argumentSchema,
+                                               functionName, isSupportedByFrontend, simulatorWalletBalance,
+                                               simulatorWalletWallet)
+import qualified Playground.Interpreter       as PI
+import           Playground.Usecases          (crowdfunding, game, messages, vesting)
+import           Test.Hspec                   (Spec, describe, it, shouldBe, shouldSatisfy)
+import           Wallet.Emulator.Types        (EmulatorEvent, Wallet (Wallet))
 
 spec :: Spec
 spec = do
@@ -37,12 +40,15 @@ spec = do
     crowdfundingSpec
     knownCurrencySpec
 
+maxInterpretationTime :: Microsecond
+maxInterpretationTime = fromMicroseconds 5000000
+
 vestingSpec :: Spec
 vestingSpec =
     describe "vesting" $ do
         compilationChecks vesting
         it "should compile with the expected schema" $ do
-            Right (CompilationResult result [] []) <- compile vesting
+            Right (InterpreterResult _ (CompilationResult result [])) <- compile vesting
             result `shouldBe`
                 [ FunctionSchema
                       { functionName = Fn "vestFunds"
@@ -142,10 +148,12 @@ vestingSpec =
                                   ]
                             , SimpleObjectSchema
                                   [ ( "getValue"
-                                    , SimpleArraySchema
+                                    , SimpleObjectSchema
+                                    [ ( "unMap"
+                                      , SimpleArraySchema
                                           (SimpleTupleSchema
-                                               ( SimpleIntSchema
-                                               , SimpleIntSchema)))
+                                                ( SimpleIntSchema
+                                                , SimpleIntSchema)))])
                                   ]
                             , SimpleObjectSchema
                                   [("getPubKey", SimpleIntSchema)]
@@ -302,34 +310,38 @@ gameSpec =
                   (Fn "payToPublicKey_")
                   (Wallet 1)
                   [ slotRange
-                  , JSON.String "{\"getValue\":[[0,9]]}"
+                  , JSON.String nineAda
                   , JSON.String "{\"getPubKey\":2}"
                   ]
             , Action
                   (Fn "payToPublicKey_")
                   (Wallet 2)
                   [ slotRange
-                  , JSON.String "{\"getValue\":[[0,9]]}"
+                  , JSON.String nineAda
                   , JSON.String "{\"getPubKey\":3}"
                   ]
             , Action
                   (Fn "payToPublicKey_")
                   (Wallet 3)
                   [ slotRange
-                  , JSON.String "{\"getValue\":[[0,9]]}"
+                  , JSON.String nineAda
                   , JSON.String "{\"getPubKey\":1}"
                   ]
             ]
             (sourceCode game)
             []
     slotRange = JSON.String "{\"ivTo\":null,\"ivFrom\":null}"
+    nineAda =
+      TL.toStrict $
+      JSON.encodeToLazyText $
+      Ada.adaValueOf 9
 
 hasFundsDistribution ::
        [SimulatorWallet]
-    -> Either PlaygroundError (Blockchain, [EmulatorEvent], [SimulatorWallet])
+    -> Either PlaygroundError (InterpreterResult (Blockchain, [EmulatorEvent], [SimulatorWallet]))
     -> Bool
 hasFundsDistribution _ (Left _) = False
-hasFundsDistribution requiredDistribution (Right (_, _, actualDistribution)) =
+hasFundsDistribution requiredDistribution (Right (InterpreterResult _ (_, _, actualDistribution))) =
     requiredDistribution == actualDistribution
 
 messagesSpec :: Spec
@@ -435,7 +447,7 @@ crowdfundingSpec =
 knownCurrencySpec :: Spec
 knownCurrencySpec = describe "mkKnownCurrencies" $
       it "should return registered known currencies" $
-            (runExceptT . PI.compile) code >>= (`shouldSatisfy` hasKnownCurrency)
+            (runExceptT . PI.compile maxInterpretationTime) code >>= (`shouldSatisfy` hasKnownCurrency)
       where
             code = SourceCode $ Text.unlines
                   [ "import Playground.Contract"
@@ -446,7 +458,7 @@ knownCurrencySpec = describe "mkKnownCurrencies" $
                   , "myCurrency = KnownCurrency (ValidatorHash \"\") \"MyCurrency\" (TokenId \"MyToken\" :| [])"
                   , "$(mkKnownCurrencies ['myCurrency])"
                   ]
-            hasKnownCurrency (Right (CompilationResult _ [KnownCurrency (ValidatorHash "") "MyCurrency" (TokenId "MyToken" :| [])] _)) = True
+            hasKnownCurrency (Right (InterpreterResult _ (CompilationResult _ [KnownCurrency (ValidatorHash "") "MyCurrency" (TokenId "MyToken" :| [])]))) = True
             hasKnownCurrency _ = False
 
 sourceCode :: BSC.ByteString -> SourceCode
@@ -454,15 +466,15 @@ sourceCode = SourceCode . Text.pack . BSC.unpack
 
 compile ::
        BSC.ByteString
-    -> IO (Either PlaygroundError CompilationResult)
-compile = runExceptT . PI.compile . sourceCode
+    -> IO (Either InterpreterError (InterpreterResult CompilationResult))
+compile = runExceptT . PI.compile maxInterpretationTime . sourceCode
 
 evaluate ::
        Evaluation
-    -> IO (Either PlaygroundError ( Blockchain
+    -> IO (Either PlaygroundError (InterpreterResult ( Blockchain
                                   , [EmulatorEvent]
-                                  , [SimulatorWallet]))
-evaluate evaluation = runExceptT $ PI.runFunction evaluation
+                                  , [SimulatorWallet])))
+evaluate evaluation = runExceptT $ PI.runFunction maxInterpretationTime evaluation
 
 compilationChecks :: BSC.ByteString -> Spec
 compilationChecks f = do
@@ -471,7 +483,7 @@ compilationChecks f = do
         compile f >>= (`shouldSatisfy` isSupportedCompilationResult)
 
 isSupportedCompilationResult ::
-       Either PlaygroundError CompilationResult -> Bool
+       Either InterpreterError (InterpreterResult CompilationResult) -> Bool
 isSupportedCompilationResult (Left _) = False
-isSupportedCompilationResult (Right (CompilationResult functionSchemas _ _)) =
+isSupportedCompilationResult (Right (InterpreterResult _ (CompilationResult functionSchemas _))) =
     all (all isSupportedByFrontend . argumentSchema) functionSchemas

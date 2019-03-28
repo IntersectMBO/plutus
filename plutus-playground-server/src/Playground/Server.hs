@@ -17,12 +17,13 @@ import           Data.Aeson                   (ToJSON, encode)
 import qualified Data.ByteString.Char8        as BS
 import qualified Data.ByteString.Lazy.Char8   as BSL
 import qualified Data.Text                    as Text
-import           Language.Haskell.Interpreter (CompilationError)
+import           Data.Time.Units              (Microsecond, fromMicroseconds)
+import           Language.Haskell.Interpreter (InterpreterError (CompilationErrors),
+                                               InterpreterResult (InterpreterResult), SourceCode (SourceCode))
 import           Ledger.Types                 (hashTx)
 import           Network.HTTP.Types           (hContentType)
 import           Playground.API               (API, CompilationResult, Evaluation, EvaluationResult (EvaluationResult),
-                                               PlaygroundError (PlaygroundTimeout), SourceCode (SourceCode),
-                                               parseErrorText)
+                                               PlaygroundError (PlaygroundTimeout), parseErrorText)
 import qualified Playground.API               as PA
 import qualified Playground.Interpreter       as PI
 import           Playground.Usecases          (vesting)
@@ -33,18 +34,16 @@ import           System.Timeout               (timeout)
 import qualified Wallet.Graph                 as V
 
 acceptSourceCode ::
-       SourceCode -> Handler (Either [CompilationError] CompilationResult)
+       SourceCode -> Handler (Either InterpreterError (InterpreterResult CompilationResult))
 acceptSourceCode sourceCode = do
-    let maxInterpretationTime = 5000000
+    let maxInterpretationTime :: Microsecond = fromMicroseconds 5000000
     r <-
-        liftIO . timeoutInterpreter maxInterpretationTime $
-        runExceptT $ PI.compile sourceCode
+        liftIO .
+        runExceptT $ PI.compile maxInterpretationTime sourceCode
     case r of
-        Right vs -> pure . Right $ vs
-        Left (PA.InterpreterError errors) ->
-            pure $ Left $ map (parseErrorText . Text.pack) errors
-        Left (PA.CompilationErrors errors) -> pure . Left $ errors
-        Left e -> throwError $ err400 {errBody = BSL.pack . show $ e}
+        Right vs                        -> pure . Right $ vs
+        Left (CompilationErrors errors) -> pure . Left $ CompilationErrors errors
+        Left e                          -> throwError $ err400 {errBody = BSL.pack . show $ e}
 
 throwJSONError :: (MonadError ServantErr m, ToJSON a) => ServantErr -> a -> m b
 throwJSONError err json =
@@ -54,13 +53,13 @@ throwJSONError err json =
 
 runFunction :: Evaluation -> Handler EvaluationResult
 runFunction evaluation = do
-    let maxInterpretationTime = 10000000
+    let maxInterpretationTime :: Microsecond = fromMicroseconds 10000000
     result <-
-        liftIO . timeoutInterpreter maxInterpretationTime $
-        runExceptT $ PI.runFunction evaluation
+        liftIO .
+        runExceptT $ PI.runFunction maxInterpretationTime evaluation
     let pubKeys = PA.pubKeys evaluation
     case result of
-        Right (blockchain, emulatorLog, fundsDistribution) -> do
+        Right (InterpreterResult _ (blockchain, emulatorLog, fundsDistribution)) -> do
             let flowgraph = V.graph $ V.txnFlows pubKeys blockchain
             pure $
                 EvaluationResult
@@ -68,8 +67,7 @@ runFunction evaluation = do
                     flowgraph
                     emulatorLog
                     fundsDistribution
-        Left (PA.InterpreterError errors) ->
-            throwJSONError err400 $ map (parseErrorText . Text.pack) errors
+        Left (PA.InterpreterError errors) -> throwJSONError err400 errors
         Left err -> throwError $ err400 {errBody = BSL.pack . show $ err}
 
 checkHealth :: Handler ()

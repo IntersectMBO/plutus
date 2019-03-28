@@ -6,6 +6,7 @@
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE TypeOperators              #-}
 
+-- | An HTTP server which exposes the wallet interaction API. For use with 'Wallet.Emulator.Client'.
 module Wallet.Emulator.Http
   ( app
   , initialState

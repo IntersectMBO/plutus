@@ -24,7 +24,10 @@ module Playground.Contract
     , addBlocksAndNotify
     , runWalletActionAndProcessPending
     , module Playground.Interpreter.Util
-    , KnownCurrency
+    , KnownCurrency(KnownCurrency)
+    , ValidatorHash(ValidatorHash)
+    , TokenId(TokenId)
+    , NonEmpty((:|))
     ) where
 
 import           Data.Aeson                  (FromJSON, ToJSON, encode)
@@ -33,9 +36,11 @@ import qualified Data.ByteArray              as BA
 import           Data.ByteString.Lazy        (ByteString)
 import qualified Data.ByteString.Lazy        as BSL
 import qualified Data.ByteString.Lazy.Char8  as LBC8
+import           Data.List.NonEmpty          (NonEmpty ((:|)))
 import           Data.Swagger                (Schema, ToSchema)
 import           GHC.Generics                (Generic)
-import           Playground.API              (FunctionSchema, KnownCurrency)
+import           Ledger.Validation           (ValidatorHash (ValidatorHash))
+import           Playground.API              (FunctionSchema, KnownCurrency (KnownCurrency), TokenId (TokenId))
 import           Playground.Interpreter.Util
 import           Playground.TH               (mkFunction, mkFunctions, mkKnownCurrencies, mkSingleFunction)
 import           Wallet.API                  (payToPublicKey_)

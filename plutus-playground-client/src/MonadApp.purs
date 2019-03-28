@@ -27,13 +27,13 @@ import FileEvents as FileEvents
 import Gist (Gist, GistId, NewGist)
 import Halogen (HalogenM, action, query', request)
 import Halogen.ECharts as EC
-import Language.Haskell.Interpreter (CompilationError)
+import Language.Haskell.Interpreter (InterpreterError, SourceCode(SourceCode), InterpreterResult)
 import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
-import Playground.API (CompilationResult, Evaluation, EvaluationResult(EvaluationResult), SourceCode(SourceCode))
+import Playground.API (CompilationResult, Evaluation, EvaluationResult(EvaluationResult))
 import Playground.Server (SPParams_)
 import Playground.Server as Server
 import Servant.PureScript.Affjax (AjaxError)
@@ -57,7 +57,7 @@ class Monad m <= MonadApp m where
   postEvaluation :: Evaluation -> m (WebData EvaluationResult)
   postGist :: NewGist -> m (WebData Gist)
   patchGistByGistId :: NewGist -> GistId -> m (WebData Gist)
-  postContract :: SourceCode -> m (WebData (Either (Array CompilationError) CompilationResult))
+  postContract :: SourceCode -> m (WebData (Either InterpreterError (InterpreterResult CompilationResult)))
 
 newtype HalogenApp m a = HalogenApp (HalogenM State Query ChildQuery ChildSlot Void m a)
 
