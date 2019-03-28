@@ -59,6 +59,7 @@ library
         Ledger.Map.TH
         Ledger.These
         Ledger.These.TH
+        Ledger.Blockchain
         Ledger.Crypto
         Ledger.Slot
         Ledger.Scripts
