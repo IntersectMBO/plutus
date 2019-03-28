@@ -93,7 +93,6 @@ import qualified Codec.CBOR.Write                         as Write
 import           Codec.Serialise.Class                    (Serialise, decode, encode)
 import           Control.Lens                             hiding (lifted)
 import           Control.Monad                            (join)
-import           Control.Newtype.Generics     (Newtype)
 import           Crypto.Hash                              (Digest, SHA256, digestFromByteString, hash)
 import           Data.Aeson                               (FromJSON (parseJSON), ToJSON (toJSON))
 import qualified Data.Aeson                               as JSON
@@ -110,6 +109,7 @@ import           GHC.Generics                             (Generic)
 import           Data.Swagger.Internal.Schema             (ToSchema(declareNamedSchema), plain, paramSchemaToSchema)
 import           Language.PlutusTx.Lift                   (makeLift)
 
+import           Ledger.Crypto
 import           Ledger.Slot                              (Slot(..), SlotRange)
 import           Ledger.Scripts
 import           Ledger.Ada                               (Ada)
@@ -138,29 +138,6 @@ However, it should be easy to change the serialisation mechanism later on,
 especially because we only need one direction (to binary).
 
 -}
-
--- | A cryptographic public key.
-newtype PubKey = PubKey { getPubKey :: Int }
-    deriving (Eq, Ord, Show)
-    deriving stock (Generic)
-    deriving anyclass (ToSchema, ToJSON, FromJSON, Newtype)
-    deriving newtype (Serialise)
-
-makeLift ''PubKey
-
--- | A message with a cryptographic signature.
--- NOTE: relies on incorrect notion of signatures
-newtype Signature = Signature { getSignature :: Int }
-    deriving (Eq, Ord, Show)
-    deriving stock (Generic)
-    deriving anyclass (ToSchema, ToJSON, FromJSON)
-    deriving newtype (Serialise)
-
-makeLift ''Signature
-
--- | Check whether the given 'Signature' was signed by the private key corresponding to the given public key.
-signedBy :: Signature -> PubKey -> Bool
-signedBy (Signature k) (PubKey s) = k == s
 
 -- | A transaction ID, using some id type.
 newtype TxIdOf h = TxIdOf { getTxId :: h }
