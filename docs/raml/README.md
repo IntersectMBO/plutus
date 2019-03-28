@@ -1,5 +1,4 @@
 ## Some notes on Resource Aware ML
-[kwxm: I'll add the files later]
 
 ### Introduction
 In [[HJ2003](#hj2003)], Martin Hofmann and Steffen
@@ -96,9 +95,9 @@ cases where the worst case actually occurs).
 RAML has a number of limitations.
 
 * It can only deal with code where the bounds are polynomial: it can't
-  handle bounds such as `2<sup>n</sup>` or `n.log n`. In the former
-  case the analysis will fail (reporting an infeasible linear program;
-  in the latter case, RAML might report a bound of `n<sup>2</sup>`,
+  handle bounds such as 2<sup>n</sup> or n.log n. In the former
+  case the analysis will fail (reporting an infeasible linear program);
+  in the latter case, RAML might report a bound of n<sup>2</sup>,
   which would be a correct bound but not a precise one (I haven't
   actually tried this: whether RAML could find an overestimate like
   this would depend on exactly how the program was implemented).
@@ -123,15 +122,23 @@ RAML has a number of limitations.
   inputs.  For example, if we had a function to create the list `L =
   [1..n]` then RAML would be able to recognize that the resource usage
   would depend on the length of `L`, but would not realize that this
-  is equal to `n`.  There are at least two possible ways to get round this:
-      * There are analyses which can handle numerical
-  inputs (see [Other Analyses](#other-analyses) below), and in principle these could be combined with
-  the RAML techniques.  This would be a lot of work though, and it's
-  more of an implementation problem than a research problem, so it's
-  probably not something that's worth the RAML implementers' trouble.
-      * Another possibility is to pretend that integral inputs are in fact Peano numbers, which RAML _can_ deal with.  Having got bounds
-      in terms of the sizes of Peano inputs, we could get bounds in terms of the bit-length of the inputs (which is what Plutus sizes refer to) by replacing each variable _n_ representing the size of a Peano number with _2^n_ .  Further investigation
-      would be required to check if this is in fact feasible.
+  is equal to _n_.  There are at least two possible ways to get round this:
+
+   * There are analyses which can handle numerical inputs (see [Other
+      Analyses](#other-analyses) below), and in principle these could
+      be combined with the RAML techniques.  This would be a lot of
+      work though, and it's more of an implementation problem than a
+      research problem, so it's probably not something that's worth
+      the RAML implementers' trouble.
+
+   * Another possibility is to pretend that integral inputs are in
+      fact Peano numbers, which RAML _can_ deal with.  Having got
+      bounds in terms of the sizes of Peano inputs, we could get
+      bounds in terms of the bit-length of the inputs (which is what
+      Plutus sizes refer to) by replacing each variable _n_
+      representing the size of a Peano number with 2<sup>n</sup>.  Further
+      investigation would be required to check if this is in fact
+      feasible.
 
 * Actual resource usage of course depends on the behaviour of compiled
   code.  The RAML evaluator is quite straightforward and doesn't make
@@ -145,9 +152,10 @@ RAML has a number of limitations.
   source language and a proof that the compiler/evaluator preserves
   costs (or at least transforms costs in a predictable way).
 
-  * A related issue is that a compiler may allocate objects on the heap
-    (closures, for example) which aren't obtained from datatypes in the
-    source program.  HOW DOES RAML DEAL WITH THIS?
+  * A related issue is that a compiler may allocate objects on the
+    heap (closures, for example) which aren't obtained from datatypes
+    in the source program. It is not clear from the documentation how
+    RAML deals with this.
 
 ### RAML and Church/Scott encoding
 
@@ -184,9 +192,11 @@ polynomial bounds, it isn't able to come up with a bound for
 exponentiation, reporting an infeasible linear program.
 
 RAML can also predict bounds for the number of evaluation steps: see
-[Peano.steps-analysis](./Peano.steps-analysis).  It's more difficult to see whether these are correct because
-evaluation is more complicated than heap allocation, but the results
-do agree exactly with the actual number of steps reported in [Peano.evaluation](./Peano.evaluation).
+[Peano.steps-analysis](./Peano.steps-analysis).  It's more difficult
+to see whether these are correct because evaluation is more
+complicated than heap allocation, but the results do agree exactly
+with the actual number of steps reported in
+[Peano.evaluation](./Peano.evaluation).
 
 #### Church-encoded Peano numbers
 
@@ -202,12 +212,16 @@ functions: see xxx and yyy.  I don't know what to make of this.
 
 I wasn't able to use the Scott encoding directly in RAML or OCaml, due
 to restrictions of the OCaml type system.  It is possible to use the
-Scott encoding using records in OCaml (see ttt), but RAML can't deal
-with this because it doesn't support records.  Other methods for
-embedding complicated System F types and terms are described in
-[[Lindley2012](#lindley-2012)], but again these use features of OCaml
-which aren't supported by RAML.  Thus I wasn't able to get any results
-for the Scott-encoded Peano numbers.
+Scott encoding using records in OCaml (see
+[ScottNat1.raml](./ScottNat1.raml)), but RAML can't deal with this
+because it doesn't support records.  OCaml also has an option
+providing direct support for recursive types, but an attempt at using
+the Scott encoding with this didn't work too well (see
+[ScottNat2.raml](./ScottNat2.raml)) and RAML doesn't allow this anyway.
+Other methods for embedding complicated System F types and terms are
+described in [[Lindley2012](#lindley-2012)], but again these use
+features of OCaml which aren't supported by RAML.  Thus I wasn't able
+to get any results for the Scott-encoded Peano numbers.
 
 [I was trying to defunctionalise the Scott encoding to see what happened,
 but had some difficulty and then had to do something else. I'll look at
