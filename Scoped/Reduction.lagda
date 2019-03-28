@@ -70,8 +70,7 @@ BUILTIN addInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i
 BUILTIN addInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (i I.+ i')
 BUILTIN addInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (i I.+ i') r)
 BUILTIN addInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
-BUILTIN addInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q
-  = error (con integer)
+BUILTIN addInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
 BUILTIN addInteger _ _ = error (con integer)
 BUILTIN subtractInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
 BUILTIN subtractInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (i I.- i')
@@ -85,6 +84,12 @@ BUILTIN multiplyInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer 
 BUILTIN multiplyInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
 BUILTIN multiplyInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
 BUILTIN multiplyInteger _ _ = error (con integer)
+BUILTIN divideInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
+BUILTIN divideInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (div i i')
+BUILTIN divideInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (div i i') r)
+BUILTIN divideInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
+BUILTIN divideInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
+BUILTIN divideInteger _ _ = error (con integer)
 BUILTIN _ _ _ = error (con integer)
 
 
