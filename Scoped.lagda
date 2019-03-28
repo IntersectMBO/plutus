@@ -3,7 +3,7 @@ module Scoped where
 \end{code}
 
 \begin{code}
-open import Data.Nat
+open import Data.Nat hiding (_*_)
 open import Data.Fin hiding (_-_)
 open import Data.List hiding (map; _++_)
 
@@ -54,7 +54,7 @@ wtoℕ Z = zero
 wtoℕ (S x) = suc (wtoℕ x)
 wtoℕ (T x) = suc (wtoℕ x)
 
-open import Data.Integer
+open import Data.Integer hiding (_*_)
 open import Data.String
 
 -- could index by size here, is there any point?
@@ -82,6 +82,18 @@ data ScopedTm : Weirdℕ → Set where
           → ScopedTm n
   wrap : ∀{n} → ScopedTy ∥ n ∥ → ScopedTy ∥ n ∥ → ScopedTm n → ScopedTm n
   unwrap : ∀{n} → ScopedTm n → ScopedTm n
+
+-- term/type synonyms
+
+void : ∀{n} → ScopedTm n
+void = Λ * (ƛ (` zero) (` Z))
+
+true : ∀{Γ} → ScopedTm Γ
+true = Λ * (ƛ (` zero) (ƛ (` zero) (` (S Z))))
+
+false : ∀{Γ} → ScopedTm Γ
+false = Λ * (ƛ (` zero) (ƛ (` zero) (` Z)))
+
 
 -- SCOPE CHECKING / CONVERSION FROM RAW TO SCOPED
 

@@ -8,13 +8,14 @@ open import Scoped.RenamingSubstitution
 open import Builtin
 open import Builtin.Constant.Type
 
+open import Utils
+
 open import Data.Sum renaming (inj₁ to inl; inj₂ to inr)
 open import Data.Product
 open import Data.List hiding ([_])
-open import Data.Maybe
 open import Function
 open import Data.Integer as I
-open import Data.Nat as N
+open import Data.Nat as N hiding (_<?_)
 open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality hiding ([_];trans)
 \end{code}
@@ -65,43 +66,53 @@ data Error {n} : ScopedTm n → Set where
 -- doing minimal size checking
 
 BUILTIN : ∀{n} → Builtin
-  → List (ScopedTy ∥ n ∥) → List (Σ (ScopedTm n) (Value {n})) → ScopedTm n 
-BUILTIN addInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
+  → List (ScopedTy ∥ n ∥) → List (Σ (ScopedTm n) (Value {n})) → ScopedTm n
+-- Int -> Int -> Int
+BUILTIN addInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
 BUILTIN addInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (i I.+ i')
 BUILTIN addInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (i I.+ i') r)
 BUILTIN addInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
-BUILTIN addInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
+BUILTIN addInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
 BUILTIN addInteger _ _ = error (con integer)
-BUILTIN subtractInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
+BUILTIN subtractInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
 BUILTIN subtractInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (i I.- i')
 BUILTIN subtractInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (i I.- i') r)
 BUILTIN subtractInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
-BUILTIN subtractInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
+BUILTIN subtractInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
 BUILTIN subtractInteger _ _ = error (con integer)
-BUILTIN multiplyInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
+BUILTIN multiplyInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
 BUILTIN multiplyInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (i I.* i')
 BUILTIN multiplyInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (i I.* i') r)
 BUILTIN multiplyInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
 BUILTIN multiplyInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
 BUILTIN multiplyInteger _ _ = error (con integer)
-BUILTIN divideInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
+BUILTIN divideInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
 BUILTIN divideInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (div i i')
 BUILTIN divideInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (div i i') r)
 BUILTIN divideInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
 BUILTIN divideInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
 BUILTIN divideInteger _ _ = error (con integer)
-BUILTIN quotientInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
+BUILTIN quotientInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
 BUILTIN quotientInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (quot i i')
 BUILTIN quotientInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (quot i i') r)
 BUILTIN quotientInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
 BUILTIN quotientInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
 BUILTIN quotientInteger _ _ = error (con integer)
-BUILTIN remainderInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
+BUILTIN remainderInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
 BUILTIN remainderInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (rem i i')
 BUILTIN remainderInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (rem i i') r)
 BUILTIN remainderInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
 BUILTIN remainderInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
 BUILTIN remainderInteger _ _ = error (con integer)
+-- Int -> Int -> Bool
+BUILTIN lessThanInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with i <? i'
+BUILTIN lessThanInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | yes q = true
+BUILTIN lessThanInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬p = false
+BUILTIN lessThanInteger _ _ = error (con integer)
+BUILTIN lessThanEqualsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with i I.≤? i'
+BUILTIN lessThanEqualsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | yes q = true
+BUILTIN lessThanEqualsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬p = false
+BUILTIN lessThanEqualsInteger _ _ = error (con integer)
 BUILTIN _ _ _ = error (con integer)
 
 
@@ -197,7 +208,6 @@ progress (unwrap t) | inr (t' , p) = inr (unwrap t' , ξ-unwrap p)
 
 \begin{code}
 open import Data.Nat
-open import Data.Maybe
 
 run : (t : ScopedTm Z) → ℕ
     → Σ (ScopedTm Z) λ t' → t —→⋆ t' × (Maybe (Value t') ⊎ Error t')
