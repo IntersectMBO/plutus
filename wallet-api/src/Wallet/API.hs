@@ -381,7 +381,7 @@ collectFromScriptTxn range vls red txid = do
     out <- ownPubKeyTxOut value
     void $ createTxAndSubmit range inputs [out]
 
--- | Get the public key for this wallet
+-- | Get the public key belonging to this wallet.
 ownPubKey :: (Functor m, WalletAPI m) => m PubKey
 ownPubKey = pubKey <$> myKeyPair
 
@@ -393,15 +393,15 @@ payToPublicKey range v pk = do
     let other = pubKeyTxOut v pk
     createTxAndSubmit range i (other : maybeToList own)
 
--- | Transfer some funds to an address locked by a public key
+-- | Transfer some funds to an address locked by a public key.
 payToPublicKey_ :: (Monad m, WalletAPI m) => SlotRange -> Value -> PubKey -> m ()
 payToPublicKey_ r v = void . payToPublicKey r v
 
--- | Create a `TxOut` that pays to a public key owned by us
+-- | Create a `TxOut` that pays to the public key owned by us.
 ownPubKeyTxOut :: (Monad m, WalletAPI m) => Value -> m TxOut
 ownPubKeyTxOut v = pubKeyTxOut v <$> fmap pubKey myKeyPair
 
--- | Retrieve the unspent transaction outputs known to the wallet at an adresss
+-- | Retrieve the unspent transaction outputs known to the wallet at an adresss.
 outputsAt :: (Functor m, WalletAPI m) => Address -> m (Map.Map Ledger.TxOutRef TxOut)
 outputsAt adr = fmap (\utxos -> fromMaybe Map.empty $ utxos ^. at adr) watchedAddresses
 
@@ -424,44 +424,43 @@ createTxAndSubmit range ins outs = do
     submitTxn tx
     pure tx
 
--- | An open-ended 'SlotRange' that begins at slot 1.
+-- | See 'Interval.always'.
 defaultSlotRange :: SlotRange
 defaultSlotRange = $$(Interval.always)
 
--- | An inclusive-exclusive interval
+-- | See 'Interval.interval'.
 interval :: a -> a -> Interval a
 interval = $$(Interval.interval)
 
--- | @intervalFrom a@ includes all values greater than or equal to @a@,
---   including @a@ itself.
+-- | See 'Interval.from'.
 intervalFrom :: a -> Interval a
 intervalFrom = $$(Interval.from)
 
--- | @intervalTo a@ includes all values smaller than @a@, but not @a@ itself.
+-- | See 'Interval.to'.
 intervalTo :: a -> Interval a
 intervalTo = $$(Interval.to)
 
--- | A 'SlotRange' that covers a single slot
+-- | See 'Interval.singleton'.
 singleton :: Slot -> SlotRange
 singleton = $$(Interval.singleton)
 
--- | Check whether a 'SlotRange' is empty
+-- | See 'Interval.empty'.
 empty :: SlotRange -> Bool
 empty = $$(Interval.empty)
 
--- | A 'SlotRange' that covers all the slots
+-- | See 'Interval.always'.
 always :: SlotRange
 always = $$(Interval.always)
 
--- | The number of slots included in the 'SlotRange'
+-- | See 'Interval.width'.
 width :: SlotRange -> Maybe Int
 width = $$(Interval.width)
 
--- | Check if a 'Slot' is before a 'SlotRange'
+-- | See 'Interval.before'.
 before :: Slot -> SlotRange -> Bool
 before = $$(Interval.before)
 
--- | Check if a 'Slot' is after a 'SlotRange'
+-- | See 'Interval.after'.
 after :: Slot -> SlotRange -> Bool
 after = $$(Interval.after)
 
@@ -473,5 +472,6 @@ member v (Interval.Interval f t) =
     in
         lw && hg
 
+-- | See 'Interval.contains'.
 contains :: SlotRange -> SlotRange -> Bool
 contains = $$(Interval.contains)
