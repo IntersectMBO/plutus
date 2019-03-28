@@ -90,6 +90,18 @@ BUILTIN divideInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s 
 BUILTIN divideInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
 BUILTIN divideInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
 BUILTIN divideInteger _ _ = error (con integer)
+BUILTIN quotientInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
+BUILTIN quotientInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (quot i i')
+BUILTIN quotientInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (quot i i') r)
+BUILTIN quotientInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
+BUILTIN quotientInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
+BUILTIN quotientInteger _ _ = error (con integer)
+BUILTIN remainderInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
+BUILTIN remainderInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (rem i i')
+BUILTIN remainderInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (rem i i') r)
+BUILTIN remainderInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
+BUILTIN remainderInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
+BUILTIN remainderInteger _ _ = error (con integer)
 BUILTIN _ _ _ = error (con integer)
 
 
