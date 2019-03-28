@@ -148,10 +148,12 @@ vestingSpec =
                                   ]
                             , SimpleObjectSchema
                                   [ ( "getValue"
-                                    , SimpleArraySchema
+                                    , SimpleObjectSchema
+                                    [ ( "unMap"
+                                      , SimpleArraySchema
                                           (SimpleTupleSchema
-                                               ( SimpleIntSchema
-                                               , SimpleIntSchema)))
+                                                ( SimpleIntSchema
+                                                , SimpleIntSchema)))])
                                   ]
                             , SimpleObjectSchema
                                   [("getPubKey", SimpleIntSchema)]
@@ -308,27 +310,31 @@ gameSpec =
                   (Fn "payToPublicKey_")
                   (Wallet 1)
                   [ slotRange
-                  , JSON.String "{\"getValue\":[[0,9]]}"
+                  , JSON.String nineAda
                   , JSON.String "{\"getPubKey\":2}"
                   ]
             , Action
                   (Fn "payToPublicKey_")
                   (Wallet 2)
                   [ slotRange
-                  , JSON.String "{\"getValue\":[[0,9]]}"
+                  , JSON.String nineAda
                   , JSON.String "{\"getPubKey\":3}"
                   ]
             , Action
                   (Fn "payToPublicKey_")
                   (Wallet 3)
                   [ slotRange
-                  , JSON.String "{\"getValue\":[[0,9]]}"
+                  , JSON.String nineAda
                   , JSON.String "{\"getPubKey\":1}"
                   ]
             ]
             (sourceCode game)
             []
     slotRange = JSON.String "{\"ivTo\":null,\"ivFrom\":null}"
+    nineAda =
+      TL.toStrict $
+      JSON.encodeToLazyText $
+      Ada.adaValueOf 9
 
 hasFundsDistribution ::
        [SimulatorWallet]
