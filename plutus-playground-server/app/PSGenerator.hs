@@ -57,7 +57,9 @@ import           Wallet.Emulator.Types                     (EmulatorEvent, Walle
 import           Wallet.Graph                              (FlowGraph, FlowLink, TxRef, UtxOwner, UtxoLocation)
 
 psNonEmpty :: MonadReader BridgeData m => m PSType
-psNonEmpty = TypeInfo "purescript-lists" "Data.List.NonEmpty" "NonEmptyList" <$> psTypeParameters
+psNonEmpty =
+    TypeInfo "purescript-lists" "Data.List.NonEmpty" "NonEmptyList" <$>
+    psTypeParameters
 
 psJson :: PSType
 psJson = TypeInfo "" "Data.RawJson" "RawJson" []

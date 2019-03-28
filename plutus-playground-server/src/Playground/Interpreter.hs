@@ -50,22 +50,24 @@ ensureMkFunctionExists script =
 ensureMinimumImports :: (MonadError InterpreterError m) => SourceCode -> m ()
 ensureMinimumImports script =
     let scriptString = Text.unpack . Newtype.unpack $ script
-        regex = Regex.mkRegex "^import[ \t]+Playground.Contract([ ]*$|[ \t]+\\(.*mkFunctions.*printSchemas.*\\)|[ \t]+\\(.*printSchemas.*mkFunctions.*\\))"
+        regex =
+            Regex.mkRegex
+                "^import[ \t]+Playground.Contract([ ]*$|[ \t]+\\(.*mkFunctions.*printSchemas.*\\)|[ \t]+\\(.*printSchemas.*mkFunctions.*\\))"
         mMatches = Regex.matchRegexAll regex scriptString
      in case mMatches of
             Just _ -> pure ()
-            Nothing -> let
-                          filename = ""
-                          row      = 1
-                          column   = 1
-                          text     = [ "You need to import the `mkFunctions` and `printSchemas` in order to compile successfully, you can do this with either"
-                                       , "`import Playground.Contract`"
-                                       , "or"
-                                       , "`import Playground.Contract (mkFunctions, printSchemas)`"
-                                       ]
-                          errors = [CompilationError filename row column text]
-                        in
-                          throwError $ CompilationErrors errors
+            Nothing ->
+                let filename = ""
+                    row = 1
+                    column = 1
+                    text =
+                        [ "You need to import the `mkFunctions` and `printSchemas` in order to compile successfully, you can do this with either"
+                        , "`import Playground.Contract`"
+                        , "or"
+                        , "`import Playground.Contract (mkFunctions, printSchemas)`"
+                        ]
+                    errors = [CompilationError filename row column text]
+                 in throwError $ CompilationErrors errors
 
 ensureKnownCurrenciesExists :: Text -> Text
 ensureKnownCurrenciesExists script =
@@ -78,11 +80,18 @@ ensureKnownCurrenciesExists script =
 
 mkCompileScript :: Text -> Text
 mkCompileScript script =
-    (ensureKnownCurrenciesExists . ensureMkFunctionExists . replaceModuleName) script <> "\n\nmain :: IO ()" <>
+    (ensureKnownCurrenciesExists . ensureMkFunctionExists . replaceModuleName)
+        script <>
+    "\n\nmain :: IO ()" <>
     "\nmain = printSchemas (schemas, registeredKnownCurrencies)"
 
-runscript
-    :: (Show t, TimeUnit t, MonadMask m, MonadIO m, MonadError InterpreterError m)
+runscript ::
+       ( Show t
+       , TimeUnit t
+       , MonadMask m
+       , MonadIO m
+       , MonadError InterpreterError m
+       )
     => Handle
     -> FilePath
     -> t
@@ -94,32 +103,49 @@ runscript handle file timeout script = do
     runghc timeout runghcOpts file
 
 compile ::
-       (Show t, TimeUnit t, MonadMask m, MonadIO m, MonadError InterpreterError m)
+       ( Show t
+       , TimeUnit t
+       , MonadMask m
+       , MonadIO m
+       , MonadError InterpreterError m
+       )
     => t
     -> SourceCode
     -> m CompilationResult
-compile timeout source = do
+compile timeout source
     -- There are a couple of custom rules required for compilation
+ = do
     avoidUnsafe source
     ensureMinimumImports source
     withSystemTempFile "Main.hs" $ \file handle -> do
-        result <- runscript handle file timeout . mkCompileScript . Newtype.unpack $ source
+        result <-
+            runscript handle file timeout . mkCompileScript . Newtype.unpack $
+            source
         let eSchema = JSON.eitherDecodeStrict . BS8.pack $ result
         case eSchema of
             Left err ->
                 throwError . CompilationErrors . pure . RawError $
                 "unable to decode compilation result" <> Text.pack err
             Right ([schema], currencies) ->
-                pure . CompilationResult [toSimpleArgumentSchema <$> schema] currencies $
+                pure .
+                CompilationResult [toSimpleArgumentSchema <$> schema] currencies $
                 [ Warning
                       "It looks like you have not made any functions available, use `$(mkFunctions ['functionA, 'functionB])` to be able to use `functionA` and `functionB`"
                 ]
             Right (schemas, currencies) ->
                 pure $
-                CompilationResult (fmap toSimpleArgumentSchema <$> schemas) currencies []
+                CompilationResult
+                    (fmap toSimpleArgumentSchema <$> schemas)
+                    currencies
+                    []
 
 runFunction ::
-       (Show t, TimeUnit t, MonadMask m, MonadIO m, MonadError PlaygroundError m)
+       ( Show t
+       , TimeUnit t
+       , MonadMask m
+       , MonadIO m
+       , MonadError PlaygroundError m
+       )
     => t
     -> Evaluation
     -> m (Blockchain, [EmulatorEvent], [SimulatorWallet])
@@ -129,8 +155,7 @@ runFunction timeout evaluation = do
     expr <- mkExpr evaluation
     withSystemTempFile "Main.hs" $ \file handle -> do
         result <-
-            mapError API.InterpreterError .
-            runscript handle file timeout $
+            mapError API.InterpreterError . runscript handle file timeout $
             mkRunScript (Newtype.unpack source) (Text.pack . BS8.unpack $ expr)
         let decodeResult =
                 JSON.eitherDecodeStrict . BS8.pack $ result :: Either String (Either PlaygroundError ( Blockchain
