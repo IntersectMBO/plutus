@@ -5,7 +5,7 @@ import           Marlowe
 {-# ANN module "HLint: ignore" #-}
 
 main :: IO ()
-main = putStrLn $ show contract
+main = putStrLn $ prettyPrint contract
 
 -------------------------------------
 -- Write your code below this line --
@@ -36,3 +36,4 @@ zeroCouponBond issuer investor notional discount startDate maturityDate gracePer
             Null
         )
         Null
+
