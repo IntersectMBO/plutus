@@ -7,7 +7,8 @@ module Language.Marlowe.Pretty (pretty, Pretty, prettyFragment) where
 import           GHC.Generics            ((:*:) ((:*:)), (:+:) (L1, R1), C, Constructor, D, Generic, K1 (K1), M1 (M1),
                                           Rep, S, U1, conName, from)
 import           Prelude                 hiding ((<$>))
-import           Text.PrettyPrint.Leijen (Doc, comma, encloseSep, hang, lbracket, parens, rbracket, space, text, (<$>))
+import           Text.PrettyPrint.Leijen (Doc, comma, encloseSep, hang, lbracket, lparen, parens, rbracket, rparen,
+                                          space, text, (<$>))
 
 -- | This function will pretty print an a but will not wrap the whole
 -- expression in parentheses, where as @prettyFragment@ will.
@@ -76,7 +77,8 @@ instance Pretty Int where
 instance Pretty Integer where
   prettyFragment = text . show
 
-instance (Pretty a, Pretty b) => Pretty (a, b)
+instance (Pretty a, Pretty b) => Pretty (a, b) where
+  prettyFragment (a, b) = encloseSep lparen rparen comma [prettyFragment a, prettyFragment b]
 
 instance (Pretty a) => Pretty [a] where
   prettyFragment a = encloseSep lbracket rbracket comma (map prettyFragment a)
