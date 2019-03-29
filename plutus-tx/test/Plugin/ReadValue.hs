@@ -43,6 +43,11 @@ data MyMonoRecord = MyMonoRecord { mrA :: Int , mrB :: Int}
 data MyMonoData = Mono1 Int Int | Mono2 Int | Mono3 Int
     deriving (Show, Eq)
 
+-- | Convert a Plutus Core term into a Haskell value of type @a@ and inject it into the type @b@
+-- using a provided injection function. The intermediate type @a@ is needed, because right now we
+-- can only read values as explicit sums of products (i.e. 'Either's of '(,)'s) and can't supply
+-- constructors of Haskell data types as arguments to Plutus Core terms in order to get Haskell
+-- values directly without going through some generic representation.
 readCompiledCode :: PLC.KnownDynamicBuiltinType a => (a -> b) -> CompiledCode b -> b
 readCompiledCode inj compiled =
     case PLC.readDynamicBuiltinCek mempty term of
