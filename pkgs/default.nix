@@ -46906,6 +46906,7 @@ license = "GPL";
 , template-haskell
 , text
 , wallet-api
+, wl-pprint
 }:
 mkDerivation {
 
@@ -46920,6 +46921,7 @@ plutus-tx
 template-haskell
 text
 wallet-api
+wl-pprint
 ];
 testHaskellDepends = [
 base
@@ -80579,6 +80581,26 @@ transformers
 doHaddock = false;
 doCheck = false;
 description = "High level, generic library for interrogative user interfaces";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
+"wl-pprint" = callPackage
+({
+  mkDerivation
+, base
+, stdenv
+}:
+mkDerivation {
+
+pname = "wl-pprint";
+version = "1.2.1";
+sha256 = "0c7c8323ff9ef60e7183fcd76ff7176b78872873b19606ff410eeddc2ef2c74e";
+libraryHaskellDepends = [
+base
+];
+doHaddock = false;
+doCheck = false;
+description = "The Wadler/Leijen Pretty Printer";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
