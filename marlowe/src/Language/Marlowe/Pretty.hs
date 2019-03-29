@@ -73,5 +73,10 @@ instance Pretty String where
 instance Pretty Int where
   prettyFragment = text . show
 
+instance Pretty Integer where
+  prettyFragment = text . show
+
+instance (Pretty a, Pretty b) => Pretty (a, b)
+
 instance (Pretty a) => Pretty [a] where
   prettyFragment a = encloseSep lbracket rbracket comma (map prettyFragment a)
