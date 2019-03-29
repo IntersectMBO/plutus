@@ -130,6 +130,9 @@ BUILTIN resizeInteger (_ ∷ size s' ∷ []) ((_ , V-con (integer s i p)) ∷ []
 BUILTIN resizeInteger (_ ∷ size s' ∷ []) ((_ , V-con (integer s i p)) ∷ []) | yes q = con (integer s' i q)
 BUILTIN resizeInteger (_ ∷ size s' ∷ []) ((_ , V-con (integer s i p)) ∷ []) | no ¬q = error (con integer)
 BUILTIN sizeOfInteger _  ((_ , V-con (integer s i p)) ∷ []) = con (size s)
+BUILTIN concatenate _ ((_ , V-con (bytestring s b p)) ∷ (_ , V-con (bytestring s' b' p')) ∷ []) with boundedB? s (append b b')
+BUILTIN concatenate _ ((.(con (bytestring s b p)) , V-con (bytestring s b p)) ∷ (.(con (bytestring s' b' p')) , V-con (bytestring s' b' p')) ∷ []) | yes q = con (bytestring s (append b b') q)
+BUILTIN concatenate _ ((.(con (bytestring s b p)) , V-con (bytestring s b p)) ∷ (.(con (bytestring s' b' p')) , V-con (bytestring s' b' p')) ∷ []) | no ¬q = error (con bytestring)
 BUILTIN _ _ _ = error (con integer)
 
 
