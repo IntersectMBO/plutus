@@ -61,7 +61,7 @@ import qualified Data.Text.Prettyprint.Doc              as PP
 import           GHC.TypeLits
 import           System.IO.Unsafe                       (unsafePerformIO)
 
--- | A compiled Plutus Tx program. The type parameter inicates
+-- | A compiled Plutus Tx program. The type parameter indicates
 -- the type of the Haskell expression that was compiled, and
 -- hence the type of the compiled code.
 data CompiledCode a = CompiledCode {

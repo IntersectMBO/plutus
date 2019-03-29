@@ -57032,6 +57032,7 @@ license = stdenv.lib.licenses.asl20;
 , serialise
 , stdenv
 , tasty
+, tasty-hunit
 , template-haskell
 , text
 , th-abstraction
@@ -57067,9 +57068,11 @@ base
 bytestring
 language-plutus-core
 mtl
+plutus-core-interpreter
 plutus-ir
 prettyprinter
 tasty
+tasty-hunit
 template-haskell
 ];
 doHaddock = false;
