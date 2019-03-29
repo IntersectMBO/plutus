@@ -7,7 +7,7 @@ import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged), AceQuery(GetE
 import Ace.Types (ACE, Editor, Annotation)
 import AjaxUtils (runAjaxTo)
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
-import Bootstrap (active, btn, btnGroup, btnSmall, container, container_, empty, hidden, listGroupItem_, listGroup_, navItem_, navLink, navTabs_, pullRight)
+import Bootstrap (active, btn, btnGroup, btnSmall, btnPrimary, container, container_, empty, hidden, listGroupItem_, listGroup_, navItem_, navLink, navTabs_, pullRight)
 import Control.Monad.Aff.Class (class MonadAff, liftAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
@@ -40,9 +40,9 @@ import Halogen (Component, action)
 import Halogen as H
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
-import Halogen.HTML (ClassName(ClassName), HTML, a, code_, div, div_, h1, pre_, text)
-import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (class_, classes, href)
+import Halogen.HTML (ClassName(ClassName), HTML, a, code_, div, div_, h1, pre_, text, button)
+import Halogen.HTML.Events (onClick, input_)
+import Halogen.HTML.Properties (class_, classes, href, disabled)
 import Halogen.Query (HalogenM)
 import Language.Haskell.Interpreter (SourceCode(SourceCode), InterpreterError(CompilationErrors, TimeoutError), CompilationError(CompilationError, RawError), InterpreterResult(InterpreterResult), _InterpreterResult)
 import LocalStorage (LOCALSTORAGE)
@@ -52,8 +52,8 @@ import Marlowe.Pretty (pretty)
 import Marlowe.Types (BlockNumber, Choice, Contract(Null), IdChoice(IdChoice), IdOracle, Person, WIdChoice(WIdChoice))
 import Meadow (SPParams_, getOauthStatus, patchGistsByGistId, postGists, postContractHaskell)
 import Network.HTTP.Affjax (AJAX)
-import Network.RemoteData (RemoteData(Success, NotAsked), _Success)
-import Prelude (type (~>), Unit, Void, bind, const, discard, id, pure, show, unit, void, ($), (+), (-), (<$>), (<<<), (<>), (==))
+import Network.RemoteData (RemoteData(Success, NotAsked), _Success, isLoading, isSuccess)
+import Prelude (not, (||), type (~>), Unit, Void, bind, const, discard, id, pure, show, unit, void, ($), (+), (-), (<$>), (<<<), (<>), (==))
 import Semantics (ErrorResult(InvalidInput), IdInput(IdOracle, InputIdChoice), MApplicationResult(MCouldNotApply, MSuccessfullyApplied), State(State), TransactionOutcomes, applyTransaction, collectNeededInputsFromContract, emptyState, peopleFromStateAndContract, reduce, scoutPrimitives)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation (simulationPane)
@@ -594,6 +594,12 @@ render state = div [ class_ $ ClassName "main-frame"
                                   , mainTabBar state.view
                                   ]
                      , viewContainer state.view Editor $ [ editorPane defaultContents state.compilationResult
+                                                         , button [ classes [ btn
+                                                                            , btnPrimary 
+                                                                            ]
+                                                                  , onClick $ input_ SendResult
+                                                                  , disabled ((isLoading state.compilationResult) || ((not isSuccess) state.compilationResult))
+                                                                  ] [ text "Send to Simulator" ]
                                                          , resultPane state 
                                                          ]
                      , viewContainer state.view Simulation $ [ simulationPane state
