@@ -12,12 +12,13 @@ open import Utils
 
 open import Data.Sum renaming (inj₁ to inl; inj₂ to inr)
 open import Data.Product
-open import Data.List hiding ([_])
+open import Data.List hiding ([_]; drop; take)
 open import Function
 open import Data.Integer as I
 open import Data.Nat as N hiding (_<?_;_>?_;_≥?_)
 open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality hiding ([_];trans)
+import Agda.Builtin.Bool as B
 \end{code}
 
 \begin{code}
@@ -104,6 +105,12 @@ BUILTIN remainderInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer
 BUILTIN remainderInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
 BUILTIN remainderInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
 BUILTIN remainderInteger _ _ = error (con integer)
+BUILTIN modInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
+BUILTIN modInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (mod i i')
+BUILTIN modInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (mod i i') r)
+BUILTIN modInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
+BUILTIN modInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
+BUILTIN modInteger _ _ = error (con integer)
 -- Int -> Int -> Bool
 BUILTIN lessThanInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with i <? i'
 BUILTIN lessThanInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | yes q = true
@@ -129,11 +136,52 @@ BUILTIN equalsInteger _ _ = error boolean
 BUILTIN resizeInteger (_ ∷ size s' ∷ []) ((_ , V-con (integer s i p)) ∷ []) with boundedI? s' i
 BUILTIN resizeInteger (_ ∷ size s' ∷ []) ((_ , V-con (integer s i p)) ∷ []) | yes q = con (integer s' i q)
 BUILTIN resizeInteger (_ ∷ size s' ∷ []) ((_ , V-con (integer s i p)) ∷ []) | no ¬q = error (con integer)
+BUILTIN resizeInteger _ _ = error (con integer)
+-- Int -> Size
 BUILTIN sizeOfInteger _  ((_ , V-con (integer s i p)) ∷ []) = con (size s)
+BUILTIN sizeOfInteger _ _ = error (con size)
+-- BS -> BS -> BS
 BUILTIN concatenate _ ((_ , V-con (bytestring s b p)) ∷ (_ , V-con (bytestring s' b' p')) ∷ []) with boundedB? s (append b b')
-BUILTIN concatenate _ ((.(con (bytestring s b p)) , V-con (bytestring s b p)) ∷ (.(con (bytestring s' b' p')) , V-con (bytestring s' b' p')) ∷ []) | yes q = con (bytestring s (append b b') q)
-BUILTIN concatenate _ ((.(con (bytestring s b p)) , V-con (bytestring s b p)) ∷ (.(con (bytestring s' b' p')) , V-con (bytestring s' b' p')) ∷ []) | no ¬q = error (con bytestring)
-BUILTIN _ _ _ = error (con integer)
+BUILTIN concatenate _ ((_ , V-con (bytestring s b p)) ∷ (.(con (bytestring s' b' p')) , V-con (bytestring s' b' p')) ∷ []) | yes q = con (bytestring s (append b b') q)
+BUILTIN concatenate _ ((_ , V-con (bytestring s b p)) ∷ (.(con (bytestring s' b' p')) , V-con (bytestring s' b' p')) ∷ []) | no ¬q = error (con bytestring)
+BUILTIN concatenate _ _ = error (con bytestring)
+-- Int -> BS -> BS
+BUILTIN takeByteString _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (bytestring s' b p')) ∷ []) with boundedB? s (take i b)
+BUILTIN takeByteString _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (bytestring s' b p')) ∷ []) | yes q = con (bytestring s (take i b) q)
+BUILTIN takeByteString _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (bytestring s' b p')) ∷ []) | no ¬q = error (con bytestring)
+BUILTIN takeByteString _ _ = error (con bytestring)
+BUILTIN dropByteString _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (bytestring s' b p')) ∷ []) with boundedB? s (drop i b)
+BUILTIN dropByteString _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (bytestring s' b p')) ∷ []) | yes q = con (bytestring s (drop i b) q)
+BUILTIN dropByteString _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (bytestring s' b p')) ∷ []) | no ¬q = error (con bytestring)
+BUILTIN dropByteString _ _ = error (con bytestring)
+-- BS -> BS
+BUILTIN sha2-256 _ ((_ , V-con (bytestring s b p)) ∷ []) with boundedB? 32 (SHA2-256 b)
+... | yes q = con (bytestring 32 (SHA2-256 b) q)
+... | no ¬q = error (con bytestring) -- impossible
+BUILTIN sha2-256 _ _ = error (con bytestring)
+BUILTIN sha3-256 _ ((_ , V-con (bytestring s b p)) ∷ []) with boundedB? 32 (SHA3-256 b)
+... | yes q = con (bytestring 32 (SHA3-256 b) q)
+... | no ¬q = error (con bytestring) -- impossible
+BUILTIN sha3-256 _ _ = error (con bytestring)
+BUILTIN verifySignature _ ((_ , V-con (bytestring s k p)) ∷ (_ , V-con (bytestring s' d p')) ∷ (_ , V-con (bytestring s'' c p'')) ∷ []) with verifySig k d c
+... | B.false = false
+... | B.true = true
+BUILTIN verifySignature _ _ = error (con bytestring)
+BUILTIN intToByteString _ ((_ , V-con (size s')) ∷ (_ , V-con (integer s i p)) ∷ []) with boundedB? s' (int2ByteString i)
+... | yes q = con (bytestring s' (int2ByteString i) q)
+... | no ¬q = error (con bytestring)
+BUILTIN intToByteString _ _ = error (con bytestring)
+-- Int -> Int
+BUILTIN resizeByteString (_ ∷ size s' ∷ []) ((_ , V-con (bytestring s b p)) ∷ []) with boundedB? s' b
+... | yes q = con (bytestring s' b q)
+... | no ¬q = error (con bytestring)
+BUILTIN resizeByteString _ _ = error (con bytestring)
+BUILTIN equalsByteString _ ((_ , V-con (bytestring s b p)) ∷ (_ , V-con (bytestring s' b' p')) ∷ []) with equals b b'
+... | B.true  = true
+... | B.false = false
+BUILTIN equalsByteString _ _ = error boolean
+
+
 
 
 data _—→_ {n} : ScopedTm n → ScopedTm n → Set where
