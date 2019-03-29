@@ -1,4 +1,12 @@
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DerivingStrategies #-}
 module Marlowe where
+
+import           GHC.Generics            (Generic)
+import           Language.Marlowe.Pretty as Pretty
+
+prettyPrint :: Contract -> String
+prettyPrint = show . Pretty.pretty
 
 type BlockNumber = Integer
 type Timeout = BlockNumber
@@ -27,7 +35,8 @@ data Value = CurrentBlock |
  --    default value if not available --^
              ValueFromOracle IdOracle Value
  --    default value if not available --^
-               deriving (Eq,Ord,Show,Read)
+               deriving stock (Eq, Ord, Show, Generic, Read)
+               deriving anyclass (Pretty.Pretty)
 
 data Observation = BelowTimeout Timeout |
                    AndObs Observation Observation |
@@ -42,7 +51,8 @@ data Observation = BelowTimeout Timeout |
                    ValueEQ Value Value |
                    TrueObs |
                    FalseObs
-               deriving (Eq,Ord,Show,Read)
+               deriving stock (Eq, Ord, Show, Generic, Read)
+               deriving anyclass (Pretty.Pretty)
 
 data Contract =
     Null |
@@ -55,5 +65,6 @@ data Contract =
     Scale !Value !Value !Value !Contract |
     Let !LetLabel !Contract !Contract |
     Use !LetLabel
-               deriving (Eq,Ord,Show,Read)
+               deriving stock (Eq, Ord, Show, Generic, Read)
+               deriving anyclass (Pretty.Pretty)
 
