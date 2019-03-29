@@ -6,12 +6,12 @@ module Language.Marlowe.Pretty (pretty, Pretty, prettyFragment) where
 
 import           GHC.Generics            ((:*:) ((:*:)), (:+:) (L1, R1), C, Constructor, D, Generic, K1 (K1), M1 (M1),
                                           Rep, S, U1, conName, from)
-import           Prelude                 hiding ((<$>))
-import           Text.PrettyPrint.Leijen (Doc, comma, encloseSep, hang, lbracket, lparen, parens, rbracket, rparen,
-                                          space, text, (<$>))
+import           Text.PrettyPrint.Leijen (Doc, comma, encloseSep, hang, lbracket, line, lparen, parens, rbracket,
+                                          rparen, space, text)
 
 -- | This function will pretty print an a but will not wrap the whole
--- expression in parentheses, where as @prettyFragment@ will.
+-- expression in parentheses or add an initial newline, where as for
+-- technical reasons, @prettyFragment@ will.
 --
 -- >>> prettyFragment $ MyData One (MyData One Two)
 -- (MyData One (MyData One Two))
@@ -39,13 +39,19 @@ instance (Pretty1 f) => Pretty1 (M1 D c f) where
     isNullary (M1 a) = isNullary a
 
 instance (Constructor c, Pretty1 f) => Pretty1 (M1 C c f) where
-    pretty1 topLevel c@(M1 a) = parens' $ hang 2 $ text (conName c) <> pretty1 False a
+    pretty1 topLevel c@(M1 a) = line' . parens' $ hang 2 $ text (conName c) <> pretty1 False a
         where
             parens' f = if topLevel || isNullary a then f else parens f
+            line' f = if topLevel || isNullary a then f else line <> f
     isNullary (M1 a) = isNullary a
 
 instance (Pretty1 f) => Pretty1 (M1 S c f) where
-    pretty1 _ (M1 a) = space <> pretty1 False a
+    pretty1 _ (M1 a) = space' (pretty1 False a)
+        where
+          -- FIXME: unfortunately I can't work out how to get rid of trailing spaces without showing
+          space' f = case show f of
+            ('\n':_) -> f
+            _        -> space <> f
     isNullary (M1 a) = isNullary a
 
 instance Pretty f => Pretty1 (K1 t f) where
@@ -59,13 +65,7 @@ instance (Pretty1 a, Pretty1 b) => Pretty1 (a :+: b) where
     isNullary (L1 a) = isNullary a
 
 instance (Pretty1 a, Pretty1 b) => Pretty1 (a :*: b) where
-    pretty1 topLevel (f :*: g) = pretty1 topLevel f `split` pretty1 topLevel g
-        where
-            -- FIXME: horrible hack, it seems that `isNullary g` always returns False so instead
-            -- we manually prettyprint it and check if it is surrounded with parens
-            split a b = case (show . pretty1 topLevel) g of
-                (' ':'(':_) -> a <$> b
-                _           -> a <> b
+    pretty1 topLevel (f :*: g) = pretty1 topLevel f <> pretty1 topLevel g
     isNullary _ = False
 
 instance Pretty String where
