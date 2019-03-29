@@ -9,7 +9,6 @@
     "purs:bundle": "purs bundle output/**/*.js",
     "start": "node bundle.js",
     "test": "pulp test -I generated:../web-common",
-    "test-nix": "pulp test -I generated:web-common",
     "test:watch": "pulp -w test -I generated:../web-common",
     "repl": "purs repl 'src/**/*.purs' 'bower_components/purescript-*/src/**/*.purs' 'generated/**/*.purs' 'test/**/*.purs' '../web-common/src/**/*.purs'"
   },
