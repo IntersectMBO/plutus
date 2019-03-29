@@ -27,6 +27,6 @@ data Builtin : Set where
   resizeByteString : Builtin
   equalsByteString : Builtin
 
-{-# FOREIGN GHC import Language.PlutusCore.Lexer.Type #-}
+{-# FOREIGN GHC import Language.PlutusCore #-}
 {-# COMPILE GHC Builtin = data BuiltinName (AddInteger | SubtractInteger | MultiplyInteger | DivideInteger | QuotientInteger | RemainderInteger | ModInteger | LessThanInteger | LessThanEqInteger | GreaterThanInteger | GreaterThanEqInteger | EqInteger | ResizeInteger | SizeOfInteger | IntToByteString | Concatenate | TakeByteString | DropByteString | SHA2 | SHA3 | VerifySignature | ResizeByteString | EqByteString) #-}
 \end{code}

@@ -76,8 +76,8 @@ postulate
 {-# COMPILE GHC mbind = \_ _ f a -> f =<< a #-}
 {-# FOREIGN GHC import Data.Either #-}
 {-# COMPILE GHC parse = either (\_ -> Nothing) Just . parse #-}
-{-# FOREIGN GHC import Language.PlutusCore.Type #-}
-{-# COMPILE GHC Program = type Language.PlutusCore.Type.Program TyName Name Language.PlutusCore.Lexer.AlexPosn #-}
+{-# FOREIGN GHC import Language.PlutusCore #-}
+{-# COMPILE GHC Program = type Language.PlutusCore.Program TyName Name Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC readFile = \ s -> BSL.readFile (T.unpack s) #-}
 {-# COMPILE GHC showTerm = T.pack . show #-}
 open import Function

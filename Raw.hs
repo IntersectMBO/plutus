@@ -7,7 +7,7 @@ module Raw where
 import GHC.Natural
 
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
+import           Language.PlutusCore
 import           Language.PlutusCore.Parser
 import           Language.PlutusCore.Pretty
 import qualified Data.Text                  as T
