@@ -407,11 +407,16 @@ evalForm (SetIntField _ _) arg = arg
 evalForm (SetStringField s next) (SimpleString _) = SimpleString (Just s)
 evalForm (SetStringField _ _) arg = arg
 
+evalForm (SetValueField valueEvent _) (ValueArgument schema (Value { getValue: fields })) =
+  ValueArgument schema $ Value { getValue: evalValueEvent valueEvent fields }
+evalForm (SetValueField _ _) arg = arg
+
 evalForm (SetSubField 1 subEvent) (SimpleTuple fields) = SimpleTuple $ over _1 (evalForm subEvent) fields
 evalForm (SetSubField 2 subEvent) (SimpleTuple fields) = SimpleTuple $ over _2 (evalForm subEvent) fields
-evalForm (SetSubField _ subEvent) arg@(SimpleTuple fields) = arg
-evalForm (SetSubField _ subEvent) arg@(SimpleString fields) = arg
-evalForm (SetSubField _ subEvent) arg@(SimpleInt fields) = arg
+evalForm (SetSubField _ subEvent) arg@(SimpleTuple _) = arg
+evalForm (SetSubField _ subEvent) arg@(SimpleString _) = arg
+evalForm (SetSubField _ subEvent) arg@(SimpleInt _) = arg
+evalForm (SetSubField _ subEvent) arg@(ValueArgument _ _) = arg
 
 evalForm (AddSubField _) (SimpleArray schema fields) =
   -- As the code stands, this is the only guarantee we get that every

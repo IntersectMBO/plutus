@@ -3,6 +3,7 @@ module Types where
 import Prelude
 
 import Ace.Halogen.Component (AceMessage, AceQuery)
+import AjaxUtils as AjaxUtils
 import Auth (AuthStatus)
 import Control.Comonad (class Comonad, extract)
 import Control.Extend (class Extend, extend)
@@ -34,10 +35,10 @@ import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.ECharts (EChartsMessage, EChartsQuery)
 import Language.Haskell.Interpreter (SourceCode, InterpreterError)
 import Ledger.Types (Tx, TxIdOf)
-import Ledger.Value.TH (CurrencySymbol, Value, _Value)
+import Ledger.Value.TH (CurrencySymbol, Value(..), _Value)
 import Matryoshka (class Corecursive, class Recursive, Algebra, cata)
 import Network.RemoteData (RemoteData)
-import Playground.API (CompilationResult, Evaluation(Evaluation), EvaluationResult, FunctionSchema, SimpleArgumentSchema(UnknownSchema, SimpleObjectSchema, SimpleTupleSchema, SimpleArraySchema, SimpleStringSchema, SimpleIntSchema), SimulatorWallet, _FunctionSchema, _SimulatorWallet)
+import Playground.API (CompilationResult, Evaluation(Evaluation), EvaluationResult, FunctionSchema, SimpleArgumentSchema(..), SimulatorWallet, _FunctionSchema, _SimulatorWallet)
 import Playground.API as API
 import Servant.PureScript.Affjax (AjaxError)
 import Test.QuickCheck.Arbitrary (class Arbitrary)
@@ -194,6 +195,7 @@ data ActionEvent
 data FormEvent a
   = SetIntField (Maybe Int) a
   | SetStringField String a
+  | SetValueField ValueEvent a
   | AddSubField a
   | SetSubField Int (FormEvent a)
   | RemoveSubField Int a
@@ -203,6 +205,7 @@ derive instance functorFormEvent :: Functor FormEvent
 instance extendFormEvent :: Extend FormEvent where
   extend f event@(SetIntField n _) = SetIntField n $ f event
   extend f event@(SetStringField s _) = SetStringField s $ f event
+  extend f event@(SetValueField e _) = SetValueField e $ f event
   extend f event@(AddSubField _) = AddSubField $ f event
   extend f event@(SetSubField n _) = SetSubField n $ extend f event
   extend f event@(RemoveSubField n _) = RemoveSubField n $ f event
@@ -210,6 +213,7 @@ instance extendFormEvent :: Extend FormEvent where
 instance comonadFormEvent :: Comonad FormEvent where
   extract (SetIntField _ a) = a
   extract (SetStringField _ a) = a
+  extract (SetValueField _ a) = a
   extract (AddSubField a) = a
   extract (SetSubField _ e) = extract e
   extract (RemoveSubField _ e) = e
@@ -324,6 +328,7 @@ data SimpleArgument
   | SimpleArray SimpleArgumentSchema (Array SimpleArgument)
   | SimpleTuple (Tuple SimpleArgument SimpleArgument)
   | SimpleObject SimpleArgumentSchema (Array (Tuple String SimpleArgument))
+  | ValueArgument SimpleArgumentSchema Value
   | Unknowable { context :: String, description :: String }
 
 derive instance genericSimpleArgument :: Generic SimpleArgument
@@ -337,6 +342,7 @@ toValue SimpleStringSchema = SimpleString Nothing
 toValue (SimpleArraySchema field) = SimpleArray field []
 toValue (SimpleTupleSchema (fieldA /\ fieldB)) = SimpleTuple (toValue fieldA /\ toValue fieldB)
 toValue schema@(SimpleObjectSchema fields) = SimpleObject schema (over (traversed <<< _2) toValue fields)
+toValue schema@(ValueSchema fields) = ValueArgument schema (Value { getValue: [] })
 toValue (UnknownSchema context description) = Unknowable { context, description }
 
 -- | This should just be `map` but we can't put an orphan instance on FunctionSchema. :-(
@@ -354,6 +360,7 @@ data SimpleArgumentF a
   | SimpleTupleF (Tuple a a)
   | SimpleArrayF SimpleArgumentSchema (Array a)
   | SimpleObjectF SimpleArgumentSchema (Array (Tuple String a))
+  | ValueArgumentF SimpleArgumentSchema Value
   | UnknowableF { context :: String, description :: String }
 
 instance functorSimpleArgumentF :: Functor SimpleArgumentF where
@@ -362,6 +369,7 @@ instance functorSimpleArgumentF :: Functor SimpleArgumentF where
   map f (SimpleTupleF (Tuple x y)) = SimpleTupleF (Tuple (f x) (f y))
   map f (SimpleArrayF schema xs) = SimpleArrayF schema (map f xs)
   map f (SimpleObjectF schema xs) = SimpleObjectF schema (map (map f) xs)
+  map f (ValueArgumentF schema x) = ValueArgumentF schema x
   map f (UnknowableF x) = UnknowableF x
 
 derive instance eqSimpleArgumentF :: Eq a => Eq (SimpleArgumentF a)
@@ -372,6 +380,7 @@ instance recursiveSimpleArgument :: Recursive SimpleArgument SimpleArgumentF whe
   project (SimpleTuple x) = SimpleTupleF x
   project (SimpleArray schema xs) = SimpleArrayF schema xs
   project (SimpleObject schema xs) = SimpleObjectF schema xs
+  project (ValueArgument schema x) = ValueArgumentF schema x
   project (Unknowable x) = UnknowableF x
 
 instance corecursiveSimpleArgument :: Corecursive SimpleArgument SimpleArgumentF where
@@ -380,6 +389,7 @@ instance corecursiveSimpleArgument :: Corecursive SimpleArgument SimpleArgumentF
   embed (SimpleTupleF xs) = SimpleTuple xs
   embed (SimpleArrayF schema xs) = SimpleArray schema xs
   embed (SimpleObjectF schema xs) = SimpleObject schema xs
+  embed (ValueArgumentF schema x) = ValueArgument schema x
   embed (UnknowableF x) = Unknowable x
 
 ------------------------------------------------------------
@@ -405,6 +415,8 @@ instance validationSimpleArgument :: Validation SimpleArgument where
       algebra (SimpleObjectF schema xs) =
         Array.concat $ map (\(Tuple name values) -> addPath name <$> values) xs
 
+      algebra (ValueArgumentF schema x) = []
+
       algebra (UnknowableF _) = [ noPath Unsupported ]
 
 simpleArgumentToJson :: SimpleArgument -> Maybe Json
@@ -419,4 +431,5 @@ simpleArgumentToJson = cata algebra
     algebra (SimpleTupleF _) = Nothing
     algebra (SimpleArrayF _ fields) = Json.fromArray <$> sequence fields
     algebra (SimpleObjectF _ fields) = (Json.fromObject <<< M.fromFoldable) <$> sequence (map sequence fields)
+    algebra (ValueArgumentF _ x) = Just $ AjaxUtils.encodeJson x
     algebra (UnknowableF _) = Nothing

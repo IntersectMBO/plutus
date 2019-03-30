@@ -16,7 +16,7 @@ import Data.Tuple.Nested ((/\))
 import Halogen (HTML)
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
-import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, h2_, h3_, input, label, p_, small_, strong_, text)
+import Halogen.HTML (ClassName(ClassName), IProp, br_, button, code_, div, div_, h2_, h3_, input, label, p_, small_, strong_, text)
 import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (input_, onClick, onValueInput)
 import Halogen.HTML.Events as HE
@@ -26,8 +26,9 @@ import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
 import Playground.API (EvaluationResult, _Fn, _FunctionSchema)
 import Prelude (map, pure, show, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==))
-import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, FormEvent(SetSubField, AddSubField, RemoveSubField, SetStringField, SetIntField), Query(..), SimpleArgument(Unknowable, SimpleObject, SimpleArray, SimpleTuple, SimpleString, SimpleInt), Simulation(Simulation), WebData, _argumentSchema, _functionName, _resultBlockchain, _simulatorWalletWallet)
+import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, FormEvent(..), Query(..), SimpleArgument(..), Simulation(Simulation), WebData, _argumentSchema, _functionName, _resultBlockchain, _simulatorWalletWallet)
 import Validation (ValidationError, WithPath, joinPath, showPathValue, validate)
+import ValueEditor (valueForm)
 import Wallet (walletIdPane, walletsPane)
 
 simulationPane ::
@@ -209,15 +210,13 @@ actionArgumentField ancestors _ arg@(SimpleString s) =
       ]
     , validationFeedback (joinPath ancestors <$> validate arg)
   ]
-actionArgumentField ancestors nested (SimpleTuple (subFieldA /\subFieldB)) =
+actionArgumentField ancestors isNested (SimpleTuple (subFieldA /\subFieldB)) =
   row_
     [ col_ [ SetSubField 1 <$> actionArgumentField (Array.snoc ancestors "_1") true subFieldA ]
     , col_ [ SetSubField 2 <$> actionArgumentField (Array.snoc ancestors "_2") true subFieldB ]
     ]
-actionArgumentField ancestors nested (SimpleArray schema subFields) =
-    div_ [(if nested
-           then Keyed.div [ classes [  ClassName "nested" ] ]
-           else Keyed.div_)
+actionArgumentField ancestors isNested (SimpleArray schema subFields) =
+    div_ [ Keyed.div [ nesting isNested ]
              (mapWithIndex subFormContainer subFields)
          , button
              [ classes [ btn, btnInfo ]
@@ -243,10 +242,9 @@ actionArgumentField ancestors nested (SimpleArray schema subFields) =
           ]
         ]
 
-actionArgumentField ancestors nested (SimpleObject _ subFields) =
-    (if nested
-       then div [ classes [  ClassName "nested" ] ]
-       else div_) $ mapWithIndex (\i field -> map (SetSubField i) (subForm field)) subFields
+actionArgumentField ancestors isNested (SimpleObject _ subFields) =
+  div [ nesting isNested ]
+     (mapWithIndex (\i field -> map (SetSubField i) (subForm field)) subFields)
   where
     subForm (name /\ arg) =
       (formGroup_
@@ -254,10 +252,19 @@ actionArgumentField ancestors nested (SimpleObject _ subFields) =
          , actionArgumentField (Array.snoc ancestors name) true arg
          ]
       )
+actionArgumentField ancestors isNested (ValueArgument _ value) =
+  div [ nesting isNested ]
+    [ label [ for "value" ] [ text "Value" ]
+    , valueForm SetValueField value
+    ]
 actionArgumentField _ _ (Unknowable { context, description }) =
   div_ [ text $ "Unsupported: " <>  context
        , code_ [ text description ]
        ]
+
+nesting :: forall r i. Boolean -> IProp ("class" :: String | r) i
+nesting true = classes [ ClassName "nested" ]
+nesting false = classes []
 
 validationFeedback :: forall p i. Array (WithPath ValidationError) -> HTML p i
 validationFeedback [] =

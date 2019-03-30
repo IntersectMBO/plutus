@@ -136,8 +136,9 @@ data SimpleArgumentSchema
     | SimpleArraySchema SimpleArgumentSchema
     | SimpleTupleSchema (SimpleArgumentSchema, SimpleArgumentSchema)
     | SimpleObjectSchema [(Text, SimpleArgumentSchema)]
+    | ValueSchema [(Text, SimpleArgumentSchema)]
     | UnknownSchema Text
-                      Text
+                    Text
     deriving (Show, Eq, Generic, ToJSON)
 
 toSimpleArgumentSchema :: Schema -> SimpleArgumentSchema
@@ -160,21 +161,42 @@ toSimpleArgumentSchema schema@Schema {..} =
                             UnknownSchema "While handling array." $
                             Text.pack $ show schema
                 SwaggerObject ->
-                    SimpleObjectSchema $
-                    HM.toList $ extractReference <$> view properties schema
+                    -- | We want to give a special response if the
+                    -- argument is the blessed type `Value`. That type
+                    -- gets magic treatment in the frontend. But
+                    -- Swagger doesn't give us the metadata we need to
+                    -- tell if we've got a `Value` object.
+                    --
+                    -- The correct solution is to replace Swagger with
+                    -- something that uses GHC Generics. But because
+                    -- of deadlines we're going with the quick
+                    -- solution: Duck typing. If a schema looks like a
+                    -- `Value` type, then assume it is a `Value` type.
+                    let fields =
+                            HM.toList $
+                            extractReference <$> view properties schema
+                     in if fields == valueTypeFields
+                            then ValueSchema fields
+                            else SimpleObjectSchema fields
                 _ ->
-                    UnknownSchema "Unrecognised type." $
-                    Text.pack $ show schema
+                    UnknownSchema "Unrecognised type." $ Text.pack $ show schema
   where
     extractReference :: Referenced Schema -> SimpleArgumentSchema
     extractReference (Inline v) = toSimpleArgumentSchema v
     extractReference (Ref _) =
         UnknownSchema "Cannot handle Ref types, online Inline ones." $
         Text.pack $ show schema
+    valueTypeFields =
+        [ ( "getValue"
+          , SimpleArraySchema
+                (SimpleTupleSchema (SimpleIntSchema, SimpleIntSchema)))
+        ]
 
 isSupportedByFrontend :: SimpleArgumentSchema -> Bool
 isSupportedByFrontend SimpleIntSchema = True
 isSupportedByFrontend SimpleStringSchema = True
+isSupportedByFrontend (ValueSchema subSchema) =
+    all isSupportedByFrontend (snd <$> subSchema)
 isSupportedByFrontend (SimpleObjectSchema subSchema) =
     all isSupportedByFrontend (snd <$> subSchema)
 isSupportedByFrontend (SimpleArraySchema subSchema) =
