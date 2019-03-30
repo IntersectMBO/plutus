@@ -11,12 +11,12 @@ module Tutorial.Solutions0 where
 
 import           Data.Foldable                (traverse_)
 import qualified Language.PlutusTx            as P
-import qualified Ledger.Interval              as P
 import           Ledger                       (Address, DataScript(..), PubKey(..), RedeemerScript(..), Signature(..), Slot(..), TxId, ValidatorScript(..))
 import qualified Ledger                       as L
 import qualified Ledger.Ada.TH                as Ada
 import           Ledger.Ada.TH                (Ada)
 import qualified Ledger.Interval              as Interval
+import qualified Ledger.Slot                  as Slot
 import           Ledger.Validation            (PendingTx(..), PendingTxIn(..), PendingTxOut)
 import qualified Ledger.Validation            as V
 import           Wallet                       (WalletAPI(..), WalletDiagnostics(..), MonadWallet, EventHandler(..), EventTrigger)
@@ -143,7 +143,7 @@ mkValidatorScript campaign = ValidatorScript val where
                             contributorOnly = $$(P.all) contribTxOut outs
 
                             refundable = 
-                              $$(P.before) collectionDeadline txnValidRange &&
+                              $$(Slot.before) collectionDeadline txnValidRange &&
                               contributorOnly &&
                               pkCon `signedBy` sig
 
@@ -156,7 +156,7 @@ mkValidatorScript campaign = ValidatorScript val where
                         -- | Check whether a given 'Slot' is after the current 
                         --   transaction's valid range
                         isFutureSlot :: Slot -> Bool
-                        isFutureSlot sl = $$(Interval.after) sl txnValidRange
+                        isFutureSlot sl = $$(Slot.after) sl txnValidRange
 
                         -- | Return the smaller of two 'Ada' values
                         --   (NB this should be in the standard library)

@@ -36,13 +36,14 @@ import           Language.PureScript.Bridge                (BridgePart, Language
 import           Language.PureScript.Bridge.Builder        (BridgeData)
 import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psString)
 import           Language.PureScript.Bridge.TypeParameters (A, B)
-import           Ledger.Ada                                (Ada)
-import           Ledger.Index                              (ValidationError)
-import           Ledger.Interval                           (Interval, Slot)
-import           Ledger.Map.TH                             (Map)
-import           Ledger.Types                              (AddressOf, DataScript, PubKey, RedeemerScript, Signature,
+import           Ledger                                    (AddressOf, DataScript, PubKey, RedeemerScript, Signature,
                                                             Tx, TxIdOf, TxInOf, TxInType, TxOutOf, TxOutRefOf,
                                                             TxOutType, ValidatorScript)
+import           Ledger.Ada                                (Ada)
+import           Ledger.Index                              (ValidationError)
+import           Ledger.Interval                           (Interval)
+import           Ledger.Map.TH                             (Map)
+import           Ledger.Slot                               (Slot)
 import           Ledger.Value.TH                           (CurrencySymbol, Value)
 import           Playground.API                            (CompilationResult, Evaluation, EvaluationResult, Expression,
                                                             Fn, FunctionSchema, KnownCurrency, SimpleArgumentSchema,
@@ -103,19 +104,19 @@ sha256Bridge = do
 scriptBridge :: BridgePart
 scriptBridge = do
     typeName ^== "Script"
-    typeModule ^== "Ledger.Types"
+    typeModule ^== "Ledger.Scripts"
     pure psString
 
 redeemerBridge :: BridgePart
 redeemerBridge = do
     typeName ^== "Redeemer"
-    typeModule ^== "Ledger.Types"
+    typeModule ^== "Ledger.Script"
     pure psString
 
 validatorBridge :: BridgePart
 validatorBridge = do
     typeName ^== "Validator"
-    typeModule ^== "Ledger.Types"
+    typeModule ^== "Ledger.Script"
     pure psString
 
 validatorHashBridge :: BridgePart

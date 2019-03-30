@@ -6,7 +6,8 @@
 -- this contract on the blockchain.
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Ledger.Interval              as Interval
-import           Ledger.Interval              (SlotRange)
+import           Ledger.Slot                  (SlotRange)
+import qualified Ledger.Slot                  as Slot
 import qualified Language.PlutusTx.Prelude    as P
 import           Ledger
 import qualified Ledger.Ada.TH                as Ada
@@ -119,14 +120,14 @@ contributionScript cmp  = ValidatorScript val where
                             contributorOnly = $$(P.all) contributorTxOut outs
 
                             refundable = 
-                                $$(Interval.contains) refndRange range
+                                $$(Slot.contains) refndRange range
                                 && contributorOnly && con `signedBy` sig
 
                         in refundable
                     Collect sig -> -- the "successful campaign" branch
                         let
                             payToOwner = 
-                                $$(Interval.contains) collRange range
+                                $$(Slot.contains) collRange range
                                 && $$(Ada.geq) totalInputs campaignTarget
                                 && campaignOwner `signedBy` sig
                         in payToOwner

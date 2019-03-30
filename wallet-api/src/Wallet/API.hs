@@ -89,6 +89,7 @@ import           Ledger                     (Address, DataScript, PubKey (..), R
                                              Value, pubKeyTxOut, scriptAddress, scriptTxIn, txOutRefId)
 import qualified Ledger.Interval            as Interval
 import           Ledger.Interval            (Interval(..))
+import qualified Ledger.Slot                as Slot
 import qualified Ledger.Value               as Value
 import           Text.Show.Deriving         (deriveShow1)
 import           Wallet.Emulator.AddressMap (AddressMap)
@@ -424,9 +425,9 @@ createTxAndSubmit range ins outs = do
     submitTxn tx
     pure tx
 
--- | See 'Interval.always'.
+-- | The default slot validity range for transactions.
 defaultSlotRange :: SlotRange
-defaultSlotRange = $$(Interval.always)
+defaultSlotRange = always
 
 -- | See 'Interval.interval'.
 interval :: a -> a -> Interval a
@@ -440,29 +441,29 @@ intervalFrom = $$(Interval.from)
 intervalTo :: a -> Interval a
 intervalTo = $$(Interval.to)
 
--- | See 'Interval.singleton'.
+-- | See 'Slot.singleton'.
 singleton :: Slot -> SlotRange
-singleton = $$(Interval.singleton)
+singleton = $$(Slot.singleton)
 
--- | See 'Interval.empty'.
+-- | See 'Slot.empty'.
 empty :: SlotRange -> Bool
-empty = $$(Interval.empty)
+empty = $$(Slot.empty)
 
 -- | See 'Interval.always'.
-always :: SlotRange
+always :: Interval a
 always = $$(Interval.always)
 
--- | See 'Interval.width'.
+-- | See 'Slot.width'.
 width :: SlotRange -> Maybe Int
-width = $$(Interval.width)
+width = $$(Slot.width)
 
--- | See 'Interval.before'.
+-- | See 'Slot.before'.
 before :: Slot -> SlotRange -> Bool
-before = $$(Interval.before)
+before = $$(Slot.before)
 
--- | See 'Interval.after'.
+-- | See 'Slot.after'.
 after :: Slot -> SlotRange -> Bool
-after = $$(Interval.after)
+after = $$(Slot.after)
 
 -- | Check whether an 'Interval' @a@ includes an @a@.
 member :: Ord a => a -> Interval a -> Bool
@@ -472,6 +473,6 @@ member v (Interval.Interval f t) =
     in
         lw && hg
 
--- | See 'Interval.contains'.
+-- | See 'Slot.contains'.
 contains :: SlotRange -> SlotRange -> Bool
-contains = $$(Interval.contains)
+contains = $$(Slot.contains)

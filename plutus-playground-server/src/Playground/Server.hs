@@ -20,7 +20,7 @@ import qualified Data.Text                    as Text
 import           Data.Time.Units              (Microsecond, fromMicroseconds)
 import           Language.Haskell.Interpreter (InterpreterError (CompilationErrors),
                                                InterpreterResult (InterpreterResult), SourceCode (SourceCode))
-import           Ledger.Types                 (hashTx)
+import           Ledger                       (hashTx)
 import           Network.HTTP.Types           (hContentType)
 import           Playground.API               (API, CompilationResult, Evaluation, EvaluationResult (EvaluationResult),
                                                PlaygroundError (PlaygroundTimeout), parseErrorText)

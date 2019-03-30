@@ -14,8 +14,8 @@ module Tutorial.ExUtil(
 
 import qualified Data.Map              as Map
 import qualified Data.Set              as S
+import           Ledger
 import qualified Ledger.Ada            as Ada
-import           Ledger.Types
 import qualified Ledger.Value          as Value
 import qualified Wallet.API            as WAPI
 import qualified Wallet.Emulator.Types as EM

@@ -27,6 +27,7 @@ import           Ledger.Ada                (Ada)
 import qualified Ledger.Ada                as Ada
 import qualified Ledger.Ada.TH             as ATH
 import qualified Ledger.Interval           as Interval
+import qualified Ledger.Slot               as Slot
 import qualified Ledger.Validation         as V
 import qualified Ledger.Value              as Value
 import           Wallet                    (WalletAPI(..), WalletDiagnostics, PubKey)
@@ -96,7 +97,7 @@ totalVested (Vesting l r _) = Ada.plus (vestingTrancheAmount l) (vestingTrancheA
     The redeemer script should carry some proof that the retriever of the funds 
     is indeed the `vestingOwner` that was specified in the contract. This proof 
     takes the form of a transaction hash signed by the `vestingOwner`'s private 
-    key. For this we use the type 'Ledger.Types.Signature'
+    key. For this we use the type 'Ledger.Crypto.Signature'
 
     That gives our validator script the signature
 
@@ -147,10 +148,10 @@ vestingValidator v = ValidatorScript val where
             -- intervals. If 'range' is completely contained in 'd1Intvl', then 
             -- we know for certain that the current slot is in 'd1Intvl', so the
             -- amount 'a1' of the first tranche has been released.
-            inD1Intvl = $$(Interval.contains) d1Intvl range
+            inD1Intvl = $$(Slot.contains) d1Intvl range
 
             -- Likewise for 'd2'
-            inD2Intvl = $$(Interval.contains) d2Intvl range
+            inD2Intvl = $$(Slot.contains) d2Intvl range
 
             released :: Ada
             released
