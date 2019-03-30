@@ -72,6 +72,8 @@ library
         Language.PlutusCore.Generators.AST
         Language.PlutusCore.Generators.Interesting
         Language.PlutusCore.Generators.Test
+        Language.PlutusCore.Lexer
+        Language.PlutusCore.Parser
         PlutusPrelude
         Common
         Data.ByteString.Lazy.Hash
@@ -81,9 +83,7 @@ library
     other-modules:
         Crypto
         Language.PlutusCore.Type
-        Language.PlutusCore.Lexer
         Language.PlutusCore.Lexer.Type
-        Language.PlutusCore.Parser
         Language.PlutusCore.Constant.Apply
         Language.PlutusCore.Constant.Dynamic.BuiltinName
         Language.PlutusCore.Constant.Dynamic.Call
