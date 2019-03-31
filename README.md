@@ -28,11 +28,11 @@ executing plutus core programs. The command line tool is an Agda
 program that is compiled to Haskell, it uses Haskell libraries (such
 as bytestring) and also borrows the Plutus parser and pretty printer.
 
-It requires the language-plutus-core Haskell library from
+Building it requires the `language-plutus-core` Haskell library from
 [here](https://github.com/input-output-hk/plutus). After installing
 this (via `cabal`), `plc-agda` can then be built like this:
-``` $ agda
---compile --ghc-dont-call-ghc Main.lagda
+```
+$ agda --compile --ghc-dont-call-ghc Main.lagda
 $ cabal install
 ```
 
