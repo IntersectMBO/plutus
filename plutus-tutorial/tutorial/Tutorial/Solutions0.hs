@@ -11,7 +11,7 @@ module Tutorial.Solutions0 where
 
 import           Data.Foldable                (traverse_)
 import qualified Language.PlutusTx            as P
-import           Ledger                       (Address, DataScript(..), PubKey(..), RedeemerScript(..), Signature(..), Slot(..), TxId, ValidatorScript(..))
+import           Ledger                       (Address, DataScript(..), PubKey(..), RedeemerScript(..), Slot(..), TxId, ValidatorScript(..))
 import qualified Ledger                       as L
 import qualified Ledger.Ada.TH                as Ada
 import           Ledger.Ada.TH                (Ada)
@@ -93,8 +93,6 @@ P.makeLift ''Campaign
 data CampaignAction = Collect | Refund
 P.makeLift ''CampaignAction
 
-type CampaignRedeemer = (CampaignAction, Signature)
-
 data Contributor = Contributor PubKey
 P.makeLift ''Contributor
 
@@ -102,17 +100,17 @@ mkValidatorScript :: Campaign -> ValidatorScript
 mkValidatorScript campaign = ValidatorScript val where
   val = L.applyScript mkValidator (L.lifted campaign)
   mkValidator = L.fromCompiledCode $$(P.compile [||
-              \(c :: Campaign) (con :: Contributor) (act :: CampaignRedeemer) (p :: PendingTx) -> 
+              \(c :: Campaign) (con :: Contributor) (act :: CampaignAction) (p :: PendingTx) -> 
       let
         infixr 3 &&
         (&&) :: Bool -> Bool -> Bool
         (&&) = $$(P.and)
 
         
-        signedBy :: PubKey -> Signature -> Bool
-        signedBy (PubKey pk) (Signature s) = $$(P.eq) pk s
+        signedBy :: PendingTx -> PubKey -> Bool
+        signedBy = $$(V.txSignedBy)
 
-        PendingTx ins outs _ _ _ txnValidRange = p 
+        PendingTx ins outs _ _ _ txnValidRange _ _ = p 
         -- p is bound to the pending transaction.
 
         Campaign targets collectionDeadline campaignOwner = c
@@ -130,7 +128,7 @@ mkValidatorScript campaign = ValidatorScript val where
               in $$(P.foldr) addToTotal $$(Ada.zero) ins
 
         isValid = case act of
-                    (Refund, sig) ->
+                    Refund ->
                         let
                             Contributor pkCon = con
 
@@ -145,12 +143,12 @@ mkValidatorScript campaign = ValidatorScript val where
                             refundable = 
                               $$(Slot.before) collectionDeadline txnValidRange &&
                               contributorOnly &&
-                              pkCon `signedBy` sig
+                              p `signedBy` pkCon
 
                         in refundable
 
                     -- START OF NEW CODE
-                    (Collect, sig) -> 
+                    Collect -> 
                       let
 
                         -- | Check whether a given 'Slot' is after the current 
@@ -195,7 +193,7 @@ mkValidatorScript campaign = ValidatorScript val where
                         -- 'targetMet' is only true if the interval ends 
                         -- before at least one of the targets.
                           targetMet &&
-                          campaignOwner `signedBy` sig
+                          p `signedBy` campaignOwner
 
                             -- END OF NEW CODE
       in if isValid then () else ($$(P.error) ()) ||])
@@ -206,15 +204,14 @@ campaignAddress cmp = L.scriptAddress (mkValidatorScript cmp)
 mkDataScript :: PubKey -> DataScript
 mkDataScript pk = DataScript (L.lifted (Contributor pk))
 
-mkRedeemer :: CampaignRedeemer -> RedeemerScript
+mkRedeemer :: CampaignAction -> RedeemerScript
 mkRedeemer action = RedeemerScript (L.lifted (action))
 
 refundHandler :: MonadWallet m => TxId -> Campaign -> EventHandler m
 refundHandler txid cmp = EventHandler (\_ -> do
     W.logMsg "Claiming refund"
-    sig <- W.ownSignature
     currentSlot <- W.slot
-    let redeemer  = mkRedeemer (Refund, sig)
+    let redeemer  = mkRedeemer Refund
         range     = W.intervalFrom currentSlot
     W.collectFromScriptTxn range (mkValidatorScript cmp) redeemer txid)
 
@@ -265,9 +262,8 @@ mkCollectTrigger addr sl target = W.andT
 collectionHandler :: MonadWallet m => Campaign -> Slot -> EventHandler m
 collectionHandler cmp targetSlot = EventHandler (\_ -> do
     W.logMsg "Collecting funds"
-    sig <- W.ownSignature
     currentSlot <- W.slot
-    let redeemerScript = mkRedeemer (Collect, sig)
+    let redeemerScript = mkRedeemer Collect
         range          = W.interval currentSlot targetSlot
     W.collectFromScript range (mkValidatorScript cmp) redeemerScript)
 

@@ -10,15 +10,15 @@ module Language.PlutusTx.Lift.Instances () where
 
 import qualified Language.PlutusCore          as PLC
 
+import           Language.PlutusTx.Builtins
 import           Language.PlutusTx.Lift.Class
 import           Language.PlutusTx.Utils
-import           Language.PlutusTx.Builtins
 
 import           Language.PlutusIR
 
 import           Data.Proxy
 
-import GHC.TypeLits
+import           GHC.TypeLits
 
 -- Derived instances
 

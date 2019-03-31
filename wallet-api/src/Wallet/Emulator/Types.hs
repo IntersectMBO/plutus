@@ -15,6 +15,7 @@ module Wallet.Emulator.Types(
     walletPubKey,
     walletPrivKey,
     signWithWallet,
+    addSignature,
     TxPool,
     -- * Emulator
     Assertion(OwnFundsEqual, IsValidated),
@@ -27,7 +28,7 @@ module Wallet.Emulator.Types(
     -- ** Wallet state
     WalletState(..),
     emptyWalletState,
-    ownKeyPair,
+    ownPrivateKey,
     ownFunds,
     addressMap,
     walletSlot,
@@ -76,9 +77,12 @@ import           Control.Monad.Operational  as Op hiding (view)
 import           Control.Monad.State
 import           Control.Monad.Writer
 import           Control.Newtype.Generics   (Newtype)
+import qualified Ledger.Crypto                     as Crypto
 import           Data.Aeson                 (FromJSON, ToJSON, ToJSONKey)
 import           Data.Bifunctor             (Bifunctor (..))
+import qualified Data.ByteString.Lazy       as BSL
 import           Data.Foldable              (fold, traverse_)
+import           Data.Hashable              (Hashable)
 import           Data.List                  (partition)
 import           Data.Map                   (Map)
 import qualified Data.Map                   as Map
@@ -90,46 +94,35 @@ import           GHC.Generics               (Generic)
 import           Prelude                    as P
 import           Servant.API                (FromHttpApiData(..), ToHttpApiData(..))
 
-import           KeyBytes
 import           Ledger                     (Address, Block, Blockchain, PrivateKey(..), PubKey(..), Slot, Tx (..), TxId, TxOut, TxOutOf (..),
-                                             TxOutRef, Value, hashTx, lastSlot, pubKeyAddress, pubKeyTxIn, pubKeyTxOut,
-                                             sign, signatures, toPublicKey, txOutAddress)
+                                             TxOutRef, Value, addSignature, hashTx, lastSlot, pubKeyAddress, pubKeyTxIn, pubKeyTxOut,
+                                             toPublicKey, txOutAddress)
 import qualified Ledger.Index               as Index
 import qualified Ledger.Slot                as Slot
 import qualified Ledger.Value               as Value
-import           Wallet.API                 (EventHandler (..), EventTrigger, KeyPair (..), WalletAPI (..),
+import           Wallet.API                 (EventHandler (..), EventTrigger, WalletAPI (..),
                                              WalletAPIError (..), WalletDiagnostics (..), WalletLog (..), addresses,
-                                             annTruthValue, getAnnot, keyPair, pubKey)
+                                             annTruthValue, getAnnot)
 import qualified Wallet.Emulator.AddressMap as AM
 
 -- | A wallet in the emulator model.
-newtype Wallet = Wallet { getWallet :: PrivateKey }
+newtype Wallet = Wallet { getWallet :: Int }
     deriving (Show, Eq, Ord, Generic)
-    -- deriving newtype (ToHttpApiData, FromHttpApiData) -- TODO Hashable
+    deriving newtype (ToHttpApiData, FromHttpApiData, Hashable)
     deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey)
-
-instance ToHttpApiData Wallet where
-    toUrlPiece = undefined
-    
-instance FromHttpApiData Wallet where
-    parseUrlPiece = undefined
-            
+        
 -- | Get a wallet's public key.
 walletPubKey :: Wallet -> PubKey
-walletPubKey = toPublicKey . getWallet
+walletPubKey = toPublicKey . walletPrivKey
 
--- | Get a wallet's private key.
+-- | Get a wallet's private key by looking it up in the list of 
+--   private keys in 'Ledger.Crypto.knownPrivateKeys'
 walletPrivKey :: Wallet -> PrivateKey
-walletPrivKey = getWallet
-
--- | Add the wallet's signature to the transaction's list of signatures.
-addSignature :: PrivateKey -> PubKey -> Tx -> Tx
-addSignature privK pubK tx = tx & signatures . at pubK .~ Just sig where
-    sig = Ledger.sign (hashTx tx) privK
+walletPrivKey (Wallet i) = (cycle Crypto.knownPrivateKeys) !! i
 
 -- | Sign a 'Tx' using the wallet's privat key.
 signWithWallet :: Wallet -> Tx -> Tx
-signWithWallet wlt = addSignature (walletPrivKey wlt) (walletPubKey wlt)
+signWithWallet wlt = addSignature (walletPrivKey wlt)
 
 -- | A pool of transactions which have yet to be validated.
 type TxPool = [Tx]
@@ -155,8 +148,8 @@ tellTx tx = MockWallet $ tell (mempty, tx)
 
 -- | The state used by the mock wallet environment.
 data WalletState = WalletState {
-    _ownKeyPair :: KeyPair,
-    -- ^ User's 'KeyPair'.
+    _ownPrivateKey :: PrivateKey,
+    -- ^ User's 'PrivateKey'.
     _walletSlot :: Slot,
     -- ^ Current slot as far as the wallet is concerned.
     _addressMap :: AM.AddressMap,
@@ -177,7 +170,7 @@ makeLenses ''WalletState
 
 -- | Get the user's own public-key address.
 ownAddress :: WalletState -> Address
-ownAddress = pubKeyAddress . pubKey . view ownKeyPair
+ownAddress = pubKeyAddress . toPublicKey . view ownPrivateKey
 
 -- | Get the funds available at the user's own public-key address.
 ownFunds :: Lens' WalletState (Map TxOutRef TxOut)
@@ -189,10 +182,10 @@ ownFunds = lens g s where
 -- | An empty wallet state with the public/private key pair for a wallet, and the public-key address
 -- for that wallet as the sole watched address.
 emptyWalletState :: Wallet -> WalletState
-emptyWalletState (Wallet i) = WalletState kp 0 oa Map.empty where
+emptyWalletState w = WalletState pk 0 oa Map.empty where
     oa = AM.addAddress ownAddr mempty
-    kp = keyPair i
-    ownAddr = pubKeyAddress $ pubKey kp
+    pk = walletPrivKey w
+    ownAddr = pubKeyAddress (toPublicKey pk)
 
 -- | Events produced by the blockchain emulator.
 data EmulatorEvent =
@@ -247,21 +240,21 @@ instance WalletAPI MockWallet where
         modifying addressMap (AM.addAddresses adrs) >>
         tellTx [txn]
 
-    myKeyPair = use ownKeyPair
+    ownPubKey = toPublicKey <$> use ownPrivateKey
 
-    signTxn tx = do
-        (privK, pubK) <- getKeyPair <$> use ownKeyPair
-        pure (addSignature privK pubK tx)
+    sign bs = do
+        privK <- use ownPrivateKey
+        pure (Crypto.sign (BSL.toStrict bs) privK)
 
     createPaymentWithChange vl = do
         ws <- get
-        let fnds = ws ^. ownFunds
-            kp    = ws ^. ownKeyPair
-            sig   = snd (getKeyPair kp)
+        let fnds   = ws ^. ownFunds
+            privK  = ws ^. ownPrivateKey
+            pubK   =  toPublicKey privK
         (spend, change) <- selectCoin (second txOutValue <$> Map.toList fnds) vl
         let
-            txOutput = if Value.gt change Value.zero then Just (pubKeyTxOut change (pubKey kp)) else Nothing
-            ins = Set.fromList (flip pubKeyTxIn sig . fst <$> spend)
+            txOutput = if Value.gt change Value.zero then Just (pubKeyTxOut change pubK) else Nothing
+            ins = Set.fromList (flip pubKeyTxIn pubK . fst <$> spend)
         pure (ins, txOutput)
 
     register tr action =

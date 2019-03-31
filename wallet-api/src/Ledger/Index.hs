@@ -234,7 +234,7 @@ validationData tx = rump <$> ins where
         , pendingTxFee = txFee tx
         , pendingTxIn = head txins -- this is changed accordingly in `checkMatch` during validation
         , pendingTxValidRange = txValidRange tx
-        , pendingTxSignatures = Map.toList (tx ^. signatures) -- TODO: Use Map when Plutus map is ready
+        , pendingTxSignatures = Map.toList (tx ^. signatures)
         , pendingTxHash = txHash
         }
 

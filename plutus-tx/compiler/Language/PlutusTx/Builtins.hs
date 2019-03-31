@@ -1,5 +1,5 @@
-{-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE PolyKinds #-}
 {-# OPTIONS_GHC -O0 #-}
 -- | Primitive names and functions for working with Plutus Core builtins.
 module Language.PlutusTx.Builtins (
@@ -36,11 +36,11 @@ module Language.PlutusTx.Builtins (
                                 , trace
                                 ) where
 
-import           Prelude                 hiding (String, error)
 import           Codec.Serialise
-import qualified Data.ByteString.Lazy as BSL
+import qualified Data.ByteString.Lazy    as BSL
+import           Data.String             (IsString)
 import           GHC.TypeLits
-import           Data.String (IsString)
+import           Prelude                 hiding (String, error)
 
 import           Language.PlutusTx.Utils (mustBeReplaced)
 

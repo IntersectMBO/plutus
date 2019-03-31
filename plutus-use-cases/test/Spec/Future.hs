@@ -27,12 +27,12 @@ import           Language.PlutusTx.Coordination.Contracts.Future (Future (..), F
 import qualified Language.PlutusTx.Coordination.Contracts.Future as F
 
 -- | Wallet 1. Holder of the "long" position in the contract.
-wallet1 :: Wallet 
-wallet1 = Gen.wallet1
+wallet1 :: Wallet
+wallet1 = Wallet 1
 
 -- | Wallet 2. Holder of the "short" position in the contract.
 wallet2 :: Wallet
-wallet2 = Gen.wallet2
+wallet2 = Wallet 2
 
 tests :: TestTree
 tests = testGroup "futures" [
@@ -199,7 +199,7 @@ units :: Int
 units = 187
 
 oracle :: PubKey
-oracle = walletPubKey Gen.wallet3
+oracle = walletPubKey (Wallet 3)
 
 initMargin :: Ada
 initMargin = futureInitialMargin contract

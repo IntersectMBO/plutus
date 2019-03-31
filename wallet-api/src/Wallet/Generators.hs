@@ -21,11 +21,6 @@ module Wallet.Generators(
     genInitialTransaction,
     -- * Assertions
     assertValid,
-    -- * Wallets for testing
-    -- $wallets
-    wallet1,
-    wallet2,
-    wallet3,
     -- * Etc.
     genAda,
     genValue,
@@ -57,23 +52,9 @@ import           Ledger
 import qualified Wallet.API      as W
 import           Wallet.Emulator as Emulator
 
--- $wallets
--- 'wallet1', 'wallet2' and 'wallet3' are three predefined 'Wallet' values 
--- each with its own private key. Don't use them outside
--- of the emulator.
-
-wallet1, wallet2, wallet3 :: Wallet
-wallet1 = Wallet $ fromHex "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60"
-wallet2 = Wallet $ fromHex "4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6fb"
-wallet3 = Wallet $ fromHex "c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7"
-
--- | Attach signatures of all known wallets to a transaction.
+-- | Attach signatures of all known private keys to a transaction.
 signAll :: Tx -> Tx
-signAll tx = foldl (flip signWithWallet) tx [wallet1, wallet2, wallet3]
-
--- TODO: Some more private keys if needed:
--- "e61a185bcef2613a6c7cb79763ce945d3b245d76114dd440bcf5f2dc1aa57057"
--- "c0dac102c4533186e25dc43128472353eaabdb878b152aeb8e001f92d90233a7"
+signAll tx = foldl (flip addSignature) tx knownPrivateKeys
 
 -- | The parameters for the generators in this module.
 data GeneratorModel = GeneratorModel {
@@ -87,7 +68,7 @@ data GeneratorModel = GeneratorModel {
 generatorModel :: GeneratorModel
 generatorModel = 
     let vl = Ada.toValue $ Ada.fromInt 100000
-        pubKeys = walletPubKey <$> [wallet1, wallet2, wallet3]
+        pubKeys = toPublicKey <$> knownPrivateKeys
 
     in
     GeneratorModel 

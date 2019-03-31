@@ -30,8 +30,8 @@ import           Wallet.Emulator
 import qualified Wallet.Generators                                as Gen
 
 w1, w2 :: Wallet
-w1 = Gen.wallet1
-w2 = Gen.wallet2
+w1 = Wallet 1
+w2 = Wallet 2
 
 tests :: TestTree
 tests = testGroup "vesting" [

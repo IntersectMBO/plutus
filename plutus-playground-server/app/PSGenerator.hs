@@ -21,6 +21,7 @@ import           Control.Applicative                       (empty, (<|>))
 import           Control.Lens                              (set, (&))
 import           Control.Monad.Representable.Reader        (MonadReader)
 import qualified Data.ByteString                           as BS
+import qualified Data.Map                                  as Map
 import           Data.Monoid                               ()
 import           Data.Proxy                                (Proxy (Proxy))
 import qualified Data.Set                                  as Set ()
@@ -28,6 +29,7 @@ import qualified Data.Text                                 as T ()
 import qualified Data.Text.Encoding                        as T ()
 import qualified Data.Text.IO                              as T ()
 import           Gist                                      (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
+import           KeyBytes                                  (KeyBytes)
 import           Language.Haskell.Interpreter              (CompilationError, InterpreterError, InterpreterResult,
                                                             SourceCode, Warning)
 import           Language.PureScript.Bridge                (BridgePart, Language (Haskell), PSType, SumType,
@@ -67,6 +69,9 @@ psLedgerMap :: MonadReader BridgeData m => m PSType
 psLedgerMap =
     TypeInfo "plutus-playground-client" "Ledger.Extra" "LedgerMap" <$>
     psTypeParameters
+
+psMap :: MonadReader BridgeData m => m PSType
+psMap = TypeInfo "purescript-ordered-collections" "Data.Map.Internal" "Map" <$> psTypeParameters
 
 psJson :: PSType
 psJson = TypeInfo "" "Data.RawJson" "RawJson" []
@@ -158,6 +163,18 @@ nonEmptyBridge = do
     typeModule ^== "GHC.Base"
     psNonEmpty
 
+sizedByteStringBridge :: BridgePart
+sizedByteStringBridge = do
+    typeName ^== "SizedByteString"
+    typeModule ^== "Language.PlutusTx.Builtins"
+    pure psString
+
+mapBridge :: BridgePart
+mapBridge = do
+    typeName ^== "Map"
+    typeModule ^== "Data.Map.Internal"
+    psMap
+
 myBridge :: BridgePart
 myBridge =
     defaultBridge <|> integerBridge <|> ledgerMapBridge <|> scientificBridge <|>
@@ -171,7 +188,9 @@ myBridge =
     headersBridge <|>
     headerBridge <|>
     nonEmptyBridge <|>
-    validatorHashBridge
+    validatorHashBridge <|>
+    sizedByteStringBridge <|>
+    mapBridge
 
 data MyBridge
 

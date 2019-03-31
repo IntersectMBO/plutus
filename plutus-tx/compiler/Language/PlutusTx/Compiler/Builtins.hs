@@ -41,7 +41,7 @@ import qualified Language.PlutusCore.StdLib.Data.Unit        as Unit
 
 import qualified GhcPlugins                                  as GHC
 
-import GHC.Natural
+import           GHC.Natural
 
 import qualified Language.Haskell.TH.Syntax                  as TH
 

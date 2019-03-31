@@ -1,8 +1,8 @@
+{-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE DataKinds           #-}
 {-# OPTIONS_GHC   -Wno-orphans #-}
 module Lift.Spec where
 
@@ -11,9 +11,9 @@ import           Plugin.Spec
 import           Common
 import           PlcTestUtils
 
-import qualified Language.PlutusTx.Lift   as Lift
-import           Language.PlutusTx.Plugin
 import qualified Language.PlutusTx.Builtins as Builtins
+import qualified Language.PlutusTx.Lift     as Lift
+import           Language.PlutusTx.Plugin
 
 Lift.makeLift ''MyMonoData
 Lift.makeLift ''MyMonoRecord

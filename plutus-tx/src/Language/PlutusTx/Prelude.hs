@@ -52,7 +52,7 @@ module Language.PlutusTx.Prelude (
     verifySignature
     ) where
 
-import           Language.PlutusTx.Builtins (SizedByteString(..), ByteString)
+import           Language.PlutusTx.Builtins       (ByteString, SizedByteString (..))
 
 import           Language.PlutusTx.Prelude.Stage0
 import           Language.PlutusTx.Prelude.Stage1

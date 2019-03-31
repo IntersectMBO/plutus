@@ -87,7 +87,7 @@ contribute :: (WalletAPI m, WalletDiagnostics m)
 contribute cmp adaAmount = do
     let value = $$(Ada.toValue) adaAmount
     _ <- if $$(V.leq) value $$(V.zero) then throwOtherError "Must contribute a positive value" else pure ()
-    ds <- DataScript . Ledger.lifted . W.pubKey <$> myKeyPair
+    ds <- DataScript . Ledger.lifted <$> ownPubKey
 
     let range = W.interval 1 (campaignDeadline cmp)
 

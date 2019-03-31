@@ -38,7 +38,7 @@ import qualified Ledger.Validation            as Validation
 import qualified Ledger.Ada.TH                as Ada
 import           Ledger.Ada.TH                (Ada)
 import qualified Wallet                       as W
-import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, pubKey, createTxAndSubmit, defaultSlotRange)
+import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, createTxAndSubmit, defaultSlotRange)
 
 import           Prelude                      hiding ((&&), (||))
 
@@ -143,7 +143,7 @@ adjustMargin :: (
     -> Ada
     -> m ()
 adjustMargin refs ft fd vl = do
-    pk <- pubKey <$> myKeyPair
+    pk <- ownPubKey
     (payment, change) <- createPaymentWithChange ($$(Ada.toValue) vl)
     fd' <- let fd''
                 | pk == futureDataLong fd = pure $ fd { futureDataMarginLong  = $$(Ada.plus) vl (futureDataMarginLong fd)  }

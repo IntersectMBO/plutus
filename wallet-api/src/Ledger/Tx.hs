@@ -21,6 +21,7 @@ module Ledger.Tx(
     updateUtxo,
     validValuesTx,
     signatures,
+    addSignature,
     -- ** Hashing transactions
     preHash,
     hashTx,
@@ -371,3 +372,10 @@ updateUtxo :: Tx -> Map TxOutRef TxOut -> Map TxOutRef TxOut
 updateUtxo t unspent = (unspent `Map.difference` lift' (spentOutputs t)) `Map.union` outs where
     lift' = Map.fromSet (const ())
     outs = unspentOutputsTx t
+
+-- | Sign the transaction with a 'PrivateKey' and add the signature to the 
+--   transaction's list of signatures.
+addSignature :: PrivateKey -> Tx -> Tx
+addSignature privK tx = tx & signatures . at pubK .~ Just sig where
+    sig = signTx (hashTx tx) privK
+    pubK = toPublicKey privK

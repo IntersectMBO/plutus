@@ -21,7 +21,7 @@ import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift
 import           Language.PlutusTx.Plugin
 
-import           Data.ByteString.Lazy ()
+import           Data.ByteString.Lazy       ()
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics
 

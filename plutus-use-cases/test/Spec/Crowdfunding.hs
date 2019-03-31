@@ -29,9 +29,9 @@ import qualified Ledger.Ada                                            as Ada
 import qualified Ledger.Value                                          as Value
 
 w1, w2, w3 :: Wallet
-w1 = Gen.wallet1
-w2 = Gen.wallet2
-w3 = Gen.wallet3
+w1 = Wallet 1
+w2 = Wallet 2
+w3 = Wallet 3
 
 tests :: TestTree
 tests = testGroup "crowdfunding" [

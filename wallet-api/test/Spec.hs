@@ -35,7 +35,7 @@ import qualified Ledger.Value               as Value
 import           Wallet
 import qualified Wallet.API                 as W
 import           Wallet.Emulator
-import           Wallet.Generators          (Mockchain (..), wallet1, wallet2, wallet3)
+import           Wallet.Generators          (Mockchain (..))
 import qualified Wallet.Generators          as Gen
 import qualified Wallet.Graph
 
@@ -83,6 +83,11 @@ tests = testGroup "all tests" [
         testProperty "encodeSerialise" encodeSerialiseTest
         ]
     ]
+
+wallet1, wallet2, wallet3 :: Wallet
+wallet1 = Wallet 1
+wallet2 = Wallet 2
+wallet3 = Wallet 3
 
 pubKey1, pubKey2, pubKey3 :: PubKey
 pubKey1 = walletPubKey wallet1
