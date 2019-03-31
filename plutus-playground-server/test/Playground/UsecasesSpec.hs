@@ -22,7 +22,7 @@ import           Ledger.Validation            (ValidatorHash (ValidatorHash))
 import           Playground.API               (CompilationResult (CompilationResult), Evaluation (Evaluation),
                                                Expression (Action, Wait), Fn (Fn), FunctionSchema (FunctionSchema),
                                                KnownCurrency (KnownCurrency), PlaygroundError,
-                                               SimpleArgumentSchema (SimpleArraySchema, SimpleIntSchema, SimpleObjectSchema, SimpleTupleSchema),
+                                               SimpleArgumentSchema (SimpleArraySchema, SimpleIntSchema, SimpleObjectSchema, SimpleTupleSchema, ValueSchema),
                                                SimulatorWallet (SimulatorWallet), TokenId (TokenId), argumentSchema,
                                                functionName, isSupportedByFrontend, simulatorWalletBalance,
                                                simulatorWalletWallet)
@@ -47,7 +47,7 @@ vestingSpec =
     describe "vesting" $ do
         compilationChecks vesting
         it "should compile with the expected schema" $ do
-            Right (CompilationResult result [] []) <- compile vesting
+            Right (CompilationResult result _ []) <- compile vesting
             result `shouldBe`
                 [ FunctionSchema
                       { functionName = Fn "vestFunds"
@@ -105,35 +105,35 @@ vestingSpec =
                                   ]
                             ]
                       }
-                  , FunctionSchema
-                        { functionName = Fn "withdraw"
-                        , argumentSchema =
-                              [ SimpleObjectSchema
-                                    [ ( "vestingOwner"
+                , FunctionSchema
+                      { functionName = Fn "withdraw"
+                      , argumentSchema =
+                            [ SimpleObjectSchema
+                                  [ ( "vestingOwner"
                                     , SimpleObjectSchema
                                           [("getPubKey", SimpleIntSchema)])
-                                    , ( "vestingTranche2"
+                                  , ( "vestingTranche2"
                                     , SimpleObjectSchema
                                           [ ( "vestingTrancheAmount"
-                                                , SimpleObjectSchema
-                                                      [("getAda", SimpleIntSchema)])
+                                            , SimpleObjectSchema
+                                                  [("getAda", SimpleIntSchema)])
                                           , ( "vestingTrancheDate"
-                                                , SimpleObjectSchema
-                                                      [("getSlot", SimpleIntSchema)])
+                                            , SimpleObjectSchema
+                                                  [("getSlot", SimpleIntSchema)])
                                           ])
-                                    , ( "vestingTranche1"
+                                  , ( "vestingTranche1"
                                     , SimpleObjectSchema
                                           [ ( "vestingTrancheAmount"
-                                                , SimpleObjectSchema
-                                                      [("getAda", SimpleIntSchema)])
+                                            , SimpleObjectSchema
+                                                  [("getAda", SimpleIntSchema)])
                                           , ( "vestingTrancheDate"
-                                                , SimpleObjectSchema
-                                                      [("getSlot", SimpleIntSchema)])
+                                            , SimpleObjectSchema
+                                                  [("getSlot", SimpleIntSchema)])
                                           ])
-                                    ]
-                              , SimpleObjectSchema [("getAda", SimpleIntSchema)]
-                              ]
-                        }
+                                  ]
+                            , SimpleObjectSchema [("getAda", SimpleIntSchema)]
+                            ]
+                      }
                 , FunctionSchema
                       { functionName = Fn "payToPublicKey_"
                       , argumentSchema =
@@ -145,7 +145,7 @@ vestingSpec =
                                     , SimpleObjectSchema
                                           [("getSlot", SimpleIntSchema)])
                                   ]
-                            , SimpleObjectSchema
+                            , ValueSchema
                                   [ ( "getValue"
                                     , SimpleArraySchema
                                           (SimpleTupleSchema
@@ -211,11 +211,13 @@ gameSpec =
             (`shouldSatisfy` hasFundsDistribution
                                  [ SimulatorWallet
                                        { simulatorWalletWallet = Wallet 1
-                                       , simulatorWalletBalance = Ada.adaValueOf 12
+                                       , simulatorWalletBalance =
+                                             Ada.adaValueOf 12
                                        }
                                  , SimulatorWallet
                                        { simulatorWalletWallet = Wallet 2
-                                       , simulatorWalletBalance = Ada.adaValueOf 8
+                                       , simulatorWalletBalance =
+                                             Ada.adaValueOf 8
                                        }
                                  ])
         it "should keep the funds" $
@@ -227,7 +229,8 @@ gameSpec =
                                        }
                                  , SimulatorWallet
                                        { simulatorWalletWallet = Wallet 2
-                                       , simulatorWalletBalance = Ada.adaValueOf 8
+                                       , simulatorWalletBalance =
+                                             Ada.adaValueOf 8
                                        }
                                  ])
         it
@@ -350,15 +353,18 @@ crowdfundingSpec =
             (`shouldSatisfy` hasFundsDistribution
                                  [ SimulatorWallet
                                        { simulatorWalletWallet = Wallet 1
-                                       , simulatorWalletBalance = Ada.adaValueOf 26
+                                       , simulatorWalletBalance =
+                                             Ada.adaValueOf 26
                                        }
                                  , SimulatorWallet
                                        { simulatorWalletWallet = Wallet 2
-                                       , simulatorWalletBalance = Ada.adaValueOf 2
+                                       , simulatorWalletBalance =
+                                             Ada.adaValueOf 2
                                        }
                                  , SimulatorWallet
                                        { simulatorWalletWallet = Wallet 3
-                                       , simulatorWalletBalance = Ada.adaValueOf 2
+                                       , simulatorWalletBalance =
+                                             Ada.adaValueOf 2
                                        }
                                  ])
         it "should run failed campaign" $
@@ -439,28 +445,31 @@ crowdfundingSpec =
         TL.toStrict $ JSON.encodeToLazyText $ object ["getAda" .= mkI 8]
 
 knownCurrencySpec :: Spec
-knownCurrencySpec = describe "mkKnownCurrencies" $
-      it "should return registered known currencies" $
-            (runExceptT . PI.compile maxInterpretationTime) code >>= (`shouldSatisfy` hasKnownCurrency)
-      where
-            code = SourceCode $ Text.unlines
-                  [ "import Playground.Contract"
-                  , "import Data.List.NonEmpty (NonEmpty ((:|)))"
-                  , "import Ledger.Validation (ValidatorHash (..))"
-                  , "import Playground.API (KnownCurrency (..), TokenId (..))"
-                  , "myCurrency :: KnownCurrency"
-                  , "myCurrency = KnownCurrency (ValidatorHash \"\") \"MyCurrency\" (TokenId \"MyToken\" :| [])"
-                  , "$(mkKnownCurrencies ['myCurrency])"
-                  ]
-            hasKnownCurrency (Right (CompilationResult _ [KnownCurrency (ValidatorHash "") "MyCurrency" (TokenId "MyToken" :| [])] _)) = True
-            hasKnownCurrency _ = False
+knownCurrencySpec =
+    describe "mkKnownCurrencies" $
+    it "should return registered known currencies" $
+    (runExceptT . PI.compile maxInterpretationTime) code >>=
+    (`shouldSatisfy` hasKnownCurrency)
+  where
+    code =
+        SourceCode $
+        Text.unlines
+            [ "import Playground.Contract"
+            , "import Data.List.NonEmpty (NonEmpty ((:|)))"
+            , "import Ledger.Validation (ValidatorHash (..))"
+            , "import Playground.API (KnownCurrency (..), TokenId (..))"
+            , "myCurrency :: KnownCurrency"
+            , "myCurrency = KnownCurrency (ValidatorHash \"\") \"MyCurrency\" (TokenId \"MyToken\" :| [])"
+            , "$(mkKnownCurrencies ['myCurrency])"
+            ]
+    hasKnownCurrency (Right (CompilationResult _ [KnownCurrency (ValidatorHash "") "MyCurrency" (TokenId "MyToken" :| [])] _)) =
+        True
+    hasKnownCurrency _ = False
 
 sourceCode :: BSC.ByteString -> SourceCode
 sourceCode = SourceCode . Text.pack . BSC.unpack
 
-compile ::
-       BSC.ByteString
-    -> IO (Either InterpreterError CompilationResult)
+compile :: BSC.ByteString -> IO (Either InterpreterError CompilationResult)
 compile = runExceptT . PI.compile maxInterpretationTime . sourceCode
 
 evaluate ::
@@ -468,7 +477,8 @@ evaluate ::
     -> IO (Either PlaygroundError ( Blockchain
                                   , [EmulatorEvent]
                                   , [SimulatorWallet]))
-evaluate evaluation = runExceptT $ PI.runFunction maxInterpretationTime evaluation
+evaluate evaluation =
+    runExceptT $ PI.runFunction maxInterpretationTime evaluation
 
 compilationChecks :: BSC.ByteString -> Spec
 compilationChecks f = do
