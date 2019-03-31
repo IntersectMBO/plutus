@@ -15,7 +15,26 @@ is both a dependently typed functional programming language and a
 proof assistant. It is particularly suited to formalising programming
 languages.
 
-The formalisation requires Agda version 2.5.4.1 or higher.
+
+## Installation
+
+The formalisation requires a [pre-release of Agda
+2.6.0](https://hackage.haskell.org/package/Agda-2.5.4.2.20190330/candidate)
+and, the latest version of the Agda standard library, and a version of
+ghc that is supported by Agda.
+
+It also it contains a command line tool called `plc-agda` for
+executing plutus core programs. The command line tool is an Agda
+program that is compiled to Haskell, it uses Haskell libraries (such
+as bytestring) and also borrows the Plutus parser and pretty printer.
+
+It requires the language-plutus-core Haskell library from
+[here](https://github.com/input-output-hk/plutus). After installing
+this (via `cabal`), `plc-agda` can then be built like this:
+``` $ agda
+--compile --ghc-dont-call-ghc Main.lagda
+$ cabal install
+```
 
 ## Status
 
@@ -25,6 +44,11 @@ sized integers and sized bytestrings. Progress and preservation have
 been shown to hold for the small-step semantics. An evaluator can be
 used to execute small examples in Agda and also compile them to
 Haskell.
+
+The command line tool `plc-agda` does not include a
+typechecker. Instead it uses a separate extrinsically typed
+evaluator. It is future work to prove that this gives the same results
+as the intrinsically typed evaluator on well typed programs.
 
 ## Structure
 
