@@ -161,7 +161,7 @@ toSimpleArgumentSchema schema@Schema {..} =
                             UnknownSchema "While handling array." $
                             Text.pack $ show schema
                 SwaggerObject ->
-                    -- | We want to give a special response if the
+                    -- We want to give a special response if the
                     -- argument is the blessed type `Value`. That type
                     -- gets magic treatment in the frontend. But
                     -- Swagger doesn't give us the metadata we need to
