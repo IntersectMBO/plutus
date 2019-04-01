@@ -2,7 +2,7 @@ cabal-version: 2.0
 name: marlowe
 version: 0.1.0.0
 license: Apache-2.0
-license-files: 
+license-files:
   LICENSE
   NOTICE
 build-type: Simple
@@ -31,6 +31,7 @@ library
     template-haskell -any,
     plutus-tx -any,
     text,
+    wl-pprint -any,
     wallet-api -any
   default-language: Haskell2010
   default-extensions: ExplicitForAll ScopedTypeVariables
@@ -41,6 +42,9 @@ library
     Language.Marlowe
     Language.Marlowe.Client
     Language.Marlowe.Escrow
+    Language.Marlowe.Actus
+    Language.Marlowe.Pretty
+    Marlowe
   other-modules:
     Language.Marlowe.Common
   ghc-options:
@@ -54,7 +58,9 @@ test-suite marlowe-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     other-modules:
+      Spec.Common
       Spec.Marlowe
+      Spec.Actus
     build-depends:
         base >=4.9 && <5,
         containers -any,

@@ -1,5 +1,6 @@
 -- | Computing constant application.
 
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -125,10 +126,6 @@ instance Enum SizeVar where
     toEnum = SizeVar
     fromEnum (SizeVar sizeIndex) = sizeIndex
 
--- Who are you?
-forBind :: (Monad m, Traversable m, Applicative f) => m a -> (a -> f (m b)) -> f (m b)
-forBind a f = join <$> traverse f a
-
 -- | Same as 'makeBuiltin', but returns a 'ConstAppResult'.
 makeConstAppResult :: TypedBuiltinValue Size a -> ConstAppResultDef
 makeConstAppResult = maybe ConstAppFailure ConstAppSuccess . makeBuiltin
@@ -198,9 +195,10 @@ extractSchemed
     -> SizeValues
     -> Value TyName Name ()
     -> Evaluate m (ConstAppResult (a, SizeValues))
-extractSchemed (TypeSchemeBuiltin a) sizeValues value = extractBuiltin a sizeValues value
-extractSchemed (TypeSchemeArrow _ _) _          _     = error "Not implemented."
-extractSchemed (TypeSchemeAllSize _) _          _     = error "Not implemented."
+extractSchemed (TypeSchemeBuiltin a)   sizeValues value = extractBuiltin a sizeValues value
+extractSchemed (TypeSchemeArrow _ _)   _          _     = error "Not implemented."
+extractSchemed (TypeSchemeAllType _ _) _          _     = error "Not implemented."
+extractSchemed (TypeSchemeAllSize _)   _          _     = error "Not implemented."
 
 -- | Apply a function with a known 'TypeScheme' to a list of 'Constant's (unwrapped from 'Value's).
 -- Checks that the constants are of expected types and there are no size mismatches.
@@ -223,6 +221,8 @@ applyTypeSchemed schema = go schema (SizeVar 0) (SizeValues mempty) where
         -- a Haskell value to the corresponding PLC one.
         [] -> return . makeConstAppResult $ TypedBuiltinValue (substSizeVar sizeValues tb) y
         _  -> return . ConstAppError $ ExcessArgumentsConstAppError args     -- Too many arguments.
+    go (TypeSchemeAllType _ schK)  sizeVar sizeValues f args =
+        go (schK TypedBuiltinDyn) sizeVar sizeValues f args
     go (TypeSchemeArrow schA schB) sizeVar sizeValues f args = case args of
         []          -> return ConstAppStuck             -- Not enough arguments to compute.
         arg : args' -> do                               -- Peel off one argument.

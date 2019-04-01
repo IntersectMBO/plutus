@@ -1,11 +1,9 @@
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:strip-context #-}
+{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:no-context #-}
 -- the simplifier messes with things otherwise
 {-# OPTIONS_GHC   -O0 #-}
 {-# OPTIONS_GHC   -Wno-orphans #-}
@@ -17,6 +15,7 @@ module Plugin.Spec where
 
 import           Common
 import           PlcTestUtils
+import           Plugin.ReadValue
 
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift
@@ -43,6 +42,7 @@ tests = testNested "Plugin" [
   , datat
   , recursiveTypes
   , recursion
+  , pure readDyns
   , errors
   ]
 
@@ -110,26 +110,26 @@ tupleMatch :: CompiledCode ((Int, Int) -> Int)
 tupleMatch = plc @"tupleMatch" (\(x:: (Int, Int)) -> let (a, b) = x in a)
 
 intCompare :: CompiledCode (Int -> Int -> Bool)
-intCompare = plc @"intCompare" (\(x::Int) (y::Int) -> x < y)
+intCompare = plc @"intCompare" (\(x::Int) (y::Int) -> Builtins.lessThanInteger x y)
 
 intEq :: CompiledCode (Int -> Int -> Bool)
-intEq = plc @"intEq" (\(x::Int) (y::Int) -> x == y)
+intEq = plc @"intEq" (\(x::Int) (y::Int) -> Builtins.equalsInteger x y)
 
 -- Has a Void in it
 void :: CompiledCode (Int -> Int -> Bool)
-void = plc @"void" (\(x::Int) (y::Int) -> let a x' y' = case (x', y') of { (True, True) -> True; _ -> False; } in (x == y) `a` (y == x))
+void = plc @"void" (\(x::Int) (y::Int) -> let a x' y' = case (x', y') of { (True, True) -> True; _ -> False; } in (Builtins.equalsInteger x y) `a` (Builtins.equalsInteger y x))
 
 intPlus :: CompiledCode (Int -> Int -> Int)
-intPlus = plc @"intPlus" (\(x::Int) (y::Int) -> x + y)
+intPlus = plc @"intPlus" (\(x::Int) (y::Int) -> Builtins.addInteger x y)
 
 intDiv :: CompiledCode (Int -> Int -> Int)
-intDiv = plc @"intDiv" (\(x::Int) (y::Int) -> x `div` y)
+intDiv = plc @"intDiv" (\(x::Int) (y::Int) -> Builtins.divideInteger x y)
 
 errorPlc :: CompiledCode (() -> Int)
 errorPlc = plc @"errorPlc" (Builtins.error @Int)
 
 ifThenElse :: CompiledCode (Int -> Int -> Int)
-ifThenElse = plc @"ifThenElse" (\(x::Int) (y::Int) -> if x == y then x else y)
+ifThenElse = plc @"ifThenElse" (\(x::Int) (y::Int) -> if Builtins.equalsInteger x y then x else y)
 
 --blocknumPlc :: CompiledCode
 --blocknumPlc = plc @"blocknumPlc" Builtins.blocknum
@@ -156,7 +156,7 @@ structure = testNested "structure" [
 
 -- GHC acutually turns this into a lambda for us, try and make one that stays a let
 letFun :: CompiledCode (Int -> Int -> Bool)
-letFun = plc @"lefFun" (\(x::Int) (y::Int) -> let f z = x == z in f y)
+letFun = plc @"lefFun" (\(x::Int) (y::Int) -> let f z = Builtins.equalsInteger x z in f y)
 
 datat :: TestNested
 datat = testNested "data" [
@@ -189,6 +189,7 @@ basicEnum :: CompiledCode MyEnum
 basicEnum = plc @"basicEnum" (Enum1)
 
 data MyMonoData = Mono1 Int Int | Mono2 Int | Mono3 Int
+    deriving (Show, Eq)
 
 monoDataType :: CompiledCode (MyMonoData -> MyMonoData)
 monoDataType = plc @"monoDataType" (\(x :: MyMonoData) -> x)
@@ -209,9 +210,10 @@ irrefutableMatch :: CompiledCode (MyMonoData -> Int)
 irrefutableMatch = plc @"irrefutableMatch" (\(x :: MyMonoData) -> case x of { Mono2 a -> a })
 
 atPattern :: CompiledCode ((Int, Int) -> Int)
-atPattern = plc @"atPattern" (\t@(x::Int, y::Int) -> let fst (a, b) = a in y + fst t)
+atPattern = plc @"atPattern" (\t@(x::Int, y::Int) -> let fst (a, b) = a in Builtins.addInteger y (fst t))
 
 data MyMonoRecord = MyMonoRecord { mrA :: Int , mrB :: Int}
+    deriving (Show, Eq)
 
 monoRecord :: CompiledCode (MyMonoRecord -> MyMonoRecord)
 monoRecord = plc @"monoRecord" (\(x :: MyMonoRecord) -> x)
@@ -260,6 +262,7 @@ newtypes = testNested "newtypes" [
    ]
 
 newtype MyNewtype = MyNewtype Int
+    deriving (Show, Eq)
 
 newtype MyNewtype2 = MyNewtype2 MyNewtype
 
@@ -327,7 +330,7 @@ polyRec = plc @"polyRec" (
         depth :: B a -> Int
         depth tree = case tree of
             One _     -> 1
-            Two inner -> 1 + depth inner
+            Two inner -> Builtins.addInteger 1 (depth inner)
     in \(t::B Int) -> depth t)
 
 ptreeFirst :: CompiledCode (B Int -> Int)
@@ -374,28 +377,33 @@ fib :: CompiledCode (Int -> Int)
 -- not using case to avoid literal cases
 fib = plc @"fib" (
     let fib :: Int -> Int
-        fib n = if n == 0 then 0 else if n == 1 then 1 else fib(n-1) + fib(n-2)
+        fib n = if Builtins.equalsInteger n 0
+            then 0
+            else if Builtins.equalsInteger n 1
+            then 1
+            else Builtins.addInteger (fib(Builtins.subtractInteger n 1)) (fib(Builtins.subtractInteger n 2))
     in fib)
 
 sumDirect :: CompiledCode ([Int] -> Int)
 sumDirect = plc @"sumDirect" (
     let sum :: [Int] -> Int
         sum []     = 0
-        sum (x:xs) = x + sum xs
+        sum (x:xs) = Builtins.addInteger x (sum xs)
     in sum)
 
 evenMutual :: CompiledCode (Int -> Bool)
 evenMutual = plc @"evenMutual" (
     let even :: Int -> Bool
-        even n = if n == 0 then True else odd (n-1)
+        even n = if Builtins.equalsInteger n 0 then True else odd (Builtins.subtractInteger n 1)
         odd :: Int -> Bool
-        odd n = if n == 0 then False else even (n-1)
+        odd n = if Builtins.equalsInteger n 0 then False else even (Builtins.subtractInteger n 1)
     in even)
 
 errors :: TestNested
 errors = testNested "errors" [
     goldenPlcCatch "integer" integer
     , goldenPlcCatch "free" free
+    , goldenPlcCatch "negativeInt" negativeInt
     , goldenPlcCatch "valueRestriction" valueRestriction
     , goldenPlcCatch "recordSelector" recordSelector
     , goldenPlcCatch "emptyRoseId1" emptyRoseId1
@@ -406,6 +414,9 @@ integer = plc @"integer" (1::Integer)
 
 free :: CompiledCode Bool
 free = plc @"free" (True && False)
+
+negativeInt :: CompiledCode Int
+negativeInt = plc @"negativeInt" (-1 :: Int)
 
 -- It's little tricky to get something that GHC actually turns into a polymorphic computation! We use our value twice
 -- at different types to prevent the obvious specialization.

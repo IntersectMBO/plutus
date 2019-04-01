@@ -47,7 +47,7 @@ mapDefs :: (a -> b) -> DefMap key a -> DefMap key b
 mapDefs f = Map.map (\(def, deps) -> (f def, deps))
 
 data DefState key ann = DefState {
-    _termDefs     :: DefMap key (TermDef TyName Name ann),
+    _termDefs     :: DefMap key (TermDef (Term TyName Name) TyName Name ann),
     _typeDefs     :: DefMap key (TypeDef TyName ann),
     _datatypeDefs :: DefMap key (DatatypeDef TyName Name ann),
     _aliases      :: Set.Set key
@@ -107,7 +107,7 @@ instance MonadDefs key ann m => MonadDefs key ann (StateT s m)
 instance MonadDefs key ann m => MonadDefs key ann (ExceptT e m)
 instance MonadDefs key ann m => MonadDefs key ann (ReaderT r m)
 
-defineTerm :: MonadDefs key ann m => key -> TermDef TyName Name ann -> Set.Set key -> m ()
+defineTerm :: MonadDefs key ann m => key -> TermDef (Term TyName Name) TyName Name ann -> Set.Set key -> m ()
 defineTerm name def deps = liftDef $ modify $ over termDefs $ Map.insert name (def, deps)
 
 defineType :: MonadDefs key ann m => key -> TypeDef TyName ann -> Set.Set key -> m ()

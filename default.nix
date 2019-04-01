@@ -67,6 +67,12 @@ let
   localLib = import ./lib.nix { inherit config system; } ;
   src = localLib.iohkNix.cleanSourceHaskell ./.;
 
+  # We have to use purescript 0.11.7 - because purescript-bridge
+  # hasn't been updated for 0.12 yet - but our pinned nixpkgs
+  # has 0.12, and overriding doesn't work easily because we
+  # can't built 0.11.7 with the default compiler either.
+  purescriptNixpkgs = import (localLib.iohkNix.fetchNixpkgs ./purescript-11-nixpkgs-src.json) {};
+
   packages = self: (rec {
     inherit pkgs localLib;
 
@@ -91,8 +97,6 @@ let
       enableHaddockHydra enableBenchmarks fasterBuild enableDebugging
       enableSplitCheck customOverlays pkgsGenerated;
 
-      inherit (pkgsGenerated) ghc;
-
       filter = localLib.isPlutus;
       filterOverrides = {
         splitCheck = localButNot [
@@ -102,6 +106,7 @@ let
             "plutus-tutorial"
             # Broken for things which pick up other files at test runtime
             "plutus-playground-server"
+            "meadow"
           ];
         haddock = localButNot [
             # Haddock is broken for things with internal libraries
@@ -119,11 +124,7 @@ let
       shellcheck = pkgs.callPackage localLib.iohkNix.tests.shellcheck { inherit src; };
       hlint = pkgs.callPackage localLib.iohkNix.tests.hlint {
         inherit src;
-        projects = let
-                     fixPlaygroundServer = v: if v != "plutus-playground-server" then v else "plutus-playground/plutus-playground-server";
-                     fixPlaygroundLib = v: if v != "plutus-playground-lib" then v else "plutus-playground/plutus-playground-lib";
-                   in
-                     map (localLib.comp fixPlaygroundServer fixPlaygroundLib) localLib.plutusHaskellPkgList;
+        projects = localLib.plutusHaskellPkgList;
       };
       stylishHaskell = pkgs.callPackage localLib.iohkNix.tests.stylishHaskell {
         inherit (self.haskellPackages) stylish-haskell;
@@ -152,13 +153,14 @@ let
           haskellPackages.plutus-use-cases
         ]);
       in pkgs.runCommand "plutus-server-invoker" { buildInputs = [pkgs.makeWrapper]; } ''
-        # We need to provide the ghc interpreter (hint) with the location of the ghc lib dir and the package db
+        # We need to provide the ghc interpreter with the location of the ghc lib dir and the package db
         mkdir -p $out/bin
-        ln -s ${haskellPackages.plutus-playground-server}/bin/plutus-playground-server $out/bin/plutus-playground-server
-        wrapProgram $out/bin/plutus-playground-server \
+        ln -s ${haskellPackages.plutus-playground-server}/bin/plutus-playground-server $out/bin/plutus-playground
+        wrapProgram $out/bin/plutus-playground \
           --set GHC_LIB_DIR "${runtimeGhc}/lib/ghc-${runtimeGhc.version}" \
           --set GHC_BIN_DIR "${runtimeGhc}/bin" \
-          --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d"
+          --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d" \
+          --set GHC_RTS "-M2G"
       '';
 
       client = let
@@ -166,13 +168,8 @@ let
           mkdir $out
           ${haskellPackages.plutus-playground-server}/bin/plutus-playground-server psgenerator $out
         '';
-        # We have to use purescript 0.11.7 - because purescript-bridge
-        # hasn't been updated for 0.12 yet - but our pinned nixpkgs
-        # has 0.12, and overriding doesn't work easily because we
-        # can't built 0.11.7 with the default compiler either.
-        purescriptNixpkgs = import (localLib.iohkNix.fetchNixpkgs ./plutus-playground/plutus-playground-client/nixpkgs-src.json) {};
         in
-        pkgs.callPackage ./plutus-playground/plutus-playground-client {
+        pkgs.callPackage ./plutus-playground-client {
           pkgs = purescriptNixpkgs;
           psSrc = generated-purescript;
         };
@@ -181,17 +178,80 @@ let
         name = "plutus-playgrounds";
         contents = [ client server-invoker ];
         config = {
-          Cmd = ["${server-invoker}/bin/plutus-playground-server" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
+          Cmd = ["${server-invoker}/bin/plutus-playground" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
         };
       };
     };
 
-    devPackages = localLib.getPackages {
-      inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "ghcid" ];
+    meadow = rec {
+      server-invoker = let
+        # meadow uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
+        runtimeGhc = haskellPackages.ghcWithPackages (ps: [
+          haskellPackages.marlowe
+          haskellPackages.meadow
+        ]);
+      in pkgs.runCommand "meadow-server-invoker" { buildInputs = [pkgs.makeWrapper]; } ''
+        # We need to provide the ghc interpreter with the location of the ghc lib dir and the package db
+        mkdir -p $out/bin
+        ln -s ${haskellPackages.meadow}/bin/meadow-exe $out/bin/meadow
+        wrapProgram $out/bin/meadow \
+          --set GHC_LIB_DIR "${runtimeGhc}/lib/ghc-${runtimeGhc.version}" \
+          --set GHC_BIN_DIR "${runtimeGhc}/bin" \
+          --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d" \
+          --set GHC_RTS "-M2G"
+      ''; 
+
+      client = let
+        generated-purescript = pkgs.runCommand "meadow-purescript" {} ''
+          mkdir $out
+          ${haskellPackages.meadow}/bin/meadow-exe psgenerator $out
+        '';
+        in
+        pkgs.callPackage ./meadow-client {
+          pkgs = purescriptNixpkgs;
+          psSrc = generated-purescript;
+        };
+
+      docker = pkgs.dockerTools.buildImage {
+        name = "meadow";
+        contents = [ client server-invoker ];
+        config = {
+          Cmd = ["${server-invoker}/bin/meadow" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
+        };
+      };
     };
 
-    withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ devPackages.cabal-install devPackages.ghcid ]; });
-    shellTemplate = name: withDevTools haskellPackages."${name}".env;
+    dev = rec {
+      packages = localLib.getPackages {
+        inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "stylish-haskell" ];
+      };
+      scripts = {
+        inherit (localLib) regeneratePackages;
+
+        fixStylishHaskell = pkgs.writeScript "fix-stylish-haskell" ''
+          ${pkgs.git}/bin/git diff > pre-stylish.diff
+          ${pkgs.fd}/bin/fd \
+            --extension hs \
+            --exclude '*/dist/*' \
+            --exclude '*/docs/*' \
+            --exec ${packages.stylish-haskell}/bin/stylish-haskell -i {}
+          ${pkgs.git}/bin/git diff > post-stylish.diff
+          diff pre-stylish.diff post-stylish.diff > /dev/null
+          if [ $? != 0 ]
+          then
+            echo "Changes by stylish have been made. Please commit them."
+          else
+            echo "No stylish changes were made."
+          fi
+          rm pre-stylish.diff post-stylish.diff
+          exit
+        '';
+      };
+
+      withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ packages.cabal-install ]; });
+    };
+      
+    shellTemplate = name: dev.withDevTools haskellPackages."${name}".env;
   });
 
 

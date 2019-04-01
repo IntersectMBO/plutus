@@ -11,9 +11,10 @@ module Language.PlutusTx.Coordination.Contracts.Vesting (
     VestingData(..),
     vestFunds,
     retrieveFunds,
-    validatorScript,
     totalAmount,
-    validatorScriptHash
+    validatorScriptHash,
+    -- * Script
+    validatorScript
     ) where
 
 import           Control.Monad.Error.Class    (MonadError (..))
@@ -26,6 +27,7 @@ import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       (DataScript (..), Slot(..), PubKey (..), TxOutRef, ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
 import qualified Ledger.Interval              as Interval
+import qualified Ledger.Slot                  as Slot
 import qualified Ledger.Validation            as Validation
 import           Prelude                      hiding ((&&))
 import qualified Wallet                       as W
@@ -88,11 +90,11 @@ retrieveFunds :: (
     WalletAPI m)
     => Vesting
     -- ^ Definition of vesting scheme
-    -> VestingData 
+    -> VestingData
     -- ^ Value that has already been taken out
-    -> TxOutRef    
+    -> TxOutRef
     -- ^ Transaction output locked by the vesting validator script
-    -> Ada         
+    -> Ada
     -- ^ Value we want to take out now
     -> m VestingData
 retrieveFunds vs vd r anow = do
@@ -118,7 +120,7 @@ validatorScriptHash =
 validatorScript :: Vesting -> ValidatorScript
 validatorScript v = ValidatorScript val where
     val = Ledger.applyScript inner (Ledger.lifted v)
-    inner = $$(Ledger.compileScript [|| \Vesting{..} () VestingData{..} (p :: PendingTx) ->
+    inner = $$(Ledger.compileScript [|| \Vesting{..} VestingData{..} () (p :: PendingTx) ->
         let
 
             eqBs :: ValidatorHash -> ValidatorHash -> Bool
@@ -145,8 +147,8 @@ validatorScript v = ValidatorScript val where
 
             -- Value that has been released so far under the scheme
             currentThreshold =
-                if $$(Interval.contains) ($$(Interval.from) d1) range
-                then if $$(Interval.contains) ($$(Interval.from) d2) range
+                if $$(Slot.contains) ($$(Interval.from) d1) range
+                then if $$(Slot.contains) ($$(Interval.from) d2) range
                     -- everything can be spent
                      then $$(Ada.plus) a1 a2
                      -- only the first tranche can be spent (we are between d1 and d2)

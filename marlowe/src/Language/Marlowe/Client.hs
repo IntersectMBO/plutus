@@ -148,7 +148,7 @@ createRedeemer inputCommand oracles choices expectedState expectedCont =
 
 {-| Create a Marlowe Commit input transaction given expected output 'Contract' and 'State'.
 -}
-commit' :: (
+commit :: (
     MonadError WalletAPIError m,
     WalletAPI m)
     => (TxOut, TxOutRef)
@@ -168,7 +168,7 @@ commit' :: (
     -> Contract
     -- ^ expected 'Contract' after commit
     -> m ()
-commit' txOut validator oracles choices identCC value expectedState expectedCont = do
+commit txOut validator oracles choices identCC value expectedState expectedCont = do
     when (value <= 0) $ throwOtherError "Must commit a positive value"
     sig <- signature <$> myKeyPair
     slot <- slot
@@ -186,7 +186,7 @@ commit' txOut validator oracles choices identCC value expectedState expectedCont
     Given current 'Contract' and its 'State' evaluate result 'Contract' and 'State.
     If resulting 'Contract' is valid then perform commit transaction.
 -}
-commit :: (
+commit' :: (
     MonadError WalletAPIError m,
     WalletAPI m)
     => (TxOut, TxOutRef)
@@ -206,7 +206,7 @@ commit :: (
     -> Contract
     -- ^ 'Contract' before commit
     -> m ()
-commit txOut validator oracles choices identCC value inputState inputContract = do
+commit' txOut validator oracles choices identCC value inputState inputContract = do
     bh <- slot
     sig <- signature <$> myKeyPair
     let inputCommand = Commit identCC sig
@@ -216,7 +216,7 @@ commit txOut validator oracles choices identCC value inputState inputContract = 
     let (expectedState, expectedCont, isValid) =
             evalContract (PubKey 1) input bh scriptInValue scriptOutValue inputState inputContract
     when (not isValid) $ throwOtherError "Invalid commit"
-    commit' txOut validator oracles choices identCC value expectedState expectedCont
+    commit txOut validator oracles choices identCC value expectedState expectedCont
 
 
 {-| Create a Marlowe Payment input transaction.

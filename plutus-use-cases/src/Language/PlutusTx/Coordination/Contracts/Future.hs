@@ -31,7 +31,7 @@ import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       (DataScript (..), Slot(..), PubKey, TxOutRef, ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
-import qualified Ledger.Interval              as Interval
+import qualified Ledger.Slot                  as Slot
 import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxIn(..), PendingTxOut (..),
                                               PendingTxOutType (..))
 import qualified Ledger.Validation            as Validation
@@ -200,7 +200,7 @@ validatorScript :: Future -> ValidatorScript
 validatorScript ft = ValidatorScript val where
     val = Ledger.applyScript inner (Ledger.lifted ft)
     inner = $$(Ledger.compileScript [||
-        \Future{..} (r :: FutureRedeemer) FutureData{..} (p :: PendingTx) ->
+        \Future{..} FutureData{..} (r :: FutureRedeemer) (p :: PendingTx) ->
 
             let
                 PendingTx _ outs _ _ (PendingTxIn _ witness _) range = p
@@ -261,7 +261,7 @@ validatorScript ft = ValidatorScript val where
                                 delta  = $$(Ada.multiply) ($$(Ada.fromInt) futureUnits) ($$(Ada.minus) spotPrice futureUnitPrice)
                                 expShort = $$(Ada.minus) futureDataMarginShort delta
                                 expLong  = $$(Ada.plus) futureDataMarginLong delta
-                                slotvalid = $$(Interval.member) futureDeliveryDate range
+                                slotvalid = $$(Slot.member) futureDeliveryDate range
 
                                 canSettle =
                                     case outs of

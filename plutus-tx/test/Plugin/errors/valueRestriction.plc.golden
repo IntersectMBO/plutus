@@ -1,1 +1,1 @@
-Violation of the value restriction: Type abstraction body is not a value
+Error: Attempt to polymorphically generalize something which is not a value (often a let-binding)

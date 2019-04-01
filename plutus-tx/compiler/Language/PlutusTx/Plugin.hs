@@ -14,6 +14,7 @@ module Language.PlutusTx.Plugin (
     getSerializedPlc,
     getSerializedPir,
     getPlc,
+    sizePlc,
     getPir,
     plugin,
     plc) where
@@ -39,6 +40,7 @@ import           Language.PlutusCore.Quote
 import qualified Language.PlutusIR                      as PIR
 import qualified Language.PlutusIR.Compiler             as PIR
 import qualified Language.PlutusIR.Compiler.Definitions as PIR
+import qualified Language.PlutusIR.MkPir                as PIR
 import qualified Language.PlutusIR.Optimizer.DeadCode   as PIR
 
 import           Language.Haskell.TH.Syntax             as TH
@@ -52,13 +54,14 @@ import           Control.Monad.Reader
 import qualified Data.ByteString                        as BS
 import qualified Data.ByteString.Lazy                   as BSL
 import qualified Data.ByteString.Unsafe                 as BSUnsafe
+import           Data.Int                               (Int64)
 import qualified Data.Map                               as Map
 import qualified Data.Text.Prettyprint.Doc              as PP
 
 import           GHC.TypeLits
 import           System.IO.Unsafe                       (unsafePerformIO)
 
--- | A compiled Plutus Tx program. The type parameter inicates
+-- | A compiled Plutus Tx program. The type parameter indicates
 -- the type of the Haskell expression that was compiled, and
 -- hence the type of the compiled code.
 data CompiledCode a = CompiledCode {
@@ -69,13 +72,17 @@ data CompiledCode a = CompiledCode {
 -- Note that we do *not* have a TypeablePlc instance, since we don't know what the type is. We could in principle store it after the plugin
 -- typechecks the code, but we don't currently.
 instance Lift.Lift (CompiledCode a) where
-    lift (getPlc -> (PLC.Program () _ body)) = PIR.embedIntoIR <$> PLC.rename body
+    lift (getPlc -> (PLC.Program () _ body)) = PIR.embed <$> PLC.rename body
 
 getSerializedPlc :: CompiledCode a -> BSL.ByteString
 getSerializedPlc = BSL.fromStrict . serializedPlc
 
 getSerializedPir :: CompiledCode a -> BSL.ByteString
 getSerializedPir = BSL.fromStrict . serializedPir
+
+-- | The size of a `CompiledCode a` when embedded into a transaction, in bytes.
+sizePlc :: CompiledCode a -> Int64
+sizePlc = BSL.length . getSerializedPlc
 
 {- Note [Deserializing the AST]
 The types suggest that we can fail to deserialize the AST that we embedded in the program.
@@ -105,7 +112,7 @@ plc _ = CompiledCode mustBeReplaced mustBeReplaced
 data PluginOptions = PluginOptions {
     poDoTypecheck    :: Bool
     , poDeferErrors  :: Bool
-    , poStripContext :: Bool
+    , poContextLevel :: Int
     }
 
 plugin :: GHC.Plugin
@@ -117,7 +124,7 @@ install args todo =
         opts = PluginOptions {
             poDoTypecheck = notElem "dont-typecheck" args
             , poDeferErrors = elem "defer-errors" args
-            , poStripContext = elem "strip-context" args
+            , poContextLevel = if elem "no-context" args then 0 else if elem "debug-context" args then 3 else 1
             }
     in
         pure (GHC.CoreDoPluginPass "Core to PLC" (pluginPass opts) : todo)
@@ -262,7 +269,7 @@ convertExpr opts locStr codeTy origE = do
     flags <- GHC.getDynFlags
     -- We need to do this out here, since it has to run in CoreM
     nameInfo <- makePrimitiveNameInfo builtinNames
-    let result = withContextM (sdToTxt $ "Converting expr at" GHC.<+> GHC.text locStr) $ do
+    let result = withContextM 1 (sdToTxt $ "Converting expr at" GHC.<+> GHC.text locStr) $ do
               (pirP::PIRProgram) <- PIR.Program () . PIR.removeDeadBindings <$> (PIR.runDefT () $ convExprWithDefs origE)
               (plcP::PLCProgram) <- void <$> (flip runReaderT PIR.NoProvenance $ PIR.compileProgram pirP)
               when (poDoTypecheck opts) $ void $ do
@@ -277,7 +284,7 @@ convertExpr opts locStr codeTy origE = do
             }
     case runExcept . runQuoteT . flip runReaderT context $ result of
         Left s ->
-            let shown = show $ if poStripContext opts then PP.pretty (stripContext s) else PP.pretty s in
+            let shown = show $ PP.pretty (pruneContext (poContextLevel opts) s) in
             -- TODO: is this the right way to do either of these things?
             if poDeferErrors opts
             -- this will blow up at runtime

@@ -1,6 +1,7 @@
 -- | @tuple@s of various sizees and related functions.
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE GADTs #-}
 
 module Language.PlutusCore.StdLib.Meta.Data.Tuple
     ( Tuple (..)
@@ -26,15 +27,16 @@ import           Control.Lens.Indexed      (ifor, itraverse)
 import           Data.Traversable
 
 -- | A Plutus Core tuple.
-data Tuple ann = Tuple
-    { _tupleElementTypes :: [Type TyName ann]     -- ^ The types of elements of a tuple.
-    , _tupleTerm         :: Term TyName Name ann  -- ^ A term representation of the tuple.
-    }
+data Tuple term ann where
+    Tuple :: TermLike term TyName Name =>
+        { _tupleElementTypes :: [Type TyName ann] -- ^ The types of elements of a tuple.
+        , _tupleTerm         :: term ann          -- ^ A term representation of the tuple.
+        } -> Tuple term ann
 
 -- | Get the type of a 'Tuple'.
 --
 -- > getTupleType _ (Tuple [a1, ... , an] _) = all r. (a1 -> ... -> an -> r) -> r
-getTupleType :: MonadQuote m => ann -> Tuple ann -> m (Type TyName ann)
+getTupleType :: MonadQuote m => ann -> Tuple term ann -> m (Type TyName ann)
 getTupleType ann (Tuple elTys _) = liftQuote $ do
     r <- freshTyName ann "r"
     let caseTy = mkIterTyFun ann elTys $ TyVar ann r
@@ -45,21 +47,21 @@ getTupleType ann (Tuple elTys _) = liftQuote $ do
 -- > getSpineToTuple _ [(a1, x1), ... , (an, xn)] =
 -- >     Tuple [a1, ... , an] (/\(r :: *) -> \(f :: a1 -> ... -> an -> r) -> f x1 ... xn)
 getSpineToTuple
-    :: MonadQuote m => ann -> [(Type TyName ann, Term TyName Name ann)] -> m (Tuple ann)
+    :: (TermLike term TyName Name, MonadQuote m) => ann -> [(Type TyName ann, term ann)] -> m (Tuple term ann)
 getSpineToTuple ann spine = liftQuote $ do
     r <- freshTyName ann "r"
     f <- freshName ann "f"
     let (as, xs) = unzip spine
         caseTy = mkIterTyFun ann as $ TyVar ann r
-        y = mkIterApp ann (Var ann f) xs
-    pure . Tuple as . TyAbs ann r (Type ann) $ LamAbs ann f caseTy y
+        y = mkIterApp ann (var ann f) xs
+    pure . Tuple as . tyAbs ann r (Type ann) $ lamAbs ann f caseTy y
 
 -- | Get the type of the ith element of a 'Tuple' along with the element itself.
 --
 -- > tupleTypeTermAt _ i (Tuple [a0, ... , an] term) =
 -- >     (ai, term {ai} (\(x0 : a0) ... (xn : an) -> xi))
 tupleTypeTermAt
-    :: MonadQuote m => ann -> Int -> Tuple ann -> m (Type TyName ann, Term TyName Name ann)
+    :: (TermLike term TyName Name, MonadQuote m) => ann -> Int -> Tuple term ann -> m (Type TyName ann, term ann)
 tupleTypeTermAt ann ind (Tuple elTys term) = liftQuote $ do
     args <- ifor elTys $ \i ty -> do
         n <- freshName ann $ "arg_" <> showText i
@@ -70,15 +72,21 @@ tupleTypeTermAt ann ind (Tuple elTys term) = liftQuote $ do
 
     pure
         ( selectedTy
-        , Apply ann (TyInst ann term selectedTy) selector
+        , apply ann (tyInst ann term selectedTy) selector
         )
 
 -- | Get the ith element of a 'Tuple'.
-tupleTermAt :: MonadQuote m => ann -> Int -> Tuple ann -> m (Term TyName Name ann)
+tupleTermAt :: (TermLike term TyName Name, MonadQuote m) => ann -> Int -> Tuple term ann -> m (term ann)
 tupleTermAt ann ind tuple = snd <$> tupleTypeTermAt ann ind tuple
 
 -- | Get the ith element of a 'Tuple' as a 'TermDef'.
-tupleDefAt :: MonadQuote m => ann -> Int -> Name ann -> Tuple ann -> m (TermDef TyName Name ann)
+tupleDefAt
+    :: (TermLike term TyName Name, MonadQuote m)
+    => ann
+    -> Int
+    -> Name ann
+    -> Tuple term ann
+    -> m (TermDef term TyName Name ann)
 tupleDefAt ann ind name tuple = uncurry (Def . VarDecl ann name) <$> tupleTypeTermAt ann ind tuple
 
 -- | Bind all elements of a 'Tuple' inside a 'Term'.
@@ -91,14 +99,14 @@ tupleDefAt ann ind name tuple = uncurry (Def . VarDecl ann name) <$> tupleTypeTe
 -- >         in body
 -- >     ) term
 bindTuple
-    :: MonadQuote m
-    => ann -> [Name ann] -> Tuple ann -> Term TyName Name ann -> m (Term TyName Name ann)
+    :: (TermLike term TyName Name, MonadQuote m)
+    => ann -> [Name ann] -> Tuple term ann -> term ann -> m (term ann)
 bindTuple ann names (Tuple elTys term) body = liftQuote $ do
     tup <- freshName ann "tup"
-    let tupVar = Tuple elTys $ Var ann tup
+    let tupVar = Tuple elTys $ var ann tup
     tupTy <- getTupleType ann tupVar
     tupDefs <- itraverse (\i name -> tupleDefAt ann i name tupVar) names
-    pure $ Apply ann (LamAbs ann tup tupTy $ foldr (mkTermLet ann) body tupDefs) term
+    pure $ apply ann (lamAbs ann tup tupTy $ foldr (mkTermLet ann) body tupDefs) term
 
 -- | Given an arity @n@, create the n-ary product type.
 --
@@ -127,7 +135,7 @@ prodN arity = runQuote $ do
 --             /\(R :: *).
 --                 \(case : T_1 -> .. -> T_n -> R) -> case arg_1 .. arg_n
 -- @
-prodNConstructor :: Int -> Term TyName Name ()
+prodNConstructor :: TermLike term TyName Name => Int -> term ()
 prodNConstructor arity = runQuote $ do
     tyVars <- for [0..(arity-1)] $ \i -> do
         tn <- liftQuote $ freshTyName () $ "t_" <> showText i
@@ -147,11 +155,11 @@ prodNConstructor arity = runQuote $ do
         -- \arg_1 .. arg_n
         mkIterLamAbs args $
         -- /\R
-        TyAbs () resultType (Type ()) $
+        tyAbs () resultType (Type ()) $
         -- \case
-        LamAbs () caseArg caseTy $
+        lamAbs () caseArg caseTy $
         -- case arg_1 .. arg_n
-        mkIterApp () (Var () caseArg) $ fmap (mkVar ()) args
+        mkIterApp () (var () caseArg) $ fmap (mkVar ()) args
 
 -- | Given an arity @n@ and an index @i@, create a function for accessing the i'th component of a n-tuple.
 --
@@ -160,7 +168,7 @@ prodNConstructor arity = runQuote $ do
 --         \(tuple : all (R :: *) . (T_1 -> .. -> T_n -> R) -> R)) .
 --             tuple {T_i} (\(arg_1 : T_1) .. (arg_n : T_n) . arg_i)
 -- @
-prodNAccessor :: Int -> Int -> Term TyName Name ()
+prodNAccessor :: TermLike term TyName Name => Int -> Int -> term ()
 prodNAccessor arity index = runQuote $ do
     tyVars <- for [0..(arity-1)] $ \i -> do
         tn <- liftQuote $ freshTyName () $ "t_" <> showText i
@@ -179,8 +187,8 @@ prodNAccessor arity index = runQuote $ do
         -- /\T_1 .. T_n
         mkIterTyAbs tyVars $
         -- \tuple :: (tupleN T_1 .. T_n)
-        LamAbs () tupleArg tupleTy $
+        lamAbs () tupleArg tupleTy $
         -- tuple {T_i}
-        Apply () (TyInst () (Var () tupleArg) selectedTy) $
+        apply () (tyInst () (var () tupleArg) selectedTy) $
         -- \arg_1 .. arg_n . arg_i
         mkIterLamAbs args selectedArg

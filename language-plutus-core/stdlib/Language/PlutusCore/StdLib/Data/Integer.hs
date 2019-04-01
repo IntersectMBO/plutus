@@ -16,14 +16,14 @@ import           Language.PlutusCore.Type
 --
 -- > /\(s :: size) -> \(i : integer s) ->
 -- >     addInteger {s} i (resizeInteger {1} {s} (sizeOfInteger {s} i) 1!1)
-succInteger :: Term TyName Name ()
+succInteger :: TermLike term TyName Name => term ()
 succInteger = runQuote $ do
     s <- freshTyName () "s"
     i  <- freshName () "i"
     return
-        . TyAbs () s (Size ())
-        . LamAbs () i (TyApp () (TyBuiltin () TyInteger) $ TyVar () s)
-        . mkIterApp () (TyInst () (Builtin () $ BuiltinName () AddInteger) $ TyVar () s)
-        $ [ Var () i
-          , makeDynBuiltinIntSizedAs (TyVar () s) (Var () i) 1
+        . tyAbs () s (Size ())
+        . lamAbs () i (TyApp () (TyBuiltin () TyInteger) $ TyVar () s)
+        . mkIterApp () (tyInst () (builtin () $ BuiltinName () AddInteger) $ TyVar () s)
+        $ [ var () i
+          , makeDynBuiltinIntSizedAs (TyVar () s) (var () i) 1
           ]

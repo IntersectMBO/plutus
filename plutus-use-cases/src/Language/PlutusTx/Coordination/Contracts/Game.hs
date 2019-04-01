@@ -4,13 +4,14 @@
 module Language.PlutusTx.Coordination.Contracts.Game(
     lock,
     guess,
-    startGame
+    startGame,
+    -- * Validator script
+    gameValidator
     ) where
 
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Language.PlutusTx.Prelude    as P
 import           Ledger
-import           Ledger.Validation
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Ada                   (Ada)
 import           Wallet
@@ -28,7 +29,7 @@ PlutusTx.makeLift ''ClearString
 
 gameValidator :: ValidatorScript
 gameValidator = ValidatorScript ($$(Ledger.compileScript [||
-    \(ClearString guess') (HashedString actual) (_ :: PendingTx) ->
+    \(HashedString actual) (ClearString guess') (_ :: PendingTx) ->
 
     if $$(P.equalsByteString) actual ($$(P.sha2_256) guess')
     then ()

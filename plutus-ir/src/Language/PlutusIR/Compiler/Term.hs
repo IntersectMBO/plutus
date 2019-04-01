@@ -64,7 +64,7 @@ compileRecTypeBindings :: Compiling m e a => Recursivity -> PLCTerm a -> [Bindin
 compileRecTypeBindings r body bs = case bs of
     []  -> pure body
     [b] -> compileSingleBinding r body b
-    _   -> ask >>= \p -> throwing _Error $ UnsupportedError p "Mutually recursive types are not supported"
+    _   -> ask >>= \p -> throwing _Error $ UnsupportedError p "Mutually recursive datatypes"
 
 compileSingleBinding :: Compiling m e a => Recursivity -> PLCTerm a -> Binding TyName Name (Provenance a) ->  m (PLCTerm a)
 compileSingleBinding r body b =  case b of

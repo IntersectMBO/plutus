@@ -6,4 +6,4 @@ readlink=$(nix-build -A coreutils '<nixpkgs>')/bin/readlink
 
 set -euo pipefail
 cd "$(dirname -- "$(${readlink} -f -- "${BASH_SOURCE[0]}")")"
-exec "$(nix-build ../default.nix -A localLib.regeneratePackages)" "default.nix" "$@"
+exec "$(nix-build ../default.nix -A dev.scripts.regeneratePackages)" "default.nix" "$@"
