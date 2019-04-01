@@ -48,7 +48,8 @@ vestingSpec =
     describe "vesting" $ do
         compilationChecks vesting
         it "should compile with the expected schema" $ do
-            Right (InterpreterResult _ (CompilationResult result [])) <- compile vesting
+            Right (InterpreterResult _ (CompilationResult result _)) <-
+                compile vesting
             result `shouldBe`
                 [ FunctionSchema
                       { functionName = Fn "vestFunds"
@@ -148,12 +149,10 @@ vestingSpec =
                                   ]
                             , ValueSchema
                                   [ ( "getValue"
-                                    , SimpleObjectSchema
-                                    [ ( "unMap"
-                                      , SimpleArraySchema
+                                    , SimpleArraySchema
                                           (SimpleTupleSchema
-                                                ( SimpleIntSchema
-                                                , SimpleIntSchema)))])
+                                               ( SimpleIntSchema
+                                               , SimpleIntSchema)))
                                   ]
                             , SimpleObjectSchema
                                   [("getPubKey", SimpleIntSchema)]
