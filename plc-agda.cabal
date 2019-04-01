@@ -9,7 +9,7 @@ synopsis:            Command line tool for running plutus core programs
 homepage:            https://github.com/input-output-hk/plutus-metatheory
 -- bug-reports:
 license:             MIT
-license-file:        LICENSE
+license-file:        LICENSE.txt
 author:              James Chapman
 maintainer:          james.chapman@iohk.io
 -- copyright:

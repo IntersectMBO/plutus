@@ -304,7 +304,7 @@ unDeBruijnify⋆ i (Π K A) = Π
   (unDeBruijnifyK K)
   (unDeBruijnify⋆ (ℕ.suc i) A)
 unDeBruijnify⋆ i (ƛ K A) = ƛ
-  (Data.Integer.show (ℤ.pos i))
+  ("tvar" ++ Data.Integer.show (ℤ.pos i))
   (unDeBruijnifyK K)
   (unDeBruijnify⋆ (ℕ.suc i) A)
 unDeBruijnify⋆ i (A · B) = unDeBruijnify⋆ i A · unDeBruijnify⋆ i B

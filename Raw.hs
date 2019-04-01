@@ -69,7 +69,7 @@ convT (TyLam _ x _K _A)    =
 convT (TyApp _ _A _B)      = RTyApp (convT _A) (convT _B)
 convT (TyBuiltin _ b)      = RTyCon b
 convT (TyInt _ n)          = RTySize (toInteger n)
-convT (TyIFix _ _ _)       = undefined
+convT (TyIFix _ a b)       = RTyMu (convT a) (convT b)
 
 convC :: Constant a -> RConstant
 convC (BuiltinInt _ n i) = RConInt (toInteger n) i
@@ -86,8 +86,8 @@ conv (Apply _ t u)    = RApp (conv t) (conv u)
 conv (Builtin _ (BuiltinName _ b)) = RBuiltin b
 conv (Builtin _ (DynBuiltinName _ b)) = undefined
 conv (Constant _ c)   = RCon (convC c)
-conv (Unwrap _ _)     = undefined
-conv (IWrap _ _ _ _)  = undefined
+conv (Unwrap _ t)     = RUnWrap (conv t)
+conv (IWrap _ ty1 ty2 t)  = RWrap (convT ty1) (convT ty2) (conv t)
 conv (Error _ _A)      = RError (convT _A)
 
 mkName :: T.Text -> Name ()
