@@ -71,7 +71,8 @@ import Wallet.Emulator.Types (Wallet(Wallet))
 mkSimulatorWallet :: Int -> SimulatorWallet
 mkSimulatorWallet id =
   SimulatorWallet { simulatorWalletWallet: Wallet { getWallet: id }
-                  , simulatorWalletBalance: Value { getValue: [ Tuple (CurrencySymbol 1000) 10
+                  , simulatorWalletBalance: Value { getValue: [ Tuple (CurrencySymbol 0) 50
+                                                              , Tuple (CurrencySymbol 1000) 10
                                                               , Tuple (CurrencySymbol 1005) 20
                                                               ]
                                                   }
