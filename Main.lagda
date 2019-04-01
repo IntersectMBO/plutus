@@ -101,30 +101,21 @@ postulate prettyPrint : RawTm → String
 
 
 -- extrinsically typed evaluation
-stestPLC : ByteString → Maybe String
-stestPLC plc with mbind (deBruijnifyTm nil) (mmap convP (parse plc))
-stestPLC plc | just t with S.run (saturate t) 100
-stestPLC plc | just t | t' ,, p ,, inj₁ v =
-  just (prettyPrint (unDeBruijnify zero Z t'))
-stestPLC plc | just t | t' ,, p ,, inj₂ e = just "runtime error"
-stestPLC plc | nothing = nothing
-
---stestPLC plc = mmap ((prettyPrint ∘ unDeBruijnify zero Z) ∘ unsaturate ∘ (λ (t : ScopedTm Z) → proj₁ (S.run t 100)) ∘ saturate) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))
-
+stestPLC : ByteString → String
+stestPLC plc with parse plc
+stestPLC plc | just t with deBruijnifyTm nil (convP t)
+stestPLC plc | just t | just t' with S.run (saturate t') 100
+stestPLC plc | just t | just t' | t'' ,, p ,, inj₁ (just v) = prettyPrint (unDeBruijnify zero Z t'')
+stestPLC plc | just t | just t' | t'' ,, p ,, inj₁ nothing = "out of fuel"
+stestPLC plc | just t | just t' | t'' ,, p ,, inj₂ e = "runtime error"
+stestPLC plc | just t | nothing = "scope error"
+stestPLC plc | nothing = "parse error"
 
 testFile : String → IO String
 testFile fn = do
   t ← readFile fn
-  return (maybe id "blerk" (stestPLC t))
+  return (stestPLC t)
 
-
-prettyPLC : ByteString → Maybe String
-prettyPLC plc = mmap (prettyPrint ∘ convP) (parse plc)
-
-testPretty : String → IO String
-testPretty fn = do
-  t ← readFile fn
-  return (maybe id "blerk" (prettyPLC t))
 
 {-# FOREIGN GHC import System.Environment #-}
 
