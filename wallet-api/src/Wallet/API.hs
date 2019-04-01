@@ -430,7 +430,7 @@ createTxAndSubmit range ins outs = do
 defaultSlotRange :: SlotRange
 defaultSlotRange = always
 
-    -- | See 'Interval.interval'.
+-- | See 'Interval.interval'.
 interval :: a -> a -> Interval a
 interval = $$(Interval.interval)
 
