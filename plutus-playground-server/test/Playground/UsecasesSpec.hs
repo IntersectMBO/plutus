@@ -334,14 +334,13 @@ gameSpec =
             (sourceCode game)
             []
     slotRange = JSON.String "{\"ivTo\":null,\"ivFrom\":null}"
-    nineAda =
-      TL.toStrict $
-      JSON.encodeToLazyText $
-      Ada.adaValueOf 9
+    nineAda = TL.toStrict $ JSON.encodeToLazyText $ Ada.adaValueOf 9
 
 hasFundsDistribution ::
        [SimulatorWallet]
-    -> Either PlaygroundError (InterpreterResult (Blockchain, [EmulatorEvent], [SimulatorWallet]))
+    -> Either PlaygroundError (InterpreterResult ( Blockchain
+                                                 , [EmulatorEvent]
+                                                 , [SimulatorWallet]))
     -> Bool
 hasFundsDistribution _ (Left _) = False
 hasFundsDistribution requiredDistribution (Right (InterpreterResult _ (_, _, actualDistribution))) =
@@ -451,21 +450,26 @@ crowdfundingSpec =
         TL.toStrict $ JSON.encodeToLazyText $ object ["getAda" .= mkI 8]
 
 knownCurrencySpec :: Spec
-knownCurrencySpec = describe "mkKnownCurrencies" $
-      it "should return registered known currencies" $
-            (runExceptT . PI.compile maxInterpretationTime) code >>= (`shouldSatisfy` hasKnownCurrency)
-      where
-            code = SourceCode $ Text.unlines
-                  [ "import Playground.Contract"
-                  , "import Data.List.NonEmpty (NonEmpty ((:|)))"
-                  , "import Ledger.Validation (ValidatorHash (..))"
-                  , "import Playground.API (KnownCurrency (..), TokenId (..))"
-                  , "myCurrency :: KnownCurrency"
-                  , "myCurrency = KnownCurrency (ValidatorHash \"\") \"MyCurrency\" (TokenId \"MyToken\" :| [])"
-                  , "$(mkKnownCurrencies ['myCurrency])"
-                  ]
-            hasKnownCurrency (Right (InterpreterResult _ (CompilationResult _ [KnownCurrency (ValidatorHash "") "MyCurrency" (TokenId "MyToken" :| [])]))) = True
-            hasKnownCurrency _ = False
+knownCurrencySpec =
+    describe "mkKnownCurrencies" $
+    it "should return registered known currencies" $
+    (runExceptT . PI.compile maxInterpretationTime) code >>=
+    (`shouldSatisfy` hasKnownCurrency)
+  where
+    code =
+        SourceCode $
+        Text.unlines
+            [ "import Playground.Contract"
+            , "import Data.List.NonEmpty (NonEmpty ((:|)))"
+            , "import Ledger.Validation (ValidatorHash (..))"
+            , "import Playground.API (KnownCurrency (..), TokenId (..))"
+            , "myCurrency :: KnownCurrency"
+            , "myCurrency = KnownCurrency (ValidatorHash \"\") \"MyCurrency\" (TokenId \"MyToken\" :| [])"
+            , "$(mkKnownCurrencies ['myCurrency])"
+            ]
+    hasKnownCurrency (Right (InterpreterResult _ (CompilationResult _ [KnownCurrency (ValidatorHash "") "MyCurrency" (TokenId "MyToken" :| [])]))) =
+        True
+    hasKnownCurrency _ = False
 
 sourceCode :: BSC.ByteString -> SourceCode
 sourceCode = SourceCode . Text.pack . BSC.unpack
@@ -478,9 +482,10 @@ compile = runExceptT . PI.compile maxInterpretationTime . sourceCode
 evaluate ::
        Evaluation
     -> IO (Either PlaygroundError (InterpreterResult ( Blockchain
-                                  , [EmulatorEvent]
-                                  , [SimulatorWallet])))
-evaluate evaluation = runExceptT $ PI.runFunction maxInterpretationTime evaluation
+                                                     , [EmulatorEvent]
+                                                     , [SimulatorWallet])))
+evaluate evaluation =
+    runExceptT $ PI.runFunction maxInterpretationTime evaluation
 
 compilationChecks :: BSC.ByteString -> Spec
 compilationChecks f = do

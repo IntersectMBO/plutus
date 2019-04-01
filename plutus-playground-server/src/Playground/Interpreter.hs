@@ -113,24 +113,34 @@ compile ::
     => t
     -> SourceCode
     -> m (InterpreterResult CompilationResult)
-compile timeout source = do
+compile timeout source
     -- There are a couple of custom rules required for compilation
+ = do
     avoidUnsafe source
     ensureMinimumImports source
     withSystemTempFile "Main.hs" $ \file handle -> do
-        (InterpreterResult warnings result) <- runscript handle file timeout . mkCompileScript . Newtype.unpack $ source
+        (InterpreterResult warnings result) <-
+            runscript handle file timeout . mkCompileScript . Newtype.unpack $
+            source
         let eSchema = JSON.eitherDecodeStrict . BS8.pack $ result
         case eSchema of
             Left err ->
                 throwError . CompilationErrors . pure . RawError $
                 "unable to decode compilation result" <> Text.pack err
             Right ([schema], currencies) -> do
-                let warnings' = Warning "It looks like you have not made any functions available, use `$(mkFunctions ['functionA, 'functionB])` to be able to use `functionA` and `functionB`" : warnings
-                pure . InterpreterResult warnings' $ CompilationResult [toSimpleArgumentSchema <$> schema] currencies
+                let warnings' =
+                        Warning
+                            "It looks like you have not made any functions available, use `$(mkFunctions ['functionA, 'functionB])` to be able to use `functionA` and `functionB`" :
+                        warnings
+                pure . InterpreterResult warnings' $
+                    CompilationResult
+                        [toSimpleArgumentSchema <$> schema]
+                        currencies
             Right (schemas, currencies) ->
-                pure .
-                InterpreterResult warnings $
-                CompilationResult (fmap toSimpleArgumentSchema <$> schemas) currencies
+                pure . InterpreterResult warnings $
+                CompilationResult
+                    (fmap toSimpleArgumentSchema <$> schemas)
+                    currencies
 
 runFunction ::
        ( Show t
@@ -148,8 +158,7 @@ runFunction timeout evaluation = do
     expr <- mkExpr evaluation
     withSystemTempFile "Main.hs" $ \file handle -> do
         (InterpreterResult warnings result) <-
-            mapError API.InterpreterError .
-            runscript handle file timeout $
+            mapError API.InterpreterError . runscript handle file timeout $
             mkRunScript (Newtype.unpack source) (Text.pack . BS8.unpack $ expr)
         let decodeResult =
                 JSON.eitherDecodeStrict . BS8.pack $ result :: Either String (Either PlaygroundError ( Blockchain
