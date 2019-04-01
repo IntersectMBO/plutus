@@ -22,7 +22,8 @@ import qualified Data.ByteString.Lazy.Char8   as BSL
 import qualified Data.Text                    as Text
 import           Data.Time.Units              (Microsecond, fromMicroseconds)
 import qualified Interpreter
-import           Language.Haskell.Interpreter (InterpreterError (CompilationErrors), SourceCode (SourceCode))
+import           Language.Haskell.Interpreter (InterpreterError (CompilationErrors), InterpreterResult,
+                                               SourceCode (SourceCode))
 import           Meadow.Contracts             (basicContract)
 import           Network.HTTP.Types           (hContentType)
 import           Servant                      (ServantErr, err400, errBody, errHeaders)
@@ -30,7 +31,7 @@ import           Servant.API                  ((:<|>) ((:<|>)), (:>), JSON, Post
 import           Servant.Server               (Handler, Server)
 import           System.Timeout               (timeout)
 
-acceptSourceCode :: SourceCode -> Handler (Either InterpreterError RunResult)
+acceptSourceCode :: SourceCode -> Handler (Either InterpreterError (InterpreterResult RunResult))
 acceptSourceCode sourceCode = do
     let maxInterpretationTime :: Microsecond = fromMicroseconds 5000000
     r <-

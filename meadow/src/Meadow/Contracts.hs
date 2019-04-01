@@ -7,3 +7,7 @@ import           Data.FileEmbed  (embedFile, makeRelativeToProject)
 
 basicContract :: ByteString
 basicContract = $(makeRelativeToProject "contracts/BasicContract.hs" >>= embedFile)
+
+zeroCouponBond :: ByteString
+zeroCouponBond = $(makeRelativeToProject "contracts/ZeroCouponBond.hs" >>= embedFile)
+

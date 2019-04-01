@@ -10,7 +10,7 @@
 
 We have implemented a blockchain emulator (mockchain) as a Haskell library. An important feature of the mockchain is that it faithfully emulates the behaviour of Plutus smart contracts in a UTXO-style ledger, by storing, deserialising and running Plutus scripts the same way they will be run when Plutus is integrated with the Cardano blockchain.
 
-The mockchain is implemented in the [Wallet.Emulator.Types](../../wallet-api/src/Wallet/Emulator/Types.hs) module. The data types are defined in [Ledger.Types](../../wallet-api/src/Ledger/Types.hs) and the transaction validation rules are implemented in [Ledger.Index](../../wallet-api/src/Ledger/Index.hs).
+The mockchain is implemented in the [Wallet.Emulator.Types](../../wallet-api/src/Wallet/Emulator/Types.hs) module. The data types are exposed in [Ledger](../../wallet-api/src/Ledger.hs) and the transaction validation rules are implemented in [Ledger.Index](../../wallet-api/src/Ledger/Index.hs).
 
 The mockchain extends the model described in [1] in two ways, by adding data scripts to pay-to-script outputs, and by adding a validity range to transactions. We provide a brief summary here. More details can be found in [this document](../extended-utxo/README.md).
 
@@ -34,13 +34,13 @@ The `Value` and `Ada` types represent currency in the mockchain. `Ada` is the de
 
 ### Scripts
 
-In [1], scripts are defined as an abstract type `Script` with a single operation `evaluate`. The mockchain defines `Script` in [`Ledger.Types`](../../wallet-api/src/Ledger/Types.hs), and `evaluate` as `runScript` in the same module.
+In [1], scripts are defined as an abstract type `Script` with a single operation `evaluate`. The mockchain defines `Script` in [`Ledger.Scripts`](../../wallet-api/src/Ledger/Scripts.hs), and `evaluate` as `runScript` in the same module.
 
 The function `s` [1, Def. 13], providing information about the current state of the ledger and the pending transaction, is implemented essentially as "lifting" a value of `Tx` from Haskell to its PLC representation. The PLC representation of `Tx` is called `PendingTx` and can be found in the [`Ledger.Validation`](../../wallet-api/src/Ledger/Validation.hs) module.
 
 ### Transaction inputs and outputs
 
-`TxIn` and `TxOut` are defined in [`Ledger.Types`](../../wallet-api/src/Ledger/Types.hs). For this proposal we will use the following (simplified) types.
+`TxIn` and `TxOut` are defined in [`Ledger.Tx`](../../wallet-api/src/Ledger/Tx.hs). For this proposal we will use the following (simplified) types.
 
 ```haskell
 

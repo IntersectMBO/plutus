@@ -1,0 +1,2 @@
+Error: Reference to a value which is not a local, nor a builtin: Variable negate
+       [ClassOp]

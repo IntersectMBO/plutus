@@ -30,8 +30,8 @@ import Halogen.ECharts (EChartsEffects, echarts)
 import Halogen.HTML (ClassName(ClassName), br_, div, div_, h2_, slot', text)
 import Halogen.HTML.Events (input)
 import Halogen.HTML.Properties (class_)
-import Ledger.Interval (Slot(..))
-import Ledger.Types (TxIdOf(TxIdOf))
+import Ledger.Slot (Slot(..))
+import Ledger.Tx (TxIdOf(TxIdOf))
 import Ledger.Value.TH (CurrencySymbol)
 import Playground.API (EvaluationResult(EvaluationResult), SimulatorWallet)
 import Prelude (class Monad, Unit, discard, map, show, unit, ($), (<$>), (<<<), (<>), (==))
@@ -65,14 +65,15 @@ evaluationPane e@(EvaluationResult {emulatorLog, resultBlockchain}) =
                 [ class_ $ ClassName "logs" ]
                 (emulatorEventPane <$> Array.reverse logs)
         ]
-    , br_
-    , div_
-        [ h2_ [ text "Chain" ]
-        , slot' cpMockchainChart MockchainChartSlot
-            (echarts Nothing)
-            ({width: 930, height: 600} /\ unit)
-            (input HandleMockchainChartMessage)
-        ]
+    -- TODO Needs adapting for multicurrency.
+    -- , br_
+    -- , div_
+    --     [ h2_ [ text "Chain" ]
+    --     , slot' cpMockchainChart MockchainChartSlot
+    --         (echarts Nothing)
+    --         ({width: 930, height: 600} /\ unit)
+    --         (input HandleMockchainChartMessage)
+    --     ]
     ]
 
 emulatorEventPane :: forall i p. EmulatorEvent -> HTML p i

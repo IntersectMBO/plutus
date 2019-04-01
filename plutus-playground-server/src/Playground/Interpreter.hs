@@ -19,13 +19,14 @@ import qualified Data.Text                    as Text
 import qualified Data.Text.IO                 as Text
 import           Data.Time.Units              (TimeUnit)
 import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError),
-                                               InterpreterError (CompilationErrors), SourceCode, avoidUnsafe, runghc)
-import           Ledger.Types                 (Blockchain)
+                                               InterpreterError (CompilationErrors),
+                                               InterpreterResult (InterpreterResult), SourceCode, Warning (Warning),
+                                               avoidUnsafe, runghc)
+import           Ledger                       (Ada, Blockchain, Value)
 import           Playground.API               (CompilationResult (CompilationResult), Evaluation (sourceCode),
                                                Expression (Action, Wait), Fn (Fn),
                                                PlaygroundError (DecodeJsonTypeError, OtherError), SimulatorWallet,
-                                               Warning (Warning), program, simulatorWalletWallet,
-                                               toSimpleArgumentSchema, wallets)
+                                               program, simulatorWalletWallet, toSimpleArgumentSchema, wallets)
 import qualified Playground.API               as API
 import           System.IO                    (Handle, hFlush)
 import           System.IO.Temp.Extras        (withSystemTempFile)
@@ -96,7 +97,7 @@ runscript ::
     -> FilePath
     -> t
     -> Text
-    -> m String
+    -> m (InterpreterResult String)
 runscript handle file timeout script = do
     liftIO $ Text.hPutStr handle script
     liftIO $ hFlush handle
@@ -111,33 +112,25 @@ compile ::
        )
     => t
     -> SourceCode
-    -> m CompilationResult
-compile timeout source
+    -> m (InterpreterResult CompilationResult)
+compile timeout source = do
     -- There are a couple of custom rules required for compilation
- = do
     avoidUnsafe source
     ensureMinimumImports source
     withSystemTempFile "Main.hs" $ \file handle -> do
-        result <-
-            runscript handle file timeout . mkCompileScript . Newtype.unpack $
-            source
+        (InterpreterResult warnings result) <- runscript handle file timeout . mkCompileScript . Newtype.unpack $ source
         let eSchema = JSON.eitherDecodeStrict . BS8.pack $ result
         case eSchema of
             Left err ->
                 throwError . CompilationErrors . pure . RawError $
                 "unable to decode compilation result" <> Text.pack err
-            Right ([schema], currencies) ->
-                pure .
-                CompilationResult [toSimpleArgumentSchema <$> schema] currencies $
-                [ Warning
-                      "It looks like you have not made any functions available, use `$(mkFunctions ['functionA, 'functionB])` to be able to use `functionA` and `functionB`"
-                ]
+            Right ([schema], currencies) -> do
+                let warnings' = Warning "It looks like you have not made any functions available, use `$(mkFunctions ['functionA, 'functionB])` to be able to use `functionA` and `functionB`" : warnings
+                pure . InterpreterResult warnings' $ CompilationResult [toSimpleArgumentSchema <$> schema] currencies
             Right (schemas, currencies) ->
-                pure $
-                CompilationResult
-                    (fmap toSimpleArgumentSchema <$> schemas)
-                    currencies
-                    []
+                pure .
+                InterpreterResult warnings $
+                CompilationResult (fmap toSimpleArgumentSchema <$> schemas) currencies
 
 runFunction ::
        ( Show t
@@ -148,14 +141,15 @@ runFunction ::
        )
     => t
     -> Evaluation
-    -> m (Blockchain, [EmulatorEvent], [SimulatorWallet])
+    -> m (InterpreterResult (Blockchain, [EmulatorEvent], [SimulatorWallet]))
 runFunction timeout evaluation = do
     let source = sourceCode evaluation
     mapError API.InterpreterError $ avoidUnsafe source
     expr <- mkExpr evaluation
     withSystemTempFile "Main.hs" $ \file handle -> do
-        result <-
-            mapError API.InterpreterError . runscript handle file timeout $
+        (InterpreterResult warnings result) <-
+            mapError API.InterpreterError .
+            runscript handle file timeout $
             mkRunScript (Newtype.unpack source) (Text.pack . BS8.unpack $ expr)
         let decodeResult =
                 JSON.eitherDecodeStrict . BS8.pack $ result :: Either String (Either PlaygroundError ( Blockchain
@@ -168,7 +162,7 @@ runFunction timeout evaluation = do
             Right eResult ->
                 case eResult of
                     Left err      -> throwError err
-                    Right result' -> pure result'
+                    Right result' -> pure $ InterpreterResult warnings result'
 
 mkRunScript :: Text -> Text -> Text
 mkRunScript script expr =

@@ -33,8 +33,8 @@ import Data.Tuple.Nested ((/\))
 import Gist (Gist)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.ECharts (EChartsMessage, EChartsQuery)
-import Language.Haskell.Interpreter (SourceCode, InterpreterError)
-import Ledger.Types (Tx, TxIdOf)
+import Language.Haskell.Interpreter (SourceCode, InterpreterError, InterpreterResult)
+import Ledger.Tx (Tx, TxIdOf)
 import Ledger.Value.TH (CurrencySymbol, Value(..), _Value)
 import Matryoshka (class Corecursive, class Recursive, Algebra, cata)
 import Network.RemoteData (RemoteData)
@@ -96,9 +96,6 @@ _Wait = prism' Wait f
 
 _functionSchema :: forall a b r. Lens { functionSchema :: a | r} { functionSchema :: b | r} a b
 _functionSchema = prop (SProxy :: SProxy "functionSchema")
-
-_warnings :: forall a b r. Lens { warnings :: a | r} { warnings :: b | r} a b
-_warnings = prop (SProxy :: SProxy "warnings")
 
 _argumentSchema :: forall a b r. Lens {argumentSchema :: a | r} {argumentSchema :: b | r} a b
 _argumentSchema = prop (SProxy :: SProxy "argumentSchema")
@@ -261,7 +258,7 @@ type WebData = RemoteData AjaxError
 
 newtype State = State
   { currentView :: View
-  , compilationResult :: WebData (Either InterpreterError CompilationResult)
+  , compilationResult :: WebData (Either InterpreterError (InterpreterResult CompilationResult))
   , simulations :: Cursor Simulation
   , evaluationResult :: WebData EvaluationResult
   , authStatus :: WebData AuthStatus
@@ -289,7 +286,7 @@ _wallets = _Newtype <<< prop (SProxy :: SProxy "wallets")
 _evaluationResult :: Lens' State (WebData EvaluationResult)
 _evaluationResult = _Newtype <<< prop (SProxy :: SProxy "evaluationResult")
 
-_compilationResult :: Lens' State (WebData (Either InterpreterError CompilationResult))
+_compilationResult :: Lens' State (WebData (Either InterpreterError (InterpreterResult CompilationResult)))
 _compilationResult = _Newtype <<< prop (SProxy :: SProxy "compilationResult")
 
 _authStatus :: Lens' State (WebData AuthStatus)
@@ -433,3 +430,11 @@ simpleArgumentToJson = cata algebra
     algebra (SimpleObjectF _ fields) = (Json.fromObject <<< M.fromFoldable) <$> sequence (map sequence fields)
     algebra (ValueArgumentF _ x) = Just $ AjaxUtils.encodeJson x
     algebra (UnknowableF _) = Nothing
+
+--- Language.Haskell.Interpreter ---
+
+_result :: forall s a. Lens' {result :: a | s} a
+_result = prop (SProxy :: SProxy "result")
+
+_warnings :: forall s a. Lens' {warnings :: a | s} a
+_warnings = prop (SProxy :: SProxy "warnings")

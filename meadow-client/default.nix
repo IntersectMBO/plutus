@@ -24,12 +24,13 @@ let
     url = "https://github.com/sass/node-sass/releases/download/v4.11.0/darwin-x64-48_binding.node";
     sha256 = "11jik9r379dxnx5v9h79sirqlk7ixdspnccfibzd4pgm6s2mw4vn";
   };
+  webCommon = pkgs.copyPathToStore ../web-common;
 in stdenv.mkDerivation {
-  src = ./.;
+  srcs = ./.;
 
   name = "meadow-client";
 
-  buildInputs = [ nodejs yarn git cacert purescript yarnDeps.offline_cache python2 ];
+  buildInputs = [ nodejs yarn git cacert purescript yarnDeps.offline_cache python2 webCommon ];
 
   bowerComponents = pkgs.buildBowerComponents {
     name = "my-web-app";
@@ -49,7 +50,9 @@ in stdenv.mkDerivation {
     ${patchShebangs "node_modules/.bin/"}
 
     mkdir generated
+    mkdir ../web-common
     cp -R ${psSrc}/* generated/
+    cp -R ${webCommon}/* ../web-common/
     cp --reflink=auto --no-preserve=mode -R $bowerComponents/bower_components .
   '';
 

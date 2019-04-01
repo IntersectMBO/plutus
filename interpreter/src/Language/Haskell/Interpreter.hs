@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveAnyClass             #-}
+{-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE FlexibleContexts           #-}
@@ -6,7 +7,7 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
-module Language.Haskell.Interpreter (runghc, CompilationError(..), InterpreterError(..), SourceCode(..), avoidUnsafe) where
+module Language.Haskell.Interpreter (runghc, CompilationError(..), InterpreterError(..), SourceCode(..), avoidUnsafe, Warning(..), InterpreterResult(..)) where
 
 import           Control.Exception         (IOException)
 import           Control.Monad             (unless)
@@ -57,6 +58,14 @@ newtype SourceCode = SourceCode Text
    deriving newtype (ToJSON, FromJSON)
    deriving anyclass (Newtype)
 
+newtype Warning = Warning Text
+  deriving stock (Eq, Show, Generic)
+  deriving newtype (ToJSON)
+
+data InterpreterResult a = InterpreterResult { warnings :: [Warning], result :: a }
+  deriving stock (Eq, Show, Generic, Functor)
+  deriving anyclass (ToJSON)
+
 -- | spawn an external process to runghc a file
 --
 --   If you set the environmental varaiable GHC_BIN_DIR
@@ -70,12 +79,12 @@ runghc
     => t
     -> [String]
     -> FilePath
-    -> m String
+    -> m (InterpreterResult String)
 runghc t runghcOpts file = do
     bin <- liftIO lookupRunghc
     (exitCode, stdout, stderr) <- runProcess bin t runghcOpts file
     case exitCode of
-        ExitSuccess -> pure stdout
+        ExitSuccess -> pure $ InterpreterResult [] stdout
         _ ->
             throwError
                 . CompilationErrors

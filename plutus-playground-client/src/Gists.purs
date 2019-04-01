@@ -9,10 +9,10 @@ module Gists
        )
        where
 
-import AjaxUtils (showAjaxError)
+import AjaxUtils (ajaxErrorPane)
 import AjaxUtils as AjaxUtils
 import Auth (AuthRole(..), authStatusAuthRole)
-import Bootstrap (btn, btnBlock, btnDanger, btnInfo, btnPrimary, btnSmall, col_, empty, formControl, isInvalid, isValid, nbsp, row_)
+import Bootstrap (btn, btnBlock, btnDanger, btnInfo, btnPrimary, btnSmall, col6_, col_, empty, formControl, isInvalid, isValid, nbsp, row_)
 import Cursor (Cursor)
 import DOM.HTML.Indexed.InputType (InputType(..))
 import Data.Argonaut.Core (stringify)
@@ -25,7 +25,7 @@ import Data.Newtype (unwrap)
 import Data.String.Regex (Regex, match, regex)
 import Data.String.Regex.Flags (ignoreCase)
 import Gist (Gist, GistFile, GistId(GistId), NewGist(NewGist), NewGistFile(NewGistFile), gistFileFilename, gistFiles, gistHtmlUrl)
-import Halogen.HTML (ClassName(ClassName), HTML, IProp, a, br_, button, div, div_, input, text)
+import Halogen.HTML (ClassName(ClassName), HTML, IProp, a, button, div, div_, input, text)
 import Halogen.HTML.Events (input_, onClick, onValueInput)
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties (class_, classes, disabled, href, id_, placeholder, target, type_, value)
@@ -48,31 +48,33 @@ gistControls (State {authStatus, createGistResult, gistUrl}) =
               ]
     ]
     [ authButton $
-        div_ [ input [ type_ InputText
-                     , value $ fromMaybe "" $ gistUrl
-                     , classes
-                         ( [ formControl ]
-                           <>
-                           case parsedGistId of
-                             Just (Left err) -> [ isInvalid ]
-                             Just (Right err) -> [ isValid ]
-                             Nothing -> []
-                         )
-                     , placeholder "Load Gist ID"
-                     , onValueInput $ HE.input SetGistUrl
-                     ]
-             , br_
-             , row_ [ col_ [ publishButton ]
-                    , col_ [ loadButton ]
-                    ]
-             , div_
-                 [ case createGistResult of
-                      Success gist -> gistPane gist
-                      Failure err -> showAjaxError err
-                      Loading -> nbsp
-                      NotAsked -> nbsp
-                 ]
-             ]
+        div_
+          [ row_
+              [ col6_
+                  [ input [ type_ InputText
+                          , value $ fromMaybe "" $ gistUrl
+                          , classes
+                              ( [ formControl ]
+                                <>
+                                case parsedGistId of
+                                  Just (Left err) -> [ isInvalid ]
+                                  Just (Right err) -> [ isValid ]
+                                  Nothing -> []
+                              )
+                          , placeholder "Load Gist ID"
+                          , onValueInput $ HE.input SetGistUrl
+                          ]
+                  ]
+              , col_ [ publishButton ]
+              , col_ [ loadButton ]
+              ]
+          , case createGistResult of
+              Success gist -> gistPane gist
+              Failure err -> ajaxErrorPane err
+              Loading -> empty
+              NotAsked -> empty
+
+          ]
     ]
   where
     canTryLoad = isRight $ parseGistUrl =<< note "No gist Url set" gistUrl

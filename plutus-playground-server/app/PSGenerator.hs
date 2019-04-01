@@ -28,23 +28,26 @@ import qualified Data.Text                                 as T ()
 import qualified Data.Text.Encoding                        as T ()
 import qualified Data.Text.IO                              as T ()
 import           Gist                                      (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
-import           Language.Haskell.Interpreter              (CompilationError, InterpreterError, SourceCode)
+import           Language.Haskell.Interpreter              (CompilationError, InterpreterError, InterpreterResult,
+                                                            SourceCode, Warning)
 import           Language.PureScript.Bridge                (BridgePart, Language (Haskell), PSType, SumType,
                                                             TypeInfo (TypeInfo), buildBridge, equal, mkSumType, order,
                                                             psTypeParameters, typeModule, typeName, writePSTypes, (^==))
 import           Language.PureScript.Bridge.Builder        (BridgeData)
 import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psString)
-import           Language.PureScript.Bridge.TypeParameters (A)
-import           Ledger.Ada                                (Ada)
-import           Ledger.Index                              (ValidationError)
-import           Ledger.Interval                           (Interval, Slot)
-import           Ledger.Types                              (AddressOf, DataScript, PubKey, RedeemerScript, Signature,
+import           Language.PureScript.Bridge.TypeParameters (A, B)
+import           Ledger                                    (AddressOf, DataScript, PubKey, RedeemerScript, Signature,
                                                             Tx, TxIdOf, TxInOf, TxInType, TxOutOf, TxOutRefOf,
                                                             TxOutType, ValidatorScript)
+import           Ledger.Ada                                (Ada)
+import           Ledger.Index                              (ValidationError)
+import           Ledger.Interval                           (Interval)
+import           Ledger.Map.TH                             (Map)
+import           Ledger.Slot                               (Slot)
 import           Ledger.Value.TH                           (CurrencySymbol, Value)
 import           Playground.API                            (CompilationResult, Evaluation, EvaluationResult, Expression,
                                                             Fn, FunctionSchema, KnownCurrency, SimpleArgumentSchema,
-                                                            SimulatorWallet, TokenId, Warning)
+                                                            SimulatorWallet, TokenId)
 import qualified Playground.API                            as API
 import           Playground.Usecases                       (crowdfunding, game, messages, vesting)
 import           Servant                                   ((:<|>))
@@ -103,19 +106,19 @@ sha256Bridge = do
 scriptBridge :: BridgePart
 scriptBridge = do
     typeName ^== "Script"
-    typeModule ^== "Ledger.Types"
+    typeModule ^== "Ledger.Scripts"
     pure psString
 
 redeemerBridge :: BridgePart
 redeemerBridge = do
     typeName ^== "Redeemer"
-    typeModule ^== "Ledger.Types"
+    typeModule ^== "Ledger.Script"
     pure psString
 
 validatorBridge :: BridgePart
 validatorBridge = do
     typeName ^== "Validator"
-    typeModule ^== "Ledger.Types"
+    typeModule ^== "Ledger.Script"
     pure psString
 
 validatorHashBridge :: BridgePart
@@ -218,6 +221,8 @@ myTypes =
     , (equal <*> (order <*> mkSumType)) (Proxy @TokenId)
     , mkSumType (Proxy @KnownCurrency)
     , mkSumType (Proxy @InterpreterError)
+    , mkSumType (Proxy @(InterpreterResult A))
+    , mkSumType (Proxy @(Map A B))
     ]
 
 mySettings :: Settings

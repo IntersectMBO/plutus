@@ -32,6 +32,7 @@ module Tutorial.WalletAPI where
 
 import qualified Language.PlutusTx            as P
 import qualified Ledger.Interval              as P
+import qualified Ledger.Slot                  as P
 import           Ledger                       (Address, DataScript(..), PubKey(..), RedeemerScript(..), Signature(..), Slot(..), TxId, ValidatorScript(..))
 import qualified Ledger                       as L
 import qualified Ledger.Ada.TH                as Ada
@@ -66,7 +67,7 @@ data Campaign = Campaign {
  }
 ```
 
-The type of Ada values is [`Ada`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Ada.html#v:Ada). Dates are expressed in terms of slots, and their type is [`Slot`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Types.html#v:Slot). The campaign owner is identified by their public key.
+The type of Ada values is [`Ada`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Ada.html#v:Ada). Dates are expressed in terms of slots, and their type is [`Slot`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Slot.html#v:Slot). The campaign owner is identified by their public key.
 
 Just like we did in the [guessing game](./02-validator-scripts.md), we need to call `makeLift` for data types that we want to convert to Plutus at Haskell runtime:
 
@@ -264,7 +265,7 @@ mkDataScript :: PubKey -> DataScript
 mkDataScript pk = DataScript (L.lifted (Contributor pk))
 ```
 
-When we want to spend the contributions we need to provide a [`RedeemerScript`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Types.html#v:RedeemerScript) value. In our case this is just the `CampaignRedeemer`:
+When we want to spend the contributions we need to provide a [`RedeemerScript`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Scripts.html#v:RedeemerScript) value. In our case this is just the `CampaignRedeemer`:
 
 ```haskell
 mkRedeemer :: CampaignRedeemer -> RedeemerScript

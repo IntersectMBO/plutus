@@ -11,7 +11,7 @@ import Data.Argonaut.Core as Argonaut
 import Data.Either (Either(..))
 import Data.List (List)
 import Data.List.Types (NonEmptyList)
-import Language.Haskell.Interpreter (CompilationError, InterpreterError)
+import Language.Haskell.Interpreter (CompilationError, InterpreterError, InterpreterResult)
 import Node.FS (FS)
 import Playground.API (CompilationResult, EvaluationResult, KnownCurrency, TokenId)
 import Test.Unit (TestSuite, suite, test)
@@ -44,7 +44,7 @@ jsonHandling = do
           "test/known_currency.json"
       test "Decode a CompilationResult." do
         assertDecodesTo
-          (Proxy :: Proxy (Either InterpreterError CompilationResult))
+          (Proxy :: Proxy (Either InterpreterError (InterpreterResult CompilationResult)))
           "test/compilation_response1.json"
       test "Decode an EvaluationResult." do
         assertDecodesTo

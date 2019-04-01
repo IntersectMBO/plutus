@@ -13,8 +13,8 @@ import           Data.Foldable              (foldl')
 import qualified Data.Map                   as Map
 import qualified Data.Set                   as Set
 import qualified Data.Typeable              as T
-import           Ledger.Types               (Blockchain, PubKey (PubKey), Tx, TxOutOf (txOutValue))
 import qualified Ledger.Value               as V
+import           Ledger                     (Blockchain, PubKey (PubKey), Tx, TxOutOf (txOutValue))
 import           Playground.API             (PlaygroundError (OtherError), SimulatorWallet (SimulatorWallet),
                                              simulatorWalletBalance, simulatorWalletWallet)
 import           Wallet.Emulator.Types      (EmulatorEvent, EmulatorState (_chainNewestFirst, _emulatorLog), MockWallet,

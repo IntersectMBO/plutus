@@ -30,11 +30,11 @@ import           Data.Swagger.Lens            (items, maxItems, minItems, proper
 import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
 import           GHC.Generics                 (Generic)
-import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), SourceCode, column,
-                                               filename, row, text)
+import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), InterpreterResult,
+                                               SourceCode, column, filename, row, text)
 import qualified Language.Haskell.Interpreter as HI
 import qualified Language.Haskell.TH.Syntax   as TH
-import           Ledger.Types                 (Blockchain, PubKey, Tx, TxId)
+import           Ledger                       (Blockchain, PubKey, Tx, TxId)
 import           Ledger.Validation            (ValidatorHash)
 import qualified Ledger.Value                 as V
 import           Servant.API                  ((:<|>), (:>), Get, JSON, Post, ReqBody)
@@ -43,7 +43,7 @@ import           Wallet.Emulator.Types        (EmulatorEvent, Wallet)
 import           Wallet.Graph                 (FlowGraph)
 
 type API
-   = "contract" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either HI.InterpreterError CompilationResult)
+   = "contract" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either HI.InterpreterError (InterpreterResult CompilationResult))
      :<|> "evaluate" :> ReqBody '[ JSON] Evaluation :> Post '[ JSON] EvaluationResult
      :<|> "health" :> Get '[ JSON] ()
 
@@ -100,14 +100,9 @@ data EvaluationResult = EvaluationResult
   }
   deriving (Generic, ToJSON)
 
-newtype Warning = Warning Text
-  deriving stock (Eq, Show, Generic)
-  deriving newtype (ToJSON)
-
 data CompilationResult = CompilationResult
   { functionSchema  :: [FunctionSchema SimpleArgumentSchema]
   , knownCurrencies :: [KnownCurrency]
-  , warnings        :: [Warning]
   }
   deriving (Show, Generic, ToJSON)
 

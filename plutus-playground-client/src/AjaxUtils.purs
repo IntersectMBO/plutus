@@ -16,7 +16,8 @@ import Data.List as List
 import Data.List.NonEmpty as NonEmpty
 import Data.Maybe (Maybe(..), fromMaybe)
 import Gist (GistId)
-import Halogen.HTML (HTML, br_, div_, pre_, text)
+import Halogen.HTML (ClassName(..), HTML, br_, div, div_, pre_, text)
+import Halogen.HTML.Properties (class_)
 import Language.Haskell.Interpreter (CompilationError(..))
 import Network.HTTP.StatusCode (StatusCode(..))
 import Playground.API (TokenId)
@@ -114,7 +115,8 @@ showErrorDescription (ConnectionError err) = text $ "ConnectionError: " <> err
 
 ajaxErrorPane :: forall p i. AjaxError -> HTML p i
 ajaxErrorPane error =
-  div_
+  div
+    [ class_ $ ClassName "ajax-error" ]
     [ alertDanger_
         [ showAjaxError error
         , br_

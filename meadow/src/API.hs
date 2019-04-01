@@ -10,11 +10,11 @@ import           Control.Newtype.Generics     (Newtype)
 import           Data.Aeson                   (FromJSON, ToJSON)
 import           Data.Text                    (Text)
 import           GHC.Generics                 (Generic)
-import           Language.Haskell.Interpreter (InterpreterError, SourceCode)
+import           Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode)
 import           Servant.API                  ((:<|>) ((:<|>)), (:>), Get, JSON, Post, ReqBody)
 
 type API
-   = "contract" :> "haskell" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either InterpreterError RunResult)
+   = "contract" :> "haskell" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either InterpreterError (InterpreterResult RunResult))
      :<|> "health" :> Get '[ JSON] ()
 
 

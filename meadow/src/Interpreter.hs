@@ -21,7 +21,7 @@ import qualified Data.Text.Internal.Search    as Text
 import qualified Data.Text.IO                 as Text
 import           Data.Time.Units              (TimeUnit)
 import           Language.Haskell.Interpreter (CompilationError (RawError), InterpreterError (CompilationErrors),
-                                               SourceCode, avoidUnsafe, runghc)
+                                               InterpreterResult (InterpreterResult), SourceCode, avoidUnsafe, runghc)
 import           System.Directory             (removeFile)
 import           System.FilePath              ((</>))
 import           System.IO                    (Handle, hFlush)
@@ -35,17 +35,19 @@ runscript
     -> FilePath
     -> t
     -> Text
-    -> m String
+    -> m (InterpreterResult String)
 runscript handle file timeout script = do
     liftIO $ Text.hPutStr handle script
     liftIO $ hFlush handle
     runghc timeout [] file
 
-runHaskell :: (Show t, TimeUnit t, MonadIO m, MonadError InterpreterError m, MonadMask m) => t -> SourceCode -> m RunResult
+runHaskell :: (Show t, TimeUnit t, MonadIO m, MonadError InterpreterError m, MonadMask m)
+    => t -> SourceCode
+    -> m (InterpreterResult RunResult)
 runHaskell t source = do
     avoidUnsafe source
     withSystemTempFile "Main.hs" $ \file handle ->
-        fmap (RunResult . Text.pack)
+        (fmap . fmap) (RunResult . Text.pack)
         . runscript handle file t
         . Newtype.unpack $ source
 

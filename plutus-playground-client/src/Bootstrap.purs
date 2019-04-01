@@ -19,6 +19,9 @@ container = ClassName "container"
 container_ :: forall p i. Array (HTML p i) -> HTML p i
 container_ = div [ class_ container ]
 
+noGutters :: ClassName
+noGutters = ClassName "no-gutters"
+
 row :: ClassName
 row = ClassName "row"
 
@@ -90,6 +93,9 @@ col10 = ClassName "col-10"
 
 col10_ :: forall p i. Array (HTML p i) -> HTML p i
 col10_ = div [ classes [ col, col10 ] ]
+
+offset3 :: ClassName
+offset3 = ClassName "offset-3"
 
 card :: ClassName
 card = ClassName "card"
@@ -213,6 +219,18 @@ pullLeft = ClassName "pull-left"
 
 pullRight :: ClassName
 pullRight = ClassName "pull-right"
+
+floatLeft :: ClassName
+floatLeft = ClassName "float-left"
+
+floatRight :: ClassName
+floatRight = ClassName "float-right"
+
+clearfix :: ClassName
+clearfix = ClassName "clearfix"
+
+clearfix_ :: forall i p. HTML p i
+clearfix_ = div [ class_ clearfix ] []
 
 listGroup :: ClassName
 listGroup = ClassName "list-group"
