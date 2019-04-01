@@ -1,0 +1,155 @@
+cabal-version: 2.0
+name: plutus-playground-server
+version: 0.1.0.0
+license: Apache-2.0
+license-files: 
+  LICENSE
+  NOTICE
+maintainer: kris.jenkins@tweag.io
+author: Kris Jenkins
+homepage: https://github.com/iohk/plutus#readme
+bug-reports: https://github.com/iohk/plutus/issues
+description:
+    Please see the README on GitHub at <https://github.com/input-output-hk/plutus#readme>
+build-type: Simple
+data-files:
+    usecases/CrowdFunding.hs
+    usecases/Game.hs
+    usecases/Messages.hs
+    usecases/Vesting.hs
+    test/gists1.json
+    test/oAuthToken1.json
+
+source-repository head
+    type: git
+    location: https://github.com/iohk/plutus
+
+flag development
+    description:
+        Enable `-Werror`
+    default: False
+    manual: True
+
+library
+    exposed-modules:
+        Playground.Server
+        Playground.Interpreter
+        Playground.Usecases
+        Gist
+        Auth
+        Auth.Types
+        Control.Monad.Now
+        Control.Monad.Trace
+        Control.Monad.Web
+        Servant.Extra
+    hs-source-dirs: src
+    default-language: Haskell2010
+    build-depends:
+        aeson -any,
+        aeson-casing -any,
+        base >=4.7 && <5,
+        bytestring -any,
+        containers -any,
+        cookie -any,
+        directory -any,
+        exceptions -any,
+        file-embed -any,
+        http-client -any,
+        http-client-tls -any,
+        http-conduit -any,
+        http-types -any,
+        interpreter -any,
+        jwt -any,
+        lens -any,
+        monad-logger -any,
+        mtl -any,
+        newtype-generics -any,
+        plutus-playground-lib -any,
+        process -any,
+        regex-compat -any,
+        servant <0.15,
+        servant-client -any,
+        servant-client-core -any,
+        servant-purescript -any,
+        servant-server -any,
+        swagger2 -any,
+        temporary -any,
+        text -any,
+        time -any,
+        time-units -any,
+        transformers -any,
+        wallet-api -any
+
+executable plutus-playground-server
+    main-is: Main.hs
+    hs-source-dirs: app
+    other-modules:
+        Webserver
+        Types
+        PSGenerator
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wmissing-import-lists
+    build-depends:
+        adjunctions -any,
+        aeson -any,
+        base >=4.7 && <5,
+        bytestring -any,
+        containers -any,
+        data-default-class -any,
+        filepath -any,
+        gitrev -any,
+        http-types -any,
+        interpreter -any,
+        lens -any,
+        monad-logger -any,
+        mtl -any,
+        optparse-applicative -any,
+        plutus-playground-lib -any,
+        plutus-playground-server -any,
+        prometheus >=2,
+        purescript-bridge -any,
+        servant -any,
+        servant-foreign -any,
+        servant-purescript -any,
+        servant-server -any,
+        text -any,
+        transformers -any,
+        wai -any,
+        wai-cors -any,
+        wai-extra -any,
+        wallet-api -any,
+        warp -any,
+        yaml -any
+
+test-suite plutus-playground-server-test
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    build-tool-depends: hspec-discover:hspec-discover -any
+    hs-source-dirs: test
+    other-modules:
+        Playground.APISpec
+        Playground.UsecasesSpec
+        Paths_plutus_playground_server
+        Auth.TypesSpec
+        GistSpec
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wmissing-import-lists
+    build-depends:
+        aeson -any,
+        base >=4.7 && <5,
+        bytestring -any,
+        hspec -any,
+        insert-ordered-containers -any,
+        interpreter -any,
+        mtl -any,
+        plutus-playground-lib -any,
+        plutus-playground-server -any,
+        swagger2 -any,
+        text -any,
+        time-units -any,
+        transformers -any,
+        wallet-api -any

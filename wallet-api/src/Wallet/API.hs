@@ -31,6 +31,7 @@ module Wallet.API(
     ownPubKeyTxOut,
     ownPubKey,
     ownSignature,
+    outputsAt,
     -- * Slot ranges
     Interval(..),
     SlotRange,
@@ -85,7 +86,7 @@ import qualified Data.Set                   as Set
 import           Data.Text                  (Text)
 import           GHC.Generics               (Generic)
 import           Ledger                     (Address, DataScript, PubKey (..), RedeemerScript, Signature (..), Slot, SlotRange,
-                                             Tx (..), TxId, TxIn, TxOut, TxOutOf (..), TxOutType (..), ValidatorScript,
+                                             Tx (..), TxId, TxIn, TxOut, TxOutRef, TxOutOf (..), TxOutType (..), ValidatorScript,
                                              Value, pubKeyTxOut, scriptAddress, scriptTxIn, txOutRefId)
 import qualified Ledger.Interval            as Interval
 import           Ledger.Interval            (Interval(..))
@@ -371,6 +372,10 @@ payToPublicKey_ r v = void . payToPublicKey r v
 -- | Create a `TxOut` that pays to a public key owned by us
 ownPubKeyTxOut :: (Monad m, WalletAPI m) => Value -> m TxOut
 ownPubKeyTxOut v = pubKeyTxOut v <$> fmap pubKey myKeyPair
+
+-- | Retrieve the unspent transaction outputs known to the wallet at an adresss
+outputsAt :: (Functor m, WalletAPI m) => Address -> m (Map.Map Ledger.TxOutRef TxOut)
+outputsAt adr = fmap (\utxos -> fromMaybe Map.empty $ utxos ^. at adr) watchedAddresses
 
 -- | Create a transaction and submit it.
 --   TODO: Also compute the fee

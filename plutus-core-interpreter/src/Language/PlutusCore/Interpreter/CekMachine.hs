@@ -213,14 +213,16 @@ evaluateCek = either throw id .* evaluateCekCatch
 -- The implementation is a bit of a hack.
 readDynamicBuiltinCek
     :: KnownDynamicBuiltinType dyn
-    => Term TyName Name () -> Either CekMachineException (Maybe dyn)
-readDynamicBuiltinCek term = do
-    res <- readDynamicBuiltin evaluateCekCatch term
+    => DynamicBuiltinNameMeanings
+    -> Term TyName Name ()
+    -> Either CekMachineException (EvaluationResult dyn)
+readDynamicBuiltinCek means term = do
+    res <- readDynamicBuiltin (evaluateCekCatch . mappend means) term
     case runExceptT res of
-        EvaluationFailure            -> Right Nothing
+        EvaluationFailure            -> Right EvaluationFailure
         EvaluationSuccess (Left err) -> Left $ MachineException appErr term where
             appErr = ConstAppMachineError $ UnreadableBuiltinConstAppError term err
-        EvaluationSuccess (Right x)  -> Right $ Just x
+        EvaluationSuccess (Right x)  -> Right $ EvaluationSuccess x
 
 -- | Run a program using the CEK machine. May throw a 'CekMachineException'.
 -- Calls 'evaluateCek' under the hood.

@@ -1,0 +1,362 @@
+@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
+@import 'variables.scss';
+
+@import './node_modules/bootstrap/scss/functions';
+@import './node_modules/bootstrap/scss/variables';
+@import './node_modules/bootstrap/scss/mixins';
+@import './node_modules/bootstrap/scss/root';
+@import './node_modules/bootstrap/scss/reboot';
+@import './node_modules/bootstrap/scss/type';
+@import './node_modules/bootstrap/scss/images';
+@import './node_modules/bootstrap/scss/code';
+@import './node_modules/bootstrap/scss/grid';
+@import './node_modules/bootstrap/scss/tables';
+@import './node_modules/bootstrap/scss/forms';
+@import './node_modules/bootstrap/scss/buttons';
+@import './node_modules/bootstrap/scss/transitions';
+@import './node_modules/bootstrap/scss/dropdown';
+@import './node_modules/bootstrap/scss/button-group';
+//  @import './node_modules/bootstrap/scss/input-group';
+//  @import './node_modules/bootstrap/scss/custom-forms';
+@import './node_modules/bootstrap/scss/nav';
+@import './node_modules/bootstrap/scss/navbar';
+@import './node_modules/bootstrap/scss/card';
+//  @import './node_modules/bootstrap/scss/breadcrumb';
+//  @import './node_modules/bootstrap/scss/pagination';
+@import './node_modules/bootstrap/scss/badge';
+//  @import './node_modules/bootstrap/scss/jumbotron';
+@import './node_modules/bootstrap/scss/alert';
+//  @import './node_modules/bootstrap/scss/progress';
+//  @import './node_modules/bootstrap/scss/media';
+@import './node_modules/bootstrap/scss/list-group';
+@import './node_modules/bootstrap/scss/close';
+@import './node_modules/bootstrap/scss/modal';
+//  @import './node_modules/bootstrap/scss/tooltip';
+//  @import './node_modules/bootstrap/scss/popover';
+//  @import './node_modules/bootstrap/scss/carousel';
+@import './node_modules/bootstrap/scss/utilities';
+@import './node_modules/bootstrap/scss/print';
+
+body {
+    font-family: 'Open Sans', sans-serif;
+    background: $body-bg;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+p, a, button, i, em {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+b, strong {
+    color: $gray-100;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: bold;
+}
+
+h2 {
+    font-size: 1.22rem;
+}
+
+.main-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.main-frame {
+    .container {
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+}
+
+#demos {
+    text-align: right;
+    padding: 5px 0;
+}
+
+.gist-controls {
+    border-left: dashed 1px $lightPurple;
+    padding-left: 10px;
+
+    input {
+        padding: 0.375rem;
+    }
+    .gist-link {
+        text-align: center;
+        text-decoration: underline;
+        padding: 5px;
+    }
+}
+
+.ace_editor, .ace_content {
+    min-height: 20rem;
+}
+
+.wallet {
+    margin-bottom: 30px;
+
+    .action-button {
+        margin-top: 5px;
+        margin-right: 5px;
+    }
+}
+
+.wallet-id {
+}
+
+.add-wallet, .add-wait-action {
+    text-align: center;
+}
+
+.form-control {
+    &:focus {
+        color: inherit;
+    }
+}
+
+.actions {
+    .action {
+        text-align: left;
+        margin-bottom: 30px;
+
+        .form-group {
+            label {
+                margin-bottom: 0;
+            }
+
+            input {
+                padding-left: 0;
+                padding-right: 0;
+            }
+        }
+
+
+        .nested {
+            margin-left: 1rem;
+        }
+    }
+}
+
+.action,
+.wallet ,
+.gist-controls {
+    h1, h2, h3, h4 {
+        color: $lightPurple;
+    }
+
+    input {
+        color: rgba(255, 255, 255, 0.7);
+        background: $input-bg;
+        border: $input-border-color;
+        outline:none;
+        border-bottom:1px solid $purple05;
+    }
+}
+
+.compilation-error {
+    cursor: pointer;
+
+    pre {
+        margin-top: 1rem;
+    }
+}
+
+.btn {
+    border-radius: 1.5rem;
+
+    &:focus,
+    &:active {
+        outline: none !important;
+        box-shadow: none;
+    }
+}
+
+.fa-close {
+    font-size:26px;
+    &:before {
+        content: '\00d7';
+    }
+}
+
+.fa-plus {
+    cursor:pointer;
+    font-size:32px;
+    transform:rotate(45deg);
+    &:before {
+        content: '\00d7';
+    }
+}
+
+.logs {
+    font: 12px/normal 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+    word-wrap: break-word;
+
+    .info {
+        &:before {
+            content: "- ";
+        }
+        &:after {
+            content: " -";
+        }
+        color: $lightPurple;
+        text-indent: 1rem;
+    }
+
+    .error {
+        color: $red;
+    }
+}
+
+.btn-link {
+    padding: 0.375rem;
+}
+
+.badge-action {
+    $badge-width: 4rem;
+    padding: 0.25rem 1.75rem 0.25rem 1.5rem;
+    width: $badge-width;
+    font-size: 100%;
+    background: $lightPurple;
+    border-radius: 1.5rem;
+    color: $gray-900;
+    line-height: inherit;
+    position: absolute;
+    top: -1rem;
+    left: calc(50% - #{$badge-width / 2});
+}
+
+.card {
+    .btn.pull-right, .btn.pull-right:focus {
+        border:none;
+        background:none;
+        outline:0;
+        box-shadow: none;
+    }
+    button.pull-right {
+        margin:-0.5rem 0 0 0;
+        padding:0;
+    }
+    span.pull-right {
+        .fa-plus {
+            font-size:1rem;
+            margin-left: 1rem;
+        }
+    }
+    div:not(:last-child) {
+        margin-bottom: 0.5rem;
+    }
+}
+
+.card-footer {
+    padding: $card-spacer-y $card-spacer-x;
+    background-color: $card-bg !important;
+    border-top: $card-border-width solid $card-border-color;
+}
+
+.ace-monokai {
+    background: $gray-900;
+    .ace_gutter, .ace_marker-layer .ace_active-line {
+        background:#1a1b2c;
+    }
+    .ace_entity.ace_name.ace_tag, .ace_keyword, .ace_meta.ace_tag, .ace_storage {
+        color:#eabdfd;
+    }
+    .ace_entity.ace_name.ace_function, .ace_entity.ace_other, .ace_entity.ace_other.ace_attribute-name, .ace_variable {
+        color:#fd9fa6;
+    }
+    .ace_storage.ace_type, .ace_support.ace_class, .ace_support.ace_type {
+        color:#9bfbfa;
+    }
+}
+
+.nav-tabs {
+    border-bottom: dashed 1px $lightPurple;
+
+    .nav-link {
+        &.active,
+        &:hover {
+            color: $lightPurple;
+            border: dashed 1px $lightPurple;
+            border-bottom: solid 1px transparent;
+        }
+    }
+}
+
+table.balance-map {
+    overflow: hidden;
+    border: 2px solid $gray-700;
+
+    thead {
+        h3 {
+            font-size: 0.6rem;
+        }
+    }
+
+    tbody {
+        tr:hover {
+            background-color: $gray-800;
+
+            .balance-remainder::after {
+                content: "";
+                position: absolute;
+                background-color: $gray-800;
+                bottom: 0;
+                left: -10%;
+                height: 10000px;
+                width: 120%;
+                z-index: -1;
+            }
+        }
+    }
+
+    .forge {
+        .balance {
+            border-color: darken($green, 20%);
+            background-color: $green;
+        }
+    }
+
+    .balance {
+        position: relative;
+        border: solid 1px darken($blue, 20%);
+        background-color: $blue;
+        color: $gray-300;
+        min-height: 3rem;
+        padding: 3px;
+        min-width: 5rem;
+
+        &.balance-remainder {
+            background: url(tx-arrows.svg);
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            border: none;
+        }
+
+        &.balance-no-currencies {
+            background-color: transparent;
+            border: none;
+        }
+
+        & div {
+            min-height: 2rem;
+            border-top: dashed 1px $blue;
+        }
+
+        & div:first-child {
+            border-top: none;
+        }
+    }
+}
+
+#simulation-nav {
+  margin-bottom: 1.5rem;
+
+  .simulation-nav-item .fa {
+      font-size: 20px;
+  }
+}

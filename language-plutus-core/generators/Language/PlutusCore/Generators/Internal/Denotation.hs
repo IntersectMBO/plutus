@@ -56,6 +56,13 @@ newtype DenotationContext = DenotationContext
 -- be them variables or functions. Better if we also take types of arguments into account, but it is
 -- not required as we can always generate an argument out of thin air in a rank-0 setting (without @Void@).
 
+-- | The resulting 'TypedBuiltin' of a 'TypeScheme'.
+typeSchemeResult :: TypeScheme () a r -> TypedBuiltin () r
+typeSchemeResult (TypeSchemeBuiltin tb)     = tb
+typeSchemeResult (TypeSchemeArrow _ schB)   = typeSchemeResult schB
+typeSchemeResult (TypeSchemeAllType _ schK) = typeSchemeResult $ schK TypedBuiltinDyn
+typeSchemeResult (TypeSchemeAllSize schK)   = typeSchemeResult (schK ())
+
 -- | Get the 'Denotation' of a variable.
 denoteVariable :: Name () -> TypedBuiltin size r -> r -> Denotation (Name ()) size r
 denoteVariable name tb meta = Denotation name (Var ()) meta (TypeSchemeBuiltin tb)

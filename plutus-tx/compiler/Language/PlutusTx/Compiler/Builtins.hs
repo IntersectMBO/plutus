@@ -351,7 +351,7 @@ wrapIntRel arity term = do
     converter <- scottBoolToHaskellBool
 
     pure $
-        PIR.mkIterLamAbs () args $
+        PIR.mkIterLamAbs args $
         PIR.Apply () converter (PIR.mkIterApp () term (fmap (PIR.mkVar ()) args))
 
 mkIntRel :: Converting m => PLC.BuiltinName -> m PIRTerm
@@ -368,7 +368,7 @@ wrapBsRel arity term = do
     converter <- scottBoolToHaskellBool
 
     pure $
-        PIR.mkIterLamAbs () args $
+        PIR.mkIterLamAbs args $
         PIR.Apply () converter (PIR.mkIterApp () term (fmap (PIR.mkVar ()) args))
 
 mkBsRel :: Converting m => PLC.BuiltinName -> m PIRTerm
@@ -394,5 +394,5 @@ wrapUnitFun argTy term = do
     converter <- scottUnitToHaskellUnit
 
     pure $
-        PIR.mkIterLamAbs () [arg] $
+        PIR.mkIterLamAbs [arg] $
         PIR.Apply () converter (PIR.Apply () term (PIR.mkVar () arg))

@@ -6,9 +6,11 @@ packages: language-plutus-core
           plutus-tx
           plutus-use-cases
           plutus-ir
-          plutus-playground/plutus-playground-server
-          plutus-playground/plutus-playground-lib
+          plutus-playground-server
+          plutus-playground-lib
           plutus-tutorial
+          interpreter
+          meadow
 with-compiler: ghc-8.4.4
 optimization: 2
 constraints: language-plutus-core +development

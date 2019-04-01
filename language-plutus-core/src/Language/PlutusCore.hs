@@ -99,6 +99,10 @@ module Language.PlutusCore
     , applyProgram
     -- * Benchmarking
     , termSize
+    , typeSize
+    , kindSize
+    , programSize
+    , serialisedSize
     ) where
 
 import           Control.Monad.Except
