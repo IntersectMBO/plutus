@@ -87,6 +87,8 @@ import Untyped.Reduction as U
 import Scoped as S
 import Scoped.Reduction as S
 
+open import Data.Sum
+
 -- untyped evaluation
 utestPLC : ByteString → Maybe String
 utestPLC plc = mmap (U.ugly ∘ (λ (t : 0 ⊢) → proj₁ (U.run t 100)) ∘ erase⊢) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))
@@ -100,11 +102,14 @@ postulate prettyPrint : RawTm → String
 
 -- extrinsically typed evaluation
 stestPLC : ByteString → Maybe String
-stestPLC plc = mmap ((prettyPrint ∘ unDeBruijnify zero Z) ∘ unsaturate ∘ (λ (t : ScopedTm Z) → proj₁ (S.run t 100)) ∘ saturate) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))
+stestPLC plc with mbind (deBruijnifyTm nil) (mmap convP (parse plc))
+stestPLC plc | just t with S.run (saturate t) 100
+stestPLC plc | just t | t' ,, p ,, inj₁ v =
+  just (prettyPrint (unDeBruijnify zero Z t'))
+stestPLC plc | just t | t' ,, p ,, inj₂ e = just "runtime error"
+stestPLC plc | nothing = nothing
 
--- don't run anything...
-stestPLC' : ByteString → Maybe String
-stestPLC' plc = mmap ((prettyPrint ∘ unDeBruijnify zero Z)) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))
+--stestPLC plc = mmap ((prettyPrint ∘ unDeBruijnify zero Z) ∘ unsaturate ∘ (λ (t : ScopedTm Z) → proj₁ (S.run t 100)) ∘ saturate) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))
 
 
 testFile : String → IO String
