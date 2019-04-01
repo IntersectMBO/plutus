@@ -24,7 +24,7 @@ import           Data.Time.Units              (Microsecond, fromMicroseconds)
 import qualified Interpreter
 import           Language.Haskell.Interpreter (InterpreterError (CompilationErrors), InterpreterResult,
                                                SourceCode (SourceCode))
-import           Meadow.Contracts             (basicContract)
+import           Meadow.Contracts             (escrow)
 import           Network.HTTP.Types           (hContentType)
 import           Servant                      (ServantErr, err400, errBody, errHeaders)
 import           Servant.API                  ((:<|>) ((:<|>)), (:>), JSON, Post, ReqBody)
@@ -50,7 +50,7 @@ throwJSONError err json = throwError
 
 checkHealth :: Handler ()
 checkHealth = do
-    res <- acceptSourceCode . SourceCode . Text.pack . BS.unpack $ basicContract
+    res <- acceptSourceCode . SourceCode . Text.pack . BS.unpack $ escrow
     case res of
         Left e  -> throwError $ err400 {errBody = BSL.pack . show $ e}
         Right _ -> pure ()
