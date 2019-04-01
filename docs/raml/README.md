@@ -298,7 +298,7 @@ to imperative programs.
 
 #### Implicit Computational Complexity
 
-There's an extensive field of _implicit computational complexity_,
+There's an extensive field of _implicit computational complexity_
 which uses techniques from logic and type theory to analyse the
 complexity of computations in numerous different calculi.
 Unfortunately this is a large field and I'n not very familiar with the
