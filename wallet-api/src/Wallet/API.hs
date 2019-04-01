@@ -75,20 +75,21 @@ import           Control.Monad              (void)
 import           Control.Monad.Error.Class  (MonadError (..))
 import           Data.Aeson                 (FromJSON, ToJSON)
 import           Data.Eq.Deriving           (deriveEq1)
+import           Data.Foldable              (fold)
 import           Data.Functor.Compose       (Compose (..))
 import           Data.Functor.Foldable      (Corecursive (..), Fix (..), Recursive (..), unfix)
-import           Data.Foldable              (foldl')
 import qualified Data.Map                   as Map
 import           Data.Maybe                 (fromMaybe, maybeToList)
 import           Data.Ord.Deriving          (deriveOrd1)
 import qualified Data.Set                   as Set
 import           Data.Text                  (Text)
 import           GHC.Generics               (Generic)
-import           Ledger                     (Address, DataScript, PubKey (..), RedeemerScript, Signature (..), Slot, SlotRange,
-                                             Tx (..), TxId, TxIn, TxOut, TxOutRef, TxOutOf (..), TxOutType (..), ValidatorScript,
-                                             Value, pubKeyTxOut, scriptAddress, scriptTxIn, txOutRefId)
+import           Ledger                     (Address, DataScript, PubKey (..), RedeemerScript, Signature (..), Slot,
+                                             SlotRange, Tx (..), TxId, TxIn, TxOut, TxOutOf (..), TxOutRef,
+                                             TxOutType (..), ValidatorScript, Value, pubKeyTxOut, scriptAddress,
+                                             scriptTxIn, txOutRefId)
+import           Ledger.Interval            (Interval (..))
 import qualified Ledger.Interval            as Interval
-import           Ledger.Interval            (Interval(..))
 import qualified Ledger.Slot                as Slot
 import qualified Ledger.Value               as Value
 import           Text.Show.Deriving         (deriveShow1)
@@ -328,7 +329,7 @@ throwOtherError = throwError . OtherError
 payToScripts :: (Monad m, WalletAPI m) => SlotRange -> [(Address, Value, DataScript)] -> m Tx
 payToScripts range ins = do
     let
-        totalVal     = foldl' Value.plus Value.zero $ fmap (view _2) ins
+        totalVal     = fold $ fmap (view _2) ins
         otherOutputs = fmap (\(addr, vl, ds) -> TxOutOf addr vl (PayToScript ds)) ins
     (i, ownChange) <- createPaymentWithChange totalVal
     createTxAndSubmit range i (maybe otherOutputs (:otherOutputs) ownChange)
@@ -355,7 +356,7 @@ collectFromScript range scr red = do
         outputs = am ^. at addr . to (Map.toList . fromMaybe Map.empty)
         con (r, _) = scriptTxIn r scr red
         ins        = con <$> outputs
-        value = foldl' Value.plus Value.zero $ fmap (txOutValue . snd) outputs
+        value = fold $ fmap (txOutValue . snd) outputs
 
     oo <- ownPubKeyTxOut value
     void $ createTxAndSubmit range (Set.fromList ins) [oo]
@@ -377,7 +378,7 @@ collectFromScriptTxn range vls red txid = do
         ourUtxo = Map.toList $ Map.filterWithKey (\k _ -> txid == Ledger.txOutRefId k) utxo
         i ref = scriptTxIn ref vls red
         inputs = Set.fromList $ i . fst <$> ourUtxo
-        value  = foldl' Value.plus Value.zero $ fmap (txOutValue . snd) ourUtxo
+        value  = fold $ fmap (txOutValue . snd) ourUtxo
 
     out <- ownPubKeyTxOut value
     void $ createTxAndSubmit range inputs [out]

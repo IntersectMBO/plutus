@@ -1,4 +1,3 @@
-{-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingStrategies    #-}
@@ -9,6 +8,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TupleSections         #-}
 module Wallet.Emulator.Types(
     -- * Wallets
     Wallet(..),
@@ -75,7 +75,7 @@ import           Control.Monad.Writer
 import           Control.Newtype.Generics   (Newtype)
 import           Data.Aeson                 (FromJSON, ToJSON, ToJSONKey)
 import           Data.Bifunctor             (Bifunctor (..))
-import           Data.Foldable              (foldl', traverse_)
+import           Data.Foldable              (fold, traverse_)
 import           Data.List                  (partition)
 import           Data.Map                   (Map)
 import qualified Data.Map                   as Map
@@ -252,7 +252,7 @@ selectCoin :: (MonadError WalletAPIError m)
     -> m ([(a, Value)], Value)
 selectCoin fnds vl =
         let
-            total = foldl' Value.plus Value.zero $ fmap snd fnds
+            total = fold $ fmap snd fnds
             fundsWithTotal = P.zip fnds (drop 1 $ P.scanl Value.plus Value.zero $ fmap snd fnds)
             err   = throwError
                     $ InsufficientFunds
@@ -322,7 +322,7 @@ makeLenses ''EmulatorState
 
 -- | Get a map with the total value of each wallet's "own funds".
 fundsDistribution :: EmulatorState -> Map Wallet Value
-fundsDistribution = Map.map (Map.foldl' Value.plus Value.zero . fmap txOutValue . view ownFunds) . view walletStates
+fundsDistribution = Map.map (fold . fmap txOutValue . view ownFunds) . view walletStates
 
 -- | Get the emulator log.
 emLog :: EmulatorState -> [EmulatorEvent]
@@ -356,7 +356,7 @@ ownFundsEqual wallet value = do
     ws <- case Map.lookup wallet $ _walletStates es of
         Nothing -> throwError $ AssertionError "Wallet not found"
         Just ws -> pure ws
-    let total = foldl' Value.plus Value.zero $ fmap txOutValue $ ws ^. ownFunds
+    let total = fold $ fmap txOutValue $ ws ^. ownFunds
     if value == total
     then pure ()
     else throwError . AssertionError $ T.unwords ["Funds in wallet", tshow wallet, "were", tshow total, ". Expected:", tshow value]
