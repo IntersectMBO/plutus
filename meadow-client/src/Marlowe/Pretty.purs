@@ -2,100 +2,48 @@ module Marlowe.Pretty where
 
 import Prelude
 
-import Data.Array (uncons)
-import Data.Foldable (foldl)
-import Data.Generic.Rep (class Generic, Argument(..), Constructor(..), NoArguments, NoConstructors, Product(..), Sum(..), from)
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Generic.Rep (class Generic, Argument(..), Constructor(..), NoArguments, Product(..), Sum(..), from)
 import Data.Monoid (mempty)
-import Data.String (Pattern(..), charAt, contains, length)
 import Data.Symbol (class IsSymbol, SProxy(..), reflectSymbol)
-import Text.PrettyPrint.Leijen (Doc(Empty), appendWithLine, comma, encloseSep, hang, lbracket, parens, rbracket, text, (<+>), (</>))
+import Text.PrettyPrint.Leijen (Doc, hang, line, parens, space, text)
 import Type.Data.Boolean (kind Boolean)
 
+pretty :: forall a rep. Generic a rep => Pretty1 rep => a -> Doc
+pretty x = pretty1 true (from x)
+
 class Pretty a where
-  pretty :: a -> Doc
+  prettyFragment :: a -> Doc
 
-class GenericPrettyArgs a where
-  genericPrettyArgs' :: a -> Array Doc
+genericPretty :: forall a rep. Generic a rep => Pretty1 rep => a -> Doc
+genericPretty x = pretty1 false (from x)
 
-instance genericPrettyNoConstructors :: Pretty NoConstructors where
-  pretty a = mempty
+class Pretty1 f where
+  pretty1 :: Boolean -> f -> Doc
+  isNullary :: f -> Boolean
 
-instance genericPrettyArgsNoArguments :: GenericPrettyArgs NoArguments where
-  genericPrettyArgs' _ = []
+instance pretty1ArgsNoArguments :: Pretty1 NoArguments where
+  pretty1 _ _ = mempty
+  isNullary _ = true
 
-instance genericPrettySum :: (Pretty a, Pretty b) => Pretty (Sum a b) where
-  pretty (Inl a) = pretty a
-  pretty (Inr b) = pretty b
-
-instance genericPrettyArgsProduct ::
-  ( GenericPrettyArgs a
-  , GenericPrettyArgs b
-  ) =>
-  GenericPrettyArgs (Product a b) where
-  genericPrettyArgs' (Product a b) = genericPrettyArgs' a <> genericPrettyArgs' b
-
--- FIXME: There are some monsters here, we use `show d` to render a document during the document
--- building phase, not great but I couldn't find a way around it in 2 separate places:
---
--- 1. we want to not have parens around the top level expression but also make sure the indentation
---    is still correct. The only way I could tell how to do this was to render the document and check
---    if it looks like it should have parens
--- 2. in @appendWithLine' what we really want is to appendWithSoftLine however that causes some issue
---    in the renderFits algorithm that causes documents to take 10mins or more to render! The quick
---    solution is to take care of the ribbon width ourselves and thus avoid Union x y
-instance genericPrettyConstructor ::
-  ( GenericPrettyArgs a
-  , IsSymbol name
-  ) =>
-  Pretty (Constructor name a) where
-  pretty (Constructor a) = case genericPrettyArgs' a of
-    args -> case uncons args of
-      Just { head: x, tail: [] } -> hang 2 (text ctor <+> (parens' x))
-      Nothing -> text ctor
-      _ -> hang 2 (foldl (\x y -> (appendWithLine' x (parens' y))) (text ctor) args)
+instance pretty1Constructor :: (Pretty1 a, IsSymbol name) => Pretty1 (Constructor name a) where
+  pretty1 topLevel (Constructor a) = line' $ parens' $ hang 2 $ text conName <> pretty1 false a
     where
-    ctor ::
-      String
-    ctor = reflectSymbol (SProxy :: SProxy name)
-    parens' ::
-      Doc ->
-      Doc
-    parens' Empty = Empty
-    parens' d
-      | surroundedByParens (show d) = d
-      | contains (Pattern " ") (show d) = parens d
-      | otherwise = d
-    appendWithLine' ::
-      Doc ->
-      Doc ->
-      Doc
-    appendWithLine' Empty d = d
-    appendWithLine' d Empty = d
-    appendWithLine' l r
-      | surroundedByParens (show r) = appendWithLine l r
-      | otherwise = l </> r
+      conName :: String
+      conName = reflectSymbol (SProxy :: SProxy name)
+      parens' f = if topLevel || isNullary a then f else parens f
+      line' f = if topLevel || isNullary a then f else line <> f
+  isNullary (Constructor a) = isNullary a
 
-surroundedByParens :: String -> Boolean
-surroundedByParens s = fromMaybe false do
-  pre <- charAt 0 s
-  suf <- charAt (length s - 1) s
-  pure $ pre == '(' && suf == ')'
+instance pretty1Argument :: (Pretty a) => Pretty1 (Argument a) where
+  pretty1 topLevel (Argument a) = space <> prettyFragment a
+  isNullary (Argument a) = false
 
-instance genericPrettyArgsArgument ::
-  ( Pretty a
-  ) =>
-  GenericPrettyArgs (Argument a) where
-  genericPrettyArgs' (Argument a) = [pretty a]
+instance pretty1Sum :: (Pretty1 l, Pretty1 r) => Pretty1 (Sum l r) where
+  pretty1 topLevel (Inl l) = pretty1 topLevel l
+  pretty1 topLevel (Inr r) = pretty1 topLevel r
+  isNullary (Inl l) = isNullary l
+  isNullary (Inr r) = isNullary r
 
-instance genericPrettyString :: Pretty String where
-  pretty a = text (show a)
-
-instance genericPrettyInt :: Pretty Int where
-  pretty a = text (show a)
-
-instance prettyArray :: (Pretty a, Show a) => Pretty (Array a) where
-  pretty a = encloseSep lbracket rbracket comma (map pretty a)
-
-genericPretty :: forall a rep. Generic a rep => Pretty rep => a -> Doc
-genericPretty x = pretty (from x)
+instance pretty1Product :: (Pretty1 l, Pretty1 r) => Pretty1 (Product l r) where
+  pretty1 topLevel (Product l r) = pretty1 topLevel l <> pretty1 topLevel r
+  isNullary _ = false
