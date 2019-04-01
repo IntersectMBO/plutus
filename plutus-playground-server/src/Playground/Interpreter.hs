@@ -22,7 +22,7 @@ import           Language.Haskell.Interpreter (CompilationError (CompilationErro
                                                InterpreterError (CompilationErrors),
                                                InterpreterResult (InterpreterResult), SourceCode, Warning (Warning),
                                                avoidUnsafe, runghc)
-import           Ledger                       (Ada, Blockchain, Value)
+import           Ledger                       (Blockchain)
 import           Playground.API               (CompilationResult (CompilationResult), Evaluation (sourceCode),
                                                Expression (Action, Wait), Fn (Fn),
                                                PlaygroundError (DecodeJsonTypeError, OtherError), SimulatorWallet,
