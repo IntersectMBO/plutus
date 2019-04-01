@@ -607,7 +607,7 @@ render state = div [ class_ $ ClassName "main-frame"
                                                              ]
                      ]
     where
-      defaultContents = Map.lookup "BasicContract" StaticData.demoFiles
+      defaultContents = Map.lookup "Escrow" StaticData.demoFiles
 
 loadScriptsPane :: forall p. HTML p (Query Unit)
 loadScriptsPane = div_ (Array.cons (strong_ [ text "Demos: "

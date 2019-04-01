@@ -12,7 +12,7 @@ import           Data.Time.Units              (Microsecond, fromMicroseconds)
 import qualified Interpreter
 import           Language.Haskell.Interpreter (InterpreterError, InterpreterResult (InterpreterResult),
                                                SourceCode (SourceCode))
-import           Meadow.Contracts             (basicContract)
+import           Meadow.Contracts             (escrow)
 import           Test.Hspec                   (Spec, describe, hspec, it, shouldBe)
 import           Text.RawString.QQ            (r)
 
@@ -21,9 +21,9 @@ main = hspec runBasicSpec
 
 runBasicSpec :: Spec
 runBasicSpec = describe "Basic Contract" $
-    it "should compile" $ runHaskell basicContract >>= (`shouldBe` basicResult)
+    it "should compile" $ runHaskell escrow >>= (`shouldBe` escrowResult)
     where
-        basicResult = Right . InterpreterResult [] . RunResult $ [r|Commit 1 1 1
+        escrowResult = Right . InterpreterResult [] . RunResult $ [r|Commit 1 1 1
   (Constant 450) 10 100
   (When
      (OrObs
