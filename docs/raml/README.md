@@ -57,8 +57,8 @@ features, amongst others.
   evaluation steps and the heap space used.  RAML also includes a
   `tick` function which can be used to tell the evaluator that some
   quantity of a user-defined resource (for example, bytes transmitted
-  along some channel) and the evaluator will also print the total amount of
-  resources consumed by `tick`.
+  along some channel) has been consumed, and the evaluator will also
+  print the total amount of resources consumed by `tick`.
 
 * An analyser which performs static type analysis of RAML programs and
   reports resource usage.  The analyser can infer upper (worst-case)
@@ -134,8 +134,8 @@ RAML has a number of limitations.
    * Another possibility is to pretend that integral inputs are in
       fact Peano numbers, which RAML _can_ deal with.  Having got
       bounds in terms of the sizes of Peano inputs, we might be able
-      to could get bounds in terms of the bit-length of the inputs
-      (which is what Plutus sizes refer to) by modifying the bounds
+      to get bounds in terms of the bit-length of the inputs (which is
+      what Plutus sizes refer to) by modifying the original bounds
       appropriately.  Further investigation would be required to check
       if this is in fact feasible.
 
@@ -213,6 +213,9 @@ able to produce good results: see
 [ChurchNat-defun.heap-analysis](./ChurchNat-defun.heap-analysis),
 [ChurchNat-defun.steps-analysis](./ChurchNat-defun.steps-analysis),
 and [ChurchNat-defun.evaluation](./ChurchNat-defun.evaluation).
+[Note: these files are currently empty because I realised that I
+hadn't fully defunctionalised the example and still had some
+higher-order functions.  I'll fix this.]
 
 Somewhat surprisingly, RAML also produces good predictions for the
 Church-encoded version which uses higher-order functions: see
