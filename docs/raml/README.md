@@ -133,12 +133,11 @@ RAML has a number of limitations.
 
    * Another possibility is to pretend that integral inputs are in
       fact Peano numbers, which RAML _can_ deal with.  Having got
-      bounds in terms of the sizes of Peano inputs, we could get
-      bounds in terms of the bit-length of the inputs (which is what
-      Plutus sizes refer to) by replacing each variable _n_
-      representing the size of a Peano number with 2<sup>n</sup>.  Further
-      investigation would be required to check if this is in fact
-      feasible.
+      bounds in terms of the sizes of Peano inputs, we might be able
+      to could get bounds in terms of the bit-length of the inputs
+      (which is what Plutus sizes refer to) by modifying the bounds
+      appropriately.  Further investigation would be required to check
+      if this is in fact feasible.
 
 * Actual resource usage of course depends on the behaviour of compiled
   code.  The RAML evaluator is quite straightforward and doesn't make
@@ -189,7 +188,7 @@ the second argument and only has to allocate cells for a copy of the
 first argument, but multiplication allocates heap cells for the whole
 of the product, including a Z node).  Since RAML can only deal with
 polynomial bounds, it isn't able to come up with a bound for
-exponentiation, reporting an infeasible linear program.
+exponentiation, reporting an infeasible linear program.  
 
 RAML can also predict bounds for the number of evaluation steps: see
 [Peano.steps-analysis](./Peano.steps-analysis).  It's more difficult
@@ -198,6 +197,10 @@ complicated than heap allocation, but the results do agree exactly
 with the actual number of steps reported in
 [Peano.evaluation](./Peano.evaluation).
 
+The examples above are quite simple, but RAML can deal with much
+more complicated functions: see [Peano-complicated.txt](./Peano-complicated.txt).
+
+
 #### Church-encoded Naturals
 
 A Church-encoded version of the test program appears in
@@ -205,16 +208,26 @@ A Church-encoded version of the test program appears in
 version in [ChurchNat-defun.raml](./ChurchNat-defun.raml).
 Defunctionalising the Church encoding yields something very similar to
 the original program in [Peano.raml](./Peano.raml) (this is no
-surprise: see section 2 of [Danvy2001](#danvy2001), so RAML is again able to produce good results:
-see [ChurchNat-defun.heap-analysis](./ChurchNat-defun.heap-analysis),
-[ChurchNat-defun.steps-analysis](./ChurchNat-defun.steps-analysis), and
-[ChurchNat-defun.evaluation](./ChurchNat-defun.evaluation).
-Somewhat surprisingly, RAML also produces good predictions
-for the version using higher-order functions: see
+surprise: see section 2 of [Danvy2001](#danvy2001), so RAML is again
+able to produce good results: see
+[ChurchNat-defun.heap-analysis](./ChurchNat-defun.heap-analysis),
+[ChurchNat-defun.steps-analysis](./ChurchNat-defun.steps-analysis),
+and [ChurchNat-defun.evaluation](./ChurchNat-defun.evaluation).
+
+Somewhat surprisingly, RAML also produces good predictions for the
+Church-encoded version which uses higher-order functions: see
 [ChurchNat.heap-analysis](./ChurchNat.heap-analysis),
 [ChurchNat.steps-analysis](./ChurchNat.steps-analysis), and
-[ChurchNat.evaluation](./ChurchNat.evaluation).
-I don't know what to make of this.
+[ChurchNat.evaluation](./ChurchNat.evaluation).  It's not clear what's
+going on here.  The program is performing the same calculation as the
+Peano version, but the resource bounds for the Church-encoded version
+(65 heap cells, 431 evaluation steps) are lower than those for the
+Peano version (219 heap cells, 622 steps).  The RAML documentation
+doesn't say a lot about how higher-order functions are handled, and I
+couldn't work it out from the RAML source.  There is a description of
+a treatment of higher-order functions in [HDW17](#HDW17) (pages 5-6
+and elsewhere), but it still wasn't clear what is happening in
+practice. The easiest thing to do might be to ask Jan Hoffmann.
 
 #### Scott-encoded Naturals
 
@@ -339,6 +352,12 @@ Jan Hoffmann, Klaus Aehlig, and Martin Hofmann.\
 Multivariate Amortized Resource Analysis.\
 TOPLAS, 2012.\
 [pdf](http://www.cs.cmu.edu/~janh/papers/aa_popl11.pdf)
+
+##### HDW17
+Jan Hoffmann, Ankush Das, and Shu-ChunWeng.\
+Towards Automatic Resource Bound Analysis for OCaml.\
+POPL, 2017.\
+A longer version is avaliable [here](https://arxiv.org/abs/1611.00692) on arxiv.org.
 
 ##### Lindley2012
 S. Lindley.\
