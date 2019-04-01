@@ -27,6 +27,7 @@ import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       (DataScript (..), Slot(..), PubKey (..), TxOutRef, ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
 import qualified Ledger.Interval              as Interval
+import qualified Ledger.Slot                  as Slot
 import qualified Ledger.Validation            as Validation
 import           Prelude                      hiding ((&&))
 import qualified Wallet                       as W
@@ -146,8 +147,8 @@ validatorScript v = ValidatorScript val where
 
             -- Value that has been released so far under the scheme
             currentThreshold =
-                if $$(Interval.contains) ($$(Interval.from) d1) range
-                then if $$(Interval.contains) ($$(Interval.from) d2) range
+                if $$(Slot.contains) ($$(Interval.from) d1) range
+                then if $$(Slot.contains) ($$(Interval.from) d2) range
                     -- everything can be spent
                      then $$(Ada.plus) a1 a2
                      -- only the first tranche can be spent (we are between d1 and d2)

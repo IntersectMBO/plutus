@@ -4,6 +4,7 @@
 
 module Language.PlutusCore.StdLib.Data.Function
     ( const
+    , applyFun
     , selfData
     , unroll
     , fix
@@ -28,7 +29,7 @@ import           Control.Monad
 
 -- | 'const' as a PLC term.
 --
--- > /\ (A B :: *) -> \(x : A) (y : B) -> x
+-- > /\(A B :: *) -> \(x : A) (y : B) -> x
 const :: TermLike term TyName Name => term ()
 const = runQuote $ do
     a <- freshTyName () "a"
@@ -41,6 +42,22 @@ const = runQuote $ do
         . lamAbs () x (TyVar () a)
         . lamAbs () y (TyVar () b)
         $ var () x
+
+-- | '($)' as a PLC term.
+--
+-- > /\(A B :: *) -> \(f : A -> B) (x : A) -> f x
+applyFun :: TermLike term TyName Name => term ()
+applyFun = runQuote $ do
+    a <- freshTyName () "a"
+    b <- freshTyName () "b"
+    f <- freshName () "f"
+    x <- freshName () "x"
+    return
+        . tyAbs () a (Type ())
+        . tyAbs () b (Type ())
+        . lamAbs () f (TyFun () (TyVar () a) $ TyVar () b)
+        . lamAbs () x (TyVar () a)
+        $ apply () (var () f) (var () x)
 
 -- | @Self@ as a PLC type.
 --

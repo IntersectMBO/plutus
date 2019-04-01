@@ -165,7 +165,7 @@ getThing :: Converting m => TH.Name -> m GHC.TyThing
 getThing name = do
     ConvertingContext{ccBuiltinNameInfo=names} <- ask
     case Map.lookup name names of
-        Nothing    -> throwSd ConversionError $ "Missing builtin name:" GHC.<+> (GHC.text $ show name)
+        Nothing    -> throwSd CompilationError $ "Missing builtin name:" GHC.<+> (GHC.text $ show name)
         Just thing -> pure thing
 
 defineBuiltinTerm :: Converting m => TH.Name -> PIRTerm -> [GHC.Name] -> m ()
@@ -296,7 +296,7 @@ lookupBuiltinTerm name = do
     maybeTerm <- PIR.lookupTerm () ghcName
     case maybeTerm of
         Just t  -> pure t
-        Nothing -> throwSd ConversionError $ "Missing builtin definition:" GHC.<+> (GHC.text $ show name)
+        Nothing -> throwSd CompilationError $ "Missing builtin definition:" GHC.<+> (GHC.text $ show name)
 
 -- | Lookup a builtin type by its TH name. These are assumed to be present, so fails if it is cannot find it.
 lookupBuiltinType :: Converting m => TH.Name -> m PIRType
@@ -305,7 +305,7 @@ lookupBuiltinType name = do
     maybeType <- PIR.lookupType () ghcName
     case maybeType of
         Just t  -> pure t
-        Nothing -> throwSd ConversionError $ "Missing builtin definition:" GHC.<+> (GHC.text $ show name)
+        Nothing -> throwSd CompilationError $ "Missing builtin definition:" GHC.<+> (GHC.text $ show name)
 
 -- | The function 'error :: forall a . () -> a'.
 errorFunc :: Converting m => m PIRTerm

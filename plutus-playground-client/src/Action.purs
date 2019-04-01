@@ -71,23 +71,31 @@ simulationNavItem :: forall p. Int -> Int -> Simulation -> Array (HTML p Query)
 simulationNavItem activeIndex index simulation =
   [ button
       [ id_ $ "simulation-nav-item-" <> show index
-      , buttonClasses
+      , classes $ buttonClasses <> [ simulationNavItemNameClass ]
       , onClick $ input_ $ SetSimulationSlot index
       ]
       [ text $ "Simulation #" <> show (index + 1) ]
   , button
       [ id_ $ "simulation-nav-item-" <> show index <> "-remove"
-      , buttonClasses
+      , classes $ buttonClasses <> [ simulationNavItemCloseClass ]
       , onClick $ input_ $ RemoveSimulationSlot index
       ]
       [ icon Close ]
   ]
   where
     buttonClasses =
-      classes ([ btn, simulationNavItemClass ] <> if activeIndex == index then [ btnPrimary ] else [ btnInfo ])
+        [ btn, simulationNavItemClass ]
+        <>
+        if activeIndex == index then [ btnPrimary ] else [ btnInfo ]
 
 simulationNavItemClass :: ClassName
 simulationNavItemClass = ClassName "simulation-nav-item"
+
+simulationNavItemNameClass :: ClassName
+simulationNavItemNameClass = ClassName "simulation-nav-item-name"
+
+simulationNavItemCloseClass :: ClassName
+simulationNavItemCloseClass = ClassName "simulation-nav-item-close"
 
 addSimulationControl :: forall p. HTML p Query
 addSimulationControl =

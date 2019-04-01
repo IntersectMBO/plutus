@@ -1,11 +1,9 @@
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:strip-context #-}
+{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:no-context #-}
 -- the simplifier messes with things otherwise
 {-# OPTIONS_GHC   -O0 #-}
 {-# OPTIONS_GHC   -Wno-orphans #-}
@@ -17,6 +15,7 @@ module Plugin.Spec where
 
 import           Common
 import           PlcTestUtils
+import           Plugin.ReadValue
 
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift
@@ -43,6 +42,7 @@ tests = testNested "Plugin" [
   , datat
   , recursiveTypes
   , recursion
+  , pure readDyns
   , errors
   ]
 
@@ -189,6 +189,7 @@ basicEnum :: CompiledCode MyEnum
 basicEnum = plc @"basicEnum" (Enum1)
 
 data MyMonoData = Mono1 Int Int | Mono2 Int | Mono3 Int
+    deriving (Show, Eq)
 
 monoDataType :: CompiledCode (MyMonoData -> MyMonoData)
 monoDataType = plc @"monoDataType" (\(x :: MyMonoData) -> x)
@@ -212,6 +213,7 @@ atPattern :: CompiledCode ((Int, Int) -> Int)
 atPattern = plc @"atPattern" (\t@(x::Int, y::Int) -> let fst (a, b) = a in Builtins.addInteger y (fst t))
 
 data MyMonoRecord = MyMonoRecord { mrA :: Int , mrB :: Int}
+    deriving (Show, Eq)
 
 monoRecord :: CompiledCode (MyMonoRecord -> MyMonoRecord)
 monoRecord = plc @"monoRecord" (\(x :: MyMonoRecord) -> x)
@@ -260,6 +262,7 @@ newtypes = testNested "newtypes" [
    ]
 
 newtype MyNewtype = MyNewtype Int
+    deriving (Show, Eq)
 
 newtype MyNewtype2 = MyNewtype2 MyNewtype
 
@@ -400,6 +403,7 @@ errors :: TestNested
 errors = testNested "errors" [
     goldenPlcCatch "integer" integer
     , goldenPlcCatch "free" free
+    , goldenPlcCatch "negativeInt" negativeInt
     , goldenPlcCatch "valueRestriction" valueRestriction
     , goldenPlcCatch "recordSelector" recordSelector
     , goldenPlcCatch "emptyRoseId1" emptyRoseId1
@@ -410,6 +414,9 @@ integer = plc @"integer" (1::Integer)
 
 free :: CompiledCode Bool
 free = plc @"free" (True && False)
+
+negativeInt :: CompiledCode Int
+negativeInt = plc @"negativeInt" (-1 :: Int)
 
 -- It's little tricky to get something that GHC actually turns into a polymorphic computation! We use our value twice
 -- at different types to prevent the obvious specialization.

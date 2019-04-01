@@ -15,7 +15,7 @@ import qualified Kind                             as GHC
 import qualified Language.PlutusCore              as PLC
 
 convKind :: Converting m => GHC.Kind -> m (PLC.Kind ())
-convKind k = withContextM (sdToTxt $ "Converting kind:" GHC.<+> GHC.ppr k) $ case k of
+convKind k = withContextM 2 (sdToTxt $ "Converting kind:" GHC.<+> GHC.ppr k) $ case k of
     -- this is a bit weird because GHC uses 'Type' to represent kinds, so '* -> *' is a 'TyFun'
     (GHC.isStarKind -> True)              -> pure $ PLC.Type ()
     (GHC.splitFunTy_maybe -> Just (i, o)) -> PLC.KindArrow () <$> convKind i <*> convKind o

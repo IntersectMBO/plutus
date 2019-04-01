@@ -1,6 +1,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE RecordWildCards  #-}
+-- | Generators for constructing blockchains and transactions for use in property-based testing.
 module Wallet.Generators(
     -- * Mockchain
     Mockchain(..),
@@ -49,44 +50,45 @@ import           Ledger
 import qualified Wallet.API      as W
 import           Wallet.Emulator as Emulator
 
+-- | The parameters for the generators in this module.
 data GeneratorModel = GeneratorModel {
     gmInitialBalance :: Map PubKey Value,
-    -- ^ Value created at the beginning of the blockchain
+    -- ^ Value created at the beginning of the blockchain.
     gmPubKeys        :: Set PubKey
-    -- ^ Public keys that are to be used for generating transactions
+    -- ^ Public keys that are to be used for generating transactions.
     } deriving Show
 
--- | A generator model with some sensible defaults
+-- | A generator model with some sensible defaults.
 generatorModel :: GeneratorModel
-generatorModel = 
+generatorModel =
     let vl = Ada.toValue $ Ada.fromInt 100000 in
-    GeneratorModel 
+    GeneratorModel
     { gmInitialBalance = Map.fromList $ first PubKey <$> zip [1..5] (repeat vl)
     , gmPubKeys        = Set.fromList $ PubKey <$> [1..5]
     }
 
--- | Estimate a transaction fee based on the number of its inputs and outputs.
+-- | A function that estimates a transaction fee based on the number of its inputs and outputs.
 newtype FeeEstimator = FeeEstimator { estimateFee :: Int -> Int -> Ada }
 
--- | A constant fee for all transactions
+-- | Estimate a constant fee for all transactions.
 constantFee :: Ada -> FeeEstimator
 constantFee = FeeEstimator . const . const
 
 -- | Blockchain for testing the emulator implementation and traces.
 --
 --   To avoid having to rely on functions from the implementation of
---   wallet-api (in particular, `Ledger.Types.unspentOutputs`) we note the
+--   wallet-api (in particular, 'Ledger.Tx.unspentOutputs') we note the
 --   unspent outputs of the chain when it is first created.
 data Mockchain = Mockchain {
     mockchainInitialBlock :: Block,
     mockchainUtxo         :: Map TxOutRef TxOut
     } deriving Show
 
--- | The empty mockchain
+-- | The empty mockchain.
 emptyChain :: Mockchain
 emptyChain = Mockchain [] Map.empty
 
--- | Generate a mockchain
+-- | Generate a mockchain.
 --
 --   TODO: Generate more than 1 txn
 genMockchain' :: MonadGen m
@@ -100,13 +102,13 @@ genMockchain' gm = do
         mockchainUtxo = Map.fromList $ first (TxOutRefOf txId) <$> zip [0..] ot
         }
 
--- | Generate a mockchain using the default [[GeneratorModel]]
+-- | Generate a mockchain using the default 'GeneratorModel'.
 --
 genMockchain :: MonadGen m => m Mockchain
 genMockchain = genMockchain' generatorModel
 
 -- | A transaction with no inputs that forges some value (to be used at the
---   beginning of a blockchain)
+--   beginning of a blockchain).
 genInitialTransaction ::
        GeneratorModel
     -> (Tx, [TxOut])
@@ -124,7 +126,7 @@ genInitialTransaction GeneratorModel{..} =
 
 -- | Generate a valid transaction, using the unspent outputs provided.
 --   Fails if the there are no unspent outputs, or if the total value
---   of the unspent outputs is smaller than the minimum fee (1)
+--   of the unspent outputs is smaller than the minimum fee (1).
 genValidTransaction :: MonadGen m
     => Mockchain
     -> m Tx
@@ -188,7 +190,7 @@ genValue' valueRange = do
     let currencyRange = Range.linearBounded @Int
         sngl          = Value.singleton <$> (Value.currencySymbol <$> Gen.int currencyRange) <*> Gen.int valueRange
 
-        -- generate values with no more than 10 elements to avoid the tests 
+        -- generate values with no more than 10 elements to avoid the tests
         -- taking too long (due to the map-as-list-of-kv-pairs implementation)
         maxCurrencies = 10
 
@@ -196,36 +198,36 @@ genValue' valueRange = do
     values <- traverse (const sngl) [0 .. numValues]
     pure $ foldr Value.plus Value.zero values
 
--- | Generate a 'Value' with a coin value range of @minBound .. maxBound@
+-- | Generate a 'Value' with a value range of @minBound .. maxBound@.
 genValue :: MonadGen m => m Value
 genValue = genValue' Range.linearBounded
 
--- | Generate a 'Value' with a coin value range of @0 .. maxBound@
+-- | Generate a 'Value' with a value range of @0 .. maxBound@.
 genValueNonNegative :: MonadGen m => m Value
 genValueNonNegative = genValue' (Range.linear 0 maxBound)
-    
--- | Assert that a transaction is valid in a chain
+
+-- | Assert that a transaction is valid in a chain.
 assertValid :: (MonadTest m, HasCallStack)
     => Tx
     -> Mockchain
     -> m ()
 assertValid tx mc = Hedgehog.assert $ isNothing $ validateMockchain mc tx
 
--- | Validate a transaction in a mockchain
+-- | Validate a transaction in a mockchain.
 validateMockchain :: Mockchain -> Tx -> Maybe Index.ValidationError
 validateMockchain (Mockchain blck _) tx = either Just (const Nothing) result where
     h      = lastSlot [blck]
     idx    = Index.initialise [blck]
     result = Index.runValidation (Index.validateTransaction h tx) idx
 
--- | Run an emulator trace on a mockchain
+-- | Run an emulator trace on a mockchain.
 runTrace ::
     Mockchain
     -> Trace MockWallet a
     -> (Either AssertionError a, EmulatorState)
 runTrace (Mockchain ch _) = Emulator.runTraceTxPool ch
 
--- | Run an emulator trace on a mockchain generated by the model
+-- | Run an emulator trace on a mockchain generated by the model.
 runTraceOn :: MonadGen m
     => GeneratorModel
     -> Trace MockWallet a

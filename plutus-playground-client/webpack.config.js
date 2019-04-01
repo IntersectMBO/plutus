@@ -55,7 +55,8 @@ module.exports = {
                             src: [
                                 'bower_components/purescript-*/src/**/*.purs',
                                 'src/**/*.purs',
-                                'generated/**/*.purs'
+                                'generated/**/*.purs',
+                                '../web-common/src/**/*.purs'
                             ],
                             psc: 'psa',
                             bundle: !(isWebpackDevServer || isWatch),
@@ -94,7 +95,7 @@ module.exports = {
         }),
         new HtmlWebpackPlugin({
             template: 'static/index.html',
-            favicon: 'static/favicon.ico',
+            favicon: '../web-common/static/favicon.ico',
             googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-7'
         }),
         new webpack.NormalModuleReplacementPlugin(/^echarts$/, 'echarts/dist/echarts.min.js')

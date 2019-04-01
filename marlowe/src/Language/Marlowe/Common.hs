@@ -11,6 +11,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns -Wno-name-shadowing #-}
 
 {-| = Marlowe: financial contracts on Cardano Computation Layer
@@ -90,15 +91,17 @@ import           Prelude                        ( Show(..)
                                                 , Int
                                                 , Maybe(..)
                                                 , Either(..)
+                                                , (.)
                                                 )
 
 import qualified Language.PlutusTx              as PlutusTx
 import           Ledger                         ( PubKey(..)
                                                 , Signature(..)
+                                                , Slot(..)
                                                 )
 import qualified Ledger.Ada.TH                  as Ada
 import           Ledger.Ada.TH                  (Ada)
-import           Ledger.Interval                (Interval(..), Slot(..))
+import           Ledger.Interval                (Interval(..))
 import           Ledger.Validation
 import qualified Ledger.Validation              as Validation
 import qualified Language.PlutusTx.Builtins     as Builtins
@@ -106,11 +109,17 @@ import           Language.PlutusTx.Lift         ( makeLift )
 import           Language.Haskell.TH            ( Q
                                                 , TExp
                                                 )
+import GHC.Generics (Generic)
+import Language.Marlowe.Pretty (Pretty, prettyFragment)
+import Text.PrettyPrint.Leijen (text)
 
 type Timeout = Int
 type Cash = Int
 
 type Person = PubKey
+
+instance Pretty PubKey where
+    prettyFragment = text . show
 
 {-|
 == Identifiers
@@ -122,13 +131,16 @@ they are unique.
 
 -}
 newtype IdentCC = IdentCC Int
-               deriving (Eq, Ord, Show)
+               deriving stock (Eq, Ord, Show, Generic)
+               deriving anyclass (Pretty)
 
 newtype IdentChoice = IdentChoice Int
-               deriving (Eq, Ord, Show)
+               deriving stock (Eq, Ord, Show, Generic)
+               deriving anyclass (Pretty)
 
 newtype IdentPay = IdentPay Int
-               deriving (Eq, Ord, Show)
+               deriving stock (Eq, Ord, Show, Generic)
+               deriving anyclass (Pretty)
 
 type ConcreteChoice = Int
 
@@ -159,7 +171,8 @@ data Value  = Committed IdentCC
             --   'Value' otherwise
             | ValueFromOracle PubKey Value
             -- ^ Oracle PubKey, default 'Value' when no Oracle Value provided
-                    deriving (Eq, Show)
+               deriving stock (Eq, Show, Generic)
+               deriving anyclass (Pretty)
 
 {-| Predicate on outer world and contract 'State'.
     'interpretObservation' evaluates 'Observation' to 'Bool'
@@ -175,7 +188,8 @@ data Observation = BelowTimeout Int
             -- ^ is first amount is greater or equal than the second?
             | TrueObs
             | FalseObs
-            deriving (Eq, Show)
+               deriving stock (Eq, Show, Generic)
+               deriving anyclass (Pretty)
 
 {-| Marlowe Contract Data Type
 -}
@@ -195,7 +209,8 @@ data Contract = Null
             | When Observation Timeout Contract Contract
             -- ^ when observation evaluates to True evaluate first contract,
             --   evaluate second contract on timeout
-            deriving (Eq, Show)
+               deriving stock (Eq, Show, Generic)
+               deriving anyclass (Pretty)
 
 {-|
     State of a contract validation function.

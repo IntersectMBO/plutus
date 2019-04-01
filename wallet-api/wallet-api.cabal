@@ -2,7 +2,7 @@ cabal-version: 2.2
 name: wallet-api
 version: 0.1.0.0
 license: Apache-2.0
-license-files: 
+license-files:
   LICENSE
   NOTICE
 maintainer: michael.peyton-jones@iohk.io
@@ -55,7 +55,15 @@ library
         Ledger
         Ledger.Ada
         Ledger.Ada.TH
-        Ledger.Types
+        Ledger.Map
+        Ledger.Map.TH
+        Ledger.These
+        Ledger.These.TH
+        Ledger.Blockchain
+        Ledger.Crypto
+        Ledger.Slot
+        Ledger.Scripts
+        Ledger.Tx
         Ledger.Validation
         Ledger.Index
         Ledger.Interval

@@ -11,7 +11,7 @@ import Ace.Types (ACE, Annotation)
 import Action (simulationPane)
 import AjaxUtils (ajaxErrorPane, getDecodeJson)
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
-import Bootstrap (active, btn, btnGroup, btnSmall, col3_, col9_, container, container_, empty, hidden, navItem_, navLink, navTabs_, pullRight, row_)
+import Bootstrap (active, btn, btnGroup, btnSmall, clearfix_, col6_, container, container_, empty, floatRight, hidden, navItem_, navLink, navTabs_, noGutters, row)
 import Chain (evaluationPane)
 import Control.Bind (bindFlipped)
 import Control.Comonad (extract)
@@ -49,12 +49,12 @@ import Halogen as H
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
 import Halogen.ECharts as EC
-import Halogen.HTML (ClassName(ClassName), HTML, a, br_, div, div_, h1, strong_, text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, strong_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_)
 import Halogen.Query (HalogenM)
 import Icons (Icon(..), icon)
-import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError))
+import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), _InterpreterResult)
 import Ledger.Ada.TH (Ada(..))
 import LocalStorage (LOCALSTORAGE)
 import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, updateChartsIfPossible)
@@ -269,6 +269,7 @@ eval (LoadScript key next) = do
       assign _evaluationResult NotAsked
       assign _simulations Cursor.empty
       assign _compilationResult NotAsked
+      assign _currentView Editor
       pure next
 
 eval (CompileProgram next) = do
@@ -295,7 +296,7 @@ eval (CompileProgram next) = do
       -- If we have a result with new signatures, we can only hold
       -- onto the old actions if the signatures still match. Any
       -- change means we'll have to clear out the existing simulation.
-      case preview (_Success <<< _Right <<< _CompilationResult <<< _functionSchema) result of
+      case preview (_Success <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult <<< _functionSchema) result of
         Just newSignatures -> do
           oldSignatures <- use (_simulations <<< _current <<< _signatures)
           unless (oldSignatures `gEq` newSignatures)
@@ -331,7 +332,7 @@ eval (EvaluateActions next) = do
   pure next
 
 eval (AddSimulationSlot next) = do
-  mSignatures <- peruse (_compilationResult <<< _Success <<< _Right <<< _CompilationResult <<< _functionSchema)
+  mSignatures <- peruse (_compilationResult <<< _Success <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult <<< _functionSchema)
 
   case mSignatures of
     Just signatures -> modifying _simulations (flip Cursor.snoc (mkSimulation signatures))
@@ -452,16 +453,17 @@ render state@(State {currentView})  =
     [ class_ $ ClassName "main-frame" ]
     [ container_
         [ mainHeader
-        , row_
-            [ col9_ [ mainTabBar currentView
-                    , br_
-                    , demoScriptsPane
-                    ]
-            , col3_ [ gistControls state ]
+        , div [ classes [ row, noGutters ] ]
+            [ col6_ [ mainTabBar currentView ]
+            , col6_ [ gistControls state ]
             ]
+        , div
+            [ classes [ floatRight ] ]
+            [ demoScriptsPane ]
         ]
+    , clearfix_
     , viewContainer currentView Editor $
-        [ editorPane state
+        [ editorPane defaultContents (view _compilationResult state)
         , case view _compilationResult state of
             Failure error -> ajaxErrorPane error
             _ -> empty
@@ -490,6 +492,8 @@ render state@(State {currentView})  =
             , text " tab above and evaluate a simulation to see some results."
             ]
     ]
+    where
+      defaultContents = Map.lookup "Vesting" StaticData.demoFiles
 
 viewContainer :: forall p i. View -> View -> Array (HTML p i) -> HTML p i
 viewContainer currentView targetView =
@@ -500,7 +504,7 @@ viewContainer currentView targetView =
 mainHeader :: forall p. HTML p (Query Unit)
 mainHeader =
   div_
-    [ div [ classes [ btnGroup, pullRight ] ]
+    [ div [ classes [ btnGroup, floatRight ] ]
         (makeLink <$> links)
     , h1
         [ class_ $ ClassName "main-title" ]

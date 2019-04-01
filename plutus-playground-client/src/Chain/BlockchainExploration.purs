@@ -18,8 +18,11 @@ import Halogen (HTML)
 import Halogen.HTML (ClassName(ClassName), div, div_, h2, h2_, h3, strong_, table, tbody_, td, text, th, thead_, tr_)
 import Halogen.HTML.Properties (class_, classes, colSpan)
 import Ledger.Ada.TH (Ada(..))
-import Ledger.Types (DataScript(..), PubKey(PubKey), RedeemerScript(..), Signature(Signature), Tx(Tx), TxIdOf(TxIdOf), TxInOf(TxInOf), TxInType(..), TxOutOf(TxOutOf), TxOutRefOf(TxOutRefOf), TxOutType(..))
+import Ledger.Scripts (DataScript(..), RedeemerScript(..))
+import Ledger.Crypto (PubKey(PubKey), Signature(Signature))
+import Ledger.Tx (Tx(Tx), TxIdOf(TxIdOf), TxInOf(TxInOf), TxInType(..), TxOutOf(TxOutOf), TxOutRefOf(TxOutRefOf), TxOutType(..))
 import Ledger.Value.TH (CurrencySymbol(..), Value(..))
+import Ledger.Map.TH as LedgerMap
 import Partial.Unsafe (unsafePartial)
 import Prelude (class Eq, class Ord, class Show, map, show, (#), ($), (+), (<#>), (<$>), (<*>), (<<<), (<>), (==))
 import Types (Blockchain)
@@ -147,7 +150,7 @@ toBalanceMap =
                                ))
   where
     forgeTransactions :: Row -> Tuple (TxIdOf String) Tx -> Tuple (Tuple Column Row) Balance
-    forgeTransactions row (Tuple _ (Tx {txForge: (Value { getValue: value})})) =
+    forgeTransactions row (Tuple _ (Tx {txForge: (Value { getValue: LedgerMap.Map { unMap : value}})})) =
       Tuple (Tuple ForgeIx row) (CurrencyBalance value)
 
     feeTransactions :: Row -> Tuple (TxIdOf String) Tx -> Tuple (Tuple Column Row) Balance
@@ -174,11 +177,11 @@ toBalanceMap =
       where
         fromTxOut :: TxOutOf String -> Tuple (Tuple Column Row) Balance
         fromTxOut (TxOutOf { txOutType: (PayToPubKey (PubKey { getPubKey: owner }))
-                           , txOutValue: (Value { getValue: currencyBalances })
+                           , txOutValue: (Value ({ getValue: LedgerMap.Map { unMap: currencyBalances }}))
                            })
           = Tuple (Tuple (OwnerIx owner hash) row) (CurrencyBalance currencyBalances)
         fromTxOut (TxOutOf { txOutType: (PayToScript (DataScript { getDataScript: owner }))
-                           , txOutValue: (Value { getValue: currencyBalances })
+                           , txOutValue: (Value ({ getValue: LedgerMap.Map { unMap: currencyBalances }}))
                            })
           = Tuple (Tuple (ScriptIx owner hash) row) (CurrencyBalance currencyBalances)
 

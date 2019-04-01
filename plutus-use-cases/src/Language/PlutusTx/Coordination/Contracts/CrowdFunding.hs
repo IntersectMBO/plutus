@@ -35,7 +35,8 @@ import           GHC.Generics                 (Generic)
 
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Ledger.Interval              as Interval
-import           Ledger.Interval              (SlotRange)
+import           Ledger.Slot                  (SlotRange)
+import qualified Ledger.Slot                  as Slot
 import           Ledger                       (DataScript (..), Signature(..), PubKey (..),
                                                TxId, ValidatorScript (..), scriptTxIn, Slot(..))
 import qualified Ledger                       as Ledger
@@ -179,14 +180,14 @@ contributionScript cmp  = ValidatorScript val where
 
                         contributorOnly = $$(PlutusTx.all) contributorTxOut outs
 
-                        refundable   = $$(Interval.contains) refndRange range &&
+                        refundable   = $$(Slot.contains) refndRange range &&
                                         contributorOnly &&
                                         a `signedBy` sig
 
                     in refundable
                 Collect sig -> -- the "successful campaign" branch
                     let
-                        payToOwner = $$(Interval.contains) collRange range &&
+                        payToOwner = $$(Slot.contains) collRange range &&
                                     $$(Ada.geq) totalInputs campaignTarget &&
                                     campaignOwner `signedBy` sig
                     in payToOwner
