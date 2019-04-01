@@ -330,7 +330,8 @@ inputChoice isEnabled person idChoice val =
            , spanText "Choice "
            , b_ [ spanText (show idChoice) ]
            , spanText ": Choose value "
-           , marloweActionInput (\x -> SetChoice { idChoice: (IdChoice {choice: idChoice
+           , marloweActionInput isEnabled
+                                (\x -> SetChoice { idChoice: (IdChoice {choice: idChoice
                                                                        , person})
                                                  , value: x}) val
            ]
@@ -346,16 +347,19 @@ inputComposerOracle isEnabled (Tuple idOracle {blockNumber, value}) =
            , spanText "Oracle "
            , b_ [ spanText (show idOracle) ]
            , spanText ": Provide "
-           , marloweActionInput (\x -> SetOracleVal { idOracle
+           , marloweActionInput isEnabled
+                                (\x -> SetOracleVal { idOracle
                                                     , value: x}) value
            , spanText " as the value for block "
-           , marloweActionInput (\x -> SetOracleBn { idOracle
+           , marloweActionInput isEnabled
+                                (\x -> SetOracleBn { idOracle
                                                    , blockNumber: x}) blockNumber
            ]
 
-marloweActionInput :: forall p a. Show a => (BigInteger -> Unit -> Query Unit) -> a -> HTML p Query
-marloweActionInput f current =
+marloweActionInput :: forall p a. Show a => Boolean -> (BigInteger -> Unit -> Query Unit) -> a -> HTML p Query
+marloweActionInput isEnabled f current =
   input [ type_ InputNumber
+        , enabled isEnabled
         , placeholder "BigInteger"
         , class_ $ ClassName "action-input"
         , value $ show current
