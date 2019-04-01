@@ -1,0 +1,35 @@
+name:                plutus-validation-server
+version:             0.1.0.0
+license:             Apache-2.0
+license-file:        LICENSE
+author:              Vanessa McHale
+maintainer:          vanessa.mchale@iohk.io
+copyright:           Copyright: (c) 2019 IOHK
+build-type:          Simple
+cabal-version:       1.18
+
+Flag development {
+  Description: Enable `-Werror`
+  manual: True
+  default: False
+}
+
+executable plutus-validation-server
+  hs-source-dirs:      src
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , plutus-validation-server
+                     , warp
+  default-language:    Haskell2010
+  if flag(development)
+    ghc-options:       -Werror
+  if impl(ghc >= 8.0)
+    ghc-options:       -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints
+  if impl(ghc >= 8.4)
+    ghc-options:       -Wmissing-export-lists
+  ghc-options:         -Wall
+
+source-repository head
+  type:     git
+  location: https://github.com/input-output/plutus
