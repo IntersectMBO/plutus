@@ -1,6 +1,6 @@
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE RecordWildCards  #-}
+{-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE TypeApplications #-}
 -- | Generators for constructing blockchains and transactions for use in property-based testing.
 module Wallet.Generators(
     -- * Mockchain
@@ -30,21 +30,21 @@ module Wallet.Generators(
     validateMockchain
     ) where
 
-import           Data.Bifunctor              (Bifunctor (..))
-import           Data.Foldable               (foldl')
-import           Data.Map                    (Map)
-import qualified Data.Map                    as Map
-import           Data.Maybe                  (catMaybes, isNothing)
-import           Data.Set                    (Set)
-import qualified Data.Set                    as Set
-import           GHC.Stack                   (HasCallStack)
+import           Data.Bifunctor  (Bifunctor (..))
+import           Data.Foldable   (fold, foldl')
+import           Data.Map        (Map)
+import qualified Data.Map        as Map
+import           Data.Maybe      (catMaybes, isNothing)
+import           Data.Set        (Set)
+import qualified Data.Set        as Set
+import           GHC.Stack       (HasCallStack)
 import           Hedgehog
-import qualified Hedgehog.Gen                as Gen
-import qualified Hedgehog.Range              as Range
-import qualified Ledger.Interval             as Interval
-import qualified Ledger.Index                as Index
-import qualified Ledger.Value                as Value
-import qualified Ledger.Ada                  as Ada
+import qualified Hedgehog.Gen    as Gen
+import qualified Hedgehog.Range  as Range
+import qualified Ledger.Ada      as Ada
+import qualified Ledger.Index    as Index
+import qualified Ledger.Interval as Interval
+import qualified Ledger.Value    as Value
 
 import           Ledger
 import qualified Wallet.API      as W
@@ -115,7 +115,7 @@ genInitialTransaction ::
 genInitialTransaction GeneratorModel{..} =
     let
         o = (uncurry $ flip pubKeyTxOut) <$> Map.toList gmInitialBalance
-        t = Map.foldl' Value.plus Value.zero gmInitialBalance
+        t = fold gmInitialBalance
     in (Tx {
         txInputs = Set.empty,
         txOutputs = o,
@@ -195,8 +195,7 @@ genValue' valueRange = do
         maxCurrencies = 10
 
     numValues <- Gen.int (Range.linear 0 maxCurrencies)
-    values <- traverse (const sngl) [0 .. numValues]
-    pure $ foldr Value.plus Value.zero values
+    fold <$> traverse (const sngl) [0 .. numValues]
 
 -- | Generate a 'Value' with a value range of @minBound .. maxBound@.
 genValue :: MonadGen m => m Value

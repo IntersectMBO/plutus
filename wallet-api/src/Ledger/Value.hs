@@ -41,6 +41,12 @@ instance Eq Value where
 instance Ord Value where
   (<=) = $$(TH.leq)
 
+instance Semigroup Value where
+  (<>) = plus
+
+instance Monoid Value where
+  mempty = zero
+
 -- | See 'TH.singleton'.
 singleton :: CurrencySymbol -> Int -> Value
 singleton = $$(TH.singleton)
