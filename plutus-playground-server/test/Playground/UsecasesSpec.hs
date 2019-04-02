@@ -149,7 +149,7 @@ vestingSpec =
                                   ]
                             , SimpleObjectSchema
                                   [ ( "getValue"
-                                    , SimpleObjectSchema 
+                                    , SimpleObjectSchema
                                         [("unMap", SimpleArraySchema (SimpleTupleSchema (SimpleIntSchema, SimpleIntSchema)))])
                                   ]
                             , SimpleObjectSchema
