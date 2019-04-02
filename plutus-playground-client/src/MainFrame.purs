@@ -12,7 +12,7 @@ import Action (simulationPane)
 import AjaxUtils (ajaxErrorPane)
 import AjaxUtils as AjaxUtils
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
-import Bootstrap (active, btn, btnGroup, btnSmall, clearfix_, col6_, container, container_, empty, floatRight, hidden, navItem_, navLink, navTabs_, noGutters, row)
+import Bootstrap (active, btn, btnGroup, btnSmall, col6_, container, container_, empty, floatRight, hidden, navItem_, navLink, navTabs_, noGutters, row)
 import Chain (evaluationPane)
 import Control.Bind (bindFlipped)
 import Control.Comonad (extract)
@@ -55,8 +55,10 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_)
 import Halogen.Query (HalogenM)
 import Icons (Icon(..), icon)
-import Ledger.Value.TH (CurrencySymbol(CurrencySymbol), Value(Value), _CurrencySymbol)
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), _InterpreterResult)
+import Ledger.Extra (Value(..))
+import Ledger.Map.TH as LedgerMap
+import Ledger.Value.TH (CurrencySymbol(CurrencySymbol), _CurrencySymbol)
 import LocalStorage (LOCALSTORAGE)
 import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, updateChartsIfPossible)
 import Network.HTTP.Affjax (AJAX)
@@ -70,13 +72,16 @@ import Wallet.Emulator.Types (Wallet(Wallet))
 
 mkSimulatorWallet :: Int -> SimulatorWallet
 mkSimulatorWallet id =
-  SimulatorWallet { simulatorWalletWallet: Wallet { getWallet: id }
-                  , simulatorWalletBalance: Value { getValue: [ Tuple (CurrencySymbol 0) 50
-                                                              , Tuple (CurrencySymbol 1) 20
-                                                              , Tuple (CurrencySymbol 2) 20
-                                                              ]
-                                                  }
-                  }
+  SimulatorWallet
+    { simulatorWalletWallet: Wallet { getWallet: id }
+    , simulatorWalletBalance: Value { getValue:
+                                        LedgerMap.Map { unMap: [ Tuple (CurrencySymbol 0) 50
+                                                               , Tuple (CurrencySymbol 1) 20
+                                                               , Tuple (CurrencySymbol 2) 20
+                                                               ]
+                                                      }
+                                    }
+    }
 
 mkSimulation :: Signatures -> Simulation
 mkSimulation signatures = Simulation
@@ -386,15 +391,15 @@ evalWalletEvent (ModifyBalance walletIndex action) wallets =
     (evalValueEvent action)
     wallets
 
-evalValueEvent :: ValueEvent -> Array (Tuple CurrencySymbol Int) -> Array (Tuple CurrencySymbol Int)
+evalValueEvent :: ValueEvent -> LedgerMap.Map CurrencySymbol Int -> LedgerMap.Map CurrencySymbol Int
 evalValueEvent AddBalance balances =
-  let maxCurrencyId = fromMaybe 0 $ maximumOf (traversed <<< _1 <<< _CurrencySymbol) balances
+  let maxCurrencyId = fromMaybe 0 $ maximumOf (_unMap <<< traversed <<< _1 <<< _CurrencySymbol) balances
       newBalance = Tuple (CurrencySymbol (maxCurrencyId + 1)) 0
-  in Array.snoc balances newBalance
+  in over _unMap (flip Array.snoc newBalance) balances
 evalValueEvent (RemoveBalance balanceIndex) balances =
-  fromMaybe balances $ Array.deleteAt balanceIndex balances
+  over _unMap (fromMaybe <*> Array.deleteAt balanceIndex) balances
 evalValueEvent (SetBalance balanceIndex balance) balances =
-  set (ix balanceIndex) balance balances
+  set (_unMap <<< ix balanceIndex) balance balances
 
 evalActionEvent :: ActionEvent -> Array Action -> Array Action
 evalActionEvent (AddAction action) = flip Array.snoc action

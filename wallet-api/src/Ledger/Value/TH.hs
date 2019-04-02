@@ -3,6 +3,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE LambdaCase         #-}
+-- | Functions for working with 'Value' in Template Haskell.
 module Ledger.Value.TH(
       Value(..)
     , CurrencySymbol
@@ -50,8 +51,21 @@ currencySymbol = [|| CurrencySymbol ||]
 eqCurSymbol :: Q (TExp (CurrencySymbol -> CurrencySymbol -> Bool))
 eqCurSymbol = [|| \(CurrencySymbol l) (CurrencySymbol r) -> $$(P.eq) l r ||]
 
--- | Cryptocurrency value
---   See note [Currencies]
+-- | A cryptocurrency value. This is a map from 'CurrencySymbol's to a
+-- quantity of that currency.
+--
+-- Operations on currencies are usually implemented /pointwise/. That is,
+-- we apply the operation to the quantities for each currency in turn. So
+-- when we add two 'Value's the resulting 'Value' has, for each currency,
+-- the sum of the quantities of /that particular/ currency in the argument
+-- 'Value'. The effect of this is that the currencies in the 'Value' are "independent",
+-- and are operated on separately.
+--
+-- Whenever we need to get the quantity of a currency in a 'Value' where there
+-- is no explicit quantity of that currency in the 'Value', then the quantity is
+-- taken to be zero.
+--
+-- See note [Currencies] for more details.
 newtype Value = Value { getValue :: Map.Map CurrencySymbol Int }
     deriving (Show)
     deriving stock (Generic)

@@ -339,23 +339,31 @@
               ]
             },
             {
-              "tag": "ValueSchema",
+              "tag": "SimpleObjectSchema",
               "contents": [
                 [
                   "getValue",
                   {
-                    "tag": "SimpleArraySchema",
-                    "contents": {
-                      "tag": "SimpleTupleSchema",
-                      "contents": [
+                    "tag": "SimpleObjectSchema",
+                    "contents": [
+                      [
+                        "unMap",
                         {
-                          "tag": "SimpleIntSchema"
-                        },
-                        {
-                          "tag": "SimpleIntSchema"
+                          "tag": "SimpleArraySchema",
+                          "contents": {
+                            "tag": "SimpleTupleSchema",
+                            "contents": [
+                              {
+                                "tag": "SimpleIntSchema"
+                              },
+                              {
+                                "tag": "SimpleIntSchema"
+                              }
+                            ]
+                          }
                         }
                       ]
-                    }
+                    ]
                   }
                 ]
               ]

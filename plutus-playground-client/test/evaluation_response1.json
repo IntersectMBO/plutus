@@ -9,13 +9,13 @@
     {
       "tag": "TxnValidate",
       "contents": {
-        "getTxId": "9f189318eb0d183a18cd18581618bd18cb18901891187718c318ba1840188618a9186218f918ab183c18a418f6187b1838185a1864185e18aa0e031870ff"
+        "getTxId": "9f18bc18441835189018a518e818ff1822188918a318a5185b18d3182118951858185218d918c818c8183e18190818b6188f1819189218e518df185f1854186dff"
       }
     },
     {
       "tag": "TxnSubmit",
       "contents": {
-        "getTxId": "9f189318eb0d183a18cd18581618bd18cb18901891187718c318ba1840188618a9186218f918ab183c18a418f6187b1838185a1864185e18aa0e031870ff"
+        "getTxId": "9f18bc18441835189018a518e818ff1822188918a318a5185b18d3182118951858185218d918c818c8183e18190818b6188f1819189218e518df185f1854186dff"
       }
     },
     {
@@ -27,7 +27,7 @@
     {
       "tag": "TxnValidate",
       "contents": {
-        "getTxId": "9f182d188618b80518ac18a918ee06189d18d418ba18af185918e018d818231868186d182b18d018b41866182218fe189e18c618b8181b14184d181e18ffff"
+        "getTxId": "9f182718dd18b8189518ba189d14184518d91852184b183a18af0218dc18e818e70e182e183e188e1867188a182518d8188b00040018ab183018daff"
       }
     }
   ],
@@ -35,7 +35,7 @@
     [
       [
         {
-          "getTxId": "9f189318eb0d183a18cd18581618bd18cb18901891187718c318ba1840188618a9186218f918ab183c18a418f6187b1838185a1864185e18aa0e031870ff"
+          "getTxId": "9f18bc18441835189018a518e818ff1822188918a318a5185b18d3182118951858185218d918c818c8183e18190818b6188f1819189218e518df185f1854186dff"
         },
         {
           "txInputs": [
@@ -49,7 +49,7 @@
               "txInRef": {
                 "txOutRefIdx": 0,
                 "txOutRefId": {
-                  "getTxId": "9f182d188618b80518ac18a918ee06189d18d418ba18af185918e018d818231868186d182b18d018b41866182218fe189e18c618b8181b14184d181e18ffff"
+                  "getTxId": "9f182718dd18b8189518ba189d14184518d91852184b183a18af0218dc18e818e70e182e183e188e1867188a182518d8188b00040018ab183018daff"
                 }
               }
             }
@@ -66,21 +66,21 @@
             }
           },
           "txForge": {
-            "getValue": []
+            "getValue": {
+              "unMap": []
+            }
           },
           "txOutputs": [
             {
               "txOutValue": {
-                "getValue": [
-                  [
-                    1000,
-                    5
-                  ],
-                  [
-                    1005,
-                    3
+                "getValue": {
+                  "unMap": [
+                    [
+                      2,
+                      5
+                    ]
                   ]
-                ]
+                }
               },
               "txOutAddress": {
                 "getAddress": "9f181c18c318ad18ea184018eb18fd18941843183a18c0041877187d1868150c18ce189d18b418c7187118bc187d18e118b2189718a718b7189518bb18baff"
@@ -94,16 +94,22 @@
             },
             {
               "txOutValue": {
-                "getValue": [
-                  [
-                    1000,
-                    5
-                  ],
-                  [
-                    1005,
-                    17
+                "getValue": {
+                  "unMap": [
+                    [
+                      0,
+                      50
+                    ],
+                    [
+                      1,
+                      20
+                    ],
+                    [
+                      2,
+                      15
+                    ]
                   ]
-                ]
+                }
               },
               "txOutAddress": {
                 "getAddress": "9f189c1218cf18dc0418c71845188418d7188718ac183d182318771821183218c11885182418bc187a18b2188d18ec1842181918b818fc185b1842185f1870ff"
@@ -122,7 +128,7 @@
     [
       [
         {
-          "getTxId": "9f182d188618b80518ac18a918ee06189d18d418ba18af185918e018d818231868186d182b18d018b41866182218fe189e18c618b8181b14184d181e18ffff"
+          "getTxId": "9f182718dd18b8189518ba189d14184518d91852184b183a18af0218dc18e818e70e182e183e188e1867188a182518d8188b00040018ab183018daff"
         },
         {
           "txInputs": [],
@@ -136,30 +142,42 @@
             }
           },
           "txForge": {
-            "getValue": [
-              [
-                1000,
-                20
-              ],
-              [
-                1005,
-                40
+            "getValue": {
+              "unMap": [
+                [
+                  0,
+                  100
+                ],
+                [
+                  1,
+                  40
+                ],
+                [
+                  2,
+                  40
+                ]
               ]
-            ]
+            }
           },
           "txOutputs": [
             {
               "txOutValue": {
-                "getValue": [
-                  [
-                    1000,
-                    10
-                  ],
-                  [
-                    1005,
-                    20
+                "getValue": {
+                  "unMap": [
+                    [
+                      0,
+                      50
+                    ],
+                    [
+                      1,
+                      20
+                    ],
+                    [
+                      2,
+                      20
+                    ]
                   ]
-                ]
+                }
               },
               "txOutAddress": {
                 "getAddress": "9f189c1218cf18dc0418c71845188418d7188718ac183d182318771821183218c11885182418bc187a18b2188d18ec1842181918b818fc185b1842185f1870ff"
@@ -173,16 +191,22 @@
             },
             {
               "txOutValue": {
-                "getValue": [
-                  [
-                    1000,
-                    10
-                  ],
-                  [
-                    1005,
-                    20
+                "getValue": {
+                  "unMap": [
+                    [
+                      0,
+                      50
+                    ],
+                    [
+                      1,
+                      20
+                    ],
+                    [
+                      2,
+                      20
+                    ]
                   ]
-                ]
+                }
               },
               "txOutAddress": {
                 "getAddress": "9f181c18c318ad18ea184018eb18fd18941843183a18c0041877187d1868150c18ce189d18b418c7187118bc187d18e118b2189718a718b7189518bb18baff"
@@ -201,11 +225,11 @@
   ],
   "resultGraph": {
     "flowGraphNodes": [
-      "2d86b805",
-      "93eb0d3a",
-      "utxo 2d86b805 1",
-      "utxo 93eb0d3a 0",
-      "utxo 93eb0d3a 1"
+      "27ddb895",
+      "bc443590",
+      "utxo 27ddb895 1",
+      "utxo bc443590 0",
+      "utxo bc443590 1"
     ],
     "flowGraphLinks": [
       {
@@ -215,14 +239,14 @@
             "getPubKey": 2
           }
         },
-        "flowLinkValue": 0,
+        "flowLinkValue": 50,
         "flowLinkSourceLoc": {
           "utxoLocBlock": 1,
           "utxoLocBlockIdx": 1
         },
-        "flowLinkSource": "2d86b805",
+        "flowLinkSource": "27ddb895",
         "flowLinkTargetLoc": null,
-        "flowLinkTarget": "utxo 2d86b805 1"
+        "flowLinkTarget": "utxo 27ddb895 1"
       },
       {
         "flowLinkOwner": {
@@ -236,9 +260,9 @@
           "utxoLocBlock": 2,
           "utxoLocBlockIdx": 1
         },
-        "flowLinkSource": "93eb0d3a",
+        "flowLinkSource": "bc443590",
         "flowLinkTargetLoc": null,
-        "flowLinkTarget": "utxo 93eb0d3a 0"
+        "flowLinkTarget": "utxo bc443590 0"
       },
       {
         "flowLinkOwner": {
@@ -247,14 +271,14 @@
             "getPubKey": 1
           }
         },
-        "flowLinkValue": 0,
+        "flowLinkValue": 50,
         "flowLinkSourceLoc": {
           "utxoLocBlock": 2,
           "utxoLocBlockIdx": 1
         },
-        "flowLinkSource": "93eb0d3a",
+        "flowLinkSource": "bc443590",
         "flowLinkTargetLoc": null,
-        "flowLinkTarget": "utxo 93eb0d3a 1"
+        "flowLinkTarget": "utxo bc443590 1"
       },
       {
         "flowLinkOwner": {
@@ -263,33 +287,39 @@
             "getPubKey": 1
           }
         },
-        "flowLinkValue": 0,
+        "flowLinkValue": 50,
         "flowLinkSourceLoc": {
           "utxoLocBlock": 1,
           "utxoLocBlockIdx": 1
         },
-        "flowLinkSource": "2d86b805",
+        "flowLinkSource": "27ddb895",
         "flowLinkTargetLoc": {
           "utxoLocBlock": 2,
           "utxoLocBlockIdx": 1
         },
-        "flowLinkTarget": "93eb0d3a"
+        "flowLinkTarget": "bc443590"
       }
     ]
   },
   "fundsDistribution": [
     {
       "simulatorWalletBalance": {
-        "getValue": [
-          [
-            1000,
-            5
-          ],
-          [
-            1005,
-            17
+        "getValue": {
+          "unMap": [
+            [
+              0,
+              50
+            ],
+            [
+              1,
+              20
+            ],
+            [
+              2,
+              15
+            ]
           ]
-        ]
+        }
       },
       "simulatorWalletWallet": {
         "getWallet": 1
@@ -297,16 +327,22 @@
     },
     {
       "simulatorWalletBalance": {
-        "getValue": [
-          [
-            1000,
-            15
-          ],
-          [
-            1005,
-            23
+        "getValue": {
+          "unMap": [
+            [
+              0,
+              50
+            ],
+            [
+              1,
+              20
+            ],
+            [
+              2,
+              25
+            ]
           ]
-        ]
+        }
       },
       "simulatorWalletWallet": {
         "getWallet": 2
