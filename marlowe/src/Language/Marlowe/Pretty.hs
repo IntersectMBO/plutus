@@ -78,7 +78,7 @@ instance Pretty Integer where
   prettyFragment = text . show
 
 instance (Pretty a, Pretty b) => Pretty (a, b) where
-  prettyFragment (a, b) = encloseSep lparen rparen comma [prettyFragment a, prettyFragment b]
+  prettyFragment (a, b) = encloseSep lparen rparen (comma <> space) [prettyFragment a, prettyFragment b]
 
 instance (Pretty a) => Pretty [a] where
   prettyFragment a = encloseSep lbracket rbracket comma (map prettyFragment a)

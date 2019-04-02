@@ -7,7 +7,7 @@ import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged), AceQuery(GetE
 import Ace.Types (ACE, Editor, Annotation)
 import AjaxUtils (runAjaxTo)
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
-import Bootstrap (active, btn, btnGroup, btnInfo, btnSmall, btnPrimary, container, container_, empty, hidden, listGroupItem_, listGroup_, navItem_, navLink, navTabs_, pullRight)
+import Bootstrap (active, btn, btnGroup, btnInfo, btnPrimary, btnSmall, col6_, container, container_, empty, hidden, listGroupItem_, listGroup_, navItem_, navLink, navTabs_, noGutters, pullRight, row)
 import Control.Monad.Aff.Class (class MonadAff, liftAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
@@ -40,7 +40,7 @@ import Halogen (Component, action)
 import Halogen as H
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
-import Halogen.HTML (ClassName(ClassName), HTML, a, code_, div, div_, h1, pre_, text, button, strong_)
+import Halogen.HTML (ClassName(ClassName), HTML, a, button, code_, div, div_, h1, pre, strong_, text)
 import Halogen.HTML.Events (onClick, input_)
 import Halogen.HTML.Properties (class_, classes, href, disabled)
 import Halogen.Query (HalogenM)
@@ -80,7 +80,7 @@ emptyMarloweState = { input: emptyInputData
                     , state: emptyState
                     , blockNum: (fromInt 0)
                     , moneyInContract: (fromInt 0)
-                    , contract: Nothing 
+                    , contract: Nothing
                     }
 
 initialState :: FrontendState
@@ -309,7 +309,7 @@ updateStateP oldState = actState
     mSimulatedState = simulateState sigState
     actState = case mSimulatedState of
                  Just simulatedState -> updateActions sigState simulatedState
-                 Nothing -> sigState 
+                 Nothing -> sigState
 
 updateState ::
   forall eff m.
@@ -589,28 +589,25 @@ render ::
   MonadAff (EChartsEffects (AceEffects (localStorage :: LOCALSTORAGE | aff))) m =>
   FrontendState ->
   ParentHTML Query ChildQuery ChildSlot m
-render state = div [ class_ $ ClassName "main-frame"
-                   ] [ container_ [ mainHeader
-                                  , mainTabBar state.view
-                                  ]
-                     , viewContainer state.view Editor $ [ loadScriptsPane
-                                                         , editorPane defaultContents state.compilationResult
-                                                         , button [ classes [ btn
-                                                                            , btnPrimary 
-                                                                            ]
-                                                                  , onClick $ input_ SendResult
-                                                                  , disabled ((isLoading state.compilationResult) || ((not isSuccess) state.compilationResult))
-                                                                  ] [ text "Send to Simulator" ]
-                                                         , resultPane state 
-                                                         ]
-                     , viewContainer state.view Simulation $ [ simulationPane state
-                                                             ]
-                     ]
+render state = div [ class_ $ ClassName "main-frame" ]
+                   [ container_ [ mainHeader
+                                , div [ classes [ row, noGutters ] ]
+                                      [ col6_ [ mainTabBar state.view ]
+                                      ]
+                                ]
+                   , viewContainer state.view Editor $ [ loadScriptsPane
+                                                       , editorPane defaultContents state.compilationResult
+                                                       , resultPane state
+                                                       ]
+                   , viewContainer state.view Simulation $ [ simulationPane state
+                                                           ]
+                   ]
     where
       defaultContents = Map.lookup "BasicContract" StaticData.demoFiles
 
 loadScriptsPane :: forall p. HTML p (Query Unit)
-loadScriptsPane = div_ (Array.cons (strong_ [ text "Demos: "
+loadScriptsPane = div [class_ $ ClassName "mb-3"]
+                      (Array.cons (strong_ [ text "Demos: "
                                             ]) (loadScriptButton <$> Array.fromFoldable (Map.keys StaticData.demoFiles)))
 
 loadScriptButton :: forall p. String -> HTML p (Query Unit)
@@ -658,14 +655,22 @@ mainTabBar activeView = navTabs_ (mkTab <$> tabs)
            ]
       else []
 
-resultPane :: forall p i. FrontendState -> HTML p i
+resultPane :: forall p. FrontendState -> HTML p (Query Unit)
 resultPane state = case state.compilationResult of
-    Success (Right (InterpreterResult result)) -> 
-      listGroup_ 
-        [ listGroupItem_ 
-          [ div_ 
-            [ code_ 
-              [ pre_ 
+    Success (Right (InterpreterResult result)) ->
+      listGroup_
+        [ listGroupItem_
+          [ div_
+            [ button [ classes [ btn
+                                   , btnPrimary
+                                   , ClassName "float-right"
+                                   ]
+                         , onClick $ input_ SendResult
+                         , disabled ((isLoading state.compilationResult) || ((not isSuccess) state.compilationResult))
+                         ] [ text "Send to Simulator" ]
+            , code_
+              [ pre
+                [class_ $ ClassName "success-code"]
                 [ text (unwrap result.result) ]
               ]
             ]

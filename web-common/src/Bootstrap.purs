@@ -34,6 +34,12 @@ col = ClassName "col"
 col_ :: forall p i. Array (HTML p i) -> HTML p i
 col_ = div [ class_ col ]
 
+col1 :: ClassName
+col1 = ClassName "col-1"
+
+col1_ :: forall p i. Array (HTML p i) -> HTML p i
+col1_ = div [ classes [ col, col1 ] ]
+
 col2 :: ClassName
 col2 = ClassName "col-2"
 
@@ -279,6 +285,12 @@ formControl = ClassName "form-control"
 
 formControl_ :: forall p i. Array (HTML p i) -> HTML p i
 formControl_ = div [ class_ formControl ]
+
+formRow :: ClassName
+formRow = ClassName "form-row"
+
+formRow_ :: forall p i. Array (HTML p i) -> HTML p i
+formRow_ = div [ class_ formRow ]
 
 formGroup :: ClassName
 formGroup = ClassName "form-group"

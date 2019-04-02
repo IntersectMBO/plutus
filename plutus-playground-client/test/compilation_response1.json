@@ -4,7 +4,7 @@
     "result": {
       "knownCurrencies": [
         {
-          "hash": "X/8=",
+          "hash": "5fff",
           "friendlyName": "MyCurrency",
           "knownTokens": [
             "MyToken"
@@ -347,7 +347,7 @@
               ]
             },
             {
-              "tag": "SimpleObjectSchema",
+              "tag": "ValueSchema",
               "contents": [
                 [
                   "getValue",
@@ -382,8 +382,7 @@
           ],
           "functionName": "payToPublicKey_"
         }
-      ],
-      "knownCurrencies": []
+      ]
     }
   }
 }

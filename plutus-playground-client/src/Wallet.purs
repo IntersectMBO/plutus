@@ -2,23 +2,21 @@ module Wallet where
 
 import Types
 
-import Bootstrap (btn, btnSecondary, btnSmall, card, cardBody_, cardTitle_, card_, col4_, col_, formControl, pullRight, row, row_)
+import Bootstrap (btn, btnSecondary, btnSmall, card, cardBody_, cardTitle_, card_, col4_, pullRight, row)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
-import Data.Int as Int
 import Data.Lens (view)
 import Data.Newtype (unwrap)
 import Data.Tuple (Tuple(..))
 import Halogen (HTML)
-import Halogen.HTML (ClassName(ClassName), button, div, div_, h2_, h3_, h4_, input, p_, span, text)
+import Halogen.HTML (ClassName(ClassName), br_, button, div, div_, h2_, h3_, h4_, p_, span, text)
 import Halogen.HTML.Elements.Keyed as Keyed
-import Halogen.HTML.Events (input_, onClick, onValueInput)
-import Halogen.HTML.Properties (InputType(..), class_, classes, placeholder, type_, value)
-import Halogen.Query as HQ
+import Halogen.HTML.Events (input_, onClick)
+import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
-import Ledger.Ada.TH (Ada(..))
-import Playground.API (FunctionSchema, SimulatorWallet, SimpleArgumentSchema, _Fn, _FunctionSchema)
-import Prelude (map, show, ($), (<$>), (<<<), (<>))
+import Playground.API (FunctionSchema, SimpleArgumentSchema, SimulatorWallet(..), _Fn, _FunctionSchema)
+import Prelude (show, ($), (<$>), (<<<), (<>))
+import ValueEditor (valueForm)
 import Wallet.Emulator.Types (Wallet)
 
 walletsPane ::
@@ -41,30 +39,27 @@ walletPane ::
   -> Int
   -> SimulatorWallet
   -> Tuple String (HTML p Query)
-walletPane signatures index simulatorWallet =
-  Tuple (show index) $
+walletPane
+  signatures
+  walletIndex
+  simulatorWallet@(SimulatorWallet { simulatorWalletWallet: wallet
+                                   , simulatorWalletBalance: balance
+                                   })
+  =
+  Tuple (show walletIndex) $
     col4_
-      [ div [ classes [ ClassName "wallet", ClassName ("wallet-" <> show index) ] ]
+      [ div [ classes [ ClassName "wallet", ClassName ("wallet-" <> show walletIndex) ] ]
           [ card_
               [ cardBody_
                   [ button
                       [ classes [ btn, pullRight ]
-                      , onClick $ input_ $ RemoveWallet index
+                      , onClick $ input_ $ ModifyWallets $ RemoveWallet walletIndex
                       ]
                       [ icon Close ]
-                  , cardTitle_ [ h3_ [ walletIdPane (view _simulatorWalletWallet simulatorWallet) ] ]
-                  , row_
-                      [ col_ [ text "ADA" ]
-                      , col_ [
-                          input
-                            [ type_ InputNumber
-                            , class_ formControl
-                            , value $ show $ view (_simulatorWalletBalance <<< _ada) simulatorWallet
-                            , placeholder "Int"
-                            , onValueInput $ map (HQ.action <<< SetBalance (view _simulatorWalletWallet simulatorWallet) <<< \v -> Ada {getAda: v}) <<< Int.fromString
-                            ]
-                        ]
-                      ]
+                  , cardTitle_ [ h3_ [ walletIdPane wallet ] ]
+                  , h4_ [ text "Opening Balances" ]
+                  , valueForm (ModifyWallets <<< ModifyBalance walletIndex) balance
+                  , br_
                   , h4_ [ text "Available functions" ]
                   , div_
                       (actionButton simulatorWallet <$> signatures)
@@ -80,7 +75,7 @@ addWalletPane =
       [ div
           [ class_ $ ClassName "add-wallet" ]
           [ div [ class_ card
-                , onClick $ input_ AddWallet
+                , onClick $ input_ $ ModifyWallets AddWallet
                 ]
               [ cardBody_
                   [ icon Plus

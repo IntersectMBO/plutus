@@ -9,14 +9,17 @@ import Chain.BlockchainExploration (blockchainExploration)
 import Color (Color, rgb, white)
 import Control.Monad.Aff.Class (class MonadAff)
 import Data.Array as Array
-import Data.Foldable (traverse_)
 import Data.Generic (gShow)
 import Data.Int as Int
-import Data.Lens (to, toListOf, traversed)
+import Data.Lens (_1, _2, filtered, to, toListOf, traversed, view)
+import Data.List (List)
+import Data.List as List
 import Data.Maybe (Maybe(Nothing))
 import Data.Newtype (unwrap)
+import Data.Traversable (traverse_)
+import Data.Tuple (fst)
 import Data.Tuple.Nested ((/\))
-import ECharts.Commands (addItem, addLink, axisLine, axisType, backgroundColor, bar, bottom, buildItems, buildLinks, color, colorSource, colors, formatterString, itemStyle, items, label, left, lineStyle, name, nameGap, nameLocationMiddle, nameRotate, normal, right, sankey, series, sourceName, splitLine, targetName, textStyle, tooltip, top, trigger, value, xAxis, yAxis) as E
+import ECharts.Commands (addItem, addLink, axisLine, axisType, backgroundColor, bar, bottom, buildItems, buildLinks, color, colorSource, colors, formatterString, items, label, left, lineStyle, name, nameGap, nameLocationMiddle, nameRotate, normal, right, sankey, series, sourceName, splitLine, targetName, textStyle, tooltip, top, trigger, value, xAxis, yAxis) as E
 import ECharts.Extras (focusNodeAdjacencyAllEdges, orientVertical, positionBottom)
 import ECharts.Monad (CommandsT, DSL) as E
 import ECharts.Types (AxisType(Value, Category), PixelOrPercent(Pixel), TooltipTrigger(ItemTrigger), numItem, strItem) as E
@@ -29,9 +32,10 @@ import Halogen.HTML.Events (input)
 import Halogen.HTML.Properties (class_)
 import Ledger.Slot (Slot(..))
 import Ledger.Tx (TxIdOf(TxIdOf))
+import Ledger.Value.TH (CurrencySymbol)
 import Playground.API (EvaluationResult(EvaluationResult), SimulatorWallet)
-import Prelude (class Monad, Unit, discard, show, unit, ($), (<$>), (<<<), (<>))
-import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, MockchainChartSlot(MockchainChartSlot), Query(HandleMockchainChartMessage, HandleBalancesChartMessage), _ada, _simulatorWalletBalance, _simulatorWalletWallet, _walletId, cpBalancesChart, cpMockchainChart)
+import Prelude (class Monad, Unit, discard, map, show, unit, ($), (<$>), (<<<), (<>), (==))
+import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, Query(HandleBalancesChartMessage), _simulatorWalletBalance, _simulatorWalletWallet, _value, _walletId, cpBalancesChart)
 import Wallet.Emulator.Types (EmulatorEvent(..), Wallet(..))
 import Wallet.Graph (FlowGraph(FlowGraph), FlowLink(FlowLink), TxRef(TxRef))
 
@@ -61,14 +65,15 @@ evaluationPane e@(EvaluationResult {emulatorLog, resultBlockchain}) =
                 [ class_ $ ClassName "logs" ]
                 (emulatorEventPane <$> Array.reverse logs)
         ]
-    , br_
-    , div_
-        [ h2_ [ text "Chain" ]
-        , slot' cpMockchainChart MockchainChartSlot
-            (echarts Nothing)
-            ({width: 930, height: 600} /\ unit)
-            (input HandleMockchainChartMessage)
-        ]
+    -- TODO Needs adapting for multicurrency.
+    -- , br_
+    -- , div_
+    --     [ h2_ [ text "Chain" ]
+    --     , slot' cpMockchainChart MockchainChartSlot
+    --         (echarts Nothing)
+    --         ({width: 930, height: 600} /\ unit)
+    --         (input HandleMockchainChartMessage)
+    --     ]
     ]
 
 emulatorEventPane :: forall i p. EmulatorEvent -> HTML p i
@@ -176,12 +181,12 @@ balancesChartOptions ::
 balancesChartOptions wallets = do
   E.tooltip $ do
     E.trigger E.ItemTrigger
-    E.formatterString "{c} ADA"
+    E.formatterString "{b}: λ{a} x {c}"
   E.textStyle $ E.color lightBlue
   E.backgroundColor fadedBlue
   E.xAxis do
     E.axisType E.Category
-    E.items $ toListOf (traversed <<< _simulatorWalletWallet <<< _walletId <<< to formatWalletId <<< to E.strItem) wallets
+    E.items $ map (E.strItem <<< formatWalletId) wallets
     axisLineStyle
   E.yAxis do
     E.name "Final Balance"
@@ -191,14 +196,35 @@ balancesChartOptions wallets = do
     E.axisType E.Value
     axisLineStyle
   E.series do
-    E.bar do
-      E.items $ toListOf (traversed <<< _simulatorWalletBalance <<< _ada <<< to Int.toNumber <<< to E.numItem) wallets
-      E.itemStyle $ E.normal $ E.color lightPurple
+    traverse_ (currencySeries wallets) allCurrencySymbols
   where
     axisLineStyle :: forall i. E.DSL (axisLine :: I, splitLine :: I | i) m
     axisLineStyle = do
       E.axisLine $ E.lineStyle $ E.color lightBlue
       E.splitLine $ E.lineStyle $ E.color lightBlue
-    formatWalletId id = "Wallet #" <> show id
 
-------------------------------------------------------------
+    allCurrencySymbols :: List CurrencySymbol
+    allCurrencySymbols =
+      List.nub
+      $ toListOf (traversed
+                  <<< _simulatorWalletBalance
+                  <<< _value
+                  <<< traversed
+                  <<< _1) wallets
+
+formatWalletId :: SimulatorWallet -> String
+formatWalletId wallet = "Wallet #" <> show (view (_simulatorWalletWallet <<< _walletId) wallet)
+
+currencySeries :: forall m i. Monad m => Array SimulatorWallet -> CurrencySymbol -> E.CommandsT (bar :: I | i) m Unit
+currencySeries wallets target =
+  E.bar do
+    -- Optionally: `E.stack "One bar"`
+    E.name $ show $ unwrap target
+    E.items
+      $ toListOf (traversed
+                  <<< _simulatorWalletBalance
+                  <<< _value
+                  <<< traversed
+                  <<< filtered ((==) target <<< fst)
+                  <<< _2
+                  <<< to (E.numItem <<< Int.toNumber)) wallets
