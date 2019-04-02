@@ -245,8 +245,13 @@ inputComposerPane state = div [ classes [ col6
   where
     isEnabled = isContractValid state
 
+onEmpty :: forall a. Array a -> Array a -> Array a
+onEmpty alt [] = alt
+onEmpty _ arr = arr
+
 inputComposer :: forall p. Boolean -> InputData -> Array (HTML p Query)
 inputComposer isEnabled { inputs, choiceData, oracleData } =
+    onEmpty [ text "No valid inputs can be added to the transaction" ] $
     Array.concat [ Array.concat (Array.fromFoldable (map (\x -> inputComposerPerson isEnabled x inputs choiceData) people))
                  , if (Map.isEmpty oracleData)
                    then []
@@ -330,7 +335,8 @@ inputChoice isEnabled person idChoice val =
            , spanText "Choice "
            , b_ [ spanText (show idChoice) ]
            , spanText ": Choose value "
-           , marloweActionInput (\x -> SetChoice { idChoice: (IdChoice {choice: idChoice
+           , marloweActionInput isEnabled
+                                (\x -> SetChoice { idChoice: (IdChoice {choice: idChoice
                                                                        , person})
                                                  , value: x}) val
            ]
@@ -346,16 +352,19 @@ inputComposerOracle isEnabled (Tuple idOracle {blockNumber, value}) =
            , spanText "Oracle "
            , b_ [ spanText (show idOracle) ]
            , spanText ": Provide "
-           , marloweActionInput (\x -> SetOracleVal { idOracle
+           , marloweActionInput isEnabled
+                                (\x -> SetOracleVal { idOracle
                                                     , value: x}) value
            , spanText " as the value for block "
-           , marloweActionInput (\x -> SetOracleBn { idOracle
+           , marloweActionInput isEnabled
+                                (\x -> SetOracleBn { idOracle
                                                    , blockNumber: x}) blockNumber
            ]
 
-marloweActionInput :: forall p a. Show a => (BigInteger -> Unit -> Query Unit) -> a -> HTML p Query
-marloweActionInput f current =
+marloweActionInput :: forall p a. Show a => Boolean -> (BigInteger -> Unit -> Query Unit) -> a -> HTML p Query
+marloweActionInput isEnabled f current =
   input [ type_ InputNumber
+        , enabled isEnabled
         , placeholder "BigInteger"
         , class_ $ ClassName "action-input"
         , value $ show current
@@ -448,7 +457,13 @@ printTransError AmbiguousId = [ul_ [li_ [text "At least one of the action identi
 printTransError InternalError = [ul_ [li_ [text "The internal state of the contract is inconsistent. This should not happen. Please, open an issue and let us know how you got to this error."]]]
 
 contractParsingError :: forall p. Boolean -> Array (HTML p Query)
-contractParsingError true = []
+contractParsingError true = [div [classes [ ClassName "invalid-transaction"
+                                           , ClassName "input-composer"
+                                           ]
+                                  ]
+                                  [ h2 [] [text ""]
+                                  ]
+                             ]
 contractParsingError false = [div [classes [ ClassName "invalid-transaction"
                                            , ClassName "input-composer"
                                            ]
@@ -514,7 +529,8 @@ signature (Tuple person isChecked) isEnabled outcomes =
 transactionInputs :: forall p. MarloweState -> Array (HTML p Query)
 transactionInputs state = [ h3_ [ text "Input list"
                                 ]
-                          ] <> map (inputRow isEnabled) state.transaction.inputs
+                          ] <> ( onEmpty [ text "No inputs in the transaction" ] $
+                                 map (inputRow isEnabled) state.transaction.inputs )
   where
     isEnabled = state.contract /= Nothing 
 
@@ -605,26 +621,36 @@ statePane state = div [ class_ $ ClassName "col"
 stateTable :: forall p. FrontendState -> HTML p Query
 stateTable state =
   div [ class_ $ ClassName "full-width-card"
-      ] [ card_ [ cardBody_ [ h3_ [ text "Money owed"
-                                  ]
-                            , row_ [ renderMoneyOwed mState.commits
-                                   ]
-                            , h3_ [ text "Commits"
-                                  ]
-                            , row_ [ renderCommits mState.commits
-                                   ]
-                            , h3_ [ text "Choices"
-                                  ]
-                            , row_ [ renderChoices mState.choices
-                                   ]
-                            , h3_ [ text "Oracle values"
-                                  ]
-                            , row_ [ renderOracles mState.oracles
-                                   ]
-                            ]
+      ] [ card_ [ cardBody_
+                    [ h3_ [ text "Money owed"
+                          ]
+                    , row_ [ if (Map.size commits.redeemedPerPerson == 0)
+                             then text "No participant is owed money"
+                             else renderMoneyOwed mState.commits
+                           ]
+                    , h3_ [ text "Commits"
+                          ]
+                    , row_ [ if (Map.size commits.currentCommitsById == 0)
+                             then text "There are no commits in the state"
+                             else renderCommits mState.commits
+                           ]
+                    , h3_ [ text "Choices"
+                          ]
+                    , row_ [ if (Map.size mState.choices == 0)
+                             then text "No choices have been recorded"
+                             else renderChoices mState.choices
+                           ]
+                    , h3_ [ text "Oracle values"
+                          ]
+                    , row_ [ if (Map.size mState.oracles == 0)
+                             then text "No oracle values have been recorded"
+                             else renderOracles mState.oracles
+                           ]
+                    ]
                 ]
         ]
   where (State mState) = state.marloweState.state
+        (CommitInfo commits) = mState.commits
 
 renderMoneyOwed :: forall p. CommitInfo -> HTML p Query
 renderMoneyOwed (CommitInfo ci) =
@@ -669,9 +695,9 @@ renderCommits (CommitInfo ci) =
                                 ]
                           ]
                   ]
-         , tbody_ (Array.fromFoldable (map renderCommit owedList))
+         , tbody_ (Array.fromFoldable (map renderCommit commitList))
          ]
-  where owedList = Map.toAscUnfoldable ci.currentCommitsById :: List (Tuple IdCommit CommitInfoRecord)
+  where commitList = Map.toAscUnfoldable ci.currentCommitsById :: List (Tuple IdCommit CommitInfoRecord)
 
 renderCommit :: forall p. Tuple IdCommit CommitInfoRecord -> HTML p Query
 renderCommit (Tuple idCommit {person, amount, timeout}) =

@@ -1,4 +1,4 @@
-module BasicContract where
+module Escrow where
 
 import           Marlowe
 

@@ -6,6 +6,7 @@ module Ledger.Map(
     , IsEqual
     , singleton
     , empty
+    , fromList
     , map
     , lookup
     , union
@@ -46,3 +47,6 @@ empty = $$(TH.empty)
 -- | See 'Ledger.These.TH.these'
 these :: (a -> c) -> (b -> c) -> (a -> b -> c) -> These a b -> c
 these = $$(TH.these)
+
+fromList :: [(k, v)] -> Map k v
+fromList = $$(TH.fromList)

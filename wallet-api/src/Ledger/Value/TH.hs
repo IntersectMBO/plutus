@@ -27,7 +27,7 @@ module Ledger.Value.TH(
     ) where
 
 import           Codec.Serialise.Class        (Serialise)
-import           Data.Aeson                   (FromJSON, ToJSON)
+import           Data.Aeson                   (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
 import           Data.Swagger.Internal.Schema (ToSchema)
 import           GHC.Generics                 (Generic)
 import           Language.PlutusTx.Lift       (makeLift)
@@ -38,7 +38,7 @@ import           Prelude                      hiding (all, lookup, negate)
 data CurrencySymbol = CurrencySymbol Int
   deriving (Eq, Ord, Show)
   deriving stock (Generic)
-  deriving anyclass (ToSchema, ToJSON, FromJSON, Serialise)
+  deriving anyclass (ToSchema, ToJSON, FromJSON, Serialise, ToJSONKey, FromJSONKey)
 
 makeLift ''CurrencySymbol
 
