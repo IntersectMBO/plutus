@@ -217,3 +217,22 @@ h2 {
         color:#9bfbfa;
     }
 }
+
+.nav-tabs {
+    border-bottom: dotted 1px $lightPurple;
+    border-right: dotted 1px $lightPurple;
+    text-transform: uppercase;
+    letter-spacing: 0.1rem;
+
+    a.nav-link {
+        color: $lightPurple;
+
+        &.active,
+        &:hover {
+            color: $white;
+            border: dotted 1px $lightPurple;
+            border-bottom: dotted 1px transparent;
+            border-radius: 0;
+        }
+    }
+}
