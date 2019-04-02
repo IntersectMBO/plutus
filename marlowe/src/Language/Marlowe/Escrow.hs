@@ -1,7 +1,7 @@
 module Language.Marlowe.Escrow where
 
 import           Language.Marlowe
-import           Wallet.API       (PubKey (..))
+import           Ledger
 
 {-
 ------------------------------------------
@@ -20,23 +20,14 @@ import           Wallet.API       (PubKey (..))
    the money will be refunded to person 1.
 -}
 
-alice :: Person
-alice = PubKey 1
-
-bob :: Person
-bob = PubKey 2
-
-carol :: Person
-carol = PubKey 3
-
 escrowContract :: Contract
 escrowContract = CommitCash iCC1 alice
                     (Value 450)
                     10 100
-                    (When (OrObs (twoChose alice bob carol 0)
-                                 (twoChose alice bob carol 1))
+                    (When (OrObs (twoChose aliceId alice bobId bob carolId carol 0)
+                                 (twoChose aliceId alice bobId bob carolId carol 1))
                           90
-                          (Choice (twoChose alice bob carol 1)
+                          (Choice (twoChose aliceId alice bobId bob carolId carol 1)
                                   (Pay iP1 alice bob
                                        (Committed iCC1)
                                        100
@@ -45,16 +36,16 @@ escrowContract = CommitCash iCC1 alice
                           redeemOriginal)
                     Null
 
-chose :: Person -> ConcreteChoice -> Observation
-chose per@(PubKey i) = PersonChoseThis (IdentChoice i) per
+chose :: IdentChoice -> Person -> ConcreteChoice -> Observation
+chose = PersonChoseThis
 
-oneChose :: Person -> Person -> ConcreteChoice -> Observation
-oneChose per per' val = OrObs (chose per val) (chose per' val)
+oneChose :: IdentChoice -> Person -> IdentChoice -> Person -> ConcreteChoice -> Observation
+oneChose ident per ident' per' val = OrObs (chose ident per val) (chose ident' per' val)
 
-twoChose :: Person -> Person -> Person -> ConcreteChoice -> Observation
-twoChose p1 p2 p3 c =
-        OrObs (AndObs (chose p1 c) (oneChose p2 p3 c))
-              (AndObs (chose p2 c) (chose p3 c))
+twoChose :: IdentChoice -> Person -> IdentChoice -> Person -> IdentChoice -> Person -> ConcreteChoice -> Observation
+twoChose i1 p1 i2 p2 i3 p3 c =
+        OrObs (AndObs (chose i1 p1 c) (oneChose i2 p2 i3 p3 c))
+              (AndObs (chose i2 p2 c) (chose i3 p3 c))
 
 redeemOriginal :: Contract
 redeemOriginal = RedeemCC iCC1 Null
@@ -64,3 +55,21 @@ iCC1 = IdentCC 1
 
 iP1 :: IdentPay
 iP1 = IdentPay 1
+
+alice :: Person
+alice = toPublicKey privateKey1
+
+aliceId :: IdentChoice
+aliceId = IdentChoice 1
+
+bob :: Person
+bob = toPublicKey privateKey2
+
+bobId :: IdentChoice
+bobId = IdentChoice 2
+
+carol :: Person
+carol = toPublicKey privateKey3
+
+carolId :: IdentChoice
+carolId = IdentChoice 3
