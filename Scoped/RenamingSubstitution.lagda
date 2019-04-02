@@ -22,8 +22,8 @@ lift⋆ ρ (suc α) = suc (ρ α)
 ren⋆ : ∀{m n} → Ren⋆ m n → ScopedTy m → ScopedTy n
 ren⋆ ρ (` α) = ` (ρ α)
 ren⋆ ρ (A ⇒ B) = ren⋆ ρ A ⇒ ren⋆ ρ B
-ren⋆ ρ (Π K A) = Π K (ren⋆ (lift⋆ ρ) A)
-ren⋆ ρ (ƛ K A) = ƛ K (ren⋆ (lift⋆ ρ) A)
+ren⋆ ρ (Π x K A) = Π x K (ren⋆ (lift⋆ ρ) A)
+ren⋆ ρ (ƛ x K A) = ƛ x K (ren⋆ (lift⋆ ρ) A)
 ren⋆ ρ (A · B) = ren⋆ ρ A · ren⋆ ρ B
 ren⋆ ρ (con x) = con x
 ren⋆ ρ (size x) = size x
@@ -48,9 +48,9 @@ renL : ∀{m n} → Ren⋆ ∥ m ∥ ∥ n ∥ → Ren m n
       → List (ScopedTm m) → List (ScopedTm n)
 
 ren ρ⋆ ρ (` x) = ` (ρ x)
-ren ρ⋆ ρ (Λ K t) = Λ K (ren (lift⋆ ρ⋆) (⋆lift ρ) t) 
+ren ρ⋆ ρ (Λ x K t) = Λ x K (ren (lift⋆ ρ⋆) (⋆lift ρ) t) 
 ren ρ⋆ ρ (t ·⋆ A) = ren ρ⋆ ρ t ·⋆ ren⋆ ρ⋆ A
-ren ρ⋆ ρ (ƛ A t)  = ƛ (ren⋆ ρ⋆ A) (ren ρ⋆ (lift ρ) t)
+ren ρ⋆ ρ (ƛ x A t)  = ƛ x (ren⋆ ρ⋆ A) (ren ρ⋆ (lift ρ) t)
 ren ρ⋆ ρ (t · u) = ren ρ⋆ ρ t · ren ρ⋆ ρ u
 ren ρ⋆ ρ (con x) = con x
 ren ρ⋆ ρ (error A) = error (ren⋆ ρ⋆ A)
@@ -73,8 +73,8 @@ slift⋆ ρ (suc α) = ren⋆ suc (ρ α)
 sub⋆ : ∀{m n} → Sub⋆ m n → ScopedTy m → ScopedTy n
 sub⋆ σ (` α)   = σ α
 sub⋆ σ (A ⇒ B) = sub⋆ σ A ⇒ sub⋆ σ B
-sub⋆ σ (Π K A) = Π K (sub⋆ (slift⋆ σ) A)
-sub⋆ σ (ƛ K A) = ƛ K (sub⋆ (slift⋆ σ) A)
+sub⋆ σ (Π x K A) = Π x K (sub⋆ (slift⋆ σ) A)
+sub⋆ σ (ƛ x K A) = ƛ x K (sub⋆ (slift⋆ σ) A)
 sub⋆ σ (A · B) = sub⋆ σ A · sub⋆ σ B
 sub⋆ σ (con c) = con c
 sub⋆ σ (size n) = size n
@@ -99,9 +99,9 @@ subL : ∀{m n} → Sub⋆ ∥ m ∥ ∥ n ∥ → Sub m n
   → List (ScopedTm m) → List (ScopedTm n)
 
 sub σ⋆ σ (` x) = σ x
-sub σ⋆ σ (Λ K t) = Λ K (sub (slift⋆ σ⋆) (⋆slift σ) t)
+sub σ⋆ σ (Λ x K t) = Λ x K (sub (slift⋆ σ⋆) (⋆slift σ) t)
 sub σ⋆ σ (t ·⋆ A) = sub σ⋆ σ t ·⋆ sub⋆ σ⋆ A
-sub σ⋆ σ (ƛ A t) = ƛ (sub⋆ σ⋆ A) (sub σ⋆ (slift σ) t)
+sub σ⋆ σ (ƛ x A t) = ƛ x (sub⋆ σ⋆ A) (sub σ⋆ (slift σ) t)
 sub σ⋆ σ (t · u) = sub σ⋆ σ t · sub σ⋆ σ u
 sub σ⋆ σ (con c) = con c
 sub σ⋆ σ (error A) = error (sub⋆ σ⋆ A)

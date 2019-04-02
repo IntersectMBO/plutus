@@ -124,9 +124,9 @@ erase⊢ : ∀{n} → S.ScopedTm n → eraseℕ n ⊢
 eraseL : ∀{n} → List (S.ScopedTm n) → List (eraseℕ n ⊢)
 
 erase⊢ (S.` x)    = ` (eraseFin x)
-erase⊢ (S.Λ K t)  = erase⊢ t
+erase⊢ (S.Λ x K t)  = erase⊢ t
 erase⊢ (t S.·⋆ A) = erase⊢ t
-erase⊢ (S.ƛ A t)  = ƛ (erase⊢ t)
+erase⊢ (S.ƛ x A t)  = ƛ (erase⊢ t)
 erase⊢ (t S.· u) with builtinMatcher (erase⊢ t)
 erase⊢ (t S.· u) | inj₁ (b ,, ts) = builtinEater b ts (erase⊢ u)
 erase⊢ (t S.· u) | inj₂ t' = t' · erase⊢ u

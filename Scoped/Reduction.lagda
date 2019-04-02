@@ -27,8 +27,8 @@ infix 2 _—→_
 
 \begin{code}
 data Value {n} : ScopedTm n → Set where
-  V-ƛ : (A : ScopedTy ∥ n ∥)(t : ScopedTm (S n)) → Value (ƛ A t)
-  V-Λ : ∀ K (t : ScopedTm (T n)) → Value (Λ K t)
+  V-ƛ : ∀ x (A : ScopedTy ∥ n ∥)(t : ScopedTm (S n)) → Value (ƛ x A t)
+  V-Λ : ∀ x K (t : ScopedTm (T n)) → Value (Λ x K t)
   V-con : (tcn : SizedTermCon) → Value (con {n} tcn)
   V-wrap : (A B : ScopedTy ∥ n ∥)(t : ScopedTm n) → Value (wrap A B t)
 
@@ -43,17 +43,17 @@ data Error {n} : ScopedTm n → Set where
    E-unwrap : {L : ScopedTm n} → Error L → Error (unwrap L)
    
    -- runtime type errors
-   E-Λ·    : ∀{K}{L : ScopedTm (T n)}{M : ScopedTm n} → Error (Λ K L · M)
-   E-ƛ·⋆   : ∀{B : ScopedTy ∥ n ∥}{L : ScopedTm (S n)}{A : ScopedTy ∥ n ∥}
-     → Error (ƛ B L ·⋆ A)
+   E-Λ·    : ∀{x K}{L : ScopedTm (T n)}{M : ScopedTm n} → Error (Λ x K L · M)
+   E-ƛ·⋆   : ∀{x}{B : ScopedTy ∥ n ∥}{L : ScopedTm (S n)}{A : ScopedTy ∥ n ∥}
+     → Error (ƛ x B L ·⋆ A)
    E-con·  : ∀{tcn}{M : ScopedTm n} → Error (con tcn · M)
    E-con·⋆ : ∀{tcn}{A : ScopedTy ∥ n ∥} → Error (con tcn ·⋆ A)
    E-wrap· : {A B : ScopedTy ∥ n ∥}{t M : ScopedTm n} → Error (wrap A B t · M)
    E-wrap·⋆ : {A' B A : ScopedTy ∥ n ∥}{t : ScopedTm n}
      → Error (wrap A' B t ·⋆ A)
-   E-ƛunwrap : {A : ScopedTy ∥ n ∥}{t : ScopedTm (S n)}
-     → Error (unwrap (ƛ A t) )
-   E-Λunwrap : ∀{K}{t : ScopedTm (T n)} → Error (unwrap (Λ K t))
+   E-ƛunwrap : ∀{x}{A : ScopedTy ∥ n ∥}{t : ScopedTm (S n)}
+     → Error (unwrap (ƛ x A t) )
+   E-Λunwrap : ∀{x K}{t : ScopedTm (T n)} → Error (unwrap (Λ x K t))
    E-conunwrap : ∀{tcn} → Error (unwrap (con tcn))
 
    -- an error occured in one of reducing an argument
@@ -187,10 +187,10 @@ BUILTIN equalsByteString _ _ = error boolean
 data _—→_ {n} : ScopedTm n → ScopedTm n → Set where
   ξ-· : {L L' M : ScopedTm n} → L —→ L' → L · M —→ L' · M
   ξ-·⋆ : {L L' : ScopedTm n}{A : ScopedTy ∥ n ∥} → L —→ L' → L ·⋆ A —→ L' ·⋆ A
-  β-ƛ : {A : ScopedTy ∥ n ∥}{L : ScopedTm (S n)}{M : ScopedTm n}
-      → (ƛ A L) · M —→ (L [ M ])
-  β-Λ : ∀{K}{L : ScopedTm (T n)}{A : ScopedTy ∥ n ∥}
-      → (Λ K L) ·⋆ A —→ (L [ A ]⋆)
+  β-ƛ : ∀{x}{A : ScopedTy ∥ n ∥}{L : ScopedTm (S n)}{M : ScopedTm n}
+      → (ƛ x A L) · M —→ (L [ M ])
+  β-Λ : ∀{x K}{L : ScopedTm (T n)}{A : ScopedTy ∥ n ∥}
+      → (Λ x K L) ·⋆ A —→ (L [ A ]⋆)
   ξ-builtin : {b : Builtin}
               {As : List (ScopedTy ∥ n ∥)}
               {ts : List (ScopedTm n)}
@@ -242,18 +242,18 @@ progressList (t ∷ ts) | inl (inr e) = error [] e ts
 progressList (t ∷ ts) | inr (t' , p) = step [] p ts
 
 progress (` ())
-progress (Λ K t) = inl (inl (V-Λ K t))
+progress (Λ x K t) = inl (inl (V-Λ x K t))
 progress (t ·⋆ A) with progress t
-progress (.(ƛ B t) ·⋆ A) | inl (inl (V-ƛ B t)) = inl (inr E-ƛ·⋆)
-progress (.(Λ K t) ·⋆ A) | inl (inl (V-Λ K t)) = inr (t [ A ]⋆ , β-Λ)
+progress (.(ƛ x B t) ·⋆ A) | inl (inl (V-ƛ x B t)) = inl (inr E-ƛ·⋆)
+progress (.(Λ x K t) ·⋆ A) | inl (inl (V-Λ x K t)) = inr (t [ A ]⋆ , β-Λ)
 progress (.(con tcn) ·⋆ A) | inl (inl (V-con tcn)) = inl (inr E-con·⋆)
 progress (.(wrap A' B t) ·⋆ A) | inl (inl (V-wrap A' B t)) = inl (inr E-wrap·⋆)
 progress (t ·⋆ A) | inl (inr p) = inl (inr (E-·⋆ p))
 progress (t ·⋆ A) | inr (t' , p) = inr (t' ·⋆ A , ξ-·⋆ p)
-progress (ƛ A t) = inl (inl (V-ƛ A t))
+progress (ƛ x A t) = inl (inl (V-ƛ x A t))
 progress (t · u) with progress t
-progress (.(ƛ A t) · u) | inl (inl (V-ƛ A t)) = inr (t [ u ] , β-ƛ)
-progress (.(Λ K t) · u) | inl (inl (V-Λ K t)) = inl (inr E-Λ·)
+progress (.(ƛ x A t) · u) | inl (inl (V-ƛ x A t)) = inr (t [ u ] , β-ƛ)
+progress (.(Λ x K t) · u) | inl (inl (V-Λ x K t)) = inl (inr E-Λ·)
 progress (.(con tcn) · u) | inl (inl (V-con tcn)) = inl (inr E-con·)
 progress (.(wrap A B t) · u) | inl (inl (V-wrap A B t)) = inl (inr E-wrap·)
 progress (t · u) | inl (inr p) = inl (inr (E-· p))
@@ -266,8 +266,8 @@ progress (builtin b As ts) | step  vs p ts' = inr (builtin b As _ , ξ-builtin v
 progress (builtin b As ts) | error vs e ts' = inl (inr (E-builtin e))
 progress (wrap A B t) = inl (inl (V-wrap A B t))
 progress (unwrap  t) with progress t
-progress (unwrap .(ƛ A t)) | inl (inl (V-ƛ A t)) = inl (inr E-ƛunwrap)
-progress (unwrap .(Λ K t)) | inl (inl (V-Λ K t)) = inl (inr E-Λunwrap)
+progress (unwrap .(ƛ x A t)) | inl (inl (V-ƛ x A t)) = inl (inr E-ƛunwrap)
+progress (unwrap .(Λ x K t)) | inl (inl (V-Λ x K t)) = inl (inr E-Λunwrap)
 progress (unwrap .(con tcn)) | inl (inl (V-con tcn)) = inl (inr E-conunwrap)
 progress (unwrap .(wrap A B t)) | inl (inl (V-wrap A B t)) = inr (t , β-wrap)
 progress (unwrap t) | inl (inr e) = inl (inr (E-unwrap e))
