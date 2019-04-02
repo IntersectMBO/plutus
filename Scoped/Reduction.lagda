@@ -164,8 +164,9 @@ BUILTIN sha3-256 _ ((_ , V-con (bytestring s b p)) ∷ []) with boundedB? 32 (SH
 ... | no ¬q = error (con bytestring) -- impossible
 BUILTIN sha3-256 _ _ = error (con bytestring)
 BUILTIN verifySignature _ ((_ , V-con (bytestring s k p)) ∷ (_ , V-con (bytestring s' d p')) ∷ (_ , V-con (bytestring s'' c p'')) ∷ []) with verifySig k d c
-... | B.false = false
-... | B.true = true
+... | just B.false = false
+... | just B.true = true
+... | nothing = error boolean
 BUILTIN verifySignature _ _ = error (con bytestring)
 BUILTIN intToByteString _ ((_ , V-con (size s')) ∷ (_ , V-con (integer s i p)) ∷ []) with boundedB? s' (int2ByteString i)
 ... | yes q = con (bytestring s' (int2ByteString i) q)

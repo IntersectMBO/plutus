@@ -32,7 +32,7 @@ postulate
 {-# FOREIGN GHC import qualified Data.Text as T #-}
 {-# COMPILE GHC putStrLn = Text.putStrLn #-}
 
-open import Algorithmic.Examples
+--open import Algorithmic.Examples
 
 postulate
   str1 : ByteString

@@ -13,6 +13,8 @@ open import Relation.Binary
 open import Data.Nat hiding (_^_; _≤_; _<_; _>_; _≥_; _≤?_;_<?_;_>?_;_≥?_) renaming (_*_ to _**_)
 open import Relation.Nullary
 open import Function
+
+open import Utils
 \end{code}
 
 ## Abstract semantics of builtins
@@ -33,7 +35,7 @@ postulate
   drop      : Int → ByteString → ByteString
   SHA2-256  : ByteString → ByteString
   SHA3-256  : ByteString → ByteString
-  verifySig : ByteString → ByteString → ByteString → Bool
+  verifySig : ByteString → ByteString → ByteString → Maybe Bool
   equals    : ByteString → ByteString → Bool
 
   txhash : ByteString
@@ -73,7 +75,11 @@ postulate
 {-# COMPILE GHC drop = BS.drop . fromIntegral #-}
 {-# COMPILE GHC SHA2-256 = BS.fromStrict . B.convert . hashlazy @SHA256 #-}
 {-# COMPILE GHC SHA3-256 = BS.fromStrict . B.convert . hashlazy @SHA3_256 #-}
--- TODO: verifySig
+
+
+{-# FOREIGN GHC import Crypto #-}
+{-# COMPILE GHC verifySig = verifySignature #-}
+
 -- TODO: resizeByteString
 -- no binding needed for equalsByteString
 {-# COMPILE GHC empty = BS.empty #-}

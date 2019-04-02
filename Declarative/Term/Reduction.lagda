@@ -16,6 +16,7 @@ open import Builtin.Signature
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆
 open import Declarative.StdLib.Bool
+open import Utils
 
 open import Relation.Binary.PropositionalEquality hiding ([_]) renaming (subst to substEq)
 open import Data.Empty
@@ -27,7 +28,6 @@ open import Data.Integer renaming (_*_ to _**_)
 open import Relation.Nullary
 open import Relation.Nullary.Decidable
 open import Relation.Binary hiding (_⇒_)
-open import Data.Maybe
 open import Agda.Builtin.Int
 open import Data.Nat hiding (_<_; _≤?_; _^_; _+_; _≟_;_<?_;_>?_;_≥?_)
 import Data.Bool as Bool
@@ -275,8 +275,9 @@ BUILTIN
   | size⋆ s'
   | size⋆ s
   with verifySig k d c
-... | Bool.true  = just true
-... | Bool.false = just false
+... | just Bool.true  = just true
+... | just Bool.false = just false
+... | nothing = nothing
 BUILTIN resizeByteString σ vtel with σ Z | σ (S Z)
 BUILTIN
   resizeByteString

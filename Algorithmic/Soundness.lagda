@@ -244,8 +244,6 @@ lemList' sha3-256 = refl≡β _ ,, _
 lemList' verifySignature = refl≡β _ ,, refl≡β _ ,, refl≡β _ ,, _
 lemList' resizeByteString = refl≡β _ ,, refl≡β _ ,, _
 lemList' equalsByteString = refl≡β _ ,, refl≡β _ ,, _
-lemList' txh = _
-lemList' blocknum = (refl≡β _) ,, _
 
 lemsub : ∀{Γ Γ' Δ}(A : Δ ⊢Nf⋆ *)(A' : Δ ⊢⋆ *)(p : Γ ≡ Γ')
   → (σ : {J : Kind} → Δ ∋⋆ J → Γ ⊢Nf⋆ J)

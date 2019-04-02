@@ -181,8 +181,6 @@ nfTypeSIG≡₁ sha3-256 = refl
 nfTypeSIG≡₁ verifySignature = refl
 nfTypeSIG≡₁ resizeByteString = refl
 nfTypeSIG≡₁ equalsByteString = refl
-nfTypeSIG≡₁ txh = refl
-nfTypeSIG≡₁ blocknum = refl
 
 lemσ : ∀{Γ Γ' Δ Δ'}
   → (σ : Sub Δ Γ)
@@ -235,8 +233,6 @@ nfTypeSIG≡₂ sha3-256 = refl
 nfTypeSIG≡₂ verifySignature = refl
 nfTypeSIG≡₂ resizeByteString = refl
 nfTypeSIG≡₂ equalsByteString = refl
-nfTypeSIG≡₂ txh = refl
-nfTypeSIG≡₂ blocknum = refl
 open import Builtin.Constant.Type
 
 lemcon : ∀{Γ Γ'}(p : Γ ≡ Γ')(tcn : TyCon)(s : Γ ⊢Nf⋆ #)
@@ -279,8 +275,6 @@ lemList sha3-256 = refl
 lemList verifySignature = refl
 lemList resizeByteString = refl
 lemList equalsByteString = refl
-lemList txh = refl
-lemList blocknum = refl
 
 nfType : ∀{Γ K}
   → {A : Syn.∥ Γ ∥ ⊢⋆ K}

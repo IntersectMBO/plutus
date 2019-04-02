@@ -29,6 +29,7 @@ open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢Nf⋆_ con size⋆
 open import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf size⋆
+open import Utils
 \end{code}
 
 ## Values
@@ -63,8 +64,6 @@ data Error :  ∀ {Γ} {A : ∥ Γ ∥ ⊢Nf⋆ *} → Γ ⊢ A → Set where
 \end{code}
 
 \begin{code}
-open import Data.Maybe
-
 VTel : ∀ Γ Δ → (∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K) → List (Δ ⊢Nf⋆ *) → Set
 VTel Γ Δ σ [] = ⊤
 VTel Γ Δ σ (A ∷ As) = Σ (Γ ⊢ substNf σ A) λ t → Value t × VTel Γ Δ σ As
@@ -144,7 +143,7 @@ BUILTIN
   σ
   (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
   | size⋆ s
-  with i <? j
+  with i Builtin.Constant.Type.<? j
 ... | yes _ = just true
 ... | no _  = just false
 BUILTIN lessThanEqualsInteger σ vtel with nf (embNf (σ Z))
@@ -162,7 +161,7 @@ BUILTIN
   σ
   (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
   | size⋆ s
-  with i >? j
+  with i Builtin.Constant.Type.>? j
 ... | yes _ = just true
 ... | no _  = just false
 BUILTIN greaterThanEqualsInteger σ vtel with nf (embNf (σ Z))
@@ -171,7 +170,7 @@ BUILTIN
   σ
   (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
   | size⋆ s
-  with i ≥? j
+  with i Builtin.Constant.Type.≥? j
 ... | yes _ = just true
 ... | no _  = just false
 BUILTIN equalsInteger σ vtel with nf (embNf (σ Z))
@@ -274,8 +273,9 @@ BUILTIN
   | size⋆ s'
   | size⋆ s
   with verifySig k d c
-... | Bool.true  = just true
-... | Bool.false = just false
+... | just Bool.true  = just true
+... | just Bool.false = just false
+... | nothing = nothing
 BUILTIN resizeByteString σ vtel with nf (embNf (σ Z)) | nf (embNf (σ (S Z)))
 BUILTIN
   resizeByteString
@@ -295,19 +295,6 @@ BUILTIN
   with equals b b'
 ... | Bool.true  = just true
 ... | Bool.false = just false
-BUILTIN txh σ tt with boundedB? 32 txhash
-... | yes p = just (con (bytestring 32 txhash p))
-... | no  _ = nothing
--- ^ should this be impossible?
-BUILTIN blocknum σ vtel with nf (embNf (σ Z))
-BUILTIN
-  blocknum
-  σ
-  (_ ,, V-con (size s) ,, tt)
-  | size⋆ s
-  with boundedN? s bnum
-... | yes p = just (con (integer s bnum (bN2I s bnum p)))
-... | no  _ = nothing
 \end{code}
 
 
