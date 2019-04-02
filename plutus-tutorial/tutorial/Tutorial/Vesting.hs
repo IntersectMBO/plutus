@@ -352,7 +352,7 @@ vestingSuccess = do
         functions `runTraceDist` and `runTraceLog` from `Ledger.ExUtil`
     >>> import Tutorial.ExUtil
     >>> runTraceDist vestingSuccess
-    fromList [(Wallet {getWallet = 1},Value {getValue = Map {unMap = [(CurrencySymbol 0,1010)]}}),(Wallet {getWallet = 2},Value {getValue = Map {unMap = [(CurrencySymbol 0,940)]}}),(Wallet {getWallet = 3},Value {getValue = Map {unMap = [(CurrencySymbol 0,1000)]}})]
+    fromList [(Wallet {getWallet = 1},Value {getValue = [(CurrencySymbol 0,1010)]}),(Wallet {getWallet = 2},Value {getValue = [(CurrencySymbol 0,940)]}),(Wallet {getWallet = 3},Value {getValue = [(CurrencySymbol 0,1000)]})]
 
     E9. Write traces similar to `vestingSuccess` that
 

@@ -9,10 +9,10 @@ module Gists
        )
        where
 
-import AjaxUtils (ajaxErrorPane, getEncodeJson)
+import AjaxUtils (ajaxErrorPane)
+import AjaxUtils as AjaxUtils
 import Auth (AuthRole(..), authStatusAuthRole)
 import Bootstrap (btn, btnBlock, btnDanger, btnInfo, btnPrimary, btnSmall, col6_, col_, empty, formControl, isInvalid, isValid, nbsp, row_)
-import Control.Monad.Reader.Trans (class MonadAsk)
 import Cursor (Cursor)
 import DOM.HTML.Indexed.InputType (InputType(..))
 import Data.Argonaut.Core (stringify)
@@ -29,11 +29,10 @@ import Halogen.HTML (ClassName(ClassName), HTML, IProp, a, button, div, div_, in
 import Halogen.HTML.Events (input_, onClick, onValueInput)
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties (class_, classes, disabled, href, id_, placeholder, target, type_, value)
-import Language.Haskell.Interpreter (SourceCode)
 import Icons (Icon(..), icon)
+import Language.Haskell.Interpreter (SourceCode)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success))
-import Prelude (Unit, bind, pure, ($), (<$>), (<<<), (<>), (=<<), (==))
-import Servant.PureScript.Settings (SPSettings_)
+import Prelude (Unit, bind, ($), (<$>), (<<<), (<>), (=<<), (==))
 import Types (Query(SetGistUrl, LoadGist, PublishGist), Simulation, State(State))
 
 idPublishGist :: forall r i. IProp (id :: String | r) i
@@ -183,24 +182,21 @@ gistPane gist =
     ]
 
 mkNewGist ::
-  forall m params.
-  MonadAsk (SPSettings_ params) m
-  => { source :: Maybe SourceCode
-     , simulations :: Cursor Simulation
-     }
-  -> m (Maybe NewGist)
-mkNewGist  { source, simulations } = do
-  encodeJson <- getEncodeJson
-  let gistFiles = catMaybes [ mkNewGistFile gistSourceFilename <<< unwrap <$> source
-                            , Just (mkNewGistFile gistSimulationFilename $ stringify $ encodeJson simulations)
-                            ]
-  pure $ if Array.null gistFiles
+  { source :: Maybe SourceCode
+  , simulations :: Cursor Simulation
+  }
+  -> Maybe NewGist
+mkNewGist  { source, simulations } =
+  if Array.null gistFiles
     then Nothing
     else Just $ NewGist { _newGistDescription: "Plutus Playground Smart Contract"
                         , _newGistPublic: true
                         , _newGistFiles: gistFiles
                         }
   where
+    gistFiles = catMaybes [ mkNewGistFile gistSourceFilename <<< unwrap <$> source
+                          , Just (mkNewGistFile gistSimulationFilename $ stringify $ AjaxUtils.encodeJson simulations)
+                          ]
     mkNewGistFile _newGistFilename _newGistFileContent =
       NewGistFile { _newGistFilename
                   , _newGistFileContent

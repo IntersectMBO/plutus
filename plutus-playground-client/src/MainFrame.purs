@@ -9,7 +9,8 @@ import Types
 import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged))
 import Ace.Types (ACE, Annotation)
 import Action (simulationPane)
-import AjaxUtils (ajaxErrorPane, getDecodeJson)
+import AjaxUtils (ajaxErrorPane)
+import AjaxUtils as AjaxUtils
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
 import Bootstrap (active, btn, btnGroup, btnSmall, clearfix_, col6_, container, container_, empty, floatRight, hidden, navItem_, navLink, navTabs_, noGutters, row)
 import Chain (evaluationPane)
@@ -54,8 +55,8 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_)
 import Halogen.Query (HalogenM)
 import Icons (Icon(..), icon)
+import Ledger.Value.TH (CurrencySymbol(CurrencySymbol), Value(Value), _CurrencySymbol)
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), _InterpreterResult)
-import Ledger.Ada.TH (Ada(..))
 import LocalStorage (LOCALSTORAGE)
 import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, updateChartsIfPossible)
 import Network.HTTP.Affjax (AJAX)
@@ -70,7 +71,10 @@ import Wallet.Emulator.Types (Wallet(Wallet))
 mkSimulatorWallet :: Int -> SimulatorWallet
 mkSimulatorWallet id =
   SimulatorWallet { simulatorWalletWallet: Wallet { getWallet: id }
-                  , simulatorWalletBalance: Ada {getAda: 10}
+                  , simulatorWalletBalance: Value { getValue: [ Tuple (CurrencySymbol 1000) 10
+                                                              , Tuple (CurrencySymbol 1005) 20
+                                                              ]
+                                                  }
                   }
 
 mkSimulation :: Signatures -> Simulation
@@ -142,9 +146,11 @@ toEvent (ScrollTo _ _) = Nothing
 toEvent (AddSimulationSlot _) = Just $ (defaultEvent "AddSimulationSlot") { category = Just "Simulation" }
 toEvent (SetSimulationSlot _ _) = Just $ (defaultEvent "SetSimulationSlot") { category = Just "Simulation" }
 toEvent (RemoveSimulationSlot _ _) = Just $ (defaultEvent "RemoveSimulationSlot") { category = Just "Simulation" }
-toEvent (AddWallet _) = Just $ (defaultEvent "AddWallet") { category = Just "Wallet" }
-toEvent (RemoveWallet _ _) = Just $ (defaultEvent "RemoveWallet") { category = Just "Wallet" }
-toEvent (SetBalance _ _ _) = Just $ (defaultEvent "SetBalance") { category = Just "Wallet" }
+toEvent (ModifyWallets AddWallet _) = Just $ (defaultEvent "AddWallet") { category = Just "Wallet" }
+toEvent (ModifyWallets (RemoveWallet _) _) = Just $ (defaultEvent "RemoveWallet") { category = Just "Wallet" }
+toEvent (ModifyWallets (ModifyBalance _ (SetBalance _ _)) _) = Just $ (defaultEvent "SetBalance") { category = Just "Wallet" }
+toEvent (ModifyWallets (ModifyBalance _ AddBalance) _) = Just $ (defaultEvent "AddBalance") { category = Just "Wallet" }
+toEvent (ModifyWallets (ModifyBalance _ (RemoveBalance _)) _) = Just $ (defaultEvent "RemoveBalance") { category = Just "Wallet" }
 toEvent (ModifyActions (AddAction _) _) = Just $ (defaultEvent "AddAction") { category = Just "Action" }
 toEvent (ModifyActions (AddWaitAction _) _) = Just $ (defaultEvent "AddWaitAction") { category = Just "Action" }
 toEvent (ModifyActions (RemoveAction _) _) = Just $ (defaultEvent "RemoveAction") { category = Just "Action" }
@@ -198,8 +204,7 @@ eval (CheckAuthStatus next) = do
 eval (PublishGist next) = do
   mContents <- editorGetContents
   simulations <- use _simulations
-  mNewGist <- mkNewGist { source: mContents, simulations }
-  case mNewGist of
+  case mkNewGist { source: mContents, simulations } of
     Nothing -> pure next
     Just newGist ->
       do mGist <- use _createGistResult
@@ -242,11 +247,10 @@ eval (LoadGist next) = do
                                assign _evaluationResult NotAsked
 
           -- Load the simulation, if available.
-          decodeJson <- getDecodeJson
           case preview (_Just <<< gistFileContent <<< _Just) (simulationGistFile gist) of
             Nothing -> pure unit
             Just simulationString -> do
-              case (decodeJson =<< jsonParser simulationString) of
+              case (AjaxUtils.decodeJson =<< jsonParser simulationString) of
                 Left err -> pure unit
                 Right simulations -> do
                   assign _simulations simulations
@@ -347,24 +351,11 @@ eval (RemoveSimulationSlot index next) = do
   modifying _simulations (Cursor.deleteAt index)
   pure next
 
-eval (AddWallet next) = do
-  modifying (_simulations <<< _current <<< _wallets)
-    (\wallets -> let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _simulatorWalletWallet <<< _walletId) wallets
-                     newWallet = mkSimulatorWallet (maxWalletId + 1)
-                 in Array.snoc wallets newWallet)
-
-  pure next
-
-eval (RemoveWallet index next) = do
-  modifying (_simulations <<< _current <<< _wallets) (fromMaybe <*> Array.deleteAt index)
-  assign (_simulations <<< _current <<< _actions) []
-  pure next
-
-eval (SetBalance wallet newBalance next) = do
-  modifying (_simulations <<< _current <<< _wallets <<< traversed)
-    (\simulatorWallet -> if view _simulatorWalletWallet simulatorWallet == wallet
-                         then set _simulatorWalletBalance newBalance simulatorWallet
-                         else simulatorWallet)
+eval (ModifyWallets action next) = do
+  modifying (_simulations <<< _current <<< _wallets) (evalWalletEvent action)
+  case action of
+    (RemoveWallet _) -> assign (_simulations <<< _current <<< _actions) []
+    _ -> pure unit
   pure next
 
 eval (PopulateAction n l event) = do
@@ -381,6 +372,29 @@ eval (PopulateAction n l event) = do
     (evalForm event)
   pure $ extract event
 
+evalWalletEvent :: WalletEvent -> Array SimulatorWallet -> Array SimulatorWallet
+evalWalletEvent AddWallet wallets =
+  let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _simulatorWalletWallet <<< _walletId) wallets
+      newWallet = mkSimulatorWallet (maxWalletId + 1)
+  in Array.snoc wallets newWallet
+evalWalletEvent (RemoveWallet index) wallets =
+  fromMaybe wallets $ Array.deleteAt index wallets
+evalWalletEvent (ModifyBalance walletIndex action) wallets =
+  over
+    (ix walletIndex <<< _simulatorWalletBalance <<< _value)
+    (evalValueEvent action)
+    wallets
+
+evalValueEvent :: ValueEvent -> Array (Tuple CurrencySymbol Int) -> Array (Tuple CurrencySymbol Int)
+evalValueEvent AddBalance balances =
+  let maxCurrencyId = fromMaybe 0 $ maximumOf (traversed <<< _1 <<< _CurrencySymbol) balances
+      newBalance = Tuple (CurrencySymbol (maxCurrencyId + 1)) 0
+  in Array.snoc balances newBalance
+evalValueEvent (RemoveBalance balanceIndex) balances =
+  fromMaybe balances $ Array.deleteAt balanceIndex balances
+evalValueEvent (SetBalance balanceIndex balance) balances =
+  set (ix balanceIndex) balance balances
+
 evalActionEvent :: ActionEvent -> Array Action -> Array Action
 evalActionEvent (AddAction action) = flip Array.snoc action
 evalActionEvent (AddWaitAction blocks) = flip Array.snoc (Wait { blocks })
@@ -394,11 +408,16 @@ evalForm (SetIntField _ _) arg = arg
 evalForm (SetStringField s next) (SimpleString _) = SimpleString (Just s)
 evalForm (SetStringField _ _) arg = arg
 
+evalForm (SetValueField valueEvent _) (ValueArgument schema (Value { getValue: fields })) =
+  ValueArgument schema $ Value { getValue: evalValueEvent valueEvent fields }
+evalForm (SetValueField _ _) arg = arg
+
 evalForm (SetSubField 1 subEvent) (SimpleTuple fields) = SimpleTuple $ over _1 (evalForm subEvent) fields
 evalForm (SetSubField 2 subEvent) (SimpleTuple fields) = SimpleTuple $ over _2 (evalForm subEvent) fields
-evalForm (SetSubField _ subEvent) arg@(SimpleTuple fields) = arg
-evalForm (SetSubField _ subEvent) arg@(SimpleString fields) = arg
-evalForm (SetSubField _ subEvent) arg@(SimpleInt fields) = arg
+evalForm (SetSubField _ subEvent) arg@(SimpleTuple _) = arg
+evalForm (SetSubField _ subEvent) arg@(SimpleString _) = arg
+evalForm (SetSubField _ subEvent) arg@(SimpleInt _) = arg
+evalForm (SetSubField _ subEvent) arg@(ValueArgument _ _) = arg
 
 evalForm (AddSubField _) (SimpleArray schema fields) =
   -- As the code stands, this is the only guarantee we get that every

@@ -177,7 +177,8 @@ table.balance-map {
 }
 
 .action,
-.wallet {
+.wallet,
+.gist-controls {
     h1, h2, h3, h4 {
         color: $lightPurple;
     }
@@ -188,6 +189,9 @@ table.balance-map {
         border: $input-border-color;
         outline:none;
         border-bottom:1px solid $purple05;
+        padding-left: 0;
+        padding-right: 0;
     }
 }
+
 

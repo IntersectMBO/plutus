@@ -60,7 +60,9 @@ import           Wallet.Emulator.Types                     (EmulatorEvent, Walle
 import           Wallet.Graph                              (FlowGraph, FlowLink, TxRef, UtxOwner, UtxoLocation)
 
 psNonEmpty :: MonadReader BridgeData m => m PSType
-psNonEmpty = TypeInfo "purescript-lists" "Data.List.NonEmpty" "NonEmptyList" <$> psTypeParameters
+psNonEmpty =
+    TypeInfo "purescript-lists" "Data.List.NonEmpty" "NonEmptyList" <$>
+    psTypeParameters
 
 psJson :: PSType
 psJson = TypeInfo "" "Data.RawJson" "RawJson" []
@@ -197,7 +199,7 @@ myTypes =
     , mkSumType (Proxy @(TxOutOf A))
     , mkSumType (Proxy @(TxIdOf A))
     , (equal <*> (order <*> mkSumType)) (Proxy @TxInType)
-    , mkSumType (Proxy @Value)
+    , (equal <*> mkSumType) (Proxy @Value)
     , (equal <*> (order <*> mkSumType)) (Proxy @PubKey)
     , mkSumType (Proxy @(AddressOf A))
     , mkSumType (Proxy @FlowLink)
@@ -215,7 +217,7 @@ myTypes =
     , mkSumType (Proxy @NewGist)
     , mkSumType (Proxy @NewGistFile)
     , mkSumType (Proxy @Owner)
-    , mkSumType (Proxy @CurrencySymbol)
+    , (equal <*> (order <*> mkSumType)) (Proxy @CurrencySymbol)
     , (equal <*> (order <*> mkSumType)) (Proxy @TokenId)
     , mkSumType (Proxy @KnownCurrency)
     , mkSumType (Proxy @InterpreterError)

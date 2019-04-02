@@ -22,7 +22,6 @@ import Ledger.Scripts (DataScript(..), RedeemerScript(..))
 import Ledger.Crypto (PubKey(PubKey), Signature(Signature))
 import Ledger.Tx (Tx(Tx), TxIdOf(TxIdOf), TxInOf(TxInOf), TxInType(..), TxOutOf(TxOutOf), TxOutRefOf(TxOutRefOf), TxOutType(..))
 import Ledger.Value.TH (CurrencySymbol(..), Value(..))
-import Ledger.Map.TH as LedgerMap
 import Partial.Unsafe (unsafePartial)
 import Prelude (class Eq, class Ord, class Show, map, show, (#), ($), (+), (<#>), (<$>), (<*>), (<<<), (<>), (==))
 import Types (Blockchain)
@@ -51,6 +50,7 @@ type Row = Tuple SlotId StepId
 
 type BalanceMap =
   Map (Tuple Column Row) Balance
+
 blockchainExploration :: forall p i. Blockchain -> HTML p i
 blockchainExploration blockchain =
   div_ [ h2_ [ text "Blockchain" ]
@@ -150,7 +150,7 @@ toBalanceMap =
                                ))
   where
     forgeTransactions :: Row -> Tuple (TxIdOf String) Tx -> Tuple (Tuple Column Row) Balance
-    forgeTransactions row (Tuple _ (Tx {txForge: (Value { getValue: LedgerMap.Map { unMap : value}})})) =
+    forgeTransactions row (Tuple _ (Tx {txForge: (Value { getValue: value })})) =
       Tuple (Tuple ForgeIx row) (CurrencyBalance value)
 
     feeTransactions :: Row -> Tuple (TxIdOf String) Tx -> Tuple (Tuple Column Row) Balance
@@ -177,11 +177,11 @@ toBalanceMap =
       where
         fromTxOut :: TxOutOf String -> Tuple (Tuple Column Row) Balance
         fromTxOut (TxOutOf { txOutType: (PayToPubKey (PubKey { getPubKey: owner }))
-                           , txOutValue: (Value ({ getValue: LedgerMap.Map { unMap: currencyBalances }}))
+                           , txOutValue: (Value ({ getValue: currencyBalances }))
                            })
           = Tuple (Tuple (OwnerIx owner hash) row) (CurrencyBalance currencyBalances)
         fromTxOut (TxOutOf { txOutType: (PayToScript (DataScript { getDataScript: owner }))
-                           , txOutValue: (Value ({ getValue: LedgerMap.Map { unMap: currencyBalances }}))
+                           , txOutValue: (Value ({ getValue: currencyBalances }))
                            })
           = Tuple (Tuple (ScriptIx owner hash) row) (CurrencyBalance currencyBalances)
 
@@ -215,7 +215,7 @@ balanceView Remainder =
 
 valueView :: forall p i. Tuple CurrencySymbol Int -> HTML p i
 valueView (Tuple (CurrencySymbol sym) balance) =
-  amountView (show sym) balance
+  amountView ("λ" <> show sym) balance
 
 amountView :: forall p i. String -> Int -> HTML p i
 amountView name balance =
