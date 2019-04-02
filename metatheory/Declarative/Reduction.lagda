@@ -1,5 +1,5 @@
 \begin{code}
-module Declarative.Term.Reduction where
+module Declarative.Reduction where
 \end{code}
 
 ## Imports
@@ -7,8 +7,8 @@ module Declarative.Term.Reduction where
 \begin{code}
 open import Type
 import Type.RenamingSubstitution as ⋆
-open import Declarative.Term
-open import Declarative.Term.RenamingSubstitution
+open import Declarative
+open import Declarative.RenamingSubstitution
 open import Type.Equality
 open import Builtin
 open import Builtin.Signature

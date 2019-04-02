@@ -16,11 +16,6 @@ open import Builtin
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆
 open import Builtin.Signature
-open import Declarative.Term
-open import Declarative.Evaluation
-open import Declarative.Term.Reduction
-
---open import Declarative.Examples
 
 open import Agda.Builtin.TrustMe
 open import Relation.Binary.PropositionalEquality

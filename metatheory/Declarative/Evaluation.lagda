@@ -6,8 +6,8 @@ module Declarative.Evaluation where
 
 \begin{code}
 open import Type
-open import Declarative.Term
-open import Declarative.Term.Reduction
+open import Declarative
+open import Declarative.Reduction
 \end{code}
 
 ## Evaluation

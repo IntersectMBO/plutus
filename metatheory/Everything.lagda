@@ -29,9 +29,9 @@ import Builtin.Signature
 import Builtin.Constant.Type
 import Builtin.Constant.Term
 
-import Declarative.Term
-import Declarative.Term.RenamingSubstitution
-import Declarative.Term.Reduction
+import Declarative
+import Declarative.RenamingSubstitution
+import Declarative.Reduction
 import Declarative.Evaluation
 
 --import Declarative.Examples

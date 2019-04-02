@@ -5,7 +5,7 @@ module Declarative.StdLib.Function where
 \begin{code}
 open import Type
 open import Type.Equality
-open import Declarative.Term
+open import Declarative
 \end{code}
 
 \begin{code}

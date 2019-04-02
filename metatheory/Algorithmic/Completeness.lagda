@@ -3,7 +3,7 @@ module Algorithmic.Completeness where
 
 open import Type
 open import Type.RenamingSubstitution
-import Declarative.Term as Syn
+import Declarative as Syn
 import Algorithmic.Term as Norm
 open import Type.BetaNormal
 open import Type.BetaNBE
