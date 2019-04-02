@@ -134,3 +134,4 @@ executable plc-agda
                        language-plutus-core -any
   -- hs-source-dirs:      
   default-language:    Haskell2010
+  ghc-options: -fwarn-incomplete-patterns -fno-warn-overlapping-patterns
