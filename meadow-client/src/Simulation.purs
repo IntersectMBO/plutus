@@ -457,7 +457,13 @@ printTransError AmbiguousId = [ul_ [li_ [text "At least one of the action identi
 printTransError InternalError = [ul_ [li_ [text "The internal state of the contract is inconsistent. This should not happen. Please, open an issue and let us know how you got to this error."]]]
 
 contractParsingError :: forall p. Boolean -> Array (HTML p Query)
-contractParsingError true = []
+contractParsingError true = [div [classes [ ClassName "invalid-transaction"
+                                           , ClassName "input-composer"
+                                           ]
+                                  ]
+                                  [ h2 [] [text ""]
+                                  ]
+                             ]
 contractParsingError false = [div [classes [ ClassName "invalid-transaction"
                                            , ClassName "input-composer"
                                            ]

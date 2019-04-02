@@ -83,3 +83,19 @@
 .success-code {
     color: $monokai-purple;
 }
+
+.input-composer {
+    h1, h2, h3, h4 {
+        color: $lightPurple;
+    }
+
+    input {
+        color: rgba(255, 255, 255, 0.7);
+        background: $input-bg;
+        border: $input-border-color;
+        outline:none;
+        border-bottom:1px solid $purple05;
+        padding-left: 0;
+        padding-right: 0;
+    }
+}
