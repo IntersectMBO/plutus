@@ -80,7 +80,7 @@ emptyMarloweState = { input: emptyInputData
                     , state: emptyState
                     , blockNum: (fromInt 0)
                     , moneyInContract: (fromInt 0)
-                    , contract: Nothing 
+                    , contract: Nothing
                     }
 
 initialState :: FrontendState
@@ -309,7 +309,7 @@ updateStateP oldState = actState
     mSimulatedState = simulateState sigState
     actState = case mSimulatedState of
                  Just simulatedState -> updateActions sigState simulatedState
-                 Nothing -> sigState 
+                 Nothing -> sigState
 
 updateState ::
   forall eff m.
@@ -660,10 +660,10 @@ mainTabBar activeView = navTabs_ (mkTab <$> tabs)
 
 resultPane :: forall p i. FrontendState -> HTML p (Query Unit)
 resultPane state = case state.compilationResult of
-    Success (Right (InterpreterResult result)) -> 
-      listGroup_ 
-        [ listGroupItem_ 
-          [ div_ 
+    Success (Right (InterpreterResult result)) ->
+      listGroup_
+        [ listGroupItem_
+          [ div_
             [ button [ classes [ btn
                                    , btnPrimary
                                    , ClassName "float-right"
