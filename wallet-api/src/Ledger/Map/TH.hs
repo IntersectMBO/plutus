@@ -13,6 +13,7 @@ module Ledger.Map.TH(
     , IsEqual
     , singleton
     , empty
+    , fromList
     , map
     , lookup
     , union
@@ -23,7 +24,8 @@ module Ledger.Map.TH(
     ) where
 
 import           Codec.Serialise.Class        (Serialise)
-import           Data.Aeson                   (FromJSON, ToJSON)
+import           Data.Aeson                   (ToJSONKey, FromJSONKey, FromJSON(parseJSON), ToJSON(toJSON))
+import qualified Data.Map                     as Map
 import           Data.Swagger.Internal.Schema (ToSchema)
 import           GHC.Generics                 (Generic)
 import           Language.PlutusTx.Lift       (makeLift)
@@ -37,9 +39,18 @@ import           Prelude                      hiding (all, lookup, map, negate)
 data Map k v = Map { unMap :: [(k, v)] }
     deriving (Show)
     deriving stock (Generic)
-    deriving anyclass (ToSchema, ToJSON, FromJSON, Serialise)
+    deriving anyclass (ToSchema, Serialise)
 
 makeLift ''Map
+
+instance (Ord k, ToJSONKey k, ToJSON v) => ToJSON (Map k v) where
+    toJSON = toJSON . Map.fromList . unMap
+
+instance (Ord k, FromJSONKey k, FromJSON v) => FromJSON (Map k v) where
+    parseJSON v = Map . Map.toList <$> parseJSON v
+
+fromList :: Q (TExp ([(k, v)] -> Map k v))
+fromList = [|| Map ||]
 
 -- | Apply a function to the values of a 'Map'.
 map :: Q (TExp ((v -> w) -> Map k v -> Map k w))
