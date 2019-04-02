@@ -12,14 +12,15 @@ import Data.Maybe (Maybe(..), fromJust, maybe)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String as String
+import Data.String.Extra (abbreviate)
 import Data.Tuple (Tuple(Tuple), fst, snd)
 import Data.Tuple.Nested (tuple3, (/\))
 import Halogen (HTML)
 import Halogen.HTML (ClassName(ClassName), div, div_, h2, h2_, h3, strong_, table, tbody_, td, text, th, thead_, tr_)
 import Halogen.HTML.Properties (class_, classes, colSpan)
 import Ledger.Ada.TH (Ada(..))
-import Ledger.Scripts (DataScript(..), RedeemerScript(..))
 import Ledger.Crypto (PubKey(PubKey), Signature(Signature))
+import Ledger.Scripts (DataScript(..), RedeemerScript(..))
 import Ledger.Tx (Tx(Tx), TxIdOf(TxIdOf), TxInOf(TxInOf), TxInType(..), TxOutOf(TxOutOf), TxOutRefOf(TxOutRefOf), TxOutType(..))
 import Ledger.Value.TH (CurrencySymbol(..), Value(..))
 import Partial.Unsafe (unsafePartial)
@@ -93,13 +94,13 @@ blockchainExploration blockchain =
 
     columnHeading FeeIx = "Fee"
     columnHeading ForgeIx = "Forge"
-    columnHeading (OwnerIx owner hash) = "Wallet #" <> show owner
-    columnHeading (ScriptIx owner hash) = "Script #" <> owner
+    columnHeading (OwnerIx owner hash) = "Wallet #" <> abbreviate (show owner)
+    columnHeading (ScriptIx owner hash) = "Script #" <> abbreviate owner
 
     columnSubheading FeeIx = ""
     columnSubheading ForgeIx = ""
-    columnSubheading (OwnerIx owner hash) = "Tx/" <> String.take 10 hash <> "..."
-    columnSubheading (ScriptIx owner hash) = "Tx/" <> String.take 10 hash <> "..."
+    columnSubheading (OwnerIx owner hash) = "Tx/" <> abbreviate hash
+    columnSubheading (ScriptIx owner hash) = "Tx/" <> abbreviate hash
 
     matchCount :: Column -> Int
     matchCount owner = Array.length $ Array.filter (isOwner owner) $ Set.toUnfoldable columns
