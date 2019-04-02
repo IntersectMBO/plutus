@@ -477,13 +477,10 @@ render state@(State {currentView})  =
             [ col6_ [ mainTabBar currentView ]
             , col6_ [ gistControls state ]
             ]
-        , div
-            [ classes [ floatRight ] ]
-            [ demoScriptsPane ]
         ]
-    , clearfix_
     , viewContainer currentView Editor $
-        [ editorPane defaultContents (view _compilationResult state)
+        [ demoScriptsPane
+        , editorPane defaultContents (view _compilationResult state)
         , case view _compilationResult state of
             Failure error -> ajaxErrorPane error
             _ -> empty
