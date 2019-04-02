@@ -60,23 +60,23 @@ makeLift ''Value
 The 'Value' type represents a collection of amounts of different currencies.
 
 We can think of 'Value' as a vector space whose dimensions are
-currencies. At the moment there is only a single currency (Ada), so 'Value'
-contains one-dimensional vectors. When currency-creating transactions are
-implemented, this will change and the definition of 'Value' will change to a
+currencies. At the moment there is only a single currency (Ada), so 'Value' 
+contains one-dimensional vectors. When currency-creating transactions are 
+implemented, this will change and the definition of 'Value' will change to a 
 'Map Currency Int', effectively a vector with infinitely many dimensions whose
 non-zero values are recorded in the map.
 
-To create a value of 'Value', we need to specifiy a currency. This can be done
-using 'Ledger.Ada.adaValueOf'. To get the ada dimension of 'Value' we use
+To create a value of 'Value', we need to specifiy a currency. This can be done 
+using 'Ledger.Ada.adaValueOf'. To get the ada dimension of 'Value' we use 
 'Ledger.Ada.fromValue'. Plutus contract authors will be able to define modules
 similar to 'Ledger.Ada' for their own currencies.
 
 -}
-
+   
 type CurrencyMap v = [(CurrencySymbol, v)]
 
 cmap :: Q (TExp ((v -> w) -> CurrencyMap v -> CurrencyMap w))
-cmap = [||
+cmap = [|| 
     \f ->
         let go [] = []
             go ((c, i):xs') = (c, f i) : go xs'
@@ -84,9 +84,9 @@ cmap = [||
     ||]
 
 lookup :: Q (TExp (CurrencySymbol -> CurrencyMap v -> Maybe v))
-lookup = [||
-    \(CurrencySymbol cur) xs ->
-        let
+lookup = [|| 
+    \(CurrencySymbol cur) xs -> 
+        let 
             go :: [(CurrencySymbol, v)] -> Maybe v
             go []                          = Nothing
             go ((CurrencySymbol c, i):xs') = if $$(P.eq) c cur then Just i else go xs'
@@ -95,8 +95,8 @@ lookup = [||
 
 -- | How much of a given currency is in a 'Value'
 valueOf :: Q (TExp (Value -> CurrencySymbol -> Int))
-valueOf = [||
-  \(Value xs) cur ->
+valueOf = [|| 
+  \(Value xs) cur -> 
       case $$(lookup) cur xs of
         Nothing -> 0 :: Int
         Just i  -> i
@@ -105,17 +105,17 @@ valueOf = [||
 data These a b = This a | That b | These a b
 
 these :: Q (TExp (a -> b -> (a -> b -> c) -> These a b -> c))
-these = [||
-    \a' b' f -> \case
+these = [|| 
+    \a' b' f -> \case 
         This a -> f a b'
         That b -> f a' b
         These a b -> f a b
     ||]
 
 union :: Q (TExp (CurrencyMap a -> CurrencyMap b -> CurrencyMap (These a b)))
-union = [||
-    \ls rs ->
-        let
+union = [|| 
+    \ls rs -> 
+        let 
             f a b' = case b' of
                 Nothing -> This a
                 Just b  -> These a b
@@ -130,8 +130,8 @@ singleton = [|| \c i -> Value [(c, i)] ||]
 
 unionWith :: Q (TExp ((Int -> Int -> Int) -> Value -> Value -> Value))
 unionWith = [||
-  \f (Value ls) (Value rs) ->
-    let
+  \f (Value ls) (Value rs) -> 
+    let 
         combined = $$(union) ls rs
         unThese k = case k of
             This a    -> f a 0
@@ -167,41 +167,41 @@ isZero :: Q (TExp (Value -> Bool))
 isZero = [|| \(Value xs) -> $$(P.all) (\(_, i) -> $$(P.eq) 0 i) xs ||]
 
 geq :: Q (TExp (Value -> Value -> Bool))
-geq = [||
-  \(Value ls) (Value rs) ->
-    let
+geq = [|| 
+  \(Value ls) (Value rs) -> 
+    let 
         p = $$(these) 0 0 $$(P.geq)
     in
       $$(all) p ($$(union) ls rs) ||]
 
 gt :: Q (TExp (Value -> Value -> Bool))
-gt = [||
-    \(Value ls) (Value rs) ->
-    let
+gt = [|| 
+    \(Value ls) (Value rs) -> 
+    let 
         p = $$(these) 0 0 $$(P.gt)
     in
         $$(all) p ($$(union) ls rs) ||]
 
 leq :: Q (TExp (Value -> Value -> Bool))
-leq = [||
-    \(Value ls) (Value rs) ->
-    let
+leq = [|| 
+    \(Value ls) (Value rs) -> 
+    let 
         p = $$(these) 0 0 $$(P.leq)
     in
         $$(all) p ($$(union) ls rs) ||]
 
 lt :: Q (TExp (Value -> Value -> Bool))
-lt = [||
-    \(Value ls) (Value rs) ->
-        let
+lt = [|| 
+    \(Value ls) (Value rs) -> 
+        let 
             p = $$(these) 0 0 $$(P.lt)
         in
         $$(all) p ($$(union) ls rs) ||]
 
 eq :: Q (TExp (Value -> Value -> Bool))
-eq = [||
-    \(Value ls) (Value rs) ->
-    let
+eq = [|| 
+    \(Value ls) (Value rs) -> 
+    let 
         p = $$(these) 0 0 $$(P.eq)
     in
         $$(all) p ($$(union) ls rs) ||]

@@ -2,15 +2,7 @@
   "Right": {
     "warnings": [],
     "result": {
-      "knownCurrencies": [
-        {
-          "hash": "5fff",
-          "friendlyName": "MyCurrency",
-          "knownTokens": [
-            "MyToken"
-          ]
-        }
-      ],
+      "knownCurrencies": [],
       "functionSchema": [
         {
           "argumentSchema": [

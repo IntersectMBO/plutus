@@ -3,61 +3,19 @@
     {
       "tag": "SlotAdd",
       "contents": {
-        "getSlot": 11
-      }
-    },
-    {
-      "tag": "SlotAdd",
-      "contents": {
-        "getSlot": 10
-      }
-    },
-    {
-      "tag": "SlotAdd",
-      "contents": {
-        "getSlot": 9
-      }
-    },
-    {
-      "tag": "SlotAdd",
-      "contents": {
-        "getSlot": 8
-      }
-    },
-    {
-      "tag": "SlotAdd",
-      "contents": {
-        "getSlot": 7
-      }
-    },
-    {
-      "tag": "SlotAdd",
-      "contents": {
-        "getSlot": 6
-      }
-    },
-    {
-      "tag": "SlotAdd",
-      "contents": {
-        "getSlot": 5
-      }
-    },
-    {
-      "tag": "SlotAdd",
-      "contents": {
-        "getSlot": 4
-      }
-    },
-    {
-      "tag": "SlotAdd",
-      "contents": {
-        "getSlot": 3
-      }
-    },
-    {
-      "tag": "SlotAdd",
-      "contents": {
         "getSlot": 2
+      }
+    },
+    {
+      "tag": "TxnValidate",
+      "contents": {
+        "getTxId": "9f189318eb0d183a18cd18581618bd18cb18901891187718c318ba1840188618a9186218f918ab183c18a418f6187b1838185a1864185e18aa0e031870ff"
+      }
+    },
+    {
+      "tag": "TxnSubmit",
+      "contents": {
+        "getTxId": "9f189318eb0d183a18cd18581618bd18cb18901891187718c318ba1840188618a9186218f918ab183c18a418f6187b1838185a1864185e18aa0e031870ff"
       }
     },
     {
@@ -74,16 +32,93 @@
     }
   ],
   "resultBlockchain": [
-    [],
-    [],
-    [],
-    [],
-    [],
-    [],
-    [],
-    [],
-    [],
-    [],
+    [
+      [
+        {
+          "getTxId": "9f189318eb0d183a18cd18581618bd18cb18901891187718c318ba1840188618a9186218f918ab183c18a418f6187b1838185a1864185e18aa0e031870ff"
+        },
+        {
+          "txInputs": [
+            {
+              "txInType": {
+                "tag": "ConsumePublicKeyAddress",
+                "contents": {
+                  "getSignature": 1
+                }
+              },
+              "txInRef": {
+                "txOutRefIdx": 0,
+                "txOutRefId": {
+                  "getTxId": "9f182d188618b80518ac18a918ee06189d18d418ba18af185918e018d818231868186d182b18d018b41866182218fe189e18c618b8181b14184d181e18ffff"
+                }
+              }
+            }
+          ],
+          "txFee": {
+            "getAda": 0
+          },
+          "txValidRange": {
+            "ivTo": {
+              "getSlot": 50
+            },
+            "ivFrom": {
+              "getSlot": 0
+            }
+          },
+          "txForge": {
+            "getValue": []
+          },
+          "txOutputs": [
+            {
+              "txOutValue": {
+                "getValue": [
+                  [
+                    1000,
+                    5
+                  ],
+                  [
+                    1005,
+                    3
+                  ]
+                ]
+              },
+              "txOutAddress": {
+                "getAddress": "9f181c18c318ad18ea184018eb18fd18941843183a18c0041877187d1868150c18ce189d18b418c7187118bc187d18e118b2189718a718b7189518bb18baff"
+              },
+              "txOutType": {
+                "tag": "PayToPubKey",
+                "contents": {
+                  "getPubKey": 2
+                }
+              }
+            },
+            {
+              "txOutValue": {
+                "getValue": [
+                  [
+                    1000,
+                    5
+                  ],
+                  [
+                    1005,
+                    17
+                  ]
+                ]
+              },
+              "txOutAddress": {
+                "getAddress": "9f189c1218cf18dc0418c71845188418d7188718ac183d182318771821183218c11885182418bc187a18b2188d18ec1842181918b818fc185b1842185f1870ff"
+              },
+              "txOutType": {
+                "tag": "PayToPubKey",
+                "contents": {
+                  "getPubKey": 1
+                }
+              }
+            }
+          ]
+        }
+      ]
+    ],
     [
       [
         {
@@ -167,26 +202,12 @@
   "resultGraph": {
     "flowGraphNodes": [
       "2d86b805",
-      "utxo 2d86b805 0",
-      "utxo 2d86b805 1"
+      "93eb0d3a",
+      "utxo 2d86b805 1",
+      "utxo 93eb0d3a 0",
+      "utxo 93eb0d3a 1"
     ],
     "flowGraphLinks": [
-      {
-        "flowLinkOwner": {
-          "tag": "PubKeyOwner",
-          "contents": {
-            "getPubKey": 1
-          }
-        },
-        "flowLinkValue": 0,
-        "flowLinkSourceLoc": {
-          "utxoLocBlock": 1,
-          "utxoLocBlockIdx": 1
-        },
-        "flowLinkSource": "2d86b805",
-        "flowLinkTargetLoc": null,
-        "flowLinkTarget": "utxo 2d86b805 0"
-      },
       {
         "flowLinkOwner": {
           "tag": "PubKeyOwner",
@@ -202,6 +223,57 @@
         "flowLinkSource": "2d86b805",
         "flowLinkTargetLoc": null,
         "flowLinkTarget": "utxo 2d86b805 1"
+      },
+      {
+        "flowLinkOwner": {
+          "tag": "PubKeyOwner",
+          "contents": {
+            "getPubKey": 2
+          }
+        },
+        "flowLinkValue": 0,
+        "flowLinkSourceLoc": {
+          "utxoLocBlock": 2,
+          "utxoLocBlockIdx": 1
+        },
+        "flowLinkSource": "93eb0d3a",
+        "flowLinkTargetLoc": null,
+        "flowLinkTarget": "utxo 93eb0d3a 0"
+      },
+      {
+        "flowLinkOwner": {
+          "tag": "PubKeyOwner",
+          "contents": {
+            "getPubKey": 1
+          }
+        },
+        "flowLinkValue": 0,
+        "flowLinkSourceLoc": {
+          "utxoLocBlock": 2,
+          "utxoLocBlockIdx": 1
+        },
+        "flowLinkSource": "93eb0d3a",
+        "flowLinkTargetLoc": null,
+        "flowLinkTarget": "utxo 93eb0d3a 1"
+      },
+      {
+        "flowLinkOwner": {
+          "tag": "PubKeyOwner",
+          "contents": {
+            "getPubKey": 1
+          }
+        },
+        "flowLinkValue": 0,
+        "flowLinkSourceLoc": {
+          "utxoLocBlock": 1,
+          "utxoLocBlockIdx": 1
+        },
+        "flowLinkSource": "2d86b805",
+        "flowLinkTargetLoc": {
+          "utxoLocBlock": 2,
+          "utxoLocBlockIdx": 1
+        },
+        "flowLinkTarget": "93eb0d3a"
       }
     ]
   },
@@ -211,11 +283,11 @@
         "getValue": [
           [
             1000,
-            10
+            5
           ],
           [
             1005,
-            20
+            17
           ]
         ]
       },
@@ -228,11 +300,11 @@
         "getValue": [
           [
             1000,
-            10
+            15
           ],
           [
             1005,
-            20
+            23
           ]
         ]
       },
