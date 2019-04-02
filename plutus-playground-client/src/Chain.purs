@@ -35,7 +35,7 @@ import Ledger.Tx (TxIdOf(TxIdOf))
 import Ledger.Value.TH (CurrencySymbol)
 import Playground.API (EvaluationResult(EvaluationResult), SimulatorWallet)
 import Prelude (class Monad, Unit, discard, map, show, unit, ($), (<$>), (<<<), (<>), (==))
-import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, Query(HandleBalancesChartMessage), _simulatorWalletBalance, _simulatorWalletWallet, _value, _walletId, cpBalancesChart)
+import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, Query(HandleBalancesChartMessage), _simulatorWalletBalance, _simulatorWalletWallet, _value, _walletId, cpBalancesChart, _unMap)
 import Wallet.Emulator.Types (EmulatorEvent(..), Wallet(..))
 import Wallet.Graph (FlowGraph(FlowGraph), FlowLink(FlowLink), TxRef(TxRef))
 
@@ -209,6 +209,7 @@ balancesChartOptions wallets = do
       $ toListOf (traversed
                   <<< _simulatorWalletBalance
                   <<< _value
+                  <<< _unMap
                   <<< traversed
                   <<< _1) wallets
 
@@ -224,6 +225,7 @@ currencySeries wallets target =
       $ toListOf (traversed
                   <<< _simulatorWalletBalance
                   <<< _value
+                  <<< _unMap
                   <<< traversed
                   <<< filtered ((==) target <<< fst)
                   <<< _2
