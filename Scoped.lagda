@@ -160,6 +160,11 @@ velemIndexWeird x (consS x' xs) | yes p = just Z
 velemIndexWeird x (consS _  xs) | no ¬p = map S (velemIndexWeird x xs)
 velemIndexWeird x (consT _  xs) = map T (velemIndexWeird x xs)
 
+lookupWeird  : ∀{n X} → WeirdVec X n → WeirdFin n → X
+lookupWeird (consS x xs) Z = x
+lookupWeird (consS x xs) (S i) = lookupWeird xs i
+lookupWeird (consT x xs) (T i) = lookupWeird xs i 
+
 -- this could return a proof that that something is out of bounds
 checkSize : RawTermCon → Maybe (SizedTermCon)
 checkSize (integer s i) with boundedI? s i
@@ -379,6 +384,31 @@ unDeBruijnify i⋆ i (wrap A B t) =
   wrap (unDeBruijnify⋆ i⋆ A) (unDeBruijnify⋆ i⋆ B) (unDeBruijnify i⋆ i t)
 unDeBruijnify i⋆ i (unwrap t) = unwrap (unDeBruijnify i⋆ i t)
 \end{code}
+
+\begin{code}
+deDeBruijnify⋆ : ∀{n} → Vec String n → ScopedTy n → RawTy
+deDeBruijnify⋆ xs (` x) = ` (Data.Vec.lookup xs x)
+deDeBruijnify⋆ xs (t ⇒ u) = deDeBruijnify⋆ xs t ⇒ deDeBruijnify⋆ xs u
+deDeBruijnify⋆ xs (Π x K t) = Π x (unDeBruijnifyK K) (deDeBruijnify⋆ (x ∷ xs) t)
+deDeBruijnify⋆ xs (ƛ x K t) = ƛ x (unDeBruijnifyK K) (deDeBruijnify⋆ (x ∷ xs) t)
+deDeBruijnify⋆ xs (t · u) = deDeBruijnify⋆ xs t · deDeBruijnify⋆ xs u
+deDeBruijnify⋆ xs (con x) = con x
+deDeBruijnify⋆ xs (size x) = size x
+deDeBruijnify⋆ xs (μ t u) = μ (deDeBruijnify⋆ xs t) (deDeBruijnify⋆ xs u)
+
+deDeBruijnify : ∀{n} → Vec String ∥ n ∥ → WeirdVec String n → ScopedTm n → RawTm
+deDeBruijnify xs⋆ xs (` x) = ` (lookupWeird xs x)
+deDeBruijnify xs⋆ xs (Λ x K t) = Λ x (unDeBruijnifyK K) (deDeBruijnify (x ∷ xs⋆) (consT x xs) t) -- surprised x goes on both
+deDeBruijnify xs⋆ xs (t ·⋆ A) = deDeBruijnify xs⋆ xs t ·⋆ deDeBruijnify⋆ xs⋆ A 
+deDeBruijnify xs⋆ xs (ƛ x A t) = ƛ x (deDeBruijnify⋆ xs⋆ A) (deDeBruijnify xs⋆ (consS x xs) t)
+deDeBruijnify xs⋆ xs (t · u) = deDeBruijnify xs⋆ xs t · deDeBruijnify xs⋆ xs u 
+deDeBruijnify xs⋆ xs (con x) = con (unDeBruijnifyC x)
+deDeBruijnify xs⋆ xs (error x) = error (deDeBruijnify⋆ xs⋆ x)
+deDeBruijnify xs⋆ xs (builtin x _ _) = builtin x
+deDeBruijnify xs⋆ xs (wrap A B t) = wrap (deDeBruijnify⋆ xs⋆ A) (deDeBruijnify⋆ xs⋆ B) (deDeBruijnify xs⋆ xs t)
+deDeBruijnify xs⋆ xs (unwrap t) = unwrap (deDeBruijnify xs⋆ xs t)
+\end{code}
+
 
 -- UGLY PRINTING
 

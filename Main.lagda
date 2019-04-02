@@ -99,6 +99,7 @@ postulate prettyPrint : RawTm → String
 
 {-# COMPILE GHC prettyPrint = prettyText . unconv #-}
 
+open import Data.Vec hiding (_>>=_)
 
 -- extrinsically typed evaluation
 stestPLC : ByteString → String
@@ -106,7 +107,8 @@ stestPLC plc with parse plc
 stestPLC plc | just t with deBruijnifyTm nil (convP t)
 stestPLC plc | just t | just t' with S.run (saturate t') 100
 stestPLC plc | just t | just t' | t'' ,, p ,, inj₁ (just v) =
-  prettyPrint (unDeBruijnify zero Z (unsaturate t''))
+--  prettyPrint (unDeBruijnify zero Z (unsaturate t''))
+ prettyPrint (deDeBruijnify [] nil (unsaturate t''))
 stestPLC plc | just t | just t' | t'' ,, p ,, inj₁ nothing = "out of fuel"
 stestPLC plc | just t | just t' | t'' ,, p ,, inj₂ e = "runtime error"
 stestPLC plc | just t | nothing = "scope error"
