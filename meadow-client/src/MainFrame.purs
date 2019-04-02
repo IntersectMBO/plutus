@@ -658,7 +658,7 @@ mainTabBar activeView = navTabs_ (mkTab <$> tabs)
            ]
       else []
 
-resultPane :: forall p i. FrontendState -> HTML p (Query Unit)
+resultPane :: forall p. FrontendState -> HTML p (Query Unit)
 resultPane state = case state.compilationResult of
     Success (Right (InterpreterResult result)) ->
       listGroup_
