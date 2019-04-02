@@ -6,8 +6,8 @@ open import Agda.Builtin.String
 
 open import Type
 open import Type.BetaNormal
-open import Algorithmic.Term
-open import Algorithmic.Term.Reduction
+open import Algorithmic
+open import Algorithmic.Reduction
 
 open import Algorithmic.Evaluation
 open import Builtin

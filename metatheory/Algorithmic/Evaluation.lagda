@@ -7,8 +7,8 @@ module Algorithmic.Evaluation where
 \begin{code}
 open import Type
 open import Type.BetaNormal
-open import Algorithmic.Term
-open import Algorithmic.Term.Reduction
+open import Algorithmic
+open import Algorithmic.Reduction
 \end{code}
 
 ## Evaluation

@@ -45,9 +45,9 @@ import Main
 -- Terms, reduction and evaluation where terms are indexed by normal
 -- types
 
-import Algorithmic.Term
-import Algorithmic.Term.RenamingSubstitution
-import Algorithmic.Term.Reduction
+import Algorithmic
+import Algorithmic.RenamingSubstitution
+import Algorithmic.Reduction
 import Algorithmic.Evaluation
 --import Algorithmic.Examples
 import Algorithmic.Main

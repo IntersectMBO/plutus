@@ -4,7 +4,7 @@ module Algorithmic.Soundness where
 open import Type
 open import Type.RenamingSubstitution
 import Declarative as Syn
-import Algorithmic.Term as Norm
+import Algorithmic as Norm
 open import Type.BetaNormal
 open import Type.Equality
 open import Type.BetaNBE

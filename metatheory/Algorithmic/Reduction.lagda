@@ -1,5 +1,5 @@
 \begin{code}
-module Algorithmic.Term.Reduction where
+module Algorithmic.Reduction where
 \end{code}
 
 ## Imports
@@ -18,8 +18,8 @@ open import Data.List hiding ([_]; take; drop)
 import Data.Bool as Bool
 open import Data.Nat hiding (_<_; _≤?_; _^_; _+_; _≟_)
 open import Type
-open import Algorithmic.Term
-open import Algorithmic.Term.RenamingSubstitution
+open import Algorithmic
+open import Algorithmic.RenamingSubstitution
 open import Type.BetaNBE
 open import Type.BetaNBE.Stability
 open import Type.BetaNBE.RenamingSubstitution
