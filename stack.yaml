@@ -14,6 +14,7 @@ packages:
 - plutus-playground-server
 - plutus-playground-lib
 - plutus-tutorial
+- plutus-validation-server
 
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - location:

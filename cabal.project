@@ -11,6 +11,7 @@ packages: language-plutus-core
           plutus-tutorial
           interpreter
           meadow
+          plutus-validation-server
 with-compiler: ghc-8.4.4
 optimization: 2
 constraints: language-plutus-core +development
