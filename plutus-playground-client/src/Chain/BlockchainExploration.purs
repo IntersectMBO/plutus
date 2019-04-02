@@ -12,6 +12,7 @@ import Data.Maybe (Maybe(..), fromJust, maybe)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String as String
+import Data.String.Extra (abbreviate)
 import Data.Tuple (Tuple(Tuple), fst, snd)
 import Data.Tuple.Nested (tuple3, (/\))
 import Halogen (HTML)
@@ -23,7 +24,7 @@ import Ledger.Crypto (PubKey(PubKey), Signature(Signature))
 import Ledger.Tx (Tx(Tx), TxIdOf(TxIdOf), TxInOf(TxInOf), TxInType(..), TxOutOf(TxOutOf), TxOutRefOf(TxOutRefOf), TxOutType(..))
 import Ledger.Value.TH (CurrencySymbol(..), Value(..))
 import Partial.Unsafe (unsafePartial)
-import Prelude (class Eq, class Ord, class Show, map, show, (#), ($), (+), (<#>), (<$>), (<*>), (<<<), (<=), (<>), (==))
+import Prelude (class Eq, class Ord, class Show, map, show, (#), ($), (+), (<#>), (<$>), (<*>), (<<<), (<>), (==))
 import Types (Blockchain)
 
 type SlotId = Int
@@ -100,12 +101,6 @@ blockchainExploration blockchain =
     columnSubheading ForgeIx = ""
     columnSubheading (OwnerIx owner hash) = "Tx/" <> abbreviate hash
     columnSubheading (ScriptIx owner hash) = "Tx/" <> abbreviate hash
-
-    abbreviate :: String -> String
-    abbreviate str =
-      if String.length str <= 7
-      then str
-      else String.take 10 str <> "..."
 
     matchCount :: Column -> Int
     matchCount owner = Array.length $ Array.filter (isOwner owner) $ Set.toUnfoldable columns
