@@ -82,7 +82,7 @@ postulate
 {-# COMPILE GHC showTerm = T.pack . show #-}
 open import Function
 
-open import Untyped.Term as U
+open import Untyped as U
 import Untyped.Reduction as U
 import Scoped as S
 import Scoped.Reduction as S

@@ -58,4 +58,17 @@ import Algorithmic.Completeness
 
 import AlgorithmicRed.Term
 import AlgorithmicRed.Term.RenamingSubstitution
+
+-- Untyped terms, reduction and evaluation
+
+import Untyped
+import Untyped.RenamingSubstitution
+import Untyped.Reduction
+
+-- Extrinsically typed terms, reduction and evaluation
+
+import Scoped
+import Scoped.RenamingSubstitution
+import Scoped.Reduction
+
 \end{code}

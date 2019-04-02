@@ -1,5 +1,5 @@
 \begin{code}
-module Untyped.Term where
+module Untyped where
 \end{code}
 
 \begin{code}
