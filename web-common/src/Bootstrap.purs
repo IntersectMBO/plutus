@@ -97,6 +97,9 @@ col10_ = div [ classes [ col, col10 ] ]
 offset3 :: ClassName
 offset3 = ClassName "offset-3"
 
+offset6 :: ClassName
+offset6 = ClassName "offset-6"
+
 card :: ClassName
 card = ClassName "card"
 
