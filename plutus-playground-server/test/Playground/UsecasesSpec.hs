@@ -41,7 +41,7 @@ spec = do
     knownCurrencySpec
 
 maxInterpretationTime :: Microsecond
-maxInterpretationTime = fromMicroseconds 5000000
+maxInterpretationTime = fromMicroseconds 10000000
 
 vestingSpec :: Spec
 vestingSpec =
