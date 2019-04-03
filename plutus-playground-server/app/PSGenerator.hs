@@ -35,16 +35,15 @@ import           Language.PureScript.Bridge                (BridgePart, Language
                                                             psTypeParameters, typeModule, typeName, writePSTypes, (^==))
 import           Language.PureScript.Bridge.Builder        (BridgeData)
 import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psString)
-import           Language.PureScript.Bridge.TypeParameters (A, B)
+import           Language.PureScript.Bridge.TypeParameters (A)
 import           Ledger                                    (AddressOf, DataScript, PubKey, RedeemerScript, Signature,
                                                             Tx, TxIdOf, TxInOf, TxInType, TxOutOf, TxOutRefOf,
                                                             TxOutType, ValidatorScript)
 import           Ledger.Ada                                (Ada)
 import           Ledger.Index                              (ValidationError)
 import           Ledger.Interval                           (Interval)
-import           Ledger.Map.TH                             (Map)
 import           Ledger.Slot                               (Slot)
-import           Ledger.Value.TH                           (CurrencySymbol)
+import           Ledger.Value.TH                           (CurrencySymbol, Value)
 import           Playground.API                            (CompilationResult, Evaluation, EvaluationResult, Expression,
                                                             Fn, FunctionSchema, KnownCurrency, SimpleArgumentSchema,
                                                             SimulatorWallet, TokenId)
@@ -64,8 +63,10 @@ psNonEmpty =
     TypeInfo "purescript-lists" "Data.List.NonEmpty" "NonEmptyList" <$>
     psTypeParameters
 
-psLedgerValue :: PSType
-psLedgerValue = TypeInfo "plutus-playground-client" "Ledger.Extra" "Value" []
+psLedgerMap :: MonadReader BridgeData m => m PSType
+psLedgerMap =
+    TypeInfo "plutus-playground-client" "Ledger.Extra" "LedgerMap" <$>
+    psTypeParameters
 
 psJson :: PSType
 psJson = TypeInfo "" "Data.RawJson" "RawJson" []
@@ -75,11 +76,11 @@ integerBridge = do
     typeName ^== "Integer"
     pure psInt
 
-ledgerValueBridge :: BridgePart
-ledgerValueBridge = do
-    typeName ^== "Value"
-    typeModule ^== "Ledger.Value.TH"
-    pure psLedgerValue
+ledgerMapBridge :: BridgePart
+ledgerMapBridge = do
+    typeName ^== "Map"
+    typeModule ^== "Ledger.Map.TH"
+    psLedgerMap
 
 scientificBridge :: BridgePart
 scientificBridge = do
@@ -159,7 +160,7 @@ nonEmptyBridge = do
 
 myBridge :: BridgePart
 myBridge =
-    defaultBridge <|> integerBridge <|> ledgerValueBridge <|> scientificBridge <|>
+    defaultBridge <|> integerBridge <|> ledgerMapBridge <|> scientificBridge <|>
     aesonBridge <|>
     setBridge <|>
     digestBridge <|>
@@ -226,14 +227,12 @@ myTypes =
     , mkSumType (Proxy @NewGist)
     , mkSumType (Proxy @NewGistFile)
     , mkSumType (Proxy @Owner)
+    , (equal <*> mkSumType) (Proxy @Value)
     , (equal <*> (order <*> mkSumType)) (Proxy @CurrencySymbol)
     , (equal <*> (order <*> mkSumType)) (Proxy @TokenId)
     , mkSumType (Proxy @KnownCurrency)
     , mkSumType (Proxy @InterpreterError)
     , mkSumType (Proxy @(InterpreterResult A))
-    -- Note: You cannot generate `equal` for this map. (Or if you do,
-    -- it will be order-dependent, which probably isn't what you want.
-    , mkSumType (Proxy @(Map A B))
     ]
 
 mySettings :: Settings

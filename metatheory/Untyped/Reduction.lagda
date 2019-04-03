@@ -3,7 +3,7 @@ module Untyped.Reduction where
 \end{code}
 
 \begin{code}
-open import Untyped.Term
+open import Untyped
 open import Untyped.RenamingSubstitution
 open import Builtin
 

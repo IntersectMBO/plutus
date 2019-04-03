@@ -1,26 +1,29 @@
-module BridgeTests
+module AjaxUtilsTests
        ( all
        ) where
 
 import Prelude
 
-import AjaxUtils (decodeJson)
+import AjaxUtils (decodeJson, encodeJson)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Random (RANDOM)
 import Data.Argonaut.Core as Argonaut
 import Data.Either (Either(..))
 import Data.List (List)
 import Data.List.Types (NonEmptyList)
+import Data.Tuple (Tuple(..))
 import Language.Haskell.Interpreter (CompilationError, InterpreterError, InterpreterResult)
+import Ledger.Extra (LedgerMap(..))
+import Ledger.Value.TH (CurrencySymbol(..), Value(..))
 import Node.FS (FS)
 import Playground.API (CompilationResult, EvaluationResult, KnownCurrency, TokenId)
 import Test.Unit (TestSuite, suite, test)
-import TestUtils (assertDecodesTo, equalGShow)
+import TestUtils (assertDecodesTo, assertEncodesTo, equalGShow)
 import Type.Proxy (Proxy(..))
 
 all :: forall eff. TestSuite (exception :: EXCEPTION, fs :: FS, random :: RANDOM | eff)
 all =
-  suite "Bridge" do
+  suite "AjaxUtils" do
     jsonHandling
 
 jsonHandling :: forall eff. TestSuite (exception :: EXCEPTION, fs :: FS, random :: RANDOM | eff)
@@ -54,3 +57,17 @@ jsonHandling = do
         assertDecodesTo
           (Proxy :: Proxy (Array CompilationError))
           "test/evaluation_error1.json"
+      test "Decode/Encode a Value" do
+        let aValue = Value { getValue: LedgerMap [ Tuple (CurrencySymbol 0) 10
+                                                 , Tuple (CurrencySymbol 1) 20
+                                                 ]}
+        equalGShow (Right aValue)
+          (decodeJson (encodeJson aValue))
+      test "Encode a Value." do
+        let aValue = Value { getValue: LedgerMap [ Tuple (CurrencySymbol 0) 100
+                                                 , Tuple (CurrencySymbol 1) 40
+                                                 , Tuple (CurrencySymbol 2) 40
+                                                 ]}
+        assertEncodesTo
+          aValue
+          "test/value1.json"

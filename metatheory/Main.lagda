@@ -16,11 +16,6 @@ open import Builtin
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆
 open import Builtin.Signature
-open import Declarative.Term
-open import Declarative.Evaluation
-open import Declarative.Term.Reduction
-
---open import Declarative.Examples
 
 open import Agda.Builtin.TrustMe
 open import Relation.Binary.PropositionalEquality
@@ -82,7 +77,7 @@ postulate
 {-# COMPILE GHC showTerm = T.pack . show #-}
 open import Function
 
-open import Untyped.Term as U
+open import Untyped as U
 import Untyped.Reduction as U
 import Scoped as S
 import Scoped.Reduction as S

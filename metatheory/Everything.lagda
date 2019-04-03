@@ -29,9 +29,9 @@ import Builtin.Signature
 import Builtin.Constant.Type
 import Builtin.Constant.Term
 
-import Declarative.Term
-import Declarative.Term.RenamingSubstitution
-import Declarative.Term.Reduction
+import Declarative
+import Declarative.RenamingSubstitution
+import Declarative.Reduction
 import Declarative.Evaluation
 
 --import Declarative.Examples
@@ -45,9 +45,9 @@ import Main
 -- Terms, reduction and evaluation where terms are indexed by normal
 -- types
 
-import Algorithmic.Term
-import Algorithmic.Term.RenamingSubstitution
-import Algorithmic.Term.Reduction
+import Algorithmic
+import Algorithmic.RenamingSubstitution
+import Algorithmic.Reduction
 import Algorithmic.Evaluation
 --import Algorithmic.Examples
 import Algorithmic.Main
@@ -58,4 +58,17 @@ import Algorithmic.Completeness
 
 import AlgorithmicRed.Term
 import AlgorithmicRed.Term.RenamingSubstitution
+
+-- Untyped terms, reduction and evaluation
+
+import Untyped
+import Untyped.RenamingSubstitution
+import Untyped.Reduction
+
+-- Extrinsically typed terms, reduction and evaluation
+
+import Scoped
+import Scoped.RenamingSubstitution
+import Scoped.Reduction
+
 \end{code}

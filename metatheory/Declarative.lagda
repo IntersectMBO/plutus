@@ -1,5 +1,5 @@
 \begin{code}
-module Declarative.Term where
+module Declarative where
 \end{code}
 
 ## Imports

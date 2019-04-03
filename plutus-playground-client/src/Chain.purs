@@ -30,12 +30,13 @@ import Halogen.ECharts (EChartsEffects, echarts)
 import Halogen.HTML (ClassName(ClassName), br_, div, div_, h2_, slot', text)
 import Halogen.HTML.Events (input)
 import Halogen.HTML.Properties (class_)
+import Ledger.Extra (_LedgerMap)
 import Ledger.Slot (Slot(..))
 import Ledger.Tx (TxIdOf(TxIdOf))
 import Ledger.Value.TH (CurrencySymbol)
 import Playground.API (EvaluationResult(EvaluationResult), SimulatorWallet)
 import Prelude (class Monad, Unit, discard, map, show, unit, ($), (<$>), (<<<), (<>), (==))
-import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, Query(HandleBalancesChartMessage), _simulatorWalletBalance, _simulatorWalletWallet, _value, _walletId, cpBalancesChart, _unMap)
+import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, Query(HandleBalancesChartMessage), _simulatorWalletBalance, _simulatorWalletWallet, _value, _walletId, cpBalancesChart)
 import Wallet.Emulator.Types (EmulatorEvent(..), Wallet(..))
 import Wallet.Graph (FlowGraph(FlowGraph), FlowLink(FlowLink), TxRef(TxRef))
 
@@ -209,7 +210,7 @@ balancesChartOptions wallets = do
       $ toListOf (traversed
                   <<< _simulatorWalletBalance
                   <<< _value
-                  <<< _unMap
+                  <<< _LedgerMap
                   <<< traversed
                   <<< _1) wallets
 
@@ -225,7 +226,7 @@ currencySeries wallets target =
       $ toListOf (traversed
                   <<< _simulatorWalletBalance
                   <<< _value
-                  <<< _unMap
+                  <<< _LedgerMap
                   <<< traversed
                   <<< filtered ((==) target <<< fst)
                   <<< _2

@@ -12,7 +12,7 @@ module Gists
 import AjaxUtils (ajaxErrorPane)
 import AjaxUtils as AjaxUtils
 import Auth (AuthRole(..), authStatusAuthRole)
-import Bootstrap (btn, btnBlock, btnDanger, btnInfo, btnPrimary, btnSmall, col6_, col_, empty, formControl, isInvalid, isValid, nbsp, row_)
+import Bootstrap (btn, btnBlock, btnDanger, btnInfo, btnPrimary, btnSmall, col6_, col_, empty, formControl, isInvalid, isValid, nbsp, offset6, row_)
 import Cursor (Cursor)
 import DOM.HTML.Indexed.InputType (InputType(..))
 import Data.Argonaut.Core (stringify)
@@ -87,13 +87,13 @@ gistControls (State {authStatus, createGistResult, gistUrl}) =
         Failure _ ->
           button
             [ idPublishGist
-            , classes [ btn, btnBlock, btnDanger ]
+            , classes [ btn, btnDanger, offset6 ]
             ]
             [ text "Failure" ]
         Success Anonymous ->
           a
             [ idPublishGist
-            , classes [ btn, btnBlock, btnInfo ]
+            , classes [ btn, btnInfo, offset6 ]
             , href "/api/oauth/github"
             ]
             [ icon Github
@@ -104,14 +104,14 @@ gistControls (State {authStatus, createGistResult, gistUrl}) =
         Loading ->
           button
             [ idPublishGist
-            , classes [ btn, btnBlock, btnInfo ]
+            , classes [ btn, btnInfo, offset6 ]
             , disabled true
             ]
             [ icon Spinner ]
         NotAsked ->
           button
             [ idPublishGist
-            , classes [ btn, btnBlock, btnInfo ]
+            , classes [ btn, btnInfo, offset6 ]
             , disabled true
             ]
             [ icon Spinner ]
