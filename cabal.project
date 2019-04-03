@@ -22,6 +22,7 @@ constraints: language-plutus-core +development
            , plutus-playground-server +development
            , plutus-playground-lib +development
 max-backjumps: 40000
+write-ghc-environment-files: never
 tests: true
 benchmarks: true
 documentation: true
