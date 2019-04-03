@@ -30,7 +30,9 @@ executable plutus-validation-server
         wai,
         language-plutus-core,
         bytestring,
-        http-types
+        http-types,
+        aeson,
+        base64-bytestring-type
 
     if flag(development)
         ghc-options: -Werror
