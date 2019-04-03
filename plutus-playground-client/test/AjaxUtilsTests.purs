@@ -1,4 +1,4 @@
-module BridgeTests
+module AjaxUtilsTests
        ( all
        ) where
 
@@ -20,7 +20,7 @@ import Type.Proxy (Proxy(..))
 
 all :: forall eff. TestSuite (exception :: EXCEPTION, fs :: FS, random :: RANDOM | eff)
 all =
-  suite "Bridge" do
+  suite "AjaxUtils" do
     jsonHandling
 
 jsonHandling :: forall eff. TestSuite (exception :: EXCEPTION, fs :: FS, random :: RANDOM | eff)
