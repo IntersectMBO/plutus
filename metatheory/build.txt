@@ -1,5 +1,12 @@
-run alex on the Lexer and happy on the parser
+How to build plc-agda
 
-ghci -XScopedTypeVariables -XFlexibleContexts -XDeriveGeneric -XStandaloneDeriving -XDeriveLift -XGeneralizedNewtypeDeriving -XDeriveFunctor -XDeriveFoldable -XDeriveTraversable Parser.hs
+starting from the plutus root dir:
+```
+cd language-plutus-core
+cabal install
+cd ..
 
-agda --compile --ghc-flag=-XScopedTypeVariables --ghc-flag=-XFlexibleContexts --ghc-flag=-XDeriveGeneric --ghc-flag=-XStandaloneDeriving --ghc-flag=-XDeriveLift --ghc-flag=-XGeneralizedNewtypeDeriving --ghc-flag=-XDeriveFunctor --ghc-flag=-XDeriveFoldable --ghc-flag=-XDeriveTraversable
+cd metatheory
+agda --compile --ghc-dont-call-ghc Main.lagda
+cabal install
+```

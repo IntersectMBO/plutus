@@ -1,7 +1,7 @@
 module test.IntegerOverflow where
 
 open import Type
-open import Declarative.Term
+open import Declarative
 open import Builtin
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆

@@ -1,5 +1,5 @@
 \begin{code}
-module Untyped.Term where
+module Untyped where
 \end{code}
 
 \begin{code}
@@ -34,7 +34,7 @@ data _⊢ : ℕ → Set where
 
 \begin{code}
 open import Type
-open import Declarative.Term
+open import Declarative
 open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆ renaming (TermCon to TyTermCon)
 
 len : Ctx → ℕ

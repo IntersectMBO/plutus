@@ -4,7 +4,7 @@ module Declarative.StdLib.Unit where
 
 \begin{code}
 open import Type
-open import Declarative.Term
+open import Declarative
 \end{code}
 
 # Term Abbreviations

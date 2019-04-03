@@ -6,7 +6,7 @@ module Declarative.StdLib.Nat where
 open import Type
 open import Type.Equality
 import Type.RenamingSubstitution as ⋆
-open import Declarative.Term
+open import Declarative
 open import Declarative.StdLib.Function
 \end{code}
 

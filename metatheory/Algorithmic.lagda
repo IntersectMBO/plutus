@@ -1,5 +1,5 @@
 \begin{code}
-module Algorithmic.Term where
+module Algorithmic where
 \end{code}
 
 ## Imports

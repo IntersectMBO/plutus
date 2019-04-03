@@ -3,7 +3,7 @@ module Untyped.RenamingSubstitution where
 \end{code}
 
 \begin{code}
-open import Untyped.Term
+open import Untyped
 
 open import Data.Nat
 open import Data.Fin
