@@ -39,6 +39,7 @@ import           Ledger.Crypto
 import           Ledger.Blockchain
 import           Ledger.Scripts
 import           Ledger.Tx
+import           Ledger.TxId
 import           Ledger.Validation    (PendingTx (..))
 import qualified Ledger.Validation    as Validation
 import           Prelude              hiding (lookup)

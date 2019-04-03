@@ -70,7 +70,7 @@ import qualified Ledger.Ada.TH                as Ada
 import           Ledger.Crypto                (PubKey (..), Signature (..))
 import           Ledger.Scripts
 import           Ledger.Slot                  (Slot, SlotRange)
-import qualified Ledger.Tx                    as Tx
+import qualified Ledger.TxId                  as Tx
 import           Ledger.Value                 (Value)
 import           KeyBytes                     (KeyBytes(..))
 

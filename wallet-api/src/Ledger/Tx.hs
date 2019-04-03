@@ -11,8 +11,6 @@
 module Ledger.Tx(
     -- * Transactions
     Tx(..),
-    TxIdOf(..),
-    TxId,
     inputs,
     outputs,
     txOutRefs,

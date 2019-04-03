@@ -27,6 +27,7 @@ import qualified Ledger.Ada        as Ada
 import           Ledger.Blockchain
 import           Ledger.Crypto
 import           Ledger.Tx
+import           Ledger.TxId
 
 -- | The owner of an unspent transaction output.
 data UtxOwner

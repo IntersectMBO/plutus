@@ -12,8 +12,7 @@ import           Data.Foldable              (foldl')
 import qualified Data.Map                   as Map
 import qualified Data.Set                   as Set
 import qualified Data.Typeable              as T
-import           Ledger                     (Blockchain, PubKey (PubKey), Tx, TxOutOf (txOutValue))
-import qualified Ledger.Ada                 as Ada
+import           Ledger                     (Blockchain, Tx, TxOutOf (txOutValue))
 import qualified Ledger.Value               as V
 import           Playground.API             (PlaygroundError (OtherError), SimulatorWallet (SimulatorWallet),
                                              simulatorWalletBalance, simulatorWalletWallet)
@@ -37,7 +36,7 @@ runTrace ::
 runTrace wallets actions =
     let walletToBalance SimulatorWallet {..} =
             ( walletPubKey simulatorWalletWallet
-            , Ada.toValue simulatorWalletBalance)
+            , simulatorWalletBalance)
         initialBalance = Map.fromList $ fmap walletToBalance wallets
         pubKeys =
             Set.fromList $

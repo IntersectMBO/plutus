@@ -16,16 +16,16 @@ import qualified Data.ByteString            as BS
 import qualified Data.Map.Strict            as Map
 import           Hedgehog                   (Property)
 import           Test.Tasty
-import           Test.Tasty.Hedgehog     (HedgehogTestLimit (..), testProperty)
+import           Test.Tasty.Hedgehog        (HedgehogTestLimit (..), testProperty)
 import           Test.Tasty.HUnit
 
-import           Language.Marlowe        hiding (discountFromPairList, insertCommit, mergeChoices)
-import           Language.Marlowe.Actus  as Actus
-import           Language.Marlowe.Client (commit', evalContract, receivePayment, redeem)
-import           Ledger                  hiding (Value)
-import qualified Ledger.Ada              as Ada
-import           Spec.Common
+import           Language.Marlowe           hiding (discountFromPairList, insertCommit, mergeChoices)
+import           Language.Marlowe.Actus     as Actus
+import           Language.Marlowe.Client    (commit', evalContract, receivePayment, redeem)
 import qualified Language.PlutusTx.Builtins as Builtins
+import           Ledger                     hiding (Value)
+import qualified Ledger.Ada                 as Ada
+import           Spec.Common
 import           Wallet.Emulator
 
 

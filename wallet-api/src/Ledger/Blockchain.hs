@@ -28,6 +28,7 @@ import           Ledger.Crypto
 import           Ledger.Scripts
 import           Ledger.Slot    (Slot (..))
 import           Ledger.Tx
+import           Ledger.TxId
 import           Ledger.Value   (Value)
 
 -- | A block on the blockchain. This is just a list of transactions which

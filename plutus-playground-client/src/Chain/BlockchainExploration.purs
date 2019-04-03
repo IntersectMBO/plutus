@@ -22,7 +22,8 @@ import Ledger.Ada.TH (Ada(..))
 import Ledger.Crypto (PubKey(PubKey), Signature(Signature))
 import Ledger.Extra (LedgerMap(..))
 import Ledger.Scripts (DataScript(..), RedeemerScript(..))
-import Ledger.Tx (Tx(Tx), TxIdOf(TxIdOf), TxInOf(TxInOf), TxInType(..), TxOutOf(TxOutOf), TxOutRefOf(TxOutRefOf), TxOutType(..))
+import Ledger.Tx (Tx(Tx), TxInOf(TxInOf), TxInType(..), TxOutOf(TxOutOf), TxOutRefOf(TxOutRefOf), TxOutType(..))
+import Ledger.TxId (TxIdOf(TxIdOf))
 import Ledger.Value.TH (CurrencySymbol(..), Value(..))
 import Partial.Unsafe (unsafePartial)
 import Prelude (class Eq, class Ord, class Show, map, show, (#), ($), (+), (<#>), (<$>), (<*>), (<<<), (<>), (==))
@@ -35,7 +36,7 @@ type Hash = String
 data Column
   = ForgeIx
   | FeeIx
-  | OwnerIx Int Hash
+  | OwnerIx String Hash
   | ScriptIx String Hash
 
 derive instance genericColumn :: Generic Column
@@ -165,7 +166,7 @@ toBalanceMap =
       where
         fromTxIn :: TxInOf String -> Tuple (Tuple Column Row) Balance
         fromTxIn (TxInOf { txInRef: (TxOutRefOf {txOutRefId: (TxIdOf {getTxId: hash})})
-                         , txInType: (ConsumePublicKeyAddress (Signature { getSignature: owner }))
+                         , txInType: (ConsumePublicKeyAddress (PubKey { getPubKey: owner }))
                          })
           = Tuple (Tuple (OwnerIx owner hash) row) Remainder
         fromTxIn (TxInOf { txInRef: (TxOutRefOf {txOutRefId: (TxIdOf {getTxId: hash})})
