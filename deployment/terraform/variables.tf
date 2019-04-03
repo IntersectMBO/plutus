@@ -28,6 +28,13 @@ variable "meadow_public_zone" {
   default = "Z1VIYCTCY8RMLZ"
 }
 
+variable "monitoring_tld" {
+  default = "goguen.monitoring.iohkdev.io"
+}
+
+variable "monitoring_public_zone" {
+  default = "Z2Y3TWJMJ0Q6Z7"
+}
 variable "meadow_instance_type" {
   default = "t2.large"
 }
