@@ -96,7 +96,7 @@ module.exports = {
         }),
         new HtmlWebpackPlugin({
             template: 'static/index.html',
-            favicon: '../web-common/static/favicon.ico',
+            favicon: 'static/favicon.ico',
             googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-7'
         }),
         new webpack.NormalModuleReplacementPlugin(/^echarts$/, 'echarts/dist/echarts.min.js')
