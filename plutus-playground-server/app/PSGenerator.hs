@@ -44,7 +44,7 @@ import           Ledger.Index                              (ValidationError)
 import           Ledger.Interval                           (Interval)
 import           Ledger.Map.TH                             (Map)
 import           Ledger.Slot                               (Slot)
-import           Ledger.Value.TH                           (CurrencySymbol, Value)
+import           Ledger.Value.TH                           (CurrencySymbol)
 import           Playground.API                            (CompilationResult, Evaluation, EvaluationResult, Expression,
                                                             Fn, FunctionSchema, KnownCurrency, SimpleArgumentSchema,
                                                             SimulatorWallet, TokenId)
@@ -64,6 +64,9 @@ psNonEmpty =
     TypeInfo "purescript-lists" "Data.List.NonEmpty" "NonEmptyList" <$>
     psTypeParameters
 
+psLedgerValue :: PSType
+psLedgerValue = TypeInfo "plutus-playground-client" "Ledger.Extra" "Value" []
+
 psJson :: PSType
 psJson = TypeInfo "" "Data.RawJson" "RawJson" []
 
@@ -71,6 +74,12 @@ integerBridge :: BridgePart
 integerBridge = do
     typeName ^== "Integer"
     pure psInt
+
+ledgerValueBridge :: BridgePart
+ledgerValueBridge = do
+    typeName ^== "Value"
+    typeModule ^== "Ledger.Value.TH"
+    pure psLedgerValue
 
 scientificBridge :: BridgePart
 scientificBridge = do
@@ -150,7 +159,8 @@ nonEmptyBridge = do
 
 myBridge :: BridgePart
 myBridge =
-    defaultBridge <|> integerBridge <|> scientificBridge <|> aesonBridge <|>
+    defaultBridge <|> integerBridge <|> ledgerValueBridge <|> scientificBridge <|>
+    aesonBridge <|>
     setBridge <|>
     digestBridge <|>
     sha256Bridge <|>
@@ -199,7 +209,6 @@ myTypes =
     , mkSumType (Proxy @(TxOutOf A))
     , mkSumType (Proxy @(TxIdOf A))
     , (equal <*> (order <*> mkSumType)) (Proxy @TxInType)
-    , (equal <*> mkSumType) (Proxy @Value)
     , (equal <*> (order <*> mkSumType)) (Proxy @PubKey)
     , mkSumType (Proxy @(AddressOf A))
     , mkSumType (Proxy @FlowLink)
@@ -222,6 +231,8 @@ myTypes =
     , mkSumType (Proxy @KnownCurrency)
     , mkSumType (Proxy @InterpreterError)
     , mkSumType (Proxy @(InterpreterResult A))
+    -- Note: You cannot generate `equal` for this map. (Or if you do,
+    -- it will be order-dependent, which probably isn't what you want.
     , mkSumType (Proxy @(Map A B))
     ]
 

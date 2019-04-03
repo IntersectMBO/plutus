@@ -23,7 +23,7 @@ import           Ledger.Validation            (ValidatorHash (ValidatorHash))
 import           Playground.API               (CompilationResult (CompilationResult), Evaluation (Evaluation),
                                                Expression (Action, Wait), Fn (Fn), FunctionSchema (FunctionSchema),
                                                KnownCurrency (KnownCurrency), PlaygroundError,
-                                               SimpleArgumentSchema (SimpleArraySchema, SimpleIntSchema, SimpleObjectSchema, SimpleTupleSchema, ValueSchema),
+                                               SimpleArgumentSchema (SimpleArraySchema, SimpleIntSchema, SimpleObjectSchema, SimpleTupleSchema),
                                                SimulatorWallet (SimulatorWallet), TokenId (TokenId), argumentSchema,
                                                functionName, isSupportedByFrontend, simulatorWalletBalance,
                                                simulatorWalletWallet)
@@ -147,12 +147,10 @@ vestingSpec =
                                     , SimpleObjectSchema
                                           [("getSlot", SimpleIntSchema)])
                                   ]
-                            , ValueSchema
+                            , SimpleObjectSchema
                                   [ ( "getValue"
-                                    , SimpleArraySchema
-                                          (SimpleTupleSchema
-                                               ( SimpleIntSchema
-                                               , SimpleIntSchema)))
+                                    , SimpleObjectSchema
+                                        [("unMap", SimpleArraySchema (SimpleTupleSchema (SimpleIntSchema, SimpleIntSchema)))])
                                   ]
                             , SimpleObjectSchema
                                   [("getPubKey", SimpleIntSchema)]

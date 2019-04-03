@@ -12,7 +12,9 @@ import Data.Maybe (Maybe(..))
 import Data.StrMap as StrMap
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
-import Ledger.Value.TH (CurrencySymbol(..), Value(..))
+import Ledger.Extra (Value(..))
+import Ledger.Map.TH (Map(..))
+import Ledger.Value.TH (CurrencySymbol(..))
 import Playground.API (Fn(Fn), FunctionSchema(FunctionSchema), SimpleArgumentSchema(..), SimulatorWallet(SimulatorWallet))
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (equal)
@@ -74,7 +76,7 @@ makeTestAction :: Array SimpleArgument -> Action
 makeTestAction arguments =
   Action
     { simulatorWallet: SimulatorWallet { simulatorWalletWallet: Wallet { getWallet: 1 }
-                                       , simulatorWalletBalance: Value { getValue: [ Tuple (CurrencySymbol 12345) 10 ] }
+                                       , simulatorWalletBalance: Value { getValue: Map {unMap: [ Tuple (CurrencySymbol 12345) 10 ]} }
                                        }
     , functionSchema: FunctionSchema
                         { functionName: Fn "test"

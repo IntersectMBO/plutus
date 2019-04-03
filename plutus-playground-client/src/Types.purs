@@ -34,8 +34,11 @@ import Gist (Gist)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.ECharts (EChartsMessage, EChartsQuery)
 import Language.Haskell.Interpreter (SourceCode, InterpreterError, InterpreterResult)
+import Ledger.Extra (Value(..), _Value)
+import Ledger.Map.TH (Map(Map), _Map)
+import Ledger.Map.TH as LedgerMap
 import Ledger.Tx (Tx, TxIdOf)
-import Ledger.Value.TH (CurrencySymbol, Value(..), _Value)
+import Ledger.Value.TH (CurrencySymbol)
 import Matryoshka (class Corecursive, class Recursive, Algebra, cata)
 import Network.RemoteData (RemoteData)
 import Playground.API (CompilationResult, Evaluation(Evaluation), EvaluationResult, FunctionSchema, SimpleArgumentSchema(..), SimulatorWallet, _FunctionSchema, _SimulatorWallet)
@@ -55,8 +58,11 @@ _simulatorWalletBalance = _SimulatorWallet <<< prop (SProxy :: SProxy "simulator
 _walletId :: Lens' Wallet Int
 _walletId = _Wallet <<< prop (SProxy :: SProxy "getWallet")
 
-_value :: Lens' Value (Array (Tuple CurrencySymbol Int))
+_value :: Lens' Value (Map CurrencySymbol Int)
 _value = _Value <<< prop (SProxy :: SProxy "getValue")
+
+_unMap :: Lens' (LedgerMap.Map CurrencySymbol Int) (Array (Tuple CurrencySymbol Int))
+_unMap = _Map <<< prop (SProxy :: SProxy "unMap")
 
 data Action
   = Action
@@ -339,7 +345,7 @@ toValue SimpleStringSchema = SimpleString Nothing
 toValue (SimpleArraySchema field) = SimpleArray field []
 toValue (SimpleTupleSchema (fieldA /\ fieldB)) = SimpleTuple (toValue fieldA /\ toValue fieldB)
 toValue schema@(SimpleObjectSchema fields) = SimpleObject schema (over (traversed <<< _2) toValue fields)
-toValue schema@(ValueSchema fields) = ValueArgument schema (Value { getValue: [] })
+toValue schema@(ValueSchema fields) = ValueArgument schema (Value {getValue: Map {unMap: []}})
 toValue (UnknownSchema context description) = Unknowable { context, description }
 
 -- | This should just be `map` but we can't put an orphan instance on FunctionSchema. :-(
