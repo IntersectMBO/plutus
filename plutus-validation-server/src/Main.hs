@@ -13,6 +13,9 @@ main = run 3000 app
 trueJSON :: BSL.ByteString
 trueJSON = "{\"isValid\":true}"
 
+falseJSON :: BSL.ByteString
+falseJSON = "{\"isValid\":false}"
+
 -- typecheck, run/validate
 
 app :: Application
