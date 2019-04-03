@@ -56,9 +56,8 @@ import Halogen.HTML.Properties (class_, classes, href, id_)
 import Halogen.Query (HalogenM)
 import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), _InterpreterResult)
-import Ledger.Extra (Value(..))
-import Ledger.Map.TH as LedgerMap
-import Ledger.Value.TH (CurrencySymbol(CurrencySymbol), _CurrencySymbol)
+import Ledger.Extra (LedgerMap(..), _LedgerMap)
+import Ledger.Value.TH (CurrencySymbol(CurrencySymbol), Value(..), _CurrencySymbol)
 import LocalStorage (LOCALSTORAGE)
 import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, updateChartsIfPossible)
 import Network.HTTP.Affjax (AJAX)
@@ -75,11 +74,10 @@ mkSimulatorWallet id =
   SimulatorWallet
     { simulatorWalletWallet: Wallet { getWallet: id }
     , simulatorWalletBalance: Value { getValue:
-                                        LedgerMap.Map { unMap: [ Tuple (CurrencySymbol 0) 50
-                                                               , Tuple (CurrencySymbol 1) 20
-                                                               , Tuple (CurrencySymbol 2) 20
-                                                               ]
-                                                      }
+                                        LedgerMap [ Tuple (CurrencySymbol 0) 50
+                                                  , Tuple (CurrencySymbol 1) 20
+                                                  , Tuple (CurrencySymbol 2) 20
+                                                  ]
                                     }
     }
 
@@ -391,15 +389,15 @@ evalWalletEvent (ModifyBalance walletIndex action) wallets =
     (evalValueEvent action)
     wallets
 
-evalValueEvent :: ValueEvent -> LedgerMap.Map CurrencySymbol Int -> LedgerMap.Map CurrencySymbol Int
+evalValueEvent :: ValueEvent -> LedgerMap CurrencySymbol Int -> LedgerMap CurrencySymbol Int
 evalValueEvent AddBalance balances =
-  let maxCurrencyId = fromMaybe 0 $ maximumOf (_unMap <<< traversed <<< _1 <<< _CurrencySymbol) balances
+  let maxCurrencyId = fromMaybe 0 $ maximumOf (_LedgerMap <<< traversed <<< _1 <<< _CurrencySymbol) balances
       newBalance = Tuple (CurrencySymbol (maxCurrencyId + 1)) 0
-  in over _unMap (flip Array.snoc newBalance) balances
+  in over _LedgerMap (flip Array.snoc newBalance) balances
 evalValueEvent (RemoveBalance balanceIndex) balances =
-  over _unMap (fromMaybe <*> Array.deleteAt balanceIndex) balances
+  over _LedgerMap (fromMaybe <*> Array.deleteAt balanceIndex) balances
 evalValueEvent (SetBalance balanceIndex balance) balances =
-  set (_unMap <<< ix balanceIndex) balance balances
+  set (_LedgerMap <<< ix balanceIndex) balance balances
 
 evalActionEvent :: ActionEvent -> Array Action -> Array Action
 evalActionEvent (AddAction action) = flip Array.snoc action
