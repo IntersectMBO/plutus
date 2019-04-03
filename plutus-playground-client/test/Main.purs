@@ -12,7 +12,6 @@ import CursorTests as CursorTests
 import Data.String.ExtraTests as Data.String.ExtraTests
 import FileEvents (FILE)
 import GistsTests as GistsTests
-import Ledger.ExtraTests as Ledger.ExtraTests
 import MainFrameTests as MainFrameTests
 import Node.FS (FS)
 import Test.Unit.Console (TESTOUTPUT)
@@ -29,4 +28,3 @@ main = runTest do
   CursorTests.all
   MainFrameTests.all
   Data.String.ExtraTests.all
-  Ledger.ExtraTests.all

@@ -14,13 +14,12 @@ import Halogen.HTML.Events (input_, onClick, onValueInput)
 import Halogen.HTML.Properties (InputType(..), classes, placeholder, required, type_, value)
 import Halogen.Query as HQ
 import Icons (Icon(..), icon)
-import Ledger.Extra (Value(..))
-import Ledger.Map.TH (Map(..))
-import Ledger.Value.TH (CurrencySymbol(CurrencySymbol))
+import Ledger.Extra (LedgerMap(..))
+import Ledger.Value.TH (CurrencySymbol(CurrencySymbol), Value(..))
 import Types (ValueEvent(RemoveBalance, SetBalance, AddBalance))
 
 valueForm :: forall p i. (ValueEvent -> HQ.Action i) -> Value -> HTML p i
-valueForm handler (Value { getValue: Map {unMap: balances} }) =
+valueForm handler (Value { getValue: LedgerMap balances }) =
   div_ [ Keyed.div_
            (mapWithIndex (balanceRow handler) balances)
        , button
