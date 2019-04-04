@@ -232,27 +232,15 @@ let
       plutusPlaygroundImage = with plutus-playground; pkgs.dockerTools.buildImage {
         name = "plutus-playgrounds";
         contents = [ client server-invoker defaultPlaygroundConfig ];
-        runAsRoot = ''
-          #!${pkgs.stdenv.shell}
-          mkdir -p /tmp
-          mkdir -p /etc
-          cp ${defaultPlaygroundConfig}/etc/playground.yaml /etc/playground.yaml
-        '';
         config = {
-          Cmd = ["${server-invoker}/bin/plutus-playground" "--config" "/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
+          Cmd = ["${server-invoker}/bin/plutus-playground" "--config" "${defaultPlaygroundConfig}/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
         };
       };
       meadowImage = with meadow; pkgs.dockerTools.buildImage {
         name = "meadow";
         contents = [ client server-invoker defaultPlaygroundConfig ];
-        runAsRoot = ''
-          #!${pkgs.stdenv.shell}
-          mkdir -p /tmp
-          mkdir -p /etc
-          cp ${defaultPlaygroundConfig}/etc/playground.yaml /etc/playground.yaml
-        '';
         config = {
-          Cmd = ["${server-invoker}/bin/meadow" "--config" "/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
+          Cmd = ["${server-invoker}/bin/meadow" "--config" "${defaultPlaygroundConfig}/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
         };
       };
     };
