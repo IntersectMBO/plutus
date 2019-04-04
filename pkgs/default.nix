@@ -79463,12 +79463,14 @@ license = stdenv.lib.licenses.mit;
 , base
 , base16-bytestring
 , bytestring
+, cardano-crypto
 , cborg
 , containers
 , cryptonite
 , deriving-compat
 , hashable
 , hedgehog
+, http-api-data
 , language-plutus-core
 , lens
 , memory
@@ -79504,12 +79506,14 @@ aeson
 base
 base16-bytestring
 bytestring
+cardano-crypto
 cborg
 containers
 cryptonite
 deriving-compat
 hashable
 hedgehog
+http-api-data
 language-plutus-core
 lens
 memory

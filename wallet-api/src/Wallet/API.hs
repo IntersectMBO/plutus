@@ -14,12 +14,11 @@ module Wallet.API(
     WalletDiagnostics(..),
     MonadWallet,
     EventHandler(..),
-    KeyPair(..),
     PubKey(..),
-    pubKey,
-    keyPair,
-    signature,
+    signTxn,
     createTxAndSubmit,
+    signTxAndSubmit,
+    signTxAndSubmit_,
     payToScript,
     payToScript_,
     payToPublicKey,
@@ -29,8 +28,6 @@ module Wallet.API(
     collectFromScript,
     collectFromScriptTxn,
     ownPubKeyTxOut,
-    ownPubKey,
-    ownSignature,
     outputsAt,
     -- * Slot ranges
     Interval(..),
@@ -75,6 +72,8 @@ import           Control.Lens               hiding (contains)
 import           Control.Monad              (void)
 import           Control.Monad.Error.Class  (MonadError (..))
 import           Data.Aeson                 (FromJSON, ToJSON)
+import qualified Data.ByteArray             as BA
+import qualified Data.ByteString.Lazy       as BSL
 import           Data.Eq.Deriving           (deriveEq1)
 import           Data.Foldable              (fold)
 import           Data.Functor.Compose       (Compose (..))
@@ -85,10 +84,10 @@ import           Data.Ord.Deriving          (deriveOrd1)
 import qualified Data.Set                   as Set
 import           Data.Text                  (Text)
 import           GHC.Generics               (Generic)
-import           Ledger                     (Address, DataScript, PubKey (..), RedeemerScript, Signature (..), Slot,
+import           Ledger                     (Address, DataScript, PubKey (..), RedeemerScript, Signature, Slot,
                                              SlotRange, Tx (..), TxId, TxIn, TxOut, TxOutOf (..), TxOutRef,
-                                             TxOutType (..), ValidatorScript, Value, pubKeyTxOut, scriptAddress,
-                                             scriptTxIn, txOutRefId)
+                                             TxOutType (..), ValidatorScript, Value, getTxId, hashTx, pubKeyTxOut, scriptAddress,
+                                             scriptTxIn, signatures, txOutRefId)
 import           Ledger.Interval            (Interval (..))
 import qualified Ledger.Interval            as Interval
 import qualified Ledger.Slot                as Slot
@@ -97,37 +96,6 @@ import           Text.Show.Deriving         (deriveShow1)
 import           Wallet.Emulator.AddressMap (AddressMap)
 
 import           Prelude                    hiding (Ordering (..))
-
--- | A cryptographically secure private key, typically belonging to the user that owns the wallet.
-newtype PrivateKey = PrivateKey { getPrivateKey :: Int }
-    deriving (Eq, Ord, Show)
-    deriving newtype (FromJSON, ToJSON)
-
--- | A cryptographically secure key pair (public and private key), typically belonging to the user
--- that owns the wallet.
-newtype KeyPair = KeyPair { getKeyPair :: (PrivateKey, PubKey) }
-    deriving (Eq, Ord, Show)
-    deriving newtype (FromJSON, ToJSON)
-
--- | Get the public key of a 'KeyPair'.
-pubKey :: KeyPair -> PubKey
-pubKey = snd . getKeyPair
-
--- | Create a 'KeyPair' given a "private key".
---
--- NOTE: relies on incorrect key API.
-keyPair :: Int -> KeyPair
-keyPair i = KeyPair (PrivateKey i, PubKey i)
-
--- | Create a 'Signature' signed by the private key of a
--- 'KeyPair'. This allows the creation of signatures that prove that they
--- were created by the owner of the wallet.
---
--- For example, if you want to create a contract that only you can interact
--- with, you might require that the redeemer include a signed message using
--- your key.
-signature :: KeyPair -> Signature
-signature = Signature . getPrivateKey . fst . getKeyPair
 
 data EventTriggerF f =
     TAnd f f
@@ -271,9 +239,14 @@ class WalletAPI m where
 
     -- | Submit a transaction to the blockchain.
     submitTxn :: Tx -> m ()
-    -- | Access the user's 'KeyPair'.
-    -- NOTE: will be removed in future
-    myKeyPair :: m KeyPair
+
+    -- | Access the wallet's 'PublicKey'.
+    ownPubKey :: m PubKey
+
+    -- | Sign a message using the wallet's private key
+    --   NOTE: In the future this won't be part of WalletAPI to allow the
+    --   signing to be handled by a different process
+    sign :: BSL.ByteString -> m Signature
 
     {- |
     Select enough inputs from the user's UTxOs to make a payment of the given value.
@@ -317,15 +290,22 @@ class WalletAPI m where
     -}
     slot :: m Slot
 
--- | Generate a 'Signature' with the wallet's own private key.
-ownSignature :: (Functor m, WalletAPI m) => m Signature
-ownSignature = signature <$> myKeyPair
-
 throwInsufficientFundsError :: MonadError WalletAPIError m => Text -> m a
 throwInsufficientFundsError = throwError . InsufficientFunds
 
 throwOtherError :: MonadError WalletAPIError m => Text -> m a
 throwOtherError = throwError . OtherError
+
+-- | Sign the transaction with the wallet's private key and add
+--   the signature to the transaction's list of signatures.
+--
+--   NOTE: In the future this won't be part of WalletAPI to allow the
+--   signing to be handled by a different process
+signTxn   :: (WalletAPI m, Monad m) => Tx -> m Tx
+signTxn tx = do
+    sig <- sign (BSL.pack $ BA.unpack $ getTxId $ hashTx tx)
+    pubK <- ownPubKey
+    pure $ tx & signatures . at pubK .~ Just sig
 
 -- | Transfer some funds to a number of script addresses, returning the
 -- transaction that was submitted.
@@ -386,10 +366,6 @@ collectFromScriptTxn range vls red txid = do
     out <- ownPubKeyTxOut value
     void $ createTxAndSubmit range inputs [out]
 
--- | Get the public key belonging to this wallet.
-ownPubKey :: (Functor m, WalletAPI m) => m PubKey
-ownPubKey = pubKey <$> myKeyPair
-
 -- | Transfer some funds to an address locked by a public key, returning the
 --   transaction that was submitted.
 payToPublicKey :: (Monad m, WalletAPI m) => SlotRange -> Value -> PubKey -> m Tx
@@ -404,13 +380,13 @@ payToPublicKey_ r v = void . payToPublicKey r v
 
 -- | Create a `TxOut` that pays to the public key owned by us.
 ownPubKeyTxOut :: (Monad m, WalletAPI m) => Value -> m TxOut
-ownPubKeyTxOut v = pubKeyTxOut v <$> fmap pubKey myKeyPair
+ownPubKeyTxOut v = pubKeyTxOut v <$> ownPubKey
 
 -- | Retrieve the unspent transaction outputs known to the wallet at an adresss.
 outputsAt :: (Functor m, WalletAPI m) => Address -> m (Map.Map Ledger.TxOutRef TxOut)
 outputsAt adr = fmap (\utxos -> fromMaybe Map.empty $ utxos ^. at adr) watchedAddresses
 
--- | Create a transaction and submit it.
+-- | Create a transaction, sign it with the wallet's private key, and submit it.
 --   TODO: Also compute the fee
 createTxAndSubmit ::
     (Monad m, WalletAPI m)
@@ -425,9 +401,21 @@ createTxAndSubmit range ins outs = do
             , txForge = Value.zero
             , txFee = 0
             , txValidRange = range
+            , txSignatures = Map.empty
             }
-    submitTxn tx
-    pure tx
+    signTxAndSubmit tx
+
+-- | Add the wallet's signature to the transaction and submit it. Returns
+--   the transaction with the wallet's signature.
+signTxAndSubmit :: (Monad m, WalletAPI m) => Tx -> m Tx
+signTxAndSubmit t = do
+    tx' <- signTxn t
+    submitTxn tx'
+    pure tx'
+
+-- | A version of 'signTxAndSubmit' that discards the result.
+signTxAndSubmit_ :: (Monad m, WalletAPI m) => Tx -> m ()
+signTxAndSubmit_ = void . signTxAndSubmit
 
 -- | The default slot validity range for transactions.
 defaultSlotRange :: SlotRange

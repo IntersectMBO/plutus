@@ -23,6 +23,7 @@ module Ledger.Index(
     validateTransaction
     ) where
 
+import           Control.Lens         ((^.), at)
 import           Control.Monad.Except (MonadError (..))
 import           Control.Monad.Reader (MonadReader (..), ReaderT (..), ask)
 import           Control.Monad
@@ -38,6 +39,7 @@ import           Ledger.Crypto
 import           Ledger.Blockchain
 import           Ledger.Scripts
 import           Ledger.Tx
+import           Ledger.TxId
 import           Ledger.Validation    (PendingTx (..))
 import qualified Ledger.Validation    as Validation
 import           Prelude              hiding (lookup)
@@ -73,7 +75,7 @@ lookup i index = case Map.lookup i $ getIndex index of
 -- | A reason why a transaction is invalid.
 data ValidationError =
     InOutTypeMismatch TxIn TxOut
-    -- ^ A pay-to-pubkey output was consumed by a pay-to-script input or vice versa.
+    -- ^ A pay-to-pubkey output was consumed by a pay-to-script input or vice versa, or the 'TxIn' refers to a different public key than the 'TxOut'.
     | TxOutRefNotFound TxOutRef
     -- ^ The transaction output consumed by a transaction input could not be found (either because it was already spent, or because
     -- there was no transaction with the given hash on the blockchain).
@@ -89,6 +91,8 @@ data ValidationError =
     -- ^ For pay-to-script outputs: evaluation of the validator script failed.
     | CurrentSlotOutOfRange Slot.Slot
     -- ^ The current slot is not covered by the transaction's validity slot range.
+    | SignatureMissing PubKey
+    -- ^ The transaction is missing a signature
     deriving (Eq, Ord, Show, Generic)
 
 instance FromJSON ValidationError
@@ -135,7 +139,9 @@ checkSlotRange sl tx =
 --   can be unlocked by the signatures or validator scripts of the inputs.
 checkValidInputs :: ValidationMonad m => Tx -> m ()
 checkValidInputs tx = do
-    matches <- lkpOutputs tx >>= traverse (uncurry matchInputOutput)
+    let txId = hashTx tx
+        sigs = tx ^. signatures
+    matches <- lkpOutputs tx >>= traverse (uncurry (matchInputOutput txId sigs))
     vld     <- validationData tx
     traverse_ (checkMatch vld) matches
 
@@ -151,17 +157,28 @@ data InOutMatch =
         RedeemerScript
         DataScript
         (AddressOf (Digest SHA256))
-    | PubKeyMatch PubKey Signature
+    | PubKeyMatch TxId PubKey Signature
     deriving (Eq, Ord, Show)
 
 -- | Match a transaction input with the output that it consumes, ensuring that
 --   both are of the same type (pubkey or pay-to-script).
-matchInputOutput :: ValidationMonad m => TxIn -> TxOut -> m InOutMatch
-matchInputOutput i txo = case (txInType i, txOutType txo) of
+matchInputOutput :: ValidationMonad m 
+    => TxId 
+    -- ^ Hash of the transaction that is being verified
+    -> Map.Map PubKey Signature 
+    -- ^ Signatures provided with the transaction
+    -> TxIn 
+    -- ^ Input that allegedly spends the output
+    -> TxOut 
+    -- ^ The unspent transaction output we are trying to unlock
+    -> m InOutMatch
+matchInputOutput txid mp i txo = case (txInType i, txOutType txo) of
     (ConsumeScriptAddress v r, PayToScript d) ->
         pure $ ScriptMatch i v r d (txOutAddress txo)
-    (ConsumePublicKeyAddress sig, PayToPubKey pk) ->
-        pure $ PubKeyMatch pk sig
+    (ConsumePublicKeyAddress pk', PayToPubKey pk)
+        | pk == pk' -> case mp ^. at pk' of
+                        Nothing -> throwError (SignatureMissing pk')
+                        Just sig -> pure (PubKeyMatch txid pk sig)
     _ -> throwError $ InOutTypeMismatch i txo
 
 -- | Check that a matching pair of transaction input and transaction output is
@@ -183,8 +200,8 @@ checkMatch v = \case
             if success
             then pure ()
             else throwError $ ScriptFailure logOut
-    PubKeyMatch pk sig ->
-        if sig `signedBy` pk
+    PubKeyMatch msg pk sig ->
+        if signedBy sig pk msg
         then pure ()
         else throwError $ InvalidSignature pk sig
 
@@ -209,6 +226,7 @@ checkPositiveValues t =
 validationData :: ValidationMonad m => Tx -> m PendingTx
 validationData tx = rump <$> ins where
     ins = traverse mkIn $ Set.toList $ txInputs tx
+    txHash = Validation.plcTxHash $ hashTx tx
 
     rump txins = PendingTx
         { pendingTxInputs = txins
@@ -217,6 +235,8 @@ validationData tx = rump <$> ins where
         , pendingTxFee = txFee tx
         , pendingTxIn = head txins -- this is changed accordingly in `checkMatch` during validation
         , pendingTxValidRange = txValidRange tx
+        , pendingTxSignatures = Map.toList (tx ^. signatures)
+        , pendingTxHash = txHash
         }
 
 -- | Create the data about a transaction output which will be passed to a validator script.
@@ -242,9 +262,9 @@ mkIn i = Validation.PendingTxIn <$> pure ref <*> pure red <*> vl where
     red = case txInType i of
         ConsumeScriptAddress v r  ->
             let h = getAddress $ scriptAddress v in
-            Left (Validation.plcValidatorDigest h, Validation.plcRedeemerHash r)
-        ConsumePublicKeyAddress sig ->
-            Right sig
+            Just (Validation.plcValidatorDigest h, Validation.plcRedeemerHash r)
+        ConsumePublicKeyAddress _ ->
+            Nothing
     vl = valueOf i
 
 -- | Get the 'Value' attached to a transaction input.

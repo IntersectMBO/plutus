@@ -19,4 +19,5 @@ convKind k = withContextM 2 (sdToTxt $ "Converting kind:" GHC.<+> GHC.ppr k) $ c
     -- this is a bit weird because GHC uses 'Type' to represent kinds, so '* -> *' is a 'TyFun'
     (GHC.isStarKind -> True)              -> pure $ PLC.Type ()
     (GHC.splitFunTy_maybe -> Just (i, o)) -> PLC.KindArrow () <$> convKind i <*> convKind o
+    (GHC.splitTyConApp_maybe -> Just (tc, _)) | tc == GHC.typeNatKindCon -> pure $ PLC.Size ()
     _                                     -> throwSd UnsupportedError $ "Kind:" GHC.<+> GHC.ppr k

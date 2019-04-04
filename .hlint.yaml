@@ -1,7 +1,7 @@
 ---
 - functions:
   - {name: unsafePerformIO, within: [PlutusPrelude, Language.PlutusCore.Generators.Internal.Entity, Language.PlutusCore.Constant.Dynamic.Call, Language.PlutusCore.Constant.Dynamic.Emit, Language.PlutusCore.Constant.Dynamic.Instances, Language.PlutusCore.StdLib.Type, Language.PlutusTx.Plugin, Language.PlutusTx.Evaluation]}
-  - {name: error, within: [Main, PlutusPrelude, Language.PlutusCore.StdLib.Meta, Evaluation.Constant.Success, Language.PlutusCore.Constant.Apply, Language.PlutusCore.Evaluation.CkMachine, Language.PlutusCore.TypeSynthesis, Language.PlutusCore.Generators.Internal.Dependent, Language.PlutusCore.Generators.Internal.Entity, Language.PlutusCore.Generators.Internal.Utils, Language.PlutusCore.Constant.Make, DynamicBuiltins.Definition, Language.PlutusCore.TH, Language.PlutusTx.Utils, Language.PlutusIR.Compiler.Datatype]}
+  - {name: error, within: [Main, PlutusPrelude, Language.PlutusCore.StdLib.Meta, Evaluation.Constant.Success, Language.PlutusCore.Constant.Apply, Language.PlutusCore.Evaluation.CkMachine, Language.PlutusCore.TypeSynthesis, Language.PlutusCore.Generators.Internal.Dependent, Language.PlutusCore.Generators.Internal.Entity, Language.PlutusCore.Generators.Internal.Utils, Language.PlutusCore.Constant.Make, DynamicBuiltins.Definition, Language.PlutusCore.TH, Language.PlutusTx.Utils, Language.PlutusIR.Compiler.Datatype, KeyBytes]}
   - {name: undefined, within: [Language.PlutusCore.Constant.Apply, Language.PlutusTx.Lift.Class, Language.PlutusTx.Lift.Instances]}
   - {name: fromJust, within: [Language.PlutusTx.Lift]}
   - {name: foldl, within: []}

@@ -23,14 +23,14 @@ import           Ledger.Validation            (ValidatorHash (ValidatorHash))
 import           Playground.API               (CompilationResult (CompilationResult), Evaluation (Evaluation),
                                                Expression (Action, Wait), Fn (Fn), FunctionSchema (FunctionSchema),
                                                KnownCurrency (KnownCurrency), PlaygroundError,
-                                               SimpleArgumentSchema (SimpleArraySchema, SimpleIntSchema, SimpleObjectSchema, SimpleTupleSchema),
+                                               SimpleArgumentSchema (SimpleArraySchema, SimpleIntSchema, SimpleObjectSchema, SimpleStringSchema, SimpleTupleSchema),
                                                SimulatorWallet (SimulatorWallet), TokenId (TokenId), argumentSchema,
                                                functionName, isSupportedByFrontend, simulatorWalletBalance,
                                                simulatorWalletWallet)
 import qualified Playground.Interpreter       as PI
 import           Playground.Usecases          (crowdfunding, game, messages, vesting)
 import           Test.Hspec                   (Spec, describe, it, shouldBe, shouldSatisfy)
-import           Wallet.Emulator.Types        (EmulatorEvent, Wallet (Wallet))
+import           Wallet.Emulator.Types        (EmulatorEvent, Wallet (Wallet), walletPubKey)
 
 spec :: Spec
 spec = do
@@ -57,7 +57,7 @@ vestingSpec =
                             [ SimpleObjectSchema
                                   [ ( "vestingOwner"
                                     , SimpleObjectSchema
-                                          [("getPubKey", SimpleIntSchema)])
+                                          [("getPubKey", SimpleStringSchema)])
                                   , ( "vestingTranche2"
                                     , SimpleObjectSchema
                                           [ ( "vestingTrancheAmount"
@@ -85,7 +85,7 @@ vestingSpec =
                             [ SimpleObjectSchema
                                   [ ( "vestingOwner"
                                     , SimpleObjectSchema
-                                          [("getPubKey", SimpleIntSchema)])
+                                          [("getPubKey", SimpleStringSchema)])
                                   , ( "vestingTranche2"
                                     , SimpleObjectSchema
                                           [ ( "vestingTrancheAmount"
@@ -113,15 +113,15 @@ vestingSpec =
                             [ SimpleObjectSchema
                                   [ ( "vestingOwner"
                                     , SimpleObjectSchema
-                                          [("getPubKey", SimpleIntSchema)])
-                                  , ( "vestingTranche2"
-                                    , SimpleObjectSchema
-                                          [ ( "vestingTrancheAmount"
-                                            , SimpleObjectSchema
-                                                  [("getAda", SimpleIntSchema)])
-                                          , ( "vestingTrancheDate"
-                                            , SimpleObjectSchema
-                                                  [("getSlot", SimpleIntSchema)])
+                                          [("getPubKey", SimpleStringSchema)])
+                                    , ( "vestingTranche2"
+                                          , SimpleObjectSchema
+                                                [ ( "vestingTrancheAmount"
+                                                , SimpleObjectSchema
+                                                      [("getAda", SimpleIntSchema)])
+                                                , ( "vestingTrancheDate"
+                                                , SimpleObjectSchema
+                                                      [("getSlot", SimpleIntSchema)])
                                           ])
                                   , ( "vestingTranche1"
                                     , SimpleObjectSchema
@@ -153,7 +153,7 @@ vestingSpec =
                                         [("unMap", SimpleArraySchema (SimpleTupleSchema (SimpleIntSchema, SimpleIntSchema)))])
                                   ]
                             , SimpleObjectSchema
-                                  [("getPubKey", SimpleIntSchema)]
+                                  [("getPubKey", SimpleStringSchema)]
                             ]
                       }
                 ]
@@ -195,12 +195,22 @@ vestingSpec =
             [ Action
                   (Fn "vestFunds")
                   (Wallet 1)
-                  [ JSON.String
-                        "{\"vestingTranche1\":{\"vestingTrancheDate\":{\"getSlot\":1},\"vestingTrancheAmount\":{\"getAda\":1}},\"vestingTranche2\":{\"vestingTrancheDate\":{\"getSlot\":1},\"vestingTrancheAmount\":{\"getAda\":1}},\"vestingOwner\":{\"getPubKey\":1}}"
-                  ]
+                  [ theVesting ]
             ]
             (sourceCode vesting)
             []
+    theVesting = toJSONString $
+          object
+                  [ "vestingTranche1" .= object
+                        [ "vestingTrancheDate" .= object [ "getSlot" .= mkI 1]
+                        , "vestingTrancheAmount" .= object [ "getAda" .= mkI 1]
+                        ]
+                  , "vestingTranche2" .= object
+                        [ "vestingTrancheDate" .= object ["getSlot" .= mkI 1]
+                        , "vestingTrancheAmount" .= object [ "getAda" .= mkI 1]
+                        ]
+                  , "vestingOwner" .= JSON.toJSON (walletPubKey (Wallet 1))
+                  ]
 
 gameSpec :: Spec
 gameSpec =
@@ -311,28 +321,28 @@ gameSpec =
                   (Fn "payToPublicKey_")
                   (Wallet 1)
                   [ slotRange
-                  , JSON.String nineAda
-                  , JSON.String "{\"getPubKey\":2}"
+                  , nineAda
+                  , toJSONString (walletPubKey (Wallet 2))
                   ]
             , Action
                   (Fn "payToPublicKey_")
                   (Wallet 2)
                   [ slotRange
-                  , JSON.String nineAda
-                  , JSON.String "{\"getPubKey\":3}"
+                  , nineAda
+                  , toJSONString (walletPubKey (Wallet 3))
                   ]
             , Action
                   (Fn "payToPublicKey_")
                   (Wallet 3)
                   [ slotRange
-                  , JSON.String nineAda
-                  , JSON.String "{\"getPubKey\":1}"
+                  , nineAda
+                  , toJSONString (walletPubKey (Wallet 1))
                   ]
             ]
             (sourceCode game)
             []
     slotRange = JSON.String "{\"ivTo\":null,\"ivFrom\":null}"
-    nineAda = TL.toStrict $ JSON.encodeToLazyText $ Ada.adaValueOf 9
+    nineAda = toJSONString $ Ada.adaValueOf 9
 
 hasFundsDistribution ::
        [SimulatorWallet]
@@ -431,21 +441,15 @@ crowdfundingSpec =
             ]
             (sourceCode crowdfunding)
             []
-    mkI :: Int -> JSON.Value
-    mkI = JSON.toJSON
-    theCampaign =
-        JSON.String $
-        TL.toStrict $
-        JSON.encodeToLazyText $
+
+    theCampaign = toJSONString $
         object
             [ "campaignDeadline" .= object ["getSlot" .= mkI 10]
             , "campaignTarget" .= object ["getAda" .= mkI 15]
             , "campaignCollectionDeadline" .= object ["getSlot" .= mkI 20]
-            , "campaignOwner" .= object ["getPubKey" .= mkI 1]
+            , "campaignOwner" .= walletPubKey (Wallet 1)
             ]
-    theContribution =
-        JSON.String $
-        TL.toStrict $ JSON.encodeToLazyText $ object ["getAda" .= mkI 8]
+    theContribution = toJSONString $ object ["getAda" .= mkI 8]
 
 knownCurrencySpec :: Spec
 knownCurrencySpec =
@@ -496,3 +500,10 @@ isSupportedCompilationResult ::
 isSupportedCompilationResult (Left _) = False
 isSupportedCompilationResult (Right (InterpreterResult _ (CompilationResult functionSchemas _))) =
     all (all isSupportedByFrontend . argumentSchema) functionSchemas
+
+mkI :: Int -> JSON.Value
+mkI = JSON.toJSON
+
+-- | Encode a value in JSON, then make a JSON *string* from that
+toJSONString :: JSON.ToJSON a => a -> JSON.Value
+toJSONString = JSON.String . TL.toStrict . JSON.encodeToLazyText

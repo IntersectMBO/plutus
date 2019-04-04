@@ -19,6 +19,7 @@ import qualified Ledger.Ada            as Ada
 import qualified Ledger.Value          as Value
 import qualified Wallet.API            as WAPI
 import qualified Wallet.Emulator.Types as EM
+import qualified Wallet.Generators     as Gen
 
 initialTx :: Tx
 initialTx =
@@ -33,23 +34,21 @@ initialTx =
         , txForge = oneThousand `Value.plus` oneThousand `Value.plus` oneThousand
         , txFee = Ada.zero
         , txValidRange = WAPI.defaultSlotRange
+        , txSignatures = Map.empty
         }
 
--- Some wallets used for testing. Wallets are identified by an 'Int'. (Note.
--- This will change soon! In the near future each wallet will be identified by
--- a cryptographic key)
+-- Some wallets used for testing. The 'Wallet.Generators' module defines a
+-- number of wallets for this purpose.
 w1, w2, w3 :: EM.Wallet
 w1 = EM.Wallet 1
 w2 = EM.Wallet 2
 w3 = EM.Wallet 3
 
--- To send money to a wallet we need to know its public key. We currently use
--- 'Int's to represent public keys in the mockchain. (Note. This will change
--- soon!)
+-- To send money to a wallet we need to know its public key.
 pk1, pk2, pk3 :: WAPI.PubKey
-pk1 = WAPI.PubKey 1
-pk2 = WAPI.PubKey 2
-pk3 = WAPI.PubKey 3
+pk1 = EM.walletPubKey w1
+pk2 = EM.walletPubKey w2
+pk3 = EM.walletPubKey w3
 
 -- | A helper function for running traces. 'runTrace'
 --   * Forges some funds using the initial transaction from Ledger.ExUtils, to

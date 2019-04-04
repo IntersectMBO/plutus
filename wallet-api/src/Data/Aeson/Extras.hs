@@ -5,6 +5,7 @@ module Data.Aeson.Extras(
     , decodeByteString
     , encodeSerialise
     , decodeSerialise
+    , tryDecode
     ) where
 
 import qualified Codec.CBOR.Write       as Write
@@ -23,12 +24,15 @@ import qualified Data.Text.Encoding     as TE
 encodeByteString :: BSS.ByteString -> Text.Text
 encodeByteString = TE.decodeUtf8 . Base16.encode
 
+tryDecode :: Text.Text -> Either String BSS.ByteString
+tryDecode s =
+    let (eun16, rest) = Base16.decode . TE.encodeUtf8 $ s in
+    if BSS.null rest
+    then Right eun16
+    else Left "failed to decode base16"
+
 decodeByteString :: Aeson.Value -> Aeson.Parser BSS.ByteString
-decodeByteString = Aeson.withText "ByteString" $ \s -> do
-        let (eun16, rest) = Base16.decode . TE.encodeUtf8 $ s
-        if BSS.null rest
-        then pure eun16
-        else fail "failed to decode base16"
+decodeByteString = Aeson.withText "ByteString" (either fail pure . tryDecode)
 
 encodeSerialise :: Serialise a => a -> Text.Text
 encodeSerialise = encodeByteString . Write.toStrictByteString . encode

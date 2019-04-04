@@ -90,7 +90,6 @@ import           Prelude                        ( Show(..)
                                                 , Ord(..)
                                                 , Int
                                                 , Maybe(..)
-                                                , Either(..)
                                                 , (.)
                                                 )
 
@@ -109,6 +108,7 @@ import           Language.PlutusTx.Lift         ( makeLift )
 import           Language.Haskell.TH            ( Q
                                                 , TExp
                                                 )
+import           KeyBytes                       (KeyBytes(..))
 import GHC.Generics (Generic)
 import Language.Marlowe.Pretty (Pretty, prettyFragment)
 import Text.PrettyPrint.Leijen (text)
@@ -248,6 +248,7 @@ data InputCommand = Commit IdentCC Signature
     | Payment IdentPay Signature
     | Redeem IdentCC Signature
     | SpendDeposit Signature
+    | CreateContract
 makeLift ''InputCommand
 
 {-|
@@ -606,6 +607,7 @@ findAndRemove = [|| \ predicate commits -> let
 -}
 evaluateContract ::
     Q (TExp (PubKey
+    -> TxHash
     -> Input
     -> Slot
     -> Ada
@@ -614,6 +616,7 @@ evaluateContract ::
     -> Contract -> (State, Contract, Bool)))
 evaluateContract = [|| \
     contractCreatorPK
+    txHash
     (Input inputCommand inputOracles _)
     blockHeight
     scriptInValue'
@@ -634,9 +637,6 @@ evaluateContract = [|| \
     (||) :: Bool -> Bool -> Bool
     (||) = $$(PlutusTx.or)
 
-    signedBy :: Signature -> PubKey -> Bool
-    signedBy (Signature sig) (PubKey pk) = sig `Builtins.equalsInteger` pk
-
     eqIdentCC :: IdentCC -> IdentCC -> Bool
     eqIdentCC (IdentCC a) (IdentCC b) = a `Builtins.equalsInteger` b
 
@@ -649,6 +649,11 @@ evaluateContract = [|| \
 
     interpretObs :: Int -> State -> Observation -> Bool
     interpretObs = $$(interpretObservation) evalValue
+
+    signedBy :: Signature -> PubKey -> Bool
+    signedBy (Signature sig) (PubKey (KeyBytes pk)) = let
+        TxHash msg = txHash
+        in $$(PlutusTx.verifySignature) pk msg sig
 
     eval :: InputCommand -> State -> Contract -> (State, Contract, Bool)
     eval input state@(State commits choices) contract = case (contract, input) of
@@ -767,7 +772,7 @@ validatorScript = [|| \
         creator
         (_ :: Input, MarloweData{..} :: MarloweData)
         (input@(Input inputCommand _ inputChoices :: Input), MarloweData expectedState expectedContract)
-        (PendingTx{ pendingTxOutputs, pendingTxValidRange, pendingTxIn } :: PendingTx) -> let
+        (PendingTx{ pendingTxOutputs, pendingTxValidRange, pendingTxIn, pendingTxHash } :: PendingTx) -> let
 
         {-  Embed contract creator public key. This makes validator script unique,
             which makes a particular contract to have a unique script address.
@@ -819,7 +824,7 @@ validatorScript = [|| \
 
         -- TxIn we're validating is obviously a Script TxIn.
         (inputValidatorHash, redeemerHash, scriptInValue) = case pendingTxIn of
-            PendingTxIn _ (Left (vHash, RedeemerHash rHash)) value -> (vHash, rHash, value)
+            PendingTxIn _ (Just (vHash, RedeemerHash rHash)) value -> (vHash, rHash, value)
             _ -> Builtins.error ()
 
         scriptInAdaValue = $$(Ada.fromValue) scriptInValue
@@ -837,7 +842,7 @@ validatorScript = [|| \
                     then $$(Ada.fromValue) change else Builtins.error ()
 
         eval :: Input -> Slot -> Ada -> Ada -> State -> Contract -> (State, Contract, Bool)
-        eval = $$(evaluateContract) contractCreatorPK
+        eval = $$(evaluateContract) contractCreatorPK pendingTxHash
 
         contractIsValid = $$(validateContract) marloweState marloweContract minSlot scriptInAdaValue
 

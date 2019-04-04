@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE DeriveAnyClass       #-}
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE DerivingStrategies   #-}
@@ -31,7 +32,6 @@ module Ledger.Validation
     -- * Validator functions
     -- ** Signatures
     , txSignedBy
-    , txInSignedBy
     -- ** Transactions
     , pubKeyOutput
     , scriptOutput
@@ -43,16 +43,18 @@ module Ledger.Validation
     , adaLockedBy
     , ownHash
     , signsTransaction
+    , txHash
     -- * Hashes
     , plcSHA2_256
     , plcSHA3_256
     ) where
 
-import           Codec.Serialise              (Serialise, serialise)
+import           Codec.Serialise              (Serialise)
 import           Crypto.Hash                  (Digest, SHA256)
 import           Data.Aeson                   (FromJSON, ToJSON (toJSON))
 import qualified Data.Aeson                   as JSON
 import qualified Data.Aeson.Extras            as JSON
+import qualified Data.ByteArray               as BA
 import qualified Data.ByteString.Lazy.Hash    as Hash
 import qualified Data.ByteString.Lazy         as BSL
 import           Data.Proxy                   (Proxy (Proxy))
@@ -61,14 +63,16 @@ import           GHC.Generics                 (Generic)
 import           Language.Haskell.TH          (Q, TExp)
 import           Language.PlutusTx.Lift       (makeLift)
 import qualified Language.PlutusTx.Builtins   as Builtins
+import qualified Language.PlutusTx.Prelude    as P
 
 import           Ledger.Ada                   (Ada)
 import qualified Ledger.Ada.TH                as Ada
 import           Ledger.Crypto                (PubKey (..), Signature (..))
 import           Ledger.Scripts
 import           Ledger.Slot                  (Slot, SlotRange)
-import qualified Ledger.Tx                    as Tx
+import qualified Ledger.TxId                  as Tx
 import           Ledger.Value                 (Value)
+import           KeyBytes                     (KeyBytes(..))
 
 -- Ignore newtype warnings related to `Oracle` and `Signed` because it causes
 -- problems with the plugin
@@ -109,7 +113,7 @@ data PendingTxOutRef = PendingTxOutRef
 -- | An input of a pending transaction.
 data PendingTxIn = PendingTxIn
     { pendingTxInRef       :: PendingTxOutRef
-    , pendingTxInWitness   :: Either (ValidatorHash, RedeemerHash) Signature
+    , pendingTxInWitness   :: Maybe (ValidatorHash, RedeemerHash)
     -- ^ Tx input witness, hashes for Script input, or signature for a PubKey
     , pendingTxInValue     :: Value -- ^ Value consumed by this txn input
     } deriving (Generic)
@@ -121,7 +125,11 @@ data PendingTx = PendingTx
     , pendingTxFee         :: Ada -- ^ The fee paid by this transaction.
     , pendingTxForge       :: Value -- ^ The 'Value' forged by this transaction.
     , pendingTxIn          :: PendingTxIn -- ^ The 'PendingTxIn' being validated against currently.
-    , pendingTxValidRange  :: SlotRange -- ^ The valid range for the transaction.
+    , pendingTxValidRange  :: SlotRange -- ^ The valid range for the transaction.    
+    , pendingTxSignatures  :: [(PubKey, Signature)]
+    -- ^ Signatures provided with the transaction
+    , pendingTxHash        :: TxHash
+    -- ^ Hash of the pending transaction (excluding witnesses)
     } deriving (Generic)
 
 {- Note [Oracles]
@@ -179,7 +187,7 @@ them from the correct types in Haskell, and for comparing them (in
 -}
 -- | Script runtime representation of a @Digest SHA256@.
 newtype ValidatorHash =
-    ValidatorHash BSL.ByteString
+    ValidatorHash (Builtins.SizedByteString 32)
     deriving stock (Eq, Generic)
     deriving newtype (Serialise)
 
@@ -197,73 +205,81 @@ instance FromJSON ValidatorHash where
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype DataScriptHash =
-    DataScriptHash BSL.ByteString
+    DataScriptHash (Builtins.SizedByteString 32)
     deriving (Eq, Generic)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype RedeemerHash =
-    RedeemerHash BSL.ByteString
+    RedeemerHash (Builtins.SizedByteString 32)
     deriving (Eq, Generic)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype TxHash =
-    TxHash BSL.ByteString
+    TxHash (Builtins.SizedByteString 32)
     deriving (Eq, Generic)
 
--- | Compute the hash of a data script.
 plcDataScriptHash :: DataScript -> DataScriptHash
-plcDataScriptHash = DataScriptHash . plcSHA2_256 . serialise
+plcDataScriptHash = DataScriptHash . plcSHA2_256 . Builtins.SizedByteString . BSL.pack . BA.unpack
 
 -- | Compute the hash of a validator script.
 plcValidatorDigest :: Digest SHA256 -> ValidatorHash
-plcValidatorDigest = ValidatorHash . plcDigest
+plcValidatorDigest = ValidatorHash . Builtins.SizedByteString . BSL.pack . BA.unpack
 
--- | Compute the hash of a redeemer script.
 plcRedeemerHash :: RedeemerScript -> RedeemerHash
-plcRedeemerHash = RedeemerHash . plcSHA2_256 . serialise
+plcRedeemerHash = RedeemerHash . plcSHA2_256 . Builtins.SizedByteString . BSL.pack . BA.unpack
 
 -- | Compute the hash of a redeemer script.
 plcTxHash :: Tx.TxId -> TxHash
 plcTxHash = TxHash . plcDigest . Tx.getTxId
 
 -- | PLC-compatible SHA-256 hash of a hashable value
-plcSHA2_256 :: BSL.ByteString -> BSL.ByteString
-plcSHA2_256 = Hash.sha2
+plcSHA2_256 :: Builtins.ByteString -> Builtins.ByteString
+plcSHA2_256 = Builtins.SizedByteString . Hash.sha2 . Builtins.unSizedByteString
 
 -- | PLC-compatible SHA3-256 hash of a hashable value
-plcSHA3_256 :: BSL.ByteString -> BSL.ByteString
-plcSHA3_256 = Hash.sha3
+plcSHA3_256 :: Builtins.ByteString -> Builtins.ByteString
+plcSHA3_256 = Builtins.SizedByteString . Hash.sha3 . Builtins.unSizedByteString
 
 -- | Convert a `Digest SHA256` to a PLC `Hash`
-plcDigest :: Digest SHA256 -> BSL.ByteString
-plcDigest = serialise
+plcDigest :: Digest SHA256 -> P.SizedByteString 32
+plcDigest = P.SizedByteString . BSL.pack . BA.unpack
 
+-- | Check if two public keys are equal.
+eqPubKey :: Q (TExp (PubKey -> PubKey -> Bool))
+eqPubKey = [|| 
+    \(PubKey (KeyBytes l)) (PubKey (KeyBytes r)) -> $$(P.equalsByteString) l r
+    ||]
+    
 -- | Check if a transaction was signed by the given public key.
 txSignedBy :: Q (TExp (PendingTx -> PubKey -> Bool))
 txSignedBy = [||
-    \(p :: PendingTx) (PubKey k) ->
+    \(p :: PendingTx) k ->
         let
-            PendingTx txins _ _ _ _ _ = p
+            PendingTx _ _ _ _ _ _ sigs hsh = p
 
             signedBy' :: Signature -> Bool
-            signedBy' (Signature s) = Builtins.equalsInteger s k
+            signedBy' (Signature sig) =
+                let
+                    PubKey (KeyBytes pk) = k
+                    TxHash msg           = hsh
+                in $$(P.verifySignature) pk msg sig
 
-            go :: [PendingTxIn] -> Bool
+            go :: [(PubKey, Signature)] -> Bool
             go l = case l of
-                        PendingTxIn _ (Right sig) _ : r -> if signedBy' sig then True else go r
-                        _ : r -> go r
+                        (pk, sig):r ->
+                            if $$(eqPubKey) k pk
+                            then if signedBy' sig
+                                 then True
+                                 else $$(P.traceH) "matching pub key with invalid signature" (go r)
+                            else go r
                         []  -> False
         in
-            go txins
+            go sigs
     ||]
 
--- | Check if the input of a pending transaction was signed by the given public key.
-txInSignedBy :: Q (TExp (PendingTxIn -> PubKey -> Bool))
-txInSignedBy = [||
-    \(i :: PendingTxIn) (PubKey k) -> case i of
-        PendingTxIn _ (Right (Signature sig)) _ -> Builtins.equalsInteger sig k
-        _ -> False
-    ||]
+-- | Get the 'TxHash' of a 'PendingTx'.
+txHash :: Q (TExp (PendingTx -> TxHash))
+txHash = [|| \(PendingTx _ _ _ _ _ _ _ h) -> h||]
 
 -- | Get the public key that locks the transaction output, if any.
 pubKeyOutput :: Q (TExp (PendingTxOut -> Maybe PubKey))
@@ -277,10 +293,6 @@ scriptOutput :: Q (TExp (PendingTxOut -> Maybe (ValidatorHash, DataScriptHash)))
 scriptOutput = [|| \(o:: PendingTxOut) -> case o of
     PendingTxOut _ d DataTxOut -> d
     _                          -> Nothing ||]
-
--- | Check if two public keys are equal.
-eqPubKey :: Q (TExp (PubKey -> PubKey -> Bool))
-eqPubKey = [|| \(PubKey l) (PubKey r) -> Builtins.equalsInteger l r ||]
 
 -- | Check if two data script hashes are equal.
 eqDataScript :: Q (TExp (DataScriptHash -> DataScriptHash -> Bool))
@@ -300,11 +312,11 @@ eqTx = [|| \(TxHash l) (TxHash r) -> Builtins.equalsByteString l r ||]
 
 -- | Get the hash of the validator script that is currently being validated.
 ownHash :: Q (TExp (PendingTx -> ValidatorHash))
-ownHash = [|| \(PendingTx _ _ _ _ i _) -> let PendingTxIn _ (Left (h, _)) _ = i in h ||]
+ownHash = [|| \(PendingTx _ _ _ _ i _ _ _) -> let PendingTxIn _ (Just (h, _)) _ = i in h ||]
 
 -- | Get the total amount of 'Ada' locked by the given validator in this transaction.
 adaLockedBy :: Q (TExp (PendingTx -> ValidatorHash -> Ada))
-adaLockedBy = [|| \(PendingTx _ outs _ _ _ _) h ->
+adaLockedBy = [|| \(PendingTx _ outs _ _ _ _ _ _) h ->
     let
 
         go :: [PendingTxOut] -> Ada
@@ -323,7 +335,10 @@ adaLockedBy = [|| \(PendingTx _ outs _ _ _ _) h ->
 -- | Check if the provided signature is the result of signing the pending
 --   transaction (without witnesses) with the given public key.
 signsTransaction :: Q (TExp (Signature -> PubKey -> PendingTx -> Bool))
-signsTransaction = [|| \(Signature i) (PubKey j) (_ :: PendingTx) -> Builtins.equalsInteger i j ||]
+signsTransaction = [|| 
+    \(Signature sig) (PubKey (KeyBytes pk)) (p :: PendingTx) -> 
+        $$(P.verifySignature) pk (let TxHash h = $$(txHash) p in h) sig
+    ||]
 
 makeLift ''PendingTxOutType
 

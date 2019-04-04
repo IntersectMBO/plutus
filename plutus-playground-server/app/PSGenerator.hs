@@ -82,6 +82,12 @@ ledgerMapBridge = do
     typeModule ^== "Ledger.Map.TH"
     psLedgerMap
 
+keyBytesBridge :: BridgePart
+keyBytesBridge = do
+    typeName ^== "KeyBytes"
+    typeModule ^== "KeyBytes"
+    pure psString
+
 scientificBridge :: BridgePart
 scientificBridge = do
     typeName ^== "Scientific"
@@ -158,6 +164,18 @@ nonEmptyBridge = do
     typeModule ^== "GHC.Base"
     psNonEmpty
 
+sizedByteStringBridge :: BridgePart
+sizedByteStringBridge = do
+    typeName ^== "SizedByteString"
+    typeModule ^== "Language.PlutusTx.Builtins"
+    pure psString
+
+mapBridge :: BridgePart
+mapBridge = do
+    typeName ^== "Map"
+    typeModule ^== "Data.Map.Internal"
+    psLedgerMap
+
 myBridge :: BridgePart
 myBridge =
     defaultBridge <|> integerBridge <|> ledgerMapBridge <|> scientificBridge <|>
@@ -171,7 +189,10 @@ myBridge =
     headersBridge <|>
     headerBridge <|>
     nonEmptyBridge <|>
-    validatorHashBridge
+    validatorHashBridge <|>
+    sizedByteStringBridge <|>
+    mapBridge <|>
+    keyBytesBridge
 
 data MyBridge
 
