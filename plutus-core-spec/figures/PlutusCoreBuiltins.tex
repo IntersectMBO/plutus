@@ -149,17 +149,9 @@
 
         \texttt{equalsByteString}  &   \sig{s :: size}{str_s,str_s}{boolean}   &   s & b_0 , b_1   & b_0 == b_1\\
         %&&\\
-
-        \texttt{txhash}^{\dagger}   &   \sig{}{}{str_{32}}   &   & \textrm{---}  & 32!txh\\
-        %&&\\
-
-        \texttt{blocknum}  &  \sig{s :: size}{size_s}{integer_s}  & s & z & s!bnum & 0 \leq bnum < 2^{8s-1}\\
-        %&&\\
     \end{array}\)
 
     \vspace{1em}
-
-    \hspace{\builtinoffset}$^{\dagger}$ \texttt{txhash} and its meaning $txh$ are the hash of the transaction, containing information as specified by the host blockchain.
 
     \hspace{\builtinoffset}\caption{Builtin Signatures and Reductions}
     \label{fig:Plutus_core_builtins}

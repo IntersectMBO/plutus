@@ -357,9 +357,6 @@ eval (RemoveSimulationSlot index next) = do
 
 eval (ModifyWallets action next) = do
   modifying (_simulations <<< _current <<< _wallets) (evalWalletEvent action)
-  case action of
-    (RemoveWallet _) -> assign (_simulations <<< _current <<< _actions) []
-    _ -> pure unit
   pure next
 
 eval (PopulateAction n l event) = do

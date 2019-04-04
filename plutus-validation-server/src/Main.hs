@@ -5,6 +5,7 @@ module Main (main) where
 import           Data.Aeson
 import           Data.Aeson.Types
 import qualified Data.ByteString             as BS
+import           Data.ByteString.Base64.Type (getByteString64)
 import qualified Data.ByteString.Base64.Type as BS64
 import qualified Data.ByteString.Lazy        as BSL
 import           Network.HTTP.Types.Status
@@ -17,11 +18,18 @@ main = run 3000 app
 trueJSON :: BSL.ByteString
 trueJSON = "{\"isValid\":true}"
 
+-- TODO: make a curl request to this
 validateByteString :: BS.ByteString -- ^ Validator
                    -> BS.ByteString -- ^ Redeemer
                    -> BS.ByteString -- ^ Data
                    -> Bool
 validateByteString _ _ _ = True
+
+validateResponse :: ToValidate -> BSL.ByteString
+validateResponse (ToValidate v r d) =
+    if validateByteString (getByteString64 v) (getByteString64 r) (getByteString64 d)
+        then trueJSON
+        else falseJSON
 
 falseJSON :: BSL.ByteString
 falseJSON = "{\"isValid\":false}"
@@ -37,14 +45,17 @@ instance FromJSON ToValidate where
         <$> v .: "validator"
         <*> v .: "redeemer"
         <*> v .: "data"
-
     parseJSON invalid    = typeMismatch "ToValidate" invalid
 
 -- typecheck, run/validate
 
 app :: Application
-app req respond =
-    let bsReq = strictRequestBody req
-    in
-    -- TODO: what to do when error is returned?
-    respond $ responseLBS status200 [] trueJSON -- TODO: return actual answer we want instead of always saying it's valid
+app req respond = do
+    bsReq <- lazyRequestBody req
+    let decoded = decode bsReq
+        validated = fmap validateResponse decoded
+        -- TODO: handle json errors
+        resp = case validated of
+            Just x  -> x
+            Nothing -> falseJSON
+    respond $ responseLBS status200 [] resp

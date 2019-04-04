@@ -30,8 +30,18 @@
 
 \usepackage[T1]{fontenc}
 \usepackage{bussproofs,amsmath,amssymb}
-\usepackage{listings}
 \usepackage{xcolor}
+\usepackage{alltt}
+
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily,
+  columns=fullflexible,
+  mathescape=true,
+  escapeinside={|}{|}
+}
+
+
 
 
 % *** DEFINITIONS FOR PLUTUS LANGUAGE ***
@@ -67,7 +77,9 @@
 \newcommand{\inst}[2]{\texttt{\{}#1 ~ #2\texttt{\}}}
 \newcommand{\lam}[3]{\construct{\keyword{lam} ~ #1 ~ #2 ~ #3}}
 \newcommand{\app}[2]{\texttt{[} #1 ~ #2 \texttt{]}}
-\newcommand{\wrap}[3]{\construct{\keyword{wrap} ~ #1 ~ #2 ~ #3}}
+\newcommand{\iwrap}[3]{\construct{\keyword{iwrap} ~ #1 ~ #2 ~ #3}}
+\newcommand{\wrap}{\iwrap}
+%% ^ Temporary fix to avoid substituting all occurences of new keyword
 \newcommand{\unwrap}[1]{\construct{\keyword{unwrap} ~ #1}}
 \newcommand{\builtin}[3]{\construct{\keyword{builtin} ~ #1 ~ #2 ~ #3}}
 \newcommand{\error}[1]{\construct{\keyword{error} ~ #1}}
@@ -78,7 +90,9 @@
 %%%  Type Grammar
 
 \newcommand{\funT}[2]{\construct{\keyword{fun} ~ #1 ~ #2}}
-\newcommand{\fixT}[2]{\construct{\keyword{fix} ~ #1 ~ #2}}
+\newcommand{\ifixT}[2]{\construct{\keyword{ifix} ~ #1 ~ #2}}
+\newcommand{\fixT}{\ifixT}
+%% ^ Temporary fix to avoid substituting all occurences of new keyword
 \newcommand{\allT}[3]{\construct{\keyword{all} ~ #1 ~ #2 ~ #3}}
 \newcommand{\conIntegerType}[1]{\keyword{integer}}
 \newcommand{\conBytestringType}[1]{\keyword{bytestring}}
@@ -96,7 +110,7 @@
 
 %%% Program Grammar
 
-\newcommand{\version}[2]{\construct{\keyword{version} ~ #1 ~ #2}}
+\newcommand{\version}[2]{\construct{\keyword{program} ~ #1 ~ #2}}
 
 
 
@@ -149,11 +163,10 @@
 \newcommand{\ckerror}{\blacklozenge}
 
 \newcommand{\inInstLeftFrame}[1]{\inst{\_}{#1}}
-\newcommand{\inWrapRightFrame}[2]{\wrap{#1}{#2}{\_}}
+\newcommand{\inWrapRightFrame}[2]{\iwrap{#1}{#2}{\_}}
 \newcommand{\inUnwrapFrame}{\unwrap{\_}}
 \newcommand{\inAppLeftFrame}[1]{\app{\_}{#1}}
 \newcommand{\inAppRightFrame}[1]{\app{#1}{\_}}
-
 
 
 \begin{document}
@@ -209,16 +222,19 @@ off-chain execution doesn't happen on the blockchain itself, but in
 some other environment, such as in an electronic wallet on a
 smartphone or PC.  In contrast, on-chain execution takes place on
 \textit{core nodes}, machines which are actually maintaining the
-blockchain.  It is important that core nodes process transactions
-quickly and efficiently; moreover, core nodes benefit from executing
-transactions and compete with each other to do so.  Denial of service
-thus becomes an issue for on-chain code, and it is important that a
-malicious user cannot submit code which consumes excessive amounts of
-processor time or memory.
+blockchain.
 
-To deal with this problem, a charge is levied when a core node runs
-on-chain code.  Units of so-called \textit{gas} are consumed as a
-program runs, and users must buy gas in advance.  
+It is important that core nodes process transactions quickly and
+efficiently; moreover, core nodes benefit from executing transactions
+and compete with each other to do so.  Denial of service thus becomes
+an issue for on-chain code, and it is important that a malicious user
+cannot submit code which consumes excessive amounts of processor time
+or memory. To deal with this problem, a charge is levied when a core
+node runs on-chain code.  Units of so-called \textit{gas} are consumed
+as a program runs, and users must pay a fee in advance to cover gas
+costs.  If at any point during execution the amount of gas consumed
+exceeds the amount than has been paid for then the program is
+immediately terminated and the fee is forfeited.
 
 Because of these issues, it is important that the cost of on-chain
 code execution is easy to calculate, certainly during execution (so
@@ -240,39 +256,37 @@ type checking.
 The grammar of Plutus Core is given in
 Figures~\ref{fig:Plutus_core_lexical_grammar} and
 \ref{fig:Plutus_core_grammar}. This grammar describes the abstract
-syntax trees of Plutus Core in a convenient notation, and also
-describes the string syntax to be used when referring to those
-ASTs. The string syntax is not fundamental to Plutus Core, and only
-exists because we must refer to programs in documents such as
-the present one. Plutus Core programs are intended to exist only as ASTs produced by
-compilers from higher languages, and as serialized representations on
-blockchains, and therefore we do not expect anyone to write programs
-in Plutus Core, nor need to use a parser for the language.
+syntax trees of Plutus Core in a convenient notation which can also be
+used as concrete syntax for purposes such as experimentation and
+debugging.
 
-Lexemes are described in standard regular expression notation.  The only other
-lexemes are round \texttt{()}, square \texttt{[]}, and curly \texttt{\{\}}
-brackets.  Spaces and tabs are allowed anywhere, and have no effect
-save to separate lexemes.
+Lexemes are described in standard regular expression notation.  The
+following lexemes are reserved as keywords for use in concrete syntax:
+\texttt{abs}, \texttt{all}, \texttt{builtin}, \texttt{bytestring},
+\texttt{con}, \texttt{error}, \texttt{fun}, \texttt{ifix},
+\texttt{integer}, \texttt{iwrap}, \texttt{lam}, \texttt{program},
+\texttt{size}, \texttt{type}, \texttt{unwrap}.  The only other lexemes
+are round brackets $\texttt{(}\ldots\texttt{)}$, square brackets
+$\texttt{[}\ldots\texttt{]}$, and braces
+$\texttt{\{}\ldots\texttt{\}}$.  Spaces and tabs are allowed anywhere,
+and have no effect save to separate lexemes.
 
 Application in both terms and types is indicated by square
-brackets, and instantiation in terms is indicated by curly brackets. We
+brackets, and instantiation in terms is indicated by braces. We
 permit the use of multi-argument application and instantiation as
 syntactic sugar for iterated application.
 For instance,
 \[
   [M_0 ~ M_1 ~ M_2 ~ M_3]
-\]
-is sugar for
+  \]
+\noindent is short for
 \[
   [[[M_0 ~ M_1] ~ M_2] ~ M_3]
 \]
 All subsequent definitions assume iterated application and instantiation
-has been expanded out, and use only the binary form. To the extent that
-a standard utility parser for Plutus Core might be made, for debugging
-purposes and other such things, iterated application and instantiation
-ought to be included as sugar.
+has been expanded out, and use only the binary form. Implementations
+may use the multi-argument forms.
 
-%In this grammar, we have multi-argument application, both in types (\(\appT{A}{B^+}\)) and in terms (\(\app{M}{N^+}\)), as well as multi-argument instantiation in terms (\(\inst{M}{A^*}\)). This is to be understood as a convenient form of syntactic sugar for iterated binary application associated to the left, and the formal rules treat only the binary case.
 
 \subfile{figures/PlutusCoreLexicalGrammar}
 
@@ -289,7 +303,7 @@ ought to be included as sugar.
   Note that we require the body of the abstraction to be a
   \textit{value}, not a term: see the note on the value restriction below.
 \item $\inst{M}{A}$ represents a polymorphic term instantiated at a particular type.
-\item $\wrap{A}{B}{M}$ and $\unwrap{M}$: see the note on recursive types below.
+\item $\iwrap{A}{B}{M}$ and $\unwrap{M}$: see the note on recursive types below.
 \item $\lam{x}{A}{M}$ is standard lambda-abstraction: $\lambda{}x{:}{A}.{M}$.
 \item $\app{M}{N}$ is standard function application.
 \item $\builtin{bn}{A^*}{M^*}$ is application of a built-in function: see \S\ref{sec:builtins} for more information.
@@ -331,7 +345,7 @@ is the type of 8-byte integers.  See \S\ref{sec:builtins} for more information.
   fact that reduction of terms in the simply typed lambda calculus
   always terminates (\cite[\S12]{Pierce:TAPL}).  The type-level
   structure of Plutus Core is slightly more complicated than the
-  simply typed lambda calculus, but the extra forms (\texttt{fix},
+  simply typed lambda calculus, but the extra forms (\texttt{ifix},
   \texttt{all}, built-in base types) don't provide any new
   opportunities for type reduction and thus have little effect on the
   proof.
@@ -397,11 +411,11 @@ which will increase as the size of the integers involved increases.
 \subsubsection{Recursive types}
 \label{sec:ifix-note}
 \noindent
-The operator \texttt{fix} allows one to define recursive types in
-Plutus Core: \texttt{fix A B} is a type such that \texttt{fix A B
-  $\cong$ A (fix A) B} where \texttt{A} is a \textit{pattern
+The operator \texttt{ifix} allows one to define recursive types in
+Plutus Core: \texttt{ifix A B} is a type such that \texttt{ifix A B
+  $\cong$ A (ifix A) B} where \texttt{A} is a \textit{pattern
   functor}~\cite[2.4]{backhouseetal98} and \texttt{B} is an
-index. Pattern functors that \texttt{fix} receives bind two variables:
+index. Pattern functors that \texttt{ifix} receives bind two variables:
 one for building recursive occurrences and the other to act as an
 index. Indices can be used in order to get parameterized data types,
 but also in order to control the shape of the data type: depending on
@@ -409,18 +423,23 @@ an index, recursive occurrences can be instantiated differently.  This
 allows us to encode a wide variety of data types, including non-regular and
 mutually recursive data types.
 
+\blue{We could do with more detail (or perhaps an example) here, since
+  it'll be much more difficult for the reader to work out what's going
+  on than with standard \texttt{fix}.  With luck we'll have a publication
+  soon...}
+
 Note that we have an \textit{isomporhism} of types here
 rather than equality: fixpoint types are
 \textit{isorecursive}~\cite[20.2]{Pierce:TAPL} with explicit maps
 
 $$
-\texttt{wrap} : \texttt{A (fix A) B} \rightarrow \texttt{fix A B}
+\texttt{iwrap} : \texttt{A (fix A) B} \rightarrow \texttt{ifix A B}
 $$
 
 \noindent and
 
 $$
-\texttt{unwrap} : \texttt{fix A B} \rightarrow  \texttt{A (fix A) B}
+\texttt{unwrap} : \texttt{ifix A B} \rightarrow  \texttt{A (ifix A) B}
 $$
 
 \noindent The use of isorecursive types makes it somewhat more difficult to
@@ -429,8 +448,7 @@ write \textit{terms}, but makes it much easier to reason about
 considerably.
 
 \noindent\blue{We could do with a simple example here, and perhaps a more detailed explanation
-  later?  Also, ``isorecursive'' or ``iso-recursive''? 
-Is it true that we have an isomporhism, and not a retraction or something?}
+  later?  Also, is it true that we have an isomporhism, and not a retraction or something?}
 
 
 \subsubsection{The value restriction}
@@ -449,13 +467,25 @@ these problems and is not very onerous in practice.
 
 \section{Type Correctness}
 
-We define for Plutus Core a number of typing judgments which explain ways that a program can be well-formed. First, in Figure \ref{fig:Plutus_core_contexts}, we define the grammar of variable contexts that these judgments hold under. Variable contexts contain information about the nature of variables --- type variables with their kind, and term variables with their type.
+We define for Plutus Core a number of typing judgments which explain
+ways that a program can be well-formed. First, in Figure
+\ref{fig:Plutus_core_contexts}, we define the grammar of variable
+contexts that these judgments hold under. Variable contexts contain
+information about the nature of variables --- type variables with
+their kind, and term variables with their type.
 
-Then, in Figure \ref{fig:Plutus_core_kind_synthesis}, we define what it means for a type to synthesize a kind. Plutus Core is a higher-kinded version of System F, so we have a number of standard System F rules together with some obvious extensions. In Figure \ref{fig:Plutus_core_type_synthesis}, we define the type synthesis judgment, which explains how a term synthesizes a type.
+Then, in Figure \ref{fig:Plutus_core_kind_synthesis}, we define what
+it means for a type to synthesize a kind. Plutus Core is a
+higher-kinded version of System F, so we have a number of standard
+System F rules together with some obvious extensions. In Figure
+\ref{fig:Plutus_core_type_synthesis}, we define the type synthesis
+judgment, which explains how a term synthesizes a type.
 
 Finally, type synthesis for constants ($\con{bn}$ and $\conT{bt}\!\!$)
 % \!: negative spaces to get rid of superfluous space
-is given in tabular form rather than in inference rule form, in Figure \ref{fig:Plutus_core_builtins}, which also gives the reduction semantics. This table also specifies what conditions trigger an error.
+is given in tabular form rather than in inference rule form, in Figure
+\ref{fig:Plutus_core_builtins}, which also gives the reduction
+semantics. This table also specifies what conditions trigger an error.
 
 
 
@@ -536,18 +566,30 @@ purposes.
 
 \subfile{figures/PlutusCoreCkMachine}
 
-\noindent The machine alternates between two main phases: \textit{computation}
-($\triangleright$), where it recurses down the AST looking for values,
-saving surrounding contexts as frames (or \textit{reduction contexts})
-on a stack as it goes; and \textit{return} ($\triangleleft$), where it
-has obtained a value and pops a frame off the stack to tell it how to
-proceed next.  In addition there is an error state $\blacklozenge$
-which halts execution with an error, and a stop state $\square$ which
-halts execution and returns a value to the outside world.
+\noindent The machine alternates between two main phases: the
+\textit{compute} phase ($\triangleright$), where it recurses down
+the AST looking for values, saving surrounding contexts as frames (or
+\textit{reduction contexts}) on a stack as it goes; and the 
+\textit{return} phase ($\triangleleft$), where it has obtained a value and
+pops a frame off the stack to tell it how to proceed next.  In
+addition there is an error state $\blacklozenge$ which halts execution
+with an error, and a stop state $\square$ which halts execution and
+returns a value to the outside world.
 
-\blue{When a builtin returns a result, should it be a value
-  that gets $\triangleleft$ or a term that gets $\triangleright$?  The 
-  new dynamic built-in stuff would probably require the latter.} 
+To evaluate a program $\texttt{(program } v\ M \texttt{)}$, we first
+check that the version number $v$ is valid, then start the machine in
+the state $\cdot \triangleright M$.  It can be proved that the
+transitions in Figure~\ref{fig:Plutus_core_ck_machine} always preserve
+validity of states, so that the machine can never enter a state such as
+  $\cdot \triangleleft M$
+or
+$s, \texttt{(unwrap \_)} \triangleleft \texttt{(lam }x\ A \ M\texttt{)}$
+which isn't covered by the rules.  If such a
+situation were to occur in an implementation then it would indicate
+that the machine was incorrectly implemented or that it was attempting
+to evaluate an invalid program which should have been detected during
+parsing or typechecking.
+
 
 \section{Built in types, functions, and values}
 \label{sec:builtins}
@@ -597,19 +639,69 @@ use them appropriately.
 
 \subfile{figures/PlutusCoreBuiltins}
 
+\section{Transaction Validation}
+The primary use for Plutus Core is for executing code on blockchain
+nodes; specifically, it is intended for scripts used to validate
+transactions taking place on the chain.  This section will give a
+brief description of the background which will be useful in a
+subsequent example.
+
+The Cardano blockchain uses a variant of Bitcoin's \textit{Unspent
+  Transaction Output} (UTXO) model.  Transactions on the chain consume
+inputs and produce outputs consisting of cryptocurrency, and outputs
+from a transaction can be spent as inputs to a later transaction.
+Users do not have an account containing currency, but instead have the
+right to spend outputs from previous transactions which have not yet
+been spent (UTXOs).
+
+To spend an output, a user has to prove that they have the right to do
+so.  In a simple case, an output might have been locked with a public
+key and a user would have to use the corresponding private key to
+unlock it.  However, more complicated scenarios are possible: for
+example, a specified set of users might have to act together to spend
+a particular output, or an output might not be spendable until a
+certain period of time has passed since its production.
+
+The process of verifying that an output can be spent is called
+\textit{validation}, and is perfomed by executing \textit{scripts},
+which in our case will be Plutus Core programs.
+
+
+Cardano uses a validation strategy which we call the \textit{Extended
+  UTXO model}.  A full specification of the Extended UTXO model is
+currently being prepared, but the fundamental ideas can be found
+in~\cite{Zahnentferner18-Chimeric} and \cite{Zahnentferner18-UTxO}.
+
+The basic idea is as follows.  Suppose a UTXO $O$ has been produced by a
+transaction $P$ (the \textit{producer}) and a transaction $C$ (the
+\textit{consumer}) wishes to use it as an input $I$.
+
+\begin{itemize}
+\item The output $O$ is equipped with a script $D$ (the \textit{data script} supplied by its producer $P$.
+\item The input $I$ is equipped with two scripts: a \textit{redeemer} $R$ and a \textit{validator} $V$.
+  \begin{itemize}
+    \item $V$ is supplied by $C$, the consumer, as proof that it has the right to spend $O$.
+    \item $R$ is supplied by $P$, the producer, and is used to check that $T$ has the right to spend $O$.
+  \end{itemize}
+\item During validation and object $S$ containing information about
+  the state of the blockchain is constructed; $S$ contains
+  \begin{itemize}
+  \item A hash of $T$, \textit{txhash}
+  \item The current block number, \textit{blocknum}.
+  \item Various other things which aren't important for this document.
+  \end{itemize}
+\item To check validity, $V$ is evaluated with $R$, $D$, and $S$ as
+  arguments.  If evaluation succeeds, the $O$ is unlocked; if it fails
+  (ie, returns the value \texttt{error}) then validation also fails and $O$ cannot be spent.
+\end{itemize}
+The precise roles of the various scripts don't matter here: the
+essential point is that one script is run with some others as inputs
+and the outcome determines whether money can be spent.
+
+
 \section{Examples}
 
 \subfile{figures/PlutusCoreExampleAgain}
-
-\section{Basic Validation Program Structure}
-
-The basic way that validation is done in Plutus Core is somewhat
-similar to what's in Bitcoin Script. Whereas in Bitcoin Script, a
-validation is successful if the validating script successfully
-executes and leaves $\textit{true}$ on the top of the stack, in Plutus
-Core, validation is successful when the script reduces to any value
-other than \(\error{A}\) in the allotted number of steps.
-
 
 %\section{Erasure}
 
@@ -629,7 +721,11 @@ other than \(\error{A}\) in the allotted number of steps.
 
 \section{Unrestricted Algorithmic Type System}
 
-For implementation purposes, it's useful to have a variant of the type system that is more algorithmic in its presentation. We give this here, showing the figures that have been changed (relative to the declarative version above), and highlighting the specific parts of each rule that is different, where possible.
+For implementation purposes, it's useful to have a variant of the type
+system that is more algorithmic in its presentation. We give this
+here, showing the figures that have been changed (relative to the
+declarative version above), and highlighting the specific parts of
+each rule that is different, where possible.
 
 \subfile{figures/PlutusCoreTypeCorrectness-Algorithmic-Unrestricted.tex}
 
@@ -637,7 +733,16 @@ For implementation purposes, it's useful to have a variant of the type system th
 
 \section{Restricted Algorithmic Type System}
 
-For blockchain purposes, it is useful to not only have an algorithmic system, but to require that no un-normalized types are present in programs, so as to reduce the amount of computation necessary to typecheck a program. It's also useful to have a way of bounding the amount of computation that can be done in type checking, for security purposes. To that end, we present a restricted grammar and type reduction, and a type system that reflects these. The figures below are additions with respect to the unrestricted version, and show only the new or changed figures and their respective highlighted differences.
+For blockchain purposes, it is useful to not only have an algorithmic
+system, but to require that no un-normalized types are present in
+programs, so as to reduce the amount of computation necessary to
+typecheck a program. It's also useful to have a way of bounding the
+amount of computation that can be done in type checking, for security
+purposes. To that end, we present a restricted grammar and type
+reduction, and a type system that reflects these. The figures below
+are additions with respect to the unrestricted version, and show only
+the new or changed figures and their respective highlighted
+differences.
 
 \subfile{figures/PlutusCoreGrammar-Algorithmic-Restricted.tex}
 

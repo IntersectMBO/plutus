@@ -24,6 +24,7 @@ let
   # List of all plutus pkgs. This is used for `isPlutus` filter and `mapTestOn`
   plutusPkgList = [
     "language-plutus-core"
+    "plutus-contract-exe"
     "plutus-core-interpreter"
     "plutus-playground-server"
     "plutus-playground-lib"

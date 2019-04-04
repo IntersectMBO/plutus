@@ -10,7 +10,9 @@ From the smart contract author's perspective, the blockchain is a distributed bo
 
 Smart contracts are programs that control the transfer of resources on the blockchain. When two parties decide to enter a smart contract, they place some of their own assets under the control of the contract. Every time somenone wants to take assets out of the contract, the program is run and only if its output is positive are the assets released. 
 
-In the [next tutorial](../doctest/Tutorial/02-validator-scripts.md) we will write our first smart contract, a guessing game.
+On the Cardano blockchain, the programs that run on the blockchain are written in a language called *Plutus Core*. However, smart contract authors do not write Plutus Core directly. The Plutus Platform is a software development kit to enable smart contract authors to easily write smart contracts, including the logic that will eventually be run on the blockchain as Plutus Core.
+
+In the [next tutorial](../doctest/Tutorial/01-plutus-tx.md) we will go over the basics of using Plutus Tx to write smart contract logic.
 
 ## Glossary
 

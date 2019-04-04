@@ -15,6 +15,7 @@ packages:
 - plutus-playground-lib
 - plutus-tutorial
 - plutus-validation-server
+- plutus-contract-exe
 
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - location:
@@ -50,6 +51,8 @@ flags:
   plutus-core-interpreter:
     development: true
   plutus-playground-server:
+    development: true
+  plutus-contract-exe:
     development: true
 extra-package-dbs: []
 nix:
