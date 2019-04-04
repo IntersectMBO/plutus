@@ -2,104 +2,118 @@
 
 \begin{document}
 
-We illustrate the use of Plutus Core by constructing a simple validator program. We present components of this program in a high-level style. i.e., we write
-\begin{lstlisting}[basicstyle=\ttfamily,mathescape]
-one : $unit$
-one = (abs $a$ (type) (lam $x$ $a$ $x$))
+\newcommand\unit{$\mathit{unit}$}
+\newcommand\boolean{$\mathit{boolean}$}
+\newcommand\signed{$\mathit{signed}$}
+\newcommand\txhash{$\mathit{txhash}$}
+\newcommand\pubkey{$\mathit{pubkey}$}
+\newcommand\blocknum{$\mathit{blocknum}$}
+% These are for use inside listings.  If you just use \textit it uses
+% the italic tt font and the spacing inside the words is a bit
+% strange.
+
+
+We illustrate the use of Plutus Core by constructing a simple
+validator program. We present components of this program in a
+high-level style: for instance, we write
+\begin{lstlisting}
+   one : |\unit|
+   one = (abs $a$ (type) (lam $x$ $a$ $x$))
 \end{lstlisting}
 for the element of the type $unit$ (defined in \ref{fig:Plutus_core_type_abbreviations}).
 
 We stress that declarations in this style are not part of the Plutus
-Core language. We merely use the familiar syntax to present out
+Core language. We merely use the familiar syntax to present our
 example. If the high-level definitions in our example were compiled to
-a Plutus Core expression, it would result in something like figure
+a Plutus Core expression, it would result in something like Figure
 \ref{fig:Continuized_Let_Example}.
 
-We proceed by defining the booleans. Like $unit$, the type $boolean$
+We proceed by defining the booleans. Like \textit{unit}, the type \textit{boolean}
 below is an abbreviation in the specification. Some built-in constants
 return values of type $boolean$. When needed, user programs should
 contain the declarations below. We have
-\begin{lstlisting}[basicstyle=\ttfamily,mathescape]
-true : $boolean$
-true = (abs $a$ (type)
-       (lam $x$ $a$
-       (lam $y$ $a$
-         $x$ )))
+
+% Note that |\boolean| below causes \boolean to be treated as normal latex.
+% It works like this because of the \escapeinside setting in \lstset in the document header.
+
+\begin{lstlisting}
+  true : |\boolean|
+  true = (abs $a$ (type)
+          (lam $x$ $a$
+          (lam $y$ $a$
+                $x$ )))
 \end{lstlisting}
 and similarly
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
-false : $boolean$
-false = (abs $a$ (type)
-        (lam $x$ $a$
-        (lam $y$ $a$
-          $y$ )))
+  false : |\boolean|
+  false = (abs $a$ (type)
+           (lam $x$ $a$
+           (lam $y$ $a$
+                 $y$ )))
 \end{lstlisting}
 
-Next, we define the ``case'' function for the type $boolean$ as follows:
+\noindent Next, we define the ``case'' function for the type $boolean$ as follows:
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
-case : (all $a$ (type)
-       (fun $boolean$
-       (fun (fun $unit$ $a$) (fun (fun $unit$ $a$) $a$))))
-case = (abs $a$ (type)
-       (lam $b$ $boolean$
-       (lam $t$ (fun $unit$ $a$)
-       (lam $f$ (fun $unit$ $a$)
-         [
-           [ {$b$ (fun $unit$ $a$)} t f ]
-           $one$
-         ]
-       ))))
+  case : (all $a$ (type)
+          (fun |\boolean|
+          (fun (fun |\unit| $a$) (fun (fun |\unit| $a$) $a$))))
+  case = (abs $a$ (type)
+          (lam $b$ |\boolean|
+          (lam $t$ (fun |\unit| $a$)
+          (lam $f$ (fun |\unit| $a$)
+             [
+               [ {$b$ (fun |\unit| $a$)} $t$ $f$ ]
+               one
+             ]
+          ))))
 \end{lstlisting}
 The reader is encouraged to verify that
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
-[{case a} true (lam $unit$ u x) (lam $unit$ u y)] $\stackrel{*}{\rightarrow}$ x
+  [{case a} true (lam |\unit| u x) (lam |\unit| u y)] $\stackrel{*}{\rightarrow}$ x
 \end{lstlisting}
 and
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
-[{case a} false (lam $unit$ u x) (lam $unit$ u y)] $\stackrel{*}{\rightarrow}$ y
+  [{case a} false (lam |\unit| u x) (lam |\unit| u y)] $\stackrel{*}{\rightarrow}$ y
 \end{lstlisting}
 
-We can use \texttt{case} to define the following function:
+\noindent We can use \texttt{case} to define the following function:
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
-verifyIdentity :
-  (fun [(con bytestring) (con 256)]
-  (fun [(con bytestring) (con 32)] unit))
-verifyIdentity =
-  (lam $pubkey$ [(con bytestring) (con 256)]
-  (lam $signed$ [(con bytestring) (con 32)]
-    [ { case $unit$ } [ {(builtin verifySignature) (con 32)
-                                                (con 32)
-                                                (con 256)}
-                      $signed$
-                      $txhash$
-                      $pubkey$
-                      ]
-      (lam u $unit$ one)
-      (lam u $unit$ (error $unit$))
-    ]))
+  verifyIdentity :
+    (fun (con bytestring 256) (fun (con bytestring 32) unit))
+  verifyIdentity =
+    (lam |\pubkey| (con bytestring 256)
+    (lam |\signed| (con bytestring 32)
+      [ { case |\unit| } [ {(builtin verifySignature) (con 32) (con 32) (con 256)}
+                           |\signed|
+                           |\txhash|
+                           |\pubkey|
+                         ]
+        (lam u |\unit| one)
+        (lam u |\unit| (error |\unit|))
+      ]))
 \end{lstlisting}
 the idea being that the first argument is a public key, and the second
 argument is the result of signing the hash of the current transaction
-(accessible via $txhash : \texttt{[(con bytestring) (con 32)]}$) with
+(accessible via $\mathit{txhash} : \texttt{(con bytestring 32)}$) with
 that public key. The function terminates if and only if the signature
 is valid, raising an \texttt{error} otherwise. Now, given Alice's
 public key we can apply our function to obtain one that verifies
 whether or not its input is the result of Alice signing the current
 block number. Again, we stress that the Plutus Core expression
-corresponding to $\texttt{verifyIdentity}$ is going to look something
-like figure \ref{fig:Continuized_Let_Example}.
+corresponding to \texttt{verifyIdentity} is going to look something
+like Figure \ref{fig:Continuized_Let_Example}.
 
 With minimal modification we might turn our function into one that
 verifies a signature of the current block number. Specifically, by
-replacing $txhash$ with
-\begin{lstlisting}[basicstyle=\ttfamily,mathescape]
-[ {$intToByteString$ (con 16) (con 32)}
-  256
-  [{$blocknum$ (con 16)} 16]
-]
+replacing \txhash{} with
+\begin{lstlisting}
+  [ {intToByteString (con 16) (con 32)}
+    256
+    [{|\blocknum| (con 16)} 16]
+  ]
 \end{lstlisting}
 
-Notice that we must supply $blocknum$ with the size we wish to use to
+Notice that we must supply \blocknum{} with the size we wish to use to
 store the result twice, once at the type level and again at the term
 level. This is necessary because we want to have the size information
 available both at the type level, to facilitate gas calculations, and
@@ -108,9 +122,9 @@ how much memory to allocate. This quirk is present in a number of the
 built in functions.
 
 \begin{figure*}[h]  % Using H here causes undefined references to this figure
-\begin{lstlisting}[basicstyle=\ttfamily,mathescape]
-(lam $pubkey$ [(con bytestring) (con 256)]
-(lam $signed$ [(con bytestring) (con 32)]
+\begin{lstlisting}%[basicstyle=\ttfamily,mathescape]
+(lam |\pubkey| (con bytestring 256)
+(lam |\signed| (con bytestring 32)
     [ 
     {
         (abs $a$ (type)
@@ -127,7 +141,7 @@ built in functions.
         )
         (all $a$ (type) (fun $a$ $a$))
     }
-    [ {(builtin verifySignature) (con 32) (con 32) (con 256)} $signed$ (builtin txhash) $pubkey$ ]
+    [ {(builtin verifySignature) (con 32) (con 32) (con 256)} |\signed| |\txhash| |\pubkey| ]
     (lam $u$ (all $a$ (type) (fun $a$ $a$))
         (abs $a$ (type) (lam $x$ $a$ $x$))
     )
