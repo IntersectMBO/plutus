@@ -111,13 +111,52 @@ open import Algorithmic.Reduction as AR
 open import Algorithmic.Evaluation as AE
 open import Scoped.Reduction as SR
 open import Utils
+{-
+erase—→ : ∀{Γ K}{A : A.∥ Γ ∥ ⊢Nf⋆ K}{t t' : Γ ⊢ A} → t AR.—→ t' → erase t SR.—→ erase t'
+eraseVal : ∀{Γ K}{A : A.∥ Γ ∥ ⊢Nf⋆ K}{t : Γ ⊢ A} → AR.Value t → SR.Value (erase t)
+eraseVal V-ƛ = V-ƛ "x" _ _
+eraseVal V-Λ_ = SR.V-Λ "x" _ _
+eraseVal V-wrap1 = V-wrap _ _ _
+eraseVal (V-con cn) = V-con (eraseC cn)
 
+erase—→ (ξ-·₁ p)   = ξ-·₁ (erase—→ p)
+erase—→ (ξ-·₂ p q) = ξ-·₂ (eraseVal p) (erase—→ q)
+erase—→ (E-·₁ p) = {!E-!}
+erase—→ (E-·₂ p) = {!!}
+erase—→ (ξ-·⋆ p) = ξ-·⋆ (erase—→ p)
+erase—→ (E-·⋆ p) = {!!}
+erase—→ (β-ƛ p) = {!SR.β-ƛ!}
+erase—→ β-Λ = {!!}
+erase—→ β-wrap1 = β-wrap
+erase—→ (ξ-unwrap1 p) = {!!}
+erase—→ (E-unwrap1 p₁) = {!!}
+erase—→ (β-builtin bn σ tel vtel) = {!!}
+erase—→ (ξ-builtin bn σ tel Bs Ds vtel p p' tel') = {!!}
+erase—→ (E-builtin bn σ tel Bs Ds vtel p p' tel') = {!!}
+
+
+lemma : {A : ∅ ⊢Nf⋆ *}(t : ∅ ⊢ A) →
+  (Σ (∅ ⊢ A) λ t' → Σ (t AR.—→ t') λ p → AR.progress t ≡ step p
+    × SR.progress (erase t) ≡ inj₂ (erase t' P., {!!}))
+  ⊎
+  (Σ (AR.Value t) λ v → AR.progress t ≡ done v
+    × SR.progress (erase t) ≡ inj₁ (inj₁ {!!}))
+  ⊎
+  Σ (AR.Error t) λ e → AR.progress t ≡ error e
+    × SR.progress (erase t) ≡ inj₁ (inj₂ {!!})
+lemma t = {!!}
+-}
 {-
 theorem : {A : ∅ ⊢Nf⋆ *}(t : ∅ ⊢ A) → 
   -- for any n such that eval terminates with a value, then run also terminates with the erasure of the same value
   ∀ n → (p : Σ (∅ ⊢ A) λ t' → Σ (t AR.—↠ t') λ p → Σ (AR.Value t') λ v → eval (gas n) t ≡ steps p (done t' v))
   → proj₁ (run (erase t) n) ≡ erase (proj₁ p) × Σ (SR.Value (proj₁ (run (erase t) n))) λ v → proj₂ (proj₂ (run (erase t) n)) ≡ inj₁ (just v)
   -- question: is the last clause needed?
-theorem = {!!}
+theorem t (suc n) (t' P., p P., v P., q) with AR.progress t | SR.progress (erase t)
+theorem t (suc n) (t' P., p P., v P., q) | step x | inj₁ q' = {!!}
+theorem t (suc n) (t' P., p P., v P., q) | step x | inj₂ y = {!!}
+theorem t (suc n) (.t P., refl—↠ P., v P., q) | done v' | inj₁ (inj₁ v'') = refl P., (v'' P., refl)
+theorem t (suc n) (.t P., refl—↠ P., v P., q) | done v' | inj₁ (inj₂ e) = refl P., {!!} -- missing info, I would need that something reduces to e...
+theorem t (suc n) (t' P., p P., v P., q) | done x | inj₂ y = {!!}
 -}
 \end{code}
