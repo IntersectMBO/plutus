@@ -3,7 +3,8 @@
 with pkgs.lib;
 
 let
-  readRev = let head = builtins.readFile ../../.git/HEAD;
+  headPath = ../../.git/HEAD;
+  readRev = let head = if builtins.pathExists headPath then builtins.readFile headPath else "master";
             in
               if hasPrefix "ref: " head
                 then builtins.readFile (../../.git + ''/${removeSuffix "\n" (removePrefix "ref: " head)}'')
