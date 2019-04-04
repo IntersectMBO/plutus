@@ -67,7 +67,7 @@ library
         plutus-playground-lib -any,
         process -any,
         regex-compat -any,
-        servant <0.15,
+        servant <0.16,
         servant-client -any,
         servant-client-core -any,
         servant-purescript -any,

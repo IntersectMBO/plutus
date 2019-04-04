@@ -36,7 +36,7 @@ goldenPir op = goldenPirM (return . op)
 
 goldenPirM :: Pretty b => (a -> IO b) -> Parser a -> String -> TestNested
 goldenPirM op parser name = withGoldenFileM name parseOrError
-    where parseOrError = either (return . T.pack . parseErrorPretty) (fmap prettyText . op)
+    where parseOrError = either (return . T.pack . show) (fmap prettyText . op)
                          . parse parser name
 
 ppThrow :: PrettyBy PrettyConfigPlc a => ExceptT SomeException IO a -> IO T.Text

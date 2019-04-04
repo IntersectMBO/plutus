@@ -54,6 +54,7 @@ import Language.PlutusCore
 import Language.PlutusCore.Pretty
 import Language.PlutusCore.Quote
 import Language.PlutusCore.Evaluation.CkMachine
+import Data.Text.Prettyprint.Doc
 ```
 
 Plutus Tx makes heavy use of Template Haskell. There are a few reasons for this:
