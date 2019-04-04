@@ -2,7 +2,7 @@ cabal-version: 2.0
 name: language-plutus-core
 version: 0.1.0.0
 license: Apache-2.0
-license-files: 
+license-files:
   LICENSE
   NOTICE
 maintainer: vanessa.mchale@iohk.io
@@ -72,6 +72,8 @@ library
         Language.PlutusCore.Generators.AST
         Language.PlutusCore.Generators.Interesting
         Language.PlutusCore.Generators.Test
+        Language.PlutusCore.Lexer
+        Language.PlutusCore.Parser
         PlutusPrelude
         Common
         Data.ByteString.Lazy.Hash
@@ -81,9 +83,7 @@ library
     hs-source-dirs: src prelude stdlib examples generators common
     other-modules:
         Language.PlutusCore.Type
-        Language.PlutusCore.Lexer
         Language.PlutusCore.Lexer.Type
-        Language.PlutusCore.Parser
         Language.PlutusCore.Constant.Apply
         Language.PlutusCore.Constant.Dynamic.BuiltinName
         Language.PlutusCore.Constant.Dynamic.Call

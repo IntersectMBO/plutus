@@ -23,6 +23,7 @@ import qualified Ledger.Ada                   as Ada
 import           Ledger.Ada                   (Ada)
 import           Wallet                       (WalletAPI(..), WalletDiagnostics(..))
 import qualified Wallet                       as W
+import qualified Wallet.Generators            as Gen
 import qualified Wallet.Emulator.Types        as EM
 import qualified Wallet.API                   as WAPI
 
@@ -138,19 +139,15 @@ startGame = startWatching gameAddress
 
 -}
 
--- Some wallets used for testing. Wallets are identified by an 'Int'. (Note. 
--- This will change soon! In the near future each wallet will be identified by 
--- a cryptographic key)
+-- Some wallets used for testing.
 w1, w2 :: EM.Wallet
 w1 = EM.Wallet 1
 w2 = EM.Wallet 2
 
--- To send money to a wallet we need to know its public key. We currently use 
--- 'Int's to represent public keys in the mockchain. (Note. This will change 
--- soon!)
+-- To send money to a wallet we need to know its public key.
 pk1, pk2 :: WAPI.PubKey
-pk1 = WAPI.PubKey 1
-pk2 = WAPI.PubKey 2
+pk1 = EM.walletPubKey w1
+pk2 = EM.walletPubKey w2
 
 {- |
 
@@ -256,7 +253,8 @@ simpleTraceDist = EM.fundsDistribution $ snd $ runTrace simpleTrace
 {- |
 
     >>> simpleTraceDist
-    fromList [(Wallet {getWallet = 1},Value {getValue = [(CurrencySymbol 0,900)]}),(Wallet {getWallet = 2},Value {getValue = [(CurrencySymbol 0,1100)]})]
+    fromList [(Wallet {getWallet = 1},Value {getValue = Map {unMap = [(CurrencySymbol 0,900)]}}),(Wallet {getWallet = 2},Value {getValue = Map {unMap = [(CurrencySymbol 0,1100)]}})]
+
 
     'simpleTraceDist' shows that our transaction was successful: Wallet 1 now 
     owns 900 Ada (the currency identified by )
@@ -295,7 +293,8 @@ gameSuccess = do
     The final distribution after 'gameSuccess' looks as we would expect:
 
     >>> EM.fundsDistribution $ snd $ runTrace simpleTrace
-    fromList [(Wallet {getWallet = 1},Value {getValue = [(CurrencySymbol 0,900)]}),(Wallet {getWallet = 2},Value {getValue = [(CurrencySymbol 0,1100)]})]
+    fromList [(Wallet {getWallet = 1},Value {getValue = Map {unMap = [(CurrencySymbol 0,900)]}}),(Wallet {getWallet = 2},Value {getValue = Map {unMap = [(CurrencySymbol 0,1100)]}})]
+
 -}
 
 gameFailure :: (WalletAPI m, WalletDiagnostics m) => EM.Trace m ()

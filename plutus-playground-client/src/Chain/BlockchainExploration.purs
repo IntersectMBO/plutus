@@ -12,13 +12,18 @@ import Data.Maybe (Maybe(..), fromJust, maybe)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String as String
+import Data.String.Extra (abbreviate)
 import Data.Tuple (Tuple(Tuple), fst, snd)
 import Data.Tuple.Nested (tuple3, (/\))
 import Halogen (HTML)
 import Halogen.HTML (ClassName(ClassName), div, div_, h2, h2_, h3, strong_, table, tbody_, td, text, th, thead_, tr_)
 import Halogen.HTML.Properties (class_, classes, colSpan)
 import Ledger.Ada.TH (Ada(..))
-import Ledger.Types (DataScript(..), PubKey(PubKey), RedeemerScript(..), Signature(Signature), Tx(Tx), TxIdOf(TxIdOf), TxInOf(TxInOf), TxInType(..), TxOutOf(TxOutOf), TxOutRefOf(TxOutRefOf), TxOutType(..))
+import Ledger.Crypto (PubKey(PubKey), Signature(Signature))
+import Ledger.Extra (LedgerMap(..))
+import Ledger.Scripts (DataScript(..), RedeemerScript(..))
+import Ledger.Tx (Tx(Tx), TxInOf(TxInOf), TxInType(..), TxOutOf(TxOutOf), TxOutRefOf(TxOutRefOf), TxOutType(..))
+import Ledger.TxId (TxIdOf(TxIdOf))
 import Ledger.Value.TH (CurrencySymbol(..), Value(..))
 import Partial.Unsafe (unsafePartial)
 import Prelude (class Eq, class Ord, class Show, map, show, (#), ($), (+), (<#>), (<$>), (<*>), (<<<), (<>), (==))
@@ -31,7 +36,7 @@ type Hash = String
 data Column
   = ForgeIx
   | FeeIx
-  | OwnerIx Int Hash
+  | OwnerIx String Hash
   | ScriptIx String Hash
 
 derive instance genericColumn :: Generic Column
@@ -48,6 +53,7 @@ type Row = Tuple SlotId StepId
 
 type BalanceMap =
   Map (Tuple Column Row) Balance
+
 blockchainExploration :: forall p i. Blockchain -> HTML p i
 blockchainExploration blockchain =
   div_ [ h2_ [ text "Blockchain" ]
@@ -90,13 +96,13 @@ blockchainExploration blockchain =
 
     columnHeading FeeIx = "Fee"
     columnHeading ForgeIx = "Forge"
-    columnHeading (OwnerIx owner hash) = "Wallet #" <> show owner
-    columnHeading (ScriptIx owner hash) = "Script #" <> owner
+    columnHeading (OwnerIx owner hash) = "Wallet #" <> abbreviate (show owner)
+    columnHeading (ScriptIx owner hash) = "Script #" <> abbreviate owner
 
     columnSubheading FeeIx = ""
     columnSubheading ForgeIx = ""
-    columnSubheading (OwnerIx owner hash) = "Tx/" <> String.take 10 hash <> "..."
-    columnSubheading (ScriptIx owner hash) = "Tx/" <> String.take 10 hash <> "..."
+    columnSubheading (OwnerIx owner hash) = "Tx/" <> abbreviate hash
+    columnSubheading (ScriptIx owner hash) = "Tx/" <> abbreviate hash
 
     matchCount :: Column -> Int
     matchCount owner = Array.length $ Array.filter (isOwner owner) $ Set.toUnfoldable columns
@@ -147,8 +153,8 @@ toBalanceMap =
                                ))
   where
     forgeTransactions :: Row -> Tuple (TxIdOf String) Tx -> Tuple (Tuple Column Row) Balance
-    forgeTransactions row (Tuple _ (Tx {txForge: (Value { getValue: value})})) =
-      Tuple (Tuple ForgeIx row) (CurrencyBalance value)
+    forgeTransactions row (Tuple _ (Tx {txForge: (Value { getValue: LedgerMap balances })})) =
+      Tuple (Tuple ForgeIx row) (CurrencyBalance balances)
 
     feeTransactions :: Row -> Tuple (TxIdOf String) Tx -> Tuple (Tuple Column Row) Balance
     feeTransactions row (Tuple _ (Tx {txFee: ada})) =
@@ -160,7 +166,7 @@ toBalanceMap =
       where
         fromTxIn :: TxInOf String -> Tuple (Tuple Column Row) Balance
         fromTxIn (TxInOf { txInRef: (TxOutRefOf {txOutRefId: (TxIdOf {getTxId: hash})})
-                         , txInType: (ConsumePublicKeyAddress (Signature { getSignature: owner }))
+                         , txInType: (ConsumePublicKeyAddress (PubKey { getPubKey: owner }))
                          })
           = Tuple (Tuple (OwnerIx owner hash) row) Remainder
         fromTxIn (TxInOf { txInRef: (TxOutRefOf {txOutRefId: (TxIdOf {getTxId: hash})})
@@ -174,11 +180,11 @@ toBalanceMap =
       where
         fromTxOut :: TxOutOf String -> Tuple (Tuple Column Row) Balance
         fromTxOut (TxOutOf { txOutType: (PayToPubKey (PubKey { getPubKey: owner }))
-                           , txOutValue: (Value { getValue: currencyBalances })
+                           , txOutValue: (Value ({ getValue: LedgerMap currencyBalances }))
                            })
           = Tuple (Tuple (OwnerIx owner hash) row) (CurrencyBalance currencyBalances)
         fromTxOut (TxOutOf { txOutType: (PayToScript (DataScript { getDataScript: owner }))
-                           , txOutValue: (Value { getValue: currencyBalances })
+                           , txOutValue: (Value ({ getValue: LedgerMap currencyBalances }))
                            })
           = Tuple (Tuple (ScriptIx owner hash) row) (CurrencyBalance currencyBalances)
 
@@ -212,7 +218,7 @@ balanceView Remainder =
 
 valueView :: forall p i. Tuple CurrencySymbol Int -> HTML p i
 valueView (Tuple (CurrencySymbol sym) balance) =
-  amountView (show sym) balance
+  amountView ("λ" <> show sym) balance
 
 amountView :: forall p i. String -> Int -> HTML p i
 amountView name balance =

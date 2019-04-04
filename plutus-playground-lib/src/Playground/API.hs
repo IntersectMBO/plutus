@@ -16,7 +16,6 @@ module Playground.API where
 import           Control.Lens                 (view)
 import           Control.Monad.Trans.Class    (lift)
 import           Control.Monad.Trans.State    (StateT, evalStateT, get, put)
-import           Control.Newtype.Generics     (Newtype, pack, unpack)
 import           Data.Aeson                   (FromJSON, ToJSON, Value)
 import           Data.Bifunctor               (second)
 import qualified Data.HashMap.Strict.InsOrd   as HM
@@ -30,25 +29,26 @@ import           Data.Swagger.Lens            (items, maxItems, minItems, proper
 import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
 import           GHC.Generics                 (Generic)
-import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), column, filename, row,
-                                               text)
+import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), InterpreterResult,
+                                               SourceCode, column, filename, row, text)
+import qualified Language.Haskell.Interpreter as HI
 import qualified Language.Haskell.TH.Syntax   as TH
-import           Ledger.Ada                   (Ada)
-import           Ledger.Types                 (Blockchain, PubKey, Tx, TxId)
+import           Ledger                       (Blockchain, PubKey, Tx, TxId)
 import           Ledger.Validation            (ValidatorHash)
+import qualified Ledger.Value                 as V
 import           Servant.API                  ((:<|>), (:>), Get, JSON, Post, ReqBody)
 import           Text.Read                    (readMaybe)
-import           Wallet.Emulator.Types        (EmulatorEvent, Wallet)
+import           Wallet.Emulator.Types        (EmulatorEvent, Wallet, walletPubKey)
 import           Wallet.Graph                 (FlowGraph)
 
 type API
-   = "contract" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either [CompilationError] CompilationResult)
+   = "contract" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either HI.InterpreterError (InterpreterResult CompilationResult))
      :<|> "evaluate" :> ReqBody '[ JSON] Evaluation :> Post '[ JSON] EvaluationResult
      :<|> "health" :> Get '[ JSON] ()
 
 -- FIXME: These types will be defined elsewhere but I've added them here for now
 newtype TokenId = TokenId Text
-    deriving stock (Eq, Show, Generic)
+    deriving stock (Eq, Ord, Show, Generic)
     deriving newtype (ToJSON, FromJSON)
 
 data KnownCurrency = KnownCurrency
@@ -58,11 +58,6 @@ data KnownCurrency = KnownCurrency
     }
     deriving (Eq, Show, Generic, ToJSON, FromJSON)
 --------------------------------------------------------------------------------
-
-newtype SourceCode = SourceCode Text
-  deriving stock (Generic)
-  deriving newtype (ToJSON, FromJSON)
-  deriving anyclass (Newtype)
 
 newtype Fn = Fn Text
   deriving stock (Eq, Show, Generic, TH.Lift)
@@ -81,7 +76,7 @@ type Program = [Expression]
 
 data SimulatorWallet = SimulatorWallet
   { simulatorWalletWallet  :: Wallet
-  , simulatorWalletBalance :: Ada
+  , simulatorWalletBalance :: V.Value
   }
   deriving (Show, Generic, Eq, ToJSON, FromJSON)
 
@@ -94,7 +89,7 @@ data Evaluation = Evaluation
   deriving (Generic, ToJSON, FromJSON)
 
 pubKeys :: Evaluation -> [PubKey]
-pubKeys Evaluation{..} = pack . unpack . simulatorWalletWallet <$> wallets
+pubKeys Evaluation{..} = walletPubKey . simulatorWalletWallet <$> wallets
 
 data EvaluationResult = EvaluationResult
   { resultBlockchain  :: [[(TxId, Tx)]] -- Blockchain annotated with hashes.
@@ -104,14 +99,9 @@ data EvaluationResult = EvaluationResult
   }
   deriving (Generic, ToJSON)
 
-newtype Warning = Warning Text
-  deriving stock (Eq, Show, Generic)
-  deriving newtype (ToJSON)
-
 data CompilationResult = CompilationResult
   { functionSchema  :: [FunctionSchema SimpleArgumentSchema]
   , knownCurrencies :: [KnownCurrency]
-  , warnings        :: [Warning]
   }
   deriving (Show, Generic, ToJSON)
 
@@ -140,8 +130,9 @@ data SimpleArgumentSchema
     | SimpleArraySchema SimpleArgumentSchema
     | SimpleTupleSchema (SimpleArgumentSchema, SimpleArgumentSchema)
     | SimpleObjectSchema [(Text, SimpleArgumentSchema)]
+    | ValueSchema [(Text, SimpleArgumentSchema)]
     | UnknownSchema Text
-                      Text
+                    Text
     deriving (Show, Eq, Generic, ToJSON)
 
 toSimpleArgumentSchema :: Schema -> SimpleArgumentSchema
@@ -164,21 +155,42 @@ toSimpleArgumentSchema schema@Schema {..} =
                             UnknownSchema "While handling array." $
                             Text.pack $ show schema
                 SwaggerObject ->
-                    SimpleObjectSchema $
-                    HM.toList $ extractReference <$> view properties schema
+                    -- We want to give a special response if the
+                    -- argument is the blessed type `Value`. That type
+                    -- gets magic treatment in the frontend. But
+                    -- Swagger doesn't give us the metadata we need to
+                    -- tell if we've got a `Value` object.
+                    --
+                    -- The correct solution is to replace Swagger with
+                    -- something that uses GHC Generics. But because
+                    -- of deadlines we're going with the quick
+                    -- solution: Duck typing. If a schema looks like a
+                    -- `Value` type, then assume it is a `Value` type.
+                    let fields =
+                            HM.toList $
+                            extractReference <$> view properties schema
+                     in if fields == valueTypeFields
+                            then ValueSchema fields
+                            else SimpleObjectSchema fields
                 _ ->
-                    UnknownSchema "Unrecognised type." $
-                    Text.pack $ show schema
+                    UnknownSchema "Unrecognised type." $ Text.pack $ show schema
   where
     extractReference :: Referenced Schema -> SimpleArgumentSchema
     extractReference (Inline v) = toSimpleArgumentSchema v
     extractReference (Ref _) =
         UnknownSchema "Cannot handle Ref types, online Inline ones." $
         Text.pack $ show schema
+    valueTypeFields =
+        [ ( "getValue"
+          , SimpleArraySchema
+                (SimpleTupleSchema (SimpleIntSchema, SimpleIntSchema)))
+        ]
 
 isSupportedByFrontend :: SimpleArgumentSchema -> Bool
 isSupportedByFrontend SimpleIntSchema = True
 isSupportedByFrontend SimpleStringSchema = True
+isSupportedByFrontend (ValueSchema subSchema) =
+    all isSupportedByFrontend (snd <$> subSchema)
 isSupportedByFrontend (SimpleObjectSchema subSchema) =
     all isSupportedByFrontend (snd <$> subSchema)
 isSupportedByFrontend (SimpleArraySchema subSchema) =
@@ -190,7 +202,7 @@ isSupportedByFrontend (UnknownSchema _ _) = False
 
 data PlaygroundError
   = CompilationErrors [CompilationError]
-  | InterpreterError [String]
+  | InterpreterError HI.InterpreterError
   | FunctionSchemaError
   | DecodeJsonTypeError String String
   | PlaygroundTimeout

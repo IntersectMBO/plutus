@@ -9,10 +9,10 @@ module Gists
        )
        where
 
-import AjaxUtils (getEncodeJson, showAjaxError)
+import AjaxUtils (ajaxErrorPane)
+import AjaxUtils as AjaxUtils
 import Auth (AuthRole(..), authStatusAuthRole)
-import Bootstrap (btn, btnBlock, btnDanger, btnInfo, btnPrimary, btnSmall, col_, empty, formControl, isInvalid, isValid, nbsp, row_)
-import Control.Monad.Reader.Trans (class MonadAsk)
+import Bootstrap (btn, btnBlock, btnDanger, btnInfo, btnPrimary, btnSmall, col6_, col_, empty, formControl, isInvalid, isValid, nbsp, offset6, row_)
 import Cursor (Cursor)
 import DOM.HTML.Indexed.InputType (InputType(..))
 import Data.Argonaut.Core (stringify)
@@ -25,15 +25,14 @@ import Data.Newtype (unwrap)
 import Data.String.Regex (Regex, match, regex)
 import Data.String.Regex.Flags (ignoreCase)
 import Gist (Gist, GistFile, GistId(GistId), NewGist(NewGist), NewGistFile(NewGistFile), gistFileFilename, gistFiles, gistHtmlUrl)
-import Halogen.HTML (ClassName(ClassName), HTML, IProp, a, br_, button, div, div_, input, text)
+import Halogen.HTML (ClassName(ClassName), HTML, IProp, a, button, div, div_, input, text)
 import Halogen.HTML.Events (input_, onClick, onValueInput)
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties (class_, classes, disabled, href, id_, placeholder, target, type_, value)
 import Icons (Icon(..), icon)
+import Language.Haskell.Interpreter (SourceCode)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success))
-import Playground.API (SourceCode)
-import Prelude (Unit, bind, pure, ($), (<$>), (<<<), (<>), (=<<), (==))
-import Servant.PureScript.Settings (SPSettings_)
+import Prelude (Unit, bind, ($), (<$>), (<<<), (<>), (=<<), (==))
 import Types (Query(SetGistUrl, LoadGist, PublishGist), Simulation, State(State))
 
 idPublishGist :: forall r i. IProp (id :: String | r) i
@@ -49,31 +48,33 @@ gistControls (State {authStatus, createGistResult, gistUrl}) =
               ]
     ]
     [ authButton $
-        div_ [ input [ type_ InputText
-                     , value $ fromMaybe "" $ gistUrl
-                     , classes
-                         ( [ formControl ]
-                           <>
-                           case parsedGistId of
-                             Just (Left err) -> [ isInvalid ]
-                             Just (Right err) -> [ isValid ]
-                             Nothing -> []
-                         )
-                     , placeholder "Load Gist ID"
-                     , onValueInput $ HE.input SetGistUrl
-                     ]
-             , br_
-             , row_ [ col_ [ publishButton ]
-                    , col_ [ loadButton ]
-                    ]
-             , div_
-                 [ case createGistResult of
-                      Success gist -> gistPane gist
-                      Failure err -> showAjaxError err
-                      Loading -> nbsp
-                      NotAsked -> nbsp
-                 ]
-             ]
+        div_
+          [ row_
+              [ col6_
+                  [ input [ type_ InputText
+                          , value $ fromMaybe "" $ gistUrl
+                          , classes
+                              ( [ formControl ]
+                                <>
+                                case parsedGistId of
+                                  Just (Left err) -> [ isInvalid ]
+                                  Just (Right err) -> [ isValid ]
+                                  Nothing -> []
+                              )
+                          , placeholder "Load Gist ID"
+                          , onValueInput $ HE.input SetGistUrl
+                          ]
+                  ]
+              , col_ [ publishButton ]
+              , col_ [ loadButton ]
+              ]
+          , case createGistResult of
+              Success gist -> gistPane gist
+              Failure err -> ajaxErrorPane err
+              Loading -> empty
+              NotAsked -> empty
+
+          ]
     ]
   where
     canTryLoad = isRight $ parseGistUrl =<< note "No gist Url set" gistUrl
@@ -86,13 +87,13 @@ gistControls (State {authStatus, createGistResult, gistUrl}) =
         Failure _ ->
           button
             [ idPublishGist
-            , classes [ btn, btnBlock, btnDanger ]
+            , classes [ btn, btnDanger, offset6 ]
             ]
             [ text "Failure" ]
         Success Anonymous ->
           a
             [ idPublishGist
-            , classes [ btn, btnBlock, btnInfo ]
+            , classes [ btn, btnInfo, offset6 ]
             , href "/api/oauth/github"
             ]
             [ icon Github
@@ -103,14 +104,14 @@ gistControls (State {authStatus, createGistResult, gistUrl}) =
         Loading ->
           button
             [ idPublishGist
-            , classes [ btn, btnBlock, btnInfo ]
+            , classes [ btn, btnInfo, offset6 ]
             , disabled true
             ]
             [ icon Spinner ]
         NotAsked ->
           button
             [ idPublishGist
-            , classes [ btn, btnBlock, btnInfo ]
+            , classes [ btn, btnInfo, offset6 ]
             , disabled true
             ]
             [ icon Spinner ]
@@ -181,24 +182,21 @@ gistPane gist =
     ]
 
 mkNewGist ::
-  forall m params.
-  MonadAsk (SPSettings_ params) m
-  => { source :: Maybe SourceCode
-     , simulations :: Cursor Simulation
-     }
-  -> m (Maybe NewGist)
-mkNewGist  { source, simulations } = do
-  encodeJson <- getEncodeJson
-  let gistFiles = catMaybes [ mkNewGistFile gistSourceFilename <<< unwrap <$> source
-                            , Just (mkNewGistFile gistSimulationFilename $ stringify $ encodeJson simulations)
-                            ]
-  pure $ if Array.null gistFiles
+  { source :: Maybe SourceCode
+  , simulations :: Cursor Simulation
+  }
+  -> Maybe NewGist
+mkNewGist  { source, simulations } =
+  if Array.null gistFiles
     then Nothing
     else Just $ NewGist { _newGistDescription: "Plutus Playground Smart Contract"
                         , _newGistPublic: true
                         , _newGistFiles: gistFiles
                         }
   where
+    gistFiles = catMaybes [ mkNewGistFile gistSourceFilename <<< unwrap <$> source
+                          , Just (mkNewGistFile gistSimulationFilename $ stringify $ AjaxUtils.encodeJson simulations)
+                          ]
     mkNewGistFile _newGistFilename _newGistFileContent =
       NewGistFile { _newGistFilename
                   , _newGistFileContent

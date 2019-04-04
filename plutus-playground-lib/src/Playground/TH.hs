@@ -27,27 +27,27 @@ mkFunctions names = do
     mkNewName name = VarE . mkName $ nameBase name ++ "Schema"
 
 {-# ANN mkFunction ("HLint: ignore" :: String) #-}
+
 mkFunction :: Name -> Q [Dec]
-mkFunction _ = error
-  $ ""
-  </> "mkFunction has been replaced by mkFunctions"
-  </> " "
-  </> "replace all calls to mkFunction with a single call to mkFunctions, e.g."
-  </> " "
-  </> " | $(mkFunction 'functionOne)"
-  </> " | $(mkFunction 'functionTwo)"
-  </> " "
-  </> "becomes:"
-  </> " "
-  </> " | $(mkFunctions ['functionOne, 'functionTwo])"
-  </> " "
+mkFunction _ =
+    error $
+    "" </> "mkFunction has been replaced by mkFunctions" </> " " </>
+    "replace all calls to mkFunction with a single call to mkFunctions, e.g." </>
+    " " </>
+    " | $(mkFunction 'functionOne)" </>
+    " | $(mkFunction 'functionTwo)" </>
+    " " </>
+    "becomes:" </>
+    " " </>
+    " | $(mkFunctions ['functionOne, 'functionTwo])" </>
+    " "
   where
     a </> b = a <> "\n" <> b
 
 mkSingleFunction :: Name -> Q [Dec]
 mkSingleFunction name = do
-  dec <- mkFunction' name
-  pure [dec]
+    dec <- mkFunction' name
+    pure [dec]
 
 mkFunction' :: Name -> Q Dec
 mkFunction' name = do
@@ -90,10 +90,10 @@ args a                          = error $ "incorrect type in template haskell fu
 -- TODO: add a type declaration to registeredKnownCurrencies
 mkKnownCurrencies :: [Name] -> Q [Dec]
 mkKnownCurrencies ks = do
-                        let name = mkName "registeredKnownCurrencies"
-                            names = fmap VarE ks
-                            body = NormalB (ListE names)
-                            val = ValD (VarP name) body []
-                            typeName = mkName "KnownCurrency"
-                            sig = SigD name (AppT ListT (ConT typeName))
-                        pure [sig, val]
+    let name = mkName "registeredKnownCurrencies"
+        names = fmap VarE ks
+        body = NormalB (ListE names)
+        val = ValD (VarP name) body []
+        typeName = mkName "KnownCurrency"
+        sig = SigD name (AppT ListT (ConT typeName))
+    pure [sig, val]

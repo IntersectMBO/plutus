@@ -32,6 +32,7 @@ module Tutorial.WalletAPI where
 
 import qualified Language.PlutusTx            as P
 import qualified Ledger.Interval              as P
+import qualified Ledger.Slot                  as P
 import           Ledger                       (Address, DataScript(..), PubKey(..), RedeemerScript(..), Signature(..), Slot(..), TxId, ValidatorScript(..))
 import qualified Ledger                       as L
 import qualified Ledger.Ada.TH                as Ada
@@ -66,7 +67,7 @@ data Campaign = Campaign {
  }
 ```
 
-The type of Ada values is [`Ada`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Ada.html#v:Ada). Dates are expressed in terms of slots, and their type is [`Slot`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Types.html#v:Slot). The campaign owner is identified by their public key.
+The type of Ada values is [`Ada`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Ada.html#v:Ada). Dates are expressed in terms of slots, and their type is [`Slot`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Slot.html#v:Slot). The campaign owner is identified by their public key.
 
 Just like we did in the [guessing game](./02-validator-scripts.md), we need to call `makeLift` for data types that we want to convert to Plutus at Haskell runtime:
 
@@ -85,12 +86,6 @@ data CampaignAction = Collect | Refund
 P.makeLift ''CampaignAction
 ```
 
-When submitting an `Action` (either as the campaign owner or as a contributor) we need to sign it so that the validator script can verify it. The type of our redeemer scripts is therefore a tuple of the action itself and the signature.
-
-```haskell
-type CampaignRedeemer = (CampaignAction, Signature)
-```
-
 Now we need one final bit of information, namely the identity (public key) of each contributor, so that we know the recipient of the refund. This data can't be part of the redeemer script because then a reclaim could be made by anyone, not just the original contributor. Therefore the public key is going to be stored in the data script of the contribution.
 
 ```haskell
@@ -104,10 +99,10 @@ In the crowdfunding campaign the data script contains a `Contributor` value, whi
 
 ## 1.2 The Validator Script
 
-The general form of a validator script is `DataScript -> RedeemerScript -> PendingTx -> Answer`. The types of data and redeemer scripts are `Contributor` and `CampaignRedeemer`, respectively, so the signature of the validator script is:
+The general form of a validator script is `DataScript -> RedeemerScript -> PendingTx -> Answer`. The types of data and redeemer scripts are `Contributor` and `CampaignAction`, respectively, so the signature of the validator script is:
 
 ```haskell
-type CampaignValidator = Contributor -> CampaignRedeemer -> PendingTx -> ()
+type CampaignValidator = Contributor -> CampaignAction -> PendingTx -> ()
 ```
 
 If we want to implement `CampaignValidator` we need to have access to the parameters of the campaign, so that we can check if the selected `CampaignAction` is allowed. In Haskell we can do this by writing a function `mkValidator :: Campaign -> CampaignValidator` that takes a `Campaign` and produces a `CampaignValidator`. However, we need to wrap `mkValidator` in Template Haskell quotes so that it can be compiled to Plutus Core. To apply the compiled `mkValidator` function to the `campaign :: Campaign` argument that is provided at runtime, we use `Ledger.lifted` to get the on-chain representation of `campaign`, and apply `mkValidator` to it with `Ledger.applyScript`:
@@ -117,7 +112,7 @@ mkValidatorScript :: Campaign -> ValidatorScript
 mkValidatorScript campaign = ValidatorScript val where
   val = L.applyScript mkValidator (L.lifted campaign)
   mkValidator = L.fromCompiledCode $$(P.compile [||
-              \(c :: Campaign) (con :: Contributor) (act :: CampaignRedeemer) (p :: PendingTx) ->
+              \(c :: Campaign) (con :: Contributor) (act :: CampaignAction) (p :: PendingTx) ->
 ```
 
 You may wonder why we use `L.applyScript` to supply the `Campaign` argument. Why can we not write `$$(L.lifted campaign)` inside the validator script? The reason is that `campaign` is not known at the time the validator script is compiled. The names of `lifted` and `compile` indicate their chronological order: `mkValidator` is compiled (via a compiler plugin) to Plutus Core when GHC compiles the contract module, and the `campaign` value is lifted to Plutus Core at runtime, when the contract module is executed. But we know that `mkValidator` is a function, and that is why we can apply it to the campaign definition.
@@ -131,8 +126,8 @@ Before we check whether `act` is permitted, we define a number of intermediate v
                   (&&) = $$(P.and)
 
                   
-                  signedBy :: PubKey -> Signature -> Bool
-                  signedBy (PubKey pk) (Signature s) = $$(P.eq) pk s
+                  signedBy :: PendingTx -> PubKey -> Bool
+                  signedBy = $$(V.txSignedBy)
 ```
 
 There is no standard library of functions that are automatically in scope for on-chain code, so we need to import the ones that we want to use from the [`Ledger.Validation`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html) module using the `$$()` splicing operator. [`Ledger.Validation`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html) contains a subset of the standard Haskell prelude, exported as Template Haskell quotes. Code from other libraries can only be used in validator scripts if it is available as a Template Haskell quote (so we can use `$$()` to splice it in).
@@ -140,7 +135,7 @@ There is no standard library of functions that are automatically in scope for on
 Next, we pattern match on the structure of the [`PendingTx`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html#t:PendingTx) value `p` to get the Validation information we care about:
 
 ```haskell
-                  PendingTx ins outs _ _ _ txnValidRange = p 
+                  PendingTx ins outs _ _ _ txnValidRange _  _ = p 
                   -- p is bound to the pending transaction.
 ```
 
@@ -176,7 +171,7 @@ We now have all the information we need to check whether the action `act` is all
 
 ```haskell
                   isValid = case act of
-                      (Refund, sig) ->
+                      Refund ->
                           let
                               Contributor pkCon = con
 ```
@@ -204,7 +199,7 @@ For the contribution to be refundable, three conditions must hold. The collectio
 ```haskell
                               refundable = $$(P.before) collectionDeadline txnValidRange &&
                                            contributorOnly &&
-                                           pkCon `signedBy` sig
+                                           p `signedBy` pkCon
 ```
 
 The overall result of this branch is the `refundable` value:
@@ -216,7 +211,7 @@ The overall result of this branch is the `refundable` value:
 The second branch represents a successful campaign.
 
 ```haskell
-                      (Collect, sig) ->
+                      Collect ->
 ```
 
 In the `Collect` case, the current slot must be between `deadline` and `collectionDeadline`, the target must have been met, and and transaction has to be signed by the campaign owner. We use `interval :: Slot -> Slot -> SlotRange` and `contains :: SlotRange -> SlotRange -> Bool` from the `Ledger.Intervals` module to ensure that the spending transactions validity range, `txnValidRange`, is completely contained in the time between campaign deadline and collection deadline.
@@ -224,7 +219,7 @@ In the `Collect` case, the current slot must be between `deadline` and `collecti
 ```haskell
                           $$(P.contains) ($$(P.interval) deadline collectionDeadline) txnValidRange &&
                           $$(Ada.geq) totalInputs target &&
-                          campaignOwner `signedBy` sig
+                          p `signedBy` campaignOwner
 
               in
 ```
@@ -264,10 +259,10 @@ mkDataScript :: PubKey -> DataScript
 mkDataScript pk = DataScript (L.lifted (Contributor pk))
 ```
 
-When we want to spend the contributions we need to provide a [`RedeemerScript`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Types.html#v:RedeemerScript) value. In our case this is just the `CampaignRedeemer`:
+When we want to spend the contributions we need to provide a [`RedeemerScript`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Scripts.html#v:RedeemerScript) value. In our case this is just the `CampaignAction`:
 
 ```haskell
-mkRedeemer :: CampaignRedeemer -> RedeemerScript
+mkRedeemer :: CampaignAction -> RedeemerScript
 mkRedeemer action = RedeemerScript (L.lifted (action))
 ```
 
@@ -304,8 +299,7 @@ To collect the funds we use [`collectFromScript`](https://input-output-hk.github
 
 ```haskell
         W.logMsg "Collecting funds"
-        sig <- W.ownSignature
-        let redeemerScript = mkRedeemer (Collect, sig)
+        let redeemerScript = mkRedeemer Collect
             range          = W.interval (endDate cmp) (collectionDeadline cmp)
         W.collectFromScript range (mkValidatorScript cmp) redeemerScript)
 ```
@@ -337,8 +331,7 @@ In our crowdfunding campaign, the redeemer is a signed `Action`. In case of a re
 refundHandler :: MonadWallet m => TxId -> Campaign -> EventHandler m
 refundHandler txid cmp = EventHandler (\_ -> do
     W.logMsg "Claiming refund"
-    sig <- W.ownSignature
-    let redeemer  = mkRedeemer (Refund, sig)
+    let redeemer  = mkRedeemer Refund
         range     = W.intervalFrom (collectionDeadline cmp)
     W.collectFromScriptTxn range (mkValidatorScript cmp) redeemer txid)
 ```

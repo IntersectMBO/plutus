@@ -3,8 +3,7 @@
 
 module Playground.Interpreter where
 
-import           Control.Monad                (unless)
-import           Control.Monad.Catch          (MonadCatch, MonadMask, bracket, catch)
+import           Control.Monad.Catch          (MonadMask)
 import           Control.Monad.Error.Class    (MonadError, throwError)
 import           Control.Monad.Except.Extras  (mapError)
 import           Control.Monad.IO.Class       (MonadIO, liftIO)
@@ -15,25 +14,22 @@ import           Data.ByteString              (ByteString)
 import qualified Data.ByteString.Char8        as BS8
 import qualified Data.ByteString.Lazy.Char8   as BSL
 import           Data.List                    (intercalate)
-import           Data.Swagger                 (Schema)
 import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
-import qualified Data.Text.Internal.Search    as Text
 import qualified Data.Text.IO                 as Text
-import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), runghc)
-import           Ledger.Ada                   (Ada)
-import           Ledger.Types                 (Blockchain, Value)
+import           Data.Time.Units              (TimeUnit)
+import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError),
+                                               InterpreterError (CompilationErrors),
+                                               InterpreterResult (InterpreterResult), SourceCode, Warning (Warning),
+                                               avoidUnsafe, runghc)
+import           Ledger                       (Blockchain)
 import           Playground.API               (CompilationResult (CompilationResult), Evaluation (sourceCode),
                                                Expression (Action, Wait), Fn (Fn),
-                                               PlaygroundError (CompilationErrors, DecodeJsonTypeError, InterpreterError, OtherError),
-                                               SimulatorWallet, SourceCode, Warning (Warning), parseErrorsText, program,
-                                               simulatorWalletWallet, toSimpleArgumentSchema, wallets)
-import           System.Directory             (removeFile)
-import           System.Environment           (lookupEnv)
-import           System.Exit                  (ExitCode (ExitSuccess))
-import           System.IO                    (Handle, hClose, hFlush)
+                                               PlaygroundError (DecodeJsonTypeError, OtherError), SimulatorWallet,
+                                               program, simulatorWalletWallet, toSimpleArgumentSchema, wallets)
+import qualified Playground.API               as API
+import           System.IO                    (Handle, hFlush)
 import           System.IO.Temp.Extras        (withSystemTempFile)
-import           System.Process               (readProcessWithExitCode)
 import qualified Text.Regex                   as Regex
 import           Wallet.Emulator.Types        (EmulatorEvent, Wallet)
 
@@ -52,25 +48,27 @@ ensureMkFunctionExists script =
             Nothing -> script <> "\n$(mkFunctions [])"
             Just _  -> script
 
-ensureMinimumImports :: (MonadError PlaygroundError m) => SourceCode -> m ()
+ensureMinimumImports :: (MonadError InterpreterError m) => SourceCode -> m ()
 ensureMinimumImports script =
     let scriptString = Text.unpack . Newtype.unpack $ script
-        regex = Regex.mkRegex "^import[ \t]+Playground.Contract([ ]*$|[ \t]+\\(.*mkFunctions.*printSchemas.*\\)|[ \t]+\\(.*printSchemas.*mkFunctions.*\\))"
+        regex =
+            Regex.mkRegex
+                "^import[ \t]+Playground.Contract([ ]*$|[ \t]+\\(.*mkFunctions.*printSchemas.*\\)|[ \t]+\\(.*printSchemas.*mkFunctions.*\\))"
         mMatches = Regex.matchRegexAll regex scriptString
      in case mMatches of
             Just _ -> pure ()
-            Nothing -> let
-                          filename = ""
-                          row      = 1
-                          column   = 1
-                          text     = [ "You need to import the `mkFunctions` and `printSchemas` in order to compile successfully, you can do this with either"
-                                       , "`import Playground.Contract`"
-                                       , "or"
-                                       , "`import Playground.Contract (mkFunctions, printSchemas)`"
-                                       ]
-                          errors = [CompilationError filename row column text]
-                        in
-                          throwError $ CompilationErrors errors
+            Nothing ->
+                let filename = ""
+                    row = 1
+                    column = 1
+                    text =
+                        [ "You need to import the `mkFunctions` and `printSchemas` in order to compile successfully, you can do this with either"
+                        , "`import Playground.Contract`"
+                        , "or"
+                        , "`import Playground.Contract (mkFunctions, printSchemas)`"
+                        ]
+                    errors = [CompilationError filename row column text]
+                 in throwError $ CompilationErrors errors
 
 ensureKnownCurrenciesExists :: Text -> Text
 ensureKnownCurrenciesExists script =
@@ -83,62 +81,84 @@ ensureKnownCurrenciesExists script =
 
 mkCompileScript :: Text -> Text
 mkCompileScript script =
-    (ensureKnownCurrenciesExists . ensureMkFunctionExists . replaceModuleName) script <> "\n\nmain :: IO ()" <>
+    (ensureKnownCurrenciesExists . ensureMkFunctionExists . replaceModuleName)
+        script <>
+    "\n\nmain :: IO ()" <>
     "\nmain = printSchemas (schemas, registeredKnownCurrencies)"
 
-avoidUnsafe :: (MonadError PlaygroundError m) => SourceCode -> m ()
-avoidUnsafe s =
-    unless (null . Text.indices "unsafe" . Newtype.unpack $ s) $
-    throwError $ OtherError "Cannot interpret unsafe functions"
-
-runscript
-    :: (MonadMask m, MonadIO m, MonadError [CompilationError] m)
+runscript ::
+       ( Show t
+       , TimeUnit t
+       , MonadMask m
+       , MonadIO m
+       , MonadError InterpreterError m
+       )
     => Handle
     -> FilePath
+    -> t
     -> Text
-    -> m String
-runscript handle file script = do
+    -> m (InterpreterResult String)
+runscript handle file timeout script = do
     liftIO $ Text.hPutStr handle script
     liftIO $ hFlush handle
-    runghc runghcOpts file
+    runghc timeout runghcOpts file
 
 compile ::
-       (MonadMask m, MonadIO m, MonadError PlaygroundError m)
-    => SourceCode
-    -> m CompilationResult
-compile source = do
+       ( Show t
+       , TimeUnit t
+       , MonadMask m
+       , MonadIO m
+       , MonadError InterpreterError m
+       )
+    => t
+    -> SourceCode
+    -> m (InterpreterResult CompilationResult)
+compile timeout source
     -- There are a couple of custom rules required for compilation
+ = do
     avoidUnsafe source
     ensureMinimumImports source
     withSystemTempFile "Main.hs" $ \file handle -> do
-        result <-
-            mapError CompilationErrors . runscript handle file . mkCompileScript . Newtype.unpack $ source
+        (InterpreterResult warnings result) <-
+            runscript handle file timeout . mkCompileScript . Newtype.unpack $
+            source
         let eSchema = JSON.eitherDecodeStrict . BS8.pack $ result
         case eSchema of
             Left err ->
-                throwError . OtherError $
-                "unable to decode compilation result" <> err
-            Right ([schema], currencies) ->
-                pure . CompilationResult [toSimpleArgumentSchema <$> schema] currencies $
-                [ Warning
-                      "It looks like you have not made any functions available, use `$(mkFunctions ['functionA, 'functionB])` to be able to use `functionA` and `functionB`"
-                ]
+                throwError . CompilationErrors . pure . RawError $
+                "unable to decode compilation result" <> Text.pack err
+            Right ([schema], currencies) -> do
+                let warnings' =
+                        Warning
+                            "It looks like you have not made any functions available, use `$(mkFunctions ['functionA, 'functionB])` to be able to use `functionA` and `functionB`" :
+                        warnings
+                pure . InterpreterResult warnings' $
+                    CompilationResult
+                        [toSimpleArgumentSchema <$> schema]
+                        currencies
             Right (schemas, currencies) ->
-                pure $
-                CompilationResult (fmap toSimpleArgumentSchema <$> schemas) currencies []
+                pure . InterpreterResult warnings $
+                CompilationResult
+                    (fmap toSimpleArgumentSchema <$> schemas)
+                    currencies
 
 runFunction ::
-       (MonadMask m, MonadIO m, MonadError PlaygroundError m)
-    => Evaluation
-    -> m (Blockchain, [EmulatorEvent], [SimulatorWallet])
-runFunction evaluation = do
+       ( Show t
+       , TimeUnit t
+       , MonadMask m
+       , MonadIO m
+       , MonadError PlaygroundError m
+       )
+    => t
+    -> Evaluation
+    -> m (InterpreterResult (Blockchain, [EmulatorEvent], [SimulatorWallet]))
+runFunction timeout evaluation = do
     let source = sourceCode evaluation
-    avoidUnsafe source
+    mapError API.InterpreterError $ avoidUnsafe source
     expr <- mkExpr evaluation
     withSystemTempFile "Main.hs" $ \file handle -> do
-        result <-
-            mapError CompilationErrors .
-            runscript handle file $
+        (InterpreterResult warnings result) <-
+            mapError API.InterpreterError . runscript handle file timeout $
             mkRunScript (Newtype.unpack source) (Text.pack . BS8.unpack $ expr)
         let decodeResult =
                 JSON.eitherDecodeStrict . BS8.pack $ result :: Either String (Either PlaygroundError ( Blockchain
@@ -151,7 +171,7 @@ runFunction evaluation = do
             Right eResult ->
                 case eResult of
                     Left err      -> throwError err
-                    Right result' -> pure result'
+                    Right result' -> pure $ InterpreterResult warnings result'
 
 mkRunScript :: Text -> Text -> Text
 mkRunScript script expr =
@@ -175,12 +195,6 @@ runghcOpts =
     , "-XTemplateHaskell"
     , "-XScopedTypeVariables"
     , "-O0"
-    -- FIXME: workaround for https://ghc.haskell.org/trac/ghc/ticket/16228
-    -- This appears to sometimes be necessary and sometimes not be, depending
-    -- on apparently unrelated changes in the packages this depends on.
-    -- This is fixed in GHC 8.1, and patched in our nix build, but this is
-    -- still here for people using external GHCs.
-    , "-package plutus-tx"
     ]
 
 jsonToString :: ToJSON a => a -> String

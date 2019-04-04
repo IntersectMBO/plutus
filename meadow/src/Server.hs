@@ -11,8 +11,7 @@ module Server
     )
 where
 
-import           API                          (API, MeadowError (CompilationErrors, MeadowTimeout), RunResult,
-                                               SourceCode (SourceCode))
+import           API                          (API, RunResult)
 import           Control.Monad.Catch          (MonadCatch, MonadMask, bracket, catch)
 import           Control.Monad.Except         (MonadError, runExceptT, throwError)
 import           Control.Monad.IO.Class       (MonadIO, liftIO)
@@ -21,26 +20,27 @@ import           Data.Aeson                   (ToJSON, encode)
 import qualified Data.ByteString.Char8        as BS
 import qualified Data.ByteString.Lazy.Char8   as BSL
 import qualified Data.Text                    as Text
+import           Data.Time.Units              (Microsecond, fromMicroseconds)
 import qualified Interpreter
-import           Language.Haskell.Interpreter (CompilationError)
-import           Meadow.Contracts             (basicContract)
+import           Language.Haskell.Interpreter (InterpreterError (CompilationErrors), InterpreterResult,
+                                               SourceCode (SourceCode))
+import           Meadow.Contracts             (escrow)
 import           Network.HTTP.Types           (hContentType)
 import           Servant                      (ServantErr, err400, errBody, errHeaders)
 import           Servant.API                  ((:<|>) ((:<|>)), (:>), JSON, Post, ReqBody)
 import           Servant.Server               (Handler, Server)
 import           System.Timeout               (timeout)
 
-acceptSourceCode :: SourceCode -> Handler (Either [CompilationError] RunResult)
+acceptSourceCode :: SourceCode -> Handler (Either InterpreterError (InterpreterResult RunResult))
 acceptSourceCode sourceCode = do
-    let maxInterpretationTime = 5000000
+    let maxInterpretationTime :: Microsecond = fromMicroseconds 5000000
     r <-
         liftIO
-        . timeoutInterpreter maxInterpretationTime
         $ runExceptT
-        $ Interpreter.runHaskell sourceCode
+        $ Interpreter.runHaskell maxInterpretationTime sourceCode
     case r of
         Right vs                        -> pure $ Right vs
-        Left (CompilationErrors errors) -> pure . Left $ errors
+        Left (CompilationErrors errors) -> pure . Left $ CompilationErrors errors
         Left  e                         -> throwError $ err400 { errBody = BSL.pack . show $ e }
 
 throwJSONError :: (MonadError ServantErr m, ToJSON a) => ServantErr -> a -> m b
@@ -50,17 +50,10 @@ throwJSONError err json = throwError
 
 checkHealth :: Handler ()
 checkHealth = do
-    res <- acceptSourceCode . SourceCode . Text.pack . BS.unpack $ basicContract
+    res <- acceptSourceCode . SourceCode . Text.pack . BS.unpack $ escrow
     case res of
         Left e  -> throwError $ err400 {errBody = BSL.pack . show $ e}
         Right _ -> pure ()
-
-timeoutInterpreter :: Int -> IO (Either MeadowError a) -> IO (Either MeadowError a)
-timeoutInterpreter n action = do
-    res <- timeout n action
-    case res of
-        Nothing -> pure . Left $ MeadowTimeout
-        Just a  -> pure a
 
 {-# ANN mkHandlers
           ("HLint: ignore Avoid restricted function" :: String)

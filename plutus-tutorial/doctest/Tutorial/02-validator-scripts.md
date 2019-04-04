@@ -58,11 +58,13 @@ The module [`Ledger.Validation`](https://input-output-hk.github.io/plutus/wallet
 
 The guessing game involves two moves: First, player A chooses a secret word, and uses the game validator script to lock some Ada (the prize), providing the hash of the secret word as the data script. Second, player B guesses the secret, by attempting to spend A's transaction output using the guess as a redeemer script.
 
-Both the hashed secret and the cleartext guess are represented as `ByteString` values in on-chain code. To avoid any confusion between cleartext and hash we wrap them in data types called `HashedText` and `ClearText`, respectively.
+Both the hashed secret and the cleartext guess are represented as `SizedByteString` values in on-chain code. `SizedByteString` has a type parameter for the length of the bytestring, for example `P.SizedByteString 32` is a bytestring of (up to) 32 bytes. 
+
+To avoid any confusion between cleartext and hash we wrap them in data types called `HashedText` and `ClearText`, respectively.
 
 ```haskell
-data HashedText = HashedText P.ByteString
-data ClearText = ClearText P.ByteString
+data HashedText = HashedText (P.SizedByteString 32)
+data ClearText = ClearText (P.SizedByteString 32)
 ```
 
 One of the strengths of PlutusTx is the ability to use the same definitions for on-chain and off-chain code, which includes lifting values from Haskell to Plutus Core. To enable values of our string types to be lifted, we need to call `makeLift` from the `PlutusTx` module.
@@ -77,7 +79,7 @@ P.makeLift ''ClearText
 ```haskell
 mkDataScript :: String -> DataScript
 mkDataScript word =
-    let hashedWord = V.plcSHA2_256 (C.pack word)
+    let hashedWord = V.plcSHA2_256 (P.SizedByteString (C.pack word))
     in  DataScript (L.lifted (HashedText hashedWord))
 ```
 
@@ -86,7 +88,7 @@ mkDataScript word =
 ```haskell
 mkRedeemerScript :: String -> RedeemerScript
 mkRedeemerScript word =
-    let clearWord = C.pack word
+    let clearWord = P.SizedByteString (C.pack word)
     in RedeemerScript (L.lifted (ClearText clearWord))
 
 ```

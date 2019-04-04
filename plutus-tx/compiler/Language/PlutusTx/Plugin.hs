@@ -61,7 +61,7 @@ import qualified Data.Text.Prettyprint.Doc              as PP
 import           GHC.TypeLits
 import           System.IO.Unsafe                       (unsafePerformIO)
 
--- | A compiled Plutus Tx program. The type parameter inicates
+-- | A compiled Plutus Tx program. The type parameter indicates
 -- the type of the Haskell expression that was compiled, and
 -- hence the type of the compiled code.
 data CompiledCode a = CompiledCode {
@@ -112,11 +112,11 @@ plc _ = CompiledCode mustBeReplaced mustBeReplaced
 data PluginOptions = PluginOptions {
     poDoTypecheck    :: Bool
     , poDeferErrors  :: Bool
-    , poStripContext :: Bool
+    , poContextLevel :: Int
     }
 
 plugin :: GHC.Plugin
-plugin = GHC.defaultPlugin { GHC.installCoreToDos = install }
+plugin = GHC.defaultPlugin { GHC.installCoreToDos = install, GHC.pluginRecompile = GHC.flagRecompile }
 
 install :: [GHC.CommandLineOption] -> [GHC.CoreToDo] -> GHC.CoreM [GHC.CoreToDo]
 install args todo =
@@ -124,7 +124,7 @@ install args todo =
         opts = PluginOptions {
             poDoTypecheck = notElem "dont-typecheck" args
             , poDeferErrors = elem "defer-errors" args
-            , poStripContext = elem "strip-context" args
+            , poContextLevel = if elem "no-context" args then 0 else if elem "debug-context" args then 3 else 1
             }
     in
         pure (GHC.CoreDoPluginPass "Core to PLC" (pluginPass opts) : todo)
@@ -157,7 +157,7 @@ failCompilation :: String -> GHC.CoreM a
 failCompilation message = liftIO $ GHC.throwGhcExceptionIO $ GHC.ProgramError $ messagePrefix ++ ": " ++ message
 
 failCompilationSDoc :: String -> GHC.SDoc -> GHC.CoreM a
-failCompilationSDoc message sdoc = liftIO $ GHC.throwGhcExceptionIO $ GHC.PprProgramError (messagePrefix ++ ":" ++ message) sdoc
+failCompilationSDoc message sdoc = liftIO $ GHC.throwGhcExceptionIO $ GHC.PprProgramError (messagePrefix ++ ": " ++ message) sdoc
 
 -- | Get the 'GHC.Name' corresponding to the given 'TH.Name', or throw a GHC exception if
 -- we can't get it.
@@ -208,6 +208,12 @@ makePrimitiveNameInfo names = do
         pure (name, thing)
     pure $ Map.fromList mapped
 
+-- | Strips all enclosing 'GHC.Tick's off an expression.
+stripTicks :: GHC.CoreExpr -> GHC.CoreExpr
+stripTicks = \case
+    GHC.Tick _ e -> stripTicks e
+    e -> e
+
 -- | Converts all the marked expressions in the given binder into PLC literals.
 convertMarkedExprsBind :: PluginOptions -> GHC.Name -> GHC.CoreBind -> GHC.CoreM GHC.CoreBind
 convertMarkedExprsBind opts markerName = \case
@@ -223,7 +229,8 @@ convertMarkedExprs opts markerName =
     in \case
       GHC.App (GHC.App (GHC.App
                           -- function id
-                          (GHC.Var fid)
+                          -- sometimes GHCi sticks ticks around this for some reason
+                          (stripTicks -> (GHC.Var fid))
                           -- first type argument, must be a string literal type
                           (GHC.Type (GHC.isStrLitTy -> Just fs_locStr)))
                      -- second type argument
@@ -269,7 +276,7 @@ convertExpr opts locStr codeTy origE = do
     flags <- GHC.getDynFlags
     -- We need to do this out here, since it has to run in CoreM
     nameInfo <- makePrimitiveNameInfo builtinNames
-    let result = withContextM (sdToTxt $ "Converting expr at" GHC.<+> GHC.text locStr) $ do
+    let result = withContextM 1 (sdToTxt $ "Converting expr at" GHC.<+> GHC.text locStr) $ do
               (pirP::PIRProgram) <- PIR.Program () . PIR.removeDeadBindings <$> (PIR.runDefT () $ convExprWithDefs origE)
               (plcP::PLCProgram) <- void <$> (flip runReaderT PIR.NoProvenance $ PIR.compileProgram pirP)
               when (poDoTypecheck opts) $ void $ do
@@ -284,7 +291,7 @@ convertExpr opts locStr codeTy origE = do
             }
     case runExcept . runQuoteT . flip runReaderT context $ result of
         Left s ->
-            let shown = show $ if poStripContext opts then PP.pretty (stripContext s) else PP.pretty s in
+            let shown = show $ PP.pretty (pruneContext (poContextLevel opts) s) in
             -- TODO: is this the right way to do either of these things?
             if poDeferErrors opts
             -- this will blow up at runtime

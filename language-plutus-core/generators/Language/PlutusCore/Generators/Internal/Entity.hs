@@ -5,6 +5,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Generators.Internal.Entity
@@ -201,10 +202,11 @@ genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0 whe
     go context depth tb
         | depth == 0 = choiceDef (liftT $ genBase tb) variables
         | depth == 1 = choiceDef (liftT $ genBase tb) $ variables ++ recursive
-        | depth == 2 = Gen.choice $ lambdaApply : variables ++ recursive
-        | depth == 3 = Gen.choice $ lambdaApply : recursive
-        | otherwise  = lambdaApply
+        | depth == 2 = Gen.frequency $ stopOrDeeper ++ map (3 ,) variables ++ map (5 ,) recursive
+        | depth == 3 = Gen.frequency $ stopOrDeeper ++ map (3 ,) recursive
+        | otherwise  = Gen.frequency stopOrDeeper
         where
+            stopOrDeeper = [(1, liftT $ genBase tb), (5, lambdaApply)]
             -- Instantiate all size variables with '()'.
             desizedTb = mapSizeEntryTypedBuiltin (\_ -> SizeBound ()) tb
             -- Generators of built-ins to feed them to 'genIterAppValue'.

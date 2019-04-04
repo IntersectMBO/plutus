@@ -11,6 +11,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns -Wno-name-shadowing #-}
 
 {-| = Marlowe: financial contracts on Cardano Computation Layer
@@ -89,16 +90,17 @@ import           Prelude                        ( Show(..)
                                                 , Ord(..)
                                                 , Int
                                                 , Maybe(..)
-                                                , Either(..)
+                                                , (.)
                                                 )
 
 import qualified Language.PlutusTx              as PlutusTx
 import           Ledger                         ( PubKey(..)
                                                 , Signature(..)
+                                                , Slot(..)
                                                 )
 import qualified Ledger.Ada.TH                  as Ada
 import           Ledger.Ada.TH                  (Ada)
-import           Ledger.Interval                (Interval(..), Slot(..))
+import           Ledger.Interval                (Interval(..))
 import           Ledger.Validation
 import qualified Ledger.Validation              as Validation
 import qualified Language.PlutusTx.Builtins     as Builtins
@@ -106,11 +108,18 @@ import           Language.PlutusTx.Lift         ( makeLift )
 import           Language.Haskell.TH            ( Q
                                                 , TExp
                                                 )
+import           KeyBytes                       (KeyBytes(..))
+import GHC.Generics (Generic)
+import Language.Marlowe.Pretty (Pretty, prettyFragment)
+import Text.PrettyPrint.Leijen (text)
 
 type Timeout = Int
 type Cash = Int
 
 type Person = PubKey
+
+instance Pretty PubKey where
+    prettyFragment = text . show
 
 {-|
 == Identifiers
@@ -122,13 +131,16 @@ they are unique.
 
 -}
 newtype IdentCC = IdentCC Int
-               deriving (Eq, Ord, Show)
+               deriving stock (Eq, Ord, Show, Generic)
+               deriving anyclass (Pretty)
 
 newtype IdentChoice = IdentChoice Int
-               deriving (Eq, Ord, Show)
+               deriving stock (Eq, Ord, Show, Generic)
+               deriving anyclass (Pretty)
 
 newtype IdentPay = IdentPay Int
-               deriving (Eq, Ord, Show)
+               deriving stock (Eq, Ord, Show, Generic)
+               deriving anyclass (Pretty)
 
 type ConcreteChoice = Int
 
@@ -159,7 +171,8 @@ data Value  = Committed IdentCC
             --   'Value' otherwise
             | ValueFromOracle PubKey Value
             -- ^ Oracle PubKey, default 'Value' when no Oracle Value provided
-                    deriving (Eq, Show)
+               deriving stock (Eq, Show, Generic)
+               deriving anyclass (Pretty)
 
 {-| Predicate on outer world and contract 'State'.
     'interpretObservation' evaluates 'Observation' to 'Bool'
@@ -175,7 +188,8 @@ data Observation = BelowTimeout Int
             -- ^ is first amount is greater or equal than the second?
             | TrueObs
             | FalseObs
-            deriving (Eq, Show)
+               deriving stock (Eq, Show, Generic)
+               deriving anyclass (Pretty)
 
 {-| Marlowe Contract Data Type
 -}
@@ -195,7 +209,8 @@ data Contract = Null
             | When Observation Timeout Contract Contract
             -- ^ when observation evaluates to True evaluate first contract,
             --   evaluate second contract on timeout
-            deriving (Eq, Show)
+               deriving stock (Eq, Show, Generic)
+               deriving anyclass (Pretty)
 
 {-|
     State of a contract validation function.
@@ -233,6 +248,7 @@ data InputCommand = Commit IdentCC Signature
     | Payment IdentPay Signature
     | Redeem IdentCC Signature
     | SpendDeposit Signature
+    | CreateContract
 makeLift ''InputCommand
 
 {-|
@@ -591,6 +607,7 @@ findAndRemove = [|| \ predicate commits -> let
 -}
 evaluateContract ::
     Q (TExp (PubKey
+    -> TxHash
     -> Input
     -> Slot
     -> Ada
@@ -599,6 +616,7 @@ evaluateContract ::
     -> Contract -> (State, Contract, Bool)))
 evaluateContract = [|| \
     contractCreatorPK
+    txHash
     (Input inputCommand inputOracles _)
     blockHeight
     scriptInValue'
@@ -619,9 +637,6 @@ evaluateContract = [|| \
     (||) :: Bool -> Bool -> Bool
     (||) = $$(PlutusTx.or)
 
-    signedBy :: Signature -> PubKey -> Bool
-    signedBy (Signature sig) (PubKey pk) = sig `Builtins.equalsInteger` pk
-
     eqIdentCC :: IdentCC -> IdentCC -> Bool
     eqIdentCC (IdentCC a) (IdentCC b) = a `Builtins.equalsInteger` b
 
@@ -634,6 +649,11 @@ evaluateContract = [|| \
 
     interpretObs :: Int -> State -> Observation -> Bool
     interpretObs = $$(interpretObservation) evalValue
+
+    signedBy :: Signature -> PubKey -> Bool
+    signedBy (Signature sig) (PubKey (KeyBytes pk)) = let
+        TxHash msg = txHash
+        in $$(PlutusTx.verifySignature) pk msg sig
 
     eval :: InputCommand -> State -> Contract -> (State, Contract, Bool)
     eval input state@(State commits choices) contract = case (contract, input) of
@@ -752,7 +772,7 @@ validatorScript = [|| \
         creator
         (_ :: Input, MarloweData{..} :: MarloweData)
         (input@(Input inputCommand _ inputChoices :: Input), MarloweData expectedState expectedContract)
-        (PendingTx{ pendingTxOutputs, pendingTxValidRange, pendingTxIn } :: PendingTx) -> let
+        (PendingTx{ pendingTxOutputs, pendingTxValidRange, pendingTxIn, pendingTxHash } :: PendingTx) -> let
 
         {-  Embed contract creator public key. This makes validator script unique,
             which makes a particular contract to have a unique script address.
@@ -804,7 +824,7 @@ validatorScript = [|| \
 
         -- TxIn we're validating is obviously a Script TxIn.
         (inputValidatorHash, redeemerHash, scriptInValue) = case pendingTxIn of
-            PendingTxIn _ (Left (vHash, RedeemerHash rHash)) value -> (vHash, rHash, value)
+            PendingTxIn _ (Just (vHash, RedeemerHash rHash)) value -> (vHash, rHash, value)
             _ -> Builtins.error ()
 
         scriptInAdaValue = $$(Ada.fromValue) scriptInValue
@@ -822,7 +842,7 @@ validatorScript = [|| \
                     then $$(Ada.fromValue) change else Builtins.error ()
 
         eval :: Input -> Slot -> Ada -> Ada -> State -> Contract -> (State, Contract, Bool)
-        eval = $$(evaluateContract) contractCreatorPK
+        eval = $$(evaluateContract) contractCreatorPK pendingTxHash
 
         contractIsValid = $$(validateContract) marloweState marloweContract minSlot scriptInAdaValue
 

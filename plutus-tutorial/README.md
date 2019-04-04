@@ -3,7 +3,7 @@
 This project contains a collection of tutorials that explain various aspects of the PlutusTx smart contract platform.
 
 1. [Introduction to Plutus](./tutorial/Intro.md) introduces smart contracts and related terms
-2. [PlutusTx](./doctest/Tutorial/01-plutus-tx.md) explaining the basics of using the Plutus Tx compiler to create embedded (on-chain) programs
+2. [Plutus Tx](./doctest/Tutorial/01-plutus-tx.md) explaining the basics of using the Plutus Tx compiler to create embedded (on-chain) programs
 3. [Wallet API, Part I](./doctest/Tutorial/02-validator-scripts.md) implements a guessing game. Topics covered:
   * Signature of validator script
   * `Ledger.makeLift`, `Ledger.compileScript`

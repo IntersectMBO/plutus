@@ -9,9 +9,10 @@ import Types
 import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged))
 import Ace.Types (ACE, Annotation)
 import Action (simulationPane)
-import AjaxUtils (ajaxErrorPane, getDecodeJson)
+import AjaxUtils (ajaxErrorPane)
+import AjaxUtils as AjaxUtils
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
-import Bootstrap (active, btn, btnGroup, btnSmall, col3_, col9_, container, container_, empty, hidden, navItem_, navLink, navTabs_, pullRight, row_)
+import Bootstrap (active, btn, btnGroup, btnSmall, col6_, container, container_, empty, floatRight, hidden, navItem_, navLink, navTabs_, noGutters, row)
 import Chain (evaluationPane)
 import Control.Bind (bindFlipped)
 import Control.Comonad (extract)
@@ -49,19 +50,21 @@ import Halogen as H
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
 import Halogen.ECharts as EC
-import Halogen.HTML (ClassName(ClassName), HTML, a, br_, div, div_, h1, strong_, text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, strong_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_)
 import Halogen.Query (HalogenM)
 import Icons (Icon(..), icon)
-import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError))
-import Ledger.Ada.TH (Ada(..))
+import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), _InterpreterResult)
+import Ledger.Extra (LedgerMap(..), _LedgerMap)
+import Ledger.Value.TH (CurrencySymbol(CurrencySymbol), Value(..), _CurrencySymbol)
 import LocalStorage (LOCALSTORAGE)
 import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, updateChartsIfPossible)
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
 import Playground.API (SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
 import Playground.Server (SPParams_)
+import Playground.Usecases (gitHead)
 import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, pure, show, unit, unless, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (=<<), (==))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData as StaticData
@@ -69,9 +72,15 @@ import Wallet.Emulator.Types (Wallet(Wallet))
 
 mkSimulatorWallet :: Int -> SimulatorWallet
 mkSimulatorWallet id =
-  SimulatorWallet { simulatorWalletWallet: Wallet { getWallet: id }
-                  , simulatorWalletBalance: Ada {getAda: 10}
-                  }
+  SimulatorWallet
+    { simulatorWalletWallet: Wallet { getWallet: id }
+    , simulatorWalletBalance: Value { getValue:
+                                        LedgerMap [ Tuple (CurrencySymbol 0) 50
+                                                  , Tuple (CurrencySymbol 1) 20
+                                                  , Tuple (CurrencySymbol 2) 20
+                                                  ]
+                                    }
+    }
 
 mkSimulation :: Signatures -> Simulation
 mkSimulation signatures = Simulation
@@ -142,9 +151,11 @@ toEvent (ScrollTo _ _) = Nothing
 toEvent (AddSimulationSlot _) = Just $ (defaultEvent "AddSimulationSlot") { category = Just "Simulation" }
 toEvent (SetSimulationSlot _ _) = Just $ (defaultEvent "SetSimulationSlot") { category = Just "Simulation" }
 toEvent (RemoveSimulationSlot _ _) = Just $ (defaultEvent "RemoveSimulationSlot") { category = Just "Simulation" }
-toEvent (AddWallet _) = Just $ (defaultEvent "AddWallet") { category = Just "Wallet" }
-toEvent (RemoveWallet _ _) = Just $ (defaultEvent "RemoveWallet") { category = Just "Wallet" }
-toEvent (SetBalance _ _ _) = Just $ (defaultEvent "SetBalance") { category = Just "Wallet" }
+toEvent (ModifyWallets AddWallet _) = Just $ (defaultEvent "AddWallet") { category = Just "Wallet" }
+toEvent (ModifyWallets (RemoveWallet _) _) = Just $ (defaultEvent "RemoveWallet") { category = Just "Wallet" }
+toEvent (ModifyWallets (ModifyBalance _ (SetBalance _ _)) _) = Just $ (defaultEvent "SetBalance") { category = Just "Wallet" }
+toEvent (ModifyWallets (ModifyBalance _ AddBalance) _) = Just $ (defaultEvent "AddBalance") { category = Just "Wallet" }
+toEvent (ModifyWallets (ModifyBalance _ (RemoveBalance _)) _) = Just $ (defaultEvent "RemoveBalance") { category = Just "Wallet" }
 toEvent (ModifyActions (AddAction _) _) = Just $ (defaultEvent "AddAction") { category = Just "Action" }
 toEvent (ModifyActions (AddWaitAction _) _) = Just $ (defaultEvent "AddWaitAction") { category = Just "Action" }
 toEvent (ModifyActions (RemoveAction _) _) = Just $ (defaultEvent "RemoveAction") { category = Just "Action" }
@@ -198,8 +209,7 @@ eval (CheckAuthStatus next) = do
 eval (PublishGist next) = do
   mContents <- editorGetContents
   simulations <- use _simulations
-  mNewGist <- mkNewGist { source: mContents, simulations }
-  case mNewGist of
+  case mkNewGist { source: mContents, simulations } of
     Nothing -> pure next
     Just newGist ->
       do mGist <- use _createGistResult
@@ -242,11 +252,10 @@ eval (LoadGist next) = do
                                assign _evaluationResult NotAsked
 
           -- Load the simulation, if available.
-          decodeJson <- getDecodeJson
           case preview (_Just <<< gistFileContent <<< _Just) (simulationGistFile gist) of
             Nothing -> pure unit
             Just simulationString -> do
-              case (decodeJson =<< jsonParser simulationString) of
+              case (AjaxUtils.decodeJson =<< jsonParser simulationString) of
                 Left err -> pure unit
                 Right simulations -> do
                   assign _simulations simulations
@@ -269,6 +278,7 @@ eval (LoadScript key next) = do
       assign _evaluationResult NotAsked
       assign _simulations Cursor.empty
       assign _compilationResult NotAsked
+      assign _currentView Editor
       pure next
 
 eval (CompileProgram next) = do
@@ -289,13 +299,13 @@ eval (CompileProgram next) = do
       -- Update the error display.
       editorSetAnnotations $
         case result of
-          Success (Left errors) -> catMaybes $ toAnnotation <$> errors
+          Success (Left errors) -> toAnnotations errors
           _ -> []
 
       -- If we have a result with new signatures, we can only hold
       -- onto the old actions if the signatures still match. Any
       -- change means we'll have to clear out the existing simulation.
-      case preview (_Success <<< _Right <<< _CompilationResult <<< _functionSchema) result of
+      case preview (_Success <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult <<< _functionSchema) result of
         Just newSignatures -> do
           oldSignatures <- use (_simulations <<< _current <<< _signatures)
           unless (oldSignatures `gEq` newSignatures)
@@ -331,7 +341,7 @@ eval (EvaluateActions next) = do
   pure next
 
 eval (AddSimulationSlot next) = do
-  mSignatures <- peruse (_compilationResult <<< _Success <<< _Right <<< _CompilationResult <<< _functionSchema)
+  mSignatures <- peruse (_compilationResult <<< _Success <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult <<< _functionSchema)
 
   case mSignatures of
     Just signatures -> modifying _simulations (flip Cursor.snoc (mkSimulation signatures))
@@ -346,24 +356,8 @@ eval (RemoveSimulationSlot index next) = do
   modifying _simulations (Cursor.deleteAt index)
   pure next
 
-eval (AddWallet next) = do
-  modifying (_simulations <<< _current <<< _wallets)
-    (\wallets -> let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _simulatorWalletWallet <<< _walletId) wallets
-                     newWallet = mkSimulatorWallet (maxWalletId + 1)
-                 in Array.snoc wallets newWallet)
-
-  pure next
-
-eval (RemoveWallet index next) = do
-  modifying (_simulations <<< _current <<< _wallets) (fromMaybe <*> Array.deleteAt index)
-  assign (_simulations <<< _current <<< _actions) []
-  pure next
-
-eval (SetBalance wallet newBalance next) = do
-  modifying (_simulations <<< _current <<< _wallets <<< traversed)
-    (\simulatorWallet -> if view _simulatorWalletWallet simulatorWallet == wallet
-                         then set _simulatorWalletBalance newBalance simulatorWallet
-                         else simulatorWallet)
+eval (ModifyWallets action next) = do
+  modifying (_simulations <<< _current <<< _wallets) (evalWalletEvent action)
   pure next
 
 eval (PopulateAction n l event) = do
@@ -380,6 +374,29 @@ eval (PopulateAction n l event) = do
     (evalForm event)
   pure $ extract event
 
+evalWalletEvent :: WalletEvent -> Array SimulatorWallet -> Array SimulatorWallet
+evalWalletEvent AddWallet wallets =
+  let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _simulatorWalletWallet <<< _walletId) wallets
+      newWallet = mkSimulatorWallet (maxWalletId + 1)
+  in Array.snoc wallets newWallet
+evalWalletEvent (RemoveWallet index) wallets =
+  fromMaybe wallets $ Array.deleteAt index wallets
+evalWalletEvent (ModifyBalance walletIndex action) wallets =
+  over
+    (ix walletIndex <<< _simulatorWalletBalance <<< _value)
+    (evalValueEvent action)
+    wallets
+
+evalValueEvent :: ValueEvent -> LedgerMap CurrencySymbol Int -> LedgerMap CurrencySymbol Int
+evalValueEvent AddBalance balances =
+  let maxCurrencyId = fromMaybe 0 $ maximumOf (_LedgerMap <<< traversed <<< _1 <<< _CurrencySymbol) balances
+      newBalance = Tuple (CurrencySymbol (maxCurrencyId + 1)) 0
+  in over _LedgerMap (flip Array.snoc newBalance) balances
+evalValueEvent (RemoveBalance balanceIndex) balances =
+  over _LedgerMap (fromMaybe <*> Array.deleteAt balanceIndex) balances
+evalValueEvent (SetBalance balanceIndex balance) balances =
+  set (_LedgerMap <<< ix balanceIndex) balance balances
+
 evalActionEvent :: ActionEvent -> Array Action -> Array Action
 evalActionEvent (AddAction action) = flip Array.snoc action
 evalActionEvent (AddWaitAction blocks) = flip Array.snoc (Wait { blocks })
@@ -393,11 +410,16 @@ evalForm (SetIntField _ _) arg = arg
 evalForm (SetStringField s next) (SimpleString _) = SimpleString (Just s)
 evalForm (SetStringField _ _) arg = arg
 
+evalForm (SetValueField valueEvent _) (ValueArgument schema (Value { getValue: fields })) =
+  ValueArgument schema $ Value { getValue: evalValueEvent valueEvent fields }
+evalForm (SetValueField _ _) arg = arg
+
 evalForm (SetSubField 1 subEvent) (SimpleTuple fields) = SimpleTuple $ over _1 (evalForm subEvent) fields
 evalForm (SetSubField 2 subEvent) (SimpleTuple fields) = SimpleTuple $ over _2 (evalForm subEvent) fields
-evalForm (SetSubField _ subEvent) arg@(SimpleTuple fields) = arg
-evalForm (SetSubField _ subEvent) arg@(SimpleString fields) = arg
-evalForm (SetSubField _ subEvent) arg@(SimpleInt fields) = arg
+evalForm (SetSubField _ subEvent) arg@(SimpleTuple _) = arg
+evalForm (SetSubField _ subEvent) arg@(SimpleString _) = arg
+evalForm (SetSubField _ subEvent) arg@(SimpleInt _) = arg
+evalForm (SetSubField _ subEvent) arg@(ValueArgument _ _) = arg
 
 evalForm (AddSubField _) (SimpleArray schema fields) =
   -- As the code stands, this is the only guarantee we get that every
@@ -429,6 +451,10 @@ replaceViewOnSuccess result source target = do
 
 ------------------------------------------------------------
 
+toAnnotations :: InterpreterError -> Array Annotation
+toAnnotations (TimeoutError _) = []
+toAnnotations (CompilationErrors errors) = catMaybes (toAnnotation <$> errors)
+
 toAnnotation :: CompilationError -> Maybe Annotation
 toAnnotation (RawError _) = Nothing
 toAnnotation (CompilationError {row, column, text}) =
@@ -448,16 +474,14 @@ render state@(State {currentView})  =
     [ class_ $ ClassName "main-frame" ]
     [ container_
         [ mainHeader
-        , row_
-            [ col9_ [ mainTabBar currentView
-                    , br_
-                    , demoScriptsPane
-                    ]
-            , col3_ [ gistControls state ]
+        , div [ classes [ row, noGutters ] ]
+            [ col6_ [ mainTabBar currentView ]
+            , col6_ [ gistControls state ]
             ]
         ]
     , viewContainer currentView Editor $
-        [ editorPane state
+        [ demoScriptsPane
+        , editorPane defaultContents (view _compilationResult state)
         , case view _compilationResult state of
             Failure error -> ajaxErrorPane error
             _ -> empty
@@ -486,6 +510,8 @@ render state@(State {currentView})  =
             , text " tab above and evaluate a simulation to see some results."
             ]
     ]
+    where
+      defaultContents = Map.lookup "Vesting" StaticData.demoFiles
 
 viewContainer :: forall p i. View -> View -> Array (HTML p i) -> HTML p i
 viewContainer currentView targetView =
@@ -496,7 +522,7 @@ viewContainer currentView targetView =
 mainHeader :: forall p. HTML p (Query Unit)
 mainHeader =
   div_
-    [ div [ classes [ btnGroup, pullRight ] ]
+    [ div [ classes [ btnGroup, floatRight ] ]
         (makeLink <$> links)
     , h1
         [ class_ $ ClassName "main-title" ]
@@ -504,7 +530,7 @@ mainHeader =
     ]
   where
     links = [ Tuple "Getting Started" "https://testnet.iohkdev.io/plutus/get-started/writing-contracts-in-plutus/"
-            , Tuple "Tutorial" "https://github.com/input-output-hk/plutus/blob/master/plutus-tutorial/tutorial/Tutorial/02-wallet-api.md"
+            , Tuple "Tutorial" ("https://github.com/input-output-hk/plutus/blob/" <> gitHead <> "/plutus-tutorial/tutorial/Tutorial/02-wallet-api.md")
             , Tuple "API" "https://input-output-hk.github.io/plutus/"
             , Tuple "Privacy" "https://static.iohk.io/docs/data-protection/iohk-data-protection-gdpr-policy.pdf"
             ]

@@ -4,8 +4,9 @@ module MainFrameTests
 
 import Prelude
 
+import AjaxUtils (decodeJson)
 import Auth (AuthRole(..), AuthStatus(..))
-import Control.Monad.Eff.Class (liftEff)
+import Control.Monad.Eff.Class (class MonadEff, liftEff)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Random (RANDOM)
 import Control.Monad.Free (Free, foldFree, liftF)
@@ -14,7 +15,6 @@ import Control.Monad.Reader.Class (class MonadAsk, ask)
 import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM)
 import Control.Monad.State.Class (class MonadState, get)
 import Cursor as Cursor
-import Data.Argonaut.Generic.Aeson (decodeJson)
 import Data.Argonaut.Parser (jsonParser)
 import Data.Array as Array
 import Data.Either (Either, fromRight)
@@ -31,7 +31,7 @@ import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(Tuple))
 import FileEvents (FILE)
 import Gist (Gist, GistId, gistId)
-import Language.Haskell.Interpreter (CompilationError)
+import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode(SourceCode))
 import MainFrame (eval, initialState)
 import MonadApp (class MonadApp)
 import Network.RemoteData (RemoteData(..), isNotAsked, isSuccess)
@@ -40,7 +40,7 @@ import Node.Encoding (Encoding(..))
 import Node.FS (FS)
 import Node.FS.Sync as FS
 import Partial.Unsafe (unsafePartial)
-import Playground.API (CompilationResult, EvaluationResult, SourceCode(SourceCode))
+import Playground.API (CompilationResult, EvaluationResult)
 import Playground.Server (SPParams_(..))
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import StaticData (bufferLocalStorageKey)
@@ -48,7 +48,7 @@ import StaticData as StaticData
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (assert, equal')
 import Test.Unit.QuickCheck (quickCheck)
-import Types (Query(LoadScript, CompileProgram, LoadGist, SetGistUrl, ChangeView, CheckAuthStatus), State, WebData, _authStatus, _compilationResult, _createGistResult, _currentView, _evaluationResult, _simulations)
+import Types (Query(LoadScript, CompileProgram, LoadGist, SetGistUrl, ChangeView, CheckAuthStatus), State, View(..), WebData, _authStatus, _compilationResult, _createGistResult, _currentView, _evaluationResult, _simulations)
 
 all :: forall aff. TestSuite (exception :: EXCEPTION, fs :: FS, random :: RANDOM, file :: FILE | aff)
 all =
@@ -62,7 +62,7 @@ type World =
   , editorContents :: Maybe String
   , localStorage :: Map String String
   , evaluationResult :: WebData EvaluationResult
-  , compilationResult :: (WebData (Either (Array CompilationError) CompilationResult))
+  , compilationResult :: (WebData (Either InterpreterError (InterpreterResult CompilationResult)))
   }
 
 _gists :: forall r a. Lens' {gists :: a | r} a
@@ -219,17 +219,31 @@ evalTests =
           finalWorld.editorContents
 
     test "Loading a script clears out some state." do
-        contents <- liftEff $ FS.readTextFile UTF8 "test/compilation_response1.json"
-        let compilationResult :: Either (Array CompilationError) CompilationResult
-            compilationResult = unsafePartial $ fromRight (jsonParser contents >>= decodeJson)
-        Tuple _ finalState <- execMockApp (mockWorld { compilationResult = Success compilationResult }) do
+        compilationResult <- loadCompilationResponse1
+        Tuple _ finalState <- execMockApp (mockWorld { compilationResult = compilationResult }) do
+          send $ ChangeView Simulations
           send $ LoadScript "Game"
           send $ CompileProgram
         assert "Simulations are non-empty." $ not $ Cursor.null $ view _simulations finalState
-        Tuple _ finalState <- execMockApp (mockWorld { compilationResult = Success compilationResult }) do
+        Tuple _ finalState <- execMockApp (mockWorld { compilationResult = compilationResult }) do
           send $ LoadScript "Game"
           send $ CompileProgram
           send $ LoadScript "Game"
-        assert "Simulations are cleared." $ Cursor.null $ view _simulations finalState
+        assert "Simulations are empty." $ Cursor.null $ view _simulations finalState
         assert "Evaluation is cleared." $ isNotAsked $ view _evaluationResult finalState
         assert "Compilation is cleared." $ isNotAsked $ view _compilationResult finalState
+
+    test "Loading a script switches back to the editor." do
+        compilationResult <- loadCompilationResponse1
+        Tuple _ finalState <- execMockApp (mockWorld { compilationResult = compilationResult }) do
+          send $ ChangeView Simulations
+          send $ LoadScript "Game"
+        equal' "View is reset." Editor $ view _currentView finalState
+
+loadCompilationResponse1 ::
+  forall m eff.
+  MonadEff (fs :: FS, exception :: EXCEPTION | eff) m
+  => m (WebData (Either InterpreterError (InterpreterResult CompilationResult)))
+loadCompilationResponse1 = do
+  contents <- liftEff $ FS.readTextFile UTF8 "test/compilation_response1.json"
+  pure $ Success $ unsafePartial $ fromRight (jsonParser contents >>= decodeJson)

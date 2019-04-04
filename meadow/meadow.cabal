@@ -28,6 +28,7 @@ library
         Interpreter
         Meadow.Contracts
         Gist
+        Git
         Auth
         Auth.Types
         Control.Monad.Now
@@ -61,7 +62,7 @@ library
         newtype-generics -any,
         process -any,
         prometheus >=2,
-        servant <0.15,
+        servant <0.16,
         servant-client -any,
         servant-client-core -any,
         servant-purescript -any,
@@ -69,6 +70,7 @@ library
         temporary -any,
         text -any,
         time -any,
+        time-units -any,
         transformers -any,
         wai -any
 
@@ -91,7 +93,6 @@ executable meadow-exe
         data-default-class -any,
         directory -any,
         filepath -any,
-        gitrev -any,
         http-types -any,
         interpreter -any,
         lens -any,
@@ -124,7 +125,9 @@ test-suite meadow-test
         hspec -any,
         hspec-wai -any,
         hspec-wai-json -any,
+        interpreter -any,
         meadow -any,
         mtl -any,
         raw-strings-qq -any,
-        text -any
+        text -any,
+        time-units -any

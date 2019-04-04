@@ -59,6 +59,9 @@
 # Forces all warnings as errors
 , forceError ? true
 
+# If we are in Hydra
+, declInput ? null
+
 }:
 
 with pkgs.lib;
@@ -73,6 +76,7 @@ let
   # can't built 0.11.7 with the default compiler either.
   purescriptNixpkgs = import (localLib.iohkNix.fetchNixpkgs ./purescript-11-nixpkgs-src.json) {};
 
+
   packages = self: (rec {
     inherit pkgs localLib;
 
@@ -83,7 +87,10 @@ let
         inherit pkgs;
         filter = localLib.isPlutus;
       };
-      customOverlays = optional forceError errorOverlay;
+      gitModuleOverlay = import ./nix/overlays/git-module.nix {
+        inherit pkgs declInput;
+      };
+      customOverlays = optional forceError errorOverlay ++ [gitModuleOverlay];
       # Filter down to local packages, except those named in the given list
       localButNot = nope:
         let okay = builtins.filter (name: !(builtins.elem name nope)) localLib.plutusPkgList;
@@ -111,6 +118,10 @@ let
         haddock = localButNot [
             # Haddock is broken for things with internal libraries
             "plutus-tx"
+
+            # Also broken for the sample contracts that are put in a docker
+            # image (cf. plutus-contract-exe.docker below)
+            "plutus-contract-exe"
         ];
       };
       requiredOverlay = ./nix/overlays/required.nix;
@@ -174,13 +185,6 @@ let
           psSrc = generated-purescript;
         };
 
-      docker = pkgs.dockerTools.buildImage {
-        name = "plutus-playgrounds";
-        contents = [ client server-invoker ];
-        config = {
-          Cmd = ["${server-invoker}/bin/plutus-playground" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
-        };
-      };
     };
 
     meadow = rec {
@@ -211,12 +215,54 @@ let
           pkgs = purescriptNixpkgs;
           psSrc = generated-purescript;
         };
+    };
+
+    docker = rec {
+      defaultPlaygroundConfig = pkgs.writeTextFile {
+        name = "playground.yaml";
+        destination = "/etc/playground.yaml";
+        text = ''
+        auth:
+          github-client-id: ""
+          github-client-secret: ""
+          jwt-signature: ""
+          redirect-url: "localhost:8080"
+        '';
+      };
+      plutusPlaygroundImage = with plutus-playground; pkgs.dockerTools.buildImage {
+        name = "plutus-playgrounds";
+        contents = [ client server-invoker defaultPlaygroundConfig ];
+        config = {
+          Cmd = ["${server-invoker}/bin/plutus-playground" "--config" "${defaultPlaygroundConfig}/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
+        };
+      };
+      meadowImage = with meadow; pkgs.dockerTools.buildImage {
+        name = "meadow";
+        contents = [ client server-invoker defaultPlaygroundConfig ];
+        config = {
+          Cmd = ["${server-invoker}/bin/meadow" "--config" "${defaultPlaygroundConfig}/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
+        };
+      };
+    };
+
+    plutus-contract-exe = rec {
+
+      # justStaticExecutables results in a much smaller docker image
+      # (16MB vs 588MB)
+      static = pkgs.haskell.lib.justStaticExecutables;
+
+      pid1 =  static haskellPackages.pid1;
+      contract = static haskellPackages.plutus-contract-exe;
 
       docker = pkgs.dockerTools.buildImage {
-        name = "meadow";
-        contents = [ client server-invoker ];
-        config = {
-          Cmd = ["${server-invoker}/bin/meadow" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
+          name = "plutus-contract-exe";
+          contents = [pid1 contract];
+          config = {
+            Entrypoint = ["/bin/pid1"];
+            Cmd = ["/bin/contract-exe-guessing-game"];
+            ExposedPorts = {
+              "8080/tcp" = {};
+          };
         };
       };
     };

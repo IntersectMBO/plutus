@@ -5,7 +5,6 @@ module Playground.Interpreter.Util where
 
 import           Control.Lens               (view)
 import           Control.Monad.Error.Class  (MonadError, throwError)
-import           Control.Newtype.Generics   (unpack)
 import           Data.Aeson                 (FromJSON)
 import qualified Data.Aeson                 as JSON
 import qualified Data.ByteString.Lazy.Char8 as BSL
@@ -13,13 +12,13 @@ import           Data.Foldable              (foldl')
 import qualified Data.Map                   as Map
 import qualified Data.Set                   as Set
 import qualified Data.Typeable              as T
-import qualified Ledger.Ada                 as Ada
-import           Ledger.Types               (Blockchain, PubKey (PubKey), Tx, TxOutOf (txOutValue))
+import           Ledger                     (Blockchain, Tx, TxOutOf (txOutValue))
+import qualified Ledger.Value               as V
 import           Playground.API             (PlaygroundError (OtherError), SimulatorWallet (SimulatorWallet),
                                              simulatorWalletBalance, simulatorWalletWallet)
 import           Wallet.Emulator.Types      (EmulatorEvent, EmulatorState (_chainNewestFirst, _emulatorLog), MockWallet,
                                              Trace, Wallet (Wallet), ownFunds, processPending, runTraceTxPool,
-                                             walletStates, walletsNotifyBlock)
+                                             walletPubKey, walletStates, walletsNotifyBlock)
 import           Wallet.Generators          (GeneratorModel (GeneratorModel))
 import qualified Wallet.Generators          as Gen
 
@@ -36,12 +35,12 @@ runTrace ::
     -> Either PlaygroundError (Blockchain, [EmulatorEvent], [SimulatorWallet])
 runTrace wallets actions =
     let walletToBalance SimulatorWallet {..} =
-            ( PubKey $ unpack simulatorWalletWallet
-            , Ada.toValue simulatorWalletBalance)
+            ( walletPubKey simulatorWalletWallet
+            , simulatorWalletBalance)
         initialBalance = Map.fromList $ fmap walletToBalance wallets
         pubKeys =
             Set.fromList $
-            fmap (PubKey . unpack . simulatorWalletWallet) wallets
+            fmap (walletPubKey . simulatorWalletWallet) wallets
         eActions = sequence actions
      in case eActions of
             Left e -> Left e
@@ -58,8 +57,8 @@ runTrace wallets actions =
                     emulatorLog = _emulatorLog newState
                     fundsDistribution =
                         Map.map
-                            (foldl' (+) 0 .
-                             fmap (Ada.fromValue . txOutValue) . view ownFunds) .
+                            (foldl' V.plus V.zero .
+                             fmap txOutValue . view ownFunds) .
                         view walletStates $
                         newState
                  in case eRes of

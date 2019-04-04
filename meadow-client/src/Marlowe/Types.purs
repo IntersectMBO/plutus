@@ -48,7 +48,7 @@ instance showIdChoice :: Show IdChoice where
                                                    ]
 
 instance prettyIdChoice :: Pretty IdChoice where
-  pretty a = text (show a)
+  prettyFragment a = text (show a)
 
 data WIdChoice
   = WIdChoice IdChoice
@@ -86,7 +86,7 @@ instance showValue :: Show Value where
   show v = genericShow v
 
 instance prettyValue :: Pretty Value where
-  pretty a = genericPretty a
+  prettyFragment a = genericPretty a
 
 data Observation
   = BelowTimeout Timeout
@@ -113,7 +113,7 @@ instance showObservation :: Show Observation where
   show o = genericShow o
 
 instance prettyObservation :: Pretty Observation where
-  pretty a = genericPretty a
+  prettyFragment a = genericPretty a
 
 data Contract
   = Null
@@ -137,4 +137,4 @@ instance showContract :: Show Contract where
   show c = genericShow c
 
 instance prettyContract :: Pretty Contract where
-  pretty a = genericPretty a
+  prettyFragment a = genericPretty a
