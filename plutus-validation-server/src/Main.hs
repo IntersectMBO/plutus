@@ -41,6 +41,7 @@ validateByteString :: BS.ByteString -- ^ Validator
                    -> Bool
 validateByteString _ _ _ = True
 
+-- validateResponse :: ToValidate -> (StatusCode, BSL.ByteString)
 validateResponse :: ToValidate -> BSL.ByteString
 validateResponse (ToValidate v r d) =
     if validateByteString (getByteString64 v) (getByteString64 r) (getByteString64 d)
