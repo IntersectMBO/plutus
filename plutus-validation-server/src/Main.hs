@@ -18,19 +18,6 @@ main = run 3000 app
 trueJSON :: BSL.ByteString
 trueJSON = "{\"isValid\":true}"
 
--- TODO: make a curl request to this
-validateByteString :: BS.ByteString -- ^ Validator
-                   -> BS.ByteString -- ^ Redeemer
-                   -> BS.ByteString -- ^ Data
-                   -> Bool
-validateByteString _ _ _ = True
-
-validateResponse :: ToValidate -> BSL.ByteString
-validateResponse (ToValidate v r d) =
-    if validateByteString (getByteString64 v) (getByteString64 r) (getByteString64 d)
-        then trueJSON
-        else falseJSON
-
 falseJSON :: BSL.ByteString
 falseJSON = "{\"isValid\":false}"
 
@@ -47,8 +34,20 @@ instance FromJSON ToValidate where
         <*> v .: "data"
     parseJSON invalid    = typeMismatch "ToValidate" invalid
 
--- typecheck, run/validate
+-- TODO: make a curl request to test this
+validateByteString :: BS.ByteString -- ^ Validator
+                   -> BS.ByteString -- ^ Redeemer
+                   -> BS.ByteString -- ^ Data
+                   -> Bool
+validateByteString _ _ _ = True
 
+validateResponse :: ToValidate -> BSL.ByteString
+validateResponse (ToValidate v r d) =
+    if validateByteString (getByteString64 v) (getByteString64 r) (getByteString64 d)
+        then trueJSON
+        else falseJSON
+
+-- typecheck, run/validate
 app :: Application
 app req respond = do
     bsReq <- lazyRequestBody req
