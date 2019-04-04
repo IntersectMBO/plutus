@@ -37,12 +37,15 @@ module Language.PlutusTx.Builtins (
                                 ) where
 
 import           Codec.Serialise
-import qualified Data.ByteString.Lazy    as BSL
-import           Data.String             (IsString)
+import qualified Crypto
+import qualified Data.ByteString.Lazy      as BSL
+import qualified Data.ByteString.Lazy.Hash as Hash
+import           Data.Maybe                (fromMaybe)
+import           Data.String               (IsString)
 import           GHC.TypeLits
-import           Prelude                 hiding (String, error)
+import           Prelude                   hiding (String, error)
 
-import           Language.PlutusTx.Utils (mustBeReplaced)
+import           Language.PlutusTx.Utils   (mustBeReplaced)
 
 -- TODO: resizing primitives? better handling of sizes?
 
@@ -66,13 +69,14 @@ dropByteString :: Int -> SizedByteString s -> SizedByteString s
 dropByteString i (SizedByteString bs) = SizedByteString (BSL.drop (fromIntegral i) bs)
 
 sha2_256 :: SizedByteString s -> SizedByteString 32
-sha2_256 = mustBeReplaced
+sha2_256 (SizedByteString bs) = SizedByteString (Hash.sha2 bs)
 
 sha3_256 :: SizedByteString s -> SizedByteString 32
-sha3_256 = mustBeReplaced
+sha3_256 (SizedByteString bs) = SizedByteString (Hash.sha3 bs)
 
 verifySignature :: SizedByteString 32 -> SizedByteString 32 -> SizedByteString 64 -> Bool
-verifySignature = mustBeReplaced
+verifySignature (SizedByteString pubKey) (SizedByteString message) (SizedByteString signature) =
+  fromMaybe False (Crypto.verifySignature pubKey message signature)
 
 equalsByteString :: SizedByteString s -> SizedByteString s -> Bool
 equalsByteString = (==)
