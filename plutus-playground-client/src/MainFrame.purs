@@ -274,10 +274,10 @@ eval (LoadScript key next) = do
     Just contents -> do
       editorSetContents contents (Just 1)
       saveBuffer contents
+      assign _currentView Editor
+      assign _compilationResult NotAsked
       assign _evaluationResult NotAsked
       assign _simulations Cursor.empty
-      assign _compilationResult NotAsked
-      assign _currentView Editor
       pure next
 
 eval (CompileProgram next) = do
