@@ -11,18 +11,20 @@ import Control.Monad.Aff.Class (class MonadAff)
 import Data.Array as Array
 import Data.Generic (gShow)
 import Data.Int as Int
-import Data.Lens (_1, _2, filtered, to, toListOf, traversed, view)
+import Data.Lens (_1, to, toListOf, traversed, view)
 import Data.List (List)
 import Data.List as List
-import Data.Maybe (Maybe(Nothing))
+import Data.Maybe (Maybe(..), maybe)
 import Data.Newtype (unwrap)
 import Data.Traversable (traverse_)
-import Data.Tuple (fst)
+import Data.Tuple (fst, snd)
 import Data.Tuple.Nested ((/\))
 import ECharts.Commands (addItem, addLink, axisLine, axisType, backgroundColor, bar, bottom, buildItems, buildLinks, color, colorSource, colors, formatterString, items, label, left, lineStyle, name, nameGap, nameLocationMiddle, nameRotate, normal, right, sankey, series, sourceName, splitLine, targetName, textStyle, tooltip, top, trigger, value, xAxis, yAxis) as E
 import ECharts.Extras (focusNodeAdjacencyAllEdges, orientVertical, positionBottom)
+import ECharts.Internal (undefinedValue)
 import ECharts.Monad (CommandsT, DSL) as E
 import ECharts.Types (AxisType(Value, Category), PixelOrPercent(Pixel), TooltipTrigger(ItemTrigger), numItem, strItem) as E
+import ECharts.Types (Item(..))
 import ECharts.Types.Phantom (I)
 import Halogen (HTML)
 import Halogen.Component (ParentHTML)
@@ -227,7 +229,9 @@ currencySeries wallets target =
                   <<< _simulatorWalletBalance
                   <<< _value
                   <<< _LedgerMap
-                  <<< traversed
-                  <<< filtered ((==) target <<< fst)
-                  <<< _2
-                  <<< to (E.numItem <<< Int.toNumber)) wallets
+                  <<< to (Array.find ((==) target <<< fst))
+                  <<< to (maybe nullItem (E.numItem <<< Int.toNumber <<< snd)))
+        wallets
+
+nullItem :: Item
+nullItem = Item undefinedValue
