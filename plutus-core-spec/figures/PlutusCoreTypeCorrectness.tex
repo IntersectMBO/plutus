@@ -12,9 +12,27 @@
                      &         &     & \Gamma, \termJ{x}{A}        & \textrm{term variable} \\
     \end{array}\]
 
+    \judgmentdef{\(\validJ{\Gamma}\)}{Context $\Gamma$ is valid}
 
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\validJ{\epsilon}\)}
+    \end{prooftree}
 
-    \judgmentdef{\(\ctxni{\Gamma}{J}\)}{Context $\Gamma$ contains judgment $J$}
+    \begin{prooftree}
+        \AxiomC{\(\validJ{\Gamma}\)}
+        \AxiomC{$\alpha$ is free in $\Gamma$}
+        \BinaryInfC{\(\validJ{\Gamma, \typeJ{\alpha}{K}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\validJ{\Gamma}\)}
+        \AxiomC{$x$ is free in $\Gamma$}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
+        \TrinaryInfC{\(\validJ{\Gamma, \termJ{x}{A}}\)}
+    \end{prooftree}
+
+    \judgmentdef{\(\ctxni{\Gamma}{J}\)}{In valid context $\Gamma$ we can make judgements about variables where $J$ is either a typing or a kinding judgement.}
 
     \begin{prooftree}
         \AxiomC{}
@@ -44,31 +62,10 @@
 
      \begin{prooftree}
         \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{A}}\)}
-        \AxiomC{\(x \not= y\)}
+        \AxiomC{\(x \not= y\)}        
         \BinaryInfC{\(\ctxni{\Gamma, \termJ{y}{B}}{\termJ{x}{A}}\)}
     \end{prooftree}
 
-
-
-    \judgmentdef{\(\validJ{\Gamma}\)}{Context $\Gamma$ is valid}
-
-    \begin{prooftree}
-        \AxiomC{}
-        \UnaryInfC{\(\validJ{\epsilon}\)}
-    \end{prooftree}
-
-    \begin{prooftree}
-        \AxiomC{\(\validJ{\Gamma}\)}
-        \AxiomC{$\alpha$ is free in $\Gamma$}
-        \BinaryInfC{\(\Gamma, \typeJ{\alpha}{K}\)}
-    \end{prooftree}
-
-    \begin{prooftree}
-        \AxiomC{\(\validJ{\Gamma}\)}
-        \AxiomC{$x$ is free in $\Gamma$}
-        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
-        \TrinaryInfC{\(\Gamma, \termJ{x}{A}\)}
-    \end{prooftree}
 
 }
     \captionof{figure}{Contexts}
@@ -79,7 +76,7 @@
 
 \begin{minipage}{\linewidth}
 {
-    \judgmentdef{\(\hypJ{\Gamma}{\istypeJ{A}{K}}\)}{In context $\Gamma$, type $A$ has kind $K$}
+    \judgmentdef{\(\hypJ{\Gamma}{\istypeJ{A}{K}}\)}{In valid context $\Gamma$, type $A$ has kind $K$}
 
     \begin{prooftree}
         \AxiomC{\(\ctxni{\Gamma}{\typeJ{\alpha}{K}}\)}
@@ -137,7 +134,7 @@
 
 \begin{minipage}{\linewidth}
 {
-    \judgmentdef{\(\hypJ{\Gamma}{\istermJ{M}{A}}\)}{In context $\Gamma$, term $M$ has type $A$}
+    \judgmentdef{\(\hypJ{\Gamma}{\istermJ{M}{A}}\)}{In valid context $\Gamma$, term $M$ has type $A$}
 
     \begin{prooftree}
         \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{A}}\)}

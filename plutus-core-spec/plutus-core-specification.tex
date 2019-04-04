@@ -469,10 +469,33 @@ these problems and is not very onerous in practice.
 
 We define for Plutus Core a number of typing judgments which explain
 ways that a program can be well-formed. First, in Figure
-\ref{fig:Plutus_core_contexts}, we define the grammar of variable
-contexts that these judgments hold under. Variable contexts contain
-information about the nature of variables --- type variables with
-their kind, and term variables with their type.
+\ref{fig:Plutus_core_contexts}, we define the grammar of contexts as
+contexts appear here for the first time. Contexts are sequences of
+variables. In System F there are two different sorts of variables:
+term variables and type variables. For succintness of presentation we
+keep information about both sorts of variables in the same
+context. Type variables carry their name and a kind and term variables
+carry their name and a type. The rules for context validity explain
+how valid contexts can be constructed, the empty context is valid,
+given valid context $\Gamma$, it can be extended with a fresh variable
+and kind or a fresh variable and a valid type in $\Gamma$. Note we do
+not need a separate judgement for valid kinds. They are so simple that
+any kind that can be constructed according to the grammar is a valid
+kind.
+
+We also consider validity of variable judgements in Figure
+\ref{fig:Plutus_core_contexts}. Technically this judgement is defined
+mutually with the typing and kinding judgement defined in Figures
+\ref{fig:Plutus_core_type_synthesis} and
+\ref{fig:Plutus_core_kind_synthesis}. We give axiomatic rules for term
+and type variables at the right-hand end of the context. For term and
+type variables defined further to the left in the context we explain
+how to build up the judgement by weakening an existing one by
+additional term and type variables on the right. These two styles of
+rules for all combinations of term and type variables allow us to
+variables in all positions in the context. This style of presentation
+is analogous to how one might define instrinsically typed/kinded de
+Bruijn indices.
 
 Then, in Figure \ref{fig:Plutus_core_kind_synthesis}, we define what
 it means for a type to synthesize a kind. Plutus Core is a
