@@ -9,8 +9,8 @@ import Cursor as Cursor
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Int as Int
-import Data.Lens (view)
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Lens (preview, view)
+import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Halogen (HTML)
@@ -26,10 +26,11 @@ import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
 import Playground.API (EvaluationResult, _Fn, _FunctionSchema)
 import Prelude (map, pure, show, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==))
-import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, FormEvent(..), Query(..), SimpleArgument(..), Simulation(Simulation), WebData, _argumentSchema, _functionName, _resultBlockchain, _simulatorWalletWallet)
+import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, FormEvent(..), Query(..), SimpleArgument(..), Simulation(Simulation), WebData, _Action, _argumentSchema, _functionName, _resultBlockchain, _simulatorWallet, _simulatorWalletWallet, _walletId)
 import Validation (ValidationError, WithPath, joinPath, showPathValue, validate)
 import ValueEditor (valueForm)
 import Wallet (walletIdPane, walletsPane)
+import Wallet.Emulator.Types (Wallet)
 
 simulationPane ::
   forall m aff.
@@ -40,12 +41,20 @@ simulationPane ::
 simulationPane simulations evaluationResult =
   case current simulations of
     Just (Simulation simulation) ->
-      div_
-        [ simulationsNav simulations
-        , walletsPane simulation.signatures simulation.wallets
-        , br_
-        , actionsPane simulation.actions (view _resultBlockchain <$> evaluationResult)
-        ]
+      let
+        isValidWallet :: Wallet -> Boolean
+        isValidWallet target =
+          isJust $ Array.find (\wallet -> view _walletId target
+                                          ==
+                                          view (_simulatorWalletWallet <<< _walletId) wallet)
+                     simulation.wallets
+      in
+        div_
+          [ simulationsNav simulations
+          , walletsPane simulation.signatures simulation.wallets
+          , br_
+          , actionsPane isValidWallet simulation.actions (view _resultBlockchain <$> evaluationResult)
+          ]
     Nothing ->
       div_
         [ text "Click the "
@@ -107,25 +116,31 @@ addSimulationControl =
     ]
     [ icon Plus ]
 
-actionsPane :: forall p. Array Action -> WebData Blockchain -> HTML p Query
-actionsPane actions evaluationResult =
+actionsPane :: forall p. (Wallet -> Boolean) -> Array Action -> WebData Blockchain -> HTML p Query
+actionsPane isValidWallet actions evaluationResult =
   div_
     [ h2_ [ text "Actions" ]
     , p_ [ text "This is your action sequence. Click 'Evaluate' to run these actions against a simulated blockchain." ]
     , Keyed.div
         [ classes [ ClassName "actions", row ] ]
-        (Array.snoc (mapWithIndex actionPane actions) addWaitActionPane)
+        (Array.snoc (mapWithIndex (actionPane isValidWallet) actions) addWaitActionPane)
     , br_
     , row_ [ evaluateActionsPane evaluationResult actions ]
     , br_
     , div_ [ small_ [ text "Run this set of actions against a simulated blockchain." ] ]
     ]
 
-actionPane :: forall p. Int -> Action -> Tuple String (HTML p Query)
-actionPane index action =
+actionPane :: forall p. (Wallet -> Boolean) -> Int -> Action -> Tuple String (HTML p Query)
+actionPane isValidWallet index action =
   Tuple (show index) $
     col4_
-      [ div [ classes [ ClassName "action", ClassName ("action-" <> show index) ] ]
+      [ div [ classes [ ClassName "action"
+                      , ClassName ("action-" <> show index)
+                      , ClassName ("action-" <> (case isValidWallet <$> (preview (_Action <<< _simulatorWallet <<< _simulatorWalletWallet) action) of
+                                                   Just true ->  "valid-wallet"
+                                                   _ -> "invalid-wallet"))
+                      ]
+            ]
         [ div [ class_ card ]
           [ cardBody_
             [ div
