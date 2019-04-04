@@ -40904,7 +40904,6 @@ license = stdenv.lib.licenses.bsd3;
 , filepath
 , hashable
 , http-types
-, marlowe
 , monad-logger
 , mtl
 , newtype-generics
@@ -40938,7 +40937,6 @@ file-embed
 filepath
 hashable
 http-types
-marlowe
 monad-logger
 mtl
 newtype-generics
@@ -40956,7 +40954,7 @@ wai
 warp
 ];
 doHaddock = false;
-license = stdenv.lib.licenses.bsd3;
+license = stdenv.lib.licenses.asl20;
 
 }) {};
 "intervals" = callPackage
@@ -56606,7 +56604,9 @@ license = stdenv.lib.licenses.mit;
 ({
   mkDerivation
 , base
+, bytestring
 , containers
+, criterion
 , hedgehog
 , language-plutus-core
 , lens
@@ -56615,6 +56615,7 @@ license = stdenv.lib.licenses.mit;
 , tasty
 , tasty-hedgehog
 , tasty-hunit
+, weigh
 }:
 mkDerivation {
 
@@ -56636,6 +56637,13 @@ mtl
 tasty
 tasty-hedgehog
 tasty-hunit
+];
+benchmarkHaskellDepends = [
+base
+bytestring
+criterion
+language-plutus-core
+weigh
 ];
 doHaddock = false;
 description = "Virtual machine for Plutus Core";
@@ -56808,6 +56816,7 @@ license = stdenv.lib.licenses.asl20;
 "plutus-playground-server" = callPackage
 ({
   mkDerivation
+, adjunctions
 , aeson
 , aeson-casing
 , base
@@ -56902,6 +56911,7 @@ transformers
 wallet-api
 ];
 executableHaskellDepends = [
+adjunctions
 aeson
 base
 bytestring
@@ -79398,7 +79408,9 @@ base
 warp
 ];
 testHaskellDepends = [
+aeson
 base
+bytestring
 containers
 hedgehog
 lens
