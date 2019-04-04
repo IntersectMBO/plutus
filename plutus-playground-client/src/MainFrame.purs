@@ -245,10 +245,11 @@ eval (LoadGist next) = do
           -- Load the source, if available.
           case preview (_Just <<< gistFileContent <<< _Just) (playgroundGistFile gist) of
             Nothing -> pure unit
-            Just content -> do editorSetContents content (Just 1)
-                               saveBuffer content
-                               assign _simulations Cursor.empty
-                               assign _evaluationResult NotAsked
+            Just content -> do
+              editorSetContents content (Just 1)
+              saveBuffer content
+              assign _simulations Cursor.empty
+              assign _evaluationResult NotAsked
 
           -- Load the simulation, if available.
           case preview (_Just <<< gistFileContent <<< _Just) (simulationGistFile gist) of
