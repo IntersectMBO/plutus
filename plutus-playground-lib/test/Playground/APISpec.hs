@@ -70,7 +70,7 @@ toSimpleArgumentSchemaSpec =
             SimpleStringSchema
         it "SimpleArraySchema" $
             toSimpleArgumentSchema (toInlinedSchema (Proxy :: Proxy [Int])) `shouldBe`
-            (SimpleArraySchema SimpleIntSchema)
+            SimpleArraySchema SimpleIntSchema
         it "SimpleTupleSchema" $
             toSimpleArgumentSchema
                 (toInlinedSchema (Proxy :: Proxy (Int, String))) `shouldBe`
@@ -80,20 +80,18 @@ toSimpleArgumentSchemaSpec =
                 (toInlinedSchema (Proxy :: Proxy (Interval Int))) `shouldBe`
             SimpleObjectSchema
                 [("ivFrom", SimpleIntSchema), ("ivTo", SimpleIntSchema)]
-        it "ValueSchema" $ do
+        it "ValueSchema" $
             toSimpleArgumentSchema (toInlinedSchema (Proxy :: Proxy Value)) `shouldBe`
-                ValueSchema
-                    [ ( "getValue"
-                      , SimpleArraySchema
-                            (SimpleTupleSchema
-                                 (SimpleIntSchema, SimpleIntSchema)))
-                    ]
+            ValueSchema
+                [ ( "getValue"
+                  , SimpleArraySchema
+                        (SimpleTupleSchema (SimpleIntSchema, SimpleIntSchema)))
+                ]
 
 isSupportedByFrontendSpec :: Spec
 isSupportedByFrontendSpec =
-    describe "isSupportedByFrontend" $ do
-        it "Should handle Value types." $ do
-            (isSupportedByFrontend
-                 (toSimpleArgumentSchema
-                      (toInlinedSchema (Proxy :: Proxy Value)))) `shouldBe`
-                True
+    describe "isSupportedByFrontend" $
+    it "Should handle Value types." $
+    isSupportedByFrontend
+        (toSimpleArgumentSchema (toInlinedSchema (Proxy :: Proxy Value))) `shouldBe`
+    True
