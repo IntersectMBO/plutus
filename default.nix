@@ -111,6 +111,10 @@ let
         haddock = localButNot [
             # Haddock is broken for things with internal libraries
             "plutus-tx"
+
+            # Also broken for the sample contracts that are put in a docker
+            # image (cf. plutus-contract-exe.docker below)
+            "plutus-contract-exe"
         ];
       };
       requiredOverlay = ./nix/overlays/required.nix;
@@ -217,6 +221,28 @@ let
         contents = [ client server-invoker ];
         config = {
           Cmd = ["${server-invoker}/bin/meadow" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
+        };
+      };
+    };
+
+    plutus-contract-exe = rec {
+
+      # justStaticExecutables results in a much smaller docker image
+      # (16MB vs 588MB)
+      static = pkgs.haskell.lib.justStaticExecutables;
+
+      pid1 =  static haskellPackages.pid1;
+      contract = static haskellPackages.plutus-contract-exe;
+
+      docker = pkgs.dockerTools.buildImage {
+          name = "plutus-contract-exe";
+          contents = [pid1 contract];
+          config = {
+            Entrypoint = ["/bin/pid1"];
+            Cmd = ["/bin/contract-exe-guessing-game"];
+            ExposedPorts = {
+              "8080/tcp" = {};
+          };
         };
       };
     };
