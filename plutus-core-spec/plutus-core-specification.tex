@@ -483,18 +483,18 @@ not need a separate judgement for valid kinds. They are so simple that
 any kind that can be constructed according to the grammar is a valid
 kind.
 
-We also consider variable judgements in Figure
-\ref{fig:Plutus_core_contexts}. Technically this judgement is defined
-mutually with the typing and kinding judgement defined in Figures
-\ref{fig:Plutus_core_type_synthesis} and
-\ref{fig:Plutus_core_kind_synthesis}. We give axiomatic rules for term
-and type variables at the right-hand end of the context. For term and
-type variables defined further to the left in the context the
-judgement is dependent on a judgement about a shorter context. These
-two styles of rules for all combinations of term and type variables
-allow us to give judgements for variables in all positions in the
-context. This style of presentation is analogous to how one might
-define instrinsically typed/kinded de Bruijn indices.
+%We also consider variable judgements in Figure
+%\ref{fig:Plutus_core_contexts}. Technically this judgement is defined
+%mutually with the typing and kinding judgement defined in Figures
+%\ref{fig:Plutus_core_type_synthesis} and
+%\ref{fig:Plutus_core_kind_synthesis}. We give axiomatic rules for term
+%and type variables at the right-hand end of the context. For term and
+%type variables defined further to the left in the context the
+%judgement is dependent on a judgement about a shorter context. These
+%two styles of rules for all combinations of term and type variables
+%allow us to give judgements for variables in all positions in the
+%context. This style of presentation is analogous to how one might
+%define instrinsically typed/kinded de Bruijn indices.
 
 Then, in Figure \ref{fig:Plutus_core_kind_synthesis}, we define what
 it means for a type to synthesize a kind. Plutus Core is a

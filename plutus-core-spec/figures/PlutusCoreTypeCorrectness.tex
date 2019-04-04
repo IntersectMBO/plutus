@@ -32,39 +32,39 @@
         \TrinaryInfC{\(\validJ{\Gamma, \termJ{x}{A}}\)}
     \end{prooftree}
 
-    \judgmentdef{\(\ctxni{\Gamma}{J}\)}{In valid context $\Gamma$ we can make judgements about variables where $J$ is either a typing or a kinding judgement.}
-
-    \begin{prooftree}
-        \AxiomC{}
-        \UnaryInfC{\(\ctxni{\Gamma, \typeJ{\alpha}{K}}{\typeJ{\alpha}{K}}\)}
-    \end{prooftree}
-
-    \begin{prooftree}
-        \AxiomC{}
-        \UnaryInfC{\(\ctxni{\Gamma, \termJ{x}{A}}{\termJ{x}{A}}\)}
-    \end{prooftree}
-
-    \begin{prooftree}
-        \AxiomC{\(\ctxni{\Gamma}{\typeJ{\alpha}{K}}\)}
-        \AxiomC{\(\alpha \not= \beta\)}
-        \BinaryInfC{\(\ctxni{\Gamma, \typeJ{\beta}{J}}{\typeJ{\alpha}{K}}\)}
-    \end{prooftree}
-
-     \begin{prooftree}
-        \AxiomC{\(\ctxni{\Gamma}{\typeJ{\alpha}{K}}\)}
-        \UnaryInfC{\(\ctxni{\Gamma, \termJ{y}{T}}{\typeJ{\alpha}{K}}\)}
-    \end{prooftree}
-
-    \begin{prooftree}
-        \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{A}}\)}
-        \UnaryInfC{\(\ctxni{\Gamma, \typeJ{\beta}{J}}{\termJ{x}{A}}\)}
-    \end{prooftree}
-
-     \begin{prooftree}
-        \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{A}}\)}
-        \AxiomC{\(x \not= y\)}        
-        \BinaryInfC{\(\ctxni{\Gamma, \termJ{y}{B}}{\termJ{x}{A}}\)}
-    \end{prooftree}
+%    \judgmentdef{\(\ctxni{\Gamma}{J}\)}{In valid context $\Gamma$ we can make judgements about variables where $J$ is either a typing or a kinding judgement.}
+%
+%    \begin{prooftree}
+%        \AxiomC{}
+%        \UnaryInfC{\(\ctxni{\Gamma, \typeJ{\alpha}{K}}{\typeJ{\alpha}{K}}\)}
+%    \end{prooftree}
+%
+%    \begin{prooftree}
+%        \AxiomC{}
+%        \UnaryInfC{\(\ctxni{\Gamma, \termJ{x}{A}}{\termJ{x}{A}}\)}
+%    \end{prooftree}
+%
+%    \begin{prooftree}
+%        \AxiomC{\(\ctxni{\Gamma}{\typeJ{\alpha}{K}}\)}
+%        \AxiomC{\(\alpha \not= \beta\)}
+%        \BinaryInfC{\(\ctxni{\Gamma, \typeJ{\beta}{J}}{\typeJ{\alpha}{K}}\)}
+%    \end{prooftree}
+%
+%     \begin{prooftree}
+%        \AxiomC{\(\ctxni{\Gamma}{\typeJ{\alpha}{K}}\)}
+%        \UnaryInfC{\(\ctxni{\Gamma, \termJ{y}{T}}{\typeJ{\alpha}{K}}\)}
+%    \end{prooftree}
+%
+%    \begin{prooftree}
+%        \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{A}}\)}
+%        \UnaryInfC{\(\ctxni{\Gamma, \typeJ{\beta}{J}}{\termJ{x}{A}}\)}
+%    \end{prooftree}
+%
+%     \begin{prooftree}
+%        \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{A}}\)}
+%        \AxiomC{\(x \not= y\)}        
+%        \BinaryInfC{\(\ctxni{\Gamma, \termJ{y}{B}}{\termJ{x}{A}}\)}
+%    \end{prooftree}
 
 
 }
@@ -79,7 +79,7 @@
     \judgmentdef{\(\hypJ{\Gamma}{\istypeJ{A}{K}}\)}{In valid context $\Gamma$, type $A$ has kind $K$}
 
     \begin{prooftree}
-        \AxiomC{\(\ctxni{\Gamma}{\typeJ{\alpha}{K}}\)}
+        \AxiomC{\(({\typeJ{\alpha}{K}}) \in \Gamma\)}
         \RightLabel{tyvar}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\alpha}{K}}\)}
     \end{prooftree}
@@ -137,7 +137,7 @@
     \judgmentdef{\(\hypJ{\Gamma}{\istermJ{M}{A}}\)}{In valid context $\Gamma$, term $M$ has type $A$}
 
     \begin{prooftree}
-        \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{A}}\)}
+        \AxiomC{\(({\termJ{x}{A}}) \in \Gamma\)}
         \RightLabel{var}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{x}{A}}\)}
     \end{prooftree}
