@@ -41,12 +41,11 @@ validateByteString :: BS.ByteString -- ^ Validator
                    -> Bool
 validateByteString _ _ _ = True
 
--- validateResponse :: ToValidate -> (StatusCode, BSL.ByteString)
-validateResponse :: ToValidate -> BSL.ByteString
+validateResponse :: ToValidate -> (Status, BSL.ByteString)
 validateResponse (ToValidate v r d) =
     if validateByteString (getByteString64 v) (getByteString64 r) (getByteString64 d)
-        then trueJSON
-        else falseJSON
+        then (status200, trueJSON)
+        else (status200, falseJSON)
 
 -- typecheck, run/validate
 app :: Application
@@ -55,7 +54,7 @@ app req respond = do
     let decoded = decode bsReq
         validated = fmap validateResponse decoded
         -- TODO: handle json errors
-        resp = case validated of
+        (stat, resp) = case validated of
             Just x  -> x
-            Nothing -> falseJSON
-    respond $ responseLBS status200 [] resp
+            Nothing -> (status400, falseJSON)
+    respond $ responseLBS stat [] resp
