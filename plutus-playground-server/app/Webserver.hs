@@ -27,6 +27,7 @@ import           Control.Monad.Reader                           (ReaderT, runRea
 import           Data.Default.Class                             (def)
 import           Data.Proxy                                     (Proxy (Proxy))
 import           Data.Text                                      (Text)
+import qualified Data.Text                                      as Text
 import           Git                                            (gitHead)
 import           Network.HTTP.Types                             (Method)
 import           Network.Wai                                    (Application)

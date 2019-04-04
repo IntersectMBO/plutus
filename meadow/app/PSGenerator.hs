@@ -22,6 +22,7 @@ import qualified Auth
 import           Control.Applicative                       (empty, (<|>))
 import           Control.Lens                              (set, (&))
 import qualified Data.ByteString                           as BS
+import qualified Data.ByteString.Char8                     as CBS
 import           Data.Monoid                               ()
 import           Data.Proxy                                (Proxy (Proxy))
 import qualified Data.Set                                  as Set ()
