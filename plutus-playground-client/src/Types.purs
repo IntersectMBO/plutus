@@ -47,6 +47,9 @@ import Test.QuickCheck.Gen as Gen
 import Validation (class Validation, ValidationError(Unsupported, Required), WithPath, addPath, noPath, validate)
 import Wallet.Emulator.Types (Wallet, _Wallet)
 
+_simulatorWallet :: forall r a. Lens' { simulatorWallet :: a | r } a
+_simulatorWallet = prop (SProxy :: SProxy "simulatorWallet")
+
 _simulatorWalletWallet :: Lens' SimulatorWallet Wallet
 _simulatorWalletWallet = _SimulatorWallet <<< prop (SProxy :: SProxy "simulatorWalletWallet")
 
