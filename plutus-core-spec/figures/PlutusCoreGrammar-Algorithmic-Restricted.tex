@@ -26,13 +26,13 @@
                                   &        &     & \fixT{A}{B}                & \textrm{fixed point type}\\
                                   &        &     & \lamT{\alpha}{K}{A}        & \textrm{$\lambda$ abstraction}\\
                                   &        &     & \appT{A}{B}                & \textrm{function application}\\
-                                  &        &     & \conT{tcn}{A}          & \textrm{type constant}\\
+                                  &        &     & \conT{tcn}{A}              & \textrm{type constant}\\
         \textrm{Type Value}       & R,S,T  & ::= & s                          & \textrm{size}\\
                                   &        &     & \funT{S}{T}                & \textrm{function type}\\
                                   &        &     & \allT{\alpha}{K}{S}        & \textrm{polymorphic type}\\
-                                  &        &     & \fixT{\alpha}{S}           & \textrm{fixed point type}\\
+                                  &        &     & \fixT{S}{T}                & \textrm{fixed point type}\\
                                   &        &     & \lamT{\alpha}{K}{S}        & \textrm{$\lambda$ abstraction}\\
-                                  &        &     & \conT{tcn}{S}          & \textrm{type constant}\\
+                                  &        &     & \conT{tcn}{S}              & \textrm{type constant}\\
                                   &        &     & W                          & \textrm{neutral type}\\
         \textrm{Neutral Type}     & W      &     & \alpha                     & \textrm{type variable}\\
                                   &        &     & \appT{W}{S}                & \textrm{function application}\\
@@ -40,7 +40,7 @@
                                   &        &     & \funK{J}{K}                & \textrm{arrow kind}\\
                                   &        &     & \sizeK{}                   & \textrm{size kind}\\
         \textrm{Signature}        & G      & ::= & \sig{(\alpha :: K)^*}{B^*}{C}     & \textrm{signature}\\
-        \textrm{Constant Signature}   & Q      & ::= & tcn                        & \textrm{constant signature}\\
+        \textrm{Constant Signature}   & Q      & ::= & tcn                    & \textrm{constant signature}\\
         \textrm{Program}          & P      & ::= & \version{v}{M}             & \textrm{versioned program}\\
 
     \end{array}\]
