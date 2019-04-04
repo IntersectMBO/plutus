@@ -16,7 +16,6 @@ module Playground.API where
 import           Control.Lens                 (view)
 import           Control.Monad.Trans.Class    (lift)
 import           Control.Monad.Trans.State    (StateT, evalStateT, get, put)
-import           Control.Newtype.Generics     (pack, unpack)
 import           Data.Aeson                   (FromJSON, ToJSON, Value)
 import           Data.Bifunctor               (second)
 import qualified Data.HashMap.Strict.InsOrd   as HM
@@ -39,7 +38,7 @@ import           Ledger.Validation            (ValidatorHash)
 import qualified Ledger.Value                 as V
 import           Servant.API                  ((:<|>), (:>), Get, JSON, Post, ReqBody)
 import           Text.Read                    (readMaybe)
-import           Wallet.Emulator.Types        (EmulatorEvent, Wallet)
+import           Wallet.Emulator.Types        (EmulatorEvent, Wallet, walletPubKey)
 import           Wallet.Graph                 (FlowGraph)
 
 type API
@@ -90,7 +89,7 @@ data Evaluation = Evaluation
   deriving (Generic, ToJSON, FromJSON)
 
 pubKeys :: Evaluation -> [PubKey]
-pubKeys Evaluation{..} = pack . unpack . simulatorWalletWallet <$> wallets
+pubKeys Evaluation{..} = walletPubKey . simulatorWalletWallet <$> wallets
 
 data EvaluationResult = EvaluationResult
   { resultBlockchain  :: [[(TxId, Tx)]] -- Blockchain annotated with hashes.

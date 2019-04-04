@@ -1,6 +1,7 @@
 {-# LANGUAGE RecordWildCards  #-}
 {-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE OverloadedStrings #-}
 -- | Generators for constructing blockchains and transactions for use in property-based testing.
 module Wallet.Generators(
     -- * Mockchain
@@ -27,7 +28,8 @@ module Wallet.Generators(
     Wallet.Generators.runTrace,
     runTraceOn,
     splitVal,
-    validateMockchain
+    validateMockchain,
+    signAll
     ) where
 
 import           Data.Bifunctor  (Bifunctor (..))
@@ -50,6 +52,10 @@ import           Ledger
 import qualified Wallet.API      as W
 import           Wallet.Emulator as Emulator
 
+-- | Attach signatures of all known private keys to a transaction.
+signAll :: Tx -> Tx
+signAll tx = foldl (flip addSignature) tx knownPrivateKeys
+
 -- | The parameters for the generators in this module.
 data GeneratorModel = GeneratorModel {
     gmInitialBalance :: Map PubKey Value,
@@ -60,11 +66,14 @@ data GeneratorModel = GeneratorModel {
 
 -- | A generator model with some sensible defaults.
 generatorModel :: GeneratorModel
-generatorModel =
-    let vl = Ada.toValue $ Ada.fromInt 100000 in
-    GeneratorModel
-    { gmInitialBalance = Map.fromList $ first PubKey <$> zip [1..5] (repeat vl)
-    , gmPubKeys        = Set.fromList $ PubKey <$> [1..5]
+generatorModel = 
+    let vl = Ada.toValue $ Ada.fromInt 100000
+        pubKeys = toPublicKey <$> knownPrivateKeys
+
+    in
+    GeneratorModel 
+    { gmInitialBalance = Map.fromList $ zip pubKeys (repeat vl)
+    , gmPubKeys        = Set.fromList pubKeys
     }
 
 -- | A function that estimates a transaction fee based on the number of its inputs and outputs.
@@ -121,7 +130,8 @@ genInitialTransaction GeneratorModel{..} =
         txOutputs = o,
         txForge = t,
         txFee = 0,
-        txValidRange = W.intervalFrom 0
+        txValidRange = W.intervalFrom 0,
+        txSignatures = Map.empty
         }, o)
 
 -- | Generate a valid transaction, using the unspent outputs provided.
@@ -146,13 +156,12 @@ genValidTransaction' g f (Mockchain bc ops) = do
                 then Gen.discard
                 else Gen.int (Range.linear 1 (Map.size ops))
     let ins = Set.fromList
-                    $ uncurry pubKeyTxIn . second mkSig
+                    $ uncurry pubKeyTxIn
                     <$> (catMaybes
                         $ traverse (pubKeyTxo [bc]) . (di . fst) <$> inUTXO)
         inUTXO = take nUtxo $ Map.toList ops
         totalVal = foldl' (+) 0 $ (map (Ada.fromValue . txOutValue . snd) inUTXO)
         di a = (a, a)
-        mkSig (PubKey i) = Signature i
     genValidTransactionSpending' g f ins totalVal
 
 genValidTransactionSpending :: MonadGen m
@@ -174,12 +183,18 @@ genValidTransactionSpending' g f ins totalVal = do
         then do
             let sz = totalVal - fee
             outVals <- fmap (Ada.toValue) <$> splitVal numOut sz
-            pure Tx {
-                    txInputs = ins,
-                    txOutputs = uncurry pubKeyTxOut <$> zip outVals (Set.toList $ gmPubKeys g),
-                    txForge = Value.zero,
-                    txFee = fee,
-                    txValidRange = $$(Interval.always) }
+            let tx = Tx 
+                        { txInputs = ins
+                        , txOutputs = uncurry pubKeyTxOut <$> zip outVals (Set.toList $ gmPubKeys g)
+                        , txForge = Value.zero
+                        , txFee = fee
+                        , txValidRange = $$(Interval.always)
+                        , txSignatures = Map.empty
+                        }
+
+                -- sign the transaction with all three known wallets
+                -- this is somewhat crude (but technically valid)
+            pure (signAll tx)
         else Gen.discard
 
 genAda :: MonadGen m => m Ada

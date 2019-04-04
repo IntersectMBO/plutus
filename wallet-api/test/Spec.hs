@@ -1,6 +1,7 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE TemplateHaskell  #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 module Main(main) where
 
@@ -26,6 +27,7 @@ import qualified Language.PlutusTx.Prelude  as PlutusTx
 import           Test.Tasty
 import           Test.Tasty.Hedgehog        (testProperty)
 
+import           KeyBytes
 import           Ledger
 import qualified Ledger.Ada                 as Ada
 import qualified Ledger.Index               as Index
@@ -82,6 +84,16 @@ tests = testGroup "all tests" [
         ]
     ]
 
+wallet1, wallet2, wallet3 :: Wallet
+wallet1 = Wallet 1
+wallet2 = Wallet 2
+wallet3 = Wallet 3
+
+pubKey1, pubKey2, pubKey3 :: PubKey
+pubKey1 = walletPubKey wallet1
+pubKey2 = walletPubKey wallet2
+pubKey3 = walletPubKey wallet3
+
 initialTxnValid :: Property
 initialTxnValid = property $ do
     (i, _) <- forAll . pure $ Gen.genInitialTransaction Gen.generatorModel
@@ -106,7 +118,7 @@ txnValidFrom = property $ do
 --   slots, then verifies that the transaction has been validated.
 validFromTransaction :: Trace MockWallet ()
 validFromTransaction = do
-    let [w1, w2] = Wallet <$> [1, 2]
+    let [w1, w2] = [wallet1, wallet2]
         updateAll = processPending >>= walletsNotifyBlock [w1, w2]
         five = Ada.adaValueOf 5
     updateAll
@@ -116,7 +128,7 @@ validFromTransaction = do
     -- so that the transaction can be validated only during slot 5
     let range = W.singleton 5
 
-    walletAction w1 $ payToPublicKey_ range five (PubKey 2)
+    walletAction w1 $ payToPublicKey_ range five pubKey2
 
     -- Add some blocks so that the transaction is validated
     addBlocks 50 >>= traverse_ (walletsNotifyBlock [w1, w2])
@@ -141,7 +153,7 @@ txnIndexValid = property $ do
 --   validated
 simpleTrace :: Tx -> Trace MockWallet ()
 simpleTrace txn = do
-    [txn'] <- walletAction (Wallet 1) $ submitTxn txn
+    [txn'] <- walletAction wallet1 $ signTxAndSubmit_ txn
     block <- processPending
     assertIsValidated txn'
 
@@ -196,9 +208,15 @@ invalidScript = property $ do
 
     let (result, st) = Gen.runTrace m $ do
             processPending
-            walletAction (Wallet 1) $ submitTxn scriptTxn
+            -- we need to sign scriptTxn again because it has been modified
+            -- note that although 'scriptTxn' is submitted by wallet 1, it
+            -- may spend outputs belonging to one of the other two wallets.
+            -- So we can't use 'signTxAndSubmit_' (because it would only attach
+            -- wallet 1's signatures). Instead, we get all the wallets' 
+            -- signatures with 'signAll'.
+            walletAction wallet1 $ submitTxn (Gen.signAll scriptTxn)
             processPending
-            walletAction (Wallet 1) $ submitTxn invalidTxn
+            walletAction wallet1 $ signTxAndSubmit_ invalidTxn
             processPending
 
     Hedgehog.assert (isRight result)
@@ -272,7 +290,7 @@ txnFlowsTest = property $ do
 
 notifyWallet :: Property
 notifyWallet = property $ do
-    let w = Wallet 1
+    let w = wallet1
     (e, _) <- forAll
         $ Gen.runTraceOn Gen.generatorModel
         $ do
@@ -283,18 +301,18 @@ notifyWallet = property $ do
 
 eventTrace :: Property
 eventTrace = property $ do
-    let w = Wallet 1
+    let w = wallet1
     (e, _) <- forAll
         $ Gen.runTraceOn Gen.generatorModel
         $ do
             processPending >>= walletNotifyBlock w
             let mkPayment =
-                    EventHandler $ \_ -> payToPublicKey_ W.always (Ada.adaValueOf 100) (PubKey 2)
+                    EventHandler $ \_ -> payToPublicKey_ W.always (Ada.adaValueOf 100) pubKey2
                 trigger = slotRangeT (W.intervalFrom 3)
 
             -- schedule the `mkPayment` action to run when slot 3 is
             -- reached.
-            b1 <- walletAction (Wallet 1) $ register trigger mkPayment
+            b1 <- walletAction wallet1 $ register trigger mkPayment
             walletNotifyBlock w b1
 
             -- advance the clock to trigger `mkPayment`
@@ -306,7 +324,7 @@ eventTrace = property $ do
 
 payToPubKeyScript2 :: Property
 payToPubKeyScript2 = property $ do
-    let [w1, w2, w3] = Wallet <$> [1, 2, 3]
+    let [w1, w2, w3] = [wallet1, wallet2, wallet3]
         updateAll = processPending >>= walletsNotifyBlock [w1, w2, w3]
         payment1 = initialBalance `Value.minus` Ada.adaValueOf 1
         payment2 = initialBalance `Value.plus` Ada.adaValueOf 1
@@ -314,13 +332,13 @@ payToPubKeyScript2 = property $ do
         $ Gen.runTraceOn Gen.generatorModel
         $ do
             updateAll
-            walletAction (Wallet 1) $ payToPublicKey_ W.always payment1 (PubKey 2)
+            walletAction wallet1 $ payToPublicKey_ W.always payment1 pubKey2
             updateAll
-            walletAction (Wallet 2) $ payToPublicKey_ W.always payment2 (PubKey 3)
+            walletAction wallet2 $ payToPublicKey_ W.always payment2 pubKey3
             updateAll
-            walletAction (Wallet 3) $ payToPublicKey_ W.always payment2 (PubKey 1)
+            walletAction wallet3 $ payToPublicKey_ W.always payment2 pubKey1
             updateAll
-            walletAction (Wallet 1) $ payToPublicKey_ W.always (Ada.adaValueOf 2) (PubKey 2)
+            walletAction wallet1 $ payToPublicKey_ W.always (Ada.adaValueOf 2) pubKey2
             updateAll
             traverse_ (uncurry assertOwnFundsEq) [
                 (w1, initialBalance),
@@ -330,15 +348,15 @@ payToPubKeyScript2 = property $ do
 
 pubKeyTransactions :: Trace MockWallet ()
 pubKeyTransactions = do
-    let [w1, w2, w3] = Wallet <$> [1, 2, 3]
+    let [w1, w2, w3] = [wallet1, wallet2, wallet3]
         updateAll = processPending >>= walletsNotifyBlock [w1, w2, w3]
         five = Ada.adaValueOf 5
     updateAll
-    walletAction (Wallet 1) $ payToPublicKey_ W.always five (PubKey 2)
+    walletAction wallet1 $ payToPublicKey_ W.always five pubKey2
     updateAll
-    walletAction (Wallet 2) $ payToPublicKey_ W.always five (PubKey 3)
+    walletAction wallet2 $ payToPublicKey_ W.always five pubKey3
     updateAll
-    walletAction (Wallet 3) $ payToPublicKey_ W.always five (PubKey 1)
+    walletAction wallet3 $ payToPublicKey_ W.always five pubKey1
     updateAll
     traverse_ (uncurry assertOwnFundsEq) [
         (w1, initialBalance),
@@ -352,18 +370,18 @@ payToPubKeyScript = property $ do
 
 watchFundsAtAddress :: Property
 watchFundsAtAddress = property $ do
-    let w = Wallet 1
-        pkTarget = PubKey 2
+    let w = wallet1
+        pkTarget = pubKey2
     (e, EmulatorState{ _walletStates = st }) <- forAll
         $ Gen.runTraceOn Gen.generatorModel
         $ do
             processPending >>= walletNotifyBlock w
             let mkPayment =
-                    EventHandler $ \_ -> payToPublicKey_ W.always (Ada.adaValueOf 100) (PubKey 2)
+                    EventHandler $ \_ -> payToPublicKey_ W.always (Ada.adaValueOf 100) pubKey2
                 t1 = slotRangeT (W.interval 3 4)
                 t2 = fundsAtAddressT (pubKeyAddress pkTarget) (W.intervalFrom (Ada.adaValueOf 1))
             walletNotifyBlock w =<<
-                (walletAction (Wallet 1) $ do
+                (walletAction wallet1 $ do
                     register t1 mkPayment
                     register t2 mkPayment)
 
