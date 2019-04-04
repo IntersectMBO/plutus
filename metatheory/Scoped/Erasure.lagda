@@ -22,6 +22,7 @@ len⋆ : Ctx⋆ → ℕ
 len⋆ ∅ = zero
 len⋆ (Γ ,⋆ K) = suc (len⋆ Γ)
 
+-- scoped kind clearly shoud go...
 eraseK : Kind → ScopedKind
 eraseK * = *
 eraseK # = #
@@ -34,6 +35,9 @@ eraseVar⋆ (S α) = suc (eraseVar⋆ α)
 eraseNf⋆ : ∀{Γ K}(A : Γ ⊢Nf⋆ K) → ScopedTy (len⋆ Γ)
 eraseNe⋆ : ∀{Γ K}(A : Γ ⊢NeN⋆ K) → ScopedTy (len⋆ Γ)
 
+-- intrinsically typed terms should also carry user chosen names as
+-- instructions to the pretty printer
+
 eraseNf⋆ (Π {K = K} A) = Π "x" (eraseK K) (eraseNf⋆ A)
 eraseNf⋆ (A ⇒ B) = eraseNf⋆ A ⇒ eraseNf⋆ B
 eraseNf⋆ (ƛ {K = K} A) = ƛ "x" (eraseK K) (eraseNf⋆ A)
@@ -44,7 +48,9 @@ eraseNf⋆ (con c A) = con c
 eraseNe⋆ (` α) = ` (eraseVar⋆ α)
 eraseNe⋆ (n · n') = eraseNe⋆ n · eraseNf⋆ n'
 -- ((K ⇒ *) ⇒ K ⇒ *) ⇒ K ⇒ *
-eraseNe⋆ (μ1 {K = K}) = ƛ "x" ((eraseK K ⇒ *) ⇒ eraseK K ⇒ *) (ƛ "y" (eraseK K) (μ (` (suc zero)) (` zero)))
+eraseNe⋆ (μ1 {K = K}) = ƛ "x"
+  ((eraseK K ⇒ *) ⇒ eraseK K ⇒ *)
+  (ƛ "y" (eraseK K) (μ (` (suc zero)) (` zero)))
 
 eraseVar : ∀{Γ K}{A : A.∥ Γ ∥ ⊢Nf⋆ K} → Γ ∋ A → WeirdFin (len Γ)
 eraseVar Z = Z
@@ -66,15 +72,16 @@ eraseC (integer s i p) = integer s i p
 eraseC (bytestring s b p) = bytestring s b p
 eraseC (size s) = size s
 
-open import Data.List
+open import Data.List as L
 open import Data.Product as P
 open import Function
 
 eraseSub : ∀ {Γ Δ} → (∀ {J} → Δ ∋⋆ J → Γ ⊢Nf⋆ J) → List (ScopedTy (len⋆ Γ))
 eraseSub {Δ = ∅} σ = []
-eraseSub {Δ = Δ ,⋆ K} σ = eraseSub {Δ = Δ} (σ ∘ S) ++ Data.List.[ eraseNf⋆ (σ Z) ]
+eraseSub {Δ = Δ ,⋆ K} σ = eraseSub {Δ = Δ} (σ ∘ S) ++ L.[ eraseNf⋆ (σ Z) ]
 
-eraseSub' : ∀ Γ {Δ} → (∀ {J} → Δ ∋⋆ J → A.∥ Γ ∥ ⊢Nf⋆ J) → List (ScopedTy (Scoped.∥ len Γ ∥))
+eraseSub' : ∀ Γ {Δ} → (∀ {J} → Δ ∋⋆ J → A.∥ Γ ∥ ⊢Nf⋆ J)
+  → List (ScopedTy (Scoped.∥ len Γ ∥))
 eraseSub' Γ rewrite lem Γ = eraseSub
 
 eraseTel : ∀ {Γ Δ}(σ : ∀ {J} → Δ ∋⋆ J → A.∥ Γ ∥ ⊢Nf⋆ J)(as : List (Δ ⊢Nf⋆ *)) → Tel Γ Δ σ as
@@ -82,7 +89,7 @@ eraseTel : ∀ {Γ Δ}(σ : ∀ {J} → Δ ∋⋆ J → A.∥ Γ ∥ ⊢Nf⋆ J)
 erase : ∀{Γ K}{A : A.∥ Γ ∥ ⊢Nf⋆ K} → Γ ⊢ A → ScopedTm (len Γ)
 
 eraseTel σ [] x = []
-eraseTel σ (A ∷ As) (t P., ts) = eraseTel σ As ts ++ Data.List.[ erase t ]
+eraseTel σ (A ∷ As) (t P., ts) = eraseTel σ As ts ++ L.[ erase t ]
 
 erase (` x) = ` (eraseVar x)
 erase {Γ} (ƛ {A = A} t) = ƛ "x" (eraseNf⋆' Γ A) (erase t)
@@ -94,4 +101,23 @@ erase (unwrap1 t) = unwrap (erase t)
 erase (con c) = con (eraseC c)
 erase {Γ} (builtin b σ ts) = builtin b (eraseSub' Γ σ) (eraseTel σ _ ts)
 erase {Γ} (error A) = error (eraseNf⋆' Γ A)
+\end{code}
+
+\begin{code}
+-- a naturality/simulation proof about intrinscially vs extrinsically typed evaluation connected by erasure
+
+open import Data.Sum
+open import Algorithmic.Reduction as AR
+open import Algorithmic.Evaluation as AE
+open import Scoped.Reduction as SR
+open import Utils
+
+{-
+theorem : {A : ∅ ⊢Nf⋆ *}(t : ∅ ⊢ A) → 
+  -- for any n such that eval terminates with a value, then run also terminates with the erasure of the same value
+  ∀ n → (p : Σ (∅ ⊢ A) λ t' → Σ (t AR.—↠ t') λ p → Σ (AR.Value t') λ v → eval (gas n) t ≡ steps p (done t' v))
+  → proj₁ (run (erase t) n) ≡ erase (proj₁ p) × Σ (SR.Value (proj₁ (run (erase t) n))) λ v → proj₂ (proj₂ (run (erase t) n)) ≡ inj₁ (just v)
+  -- question: is the last clause needed?
+theorem = {!!}
+-}
 \end{code}
