@@ -483,30 +483,37 @@ not need a separate judgement for valid kinds. They are so simple that
 any kind that can be constructed according to the grammar is a valid
 kind.
 
-We also consider validity of variable judgements in Figure
+We also consider variable judgements in Figure
 \ref{fig:Plutus_core_contexts}. Technically this judgement is defined
 mutually with the typing and kinding judgement defined in Figures
 \ref{fig:Plutus_core_type_synthesis} and
 \ref{fig:Plutus_core_kind_synthesis}. We give axiomatic rules for term
 and type variables at the right-hand end of the context. For term and
-type variables defined further to the left in the context we explain
-how to build up the judgement by weakening an existing one by
-additional term and type variables on the right. These two styles of
-rules for all combinations of term and type variables allow us to
-variables in all positions in the context. This style of presentation
-is analogous to how one might define instrinsically typed/kinded de
-Bruijn indices.
+type variables defined further to the left in the context the
+judgement is dependent on a judgement about a shorter context. These
+two styles of rules for all combinations of term and type variables
+allow us to give judgements for variables in all positions in the
+context. This style of presentation is analogous to how one might
+define instrinsically typed/kinded de Bruijn indices.
 
 Then, in Figure \ref{fig:Plutus_core_kind_synthesis}, we define what
 it means for a type to synthesize a kind. Plutus Core is a
 higher-kinded version of System F, so we have a number of standard
-System F rules together with some obvious extensions. In Figure
-\ref{fig:Plutus_core_type_synthesis}, we define the type synthesis
-judgment, which explains how a term synthesizes a type.
+System F rules (tyvar,tyall,tyfun) together with some extensions with
+extensions to higher kinds (tylam,tyapp) and to indexed
+recursive types (tyfix). We also introduce builtin types (tycon) to
+support integers and bytestrings.
 
-Finally, type synthesis for constants ($\con{bn}$ and $\conT{bt}\!\!$)
-% \!: negative spaces to get rid of superfluous space
-is given in tabular form rather than in inference rule form, in Figure
+In Figure \ref{fig:Plutus_core_type_synthesis}, we define the type
+synthesis judgment, which explains how a term synthesizes a type. We
+have rules analogous to STLC (var,lam,app), extensions to System F
+(abs,inst). Higher-kinding introduces computation in types so we need
+the rule conv. Iso-recursive types introduce terms for wrapping and
+unwrapping recursive values (wrap,unwrap), and to support constants
+and builtins we have con, builtin and error.
+
+Finally, type synthesis for builtins are ellaborated in tabular form
+rather than in inference rule form, in Figure
 \ref{fig:Plutus_core_builtins}, which also gives the reduction
 semantics. This table also specifies what conditions trigger an error.
 
