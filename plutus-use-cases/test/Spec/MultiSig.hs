@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 module Spec.MultiSig(tests) where
 
 import           Control.Lens
@@ -11,9 +12,10 @@ import           Test.Tasty
 import qualified Test.Tasty.HUnit                                  as HUnit
 
 import           Language.PlutusTx.Coordination.Contracts.MultiSig as MS
-import           Ledger                                            (PrivateKey, PubKey, Tx)
+import           Ledger                                            (PrivateKey, Tx, hashTx, signatures, toPublicKey)
 import qualified Ledger.Ada                                        as Ada
 import qualified Ledger.Crypto                                     as Crypto
+import qualified Wallet.API                                        as WAPI
 import qualified Wallet.Emulator                                   as EM
 
 tests :: TestTree
@@ -35,7 +37,7 @@ nOutOfFiveTest i = do
 --   'EM.AssertionError'.
 threeOutOfFive :: (EM.MonadEmulator m) => Int -> m ()
 threeOutOfFive n = do
-    
+
     let
         w1 = EM.Wallet 1
         w2 = EM.Wallet 2
@@ -45,29 +47,30 @@ threeOutOfFive n = do
                 { signatories = EM.walletPubKey . EM.Wallet <$> [1..5]
                 , requiredSignatures = 3
                 }
-        addr = msAddress ms
+
         processAndNotify = void (EM.addBlocksAndNotify [w1, w2] 1)
 
     -- the first trace produces the transaction that needs to be signed
-    tx <- EM.processEmulated $ do
+    (r, _) <- EM.processEmulated $ do
             processAndNotify
             void $ EM.walletAction w2 (initialise ms)
             processAndNotify
             void $ EM.walletAction w1 (lock ms $ Ada.adaValueOf 10)
             processAndNotify
-            (r, _) <- EM.runWalletAction w2 (unlockTx ms)
-            either (throwError . EM.AssertionError . T.pack . show) pure r
+            EM.runWalletAction w2 (unlockTx ms)
+
+    tx <- either (throwError . EM.AssertionError . T.pack . show) pure r
 
     let
         -- Attach signatures of the first @n@ wallets' private keys to 'tx'.
-        signedTx = 
+        signedTx =
             let signingKeys = take n (EM.walletPrivKey . EM.Wallet <$> [1..]) in
             foldr attachSignature tx signingKeys
 
     -- the second trace submits the signed transaction and asserts
     -- that it has been validated.
     EM.processEmulated $ do
-        void $ EM.walletAction w2 (submitTxn signedTx)
+        void $ EM.walletAction w2 (WAPI.submitTxn signedTx)
         processAndNotify
         EM.assertIsValidated signedTx
 

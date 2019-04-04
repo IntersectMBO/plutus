@@ -21,10 +21,11 @@ module Wallet.Emulator.Types(
     Assertion(OwnFundsEqual, IsValidated),
     assert,
     assertIsValidated,
-    AssertionError,
+    AssertionError(..),
     Event(..),
     Notification(..),
     EmulatorEvent(..),
+    EmulatorAction(..),
     -- ** Wallet state
     WalletState(..),
     emptyWalletState,
@@ -584,10 +585,13 @@ assertOwnFundsEq wallet = assertion . OwnFundsEqual wallet
 assertIsValidated :: Tx -> Trace m ()
 assertIsValidated = assertion . IsValidated
 
+newtype EmulatorAction a = EmulatorAction { unEmulatorAction :: ExceptT AssertionError (State EmulatorState) a }
+    deriving newtype (Functor, Applicative, Monad, MonadState EmulatorState, MonadError AssertionError)
+
 -- | Run a 'MonadEmulator' action on an 'EmulatorState', returning the final 
---   state and either the result of an 'AssertionError'.
-runEmulator :: EmulatorState -> ExceptT AssertionError (State EmulatorState) a -> (Either AssertionError a, EmulatorState)
-runEmulator e t = runState (runExceptT t) e
+--   state and either the result or an 'AssertionError'.
+runEmulator :: EmulatorState -> EmulatorAction a -> (Either AssertionError a, EmulatorState)
+runEmulator e a = runState (runExceptT $ unEmulatorAction a) e
 
 -- | Run an 'Trace' on a blockchain.
 runTraceChain :: Blockchain -> Trace MockWallet a -> (Either AssertionError a, EmulatorState)
