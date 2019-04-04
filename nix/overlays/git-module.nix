@@ -26,4 +26,7 @@ self: super: {
     plutus-playground-server = super.plutus-playground-server.overrideDerivation (oldAttrs: {
       patches = [gitModulePatch];
     });
+    meadow = super.meadow.overrideDerivation (oldAttrs: {
+      patches = [gitModulePatch];
+    });
 }
