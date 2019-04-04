@@ -12,8 +12,8 @@ import           Common
 import           PlcTestUtils
 
 import qualified Language.PlutusTx.Builtins as Builtins
+import           Language.PlutusTx.Code
 import qualified Language.PlutusTx.Lift     as Lift
-import           Language.PlutusTx.Plugin
 
 Lift.makeLift ''MyMonoData
 Lift.makeLift ''MyMonoRecord

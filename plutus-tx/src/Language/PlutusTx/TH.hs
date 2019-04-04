@@ -3,13 +3,9 @@
 {-# LANGUAGE TypeApplications #-}
 module Language.PlutusTx.TH (
     compile,
-    compileUntyped,
-    CompiledCode,
-    getSerializedPlc,
-    getSerializedPir,
-    getPlc,
-    getPir) where
+    compileUntyped) where
 
+import           Language.PlutusTx.Code
 import           Language.PlutusTx.Plugin
 
 import qualified Language.Haskell.TH        as TH

@@ -18,12 +18,12 @@ import           PlcTestUtils
 import           Plugin.ReadValue
 
 import qualified Language.PlutusTx.Builtins as Builtins
+import           Language.PlutusTx.Code
 import           Language.PlutusTx.Lift
 import           Language.PlutusTx.Plugin
 
 import           Data.ByteString.Lazy       ()
 import           Data.Text.Prettyprint.Doc
-import           GHC.Generics
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
