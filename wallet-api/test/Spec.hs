@@ -153,7 +153,7 @@ txnIndexValid = property $ do
 --   validated
 simpleTrace :: Tx -> Trace MockWallet ()
 simpleTrace txn = do
-    [txn'] <- walletAction wallet1 $ signTxAndSubmit_ txn
+    txn' <- head <$> (walletAction wallet1 $ signTxAndSubmit_ txn)
     block <- processPending
     assertIsValidated txn'
 

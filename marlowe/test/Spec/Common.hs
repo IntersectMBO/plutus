@@ -175,7 +175,7 @@ updateAll wallets = processPending >>= void . walletsNotifyBlock wallets
 
 performs :: Wallet -> m () -> Trace m Tx
 performs actor action = do
-    [tx] <- walletAction actor action
+    tx <- head <$> walletAction actor action
     processPending >>= void . walletsNotifyBlock [actor]
     assertIsValidated tx
     return tx
@@ -187,13 +187,13 @@ withContract
     -> Trace MockWallet ()
 withContract wallets contract f = do
     let validator = marloweValidator (walletPubKey creator)
-    [tx] <- walletAction creator (createContract validator contract 12)
+    tx <- head <$> walletAction creator (createContract validator contract 12)
     update
     assertIsValidated tx
 
     (tx1, state) <- f tx validator
 
-    [tx] <- walletAction creator (spendDeposit tx1 validator state)
+    tx <- head <$> walletAction creator (spendDeposit tx1 validator state)
     update
     assertIsValidated tx
   where
