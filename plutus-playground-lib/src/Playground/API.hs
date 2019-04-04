@@ -21,9 +21,11 @@ import           Data.Bifunctor               (second)
 import qualified Data.HashMap.Strict.InsOrd   as HM
 import           Data.List.NonEmpty           (NonEmpty)
 import           Data.Maybe                   (fromMaybe)
-import           Data.Swagger                 (toInlinedSchema, ParamSchema (ParamSchema), Referenced (Inline, Ref),Schema (Schema),
+import           Data.Proxy                   (Proxy (Proxy))
+import           Data.Swagger                 (ParamSchema (ParamSchema), Referenced (Inline, Ref), Schema (Schema),
                                                Schema (Schema), SwaggerItems (SwaggerItemsArray, SwaggerItemsObject),
-                                               SwaggerType (SwaggerArray, SwaggerInteger, SwaggerObject, SwaggerString))
+                                               SwaggerType (SwaggerArray, SwaggerInteger, SwaggerObject, SwaggerString),
+                                               toInlinedSchema)
 import qualified Data.Swagger                 as Swagger
 import           Data.Swagger.Lens            (items, maxItems, minItems, properties)
 import           Data.Text                    (Text)
@@ -31,7 +33,6 @@ import qualified Data.Text                    as Text
 import           GHC.Generics                 (Generic)
 import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), InterpreterResult,
                                                SourceCode, column, filename, row, text)
-import Data.Proxy (Proxy(Proxy))
 import qualified Language.Haskell.Interpreter as HI
 import qualified Language.Haskell.TH.Syntax   as TH
 import           Ledger                       (Blockchain, PubKey, Tx, TxId)
@@ -155,7 +156,6 @@ toSimpleArgumentSchema schema@Schema {..} =
                         _ ->
                             UnknownSchema "While handling array." $
                             Text.pack $ show schema
-                SwaggerObject
                     -- We want to give a special response if the
                     -- argument is the blessed type `Value`. That type
                     -- gets magic treatment in the frontend. But
@@ -167,20 +167,28 @@ toSimpleArgumentSchema schema@Schema {..} =
                     -- of deadlines we're going with the quick
                     -- solution: Duck typing. If a schema looks like a
                     -- `Value` type, then assume it is a `Value` type.
-                 ->
-                     let  fields =
-                             HM.toList $
-                             extractReference <$> view properties schema
-                    in if schema == (toInlinedSchema (Proxy :: Proxy V.Value) :: Schema)
-                        then ValueSchema [("getValue",toSimpleArgumentSchema (toInlinedSchema (Proxy :: Proxy [(V.CurrencySymbol,Int)]) :: Schema))]
-                        else SimpleObjectSchema fields
+                SwaggerObject ->
+                    let fields =
+                            HM.toList $
+                            extractReference <$> view properties schema
+                     in if schema ==
+                           (toInlinedSchema (Proxy :: Proxy V.Value) :: Schema)
+                            then ValueSchema
+                                     [ ( "getValue"
+                                       , toSimpleArgumentSchema
+                                             (toInlinedSchema
+                                                  (Proxy :: Proxy [( V.CurrencySymbol
+                                                                   , Int)]) :: Schema))
+                                     ]
+                            else SimpleObjectSchema fields
                 _ ->
                     UnknownSchema "Unrecognised type." $ Text.pack $ show schema
   where
     extractReference :: Referenced Schema -> SimpleArgumentSchema
     extractReference (Inline v) = toSimpleArgumentSchema v
     extractReference (Ref ref) =
-        UnknownSchema "Cannot handle Ref types, only Inline ones. (Try calling this function with `Data.Swagger.toInlinedSchema)." $
+        UnknownSchema
+            "Cannot handle Ref types, only Inline ones. (Try calling this function with `Data.Swagger.toInlinedSchema)." $
         Text.pack $ show (ref, schema)
 
 isSupportedByFrontend :: SimpleArgumentSchema -> Bool

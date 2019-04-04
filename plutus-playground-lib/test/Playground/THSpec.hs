@@ -9,9 +9,9 @@ module Playground.THSpec where
 
 import           Data.Aeson            (FromJSON, ToJSON)
 import           Data.Proxy            (Proxy (Proxy))
+import           Data.Swagger          (ToSchema, toInlinedSchema)
 import           Data.Text             (Text)
 import           GHC.Generics          (Generic)
-import           Data.Swagger (toInlinedSchema,ToSchema)
 import           Playground.API        (Fn (Fn), FunctionSchema (FunctionSchema), SimpleArgumentSchema)
 import           Playground.TH         (mkFunctions, mkSingleFunction)
 import           Test.Hspec            (Spec, describe, it, shouldBe)
@@ -63,7 +63,9 @@ spec =
             (f3Schema `shouldBe`
              FunctionSchema
                  (Fn "f3")
-                 [toInlinedSchema (Proxy @String), toInlinedSchema (Proxy @Value)])
+                 [ toInlinedSchema (Proxy @String)
+                 , toInlinedSchema (Proxy @Value)
+                 ])
         it
             "f4"
             (f4Schema `shouldBe`
