@@ -5,19 +5,16 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
 
-module Playground.THSpec
-    ( spec
-    , k
-    ) where
+module Playground.THSpec where
 
 import           Data.Aeson            (FromJSON, ToJSON)
 import           Data.Proxy            (Proxy (Proxy))
 import           Data.Text             (Text)
 import           GHC.Generics          (Generic)
-import           Ledger.Schema         (SimpleArgumentSchema, ToSchema, toSchema)
-import           Playground.API        (Fn (Fn), FunctionSchema (FunctionSchema))
+import           Data.Swagger (toInlinedSchema,ToSchema)
+import           Playground.API        (Fn (Fn), FunctionSchema (FunctionSchema), SimpleArgumentSchema)
 import           Playground.TH         (mkFunctions, mkSingleFunction)
-import           Test.Hspec            (Spec, describe, hspec, it, shouldBe)
+import           Test.Hspec            (Spec, describe, it, shouldBe)
 import           Wallet.Emulator.Types (MockWallet)
 
 -- f1..fn are functions that we should be able to generate schemas
@@ -46,8 +43,6 @@ $(mkSingleFunction 'f0)
 
 $(mkFunctions ['f1, 'f2, 'f3, 'f4])
 
-k = hspec spec
-
 spec :: Spec
 spec =
     describe "TH" $ do
@@ -62,20 +57,20 @@ spec =
         it
             "f2"
             (f2Schema `shouldBe`
-             FunctionSchema (Fn "f2") [toSchema (Proxy @String)])
+             FunctionSchema (Fn "f2") [toInlinedSchema (Proxy @String)])
         it
             "f3"
             (f3Schema `shouldBe`
              FunctionSchema
                  (Fn "f3")
-                 [toSchema (Proxy @String), toSchema (Proxy @Value)])
+                 [toInlinedSchema (Proxy @String), toInlinedSchema (Proxy @Value)])
         it
             "f4"
             (f4Schema `shouldBe`
              FunctionSchema
                  (Fn "f4")
-                 [ toSchema (Proxy @Text)
-                 , toSchema (Proxy @Text)
-                 , toSchema (Proxy @(Int, Int))
-                 , toSchema (Proxy @[Text])
+                 [ toInlinedSchema (Proxy @Text)
+                 , toInlinedSchema (Proxy @Text)
+                 , toInlinedSchema (Proxy @(Int, Int))
+                 , toInlinedSchema (Proxy @[Text])
                  ])
