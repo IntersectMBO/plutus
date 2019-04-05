@@ -129,7 +129,6 @@ builtinNames = [
     , ''Bool
     , ''()
 
-    , 'Builtins.resizeByteString
     , 'Builtins.concatenate
     , 'Builtins.takeByteString
     , 'Builtins.dropByteString
@@ -196,9 +195,6 @@ defineBuiltinTerms = do
     char <- GHC.getName <$> getThing ''Char
 
     -- Bytestring builtins
-    do
-        let term = mkBuiltin PLC.ResizeByteString
-        defineBuiltinTerm 'Builtins.resizeByteString term [bs]
     do
         let term = mkBuiltin PLC.Concatenate
         defineBuiltinTerm 'Builtins.concatenate term [bs]

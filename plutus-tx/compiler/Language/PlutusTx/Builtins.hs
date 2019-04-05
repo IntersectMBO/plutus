@@ -6,7 +6,6 @@ module Language.PlutusTx.Builtins (
                                 -- * Bytestring builtins
                                 SizedByteString(..)
                                 , ByteString
-                                , resizeByteString
                                 , concatenate
                                 , takeByteString
                                 , dropByteString
@@ -55,9 +54,6 @@ newtype SizedByteString (s::Nat) = SizedByteString { unSizedByteString :: BSL.By
 
 -- | A bytestring of default size (32 bytes).
 type ByteString = SizedByteString 32
-
-resizeByteString :: SizedByteString s1 -> SizedByteString s2
-resizeByteString (SizedByteString b) = SizedByteString b
 
 concatenate :: SizedByteString s -> SizedByteString s -> SizedByteString s
 concatenate (SizedByteString l) (SizedByteString r) = SizedByteString (BSL.append l r)
