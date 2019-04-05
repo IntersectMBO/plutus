@@ -33,7 +33,7 @@ import           System.Timeout               (timeout)
 
 acceptSourceCode :: SourceCode -> Handler (Either InterpreterError (InterpreterResult RunResult))
 acceptSourceCode sourceCode = do
-    let maxInterpretationTime :: Microsecond = fromMicroseconds 5000000
+    let maxInterpretationTime :: Microsecond = fromMicroseconds (10 * 1000 * 1000)
     r <-
         liftIO
         $ runExceptT
