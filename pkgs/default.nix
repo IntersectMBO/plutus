@@ -53194,12 +53194,14 @@ license = stdenv.lib.licenses.asl20;
 , bytestring
 , containers
 , hedgehog
+, hspec
 , insert-ordered-containers
 , interpreter
 , lens
 , memory
 , mtl
 , newtype-generics
+, QuickCheck
 , servant
 , stdenv
 , swagger2
@@ -53238,6 +53240,8 @@ aeson
 base
 containers
 hedgehog
+hspec
+QuickCheck
 swagger2
 tasty
 tasty-hunit
