@@ -43,6 +43,13 @@ spec = do
 maxInterpretationTime :: Microsecond
 maxInterpretationTime = fromMicroseconds 10000000
 
+w1, w2, w3, w4, w5 :: Wallet
+w1 = Wallet 1
+w2 = Wallet 2
+w3 = Wallet 3
+w4 = Wallet 4
+w5 = Wallet 5
+
 vestingSpec :: Spec
 vestingSpec =
     describe "vesting" $ do
@@ -170,7 +177,7 @@ vestingSpec =
     simpleEvaluation =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = Wallet 1
+                  { simulatorWalletWallet = w1
                   , simulatorWalletBalance = ten
                   }
             ]
@@ -180,7 +187,7 @@ vestingSpec =
     simpleWaitEval =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = Wallet 1
+                  { simulatorWalletWallet = w1
                   , simulatorWalletBalance = ten
                   }
             ]
@@ -190,13 +197,13 @@ vestingSpec =
     vestFundsEval =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = Wallet 1
+                  { simulatorWalletWallet = w1
                   , simulatorWalletBalance = ten
                   }
             ]
             [ Action
                   (Fn "vestFunds")
-                  (Wallet 1)
+                  w1
                   [ theVesting ]
             ]
             (sourceCode vesting)
@@ -211,7 +218,7 @@ vestingSpec =
                         [ "vestingTrancheDate" .= object ["getSlot" .= mkI 1]
                         , "vestingTrancheAmount" .= object [ "getAda" .= mkI 1]
                         ]
-                  , "vestingOwner" .= JSON.toJSON (walletPubKey (Wallet 1))
+                  , "vestingOwner" .= JSON.toJSON (walletPubKey w1)
                   ]
 
 gameSpec :: Spec
@@ -222,12 +229,12 @@ gameSpec =
             evaluate gameEvalSuccess >>=
             (`shouldSatisfy` hasFundsDistribution
                                  [ SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 1
+                                       { simulatorWalletWallet = w1
                                        , simulatorWalletBalance =
                                              Ada.adaValueOf 12
                                        }
                                  , SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 2
+                                       { simulatorWalletWallet = w2
                                        , simulatorWalletBalance =
                                              Ada.adaValueOf 8
                                        }
@@ -236,109 +243,124 @@ gameSpec =
             evaluate gameEvalFailure >>=
             (`shouldSatisfy` hasFundsDistribution
                                  [ SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 1
+                                       { simulatorWalletWallet = w1
                                        , simulatorWalletBalance = ten
                                        }
                                  , SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 2
+                                       { simulatorWalletWallet = w2
                                        , simulatorWalletBalance =
                                              Ada.adaValueOf 8
                                        }
                                  ])
-        it
-            "Sequential fund transfer fails - 'Game' script - 'payToPublicKey_' action" $
-            evaluate payAll >>=
-            (`shouldSatisfy` hasFundsDistribution
-                                 [ SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 1
-                                       , simulatorWalletBalance = ten
-                                       }
-                                 , SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 2
-                                       , simulatorWalletBalance = ten
-                                       }
-                                 , SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 3
-                                       , simulatorWalletBalance = ten
-                                       }
-                                 ])
+        it "Sequential fund transfer - deleting wallets 'payToPublicKey_' action" $
+                evaluate (payAll w3 w4 w5) >>=
+                (`shouldSatisfy` hasFundsDistribution
+                                    [ SimulatorWallet
+                                            { simulatorWalletWallet = w3
+                                            , simulatorWalletBalance = ten
+                                            }
+                                    , SimulatorWallet
+                                            { simulatorWalletWallet = w4
+                                            , simulatorWalletBalance = ten
+                                            }
+                                    , SimulatorWallet
+                                            { simulatorWalletWallet = w5
+                                            , simulatorWalletBalance = ten
+                                            }
+                                    ])
+        it "Sequential fund transfer - 'payToPublicKey_' action" $
+                evaluate (payAll w1 w2 w3) >>=
+                (`shouldSatisfy` hasFundsDistribution
+                                    [ SimulatorWallet
+                                        { simulatorWalletWallet = w1
+                                        , simulatorWalletBalance = ten
+                                        }
+                                    , SimulatorWallet
+                                        { simulatorWalletWallet = w2
+                                        , simulatorWalletBalance = ten
+                                        }
+                                    , SimulatorWallet
+                                        { simulatorWalletWallet = w3
+                                        , simulatorWalletBalance = ten
+                                        }
+                                    ])
   where
     ten = Ada.adaValueOf 10
     gameEvalFailure =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = Wallet 1
+                  { simulatorWalletWallet = w1
                   , simulatorWalletBalance = ten
                   }
             , SimulatorWallet
-                  { simulatorWalletWallet = Wallet 2
+                  { simulatorWalletWallet = w2
                   , simulatorWalletBalance = ten
                   }
             ]
-            [ Action (Fn "startGame") (Wallet 1) []
+            [ Action (Fn "startGame") w1 []
             , Action
                   (Fn "lock")
-                  (Wallet 2)
+                  w2
                   [JSON.String "\"abcde\"", JSON.String "{\"getAda\": 2}"]
-            , Action (Fn "guess") (Wallet 1) [JSON.String "\"ade\""]
+            , Action (Fn "guess") w1 [JSON.String "\"ade\""]
             ]
             (sourceCode game)
             []
     gameEvalSuccess =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = Wallet 1
+                  { simulatorWalletWallet = w1
                   , simulatorWalletBalance = ten
                   }
             , SimulatorWallet
-                  { simulatorWalletWallet = Wallet 2
+                  { simulatorWalletWallet = w2
                   , simulatorWalletBalance = ten
                   }
             ]
-            [ Action (Fn "startGame") (Wallet 1) []
+            [ Action (Fn "startGame") w1 []
             , Action
                   (Fn "lock")
-                  (Wallet 2)
+                  w2
                   [JSON.String "\"abcde\"", JSON.String "{\"getAda\": 2}"]
-            , Action (Fn "guess") (Wallet 1) [JSON.String "\"abcde\""]
+            , Action (Fn "guess") w1 [JSON.String "\"abcde\""]
             ]
             (sourceCode game)
             []
-    payAll =
+    payAll a b c =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = Wallet 1
+                  { simulatorWalletWallet = a
                   , simulatorWalletBalance = ten
                   }
             , SimulatorWallet
-                  { simulatorWalletWallet = Wallet 2
+                  { simulatorWalletWallet = b
                   , simulatorWalletBalance = ten
                   }
             , SimulatorWallet
-                  { simulatorWalletWallet = Wallet 3
+                  { simulatorWalletWallet = c
                   , simulatorWalletBalance = ten
                   }
             ]
             [ Action
                   (Fn "payToPublicKey_")
-                  (Wallet 1)
+                  a
                   [ slotRange
                   , nineAda
-                  , toJSONString (walletPubKey (Wallet 2))
+                  , toJSONString (walletPubKey b)
                   ]
             , Action
                   (Fn "payToPublicKey_")
-                  (Wallet 2)
+                  b
                   [ slotRange
                   , nineAda
-                  , toJSONString (walletPubKey (Wallet 3))
+                  , toJSONString (walletPubKey c)
                   ]
             , Action
                   (Fn "payToPublicKey_")
-                  (Wallet 3)
+                  c
                   [ slotRange
                   , nineAda
-                  , toJSONString (walletPubKey (Wallet 1))
+                  , toJSONString (walletPubKey a)
                   ]
             ]
             (sourceCode game)
@@ -367,17 +389,17 @@ crowdfundingSpec =
             evaluate successfulCampaign >>=
             (`shouldSatisfy` hasFundsDistribution
                                  [ SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 1
+                                       { simulatorWalletWallet = w1
                                        , simulatorWalletBalance =
                                              Ada.adaValueOf 26
                                        }
                                  , SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 2
+                                       { simulatorWalletWallet = w2
                                        , simulatorWalletBalance =
                                              Ada.adaValueOf 2
                                        }
                                  , SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 3
+                                       { simulatorWalletWallet = w3
                                        , simulatorWalletBalance =
                                              Ada.adaValueOf 2
                                        }
@@ -386,15 +408,15 @@ crowdfundingSpec =
             evaluate failedCampaign >>=
             (`shouldSatisfy` hasFundsDistribution
                                  [ SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 1
+                                       { simulatorWalletWallet = w1
                                        , simulatorWalletBalance = ten
                                        }
                                  , SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 2
+                                       { simulatorWalletWallet = w2
                                        , simulatorWalletBalance = ten
                                        }
                                  , SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 3
+                                       { simulatorWalletWallet = w3
                                        , simulatorWalletBalance = ten
                                        }
                                  ])
@@ -403,20 +425,20 @@ crowdfundingSpec =
     failedCampaign =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = Wallet 1
+                  { simulatorWalletWallet = w1
                   , simulatorWalletBalance = ten
                   }
             , SimulatorWallet
-                  { simulatorWalletWallet = Wallet 2
+                  { simulatorWalletWallet = w2
                   , simulatorWalletBalance = ten
                   }
             , SimulatorWallet
-                  { simulatorWalletWallet = Wallet 3
+                  { simulatorWalletWallet = w3
                   , simulatorWalletBalance = ten
                   }
             ]
-            [ Action (Fn "scheduleCollection") (Wallet 1) [theCampaign]
-            , Action (Fn "contribute") (Wallet 2) [theCampaign, theContribution]
+            [ Action (Fn "scheduleCollection") w1 [theCampaign]
+            , Action (Fn "contribute") w2 [theCampaign, theContribution]
             , Wait 20
             ]
             (sourceCode crowdfunding)
@@ -424,21 +446,21 @@ crowdfundingSpec =
     successfulCampaign =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = Wallet 1
+                  { simulatorWalletWallet = w1
                   , simulatorWalletBalance = ten
                   }
             , SimulatorWallet
-                  { simulatorWalletWallet = Wallet 2
+                  { simulatorWalletWallet = w2
                   , simulatorWalletBalance = ten
                   }
             , SimulatorWallet
-                  { simulatorWalletWallet = Wallet 3
+                  { simulatorWalletWallet = w3
                   , simulatorWalletBalance = ten
                   }
             ]
-            [ Action (Fn "scheduleCollection") (Wallet 1) [theCampaign]
-            , Action (Fn "contribute") (Wallet 2) [theCampaign, theContribution]
-            , Action (Fn "contribute") (Wallet 3) [theCampaign, theContribution]
+            [ Action (Fn "scheduleCollection") w1 [theCampaign]
+            , Action (Fn "contribute") w2 [theCampaign, theContribution]
+            , Action (Fn "contribute") w3 [theCampaign, theContribution]
             , Wait 10
             ]
             (sourceCode crowdfunding)
@@ -449,7 +471,7 @@ crowdfundingSpec =
             [ "campaignDeadline" .= object ["getSlot" .= mkI 10]
             , "campaignTarget" .= object ["getAda" .= mkI 15]
             , "campaignCollectionDeadline" .= object ["getSlot" .= mkI 20]
-            , "campaignOwner" .= walletPubKey (Wallet 1)
+            , "campaignOwner" .= walletPubKey w1
             ]
     theContribution = toJSONString $ object ["getAda" .= mkI 8]
 
