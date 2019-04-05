@@ -59,6 +59,8 @@ test-suite plutus-playground-lib-test
     hs-source-dirs: test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
+    build-tool-depends:
+        hspec-discover:hspec-discover -any
     other-modules:
         Playground.THSpec
         Playground.APISpec
