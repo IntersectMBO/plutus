@@ -17,7 +17,7 @@
   {
     imports = [ (defaultMachine node pkgs)
     ];
-    
+
     security.sudo = {
       enable = true;
       extraRules = [{
@@ -27,7 +27,7 @@
         ];
     }];
   };
-  
+
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [ 80 9100 9091 9113 ];
@@ -53,7 +53,6 @@
     openssh.authorizedKeys.keys = machines.playgroundSshKeys;
     packages = [ serviceSystemctl ];
   };
-
   # lets make things a bit more secure
   systemd.services.nginx.serviceConfig = {
     # nginx can't deal with DynamicUser because the nixos module isn't made for it
@@ -66,16 +65,16 @@
     # nginx needs to bind to 80 and write to /var/spool/nginx
     AmbientCapabilities = "CAP_NET_BIND_SERVICE";
     ReadWritePaths = "/var/spool/nginx";
-  }; 
-  
+  };
+
   services.nginx = {
     enable = true;
     statusPage = true;
-    
+
     recommendedGzipSettings = true;
     recommendedProxySettings = true;
     recommendedOptimisation = true;
-    
+
     appendHttpConfig = ''
     limit_req_zone $binary_remote_addr zone=plutuslimit:10m rate=1r/s;
     server_names_hash_bucket_size 128;
@@ -83,9 +82,9 @@
     '"$request" $status $body_bytes_sent '
     '"$http_referer" "$http_user_agent" "$gzip_ratio"';
     '';
-    
+
     upstreams.${serviceName}.servers."127.0.0.1:4000" = {};
-    
+
     virtualHosts = {
       "~." = {
         listen = [{ addr = "0.0.0.0"; port = 80; }];
@@ -108,7 +107,7 @@
       };
     };
   };
-  
+
   systemd.services.${serviceName} = {
     wantedBy = [ "nginx.service" ];
     before = [ "nginx.service" ];
@@ -116,7 +115,7 @@
     path = [
       "${server-invoker}"
     ];
-    
+
     serviceConfig = {
       TimeoutStartSec = "0";
       Restart = "always";
@@ -128,9 +127,9 @@
       SystemCallArchitectures = "native";
       CapabilityBoundingSet = "~CAP_SYS_ADMIN";
     };
-    
+
     script = "${serviceName} --config ${serviceConfig} webserver -b 127.0.0.1 -p 4000 ${client}";
-  }; 
+  };
 };
 }
 
