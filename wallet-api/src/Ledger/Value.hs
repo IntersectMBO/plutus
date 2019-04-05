@@ -29,11 +29,7 @@ module Ledger.Value(
 import qualified Ledger.Value.TH as TH
 import           Ledger.Value.TH (CurrencySymbol, Value)
 import           Prelude         hiding (negate)
-
--- | Create a 'CurrencySymbol' from the given integer.
--- NOTE: this will use bytestrings to represent currencies in future.
-currencySymbol :: Int -> CurrencySymbol
-currencySymbol = $$(TH.currencySymbol)
+import qualified Language.PlutusTx.Prelude    as P
 
 instance Eq Value where
   (==) = $$(TH.eq)
@@ -46,6 +42,9 @@ instance Semigroup Value where
 
 instance Monoid Value where
   mempty = zero
+
+currencySymbol :: P.ByteString -> CurrencySymbol
+currencySymbol = $$(TH.currencySymbol)
 
 -- | See 'TH.singleton'.
 singleton :: CurrencySymbol -> Int -> Value

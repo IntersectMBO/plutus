@@ -12,12 +12,14 @@ import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import qualified Data.Aeson.Internal        as Aeson
 import qualified Data.ByteString            as BSS
+import qualified Data.ByteString.Lazy       as BSL
 import           Data.Either                (isLeft, isRight)
 import           Data.Foldable              (fold, foldl', traverse_)
 import           Data.List                  (sort)
 import qualified Data.Map                   as Map
 import           Data.Monoid                (Sum (..))
 import qualified Data.Set                   as Set
+import           Data.String                (IsString(fromString))
 import           Hedgehog                   (Property, forAll, property)
 import qualified Hedgehog
 import qualified Hedgehog.Gen               as Gen
@@ -27,7 +29,7 @@ import qualified Language.PlutusTx.Prelude  as PlutusTx
 import           Test.Tasty
 import           Test.Tasty.Hedgehog        (testProperty)
 
-import           KeyBytes
+import           LedgerBytes                as LedgerBytes
 import           Ledger
 import qualified Ledger.Ada                 as Ada
 import qualified Ledger.Index               as Index
@@ -81,6 +83,10 @@ tests = testGroup "all tests" [
         testProperty "txnFlows" txnFlowsTest,
         testProperty "encodeByteString" encodeByteStringTest,
         testProperty "encodeSerialise" encodeSerialiseTest
+        ],
+    testGroup "LedgerBytes" [
+        testProperty "show-fromHex" ledgerBytesShowFromHexProp,
+        testProperty "toJSON-fromJSON" ledgerBytesToJSONProp
         ]
     ]
 
@@ -436,3 +442,18 @@ encodeSerialiseTest = property $ do
         result = Aeson.iparse JSON.decodeSerialise enc
 
     Hedgehog.assert $ result == Aeson.ISuccess txt
+
+ledgerBytesShowFromHexProp :: Property
+ledgerBytesShowFromHexProp = property $ do
+    bts <- forAll $ LedgerBytes <$> Gen.genSizedByteString
+    let result = LedgerBytes.fromHex $ fromString $ show bts
+    
+    Hedgehog.assert $ result == bts
+
+ledgerBytesToJSONProp :: Property
+ledgerBytesToJSONProp = property $ do
+    bts <- forAll $ LedgerBytes <$> Gen.genSizedByteString
+    let enc    = JSON.toJSON bts
+        result = Aeson.iparse JSON.parseJSON enc
+
+    Hedgehog.assert $ result == Aeson.ISuccess bts

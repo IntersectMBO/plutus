@@ -1,5 +1,5 @@
-{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE ConstraintKinds   #-}
+{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -49,8 +49,8 @@ import qualified Language.Haskell.TH.Syntax                  as TH
 import           Control.Monad
 import           Control.Monad.Reader
 
-import qualified Data.Map                                    as Map
 import qualified Data.ByteString.Lazy                        as BSL
+import qualified Data.Map                                    as Map
 import           Data.Proxy
 import qualified Data.Set                                    as Set
 

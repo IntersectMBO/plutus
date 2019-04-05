@@ -85,7 +85,7 @@ toSimpleArgumentSchemaSpec =
             ValueSchema
                 [ ( "getValue"
                   , SimpleArraySchema
-                        (SimpleTupleSchema (SimpleIntSchema, SimpleIntSchema)))
+                        (SimpleTupleSchema (SimpleStringSchema, SimpleIntSchema)))
                 ]
 
 isSupportedByFrontendSpec :: Spec

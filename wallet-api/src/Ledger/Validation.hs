@@ -72,7 +72,7 @@ import           Ledger.Scripts
 import           Ledger.Slot                  (Slot, SlotRange)
 import qualified Ledger.TxId                  as Tx
 import           Ledger.Value                 (Value)
-import           KeyBytes                     (KeyBytes(..))
+import           LedgerBytes                     (LedgerBytes(..))
 
 -- Ignore newtype warnings related to `Oracle` and `Signed` because it causes
 -- problems with the plugin
@@ -247,7 +247,7 @@ plcDigest = P.SizedByteString . BSL.pack . BA.unpack
 -- | Check if two public keys are equal.
 eqPubKey :: Q (TExp (PubKey -> PubKey -> Bool))
 eqPubKey = [|| 
-    \(PubKey (KeyBytes l)) (PubKey (KeyBytes r)) -> $$(P.equalsByteString) l r
+    \(PubKey (LedgerBytes l)) (PubKey (LedgerBytes r)) -> $$(P.equalsByteString) l r
     ||]
     
 -- | Check if a transaction was signed by the given public key.
@@ -260,7 +260,7 @@ txSignedBy = [||
             signedBy' :: Signature -> Bool
             signedBy' (Signature sig) =
                 let
-                    PubKey (KeyBytes pk) = k
+                    PubKey (LedgerBytes pk) = k
                     TxHash msg           = hsh
                 in $$(P.verifySignature) pk msg sig
 
@@ -336,7 +336,7 @@ adaLockedBy = [|| \(PendingTx _ outs _ _ _ _ _ _) h ->
 --   transaction (without witnesses) with the given public key.
 signsTransaction :: Q (TExp (Signature -> PubKey -> PendingTx -> Bool))
 signsTransaction = [|| 
-    \(Signature sig) (PubKey (KeyBytes pk)) (p :: PendingTx) -> 
+    \(Signature sig) (PubKey (LedgerBytes pk)) (p :: PendingTx) -> 
         $$(P.verifySignature) pk (let TxHash h = $$(txHash) p in h) sig
     ||]
 
