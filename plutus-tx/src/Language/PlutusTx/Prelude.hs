@@ -42,7 +42,6 @@ module Language.PlutusTx.Prelude (
     -- * Hashes
     SizedByteString(..),
     ByteString,
-    resizeByteString,
     sha2_256,
     sha3_256,
     equalsByteString,

@@ -2,6 +2,8 @@
 
 with pkgs.lib;
 
+# This overlay will alter the Git.hs haskell module with the current git revision. If declInput.rev
+# is avilable the it will use that (Hydra) otherwise it will look in the .git directory (local builds)
 let
   headPath = ../../.git/HEAD;
   readRev = let head = if builtins.pathExists headPath then builtins.readFile headPath else "master";

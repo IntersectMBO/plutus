@@ -35,13 +35,9 @@ let
       lib.mapAttrs (n: p: if p ? testdata then { testrun = supportedSystems; } else supportedSystems)
          packageSet.localPackages;
     # At least the client is broken on darwin for some yarn reason
-    plutus-playground = lib.mapAttrs (_: _: linux) 
-        # don't build the docker image on hydra
-        (lib.filterAttrs (n: v: n != "docker") packageSet.plutus-playground);  
+    plutus-playground = lib.mapAttrs (_: _: linux) packageSet.plutus-playground;
     # At least the client is broken on darwin for some yarn reason
-    meadow = lib.mapAttrs (_: _: linux) 
-        # don't build the docker image on hydra
-        (lib.filterAttrs (n: v: n != "docker") packageSet.meadow);
+    meadow = lib.mapAttrs (_: _: linux) packageSet.meadow;
     # texlive is broken on darwin at our nixpkgs pin
     docs = lib.mapAttrs (_: _: linux) packageSet.docs;  
     tests = lib.mapAttrs (_: _: supportedSystems) packageSet.tests;  

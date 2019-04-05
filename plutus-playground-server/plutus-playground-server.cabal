@@ -129,7 +129,6 @@ test-suite plutus-playground-server-test
     build-tool-depends: hspec-discover:hspec-discover -any
     hs-source-dirs: test
     other-modules:
-        Playground.APISpec
         Playground.UsecasesSpec
         Paths_plutus_playground_server
         Auth.TypesSpec

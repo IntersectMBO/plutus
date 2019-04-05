@@ -4,13 +4,21 @@ module Playground.APISpec
     ( spec
     ) where
 
+import           Data.Proxy                   (Proxy (Proxy))
+import           Data.Swagger                 (toInlinedSchema)
 import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), column, filename, row,
                                                text)
-import           Playground.API               (parseErrorText)
+import           Ledger.Interval              (Interval)
+import           Ledger.Value.TH              (Value)
+import           Playground.API               (SimpleArgumentSchema (SimpleArraySchema, SimpleIntSchema, SimpleObjectSchema, SimpleStringSchema, SimpleTupleSchema, ValueSchema),
+                                               isSupportedByFrontend, parseErrorText, toSimpleArgumentSchema)
 import           Test.Hspec                   (Spec, describe, it, shouldBe)
 
 spec :: Spec
-spec = parseErrorTextSpec
+spec = do
+    parseErrorTextSpec
+    toSimpleArgumentSchemaSpec
+    isSupportedByFrontendSpec
 
 parseErrorTextSpec :: Spec
 parseErrorTextSpec =
@@ -50,3 +58,40 @@ parseErrorTextSpec =
                        , "                     Vesting -> Value -> IO ()"
                        ]
                  })
+
+toSimpleArgumentSchemaSpec :: Spec
+toSimpleArgumentSchemaSpec =
+    describe "toSimpleArgumentSchema" $ do
+        it "SimpleIntSchema" $
+            toSimpleArgumentSchema (toInlinedSchema (Proxy :: Proxy Int)) `shouldBe`
+            SimpleIntSchema
+        it "SimpleStringSchema" $
+            toSimpleArgumentSchema (toInlinedSchema (Proxy :: Proxy String)) `shouldBe`
+            SimpleStringSchema
+        it "SimpleArraySchema" $
+            toSimpleArgumentSchema (toInlinedSchema (Proxy :: Proxy [Int])) `shouldBe`
+            SimpleArraySchema SimpleIntSchema
+        it "SimpleTupleSchema" $
+            toSimpleArgumentSchema
+                (toInlinedSchema (Proxy :: Proxy (Int, String))) `shouldBe`
+            SimpleTupleSchema (SimpleIntSchema, SimpleStringSchema)
+        it "SimpleObjectSchema" $
+            toSimpleArgumentSchema
+                (toInlinedSchema (Proxy :: Proxy (Interval Int))) `shouldBe`
+            SimpleObjectSchema
+                [("ivFrom", SimpleIntSchema), ("ivTo", SimpleIntSchema)]
+        it "ValueSchema" $
+            toSimpleArgumentSchema (toInlinedSchema (Proxy :: Proxy Value)) `shouldBe`
+            ValueSchema
+                [ ( "getValue"
+                  , SimpleArraySchema
+                        (SimpleTupleSchema (SimpleIntSchema, SimpleIntSchema)))
+                ]
+
+isSupportedByFrontendSpec :: Spec
+isSupportedByFrontendSpec =
+    describe "isSupportedByFrontend" $
+    it "Should handle Value types." $
+    isSupportedByFrontend
+        (toSimpleArgumentSchema (toInlinedSchema (Proxy :: Proxy Value))) `shouldBe`
+    True
