@@ -7,7 +7,7 @@ let
             "${node.ip}:9100"
           ];
           labels = {
-            alias = "${node.dns}";
+            instance = "${node.dns}";
           };
         };
     ekgTarget = node:
@@ -16,15 +16,30 @@ let
             "${node.ip}:9091"
           ];
           labels = {
-            alias = "${node.dns}";
+            instance = "${node.dns}";
+          };
+        };
+    nginxTarget = node:
+        {
+          targets = [
+            "${node.ip}:9113"
+          ];
+          labels = {
+            instance = "${node.dns}";
           };
         };
     nodeTargets = map nodeTarget [machines.meadowA machines.meadowB machines.playgroundA machines.playgroundB];
     ekgTargets = map ekgTarget [machines.meadowA machines.meadowB machines.playgroundA machines.playgroundB];
+    nginxTargets = map nginxTarget [machines.meadowA machines.meadowB machines.playgroundA machines.playgroundB];
 in
 {
     imports = [ (defaultMachine node pkgs)
     ];
+
+    networking.firewall = {
+      enable = true;
+      allowedTCPPorts = [ 22 3000 ];
+    };
 
     users.users.nixops =
         { isNormalUser = true;
@@ -37,6 +52,12 @@ in
     environment.systemPackages = with pkgs;
                     [ nixops vim tmux git ];
 
+    services.grafana = {
+      enable = true;
+      addr = "0.0.0.0";
+      rootUrl = "https://${machines.nixops.externalDns}/";
+    };
+
     services.prometheus = {
         enable = true;
         package = pkgs.prometheus_2;
@@ -44,19 +65,39 @@ in
             {
               job_name = "node";
               scrape_interval = "10s";
-              static_configs = nodeTargets ++ ekgTargets ++ [
+              static_configs = nodeTargets ++ ekgTargets ++ nginxTargets ++ [
                 {
                   targets = [
                     "localhost:9100"
                   ];
                   labels = {
-                    alias = "prometheus.example.com";
+                    instance = "nixops";
                   };
                 }
                 
               ];
             }
+            {
+              job_name = "prometheus";
+              scrape_interval = "10s";
+              static_configs = [
+                {
+                  targets = [
+                    "localhost:9090"
+                  ];
+                  labels = {
+                    instance = "nixops";
+                  };
+                }
+              ];
+            }
       ];
+      exporters = {
+        node = {
+            enable = true;
+            enabledCollectors = [ "systemd" ];
+        };
+      };
     };
 };
 }

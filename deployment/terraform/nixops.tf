@@ -18,6 +18,13 @@ resource "aws_security_group" "nixops" {
     cidr_blocks = ["${var.public_subnet_cidrs}"]
   }
 
+  ingress {
+    from_port   = "3000"
+    to_port     = "3000"
+    protocol    = "TCP"
+    cidr_blocks = ["${var.public_subnet_cidrs}", "${var.private_subnet_cidrs}"]
+  }
+
   ## outgoing: all
   egress {
     from_port   = 0

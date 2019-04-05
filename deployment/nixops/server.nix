@@ -9,6 +9,10 @@
     echo "usage: $0 (stop|start|restart|status) <instance>"
     fi
     '';
+    promNodeTextfileDir = pkgs.writeTextDir "roles.prom"
+                            ''
+                            machine_role{role="nginx"} 1
+                            '';
   in
   {
     imports = [ (defaultMachine node pkgs)
@@ -26,9 +30,20 @@
   
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [ 80 9100 9091 ];
+    allowedTCPPorts = [ 80 9100 9091 9113 ];
   };
-  
+
+  services.prometheus.exporters = {
+    node = {
+        enable = true;
+        enabledCollectors = [ "systemd" ];
+        extraFlags = ["--collector.textfile.directory ${promNodeTextfileDir}"];
+    };
+    nginx = {
+      enable = true;
+    };
+  };
+
   # a user for people who want to ssh in and fiddle with playground/meadow service only
   users.users.monitor = {
     isNormalUser = true;
@@ -80,6 +95,7 @@
   
   services.nginx = {
     enable = true;
+    statusPage = true;
     
     recommendedGzipSettings = true;
     recommendedProxySettings = true;
