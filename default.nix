@@ -87,6 +87,11 @@ let
         inherit pkgs;
         filter = localLib.isPlutus;
       };
+      # When building we want the git sha available in the Haskell code, previously we did this with
+      # a template haskell function that ran a git command however the git directory is not available
+      # to the derivation so this fails. What we do now is create a derivation that overrides a magic
+      # Haskell module with the git sha, this comes from `declInput.rev` if available (Hydra), otherwise
+      # it is read from the .git directory which is avilable on local builds.
       gitModuleOverlay = import ./nix/overlays/git-module.nix {
         inherit pkgs declInput;
       };
