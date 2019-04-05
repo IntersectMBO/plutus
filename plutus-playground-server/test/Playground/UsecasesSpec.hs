@@ -45,9 +45,13 @@ maxInterpretationTime = fromMicroseconds 10000000
 
 w1, w2, w3, w4, w5 :: Wallet
 w1 = Wallet 1
+
 w2 = Wallet 2
+
 w3 = Wallet 3
+
 w4 = Wallet 4
+
 w5 = Wallet 5
 
 vestingSpec :: Spec
@@ -121,14 +125,14 @@ vestingSpec =
                                   [ ( "vestingOwner"
                                     , SimpleObjectSchema
                                           [("getPubKey", SimpleStringSchema)])
-                                    , ( "vestingTranche2"
-                                          , SimpleObjectSchema
-                                                [ ( "vestingTrancheAmount"
-                                                , SimpleObjectSchema
-                                                      [("getAda", SimpleIntSchema)])
-                                                , ( "vestingTrancheDate"
-                                                , SimpleObjectSchema
-                                                      [("getSlot", SimpleIntSchema)])
+                                  , ( "vestingTranche2"
+                                    , SimpleObjectSchema
+                                          [ ( "vestingTrancheAmount"
+                                            , SimpleObjectSchema
+                                                  [("getAda", SimpleIntSchema)])
+                                          , ( "vestingTrancheDate"
+                                            , SimpleObjectSchema
+                                                  [("getSlot", SimpleIntSchema)])
                                           ])
                                   , ( "vestingTranche1"
                                     , SimpleObjectSchema
@@ -144,7 +148,7 @@ vestingSpec =
                             ]
                       }
                 , FunctionSchema
-                      { functionName = Fn "payToPublicKey_"
+                      { functionName = Fn "payToWallet_"
                       , argumentSchema =
                             [ SimpleObjectSchema
                                   [ ( "ivTo"
@@ -162,7 +166,7 @@ vestingSpec =
                                                , SimpleIntSchema)))
                                   ]
                             , SimpleObjectSchema
-                                  [("getPubKey", SimpleStringSchema)]
+                                  [("getWallet", SimpleIntSchema)]
                             ]
                       }
                 ]
@@ -177,9 +181,7 @@ vestingSpec =
     simpleEvaluation =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = w1
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w1, simulatorWalletBalance = ten}
             ]
             []
             (sourceCode vesting)
@@ -187,9 +189,7 @@ vestingSpec =
     simpleWaitEval =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = w1
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w1, simulatorWalletBalance = ten}
             ]
             [Wait 10]
             (sourceCode vesting)
@@ -197,29 +197,26 @@ vestingSpec =
     vestFundsEval =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = w1
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w1, simulatorWalletBalance = ten}
             ]
-            [ Action
-                  (Fn "vestFunds")
-                  w1
-                  [ theVesting ]
-            ]
+            [Action (Fn "vestFunds") w1 [theVesting]]
             (sourceCode vesting)
             []
-    theVesting = toJSONString $
-          object
-                  [ "vestingTranche1" .= object
-                        [ "vestingTrancheDate" .= object [ "getSlot" .= mkI 1]
-                        , "vestingTrancheAmount" .= object [ "getAda" .= mkI 1]
-                        ]
-                  , "vestingTranche2" .= object
-                        [ "vestingTrancheDate" .= object ["getSlot" .= mkI 1]
-                        , "vestingTrancheAmount" .= object [ "getAda" .= mkI 1]
-                        ]
-                  , "vestingOwner" .= JSON.toJSON (walletPubKey w1)
+    theVesting =
+        toJSONString $
+        object
+            [ "vestingTranche1" .=
+              object
+                  [ "vestingTrancheDate" .= object ["getSlot" .= mkI 1]
+                  , "vestingTrancheAmount" .= object ["getAda" .= mkI 1]
                   ]
+            , "vestingTranche2" .=
+              object
+                  [ "vestingTrancheDate" .= object ["getSlot" .= mkI 1]
+                  , "vestingTrancheAmount" .= object ["getAda" .= mkI 1]
+                  ]
+            , "vestingOwner" .= JSON.toJSON (walletPubKey w1)
+            ]
 
 gameSpec :: Spec
 gameSpec =
@@ -252,50 +249,46 @@ gameSpec =
                                              Ada.adaValueOf 8
                                        }
                                  ])
-        it "Sequential fund transfer - deleting wallets 'payToPublicKey_' action" $
-                evaluate (payAll w3 w4 w5) >>=
-                (`shouldSatisfy` hasFundsDistribution
-                                    [ SimulatorWallet
-                                            { simulatorWalletWallet = w3
-                                            , simulatorWalletBalance = ten
-                                            }
-                                    , SimulatorWallet
-                                            { simulatorWalletWallet = w4
-                                            , simulatorWalletBalance = ten
-                                            }
-                                    , SimulatorWallet
-                                            { simulatorWalletWallet = w5
-                                            , simulatorWalletBalance = ten
-                                            }
-                                    ])
-        it "Sequential fund transfer - 'payToPublicKey_' action" $
-                evaluate (payAll w1 w2 w3) >>=
-                (`shouldSatisfy` hasFundsDistribution
-                                    [ SimulatorWallet
-                                        { simulatorWalletWallet = w1
-                                        , simulatorWalletBalance = ten
-                                        }
-                                    , SimulatorWallet
-                                        { simulatorWalletWallet = w2
-                                        , simulatorWalletBalance = ten
-                                        }
-                                    , SimulatorWallet
-                                        { simulatorWalletWallet = w3
-                                        , simulatorWalletBalance = ten
-                                        }
-                                    ])
+        it "Sequential fund transfer - deleting wallets 'payToWallet_' action" $
+            evaluate (payAll w3 w4 w5) >>=
+            (`shouldSatisfy` hasFundsDistribution
+                                 [ SimulatorWallet
+                                       { simulatorWalletWallet = w3
+                                       , simulatorWalletBalance = ten
+                                       }
+                                 , SimulatorWallet
+                                       { simulatorWalletWallet = w4
+                                       , simulatorWalletBalance = ten
+                                       }
+                                 , SimulatorWallet
+                                       { simulatorWalletWallet = w5
+                                       , simulatorWalletBalance = ten
+                                       }
+                                 ])
+        it "Sequential fund transfer - 'payToWallet_' action" $
+            evaluate (payAll w1 w2 w3) >>=
+            (`shouldSatisfy` hasFundsDistribution
+                                 [ SimulatorWallet
+                                       { simulatorWalletWallet = w1
+                                       , simulatorWalletBalance = ten
+                                       }
+                                 , SimulatorWallet
+                                       { simulatorWalletWallet = w2
+                                       , simulatorWalletBalance = ten
+                                       }
+                                 , SimulatorWallet
+                                       { simulatorWalletWallet = w3
+                                       , simulatorWalletBalance = ten
+                                       }
+                                 ])
   where
     ten = Ada.adaValueOf 10
     gameEvalFailure =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = w1
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w1, simulatorWalletBalance = ten}
             , SimulatorWallet
-                  { simulatorWalletWallet = w2
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w2, simulatorWalletBalance = ten}
             ]
             [ Action (Fn "startGame") w1 []
             , Action
@@ -309,13 +302,9 @@ gameSpec =
     gameEvalSuccess =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = w1
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w1, simulatorWalletBalance = ten}
             , SimulatorWallet
-                  { simulatorWalletWallet = w2
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w2, simulatorWalletBalance = ten}
             ]
             [ Action (Fn "startGame") w1 []
             , Action
@@ -329,39 +318,15 @@ gameSpec =
     payAll a b c =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = a
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = a, simulatorWalletBalance = ten}
             , SimulatorWallet
-                  { simulatorWalletWallet = b
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = b, simulatorWalletBalance = ten}
             , SimulatorWallet
-                  { simulatorWalletWallet = c
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = c, simulatorWalletBalance = ten}
             ]
-            [ Action
-                  (Fn "payToPublicKey_")
-                  a
-                  [ slotRange
-                  , nineAda
-                  , toJSONString (walletPubKey b)
-                  ]
-            , Action
-                  (Fn "payToPublicKey_")
-                  b
-                  [ slotRange
-                  , nineAda
-                  , toJSONString (walletPubKey c)
-                  ]
-            , Action
-                  (Fn "payToPublicKey_")
-                  c
-                  [ slotRange
-                  , nineAda
-                  , toJSONString (walletPubKey a)
-                  ]
+            [ Action (Fn "payToWallet_") a [slotRange, nineAda, toJSONString b]
+            , Action (Fn "payToWallet_") b [slotRange, nineAda, toJSONString c]
+            , Action (Fn "payToWallet_") c [slotRange, nineAda, toJSONString a]
             ]
             (sourceCode game)
             []
@@ -425,17 +390,11 @@ crowdfundingSpec =
     failedCampaign =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = w1
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w1, simulatorWalletBalance = ten}
             , SimulatorWallet
-                  { simulatorWalletWallet = w2
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w2, simulatorWalletBalance = ten}
             , SimulatorWallet
-                  { simulatorWalletWallet = w3
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w3, simulatorWalletBalance = ten}
             ]
             [ Action (Fn "scheduleCollection") w1 [theCampaign]
             , Action (Fn "contribute") w2 [theCampaign, theContribution]
@@ -446,17 +405,11 @@ crowdfundingSpec =
     successfulCampaign =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = w1
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w1, simulatorWalletBalance = ten}
             , SimulatorWallet
-                  { simulatorWalletWallet = w2
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w2, simulatorWalletBalance = ten}
             , SimulatorWallet
-                  { simulatorWalletWallet = w3
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w3, simulatorWalletBalance = ten}
             ]
             [ Action (Fn "scheduleCollection") w1 [theCampaign]
             , Action (Fn "contribute") w2 [theCampaign, theContribution]
@@ -465,8 +418,8 @@ crowdfundingSpec =
             ]
             (sourceCode crowdfunding)
             []
-
-    theCampaign = toJSONString $
+    theCampaign =
+        toJSONString $
         object
             [ "campaignDeadline" .= object ["getSlot" .= mkI 10]
             , "campaignTarget" .= object ["getAda" .= mkI 15]
