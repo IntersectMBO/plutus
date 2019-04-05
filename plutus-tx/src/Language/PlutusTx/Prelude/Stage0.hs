@@ -280,7 +280,3 @@ dropByteString = [|| Builtins.dropByteString ||]
 -- | Concatenates two 'SizedByteString's together.
 concatenate :: Q (TExp (Builtins.SizedByteString s -> Builtins.SizedByteString s -> Builtins.SizedByteString s))
 concatenate = [|| Builtins.concatenate ||]
-
--- | Resizes a 'SizedByteString'.
-resizeByteString :: Q (TExp (Builtins.SizedByteString s1 -> Builtins.SizedByteString s2))
-resizeByteString = [|| Builtins.resizeByteString ||]
