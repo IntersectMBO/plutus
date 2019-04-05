@@ -85,6 +85,12 @@
     \end{prooftree}
 
     \begin{prooftree}
+      \AxiomC{\(\validJ{\Gamma}\)}
+      \RightLabel{tysize}
+      \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{s}{\sizeK{}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{K}}{\istypeJ{A}{\typeK{}}}\)}
         \RightLabel{tyall}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\allT{\alpha}{K}{A}}{\typeK{}}}\)}
