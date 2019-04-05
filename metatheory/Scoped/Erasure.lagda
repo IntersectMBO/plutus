@@ -111,9 +111,12 @@ open import Algorithmic.Reduction as AR
 open import Algorithmic.Evaluation as AE
 open import Scoped.Reduction as SR
 open import Utils
-{-
+
 erase—→ : ∀{Γ K}{A : A.∥ Γ ∥ ⊢Nf⋆ K}{t t' : Γ ⊢ A} → t AR.—→ t' → erase t SR.—→ erase t'
 eraseVal : ∀{Γ K}{A : A.∥ Γ ∥ ⊢Nf⋆ K}{t : Γ ⊢ A} → AR.Value t → SR.Value (erase t)
+eraseE : ∀{Γ}{A : A.∥ Γ ∥ ⊢Nf⋆ *}{t : Γ ⊢ A} → AR.Error t → SR.Error (erase t)
+eraseE = {!!}
+
 eraseVal V-ƛ = V-ƛ "x" _ _
 eraseVal V-Λ_ = SR.V-Λ "x" _ _
 eraseVal V-wrap1 = V-wrap _ _ _
@@ -121,20 +124,15 @@ eraseVal (V-con cn) = V-con (eraseC cn)
 
 erase—→ (ξ-·₁ p)   = ξ-·₁ (erase—→ p)
 erase—→ (ξ-·₂ p q) = ξ-·₂ (eraseVal p) (erase—→ q)
-erase—→ (E-·₁ p) = {!E-!}
-erase—→ (E-·₂ p) = {!!}
 erase—→ (ξ-·⋆ p) = ξ-·⋆ (erase—→ p)
-erase—→ (E-·⋆ p) = {!!}
 erase—→ (β-ƛ p) = {!SR.β-ƛ!}
 erase—→ β-Λ = {!!}
 erase—→ β-wrap1 = β-wrap
-erase—→ (ξ-unwrap1 p) = {!!}
-erase—→ (E-unwrap1 p₁) = {!!}
+erase—→ (ξ-unwrap1 p) = ξ-unwrap (erase—→ p)
 erase—→ (β-builtin bn σ tel vtel) = {!!}
-erase—→ (ξ-builtin bn σ tel Bs Ds vtel p p' tel') = {!!}
-erase—→ (E-builtin bn σ tel Bs Ds vtel p p' tel') = {!!}
+erase—→ (ξ-builtin bn σ tel Bs Ds vtel p p' tel') = {!ξ-builtin!}
 
-
+{-
 lemma : {A : ∅ ⊢Nf⋆ *}(t : ∅ ⊢ A) →
   (Σ (∅ ⊢ A) λ t' → Σ (t AR.—→ t') λ p → AR.progress t ≡ step p
     × SR.progress (erase t) ≡ inj₂ (erase t' P., {!!}))

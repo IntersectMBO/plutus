@@ -59,6 +59,8 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ⊢ A → Set where
 \end{code}
 
 \begin{code}
+VTel : ∀ Γ Δ → (∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K) → List (Δ ⊢Nf⋆ *) → Set
+
 data Error :  ∀ {Γ} {A : ∥ Γ ∥ ⊢Nf⋆ *} → Γ ⊢ A → Set where
   -- a genuine runtime error returned from a builtin
   E-error : ∀{Γ}{A : ∥ Γ ∥ ⊢Nf⋆ *} → Error (error {Γ} A)
@@ -74,11 +76,21 @@ data Error :  ∀ {Γ} {A : ∥ Γ ∥ ⊢Nf⋆ *} → Γ ⊢ A → Set where
     → {pat : ∥ Γ ∥ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {arg : ∥ Γ ∥ ⊢Nf⋆ K}
     → {L : Γ ⊢ ne (μ1 · pat · arg)} → Error L → Error (unwrap1 L)
+  E-builtin : ∀{Γ}  → (bn : Builtin)
+    → let Δ ,, As ,, C = SIG bn in
+      (σ : ∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K)
+    → (tel : Tel Γ Δ σ As)
+    → ∀ Bs Ds
+    → (vtel : VTel Γ Δ σ Bs)
+    → ∀{C}{t : Γ ⊢ substNf σ C}
+    → Error t
+    → (p : Bs ++ (C ∷ Ds) ≡ As)
+    → (tel' : Tel Γ Δ σ Ds)
+    → Error (builtin bn σ tel)
 
 \end{code}
 
 \begin{code}
-VTel : ∀ Γ Δ → (∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K) → List (Δ ⊢Nf⋆ *) → Set
 VTel Γ Δ σ [] = ⊤
 VTel Γ Δ σ (A ∷ As) = Σ (Γ ⊢ substNf σ A) λ t → Value t × VTel Γ Δ σ As
 
@@ -420,6 +432,7 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ �
       —→
       builtin bn σ (reconstTel Bs Ds σ vtel t' p tel')
 
+{-
   E-builtin : ∀{Γ}  → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K)
@@ -433,7 +446,7 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ �
     → builtin bn σ tel
       —→
       error _
-
+-}
 
 \end{code}
 
@@ -543,5 +556,5 @@ progress (builtin bn σ X) | done VX = step (β-builtin bn σ X VX)
 progress (builtin bn σ X) | step Bs Ds vtel p q tel' =
   step (ξ-builtin bn σ X Bs Ds vtel p q tel')
 progress (builtin bn σ X) | error Bs Ds vtel p q tel' =
-  step (E-builtin bn σ X Bs Ds vtel p q tel')
+  error (E-builtin bn σ X Bs Ds vtel p q tel')
 progress (error A)        = error E-error

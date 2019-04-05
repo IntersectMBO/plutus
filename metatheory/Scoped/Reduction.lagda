@@ -42,7 +42,7 @@ data Error {n} : ScopedTm n → Set where
    E-· : {L M : ScopedTm n} → Error L → Error (L · M)
    E-·⋆ : {L : ScopedTm n}{A : ScopedTy ∥ n ∥} → Error L → Error (L ·⋆ A)
    E-unwrap : {L : ScopedTm n} → Error L → Error (unwrap L)
-   
+     
    -- runtime type errors
    -- these couldn't happen in the intrinsically typed version
    E-Λ·    : ∀{x K}{L : ScopedTm (T n)}{M : ScopedTm n} → Error (Λ x K L · M)
