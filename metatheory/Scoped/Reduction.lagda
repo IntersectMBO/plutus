@@ -35,14 +35,16 @@ data Value {n} : ScopedTm n → Set where
 -- a term that satisfies this predicate has an error term in it somewhere
 -- or we encountered a rumtime type error
 data Error {n} : ScopedTm n → Set where
+   -- a genuine runtime error returned from a builtin
    E-error : (A : ScopedTy ∥ n ∥) → Error (error A)
 
    -- error inside somewhere
-   E-·     : {L M : ScopedTm n} → Error L → Error (L · M)
-   E-·⋆    : {L : ScopedTm n}{A : ScopedTy ∥ n ∥} → Error L → Error (L ·⋆ A)
+   E-· : {L M : ScopedTm n} → Error L → Error (L · M)
+   E-·⋆ : {L : ScopedTm n}{A : ScopedTy ∥ n ∥} → Error L → Error (L ·⋆ A)
    E-unwrap : {L : ScopedTm n} → Error L → Error (unwrap L)
    
    -- runtime type errors
+   -- these couldn't happen in the intrinsically typed version
    E-Λ·    : ∀{x K}{L : ScopedTm (T n)}{M : ScopedTm n} → Error (Λ x K L · M)
    E-ƛ·⋆   : ∀{x}{B : ScopedTy ∥ n ∥}{L : ScopedTm (S n)}{A : ScopedTy ∥ n ∥}
      → Error (ƛ x B L ·⋆ A)

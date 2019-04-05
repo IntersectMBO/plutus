@@ -60,7 +60,21 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ⊢ A → Set where
 
 \begin{code}
 data Error :  ∀ {Γ} {A : ∥ Γ ∥ ⊢Nf⋆ *} → Γ ⊢ A → Set where
+  -- a genuine runtime error returned from a builtin
   E-error : ∀{Γ}{A : ∥ Γ ∥ ⊢Nf⋆ *} → Error (error {Γ} A)
+
+  -- error inside somewhere
+  E-·₁ : ∀{Γ}{A B : ∥ Γ ∥ ⊢Nf⋆ *} {L : Γ ⊢ A ⇒ B}{M : Γ ⊢ A}
+    → Error L → Error (L · M)
+  E-·₂ : ∀{Γ}{A B : ∥ Γ ∥ ⊢Nf⋆ *} {L : Γ ⊢ A ⇒ B}{M : Γ ⊢ A}
+    → Error M → Error (L · M)
+  E-·⋆ : ∀{Γ K}{B : ∥ Γ ∥ ,⋆ K ⊢Nf⋆ *}{L : Γ ⊢ Π B}{A : ∥ Γ ∥ ⊢Nf⋆ K}
+    → Error L → Error (L ·⋆ A)
+  E-unwrap : ∀{Γ K}
+    → {pat : ∥ Γ ∥ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {arg : ∥ Γ ∥ ⊢Nf⋆ K}
+    → {L : Γ ⊢ ne (μ1 · pat · arg)} → Error L → Error (unwrap1 L)
+
 \end{code}
 
 \begin{code}
@@ -332,6 +346,7 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ �
       --------------
     → V · M —→ V · M′
 
+{-
   E-·₁ : ∀ {Γ A B} {L : Γ ⊢ A ⇒ B} {M : Γ ⊢ A}
     → Error L
       -----------------
@@ -341,17 +356,17 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ �
     → Error M
       -----------------
     → L · M —→ error _
-
+-}
   ξ-·⋆ : ∀ {Γ K}{B : ∥ Γ ∥ ,⋆ K ⊢Nf⋆ *}{L L′ : Γ ⊢ Π B}{A}
     → L —→ L′
       -----------------
     → L ·⋆ A —→ L′ ·⋆ A
-
+{-
   E-·⋆ : ∀ {Γ K}{B : ∥ Γ ∥ ,⋆ K ⊢Nf⋆ *}{L : Γ ⊢ Π B}{A}
     → Error L
       -----------------
     → L ·⋆ A —→ error _
-
+-}
   β-ƛ : ∀ {Γ A B} {N : Γ , A ⊢ B} {W : Γ ⊢ A}
     → Value W
       -------------------
@@ -373,14 +388,14 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ �
     → {M M' : Γ ⊢ ne (μ1 · pat · arg)}
     → M —→ M'
     → unwrap1 M —→ unwrap1 M'
-
+{-
   E-unwrap1 : ∀{Γ K}
     → {pat : ∥ Γ ∥ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {arg : ∥ Γ ∥ ⊢Nf⋆ K}
     → {M : Γ ⊢ ne (μ1 · pat · arg)}
     → Error M
     → unwrap1 M —→ error _
-
+-}
 
   β-builtin : ∀{Γ}
     → (bn : Builtin)
@@ -504,20 +519,20 @@ progressTel {As = A ∷ As} (t ,, tel) | done vt | error Bs Ds vtel E q tel' = e
 progress (` ())
 progress (ƛ M) = done V-ƛ
 progress (M · N) with progress M
-...                   | error EM  = step (E-·₁ EM)
+...                   | error EM  = error (E-·₁ EM)
 progress (M · N)      | step p = step (ξ-·₁ p)
 progress (.(ƛ _) · N) | done V-ƛ with progress N
-...                              | error EN  = step (E-·₂ EN)
+...                              | error EN  = error (E-·₂ EN)
 progress (.(ƛ _) · N) | done V-ƛ | step p  = step (ξ-·₂ V-ƛ p)
 progress (.(ƛ _) · N) | done V-ƛ | done VN = step (β-ƛ VN)
 progress (Λ M) = done V-Λ_
 progress (M ·⋆ A) with progress M
-...               | error EM  = step (E-·⋆ EM)
+...               | error EM = error (E-·⋆ EM)
 progress (M ·⋆ A) | step p = step (ξ-·⋆ p)
 progress (.(Λ _) ·⋆ A) | done V-Λ_ = step β-Λ
 progress (wrap1 pat arg term) = done V-wrap1
-progress (unwrap1 M)       with progress M
-...                  | error EM  = step (E-unwrap1 EM)
+progress (unwrap1 M) with progress M
+...                  | error EM  = error (E-unwrap EM)
 progress (unwrap1 M) | step p = step (ξ-unwrap1 p)
 progress (unwrap1 .(wrap1 _ _ _)) | done V-wrap1 = step β-wrap1
 progress (con (integer s i x))    = done (V-con _)
