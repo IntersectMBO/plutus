@@ -53,32 +53,7 @@
     openssh.authorizedKeys.keys = machines.playgroundSshKeys;
     packages = [ serviceSystemctl ];
   };
-  
-  services.dd-agent = {
-    enable = true;
-    hostname = "${node.dns}";
-    api_key = datadogKey;
-    tags = [];
-  };
-  
-  systemd.services.dogstatsd.serviceConfig = pkgs.lib.mkForce {
-    ExecStart = "${pkgs.dd-agent}/bin/dogstatsd";
-    User = "datadog";
-    Group = "datadog";
-  };
 
-  systemd.timers.healthcheck = {
-    wantedBy = [ "timers.target" ];
-    partOf = [ "healthcheck.service" ];
-    timerConfig.OnCalendar = "minutely";
-  };
-
-  systemd.services.healthcheck = {
-    serviceConfig.Type = "oneshot";
-    script = "curl localhost/api/health";
-    path = [ pkgs.curl ];
-  };
-  
   # lets make things a bit more secure
   systemd.services.nginx.serviceConfig = {
     # nginx can't deal with DynamicUser because the nixos module isn't made for it
