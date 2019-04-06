@@ -94,6 +94,7 @@ import           Data.Map                   (Map)
 import qualified Data.Map                   as Map
 import           Data.Maybe
 import qualified Data.Set                   as Set
+import           Data.Swagger               (ToSchema)
 import qualified Data.Text                  as T
 import           Data.Traversable           (for)
 import           GHC.Generics               (Generic)
@@ -117,7 +118,7 @@ import qualified Wallet.Emulator.AddressMap as AM
 newtype Wallet = Wallet { getWallet :: Int }
     deriving (Show, Eq, Ord, Generic)
     deriving newtype (ToHttpApiData, FromHttpApiData, Hashable)
-    deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey)
+    deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey, ToSchema)
         
 -- | Get a wallet's public key.
 walletPubKey :: Wallet -> PubKey

@@ -15,7 +15,7 @@ module Playground.Contract
     , FromJSON
     , FunctionSchema
     , Generic
-    , payToPublicKey_
+    , payToWallet_
     , MockWallet
     , ByteString
     , printSchemas
@@ -40,12 +40,16 @@ import           Data.List.NonEmpty          (NonEmpty ((:|)))
 import           Data.Swagger                (Schema, ToSchema)
 import           GHC.Generics                (Generic)
 import           Ledger.Validation           (ValidatorHash (ValidatorHash))
+import           Ledger.Value                (Value)
 import           Playground.API              (FunctionSchema, KnownCurrency (KnownCurrency), TokenId (TokenId))
 import           Playground.Interpreter.Util
 import           Playground.TH               (mkFunction, mkFunctions, mkKnownCurrencies, mkSingleFunction)
-import           Wallet.API                  (payToPublicKey_)
-import           Wallet.Emulator             (addBlocksAndNotify, runWalletActionAndProcessPending)
+import           Wallet.API                  (SlotRange, WalletAPI, payToPublicKey_)
+import           Wallet.Emulator             (addBlocksAndNotify, runWalletActionAndProcessPending, walletPubKey)
 import           Wallet.Emulator.Types       (MockWallet, Wallet (..))
+
+payToWallet_ :: (Monad m, WalletAPI m) => SlotRange -> Value -> Wallet -> m ()
+payToWallet_ r v = payToPublicKey_ r v . walletPubKey
 
 -- We need to work with lazy 'ByteString's in contracts,
 -- but 'ByteArrayAccess' (which we need for hashing) is only defined for strict
@@ -55,11 +59,11 @@ instance ByteArrayAccess ByteString where
     length = BA.length . BSL.toStrict
     withByteArray ba = BA.withByteArray (BSL.toStrict ba)
 
-$(mkSingleFunction 'payToPublicKey_)
+$(mkSingleFunction 'payToWallet_)
 
 printSchemas :: ([FunctionSchema Schema], [KnownCurrency]) -> IO ()
 printSchemas (schemas, currencies) =
-    LBC8.putStrLn . encode $ (schemas <> [payToPublicKey_Schema], currencies)
+    LBC8.putStrLn . encode $ (schemas <> [payToWallet_Schema], currencies)
 
 printJson :: ToJSON a => a -> IO ()
 printJson = LBC8.putStrLn . encode
