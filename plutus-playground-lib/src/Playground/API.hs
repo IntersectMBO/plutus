@@ -80,7 +80,8 @@ data SimulatorWallet = SimulatorWallet
   { simulatorWalletWallet  :: Wallet
   , simulatorWalletBalance :: V.Value
   }
-  deriving (Show, Generic, Eq, ToJSON, FromJSON)
+  deriving stock (Show, Generic, Eq)
+  deriving anyclass (ToJSON, FromJSON)
 
 data Evaluation = Evaluation
   { wallets    :: [SimulatorWallet]
