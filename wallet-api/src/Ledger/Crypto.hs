@@ -31,7 +31,7 @@ import           Codec.Serialise.Class      (Serialise)
 import           Control.Newtype.Generics   (Newtype)
 import qualified Crypto.ECC.Ed25519Donna    as ED25519
 import           Crypto.Error               (throwCryptoError)
-import           Data.Aeson                 (FromJSON (parseJSON), FromJSONKey, ToJSON (toJSON), ToJSONKey)
+import           Data.Aeson                 (FromJSON (parseJSON), FromJSONKey, ToJSON (toJSON), ToJSONKey, (.:))
 import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import qualified Data.ByteArray             as BA
@@ -80,10 +80,21 @@ instance ToSchema Signature where
     declareNamedSchema _ = pure $ NamedSchema (Just "Signature") byteSchema
 
 instance ToJSON Signature where
-    toJSON = JSON.String . JSON.encodeByteString . BSL.toStrict . Builtins.unSizedByteString . getSignature
+  toJSON signature =
+    JSON.object
+      [ ( "getSignature"
+        , JSON.String .
+          JSON.encodeByteString .
+          BSL.toStrict . Builtins.unSizedByteString . getSignature $
+          signature)
+      ]
 
 instance FromJSON Signature where
-    parseJSON v = Signature . Builtins.SizedByteString . BSL.fromStrict <$> JSON.decodeByteString v
+  parseJSON =
+    JSON.withObject "Signature" $ \object -> do
+      raw <- object .: "getSignature"
+      bytes <- JSON.decodeByteString raw
+      pure . Signature . Builtins.SizedByteString . BSL.fromStrict $ bytes
 
 makeLift ''Signature
 

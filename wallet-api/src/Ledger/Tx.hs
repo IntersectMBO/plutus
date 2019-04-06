@@ -129,7 +129,8 @@ data Tx = Tx {
     -- ^ The 'SlotRange' during which this transaction may be validated.
     txSignatures :: Map PubKey Signature
     -- ^ Signatures of this transaction
-    } deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON)
+    } deriving stock (Show, Eq, Ord, Generic)
+      deriving anyclass (ToJSON, FromJSON, Serialise)
 
 -- | The inputs of a transaction.
 inputs :: Lens' Tx (Set.Set TxIn)
