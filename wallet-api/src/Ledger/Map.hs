@@ -7,6 +7,7 @@ module Ledger.Map(
     , singleton
     , empty
     , fromList
+    , keys
     , map
     , lookup
     , union
@@ -50,3 +51,7 @@ these = $$(TH.these)
 
 fromList :: [(k, v)] -> Map k v
 fromList = $$(TH.fromList)
+
+-- | See 'Ledger.Mpa.TH.keys'.
+keys :: Map k v -> [k]
+keys = $$(TH.keys)

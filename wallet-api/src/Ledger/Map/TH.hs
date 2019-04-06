@@ -14,6 +14,7 @@ module Ledger.Map.TH(
     , singleton
     , empty
     , fromList
+    , keys
     , map
     , lookup
     , union
@@ -83,6 +84,14 @@ lookup = [||
     in
         lookup
  ||]
+
+-- | The keys of a 'Map'.
+keys :: Q (TExp (Map k v -> [k]))
+keys = [|| 
+    let keys' :: Map k v -> [k]
+        keys' (Map xs) = $$(P.map) (\(k, _) -> k) xs
+    in keys'
+    ||]
 
 -- | Combine two 'Map's.
 union :: Q (TExp (IsEqual k -> Map k v -> Map k r -> Map k (These v r)))

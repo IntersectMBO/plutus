@@ -210,7 +210,7 @@ data EmulatorEvent =
     -- ^ A 'WalletAPI' action produced an error.
     | WalletInfo Wallet T.Text
     -- ^ Debug information produced by a wallet.
-    deriving (Eq, Ord, Show, Generic)
+    deriving (Eq, Show, Generic)
 
 instance FromJSON EmulatorEvent
 instance ToJSON EmulatorEvent

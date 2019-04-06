@@ -4,14 +4,15 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -- | Functions for working with 'Value' in Haskell.
 module Ledger.Value(
-      Value
-    , CurrencySymbol
+      Value(..)
+    , CurrencySymbol(..)
     , currencySymbol
     , TokenName
     , tokenName
     , singleton
     , valueOf
     , scale
+    , symbols
       -- * Constants
     , zero
       -- * Num operations
@@ -62,6 +63,10 @@ valueOf = $$(TH.valueOf)
 -- | See 'TH.scale'.
 scale :: Int -> Value -> Value
 scale = $$(TH.scale)
+
+-- | See 'TH.symbols'.
+symbols :: Value -> [CurrencySymbol]
+symbols = $$(TH.symbols)
 
 -- | See 'TH.zero'.
 zero :: Value

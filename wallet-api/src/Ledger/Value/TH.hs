@@ -9,11 +9,11 @@
 -- | Functions for working with 'Value' in Template Haskell.
 module Ledger.Value.TH(
     -- ** Currency symbols
-      CurrencySymbol
+      CurrencySymbol(..)
     , currencySymbol
     , eqCurSymbol
     -- ** Token names
-    , TokenName
+    , TokenName(..)
     , tokenName
     , eqTokenName
     -- ** Value
@@ -21,6 +21,7 @@ module Ledger.Value.TH(
     , singleton
     , valueOf
     , scale
+    , symbols
       -- * Constants
     , zero
       -- * Num operations
@@ -170,6 +171,10 @@ valueOf = [||
             Nothing -> 0
             Just v  -> v
    ||]
+
+-- | The list of 'CurrencySymbol's of a 'Value'.
+symbols :: Q (TExp (Value -> [CurrencySymbol]))
+symbols = [|| \(Value mp) -> $$(Map.keys) mp ||]
 
 -- | Make a 'Value' containing only the given quantity of the given currency.
 singleton :: Q (TExp (CurrencySymbol -> TokenName -> Int -> Value))
