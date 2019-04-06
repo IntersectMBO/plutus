@@ -293,7 +293,7 @@ valueScalarDistrib = property $ do
 
 selectCoinProp :: Property
 selectCoinProp = property $ do
-    inputs <- forAll $ zip [1..] <$> Gen.list (Range.linear 1 1000) Gen.genValueNonNegative
+    inputs <- forAll $ zip [1..] <$> Gen.list (Range.linear 1 100) Gen.genValueNonNegative
     target <- forAll Gen.genValueNonNegative
     let result = runExcept (selectCoin inputs target)
     case result of

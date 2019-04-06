@@ -8,9 +8,16 @@
 {-# LANGUAGE LambdaCase         #-}
 -- | Functions for working with 'Value' in Template Haskell.
 module Ledger.Value.TH(
-      Value(..)
-    , CurrencySymbol
+    -- ** Currency symbols
+      CurrencySymbol
     , currencySymbol
+    , eqCurSymbol
+    -- ** Token names
+    , TokenName
+    , tokenName
+    , eqTokenName
+    -- ** Value
+    , Value(..)
     , singleton
     , valueOf
     , scale
@@ -44,7 +51,6 @@ import           Language.PlutusTx.Lift       (makeLift)
 import qualified Language.PlutusTx.Prelude    as P
 import           Language.Haskell.TH          (Q, TExp)
 import qualified Ledger.Map.TH                as Map
-import qualified Ledger.These.TH              as These
 import           Prelude                      hiding (all, lookup, negate)
 import           LedgerBytes                  (LedgerBytes(LedgerBytes))
 
@@ -80,6 +86,38 @@ eqCurSymbol = [|| \(CurrencySymbol l) (CurrencySymbol r) -> $$(P.equalsByteStrin
 currencySymbol :: Q (TExp (P.ByteString -> CurrencySymbol))
 currencySymbol = [|| CurrencySymbol ||]
 
+newtype TokenName = TokenName { unTokenName :: Builtins.SizedByteString 32 }
+    deriving (Show, ToJSONKey, FromJSONKey, Serialise) via LedgerBytes
+    deriving stock (Eq, Ord, Generic)
+
+instance ToSchema TokenName where
+    declareNamedSchema _ = pure $ S.NamedSchema (Just "TokenName") byteSchema
+
+instance ToJSON TokenName where
+    toJSON tokenName =
+        JSON.object
+        [ ( "unTokenName"
+            , JSON.String .
+            JSON.encodeByteString .
+            BSL.toStrict . Builtins.unSizedByteString . unTokenName $
+            tokenName)
+        ]
+
+instance FromJSON TokenName where
+    parseJSON =
+        JSON.withObject "TokenName" $ \object -> do
+        raw <- object .: "unTokenName"
+        bytes <- JSON.decodeByteString raw
+        pure . TokenName . Builtins.SizedByteString . BSL.fromStrict $ bytes
+
+makeLift ''TokenName
+
+eqTokenName :: Q (TExp (TokenName -> TokenName -> Bool))
+eqTokenName = [|| \(TokenName l) (TokenName r) -> $$(P.equalsByteString) l r ||]
+
+tokenName :: Q (TExp (P.ByteString -> TokenName))
+tokenName = [|| TokenName ||]
+
 -- | A cryptocurrency value. This is a map from 'CurrencySymbol's to a
 -- quantity of that currency.
 --
@@ -95,7 +133,7 @@ currencySymbol = [|| CurrencySymbol ||]
 -- taken to be zero.
 --
 -- See note [Currencies] for more details.
-newtype Value = Value { getValue :: Map.Map CurrencySymbol Int }
+newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Int) }
     deriving (Show)
     deriving stock (Generic)
     deriving anyclass (ToSchema, ToJSON, FromJSON)
@@ -122,33 +160,50 @@ similar to 'Ledger.Ada' for their own currencies.
 -}
 
 -- | Get the quantity of the given currency in the 'Value'.
-valueOf :: Q (TExp (Value -> CurrencySymbol -> Int))
+valueOf :: Q (TExp (Value -> CurrencySymbol -> TokenName -> Int))
 valueOf = [||
-  \(Value mp) cur ->
-      case $$(Map.lookup) $$(eqCurSymbol) cur mp of
+  \(Value mp) cur tn ->
+      let lkp = $$(Map.lookup) in
+      case lkp $$(eqCurSymbol) cur mp of
         Nothing -> 0 :: Int
-        Just i  -> i
+        Just i  -> case lkp $$(eqTokenName) tn i of
+            Nothing -> 0
+            Just v  -> v
    ||]
 
 -- | Make a 'Value' containing only the given quantity of the given currency.
-singleton :: Q (TExp (CurrencySymbol -> Int -> Value))
-singleton = [|| \c i -> Value ($$(Map.singleton) c i) ||]
+singleton :: Q (TExp (CurrencySymbol -> TokenName -> Int -> Value))
+singleton = [|| \c tn i -> Value ($$(Map.singleton) c ($$(Map.singleton) tn i)) ||]
+
+-- | Combine two 'Value' maps 
+unionVal :: Q (TExp (Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (Map.These Int Int))))
+unionVal = [|| 
+    \(Value l) (Value r) -> 
+        let 
+            combined = $$(Map.union) $$(eqCurSymbol) l r
+            unThese k = case k of
+                Map.This a    -> $$(Map.map) (Map.This) a
+                Map.That b    -> $$(Map.map) (Map.That) b
+                Map.These a b -> $$(Map.union) $$(eqTokenName) a b
+        in ($$(Map.map) unThese combined)
+
+        ||]
 
 unionWith :: Q (TExp ((Int -> Int -> Int) -> Value -> Value -> Value))
 unionWith = [||
-  \f (Value ls) (Value rs) ->
+  \f ls rs ->
     let
-        combined = $$(Map.union) $$(eqCurSymbol) ls rs
-        unThese k = case k of
-            Map.This a    -> f a 0
-            Map.That b    -> f 0 b
+        combined = $$unionVal ls rs
+        unThese k' = case k' of
+            Map.This a -> f a 0
+            Map.That b -> f 0 b
             Map.These a b -> f a b
-    in Value ($$(Map.map) unThese combined)
+    in Value ($$(Map.map) ($$(Map.map) unThese) combined)
   ||]
 
 -- | Multiply all the quantities in the 'Value' by the given scale factor.
 scale :: Q (TExp (Int -> Value -> Value))
-scale = [|| \i (Value xs) -> Value ($$(Map.map) (\i' -> $$(P.multiply) i i') xs) ||]
+scale = [|| \i (Value xs) -> Value ($$(Map.map) ($$(Map.map) (\i' -> $$(P.multiply) i i')) xs) ||]
 
 -- Num operations
 
@@ -174,49 +229,50 @@ zero = [|| Value $$(Map.empty) ||]
 
 -- | Check whether a 'Value' is zero.
 isZero :: Q (TExp (Value -> Bool))
-isZero = [|| \(Value xs) -> $$(Map.all) (\i -> $$(P.eq) 0 i) xs ||]
+isZero = [|| \(Value xs) -> $$(Map.all) ($$(Map.all) (\i -> $$(P.eq) 0 i)) xs ||]
+
+checkPred :: Q (TExp ((Map.These Int Int -> Bool) -> Value -> Value -> Bool))
+checkPred = [||
+    let checkPred' :: (Map.These Int Int -> Bool) -> Value -> Value -> Bool
+        checkPred' f l r = 
+            let
+                all = $$(Map.all)
+            in
+                all (all f) ($$unionVal l r)
+    in checkPred'
+     ||]
+
+-- | Check whether a binary relation holds for value pairs of two 'Value' maps,
+--   supplying 0 where a key is only present in one of them.
+checkBinRel :: Q (TExp ((Int -> Int -> Bool) -> Value -> Value -> Bool))
+checkBinRel = [||
+    let checkBinRel' :: (Int -> Int -> Bool) -> Value -> Value -> Bool
+        checkBinRel' f l r =
+            let 
+                unThese k' = case k' of
+                    Map.This a    -> f a 0
+                    Map.That b    -> f 0 b
+                    Map.These a b -> f a b
+            in $$checkPred unThese l r
+    in checkBinRel'
+    ||]
 
 -- | Check whether one 'Value' is greater than or equal to another. See 'Value' for an explanation of how operations on 'Value's work.
 geq :: Q (TExp (Value -> Value -> Bool))
-geq = [||
-  \(Value ls) (Value rs) ->
-    let
-        p = $$(These.theseWithDefault) 0 0 $$(P.geq)
-    in
-        $$(Map.all) p ($$(Map.union) $$(eqCurSymbol) ls rs) ||]
+geq = [|| $$checkBinRel $$(P.geq) ||]
 
 -- | Check whether one 'Value' is strictly greater than another. See 'Value' for an explanation of how operations on 'Value's work.
 gt :: Q (TExp (Value -> Value -> Bool))
-gt = [||
-    \(Value ls) (Value rs) ->
-    let
-        p = $$(These.theseWithDefault) 0 0 $$(P.gt)
-    in
-        $$(Map.all) p ($$(Map.union) $$(eqCurSymbol) ls rs) ||]
+gt = [|| $$checkBinRel $$(P.gt) ||]
 
 -- | Check whether one 'Value' is less than or equal to another. See 'Value' for an explanation of how operations on 'Value's work.
 leq :: Q (TExp (Value -> Value -> Bool))
-leq = [||
-    \(Value ls) (Value rs) ->
-    let
-        p = $$(These.theseWithDefault) 0 0 $$(P.leq)
-    in
-        $$(Map.all) p ($$(Map.union) $$(eqCurSymbol) ls rs) ||]
+leq = [|| $$checkBinRel $$(P.leq) ||]
 
 -- | Check whether one 'Value' is strictly less than another. See 'Value' for an explanation of how operations on 'Value's work.
 lt :: Q (TExp (Value -> Value -> Bool))
-lt = [||
-    \(Value ls) (Value rs) ->
-    let
-        p = $$(These.theseWithDefault) 0 0 $$(P.lt)
-    in
-        $$(Map.all) p ($$(Map.union) $$(eqCurSymbol) ls rs) ||]
+lt = [|| $$checkBinRel $$(P.lt) ||]
 
 -- | Check whether one 'Value' is equal to another. See 'Value' for an explanation of how operations on 'Value's work.
 eq :: Q (TExp (Value -> Value -> Bool))
-eq = [||
-    \(Value ls) (Value rs) ->
-    let
-        p = $$(These.theseWithDefault) 0 0 $$(P.eq)
-    in
-        $$(Map.all) p ($$(Map.union) $$(eqCurSymbol) ls rs) ||]
+eq = [|| $$checkBinRel $$(P.eq) ||]

@@ -7,6 +7,8 @@ module Ledger.Value(
       Value
     , CurrencySymbol
     , currencySymbol
+    , TokenName
+    , tokenName
     , singleton
     , valueOf
     , scale
@@ -27,7 +29,7 @@ module Ledger.Value(
     ) where
 
 import qualified Ledger.Value.TH as TH
-import           Ledger.Value.TH (CurrencySymbol, Value)
+import           Ledger.Value.TH (CurrencySymbol, TokenName, Value)
 import           Prelude         hiding (negate)
 import qualified Language.PlutusTx.Prelude    as P
 
@@ -46,12 +48,15 @@ instance Monoid Value where
 currencySymbol :: P.ByteString -> CurrencySymbol
 currencySymbol = $$(TH.currencySymbol)
 
+tokenName :: P.ByteString -> TokenName
+tokenName = $$(TH.tokenName)
+
 -- | See 'TH.singleton'.
-singleton :: CurrencySymbol -> Int -> Value
+singleton :: CurrencySymbol -> TokenName -> Int -> Value
 singleton = $$(TH.singleton)
 
 -- | See 'TH.valueOf'.
-valueOf :: Value -> CurrencySymbol -> Int
+valueOf :: Value -> CurrencySymbol -> TokenName -> Int
 valueOf = $$(TH.valueOf)
 
 -- | See 'TH.scale'.

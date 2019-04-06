@@ -228,11 +228,17 @@ genValue' valueRange = do
                     [ Value.currencySymbol <$> genSizedByteStringExact
                     , pure Ada.adaSymbol
                     ]
-        sngl      = Value.singleton <$> currency <*> Gen.int valueRange
 
-        -- generate values with no more than 10 elements to avoid the tests
+        -- token is either an arbitrary bytestring or the ada token name
+        token   = Gen.choice 
+                    [ Value.tokenName <$> genSizedByteString
+                    , pure Ada.adaToken
+                    ]
+        sngl      = Value.singleton <$> currency <*> token <*> Gen.int valueRange
+
+        -- generate values with no more than 5 elements to avoid the tests
         -- taking too long (due to the map-as-list-of-kv-pairs implementation)
-        maxCurrencies = 10
+        maxCurrencies = 5
 
     numValues <- Gen.int (Range.linear 0 maxCurrencies)
     fold <$> traverse (const sngl) [0 .. numValues]
