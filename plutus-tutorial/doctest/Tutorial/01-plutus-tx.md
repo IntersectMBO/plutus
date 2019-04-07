@@ -252,14 +252,11 @@ we need to apply the function to it.
 >>> pretty $ runCk program
 (con 8 ! 5)
 -}
-addOneToN :: Int -> Program TyName Name ()
-addOneToN n = (getPlc addOne) `applyProgram` unsafeLiftProgram n
+addOneToN :: Int -> CompiledCode Int
+addOneToN n = addOne `applyCode` unsafeLiftCode n
 ```
 
-`Program` is a real PLC program, extracted from the `CompiledCode` wrapper. In later
-tutorials we'll see some higher-level functions that hide this from us.
-
-We lifted the argument `n` using the `unsafeLiftProgram` function ("unsafe" because
+We lifted the argument `n` using the `unsafeLiftCode` function ("unsafe" because
 we're ignoring any errors that might occur from lifting something that we don't support).
 In order to use this, a type must have an instance of the `Lift` class. In
 practice, you should generate these with the `makeLift` TH function from
@@ -283,11 +280,11 @@ makeLift ''EndDate
   out_Bool (type) (lam case_True out_Bool (lam case_False out_Bool case_False))
 )
 -}
-pastEndAt :: EndDate -> Int -> Program TyName Name ()
+pastEndAt :: EndDate -> Int -> CompiledCode Bool
 pastEndAt end current =
-    (getPlc pastEnd)
-    `applyProgram`
-    unsafeLiftProgram end
-    `applyProgram`
-    unsafeLiftProgram current
+    pastEnd
+    `applyCode`
+    unsafeLiftCode end
+    `applyCode`
+    unsafeLiftCode current
 ```
