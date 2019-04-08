@@ -101,7 +101,7 @@ tests = testGroup "all tests" [
       "CurrencySymbol"
       (let jsonString :: BSL.ByteString
            jsonString = "{\"getValue\":[[{\"unCurrencySymbol\":\"00\"},50]]}"
-           value = Value (Ledger.Map.singleton (Value.currencySymbol "00") 50)
+           value = Value (Ledger.Map.singleton "00" 50)
         in [ testCase "decoding" $
              HUnit.assertEqual "Simple Decode" (Right value) (JSON.eitherDecode jsonString)
            , testCase "encoding" $ HUnit.assertEqual "Simple Encode" jsonString (JSON.encode value)
