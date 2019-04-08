@@ -21,9 +21,11 @@ library
     exposed-modules:
         Language.PlutusTx.Coordination.Contracts
         Language.PlutusTx.Coordination.Contracts.CrowdFunding
+        Language.PlutusTx.Coordination.Contracts.Currency
         Language.PlutusTx.Coordination.Contracts.Future
         Language.PlutusTx.Coordination.Contracts.Game
         Language.PlutusTx.Coordination.Contracts.MultiSig
+        Language.PlutusTx.Coordination.Contracts.PubKey
         Language.PlutusTx.Coordination.Contracts.Vesting
         Language.PlutusTx.Coordination.Contracts.Swap
     hs-source-dirs: src
@@ -43,7 +45,8 @@ library
         template-haskell -any,
         plutus-tx -any,
         wallet-api -any,
-        lens -any
+        lens -any,
+        text -any
 
 test-suite plutus-use-cases-test
     type: exitcode-stdio-1.0
@@ -51,6 +54,7 @@ test-suite plutus-use-cases-test
     hs-source-dirs: test
     other-modules:
         Spec.Crowdfunding
+        Spec.Currency
         Spec.Future
         Spec.Game
         Spec.MultiSig

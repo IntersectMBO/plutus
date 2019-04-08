@@ -288,7 +288,12 @@ isZero = [||
 checkPred :: Q (TExp ((Map.These Int Int -> Bool) -> Value -> Value -> Bool))
 checkPred = [||
     let checkPred' :: (Map.These Int Int -> Bool) -> Value -> Value -> Bool
-        checkPred' f l r = $$(Map.all) ($$(Map.all) f) ($$unionVal l r)
+        checkPred' f l r = 
+          let
+            inner :: Map.Map TokenName (Map.These Int Int) -> Bool
+            inner = ($$(Map.all) f)
+          in
+            $$(Map.all) inner ($$unionVal l r)
     in checkPred'
      ||]
 

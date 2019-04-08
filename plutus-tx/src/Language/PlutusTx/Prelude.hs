@@ -5,6 +5,8 @@ module Language.PlutusTx.Prelude (
     toPlutusString,
     trace,
     traceH,
+    traceIfTrueH,
+    traceIfFalseH,
     -- * Error
     error,
     -- * Boolean operators

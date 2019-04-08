@@ -30,6 +30,7 @@ module Wallet.API(
     collectFromScriptTxn,
     ownPubKeyTxOut,
     outputsAt,
+    register,
     -- * Slot ranges
     Interval(..),
     SlotRange,
@@ -60,6 +61,7 @@ module Wallet.API(
     addresses,
     -- AnnTriggerF,
     getAnnot,
+    unAnnot,
     annTruthValue,
     -- * Error handling
     WalletAPIError(..),
@@ -131,6 +133,10 @@ type EventTrigger = Fix EventTriggerF
 -- | Get the annotation on an 'AnnotatedEventTrigger'.
 getAnnot :: AnnotatedEventTrigger a -> a
 getAnnot = fst . getCompose . unfix
+
+-- | Remove annotations from an 'AnnotatedEventTrigger' 
+unAnnot :: AnnotatedEventTrigger a -> EventTrigger
+unAnnot = cata (embed . snd . getCompose)
 
 -- | @andT l r@ is true when @l@ and @r@ are true.
 andT :: EventTrigger -> EventTrigger -> EventTrigger
@@ -275,7 +281,7 @@ class WalletAPI m where
 
     * Triggers are run in order, so: @register c a >> register c b = register c (a >> b)@
     -}
-    register :: EventTrigger -> EventHandler m -> m ()
+    registerOnce :: EventTrigger -> EventHandler m -> m ()
 
     {- |
     The 'AddressMap' of all addresses currently watched by the wallet.
@@ -297,6 +303,10 @@ throwInsufficientFundsError = throwError . InsufficientFunds
 
 throwOtherError :: MonadError WalletAPIError m => Text -> m a
 throwOtherError = throwError . OtherError
+
+register :: (WalletAPI m, Monad m) => EventTrigger -> EventHandler m -> m ()
+register t h = registerOnce t h' where
+    h' = h <> (EventHandler $ \_ -> register t h)
 
 -- | Sign the transaction with the wallet's private key and add
 --   the signature to the transaction's list of signatures.
