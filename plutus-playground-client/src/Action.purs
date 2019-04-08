@@ -137,8 +137,9 @@ actionPane isValidWallet index action =
       [ div [ classes [ ClassName "action"
                       , ClassName ("action-" <> show index)
                       , ClassName ("action-" <> (case isValidWallet <$> (preview (_Action <<< _simulatorWallet <<< _simulatorWalletWallet) action) of
+                                                   Nothing -> "valid-wallet"
                                                    Just true ->  "valid-wallet"
-                                                   _ -> "invalid-wallet"))
+                                                   Just false ->  "invalid-wallet"))
                       ]
             ]
         [ div [ class_ card ]
