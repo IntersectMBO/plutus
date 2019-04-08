@@ -37,7 +37,7 @@ import Language.Haskell.Interpreter (SourceCode, InterpreterError, InterpreterRe
 import Ledger.Extra (LedgerMap(..))
 import Ledger.Tx (Tx)
 import Ledger.TxId (TxIdOf)
-import Ledger.Value.TH (CurrencySymbol, Value(..), _Value)
+import Ledger.Value.TH (CurrencySymbol, TokenName, Value(Value), _CurrencySymbol, _TokenName, _Value)
 import Matryoshka (class Corecursive, class Recursive, Algebra, cata)
 import Network.RemoteData (RemoteData)
 import Playground.API (CompilationResult, Evaluation(Evaluation), EvaluationResult, FunctionSchema, SimpleArgumentSchema(..), SimulatorWallet, _FunctionSchema, _SimulatorWallet)
@@ -60,8 +60,15 @@ _simulatorWalletBalance = _SimulatorWallet <<< prop (SProxy :: SProxy "simulator
 _walletId :: Lens' Wallet Int
 _walletId = _Wallet <<< prop (SProxy :: SProxy "getWallet")
 
-_value :: Lens' Value (LedgerMap CurrencySymbol Int)
+_value :: Lens' Value (LedgerMap CurrencySymbol (LedgerMap TokenName Int))
 _value = _Value <<< prop (SProxy :: SProxy "getValue")
+
+_currencySymbol :: Lens' CurrencySymbol String
+_currencySymbol = _CurrencySymbol <<< prop (SProxy :: SProxy "unCurrencySymbol")
+
+_tokenName :: Lens' TokenName String
+_tokenName = _TokenName <<< prop (SProxy :: SProxy "unTokenName")
+
 
 data Action
   = Action
