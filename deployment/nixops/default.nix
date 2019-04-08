@@ -23,7 +23,7 @@ let
   playgroundConfig = mkConfig "https://david.plutus.iohkdev.io" "playground.yaml";
   meadowConfig = mkConfig "https://david.marlowe.iohkdev.io" "marlowe.yaml";
   stdOverlays = [ overlays.journalbeat ];
-  options = { inherit stdOverlays machines defaultMachine plutus; datadogKey = secrets.datadogKey; };
+  options = { inherit stdOverlays machines defaultMachine plutus secrets; };
   defaultMachine = (import ./default-machine.nix) options;
   meadowOptions = options // { serviceConfig = meadowConfig;
                                serviceName = "meadow";

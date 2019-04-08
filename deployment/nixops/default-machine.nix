@@ -3,7 +3,9 @@
       nixpkgs.overlays = stdOverlays;
       nix = {
         # FIXME: https://github.com/NixOS/nixpkgs/pull/57910
-        nixPath = [ "nixpkgs=https://github.com/shmish111/nixpkgs/archive/f67d3215edfe40b8d3e494833f10ee78a2adfced.tar.gz"
+        # Changes from jbgi have been squashed into my repo as jbgi/prometheus2 wasn't working for unrelated reasons
+        # Once 19.03 is released we should upgrade to that and we should be able to remove this
+        nixPath = [ "nixpkgs=https://github.com/shmish111/nixpkgs/archive/c73222f0ef9ba859f72e5ea2fb16e3f0e0242492.tar.gz"
                   ];
         binaryCaches = [ https://hydra.iohk.io https://cache.nixos.org https://mantis-hydra.aws.iohkdev.io ];
         requireSignedBinaryCaches = false;
