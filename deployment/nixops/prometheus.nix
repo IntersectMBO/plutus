@@ -117,7 +117,7 @@ in
                     instance = "nixops";
                   };
                 }
-                
+
               ];
             }
             {
