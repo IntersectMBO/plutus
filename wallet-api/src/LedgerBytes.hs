@@ -58,13 +58,16 @@ fromHex = LedgerBytes . Builtins.SizedByteString . asBSLiteral
 --   servant instances for the Playground, and a convenient bridge
 --   type for PureScript.
 newtype LedgerBytes = LedgerBytes { getLedgerBytes :: Builtins.SizedByteString 32 } -- TODO: use strict bytestring
-    deriving (Eq, Ord, IsString, Serialise, Generic)
+    deriving (Eq, Ord, Serialise, Generic)
 
 bytes :: LedgerBytes -> BSL.ByteString
 bytes = Builtins.unSizedByteString . getLedgerBytes
 
 fromBytes :: BSL.ByteString -> LedgerBytes
 fromBytes = LedgerBytes . Builtins.SizedByteString
+
+instance IsString LedgerBytes where
+    fromString = fromHex . fromString
 
 instance Show LedgerBytes where
     show = Text.unpack . JSON.encodeByteString . BSL.toStrict . bytes

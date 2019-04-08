@@ -91,11 +91,15 @@ tests = testGroup "all tests" [
         testProperty "show-fromHex" ledgerBytesShowFromHexProp,
         testProperty "toJSON-fromJSON" ledgerBytesToJSONProp
         ],
+    testGroup "Value" [
+        testProperty "Value ToJSON/FromJSON" (jsonRoundTrip Gen.genValue),
+        testProperty "CurrencySymbol ToJSON/FromJSON" (jsonRoundTrip $ Value.currencySymbol <$> Gen.genSizedByteStringExact)
+    ],
     testGroup
       "CurrencySymbol"
       (let jsonString :: BSL.ByteString
-           jsonString = "{\"getValue\":[[{\"unCurrencySymbol\":\"0\"},50]]}"
-           value = Value (Ledger.Map.singleton (Value.currencySymbol "0") 50)
+           jsonString = "{\"getValue\":[[{\"unCurrencySymbol\":\"00\"},50]]}"
+           value = Value (Ledger.Map.singleton (Value.currencySymbol "00") 50)
         in [ testCase "decoding" $
              HUnit.assertEqual "Simple Decode" (Right value) (JSON.eitherDecode jsonString)
            , testCase "encoding" $ HUnit.assertEqual "Simple Encode" jsonString (JSON.encode value)
@@ -455,6 +459,14 @@ encodeSerialiseTest = property $ do
 
     Hedgehog.assert $ result == Aeson.ISuccess txt
 
+jsonRoundTrip :: (Show a, Eq a, JSON.FromJSON a, JSON.ToJSON a) => Hedgehog.Gen a -> Property
+jsonRoundTrip gen = property $ do
+    bts <- forAll gen
+    let enc    = JSON.toJSON bts
+        result = Aeson.iparse JSON.parseJSON enc
+
+    Hedgehog.assert $ result == Aeson.ISuccess bts
+
 ledgerBytesShowFromHexProp :: Property
 ledgerBytesShowFromHexProp = property $ do
     bts <- forAll $ LedgerBytes <$> Gen.genSizedByteString
@@ -469,3 +481,7 @@ ledgerBytesToJSONProp = property $ do
         result = Aeson.iparse JSON.parseJSON enc
 
     Hedgehog.assert $ result == Aeson.ISuccess bts
+
+valueToJSONProp :: Property
+valueToJSONProp = jsonRoundTrip Gen.genValue
+    

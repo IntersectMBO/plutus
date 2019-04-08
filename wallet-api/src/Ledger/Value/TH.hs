@@ -37,6 +37,7 @@ import qualified Data.Aeson.Extras            as JSON
 import qualified Data.ByteString.Lazy         as BSL
 import qualified Data.Swagger.Internal        as S
 import           Data.Swagger.Schema          (ToSchema(declareNamedSchema), byteSchema)
+import           Data.String                  (IsString)
 import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift       (makeLift)
@@ -48,7 +49,7 @@ import           Prelude                      hiding (all, lookup, negate)
 import           LedgerBytes                  (LedgerBytes(LedgerBytes))
 
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.SizedByteString 32 }
-    deriving (Show, ToJSONKey, FromJSONKey, Serialise) via LedgerBytes
+    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise) via LedgerBytes
     deriving stock (Eq, Ord, Generic)
 
 instance ToSchema CurrencySymbol where
