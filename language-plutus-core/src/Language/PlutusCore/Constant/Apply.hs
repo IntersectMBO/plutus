@@ -13,9 +13,13 @@ module Language.PlutusCore.Constant.Apply
     ( ConstAppError (..)
     , ConstAppResult (..)
     , ConstAppResultDef
+    , EvaluateConstApp
+    , EvaluateConstAppDef
     , makeConstAppResult
+    , runEvaluateConstApp
     , applyTypeSchemed
     , applyBuiltinName
+    , runApplyBuiltinName
     ) where
 
 import           Language.PlutusCore.Constant.Dynamic.Instances ()
@@ -130,6 +134,9 @@ instance Enum SizeVar where
 
 type EvaluateConstApp m = EvaluateT (InnerT ConstAppResult) m
 type EvaluateConstAppDef m = EvaluateConstApp m (Value TyName Name ())
+
+runEvaluateConstApp :: Evaluator Term m -> EvaluateConstApp m a -> m (ConstAppResult a)
+runEvaluateConstApp eval = unInnerT . runEvaluateT eval
 
 liftConstAppResult :: Monad m => ConstAppResult a -> EvaluateConstApp m a
 -- Could it be @yield . yield@?
@@ -279,3 +286,7 @@ applyBuiltinName SHA3                 = applyTypedBuiltinName typedSHA3         
 applyBuiltinName VerifySignature      = applyTypedBuiltinName typedVerifySignature      verifySignature
 applyBuiltinName EqByteString         = applyTypedBuiltinName typedEqByteString         (==)
 applyBuiltinName SizeOfInteger        = applyTypedBuiltinName typedSizeOfInteger        (const ())
+
+runApplyBuiltinName
+    :: Monad m => Evaluator Term m -> BuiltinName -> [Value TyName Name ()] -> m ConstAppResultDef
+runApplyBuiltinName eval name = runEvaluateConstApp eval . applyBuiltinName name

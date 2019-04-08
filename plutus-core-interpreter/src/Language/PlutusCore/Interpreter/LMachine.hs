@@ -254,7 +254,7 @@ evaluateFun ctx heap (Closure fun funEnv) argClosure =
 -- | This is a workaround (thanks to Roman) to get things working while the dynamic builtins interface is under development.
 applyEvaluateBuiltinName :: Heap -> Environment -> BuiltinName -> [Value TyName Name ()] -> ConstAppResultDef
 applyEvaluateBuiltinName heap env name =
-    runIdentity . runEvaluate (const $ Identity . evalL heap env) . applyBuiltinName name
+    runIdentity . runApplyBuiltinName (const $ Identity . evalL heap env) name
 
 evalL :: Heap -> Environment -> Plain Term -> EvaluationResultDef
 evalL heap env term = translateResult $ computeL [] heap (Closure term env)
