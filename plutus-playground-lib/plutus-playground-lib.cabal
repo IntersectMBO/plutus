@@ -45,7 +45,6 @@ library
     , lens
     , memory
     , mtl
-    , newtype-generics
     , servant
     , swagger2
     , template-haskell
