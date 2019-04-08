@@ -1,4 +1,4 @@
-{ mkInstance = { machines, defaultMachine, ... }: node: { config, pkgs, lib, ... }:
+{ mkInstance = { machines, defaultMachine, secrets, ... }: node: { config, pkgs, lib, ... }:
 
 let
     servers = [machines.meadowA machines.meadowB machines.playgroundA machines.playgroundB];
@@ -16,6 +16,7 @@ let
       expr = ''absent(servant_path_api_health_get_time_ms_count{instance="${node.dns}"}) > 0'';
       labels = {
         environment = machines.environment;
+        severity = "page";
       };
       annotations = {
         summary = "health check absent for ${node.dns}";
@@ -101,9 +102,9 @@ in
       rootUrl = "https://${machines.nixops.externalDns}/";
     };
 
-    services.prometheus = {
+    services.prometheus2 = {
         enable = true;
-        package = pkgs.prometheus_2;
+        alertmanagerURL = [ "localhost:9093" ];
         scrapeConfigs = [
             {
               job_name = "node";
@@ -136,11 +137,42 @@ in
             }
       ];
       rules = [promRules];
-      exporters = {
+    };
+
+    services.prometheus.exporters = {
         node = {
             enable = true;
             enabledCollectors = [ "systemd" ];
         };
+      };
+
+    services.prometheus.alertmanager = {
+      enable = true;
+      configuration = {
+        route = {
+          group_by = [ "alertname" "alias" ];
+          group_wait = "30s";
+          group_interval = "2m";
+          receiver = "team-pager";
+          routes = [
+            {
+              match = {
+                severity = "page";
+              };
+              receiver = "team-pager";
+            }
+          ];
+        };
+        receivers = [
+          {
+            name = "team-pager";
+            pagerduty_configs = [
+              {
+                service_key = secrets.pagerdutyKey;
+              }
+            ];
+          }
+        ];
       };
     };
 };
