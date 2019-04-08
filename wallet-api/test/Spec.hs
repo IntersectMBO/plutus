@@ -17,6 +17,7 @@ import           Data.Either                (isLeft, isRight)
 import           Data.Foldable              (fold, foldl', traverse_)
 import           Data.List                  (sort)
 import qualified Data.Map                   as Map
+import qualified Ledger.Map
 import           Data.Monoid                (Sum (..))
 import qualified Data.Set                   as Set
 import           Data.String                (IsString(fromString))
@@ -28,12 +29,14 @@ import qualified Language.PlutusTx.Builtins as Builtins
 import qualified Language.PlutusTx.Prelude  as PlutusTx
 import           Test.Tasty
 import           Test.Tasty.Hedgehog        (testProperty)
-
+import qualified Test.Tasty.HUnit as HUnit
+import           Test.Tasty.HUnit (testCase)
 import           LedgerBytes                as LedgerBytes
 import           Ledger
 import qualified Ledger.Ada                 as Ada
 import qualified Ledger.Index               as Index
 import qualified Ledger.Value               as Value
+import           Ledger.Value.TH            (CurrencySymbol,Value(Value))
 import           Wallet
 import qualified Wallet.API                 as W
 import           Wallet.Emulator
@@ -87,7 +90,16 @@ tests = testGroup "all tests" [
     testGroup "LedgerBytes" [
         testProperty "show-fromHex" ledgerBytesShowFromHexProp,
         testProperty "toJSON-fromJSON" ledgerBytesToJSONProp
-        ]
+        ],
+    testGroup
+      "CurrencySymbol"
+      (let jsonString :: BSL.ByteString
+           jsonString = "{\"getValue\":[[{\"unCurrencySymbol\":\"0\"},50]]}"
+           value = Value (Ledger.Map.singleton (Value.currencySymbol "0") 50)
+        in [ testCase "decoding" $
+             HUnit.assertEqual "Simple Decode" (Right value) (JSON.eitherDecode jsonString)
+           , testCase "encoding" $ HUnit.assertEqual "Simple Encode" jsonString (JSON.encode value)
+           ])
     ]
 
 wallet1, wallet2, wallet3 :: Wallet
