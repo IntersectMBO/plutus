@@ -1,36 +1,79 @@
 { mkInstance = { machines, defaultMachine, ... }: node: { config, pkgs, lib, ... }:
 
 let
-    nodeTarget = node: 
+    servers = [machines.meadowA machines.meadowB machines.playgroundA machines.playgroundB];
+    target = port: node:
         {
           targets = [
-            "${node.ip}:9100"
+            "${node.ip}:${port}"
           ];
           labels = {
             instance = "${node.dns}";
           };
         };
-    ekgTarget = node:
+    healthAbsent = node: {
+      alert = "${node.dns} absent";
+      expr = ''absent(servant_path_api_health_get_time_ms_count{instance="${node.dns}"}) > 0'';
+      labels = {
+        environment = machines.environment;
+      };
+      annotations = {
+        summary = "health check absent for ${node.dns}";
+      };
+    };
+    nodeTargets = map (target "9100") servers;
+    ekgTargets = map (target "9091") servers;
+    nginxTargets = map (target "9113") servers;
+    healthAbsentRules = map healthAbsent servers;
+    promRules = builtins.toJSON {
+      groups = [
         {
-          targets = [
-            "${node.ip}:9091"
+          name = "general health alerts";
+          rules = healthAbsentRules ++ [
+            {
+              alert = "HighCPU";
+              expr = ''100 - (avg by (instance) (irate(node_cpu_seconds_total{job="node",mode="idle"}[5m])) * 100) > 80'';
+              labels = {
+                environment = machines.environment;
+              };
+              annotations = {
+                summary = "CPU is too high, instances may need to be scaled";
+              };
+            }
+            {
+              alert = "Health4XX";
+              expr = "rate(servant_path_api_health_get_responses_4XX[5m]) > 0";
+              labels = {
+                environment = machines.environment;
+              };
+              annotations = {
+                summary = "Health check returned HTTP 4XX";
+              };
+            }
+            {
+              alert = "Health5XX";
+              expr = "rate(servant_path_api_health_get_responses_5XX[5m]) > 0";
+              labels = {
+                environment = machines.environment;
+              };
+              annotations = {
+                summary = "Health check returned HTTP 5XX";
+              };
+            }
+            {
+              alert = "HealthXXX";
+              expr = "rate(servant_path_api_health_get_responses_XXX[5m]) > 0";
+              labels = {
+                environment = machines.environment;
+              };
+              annotations = {
+                summary = "Health check returned abnormal HTTP";
+              };
+            }
           ];
-          labels = {
-            instance = "${node.dns}";
-          };
-        };
-    nginxTarget = node:
-        {
-          targets = [
-            "${node.ip}:9113"
-          ];
-          labels = {
-            instance = "${node.dns}";
-          };
-        };
-    nodeTargets = map nodeTarget [machines.meadowA machines.meadowB machines.playgroundA machines.playgroundB];
-    ekgTargets = map ekgTarget [machines.meadowA machines.meadowB machines.playgroundA machines.playgroundB];
-    nginxTargets = map nginxTarget [machines.meadowA machines.meadowB machines.playgroundA machines.playgroundB];
+        }
+      ];
+    };
 in
 {
     imports = [ (defaultMachine node pkgs)
@@ -92,6 +135,7 @@ in
               ];
             }
       ];
+      rules = [promRules];
       exporters = {
         node = {
             enable = true;
