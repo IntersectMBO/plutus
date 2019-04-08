@@ -43830,8 +43830,10 @@ license = "GPL";
 ({
   mkDerivation
 , base
+, bytestring
 , containers
 , hedgehog
+, memory
 , mtl
 , plutus-tx
 , stdenv
@@ -43850,7 +43852,9 @@ version = "0.1.0.0";
 src = .././marlowe;
 libraryHaskellDepends = [
 base
+bytestring
 containers
+memory
 mtl
 plutus-tx
 template-haskell
@@ -43860,8 +43864,10 @@ wl-pprint
 ];
 testHaskellDepends = [
 base
+bytestring
 containers
 hedgehog
+memory
 plutus-tx
 tasty
 tasty-hedgehog
@@ -44360,7 +44366,6 @@ license = stdenv.lib.licenses.mit;
 , exceptions
 , file-embed
 , filepath
-, gitrev
 , hspec
 , hspec-wai
 , hspec-wai-json
@@ -44449,7 +44454,6 @@ containers
 data-default-class
 directory
 filepath
-gitrev
 http-types
 interpreter
 lens
@@ -53195,6 +53199,7 @@ license = stdenv.lib.licenses.asl20;
 , containers
 , hedgehog
 , hspec
+, hspec-discover
 , insert-ordered-containers
 , interpreter
 , lens
@@ -53241,6 +53246,7 @@ base
 containers
 hedgehog
 hspec
+interpreter
 QuickCheck
 swagger2
 tasty
@@ -53248,6 +53254,9 @@ tasty-hunit
 template-haskell
 text
 wallet-api
+];
+testToolDepends = [
+hspec-discover
 ];
 doHaddock = false;
 homepage = "https://github.com/iohk/plutus#readme";
@@ -53269,7 +53278,6 @@ license = stdenv.lib.licenses.asl20;
 , exceptions
 , file-embed
 , filepath
-, gitrev
 , hspec
 , hspec-discover
 , http-client
@@ -53361,7 +53369,6 @@ bytestring
 containers
 data-default-class
 filepath
-gitrev
 http-types
 interpreter
 lens
@@ -53560,6 +53567,8 @@ testHaskellDepends = [
 base
 containers
 hedgehog
+lens
+mtl
 plutus-tx
 tasty
 tasty-hedgehog
@@ -76003,6 +76012,7 @@ license = stdenv.lib.licenses.mit;
 , swagger2
 , tasty
 , tasty-hedgehog
+, tasty-hunit
 , template-haskell
 , text
 , transformers
@@ -76061,6 +76071,7 @@ lens
 plutus-tx
 tasty
 tasty-hedgehog
+tasty-hunit
 transformers
 ];
 doHaddock = false;

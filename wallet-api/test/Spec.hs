@@ -17,6 +17,7 @@ import           Data.Either                (isLeft, isRight)
 import           Data.Foldable              (fold, foldl', traverse_)
 import           Data.List                  (sort)
 import qualified Data.Map                   as Map
+import           Data.String                (IsString(fromString))
 import qualified Ledger.Map
 import           Data.Monoid                (Sum (..))
 import qualified Data.Set                   as Set
@@ -93,7 +94,8 @@ tests = testGroup "all tests" [
         ],
     testGroup "Value" [
         testProperty "Value ToJSON/FromJSON" (jsonRoundTrip Gen.genValue),
-        testProperty "CurrencySymbol ToJSON/FromJSON" (jsonRoundTrip $ Value.currencySymbol <$> Gen.genSizedByteStringExact)
+        testProperty "CurrencySymbol ToJSON/FromJSON" (jsonRoundTrip $ Value.currencySymbol <$> Gen.genSizedByteStringExact),
+        testProperty "CurrencySymbol IsString/Show" currencySymbolIsStringShow
     ],
     testGroup
       "CurrencySymbol"
@@ -482,6 +484,8 @@ ledgerBytesToJSONProp = property $ do
 
     Hedgehog.assert $ result == Aeson.ISuccess bts
 
-valueToJSONProp :: Property
-valueToJSONProp = jsonRoundTrip Gen.genValue
-    
+currencySymbolIsStringShow :: Property
+currencySymbolIsStringShow = property $ do
+    cs <- forAll $ Value.currencySymbol <$> Gen.genSizedByteStringExact
+    let cs' = fromString (show cs)
+    Hedgehog.assert $ cs' == cs
