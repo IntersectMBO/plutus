@@ -69,8 +69,8 @@ This is a pain to recognize.
 convLiteral :: Converting m => GHC.Literal -> m PIRTerm
 convLiteral = \case
     -- TODO: better sizes
-    GHC.MachInt64 i    -> pure $ PIR.Constant () $ PLC.BuiltinInt () haskellIntSize i
-    GHC.MachInt i      -> pure $ PIR.Constant () $ PLC.BuiltinInt () haskellIntSize i
+    (GHC.LitNumber GHC.LitNumInt64 i _) -> pure $ PIR.Constant () $ PLC.BuiltinInt () haskellIntSize i
+    (GHC.LitNumber GHC.LitNumInt i _)   -> pure $ PIR.Constant () $ PLC.BuiltinInt () haskellIntSize i
     GHC.MachStr bs     ->
         -- Convert the bytestring into a core expression representing the list
         -- of characters, then compile that!
@@ -83,11 +83,9 @@ convLiteral = \case
         in convExpr listExpr
     GHC.MachChar c     ->
         case PLC.makeDynamicBuiltin c of
-            Just t  -> pure $ PIR.embedIntoIR t
-            Nothing -> throwPlain $ UnsupportedError "Conversion of character failed"
-    GHC.LitInteger _ _ -> throwPlain $ UnsupportedError "Literal (unbounded) integer"
-    GHC.MachWord _     -> throwPlain $ UnsupportedError "Literal word"
-    GHC.MachWord64 _   -> throwPlain $ UnsupportedError "Literal word64"
+            Just t  -> pure $ PIR.embed t
+            Nothing -> throwPlain $ UnsupportedError "Compilation of character failed"
+    GHC.LitNumber {}   -> throwPlain $ UnsupportedError "Literal number"
     GHC.MachFloat _    -> throwPlain $ UnsupportedError "Literal float"
     GHC.MachDouble _   -> throwPlain $ UnsupportedError "Literal double"
     GHC.MachLabel {}   -> throwPlain $ UnsupportedError "Literal label"
@@ -114,7 +112,7 @@ convDataConRef dc =
         -- TODO: this is inelegant
         index <- case elemIndex dc dcs of
             Just i  -> pure i
-            Nothing -> throwPlain $ ConversionError "Data constructor not in the type constructor's list of constructors!"
+            Nothing -> throwPlain $ CompilationError "Data constructor not in the type constructor's list of constructors"
 
         pure $ constrs !! index
 
@@ -142,25 +140,13 @@ where it's not used, the PIR dead-binding pass will remove it.
 -- Expressions
 
 convExpr :: Converting m => GHC.CoreExpr -> m PIRTerm
-convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
+convExpr e = withContextM 2 (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
     -- See Note [Scopes]
     ConvertingContext {ccScopes=stack} <- ask
     let top = NE.head stack
     case e of
         -- See Note [Literals]
         GHC.App (GHC.Var (isPrimitiveWrapper -> True)) arg -> convExpr arg
-        -- special typeclass method calls
-        GHC.App (GHC.App
-                (GHC.Var n@(GHC.idDetails -> GHC.ClassOpId (GHC.getName -> className)))
-                -- we only support applying to int
-                (GHC.Type (GHC.eqType GHC.intTy -> True)))
-            -- last arg is typeclass dictionary
-            _ -> case className of
-                     ((==) GHC.eqClassName -> True) -> convEqMethod (GHC.getName n)
-                     ((==) GHC.ordClassName -> True) -> convOrdMethod (GHC.getName n)
-                     ((==) GHC.numClassName -> True) -> convNumMethod (GHC.getName n)
-                     ((==) GHC.integralClassName -> True) -> convIntegralMethod (GHC.getName n)
-                     _ -> throwSd UnsupportedError $ "Typeclass method:" GHC.<+> GHC.ppr n
         -- void# - values of type void get represented as error, since they should be unreachable
         GHC.Var n | n == GHC.voidPrimId || n == GHC.voidArgId -> errorFunc
         -- See note [GHC runtime errors]
@@ -233,7 +219,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
 
                 (tc, argTys) <- case GHC.splitTyConApp_maybe scrutineeType of
                     Just (tc, argTys) -> pure (tc, argTys)
-                    Nothing      -> throwPlain $ ConversionError "Scrutinee's type was not a type constructor application"
+                    Nothing      -> throwPlain $ CompilationError "Scrutinee's type was not a type constructor application"
                 dcs <- getDataCons tc
 
                 branches <- forM dcs $ \dc -> case GHC.findAlt (GHC.DataAlt dc) alts of
@@ -243,7 +229,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
                             -- matching on Maybe Int it is [Int] (crucially, not [a])
                             instArgTys = GHC.dataConInstOrigArgTys dc argTys
                         in convAlt lazyCase instArgTys alt
-                    Nothing  -> throwPlain $ ConversionError "No case matched and no default case"
+                    Nothing  -> throwPlain $ CompilationError "No case matched and no default case"
 
                 let applied = PIR.mkIterApp () instantiated branches
                 -- See Note [Case expressions and laziness]
@@ -255,7 +241,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
         -- we can use source notes to get a better context for the inner expression
         -- these are put in when you compile with -g
         GHC.Tick GHC.SourceNote{GHC.sourceSpan=src} body ->
-            withContextM (sdToTxt $ "Converting expr at:" GHC.<+> GHC.ppr src) $ convExpr body
+            withContextM 1 (sdToTxt $ "Converting expr at:" GHC.<+> GHC.ppr src) $ convExpr body
         -- ignore other annotations
         GHC.Tick _ body -> convExpr body
         GHC.Cast body coerce -> do
@@ -273,8 +259,8 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
                     constr <- head <$> getConstructorsInstantiated outer
                     pure $ PIR.Apply () constr body'
                 _ -> throwSd UnsupportedError $ "Coercion" GHC.$+$ GHC.ppr coerce
-        GHC.Type _ -> throwPlain $ ConversionError "Cannot convert types directly, only as arguments to applications"
-        GHC.Coercion _ -> throwPlain $ ConversionError "Coercions should not be converted"
+        GHC.Type _ -> throwPlain $ UnsupportedError "Types as standalone expressions"
+        GHC.Coercion _ -> throwPlain $ UnsupportedError "Coercions as expressions"
 
 convExprWithDefs :: Converting m => GHC.CoreExpr -> m PIRTerm
 convExprWithDefs e = do

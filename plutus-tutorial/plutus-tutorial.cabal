@@ -37,14 +37,45 @@ library
     import: lang
     hs-source-dirs: tutorial
     exposed-modules:
-        Tutorial.PlutusTx
-        Tutorial.WalletAPI
-    ghc-options: -pgmL markdown-unlit -Wno-unused-imports
-    build-tool-depends: markdown-unlit:markdown-unlit -any
+        Tutorial.TH
+        Tutorial.Emulator
+        Tutorial.Vesting
+        Tutorial.ExUtil
+        Tutorial.Solutions0
+        Tutorial.Solutions0Mockchain
+        Tutorial.Solutions1
+        Tutorial.Solutions2
+    ghc-options: -Wno-unused-imports
     build-tool-depends: doctest:doctest -any
     build-depends:
         base >=4.9 && <5,
         template-haskell >=2.13.0.0,
+        bytestring -any,
         language-plutus-core -any,
         plutus-tx -any,
-        wallet-api -any
+        wallet-api -any,
+        containers -any
+
+test-suite tutorial-doctests
+    type: exitcode-stdio-1.0
+    hs-source-dirs: doctest
+    main-is: Main.hs
+    ghc-options: -pgmL markdown-unlit -Wno-unused-imports
+    build-tool-depends: markdown-unlit:markdown-unlit -any
+    build-tool-depends: doctest:doctest -any
+    build-depends: plutus-tutorial
+    other-modules:
+      Tutorial.PlutusTx
+      Tutorial.WalletAPI
+      Tutorial.ValidatorScripts
+    build-depends:
+      base >=4.9 && <5,
+      template-haskell >=2.13.0.0,
+      bytestring -any,
+      language-plutus-core -any,
+      plutus-tx -any,
+      wallet-api -any,
+      prettyprinter -any,
+      containers -any
+
+

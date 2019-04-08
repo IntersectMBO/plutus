@@ -1,6 +1,7 @@
 let
   plutus = import ../../. {};
   serverTemplate = import ./server.nix;
+  prometheusTemplate = import ./prometheus.nix;
   machines = (plutus.pkgs.lib.importJSON ./machines.json);
   overlays = import ./overlays.nix;
   secrets = (plutus.pkgs.lib.importJSON ./secrets.json);
@@ -24,19 +25,22 @@ let
   stdOverlays = [ overlays.journalbeat ];
   options = { inherit stdOverlays machines defaultMachine plutus; datadogKey = secrets.datadogKey; };
   defaultMachine = (import ./default-machine.nix) options;
-  meadowOptions = options // { serviceConfig = meadowConfig; 
-                               serviceName = "meadow"; 
-                               server-invoker = plutus.meadow.server-invoker; 
-                               client = plutus.meadow.client; 
-                               }; 
-  playgroundOptions = options // { serviceConfig = playgroundConfig; 
-                                   serviceName = "plutus-playground"; 
-                                   server-invoker = plutus.plutus-playground.server-invoker; 
-                                   client = plutus.plutus-playground.client; 
-                                   }; 
+  meadowOptions = options // { serviceConfig = meadowConfig;
+                               serviceName = "meadow";
+                               server-invoker = plutus.meadow.server-invoker;
+                               client = plutus.meadow.client;
+                               };
+  playgroundOptions = options // { serviceConfig = playgroundConfig;
+                                   serviceName = "plutus-playground";
+                                   server-invoker = plutus.plutus-playground.server-invoker;
+                                   client = plutus.plutus-playground.client;
+                                   };
   playgroundA = serverTemplate.mkInstance playgroundOptions machines.playgroundA;
   playgroundB = serverTemplate.mkInstance playgroundOptions machines.playgroundB;
   meadowA = serverTemplate.mkInstance meadowOptions machines.meadowA;
   meadowB = serverTemplate.mkInstance meadowOptions machines.meadowB;
+  nixops = prometheusTemplate.mkInstance options {dns = "nixops.internal.david.plutus.iohkdev.io";
+                                                  ip = "127.0.0.1";
+                                                  name = "nixops"; };
 in
-  { inherit playgroundA playgroundB meadowA meadowB; }
+  { inherit playgroundA playgroundB meadowA meadowB nixops; }

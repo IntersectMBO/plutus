@@ -9,11 +9,15 @@
     echo "usage: $0 (stop|start|restart|status) <instance>"
     fi
     '';
+    promNodeTextfileDir = pkgs.writeTextDir "roles.prom"
+                            ''
+                            machine_role{role="nginx"} 1
+                            '';
   in
   {
     imports = [ (defaultMachine node pkgs)
     ];
-    
+
     security.sudo = {
       enable = true;
       extraRules = [{
@@ -23,12 +27,23 @@
         ];
     }];
   };
-  
+
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [ 80 ];
+    allowedTCPPorts = [ 80 9100 9091 9113 ];
   };
-  
+
+  services.prometheus.exporters = {
+    node = {
+        enable = true;
+        enabledCollectors = [ "systemd" ];
+        extraFlags = ["--collector.textfile.directory ${promNodeTextfileDir}"];
+    };
+    nginx = {
+      enable = true;
+    };
+  };
+
   # a user for people who want to ssh in and fiddle with playground/meadow service only
   users.users.monitor = {
     isNormalUser = true;
@@ -38,32 +53,6 @@
     openssh.authorizedKeys.keys = machines.playgroundSshKeys;
     packages = [ serviceSystemctl ];
   };
-  
-  services.dd-agent = {
-    enable = true;
-    hostname = "${node.dns}";
-    api_key = datadogKey;
-    tags = [];
-  };
-  
-  systemd.services.dogstatsd.serviceConfig = pkgs.lib.mkForce {
-    ExecStart = "${pkgs.dd-agent}/bin/dogstatsd";
-    User = "datadog";
-    Group = "datadog";
-  };
-
-  systemd.timers.healthcheck = {
-    wantedBy = [ "timers.target" ];
-    partOf = [ "healthcheck.service" ];
-    timerConfig.OnCalendar = "minutely";
-  };
-
-  systemd.services.healthcheck = {
-    serviceConfig.Type = "oneshot";
-    script = "curl localhost/api/health";
-    path = [ pkgs.curl ];
-  };
-  
   # lets make things a bit more secure
   systemd.services.nginx.serviceConfig = {
     # nginx can't deal with DynamicUser because the nixos module isn't made for it
@@ -76,15 +65,16 @@
     # nginx needs to bind to 80 and write to /var/spool/nginx
     AmbientCapabilities = "CAP_NET_BIND_SERVICE";
     ReadWritePaths = "/var/spool/nginx";
-  }; 
-  
+  };
+
   services.nginx = {
     enable = true;
-    
+    statusPage = true;
+
     recommendedGzipSettings = true;
     recommendedProxySettings = true;
     recommendedOptimisation = true;
-    
+
     appendHttpConfig = ''
     limit_req_zone $binary_remote_addr zone=plutuslimit:10m rate=1r/s;
     server_names_hash_bucket_size 128;
@@ -92,9 +82,9 @@
     '"$request" $status $body_bytes_sent '
     '"$http_referer" "$http_user_agent" "$gzip_ratio"';
     '';
-    
+
     upstreams.${serviceName}.servers."127.0.0.1:4000" = {};
-    
+
     virtualHosts = {
       "~." = {
         listen = [{ addr = "0.0.0.0"; port = 80; }];
@@ -117,7 +107,7 @@
       };
     };
   };
-  
+
   systemd.services.${serviceName} = {
     wantedBy = [ "nginx.service" ];
     before = [ "nginx.service" ];
@@ -125,7 +115,7 @@
     path = [
       "${server-invoker}"
     ];
-    
+
     serviceConfig = {
       TimeoutStartSec = "0";
       Restart = "always";
@@ -137,9 +127,9 @@
       SystemCallArchitectures = "native";
       CapabilityBoundingSet = "~CAP_SYS_ADMIN";
     };
-    
+
     script = "${serviceName} --config ${serviceConfig} webserver -b 127.0.0.1 -p 4000 ${client}";
-  }; 
+  };
 };
 }
 

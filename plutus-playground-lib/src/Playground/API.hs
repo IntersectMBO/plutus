@@ -16,38 +16,50 @@ module Playground.API where
 import           Control.Lens                 (view)
 import           Control.Monad.Trans.Class    (lift)
 import           Control.Monad.Trans.State    (StateT, evalStateT, get, put)
-import           Control.Newtype.Generics     (Newtype, pack, unpack)
 import           Data.Aeson                   (FromJSON, ToJSON, Value)
 import           Data.Bifunctor               (second)
 import qualified Data.HashMap.Strict.InsOrd   as HM
+import           Data.List.NonEmpty           (NonEmpty)
 import           Data.Maybe                   (fromMaybe)
+import           Data.Proxy                   (Proxy (Proxy))
 import           Data.Swagger                 (ParamSchema (ParamSchema), Referenced (Inline, Ref), Schema (Schema),
                                                Schema (Schema), SwaggerItems (SwaggerItemsArray, SwaggerItemsObject),
-                                               SwaggerType (SwaggerArray, SwaggerInteger, SwaggerObject, SwaggerString))
+                                               SwaggerType (SwaggerArray, SwaggerInteger, SwaggerObject, SwaggerString),
+                                               toInlinedSchema)
 import qualified Data.Swagger                 as Swagger
 import           Data.Swagger.Lens            (items, maxItems, minItems, properties)
 import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
 import           GHC.Generics                 (Generic)
-import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), column, filename, row,
-                                               text)
+import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), InterpreterResult,
+                                               SourceCode, column, filename, row, text)
+import qualified Language.Haskell.Interpreter as HI
 import qualified Language.Haskell.TH.Syntax   as TH
-import           Ledger.Ada                   (Ada)
-import           Ledger.Types                 (Blockchain, PubKey)
+import           Ledger                       (Blockchain, PubKey, Tx, TxId)
+import           Ledger.Validation            (ValidatorHash)
+import qualified Ledger.Value                 as V
 import           Servant.API                  ((:<|>), (:>), Get, JSON, Post, ReqBody)
 import           Text.Read                    (readMaybe)
-import           Wallet.Emulator.Types        (EmulatorEvent, Wallet)
+import           Wallet.Emulator.Types        (EmulatorEvent, Wallet, walletPubKey)
 import           Wallet.Graph                 (FlowGraph)
 
 type API
-   = "contract" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either [CompilationError] CompilationResult)
+   = "contract" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either HI.InterpreterError (InterpreterResult CompilationResult))
      :<|> "evaluate" :> ReqBody '[ JSON] Evaluation :> Post '[ JSON] EvaluationResult
      :<|> "health" :> Get '[ JSON] ()
 
-newtype SourceCode = SourceCode Text
-  deriving stock (Generic)
-  deriving newtype (ToJSON, FromJSON)
-  deriving anyclass (Newtype)
+-- FIXME: These types will be defined elsewhere but I've added them here for now
+newtype TokenId = TokenId Text
+    deriving stock (Eq, Ord, Show, Generic)
+    deriving newtype (ToJSON, FromJSON)
+
+data KnownCurrency = KnownCurrency
+    { hash         :: ValidatorHash
+    , friendlyName :: String
+    , knownTokens  :: NonEmpty TokenId
+    }
+    deriving (Eq, Show, Generic, ToJSON, FromJSON)
+--------------------------------------------------------------------------------
 
 newtype Fn = Fn Text
   deriving stock (Eq, Show, Generic, TH.Lift)
@@ -66,9 +78,10 @@ type Program = [Expression]
 
 data SimulatorWallet = SimulatorWallet
   { simulatorWalletWallet  :: Wallet
-  , simulatorWalletBalance :: Ada
+  , simulatorWalletBalance :: V.Value
   }
-  deriving (Show, Generic, Eq, ToJSON, FromJSON)
+  deriving stock (Show, Generic, Eq)
+  deriving anyclass (ToJSON, FromJSON)
 
 data Evaluation = Evaluation
   { wallets    :: [SimulatorWallet]
@@ -79,25 +92,21 @@ data Evaluation = Evaluation
   deriving (Generic, ToJSON, FromJSON)
 
 pubKeys :: Evaluation -> [PubKey]
-pubKeys Evaluation{..} = pack . unpack . simulatorWalletWallet <$> wallets
+pubKeys Evaluation{..} = walletPubKey . simulatorWalletWallet <$> wallets
 
 data EvaluationResult = EvaluationResult
-  { resultBlockchain  :: Blockchain
+  { resultBlockchain  :: [[(TxId, Tx)]] -- Blockchain annotated with hashes.
   , resultGraph       :: FlowGraph
   , emulatorLog       :: [EmulatorEvent]
   , fundsDistribution :: [SimulatorWallet]
   }
   deriving (Generic, ToJSON)
 
-newtype Warning = Warning Text
-  deriving stock (Eq, Show, Generic)
-  deriving newtype (ToJSON)
-
 data CompilationResult = CompilationResult
-  { functionSchema :: [FunctionSchema SimpleArgumentSchema]
-  , warnings       :: [Warning]
+  { functionSchema  :: [FunctionSchema SimpleArgumentSchema]
+  , knownCurrencies :: [KnownCurrency]
   }
-  deriving (Generic, ToJSON)
+  deriving (Show, Generic, ToJSON)
 
 data FunctionSchema a = FunctionSchema
   { functionName   :: Fn
@@ -124,8 +133,9 @@ data SimpleArgumentSchema
     | SimpleArraySchema SimpleArgumentSchema
     | SimpleTupleSchema (SimpleArgumentSchema, SimpleArgumentSchema)
     | SimpleObjectSchema [(Text, SimpleArgumentSchema)]
+    | ValueSchema [(Text, SimpleArgumentSchema)]
     | UnknownSchema Text
-                      Text
+                    Text
     deriving (Show, Eq, Generic, ToJSON)
 
 toSimpleArgumentSchema :: Schema -> SimpleArgumentSchema
@@ -147,22 +157,46 @@ toSimpleArgumentSchema schema@Schema {..} =
                         _ ->
                             UnknownSchema "While handling array." $
                             Text.pack $ show schema
+                    -- We want to give a special response if the
+                    -- argument is the blessed type `Value`. That type
+                    -- gets magic treatment in the frontend. But
+                    -- Swagger doesn't give us the metadata we need to
+                    -- tell if we've got a `Value` object.
+                    --
+                    -- The correct solution is to replace Swagger with
+                    -- something that uses GHC Generics. But because
+                    -- of deadlines we're going with the quick
+                    -- solution: Duck typing. If a schema looks like a
+                    -- `Value` type, then assume it is a `Value` type.
                 SwaggerObject ->
-                    SimpleObjectSchema $
-                    HM.toList $ extractReference <$> view properties schema
+                    let fields =
+                            HM.toList $
+                            extractReference <$> view properties schema
+                     in if schema ==
+                           (toInlinedSchema (Proxy :: Proxy V.Value) :: Schema)
+                            then ValueSchema
+                                     [ ( "getValue"
+                                       , toSimpleArgumentSchema
+                                             (toInlinedSchema
+                                                  (Proxy :: Proxy [( V.CurrencySymbol
+                                                                   , Int)]) :: Schema))
+                                     ]
+                            else SimpleObjectSchema fields
                 _ ->
-                    UnknownSchema "Unrecognised type." $
-                    Text.pack $ show schema
+                    UnknownSchema "Unrecognised type." $ Text.pack $ show schema
   where
     extractReference :: Referenced Schema -> SimpleArgumentSchema
     extractReference (Inline v) = toSimpleArgumentSchema v
-    extractReference (Ref _) =
-        UnknownSchema "Cannot handle Ref types, online Inline ones." $
-        Text.pack $ show schema
+    extractReference (Ref ref) =
+        UnknownSchema
+            "Cannot handle Ref types, only Inline ones. (Try calling this function with `Data.Swagger.toInlinedSchema)." $
+        Text.pack $ show (ref, schema)
 
 isSupportedByFrontend :: SimpleArgumentSchema -> Bool
 isSupportedByFrontend SimpleIntSchema = True
 isSupportedByFrontend SimpleStringSchema = True
+isSupportedByFrontend (ValueSchema subSchema) =
+    all isSupportedByFrontend (snd <$> subSchema)
 isSupportedByFrontend (SimpleObjectSchema subSchema) =
     all isSupportedByFrontend (snd <$> subSchema)
 isSupportedByFrontend (SimpleArraySchema subSchema) =
@@ -174,7 +208,7 @@ isSupportedByFrontend (UnknownSchema _ _) = False
 
 data PlaygroundError
   = CompilationErrors [CompilationError]
-  | InterpreterError [String]
+  | InterpreterError HI.InterpreterError
   | FunctionSchemaError
   | DecodeJsonTypeError String String
   | PlaygroundTimeout

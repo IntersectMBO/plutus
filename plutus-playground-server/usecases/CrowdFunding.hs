@@ -6,12 +6,13 @@
 -- this contract on the blockchain.
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Ledger.Interval              as Interval
-import           Ledger.Interval              (SlotRange)
+import           Ledger.Slot                  (SlotRange)
+import qualified Ledger.Slot                  as Slot
 import qualified Language.PlutusTx.Prelude    as P
 import           Ledger
 import qualified Ledger.Ada.TH                as Ada
 import           Ledger.Ada                   (Ada)
-import           Ledger.Validation
+import           Ledger.Validation           as V
 import           Playground.Contract
 import           Wallet                       as W
 
@@ -44,7 +45,7 @@ refundRange cmp =
 --   `CampaignAction` is provided as the redeemer. The validator script then
 --   checks if the conditions for performing this action are met.
 --
-data CampaignAction = Collect Signature | Refund Signature
+data CampaignAction = Collect | Refund
     deriving (Generic, ToJSON, FromJSON, ToSchema)
 
 PlutusTx.makeLift ''CampaignAction
@@ -63,25 +64,25 @@ contributionScript cmp  = ValidatorScript val where
         --    The Campaign{..} syntax means that all fields of the 'Campaign' value are in scope (for example 'campaignDeadline' in l. 70).
         --    See note [RecordWildCards].
         --
-        -- 2. A 'CampaignAction'. This is the redeemer script. It is provided by the redeeming transaction.
+        -- 2. A 'PubKey'. This is the data script. It is provided by the producing transaction (the contribution)
         --
-        -- 3. A 'PubKey'. This is the data script. It is provided by the producing transaction (the contribution)
+        -- 3. A 'CampaignAction'. This is the redeemer script. It is provided by the redeeming transaction.
         --
         -- 4. A 'PendingTx value. It contains information about the current transaction and is provided by the slot leader.
         --    See note [PendingTx]
-        \Campaign{..} (act :: CampaignAction) (con :: PubKey) (p :: PendingTx) ->
+        \Campaign{..} (con :: PubKey) (act :: CampaignAction) (p :: PendingTx) ->
             let
 
                 -- In Haskell we can define new operators. We import
-                -- `PlutusTx.and` from the Prelude here so that we can use it
+                -- `P.and` from the PlutusTx prelude here so that we can use it
                 -- in infix position rather than prefix (which would require a
                 -- lot of additional brackets)
                 infixr 3 &&
                 (&&) :: Bool -> Bool -> Bool
-                (&&) = $$(PlutusTx.and)
+                (&&) = $$(P.and)
 
-                signedBy :: PubKey -> Signature -> Bool
-                signedBy (PubKey pk) (Signature s) = $$(PlutusTx.eq) pk s
+                signedBy :: PendingTx -> PubKey -> Bool
+                signedBy = $$(V.txSignedBy)
 
                 -- We pattern match on the pending transaction `p` to get the
                 -- information we need:
@@ -89,7 +90,7 @@ contributionScript cmp  = ValidatorScript val where
                 -- `outs` is the list of outputs
                 -- `slFrom` is the beginning of the validation interval
                 -- `slTo` is the end of the validation interval
-                PendingTx ps outs _ _ _ range = p
+                PendingTx ps outs _ _ _ range _ _ = p
 
                 collRange :: SlotRange
                 collRange = $$(Interval.interval) campaignDeadline campaignCollectionDeadline
@@ -106,7 +107,7 @@ contributionScript cmp  = ValidatorScript val where
                     $$(P.foldr) (\i total -> $$(Ada.plus) total (v i)) $$(Ada.zero) ps
 
                 isValid = case act of
-                    Refund sig -> -- the "refund" branch
+                    Refund -> -- the "refund" branch
                         let
 
                             contributorTxOut :: PendingTxOut -> Bool
@@ -119,16 +120,16 @@ contributionScript cmp  = ValidatorScript val where
                             contributorOnly = $$(P.all) contributorTxOut outs
 
                             refundable = 
-                                $$(Interval.contains) refndRange range
-                                && contributorOnly && con `signedBy` sig
+                                $$(Slot.contains) refndRange range
+                                && contributorOnly && p `signedBy` con
 
                         in refundable
-                    Collect sig -> -- the "successful campaign" branch
+                    Collect -> -- the "successful campaign" branch
                         let
                             payToOwner = 
-                                $$(Interval.contains) collRange range
+                                $$(Slot.contains) collRange range
                                 && $$(Ada.geq) totalInputs campaignTarget
-                                && campaignOwner `signedBy` sig
+                                && p `signedBy` campaignOwner
                         in payToOwner
             in
             if isValid then () else $$(P.error) () ||])
@@ -142,10 +143,8 @@ campaignAddress = Ledger.scriptAddress . contributionScript
 contribute :: MonadWallet m => Campaign -> Ada -> m ()
 contribute cmp value = do
     _ <- if value <= 0 then throwOtherError "Must contribute a positive value" else pure ()
-    keyPair <- myKeyPair
     ownPK <- ownPubKey
-    let sig = signature keyPair
-        ds = DataScript (Ledger.lifted ownPK)
+    let ds = DataScript (Ledger.lifted ownPK)
         range = W.interval 1 (campaignDeadline cmp)
 
     -- `payToScript` is a function of the wallet API. It takes a campaign
@@ -163,7 +162,7 @@ contribute cmp value = do
     -- event. It instructs the wallet to start watching the addresses mentioned
     -- in the trigger definition and run the handler when the refund condition
     -- is true.
-    register (refundTrigger cmp) (refundHandler (Ledger.hashTx tx) sig cmp)
+    register (refundTrigger cmp) (refundHandler (Ledger.hashTx tx) cmp)
 
 
     logMsg "Registered refund trigger"
@@ -172,11 +171,9 @@ contribute cmp value = do
 --
 scheduleCollection :: MonadWallet m => Campaign -> m ()
 scheduleCollection cmp = do
-    keyPair <- myKeyPair
-    let sig = signature keyPair
     register (collectFundsTrigger cmp) (EventHandler (\_ -> do
         logMsg "Collecting funds"
-        let redeemerScript = Ledger.RedeemerScript (Ledger.lifted $ Collect sig)
+        let redeemerScript = Ledger.RedeemerScript (Ledger.lifted Collect)
             range = collectionRange cmp
         collectFromScript range (contributionScript cmp) redeemerScript))
 
@@ -193,11 +190,11 @@ collectFundsTrigger c = andT
     (slotRangeT (collectionRange c))
 
 -- | Claim a refund of our campaign contribution
-refundHandler :: MonadWallet m => TxId -> Signature -> Campaign -> EventHandler m
-refundHandler txid signature cmp = EventHandler (\_ -> do
+refundHandler :: MonadWallet m => TxId -> Campaign -> EventHandler m
+refundHandler txid cmp = EventHandler (\_ -> do
     logMsg "Claiming refund"
     let validatorScript = contributionScript cmp
-        redeemerScript  = Ledger.RedeemerScript (Ledger.lifted $ Refund signature)
+        redeemerScript  = Ledger.RedeemerScript (Ledger.lifted Refund)
 
     -- `collectFromScriptTxn` generates a transaction that spends the unspent
     -- transaction outputs at the address of the validator scripts, *but* only

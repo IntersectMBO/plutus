@@ -24,6 +24,7 @@ let
   # List of all plutus pkgs. This is used for `isPlutus` filter and `mapTestOn`
   plutusPkgList = [
     "language-plutus-core"
+    "plutus-contract-exe"
     "plutus-core-interpreter"
     "plutus-playground-server"
     "plutus-playground-lib"
@@ -44,9 +45,18 @@ let
 
   isPlutus = name: builtins.elem name plutusPkgList;
 
-  regeneratePackages = iohkNix.stack2nix.regeneratePackages { hackageSnapshot = "2019-02-28T09:58:14Z"; };
+  regeneratePackages = iohkNix.stack2nix.regeneratePackages { hackageSnapshot = "2019-04-02T09:58:14Z"; };
 
   comp = f: g: (v: f(g v));
 in lib // {
-  inherit getPackages iohkNix isPlutus plutusHaskellPkgList plutusPkgList regeneratePackages pkgs nixpkgs comp;
+  inherit 
+  getPackages 
+  iohkNix 
+  isPlutus 
+  plutusHaskellPkgList 
+  plutusPkgList 
+  regeneratePackages 
+  nixpkgs 
+  pkgs
+  comp;
 }

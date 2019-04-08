@@ -6,6 +6,7 @@ module Control.Monad.Trans.Inner
     ( InnerT (..)
     , forBind
     , yield
+    , mapInnerT
     ) where
 
 import           Control.Monad
@@ -22,10 +23,6 @@ forBind a f = join <$> traverse f a
 newtype InnerT f m a = InnerT
     { unInnerT :: m (f a)
     }
-
--- The name is inspired by http://hackage.haskell.org/package/streaming-0.2.2.0/docs/Streaming.html#v:yields.
-yield :: Applicative m => f a -> InnerT f m a
-yield = InnerT . pure
 
 instance (Functor f, Functor m) => Functor (InnerT f m) where
     fmap f (InnerT a) = InnerT $ fmap (fmap f) a
@@ -54,3 +51,10 @@ instance Monad m => MonadError e (InnerT (Either e) m) where
     catchError (InnerT m) f = InnerT $ m >>= \case
         Left e  -> unInnerT $ f e
         Right x -> pure $ Right x
+
+-- The name is inspired by http://hackage.haskell.org/package/streaming-0.2.2.0/docs/Streaming.html#v:yields.
+yield :: Applicative m => f a -> InnerT f m a
+yield = InnerT . pure
+
+mapInnerT :: (m (f a) -> n (g b)) -> InnerT f m a -> InnerT g n b
+mapInnerT f (InnerT a) = InnerT (f a)

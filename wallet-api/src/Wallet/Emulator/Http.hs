@@ -6,6 +6,7 @@
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE TypeOperators              #-}
 
+-- | An HTTP server which exposes the wallet interaction API. For use with 'Wallet.Emulator.Client'.
 module Wallet.Emulator.Http
   ( app
   , initialState
@@ -30,7 +31,6 @@ import           Servant                    (Application, Handler, ServantErr (e
                                              hoistServer, serve, throwError)
 import           Servant.API                ((:<|>) ((:<|>)), (:>), Capture, Get, JSON, NoContent (NoContent), Post,
                                              ReqBody)
-import           Wallet.API                 (KeyPair)
 import qualified Wallet.API                 as WAPI
 import           Wallet.Emulator.AddressMap (AddressMap)
 import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqual), EmulatorState (_walletStates),
@@ -38,14 +38,14 @@ import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqu
                                              WalletState, assert, chainNewestFirst, emptyEmulatorState,
                                              emptyWalletState, index, liftMockWallet, txPool, walletStates)
 
-import           Ledger                     (Address, Block, Slot, Tx, TxIn, TxOut, Value, lastSlot)
+import           Ledger                     (Address, Block, PubKey, Slot, Tx, TxIn, TxOut, Value, lastSlot)
 import qualified Wallet.Emulator.Types      as Types
 
 type WalletAPI
    = "wallets" :> Get '[ JSON] [Wallet]
      :<|> "wallets" :> Capture "walletid" Wallet :> Get '[ JSON] Wallet
      :<|> "wallets" :> ReqBody '[ JSON] Wallet :> Post '[ JSON] NoContent
-     :<|> "wallets" :> Capture "walletid" Wallet :> "my-key-pair" :> Get '[ JSON] KeyPair
+     :<|> "wallets" :> Capture "walletid" Wallet :> "my-public-key" :> Get '[ JSON] PubKey
      :<|> "wallets" :> Capture "walletid" Wallet :> "payments" :> ReqBody '[ JSON] Value :> Post '[ JSON] (Set TxIn, Maybe TxOut)
 -- This is where the line between wallet API and control API is crossed
 -- Returning the [Tx] only makes sense when running a WalletAPI m => m () inside a Trace, but not on the wallet API on its own,
@@ -104,11 +104,11 @@ createWallet wallet = do
   liftIO . atomically $ modifyTVar var (insertWallet wallet walletState)
   pure NoContent
 
-myKeyPair ::
+ownPublicKey ::
      (MonadReader ServerState m, MonadIO m, MonadError ServantErr m)
   => Wallet
-  -> m KeyPair
-myKeyPair wallet = runWalletAction wallet WAPI.myKeyPair
+  -> m PubKey
+ownPublicKey wallet = runWalletAction wallet WAPI.ownPubKey
 
 createPaymentWithChange ::
      (MonadReader ServerState m, MonadIO m, MonadError ServantErr m)
@@ -172,7 +172,7 @@ walletHandlers state =
   walletApi :<|> walletControlApi :<|> controlApi :<|> assertionsApi
   where
     walletApi =
-      wallets :<|> fetchWallet :<|> createWallet :<|> myKeyPair :<|> createPaymentWithChange :<|>
+      wallets :<|> fetchWallet :<|> createWallet :<|> ownPublicKey :<|> createPaymentWithChange :<|>
       submitTxn :<|>
       getWatchedAddresses :<|>
       startWatching :<|>

@@ -29,8 +29,12 @@ haskellIntSize = 8
 
 -- | The size of Haskell bytestrings as a PLC size. Sizes are in bytes, so 32 bytes is 256 bits.
 -- This is mostly so they are compatible with the output of the SHA functions.
-haskellBSSize :: Natural
-haskellBSSize = 32
+haskellBS32Size :: Natural
+haskellBS32Size = 32
+
+-- | Signatures are 64 bytes long
+haskellBS64Size :: Natural
+haskellBS64Size = 64
 
 mustBeReplaced :: a
 mustBeReplaced = error "This must be replaced by the core-to-plc plugin during compilation"

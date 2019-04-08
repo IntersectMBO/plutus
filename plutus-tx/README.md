@@ -1,42 +1,43 @@
 # plutus-tx: PlutusTx Haskell support
 
-This provides support for writing PlutusTx programs in Haskell using Template Haskell.
+This provides support for writing Plutus Tx programs in Haskell using Template Haskell.
 
-This package just provides support for PlutusTx, if you are looking for support for
-writing smart contracts using PlutusTx, please look in `wallet-api`.
+This package just provides support for Plutus Tx, if you are looking for support for
+writing smart contracts using Plutus Tx, please look in `wallet-api`.
 
 ## Haskell language support
 
-In general, most "straightforward" Haskell should work. More advanced features may
-or may not work, depending on whether they rely on features of GHC Core that aren't
-supported. Most syntactic language extensions should be fine, you may get into trouble
-with more advanced type system extensions.
+In general, most "straightforward" Haskell should work. 
 
-TODO: link to GitHub issues for planned items once we're using them.
+The things that don't work broadly fall into a few categories:
+- Not implemented yet
+- Incompatible with the design of Plutus Core
+- Access to function definitions required
+    - This *may* be solved in future
+- Use of coercions required
+- Assumes "normal" codegen
+- Miscellaneous difficult features
 
-Not supported, but support planned:
-- Mutually recursive datatypes (support planned)
-    - Self-recursive datatypes are supported
-- Record selectors (support planned)
-- Functions defined outside the PlutusTx expression
+In addition, there are some features that do not work but which we plan to support.
 
-Not supported, and support not planned:
-- Datatypes beyond simple "Haskell98" datatypes
-    - GADTs, constrained constructors, etc.
-- Abstract datatypes
-- Numeric types other than `Int`
-- Literal patterns
-- Typeclasses
-    - Some `Num`, `Eq`, and `Ord` methods on
-      `Int` and `Bytestring` are supported specially.
-- Anything involving coercions
+Here are a few notable items that do not work:
 
-## Tutorial
-
-See [here](tutorial/Tutorial.md) for a tutorial.
-
-## Debugging
-
-The compiler plugin can produce somewhat intimidating errors. In particular it can be hard to work out which expression
-is responsible for an error. To improve this you can compile the file in question with the `-g` GHC option. This
-will result in additional source spans being put into the program which will appear in errors.
+- Not implemented yet
+    - Mutually recursive datatypes
+    - Record selectors 
+- Incompatible with the design of Plutus Core
+    - `PolyKinds`, `DataKinds`, anything that moves towards "Dependent Haskell"
+    - Literal patterns
+    - `StrictData` and bang patterns (may be allowed in future)
+- Access to function definitions required (may be improved in future)
+    - Direct use of functions (i.e. not as a TH splice) defined outside the current Plutus Tx expression
+    - Typeclasses (dictionary construction)
+- Use of coercions required
+    - GADTs
+    - `Data.Coerce`
+    - `DerivingVia`, `GeneralizedNewtypeDeriving`, etc.
+- Assumes "normal" codegen
+    - FFI
+    - Numeric types other than integers
+    - `MagicHash` types
+    - Machine words, C strings, etc.

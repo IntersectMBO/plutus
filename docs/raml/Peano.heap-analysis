@@ -1,0 +1,170 @@
+# Arguments:
+#   4 -> look for polynomial bound with degree at most 4
+#  -m -> print bounds for all toplevel functions
+
+$ ./raml analyze heap 4 -m Peano.raml
+
+
+Resource Aware ML, Version 1.4.1, July 2018
+
+Typechecking module ...
+  Typecheck successful.
+  Stack-based typecheck successful.
+
+Analyzing function to_int ...
+
+  Trying degree: 4
+
+== to_int :
+
+  nat -> int
+
+  Non-zero annotations of the argument:
+      1.00  <--  [S(*)]
+      1.00  <--  []
+
+  Non-zero annotations of result:
+
+  Simplified bound:
+     1.00 + 1.00*M
+   where
+     M is the number of S-nodes of the argument
+
+--
+  Mode:          upper
+  Metric:        heap
+  Degree:        4
+  Run time:      0.04 seconds
+  #Constraints:  62
+
+====
+
+Analyzing function succ ...
+
+  Trying degree: 4
+
+== succ :
+
+  nat -> nat
+
+  Non-zero annotations of the argument:
+      4.00  <--  []
+
+  Non-zero annotations of result:
+
+  Simplified bound:
+     4.00
+--
+  Mode:          upper
+  Metric:        heap
+  Degree:        4
+  Run time:      0.04 seconds
+  #Constraints:  11
+
+====
+
+Analyzing function pred ...
+
+  Trying degree: 4
+
+== pred :
+
+  nat -> nat
+
+  Non-zero annotations of the argument:
+      2.00  <--  []
+
+  Non-zero annotations of result:
+
+  Simplified bound:
+     2.00
+--
+  Mode:          upper
+  Metric:        heap
+  Degree:        4
+  Run time:      0.04 seconds
+  #Constraints:  22
+
+====
+
+Analyzing function add ...
+
+  Trying degree: 4
+
+== add :
+
+  [nat; nat] -> nat
+
+  Non-zero annotations of the argument:
+      4.00  <--  ([S(*)], [])
+
+  Non-zero annotations of result:
+
+  Simplified bound:
+     4.00*M
+   where
+     M is the number of S-nodes of the 1st component of the argument
+
+--
+  Mode:          upper
+  Metric:        heap
+  Degree:        4
+  Run time:      0.07 seconds
+  #Constraints:  169
+
+====
+
+Analyzing function mul ...
+
+  Trying degree: 4
+
+== mul :
+
+  [nat; nat] -> nat
+
+  Non-zero annotations of the argument:
+      4.00  <--  ([S(*)], [S(*)])
+      2.00  <--  ([], [])
+
+  Non-zero annotations of result:
+
+  Simplified bound:
+     2.00 + 4.00*L*M
+   where
+     L is the number of S-nodes of the 2nd component of the argument
+     M is the number of S-nodes of the 1st component of the argument
+
+--
+  Mode:          upper
+  Metric:        heap
+  Degree:        4
+  Run time:      0.23 seconds
+  #Constraints:  1023
+
+====
+
+
+
+### Now try it again, leaving out -m to get a bound for the main action
+
+$ ./raml  analyze heap 4 Peano.raml 
+
+Resource Aware ML, Version 1.4.1, July 2018
+
+Typechecking expression ...
+  Typecheck successful.
+  Stack-based typecheck successful.
+
+Analyzing expression ...
+
+  Trying degree: 4
+
+  Derived upper bound: 219.00
+
+  Mode:          upper
+  Metric:        heap
+  Degree:        4
+  Run time:      0.22 seconds
+  #Constraints:  1195
+
+# Compare the bound with the results in Peano.evaluation

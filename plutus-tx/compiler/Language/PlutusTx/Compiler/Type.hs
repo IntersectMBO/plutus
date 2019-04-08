@@ -49,7 +49,7 @@ import           Data.Traversable
 -- Types
 
 convType :: Converting m => GHC.Type -> m PIRType
-convType t = withContextM (sdToTxt $ "Converting type:" GHC.<+> GHC.ppr t) $ do
+convType t = withContextM 2 (sdToTxt $ "Converting type:" GHC.<+> GHC.ppr t) $ do
     -- See Note [Scopes]
     ConvertingContext {ccScopes=stack} <- ask
     let top = NE.head stack
@@ -62,6 +62,7 @@ convType t = withContextM (sdToTxt $ "Converting type:" GHC.<+> GHC.ppr t) $ do
         (GHC.splitForAllTy_maybe -> Just (tv, tpe)) -> mkTyForallScoped tv (convType tpe)
         -- I think it's safe to ignore the coercion here
         (GHC.splitCastTy_maybe -> Just (tpe, _)) -> convType tpe
+        (GHC.isNumLitTy -> Just i) -> pure $ PIR.TyInt () (fromIntegral i)
         _ -> throwSd UnsupportedError $ "Type" GHC.<+> GHC.ppr t
 
 convTyConApp :: (Converting m) => GHC.TyCon -> [GHC.Type] -> m PIRType
@@ -202,7 +203,7 @@ mkConstructorType dc =
     let argTys = GHC.dataConOrigArgTys dc
     in
         -- See Note [Scott encoding of datatypes]
-        withContextM (sdToTxt $ "Converting data constructor type:" GHC.<+> GHC.ppr dc) $ do
+        withContextM 3 (sdToTxt $ "Converting data constructor type:" GHC.<+> GHC.ppr dc) $ do
             args <- mapM convType argTys
             resultType <- convType (GHC.dataConOrigResTy dc)
             -- t_c_i_1 -> ... -> t_c_i_j -> resultType
@@ -216,12 +217,12 @@ getConstructors tc = do
     maybeConstrs <- PIR.lookupConstructors () (GHC.getName tc)
     case maybeConstrs of
         Just constrs -> pure constrs
-        Nothing      -> throwPlain $ ConversionError "Constructors have not been converted"
+        Nothing      -> throwPlain $ CompilationError "Constructors have not been compiled"
 
 -- | Get the constructors of the given 'Type' (which must be equal to a type constructor application) as PLC terms instantiated for
     -- the type constructor argument types.
 getConstructorsInstantiated :: Converting m => GHC.Type -> m [PIRTerm]
-getConstructorsInstantiated t = withContextM (sdToTxt $ "Creating instantiated constructors for type:" GHC.<+> GHC.ppr t) $ case t of
+getConstructorsInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated constructors for type:" GHC.<+> GHC.ppr t) $ case t of
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do
         constrs <- getConstructors tc
 
@@ -229,29 +230,29 @@ getConstructorsInstantiated t = withContextM (sdToTxt $ "Creating instantiated c
             args' <- mapM convType args
             pure $ PIR.mkIterInst () c args'
     -- must be a TC app
-    _ -> throwPlain $ ConversionError "Type was not a type constructor application"
+    _ -> throwPlain $ CompilationError "Type was not a type constructor application"
 
 -- | Get the matcher of the given 'TyCon' as a PLC term
 getMatch :: Converting m => GHC.TyCon -> m PIRTerm
 getMatch tc = do
-    -- ensure the tycon has been converted, which will create the matcher
+    -- ensure the tycon has been compiled, which will create the matcher
     _ <- convTyCon tc
     maybeMatch <- PIR.lookupDestructor () (GHC.getName tc)
     case maybeMatch of
         Just match -> pure match
-        Nothing    -> throwPlain $ ConversionError "Match has not been converted"
+        Nothing    -> throwPlain $ CompilationError "Match has not been compiled"
 
 -- | Get the matcher of the given 'Type' (which must be equal to a type constructor application) as a PLC term instantiated for
 -- the type constructor argument types.
 getMatchInstantiated :: Converting m => GHC.Type -> m PIRTerm
-getMatchInstantiated t = withContextM (sdToTxt $ "Creating instantiated matcher for type:" GHC.<+> GHC.ppr t) $ case t of
+getMatchInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated matcher for type:" GHC.<+> GHC.ppr t) $ case t of
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do
         match <- getMatch tc
 
         args' <- mapM convType args
         pure $ PIR.mkIterInst () match args'
     -- must be a TC app
-    _ -> throwPlain $ ConversionError "Type was not a type constructor application"
+    _ -> throwPlain $ CompilationError "Type was not a type constructor application"
 
 -- | Make the alternative for a given 'CoreAlt'.
 convAlt
@@ -260,14 +261,14 @@ convAlt
     -> [GHC.Type] -- ^ The instantiated type arguments for the data constructor.
     -> GHC.CoreAlt -- ^ The 'CoreAlt' representing the branch itself.
     -> m PIRTerm
-convAlt mustDelay instArgTys (alt, vars, body) = withContextM (sdToTxt $ "Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
+convAlt mustDelay instArgTys (alt, vars, body) = withContextM 3 (sdToTxt $ "Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
     GHC.LitAlt _  -> throwPlain $ UnsupportedError "Literal case"
     GHC.DEFAULT   -> do
         body' <- convExpr body >>= maybeDelay mustDelay
         -- need to consume the args
         argTypes <- mapM convType instArgTys
         argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName () $ "default_arg" <> (T.pack $ show i))
-        pure $ PIR.mkIterLamAbs () (zipWith (PIR.VarDecl ()) argNames argTypes) body'
+        pure $ PIR.mkIterLamAbs (zipWith (PIR.VarDecl ()) argNames argTypes) body'
     -- We just package it up as a lambda bringing all the
     -- vars into scope whose body is the body of the case alternative.
     -- See Note [Iterated abstraction and application]
