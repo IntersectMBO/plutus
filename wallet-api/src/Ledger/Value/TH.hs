@@ -67,7 +67,7 @@ instance ToJSON CurrencySymbol where
 instance FromJSON CurrencySymbol where
   parseJSON =
     JSON.withObject "CurrencySymbol" $ \object -> do
-      raw <- object .: "getCurrencySymbol"
+      raw <- object .: "unCurrencySymbol"
       bytes <- JSON.decodeByteString raw
       pure . CurrencySymbol . Builtins.SizedByteString . BSL.fromStrict $ bytes
 
