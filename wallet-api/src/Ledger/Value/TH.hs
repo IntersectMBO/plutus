@@ -43,9 +43,11 @@ import           Data.Aeson                   (FromJSON, FromJSONKey, ToJSON, To
 import qualified Data.Aeson                   as JSON
 import qualified Data.Aeson.Extras            as JSON
 import qualified Data.ByteString.Lazy         as BSL
+import qualified Data.ByteString.Lazy.Char8   as C8
 import qualified Data.Swagger.Internal        as S
 import           Data.Swagger.Schema          (ToSchema(declareNamedSchema), byteSchema)
 import           Data.String                  (IsString)
+import qualified Data.Text                    as Text
 import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift       (makeLift)
@@ -88,7 +90,8 @@ currencySymbol :: Q (TExp (P.ByteString -> CurrencySymbol))
 currencySymbol = [|| CurrencySymbol ||]
 
 newtype TokenName = TokenName { unTokenName :: Builtins.SizedByteString 32 }
-    deriving (Show, ToJSONKey, FromJSONKey, Serialise) via LedgerBytes
+    deriving (ToJSONKey, FromJSONKey, Serialise) via LedgerBytes
+    deriving (Show, IsString) via (Builtins.SizedByteString 32)
     deriving stock (Eq, Ord, Generic)
 
 instance ToSchema TokenName where
@@ -99,17 +102,17 @@ instance ToJSON TokenName where
         JSON.object
         [ ( "unTokenName"
             , JSON.String .
-            JSON.encodeByteString .
-            BSL.toStrict . Builtins.unSizedByteString . unTokenName $
-            tokenName)
+              Text.pack .
+              C8.unpack . Builtins.unSizedByteString . unTokenName $
+              tokenName)
         ]
 
 instance FromJSON TokenName where
     parseJSON =
         JSON.withObject "TokenName" $ \object -> do
         raw <- object .: "unTokenName"
-        bytes <- JSON.decodeByteString raw
-        pure . TokenName . Builtins.SizedByteString . BSL.fromStrict $ bytes
+        let bytes = Text.unpack raw
+        pure . TokenName . Builtins.SizedByteString . C8.pack $ bytes
 
 makeLift ''TokenName
 
