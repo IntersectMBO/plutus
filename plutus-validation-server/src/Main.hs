@@ -21,7 +21,11 @@ trueJSON = "{\"isValid\":true}"
 falseJSON :: BSL.ByteString
 falseJSON = "{\"isValid\":false}"
 
+-- includes: slot, inputs, outputs, input/output pair currently being validated
+-- fee, value forged by transation
+
 -- TODO: encoding: base16 or base64? Ask Vincent
+-- If base16 we probably want to use the module in wallet-api
 data ToValidate = ToValidate { _validator :: BS64.ByteString64
                              , _redeemer  :: BS64.ByteString64
                              , _data      :: BS64.ByteString64
@@ -35,6 +39,7 @@ instance FromJSON ToValidate where
     parseJSON invalid    = typeMismatch "ToValidate" invalid
 
 -- TODO: make a curl request to test this
+-- TODO: at least deserialize from a valid script (and then test it)
 validateByteString :: BS.ByteString -- ^ Validator
                    -> BS.ByteString -- ^ Redeemer
                    -> BS.ByteString -- ^ Data
@@ -51,10 +56,11 @@ validateResponse (ToValidate v r d) =
 app :: Application
 app req respond = do
     bsReq <- lazyRequestBody req
+    -- TODO: check that it's a GET method (fail monad?)
     let decoded = decode bsReq
         validated = fmap validateResponse decoded
         -- TODO: handle json errors
         (stat, resp) = case validated of
             Just x  -> x
-            Nothing -> (status400, falseJSON)
+            Nothing -> (status400, mempty)
     respond $ responseLBS stat [] resp

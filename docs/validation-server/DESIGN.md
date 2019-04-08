@@ -1,3 +1,6 @@
+The Plutus Core Validation server exists so that the Rust core nodes can easily
+validate Plutus Core.
+
 The Plutus Core validation server will behave as follows:
 
   - Bind to port 3000
@@ -15,7 +18,11 @@ The Plutus Core validation server will behave as follows:
           "data": "958bce"
       }
 
-    - For other methods (e.g. `POST`), it will error (response status 400)
+    - For other methods (e.g. `POST`), it will error (response status 400) and
+      return nothing in the response body.
+
+    - If the data is not valid JSON, it will error (response status 400) and
+      return nothing in the response body.
 
   - The server will ignore HTTP headers
 
