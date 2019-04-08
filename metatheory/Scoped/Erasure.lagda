@@ -74,7 +74,7 @@ eraseC (size s) = size s
 
 open import Data.List as L
 open import Data.Product as P
-open import Function
+open import Function hiding (_∋_)
 
 eraseSub : ∀ {Γ Δ} → (∀ {J} → Δ ∋⋆ J → Γ ⊢Nf⋆ J) → List (ScopedTy (len⋆ Γ))
 eraseSub {Δ = ∅} σ = []
@@ -103,6 +103,28 @@ erase {Γ} (builtin b σ ts) = builtin b (eraseSub' Γ σ) (eraseTel σ _ ts)
 erase {Γ} (error A) = error (eraseNf⋆' Γ A)
 \end{code}
 
+erasure commutes with renaming/substitution
+
+\begin{code}
+open import Algorithmic.RenamingSubstitution as AS
+open import Type.BetaNormal
+open import Scoped.RenamingSubstitution as SS
+
+eraseRenNf⋆ : ∀{Γ Δ}
+  → (ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)
+  → Ren⋆ (len⋆ Γ) (len⋆ Δ)
+eraseRenNf⋆ {Γ ,⋆ x₁} ρ⋆ zero = ?
+eraseRenNf⋆ {Γ ,⋆ x₁} ρ⋆ (suc x) = ?
+ren-erase : ∀{Γ Δ J}
+  → (ρ⋆ : ∀ {J} → A.∥ Γ ∥ ∋⋆ J → A.∥ Δ ∥ ∋⋆ J)
+  → (ρ : ∀ {J} {A : A.∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ∋ renameNf ρ⋆ A)
+  → {A : A.∥ Γ ∥ ⊢Nf⋆ J}
+  → (t : Γ ⊢ A)
+  → SS.ren {!!} {!!} (erase t) ≡ erase (rename ρ⋆ ρ t)
+ren-erase = {!!}
+
+\end{code}
+
 \begin{code}
 -- a naturality/simulation proof about intrinscially vs extrinsically typed evaluation connected by erasure
 
@@ -115,7 +137,12 @@ open import Utils
 erase—→ : ∀{Γ K}{A : A.∥ Γ ∥ ⊢Nf⋆ K}{t t' : Γ ⊢ A} → t AR.—→ t' → erase t SR.—→ erase t'
 eraseVal : ∀{Γ K}{A : A.∥ Γ ∥ ⊢Nf⋆ K}{t : Γ ⊢ A} → AR.Value t → SR.Value (erase t)
 eraseE : ∀{Γ}{A : A.∥ Γ ∥ ⊢Nf⋆ *}{t : Γ ⊢ A} → AR.Error t → SR.Error (erase t)
-eraseE = {!!}
+eraseE E-error = E-error _
+eraseE (E-·₁ p) = E-·₁ (eraseE p)
+eraseE (E-·₂ p) = E-·₂ (eraseE p)
+eraseE (E-·⋆ p) = E-·⋆ (eraseE p)
+eraseE (E-unwrap p) = E-unwrap (eraseE p)
+eraseE (E-builtin bn σ tel Bs Ds vtel x p tel') = E-builtin (eraseE x)
 
 eraseVal V-ƛ = V-ƛ "x" _ _
 eraseVal V-Λ_ = SR.V-Λ "x" _ _
@@ -125,12 +152,12 @@ eraseVal (V-con cn) = V-con (eraseC cn)
 erase—→ (ξ-·₁ p)   = ξ-·₁ (erase—→ p)
 erase—→ (ξ-·₂ p q) = ξ-·₂ (eraseVal p) (erase—→ q)
 erase—→ (ξ-·⋆ p) = ξ-·⋆ (erase—→ p)
-erase—→ (β-ƛ p) = {!SR.β-ƛ!}
-erase—→ β-Λ = {!!}
+erase—→ (β-ƛ {N = N}{W = W} p) = {!SR.β-ƛ {x = "x"}{L = erase N}{M = erase W}!}
+erase—→ {Γ}{K}{A} (β-Λ {N = N}{W = W}) = {!SR.β-Λ {x = "x"}{K = eraseK K}{L = erase N}{A = eraseNf⋆' Γ W}!}
 erase—→ β-wrap1 = β-wrap
 erase—→ (ξ-unwrap1 p) = ξ-unwrap (erase—→ p)
 erase—→ (β-builtin bn σ tel vtel) = {!!}
-erase—→ (ξ-builtin bn σ tel Bs Ds vtel p p' tel') = {!ξ-builtin!}
+erase—→ (ξ-builtin bn σ tel Bs Ds vtel p p' tel') = {!SR.ξ-builtin {b = bn} ? (erase—→ p) ?!}
 
 {-
 lemma : {A : ∅ ⊢Nf⋆ *}(t : ∅ ⊢ A) →

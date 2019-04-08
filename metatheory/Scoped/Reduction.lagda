@@ -39,7 +39,8 @@ data Error {n} : ScopedTm n → Set where
    E-error : (A : ScopedTy ∥ n ∥) → Error (error A)
 
    -- error inside somewhere
-   E-· : {L M : ScopedTm n} → Error L → Error (L · M)
+   E-·₁ : {L M : ScopedTm n} → Error L → Error (L · M)
+   E-·₂ : {L M : ScopedTm n} → Error M → Error (L · M)
    E-·⋆ : {L : ScopedTm n}{A : ScopedTy ∥ n ∥} → Error L → Error (L ·⋆ A)
    E-unwrap : {L : ScopedTm n} → Error L → Error (unwrap L)
      
@@ -260,7 +261,7 @@ progress (.(ƛ x A t) · u) | inl (inl (V-ƛ x A t)) = inr (t [ u ] , β-ƛ)
 progress (.(Λ x K t) · u) | inl (inl (V-Λ x K t)) = inl (inr E-Λ·)
 progress (.(con tcn) · u) | inl (inl (V-con tcn)) = inl (inr E-con·)
 progress (.(wrap A B t) · u) | inl (inl (V-wrap A B t)) = inl (inr E-wrap·)
-progress (t · u) | inl (inr p) = inl (inr (E-· p))
+progress (t · u) | inl (inr p) = inl (inr (E-·₁ p))
 progress (t · u) | inr (t' , p) = inr (t' · u , ξ-·₁ p)
 progress (con c) = inl (inl (V-con c))
 progress (error A) = inl (inr (E-error A))
