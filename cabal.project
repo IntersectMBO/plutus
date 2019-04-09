@@ -25,7 +25,6 @@ max-backjumps: 40000
 write-ghc-environment-files: never
 tests: true
 benchmarks: true
-documentation: true
 
 allow-boot-library-installs:
     true
