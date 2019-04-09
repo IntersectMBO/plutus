@@ -225,7 +225,11 @@ unionWith = [||
 
 -- | Multiply all the quantities in the 'Value' by the given scale factor.
 scale :: Q (TExp (Int -> Value -> Value))
-scale = [|| \i (Value xs) -> Value ($$(Map.map) ($$(Map.map) (\i' -> $$(P.multiply) i i')) xs) ||]
+scale = [|| 
+          let scale' :: Int -> Value -> Value
+              scale' i (Value xs) =
+                Value ($$(Map.map) ($$(Map.map) (\i' -> $$(P.multiply) i i')) xs) 
+          in scale' ||]
 
 -- Num operations
 
@@ -251,7 +255,10 @@ zero = [|| Value $$(Map.empty) ||]
 
 -- | Check whether a 'Value' is zero.
 isZero :: Q (TExp (Value -> Bool))
-isZero = [|| \(Value xs) -> $$(Map.all) ($$(Map.all) (\i -> $$(P.eq) 0 i)) xs ||]
+isZero = [|| 
+          let isZero' :: Value -> Bool
+              isZero' (Value xs) = $$(Map.all) ($$(Map.all) (\i -> $$(P.eq) 0 i)) xs 
+          in isZero' ||]
 
 checkPred :: Q (TExp ((Map.These Int Int -> Bool) -> Value -> Value -> Bool))
 checkPred = [||
