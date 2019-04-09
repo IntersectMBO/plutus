@@ -51,6 +51,7 @@
           depends = [
             (hsPkgs.base)
             (hsPkgs.language-plutus-core)
+            (hsPkgs.plutus-core-interpreter)
             (hsPkgs.plutus-tx)
             (hsPkgs.plutus-ir)
             (hsPkgs.prettyprinter)
@@ -58,6 +59,7 @@
             (hsPkgs.bytestring)
             (hsPkgs.template-haskell)
             (hsPkgs.tasty)
+            (hsPkgs.tasty-hunit)
             ];
           };
         };

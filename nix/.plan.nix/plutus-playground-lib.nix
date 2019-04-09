@@ -26,7 +26,6 @@
           (hsPkgs.lens)
           (hsPkgs.memory)
           (hsPkgs.mtl)
-          (hsPkgs.newtype-generics)
           (hsPkgs.servant)
           (hsPkgs.swagger2)
           (hsPkgs.template-haskell)
@@ -41,6 +40,7 @@
             (hsPkgs.base)
             (hsPkgs.containers)
             (hsPkgs.hedgehog)
+            (hsPkgs.interpreter)
             (hsPkgs.swagger2)
             (hsPkgs.tasty)
             (hsPkgs.tasty-hunit)
@@ -48,8 +48,11 @@
             (hsPkgs.template-haskell)
             (hsPkgs.plutus-playground-lib)
             (hsPkgs.wallet-api)
+            (hsPkgs.hspec)
+            (hsPkgs.QuickCheck)
             (hsPkgs.aeson)
             ];
+          build-tools = [ ((hsPkgs.buildPackages).hspec-discover) ];
           };
         };
       };

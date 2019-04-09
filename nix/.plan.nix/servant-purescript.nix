@@ -55,7 +55,7 @@
     } // {
     src = (pkgs.lib).mkDefault (pkgs.fetchgit {
       url = "https://github.com/shmish111/servant-purescript.git";
-      rev = "315ccf5d720937c091c8cf3aca8adc8110766a23";
-      sha256 = "0c4pi7rlmm3nghkp8h6p33jfvp3j75x512c68xd3ixgj0al1sw0j";
+      rev = "18e1b61bf0aa3792285c6d8ecd0e4a72d76e34f5";
+      sha256 = "1c35c49f12mw6f0h6njsk42nbgmggb0kbr05iyz8gcy407y4jw9r";
       });
     }

@@ -1,2 +1,3 @@
-https://github.com/shmish111/servant-purescript.git 315ccf5d720937c091c8cf3aca8adc8110766a23 . 0c4pi7rlmm3nghkp8h6p33jfvp3j75x512c68xd3ixgj0al1sw0j servant-purescript .plan.nix/servant-purescript.nix
-https://github.com/input-output-hk/cardano-crypto.git 3c5db489c71a4d70ee43f5f9b979fcde3c797f2a . 0lss4x41m0ylhximqjc56ps0y3pag3x58wm480pzfa48lpk4gqpk cardano-crypto .plan.nix/cardano-crypto.nix
+https://github.com/shmish111/servant-purescript.git 18e1b61bf0aa3792285c6d8ecd0e4a72d76e34f5 . 1c35c49f12mw6f0h6njsk42nbgmggb0kbr05iyz8gcy407y4jw9r servant-purescript .plan.nix/servant-purescript.nix
+https://github.com/input-output-hk/cardano-crypto.git f5cecb6e424cc84f85b6a3e1f803517bb7b4cfb1 . 1jyzai4sn9hi3p6r97h54f9a7an7vk38lwrbl4mds9zmdsw5f5ad cardano-crypto .plan.nix/cardano-crypto.nix
+https://github.com/bitnomial/prometheus.git 69e4cefeb7d04d61a54cb0ae9fd57e2de134badb . 0h836qp0ic587gfyfkj9a53p8rczja50sfy2y8ymx8wwkmq9zdgc prometheus .plan.nix/prometheus.nix

@@ -91,7 +91,6 @@
             (hsPkgs.criterion)
             (hsPkgs.bytestring)
             (hsPkgs.serialise)
-            (hsPkgs.text)
             ];
           };
         };

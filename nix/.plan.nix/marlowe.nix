@@ -23,6 +23,7 @@
           (hsPkgs.template-haskell)
           (hsPkgs.plutus-tx)
           (hsPkgs.text)
+          (hsPkgs.wl-pprint)
           (hsPkgs.wallet-api)
           ];
         };
@@ -32,6 +33,8 @@
             (hsPkgs.base)
             (hsPkgs.containers)
             (hsPkgs.hedgehog)
+            (hsPkgs.memory)
+            (hsPkgs.bytestring)
             (hsPkgs.tasty)
             (hsPkgs.tasty-hunit)
             (hsPkgs.tasty-hedgehog)

@@ -39,8 +39,8 @@
             (hsPkgs.text)
             (hsPkgs.wallet-api)
             (hsPkgs.plutus-use-cases)
-            (hsPkgs.plutus-tx)
-            (hsPkgs.template-haskell)
+            (hsPkgs.lens)
+            (hsPkgs.mtl)
             ];
           };
         };

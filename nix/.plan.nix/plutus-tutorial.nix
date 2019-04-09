@@ -19,7 +19,6 @@
         depends = [
           (hsPkgs.base)
           (hsPkgs.template-haskell)
-          (hsPkgs.bytestring)
           (hsPkgs.language-plutus-core)
           (hsPkgs.plutus-tx)
           (hsPkgs.wallet-api)
@@ -37,6 +36,7 @@
             (hsPkgs.language-plutus-core)
             (hsPkgs.plutus-tx)
             (hsPkgs.wallet-api)
+            (hsPkgs.prettyprinter)
             (hsPkgs.containers)
             ];
           build-tools = [

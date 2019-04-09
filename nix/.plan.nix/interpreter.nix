@@ -2,10 +2,10 @@
   {
     flags = {};
     package = {
-      specVersion = "1.10";
+      specVersion = "2.0";
       identifier = { name = "interpreter"; version = "0.1.0.0"; };
-      license = "BSD-3-Clause";
-      copyright = "2019 IOHK";
+      license = "Apache-2.0";
+      copyright = "";
       maintainer = "";
       author = "David Smith";
       homepage = "";
@@ -17,28 +17,32 @@
     components = {
       "library" = {
         depends = [
-          (hsPkgs.base)
           (hsPkgs.aeson)
+          (hsPkgs.base)
           (hsPkgs.bytestring)
-          (hsPkgs.exceptions)
-          (hsPkgs.file-embed)
-          (hsPkgs.transformers)
+          (hsPkgs.bytestring)
+          (hsPkgs.cookie)
           (hsPkgs.directory)
-          (hsPkgs.bytestring)
+          (hsPkgs.exceptions)
+          (hsPkgs.filepath)
+          (hsPkgs.hashable)
           (hsPkgs.http-types)
           (hsPkgs.monad-logger)
-          (hsPkgs.filepath)
-          (hsPkgs.marlowe)
           (hsPkgs.mtl)
           (hsPkgs.newtype-generics)
+          (hsPkgs.process)
+          (hsPkgs.prometheus)
           (hsPkgs.servant)
+          (hsPkgs.servant-purescript)
           (hsPkgs.servant-server)
           (hsPkgs.temporary)
-          (hsPkgs.time)
-          (hsPkgs.wai)
-          (hsPkgs.warp)
           (hsPkgs.text)
-          (hsPkgs.process)
+          (hsPkgs.time)
+          (hsPkgs.time-out)
+          (hsPkgs.time-units)
+          (hsPkgs.transformers)
+          (hsPkgs.unordered-containers)
+          (hsPkgs.wai)
           ];
         };
       };

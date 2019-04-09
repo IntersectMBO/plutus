@@ -19,7 +19,7 @@
         depends = [
           (hsPkgs.base)
           (hsPkgs.aeson)
-          (hsPkgs.base64-bytestring)
+          (hsPkgs.base16-bytestring)
           (hsPkgs.bytestring)
           (hsPkgs.cborg)
           (hsPkgs.containers)
@@ -45,6 +45,8 @@
           (hsPkgs.lens)
           (hsPkgs.deriving-compat)
           (hsPkgs.newtype-generics)
+          (hsPkgs.http-api-data)
+          (hsPkgs.cardano-crypto)
           ];
         };
       exes = {
@@ -64,6 +66,8 @@
             (hsPkgs.wallet-api)
             (hsPkgs.plutus-tx)
             (hsPkgs.lens)
+            (hsPkgs.bytestring)
+            (hsPkgs.aeson)
             ];
           };
         };
