@@ -90,7 +90,7 @@ lookup = [||
 keys :: Q (TExp (Map k v -> [k]))
 keys = [|| 
     let keys' :: Map k v -> [k]
-        keys' (Map xs) = $$(P.map) (\(k, _) -> k) xs
+        keys' (Map xs) = $$(P.map) (\(k, _ :: v) -> k) xs
     in keys'
     ||]
 
@@ -127,7 +127,7 @@ all = [||
         all p (Map mps) =
             let go xs = case xs of 
                     []         -> True
-                    (_, x):xs' -> $$(P.and) (p x) (go xs')
+                    (_ :: k, x):xs' -> $$(P.and) (p x) (go xs')
             in go mps 
     in all ||]
 
