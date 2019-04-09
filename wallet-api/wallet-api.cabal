@@ -70,7 +70,7 @@ library
         Ledger.Interval
         Ledger.Value
         Ledger.Value.TH
-        KeyBytes
+        LedgerBytes
     hs-source-dirs: src
     default-language: Haskell2010
     build-depends:
@@ -129,6 +129,7 @@ test-suite wallet-api-test
         hedgehog -any,
         tasty -any,
         tasty-hedgehog -any,
+        tasty-hunit -any,
         transformers -any,
         wallet-api -any,
         plutus-tx -any,

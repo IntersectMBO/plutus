@@ -5,6 +5,7 @@
 -- | Functions for working with 'Ada' in Template Haskell.
 module Ledger.Ada.TH(
       Ada
+    , adaSymbol
     -- * Constructors
     , fromValue
     , fromInt
@@ -41,7 +42,7 @@ import qualified Ledger.Value.TH              as TH
 
 -- | The 'CurrencySymbol' of the 'Ada' currency.
 adaSymbol :: Q (TExp CurrencySymbol)
-adaSymbol = [|| $$(TH.currencySymbol) 0 ||]
+adaSymbol = [|| $$(TH.currencySymbol) $$(P.emptyByteString) ||]
 
 -- | ADA, the special currency on the Cardano blockchain.
 --   See note [Currencies] in 'Ledger.Validation.Value.TH'.

@@ -9,10 +9,11 @@ module Language.PlutusTx.Builtins (
                                 , concatenate
                                 , takeByteString
                                 , dropByteString
+                                , emptyByteString
+                                , equalsByteString
                                 , sha2_256
                                 , sha3_256
                                 , verifySignature
-                                , equalsByteString
                                 -- * Integer builtins
                                 , addInteger
                                 , subtractInteger
@@ -63,6 +64,9 @@ takeByteString i (SizedByteString bs) = SizedByteString (BSL.take (fromIntegral 
 
 dropByteString :: Int -> SizedByteString s -> SizedByteString s
 dropByteString i (SizedByteString bs) = SizedByteString (BSL.drop (fromIntegral i) bs)
+
+emptyByteString :: SizedByteString 32
+emptyByteString = SizedByteString BSL.empty
 
 sha2_256 :: SizedByteString s -> SizedByteString 32
 sha2_256 (SizedByteString bs) = SizedByteString (Hash.sha2 bs)

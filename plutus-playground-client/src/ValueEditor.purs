@@ -58,17 +58,16 @@ balanceRow handler balanceIndex balances =
     ]
 
 balanceForm :: forall p i. (Tuple CurrencySymbol Int -> HQ.Action i) -> Tuple CurrencySymbol Int -> Array (HTML p i)
-balanceForm handler (CurrencySymbol currency /\ amount) =
+balanceForm handler (CurrencySymbol { unCurrencySymbol: currency } /\ amount) =
   [ col_ [
       input
         [ type_ InputNumber
         , classes [ formControl, ClassName "balance-currency-symbol" ]
-        , value $ show currency
+        , value currency
         , required true
         , placeholder "Currency"
         , onValueInput $ \str -> do
-            newCurrencySymbol <- Int.fromString str
-            pure $ HQ.action $ handler $ Tuple (CurrencySymbol newCurrencySymbol) amount
+            pure $ HQ.action $ handler $ Tuple (CurrencySymbol { unCurrencySymbol: str }) amount
         ]
     ]
   , col_ [
@@ -80,7 +79,7 @@ balanceForm handler (CurrencySymbol currency /\ amount) =
         , placeholder "Amount"
         , onValueInput $ \str -> do
             newAmount <- Int.fromString str
-            pure $ HQ.action $ handler $ Tuple (CurrencySymbol currency) newAmount
+            pure $ HQ.action $ handler $ Tuple (CurrencySymbol { unCurrencySymbol: currency }) newAmount
         ]
     ]
   ]

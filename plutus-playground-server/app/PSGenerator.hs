@@ -84,10 +84,10 @@ ledgerMapBridge = do
     typeModule ^== "Ledger.Map.TH"
     psLedgerMap
 
-keyBytesBridge :: BridgePart
-keyBytesBridge = do
-    typeName ^== "KeyBytes"
-    typeModule ^== "KeyBytes"
+ledgerBytesBridge :: BridgePart
+ledgerBytesBridge = do
+    typeName ^== "LedgerBytes"
+    typeModule ^== "LedgerBytes"
     pure psString
 
 scientificBridge :: BridgePart
@@ -194,7 +194,7 @@ myBridge =
     validatorHashBridge <|>
     sizedByteStringBridge <|>
     mapBridge <|>
-    keyBytesBridge
+    ledgerBytesBridge
 
 data MyBridge
 
@@ -251,11 +251,11 @@ myTypes =
     , mkSumType (Proxy @NewGistFile)
     , mkSumType (Proxy @Owner)
     , (equal <*> mkSumType) (Proxy @Value)
-    , (equal <*> (order <*> mkSumType)) (Proxy @CurrencySymbol)
     , (equal <*> (order <*> mkSumType)) (Proxy @TokenId)
     , mkSumType (Proxy @KnownCurrency)
     , mkSumType (Proxy @InterpreterError)
     , mkSumType (Proxy @(InterpreterResult A))
+    , (equal <*> (order <*> mkSumType)) (Proxy @CurrencySymbol)
     ]
 
 mySettings :: Settings

@@ -32,7 +32,7 @@ import Data.Either (Either(..), note)
 import Data.Generic (gEq)
 import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, traversed, use, view)
 import Data.Lens.Extra (peruse)
-import Data.Lens.Fold (maximumOf, preview)
+import Data.Lens.Fold (lengthOf, maximumOf, preview)
 import Data.Lens.Index (ix)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -75,9 +75,9 @@ mkSimulatorWallet id =
   SimulatorWallet
     { simulatorWalletWallet: Wallet { getWallet: id }
     , simulatorWalletBalance: Value { getValue:
-                                        LedgerMap [ Tuple (CurrencySymbol 0) 50
-                                                  , Tuple (CurrencySymbol 1) 20
-                                                  , Tuple (CurrencySymbol 2) 20
+                                        LedgerMap [ Tuple (CurrencySymbol { unCurrencySymbol: "0" }) 50
+                                                  , Tuple (CurrencySymbol { unCurrencySymbol: "1" }) 20
+                                                  , Tuple (CurrencySymbol { unCurrencySymbol: "2" }) 20
                                                   ]
                                     }
     }
@@ -390,8 +390,8 @@ evalWalletEvent (ModifyBalance walletIndex action) wallets =
 
 evalValueEvent :: ValueEvent -> LedgerMap CurrencySymbol Int -> LedgerMap CurrencySymbol Int
 evalValueEvent AddBalance balances =
-  let maxCurrencyId = fromMaybe 0 $ maximumOf (_LedgerMap <<< traversed <<< _1 <<< _CurrencySymbol) balances
-      newBalance = Tuple (CurrencySymbol (maxCurrencyId + 1)) 0
+  let maxCurrencyId = lengthOf (_LedgerMap <<< traversed <<< _1 <<< _CurrencySymbol) balances
+      newBalance = Tuple (CurrencySymbol ({ unCurrencySymbol: show maxCurrencyId })) 0
   in over _LedgerMap (flip Array.snoc newBalance) balances
 evalValueEvent (RemoveBalance balanceIndex) balances =
   over _LedgerMap (fromMaybe <*> Array.deleteAt balanceIndex) balances

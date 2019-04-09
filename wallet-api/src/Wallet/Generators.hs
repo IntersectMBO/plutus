@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecordWildCards  #-}
 {-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeApplications #-}
@@ -25,6 +26,8 @@ module Wallet.Generators(
     genAda,
     genValue,
     genValueNonNegative,
+    genSizedByteString,
+    genSizedByteStringExact,
     Wallet.Generators.runTrace,
     runTraceOn,
     splitVal,
@@ -33,16 +36,20 @@ module Wallet.Generators(
     ) where
 
 import           Data.Bifunctor  (Bifunctor (..))
+import qualified Data.ByteString.Lazy as BSL
 import           Data.Foldable   (fold, foldl')
 import           Data.Map        (Map)
 import qualified Data.Map        as Map
 import           Data.Maybe      (catMaybes, isNothing)
+import           Data.Proxy      (Proxy(Proxy))
 import           Data.Set        (Set)
 import qualified Data.Set        as Set
+import           GHC.TypeLits    (KnownNat, natVal)
 import           GHC.Stack       (HasCallStack)
 import           Hedgehog
 import qualified Hedgehog.Gen    as Gen
 import qualified Hedgehog.Range  as Range
+import qualified Language.PlutusTx.Prelude    as P
 import qualified Ledger.Ada      as Ada
 import qualified Ledger.Index    as Index
 import qualified Ledger.Interval as Interval
@@ -200,10 +207,28 @@ genValidTransactionSpending' g f ins totalVal = do
 genAda :: MonadGen m => m Ada
 genAda = Ada.fromInt <$> Gen.int (Range.linear 0 (100000 :: Int))
 
+-- | Generate a 'SizedByteString s' of up to @s@ bytes.
+genSizedByteString :: forall s m. (KnownNat s, MonadGen m) => m (P.SizedByteString s)
+genSizedByteString = 
+    let range = Range.linear 0 (fromInteger $ natVal (Proxy @s)) in
+    P.SizedByteString . BSL.fromStrict <$> Gen.bytes range
+
+-- | Generate a 'SizedByteString s' of exactly @s@ bytes.
+genSizedByteStringExact :: forall s m. (KnownNat s, MonadGen m) => m (P.SizedByteString s)
+genSizedByteStringExact = 
+    let range = Range.singleton (fromInteger $ natVal (Proxy @s)) in
+    P.SizedByteString . BSL.fromStrict <$> Gen.bytes range
+
 genValue' :: MonadGen m => Range Int -> m Value
 genValue' valueRange = do
-    let currencyRange = Range.linearBounded @Int
-        sngl          = Value.singleton <$> (Value.currencySymbol <$> Gen.int currencyRange) <*> Gen.int valueRange
+    let 
+        -- currency symbol is either a validator hash (bytestring of length 32)
+        -- or the ada symbol (empty bytestring).
+        currency = Gen.choice 
+                    [ Value.currencySymbol <$> genSizedByteStringExact
+                    , pure Ada.adaSymbol
+                    ]
+        sngl      = Value.singleton <$> currency <*> Gen.int valueRange
 
         -- generate values with no more than 10 elements to avoid the tests
         -- taking too long (due to the map-as-list-of-kv-pairs implementation)

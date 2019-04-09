@@ -7,7 +7,7 @@
 {-# LANGUAGE TemplateHaskell            #-}
 {-# OPTIONS_GHC -Wno-orphans            #-}
 
-module KeyBytes ( KeyBytes (..)
+module LedgerBytes ( LedgerBytes (..)
                 , fromHex
                 , bytes
                 , fromBytes
@@ -29,8 +29,8 @@ import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift
 import           Web.HttpApiData            (FromHttpApiData (..), ToHttpApiData (..))
 
-fromHex :: BSL.ByteString -> KeyBytes
-fromHex = KeyBytes . Builtins.SizedByteString . asBSLiteral
+fromHex :: BSL.ByteString -> LedgerBytes
+fromHex = LedgerBytes . Builtins.SizedByteString . asBSLiteral
     where
 
     handleChar :: Word8 -> Word8
@@ -54,31 +54,41 @@ fromHex = KeyBytes . Builtins.SizedByteString . asBSLiteral
     asBSLiteral = withBytes asBytes
         where withBytes f = BSL.pack . f . BSL.unpack
 
-newtype KeyBytes = KeyBytes { getKeyBytes :: Builtins.SizedByteString 32 } -- TODO: use strict bytestring
-    deriving (Eq, Ord, IsString, Serialise, Generic)
+-- | 'Bultins.SizedByteString 32' with various useful JSON and
+--   servant instances for the Playground, and a convenient bridge
+--   type for PureScript.
+newtype LedgerBytes = LedgerBytes { getLedgerBytes :: Builtins.SizedByteString 32 } -- TODO: use strict bytestring
+    deriving (Eq, Ord, Serialise, Generic)
 
-bytes :: KeyBytes -> BSL.ByteString
-bytes = Builtins.unSizedByteString . getKeyBytes
+bytes :: LedgerBytes -> BSL.ByteString
+bytes = Builtins.unSizedByteString . getLedgerBytes
 
-fromBytes :: BSL.ByteString -> KeyBytes
-fromBytes = KeyBytes . Builtins.SizedByteString
+fromBytes :: BSL.ByteString -> LedgerBytes
+fromBytes = LedgerBytes . Builtins.SizedByteString
 
-instance Show KeyBytes where
+instance IsString LedgerBytes where
+    fromString = fromHex . fromString
+
+instance Show LedgerBytes where
     show = Text.unpack . JSON.encodeByteString . BSL.toStrict . bytes
 
-instance ToSchema KeyBytes where
-    declareNamedSchema _ = pure $ NamedSchema (Just "KeyBytes") byteSchema
+instance ToSchema LedgerBytes where
+    declareNamedSchema _ = pure $ NamedSchema (Just "LedgerBytes") byteSchema
 
-instance ToJSON KeyBytes where
+instance ToJSON LedgerBytes where
     toJSON = JSON.String . JSON.encodeByteString . BSL.toStrict . bytes
 
-instance FromJSON KeyBytes where
+instance FromJSON LedgerBytes where
     parseJSON v = fromBytes . BSL.fromStrict <$> JSON.decodeByteString v
 
-instance ToHttpApiData KeyBytes where
+instance ToHttpApiData LedgerBytes where
     toUrlPiece = JSON.encodeByteString . BSL.toStrict . bytes
 
-instance FromHttpApiData KeyBytes where
+instance FromHttpApiData LedgerBytes where
     parseUrlPiece = bimap Text.pack (fromBytes . BSL.fromStrict) . JSON.tryDecode
 
-makeLift ''KeyBytes
+instance JSON.ToJSONKey LedgerBytes where
+
+instance JSON.FromJSONKey LedgerBytes where
+
+makeLift ''LedgerBytes

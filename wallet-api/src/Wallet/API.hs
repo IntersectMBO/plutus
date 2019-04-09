@@ -8,6 +8,7 @@
 {-# LANGUAGE RankNTypes         #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeFamilies       #-}
+{-# LANGUAGE OverloadedStrings  #-}
 -- | The interface between the wallet and Plutus client code.
 module Wallet.API(
     WalletAPI(..),
@@ -69,7 +70,7 @@ module Wallet.API(
     ) where
 
 import           Control.Lens               hiding (contains)
-import           Control.Monad              (void)
+import           Control.Monad              (void, when)
 import           Control.Monad.Error.Class  (MonadError (..))
 import           Data.Aeson                 (FromJSON, ToJSON)
 import qualified Data.ByteArray             as BA
@@ -83,6 +84,7 @@ import           Data.Maybe                 (fromMaybe, maybeToList)
 import           Data.Ord.Deriving          (deriveOrd1)
 import qualified Data.Set                   as Set
 import           Data.Text                  (Text)
+import qualified Data.Text                  as Text
 import           GHC.Generics               (Generic)
 import           Ledger                     (Address, DataScript, PubKey (..), RedeemerScript, Signature, Slot,
                                              SlotRange, Tx (..), TxId, TxIn, TxOut, TxOutOf (..), TxOutRef,
@@ -332,38 +334,43 @@ payToScript_ range addr v = void . payToScript range addr v
 
 -- | Collect all unspent outputs from a pay to script address and transfer them
 --   to a public key owned by us.
-collectFromScript :: (Monad m, WalletAPI m) => SlotRange -> ValidatorScript -> RedeemerScript -> m ()
-collectFromScript range scr red = do
-    am <- watchedAddresses
-    let addr = scriptAddress scr
-        outputs = am ^. at addr . to (Map.toList . fromMaybe Map.empty)
-        con (r, _) = scriptTxIn r scr red
-        ins        = con <$> outputs
-        value = fold $ fmap (txOutValue . snd) outputs
-
-    oo <- ownPubKeyTxOut value
-    void $ createTxAndSubmit range (Set.fromList ins) [oo]
+collectFromScript :: (WalletDiagnostics m, WalletAPI m) => SlotRange -> ValidatorScript -> RedeemerScript -> m ()
+collectFromScript = collectFromScriptFilter (\_ _ -> True)
 
 -- | Given the pay to script address of the 'ValidatorScript', collect from it
---   all the inputs that were produced by a specific transaction, using the
+--   all the outputs that were produced by a specific transaction, using the
 --   'RedeemerScript'.
 collectFromScriptTxn ::
-    (Monad m, WalletAPI m)
+    (WalletAPI m, WalletDiagnostics m)
     => SlotRange
     -> ValidatorScript
     -> RedeemerScript
     -> TxId
     -> m ()
-collectFromScriptTxn range vls red txid = do
+collectFromScriptTxn range vls red txid =
+    let flt k _ = txid == Ledger.txOutRefId k in
+    collectFromScriptFilter flt range vls red        
+
+-- | Given the pay to script address of the 'ValidatorScript', collect from it
+--   all the outputs that match a predicate, using the 'RedeemerScript'.
+collectFromScriptFilter :: 
+    (WalletAPI m, WalletDiagnostics m)
+    => (TxOutRef -> TxOut -> Bool)
+    -> SlotRange
+    -> ValidatorScript
+    -> RedeemerScript
+    -> m ()
+collectFromScriptFilter flt range vls red = do
     am <- watchedAddresses
     let adr     = Ledger.scriptAddress vls
         utxo    = fromMaybe Map.empty $ am ^. at adr
-        ourUtxo = Map.toList $ Map.filterWithKey (\k _ -> txid == Ledger.txOutRefId k) utxo
+        ourUtxo = Map.toList $ Map.filterWithKey flt utxo
         i ref = scriptTxIn ref vls red
         inputs = Set.fromList $ i . fst <$> ourUtxo
         value  = fold $ fmap (txOutValue . snd) ourUtxo
 
     out <- ownPubKeyTxOut value
+    warnEmptyTransaction value adr
     void $ createTxAndSubmit range inputs [out]
 
 -- | Transfer some funds to an address locked by a public key, returning the
@@ -468,3 +475,15 @@ member v (Interval.Interval f t) =
 -- | See 'Slot.contains'.
 contains :: SlotRange -> SlotRange -> Bool
 contains = $$(Slot.contains)
+
+-- | Emit a warning if the value at an address is zero.
+warnEmptyTransaction :: (WalletDiagnostics m) => Value -> Address -> m ()
+warnEmptyTransaction value addr = 
+    when (Value.eq Value.zero value)
+        $ logMsg 
+        $ Text.unwords [
+              "Attempting to collect transaction outputs from"
+            , "'" <> Text.pack (show addr) <> "'"
+            , ", but there are no known outputs at that address."
+            , "An empty transaction will be submitted."
+            ] 
