@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE DeriveAnyClass     #-}
@@ -6,6 +7,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE TypeApplications   #-}
 {-# OPTIONS_GHC -O0             #-}
 -- | Functions for working with 'Value' in Template Haskell.
 module Ledger.Value.TH(
@@ -40,6 +42,7 @@ module Ledger.Value.TH(
     ) where
 
 import           Codec.Serialise.Class        (Serialise)
+import           Control.Lens
 import           Data.Aeson                   (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
 import qualified Data.Aeson                   as JSON
 import qualified Data.Aeson.Extras            as JSON
@@ -47,6 +50,8 @@ import qualified Data.ByteString.Lazy         as BSL
 import qualified Data.ByteString.Lazy.Char8   as C8
 import qualified Data.Swagger.Internal        as S
 import           Data.Swagger.Schema          (ToSchema(declareNamedSchema), byteSchema)
+import Data.Swagger
+import           Data.Proxy                   (Proxy(Proxy))
 import           Data.String                  (IsString)
 import qualified Data.Text                    as Text
 import           GHC.Generics                 (Generic)
@@ -141,8 +146,23 @@ tokenName = [|| TokenName ||]
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Int) }
     deriving (Show)
     deriving stock (Generic)
-    deriving anyclass (ToSchema, ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON)
     deriving newtype (Serialise)
+
+-- 'InnerMap' exists only to trick swagger's generic deriving mechanism
+-- into not looping indefinitely when it encounters a nested map.
+newtype InnerMap = InnerMap { unMap :: [(TokenName, Int)] }
+    deriving stock (Generic)
+    deriving anyclass (ToJSON, FromJSON, ToSchema)
+
+instance ToSchema Value where
+    declareNamedSchema _ = do
+        mapSchema <- declareSchemaRef (Proxy @(Map.Map CurrencySymbol InnerMap))
+        return $ 
+                NamedSchema (Just "Value") $ mempty
+                    & type_ .~ SwaggerObject
+                    & properties .~ ( [ ("getValue", mapSchema)])
+                    & required .~ [ "getValue" ]
 
 makeLift ''Value
 
