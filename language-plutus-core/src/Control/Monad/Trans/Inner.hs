@@ -1,6 +1,6 @@
-{-# LANGUAGE FlexibleInstances      #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE LambdaCase             #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 module Control.Monad.Trans.Inner
     ( InnerT (..)
@@ -35,7 +35,7 @@ instance (Applicative f, Applicative m) => Applicative (InnerT f m) where
 instance (Monad f, Traversable f, Monad m) => Monad (InnerT f m) where
     InnerT m >>= f = InnerT $ do
         a <- m
-        forBind a (unInnerT . f)
+        forBind a $ unInnerT . f
 
 instance Applicative f => MonadTrans (InnerT f) where
     lift = InnerT . fmap pure

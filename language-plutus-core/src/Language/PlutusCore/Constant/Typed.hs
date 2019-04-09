@@ -3,7 +3,6 @@
 -- article for how this emerged.
 
 {-# LANGUAGE DataKinds                 #-}
-{-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GADTs                     #-}
 {-# LANGUAGE KindSignatures            #-}
 {-# LANGUAGE OverloadedStrings         #-}
