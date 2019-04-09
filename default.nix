@@ -85,8 +85,8 @@ let
     # NOTE: depending on this will make your package rebuild on every commit, regardless of whether
     # anything else has changed!
     git-rev = 
-      builtins.trace rev (let ifdRev = (import (pkgs.callPackage ./nix/git-rev.nix { gitDir = "/../.git"; })).rev;
-      in removeSuffix "\n" (if isNull rev then ifdRev else rev));
+      let ifdRev = (import (pkgs.callPackage ./nix/git-rev.nix { gitDir = builtins.path { name = "gitDir"; path = ./.git; }; })).rev;
+      in removeSuffix "\n" (if isNull rev then ifdRev else rev);
 
     # This is the stackage LTS plus overrides, plus the plutus
     # packages.
