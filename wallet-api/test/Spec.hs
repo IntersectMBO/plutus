@@ -12,12 +12,16 @@ import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import qualified Data.Aeson.Internal        as Aeson
 import qualified Data.ByteString            as BSS
+import qualified Data.ByteString.Lazy       as BSL
 import           Data.Either                (isLeft, isRight)
 import           Data.Foldable              (fold, foldl', traverse_)
 import           Data.List                  (sort)
 import qualified Data.Map                   as Map
+import           Data.String                (IsString(fromString))
+import qualified Ledger.Map
 import           Data.Monoid                (Sum (..))
 import qualified Data.Set                   as Set
+import           Data.String                (IsString(fromString))
 import           Hedgehog                   (Property, forAll, property)
 import qualified Hedgehog
 import qualified Hedgehog.Gen               as Gen
@@ -26,12 +30,14 @@ import qualified Language.PlutusTx.Builtins as Builtins
 import qualified Language.PlutusTx.Prelude  as PlutusTx
 import           Test.Tasty
 import           Test.Tasty.Hedgehog        (testProperty)
-
-import           KeyBytes
+import qualified Test.Tasty.HUnit as HUnit
+import           Test.Tasty.HUnit (testCase)
+import           LedgerBytes                as LedgerBytes
 import           Ledger
 import qualified Ledger.Ada                 as Ada
 import qualified Ledger.Index               as Index
 import qualified Ledger.Value               as Value
+import           Ledger.Value.TH            (CurrencySymbol,Value(Value))
 import           Wallet
 import qualified Wallet.API                 as W
 import           Wallet.Emulator
@@ -81,7 +87,25 @@ tests = testGroup "all tests" [
         testProperty "txnFlows" txnFlowsTest,
         testProperty "encodeByteString" encodeByteStringTest,
         testProperty "encodeSerialise" encodeSerialiseTest
-        ]
+        ],
+    testGroup "LedgerBytes" [
+        testProperty "show-fromHex" ledgerBytesShowFromHexProp,
+        testProperty "toJSON-fromJSON" ledgerBytesToJSONProp
+        ],
+    testGroup "Value" [
+        testProperty "Value ToJSON/FromJSON" (jsonRoundTrip Gen.genValue),
+        testProperty "CurrencySymbol ToJSON/FromJSON" (jsonRoundTrip $ Value.currencySymbol <$> Gen.genSizedByteStringExact),
+        testProperty "CurrencySymbol IsString/Show" currencySymbolIsStringShow
+    ],
+    testGroup
+      "CurrencySymbol"
+      (let jsonString :: BSL.ByteString
+           jsonString = "{\"getValue\":[[{\"unCurrencySymbol\":\"00\"},50]]}"
+           value = Value (Ledger.Map.singleton "00" 50)
+        in [ testCase "decoding" $
+             HUnit.assertEqual "Simple Decode" (Right value) (JSON.eitherDecode jsonString)
+           , testCase "encoding" $ HUnit.assertEqual "Simple Encode" jsonString (JSON.encode value)
+           ])
     ]
 
 wallet1, wallet2, wallet3 :: Wallet
@@ -436,3 +460,32 @@ encodeSerialiseTest = property $ do
         result = Aeson.iparse JSON.decodeSerialise enc
 
     Hedgehog.assert $ result == Aeson.ISuccess txt
+
+jsonRoundTrip :: (Show a, Eq a, JSON.FromJSON a, JSON.ToJSON a) => Hedgehog.Gen a -> Property
+jsonRoundTrip gen = property $ do
+    bts <- forAll gen
+    let enc    = JSON.toJSON bts
+        result = Aeson.iparse JSON.parseJSON enc
+
+    Hedgehog.assert $ result == Aeson.ISuccess bts
+
+ledgerBytesShowFromHexProp :: Property
+ledgerBytesShowFromHexProp = property $ do
+    bts <- forAll $ LedgerBytes <$> Gen.genSizedByteString
+    let result = LedgerBytes.fromHex $ fromString $ show bts
+    
+    Hedgehog.assert $ result == bts
+
+ledgerBytesToJSONProp :: Property
+ledgerBytesToJSONProp = property $ do
+    bts <- forAll $ LedgerBytes <$> Gen.genSizedByteString
+    let enc    = JSON.toJSON bts
+        result = Aeson.iparse JSON.parseJSON enc
+
+    Hedgehog.assert $ result == Aeson.ISuccess bts
+
+currencySymbolIsStringShow :: Property
+currencySymbolIsStringShow = property $ do
+    cs <- forAll $ Value.currencySymbol <$> Gen.genSizedByteStringExact
+    let cs' = fromString (show cs)
+    Hedgehog.assert $ cs' == cs

@@ -39,15 +39,17 @@ module Language.PlutusTx.Prelude (
     any,
     append,
     filter,
-    -- * Hashes
+    -- * ByteStrings
     SizedByteString(..),
     ByteString,
-    sha2_256,
-    sha3_256,
     equalsByteString,
     takeByteString,
     dropByteString,
     concatenate,
+    emptyByteString,
+    -- * Hashes and Signatures
+    sha2_256,
+    sha3_256,
     verifySignature
     ) where
 

@@ -33,15 +33,15 @@
           "txForge": {
             "getValue": [
               [
-                0,
+                { "unCurrencySymbol": "0" },
                 100
               ],
               [
-                1,
+                { "unCurrencySymbol": "1" },
                 40
               ],
               [
-                2,
+                { "unCurrencySymbol": "2" },
                 40
               ]
             ]
@@ -52,15 +52,15 @@
               "txOutValue": {
                 "getValue": [
                   [
-                    0,
+                    { "unCurrencySymbol": "0" },
                     50
                   ],
                   [
-                    1,
+                    { "unCurrencySymbol": "1" },
                     20
                   ],
                   [
-                    2,
+                    { "unCurrencySymbol": "2" },
                     20
                   ]
                 ]
@@ -79,15 +79,15 @@
               "txOutValue": {
                 "getValue": [
                   [
-                    0,
+                    { "unCurrencySymbol": "0" },
                     50
                   ],
                   [
-                    1,
+                    { "unCurrencySymbol": "1" },
                     20
                   ],
                   [
-                    2,
+                    { "unCurrencySymbol": "2" },
                     20
                   ]
                 ]
@@ -153,15 +153,15 @@
       "simulatorWalletBalance": {
         "getValue": [
           [
-            0,
+            { "unCurrencySymbol": "0" },
             50
           ],
           [
-            1,
+            { "unCurrencySymbol": "1" },
             20
           ],
           [
-            2,
+            { "unCurrencySymbol": "2" },
             20
           ]
         ]
@@ -174,15 +174,15 @@
       "simulatorWalletBalance": {
         "getValue": [
           [
-            0,
+            { "unCurrencySymbol": "0" },
             50
           ],
           [
-            1,
+            { "unCurrencySymbol": "1" },
             20
           ],
           [
-            2,
+            { "unCurrencySymbol": "2" },
             20
           ]
         ]

@@ -75,7 +75,7 @@ makeTestAction :: Array SimpleArgument -> Action
 makeTestAction arguments =
   Action
     { simulatorWallet: SimulatorWallet { simulatorWalletWallet: Wallet { getWallet: 1 }
-                                       , simulatorWalletBalance: Value { getValue: LedgerMap [ Tuple (CurrencySymbol 12345) 10 ] }
+                                       , simulatorWalletBalance: Value { getValue: LedgerMap [ Tuple (CurrencySymbol { unCurrencySymbol: "12345" } ) 10 ] }
                                        }
     , functionSchema: FunctionSchema
                         { functionName: Fn "test"

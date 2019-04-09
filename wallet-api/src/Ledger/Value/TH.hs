@@ -1,4 +1,7 @@
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE TemplateHaskell    #-}
@@ -28,28 +31,54 @@ module Ledger.Value.TH(
     ) where
 
 import           Codec.Serialise.Class        (Serialise)
-import           Data.Aeson                   (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
-import           Data.Swagger.Internal.Schema (ToSchema)
+import           Data.Aeson                   (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
+import qualified Data.Aeson                   as JSON
+import qualified Data.Aeson.Extras            as JSON
+import qualified Data.ByteString.Lazy         as BSL
+import qualified Data.Swagger.Internal        as S
+import           Data.Swagger.Schema          (ToSchema(declareNamedSchema), byteSchema)
+import           Data.String                  (IsString)
 import           GHC.Generics                 (Generic)
+import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift       (makeLift)
 import qualified Language.PlutusTx.Prelude    as P
 import           Language.Haskell.TH          (Q, TExp)
 import qualified Ledger.Map.TH                as Map
 import qualified Ledger.These.TH              as These
 import           Prelude                      hiding (all, lookup, negate)
+import           LedgerBytes                  (LedgerBytes(LedgerBytes))
 
-data CurrencySymbol = CurrencySymbol Int
-  deriving (Eq, Ord, Show)
-  deriving stock (Generic)
-  deriving anyclass (ToSchema, ToJSON, FromJSON, Serialise, ToJSONKey, FromJSONKey)
+newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.SizedByteString 32 }
+    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise) via LedgerBytes
+    deriving stock (Eq, Ord, Generic)
+
+instance ToSchema CurrencySymbol where
+  declareNamedSchema _ = pure $ S.NamedSchema (Just "CurrencySymbol") byteSchema
+
+instance ToJSON CurrencySymbol where
+  toJSON currencySymbol =
+    JSON.object
+      [ ( "unCurrencySymbol"
+        , JSON.String .
+          JSON.encodeByteString .
+          BSL.toStrict . Builtins.unSizedByteString . unCurrencySymbol $
+          currencySymbol)
+      ]
+
+instance FromJSON CurrencySymbol where
+  parseJSON =
+    JSON.withObject "CurrencySymbol" $ \object -> do
+      raw <- object .: "unCurrencySymbol"
+      bytes <- JSON.decodeByteString raw
+      pure . CurrencySymbol . Builtins.SizedByteString . BSL.fromStrict $ bytes
 
 makeLift ''CurrencySymbol
 
-currencySymbol :: Q (TExp (Int -> CurrencySymbol))
-currencySymbol = [|| CurrencySymbol ||]
-
 eqCurSymbol :: Q (TExp (CurrencySymbol -> CurrencySymbol -> Bool))
-eqCurSymbol = [|| \(CurrencySymbol l) (CurrencySymbol r) -> $$(P.eq) l r ||]
+eqCurSymbol = [|| \(CurrencySymbol l) (CurrencySymbol r) -> $$(P.equalsByteString) l r ||]
+
+currencySymbol :: Q (TExp (P.ByteString -> CurrencySymbol))
+currencySymbol = [|| CurrencySymbol ||]
 
 -- | A cryptocurrency value. This is a map from 'CurrencySymbol's to a
 -- quantity of that currency.

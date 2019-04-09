@@ -1,15 +1,15 @@
 {
   "getValue": [
     [
-      0,
+      {"unCurrencySymbol": "0" },
       100
     ],
     [
-      1,
+      { "unCurrencySymbol": "1" },
       40
     ],
     [
-      2,
+      { "unCurrencySymbol": "2" },
       40
     ]
   ]

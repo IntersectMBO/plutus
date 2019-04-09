@@ -40,15 +40,15 @@ import qualified Data.ByteString.Lazy       as BSL
 import           Data.Swagger               (ToSchema (declareNamedSchema), byteSchema)
 import           Data.Swagger.Internal
 import           GHC.Generics               (Generic)
-import           KeyBytes                   (KeyBytes)
-import qualified KeyBytes                   as KB
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift     (makeLift)
 import           Ledger.TxId
+import           LedgerBytes                (LedgerBytes)
+import qualified LedgerBytes                as KB
 import           Servant.API                (FromHttpApiData (parseUrlPiece), ToHttpApiData (toUrlPiece))
 
 -- | A cryptographic public key.
-newtype PubKey = PubKey { getPubKey :: KeyBytes }
+newtype PubKey = PubKey { getPubKey :: LedgerBytes }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
     deriving anyclass (ToSchema, ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey)
@@ -56,7 +56,7 @@ newtype PubKey = PubKey { getPubKey :: KeyBytes }
 makeLift ''PubKey
 
 -- | A cryptographic private key.
-newtype PrivateKey = PrivateKey { getPrivateKey :: KeyBytes }
+newtype PrivateKey = PrivateKey { getPrivateKey :: LedgerBytes }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
     deriving anyclass (ToSchema, ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey)
@@ -101,7 +101,7 @@ makeLift ''Signature
 -- | Check whether the given 'Signature' was signed by the private key corresponding to the given public key.
 signedBy :: Signature -> PubKey -> TxId -> Bool
 signedBy (Signature s) (PubKey k) txId =
-    let k' = ED25519.publicKey $ BSL.toStrict $ Builtins.unSizedByteString $ KB.getKeyBytes k
+    let k' = ED25519.publicKey $ BSL.toStrict $ Builtins.unSizedByteString $ KB.getLedgerBytes k
         s' = ED25519.signature $ BSL.toStrict $ Builtins.unSizedByteString s
     in throwCryptoError $ ED25519.verify <$> k' <*> pure (getTxId txId) <*> s' -- TODO: is this what we want
 
@@ -112,7 +112,7 @@ signTx (TxIdOf txId) = sign txId
 -- | Sign a message using a private key.
 sign :: BA.ByteArrayAccess a => a -> PrivateKey -> Signature
 sign  msg (PrivateKey privKey) =
-    let k  = ED25519.secretKey $ BSL.toStrict $ Builtins.unSizedByteString $ KB.getKeyBytes privKey
+    let k  = ED25519.secretKey $ BSL.toStrict $ Builtins.unSizedByteString $ KB.getLedgerBytes privKey
         pk = ED25519.toPublic <$> k
         salt :: BS.ByteString
         salt = "" -- TODO: do we need better salt?

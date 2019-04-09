@@ -58,15 +58,15 @@ jsonHandling = do
           (Proxy :: Proxy (Array CompilationError))
           "test/evaluation_error1.json"
       test "Decode/Encode a Value" do
-        let aValue = Value { getValue: LedgerMap [ Tuple (CurrencySymbol 0) 10
-                                                 , Tuple (CurrencySymbol 1) 20
+        let aValue = Value { getValue: LedgerMap [ Tuple (CurrencySymbol { unCurrencySymbol: "0"}) 10
+                                                 , Tuple (CurrencySymbol { unCurrencySymbol: "1"}) 20
                                                  ]}
         equalGShow (Right aValue)
           (decodeJson (encodeJson aValue))
       test "Encode a Value." do
-        let aValue = Value { getValue: LedgerMap [ Tuple (CurrencySymbol 0) 100
-                                                 , Tuple (CurrencySymbol 1) 40
-                                                 , Tuple (CurrencySymbol 2) 40
+        let aValue = Value { getValue: LedgerMap [ Tuple (CurrencySymbol { unCurrencySymbol: "0" }) 100
+                                                 , Tuple (CurrencySymbol { unCurrencySymbol: "1" }) 40
+                                                 , Tuple (CurrencySymbol { unCurrencySymbol: "2" }) 40
                                                  ]}
         assertEncodesTo
           aValue

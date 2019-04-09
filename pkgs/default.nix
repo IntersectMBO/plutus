@@ -75986,6 +75986,7 @@ license = stdenv.lib.licenses.mit;
 , swagger2
 , tasty
 , tasty-hedgehog
+, tasty-hunit
 , template-haskell
 , text
 , transformers
@@ -76044,6 +76045,7 @@ lens
 plutus-tx
 tasty
 tasty-hedgehog
+tasty-hunit
 transformers
 ];
 doHaddock = false;

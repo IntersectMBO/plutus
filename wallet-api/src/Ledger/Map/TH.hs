@@ -24,8 +24,7 @@ module Ledger.Map.TH(
     ) where
 
 import           Codec.Serialise.Class        (Serialise)
-import           Data.Aeson                   (ToJSONKey, FromJSONKey, FromJSON(parseJSON), ToJSON(toJSON))
-import qualified Data.Map                     as Map
+import           Data.Aeson                   (FromJSON(parseJSON), ToJSON(toJSON))
 import           Data.Swagger.Internal.Schema (ToSchema)
 import           GHC.Generics                 (Generic)
 import           Language.PlutusTx.Lift       (makeLift)
@@ -43,11 +42,11 @@ data Map k v = Map { unMap :: [(k, v)] }
 
 makeLift ''Map
 
-instance (Ord k, ToJSONKey k, ToJSON v) => ToJSON (Map k v) where
-    toJSON = toJSON . Map.fromList . unMap
+instance (ToJSON v, ToJSON k) => ToJSON (Map k v) where
+    toJSON = toJSON . unMap
 
-instance (Ord k, FromJSONKey k, FromJSON v) => FromJSON (Map k v) where
-    parseJSON v = Map . Map.toList <$> parseJSON v
+instance (FromJSON v, FromJSON k) => FromJSON (Map k v) where
+    parseJSON v = Map <$> parseJSON v
 
 fromList :: Q (TExp ([(k, v)] -> Map k v))
 fromList = [|| Map ||]

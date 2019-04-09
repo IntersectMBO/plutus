@@ -2,6 +2,7 @@
 -- | Functions for working with 'Ada' in Haskell.
 module Ledger.Ada(
       Ada
+      , adaSymbol
       -- * Constructor
       , fromValue
       , fromInt
@@ -24,8 +25,12 @@ module Ledger.Ada(
 
 import qualified Ledger.Ada.TH as TH
 import           Ledger.Ada.TH (Ada)
-import           Ledger.Value  (Value)
+import           Ledger.Value  (CurrencySymbol, Value)
 import           Prelude       hiding (negate)
+
+-- | See 'TH.adaSymbol'
+adaSymbol :: CurrencySymbol
+adaSymbol = $$(TH.adaSymbol)
 
 -- | See 'TH.toValue'.
 toValue :: Ada -> Value

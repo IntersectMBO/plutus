@@ -35,7 +35,7 @@ import Halogen.HTML.Properties (class_)
 import Ledger.Extra (_LedgerMap)
 import Ledger.Slot (Slot(..))
 import Ledger.TxId (TxIdOf(TxIdOf))
-import Ledger.Value.TH (CurrencySymbol)
+import Ledger.Value.TH (CurrencySymbol(..))
 import Playground.API (EvaluationResult(EvaluationResult), SimulatorWallet)
 import Prelude (class Monad, Unit, discard, map, show, unit, ($), (<$>), (<<<), (<>), (==))
 import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, Query(HandleBalancesChartMessage), _simulatorWalletBalance, _simulatorWalletWallet, _value, _walletId, cpBalancesChart)
@@ -220,16 +220,16 @@ formatWalletId :: SimulatorWallet -> String
 formatWalletId wallet = "Wallet #" <> show (view (_simulatorWalletWallet <<< _walletId) wallet)
 
 currencySeries :: forall m i. Monad m => Array SimulatorWallet -> CurrencySymbol -> E.CommandsT (bar :: I | i) m Unit
-currencySeries wallets target =
+currencySeries wallets (CurrencySymbol { unCurrencySymbol: target }) =
   E.bar do
     -- Optionally: `E.stack "One bar"`
-    E.name $ show $ unwrap target
+    E.name target
     E.items
       $ toListOf (traversed
                   <<< _simulatorWalletBalance
                   <<< _value
                   <<< _LedgerMap
-                  <<< to (Array.find ((==) target <<< fst))
+                  <<< to (Array.find ((==) (CurrencySymbol { unCurrencySymbol: target }) <<< fst))
                   <<< to (maybe nullItem (E.numItem <<< Int.toNumber <<< snd)))
         wallets
 
