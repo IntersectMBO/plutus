@@ -167,10 +167,9 @@ similar to 'Ledger.Ada' for their own currencies.
 valueOf :: Q (TExp (Value -> CurrencySymbol -> TokenName -> Int))
 valueOf = [||
   \(Value mp) cur tn ->
-      let lkp = $$(Map.lookup) in
-      case lkp $$(eqCurSymbol) cur mp of
+      case $$(Map.lookup) $$(eqCurSymbol) cur mp of
         Nothing -> 0 :: Int
-        Just i  -> case lkp $$(eqTokenName) tn i of
+        Just i  -> case $$(Map.lookup) $$(eqTokenName) tn i of
             Nothing -> 0
             Just v  -> v
    ||]
@@ -242,11 +241,7 @@ isZero = [|| \(Value xs) -> $$(Map.all) ($$(Map.all) (\i -> $$(P.eq) 0 i)) xs ||
 checkPred :: Q (TExp ((Map.These Int Int -> Bool) -> Value -> Value -> Bool))
 checkPred = [||
     let checkPred' :: (Map.These Int Int -> Bool) -> Value -> Value -> Bool
-        checkPred' f l r = 
-            let
-                all = $$(Map.all)
-            in
-                all (all f) ($$unionVal l r)
+        checkPred' f l r = $$(Map.all) ($$(Map.all) f) ($$unionVal l r)
     in checkPred'
      ||]
 
