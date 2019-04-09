@@ -6,6 +6,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE LambdaCase         #-}
+{-# OPTIONS_GHC -O0             #-}
 -- | Functions for working with 'Value' in Template Haskell.
 module Ledger.Value.TH(
     -- ** Currency symbols
@@ -166,46 +167,60 @@ similar to 'Ledger.Ada' for their own currencies.
 -- | Get the quantity of the given currency in the 'Value'.
 valueOf :: Q (TExp (Value -> CurrencySymbol -> TokenName -> Int))
 valueOf = [||
-  \(Value mp) cur tn ->
-      case $$(Map.lookup) $$(eqCurSymbol) cur mp of
-        Nothing -> 0 :: Int
-        Just i  -> case $$(Map.lookup) $$(eqTokenName) tn i of
-            Nothing -> 0
-            Just v  -> v
+            let valueOf' :: Value -> CurrencySymbol -> TokenName -> Int
+                valueOf' (Value mp) cur tn =
+                    case $$(Map.lookup) $$(eqCurSymbol) cur mp of
+                        Nothing -> 0 :: Int
+                        Just i  -> case $$(Map.lookup) $$(eqTokenName) tn i of
+                            Nothing -> 0
+                            Just v  -> v
+            in valueOf'
    ||]
 
 -- | The list of 'CurrencySymbol's of a 'Value'.
 symbols :: Q (TExp (Value -> [CurrencySymbol]))
-symbols = [|| \(Value mp) -> $$(Map.keys) mp ||]
+symbols = [|| 
+            let symbols' :: Value -> [CurrencySymbol]
+                symbols' (Value mp) = $$(Map.keys) mp
+            in symbols' ||]
 
 -- | Make a 'Value' containing only the given quantity of the given currency.
 singleton :: Q (TExp (CurrencySymbol -> TokenName -> Int -> Value))
-singleton = [|| \c tn i -> Value ($$(Map.singleton) c ($$(Map.singleton) tn i)) ||]
+singleton = [|| 
+             let singleton' :: CurrencySymbol -> TokenName -> Int -> Value
+                 singleton' c tn i = 
+                    Value ($$(Map.singleton) c ($$(Map.singleton) tn i)) 
+             in singleton'
+            ||]
 
 -- | Combine two 'Value' maps 
 unionVal :: Q (TExp (Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (Map.These Int Int))))
 unionVal = [|| 
-    \(Value l) (Value r) -> 
-        let 
-            combined = $$(Map.union) $$(eqCurSymbol) l r
-            unThese k = case k of
-                Map.This a    -> $$(Map.map) (Map.This) a
-                Map.That b    -> $$(Map.map) (Map.That) b
-                Map.These a b -> $$(Map.union) $$(eqTokenName) a b
-        in ($$(Map.map) unThese combined)
+            let unionVal' :: Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (Map.These Int Int))
+                unionVal' (Value l) (Value r) = 
+                    let 
+                        combined = $$(Map.union) $$(eqCurSymbol) l r
+                        unThese k = case k of
+                            Map.This a    -> $$(Map.map) (Map.This) a
+                            Map.That b    -> $$(Map.map) (Map.That) b
+                            Map.These a b -> $$(Map.union) $$(eqTokenName) a b
+                    in ($$(Map.map) unThese combined)
+            in unionVal'
 
         ||]
 
 unionWith :: Q (TExp ((Int -> Int -> Int) -> Value -> Value -> Value))
 unionWith = [||
-  \f ls rs ->
-    let
-        combined = $$unionVal ls rs
-        unThese k' = case k' of
-            Map.This a -> f a 0
-            Map.That b -> f 0 b
-            Map.These a b -> f a b
-    in Value ($$(Map.map) ($$(Map.map) unThese) combined)
+              let unionWith' :: (Int -> Int -> Int) -> Value -> Value -> Value
+                  unionWith' f ls rs =
+                    let
+                        combined = $$unionVal ls rs
+                        unThese k' = case k' of
+                            Map.This a -> f a 0
+                            Map.That b -> f 0 b
+                            Map.These a b -> f a b
+                    in Value ($$(Map.map) ($$(Map.map) unThese) combined)
+              in unionWith'
   ||]
 
 -- | Multiply all the quantities in the 'Value' by the given scale factor.

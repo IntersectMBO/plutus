@@ -7,6 +7,7 @@
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE MonoLocalBinds         #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
+{-# OPTIONS_GHC -O0                 #-}
 -- A map implementation that can be used in on-chain and off-chain code.
 module Ledger.Map.TH(
     Map
