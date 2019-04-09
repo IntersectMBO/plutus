@@ -160,10 +160,19 @@ vestingSpec =
                                   ]
                             , ValueSchema
                                   [ ( "getValue"
-                                    , SimpleArraySchema
-                                          (SimpleTupleSchema
-                                               ( SimpleStringSchema
-                                               , SimpleIntSchema)))
+                                    , SimpleObjectSchema
+                                          [ ( "unMap"
+                                            , SimpleArraySchema
+                                                  (SimpleTupleSchema
+                                                       ( SimpleStringSchema
+                                                       , SimpleObjectSchema
+                                                             [ ( "unMap"
+                                                               , SimpleArraySchema
+                                                                     (SimpleTupleSchema
+                                                                          ( SimpleStringSchema
+                                                                          , SimpleIntSchema)))
+                                                             ])))
+                                          ])
                                   ]
                             , SimpleObjectSchema
                                   [("getWallet", SimpleIntSchema)]

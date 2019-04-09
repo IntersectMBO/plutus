@@ -42,15 +42,16 @@ module Ledger.Value.TH(
     ) where
 
 import           Codec.Serialise.Class        (Serialise)
-import           Control.Lens
+import           Control.Lens                 (set,(.~))
 import           Data.Aeson                   (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
 import qualified Data.Aeson                   as JSON
 import qualified Data.Aeson.Extras            as JSON
 import qualified Data.ByteString.Lazy         as BSL
 import qualified Data.ByteString.Lazy.Char8   as C8
 import qualified Data.Swagger.Internal        as S
-import           Data.Swagger.Schema          (ToSchema(declareNamedSchema), byteSchema)
-import Data.Swagger
+import           Data.Swagger.Schema          (ToSchema(declareNamedSchema))
+import qualified Data.Swagger.Lens            as S
+import           Data.Swagger                 (SwaggerType(SwaggerObject), NamedSchema(NamedSchema), declareSchemaRef)
 import           Data.Proxy                   (Proxy(Proxy))
 import           Data.String                  (IsString)
 import qualified Data.Text                    as Text
@@ -62,13 +63,17 @@ import           Language.Haskell.TH          (Q, TExp)
 import qualified Ledger.Map.TH                as Map
 import           Prelude                      hiding (all, lookup, negate)
 import           LedgerBytes                  (LedgerBytes(LedgerBytes))
+import           Data.Function                ((&))
+
+hexSchema :: S.Schema
+hexSchema = mempty & set S.type_ S.SwaggerString & set S.format (Just "hex")
 
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.SizedByteString 32 }
     deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise) via LedgerBytes
     deriving stock (Eq, Ord, Generic)
 
 instance ToSchema CurrencySymbol where
-  declareNamedSchema _ = pure $ S.NamedSchema (Just "CurrencySymbol") byteSchema
+  declareNamedSchema _ = pure $ S.NamedSchema (Just "CurrencySymbol") hexSchema
 
 instance ToJSON CurrencySymbol where
   toJSON currencySymbol =
@@ -101,7 +106,7 @@ newtype TokenName = TokenName { unTokenName :: Builtins.SizedByteString 32 }
     deriving stock (Eq, Ord, Generic)
 
 instance ToSchema TokenName where
-    declareNamedSchema _ = pure $ S.NamedSchema (Just "TokenName") byteSchema
+    declareNamedSchema _ = pure $ S.NamedSchema (Just "TokenName") hexSchema
 
 instance ToJSON TokenName where
     toJSON tokenName =
@@ -160,9 +165,9 @@ instance ToSchema Value where
         mapSchema <- declareSchemaRef (Proxy @(Map.Map CurrencySymbol InnerMap))
         return $ 
                 NamedSchema (Just "Value") $ mempty
-                    & type_ .~ SwaggerObject
-                    & properties .~ ( [ ("getValue", mapSchema)])
-                    & required .~ [ "getValue" ]
+                    & S.type_ .~ SwaggerObject
+                    & S.properties .~ ( [ ("getValue", mapSchema)])
+                    & S.required .~ [ "getValue" ]
 
 makeLift ''Value
 

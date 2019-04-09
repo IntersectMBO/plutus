@@ -14,6 +14,7 @@ import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (input_, onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
+import Ledger.Value.TH (Value)
 import Playground.API (FunctionSchema, SimpleArgumentSchema, SimulatorWallet(..), _Fn, _FunctionSchema)
 import Prelude (show, ($), (<$>), (<<<), (<>))
 import ValueEditor (valueForm)
@@ -22,25 +23,28 @@ import Wallet.Emulator.Types (Wallet)
 walletsPane ::
   forall p.
   Signatures
+  -> Value
   -> Array SimulatorWallet
   -> HTML p Query
-walletsPane signatures simulatorWallets =
+walletsPane signatures initialValue simulatorWallets =
   div_
     [ h2_ [ text "Wallets" ]
     , p_ [ text "Add some initial wallets, then click one of your function calls inside the wallet to begin a chain of actions." ]
     , Keyed.div
         [ class_ row ]
-        (Array.snoc (mapWithIndex (walletPane signatures) simulatorWallets) addWalletPane)
+        (Array.snoc (mapWithIndex (walletPane signatures initialValue) simulatorWallets) addWalletPane)
     ]
 
 walletPane ::
   forall p.
   Signatures
+  -> Value
   -> Int
   -> SimulatorWallet
   -> Tuple String (HTML p Query)
 walletPane
   signatures
+  initialValue
   walletIndex
   simulatorWallet@(SimulatorWallet { simulatorWalletWallet: wallet
                                    , simulatorWalletBalance: balance
@@ -62,7 +66,7 @@ walletPane
                   , br_
                   , h4_ [ text "Available functions" ]
                   , div_
-                      (actionButton simulatorWallet <$> signatures)
+                      (actionButton initialValue simulatorWallet <$> signatures)
                   ]
               ]
           ]
@@ -87,15 +91,16 @@ addWalletPane =
 
 actionButton ::
   forall p.
-  SimulatorWallet
+  Value
+  -> SimulatorWallet
   -> FunctionSchema SimpleArgumentSchema
   -> HTML p Query
-actionButton simulatorWallet functionSchema =
+actionButton initialValue simulatorWallet functionSchema =
   button
     [ classes [ btn, btnSecondary, btnSmall, ClassName "action-button" ]
     , onClick $ input_ $ ModifyActions $ AddAction $
         Action
-          { functionSchema: toValueLevel functionSchema
+          { functionSchema: toArgumentLevel initialValue functionSchema
           , simulatorWallet
           }
     ]

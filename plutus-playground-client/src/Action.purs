@@ -23,6 +23,7 @@ import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties (InputType(InputText, InputNumber), class_, classes, disabled, for, id_, placeholder, required, type_, value)
 import Halogen.Query as HQ
 import Icons (Icon(..), icon)
+import Ledger.Value.TH (Value)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
 import Playground.API (EvaluationResult, _Fn, _FunctionSchema)
 import Prelude (map, pure, show, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==))
@@ -35,10 +36,11 @@ import Wallet.Emulator.Types (Wallet)
 simulationPane ::
   forall m aff.
   MonadAff (EChartsEffects aff) m
-  => Cursor Simulation
+  => Value
+  -> Cursor Simulation
   -> WebData EvaluationResult
   -> ParentHTML Query ChildQuery ChildSlot m
-simulationPane simulations evaluationResult =
+simulationPane initialValue simulations evaluationResult =
   case current simulations of
     Just (Simulation simulation) ->
       let
@@ -51,7 +53,7 @@ simulationPane simulations evaluationResult =
       in
         div_
           [ simulationsNav simulations
-          , walletsPane simulation.signatures simulation.wallets
+          , walletsPane simulation.signatures initialValue simulation.wallets
           , br_
           , actionsPane isValidWallet simulation.actions (view _resultBlockchain <$> evaluationResult)
           ]
@@ -231,6 +233,18 @@ actionArgumentField ancestors _ arg@(SimpleString s) =
       , required true
       , placeholder "String"
       , onValueInput $ HE.input SetStringField
+      ]
+    , validationFeedback (joinPath ancestors <$> validate arg)
+  ]
+actionArgumentField ancestors _ arg@(SimpleHex s) =
+  div_ [
+    input
+      [ type_ InputText
+      , classes (Array.cons formControl (actionArgumentClass ancestors))
+      , value $ fromMaybe "" s
+      , required true
+      , placeholder "String"
+      , onValueInput $ HE.input SetHexField
       ]
     , validationFeedback (joinPath ancestors <$> validate arg)
   ]

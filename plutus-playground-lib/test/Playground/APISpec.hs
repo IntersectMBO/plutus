@@ -84,8 +84,19 @@ toSimpleArgumentSchemaSpec =
             toSimpleArgumentSchema (toInlinedSchema (Proxy :: Proxy Value)) `shouldBe`
             ValueSchema
                 [ ( "getValue"
-                  , SimpleArraySchema
-                        (SimpleTupleSchema (SimpleStringSchema, SimpleIntSchema)))
+                  , SimpleObjectSchema
+                        [ ( "unMap"
+                          , SimpleArraySchema
+                                (SimpleTupleSchema
+                                     ( SimpleStringSchema
+                                     , SimpleObjectSchema
+                                           [ ( "unMap"
+                                             , SimpleArraySchema
+                                                   (SimpleTupleSchema
+                                                        ( SimpleStringSchema
+                                                        , SimpleIntSchema)))
+                                           ])))
+                        ])
                 ]
 
 isSupportedByFrontendSpec :: Spec
