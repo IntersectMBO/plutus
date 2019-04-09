@@ -69,7 +69,5 @@ test-suite plutus-use-cases-test
         text -any,
         wallet-api -any,
         plutus-use-cases -any,
-        plutus-tx -any,
-        template-haskell -any,
         lens -any,
         mtl -any
