@@ -3,24 +3,30 @@
 \begin{document}
 
 \newcommand\unit{$\mathit{unit}$}
+\newcommand\one{$\mathit{one}$}
 \newcommand\boolean{$\mathit{boolean}$}
+\newcommand\true{$\mathit{true}$}
+\newcommand\false{$\mathit{false}$}
+\newcommand\case{$\mathit{case}$}
 \newcommand\signed{$\mathit{signed}$}
 \newcommand\txhash{$\mathit{txhash}$}
 \newcommand\pubkey{$\mathit{pubkey}$}
 \newcommand\blocknum{$\mathit{blocknum}$}
+
 % These are for use inside listings.  If you just use \textit it uses
 % the italic tt font and the spacing inside the words is a bit
 % strange.
 
 
 We illustrate the use of Plutus Core by constructing a simple
-validator program. We present components of this program in a
-high-level style: for instance, we write
+validator program for the situation described in the previous
+section. We present components of this program in a high-level style:
+for instance, we write
 \begin{lstlisting}
-   one : |\unit|
-   one = (abs $a$ (type) (lam $x$ $a$ $x$))
+   |\one| : |\unit|
+   |\one| = (abs $a$ (type) (lam $x$ $a$ $x$))
 \end{lstlisting}
-for the element of the type $unit$ (defined in \ref{fig:Plutus_core_type_abbreviations}).
+for the element of the type $unit$ (defined Figure~\ref{fig:Plutus_core_type_abbreviations}).
 
 We stress that declarations in this style are not part of the Plutus
 Core language. We merely use the familiar syntax to present our
@@ -37,89 +43,97 @@ contain the declarations below. We have
 % It works like this because of the \escapeinside setting in \lstset in the document header.
 
 \begin{lstlisting}
-  true : |\boolean|
-  true = (abs $a$ (type)
+  |\true| : |\boolean|
+  |\true| = (abs $a$ (type)
           (lam $x$ $a$
           (lam $y$ $a$
                 $x$ )))
 \end{lstlisting}
 and similarly
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
-  false : |\boolean|
-  false = (abs $a$ (type)
+  |\false| : |\boolean|
+  |\false| = (abs $a$ (type)
            (lam $x$ $a$
            (lam $y$ $a$
                  $y$ )))
 \end{lstlisting}
 
-\noindent Next, we define the ``case'' function for the type $boolean$ as follows:
+\noindent Next, we define the ``\case'' function for the type $boolean$ as follows:
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
-  case : (all $a$ (type)
+  |\case| : (all $a$ (type)
           (fun |\boolean|
           (fun (fun |\unit| $a$) (fun (fun |\unit| $a$) $a$))))
-  case = (abs $a$ (type)
+  |\case| = (abs $a$ (type)
           (lam $b$ |\boolean|
           (lam $t$ (fun |\unit| $a$)
           (lam $f$ (fun |\unit| $a$)
              [
                [ {$b$ (fun |\unit| $a$)} $t$ $f$ ]
-               one
+               |\one|
              ]
           ))))
 \end{lstlisting}
 The reader is encouraged to verify that
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
-  [{case a} true (lam |\unit| u x) (lam |\unit| u y)] $\stackrel{*}{\rightarrow}$ x
+  [{|\case| a} |\true| (lam |\unit| u x) (lam |\unit| u y)] $\stackrel{*}{\rightarrow}$ x
 \end{lstlisting}
 and
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
-  [{case a} false (lam |\unit| u x) (lam |\unit| u y)] $\stackrel{*}{\rightarrow}$ y
+  [{|\case| a} |\false| (lam |\unit| u x) (lam |\unit| u y)] $\stackrel{*}{\rightarrow}$ y
 \end{lstlisting}
 
-\noindent We can use \texttt{case} to define the following function:
+\noindent We can use \case{} to define the following function:
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
   verifyIdentity :
     (fun (con bytestring 256) (fun (con bytestring 32) unit))
   verifyIdentity =
     (lam |\pubkey| (con bytestring 256)
     (lam |\signed| (con bytestring 32)
-      [ { case |\unit| } [ {(builtin verifySignature) (con 32) (con 32) (con 256)}
+      [ { |\case| |\unit| } [ {(builtin verifySignature) (con 32) (con 32) (con 256)}
                            |\signed|
                            |\txhash|
                            |\pubkey|
                          ]
-        (lam u |\unit| one)
+        (lam u |\unit| |\one|)
         (lam u |\unit| (error |\unit|))
       ]))
 \end{lstlisting}
 the idea being that the first argument is a public key, and the second
 argument is the result of signing the hash of the current transaction
-(accessible via $\mathit{txhash} : \texttt{(con bytestring 32)}$) with
-that public key. The function terminates if and only if the signature
-is valid, raising an \texttt{error} otherwise. Now, given Alice's
-public key we can apply our function to obtain one that verifies
-whether or not its input is the result of Alice signing the current
-block number. Again, we stress that the Plutus Core expression
+(contained in $\mathit{txhash} : \texttt{(con bytestring 32)}$) with
+the corresponding private key\footnote{In practice $\mathit{txhash}$
+  is contained in a data structure supplied as an extra parameter to
+  the validator script at the start of the validation process.  The
+  Plutus Core code required to access $\mathit{txhash}$ is a (rather
+  complicated) implementation detail: we omit it here, regarding
+  $\mathit{txhash}$ as a value contained in some enclosing
+  environment.}.  The function terminates normally if and only if the
+signature is valid, returning \texttt{error} otherwise. Now, given
+Alice's public key we can apply our function to obtain one that
+verifies whether or not its input is the result of Alice signing the
+current block number. Again, we stress that the Plutus Core expression
 corresponding to \texttt{verifyIdentity} is going to look something
 like Figure \ref{fig:Continuized_Let_Example}.
 
-With minimal modification we might turn our function into one that
-verifies a signature of the current block number. Specifically, by
-replacing \txhash{} with
-\begin{lstlisting}
-  [ {intToByteString (con 16) (con 32)}
-    256
-    [{|\blocknum| (con 16)} 16]
-  ]
-\end{lstlisting}
+% The next bit no longer makes a lot of sense because 
 
-Notice that we must supply \blocknum{} with the size we wish to use to
-store the result twice, once at the type level and again at the term
-level. This is necessary because we want to have the size information
-available both at the type level, to facilitate gas calculations, and
-at the term level, so that once types are erased the runtime will know
-how much memory to allocate. This quirk is present in a number of the
-built in functions.
+%% With minimal modification we might turn our function into one that
+%% verifies a signature of the current block number; specifically, we
+%% could replace \txhash{} with
+%% \begin{lstlisting}
+%%   [ {intToByteString (con 16) (con 32)}
+%%     256
+%%     [{|\blocknum| (con 16)} 16]
+%%   ]
+%% \end{lstlisting}
+
+%% Notice that we must supply \blocknum{} with the size we wish to use to
+%% store the result twice, once at the type level and again at the term
+%% level. This is necessary because we want to have the size information
+%% available both at the type level, to facilitate gas calculations, and
+%% at the term level, so that once types are erased the runtime will know
+%% how much memory to allocate. This quirk is present in a number of the
+%% built in functions.
 
 \begin{figure*}[h]  % Using H here causes undefined references to this figure
 \begin{lstlisting}%[basicstyle=\ttfamily,mathescape]

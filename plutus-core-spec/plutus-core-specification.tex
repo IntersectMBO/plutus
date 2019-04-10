@@ -375,11 +375,14 @@ Plutus Core language.
  require that code supplied for on-chain execution comes with all type
  annotations pre-normalised.  This can be done during off-chain type
  checking.  Another issue here is that normalisation can cause sizes
- to increase (in the worst case, exponentially \blue{(really?)}), and
- requiring normalisation to be performed before a program is submitted
- to the chain facilitates prediction of on-chain costs.  \blue{Is
-   there an issue that further normalisation may be required when
-   programs are composed on-chain?}
+ to increase (in the worst case,
+ exponentially\blue{\footnote{\blue{Really?}}}, and requiring
+ normalisation to be performed before a program is submitted to the
+ chain facilitates prediction of on-chain
+ costs\blue{\footnote{\blue{Is there an issue that further
+       normalisation may be required when programs are composed
+       on-chain?}}}
+ .
 
 \subsubsection{Sizes and built-in types and functions}
 \label{sec:size-note}
@@ -421,15 +424,13 @@ index. Indices can be used in order to get parameterized data types,
 but also in order to control the shape of the data type: depending on
 an index, recursive occurrences can be instantiated differently.  This
 allows us to encode a wide variety of data types, including non-regular and
-mutually recursive data types.
-
-\blue{We could do with more detail (or perhaps an example) here, since
+mutually recursive data types\blue{\footnote{\blue{We could do with more detail (or perhaps an example) here, since
   it'll be much more difficult for the reader to work out what's going
-  on than with standard \texttt{fix}.  With luck we'll have a publication
-  soon...}
+  on than with standard \texttt{fix}.  With luck we'll soon have a publication
+  to refer to.}}}.
 
-Note that we have an \textit{isomporhism} of types here
-rather than equality: fixpoint types are
+Note that we have an \textit{isomporhism} of types here rather than
+equality: fixpoint types are
 \textit{isorecursive}~\cite[20.2]{Pierce:TAPL} with explicit maps
 
 $$
@@ -442,13 +443,20 @@ $$
 \texttt{unwrap} : \texttt{ifix A B} \rightarrow  \texttt{A (ifix A) B}
 $$
 
+\noindent such that
+
+$$
+\texttt{iwrap} \circ \texttt{unwrap} = id_{ \texttt{ifix A B}}
+\mbox{\qquad and \qquad}
+\texttt{unwrap} \circ \texttt{iwrap} = id_{ \texttt{A (ifix A) B}}
+$$
+%% I really hate not having a full stop after the second equation, but it looks weird.
+
 \noindent The use of isorecursive types makes it somewhat more difficult to
 write \textit{terms}, but makes it much easier to reason about
 \textit{types}, and in particular simplifies the typechecking process
 considerably.
 
-\noindent\blue{We could do with a simple example here, and perhaps a more detailed explanation
-  later?  Also, is it true that we have an isomporhism, and not a retraction or something?}
 
 
 \subsubsection{The value restriction}
@@ -663,40 +671,36 @@ a particular output, or an output might not be spendable until a
 certain period of time has passed since its production.
 
 The process of verifying that an output can be spent is called
-\textit{validation}, and is perfomed by executing \textit{scripts},
+\textit{validation}, and is performed by executing \textit{scripts},
 which in our case will be Plutus Core programs.
 
 
 Cardano uses a validation strategy which we call the \textit{Extended
   UTXO model}.  A full specification of the Extended UTXO model is
-currently being prepared, but the fundamental ideas can be found
-in~\cite{Zahnentferner18-Chimeric} and \cite{Zahnentferner18-UTxO}.
+currently being prepared: in the meantime the fundamental ideas can be
+found in~\cite{Zahnentferner18-Chimeric} and
+\cite{Zahnentferner18-UTxO}.
 
-The basic idea is as follows.  Suppose a UTXO $O$ has been produced by a
-transaction $P$ (the \textit{producer}) and a transaction $C$ (the
-\textit{consumer}) wishes to use it as an input $I$.
+The basic idea is that when a transaction wishes $T$ to consume an
+unspent output $U$, it applies a script called the \textit{validator}
+to another script called the \textit{redeemer}\footnote{The Extended
+  UTXO model also involves another script called the \textit{data
+    script}, but for simplicity we won't discuss this here}; the
+validator also has access to certain parts of the blockchain state,
+such as the current block number (\textit{blocknum}) and the hash
+\textit{txhash} of the current transaction.  If the result of applying
+the validator to the redeemer is the Plutus Core \texttt{error} term
+then validation fails and the output cannot be spent; otherwise
+validation succeeds and the output can be spent.
 
-\begin{itemize}
-\item The output $O$ is equipped with a script $D$ (the \textit{data script} supplied by its producer $P$.
-\item The input $I$ is equipped with two scripts: a \textit{redeemer} $R$ and a \textit{validator} $V$.
-  \begin{itemize}
-    \item $V$ is supplied by $C$, the consumer, as proof that it has the right to spend $O$.
-    \item $R$ is supplied by $P$, the producer, and is used to check that $T$ has the right to spend $O$.
-  \end{itemize}
-\item During validation and object $S$ containing information about
-  the state of the blockchain is constructed; $S$ contains
-  \begin{itemize}
-  \item A hash of $T$, \textit{txhash}
-  \item The current block number, \textit{blocknum}.
-  \item Various other things which aren't important for this document.
-  \end{itemize}
-\item To check validity, $V$ is evaluated with $R$, $D$, and $S$ as
-  arguments.  If evaluation succeeds, the $O$ is unlocked; if it fails
-  (ie, returns the value \texttt{error}) then validation also fails and $O$ cannot be spent.
-\end{itemize}
-The precise roles of the various scripts don't matter here: the
-essential point is that one script is run with some others as inputs
-and the outcome determines whether money can be spent.
+The job of the validator is to check whether the transaction $T$ is
+allowed to consume the output $U$, and the redeemer provides evidence
+that $U$ can in fact be spent.  For example, if a user $X$ wishes to
+spend an output $U$ then $X$ might provide a redeemer consisting of a
+signature obtained from $U$ with a private key belonging to $X$ and
+the validator would use $X$'s public key to check that the signature
+is valid.  We consider this example in more detail in the next
+section.
 
 
 \section{Examples}
