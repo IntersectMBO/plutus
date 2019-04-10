@@ -28,7 +28,7 @@ executable plutus-validation-server
         base -any,
         warp -any,
         wai,
-        language-plutus-core,
+        wallet-api,
         bytestring,
         http-types,
         aeson,
