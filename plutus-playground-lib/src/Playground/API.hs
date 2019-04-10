@@ -22,7 +22,7 @@ import qualified Data.HashMap.Strict.InsOrd   as HM
 import           Data.List.NonEmpty           (NonEmpty ((:|)))
 import           Data.Maybe                   (fromMaybe)
 import           Data.Proxy                   (Proxy (Proxy))
-import           Data.Swagger                 (toSchema, ParamSchema (ParamSchema), Referenced (Inline, Ref), Schema (Schema),
+import           Data.Swagger                 (ParamSchema (ParamSchema), Referenced (Inline, Ref), Schema (Schema),
                                                Schema (Schema), SwaggerItems (SwaggerItemsArray, SwaggerItemsObject),
                                                SwaggerType (SwaggerArray, SwaggerInteger, SwaggerObject, SwaggerString),
                                                toInlinedSchema)
