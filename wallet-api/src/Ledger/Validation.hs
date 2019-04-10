@@ -47,6 +47,7 @@ module Ledger.Validation
     -- * Hashes
     , plcSHA2_256
     , plcSHA3_256
+    , fromSymbol
     ) where
 
 import           Codec.Serialise              (Serialise)
@@ -71,7 +72,7 @@ import           Ledger.Crypto                (PubKey (..), Signature (..))
 import           Ledger.Scripts
 import           Ledger.Slot                  (Slot, SlotRange)
 import qualified Ledger.TxId                  as Tx
-import           Ledger.Value                 (Value)
+import           Ledger.Value.TH              (Value, CurrencySymbol(..))
 import           LedgerBytes                     (LedgerBytes(..))
 
 -- Ignore newtype warnings related to `Oracle` and `Signed` because it causes
@@ -313,6 +314,10 @@ eqTx = [|| \(TxHash l) (TxHash r) -> Builtins.equalsByteString l r ||]
 -- | Get the hash of the validator script that is currently being validated.
 ownHash :: Q (TExp (PendingTx -> ValidatorHash))
 ownHash = [|| \(PendingTx _ _ _ _ i _ _ _) -> let PendingTxIn _ (Just (h, _)) _ = i in h ||]
+
+-- | Convert a 'CurrencySymbol' to a 'ValidatorHash'
+fromSymbol :: CurrencySymbol -> ValidatorHash
+fromSymbol (CurrencySymbol s) = ValidatorHash s
 
 -- | Get the total amount of 'Ada' locked by the given validator in this transaction.
 adaLockedBy :: Q (TExp (PendingTx -> ValidatorHash -> Ada))
