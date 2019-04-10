@@ -10,6 +10,8 @@ open import Scoped
 open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢Nf⋆_ con size⋆
 open import Data.Nat
 open import Data.Fin
+open import Type.BetaNormal
+open import Type.RenamingSubstitution as T
 \end{code}
 
 \begin{code}
@@ -57,15 +59,11 @@ eraseVar Z = Z
 eraseVar (S x) = S (eraseVar x)
 eraseVar (T x) = T (eraseVar x)
 
-open import Relation.Binary.PropositionalEquality
+open import Relation.Binary.PropositionalEquality as Eq
 lem : ∀ Γ → Scoped.∥ len Γ ∥ ≡ len⋆ A.∥ Γ ∥
 lem ∅ = refl
 lem (Γ ,⋆ K) = cong suc (lem Γ)
 lem (Γ , A) = lem Γ
-
-eraseNf⋆' : ∀ Γ {K}(A : A.∥ Γ ∥ ⊢Nf⋆ K) → ScopedTy Scoped.∥ len Γ ∥
-eraseNf⋆' Γ A rewrite lem Γ = eraseNf⋆ A
-
 
 eraseC : ∀{Γ}{A : Γ ⊢Nf⋆ *} → TermCon A → SizedTermCon
 eraseC (integer s i p) = integer s i p
@@ -92,36 +90,139 @@ eraseTel σ [] x = []
 eraseTel σ (A ∷ As) (t P., ts) = eraseTel σ As ts ++ L.[ erase t ]
 
 erase (` x) = ` (eraseVar x)
-erase {Γ} (ƛ {A = A} t) = ƛ "x" (eraseNf⋆' Γ A) (erase t)
+erase {Γ} (ƛ {A = A} t) =
+  ƛ "x" (Eq.subst ScopedTy (sym (lem Γ)) (eraseNf⋆ A) ) (erase t)
 erase (t · u) = erase t · erase u
 erase (Λ {K = K} t) = Λ "x" (eraseK K) (erase t)
-erase {Γ} (t ·⋆ A) = erase t ·⋆ eraseNf⋆' Γ A
-erase {Γ} (wrap1 pat arg t) = wrap (eraseNf⋆' Γ pat) (eraseNf⋆' Γ arg) (erase t)
+erase {Γ} (t ·⋆ A) = erase t ·⋆ Eq.subst ScopedTy (sym (lem Γ)) (eraseNf⋆ A) 
+erase {Γ} (wrap1 pat arg t) = wrap
+  (Eq.subst ScopedTy (sym (lem Γ)) (eraseNf⋆ pat))
+  (Eq.subst ScopedTy (sym (lem Γ)) (eraseNf⋆ arg))
+  (erase t)
 erase (unwrap1 t) = unwrap (erase t)
 erase (con c) = con (eraseC c)
 erase {Γ} (builtin b σ ts) = builtin b (eraseSub' Γ σ) (eraseTel σ _ ts)
-erase {Γ} (error A) = error (eraseNf⋆' Γ A)
+erase {Γ} (error A) = error (Eq.subst ScopedTy (sym (lem Γ)) (eraseNf⋆ A) )
 \end{code}
 
 erasure commutes with renaming/substitution
 
 \begin{code}
 open import Algorithmic.RenamingSubstitution as AS
-open import Type.BetaNormal
 open import Scoped.RenamingSubstitution as SS
 
-eraseRenNf⋆ : ∀{Γ Δ}
-  → (ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)
+eraseRenNf⋆ : ∀{Γ Δ}(ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J) 
   → Ren⋆ (len⋆ Γ) (len⋆ Δ)
-eraseRenNf⋆ {Γ ,⋆ x₁} ρ⋆ zero = ?
-eraseRenNf⋆ {Γ ,⋆ x₁} ρ⋆ (suc x) = ?
+eraseRenNf⋆ {Γ ,⋆ K} ρ⋆ zero = eraseVar⋆ (ρ⋆ Z)
+eraseRenNf⋆ {Γ ,⋆ K} ρ⋆ (suc α) = eraseRenNf⋆ (ρ⋆ ∘ S) α
+
+eraseRen : ∀{Γ Δ}(ρ⋆ : ∀ {J} → A.∥ Γ ∥ ∋⋆ J → A.∥ Δ ∥ ∋⋆ J) →
+  (ρ : ∀{J}{A : A.∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ∋ renameNf ρ⋆ A)
+  → SS.Ren (len Γ) (len Δ)
+eraseRen {Γ ,⋆ K} {Δ} ρ⋆ ρ (T x) = eraseRen
+  (ρ⋆ ∘ S)
+  (λ {_}{A} x → Eq.subst (Δ ∋_) (sym (renameNf-comp A)) (ρ (T x)))
+  x
+eraseRen {Γ A., A} ρ⋆ ρ Z = eraseVar (ρ Z)
+eraseRen {Γ A., A} ρ⋆ ρ (S x) = eraseRen ρ⋆ (ρ ∘ S) x
+
+ren-eraseVar⋆ : ∀{Γ Δ J}
+  → (ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)
+  → (α : Γ ∋⋆ J)
+  → eraseRenNf⋆ ρ⋆ (eraseVar⋆ α) ≡ eraseVar⋆ (ρ⋆ α)
+ren-eraseVar⋆ ρ⋆ Z     = refl
+ren-eraseVar⋆ ρ⋆ (S α) = ren-eraseVar⋆ (ρ⋆ ∘ S) α
+
+ren-eraseVar-T : ∀{Δ K}{A A' : A.∥ Δ ∥ ⊢Nf⋆ K}(p :  A ≡ A') → (x : Δ ∋ A) → 
+  eraseVar (Eq.subst (Δ ∋_) p x)
+  ≡
+  eraseVar x
+ren-eraseVar-T refl x = refl
+
+ren-eraseVar : ∀{Γ Δ J}
+  → (ρ⋆ : ∀ {J} → A.∥ Γ ∥ ∋⋆ J → A.∥ Δ ∥ ∋⋆ J)
+  → (ρ : ∀ {J} {A : A.∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ∋ renameNf ρ⋆ A)
+  → {A : A.∥ Γ ∥ ⊢Nf⋆ J}
+  → (x : Γ ∋ A)
+  → eraseRen ρ⋆ ρ (eraseVar x) ≡ eraseVar (ρ x)
+ren-eraseVar ρ⋆ ρ Z = refl
+ren-eraseVar ρ⋆ ρ (S x) = ren-eraseVar ρ⋆ (ρ ∘ S) x 
+ren-eraseVar {Γ ,⋆ K}{Δ} ρ⋆ ρ (T {A = A} x) = trans
+  (ren-eraseVar
+    (ρ⋆ ∘ S)
+    (λ {_}{A} x → Eq.subst (Δ ∋_) (sym (renameNf-comp A)) (ρ (T x)))
+    x)
+  (ren-eraseVar-T (sym (renameNf-comp A)) (ρ (T x)))
+
+eraseRenNf⋆-comp : ∀{B Γ Δ}(ρ⋆' : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)(ρ⋆ : ∀ {J} → B ∋⋆ J → Γ ∋⋆ J) → ∀ x → (eraseRenNf⋆ ρ⋆' ∘ eraseRenNf⋆ ρ⋆) x ≡ eraseRenNf⋆ (ρ⋆' ∘ ρ⋆) x
+eraseRenNf⋆-comp {B ,⋆ K} ρ⋆' ρ⋆ zero = ren-eraseVar⋆ ρ⋆' (ρ⋆ Z)
+eraseRenNf⋆-comp {B ,⋆ K} ρ⋆' ρ⋆ (suc x) = eraseRenNf⋆-comp ρ⋆' (ρ⋆ ∘ S) x  
+
+-- I guess i could prove identity as well
+
+-- here it starts to go south
+
+lift⋆-erase⋆ : ∀{Γ Δ K}
+  → (ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)
+  → (A : Fin (suc (len⋆ Γ)))
+  → lift⋆ (eraseRenNf⋆ ρ⋆) A ≡ eraseRenNf⋆ {Γ ,⋆ K} {Δ ,⋆ K} (T.ext ρ⋆) A
+lift⋆-erase⋆ ρ⋆ zero = refl
+lift⋆-erase⋆ ρ⋆ (suc α) = ?
+
+ren⋆-erase⋆ : ∀{Γ Δ K}
+  → (ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)
+  → (A : Γ ⊢Nf⋆ K)
+  → ren⋆ (eraseRenNf⋆ ρ⋆) (eraseNf⋆ A) ≡ eraseNf⋆ (renameNf ρ⋆ A)
+ren⋆-erase⋆ ρ⋆ (Π A) = cong
+  (Π "x" (eraseK _))
+  (trans
+    {!ren⋆-erase ρ⋆!} -- (ren⋆-cong {!!} (eraseNf⋆ A))
+    (ren⋆-erase⋆ (T.ext ρ⋆) A))
+ren⋆-erase⋆ ρ⋆ (A ⇒ B) = cong₂ _⇒_ (ren⋆-erase⋆ ρ⋆ A) (ren⋆-erase⋆ ρ⋆ B)
+ren⋆-erase⋆ ρ⋆ (ƛ A) = cong
+  (ƛ "x" (eraseK _))
+  (trans
+    {!!}
+    (ren⋆-erase⋆ (T.ext ρ⋆) A))
+ren⋆-erase⋆ ρ⋆ (ne x) = {!!}
+ren⋆-erase⋆ ρ⋆ (size⋆ x) = {!!}
+ren⋆-erase⋆ ρ⋆ (con x A) = {!!}
+
+ren-eraseƛ₁ : ∀{Γ Δ Γ' Δ' K}
+  → (ρ⋆ : ∀ {J} → A.∥ Γ ∥ ∋⋆ J → A.∥ Δ ∥ ∋⋆ J)
+  → (A  : A.∥ Γ ∥ ⊢Nf⋆ K)
+  → (p : len⋆ A.∥ Γ ∥ ≡ Γ')
+  → (q : len⋆ A.∥ Δ ∥ ≡ Δ')
+  → ren⋆ (subst₂ Ren⋆ p q (eraseRenNf⋆ ρ⋆))
+    (Eq.subst ScopedTy p (eraseNf⋆ A)) 
+    ≡ Eq.subst ScopedTy q (eraseNf⋆ (renameNf ρ⋆ A))
+ren-eraseƛ₁ ρ⋆ A refl refl = {!!}
+
 ren-erase : ∀{Γ Δ J}
   → (ρ⋆ : ∀ {J} → A.∥ Γ ∥ ∋⋆ J → A.∥ Δ ∥ ∋⋆ J)
   → (ρ : ∀ {J} {A : A.∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ∋ renameNf ρ⋆ A)
   → {A : A.∥ Γ ∥ ⊢Nf⋆ J}
   → (t : Γ ⊢ A)
-  → SS.ren {!!} {!!} (erase t) ≡ erase (rename ρ⋆ ρ t)
-ren-erase = {!!}
+  →  SS.ren
+       (subst₂ Ren⋆ (sym (lem Γ)) (sym (lem Δ)) (eraseRenNf⋆ ρ⋆))
+       (eraseRen ρ⋆ ρ)
+       (erase t)
+     ≡ erase (AS.rename ρ⋆ ρ t)
+
+
+ren-erase ρ⋆ ρ (` x) = cong ` (ren-eraseVar ρ⋆ ρ x)
+ren-erase ρ⋆ ρ (ƛ t) = cong₂ (ƛ "x") {!ren!} {!!} 
+ren-erase ρ⋆ ρ (t · u) = cong₂ _·_ (ren-erase ρ⋆ ρ t) (ren-erase ρ⋆ ρ u)
+ren-erase ρ⋆ ρ (Λ t) = cong (Λ "x" (eraseK _)) {!ren-erase (T.ext ρ⋆) (AS.ext⋆ ρ⋆ ρ) t!}
+ren-erase ρ⋆ ρ (t ·⋆ A) = {!!}
+ren-erase ρ⋆ ρ (wrap1 pat arg t) = {!!}
+ren-erase ρ⋆ ρ (unwrap1 t) = {!!}
+ren-erase ρ⋆ ρ (con x) = {!!}
+ren-erase ρ⋆ ρ (builtin bn σ ts) = {!cong (builtin bn)!}
+ren-erase {Γ}{Δ} ρ⋆ ρ (error A) = cong error {!!}
+
+-- I need to use the same kind of techniques as the
+-- soundness/completeness proofs for Declarative/Algorithmic
 
 \end{code}
 
