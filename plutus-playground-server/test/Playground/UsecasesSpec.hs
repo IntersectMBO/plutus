@@ -23,7 +23,7 @@ import           Ledger.Validation            (ValidatorHash (ValidatorHash))
 import           Playground.API               (CompilationResult (CompilationResult), Evaluation (Evaluation),
                                                Expression (Action, Wait), Fn (Fn), FunctionSchema (FunctionSchema),
                                                KnownCurrency (KnownCurrency), PlaygroundError,
-                                               SimpleArgumentSchema (SimpleArraySchema, SimpleIntSchema, SimpleObjectSchema, SimpleStringSchema, SimpleTupleSchema, ValueSchema),
+                                               SimpleArgumentSchema (SimpleArraySchema, SimpleIntSchema, SimpleHexSchema,SimpleObjectSchema, SimpleStringSchema, SimpleTupleSchema, ValueSchema),
                                                SimulatorWallet (SimulatorWallet), TokenId (TokenId), adaCurrency,
                                                argumentSchema, functionName, isSupportedByFrontend,
                                                simulatorWalletBalance, simulatorWalletWallet)
@@ -164,12 +164,12 @@ vestingSpec =
                                           [ ( "unMap"
                                             , SimpleArraySchema
                                                   (SimpleTupleSchema
-                                                       ( SimpleStringSchema
+                                                       ( SimpleHexSchema
                                                        , SimpleObjectSchema
                                                              [ ( "unMap"
                                                                , SimpleArraySchema
                                                                      (SimpleTupleSchema
-                                                                          ( SimpleStringSchema
+                                                                          ( SimpleHexSchema
                                                                           , SimpleIntSchema)))
                                                              ])))
                                           ])
