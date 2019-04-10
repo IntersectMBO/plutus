@@ -9,7 +9,7 @@
 -- | Functions for working with 'Value' in Template Haskell.
 module Ledger.Value.TH(
       Value(..)
-    , CurrencySymbol
+    , CurrencySymbol(..)
     , currencySymbol
     , singleton
     , valueOf

@@ -19,7 +19,7 @@ import           Control.Monad.Trans.State    (StateT, evalStateT, get, put)
 import           Data.Aeson                   (FromJSON, ToJSON, Value)
 import           Data.Bifunctor               (second)
 import qualified Data.HashMap.Strict.InsOrd   as HM
-import           Data.List.NonEmpty           (NonEmpty)
+import           Data.List.NonEmpty           (NonEmpty ((:|)))
 import           Data.Maybe                   (fromMaybe)
 import           Data.Proxy                   (Proxy (Proxy))
 import           Data.Swagger                 (ParamSchema (ParamSchema), Referenced (Inline, Ref), Schema (Schema),
@@ -36,7 +36,8 @@ import           Language.Haskell.Interpreter (CompilationError (CompilationErro
 import qualified Language.Haskell.Interpreter as HI
 import qualified Language.Haskell.TH.Syntax   as TH
 import           Ledger                       (Blockchain, PubKey, Tx, TxId)
-import           Ledger.Validation            (ValidatorHash)
+import qualified Ledger.Ada                   as Ada
+import           Ledger.Validation            (ValidatorHash, fromSymbol)
 import qualified Ledger.Value                 as V
 import           Servant.API                  ((:<|>), (:>), Get, JSON, Post, ReqBody)
 import           Text.Read                    (readMaybe)
@@ -59,6 +60,14 @@ data KnownCurrency = KnownCurrency
     , knownTokens  :: NonEmpty TokenId
     }
     deriving (Eq, Show, Generic, ToJSON, FromJSON)
+
+adaCurrency :: KnownCurrency
+adaCurrency = KnownCurrency
+    { hash = fromSymbol Ada.adaSymbol
+    , friendlyName = "Ada"
+    , knownTokens = TokenId "ada" :| []
+    }
+
 --------------------------------------------------------------------------------
 
 newtype Fn = Fn Text
