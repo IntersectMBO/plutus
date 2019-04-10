@@ -56,6 +56,8 @@ locals {
     environment    = "${var.env}"
     project        = "${var.project}"
     tld            = "${var.plutus_tld}"
+    plutusTld     = "${var.plutus_tld}"
+    marloweTld     = "${var.meadow_tld}"
   }
 
   bastionMachines = {

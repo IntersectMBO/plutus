@@ -20,8 +20,8 @@ let
       redirect-url: ${redirectUrl}
     '';
   };
-  playgroundConfig = mkConfig "https://david.plutus.iohkdev.io" "playground.yaml";
-  meadowConfig = mkConfig "https://david.marlowe.iohkdev.io" "marlowe.yaml";
+  playgroundConfig = mkConfig "https://${machines.environment}.${machines.plutusTld}" "playground.yaml";
+  meadowConfig = mkConfig "https://${machines.environment}.${machines.marloweTld}" "marlowe.yaml";
   stdOverlays = [ overlays.journalbeat ];
   options = { inherit stdOverlays machines defaultMachine plutus secrets; };
   defaultMachine = (import ./default-machine.nix) options;
@@ -39,7 +39,7 @@ let
   playgroundB = serverTemplate.mkInstance playgroundOptions machines.playgroundB;
   meadowA = serverTemplate.mkInstance meadowOptions machines.meadowA;
   meadowB = serverTemplate.mkInstance meadowOptions machines.meadowB;
-  nixops = prometheusTemplate.mkInstance options {dns = "nixops.internal.david.plutus.iohkdev.io";
+  nixops = prometheusTemplate.mkInstance options {dns = "nixops.internal.${machines.environment}.${machines.plutusTld}";
                                                   ip = "127.0.0.1";
                                                   name = "nixops"; };
 in
