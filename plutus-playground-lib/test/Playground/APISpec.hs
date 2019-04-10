@@ -10,7 +10,7 @@ import           Language.Haskell.Interpreter (CompilationError (CompilationErro
                                                text)
 import           Ledger.Interval              (Interval)
 import           Ledger.Value.TH              (Value)
-import           Playground.API               (SimpleArgumentSchema (SimpleArraySchema, SimpleIntSchema, SimpleObjectSchema, SimpleStringSchema, SimpleTupleSchema, ValueSchema),
+import           Playground.API               (SimpleArgumentSchema (SimpleArraySchema, SimpleHexSchema, SimpleIntSchema, SimpleObjectSchema, SimpleStringSchema, SimpleTupleSchema, ValueSchema),
                                                isSupportedByFrontend, parseErrorText, toSimpleArgumentSchema)
 import           Test.Hspec                   (Spec, describe, it, shouldBe)
 
@@ -88,12 +88,12 @@ toSimpleArgumentSchemaSpec =
                         [ ( "unMap"
                           , SimpleArraySchema
                                 (SimpleTupleSchema
-                                     ( SimpleStringSchema
+                                     ( SimpleHexSchema
                                      , SimpleObjectSchema
                                            [ ( "unMap"
                                              , SimpleArraySchema
                                                    (SimpleTupleSchema
-                                                        ( SimpleStringSchema
+                                                        ( SimpleHexSchema
                                                         , SimpleIntSchema)))
                                            ])))
                         ])
