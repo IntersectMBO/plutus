@@ -53556,6 +53556,40 @@ description = "Collection of smart contracts to develop the plutus/wallet interf
 license = stdenv.lib.licenses.asl20;
 
 }) {};
+"plutus-validation-server" = callPackage
+({
+  mkDerivation
+, aeson
+, base
+, base64-bytestring-type
+, bytestring
+, http-types
+, stdenv
+, wai
+, wallet-api
+, warp
+}:
+mkDerivation {
+
+pname = "plutus-validation-server";
+version = "0.1.0.0";
+src = .././plutus-validation-server;
+isLibrary = false;
+isExecutable = true;
+executableHaskellDepends = [
+aeson
+base
+base64-bytestring-type
+bytestring
+http-types
+wai
+wallet-api
+warp
+];
+doHaddock = false;
+license = stdenv.lib.licenses.asl20;
+
+}) {};
 "pointed" = callPackage
 ({
   mkDerivation
