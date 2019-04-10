@@ -37,8 +37,8 @@ import qualified Language.Haskell.Interpreter as HI
 import qualified Language.Haskell.TH.Syntax   as TH
 import           Ledger                       (Blockchain, PubKey, Tx, TxId)
 import qualified Ledger.Ada                   as Ada
+import qualified Ledger.Map.TH                as Map
 import           Ledger.Validation            (ValidatorHash, fromSymbol)
-import qualified Ledger.Map.TH as Map
 import qualified Ledger.Value                 as V
 import           Servant.API                  ((:<|>), (:>), Get, JSON, Post, ReqBody)
 import           Text.Read                    (readMaybe)
@@ -158,7 +158,7 @@ toSimpleArgumentSchema schema@Schema {..} =
                 SwaggerString ->
                   case _paramSchemaFormat of
                     Just "hex" -> SimpleHexSchema
-                    _ -> SimpleStringSchema
+                    _          -> SimpleStringSchema
                 SwaggerArray ->
                     case ( view minItems _schemaParamSchema
                          , view maxItems _schemaParamSchema
