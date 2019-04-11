@@ -2,7 +2,7 @@ module Action
        ( simulationPane
        ) where
 
-import Bootstrap (badge, badgePrimary, btn, btnDanger, btnGroup, btnGroupSmall, btnInfo, btnLink, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, col10_, col2_, col4_, col_, formControl, formGroup_, invalidFeedback_, nbsp, pullRight, row, row_, validFeedback_, wasValidated)
+import Bootstrap (badge, badgePrimary, btn, btnDanger, btnGroup, btnGroupSmall, btnInfo, btnLink, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, col10_, col12, col2_, colMd4, colSm6, col_, formControl, formGroup_, invalidFeedback_, nbsp, pullRight, row, row_, validFeedback_, wasValidated)
 import Control.Monad.Aff.Class (class MonadAff)
 import Cursor (Cursor, current)
 import Cursor as Cursor
@@ -135,7 +135,7 @@ actionsPane isValidWallet actions evaluationResult =
 actionPane :: forall p. (Wallet -> Boolean) -> Int -> Action -> Tuple String (HTML p Query)
 actionPane isValidWallet index action =
   Tuple (show index) $
-    col4_
+    div [ classes [ col12, colSm6, colMd4 ] ]
       [ div [ classes [ ClassName "action"
                       , ClassName ("action-" <> show index)
                       , ClassName ("action-" <> (case isValidWallet <$> (preview (_Action <<< _simulatorWallet <<< _simulatorWalletWallet) action) of
@@ -313,7 +313,7 @@ validationFeedback errors =
 addWaitActionPane :: forall p. Tuple String (HTML p Query)
 addWaitActionPane =
   Tuple "add-wait" $
-    col4_
+    div [ classes [ col12, colSm6, colMd4 ] ]
       [ div
           [ class_ $ ClassName "add-wait-action" ]
           [ div [ class_ card
