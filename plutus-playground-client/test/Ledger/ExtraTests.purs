@@ -11,7 +11,7 @@ import Data.Lens.At (at)
 import Data.Lens.Index (ix)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
-import Ledger.Extra (LedgerMap(..))
+import Ledger.Extra (LedgerMap(..), unionWith)
 import Ledger.Value.TH (CurrencySymbol(..), TokenName(TokenName))
 import Node.FS (FS)
 import Test.Unit (TestSuite, suite, test)
@@ -23,6 +23,7 @@ all =
   suite "Ledger.Extra" do
     indexTests
     atTests
+    unionWithTests
 
 currencies :: CurrencySymbol
 currencies = CurrencySymbol { unCurrencySymbol: "Currency"}
@@ -32,6 +33,9 @@ usd = TokenName { unTokenName: "USD"}
 
 eur :: TokenName
 eur = TokenName { unTokenName: "EUR"}
+
+gbp :: TokenName
+gbp = TokenName { unTokenName: "GBP"}
 
 baseValue :: LedgerMap CurrencySymbol (LedgerMap TokenName Int)
 baseValue = LedgerMap [ Tuple currencies (LedgerMap [ Tuple usd 10 ]) ]
@@ -47,6 +51,7 @@ indexTests =
                        # set (ix currencies <<< ix usd) 20
                        # preview (ix currencies <<< ix usd)
                       )
+
 atTests :: forall eff. TestSuite eff
 atTests =
   suite "At" do
@@ -64,3 +69,28 @@ atTests =
       equal Nothing   (baseValue
                        # set (ix currencies <<< at usd) Nothing
                        # preview (ix currencies <<< ix usd))
+
+unionWithTests :: forall eff. TestSuite eff
+unionWithTests =
+  suite "unionWith" do
+    let
+      valueA = (LedgerMap [ Tuple currencies (LedgerMap [ Tuple usd 10
+                                                        , Tuple eur 20
+                                                        ]) ])
+      valueB = (LedgerMap [ Tuple currencies (LedgerMap [ Tuple eur 30
+                                                        , Tuple gbp 40
+                                                        ]) ])
+    test "addition" $
+      equalGShow
+        (LedgerMap [ Tuple currencies (LedgerMap [ Tuple usd 10
+                                                 , Tuple eur 50
+                                                 , Tuple gbp 40
+                                                 ]) ])
+        (unionWith (unionWith (+)) valueA valueB)
+    test "choice" $
+      equalGShow
+        (LedgerMap [ Tuple currencies (LedgerMap [ Tuple usd 10
+                                                 , Tuple eur 20
+                                                 , Tuple gbp 40
+                                                 ]) ])
+        (unionWith (unionWith const) valueA valueB)

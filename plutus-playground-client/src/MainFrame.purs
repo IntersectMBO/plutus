@@ -81,8 +81,6 @@ mkSimulatorWallet currencies id =
     , simulatorWalletBalance: mkInitialValue currencies 10
     }
 
--- TODO Converting the hash to a CurrencySymbol this way may be wrong. I think maybe we have to decode it first?
--- TODO Ditto TokenNames
 mkInitialValue :: Array KnownCurrency -> Int -> Value
 mkInitialValue currencies initialBalance = Value { getValue: value }
   where

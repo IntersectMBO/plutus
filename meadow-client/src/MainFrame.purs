@@ -7,7 +7,7 @@ import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged), AceQuery(GetE
 import Ace.Types (ACE, Editor, Annotation)
 import AjaxUtils (runAjaxTo)
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
-import Bootstrap (active, btn, btnGroup, btnInfo, btnPrimary, btnSmall, col6_, container, container_, empty, hidden, listGroupItem_, listGroup_, navItem_, navLink, navTabs_, noGutters, pullRight, row)
+import Bootstrap (active, btn, btnGroup, btnInfo, btnPrimary, btnSmall, col_, container, container_, empty, hidden, listGroupItem_, listGroup_, navItem_, navLink, navTabs_, noGutters, pullRight, row)
 import Control.Monad.Aff.Class (class MonadAff, liftAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
@@ -592,7 +592,7 @@ render ::
 render state = div [ class_ $ ClassName "main-frame" ]
                    [ container_ [ mainHeader
                                 , div [ classes [ row, noGutters ] ]
-                                      [ col6_ [ mainTabBar state.view ]
+                                      [ col_ [ mainTabBar state.view ]
                                       ]
                                 ]
                    , viewContainer state.view Editor $ [ loadScriptsPane
