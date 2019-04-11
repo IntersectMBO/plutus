@@ -41,12 +41,15 @@
 body {
     font-family: 'Open Sans', sans-serif;
     background: $body-bg;
-    padding-top: 15px;
-    padding-bottom: 15px;
 }
 
 p, a, button, i, em {
     color: rgba(255, 255, 255, 0.7);
+}
+
+.alert a {
+    color: inherit;
+    text-decoration: underline;
 }
 
 b, strong {
@@ -235,4 +238,11 @@ h2 {
             border-radius: 0;
         }
     }
+}
+
+#banner-message {
+    border-radius: 0;
+    letter-spacing: 0.08rem;
+    text-transform: uppercase;
+    text-align: center;
 }
