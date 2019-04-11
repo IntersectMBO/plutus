@@ -366,3 +366,9 @@ navLink = ClassName "nav-link"
 
 hidden :: ClassName
 hidden = ClassName "d-none"
+
+-- | A third of the screen, assuming a reasonable screen
+-- size. Collapses sensibly as the size goes down to iPhone.
+responsiveThird :: forall p i. Array (HTML p i) -> HTML p i
+responsiveThird =
+  div [ classes [ col12, colSm6, colMd4 ] ]

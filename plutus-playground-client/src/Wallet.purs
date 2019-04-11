@@ -2,7 +2,7 @@ module Wallet where
 
 import Types
 
-import Bootstrap (btn, btnSecondary, btnSmall, card, cardBody_, cardTitle_, card_, col12, colMd4, colSm6, pullRight, row)
+import Bootstrap (btn, btnSecondary, btnSmall, card, cardBody_, cardTitle_, card_, pullRight, responsiveThird, row)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Lens (view)
@@ -51,7 +51,7 @@ walletPane
                                    })
   =
   Tuple (show walletIndex) $
-    div [ classes [ col12, colSm6, colMd4 ] ]
+    responsiveThird
       [ div [ classes [ ClassName "wallet", ClassName ("wallet-" <> show walletIndex) ] ]
           [ card_
               [ cardBody_
@@ -75,7 +75,7 @@ walletPane
 addWalletPane :: forall p. Tuple String (HTML p Query)
 addWalletPane =
   Tuple "add-wallet" $
-    div [ classes [ col12, colSm6, colMd4 ] ]
+    responsiveThird
       [ div
           [ class_ $ ClassName "add-wallet" ]
           [ div [ class_ card
