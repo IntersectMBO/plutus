@@ -10,6 +10,7 @@ import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Random (RANDOM)
 import CursorTests as CursorTests
 import Data.String.ExtraTests as Data.String.ExtraTests
+import Ledger.ExtraTests as Ledger.ExtraTests
 import FileEvents (FILE)
 import GistsTests as GistsTests
 import MainFrameTests as MainFrameTests
@@ -28,3 +29,4 @@ main = runTest do
   CursorTests.all
   MainFrameTests.all
   Data.String.ExtraTests.all
+  Ledger.ExtraTests.all

@@ -28,6 +28,7 @@ module Playground.Contract
     , ValidatorHash(ValidatorHash)
     , TokenId(TokenId)
     , NonEmpty((:|))
+    , adaCurrency
     ) where
 
 import           Data.Aeson                  (FromJSON, ToJSON, encode)
@@ -41,7 +42,8 @@ import           Data.Swagger                (Schema, ToSchema)
 import           GHC.Generics                (Generic)
 import           Ledger.Validation           (ValidatorHash (ValidatorHash))
 import           Ledger.Value                (Value)
-import           Playground.API              (FunctionSchema, KnownCurrency (KnownCurrency), TokenId (TokenId))
+import           Playground.API              (FunctionSchema, KnownCurrency (KnownCurrency), TokenId (TokenId),
+                                              adaCurrency)
 import           Playground.Interpreter.Util
 import           Playground.TH               (mkFunction, mkFunctions, mkKnownCurrencies, mkSingleFunction)
 import           Wallet.API                  (SlotRange, WalletAPI, payToPublicKey_)

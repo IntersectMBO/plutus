@@ -19,7 +19,7 @@ import           Control.Monad.Trans.State    (StateT, evalStateT, get, put)
 import           Data.Aeson                   (FromJSON, ToJSON, Value)
 import           Data.Bifunctor               (second)
 import qualified Data.HashMap.Strict.InsOrd   as HM
-import           Data.List.NonEmpty           (NonEmpty)
+import           Data.List.NonEmpty           (NonEmpty ((:|)))
 import           Data.Maybe                   (fromMaybe)
 import           Data.Proxy                   (Proxy (Proxy))
 import           Data.Swagger                 (ParamSchema (ParamSchema), Referenced (Inline, Ref), Schema (Schema),
@@ -36,7 +36,9 @@ import           Language.Haskell.Interpreter (CompilationError (CompilationErro
 import qualified Language.Haskell.Interpreter as HI
 import qualified Language.Haskell.TH.Syntax   as TH
 import           Ledger                       (Blockchain, PubKey, Tx, TxId)
-import           Ledger.Validation            (ValidatorHash)
+import qualified Ledger.Ada                   as Ada
+import qualified Ledger.Map.TH                as Map
+import           Ledger.Validation            (ValidatorHash, fromSymbol)
 import qualified Ledger.Value                 as V
 import           Servant.API                  ((:<|>), (:>), Get, JSON, Post, ReqBody)
 import           Text.Read                    (readMaybe)
@@ -59,6 +61,14 @@ data KnownCurrency = KnownCurrency
     , knownTokens  :: NonEmpty TokenId
     }
     deriving (Eq, Show, Generic, ToJSON, FromJSON)
+
+adaCurrency :: KnownCurrency
+adaCurrency = KnownCurrency
+    { hash = fromSymbol Ada.adaSymbol
+    , friendlyName = "Ada"
+    , knownTokens = TokenId "ada" :| []
+    }
+
 --------------------------------------------------------------------------------
 
 newtype Fn = Fn Text
@@ -130,6 +140,7 @@ data FunctionSchema a = FunctionSchema
 data SimpleArgumentSchema
     = SimpleIntSchema
     | SimpleStringSchema
+    | SimpleHexSchema
     | SimpleArraySchema SimpleArgumentSchema
     | SimpleTupleSchema (SimpleArgumentSchema, SimpleArgumentSchema)
     | SimpleObjectSchema [(Text, SimpleArgumentSchema)]
@@ -144,7 +155,10 @@ toSimpleArgumentSchema schema@Schema {..} =
         ParamSchema {..} ->
             case _paramSchemaType of
                 SwaggerInteger -> SimpleIntSchema
-                SwaggerString -> SimpleStringSchema
+                SwaggerString ->
+                  case _paramSchemaFormat of
+                    Just "hex" -> SimpleHexSchema
+                    _          -> SimpleStringSchema
                 SwaggerArray ->
                     case ( view minItems _schemaParamSchema
                          , view maxItems _schemaParamSchema
@@ -178,8 +192,7 @@ toSimpleArgumentSchema schema@Schema {..} =
                                      [ ( "getValue"
                                        , toSimpleArgumentSchema
                                              (toInlinedSchema
-                                                  (Proxy :: Proxy [( V.CurrencySymbol
-                                                                   , Int)]) :: Schema))
+                                                  (Proxy :: Proxy (Map.Map V.CurrencySymbol (Map.Map V.TokenName Int))) :: Schema))
                                      ]
                             else SimpleObjectSchema fields
                 _ ->
@@ -195,6 +208,7 @@ toSimpleArgumentSchema schema@Schema {..} =
 isSupportedByFrontend :: SimpleArgumentSchema -> Bool
 isSupportedByFrontend SimpleIntSchema = True
 isSupportedByFrontend SimpleStringSchema = True
+isSupportedByFrontend SimpleHexSchema = True
 isSupportedByFrontend (ValueSchema subSchema) =
     all isSupportedByFrontend (snd <$> subSchema)
 isSupportedByFrontend (SimpleObjectSchema subSchema) =

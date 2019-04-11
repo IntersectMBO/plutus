@@ -92,20 +92,14 @@ tests = testGroup "all tests" [
         testProperty "show-fromHex" ledgerBytesShowFromHexProp,
         testProperty "toJSON-fromJSON" ledgerBytesToJSONProp
         ],
-    testGroup "Value" [
+    testGroup "Value" ([
         testProperty "Value ToJSON/FromJSON" (jsonRoundTrip Gen.genValue),
         testProperty "CurrencySymbol ToJSON/FromJSON" (jsonRoundTrip $ Value.currencySymbol <$> Gen.genSizedByteStringExact),
         testProperty "CurrencySymbol IsString/Show" currencySymbolIsStringShow
-    ],
-    testGroup
-      "CurrencySymbol"
-      (let jsonString :: BSL.ByteString
-           jsonString = "{\"getValue\":[[{\"unCurrencySymbol\":\"00\"},50]]}"
-           value = Value (Ledger.Map.singleton "00" 50)
-        in [ testCase "decoding" $
-             HUnit.assertEqual "Simple Decode" (Right value) (JSON.eitherDecode jsonString)
-           , testCase "encoding" $ HUnit.assertEqual "Simple Encode" jsonString (JSON.encode value)
-           ])
+        ] ++ (let   vlJson :: BSL.ByteString
+                    vlJson = "{\"getValue\":[[{\"unCurrencySymbol\":\"ab01ff\"},[[{\"unTokenName\":\"myToken\"},50]]]]}"
+                    vlValue = Value.singleton "ab01ff" "myToken" 50
+                in byteStringJson vlJson vlValue))
     ]
 
 wallet1, wallet2, wallet3 :: Wallet
@@ -293,7 +287,7 @@ valueScalarDistrib = property $ do
 
 selectCoinProp :: Property
 selectCoinProp = property $ do
-    inputs <- forAll $ zip [1..] <$> Gen.list (Range.linear 1 1000) Gen.genValueNonNegative
+    inputs <- forAll $ zip [1..] <$> Gen.list (Range.linear 1 100) Gen.genValueNonNegative
     target <- forAll Gen.genValueNonNegative
     let result = runExcept (selectCoin inputs target)
     case result of
@@ -489,3 +483,10 @@ currencySymbolIsStringShow = property $ do
     cs <- forAll $ Value.currencySymbol <$> Gen.genSizedByteStringExact
     let cs' = fromString (show cs)
     Hedgehog.assert $ cs' == cs
+
+-- byteStringJson :: (Eq a, JSON.FromJSON a) => BSL.ByteString -> a -> [TestCase]
+byteStringJson jsonString value =
+    [ testCase "decoding" $
+        HUnit.assertEqual "Simple Decode" (Right value) (JSON.eitherDecode jsonString)
+    , testCase "encoding" $ HUnit.assertEqual "Simple Encode" jsonString (JSON.encode value)
+    ]

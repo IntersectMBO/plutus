@@ -14,7 +14,7 @@ import Data.List.Types (NonEmptyList)
 import Data.Tuple (Tuple(..))
 import Language.Haskell.Interpreter (CompilationError, InterpreterError, InterpreterResult)
 import Ledger.Extra (LedgerMap(..))
-import Ledger.Value.TH (CurrencySymbol(..), Value(..))
+import Ledger.Value.TH (CurrencySymbol(..), TokenName(..), Value(..))
 import Node.FS (FS)
 import Playground.API (CompilationResult, EvaluationResult, KnownCurrency, TokenId)
 import Test.Unit (TestSuite, suite, test)
@@ -58,15 +58,15 @@ jsonHandling = do
           (Proxy :: Proxy (Array CompilationError))
           "test/evaluation_error1.json"
       test "Decode/Encode a Value" do
-        let aValue = Value { getValue: LedgerMap [ Tuple (CurrencySymbol { unCurrencySymbol: "0"}) 10
-                                                 , Tuple (CurrencySymbol { unCurrencySymbol: "1"}) 20
+        let aValue = Value { getValue: LedgerMap [ Tuple (CurrencySymbol { unCurrencySymbol: "0"}) (LedgerMap [ Tuple (TokenName { unTokenName: "ADA" }) 10 ])
+                                                 , Tuple (CurrencySymbol { unCurrencySymbol: "1"}) (LedgerMap [ Tuple (TokenName { unTokenName: "USD" }) 20 ])
                                                  ]}
         equalGShow (Right aValue)
           (decodeJson (encodeJson aValue))
       test "Encode a Value." do
-        let aValue = Value { getValue: LedgerMap [ Tuple (CurrencySymbol { unCurrencySymbol: "0" }) 100
-                                                 , Tuple (CurrencySymbol { unCurrencySymbol: "1" }) 40
-                                                 , Tuple (CurrencySymbol { unCurrencySymbol: "2" }) 40
+        let aValue = Value { getValue: LedgerMap [ Tuple (CurrencySymbol { unCurrencySymbol: "0" }) (LedgerMap [ Tuple (TokenName { unTokenName: "ADA" }) 100 ])
+                                                 , Tuple (CurrencySymbol { unCurrencySymbol: "1" }) (LedgerMap [ Tuple (TokenName { unTokenName: "USD" }) 40 ])
+                                                 , Tuple (CurrencySymbol { unCurrencySymbol: "2" }) (LedgerMap [ Tuple (TokenName { unTokenName: "EUR" }) 40 ])
                                                  ]}
         assertEncodesTo
           aValue
