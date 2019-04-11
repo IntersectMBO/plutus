@@ -118,7 +118,7 @@ resource "aws_alb_listener_rule" "playground" {
   }
   condition {
     field  = "host-header"
-    values = ["*.plutus.*"]
+    values = ["${local.plutus_domain_name}"]
   }
 }
 
@@ -135,7 +135,7 @@ resource "aws_alb_target_group_attachment" "playground_b" {
 
 resource "aws_route53_record" "playground_alb" {
   zone_id = "${var.plutus_public_zone}"
-  name    = "${var.env}.${var.plutus_tld}"
+  name    = "${local.plutus_domain_name}"
   type    = "A"
   alias {
     name                   = "${aws_alb.plutus.dns_name}"
@@ -164,7 +164,7 @@ resource "aws_alb_listener_rule" "meadow" {
   }
   condition {
     field  = "host-header"
-    values = ["*.marlowe.*"]
+    values = ["${local.meadow_domain_name}"]
   }
 }
 
@@ -181,7 +181,7 @@ resource "aws_alb_target_group_attachment" "meadow_b" {
 
 resource "aws_route53_record" "meadow_alb" {
   zone_id = "${var.meadow_public_zone}"
-  name    = "${var.env}.${var.meadow_tld}"
+  name    = "${local.meadow_domain_name}"
   type    = "A"
   alias {
     name                   = "${aws_alb.plutus.dns_name}"
@@ -200,6 +200,7 @@ resource "aws_alb_target_group" "monitoring" {
   }
 }
 
+
 resource "aws_alb_listener_rule" "monitoring" {
   depends_on   = ["aws_alb_target_group.monitoring"]
   listener_arn = "${aws_alb_listener.playground.arn}"
@@ -210,7 +211,7 @@ resource "aws_alb_listener_rule" "monitoring" {
   }
   condition {
     field  = "host-header"
-    values = ["monitoring.*"]
+    values = ["${local.monitoring_domain_name}"]
   }
 }
 
@@ -222,7 +223,7 @@ resource "aws_alb_target_group_attachment" "monitoring_a" {
 
 resource "aws_route53_record" "monitoring_alb" {
   zone_id = "${var.monitoring_public_zone}"
-  name    = "monitoring.${var.monitoring_tld}"
+  name    = "${local.monitoring_domain_name}"
   type    = "A"
   alias {
     name                   = "${aws_alb.plutus.dns_name}"
