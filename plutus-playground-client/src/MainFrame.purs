@@ -35,6 +35,7 @@ import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, traversed
 import Data.Lens.Extra (peruse)
 import Data.Lens.Fold (maximumOf, preview)
 import Data.Lens.Index (ix)
+import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
@@ -103,6 +104,7 @@ mkSimulation currencies signatures = Simulation
   { signatures
   , actions: []
   , wallets: mkSimulatorWallet currencies <$> 1..2
+  , currencies
   }
 
 initialState :: State
@@ -317,16 +319,19 @@ eval (CompileProgram next) = do
           Success (Left errors) -> toAnnotations errors
           _ -> []
 
-      -- TODO Extend this rule to also apply to changed currencies.
       -- If we have a result with new signatures, we can only hold
       -- onto the old actions if the signatures still match. Any
       -- change means we'll have to clear out the existing simulation.
-      case preview (_Success <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult <<< _functionSchema) result of
-        Just newSignatures -> do
-          knownCurrencies <- getKnownCurrencies
-          oldSignatures <- use (_simulations <<< _current <<< _signatures)
-          unless (oldSignatures `gEq` newSignatures)
-            (assign _simulations $ Cursor.singleton $ mkSimulation knownCurrencies newSignatures)
+      -- Same thing for currencies.
+      -- Potentially we could be smarter about this. But for now,
+      -- let's at least be correct.
+      case preview (_Success <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult) result of
+        Just { functionSchema: newSignatures, knownCurrencies: newCurrencies } -> do
+          oldSimulation <- peruse (_simulations <<< _current <<< _Newtype)
+          unless (((_.signatures <$> oldSimulation) `gEq` Just newSignatures)
+                  &&
+                  ((_.currencies <$> oldSimulation) `gEq` Just newCurrencies))
+            (assign _simulations $ Cursor.singleton $ mkSimulation newCurrencies newSignatures)
         _ -> pure unit
 
       pure next

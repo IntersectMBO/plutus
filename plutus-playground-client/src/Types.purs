@@ -263,6 +263,7 @@ newtype Simulation = Simulation
   { signatures :: Signatures
   , actions :: Array Action
   , wallets :: Array SimulatorWallet
+  , currencies :: Array KnownCurrency
   }
 
 derive instance newtypeSimulation :: Newtype Simulation _
