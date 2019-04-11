@@ -13,7 +13,7 @@ import Action (simulationPane)
 import AjaxUtils (ajaxErrorPane)
 import AjaxUtils as AjaxUtils
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
-import Bootstrap (active, btn, btnGroup, btnSmall, col6_, container, container_, empty, floatRight, hidden, navItem_, navLink, navTabs_, noGutters, row)
+import Bootstrap (active, btn, btnGroup, btnSmall, col12, colMd6, container, container_, empty, floatRight, hidden, navItem_, navLink, navTabs_, noGutters, row)
 import Chain (evaluationPane)
 import Control.Bind (bindFlipped)
 import Control.Comonad (extract)
@@ -504,8 +504,8 @@ render state@(State {currentView})  =
     [ container_
         [ mainHeader
         , div [ classes [ row, noGutters ] ]
-            [ col6_ [ mainTabBar currentView ]
-            , col6_ [ gistControls state ]
+            [ div [ classes [ col12, colMd6 ] ] [ mainTabBar currentView ]
+            , div [ classes [ col12, colMd6 ] ] [ gistControls state ]
             ]
         ]
     , viewContainer currentView Editor $

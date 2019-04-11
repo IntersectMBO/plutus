@@ -94,6 +94,30 @@ col10 = ClassName "col-10"
 col10_ :: forall p i. Array (HTML p i) -> HTML p i
 col10_ = div [ classes [ col, col10 ] ]
 
+col11 :: ClassName
+col11 = ClassName "col-11"
+
+col11_ :: forall p i. Array (HTML p i) -> HTML p i
+col11_ = div [ classes [ col, col11 ] ]
+
+col12 :: ClassName
+col12 = ClassName "col-12"
+
+col12_ :: forall p i. Array (HTML p i) -> HTML p i
+col12_ = div [ classes [ col, col12 ] ]
+
+colSm6 :: ClassName
+colSm6 = ClassName "col-sm-6"
+
+colSm12 :: ClassName
+colSm12 = ClassName "col-sm-12"
+
+colMd4 :: ClassName
+colMd4 = ClassName "col-md-4"
+
+colMd6 :: ClassName
+colMd6 = ClassName "col-md-6"
+
 offset3 :: ClassName
 offset3 = ClassName "offset-3"
 
@@ -342,3 +366,9 @@ navLink = ClassName "nav-link"
 
 hidden :: ClassName
 hidden = ClassName "d-none"
+
+-- | A third of the screen, assuming a reasonable screen
+-- size. Collapses sensibly as the size goes down to iPhone.
+responsiveThird :: forall p i. Array (HTML p i) -> HTML p i
+responsiveThird =
+  div [ classes [ col12, colSm6, colMd4 ] ]
