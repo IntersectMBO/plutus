@@ -51,7 +51,6 @@ import Marlowe.Parser (contract)
 import Marlowe.Pretty (pretty)
 import Marlowe.Types (BlockNumber, Choice, Contract(Null), IdChoice(IdChoice), IdOracle, Person, WIdChoice(WIdChoice))
 import Meadow (SPParams_, getOauthStatus, patchGistsByGistId, postGists, postContractHaskell)
-import Meadow.Contracts (gitHead)
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(Success, NotAsked), _Success, isLoading, isSuccess)
 import Prelude (not, (||), type (~>), Unit, Void, bind, const, discard, id, pure, show, unit, void, ($), (+), (-), (<$>), (<<<), (<>), (==))
@@ -626,7 +625,7 @@ mainHeader = div_ [ div [classes [btnGroup, pullRight]] (makeLink <$> links)
                   , h1 [class_ $ ClassName "main-title"] [text "Meadow"]
                   ]
   where
-  links = [ Tuple "Tutorial" $ "https://github.com/input-output-hk/marlowe/blob/" <> gitHead <> "/docs/tutorial-v2.0/README.md"
+  links = [ Tuple "Tutorial" $ "https://github.com/input-output-hk/marlowe/blob/master/docs/tutorial-v2.0/README.md"
           , Tuple "Privacy" "https://static.iohk.io/docs/data-protection/iohk-data-protection-gdpr-policy.pdf"
           ]
   makeLink (Tuple name link) = a [ classes [ btn
