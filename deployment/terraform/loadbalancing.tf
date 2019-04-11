@@ -210,7 +210,7 @@ resource "aws_alb_listener_rule" "monitoring" {
   }
   condition {
     field  = "host-header"
-    values = ["*.monitoring.*"]
+    values = ["monitoring.*"]
   }
 }
 
@@ -222,7 +222,7 @@ resource "aws_alb_target_group_attachment" "monitoring_a" {
 
 resource "aws_route53_record" "monitoring_alb" {
   zone_id = "${var.monitoring_public_zone}"
-  name    = "${var.env}.${var.monitoring_tld}"
+  name    = "monitoring.${var.monitoring_tld}"
   type    = "A"
   alias {
     name                   = "${aws_alb.plutus.dns_name}"
