@@ -34,6 +34,7 @@ import qualified Data.Map             as Map
 import           Data.Semigroup       (Semigroup)
 import qualified Data.Set             as Set
 import           GHC.Generics         (Generic)
+import qualified Language.PlutusTx.Builtins as Builtins
 import qualified Ledger.Slot          as Slot
 import           Ledger.Crypto
 import           Ledger.Blockchain
@@ -93,7 +94,10 @@ data ValidationError =
     -- ^ The current slot is not covered by the transaction's validity slot range.
     | SignatureMissing PubKey
     -- ^ The transaction is missing a signature
-    deriving (Eq, Ord, Show, Generic)
+    | ForgeWithoutScript Validation.ValidatorHash
+    -- ^ The transaction attempts to forge value of a currency without spending 
+    --   a script output from the address of the currency's monetary policy.
+    deriving (Eq, Show, Generic)
 
 instance FromJSON ValidationError
 instance ToJSON ValidationError
@@ -125,6 +129,11 @@ validateTransaction h t = do
     _ <- checkSlotRange h t
     _ <- checkValuePreserved t
     _ <- checkPositiveValues t
+
+    -- see note [Forging of Ada]
+    emptyUtxoSet <- reader (Map.null . getIndex)
+    _ <- unless emptyUtxoSet (checkForgingAuthorised t)
+    
     _ <- checkValidInputs t
     insert t <$> ask
 
@@ -148,6 +157,36 @@ checkValidInputs tx = do
 -- | Match each input of the transaction with the output that it spends.
 lkpOutputs :: ValidationMonad m => Tx -> m [(TxIn, TxOut)]
 lkpOutputs = traverse (\t -> traverse (lkpTxOut . txInRef) (t, t)) . Set.toList . txInputs
+
+{- note [Forging of Ada]
+
+'checkForgingAuthorised' will never allow a transaction that forges Ada.
+Ada's currency symbol is the empty bytestring, and it can never be matched by a
+validator script whose hash is its symbol.
+
+Therefore 'checkForgingAuthorised' should not be applied to the first transaction in
+the blockchain.
+
+-}
+
+-- | Check whether each currency forged by the transaction is matched by 
+--   a corresponding monetary policy script (in the form of a pay-to-script
+--   output of the currency's address).
+--
+checkForgingAuthorised :: ValidationMonad m => Tx -> m ()
+checkForgingAuthorised tx =
+    let 
+        forgedCurrencies = 
+            Builtins.unSizedByteString . V.unCurrencySymbol <$> V.symbols (txForge tx)
+
+        spendsOutput i = 
+            let spentAddresses = Set.map inAddress (txInputs tx) in
+            Set.member i spentAddresses
+
+        forgedWithoutScript = filter (not . spendsOutput) forgedCurrencies
+
+    in
+        traverse_ (throwError . ForgeWithoutScript . Validation.ValidatorHash . Builtins.SizedByteString) forgedWithoutScript
 
 -- | A matching pair of transaction input and transaction output, ensuring that they are of matching types also.
 data InOutMatch =

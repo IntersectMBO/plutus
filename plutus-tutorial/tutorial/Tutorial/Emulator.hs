@@ -253,7 +253,7 @@ simpleTraceDist = EM.fundsDistribution $ snd $ runTrace simpleTrace
 {- |
 
     >>> simpleTraceDist
-    fromList [(Wallet {getWallet = 1},Value {getValue = Map {unMap = [(,900)]}}),(Wallet {getWallet = 2},Value {getValue = Map {unMap = [(,1100)]}})]
+    fromList [(Wallet {getWallet = 1},Value {getValue = Map {unMap = [(,Map {unMap = [(SizedByteString {unSizedByteString = ""},900)]})]}}),(Wallet {getWallet = 2},Value {getValue = Map {unMap = [(,Map {unMap = [(SizedByteString {unSizedByteString = ""},1100)]})]}})]
 
     'simpleTraceDist' shows that our transaction was successful: Wallet 1 now 
     owns 900 Ada (the currency identified by )
@@ -292,7 +292,7 @@ gameSuccess = do
     The final distribution after 'gameSuccess' looks as we would expect:
 
     >>> EM.fundsDistribution $ snd $ runTrace simpleTrace
-    fromList [(Wallet {getWallet = 1},Value {getValue = Map {unMap = [(,900)]}}),(Wallet {getWallet = 2},Value {getValue = Map {unMap = [(,1100)]}})]
+    fromList [(Wallet {getWallet = 1},Value {getValue = Map {unMap = [(,Map {unMap = [(SizedByteString {unSizedByteString = ""},900)]})]}}),(Wallet {getWallet = 2},Value {getValue = Map {unMap = [(,Map {unMap = [(SizedByteString {unSizedByteString = ""},1100)]})]}})]
 
 -}
 

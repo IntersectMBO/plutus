@@ -7,6 +7,7 @@
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE MonoLocalBinds         #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
+{-# OPTIONS_GHC -O0                 #-}
 -- A map implementation that can be used in on-chain and off-chain code.
 module Ledger.Map.TH(
     Map
@@ -14,6 +15,7 @@ module Ledger.Map.TH(
     , singleton
     , empty
     , fromList
+    , keys
     , map
     , lookup
     , union
@@ -84,6 +86,14 @@ lookup = [||
         lookup
  ||]
 
+-- | The keys of a 'Map'.
+keys :: Q (TExp (Map k v -> [k]))
+keys = [|| 
+    let keys' :: Map k v -> [k]
+        keys' (Map xs) = $$(P.map) (\(k, _ :: v) -> k) xs
+    in keys'
+    ||]
+
 -- | Combine two 'Map's.
 union :: Q (TExp (IsEqual k -> Map k v -> Map k r -> Map k (These v r)))
 union = [|| 
@@ -117,7 +127,7 @@ all = [||
         all p (Map mps) =
             let go xs = case xs of 
                     []         -> True
-                    (_, x):xs' -> $$(P.and) (p x) (go xs')
+                    (_ :: k, x):xs' -> $$(P.and) (p x) (go xs')
             in go mps 
     in all ||]
 

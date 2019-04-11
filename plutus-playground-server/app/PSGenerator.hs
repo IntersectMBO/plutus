@@ -45,7 +45,7 @@ import           Ledger.Ada                                (Ada)
 import           Ledger.Index                              (ValidationError)
 import           Ledger.Interval                           (Interval)
 import           Ledger.Slot                               (Slot)
-import           Ledger.Value.TH                           (CurrencySymbol, Value)
+import           Ledger.Value.TH                           (CurrencySymbol, TokenName, Value)
 import           Playground.API                            (CompilationResult, Evaluation, EvaluationResult, Expression,
                                                             Fn, FunctionSchema, KnownCurrency, SimpleArgumentSchema,
                                                             SimulatorWallet, TokenId)
@@ -256,6 +256,7 @@ myTypes =
     , mkSumType (Proxy @InterpreterError)
     , mkSumType (Proxy @(InterpreterResult A))
     , (equal <*> (order <*> mkSumType)) (Proxy @CurrencySymbol)
+    , (equal <*> (order <*> mkSumType)) (Proxy @TokenName)
     ]
 
 mySettings :: Settings

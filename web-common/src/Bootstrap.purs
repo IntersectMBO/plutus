@@ -283,6 +283,9 @@ isValid = ClassName "is-valid"
 isInvalid :: ClassName
 isInvalid = ClassName "is-invalid"
 
+colFormLabel :: ClassName
+colFormLabel = ClassName "col-form-label"
+
 formControl :: ClassName
 formControl = ClassName "form-control"
 
