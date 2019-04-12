@@ -15,11 +15,11 @@ import           Control.Monad.Except
 forBind :: (Monad m, Traversable m, Applicative f) => m a -> (a -> f (m b)) -> f (m b)
 forBind a f = join <$> traverse f a
 
--- |
+-- | Turn a 'Traversable' 'Monad' into a monad transformer.
 -- > T Identity   ~ IdentityT
 -- > T Maybe      ~ MaybeT
 -- > T (Either e) ~ ExceptT e
--- > T ((,) w)    ~ WriterT    -- the tuple is flipped compared to the usual 'WriterT'
+-- > T ((,) w)    ~ WriterT    -- The tuple is flipped compared to the usual 'WriterT'.
 newtype InnerT f m a = InnerT
     { unInnerT :: m (f a)
     }
@@ -52,6 +52,7 @@ instance Monad m => MonadError e (InnerT (Either e) m) where
         Left e  -> unInnerT $ f e
         Right x -> pure $ Right x
 
+-- | Embed the original 'Traversable' 'Monad' into the monad transformer that it induces.
 -- The name is inspired by http://hackage.haskell.org/package/streaming-0.2.2.0/docs/Streaming.html#v:yields.
 yield :: Applicative m => f a -> InnerT f m a
 yield = InnerT . pure

@@ -213,8 +213,20 @@ newtype DynamicBuiltinNameMeanings = DynamicBuiltinNameMeanings
     { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName DynamicBuiltinNameMeaning
     } deriving (Semigroup, Monoid)
 
+-- | A thing that evaluates @f@ in monad @m@ and allows to extend the set of
+-- dynamic built-in names.
 type Evaluator f m = DynamicBuiltinNameMeanings -> f TyName Name () -> m EvaluationResultDef
 
+-- | A computation that runs in @t m@ and has access to an 'Evaluator' that runs in @m@.
+-- The idea is that a computation that requires access to an evaluator may introduce new effects
+-- even though the underlying evaluator does not have them.
+--
+-- For example reading of values (see 'readDynamicBuiltinM') runs in 'EvaluateT'
+-- (because it needs access to an evaluator) and adds the 'ReflectT' effect on top of that
+-- (see the docs of 'ReflectT' for what effects it consists of).
+--
+-- 'EvaluateT' is a monad transformer transfomer. I.e. it turns one monad transformer
+-- into another one.
 newtype EvaluateT t m a = EvaluateT
     { unEvaluateT :: ReaderT (Evaluator Term m) (t m) a
     } deriving
@@ -223,12 +235,15 @@ newtype EvaluateT t m a = EvaluateT
         , MonadError e
         )
 
+-- | Run an 'EvaluateT' computation using the given 'Evaluator'.
 runEvaluateT :: Evaluator Term m -> EvaluateT t m a -> t m a
 runEvaluateT eval (EvaluateT a) = runReaderT a eval
 
+-- | Wrap a computation binding an 'Evaluator' as a 'EvaluateT'.
 withEvaluator :: (Evaluator Term m -> t m a) -> EvaluateT t m a
 withEvaluator = EvaluateT . ReaderT
 
+-- | 'thoist' for monad transformer transformerts if what 'hoist' for monad transformers.
 thoist :: Monad (t m) => (forall b. t m b -> s m b) -> EvaluateT t m a -> EvaluateT s m a
 thoist f (EvaluateT a) = EvaluateT $ Morph.hoist f a
 
@@ -349,24 +364,29 @@ instance Monad m => Alternative (ReflectT m) where
     ReflectT (ExceptT (InnerT m)) <|> ReflectT (ExceptT (InnerT n)) =
         ReflectT . ExceptT . InnerT $ (<|>) <$> m <*> n
 
+-- | Run a 'ReflectT' computation.
 runReflectT :: ReflectT m a -> m (EvaluationResult (Either Text a))
 runReflectT = unInnerT . runExceptT . unReflectT
 
+-- | Map over the underlying representation of a 'ReflectT' computation.
 mapReflectT
     :: (ExceptT Text (InnerT EvaluationResult m) a -> ExceptT Text (InnerT EvaluationResult n) b)
     -> ReflectT m a
     -> ReflectT n b
 mapReflectT f (ReflectT a) = ReflectT (f a)
 
+-- | Map over the fully unwrapped underlying representation of a 'ReflectT' computation.
 mapDeepReflectT
     :: (m (EvaluationResult (Either Text a)) -> n (EvaluationResult (Either Text b)))
     -> ReflectT m a
     -> ReflectT n b
 mapDeepReflectT = mapReflectT . mapExceptT . mapInnerT
 
+-- | Fully wrap a computation into 'ReflectT'.
 makeReflectT :: m (EvaluationResult (Either Text a)) -> ReflectT m a
 makeReflectT = ReflectT . ExceptT . InnerT
 
+-- | Wrap a non-throwing computation into 'ReflectT'.
 makeRightReflectT :: Monad m => m (EvaluationResult a) -> ReflectT m a
 makeRightReflectT = ReflectT . lift . InnerT
 
@@ -383,9 +403,11 @@ class KnownDynamicBuiltinType dyn where
     makeDynamicBuiltin :: dyn -> Maybe (Term TyName Name ())
 
     -- See Note [Evaluators].
-    -- | Convert a PLC value to the corresponding Haskell value.
+    -- | Convert a PLC value to the corresponding Haskell value using an explicit evaluator.
     readDynamicBuiltin :: Monad m => Evaluator Term m -> Term TyName Name () -> ReflectT m dyn
 
+-- | Convert a PLC value to the corresponding Haskell value using the evaluator
+-- from the current context.
 readDynamicBuiltinM
     :: (Monad m, KnownDynamicBuiltinType a)
     => Term TyName Name () -> EvaluateT ReflectT m a

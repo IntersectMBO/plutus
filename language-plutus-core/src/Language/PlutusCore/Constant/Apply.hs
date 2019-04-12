@@ -132,12 +132,19 @@ instance Enum SizeVar where
     toEnum = SizeVar
     fromEnum (SizeVar sizeIndex) = sizeIndex
 
+-- | Constant application computation runs in a monad @m@, requires an evaluator and
+-- returns a 'ConstAppResult'.
 type EvaluateConstApp m = EvaluateT (InnerT ConstAppResult) m
+
+-- | Default constant application computation that in case of 'ConstAppSuccess' returns
+-- a 'Value'.
 type EvaluateConstAppDef m = EvaluateConstApp m (Value TyName Name ())
 
+-- | Evaluate a constant application computation using the given evaluator.
 runEvaluateConstApp :: Evaluator Term m -> EvaluateConstApp m a -> m (ConstAppResult a)
 runEvaluateConstApp eval = unInnerT . runEvaluateT eval
 
+-- | Lift the result of a constant application to a constant application computation.
 liftConstAppResult :: Monad m => ConstAppResult a -> EvaluateConstApp m a
 -- Could it be @yield . yield@?
 liftConstAppResult = EvaluateT . lift . yield
@@ -257,8 +264,8 @@ applyTypedBuiltinName
     :: Monad m => TypedBuiltinName a r -> a -> [Value TyName Name ()] -> EvaluateConstAppDef m
 applyTypedBuiltinName (TypedBuiltinName _ schema) = applyTypeSchemed schema
 
--- | Apply a 'TypedBuiltinName' to a list of 'Constant's (unwrapped from 'Value's)
--- Checks that the constants are of expected types and there are no size mismatches.
+-- | Apply a 'TypedBuiltinName' to a list of 'Value's.
+-- Checks that the values are of expected types and there are no size mismatches.
 applyBuiltinName
     :: Monad m => BuiltinName -> [Value TyName Name ()] -> EvaluateConstAppDef m
 applyBuiltinName AddInteger           = applyTypedBuiltinName typedAddInteger           (+)
@@ -270,7 +277,7 @@ applyBuiltinName RemainderInteger     = applyTypedBuiltinName typedRemainderInte
 applyBuiltinName ModInteger           = applyTypedBuiltinName typedModInteger           mod
 applyBuiltinName LessThanInteger      = applyTypedBuiltinName typedLessThanInteger      (<)
 applyBuiltinName LessThanEqInteger    = applyTypedBuiltinName typedLessThanEqInteger    (<=)
-applyBuiltinName GreaterThanInteger   = applyTypedBuiltinName typedGreaterThanInteger   (>)
++applyBuiltinName GreaterThanInteger   = applyTypedBuiltinName typedGreaterThanInteger   (>)
 applyBuiltinName GreaterThanEqInteger = applyTypedBuiltinName typedGreaterThanEqInteger (>=)
 applyBuiltinName EqInteger            = applyTypedBuiltinName typedEqInteger            (==)
 applyBuiltinName ResizeInteger        = applyTypedBuiltinName typedResizeInteger        (const id)
@@ -287,6 +294,8 @@ applyBuiltinName VerifySignature      = applyTypedBuiltinName typedVerifySignatu
 applyBuiltinName EqByteString         = applyTypedBuiltinName typedEqByteString         (==)
 applyBuiltinName SizeOfInteger        = applyTypedBuiltinName typedSizeOfInteger        (const ())
 
+-- | Apply a 'BuiltinName' to a list of 'Value's and evaluate the resulting computation usign the
+-- given evaluator.
 runApplyBuiltinName
     :: Monad m => Evaluator Term m -> BuiltinName -> [Value TyName Name ()] -> m ConstAppResultDef
 runApplyBuiltinName eval name = runEvaluateConstApp eval . applyBuiltinName name
