@@ -12,9 +12,9 @@ You can run this code in the [Plutus Playground](https://prod.playground.plutus.
 
 We assume the reader is familiar with the [UTxO model with scripts](../../../docs/extended-utxo/README.md) and the [PlutusTx tutorial](./01-plutus-tx.md). 
 
-**WARNING** The wallet API and by extension the wallet API tutorial is a work in progress and may be changed without much warning. 
+**WARNING:** The wallet API and by extension the wallet API tutorial is a work in progress and may be changed without notice.
 
-The tutorial has three parts. In part 1 we write the contract, including all the data types we need, validator scripts, and contract endpoints that handle the interactions between wallet and blockchain. In part 2 we show how to test the contract. Part 3 contains a number of questions and exercises related to this contract. 
+This tutorial has three parts. In part 1 we write the contract, including all the data types we need, validator scripts, and contract endpoints that handle the interactions between wallet and blockchain. In part 2 we show how to test the contract. Part 3 contains a number of questions and exercises. 
 
 # 1. Contract Definition
 
