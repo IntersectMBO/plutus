@@ -1,3 +1,5 @@
+-- | Getting monad transormers out of 'Traversable' 'Monad's.
+
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -57,5 +59,6 @@ instance Monad m => MonadError e (InnerT (Either e) m) where
 yield :: Applicative m => f a -> InnerT f m a
 yield = InnerT . pure
 
+-- | Map over the underlying representation of 'InnerT'.
 mapInnerT :: (m (f a) -> n (g b)) -> InnerT f m a -> InnerT g n b
 mapInnerT f (InnerT a) = InnerT (f a)
