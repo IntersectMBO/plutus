@@ -48,7 +48,7 @@ instance KnownDynamicBuiltinType a => KnownDynamicBuiltinType (EvaluationResult 
     makeDynamicBuiltin EvaluationFailure     = pure . Error () $ toTypeEncoding @a Proxy
     makeDynamicBuiltin (EvaluationSuccess x) = makeDynamicBuiltin x
 
-    -- There are two 'EvaluationResult's here: an external one (which any 'KnownType'
+    -- There are two 'EvaluationResult's here: an external one (which any 'KnownDynamicBuiltinType'
     -- instance has to deal with) and an internal one (specific to this particular instance).
     -- Our approach is to always return 'EvaluationSuccess' for the external 'EvaluationResult'
     -- and catch all 'EvaluationFailure's in the internal 'EvaluationResult'.

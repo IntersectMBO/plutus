@@ -277,7 +277,7 @@ applyBuiltinName RemainderInteger     = applyTypedBuiltinName typedRemainderInte
 applyBuiltinName ModInteger           = applyTypedBuiltinName typedModInteger           mod
 applyBuiltinName LessThanInteger      = applyTypedBuiltinName typedLessThanInteger      (<)
 applyBuiltinName LessThanEqInteger    = applyTypedBuiltinName typedLessThanEqInteger    (<=)
-+applyBuiltinName GreaterThanInteger   = applyTypedBuiltinName typedGreaterThanInteger   (>)
+applyBuiltinName GreaterThanInteger   = applyTypedBuiltinName typedGreaterThanInteger   (>)
 applyBuiltinName GreaterThanEqInteger = applyTypedBuiltinName typedGreaterThanEqInteger (>=)
 applyBuiltinName EqInteger            = applyTypedBuiltinName typedEqInteger            (==)
 applyBuiltinName ResizeInteger        = applyTypedBuiltinName typedResizeInteger        (const id)

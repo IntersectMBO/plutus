@@ -368,7 +368,7 @@ instance Monad m => Alternative (ReflectT m) where
 runReflectT :: ReflectT m a -> m (EvaluationResult (Either Text a))
 runReflectT = unInnerT . runExceptT . unReflectT
 
--- | Map over the underlying representation of a 'ReflectT' computation.
+-- | Map over the underlying representation of 'ReflectT'.
 mapReflectT
     :: (ExceptT Text (InnerT EvaluationResult m) a -> ExceptT Text (InnerT EvaluationResult n) b)
     -> ReflectT m a
