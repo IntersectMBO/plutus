@@ -19,6 +19,7 @@ import           Control.Lens              ((^.), at, to)
 import qualified Data.Set                  as Set
 import qualified Data.Map                  as Map
 import           Data.Maybe                (fromMaybe)
+import           Data.String               (IsString(fromString))
 import qualified Data.Text                 as Text
 
 import qualified Language.PlutusTx         as P
@@ -29,7 +30,7 @@ import           Ledger.Validation         (TxHash)
 import qualified Ledger.Validation         as V
 import qualified Ledger.Value.TH           as Value
 import           Ledger                    as Ledger hiding (to)
-import           Ledger.Value              (TokenName, Value, mkTokenName)
+import           Ledger.Value              (TokenName, Value)
 import           Wallet.API                as WAPI
 
 import qualified Language.PlutusTx.Coordination.Contracts.PubKey as PK
@@ -51,7 +52,7 @@ mkCurrency (TxOutRefOf h i) amt n =
     Currency
         { curRefTransactionOutput = (V.plcTxHash h, i)
         , curRefAmount            = amt
-        , curRefTokenName         = mkTokenName n
+        , curRefTokenName         = fromString n
         }
 
 curValidator :: Currency -> ValidatorScript

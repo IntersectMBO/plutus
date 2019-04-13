@@ -9,7 +9,6 @@ module Ledger.Value(
     , currencySymbol
     , TokenName
     , tokenName
-    , mkTokenName
     , singleton
     , valueOf
     , scale
@@ -30,7 +29,6 @@ module Ledger.Value(
     , isZero
     ) where
 
-import qualified Data.ByteString.Lazy.Char8 as C8
 import qualified Ledger.Value.TH            as TH
 import           Ledger.Value.TH            (CurrencySymbol, TokenName, Value)
 import           Prelude                    hiding (negate)
@@ -53,11 +51,6 @@ currencySymbol = $$(TH.currencySymbol)
 
 tokenName :: P.ByteString -> TokenName
 tokenName = $$(TH.tokenName)
-
--- | Convert a Haskell 'String' to a PLC 'TokenName' using
---   the Char8 encoding (see 'Data.ByteString.Char8').
-mkTokenName :: String -> TokenName
-mkTokenName = tokenName . P.SizedByteString . C8.pack
 
 -- | See 'TH.singleton'.
 singleton :: CurrencySymbol -> TokenName -> Int -> Value
