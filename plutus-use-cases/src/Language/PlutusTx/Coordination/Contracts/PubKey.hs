@@ -9,13 +9,7 @@
 --   contract. This is useful if you need something that behaves like
 --   a pay-to-pubkey output, but is not (easily) identified by wallets
 --   as one.
-module Language.PlutusTx.Coordination.Contracts.PubKey(
-      pkValidator
-    , pkRedeemer
-    , pkDataScript
-    , lock
-    , spend
-    ) where
+module Language.PlutusTx.Coordination.Contracts.PubKey(lock) where
 
 import           Data.Maybe (listToMaybe)
 import qualified Data.Map   as Map
@@ -40,23 +34,14 @@ pkValidator pk =
                 in validate
             ||]))
 
--- | PayToPubKey data script (unit value).
-pkDataScript :: DataScript
-pkDataScript = DataScript $ Ledger.lifted ()
-
--- | PayToPubKey redeemer (unit value).
-pkRedeemer :: RedeemerScript
-pkRedeemer = RedeemerScript $ Ledger.lifted ()
-
--- | The address of a 'PayToPubKey' contract.
-pkAddress :: PubKey -> Address
-pkAddress = Ledger.scriptAddress . pkValidator
-
 -- | Lock some funds in a 'PayToPubKey' contract, returning the output's address
 --   and a 'TxIn' transaction input that can spend it.
 lock :: (WalletAPI m, WalletDiagnostics m) => PubKey -> Value -> m (Address, TxIn)
 lock pk vl = getRef =<< payToScript defaultSlotRange addr vl pkDataScript where
-    addr = pkAddress pk
+    addr = Ledger.scriptAddress (pkValidator pk)
+    pkDataScript = DataScript $ Ledger.lifted ()
+    pkRedeemer = RedeemerScript $ Ledger.lifted ()
+
     getRef tx = do
         let scriptOuts = listToMaybe
                             $ fmap fst
@@ -72,8 +57,3 @@ lock pk vl = getRef =<< payToScript defaultSlotRange addr vl pkDataScript where
                     Just o  -> pure (scriptTxIn o (pkValidator pk) pkRedeemer)
             
         pure (addr, txin)
-
--- | Make a 'TxIn' that spends a pay-to-script transaction output locked
---   by the 
-spend :: TxOutRef -> PubKey -> TxIn
-spend ref pk = Ledger.scriptTxIn ref (pkValidator pk) pkRedeemer

@@ -7,9 +7,6 @@
 module Language.PlutusTx.Coordination.Contracts.Currency(
       Currency(..)
     , curValidator
-    , curDataScript
-    , curRedeemer
-    , curAddress
     -- * Actions etc
     , forge
     , forgedValue
@@ -62,7 +59,9 @@ curValidator cur =
             let validate :: Currency -> () -> () -> V.PendingTx -> ()
                 validate (Currency (refHash, refIdx) amt token) () () p = 
                     let 
+                        -- see note [Obtaining the currency symbol]
                         ownSymbol = $$(V.ownCurrencySymbol) p
+
                         forged = $$(V.valueForged) p
                         expected = $$(Value.singleton) ownSymbol token amt 
 
@@ -86,29 +85,33 @@ curValidator cur =
                 validate
             ||]))
 
--- | Currency data script (unit value).
-curDataScript :: DataScript
-curDataScript = DataScript $ Ledger.lifted ()
+{- note [Obtaining the currency symbol]
 
--- | Currency redeemer (unit value).
-curRedeemer :: RedeemerScript
-curRedeemer = RedeemerScript $ Ledger.lifted ()
+The currency symbol is the address (hash) of the validator. That is why
+we can use 'Ledger.scriptAddress' here to get the symbol  in off-chain code, 
+for example in 'forgedValue'.
 
--- | The address of a 'Currency' contract.
-curAddress :: Currency -> Address
-curAddress = Ledger.scriptAddress . curValidator
+Inside the validator script (on-chain) we can't use 'Ledger.scriptAddress',
+because at that point we don't know the hash of the script yet. That
+is why we use 'V.ownCurrencySymbol', which obtains the hash from the
+'PendingTx' value.
+
+-}
 
 -- | The 'Value' forged by the 'curValidator' contract
 forgedValue :: Currency -> Value
 forgedValue cur = 
-    let a = plcCurrencySymbol (curAddress cur)
+    let 
+        -- see note [Obtaining the currency symbol]
+        a = plcCurrencySymbol (Ledger.scriptAddress (curValidator cur))
+
         t = curRefTokenName cur
         i = curRefAmount cur
     in
         $$(Value.singleton) a t i
 
--- | @forge c n@ forges @n@ units of a currency called @c@ and
---   pays them to a public key address owned by the wallet.
+-- | @forge c n@ forges @n@ units of a currency with one type of token called 
+--   @c@ and pays them to a public key address owned by the wallet.
 forge :: (WalletAPI m, WalletDiagnostics m) => String -> Int -> m Currency
 forge nm amount = do
     pk <- WAPI.ownPubKey
@@ -121,9 +124,10 @@ forge nm amount = do
     (refAddr, refTxIn) <- PK.lock pk (Ada.adaValueOf 1)
 
     let
+
          -- With that we can define the currency
         theCurrency = mkCurrency (txInRef refTxIn) amount nm
-        curAddr     = curAddress theCurrency
+        curAddr     = Ledger.scriptAddress (curValidator theCurrency)
         forgedVal   = forgedValue theCurrency
         oneOrMore   = WAPI.intervalFrom $ Ada.adaValueOf 1
 
@@ -142,7 +146,7 @@ forge nm amount = do
             am <- WAPI.watchedAddresses
 
             let inputs' = am ^. at curAddr . to (Map.toList . fromMaybe Map.empty)
-                con (r, _) = scriptTxIn r (curValidator theCurrency) curRedeemer
+                con (r, _) = scriptTxIn r (curValidator theCurrency) (RedeemerScript $ Ledger.lifted ())
                 ins        = con <$> inputs'
 
             let tx = Ledger.Tx
@@ -165,7 +169,7 @@ forge nm amount = do
     -- 3. When trg1 fires we submit a transaction that creates a 
     --    pay-to-script output locked by the monetary policy
     registerOnce trg1 (EventHandler $ const $ do
-        payToScript_ defaultSlotRange (curAddress theCurrency) (Ada.adaValueOf 1) curDataScript)
+        payToScript_ defaultSlotRange curAddr (Ada.adaValueOf 1) (DataScript $ Ledger.lifted ()))
 
     -- Return the currency definition so that we can use the symbol
     -- in other places

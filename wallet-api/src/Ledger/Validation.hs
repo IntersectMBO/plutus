@@ -323,7 +323,10 @@ eqTx = [|| \(TxHash l) (TxHash r) -> Builtins.equalsByteString l r ||]
 
 -- | Get the hash of the validator script that is currently being validated.
 ownHash :: Q (TExp (PendingTx -> ValidatorHash))
-ownHash = [|| \(PendingTx _ _ _ _ i _ _ _) -> let PendingTxIn _ (Just (h, _)) _ = i in h ||]
+ownHash = [|| \(PendingTx _ _ _ _ i _ _ _) -> 
+    case i of
+        PendingTxIn _ (Just (h, _)) _ -> h
+        _ -> $$(P.error) () ||]
 
 -- | Convert a 'CurrencySymbol' to a 'ValidatorHash'
 fromSymbol :: CurrencySymbol -> ValidatorHash
@@ -360,6 +363,7 @@ valueForged :: Q (TExp (PendingTx -> Value))
 valueForged = [||
         let valueForged' :: PendingTx -> Value
             valueForged' (PendingTx _ _ _ forge _ _ _ _) = forge
+            valueForged' _                               = $$(P.error) ()
         in valueForged'
     ||]
 

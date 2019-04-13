@@ -263,13 +263,16 @@ class WalletAPI m where
     createPaymentWithChange :: Value -> m (Set.Set TxIn, Maybe TxOut)
 
     {- |
-    Register a 'EventHandler' in @m ()@ to be run when condition is true.
+    Register a 'EventHandler' in @m ()@ to be run a single time when the 
+    condition is true.
 
-    * The action will be run once for each block where the condition holds.
-      For example, @register (slotRangeT (Interval 3 6)) a@ causes @a@ to be run at blocks 3, 4, and 5.
+    * The action will be run when the condition holds for the first time.
+      For example, @registerOnce (slotRangeT (Interval 3 6)) a@ causes @a@ to 
+      be run at block 3. See 'register' for a variant that runs the action
+      multiple times.
 
     * Each time the wallet is notified of a new block, all triggers are checked
-      and the matching ones are run in an unspecified order.
+      and the matching ones are run in an unspecified order and then deleted.
 
     * The wallet will only watch "known" addresses. There are two ways an
       address can become a known address.
@@ -304,6 +307,9 @@ throwInsufficientFundsError = throwError . InsufficientFunds
 throwOtherError :: MonadError WalletAPIError m => Text -> m a
 throwOtherError = throwError . OtherError
 
+-- | A variant of 'register' that registers the trigger again immediately after
+--   running the action. This is useful if you want to run the same action every
+--   time the condition holds, instead of only the first time.
 register :: (WalletAPI m, Monad m) => EventTrigger -> EventHandler m -> m ()
 register t h = registerOnce t h' where
     h' = h <> (EventHandler $ \_ -> register t h)
