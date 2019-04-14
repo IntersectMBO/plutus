@@ -13,6 +13,7 @@ module Language.PlutusTx.Coordination.Contracts.Currency(
     ) where
 
 import           Control.Lens              ((^.), at, to)
+import           Data.Bifunctor            (Bifunctor(first))
 import qualified Data.Set                  as Set
 import qualified Data.Map                  as Map
 import           Data.Maybe                (fromMaybe)
@@ -22,34 +23,22 @@ import qualified Data.Text                 as Text
 import qualified Language.PlutusTx         as P
 
 import qualified Ledger.Ada                as Ada
+import qualified Ledger.Map                as LMap
 import           Ledger.Scripts            (ValidatorScript(..))
-import           Ledger.Validation         (TxHash)
 import qualified Ledger.Validation         as V
 import qualified Ledger.Value.TH           as Value
 import           Ledger                    as Ledger hiding (to)
-import           Ledger.Value              (TokenName, Value)
+import           Ledger.Value              (Value)
 import           Wallet.API                as WAPI
 
 import qualified Language.PlutusTx.Coordination.Contracts.PubKey as PK
+import           Language.PlutusTx.Coordination.Contracts.Currency.Stage0 as Stage0
 
-data Currency = Currency
-                    { curRefTransactionOutput :: (TxHash, Int)
-                    -- ^ Transaction input that must be spent when
-                    --   the currency is forged.
-                    , curRefAmount            :: Int
-                    -- ^ How much of the currency can be forged
-                    , curRefTokenName         :: TokenName
-                    -- ^ Token name
-                    }
-
-P.makeLift ''Currency
-
-mkCurrency :: TxOutRef -> Int -> String -> Currency
-mkCurrency (TxOutRefOf h i) amt n = 
+mkCurrency :: TxOutRef -> [(String, Int)] -> Currency
+mkCurrency (TxOutRefOf h i) amts = 
     Currency
         { curRefTransactionOutput = (V.plcTxHash h, i)
-        , curRefAmount            = amt
-        , curRefTokenName         = fromString n
+        , curAmounts              = LMap.fromList (fmap (first fromString) amts)
         }
 
 curValidator :: Currency -> ValidatorScript
@@ -57,13 +46,14 @@ curValidator cur =
     ValidatorScript (Ledger.applyScript mkValidator (Ledger.lifted cur)) where
         mkValidator = Ledger.fromCompiledCode ($$(P.compile [||
             let validate :: Currency -> () -> () -> V.PendingTx -> ()
-                validate (Currency (refHash, refIdx) amt token) () () p = 
+                validate c@(Currency (refHash, refIdx) _) () () p = 
                     let 
                         -- see note [Obtaining the currency symbol]
                         ownSymbol = $$(V.ownCurrencySymbol) p
 
                         forged = $$(V.valueForged) p
-                        expected = $$(Value.singleton) ownSymbol token amt 
+                        expected = $$currencyValue ownSymbol c
+                            
 
                         -- True if the pending transaction forges the amount of
                         -- currency that we expect
@@ -104,16 +94,14 @@ forgedValue cur =
     let 
         -- see note [Obtaining the currency symbol]
         a = plcCurrencySymbol (Ledger.scriptAddress (curValidator cur))
-
-        t = curRefTokenName cur
-        i = curRefAmount cur
     in
-        $$(Value.singleton) a t i
+        $$currencyValue a cur
 
--- | @forge c n@ forges @n@ units of a currency with one type of token called 
---   @c@ and pays them to a public key address owned by the wallet.
-forge :: (WalletAPI m, WalletDiagnostics m) => String -> Int -> m Currency
-forge nm amount = do
+-- | @forge [(n1, c1), ..., (n_k, c_k)]@ creates a new currency with 
+--   @k@ token names, forging @c_i@ units of each token @n_i@.
+--   If @k == 0@ then no value is forged.
+forge :: (WalletAPI m, WalletDiagnostics m) => [(String, Int)] -> m Currency
+forge amounts = do
     pk <- WAPI.ownPubKey
 
     -- 1. We need to create the reference transaction output using the 
@@ -126,7 +114,7 @@ forge nm amount = do
     let
 
          -- With that we can define the currency
-        theCurrency = mkCurrency (txInRef refTxIn) amount nm
+        theCurrency = mkCurrency (txInRef refTxIn) amounts
         curAddr     = Ledger.scriptAddress (curValidator theCurrency)
         forgedVal   = forgedValue theCurrency
         oneOrMore   = WAPI.intervalFrom $ Ada.adaValueOf 1
