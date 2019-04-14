@@ -169,7 +169,7 @@ vestingSpec =
                                                              [ ( "unMap"
                                                                , SimpleArraySchema
                                                                      (SimpleTupleSchema
-                                                                          ( SimpleHexSchema
+                                                                          ( SimpleStringSchema
                                                                           , SimpleIntSchema)))
                                                              ])))
                                           ])

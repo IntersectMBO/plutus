@@ -95,6 +95,7 @@ tests = testGroup "all tests" [
     testGroup "Value" ([
         testProperty "Value ToJSON/FromJSON" (jsonRoundTrip Gen.genValue),
         testProperty "CurrencySymbol ToJSON/FromJSON" (jsonRoundTrip $ Value.currencySymbol <$> Gen.genSizedByteStringExact),
+        testProperty "TokenName ToJSON/FromJSON" (jsonRoundTrip $ fromString @Value.TokenName <$> Gen.string (Range.linear 0 32) Gen.latin1),
         testProperty "CurrencySymbol IsString/Show" currencySymbolIsStringShow
         ] ++ (let   vlJson :: BSL.ByteString
                     vlJson = "{\"getValue\":[[{\"unCurrencySymbol\":\"ab01ff\"},[[{\"unTokenName\":\"myToken\"},50]]]]}"

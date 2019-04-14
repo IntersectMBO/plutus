@@ -3,12 +3,12 @@
 module Spec.Future(tests) where
 
 import           Control.Monad                                   (void)
-import           Control.Monad.IO.Class
 import           Data.Either                                     (isRight)
 import           Data.Foldable                                   (traverse_)
 import qualified Data.Map                                        as Map
 import           Hedgehog                                        (Property, forAll, property)
 import qualified Hedgehog
+import qualified Spec.Size                                       as Size
 import           Test.Tasty
 import           Test.Tasty.Hedgehog                             (testProperty)
 import qualified Test.Tasty.HUnit                                as HUnit
@@ -40,16 +40,8 @@ tests = testGroup "futures" [
     testProperty "close the position" settle,
     testProperty "close early if margin payment was missed" settleEarly,
     testProperty "increase the margin" increaseMargin,
-    HUnit.testCase "script size is reasonable" size
+    HUnit.testCase "script size is reasonable" (Size.reasonable (F.validatorScript contract) 50000)
     ]
-
-size :: HUnit.Assertion
-size = do
-    let Ledger.ValidatorScript s = F.validatorScript contract
-    let sz = Ledger.scriptSize s
-    -- so the actual size is visible in the log
-    liftIO $ putStrLn ("Script size: " ++ show sz)
-    HUnit.assertBool "script too big" (sz <= 50000)
 
 init :: Wallet -> Trace MockWallet Ledger.TxOutRef
 init w = outp <$> walletAction w (F.initialise (walletPubKey wallet1) (walletPubKey wallet2) contract) where

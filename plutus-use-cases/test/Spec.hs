@@ -2,6 +2,7 @@
 module Main(main) where
 
 import qualified Spec.Crowdfunding
+import qualified Spec.Currency
 import qualified Spec.Future
 import qualified Spec.Game
 import qualified Spec.MultiSig
@@ -25,5 +26,6 @@ tests = localOption limit $ testGroup "use cases" [
     Spec.Vesting.tests,
     Spec.Future.tests,
     Spec.Game.tests,
-    Spec.MultiSig.tests
+    Spec.MultiSig.tests,
+    Spec.Currency.tests
     ]

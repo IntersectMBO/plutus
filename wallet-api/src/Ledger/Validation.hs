@@ -27,6 +27,7 @@ module Ledger.Validation
     , plcValidatorDigest
     , plcRedeemerHash
     , plcTxHash
+    , plcCurrencySymbol
     -- * Oracles
     , OracleValue(..)
     -- * Validator functions
@@ -43,7 +44,10 @@ module Ledger.Validation
     , adaLockedBy
     , ownHash
     , signsTransaction
+    , spendsOutput
     , txHash
+    , valueForged
+    , ownCurrencySymbol
     -- * Hashes
     , plcSHA2_256
     , plcSHA3_256
@@ -72,8 +76,10 @@ import           Ledger.Crypto                (PubKey (..), Signature (..))
 import           Ledger.Scripts
 import           Ledger.Slot                  (Slot, SlotRange)
 import qualified Ledger.TxId                  as Tx
-import           Ledger.Value.TH              (Value, CurrencySymbol(..))
-import           LedgerBytes                     (LedgerBytes(..))
+import           Ledger.Tx                    (Address, getAddress)
+import           Ledger.Value                 (CurrencySymbol(..), Value)
+import qualified Ledger.Value.TH              as VTH
+import           LedgerBytes                  (LedgerBytes(..))
 
 -- Ignore newtype warnings related to `Oracle` and `Signed` because it causes
 -- problems with the plugin
@@ -245,12 +251,16 @@ plcSHA3_256 = Builtins.SizedByteString . Hash.sha3 . Builtins.unSizedByteString
 plcDigest :: Digest SHA256 -> P.SizedByteString 32
 plcDigest = P.SizedByteString . BSL.pack . BA.unpack
 
+-- | The 'CurrencySymbol' of an 'Address'
+plcCurrencySymbol :: Address -> CurrencySymbol
+plcCurrencySymbol = $$(VTH.currencySymbol) . plcDigest . getAddress
+
 -- | Check if two public keys are equal.
 eqPubKey :: Q (TExp (PubKey -> PubKey -> Bool))
 eqPubKey = [|| 
     \(PubKey (LedgerBytes l)) (PubKey (LedgerBytes r)) -> $$(P.equalsByteString) l r
     ||]
-    
+
 -- | Check if a transaction was signed by the given public key.
 txSignedBy :: Q (TExp (PendingTx -> PubKey -> Bool))
 txSignedBy = [||
@@ -313,7 +323,10 @@ eqTx = [|| \(TxHash l) (TxHash r) -> Builtins.equalsByteString l r ||]
 
 -- | Get the hash of the validator script that is currently being validated.
 ownHash :: Q (TExp (PendingTx -> ValidatorHash))
-ownHash = [|| \(PendingTx _ _ _ _ i _ _ _) -> let PendingTxIn _ (Just (h, _)) _ = i in h ||]
+ownHash = [|| \(PendingTx _ _ _ _ i _ _ _) -> 
+    case i of
+        PendingTxIn _ (Just (h, _)) _ -> h
+        _ -> $$(P.error) () ||]
 
 -- | Convert a 'CurrencySymbol' to a 'ValidatorHash'
 fromSymbol :: CurrencySymbol -> ValidatorHash
@@ -343,6 +356,42 @@ signsTransaction :: Q (TExp (Signature -> PubKey -> PendingTx -> Bool))
 signsTransaction = [|| 
     \(Signature sig) (PubKey (LedgerBytes pk)) (p :: PendingTx) -> 
         $$(P.verifySignature) pk (let TxHash h = $$(txHash) p in h) sig
+    ||]
+
+-- | Value forged by a 'PendingTx'.
+valueForged :: Q (TExp (PendingTx -> Value))
+valueForged = [||
+        let valueForged' :: PendingTx -> Value
+            valueForged' (PendingTx _ _ _ forge _ _ _ _) = forge
+            valueForged' _                               = $$(P.error) ()
+        in valueForged'
+    ||]
+
+-- | The 'CurrencySymbol' of the current validator script.
+ownCurrencySymbol :: Q (TExp (PendingTx -> CurrencySymbol))
+ownCurrencySymbol = [||
+        let ownCurrencySymbol' :: PendingTx -> CurrencySymbol
+            ownCurrencySymbol' p = 
+                let ValidatorHash h = $$ownHash p
+                in  $$(VTH.currencySymbol) h
+        in ownCurrencySymbol'
+    ||]
+
+-- | Check if the pending transaction spends a specific transaction output
+--   (identified by the hash of a transaction and an index into that 
+--   transactions' outputs)
+spendsOutput :: Q (TExp (PendingTx -> TxHash -> Int -> Bool))
+spendsOutput = [||
+        let spendsOutput' :: PendingTx -> TxHash -> Int -> Bool
+            spendsOutput' p (TxHash h) i = 
+                let PendingTx ins _ _ _ _ _ _ _ = p
+                    spendsOutRef (PendingTxIn (PendingTxOutRef (TxHash h') i') _ _) = 
+                        $$(P.and) ($$(P.equalsByteString) h h') ($$(P.eq) i i')
+
+                in $$(P.any) spendsOutRef ins
+
+        in
+            spendsOutput'
     ||]
 
 makeLift ''PendingTxOutType
