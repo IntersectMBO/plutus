@@ -5,7 +5,7 @@ embedded programs that can be used when generating transactions.
 
 This is the first in a series of tutorials:
 
-1. Plutus Tx (this one)
+1. Plutus Tx (this tutorial)
 2. [A guessing game](./02-validator-scripts.md)
 3. [A crowdfunding campaign](./03-wallet-api.md)
 4. [Working with the emulator](../../tutorial/Tutorial/Emulator.hs)
@@ -155,9 +155,13 @@ functions = $$(compile [||
     let
         plusOneLocal :: Int -> Int
         plusOneLocal x = x `addInteger` 1
-        -- This won't work.
+
+        -- This won't work:
         -- nonLocalDoesntWork = plusOne 1
+
+        -- This will work:
         localWorks = plusOneLocal 1
+
         -- You can of course bind this to a name, but for the purposes
         -- of this tutorial we won't since TH requires it to be in
         -- another module.
@@ -288,3 +292,5 @@ pastEndAt end current =
     `applyCode`
     unsafeLiftCode current
 ```
+
+The [next part](./02-validator-scripts.md) of the tutorial explains how to get Plutus onto the blockchain, using a simple guessing game as an example.

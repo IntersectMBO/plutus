@@ -483,7 +483,7 @@ warnEmptyTransaction value addr =
         $ logMsg 
         $ Text.unwords [
               "Attempting to collect transaction outputs from"
-            , "'" <> Text.pack (show addr) <> "'"
-            , ", but there are no known outputs at that address."
+            , "'" <> Text.pack (show addr) <> "'" <> ","
+            , "but there are no known outputs at that address."
             , "An empty transaction will be submitted."
             ] 
