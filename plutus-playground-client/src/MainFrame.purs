@@ -557,7 +557,7 @@ bannerMessage =
     ]
     [ text "Plutus Beta - Updated 11th April 2019 - See the "
     , a
-        [ href ("https://github.com/input-output-hk/plutus/blob/" <> gitHead <> "/CHANGELOG") ]
+        [ href ("https://github.com/input-output-hk/plutus/blob/" <> gitHead <> "/CHANGELOG.md") ]
         [ text "CHANGELOG" ]
     ]
 
