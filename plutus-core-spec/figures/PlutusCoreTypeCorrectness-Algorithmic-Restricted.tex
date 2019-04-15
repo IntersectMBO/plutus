@@ -12,7 +12,7 @@
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{$cn$ has constant signature $\constsig{tcn}{s}$ in Fig. \ref{fig:Plutus_core_constants}}
+        \AxiomC{$cn$ has constant signature $\constsig{tcn}{s}$ in Figure \ref{fig:Plutus_core_constants}}
         \RightLabel{con}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{cn}{\conT{tcn}{s}}}\)}
     \end{prooftree}
@@ -68,7 +68,7 @@
 
     \begin{prooftree}
         \alwaysNoLine
-        \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in Fig. \ref{fig:Plutus_core_builtins}}
+        \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in Figure \ref{fig:Plutus_core_builtins}}
         \UnaryInfC{\(\diffbox{\typeBoundedMultistep{\textit{MAX}}{\subst{S_0, ..., S_m}{\alpha_0, ..., \alpha_m}{B_i}}{T_i}}\)}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M_i}{T'_i}}\)}
         \UnaryInfC{\(\typeEqual{T_i}{T'_i}\)}
