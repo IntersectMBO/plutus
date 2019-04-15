@@ -7,6 +7,7 @@ import qualified Spec.Future
 import qualified Spec.Game
 import qualified Spec.MultiSig
 import qualified Spec.Vesting
+import qualified Spec.GameStateMachine
 import           Test.Tasty
 import           Test.Tasty.Hedgehog (HedgehogTestLimit (..))
 
@@ -27,5 +28,6 @@ tests = localOption limit $ testGroup "use cases" [
     Spec.Future.tests,
     Spec.Game.tests,
     Spec.MultiSig.tests,
-    Spec.Currency.tests
+    Spec.Currency.tests,
+    Spec.GameStateMachine.tests
     ]
