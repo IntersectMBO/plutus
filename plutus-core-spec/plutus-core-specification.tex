@@ -297,7 +297,7 @@ may use the multi-argument forms.
 \subsection{Notes on the grammar}
 \paragraph{Terms.}
 \begin{itemize}
-\item $\con{cn}$ represents a built-in constant: see \S\ref{sec:builtins}
+\item $\con{cn}$ represents a built-in constant: see Section~\ref{sec:builtins}
 \item $\abs{\alpha}{K}{V}$ represents a polymorphic value abstracted
   over a type; this would often be donated by $\Lambda\alpha{::}K.V$.
   Note that we require the body of the abstraction to be a
@@ -306,7 +306,7 @@ may use the multi-argument forms.
 \item $\iwrap{A}{B}{M}$ and $\unwrap{M}$: see the note on recursive types below.
 \item $\lam{x}{A}{M}$ is standard lambda-abstraction: $\lambda{}x{:}{A}.{M}$.
 \item $\app{M}{N}$ is standard function application.
-\item $\builtin{bn}{A^*}{M^*}$ is application of a built-in function: see \S\ref{sec:builtins} for more information.
+\item $\builtin{bn}{A^*}{M^*}$ is application of a built-in function: see Section~\ref{sec:builtins} for more information.
 \item $\error{A}$ causes an error, terminating computation immediately.
 \end{itemize}
 
@@ -331,11 +331,11 @@ may use the multi-argument forms.
 \item Sizes $s$ are natural numbers used to enforce bounds on certain types of values: see below.
 \item $\funT{A}{B}$ is the type of functions from $A$ to $B$, $A \rightarrow B$.
 \item $\allT{\alpha}{K}{A}$ represents the type of a polymorphic term (eg a type abstraction), $\forall \alpha{::}K.A$.
-\item $\fixT{A}{B}$ represents a recursive type: see the note in \S\ref{sec:ifix-note} below for more information.
+\item $\fixT{A}{B}$ represents a recursive type: see the note in Section~\ref{sec:ifix-note} below for more information.
 \item $\lamT{\alpha}{K}{A}$ is abstraction of types over types, $\lambda \alpha{::}K.A$.
 \item $\appT{A}{B}$ is function application at the type level.
 \item $\conT{tcn}{A}$ represents a built-in type, and $A$ will often be a size.  For example, $\conT{\textrm{integer}}{8}$
-is the type of 8-byte integers.  See \S\ref{sec:builtins} for more information.
+is the type of 8-byte integers.  See Section~\ref{sec:builtins} for more information.
 \end{itemize}
 
 \paragraph{Type Values.} All types can be reduced to a type value (or
@@ -357,7 +357,7 @@ simply typed lambda calculus are lifted to the level of
 operations which themselves occur at the level of types. In addition
 to the standard kind \texttt{(type)} (usually written as $\star$), we
 have a kind \texttt{(size)} which allows us to deal with the sized
-types described below in~\S\ref{sec:size-note}.
+types described below in Section~\ref{sec:size-note}.
 
 
 \paragraph{Programs and Versions.} A complete Plutus Core program 
@@ -387,7 +387,7 @@ Plutus Core language.
 \subsubsection{Sizes and built-in types and functions}
 \label{sec:size-note}
 Details of built-in types and functions are given
-in~\S\ref{sec:builtins}, but a remark on sizes may be helpful at this
+in Section~\ref{sec:builtins}, but a remark on sizes may be helpful at this
 point.  Plutus Core currently provides two types of built-in data with
 variable sizes: integers and bytestrings (blocks of binary data used
 for cryptographic purposes).  There is no fixed upper bound on the
