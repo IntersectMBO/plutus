@@ -28,6 +28,7 @@ module Ledger.Validation
     , plcRedeemerHash
     , plcTxHash
     , plcCurrencySymbol
+    , validatorScriptHash
     -- * Oracles
     , OracleValue(..)
     -- * Validator functions
@@ -76,7 +77,7 @@ import           Ledger.Crypto                (PubKey (..), Signature (..))
 import           Ledger.Scripts
 import           Ledger.Slot                  (Slot, SlotRange)
 import qualified Ledger.TxId                  as Tx
-import           Ledger.Tx                    (Address, getAddress)
+import           Ledger.Tx                    (Address, getAddress, scriptAddress)
 import           Ledger.Value                 (CurrencySymbol(..), Value)
 import qualified Ledger.Value.TH              as VTH
 import           LedgerBytes                  (LedgerBytes(..))
@@ -393,6 +394,12 @@ spendsOutput = [||
         in
             spendsOutput'
     ||]
+-- | The hash of a 'ValidatorScript'.
+validatorScriptHash :: ValidatorScript -> ValidatorHash
+validatorScriptHash = 
+    plcValidatorDigest
+    . getAddress
+    . scriptAddress
 
 makeLift ''PendingTxOutType
 

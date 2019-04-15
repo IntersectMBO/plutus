@@ -4,14 +4,15 @@
 
 ### New Features
 
-* [Gist integration](./plutus-tutorial/markdown/2019-04-11-Gist_integration.md)
-* [Support for multiple traces](./plutus-tutorial/markdown/2019-04-11-Multiple_traces.md)
-* [Multi-currency ledger](./plutus-tutorial/markdown/2019-04-11-Multi-currency_ledger.md)
-* [Validity range for transactions](./plutus-tutorial/markdown/2019-04-11-Validity_range_for_transactions.md)
+* [Gist integration](./plutus-tutorial/markdown/Gist_integration.md)
+* [Support for multiple traces](./plutus-tutorial/markdown/Multiple_traces.md)
+* [Multi-currency ledger](./plutus-tutorial/markdown/Multi-currency_ledger.md)
+* [Validity range for transactions](./plutus-tutorial/markdown/Validity_range_for_transactions.md)
 
 ### Enhancements
 
 * Tabbed layout
 * Improved blockchain graph
-* Cryptographic primivites
+* Cryptographic primitives
 * Improved vesting example
+* The order of arguments to the validator script has changed from `redeemerscript -> datascript -> PendingTx -> ()` to `datascript -> redeemerscript -> PendingTx -> ()`
