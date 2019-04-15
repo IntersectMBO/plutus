@@ -2,6 +2,7 @@ module Chain
        ( mockchainChartOptions
        , balancesChartOptions
        , evaluationPane
+       , extractAmount
        ) where
 
 import Bootstrap (empty, nbsp)
@@ -11,7 +12,7 @@ import Control.Monad.Aff.Class (class MonadAff)
 import Data.Array as Array
 import Data.Generic (gShow)
 import Data.Int as Int
-import Data.Lens (_Just, to, toListOf, traversed, view)
+import Data.Lens (_Just, preview, toListOf, traversed, view)
 import Data.Lens.At (at)
 import Data.List (List)
 import Data.Maybe (Maybe(..), maybe)
@@ -39,7 +40,7 @@ import Ledger.Slot (Slot(..))
 import Ledger.TxId (TxIdOf(TxIdOf))
 import Ledger.Value.TH (CurrencySymbol, TokenName)
 import Playground.API (EvaluationResult(EvaluationResult), SimulatorWallet)
-import Prelude (class Monad, Unit, discard, map, show, unit, ($), (<$>), (<<<), (<>))
+import Prelude (class Monad, Unit, discard, map, show, unit, ($), (<$>), (<<<), (<>), (>>>))
 import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, Query(HandleBalancesChartMessage), _simulatorWalletBalance, _simulatorWalletWallet, _tokenName, _value, _walletId, cpBalancesChart)
 import Wallet.Emulator.Types (EmulatorEvent(..), Wallet(..))
 import Wallet.Graph (FlowGraph(FlowGraph), FlowLink(FlowLink), TxRef(TxRef))
@@ -201,7 +202,7 @@ balancesChartOptions wallets = do
     E.axisType E.Value
     axisLineStyle
   E.series do
-    traverse_ (currencySeries wallets) allCurrencies
+    traverse_ (buildCurrencySeries wallets) allCurrencies
   where
     axisLineStyle :: forall i. E.DSL (axisLine :: I, splitLine :: I | i) m
     axisLineStyle = do
@@ -226,20 +227,23 @@ balancesChartOptions wallets = do
 formatWalletId :: SimulatorWallet -> String
 formatWalletId wallet = "Wallet #" <> show (view (_simulatorWalletWallet <<< _walletId) wallet)
 
-currencySeries :: forall m i. Monad m => Array SimulatorWallet -> Tuple CurrencySymbol TokenName -> E.CommandsT (bar :: I | i) m Unit
-currencySeries wallets (Tuple currencySymbol tokenName) =
+buildCurrencySeries :: forall m i. Monad m => Array SimulatorWallet -> Tuple CurrencySymbol TokenName -> E.CommandsT (bar :: I | i) m Unit
+buildCurrencySeries wallets token@(Tuple currencySymbol tokenName) =
   E.bar do
     -- Optionally: `E.stack "One bar"`
     E.name $ view _tokenName tokenName
-    E.items
-      $ toListOf (traversed
-                  <<< _simulatorWalletBalance
-                  <<< _value
-                  <<< at currencySymbol
-                  <<< _Just
-                  <<< at tokenName
-                  <<< to (maybe nullItem (E.numItem <<< Int.toNumber)))
-        wallets
+    E.items $ map (extractAmount token
+                   >>> maybe nullItem (E.numItem <<< Int.toNumber))
+                   wallets
 
 nullItem :: Item
 nullItem = Item undefinedValue
+
+extractAmount :: Tuple CurrencySymbol TokenName -> SimulatorWallet -> Maybe Int
+extractAmount (Tuple currencySymbol tokenName) =
+  preview (_simulatorWalletBalance
+           <<< _value
+           <<< at currencySymbol
+           <<< _Just
+           <<< at tokenName
+           <<< _Just)
