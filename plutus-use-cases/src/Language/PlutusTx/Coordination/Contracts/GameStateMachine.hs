@@ -33,7 +33,7 @@ import qualified Wallet                       as WAPI
 
 import qualified Data.ByteString.Lazy.Char8   as C
 
-import Language.PlutusTx.Coordination.Contracts.GameStateMachine.Stage0
+import Language.PlutusTx.StateMachine
 
 data HashedString = HashedString (P.SizedByteString 32)
 
