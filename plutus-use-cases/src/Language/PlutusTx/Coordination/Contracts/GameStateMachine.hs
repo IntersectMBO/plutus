@@ -75,7 +75,8 @@ gameValidator = ValidatorScript ($$(Ledger.compileScript [||
             $$(P.equalsByteString) actual ($$(P.sha2_256) gss)
             
         -- | Given a 'TokeName', get the value that contains 
-        --   exactly one token of that name
+        --   exactly one token of that name in the contract's
+        --   currency.
         tokenVal :: TokenName -> V.Value
         tokenVal tn = 
             let ownSymbol = $$(Validation.ownCurrencySymbol) p

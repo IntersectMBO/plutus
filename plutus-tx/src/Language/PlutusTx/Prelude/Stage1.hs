@@ -1,11 +1,11 @@
 {-# LANGUAGE TemplateHaskell #-}
--- Need `>` for doctests, annoyingly
+-- Need `>` and `==` for doctests, annoyingly
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 -- | The prelude functions are split into dependent modules so that we obey the TH staging restriction when
 -- reusing functions.
 module Language.PlutusTx.Prelude.Stage1 where
 
-import           Prelude                    (Bool (..), Int, Maybe(..), (>))
+import           Prelude                    (Bool (..), Int, Maybe(..), (>), (==))
 
 import           Language.PlutusTx.Prelude.Stage0
 
