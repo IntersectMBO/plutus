@@ -49,7 +49,7 @@ w2 = EM.Wallet 2
 w3 :: EM.Wallet
 w3 = EM.Wallet 3
 
-processAndNotify :: W.WalletAPI m => EM.Trace m ()
+processAndNotify :: EM.Trace m ()
 processAndNotify = void (EM.addBlocksAndNotify [w1, w2, w3] 1)
 
 -- Wallet 1 locks some funds using the secret "hello". Then wallet 1
