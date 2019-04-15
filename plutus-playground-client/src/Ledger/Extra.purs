@@ -80,14 +80,13 @@ instance atLedgerMap :: Eq k => At (LedgerMap k a) k a where
       matching tuple = fst tuple == key
       get (LedgerMap xs) = map snd $ Array.find matching xs
       set (LedgerMap xs) Nothing = LedgerMap $ Array.filter (not matching) xs
-      set (LedgerMap []) (Just new) = LedgerMap [ Tuple key new ]
-      set (LedgerMap xs) (Just new) =
+      set (LedgerMap xs) (Just new) = LedgerMap $
         case Array.findIndex matching xs of
-          Nothing -> LedgerMap $ Array.snoc xs (Tuple key new)
-          _ -> LedgerMap $ map (\(Tuple k v) ->
-                                 Tuple k (if k == key
-                                          then new
-                                          else v)) xs
+          Nothing -> Array.snoc xs (Tuple key new)
+          _ -> map (\(Tuple k v) ->
+                        Tuple k (if k == key
+                                 then new
+                                 else v)) xs
 
 collapse ::
   forall m n i j a.

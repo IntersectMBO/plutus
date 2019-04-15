@@ -211,6 +211,10 @@ evalTests =
                                          steps
 
         assert "Gist gets loaded." $ isSuccess (view  _createGistResult finalState)
+        equal'
+          "Simulations gets loaded."
+          1
+          (Cursor.length (view  _simulations finalState))
         let sourceFile = unsafePartial $ fromJust $ Array.head (unwrap gist)._gistFiles >>= (unwrap >>> _._gistFileContent)
         equal' "Editor gets update."
           (Just sourceFile)
