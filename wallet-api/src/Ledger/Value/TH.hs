@@ -1,15 +1,30 @@
+{-# LANGUAGE OverloadedLists #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE TypeApplications   #-}
+{-# OPTIONS_GHC -O0             #-}
+-- | Functions for working with 'Value' in Template Haskell.
 module Ledger.Value.TH(
-      Value(..)
-    , CurrencySymbol
+    -- ** Currency symbols
+      CurrencySymbol(..)
     , currencySymbol
+    , eqCurSymbol
+    -- ** Token names
+    , TokenName(..)
+    , tokenName
+    , eqTokenName
+    -- ** Value
+    , Value(..)
     , singleton
     , valueOf
     , scale
+    , symbols
       -- * Constants
     , zero
       -- * Num operations
@@ -27,31 +42,132 @@ module Ledger.Value.TH(
     ) where
 
 import           Codec.Serialise.Class        (Serialise)
-import           Data.Aeson                   (FromJSON, ToJSON)
-import           Data.Swagger.Internal.Schema (ToSchema)
+import           Control.Lens                 (set,(.~))
+import           Data.Aeson                   (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
+import qualified Data.Aeson                   as JSON
+import qualified Data.Aeson.Extras            as JSON
+import qualified Data.ByteString.Lazy         as BSL
+import qualified Data.ByteString.Lazy.Char8   as C8
+import qualified Data.Swagger.Internal        as S
+import           Data.Swagger.Schema          (ToSchema(declareNamedSchema))
+import qualified Data.Swagger.Lens            as S
+import           Data.Swagger                 (SwaggerType(SwaggerObject), NamedSchema(NamedSchema), declareSchemaRef)
+import           Data.Proxy                   (Proxy(Proxy))
+import           Data.String                  (IsString)
+import qualified Data.Text                    as Text
 import           GHC.Generics                 (Generic)
+import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift       (makeLift)
 import qualified Language.PlutusTx.Prelude    as P
 import           Language.Haskell.TH          (Q, TExp)
+import qualified Ledger.Map.TH                as Map
 import           Prelude                      hiding (all, lookup, negate)
+import           LedgerBytes                  (LedgerBytes(LedgerBytes))
+import           Data.Function                ((&))
 
-data CurrencySymbol = CurrencySymbol Int
-  deriving (Eq, Ord, Show)
-  deriving stock (Generic)
-  deriving anyclass (ToSchema, ToJSON, FromJSON, Serialise)
+hexSchema :: S.Schema
+hexSchema = mempty & set S.type_ S.SwaggerString & set S.format (Just "hex")
+
+newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.SizedByteString 32 }
+    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise) via LedgerBytes
+    deriving stock (Eq, Ord, Generic)
+
+instance ToSchema CurrencySymbol where
+  declareNamedSchema _ = pure $ S.NamedSchema (Just "CurrencySymbol") hexSchema
+
+instance ToJSON CurrencySymbol where
+  toJSON currencySymbol =
+    JSON.object
+      [ ( "unCurrencySymbol"
+        , JSON.String .
+          JSON.encodeByteString .
+          BSL.toStrict . Builtins.unSizedByteString . unCurrencySymbol $
+          currencySymbol)
+      ]
+
+instance FromJSON CurrencySymbol where
+  parseJSON =
+    JSON.withObject "CurrencySymbol" $ \object -> do
+      raw <- object .: "unCurrencySymbol"
+      bytes <- JSON.decodeByteString raw
+      pure . CurrencySymbol . Builtins.SizedByteString . BSL.fromStrict $ bytes
 
 makeLift ''CurrencySymbol
 
-currencySymbol :: Q (TExp (Int -> CurrencySymbol))
+eqCurSymbol :: Q (TExp (CurrencySymbol -> CurrencySymbol -> Bool))
+eqCurSymbol = [|| \(CurrencySymbol l) (CurrencySymbol r) -> $$(P.equalsByteString) l r ||]
+
+currencySymbol :: Q (TExp (P.ByteString -> CurrencySymbol))
 currencySymbol = [|| CurrencySymbol ||]
 
--- | Cryptocurrency value
---   See note [Currencies]
-newtype Value = Value { getValue :: [(CurrencySymbol, Int)] }
+newtype TokenName = TokenName { unTokenName :: Builtins.SizedByteString 32 }
+    deriving (ToJSONKey, FromJSONKey, Serialise) via LedgerBytes
+    deriving (Show, IsString) via (Builtins.SizedByteString 32)
+    deriving stock (Eq, Ord, Generic)
+
+instance ToSchema TokenName where
+    declareNamedSchema _ = pure $ S.NamedSchema (Just "TokenName") hexSchema
+
+instance ToJSON TokenName where
+    toJSON tokenName =
+        JSON.object
+        [ ( "unTokenName"
+            , JSON.String .
+              Text.pack .
+              C8.unpack . Builtins.unSizedByteString . unTokenName $
+              tokenName)
+        ]
+
+instance FromJSON TokenName where
+    parseJSON =
+        JSON.withObject "TokenName" $ \object -> do
+        raw <- object .: "unTokenName"
+        let bytes = Text.unpack raw
+        pure . TokenName . Builtins.SizedByteString . C8.pack $ bytes
+
+makeLift ''TokenName
+
+eqTokenName :: Q (TExp (TokenName -> TokenName -> Bool))
+eqTokenName = [|| \(TokenName l) (TokenName r) -> $$(P.equalsByteString) l r ||]
+
+tokenName :: Q (TExp (P.ByteString -> TokenName))
+tokenName = [|| TokenName ||]
+
+-- | A cryptocurrency value. This is a map from 'CurrencySymbol's to a
+-- quantity of that currency.
+--
+-- Operations on currencies are usually implemented /pointwise/. That is,
+-- we apply the operation to the quantities for each currency in turn. So
+-- when we add two 'Value's the resulting 'Value' has, for each currency,
+-- the sum of the quantities of /that particular/ currency in the argument
+-- 'Value'. The effect of this is that the currencies in the 'Value' are "independent",
+-- and are operated on separately.
+--
+-- Whenever we need to get the quantity of a currency in a 'Value' where there
+-- is no explicit quantity of that currency in the 'Value', then the quantity is
+-- taken to be zero.
+--
+-- See note [Currencies] for more details.
+newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Int) }
     deriving (Show)
     deriving stock (Generic)
-    deriving anyclass (ToSchema, ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON)
     deriving newtype (Serialise)
+
+-- 'InnerMap' exists only to trick swagger's generic deriving mechanism
+-- into not looping indefinitely when it encounters a nested map.
+newtype InnerMap = InnerMap { unMap :: [(TokenName, Int)] }
+    deriving stock (Generic)
+    deriving anyclass (ToJSON, FromJSON, ToSchema)
+
+instance ToSchema Value where
+    declareNamedSchema _ = do
+        mapSchema <- declareSchemaRef (Proxy @(Map.Map CurrencySymbol InnerMap))
+        return $ 
+                NamedSchema (Just "Value") $ mempty
+                    & S.type_ .~ SwaggerObject
+                    & S.properties .~ ( [ ("getValue", mapSchema)])
+                    & S.required .~ [ "getValue" ]
 
 makeLift ''Value
 
@@ -60,148 +176,153 @@ makeLift ''Value
 The 'Value' type represents a collection of amounts of different currencies.
 
 We can think of 'Value' as a vector space whose dimensions are
-currencies. At the moment there is only a single currency (Ada), so 'Value' 
-contains one-dimensional vectors. When currency-creating transactions are 
-implemented, this will change and the definition of 'Value' will change to a 
+currencies. At the moment there is only a single currency (Ada), so 'Value'
+contains one-dimensional vectors. When currency-creating transactions are
+implemented, this will change and the definition of 'Value' will change to a
 'Map Currency Int', effectively a vector with infinitely many dimensions whose
 non-zero values are recorded in the map.
 
-To create a value of 'Value', we need to specifiy a currency. This can be done 
-using 'Ledger.Ada.adaValueOf'. To get the ada dimension of 'Value' we use 
+To create a value of 'Value', we need to specifiy a currency. This can be done
+using 'Ledger.Ada.adaValueOf'. To get the ada dimension of 'Value' we use
 'Ledger.Ada.fromValue'. Plutus contract authors will be able to define modules
 similar to 'Ledger.Ada' for their own currencies.
 
 -}
-   
-type CurrencyMap v = [(CurrencySymbol, v)]
 
-cmap :: Q (TExp ((v -> w) -> CurrencyMap v -> CurrencyMap w))
-cmap = [|| 
-    \f ->
-        let go [] = []
-            go ((c, i):xs') = (c, f i) : go xs'
-        in go
-    ||]
-
-lookup :: Q (TExp (CurrencySymbol -> CurrencyMap v -> Maybe v))
-lookup = [|| 
-    \(CurrencySymbol cur) xs -> 
-        let 
-            go :: [(CurrencySymbol, v)] -> Maybe v
-            go []                          = Nothing
-            go ((CurrencySymbol c, i):xs') = if $$(P.eq) c cur then Just i else go xs'
-        in go xs
- ||]
-
--- | How much of a given currency is in a 'Value'
-valueOf :: Q (TExp (Value -> CurrencySymbol -> Int))
-valueOf = [|| 
-  \(Value xs) cur -> 
-      case $$(lookup) cur xs of
-        Nothing -> 0 :: Int
-        Just i  -> i
+-- | Get the quantity of the given currency in the 'Value'.
+valueOf :: Q (TExp (Value -> CurrencySymbol -> TokenName -> Int))
+valueOf = [||
+            let valueOf' :: Value -> CurrencySymbol -> TokenName -> Int
+                valueOf' (Value mp) cur tn =
+                    case $$(Map.lookup) $$(eqCurSymbol) cur mp of
+                        Nothing -> 0 :: Int
+                        Just i  -> case $$(Map.lookup) $$(eqTokenName) tn i of
+                            Nothing -> 0
+                            Just v  -> v
+            in valueOf'
    ||]
 
-data These a b = This a | That b | These a b
+-- | The list of 'CurrencySymbol's of a 'Value'.
+symbols :: Q (TExp (Value -> [CurrencySymbol]))
+symbols = [|| 
+            let symbols' :: Value -> [CurrencySymbol]
+                symbols' (Value mp) = $$(Map.keys) mp
+            in symbols' ||]
 
-these :: Q (TExp (a -> b -> (a -> b -> c) -> These a b -> c))
-these = [|| 
-    \a' b' f -> \case 
-        This a -> f a b'
-        That b -> f a' b
-        These a b -> f a b
-    ||]
+-- | Make a 'Value' containing only the given quantity of the given currency.
+singleton :: Q (TExp (CurrencySymbol -> TokenName -> Int -> Value))
+singleton = [|| 
+             let singleton' :: CurrencySymbol -> TokenName -> Int -> Value
+                 singleton' c tn i = 
+                    Value ($$(Map.singleton) c ($$(Map.singleton) tn i)) 
+             in singleton'
+            ||]
 
-union :: Q (TExp (CurrencyMap a -> CurrencyMap b -> CurrencyMap (These a b)))
-union = [|| 
-    \ls rs -> 
-        let 
-            f a b' = case b' of
-                Nothing -> This a
-                Just b  -> These a b
-            ls' = $$(P.map) (\(c, i) -> (c, (f i ($$(lookup) c rs)))) ls
-            rs' = $$(P.filter) (\(CurrencySymbol c, _) -> $$(P.not) ($$(P.any) (\(CurrencySymbol c', _) -> $$(P.eq) c' c) ls)) rs
-            rs'' = $$(P.map) (\(c, b) -> (c, (That b))) rs'
-        in $$(P.append) ls' rs''
-  ||]
+-- | Combine two 'Value' maps 
+unionVal :: Q (TExp (Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (Map.These Int Int))))
+unionVal = [|| 
+            let unionVal' :: Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (Map.These Int Int))
+                unionVal' (Value l) (Value r) = 
+                    let 
+                        combined = $$(Map.union) $$(eqCurSymbol) l r
+                        unThese k = case k of
+                            Map.This a    -> $$(Map.map) (Map.This) a
+                            Map.That b    -> $$(Map.map) (Map.That) b
+                            Map.These a b -> $$(Map.union) $$(eqTokenName) a b
+                    in ($$(Map.map) unThese combined)
+            in unionVal'
 
-singleton :: Q (TExp (CurrencySymbol -> Int -> Value))
-singleton = [|| \c i -> Value [(c, i)] ||]
+        ||]
 
 unionWith :: Q (TExp ((Int -> Int -> Int) -> Value -> Value -> Value))
 unionWith = [||
-  \f (Value ls) (Value rs) -> 
-    let 
-        combined = $$(union) ls rs
-        unThese k = case k of
-            This a    -> f a 0
-            That b    -> f 0 b
-            These a b -> f a b
-    in Value ($$(cmap) unThese combined)
+              let unionWith' :: (Int -> Int -> Int) -> Value -> Value -> Value
+                  unionWith' f ls rs =
+                    let
+                        combined = $$unionVal ls rs
+                        unThese k' = case k' of
+                            Map.This a -> f a 0
+                            Map.That b -> f 0 b
+                            Map.These a b -> f a b
+                    in Value ($$(Map.map) ($$(Map.map) unThese) combined)
+              in unionWith'
   ||]
 
-all :: Q (TExp ((v -> Bool) -> CurrencyMap v -> Bool))
-all = [|| \p -> let go xs = case xs of { [] -> True; (_, x):xs' -> $$(P.and) (p x) (go xs') } in go ||]
-
+-- | Multiply all the quantities in the 'Value' by the given scale factor.
 scale :: Q (TExp (Int -> Value -> Value))
-scale = [|| \i (Value xs) -> Value ($$(P.map) (\(c, i') -> (c, $$(P.multiply) i i')) xs) ||]
+scale = [|| 
+          let scale' :: Int -> Value -> Value
+              scale' i (Value xs) =
+                Value ($$(Map.map) ($$(Map.map) (\i' -> $$(P.multiply) i i')) xs) 
+          in scale' ||]
 
 -- Num operations
 
+-- | Add two 'Value's together. See 'Value' for an explanation of how operations on 'Value's work.
 plus :: Q (TExp (Value -> Value -> Value))
 plus = [|| $$(unionWith) $$(P.plus) ||]
 
+-- | Negate a 'Value's. See 'Value' for an explanation of how operations on 'Value's work.
 negate :: Q (TExp (Value -> Value))
 negate = [|| $$(scale) (-1) ||]
 
+-- | Subtract one 'Value' from another. See 'Value' for an explanation of how operations on 'Value's work.
 minus :: Q (TExp (Value -> Value -> Value))
 minus = [|| $$(unionWith) $$(P.minus) ||]
 
+-- | Multiply two 'Value's together. See 'Value' for an explanation of how operations on 'Value's work.
 multiply :: Q (TExp (Value -> Value -> Value))
 multiply = [|| $$(unionWith) $$(P.multiply) ||]
 
+-- | The empty 'Value'.
 zero :: Q (TExp Value)
-zero = [|| Value [] ||]
+zero = [|| Value $$(Map.empty) ||]
 
+-- | Check whether a 'Value' is zero.
 isZero :: Q (TExp (Value -> Bool))
-isZero = [|| \(Value xs) -> $$(P.all) (\(_, i) -> $$(P.eq) 0 i) xs ||]
+isZero = [|| 
+          let isZero' :: Value -> Bool
+              isZero' (Value xs) = $$(Map.all) ($$(Map.all) (\i -> $$(P.eq) 0 i)) xs 
+          in isZero' ||]
 
+checkPred :: Q (TExp ((Map.These Int Int -> Bool) -> Value -> Value -> Bool))
+checkPred = [||
+    let checkPred' :: (Map.These Int Int -> Bool) -> Value -> Value -> Bool
+        checkPred' f l r = $$(Map.all) ($$(Map.all) f) ($$unionVal l r)
+    in checkPred'
+     ||]
+
+-- | Check whether a binary relation holds for value pairs of two 'Value' maps,
+--   supplying 0 where a key is only present in one of them.
+checkBinRel :: Q (TExp ((Int -> Int -> Bool) -> Value -> Value -> Bool))
+checkBinRel = [||
+    let checkBinRel' :: (Int -> Int -> Bool) -> Value -> Value -> Bool
+        checkBinRel' f l r =
+            let 
+                unThese k' = case k' of
+                    Map.This a    -> f a 0
+                    Map.That b    -> f 0 b
+                    Map.These a b -> f a b
+            in $$checkPred unThese l r
+    in checkBinRel'
+    ||]
+
+-- | Check whether one 'Value' is greater than or equal to another. See 'Value' for an explanation of how operations on 'Value's work.
 geq :: Q (TExp (Value -> Value -> Bool))
-geq = [|| 
-  \(Value ls) (Value rs) -> 
-    let 
-        p = $$(these) 0 0 $$(P.geq)
-    in
-      $$(all) p ($$(union) ls rs) ||]
+geq = [|| $$checkBinRel $$(P.geq) ||]
 
+-- | Check whether one 'Value' is strictly greater than another. See 'Value' for an explanation of how operations on 'Value's work.
 gt :: Q (TExp (Value -> Value -> Bool))
-gt = [|| 
-    \(Value ls) (Value rs) -> 
-    let 
-        p = $$(these) 0 0 $$(P.gt)
-    in
-        $$(all) p ($$(union) ls rs) ||]
+gt = [|| $$checkBinRel $$(P.gt) ||]
 
+-- | Check whether one 'Value' is less than or equal to another. See 'Value' for an explanation of how operations on 'Value's work.
 leq :: Q (TExp (Value -> Value -> Bool))
-leq = [|| 
-    \(Value ls) (Value rs) -> 
-    let 
-        p = $$(these) 0 0 $$(P.leq)
-    in
-        $$(all) p ($$(union) ls rs) ||]
+leq = [|| $$checkBinRel $$(P.leq) ||]
 
+-- | Check whether one 'Value' is strictly less than another. See 'Value' for an explanation of how operations on 'Value's work.
 lt :: Q (TExp (Value -> Value -> Bool))
-lt = [|| 
-    \(Value ls) (Value rs) -> 
-        let 
-            p = $$(these) 0 0 $$(P.lt)
-        in
-        $$(all) p ($$(union) ls rs) ||]
+lt = [|| $$checkBinRel $$(P.lt) ||]
 
+-- | Check whether one 'Value' is equal to another. See 'Value' for an explanation of how operations on 'Value's work.
 eq :: Q (TExp (Value -> Value -> Bool))
-eq = [|| 
-    \(Value ls) (Value rs) -> 
-    let 
-        p = $$(these) 0 0 $$(P.eq)
-    in
-        $$(all) p ($$(union) ls rs) ||]
+eq = [|| $$checkBinRel $$(P.eq) ||]

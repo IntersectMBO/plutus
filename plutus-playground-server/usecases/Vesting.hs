@@ -11,6 +11,7 @@ import           Ledger.Ada                (Ada)
 import qualified Ledger.Ada                as Ada
 import qualified Ledger.Ada.TH             as ATH
 import qualified Ledger.Interval           as Interval
+import qualified Ledger.Slot               as Slot
 import qualified Ledger.Validation         as V
 import qualified Ledger.Value              as Value
 import           Wallet                    (WalletAPI(..), WalletDiagnostics, PubKey)
@@ -76,7 +77,7 @@ totalVested (Vesting l r _) = Ada.plus (vestingTrancheAmount l) (vestingTrancheA
     The redeemer script should carry some proof that the retriever of the funds 
     is indeed the `vestingOwner` that was specified in the contract. This proof 
     takes the form of a transaction hash signed by the `vestingOwner`'s private 
-    key. For this we use the type 'Ledger.Types.Signature'
+    key. For this we use the type 'Ledger.Crypto.Signature'
 
     That gives our validator script the signature
 
@@ -88,14 +89,14 @@ totalVested (Vesting l r _) = Ada.plus (vestingTrancheAmount l) (vestingTrancheA
 vestingValidator :: Vesting -> ValidatorScript
 vestingValidator v = ValidatorScript val where
     val = L.applyScript inner (L.lifted v)
-    inner = $$(L.compileScript [|| \(scheme :: Vesting) () (sig :: Signature) (p :: V.PendingTx) ->
+    inner = $$(L.compileScript [|| \(scheme :: Vesting) () () (p :: V.PendingTx) ->
         let
 
             Vesting tranche1 tranche2 owner = scheme
             VestingTranche d1 a1 = tranche1
             VestingTranche d2 a2 = tranche2
 
-            V.PendingTx _ _ _ _ _ range = p
+            V.PendingTx _ _ _ _ _ range _ _ = p
             -- range :: SlotRange, validity range of the pending transaction
 
             -- We need the hash of this validator script in order to ensure 
@@ -127,10 +128,10 @@ vestingValidator v = ValidatorScript val where
             -- intervals. If 'range' is completely contained in 'd1Intvl', then 
             -- we know for certain that the current slot is in 'd1Intvl', so the
             -- amount 'a1' of the first tranche has been released.
-            inD1Intvl = $$(Interval.contains) d1Intvl range
+            inD1Intvl = $$(Slot.contains) d1Intvl range
 
             -- Likewise for 'd2'
-            inD2Intvl = $$(Interval.contains) d2Intvl range
+            inD2Intvl = $$(Slot.contains) d2Intvl range
 
             released :: Ada
             released
@@ -168,11 +169,10 @@ vestingValidator v = ValidatorScript val where
                 let remainsLocked = $$(V.adaLockedBy) p ownHash
                 in $$(ATH.geq) remainsLocked unreleased
 
-            -- con2 is true if the provided signature is of the pending 
-            -- transaction (excluding witnesses) and was created by the
-            -- scheme owner's public key
+            -- con2 is true if the scheme owner has signed the pending 
+            -- transaction 'p'.
             con2 :: Bool
-            con2 = $$(V.signsTransaction) sig owner p
+            con2 = $$(V.txSignedBy) p owner
 
         in 
             
@@ -231,30 +231,14 @@ withdraw vst vl = do
     -- last indefinitely.
     range <- fmap WAPI.intervalFrom WAPI.slot
 
-    -- We need to sign the pending transaction with our private key, using the 
-    -- wallet api.
-    -- 
-    -- NOTE: The part of the mockchain that deals with signatures currently 
-    -- uses 'Int's to represent signatures, just like 'Int's are used for 
-    -- public and private keys. We can therefore simply create a signature 
-    -- value here, using the  wallet's 'ownSignature' function. 
-    --
-    -- Work that integrates proper cryptographic signatures with public and 
-    -- private keys into the emulator is currently ongoing and will result 
-    -- in changes to the way signatures are handled in the wallet API. In 
-    -- particular the 'ownSignature' function will take an additional argument, 
-    -- namely the value that is being signed.
-    --
-    sig <- WAPI.ownSignature
-
     -- The input should be the UTXO of the vesting scheme. We can get the 
     -- outputs at an address (as far as they are known by the wallet) with
     -- `outputsAt`, which returns a map of 'TxOutRef' to 'TxOut'. 
     utxos <- WAPI.outputsAt address
 
     let 
-        -- the redeemer script with our signature
-        redeemer  = RedeemerScript (L.lifted sig)
+        -- the redeemer script with the unit value ()
+        redeemer  = RedeemerScript (L.lifted ())
 
         -- Turn the 'utxos' map into a set of 'TxIn' values
         mkIn :: TxOutRef -> TxIn

@@ -1,11 +1,9 @@
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:strip-context #-}
+{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:no-context #-}
 -- the simplifier messes with things otherwise
 {-# OPTIONS_GHC   -O0 #-}
 {-# OPTIONS_GHC   -Wno-orphans #-}
@@ -17,14 +15,15 @@ module Plugin.Spec where
 
 import           Common
 import           PlcTestUtils
+import           Plugin.ReadValue
 
 import qualified Language.PlutusTx.Builtins as Builtins
+import           Language.PlutusTx.Code
 import           Language.PlutusTx.Lift
 import           Language.PlutusTx.Plugin
 
-import           Data.ByteString.Lazy
+import           Data.ByteString.Lazy       ()
 import           Data.Text.Prettyprint.Doc
-import           GHC.Generics
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
@@ -43,6 +42,7 @@ tests = testNested "Plugin" [
   , datat
   , recursiveTypes
   , recursion
+  , pure readDyns
   , errors
   ]
 
@@ -80,10 +80,13 @@ primitives = testNested "primitives" [
   , goldenPir "ifThenElse" ifThenElse
   , goldenEval "ifThenElseApply" [ getProgram $ ifThenElse, getProgram $ int, getProgram $ int2 ]
   --, goldenPlc "blocknum" blocknumPlc
-  , goldenPir "bytestring" bytestring
-  , goldenEval "bytestringApply" [ getPlc bytestring, unsafeLiftProgram ("hello"::ByteString) ]
-  , goldenEval "sha2_256" [ getPlc sha2, unsafeLiftProgram ("hello" :: ByteString)]
-  , goldenEval "equalsByteString" [ getPlc bsEquals, unsafeLiftProgram ("hello" :: ByteString), unsafeLiftProgram ("hello" :: ByteString)]
+  , goldenPir "emptyByteString" emptyByteString
+  , goldenEval "emptyByteStringApply" [ getPlc emptyByteString, unsafeLiftProgram (Builtins.emptyByteString) ]
+  , goldenPir "bytestring32" bytestring32
+  , goldenPir "bytestring64" bytestring64
+  , goldenEval "bytestring32Apply" [ getPlc bytestring32, unsafeLiftProgram ("hello"::Builtins.ByteString) ]
+  , goldenEval "sha2_256" [ getPlc sha2, unsafeLiftProgram ("hello" :: Builtins.ByteString)]
+  , goldenEval "equalsByteString" [ getPlc bsEquals, unsafeLiftProgram ("hello" :: Builtins.ByteString), unsafeLiftProgram ("hello" :: Builtins.ByteString)]
   , goldenPir "verify" verify
   , goldenPir "trace" trace
   ]
@@ -96,6 +99,9 @@ int = plc @"int" (1::Int)
 
 int2 :: CompiledCode Int
 int2 = plc @"int2" (2::Int)
+
+emptyBS :: CompiledCode (Builtins.SizedByteString 32)
+emptyBS = plc @"emptyBS" (Builtins.emptyByteString)
 
 bool :: CompiledCode Bool
 bool = plc @"bool" True
@@ -134,17 +140,23 @@ ifThenElse = plc @"ifThenElse" (\(x::Int) (y::Int) -> if Builtins.equalsInteger 
 --blocknumPlc :: CompiledCode
 --blocknumPlc = plc @"blocknumPlc" Builtins.blocknum
 
-bytestring :: CompiledCode (ByteString -> ByteString)
-bytestring = plc @"bytestring" (\(x::ByteString) -> x)
+emptyByteString :: CompiledCode (Builtins.SizedByteString 32 -> Builtins.SizedByteString 32)
+emptyByteString = plc @"emptyByteString" (\(x :: Builtins.SizedByteString 32) -> x)
 
-sha2 :: CompiledCode (ByteString -> ByteString)
-sha2 = plc @"sha2" (\(x :: ByteString) -> Builtins.sha2_256 x)
+bytestring32 :: CompiledCode (Builtins.SizedByteString 32 -> Builtins.SizedByteString 32)
+bytestring32 = plc @"bytestring32" (\(x::Builtins.SizedByteString 32) -> x)
 
-bsEquals :: CompiledCode (ByteString -> ByteString -> Bool)
-bsEquals = plc @"bsEquals" (\(x :: ByteString) (y :: ByteString) -> Builtins.equalsByteString x y)
+bytestring64 :: CompiledCode (Builtins.SizedByteString 64 -> Builtins.SizedByteString 64)
+bytestring64 = plc @"bytestring64" (\(x::Builtins.SizedByteString 64) -> x)
 
-verify :: CompiledCode (ByteString -> ByteString -> ByteString -> Bool)
-verify = plc @"verify" (\(x::ByteString) (y::ByteString) (z::ByteString) -> Builtins.verifySignature x y z)
+sha2 :: CompiledCode (Builtins.SizedByteString 32 -> Builtins.SizedByteString 32)
+sha2 = plc @"sha2" (\(x :: Builtins.SizedByteString 32) -> Builtins.sha2_256 x)
+
+bsEquals :: CompiledCode (Builtins.SizedByteString 32 -> Builtins.SizedByteString 32 -> Bool)
+bsEquals = plc @"bs32Equals" (\(x :: Builtins.SizedByteString 32) (y :: Builtins.SizedByteString 32) -> Builtins.equalsByteString x y)
+
+verify :: CompiledCode (Builtins.SizedByteString 32 -> Builtins.SizedByteString 32 -> Builtins.SizedByteString 64 -> Bool)
+verify = plc @"verify" (\(x::Builtins.SizedByteString 32) (y::Builtins.SizedByteString 32) (z::Builtins.SizedByteString 64) -> Builtins.verifySignature x y z)
 
 trace :: CompiledCode (Builtins.String -> ())
 trace = plc @"trace" (\(x :: Builtins.String) -> Builtins.trace x)
@@ -189,6 +201,7 @@ basicEnum :: CompiledCode MyEnum
 basicEnum = plc @"basicEnum" (Enum1)
 
 data MyMonoData = Mono1 Int Int | Mono2 Int | Mono3 Int
+    deriving (Show, Eq)
 
 monoDataType :: CompiledCode (MyMonoData -> MyMonoData)
 monoDataType = plc @"monoDataType" (\(x :: MyMonoData) -> x)
@@ -212,6 +225,7 @@ atPattern :: CompiledCode ((Int, Int) -> Int)
 atPattern = plc @"atPattern" (\t@(x::Int, y::Int) -> let fst (a, b) = a in Builtins.addInteger y (fst t))
 
 data MyMonoRecord = MyMonoRecord { mrA :: Int , mrB :: Int}
+    deriving (Show, Eq)
 
 monoRecord :: CompiledCode (MyMonoRecord -> MyMonoRecord)
 monoRecord = plc @"monoRecord" (\(x :: MyMonoRecord) -> x)
@@ -260,6 +274,7 @@ newtypes = testNested "newtypes" [
    ]
 
 newtype MyNewtype = MyNewtype Int
+    deriving (Show, Eq)
 
 newtype MyNewtype2 = MyNewtype2 MyNewtype
 
@@ -400,6 +415,7 @@ errors :: TestNested
 errors = testNested "errors" [
     goldenPlcCatch "integer" integer
     , goldenPlcCatch "free" free
+    , goldenPlcCatch "negativeInt" negativeInt
     , goldenPlcCatch "valueRestriction" valueRestriction
     , goldenPlcCatch "recordSelector" recordSelector
     , goldenPlcCatch "emptyRoseId1" emptyRoseId1
@@ -410,6 +426,9 @@ integer = plc @"integer" (1::Integer)
 
 free :: CompiledCode Bool
 free = plc @"free" (True && False)
+
+negativeInt :: CompiledCode Int
+negativeInt = plc @"negativeInt" (-1 :: Int)
 
 -- It's little tricky to get something that GHC actually turns into a polymorphic computation! We use our value twice
 -- at different types to prevent the obvious specialization.

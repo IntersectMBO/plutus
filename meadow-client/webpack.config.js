@@ -55,7 +55,8 @@ module.exports = {
                             src: [
                                 'bower_components/purescript-*/src/**/*.purs',
                                 'src/**/*.purs',
-                                'generated/**/*.purs'
+                                'generated/**/*.purs',
+                                '../web-common/src/**/*.purs'
                             ],
                             bundle: true,
                             psc: 'psa',

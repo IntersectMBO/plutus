@@ -18,8 +18,9 @@ import qualified Data.ByteString.Char8        as BS
 import qualified Data.ByteString.Lazy.Char8   as BSL
 import qualified Data.Text                    as Text
 import           Data.Time.Units              (Microsecond, fromMicroseconds)
-import           Language.Haskell.Interpreter (InterpreterError (CompilationErrors), SourceCode (SourceCode))
-import           Ledger.Types                 (hashTx)
+import           Language.Haskell.Interpreter (InterpreterError (CompilationErrors),
+                                               InterpreterResult (InterpreterResult), SourceCode (SourceCode))
+import           Ledger                       (hashTx)
 import           Network.HTTP.Types           (hContentType)
 import           Playground.API               (API, CompilationResult, Evaluation, EvaluationResult (EvaluationResult),
                                                PlaygroundError (PlaygroundTimeout), parseErrorText)
@@ -33,9 +34,9 @@ import           System.Timeout               (timeout)
 import qualified Wallet.Graph                 as V
 
 acceptSourceCode ::
-       SourceCode -> Handler (Either InterpreterError CompilationResult)
+       SourceCode -> Handler (Either InterpreterError (InterpreterResult CompilationResult))
 acceptSourceCode sourceCode = do
-    let maxInterpretationTime :: Microsecond = fromMicroseconds 5000000
+    let maxInterpretationTime :: Microsecond = fromMicroseconds (10 * 1000 * 1000)
     r <-
         liftIO .
         runExceptT $ PI.compile maxInterpretationTime sourceCode
@@ -52,13 +53,13 @@ throwJSONError err json =
 
 runFunction :: Evaluation -> Handler EvaluationResult
 runFunction evaluation = do
-    let maxInterpretationTime :: Microsecond = fromMicroseconds 10000000
+    let maxInterpretationTime :: Microsecond = fromMicroseconds (10 * 1000 * 1000)
     result <-
         liftIO .
         runExceptT $ PI.runFunction maxInterpretationTime evaluation
     let pubKeys = PA.pubKeys evaluation
     case result of
-        Right (blockchain, emulatorLog, fundsDistribution) -> do
+        Right (InterpreterResult _ (blockchain, emulatorLog, fundsDistribution)) -> do
             let flowgraph = V.graph $ V.txnFlows pubKeys blockchain
             pure $
                 EvaluationResult

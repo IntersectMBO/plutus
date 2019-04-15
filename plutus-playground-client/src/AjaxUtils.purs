@@ -3,7 +3,6 @@ module AjaxUtils where
 import Bootstrap (alertDanger_)
 import Control.Alt ((<|>))
 import Control.Monad.Except.Trans (ExceptT(ExceptT), runExceptT)
-import Control.Monad.Reader.Class (class MonadAsk, ask)
 import Control.MonadPlus (empty, (=<<))
 import Data.Argonaut.Core (Json)
 import Data.Argonaut.Generic.Aeson as Aeson
@@ -17,7 +16,8 @@ import Data.List as List
 import Data.List.NonEmpty as NonEmpty
 import Data.Maybe (Maybe(..), fromMaybe)
 import Gist (GistId)
-import Halogen.HTML (HTML, br_, div_, pre_, text)
+import Halogen.HTML (ClassName(..), HTML, br_, div, div_, pre_, text)
+import Halogen.HTML.Properties (class_)
 import Language.Haskell.Interpreter (CompilationError(..))
 import Network.HTTP.StatusCode (StatusCode(..))
 import Playground.API (TokenId)
@@ -40,6 +40,11 @@ decodeJson :: forall a. Generic a => Json -> Either String a
 decodeJson =
   let (SPSettings_ {decodeJson: SPSettingsDecodeJson_ decoder}) = ajaxSettings
   in decoder
+
+encodeJson :: forall a. Generic a => a -> Json
+encodeJson =
+  let (SPSettings_ {encodeJson: SPSettingsEncodeJson_ encoder}) = ajaxSettings
+  in encoder
 
 userDecoding :: Options -> GenericSignature -> Json -> Maybe (Either String GenericSpine)
 userDecoding opts sig json =
@@ -110,20 +115,11 @@ showErrorDescription (ConnectionError err) = text $ "ConnectionError: " <> err
 
 ajaxErrorPane :: forall p i. AjaxError -> HTML p i
 ajaxErrorPane error =
-  div_
+  div
+    [ class_ $ ClassName "ajax-error" ]
     [ alertDanger_
         [ showAjaxError error
         , br_
         , text "Please try again or contact support for assistance."
         ]
     ]
-
-getEncodeJson :: forall m params a. MonadAsk (SPSettings_ params) m => Generic a => m (a -> Json)
-getEncodeJson = do
-  SPSettings_ {encodeJson: (SPSettingsEncodeJson_ encodeJson)} <- ask
-  pure encodeJson
-
-getDecodeJson :: forall m params a. MonadAsk (SPSettings_ params) m => Generic a => m (Json -> Either String a)
-getDecodeJson = do
-  SPSettings_ {decodeJson: (SPSettingsDecodeJson_ decodeJson)} <- ask
-  pure decodeJson

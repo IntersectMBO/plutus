@@ -39,9 +39,12 @@ emptyBounds = Bounds Map.empty Map.empty
 positiveAmount :: Gen Int
 positiveAmount = int $ Range.linear 0 100
 
+pubKeyGen :: Gen PubKey
+pubKeyGen = toPublicKey . (knownPrivateKeys !!) <$> int (Range.linear 0 10)
+
 commitGen :: Gen Commit
 commitGen = do
-    person <- PubKey <$> int (Range.linear 0 10)
+    person <- pubKeyGen
     cash <- int (Range.linear 1 10000)
     timeout <- int (Range.linear 1 50)
     return (IdentCC 123, (person, NotRedeemed cash timeout))
@@ -49,7 +52,7 @@ commitGen = do
 choiceGen :: Gen Choice
 choiceGen = do
     ident <- int (Range.linear 1 50)
-    person <- PubKey <$> int (Range.linear 0 10)
+    person <- pubKeyGen
     return ((IdentChoice ident, person), 123)
 
 boundedValue :: Set Person -> Set IdentCC -> Bounds -> Gen Value
@@ -170,34 +173,29 @@ checkMarloweTrace MarloweScenario{mlInitialBalances} t = property $ do
 updateAll :: [Wallet] -> Trace MockWallet ()
 updateAll wallets = processPending >>= void . walletsNotifyBlock wallets
 
-getScriptOutFromTx :: Tx -> (TxOut, TxOutRef)
-getScriptOutFromTx = head . filter (isPayToScriptOut . fst) . txOutRefs
-
-performs :: Wallet -> m () -> Trace m (TxOut, TxOutRef)
+performs :: Wallet -> m () -> Trace m Tx
 performs actor action = do
-    [tx] <- walletAction actor action
+    tx <- head <$> walletAction actor action
     processPending >>= void . walletsNotifyBlock [actor]
     assertIsValidated tx
-    return $ getScriptOutFromTx tx
+    return tx
 
 withContract
     :: [Wallet]
     -> Contract
-    -> ((TxOut, TxOutRef) -> ValidatorScript -> Trace MockWallet ((TxOut, TxOutRef), State))
+    -> (Tx -> ValidatorScript -> Trace MockWallet (Tx, State))
     -> Trace MockWallet ()
 withContract wallets contract f = do
-    let validator = marloweValidator creatorPK
-    [tx] <- walletAction creator (createContract validator contract 12)
-    let txOut = getScriptOutFromTx tx
+    let validator = marloweValidator (walletPubKey creator)
+    tx <- head <$> walletAction creator (createContract validator contract 12)
     update
     assertIsValidated tx
 
-    (tx1Out, state) <- f txOut validator
+    (tx1, state) <- f tx validator
 
-    [tx] <- walletAction creator (spendDeposit tx1Out validator state)
+    tx <- head <$> walletAction creator (spendDeposit tx1 validator state)
     update
     assertIsValidated tx
   where
     creator = head wallets
-    creatorPK = let Wallet id = creator in PubKey id
     update  = updateAll wallets

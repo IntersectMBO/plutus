@@ -5,6 +5,9 @@ module Main (main) where
 
 import qualified Language.PlutusCore                        as PLC
 import qualified Language.PlutusCore.Evaluation.CkMachine   as PLC
+import qualified Language.PlutusCore.Generators             as PLC
+import qualified Language.PlutusCore.Generators.Interesting as PLC
+import qualified Language.PlutusCore.Generators.Test        as PLC
 import qualified Language.PlutusCore.Interpreter.CekMachine as PLC
 import qualified Language.PlutusCore.Interpreter.LMachine   as PLC
 import qualified Language.PlutusCore.Pretty                 as PLC
@@ -16,6 +19,7 @@ import qualified Language.PlutusCore.StdLib.Data.Unit       as PLC
 import           Control.Lens
 import           Control.Monad
 import           Control.Monad.Trans.Except                 (runExceptT)
+import           Data.Bifunctor                             (second)
 import           Data.Foldable                              (traverse_)
 
 import qualified Data.ByteString.Lazy                       as BSL
@@ -65,7 +69,7 @@ plutusOpts :: Parser Command
 plutusOpts = hsubparser (
     command "typecheck" (info (Typecheck <$> typecheckOpts) (progDesc "Typecheck a Plutus Core program"))
     <> command "evaluate" (info (Eval <$> evalOpts) (progDesc "Evaluate a Plutus Core program"))
-    <> command "example" (info (Example <$> exampleOpts) (progDesc "Show a Plutus Core program example"))
+    <> command "example" (info (Example <$> exampleOpts) (progDesc "Show a Plutus Core program example. Usage: first request the list of available examples (optional step), then request a particular example by the name of a type/term"))
   )
 
 normalizationMode :: Parser NormalizationMode
@@ -166,8 +170,14 @@ toTermExample term = TermExample ty term where
         Left (err :: PLC.Error ()) -> error $ PLC.prettyPlcDefString err
         Right vTy                  -> PLC.unNormalized vTy
 
-availableExamples :: [(ExampleName, SomeExample)]
-availableExamples =
+getInteresting :: IO [(ExampleName, PLC.Term PLC.TyName PLC.Name ())]
+getInteresting =
+    sequence $ PLC.fromInterestingTermGens $ \name gen -> do
+        PLC.TermOf term _ <- PLC.getSampleTermValue gen
+        pure (T.pack name, term)
+
+simpleExamples :: [(ExampleName, SomeExample)]
+simpleExamples =
     [ ("succInteger", SomeTermExample $ toTermExample PLC.succInteger)
     , ("unit"       , SomeTypeExample $ TypeExample (PLC.Type ()) PLC.unit)
     , ("unitval"    , SomeTermExample $ toTermExample PLC.unitval)
@@ -179,11 +189,21 @@ availableExamples =
     , ("churchSucc" , SomeTermExample $ toTermExample PLC.churchSucc)
     ]
 
+getAvailableExamples :: IO [(ExampleName, SomeExample)]
+getAvailableExamples = do
+    interesting <- getInteresting
+    pure $ simpleExamples ++ map (second $ SomeTermExample . toTermExample) interesting
+
+-- The implementation is a little hacky: we generate interesting examples when the list of examples
+-- is requsted and at each lookup of a particular example. I.e. each time we generate distinct
+-- terms. But types of those terms must not change across requests, so we're safe.
 runExample :: ExampleOptions -> IO ()
-runExample (ExampleOptions ExampleAvailable)     =
-    traverse_ (T.putStrLn . PLC.docText . uncurry prettySignature) availableExamples
-runExample (ExampleOptions (ExampleSingle name)) =
-    T.putStrLn $ case lookup name availableExamples of
+runExample (ExampleOptions ExampleAvailable)     = do
+    examples <- getAvailableExamples
+    traverse_ (T.putStrLn . PLC.docText . uncurry prettySignature) examples
+runExample (ExampleOptions (ExampleSingle name)) = do
+    examples <- getAvailableExamples
+    T.putStrLn $ case lookup name examples of
         Nothing -> "Unknown name: " <> name
         Just ex -> PLC.docText $ prettyExample ex
 

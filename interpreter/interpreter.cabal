@@ -26,7 +26,6 @@ library
         cookie -any,
         directory -any,
         exceptions -any,
-        file-embed -any,
         filepath -any,
         hashable -any,
         http-types -any,
@@ -35,7 +34,7 @@ library
         newtype-generics -any,
         process -any,
         prometheus >=2,
-        servant <0.15,
+        servant <0.16,
         servant-purescript -any,
         servant-server -any,
         temporary -any,
@@ -45,5 +44,4 @@ library
         time-units -any,
         transformers -any,
         unordered-containers -any,
-        wai -any,
-        warp -any
+        wai -any

@@ -200,7 +200,7 @@ number of extensions (isorecursive types, higher kinds, and a library
 of basic types and functions).  Plutus Core is meant to be a
 compilation target, and this is reflected in the design of the
 language: while writing large Plutus Core programs by hand is
-difficult, the language is relatively straightforward to formalize
+difficult, the language is relatively straightforward to formalise
 with a proof assistant.
 
 We have tried to keep the Plutus Core language small. There is no
@@ -420,7 +420,7 @@ Plutus Core: \texttt{ifix A B} is a type such that \texttt{ifix A B
   functor}~\cite[2.4]{backhouseetal98} and \texttt{B} is an
 index. Pattern functors that \texttt{ifix} receives bind two variables:
 one for building recursive occurrences and the other to act as an
-index. Indices can be used in order to get parameterized data types,
+index. Indices can be used in order to get parameterised data types,
 but also in order to control the shape of the data type: depending on
 an index, recursive occurrences can be instantiated differently.  This
 allows us to encode a wide variety of data types, including non-regular and
@@ -458,7 +458,6 @@ write \textit{terms}, but makes it much easier to reason about
 considerably.
 
 
-
 \subsubsection{The value restriction}
 In $\abs{\alpha}{K}{V}$ we require the body $V$ to be a value. We will
 refer to this restriction as the \textit{value restriction} because it
@@ -483,11 +482,11 @@ information about the nature of variables --- type variables with
 their kind, and term variables with their type.
 
 Then, in Figure \ref{fig:Plutus_core_kind_synthesis}, we define what
-it means for a type to synthesize a kind. Plutus Core is a
+it means for a type to synthesise a kind. Plutus Core is a
 higher-kinded version of System F, so we have a number of standard
 System F rules together with some obvious extensions. In Figure
 \ref{fig:Plutus_core_type_synthesis}, we define the type synthesis
-judgment, which explains how a term synthesizes a type.
+judgment, which explains how a term synthesises a type.
 
 Finally, type synthesis for constants ($\con{bn}$ and $\conT{bt}\!\!$)
 % \!: negative spaces to get rid of superfluous space
@@ -702,7 +701,6 @@ the validator would use $X$'s public key to check that the signature
 is valid.  We consider this example in more detail in the next
 section.
 
-
 \section{Examples}
 
 \subfile{figures/PlutusCoreExampleAgain}
@@ -738,7 +736,7 @@ each rule that is different, where possible.
 \section{Restricted Algorithmic Type System}
 
 For blockchain purposes, it is useful to not only have an algorithmic
-system, but to require that no un-normalized types are present in
+system, but to require that no un-normalised types are present in
 programs, so as to reduce the amount of computation necessary to
 typecheck a program. It's also useful to have a way of bounding the
 amount of computation that can be done in type checking, for security

@@ -15,7 +15,7 @@ import           Playground.Contract
 
 import qualified Data.ByteString.Lazy.Char8   as C
 
-data HashedString = HashedString ByteString
+data HashedString = HashedString (P.SizedByteString 32)
 
 PlutusTx.makeLift ''HashedString
 
@@ -23,10 +23,10 @@ PlutusTx.makeLift ''HashedString
 -- and lifting the hash to its on-chain representation
 mkDataScript :: String -> DataScript
 mkDataScript word =
-    let hashedWord = plcSHA2_256 (C.pack word)
+    let hashedWord = plcSHA2_256 (P.SizedByteString (C.pack word))
     in  DataScript (Ledger.lifted (HashedString hashedWord))
 
-data ClearString = ClearString ByteString
+data ClearString = ClearString (P.SizedByteString 32)
 
 PlutusTx.makeLift ''ClearString
 
@@ -34,7 +34,7 @@ PlutusTx.makeLift ''ClearString
 -- string to its on-chain representation
 mkRedeemerScript :: String -> RedeemerScript
 mkRedeemerScript word =
-    let clearWord = C.pack word
+    let clearWord = P.SizedByteString (C.pack word)
     in RedeemerScript (Ledger.lifted (ClearString clearWord))
 
 -- | The validator script of the game.

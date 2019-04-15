@@ -8,7 +8,7 @@ author:         Kris Jenkins
 maintainer:     kris.jenkins@tweag.io
 copyright:      2018 IOHK
 license:        Apache-2.0
-license-files:   
+license-files:
   LICENSE
   NOTICE
 build-type:     Simple
@@ -45,7 +45,6 @@ library
     , lens
     , memory
     , mtl
-    , newtype-generics
     , servant
     , swagger2
     , template-haskell
@@ -56,13 +55,19 @@ library
 
 test-suite plutus-playground-lib-test
     default-language: Haskell2010
-    hs-source-dirs: tests
+    hs-source-dirs: test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
+    build-tool-depends:
+        hspec-discover:hspec-discover -any
+    other-modules:
+        Playground.THSpec
+        Playground.APISpec
     build-depends:
         base >=4.9 && <5,
         containers -any,
         hedgehog -any,
+        interpreter -any,
         swagger2 -any,
         tasty -any,
         tasty-hunit -any,
@@ -70,6 +75,8 @@ test-suite plutus-playground-lib-test
         template-haskell -any,
         plutus-playground-lib -any,
         wallet-api -any,
+        hspec -any,
+        QuickCheck -any,
         aeson -any
   ghc-options:
     -Wall -Wnoncanonical-monad-instances

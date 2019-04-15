@@ -5,7 +5,7 @@
 -- reusing functions.
 module Language.PlutusTx.Prelude.Stage1 where
 
-import           Prelude                    (Bool (..), Int, (+), (>))
+import           Prelude                    (Bool (..), Int, (>))
 
 import           Language.PlutusTx.Prelude.Stage0
 
@@ -17,7 +17,7 @@ import           Language.Haskell.TH
 --   4
 --
 length :: Q (TExp ([a] -> Int))
-length = [|| $$(foldr) (\_ acc -> acc+1) 0 ||]
+length = [|| $$(foldr) (\_ acc -> $$plus acc 1) 0 ||]
 
 -- | PlutusTx version of 'Data.List.all'.
 --

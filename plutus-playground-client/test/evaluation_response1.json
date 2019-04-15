@@ -3,31 +3,13 @@
     {
       "tag": "SlotAdd",
       "contents": {
-        "getSlot": 2
-      }
-    },
-    {
-      "tag": "TxnValidate",
-      "contents": {
-        "getTxId": "nxh9GPUYYRjYGCAYjBg4GPgYbBh4GMgWGL4Y+BjxGIIYWBg5GMMYaBj/GEAYsRhCGNIYRRiHGMIYThh4GPcA/w=="
-      }
-    },
-    {
-      "tag": "TxnSubmit",
-      "contents": {
-        "getTxId": "nxh9GPUYYRjYGCAYjBg4GPgYbBh4GMgWGL4Y+BjxGIIYWBg5GMMYaBj/GEAYsRhCGNIYRRiHGMIYThh4GPcA/w=="
-      }
-    },
-    {
-      "tag": "SlotAdd",
-      "contents": {
         "getSlot": 1
       }
     },
     {
       "tag": "TxnValidate",
       "contents": {
-        "getTxId": "nxhZGNYYLRhkGOsYlxj2GNwYixhmGHEYrhh2GMoYQBhFGBsY0hj5GFgY9xgkGJEPGIkYehi9GMsY/hjvGDQYlP8="
+        "getTxId": "9f0118d0181f188f1842188618490f18a318ea18aa18d8185a185e182318d1188418da186b186a183418d81832182418e218a5188e18e618b21875182d0cff"
       }
     }
   ],
@@ -35,86 +17,7 @@
     [
       [
         {
-          "getTxId": "nxh9GPUYYRjYGCAYjBg4GPgYbBh4GMgWGL4Y+BjxGIIYWBg5GMMYaBj/GEAYsRhCGNIYRRiHGMIYThh4GPcA/w=="
-        },
-        {
-          "txInputs": [
-            {
-              "txInType": {
-                "tag": "ConsumePublicKeyAddress",
-                "contents": {
-                  "getSignature": 1
-                }
-              },
-              "txInRef": {
-                "txOutRefIdx": 0,
-                "txOutRefId": {
-                  "getTxId": "nxhZGNYYLRhkGOsYlxj2GNwYixhmGHEYrhh2GMoYQBhFGBsY0hj5GFgY9xgkGJEPGIkYehi9GMsY/hjvGDQYlP8="
-                }
-              }
-            }
-          ],
-          "txFee": {
-            "getAda": 0
-          },
-          "txValidRange": {
-            "ivTo": {
-              "getSlot": 50
-            },
-            "ivFrom": {
-              "getSlot": 0
-            }
-          },
-          "txForge": {
-            "getValue": []
-          },
-          "txOutputs": [
-            {
-              "txOutValue": {
-                "getValue": [
-                  [
-                    0,
-                    6
-                  ]
-                ]
-              },
-              "txOutAddress": {
-                "getAddress": "nxgcGMMYrRjqGEAY6xj9GJQYQxg6GMAEGHcYfRhoFQwYzhidGLQYxxhxGLwYfRjhGLIYlxinGLcYlRi7GLr/"
-              },
-              "txOutType": {
-                "tag": "PayToPubKey",
-                "contents": {
-                  "getPubKey": 2
-                }
-              }
-            },
-            {
-              "txOutValue": {
-                "getValue": [
-                  [
-                    0,
-                    4
-                  ]
-                ]
-              },
-              "txOutAddress": {
-                "getAddress": "nxicEhjPGNwEGMcYRRiEGNcYhxisGD0YIxh3GCEYMhjBGIUYJBi8GHoYshiNGOwYQhgZGLgY/BhbGEIYXxhw/w=="
-              },
-              "txOutType": {
-                "tag": "PayToPubKey",
-                "contents": {
-                  "getPubKey": 1
-                }
-              }
-            }
-          ]
-        }
-      ]
-    ],
-    [
-      [
-        {
-          "getTxId": "nxhZGNYYLRhkGOsYlxj2GNwYixhmGHEYrhh2GMoYQBhFGBsY0hj5GFgY9xgkGJEPGIkYehi9GMsY/hjvGDQYlP8="
+          "getTxId": "9f0118d0181f188f1842188618490f18a318ea18aa18d8185a185e182318d1188418da186b186a183418d81832182418e218a5188e18e618b21875182d0cff"
         },
         {
           "txInputs": [],
@@ -130,8 +33,36 @@
           "txForge": {
             "getValue": [
               [
-                0,
-                20
+                {
+                  "unCurrencySymbol": "5f4143ff"
+                },
+                [
+                  [
+                    {
+                      "unTokenName": "EUR"
+                    },
+                    20
+                  ],
+                  [
+                    {
+                      "unTokenName": "USD"
+                    },
+                    20
+                  ]
+                ]
+              ],
+              [
+                {
+                  "unCurrencySymbol": "5fff"
+                },
+                [
+                  [
+                    {
+                      "unTokenName": "ada"
+                    },
+                    20
+                  ]
+                ]
               ]
             ]
           },
@@ -140,18 +71,46 @@
               "txOutValue": {
                 "getValue": [
                   [
-                    0,
-                    10
+                    {
+                      "unCurrencySymbol": "5f4143ff"
+                    },
+                    [
+                      [
+                        {
+                          "unTokenName": "EUR"
+                        },
+                        10
+                      ],
+                      [
+                        {
+                          "unTokenName": "USD"
+                        },
+                        10
+                      ]
+                    ]
+                  ],
+                  [
+                    {
+                      "unCurrencySymbol": "5fff"
+                    },
+                    [
+                      [
+                        {
+                          "unTokenName": "ada"
+                        },
+                        10
+                      ]
+                    ]
                   ]
                 ]
               },
               "txOutAddress": {
-                "getAddress": "nxicEhjPGNwEGMcYRRiEGNcYhxisGD0YIxh3GCEYMhjBGIUYJBi8GHoYshiNGOwYQhgZGLgY/BhbGEIYXxhw/w=="
+                "getAddress": "9f1827182118f6185718e918ed189118d218fc182a1828182f187f18f518ed188118ae184818f4188b185106181a0a18a218fa18a418b2185b185f031822ff"
               },
               "txOutType": {
                 "tag": "PayToPubKey",
                 "contents": {
-                  "getPubKey": 1
+                  "getPubKey": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
                 }
               }
             },
@@ -159,108 +118,133 @@
               "txOutValue": {
                 "getValue": [
                   [
-                    0,
-                    10
+                    {
+                      "unCurrencySymbol": "5f4143ff"
+                    },
+                    [
+                      [
+                        {
+                          "unTokenName": "EUR"
+                        },
+                        10
+                      ],
+                      [
+                        {
+                          "unTokenName": "USD"
+                        },
+                        10
+                      ]
+                    ]
+                  ],
+                  [
+                    {
+                      "unCurrencySymbol": "5fff"
+                    },
+                    [
+                      [
+                        {
+                          "unTokenName": "ada"
+                        },
+                        10
+                      ]
+                    ]
                   ]
                 ]
               },
               "txOutAddress": {
-                "getAddress": "nxgcGMMYrRjqGEAY6xj9GJQYQxg6GMAEGHcYfRhoFQwYzhidGLQYxxhxGLwYfRjhGLIYlxinGLcYlRi7GLr/"
+                "getAddress": "9f0318d20018a8181e18e018fe18ac18e818fb1884185e185e18c9185018a618f918ad18d81837091824184f187b1881131846185413189f184118a4ff"
               },
               "txOutType": {
                 "tag": "PayToPubKey",
                 "contents": {
-                  "getPubKey": 2
+                  "getPubKey": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
                 }
               }
             }
-          ]
+          ],
+          "txSignatures": []
         }
       ]
     ]
   ],
   "resultGraph": {
     "flowGraphNodes": [
-      "59d62d64",
-      "7df561d8",
-      "utxo 59d62d64 1",
-      "utxo 7df561d8 0",
-      "utxo 7df561d8 1"
+      "01d01f8f",
+      "utxo 01d01f8f 0",
+      "utxo 01d01f8f 1"
     ],
     "flowGraphLinks": [
       {
         "flowLinkOwner": {
           "tag": "PubKeyOwner",
           "contents": {
-            "getPubKey": 2
+            "getPubKey": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
           }
         },
-        "flowLinkValue": 10,
+        "flowLinkValue": 0,
         "flowLinkSourceLoc": {
           "utxoLocBlock": 1,
           "utxoLocBlockIdx": 1
         },
-        "flowLinkSource": "59d62d64",
+        "flowLinkSource": "01d01f8f",
         "flowLinkTargetLoc": null,
-        "flowLinkTarget": "utxo 59d62d64 1"
+        "flowLinkTarget": "utxo 01d01f8f 0"
       },
       {
         "flowLinkOwner": {
           "tag": "PubKeyOwner",
           "contents": {
-            "getPubKey": 2
+            "getPubKey": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
           }
         },
-        "flowLinkValue": 6,
-        "flowLinkSourceLoc": {
-          "utxoLocBlock": 2,
-          "utxoLocBlockIdx": 1
-        },
-        "flowLinkSource": "7df561d8",
-        "flowLinkTargetLoc": null,
-        "flowLinkTarget": "utxo 7df561d8 0"
-      },
-      {
-        "flowLinkOwner": {
-          "tag": "PubKeyOwner",
-          "contents": {
-            "getPubKey": 1
-          }
-        },
-        "flowLinkValue": 4,
-        "flowLinkSourceLoc": {
-          "utxoLocBlock": 2,
-          "utxoLocBlockIdx": 1
-        },
-        "flowLinkSource": "7df561d8",
-        "flowLinkTargetLoc": null,
-        "flowLinkTarget": "utxo 7df561d8 1"
-      },
-      {
-        "flowLinkOwner": {
-          "tag": "PubKeyOwner",
-          "contents": {
-            "getPubKey": 1
-          }
-        },
-        "flowLinkValue": 10,
+        "flowLinkValue": 0,
         "flowLinkSourceLoc": {
           "utxoLocBlock": 1,
           "utxoLocBlockIdx": 1
         },
-        "flowLinkSource": "59d62d64",
-        "flowLinkTargetLoc": {
-          "utxoLocBlock": 2,
-          "utxoLocBlockIdx": 1
-        },
-        "flowLinkTarget": "7df561d8"
+        "flowLinkSource": "01d01f8f",
+        "flowLinkTargetLoc": null,
+        "flowLinkTarget": "utxo 01d01f8f 1"
       }
     ]
   },
   "fundsDistribution": [
     {
       "simulatorWalletBalance": {
-        "getAda": 4
+        "getValue": [
+          [
+            {
+              "unCurrencySymbol": "5f4143ff"
+            },
+            [
+              [
+                {
+                  "unTokenName": "EUR"
+                },
+                10
+              ],
+              [
+                {
+                  "unTokenName": "USD"
+                },
+                10
+              ]
+            ]
+          ],
+          [
+            {
+              "unCurrencySymbol": "5fff"
+            },
+            [
+              [
+                {
+                  "unTokenName": "ada"
+                },
+                10
+              ]
+            ]
+          ]
+        ]
       },
       "simulatorWalletWallet": {
         "getWallet": 1
@@ -268,7 +252,40 @@
     },
     {
       "simulatorWalletBalance": {
-        "getAda": 16
+        "getValue": [
+          [
+            {
+              "unCurrencySymbol": "5f4143ff"
+            },
+            [
+              [
+                {
+                  "unTokenName": "EUR"
+                },
+                10
+              ],
+              [
+                {
+                  "unTokenName": "USD"
+                },
+                10
+              ]
+            ]
+          ],
+          [
+            {
+              "unCurrencySymbol": "5fff"
+            },
+            [
+              [
+                {
+                  "unTokenName": "ada"
+                },
+                10
+              ]
+            ]
+          ]
+        ]
       },
       "simulatorWalletWallet": {
         "getWallet": 2

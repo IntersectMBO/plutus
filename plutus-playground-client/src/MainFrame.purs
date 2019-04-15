@@ -2,6 +2,7 @@ module MainFrame
   ( mainFrame
   , eval
   , initialState
+  , mkInitialValue
   ) where
 
 import Types
@@ -9,9 +10,10 @@ import Types
 import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged))
 import Ace.Types (ACE, Annotation)
 import Action (simulationPane)
-import AjaxUtils (ajaxErrorPane, getDecodeJson)
+import AjaxUtils (ajaxErrorPane)
+import AjaxUtils as AjaxUtils
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
-import Bootstrap (active, btn, btnGroup, btnSmall, col3_, col9_, container, container_, empty, hidden, navItem_, navLink, navTabs_, pullRight, row_)
+import Bootstrap (active, btn, btnGroup, btnSmall, col12, colMd6, container, container_, empty, floatRight, hidden, navItem_, navLink, navTabs_, noGutters, row)
 import Chain (evaluationPane)
 import Control.Bind (bindFlipped)
 import Control.Comonad (extract)
@@ -20,7 +22,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader.Class (class MonadAsk)
-import Control.Monad.State (class MonadState)
+import Control.Monad.State (class MonadState, evalState)
 import Control.Monad.Trans.Class (lift)
 import Cursor (_current)
 import Cursor as Cursor
@@ -33,10 +35,12 @@ import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, traversed
 import Data.Lens.Extra (peruse)
 import Data.Lens.Fold (maximumOf, preview)
 import Data.Lens.Index (ix)
+import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
 import Data.String as String
+import Data.Traversable (foldl)
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
 import Editor (demoScriptsPane, editorPane)
@@ -49,35 +53,56 @@ import Halogen as H
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
 import Halogen.ECharts as EC
-import Halogen.HTML (ClassName(ClassName), HTML, a, br_, div, div_, h1, strong_, text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, strong_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_)
 import Halogen.Query (HalogenM)
 import Icons (Icon(..), icon)
-import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError))
-import Ledger.Ada.TH (Ada(..))
+import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), _InterpreterResult)
+import Ledger.Extra (LedgerMap(LedgerMap))
+import Ledger.Extra as LedgerMap
+import Ledger.Value.TH (CurrencySymbol(CurrencySymbol), TokenName(TokenName), Value(Value))
 import LocalStorage (LOCALSTORAGE)
 import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, updateChartsIfPossible)
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
-import Playground.API (SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
+import Playground.API (KnownCurrency(..), SimulatorWallet(SimulatorWallet), TokenId(..), _CompilationResult, _FunctionSchema)
 import Playground.Server (SPParams_)
-import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, pure, show, unit, unless, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (=<<), (==))
+import Playground.Usecases (gitHead)
+import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, map, pure, show, unit, unless, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (=<<), (==))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData as StaticData
 import Wallet.Emulator.Types (Wallet(Wallet))
 
-mkSimulatorWallet :: Int -> SimulatorWallet
-mkSimulatorWallet id =
-  SimulatorWallet { simulatorWalletWallet: Wallet { getWallet: id }
-                  , simulatorWalletBalance: Ada {getAda: 10}
-                  }
+mkSimulatorWallet :: Array KnownCurrency -> Int -> SimulatorWallet
+mkSimulatorWallet currencies id =
+  SimulatorWallet
+    { simulatorWalletWallet: Wallet { getWallet: id }
+    , simulatorWalletBalance: mkInitialValue currencies 10
+    }
 
-mkSimulation :: Signatures -> Simulation
-mkSimulation signatures = Simulation
+mkInitialValue :: Array KnownCurrency -> Int -> Value
+mkInitialValue currencies initialBalance = Value { getValue: value }
+  where
+    value =
+      foldl
+        (LedgerMap.unionWith (LedgerMap.unionWith (+)))
+        (LedgerMap [])
+      $ Array.concat
+      $ map (\(KnownCurrency {hash, knownTokens}) ->
+                 map (\(TokenId tokenId) ->
+                         LedgerMap [ (CurrencySymbol { unCurrencySymbol: hash })
+                                     /\
+                                     LedgerMap [ TokenName { unTokenName: tokenId } /\ initialBalance ]])
+                 $ Array.fromFoldable knownTokens)
+        currencies
+
+mkSimulation :: Array KnownCurrency -> Signatures -> Simulation
+mkSimulation currencies signatures = Simulation
   { signatures
   , actions: []
-  , wallets: mkSimulatorWallet <$> 1..2
+  , wallets: mkSimulatorWallet currencies <$> 1..2
+  , currencies
   }
 
 initialState :: State
@@ -142,9 +167,9 @@ toEvent (ScrollTo _ _) = Nothing
 toEvent (AddSimulationSlot _) = Just $ (defaultEvent "AddSimulationSlot") { category = Just "Simulation" }
 toEvent (SetSimulationSlot _ _) = Just $ (defaultEvent "SetSimulationSlot") { category = Just "Simulation" }
 toEvent (RemoveSimulationSlot _ _) = Just $ (defaultEvent "RemoveSimulationSlot") { category = Just "Simulation" }
-toEvent (AddWallet _) = Just $ (defaultEvent "AddWallet") { category = Just "Wallet" }
-toEvent (RemoveWallet _ _) = Just $ (defaultEvent "RemoveWallet") { category = Just "Wallet" }
-toEvent (SetBalance _ _ _) = Just $ (defaultEvent "SetBalance") { category = Just "Wallet" }
+toEvent (ModifyWallets AddWallet _) = Just $ (defaultEvent "AddWallet") { category = Just "Wallet" }
+toEvent (ModifyWallets (RemoveWallet _) _) = Just $ (defaultEvent "RemoveWallet") { category = Just "Wallet" }
+toEvent (ModifyWallets (ModifyBalance _ (SetBalance _ _ _)) _) = Just $ (defaultEvent "SetBalance") { category = Just "Wallet" }
 toEvent (ModifyActions (AddAction _) _) = Just $ (defaultEvent "AddAction") { category = Just "Action" }
 toEvent (ModifyActions (AddWaitAction _) _) = Just $ (defaultEvent "AddWaitAction") { category = Just "Action" }
 toEvent (ModifyActions (RemoveAction _) _) = Just $ (defaultEvent "RemoveAction") { category = Just "Action" }
@@ -198,8 +223,7 @@ eval (CheckAuthStatus next) = do
 eval (PublishGist next) = do
   mContents <- editorGetContents
   simulations <- use _simulations
-  mNewGist <- mkNewGist { source: mContents, simulations }
-  case mNewGist of
+  case mkNewGist { source: mContents, simulations } of
     Nothing -> pure next
     Just newGist ->
       do mGist <- use _createGistResult
@@ -236,17 +260,17 @@ eval (LoadGist next) = do
           -- Load the source, if available.
           case preview (_Just <<< gistFileContent <<< _Just) (playgroundGistFile gist) of
             Nothing -> pure unit
-            Just content -> do editorSetContents content (Just 1)
-                               saveBuffer content
-                               assign _simulations Cursor.empty
-                               assign _evaluationResult NotAsked
+            Just content -> do
+              editorSetContents content (Just 1)
+              saveBuffer content
+              assign _simulations Cursor.empty
+              assign _evaluationResult NotAsked
 
           -- Load the simulation, if available.
-          decodeJson <- getDecodeJson
           case preview (_Just <<< gistFileContent <<< _Just) (simulationGistFile gist) of
             Nothing -> pure unit
             Just simulationString -> do
-              case (decodeJson =<< jsonParser simulationString) of
+              case (AjaxUtils.decodeJson =<< jsonParser simulationString) of
                 Left err -> pure unit
                 Right simulations -> do
                   assign _simulations simulations
@@ -266,9 +290,10 @@ eval (LoadScript key next) = do
     Just contents -> do
       editorSetContents contents (Just 1)
       saveBuffer contents
+      assign _currentView Editor
+      assign _compilationResult NotAsked
       assign _evaluationResult NotAsked
       assign _simulations Cursor.empty
-      assign _compilationResult NotAsked
       pure next
 
 eval (CompileProgram next) = do
@@ -295,11 +320,16 @@ eval (CompileProgram next) = do
       -- If we have a result with new signatures, we can only hold
       -- onto the old actions if the signatures still match. Any
       -- change means we'll have to clear out the existing simulation.
-      case preview (_Success <<< _Right <<< _CompilationResult <<< _functionSchema) result of
-        Just newSignatures -> do
-          oldSignatures <- use (_simulations <<< _current <<< _signatures)
-          unless (oldSignatures `gEq` newSignatures)
-            (assign _simulations $ Cursor.singleton $ mkSimulation newSignatures)
+      -- Same thing for currencies.
+      -- Potentially we could be smarter about this. But for now,
+      -- let's at least be correct.
+      case preview (_Success <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult) result of
+        Just { functionSchema: newSignatures, knownCurrencies: newCurrencies } -> do
+          oldSimulation <- peruse (_simulations <<< _current <<< _Newtype)
+          unless (((_.signatures <$> oldSimulation) `gEq` Just newSignatures)
+                  &&
+                  ((_.currencies <$> oldSimulation) `gEq` Just newCurrencies))
+            (assign _simulations $ Cursor.singleton $ mkSimulation newCurrencies newSignatures)
         _ -> pure unit
 
       pure next
@@ -331,10 +361,11 @@ eval (EvaluateActions next) = do
   pure next
 
 eval (AddSimulationSlot next) = do
-  mSignatures <- peruse (_compilationResult <<< _Success <<< _Right <<< _CompilationResult <<< _functionSchema)
+  knownCurrencies <- getKnownCurrencies
+  mSignatures <- peruse (_compilationResult <<< _Success <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult <<< _functionSchema)
 
   case mSignatures of
-    Just signatures -> modifying _simulations (flip Cursor.snoc (mkSimulation signatures))
+    Just signatures -> modifying _simulations (flip Cursor.snoc (mkSimulation knownCurrencies signatures))
     Nothing -> pure unit
   pure next
 
@@ -346,27 +377,14 @@ eval (RemoveSimulationSlot index next) = do
   modifying _simulations (Cursor.deleteAt index)
   pure next
 
-eval (AddWallet next) = do
-  modifying (_simulations <<< _current <<< _wallets)
-    (\wallets -> let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _simulatorWalletWallet <<< _walletId) wallets
-                     newWallet = mkSimulatorWallet (maxWalletId + 1)
-                 in Array.snoc wallets newWallet)
-
-  pure next
-
-eval (RemoveWallet index next) = do
-  modifying (_simulations <<< _current <<< _wallets) (fromMaybe <*> Array.deleteAt index)
-  assign (_simulations <<< _current <<< _actions) []
-  pure next
-
-eval (SetBalance wallet newBalance next) = do
-  modifying (_simulations <<< _current <<< _wallets <<< traversed)
-    (\simulatorWallet -> if view _simulatorWalletWallet simulatorWallet == wallet
-                         then set _simulatorWalletBalance newBalance simulatorWallet
-                         else simulatorWallet)
+eval (ModifyWallets action next) = do
+  knownCurrencies <- getKnownCurrencies
+  modifying (_simulations <<< _current <<< _wallets) (evalWalletEvent (mkSimulatorWallet knownCurrencies) action)
   pure next
 
 eval (PopulateAction n l event) = do
+  knownCurrencies <- getKnownCurrencies
+  let initialValue = mkInitialValue knownCurrencies 0
   modifying
     (_simulations
        <<< _current
@@ -377,8 +395,31 @@ eval (PopulateAction n l event) = do
        <<< _FunctionSchema
        <<< _argumentSchema
        <<< ix l)
-    (evalForm event)
+    (evalForm initialValue event)
   pure $ extract event
+
+getKnownCurrencies :: forall m. MonadState State m => m (Array KnownCurrency)
+getKnownCurrencies = do
+  knownCurrencies <- peruse (_compilationResult <<< _Success <<< _Right <<< _InterpreterResult <<< _result <<<  _knownCurrencies)
+  -- TODO Should we be adding in ADA here? Check with Jann.
+  pure $ fromMaybe [] knownCurrencies
+
+evalWalletEvent :: (Int -> SimulatorWallet) -> WalletEvent -> Array SimulatorWallet -> Array SimulatorWallet
+evalWalletEvent mkWallet AddWallet wallets =
+  let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _simulatorWalletWallet <<< _walletId) wallets
+      newWallet = mkWallet (maxWalletId + 1)
+  in Array.snoc wallets newWallet
+evalWalletEvent _ (RemoveWallet index) wallets =
+  fromMaybe wallets $ Array.deleteAt index wallets
+evalWalletEvent _ (ModifyBalance walletIndex action) wallets =
+  over
+    (ix walletIndex <<< _simulatorWalletBalance)
+    (evalValueEvent action)
+    wallets
+
+evalValueEvent :: ValueEvent -> Value -> Value
+evalValueEvent (SetBalance currencySymbol tokenName amount) =
+  set (_value <<< ix currencySymbol <<< ix tokenName) amount
 
 evalActionEvent :: ActionEvent -> Array Action -> Array Action
 evalActionEvent (AddAction action) = flip Array.snoc action
@@ -386,40 +427,50 @@ evalActionEvent (AddWaitAction blocks) = flip Array.snoc (Wait { blocks })
 evalActionEvent (RemoveAction index) = fromMaybe <*> Array.deleteAt index
 evalActionEvent (SetWaitTime index time) = set (ix index <<< _Wait <<< _blocks) time
 
-evalForm :: forall a. FormEvent a -> SimpleArgument -> SimpleArgument
-evalForm (SetIntField n next) (SimpleInt _) = SimpleInt n
-evalForm (SetIntField _ _) arg = arg
+evalForm :: forall a. Value -> FormEvent a -> SimpleArgument -> SimpleArgument
+evalForm initialValue = rec
+  where
+    rec (SetIntField n next) (SimpleInt _) = SimpleInt n
+    rec (SetIntField _ _) arg = arg
 
-evalForm (SetStringField s next) (SimpleString _) = SimpleString (Just s)
-evalForm (SetStringField _ _) arg = arg
+    rec (SetStringField s next) (SimpleString _) = SimpleString (Just s)
+    rec (SetStringField _ _) arg = arg
 
-evalForm (SetSubField 1 subEvent) (SimpleTuple fields) = SimpleTuple $ over _1 (evalForm subEvent) fields
-evalForm (SetSubField 2 subEvent) (SimpleTuple fields) = SimpleTuple $ over _2 (evalForm subEvent) fields
-evalForm (SetSubField _ subEvent) arg@(SimpleTuple fields) = arg
-evalForm (SetSubField _ subEvent) arg@(SimpleString fields) = arg
-evalForm (SetSubField _ subEvent) arg@(SimpleInt fields) = arg
+    rec (SetHexField s next) (SimpleHex _) = SimpleHex (Just s)
+    rec (SetHexField _ _) arg = arg
 
-evalForm (AddSubField _) (SimpleArray schema fields) =
-  -- As the code stands, this is the only guarantee we get that every
-  -- value in the array will conform to the schema: the fact that we
-  -- create the 'empty' version from the same schema template.
-  --
-  -- Is more type safety than that possible? Probably.
-  -- Is it worth the research effort? Perhaps. :thinking_face:
-  SimpleArray schema $ Array.snoc fields (toValue schema)
-evalForm (AddSubField _) arg = arg
+    rec (SetValueField valueEvent _) (ValueArgument schema value) =
+      ValueArgument schema $ evalValueEvent valueEvent value
+    rec (SetValueField _ _) arg = arg
 
-evalForm (SetSubField n subEvent) (SimpleArray schema fields) =
-  SimpleArray schema $ over (ix n) (evalForm subEvent) fields
+    rec (SetSubField 1 subEvent) (SimpleTuple fields) = SimpleTuple $ over _1 (rec subEvent) fields
+    rec (SetSubField 2 subEvent) (SimpleTuple fields) = SimpleTuple $ over _2 (rec subEvent) fields
+    rec (SetSubField _ subEvent) arg@(SimpleTuple _) = arg
+    rec (SetSubField _ subEvent) arg@(SimpleString _) = arg
+    rec (SetSubField _ subEvent) arg@(SimpleInt _) = arg
+    rec (SetSubField _ subEvent) arg@(SimpleHex _) = arg
+    rec (SetSubField _ subEvent) arg@(ValueArgument _ _) = arg
 
-evalForm (SetSubField n subEvent) s@(SimpleObject schema fields) =
-  SimpleObject schema $ over (ix n <<< _2) (evalForm subEvent) fields
-evalForm (SetSubField n subEvent) arg@(Unknowable _) = arg
+    rec (AddSubField _) (SimpleArray schema fields) =
+      -- As the code stands, this is the only guarantee we get that every
+      -- value in the array will conform to the schema: the fact that we
+      -- create the 'empty' version from the same schema template.
+      --
+      -- Is more type safety than that possible? Probably.
+      -- Is it worth the research effort? Perhaps. :thinking_face:
+      SimpleArray schema $ Array.snoc fields (toArgument initialValue schema)
+    rec (AddSubField _) arg = arg
 
-evalForm (RemoveSubField n subEvent) arg@(SimpleArray schema fields ) =
-  (SimpleArray schema (fromMaybe fields (Array.deleteAt n fields)))
-evalForm (RemoveSubField n subEvent) arg =
-  arg
+    rec (SetSubField n subEvent) (SimpleArray schema fields) =
+      SimpleArray schema $ over (ix n) (rec subEvent) fields
+
+    rec (SetSubField n subEvent) s@(SimpleObject schema fields) =
+      SimpleObject schema $ over (ix n <<< _2) (rec subEvent) fields
+    rec (SetSubField n subEvent) arg@(Unknowable _) = arg
+
+    rec (RemoveSubField n subEvent) arg@(SimpleArray schema fields ) =
+      (SimpleArray schema (fromMaybe fields (Array.deleteAt n fields)))
+    rec (RemoveSubField n subEvent) arg = arg
 
 replaceViewOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> View -> View -> m Unit
 replaceViewOnSuccess result source target = do
@@ -452,22 +503,24 @@ render state@(State {currentView})  =
     [ class_ $ ClassName "main-frame" ]
     [ container_
         [ mainHeader
-        , row_
-            [ col9_ [ mainTabBar currentView
-                    , br_
-                    , demoScriptsPane
-                    ]
-            , col3_ [ gistControls state ]
+        , div [ classes [ row, noGutters ] ]
+            [ div [ classes [ col12, colMd6 ] ] [ mainTabBar currentView ]
+            , div [ classes [ col12, colMd6 ] ] [ gistControls state ]
             ]
         ]
     , viewContainer currentView Editor $
-        [ editorPane state
+        [ demoScriptsPane
+        , editorPane defaultContents (view _compilationResult state)
         , case view _compilationResult state of
             Failure error -> ajaxErrorPane error
             _ -> empty
         ]
     , viewContainer currentView Simulations $
+        let knownCurrencies = evalState getKnownCurrencies state
+            initialValue = mkInitialValue knownCurrencies 0
+        in
             [ simulationPane
+                initialValue
                 (view _simulations state)
                 (view _evaluationResult state)
             , case (view _evaluationResult state) of
@@ -490,6 +543,8 @@ render state@(State {currentView})  =
             , text " tab above and evaluate a simulation to see some results."
             ]
     ]
+    where
+      defaultContents = Map.lookup "Vesting" StaticData.demoFiles
 
 viewContainer :: forall p i. View -> View -> Array (HTML p i) -> HTML p i
 viewContainer currentView targetView =
@@ -500,7 +555,7 @@ viewContainer currentView targetView =
 mainHeader :: forall p. HTML p (Query Unit)
 mainHeader =
   div_
-    [ div [ classes [ btnGroup, pullRight ] ]
+    [ div [ classes [ btnGroup, floatRight ] ]
         (makeLink <$> links)
     , h1
         [ class_ $ ClassName "main-title" ]
@@ -508,7 +563,7 @@ mainHeader =
     ]
   where
     links = [ Tuple "Getting Started" "https://testnet.iohkdev.io/plutus/get-started/writing-contracts-in-plutus/"
-            , Tuple "Tutorial" "https://github.com/input-output-hk/plutus/blob/master/plutus-tutorial/tutorial/Tutorial/02-wallet-api.md"
+            , Tuple "Tutorial" ("https://github.com/input-output-hk/plutus/blob/" <> gitHead <> "/plutus-tutorial/tutorial/Tutorial")
             , Tuple "API" "https://input-output-hk.github.io/plutus/"
             , Tuple "Privacy" "https://static.iohk.io/docs/data-protection/iohk-data-protection-gdpr-policy.pdf"
             ]

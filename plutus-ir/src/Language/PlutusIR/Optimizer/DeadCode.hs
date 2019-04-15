@@ -19,7 +19,6 @@ import           Data.Coerce
 import qualified Data.Set                                as Set
 
 import qualified Algebra.Graph                           as G
-import qualified Algebra.Graph.AdjacencyMap              as AM
 import qualified Algebra.Graph.ToGraph                   as T
 
 -- | Remove all the dead let bindings in a term.
@@ -33,7 +32,7 @@ removeDeadBindings t =
         depGraph :: G.Graph Deps.Node
         depGraph = Deps.runTermDeps tRen
         liveNodes :: Liveness
-        liveNodes = Set.fromList $ AM.reachable Deps.Root (T.toAdjacencyMap depGraph)
+        liveNodes = Set.fromList $ T.reachable Deps.Root depGraph
     in runReader (processTerm tRen) liveNodes
 
 type Liveness = Set.Set Deps.Node

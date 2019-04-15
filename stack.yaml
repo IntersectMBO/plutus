@@ -1,4 +1,4 @@
-resolver: lts-12.26
+resolver: lts-13.15
 
 packages:
 - language-plutus-core
@@ -14,6 +14,7 @@ packages:
 - plutus-playground-server
 - plutus-playground-lib
 - plutus-tutorial
+- plutus-contract-exe
 
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - location:
@@ -25,19 +26,24 @@ packages:
     commit: f5cecb6e424cc84f85b6a3e1f803517bb7b4cfb1
   extra-dep: true
 
+# Needs looser containers bound, committed upstream but not released
+- location:
+    git: https://github.com/bitnomial/prometheus.git
+    commit: 69e4cefeb7d04d61a54cb0ae9fd57e2de134badb
+  extra-dep: true
+
 extra-deps:
-- serialise-0.2.1.0
+- composition-prelude-2.0.2.1
+- resolv-0.1.1.2
 - monad-stm-0.1.0.2
 - servant-options-0.1.0.0
-- hint-0.9.0
-- exceptions-0.10.0
-- purescript-bridge-0.13.0.0
 - servant-subscriber-0.6.0.2
+- tasty-hedgehog-0.2.0.0
 - jwt-0.9.0
-- prometheus-2.1.1@sha256:f855cfb55e04d0c82a2a9f6542c08b278e6ef27d86b7491f065f9628c7057ac9
 - time-out-0.2@sha256:b9a6b4dee64f030ecb2a25dca0faff39b3cb3b5fefbb8af3cdec4142bfd291f2
 - time-interval-0.1.1@sha256:7bfd3601853d1af7caa18248ec10b01701d035ac274a93bb4670fea52a14d4e8
 - time-units-1.0.0@sha256:27cf54091c4a0ca73d504fc11d5c31ab4041d17404fe3499945e2055697746c1
+- wl-pprint-1.2.1@sha256:aea676cff4a062d7d912149d270e33f5bb0c01b68a9db46ff13b438141ff4b7c
 flags:
   language-plutus-core:
     development: true
@@ -48,6 +54,8 @@ flags:
   plutus-core-interpreter:
     development: true
   plutus-playground-server:
+    development: true
+  plutus-contract-exe:
     development: true
 extra-package-dbs: []
 nix:

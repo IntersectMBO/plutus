@@ -22,17 +22,18 @@ import qualified Data.ByteString.Lazy.Char8   as BSL
 import qualified Data.Text                    as Text
 import           Data.Time.Units              (Microsecond, fromMicroseconds)
 import qualified Interpreter
-import           Language.Haskell.Interpreter (InterpreterError (CompilationErrors), SourceCode (SourceCode))
-import           Meadow.Contracts             (basicContract)
+import           Language.Haskell.Interpreter (InterpreterError (CompilationErrors), InterpreterResult,
+                                               SourceCode (SourceCode))
+import           Meadow.Contracts             (escrow)
 import           Network.HTTP.Types           (hContentType)
 import           Servant                      (ServantErr, err400, errBody, errHeaders)
 import           Servant.API                  ((:<|>) ((:<|>)), (:>), JSON, Post, ReqBody)
 import           Servant.Server               (Handler, Server)
 import           System.Timeout               (timeout)
 
-acceptSourceCode :: SourceCode -> Handler (Either InterpreterError RunResult)
+acceptSourceCode :: SourceCode -> Handler (Either InterpreterError (InterpreterResult RunResult))
 acceptSourceCode sourceCode = do
-    let maxInterpretationTime :: Microsecond = fromMicroseconds 5000000
+    let maxInterpretationTime :: Microsecond = fromMicroseconds (10 * 1000 * 1000)
     r <-
         liftIO
         $ runExceptT
@@ -49,7 +50,7 @@ throwJSONError err json = throwError
 
 checkHealth :: Handler ()
 checkHealth = do
-    res <- acceptSourceCode . SourceCode . Text.pack . BS.unpack $ basicContract
+    res <- acceptSourceCode . SourceCode . Text.pack . BS.unpack $ escrow
     case res of
         Left e  -> throwError $ err400 {errBody = BSL.pack . show $ e}
         Right _ -> pure ()

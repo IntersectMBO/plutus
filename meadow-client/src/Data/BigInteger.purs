@@ -31,7 +31,7 @@ instance showBigInteger :: Show BigInteger where
   show = toString <<< unwrap
 
 instance prettyBigInteger :: Pretty BigInteger where
-  pretty = text <<< show
+  prettyFragment = text <<< show
 
 fromInt :: Int -> BigInteger
 fromInt = BigInteger <<< BigInt.fromInt

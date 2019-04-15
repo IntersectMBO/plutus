@@ -31,6 +31,7 @@ library
     template-haskell -any,
     plutus-tx -any,
     text,
+    wl-pprint -any,
     wallet-api -any
   default-language: Haskell2010
   default-extensions: ExplicitForAll ScopedTypeVariables
@@ -42,6 +43,7 @@ library
     Language.Marlowe.Client
     Language.Marlowe.Escrow
     Language.Marlowe.Actus
+    Language.Marlowe.Pretty
     Marlowe
   other-modules:
     Language.Marlowe.Common
@@ -63,6 +65,8 @@ test-suite marlowe-test
         base >=4.9 && <5,
         containers -any,
         hedgehog -any,
+        memory -any,
+        bytestring -any,
         tasty -any,
         tasty-hunit -any,
         tasty-hedgehog >=0.2.0.0,
