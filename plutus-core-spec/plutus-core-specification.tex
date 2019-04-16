@@ -186,6 +186,8 @@
 \newcommand\txhash{\ensuremath{\mathit{txhash}}}
 \newcommand\pubkey{\ensuremath{\mathit{pubkey}}}
 \newcommand\blocknum{\ensuremath{\mathit{blocknum}}}
+\newcommand\uniqmem[1]{#1^{\blacktriangledown}}  %% Unique member of size type
+
 
 \begin{document}
 %
@@ -225,7 +227,7 @@ We have tried to keep the Plutus Core language small. There is no
 explicit support for algebraic datatypes, but they are representable
 using, for example, the Scott encoding (\cite{Scott-encoding}: see
 also \cite{Koopman:2014} and ~\cite{Geuvers-2014} for example; note that
-the Scott enconding coincides with the Church encoding for
+the Scott encoding coincides with the Church encoding for
 non-recursive types). Similarly, there are no explicit constructs for
 recursion or branching, but the type system is sufficiently expressive
 to allow us to use standard combinators (for example the $Z$
@@ -635,12 +637,14 @@ functions which will be useful for blockchain applications.  The set
 of built-ins is fixed, although in future we may provide a framework
 to allow customisation for specialised blockchains.
 
-As mentioned earlier, there are two basic types: \texttt{integer}, and
+As mentioned earlier, there are two basic types: \texttt{integer} and
 \texttt{bytestring}.  There is also a kind \texttt{(size)} which is
 used to track the sizes of objects.  For each natural number $s\ge0$
-there is a singleton type $\mathit{size}_s::\mathtt{(size)}$ with a unique
-member $s$.  In the Plutus Core syntax, the type $\mathit{size}_s$ is denoted
-by \texttt{(con size $s$)} and its unique member by \texttt{(con $s$)}.
+there is a singleton type $\mathit{size}_s::\mathtt{(size)}$ with a
+unique member $s$.  Given such a type $t::\mathtt{(size)}$, we denote
+its unique member by $\uniqmem{t}$, so that $\uniqmem{\size_s} =
+s$. In the Plutus Core syntax the type $\mathit{size}_s$ is denoted by
+\texttt{(con size $s$)} and its unique member by \texttt{(con $s$)}.
 
 The \texttt{integer} type, in conjunction with \texttt{size}, provides
 integers of specified sizes, and the \texttt{bytestring} type provides
@@ -682,14 +686,14 @@ Note the following:
   $$
    and one might enlarge an integer from size 3 to size 5 by
 \begin{lstlisting}
- [{(builtin resizeInteger) (con size 3) (con size 5)}  (con 5) (con 3!200)]
+ [{(builtin resizeInteger) (con size 3) (con size 5)}  (con 5) (con 3!200)].
 \end{lstlisting}
+
 \noindent The duplication of sizes is necessary because we require
 size information at the type level to facilitate gas calculations, and
 also at the term level so that the evaluator will know how much memory
 to allocate during execution, after type information has been erased.
 
- 
 \item We use fixed Scott encodings for certain types and values,
   specifically for the \texttt{unit} and \texttt{boolean} types.
 Compilers targeting Plutus Core must be aware of these encodings and
