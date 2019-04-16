@@ -38,7 +38,7 @@
   basicstyle=\ttfamily,
   columns=fullflexible,
   mathescape=true,
-  escapeinside={|}{|}
+  escapeinside={|}{|}   %% Inside listings you can say things like |\textit{blah blah}|
 }
 
 
@@ -168,13 +168,35 @@
 \newcommand{\inAppLeftFrame}[1]{\app{\_}{#1}}
 \newcommand{\inAppRightFrame}[1]{\app{#1}{\_}}
 
+% These are for use inside listings and $...$.  If you just use
+% \textit in listings it uses the italic tt font and the spacing
+% inside the words is a bit strange.  Spacing is also bad if you
+% just put something like "integer" in math text.
+\newcommand\unit{\ensuremath{\mathit{unit}}}
+\newcommand\one{\ensuremath{\mathit{one}}}
+\newcommand\boolean{\ensuremath{\mathit{boolean}}}
+\newcommand\integer{\ensuremath{\mathit{integer}}}
+\newcommand\bytestring{\ensuremath{\mathit{bytestring}}}
+\newcommand\str{\ensuremath{\mathit{str}}}
+\newcommand\size{\ensuremath{\mathit{size}}}
+\newcommand\true{\ensuremath{\mathit{true}}}
+\newcommand\false{\ensuremath{\mathit{false}}}
+\newcommand\case{\ensuremath{\mathit{case}}}
+\newcommand\signed{\ensuremath{\mathit{signed}}}
+\newcommand\txhash{\ensuremath{\mathit{txhash}}}
+\newcommand\pubkey{\ensuremath{\mathit{pubkey}}}
+\newcommand\blocknum{\ensuremath{\mathit{blocknum}}}
+\newcommand\uniqmem[1]{#1^{\blacktriangledown}}  %% Unique member of size type
+
 
 \begin{document}
 %
 % paper title
 % can use linebreaks \\ within to get better formatting as desired
-\title{Formal Specification of\\the Plutus Core Language v1.0 (RC5.5)}
+\title{Formal Specification of\\the Plutus Core Language v1.0 (RC6.0)}
 
+%% 6.0: "User-friendly" version with lots of explication for the reader.
+%% 16th April 2019
 
 \maketitle
 
@@ -207,7 +229,7 @@ We have tried to keep the Plutus Core language small. There is no
 explicit support for algebraic datatypes, but they are representable
 using, for example, the Scott encoding (\cite{Scott-encoding}: see
 also \cite{Koopman:2014} and ~\cite{Geuvers-2014} for example; note that
-the Scott enconding coincides with the Church encoding for
+the Scott encoding coincides with the Church encoding for
 non-recursive types). Similarly, there are no explicit constructs for
 recursion or branching, but the type system is sufficiently expressive
 to allow us to use standard combinators (for example the $Z$
@@ -297,14 +319,16 @@ may use the multi-argument forms.
 \subsection{Notes on the grammar}
 \paragraph{Terms.}
 \begin{itemize}
-\item $\con{cn}$ represents a built-in constant: see Section~\ref{sec:builtins}
+\item $\con{cn}$ represents a constant belonging to some built-in
+  type: for example \texttt{(con 4 ! 127)} is an integer of size 4 with
+    the value 127.  See Section~\ref{sec:builtins} for more on this.
 \item $\abs{\alpha}{K}{V}$ represents a polymorphic value abstracted
   over a type; this would often be donated by $\Lambda\alpha{::}K.V$.
   Note that we require the body of the abstraction to be a
   \textit{value}, not a term: see the note on the value restriction below.
 \item $\inst{M}{A}$ represents a polymorphic term instantiated at a particular type.
 \item $\iwrap{A}{B}{M}$ and $\unwrap{M}$: see the note on recursive types below.
-\item $\lam{x}{A}{M}$ is standard lambda-abstraction: $\lambda{}x{:}{A}.{M}$.
+\item $\lam{x}{A}{M}$ is standard lambda-abstraction, $\lambda{}x{:}{A}.{M}$.
 \item $\app{M}{N}$ is standard function application.
 \item $\builtin{bn}{A^*}{M^*}$ is application of a built-in function: see Section~\ref{sec:builtins} for more information.
 \item $\error{A}$ causes an error, terminating computation immediately.
@@ -359,6 +383,16 @@ to the standard kind \texttt{(type)} (usually written as $\star$), we
 have a kind \texttt{(size)} which allows us to deal with the sized
 types described below in Section~\ref{sec:size-note}.
 
+\paragraph{Signatures.}  A signature
+$$[\alpha_1::K_1, \ldots, \alpha_m::K_m](t_1, \ldots, t_n)u$$ represents
+the type
+$$\forall \alpha_1::K_1\,.\, \ldots \,.\, \forall \alpha_m::K_m\,.\, t_1
+\rightarrow \ldots \rightarrow t_n \rightarrow u.$$
+Both $m$ and $n$
+may be zero, in which case the corresponding list is empty.
+Signatures are not used in the concrete syntax of Plutus Core, but we
+do use them later in this document, in typing rules and in the
+description of built-in values and functions.
 
 \paragraph{Programs and Versions.} A complete Plutus Core program 
 consists of a standard version number (1.0.2, for example) indicating
@@ -605,24 +639,32 @@ functions which will be useful for blockchain applications.  The set
 of built-ins is fixed, although in future we may provide a framework
 to allow customisation for specialised blockchains.
 
-As mentioned earlier, there are three basic types: \texttt{size},
-\texttt{integer}, and \texttt{bytestring}.  The \textrm{size} type is
-used to track the sizes of objects, the \texttt{integer} type, in
-conjunction with \texttt{size} provides integers of specified sizes,
-and the \texttt{bytestring} type provides sequences of bytes, again of
-specified sizes.  These types are given in
-Figure~\ref{fig:Plutus_core_type_constants}:  for example 
+As mentioned earlier, there are two basic types: \texttt{integer} and
+\texttt{bytestring}.  There is also a kind \texttt{(size)} which is
+used to track the sizes of objects.  For each natural number $s\ge0$
+there is a singleton type $\mathit{size}_s::\mathtt{(size)}$ with a
+unique member $s$.  Given such a type $t::\mathtt{(size)}$, we denote
+its unique member by $\uniqmem{t}$, so that $\uniqmem{\size_s} =
+s$. In the Plutus Core syntax the type $\mathit{size}_s$ is denoted by
+\texttt{(con size $s$)} and its unique member by \texttt{(con $s$)}.
+
+The \texttt{integer} type, in conjunction with \texttt{size}, provides
+integers of specified sizes, and the \texttt{bytestring} type provides
+sequences of bytes, again of specified sizes.  These types are given
+in Figure~\ref{fig:Plutus_core_type_constants}: for example
 \texttt{(con integer 10)} is the type of signed 10-byte integers.
 
 
 Terms of these types are written using the \texttt{!} character, as
 shown in Figure~\ref{fig:Plutus_core_constants}.  For example
-\texttt{10~!~12345} is a ten-byte integer whose value is 12345 (and
-\textrm{1~!~12345} would cause an error), and \texttt{20~!~\#3ac29d873246f} 
+\texttt{10~!~12345} (written \texttt{(con 10~!~12345)} in the Plutus Core
+  concrete syntax)
+  is a ten-byte integer whose value is 12345 (and
+\texttt{1~!~12345} would cause an error), and \texttt{20~!~\#3ac29d873246f} 
 is a 20-byte bytestring containing the bytes
 shown\footnote{In fact, the bounds are upper bounds, not actual sizes:
-  in the current implementation, \texttt{10~!~12345} will only take up
-  as much space as it requires, not the full 10 bytes.}.  We use the
+  in the current implementation, \texttt{(con 10~!~12345)} will only take up
+  the minimum space required, not the full 10 bytes.}.  We use the
 same syntax to denote expressions of appropriate types in
 Figure~\ref{fig:Plutus_core_builtins}.
 
@@ -636,6 +678,24 @@ Note the following:
   which sizes are used.  It is not possible to create values of
   unlimited size at runtime.  If any function attempts to create a
   value exceeding the expected size, an error will occur during execution.
+\item The types of some built-in functions involve sizes at both the
+  type level and the term level.  For example, \texttt{resizeInteger}
+  has the type
+
+  $$
+  \forall s_0::\mathit{size}\,.\,\forall s_1::\mathit{size}\,.\,\mathit{size}_{s_1}
+  \rightarrow \mathit{integer}_{s_0} \rightarrow \mathit{integer}_{s_1},
+  $$
+   and one might enlarge an integer from size 3 to size 5 by
+\begin{lstlisting}
+ [{(builtin resizeInteger) (con size 3) (con size 5)}  (con 5) (con 3!200)].
+\end{lstlisting}
+
+\noindent The duplication of sizes is necessary because we require
+size information at the type level to facilitate gas calculations, and
+also at the term level so that the evaluator can check size bounds
+at runtime, after type information has been erased.
+
 \item We use fixed Scott encodings for certain types and values,
   specifically for the \texttt{unit} and \texttt{boolean} types.
 Compilers targeting Plutus Core must be aware of these encodings and
