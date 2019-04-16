@@ -19,6 +19,7 @@ module Ledger.Value.TH(
     , TokenName(..)
     , tokenName
     , eqTokenName
+    , toString
     -- ** Value
     , Value(..)
     , singleton
@@ -53,7 +54,7 @@ import           Data.Swagger.Schema          (ToSchema(declareNamedSchema))
 import qualified Data.Swagger.Lens            as S
 import           Data.Swagger                 (SwaggerType(SwaggerObject), NamedSchema(NamedSchema), declareSchemaRef)
 import           Data.Proxy                   (Proxy(Proxy))
-import           Data.String                  (IsString)
+import           Data.String                  (IsString(fromString))
 import qualified Data.Text                    as Text
 import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx.Builtins as Builtins
@@ -67,6 +68,9 @@ import           Data.Function                ((&))
 
 hexSchema :: S.Schema
 hexSchema = mempty & set S.type_ S.SwaggerString & set S.format (Just "hex")
+
+stringSchema :: S.Schema
+stringSchema = mempty & set S.type_ S.SwaggerString
 
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.SizedByteString 32 }
     deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise) via LedgerBytes
@@ -101,29 +105,31 @@ currencySymbol :: Q (TExp (P.ByteString -> CurrencySymbol))
 currencySymbol = [|| CurrencySymbol ||]
 
 newtype TokenName = TokenName { unTokenName :: Builtins.SizedByteString 32 }
-    deriving (ToJSONKey, FromJSONKey, Serialise) via LedgerBytes
-    deriving (Show, IsString) via (Builtins.SizedByteString 32)
+    deriving (Serialise) via LedgerBytes
     deriving stock (Eq, Ord, Generic)
 
+instance IsString TokenName where
+  fromString = TokenName . P.SizedByteString . C8.pack
+
+toString :: TokenName -> String
+toString = C8.unpack . Builtins.unSizedByteString . unTokenName
+
+instance Show TokenName where
+  show = toString
+
 instance ToSchema TokenName where
-    declareNamedSchema _ = pure $ S.NamedSchema (Just "TokenName") hexSchema
+    declareNamedSchema _ = pure $ S.NamedSchema (Just "TokenName") stringSchema
 
 instance ToJSON TokenName where
     toJSON tokenName =
         JSON.object
-        [ ( "unTokenName"
-            , JSON.String .
-              Text.pack .
-              C8.unpack . Builtins.unSizedByteString . unTokenName $
-              tokenName)
-        ]
+        [ ( "unTokenName", JSON.toJSON $ toString tokenName)]
 
 instance FromJSON TokenName where
     parseJSON =
         JSON.withObject "TokenName" $ \object -> do
         raw <- object .: "unTokenName"
-        let bytes = Text.unpack raw
-        pure . TokenName . Builtins.SizedByteString . C8.pack $ bytes
+        pure . fromString . Text.unpack $ raw
 
 makeLift ''TokenName
 
@@ -288,7 +294,12 @@ isZero = [||
 checkPred :: Q (TExp ((Map.These Int Int -> Bool) -> Value -> Value -> Bool))
 checkPred = [||
     let checkPred' :: (Map.These Int Int -> Bool) -> Value -> Value -> Bool
-        checkPred' f l r = $$(Map.all) ($$(Map.all) f) ($$unionVal l r)
+        checkPred' f l r = 
+          let
+            inner :: Map.Map TokenName (Map.These Int Int) -> Bool
+            inner = ($$(Map.all) f)
+          in
+            $$(Map.all) inner ($$unionVal l r)
     in checkPred'
      ||]
 

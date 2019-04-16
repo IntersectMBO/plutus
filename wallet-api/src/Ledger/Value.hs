@@ -29,10 +29,10 @@ module Ledger.Value(
     , isZero
     ) where
 
-import qualified Ledger.Value.TH as TH
-import           Ledger.Value.TH (CurrencySymbol, TokenName, Value)
-import           Prelude         hiding (negate)
-import qualified Language.PlutusTx.Prelude    as P
+import qualified Ledger.Value.TH            as TH
+import           Ledger.Value.TH            (CurrencySymbol, TokenName, Value)
+import           Prelude                    hiding (negate)
+import qualified Language.PlutusTx.Prelude  as P
 
 instance Eq Value where
   (==) = $$(TH.eq)

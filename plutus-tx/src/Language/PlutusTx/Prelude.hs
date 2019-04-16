@@ -5,6 +5,8 @@ module Language.PlutusTx.Prelude (
     toPlutusString,
     trace,
     traceH,
+    traceIfTrueH,
+    traceIfFalseH,
     -- * Error
     error,
     -- * Boolean operators
@@ -29,6 +31,7 @@ module Language.PlutusTx.Prelude (
     isJust,
     isNothing,
     maybe,
+    mapMaybe,
     -- * Lists
     null,
     map,

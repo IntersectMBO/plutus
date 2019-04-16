@@ -13,7 +13,7 @@ import Action (simulationPane)
 import AjaxUtils (ajaxErrorPane)
 import AjaxUtils as AjaxUtils
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
-import Bootstrap (active, btn, btnGroup, btnSmall, col12, colMd6, container, container_, empty, floatRight, hidden, navItem_, navLink, navTabs_, noGutters, row)
+import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnSmall, col12, colMd6, container, container_, empty, floatRight, hidden, navItem_, navLink, navTabs_, noGutters, row)
 import Chain (evaluationPane)
 import Control.Bind (bindFlipped)
 import Control.Comonad (extract)
@@ -53,7 +53,7 @@ import Halogen as H
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
 import Halogen.ECharts as EC
-import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, strong_, text)
+import Halogen.HTML (ClassName(..), HTML, a, div, div_, h1, strong_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_)
 import Halogen.Query (HalogenM)
@@ -499,52 +499,67 @@ render ::
   MonadAff (EChartsEffects (AceEffects (localStorage :: LOCALSTORAGE | aff))) m
   => State -> ParentHTML Query ChildQuery ChildSlot m
 render state@(State {currentView})  =
-  div
-    [ class_ $ ClassName "main-frame" ]
-    [ container_
-        [ mainHeader
-        , div [ classes [ row, noGutters ] ]
-            [ div [ classes [ col12, colMd6 ] ] [ mainTabBar currentView ]
-            , div [ classes [ col12, colMd6 ] ] [ gistControls state ]
+  div_
+    [ bannerMessage
+    , div
+        [ class_ $ ClassName "main-frame" ]
+        [ container_
+            [ mainHeader
+            , div [ classes [ row, noGutters ] ]
+                [ div [ classes [ col12, colMd6 ] ] [ mainTabBar currentView ]
+                , div [ classes [ col12, colMd6 ] ] [ gistControls state ]
+                ]
             ]
-        ]
-    , viewContainer currentView Editor $
-        [ demoScriptsPane
-        , editorPane defaultContents (view _compilationResult state)
-        , case view _compilationResult state of
-            Failure error -> ajaxErrorPane error
-            _ -> empty
-        ]
-    , viewContainer currentView Simulations $
-        let knownCurrencies = evalState getKnownCurrencies state
-            initialValue = mkInitialValue knownCurrencies 0
-        in
-            [ simulationPane
-                initialValue
-                (view _simulations state)
-                (view _evaluationResult state)
-            , case (view _evaluationResult state) of
+        , viewContainer currentView Editor $
+            [ demoScriptsPane
+            , editorPane defaultContents (view _compilationResult state)
+            , case view _compilationResult state of
                 Failure error -> ajaxErrorPane error
                 _ -> empty
             ]
-    , viewContainer currentView Transactions $
-        case view _evaluationResult state of
-          Success evaluation ->
-            [ evaluationPane evaluation ]
-          Failure error ->
-            [ text "Your simulation has errors. Click the "
-            , strong_ [ text "Simulation" ]
-            , text " tab above to fix them and recompile."
-            ]
-          Loading -> [ icon Spinner ]
-          NotAsked ->
-            [ text "Click the "
-            , strong_ [ text "Simulation"  ]
-            , text " tab above and evaluate a simulation to see some results."
-            ]
+        , viewContainer currentView Simulations $
+            let knownCurrencies = evalState getKnownCurrencies state
+                initialValue = mkInitialValue knownCurrencies 0
+            in
+                [ simulationPane
+                    initialValue
+                    (view _simulations state)
+                    (view _evaluationResult state)
+                , case (view _evaluationResult state) of
+                    Failure error -> ajaxErrorPane error
+                    _ -> empty
+                ]
+        , viewContainer currentView Transactions $
+            case view _evaluationResult state of
+              Success evaluation ->
+                [ evaluationPane evaluation ]
+              Failure error ->
+                [ text "Your simulation has errors. Click the "
+                , strong_ [ text "Simulation" ]
+                , text " tab above to fix them and recompile."
+                ]
+              Loading -> [ icon Spinner ]
+              NotAsked ->
+                [ text "Click the "
+                , strong_ [ text "Simulation"  ]
+                , text " tab above and evaluate a simulation to see some results."
+                ]
+        ]
     ]
     where
       defaultContents = Map.lookup "Vesting" StaticData.demoFiles
+
+bannerMessage :: forall p i. HTML p i
+bannerMessage =
+  div
+    [ id_ "banner-message"
+    , classes [ alert, alertPrimary ]
+    ]
+    [ text "Plutus Beta - Updated 11th April 2019 - See the "
+    , a
+        [ href ("https://github.com/input-output-hk/plutus/blob/" <> gitHead <> "/CHANGELOG.md") ]
+        [ text "CHANGELOG" ]
+    ]
 
 viewContainer :: forall p i. View -> View -> Array (HTML p i) -> HTML p i
 viewContainer currentView targetView =
@@ -563,7 +578,7 @@ mainHeader =
     ]
   where
     links = [ Tuple "Getting Started" "https://testnet.iohkdev.io/plutus/get-started/writing-contracts-in-plutus/"
-            , Tuple "Tutorial" ("https://github.com/input-output-hk/plutus/blob/" <> gitHead <> "/plutus-tutorial/tutorial/Tutorial")
+            , Tuple "Tutorial" ("https://github.com/input-output-hk/plutus/blob/" <> gitHead <> "/plutus-tutorial/tutorial/Intro.md")
             , Tuple "API" "https://input-output-hk.github.io/plutus/"
             , Tuple "Privacy" "https://static.iohk.io/docs/data-protection/iohk-data-protection-gdpr-policy.pdf"
             ]

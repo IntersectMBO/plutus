@@ -215,6 +215,11 @@ data EmulatorEvent =
 instance FromJSON EmulatorEvent
 instance ToJSON EmulatorEvent
 
+-- | Delete all 'EventHandler' values that are registered for an
+--   'EventTrigger'.
+deleteHandlers :: MonadState WalletState m => EventTrigger -> m ()
+deleteHandlers t = modify (over triggers (set (at t) Nothing))
+
 -- | Process a list of 'Notification's in the mock wallet environment.
 handleNotifications :: [Notification] -> MockWallet ()
 handleNotifications = mapM_ (updateState >=> runTriggers)  where
@@ -229,15 +234,17 @@ handleNotifications = mapM_ (updateState >=> runTriggers)  where
 
         let values = AM.values adrs
             annotate = annTruthValue h values
+            trueConditions = filter (getAnnot . fst) $ fmap (first annotate) $ Map.toList trg
 
-        let runIfTrue annotTr action =
-                if getAnnot annotTr -- get the top-level annotation (just like `checkTrigger`, but here we need to hold on to the `annotTr` value to pass it to the handler)
-                then runEventHandler action annotTr
-                else pure ()
-
-        traverse_ (uncurry runIfTrue)
-            $ first annotate
-            <$> Map.toList trg
+        -- We need to do 2 passes over the list of triggers that fired.
+        --
+        -- First pass to delete the old triggers
+        -- Second pass to run the actions
+        --
+        -- Deletion must happen first so that we don't accidentally delete
+        -- triggers that are registered by event handlers.
+        traverse_ (deleteHandlers . WAPI.unAnnot . fst) trueConditions
+        traverse_ (uncurry (flip runEventHandler)) trueConditions
 
     -- Remove spent outputs and add unspent ones, for the addresses that we care about
     update t = over addressMap (AM.updateAddresses t)
@@ -262,11 +269,11 @@ instance WalletAPI MockWallet where
             pubK   =  toPublicKey privK
         (spend, change) <- selectCoin (second txOutValue <$> Map.toList fnds) vl
         let
-            txOutput = if Value.gt change Value.zero then Just (pubKeyTxOut change pubK) else Nothing
+            txOutput = if Value.eq change Value.zero then Nothing else Just (pubKeyTxOut change pubK)
             ins = Set.fromList (flip pubKeyTxIn pubK . fst <$> spend)
         pure (ins, txOutput)
 
-    register tr action =
+    registerOnce tr action =
         modify (over triggers (Map.insertWith (<>) tr action))
         >> modify (over addressMap (AM.addAddresses (addresses tr)))
 

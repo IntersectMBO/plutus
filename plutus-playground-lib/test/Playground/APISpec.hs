@@ -93,7 +93,7 @@ toSimpleArgumentSchemaSpec =
                                            [ ( "unMap"
                                              , SimpleArraySchema
                                                    (SimpleTupleSchema
-                                                        ( SimpleHexSchema
+                                                        ( SimpleStringSchema
                                                         , SimpleIntSchema)))
                                            ])))
                         ])

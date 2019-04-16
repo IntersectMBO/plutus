@@ -15,6 +15,7 @@ module Ledger.Map.TH(
     , singleton
     , empty
     , fromList
+    , toList
     , keys
     , map
     , lookup
@@ -52,6 +53,9 @@ instance (FromJSON v, FromJSON k) => FromJSON (Map k v) where
 
 fromList :: Q (TExp ([(k, v)] -> Map k v))
 fromList = [|| Map ||]
+
+toList :: Q (TExp (Map k v -> [(k, v)]))
+toList = [|| \(Map l) -> l ||]
 
 -- | Apply a function to the values of a 'Map'.
 map :: Q (TExp ((v -> w) -> Map k v -> Map k w))

@@ -28,8 +28,10 @@ module Wallet.API(
     payToScripts_,
     collectFromScript,
     collectFromScriptTxn,
+    spendScriptOutputs,
     ownPubKeyTxOut,
     outputsAt,
+    register,
     -- * Slot ranges
     Interval(..),
     SlotRange,
@@ -60,6 +62,7 @@ module Wallet.API(
     addresses,
     -- AnnTriggerF,
     getAnnot,
+    unAnnot,
     annTruthValue,
     -- * Error handling
     WalletAPIError(..),
@@ -131,6 +134,10 @@ type EventTrigger = Fix EventTriggerF
 -- | Get the annotation on an 'AnnotatedEventTrigger'.
 getAnnot :: AnnotatedEventTrigger a -> a
 getAnnot = fst . getCompose . unfix
+
+-- | Remove annotations from an 'AnnotatedEventTrigger' 
+unAnnot :: AnnotatedEventTrigger a -> EventTrigger
+unAnnot = cata (embed . snd . getCompose)
 
 -- | @andT l r@ is true when @l@ and @r@ are true.
 andT :: EventTrigger -> EventTrigger -> EventTrigger
@@ -257,13 +264,16 @@ class WalletAPI m where
     createPaymentWithChange :: Value -> m (Set.Set TxIn, Maybe TxOut)
 
     {- |
-    Register a 'EventHandler' in @m ()@ to be run when condition is true.
+    Register a 'EventHandler' in @m ()@ to be run a single time when the 
+    condition is true.
 
-    * The action will be run once for each block where the condition holds.
-      For example, @register (slotRangeT (Interval 3 6)) a@ causes @a@ to be run at blocks 3, 4, and 5.
+    * The action will be run when the condition holds for the first time.
+      For example, @registerOnce (slotRangeT (Interval 3 6)) a@ causes @a@ to 
+      be run at block 3. See 'register' for a variant that runs the action
+      multiple times.
 
     * Each time the wallet is notified of a new block, all triggers are checked
-      and the matching ones are run in an unspecified order.
+      and the matching ones are run in an unspecified order and then deleted.
 
     * The wallet will only watch "known" addresses. There are two ways an
       address can become a known address.
@@ -275,7 +285,7 @@ class WalletAPI m where
 
     * Triggers are run in order, so: @register c a >> register c b = register c (a >> b)@
     -}
-    register :: EventTrigger -> EventHandler m -> m ()
+    registerOnce :: EventTrigger -> EventHandler m -> m ()
 
     {- |
     The 'AddressMap' of all addresses currently watched by the wallet.
@@ -297,6 +307,13 @@ throwInsufficientFundsError = throwError . InsufficientFunds
 
 throwOtherError :: MonadError WalletAPIError m => Text -> m a
 throwOtherError = throwError . OtherError
+
+-- | A variant of 'register' that registers the trigger again immediately after
+--   running the action. This is useful if you want to run the same action every
+--   time the condition holds, instead of only the first time.
+register :: (WalletAPI m, Monad m) => EventTrigger -> EventHandler m -> m ()
+register t h = registerOnce t h' where
+    h' = h <> (EventHandler $ \_ -> register t h)
 
 -- | Sign the transaction with the wallet's private key and add
 --   the signature to the transaction's list of signatures.
@@ -331,6 +348,15 @@ payToScript range addr v ds = payToScripts range [(addr, v, ds)]
 -- | Transfer some funds to an address locked by a script.
 payToScript_ :: (Monad m, WalletAPI m) => SlotRange -> Address -> Value -> DataScript -> m ()
 payToScript_ range addr v = void . payToScript range addr v
+
+-- | Take all known outputs at an 'Address' and spend them using the 
+--   validator and redeemer scripts.
+spendScriptOutputs :: (Monad m, WalletAPI m) => Address -> ValidatorScript -> RedeemerScript -> m [TxIn]
+spendScriptOutputs addr  val redeemer = do
+    am <- watchedAddresses
+    let inputs' = am ^. at addr . to (Map.toList . fromMaybe Map.empty)
+        con (r, _) = scriptTxIn r val redeemer
+    pure (fmap con inputs')
 
 -- | Collect all unspent outputs from a pay to script address and transfer them
 --   to a public key owned by us.
@@ -483,7 +509,7 @@ warnEmptyTransaction value addr =
         $ logMsg 
         $ Text.unwords [
               "Attempting to collect transaction outputs from"
-            , "'" <> Text.pack (show addr) <> "'"
-            , ", but there are no known outputs at that address."
+            , "'" <> Text.pack (show addr) <> "'" <> ","
+            , "but there are no known outputs at that address."
             , "An empty transaction will be submitted."
             ] 

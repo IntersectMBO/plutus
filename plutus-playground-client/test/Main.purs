@@ -13,6 +13,7 @@ import Data.String.ExtraTests as Data.String.ExtraTests
 import Ledger.ExtraTests as Ledger.ExtraTests
 import FileEvents (FILE)
 import GistsTests as GistsTests
+import ChainTests as ChainTests
 import MainFrameTests as MainFrameTests
 import Node.FS (FS)
 import Test.Unit.Console (TESTOUTPUT)
@@ -26,6 +27,7 @@ main = runTest do
   AjaxUtilsTests.all
   TypesTests.all
   GistsTests.all
+  ChainTests.all
   CursorTests.all
   MainFrameTests.all
   Data.String.ExtraTests.all

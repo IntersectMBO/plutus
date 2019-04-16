@@ -43,6 +43,14 @@ trace = [||
 traceH :: Q (TExp (String -> a -> a))
 traceH = [|| \str a -> $$(trace) ($$(toPlutusString) str) a||]
 
+-- | Emit the given Haskell 'String' only if the argument evaluates to 'False'.
+traceIfFalseH :: Q (TExp (String -> Bool -> Bool))
+traceIfFalseH = [|| \str a -> if a then True else $$traceH str False ||]
+
+-- | Emit the given Haskell 'String' only if the argument evaluates to 'True'.
+traceIfTrueH :: Q (TExp (String -> Bool -> Bool))
+traceIfTrueH = [|| \str a -> if a then $$traceH str True else False ||]
+
 -- | Logical AND
 --
 --   >>> $$([|| $$(and) True False ||])

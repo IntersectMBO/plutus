@@ -252,7 +252,7 @@ myTypes =
     , mkSumType (Proxy @Owner)
     , (equal <*> mkSumType) (Proxy @Value)
     , (equal <*> (order <*> mkSumType)) (Proxy @TokenId)
-    , mkSumType (Proxy @KnownCurrency)
+    , (equal <*> mkSumType) (Proxy @KnownCurrency)
     , mkSumType (Proxy @InterpreterError)
     , mkSumType (Proxy @(InterpreterResult A))
     , (equal <*> (order <*> mkSumType)) (Proxy @CurrencySymbol)

@@ -1,11 +1,11 @@
 {-# LANGUAGE TemplateHaskell #-}
--- Need `>` for doctests, annoyingly
+-- Need `>` and `==` for doctests, annoyingly
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 -- | The prelude functions are split into dependent modules so that we obey the TH staging restriction when
 -- reusing functions.
 module Language.PlutusTx.Prelude.Stage1 where
 
-import           Prelude                    (Bool (..), Int, (>))
+import           Prelude                    (Bool (..), Int, Maybe(..), (>), (==))
 
 import           Language.PlutusTx.Prelude.Stage0
 
@@ -50,3 +50,11 @@ append = [|| \l r -> $$(foldr) (\x xs -> x:xs) r l ||]
 --
 filter :: Q (TExp ((a -> Bool) -> [a] -> [a] ))
 filter = [|| \pred -> $$(foldr) (\e xs -> if pred e then e:xs else xs) [] ||]
+
+-- | PlutusTx version of 'Data.Maybe.mapMaybe'.
+--
+--   >>> $$([|| $$(mapMaybe) (\i -> if i == 2 then Just '2' else Nothing) [1, 2, 3, 4] ||])
+--   "2"
+--
+mapMaybe :: Q (TExp ((a -> Maybe b) -> [a] -> [b]))
+mapMaybe = [|| \pred -> $$(foldr) (\e xs -> case pred e of { Just e' -> e':xs; Nothing -> xs}) [] ||]

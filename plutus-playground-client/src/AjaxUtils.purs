@@ -7,12 +7,15 @@ import Control.MonadPlus (empty, (=<<))
 import Data.Argonaut.Core (Json)
 import Data.Argonaut.Generic.Aeson as Aeson
 import Data.Argonaut.Generic.Decode (genericDecodeJson)
+import Data.Argonaut.Generic.Encode (genericEncodeJson)
 import Data.Argonaut.Generic.Options (Options(..))
 import Data.Argonaut.Parser (jsonParser)
 import Data.Array (intercalate)
+import Data.Array as Array
 import Data.Either (Either(Right, Left), note)
 import Data.Generic (class Generic, GenericSignature(SigProd), GenericSpine(SProd), fromSpine, isValidSpine, toSignature, toSpine)
 import Data.List as List
+import Data.List.NonEmpty (NonEmptyList)
 import Data.List.NonEmpty as NonEmpty
 import Data.Maybe (Maybe(..), fromMaybe)
 import Gist (GistId)
@@ -31,6 +34,7 @@ ajaxSettings :: SPSettings_ SPParams_
 ajaxSettings = SPSettings_ $ settings
   { toURLPiece = SPSettingsToUrlPiece_ gCustomToURLPiece
   , decodeJson = SPSettingsDecodeJson_ (genericDecodeJson $ Options $ options {userDecoding = userDecoding})
+  , encodeJson = SPSettingsEncodeJson_ (genericEncodeJson $ Options $ options {userEncoding = userEncoding})
   }
   where
     SPSettings_ settings = defaultSettings $ SPParams_ { baseURL: "/api/" }
@@ -72,6 +76,19 @@ decodeTokenIdLists opts (SigProd "Data.List.Types.NonEmptyList" [{sigValues: [l]
           _ -> empty
       _ -> empty
 decodeTokenIdLists _ _ _ = Nothing
+
+userEncoding :: Options -> GenericSignature -> GenericSpine -> Maybe Json
+userEncoding opts sig spine =
+  encodeTokenIdLists opts sig spine
+  <|>
+  Aeson.userEncoding opts sig spine
+
+encodeTokenIdLists :: Options -> GenericSignature -> GenericSpine -> Maybe Json
+encodeTokenIdLists opts sig@(SigProd "Data.List.Types.NonEmptyList" [{sigValues: [l]}]) spine =
+  case fromSpine spine of
+    Nothing -> Nothing
+    Just (xs :: NonEmptyList TokenId) -> Just $ encodeJson $ Array.fromFoldable xs
+encodeTokenIdLists _ _ _ = Nothing
 
 -- | Generally we want the default parameter encoding behaviour. But
 -- sometimes we need to do something special.
