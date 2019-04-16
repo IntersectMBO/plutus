@@ -41,6 +41,7 @@ import           Data.Maybe                               (isJust)
 import           GHC.Generics                             (Generic)
 import qualified Language.Haskell.TH                      as TH
 import qualified Language.PlutusCore                      as PLC
+import qualified Language.PlutusCore.Pretty               as PLC
 import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
 import           Language.PlutusTx.Lift                   (unsafeLiftProgram)
 import           Language.PlutusTx.Lift.Class             (Lift)
@@ -96,7 +97,14 @@ applyScript (unScript -> s1) (unScript -> s2) = Script $ s1 `PLC.applyProgram` s
 -- | Evaluate a script, returning the trace log and a boolean indicating whether
 -- evaluation was successful.
 evaluateScript :: Script -> ([String], Bool)
-evaluateScript (unScript -> s) = (isJust . reoption) <$> evaluateCekTrace s
+evaluateScript (unScript -> s) =
+    case check s of
+        (Left e) -> ([logTypeErr e], False)
+        Right{} -> (isJust . reoption) <$> evaluateCekTrace s
+
+    where check = PLC.runQuoteT . PLC.typecheckPipeline PLC.defOnChainConfig
+          logTypeErr :: PLC.Error () -> String
+          logTypeErr = PLC.prettyPlcDefString
 
 instance ToJSON Script where
   toJSON = JSON.String . JSON.encodeSerialise
@@ -194,8 +202,6 @@ runScript (ValidationData valData) (ValidatorScript validator) (DataScript dataS
         applied = ((validator `applyScript` dataScript) `applyScript` redeemer) `applyScript` valData
         -- TODO: do something with the error
     in evaluateScript applied
-        -- TODO: Enable type checking of the program
-        -- void typecheck
 
 -- | @()@ as a data script.
 unitData :: DataScript
