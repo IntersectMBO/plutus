@@ -28,6 +28,8 @@ falseJSON = "{\"isValid\":false}"
 
 -- includes: slot, inputs, outputs, input/output pair currently being validated
 -- fee, value forged by transation
+--
+-- I should ask Vincent what he wants to/is able to provide (look at checkMatch)
 
 -- TODO: encoding: base16 or base64? Ask Vincent
 -- If base16 we probably want to use the module in wallet-api
@@ -66,10 +68,9 @@ validateResponse (ToValidate vd v r d) =
 app :: Application
 app req respond = do
     bsReq <- lazyRequestBody req
-    -- TODO: check that it's a GET method (fail monad?)
+    -- TODO: check that it's a GET method
     let decoded = decode bsReq
         validated = fmap validateResponse decoded
-        -- TODO: handle json errors
         (stat, resp) = case validated of
             Just x  -> x
             Nothing -> (status400, mempty)
