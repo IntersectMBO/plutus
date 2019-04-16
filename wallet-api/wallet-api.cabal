@@ -52,6 +52,7 @@ library
         Wallet.Emulator.Types
         Wallet.Generators
         Wallet.Graph
+        Language.PlutusTx.StateMachine
         Ledger
         Ledger.Ada
         Ledger.Ada.TH

@@ -5,10 +5,11 @@ import qualified Spec.Crowdfunding
 import qualified Spec.Currency
 import qualified Spec.Future
 import qualified Spec.Game
+import qualified Spec.GameStateMachine
 import qualified Spec.MultiSig
 import qualified Spec.Vesting
 import           Test.Tasty
-import           Test.Tasty.Hedgehog (HedgehogTestLimit (..))
+import           Test.Tasty.Hedgehog   (HedgehogTestLimit (..))
 
 main :: IO ()
 main = defaultMain tests
@@ -27,5 +28,6 @@ tests = localOption limit $ testGroup "use cases" [
     Spec.Future.tests,
     Spec.Game.tests,
     Spec.MultiSig.tests,
-    Spec.Currency.tests
+    Spec.Currency.tests,
+    Spec.GameStateMachine.tests
     ]

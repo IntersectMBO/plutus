@@ -31,6 +31,7 @@ module Language.PlutusTx.Prelude (
     isJust,
     isNothing,
     maybe,
+    mapMaybe,
     -- * Lists
     null,
     map,

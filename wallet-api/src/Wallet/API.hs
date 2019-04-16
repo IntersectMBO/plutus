@@ -28,6 +28,7 @@ module Wallet.API(
     payToScripts_,
     collectFromScript,
     collectFromScriptTxn,
+    spendScriptOutputs,
     ownPubKeyTxOut,
     outputsAt,
     register,
@@ -347,6 +348,15 @@ payToScript range addr v ds = payToScripts range [(addr, v, ds)]
 -- | Transfer some funds to an address locked by a script.
 payToScript_ :: (Monad m, WalletAPI m) => SlotRange -> Address -> Value -> DataScript -> m ()
 payToScript_ range addr v = void . payToScript range addr v
+
+-- | Take all known outputs at an 'Address' and spend them using the 
+--   validator and redeemer scripts.
+spendScriptOutputs :: (Monad m, WalletAPI m) => Address -> ValidatorScript -> RedeemerScript -> m [TxIn]
+spendScriptOutputs addr  val redeemer = do
+    am <- watchedAddresses
+    let inputs' = am ^. at addr . to (Map.toList . fromMaybe Map.empty)
+        con (r, _) = scriptTxIn r val redeemer
+    pure (fmap con inputs')
 
 -- | Collect all unspent outputs from a pay to script address and transfer them
 --   to a public key owned by us.

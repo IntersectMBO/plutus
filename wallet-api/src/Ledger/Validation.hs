@@ -37,18 +37,22 @@ module Ledger.Validation
     -- ** Transactions
     , pubKeyOutput
     , scriptOutput
+    , scriptOutputsAt
     , eqPubKey
     , eqDataScript
     , eqRedeemer
     , eqValidator
     , eqTx
+    , valueLockedBy
     , adaLockedBy
-    , ownHash
     , signsTransaction
     , spendsOutput
     , txHash
     , valueForged
+    , valueSpent
     , ownCurrencySymbol
+    , ownHashes
+    , ownHash
     -- * Hashes
     , plcSHA2_256
     , plcSHA3_256
@@ -322,34 +326,51 @@ eqRedeemer = [|| \(RedeemerHash l) (RedeemerHash r) -> Builtins.equalsByteString
 eqTx :: Q (TExp (TxHash -> TxHash -> Bool))
 eqTx = [|| \(TxHash l) (TxHash r) -> Builtins.equalsByteString l r ||]
 
+-- | Get the hashes of validator script and redeemer script that are
+--   currently being validated
+ownHashes :: Q (TExp (PendingTx -> (ValidatorHash, RedeemerHash)))
+ownHashes = [|| \(PendingTx _ _ _ _ i _ _ _) -> 
+    case i of
+        PendingTxIn _ (Just h) _ -> h
+        _ -> $$(P.error) () ||]
+
 -- | Get the hash of the validator script that is currently being validated.
 ownHash :: Q (TExp (PendingTx -> ValidatorHash))
-ownHash = [|| \(PendingTx _ _ _ _ i _ _ _) -> 
-    case i of
-        PendingTxIn _ (Just (h, _)) _ -> h
-        _ -> $$(P.error) () ||]
+ownHash = [|| \p -> let (h, _) = $$ownHashes p in h ||]
 
 -- | Convert a 'CurrencySymbol' to a 'ValidatorHash'
 fromSymbol :: CurrencySymbol -> ValidatorHash
 fromSymbol (CurrencySymbol s) = ValidatorHash s
 
+-- | Get the list of 'PendingTxOut' outputs of the pending transaction at
+--   a given script address.
+scriptOutputsAt :: Q (TExp (ValidatorHash -> PendingTx -> [(DataScriptHash, Value)]))
+scriptOutputsAt = [||
+        let 
+            scriptOutputsAt' :: ValidatorHash -> PendingTx -> [(DataScriptHash, Value)]
+            scriptOutputsAt' h (PendingTx _ outs _ _ _ _ _ _) =
+                let flt (PendingTxOut vl hashes _) = 
+                        case hashes of
+                            Just (h', ds) -> if $$(eqValidator) h h'
+                                             then Just (ds, vl)
+                                             else Nothing
+                            Nothing -> Nothing
+                in $$(P.mapMaybe) flt outs
+
+        in scriptOutputsAt'
+    ||]
+
+-- | Get the total value locked by the given validator in this transaction.
+valueLockedBy :: Q (TExp (PendingTx -> ValidatorHash -> Value))
+valueLockedBy = [|| \ptx h ->
+    let outputs = $$(P.map) (\(_, vl) -> vl) ($$scriptOutputsAt h ptx)
+    in $$(P.foldr) $$(VTH.plus) $$(VTH.zero) outputs
+
+  ||]
+
 -- | Get the total amount of 'Ada' locked by the given validator in this transaction.
 adaLockedBy :: Q (TExp (PendingTx -> ValidatorHash -> Ada))
-adaLockedBy = [|| \(PendingTx _ outs _ _ _ _ _ _) h ->
-    let
-
-        go :: [PendingTxOut] -> Ada
-        go c = case c of
-            [] -> $$(Ada.zero)
-            (PendingTxOut vl hashes _):xs ->
-                case hashes of
-                    Nothing -> go xs
-                    Just  (h', _) -> if $$(eqValidator) h h'
-                                     then $$(Ada.plus) ($$(Ada.fromValue) vl) (go xs)
-                                     else go xs
-
-    in go outs
-      ||]
+adaLockedBy = [|| \ptx h -> $$(Ada.fromValue) ($$valueLockedBy ptx h) ||]
 
 -- | Check if the provided signature is the result of signing the pending
 --   transaction (without witnesses) with the given public key.
@@ -368,12 +389,19 @@ valueForged = [||
         in valueForged'
     ||]
 
+-- | Get the total value of inputs spent by this transaction.
+valueSpent :: Q (TExp (PendingTx -> Value))
+valueSpent = [|| \(PendingTx inputs _ _ _ _ _ _ _) ->
+    let inputs' = $$(P.map) (\(PendingTxIn _ _ vl) -> vl) inputs
+    in $$(P.foldr) $$(VTH.plus) $$(VTH.zero) inputs'
+  ||]
+
 -- | The 'CurrencySymbol' of the current validator script.
 ownCurrencySymbol :: Q (TExp (PendingTx -> CurrencySymbol))
 ownCurrencySymbol = [||
         let ownCurrencySymbol' :: PendingTx -> CurrencySymbol
             ownCurrencySymbol' p = 
-                let ValidatorHash h = $$ownHash p
+                let (ValidatorHash h, _) = $$ownHashes p
                 in  $$(VTH.currencySymbol) h
         in ownCurrencySymbol'
     ||]
