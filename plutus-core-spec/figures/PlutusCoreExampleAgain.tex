@@ -2,21 +2,6 @@
 
 \begin{document}
 
-\newcommand\unit{$\mathit{unit}$}
-\newcommand\one{$\mathit{one}$}
-\newcommand\boolean{$\mathit{boolean}$}
-\newcommand\true{$\mathit{true}$}
-\newcommand\false{$\mathit{false}$}
-\newcommand\case{$\mathit{case}$}
-\newcommand\signed{$\mathit{signed}$}
-\newcommand\txhash{$\mathit{txhash}$}
-\newcommand\pubkey{$\mathit{pubkey}$}
-\newcommand\blocknum{$\mathit{blocknum}$}
-% These are for use inside listings.  If you just use \textit it uses
-% the italic tt font and the spacing inside the words is a bit
-% strange.
-
-
 We illustrate the use of Plutus Core by constructing a simple
 validator program for the situation described in the previous
 section. We present components of this program in a high-level style:
@@ -49,7 +34,7 @@ contain the declarations below. We have
                 $x$ )))
 \end{lstlisting}
 and similarly
-\begin{lstlisting}[basicstyle=\ttfamily,mathescape]
+\begin{lstlisting}
   |\false| : |\boolean|
   |\false| = (abs $a$ (type)
            (lam $x$ $a$
@@ -57,8 +42,8 @@ and similarly
                  $y$ )))
 \end{lstlisting}
 
-\noindent Next, we define the ``\case'' function for the type $boolean$ as follows:
-\begin{lstlisting}[basicstyle=\ttfamily,mathescape]
+\noindent Next, we define the \case{} function for the type $boolean$ as follows:
+\begin{lstlisting}
   |\case| : (all $a$ (type)
           (fun |\boolean|
           (fun (fun |\unit| $a$) (fun (fun |\unit| $a$) $a$))))
@@ -73,26 +58,25 @@ and similarly
           ))))
 \end{lstlisting}
 The reader is encouraged to verify that
-\begin{lstlisting}[basicstyle=\ttfamily,mathescape]
+\begin{lstlisting}
   [{|\case| a} |\true| (lam |\unit| u x) (lam |\unit| u y)] $\stackrel{*}{\rightarrow}$ x
 \end{lstlisting}
 and
-\begin{lstlisting}[basicstyle=\ttfamily,mathescape]
+\begin{lstlisting}
   [{|\case| a} |\false| (lam |\unit| u x) (lam |\unit| u y)] $\stackrel{*}{\rightarrow}$ y
 \end{lstlisting}
 
 \noindent We can use \case{} to define the following function:
-\begin{lstlisting}[basicstyle=\ttfamily,mathescape]
+\begin{lstlisting}
   verifyIdentity :
     (fun (con bytestring 256) (fun (con bytestring 32) unit))
   verifyIdentity =
     (lam |\pubkey| (con bytestring 256)
     (lam |\signed| (con bytestring 32)
-      [ { |\case| |\unit| } [ {(builtin verifySignature) (con 32) (con 32) (con 256)}
-                           |\signed|
-                           |\txhash|
-                           |\pubkey|
-                         ]
+  [ { |\case| |\unit| } [ {(builtin verifySignature)
+                                  (con size 32) (con size 32) (con size 256)}
+                      |\signed| |\txhash| |\pubkey|
+                   ]
         (lam u |\unit| |\one|)
         (lam u |\unit| (error |\unit|))
       ]))
@@ -135,7 +119,7 @@ like Figure \ref{fig:Continuized_Let_Example}.
 %% built in functions.
 
 \begin{figure*}[h]  % Using H here causes undefined references to this figure
-\begin{lstlisting}%[basicstyle=\ttfamily,mathescape]
+\begin{lstlisting}
 (lam |\pubkey| (con bytestring 256)
 (lam |\signed| (con bytestring 32)
     [ 
@@ -154,7 +138,10 @@ like Figure \ref{fig:Continuized_Let_Example}.
         )
         (all $a$ (type) (fun $a$ $a$))
     }
-    [ {(builtin verifySignature) (con 32) (con 32) (con 256)} |\signed| |\txhash| |\pubkey| ]
+    [ {(builtin verifySignature)
+                (con size 32) (con size 32) (con size 256)}
+       |\signed| |\txhash| |\pubkey|
+     ]
     (lam $u$ (all $a$ (type) (fun $a$ $a$))
         (abs $a$ (type) (lam $x$ $a$ $x$))
     )
