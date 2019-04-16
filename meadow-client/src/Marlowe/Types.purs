@@ -2,33 +2,79 @@ module Marlowe.Types where
 
 import Prelude
 
+import Data.BigInt (BigInt, toString)
 import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Newtype (class Newtype)
+import Data.Integral (class Integral)
+import Data.Newtype (class Newtype, unwrap)
+import Data.Num (class Num)
+import Data.Real (class Real)
 import Data.String (joinWith)
 import Marlowe.Pretty (class Pretty, genericPretty)
-import Text.PrettyPrint.Leijen (text)
-import Matryoshka.Class.Recursive (class Recursive)
 import Matryoshka.Class.Corecursive (class Corecursive)
+import Matryoshka.Class.Recursive (class Recursive)
+import Text.PrettyPrint.Leijen (text)
 
-type BlockNumber
-  = BigInteger
+newtype BlockNumber
+  = BlockNumber BigInt
 
-type Timeout
-  = BlockNumber
+derive instance genericBlockNumber :: Generic BlockNumber _
+derive instance newtypeBlockNumber :: Newtype BlockNumber _
+derive instance eqBlockNumber :: Eq BlockNumber
+derive instance ordBlockNumber :: Ord BlockNumber
+instance showBlockNumber :: Show BlockNumber where
+  show = toString <<< unwrap
+derive newtype instance prettyBlockNumber :: Pretty BlockNumber
+derive newtype instance integralBlockNumber :: Integral BlockNumber
+derive newtype instance numBlockNumber :: Num BlockNumber
+derive newtype instance semiringBlockNumber :: Semiring BlockNumber
+derive newtype instance ringBlockNumber :: Ring BlockNumber
+derive newtype instance euclideanRingBlock :: EuclideanRing BlockNumber
+derive newtype instance realRingBlock :: Real BlockNumber
+instance commutativeRingBlockNumber :: CommutativeRing BlockNumber
 
-type Person
-  = BigInteger
+newtype Timeout
+  = Timeout BlockNumber
+
+derive newtype instance showTimeout :: Show Timeout
+derive newtype instance prettyTimeout :: Pretty Timeout
+derive newtype instance eqTimeout :: Eq Timeout
+derive newtype instance ordTimeout :: Ord Timeout
+derive instance newtypeTimeout :: Newtype Timeout _
+
+newtype Person
+  = Person BigInt
+
+instance showPerson :: Show Person where
+  show = toString <<< unwrap
+derive newtype instance prettyPerson :: Pretty Person
+derive newtype instance eqPerson :: Eq Person
+derive newtype instance ordPerson :: Ord Person
+derive instance newtypePerson :: Newtype Person _
 
 type Choice
   = BigInteger
 
-type IdAction
-  = BigInteger
+newtype IdAction
+  = IdAction BigInteger
 
-type IdCommit
-  = BigInteger
+instance showIdAction :: Show IdAction where
+  show = show <<< unwrap
+derive newtype instance prettyIdAction :: Pretty IdAction
+derive newtype instance eqIdAction :: Eq IdAction
+derive newtype instance ordIdAction :: Ord IdAction
+derive instance newtypeIdAction :: Newtype IdAction _
+
+newtype IdCommit
+  = IdCommit BigInteger
+
+instance showIdCommit :: Show IdCommit where
+  show = show <<< unwrap
+derive newtype instance prettyIdCommit :: Pretty IdCommit
+derive newtype instance eqIdCommit :: Eq IdCommit
+derive newtype instance ordIdCommit :: Ord IdCommit
+derive instance newtypeIdCommit :: Newtype IdCommit _
 
 newtype IdChoice
   = IdChoice {choice :: BigInteger, person :: Person}
@@ -59,8 +105,15 @@ derive instance eqWIdChoice :: Eq WIdChoice
 
 derive instance ordWIdChoice :: Ord WIdChoice
 
-type IdOracle
-  = BigInteger
+newtype IdOracle
+  = IdOracle BigInteger
+
+instance showIdOracle :: Show IdOracle where
+  show = show <<< unwrap
+derive newtype instance prettyIdOracle :: Pretty IdOracle
+derive newtype instance eqIdOracle :: Eq IdOracle
+derive newtype instance ordIdOracle :: Ord IdOracle
+derive instance newtypeIdOracle :: Newtype IdOracle _
 
 type LetLabel
   = BigInteger

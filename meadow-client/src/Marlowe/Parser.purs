@@ -4,11 +4,13 @@ import Prelude
 
 import Control.Alternative ((<|>))
 import Data.BigInteger (BigInteger)
+import Data.BigInt (BigInt)
+import Data.BigInt as BigInt
 import Data.BigInteger as BigInteger
 import Data.List (List)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (wrap)
-import Marlowe.Types (BlockNumber, Choice, Contract(..), IdAction, IdChoice, IdCommit, IdOracle, LetLabel, Observation(..), Person, Timeout, Value(..))
+import Marlowe.Types (BlockNumber(BlockNumber), Choice, Contract(..), IdAction(IdAction), IdChoice, IdCommit(IdCommit), IdOracle(IdOracle), LetLabel, Observation(..), Person(Person), Timeout(Timeout), Value(..))
 import Text.Parsing.Simple (Parser, char, fail, fix, integral, many, parens, some, string, whitespace)
 
 -- All arguments are space separated so we add **> to reduce boilerplate
@@ -38,6 +40,16 @@ bigInteger = do
       (Just v) -> pure v
       Nothing -> fail "not a valid BigInt"
 
+bigInt :: Parser String BigInt
+bigInt = do
+    i <- integral
+    case BigInt.fromString i of
+      (Just v) -> pure v
+      Nothing -> fail "not a valid BigInt"
+
+person :: Parser String Person
+person = Person <$> bigInt
+
 idChoice :: Parser String IdChoice
 idChoice = parens do
   void maybeSpaces 
@@ -45,7 +57,7 @@ idChoice = parens do
   void maybeSpaces 
   void $ char ','
   void maybeSpaces 
-  second <- bigInteger
+  second <- person
   void maybeSpaces 
   pure $ wrap { choice: first, person: second }
 
@@ -53,22 +65,19 @@ choice :: Parser String Choice
 choice = bigInteger
 
 blockNumber :: Parser String BlockNumber
-blockNumber = bigInteger
+blockNumber = BlockNumber <$> bigInt
 
 timeout :: Parser String Timeout
-timeout = blockNumber
+timeout = Timeout <$> blockNumber
 
 idOracle :: Parser String IdOracle
-idOracle = bigInteger
+idOracle = IdOracle <$> bigInteger
 
 idCommit :: Parser String IdCommit
-idCommit = bigInteger
+idCommit = IdCommit <$> bigInteger
 
 idAction :: Parser String IdAction
-idAction = bigInteger
-
-person :: Parser String Person
-person = bigInteger
+idAction = IdAction <$> bigInteger
 
 letLabel :: Parser String LetLabel
 letLabel = bigInteger
