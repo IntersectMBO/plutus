@@ -20,11 +20,12 @@ import           Language.Haskell.Interpreter (InterpreterError, InterpreterResu
 import           Ledger                       (Blockchain)
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Validation            (ValidatorHash (ValidatorHash))
+import           Ledger.Value                 (TokenName(TokenName))
 import           Playground.API               (CompilationResult (CompilationResult), Evaluation (Evaluation),
                                                Expression (Action, Wait), Fn (Fn), FunctionSchema (FunctionSchema),
                                                KnownCurrency (KnownCurrency), PlaygroundError,
                                                SimpleArgumentSchema (SimpleArraySchema, SimpleHexSchema, SimpleIntSchema, SimpleObjectSchema, SimpleStringSchema, SimpleTupleSchema, ValueSchema),
-                                               SimulatorWallet (SimulatorWallet), TokenId (TokenId), adaCurrency,
+                                               SimulatorWallet (SimulatorWallet), adaCurrency,
                                                argumentSchema, functionName, isSupportedByFrontend,
                                                simulatorWalletBalance, simulatorWalletWallet)
 import qualified Playground.Interpreter       as PI
@@ -444,14 +445,15 @@ knownCurrencySpec =
         Text.unlines
             [ "import Playground.Contract"
             , "import Data.List.NonEmpty (NonEmpty ((:|)))"
+            , "import Ledger.Value (TokenName(TokenName))"
             , "import Ledger.Validation (ValidatorHash (..))"
-            , "import Playground.API (KnownCurrency (..), TokenId (..))"
+            , "import Playground.API (KnownCurrency (..))"
             , "myCurrency :: KnownCurrency"
-            , "myCurrency = KnownCurrency (ValidatorHash \"\") \"MyCurrency\" (TokenId \"MyToken\" :| [])"
+            , "myCurrency = KnownCurrency (ValidatorHash \"\") \"MyCurrency\" (TokenName \"MyToken\" :| [])"
             , "$(mkKnownCurrencies ['myCurrency])"
             ]
     hasKnownCurrency (Right (InterpreterResult _ (CompilationResult _ [cur1, cur2]))) =
-        cur1 == adaCurrency && cur2 == KnownCurrency (ValidatorHash "") "MyCurrency" (TokenId "MyToken" :| [])
+        cur1 == adaCurrency && cur2 == KnownCurrency (ValidatorHash "") "MyCurrency" (TokenName "MyToken" :| [])
     hasKnownCurrency _ = False
 
 sourceCode :: BSC.ByteString -> SourceCode

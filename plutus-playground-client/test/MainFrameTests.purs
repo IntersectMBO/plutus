@@ -46,7 +46,7 @@ import Node.Encoding (Encoding(..))
 import Node.FS (FS)
 import Node.FS.Sync as FS
 import Partial.Unsafe (unsafePartial)
-import Playground.API (CompilationResult, EvaluationResult, KnownCurrency(..), TokenId(..))
+import Playground.API (CompilationResult, EvaluationResult, KnownCurrency(..))
 import Playground.Server (SPParams_(..))
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import StaticData (bufferLocalStorageKey)
@@ -271,8 +271,8 @@ mkInitialValueTests =
                                                                 ]
                                       ] })
         (mkInitialValue
-           [ KnownCurrency { hash: "", friendlyName: "Ada", knownTokens: pure (TokenId "") }
-           , KnownCurrency { hash: "Currency", friendlyName: "Currencies", knownTokens: NonEmptyList (TokenId "USDToken" :| (Cons (TokenId "EURToken") Nil)) }
+           [ KnownCurrency { hash: "", friendlyName: "Ada", knownTokens: pure (TokenName { unTokenName : "" }) }
+           , KnownCurrency { hash: "Currency", friendlyName: "Currencies", knownTokens: NonEmptyList ((TokenName { unTokenName: "USDToken" }) :| (Cons (TokenName { unTokenName:  "EURToken" }) Nil)) }
            ]
            10)
 

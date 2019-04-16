@@ -48,7 +48,7 @@ import           Ledger.Slot                               (Slot)
 import           Ledger.Value.TH                           (CurrencySymbol, TokenName, Value)
 import           Playground.API                            (CompilationResult, Evaluation, EvaluationResult, Expression,
                                                             Fn, FunctionSchema, KnownCurrency, SimpleArgumentSchema,
-                                                            SimulatorWallet, TokenId)
+                                                            SimulatorWallet)
 import qualified Playground.API                            as API
 import           Playground.Usecases                       (crowdfunding, game, messages, vesting)
 import           Servant                                   ((:<|>))
@@ -251,7 +251,6 @@ myTypes =
     , mkSumType (Proxy @NewGistFile)
     , mkSumType (Proxy @Owner)
     , (equal <*> mkSumType) (Proxy @Value)
-    , (equal <*> (order <*> mkSumType)) (Proxy @TokenId)
     , (equal <*> mkSumType) (Proxy @KnownCurrency)
     , mkSumType (Proxy @InterpreterError)
     , mkSumType (Proxy @(InterpreterResult A))

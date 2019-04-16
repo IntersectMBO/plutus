@@ -7,7 +7,7 @@ module Ledger.Value(
       Value(..)
     , CurrencySymbol(..)
     , currencySymbol
-    , TokenName
+    , TokenName(..)
     , tokenName
     , singleton
     , valueOf

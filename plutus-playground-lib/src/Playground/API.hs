@@ -39,6 +39,7 @@ import           Ledger                       (Blockchain, PubKey, Tx, TxId)
 import qualified Ledger.Ada                   as Ada
 import qualified Ledger.Map.TH                as Map
 import           Ledger.Validation            (ValidatorHash, fromSymbol)
+import           Ledger.Value                 (TokenName)
 import qualified Ledger.Value                 as V
 import           Servant.API                  ((:<|>), (:>), Get, JSON, Post, ReqBody)
 import           Text.Read                    (readMaybe)
@@ -50,15 +51,10 @@ type API
      :<|> "evaluate" :> ReqBody '[ JSON] Evaluation :> Post '[ JSON] EvaluationResult
      :<|> "health" :> Get '[ JSON] ()
 
--- FIXME: These types will be defined elsewhere but I've added them here for now
-newtype TokenId = TokenId Text
-    deriving stock (Eq, Ord, Show, Generic)
-    deriving newtype (ToJSON, FromJSON)
-
 data KnownCurrency = KnownCurrency
     { hash         :: ValidatorHash
     , friendlyName :: String
-    , knownTokens  :: NonEmpty TokenId
+    , knownTokens  :: NonEmpty TokenName
     }
     deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
@@ -66,7 +62,7 @@ adaCurrency :: KnownCurrency
 adaCurrency = KnownCurrency
     { hash = fromSymbol Ada.adaSymbol
     , friendlyName = "Ada"
-    , knownTokens = TokenId "ada" :| []
+    , knownTokens = Ada.adaToken :| []
     }
 
 --------------------------------------------------------------------------------

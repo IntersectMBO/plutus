@@ -26,7 +26,7 @@ module Playground.Contract
     , module Playground.Interpreter.Util
     , KnownCurrency(KnownCurrency)
     , ValidatorHash(ValidatorHash)
-    , TokenId(TokenId)
+    , TokenName(TokenName)
     , NonEmpty((:|))
     , adaCurrency
     ) where
@@ -41,8 +41,8 @@ import           Data.List.NonEmpty          (NonEmpty ((:|)))
 import           Data.Swagger                (Schema, ToSchema)
 import           GHC.Generics                (Generic)
 import           Ledger.Validation           (ValidatorHash (ValidatorHash))
-import           Ledger.Value                (Value)
-import           Playground.API              (FunctionSchema, KnownCurrency (KnownCurrency), TokenId (TokenId),
+import           Ledger.Value                (Value, TokenName(TokenName))
+import           Playground.API              (FunctionSchema, KnownCurrency (KnownCurrency),
                                               adaCurrency)
 import           Playground.Interpreter.Util
 import           Playground.TH               (mkFunction, mkFunctions, mkKnownCurrencies, mkSingleFunction)
