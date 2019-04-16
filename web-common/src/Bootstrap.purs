@@ -286,6 +286,12 @@ alertInfo = ClassName "alert-info"
 alertInfo_ :: forall i p. Array (HTML p i) -> HTML p i
 alertInfo_ = div [ classes [ alert, alertInfo ] ]
 
+alertPrimary :: ClassName
+alertPrimary = ClassName "alert-primary"
+
+alertPrimary_ :: forall i p. Array (HTML p i) -> HTML p i
+alertPrimary_ = div [ classes [ alert, alertPrimary ] ]
+
 empty :: forall p i. HTML p i
 empty = text ""
 
