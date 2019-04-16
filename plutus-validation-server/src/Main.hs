@@ -37,8 +37,8 @@ data ToValidate = ToValidate { validationData :: BS64.ByteString64
                              , dataScript     :: BS64.ByteString64
                              } deriving (Generic, FromJSON)
 
-getScript :: BS.ByteString -> Script
-getScript bs = CBOR.deserialise (BSL.fromStrict bs)
+getScript :: BS.ByteString -> Either CBOR.DeserialiseFailure Script
+getScript bs = CBOR.deserialiseOrFail (BSL.fromStrict bs)
 
 -- TODO: make a curl request to test this
 -- TODO: at least deserialize from a valid script (and then test it)
@@ -47,19 +47,20 @@ validateByteString :: BS.ByteString -- ^ Validation Data
                    -> BS.ByteString -- ^ Validator script
                    -> BS.ByteString -- ^ Data script
                    -> BS.ByteString -- ^ Redeemer script
-                   -> Bool
+                   -> Either CBOR.DeserialiseFailure Bool
 validateByteString vd vs d r =
-    snd $ runScript
-        (ValidationData $ getScript vd)
-        (ValidatorScript $ getScript vs)
-        (DataScript $ getScript d)
-        (RedeemerScript $ getScript r)
+    fmap snd $ runScript
+        <$> (ValidationData <$> getScript vd)
+        <*> (ValidatorScript <$> getScript vs)
+        <*> (DataScript <$> getScript d)
+        <*> (RedeemerScript <$> getScript r)
 
 validateResponse :: ToValidate -> (Status, BSL.ByteString)
 validateResponse (ToValidate vd v r d) =
-    if validateByteString (getByteString64 vd) (getByteString64 v) (getByteString64 d) (getByteString64 r)
-        then (status200, trueJSON)
-        else (status200, falseJSON)
+    case validateByteString (getByteString64 vd) (getByteString64 v) (getByteString64 d) (getByteString64 r) of
+        Left{}        -> (status400, mempty)
+        (Right True)  -> (status200, trueJSON)
+        (Right False) -> (status200, falseJSON)
 
 -- typecheck, run/validate
 app :: Application
