@@ -38,7 +38,7 @@
   basicstyle=\ttfamily,
   columns=fullflexible,
   mathescape=true,
-  escapeinside={|}{|}
+  escapeinside={|}{|}   %% Inside listings you can say things like |\textit{blah blah}|
 }
 
 
@@ -691,8 +691,8 @@ Note the following:
 
 \noindent The duplication of sizes is necessary because we require
 size information at the type level to facilitate gas calculations, and
-also at the term level so that the evaluator will know how much memory
-to allocate during execution, after type information has been erased.
+also at the term level so that the evaluator can check size bounds
+at runtime, after type information has been erased.
 
 \item We use fixed Scott encodings for certain types and values,
   specifically for the \texttt{unit} and \texttt{boolean} types.
