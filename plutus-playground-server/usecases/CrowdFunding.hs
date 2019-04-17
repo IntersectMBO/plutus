@@ -27,6 +27,8 @@ data Campaign = Campaign
     , campaignOwner              :: PubKey
     -- ^ Public key of the campaign owner. This key is entitled to retrieve the
     --   funds if the campaign is successful.
+    --   Here is a list of public keys used by the wallets in the emulator:
+    --   https://gist.github.com/j-mueller/6651d643e998b2a167dcce4cd570c414
     } deriving (Generic, ToJSON, FromJSON, ToSchema)
 
 PlutusTx.makeLift ''Campaign
