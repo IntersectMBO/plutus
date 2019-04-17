@@ -100,11 +100,12 @@ applyScript (unScript -> s1) (unScript -> s2) = Script $ s1 `PLC.applyProgram` s
 -- evaluation was successful.
 evaluateScript :: Script -> ([String], Bool)
 evaluateScript (unScript -> s) =
-    case check s of
+    case normalizeAndCheck s of
         (Left e) -> traceFile "invalid.plc" (PLC.prettyPlcDefString s) ([logTypeErr e], False)
         Right{} -> (isJust . reoption) <$> evaluateCekTrace s
 
-    where check = PLC.runQuoteT . PLC.typecheckPipeline PLC.defOnChainConfig
+    where -- check = PLC.runQuoteT . PLC.typecheckPipeline PLC.defOnChainConfig
+          normalizeAndCheck = PLC.runQuoteT . (PLC.typecheckPipeline PLC.defOnChainConfig <=< PLC.normalizeTypesFullInProgram)
           logTypeErr :: PLC.Error () -> String
           logTypeErr = PLC.prettyPlcDefString
 
