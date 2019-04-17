@@ -48,6 +48,7 @@ import           Language.PlutusTx.Lift                   (unsafeLiftProgram)
 import           Language.PlutusTx.Lift.Class             (Lift)
 import           Language.PlutusTx                        (CompiledCode, compile, getPlc)
 import           PlutusPrelude
+import Debug.Trace.Ext
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 newtype Script = Script { unScript :: PLC.Program PLC.TyName PLC.Name () }
@@ -100,7 +101,7 @@ applyScript (unScript -> s1) (unScript -> s2) = Script $ s1 `PLC.applyProgram` s
 evaluateScript :: Script -> ([String], Bool)
 evaluateScript (unScript -> s) =
     case check s of
-        (Left e) -> ([logTypeErr e], False)
+        (Left e) -> traceFile "invalid.plc" (PLC.prettyPlcDefString s) ([logTypeErr e], False)
         Right{} -> (isJust . reoption) <$> evaluateCekTrace s
 
     where check = PLC.runQuoteT . PLC.typecheckPipeline PLC.defOnChainConfig
