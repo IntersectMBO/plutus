@@ -40,7 +40,7 @@ jsonHandlingTests = do
       test "Decode a List." do
         assertDecodesTo
           (Proxy :: Proxy (List TokenName))
-          "test/token_ids.json"
+          "test/token_names.json"
       test ("Decode an empty NonEmptyList.") do
         equalGShow
           (Left "List is empty, expecting non-empty")
@@ -48,7 +48,7 @@ jsonHandlingTests = do
       test ("Decode a populated NonEmptyList.") do
         assertDecodesTo
           (Proxy :: Proxy (NonEmptyList TokenName))
-          "test/token_ids.json"
+          "test/token_names.json"
       test "Decode a KnownCurrency." do
         assertDecodesTo
           (Proxy :: Proxy KnownCurrency)
