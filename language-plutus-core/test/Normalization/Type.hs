@@ -19,6 +19,22 @@ import           Test.Tasty
 import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
 
+-- test [rec (lam dat (fun (type) (type)) [dat a])]
+test_catamorphism :: IO ()
+test_catamorphism =
+    let term = TyApp ()
+                recVar
+                (TyLam () datName
+                    (KindArrow () (Type ()) (Type ()))
+                    (TyApp () datVar aVar)
+                )
+    in isTypeValue term @?= True
+
+    where recVar = TyVar () (TyName (Name () "rec" (Unique 0)))
+          datVar = TyVar () datName
+          datName = TyName (Name () "dat" (Unique 1))
+          aVar = TyVar () (TyName (Name () "a" (Unique 2)))
+
 test_normalizer :: IO ()
 test_normalizer = do
     (Program _ _ term) <- deserialise <$> BSL.readFile "test/deserialise/invalid.plci"
@@ -54,5 +70,6 @@ test_typeNormalization =
     testGroup "typeNormalization"
         [ testCase     "appAppLamLam"               test_appAppLamLam
         , testProperty "normalizeTypesInIdempotent" test_normalizeTypesInIdempotent
-        , testCase     "plutusTxOutput"             test_normalizer
+        -- , testCase     "plutusTxOutput"             test_normalizer
+        , testCase     "bug"                        test_catamorphism
         ]

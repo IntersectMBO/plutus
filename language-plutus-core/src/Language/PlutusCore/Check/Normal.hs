@@ -100,16 +100,9 @@ typeValue = cataM aM where
 
 -- ensure a type is a neutral type
 neutralType :: Type tyname a -> Either (NormalizationError tyname name a) (Type tyname a)
-neutralType = cataM aM where
-
-    aM ty | isNeutralType ty = pure (embed ty)
-          | otherwise        = Left (BadType (tyLocF ty) (embed ty) "neutral type")
-
-    isNeutralType TyVarF{}     = True
-    isNeutralType TyAppF{}     = True
-    -- See note [Builtin applications and values]
-    isNeutralType TyBuiltinF{} = True
-    isNeutralType TyIntF{}     = True
-    isNeutralType _            = False
-
-    tyLocF = tyLoc . embed
+neutralType ty@TyVar{}       = pure ty
+neutralType (TyApp x ty ty') = TyApp x <$> neutralType ty <*> typeValue ty'
+-- See note [Builtin applications and values]
+neutralType ty@TyBuiltin{}   = pure ty
+neutralType ty@TyInt{}       = pure ty
+neutralType ty               = Left (BadType (tyLoc ty) ty "neutral type")
