@@ -8,13 +8,25 @@ import           Language.PlutusCore
 import           Language.PlutusCore.Generators.AST
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Normalize
+import           PlutusPrelude                      hiding (hoist)
 
+import           Codec.Serialise
 import           Control.Monad.Morph                (hoist)
+import qualified Data.ByteString.Lazy               as BSL
 
 import           Hedgehog
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
+
+test_normalizer :: IO ()
+test_normalizer = do
+    (Program _ _ term) <- deserialise <$> BSL.readFile "test/deserialise/invalid.plci"
+    let normTerm :: Term TyName Name ()
+        normTerm = runQuote $ normalizeTypesFullIn term
+        nonError :: Either (Error ()) a -> IO ()
+        nonError = (@?= True) . isRight
+    nonError (checkTerm normTerm)
 
 test_appAppLamLam :: IO ()
 test_appAppLamLam = do
@@ -42,4 +54,5 @@ test_typeNormalization =
     testGroup "typeNormalization"
         [ testCase     "appAppLamLam"               test_appAppLamLam
         , testProperty "normalizeTypesInIdempotent" test_normalizeTypesInIdempotent
+        , testCase     "plutusTxOutput"             test_normalizer
         ]
