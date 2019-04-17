@@ -246,8 +246,7 @@ benchmark language-plutus-core-bench
         language-plutus-core -any,
         criterion -any,
         bytestring -any,
-        serialise -any,
-        text -any
+        serialise -any
 
     if flag(eventlog)
         ghc-options: -eventlog

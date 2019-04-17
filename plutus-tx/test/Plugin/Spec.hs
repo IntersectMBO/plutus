@@ -18,12 +18,12 @@ import           PlcTestUtils
 import           Plugin.ReadValue
 
 import qualified Language.PlutusTx.Builtins as Builtins
+import           Language.PlutusTx.Code
 import           Language.PlutusTx.Lift
 import           Language.PlutusTx.Plugin
 
 import           Data.ByteString.Lazy       ()
 import           Data.Text.Prettyprint.Doc
-import           GHC.Generics
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
@@ -80,6 +80,8 @@ primitives = testNested "primitives" [
   , goldenPir "ifThenElse" ifThenElse
   , goldenEval "ifThenElseApply" [ getProgram $ ifThenElse, getProgram $ int, getProgram $ int2 ]
   --, goldenPlc "blocknum" blocknumPlc
+  , goldenPir "emptyByteString" emptyByteString
+  , goldenEval "emptyByteStringApply" [ getPlc emptyByteString, unsafeLiftProgram (Builtins.emptyByteString) ]
   , goldenPir "bytestring32" bytestring32
   , goldenPir "bytestring64" bytestring64
   , goldenEval "bytestring32Apply" [ getPlc bytestring32, unsafeLiftProgram ("hello"::Builtins.ByteString) ]
@@ -97,6 +99,9 @@ int = plc @"int" (1::Int)
 
 int2 :: CompiledCode Int
 int2 = plc @"int2" (2::Int)
+
+emptyBS :: CompiledCode (Builtins.SizedByteString 32)
+emptyBS = plc @"emptyBS" (Builtins.emptyByteString)
 
 bool :: CompiledCode Bool
 bool = plc @"bool" True
@@ -134,6 +139,9 @@ ifThenElse = plc @"ifThenElse" (\(x::Int) (y::Int) -> if Builtins.equalsInteger 
 
 --blocknumPlc :: CompiledCode
 --blocknumPlc = plc @"blocknumPlc" Builtins.blocknum
+
+emptyByteString :: CompiledCode (Builtins.SizedByteString 32 -> Builtins.SizedByteString 32)
+emptyByteString = plc @"emptyByteString" (\(x :: Builtins.SizedByteString 32) -> x)
 
 bytestring32 :: CompiledCode (Builtins.SizedByteString 32 -> Builtins.SizedByteString 32)
 bytestring32 = plc @"bytestring32" (\(x::Builtins.SizedByteString 32) -> x)

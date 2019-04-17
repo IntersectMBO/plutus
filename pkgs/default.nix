@@ -38295,7 +38295,6 @@ license = stdenv.lib.licenses.mit;
 , cookie
 , directory
 , exceptions
-, file-embed
 , filepath
 , hashable
 , http-types
@@ -38316,7 +38315,6 @@ license = stdenv.lib.licenses.mit;
 , transformers
 , unordered-containers
 , wai
-, warp
 }:
 mkDerivation {
 
@@ -38330,7 +38328,6 @@ bytestring
 cookie
 directory
 exceptions
-file-embed
 filepath
 hashable
 http-types
@@ -38350,7 +38347,6 @@ time-units
 transformers
 unordered-containers
 wai
-warp
 ];
 doHaddock = false;
 license = stdenv.lib.licenses.asl20;
@@ -41140,7 +41136,6 @@ base
 bytestring
 criterion
 serialise
-text
 ];
 doHaddock = false;
 description = "Language library for Plutus Core";
@@ -43830,8 +43825,10 @@ license = "GPL";
 ({
   mkDerivation
 , base
+, bytestring
 , containers
 , hedgehog
+, memory
 , mtl
 , plutus-tx
 , stdenv
@@ -43860,8 +43857,10 @@ wl-pprint
 ];
 testHaskellDepends = [
 base
+bytestring
 containers
 hedgehog
+memory
 plutus-tx
 tasty
 tasty-hedgehog
@@ -44360,10 +44359,7 @@ license = stdenv.lib.licenses.mit;
 , exceptions
 , file-embed
 , filepath
-, gitrev
 , hspec
-, hspec-wai
-, hspec-wai-json
 , http-client
 , http-client-tls
 , http-conduit
@@ -44428,7 +44424,6 @@ monad-logger
 mtl
 newtype-generics
 process
-prometheus
 servant
 servant-client
 servant-client-core
@@ -44439,7 +44434,6 @@ text
 time
 time-units
 transformers
-wai
 ];
 executableHaskellDepends = [
 aeson
@@ -44449,7 +44443,6 @@ containers
 data-default-class
 directory
 filepath
-gitrev
 http-types
 interpreter
 lens
@@ -44469,12 +44462,9 @@ warp
 yaml
 ];
 testHaskellDepends = [
-aeson
 base
 bytestring
 hspec
-hspec-wai
-hspec-wai-json
 interpreter
 mtl
 raw-strings-qq
@@ -53204,12 +53194,14 @@ license = stdenv.lib.licenses.asl20;
 , bytestring
 , containers
 , hedgehog
+, hspec
+, hspec-discover
 , insert-ordered-containers
 , interpreter
 , lens
 , memory
 , mtl
-, newtype-generics
+, QuickCheck
 , servant
 , stdenv
 , swagger2
@@ -53235,7 +53227,6 @@ interpreter
 lens
 memory
 mtl
-newtype-generics
 servant
 swagger2
 template-haskell
@@ -53248,12 +53239,18 @@ aeson
 base
 containers
 hedgehog
+hspec
+interpreter
+QuickCheck
 swagger2
 tasty
 tasty-hunit
 template-haskell
 text
 wallet-api
+];
+testToolDepends = [
+hspec-discover
 ];
 doHaddock = false;
 homepage = "https://github.com/iohk/plutus#readme";
@@ -53271,11 +53268,9 @@ license = stdenv.lib.licenses.asl20;
 , containers
 , cookie
 , data-default-class
-, directory
 , exceptions
 , file-embed
 , filepath
-, gitrev
 , hspec
 , hspec-discover
 , http-client
@@ -53291,7 +53286,6 @@ license = stdenv.lib.licenses.asl20;
 , newtype-generics
 , optparse-applicative
 , plutus-playground-lib
-, process
 , prometheus
 , purescript-bridge
 , regex-compat
@@ -53303,7 +53297,6 @@ license = stdenv.lib.licenses.asl20;
 , servant-server
 , stdenv
 , swagger2
-, temporary
 , text
 , time
 , time-units
@@ -53330,7 +53323,6 @@ base
 bytestring
 containers
 cookie
-directory
 exceptions
 file-embed
 http-client
@@ -53344,15 +53336,12 @@ monad-logger
 mtl
 newtype-generics
 plutus-playground-lib
-process
 regex-compat
 servant
 servant-client
 servant-client-core
 servant-purescript
 servant-server
-swagger2
-temporary
 text
 time
 time-units
@@ -53367,7 +53356,6 @@ bytestring
 containers
 data-default-class
 filepath
-gitrev
 http-types
 interpreter
 lens
@@ -53435,7 +53423,6 @@ version = "0.1.0.0";
 src = .././plutus-tutorial;
 libraryHaskellDepends = [
 base
-bytestring
 containers
 language-plutus-core
 plutus-tx
@@ -53566,11 +53553,11 @@ testHaskellDepends = [
 base
 containers
 hedgehog
-plutus-tx
+lens
+mtl
 tasty
 tasty-hedgehog
 tasty-hunit
-template-haskell
 text
 wallet-api
 ];
@@ -76009,6 +75996,7 @@ license = stdenv.lib.licenses.mit;
 , swagger2
 , tasty
 , tasty-hedgehog
+, tasty-hunit
 , template-haskell
 , text
 , transformers
@@ -76067,6 +76055,7 @@ lens
 plutus-tx
 tasty
 tasty-hedgehog
+tasty-hunit
 transformers
 ];
 doHaddock = false;

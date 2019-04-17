@@ -7,9 +7,9 @@ import qualified Data.Set                  as Set
 import qualified Language.PlutusTx         as P
 import           Ledger                    (Address, DataScript(..), RedeemerScript(..), Signature, Slot, TxOutRef, TxIn, ValidatorScript(..))
 import qualified Ledger                    as L
-import           Ledger.Ada                (Ada)
-import qualified Ledger.Ada                as Ada
-import qualified Ledger.Ada.TH             as ATH
+import           Ledger.Value              (Value)
+import qualified Ledger.Value              as Value
+import qualified Ledger.Value.TH           as Value.TH
 import qualified Ledger.Interval           as Interval
 import qualified Ledger.Slot               as Slot
 import qualified Ledger.Validation         as V
@@ -40,7 +40,7 @@ import           Playground.Contract
 data VestingTranche = VestingTranche {
     vestingTrancheDate   :: Slot,
     -- ^ When this tranche is released
-    vestingTrancheAmount :: Ada
+    vestingTrancheAmount :: Value
     -- ^ How much money is locked in this tranche
     } deriving (Generic, ToJSON, FromJSON, ToSchema)
 
@@ -62,9 +62,9 @@ data Vesting = Vesting {
 
 P.makeLift ''Vesting
 
--- | The total amount of Ada locked by a vesting scheme
-totalVested :: Vesting -> Ada
-totalVested (Vesting l r _) = Ada.plus (vestingTrancheAmount l) (vestingTrancheAmount r)
+-- | The total value locked by a vesting scheme
+totalVested :: Vesting -> Value
+totalVested (Vesting l r _) = Value.plus (vestingTrancheAmount l) (vestingTrancheAmount r)
 
 {- |
 
@@ -104,9 +104,9 @@ vestingValidator v = ValidatorScript val where
             -- at the contract address.
             ownHash = $$(V.ownHash) p
 
-            -- The total amount of Ada that has been vested:
-            totalAmount :: Ada
-            totalAmount = $$(ATH.plus) a1 a2
+            -- The total value that has been vested:
+            totalAmount :: Value
+            totalAmount = $$(Value.TH.plus) a1 a2
 
             -- It will be useful to know the amount of money that has been 
             -- released so far. This means we need to check the current slot 
@@ -118,7 +118,7 @@ vestingValidator v = ValidatorScript val where
             --
             -- We can think of 'd1' as an interval as well: It is 
             -- the open-ended interval starting with slot 'd1'. At any point 
-            -- during this interval we may take out up to 'a1' Ada.
+            -- during this interval we may take out up to a value of 'a1'.
             d1Intvl = $$(Interval.from) d1
 
             -- Likewise for 'd2'
@@ -133,7 +133,7 @@ vestingValidator v = ValidatorScript val where
             -- Likewise for 'd2'
             inD2Intvl = $$(Slot.contains) d2Intvl range
 
-            released :: Ada
+            released :: Value
             released
                 -- to compute the amount that has been released we need to 
                 -- consider three cases:
@@ -147,11 +147,11 @@ vestingValidator v = ValidatorScript val where
                 | inD1Intvl = a1
 
                 -- Otherwise nothing has been released yet
-                | True      = $$(ATH.zero)
+                | True      = $$(Value.TH.zero)
 
             -- And the following amount has not been released yet:
-            unreleased :: Ada
-            unreleased = $$(ATH.minus) totalAmount released
+            unreleased :: Value
+            unreleased = $$(Value.TH.minus) totalAmount released
 
             -- To check whether the withdrawal is legitimate we need to
             -- 1. Ensure that the amount taken out does not exceed the current 
@@ -162,12 +162,12 @@ vestingValidator v = ValidatorScript val where
 
             -- con1 is true if the amount that remains locked in the contract 
             -- is greater than or equal to 'unreleased'. We use the 
-            -- `adaLockedBy` function to get the amount of Ada paid by pending
+            -- `valueLockedBy` function to get the value paid by pending
             -- transaction 'p' to the script address 'ownHash'. 
             con1 :: Bool
             con1 = 
-                let remainsLocked = $$(V.adaLockedBy) p ownHash
-                in $$(ATH.geq) remainsLocked unreleased
+                let remainsLocked = $$(V.valueLockedBy) p ownHash
+                in $$(Value.TH.geq) remainsLocked unreleased
 
             -- con2 is true if the scheme owner has signed the pending 
             -- transaction 'p'.
@@ -200,7 +200,7 @@ contractAddress vst = L.scriptAddress (vestingValidator vst)
 
 vestFunds :: (Monad m, WalletAPI m) => Vesting -> m ()
 vestFunds vst = do
-    let amt = Ada.toValue (totalVested vst)
+    let amt = totalVested vst
         adr = contractAddress vst
         dataScript = DataScript (L.lifted ())
     W.payToScript_ W.defaultSlotRange adr amt dataScript
@@ -212,10 +212,10 @@ registerVestingScheme vst = startWatching (contractAddress vst)
 
     The last endpoint, `withdraw`, is different. We need to create a 
     transaction that spends the contract's current unspent transaction output 
-    *and* puts the Ada that remains back at the script address.
+    *and* puts the value that remains back at the script address.
 
 -}
-withdraw :: (Monad m, WalletAPI m) => Vesting -> Ada -> m ()
+withdraw :: (Monad m, WalletAPI m) => Vesting -> Value -> m ()
 withdraw vst vl = do
 
     let address = contractAddress vst
@@ -255,13 +255,13 @@ withdraw vst vl = do
     -- that keeps the remaining value.
 
     -- We can create a public key output to our own key with 'ownPubKeyTxOut'.
-    ownOutput <- W.ownPubKeyTxOut (Ada.toValue vl)
+    ownOutput <- W.ownPubKeyTxOut vl
 
     -- Now to compute the difference between 'vl' and what is currently in the 
     -- scheme:
     let 
         currentlyLocked = Map.foldr (\txo vl' -> vl' `Value.plus` L.txOutValue txo) Value.zero utxos
-        remaining = currentlyLocked `Value.minus` (Ada.toValue vl)
+        remaining = currentlyLocked `Value.minus` vl
 
         otherOutputs = if Value.eq Value.zero remaining
                        then []

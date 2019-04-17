@@ -2,6 +2,8 @@ module Chain.BlockchainExploration
        ( blockchainExploration
        ) where
 
+import Prelude hiding (div)
+
 import Bootstrap (nbsp)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
@@ -13,20 +15,20 @@ import Data.Set (Set)
 import Data.Set as Set
 import Data.String as String
 import Data.String.Extra (abbreviate)
-import Data.Tuple (Tuple(Tuple), fst, snd)
-import Data.Tuple.Nested (tuple3, (/\))
+import Data.Tuple (Tuple(..), fst, snd)
+import Data.Tuple.Nested (type (/\), tuple3, (/\))
 import Halogen (HTML)
 import Halogen.HTML (ClassName(ClassName), div, div_, h2, h2_, h3, strong_, table, tbody_, td, text, th, thead_, tr_)
 import Halogen.HTML.Properties (class_, classes, colSpan)
 import Ledger.Ada.TH (Ada(..))
-import Ledger.Crypto (PubKey(PubKey), Signature(Signature))
-import Ledger.Extra (LedgerMap(..))
+import Ledger.Crypto (PubKey(PubKey))
+import Ledger.Extra (LedgerMap(..), collapse)
+import Ledger.Extra as Ledger
 import Ledger.Scripts (DataScript(..), RedeemerScript(..))
 import Ledger.Tx (Tx(Tx), TxInOf(TxInOf), TxInType(..), TxOutOf(TxOutOf), TxOutRefOf(TxOutRefOf), TxOutType(..))
 import Ledger.TxId (TxIdOf(TxIdOf))
-import Ledger.Value.TH (CurrencySymbol(..), Value(..))
+import Ledger.Value.TH (CurrencySymbol(..), TokenName(..), Value(..))
 import Partial.Unsafe (unsafePartial)
-import Prelude (class Eq, class Ord, class Show, map, show, (#), ($), (+), (<#>), (<$>), (<*>), (<<<), (<>), (==))
 import Types (Blockchain)
 
 type SlotId = Int
@@ -127,14 +129,13 @@ blockchainExploration blockchain =
     rows = Set.fromFoldable $ map snd $ Map.keys $ balanceMap
 
 data Balance
-  = AdaBalance Ada
-  | CurrencyBalance (Array (Tuple CurrencySymbol Int))
+  = CurrencyBalance (LedgerMap CurrencySymbol (LedgerMap TokenName Int))
   | Remainder
 
 merge :: Balance -> Balance -> Maybe Balance
 merge Remainder Remainder = Just Remainder
-merge (CurrencyBalance x) (CurrencyBalance y) = Just $ CurrencyBalance (x <> y)
-merge (AdaBalance (Ada {getAda: x})) (AdaBalance (Ada {getAda: y})) = Just $ AdaBalance (Ada { getAda: x + y })
+merge (CurrencyBalance x) (CurrencyBalance y)
+  = Just $ CurrencyBalance (Ledger.unionWith (Ledger.unionWith (+)) x y)
 merge _ _ = Nothing
 
 toBalanceMap :: Blockchain -> Map (Tuple Column (Tuple Int Int)) Balance
@@ -153,12 +154,12 @@ toBalanceMap =
                                ))
   where
     forgeTransactions :: Row -> Tuple (TxIdOf String) Tx -> Tuple (Tuple Column Row) Balance
-    forgeTransactions row (Tuple _ (Tx {txForge: (Value { getValue: LedgerMap balances })})) =
+    forgeTransactions row (Tuple _ (Tx {txForge: (Value { getValue: balances })})) =
       Tuple (Tuple ForgeIx row) (CurrencyBalance balances)
 
     feeTransactions :: Row -> Tuple (TxIdOf String) Tx -> Tuple (Tuple Column Row) Balance
-    feeTransactions row (Tuple _ (Tx {txFee: ada})) =
-      Tuple (Tuple FeeIx row) (AdaBalance ada)
+    feeTransactions row (Tuple _ (Tx {txFee: (Ada {getAda: adaBalance})})) =
+      Tuple (Tuple FeeIx row) (CurrencyBalance $ LedgerMap [Tuple adaCurrencySymbol (LedgerMap [Tuple adaTokenName adaBalance])])
 
     inputTransactions :: Row -> Tuple (TxIdOf String) Tx -> Array (Tuple (Tuple Column Row) Balance)
     inputTransactions row (Tuple _ (Tx {txInputs})) =
@@ -180,34 +181,30 @@ toBalanceMap =
       where
         fromTxOut :: TxOutOf String -> Tuple (Tuple Column Row) Balance
         fromTxOut (TxOutOf { txOutType: (PayToPubKey (PubKey { getPubKey: owner }))
-                           , txOutValue: (Value ({ getValue: LedgerMap currencyBalances }))
+                           , txOutValue: (Value ({ getValue: currencyBalances }))
                            })
           = Tuple (Tuple (OwnerIx owner hash) row) (CurrencyBalance currencyBalances)
         fromTxOut (TxOutOf { txOutType: (PayToScript (DataScript { getDataScript: owner }))
-                           , txOutValue: (Value ({ getValue: LedgerMap currencyBalances }))
+                           , txOutValue: (Value ({ getValue: currencyBalances }))
                            })
           = Tuple (Tuple (ScriptIx owner hash) row) (CurrencyBalance currencyBalances)
+
+    -- | TODO Ask Jann if txFee is going to change away from `Ada` (the type) soon.
+    adaCurrencySymbol = CurrencySymbol { unCurrencySymbol: "" }
+    adaTokenName = TokenName { unTokenName: "ada" }
+
 
 balanceClassname :: ClassName
 balanceClassname = ClassName "balance"
 balanceView :: forall p i. Balance -> HTML p i
-balanceView (AdaBalance (Ada {getAda: ada})) =
-  div [ classes [ balanceClassname
-                , if ada == 0
-                  then ClassName "balance-no-ada"
-                  else ClassName "balance-ada"
-                ]
-      ]
-      [ amountView "ADA" ada ]
-
 balanceView (CurrencyBalance currencyBalances) =
   div [ classes [ balanceClassname
-                , if Array.null currencyBalances
+                , if Ledger.null currencyBalances
                   then ClassName "balance-no-currencies"
                   else ClassName "balance-currencies"
                 ]
       ]
-      (map valueView currencyBalances)
+      (map valueView (collapse currencyBalances))
 
 balanceView Remainder =
   div [ classes [ balanceClassname
@@ -216,9 +213,12 @@ balanceView Remainder =
       ]
       []
 
-valueView :: forall p i. Tuple CurrencySymbol Int -> HTML p i
-valueView (Tuple (CurrencySymbol sym) balance) =
-  amountView ("λ" <> show sym) balance
+valueView :: forall p i. CurrencySymbol /\ TokenName /\ Int -> HTML p i
+valueView
+  (CurrencySymbol { unCurrencySymbol: symbol }
+   /\ TokenName { unTokenName: token }
+   /\ balance) =
+  amountView token balance
 
 amountView :: forall p i. String -> Int -> HTML p i
 amountView name balance =

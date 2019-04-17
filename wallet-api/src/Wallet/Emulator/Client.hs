@@ -31,7 +31,7 @@ import           Ledger                     (Address, Block, PubKey, Slot, Tx, T
 import qualified Ledger.Crypto              as Crypto
 import           Servant.API                ((:<|>) ((:<|>)), NoContent)
 import           Servant.Client             (ClientEnv, ClientM, ServantError, client, runClientM)
-import           Wallet.API                 (WalletAPI (..))
+import           Wallet.API                 (WalletAPI (..), WalletAPIError)
 import           Wallet.Emulator.AddressMap (AddressMap)
 import           Wallet.Emulator.Http       (API)
 import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqual), Event (..),
@@ -85,20 +85,20 @@ liftWallet action = do
   WalletClient $ lift $ lift $ action wallet
 
 runWalletAction ::
-     ClientEnv -> Wallet -> WalletClient a -> ExceptT ServantError IO [Tx]
+     ClientEnv -> Wallet -> WalletClient a -> ExceptT ServantError IO (Either WalletAPIError a, [Tx])
 runWalletAction clientEnv wallet action = do
   let env = Environment wallet clientEnv
   eRes <- lift $ runWalletClient env action
   case eRes of
     Left e        -> throwError e
-    Right (_, tx) -> pure tx
+    Right (a, tx) -> pure (Right a, tx)
 
 instance WalletAPI WalletClient where
   submitTxn tx = liftWallet (`submitTxn'` tx) >> tell [tx]
   sign bs = Crypto.sign (BSL.toStrict bs) . walletPrivKey <$> asks getWallet
   ownPubKey = liftWallet ownPubKey'
   createPaymentWithChange value = liftWallet (`createPaymentWithChange'` value)
-  register _ _ = pure () -- TODO: Keep track of triggers in emulated wallet
+  registerOnce _ _ = pure () -- TODO: Keep track of triggers in emulated wallet
   watchedAddresses = liftWallet getAddresses
   slot = liftWallet getSlot
   startWatching a = void $ liftWallet (`startWatching'` a)
@@ -118,7 +118,7 @@ eval clientEnv =
     WalletRecvNotification wallet trigger ->
       fold <$>
       traverse
-        (runWalletAction clientEnv wallet . liftWallet . handleNotification)
+        (fmap snd . runWalletAction clientEnv wallet . liftWallet . handleNotification)
         trigger
     BlockchainProcessPending -> ExceptT $ runClientM processPending clientEnv
     Assertion a -> ExceptT $ runClientM (assert a) clientEnv

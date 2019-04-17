@@ -15,6 +15,7 @@ import           PlcTestUtils
 import           TH.TestTH
 
 import           Language.PlutusTx.TH
+import           Language.PlutusTx.Code
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Prelude
 import           Language.PlutusTx.Evaluation

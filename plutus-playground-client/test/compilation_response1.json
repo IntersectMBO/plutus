@@ -2,7 +2,23 @@
   "Right": {
     "warnings": [],
     "result": {
-      "knownCurrencies": [],
+      "knownCurrencies": [
+        {
+          "hash": "5f4143ff",
+          "friendlyName": "Currencies",
+          "knownTokens": [
+            "USDToken",
+            "EURToken"
+          ]
+        },
+        {
+          "hash": "5fff",
+          "friendlyName": "",
+          "knownTokens": [
+            "Ada"
+          ]
+        }
+      ],
       "functionSchema": [
         {
           "argumentSchema": [],
@@ -56,7 +72,7 @@
               ]
             },
             {
-              "tag": "SimpleObjectSchema",
+              "tag": "ValueSchema",
               "contents": [
                 [
                   "getValue",
@@ -71,10 +87,29 @@
                             "tag": "SimpleTupleSchema",
                             "contents": [
                               {
-                                "tag": "SimpleIntSchema"
+                                "tag": "SimpleHexSchema"
                               },
                               {
-                                "tag": "SimpleIntSchema"
+                                "tag": "SimpleObjectSchema",
+                                "contents": [
+                                  [
+                                    "unMap",
+                                    {
+                                      "tag": "SimpleArraySchema",
+                                      "contents": {
+                                        "tag": "SimpleTupleSchema",
+                                        "contents": [
+                                          {
+                                            "tag": "SimpleHexSchema"
+                                          },
+                                          {
+                                            "tag": "SimpleIntSchema"
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  ]
+                                ]
                               }
                             ]
                           }
@@ -89,7 +124,7 @@
               "tag": "SimpleObjectSchema",
               "contents": [
                 [
-                  "getPubKey",
+                  "getWallet",
                   {
                     "tag": "SimpleIntSchema"
                   }
@@ -97,7 +132,7 @@
               ]
             }
           ],
-          "functionName": "payToPublicKey_"
+          "functionName": "payToWallet_"
         }
       ]
     }

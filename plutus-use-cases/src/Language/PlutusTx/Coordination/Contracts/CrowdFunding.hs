@@ -94,13 +94,13 @@ contribute cmp adaAmount = do
     tx <- payToScript range (campaignAddress cmp) value ds
     logMsg "Submitted contribution"
 
-    register (refundTrigger cmp) (refund (Ledger.hashTx tx) cmp)
+    W.register (refundTrigger cmp) (refund (Ledger.hashTx tx) cmp)
     logMsg "Registered refund trigger"
 
 -- | Register a [[EventHandler]] to collect all the funds of a campaign
 --
 collect :: (WalletAPI m, WalletDiagnostics m) => Campaign -> m ()
-collect cmp = register (collectFundsTrigger cmp) $ EventHandler $ \_ -> do
+collect cmp = W.register (collectFundsTrigger cmp) $ EventHandler $ \_ -> do
         logMsg "Collecting funds"
         am <- watchedAddresses
         let scr        = contributionScript cmp

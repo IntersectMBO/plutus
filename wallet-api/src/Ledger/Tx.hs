@@ -56,7 +56,8 @@ module Ledger.Tx(
     AddressOf(..),
     Address,
     pubKeyAddress,
-    scriptAddress
+    scriptAddress,
+    inAddress
     ) where
 
 import qualified Codec.CBOR.Write                         as Write
@@ -65,6 +66,7 @@ import           Control.Lens                             hiding (lifted)
 import           Crypto.Hash                              (Digest, SHA256, hash)
 import           Data.Aeson                               (FromJSON, ToJSON)
 import qualified Data.ByteArray                           as BA
+import qualified Data.ByteString.Lazy                     as BSL
 import qualified Data.ByteString.Char8                    as BS8
 import           Data.Maybe                               (isJust)
 import           Data.Map                                 (Map)
@@ -80,6 +82,7 @@ import           Ledger.Scripts
 import           Ledger.TxId
 import           Ledger.Value
 import qualified Ledger.Value.TH                          as V
+import qualified LedgerBytes                              as LB
 
 {- Note [Serialisation and hashing]
 
@@ -129,7 +132,8 @@ data Tx = Tx {
     -- ^ The 'SlotRange' during which this transaction may be validated.
     txSignatures :: Map PubKey Signature
     -- ^ Signatures of this transaction
-    } deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON)
+    } deriving stock (Show, Eq, Ord, Generic)
+      deriving anyclass (ToJSON, FromJSON, Serialise)
 
 -- | The inputs of a transaction.
 inputs :: Lens' Tx (Set.Set TxIn)
@@ -255,6 +259,14 @@ inPubKey :: TxInOf h -> Maybe PubKey
 inPubKey TxInOf{ txInType = t } = case t of
     ConsumeScriptAddress _ _  -> Nothing
     ConsumePublicKeyAddress p -> Just p
+
+-- | The address of the output spent by a 'TxIn'.
+inAddress :: TxInOf h -> BSL.ByteString
+inAddress TxInOf{ txInType = t } = case t of
+    ConsumeScriptAddress v _ -> 
+        BSL.fromStrict . BA.convert . getAddress . scriptAddress $ v
+    ConsumePublicKeyAddress pk  -> 
+        LB.bytes (getPubKey pk)
 
 -- | A transaction input that spends a "pay to public key" output, given the witness.
 pubKeyTxIn :: TxOutRefOf h -> PubKey -> TxInOf h

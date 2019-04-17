@@ -7,8 +7,8 @@
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Language.PlutusTx.Prelude    as P
 import           Ledger
-import qualified Ledger.Ada                   as Ada
-import           Ledger.Ada                   (Ada)
+import qualified Ledger.Value                   as Value
+import           Ledger.Value                   (Value)
 import           Ledger.Validation
 import           Wallet
 import           Playground.Contract
@@ -57,16 +57,16 @@ gameAddress :: Address
 gameAddress = Ledger.scriptAddress gameValidator
 
 -- | The "lock" contract endpoint. See note [Contract endpoints]
-lock :: MonadWallet m => String -> Ada -> m ()
-lock word adaValue =
+lock :: MonadWallet m => String -> Value -> m ()
+lock word value =
     -- 'payToScript_' is a function of the wallet API. It takes a script
-    -- address, an ada value and a data script, and submits a transaction that
-    -- pays the value to the address, using the data script.
+    -- address, a currency value and a data script, and submits a transaction 
+    -- that pays the value to the address, using the data script.
     --
     -- The underscore at the end of the name indicates that 'payToScript_'
     -- discards its result. If you want to hold on to the transaction you can
     -- use 'payToScript'.
-    payToScript_ defaultSlotRange gameAddress (Ada.toValue adaValue) (mkDataScript word)
+    payToScript_ defaultSlotRange gameAddress value (mkDataScript word)
 
 -- | The "guess" contract endpoint. See note [Contract endpoints]
 guess :: MonadWallet m => String -> m ()

@@ -12,12 +12,16 @@ import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import qualified Data.Aeson.Internal        as Aeson
 import qualified Data.ByteString            as BSS
+import qualified Data.ByteString.Lazy       as BSL
 import           Data.Either                (isLeft, isRight)
 import           Data.Foldable              (fold, foldl', traverse_)
 import           Data.List                  (sort)
 import qualified Data.Map                   as Map
+import           Data.String                (IsString(fromString))
+import qualified Ledger.Map
 import           Data.Monoid                (Sum (..))
 import qualified Data.Set                   as Set
+import           Data.String                (IsString(fromString))
 import           Hedgehog                   (Property, forAll, property)
 import qualified Hedgehog
 import qualified Hedgehog.Gen               as Gen
@@ -26,12 +30,14 @@ import qualified Language.PlutusTx.Builtins as Builtins
 import qualified Language.PlutusTx.Prelude  as PlutusTx
 import           Test.Tasty
 import           Test.Tasty.Hedgehog        (testProperty)
-
-import           KeyBytes
+import qualified Test.Tasty.HUnit as HUnit
+import           Test.Tasty.HUnit (testCase)
+import           LedgerBytes                as LedgerBytes
 import           Ledger
 import qualified Ledger.Ada                 as Ada
 import qualified Ledger.Index               as Index
 import qualified Ledger.Value               as Value
+import           Ledger.Value.TH            (CurrencySymbol,Value(Value))
 import           Wallet
 import qualified Wallet.API                 as W
 import           Wallet.Emulator
@@ -81,7 +87,24 @@ tests = testGroup "all tests" [
         testProperty "txnFlows" txnFlowsTest,
         testProperty "encodeByteString" encodeByteStringTest,
         testProperty "encodeSerialise" encodeSerialiseTest
-        ]
+        ],
+    testGroup "LedgerBytes" [
+        testProperty "show-fromHex" ledgerBytesShowFromHexProp,
+        testProperty "toJSON-fromJSON" ledgerBytesToJSONProp
+        ],
+    testGroup "Value" ([
+        testProperty "Value ToJSON/FromJSON" (jsonRoundTrip Gen.genValue),
+        testProperty "CurrencySymbol ToJSON/FromJSON" (jsonRoundTrip $ Value.currencySymbol <$> Gen.genSizedByteStringExact),
+        testProperty "TokenName ToJSON/FromJSON" (jsonRoundTrip $ fromString @Value.TokenName <$> Gen.string (Range.linear 0 32) Gen.latin1),
+        testProperty "CurrencySymbol IsString/Show" currencySymbolIsStringShow
+        ] ++ (let   vlJson :: BSL.ByteString
+                    vlJson = "{\"getValue\":[[{\"unCurrencySymbol\":\"ab01ff\"},[[{\"unTokenName\":\"myToken\"},50]]]]}"
+                    vlValue = Value.singleton "ab01ff" "myToken" 50
+                in byteStringJson vlJson vlValue)
+          ++ (let   vlJson :: BSL.ByteString
+                    vlJson = "{\"getValue\":[[{\"unCurrencySymbol\":\"\"},[[{\"unTokenName\":\"\"},50]]]]}"
+                    vlValue = Ada.adaValueOf 50
+                in byteStringJson vlJson vlValue))
     ]
 
 wallet1, wallet2, wallet3 :: Wallet
@@ -269,7 +292,7 @@ valueScalarDistrib = property $ do
 
 selectCoinProp :: Property
 selectCoinProp = property $ do
-    inputs <- forAll $ zip [1..] <$> Gen.list (Range.linear 1 1000) Gen.genValueNonNegative
+    inputs <- forAll $ zip [1..] <$> Gen.list (Range.linear 1 100) Gen.genValueNonNegative
     target <- forAll Gen.genValueNonNegative
     let result = runExcept (selectCoin inputs target)
     case result of
@@ -436,3 +459,39 @@ encodeSerialiseTest = property $ do
         result = Aeson.iparse JSON.decodeSerialise enc
 
     Hedgehog.assert $ result == Aeson.ISuccess txt
+
+jsonRoundTrip :: (Show a, Eq a, JSON.FromJSON a, JSON.ToJSON a) => Hedgehog.Gen a -> Property
+jsonRoundTrip gen = property $ do
+    bts <- forAll gen
+    let enc    = JSON.toJSON bts
+        result = Aeson.iparse JSON.parseJSON enc
+
+    Hedgehog.assert $ result == Aeson.ISuccess bts
+
+ledgerBytesShowFromHexProp :: Property
+ledgerBytesShowFromHexProp = property $ do
+    bts <- forAll $ LedgerBytes <$> Gen.genSizedByteString
+    let result = LedgerBytes.fromHex $ fromString $ show bts
+    
+    Hedgehog.assert $ result == bts
+
+ledgerBytesToJSONProp :: Property
+ledgerBytesToJSONProp = property $ do
+    bts <- forAll $ LedgerBytes <$> Gen.genSizedByteString
+    let enc    = JSON.toJSON bts
+        result = Aeson.iparse JSON.parseJSON enc
+
+    Hedgehog.assert $ result == Aeson.ISuccess bts
+
+currencySymbolIsStringShow :: Property
+currencySymbolIsStringShow = property $ do
+    cs <- forAll $ Value.currencySymbol <$> Gen.genSizedByteStringExact
+    let cs' = fromString (show cs)
+    Hedgehog.assert $ cs' == cs
+
+-- byteStringJson :: (Eq a, JSON.FromJSON a) => BSL.ByteString -> a -> [TestCase]
+byteStringJson jsonString value =
+    [ testCase "decoding" $
+        HUnit.assertEqual "Simple Decode" (Right value) (JSON.eitherDecode jsonString)
+    , testCase "encoding" $ HUnit.assertEqual "Simple Encode" jsonString (JSON.encode value)
+    ]

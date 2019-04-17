@@ -108,7 +108,7 @@ import           Language.PlutusTx.Lift         ( makeLift )
 import           Language.Haskell.TH            ( Q
                                                 , TExp
                                                 )
-import           KeyBytes                       (KeyBytes(..))
+import           LedgerBytes                       (LedgerBytes(..))
 import GHC.Generics (Generic)
 import Language.Marlowe.Pretty (Pretty, prettyFragment)
 import Text.PrettyPrint.Leijen (text)
@@ -651,7 +651,7 @@ evaluateContract = [|| \
     interpretObs = $$(interpretObservation) evalValue
 
     signedBy :: Signature -> PubKey -> Bool
-    signedBy (Signature sig) (PubKey (KeyBytes pk)) = let
+    signedBy (Signature sig) (PubKey (LedgerBytes pk)) = let
         TxHash msg = txHash
         in $$(PlutusTx.verifySignature) pk msg sig
 

@@ -1,15 +1,10 @@
-{ pkgs, declInput }:
+{ pkgs, git-rev }:
 
 with pkgs.lib;
 
+# This overlay will alter the Git.hs haskell module with the current git revision. If declInput.rev
+# is avilable the it will use that (Hydra) otherwise it will look in the .git directory (local builds)
 let
-  headPath = ../../.git/HEAD;
-  readRev = let head = if builtins.pathExists headPath then builtins.readFile headPath else "master";
-            in
-              if hasPrefix "ref: " head
-                then builtins.readFile (../../.git + ''/${removeSuffix "\n" (removePrefix "ref: " head)}'')
-                else head;
-  git-rev = removeSuffix "\n" (if isNull declInput then readRev else declInput.rev);
   gitModulePatch = pkgs.writeText "gitModulePatch" ''
     diff --git a/src/Git.hs b/src/Git.hs
     index b0398a7..45a9066 100644

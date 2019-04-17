@@ -5,7 +5,7 @@ embedded programs that can be used when generating transactions.
 
 This is the first in a series of tutorials:
 
-1. Plutus Tx (this one)
+1. Plutus Tx (this tutorial)
 2. [A guessing game](./02-validator-scripts.md)
 3. [A crowdfunding campaign](./03-wallet-api.md)
 4. [Working with the emulator](../../tutorial/Tutorial/Emulator.hs)
@@ -155,9 +155,13 @@ functions = $$(compile [||
     let
         plusOneLocal :: Int -> Int
         plusOneLocal x = x `addInteger` 1
-        -- This won't work.
+
+        -- This won't work:
         -- nonLocalDoesntWork = plusOne 1
+
+        -- This will work:
         localWorks = plusOneLocal 1
+
         -- You can of course bind this to a name, but for the purposes
         -- of this tutorial we won't since TH requires it to be in
         -- another module.
@@ -252,14 +256,11 @@ we need to apply the function to it.
 >>> pretty $ runCk program
 (con 8 ! 5)
 -}
-addOneToN :: Int -> Program TyName Name ()
-addOneToN n = (getPlc addOne) `applyProgram` unsafeLiftProgram n
+addOneToN :: Int -> CompiledCode Int
+addOneToN n = addOne `applyCode` unsafeLiftCode n
 ```
 
-`Program` is a real PLC program, extracted from the `CompiledCode` wrapper. In later
-tutorials we'll see some higher-level functions that hide this from us.
-
-We lifted the argument `n` using the `unsafeLiftProgram` function ("unsafe" because
+We lifted the argument `n` using the `unsafeLiftCode` function ("unsafe" because
 we're ignoring any errors that might occur from lifting something that we don't support).
 In order to use this, a type must have an instance of the `Lift` class. In
 practice, you should generate these with the `makeLift` TH function from
@@ -283,11 +284,13 @@ makeLift ''EndDate
   out_Bool (type) (lam case_True out_Bool (lam case_False out_Bool case_False))
 )
 -}
-pastEndAt :: EndDate -> Int -> Program TyName Name ()
+pastEndAt :: EndDate -> Int -> CompiledCode Bool
 pastEndAt end current =
-    (getPlc pastEnd)
-    `applyProgram`
-    unsafeLiftProgram end
-    `applyProgram`
-    unsafeLiftProgram current
+    pastEnd
+    `applyCode`
+    unsafeLiftCode end
+    `applyCode`
+    unsafeLiftCode current
 ```
+
+The [next part](./02-validator-scripts.md) of the tutorial explains how to get Plutus onto the blockchain, using a simple guessing game as an example.

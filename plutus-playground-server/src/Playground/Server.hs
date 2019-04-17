@@ -36,7 +36,7 @@ import qualified Wallet.Graph                 as V
 acceptSourceCode ::
        SourceCode -> Handler (Either InterpreterError (InterpreterResult CompilationResult))
 acceptSourceCode sourceCode = do
-    let maxInterpretationTime :: Microsecond = fromMicroseconds 5000000
+    let maxInterpretationTime :: Microsecond = fromMicroseconds (20 * 1000 * 1000)
     r <-
         liftIO .
         runExceptT $ PI.compile maxInterpretationTime sourceCode
@@ -53,7 +53,7 @@ throwJSONError err json =
 
 runFunction :: Evaluation -> Handler EvaluationResult
 runFunction evaluation = do
-    let maxInterpretationTime :: Microsecond = fromMicroseconds 10000000
+    let maxInterpretationTime :: Microsecond = fromMicroseconds (20 * 1000 * 1000)
     result <-
         liftIO .
         runExceptT $ PI.runFunction maxInterpretationTime evaluation

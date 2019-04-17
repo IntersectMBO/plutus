@@ -2,7 +2,7 @@ module Action
        ( simulationPane
        ) where
 
-import Bootstrap (badge, badgePrimary, btn, btnDanger, btnGroup, btnGroupSmall, btnInfo, btnLink, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, col10_, col2_, col4_, col_, formControl, formGroup_, invalidFeedback_, nbsp, pullRight, row, row_, validFeedback_, wasValidated)
+import Bootstrap (badge, badgePrimary, btn, btnDanger, btnGroup, btnGroupSmall, btnInfo, btnLink, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, col10_, col2_, col_, formControl, formGroup_, invalidFeedback_, nbsp, pullRight, responsiveThird, row, row_, validFeedback_, wasValidated)
 import Control.Monad.Aff.Class (class MonadAff)
 import Cursor (Cursor, current)
 import Cursor as Cursor
@@ -23,6 +23,7 @@ import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties (InputType(InputText, InputNumber), class_, classes, disabled, for, id_, placeholder, required, type_, value)
 import Halogen.Query as HQ
 import Icons (Icon(..), icon)
+import Ledger.Value.TH (Value)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
 import Playground.API (EvaluationResult, _Fn, _FunctionSchema)
 import Prelude (map, pure, show, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==))
@@ -35,10 +36,11 @@ import Wallet.Emulator.Types (Wallet)
 simulationPane ::
   forall m aff.
   MonadAff (EChartsEffects aff) m
-  => Cursor Simulation
+  => Value
+  -> Cursor Simulation
   -> WebData EvaluationResult
   -> ParentHTML Query ChildQuery ChildSlot m
-simulationPane simulations evaluationResult =
+simulationPane initialValue simulations evaluationResult =
   case current simulations of
     Just (Simulation simulation) ->
       let
@@ -51,7 +53,7 @@ simulationPane simulations evaluationResult =
       in
         div_
           [ simulationsNav simulations
-          , walletsPane simulation.signatures simulation.wallets
+          , walletsPane simulation.signatures initialValue simulation.wallets
           , br_
           , actionsPane isValidWallet simulation.actions (view _resultBlockchain <$> evaluationResult)
           ]
@@ -133,12 +135,13 @@ actionsPane isValidWallet actions evaluationResult =
 actionPane :: forall p. (Wallet -> Boolean) -> Int -> Action -> Tuple String (HTML p Query)
 actionPane isValidWallet index action =
   Tuple (show index) $
-    col4_
+    responsiveThird
       [ div [ classes [ ClassName "action"
                       , ClassName ("action-" <> show index)
                       , ClassName ("action-" <> (case isValidWallet <$> (preview (_Action <<< _simulatorWallet <<< _simulatorWalletWallet) action) of
+                                                   Nothing -> "valid-wallet"
                                                    Just true ->  "valid-wallet"
-                                                   _ -> "invalid-wallet"))
+                                                   Just false ->  "invalid-wallet"))
                       ]
             ]
         [ div [ class_ card ]
@@ -233,6 +236,18 @@ actionArgumentField ancestors _ arg@(SimpleString s) =
       ]
     , validationFeedback (joinPath ancestors <$> validate arg)
   ]
+actionArgumentField ancestors _ arg@(SimpleHex s) =
+  div_ [
+    input
+      [ type_ InputText
+      , classes (Array.cons formControl (actionArgumentClass ancestors))
+      , value $ fromMaybe "" s
+      , required true
+      , placeholder "String"
+      , onValueInput $ HE.input SetHexField
+      ]
+    , validationFeedback (joinPath ancestors <$> validate arg)
+  ]
 actionArgumentField ancestors isNested (SimpleTuple (subFieldA /\subFieldB)) =
   row_
     [ col_ [ SetSubField 1 <$> actionArgumentField (Array.snoc ancestors "_1") true subFieldA ]
@@ -298,7 +313,7 @@ validationFeedback errors =
 addWaitActionPane :: forall p. Tuple String (HTML p Query)
 addWaitActionPane =
   Tuple "add-wait" $
-    col4_
+    responsiveThird
       [ div
           [ class_ $ ClassName "add-wait-action" ]
           [ div [ class_ card

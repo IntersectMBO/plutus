@@ -38,7 +38,7 @@ import           Language.PureScript.Bridge                (BridgePart, Language
                                                             psTypeParameters, typeModule, typeName, writePSTypes, (^==))
 import           Language.PureScript.Bridge.PSTypes        (psArray, psInt)
 import           Language.PureScript.Bridge.TypeParameters (A)
-import           Meadow.Contracts                          (escrow, zeroCouponBond)
+import           Meadow.Contracts                          (couponBondGuaranteed, escrow, zeroCouponBond)
 import           Servant                                   ((:<|>))
 import           Servant.PureScript                        (HasBridge, Settings, apiModuleName, defaultBridge,
                                                             defaultSettings, languageBridge, writeAPIModuleWithSettings,
@@ -138,6 +138,7 @@ writeUsecases outputDir = do
             multilineString "gitHead" (CBS.pack gitHead)
          <> multilineString "escrow" escrow
          <> multilineString "zeroCouponBond" zeroCouponBond
+         <> multilineString "couponBondGuaranteed" couponBondGuaranteed
         usecasesModule = psModule "Meadow.Contracts" usecases
     createDirectoryIfMissing True (outputDir </> "Meadow")
     BS.writeFile (outputDir </> "Meadow" </> "Contracts.purs") usecasesModule
