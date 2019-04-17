@@ -100,6 +100,10 @@ tests = testGroup "all tests" [
         ] ++ (let   vlJson :: BSL.ByteString
                     vlJson = "{\"getValue\":[[{\"unCurrencySymbol\":\"ab01ff\"},[[{\"unTokenName\":\"myToken\"},50]]]]}"
                     vlValue = Value.singleton "ab01ff" "myToken" 50
+                in byteStringJson vlJson vlValue)
+          ++ (let   vlJson :: BSL.ByteString
+                    vlJson = "{\"getValue\":[[{\"unCurrencySymbol\":\"\"},[[{\"unTokenName\":\"\"},50]]]]}"
+                    vlValue = Ada.adaValueOf 50
                 in byteStringJson vlJson vlValue))
     ]
 

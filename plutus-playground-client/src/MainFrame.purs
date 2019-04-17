@@ -66,7 +66,7 @@ import LocalStorage (LOCALSTORAGE)
 import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, updateChartsIfPossible)
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
-import Playground.API (KnownCurrency(..), SimulatorWallet(SimulatorWallet), TokenId(..), _CompilationResult, _FunctionSchema)
+import Playground.API (KnownCurrency(..), SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
 import Playground.Server (SPParams_)
 import Playground.Usecases (gitHead)
 import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, map, pure, show, unit, unless, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (=<<), (==))
@@ -90,10 +90,10 @@ mkInitialValue currencies initialBalance = Value { getValue: value }
         (LedgerMap [])
       $ Array.concat
       $ map (\(KnownCurrency {hash, knownTokens}) ->
-                 map (\(TokenId tokenId) ->
+                 map (\(TokenName tokenId) ->
                          LedgerMap [ (CurrencySymbol { unCurrencySymbol: hash })
                                      /\
-                                     LedgerMap [ TokenName { unTokenName: tokenId } /\ initialBalance ]])
+                                     LedgerMap [ TokenName tokenId /\ initialBalance ]])
                  $ Array.fromFoldable knownTokens)
         currencies
 
