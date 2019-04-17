@@ -20,14 +20,14 @@ import           Language.Haskell.Interpreter (InterpreterError, InterpreterResu
 import           Ledger                       (Blockchain)
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Validation            (ValidatorHash (ValidatorHash))
-import           Ledger.Value                 (TokenName(TokenName))
+import           Ledger.Value                 (TokenName (TokenName))
 import           Playground.API               (CompilationResult (CompilationResult), Evaluation (Evaluation),
                                                Expression (Action, Wait), Fn (Fn), FunctionSchema (FunctionSchema),
                                                KnownCurrency (KnownCurrency), PlaygroundError,
                                                SimpleArgumentSchema (SimpleArraySchema, SimpleHexSchema, SimpleIntSchema, SimpleObjectSchema, SimpleStringSchema, SimpleTupleSchema, ValueSchema),
-                                               SimulatorWallet (SimulatorWallet), adaCurrency,
-                                               argumentSchema, functionName, isSupportedByFrontend,
-                                               simulatorWalletBalance, simulatorWalletWallet)
+                                               SimulatorWallet (SimulatorWallet), adaCurrency, argumentSchema,
+                                               functionName, isSupportedByFrontend, simulatorWalletBalance,
+                                               simulatorWalletWallet)
 import qualified Playground.Interpreter       as PI
 import           Playground.Usecases          (crowdfunding, game, messages, vesting)
 import           Test.Hspec                   (Spec, describe, it, shouldBe, shouldSatisfy)
