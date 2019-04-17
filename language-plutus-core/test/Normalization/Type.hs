@@ -8,11 +8,8 @@ import           Language.PlutusCore
 import           Language.PlutusCore.Generators.AST
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Normalize
-import           PlutusPrelude                      hiding (hoist)
 
-import           Codec.Serialise
 import           Control.Monad.Morph                (hoist)
-import qualified Data.ByteString.Lazy               as BSL
 
 import           Hedgehog
 import           Test.Tasty
