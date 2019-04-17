@@ -17,7 +17,6 @@ module Ledger.Scripts(
     fromCompiledCode,
     compileScript,
     lifted,
-    normalizeScript,
     applyScript,
     evaluateScript,
     runScript,
@@ -86,7 +85,7 @@ scriptSize (Script s) = PLC.programSize s
 
 -- | Turn a 'CompiledCode' (usually produced by 'compile') into a 'Script' for use with this package.
 fromCompiledCode :: CompiledCode a -> Script
-fromCompiledCode = Script . getPlc
+fromCompiledCode = Script . PLC.runQuote . PLC.normalizeTypesFullInProgram . getPlc
 
 -- | Compile a quoted Haskell expression to a 'Script'.
 compileScript :: TH.Q (TH.TExp a) -> TH.Q (TH.TExp Script)
@@ -105,10 +104,9 @@ evaluateScript (unScript -> s) =
         Right{} -> (isJust . reoption) <$> evaluateCekTrace s
 
     where check = PLC.runQuoteT . PLC.typecheckPipeline PLC.defOnChainConfig
-    -- (lam dat (fun (type) (type)) [dat a])
-    -- TODO: does normalizeTypesFullInProgram do what we want??
           logTypeErr :: PLC.Error () -> String
           logTypeErr = PLC.prettyPlcDefString
+
 
 instance ToJSON Script where
   toJSON = JSON.String . JSON.encodeSerialise
@@ -120,9 +118,6 @@ instance FromJSON Script where
 -- 'Script's at runtime, whereas 'compileScript' allows you to do so at compile time.
 lifted :: Lift a => a -> Script
 lifted = Script . unsafeLiftProgram
-
-normalizeScript :: Script -> Script
-normalizeScript (Script p) = Script $ PLC.runQuote $ PLC.normalizeTypesFullInProgram p
 
 -- | 'ValidatorScript' is a wrapper around 'Script's which are used as validators in transaction outputs.
 newtype ValidatorScript = ValidatorScript { getValidator :: Script }
