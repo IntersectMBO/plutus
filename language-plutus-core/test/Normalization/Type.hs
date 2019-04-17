@@ -35,15 +35,6 @@ test_catamorphism =
           datName = TyName (Name () "dat" (Unique 1))
           aVar = TyVar () (TyName (Name () "a" (Unique 2)))
 
-test_normalizer :: IO ()
-test_normalizer = do
-    (Program _ _ term) <- deserialise <$> BSL.readFile "test/deserialise/invalid.plci"
-    let normTerm :: Term TyName Name ()
-        normTerm = runQuote $ normalizeTypesFullIn term
-        nonError :: Either (Error ()) a -> IO ()
-        nonError = (@?= True) . isRight
-    nonError (checkTerm normTerm)
-
 test_appAppLamLam :: IO ()
 test_appAppLamLam = do
     let integer2 = TyApp () (TyBuiltin () TyInteger) $ TyInt () 2
@@ -70,6 +61,5 @@ test_typeNormalization =
     testGroup "typeNormalization"
         [ testCase     "appAppLamLam"               test_appAppLamLam
         , testProperty "normalizeTypesInIdempotent" test_normalizeTypesInIdempotent
-        -- , testCase     "plutusTxOutput"             test_normalizer
         , testCase     "bug"                        test_catamorphism
         ]
