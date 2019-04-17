@@ -7,6 +7,7 @@ module Language.PlutusCore.Normalize
     , normalizeTypesIn
     , normalizeTypesFullIn
     , normalizeTypesGasIn
+    , normalizeTypesFullInProgram
     ) where
 
 import           Language.PlutusCore.Name
@@ -50,6 +51,12 @@ normalizeTypesFullIn
     :: (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique, MonadQuote m)
     => Term tyname name ann -> m (Term tyname name ann)
 normalizeTypesFullIn = normalizeTypesIn $ pure ()
+
+-- | Same as 'normalizeTypesFullIn' but runs on a 'Program'
+normalizeTypesFullInProgram
+    :: (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique, MonadQuote m)
+    => Program tyname name ann -> m (Program tyname name ann)
+normalizeTypesFullInProgram (Program x v t) = Program x v <$> normalizeTypesFullIn t
 
 -- | Normalize every 'Type' in a 'Term' in the gas-consuming way.
 -- Count a single substitution step by subtracting @1@ from available gas or

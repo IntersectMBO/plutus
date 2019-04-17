@@ -217,6 +217,6 @@ normalizeTypesInM = go where
     go (Unwrap ann term)          = Unwrap ann <$> go term
     go (Error ann ty)             = Error ann <$> normalizeReturnType ty
     go (TyInst ann body ty)       = TyInst ann <$> go body <*> normalizeReturnType ty
-    go (Var ann name)             = return $ Var ann name
+    go var@Var{}                  = pure var
     go con@Constant{}             = pure con
     go bi@Builtin{}               = pure bi
