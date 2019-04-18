@@ -65,9 +65,8 @@ genType = simpleRecursive nonRecursive recursive
           lamGen = TyLam () <$> genTyName <*> genKind <*> genType
           forallGen = TyForall () <$> genTyName <*> genKind <*> genType
           applyGen = TyApp () <$> genType <*> genType
-          numGen = TyInt () <$> Gen.integral (Range.linear 0 256)
           recursive = [funGen, applyGen]
-          nonRecursive = [varGen, lamGen, forallGen, numGen]
+          nonRecursive = [varGen, lamGen, forallGen]
 
 genTerm :: MonadGen m => m (Term TyName Name ())
 genTerm = simpleRecursive nonRecursive recursive

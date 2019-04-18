@@ -12,8 +12,6 @@ import           Data.Text.Encoding                         (encodeUtf8)
 import           Evaluation.CkMachine
 import           Evaluation.Constant.All
 import           Hedgehog                                   hiding (Var)
-import qualified Hedgehog.Gen                               as Gen
-import qualified Hedgehog.Range                             as Range
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.DeBruijn
@@ -71,7 +69,6 @@ compareType (TyForall _ n k t) (TyForall _ n' k' t')  = compareTyName n n' && k 
 compareType (TyBuiltin _ x) (TyBuiltin _ y)           = x == y
 compareType (TyLam _ n k t) (TyLam _ n' k' t')        = compareTyName n n' && k == k' && compareType t t'
 compareType (TyApp _ t t') (TyApp _ t'' t''')         = compareType t t'' && compareType t' t'''
-compareType (TyInt _ n) (TyInt _ n')                  = n == n'
 compareType _ _                                       = False
 
 compareProgram :: Eq a => Program TyName Name a -> Program TyName Name a -> Bool
@@ -101,7 +98,7 @@ propRename = property $ do
     prog <- forAll genProgram
     Hedgehog.assert $ runQuote (rename prog) == prog
 
-propDeBruijn :: Gen (TermOf (TypedBuiltinValue size a)) -> Property
+propDeBruijn :: Gen (TermOf (TypedBuiltinValue a)) -> Property
 propDeBruijn gen = property . generalizeT $ do
     (TermOf body _) <- forAllNoShowT gen
     let
@@ -113,7 +110,6 @@ propDeBruijn gen = property . generalizeT $ do
 allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
 allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles evalFiles = testGroup "all tests"
     [ tests
-    , testsSizeOfInteger
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip" propCBOR
     , testProperty "equality survives renaming" propRename
@@ -154,28 +150,6 @@ testsEval = testGroup "golden evaluation tests" . fmap (asGolden evalFile)
 
 testsType :: [FilePath] -> TestTree
 testsType = testGroup "golden type synthesis tests" . fmap (asGolden printType)
-
-propSizeOfInteger :: Property
-propSizeOfInteger = property $ do
-    i <- forAll . Gen.integral $ Range.linearFrom 0 (-10000) 10000
-    Hedgehog.assert $ checkBoundsInt (sizeOfInteger i) i
-
-unitSizeOfInteger :: IO ()
-unitSizeOfInteger
-    = foldMap (\(i, s) -> sizeOfInteger i @?= s)
-    [ (0, 1)
-    , (-1  , 1), (1  , 1)
-    , (-127, 1), (127, 1)
-    , (-128, 1), (128, 2)
-    , (-129, 2), (129, 2)
-    ]
-
-testsSizeOfInteger :: TestTree
-testsSizeOfInteger
-    = testGroup "sizeOfInteger"
-    [ testCase     "unit" unitSizeOfInteger
-    , testProperty "prop" propSizeOfInteger
-    ]
 
 testsNormalizeType :: [FilePath] -> TestTree
 testsNormalizeType = testGroup "golden type synthesis + normalization tests" . fmap (asGolden (printNormalizeType True))

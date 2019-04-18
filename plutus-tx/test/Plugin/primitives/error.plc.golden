@@ -10,7 +10,7 @@
         (vardecl error (all a (type) (fun Unit a)))
         (abs e (type) (lam thunk Unit (error e)))
       )
-      { error [(con integer) (con 8)] }
+      { error (con integer) }
     )
   )
 )

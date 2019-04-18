@@ -39,8 +39,8 @@ instance (PrettyBy config head, PrettyBy config arg) => PrettyBy config (IterApp
 
 -- | View a 'Constant' as an 'Integer'.
 constantAsInteger :: Constant a -> Maybe Integer
-constantAsInteger (BuiltinInt _ _ int) = Just int
-constantAsInteger _                    = Nothing
+constantAsInteger (BuiltinInt _ int) = Just int
+constantAsInteger _                  = Nothing
 
 -- | View a 'Constant' as a 'StagedBuiltinName'.
 constantAsStagedBuiltinName :: Builtin a -> StagedBuiltinName

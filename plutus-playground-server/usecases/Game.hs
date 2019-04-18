@@ -15,7 +15,7 @@ import           Playground.Contract
 
 import qualified Data.ByteString.Lazy.Char8   as C
 
-data HashedString = HashedString (P.SizedByteString 32)
+data HashedString = HashedString P.ByteString
 
 PlutusTx.makeLift ''HashedString
 
@@ -23,10 +23,10 @@ PlutusTx.makeLift ''HashedString
 -- and lifting the hash to its on-chain representation
 mkDataScript :: String -> DataScript
 mkDataScript word =
-    let hashedWord = plcSHA2_256 (P.SizedByteString (C.pack word))
+    let hashedWord = plcSHA2_256 (C.pack word)
     in  DataScript (Ledger.lifted (HashedString hashedWord))
 
-data ClearString = ClearString (P.SizedByteString 32)
+data ClearString = ClearString P.ByteString
 
 PlutusTx.makeLift ''ClearString
 
@@ -34,7 +34,7 @@ PlutusTx.makeLift ''ClearString
 -- string to its on-chain representation
 mkRedeemerScript :: String -> RedeemerScript
 mkRedeemerScript word =
-    let clearWord = P.SizedByteString (C.pack word)
+    let clearWord = C.pack word
     in RedeemerScript (Ledger.lifted (ClearString clearWord))
 
 -- | The validator script of the game.
@@ -60,7 +60,7 @@ gameAddress = Ledger.scriptAddress gameValidator
 lock :: MonadWallet m => String -> Value -> m ()
 lock word value =
     -- 'payToScript_' is a function of the wallet API. It takes a script
-    -- address, a currency value and a data script, and submits a transaction 
+    -- address, a currency value and a data script, and submits a transaction
     -- that pays the value to the address, using the data script.
     --
     -- The underscore at the end of the name indicates that 'payToScript_'

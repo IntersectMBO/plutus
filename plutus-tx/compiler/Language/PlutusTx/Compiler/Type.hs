@@ -62,7 +62,6 @@ convType t = withContextM 2 (sdToTxt $ "Converting type:" GHC.<+> GHC.ppr t) $ d
         (GHC.splitForAllTy_maybe -> Just (tv, tpe)) -> mkTyForallScoped tv (convType tpe)
         -- I think it's safe to ignore the coercion here
         (GHC.splitCastTy_maybe -> Just (tpe, _)) -> convType tpe
-        (GHC.isNumLitTy -> Just i) -> pure $ PIR.TyInt () (fromIntegral i)
         _ -> throwSd UnsupportedError $ "Type" GHC.<+> GHC.ppr t
 
 convTyConApp :: (Converting m) => GHC.TyCon -> [GHC.Type] -> m PIRType

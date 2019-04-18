@@ -1,1 +1,1 @@
-(all s0 (size) (all s1 (size) (all s2 (size) (fun [(con bytestring) s0] (fun [(con bytestring) s1] (fun [(con bytestring) s2] (all a (type) (fun a (fun a a)))))))))
+(fun (con bytestring) (fun (con bytestring) (fun (con bytestring) (all a (type) (fun a (fun a a))))))

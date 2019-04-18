@@ -100,7 +100,7 @@ int = plc @"int" (1::Int)
 int2 :: CompiledCode Int
 int2 = plc @"int2" (2::Int)
 
-emptyBS :: CompiledCode (Builtins.SizedByteString 32)
+emptyBS :: CompiledCode (Builtins.ByteString)
 emptyBS = plc @"emptyBS" (Builtins.emptyByteString)
 
 bool :: CompiledCode Bool
@@ -140,23 +140,23 @@ ifThenElse = plc @"ifThenElse" (\(x::Int) (y::Int) -> if Builtins.equalsInteger 
 --blocknumPlc :: CompiledCode
 --blocknumPlc = plc @"blocknumPlc" Builtins.blocknum
 
-emptyByteString :: CompiledCode (Builtins.SizedByteString 32 -> Builtins.SizedByteString 32)
-emptyByteString = plc @"emptyByteString" (\(x :: Builtins.SizedByteString 32) -> x)
+emptyByteString :: CompiledCode (Builtins.ByteString -> Builtins.ByteString)
+emptyByteString = plc @"emptyByteString" (\(x :: Builtins.ByteString) -> x)
 
-bytestring32 :: CompiledCode (Builtins.SizedByteString 32 -> Builtins.SizedByteString 32)
-bytestring32 = plc @"bytestring32" (\(x::Builtins.SizedByteString 32) -> x)
+bytestring32 :: CompiledCode (Builtins.ByteString -> Builtins.ByteString)
+bytestring32 = plc @"bytestring32" (\(x::Builtins.ByteString) -> x)
 
-bytestring64 :: CompiledCode (Builtins.SizedByteString 64 -> Builtins.SizedByteString 64)
-bytestring64 = plc @"bytestring64" (\(x::Builtins.SizedByteString 64) -> x)
+bytestring64 :: CompiledCode (Builtins.ByteString -> Builtins.ByteString)
+bytestring64 = plc @"bytestring64" (\(x::Builtins.ByteString) -> x)
 
-sha2 :: CompiledCode (Builtins.SizedByteString 32 -> Builtins.SizedByteString 32)
-sha2 = plc @"sha2" (\(x :: Builtins.SizedByteString 32) -> Builtins.sha2_256 x)
+sha2 :: CompiledCode (Builtins.ByteString -> Builtins.ByteString)
+sha2 = plc @"sha2" (\(x :: Builtins.ByteString) -> Builtins.sha2_256 x)
 
-bsEquals :: CompiledCode (Builtins.SizedByteString 32 -> Builtins.SizedByteString 32 -> Bool)
-bsEquals = plc @"bs32Equals" (\(x :: Builtins.SizedByteString 32) (y :: Builtins.SizedByteString 32) -> Builtins.equalsByteString x y)
+bsEquals :: CompiledCode (Builtins.ByteString -> Builtins.ByteString -> Bool)
+bsEquals = plc @"bs32Equals" (\(x :: Builtins.ByteString) (y :: Builtins.ByteString) -> Builtins.equalsByteString x y)
 
-verify :: CompiledCode (Builtins.SizedByteString 32 -> Builtins.SizedByteString 32 -> Builtins.SizedByteString 64 -> Bool)
-verify = plc @"verify" (\(x::Builtins.SizedByteString 32) (y::Builtins.SizedByteString 32) (z::Builtins.SizedByteString 64) -> Builtins.verifySignature x y z)
+verify :: CompiledCode (Builtins.ByteString -> Builtins.ByteString -> Builtins.ByteString -> Bool)
+verify = plc @"verify" (\(x::Builtins.ByteString) (y::Builtins.ByteString) (z::Builtins.ByteString) -> Builtins.verifySignature x y z)
 
 trace :: CompiledCode (Builtins.String -> ())
 trace = plc @"trace" (\(x :: Builtins.String) -> Builtins.trace x)

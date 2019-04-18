@@ -41,10 +41,8 @@ import           Data.Foldable   (fold, foldl')
 import           Data.Map        (Map)
 import qualified Data.Map        as Map
 import           Data.Maybe      (catMaybes, isNothing)
-import           Data.Proxy      (Proxy(Proxy))
 import           Data.Set        (Set)
 import qualified Data.Set        as Set
-import           GHC.TypeLits    (KnownNat, natVal)
 import           GHC.Stack       (HasCallStack)
 import           Hedgehog
 import qualified Hedgehog.Gen    as Gen
@@ -73,12 +71,12 @@ data GeneratorModel = GeneratorModel {
 
 -- | A generator model with some sensible defaults.
 generatorModel :: GeneratorModel
-generatorModel = 
+generatorModel =
     let vl = Ada.toValue $ Ada.fromInt 100000
         pubKeys = toPublicKey <$> knownPrivateKeys
 
     in
-    GeneratorModel 
+    GeneratorModel
     { gmInitialBalance = Map.fromList $ zip pubKeys (repeat vl)
     , gmPubKeys        = Set.fromList pubKeys
     }
@@ -190,7 +188,7 @@ genValidTransactionSpending' g f ins totalVal = do
         then do
             let sz = totalVal - fee
             outVals <- fmap (Ada.toValue) <$> splitVal numOut sz
-            let tx = Tx 
+            let tx = Tx
                         { txInputs = ins
                         , txOutputs = uncurry pubKeyTxOut <$> zip outVals (Set.toList $ gmPubKeys g)
                         , txForge = Value.zero
@@ -207,31 +205,31 @@ genValidTransactionSpending' g f ins totalVal = do
 genAda :: MonadGen m => m Ada
 genAda = Ada.fromInt <$> Gen.int (Range.linear 0 (100000 :: Int))
 
--- | Generate a 'SizedByteString s' of up to @s@ bytes.
-genSizedByteString :: forall s m. (KnownNat s, MonadGen m) => m (P.SizedByteString s)
-genSizedByteString = 
-    let range = Range.linear 0 (fromInteger $ natVal (Proxy @s)) in
-    P.SizedByteString . BSL.fromStrict <$> Gen.bytes range
+-- | Generate a 'ByteString s' of up to @s@ bytes.
+genSizedByteString :: forall m. MonadGen m => Int -> m P.ByteString
+genSizedByteString s =
+    let range = Range.linear 0 s in
+    BSL.fromStrict <$> Gen.bytes range
 
--- | Generate a 'SizedByteString s' of exactly @s@ bytes.
-genSizedByteStringExact :: forall s m. (KnownNat s, MonadGen m) => m (P.SizedByteString s)
-genSizedByteStringExact = 
-    let range = Range.singleton (fromInteger $ natVal (Proxy @s)) in
-    P.SizedByteString . BSL.fromStrict <$> Gen.bytes range
+-- | Generate a 'ByteString s' of exactly @s@ bytes.
+genSizedByteStringExact :: forall m. MonadGen m => Int -> m P.ByteString
+genSizedByteStringExact s =
+    let range = Range.singleton s in
+    BSL.fromStrict <$> Gen.bytes range
 
 genValue' :: MonadGen m => Range Int -> m Value
 genValue' valueRange = do
-    let 
+    let
         -- currency symbol is either a validator hash (bytestring of length 32)
         -- or the ada symbol (empty bytestring).
-        currency = Gen.choice 
-                    [ Value.currencySymbol <$> genSizedByteStringExact
+        currency = Gen.choice
+                    [ Value.currencySymbol <$> (genSizedByteStringExact 32)
                     , pure Ada.adaSymbol
                     ]
 
         -- token is either an arbitrary bytestring or the ada token name
-        token   = Gen.choice 
-                    [ Value.tokenName <$> genSizedByteString
+        token   = Gen.choice
+                    [ Value.tokenName <$> (genSizedByteString 32)
                     , pure Ada.adaToken
                     ]
         sngl      = Value.singleton <$> currency <*> token <*> Gen.int valueRange

@@ -9,12 +9,6 @@
         (vardecl Tuple2 (fun a (fun b [[Tuple2 a] b])))
       )
     )
-    [
-      [
-        { { Tuple2 [(con integer) (con 8)] } [(con integer) (con 8)] }
-        (con 8 ! 1)
-      ]
-      (con 8 ! 2)
-    ]
+    [ [ { { Tuple2 (con integer) } (con integer) } (con 1) ] (con 2) ]
   )
 )

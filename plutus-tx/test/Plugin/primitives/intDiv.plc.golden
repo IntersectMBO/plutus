@@ -1,18 +1,12 @@
 (program
   (let
-    (nonrec
-    )
+    (nonrec)
     (termbind
       (vardecl
-        divideInteger
-        (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] [(con integer) (con 8)]))
+        divideInteger (fun (con integer) (fun (con integer) (con integer)))
       )
-      { (builtin divideInteger) (con 8) }
+      (builtin divideInteger)
     )
-    (lam
-      ds
-      [(con integer) (con 8)]
-      (lam ds [(con integer) (con 8)] [ [ divideInteger ds ] ds ])
-    )
+    (lam ds (con integer) (lam ds (con integer) [ [ divideInteger ds ] ds ]))
   )
 )

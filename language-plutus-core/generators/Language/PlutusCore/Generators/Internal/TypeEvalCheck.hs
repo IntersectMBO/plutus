@@ -2,7 +2,6 @@
 
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeFamilies           #-}
@@ -77,7 +76,7 @@ type TypeEvalCheckM = Either TypeEvalCheckError
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 typeEvalCheckBy
     :: (Term TyName Name () -> EvaluationResultDef) -- ^ An evaluator.
-    -> TermOf (TypedBuiltinValue Size a)
+    -> TermOf (TypedBuiltinValue a)
     -> TypeEvalCheckM (TermOf TypeEvalCheckResult)
 typeEvalCheckBy eval (TermOf term tbv) = TermOf term <$> do
     _ <- VR.checkTerm term
@@ -92,7 +91,7 @@ typeEvalCheckBy eval (TermOf term tbv) = TermOf term <$> do
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 -- Throw an error in case something goes wrong.
 unsafeTypeEvalCheck
-    :: forall a. TermOf (TypedBuiltinValue Size a) -> Maybe (TermOf (Value TyName Name ()))
+    :: forall a. TermOf (TypedBuiltinValue a) -> Maybe (TermOf (Value TyName Name ()))
 unsafeTypeEvalCheck termOfTbv = do
     let errOrRes = typeEvalCheckBy evaluateCk termOfTbv
     case errOrRes of

@@ -35,46 +35,46 @@
                                       (type)
                                       (lam
                                         Lift_Spec_NestedRecord_i0
-                                        (fun [GHC_Maybe_Maybe_i6 [[GHC_Tuple_Tuple2_i9 [(con integer) (con 8)]] [(con integer) (con 8)]]] Lift_Spec_NestedRecord_i2)
+                                        (fun [GHC_Maybe_Maybe_i6 [[GHC_Tuple_Tuple2_i9 (con integer)] (con integer)]] Lift_Spec_NestedRecord_i2)
                                         (lam
                                           match_Lift_Spec_NestedRecord_i0
-                                          (fun Lift_Spec_NestedRecord_i3 (all out_Lift_Spec_NestedRecord_i0 (type) (fun (fun [GHC_Maybe_Maybe_i8 [[GHC_Tuple_Tuple2_i11 [(con integer) (con 8)]] [(con integer) (con 8)]]] out_Lift_Spec_NestedRecord_i1) out_Lift_Spec_NestedRecord_i1)))
+                                          (fun Lift_Spec_NestedRecord_i3 (all out_Lift_Spec_NestedRecord_i0 (type) (fun (fun [GHC_Maybe_Maybe_i8 [[GHC_Tuple_Tuple2_i11 (con integer)] (con integer)]] out_Lift_Spec_NestedRecord_i1) out_Lift_Spec_NestedRecord_i1)))
                                           [
                                             Lift_Spec_NestedRecord_i2
                                             [
                                               {
                                                 GHC_Maybe_Just_i6
-                                                [[GHC_Tuple_Tuple2_i10 [(con integer) (con 8)]] [(con integer) (con 8)]]
+                                                [[GHC_Tuple_Tuple2_i10 (con integer)] (con integer)]
                                               }
                                               [
                                                 [
                                                   {
                                                     {
                                                       GHC_Tuple_Tuple2_i9
-                                                      [(con integer) (con 8)]
+                                                      (con integer)
                                                     }
-                                                    [(con integer) (con 8)]
+                                                    (con integer)
                                                   }
-                                                  (con 8 ! 1)
+                                                  (con 1)
                                                 ]
-                                                (con 8 ! 2)
+                                                (con 2)
                                               ]
                                             ]
                                           ]
                                         )
                                       )
                                     )
-                                    (all out_Lift_Spec_NestedRecord_i0 (type) (fun (fun [GHC_Maybe_Maybe_i5 [[GHC_Tuple_Tuple2_i8 [(con integer) (con 8)]] [(con integer) (con 8)]]] out_Lift_Spec_NestedRecord_i1) out_Lift_Spec_NestedRecord_i1))
+                                    (all out_Lift_Spec_NestedRecord_i0 (type) (fun (fun [GHC_Maybe_Maybe_i5 [[GHC_Tuple_Tuple2_i8 (con integer)] (con integer)]] out_Lift_Spec_NestedRecord_i1) out_Lift_Spec_NestedRecord_i1))
                                   }
                                   (lam
                                     arg_0_i0
-                                    [GHC_Maybe_Maybe_i5 [[GHC_Tuple_Tuple2_i8 [(con integer) (con 8)]] [(con integer) (con 8)]]]
+                                    [GHC_Maybe_Maybe_i5 [[GHC_Tuple_Tuple2_i8 (con integer)] (con integer)]]
                                     (abs
                                       out_Lift_Spec_NestedRecord_i0
                                       (type)
                                       (lam
                                         case_Lift_Spec_NestedRecord_i0
-                                        (fun [GHC_Maybe_Maybe_i7 [[GHC_Tuple_Tuple2_i10 [(con integer) (con 8)]] [(con integer) (con 8)]]] out_Lift_Spec_NestedRecord_i2)
+                                        (fun [GHC_Maybe_Maybe_i7 [[GHC_Tuple_Tuple2_i10 (con integer)] (con integer)]] out_Lift_Spec_NestedRecord_i2)
                                         [
                                           case_Lift_Spec_NestedRecord_i1
                                           arg_0_i3
@@ -85,7 +85,7 @@
                                 ]
                                 (lam
                                   x_i0
-                                  (all out_Lift_Spec_NestedRecord_i0 (type) (fun (fun [GHC_Maybe_Maybe_i6 [[GHC_Tuple_Tuple2_i9 [(con integer) (con 8)]] [(con integer) (con 8)]]] out_Lift_Spec_NestedRecord_i1) out_Lift_Spec_NestedRecord_i1))
+                                  (all out_Lift_Spec_NestedRecord_i0 (type) (fun (fun [GHC_Maybe_Maybe_i6 [[GHC_Tuple_Tuple2_i9 (con integer)] (con integer)]] out_Lift_Spec_NestedRecord_i1) out_Lift_Spec_NestedRecord_i1))
                                   x_i1
                                 )
                               ]

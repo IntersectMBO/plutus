@@ -1,7 +1,6 @@
 (program
   (let
-    (rec
-    )
+    (rec)
     (datatypebind
       (datatype
         (tyvardecl List (fun (type) (type)))
@@ -11,40 +10,26 @@
       )
     )
     (let
-      (nonrec
-      )
+      (nonrec)
       (termbind
         (vardecl
-          addInteger
-          (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] [(con integer) (con 8)]))
+          addInteger (fun (con integer) (fun (con integer) (con integer)))
         )
-        { (builtin addInteger) (con 8) }
+        (builtin addInteger)
       )
       (let
         (rec)
         (termbind
-          (vardecl
-            sum (fun [List [(con integer) (con 8)]] [(con integer) (con 8)])
-          )
+          (vardecl sum (fun [List (con integer)] (con integer)))
           (lam
             ds
-            [List [(con integer) (con 8)]]
+            [List (con integer)]
             [
-              [
-                {
-                  [ { Nil_match [(con integer) (con 8)] } ds ]
-                  [(con integer) (con 8)]
-                }
-                (con 8 ! 0)
-              ]
+              [ { [ { Nil_match (con integer) } ds ] (con integer) } (con 0) ]
               (lam
                 x
-                [(con integer) (con 8)]
-                (lam
-                  xs
-                  [List [(con integer) (con 8)]]
-                  [ [ addInteger x ] [ sum xs ] ]
-                )
+                (con integer)
+                (lam xs [List (con integer)] [ [ addInteger x ] [ sum xs ] ])
               )
             ]
           )

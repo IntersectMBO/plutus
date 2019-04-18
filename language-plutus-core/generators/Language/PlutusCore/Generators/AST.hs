@@ -57,7 +57,7 @@ simpleRecursive = Gen.recursive Gen.choice
 
 genKind :: MonadGen m => m (Kind ())
 genKind = simpleRecursive nonRecursive recursive
-    where nonRecursive = pure <$> sequence [Type, Size] ()
+    where nonRecursive = pure <$> sequence [Type] ()
           recursive = [KindArrow () <$> genKind <*> genKind]
 
 genBuiltinName :: MonadGen m => m BuiltinName
@@ -67,13 +67,11 @@ genBuiltin :: MonadGen m => m (Builtin ())
 genBuiltin = BuiltinName () <$> genBuiltinName
 
 genConstant :: MonadGen m => m (Constant ())
-genConstant = Gen.choice [genInt, genSize, genBS]
+genConstant = Gen.choice [genInt, genBS]
     where int' = Gen.integral_ (Range.linear (-10000000) 10000000)
-          size' = Gen.integral_ (Range.linear 1 10)
           string' = BSL.fromStrict <$> Gen.utf8 (Range.linear 0 40) Gen.unicode
           genInt = makeAutoSizedBuiltinInt <$> int'
-          genSize = BuiltinSize () <$> size'
-          genBS = BuiltinBS () <$> size' <*> string'
+          genBS = BuiltinBS () <$> string'
 
 genType :: MonadGen m => m (Type TyName ())
 genType = simpleRecursive nonRecursive recursive
@@ -82,9 +80,8 @@ genType = simpleRecursive nonRecursive recursive
           lamGen = TyLam () <$> genTyName <*> genKind <*> genType
           forallGen = TyForall () <$> genTyName <*> genKind <*> genType
           applyGen = TyApp () <$> genType <*> genType
-          numGen = TyInt () <$> Gen.integral (Range.linear 0 256)
           recursive = [funGen, applyGen]
-          nonRecursive = [varGen, lamGen, forallGen, numGen]
+          nonRecursive = [varGen, lamGen, forallGen]
 
 genTerm :: MonadGen m => m (Term TyName Name ())
 genTerm = simpleRecursive nonRecursive recursive
