@@ -52,7 +52,7 @@ import           GHC.Generics                 (Generic)
 import qualified Data.ByteString.Lazy.Char8   as C
 ```
 
-The module [`Ledger.Validation`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html), imported as `V`, contains types and functions that can be used in on-chain code. `Language.PlutusTx` lets us translate code between Haskell and Plutus Core (see the [PlutusTx tutorial](./01.plutus-tx.md)). [`Ledger`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger.html) has data types for the ledger model and [`Wallet`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet.html) is the wallet API. It covers interactions with the wallet, for example generating the transactions that actually get the crowdfunding contract onto the blockchain.
+The module [`Ledger.Validation`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html), imported as `V`, contains types and functions that can be used in on-chain code. `Language.PlutusTx` lets us translate code between Haskell and Plutus Core (see the [PlutusTx tutorial](./01-plutus-tx.md)). [`Ledger`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger.html) has data types for the ledger model and [`Wallet`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet.html) is the wallet API. It covers interactions with the wallet, for example generating the transactions that actually get the crowdfunding contract onto the blockchain.
 
 ## 1.1 Data Types
 
