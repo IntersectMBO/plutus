@@ -106,6 +106,9 @@ resource "aws_alb_target_group" "playground" {
   health_check = {
     path = "/api/health"
   }
+  stickiness = {
+    type = "lb_cookie"
+  }
 }
 
 resource "aws_alb_listener_rule" "playground" {
@@ -152,6 +155,9 @@ resource "aws_alb_target_group" "meadow" {
   health_check = {
     path = "/api/health"
   }
+  stickiness = {
+    type = "lb_cookie"
+  }
 }
 
 resource "aws_alb_listener_rule" "meadow" {
@@ -197,6 +203,9 @@ resource "aws_alb_target_group" "monitoring" {
   vpc_id   = "${aws_vpc.plutus.id}"
   health_check = {
     path = "/metrics"
+  }
+  stickiness = {
+    type = "lb_cookie"
   }
 }
 
