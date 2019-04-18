@@ -53,7 +53,10 @@ balanceRow handler currencyIndex currencySymbol tokenIndex (Tuple tokenName amou
     [ formRow_ $
         [ label
             [ classes [ col, colFormLabel ] ]
-            [ text $ view _tokenName tokenName ]
+            [ text $ case view _tokenName tokenName of
+                       "" -> "Ada"
+                       other -> other
+            ]
         , col_
             [ input
                 [ type_ InputNumber
