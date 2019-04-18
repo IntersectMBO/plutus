@@ -23,6 +23,7 @@ import           Language.PlutusCore.Generators.AST
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Pretty
 import           Normalization.Type
+import ValueRestriction
 import           PlutusPrelude
 import           Pretty.Readable
 import qualified Quotation.Spec                             as Quotation
@@ -129,6 +130,7 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles evalFiles 
     , test_typecheck
     , test_constant
     , test_evaluateCk
+    , test_valueRestriction
     , Quotation.tests
     , Check.tests
     ]
