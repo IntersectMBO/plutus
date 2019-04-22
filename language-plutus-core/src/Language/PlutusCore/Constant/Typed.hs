@@ -244,7 +244,7 @@ runEvaluateT eval (EvaluateT a) = runReaderT a eval
 withEvaluator :: (Evaluator Term m -> t m a) -> EvaluateT t m a
 withEvaluator = EvaluateT . ReaderT
 
--- | 'thoist' for monad transformer transformerts if what 'hoist' for monad transformers.
+-- | 'thoist' for monad transformer transformers is what 'hoist' for monad transformers.
 thoist :: Monad (t m) => (forall b. t m b -> s m b) -> EvaluateT t m a -> EvaluateT s m a
 thoist f (EvaluateT a) = EvaluateT $ Morph.hoist f a
 
