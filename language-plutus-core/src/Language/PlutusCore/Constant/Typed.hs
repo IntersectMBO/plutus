@@ -47,7 +47,6 @@ import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
-import Control.Monad.Morph as Morph
 import           Control.Monad.Except
 import           Control.Monad.Morph                         as Morph
 import           Control.Monad.Reader
