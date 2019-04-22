@@ -2,66 +2,146 @@ module Action
        ( simulationPane
        ) where
 
-import Bootstrap (badge, badgePrimary, btn, btnDanger, btnInfo, btnLink, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, col10_, col2_, col4_, col_, formControl, formGroup_, invalidFeedback_, nbsp, pullRight, row, row_, validFeedback_)
+import Bootstrap (badge, badgePrimary, btn, btnDanger, btnGroup, btnGroupSmall, btnInfo, btnLink, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, col10_, col2_, col4_, col_, formControl, formGroup_, invalidFeedback_, nbsp, pullRight, row, row_, validFeedback_, wasValidated)
 import Control.Monad.Aff.Class (class MonadAff)
+import Cursor (Cursor, current)
+import Cursor as Cursor
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Int as Int
-import Data.Lens (view)
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Lens (preview, view)
+import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Halogen (HTML)
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
-import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, form, h2_, h3_, input, label, p_, small_, text)
+import Halogen.HTML (ClassName(ClassName), IProp, br_, button, code_, div, div_, h2_, h3_, input, label, p_, small_, strong_, text)
 import Halogen.HTML.Elements.Keyed as Keyed
-import Halogen.HTML.Events (input_, onClick, onValueChange)
+import Halogen.HTML.Events (input_, onClick, onValueInput)
 import Halogen.HTML.Events as HE
-import Halogen.HTML.Properties (InputType(InputText, InputNumber), class_, classes, disabled, for, placeholder, required, type_, value)
+import Halogen.HTML.Properties (InputType(InputText, InputNumber), class_, classes, disabled, for, id_, placeholder, required, type_, value)
 import Halogen.Query as HQ
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
-import Playground.API (EvaluationResult, SimulatorWallet, _EvaluationResult, _Fn, _FunctionSchema)
-import Prelude (map, pure, show, ($), (+), (/=), (<$>), (<<<), (<>))
-import Servant.PureScript.Affjax (AjaxError)
-import Types (Action(..), ActionEvent(..), Blockchain, ChildQuery, ChildSlot, FormEvent(..), Query(..), SimpleArgument(..), Simulation, _argumentSchema, _functionName, _resultBlockchain, _simulatorWalletWallet)
-import Validation (ValidationError, WithPath, addPath, validate)
+import Playground.API (EvaluationResult, _Fn, _FunctionSchema)
+import Prelude (map, pure, show, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==))
+import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, FormEvent(..), Query(..), SimpleArgument(..), Simulation(Simulation), WebData, _Action, _argumentSchema, _functionName, _resultBlockchain, _simulatorWallet, _simulatorWalletWallet, _walletId)
+import Validation (ValidationError, WithPath, joinPath, showPathValue, validate)
+import ValueEditor (valueForm)
 import Wallet (walletIdPane, walletsPane)
+import Wallet.Emulator.Types (Wallet)
 
 simulationPane ::
   forall m aff.
   MonadAff (EChartsEffects aff) m
-  => Simulation
-  -> Array SimulatorWallet
-  -> RemoteData AjaxError EvaluationResult
+  => Cursor Simulation
+  -> WebData EvaluationResult
   -> ParentHTML Query ChildQuery ChildSlot m
-simulationPane simulation wallets evaluationResult =
-  div_
-    [ walletsPane simulation.signatures wallets
-    , br_
-    , actionsPane simulation.actions (view (_EvaluationResult <<< _resultBlockchain) <$> evaluationResult)
-    ]
+simulationPane simulations evaluationResult =
+  case current simulations of
+    Just (Simulation simulation) ->
+      let
+        isValidWallet :: Wallet -> Boolean
+        isValidWallet target =
+          isJust $ Array.find (\wallet -> view _walletId target
+                                          ==
+                                          view (_simulatorWalletWallet <<< _walletId) wallet)
+                     simulation.wallets
+      in
+        div_
+          [ simulationsNav simulations
+          , walletsPane simulation.signatures simulation.wallets
+          , br_
+          , actionsPane isValidWallet simulation.actions (view _resultBlockchain <$> evaluationResult)
+          ]
+    Nothing ->
+      div_
+        [ text "Click the "
+        , strong_ [ text "Editor" ]
+        , text " tab above and compile a contract to get started."
+        ]
 
-actionsPane :: forall p. Array Action -> RemoteData AjaxError Blockchain -> HTML p Query
-actionsPane actions evaluationResult =
+simulationsNav :: forall p . Cursor Simulation -> HTML p Query
+simulationsNav simulations =
+  div
+    [ id_ "simulation-nav"
+    , classes [ btnGroup, btnGroupSmall ]
+    ]
+    ((simulations
+      # Cursor.mapWithIndex (simulationNavItem (Cursor.getIndex simulations))
+      # Cursor.toArray
+      # Array.concat
+     )
+     <>
+     [ addSimulationControl ]
+    )
+
+simulationNavItem :: forall p. Int -> Int -> Simulation -> Array (HTML p Query)
+simulationNavItem activeIndex index simulation =
+  [ button
+      [ id_ $ "simulation-nav-item-" <> show index
+      , classes $ buttonClasses <> [ simulationNavItemNameClass ]
+      , onClick $ input_ $ SetSimulationSlot index
+      ]
+      [ text $ "Simulation #" <> show (index + 1) ]
+  , button
+      [ id_ $ "simulation-nav-item-" <> show index <> "-remove"
+      , classes $ buttonClasses <> [ simulationNavItemCloseClass ]
+      , onClick $ input_ $ RemoveSimulationSlot index
+      ]
+      [ icon Close ]
+  ]
+  where
+    buttonClasses =
+        [ btn, simulationNavItemClass ]
+        <>
+        if activeIndex == index then [ btnPrimary ] else [ btnInfo ]
+
+simulationNavItemClass :: ClassName
+simulationNavItemClass = ClassName "simulation-nav-item"
+
+simulationNavItemNameClass :: ClassName
+simulationNavItemNameClass = ClassName "simulation-nav-item-name"
+
+simulationNavItemCloseClass :: ClassName
+simulationNavItemCloseClass = ClassName "simulation-nav-item-close"
+
+addSimulationControl :: forall p. HTML p Query
+addSimulationControl =
+  button
+    [ id_ "simulation-nav-item-add"
+    , classes [ btn, btnInfo, simulationNavItemClass ]
+    , onClick $ input_ $ AddSimulationSlot
+    ]
+    [ icon Plus ]
+
+actionsPane :: forall p. (Wallet -> Boolean) -> Array Action -> WebData Blockchain -> HTML p Query
+actionsPane isValidWallet actions evaluationResult =
   div_
     [ h2_ [ text "Actions" ]
     , p_ [ text "This is your action sequence. Click 'Evaluate' to run these actions against a simulated blockchain." ]
     , Keyed.div
         [ classes [ ClassName "actions", row ] ]
-        (Array.snoc (mapWithIndex actionPane actions) addWaitActionPane)
+        (Array.snoc (mapWithIndex (actionPane isValidWallet) actions) addWaitActionPane)
     , br_
     , row_ [ evaluateActionsPane evaluationResult actions ]
     , br_
     , div_ [ small_ [ text "Run this set of actions against a simulated blockchain." ] ]
     ]
 
-actionPane :: forall p. Int -> Action -> Tuple String (HTML p Query)
-actionPane index action =
+actionPane :: forall p. (Wallet -> Boolean) -> Int -> Action -> Tuple String (HTML p Query)
+actionPane isValidWallet index action =
   Tuple (show index) $
     col4_
-      [ div [ class_ $ ClassName "action" ]
+      [ div [ classes [ ClassName "action"
+                      , ClassName ("action-" <> show index)
+                      , ClassName ("action-" <> (case isValidWallet <$> (preview (_Action <<< _simulatorWallet <<< _simulatorWalletWallet) action) of
+                                                   Nothing -> "valid-wallet"
+                                                   Just true ->  "valid-wallet"
+                                                   Just false ->  "invalid-wallet"))
+                      ]
+            ]
         [ div [ class_ card ]
           [ cardBody_
             [ div
@@ -90,9 +170,10 @@ actionPane index action =
                         , col_ [
                             input
                               [ type_ InputNumber
+                              , classes [ formControl, ClassName $ "action-argument-0-blocks" ]
                               , value $ show blocks
                               , placeholder "Int"
-                              , onValueChange $ map (HQ.action <<< ModifyActions <<< SetWaitTime index) <<< Int.fromString
+                              , onValueInput $ map (HQ.action <<< ModifyActions <<< SetWaitTime index) <<< Int.fromString
                               ]
                           ]
                         ]
@@ -110,52 +191,57 @@ validationClasses ::
 validationClasses arg Nothing = [ ClassName "error" ]
 validationClasses arg (Just _) = []
 
+actionArgumentClass :: Array String -> Array ClassName
+actionArgumentClass ancestors =
+  [ ClassName "action-argument"
+  , ClassName $ "action-argument-" <> Array.intercalate "-" ancestors
+  ]
+
 actionArgumentForm :: forall p. Int -> Array SimpleArgument -> HTML p Query
 actionArgumentForm index arguments =
-  form [ class_ $ ClassName "was-validated" ]
+  div [ class_ wasValidated ]
     (Array.mapWithIndex
-       (\i argument -> PopulateAction index i <$> actionArgumentField ("Field " <> show i) false argument)
+       (\i argument -> PopulateAction index i <$> actionArgumentField [ show i ] false argument)
        arguments)
 
 actionArgumentField ::
   forall p. Warn "We're still not handling the Unknowable case."
-  => String
+  => Array String
   -> Boolean
   -> SimpleArgument
   -> HTML p FormEvent
-actionArgumentField context _ arg@(SimpleInt n) =
+actionArgumentField ancestors _ arg@(SimpleInt n) =
   div_ [
     input
       [ type_ InputNumber
-      , class_ formControl
+      , classes (Array.cons formControl (actionArgumentClass ancestors))
       , value $ maybe "" show n
       , required true
       , placeholder "Int"
-      , onValueChange $ (Just <<< HQ.action <<< SetIntField <<< Int.fromString)
+      , onValueInput $ (Just <<< HQ.action <<< SetIntField <<< Int.fromString)
       ]
-    , validationFeedback (addPath context <$> validate arg)
+    , validationFeedback (joinPath ancestors <$> validate arg)
   ]
-actionArgumentField context _ arg@(SimpleString s) =
+actionArgumentField ancestors _ arg@(SimpleString s) =
   div_ [
     input
       [ type_ InputText
-      , class_ formControl
+      , classes (Array.cons formControl (actionArgumentClass ancestors))
       , value $ fromMaybe "" s
       , required true
       , placeholder "String"
-      , onValueChange $ HE.input SetStringField
+      , onValueInput $ HE.input SetStringField
       ]
-    , validationFeedback (addPath context <$> validate arg)
+    , validationFeedback (joinPath ancestors <$> validate arg)
   ]
-actionArgumentField context nested (SimpleTuple (subFieldA /\subFieldB)) =
+actionArgumentField ancestors isNested (SimpleTuple (subFieldA /\subFieldB)) =
   row_
-    [ col_ [ SetSubField 1 <$> actionArgumentField "_1" true subFieldA ]
-    , col_ [ SetSubField 2 <$> actionArgumentField "_2" true subFieldB ]
+    [ col_ [ SetSubField 1 <$> actionArgumentField (Array.snoc ancestors "_1") true subFieldA ]
+    , col_ [ SetSubField 2 <$> actionArgumentField (Array.snoc ancestors "_2") true subFieldB ]
     ]
-actionArgumentField context nested (SimpleArray schema subFields) =
-    div_ [(if nested
-           then Keyed.div [ classes [  ClassName "nested" ] ]
-           else Keyed.div_) (mapWithIndex subFormContainer subFields)
+actionArgumentField ancestors isNested (SimpleArray schema subFields) =
+    div_ [ Keyed.div [ nesting isNested ]
+             (mapWithIndex subFormContainer subFields)
          , button
              [ classes [ btn, btnInfo ]
              , onClick $ input_ AddSubField
@@ -169,7 +255,7 @@ actionArgumentField context nested (SimpleArray schema subFields) =
       formGroup_ [
         row_
           [ col10_
-              [ SetSubField i <$> actionArgumentField (show i) true field ]
+              [ SetSubField i <$> actionArgumentField (Array.snoc ancestors (show i)) true field ]
           , col2_
             [ button
               [ classes [ btn, btnLink ]
@@ -180,27 +266,35 @@ actionArgumentField context nested (SimpleArray schema subFields) =
           ]
         ]
 
-actionArgumentField context nested (SimpleObject _ subFields) =
-    (if nested
-       then div [ classes [  ClassName "nested" ] ]
-       else div_) $ mapWithIndex (\i field -> map (SetSubField i) (subForm field)) subFields
+actionArgumentField ancestors isNested (SimpleObject _ subFields) =
+  div [ nesting isNested ]
+     (mapWithIndex (\i field -> map (SetSubField i) (subForm field)) subFields)
   where
     subForm (name /\ arg) =
       (formGroup_
          [ label [ for name ] [ text name ]
-         , actionArgumentField name true arg
+         , actionArgumentField (Array.snoc ancestors name) true arg
          ]
       )
+actionArgumentField ancestors isNested (ValueArgument _ value) =
+  div [ nesting isNested ]
+    [ label [ for "value" ] [ text "Value" ]
+    , valueForm SetValueField value
+    ]
 actionArgumentField _ _ (Unknowable { context, description }) =
-  div_ [ text $ "Unsupported: " <> context
+  div_ [ text $ "Unsupported: " <>  context
        , code_ [ text description ]
        ]
+
+nesting :: forall r i. Boolean -> IProp ("class" :: String | r) i
+nesting true = classes [ ClassName "nested" ]
+nesting false = classes []
 
 validationFeedback :: forall p i. Array (WithPath ValidationError) -> HTML p i
 validationFeedback [] =
   validFeedback_ [ nbsp ]
 validationFeedback errors =
-  invalidFeedback_ (div_ <<< pure <<< text <<< show <$> errors)
+  invalidFeedback_ (div_ <<< pure <<< text <<< showPathValue <$> errors)
 
 addWaitActionPane :: forall p. Tuple String (HTML p Query)
 addWaitActionPane =
@@ -219,11 +313,12 @@ addWaitActionPane =
           ]
       ]
 
-evaluateActionsPane :: forall p. RemoteData AjaxError Blockchain -> Array Action -> HTML p Query
+evaluateActionsPane :: forall p. WebData Blockchain -> Array Action -> HTML p Query
 evaluateActionsPane evaluationResult actions =
   col_
     [ button
-      [ classes [ btn, btnClass evaluationResult hasErrors ]
+      [ id_ "evaluate"
+      , classes [ btn, btnClass evaluationResult hasErrors ]
       , disabled hasErrors
       , onClick $ input_ EvaluateActions
       ]

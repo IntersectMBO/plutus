@@ -8,7 +8,6 @@ module Language.PlutusCore.Constant.Dynamic.Instances
     ( PlcList (..)
     ) where
 
-import           Language.PlutusCore.Constant.Dynamic.Emit
 import           Language.PlutusCore.Constant.Dynamic.Pretty
 import           Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Typed
@@ -17,6 +16,7 @@ import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Bool
+import qualified Language.PlutusCore.StdLib.Data.Function    as Plc
 import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Sum         as Plc
 import           Language.PlutusCore.StdLib.Data.Unit
@@ -30,7 +30,16 @@ import           Data.Bitraversable
 import           Data.Char
 import           Data.Proxy
 import qualified Data.Text.Prettyprint.Doc                   as Doc
-import           System.IO.Unsafe                            (unsafePerformIO)
+
+{- Note [Sequencing]
+WARNING: it is not allowed to call 'eval' or @readDynamicBuiltin eval@ over a term that already
+was 'eval'ed. It may be temptive to preevaluate to WHNF some term if you later need to evaluate
+its several instantiations, but it is forbidden to do so. The reason for this restriction is that
+'eval' encapsulates its internal state and the state gets updated during evaluation, so if you
+try to call 'eval' over something that already was 'eval'ed, that second 'eval' won't have the
+updated state that the first 'eval' finished with. This may cause all kinds of weird error messages,
+for example, an error message saying that there is a free variable and evaluation cannot proceed.
+-}
 
 instance KnownDynamicBuiltinType a => KnownDynamicBuiltinType (EvaluationResult a) where
     toTypeEncoding _ = toTypeEncoding @a Proxy
@@ -45,10 +54,19 @@ instance KnownDynamicBuiltinType a => KnownDynamicBuiltinType (EvaluationResult 
     -- and catch all 'EvaluationFailure's in the internal 'EvaluationResult'.
     -- This allows *not* to short-circuit when 'readKnown' fails to read a Haskell value.
     -- Instead the user gets an explicit @EvaluationResult a@ and evaluation proceeds normally.
-    readDynamicBuiltin eval term = makeReflectT $ EvaluationSuccess <$> do
-        res <- eval mempty term
-        fmap (fmap join . sequence) . runReflectT $ traverse (readDynamicBuiltin eval) res
+    readDynamicBuiltin eval =
+        mapDeepReflectT (fmap $ EvaluationSuccess . sequence) . readDynamicBuiltin eval
 
+instance KnownDynamicBuiltinType Int where
+    toTypeEncoding _ = TyApp () (TyBuiltin () TyInteger) (TyInt () 8)
+
+    makeDynamicBuiltin = fmap (Constant ()) . makeBuiltinInt 8 . fromIntegral
+
+    readDynamicBuiltin eval term = do
+        res <- makeRightReflectT $ eval mempty term
+        case res of
+            Constant () (BuiltinInt () 8 i) -> pure $ fromIntegral i
+            _                               -> throwError "Not a builtin Int"
 instance KnownDynamicBuiltinType [Char] where
     toTypeEncoding _ = TyBuiltin () TyString
 
@@ -63,7 +81,7 @@ instance KnownDynamicBuiltinType [Char] where
 instance KnownDynamicBuiltinType Bool where
     toTypeEncoding _ = bool
 
-    makeDynamicBuiltin b = Just $ if b then true else false
+    makeDynamicBuiltin b = pure $ if b then true else false
 
     readDynamicBuiltin eval b = do
         let int1 = TyApp () (TyBuiltin () TyInteger) (TyInt () 4)
@@ -90,13 +108,20 @@ instance KnownDynamicBuiltinType Char where
             Constant () (BuiltinInt () 4 int) -> pure . chr $ fromIntegral int
             _                                 -> throwError "Not an integer-encoded Char"
 
-proxyOf :: a -> Proxy a
-proxyOf _ = Proxy
+instance KnownDynamicBuiltinType a => KnownDynamicBuiltinType (() -> a) where
+    toTypeEncoding _ = TyFun () unit $ toTypeEncoding @a Proxy
+
+    -- Note that we can't just prepend a 'LamAbs' to the result due to name shadowing issues.
+    makeDynamicBuiltin f =
+        fmap (Apply () (mkIterInst () Plc.const [da, unit])) <$> makeDynamicBuiltin $ f () where
+            da = toTypeEncoding @a Proxy
+
+    readDynamicBuiltin eval df = const <$> readDynamicBuiltin eval (Apply () df unitval)
 
 makeTypeAndDynamicBuiltin
-    :: KnownDynamicBuiltinType a => a -> Maybe (Type TyName (), Term TyName Name ())
+    :: forall a. KnownDynamicBuiltinType a => a -> Maybe (Type TyName (), Term TyName Name ())
 makeTypeAndDynamicBuiltin x = do
-    let da = toTypeEncoding $ proxyOf x
+    let da = toTypeEncoding @a Proxy
     dx <- makeDynamicBuiltin x
     pure (da, dx)
 
@@ -104,8 +129,8 @@ instance (KnownDynamicBuiltinType a, KnownDynamicBuiltinType b) =>
             KnownDynamicBuiltinType (a, b) where
     toTypeEncoding _ =
         mkIterTyApp () (prodN 2)
-            [ toTypeEncoding $ Proxy @a
-            , toTypeEncoding $ Proxy @b
+            [ toTypeEncoding @a Proxy
+            , toTypeEncoding @b Proxy
             ]
 
     makeDynamicBuiltin (x, y) = do
@@ -114,55 +139,78 @@ instance (KnownDynamicBuiltinType a, KnownDynamicBuiltinType b) =>
         pure . _tupleTerm . runQuote $ getSpineToTuple () [dax, dby]
 
     readDynamicBuiltin eval dxy = do
-        let go emitX emitY = runQuote $ do
-                let da = toTypeEncoding $ Proxy @a
-                    db = toTypeEncoding $ Proxy @b
-                dx <- freshName () "x"
-                dy <- freshName () "y"
-                pure
-                    . Apply () (TyInst () dxy unit)
-                    . LamAbs () dx da
-                    . LamAbs () dy db
-                    $ mkIterApp () sequ
-                        [ Apply () emitX $ Var () dx
-                        , Apply () emitY $ Var () dy
-                        ]
-            (xs, (ys, getRes)) =
-                unsafePerformIO . withEmitHandler eval $
-                    withEmitTerm TypedBuiltinDyn $ \emitX ->
-                    withEmitTerm TypedBuiltinDyn $ \emitY ->
-                        feedEmitHandler $ go emitX emitY
-        _ <- makeRightReflectT getRes
-        case (xs, ys) of
-            ([x], [y]) -> pure (x, y)
-            _          -> throwError "Not a (,)"
+        let da = toTypeEncoding @a Proxy
+            db = toTypeEncoding @b Proxy
+            prodNAccessorInst i = mkIterInst () (prodNAccessor 2 i) [da, db]
+        -- Read elements of the tuple separately.
+        x <- readDynamicBuiltin eval $ Apply () (prodNAccessorInst 0) dxy
+        y <- readDynamicBuiltin eval $ Apply () (prodNAccessorInst 1) dxy
+        pure (x, y)
 
 instance (KnownDynamicBuiltinType a, KnownDynamicBuiltinType b) =>
             KnownDynamicBuiltinType (Either a b) where
     toTypeEncoding _ =
         mkIterTyApp () Plc.sum
-            [ toTypeEncoding $ Proxy @a
-            , toTypeEncoding $ Proxy @b
+            [ toTypeEncoding @a Proxy
+            , toTypeEncoding @b Proxy
             ]
 
     makeDynamicBuiltin s = do
-        let da = toTypeEncoding $ Proxy @a
-            db = toTypeEncoding $ Proxy @b
+        let da = toTypeEncoding @a Proxy
+            db = toTypeEncoding @b Proxy
         ds <- bitraverse makeDynamicBuiltin makeDynamicBuiltin s
         pure $ metaEitherToSum da db ds
 
+    -- At first I tried this representation:
+    --
+    -- > ds {(() -> a, () -> b)}
+    -- >     (\(x : a) -> (\_ -> x        , \_ -> error {b}))
+    -- >     (\(y : b) -> (\_ -> error {a}, \_ -> y        ))
+    --
+    -- but it didn't work, because here the type of the result always contains both 'a' and 'b',
+    -- so values of both of the types are attempted to be extracted via 'readDynamicBuiltin'
+    -- which causes a loop when we need to read lists back, because in the nil case we attempt to
+    -- read both branches of an 'Either' and one of them is supposed to be a list and the fact
+    -- that it's actually an 'Error' does not help, because 'readDynamicBuiltin' is still called
+    -- recursively where it shouldn't.
+    --
+    -- So the actual implementation is: first figure out whether the 'sum' is 'left' or 'right' via
+    --
+    -- > ds {bool} (\(x : a) -> true) (\(y : b) -> false)
+    --
+    -- and depending on the result call either
+    --
+    -- > ds {a} (\(x : a) -> x) (\(y : b) -> error {a})
+    --
+    -- or
+    --
+    -- > ds {b} (\(x : a) -> error {b}) (\(y : b) -> y)
     readDynamicBuiltin eval ds = do
-        let go emitX emitY = mkIterApp () (TyInst () ds unit) [emitX, emitY]
-            (l, (r, getRes)) =
-                unsafePerformIO . withEmitHandler eval $
-                    withEmitTerm TypedBuiltinDyn $ \emitX ->
-                    withEmitTerm TypedBuiltinDyn $ \emitY ->
-                        feedEmitHandler $ go emitX emitY
-        _ <- makeRightReflectT getRes
-        case (l, r) of
-            ([x], []) -> pure $ Left  x
-            ([], [y]) -> pure $ Right y
-            _         -> throwError "Not an Either"
+        let da = toTypeEncoding @a Proxy
+            db = toTypeEncoding @b Proxy
+            branch = runQuote $ do
+                x <- freshName () "x"
+                y <- freshName () "y"
+                pure $ mkIterApp () (TyInst () ds bool)
+                    [ LamAbs () x da true
+                    , LamAbs () y db false
+                    ]
+        isL <- readDynamicBuiltin eval branch
+        let term = runQuote $ do
+                x <- freshName () "x"
+                y <- freshName () "y"
+                pure $ if isL
+                    then mkIterApp () (TyInst () ds da)
+                        [ LamAbs () x da $ Var () x
+                        , LamAbs () y db $ Error () da
+                        ]
+                    else mkIterApp () (TyInst () ds db)
+                        [ LamAbs () x da $ Error () db
+                        , LamAbs () y db $ Var () y
+                        ]
+        if isL
+            then Left  <$> readDynamicBuiltin eval term
+            else Right <$> readDynamicBuiltin eval term
 
 newtype PlcList a = PlcList
     { unPlcList :: [a]
@@ -173,20 +221,47 @@ instance KnownDynamicBuiltinType a => KnownDynamicBuiltinType (PlcList a) where
 
     makeDynamicBuiltin (PlcList xs) = do
         dyns <- traverse makeDynamicBuiltin xs
-        let argTy = toTypeEncoding $ Proxy @a
+        let argTy = toTypeEncoding @a Proxy
         pure $ metaListToList argTy dyns
 
+    -- A natural implementation of this function would be to emit elements of a list one by one
+    -- until evaluation of a Plutus Core term finishes. However this approach doesn't scale to other
+    -- recursive types, because linear streaming is not suitable for handling tree-like structures.
+    -- Another option would be to collect a Haskell value inside a Plutus Core accumulator while
+    -- evaluating things on the Plutus Core side. However embedding the entire Haskell into
+    -- Plutus Core is a little bit weird and we would need runtime type equality checks
+    -- (the simplest way would probably be to use @Dynamic@) or some other trickery.
+    -- Here instead we do something very simple: we pattern match in Plutus Core on a list, return
+    -- the pieces we got from the pattern match and then recreate the list on the Haskell side.
+    -- And that's all.
+    -- How a single pattern match can handle a recursive data structure? All of the pieces that we
+    -- get from the pattern matching get converted to Haskell and one of those pieces is the tail
+    -- of the list. That is, we implicitly invoke 'readDynamicBuiltin' recursively until the list
+    -- is empty.
     readDynamicBuiltin eval list = do
-        let go emit = runQuote $ do
-                -- foldList {a} {unit} (\(r : unit) -> emit) unitval list
-                let a = toTypeEncoding $ Proxy @a
-                u <- freshName () "u"
-                pure $
-                    mkIterApp () (mkIterInst () foldList [a, unit])
-                        [LamAbs () u unit emit, unitval, list]
-            (xs, getRes) = unsafePerformIO $ withEmitEvaluateBy eval TypedBuiltinDyn go
-        _ <- makeRightReflectT getRes
-        pure $ PlcList xs
+        let term = runQuote $ do
+                -- > unwrap list {sum unit (prodN 2 a (list a))} unitval
+                -- >     \(x : a) (xs : list a) -> prodNConstructor 2 {a} {list a} x xs
+                let listA = toTypeEncoding @(PlcList a) Proxy
+                    a     = toTypeEncoding @a           Proxy
+                    resL = unit
+                    resR = mkIterTyApp () (prodN 2) [a, listA]
+                    -- TODO: use 'maybe' instead of 'sum'.
+                    res  = mkIterTyApp () Plc.sum [resL, resR]
+                x  <- freshName () "x"
+                xs <- freshName () "xs"
+                pure $ mkIterApp () (TyInst () (Unwrap () list) res)
+                    [ Apply () (mkIterInst () Plc.left [resL, resR]) unitval
+                    ,   LamAbs () x  a
+                      . LamAbs () xs listA
+                      . Apply () (mkIterInst () Plc.right [resL, resR])
+                      $ mkIterApp () (mkIterInst () (prodNConstructor 2) [a, listA])
+                          [ Var () x, Var () xs ]
+                    ]
+        res <- readDynamicBuiltin eval term
+        pure . PlcList $ case res of
+            Left  ()              -> []
+            Right (x, PlcList xs) -> x : xs
 
 instance PrettyDynamic a => PrettyDynamic (PlcList a) where
     prettyDynamic = Doc.list . map prettyDynamic . unPlcList

@@ -1,0 +1,58 @@
+RAML can also find bounds for quite complicated functions: for 
+
+  f a b c d = mul (mul d b) (add d (mul a (add c (mul d b))))
+
+we get this for the heap analysis:
+
+====
+
+Non-zero annotations of result:
+
+  Simplified bound:
+     8.00 + 4.00*L*M*R + 4.00*L*M*R*Y + 8.00*L*R
+                               + 4.00*L*R^2 + 4.00*L^2*M*R^2 + 4.00*M*Y
+                               + 4.00*R + 4.00*Y
+   where
+     R is the number of S-nodes of the 4th component of the argument
+     Y is the number of S-nodes of the 3rd component of the argument
+     L is the number of S-nodes of the 2nd component of the argument
+     M is the number of S-nodes of the 1st component of the argument
+
+--
+  Mode:          upper
+  Metric:        heap
+  Degree:        7
+  Run time:      38.57 seconds
+  #Constraints:  187537
+
+====
+
+and this for the number of execution steps:
+
+ Non-zero annotations of result:
+
+  Simplified bound:
+     37.00 + 8.00*L*M*R + 8.00*L*M*R*Y + 28.00*L*R
+                               + 8.00*L*R^2 + 8.00*L^2*M*R^2 + 12.00*M
+                               + 8.00*M*Y + 32.00*R + 8.00*Y
+   where
+     R is the number of S-nodes of the 4th component of the argument
+     Y is the number of S-nodes of the 3rd component of the argument
+     L is the number of S-nodes of the 2nd component of the argument
+     M is the number of S-nodes of the 1st component of the argument
+
+--
+  Mode:          upper
+  Metric:        steps
+  Degree:        7
+  Run time:      38.59 seconds
+  #Constraints:  187634
+
+====
+
+For the simpler examples it sufficed to look for a bound of degree 4,
+but this failed here: instead I had to try a bound of 7.  In fact, 5
+would have sufficed.
+
+Note the long analysis times and the large size of the linear programs
+for this example.

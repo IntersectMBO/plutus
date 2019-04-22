@@ -2,9 +2,12 @@
 -- See the @plutus/language-plutus-core/docs/Constant application.md@
 -- article for how this emerged.
 
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE DataKinds                 #-}
+{-# LANGUAGE GADTs                     #-}
+{-# LANGUAGE KindSignatures            #-}
+{-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE RankNTypes                #-}
+{-# LANGUAGE TypeApplications          #-}
 
 module Language.PlutusCore.Constant.Typed
     ( BuiltinSized (..)
@@ -20,13 +23,16 @@ module Language.PlutusCore.Constant.Typed
     , DynamicBuiltinNameMeanings (..)
     , Evaluator
     , EvaluateT (..)
-    , ReflectT
+    , ReflectT (..)
     , KnownDynamicBuiltinType (..)
+    , OpaqueTerm (..)
     , thoist
     , eraseTypedBuiltinSized
     , runEvaluateT
     , withEvaluator
     , runReflectT
+    , mapReflectT
+    , mapDeepReflectT
     , makeReflectT
     , makeRightReflectT
     , readDynamicBuiltinM
@@ -43,11 +49,15 @@ import           PlutusPrelude
 
 import Control.Monad.Morph as Morph
 import           Control.Monad.Except
+import           Control.Monad.Morph                         as Morph
 import           Control.Monad.Reader
 import           Control.Monad.Trans.Inner
 import qualified Data.ByteString.Lazy.Char8                  as BSL
 import           Data.Map                                    (Map)
+import           Data.Proxy
 import           Data.Text                                   (Text)
+import qualified Data.Text                                   as Text
+import           GHC.TypeLits
 
 infixr 9 `TypeSchemeArrow`
 
@@ -135,11 +145,32 @@ data TypedBuiltinValue size a = TypedBuiltinValue (TypedBuiltin size a) a
 data TypeScheme size a r where
     TypeSchemeBuiltin :: TypedBuiltin size a -> TypeScheme size a a
     TypeSchemeArrow   :: TypeScheme size a q -> TypeScheme size b r -> TypeScheme size (a -> b) r
+    TypeSchemeAllType
+        :: (KnownSymbol text, KnownNat uniq)
+           -- Here we require the user to manually provide the unique of a type variable.
+           -- That's nothing but silly, but I do not see what else we can do with the current design.
+           -- Once the 'BuiltinPipe' thing gets implemented, we'll be able to bind 'uniq' inside
+           -- the continuation and also put there the @KnownNat uniq@ constraint
+           -- (i.e. use universal quantification for uniques) and that should work alright.
+        => Proxy '(text, uniq)
+           -- We use a funny trick here: instead of binding
+           --
+           -- > TypedBuiltin size (OpaqueTerm text uniq)
+           --
+           -- directly we introduce an additional and "redundant" type variable. The reason why we
+           -- do that is because this way we can also bind such a variable later when constructing
+           -- the 'TypeScheme' of a polymorphic builtin, so that for the user this looks exactly
+           -- like a single bound type variable instead of this weird @OpaqueTerm text uniq@ thing.
+           --
+           -- And note that in most cases we do not need to bind anything at the type level and can
+           -- use the variable bound at the term level directly, because it's of the type that
+           -- 'TypeSchemeBuiltin' expects. Type-level binding is only needed when you want to apply
+           -- a type constructor to the variable, like in
+           --
+           -- > reverse : all a. list a -> list a
+        -> (forall qt. qt ~ OpaqueTerm text uniq => TypedBuiltin size qt -> TypeScheme size a r)
+        -> TypeScheme size a r
     TypeSchemeAllSize :: (size -> TypeScheme size a r) -> TypeScheme size a r
-    -- This is nailed to @size@ rather than being a generic @TypeSchemeForall@ for simplicity
-    -- and because at the moment we do not need anything else.
-    -- We can make this generic by parametrising @TypeScheme@ by an
-    -- @f :: Kind () -> *@ rather than @size@.
 
     -- The @r@ is rather ad hoc and needed only for tests.
     -- We could use type families to compute it instead of storing as an index.
@@ -183,8 +214,20 @@ newtype DynamicBuiltinNameMeanings = DynamicBuiltinNameMeanings
     { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName DynamicBuiltinNameMeaning
     } deriving (Semigroup, Monoid)
 
+-- | A thing that evaluates @f@ in monad @m@ and allows to extend the set of
+-- dynamic built-in names.
 type Evaluator f m = DynamicBuiltinNameMeanings -> f TyName Name () -> m EvaluationResultDef
 
+-- | A computation that runs in @t m@ and has access to an 'Evaluator' that runs in @m@.
+-- The idea is that a computation that requires access to an evaluator may introduce new effects
+-- even though the underlying evaluator does not have them.
+--
+-- For example reading of values (see 'readDynamicBuiltinM') runs in 'EvaluateT'
+-- (because it needs access to an evaluator) and adds the 'ReflectT' effect on top of that
+-- (see the docs of 'ReflectT' for what effects it consists of).
+--
+-- 'EvaluateT' is a monad transformer transfomer. I.e. it turns one monad transformer
+-- into another one.
 newtype EvaluateT t m a = EvaluateT
     { unEvaluateT :: ReaderT (Evaluator Term m) (t m) a
     } deriving
@@ -193,12 +236,15 @@ newtype EvaluateT t m a = EvaluateT
         , MonadError e
         )
 
+-- | Run an 'EvaluateT' computation using the given 'Evaluator'.
 runEvaluateT :: Evaluator Term m -> EvaluateT t m a -> t m a
 runEvaluateT eval (EvaluateT a) = runReaderT a eval
 
+-- | Wrap a computation binding an 'Evaluator' as a 'EvaluateT'.
 withEvaluator :: (Evaluator Term m -> t m a) -> EvaluateT t m a
 withEvaluator = EvaluateT . ReaderT
 
+-- | 'thoist' for monad transformer transformerts if what 'hoist' for monad transformers.
 thoist :: Monad (t m) => (forall b. t m b -> s m b) -> EvaluateT t m a -> EvaluateT s m a
 thoist f (EvaluateT a) = EvaluateT $ Morph.hoist f a
 
@@ -319,12 +365,29 @@ instance Monad m => Alternative (ReflectT m) where
     ReflectT (ExceptT (InnerT m)) <|> ReflectT (ExceptT (InnerT n)) =
         ReflectT . ExceptT . InnerT $ (<|>) <$> m <*> n
 
+-- | Run a 'ReflectT' computation.
 runReflectT :: ReflectT m a -> m (EvaluationResult (Either Text a))
 runReflectT = unInnerT . runExceptT . unReflectT
 
+-- | Map over the underlying representation of 'ReflectT'.
+mapReflectT
+    :: (ExceptT Text (InnerT EvaluationResult m) a -> ExceptT Text (InnerT EvaluationResult n) b)
+    -> ReflectT m a
+    -> ReflectT n b
+mapReflectT f (ReflectT a) = ReflectT (f a)
+
+-- | Map over the fully unwrapped underlying representation of a 'ReflectT' computation.
+mapDeepReflectT
+    :: (m (EvaluationResult (Either Text a)) -> n (EvaluationResult (Either Text b)))
+    -> ReflectT m a
+    -> ReflectT n b
+mapDeepReflectT = mapReflectT . mapExceptT . mapInnerT
+
+-- | Fully wrap a computation into 'ReflectT'.
 makeReflectT :: m (EvaluationResult (Either Text a)) -> ReflectT m a
 makeReflectT = ReflectT . ExceptT . InnerT
 
+-- | Wrap a non-throwing computation into 'ReflectT'.
 makeRightReflectT :: Monad m => m (EvaluationResult a) -> ReflectT m a
 makeRightReflectT = ReflectT . lift . InnerT
 
@@ -341,13 +404,24 @@ class KnownDynamicBuiltinType dyn where
     makeDynamicBuiltin :: dyn -> Maybe (Term TyName Name ())
 
     -- See Note [Evaluators].
-    -- | Convert a PLC value to the corresponding Haskell value.
+    -- | Convert a PLC value to the corresponding Haskell value using an explicit evaluator.
     readDynamicBuiltin :: Monad m => Evaluator Term m -> Term TyName Name () -> ReflectT m dyn
 
+-- | Convert a PLC value to the corresponding Haskell value using the evaluator
+-- from the current context.
 readDynamicBuiltinM
     :: (Monad m, KnownDynamicBuiltinType a)
     => Term TyName Name () -> EvaluateT ReflectT m a
 readDynamicBuiltinM term = withEvaluator $ \eval -> readDynamicBuiltin eval term
+
+-- | The denotation of a term whose type is a bound variable.
+-- I.e. the denotation of such a term is the term itself.
+-- This is because we have parametricity in Haskell, so we can't inspect a value whose
+-- type is a bound variable, so we never need to convert such a term from Plutus Core to Haskell
+-- and back and instead can keep it intact.
+newtype OpaqueTerm (text :: Symbol) (unique :: Nat) = OpaqueTerm
+    { unOpaqueTerm :: Term TyName Name ()
+    }
 
 instance Pretty BuiltinSized where
     pretty BuiltinSizedInt  = "integer"
@@ -389,3 +463,15 @@ instance KnownDynamicBuiltinType () where
         case res of
             Constant () (BuiltinInt () 1 1) -> pure ()
             _                               -> throwError "Not a builtin ()"
+
+instance (KnownSymbol text, KnownNat uniq) =>
+        KnownDynamicBuiltinType (OpaqueTerm text uniq) where
+    toTypeEncoding _ =
+        TyVar () . TyName $
+            Name ()
+                (Text.pack $ symbolVal @text Proxy)
+                (Unique . fromIntegral $ natVal @uniq Proxy)
+
+    makeDynamicBuiltin = pure . unOpaqueTerm
+
+    readDynamicBuiltin eval = fmap OpaqueTerm . makeRightReflectT . eval mempty

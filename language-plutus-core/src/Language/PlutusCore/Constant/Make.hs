@@ -38,12 +38,12 @@ import           Data.Bits                                   (bit)
 import qualified Data.ByteString.Lazy                        as BSL
 
 -- | Lift a 'BuiltinName' to 'Term'.
-builtinNameAsTerm :: BuiltinName -> Term tyname name ()
-builtinNameAsTerm = Builtin () . BuiltinName ()
+builtinNameAsTerm :: TermLike term tyname name => BuiltinName -> term ()
+builtinNameAsTerm = builtin () . BuiltinName ()
 
 -- | Lift a 'DynamicBuiltinName' to 'Term'.
-dynamicBuiltinNameAsTerm :: DynamicBuiltinName -> Term tyname name ()
-dynamicBuiltinNameAsTerm = Builtin () . DynBuiltinName ()
+dynamicBuiltinNameAsTerm :: TermLike term tyname name => DynamicBuiltinName -> term ()
+dynamicBuiltinNameAsTerm = builtin () . DynBuiltinName ()
 
 -- | Return the @[-2^(8s - 1), 2^(8s - 1))@ bounds for integers of a given 'Size'.
 toBoundsInt :: Size -> (Integer, Integer)
@@ -99,25 +99,27 @@ Same considerations apply to bytestrings.
 
 -- | Convert a Haskell 'Integer' to the corresponding PLC @integer@.
 makeDynBuiltinInt
-    :: Type tyname ()       -- ^ An actual size @s@.
-    -> Term tyname name ()  -- ^ A singleton for @s@.
-    -> Integer              -- ^ An 'Integer' to lift.
-    -> Term tyname name ()
+    :: TermLike term tyname name
+    => Type tyname () -- ^ An actual size @s@.
+    -> term ()        -- ^ A singleton for @s@.
+    -> Integer        -- ^ An 'Integer' to lift.
+    -> term ()
 makeDynBuiltinInt sTy sTerm intVal =
     mkIterApp () (mkIterInst () resizeInteger [TyInt () sizeOfIntVal, sTy]) [sTerm, intTerm] where
         sizeOfIntVal = sizeOfInteger intVal
         resizeInteger = builtinNameAsTerm ResizeInteger
-        intTerm = Constant () $ BuiltinInt () sizeOfIntVal intVal
+        intTerm = constant () $ BuiltinInt () sizeOfIntVal intVal
 
 -- | Convert a Haskell 'Integer' to the corresponding PLC @integer@,
 -- taking the size singleton from an already existing PLC @integer@.
 makeDynBuiltinIntSizedAs
-    :: Type tyname ()       -- ^ An actual size @s@.
-    -> Term tyname name ()  -- ^ An @integer@ to take the singleton size from.
+    :: TermLike term tyname name
+    => Type tyname ()       -- ^ An actual size @s@.
+    -> term ()  -- ^ An @integer@ to take the singleton size from.
     -> Integer              -- ^ An 'Integer' to lift.
-    -> Term tyname name ()
+    -> term ()
 makeDynBuiltinIntSizedAs sTy intAs = makeDynBuiltinInt sTy sTerm where
-    sTerm = Apply () (TyInst () (builtinNameAsTerm SizeOfInteger) sTy) intAs
+    sTerm = apply () (tyInst () (builtinNameAsTerm SizeOfInteger) sTy) intAs
 
 -- | Check whether an 'Integer' is in bounds (see 'checkBoundsInt') and return it as a 'Constant'.
 makeBuiltinInt :: Size -> Integer -> Maybe (Constant ())
@@ -149,7 +151,7 @@ makeBuiltin (TypedBuiltinValue tb x) = case tb of
 -- fail in case constraints are not satisfied.
 unsafeMakeBuiltin :: PrettyDynamic a => TypedBuiltinValue Size a -> Term TyName Name ()
 unsafeMakeBuiltin tbv = fromMaybe err $ makeBuiltin tbv where
-    err = error $ "unsafeMakeBuiltin: could not convert from a denotation: " ++ prettyString tbv
+    err = Prelude.error $ "unsafeMakeBuiltin: could not convert from a denotation: " ++ prettyString tbv
 
 -- | Convert a Haskell value to a PLC value of a dynamic built-in type.
 unsafeMakeDynamicBuiltin

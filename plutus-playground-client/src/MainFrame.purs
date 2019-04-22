@@ -1,43 +1,50 @@
 module MainFrame
   ( mainFrame
+  , eval
+  , initialState
   ) where
 
 import Types
 
-import Ace.EditSession as Session
-import Ace.Editor as Editor
-import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged), AceQuery(GetEditor))
-import Ace.Types (ACE, Editor, Annotation)
+import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged))
+import Ace.Types (ACE, Annotation)
 import Action (simulationPane)
-import AjaxUtils (ajaxErrorPane, runAjaxTo)
+import AjaxUtils (ajaxErrorPane)
+import AjaxUtils as AjaxUtils
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
-import Bootstrap (active, btn, btnGroup, btnSmall, container, container_, hidden, navItem_, navLink, navTabs_, pullRight)
-import Chain (mockchainChartOptions, balancesChartOptions, evaluationPane)
+import Bootstrap (active, btn, btnGroup, btnSmall, col6_, container, container_, empty, floatRight, hidden, navItem_, navLink, navTabs_, noGutters, row)
+import Chain (evaluationPane)
+import Control.Bind (bindFlipped)
 import Control.Comonad (extract)
-import Control.Monad.Aff.Class (class MonadAff, liftAff)
+import Control.Monad.Aff.Class (class MonadAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State (class MonadState)
 import Control.Monad.Trans.Class (lift)
+import Cursor (_current)
+import Cursor as Cursor
+import Data.Argonaut.Parser (jsonParser)
 import Data.Array (catMaybes, (..))
 import Data.Array as Array
-import Data.Either (Either(..))
+import Data.Either (Either(..), note)
 import Data.Generic (gEq)
-import Data.Lens (_1, _2, _Just, _Right, assign, maximumOf, modifying, over, preview, set, traversed, use, view)
+import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, traversed, use, view)
+import Data.Lens.Extra (peruse)
+import Data.Lens.Fold (maximumOf, preview)
 import Data.Lens.Index (ix)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Newtype (unwrap)
 import Data.String as String
-import Data.Traversable (traverse)
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
-import ECharts.Monad (interpret)
-import Editor (editorPane)
-import FileEvents (FILE, preventDefault, readFileFromDragEvent)
-import Gist (gistId)
-import Gists (mkNewGist)
+import Editor (demoScriptsPane, editorPane)
+import FileEvents (FILE)
+import Gist (gistFileContent, gistId)
+import Gists (gistControls, mkNewGist, playgroundGistFile, simulationGistFile)
+import Gists as Gists
 import Halogen (Component, action)
 import Halogen as H
 import Halogen.Component (ParentHTML)
@@ -45,45 +52,59 @@ import Halogen.ECharts (EChartsEffects)
 import Halogen.ECharts as EC
 import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, strong_, text)
 import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (class_, classes, href)
+import Halogen.HTML.Properties (class_, classes, href, id_)
 import Halogen.Query (HalogenM)
 import Icons (Icon(..), icon)
-import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError))
-import Ledger.Ada.TH (Ada(..))
+import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), _InterpreterResult)
+import Ledger.Extra (LedgerMap(..), _LedgerMap)
+import Ledger.Value.TH (CurrencySymbol(CurrencySymbol), Value(..), _CurrencySymbol)
 import LocalStorage (LOCALSTORAGE)
-import LocalStorage as LocalStorage
+import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, updateChartsIfPossible)
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
-import Playground.API (Evaluation(Evaluation), EvaluationResult(EvaluationResult), SimulatorWallet(SimulatorWallet), SourceCode(SourceCode), _CompilationResult, _FunctionSchema)
-import Playground.Server (SPParams_, getOauthStatus, patchGistsByGistId, postContract, postEvaluate, postGists)
-import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, show, unit, unless, void, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
+import Playground.API (SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
+import Playground.Server (SPParams_)
+import Playground.Usecases (gitHead)
+import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, pure, show, unit, unless, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (=<<), (==))
 import Servant.PureScript.Settings (SPSettings_)
-import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
 import Wallet.Emulator.Types (Wallet(Wallet))
 
 mkSimulatorWallet :: Int -> SimulatorWallet
 mkSimulatorWallet id =
-  SimulatorWallet { simulatorWalletWallet: Wallet { getWallet: id }
-                  , simulatorWalletBalance: Ada {getAda: 10}
-                  }
+  SimulatorWallet
+    { simulatorWalletWallet: Wallet { getWallet: id }
+    , simulatorWalletBalance: Value { getValue:
+                                        LedgerMap [ Tuple (CurrencySymbol 0) 50
+                                                  , Tuple (CurrencySymbol 1) 20
+                                                  , Tuple (CurrencySymbol 2) 20
+                                                  ]
+                                    }
+    }
+
+mkSimulation :: Signatures -> Simulation
+mkSimulation signatures = Simulation
+  { signatures
+  , actions: []
+  , wallets: mkSimulatorWallet <$> 1..2
+  }
 
 initialState :: State
-initialState =
-  { view: Editor
+initialState = State
+  { currentView: Editor
   , compilationResult: NotAsked
-  , wallets: mkSimulatorWallet <$> 1..2
-  , simulation: Nothing
+  , simulations: Cursor.empty
   , evaluationResult: NotAsked
   , authStatus: NotAsked
   , createGistResult: NotAsked
+  , gistUrl: Nothing
   }
 
 ------------------------------------------------------------
 
 mainFrame ::
   forall m aff.
-  MonadAff (EChartsEffects (AceEffects (localStorage :: LOCALSTORAGE, file :: FILE, ajax :: AJAX, analytics :: ANALYTICS | aff))) m
+  MonadAff (EChartsEffects (AceEffects (ajax :: AJAX, analytics :: ANALYTICS, file :: FILE, localStorage :: LOCALSTORAGE | aff))) m
   => MonadAsk (SPSettings_ SPParams_) m
   => Component HTML Query Unit Void m
 mainFrame =
@@ -96,14 +117,14 @@ mainFrame =
     , finalizer: Nothing
     }
 
-evalWithAnalyticsTracking ::
-  forall m aff.
-  MonadAff (localStorage :: LOCALSTORAGE, file :: FILE, ace :: ACE, ajax :: AJAX, analytics :: ANALYTICS | aff) m
+evalWithAnalyticsTracking :: forall m eff aff.
+  MonadEff (analytics :: ANALYTICS, ace :: ACE, localStorage :: LOCALSTORAGE | eff) m
   => MonadAsk (SPSettings_ SPParams_) m
+  => MonadAff (ajax :: AJAX, file :: FILE | aff) m
   => Query ~> HalogenM State Query ChildQuery ChildSlot Void m
 evalWithAnalyticsTracking query = do
   liftEff $ analyticsTracking query
-  eval query
+  runHalogenApp $ eval query
 
 analyticsTracking :: forall eff a. Query a -> Eff (analytics :: ANALYTICS | eff) Unit
 analyticsTracking query = do
@@ -120,14 +141,21 @@ toEvent (HandleDropEvent _ _) = Just $ defaultEvent "DropScript"
 toEvent (HandleMockchainChartMessage _ _) = Nothing
 toEvent (HandleBalancesChartMessage _ _) = Nothing
 toEvent (CheckAuthStatus _) = Nothing
-toEvent (PublishGist _) = Just $ (defaultEvent "Publish") { label = Just "Gist"}
-toEvent (ChangeView view _) = Just $ (defaultEvent "View") { label = Just $ show view}
-toEvent (LoadScript script a) = Just $ (defaultEvent "LoadScript") { label = Just script}
+toEvent (PublishGist _) = Just $ (defaultEvent "Publish") { category = Just "Gist" }
+toEvent (SetGistUrl _ _) = Nothing
+toEvent (LoadGist _) = Just $ (defaultEvent "LoadGist") { category = Just "Gist" }
+toEvent (ChangeView view _) = Just $ (defaultEvent "View") { label = Just $ show view }
+toEvent (LoadScript script a) = Just $ (defaultEvent "LoadScript") { label = Just script }
 toEvent (CompileProgram a) = Just $ defaultEvent "CompileProgram"
 toEvent (ScrollTo _ _) = Nothing
-toEvent (AddWallet _) = Just $ (defaultEvent "AddWallet") { category = Just "Wallet" }
-toEvent (RemoveWallet _ _) = Just $ (defaultEvent "RemoveWallet") { category = Just "Wallet" }
-toEvent (SetBalance _ _ _) = Just $ (defaultEvent "SetBalance") { category = Just "Wallet" }
+toEvent (AddSimulationSlot _) = Just $ (defaultEvent "AddSimulationSlot") { category = Just "Simulation" }
+toEvent (SetSimulationSlot _ _) = Just $ (defaultEvent "SetSimulationSlot") { category = Just "Simulation" }
+toEvent (RemoveSimulationSlot _ _) = Just $ (defaultEvent "RemoveSimulationSlot") { category = Just "Simulation" }
+toEvent (ModifyWallets AddWallet _) = Just $ (defaultEvent "AddWallet") { category = Just "Wallet" }
+toEvent (ModifyWallets (RemoveWallet _) _) = Just $ (defaultEvent "RemoveWallet") { category = Just "Wallet" }
+toEvent (ModifyWallets (ModifyBalance _ (SetBalance _ _)) _) = Just $ (defaultEvent "SetBalance") { category = Just "Wallet" }
+toEvent (ModifyWallets (ModifyBalance _ AddBalance) _) = Just $ (defaultEvent "AddBalance") { category = Just "Wallet" }
+toEvent (ModifyWallets (ModifyBalance _ (RemoveBalance _)) _) = Just $ (defaultEvent "RemoveBalance") { category = Just "Wallet" }
 toEvent (ModifyActions (AddAction _) _) = Just $ (defaultEvent "AddAction") { category = Just "Action" }
 toEvent (ModifyActions (AddWaitAction _) _) = Just $ (defaultEvent "AddWaitAction") { category = Just "Action" }
 toEvent (ModifyActions (RemoveAction _) _) = Just $ (defaultEvent "RemoveAction") { category = Just "Action" }
@@ -135,26 +163,25 @@ toEvent (ModifyActions (SetWaitTime _ _) _) = Just $ (defaultEvent "SetWaitTime"
 toEvent (EvaluateActions _) = Just $ (defaultEvent "EvaluateActions") { category = Just "Action" }
 toEvent (PopulateAction _ _ _) = Just $ (defaultEvent "PopulateAction") { category = Just "Action" }
 
-saveBuffer :: forall eff. String -> Eff (localStorage :: LOCALSTORAGE | eff) Unit
-saveBuffer text = LocalStorage.setItem bufferLocalStorageKey text
-
 eval ::
-  forall m aff.
-  MonadAff (localStorage :: LOCALSTORAGE, file :: FILE, ace :: ACE, ajax :: AJAX | aff) m
+  forall m.
+  MonadState State m
   => MonadAsk (SPSettings_ SPParams_) m
-  => Query ~> HalogenM State Query ChildQuery ChildSlot Void m
+  => MonadApp m
+  => Query ~> m
 eval (HandleEditorMessage (TextChanged text) next) = do
-  liftEff $ saveBuffer text
+  saveBuffer text
   pure next
 
 eval (HandleDragEvent event next) = do
-  liftEff $ preventDefault event
+  preventDefault event
   pure next
 
 eval (HandleDropEvent event next) = do
-  liftEff $ preventDefault event
-  contents <- liftAff $ readFileFromDragEvent event
-  void $ withEditor $ Editor.setValue contents (Just 1)
+  preventDefault event
+  contents <- readFileFromDragEvent event
+  editorSetContents contents (Just 1)
+  saveBuffer contents
   pure next
 
 eval (HandleMockchainChartMessage EC.Initialized next) = do
@@ -174,111 +201,170 @@ eval (HandleBalancesChartMessage (EC.EventRaised event) next) =
   pure next
 
 eval (CheckAuthStatus next) = do
-  authResult <- runAjaxTo _authStatus getOauthStatus
+  assign _authStatus Loading
+  authResult <- getOauthStatus
+  assign _authStatus authResult
   pure next
 
 eval (PublishGist next) = do
-  mContents <- withEditor Editor.getValue
-  case mkNewGist mContents of
+  mContents <- editorGetContents
+  simulations <- use _simulations
+  case mkNewGist { source: mContents, simulations } of
     Nothing -> pure next
     Just newGist ->
       do mGist <- use _createGistResult
-         let apiCall = case preview (_Success <<< gistId) mGist of
-               Nothing -> postGists newGist
-               Just gistId -> patchGistsByGistId newGist gistId
-         void $ runAjaxTo _createGistResult  apiCall
+
+         assign _createGistResult Loading
+
+         newResult <- case preview (_Success <<< gistId) mGist of
+           Nothing -> postGist newGist
+           Just gistId -> patchGistByGistId newGist gistId
+
+         assign _createGistResult newResult
+
+         case preview (_Success <<< gistId) newResult of
+           Nothing -> pure unit
+           Just gistId -> assign _gistUrl (Just (unwrap gistId))
 
          pure next
 
+eval (SetGistUrl newGistUrl next) = do
+  assign _gistUrl (Just newGistUrl)
+  pure next
+
+eval (LoadGist next) = do
+  eGistId <- (bindFlipped Gists.parseGistUrl <<< note "Gist Url not set.") <$> use _gistUrl
+  case eGistId of
+    Left err -> pure unit
+    Right gistId -> do
+      assign _createGistResult Loading
+      aGist <- getGistByGistId gistId
+      assign _createGistResult aGist
+
+      case aGist of
+        Success gist -> do
+          -- Load the source, if available.
+          case preview (_Just <<< gistFileContent <<< _Just) (playgroundGistFile gist) of
+            Nothing -> pure unit
+            Just content -> do
+              editorSetContents content (Just 1)
+              saveBuffer content
+              assign _simulations Cursor.empty
+              assign _evaluationResult NotAsked
+
+          -- Load the simulation, if available.
+          case preview (_Just <<< gistFileContent <<< _Just) (simulationGistFile gist) of
+            Nothing -> pure unit
+            Just simulationString -> do
+              case (AjaxUtils.decodeJson =<< jsonParser simulationString) of
+                Left err -> pure unit
+                Right simulations -> do
+                  assign _simulations simulations
+                  assign _evaluationResult NotAsked
+
+        _ -> pure unit
+
+  pure next
+
 eval (ChangeView view next) = do
-  assign _view view
+  assign _currentView view
   pure next
 
 eval (LoadScript key next) = do
   case Map.lookup key StaticData.demoFiles of
     Nothing -> pure next
     Just contents -> do
-      void $ withEditor $ Editor.setValue contents (Just 1)
-      assign _evaluationResult NotAsked
+      editorSetContents contents (Just 1)
+      saveBuffer contents
+      assign _currentView Editor
       assign _compilationResult NotAsked
+      assign _evaluationResult NotAsked
+      assign _simulations Cursor.empty
       pure next
 
 eval (CompileProgram next) = do
-  mContents <- withEditor Editor.getValue
+  mContents <- editorGetContents
 
   case mContents of
     Nothing -> pure next
     Just contents -> do
-      result <- runAjaxTo _compilationResult $ postContract $ SourceCode contents
+      assign _compilationResult Loading
+      result <- postContract contents
+      assign _compilationResult result
 
       -- If we got a successful result, switch tab.
       case result of
         Success (Left _) -> pure unit
-        _ -> replaceViewOnSuccess result Editor Simulation
+        _ -> replaceViewOnSuccess result Editor Simulations
 
       -- Update the error display.
-      void $ withEditor $ showCompilationErrorAnnotations $
+      editorSetAnnotations $
         case result of
-          Success (Left errors) -> errors
+          Success (Left errors) -> toAnnotations errors
           _ -> []
 
       -- If we have a result with new signatures, we can only hold
       -- onto the old actions if the signatures still match. Any
       -- change means we'll have to clear out the existing simulation.
-      case preview (_Success <<< _Right <<< _CompilationResult <<< _functionSchema) result of
+      case preview (_Success <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult <<< _functionSchema) result of
         Just newSignatures -> do
-          oldSignatures <- use (_simulation <<< _Just <<< _signatures)
+          oldSignatures <- use (_simulations <<< _current <<< _signatures)
           unless (oldSignatures `gEq` newSignatures)
-            (assign _simulation (Just { signatures: newSignatures, actions: [] }))
+            (assign _simulations $ Cursor.singleton $ mkSimulation newSignatures)
         _ -> pure unit
 
       pure next
 
 eval (ScrollTo {row, column} next) = do
-  void $ withEditor $ Editor.gotoLine row (Just column) (Just true)
+  editorGotoLine row (Just column)
   pure next
 
 eval (ModifyActions actionEvent next) = do
-  modifying (_simulation <<< _Just <<< _actions) (evalActionEvent actionEvent)
+  modifying (_simulations <<< _current <<< _actions) (evalActionEvent actionEvent)
   pure next
 
 eval (EvaluateActions next) = do
-  mContents <- withEditor $ Editor.getValue
   _ <- runMaybeT $
-       do contents <- MaybeT $ withEditor $ Editor.getValue
-          evaluation <- MaybeT $ currentEvaluation (SourceCode contents)
-          result <- lift $ runAjaxTo  _evaluationResult $ postEvaluate evaluation
+       do evaluation <- MaybeT do
+            contents <- editorGetContents
+            simulation <- peruse (_simulations <<< _current)
+            pure $ join $ toEvaluation <$> contents <*> simulation
 
-          replaceViewOnSuccess result Simulation Transactions
+          assign _evaluationResult Loading
+          result <- lift $ postEvaluation evaluation
+          assign _evaluationResult result
+
+          replaceViewOnSuccess result Simulations Transactions
 
           lift updateChartsIfPossible
 
           pure unit
   pure next
 
-eval (AddWallet next) = do
-  wallets <- use _wallets
-  let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _simulatorWalletWallet <<< _walletId) wallets
-  let newWallet = mkSimulatorWallet (maxWalletId + 1)
-  modifying _wallets (flip Array.snoc newWallet)
+eval (AddSimulationSlot next) = do
+  mSignatures <- peruse (_compilationResult <<< _Success <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult <<< _functionSchema)
+
+  case mSignatures of
+    Just signatures -> modifying _simulations (flip Cursor.snoc (mkSimulation signatures))
+    Nothing -> pure unit
   pure next
 
-eval (RemoveWallet index next) = do
-  modifying _wallets (fromMaybe <*> Array.deleteAt index)
-  assign (_simulation <<< _Just <<< _actions) []
+eval (SetSimulationSlot index next) = do
+  modifying _simulations (Cursor.setIndex index)
   pure next
 
-eval (SetBalance wallet newBalance next) = do
-  modifying _wallets
-    (map (\simulatorWallet -> if view _simulatorWalletWallet simulatorWallet == wallet
-                              then set _simulatorWalletBalance newBalance simulatorWallet
-                              else simulatorWallet))
+eval (RemoveSimulationSlot index next) = do
+  modifying _simulations (Cursor.deleteAt index)
+  pure next
+
+eval (ModifyWallets action next) = do
+  modifying (_simulations <<< _current <<< _wallets) (evalWalletEvent action)
   pure next
 
 eval (PopulateAction n l event) = do
   modifying
-    (_simulation
-       <<< _Just
+    (_simulations
+       <<< _current
        <<< _actions
        <<< ix n
        <<< _Action
@@ -288,6 +374,29 @@ eval (PopulateAction n l event) = do
        <<< ix l)
     (evalForm event)
   pure $ extract event
+
+evalWalletEvent :: WalletEvent -> Array SimulatorWallet -> Array SimulatorWallet
+evalWalletEvent AddWallet wallets =
+  let maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _simulatorWalletWallet <<< _walletId) wallets
+      newWallet = mkSimulatorWallet (maxWalletId + 1)
+  in Array.snoc wallets newWallet
+evalWalletEvent (RemoveWallet index) wallets =
+  fromMaybe wallets $ Array.deleteAt index wallets
+evalWalletEvent (ModifyBalance walletIndex action) wallets =
+  over
+    (ix walletIndex <<< _simulatorWalletBalance <<< _value)
+    (evalValueEvent action)
+    wallets
+
+evalValueEvent :: ValueEvent -> LedgerMap CurrencySymbol Int -> LedgerMap CurrencySymbol Int
+evalValueEvent AddBalance balances =
+  let maxCurrencyId = fromMaybe 0 $ maximumOf (_LedgerMap <<< traversed <<< _1 <<< _CurrencySymbol) balances
+      newBalance = Tuple (CurrencySymbol (maxCurrencyId + 1)) 0
+  in over _LedgerMap (flip Array.snoc newBalance) balances
+evalValueEvent (RemoveBalance balanceIndex) balances =
+  over _LedgerMap (fromMaybe <*> Array.deleteAt balanceIndex) balances
+evalValueEvent (SetBalance balanceIndex balance) balances =
+  set (_LedgerMap <<< ix balanceIndex) balance balances
 
 evalActionEvent :: ActionEvent -> Array Action -> Array Action
 evalActionEvent (AddAction action) = flip Array.snoc action
@@ -302,11 +411,16 @@ evalForm (SetIntField _ _) arg = arg
 evalForm (SetStringField s next) (SimpleString _) = SimpleString (Just s)
 evalForm (SetStringField _ _) arg = arg
 
+evalForm (SetValueField valueEvent _) (ValueArgument schema (Value { getValue: fields })) =
+  ValueArgument schema $ Value { getValue: evalValueEvent valueEvent fields }
+evalForm (SetValueField _ _) arg = arg
+
 evalForm (SetSubField 1 subEvent) (SimpleTuple fields) = SimpleTuple $ over _1 (evalForm subEvent) fields
 evalForm (SetSubField 2 subEvent) (SimpleTuple fields) = SimpleTuple $ over _2 (evalForm subEvent) fields
-evalForm (SetSubField _ subEvent) arg@(SimpleTuple fields) = arg
-evalForm (SetSubField _ subEvent) arg@(SimpleString fields) = arg
-evalForm (SetSubField _ subEvent) arg@(SimpleInt fields) = arg
+evalForm (SetSubField _ subEvent) arg@(SimpleTuple _) = arg
+evalForm (SetSubField _ subEvent) arg@(SimpleString _) = arg
+evalForm (SetSubField _ subEvent) arg@(SimpleInt _) = arg
+evalForm (SetSubField _ subEvent) arg@(ValueArgument _ _) = arg
 
 evalForm (AddSubField _) (SimpleArray schema fields) =
   -- As the code stands, this is the only guarantee we get that every
@@ -332,53 +446,15 @@ evalForm (RemoveSubField n subEvent) arg =
 
 replaceViewOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> View -> View -> m Unit
 replaceViewOnSuccess result source target = do
-  currentView <- use _view
+  currentView <- use _currentView
   when (isSuccess result && currentView == source)
-    (assign _view target)
-
-currentEvaluation :: forall m. MonadState State m => SourceCode -> m (Maybe Evaluation)
-currentEvaluation sourceCode = do
-  wallets <- use _wallets
-  simulation <- use _simulation
-  pure $ do
-    {actions} <- simulation
-    program <- traverse toExpression actions
-    pure $ Evaluation { wallets
-                      , program
-                      , sourceCode
-                      , blockchain: []
-                      }
-
-updateChartsIfPossible :: forall m i o. HalogenM State i ChildQuery ChildSlot o m Unit
-updateChartsIfPossible = do
-  use _evaluationResult >>= case _ of
-    Success (EvaluationResult result) -> do
-      void $ H.query' cpMockchainChart MockchainChartSlot $ H.action $ EC.Set $ interpret $ mockchainChartOptions result.resultGraph
-      void $ H.query' cpBalancesChart BalancesChartSlot $ H.action $ EC.Set $ interpret $ balancesChartOptions result.fundsDistribution
-    _ -> pure unit
+    (assign _currentView target)
 
 ------------------------------------------------------------
 
--- | Handles the messy business of running an editor command iff the
--- editor is up and running.
-withEditor :: forall m eff a.
-  MonadEff (ace :: ACE | eff) m
-  => (Editor -> Eff (ace :: ACE | eff) a)
-  -> HalogenM State Query ChildQuery ChildSlot Void m (Maybe a)
-withEditor action = do
-  mEditor <- H.query' cpEditor EditorSlot $ H.request GetEditor
-  case mEditor of
-    Just (Just editor) -> do
-      liftEff $ Just <$> action editor
-    _ -> pure Nothing
-
-showCompilationErrorAnnotations :: forall m.
-  Array CompilationError
-  -> Editor
-  -> Eff (ace :: ACE | m) Unit
-showCompilationErrorAnnotations errors editor = do
-  session <- Editor.getSession editor
-  Session.setAnnotations (catMaybes (toAnnotation <$> errors)) session
+toAnnotations :: InterpreterError -> Array Annotation
+toAnnotations (TimeoutError _) = []
+toAnnotations (CompilationErrors errors) = catMaybes (toAnnotation <$> errors)
 
 toAnnotation :: CompilationError -> Maybe Annotation
 toAnnotation (RawError _) = Nothing
@@ -394,41 +470,40 @@ render ::
   forall m aff.
   MonadAff (EChartsEffects (AceEffects (localStorage :: LOCALSTORAGE | aff))) m
   => State -> ParentHTML Query ChildQuery ChildSlot m
-render state =
+render state@(State {currentView})  =
   div
     [ class_ $ ClassName "main-frame" ]
     [ container_
         [ mainHeader
-        , mainTabBar state.view
-        ]
-    , viewContainer state.view Editor $
-        [ editorPane state
-        ]
-    , viewContainer state.view Simulation $
-        case state.compilationResult, state.simulation of
-          Success (Left error), _ ->
-            [ text "Your contract has errors. Click the "
-            , strong_ [ text "Editor" ]
-            , text " tab above to fix them and recompile."
+        , div [ classes [ row, noGutters ] ]
+            [ col6_ [ mainTabBar currentView ]
+            , col6_ [ gistControls state ]
             ]
-          Success (Right _), Just simulation ->
+        ]
+    , viewContainer currentView Editor $
+        [ demoScriptsPane
+        , editorPane defaultContents (view _compilationResult state)
+        , case view _compilationResult state of
+            Failure error -> ajaxErrorPane error
+            _ -> empty
+        ]
+    , viewContainer currentView Simulations $
             [ simulationPane
-                simulation
-                state.wallets
-                state.evaluationResult
+                (view _simulations state)
+                (view _evaluationResult state)
+            , case (view _evaluationResult state) of
+                Failure error -> ajaxErrorPane error
+                _ -> empty
             ]
-          Failure error, _ -> [ ajaxErrorPane error ]
-          Loading, _ -> [ icon Spinner ]
-          _, _ ->
-            [ text "Click the "
-            , strong_ [ text "Editor" ]
-            , text " tab above and compile a contract to get started."
-            ]
-    , viewContainer state.view Transactions $
-        case state.evaluationResult of
+    , viewContainer currentView Transactions $
+        case view _evaluationResult state of
           Success evaluation ->
             [ evaluationPane evaluation ]
-          Failure error -> [ ajaxErrorPane error ]
+          Failure error ->
+            [ text "Your simulation has errors. Click the "
+            , strong_ [ text "Simulation" ]
+            , text " tab above to fix them and recompile."
+            ]
           Loading -> [ icon Spinner ]
           NotAsked ->
             [ text "Click the "
@@ -436,6 +511,8 @@ render state =
             , text " tab above and evaluate a simulation to see some results."
             ]
     ]
+    where
+      defaultContents = Map.lookup "Vesting" StaticData.demoFiles
 
 viewContainer :: forall p i. View -> View -> Array (HTML p i) -> HTML p i
 viewContainer currentView targetView =
@@ -446,7 +523,7 @@ viewContainer currentView targetView =
 mainHeader :: forall p. HTML p (Query Unit)
 mainHeader =
   div_
-    [ div [ classes [ btnGroup, pullRight ] ]
+    [ div [ classes [ btnGroup, floatRight ] ]
         (makeLink <$> links)
     , h1
         [ class_ $ ClassName "main-title" ]
@@ -454,7 +531,7 @@ mainHeader =
     ]
   where
     links = [ Tuple "Getting Started" "https://testnet.iohkdev.io/plutus/get-started/writing-contracts-in-plutus/"
-            , Tuple "Tutorial" "https://github.com/input-output-hk/plutus/blob/master/plutus-tutorial/tutorial/Tutorial/02-wallet-api.md"
+            , Tuple "Tutorial" ("https://github.com/input-output-hk/plutus/blob/" <> gitHead <> "/plutus-tutorial/tutorial/Tutorial")
             , Tuple "API" "https://input-output-hk.github.io/plutus/"
             , Tuple "Privacy" "https://static.iohk.io/docs/data-protection/iohk-data-protection-gdpr-policy.pdf"
             ]
@@ -469,13 +546,16 @@ mainTabBar activeView =
   navTabs_ (mkTab <$> tabs)
   where
     tabs = [ Editor /\ "Editor"
-           , Simulation /\ "Simulation"
+           , Simulations /\ "Simulation"
            , Transactions /\ "Transactions"
            ]
-    mkTab (link /\ title ) =
+
+    mkTab :: Tuple View String -> HTML p (Query Unit)
+    mkTab (link /\ title) =
       navItem_ [
         a
-          [ classes $ [ navLink ] <> activeClass
+          [ id_ $ "tab-" <> String.toLower (show link)
+          , classes $ [ navLink ] <> activeClass
           , onClick $ const $ Just $ action $ ChangeView link
           ]
           [ text title ]

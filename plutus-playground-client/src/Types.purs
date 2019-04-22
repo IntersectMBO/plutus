@@ -3,9 +3,11 @@ module Types where
 import Prelude
 
 import Ace.Halogen.Component (AceMessage, AceQuery)
+import AjaxUtils as AjaxUtils
 import Auth (AuthStatus)
 import Control.Comonad (class Comonad, extract)
 import Control.Extend (class Extend, extend)
+import Cursor (Cursor)
 import DOM.HTML.Event.Types (DragEvent)
 import Data.Argonaut.Core (Json)
 import Data.Argonaut.Core as Json
@@ -14,13 +16,14 @@ import Data.Array as Array
 import Data.Either (Either)
 import Data.Either.Nested (Either3)
 import Data.Functor.Coproduct.Nested (Coproduct3)
-import Data.Generic (class Generic, gShow)
+import Data.Generic (class Generic, gEq, gShow)
 import Data.Int as Int
 import Data.Lens (Lens, Lens', Prism', _2, over, prism', to, traversed, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
-import Data.Newtype (unwrap)
+import Data.Newtype (class Newtype, unwrap)
+import Data.NonEmpty ((:|))
 import Data.RawJson (RawJson(..))
 import Data.StrMap as M
 import Data.Symbol (SProxy(..))
@@ -30,29 +33,35 @@ import Data.Tuple.Nested ((/\))
 import Gist (Gist)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.ECharts (EChartsMessage, EChartsQuery)
-import Language.Haskell.Interpreter (CompilationError)
-import Ledger.Ada.TH (Ada, _Ada)
-import Ledger.Types (Tx)
+import Language.Haskell.Interpreter (SourceCode, InterpreterError, InterpreterResult)
+import Ledger.Extra (LedgerMap(..))
+import Ledger.Tx (Tx)
+import Ledger.TxId (TxIdOf)
+import Ledger.Value.TH (CurrencySymbol, Value(..), _Value)
 import Matryoshka (class Corecursive, class Recursive, Algebra, cata)
 import Network.RemoteData (RemoteData)
-import Playground.API (CompilationResult, EvaluationResult, FunctionSchema, SimpleArgumentSchema(..), SimulatorWallet, _FunctionSchema, _SimulatorWallet)
+import Playground.API (CompilationResult, Evaluation(Evaluation), EvaluationResult, FunctionSchema, SimpleArgumentSchema(..), SimulatorWallet, _FunctionSchema, _SimulatorWallet)
 import Playground.API as API
 import Servant.PureScript.Affjax (AjaxError)
+import Test.QuickCheck.Arbitrary (class Arbitrary)
+import Test.QuickCheck.Gen as Gen
 import Validation (class Validation, ValidationError(Unsupported, Required), WithPath, addPath, noPath, validate)
 import Wallet.Emulator.Types (Wallet, _Wallet)
+
+_simulatorWallet :: forall r a. Lens' { simulatorWallet :: a | r } a
+_simulatorWallet = prop (SProxy :: SProxy "simulatorWallet")
 
 _simulatorWalletWallet :: Lens' SimulatorWallet Wallet
 _simulatorWalletWallet = _SimulatorWallet <<< prop (SProxy :: SProxy "simulatorWalletWallet")
 
-
-_simulatorWalletBalance :: Lens' SimulatorWallet Ada
+_simulatorWalletBalance :: Lens' SimulatorWallet Value
 _simulatorWalletBalance = _SimulatorWallet <<< prop (SProxy :: SProxy "simulatorWalletBalance")
 
 _walletId :: Lens' Wallet Int
 _walletId = _Wallet <<< prop (SProxy :: SProxy "getWallet")
 
-_ada :: Lens' Ada Int
-_ada = _Ada <<< prop (SProxy :: SProxy "getAda")
+_value :: Lens' Value (LedgerMap CurrencySymbol Int)
+_value = _Value <<< prop (SProxy :: SProxy "getValue")
 
 data Action
   = Action
@@ -60,6 +69,9 @@ data Action
       , functionSchema :: FunctionSchema SimpleArgument
       }
   | Wait { blocks :: Int }
+
+instance eqAction :: Eq Action where
+  eq = gEq
 
 derive instance genericAction :: Generic Action
 
@@ -89,9 +101,6 @@ _Wait = prism' Wait f
 
 _functionSchema :: forall a b r. Lens { functionSchema :: a | r} { functionSchema :: b | r} a b
 _functionSchema = prop (SProxy :: SProxy "functionSchema")
-
-_warnings :: forall a b r. Lens { warnings :: a | r} { warnings :: b | r} a b
-_warnings = prop (SProxy :: SProxy "warnings")
 
 _argumentSchema :: forall a b r. Lens {argumentSchema :: a | r} {argumentSchema :: b | r} a b
 _argumentSchema = prop (SProxy :: SProxy "argumentSchema")
@@ -129,6 +138,15 @@ toExpression (Action action) = do
       jsonValues <- traverse simpleArgumentToJson argumentSchema
       pure $ RawJson <<< Json.stringify <$> jsonValues
 
+toEvaluation :: SourceCode -> Simulation -> Maybe Evaluation
+toEvaluation sourceCode (Simulation {actions, wallets}) = do
+    program <- traverse toExpression actions
+    pure $ Evaluation { wallets
+                      , program
+                      , sourceCode
+                      , blockchain: []
+                      }
+
 ------------------------------------------------------------
 
 data Query a
@@ -141,20 +159,34 @@ data Query a
   -- Gist support.
   | CheckAuthStatus a
   | PublishGist a
+  | SetGistUrl String a
+  | LoadGist a
   -- Tabs.
   | ChangeView View a
   -- Editor.
   | LoadScript String a
   | CompileProgram a
   | ScrollTo { row :: Int, column :: Int } a
+  -- Simulations
+  | AddSimulationSlot a
+  | SetSimulationSlot Int a
+  | RemoveSimulationSlot Int a
   -- Wallets.
-  | AddWallet a
-  | RemoveWallet Int a
-  | SetBalance Wallet Ada a
+  | ModifyWallets WalletEvent a
   -- Actions.
   | ModifyActions ActionEvent a
   | EvaluateActions a
   | PopulateAction Int Int (FormEvent a)
+
+data WalletEvent
+  = AddWallet
+  | RemoveWallet Int
+  | ModifyBalance Int ValueEvent
+
+data ValueEvent
+  = SetBalance Int (Tuple CurrencySymbol Int)
+  | AddBalance
+  | RemoveBalance Int
 
 data ActionEvent
   = AddAction Action
@@ -165,6 +197,7 @@ data ActionEvent
 data FormEvent a
   = SetIntField (Maybe Int) a
   | SetStringField String a
+  | SetValueField ValueEvent a
   | AddSubField a
   | SetSubField Int (FormEvent a)
   | RemoveSubField Int a
@@ -174,6 +207,7 @@ derive instance functorFormEvent :: Functor FormEvent
 instance extendFormEvent :: Extend FormEvent where
   extend f event@(SetIntField n _) = SetIntField n $ f event
   extend f event@(SetStringField s _) = SetStringField s $ f event
+  extend f event@(SetValueField e _) = SetValueField e $ f event
   extend f event@(AddSubField _) = AddSubField $ f event
   extend f event@(SetSubField n _) = SetSubField n $ extend f event
   extend f event@(RemoveSubField n _) = RemoveSubField n $ f event
@@ -181,6 +215,7 @@ instance extendFormEvent :: Extend FormEvent where
 instance comonadFormEvent :: Comonad FormEvent where
   extract (SetIntField _ a) = a
   extract (SetStringField _ a) = a
+  extract (SetValueField _ a) = a
   extract (AddSubField a) = a
   extract (SetSubField _ e) = extract e
   extract (RemoveSubField _ e) = e
@@ -213,63 +248,79 @@ cpBalancesChart = cp3
 
 -----------------------------------------------------------
 
-type Blockchain = Array (Array Tx)
+type Blockchain = Array (Array (Tuple (TxIdOf String) Tx))
 type Signatures = Array (FunctionSchema SimpleArgumentSchema)
-type Simulation =
+newtype Simulation = Simulation
   { signatures :: Signatures
   , actions :: Array Action
-  }
-
-type State =
-  { view :: View
-  , compilationResult :: RemoteData AjaxError (Either (Array CompilationError) CompilationResult)
   , wallets :: Array SimulatorWallet
-  , simulation :: Maybe Simulation
-  , evaluationResult :: RemoteData AjaxError EvaluationResult
-  , authStatus :: RemoteData AjaxError AuthStatus
-  , createGistResult :: RemoteData AjaxError Gist
   }
 
-_view :: forall s a. Lens' {view :: a | s} a
-_view = prop (SProxy :: SProxy "view")
+derive instance newtypeSimulation :: Newtype Simulation _
+derive instance genericSimulation :: Generic Simulation
 
-_simulation :: forall s a. Lens' {simulation :: a | s} a
-_simulation = prop (SProxy :: SProxy "simulation")
+type WebData = RemoteData AjaxError
 
-_signatures :: forall s a. Lens' {signatures :: a | s} a
-_signatures = prop (SProxy :: SProxy "signatures")
+newtype State = State
+  { currentView :: View
+  , compilationResult :: WebData (Either InterpreterError (InterpreterResult CompilationResult))
+  , simulations :: Cursor Simulation
+  , evaluationResult :: WebData EvaluationResult
+  , authStatus :: WebData AuthStatus
+  , createGistResult :: WebData Gist
+  , gistUrl :: Maybe String
+  }
 
-_actions :: forall s a. Lens' {actions :: a | s} a
-_actions = prop (SProxy :: SProxy "actions")
+derive instance newtypeState :: Newtype State _
 
-_wallets :: forall s a. Lens' {wallets :: a | s} a
-_wallets = prop (SProxy :: SProxy "wallets")
+_currentView :: Lens' State View
+_currentView = _Newtype <<< prop (SProxy :: SProxy "currentView")
 
-_evaluationResult :: forall s a. Lens' {evaluationResult :: a | s} a
-_evaluationResult = prop (SProxy :: SProxy "evaluationResult")
+_simulations :: Lens' State (Cursor Simulation)
+_simulations = _Newtype <<< prop (SProxy :: SProxy "simulations")
 
-_compilationResult :: forall s a. Lens' {compilationResult :: a | s} a
-_compilationResult = prop (SProxy :: SProxy "compilationResult")
+_signatures :: Lens' Simulation Signatures
+_signatures = _Newtype <<< prop (SProxy :: SProxy "signatures")
 
-_authStatus :: forall s a. Lens' {authStatus :: a | s} a
-_authStatus = prop (SProxy :: SProxy "authStatus")
+_actions :: Lens' Simulation (Array Action)
+_actions = _Newtype <<< prop (SProxy :: SProxy "actions")
 
-_createGistResult :: forall s a. Lens' {createGistResult :: a | s} a
-_createGistResult = prop (SProxy :: SProxy "createGistResult")
+_wallets :: Lens' Simulation (Array SimulatorWallet)
+_wallets = _Newtype <<< prop (SProxy :: SProxy "wallets")
 
-_resultBlockchain :: forall s a. Lens' {resultBlockchain :: a | s} a
-_resultBlockchain = prop (SProxy :: SProxy "resultBlockchain")
+_evaluationResult :: Lens' State (WebData EvaluationResult)
+_evaluationResult = _Newtype <<< prop (SProxy :: SProxy "evaluationResult")
+
+_compilationResult :: Lens' State (WebData (Either InterpreterError (InterpreterResult CompilationResult)))
+_compilationResult = _Newtype <<< prop (SProxy :: SProxy "compilationResult")
+
+_authStatus :: Lens' State (WebData AuthStatus)
+_authStatus = _Newtype <<< prop (SProxy :: SProxy "authStatus")
+
+_createGistResult :: Lens' State (WebData Gist)
+_createGistResult = _Newtype <<< prop (SProxy :: SProxy "createGistResult")
+
+_gistUrl :: Lens' State (Maybe String)
+_gistUrl = _Newtype <<< prop (SProxy :: SProxy "gistUrl")
+
+_resultBlockchain :: Lens' EvaluationResult Blockchain
+_resultBlockchain = _Newtype <<< prop (SProxy :: SProxy "resultBlockchain")
 
 data View
   = Editor
-  | Simulation
+  | Simulations
   | Transactions
 
 derive instance eqView :: Eq View
 derive instance genericView :: Generic View
 
+instance arbitraryView :: Arbitrary View where
+  arbitrary = Gen.elements (Editor :| [ Simulations, Transactions ])
+
 instance showView :: Show View where
-  show = gShow
+  show Editor = "Editor"
+  show Simulations = "Simulation"
+  show Transactions = "Transactions"
 
 ------------------------------------------------------------
 
@@ -279,6 +330,7 @@ data SimpleArgument
   | SimpleArray SimpleArgumentSchema (Array SimpleArgument)
   | SimpleTuple (Tuple SimpleArgument SimpleArgument)
   | SimpleObject SimpleArgumentSchema (Array (Tuple String SimpleArgument))
+  | ValueArgument SimpleArgumentSchema Value
   | Unknowable { context :: String, description :: String }
 
 derive instance genericSimpleArgument :: Generic SimpleArgument
@@ -292,6 +344,7 @@ toValue SimpleStringSchema = SimpleString Nothing
 toValue (SimpleArraySchema field) = SimpleArray field []
 toValue (SimpleTupleSchema (fieldA /\ fieldB)) = SimpleTuple (toValue fieldA /\ toValue fieldB)
 toValue schema@(SimpleObjectSchema fields) = SimpleObject schema (over (traversed <<< _2) toValue fields)
+toValue schema@(ValueSchema fields) = ValueArgument schema (Value {getValue: LedgerMap []})
 toValue (UnknownSchema context description) = Unknowable { context, description }
 
 -- | This should just be `map` but we can't put an orphan instance on FunctionSchema. :-(
@@ -309,6 +362,7 @@ data SimpleArgumentF a
   | SimpleTupleF (Tuple a a)
   | SimpleArrayF SimpleArgumentSchema (Array a)
   | SimpleObjectF SimpleArgumentSchema (Array (Tuple String a))
+  | ValueArgumentF SimpleArgumentSchema Value
   | UnknowableF { context :: String, description :: String }
 
 instance functorSimpleArgumentF :: Functor SimpleArgumentF where
@@ -317,6 +371,7 @@ instance functorSimpleArgumentF :: Functor SimpleArgumentF where
   map f (SimpleTupleF (Tuple x y)) = SimpleTupleF (Tuple (f x) (f y))
   map f (SimpleArrayF schema xs) = SimpleArrayF schema (map f xs)
   map f (SimpleObjectF schema xs) = SimpleObjectF schema (map (map f) xs)
+  map f (ValueArgumentF schema x) = ValueArgumentF schema x
   map f (UnknowableF x) = UnknowableF x
 
 derive instance eqSimpleArgumentF :: Eq a => Eq (SimpleArgumentF a)
@@ -327,6 +382,7 @@ instance recursiveSimpleArgument :: Recursive SimpleArgument SimpleArgumentF whe
   project (SimpleTuple x) = SimpleTupleF x
   project (SimpleArray schema xs) = SimpleArrayF schema xs
   project (SimpleObject schema xs) = SimpleObjectF schema xs
+  project (ValueArgument schema x) = ValueArgumentF schema x
   project (Unknowable x) = UnknowableF x
 
 instance corecursiveSimpleArgument :: Corecursive SimpleArgument SimpleArgumentF where
@@ -335,6 +391,7 @@ instance corecursiveSimpleArgument :: Corecursive SimpleArgument SimpleArgumentF
   embed (SimpleTupleF xs) = SimpleTuple xs
   embed (SimpleArrayF schema xs) = SimpleArray schema xs
   embed (SimpleObjectF schema xs) = SimpleObject schema xs
+  embed (ValueArgumentF schema x) = ValueArgument schema x
   embed (UnknowableF x) = Unknowable x
 
 ------------------------------------------------------------
@@ -360,6 +417,8 @@ instance validationSimpleArgument :: Validation SimpleArgument where
       algebra (SimpleObjectF schema xs) =
         Array.concat $ map (\(Tuple name values) -> addPath name <$> values) xs
 
+      algebra (ValueArgumentF schema x) = []
+
       algebra (UnknowableF _) = [ noPath Unsupported ]
 
 simpleArgumentToJson :: SimpleArgument -> Maybe Json
@@ -374,4 +433,13 @@ simpleArgumentToJson = cata algebra
     algebra (SimpleTupleF _) = Nothing
     algebra (SimpleArrayF _ fields) = Json.fromArray <$> sequence fields
     algebra (SimpleObjectF _ fields) = (Json.fromObject <<< M.fromFoldable) <$> sequence (map sequence fields)
+    algebra (ValueArgumentF _ x) = Just $ AjaxUtils.encodeJson x
     algebra (UnknowableF _) = Nothing
+
+--- Language.Haskell.Interpreter ---
+
+_result :: forall s a. Lens' {result :: a | s} a
+_result = prop (SProxy :: SProxy "result")
+
+_warnings :: forall s a. Lens' {warnings :: a | s} a
+_warnings = prop (SProxy :: SProxy "warnings")

@@ -1,7 +1,6 @@
-{-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase       #-}
 
 -- | Functions for dealing with the Plutus Core value restriction.
 module Language.PlutusTx.Compiler.ValueRestriction where
@@ -96,4 +95,4 @@ checkTyAbsBody :: Converting m => PIRTerm -> m ()
 checkTyAbsBody t = do
     ConvertingContext {ccOpts=opts} <- ask
     -- we sometimes need to turn this off, as checking for term values also checks for normalized types at the moment
-    unless (not (coCheckValueRestriction opts) || PIR.isTermValue t) $ throwPlain $ ValueRestrictionError "Type abstraction body is not a value"
+    unless (not (coCheckValueRestriction opts) || PIR.isTermValue t) $ throwPlain ValueRestrictionError

@@ -2,7 +2,31 @@
 
 This repository contains the various components and some documentation for the Plutus Platform, providing smart contract functionality for the Cardano blockchain.
 
+## Communication
+
+Talk to us! We're active on the [Cardano forum](https://forum.cardano.org/). Tag your post with the `plutus` tag so we'll see it.
+
+Do use the Github issue tracker for bugs and feature requests, but keep other discussions to the forum.
+
 ## Building
+
+### Binary caches
+
+**IMPORTANT**
+
+You will almost certainly want to add the IOHK binary cache to your Nix configuration. This 
+will speed up builds a lot, since many things will have been built already by our CI.
+
+If you have got this set up properly you should only end up locally building packages that you
+have edited. The build should not take hours!
+
+Put the following in `/etc/nix/nix.conf`, or `~/.config/nix/nix.conf` if you are a trusted user (if you don't know what that means, just use `/etc/nix/nix.conf`):
+```
+substituters        = https://hydra.iohk.io https://cache.nixos.org/
+trusted-public-keys = hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+```
+
+### Building artifacts
 
 `default.nix` defines a package set containing all the packages in this repository. These can be built directly.
 For example:
@@ -10,18 +34,9 @@ For example:
 nix build -f default.nix localPackages.language-plutus-core
 ```
 
-The Plutus Core specification is also built this way, as the attribute `docs.plutus-core-spec`.
-
-### Binary caches
-
-You may wish to add the IOHK binary cache to your Nix configuration. This will speed up builds a lot, since many things will have
-been built already by our CI.
-
-Put the following in `/etc/nix/nix.conf`, or `~/.config/nix/nix.conf` if you are a trusted user (if you don't know what that means, just use `/etc/nix/nix.conf`):
-```
-substituters        = https://hydra.iohk.io https://cache.nixos.org/
-trusted-public-keys = hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
-```
+A variety of other artifacts are also defined in this way. Notably, the Plutus Core specification 
+is found at `docs.plutus-core-spec`, and the combined Haddock for all the packages in the repository
+is at `docs.combined-haddock`.
 
 ## Docs
 

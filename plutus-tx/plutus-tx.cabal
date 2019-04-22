@@ -2,7 +2,7 @@ cabal-version: 2.2
 name: plutus-tx
 version: 0.1.0.0
 license: Apache-2.0
-license-files: 
+license-files:
   LICENSE
   NOTICE
 maintainer: michael.peyton-jones@iohk.io
@@ -42,6 +42,7 @@ library
         Language.PlutusTx.Prelude
         Language.PlutusTx.Evaluation
     reexported-modules:
+        Language.PlutusTx.Code,
         Language.PlutusTx.Lift,
         Language.PlutusTx.Lift.Class,
         Language.PlutusTx.Builtins,
@@ -71,6 +72,7 @@ library plutus-tx-compiler
         Language.PlutusTx.Lift.Class
         Language.PlutusTx.Lift.THUtils
         Language.PlutusTx.Lift.Instances
+        Language.PlutusTx.Code
         Language.PlutusTx.Compiler.Error
         Language.PlutusTx.Compiler.Binders
         Language.PlutusTx.Compiler.Builtins
@@ -87,7 +89,7 @@ library plutus-tx-compiler
         base >=4.9 && <5,
         bytestring -any,
         containers -any,
-        ghc <8.5,
+        ghc >=8.6 && <8.7,
         language-plutus-core -any,
         lens -any,
         mtl -any,
@@ -105,6 +107,7 @@ test-suite plutus-tx-tests
     main-is: Spec.hs
     other-modules:
         Lift.Spec
+        Plugin.ReadValue
         Plugin.Spec
         TH.Spec
         TH.TestTH
@@ -112,10 +115,12 @@ test-suite plutus-tx-tests
     build-depends:
         base >=4.9 && <5,
         language-plutus-core -any,
+        plutus-core-interpreter -any,
         plutus-tx -any,
         plutus-ir -any,
         prettyprinter -any,
         mtl -any,
         bytestring -any,
         template-haskell -any,
-        tasty -any
+        tasty -any,
+        tasty-hunit -any

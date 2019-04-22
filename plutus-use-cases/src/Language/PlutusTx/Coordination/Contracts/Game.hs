@@ -4,31 +4,35 @@
 module Language.PlutusTx.Coordination.Contracts.Game(
     lock,
     guess,
-    startGame
+    startGame,
+    -- * Scripts
+    gameValidator,
+    gameDataScript,
+    gameRedeemerScript,
+    -- * Address
+    gameAddress
     ) where
 
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Language.PlutusTx.Prelude    as P
 import           Ledger
-import           Ledger.Validation
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Ada                   (Ada)
 import           Wallet
 
-import           Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy.Char8   as C
 
-data HashedString = HashedString ByteString
+data HashedString = HashedString (P.SizedByteString 32)
 
 PlutusTx.makeLift ''HashedString
 
-data ClearString = ClearString ByteString
+data ClearString = ClearString (P.SizedByteString 32)
 
 PlutusTx.makeLift ''ClearString
 
 gameValidator :: ValidatorScript
 gameValidator = ValidatorScript ($$(Ledger.compileScript [||
-    \(ClearString guess') (HashedString actual) (_ :: PendingTx) ->
+    \(HashedString actual) (ClearString guess') (_ :: PendingTx) ->
 
     if $$(P.equalsByteString) actual ($$(P.sha2_256) guess')
     then ()
@@ -36,20 +40,26 @@ gameValidator = ValidatorScript ($$(Ledger.compileScript [||
 
     ||]))
 
+gameDataScript :: String -> DataScript
+gameDataScript = 
+    DataScript . Ledger.lifted . HashedString . plcSHA2_256 . P.SizedByteString . C.pack
+
+gameRedeemerScript :: String -> RedeemerScript
+gameRedeemerScript = 
+    RedeemerScript . Ledger.lifted . ClearString . P.SizedByteString . C.pack
+
 gameAddress :: Address
 gameAddress = Ledger.scriptAddress gameValidator
 
 lock :: (WalletAPI m, WalletDiagnostics m) => String -> Ada -> m ()
 lock word adaVl = do
-    let hashedWord = plcSHA2_256 (C.pack word)
-        vl = Ada.toValue adaVl
-        ds = DataScript (Ledger.lifted (HashedString hashedWord))
+    let vl = Ada.toValue adaVl
+        ds = gameDataScript word
     payToScript_ defaultSlotRange gameAddress vl ds
 
 guess :: (WalletAPI m, WalletDiagnostics m) => String -> m ()
 guess word = do
-    let clearWord = C.pack word
-        redeemer = RedeemerScript (Ledger.lifted (ClearString clearWord))
+    let redeemer = gameRedeemerScript word
     collectFromScript defaultSlotRange gameValidator redeemer
 
 -- | Tell the wallet to start watching the address of the game script

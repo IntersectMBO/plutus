@@ -6,10 +6,12 @@
 {-# OPTIONS_GHC -O0 #-}
 module Language.PlutusTx.Coordination.Contracts.Swap(
     Swap(..),
+    -- * Script
     swapValidator
     ) where
 
 import qualified Language.PlutusTx            as PlutusTx
+import qualified Language.PlutusTx.Prelude    as P
 import           Ledger                       (Slot, PubKey, ValidatorScript (..))
 import qualified Ledger                       as Ledger
 import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxIn (..), PendingTxOut (..))
@@ -18,7 +20,7 @@ import qualified Ledger.Ada.TH                as Ada
 import           Ledger.Ada.TH                (Ada)
 import           Ledger.Value                 (Value)
 
-import           Prelude                      (Bool (..), Eq (..), Int, Num (..))
+import           Prelude                      (Bool (..), Eq (..), Int)
 
 data Ratio a = a :% a  deriving Eq
 
@@ -60,7 +62,7 @@ type SwapOracle = OracleValue (Ratio Int)
 --       Language.Plutus.Coordination.Contracts
 swapValidator :: Swap -> ValidatorScript
 swapValidator _ = ValidatorScript result where
-    result = $$(Ledger.compileScript [|| (\(redeemer :: SwapOracle) SwapOwners{..} (p :: PendingTx) Swap{..} ->
+    result = $$(Ledger.compileScript [|| (\SwapOwners{..} (redeemer :: SwapOracle) (p :: PendingTx) Swap{..} ->
         let
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
@@ -73,13 +75,13 @@ swapValidator _ = ValidatorScript result where
             mx = $$(PlutusTx.max)
 
             timesR :: Ratio Int -> Ratio Int -> Ratio Int
-            timesR (x :% y) (x' :% y') = (x*x') :% (y*y')
+            timesR (x :% y) (x' :% y') = ($$(P.multiply) x x') :% ($$(P.multiply) y y')
 
             plusR :: Ratio Int -> Ratio Int -> Ratio Int
-            plusR (x :% y) (x' :% y') = (x*y' + x'*y) :% (y*y')
+            plusR (x :% y) (x' :% y') = ($$(P.plus) ($$(P.multiply) x y') ($$(P.multiply) x' y)) :% ($$(P.multiply) y y')
 
             minusR :: Ratio Int -> Ratio Int -> Ratio Int
-            minusR (x :% y) (x' :% y') = (x*y' - x'*y) :% (y*y')
+            minusR (x :% y) (x' :% y') = ($$(P.minus) ($$(P.multiply) x y') ($$(P.multiply) x' y)) :% ($$(P.multiply) y y')
 
             extractVerifyAt :: OracleValue (Ratio Int) -> PubKey -> Ratio Int -> Slot -> Ratio Int
             extractVerifyAt = $$(PlutusTx.error) ()
@@ -91,8 +93,8 @@ swapValidator _ = ValidatorScript result where
             fromInt :: Int -> Ratio Int
             fromInt = $$(PlutusTx.error) ()
 
-            signedBy :: PendingTxIn -> PubKey -> Bool
-            signedBy = $$(Validation.txInSignedBy)
+            signedBy :: PendingTx -> PubKey -> Bool
+            signedBy = $$(Validation.txSignedBy)
 
             adaValueIn :: Value -> Int
             adaValueIn v = $$(Ada.toInt) ($$(Ada.fromValue) v)
@@ -130,16 +132,16 @@ swapValidator _ = ValidatorScript result where
             -- payments), ensuring that it is at least 0 and does not exceed
             -- the total amount of money at stake (2 * margin)
             clamp :: Int -> Int
-            clamp x = mn 0 (mx (2 * margin) x)
-            fixedRemainder = clamp (margin - fixedPayment + floatPayment)
-            floatRemainder = clamp (margin - floatPayment + fixedPayment)
+            clamp x = mn 0 (mx ($$(P.multiply) 2 margin) x)
+            fixedRemainder = clamp ($$(P.plus) ($$(P.minus) margin fixedPayment) floatPayment)
+            floatRemainder = clamp ($$(P.plus) ($$(P.minus) margin floatPayment) fixedPayment)
 
             -- The transaction must have one input from each of the
             -- participants.
             -- NOTE: Partial match is OK because if it fails then the PLC script
             --       terminates with `error` and the validation fails (which is
             --       what we want when the number of inputs and outputs is /= 2)
-            PendingTx [t1, t2] [o1, o2] _ _ _ _ = p
+            PendingTx [t1, t2] [o1, o2] _ _ _ _ _ _ = p
 
             -- Each participant must deposit the margin. But we don't know
             -- which of the two participant's deposit we are currently
@@ -149,12 +151,12 @@ swapValidator _ = ValidatorScript result where
             -- True if the transaction input is the margin payment of the
             -- fixed leg
             iP1 :: PendingTxIn -> Bool
-            iP1 t@(PendingTxIn _ _ v) = signedBy t swapOwnersFixedLeg && $$(PlutusTx.eq) (adaValueIn v) margin
+            iP1 (PendingTxIn _ _ v) = signedBy p swapOwnersFixedLeg && $$(PlutusTx.eq) (adaValueIn v) margin
 
             -- True if the transaction input is the margin payment of the
             -- floating leg
             iP2 :: PendingTxIn -> Bool
-            iP2 t@(PendingTxIn _ _ v) = signedBy t swapOwnersFloating && $$(PlutusTx.eq) (adaValueIn v) margin
+            iP2 (PendingTxIn _ _ v) = signedBy p swapOwnersFloating && $$(PlutusTx.eq) (adaValueIn v) margin
 
             inConditions = (iP1 t1  && iP2 t2) || (iP1 t2 && iP2 t1)
 

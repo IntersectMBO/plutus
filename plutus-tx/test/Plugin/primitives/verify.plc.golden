@@ -16,7 +16,7 @@
       (termbind
         (vardecl
           verifySignature
-          (fun [(con bytestring) (con 32)] (fun [(con bytestring) (con 32)] (fun [(con bytestring) (con 32)] Bool)))
+          (fun [(con bytestring) (con 32)] (fun [(con bytestring) (con 32)] (fun [(con bytestring) (con 64)] Bool)))
         )
         (lam
           arg
@@ -26,7 +26,7 @@
             [(con bytestring) (con 32)]
             (lam
               arg
-              [(con bytestring) (con 32)]
+              [(con bytestring) (con 64)]
               [
                 (lam
                   b
@@ -38,7 +38,7 @@
                     [
                       {
                         { { (builtin verifySignature) (con 32) } (con 32) }
-                        (con 32)
+                        (con 64)
                       }
                       arg
                     ]
@@ -58,7 +58,7 @@
           ds
           [(con bytestring) (con 32)]
           (lam
-            ds [(con bytestring) (con 32)] [ [ [ verifySignature ds ] ds ] ds ]
+            ds [(con bytestring) (con 64)] [ [ [ verifySignature ds ] ds ] ds ]
           )
         )
       )

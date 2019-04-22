@@ -7,20 +7,11 @@
 {-# LANGUAGE MonoLocalBinds       #-}
 -- | A type for intervals and associated functions.
 module Ledger.Interval(
-      Slot(..)
-    , Interval(..)
-    , SlotRange
+      Interval(..)
     , interval
     , from
     , to
-    , singleton
-    , empty
     , always
-    , member
-    , width
-    , contains
-    , before
-    , after
     ) where
 
 import           Codec.Serialise.Class                    (Serialise)
@@ -31,20 +22,10 @@ import           Language.Haskell.TH
 
 import           Language.PlutusTx.Lift                   (makeLift)
 
--- | Slot number
-newtype Slot = Slot { getSlot :: Int }
-    deriving (Eq, Ord, Show, Enum)
-    deriving stock (Generic)
-    deriving anyclass (ToSchema, FromJSON, ToJSON)
-    deriving newtype (Num, Real, Integral, Serialise)
-
-makeLift ''Slot
-
--- | An interval of @a@s. The interval is closed below and open above, meaning 
+-- | An interval of @a@s. The interval is closed below and open above, meaning
 --   that @Interval (Just (10 :: Int)) (Just 11)@ contains a single value @11@.
---   The interval is unbounded on either side: @Interval Nothing (Just 12)@ 
+--   The interval is unbounded on either side: @Interval Nothing (Just 12)@
 --   contains all numbers smaller than @12@.
---   
 data Interval a = Interval { ivFrom :: Maybe a, ivTo :: Maybe a }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
@@ -52,25 +33,20 @@ data Interval a = Interval { ivFrom :: Maybe a, ivTo :: Maybe a }
 
 makeLift ''Interval
 
-type SlotRange = Interval Slot
-
 {- note [Definition of Interval]
 
-The purpose of this module is to provide an interval data type that 
-can be used in on-chain and off-chain code alike. Its two main uses in the 
+The purpose of this module is to provide an interval data type that
+can be used in on-chain and off-chain code alike. Its two main uses in the
 'wallet-api' module are the validity range of transactions, and the ranges of
 funds and slot numbers for wallet triggers.
 
-To ensure that 'Interval' can be used in on-chain code, the functions in this 
-module do not use type classes or functions from the Haskell Prelude. The types 
-of the query functions exported from here are specialised to
-'Interval Slot'. 
-
+To ensure that 'Interval' can be used in on-chain code, the functions in this
+module do not use type classes or functions from the Haskell Prelude. There are
+query functions specialized to 'Interval Slot' exported from 'Ledger.Slot'.
 -}
 
-
--- | A 'SlotRange' that covers every slot.
-always :: Q (TExp SlotRange)
+-- | An 'Interval' that covers every slot.
+always :: Q (TExp (Interval a))
 always = [|| Interval Nothing Nothing ||]
 
 -- | @from a@ is an 'Interval' that includes all values that are
@@ -88,70 +64,3 @@ to = [|| \s -> Interval Nothing (Just s) ||]
 --   does not include @b@.
 interval :: Q (TExp (a -> a -> Interval a))
 interval = [|| \s s' -> Interval (Just s) (Just s') ||]
-
--- | A 'SlotRange' that covers only a single slot.
-singleton :: Q (TExp (Slot -> SlotRange))
-singleton = [|| \(Slot s) -> Interval (Just (Slot s)) (Just (Slot (s + 1))) ||]
-
--- | Check if a 'SlotRange' is empty
-empty :: Q (TExp (SlotRange -> Bool))
-empty = [|| 
-    \(Interval f t) -> 
-        case f of 
-            Nothing -> False
-            Just f' -> case t of
-                Nothing -> False
-                Just t' -> f' >= t'
-    ||]
-
--- | Check if 'Slot' is contained in a 'SlotRange'.
-member :: Q (TExp (Slot -> SlotRange -> Bool))
-member = [|| 
-    \(Slot s) (Interval f t) -> 
-        let lw = case f of { Nothing -> True; Just (Slot f') -> f' <= s; }
-            hg = case t of { Nothing -> True; Just (Slot t') -> t' > s; }
-        in
-            if lw then hg else False
-    ||]
-
--- | Number of 'Slot's covered by the interval. @width (from x) == Nothing@
-width :: Q (TExp (SlotRange -> Maybe Int))
-width = [|| 
-    \(Interval f t) -> 
-        case f of 
-            Nothing -> Nothing
-            Just (Slot f') -> case t of
-                Nothing -> Nothing
-                Just (Slot t') -> Just (t' - f')  ||]
-
--- | @a `contains` b@ is true if the 'SlotRange' @b@ is entirely contained in 
---   @a@. That is, @a `contains` b@ if for every slot @s@, if @member s b@ then
---   @member s a@.
-contains :: Q (TExp (SlotRange -> SlotRange -> Bool))
-contains = [|| 
-    \(Interval af at) (Interval bf bt) ->
-        let lw = case af of
-                Nothing -> True
-                Just (Slot af') -> case bf of
-                    Nothing -> False
-                    Just (Slot bf') -> af' <= bf'
-            hg = case at of
-                Nothing -> True
-                Just (Slot at') -> case bt of
-                    Nothing -> False
-                    Just (Slot bt') -> at' >= bt'
-        in
-            if lw then hg else False
-    ||]
-
--- | Check if a 'Slot' is earlier than the beginning of a 'SlotRange'
-before :: Q (TExp (Slot -> SlotRange -> Bool))
-before = [||
-    \(Slot h) (Interval f _) -> case f of { Nothing -> False; Just (Slot h') -> h' > h; }
-    ||]
-
--- | Check if a 'Slot' is later than the end of a 'SlotRange'
-after :: Q (TExp (Slot -> SlotRange -> Bool))
-after = [||
-    \(Slot h) (Interval _ t) -> case t of { Nothing -> False; Just (Slot t') -> h >= t'; }
-    ||]

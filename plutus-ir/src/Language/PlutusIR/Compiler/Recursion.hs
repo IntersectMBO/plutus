@@ -66,7 +66,10 @@ compileRecTerms body bs = do
     Tuple.bindTuple p (PLC.varDeclName . PLC.defVar <$> bs) fixpoint body
 
 -- | Given a list of var decls, create a tuples of values that computes their mutually recursive fixpoint.
-mkFixpoint :: Compiling m e a => [TermDef TyName Name (Provenance a)] -> m (Tuple.Tuple (Provenance a))
+mkFixpoint
+    :: Compiling m e a
+    => [TermDef TyName Name (Provenance a)]
+    -> m (Tuple.Tuple (PLC.Term TyName Name) (Provenance a))
 mkFixpoint bs = do
     p0 <- ask
 

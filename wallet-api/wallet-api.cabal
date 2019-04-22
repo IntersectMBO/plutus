@@ -2,7 +2,7 @@ cabal-version: 2.2
 name: wallet-api
 version: 0.1.0.0
 license: Apache-2.0
-license-files: 
+license-files:
   LICENSE
   NOTICE
 maintainer: michael.peyton-jones@iohk.io
@@ -42,6 +42,7 @@ flag development
 library
     import: lang
     exposed-modules:
+        Data.Aeson.Extras
         Wallet
         Wallet.API
         Wallet.Emulator
@@ -54,18 +55,28 @@ library
         Ledger
         Ledger.Ada
         Ledger.Ada.TH
-        Ledger.Types
+        Ledger.Map
+        Ledger.Map.TH
+        Ledger.These
+        Ledger.These.TH
+        Ledger.Blockchain
+        Ledger.Crypto
+        Ledger.Slot
+        Ledger.Scripts
+        Ledger.Tx
+        Ledger.TxId
         Ledger.Validation
         Ledger.Index
         Ledger.Interval
         Ledger.Value
         Ledger.Value.TH
+        KeyBytes
     hs-source-dirs: src
     default-language: Haskell2010
     build-depends:
         base >=4.9 && <5,
         aeson -any,
-        base64-bytestring -any,
+        base16-bytestring -any,
         bytestring -any,
         cborg -any,
         containers -any,
@@ -91,7 +102,9 @@ library
         recursion-schemes -any,
         lens -any,
         deriving-compat -any,
-        newtype-generics
+        newtype-generics,
+        http-api-data,
+        cardano-crypto
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
@@ -119,4 +132,6 @@ test-suite wallet-api-test
         transformers -any,
         wallet-api -any,
         plutus-tx -any,
-        lens -any
+        lens -any,
+        bytestring -any,
+        aeson -any

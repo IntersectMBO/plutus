@@ -1,11 +1,13 @@
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE RecordWildCards     #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-module Language.Haskell.Interpreter (runghc, CompilationError(..)) where
+{-# LANGUAGE DeriveAnyClass             #-}
+{-# LANGUAGE DeriveFunctor              #-}
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE RecordWildCards            #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+module Language.Haskell.Interpreter (runghc, CompilationError(..), InterpreterError(..), SourceCode(..), avoidUnsafe, Warning(..), InterpreterResult(..)) where
 
 import           Control.Exception         (IOException)
 import           Control.Monad             (unless)
@@ -16,6 +18,7 @@ import           Control.Monad.Trans.Class (lift)
 import           Control.Monad.Trans.State (StateT, evalStateT, get, put)
 import           Control.Newtype.Generics  (Newtype)
 import qualified Control.Newtype.Generics  as Newtype
+import           Control.Timeout           (timeout)
 import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Bifunctor            (second)
 import           Data.Maybe                (fromMaybe)
@@ -24,6 +27,7 @@ import           Data.Text                 (Text)
 import qualified Data.Text                 as Text
 import qualified Data.Text.Internal.Search as Text
 import qualified Data.Text.IO              as Text
+import           Data.Time.Units           (TimeUnit)
 import           GHC.Generics              (Generic)
 import           System.Directory          (removeFile)
 import           System.Environment        (lookupEnv)
@@ -43,6 +47,25 @@ data CompilationError
     deriving stock (Show, Eq, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
+data InterpreterError
+    = CompilationErrors [CompilationError]
+    | TimeoutError Text
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass (ToJSON, FromJSON)
+
+newtype SourceCode = SourceCode Text
+   deriving stock (Generic)
+   deriving newtype (ToJSON, FromJSON)
+   deriving anyclass (Newtype)
+
+newtype Warning = Warning Text
+  deriving stock (Eq, Show, Generic)
+  deriving newtype (ToJSON)
+
+data InterpreterResult a = InterpreterResult { warnings :: [Warning], result :: a }
+  deriving stock (Eq, Show, Generic, Functor)
+  deriving anyclass (ToJSON)
+
 -- | spawn an external process to runghc a file
 --
 --   If you set the environmental varaiable GHC_BIN_DIR
@@ -50,34 +73,52 @@ data CompilationError
 --   This is useful if you want to your file to be run with some packages
 --   available, you can create a wrapper runghc that includes these
 --
---   Any errors are converted to [CompilationError]
+--   Any errors are converted to InterpreterError
 runghc
-    :: (MonadIO m, MonadError [CompilationError] m, MonadMask m)
-    => [String]
+    :: (Show t, TimeUnit t, MonadIO m, MonadError InterpreterError m, MonadMask m)
+    => t
+    -> [String]
     -> FilePath
-    -> m String
-runghc runghcOpts file = do
+    -> m (InterpreterResult String)
+runghc t runghcOpts file = do
     bin <- liftIO lookupRunghc
-    (exitCode, stdout, stderr) <- runProcess bin runghcOpts file
+    (exitCode, stdout, stderr) <- runProcess bin t runghcOpts file
     case exitCode of
-        ExitSuccess -> pure stdout
+        ExitSuccess -> pure $ InterpreterResult [] stdout
         _ ->
             throwError
+                . CompilationErrors
                 . parseErrorsText
                 . Text.pack
                 $ stderr
 
 runProcess
-    :: (MonadIO m, MonadError [CompilationError] m, MonadMask m)
+    :: (Show t, TimeUnit t, MonadIO m, MonadError InterpreterError m, MonadMask m)
     => FilePath
+    -> t
     -> [String]
     -> String
     -> m (ExitCode, String, String)
-runProcess runghc runghcOpts file = do
-    result <- liftIO $ tryIOError $ readProcessWithExitCode runghc (runghcOpts <> [file]) ""
+runProcess bin timeoutValue runghcOpts file = do
+    result <- timeout' timeoutValue $ liftIO $ tryIOError $ readProcessWithExitCode bin (runghcOpts <> [file]) ""
     case result of
-        Left e  -> throwError . pure . RawError . Text.pack . show $ e
+        Left e  -> throwError . CompilationErrors . pure . RawError . Text.pack . show $ e
         Right v -> pure v
+    where
+        timeout' :: (Show t, TimeUnit t, MonadIO m, MonadError InterpreterError m, MonadCatch m) => t -> m a -> m a
+        timeout' timeoutValue a = do
+            mr <- timeout timeoutValue a
+            case mr of
+                Nothing -> throwError (TimeoutError . Text.pack . show $ timeoutValue)
+                Just r  -> pure r
+
+avoidUnsafe :: (MonadError InterpreterError m) => SourceCode -> m ()
+avoidUnsafe s =
+    unless (null . Text.indices "unsafe" . Newtype.unpack $ s)
+        . throwError
+        . CompilationErrors
+        . pure
+        $ RawError "Cannot interpret unsafe functions"
 
 lookupRunghc :: IO String
 lookupRunghc = do

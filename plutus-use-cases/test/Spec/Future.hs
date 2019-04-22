@@ -3,6 +3,7 @@
 module Spec.Future(tests) where
 
 import           Control.Monad                                   (void)
+import           Control.Monad.IO.Class
 import           Data.Either                                     (isRight)
 import           Data.Foldable                                   (traverse_)
 import qualified Data.Map                                        as Map
@@ -10,6 +11,7 @@ import           Hedgehog                                        (Property, forA
 import qualified Hedgehog
 import           Test.Tasty
 import           Test.Tasty.Hedgehog                             (testProperty)
+import qualified Test.Tasty.HUnit                                as HUnit
 
 import qualified Ledger
 import           Ledger.Ada                                      (Ada)
@@ -24,16 +26,33 @@ import qualified Wallet.Generators                               as Gen
 import           Language.PlutusTx.Coordination.Contracts.Future (Future (..), FutureData (..))
 import qualified Language.PlutusTx.Coordination.Contracts.Future as F
 
+-- | Wallet 1. Holder of the "long" position in the contract.
+wallet1 :: Wallet
+wallet1 = Wallet 1
+
+-- | Wallet 2. Holder of the "short" position in the contract.
+wallet2 :: Wallet
+wallet2 = Wallet 2
+
 tests :: TestTree
 tests = testGroup "futures" [
     testProperty "commit initial margin" initialiseFuture,
     testProperty "close the position" settle,
     testProperty "close early if margin payment was missed" settleEarly,
-    testProperty "increase the margin" increaseMargin
+    testProperty "increase the margin" increaseMargin,
+    HUnit.testCase "script size is reasonable" size
     ]
 
+size :: HUnit.Assertion
+size = do
+    let Ledger.ValidatorScript s = F.validatorScript contract
+    let sz = Ledger.scriptSize s
+    -- so the actual size is visible in the log
+    liftIO $ putStrLn ("Script size: " ++ show sz)
+    HUnit.assertBool "script too big" (sz <= 50000)
+
 init :: Wallet -> Trace MockWallet Ledger.TxOutRef
-init w = outp <$> walletAction w (F.initialise (PubKey 1) (PubKey 2) contract) where
+init w = outp <$> walletAction w (F.initialise (walletPubKey wallet1) (walletPubKey wallet2) contract) where
     outp = snd . head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs . head
 
 adjustMargin :: Wallet -> [Ledger.TxOutRef] -> FutureData -> Ada -> Trace MockWallet Ledger.TxOutRef
@@ -47,7 +66,7 @@ adjustMargin w refs fd vl =
 initBoth :: Trace MockWallet [Ledger.TxOutRef]
 initBoth = do
     updateAll
-    ins <- traverse init [w1, w2]
+    ins <- traverse init [wallet1, wallet2]
     updateAll
     return ins
 
@@ -56,33 +75,33 @@ initialiseFuture :: Property
 initialiseFuture = checkTrace $ do
     void initBoth
     traverse_ (uncurry assertOwnFundsEq) [
-        (w1, Value.minus startingBalance (Ada.toValue initMargin)),
-        (w2, Value.minus startingBalance (Ada.toValue initMargin))]
+        (wallet1, Value.minus startingBalance (Ada.toValue initMargin)),
+        (wallet2, Value.minus startingBalance (Ada.toValue initMargin))]
 
 settle :: Property
 settle = checkTrace $ do
     ins <- initBoth
     let
         im = initMargin
-        cur = FutureData (PubKey 1) (PubKey 2) im im
+        cur = FutureData (walletPubKey wallet1) (walletPubKey wallet2) im im
         spotPrice = 1124
         delta = fromIntegral units * (spotPrice - forwardPrice)
         ov  = OracleValue oracle (Ledger.Slot 10) spotPrice
 
     -- advance the clock to slot 10
     void $ addBlocks 8
-    void $ walletAction w2 (F.settle ins contract cur ov)
+    void $ walletAction wallet2 (F.settle ins contract cur ov)
     updateAll
     traverse_ (uncurry assertOwnFundsEq) [
-        (w1, Value.plus  startingBalance (Ada.toValue delta)),
-        (w2, Value.minus startingBalance (Ada.toValue delta))]
+        (wallet1, Value.plus  startingBalance (Ada.toValue delta)),
+        (wallet2, Value.minus startingBalance (Ada.toValue delta))]
 
 settleEarly :: Property
 settleEarly = checkTrace $ do
     ins <- initBoth
     let
         im = initMargin
-        cur = FutureData (PubKey 1) (PubKey 2) im im
+        cur = FutureData (walletPubKey wallet1) (walletPubKey wallet2) im im
 
         -- In this example, the price moves up (in favour of the long position)
         -- Wallet 2 fails to make the required margin payment, so wallet 1
@@ -95,28 +114,28 @@ settleEarly = checkTrace $ do
 
     -- advance the clock to slot 8
     void $ addBlocks 6
-    void $ walletAction w1 (F.settleEarly ins contract cur ov)
+    void $ walletAction wallet1 (F.settleEarly ins contract cur ov)
     updateAll
     traverse_ (uncurry assertOwnFundsEq) [
-        (w1, Value.plus  startingBalance (Ada.toValue initMargin)),
-        (w2, Value.minus startingBalance (Ada.toValue initMargin))]
+        (wallet1, Value.plus  startingBalance (Ada.toValue initMargin)),
+        (wallet2, Value.minus startingBalance (Ada.toValue initMargin))]
 
 increaseMargin :: Property
 increaseMargin = checkTrace $ do
     ins <- initBoth
     let
         im = initMargin
-        cur = FutureData (PubKey 1) (PubKey 2) im im
+        cur = FutureData (walletPubKey wallet1) (walletPubKey wallet2) im im
         increase = fromIntegral units * 5
 
     -- advance the clock to slot 8
     void $ addBlocks 6
 
     -- Commit an additional `units * 5` amount of funds
-    ins' <- adjustMargin w2 ins cur increase
+    ins' <- adjustMargin wallet2 ins cur increase
     updateAll
     traverse_ (uncurry assertOwnFundsEq) [
-        (w2, Value.minus startingBalance (Ada.toValue (initMargin + increase)))]
+        (wallet2, Value.minus startingBalance (Ada.toValue (initMargin + increase)))]
     -- advance the clock to slot 10
     void $ addBlocks 2
 
@@ -135,7 +154,7 @@ increaseMargin = checkTrace $ do
         delta = fromIntegral units * (spotPrice - forwardPrice)
         ov  = OracleValue oracle (Ledger.Slot 10) spotPrice
 
-    void $ walletAction w2 (F.settle [ins'] contract cur' ov)
+    void $ walletAction wallet2 (F.settle [ins'] contract cur' ov)
     updateAll
 
     -- NOTE: At this point, (initMargin - penalty) < delta < im'
@@ -143,8 +162,8 @@ increaseMargin = checkTrace $ do
     --       to see the contract through (via `settle`) than to
     --       simply ignore it and hence lose its entire margin im'.
     traverse_ (uncurry assertOwnFundsEq) [
-        (w1, Value.plus  startingBalance (Ada.toValue delta)),
-        (w2, Value.minus startingBalance (Ada.toValue delta))]
+        (wallet1, Value.plus  startingBalance (Ada.toValue delta)),
+        (wallet2, Value.minus startingBalance (Ada.toValue delta))]
 
 -- | A futures contract over 187 units with a forward price of 1233, due at
 --   10 blocks.
@@ -179,16 +198,8 @@ marginRange = (forwardPrice - delta, forwardPrice + delta) where
 units :: Int
 units = 187
 
--- | Wallet 1. Holder of the "long" position in the contract.
-w1 :: Wallet
-w1 = Wallet 1
-
--- | Wallet 2. Holder of the "short" position in the contract.
-w2 :: Wallet
-w2 = Wallet 2
-
 oracle :: PubKey
-oracle = PubKey 17
+oracle = walletPubKey (Wallet 3)
 
 initMargin :: Ada
 initMargin = futureInitialMargin contract
@@ -202,7 +213,7 @@ startingBalance = Ada.adaValueOf 1000000
 checkTrace :: Trace MockWallet () -> Property
 checkTrace t = property $ do
     let
-        ib = Map.fromList [(PubKey 1, startingBalance), (PubKey 2, startingBalance)]
+        ib = Map.fromList [(walletPubKey wallet1, startingBalance), (walletPubKey wallet2, startingBalance)]
         model = Gen.generatorModel { Gen.gmInitialBalance = ib }
     (result, st) <- forAll $ Gen.runTraceOn model t
     Hedgehog.assert (isRight result)
@@ -211,4 +222,4 @@ checkTrace t = property $ do
 -- | Validate all pending transactions and notify all wallets
 updateAll :: Trace MockWallet ()
 updateAll =
-    processPending >>= void . walletsNotifyBlock [w1, w2]
+    processPending >>= void . walletsNotifyBlock [wallet1, wallet2]

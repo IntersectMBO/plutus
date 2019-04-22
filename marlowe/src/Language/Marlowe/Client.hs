@@ -32,13 +32,12 @@ import           Wallet                         ( WalletAPI(..)
                                                 , intervalFrom
                                                 , throwOtherError
                                                 , createTxAndSubmit
-                                                , signature
                                                 , ownPubKeyTxOut
                                                 )
 import           Ledger                         ( DataScript(..)
                                                 , PubKey(..)
-                                                , Signature(..)
                                                 , Slot(..)
+                                                , Tx
                                                 , TxOutRef
                                                 , TxIn
                                                 , TxOut
@@ -51,6 +50,7 @@ import qualified Ledger                         as Ledger
 import           Ledger.Ada.TH                  (Ada)
 import qualified Ledger.Ada                     as Ada
 import           Ledger.Validation
+import qualified Language.PlutusTx.Builtins     as Builtins
 import           Language.Marlowe
 
 {- Mockchain instantiation of Marlowe Interpreter functions. -}
@@ -74,12 +74,14 @@ interpretObs inputOracles blockNumber state obs = let
     ev = evalValue (Slot blockNumber) inputOracles
     in $$(interpretObservation) ev blockNumber state obs
 
-evalContract :: PubKey -> Input -> Slot
+evalContract :: PubKey -> TxHash -> Input -> Slot
     -> Ada -> Ada
     -> State -> Contract
     -> (State, Contract, Bool)
 evalContract = $$(evaluateContract)
 
+getScriptOutFromTx :: Tx -> (TxOut, TxOutRef)
+getScriptOutFromTx = head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs
 
 {-| Create Marlowe 'ValidatorScript' that remembers its owner.
 
@@ -90,7 +92,6 @@ marloweValidator :: PubKey -> ValidatorScript
 marloweValidator creator = ValidatorScript result where
     result = Ledger.applyScript inner (Ledger.lifted creator)
     inner  = $$(Ledger.compileScript validatorScript)
-
 
 {-| Create and submit a transaction that creates a Marlowe Contract @contract@
     using @validator@ script, and put @value@ Ada as a deposit.
@@ -105,7 +106,7 @@ createContract :: (
 createContract validator contract value = do
     _ <- if value <= 0 then throwOtherError "Must contribute a positive value" else pure ()
     slot <- slot
-    let ds = DataScript $ Ledger.lifted (Input (SpendDeposit (Signature 1)) [] [], MarloweData {
+    let ds = DataScript $ Ledger.lifted (Input CreateContract [] [], MarloweData {
             marloweContract = contract,
             marloweState = emptyState })
     let v' = Ada.adaValueOf value
@@ -148,10 +149,10 @@ createRedeemer inputCommand oracles choices expectedState expectedCont =
 
 {-| Create a Marlowe Commit input transaction given expected output 'Contract' and 'State'.
 -}
-commit' :: (
+commit :: (
     MonadError WalletAPIError m,
     WalletAPI m)
-    => (TxOut, TxOutRef)
+    => Tx
     -- ^ reference to Marlowe contract UTxO
     -> ValidatorScript
     -- ^ actuall contract script
@@ -168,11 +169,13 @@ commit' :: (
     -> Contract
     -- ^ expected 'Contract' after commit
     -> m ()
-commit' txOut validator oracles choices identCC value expectedState expectedCont = do
+commit tx validator oracles choices identCC value expectedState expectedCont = do
     when (value <= 0) $ throwOtherError "Must commit a positive value"
-    sig <- signature <$> myKeyPair
+    let (TxHash hash) = plcTxHash . Ledger.hashTx $ tx
+    sig <- sign $ Builtins.unSizedByteString hash
     slot <- slot
     let redeemer = createRedeemer (Commit identCC sig) oracles choices expectedState expectedCont
+    let txOut = getScriptOutFromTx tx
     marloweTx redeemer txOut validator $ \ contractTxIn getTxOut contractValue -> do
         (payment, change) <- createPaymentWithChange (Ada.adaValueOf value)
         void $ createTxAndSubmit
@@ -186,10 +189,12 @@ commit' txOut validator oracles choices identCC value expectedState expectedCont
     Given current 'Contract' and its 'State' evaluate result 'Contract' and 'State.
     If resulting 'Contract' is valid then perform commit transaction.
 -}
-commit :: (
+commit' :: (
     MonadError WalletAPIError m,
     WalletAPI m)
-    => (TxOut, TxOutRef)
+    => PubKey
+    -- ^ contract creator
+    -> Tx
     -- ^ reference to Marlowe contract UTxO
     -> ValidatorScript
     -- ^ actuall contract script
@@ -206,17 +211,20 @@ commit :: (
     -> Contract
     -- ^ 'Contract' before commit
     -> m ()
-commit txOut validator oracles choices identCC value inputState inputContract = do
+commit' contractCreatorPK tx validator oracles choices identCC value inputState inputContract = do
     bh <- slot
-    sig <- signature <$> myKeyPair
+    let txHash@(TxHash hash) = plcTxHash . Ledger.hashTx $ tx
+    sig <- sign $ Builtins.unSizedByteString hash
     let inputCommand = Commit identCC sig
     let input = Input inputCommand oracles choices
+    let txOut = getScriptOutFromTx tx
     let scriptInValue = Ada.fromValue . txOutValue . fst $ txOut
     let scriptOutValue = scriptInValue + Ada.fromInt value
     let (expectedState, expectedCont, isValid) =
-            evalContract (PubKey 1) input bh scriptInValue scriptOutValue inputState inputContract
+            evalContract contractCreatorPK txHash
+            input bh scriptInValue scriptOutValue inputState inputContract
     when (not isValid) $ throwOtherError "Invalid commit"
-    commit' txOut validator oracles choices identCC value expectedState expectedCont
+    commit tx validator oracles choices identCC value expectedState expectedCont
 
 
 {-| Create a Marlowe Payment input transaction.
@@ -224,7 +232,7 @@ commit txOut validator oracles choices identCC value inputState inputContract = 
 receivePayment :: (
     MonadError WalletAPIError m,
     WalletAPI m)
-    => (TxOut, TxOutRef)
+    => Tx
     -- ^ reference to Marlowe contract UTxO
     -> ValidatorScript
     -- ^ actuall contract script
@@ -241,10 +249,12 @@ receivePayment :: (
     -> Contract
     -- ^ expected 'Contract' after commit
     -> m ()
-receivePayment txOut validator oracles choices identPay value expectedState expectedCont = do
+receivePayment tx validator oracles choices identPay value expectedState expectedCont = do
     _ <- if value <= 0 then throwOtherError "Must commit a positive value" else pure ()
-    sig <- signature <$> myKeyPair
+    let (TxHash hash) = plcTxHash . Ledger.hashTx $ tx
+    sig <- sign $ Builtins.unSizedByteString hash
     slot <- slot
+    let txOut = getScriptOutFromTx tx
     let redeemer = createRedeemer (Payment identPay sig) oracles choices expectedState expectedCont
     marloweTx redeemer txOut validator $ \ contractTxIn getTxOut contractValue -> do
         let out = getTxOut (contractValue - value)
@@ -257,7 +267,7 @@ receivePayment txOut validator oracles choices identPay value expectedState expe
 redeem :: (
     MonadError WalletAPIError m,
     WalletAPI m)
-    => (TxOut, TxOutRef)
+    => Tx
     -- ^ reference to Marlowe contract UTxO
     -> ValidatorScript
     -- ^ actuall contract script
@@ -274,10 +284,12 @@ redeem :: (
     -> Contract
     -- ^ expected 'Contract' after commit
     -> m ()
-redeem txOut validator oracles choices identCC value expectedState expectedCont = do
+redeem tx validator oracles choices identCC value expectedState expectedCont = do
     _ <- if value <= 0 then throwOtherError "Must commit a positive value" else pure ()
-    sig <- signature <$> myKeyPair
+    let (TxHash hash) = plcTxHash . Ledger.hashTx $ tx
+    sig <- sign $ Builtins.unSizedByteString hash
     slot <- slot
+    let txOut = getScriptOutFromTx tx
     let redeemer = createRedeemer (Redeem identCC sig) oracles choices expectedState expectedCont
     marloweTx redeemer txOut validator $ \ contractTxIn getTxOut contractValue -> do
         let out = getTxOut (contractValue - value)
@@ -290,16 +302,18 @@ redeem txOut validator oracles choices identCC value expectedState expectedCont 
     Spend the initial contract deposit payment.
 -}
 spendDeposit :: (Monad m, WalletAPI m)
-    => (TxOut, TxOutRef)
+    => Tx
     -- ^ reference to Marlowe contract UTxO
     -> ValidatorScript
     -- ^ actuall contract script
     -> State
     -- ^ current contract 'State'
     -> m ()
-spendDeposit txOut validator state = do
-    sig <- signature <$> myKeyPair
+spendDeposit tx validator state = do
+    let (TxHash hash) = plcTxHash . Ledger.hashTx $ tx
+    sig <- sign $ Builtins.unSizedByteString hash
     slot <- slot
+    let txOut = getScriptOutFromTx tx
     let redeemer = createRedeemer (SpendDeposit sig) [] [] state Null
     marloweTx redeemer txOut validator $ \ contractTxIn _ contractValue -> do
         oo <- ownPubKeyTxOut (Ada.adaValueOf contractValue)

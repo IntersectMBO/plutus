@@ -1,0 +1,105 @@
+{
+  "Right": {
+    "warnings": [],
+    "result": {
+      "knownCurrencies": [],
+      "functionSchema": [
+        {
+          "argumentSchema": [],
+          "functionName": "logAMessage"
+        },
+        {
+          "argumentSchema": [],
+          "functionName": "submitInvalidTxn"
+        },
+        {
+          "argumentSchema": [
+            {
+              "tag": "SimpleStringSchema"
+            }
+          ],
+          "functionName": "throwWalletAPIError"
+        },
+        {
+          "argumentSchema": [
+            {
+              "tag": "SimpleObjectSchema",
+              "contents": [
+                [
+                  "ivTo",
+                  {
+                    "tag": "SimpleObjectSchema",
+                    "contents": [
+                      [
+                        "getSlot",
+                        {
+                          "tag": "SimpleIntSchema"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "ivFrom",
+                  {
+                    "tag": "SimpleObjectSchema",
+                    "contents": [
+                      [
+                        "getSlot",
+                        {
+                          "tag": "SimpleIntSchema"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            },
+            {
+              "tag": "SimpleObjectSchema",
+              "contents": [
+                [
+                  "getValue",
+                  {
+                    "tag": "SimpleObjectSchema",
+                    "contents": [
+                      [
+                        "unMap",
+                        {
+                          "tag": "SimpleArraySchema",
+                          "contents": {
+                            "tag": "SimpleTupleSchema",
+                            "contents": [
+                              {
+                                "tag": "SimpleIntSchema"
+                              },
+                              {
+                                "tag": "SimpleIntSchema"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            },
+            {
+              "tag": "SimpleObjectSchema",
+              "contents": [
+                [
+                  "getPubKey",
+                  {
+                    "tag": "SimpleIntSchema"
+                  }
+                ]
+              ]
+            }
+          ],
+          "functionName": "payToPublicKey_"
+        }
+      ]
+    }
+  }
+}

@@ -1,5 +1,6 @@
 -- | Computing constant application.
 
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -12,9 +13,13 @@ module Language.PlutusCore.Constant.Apply
     ( ConstAppError (..)
     , ConstAppResult (..)
     , ConstAppResultDef
+    , EvaluateConstApp
+    , EvaluateConstAppDef
     , makeConstAppResult
+    , runEvaluateConstApp
     , applyTypeSchemed
     , applyBuiltinName
+    , runApplyBuiltinName
     ) where
 
 import           Language.PlutusCore.Constant.Dynamic.Instances ()
@@ -28,6 +33,7 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
+import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Inner
 import           Crypto
 import qualified Data.ByteString.Lazy                           as BSL
@@ -126,11 +132,22 @@ instance Enum SizeVar where
     toEnum = SizeVar
     fromEnum (SizeVar sizeIndex) = sizeIndex
 
+-- | Constant application computation runs in a monad @m@, requires an evaluator and
+-- returns a 'ConstAppResult'.
 type EvaluateConstApp m = EvaluateT (InnerT ConstAppResult) m
+
+-- | Default constant application computation that in case of 'ConstAppSuccess' returns
+-- a 'Value'.
 type EvaluateConstAppDef m = EvaluateConstApp m (Value TyName Name ())
 
-liftConstAppResult :: ConstAppResult a -> EvaluateConstApp m a
-liftConstAppResult = undefined
+-- | Evaluate a constant application computation using the given evaluator.
+runEvaluateConstApp :: Evaluator Term m -> EvaluateConstApp m a -> m (ConstAppResult a)
+runEvaluateConstApp eval = unInnerT . runEvaluateT eval
+
+-- | Lift the result of a constant application to a constant application computation.
+liftConstAppResult :: Monad m => ConstAppResult a -> EvaluateConstApp m a
+-- Could it be @yield . yield@?
+liftConstAppResult = EvaluateT . lift . yield
 
 -- | Same as 'makeBuiltin', but returns a 'ConstAppResult'.
 makeConstAppResult :: TypedBuiltinValue Size a -> ConstAppResultDef
@@ -202,9 +219,10 @@ extractSchemed
     -> SizeValues
     -> Value TyName Name ()
     -> EvaluateConstApp m (a, SizeValues)
-extractSchemed (TypeSchemeBuiltin a) sizeValues value = extractBuiltin a sizeValues value
-extractSchemed (TypeSchemeArrow _ _) _          _     = error "Not implemented."
-extractSchemed (TypeSchemeAllSize _) _          _     = error "Not implemented."
+extractSchemed (TypeSchemeBuiltin a)   sizeValues value = extractBuiltin a sizeValues value
+extractSchemed (TypeSchemeArrow _ _)   _          _     = error "Not implemented."
+extractSchemed (TypeSchemeAllType _ _) _          _     = error "Not implemented."
+extractSchemed (TypeSchemeAllSize _)   _          _     = error "Not implemented."
 
 -- | Apply a function with a known 'TypeScheme' to a list of 'Constant's (unwrapped from 'Value's).
 -- Checks that the constants are of expected types and there are no size mismatches.
@@ -227,6 +245,8 @@ applyTypeSchemed schema = go schema (SizeVar 0) (SizeValues mempty) where
             -- a Haskell value to the corresponding PLC one.
             [] -> makeConstAppResult $ TypedBuiltinValue (substSizeVar sizeValues tb) y
             _  -> ConstAppError $ ExcessArgumentsConstAppError args  -- Too many arguments.
+    go (TypeSchemeAllType _ schK)  sizeVar sizeValues f args =
+        go (schK TypedBuiltinDyn) sizeVar sizeValues f args
     go (TypeSchemeArrow schA schB) sizeVar sizeValues f args = case args of
         []          -> liftConstAppResult ConstAppStuck  -- Not enough arguments to compute.
         arg : args' -> do                                -- Peel off one argument.
@@ -244,8 +264,8 @@ applyTypedBuiltinName
     :: Monad m => TypedBuiltinName a r -> a -> [Value TyName Name ()] -> EvaluateConstAppDef m
 applyTypedBuiltinName (TypedBuiltinName _ schema) = applyTypeSchemed schema
 
--- | Apply a 'TypedBuiltinName' to a list of 'Constant's (unwrapped from 'Value's)
--- Checks that the constants are of expected types and there are no size mismatches.
+-- | Apply a 'TypedBuiltinName' to a list of 'Value's.
+-- Checks that the values are of expected types and there are no size mismatches.
 applyBuiltinName
     :: Monad m => BuiltinName -> [Value TyName Name ()] -> EvaluateConstAppDef m
 applyBuiltinName AddInteger           = applyTypedBuiltinName typedAddInteger           (+)
@@ -273,3 +293,9 @@ applyBuiltinName SHA3                 = applyTypedBuiltinName typedSHA3         
 applyBuiltinName VerifySignature      = applyTypedBuiltinName typedVerifySignature      verifySignature
 applyBuiltinName EqByteString         = applyTypedBuiltinName typedEqByteString         (==)
 applyBuiltinName SizeOfInteger        = applyTypedBuiltinName typedSizeOfInteger        (const ())
+
+-- | Apply a 'BuiltinName' to a list of 'Value's and evaluate the resulting computation usign the
+-- given evaluator.
+runApplyBuiltinName
+    :: Monad m => Evaluator Term m -> BuiltinName -> [Value TyName Name ()] -> m ConstAppResultDef
+runApplyBuiltinName eval name = runEvaluateConstApp eval . applyBuiltinName name

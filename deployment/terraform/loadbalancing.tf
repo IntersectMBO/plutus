@@ -34,6 +34,13 @@ resource "aws_security_group" "public_alb" {
     cidr_blocks = ["${var.private_subnet_cidrs}"]
   }
 
+  egress {
+    from_port   = "3000"
+    to_port     = "3000"
+    protocol    = "TCP"
+    cidr_blocks = ["${var.private_subnet_cidrs}"]
+  }
+
   tags {
     Name        = "${var.project}_${var.env}_public_alb"
     Project     = "${var.project}"
@@ -49,6 +56,12 @@ data "aws_acm_certificate" "plutus_private" {
 
 data "aws_acm_certificate" "meadow_private" {
   domain      = "*.${var.meadow_tld}"
+  statuses    = ["ISSUED"]
+  most_recent = true
+}
+
+data "aws_acm_certificate" "monitoring_private" {
+  domain      = "*.${var.monitoring_tld}"
   statuses    = ["ISSUED"]
   most_recent = true
 }
@@ -80,11 +93,19 @@ resource "aws_lb_listener_certificate" "meadow" {
   certificate_arn = "${data.aws_acm_certificate.meadow_private.arn}"
 }
 
+resource "aws_lb_listener_certificate" "monitoring" {
+  listener_arn    = "${aws_alb_listener.playground.arn}"
+  certificate_arn = "${data.aws_acm_certificate.monitoring_private.arn}"
+}
+
 # Playground
 resource "aws_alb_target_group" "playground" {
   port     = "80"
   protocol = "HTTP"
   vpc_id   = "${aws_vpc.plutus.id}"
+  health_check = {
+    path = "/api/health"
+  }
 }
 
 resource "aws_alb_listener_rule" "playground" {
@@ -128,6 +149,9 @@ resource "aws_alb_target_group" "meadow" {
   port     = "80"
   protocol = "HTTP"
   vpc_id   = "${aws_vpc.plutus.id}"
+  health_check = {
+    path = "/api/health"
+  }
 }
 
 resource "aws_alb_listener_rule" "meadow" {
@@ -158,6 +182,47 @@ resource "aws_alb_target_group_attachment" "meadow_b" {
 resource "aws_route53_record" "meadow_alb" {
   zone_id = "${var.meadow_public_zone}"
   name    = "${var.env}.${var.meadow_tld}"
+  type    = "A"
+  alias {
+    name                   = "${aws_alb.plutus.dns_name}"
+    zone_id                = "${aws_alb.plutus.zone_id}"
+    evaluate_target_health = true
+  }
+}
+
+# Monitoring
+resource "aws_alb_target_group" "monitoring" {
+  port     = "80"
+  protocol = "HTTP"
+  vpc_id   = "${aws_vpc.plutus.id}"
+  health_check = {
+    path = "/metrics"
+  }
+}
+
+resource "aws_alb_listener_rule" "monitoring" {
+  depends_on   = ["aws_alb_target_group.monitoring"]
+  listener_arn = "${aws_alb_listener.playground.arn}"
+  priority     = 102
+  action {
+    type             = "forward"
+    target_group_arn = "${aws_alb_target_group.monitoring.id}"
+  }
+  condition {
+    field  = "host-header"
+    values = ["*.monitoring.*"]
+  }
+}
+
+resource "aws_alb_target_group_attachment" "monitoring_a" {
+  target_group_arn = "${aws_alb_target_group.monitoring.arn}"
+  target_id        = "${aws_instance.nixops.id}"
+  port             = "3000"
+}
+
+resource "aws_route53_record" "monitoring_alb" {
+  zone_id = "${var.monitoring_public_zone}"
+  name    = "${var.env}.${var.monitoring_tld}"
   type    = "A"
   alias {
     name                   = "${aws_alb.plutus.dns_name}"

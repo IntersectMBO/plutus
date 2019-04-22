@@ -45,7 +45,7 @@ module.exports = {
     module: {
         rules: [
             { test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: "url-loader?limit=10000&mimetype=application/font-woff" },
-            { test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: "file-loader" },
+            { test: /fontawesome-.*\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: "file-loader" },
             {
                 test: /\.purs$/,
                 use: [
@@ -55,7 +55,8 @@ module.exports = {
                             src: [
                                 'bower_components/purescript-*/src/**/*.purs',
                                 'src/**/*.purs',
-                                'generated/**/*.purs'
+                                'generated/**/*.purs',
+                                '../web-common/src/**/*.purs'
                             ],
                             psc: 'psa',
                             bundle: !(isWebpackDevServer || isWatch),

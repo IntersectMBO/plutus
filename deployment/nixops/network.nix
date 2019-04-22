@@ -10,8 +10,9 @@ let
   playgroundB = mkInstance machines.playgroundB;
   meadowA = mkInstance machines.meadowA;
   meadowB = mkInstance machines.meadowB;
+  nixops = { deployment.targetHost = "localhost"; };
 in
-  { inherit playgroundA playgroundB meadowA meadowB;
+  { inherit playgroundA playgroundB meadowA meadowB nixops;
     network.description = "Plutus Playground";
     network.enableRollback = true;
   }

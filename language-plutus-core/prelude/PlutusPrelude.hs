@@ -57,7 +57,9 @@ module PlutusPrelude ( -- * Reëxports from base
                      -- * Custom functions
                      , (<<$>>)
                      , (<<*>>)
+                     , forBind
                      , foldMapM
+                     , reoption
                      , repeatM
                      , (?)
                      , hoist
@@ -217,10 +219,18 @@ f <<*>> a = getCompose $ Compose f <*> Compose a
 through :: Functor f => (a -> f b) -> (a -> f a)
 through f x = f x $> x
 
+forBind :: (Monad m, Traversable m, Applicative f) => m a -> (a -> f (m b)) -> f (m b)
+forBind a f = join <$> traverse f a
+
 -- | Fold a monadic function over a 'Foldable'. The monadic version of 'foldMap'.
 foldMapM :: (Foldable f, Monad m, Monoid b) => (a -> m b) -> f a -> m b
 foldMapM f xs = foldr step return xs mempty where
     step x r z = f x >>= \y -> r $! z `mappend` y
+
+-- | This function generalizes 'eitherToMaybe', 'eitherToList',
+-- 'listToMaybe' and other such functions.
+reoption :: (Foldable f, Alternative g) => f a -> g a
+reoption = foldr (const . pure) empty
 
 -- | Make sure your 'Applicative' is sufficiently lazy!
 repeatM :: Applicative f => Int -> f a -> f [a]

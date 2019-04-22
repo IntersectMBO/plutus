@@ -11,6 +11,7 @@ let
     postCheck = "./Setup doctest --doctest-options=\"${opts}\"";
   });
   doctestOpts = "-pgmL markdown-unlit -XTemplateHaskell -XDeriveFunctor -XScopedTypeVariables";
+
 in
 
 self: super: {

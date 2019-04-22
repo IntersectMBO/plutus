@@ -28,33 +28,33 @@ churchNat = runQuote $ do
 -- | Church-encoded '0' as a PLC term.
 --
 -- > /\(r :: *) -> \(z : r) (f : r -> r) -> z
-churchZero :: Term TyName Name ()
+churchZero :: TermLike term TyName Name => term ()
 churchZero = runQuote $ do
     r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
     return
-        . TyAbs () r (Type ())
-        . LamAbs () z (TyVar () r)
-        . LamAbs () f (TyFun () (TyVar () r) $ TyVar () r)
-        $ Var () z
+        . tyAbs () r (Type ())
+        . lamAbs () z (TyVar () r)
+        . lamAbs () f (TyFun () (TyVar () r) $ TyVar () r)
+        $ var () z
 
 -- | Church-encoded 'succ' as a PLC term.
 --
 -- > \(n : nat) -> /\(r :: *) -> \(z : r) (f : r -> r) -> f (n {r} z f)
-churchSucc :: Term TyName Name ()
+churchSucc :: TermLike term TyName Name => term ()
 churchSucc = runQuote $ do
     n <- freshName () "n"
     r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
     return
-        . LamAbs () n churchNat
-        . TyAbs () r (Type ())
-        . LamAbs () z (TyVar () r)
-        . LamAbs () f (TyFun () (TyVar () r) $ TyVar () r)
-        . Apply () (Var () f)
-        $ mkIterApp () (TyInst () (Var () n) $ TyVar () r)
-          [ Var () z
-          , Var () f
+        . lamAbs () n churchNat
+        . tyAbs () r (Type ())
+        . lamAbs () z (TyVar () r)
+        . lamAbs () f (TyFun () (TyVar () r) $ TyVar () r)
+        . apply () (var () f)
+        $ mkIterApp () (tyInst () (var () n) $ TyVar () r)
+          [ var () z
+          , var () f
           ]
