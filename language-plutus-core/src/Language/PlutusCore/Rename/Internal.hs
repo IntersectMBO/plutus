@@ -150,7 +150,6 @@ renameTypeM (TyIFix ann pat arg)        = TyIFix ann <$> renameTypeM pat <*> ren
 renameTypeM (TyApp ann fun arg)         = TyApp ann <$> renameTypeM fun <*> renameTypeM arg
 renameTypeM (TyFun ann dom cod)         = TyFun ann <$> renameTypeM dom <*> renameTypeM cod
 renameTypeM (TyVar ann name)            = TyVar ann <$> renameNameM name
-renameTypeM ty@TyInt{}                  = pure ty
 renameTypeM ty@TyBuiltin{}              = pure ty
 
 -- | Rename a 'Term' in the 'RenameM' monad.

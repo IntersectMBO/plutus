@@ -7,25 +7,25 @@
           (type)
           (lam
             Lift_Spec_WrappedBS_i0
-            (fun [(con bytestring) (con 64)] Lift_Spec_WrappedBS_i2)
+            (fun (con bytestring) Lift_Spec_WrappedBS_i2)
             (lam
               match_Lift_Spec_WrappedBS_i0
-              (fun Lift_Spec_WrappedBS_i3 (all out_Lift_Spec_WrappedBS_i0 (type) (fun (fun [(con bytestring) (con 64)] out_Lift_Spec_WrappedBS_i1) out_Lift_Spec_WrappedBS_i1)))
-              [ Lift_Spec_WrappedBS_i2 (con 64 ! #68656c6c6f) ]
+              (fun Lift_Spec_WrappedBS_i3 (all out_Lift_Spec_WrappedBS_i0 (type) (fun (fun (con bytestring) out_Lift_Spec_WrappedBS_i1) out_Lift_Spec_WrappedBS_i1)))
+              [ Lift_Spec_WrappedBS_i2 (con #68656c6c6f) ]
             )
           )
         )
-        (all out_Lift_Spec_WrappedBS_i0 (type) (fun (fun [(con bytestring) (con 64)] out_Lift_Spec_WrappedBS_i1) out_Lift_Spec_WrappedBS_i1))
+        (all out_Lift_Spec_WrappedBS_i0 (type) (fun (fun (con bytestring) out_Lift_Spec_WrappedBS_i1) out_Lift_Spec_WrappedBS_i1))
       }
       (lam
         arg_0_i0
-        [(con bytestring) (con 64)]
+        (con bytestring)
         (abs
           out_Lift_Spec_WrappedBS_i0
           (type)
           (lam
             case_Lift_Spec_WrappedBS_i0
-            (fun [(con bytestring) (con 64)] out_Lift_Spec_WrappedBS_i2)
+            (fun (con bytestring) out_Lift_Spec_WrappedBS_i2)
             [ case_Lift_Spec_WrappedBS_i1 arg_0_i3 ]
           )
         )
@@ -33,7 +33,7 @@
     ]
     (lam
       x_i0
-      (all out_Lift_Spec_WrappedBS_i0 (type) (fun (fun [(con bytestring) (con 64)] out_Lift_Spec_WrappedBS_i1) out_Lift_Spec_WrappedBS_i1))
+      (all out_Lift_Spec_WrappedBS_i0 (type) (fun (fun (con bytestring) out_Lift_Spec_WrappedBS_i1) out_Lift_Spec_WrappedBS_i1))
       x_i1
     )
   ]

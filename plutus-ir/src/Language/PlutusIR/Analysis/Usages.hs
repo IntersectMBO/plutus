@@ -102,4 +102,3 @@ typeUsages ty = case ty of
     TyLam _ _ _ t    -> typeUsages t
     TyApp _ t1 t2    -> typeUsages t1 >> typeUsages t2
     TyBuiltin _ _    -> pure ()
-    TyInt _ _        -> pure ()

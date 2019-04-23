@@ -95,7 +95,6 @@ typeValue = cataM aM where
     isTyValue TyIFixF{}    = True
     isTyValue TyLamF{}     = True
     isTyValue TyBuiltinF{} = True
-    isTyValue TyIntF{}     = True
     isTyValue _            = False
 
 -- ensure a type is a neutral type
@@ -104,5 +103,4 @@ neutralType ty@TyVar{}       = pure ty
 neutralType (TyApp x ty ty') = TyApp x <$> neutralType ty <*> typeValue ty'
 -- See note [Builtin applications and values]
 neutralType ty@TyBuiltin{}   = pure ty
-neutralType ty@TyInt{}       = pure ty
 neutralType ty               = Left (BadType (tyLoc ty) ty "neutral type")

@@ -37,9 +37,8 @@ dynamicFactorialName = DynamicBuiltinName "factorial"
 dynamicFactorialMeaning :: DynamicBuiltinNameMeaning
 dynamicFactorialMeaning = DynamicBuiltinNameMeaning sch fac where
     sch =
-        TypeSchemeAllSize $ \s ->
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt)
+        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedInt) `TypeSchemeArrow`
+        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedInt)
     fac n = product [1..n]
 
 dynamicFactorialDefinition :: DynamicBuiltinNameDefinition
@@ -55,8 +54,8 @@ test_dynamicFactorial :: TestTree
 test_dynamicFactorial =
     testCase "dynamicFactorial" $ do
         let env = insertDynamicBuiltinNameDefinition dynamicFactorialDefinition mempty
-            lhs = typecheckEvaluateCek env $ applyFactorial dynamicFactorial 3 10
-            rhs = typecheckEvaluateCek mempty $ applyFactorial factorial 3 10
+            lhs = typecheckEvaluateCek env $ applyFactorial dynamicFactorial 10
+            rhs = typecheckEvaluateCek mempty $ applyFactorial factorial 10
         assertBool "type checks" $ isRight lhs
         lhs @?= rhs
 
@@ -102,7 +101,7 @@ dynamicReverseName = DynamicBuiltinName "reverse"
 dynamicReverseMeaning :: DynamicBuiltinNameMeaning
 dynamicReverseMeaning = DynamicBuiltinNameMeaning sch (PlcList . Prelude.reverse . unPlcList) where
     sch =
-        TypeSchemeAllType @"a" @0 Proxy $ \(_ :: TypedBuiltin size a) ->
+        TypeSchemeAllType @"a" @0 Proxy $ \(_ :: TypedBuiltin a) ->
             TypeSchemeBuiltin (TypedBuiltinDyn @(PlcList a)) `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinDyn @(PlcList a))
 

@@ -49,7 +49,7 @@ investorPk  = toPublicKey privateKey2
 guarantorPk = toPublicKey privateKey3
 
 testTxHash :: TxHash
-testTxHash  = TxHash (Builtins.SizedByteString "12345678901234567890123456789012")
+testTxHash  = TxHash "12345678901234567890123456789012"
 
 signature1, signature2 :: Signature
 signature1  = sign ("12345678901234567890123456789012" :: BS.ByteString) privateKey1

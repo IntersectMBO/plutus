@@ -16,10 +16,8 @@
                   match_GHC_Types_Nil_i0
                   (all a_i0 (type) (fun [GHC_Types_List_i5 a_i1] (all out_GHC_Types_List_i0 (type) (fun out_GHC_Types_List_i1 (fun (fun a_i2 (fun [GHC_Types_List_i6 a_i2] out_GHC_Types_List_i1)) out_GHC_Types_List_i1)))))
                   [
-                    [
-                      { GHC_Types_Cons_i2 [(con integer) (con 8)] } (con 8 ! 1)
-                    ]
-                    { GHC_Types_Nil_i3 [(con integer) (con 8)] }
+                    [ { GHC_Types_Cons_i2 (con integer) } (con 1) ]
+                    { GHC_Types_Nil_i3 (con integer) }
                   ]
                 )
               )

@@ -1,1 +1,1 @@
-(program (lam ds [(con integer) (con 8)] (lam ds [(con integer) (con 8)] ds)))
+(program (lam ds (con integer) (lam ds (con integer) ds)))

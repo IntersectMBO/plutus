@@ -71,7 +71,7 @@ instance FromHttpApiData PrivateKey where
     parseUrlPiece a = PrivateKey <$> parseUrlPiece a
 
 -- | A message with a cryptographic signature.
-newtype Signature = Signature { getSignature :: Builtins.SizedByteString 64 }
+newtype Signature = Signature { getSignature :: Builtins.ByteString }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
     deriving newtype (Serialise)
@@ -85,7 +85,7 @@ instance ToJSON Signature where
       [ ( "getSignature"
         , JSON.String .
           JSON.encodeByteString .
-          BSL.toStrict . Builtins.unSizedByteString . getSignature $
+          BSL.toStrict . getSignature $
           signature)
       ]
 
@@ -94,15 +94,15 @@ instance FromJSON Signature where
     JSON.withObject "Signature" $ \object -> do
       raw <- object .: "getSignature"
       bytes <- JSON.decodeByteString raw
-      pure . Signature . Builtins.SizedByteString . BSL.fromStrict $ bytes
+      pure . Signature . BSL.fromStrict $ bytes
 
 makeLift ''Signature
 
 -- | Check whether the given 'Signature' was signed by the private key corresponding to the given public key.
 signedBy :: Signature -> PubKey -> TxId -> Bool
 signedBy (Signature s) (PubKey k) txId =
-    let k' = ED25519.publicKey $ BSL.toStrict $ Builtins.unSizedByteString $ KB.getLedgerBytes k
-        s' = ED25519.signature $ BSL.toStrict $ Builtins.unSizedByteString s
+    let k' = ED25519.publicKey $ BSL.toStrict $ KB.getLedgerBytes k
+        s' = ED25519.signature $ BSL.toStrict s
     in throwCryptoError $ ED25519.verify <$> k' <*> pure (getTxId txId) <*> s' -- TODO: is this what we want
 
 -- | Sign the hash of a transaction using a private key.
@@ -112,11 +112,11 @@ signTx (TxIdOf txId) = sign txId
 -- | Sign a message using a private key.
 sign :: BA.ByteArrayAccess a => a -> PrivateKey -> Signature
 sign  msg (PrivateKey privKey) =
-    let k  = ED25519.secretKey $ BSL.toStrict $ Builtins.unSizedByteString $ KB.getLedgerBytes privKey
+    let k  = ED25519.secretKey $ BSL.toStrict $ KB.getLedgerBytes privKey
         pk = ED25519.toPublic <$> k
         salt :: BS.ByteString
         salt = "" -- TODO: do we need better salt?
-        convert = Signature . Builtins.SizedByteString . BSL.pack . BA.unpack
+        convert = Signature . BSL.pack . BA.unpack
     in throwCryptoError $ fmap convert (ED25519.sign <$> k <*> pure salt <*> pk <*> pure msg)
 
 fromHex :: BSL.ByteString -> PrivateKey

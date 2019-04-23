@@ -10,15 +10,12 @@
       )
     )
     [
-      [ { Cons [(con integer) (con 4)] } (con 4 ! 116) ]
+      [ { Cons (con integer) } (con 116) ]
       [
-        [ { Cons [(con integer) (con 4)] } (con 4 ! 101) ]
+        [ { Cons (con integer) } (con 101) ]
         [
-          [ { Cons [(con integer) (con 4)] } (con 4 ! 115) ]
-          [
-            [ { Cons [(con integer) (con 4)] } (con 4 ! 116) ]
-            { Nil [(con integer) (con 4)] }
-          ]
+          [ { Cons (con integer) } (con 115) ]
+          [ [ { Cons (con integer) } (con 116) ] { Nil (con integer) } ]
         ]
       ]
     ]
