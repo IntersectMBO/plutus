@@ -446,12 +446,12 @@ multiple currencies.
         \parbox{0.8\textwidth}{
           A transaction $t$ with a non-zero \forge{} field is only valid if for
           every key $h$ in $t.\forge$, there exists $i \in t.\inputs$
-          and $(a,v,d) \in i.\outputs$ with $a =h$; in other words, $i$
+          and $(a,v,d) \in i.\outputs$ with $a =h$; in other words, some input
           must spend an output whose address is $h$.
           }
       
       \end{center}
-    \item \label{value-is-preserved-2} \textbf{Value is preserved}:
+    \item \label{value-is-preserved-2} \textbf{Value is preserved \red{(fix this)}}:
     \[
       t.\forge + \sum_{i \in t.\inputs} t.\mi{value}(i, \lambda) = t.\fee + \sum_{o \in t.\outputs} o.\mi{value}.
     \]
@@ -476,7 +476,7 @@ multiple currencies.
 
 
 \subsection{Examples}
-
+\blue{Show how to define new currencies and do NFTs.}
 
 
 
