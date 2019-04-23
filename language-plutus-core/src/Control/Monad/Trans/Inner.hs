@@ -1,4 +1,4 @@
--- | Getting monad transormers out of 'Traversable' 'Monad's.
+-- | Getting monad transformers out of 'Traversable' 'Monad's.
 
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
