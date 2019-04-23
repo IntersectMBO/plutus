@@ -1,14 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module ValueRestriction ( test_valueRestriction ) where
+module Normalization.Check ( test_normalizationCheck ) where
 
-import Test.Tasty
-import Language.PlutusCore
-import Test.Tasty.HUnit
+import           Language.PlutusCore
+import           Test.Tasty
+import           Test.Tasty.HUnit
 
 -- test that [rec (lam dat (fun (type) (type)) [dat a])] is a type value
-test_valueApply :: IO ()
-test_valueApply =
+test_applyToValue :: IO ()
+test_applyToValue =
     let ty = TyApp ()
                 recVar
                 (TyLam () datName
@@ -22,7 +22,7 @@ test_valueApply =
           datName = TyName (Name () "dat" (Unique 1))
           aVar = TyVar () (TyName (Name () "a" (Unique 2)))
 
-test_valueRestriction :: TestTree
-test_valueRestriction =
+test_normalizationCheck :: TestTree
+test_normalizationCheck =
     testGroup "isTypeValue"
-        [ testCase "valueApply" test_valueApply ]
+        [ testCase "valueApply" test_applyToValue ]

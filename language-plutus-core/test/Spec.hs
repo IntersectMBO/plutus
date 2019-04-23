@@ -22,6 +22,7 @@ import           Language.PlutusCore.Generators
 import           Language.PlutusCore.Generators.AST
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Pretty
+import           Normalization.Check
 import           Normalization.Type
 import           PlutusPrelude
 import           Pretty.Readable
@@ -31,7 +32,6 @@ import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
 import           TypeSynthesis.Spec                         (test_typecheck)
-import           ValueRestriction
 
 main :: IO ()
 main = do
@@ -130,7 +130,7 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles evalFiles 
     , test_typecheck
     , test_constant
     , test_evaluateCk
-    , test_valueRestriction
+    , test_normalizationCheck
     , Quotation.tests
     , Check.tests
     ]
