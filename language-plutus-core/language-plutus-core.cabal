@@ -195,6 +195,7 @@ test-suite language-plutus-core-test
         Evaluation.Constant.SuccessFailure
         Evaluation.Constant.Failure
         Evaluation.Constant.Resize
+        Normalization.Check
         Normalization.Type
         Pretty.Readable
         Check.Spec

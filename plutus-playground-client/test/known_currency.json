@@ -1,7 +1,9 @@
 {
-  "hash": "X/8=",
-  "friendlyName": "MyCurrency",
+  "hash": "5fff",
+  "friendlyName": "Ada",
   "knownTokens": [
-    "MyToken"
+    {
+      "unTokenName": ""
+    }
   ]
 }
