@@ -65,6 +65,8 @@ test-suite marlowe-test
         base >=4.9 && <5,
         containers -any,
         hedgehog -any,
+        memory -any,
+        bytestring -any,
         tasty -any,
         tasty-hunit -any,
         tasty-hedgehog >=0.2.0.0,

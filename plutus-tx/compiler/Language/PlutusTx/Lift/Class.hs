@@ -183,6 +183,7 @@ compileType vars = \case
         t2' <- compileType vars t2
         pure [| TyApp () <$> $(t1') <*> $(t2') |]
     t@(TH.ConT name) -> compileTypeableType t name
+    TH.LitT (TH.NumTyLit i) -> pure [| pure $ TyInt () i |]
     -- See note [Type variables]
     t@(TH.VarT name) -> case vars of
         Typeable -> compileTypeableType t name

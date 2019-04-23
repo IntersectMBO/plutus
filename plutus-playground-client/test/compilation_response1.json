@@ -2,23 +2,172 @@
   "Right": {
     "warnings": [],
     "result": {
-      "knownCurrencies": [],
-      "functionSchema": [
+      "knownCurrencies": [
         {
-          "argumentSchema": [],
-          "functionName": "logAMessage"
+          "hash": "5fff",
+          "friendlyName": "Ada",
+          "knownTokens": [
+            {
+              "unTokenName": ""
+            }
+          ]
         },
         {
-          "argumentSchema": [],
-          "functionName": "submitInvalidTxn"
+          "hash": "5f4462306230ff",
+          "friendlyName": "MyCurrency",
+          "knownTokens": [
+            {
+              "unTokenName": "USDToken"
+            },
+            {
+              "unTokenName": "EURToken"
+            }
+          ]
+        }
+      ],
+      "functionSchema": [
+        {
+          "argumentSchema": [
+            {
+              "tag": "SimpleObjectSchema",
+              "contents": [
+                [
+                  "campaignDeadline",
+                  {
+                    "tag": "SimpleObjectSchema",
+                    "contents": [
+                      [
+                        "getSlot",
+                        {
+                          "tag": "SimpleIntSchema"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "campaignTarget",
+                  {
+                    "tag": "SimpleObjectSchema",
+                    "contents": [
+                      [
+                        "getAda",
+                        {
+                          "tag": "SimpleIntSchema"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "campaignOwner",
+                  {
+                    "tag": "SimpleObjectSchema",
+                    "contents": [
+                      [
+                        "getPubKey",
+                        {
+                          "tag": "SimpleStringSchema"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "campaignCollectionDeadline",
+                  {
+                    "tag": "SimpleObjectSchema",
+                    "contents": [
+                      [
+                        "getSlot",
+                        {
+                          "tag": "SimpleIntSchema"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          "functionName": "scheduleCollection"
         },
         {
           "argumentSchema": [
             {
-              "tag": "SimpleStringSchema"
+              "tag": "SimpleObjectSchema",
+              "contents": [
+                [
+                  "campaignDeadline",
+                  {
+                    "tag": "SimpleObjectSchema",
+                    "contents": [
+                      [
+                        "getSlot",
+                        {
+                          "tag": "SimpleIntSchema"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "campaignTarget",
+                  {
+                    "tag": "SimpleObjectSchema",
+                    "contents": [
+                      [
+                        "getAda",
+                        {
+                          "tag": "SimpleIntSchema"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "campaignOwner",
+                  {
+                    "tag": "SimpleObjectSchema",
+                    "contents": [
+                      [
+                        "getPubKey",
+                        {
+                          "tag": "SimpleStringSchema"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "campaignCollectionDeadline",
+                  {
+                    "tag": "SimpleObjectSchema",
+                    "contents": [
+                      [
+                        "getSlot",
+                        {
+                          "tag": "SimpleIntSchema"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            },
+            {
+              "tag": "SimpleObjectSchema",
+              "contents": [
+                [
+                  "getAda",
+                  {
+                    "tag": "SimpleIntSchema"
+                  }
+                ]
+              ]
             }
           ],
-          "functionName": "throwWalletAPIError"
+          "functionName": "contribute"
         },
         {
           "argumentSchema": [
@@ -56,7 +205,7 @@
               ]
             },
             {
-              "tag": "SimpleObjectSchema",
+              "tag": "ValueSchema",
               "contents": [
                 [
                   "getValue",
@@ -71,10 +220,29 @@
                             "tag": "SimpleTupleSchema",
                             "contents": [
                               {
-                                "tag": "SimpleIntSchema"
+                                "tag": "SimpleHexSchema"
                               },
                               {
-                                "tag": "SimpleIntSchema"
+                                "tag": "SimpleObjectSchema",
+                                "contents": [
+                                  [
+                                    "unMap",
+                                    {
+                                      "tag": "SimpleArraySchema",
+                                      "contents": {
+                                        "tag": "SimpleTupleSchema",
+                                        "contents": [
+                                          {
+                                            "tag": "SimpleStringSchema"
+                                          },
+                                          {
+                                            "tag": "SimpleIntSchema"
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  ]
+                                ]
                               }
                             ]
                           }
@@ -89,7 +257,7 @@
               "tag": "SimpleObjectSchema",
               "contents": [
                 [
-                  "getPubKey",
+                  "getWallet",
                   {
                     "tag": "SimpleIntSchema"
                   }
@@ -97,7 +265,7 @@
               ]
             }
           ],
-          "functionName": "payToPublicKey_"
+          "functionName": "payToWallet_"
         }
       ]
     }

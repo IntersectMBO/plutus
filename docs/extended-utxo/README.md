@@ -44,7 +44,7 @@ For each of the three script types (data, validator, redeemer) there are two art
 |**Provided by Producer**| Data script | *N/A\** |
 |**Provided by Consumer**| Validator script | Redeemer script |
 
-The validator script must be submitted as part of the consuming transaction's input, but its content is determined by the producing transaction. Both hash and content of the data script are provided by the producing transaction, and hash and content of the redeemer are provided by the consumer. 
+The validator script must be submitted as part of the consuming transaction's input, but its content is determined by the producing transaction. Both the hash and content of the data script are provided by the producing transaction, and the hash and content of the redeemer are provided by the consumer. 
 
 When a transaction is validated, the validator script receives data and redeemer scripts and either terminates successfully or in the Plutus `error` state. This means that the producing transaction effectively determines the type of the redeemer script, even though the script itself (ie. a value of that type) is not known at that time. (One has to be careful not to lock a transaction output permanently by specifying a type that has no values other than `error`)
 

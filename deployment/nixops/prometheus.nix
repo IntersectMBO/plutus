@@ -1,30 +1,89 @@
-{ mkInstance = { machines, defaultMachine, ... }: node: { config, pkgs, lib, ... }:
+{ mkInstance = { machines, defaultMachine, secrets, ... }: node: { config, pkgs, lib, ... }:
 
 let
-    nodeTarget = node: 
+    servers = [machines.meadowA machines.meadowB machines.playgroundA machines.playgroundB];
+    target = port: node:
         {
           targets = [
-            "${node.ip}:9100"
+            "${node.ip}:${port}"
           ];
           labels = {
-            alias = "${node.dns}";
+            instance = "${node.dns}";
           };
         };
-    ekgTarget = node:
+    healthAbsent = node: {
+      alert = "${node.dns} absent";
+      expr = ''absent(servant_path_api_health_get_time_ms_count{instance="${node.dns}"}) > 0'';
+      labels = {
+        environment = machines.environment;
+        severity = "page";
+      };
+      annotations = {
+        summary = "health check absent for ${node.dns}";
+      };
+    };
+    nodeTargets = map (target "9100") servers;
+    ekgTargets = map (target "9091") servers;
+    nginxTargets = map (target "9113") servers;
+    healthAbsentRules = map healthAbsent servers;
+    promRules = builtins.toJSON {
+      groups = [
         {
-          targets = [
-            "${node.ip}:9091"
+          name = "general health alerts";
+          rules = healthAbsentRules ++ [
+            {
+              alert = "HighCPU";
+              expr = ''100 - (avg by (instance) (irate(node_cpu_seconds_total{job="node",mode="idle"}[5m])) * 100) > 80'';
+              labels = {
+                environment = machines.environment;
+              };
+              annotations = {
+                summary = "CPU is too high, instances may need to be scaled";
+              };
+            }
+            {
+              alert = "Health4XX";
+              expr = "rate(servant_path_api_health_get_responses_4XX[5m]) > 0";
+              labels = {
+                environment = machines.environment;
+              };
+              annotations = {
+                summary = "Health check returned HTTP 4XX";
+              };
+            }
+            {
+              alert = "Health5XX";
+              expr = "rate(servant_path_api_health_get_responses_5XX[5m]) > 0";
+              labels = {
+                environment = machines.environment;
+              };
+              annotations = {
+                summary = "Health check returned HTTP 5XX";
+              };
+            }
+            {
+              alert = "HealthXXX";
+              expr = "rate(servant_path_api_health_get_responses_XXX[5m]) > 0";
+              labels = {
+                environment = machines.environment;
+              };
+              annotations = {
+                summary = "Health check returned abnormal HTTP";
+              };
+            }
           ];
-          labels = {
-            alias = "${node.dns}";
-          };
-        };
-    nodeTargets = map nodeTarget [machines.meadowA machines.meadowB machines.playgroundA machines.playgroundB];
-    ekgTargets = map ekgTarget [machines.meadowA machines.meadowB machines.playgroundA machines.playgroundB];
+        }
+      ];
+    };
 in
 {
     imports = [ (defaultMachine node pkgs)
     ];
+
+    networking.firewall = {
+      enable = true;
+      allowedTCPPorts = [ 22 3000 ];
+    };
 
     users.users.nixops =
         { isNormalUser = true;
@@ -37,26 +96,89 @@ in
     environment.systemPackages = with pkgs;
                     [ nixops vim tmux git ];
 
-    services.prometheus = {
+    services.grafana = {
+      enable = true;
+      addr = "0.0.0.0";
+      rootUrl = "https://${machines.nixops.externalDns}/";
+      extraOptions = {
+            AUTH_GOOGLE_ENABLED = "true";
+            AUTH_GOOGLE_CLIENT_ID = secrets.googleClientID;
+            AUTH_GOOGLE_CLIENT_SECRET = secrets.googleClientSecret;
+      };
+    };
+
+    services.prometheus2 = {
         enable = true;
-        package = pkgs.prometheus_2;
+        alertmanagerURL = [ "localhost:9093" ];
         scrapeConfigs = [
             {
               job_name = "node";
               scrape_interval = "10s";
-              static_configs = nodeTargets ++ ekgTargets ++ [
+              static_configs = nodeTargets ++ ekgTargets ++ nginxTargets ++ [
                 {
                   targets = [
                     "localhost:9100"
                   ];
                   labels = {
-                    alias = "prometheus.example.com";
+                    instance = "nixops";
                   };
                 }
-                
+
+              ];
+            }
+            {
+              job_name = "prometheus";
+              scrape_interval = "10s";
+              static_configs = [
+                {
+                  targets = [
+                    "localhost:9090"
+                  ];
+                  labels = {
+                    instance = "nixops";
+                  };
+                }
               ];
             }
       ];
+      rules = [promRules];
+    };
+
+    services.prometheus.exporters = {
+        node = {
+            enable = true;
+            enabledCollectors = [ "systemd" ];
+        };
+      };
+
+    services.prometheus.alertmanager = {
+      enable = true;
+      configuration = {
+        route = {
+          group_by = [ "alertname" "alias" ];
+          group_wait = "30s";
+          group_interval = "2m";
+          receiver = "team-pager";
+          routes = [
+            {
+              match = {
+                severity = "page";
+              };
+              receiver = "team-pager";
+            }
+          ];
+        };
+        receivers = [
+          {
+            name = "team-pager";
+            pagerduty_configs = [
+              {
+                service_key = secrets.pagerdutyKey;
+              }
+            ];
+          }
+        ];
+      };
     };
 };
 }

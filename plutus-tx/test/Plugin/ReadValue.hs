@@ -12,22 +12,15 @@ module Plugin.ReadValue
     ( readDyns
     ) where
 
-import           Common
-import           PlcTestUtils
 
-import qualified Language.PlutusTx.Builtins                 as Builtins
-import           Language.PlutusTx.Lift
+import           Language.PlutusTx.Code
 import           Language.PlutusTx.Plugin
 
 import qualified Language.PlutusCore                        as PLC
 import qualified Language.PlutusCore.Constant               as PLC
 import qualified Language.PlutusCore.Constant.Dynamic       as PLC
-import qualified Language.PlutusCore.Evaluation.Result      as PLC
 import qualified Language.PlutusCore.Interpreter.CekMachine as PLC
 
-import           Data.ByteString.Lazy
-import           Data.Text.Prettyprint.Doc
-import           GHC.Generics
 import           Test.Tasty
 import           Test.Tasty.HUnit
 

@@ -7,12 +7,12 @@
 module Spec.Crowdfunding(tests) where
 
 import           Control.Monad                                         (void)
-import           Control.Monad.IO.Class
 import           Data.Either                                           (isRight)
 import           Data.Foldable                                         (traverse_)
 import qualified Data.Map                                              as Map
 import           Hedgehog                                              (Property, forAll, property)
 import qualified Hedgehog
+import qualified Spec.Size                                             as Size
 import           Test.Tasty
 import           Test.Tasty.Hedgehog                                   (testProperty)
 import qualified Test.Tasty.HUnit                                      as HUnit
@@ -28,6 +28,11 @@ import           Ledger.Ada                                            (Ada)
 import qualified Ledger.Ada                                            as Ada
 import qualified Ledger.Value                                          as Value
 
+w1, w2, w3 :: Wallet
+w1 = Wallet 1
+w2 = Wallet 2
+w3 = Wallet 3
+
 tests :: TestTree
 tests = testGroup "crowdfunding" [
         testProperty "make a contribution" makeContribution,
@@ -36,16 +41,8 @@ tests = testGroup "crowdfunding" [
         testProperty "cannot collect money too late" cantCollectLate,
         testProperty "cannot collect unless notified" cantCollectUnlessNotified,
         testProperty "can claim a refund" canRefund,
-        HUnit.testCase "script size is reasonable" size
+        HUnit.testCase "script size is reasonable" (Size.reasonable (CF.contributionScript (cfCampaign scenario1)) 50000)
         ]
-
-size :: HUnit.Assertion
-size = do
-    let Ledger.ValidatorScript s = CF.contributionScript (cfCampaign scenario1)
-    let sz = Ledger.scriptSize s
-    -- so the actual size is visible in the log
-    liftIO $ putStrLn ("Script size: " ++ show sz)
-    HUnit.assertBool "script too big" (sz <= 45000)
 
 -- | Make a contribution to the campaign from a wallet. Returns the reference
 --   to the transaction output that is locked by the campaign's validator
@@ -56,11 +53,11 @@ contrib w v = void $ walletAction w (contribute cmp v) where
 
 -- | Make a contribution from wallet 2
 contrib2 :: Ada -> Trace MockWallet ()
-contrib2 = contrib (Wallet 2)
+contrib2 = contrib w2
 
 -- | Make a contribution from wallet 3
 contrib3 :: Ada -> Trace MockWallet ()
-contrib3 = contrib (Wallet 3)
+contrib3 = contrib w3
 
 -- | Collect the contributions of a crowdfunding campaign
 collect :: Wallet -> Trace MockWallet ()
@@ -75,30 +72,25 @@ scenario1 = CFScenario{..} where
         campaignDeadline = 10,
         campaignTarget   = 1000,
         campaignCollectionDeadline = 15,
-        campaignOwner              = PubKey 1
+        campaignOwner              = walletPubKey w1
         }
     cfWallets = [w1, w2, w3]
     cfInitialBalances = Map.fromList [
-        (PubKey 1, startingBalance),
-        (PubKey 2, startingBalance),
-        (PubKey 3, startingBalance)]
+        (walletPubKey w1, startingBalance),
+        (walletPubKey w2, startingBalance),
+        (walletPubKey w3, startingBalance)]
 
-w1, w2, w3 :: Wallet
-w1 = Wallet 1
-w2 = Wallet 2
-w3 = Wallet 3
 
 -- | Generate a transaction that contributes 600 ada to a campaign.
 --   NOTE: This doesn't actually run the validation script. The script
 --         will be run when the funds are retrieved
 makeContribution :: Property
 makeContribution = checkCFTrace scenario1 $ do
-    let w = Wallet 2
-        contribution = Ada.fromInt 600
+    let contribution = Ada.fromInt 600
         rest = Value.minus startingBalance (Ada.toValue contribution)
     contrib2 contribution
     processPending >>= notifyBlock
-    assertOwnFundsEq w rest
+    assertOwnFundsEq w2 rest
 
 -- | Run a campaign with two contributions where the campaign owner collects
 --   the funds at the end

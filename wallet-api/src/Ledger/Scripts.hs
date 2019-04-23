@@ -31,7 +31,7 @@ module Ledger.Scripts(
     ) where
 
 import qualified Codec.CBOR.Write                         as Write
-import           Codec.Serialise                          (deserialise, serialise)
+import           Codec.Serialise                          (serialise)
 import           Codec.Serialise.Class                    (Serialise, encode)
 import           Data.Aeson                               (FromJSON (parseJSON), ToJSON (toJSON))
 import qualified Data.Aeson                               as JSON
@@ -44,11 +44,11 @@ import qualified Language.PlutusCore                      as PLC
 import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
 import           Language.PlutusTx.Lift                   (unsafeLiftProgram)
 import           Language.PlutusTx.Lift.Class             (Lift)
-import           Language.PlutusTx.TH                     (CompiledCode, compile, getSerializedPlc)
+import           Language.PlutusTx                        (CompiledCode, compile, getPlc)
 import           PlutusPrelude
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
-newtype Script = Script { getPlc :: PLC.Program PLC.TyName PLC.Name () }
+newtype Script = Script { unScript :: PLC.Program PLC.TyName PLC.Name () }
   deriving newtype (Serialise)
 
 {- Note [Eq and Ord for Scripts]
@@ -83,7 +83,7 @@ scriptSize (Script s) = PLC.programSize s
 
 -- | Turn a 'CompiledCode' (usually produced by 'compile') into a 'Script' for use with this package.
 fromCompiledCode :: CompiledCode a -> Script
-fromCompiledCode = Script . deserialise . getSerializedPlc
+fromCompiledCode = Script . getPlc
 
 -- | Compile a quoted Haskell expression to a 'Script'.
 compileScript :: TH.Q (TH.TExp a) -> TH.Q (TH.TExp Script)
@@ -91,12 +91,12 @@ compileScript a = [|| fromCompiledCode $$(compile a) ||]
 
 -- | Given two 'Script's, compute the 'Script' that consists of applying the first to the second.
 applyScript :: Script -> Script -> Script
-applyScript (getPlc -> s1) (getPlc -> s2) = Script $ s1 `PLC.applyProgram` s2
+applyScript (unScript -> s1) (unScript -> s2) = Script $ s1 `PLC.applyProgram` s2
 
 -- | Evaluate a script, returning the trace log and a boolean indicating whether
 -- evaluation was successful.
 evaluateScript :: Script -> ([String], Bool)
-evaluateScript (getPlc -> s) = (isJust . reoption) <$> evaluateCekTrace s
+evaluateScript (unScript -> s) = (isJust . reoption) <$> evaluateCekTrace s
 
 instance ToJSON Script where
   toJSON = JSON.String . JSON.encodeSerialise

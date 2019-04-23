@@ -12,19 +12,24 @@
 module Wallet.Emulator.Types(
     -- * Wallets
     Wallet(..),
+    walletPubKey,
+    walletPrivKey,
+    signWithWallet,
+    addSignature,
     TxPool,
     -- * Emulator
     Assertion(OwnFundsEqual, IsValidated),
     assert,
     assertIsValidated,
-    AssertionError,
+    AssertionError(..),
     Event(..),
     Notification(..),
     EmulatorEvent(..),
+    EmulatorAction(..),
     -- ** Wallet state
     WalletState(..),
     emptyWalletState,
-    ownKeyPair,
+    ownPrivateKey,
     ownFunds,
     addressMap,
     walletSlot,
@@ -35,6 +40,8 @@ module Wallet.Emulator.Types(
     evalTraceTxPool,
     execTraceTxPool,
     walletAction,
+    runWalletAction,
+    execWalletAction,
     walletRecvNotifications,
     walletNotifyBlock,
     walletsNotifyBlock,
@@ -43,12 +50,15 @@ module Wallet.Emulator.Types(
     addBlocksAndNotify,
     assertion,
     assertOwnFundsEq,
+    runEmulator,
     -- * Emulator internals
     MockWallet(..),
     handleNotifications,
     EmulatorState(..),
     emptyEmulatorState,
     emulatorState,
+    emulatorStatePool,
+    emulatorStateInitialDist,
     chainNewestFirst,
     chainOldestFirst,
     txPool,
@@ -73,37 +83,55 @@ import           Control.Monad.Operational  as Op hiding (view)
 import           Control.Monad.State
 import           Control.Monad.Writer
 import           Control.Newtype.Generics   (Newtype)
+import qualified Ledger.Crypto                     as Crypto
 import           Data.Aeson                 (FromJSON, ToJSON, ToJSONKey)
 import           Data.Bifunctor             (Bifunctor (..))
+import qualified Data.ByteString.Lazy       as BSL
 import           Data.Foldable              (fold, traverse_)
+import           Data.Hashable              (Hashable)
 import           Data.List                  (partition)
 import           Data.Map                   (Map)
 import qualified Data.Map                   as Map
 import           Data.Maybe
 import qualified Data.Set                   as Set
+import           Data.Swagger               (ToSchema)
 import qualified Data.Text                  as T
 import           Data.Traversable           (for)
 import           GHC.Generics               (Generic)
 import           Prelude                    as P
-import           Servant.API                (FromHttpApiData, ToHttpApiData)
+import           Servant.API                (FromHttpApiData(..), ToHttpApiData(..))
 
-import           Data.Hashable              (Hashable)
-import           Ledger                     (Address, Block, Blockchain, Slot, Tx (..), TxId, TxOut, TxOutOf (..),
-                                             TxOutRef, Value, hashTx, lastSlot, pubKeyAddress, pubKeyTxIn, pubKeyTxOut,
-                                             txOutAddress)
+import qualified Ledger.Ada                 as Ada
+import           Ledger                     (Address, Block, Blockchain, PrivateKey(..), PubKey(..), Slot, Tx (..), TxId, TxOut, TxOutOf (..),
+                                             TxOutRef, Value, addSignature, hashTx, lastSlot, pubKeyAddress, pubKeyTxIn, pubKeyTxOut,
+                                             toPublicKey, txOutAddress)
 import qualified Ledger.Index               as Index
 import qualified Ledger.Slot                as Slot
 import qualified Ledger.Value               as Value
-import           Wallet.API                 (EventHandler (..), EventTrigger, KeyPair (..), WalletAPI (..),
+import           Wallet.API                 (EventHandler (..), EventTrigger, WalletAPI (..),
                                              WalletAPIError (..), WalletDiagnostics (..), WalletLog (..), addresses,
-                                             annTruthValue, getAnnot, keyPair, pubKey, signature)
+                                             annTruthValue, getAnnot)
+import qualified Wallet.API                 as WAPI
 import qualified Wallet.Emulator.AddressMap as AM
 
 -- | A wallet in the emulator model.
 newtype Wallet = Wallet { getWallet :: Int }
     deriving (Show, Eq, Ord, Generic)
     deriving newtype (ToHttpApiData, FromHttpApiData, Hashable)
-    deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey)
+    deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey, ToSchema)
+        
+-- | Get a wallet's public key.
+walletPubKey :: Wallet -> PubKey
+walletPubKey = toPublicKey . walletPrivKey
+
+-- | Get a wallet's private key by looking it up in the list of 
+--   private keys in 'Ledger.Crypto.knownPrivateKeys'
+walletPrivKey :: Wallet -> PrivateKey
+walletPrivKey (Wallet i) = (cycle Crypto.knownPrivateKeys) !! i
+
+-- | Sign a 'Tx' using the wallet's privat key.
+signWithWallet :: Wallet -> Tx -> Tx
+signWithWallet wlt = addSignature (walletPrivKey wlt)
 
 -- | A pool of transactions which have yet to be validated.
 type TxPool = [Tx]
@@ -129,8 +157,8 @@ tellTx tx = MockWallet $ tell (mempty, tx)
 
 -- | The state used by the mock wallet environment.
 data WalletState = WalletState {
-    _ownKeyPair :: KeyPair,
-    -- ^ User's 'KeyPair'.
+    _ownPrivateKey :: PrivateKey,
+    -- ^ User's 'PrivateKey'.
     _walletSlot :: Slot,
     -- ^ Current slot as far as the wallet is concerned.
     _addressMap :: AM.AddressMap,
@@ -151,7 +179,7 @@ makeLenses ''WalletState
 
 -- | Get the user's own public-key address.
 ownAddress :: WalletState -> Address
-ownAddress = pubKeyAddress . pubKey . view ownKeyPair
+ownAddress = pubKeyAddress . toPublicKey . view ownPrivateKey
 
 -- | Get the funds available at the user's own public-key address.
 ownFunds :: Lens' WalletState (Map TxOutRef TxOut)
@@ -163,10 +191,10 @@ ownFunds = lens g s where
 -- | An empty wallet state with the public/private key pair for a wallet, and the public-key address
 -- for that wallet as the sole watched address.
 emptyWalletState :: Wallet -> WalletState
-emptyWalletState (Wallet i) = WalletState kp 0 oa Map.empty where
+emptyWalletState w = WalletState pk 0 oa Map.empty where
     oa = AM.addAddress ownAddr mempty
-    kp = keyPair i
-    ownAddr = pubKeyAddress $ pubKey kp
+    pk = walletPrivKey w
+    ownAddr = pubKeyAddress (toPublicKey pk)
 
 -- | Events produced by the blockchain emulator.
 data EmulatorEvent =
@@ -182,10 +210,15 @@ data EmulatorEvent =
     -- ^ A 'WalletAPI' action produced an error.
     | WalletInfo Wallet T.Text
     -- ^ Debug information produced by a wallet.
-    deriving (Eq, Ord, Show, Generic)
+    deriving (Eq, Show, Generic)
 
 instance FromJSON EmulatorEvent
 instance ToJSON EmulatorEvent
+
+-- | Delete all 'EventHandler' values that are registered for an
+--   'EventTrigger'.
+deleteHandlers :: MonadState WalletState m => EventTrigger -> m ()
+deleteHandlers t = modify (over triggers (set (at t) Nothing))
 
 -- | Process a list of 'Notification's in the mock wallet environment.
 handleNotifications :: [Notification] -> MockWallet ()
@@ -201,15 +234,17 @@ handleNotifications = mapM_ (updateState >=> runTriggers)  where
 
         let values = AM.values adrs
             annotate = annTruthValue h values
+            trueConditions = filter (getAnnot . fst) $ fmap (first annotate) $ Map.toList trg
 
-        let runIfTrue annotTr action =
-                if getAnnot annotTr -- get the top-level annotation (just like `checkTrigger`, but here we need to hold on to the `annotTr` value to pass it to the handler)
-                then runEventHandler action annotTr
-                else pure ()
-
-        traverse_ (uncurry runIfTrue)
-            $ first annotate
-            <$> Map.toList trg
+        -- We need to do 2 passes over the list of triggers that fired.
+        --
+        -- First pass to delete the old triggers
+        -- Second pass to run the actions
+        --
+        -- Deletion must happen first so that we don't accidentally delete
+        -- triggers that are registered by event handlers.
+        traverse_ (deleteHandlers . WAPI.unAnnot . fst) trueConditions
+        traverse_ (uncurry (flip runEventHandler)) trueConditions
 
     -- Remove spent outputs and add unspent ones, for the addresses that we care about
     update t = over addressMap (AM.updateAddresses t)
@@ -221,20 +256,24 @@ instance WalletAPI MockWallet where
         modifying addressMap (AM.addAddresses adrs) >>
         tellTx [txn]
 
-    myKeyPair = use ownKeyPair
+    ownPubKey = toPublicKey <$> use ownPrivateKey
+
+    sign bs = do
+        privK <- use ownPrivateKey
+        pure (Crypto.sign (BSL.toStrict bs) privK)
 
     createPaymentWithChange vl = do
         ws <- get
-        let fnds = ws ^. ownFunds
-            kp    = ws ^. ownKeyPair
-            sig   = signature kp
+        let fnds   = ws ^. ownFunds
+            privK  = ws ^. ownPrivateKey
+            pubK   =  toPublicKey privK
         (spend, change) <- selectCoin (second txOutValue <$> Map.toList fnds) vl
         let
-            txOutput = if Value.gt change Value.zero then Just (pubKeyTxOut change (pubKey kp)) else Nothing
-            ins = Set.fromList (flip pubKeyTxIn sig . fst <$> spend)
+            txOutput = if Value.eq change Value.zero then Nothing else Just (pubKeyTxOut change pubK)
+            ins = Set.fromList (flip pubKeyTxIn pubK . fst <$> spend)
         pure (ins, txOutput)
 
-    register tr action =
+    registerOnce tr action =
         modify (over triggers (Map.insertWith (<>) tr action))
         >> modify (over addressMap (AM.addAddresses (addresses tr)))
 
@@ -295,7 +334,7 @@ newtype AssertionError = AssertionError T.Text
 data Event n a where
     -- | An direct action performed by a wallet. Usually represents a "user action", as it is
     -- triggered externally.
-    WalletAction :: Wallet -> n () -> Event n [Tx]
+    WalletAction :: Wallet -> n a -> Event n (Either WalletAPIError a, [Tx])
     -- | A wallet receiving some notifications, and reacting to them.
     WalletRecvNotification :: Wallet -> [Notification] -> Event n [Tx]
     -- | The blockchain processing pending transactions, producing a new block
@@ -303,7 +342,6 @@ data Event n a where
     BlockchainProcessPending :: Event n Block
     -- | An assertion in the event stream, which can inspect the current state.
     Assertion :: Assertion -> Event n ()
-
 
 -- Program is like Free, except it makes the Functor for us so we can have a nice GADT
 -- | A series of 'Event's.
@@ -379,9 +417,22 @@ emulatorState bc = emptyEmulatorState
     & index .~ Index.initialise bc
 
 -- | Initialise the emulator state with a pool of pending transactions.
-emulatorState' :: TxPool -> EmulatorState
-emulatorState' tp = emptyEmulatorState
+emulatorStatePool :: TxPool -> EmulatorState
+emulatorStatePool tp = emptyEmulatorState
     & txPool .~ tp
+
+-- | Initialise the emulator state with a single pending transaction that
+--   creates the initial distribution of funds to public key addresses.
+emulatorStateInitialDist :: Map PubKey Value -> EmulatorState
+emulatorStateInitialDist mp = emulatorStatePool [tx] where
+    tx = Tx
+            { txInputs = Set.empty
+            , txOutputs = uncurry (flip pubKeyTxOut) <$> Map.toList mp
+            , txForge = fold $ snd <$> Map.toList mp
+            , txFee = Ada.zero
+            , txValidRange = WAPI.defaultSlotRange
+            , txSignatures = Map.empty
+            }
 
 -- | Validate a transaction in the current emulator state.
 validateEm :: MonadState Index.UtxoIndex m => Slot -> Tx -> m (Maybe Index.ValidationError)
@@ -416,10 +467,10 @@ evalEmulated = \case
     WalletAction wallet action -> do
         (txns, result) <- liftMockWallet wallet action
         case result of
-            Right _ -> pure txns
+            Right a -> pure (Right a, txns)
             Left err -> do
                 _ <- modifying emulatorLog (WalletError wallet err :)
-                pure txns
+                pure (Left err, txns)
     WalletRecvNotification wallet trigger -> fst <$> liftMockWallet wallet (handleNotifications trigger)
     BlockchainProcessPending -> do
         emState <- get
@@ -491,9 +542,18 @@ mkEvent t result =
 processEmulated :: (MonadEmulator m) => Trace MockWallet a -> m a
 processEmulated = interpretWithMonad evalEmulated
 
--- | Perform a wallet action as the given 'Wallet'.
-walletAction :: Wallet -> m () -> Trace m [Tx]
-walletAction w = Op.singleton . WalletAction w
+-- | A synonym for 'execWalletAction'.
+walletAction :: Wallet -> m a -> Trace m [Tx]
+walletAction = execWalletAction 
+
+-- | Perform a wallet action as the given 'Wallet', returning
+--   the transactions that were submitted.
+execWalletAction :: Wallet -> m a -> Trace m [Tx]
+execWalletAction w = fmap snd . runWalletAction w
+
+-- | Peform a wallet action as the given 'Wallet'.
+runWalletAction :: Wallet -> m a -> Trace m (Either WalletAPIError a, [Tx])
+runWalletAction w = Op.singleton . WalletAction w
 
 -- | Notify the given 'Wallet' of some blockchain events.
 walletRecvNotifications :: Wallet -> [Notification] -> Trace m [Tx]
@@ -533,6 +593,14 @@ assertOwnFundsEq wallet = assertion . OwnFundsEqual wallet
 assertIsValidated :: Tx -> Trace m ()
 assertIsValidated = assertion . IsValidated
 
+newtype EmulatorAction a = EmulatorAction { unEmulatorAction :: ExceptT AssertionError (State EmulatorState) a }
+    deriving newtype (Functor, Applicative, Monad, MonadState EmulatorState, MonadError AssertionError)
+
+-- | Run a 'MonadEmulator' action on an 'EmulatorState', returning the final 
+--   state and either the result or an 'AssertionError'.
+runEmulator :: EmulatorState -> EmulatorAction a -> (Either AssertionError a, EmulatorState)
+runEmulator e a = runState (runExceptT $ unEmulatorAction a) e
+
 -- | Run an 'Trace' on a blockchain.
 runTraceChain :: Blockchain -> Trace MockWallet a -> (Either AssertionError a, EmulatorState)
 runTraceChain ch t = runState (runExceptT $ processEmulated t) emState where
@@ -541,7 +609,7 @@ runTraceChain ch t = runState (runExceptT $ processEmulated t) emState where
 -- | Run a 'Trace' on an empty blockchain with a pool of pending transactions.
 runTraceTxPool :: TxPool -> Trace MockWallet a -> (Either AssertionError a, EmulatorState)
 runTraceTxPool tp t = runState (runExceptT $ processEmulated t) emState where
-    emState = emulatorState' tp
+    emState = emulatorStatePool tp
 
 -- | Evaluate a 'Trace' on an empty blockchain with a pool of pending
 --   transactions and return the final value, discarding the final

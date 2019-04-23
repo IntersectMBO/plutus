@@ -74,10 +74,10 @@ intern n = do
 type Parser = ParsecT ParseError T.Text (StateT ParserState PLC.Quote)
 instance (Stream s, PLC.MonadQuote m) => PLC.MonadQuote (ParsecT e s m)
 
-parse :: Parser a -> String -> T.Text -> Either (Parsec.ParseError Char ParseError) a
+parse :: Parser a -> String -> T.Text -> Either (ParseErrorBundle T.Text ParseError) a
 parse p file str = PLC.runQuote $ parseQuoted p file str
 
-parseQuoted :: Parser a -> String -> T.Text -> PLC.Quote (Either (Parsec.ParseError Char ParseError) a)
+parseQuoted :: Parser a -> String -> T.Text -> PLC.Quote (Either (ParseErrorBundle T.Text ParseError) a)
 parseQuoted p file str = flip evalStateT initial $ runParserT p file str
 
 whitespace :: Parser ()
@@ -151,7 +151,7 @@ isIdentifierChar c = isAlphaNum c || c == '_' || c == '\''
 
 reservedWord :: T.Text -> Parser SourcePos
 reservedWord w = lexeme $ try $ do
-    p <- getPosition
+    p <- getSourcePos
     void $ string w
     notFollowedBy (satisfy isIdentifierChar)
     return p
@@ -163,7 +163,7 @@ builtinName = lexeme $ choice $ map parseBuiltinName PLC.allBuiltinNames
 
 name :: Parser (Name SourcePos)
 name = lexeme $ try $ do
-    pos <- getPosition
+    pos <- getSourcePos
     void $ lookAhead letterChar
     str <- takeWhileP (Just "identifier") isIdentifierChar
     if str `elem` reservedWords
@@ -175,7 +175,7 @@ var = name
 tyVar :: Parser (TyName SourcePos)
 tyVar = TyName <$> name
 builtinVar :: Parser (PLC.Builtin SourcePos)
-builtinVar = PLC.BuiltinName <$> getPosition <*> builtinName
+builtinVar = PLC.BuiltinName <$> getSourcePos <*> builtinName
 
 -- This should not accept spaces after the sign, hence the `return ()`
 integer :: Parser Integer
@@ -208,7 +208,7 @@ size = lexeme $ do
 
 version :: Parser (PLC.Version SourcePos)
 version = lexeme $ do
-    p <- getPosition
+    p <- getSourcePos
     x <- Lex.decimal
     void $ char '.'
     y <- Lex.decimal
@@ -222,7 +222,7 @@ handleInteger pos s i = case PLC.makeBuiltinInt s i of
 
 constant :: Parser (PLC.Constant SourcePos)
 constant = do
-    p <- getPosition
+    p <- getSourcePos
     s <- size
     (char '!' >> whitespace >> (handleInteger p s =<< integer) <|> (PLC.BuiltinBS p s <$> bytestring))
         <|> (notFollowedBy (char '!') >> (pure $ PLC.BuiltinSize p s))
@@ -249,11 +249,11 @@ builtinType :: Parser (Type TyName SourcePos)
 builtinType = TyBuiltin <$> reservedWord "size" <*> return PLC.TySize
     <|> TyBuiltin <$> reservedWord "integer" <*> return PLC.TyInteger
     <|> TyBuiltin <$> reservedWord "bytestring" <*> return PLC.TyByteString
-    <|> TyInt <$> getPosition <*> natural
+    <|> TyInt <$> getSourcePos <*> natural
 
 appType :: Parser (Type TyName SourcePos)
 appType = do
-    pos  <- getPosition
+    pos  <- getSourcePos
     fn   <- typ
     args <- some typ
     pure $ foldl' (TyApp pos) fn args
@@ -285,9 +285,9 @@ datatype = inParens $ Datatype <$> reservedWord "datatype"
 
 binding :: Parser (Binding TyName Name SourcePos)
 binding =  inParens $
-    (try $ reservedWord "termbind" >> TermBind <$> getPosition <*> varDecl <*> term)
-    <|> (reservedWord "typebind" >> TypeBind <$> getPosition <*> tyVarDecl <*> typ)
-    <|> (reservedWord "datatypebind" >> DatatypeBind <$> getPosition <*> datatype)
+    (try $ reservedWord "termbind" >> TermBind <$> getSourcePos <*> varDecl <*> term)
+    <|> (reservedWord "typebind" >> TypeBind <$> getSourcePos <*> tyVarDecl <*> typ)
+    <|> (reservedWord "datatypebind" >> DatatypeBind <$> getSourcePos <*> datatype)
 
 -- A small type wrapper for parsers that are parametric in the type of term they parse
 type Parametric = forall term. PIR.TermLike term TyName Name => Parser (term SourcePos) -> Parser (term SourcePos)
@@ -317,10 +317,10 @@ letTerm :: Parser (Term TyName Name SourcePos)
 letTerm = Let <$> reservedWord "let" <*> recursivity <*> some (try binding) <*> term
 
 appTerm :: Parametric
-appTerm tm = PIR.mkIterApp <$> getPosition <*> tm <*> some tm
+appTerm tm = PIR.mkIterApp <$> getSourcePos <*> tm <*> some tm
 
 tyInstTerm :: Parametric
-tyInstTerm tm = PIR.mkIterInst <$> getPosition <*> tm <*> some typ
+tyInstTerm tm = PIR.mkIterInst <$> getSourcePos <*> tm <*> some typ
 
 term' :: Parametric
 term' other = (var >>= (\n -> return $ PIR.var (nameAttribute n) n))
@@ -343,11 +343,11 @@ program = whitespace >> do
         p <- reservedWord "program"
         option () $ void version
         Program p <$> term
-    notFollowedBy anyChar
+    notFollowedBy anySingle
     return prog
 
 plcProgram :: Parser (PLC.Program TyName Name SourcePos)
 plcProgram = whitespace >> do
     prog <- inParens $ PLC.Program <$> reservedWord "program" <*> version <*> plcTerm
-    notFollowedBy anyChar
+    notFollowedBy anySingle
     return prog

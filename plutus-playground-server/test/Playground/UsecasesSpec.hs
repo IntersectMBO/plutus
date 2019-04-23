@@ -20,17 +20,18 @@ import           Language.Haskell.Interpreter (InterpreterError, InterpreterResu
 import           Ledger                       (Blockchain)
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Validation            (ValidatorHash (ValidatorHash))
+import           Ledger.Value                 (TokenName (TokenName))
 import           Playground.API               (CompilationResult (CompilationResult), Evaluation (Evaluation),
                                                Expression (Action, Wait), Fn (Fn), FunctionSchema (FunctionSchema),
                                                KnownCurrency (KnownCurrency), PlaygroundError,
-                                               SimpleArgumentSchema (SimpleArraySchema, SimpleIntSchema, SimpleObjectSchema, SimpleTupleSchema),
-                                               SimulatorWallet (SimulatorWallet), TokenId (TokenId), argumentSchema,
+                                               SimpleArgumentSchema (SimpleArraySchema, SimpleHexSchema, SimpleIntSchema, SimpleObjectSchema, SimpleStringSchema, SimpleTupleSchema, ValueSchema),
+                                               SimulatorWallet (SimulatorWallet), adaCurrency, argumentSchema,
                                                functionName, isSupportedByFrontend, simulatorWalletBalance,
                                                simulatorWalletWallet)
 import qualified Playground.Interpreter       as PI
 import           Playground.Usecases          (crowdfunding, game, messages, vesting)
 import           Test.Hspec                   (Spec, describe, it, shouldBe, shouldSatisfy)
-import           Wallet.Emulator.Types        (EmulatorEvent, Wallet (Wallet))
+import           Wallet.Emulator.Types        (EmulatorEvent, Wallet (Wallet), walletPubKey)
 
 spec :: Spec
 spec = do
@@ -43,9 +44,35 @@ spec = do
 maxInterpretationTime :: Microsecond
 maxInterpretationTime = fromMicroseconds 10000000
 
+w1, w2, w3, w4, w5 :: Wallet
+w1 = Wallet 1
+
+w2 = Wallet 2
+
+w3 = Wallet 3
+
+w4 = Wallet 4
+
+w5 = Wallet 5
+
 vestingSpec :: Spec
 vestingSpec =
     describe "vesting" $ do
+        let vlSchema = ValueSchema
+                        [ ( "getValue"
+                          , SimpleObjectSchema
+                                [ ( "unMap"
+                                  , SimpleArraySchema
+                                        (SimpleTupleSchema
+                                            ( SimpleHexSchema
+                                            , SimpleObjectSchema
+                                                  [ ( "unMap"
+                                                    , SimpleArraySchema
+                                                          (SimpleTupleSchema
+                                                                ( SimpleStringSchema
+                                                                , SimpleIntSchema)))
+                                                  ])))
+                                ]) ]
         compilationChecks vesting
         it "should compile with the expected schema" $ do
             Right (InterpreterResult _ (CompilationResult result _)) <-
@@ -57,12 +84,11 @@ vestingSpec =
                             [ SimpleObjectSchema
                                   [ ( "vestingOwner"
                                     , SimpleObjectSchema
-                                          [("getPubKey", SimpleIntSchema)])
+                                          [("getPubKey", SimpleStringSchema)])
                                   , ( "vestingTranche2"
                                     , SimpleObjectSchema
                                           [ ( "vestingTrancheAmount"
-                                            , SimpleObjectSchema
-                                                  [("getAda", SimpleIntSchema)])
+                                            , vlSchema )
                                           , ( "vestingTrancheDate"
                                             , SimpleObjectSchema
                                                   [("getSlot", SimpleIntSchema)])
@@ -70,8 +96,7 @@ vestingSpec =
                                   , ( "vestingTranche1"
                                     , SimpleObjectSchema
                                           [ ( "vestingTrancheAmount"
-                                            , SimpleObjectSchema
-                                                  [("getAda", SimpleIntSchema)])
+                                            , vlSchema )
                                           , ( "vestingTrancheDate"
                                             , SimpleObjectSchema
                                                   [("getSlot", SimpleIntSchema)])
@@ -85,12 +110,11 @@ vestingSpec =
                             [ SimpleObjectSchema
                                   [ ( "vestingOwner"
                                     , SimpleObjectSchema
-                                          [("getPubKey", SimpleIntSchema)])
+                                          [("getPubKey", SimpleStringSchema)])
                                   , ( "vestingTranche2"
                                     , SimpleObjectSchema
                                           [ ( "vestingTrancheAmount"
-                                            , SimpleObjectSchema
-                                                  [("getAda", SimpleIntSchema)])
+                                            , vlSchema )
                                           , ( "vestingTrancheDate"
                                             , SimpleObjectSchema
                                                   [("getSlot", SimpleIntSchema)])
@@ -98,8 +122,7 @@ vestingSpec =
                                   , ( "vestingTranche1"
                                     , SimpleObjectSchema
                                           [ ( "vestingTrancheAmount"
-                                            , SimpleObjectSchema
-                                                  [("getAda", SimpleIntSchema)])
+                                            , vlSchema )
                                           , ( "vestingTrancheDate"
                                             , SimpleObjectSchema
                                                   [("getSlot", SimpleIntSchema)])
@@ -113,12 +136,11 @@ vestingSpec =
                             [ SimpleObjectSchema
                                   [ ( "vestingOwner"
                                     , SimpleObjectSchema
-                                          [("getPubKey", SimpleIntSchema)])
+                                          [("getPubKey", SimpleStringSchema)])
                                   , ( "vestingTranche2"
                                     , SimpleObjectSchema
                                           [ ( "vestingTrancheAmount"
-                                            , SimpleObjectSchema
-                                                  [("getAda", SimpleIntSchema)])
+                                            , vlSchema )
                                           , ( "vestingTrancheDate"
                                             , SimpleObjectSchema
                                                   [("getSlot", SimpleIntSchema)])
@@ -126,18 +148,17 @@ vestingSpec =
                                   , ( "vestingTranche1"
                                     , SimpleObjectSchema
                                           [ ( "vestingTrancheAmount"
-                                            , SimpleObjectSchema
-                                                  [("getAda", SimpleIntSchema)])
+                                            , vlSchema )
                                           , ( "vestingTrancheDate"
                                             , SimpleObjectSchema
                                                   [("getSlot", SimpleIntSchema)])
                                           ])
                                   ]
-                            , SimpleObjectSchema [("getAda", SimpleIntSchema)]
+                            , vlSchema
                             ]
                       }
                 , FunctionSchema
-                      { functionName = Fn "payToPublicKey_"
+                      { functionName = Fn "payToWallet_"
                       , argumentSchema =
                             [ SimpleObjectSchema
                                   [ ( "ivTo"
@@ -147,13 +168,9 @@ vestingSpec =
                                     , SimpleObjectSchema
                                           [("getSlot", SimpleIntSchema)])
                                   ]
+                            , vlSchema
                             , SimpleObjectSchema
-                                  [ ( "getValue"
-                                    , SimpleObjectSchema
-                                        [("unMap", SimpleArraySchema (SimpleTupleSchema (SimpleIntSchema, SimpleIntSchema)))])
-                                  ]
-                            , SimpleObjectSchema
-                                  [("getPubKey", SimpleIntSchema)]
+                                  [("getWallet", SimpleIntSchema)]
                             ]
                       }
                 ]
@@ -168,9 +185,7 @@ vestingSpec =
     simpleEvaluation =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = Wallet 1
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w1, simulatorWalletBalance = ten}
             ]
             []
             (sourceCode vesting)
@@ -178,9 +193,7 @@ vestingSpec =
     simpleWaitEval =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = Wallet 1
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w1, simulatorWalletBalance = ten}
             ]
             [Wait 10]
             (sourceCode vesting)
@@ -188,19 +201,26 @@ vestingSpec =
     vestFundsEval =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = Wallet 1
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w1, simulatorWalletBalance = ten}
             ]
-            [ Action
-                  (Fn "vestFunds")
-                  (Wallet 1)
-                  [ JSON.String
-                        "{\"vestingTranche1\":{\"vestingTrancheDate\":{\"getSlot\":1},\"vestingTrancheAmount\":{\"getAda\":1}},\"vestingTranche2\":{\"vestingTrancheDate\":{\"getSlot\":1},\"vestingTrancheAmount\":{\"getAda\":1}},\"vestingOwner\":{\"getPubKey\":1}}"
-                  ]
-            ]
+            [Action (Fn "vestFunds") w1 [theVesting]]
             (sourceCode vesting)
             []
+    theVesting =
+        toJSONString $
+        object
+            [ "vestingTranche1" .=
+              object
+                  [ "vestingTrancheDate" .= object ["getSlot" .= mkI 1]
+                  , "vestingTrancheAmount" .= JSON.toJSON (Ada.adaValueOf 1)
+                  ]
+            , "vestingTranche2" .=
+              object
+                  [ "vestingTrancheDate" .= object ["getSlot" .= mkI 1]
+                  , "vestingTrancheAmount" .= JSON.toJSON (Ada.adaValueOf 1)
+                  ]
+            , "vestingOwner" .= JSON.toJSON (walletPubKey w1)
+            ]
 
 gameSpec :: Spec
 gameSpec =
@@ -210,12 +230,12 @@ gameSpec =
             evaluate gameEvalSuccess >>=
             (`shouldSatisfy` hasFundsDistribution
                                  [ SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 1
+                                       { simulatorWalletWallet = w1
                                        , simulatorWalletBalance =
                                              Ada.adaValueOf 12
                                        }
                                  , SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 2
+                                       { simulatorWalletWallet = w2
                                        , simulatorWalletBalance =
                                              Ada.adaValueOf 8
                                        }
@@ -224,29 +244,44 @@ gameSpec =
             evaluate gameEvalFailure >>=
             (`shouldSatisfy` hasFundsDistribution
                                  [ SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 1
+                                       { simulatorWalletWallet = w1
                                        , simulatorWalletBalance = ten
                                        }
                                  , SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 2
+                                       { simulatorWalletWallet = w2
                                        , simulatorWalletBalance =
                                              Ada.adaValueOf 8
                                        }
                                  ])
-        it
-            "Sequential fund transfer fails - 'Game' script - 'payToPublicKey_' action" $
-            evaluate payAll >>=
+        it "Sequential fund transfer - deleting wallets 'payToWallet_' action" $
+            evaluate (payAll w3 w4 w5) >>=
             (`shouldSatisfy` hasFundsDistribution
                                  [ SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 1
+                                       { simulatorWalletWallet = w3
                                        , simulatorWalletBalance = ten
                                        }
                                  , SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 2
+                                       { simulatorWalletWallet = w4
                                        , simulatorWalletBalance = ten
                                        }
                                  , SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 3
+                                       { simulatorWalletWallet = w5
+                                       , simulatorWalletBalance = ten
+                                       }
+                                 ])
+        it "Sequential fund transfer - 'payToWallet_' action" $
+            evaluate (payAll w1 w2 w3) >>=
+            (`shouldSatisfy` hasFundsDistribution
+                                 [ SimulatorWallet
+                                       { simulatorWalletWallet = w1
+                                       , simulatorWalletBalance = ten
+                                       }
+                                 , SimulatorWallet
+                                       { simulatorWalletWallet = w2
+                                       , simulatorWalletBalance = ten
+                                       }
+                                 , SimulatorWallet
+                                       { simulatorWalletWallet = w3
                                        , simulatorWalletBalance = ten
                                        }
                                  ])
@@ -255,84 +290,53 @@ gameSpec =
     gameEvalFailure =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = Wallet 1
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w1, simulatorWalletBalance = ten}
             , SimulatorWallet
-                  { simulatorWalletWallet = Wallet 2
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w2, simulatorWalletBalance = ten}
             ]
-            [ Action (Fn "startGame") (Wallet 1) []
+            [ Action (Fn "startGame") w1 []
             , Action
                   (Fn "lock")
-                  (Wallet 2)
-                  [JSON.String "\"abcde\"", JSON.String "{\"getAda\": 2}"]
-            , Action (Fn "guess") (Wallet 1) [JSON.String "\"ade\""]
+                  w2
+                  [JSON.String "\"abcde\"", twoAda]
+            , Action (Fn "guess") w1 [JSON.String "\"ade\""]
             ]
             (sourceCode game)
             []
     gameEvalSuccess =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = Wallet 1
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w1, simulatorWalletBalance = ten}
             , SimulatorWallet
-                  { simulatorWalletWallet = Wallet 2
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w2, simulatorWalletBalance = ten}
             ]
-            [ Action (Fn "startGame") (Wallet 1) []
+            [ Action (Fn "startGame") w1 []
             , Action
                   (Fn "lock")
-                  (Wallet 2)
-                  [JSON.String "\"abcde\"", JSON.String "{\"getAda\": 2}"]
-            , Action (Fn "guess") (Wallet 1) [JSON.String "\"abcde\""]
+                  w2
+                  [JSON.String "\"abcde\"", twoAda]
+            , Action (Fn "guess") w1 [JSON.String "\"abcde\""]
             ]
             (sourceCode game)
             []
-    payAll =
+    payAll a b c =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = Wallet 1
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = a, simulatorWalletBalance = ten}
             , SimulatorWallet
-                  { simulatorWalletWallet = Wallet 2
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = b, simulatorWalletBalance = ten}
             , SimulatorWallet
-                  { simulatorWalletWallet = Wallet 3
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = c, simulatorWalletBalance = ten}
             ]
-            [ Action
-                  (Fn "payToPublicKey_")
-                  (Wallet 1)
-                  [ slotRange
-                  , JSON.String nineAda
-                  , JSON.String "{\"getPubKey\":2}"
-                  ]
-            , Action
-                  (Fn "payToPublicKey_")
-                  (Wallet 2)
-                  [ slotRange
-                  , JSON.String nineAda
-                  , JSON.String "{\"getPubKey\":3}"
-                  ]
-            , Action
-                  (Fn "payToPublicKey_")
-                  (Wallet 3)
-                  [ slotRange
-                  , JSON.String nineAda
-                  , JSON.String "{\"getPubKey\":1}"
-                  ]
+            [ Action (Fn "payToWallet_") a [slotRange, nineAda, toJSONString b]
+            , Action (Fn "payToWallet_") b [slotRange, nineAda, toJSONString c]
+            , Action (Fn "payToWallet_") c [slotRange, nineAda, toJSONString a]
             ]
             (sourceCode game)
             []
     slotRange = JSON.String "{\"ivTo\":null,\"ivFrom\":null}"
-    nineAda = TL.toStrict $ JSON.encodeToLazyText $ Ada.adaValueOf 9
+    nineAda = toJSONString $ Ada.adaValueOf 9
+    twoAda  = toJSONString $ Ada.adaValueOf 2
 
 hasFundsDistribution ::
        [SimulatorWallet]
@@ -355,17 +359,17 @@ crowdfundingSpec =
             evaluate successfulCampaign >>=
             (`shouldSatisfy` hasFundsDistribution
                                  [ SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 1
+                                       { simulatorWalletWallet = w1
                                        , simulatorWalletBalance =
                                              Ada.adaValueOf 26
                                        }
                                  , SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 2
+                                       { simulatorWalletWallet = w2
                                        , simulatorWalletBalance =
                                              Ada.adaValueOf 2
                                        }
                                  , SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 3
+                                       { simulatorWalletWallet = w3
                                        , simulatorWalletBalance =
                                              Ada.adaValueOf 2
                                        }
@@ -374,15 +378,15 @@ crowdfundingSpec =
             evaluate failedCampaign >>=
             (`shouldSatisfy` hasFundsDistribution
                                  [ SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 1
+                                       { simulatorWalletWallet = w1
                                        , simulatorWalletBalance = ten
                                        }
                                  , SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 2
+                                       { simulatorWalletWallet = w2
                                        , simulatorWalletBalance = ten
                                        }
                                  , SimulatorWallet
-                                       { simulatorWalletWallet = Wallet 3
+                                       { simulatorWalletWallet = w3
                                        , simulatorWalletBalance = ten
                                        }
                                  ])
@@ -391,20 +395,14 @@ crowdfundingSpec =
     failedCampaign =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = Wallet 1
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w1, simulatorWalletBalance = ten}
             , SimulatorWallet
-                  { simulatorWalletWallet = Wallet 2
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w2, simulatorWalletBalance = ten}
             , SimulatorWallet
-                  { simulatorWalletWallet = Wallet 3
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w3, simulatorWalletBalance = ten}
             ]
-            [ Action (Fn "scheduleCollection") (Wallet 1) [theCampaign]
-            , Action (Fn "contribute") (Wallet 2) [theCampaign, theContribution]
+            [ Action (Fn "scheduleCollection") w1 [theCampaign]
+            , Action (Fn "contribute") w2 [theCampaign, theContribution]
             , Wait 20
             ]
             (sourceCode crowdfunding)
@@ -412,40 +410,28 @@ crowdfundingSpec =
     successfulCampaign =
         Evaluation
             [ SimulatorWallet
-                  { simulatorWalletWallet = Wallet 1
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w1, simulatorWalletBalance = ten}
             , SimulatorWallet
-                  { simulatorWalletWallet = Wallet 2
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w2, simulatorWalletBalance = ten}
             , SimulatorWallet
-                  { simulatorWalletWallet = Wallet 3
-                  , simulatorWalletBalance = ten
-                  }
+                  {simulatorWalletWallet = w3, simulatorWalletBalance = ten}
             ]
-            [ Action (Fn "scheduleCollection") (Wallet 1) [theCampaign]
-            , Action (Fn "contribute") (Wallet 2) [theCampaign, theContribution]
-            , Action (Fn "contribute") (Wallet 3) [theCampaign, theContribution]
+            [ Action (Fn "scheduleCollection") w1 [theCampaign]
+            , Action (Fn "contribute") w2 [theCampaign, theContribution]
+            , Action (Fn "contribute") w3 [theCampaign, theContribution]
             , Wait 10
             ]
             (sourceCode crowdfunding)
             []
-    mkI :: Int -> JSON.Value
-    mkI = JSON.toJSON
     theCampaign =
-        JSON.String $
-        TL.toStrict $
-        JSON.encodeToLazyText $
+        toJSONString $
         object
             [ "campaignDeadline" .= object ["getSlot" .= mkI 10]
             , "campaignTarget" .= object ["getAda" .= mkI 15]
             , "campaignCollectionDeadline" .= object ["getSlot" .= mkI 20]
-            , "campaignOwner" .= object ["getPubKey" .= mkI 1]
+            , "campaignOwner" .= walletPubKey w1
             ]
-    theContribution =
-        JSON.String $
-        TL.toStrict $ JSON.encodeToLazyText $ object ["getAda" .= mkI 8]
+    theContribution = toJSONString $ object ["getAda" .= mkI 8]
 
 knownCurrencySpec :: Spec
 knownCurrencySpec =
@@ -459,14 +445,15 @@ knownCurrencySpec =
         Text.unlines
             [ "import Playground.Contract"
             , "import Data.List.NonEmpty (NonEmpty ((:|)))"
+            , "import Ledger.Value (TokenName(TokenName))"
             , "import Ledger.Validation (ValidatorHash (..))"
-            , "import Playground.API (KnownCurrency (..), TokenId (..))"
+            , "import Playground.API (KnownCurrency (..))"
             , "myCurrency :: KnownCurrency"
-            , "myCurrency = KnownCurrency (ValidatorHash \"\") \"MyCurrency\" (TokenId \"MyToken\" :| [])"
+            , "myCurrency = KnownCurrency (ValidatorHash \"\") \"MyCurrency\" (TokenName \"MyToken\" :| [])"
             , "$(mkKnownCurrencies ['myCurrency])"
             ]
-    hasKnownCurrency (Right (InterpreterResult _ (CompilationResult _ [KnownCurrency (ValidatorHash "") "MyCurrency" (TokenId "MyToken" :| [])]))) =
-        True
+    hasKnownCurrency (Right (InterpreterResult _ (CompilationResult _ [cur1, cur2]))) =
+        cur1 == adaCurrency && cur2 == KnownCurrency (ValidatorHash "") "MyCurrency" (TokenName "MyToken" :| [])
     hasKnownCurrency _ = False
 
 sourceCode :: BSC.ByteString -> SourceCode
@@ -496,3 +483,10 @@ isSupportedCompilationResult ::
 isSupportedCompilationResult (Left _) = False
 isSupportedCompilationResult (Right (InterpreterResult _ (CompilationResult functionSchemas _))) =
     all (all isSupportedByFrontend . argumentSchema) functionSchemas
+
+mkI :: Int -> JSON.Value
+mkI = JSON.toJSON
+
+-- | Encode a value in JSON, then make a JSON *string* from that
+toJSONString :: JSON.ToJSON a => a -> JSON.Value
+toJSONString = JSON.String . TL.toStrict . JSON.encodeToLazyText

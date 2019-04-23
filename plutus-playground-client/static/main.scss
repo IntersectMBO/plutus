@@ -135,6 +135,9 @@ table.balance-map {
             margin-left: 1rem;
         }
     }
+    .action-invalid-wallet {
+        border: solid 1px $red;
+    }
 }
 
 .logs {

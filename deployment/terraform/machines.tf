@@ -35,6 +35,7 @@ locals {
     name = "nixops"
     ip   = "${element(concat(aws_instance.nixops.*.private_ip, list("")), 0)}"
     dns  = "nixops.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
+    externalDns = "${local.monitoring_domain_name}"
   }
 
   bastionA = {
@@ -55,6 +56,8 @@ locals {
     environment    = "${var.env}"
     project        = "${var.project}"
     tld            = "${var.plutus_tld}"
+    plutusTld     = "${var.plutus_tld}"
+    marloweTld     = "${var.meadow_tld}"
   }
 
   bastionMachines = {

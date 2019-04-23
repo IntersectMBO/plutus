@@ -2,6 +2,7 @@ module Chain
        ( mockchainChartOptions
        , balancesChartOptions
        , evaluationPane
+       , extractAmount
        ) where
 
 import Bootstrap (empty, nbsp)
@@ -11,18 +12,22 @@ import Control.Monad.Aff.Class (class MonadAff)
 import Data.Array as Array
 import Data.Generic (gShow)
 import Data.Int as Int
-import Data.Lens (_1, _2, filtered, to, toListOf, traversed, view)
+import Data.Lens (_Just, preview, toListOf, traversed, view)
+import Data.Lens.At (at)
 import Data.List (List)
-import Data.List as List
-import Data.Maybe (Maybe(Nothing))
+import Data.Maybe (Maybe(..), maybe)
 import Data.Newtype (unwrap)
+import Data.Set (Set)
+import Data.Set as Set
 import Data.Traversable (traverse_)
-import Data.Tuple (fst)
+import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
 import ECharts.Commands (addItem, addLink, axisLine, axisType, backgroundColor, bar, bottom, buildItems, buildLinks, color, colorSource, colors, formatterString, items, label, left, lineStyle, name, nameGap, nameLocationMiddle, nameRotate, normal, right, sankey, series, sourceName, splitLine, targetName, textStyle, tooltip, top, trigger, value, xAxis, yAxis) as E
 import ECharts.Extras (focusNodeAdjacencyAllEdges, orientVertical, positionBottom)
+import ECharts.Internal (undefinedValue)
 import ECharts.Monad (CommandsT, DSL) as E
 import ECharts.Types (AxisType(Value, Category), PixelOrPercent(Pixel), TooltipTrigger(ItemTrigger), numItem, strItem) as E
+import ECharts.Types (Item(..))
 import ECharts.Types.Phantom (I)
 import Halogen (HTML)
 import Halogen.Component (ParentHTML)
@@ -30,13 +35,13 @@ import Halogen.ECharts (EChartsEffects, echarts)
 import Halogen.HTML (ClassName(ClassName), br_, div, div_, h2_, slot', text)
 import Halogen.HTML.Events (input)
 import Halogen.HTML.Properties (class_)
-import Ledger.Extra (_LedgerMap)
+import Ledger.Extra (LedgerMap, collapse)
 import Ledger.Slot (Slot(..))
-import Ledger.Tx (TxIdOf(TxIdOf))
-import Ledger.Value.TH (CurrencySymbol)
+import Ledger.TxId (TxIdOf(TxIdOf))
+import Ledger.Value.TH (CurrencySymbol, TokenName)
 import Playground.API (EvaluationResult(EvaluationResult), SimulatorWallet)
-import Prelude (class Monad, Unit, discard, map, show, unit, ($), (<$>), (<<<), (<>), (==))
-import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, Query(HandleBalancesChartMessage), _simulatorWalletBalance, _simulatorWalletWallet, _value, _walletId, cpBalancesChart)
+import Prelude (class Monad, Unit, discard, map, show, unit, ($), (<$>), (<<<), (<>), (>>>))
+import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, Query(HandleBalancesChartMessage), _simulatorWalletBalance, _simulatorWalletWallet, _tokenName, _value, _walletId, cpBalancesChart)
 import Wallet.Emulator.Types (EmulatorEvent(..), Wallet(..))
 import Wallet.Graph (FlowGraph(FlowGraph), FlowLink(FlowLink), TxRef(TxRef))
 
@@ -182,7 +187,7 @@ balancesChartOptions ::
 balancesChartOptions wallets = do
   E.tooltip $ do
     E.trigger E.ItemTrigger
-    E.formatterString "{b}: λ{a} x {c}"
+    E.formatterString "{b}: {a} {c}"
   E.textStyle $ E.color lightBlue
   E.backgroundColor fadedBlue
   E.xAxis do
@@ -197,37 +202,48 @@ balancesChartOptions wallets = do
     E.axisType E.Value
     axisLineStyle
   E.series do
-    traverse_ (currencySeries wallets) allCurrencySymbols
+    traverse_ (buildCurrencySeries wallets) allCurrencies
   where
     axisLineStyle :: forall i. E.DSL (axisLine :: I, splitLine :: I | i) m
     axisLineStyle = do
       E.axisLine $ E.lineStyle $ E.color lightBlue
       E.splitLine $ E.lineStyle $ E.color lightBlue
 
-    allCurrencySymbols :: List CurrencySymbol
-    allCurrencySymbols =
-      List.nub
-      $ toListOf (traversed
-                  <<< _simulatorWalletBalance
-                  <<< _value
-                  <<< _LedgerMap
-                  <<< traversed
-                  <<< _1) wallets
+    allValues :: List (LedgerMap CurrencySymbol (LedgerMap TokenName Int))
+    allValues =
+      toListOf (traversed
+                <<< _simulatorWalletBalance
+                <<< _value)
+        wallets
+
+    allCurrencies :: Set (Tuple CurrencySymbol TokenName)
+    allCurrencies =
+      Set.fromFoldable
+      $ map (\(c /\ t /\ _) -> c /\ t)
+      $ Array.concat
+      $ map collapse
+      $ Array.fromFoldable allValues
 
 formatWalletId :: SimulatorWallet -> String
 formatWalletId wallet = "Wallet #" <> show (view (_simulatorWalletWallet <<< _walletId) wallet)
 
-currencySeries :: forall m i. Monad m => Array SimulatorWallet -> CurrencySymbol -> E.CommandsT (bar :: I | i) m Unit
-currencySeries wallets target =
+buildCurrencySeries :: forall m i. Monad m => Array SimulatorWallet -> Tuple CurrencySymbol TokenName -> E.CommandsT (bar :: I | i) m Unit
+buildCurrencySeries wallets token@(Tuple currencySymbol tokenName) =
   E.bar do
     -- Optionally: `E.stack "One bar"`
-    E.name $ show $ unwrap target
-    E.items
-      $ toListOf (traversed
-                  <<< _simulatorWalletBalance
-                  <<< _value
-                  <<< _LedgerMap
-                  <<< traversed
-                  <<< filtered ((==) target <<< fst)
-                  <<< _2
-                  <<< to (E.numItem <<< Int.toNumber)) wallets
+    E.name $ view _tokenName tokenName
+    E.items $ map (extractAmount token
+                   >>> maybe nullItem (E.numItem <<< Int.toNumber))
+                   wallets
+
+nullItem :: Item
+nullItem = Item undefinedValue
+
+extractAmount :: Tuple CurrencySymbol TokenName -> SimulatorWallet -> Maybe Int
+extractAmount (Tuple currencySymbol tokenName) =
+  preview (_simulatorWalletBalance
+           <<< _value
+           <<< at currencySymbol
+           <<< _Just
+           <<< at tokenName
+           <<< _Just)

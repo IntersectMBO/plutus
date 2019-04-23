@@ -11,8 +11,6 @@
 module Ledger.Tx(
     -- * Transactions
     Tx(..),
-    TxIdOf(..),
-    TxId,
     inputs,
     outputs,
     txOutRefs,
@@ -20,6 +18,8 @@ module Ledger.Tx(
     spentOutputs,
     updateUtxo,
     validValuesTx,
+    signatures,
+    addSignature,
     -- ** Hashing transactions
     preHash,
     hashTx,
@@ -48,7 +48,7 @@ module Ledger.Tx(
     inRef,
     inType,
     inScripts,
-    inSignature,
+    inPubKey,
     validRange,
     pubKeyTxIn,
     scriptTxIn,
@@ -56,34 +56,33 @@ module Ledger.Tx(
     AddressOf(..),
     Address,
     pubKeyAddress,
-    scriptAddress
+    scriptAddress,
+    inAddress
     ) where
 
 import qualified Codec.CBOR.Write                         as Write
-import           Codec.Serialise.Class                    (Serialise, decode, encode)
+import           Codec.Serialise.Class                    (Serialise, encode)
 import           Control.Lens                             hiding (lifted)
-import           Crypto.Hash                              (Digest, SHA256, digestFromByteString, hash)
-import           Data.Aeson                               (FromJSON (parseJSON), ToJSON (toJSON))
-import qualified Data.Aeson                               as JSON
-import qualified Data.Aeson.Extras                        as JSON
+import           Crypto.Hash                              (Digest, SHA256, hash)
+import           Data.Aeson                               (FromJSON, ToJSON)
 import qualified Data.ByteArray                           as BA
-import qualified Data.ByteString                          as BSS
+import qualified Data.ByteString.Lazy                     as BSL
 import qualified Data.ByteString.Char8                    as BS8
 import           Data.Maybe                               (isJust)
 import           Data.Map                                 (Map)
 import qualified Data.Map                                 as Map
-import           Data.Proxy                               (Proxy(Proxy))
 import qualified Data.Set                                 as Set
 import           GHC.Generics                             (Generic)
-import           Data.Swagger.Internal.Schema             (ToSchema(declareNamedSchema), plain, paramSchemaToSchema)
-import           Language.PlutusTx.Lift                   (makeLift)
+import           Data.Swagger.Internal.Schema             (ToSchema)
 
 import           Ledger.Ada
 import           Ledger.Crypto
 import           Ledger.Slot
 import           Ledger.Scripts
+import           Ledger.TxId
 import           Ledger.Value
 import qualified Ledger.Value.TH                          as V
+import qualified LedgerBytes                              as LB
 
 {- Note [Serialisation and hashing]
 
@@ -108,39 +107,6 @@ especially because we only need one direction (to binary).
 
 -}
 
-instance Serialise (Digest SHA256) where
-  encode = encode . BA.unpack
-  decode = do
-    d <- decode
-    let md = digestFromByteString . BSS.pack $ d
-    case md of
-      Nothing -> fail "couldn't decode to Digest SHA256"
-      Just v  -> pure v
-
-instance ToJSON (Digest SHA256) where
-  toJSON = JSON.String . JSON.encodeSerialise
-
-instance ToSchema (Digest SHA256) where
-  declareNamedSchema _ = plain . paramSchemaToSchema $ (Proxy :: Proxy String)
-
-instance FromJSON (Digest SHA256) where
-  parseJSON = JSON.decodeSerialise
-
--- | A transaction ID, using some id type.
-newtype TxIdOf h = TxIdOf { getTxId :: h }
-    deriving (Eq, Ord, Show)
-    deriving stock (Generic)
-
-makeLift ''TxIdOf
-
--- | A transaction id, using a SHA256 hash as the transaction id type.
-type TxId = TxIdOf (Digest SHA256)
-
-deriving newtype instance Serialise TxId
-deriving anyclass instance ToJSON a => ToJSON (TxIdOf a)
-deriving anyclass instance FromJSON a => FromJSON (TxIdOf a)
-deriving anyclass instance ToSchema a => ToSchema (TxIdOf a)
-
 -- | A payment address using some id type. This corresponds to a Bitcoin pay-to-witness-script-hash.
 newtype AddressOf h = AddressOf { getAddress :: h }
     deriving (Eq, Ord, Show, Generic)
@@ -162,9 +128,12 @@ data Tx = Tx {
     -- ^ The 'Value' forged by this transaction.
     txFee        :: !Ada,
     -- ^ The fee for this transaction.
-    txValidRange :: !SlotRange
+    txValidRange :: !SlotRange,
     -- ^ The 'SlotRange' during which this transaction may be validated.
-    } deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON)
+    txSignatures :: Map PubKey Signature
+    -- ^ Signatures of this transaction
+    } deriving stock (Show, Eq, Ord, Generic)
+      deriving anyclass (ToJSON, FromJSON, Serialise)
 
 -- | The inputs of a transaction.
 inputs :: Lens' Tx (Set.Set TxIn)
@@ -183,6 +152,11 @@ validRange :: Lens' Tx SlotRange
 validRange = lens g s where
     g = txValidRange
     s tx o = tx { txValidRange = o }
+
+signatures :: Lens' Tx (Map PubKey Signature)
+signatures = lens g s where
+    g = txSignatures
+    s tx sig = tx { txSignatures = sig }
 
 instance BA.ByteArrayAccess Tx where
     length        = BA.length . Write.toStrictByteString . encode
@@ -247,7 +221,7 @@ txOutRefs t = mkOut <$> zip [0..] (txOutputs t) where
 -- | The type of a transaction input.
 data TxInType =
       ConsumeScriptAddress !ValidatorScript !RedeemerScript -- ^ A transaction input that consumes a script address with the given validator and redeemer pair.
-    | ConsumePublicKeyAddress !Signature -- ^ A transaction input that consumes a public key address, with a witness that it is allowed to do so.
+    | ConsumePublicKeyAddress !PubKey -- ^ A transaction input that consumes a public key address.
     deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON)
 
 -- | A transaction input using some transaction id type, consisting of a transaction output reference and an input type.
@@ -281,13 +255,21 @@ inScripts TxInOf{ txInType = t } = case t of
     ConsumePublicKeyAddress _ -> Nothing
 
 -- | Signature of a transaction input that spends a "pay to public key" output.
-inSignature :: TxInOf h -> Maybe Signature
-inSignature TxInOf{ txInType = t } = case t of
+inPubKey :: TxInOf h -> Maybe PubKey
+inPubKey TxInOf{ txInType = t } = case t of
     ConsumeScriptAddress _ _  -> Nothing
-    ConsumePublicKeyAddress s -> Just s
+    ConsumePublicKeyAddress p -> Just p
+
+-- | The address of the output spent by a 'TxIn'.
+inAddress :: TxInOf h -> BSL.ByteString
+inAddress TxInOf{ txInType = t } = case t of
+    ConsumeScriptAddress v _ -> 
+        BSL.fromStrict . BA.convert . getAddress . scriptAddress $ v
+    ConsumePublicKeyAddress pk  -> 
+        LB.bytes (getPubKey pk)
 
 -- | A transaction input that spends a "pay to public key" output, given the witness.
-pubKeyTxIn :: TxOutRefOf h -> Signature -> TxInOf h
+pubKeyTxIn :: TxOutRefOf h -> PubKey -> TxInOf h
 pubKeyTxIn r = TxInOf r . ConsumePublicKeyAddress
 
 -- | A transaction input that spends a "pay to script" output, given witnesses.
@@ -400,3 +382,10 @@ updateUtxo :: Tx -> Map TxOutRef TxOut -> Map TxOutRef TxOut
 updateUtxo t unspent = (unspent `Map.difference` lift' (spentOutputs t)) `Map.union` outs where
     lift' = Map.fromSet (const ())
     outs = unspentOutputsTx t
+
+-- | Sign the transaction with a 'PrivateKey' and add the signature to the 
+--   transaction's list of signatures.
+addSignature :: PrivateKey -> Tx -> Tx
+addSignature privK tx = tx & signatures . at pubK .~ Just sig where
+    sig = signTx (hashTx tx) privK
+    pubK = toPublicKey privK

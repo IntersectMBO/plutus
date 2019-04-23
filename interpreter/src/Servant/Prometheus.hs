@@ -37,6 +37,9 @@ import           Servant.API                                    ((:<|>), (:>), B
                                                                  QueryFlag, QueryParam', QueryParams, Raw,
                                                                  ReflectMethod, RemoteHost, ReqBody', Stream, Summary,
                                                                  Vault, Verb, WithNamedContext, reflectMethod)
+#if MIN_VERSION_servant(0,15,0)
+import           Servant.API                                    (StreamBody')
+#endif
 import           Servant.API.BrowserHeader                      (BrowserHeader)
 import           System.Metrics.Prometheus.Concurrent.RegistryT (RegistryT, registerCounter, registerGauge,
                                                                  registerHistogram)

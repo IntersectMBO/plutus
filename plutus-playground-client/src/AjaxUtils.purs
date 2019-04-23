@@ -7,12 +7,15 @@ import Control.MonadPlus (empty, (=<<))
 import Data.Argonaut.Core (Json)
 import Data.Argonaut.Generic.Aeson as Aeson
 import Data.Argonaut.Generic.Decode (genericDecodeJson)
+import Data.Argonaut.Generic.Encode (genericEncodeJson)
 import Data.Argonaut.Generic.Options (Options(..))
 import Data.Argonaut.Parser (jsonParser)
 import Data.Array (intercalate)
+import Data.Array as Array
 import Data.Either (Either(Right, Left), note)
 import Data.Generic (class Generic, GenericSignature(SigProd), GenericSpine(SProd), fromSpine, isValidSpine, toSignature, toSpine)
 import Data.List as List
+import Data.List.NonEmpty (NonEmptyList)
 import Data.List.NonEmpty as NonEmpty
 import Data.Maybe (Maybe(..), fromMaybe)
 import Gist (GistId)
@@ -20,7 +23,7 @@ import Halogen.HTML (ClassName(..), HTML, br_, div, div_, pre_, text)
 import Halogen.HTML.Properties (class_)
 import Language.Haskell.Interpreter (CompilationError(..))
 import Network.HTTP.StatusCode (StatusCode(..))
-import Playground.API (TokenId)
+import Ledger.Value.TH (TokenName)
 import Playground.Server (SPParams_(..))
 import Prelude (bind, pure, show, unit, ($), (<$>), (<>), (>>>))
 import Servant.PureScript.Affjax (AjaxError, ErrorDescription(ConnectionError, DecodingError, ParsingError, UnexpectedHTTPStatus), runAjaxError)
@@ -31,6 +34,7 @@ ajaxSettings :: SPSettings_ SPParams_
 ajaxSettings = SPSettings_ $ settings
   { toURLPiece = SPSettingsToUrlPiece_ gCustomToURLPiece
   , decodeJson = SPSettingsDecodeJson_ (genericDecodeJson $ Options $ options {userDecoding = userDecoding})
+  , encodeJson = SPSettingsEncodeJson_ (genericEncodeJson $ Options $ options {userEncoding = userEncoding})
   }
   where
     SPSettings_ settings = defaultSettings $ SPParams_ { baseURL: "/api/" }
@@ -48,30 +52,43 @@ encodeJson =
 
 userDecoding :: Options -> GenericSignature -> Json -> Maybe (Either String GenericSpine)
 userDecoding opts sig json =
-  decodeTokenIdLists opts sig json
+  decodeTokenNameLists opts sig json
   <|>
   Aeson.userDecoding opts sig json
 
-decodeTokenIdLists :: Options -> GenericSignature -> Json -> Maybe (Either String GenericSpine)
-decodeTokenIdLists opts sig@(SigProd "Data.List.Types.List" [{sigValues: [a, _]}, _]) json =
+decodeTokenNameLists :: Options -> GenericSignature -> Json -> Maybe (Either String GenericSpine)
+decodeTokenNameLists opts sig@(SigProd "Data.List.Types.List" [{sigValues: [a, _]}, _]) json =
   runExceptT do
     case a unit of
-      (SigProd "Playground.API.TokenId" _) -> do
-        tokenIds :: Array TokenId <- ExceptT $ Just $ decodeJson json
-        pure $ toSpine $ List.fromFoldable tokenIds
+      (SigProd "Ledger.Value.TH.TokenName" _) -> do
+        tokenNames :: Array TokenName <- ExceptT $ Just $ decodeJson json
+        pure $ toSpine $ List.fromFoldable tokenNames
       _ -> empty
-decodeTokenIdLists opts (SigProd "Data.List.Types.NonEmptyList" [{sigValues: [l]}]) json =
+decodeTokenNameLists opts (SigProd "Data.List.Types.NonEmptyList" [{sigValues: [l]}]) json =
   runExceptT do
     case l unit of
       (SigProd "Data.List.Types.List" [{sigValues: [a, _]}, _])  -> do
         case a unit of
-          (SigProd "Playground.API.TokenId" _) -> do
-            tokenIds :: Array TokenId <- ExceptT $ Just $ decodeJson json
-            nonEmpty <- ExceptT $ Just $ note "List is empty, expecting non-empty" $ NonEmpty.fromFoldable tokenIds
+          (SigProd "Ledger.Value.TH.TokenName" _) -> do
+            tokenNames :: Array TokenName <- ExceptT $ Just $ decodeJson json
+            nonEmpty <- ExceptT $ Just $ note "List is empty, expecting non-empty" $ NonEmpty.fromFoldable tokenNames
             pure $ toSpine nonEmpty
           _ -> empty
       _ -> empty
-decodeTokenIdLists _ _ _ = Nothing
+decodeTokenNameLists _ _ _ = Nothing
+
+userEncoding :: Options -> GenericSignature -> GenericSpine -> Maybe Json
+userEncoding opts sig spine =
+  encodeTokenNameLists opts sig spine
+  <|>
+  Aeson.userEncoding opts sig spine
+
+encodeTokenNameLists :: Options -> GenericSignature -> GenericSpine -> Maybe Json
+encodeTokenNameLists opts sig@(SigProd "Data.List.Types.NonEmptyList" [{sigValues: [l]}]) spine =
+  case fromSpine spine of
+    Nothing -> Nothing
+    Just (xs :: NonEmptyList TokenName) -> Just $ encodeJson $ Array.fromFoldable xs
+encodeTokenNameLists _ _ _ = Nothing
 
 -- | Generally we want the default parameter encoding behaviour. But
 -- sometimes we need to do something special.

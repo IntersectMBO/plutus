@@ -9,22 +9,14 @@
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE ViewPatterns               #-}
 {-# OPTIONS_GHC -Wno-unused-foralls #-}
-module Language.PlutusTx.Plugin (
-    CompiledCode,
-    getSerializedPlc,
-    getSerializedPir,
-    getPlc,
-    sizePlc,
-    getPir,
-    plugin,
-    plc) where
+module Language.PlutusTx.Plugin (plugin, plc) where
 
+import           Language.PlutusTx.Code
 import           Language.PlutusTx.Compiler.Builtins
 import           Language.PlutusTx.Compiler.Error
 import           Language.PlutusTx.Compiler.Expr
 import           Language.PlutusTx.Compiler.Types
 import           Language.PlutusTx.Compiler.Utils
-import qualified Language.PlutusTx.Lift.Class           as Lift
 import           Language.PlutusTx.PIRTypes
 import           Language.PlutusTx.PLCTypes
 import           Language.PlutusTx.Utils
@@ -40,13 +32,11 @@ import           Language.PlutusCore.Quote
 import qualified Language.PlutusIR                      as PIR
 import qualified Language.PlutusIR.Compiler             as PIR
 import qualified Language.PlutusIR.Compiler.Definitions as PIR
-import qualified Language.PlutusIR.MkPir                as PIR
 import qualified Language.PlutusIR.Optimizer.DeadCode   as PIR
 
 import           Language.Haskell.TH.Syntax             as TH
 
-import           Codec.Serialise                        (DeserialiseFailure, deserialiseOrFail, serialise)
-import           Control.Exception
+import           Codec.Serialise                        (serialise)
 import           Control.Monad
 import           Control.Monad.Except
 import           Control.Monad.Reader
@@ -54,60 +44,16 @@ import           Control.Monad.Reader
 import qualified Data.ByteString                        as BS
 import qualified Data.ByteString.Lazy                   as BSL
 import qualified Data.ByteString.Unsafe                 as BSUnsafe
-import           Data.Int                               (Int64)
 import qualified Data.Map                               as Map
 import qualified Data.Text.Prettyprint.Doc              as PP
 
 import           GHC.TypeLits
 import           System.IO.Unsafe                       (unsafePerformIO)
 
--- | A compiled Plutus Tx program. The type parameter indicates
--- the type of the Haskell expression that was compiled, and
--- hence the type of the compiled code.
-data CompiledCode a = CompiledCode {
-    serializedPlc   :: BS.ByteString
-    , serializedPir :: BS.ByteString
-    }
-
--- Note that we do *not* have a TypeablePlc instance, since we don't know what the type is. We could in principle store it after the plugin
--- typechecks the code, but we don't currently.
-instance Lift.Lift (CompiledCode a) where
-    lift (getPlc -> (PLC.Program () _ body)) = PIR.embed <$> PLC.rename body
-
-getSerializedPlc :: CompiledCode a -> BSL.ByteString
-getSerializedPlc = BSL.fromStrict . serializedPlc
-
-getSerializedPir :: CompiledCode a -> BSL.ByteString
-getSerializedPir = BSL.fromStrict . serializedPir
-
--- | The size of a `CompiledCode a` when embedded into a transaction, in bytes.
-sizePlc :: CompiledCode a -> Int64
-sizePlc = BSL.length . getSerializedPlc
-
-{- Note [Deserializing the AST]
-The types suggest that we can fail to deserialize the AST that we embedded in the program.
-However, we just did it ourselves, so this should be impossible, and we signal this with an
-exception.
--}
-newtype ImpossibleDeserialisationFailure = ImpossibleDeserialisationFailure DeserialiseFailure
-instance Show ImpossibleDeserialisationFailure where
-    show (ImpossibleDeserialisationFailure e) = "Failed to deserialise our own program! This is a bug, please report it. Caused by: " ++ show e
-instance Exception ImpossibleDeserialisationFailure
-
-getPlc :: CompiledCode a -> PLC.Program PLC.TyName PLC.Name ()
-getPlc wrapper = case deserialiseOrFail $ getSerializedPlc wrapper of
-    Left e  -> throw $ ImpossibleDeserialisationFailure e
-    Right p -> p
-
-getPir :: CompiledCode a -> PIR.Program PIR.TyName PIR.Name ()
-getPir wrapper = case deserialiseOrFail $ getSerializedPir wrapper of
-    Left e  -> throw $ ImpossibleDeserialisationFailure e
-    Right p -> p
-
 -- | Marks the given expression for conversion to PLC.
 plc :: forall (loc::Symbol) a . a -> CompiledCode a
 -- this constructor is only really there to get rid of the unused warning
-plc _ = CompiledCode mustBeReplaced mustBeReplaced
+plc _ = SerializedCode mustBeReplaced mustBeReplaced
 
 data PluginOptions = PluginOptions {
     poDoTypecheck    :: Bool
@@ -116,7 +62,7 @@ data PluginOptions = PluginOptions {
     }
 
 plugin :: GHC.Plugin
-plugin = GHC.defaultPlugin { GHC.installCoreToDos = install }
+plugin = GHC.defaultPlugin { GHC.installCoreToDos = install, GHC.pluginRecompile = GHC.flagRecompile }
 
 install :: [GHC.CommandLineOption] -> [GHC.CoreToDo] -> GHC.CoreM [GHC.CoreToDo]
 install args todo =
@@ -157,7 +103,7 @@ failCompilation :: String -> GHC.CoreM a
 failCompilation message = liftIO $ GHC.throwGhcExceptionIO $ GHC.ProgramError $ messagePrefix ++ ": " ++ message
 
 failCompilationSDoc :: String -> GHC.SDoc -> GHC.CoreM a
-failCompilationSDoc message sdoc = liftIO $ GHC.throwGhcExceptionIO $ GHC.PprProgramError (messagePrefix ++ ":" ++ message) sdoc
+failCompilationSDoc message sdoc = liftIO $ GHC.throwGhcExceptionIO $ GHC.PprProgramError (messagePrefix ++ ": " ++ message) sdoc
 
 -- | Get the 'GHC.Name' corresponding to the given 'TH.Name', or throw a GHC exception if
 -- we can't get it.
@@ -208,6 +154,12 @@ makePrimitiveNameInfo names = do
         pure (name, thing)
     pure $ Map.fromList mapped
 
+-- | Strips all enclosing 'GHC.Tick's off an expression.
+stripTicks :: GHC.CoreExpr -> GHC.CoreExpr
+stripTicks = \case
+    GHC.Tick _ e -> stripTicks e
+    e -> e
+
 -- | Converts all the marked expressions in the given binder into PLC literals.
 convertMarkedExprsBind :: PluginOptions -> GHC.Name -> GHC.CoreBind -> GHC.CoreM GHC.CoreBind
 convertMarkedExprsBind opts markerName = \case
@@ -223,7 +175,8 @@ convertMarkedExprs opts markerName =
     in \case
       GHC.App (GHC.App (GHC.App
                           -- function id
-                          (GHC.Var fid)
+                          -- sometimes GHCi sticks ticks around this for some reason
+                          (stripTicks -> (GHC.Var fid))
                           -- first type argument, must be a string literal type
                           (GHC.Type (GHC.isStrLitTy -> Just fs_locStr)))
                      -- second type argument
@@ -263,6 +216,10 @@ getStringBuiltinTypes ann =
        PLC.insertDynamicBuiltinNameDefinition PLC.dynamicCharToStringDefinition $
        PLC.insertDynamicBuiltinNameDefinition PLC.dynamicAppendDefinition mempty
 
+-- Helper to avoid doing too much construction of Core ourselves
+mkCompiledCode :: forall a . BS.ByteString -> BS.ByteString -> CompiledCode a
+mkCompiledCode plcBS pirBS = SerializedCode plcBS (Just pirBS)
+
 -- | Actually invokes the Core to PLC compiler to convert an expression into a PLC literal.
 convertExpr :: PluginOptions -> String -> GHC.Type -> GHC.CoreExpr -> GHC.CoreM GHC.CoreExpr
 convertExpr opts locStr codeTy origE = do
@@ -298,11 +255,10 @@ convertExpr opts locStr codeTy origE = do
             bsLitPir <- makeByteStringLiteral $ BSL.toStrict $ serialise pirP
             bsLitPlc <- makeByteStringLiteral $ BSL.toStrict $ serialise plcP
 
-            dcName <- thNameToGhcNameOrFail 'CompiledCode
-            dc <- GHC.lookupDataCon dcName
+            builder <- GHC.lookupId =<< thNameToGhcNameOrFail 'mkCompiledCode
 
             pure $
-                GHC.Var (GHC.dataConWrapId dc)
+                GHC.Var builder
                 `GHC.App` GHC.Type codeTy
                 `GHC.App` bsLitPlc
                 `GHC.App` bsLitPir

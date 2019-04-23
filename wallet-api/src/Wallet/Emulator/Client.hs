@@ -23,17 +23,19 @@ import           Control.Monad.Except       (ExceptT (ExceptT), throwError)
 import           Control.Monad.Operational  (interpretWithMonad)
 import           Control.Monad.Reader       (MonadReader, ReaderT, asks, lift, runReaderT)
 import           Control.Monad.Writer       (MonadWriter, WriterT, runWriterT, tell)
+import qualified Data.ByteString.Lazy       as BSL
 import           Data.Foldable              (fold)
 import           Data.Proxy                 (Proxy (Proxy))
 import           Data.Set                   (Set)
-import           Ledger                     (Address, Block, Slot, Tx, TxIn, TxOut, Value)
+import           Ledger                     (Address, Block, PubKey, Slot, Tx, TxIn, TxOut, Value)
+import qualified Ledger.Crypto              as Crypto
 import           Servant.API                ((:<|>) ((:<|>)), NoContent)
 import           Servant.Client             (ClientEnv, ClientM, ServantError, client, runClientM)
-import           Wallet.API                 (KeyPair, WalletAPI (..))
+import           Wallet.API                 (WalletAPI (..), WalletAPIError)
 import           Wallet.Emulator.AddressMap (AddressMap)
 import           Wallet.Emulator.Http       (API)
 import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqual), Event (..),
-                                             Notification (BlockValidated, CurrentSlot), Trace, Wallet)
+                                             Notification (BlockValidated, CurrentSlot), Trace, Wallet, walletPrivKey)
 
 api :: Proxy API
 api = Proxy
@@ -41,7 +43,7 @@ api = Proxy
 wallets :: ClientM [Wallet]
 fetchWallet :: Wallet -> ClientM Wallet
 createWallet :: Wallet -> ClientM NoContent
-myKeyPair' :: Wallet -> ClientM KeyPair
+ownPubKey' :: Wallet -> ClientM PubKey
 createPaymentWithChange' :: Wallet -> Value -> ClientM (Set TxIn, Maybe TxOut)
 submitTxn' :: Wallet -> Tx -> ClientM [Tx]
 getTransactions :: ClientM [Tx]
@@ -53,7 +55,7 @@ getSlot :: Wallet -> ClientM Slot
 setSlot :: Wallet -> Slot -> ClientM ()
 assertOwnFundsEq :: Wallet -> Value -> ClientM NoContent
 assertIsValidated :: Tx -> ClientM NoContent
-(wallets :<|> fetchWallet :<|> createWallet :<|> myKeyPair' :<|> createPaymentWithChange' :<|> submitTxn' :<|> getAddresses :<|> startWatching' :<|> getSlot :<|> getTransactions) :<|> (blockValidated :<|> setSlot) :<|> processPending  :<|> (assertOwnFundsEq :<|> assertIsValidated) =
+(wallets :<|> fetchWallet :<|> createWallet :<|> ownPubKey' :<|> createPaymentWithChange' :<|> submitTxn' :<|> getAddresses :<|> startWatching' :<|> getSlot :<|> getTransactions) :<|> (blockValidated :<|> setSlot) :<|> processPending  :<|> (assertOwnFundsEq :<|> assertIsValidated) =
   client api
 
 data Environment = Environment
@@ -83,19 +85,20 @@ liftWallet action = do
   WalletClient $ lift $ lift $ action wallet
 
 runWalletAction ::
-     ClientEnv -> Wallet -> WalletClient a -> ExceptT ServantError IO [Tx]
+     ClientEnv -> Wallet -> WalletClient a -> ExceptT ServantError IO (Either WalletAPIError a, [Tx])
 runWalletAction clientEnv wallet action = do
   let env = Environment wallet clientEnv
   eRes <- lift $ runWalletClient env action
   case eRes of
     Left e        -> throwError e
-    Right (_, tx) -> pure tx
+    Right (a, tx) -> pure (Right a, tx)
 
 instance WalletAPI WalletClient where
   submitTxn tx = liftWallet (`submitTxn'` tx) >> tell [tx]
-  myKeyPair = liftWallet myKeyPair'
+  sign bs = Crypto.sign (BSL.toStrict bs) . walletPrivKey <$> asks getWallet
+  ownPubKey = liftWallet ownPubKey'
   createPaymentWithChange value = liftWallet (`createPaymentWithChange'` value)
-  register _ _ = pure () -- TODO: Keep track of triggers in emulated wallet
+  registerOnce _ _ = pure () -- TODO: Keep track of triggers in emulated wallet
   watchedAddresses = liftWallet getAddresses
   slot = liftWallet getSlot
   startWatching a = void $ liftWallet (`startWatching'` a)
@@ -115,7 +118,7 @@ eval clientEnv =
     WalletRecvNotification wallet trigger ->
       fold <$>
       traverse
-        (runWalletAction clientEnv wallet . liftWallet . handleNotification)
+        (fmap snd . runWalletAction clientEnv wallet . liftWallet . handleNotification)
         trigger
     BlockchainProcessPending -> ExceptT $ runClientM processPending clientEnv
     Assertion a -> ExceptT $ runClientM (assert a) clientEnv

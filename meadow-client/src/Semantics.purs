@@ -1,19 +1,16 @@
 module Semantics where
 
-import Control.Monad
-
+import Prelude
 import Data.BigInteger (BigInteger, fromInt)
-import Data.Eq (class Eq, (/=), (==))
-import Data.EuclideanRing (div, mod)
 import Data.FoldableWithIndex (foldrWithIndexDefault)
-import Data.HeytingAlgebra (not, (&&), (||))
+import Data.Foldable (foldMap)
 import Data.List (List(Nil, Cons), concat, foldl, foldr)
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Monoid (mempty)
 import Data.Newtype (unwrap)
-import Data.Ord (class Ord, max, (<), (<=), (>), (>=))
-import Data.Ring (negate, (*), (+), (-))
 import Data.Tuple (Tuple(..))
-import Marlowe.Types (BlockNumber, Choice, Contract(Use, Let, Scale, While, When, Choice, Both, Pay, Commit, Null), IdAction, IdChoice, IdCommit, IdOracle, LetLabel, Observation(FalseObs, TrueObs, ValueEQ, ValueLE, ValueLT, ValueGT, ValueGE, ChoseSomething, ChoseThis, NotObs, OrObs, AndObs, BelowTimeout), Person, Timeout, Value(ValueFromOracle, ValueFromChoice, ModValue, DivValue, MulValue, SubValue, AddValue, NegValue, Constant, Committed, CurrentBlock), WIdChoice(WIdChoice))
+import Marlowe.Types (BlockNumber, Choice, ValueF(..), ObservationF(..), ContractF(..), Contract(Use, Let, Scale, While, When, Choice, Both, Pay, Commit, Null), IdAction, IdChoice, IdCommit, IdOracle, LetLabel, Observation(FalseObs, TrueObs, ValueEQ, ValueLE, ValueLT, ValueGT, ValueGE, ChoseSomething, ChoseThis, NotObs, OrObs, AndObs, BelowTimeout), Person, Timeout, Value(ValueFromOracle, ValueFromChoice, ModValue, DivValue, MulValue, SubValue, AddValue, NegValue, Constant, Committed, CurrentBlock), WIdChoice(WIdChoice))
+import Matryoshka (Algebra, cata)
 
 import Data.Foldable as F
 import Data.Map as M
@@ -649,7 +646,7 @@ reduceRec blockNum state env (Scale divid divis def contract) = Scale (Constant 
   vsDivis = evalValue blockNum state divis
   vsDef = evalValue blockNum state def
 
-reduceRec blockNum state env (While obs timeout contractWhile contractAfter) = if isExpired timeout blockNum
+reduceRec blockNum state env (While obs timeout contractWhile contractAfter) = if isExpired blockNum timeout
   then go contractAfter
   else if evalObservation blockNum state obs
     then (While obs timeout (go contractWhile) contractAfter)
@@ -1159,88 +1156,64 @@ applyTransaction inputs sigs blockNum state contract value = case appResult of
   appResult = applyAnyInputs inputs sigs neededInputs blockNum expiredState reducedContract value emptyOutcome Nil
 
 -- Extract participants from state and contract
-peopleFromCommitInfo ::
-  CommitInfo ->
-  S.Set Person
-peopleFromCommitInfo (CommitInfo { redeemedPerPerson: rpp, currentCommitsById: ccbi }) = S.union (S.fromFoldable (M.keys rpp)) (S.fromFoldable (map (\x ->
-  x.person) (M.values ccbi)))
+class PeopleFrom a where
+  peopleFrom :: a -> S.Set Person
 
-peopleFromState :: State -> S.Set Person
-peopleFromState (State { commits: comm }) = peopleFromCommitInfo comm
+instance peopleFromCommitInfo :: PeopleFrom CommitInfo where
+  peopleFrom (CommitInfo { redeemedPerPerson: rpp, currentCommitsById: ccbi })
+    = S.fromFoldable (M.keys rpp) <> foldMap (_.person >>> S.singleton) (M.values ccbi)
 
-peopleFromValue :: Value -> S.Set Person
-peopleFromValue CurrentBlock = S.empty
+instance peopleFromState :: PeopleFrom State where
+  peopleFrom (State { commits: comm }) = peopleFrom comm
 
-peopleFromValue (Committed _) = S.empty
+instance peopleFromValue :: PeopleFrom Value where
+  peopleFrom = cata algebra
+    where
+      algebra :: Algebra ValueF (S.Set Person)
+      algebra CurrentBlockF = mempty
+      algebra (CommittedF _) = mempty
+      algebra (ConstantF _) = mempty
+      algebra (NegValueF value) = value
+      algebra (AddValueF value1 value2) = value1 <> value2
+      algebra (SubValueF value1 value2) = value1 <> value2
+      algebra (MulValueF value1 value2) = value1 <> value2
+      algebra (DivValueF value1 value2 value3) = value1 <> value2 <> value3
+      algebra (ModValueF value1 value2 value3) = value1 <> value2 <> value3
+      algebra (ValueFromChoiceF v value) = S.singleton (unwrap v).person <> value
+      algebra (ValueFromOracleF _ value) = value
 
-peopleFromValue (Constant _) = S.empty
+instance peopleFromObservation :: PeopleFrom Observation where
+  peopleFrom = cata algebra
+    where
+      algebra :: Algebra ObservationF (S.Set Person)
+      algebra (BelowTimeoutF _) = mempty
+      algebra (AndObsF observation1 observation2) = observation1 <> observation2
+      algebra (OrObsF observation1 observation2) = observation1 <> observation2
+      algebra (NotObsF observation) = observation
+      algebra (ChoseThisF v _) = S.singleton (unwrap v).person
+      algebra (ChoseSomethingF v) = S.singleton (unwrap v).person
+      algebra (ValueGEF value1 value2) = peopleFrom value1 <> peopleFrom value2
+      algebra (ValueGTF value1 value2) = peopleFrom value1 <> peopleFrom value2
+      algebra (ValueLTF value1 value2) = peopleFrom value1 <> peopleFrom value2
+      algebra (ValueLEF value1 value2) = peopleFrom value1 <> peopleFrom value2
+      algebra (ValueEQF value1 value2) = peopleFrom value1 <> peopleFrom value2
+      algebra TrueObsF = mempty
+      algebra FalseObsF = mempty
 
-peopleFromValue (NegValue value) = peopleFromValue value
-
-peopleFromValue (AddValue value1 value2) = S.union (peopleFromValue value1) (peopleFromValue value2)
-
-peopleFromValue (SubValue value1 value2) = S.union (peopleFromValue value1) (peopleFromValue value2)
-
-peopleFromValue (MulValue value1 value2) = S.union (peopleFromValue value1) (peopleFromValue value2)
-
-peopleFromValue (DivValue value1 value2 value3) = S.union (peopleFromValue value1) (S.union (peopleFromValue value2) (peopleFromValue value3))
-
-peopleFromValue (ModValue value1 value2 value3) = S.union (peopleFromValue value1) (S.union (peopleFromValue value2) (peopleFromValue value3))
-
-peopleFromValue (ValueFromChoice v value) = S.insert (unwrap v).person (peopleFromValue value)
-
-peopleFromValue (ValueFromOracle _ value) = peopleFromValue value
-
-peopleFromObservation :: Observation -> S.Set Person
-peopleFromObservation (BelowTimeout _) = S.empty
-
-peopleFromObservation (AndObs observation1 observation2) = S.union (peopleFromObservation observation1) (peopleFromObservation observation2)
-
-peopleFromObservation (OrObs observation1 observation2) = S.union (peopleFromObservation observation1) (peopleFromObservation observation2)
-
-peopleFromObservation (NotObs observation) = peopleFromObservation observation
-
-peopleFromObservation (ChoseThis v _) = S.insert (unwrap v).person S.empty
-
-peopleFromObservation (ChoseSomething v) = S.insert (unwrap v).person S.empty
-
-peopleFromObservation (ValueGE value1 value2) = S.union (peopleFromValue value1) (peopleFromValue value2)
-
-peopleFromObservation (ValueGT value1 value2) = S.union (peopleFromValue value1) (peopleFromValue value2)
-
-peopleFromObservation (ValueLT value1 value2) = S.union (peopleFromValue value1) (peopleFromValue value2)
-
-peopleFromObservation (ValueLE value1 value2) = S.union (peopleFromValue value1) (peopleFromValue value2)
-
-peopleFromObservation (ValueEQ value1 value2) = S.union (peopleFromValue value1) (peopleFromValue value2)
-
-peopleFromObservation TrueObs = S.empty
-
-peopleFromObservation FalseObs = S.empty
-
-peopleFromContract :: Contract -> S.Set Person
-peopleFromContract Null = S.empty
-
-peopleFromContract (Commit _ _ person value _ _ contract1 contract2) = S.insert person (S.union (peopleFromValue value) (S.union (peopleFromContract contract1) (peopleFromContract contract2)))
-
-peopleFromContract (Pay _ _ person value _ contract1 contract2) = S.insert person (S.union (peopleFromValue value) (S.union (peopleFromContract contract1) (peopleFromContract contract2)))
-
-peopleFromContract (Both contract1 contract2) = S.union (peopleFromContract contract1) (peopleFromContract contract2)
-
-peopleFromContract (Choice observation contract1 contract2) = S.union (peopleFromObservation observation) (S.union (peopleFromContract contract1) (peopleFromContract contract2))
-
-peopleFromContract (When observation timeout contract1 contract2) = S.union (peopleFromObservation observation) (S.union (peopleFromContract contract1) (peopleFromContract contract2))
-
-peopleFromContract (While observation timeout contract1 contract2) = S.union (peopleFromObservation observation) (S.union (peopleFromContract contract1) (peopleFromContract contract2))
-
-peopleFromContract (Scale value1 value2 value3 contract) = S.union (peopleFromValue value1) (S.union (peopleFromValue value2) (S.union (peopleFromValue value3) (peopleFromContract contract)))
-
-peopleFromContract (Let _ contract1 contract2) = S.union (peopleFromContract contract1) (peopleFromContract contract2)
-
-peopleFromContract (Use _) = S.empty
+instance peopleFromContract :: PeopleFrom Contract where
+  peopleFrom = cata algebra
+    where
+      algebra :: Algebra ContractF (S.Set Person)
+      algebra NullF = mempty
+      algebra (CommitF _ _ person value _ _ c1 c2) = S.singleton person <> peopleFrom value <> c1 <> c2
+      algebra (PayF _ _ person value _  c1 c2) = S.singleton person <> peopleFrom value <> c1 <> c2
+      algebra (BothF c1 c2) = c1 <> c2
+      algebra (ChoiceF observation c1 c2) = peopleFrom observation <> c1 <> c2
+      algebra (WhenF observation _ c1 c2) = peopleFrom observation <> c1 <> c2
+      algebra (WhileF observation _ c1 c2) = peopleFrom observation <> c1 <> c2
+      algebra (ScaleF v1 v2 v3 c) = foldMap peopleFrom [v1, v2, v3] <> c
+      algebra (LetF _ c1 c2) = c1 <> c2
+      algebra (UseF _) = mempty
 
 peopleFromStateAndContract :: State -> Contract -> List Person
-peopleFromStateAndContract sta con = S.toUnfoldable (S.union psta pcon)
-  where
-  psta = peopleFromState sta
-  pcon = peopleFromContract con
+peopleFromStateAndContract sta con = S.toUnfoldable (peopleFrom sta <> peopleFrom con)

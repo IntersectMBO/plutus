@@ -1,17 +1,13 @@
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE DeriveAnyClass             #-}
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE RankNTypes                 #-}
-{-# LANGUAGE RecordWildCards            #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
-{-# LANGUAGE TemplateHaskell            #-}
-{-# LANGUAGE TypeApplications           #-}
-{-# LANGUAGE TypeOperators              #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
 {-# OPTIONS_GHC   -Wno-orphans #-}
 
 module Webserver
@@ -29,7 +25,8 @@ import           Control.Monad.Reader                           (ReaderT, runRea
 import           Data.Default.Class                             (def)
 import           Data.Proxy                                     (Proxy (Proxy))
 import           Data.Text                                      (Text)
-import           Development.GitRev                             (gitHash)
+import qualified Data.Text                                      as Text
+import           Git                                            (gitHead)
 import           Network.HTTP.Types                             (Method)
 import           Network.Wai                                    (Application)
 import           Network.Wai.Handler.Warp                       (Settings, runSettings)
@@ -73,7 +70,7 @@ server handlers _staticDir githubEndpoints Config {..} =
   serveDirectoryFileServer _staticDir
 
 version :: Applicative m => m Text
-version = pure $(gitHash)
+version = pure (Text.pack gitHead)
 
 app ::
      Server MA.API -> FilePath -> Auth.GithubEndpoints -> Config -> Application

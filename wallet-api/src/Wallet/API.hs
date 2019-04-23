@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE ConstraintKinds    #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
@@ -7,18 +8,18 @@
 {-# LANGUAGE RankNTypes         #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeFamilies       #-}
+{-# LANGUAGE OverloadedStrings  #-}
 -- | The interface between the wallet and Plutus client code.
 module Wallet.API(
     WalletAPI(..),
     WalletDiagnostics(..),
     MonadWallet,
     EventHandler(..),
-    KeyPair(..),
     PubKey(..),
-    pubKey,
-    keyPair,
-    signature,
+    signTxn,
     createTxAndSubmit,
+    signTxAndSubmit,
+    signTxAndSubmit_,
     payToScript,
     payToScript_,
     payToPublicKey,
@@ -27,10 +28,10 @@ module Wallet.API(
     payToScripts_,
     collectFromScript,
     collectFromScriptTxn,
+    spendScriptOutputs,
     ownPubKeyTxOut,
-    ownPubKey,
-    ownSignature,
     outputsAt,
+    register,
     -- * Slot ranges
     Interval(..),
     SlotRange,
@@ -61,6 +62,7 @@ module Wallet.API(
     addresses,
     -- AnnTriggerF,
     getAnnot,
+    unAnnot,
     annTruthValue,
     -- * Error handling
     WalletAPIError(..),
@@ -71,9 +73,11 @@ module Wallet.API(
     ) where
 
 import           Control.Lens               hiding (contains)
-import           Control.Monad              (void)
+import           Control.Monad              (void, when)
 import           Control.Monad.Error.Class  (MonadError (..))
 import           Data.Aeson                 (FromJSON, ToJSON)
+import qualified Data.ByteArray             as BA
+import qualified Data.ByteString.Lazy       as BSL
 import           Data.Eq.Deriving           (deriveEq1)
 import           Data.Foldable              (fold)
 import           Data.Functor.Compose       (Compose (..))
@@ -83,11 +87,12 @@ import           Data.Maybe                 (fromMaybe, maybeToList)
 import           Data.Ord.Deriving          (deriveOrd1)
 import qualified Data.Set                   as Set
 import           Data.Text                  (Text)
+import qualified Data.Text                  as Text
 import           GHC.Generics               (Generic)
-import           Ledger                     (Address, DataScript, PubKey (..), RedeemerScript, Signature (..), Slot,
+import           Ledger                     (Address, DataScript, PubKey (..), RedeemerScript, Signature, Slot,
                                              SlotRange, Tx (..), TxId, TxIn, TxOut, TxOutOf (..), TxOutRef,
-                                             TxOutType (..), ValidatorScript, Value, pubKeyTxOut, scriptAddress,
-                                             scriptTxIn, txOutRefId)
+                                             TxOutType (..), ValidatorScript, Value, getTxId, hashTx, pubKeyTxOut, scriptAddress,
+                                             scriptTxIn, signatures, txOutRefId)
 import           Ledger.Interval            (Interval (..))
 import qualified Ledger.Interval            as Interval
 import qualified Ledger.Slot                as Slot
@@ -97,37 +102,6 @@ import           Wallet.Emulator.AddressMap (AddressMap)
 
 import           Prelude                    hiding (Ordering (..))
 
--- | A cryptographically secure private key, typically belonging to the user that owns the wallet.
-newtype PrivateKey = PrivateKey { getPrivateKey :: Int }
-    deriving (Eq, Ord, Show)
-    deriving newtype (FromJSON, ToJSON)
-
--- | A cryptographically secure key pair (public and private key), typically belonging to the user
--- that owns the wallet.
-newtype KeyPair = KeyPair { getKeyPair :: (PrivateKey, PubKey) }
-    deriving (Eq, Ord, Show)
-    deriving newtype (FromJSON, ToJSON)
-
--- | Get the public key of a 'KeyPair'.
-pubKey :: KeyPair -> PubKey
-pubKey = snd . getKeyPair
-
--- | Create a 'KeyPair' given a "private key".
---
--- NOTE: relies on incorrect key API.
-keyPair :: Int -> KeyPair
-keyPair i = KeyPair (PrivateKey i, PubKey i)
-
--- | Create a 'Signature' signed by the private key of a
--- 'KeyPair'. This allows the creation of signatures that prove that they
--- were created by the owner of the wallet.
---
--- For example, if you want to create a contract that only you can interact
--- with, you might require that the redeemer include a signed message using
--- your key.
-signature :: KeyPair -> Signature
-signature = Signature . getPrivateKey . fst . getKeyPair
-
 data EventTriggerF f =
     TAnd f f
     | TOr f f
@@ -136,7 +110,8 @@ data EventTriggerF f =
     | TNever
     | TSlotRange !SlotRange
     | TFundsAtAddress !Address !(Interval Value)
-    deriving (Eq, Ord, Show, Functor, Foldable, Traversable, Generic)
+    deriving stock (Eq, Ord, Show, Functor, Foldable, Traversable, Generic)
+    deriving anyclass (FromJSON, ToJSON)
 
 $(deriveEq1 ''EventTriggerF)
 $(deriveOrd1 ''EventTriggerF)
@@ -159,6 +134,10 @@ type EventTrigger = Fix EventTriggerF
 -- | Get the annotation on an 'AnnotatedEventTrigger'.
 getAnnot :: AnnotatedEventTrigger a -> a
 getAnnot = fst . getCompose . unfix
+
+-- | Remove annotations from an 'AnnotatedEventTrigger' 
+unAnnot :: AnnotatedEventTrigger a -> EventTrigger
+unAnnot = cata (embed . snd . getCompose)
 
 -- | @andT l r@ is true when @l@ and @r@ are true.
 andT :: EventTrigger -> EventTrigger -> EventTrigger
@@ -251,7 +230,8 @@ instance FromJSON WalletAPIError
 instance ToJSON WalletAPIError
 
 newtype WalletLog = WalletLog { getWalletLog :: [Text] }
-    deriving (Eq, Ord, Show, Generic, Semigroup, Monoid)
+    deriving stock (Eq, Ord, Show, Generic)
+    deriving newtype (Semigroup, Monoid)
 
 instance FromJSON WalletLog
 instance ToJSON WalletLog
@@ -268,9 +248,14 @@ class WalletAPI m where
 
     -- | Submit a transaction to the blockchain.
     submitTxn :: Tx -> m ()
-    -- | Access the user's 'KeyPair'.
-    -- NOTE: will be removed in future
-    myKeyPair :: m KeyPair
+
+    -- | Access the wallet's 'PublicKey'.
+    ownPubKey :: m PubKey
+
+    -- | Sign a message using the wallet's private key
+    --   NOTE: In the future this won't be part of WalletAPI to allow the
+    --   signing to be handled by a different process
+    sign :: BSL.ByteString -> m Signature
 
     {- |
     Select enough inputs from the user's UTxOs to make a payment of the given value.
@@ -279,13 +264,16 @@ class WalletAPI m where
     createPaymentWithChange :: Value -> m (Set.Set TxIn, Maybe TxOut)
 
     {- |
-    Register a 'EventHandler' in @m ()@ to be run when condition is true.
+    Register a 'EventHandler' in @m ()@ to be run a single time when the 
+    condition is true.
 
-    * The action will be run once for each block where the condition holds.
-      For example, @register (slotRangeT (Interval 3 6)) a@ causes @a@ to be run at blocks 3, 4, and 5.
+    * The action will be run when the condition holds for the first time.
+      For example, @registerOnce (slotRangeT (Interval 3 6)) a@ causes @a@ to 
+      be run at block 3. See 'register' for a variant that runs the action
+      multiple times.
 
     * Each time the wallet is notified of a new block, all triggers are checked
-      and the matching ones are run in an unspecified order.
+      and the matching ones are run in an unspecified order and then deleted.
 
     * The wallet will only watch "known" addresses. There are two ways an
       address can become a known address.
@@ -297,7 +285,7 @@ class WalletAPI m where
 
     * Triggers are run in order, so: @register c a >> register c b = register c (a >> b)@
     -}
-    register :: EventTrigger -> EventHandler m -> m ()
+    registerOnce :: EventTrigger -> EventHandler m -> m ()
 
     {- |
     The 'AddressMap' of all addresses currently watched by the wallet.
@@ -314,15 +302,29 @@ class WalletAPI m where
     -}
     slot :: m Slot
 
--- | Generate a 'Signature' with the wallet's own private key.
-ownSignature :: (Functor m, WalletAPI m) => m Signature
-ownSignature = signature <$> myKeyPair
-
 throwInsufficientFundsError :: MonadError WalletAPIError m => Text -> m a
 throwInsufficientFundsError = throwError . InsufficientFunds
 
 throwOtherError :: MonadError WalletAPIError m => Text -> m a
 throwOtherError = throwError . OtherError
+
+-- | A variant of 'register' that registers the trigger again immediately after
+--   running the action. This is useful if you want to run the same action every
+--   time the condition holds, instead of only the first time.
+register :: (WalletAPI m, Monad m) => EventTrigger -> EventHandler m -> m ()
+register t h = registerOnce t h' where
+    h' = h <> (EventHandler $ \_ -> register t h)
+
+-- | Sign the transaction with the wallet's private key and add
+--   the signature to the transaction's list of signatures.
+--
+--   NOTE: In the future this won't be part of WalletAPI to allow the
+--   signing to be handled by a different process
+signTxn   :: (WalletAPI m, Monad m) => Tx -> m Tx
+signTxn tx = do
+    sig <- sign (BSL.pack $ BA.unpack $ getTxId $ hashTx tx)
+    pubK <- ownPubKey
+    pure $ tx & signatures . at pubK .~ Just sig
 
 -- | Transfer some funds to a number of script addresses, returning the
 -- transaction that was submitted.
@@ -347,45 +349,55 @@ payToScript range addr v ds = payToScripts range [(addr, v, ds)]
 payToScript_ :: (Monad m, WalletAPI m) => SlotRange -> Address -> Value -> DataScript -> m ()
 payToScript_ range addr v = void . payToScript range addr v
 
+-- | Take all known outputs at an 'Address' and spend them using the 
+--   validator and redeemer scripts.
+spendScriptOutputs :: (Monad m, WalletAPI m) => Address -> ValidatorScript -> RedeemerScript -> m [TxIn]
+spendScriptOutputs addr  val redeemer = do
+    am <- watchedAddresses
+    let inputs' = am ^. at addr . to (Map.toList . fromMaybe Map.empty)
+        con (r, _) = scriptTxIn r val redeemer
+    pure (fmap con inputs')
+
 -- | Collect all unspent outputs from a pay to script address and transfer them
 --   to a public key owned by us.
-collectFromScript :: (Monad m, WalletAPI m) => SlotRange -> ValidatorScript -> RedeemerScript -> m ()
-collectFromScript range scr red = do
-    am <- watchedAddresses
-    let addr = scriptAddress scr
-        outputs = am ^. at addr . to (Map.toList . fromMaybe Map.empty)
-        con (r, _) = scriptTxIn r scr red
-        ins        = con <$> outputs
-        value = fold $ fmap (txOutValue . snd) outputs
-
-    oo <- ownPubKeyTxOut value
-    void $ createTxAndSubmit range (Set.fromList ins) [oo]
+collectFromScript :: (WalletDiagnostics m, WalletAPI m) => SlotRange -> ValidatorScript -> RedeemerScript -> m ()
+collectFromScript = collectFromScriptFilter (\_ _ -> True)
 
 -- | Given the pay to script address of the 'ValidatorScript', collect from it
---   all the inputs that were produced by a specific transaction, using the
+--   all the outputs that were produced by a specific transaction, using the
 --   'RedeemerScript'.
 collectFromScriptTxn ::
-    (Monad m, WalletAPI m)
+    (WalletAPI m, WalletDiagnostics m)
     => SlotRange
     -> ValidatorScript
     -> RedeemerScript
     -> TxId
     -> m ()
-collectFromScriptTxn range vls red txid = do
+collectFromScriptTxn range vls red txid =
+    let flt k _ = txid == Ledger.txOutRefId k in
+    collectFromScriptFilter flt range vls red        
+
+-- | Given the pay to script address of the 'ValidatorScript', collect from it
+--   all the outputs that match a predicate, using the 'RedeemerScript'.
+collectFromScriptFilter :: 
+    (WalletAPI m, WalletDiagnostics m)
+    => (TxOutRef -> TxOut -> Bool)
+    -> SlotRange
+    -> ValidatorScript
+    -> RedeemerScript
+    -> m ()
+collectFromScriptFilter flt range vls red = do
     am <- watchedAddresses
     let adr     = Ledger.scriptAddress vls
         utxo    = fromMaybe Map.empty $ am ^. at adr
-        ourUtxo = Map.toList $ Map.filterWithKey (\k _ -> txid == Ledger.txOutRefId k) utxo
+        ourUtxo = Map.toList $ Map.filterWithKey flt utxo
         i ref = scriptTxIn ref vls red
         inputs = Set.fromList $ i . fst <$> ourUtxo
         value  = fold $ fmap (txOutValue . snd) ourUtxo
 
     out <- ownPubKeyTxOut value
+    warnEmptyTransaction value adr
     void $ createTxAndSubmit range inputs [out]
-
--- | Get the public key belonging to this wallet.
-ownPubKey :: (Functor m, WalletAPI m) => m PubKey
-ownPubKey = pubKey <$> myKeyPair
 
 -- | Transfer some funds to an address locked by a public key, returning the
 --   transaction that was submitted.
@@ -401,13 +413,13 @@ payToPublicKey_ r v = void . payToPublicKey r v
 
 -- | Create a `TxOut` that pays to the public key owned by us.
 ownPubKeyTxOut :: (Monad m, WalletAPI m) => Value -> m TxOut
-ownPubKeyTxOut v = pubKeyTxOut v <$> fmap pubKey myKeyPair
+ownPubKeyTxOut v = pubKeyTxOut v <$> ownPubKey
 
 -- | Retrieve the unspent transaction outputs known to the wallet at an adresss.
 outputsAt :: (Functor m, WalletAPI m) => Address -> m (Map.Map Ledger.TxOutRef TxOut)
 outputsAt adr = fmap (\utxos -> fromMaybe Map.empty $ utxos ^. at adr) watchedAddresses
 
--- | Create a transaction and submit it.
+-- | Create a transaction, sign it with the wallet's private key, and submit it.
 --   TODO: Also compute the fee
 createTxAndSubmit ::
     (Monad m, WalletAPI m)
@@ -422,9 +434,21 @@ createTxAndSubmit range ins outs = do
             , txForge = Value.zero
             , txFee = 0
             , txValidRange = range
+            , txSignatures = Map.empty
             }
-    submitTxn tx
-    pure tx
+    signTxAndSubmit tx
+
+-- | Add the wallet's signature to the transaction and submit it. Returns
+--   the transaction with the wallet's signature.
+signTxAndSubmit :: (Monad m, WalletAPI m) => Tx -> m Tx
+signTxAndSubmit t = do
+    tx' <- signTxn t
+    submitTxn tx'
+    pure tx'
+
+-- | A version of 'signTxAndSubmit' that discards the result.
+signTxAndSubmit_ :: (Monad m, WalletAPI m) => Tx -> m ()
+signTxAndSubmit_ = void . signTxAndSubmit
 
 -- | The default slot validity range for transactions.
 defaultSlotRange :: SlotRange
@@ -477,3 +501,15 @@ member v (Interval.Interval f t) =
 -- | See 'Slot.contains'.
 contains :: SlotRange -> SlotRange -> Bool
 contains = $$(Slot.contains)
+
+-- | Emit a warning if the value at an address is zero.
+warnEmptyTransaction :: (WalletDiagnostics m) => Value -> Address -> m ()
+warnEmptyTransaction value addr = 
+    when (Value.eq Value.zero value)
+        $ logMsg 
+        $ Text.unwords [
+              "Attempting to collect transaction outputs from"
+            , "'" <> Text.pack (show addr) <> "'" <> ","
+            , "but there are no known outputs at that address."
+            , "An empty transaction will be submitted."
+            ] 

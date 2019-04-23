@@ -1,6 +1,7 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE TemplateHaskell  #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 module Main(main) where
 
@@ -11,12 +12,16 @@ import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import qualified Data.Aeson.Internal        as Aeson
 import qualified Data.ByteString            as BSS
+import qualified Data.ByteString.Lazy       as BSL
 import           Data.Either                (isLeft, isRight)
 import           Data.Foldable              (fold, foldl', traverse_)
 import           Data.List                  (sort)
 import qualified Data.Map                   as Map
+import           Data.String                (IsString(fromString))
+import qualified Ledger.Map
 import           Data.Monoid                (Sum (..))
 import qualified Data.Set                   as Set
+import           Data.String                (IsString(fromString))
 import           Hedgehog                   (Property, forAll, property)
 import qualified Hedgehog
 import qualified Hedgehog.Gen               as Gen
@@ -25,11 +30,14 @@ import qualified Language.PlutusTx.Builtins as Builtins
 import qualified Language.PlutusTx.Prelude  as PlutusTx
 import           Test.Tasty
 import           Test.Tasty.Hedgehog        (testProperty)
-
+import qualified Test.Tasty.HUnit as HUnit
+import           Test.Tasty.HUnit (testCase)
+import           LedgerBytes                as LedgerBytes
 import           Ledger
 import qualified Ledger.Ada                 as Ada
 import qualified Ledger.Index               as Index
 import qualified Ledger.Value               as Value
+import           Ledger.Value.TH            (CurrencySymbol,Value(Value))
 import           Wallet
 import qualified Wallet.API                 as W
 import           Wallet.Emulator
@@ -79,8 +87,35 @@ tests = testGroup "all tests" [
         testProperty "txnFlows" txnFlowsTest,
         testProperty "encodeByteString" encodeByteStringTest,
         testProperty "encodeSerialise" encodeSerialiseTest
-        ]
+        ],
+    testGroup "LedgerBytes" [
+        testProperty "show-fromHex" ledgerBytesShowFromHexProp,
+        testProperty "toJSON-fromJSON" ledgerBytesToJSONProp
+        ],
+    testGroup "Value" ([
+        testProperty "Value ToJSON/FromJSON" (jsonRoundTrip Gen.genValue),
+        testProperty "CurrencySymbol ToJSON/FromJSON" (jsonRoundTrip $ Value.currencySymbol <$> Gen.genSizedByteStringExact),
+        testProperty "TokenName ToJSON/FromJSON" (jsonRoundTrip $ fromString @Value.TokenName <$> Gen.string (Range.linear 0 32) Gen.latin1),
+        testProperty "CurrencySymbol IsString/Show" currencySymbolIsStringShow
+        ] ++ (let   vlJson :: BSL.ByteString
+                    vlJson = "{\"getValue\":[[{\"unCurrencySymbol\":\"ab01ff\"},[[{\"unTokenName\":\"myToken\"},50]]]]}"
+                    vlValue = Value.singleton "ab01ff" "myToken" 50
+                in byteStringJson vlJson vlValue)
+          ++ (let   vlJson :: BSL.ByteString
+                    vlJson = "{\"getValue\":[[{\"unCurrencySymbol\":\"\"},[[{\"unTokenName\":\"\"},50]]]]}"
+                    vlValue = Ada.adaValueOf 50
+                in byteStringJson vlJson vlValue))
     ]
+
+wallet1, wallet2, wallet3 :: Wallet
+wallet1 = Wallet 1
+wallet2 = Wallet 2
+wallet3 = Wallet 3
+
+pubKey1, pubKey2, pubKey3 :: PubKey
+pubKey1 = walletPubKey wallet1
+pubKey2 = walletPubKey wallet2
+pubKey3 = walletPubKey wallet3
 
 initialTxnValid :: Property
 initialTxnValid = property $ do
@@ -106,7 +141,7 @@ txnValidFrom = property $ do
 --   slots, then verifies that the transaction has been validated.
 validFromTransaction :: Trace MockWallet ()
 validFromTransaction = do
-    let [w1, w2] = Wallet <$> [1, 2]
+    let [w1, w2] = [wallet1, wallet2]
         updateAll = processPending >>= walletsNotifyBlock [w1, w2]
         five = Ada.adaValueOf 5
     updateAll
@@ -116,7 +151,7 @@ validFromTransaction = do
     -- so that the transaction can be validated only during slot 5
     let range = W.singleton 5
 
-    walletAction w1 $ payToPublicKey_ range five (PubKey 2)
+    walletAction w1 $ payToPublicKey_ range five pubKey2
 
     -- Add some blocks so that the transaction is validated
     addBlocks 50 >>= traverse_ (walletsNotifyBlock [w1, w2])
@@ -141,7 +176,7 @@ txnIndexValid = property $ do
 --   validated
 simpleTrace :: Tx -> Trace MockWallet ()
 simpleTrace txn = do
-    [txn'] <- walletAction (Wallet 1) $ submitTxn txn
+    txn' <- head <$> (walletAction wallet1 $ signTxAndSubmit_ txn)
     block <- processPending
     assertIsValidated txn'
 
@@ -196,9 +231,15 @@ invalidScript = property $ do
 
     let (result, st) = Gen.runTrace m $ do
             processPending
-            walletAction (Wallet 1) $ submitTxn scriptTxn
+            -- we need to sign scriptTxn again because it has been modified
+            -- note that although 'scriptTxn' is submitted by wallet 1, it
+            -- may spend outputs belonging to one of the other two wallets.
+            -- So we can't use 'signTxAndSubmit_' (because it would only attach
+            -- wallet 1's signatures). Instead, we get all the wallets' 
+            -- signatures with 'signAll'.
+            walletAction wallet1 $ submitTxn (Gen.signAll scriptTxn)
             processPending
-            walletAction (Wallet 1) $ submitTxn invalidTxn
+            walletAction wallet1 $ signTxAndSubmit_ invalidTxn
             processPending
 
     Hedgehog.assert (isRight result)
@@ -251,7 +292,7 @@ valueScalarDistrib = property $ do
 
 selectCoinProp :: Property
 selectCoinProp = property $ do
-    inputs <- forAll $ zip [1..] <$> Gen.list (Range.linear 1 1000) Gen.genValueNonNegative
+    inputs <- forAll $ zip [1..] <$> Gen.list (Range.linear 1 100) Gen.genValueNonNegative
     target <- forAll Gen.genValueNonNegative
     let result = runExcept (selectCoin inputs target)
     case result of
@@ -272,7 +313,7 @@ txnFlowsTest = property $ do
 
 notifyWallet :: Property
 notifyWallet = property $ do
-    let w = Wallet 1
+    let w = wallet1
     (e, _) <- forAll
         $ Gen.runTraceOn Gen.generatorModel
         $ do
@@ -283,18 +324,18 @@ notifyWallet = property $ do
 
 eventTrace :: Property
 eventTrace = property $ do
-    let w = Wallet 1
+    let w = wallet1
     (e, _) <- forAll
         $ Gen.runTraceOn Gen.generatorModel
         $ do
             processPending >>= walletNotifyBlock w
             let mkPayment =
-                    EventHandler $ \_ -> payToPublicKey_ W.always (Ada.adaValueOf 100) (PubKey 2)
+                    EventHandler $ \_ -> payToPublicKey_ W.always (Ada.adaValueOf 100) pubKey2
                 trigger = slotRangeT (W.intervalFrom 3)
 
             -- schedule the `mkPayment` action to run when slot 3 is
             -- reached.
-            b1 <- walletAction (Wallet 1) $ register trigger mkPayment
+            b1 <- walletAction wallet1 $ register trigger mkPayment
             walletNotifyBlock w b1
 
             -- advance the clock to trigger `mkPayment`
@@ -306,7 +347,7 @@ eventTrace = property $ do
 
 payToPubKeyScript2 :: Property
 payToPubKeyScript2 = property $ do
-    let [w1, w2, w3] = Wallet <$> [1, 2, 3]
+    let [w1, w2, w3] = [wallet1, wallet2, wallet3]
         updateAll = processPending >>= walletsNotifyBlock [w1, w2, w3]
         payment1 = initialBalance `Value.minus` Ada.adaValueOf 1
         payment2 = initialBalance `Value.plus` Ada.adaValueOf 1
@@ -314,13 +355,13 @@ payToPubKeyScript2 = property $ do
         $ Gen.runTraceOn Gen.generatorModel
         $ do
             updateAll
-            walletAction (Wallet 1) $ payToPublicKey_ W.always payment1 (PubKey 2)
+            walletAction wallet1 $ payToPublicKey_ W.always payment1 pubKey2
             updateAll
-            walletAction (Wallet 2) $ payToPublicKey_ W.always payment2 (PubKey 3)
+            walletAction wallet2 $ payToPublicKey_ W.always payment2 pubKey3
             updateAll
-            walletAction (Wallet 3) $ payToPublicKey_ W.always payment2 (PubKey 1)
+            walletAction wallet3 $ payToPublicKey_ W.always payment2 pubKey1
             updateAll
-            walletAction (Wallet 1) $ payToPublicKey_ W.always (Ada.adaValueOf 2) (PubKey 2)
+            walletAction wallet1 $ payToPublicKey_ W.always (Ada.adaValueOf 2) pubKey2
             updateAll
             traverse_ (uncurry assertOwnFundsEq) [
                 (w1, initialBalance),
@@ -330,15 +371,15 @@ payToPubKeyScript2 = property $ do
 
 pubKeyTransactions :: Trace MockWallet ()
 pubKeyTransactions = do
-    let [w1, w2, w3] = Wallet <$> [1, 2, 3]
+    let [w1, w2, w3] = [wallet1, wallet2, wallet3]
         updateAll = processPending >>= walletsNotifyBlock [w1, w2, w3]
         five = Ada.adaValueOf 5
     updateAll
-    walletAction (Wallet 1) $ payToPublicKey_ W.always five (PubKey 2)
+    walletAction wallet1 $ payToPublicKey_ W.always five pubKey2
     updateAll
-    walletAction (Wallet 2) $ payToPublicKey_ W.always five (PubKey 3)
+    walletAction wallet2 $ payToPublicKey_ W.always five pubKey3
     updateAll
-    walletAction (Wallet 3) $ payToPublicKey_ W.always five (PubKey 1)
+    walletAction wallet3 $ payToPublicKey_ W.always five pubKey1
     updateAll
     traverse_ (uncurry assertOwnFundsEq) [
         (w1, initialBalance),
@@ -352,18 +393,18 @@ payToPubKeyScript = property $ do
 
 watchFundsAtAddress :: Property
 watchFundsAtAddress = property $ do
-    let w = Wallet 1
-        pkTarget = PubKey 2
+    let w = wallet1
+        pkTarget = pubKey2
     (e, EmulatorState{ _walletStates = st }) <- forAll
         $ Gen.runTraceOn Gen.generatorModel
         $ do
             processPending >>= walletNotifyBlock w
             let mkPayment =
-                    EventHandler $ \_ -> payToPublicKey_ W.always (Ada.adaValueOf 100) (PubKey 2)
+                    EventHandler $ \_ -> payToPublicKey_ W.always (Ada.adaValueOf 100) pubKey2
                 t1 = slotRangeT (W.interval 3 4)
                 t2 = fundsAtAddressT (pubKeyAddress pkTarget) (W.intervalFrom (Ada.adaValueOf 1))
             walletNotifyBlock w =<<
-                (walletAction (Wallet 1) $ do
+                (walletAction wallet1 $ do
                     register t1 mkPayment
                     register t2 mkPayment)
 
@@ -418,3 +459,39 @@ encodeSerialiseTest = property $ do
         result = Aeson.iparse JSON.decodeSerialise enc
 
     Hedgehog.assert $ result == Aeson.ISuccess txt
+
+jsonRoundTrip :: (Show a, Eq a, JSON.FromJSON a, JSON.ToJSON a) => Hedgehog.Gen a -> Property
+jsonRoundTrip gen = property $ do
+    bts <- forAll gen
+    let enc    = JSON.toJSON bts
+        result = Aeson.iparse JSON.parseJSON enc
+
+    Hedgehog.assert $ result == Aeson.ISuccess bts
+
+ledgerBytesShowFromHexProp :: Property
+ledgerBytesShowFromHexProp = property $ do
+    bts <- forAll $ LedgerBytes <$> Gen.genSizedByteString
+    let result = LedgerBytes.fromHex $ fromString $ show bts
+    
+    Hedgehog.assert $ result == bts
+
+ledgerBytesToJSONProp :: Property
+ledgerBytesToJSONProp = property $ do
+    bts <- forAll $ LedgerBytes <$> Gen.genSizedByteString
+    let enc    = JSON.toJSON bts
+        result = Aeson.iparse JSON.parseJSON enc
+
+    Hedgehog.assert $ result == Aeson.ISuccess bts
+
+currencySymbolIsStringShow :: Property
+currencySymbolIsStringShow = property $ do
+    cs <- forAll $ Value.currencySymbol <$> Gen.genSizedByteStringExact
+    let cs' = fromString (show cs)
+    Hedgehog.assert $ cs' == cs
+
+-- byteStringJson :: (Eq a, JSON.FromJSON a) => BSL.ByteString -> a -> [TestCase]
+byteStringJson jsonString value =
+    [ testCase "decoding" $
+        HUnit.assertEqual "Simple Decode" (Right value) (JSON.eitherDecode jsonString)
+    , testCase "encoding" $ HUnit.assertEqual "Simple Encode" jsonString (JSON.encode value)
+    ]

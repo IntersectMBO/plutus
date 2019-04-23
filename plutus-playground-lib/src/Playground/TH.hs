@@ -15,7 +15,7 @@ import           Data.Text           (pack)
 import           Language.Haskell.TH (Body (NormalB), Clause (Clause), Dec (FunD, SigD, ValD), Exp (ListE, VarE),
                                       Info (VarI), Name, Pat (VarP), Q,
                                       Type (AppT, ArrowT, ConT, ForallT, ListT, TupleT, VarT), mkName, nameBase, reify)
-import           Playground.API      (Fn (Fn), FunctionSchema (FunctionSchema))
+import           Playground.API      (Fn (Fn), FunctionSchema (FunctionSchema), adaCurrency)
 
 mkFunctions :: [Name] -> Q [Dec]
 mkFunctions names = do
@@ -91,7 +91,7 @@ args a                          = error $ "incorrect type in template haskell fu
 mkKnownCurrencies :: [Name] -> Q [Dec]
 mkKnownCurrencies ks = do
     let name = mkName "registeredKnownCurrencies"
-        names = fmap VarE ks
+        names = fmap VarE ('Playground.API.adaCurrency : ks)
         body = NormalB (ListE names)
         val = ValD (VarP name) body []
         typeName = mkName "KnownCurrency"

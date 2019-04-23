@@ -1,14 +1,27 @@
 # Developing the code
 
-An appropriate environment for developing a package can be entered using `nix-shell` in the package directory. This
-includes all the dependencies for the package and `cabal`, so you should be able to `cabal build` a package after
-doing this.
+You can get an environment for developing the entire project using `nix-shell` in the root directory.
+This will have all external dependencies present, so is suitable for building the packages with e.g. `cabal v2-build`.
+
+An environment for developing a particular package in isolation can be entered by using `nix-shell` in the
+package directory. This has all the dependencies, including local ones, provided. This shouldn't be necessary
+any more, but is useful if you need to use an old-style `cabal` command that only works in a single package context.
+
+You can also use `cabal` and `stack` outside a Nix environment to build the project. *However* there are two caveats:
+- You may get different versions of packages.
+    - This is more of a problem for `cabal` than `stack`, since our Nix package set is based off 
+      the Stackage resolver.
+- We are not currently enabling the Nix integration for these tools, so they will use your system
+  GHC and libraries, rather than that ones that will be used by Nix.
+    - We sometimes patch the GHC that we use in Nix, so this can at least potentially cause problems or cause
+      you to be missing bug workarounds.
 
 ## Updating the generated Haskell package set
 
-`pkgs/default.nix` contains a generated package set with all the dependencies for this project.
+`pkgs/default.nix` contains a generated package set with all the dependencies for this project, based on the Stackage
+resolver in `stack.yaml`.
 
-You should regenerate this if you change any dependencies in cabal files. To do this, run `pkgs/generate.sh`.
+You should regenerate this if you change any dependencies in cabal files or change the Stackage resolver. To do this, run `pkgs/generate.sh`.
 
 ## Adding a new package
 
@@ -26,15 +39,11 @@ You should at least be able to run `nix build -f default.nix localPackages.<pack
 We use `stylish-haskell` and `hlint`, and enable a large number of GHC warnings.
 - These are run by the CI, so if you don’t use them your PR will not go green. To avoid annoyance, set up your editor to run them automatically.
 - It’s fine to be aggressive about disabling `hlint` rules that don’t provide value, but check with the team before doing this. Err on the side of disabling them globally rather than for specific files, so we stay consistent.
-- Try and make sure that you do not have any compiler warnings - this is not currently checked by the CI, but may be in future.
+- The CI builds with `-Werror`, so will fail if there are any compiler warnings.
 
 # Issues
 
-General issues can be opened on the [GitHub Issue tracker](https://github.com/input-output-hk/plutus/issues).
-
-## IOHK developers
-
-We track our issues on the [IOHK YouTrack instance](https://iohk.myjetbrains.com/youtrack/issues/CGP).
+We track our issues on the [GitHub Issue tracker](https://github.com/input-output-hk/plutus/issues).
 
 # Submitting changes
 
@@ -82,3 +91,9 @@ We have two pieces of CI at the moment: some tests are run using Nix on Hydra, a
 - Pull requests cannot be merged without the CI going green.
     - Because the CI is not necessarily run on the merge commit that is created when the PR is merged, it is possible that merging a green PR can result in the CI being broken on master. This shouldn't happen frequently, but be aware that it's possible.
 - The CI should report statuses on your PRs with links to the logs in case of failure.
+- The Hydra CI is occasionally flaky with respect to notifications. This means that your PR might look like it is stuck in the "yellow" state forever. 
+    - You can check on your PR by going to the [Hydra project page](https://hydra.iohk.io/project/Cardano) and searching for `plutus-pr-<PR number>`.
+    - If the checks have all succeeded but you haven't had a notification, then either:
+        - Wait some more.
+        - Push a trivially different commit to reset the process.
+        - Ask a repository admin to force-merge your PR.

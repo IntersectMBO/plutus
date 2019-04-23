@@ -38,7 +38,7 @@ import qualified Ledger.Validation            as Validation
 import qualified Ledger.Ada.TH                as Ada
 import           Ledger.Ada.TH                (Ada)
 import qualified Wallet                       as W
-import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, pubKey, createTxAndSubmit, defaultSlotRange)
+import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, createTxAndSubmit, defaultSlotRange)
 
 import           Prelude                      hiding ((&&), (||))
 
@@ -143,7 +143,7 @@ adjustMargin :: (
     -> Ada
     -> m ()
 adjustMargin refs ft fd vl = do
-    pk <- pubKey <$> myKeyPair
+    pk <- ownPubKey
     (payment, change) <- createPaymentWithChange ($$(Ada.toValue) vl)
     fd' <- let fd''
                 | pk == futureDataLong fd = pure $ fd { futureDataMarginLong  = $$(Ada.plus) vl (futureDataMarginLong fd)  }
@@ -203,9 +203,9 @@ validatorScript ft = ValidatorScript val where
         \Future{..} FutureData{..} (r :: FutureRedeemer) (p :: PendingTx) ->
 
             let
-                PendingTx _ outs _ _ (PendingTxIn _ witness _) range = p
+                PendingTx _ outs _ _ (PendingTxIn _ witness _) range _ _ = p
                 ownHash = case witness of
-                    Left (vhash, _) -> vhash
+                    Just (vhash, _) -> vhash
                     _ -> $$(PlutusTx.error) ()
 
                 eqPk :: PubKey -> PubKey -> Bool

@@ -12,9 +12,9 @@ You can run this code in the [Plutus Playground](https://prod.playground.plutus.
 
 We assume the reader is familiar with the [UTxO model with scripts](../../../docs/extended-utxo/README.md) and the [PlutusTx tutorial](./01-plutus-tx.md). 
 
-**WARNING** The wallet API and by extension the wallet API tutorial is a work in progress and may be changed without much warning. 
+**WARNING:** The wallet API and by extension the wallet API tutorial is a work in progress and may be changed without notice.
 
-The tutorial has three parts. In part 1 we write the contract, including all the data types we need, validator scripts, and contract endpoints that handle the interactions between wallet and blockchain. In part 2 we show how to test the contract. Part 3 contains a number of questions and exercises related to this contract. 
+This tutorial has three parts. In part 1 we write the contract, including all the data types we need, validator scripts, and contract endpoints that handle the interactions between wallet and blockchain. In part 2 we show how to test the contract. Part 3 contains a number of questions and exercises. 
 
 # 1. Contract Definition
 
@@ -52,17 +52,19 @@ import           GHC.Generics                 (Generic)
 import qualified Data.ByteString.Lazy.Char8   as C
 ```
 
-The module [`Ledger.Validation`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html), imported as `V`, contains types and functions that can be used in on-chain code. `Language.PlutusTx` lets us translate code between Haskell and Plutus Core (see the [PlutusTx tutorial](./01.plutus-tx.md)). [`Ledger`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger.html) has data types for the ledger model and [`Wallet`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet.html) is the wallet API. It covers interactions with the wallet, for example generating the transactions that actually get the crowdfunding contract onto the blockchain.
+The module [`Ledger.Validation`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html), imported as `V`, contains types and functions that can be used in on-chain code. `Language.PlutusTx` lets us translate code between Haskell and Plutus Core (see the [PlutusTx tutorial](./01-plutus-tx.md)). [`Ledger`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger.html) has data types for the ledger model and [`Wallet`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet.html) is the wallet API. It covers interactions with the wallet, for example generating the transactions that actually get the crowdfunding contract onto the blockchain.
 
 ## 1.1 Data Types
 
 The guessing game involves two moves: First, player A chooses a secret word, and uses the game validator script to lock some Ada (the prize), providing the hash of the secret word as the data script. Second, player B guesses the secret, by attempting to spend A's transaction output using the guess as a redeemer script.
 
-Both the hashed secret and the cleartext guess are represented as `ByteString` values in on-chain code. To avoid any confusion between cleartext and hash we wrap them in data types called `HashedText` and `ClearText`, respectively.
+Both the hashed secret and the cleartext guess are represented as `SizedByteString` values in on-chain code. `SizedByteString` has a type parameter for the length of the bytestring, for example `P.SizedByteString 32` is a bytestring of (up to) 32 bytes. 
+
+To avoid any confusion between cleartext and hash we wrap them in data types called `HashedText` and `ClearText`, respectively.
 
 ```haskell
-data HashedText = HashedText P.ByteString
-data ClearText = ClearText P.ByteString
+data HashedText = HashedText (P.SizedByteString 32)
+data ClearText = ClearText (P.SizedByteString 32)
 ```
 
 One of the strengths of PlutusTx is the ability to use the same definitions for on-chain and off-chain code, which includes lifting values from Haskell to Plutus Core. To enable values of our string types to be lifted, we need to call `makeLift` from the `PlutusTx` module.
@@ -77,7 +79,7 @@ P.makeLift ''ClearText
 ```haskell
 mkDataScript :: String -> DataScript
 mkDataScript word =
-    let hashedWord = V.plcSHA2_256 (C.pack word)
+    let hashedWord = V.plcSHA2_256 (P.SizedByteString (C.pack word))
     in  DataScript (L.lifted (HashedText hashedWord))
 ```
 
@@ -86,7 +88,7 @@ mkDataScript word =
 ```haskell
 mkRedeemerScript :: String -> RedeemerScript
 mkRedeemerScript word =
-    let clearWord = C.pack word
+    let clearWord = P.SizedByteString (C.pack word)
     in RedeemerScript (L.lifted (ClearText clearWord))
 
 ```
