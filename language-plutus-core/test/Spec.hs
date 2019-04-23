@@ -23,7 +23,6 @@ import           Language.PlutusCore.Generators.AST
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Pretty
 import           Normalization.Type
-import ValueRestriction
 import           PlutusPrelude
 import           Pretty.Readable
 import qualified Quotation.Spec                             as Quotation
@@ -32,6 +31,7 @@ import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
 import           TypeSynthesis.Spec                         (test_typecheck)
+import           ValueRestriction
 
 main :: IO ()
 main = do
