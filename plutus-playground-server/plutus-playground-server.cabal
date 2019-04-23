@@ -35,6 +35,7 @@ library
         Playground.Server
         Playground.Interpreter
         Playground.Usecases
+        Git
         Gist
         Auth
         Auth.Types
@@ -51,7 +52,6 @@ library
         bytestring -any,
         containers -any,
         cookie -any,
-        directory -any,
         exceptions -any,
         file-embed -any,
         http-client -any,
@@ -65,15 +65,12 @@ library
         mtl -any,
         newtype-generics -any,
         plutus-playground-lib -any,
-        process -any,
         regex-compat -any,
         servant <0.16,
         servant-client -any,
         servant-client-core -any,
         servant-purescript -any,
         servant-server -any,
-        swagger2 -any,
-        temporary -any,
         text -any,
         time -any,
         time-units -any,
@@ -99,7 +96,6 @@ executable plutus-playground-server
         containers -any,
         data-default-class -any,
         filepath -any,
-        gitrev -any,
         http-types -any,
         interpreter -any,
         lens -any,
@@ -129,7 +125,6 @@ test-suite plutus-playground-server-test
     build-tool-depends: hspec-discover:hspec-discover -any
     hs-source-dirs: test
     other-modules:
-        Playground.APISpec
         Playground.UsecasesSpec
         Paths_plutus_playground_server
         Auth.TypesSpec

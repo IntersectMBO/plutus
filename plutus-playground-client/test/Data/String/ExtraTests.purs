@@ -6,14 +6,18 @@ import Prelude
 
 import Control.Monad.Eff.Random (RANDOM)
 import Data.String as String
-import Data.String.Extra (abbreviate)
+import Data.String.Extra (abbreviate, leftPadTo, repeat, toHex)
 import Test.Unit (TestSuite, suite, test)
+import Test.Unit.Assert (equal)
 import Test.Unit.QuickCheck (quickCheck)
 
 all :: forall eff. TestSuite (random :: RANDOM | eff)
 all =
   suite "Data.String.Extra" do
     abbreviateTests
+    toHexTests
+    leftPadToTests
+    repeatTests
 
 abbreviateTests :: forall eff. TestSuite (random :: RANDOM | eff)
 abbreviateTests = do
@@ -24,3 +28,29 @@ abbreviateTests = do
       quickCheck \str ->
         String.take 5 str ==
         String.take 5 (abbreviate str)
+
+toHexTests :: forall eff. TestSuite (random :: RANDOM | eff)
+toHexTests = do
+  suite "toHex" do
+    test "A few examples" do
+      equal "41" (toHex "A")
+      equal "546573746572" (toHex "Tester")
+
+leftPadToTests :: forall eff. TestSuite (random :: RANDOM | eff)
+leftPadToTests = do
+  suite "leftPadTo" do
+    test "0 is identity" do
+      quickCheck \prefix str -> str == leftPadTo 0 prefix str
+    test "A few examples" do
+      equal "0f" (leftPadTo 2 "0" "f")
+      equal "  f" (leftPadTo 3 " " "f")
+      equal "f" (leftPadTo 1 "0" "f")
+
+repeatTests :: forall eff. TestSuite (random :: RANDOM | eff)
+repeatTests = do
+  suite "repeat" do
+    test "0 is empty" do
+      quickCheck \str -> repeat 0 str == ""
+    test "A few examples" do
+      equal "abcabcabc" (repeat 3 "abc")
+      equal "TestTest" (repeat 2 "Test")

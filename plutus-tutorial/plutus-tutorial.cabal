@@ -50,7 +50,6 @@ library
     build-depends:
         base >=4.9 && <5,
         template-haskell >=2.13.0.0,
-        bytestring -any,
         language-plutus-core -any,
         plutus-tx -any,
         wallet-api -any,

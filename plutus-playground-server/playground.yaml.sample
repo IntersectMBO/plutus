@@ -1,10 +1,10 @@
 auth:
   # Your github OAuth App Credentials.
-  github-client-id:
-  github-client-secret:
+  github-client-id: ""
+  github-client-secret: ""
 
   # You can generate a good signature by running `openssl rand -hex 40` and pasting the result here:
-  jwt-signature:
+  jwt-signature: ""
 
   # This should match the client-facing schema/host/port.
-  redirect-url: https://localhost:8009
+  redirect-url: "https://localhost:8080"

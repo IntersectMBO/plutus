@@ -59,6 +59,9 @@
 # Forces all warnings as errors
 , forceError ? true
 
+# An explicit git rev to use, passed when we are in Hydra
+, rev ? null
+
 }:
 
 with pkgs.lib;
@@ -73,8 +76,17 @@ let
   # can't built 0.11.7 with the default compiler either.
   purescriptNixpkgs = import (localLib.iohkNix.fetchNixpkgs ./purescript-11-nixpkgs-src.json) {};
 
+
   packages = self: (rec {
     inherit pkgs localLib;
+
+    # The git revision comes from `rev` if available (Hydra), otherwise
+    # it is read using IFD and git, which is avilable on local builds.
+    # NOTE: depending on this will make your package rebuild on every commit, regardless of whether
+    # anything else has changed!
+    git-rev = 
+      let ifdRev = (import (pkgs.callPackage ./nix/git-rev.nix { gitDir = builtins.path { name = "gitDir"; path = ./.git; }; })).rev;
+      in removeSuffix "\n" (if isNull rev then ifdRev else rev);
 
     # This is the stackage LTS plus overrides, plus the plutus
     # packages.
@@ -83,7 +95,14 @@ let
         inherit pkgs;
         filter = localLib.isPlutus;
       };
-      customOverlays = optional forceError errorOverlay;
+      # When building we want the git sha available in the Haskell code, previously we did this with
+      # a template haskell function that ran a git command however the git directory is not available
+      # to the derivation so this fails. What we do now is create a derivation that overrides a magic
+      # Haskell module with the git sha.
+      gitModuleOverlay = import ./nix/overlays/git-module.nix {
+        inherit pkgs git-rev;
+      };
+      customOverlays = optional forceError errorOverlay ++ [gitModuleOverlay];
       # Filter down to local packages, except those named in the given list
       localButNot = nope:
         let okay = builtins.filter (name: !(builtins.elem name nope)) localLib.plutusPkgList;
@@ -178,13 +197,6 @@ let
           psSrc = generated-purescript;
         };
 
-      docker = pkgs.dockerTools.buildImage {
-        name = "plutus-playgrounds";
-        contents = [ client server-invoker ];
-        config = {
-          Cmd = ["${server-invoker}/bin/plutus-playground" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
-        };
-      };
     };
 
     meadow = rec {
@@ -215,12 +227,32 @@ let
           pkgs = purescriptNixpkgs;
           psSrc = generated-purescript;
         };
+    };
 
-      docker = pkgs.dockerTools.buildImage {
-        name = "meadow";
-        contents = [ client server-invoker ];
+    docker = rec {
+      defaultPlaygroundConfig = pkgs.writeTextFile {
+        name = "playground.yaml";
+        destination = "/etc/playground.yaml";
+        text = ''
+        auth:
+          github-client-id: ""
+          github-client-secret: ""
+          jwt-signature: ""
+          redirect-url: "localhost:8080"
+        '';
+      };
+      plutusPlaygroundImage = with plutus-playground; pkgs.dockerTools.buildImage {
+        name = "plutus-playgrounds";
+        contents = [ client server-invoker defaultPlaygroundConfig ];
         config = {
-          Cmd = ["${server-invoker}/bin/meadow" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
+          Cmd = ["${server-invoker}/bin/plutus-playground" "--config" "${defaultPlaygroundConfig}/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
+        };
+      };
+      meadowImage = with meadow; pkgs.dockerTools.buildImage {
+        name = "meadow";
+        contents = [ client server-invoker defaultPlaygroundConfig ];
+        config = {
+          Cmd = ["${server-invoker}/bin/meadow" "--config" "${defaultPlaygroundConfig}/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
         };
       };
     };

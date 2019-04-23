@@ -17,8 +17,8 @@ import qualified Ledger.Value               as V
 import           Playground.API             (PlaygroundError (OtherError), SimulatorWallet (SimulatorWallet),
                                              simulatorWalletBalance, simulatorWalletWallet)
 import           Wallet.Emulator.Types      (EmulatorEvent, EmulatorState (_chainNewestFirst, _emulatorLog), MockWallet,
-                                             Trace, Wallet (Wallet), ownFunds, processPending, runTraceTxPool,
-                                             walletPubKey, walletStates, walletsNotifyBlock)
+                                             Trace, ownFunds, processPending, runTraceTxPool, walletPubKey,
+                                             walletStates, walletsNotifyBlock)
 import           Wallet.Generators          (GeneratorModel (GeneratorModel))
 import qualified Wallet.Generators          as Gen
 
@@ -47,7 +47,7 @@ runTrace wallets actions =
             Right actions' ->
                 let notifyAll =
                         processPending >>=
-                        walletsNotifyBlock (Wallet <$> [1 .. length wallets])
+                        walletsNotifyBlock (simulatorWalletWallet <$> wallets)
                     action = notifyAll >> sequence actions'
                     (initialTx, _) =
                         Gen.genInitialTransaction $

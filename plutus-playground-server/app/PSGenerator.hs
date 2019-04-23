@@ -21,6 +21,7 @@ import           Control.Applicative                       (empty, (<|>))
 import           Control.Lens                              (set, (&))
 import           Control.Monad.Representable.Reader        (MonadReader)
 import qualified Data.ByteString                           as BS
+import qualified Data.ByteString.Char8                     as CBS
 import           Data.Monoid                               ()
 import           Data.Proxy                                (Proxy (Proxy))
 import qualified Data.Set                                  as Set ()
@@ -28,6 +29,7 @@ import qualified Data.Text                                 as T ()
 import qualified Data.Text.Encoding                        as T ()
 import qualified Data.Text.IO                              as T ()
 import           Gist                                      (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
+import           Git                                       (gitHead)
 import           Language.Haskell.Interpreter              (CompilationError, InterpreterError, InterpreterResult,
                                                             SourceCode, Warning)
 import           Language.PureScript.Bridge                (BridgePart, Language (Haskell), PSType, SumType,
@@ -43,10 +45,10 @@ import           Ledger.Ada                                (Ada)
 import           Ledger.Index                              (ValidationError)
 import           Ledger.Interval                           (Interval)
 import           Ledger.Slot                               (Slot)
-import           Ledger.Value.TH                           (CurrencySymbol, Value)
+import           Ledger.Value.TH                           (CurrencySymbol, TokenName, Value)
 import           Playground.API                            (CompilationResult, Evaluation, EvaluationResult, Expression,
                                                             Fn, FunctionSchema, KnownCurrency, SimpleArgumentSchema,
-                                                            SimulatorWallet, TokenId)
+                                                            SimulatorWallet)
 import qualified Playground.API                            as API
 import           Playground.Usecases                       (crowdfunding, game, messages, vesting)
 import           Servant                                   ((:<|>))
@@ -82,10 +84,10 @@ ledgerMapBridge = do
     typeModule ^== "Ledger.Map.TH"
     psLedgerMap
 
-keyBytesBridge :: BridgePart
-keyBytesBridge = do
-    typeName ^== "KeyBytes"
-    typeModule ^== "KeyBytes"
+ledgerBytesBridge :: BridgePart
+ledgerBytesBridge = do
+    typeName ^== "LedgerBytes"
+    typeModule ^== "LedgerBytes"
     pure psString
 
 scientificBridge :: BridgePart
@@ -192,7 +194,7 @@ myBridge =
     validatorHashBridge <|>
     sizedByteStringBridge <|>
     mapBridge <|>
-    keyBytesBridge
+    ledgerBytesBridge
 
 data MyBridge
 
@@ -249,11 +251,11 @@ myTypes =
     , mkSumType (Proxy @NewGistFile)
     , mkSumType (Proxy @Owner)
     , (equal <*> mkSumType) (Proxy @Value)
-    , (equal <*> (order <*> mkSumType)) (Proxy @CurrencySymbol)
-    , (equal <*> (order <*> mkSumType)) (Proxy @TokenId)
-    , mkSumType (Proxy @KnownCurrency)
+    , (equal <*> mkSumType) (Proxy @KnownCurrency)
     , mkSumType (Proxy @InterpreterError)
     , mkSumType (Proxy @(InterpreterResult A))
+    , (equal <*> (order <*> mkSumType)) (Proxy @CurrencySymbol)
+    , (equal <*> (order <*> mkSumType)) (Proxy @TokenName)
     ]
 
 mySettings :: Settings
@@ -271,6 +273,7 @@ psModule name body = "module " <> name <> " where" <> body
 writeUsecases :: FilePath -> IO ()
 writeUsecases outputDir = do
     let usecases =
+            multilineString "gitHead" (CBS.pack gitHead) <>
             multilineString "vesting" vesting <> multilineString "game" game <>
             multilineString "crowdfunding" crowdfunding <>
             multilineString "messages" messages

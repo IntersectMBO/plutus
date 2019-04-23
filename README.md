@@ -8,6 +8,10 @@ Talk to us! We're active on the [Cardano forum](https://forum.cardano.org/). Tag
 
 Do use the Github issue tracker for bugs and feature requests, but keep other discussions to the forum.
 
+## Contributing
+
+More detailed information for those who want to actually work on the codebase is in [CONTRIBUTING](./CONTRIBUTING.md).
+
 ## Building
 
 ### Binary caches
@@ -48,7 +52,7 @@ You can also build the docs yourself locally. For example:
 # Haddock for language-plutus-core
 nix build -f default.nix localPackages.language-plutus-core.doc
 # Combined Haddock for all our packages
-nix build -f default.nix localPackages.combined-haddock
+nix build -f default.nix doc.combined-haddock
 ```
 
 ### Deploying the docs

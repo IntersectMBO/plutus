@@ -5,6 +5,8 @@
 -- | Functions for working with 'Ada' in Template Haskell.
 module Ledger.Ada.TH(
       Ada
+    , adaSymbol
+    , adaToken
     -- * Constructors
     , fromValue
     , fromInt
@@ -36,12 +38,16 @@ import qualified Language.PlutusTx.Prelude    as P
 import           Language.Haskell.TH          (Q, TExp)
 import           Prelude                      hiding (negate)
 
-import           Ledger.Value.TH              (CurrencySymbol, Value)
+import           Ledger.Value.TH              (CurrencySymbol, TokenName, Value)
 import qualified Ledger.Value.TH              as TH
 
 -- | The 'CurrencySymbol' of the 'Ada' currency.
 adaSymbol :: Q (TExp CurrencySymbol)
-adaSymbol = [|| $$(TH.currencySymbol) 0 ||]
+adaSymbol = [|| $$(TH.currencySymbol) $$(P.emptyByteString) ||]
+
+-- | The 'TokenName' of the 'Ada' currency.
+adaToken :: Q (TExp TokenName)
+adaToken = [|| $$(TH.tokenName) $$(P.emptyByteString) ||]
 
 -- | ADA, the special currency on the Cardano blockchain.
 --   See note [Currencies] in 'Ledger.Validation.Value.TH'.
@@ -55,11 +61,11 @@ makeLift ''Ada
 
 -- | Create a 'Value' containing only the given 'Ada'.
 toValue :: Q (TExp (Ada -> Value))
-toValue = [|| \(Ada i) -> $$(TH.singleton) $$(adaSymbol) i ||]
+toValue = [|| \(Ada i) -> $$(TH.singleton) $$adaSymbol $$adaToken i ||]
 
 -- | Get the 'Ada' in the given 'Value'.
 fromValue :: Q (TExp (Value -> Ada))
-fromValue = [||  \v -> Ada ($$(TH.valueOf) v $$(adaSymbol)) ||]
+fromValue = [||  \v -> Ada ($$(TH.valueOf) v $$adaSymbol $$adaToken) ||]
 
 -- | Get the amount of 'Ada'.
 toInt :: Q (TExp (Ada -> Int))
@@ -74,7 +80,7 @@ fromInt = [|| Ada ||]
 --   @adaValueOf == toValue . fromInt@
 --
 adaValueOf :: Q (TExp (Int -> Value))
-adaValueOf = [|| $$(TH.singleton) $$(adaSymbol) ||]
+adaValueOf = [|| $$(TH.singleton) $$adaSymbol $$adaToken ||]
 
 -- | Add two 'Ada' values together.
 plus :: Q (TExp (Ada -> Ada -> Ada))

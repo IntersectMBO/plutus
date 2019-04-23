@@ -43,6 +43,14 @@ trace = [||
 traceH :: Q (TExp (String -> a -> a))
 traceH = [|| \str a -> $$(trace) ($$(toPlutusString) str) a||]
 
+-- | Emit the given Haskell 'String' only if the argument evaluates to 'False'.
+traceIfFalseH :: Q (TExp (String -> Bool -> Bool))
+traceIfFalseH = [|| \str a -> if a then True else $$traceH str False ||]
+
+-- | Emit the given Haskell 'String' only if the argument evaluates to 'True'.
+traceIfTrueH :: Q (TExp (String -> Bool -> Bool))
+traceIfTrueH = [|| \str a -> if a then $$traceH str True else False ||]
+
 -- | Logical AND
 --
 --   >>> $$([|| $$(and) True False ||])
@@ -281,6 +289,6 @@ dropByteString = [|| Builtins.dropByteString ||]
 concatenate :: Q (TExp (Builtins.SizedByteString s -> Builtins.SizedByteString s -> Builtins.SizedByteString s))
 concatenate = [|| Builtins.concatenate ||]
 
--- | Resizes a 'SizedByteString'.
-resizeByteString :: Q (TExp (Builtins.SizedByteString s1 -> Builtins.SizedByteString s2))
-resizeByteString = [|| Builtins.resizeByteString ||]
+-- | An empty 'SizedByteString'.
+emptyByteString :: Q (TExp (Builtins.SizedByteString 32))
+emptyByteString = [|| Builtins.emptyByteString ||]

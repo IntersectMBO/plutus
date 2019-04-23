@@ -42,6 +42,7 @@ library
         Language.PlutusTx.Prelude
         Language.PlutusTx.Evaluation
     reexported-modules:
+        Language.PlutusTx.Code,
         Language.PlutusTx.Lift,
         Language.PlutusTx.Lift.Class,
         Language.PlutusTx.Builtins,
@@ -71,6 +72,7 @@ library plutus-tx-compiler
         Language.PlutusTx.Lift.Class
         Language.PlutusTx.Lift.THUtils
         Language.PlutusTx.Lift.Instances
+        Language.PlutusTx.Code
         Language.PlutusTx.Compiler.Error
         Language.PlutusTx.Compiler.Binders
         Language.PlutusTx.Compiler.Builtins
@@ -87,7 +89,7 @@ library plutus-tx-compiler
         base >=4.9 && <5,
         bytestring -any,
         containers -any,
-        ghc <8.7,
+        ghc >=8.6 && <8.7,
         language-plutus-core -any,
         lens -any,
         mtl -any,

@@ -1,4 +1,5 @@
 %% Plutus Core Specification
+%% Final version before removal of types
 
 \documentclass[a4paper]{article}
 % Let's try full width text to see if it makes 
@@ -38,7 +39,7 @@
   basicstyle=\ttfamily,
   columns=fullflexible,
   mathescape=true,
-  escapeinside={|}{|}
+  escapeinside={|}{|}   %% Inside listings you can say things like |\textit{blah blah}|
 }
 
 
@@ -168,13 +169,35 @@
 \newcommand{\inAppLeftFrame}[1]{\app{\_}{#1}}
 \newcommand{\inAppRightFrame}[1]{\app{#1}{\_}}
 
+% These are for use inside listings and $...$.  If you just use
+% \textit in listings it uses the italic tt font and the spacing
+% inside the words is a bit strange.  Spacing is also bad if you
+% just put something like "integer" in math text.
+\newcommand\unit{\ensuremath{\mathit{unit}}}
+\newcommand\one{\ensuremath{\mathit{one}}}
+\newcommand\boolean{\ensuremath{\mathit{boolean}}}
+\newcommand\integer{\ensuremath{\mathit{integer}}}
+\newcommand\bytestring{\ensuremath{\mathit{bytestring}}}
+\newcommand\str{\ensuremath{\mathit{str}}}
+\newcommand\size{\ensuremath{\mathit{size}}}
+\newcommand\true{\ensuremath{\mathit{true}}}
+\newcommand\false{\ensuremath{\mathit{false}}}
+\newcommand\case{\ensuremath{\mathit{case}}}
+\newcommand\signed{\ensuremath{\mathit{signed}}}
+\newcommand\txhash{\ensuremath{\mathit{txhash}}}
+\newcommand\pubkey{\ensuremath{\mathit{pubkey}}}
+\newcommand\blocknum{\ensuremath{\mathit{blocknum}}}
+\newcommand\uniqmem[1]{#1^{\blacktriangledown}}  %% Unique member of size type
+
 
 \begin{document}
 %
 % paper title
 % can use linebreaks \\ within to get better formatting as desired
-\title{Formal Specification of\\the Plutus Core Language v1.0 (RC5.5)}
+\title{Formal Specification of\\the Plutus Core Language (version 1.99) }
 
+%% 6.0: "User-friendly" version with lots of explication for the reader.
+%% 16th April 2019
 
 \maketitle
 
@@ -200,14 +223,14 @@ number of extensions (isorecursive types, higher kinds, and a library
 of basic types and functions).  Plutus Core is meant to be a
 compilation target, and this is reflected in the design of the
 language: while writing large Plutus Core programs by hand is
-difficult, the language is relatively straightforward to formalize
+difficult, the language is relatively straightforward to formalise
 with a proof assistant.
 
 We have tried to keep the Plutus Core language small. There is no
 explicit support for algebraic datatypes, but they are representable
 using, for example, the Scott encoding (\cite{Scott-encoding}: see
 also \cite{Koopman:2014} and ~\cite{Geuvers-2014} for example; note that
-the Scott enconding coincides with the Church encoding for
+the Scott encoding coincides with the Church encoding for
 non-recursive types). Similarly, there are no explicit constructs for
 recursion or branching, but the type system is sufficiently expressive
 to allow us to use standard combinators (for example the $Z$
@@ -297,16 +320,18 @@ may use the multi-argument forms.
 \subsection{Notes on the grammar}
 \paragraph{Terms.}
 \begin{itemize}
-\item $\con{cn}$ represents a built-in constant: see \S\ref{sec:builtins}
+\item $\con{cn}$ represents a constant belonging to some built-in
+  type: for example \texttt{(con 4 ! 127)} is an integer of size 4 with
+    the value 127.  See Section~\ref{sec:builtins} for more on this.
 \item $\abs{\alpha}{K}{V}$ represents a polymorphic value abstracted
   over a type; this would often be donated by $\Lambda\alpha{::}K.V$.
   Note that we require the body of the abstraction to be a
   \textit{value}, not a term: see the note on the value restriction below.
 \item $\inst{M}{A}$ represents a polymorphic term instantiated at a particular type.
 \item $\iwrap{A}{B}{M}$ and $\unwrap{M}$: see the note on recursive types below.
-\item $\lam{x}{A}{M}$ is standard lambda-abstraction: $\lambda{}x{:}{A}.{M}$.
+\item $\lam{x}{A}{M}$ is standard lambda-abstraction, $\lambda{}x{:}{A}.{M}$.
 \item $\app{M}{N}$ is standard function application.
-\item $\builtin{bn}{A^*}{M^*}$ is application of a built-in function: see \S\ref{sec:builtins} for more information.
+\item $\builtin{bn}{A^*}{M^*}$ is application of a built-in function: see Section~\ref{sec:builtins} for more information.
 \item $\error{A}$ causes an error, terminating computation immediately.
 \end{itemize}
 
@@ -331,11 +356,11 @@ may use the multi-argument forms.
 \item Sizes $s$ are natural numbers used to enforce bounds on certain types of values: see below.
 \item $\funT{A}{B}$ is the type of functions from $A$ to $B$, $A \rightarrow B$.
 \item $\allT{\alpha}{K}{A}$ represents the type of a polymorphic term (eg a type abstraction), $\forall \alpha{::}K.A$.
-\item $\fixT{A}{B}$ represents a recursive type: see the note in \S\ref{sec:ifix-note} below for more information.
+\item $\fixT{A}{B}$ represents a recursive type: see the note in Section~\ref{sec:ifix-note} below for more information.
 \item $\lamT{\alpha}{K}{A}$ is abstraction of types over types, $\lambda \alpha{::}K.A$.
 \item $\appT{A}{B}$ is function application at the type level.
 \item $\conT{tcn}{A}$ represents a built-in type, and $A$ will often be a size.  For example, $\conT{\textrm{integer}}{8}$
-is the type of 8-byte integers.  See \S\ref{sec:builtins} for more information.
+is the type of 8-byte integers.  See Section~\ref{sec:builtins} for more information.
 \end{itemize}
 
 \paragraph{Type Values.} All types can be reduced to a type value (or
@@ -357,8 +382,18 @@ simply typed lambda calculus are lifted to the level of
 operations which themselves occur at the level of types. In addition
 to the standard kind \texttt{(type)} (usually written as $\star$), we
 have a kind \texttt{(size)} which allows us to deal with the sized
-types described below in~\S\ref{sec:size-note}.
+types described below in Section~\ref{sec:size-note}.
 
+\paragraph{Signatures.}  A signature
+$$[\alpha_1::K_1, \ldots, \alpha_m::K_m](t_1, \ldots, t_n)u$$ represents
+the type
+$$\forall \alpha_1::K_1\,.\, \ldots \,.\, \forall \alpha_m::K_m\,.\, t_1
+\rightarrow \ldots \rightarrow t_n \rightarrow u.$$
+Both $m$ and $n$
+may be zero, in which case the corresponding list is empty.
+Signatures are not used in the concrete syntax of Plutus Core, but we
+do use them later in this document, in typing rules and in the
+description of built-in values and functions.
 
 \paragraph{Programs and Versions.} A complete Plutus Core program 
 consists of a standard version number (1.0.2, for example) indicating
@@ -375,16 +410,16 @@ Plutus Core language.
  require that code supplied for on-chain execution comes with all type
  annotations pre-normalised.  This can be done during off-chain type
  checking.  Another issue here is that normalisation can cause sizes
- to increase (in the worst case, exponentially \blue{(really?)}), and
- requiring normalisation to be performed before a program is submitted
- to the chain facilitates prediction of on-chain costs.  \blue{Is
-   there an issue that further normalisation may be required when
-   programs are composed on-chain?}
+ to increase (in the worst case,
+ exponentially, and requiring
+ normalisation to be performed before a program is submitted to the
+ chain facilitates prediction of on-chain
+ costs.
 
 \subsubsection{Sizes and built-in types and functions}
 \label{sec:size-note}
 Details of built-in types and functions are given
-in~\S\ref{sec:builtins}, but a remark on sizes may be helpful at this
+in Section~\ref{sec:builtins}, but a remark on sizes may be helpful at this
 point.  Plutus Core currently provides two types of built-in data with
 variable sizes: integers and bytestrings (blocks of binary data used
 for cryptographic purposes).  There is no fixed upper bound on the
@@ -417,19 +452,17 @@ Plutus Core: \texttt{ifix A B} is a type such that \texttt{ifix A B
   functor}~\cite[2.4]{backhouseetal98} and \texttt{B} is an
 index. Pattern functors that \texttt{ifix} receives bind two variables:
 one for building recursive occurrences and the other to act as an
-index. Indices can be used in order to get parameterized data types,
+index. Indices can be used in order to get parameterised data types,
 but also in order to control the shape of the data type: depending on
 an index, recursive occurrences can be instantiated differently.  This
 allows us to encode a wide variety of data types, including non-regular and
-mutually recursive data types.
-
-\blue{We could do with more detail (or perhaps an example) here, since
+mutually recursive data types\blue{\footnote{\blue{We could do with more detail (or perhaps an example) here, since
   it'll be much more difficult for the reader to work out what's going
-  on than with standard \texttt{fix}.  With luck we'll have a publication
-  soon...}
+  on than with standard \texttt{fix}.  With luck we'll soon have a publication
+  to refer to.}}}.
 
-Note that we have an \textit{isomporhism} of types here
-rather than equality: fixpoint types are
+Note that we have an \textit{isomporhism} of types here rather than
+equality: fixpoint types are
 \textit{isorecursive}~\cite[20.2]{Pierce:TAPL} with explicit maps
 
 $$
@@ -442,13 +475,19 @@ $$
 \texttt{unwrap} : \texttt{ifix A B} \rightarrow  \texttt{A (ifix A) B}
 $$
 
+\noindent such that
+
+$$
+\texttt{iwrap} \circ \texttt{unwrap} = id_{ \texttt{ifix A B}}
+\mbox{\qquad and \qquad}
+\texttt{unwrap} \circ \texttt{iwrap} = id_{ \texttt{A (ifix A) B}}
+$$
+%% I really hate not having a full stop after the second equation, but it looks weird.
+
 \noindent The use of isorecursive types makes it somewhat more difficult to
 write \textit{terms}, but makes it much easier to reason about
 \textit{types}, and in particular simplifies the typechecking process
 considerably.
-
-\noindent\blue{We could do with a simple example here, and perhaps a more detailed explanation
-  later?  Also, is it true that we have an isomporhism, and not a retraction or something?}
 
 
 \subsubsection{The value restriction}
@@ -463,7 +502,7 @@ abstractions include non-values; other issues are explored
 in~\cite[2.4]{Ahmed:2017}. Plutus Core's restriction to values avoids
 these problems and is not very onerous in practice.
   
-
+\newpage
 
 \section{Type Correctness}
 
@@ -498,7 +537,7 @@ kind.
 
 %% ---------------- Contexts ---------------- %%
 
-%\begin{minipage}{\linewidth}
+\begin{figure}[H]
 {
     \[\begin{array}{lrclr}
         \textrm{Ctx} & \Gamma  & ::= & \epsilon                    & \textrm{empty context} \\
@@ -564,10 +603,11 @@ kind.
 }
     \captionof{figure}{Contexts}
     \label{fig:Plutus_core_contexts}
-%\end{minipage}
+\end{figure}
 
-Then, in Figure \ref{fig:Plutus_core_kind_synthesis}, we define what
-it means for a type to synthesize a kind. Plutus Core is a
+\newpage 
+\noindent Figure \ref{fig:Plutus_core_kind_synthesis} defines what
+it means for a type to synthesise a kind. Plutus Core is a
 higher-kinded version of System F, so we have a number of standard
 System F rules (tyvar,tyall,tyfun) together with some extensions with
 extensions to higher kinds (tylam,tyapp) and to indexed
@@ -576,7 +616,7 @@ support integers and bytestrings.
 
 %% ---------------- Kind synthesis ---------------- %%
 
-%\begin{minipage}{\linewidth}
+\begin{figure}[H]
 {
     \judgmentdef{\(\hypJ{\Gamma}{\istypeJ{A}{K}}\)}{In valid context $\Gamma$, type $A$ has kind $K$}
 
@@ -635,9 +675,10 @@ support integers and bytestrings.
     \captionof{figure}{Kind Synthesis}
     \label{fig:Plutus_core_kind_synthesis}
 }
-%\end{minipage}
+\end{figure}
 
-In Figure \ref{fig:Plutus_core_type_synthesis}, we define the type
+
+\noindent In Figure \ref{fig:Plutus_core_type_synthesis}, we define the type
 synthesis judgment, which explains how a term synthesizes a type. We
 have rules analogous to STLC (var,lam,app), extensions to System F
 (abs,inst). Higher-kinding introduces computation in types so we need
@@ -647,8 +688,7 @@ and builtins we have con, builtin and error.
 
 %% ---------------- Type synthesis ---------------- %%
 
-%\begin{minipage}{\linewidth}
-{
+\begin{figure}[H]
     \judgmentdef{\(\hypJ{\Gamma}{\istermJ{M}{A}}\)}{In valid context $\Gamma$, term $M$ has type $A$}
 
     \begin{prooftree}
@@ -737,10 +777,10 @@ and builtins we have con, builtin and error.
 
     \captionof{figure}{Type Synthesis}
     \label{fig:Plutus_core_type_synthesis}
-}
-%\end{minipage}
 
-Finally, type synthesis for builtins are ellaborated in tabular form
+\end{figure}
+
+\noindent Finally, type synthesis for builtins are elaborated in tabular form
 rather than in inference rule form, in Figure
 \ref{fig:Plutus_core_builtins}, which also gives the reduction
 semantics. This table also specifies what conditions trigger an error.
@@ -774,7 +814,6 @@ and then perform steps of terms $M$ by computing which $M'$ is such
 that \(\multistepIndexed{M}{\mathit{max}}{M'}\).
 
 
-\newpage 
 
 \subsection{Type reduction}
 Because the Plutus Core type system contains a copy of the simply
@@ -785,16 +824,18 @@ level.  In conjunction with the fact that type reduction always
 terminates, this allows us to perform normalisation (i.e., reduction to
 a form which cannot undergo any further reduction) statically, before
 execution begins.  Figure~\ref{fig:type-reduction} contains the rules
-for type reduction.
+for type reduction, and Figure~\ref{fig:type-equivalence} contains
+rules for type equivalence.
 
 \subfile{figures/PlutusCoreTypeReduction}
 
 
+\newpage
 \subsection{Term reduction}
 Execution of Plutus Core programs is performed by (possibly
 non-terminating) reduction of well-typed terms.  The reduction rules
 are contained in Figure~\ref{fig:term-reduction}, and give us a fairly
-standard operational semantics.
+standard operational semantics.  
 
 \subfile{figures/PlutusCoreTermReduction}
 
@@ -850,24 +891,32 @@ functions which will be useful for blockchain applications.  The set
 of built-ins is fixed, although in future we may provide a framework
 to allow customisation for specialised blockchains.
 
-As mentioned earlier, there are three basic types: \texttt{size},
-\texttt{integer}, and \texttt{bytestring}.  The \textrm{size} type is
-used to track the sizes of objects, the \texttt{integer} type, in
-conjunction with \texttt{size} provides integers of specified sizes,
-and the \texttt{bytestring} type provides sequences of bytes, again of
-specified sizes.  These types are given in
-Figure~\ref{fig:Plutus_core_type_constants}:  for example 
+As mentioned earlier, there are two basic types: \texttt{integer} and
+\texttt{bytestring}.  There is also a kind \texttt{(size)} which is
+used to track the sizes of objects.  For each natural number $s\ge0$
+there is a singleton type $\mathit{size}_s::\mathtt{(size)}$ with a
+unique member $s$.  Given such a type $t::\mathtt{(size)}$, we denote
+its unique member by $\uniqmem{t}$, so that $\uniqmem{\size_s} =
+s$. In the Plutus Core syntax the type $\mathit{size}_s$ is denoted by
+\texttt{(con size $s$)} and its unique member by \texttt{(con $s$)}.
+
+The \texttt{integer} type, in conjunction with \texttt{size}, provides
+integers of specified sizes, and the \texttt{bytestring} type provides
+sequences of bytes, again of specified sizes.  These types are given
+in Figure~\ref{fig:Plutus_core_type_constants}: for example
 \texttt{(con integer 10)} is the type of signed 10-byte integers.
 
 
 Terms of these types are written using the \texttt{!} character, as
 shown in Figure~\ref{fig:Plutus_core_constants}.  For example
-\texttt{10~!~12345} is a ten-byte integer whose value is 12345 (and
-\textrm{1~!~12345} would cause an error), and \texttt{20~!~\#3ac29d873246f} 
+\texttt{10~!~12345} (written \texttt{(con 10~!~12345)} in the Plutus Core
+  concrete syntax)
+  is a ten-byte integer whose value is 12345 (and
+\texttt{1~!~12345} would cause an error), and \texttt{20~!~\#3ac29d873246f} 
 is a 20-byte bytestring containing the bytes
 shown\footnote{In fact, the bounds are upper bounds, not actual sizes:
-  in the current implementation, \texttt{10~!~12345} will only take up
-  as much space as it requires, not the full 10 bytes.}.  We use the
+  in the current implementation, \texttt{(con 10~!~12345)} will only take up
+  the minimum space required, not the full 10 bytes.}.  We use the
 same syntax to denote expressions of appropriate types in
 Figure~\ref{fig:Plutus_core_builtins}.
 
@@ -881,17 +930,34 @@ Note the following:
   which sizes are used.  It is not possible to create values of
   unlimited size at runtime.  If any function attempts to create a
   value exceeding the expected size, an error will occur during execution.
+\item The types of some built-in functions involve sizes at both the
+  type level and the term level.  For example, \texttt{resizeInteger}
+  has the type
+
+  $$
+  \forall s_0::\mathit{size}\,.\,\forall s_1::\mathit{size}\,.\,\mathit{size}_{s_1}
+  \rightarrow \mathit{integer}_{s_0} \rightarrow \mathit{integer}_{s_1},
+  $$
+   and one might enlarge an integer from size 3 to size 5 by
+\begin{lstlisting}
+ [{(builtin resizeInteger) (con size 3) (con size 5)}  (con 5) (con 3!200)].
+\end{lstlisting}
+
+\noindent The duplication of sizes is necessary because we require
+size information at the type level to facilitate gas calculations, and
+also at the term level so that the evaluator can check size bounds
+at runtime, after type information has been erased.
+
 \item We use fixed Scott encodings for certain types and values,
   specifically for the \texttt{unit} and \texttt{boolean} types.
 Compilers targeting Plutus Core must be aware of these encodings and
 use them appropriately.
 \end{itemize}
 
-\newpage
-
+\vspace{2cm}
 \subfile{figures/PlutusCoreBuiltins}
 
-\section{Transaction Validation} [\blue{This is a bit over-detailed.}]
+\section{Transaction Validation}
 The primary use for Plutus Core is for executing code on blockchain
 nodes; specifically, it is intended for scripts used to validate
 transactions taking place on the chain.  This section will give a
@@ -915,41 +981,36 @@ a particular output, or an output might not be spendable until a
 certain period of time has passed since its production.
 
 The process of verifying that an output can be spent is called
-\textit{validation}, and is perfomed by executing \textit{scripts},
+\textit{validation}, and is performed by executing \textit{scripts},
 which in our case will be Plutus Core programs.
 
 
 Cardano uses a validation strategy which we call the \textit{Extended
   UTXO model}.  A full specification of the Extended UTXO model is
-currently being prepared, but the fundamental ideas can be found
-in~\cite{Zahnentferner18-Chimeric} and \cite{Zahnentferner18-UTxO}.
+currently being prepared: in the meantime the fundamental ideas can be
+found in~\cite{Zahnentferner18-Chimeric} and
+\cite{Zahnentferner18-UTxO}.
 
-The basic idea is as follows.  Suppose a UTXO $O$ has been produced by a
-transaction $P$ (the \textit{producer}) and a transaction $C$ (the
-\textit{consumer}) wishes to use it as an input $I$.
+The basic idea is that when a transaction wishes $T$ to consume an
+unspent output $U$, it applies a script called the \textit{validator}
+to another script called the \textit{redeemer}\footnote{The Extended
+  UTXO model also involves another script called the \textit{data
+    script}, but for simplicity we won't discuss this here}; the
+validator also has access to certain parts of the blockchain state,
+such as the current block number (\textit{blocknum}) and the hash
+\textit{txhash} of the current transaction.  If the result of applying
+the validator to the redeemer is the Plutus Core \texttt{error} term
+then validation fails and the output cannot be spent; otherwise
+validation succeeds and the output can be spent.
 
-\begin{itemize}
-\item The output $O$ is equipped with a script $D$ (the \textit{data script} supplied by its producer $P$.
-\item The input $I$ is equipped with two scripts: a \textit{redeemer} $R$ and a \textit{validator} $V$.
-  \begin{itemize}
-    \item $V$ is supplied by $C$, the consumer, as proof that it has the right to spend $O$.
-    \item $R$ is supplied by $P$, the producer, and is used to check that $T$ has the right to spend $O$.
-  \end{itemize}
-\item During validation and object $S$ containing information about
-  the state of the blockchain is constructed; $S$ contains
-  \begin{itemize}
-  \item A hash of $T$, \textit{txhash}
-  \item The current block number, \textit{blocknum}.
-  \item Various other things which aren't important for this document.
-  \end{itemize}
-\item To check validity, $V$ is evaluated with $R$, $D$, and $S$ as
-  arguments.  If evaluation succeeds, the $O$ is unlocked; if it fails
-  (ie, returns the value \texttt{error}) then validation also fails and $O$ cannot be spent.
-\end{itemize}
-The precise roles of the various scripts don't matter here: the
-essential point is that one script is run with some others as inputs
-and the outcome determines whether money can be spent.
-
+The job of the validator is to check whether the transaction $T$ is
+allowed to consume the output $U$, and the redeemer provides evidence
+that $U$ can in fact be spent.  For example, if a user $X$ wishes to
+spend an output $U$ then $X$ might provide a redeemer consisting of a
+signature obtained from $U$ with a private key belonging to $X$ and
+the validator would use $X$'s public key to check that the signature
+is valid.  We consider this example in more detail in the next
+section.
 
 \section{Examples}
 
@@ -986,7 +1047,7 @@ each rule that is different, where possible.
 \section{Restricted Algorithmic Type System}
 
 For blockchain purposes, it is useful to not only have an algorithmic
-system, but to require that no un-normalized types are present in
+system, but to require that no un-normalised types are present in
 programs, so as to reduce the amount of computation necessary to
 typecheck a program. It's also useful to have a way of bounding the
 amount of computation that can be done in type checking, for security

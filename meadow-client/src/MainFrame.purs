@@ -7,7 +7,7 @@ import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged), AceQuery(GetE
 import Ace.Types (ACE, Editor, Annotation)
 import AjaxUtils (runAjaxTo)
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
-import Bootstrap (active, btn, btnGroup, btnInfo, btnPrimary, btnSmall, col6_, container, container_, empty, hidden, listGroupItem_, listGroup_, navItem_, navLink, navTabs_, noGutters, pullRight, row)
+import Bootstrap (active, btn, btnGroup, btnInfo, btnPrimary, btnSmall, col_, container, container_, empty, hidden, listGroupItem_, listGroup_, navItem_, navLink, navTabs_, noGutters, pullRight, row)
 import Control.Monad.Aff.Class (class MonadAff, liftAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
@@ -592,7 +592,7 @@ render ::
 render state = div [ class_ $ ClassName "main-frame" ]
                    [ container_ [ mainHeader
                                 , div [ classes [ row, noGutters ] ]
-                                      [ col6_ [ mainTabBar state.view ]
+                                      [ col_ [ mainTabBar state.view ]
                                       ]
                                 ]
                    , viewContainer state.view Editor $ [ loadScriptsPane
@@ -625,9 +625,7 @@ mainHeader = div_ [ div [classes [btnGroup, pullRight]] (makeLink <$> links)
                   , h1 [class_ $ ClassName "main-title"] [text "Meadow"]
                   ]
   where
-  links = [ Tuple "Getting Started" "https://testnet.iohkdev.io/plutus/get-started/writing-contracts-in-plutus/"
-          , Tuple "Tutorial" "https://github.com/input-output-hk/plutus/blob/master/plutus-tutorial/tutorial/Tutorial/02-wallet-api.md"
-          , Tuple "API" "https://input-output-hk.github.io/plutus/"
+  links = [ Tuple "Tutorial" $ "https://github.com/input-output-hk/marlowe/blob/master/docs/tutorial-v2.0/README.md"
           , Tuple "Privacy" "https://static.iohk.io/docs/data-protection/iohk-data-protection-gdpr-policy.pdf"
           ]
   makeLink (Tuple name link) = a [ classes [ btn

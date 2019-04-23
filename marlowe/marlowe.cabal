@@ -26,9 +26,7 @@ library
   hs-source-dirs: src
   build-depends:
     base -any,
-    bytestring -any,
     containers -any,
-    memory -any,
     mtl -any,
     template-haskell -any,
     plutus-tx -any,
