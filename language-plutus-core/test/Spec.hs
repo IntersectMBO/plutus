@@ -22,6 +22,7 @@ import           Language.PlutusCore.Generators
 import           Language.PlutusCore.Generators.AST
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Pretty
+import           Normalization.Check
 import           Normalization.Type
 import           PlutusPrelude
 import           Pretty.Readable
@@ -129,6 +130,7 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles evalFiles 
     , test_typecheck
     , test_constant
     , test_evaluateCk
+    , test_normalizationCheck
     , Quotation.tests
     , Check.tests
     ]
