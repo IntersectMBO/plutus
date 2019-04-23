@@ -496,6 +496,76 @@ kind.
 %context. This style of presentation is analogous to how one might
 %define instrinsically typed/kinded de Bruijn indices.
 
+%% ---------------- Contexts ---------------- %%
+
+%\begin{minipage}{\linewidth}
+{
+    \[\begin{array}{lrclr}
+        \textrm{Ctx} & \Gamma  & ::= & \epsilon                    & \textrm{empty context} \\
+                     &         &     & \Gamma, \typeJ{\alpha}{K}   & \textrm{type variable} \\
+                     &         &     & \Gamma, \termJ{x}{A}        & \textrm{term variable} \\
+    \end{array}\]
+
+    \judgmentdef{\(\validJ{\Gamma}\)}{Context $\Gamma$ is valid}
+
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\validJ{\epsilon}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\validJ{\Gamma}\)}
+        \AxiomC{$\alpha$ is free in $\Gamma$}
+        \BinaryInfC{\(\validJ{\Gamma, \typeJ{\alpha}{K}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\validJ{\Gamma}\)}
+        \AxiomC{$x$ is free in $\Gamma$}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
+        \TrinaryInfC{\(\validJ{\Gamma, \termJ{x}{A}}\)}
+    \end{prooftree}
+
+%    \judgmentdef{\(\ctxni{\Gamma}{J}\)}{In valid context $\Gamma$ we can make judgements about variables where $J$ is either a typing or a kinding judgement.}
+%
+%    \begin{prooftree}
+%        \AxiomC{}
+%        \UnaryInfC{\(\ctxni{\Gamma, \typeJ{\alpha}{K}}{\typeJ{\alpha}{K}}\)}
+%    \end{prooftree}
+%
+%    \begin{prooftree}
+%        \AxiomC{}
+%        \UnaryInfC{\(\ctxni{\Gamma, \termJ{x}{A}}{\termJ{x}{A}}\)}
+%    \end{prooftree}
+%
+%    \begin{prooftree}
+%        \AxiomC{\(\ctxni{\Gamma}{\typeJ{\alpha}{K}}\)}
+%        \AxiomC{\(\alpha \not= \beta\)}
+%        \BinaryInfC{\(\ctxni{\Gamma, \typeJ{\beta}{J}}{\typeJ{\alpha}{K}}\)}
+%    \end{prooftree}
+%
+%     \begin{prooftree}
+%        \AxiomC{\(\ctxni{\Gamma}{\typeJ{\alpha}{K}}\)}
+%        \UnaryInfC{\(\ctxni{\Gamma, \termJ{y}{T}}{\typeJ{\alpha}{K}}\)}
+%    \end{prooftree}
+%
+%    \begin{prooftree}
+%        \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{A}}\)}
+%        \UnaryInfC{\(\ctxni{\Gamma, \typeJ{\beta}{J}}{\termJ{x}{A}}\)}
+%    \end{prooftree}
+%
+%     \begin{prooftree}
+%        \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{A}}\)}
+%        \AxiomC{\(x \not= y\)}        
+%        \BinaryInfC{\(\ctxni{\Gamma, \termJ{y}{B}}{\termJ{x}{A}}\)}
+%    \end{prooftree}
+
+
+}
+    \captionof{figure}{Contexts}
+    \label{fig:Plutus_core_contexts}
+%\end{minipage}
+
 Then, in Figure \ref{fig:Plutus_core_kind_synthesis}, we define what
 it means for a type to synthesize a kind. Plutus Core is a
 higher-kinded version of System F, so we have a number of standard
@@ -503,6 +573,69 @@ System F rules (tyvar,tyall,tyfun) together with some extensions with
 extensions to higher kinds (tylam,tyapp) and to indexed
 recursive types (tyfix). We also introduce builtin types (tycon) to
 support integers and bytestrings.
+
+%% ---------------- Kind synthesis ---------------- %%
+
+%\begin{minipage}{\linewidth}
+{
+    \judgmentdef{\(\hypJ{\Gamma}{\istypeJ{A}{K}}\)}{In valid context $\Gamma$, type $A$ has kind $K$}
+
+    \begin{prooftree}
+        \AxiomC{\(({\typeJ{\alpha}{K}}) \in \Gamma\)}
+        \RightLabel{tyvar}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\alpha}{K}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+      \AxiomC{\(\validJ{\Gamma}\)}
+      \RightLabel{tysize}
+      \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{s}{\sizeK{}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{K}}{\istypeJ{A}{\typeK{}}}\)}
+        \RightLabel{tyall}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\allT{\alpha}{K}{A}}{\typeK{}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+		\AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{K}}\)}
+		\AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\funK{\funK{K}{\typeK{}}}{\funK{K}{\typeK{}}}}}\)}
+        \RightLabel{tyfix}
+        \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\fixT{A}{B}}{\typeK{}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{\typeK{}}}\)}
+        \RightLabel{tyfun}
+        \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\funT{A}{B }}{\typeK{}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{J}}{\istypeJ{A}{K}}\)}
+        \RightLabel{tylam}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\lamT{\alpha}{J}{A}}{\funK{J}{K}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\funK{J}{K}}}\)}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{J}}\)}
+        \RightLabel{tyapp}
+        \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\appT{A}{B}}{K}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{$tcn$ is a type constant in in Fig. \ref{fig:Plutus_core_type_constants}}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\sizeK{}}}\)}
+        \RightLabel{tycon}
+        \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\conT{tcn}{A}}{\typeK{}}}\)}
+    \end{prooftree}
+
+    \captionof{figure}{Kind Synthesis}
+    \label{fig:Plutus_core_kind_synthesis}
+}
+%\end{minipage}
 
 In Figure \ref{fig:Plutus_core_type_synthesis}, we define the type
 synthesis judgment, which explains how a term synthesizes a type. We
@@ -512,16 +645,105 @@ the rule conv. Iso-recursive types introduce terms for wrapping and
 unwrapping recursive values (wrap,unwrap), and to support constants
 and builtins we have con, builtin and error.
 
+%% ---------------- Type synthesis ---------------- %%
+
+%\begin{minipage}{\linewidth}
+{
+    \judgmentdef{\(\hypJ{\Gamma}{\istermJ{M}{A}}\)}{In valid context $\Gamma$, term $M$ has type $A$}
+
+    \begin{prooftree}
+        \AxiomC{\(({\termJ{x}{A}}) \in \Gamma\)}
+        \RightLabel{var}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{x}{A}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{$cn$ has constant signature $\constsig{tcn}{s}$ in Fig. \ref{fig:Plutus_core_constants}}
+        \RightLabel{con}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{cn}{\conT{tcn}{s}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{K}}{\istermJ{M}{B}}\)}
+        \RightLabel{abs}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\abs{\alpha}{K}{M}}{\allT{\alpha}{K}{B}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma}{\istermJ{L}{C}}\)}
+        \AxiomC{\(\typeEquiv{C}{\allT{\alpha}{K}{B}}\)}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{K}}\)}
+        \RightLabel{inst}
+        \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\inst{L}{A}}{\subst{A}{\alpha}{B}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+    	\AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{K}}\)}
+		\alwaysNoLine
+		\UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{A}{\funK{\funK{K}{\typeK{}}}{\funK{K}{\typeK{}}}}}\)}
+		\UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M}{C}}\)}
+		\UnaryInfC{\(\typeEquiv{C}{\appT{\appT{A}{\lamT{\beta}{K}{\fixT{A}{\beta}}}}{B}}\)}
+		\alwaysSingleLine
+    	\RightLabel{wrap}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\wrap{A}{B}{M}}{\fixT{A}{B}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+    	\AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{C}}\)}
+		\AxiomC{\(\typeEquiv{C}{\fixT{A}{B}}\)}
+		\AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{K}}\)}
+		\RightLabel{unwrap}
+        \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\unwrap{M}}{\appT{\appT{A}{\lamT{\beta}{K}{\fixT{A}{\beta}}}}{B}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
+        \AxiomC{\(\hypJ{\Gamma, \termJ{y}{A}}{\istermJ{M}{B}}\)}
+        \RightLabel{lam}
+        \BinaryInfC{\(\hypJ{\Gamma}{\istermJ{\lam{y}{A}{M}}{\funT{A}{B}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma}{\istermJ{L}{C}}\)}
+        \AxiomC{\(\typeEquiv{C}{\funT{A}{B}}\)}
+        \AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{A'}}\)}
+        \AxiomC{\(\typeEquiv{A}{A'}\)}
+        \RightLabel{app}
+        \QuaternaryInfC{\(\hypJ{\Gamma}{\istermJ{\app{L}{M}}{B}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in Fig. \ref{fig:Plutus_core_builtins}}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M_i}{D_i}}\)}
+        \UnaryInfC{\(\typeEquiv{D_i}{\subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{B_i}}\)}
+        \alwaysSingleLine
+        \RightLabel{builtin}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\builtin{bn}{A_0 ... A_m}{M_0 ... M_n}}{\subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{C}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
+        \RightLabel{error}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\error{A}}{A}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+    	\AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{A}}\)}
+		\AxiomC{\(\typeEquiv{A}{A'}\)}
+		\RightLabel{conv}
+		\BinaryInfC{\(\hypJ{\Gamma}{\istermJ{M}{A'}}\)}
+    \end{prooftree}
+
+    \captionof{figure}{Type Synthesis}
+    \label{fig:Plutus_core_type_synthesis}
+}
+%\end{minipage}
+
 Finally, type synthesis for builtins are ellaborated in tabular form
 rather than in inference rule form, in Figure
 \ref{fig:Plutus_core_builtins}, which also gives the reduction
 semantics. This table also specifies what conditions trigger an error.
-
-
-
-
-
-\subfile{figures/PlutusCoreTypeCorrectness}
 
 
 \section{Reduction and Execution}
