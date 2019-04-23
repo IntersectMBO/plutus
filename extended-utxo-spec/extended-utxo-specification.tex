@@ -21,7 +21,6 @@
 \usepackage{float}  %% Try to improve placement of figures.  Doesn't work well with subcaption package.
 \usepackage{subcaption}
 \usepackage{caption}
-\usepackage{flexisym}
 
 % correct bad hyphenation here
 \hyphenation{}
@@ -34,6 +33,13 @@
 
 
 %%% General Misc. Definitions
+
+%% A version of ^{\prime} for use in text mode
+\makeatletter
+\DeclareTextCommand{\textprime}{\encodingdefault}{%
+  \mbox{$\m@th'\kern-\scriptspace$}% 
+}
+\makeatother
 
 \newcommand{\red}[1]{\textcolor{red}{#1}}
 \newcommand{\redfootnote}[1]{\red{\footnote{\red{#1}}}}
@@ -398,10 +404,12 @@ For this we introduce three new types:
   for the \s{Address} type mentioned above:
 \item \s{Values}: a map from \s{CurrencyID}s to quantities of the
   corresponding currencies (represented using the \s{Value} type.
-  This allows an output to contain amounts of mulitple currencies at once.
+  This allows an output to consist of multiple currencies.
 \end{itemize}
 
-The changes to the basic XUTXO model are now quite simple.  In the
+\red{Do we have to allow negative values now?}
+
+\noindent The changes to the basic XUTXO model are now quite simple.  In the
 definition of transaction, we allow the \forge{} field to contain
 amounts of multiple currencies; the \fee{} field however still
 contains a single amount of \s{Ada}.  
