@@ -19,6 +19,11 @@
 \usepackage{subcaption}
 \usepackage{caption}
 
+% Stuff for splitting figures over page breaks
+\DeclareCaptionLabelFormat{continued}{#1~#2 (Continued)}
+\captionsetup[ContinuedFloat]{labelformat=continued}
+
+
 % correct bad hyphenation here
 \hyphenation{}
 
@@ -988,20 +993,20 @@ section.
 
 %\subfile{figures/PlutusCoreExampleAgain}
 
-\newpage
 \begin{appendices}
 \section{Unrestricted Algorithmic Type System}
 
-For implementation purposes, it's useful to have a variant of the type
+For implementation purposes it is useful to have a variant of the type
 system that is more algorithmic in its presentation. We give this
 here, showing the figures that have been changed (relative to the
 declarative version above), and highlighting the specific parts of
-each rule that is different, where possible.
+each rule that is different, where possible (Figures~\ref{fig:contexts_algorithmic_unrestricted}
+and~\ref{fig:type_synthesis_algorithmic_unrestricted}) .
 
 \subfile{figures/TypeCorrectness-Algorithmic-Unrestricted.tex}
 
-
 \newpage
+
 \section{Restricted Algorithmic Type System}
 
 For blockchain purposes, it is useful to not only have an algorithmic

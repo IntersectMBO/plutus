@@ -2,7 +2,8 @@
 
 \begin{document}
 
-\begin{figure*}[H]
+\begin{figure}[ht]
+    \centering
     \[\begin{array}{lrclr}
         \textrm{Ctx} & \Gamma  & ::= & \epsilon                    & \textrm{empty context} \\
                      &         &     & \Gamma, \typeJ{\alpha}{K}   & \textrm{type variable} \\
@@ -11,9 +12,9 @@
 
     \caption{Contexts}
     \label{fig:contexts_algorithmic_unrestricted}
-\end{figure*}
+\end{figure}
 
-\begin{figure*}[H]
+\begin{figure}[H]
     \judgmentdef{\(\hypJ{\Gamma}{\istermJ{M}{S}}\)}{In context $\Gamma$, term $M$ has normal type $S$}
 
     \begin{prooftree}
@@ -77,7 +78,13 @@
         \RightLabel{app}
         \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\app{L}{M}}{T}}\)}
     \end{prooftree}
+    \caption{Type Synthesis (Algorithmic, Unrestricted)}
+\end{figure}
 
+%% Break to improve figure layout
+
+\begin{figure}[H]
+  \ContinuedFloat
     \begin{prooftree}
         \alwaysNoLine
         \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in Figure \ref{fig:builtins}}
@@ -99,6 +106,6 @@
 
     \caption{Type Synthesis (Algorithmic, Unrestricted)}
     \label{fig:type_synthesis_algorithmic_unrestricted}
-\end{figure*}
+\end{figure}
 
 \end{document}

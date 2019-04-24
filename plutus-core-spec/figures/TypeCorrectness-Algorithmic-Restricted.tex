@@ -2,7 +2,7 @@
 
 \begin{document}
 
-\begin{figure*}[h]
+\begin{figure}[h]
     \judgmentdef{\(\hypJ{\Gamma}{\istermJ{M}{S}}\)}{In context $\Gamma$, term $M$ has normal type $S$}
 
     \begin{prooftree}
@@ -65,7 +65,13 @@
         \RightLabel{app}
         \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\app{L}{M}}{T}}\)}
     \end{prooftree}
+    \caption{Type Synthesis (Algorithmic, Restricted)}
+\end{figure}
 
+%% Break to improve figure layout
+
+\begin{figure}[h]
+\ContinuedFloat
     \begin{prooftree}
         \alwaysNoLine
         \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in Figure \ref{fig:builtins}}
@@ -86,17 +92,6 @@
 
     \caption{Type Synthesis (Algorithmic, Restricted)}
     \label{fig:type_synthesis_algorithmic_restricted}
-\end{figure*}
-
-
-
-
-
-
-
-
-
-
-
+\end{figure}
 
 \end{document}
