@@ -85,7 +85,7 @@ updateTypedBuiltinGen tbNew genX genTb tbOld
     | Just Refl <- tbNew `geq` tbOld = attachCoercedTerm tbOld genX
     | otherwise                      = genTb tbOld
 
--- | Update a sized typed built-ins generator by overwriting the generator for a certain built-in.
+-- | Update a typed built-ins generator by overwriting the generator for a certain built-in.
 updateTypedBuiltinGenStatic
     :: (Monad m, PrettyDynamic a)
     => TypedBuiltinStatic a  -- ^ A generator of which sized built-in to overwrite.
@@ -121,7 +121,7 @@ genTypedBuiltinFail tb = fail $ fold
     , prettyString tb
     ]
 
--- | A default sized built-ins generator that produces values in bounds seen in the spec.
+-- | A default built-ins generator that produces values in bounds seen in the spec.
 genTypedBuiltinDef :: Monad m => TypedBuiltinGenT m
 genTypedBuiltinDef
     = updateTypedBuiltinGenInt

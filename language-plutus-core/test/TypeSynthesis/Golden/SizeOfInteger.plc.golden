@@ -1,1 +1,0 @@
-(all s0 (size) (fun [(con integer) s0] [(con size) s0]))

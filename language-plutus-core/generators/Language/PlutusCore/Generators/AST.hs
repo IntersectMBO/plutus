@@ -41,7 +41,6 @@ genName = Name () <$> name' <*> int'
           isKw "all"        = True
           isKw "bytestring" = True
           isKw "integer"    = True
-          isKw "size"       = True
           isKw "type"       = True
           isKw "program"    = True
           isKw "con"        = True
