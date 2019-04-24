@@ -357,10 +357,6 @@ newtype ReflectT m a = ReflectT
         )
       deriving MonadTrans via ComposeT (ExceptT Text) (InnerT EvaluationResult)
 
--- -- GHC does not want to derive this for some reason.
--- instance MonadTrans ReflectT where
---     lift = ReflectT . lift . lift
-
 -- Uses the 'Alternative' instance of 'EvaluationResult'.
 instance Monad m => Alternative (ReflectT m) where
     empty = ReflectT . lift $ yield empty
