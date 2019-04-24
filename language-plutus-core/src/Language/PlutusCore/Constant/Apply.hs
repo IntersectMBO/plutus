@@ -42,7 +42,7 @@ data ConstAppError
       -- ^ A constant is applied to more arguments than needed in order to reduce.
       -- Note that this error occurs even if an expression is well-typed, because
       -- constant application is supposed to be computed as soon as there are enough arguments.
-    | StaticNonConstantConstAppError (Value TyName Name ())
+    | NonConstantConstAppError (Value TyName Name ())
     | UnreadableBuiltinConstAppError (Value TyName Name ()) Text
       -- ^ Could not construct denotation for a built-in.
     deriving (Show, Eq)
@@ -87,7 +87,7 @@ instance ( PrettyBy config (Constant ())
         [ "A constant applied to too many arguments:", "\n"
         , "Excess ones are: ", prettyBy config args
         ]
-    prettyBy config (StaticNonConstantConstAppError arg)      = fold
+    prettyBy config (NonConstantConstAppError arg)      = fold
         [ "An argument to a builtin type is not a constant:", "\n"
         , prettyBy config arg
         ]
@@ -129,7 +129,7 @@ extractBuiltin
 extractBuiltin (TypedBuiltinStatic tbs) value =
     return $ case value of
         Constant () constant -> extractStaticBuiltin tbs constant
-        _                    -> ConstAppError $ StaticNonConstantConstAppError value
+        _                    -> ConstAppError $ NonConstantConstAppError value
 extractBuiltin TypedBuiltinDyn                   value =
     readDynamicBuiltinM value <&> \conv -> case runExceptT conv of
         EvaluationFailure            -> ConstAppFailure
