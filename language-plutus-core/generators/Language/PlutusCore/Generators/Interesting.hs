@@ -8,7 +8,6 @@ module Language.PlutusCore.Generators.Interesting
     ( TermGen
     , genOverapplication
     , factorial
-    , applyFactorial
     , genFactorial
     , genNaiveFib
     , genNatRoundtrip
@@ -113,13 +112,6 @@ naiveFib = runQuote $ do
             , Var () i0
             ]
 
--- | Apply some factorial function to its 'Integer' argument.
--- This function exist, because we have another implementation via dynamic built-ins
--- and want to compare it to the direct implementation from the above.
-applyFactorial :: Term TyName Name () -> Integer -> Term TyName Name ()
-applyFactorial fact iv = Apply () fact i where
-    i    = Constant () $ BuiltinInt () iv
-
 -- | Generate a term that computes the factorial of an @integer@ and return it
 -- along with the factorial of the corresponding 'Integer' computed on the Haskell side.
 genFactorial :: TermGen Integer
@@ -127,7 +119,7 @@ genFactorial = do
     let m = 10
         typedIntS = TypedBuiltinSized TypedBuiltinSizedInt
     iv <- Gen.integral $ Range.linear 1 m
-    let term = applyFactorial factorial iv
+    let term = Apply () factorial (makeIntConstant iv)
     return . TermOf term . TypedBuiltinValue typedIntS $ Prelude.product [1..iv]
 
 -- | Generate a term that computes the ith Fibonacci number and return it

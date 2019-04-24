@@ -54,8 +54,8 @@ test_dynamicFactorial :: TestTree
 test_dynamicFactorial =
     testCase "dynamicFactorial" $ do
         let env = insertDynamicBuiltinNameDefinition dynamicFactorialDefinition mempty
-            lhs = typecheckEvaluateCek env $ applyFactorial dynamicFactorial 10
-            rhs = typecheckEvaluateCek mempty $ applyFactorial factorial 10
+            lhs = typecheckEvaluateCek env $ Apply () dynamicFactorial (makeIntConstant 10)
+            rhs = typecheckEvaluateCek mempty $ Apply () factorial (makeIntConstant 10)
         assertBool "type checks" $ isRight lhs
         lhs @?= rhs
 
