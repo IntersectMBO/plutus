@@ -33,7 +33,7 @@ data Denotation object r = forall a. Denotation
     , _denotationItself :: a                              -- ^ The denotation of the object.
                                                           -- E.g. the denotation of 'AddInteger' is '(+)'.
     , _denotationScheme :: TypeScheme a r                 -- ^ The 'TypeScheme' of the object.
-                                                          -- See 'sizeIntIntInt' for example.
+                                                          -- See 'intIntInt' for example.
     }
 
 -- | A member of a 'DenotationContext'.

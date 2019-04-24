@@ -36,13 +36,13 @@ import           Data.Text                                      (Text)
 
 -- | The type of constant applications errors.
 data ConstAppError
-    = IllTypedConstAppError BuiltinSized (Constant ())
+    = IllTypedConstAppError BuiltinStatic (Constant ())
       -- ^ A mismatch between the type of an argument function expects and its actual type.
     | ExcessArgumentsConstAppError [Value TyName Name ()]
       -- ^ A constant is applied to more arguments than needed in order to reduce.
       -- Note that this error occurs even if an expression is well-typed, because
       -- constant application is supposed to be computed as soon as there are enough arguments.
-    | SizedNonConstantConstAppError (Value TyName Name ())
+    | NonConstantConstAppError (Value TyName Name ())
     | UnreadableBuiltinConstAppError (Value TyName Name ()) Text
       -- ^ Could not construct denotation for a built-in.
     deriving (Show, Eq)
@@ -87,8 +87,8 @@ instance ( PrettyBy config (Constant ())
         [ "A constant applied to too many arguments:", "\n"
         , "Excess ones are: ", prettyBy config args
         ]
-    prettyBy config (SizedNonConstantConstAppError arg)      = fold
-        [ "A non-constant argument of a sized type: "
+    prettyBy config (NonConstantConstAppError arg)      = fold
+        [ "An argument to a builtin type is not a constant:", "\n"
         , prettyBy config arg
         ]
     prettyBy config (UnreadableBuiltinConstAppError arg err) = fold
@@ -111,25 +111,25 @@ instance ( PrettyBy config (Constant ())
 makeConstAppResult :: TypedBuiltinValue a -> ConstAppResultDef
 makeConstAppResult = maybe ConstAppFailure ConstAppSuccess . makeBuiltin
 
--- | Convert a PLC constant into the corresponding Haskell value and also return its size.
--- Checks that the constant is of a given type and there are no size mismatches.
-extractSizedBuiltin
-    :: TypedBuiltinSized a -> Constant () -> ConstAppResult a
-extractSizedBuiltin TypedBuiltinSizedInt (BuiltinInt () int) = ConstAppSuccess int
-extractSizedBuiltin TypedBuiltinSizedBS  (BuiltinBS  () bs ) = ConstAppSuccess bs
-extractSizedBuiltin tbs                  constant            = ConstAppError $ IllTypedConstAppError (eraseTypedBuiltinSized tbs) constant
+-- | Convert a PLC constant into the corresponding Haskell value.
+-- Checks that the constant is of a given type.
+extractStaticBuiltin
+    :: TypedBuiltinStatic a -> Constant () -> ConstAppResult a
+extractStaticBuiltin TypedBuiltinStaticInt (BuiltinInt () int) = ConstAppSuccess int
+extractStaticBuiltin TypedBuiltinStaticBS  (BuiltinBS  () bs ) = ConstAppSuccess bs
+extractStaticBuiltin tbs                  constant            = ConstAppError $ IllTypedConstAppError (eraseTypedBuiltinStatic tbs) constant
 
 -- | Convert a PLC constant (unwrapped from 'Value') into the corresponding Haskell value.
--- Checks that the constant is of a given built-in type and there are no size mismatches.
+-- Checks that the constant is of a given built-in type.
 extractBuiltin
     :: Monad m
     => TypedBuiltin a
     -> Value TyName Name ()
     -> Evaluate m (ConstAppResult a)
-extractBuiltin (TypedBuiltinSized tbs) value =
+extractBuiltin (TypedBuiltinStatic tbs) value =
     return $ case value of
-        Constant () constant -> extractSizedBuiltin tbs constant
-        _                    -> ConstAppError $ SizedNonConstantConstAppError value
+        Constant () constant -> extractStaticBuiltin tbs constant
+        _                    -> ConstAppError $ NonConstantConstAppError value
 extractBuiltin TypedBuiltinDyn                   value =
     readDynamicBuiltinM value <&> \conv -> case runExceptT conv of
         EvaluationFailure            -> ConstAppFailure
@@ -137,9 +137,7 @@ extractBuiltin TypedBuiltinDyn                   value =
         EvaluationSuccess (Right x ) -> ConstAppSuccess x
 
 -- | Convert a PLC constant (unwrapped from 'Value') into the corresponding Haskell value.
--- Checks that the constant is of a given type and there are no size mismatches.
--- Updates 'SizeValues' along the way, so if a new size variable is encountered,
--- it'll be added to 'SizeValues' along with its value.
+-- Checks that the constant is of a given type.
 extractSchemed
     :: Monad m
     => TypeScheme a r
@@ -150,7 +148,7 @@ extractSchemed (TypeSchemeArrow _ _)   _     = error "Not implemented."
 extractSchemed (TypeSchemeAllType _ _) _     = error "Not implemented."
 
 -- | Apply a function with a known 'TypeScheme' to a list of 'Constant's (unwrapped from 'Value's).
--- Checks that the constants are of expected types and there are no size mismatches.
+-- Checks that the constants are of expected types.
 applyTypeSchemed
     :: Monad m
     => TypeScheme a r -> a -> [Value TyName Name ()] -> Evaluate m ConstAppResultDef
@@ -162,10 +160,6 @@ applyTypeSchemed = go where
         -> [Value TyName Name ()]
         -> Evaluate m ConstAppResultDef
     go (TypeSchemeBuiltin tb)      y args = case args of  -- Computed the result.
-        -- This is where all the size checks prescribed by the specification happen.
-        -- We instantiate the size variable of a final 'TypedBuiltin' to its value and call
-        -- 'makeConstAppResult' which performs the final size check before converting
-        -- a Haskell value to the corresponding PLC one.
         [] -> return . makeConstAppResult $ TypedBuiltinValue tb y
         _  -> return . ConstAppError $ ExcessArgumentsConstAppError args     -- Too many arguments.
     go (TypeSchemeAllType _ schK)  f args =
@@ -180,14 +174,14 @@ applyTypeSchemed = go where
                 go schB (f x) args'
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Constant's (unwrapped from 'Value's)
--- Checks that the constants are of expected types and there are no size mismatches.
+-- Checks that the constants are of expected types.
 applyTypedBuiltinName
     :: Monad m
     => TypedBuiltinName a r -> a -> [Value TyName Name ()] -> Evaluate m ConstAppResultDef
 applyTypedBuiltinName (TypedBuiltinName _ schema) = applyTypeSchemed schema
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Constant's (unwrapped from 'Value's)
--- Checks that the constants are of expected types and there are no size mismatches.
+-- Checks that the constants are of expected types.
 applyBuiltinName
     :: Monad m
     => BuiltinName -> [Value TyName Name ()] -> Evaluate m ConstAppResultDef

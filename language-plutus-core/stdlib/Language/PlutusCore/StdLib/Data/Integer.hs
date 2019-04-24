@@ -6,7 +6,7 @@ module Language.PlutusCore.StdLib.Data.Integer
     ( succInteger
     ) where
 
-import           Language.PlutusCore.Constant.Make (makeDynBuiltinInt)
+import           Language.PlutusCore.Constant.Make (makeIntConstant)
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
@@ -22,5 +22,5 @@ succInteger = runQuote $ do
         . lamAbs () i (TyBuiltin () TyInteger)
         . mkIterApp () (builtin () $ BuiltinName () AddInteger)
         $ [ var () i
-          , makeDynBuiltinInt 1
+          , makeIntConstant 1
           ]
