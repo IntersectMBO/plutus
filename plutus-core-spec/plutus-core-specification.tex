@@ -1,4 +1,4 @@
-%% Plutus Core Specification
+% Plutus Core Specification
 \title{Formal Specification of\\the Plutus Core Language (version 2.0) }
 \date{24th April 2019}
 
@@ -308,9 +308,9 @@ has been expanded out, and use only the binary form. Implementations
 may use the multi-argument forms.
 
 
-\subfile{figures/PlutusCoreLexicalGrammar}
+\subfile{figures/LexicalGrammar}
 
-\subfile{figures/PlutusCoreGrammar}
+\subfile{figures/Grammar}
 
 \newcommand\fixtype[1]{\mu\,\alpha.#1}  % Just for talking about the fix operator in the notes.
 
@@ -810,7 +810,7 @@ execution begins.  Figure~\ref{fig:type-reduction} contains the rules
 for type reduction, and Figure~\ref{fig:type-equivalence} contains
 rules for type equivalence.
 
-\subfile{figures/PlutusCoreTypeReduction}
+\subfile{figures/TypeReduction}
 
 
 \newpage
@@ -820,7 +820,7 @@ non-terminating) reduction of well-typed terms.  The reduction rules
 are contained in Figure~\ref{fig:term-reduction}, and give us a fairly
 standard operational semantics.  
 
-\subfile{figures/PlutusCoreTermReduction}
+\subfile{figures/TermReduction}
 
 \subsection{An abstract machine for evaluating Plutus Core programs}
 This section contains a description of an abstract machine for
@@ -840,7 +840,7 @@ practice we would use something based on such a machine; however, the
 CK machine will still provide a useful bridge for formalisation
 purposes.
 
-\subfile{figures/PlutusCoreCkMachine}
+\subfile{figures/CkMachine}
 
 \noindent The machine alternates between two main phases: the
 \textit{compute} phase ($\triangleright$), where it recurses down
@@ -913,7 +913,7 @@ at some time in the future.
   Compilers targeting Plutus Core must be aware of these encodings and
   use them appropriately.
 \end{itemize}
-\subfile{figures/PlutusCoreBuiltins}
+\subfile{figures/Builtins}
 
 \section{Transaction Validation}
 The primary use for Plutus Core is for executing code on blockchain
@@ -972,7 +972,7 @@ section.
 
 \section{Examples}
 
-\subfile{figures/PlutusCoreExampleAgain}
+\subfile{figures/ValidatorExample}
 
 %\section{Erasure}
 
@@ -998,7 +998,7 @@ here, showing the figures that have been changed (relative to the
 declarative version above), and highlighting the specific parts of
 each rule that is different, where possible.
 
-\subfile{figures/PlutusCoreTypeCorrectness-Algorithmic-Unrestricted.tex}
+\subfile{figures/TypeCorrectness-Algorithmic-Unrestricted.tex}
 
 
 \newpage
@@ -1016,11 +1016,11 @@ are additions with respect to the unrestricted version, and show only
 the new or changed figures and their respective highlighted
 differences.
 
-\subfile{figures/PlutusCoreGrammar-Algorithmic-Restricted.tex}
+\subfile{figures/Grammar-Algorithmic-Restricted.tex}
 
-\subfile{figures/PlutusCoreReduction-Algorithmic-Restricted.tex}
+\subfile{figures/Reduction-Algorithmic-Restricted.tex}
 
-\subfile{figures/PlutusCoreTypeCorrectness-Algorithmic-Restricted.tex}
+\subfile{figures/TypeCorrectness-Algorithmic-Restricted.tex}
 
 \end{appendices}
 
