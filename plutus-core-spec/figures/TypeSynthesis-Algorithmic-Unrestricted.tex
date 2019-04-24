@@ -2,7 +2,8 @@
 
 \begin{document}
 
-\begin{figure*}[h]
+\begin{figure}[ht]
+    \centering
     \[\begin{array}{lrclr}
         \textrm{Ctx} & \Gamma  & ::= & \epsilon                    & \textrm{empty context} \\
                      &         &     & \Gamma, \typeJ{\alpha}{K}   & \textrm{type variable} \\
@@ -10,10 +11,10 @@
     \end{array}\]
 
     \caption{Contexts}
-    \label{fig:Plutus_core_contexts_algorithmic_unrestricted}
-\end{figure*}
+    \label{fig:contexts_algorithmic_unrestricted}
+\end{figure}
 
-\begin{figure*}[h]
+\begin{figure}[H]
     \judgmentdef{\(\hypJ{\Gamma}{\istermJ{M}{S}}\)}{In context $\Gamma$, term $M$ has normal type $S$}
 
     \begin{prooftree}
@@ -23,9 +24,9 @@
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{$cn$ has constant signature $\constsig{tcn}{s}$ in Figure \ref{fig:Plutus_core_constants}}
+        \AxiomC{$cn$ has constant signature $\constsig{tcn}$ in Figure \ref{fig:constants}}
         \RightLabel{con}
-        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{cn}{\conT{tcn}{s}}}\)}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{cn}{\conT{tcn}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
@@ -77,10 +78,16 @@
         \RightLabel{app}
         \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\app{L}{M}}{T}}\)}
     \end{prooftree}
+    \caption{Type Synthesis (Algorithmic, Unrestricted)}
+\end{figure}
 
+%% Break to improve figure layout
+
+\begin{figure}[H]
+  \ContinuedFloat
     \begin{prooftree}
         \alwaysNoLine
-        \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in Figure \ref{fig:Plutus_core_builtins}}
+        \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in Figure \ref{fig:builtins}}
         \UnaryInfC{\(\diffbox{\typeMultistep{\subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{B_i}}{T_i}}\)}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M_i}{\diffbox{T'_i}}}\)}
         \UnaryInfC{\(\diffbox{\typeEqual{T_i}{T'_i}}\)}
@@ -98,18 +105,7 @@
     \end{prooftree}
 
     \caption{Type Synthesis (Algorithmic, Unrestricted)}
-    \label{fig:Plutus_core_type_synthesis_algorithmic_unrestricted}
-\end{figure*}
-
-
-
-
-
-
-
-
-
-
-
+    \label{fig:type_synthesis_algorithmic_unrestricted}
+\end{figure}
 
 \end{document}
