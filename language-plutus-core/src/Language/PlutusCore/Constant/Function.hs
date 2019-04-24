@@ -7,7 +7,6 @@ module Language.PlutusCore.Constant.Function
     (eraseTypedBuiltinStatic
     , typedBuiltinStaticToType
     , withTypedBuiltinStatic
-    --, withTypedBuiltin
     , typedBuiltinToType
     , typeSchemeToType
     , dynamicBuiltinNameMeaningToType
