@@ -30,7 +30,7 @@ import           Language.PlutusTx.Lift
 import           Web.HttpApiData            (FromHttpApiData (..), ToHttpApiData (..))
 
 fromHex :: BSL.ByteString -> LedgerBytes
-fromHex = LedgerBytes . Builtins.SizedByteString . asBSLiteral
+fromHex = LedgerBytes . asBSLiteral
     where
 
     handleChar :: Word8 -> Word8
@@ -57,14 +57,14 @@ fromHex = LedgerBytes . Builtins.SizedByteString . asBSLiteral
 -- | 'Bultins.SizedByteString 32' with various useful JSON and
 --   servant instances for the Playground, and a convenient bridge
 --   type for PureScript.
-newtype LedgerBytes = LedgerBytes { getLedgerBytes :: Builtins.SizedByteString 32 } -- TODO: use strict bytestring
+newtype LedgerBytes = LedgerBytes { getLedgerBytes :: Builtins.ByteString } -- TODO: use strict bytestring
     deriving (Eq, Ord, Serialise, Generic)
 
 bytes :: LedgerBytes -> BSL.ByteString
-bytes = Builtins.unSizedByteString . getLedgerBytes
+bytes = getLedgerBytes
 
 fromBytes :: BSL.ByteString -> LedgerBytes
-fromBytes = LedgerBytes . Builtins.SizedByteString
+fromBytes = LedgerBytes
 
 instance IsString LedgerBytes where
     fromString = fromHex . fromString

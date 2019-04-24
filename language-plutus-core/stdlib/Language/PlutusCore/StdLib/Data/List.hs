@@ -181,43 +181,38 @@ reverse = runQuote $ do
 
 -- | 'enumFromTo' as a PLC term
 --
--- > /\(s :: size) -> (n m : integer s) ->
--- >     fix {integer s} {list (integer s)}
--- >         (\(rec : integer s -> list (integer s)) (n' : integer s) ->
--- >             ifThenElse {list (integer s)}
--- >                 (greaterThanInteger {integer s} n' m)
--- >                 (nil {integer s})
--- >                 (cons {integer s} n' (rec (succInteger {s} n'))))
+-- > \(n m : integer) ->
+-- >     fix {integer} {list (integer)}
+-- >         (\(rec : integer -> list (integer)) (n' : integer) ->
+-- >             ifThenElse {list (integer)}
+-- >                 (greaterThanInteger n' m)
+-- >                 (nil {integer})
+-- >                 (cons {integer} n' (rec (succInteger n'))))
 -- >         n
 enumFromTo :: TermLike term TyName Name => term ()
 enumFromTo = runQuote $ do
     let list = _recursiveType listData
-    s   <- freshTyName () "s"
     n   <- freshName () "n"
     m   <- freshName () "m"
     rec <- freshName () "rec"
     n'  <- freshName () "n'"
     u   <- freshName () "u"
     let gtInteger  = builtin () $ BuiltinName () GreaterThanInteger
-        int = TyApp () (TyBuiltin () TyInteger) $ TyVar () s
+        int = TyBuiltin () TyInteger
         listInt = TyApp () list int
     return
-        . tyAbs () s (Size ())
         . lamAbs () n int
         . lamAbs () m int
         . mkIterApp () (mkIterInst () fix [int, listInt])
         $ [   lamAbs () rec (TyFun () int listInt)
             . lamAbs () n' int
             . mkIterApp () (tyInst () ifThenElse listInt)
-            $ [ mkIterApp () (tyInst () gtInteger $ TyVar () s)
-                    [ var () n'
-                    , var () m
-                    ]
+            $ [ mkIterApp () gtInteger [ var () n' , var () m]
               , lamAbs () u unit $ tyInst () nil int
               , lamAbs () u unit $ mkIterApp () (tyInst () cons int)
                     [ var () n'
                     ,    apply () (var () rec)
-                       . apply () (tyInst () succInteger (TyVar () s))
+                       . apply () succInteger
                        $ var () n'
                     ]
               ]
@@ -226,38 +221,22 @@ enumFromTo = runQuote $ do
 
 -- |  'sum' as a PLC term.
 --
--- > /\(s :: *) -> \(ss : size s) ->
--- >     foldList {integer s} {integer s} (addInteger {s}) (resizeInteger {1} {s} ss 1!0)
+-- > foldList {integer} {integer} addInteger 0
 sum :: TermLike term TyName Name => term ()
 sum = runQuote $ do
-    s  <- freshTyName () "s"
-    ss <- freshName () "ss"
-    let sv  = TyVar () s
-        int = TyApp () (TyBuiltin () TyInteger) sv
-        add = tyInst () (builtin () (BuiltinName () AddInteger)) sv
+    let int = TyBuiltin () TyInteger
+        add = builtin () (BuiltinName () AddInteger)
     return
-        . tyAbs () s (Size ())
-        . lamAbs () ss (TyApp () (TyBuiltin () TySize) sv)
         . mkIterApp () (mkIterInst () foldList [int, int])
-        $ [ add
-          , makeDynBuiltinInt sv (var () ss) 0
-          ]
+        $ [ add , makeDynBuiltinInt 0]
 
 -- |  'product' as a PLC term.
 --
--- > /\(s :: *) -> \(ss : size s) ->
--- >     foldList {integer s} {integer s} (multiplyInteger {s}) (resizeInteger {1} {s} ss 1!1)
+-- > foldList {integer} {integer} multiplyInteger 1
 product :: TermLike term TyName Name => term ()
 product = runQuote $ do
-    s  <- freshTyName () "s"
-    ss <- freshName () "ss"
-    let sv  = TyVar () s
-        int = TyApp () (TyBuiltin () TyInteger) sv
-        mul = tyInst () (builtin () (BuiltinName () MultiplyInteger)) sv
+    let int = TyBuiltin () TyInteger
+        mul = builtin () (BuiltinName () MultiplyInteger)
     return
-        . tyAbs () s (Size ())
-        . lamAbs () ss (TyApp () (TyBuiltin () TySize) sv)
         . mkIterApp () (mkIterInst () foldList [int, int])
-        $ [ mul
-          , makeDynBuiltinInt sv (var () ss) 1
-          ]
+        $ [ mul , makeDynBuiltinInt 1]

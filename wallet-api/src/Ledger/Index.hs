@@ -34,7 +34,6 @@ import qualified Data.Map             as Map
 import           Data.Semigroup       (Semigroup)
 import qualified Data.Set             as Set
 import           GHC.Generics         (Generic)
-import qualified Language.PlutusTx.Builtins as Builtins
 import qualified Ledger.Slot          as Slot
 import           Ledger.Crypto
 import           Ledger.Blockchain
@@ -95,7 +94,7 @@ data ValidationError =
     | SignatureMissing PubKey
     -- ^ The transaction is missing a signature
     | ForgeWithoutScript Validation.ValidatorHash
-    -- ^ The transaction attempts to forge value of a currency without spending 
+    -- ^ The transaction attempts to forge value of a currency without spending
     --   a script output from the address of the currency's monetary policy.
     deriving (Eq, Show, Generic)
 
@@ -133,7 +132,7 @@ validateTransaction h t = do
     -- see note [Forging of Ada]
     emptyUtxoSet <- reader (Map.null . getIndex)
     _ <- unless emptyUtxoSet (checkForgingAuthorised t)
-    
+
     _ <- checkValidInputs t
     insert t <$> ask
 
@@ -169,24 +168,24 @@ the blockchain.
 
 -}
 
--- | Check whether each currency forged by the transaction is matched by 
+-- | Check whether each currency forged by the transaction is matched by
 --   a corresponding monetary policy script (in the form of a pay-to-script
 --   output of the currency's address).
 --
 checkForgingAuthorised :: ValidationMonad m => Tx -> m ()
 checkForgingAuthorised tx =
-    let 
-        forgedCurrencies = 
-            Builtins.unSizedByteString . V.unCurrencySymbol <$> V.symbols (txForge tx)
+    let
+        forgedCurrencies =
+            V.unCurrencySymbol <$> V.symbols (txForge tx)
 
-        spendsOutput i = 
+        spendsOutput i =
             let spentAddresses = Set.map inAddress (txInputs tx) in
             Set.member i spentAddresses
 
         forgedWithoutScript = filter (not . spendsOutput) forgedCurrencies
 
     in
-        traverse_ (throwError . ForgeWithoutScript . Validation.ValidatorHash . Builtins.SizedByteString) forgedWithoutScript
+        traverse_ (throwError . ForgeWithoutScript . Validation.ValidatorHash) forgedWithoutScript
 
 -- | A matching pair of transaction input and transaction output, ensuring that they are of matching types also.
 data InOutMatch =
@@ -201,14 +200,14 @@ data InOutMatch =
 
 -- | Match a transaction input with the output that it consumes, ensuring that
 --   both are of the same type (pubkey or pay-to-script).
-matchInputOutput :: ValidationMonad m 
-    => TxId 
+matchInputOutput :: ValidationMonad m
+    => TxId
     -- ^ Hash of the transaction that is being verified
-    -> Map.Map PubKey Signature 
+    -> Map.Map PubKey Signature
     -- ^ Signatures provided with the transaction
-    -> TxIn 
+    -> TxIn
     -- ^ Input that allegedly spends the output
-    -> TxOut 
+    -> TxOut
     -- ^ The unspent transaction output we are trying to unlock
     -> m InOutMatch
 matchInputOutput txid mp i txo = case (txInType i, txOutType txo) of

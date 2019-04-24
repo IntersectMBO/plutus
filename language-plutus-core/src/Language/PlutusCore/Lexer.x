@@ -62,7 +62,6 @@ tokens :-
     <0> all                      { mkKeyword KwAll }
     <0> bytestring               { mkKeyword KwByteString }
     <0> integer                  { mkKeyword KwInteger }
-    <0> size                     { mkKeyword KwSize }
     <0> type                     { mkKeyword KwType }
     <0> program                  { mkKeyword KwProgram }
     <0> con                      { mkKeyword KwCon }
@@ -84,17 +83,14 @@ tokens :-
     <0> greaterThanInteger       { mkBuiltin GreaterThanInteger }
     <0> greaterThanEqualsInteger { mkBuiltin GreaterThanEqInteger }
     <0> equalsInteger            { mkBuiltin EqInteger }
-    <0> resizeInteger            { mkBuiltin ResizeInteger }
     <0> intToByteString          { mkBuiltin IntToByteString }
     <0> concatenate              { mkBuiltin Concatenate }
     <0> takeByteString           { mkBuiltin TakeByteString }
     <0> dropByteString           { mkBuiltin DropByteString }
     <0> equalsByteString         { mkBuiltin EqByteString }
-    <0> resizeByteString         { mkBuiltin ResizeByteString }
     <0> "sha2_256"               { mkBuiltin SHA2 }
     <0> "sha3_256"               { mkBuiltin SHA3 }
     <0> verifySignature          { mkBuiltin VerifySignature }
-    <0> sizeOfInteger            { mkBuiltin SizeOfInteger }
 
     -- Various special characters
     <0> "("                      { mkSpecial OpenParen }
@@ -102,7 +98,6 @@ tokens :-
     <0> "["                      { mkSpecial OpenBracket }
     <0> "]"                      { mkSpecial CloseBracket }
     <0> "."                      { mkSpecial Dot }
-    <0> "!"                      { mkSpecial Exclamation }
     <0> "{"                      { mkSpecial OpenBrace }
     <0> "}"                      { mkSpecial CloseBrace }
 

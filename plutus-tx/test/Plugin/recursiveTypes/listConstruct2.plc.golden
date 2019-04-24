@@ -9,9 +9,6 @@
         (vardecl Nil [List a]) (vardecl Cons (fun a (fun [List a] [List a])))
       )
     )
-    [
-      [ { Cons [(con integer) (con 8)] } (con 8 ! 1) ]
-      { Nil [(con integer) (con 8)] }
-    ]
+    [ [ { Cons (con integer) } (con 1) ] { Nil (con integer) } ]
   )
 )

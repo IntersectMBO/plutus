@@ -126,7 +126,6 @@ reservedWords =
     , "all"
     , "bytestring"
     , "integer"
-    , "size"
     , "type"
     , "program"
     , "con"
@@ -181,9 +180,6 @@ builtinVar = PLC.BuiltinName <$> getSourcePos <*> builtinName
 integer :: Parser Integer
 integer = lexeme $ Lex.signed (return ()) Lex.decimal
 
-natural :: Parser Natural
-natural = lexeme Lex.decimal
-
 hexChar :: Parser Char
 hexChar = toLower <$> oneOf (['0' .. '9'] ++ ['a' .. 'f'] ++ ['A' .. 'F'])
 
@@ -200,12 +196,6 @@ hexPair = do
 bytestring :: Parser BSL.ByteString
 bytestring = lexeme $ BSL.pack <$> (char '#' >> many hexPair)
 
-size :: Parser Natural
-size = lexeme $ do
-    i <- Lex.decimal
-    option () $ void $ reservedWord "bytes"
-    return i
-
 version :: Parser (PLC.Version SourcePos)
 version = lexeme $ do
     p <- getSourcePos
@@ -215,17 +205,13 @@ version = lexeme $ do
     void $ char '.'
     PLC.Version p x y <$> Lex.decimal
 
-handleInteger :: SourcePos -> Natural -> Integer -> Parser (PLC.Constant SourcePos)
-handleInteger pos s i = case PLC.makeBuiltinInt s i of
-    Nothing -> customFailure $ Overflow s i
-    Just bi -> pure $ pos <$ bi
+handleInteger :: SourcePos -> Integer -> Parser (PLC.Constant SourcePos)
+handleInteger pos i = pure $ pos <$ PLC.makeBuiltinInt i
 
 constant :: Parser (PLC.Constant SourcePos)
 constant = do
     p <- getSourcePos
-    s <- size
-    (char '!' >> whitespace >> (handleInteger p s =<< integer) <|> (PLC.BuiltinBS p s <$> bytestring))
-        <|> (notFollowedBy (char '!') >> (pure $ PLC.BuiltinSize p s))
+    (handleInteger p =<< integer) <|> (PLC.BuiltinBS p  <$> bytestring)
 
 recursivity :: Parser Recursivity
 recursivity = inParens $ (reservedWord "rec" >> return Rec) <|> (reservedWord "nonrec" >> return NonRec)
@@ -246,10 +232,8 @@ conType :: Parser (Type TyName SourcePos)
 conType = reservedWord "con" >> builtinType
 
 builtinType :: Parser (Type TyName SourcePos)
-builtinType = TyBuiltin <$> reservedWord "size" <*> return PLC.TySize
-    <|> TyBuiltin <$> reservedWord "integer" <*> return PLC.TyInteger
+builtinType = TyBuiltin <$> reservedWord "integer" <*> return PLC.TyInteger
     <|> TyBuiltin <$> reservedWord "bytestring" <*> return PLC.TyByteString
-    <|> TyInt <$> getSourcePos <*> natural
 
 appType :: Parser (Type TyName SourcePos)
 appType = do
@@ -259,10 +243,9 @@ appType = do
     pure $ foldl' (TyApp pos) fn args
 
 kind :: Parser (Kind SourcePos)
-kind = inParens (typeKind <|> sizeKind <|> funKind)
+kind = inParens (typeKind <|> funKind)
     where
         typeKind = Type <$> reservedWord "type"
-        sizeKind = Size <$> reservedWord "size"
         funKind  = KindArrow <$> reservedWord "fun" <*> kind <*> kind
 
 typ :: Parser (Type TyName SourcePos)

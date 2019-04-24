@@ -12,11 +12,7 @@ module Language.PlutusCore.Generators.Internal.Entity
     ( PlcGenT
     , IterAppValue(..)
     , runPlcT
-    , genSizeIn
-    , genSizeDef
-    , genSizeFrom
     , genBuiltinSized
-    , genBuiltin
     , withTypedBuiltinGen
     , withCheckedTermGen
     , genIterAppValue
@@ -46,13 +42,11 @@ import           Data.Functor.Compose
 import           Data.Text.Prettyprint.Doc
 import           Hedgehog                                                hiding (Size, Var)
 import qualified Hedgehog.Gen                                            as Gen
-import qualified Hedgehog.Range                                          as Range
 import           System.IO.Unsafe
 
 -- | Generators of built-ins supplied to computations that run in the 'PlcGenT' monad.
-data BuiltinGensT m = BuiltinGensT
-    { _builtinGensSize  :: GenT m Size         -- ^ Generates a 'Size'.
-    , _builtinGensTyped :: TypedBuiltinGenT m  -- ^ Generates a PLC 'Term' and the corresponding
+newtype BuiltinGensT m = BuiltinGensT
+    { _builtinGensTyped :: TypedBuiltinGenT m  -- ^ Generates a PLC 'Term' and the corresponding
                                                -- Haskell value out of a 'TypedBuiltin'.
     }
 
@@ -68,7 +62,7 @@ type PlcGenT m = GenT (ReaderT (BuiltinGensT m) m)
 data IterAppValue head arg r = IterAppValue
     { _iterTerm :: Term TyName Name ()       -- ^ As a PLC 'Term'.
     , _iterApp  :: IterApp head arg          -- ^ As an 'IterApp'.
-    , _iterTbv  :: TypedBuiltinValue Size r  -- ^ As a Haskell value.
+    , _iterTbv  :: TypedBuiltinValue r       -- ^ As a Haskell value.
     }
 
 instance ( PrettyBy config (Term TyName Name ())
@@ -82,8 +76,8 @@ instance ( PrettyBy config (Term TyName Name ())
         ]
 
 -- | Run a 'PlcGenT' computation by supplying built-ins generators.
-runPlcT :: Monad m => GenT m Size -> TypedBuiltinGenT m -> PlcGenT m a -> GenT m a
-runPlcT genSize genTb = hoistSupply $ BuiltinGensT genSize genTb
+runPlcT :: Monad m => TypedBuiltinGenT m -> PlcGenT m a -> GenT m a
+runPlcT genTb = hoistSupply $ BuiltinGensT genTb
 
 -- | Get a 'TermOf' out of an 'IterAppValue'.
 iterAppValueToTermOf :: IterAppValue head arg r -> TermOf r
@@ -95,53 +89,35 @@ revealUnique :: Name a -> Name a
 revealUnique (Name ann name uniq) =
     Name ann (name <> (prettyText $ unUnique uniq)) uniq
 
--- | Generate a size from bounds.
-genSizeIn :: Monad m => Size -> Size -> GenT m Size
-genSizeIn = Gen.integral .* Range.linear
-
--- | Generate a size using the default range of @[2..4]@.
-genSizeDef :: Monad m => GenT m Size
-genSizeDef = genSizeIn 2 4
-
--- | Either return a size taken from a 'TypedBuiltinSized' or generate one using 'genSizeDef'.
-genSizeFrom :: Monad m => TypedBuiltin Size a -> GenT m Size
-genSizeFrom (TypedBuiltinSized sizeEntry _) = return $ flattenSizeEntry sizeEntry
-genSizeFrom _                               = genSizeDef
-
 -- | Generate a 'BuiltinSized'.
 genBuiltinSized :: Monad m => GenT m BuiltinSized
-genBuiltinSized = Gen.element [BuiltinSizedInt, BuiltinSizedBS, BuiltinSizedSize]
-
--- | Generate a 'Builtin'.
-genBuiltin :: Monad m => GenT m Size -> GenT m (BuiltinType size)
-genBuiltin genSize = BuiltinSized . SizeValue <$> genSize <*> genBuiltinSized
+genBuiltinSized = Gen.element [BuiltinSizedInt, BuiltinSizedBS]
 
 -- | Generate a 'Builtin' and supply its typed version to a continuation.
 withTypedBuiltinGen
-    :: Monad m => GenT m Size -> (forall a. TypedBuiltin size a -> GenT m c) -> GenT m c
-withTypedBuiltinGen genSize k = genBuiltin genSize >>= \b -> withTypedBuiltin b k
+    :: Monad m => (forall a. TypedBuiltin a -> GenT m c) -> GenT m c
+withTypedBuiltinGen k = genBuiltinSized >>= \b -> withTypedBuiltinSized b (k . TypedBuiltinSized)
 
 -- | Generate a 'Term' along with the value it computes to,
 -- having a generator of terms of built-in types.
 withCheckedTermGen
     :: Monad m
     => TypedBuiltinGenT m
-    -> (forall a. TypedBuiltin Size a -> Maybe (TermOf (Value TyName Name ())) -> GenT m c)
+    -> (forall a. TypedBuiltin a -> Maybe (TermOf (Value TyName Name ())) -> GenT m c)
     -> GenT m c
 withCheckedTermGen genTb k =
-    withTypedBuiltinGen genSizeDef $ \tb -> do
+    withTypedBuiltinGen $ \tb -> do
         termWithMetaValue <- genTb tb
         let mayTermWithValue = unsafeTypeEvalCheck $ TypedBuiltinValue tb <$> termWithMetaValue
         k tb mayTermWithValue
 
 -- | Generate a 'TermOf' out of a 'TypeScheme'.
-genSchemedTermOf :: Monad m => TypeScheme Size a r -> PlcGenT m (TermOf a)
+genSchemedTermOf :: Monad m => TypeScheme a r -> PlcGenT m (TermOf a)
 genSchemedTermOf (TypeSchemeBuiltin tb)  = do
-    BuiltinGensT _ genTb <- ask
+    BuiltinGensT genTb <- ask
     liftT $ genTb tb
 genSchemedTermOf (TypeSchemeArrow _ _)   = error "Not implemented."
 genSchemedTermOf (TypeSchemeAllType _ _) = error "Not implemented."
-genSchemedTermOf (TypeSchemeAllSize _)   = error "Not implemented."
 
 -- | Generate an 'IterAppValue' from a 'Denotation'.
 -- If the 'Denotation' has a functional type, then all arguments are generated and
@@ -153,13 +129,13 @@ genSchemedTermOf (TypeSchemeAllSize _)   = error "Not implemented."
 --   3. feed arguments to the Haskell function
 genIterAppValue
     :: forall head r m. Monad m
-    => Denotation head Size r
+    => Denotation head r
     -> PlcGenT m (IterAppValue head (Term TyName Name ()) r)
 genIterAppValue (Denotation object toTerm meta scheme) = result where
     result = Gen.just $ go scheme (toTerm object) id meta
 
     go
-        :: TypeScheme Size c r
+        :: TypeScheme c r
         -> Term TyName Name ()
         -> ([Term TyName Name ()] -> [Term TyName Name ()])
         -> c
@@ -180,12 +156,6 @@ genIterAppValue (Denotation object toTerm meta scheme) = result where
         go schB term' args' y
     go (TypeSchemeAllType _ schK)  term args f =
         go (schK TypedBuiltinDyn) term args f
-    go (TypeSchemeAllSize schK)    term args f = do
-        BuiltinGensT genSize _ <- ask
-        size <- liftT genSize                       -- Generate a size.
-        let term' = TyInst () term $ TyInt () size  -- Instantiate the term with the generated size.
-        go (schK size) term' args f                 -- Instantiate a size variable with the
-                                                    -- generated size.
 
 -- | Generate a PLC 'Term' of the specified type and the corresponding Haskell value.
 -- Generates first-order functions and constants including constant applications.
@@ -198,26 +168,19 @@ genTerm
     -> Int                     -- ^ Depth of recursion.
     -> TypedBuiltinGenT m
 genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0 where
-    go :: DenotationContext -> Int -> TypedBuiltin Size r -> GenT (QuoteT m) (TermOf r)
+    go :: DenotationContext -> Int -> TypedBuiltin r -> GenT (QuoteT m) (TermOf r)
     go context depth tb
-        | depth == 0 = choiceDef (liftT $ genBase tb) variables
+        -- FIXME: should be using 'variables' but this is now the same as 'recursive'
+        | depth == 0 = choiceDef (liftT $ genBase tb) []
         | depth == 1 = choiceDef (liftT $ genBase tb) $ variables ++ recursive
         | depth == 2 = Gen.frequency $ stopOrDeeper ++ map (3 ,) variables ++ map (5 ,) recursive
         | depth == 3 = Gen.frequency $ stopOrDeeper ++ map (3 ,) recursive
         | otherwise  = Gen.frequency stopOrDeeper
         where
             stopOrDeeper = [(1, liftT $ genBase tb), (5, lambdaApply)]
-            -- Instantiate all size variables with '()'.
-            desizedTb = mapSizeEntryTypedBuiltin (\_ -> SizeBound ()) tb
             -- Generators of built-ins to feed them to 'genIterAppValue'.
-            -- Note that we currently generate the same size over and over again (see 'genSizeFrom').
-            -- We could also generate distinct sizes and use 'ResizeInteger'. That's a TODO probably.
-            -- We could do unification and generate sizes for uninstantiate variables.
-            -- That would be cool, but it's not trivial.
-            -- Generating size variables would be nice too, but that's way too complicated.
             -- Note that the typed built-ins generator calls 'go' recursively.
-            genSize = genSizeFrom tb
-            builtinGens = BuiltinGensT (genSizeFrom tb) (flip Gen.subterm id . go context (depth - 1))
+            builtinGens = BuiltinGensT (flip Gen.subterm id . go context (depth - 1))
             -- Generate arguments for functions recursively or return a variable.
             proceed (DenotationContextMember denotation) =
                 fmap iterAppValueToTermOf . hoistSupply builtinGens $ genIterAppValue denotation
@@ -225,21 +188,15 @@ genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0 whe
             -- has a type that ends in the same type as the one that 'tb\'' represents.
             lookupInContext tb' = foldMap getCompose . DMap.lookup tb' $ unDenotationContext context
             -- A list of variables generators.
-            variables = map proceed . lookupInContext $ closeTypedBuiltin tb
-            -- A list of recursive generators. We use 'desizedTb' instead of just 'tb'
-            -- in order to make e.g. 'integer 2' unifiable with 'integer s' for universally
-            -- quantified 's'. For this we simply instantiate all variables with '()' in
-            -- the type, a term of which we're currently generating, and look that type up in
-            -- the current context where universally quantified variable are already
-            -- instantiate to '()' (which happens at the insertion phase, see 'insertTypedBuiltinName')
-            recursive = map proceed $ lookupInContext desizedTb
+            variables = map proceed . lookupInContext $ tb
+            -- A list of recursive generators.
+            recursive = map proceed $ lookupInContext tb
             -- Generate a lambda and immediately apply it to a generated argument of a generated type.
-            lambdaApply = withTypedBuiltinGen genSize $ \argTb -> do
-                let argTyTb = mapSizeTypedBuiltin (\_ -> TyBuiltin () TySize) argTb
+            lambdaApply = withTypedBuiltinGen $ \argTb -> do
                 -- Generate a name for the name representing the argument.
                 name  <- lift $ revealUnique <$> freshName () "x"
                 -- Get the 'Type' of the argument from a generated 'TypedBuiltin'.
-                let argTy = typedBuiltinToType argTyTb
+                let argTy = typedBuiltinToType argTb
                 -- Generate the argument.
                 TermOf arg  x <- go context (depth - 1) argTb
                 -- Generate the body of the lambda abstraction adding the new variable to the context.
@@ -251,11 +208,11 @@ genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0 whe
 -- | Generates a 'Term' with rather small values to make out-of-bounds failures less likely.
 -- There are still like a half of terms that fail with out-of-bounds errors being evaluated.
 genTermLoose :: Monad m => TypedBuiltinGenT m
-genTermLoose = genTerm genTypedBuiltinSmall typedBuiltinNames 4
+genTermLoose = genTerm genTypedBuiltinDef typedBuiltinNames 4
 
 -- | Generate a 'TypedBuiltin' and a 'TermOf' of the corresponding type,
 -- attach the 'TypedBuiltin' to the value part of the 'TermOf' and pass that to a continuation.
 withAnyTermLoose
-    :: Monad m => (forall a. TermOf (TypedBuiltinValue Size a) -> GenT m c) -> GenT m c
+    :: Monad m => (forall a. TermOf (TypedBuiltinValue a) -> GenT m c) -> GenT m c
 withAnyTermLoose k =
-    withTypedBuiltinGen genSizeDef $ \tb -> genTermLoose tb >>= k . fmap (TypedBuiltinValue tb)
+    withTypedBuiltinGen $ \tb -> genTermLoose tb >>= k . fmap (TypedBuiltinValue tb)

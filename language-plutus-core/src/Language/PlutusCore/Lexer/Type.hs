@@ -27,7 +27,6 @@ import           Numeric                            (showHex)
 -- | A builtin type
 data TypeBuiltin = TyByteString
                  | TyInteger
-                 | TySize
                  | TyString
                  deriving (Show, Eq, Ord, Generic, NFData, Lift)
 
@@ -44,49 +43,15 @@ data BuiltinName = AddInteger
                  | GreaterThanInteger
                  | GreaterThanEqInteger
                  | EqInteger
-                 | ResizeInteger
                  | IntToByteString
                  | Concatenate
                  | TakeByteString
                  | DropByteString
-                 | ResizeByteString
                  | SHA2
                  | SHA3
                  | VerifySignature
                  | EqByteString
-                 -- See Note [sizeOfInteger].
-                 | SizeOfInteger
                  deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Lift)
-
-{- Note [sizeOfInteger]
-The 'sizeOfInteger' built-in is a later addition. The main motivation for adding it is that it
-allows to pass fewer singleton sizes around. However less boilerplate is not the only advantage,
-'sizeOfInteger' also allows to treat built-in functions and user-defined ones similarly.
-Consider the 'addInteger' built-in: it has the following type signature (PLCish pseudocode):
-
-    addInteger : forall s. integer s -> integer s -> integer s
-
-We know that @integer s@ determines the @s@ and hence do not require an additional singleton size.
-We could have @succInteger@ with a similar type signature:
-
-    succInteger : forall s. integer s -> integer s
-
-However without 'sizeOfInteger' we can't define 'succInteger' inside the language without requiring
-an additional singleton size. A previous definition without 'sizeOfInteger':
-
-    /\(s :: size) -> \(ss : size s) (i : integer s) ->
-        addInteger {s} i (resizeInteger {1} {s} ss 1!1)
-
-So we have this metaknowledge that @integer s@ determines the @s@, but without an additional primitive
-cannot communicate this to Plutus Core and pay by passing a lot of sizes around. The current definition:
-
-    /\(s :: size) -> \(i : integer s) ->
-        addInteger {s} i (resizeInteger {1} {s} (sizeOfInteger {s} i) 1!1)
-
-which has the desired type signature:
-
-    succInteger : forall s. integer s -> integer s
--}
 
 -- | The type of dynamic built-in functions. I.e. functions that exist on certain chains and do
 -- not exist on others. Each 'DynamicBuiltinName' has an associated type and operational semantics --
@@ -113,7 +78,6 @@ data Keyword = KwAbs
              | KwAll
              | KwByteString
              | KwInteger
-             | KwSize
              | KwType
              | KwProgram
              | KwCon
@@ -176,7 +140,6 @@ instance Pretty Keyword where
     pretty KwAll        = "forall"
     pretty KwByteString = "bytestring"
     pretty KwInteger    = "integer"
-    pretty KwSize       = "size"
     pretty KwType       = "type"
     pretty KwProgram    = "program"
     pretty KwCon        = "con"
@@ -208,17 +171,14 @@ instance Pretty BuiltinName where
     pretty GreaterThanInteger   = "greaterThanInteger"
     pretty GreaterThanEqInteger = "greaterThanEqualsInteger"
     pretty EqInteger            = "equalsInteger"
-    pretty ResizeInteger        = "resizeInteger"
     pretty IntToByteString      = "intToByteString"
     pretty Concatenate          = "concatenate"
     pretty TakeByteString       = "takeByteString"
     pretty DropByteString       = "dropByteString"
-    pretty ResizeByteString     = "resizeByteString"
     pretty EqByteString         = "equalsByteString"
     pretty SHA2                 = "sha2_256"
     pretty SHA3                 = "sha3_256"
     pretty VerifySignature      = "verifySignature"
-    pretty SizeOfInteger        = "sizeOfInteger"
 
 instance Pretty DynamicBuiltinName where
     pretty (DynamicBuiltinName n) = pretty n
@@ -230,7 +190,6 @@ instance Pretty StagedBuiltinName where
 instance Pretty TypeBuiltin where
     pretty TyInteger    = "integer"
     pretty TyByteString = "bytestring"
-    pretty TySize       = "size"
     pretty TyString     = "string"
 
 instance Pretty (Version a) where

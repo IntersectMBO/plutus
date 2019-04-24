@@ -25,31 +25,27 @@ liftOrdering GT = GGT
 instance GEq TypedBuiltinSized where
     TypedBuiltinSizedInt  `geq` TypedBuiltinSizedInt  = Just Refl
     TypedBuiltinSizedBS   `geq` TypedBuiltinSizedBS   = Just Refl
-    TypedBuiltinSizedSize `geq` TypedBuiltinSizedSize = Just Refl
     _                     `geq` _                     = Nothing
 
-instance (Pretty size, Eq size) => GEq (TypedBuiltin size) where
-    TypedBuiltinSized size1 tbs1 `geq` TypedBuiltinSized size2 tbs2 = do
-        guard $ size1 == size2
-        tbs1 `geq` tbs2
+instance GEq TypedBuiltin where
+    TypedBuiltinSized tbs1 `geq` TypedBuiltinSized tbs2 = tbs1 `geq` tbs2
     dyn1@TypedBuiltinDyn         `geq` dyn2@TypedBuiltinDyn         = do
         guard $ prettyString dyn1 == prettyString dyn2
         Just $ unsafeCoerce Refl
     _                            `geq` _                            = Nothing
 
-instance (Pretty size, Ord size) => GCompare (TypedBuiltin size) where
+instance GCompare TypedBuiltin where
     tb1                          `gcompare` tb2
         | Just Refl <- tb1  `geq` tb2  = GEQ
-    TypedBuiltinSized size1 tbs1 `gcompare` TypedBuiltinSized size2 tbs2
-        | Just Refl <- tbs1 `geq` tbs2 = liftOrdering $ size1 `compare` size2
+    TypedBuiltinSized tbs1 `gcompare` TypedBuiltinSized tbs2
+        | Just Refl <- tbs1 `geq` tbs2 = GEQ
         | otherwise                    = case (tbs1, tbs2) of
             (TypedBuiltinSizedInt , _                    ) -> GLT
             (TypedBuiltinSizedBS  , TypedBuiltinSizedInt ) -> GGT
             (TypedBuiltinSizedBS  , _                    ) -> GLT
-            (TypedBuiltinSizedSize, _                    ) -> GGT
     dyn1@TypedBuiltinDyn         `gcompare` dyn2@TypedBuiltinDyn
         = liftOrdering $ prettyString dyn1 `compare` prettyString dyn2
-    TypedBuiltinSized _ _        `gcompare` TypedBuiltinDyn
+    TypedBuiltinSized _        `gcompare` TypedBuiltinDyn
         = GLT
-    TypedBuiltinDyn              `gcompare` TypedBuiltinSized _ _
+    TypedBuiltinDyn              `gcompare` TypedBuiltinSized _
         = GGT

@@ -1,7 +1,7 @@
 (program 0.1.0
-  (lam x [(con integer) (con 8)]
-    (lam y [(con integer) (con 8)]
-      [{(builtin addInteger) (con 8)} x y]
+  (lam x (con integer)
+    (lam y (con integer)
+      [(builtin addInteger) x y]
     )
   )
 )

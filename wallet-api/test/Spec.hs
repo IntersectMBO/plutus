@@ -95,7 +95,7 @@ tests = testGroup "all tests" [
         ],
     testGroup "Value" ([
         testProperty "Value ToJSON/FromJSON" (jsonRoundTrip Gen.genValue),
-        testProperty "CurrencySymbol ToJSON/FromJSON" (jsonRoundTrip $ Value.currencySymbol <$> Gen.genSizedByteStringExact),
+        testProperty "CurrencySymbol ToJSON/FromJSON" (jsonRoundTrip $ Value.currencySymbol <$> (Gen.genSizedByteStringExact 32)),
         testProperty "TokenName ToJSON/FromJSON" (jsonRoundTrip $ fromString @Value.TokenName <$> Gen.string (Range.linear 0 32) Gen.latin1),
         testProperty "CurrencySymbol IsString/Show" currencySymbolIsStringShow
         ] ++ (let   vlJson :: BSL.ByteString
@@ -236,7 +236,7 @@ invalidScript = property $ do
             -- note that although 'scriptTxn' is submitted by wallet 1, it
             -- may spend outputs belonging to one of the other two wallets.
             -- So we can't use 'signTxAndSubmit_' (because it would only attach
-            -- wallet 1's signatures). Instead, we get all the wallets' 
+            -- wallet 1's signatures). Instead, we get all the wallets'
             -- signatures with 'signAll'.
             walletAction wallet1 $ submitTxn (Gen.signAll scriptTxn)
             processPending
@@ -471,14 +471,14 @@ jsonRoundTrip gen = property $ do
 
 ledgerBytesShowFromHexProp :: Property
 ledgerBytesShowFromHexProp = property $ do
-    bts <- forAll $ LedgerBytes <$> Gen.genSizedByteString
+    bts <- forAll $ LedgerBytes <$> (Gen.genSizedByteString 32)
     let result = LedgerBytes.fromHex $ fromString $ show bts
-    
+
     Hedgehog.assert $ result == bts
 
 ledgerBytesToJSONProp :: Property
 ledgerBytesToJSONProp = property $ do
-    bts <- forAll $ LedgerBytes <$> Gen.genSizedByteString
+    bts <- forAll $ LedgerBytes <$> (Gen.genSizedByteString 32)
     let enc    = JSON.toJSON bts
         result = Aeson.iparse JSON.parseJSON enc
 
@@ -486,7 +486,7 @@ ledgerBytesToJSONProp = property $ do
 
 currencySymbolIsStringShow :: Property
 currencySymbolIsStringShow = property $ do
-    cs <- forAll $ Value.currencySymbol <$> Gen.genSizedByteStringExact
+    cs <- forAll $ Value.currencySymbol <$> (Gen.genSizedByteStringExact 32)
     let cs' = fromString (show cs)
     Hedgehog.assert $ cs' == cs
 
