@@ -88,7 +88,7 @@ instance ( PrettyBy config (Constant ())
         , "Excess ones are: ", prettyBy config args
         ]
     prettyBy config (SizedNonConstantConstAppError arg)      = fold
-        [ "A non-constant argument of a sized type: "
+        [ "An argument to a builtin type is not a constant:", "\n"
         , prettyBy config arg
         ]
     prettyBy config (UnreadableBuiltinConstAppError arg err) = fold
