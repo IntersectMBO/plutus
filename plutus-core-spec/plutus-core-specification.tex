@@ -78,7 +78,7 @@
 %%% Term Grammar
 
 \newcommand{\sig}[3]{[#1](#2)#3}
-\newcommand{\constsig}[2]{#1,#2}
+\newcommand{\constsig}[1]{#1}
 \newcommand{\con}[1]{\construct{\keyword{con} ~ #1}}
 \newcommand{\abs}[3]{\construct{\keyword{abs} ~ #1 ~ #2 ~ #3}}
 \newcommand{\inst}[2]{\texttt{\{}#1 ~ #2\texttt{\}}}
@@ -145,7 +145,7 @@
 \newcommand{\typeEquiv}[2]{#1 \equiv_{\mathit{ty}} #2}
 
 
-\newcommand{\inConTFrame}[1]{\conT{#1}{\_}}
+\newcommand{\inConTFrame}[1]{\conT{#1}}
 \newcommand{\inAppTLeftFrame}[1]{\appT{\_}{#1}}
 \newcommand{\inAppTRightFrame}[1]{\appT{#1}{\_}}
 \newcommand{\inFunTLeftFrame}[1]{\funT{\_}{#1}}
@@ -360,8 +360,8 @@ may use the multi-argument forms.
 \item $\fixT{A}{B}$ represents a recursive type: see the note in Section~\ref{sec:ifix-note} below for more information.
 \item $\lamT{\alpha}{K}{A}$ is abstraction of types over types, $\lambda \alpha{::}K.A$.
 \item $\appT{A}{B}$ is function application at the type level.
-\item $\conT{tcn}$ represents a built-in type: for example, $\conT{\textrm{integer}}{8}$
-is the type of 8-byte integers.  See Section~\ref{sec:builtins} for more information.
+\item $\conT{tcn}$ represents a built-in type: for example, $\conT{\textrm{integer}}$
+is the type of integers.  See Section~\ref{sec:builtins} for more information.
 \end{itemize}
 
 \paragraph{Type Values.} All types can be reduced to a type value (or
@@ -686,9 +686,9 @@ and builtins we have con, builtin and error.
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{$cn$ has constant signature $\constsig{tcn}{s}$ in Fig. \ref{fig:constants}}
+        \AxiomC{$cn$ has constant signature $\constsig{tcn}$ in Figure \ref{fig:constants}}
         \RightLabel{con}
-        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{cn}{\conT{tcn}{s}}}\)}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{cn}{\conT{tcn}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
@@ -742,7 +742,7 @@ and builtins we have con, builtin and error.
 
     \begin{prooftree}
         \alwaysNoLine
-        \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in Fig. \ref{fig:builtins}}
+        \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in Figure \ref{fig:builtins}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M_i}{D_i}}\)}
         \UnaryInfC{\(\typeEquiv{D_i}{\subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{B_i}}\)}
         \alwaysSingleLine
@@ -794,7 +794,7 @@ In the context of a blockchain system, it can be useful to also have a
 step indexed version of stepping, indicated by a superscript count of
 steps (\(\multistepIndexed{M}{n}{M'}\)). In order to prevent
 transaction validation from looping indefinitely, or from simply
-taking an inordinate amount of time, which would be a serious security
+taking an inordinate amount of time, which would be a serious
 flaw in the blockchain system, we can use step indexing to put an
 upper bound on the number of computational steps that a program can
 have. In this setting, we would pick some upper bound $\mathit{max}$
@@ -892,7 +892,7 @@ abbreviations given in Figure~\ref{fig:type_abbreviations}.
 Note the following:
 \begin{itemize}
 \item The built-in functions in Figure~\ref{fig:builtins}
-are all monomorphic, and hence the type arguments are all empty. 
+are all monomorphic, and hence the type arguments are all empty: []. 
 It is possible that we may add some polymorphic built-in functions
 at some time in the future.
 \item Some of the entries in Figure~\ref{fig:builtins}

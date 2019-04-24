@@ -14,8 +14,8 @@
 %   \centering
 \begin{subfigure}[c]{\linewidth}
     \[\begin{array}{lrclr}
-        \textrm{Type Frame} &\tf & ::= & \inConTFrame{tcn}                          & \textrm{type constant}\\
-                            &    &     & \inFunTLeftFrame{A}                        & \textrm{left arrow}\\
+        \textrm{Type Frame} &\tf & ::= %% & \inConTFrame{tcn}                          & \textrm{type constant}\\ This was here for sized types 
+                                       & \inFunTLeftFrame{A}                        & \textrm{left arrow}\\
                             &    &     & \inFunTRightFrame{S}                       & \textrm{right arrow}\\
                             &    &     & \inAllTFrame{\alpha}{K}                    & \textrm{all}\\
                             &	 &     & \inFixTLeftFrame{B}                        & \textrm{left fix}\\
@@ -105,7 +105,7 @@
 	\begin{prooftree}
 		\AxiomC{\(\typeEquiv{A}{A'}\)}
 		\RightLabel{cong}
-		\UnaryInfC{\(\typeEquiv{\ctxsubst{f}{A}}{\ctxsubst{f}{A'}}\)}
+		\UnaryInfC{\(\typeEquiv{\ctxsubst{tf}{A}}{\ctxsubst{tf}{A'}}\)}
 	\end{prooftree}
 	
 	
