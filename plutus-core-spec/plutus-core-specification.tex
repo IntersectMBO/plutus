@@ -1,9 +1,8 @@
 %% Plutus Core Specification
-%% Final version before removal of types
+\title{Formal Specification of\\the Plutus Core Language (version 2.0) }
+\date{24th April 2019}
 
 \documentclass[a4paper]{article}
-% Let's try full width text to see if it makes 
-% it easier to get figures in the right place
 
 \usepackage{blindtext, graphicx}
 \usepackage{url}
@@ -26,6 +25,8 @@
 \usepackage{subfiles}
 \usepackage{geometry}
 \usepackage{pdflscape}
+\usepackage[title]{appendix}
+
 
 % *** IMPORTS FOR PLUTUS LANGUAGE ***
 
@@ -84,7 +85,6 @@
 \newcommand{\unwrap}[1]{\construct{\keyword{unwrap} ~ #1}}
 \newcommand{\builtin}[3]{\construct{\keyword{builtin} ~ #1 ~ #2 ~ #3}}
 \newcommand{\error}[1]{\construct{\keyword{error} ~ #1}}
-\newcommand{\sizedBuiltin}[2]{#1\keyword{!}#2}
 
 
 
@@ -97,15 +97,13 @@
 \newcommand{\allT}[3]{\construct{\keyword{all} ~ #1 ~ #2 ~ #3}}
 \newcommand{\conIntegerType}[1]{\keyword{integer}}
 \newcommand{\conBytestringType}[1]{\keyword{bytestring}}
-\newcommand{\conSizeType}[1]{\keyword{size}}
 \newcommand{\builtinT}[2]{\construct{\keyword{builtin} ~ #1 ~ #2}}
-\newcommand{\conT}[2]{\construct{\keyword{con} ~ #1 ~ #2}}
+\newcommand{\conT}[1]{\construct{\keyword{con} ~ #1}}
 \newcommand{\lamT}[3]{\construct{\keyword{lam} ~ #1 ~ #2 ~ #3}}
 \newcommand{\appT}[2]{\texttt{[} #1 ~ #2 \texttt{]}}
 
 \newcommand{\typeK}{\construct{\keyword{type}}}
 \newcommand{\funK}[2]{\construct{\keyword{fun} ~ #1 ~ #2}}
-\newcommand{\sizeK}{\construct{\keyword{size}}}
 
 
 
@@ -179,7 +177,6 @@
 \newcommand\integer{\ensuremath{\mathit{integer}}}
 \newcommand\bytestring{\ensuremath{\mathit{bytestring}}}
 \newcommand\str{\ensuremath{\mathit{str}}}
-\newcommand\size{\ensuremath{\mathit{size}}}
 \newcommand\true{\ensuremath{\mathit{true}}}
 \newcommand\false{\ensuremath{\mathit{false}}}
 \newcommand\case{\ensuremath{\mathit{case}}}
@@ -187,14 +184,14 @@
 \newcommand\txhash{\ensuremath{\mathit{txhash}}}
 \newcommand\pubkey{\ensuremath{\mathit{pubkey}}}
 \newcommand\blocknum{\ensuremath{\mathit{blocknum}}}
-\newcommand\uniqmem[1]{#1^{\blacktriangledown}}  %% Unique member of size type
+%% \newcommand\uniqmem[1]{#1^{\blacktriangledown}}  %% Unique member of size type
+
 
 
 \begin{document}
 %
 % paper title
 % can use linebreaks \\ within to get better formatting as desired
-\title{Formal Specification of\\the Plutus Core Language (version 1.99) }
 
 %% 6.0: "User-friendly" version with lots of explication for the reader.
 %% 16th April 2019
@@ -259,20 +256,20 @@ costs.  If at any point during execution the amount of gas consumed
 exceeds the amount than has been paid for then the program is
 immediately terminated and the fee is forfeited.
 
-Because of these issues, it is important that the cost of on-chain
-code execution is easy to calculate, certainly during execution (so
-that gas consumption can be accounted for), but ideally also in
-advance so that a user has some idea of how much a contract is likely
-to cost and can make sure that they buy enough gas to allow their
-contract to run to completion.  The design of Plutus Core incorporates
-a number of features to facilitate cost analysis for this purpose,
-notably explicitly \textit{sized} types for integers and bytestrings.
-
-Resource limitations also preclude complicated on-chain code analysis
+Resource limitations preclude complicated on-chain code analysis
 and verification.  We perform type checking prior to execution of
 Plutus Core Code, but no other validation.  Type checking itself takes
 time and requires memory, so there is also a gas charge for on-chain
 type checking.
+
+%% Because of these issues, it is important that the cost of on-chain
+%% code execution is easy to calculate, certainly during execution (so
+%% that gas consumption can be accounted for), but ideally also in
+%% advance so that a user has some idea of how much a contract is likely
+%% to cost and can make sure that they buy enough gas to allow their
+%% contract to run to completion.  The design of Plutus Core incorporates
+%% a number of features to facilitate cost analysis for this purpose.
+
 
 \section{Syntax}
 
@@ -288,7 +285,7 @@ following lexemes are reserved as keywords for use in concrete syntax:
 \texttt{abs}, \texttt{all}, \texttt{builtin}, \texttt{bytestring},
 \texttt{con}, \texttt{error}, \texttt{fun}, \texttt{ifix},
 \texttt{integer}, \texttt{iwrap}, \texttt{lam}, \texttt{program},
-\texttt{size}, \texttt{type}, \texttt{unwrap}.  The only other lexemes
+\texttt{type}, \texttt{unwrap}.  The only other lexemes
 are round brackets $\texttt{(}\ldots\texttt{)}$, square brackets
 $\texttt{[}\ldots\texttt{]}$, and braces
 $\texttt{\{}\ldots\texttt{\}}$.  Spaces and tabs are allowed anywhere,
@@ -321,8 +318,8 @@ may use the multi-argument forms.
 \paragraph{Terms.}
 \begin{itemize}
 \item $\con{cn}$ represents a constant belonging to some built-in
-  type: for example \texttt{(con 4 ! 127)} is an integer of size 4 with
-    the value 127.  See Section~\ref{sec:builtins} for more on this.
+  type: for example \texttt{(con 4)} is an integer with the value 127.
+  See Section~\ref{sec:builtins} for more on this.
 \item $\abs{\alpha}{K}{V}$ represents a polymorphic value abstracted
   over a type; this would often be donated by $\Lambda\alpha{::}K.V$.
   Note that we require the body of the abstraction to be a
@@ -353,13 +350,12 @@ may use the multi-argument forms.
 \paragraph{Types.} Plutus Core contains a copy of the simply typed lambda calculus
   at the type level, together with a few extensions.
 \begin{itemize}
-\item Sizes $s$ are natural numbers used to enforce bounds on certain types of values: see below.
 \item $\funT{A}{B}$ is the type of functions from $A$ to $B$, $A \rightarrow B$.
 \item $\allT{\alpha}{K}{A}$ represents the type of a polymorphic term (eg a type abstraction), $\forall \alpha{::}K.A$.
 \item $\fixT{A}{B}$ represents a recursive type: see the note in Section~\ref{sec:ifix-note} below for more information.
 \item $\lamT{\alpha}{K}{A}$ is abstraction of types over types, $\lambda \alpha{::}K.A$.
 \item $\appT{A}{B}$ is function application at the type level.
-\item $\conT{tcn}{A}$ represents a built-in type, and $A$ will often be a size.  For example, $\conT{\textrm{integer}}{8}$
+\item $\conT{tcn}$ represents a built-in type: for example, $\conT{\textrm{integer}}{8}$
 is the type of 8-byte integers.  See Section~\ref{sec:builtins} for more information.
 \end{itemize}
 
@@ -379,10 +375,8 @@ is the type of 8-byte integers.  See Section~\ref{sec:builtins} for more informa
 simply typed lambda calculus at the type level. The types of the
 simply typed lambda calculus are lifted to the level of
 \textit{kinds} in Plutus Core, allowing the type system to talk about
-operations which themselves occur at the level of types. In addition
-to the standard kind \texttt{(type)} (usually written as $\star$), we
-have a kind \texttt{(size)} which allows us to deal with the sized
-types described below in Section~\ref{sec:size-note}.
+operations which themselves occur at the level of types.
+The basic kind (usually written as $\star$) is denoted by \texttt{(type)}.
 
 \paragraph{Signatures.}  A signature
 $$[\alpha_1::K_1, \ldots, \alpha_m::K_m](t_1, \ldots, t_n)u$$ represents
@@ -409,38 +403,36 @@ Plutus Core language.
  check that two types are equal.  This process can be expensive, so we
  require that code supplied for on-chain execution comes with all type
  annotations pre-normalised.  This can be done during off-chain type
- checking.  Another issue here is that normalisation can cause sizes
- to increase (in the worst case,
- exponentially, and requiring
- normalisation to be performed before a program is submitted to the
- chain facilitates prediction of on-chain
- costs.
+ checking.  Another issue here is that normalisation can cause the
+ size of a type to increase (in the worst case, exponentially), and
+ requiring normalisation to be performed before a program is submitted
+ to the chain reduces on-chain gas costs.
 
-\subsubsection{Sizes and built-in types and functions}
-\label{sec:size-note}
-Details of built-in types and functions are given
-in Section~\ref{sec:builtins}, but a remark on sizes may be helpful at this
-point.  Plutus Core currently provides two types of built-in data with
-variable sizes: integers and bytestrings (blocks of binary data used
-for cryptographic purposes).  There is no fixed upper bound on the
-size of values of these types, but -- as mentioned in the introduction -- it
-could be problematic if users were allowed to create values of arbitrary size 
-at runtime. To avoid this, sizes are tracked in the type system so that 
-appropriate charges can be made. 
+%% \subsubsection{Sizes and built-in types and functions}
+%% \label{sec:size-note}
+%% Details of built-in types and functions are given
+%% in Section~\ref{sec:builtins}, but a remark on sizes may be helpful at this
+%% point.  Plutus Core currently provides two types of built-in data with
+%% variable sizes: integers and bytestrings (blocks of binary data used
+%% for cryptographic purposes).  There is no fixed upper bound on the
+%% size of values of these types, but -- as mentioned in the introduction -- it
+%% could be problematic if users were allowed to create values of arbitrary size 
+%% at runtime. To avoid this, sizes are tracked in the type system so that 
+%% appropriate charges can be made. 
 
-For integers, this works as follows (the system for 
-bytestrings is similar).  Integers are signed values:
-there is no fixed upper bound, but values are represented as sequences
-of a specified number of 8-bit bytes.  For example, \texttt{1~!~100}
-is the integer 100 stored as a single byte.  Literal constants must
-fit into the specified size: \texttt{1~!~200} gives a compile-time
-error. If a value overflows at runtime then an error occurs and
-execution is terminated.  Integers are manipulated using built-in
-functions (see Figure~\ref{fig:Plutus_core_builtins}) whose types
-include the size. This prevents users from writing programs which
-generate arbitrarily large values during execution; it also allows us
-to charge according to the actual amount of computation performed,
-which will increase as the size of the integers involved increases.
+%% For integers, this works as follows (the system for 
+%% bytestrings is similar).  Integers are signed values:
+%% there is no fixed upper bound, but values are represented as sequences
+%% of a specified number of 8-bit bytes.  For example, \texttt{1~!~100}
+%% is the integer 100 stored as a single byte.  Literal constants must
+%% fit into the specified size: \texttt{1~!~200} gives a compile-time
+%% error. If a value overflows at runtime then an error occurs and
+%% execution is terminated.  Integers are manipulated using built-in
+%% functions (see Figure~\ref{fig:Plutus_core_builtins}) whose types
+%% include the size. This prevents users from writing programs which
+%% generate arbitrarily large values during execution; it also allows us
+%% to charge according to the actual amount of computation performed,
+%% which will increase as the size of the integers involved increases.
 
 
 \subsubsection{Recursive types}
@@ -502,8 +494,6 @@ abstractions include non-values; other issues are explored
 in~\cite[2.4]{Ahmed:2017}. Plutus Core's restriction to values avoids
 these problems and is not very onerous in practice.
   
-\newpage
-
 \section{Type Correctness}
 
 We define for Plutus Core a number of typing judgments which explain
@@ -627,12 +617,6 @@ support integers and bytestrings.
     \end{prooftree}
 
     \begin{prooftree}
-      \AxiomC{\(\validJ{\Gamma}\)}
-      \RightLabel{tysize}
-      \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{s}{\sizeK{}}}\)}
-    \end{prooftree}
-    
-    \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{K}}{\istypeJ{A}{\typeK{}}}\)}
         \RightLabel{tyall}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\allT{\alpha}{K}{A}}{\typeK{}}}\)}
@@ -666,10 +650,9 @@ support integers and bytestrings.
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{$tcn$ is a type constant in in Fig. \ref{fig:Plutus_core_type_constants}}
-        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\sizeK{}}}\)}
+        \AxiomC{$tcn$ is a type constant in in Figure \ref{fig:Plutus_core_type_constants}}
         \RightLabel{tycon}
-        \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\conT{tcn}{A}}{\typeK{}}}\)}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\conT{tcn}}{\typeK{}}}\)}
     \end{prooftree}
 
     \captionof{figure}{Kind Synthesis}
@@ -892,69 +875,44 @@ of built-ins is fixed, although in future we may provide a framework
 to allow customisation for specialised blockchains.
 
 As mentioned earlier, there are two basic types: \texttt{integer} and
-\texttt{bytestring}.  There is also a kind \texttt{(size)} which is
-used to track the sizes of objects.  For each natural number $s\ge0$
-there is a singleton type $\mathit{size}_s::\mathtt{(size)}$ with a
-unique member $s$.  Given such a type $t::\mathtt{(size)}$, we denote
-its unique member by $\uniqmem{t}$, so that $\uniqmem{\size_s} =
-s$. In the Plutus Core syntax the type $\mathit{size}_s$ is denoted by
-\texttt{(con size $s$)} and its unique member by \texttt{(con $s$)}.
-
-The \texttt{integer} type, in conjunction with \texttt{size}, provides
-integers of specified sizes, and the \texttt{bytestring} type provides
-sequences of bytes, again of specified sizes.  These types are given
-in Figure~\ref{fig:Plutus_core_type_constants}: for example
-\texttt{(con integer 10)} is the type of signed 10-byte integers.
-
-
-Terms of these types are written using the \texttt{!} character, as
-shown in Figure~\ref{fig:Plutus_core_constants}.  For example
-\texttt{10~!~12345} (written \texttt{(con 10~!~12345)} in the Plutus Core
-  concrete syntax)
-  is a ten-byte integer whose value is 12345 (and
-\texttt{1~!~12345} would cause an error), and \texttt{20~!~\#3ac29d873246f} 
-is a 20-byte bytestring containing the bytes
-shown\footnote{In fact, the bounds are upper bounds, not actual sizes:
-  in the current implementation, \texttt{(con 10~!~12345)} will only take up
-  the minimum space required, not the full 10 bytes.}.  We use the
-same syntax to denote expressions of appropriate types in
-Figure~\ref{fig:Plutus_core_builtins}.
-
+\texttt{bytestring}.  These types are given in
+Figure~\ref{fig:Plutus_core_type_constants}: for example \texttt{(con
+  integer)} is the type of signed integers.
 We provide standard arithmetic and comparison operations for integers
 and a number of list-like functions for bytestrings. The details are
 given in Figure~\ref{fig:Plutus_core_builtins}, using a number of
 abbreviations given in Figure~\ref{fig:Plutus_core_type_abbreviations}.
+
+
 Note the following:
 \begin{itemize}
-\item The signatures of the functions statically limit the way in
-  which sizes are used.  It is not possible to create values of
-  unlimited size at runtime.  If any function attempts to create a
-  value exceeding the expected size, an error will occur during execution.
-\item The types of some built-in functions involve sizes at both the
-  type level and the term level.  For example, \texttt{resizeInteger}
-  has the type
-
-  $$
-  \forall s_0::\mathit{size}\,.\,\forall s_1::\mathit{size}\,.\,\mathit{size}_{s_1}
-  \rightarrow \mathit{integer}_{s_0} \rightarrow \mathit{integer}_{s_1},
-  $$
-   and one might enlarge an integer from size 3 to size 5 by
-\begin{lstlisting}
- [{(builtin resizeInteger) (con size 3) (con size 5)}  (con 5) (con 3!200)].
-\end{lstlisting}
-
-\noindent The duplication of sizes is necessary because we require
-size information at the type level to facilitate gas calculations, and
-also at the term level so that the evaluator can check size bounds
-at runtime, after type information has been erased.
-
+\item The built-in functions in Figure~\ref{fig:Plutus_core_builtins}
+are all monomorphic, and hence the type arguments are all empty. 
+It is possible that we may add some polymorphic built-in functions
+at some time in the future.
+\item Some of the entries in Figure~\ref{fig:Plutus_core_builtins}
+  contain \textit{success conditions}.  If a success condition is
+  violated then the progam terminates immediately and returns
+  the value \texttt{(error)}.
+\item We provide two versions of the division and remainder operations
+  for integers.  These differ in their treatment of negative
+  arguments:
+  \begin{itemize}
+  \item \texttt{divideInteger} and \texttt{modInteger} implement the
+    standard mathematical integer division operations: \texttt{divideInteger}
+    rounds downwards and \texttt{modInteger} always produces a non-negative
+    result.  These correspond to Haskell's \texttt{div} and \texttt{mod} operators.
+  \item \texttt{quotientInteger} and \texttt{remainderInteger}
+    represent the operations found in many computer languages and CPUs:
+    \texttt{quotientInteger} rounds towards zero and \texttt{remainderInteger $a$ $b$}
+    will be non-negative if $a \ge 0$ and negative if $a < 0$.
+    These correspond to Haskell's \texttt{rem} and \texttt{quot} operators.
+  \end{itemize}
 \item We use fixed Scott encodings for certain types and values,
-  specifically for the \texttt{unit} and \texttt{boolean} types.
-Compilers targeting Plutus Core must be aware of these encodings and
-use them appropriately.
+  specifically for the \textit{unit} and \textit{boolean} types.
+  Compilers targeting Plutus Core must be aware of these encodings and
+  use them appropriately.
 \end{itemize}
-
-\vspace{2cm}
 \subfile{figures/PlutusCoreBuiltins}
 
 \section{Transaction Validation}
@@ -1030,8 +988,8 @@ section.
 
 %\subfile{figures/PlutusCoreExampleAgain}
 
-
-
+\newpage
+\begin{appendices}
 \section{Unrestricted Algorithmic Type System}
 
 For implementation purposes, it's useful to have a variant of the type
@@ -1043,7 +1001,7 @@ each rule that is different, where possible.
 \subfile{figures/PlutusCoreTypeCorrectness-Algorithmic-Unrestricted.tex}
 
 
-
+\newpage
 \section{Restricted Algorithmic Type System}
 
 For blockchain purposes, it is useful to not only have an algorithmic
@@ -1052,7 +1010,8 @@ programs, so as to reduce the amount of computation necessary to
 typecheck a program. It's also useful to have a way of bounding the
 amount of computation that can be done in type checking, for security
 purposes. To that end, we present a restricted grammar and type
-reduction, and a type system that reflects these. The figures below
+reduction, and a type system that reflects these.
+Figures~\ref{fig:Plutus_core_grammar_algorithmic_restricted}--\ref{fig:Plutus_core_type_synthesis_algorithmic_restricted}
 are additions with respect to the unrestricted version, and show only
 the new or changed figures and their respective highlighted
 differences.
@@ -1062,6 +1021,8 @@ differences.
 \subfile{figures/PlutusCoreReduction-Algorithmic-Restricted.tex}
 
 \subfile{figures/PlutusCoreTypeCorrectness-Algorithmic-Restricted.tex}
+
+\end{appendices}
 
 \bibliographystyle{plain} %% ... or whatever
 \bibliography{plutus-core-specification}

@@ -2,7 +2,7 @@
 
 \begin{document}
 
-\begin{figure*}[h]
+\begin{figure*}[H]
     \[\begin{array}{lrclr}
         \textrm{Ctx} & \Gamma  & ::= & \epsilon                    & \textrm{empty context} \\
                      &         &     & \Gamma, \typeJ{\alpha}{K}   & \textrm{type variable} \\
@@ -13,7 +13,7 @@
     \label{fig:Plutus_core_contexts_algorithmic_unrestricted}
 \end{figure*}
 
-\begin{figure*}[h]
+\begin{figure*}[H]
     \judgmentdef{\(\hypJ{\Gamma}{\istermJ{M}{S}}\)}{In context $\Gamma$, term $M$ has normal type $S$}
 
     \begin{prooftree}
@@ -100,16 +100,5 @@
     \caption{Type Synthesis (Algorithmic, Unrestricted)}
     \label{fig:Plutus_core_type_synthesis_algorithmic_unrestricted}
 \end{figure*}
-
-
-
-
-
-
-
-
-
-
-
 
 \end{document}
