@@ -85,28 +85,28 @@ updateTypedBuiltinGen tbNew genX genTb tbOld
     | Just Refl <- tbNew `geq` tbOld = attachCoercedTerm tbOld genX
     | otherwise                      = genTb tbOld
 
--- | Update a sized typed built-ins generator by overwriting the generator for a certain built-in.
-updateTypedBuiltinGenSized
+-- | Update a typed built-ins generator by overwriting the generator for a certain built-in.
+updateTypedBuiltinGenStatic
     :: (Monad m, PrettyDynamic a)
-    => TypedBuiltinSized a  -- ^ A generator of which sized built-in to overwrite.
+    => TypedBuiltinStatic a  -- ^ A generator of which sized built-in to overwrite.
     -> GenT m a             -- ^ A new generator
     -> TypedBuiltinGenT m   -- ^ An old typed built-ins generator.
     -> TypedBuiltinGenT m   -- ^ The updated typed built-ins generator.
-updateTypedBuiltinGenSized tbsNew genX genTb tbOld = case tbOld of
-    TypedBuiltinSized tbsOld | Just Refl <- tbsNew `geq` tbsOld -> attachCoercedTerm tbOld genX
-    _                                                           -> genTb tbOld
+updateTypedBuiltinGenStatic tbsNew genX genTb tbOld = case tbOld of
+    TypedBuiltinStatic tbsOld | Just Refl <- tbsNew `geq` tbsOld -> attachCoercedTerm tbOld genX
+    _                                                            -> genTb tbOld
 
 -- | Update a typed built-ins generator by overwriting the @integer@s generator.
 updateTypedBuiltinGenInt
     :: Monad m
     => GenT m Integer -> TypedBuiltinGenT m -> TypedBuiltinGenT m
-updateTypedBuiltinGenInt = updateTypedBuiltinGenSized TypedBuiltinSizedInt
+updateTypedBuiltinGenInt = updateTypedBuiltinGenStatic TypedBuiltinStaticInt
 
 -- | Update a typed built-ins generator by overwriting the @bytestring@s generator.
 updateTypedBuiltinGenBS
     :: Monad m
     => GenT m BSL.ByteString -> TypedBuiltinGenT m -> TypedBuiltinGenT m
-updateTypedBuiltinGenBS = updateTypedBuiltinGenSized TypedBuiltinSizedBS
+updateTypedBuiltinGenBS = updateTypedBuiltinGenStatic TypedBuiltinStaticBS
 
 -- | Update a typed built-ins generator by overwriting the @boolean@s generator.
 updateTypedBuiltinGenBool
@@ -121,7 +121,7 @@ genTypedBuiltinFail tb = fail $ fold
     , prettyString tb
     ]
 
--- | A default sized built-ins generator that produces values in bounds seen in the spec.
+-- | A default built-ins generator that produces values in bounds seen in the spec.
 genTypedBuiltinDef :: Monad m => TypedBuiltinGenT m
 genTypedBuiltinDef
     = updateTypedBuiltinGenInt

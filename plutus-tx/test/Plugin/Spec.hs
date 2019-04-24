@@ -62,7 +62,7 @@ primitives :: TestNested
 primitives = testNested "primitives" [
     goldenPir "string" string
   , goldenPir "int" int
-  , goldenPir "int2" int
+  , goldenPir "int2" int2
   , goldenPir "bool" bool
   , goldenPir "and" andPlc
   , goldenEval "andApply" [ getProgram $ andPlc, getProgram $ plc @"T" True, getProgram $ plc @"F" False ]
@@ -82,9 +82,8 @@ primitives = testNested "primitives" [
   --, goldenPlc "blocknum" blocknumPlc
   , goldenPir "emptyByteString" emptyByteString
   , goldenEval "emptyByteStringApply" [ getPlc emptyByteString, unsafeLiftProgram (Builtins.emptyByteString) ]
-  , goldenPir "bytestring32" bytestring32
-  , goldenPir "bytestring64" bytestring64
-  , goldenEval "bytestring32Apply" [ getPlc bytestring32, unsafeLiftProgram ("hello"::Builtins.ByteString) ]
+  , goldenPir "bytestring" bytestring
+  , goldenEval "bytestringApply" [ getPlc bytestring, unsafeLiftProgram ("hello"::Builtins.ByteString) ]
   , goldenEval "sha2_256" [ getPlc sha2, unsafeLiftProgram ("hello" :: Builtins.ByteString)]
   , goldenEval "equalsByteString" [ getPlc bsEquals, unsafeLiftProgram ("hello" :: Builtins.ByteString), unsafeLiftProgram ("hello" :: Builtins.ByteString)]
   , goldenPir "verify" verify
@@ -143,11 +142,8 @@ ifThenElse = plc @"ifThenElse" (\(x::Int) (y::Int) -> if Builtins.equalsInteger 
 emptyByteString :: CompiledCode (Builtins.ByteString -> Builtins.ByteString)
 emptyByteString = plc @"emptyByteString" (\(x :: Builtins.ByteString) -> x)
 
-bytestring32 :: CompiledCode (Builtins.ByteString -> Builtins.ByteString)
-bytestring32 = plc @"bytestring32" (\(x::Builtins.ByteString) -> x)
-
-bytestring64 :: CompiledCode (Builtins.ByteString -> Builtins.ByteString)
-bytestring64 = plc @"bytestring64" (\(x::Builtins.ByteString) -> x)
+bytestring :: CompiledCode (Builtins.ByteString -> Builtins.ByteString)
+bytestring = plc @"bytestring" (\(x::Builtins.ByteString) -> x)
 
 sha2 :: CompiledCode (Builtins.ByteString -> Builtins.ByteString)
 sha2 = plc @"sha2" (\(x :: Builtins.ByteString) -> Builtins.sha2_256 x)

@@ -12,8 +12,8 @@
 {-# LANGUAGE TypeApplications          #-}
 
 module Language.PlutusCore.Constant.Typed
-    ( BuiltinSized (..)
-    , TypedBuiltinSized (..)
+    ( BuiltinStatic (..)
+    , TypedBuiltinStatic (..)
     , TypedBuiltin (..)
     , TypedBuiltinValue (..)
     , TypeScheme (..)
@@ -26,7 +26,7 @@ module Language.PlutusCore.Constant.Typed
     , Convert
     , KnownDynamicBuiltinType (..)
     , OpaqueTerm (..)
-    , eraseTypedBuiltinSized
+    , eraseTypedBuiltinStatic
     , runEvaluate
     , withEvaluator
     , readDynamicBuiltinM
@@ -52,22 +52,22 @@ import           GHC.TypeLits
 
 infixr 9 `TypeSchemeArrow`
 
--- | Built-in types indexed by @size@.
-data BuiltinSized
-    = BuiltinSizedInt
-    | BuiltinSizedBS
+-- | Static built-in types.
+data BuiltinStatic
+    = BuiltinStaticInt
+    | BuiltinStaticBS
     deriving (Show, Eq)
 
--- | Built-in types indexed by @size@ along with their denotation.
-data TypedBuiltinSized a where
-    TypedBuiltinSizedInt  :: TypedBuiltinSized Integer
-    TypedBuiltinSizedBS   :: TypedBuiltinSized BSL.ByteString
+-- | Static built-in types along with their denotation.
+data TypedBuiltinStatic a where
+    TypedBuiltinStaticInt  :: TypedBuiltinStatic Integer
+    TypedBuiltinStaticBS   :: TypedBuiltinStatic BSL.ByteString
 
 -- | Built-in types. A type is considired "built-in" if it can appear in the type signature
 -- of a primitive operation. So @boolean@ is considered built-in even though it is defined in PLC
 -- and is not primitive.
 data TypedBuiltin a where
-    TypedBuiltinSized :: TypedBuiltinSized a -> TypedBuiltin a
+    TypedBuiltinStatic :: TypedBuiltinStatic a -> TypedBuiltin a
     -- Any type that implements 'KnownDynamicBuiltinType' can be lifted to a 'TypedBuiltin',
     -- because any such type has a PLC representation and provides conversions back and forth
     -- between Haskell and PLC and that's all we need.
@@ -118,10 +118,10 @@ data TypedBuiltinName a r = TypedBuiltinName BuiltinName (TypeScheme a r)
 -- I attempted to unify various typed things, but sometimes type variables must be universally
 -- quantified, sometimes they must be existentially quatified. And those are distinct type variables.
 
--- | Convert a 'TypedBuiltinSized' to its untyped counterpart.
-eraseTypedBuiltinSized :: TypedBuiltinSized a -> BuiltinSized
-eraseTypedBuiltinSized TypedBuiltinSizedInt = BuiltinSizedInt
-eraseTypedBuiltinSized TypedBuiltinSizedBS  = BuiltinSizedBS
+-- | Convert a 'TypedBuiltinStatic' to its untyped counterpart.
+eraseTypedBuiltinStatic :: TypedBuiltinStatic a -> BuiltinStatic
+eraseTypedBuiltinStatic TypedBuiltinStaticInt = BuiltinStaticInt
+eraseTypedBuiltinStatic TypedBuiltinStaticBS  = BuiltinStaticBS
 
 {- Note [DynamicBuiltinNameMeaning]
 We represent the meaning of a 'DynamicBuiltinName' as a 'TypeScheme' and a Haskell denotation.
@@ -292,21 +292,21 @@ newtype OpaqueTerm (text :: Symbol) (unique :: Nat) = OpaqueTerm
     { unOpaqueTerm :: Term TyName Name ()
     }
 
-instance Pretty BuiltinSized where
-    pretty BuiltinSizedInt = "integer"
-    pretty BuiltinSizedBS  = "bytestring"
+instance Pretty BuiltinStatic where
+    pretty BuiltinStaticInt = "integer"
+    pretty BuiltinStaticBS  = "bytestring"
 
-instance Pretty (TypedBuiltinSized a) where
-    pretty = pretty . eraseTypedBuiltinSized
+instance Pretty (TypedBuiltinStatic a) where
+    pretty = pretty . eraseTypedBuiltinStatic
 
 instance Pretty (TypedBuiltin a) where
-    pretty (TypedBuiltinSized tbs) = parens $ pretty tbs
+    pretty (TypedBuiltinStatic tbs) = parens $ pretty tbs
     -- TODO: do we want this entire thing to be 'PrettyBy' rather than 'Pretty'?
     -- This is just used in errors, so we probably do not care much.
-    pretty dyn@TypedBuiltinDyn     = prettyPlcDef $ toTypeEncoding dyn
+    pretty dyn@TypedBuiltinDyn      = prettyPlcDef $ toTypeEncoding dyn
 
 instance (PrettyDynamic a) => Pretty (TypedBuiltinValue a) where
-    pretty (TypedBuiltinValue (TypedBuiltinSized _) x)    = prettyDynamic x
+    pretty (TypedBuiltinValue (TypedBuiltinStatic _) x)   = prettyDynamic x
     pretty (TypedBuiltinValue TypedBuiltinDyn          x) = prettyDynamic x
 
 -- Encode '()' from Haskell as @all r. r -> r@ from PLC.

@@ -41,7 +41,6 @@ genName = Name () <$> name' <*> int'
           isKw "all"        = True
           isKw "bytestring" = True
           isKw "integer"    = True
-          isKw "size"       = True
           isKw "type"       = True
           isKw "program"    = True
           isKw "con"        = True
@@ -70,7 +69,7 @@ genConstant :: MonadGen m => m (Constant ())
 genConstant = Gen.choice [genInt, genBS]
     where int' = Gen.integral_ (Range.linear (-10000000) 10000000)
           string' = BSL.fromStrict <$> Gen.utf8 (Range.linear 0 40) Gen.unicode
-          genInt = makeAutoSizedBuiltinInt <$> int'
+          genInt = makeBuiltinInt <$> int'
           genBS = BuiltinBS () <$> string'
 
 genType :: MonadGen m => m (Type TyName ())

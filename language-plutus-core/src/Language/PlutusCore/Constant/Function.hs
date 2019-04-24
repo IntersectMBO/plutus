@@ -4,10 +4,9 @@
 {-# LANGUAGE TypeApplications #-}
 
 module Language.PlutusCore.Constant.Function
-    (eraseTypedBuiltinSized
-    , typedBuiltinSizedToType
-    , withTypedBuiltinSized
-    --, withTypedBuiltin
+    (eraseTypedBuiltinStatic
+    , typedBuiltinStaticToType
+    , withTypedBuiltinStatic
     , typedBuiltinToType
     , typeSchemeToType
     , dynamicBuiltinNameMeaningToType
@@ -26,25 +25,21 @@ import           Data.Proxy
 import qualified Data.Text                          as Text
 import           GHC.TypeLits
 
--- | Convert a 'TypedBuiltinSized' to the corresponding 'TypeBuiltin' and
+-- | Convert a 'TypedBuiltinStatic' to the corresponding 'TypeBuiltin' and
 -- wrap the result in 'TyBuiltin' to get a 'Type'.
-typedBuiltinSizedToType :: TypedBuiltinSized a -> Type TyName ()
-typedBuiltinSizedToType TypedBuiltinSizedInt = TyBuiltin () TyInteger
-typedBuiltinSizedToType TypedBuiltinSizedBS  = TyBuiltin () TyByteString
+typedBuiltinStaticToType :: TypedBuiltinStatic a -> Type TyName ()
+typedBuiltinStaticToType TypedBuiltinStaticInt = TyBuiltin () TyInteger
+typedBuiltinStaticToType TypedBuiltinStaticBS  = TyBuiltin () TyByteString
 
 -- | Apply a continuation to the typed version of a 'BuiltinSized'.
-withTypedBuiltinSized :: BuiltinSized -> (forall a. TypedBuiltinSized a -> c) -> c
-withTypedBuiltinSized BuiltinSizedInt  k = k TypedBuiltinSizedInt
-withTypedBuiltinSized BuiltinSizedBS   k = k TypedBuiltinSizedBS
-
--- | Apply a continuation to the typed version of a 'Builtin'.
---withTypedBuiltin :: BuiltinType size -> (forall a. TypedBuiltin size a -> c) -> c
---withTypedBuiltin (BuiltinSized se b) k = withTypedBuiltinSized b $ k . TypedBuiltinSized se
+withTypedBuiltinStatic :: BuiltinStatic -> (forall a. TypedBuiltinStatic a -> c) -> c
+withTypedBuiltinStatic BuiltinStaticInt  k = k TypedBuiltinStaticInt
+withTypedBuiltinStatic BuiltinStaticBS   k = k TypedBuiltinStaticBS
 
 -- | Convert a 'TypedBuiltin' to the corresponding 'Type'.
 typedBuiltinToType :: TypedBuiltin a -> Type TyName ()
-typedBuiltinToType (TypedBuiltinSized tbs) = typedBuiltinSizedToType tbs
-typedBuiltinToType dyn@TypedBuiltinDyn     = toTypeEncoding dyn
+typedBuiltinToType (TypedBuiltinStatic tbs) = typedBuiltinStaticToType tbs
+typedBuiltinToType dyn@TypedBuiltinDyn      = toTypeEncoding dyn
 
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
 -- Basically, a map from the PHOAS representation to the FOAS one.
