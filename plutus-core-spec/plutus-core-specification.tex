@@ -901,11 +901,14 @@ at some time in the future.
   the value \texttt{(error)}.
 \item We provide two versions of the division and remainder operations
   for integers.  These differ in their treatment of negative
-  arguments\footnote{The standard mathematical definition is
-  as follows: if $n,d \in \mathbb{Z}$ and  $d \ne 0$ then there exist
-  unique integers $q, r \in \mathbb{Z}$ such that $n=qb+r$ and $0 \le r < \lvert d \rvert$;
-  $q$ is the \textit{quotient} and $r$ is the \textit{remainder}.  Neither of
-  our sets of operations implements this definition!}:
+  arguments\footnote{The standard mathematical definition (the
+  so-called \textit{division algorithm}, or \textit{Euclidean
+  division}) is as follows: if $n,d \in \mathbb{Z}$ and $d \ne 0$ then
+  there exist unique integers $q, r \in \mathbb{Z}$ such that $n=qb+r$
+  and $0 \le r < \lvert d \rvert$; $q$ is the \textit{quotient} and
+  $r$ is the \textit{remainder}.  Neither of our sets of operations
+  implements this definition! This could conceivably be problematic if we
+  ever need to do number-theoretic calculations.}:
 
   \begin{itemize}
   
