@@ -903,20 +903,25 @@ at some time in the future.
   for integers.  These differ in their treatment of negative
   arguments:
   \begin{itemize}
+  
   \item \texttt{divideInteger} and \texttt{modInteger} implement the
-    standard mathematical integer division operations: \texttt{divideInteger}
-    rounds downwards and \texttt{modInteger} always produces a non-negative
-    result.  These correspond to Haskell's \texttt{div} and \texttt{mod} operators.
+    standard mathematical integer division
+    operations: \texttt{divideInteger} rounds downwards and the sign
+    of \texttt{modInteger} $n$ $d$ is the same as the sign of $d$.
+    These correspond to Haskell's \texttt{div} and \texttt{mod}
+    operators.
+
   \item \texttt{quotientInteger} and \texttt{remainderInteger}
-    represent the operations found in many computer languages and CPUs:
-    \texttt{quotientInteger} rounds towards zero and \texttt{remainderInteger $a$ $b$}
-    will be non-negative if $a \ge 0$ and negative if $a < 0$.
-    These correspond to Haskell's \texttt{rem} and \texttt{quot} operators.
-  \end{itemize}
-\item We use fixed Scott encodings for certain types and values,
-  specifically for the \textit{unit} and \textit{boolean} types.
-  Compilers targeting Plutus Core must be aware of these encodings and
-  use them appropriately.
+    represent the operations found in many computer languages and
+    CPUs: \texttt{quotientInteger} rounds towards zero and the sign
+    of \texttt{remainderInteger $n$ $d$} is the same as the sign of
+    $n$.  These correspond to Haskell's \texttt{rem} and \texttt{quot}
+    operators.  \end{itemize}
+
+\item We use fixed Scott encodings for certain types and values, specifically for
+  the \textit{unit} and \textit{boolean} types.  Compilers targeting
+  Plutus Core must be aware of these encodings and use them
+  appropriately.
 \end{itemize}
 \subfile{figures/Builtins}
 
