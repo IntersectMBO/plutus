@@ -40,9 +40,9 @@ instance GCompare TypedBuiltin where
     TypedBuiltinStatic tbs1 `gcompare` TypedBuiltinStatic tbs2
         | Just Refl <- tbs1 `geq` tbs2 = GEQ
         | otherwise                    = case (tbs1, tbs2) of
-            (TypedBuiltinStaticInt , _                    ) -> GLT
+            (TypedBuiltinStaticInt , _                    )  -> GLT
             (TypedBuiltinStaticBS  , TypedBuiltinStaticInt ) -> GGT
-            (TypedBuiltinStaticBS  , _                    ) -> GLT
+            (TypedBuiltinStaticBS  , _                    )  -> GLT
     dyn1@TypedBuiltinDyn         `gcompare` dyn2@TypedBuiltinDyn
         = liftOrdering $ prettyString dyn1 `compare` prettyString dyn2
     TypedBuiltinStatic _        `gcompare` TypedBuiltinDyn

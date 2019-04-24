@@ -94,7 +94,7 @@ updateTypedBuiltinGenStatic
     -> TypedBuiltinGenT m   -- ^ The updated typed built-ins generator.
 updateTypedBuiltinGenStatic tbsNew genX genTb tbOld = case tbOld of
     TypedBuiltinStatic tbsOld | Just Refl <- tbsNew `geq` tbsOld -> attachCoercedTerm tbOld genX
-    _                                                           -> genTb tbOld
+    _                                                            -> genTb tbOld
 
 -- | Update a typed built-ins generator by overwriting the @integer@s generator.
 updateTypedBuiltinGenInt

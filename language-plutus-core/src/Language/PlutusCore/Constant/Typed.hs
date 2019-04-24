@@ -303,10 +303,10 @@ instance Pretty (TypedBuiltin a) where
     pretty (TypedBuiltinStatic tbs) = parens $ pretty tbs
     -- TODO: do we want this entire thing to be 'PrettyBy' rather than 'Pretty'?
     -- This is just used in errors, so we probably do not care much.
-    pretty dyn@TypedBuiltinDyn     = prettyPlcDef $ toTypeEncoding dyn
+    pretty dyn@TypedBuiltinDyn      = prettyPlcDef $ toTypeEncoding dyn
 
 instance (PrettyDynamic a) => Pretty (TypedBuiltinValue a) where
-    pretty (TypedBuiltinValue (TypedBuiltinStatic _) x)    = prettyDynamic x
+    pretty (TypedBuiltinValue (TypedBuiltinStatic _) x)   = prettyDynamic x
     pretty (TypedBuiltinValue TypedBuiltinDyn          x) = prettyDynamic x
 
 -- Encode '()' from Haskell as @all r. r -> r@ from PLC.

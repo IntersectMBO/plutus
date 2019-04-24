@@ -39,7 +39,7 @@ withTypedBuiltinStatic BuiltinStaticBS   k = k TypedBuiltinStaticBS
 -- | Convert a 'TypedBuiltin' to the corresponding 'Type'.
 typedBuiltinToType :: TypedBuiltin a -> Type TyName ()
 typedBuiltinToType (TypedBuiltinStatic tbs) = typedBuiltinStaticToType tbs
-typedBuiltinToType dyn@TypedBuiltinDyn     = toTypeEncoding dyn
+typedBuiltinToType dyn@TypedBuiltinDyn      = toTypeEncoding dyn
 
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
 -- Basically, a map from the PHOAS representation to the FOAS one.
