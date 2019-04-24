@@ -54,65 +54,65 @@ withTypedBuiltinName SHA3                 k = k typedSHA3
 withTypedBuiltinName VerifySignature      k = k typedVerifySignature
 withTypedBuiltinName EqByteString         k = k typedEqByteString
 
-sizeIntIntInt :: TypeScheme (Integer -> Integer -> Integer) Integer
-sizeIntIntInt =
+intIntInt :: TypeScheme (Integer -> Integer -> Integer) Integer
+intIntInt =
     TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt) `TypeSchemeArrow`
     TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt) `TypeSchemeArrow`
     TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt)
 
-sizeIntIntBool :: TypeScheme (Integer -> Integer -> Bool) Bool
-sizeIntIntBool =
+intIntBool :: TypeScheme (Integer -> Integer -> Bool) Bool
+intIntBool =
     TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt) `TypeSchemeArrow`
     TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt) `TypeSchemeArrow`
     TypeSchemeBuiltin TypedBuiltinDyn
 
 -- | Typed 'AddInteger'.
 typedAddInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
-typedAddInteger = TypedBuiltinName AddInteger sizeIntIntInt
+typedAddInteger = TypedBuiltinName AddInteger intIntInt
 
 -- | Typed 'SubtractInteger'.
 typedSubtractInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
-typedSubtractInteger = TypedBuiltinName SubtractInteger sizeIntIntInt
+typedSubtractInteger = TypedBuiltinName SubtractInteger intIntInt
 
 -- | Typed 'MultiplyInteger'.
 typedMultiplyInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
-typedMultiplyInteger = TypedBuiltinName MultiplyInteger sizeIntIntInt
+typedMultiplyInteger = TypedBuiltinName MultiplyInteger intIntInt
 
 -- | Typed 'DivideInteger'.
 typedDivideInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
-typedDivideInteger = TypedBuiltinName DivideInteger sizeIntIntInt
+typedDivideInteger = TypedBuiltinName DivideInteger intIntInt
 
 -- | Typed 'QuotientInteger'
 typedQuotientInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
-typedQuotientInteger = TypedBuiltinName QuotientInteger sizeIntIntInt
+typedQuotientInteger = TypedBuiltinName QuotientInteger intIntInt
 
 -- | Typed 'RemainderInteger'.
 typedRemainderInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
-typedRemainderInteger = TypedBuiltinName RemainderInteger sizeIntIntInt
+typedRemainderInteger = TypedBuiltinName RemainderInteger intIntInt
 
 -- | Typed 'ModInteger'
 typedModInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
-typedModInteger = TypedBuiltinName ModInteger sizeIntIntInt
+typedModInteger = TypedBuiltinName ModInteger intIntInt
 
 -- | Typed 'LessThanInteger'.
 typedLessThanInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool
-typedLessThanInteger = TypedBuiltinName LessThanInteger sizeIntIntBool
+typedLessThanInteger = TypedBuiltinName LessThanInteger intIntBool
 
 -- | Typed 'LessThanEqInteger'.
 typedLessThanEqInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool
-typedLessThanEqInteger = TypedBuiltinName LessThanEqInteger sizeIntIntBool
+typedLessThanEqInteger = TypedBuiltinName LessThanEqInteger intIntBool
 
 -- | Typed 'GreaterThanInteger'.
 typedGreaterThanInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool
-typedGreaterThanInteger = TypedBuiltinName GreaterThanInteger sizeIntIntBool
+typedGreaterThanInteger = TypedBuiltinName GreaterThanInteger intIntBool
 
 -- | Typed 'GreaterThanEqInteger'.
 typedGreaterThanEqInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool
-typedGreaterThanEqInteger = TypedBuiltinName GreaterThanEqInteger sizeIntIntBool
+typedGreaterThanEqInteger = TypedBuiltinName GreaterThanEqInteger intIntBool
 
 -- | Typed 'EqInteger'.
 typedEqInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool
-typedEqInteger = TypedBuiltinName EqInteger sizeIntIntBool
+typedEqInteger = TypedBuiltinName EqInteger intIntBool
 
 -- | Typed 'IntToByteString'.
 typedIntToByteString :: TypedBuiltinName (Integer -> BSL.ByteString) BSL.ByteString
