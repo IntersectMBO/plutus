@@ -3,6 +3,7 @@
 -- article for how this emerged.
 
 {-# LANGUAGE DataKinds                 #-}
+{-# LANGUAGE DerivingVia               #-}
 {-# LANGUAGE GADTs                     #-}
 {-# LANGUAGE KindSignatures            #-}
 {-# LANGUAGE OverloadedStrings         #-}
@@ -56,6 +57,7 @@ import           Data.Map                                    (Map)
 import           Data.Proxy
 import           Data.Text                                   (Text)
 import qualified Data.Text                                   as Text
+import           Control.Monad.Trans.Compose                 (ComposeT (..))
 import           GHC.TypeLits
 
 infixr 9 `TypeSchemeArrow`
@@ -353,10 +355,11 @@ newtype ReflectT m a = ReflectT
         ( Functor, Applicative, Monad
         , MonadError Text
         )
+      deriving MonadTrans via ComposeT (ExceptT Text) (InnerT EvaluationResult)
 
--- GHC does not want to derive this for some reason.
-instance MonadTrans ReflectT where
-    lift = ReflectT . lift . lift
+-- -- GHC does not want to derive this for some reason.
+-- instance MonadTrans ReflectT where
+--     lift = ReflectT . lift . lift
 
 -- Uses the 'Alternative' instance of 'EvaluationResult'.
 instance Monad m => Alternative (ReflectT m) where
