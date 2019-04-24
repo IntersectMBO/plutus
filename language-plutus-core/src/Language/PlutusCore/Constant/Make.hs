@@ -54,15 +54,15 @@ makeBuiltinStr = BuiltinStr ()
 
 -- | Convert a Haskell value to the corresponding PLC constant
 -- checking all constraints along the way.
-makeConstant :: TypedBuiltinSized a -> a -> Constant ()
-makeConstant TypedBuiltinSizedInt  int = makeBuiltinInt int
-makeConstant TypedBuiltinSizedBS   bs  = makeBuiltinBS  bs
+makeConstant :: TypedBuiltinStatic a -> a -> Constant ()
+makeConstant TypedBuiltinStaticInt  int = makeBuiltinInt int
+makeConstant TypedBuiltinStaticBS   bs  = makeBuiltinBS  bs
 
 -- | Convert a Haskell value to the corresponding PLC value checking all constraints
 -- along the way.
 makeBuiltin :: TypedBuiltinValue a -> Maybe (Term TyName Name ())
 makeBuiltin (TypedBuiltinValue tb x) = case tb of
-    TypedBuiltinSized tbs -> Just $ Constant () $ makeConstant tbs x
+    TypedBuiltinStatic tbs -> Just $ Constant () $ makeConstant tbs x
     TypedBuiltinDyn       -> makeDynamicBuiltin x
 
 -- | Convert a Haskell value to a PLC value checking all constraints
@@ -81,5 +81,5 @@ unsafeMakeDynamicBuiltin = unsafeMakeBuiltin . TypedBuiltinValue TypedBuiltinDyn
 -- and should be used with great caution.
 makeBuiltinNOCHECK :: PrettyDynamic a => TypedBuiltinValue a -> Term TyName Name ()
 makeBuiltinNOCHECK tbv@(TypedBuiltinValue tb x) = case tb of
-    TypedBuiltinSized tbs -> Constant () $ makeConstant tbs x
+    TypedBuiltinStatic tbs -> Constant () $ makeConstant tbs x
     TypedBuiltinDyn       -> unsafeMakeBuiltin tbv

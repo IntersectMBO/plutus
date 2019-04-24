@@ -36,13 +36,13 @@ import           Data.Text                                      (Text)
 
 -- | The type of constant applications errors.
 data ConstAppError
-    = IllTypedConstAppError BuiltinSized (Constant ())
+    = IllTypedConstAppError BuiltinStatic (Constant ())
       -- ^ A mismatch between the type of an argument function expects and its actual type.
     | ExcessArgumentsConstAppError [Value TyName Name ()]
       -- ^ A constant is applied to more arguments than needed in order to reduce.
       -- Note that this error occurs even if an expression is well-typed, because
       -- constant application is supposed to be computed as soon as there are enough arguments.
-    | SizedNonConstantConstAppError (Value TyName Name ())
+    | StaticNonConstantConstAppError (Value TyName Name ())
     | UnreadableBuiltinConstAppError (Value TyName Name ()) Text
       -- ^ Could not construct denotation for a built-in.
     deriving (Show, Eq)
@@ -87,7 +87,7 @@ instance ( PrettyBy config (Constant ())
         [ "A constant applied to too many arguments:", "\n"
         , "Excess ones are: ", prettyBy config args
         ]
-    prettyBy config (SizedNonConstantConstAppError arg)      = fold
+    prettyBy config (StaticNonConstantConstAppError arg)      = fold
         [ "An argument to a builtin type is not a constant:", "\n"
         , prettyBy config arg
         ]
@@ -113,11 +113,11 @@ makeConstAppResult = maybe ConstAppFailure ConstAppSuccess . makeBuiltin
 
 -- | Convert a PLC constant into the corresponding Haskell value and also return its size.
 -- Checks that the constant is of a given type and there are no size mismatches.
-extractSizedBuiltin
-    :: TypedBuiltinSized a -> Constant () -> ConstAppResult a
-extractSizedBuiltin TypedBuiltinSizedInt (BuiltinInt () int) = ConstAppSuccess int
-extractSizedBuiltin TypedBuiltinSizedBS  (BuiltinBS  () bs ) = ConstAppSuccess bs
-extractSizedBuiltin tbs                  constant            = ConstAppError $ IllTypedConstAppError (eraseTypedBuiltinSized tbs) constant
+extractStaticBuiltin
+    :: TypedBuiltinStatic a -> Constant () -> ConstAppResult a
+extractStaticBuiltin TypedBuiltinStaticInt (BuiltinInt () int) = ConstAppSuccess int
+extractStaticBuiltin TypedBuiltinStaticBS  (BuiltinBS  () bs ) = ConstAppSuccess bs
+extractStaticBuiltin tbs                  constant            = ConstAppError $ IllTypedConstAppError (eraseTypedBuiltinStatic tbs) constant
 
 -- | Convert a PLC constant (unwrapped from 'Value') into the corresponding Haskell value.
 -- Checks that the constant is of a given built-in type and there are no size mismatches.
@@ -126,10 +126,10 @@ extractBuiltin
     => TypedBuiltin a
     -> Value TyName Name ()
     -> Evaluate m (ConstAppResult a)
-extractBuiltin (TypedBuiltinSized tbs) value =
+extractBuiltin (TypedBuiltinStatic tbs) value =
     return $ case value of
-        Constant () constant -> extractSizedBuiltin tbs constant
-        _                    -> ConstAppError $ SizedNonConstantConstAppError value
+        Constant () constant -> extractStaticBuiltin tbs constant
+        _                    -> ConstAppError $ StaticNonConstantConstAppError value
 extractBuiltin TypedBuiltinDyn                   value =
     readDynamicBuiltinM value <&> \conv -> case runExceptT conv of
         EvaluationFailure            -> ConstAppFailure

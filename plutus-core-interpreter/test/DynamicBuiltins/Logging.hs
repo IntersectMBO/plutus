@@ -28,7 +28,7 @@ dynamicIntToStringName = DynamicBuiltinName "intToString"
 dynamicIntToStringMeaning :: DynamicBuiltinNameMeaning
 dynamicIntToStringMeaning = DynamicBuiltinNameMeaning sch show where
     sch =
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedInt) `TypeSchemeArrow`
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt) `TypeSchemeArrow`
         TypeSchemeBuiltin (TypedBuiltinDyn @String)
 
 dynamicIntToString :: Term tyname name ()

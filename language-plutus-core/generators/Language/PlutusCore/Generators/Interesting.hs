@@ -46,8 +46,8 @@ type TermGen a = Gen (TermOf (TypedBuiltinValue a))
 -- > lessThanInteger {integer} $i1 $i2 {integer} $j1 $j2 == if i1 < i2 then j1 else j2
 genOverapplication :: TermGen Integer
 genOverapplication = do
-    let typedInt1 = TypedBuiltinSized TypedBuiltinSizedInt
-        typedInt2 = TypedBuiltinSized TypedBuiltinSizedInt
+    let typedInt1 = TypedBuiltinStatic TypedBuiltinStaticInt
+        typedInt2 = TypedBuiltinStatic TypedBuiltinStaticInt
         int2 = typedBuiltinToType typedInt2
     TermOf ti1 i1 <- genTypedBuiltinDef typedInt1
     TermOf ti2 i2 <- genTypedBuiltinDef typedInt1
@@ -117,7 +117,7 @@ naiveFib = runQuote $ do
 genFactorial :: TermGen Integer
 genFactorial = do
     let m = 10
-        typedIntS = TypedBuiltinSized TypedBuiltinSizedInt
+        typedIntS = TypedBuiltinStatic TypedBuiltinStaticInt
     iv <- Gen.integral $ Range.linear 1 m
     let term = Apply () factorial (makeIntConstant iv)
     return . TermOf term . TypedBuiltinValue typedIntS $ Prelude.product [1..iv]
@@ -128,7 +128,7 @@ genNaiveFib :: TermGen Integer
 genNaiveFib = do
     let fibs = scanl (+) 0 $ 1 : fibs
         m = 16
-        typedIntS = TypedBuiltinSized TypedBuiltinSizedInt
+        typedIntS = TypedBuiltinStatic TypedBuiltinStaticInt
     iv <- Gen.integral $ Range.linear 0 m
     let term = Apply () naiveFib . Constant () $ BuiltinInt () iv
     return . TermOf term . TypedBuiltinValue typedIntS $ fibs `genericIndex` iv
@@ -139,7 +139,7 @@ genNaiveFib = do
 -- along with the original 'Integer'
 genNatRoundtrip :: TermGen Integer
 genNatRoundtrip = do
-    let typedIntS = TypedBuiltinSized TypedBuiltinSizedInt
+    let typedIntS = TypedBuiltinStatic TypedBuiltinStaticInt
     TermOf _ iv <- Gen.filter ((>= 0) . _termOfValue) $ genTypedBuiltinDef typedIntS
     let term = mkIterApp () natToInteger [metaIntegerToNat iv]
     return . TermOf term $ TypedBuiltinValue typedIntS iv
@@ -167,7 +167,7 @@ natSum = runQuote $ do
 -- sum elements of the list (see 'Sum') and return it along with the sum of the original list.
 genListSum :: TermGen Integer
 genListSum = do
-    let typedIntS = TypedBuiltinSized TypedBuiltinSizedInt
+    let typedIntS = TypedBuiltinStatic TypedBuiltinStaticInt
         intS = typedBuiltinToType typedIntS
     ps <- Gen.list (Range.linear 0 10) $ genTypedBuiltinDef typedIntS
     let list = metaListToList intS $ map _termOfTerm ps
@@ -179,7 +179,7 @@ genListSum = do
 -- means the same thing in Haskell and PLC. Terms are generated using 'genTermLoose'.
 genIfIntegers :: TermGen Integer
 genIfIntegers = do
-    let typedIntS = TypedBuiltinSized TypedBuiltinSizedInt
+    let typedIntS = TypedBuiltinStatic TypedBuiltinStaticInt
         intS = typedBuiltinToType typedIntS
     TermOf b bv <- genTermLoose $ TypedBuiltinDyn @Bool
     TermOf i iv <- genTermLoose typedIntS
@@ -195,7 +195,7 @@ genIfIntegers = do
 -- | Check that builtins can be partially applied.
 genApplyAdd1 :: TermGen Integer
 genApplyAdd1 = do
-    let typedIntS = TypedBuiltinSized TypedBuiltinSizedInt
+    let typedIntS = TypedBuiltinStatic TypedBuiltinStaticInt
         intS = typedBuiltinToType typedIntS
     TermOf i iv <- genTermLoose typedIntS
     TermOf j jv <- genTermLoose typedIntS
@@ -209,7 +209,7 @@ genApplyAdd1 = do
 -- | Check that builtins can be partially applied.
 genApplyAdd2 :: TermGen Integer
 genApplyAdd2 = do
-    let typedIntS = TypedBuiltinSized TypedBuiltinSizedInt
+    let typedIntS = TypedBuiltinStatic TypedBuiltinStaticInt
         intS = typedBuiltinToType typedIntS
     TermOf i iv <- genTermLoose typedIntS
     TermOf j jv <- genTermLoose typedIntS

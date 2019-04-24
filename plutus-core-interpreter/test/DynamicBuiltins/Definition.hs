@@ -37,8 +37,8 @@ dynamicFactorialName = DynamicBuiltinName "factorial"
 dynamicFactorialMeaning :: DynamicBuiltinNameMeaning
 dynamicFactorialMeaning = DynamicBuiltinNameMeaning sch fac where
     sch =
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedInt) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedInt)
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt) `TypeSchemeArrow`
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt)
     fac n = product [1..n]
 
 dynamicFactorialDefinition :: DynamicBuiltinNameDefinition

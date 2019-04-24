@@ -56,14 +56,14 @@ withTypedBuiltinName EqByteString         k = k typedEqByteString
 
 sizeIntIntInt :: TypeScheme (Integer -> Integer -> Integer) Integer
 sizeIntIntInt =
-    TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedInt) `TypeSchemeArrow`
-    TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedInt) `TypeSchemeArrow`
-    TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedInt)
+    TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt) `TypeSchemeArrow`
+    TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt) `TypeSchemeArrow`
+    TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt)
 
 sizeIntIntBool :: TypeScheme (Integer -> Integer -> Bool) Bool
 sizeIntIntBool =
-    TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedInt) `TypeSchemeArrow`
-    TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedInt) `TypeSchemeArrow`
+    TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt) `TypeSchemeArrow`
+    TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt) `TypeSchemeArrow`
     TypeSchemeBuiltin TypedBuiltinDyn
 
 -- | Typed 'AddInteger'.
@@ -118,60 +118,60 @@ typedEqInteger = TypedBuiltinName EqInteger sizeIntIntBool
 typedIntToByteString :: TypedBuiltinName (Integer -> BSL.ByteString) BSL.ByteString
 typedIntToByteString =
     TypedBuiltinName IntToByteString $
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedInt) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedBS)
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt) `TypeSchemeArrow`
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS)
 
 -- | Typed 'Concatenate'.
 typedConcatenate :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> BSL.ByteString) BSL.ByteString
 typedConcatenate =
     TypedBuiltinName Concatenate $
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedBS) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedBS) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedBS)
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS) `TypeSchemeArrow`
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS) `TypeSchemeArrow`
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS)
 
 -- | Typed 'TakeByteString'.
 typedTakeByteString :: TypedBuiltinName (Integer -> BSL.ByteString -> BSL.ByteString) BSL.ByteString
 typedTakeByteString =
     TypedBuiltinName TakeByteString $
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedInt) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedBS) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedBS)
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt) `TypeSchemeArrow`
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS) `TypeSchemeArrow`
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS)
 
 -- | Typed 'DropByteString'.
 typedDropByteString :: TypedBuiltinName (Integer -> BSL.ByteString -> BSL.ByteString) BSL.ByteString
 typedDropByteString =
     TypedBuiltinName DropByteString $
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedInt) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedBS) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedBS)
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt) `TypeSchemeArrow`
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS) `TypeSchemeArrow`
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS)
 
 -- | Typed 'SHA2'.
 typedSHA2 :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString) BSL.ByteString
 typedSHA2 =
     TypedBuiltinName SHA2 $
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedBS) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedBS)
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS) `TypeSchemeArrow`
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS)
 
 -- | Typed 'SHA3'.
 typedSHA3 :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString) BSL.ByteString
 typedSHA3 =
     TypedBuiltinName SHA3 $
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedBS) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedBS)
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS) `TypeSchemeArrow`
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS)
 
 -- | Typed 'VerifySignature'.
 typedVerifySignature :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> BSL.ByteString -> EvaluationResult Bool) (EvaluationResult Bool)
 typedVerifySignature =
     TypedBuiltinName VerifySignature $
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedBS) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedBS) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedBS) `TypeSchemeArrow`
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS) `TypeSchemeArrow`
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS) `TypeSchemeArrow`
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS) `TypeSchemeArrow`
         TypeSchemeBuiltin TypedBuiltinDyn
 
 -- | Typed 'EqByteString'.
 typedEqByteString :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> Bool) Bool
 typedEqByteString =
     TypedBuiltinName EqByteString $
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedBS) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedBS) `TypeSchemeArrow`
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS) `TypeSchemeArrow`
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS) `TypeSchemeArrow`
         TypeSchemeBuiltin TypedBuiltinDyn

@@ -12,7 +12,7 @@ module Language.PlutusCore.Generators.Internal.Entity
     ( PlcGenT
     , IterAppValue(..)
     , runPlcT
-    , genBuiltinSized
+    , genBuiltinStatic
     , withTypedBuiltinGen
     , withCheckedTermGen
     , genIterAppValue
@@ -89,14 +89,14 @@ revealUnique :: Name a -> Name a
 revealUnique (Name ann name uniq) =
     Name ann (name <> (prettyText $ unUnique uniq)) uniq
 
--- | Generate a 'BuiltinSized'.
-genBuiltinSized :: Monad m => GenT m BuiltinSized
-genBuiltinSized = Gen.element [BuiltinSizedInt, BuiltinSizedBS]
+-- | Generate a 'BuiltinStatic'.
+genBuiltinStatic :: Monad m => GenT m BuiltinStatic
+genBuiltinStatic = Gen.element [BuiltinStaticInt, BuiltinStaticBS]
 
 -- | Generate a 'Builtin' and supply its typed version to a continuation.
 withTypedBuiltinGen
     :: Monad m => (forall a. TypedBuiltin a -> GenT m c) -> GenT m c
-withTypedBuiltinGen k = genBuiltinSized >>= \b -> withTypedBuiltinSized b (k . TypedBuiltinSized)
+withTypedBuiltinGen k = genBuiltinStatic >>= \b -> withTypedBuiltinStatic b (k . TypedBuiltinStatic)
 
 -- | Generate a 'Term' along with the value it computes to,
 -- having a generator of terms of built-in types.

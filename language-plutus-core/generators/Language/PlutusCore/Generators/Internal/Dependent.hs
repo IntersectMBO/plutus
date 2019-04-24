@@ -22,13 +22,13 @@ liftOrdering GT = GGT
 
 -- I tried using the 'dependent-sum-template' package,
 -- but see https://stackoverflow.com/q/50048842/3237465
-instance GEq TypedBuiltinSized where
-    TypedBuiltinSizedInt  `geq` TypedBuiltinSizedInt  = Just Refl
-    TypedBuiltinSizedBS   `geq` TypedBuiltinSizedBS   = Just Refl
+instance GEq TypedBuiltinStatic where
+    TypedBuiltinStaticInt  `geq` TypedBuiltinStaticInt  = Just Refl
+    TypedBuiltinStaticBS   `geq` TypedBuiltinStaticBS   = Just Refl
     _                     `geq` _                     = Nothing
 
 instance GEq TypedBuiltin where
-    TypedBuiltinSized tbs1 `geq` TypedBuiltinSized tbs2 = tbs1 `geq` tbs2
+    TypedBuiltinStatic tbs1 `geq` TypedBuiltinStatic tbs2 = tbs1 `geq` tbs2
     dyn1@TypedBuiltinDyn         `geq` dyn2@TypedBuiltinDyn         = do
         guard $ prettyString dyn1 == prettyString dyn2
         Just $ unsafeCoerce Refl
@@ -37,15 +37,15 @@ instance GEq TypedBuiltin where
 instance GCompare TypedBuiltin where
     tb1                          `gcompare` tb2
         | Just Refl <- tb1  `geq` tb2  = GEQ
-    TypedBuiltinSized tbs1 `gcompare` TypedBuiltinSized tbs2
+    TypedBuiltinStatic tbs1 `gcompare` TypedBuiltinStatic tbs2
         | Just Refl <- tbs1 `geq` tbs2 = GEQ
         | otherwise                    = case (tbs1, tbs2) of
-            (TypedBuiltinSizedInt , _                    ) -> GLT
-            (TypedBuiltinSizedBS  , TypedBuiltinSizedInt ) -> GGT
-            (TypedBuiltinSizedBS  , _                    ) -> GLT
+            (TypedBuiltinStaticInt , _                    ) -> GLT
+            (TypedBuiltinStaticBS  , TypedBuiltinStaticInt ) -> GGT
+            (TypedBuiltinStaticBS  , _                    ) -> GLT
     dyn1@TypedBuiltinDyn         `gcompare` dyn2@TypedBuiltinDyn
         = liftOrdering $ prettyString dyn1 `compare` prettyString dyn2
-    TypedBuiltinSized _        `gcompare` TypedBuiltinDyn
+    TypedBuiltinStatic _        `gcompare` TypedBuiltinDyn
         = GLT
-    TypedBuiltinDyn              `gcompare` TypedBuiltinSized _
+    TypedBuiltinDyn              `gcompare` TypedBuiltinStatic _
         = GGT
