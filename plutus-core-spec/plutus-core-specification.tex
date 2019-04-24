@@ -901,7 +901,12 @@ at some time in the future.
   the value \texttt{(error)}.
 \item We provide two versions of the division and remainder operations
   for integers.  These differ in their treatment of negative
-  arguments:
+  arguments\footnote{The standard mathematical definition is
+  as follows: if $n,d \in \mathbb{Z}$ and  $d \ne 0$ then there exist
+  unique integers $q, r \in \mathbb{Z}$ such that $n=qb+r$ and $0 \le r < \lvert d \rvert$;
+  $q$ is the \textit{quotient} and $r$ is the \textit{remainder}.  Neither of
+  our sets of operations implements this definition!}:
+
   \begin{itemize}
   
   \item \texttt{divideInteger} and \texttt{modInteger} implement the
@@ -918,6 +923,7 @@ at some time in the future.
     $n$.  These correspond to Haskell's \texttt{rem} and \texttt{quot}
     operators.  \end{itemize}
 
+  
 \item We use fixed Scott encodings for certain types and values, specifically for
   the \textit{unit} and \textit{boolean} types.  Compilers targeting
   Plutus Core must be aware of these encodings and use them
