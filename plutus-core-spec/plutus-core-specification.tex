@@ -274,8 +274,8 @@ type checking.
 \section{Syntax}
 
 The grammar of Plutus Core is given in
-Figures~\ref{fig:Plutus_core_lexical_grammar} and
-\ref{fig:Plutus_core_grammar}. This grammar describes the abstract
+Figures~\ref{fig:lexical_grammar} and
+\ref{fig:grammar}. This grammar describes the abstract
 syntax trees of Plutus Core in a convenient notation which can also be
 used as concrete syntax for purposes such as experimentation and
 debugging.
@@ -428,7 +428,7 @@ Plutus Core language.
 %% fit into the specified size: \texttt{1~!~200} gives a compile-time
 %% error. If a value overflows at runtime then an error occurs and
 %% execution is terminated.  Integers are manipulated using built-in
-%% functions (see Figure~\ref{fig:Plutus_core_builtins}) whose types
+%% functions (see Figure~\ref{fig:builtins}) whose types
 %% include the size. This prevents users from writing programs which
 %% generate arbitrarily large values during execution; it also allows us
 %% to charge according to the actual amount of computation performed,
@@ -498,7 +498,7 @@ these problems and is not very onerous in practice.
 
 We define for Plutus Core a number of typing judgments which explain
 ways that a program can be well-formed. First, in Figure
-\ref{fig:Plutus_core_contexts}, we define the grammar of contexts as
+\ref{fig:contexts}, we define the grammar of contexts as
 contexts appear here for the first time. Contexts are sequences of
 variables. In System F there are two different sorts of variables:
 term variables and type variables. For succintness of presentation we
@@ -513,10 +513,10 @@ any kind that can be constructed according to the grammar is a valid
 kind.
 
 %We also consider variable judgements in Figure
-%\ref{fig:Plutus_core_contexts}. Technically this judgement is defined
+%\ref{fig:contexts}. Technically this judgement is defined
 %mutually with the typing and kinding judgement defined in Figures
-%\ref{fig:Plutus_core_type_synthesis} and
-%\ref{fig:Plutus_core_kind_synthesis}. We give axiomatic rules for term
+%\ref{fig:type_synthesis} and
+%\ref{fig:kind_synthesis}. We give axiomatic rules for term
 %and type variables at the right-hand end of the context. For term and
 %type variables defined further to the left in the context the
 %judgement is dependent on a judgement about a shorter context. These
@@ -592,11 +592,11 @@ kind.
 
 }
     \captionof{figure}{Contexts}
-    \label{fig:Plutus_core_contexts}
+    \label{fig:contexts}
 \end{figure}
 
 \newpage 
-\noindent Figure \ref{fig:Plutus_core_kind_synthesis} defines what
+\noindent Figure \ref{fig:kind_synthesis} defines what
 it means for a type to synthesise a kind. Plutus Core is a
 higher-kinded version of System F, so we have a number of standard
 System F rules (tyvar,tyall,tyfun) together with some extensions with
@@ -650,18 +650,18 @@ support integers and bytestrings.
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{$tcn$ is a type constant in in Figure \ref{fig:Plutus_core_type_constants}}
+        \AxiomC{$tcn$ is a type constant in in Figure \ref{fig:type_constants}}
         \RightLabel{tycon}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\conT{tcn}}{\typeK{}}}\)}
     \end{prooftree}
 
     \captionof{figure}{Kind Synthesis}
-    \label{fig:Plutus_core_kind_synthesis}
+    \label{fig:kind_synthesis}
 }
 \end{figure}
 
 
-\noindent In Figure \ref{fig:Plutus_core_type_synthesis}, we define the type
+\noindent In Figure \ref{fig:type_synthesis}, we define the type
 synthesis judgment, which explains how a term synthesizes a type. We
 have rules analogous to STLC (var,lam,app), extensions to System F
 (abs,inst). Higher-kinding introduces computation in types so we need
@@ -681,7 +681,7 @@ and builtins we have con, builtin and error.
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{$cn$ has constant signature $\constsig{tcn}{s}$ in Fig. \ref{fig:Plutus_core_constants}}
+        \AxiomC{$cn$ has constant signature $\constsig{tcn}{s}$ in Fig. \ref{fig:constants}}
         \RightLabel{con}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{cn}{\conT{tcn}{s}}}\)}
     \end{prooftree}
@@ -737,7 +737,7 @@ and builtins we have con, builtin and error.
 
     \begin{prooftree}
         \alwaysNoLine
-        \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in Fig. \ref{fig:Plutus_core_builtins}}
+        \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in Fig. \ref{fig:builtins}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M_i}{D_i}}\)}
         \UnaryInfC{\(\typeEquiv{D_i}{\subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{B_i}}\)}
         \alwaysSingleLine
@@ -759,13 +759,13 @@ and builtins we have con, builtin and error.
     \end{prooftree}
 
     \captionof{figure}{Type Synthesis}
-    \label{fig:Plutus_core_type_synthesis}
+    \label{fig:type_synthesis}
 
 \end{figure}
 
 \noindent Finally, type synthesis for builtins are elaborated in tabular form
 rather than in inference rule form, in Figure
-\ref{fig:Plutus_core_builtins}, which also gives the reduction
+\ref{fig:builtins}, which also gives the reduction
 semantics. This table also specifies what conditions trigger an error.
 
 
@@ -855,7 +855,7 @@ returns a value to the outside world.
 To evaluate a program $\texttt{(program } v\ M \texttt{)}$, we first
 check that the version number $v$ is valid, then start the machine in
 the state $\cdot \triangleright M$.  It can be proved that the
-transitions in Figure~\ref{fig:Plutus_core_ck_machine} always preserve
+transitions in Figure~\ref{fig:ck_machine} always preserve
 validity of states, so that the machine can never enter a state such as
   $\cdot \triangleleft M$
 or
@@ -876,21 +876,21 @@ to allow customisation for specialised blockchains.
 
 As mentioned earlier, there are two basic types: \texttt{integer} and
 \texttt{bytestring}.  These types are given in
-Figure~\ref{fig:Plutus_core_type_constants}: for example \texttt{(con
+Figure~\ref{fig:type_constants}: for example \texttt{(con
   integer)} is the type of signed integers.
 We provide standard arithmetic and comparison operations for integers
 and a number of list-like functions for bytestrings. The details are
-given in Figure~\ref{fig:Plutus_core_builtins}, using a number of
-abbreviations given in Figure~\ref{fig:Plutus_core_type_abbreviations}.
+given in Figure~\ref{fig:builtins}, using a number of
+abbreviations given in Figure~\ref{fig:type_abbreviations}.
 
 
 Note the following:
 \begin{itemize}
-\item The built-in functions in Figure~\ref{fig:Plutus_core_builtins}
+\item The built-in functions in Figure~\ref{fig:builtins}
 are all monomorphic, and hence the type arguments are all empty. 
 It is possible that we may add some polymorphic built-in functions
 at some time in the future.
-\item Some of the entries in Figure~\ref{fig:Plutus_core_builtins}
+\item Some of the entries in Figure~\ref{fig:builtins}
   contain \textit{success conditions}.  If a success condition is
   violated then the progam terminates immediately and returns
   the value \texttt{(error)}.
@@ -1011,7 +1011,7 @@ typecheck a program. It's also useful to have a way of bounding the
 amount of computation that can be done in type checking, for security
 purposes. To that end, we present a restricted grammar and type
 reduction, and a type system that reflects these.
-Figures~\ref{fig:Plutus_core_grammar_algorithmic_restricted}--\ref{fig:Plutus_core_type_synthesis_algorithmic_restricted}
+Figures~\ref{fig:grammar_algorithmic_restricted}--\ref{fig:type_synthesis_algorithmic_restricted}
 are additions with respect to the unrestricted version, and show only
 the new or changed figures and their respective highlighted
 differences.
