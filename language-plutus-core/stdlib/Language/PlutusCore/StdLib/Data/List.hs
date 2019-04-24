@@ -17,7 +17,7 @@ module Language.PlutusCore.StdLib.Data.List
 
 import           Prelude                                  hiding (enumFromTo, product, reverse, sum)
 
-import           Language.PlutusCore.Constant.Make        (makeDynBuiltinInt)
+import           Language.PlutusCore.Constant.Make        (makeIntConstant)
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
@@ -228,7 +228,7 @@ sum = runQuote $ do
         add = builtin () (BuiltinName () AddInteger)
     return
         . mkIterApp () (mkIterInst () foldList [int, int])
-        $ [ add , makeDynBuiltinInt 0]
+        $ [ add , makeIntConstant 0]
 
 -- |  'product' as a PLC term.
 --
@@ -239,4 +239,4 @@ product = runQuote $ do
         mul = builtin () (BuiltinName () MultiplyInteger)
     return
         . mkIterApp () (mkIterInst () foldList [int, int])
-        $ [ mul , makeDynBuiltinInt 1]
+        $ [ mul , makeIntConstant 1]

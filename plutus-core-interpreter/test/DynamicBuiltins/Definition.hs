@@ -37,8 +37,8 @@ dynamicFactorialName = DynamicBuiltinName "factorial"
 dynamicFactorialMeaning :: DynamicBuiltinNameMeaning
 dynamicFactorialMeaning = DynamicBuiltinNameMeaning sch fac where
     sch =
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedInt) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinSized TypedBuiltinSizedInt)
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt) `TypeSchemeArrow`
+        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt)
     fac n = product [1..n]
 
 dynamicFactorialDefinition :: DynamicBuiltinNameDefinition
@@ -54,8 +54,8 @@ test_dynamicFactorial :: TestTree
 test_dynamicFactorial =
     testCase "dynamicFactorial" $ do
         let env = insertDynamicBuiltinNameDefinition dynamicFactorialDefinition mempty
-            lhs = typecheckEvaluateCek env $ applyFactorial dynamicFactorial 10
-            rhs = typecheckEvaluateCek mempty $ applyFactorial factorial 10
+            lhs = typecheckEvaluateCek env $ Apply () dynamicFactorial (makeIntConstant 10)
+            rhs = typecheckEvaluateCek mempty $ Apply () factorial (makeIntConstant 10)
         assertBool "type checks" $ isRight lhs
         lhs @?= rhs
 

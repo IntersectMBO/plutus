@@ -8,7 +8,6 @@ module Language.PlutusCore.Generators.Interesting
     ( TermGen
     , genOverapplication
     , factorial
-    , applyFactorial
     , genFactorial
     , genNaiveFib
     , genNatRoundtrip
@@ -47,8 +46,8 @@ type TermGen a = Gen (TermOf (TypedBuiltinValue a))
 -- > lessThanInteger {integer} $i1 $i2 {integer} $j1 $j2 == if i1 < i2 then j1 else j2
 genOverapplication :: TermGen Integer
 genOverapplication = do
-    let typedInt1 = TypedBuiltinSized TypedBuiltinSizedInt
-        typedInt2 = TypedBuiltinSized TypedBuiltinSizedInt
+    let typedInt1 = TypedBuiltinStatic TypedBuiltinStaticInt
+        typedInt2 = TypedBuiltinStatic TypedBuiltinStaticInt
         int2 = typedBuiltinToType typedInt2
     TermOf ti1 i1 <- genTypedBuiltinDef typedInt1
     TermOf ti2 i2 <- genTypedBuiltinDef typedInt1
@@ -73,7 +72,7 @@ factorial = runQuote $ do
     return
         . LamAbs () i int
         . mkIterApp () List.product
-        $ [ mkIterApp () List.enumFromTo [ makeDynBuiltinInt 1 , Var () i]]
+        $ [ mkIterApp () List.enumFromTo [ makeIntConstant 1 , Var () i]]
 
 -- | The naive exponential fibonacci function as a PLC term.
 --
@@ -101,33 +100,26 @@ naiveFib = runQuote $ do
               . LamAbs () i intS
               $ mkIterApp () (TyInst () ifThenElse intS)
                   [ mkIterApp () (builtinNameAsTerm LessThanEqInteger)
-                      [Var () i, makeDynBuiltinInt 1]
+                      [Var () i, makeIntConstant 1]
                   , LamAbs () u unit $ Var () i
                   , LamAbs () u unit $ mkIterApp () (builtinNameAsTerm AddInteger)
                       [ Apply () (Var () rec) $ mkIterApp () (builtinNameAsTerm SubtractInteger)
-                          [Var () i, makeDynBuiltinInt 1]
+                          [Var () i, makeIntConstant 1]
                       , Apply () (Var () rec) $ mkIterApp () (builtinNameAsTerm SubtractInteger)
-                          [Var () i, makeDynBuiltinInt 2]
+                          [Var () i, makeIntConstant 2]
                       ]
                   ]
             , Var () i0
             ]
-
--- | Apply some factorial function to its 'Integer' argument.
--- This function exist, because we have another implementation via dynamic built-ins
--- and want to compare it to the direct implementation from the above.
-applyFactorial :: Term TyName Name () -> Integer -> Term TyName Name ()
-applyFactorial fact iv = Apply () fact i where
-    i    = Constant () $ BuiltinInt () iv
 
 -- | Generate a term that computes the factorial of an @integer@ and return it
 -- along with the factorial of the corresponding 'Integer' computed on the Haskell side.
 genFactorial :: TermGen Integer
 genFactorial = do
     let m = 10
-        typedIntS = TypedBuiltinSized TypedBuiltinSizedInt
+        typedIntS = TypedBuiltinStatic TypedBuiltinStaticInt
     iv <- Gen.integral $ Range.linear 1 m
-    let term = applyFactorial factorial iv
+    let term = Apply () factorial (makeIntConstant iv)
     return . TermOf term . TypedBuiltinValue typedIntS $ Prelude.product [1..iv]
 
 -- | Generate a term that computes the ith Fibonacci number and return it
@@ -136,7 +128,7 @@ genNaiveFib :: TermGen Integer
 genNaiveFib = do
     let fibs = scanl (+) 0 $ 1 : fibs
         m = 16
-        typedIntS = TypedBuiltinSized TypedBuiltinSizedInt
+        typedIntS = TypedBuiltinStatic TypedBuiltinStaticInt
     iv <- Gen.integral $ Range.linear 0 m
     let term = Apply () naiveFib . Constant () $ BuiltinInt () iv
     return . TermOf term . TypedBuiltinValue typedIntS $ fibs `genericIndex` iv
@@ -147,7 +139,7 @@ genNaiveFib = do
 -- along with the original 'Integer'
 genNatRoundtrip :: TermGen Integer
 genNatRoundtrip = do
-    let typedIntS = TypedBuiltinSized TypedBuiltinSizedInt
+    let typedIntS = TypedBuiltinStatic TypedBuiltinStaticInt
     TermOf _ iv <- Gen.filter ((>= 0) . _termOfValue) $ genTypedBuiltinDef typedIntS
     let term = mkIterApp () natToInteger [metaIntegerToNat iv]
     return . TermOf term $ TypedBuiltinValue typedIntS iv
@@ -175,7 +167,7 @@ natSum = runQuote $ do
 -- sum elements of the list (see 'Sum') and return it along with the sum of the original list.
 genListSum :: TermGen Integer
 genListSum = do
-    let typedIntS = TypedBuiltinSized TypedBuiltinSizedInt
+    let typedIntS = TypedBuiltinStatic TypedBuiltinStaticInt
         intS = typedBuiltinToType typedIntS
     ps <- Gen.list (Range.linear 0 10) $ genTypedBuiltinDef typedIntS
     let list = metaListToList intS $ map _termOfTerm ps
@@ -187,7 +179,7 @@ genListSum = do
 -- means the same thing in Haskell and PLC. Terms are generated using 'genTermLoose'.
 genIfIntegers :: TermGen Integer
 genIfIntegers = do
-    let typedIntS = TypedBuiltinSized TypedBuiltinSizedInt
+    let typedIntS = TypedBuiltinStatic TypedBuiltinStaticInt
         intS = typedBuiltinToType typedIntS
     TermOf b bv <- genTermLoose $ TypedBuiltinDyn @Bool
     TermOf i iv <- genTermLoose typedIntS
@@ -203,7 +195,7 @@ genIfIntegers = do
 -- | Check that builtins can be partially applied.
 genApplyAdd1 :: TermGen Integer
 genApplyAdd1 = do
-    let typedIntS = TypedBuiltinSized TypedBuiltinSizedInt
+    let typedIntS = TypedBuiltinStatic TypedBuiltinStaticInt
         intS = typedBuiltinToType typedIntS
     TermOf i iv <- genTermLoose typedIntS
     TermOf j jv <- genTermLoose typedIntS
@@ -217,7 +209,7 @@ genApplyAdd1 = do
 -- | Check that builtins can be partially applied.
 genApplyAdd2 :: TermGen Integer
 genApplyAdd2 = do
-    let typedIntS = TypedBuiltinSized TypedBuiltinSizedInt
+    let typedIntS = TypedBuiltinStatic TypedBuiltinStaticInt
         intS = typedBuiltinToType typedIntS
     TermOf i iv <- genTermLoose typedIntS
     TermOf j jv <- genTermLoose typedIntS
