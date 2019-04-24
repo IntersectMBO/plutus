@@ -13,7 +13,7 @@ module Language.PlutusCore.StdLib.Data.Nat
 
 import           Prelude                                  hiding (succ)
 
-import           Language.PlutusCore.Constant.Make        (makeDynBuiltinInt)
+import           Language.PlutusCore.Constant.Make        (makeIntConstant)
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
@@ -133,6 +133,6 @@ natToInteger = runQuote $ do
     let addInteger = builtin () $ BuiltinName () AddInteger
     return $
         mkIterApp () (tyInst () foldNat $ TyBuiltin () TyInteger)
-          [ apply () addInteger (makeDynBuiltinInt 1)
-          , makeDynBuiltinInt 0
+          [ apply () addInteger (makeIntConstant 1)
+          , makeIntConstant 0
           ]

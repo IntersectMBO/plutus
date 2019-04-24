@@ -73,7 +73,7 @@ factorial = runQuote $ do
     return
         . LamAbs () i int
         . mkIterApp () List.product
-        $ [ mkIterApp () List.enumFromTo [ makeDynBuiltinInt 1 , Var () i]]
+        $ [ mkIterApp () List.enumFromTo [ makeIntConstant 1 , Var () i]]
 
 -- | The naive exponential fibonacci function as a PLC term.
 --
@@ -101,13 +101,13 @@ naiveFib = runQuote $ do
               . LamAbs () i intS
               $ mkIterApp () (TyInst () ifThenElse intS)
                   [ mkIterApp () (builtinNameAsTerm LessThanEqInteger)
-                      [Var () i, makeDynBuiltinInt 1]
+                      [Var () i, makeIntConstant 1]
                   , LamAbs () u unit $ Var () i
                   , LamAbs () u unit $ mkIterApp () (builtinNameAsTerm AddInteger)
                       [ Apply () (Var () rec) $ mkIterApp () (builtinNameAsTerm SubtractInteger)
-                          [Var () i, makeDynBuiltinInt 1]
+                          [Var () i, makeIntConstant 1]
                       , Apply () (Var () rec) $ mkIterApp () (builtinNameAsTerm SubtractInteger)
-                          [Var () i, makeDynBuiltinInt 2]
+                          [Var () i, makeIntConstant 2]
                       ]
                   ]
             , Var () i0
