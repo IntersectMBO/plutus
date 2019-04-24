@@ -37,10 +37,6 @@ withTypedBuiltinSized :: BuiltinSized -> (forall a. TypedBuiltinSized a -> c) ->
 withTypedBuiltinSized BuiltinSizedInt  k = k TypedBuiltinSizedInt
 withTypedBuiltinSized BuiltinSizedBS   k = k TypedBuiltinSizedBS
 
--- | Apply a continuation to the typed version of a 'Builtin'.
---withTypedBuiltin :: BuiltinType size -> (forall a. TypedBuiltin size a -> c) -> c
---withTypedBuiltin (BuiltinSized se b) k = withTypedBuiltinSized b $ k . TypedBuiltinSized se
-
 -- | Convert a 'TypedBuiltin' to the corresponding 'Type'.
 typedBuiltinToType :: TypedBuiltin a -> Type TyName ()
 typedBuiltinToType (TypedBuiltinSized tbs) = typedBuiltinSizedToType tbs
