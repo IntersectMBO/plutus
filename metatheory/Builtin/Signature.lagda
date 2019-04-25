@@ -6,7 +6,7 @@ module Builtin.Signature
   (Ctx⋆ Kind : Set)
   (∅ : Ctx⋆)
   (_,⋆_ : Ctx⋆ → Kind → Ctx⋆)
-  (* # : Kind)
+  (* : Kind)
   (_∋⋆_ : Ctx⋆ → Kind → Set)
   (Z : ∀ {Φ J} → (Φ ,⋆ J) ∋⋆ J)
   (S : ∀ {Φ J K} → Φ ∋⋆ J → (Φ ,⋆ K) ∋⋆ J)

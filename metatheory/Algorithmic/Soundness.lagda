@@ -144,34 +144,32 @@ lemμ''' refl pat arg = soundness (embNf pat · (μ1 · embNf pat) · embNf arg)
 \begin{code}
 open import Builtin.Constant.Type
 
-lemcon' : ∀{Γ Γ'}(p : Γ ≡ Γ')(tcn : TyCon)(s : Γ ⊢Nf⋆ #)
-  → con tcn (substEq (_⊢⋆ #) p (embNf s)) ≡
-    substEq (_⊢⋆ *) p (con tcn (embNf s))
-lemcon' refl tcn s = refl
+lemcon' : ∀{Γ Γ' : Ctx⋆}(p : Γ ≡ Γ')(tcn : TyCon)
+  → Type.con {φ = Γ'} tcn ≡ substEq (_⊢⋆ *) p (con {φ = Γ} tcn)
+lemcon' refl tcn = refl
 \end{code}
 
 \begin{code}
-import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢⋆_ ` con boolean size⋆
+import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con boolean
   as SSig
 import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf size⋆
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
   as NSig
 open import Builtin
-import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆ as STermCon 
-import Builtin.Constant.Term Ctx⋆ Kind * # _⊢Nf⋆_ con size⋆ as NTermCon 
+import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon 
+import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon 
 
 
-substTC' : ∀{Γ Γ'}(p : Γ ≡ Γ')(s : Γ ⊢⋆ #)(tcn : TyCon)
-  → STermCon.TermCon (con tcn s)
-  → STermCon.TermCon (con tcn (substEq (_⊢⋆ #) p s))
-substTC' refl s tcn t = t
+substTC' : ∀{Γ Γ'}(p : Γ ≡ Γ')(tcn : TyCon)
+  → STermCon.TermCon {Φ = Γ} (con tcn)
+  → STermCon.TermCon {Φ = Γ'}(con tcn)
+substTC' refl tcn t = t
 
 embTC : ∀{φ}{A : φ ⊢Nf⋆ *}
   → NTermCon.TermCon A
   → STermCon.TermCon (embNf A)
-embTC (NTermCon.integer s i p)    = STermCon.integer s i p
-embTC (NTermCon.bytestring s b p) = STermCon.bytestring s b p 
-embTC (NTermCon.size s)           = STermCon.size s
+embTC (NTermCon.integer i)    = STermCon.integer i
+embTC (NTermCon.bytestring b) = STermCon.bytestring b
 \end{code}
 \begin{code}
 open import Data.Product renaming (_,_ to _,,_)
@@ -234,16 +232,13 @@ lemList' lessThanEqualsInteger = refl≡β _ ,, refl≡β _ ,, _
 lemList' greaterThanInteger = refl≡β _ ,, refl≡β _ ,, _
 lemList' greaterThanEqualsInteger = refl≡β _ ,, refl≡β _ ,, _
 lemList' equalsInteger = refl≡β _ ,, refl≡β _ ,, _
-lemList' resizeInteger = refl≡β _ ,, refl≡β _ ,, _
-lemList' sizeOfInteger = refl≡β _ ,, _
-lemList' intToByteString = refl≡β _ ,, refl≡β _ ,, _
+lemList' intToByteString = refl≡β _ ,, _
 lemList' concatenate = refl≡β _ ,, refl≡β _ ,, _
 lemList' takeByteString = refl≡β _ ,, refl≡β _ ,, _
 lemList' dropByteString = refl≡β _ ,, refl≡β _ ,, _
 lemList' sha2-256 = refl≡β _ ,, _
 lemList' sha3-256 = refl≡β _ ,, _
 lemList' verifySignature = refl≡β _ ,, refl≡β _ ,, refl≡β _ ,, _
-lemList' resizeByteString = refl≡β _ ,, refl≡β _ ,, _
 lemList' equalsByteString = refl≡β _ ,, refl≡β _ ,, _
 
 lemsub : ∀{Γ Γ' Δ}(A : Δ ⊢Nf⋆ *)(A' : Δ ⊢⋆ *)(p : Γ ≡ Γ')
@@ -306,10 +301,10 @@ emb {Γ} (Alg.unwrap1 {pat = pat}{arg} t) = Dec.conv
   (lemμ'''
     (embCtx∥ Γ) pat arg)
     (Dec.unwrap1 (subst⊢' refl (lemμ'' (embCtx∥ Γ) pat arg) (emb t)))
-emb {Γ} (Alg.con  {s = s}{tcn = tcn} t ) = subst⊢'
+emb {Γ} (Alg.con  {tcn = tcn} t ) = subst⊢'
   refl
-  (lemcon' (embCtx∥ Γ) tcn s)
-  (Dec.con (substTC' (embCtx∥ Γ) (embNf s) tcn (embTC t)))
+  (lemcon' (embCtx∥ Γ) tcn)
+  (Dec.con (substTC' (embCtx∥ Γ) tcn (embTC t)))
 emb {Γ} (Alg.builtin bn σ tel) = let
   Δ  ,, As  ,, C  = SSig.SIG bn
   Δ' ,, As' ,, C' = NSig.SIG bn

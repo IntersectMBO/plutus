@@ -14,7 +14,7 @@ postulate
 open import Type
 open import Builtin
 open import Builtin.Constant.Type
-open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
 open import Builtin.Signature
 
 open import Agda.Builtin.TrustMe

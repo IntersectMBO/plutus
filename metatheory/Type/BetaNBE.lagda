@@ -24,7 +24,6 @@ either neutral or Kripke functions
 
 \begin{code}
 Val : Ctx⋆ → Kind → Set
-Val Φ #       = Φ ⊢Nf⋆ #
 Val Φ *       = Φ ⊢Nf⋆ *
 Val Φ (σ ⇒ τ) = Φ ⊢NeN⋆ (σ ⇒ τ) ⊎ ∀ {Ψ} → Ren Φ Ψ → Val Ψ σ → Val Ψ τ
 \end{code}
@@ -35,7 +34,6 @@ defined with reify.
 
 \begin{code}
 reflect : ∀{Φ σ} → Φ ⊢NeN⋆ σ → Val Φ σ
-reflect {σ = #}     n = ne n
 reflect {σ = *}     n = ne n
 reflect {σ = σ ⇒ τ} n = inj₁ n
 \end{code}
@@ -52,7 +50,6 @@ Renaming for values
 
 \begin{code}
 renameVal : ∀ {σ Φ Ψ} → Ren Φ Ψ → Val Φ σ → Val Ψ σ
-renameVal {#}     ψ n        = renameNf ψ n
 renameVal {*}     ψ n        = renameNf ψ n
 renameVal {σ ⇒ τ} ψ (inj₁ n) = inj₁ (renameNeN ψ n)
 renameVal {σ ⇒ τ} ψ (inj₂ f) = inj₂ (λ ρ' →  f (ρ' ∘ ψ))
@@ -69,7 +66,6 @@ Reify takes a value and yields a normal form.
 
 \begin{code}
 reify : ∀ {σ Φ} → Val Φ σ → Φ ⊢Nf⋆ σ
-reify {#}     n         = n
 reify {*}     n         = n
 reify {σ ⇒ τ} (inj₁ n)  = ne n
 reify {σ ⇒ τ} (inj₂ f)  = ƛ (reify (f S fresh))
@@ -132,8 +128,7 @@ eval (A ⇒ B)     η = reify (eval A η) ⇒ reify (eval B η)
 eval (ƛ B)       η = inj₂ λ ρ v → eval B ((renameVal ρ ∘ η) ,,⋆ v)
 eval (A · B)     η = eval A η ·V eval B η
 eval μ1          η = inj₁ μ1
-eval (size⋆ n)   η = size⋆ n
-eval (con tcn s) η = con tcn (reify (eval s η))
+eval (con tcn)   η = con tcn
 \end{code}
 
 Identity environment

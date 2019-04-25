@@ -36,7 +36,6 @@ a kind called `#` which is used for sized integers and bytestrings.
 \begin{code}
 data Kind : Set where
   *   : Kind               -- type
-  #   : Kind               -- size
   _⇒_ : Kind → Kind → Kind -- function kind
 \end{code}
 
@@ -123,11 +122,6 @@ data _⊢⋆_ : Ctx⋆ → Kind → Set where
   μ1 : ∀{φ K}
       --------------------------------
     → φ ⊢⋆ ((K ⇒ *) ⇒ K ⇒ *) ⇒ K ⇒ *
-
-  size⋆ : ∀{φ}
-    → Nat
-      ------
-    → φ ⊢⋆ #
 
   con : ∀{φ}
     → TyCon
