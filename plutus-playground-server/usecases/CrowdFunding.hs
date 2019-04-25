@@ -10,17 +10,18 @@ import           Ledger.Slot                  (SlotRange)
 import qualified Ledger.Slot                  as Slot
 import qualified Language.PlutusTx.Prelude    as P
 import           Ledger
-import qualified Ledger.Ada.TH                as Ada
-import           Ledger.Ada                   (Ada)
 import           Ledger.Validation           as V
+import           Ledger.Value                (Value)
+import qualified Ledger.Value.TH             as VTH
 import           Playground.Contract
 import           Wallet                       as W
+import qualified Wallet.Emulator              as EM
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
     { campaignDeadline           :: Slot
     -- ^ The date by which the campaign target has to be met
-    , campaignTarget             :: Ada
+    , campaignTarget             :: Value
     -- ^ Target amount of funds
     , campaignCollectionDeadline :: Slot
     -- ^ The date by which the campaign owner has to collect the funds
@@ -30,6 +31,18 @@ data Campaign = Campaign
     } deriving (Generic, ToJSON, FromJSON, ToSchema)
 
 PlutusTx.makeLift ''Campaign
+
+
+-- | Construct a 'Campaign' value from the campaign parameters,
+--   using the wallet's public key.
+mkCampaign :: Slot -> Value -> Slot -> Wallet -> Campaign
+mkCampaign ddl target collectionDdl ownerWallet = 
+    Campaign
+        { campaignDeadline = ddl
+        , campaignTarget   = target
+        , campaignCollectionDeadline = collectionDdl
+        , campaignOwner = EM.walletPubKey ownerWallet            
+        }
 
 -- | The 'SlotRange' during which the funds can be collected
 collectionRange :: Campaign -> SlotRange
@@ -98,13 +111,13 @@ contributionScript cmp  = ValidatorScript val where
                 refndRange :: SlotRange
                 refndRange = $$(Interval.from) campaignCollectionDeadline
 
-                -- `totalInputs` is the sum of the ada values of all transaction
-                -- inputs. We ise `foldr` from the Prelude to go through the
+                -- `totalInputs` is the sum of the values of all transaction
+                -- inputs. We use `foldr` from the Prelude to go through the
                 -- list and sum up the values.
-                totalInputs :: Ada
+                totalInputs :: Value
                 totalInputs =
-                    let v (PendingTxIn _ _ vl) = $$(Ada.fromValue) vl in
-                    $$(P.foldr) (\i total -> $$(Ada.plus) total (v i)) $$(Ada.zero) ps
+                    let v (PendingTxIn _ _ vl) = vl in
+                    $$(P.foldr) (\i total -> $$(VTH.plus) total (v i)) $$(VTH.zero) ps
 
                 isValid = case act of
                     Refund -> -- the "refund" branch
@@ -128,7 +141,7 @@ contributionScript cmp  = ValidatorScript val where
                         let
                             payToOwner = 
                                 $$(Slot.contains) collRange range
-                                && $$(Ada.geq) totalInputs campaignTarget
+                                && $$(VTH.geq) totalInputs campaignTarget
                                 && p `signedBy` campaignOwner
                         in payToOwner
             in
@@ -140,9 +153,9 @@ campaignAddress = Ledger.scriptAddress . contributionScript
 
 -- | Contribute funds to the campaign (contributor)
 --
-contribute :: MonadWallet m => Campaign -> Ada -> m ()
-contribute cmp value = do
-    _ <- if value <= 0 then throwOtherError "Must contribute a positive value" else pure ()
+contribute :: MonadWallet m => Slot -> Value -> Slot -> Wallet -> Value -> m ()
+contribute deadline target collectionDeadline ownerWallet value = do
+    let cmp = mkCampaign deadline target collectionDeadline ownerWallet
     ownPK <- ownPubKey
     let ds = DataScript (Ledger.lifted ownPK)
         range = W.interval 1 (campaignDeadline cmp)
@@ -154,7 +167,7 @@ contribute cmp value = do
     -- If we were not interested in the transaction produced by `payToScript`
     -- we could have used `payeToScript_`, which has the same effect but
     -- discards the result.
-    tx <- payToScript range (campaignAddress cmp) ($$(Ada.toValue) value) ds
+    tx <- payToScript range (campaignAddress cmp) value ds
 
     logMsg "Submitted contribution"
 
@@ -162,15 +175,15 @@ contribute cmp value = do
     -- event. It instructs the wallet to start watching the addresses mentioned
     -- in the trigger definition and run the handler when the refund condition
     -- is true.
-    register (refundTrigger cmp) (refundHandler (Ledger.hashTx tx) cmp)
-
+    register (refundTrigger value cmp) (refundHandler (Ledger.hashTx tx) cmp)
 
     logMsg "Registered refund trigger"
 
 -- | Register a [[EventHandler]] to collect all the funds of a campaign
 --
-scheduleCollection :: MonadWallet m => Campaign -> m ()
-scheduleCollection cmp = do
+scheduleCollection :: MonadWallet m => Slot -> Value -> Slot -> Wallet -> m ()
+scheduleCollection deadline target collectionDeadline ownerWallet = do
+    let cmp = mkCampaign deadline target collectionDeadline ownerWallet
     register (collectFundsTrigger cmp) (EventHandler (\_ -> do
         logMsg "Collecting funds"
         let redeemerScript = Ledger.RedeemerScript (Ledger.lifted Collect)
@@ -178,15 +191,15 @@ scheduleCollection cmp = do
         collectFromScript range (contributionScript cmp) redeemerScript))
 
 -- | An event trigger that fires when a refund of campaign contributions can be claimed
-refundTrigger :: Campaign -> EventTrigger
-refundTrigger c = andT
-    (fundsAtAddressT (campaignAddress c) (W.intervalFrom ($$(Ada.toValue) 1)))
+refundTrigger :: Value -> Campaign -> EventTrigger
+refundTrigger vl c = andT
+    (fundsAtAddressT (campaignAddress c) (W.intervalFrom vl))
     (slotRangeT (refundRange c))
 
 -- | An event trigger that fires when the funds for a campaign can be collected
 collectFundsTrigger :: Campaign -> EventTrigger
 collectFundsTrigger c = andT
-    (fundsAtAddressT (campaignAddress c) (W.intervalFrom ($$(Ada.toValue) (campaignTarget c))))
+    (fundsAtAddressT (campaignAddress c) (W.intervalFrom (campaignTarget c)))
     (slotRangeT (collectionRange c))
 
 -- | Claim a refund of our campaign contribution

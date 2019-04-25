@@ -401,8 +401,8 @@ crowdfundingSpec =
             , SimulatorWallet
                   {simulatorWalletWallet = w3, simulatorWalletBalance = ten}
             ]
-            [ Action (Fn "scheduleCollection") w1 [theCampaign]
-            , Action (Fn "contribute") w2 [theCampaign, theContribution]
+            [ Action (Fn "scheduleCollection") w1 [theDeadline, theTarget, theCollectionDeadline, theWallet]
+            , Action (Fn "contribute") w2 [theDeadline, theTarget, theCollectionDeadline, theWallet, theContribution]
             , Wait 20
             ]
             (sourceCode crowdfunding)
@@ -416,22 +416,18 @@ crowdfundingSpec =
             , SimulatorWallet
                   {simulatorWalletWallet = w3, simulatorWalletBalance = ten}
             ]
-            [ Action (Fn "scheduleCollection") w1 [theCampaign]
-            , Action (Fn "contribute") w2 [theCampaign, theContribution]
-            , Action (Fn "contribute") w3 [theCampaign, theContribution]
+            [ Action (Fn "scheduleCollection") w1 [theDeadline, theTarget, theCollectionDeadline, theWallet]
+            , Action (Fn "contribute") w2 [theDeadline, theTarget, theCollectionDeadline, theWallet, theContribution]
+            , Action (Fn "contribute") w3 [theDeadline, theTarget, theCollectionDeadline, theWallet, theContribution]
             , Wait 10
             ]
             (sourceCode crowdfunding)
             []
-    theCampaign =
-        toJSONString $
-        object
-            [ "campaignDeadline" .= object ["getSlot" .= mkI 10]
-            , "campaignTarget" .= object ["getAda" .= mkI 15]
-            , "campaignCollectionDeadline" .= object ["getSlot" .= mkI 20]
-            , "campaignOwner" .= walletPubKey w1
-            ]
-    theContribution = toJSONString $ object ["getAda" .= mkI 8]
+    theDeadline = toJSONString (object ["getSlot" .= mkI 10])
+    theTarget   = toJSONString (Ada.adaValueOf 10)
+    theCollectionDeadline = toJSONString (object ["getSlot" .= mkI 20])
+    theWallet = toJSONString w1
+    theContribution = toJSONString $ Ada.adaValueOf 8
 
 knownCurrencySpec :: Spec
 knownCurrencySpec =
