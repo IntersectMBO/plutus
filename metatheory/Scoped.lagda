@@ -89,6 +89,10 @@ data ScopedTm : Weirdℕ → Set where
 boolean : ∀{Γ} → ScopedTy Γ
 boolean = Π "α" * (` zero ⇒ (` zero ⇒ ` zero))
 
+unit : ∀{Γ} → ScopedTy Γ
+unit = Π "α" * (` zero ⇒ (` zero ⇒ ` zero))
+
+
 void : ∀{n} → ScopedTm n
 void = Λ "α" * (ƛ "x" (` zero) (` Z))
 

@@ -69,51 +69,52 @@ data Error {n} : ScopedTm n → Set where
 
 -- doing minimal size checking
 
+
 BUILTIN : ∀{n} → Builtin
   → List (ScopedTy ∥ n ∥) → List (Σ (ScopedTm n) (Value {n})) → ScopedTm n
 -- Int -> Int -> Int
-BUILTIN addInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
-BUILTIN addInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (i I.+ i')
-BUILTIN addInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (i I.+ i') r)
-BUILTIN addInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
-BUILTIN addInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
+BUILTIN addInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ _) with s N.≟ s'
+BUILTIN addInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ _) | yes refl with boundedI? s (i I.+ i')
+BUILTIN addInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ _) | yes refl | yes r = con (integer s (i I.+ i') r)
+BUILTIN addInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ _) | yes refl | no ¬r = error (con integer)
+BUILTIN addInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ _) | no ¬q = error (con integer)
 BUILTIN addInteger _ _ = error (con integer)
 BUILTIN subtractInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
 BUILTIN subtractInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (i I.- i')
 BUILTIN subtractInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (i I.- i') r)
 BUILTIN subtractInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
 BUILTIN subtractInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
-BUILTIN subtractInteger _ _ = error (con integer)
+BUILTIN subtractInteger _ _ = error unit -- test
 BUILTIN multiplyInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
 BUILTIN multiplyInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (i I.* i')
 BUILTIN multiplyInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (i I.* i') r)
 BUILTIN multiplyInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
 BUILTIN multiplyInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
-BUILTIN multiplyInteger _ _ = error (con integer)
+BUILTIN multiplyInteger _ _ = error unit -- test
 BUILTIN divideInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
 BUILTIN divideInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (div i i')
 BUILTIN divideInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (div i i') r)
 BUILTIN divideInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
 BUILTIN divideInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
-BUILTIN divideInteger _ _ = error (con integer)
+BUILTIN divideInteger _ _ = error unit -- test
 BUILTIN quotientInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
 BUILTIN quotientInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (quot i i')
 BUILTIN quotientInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (quot i i') r)
 BUILTIN quotientInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
 BUILTIN quotientInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
-BUILTIN quotientInteger _ _ = error (con integer)
+BUILTIN quotientInteger _ _ = error unit -- test
 BUILTIN remainderInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
 BUILTIN remainderInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (rem i i')
 BUILTIN remainderInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (rem i i') r)
 BUILTIN remainderInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
 BUILTIN remainderInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
-BUILTIN remainderInteger _ _ = error (con integer)
+BUILTIN remainderInteger _ _ = error unit -- test
 BUILTIN modInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
 BUILTIN modInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (mod i i')
 BUILTIN modInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (mod i i') r)
 BUILTIN modInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
 BUILTIN modInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
-BUILTIN modInteger _ _ = error (con integer)
+BUILTIN modInteger _ _ = error unit -- test
 -- Int -> Int -> Bool
 BUILTIN lessThanInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with i <? i'
 BUILTIN lessThanInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | yes q = true
@@ -136,10 +137,10 @@ BUILTIN equalsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' 
 BUILTIN equalsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬p = false
 BUILTIN equalsInteger _ _ = error boolean
 -- Int -> Int
-BUILTIN resizeInteger (_ ∷ size s' ∷ []) ((_ , V-con (integer s i p)) ∷ []) with boundedI? s' i
-BUILTIN resizeInteger (_ ∷ size s' ∷ []) ((_ , V-con (integer s i p)) ∷ []) | yes q = con (integer s' i q)
-BUILTIN resizeInteger (_ ∷ size s' ∷ []) ((_ , V-con (integer s i p)) ∷ []) | no ¬q = error (con integer)
-BUILTIN resizeInteger _ _ = error (con integer)
+BUILTIN resizeInteger (_ ∷ size s' ∷ []) (_ ∷ (_ , V-con (integer s i p)) ∷ []) with boundedI? s' i
+BUILTIN resizeInteger (_ ∷ size s' ∷ []) (_ ∷ (_ , V-con (integer s i p)) ∷ []) | yes q = con (integer s' i q)
+BUILTIN resizeInteger (_ ∷ size s' ∷ []) (_ ∷ (_ , V-con (integer s i p)) ∷ []) | no ¬q = error (con integer)
+BUILTIN resizeInteger _ _ = error unit -- test
 -- Int -> Size
 BUILTIN sizeOfInteger _  ((_ , V-con (integer s i p)) ∷ []) = con (size s)
 BUILTIN sizeOfInteger _ _ = error (con size)
@@ -149,12 +150,12 @@ BUILTIN concatenate _ ((_ , V-con (bytestring s b p)) ∷ (.(con (bytestring s' 
 BUILTIN concatenate _ ((_ , V-con (bytestring s b p)) ∷ (.(con (bytestring s' b' p')) , V-con (bytestring s' b' p')) ∷ []) | no ¬q = error (con bytestring)
 BUILTIN concatenate _ _ = error (con bytestring)
 -- Int -> BS -> BS
-BUILTIN takeByteString _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (bytestring s' b p')) ∷ []) with boundedB? s (take i b)
-BUILTIN takeByteString _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (bytestring s' b p')) ∷ []) | yes q = con (bytestring s (take i b) q)
+BUILTIN takeByteString _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (bytestring s' b p')) ∷ []) with boundedB? s' (take i b)
+BUILTIN takeByteString _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (bytestring s' b p')) ∷ []) | yes q = con (bytestring s' (take i b) q)
 BUILTIN takeByteString _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (bytestring s' b p')) ∷ []) | no ¬q = error (con bytestring)
 BUILTIN takeByteString _ _ = error (con bytestring)
-BUILTIN dropByteString _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (bytestring s' b p')) ∷ []) with boundedB? s (drop i b)
-BUILTIN dropByteString _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (bytestring s' b p')) ∷ []) | yes q = con (bytestring s (drop i b) q)
+BUILTIN dropByteString _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (bytestring s' b p')) ∷ []) with boundedB? s' (drop i b)
+BUILTIN dropByteString _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (bytestring s' b p')) ∷ []) | yes q = con (bytestring s' (drop i b) q)
 BUILTIN dropByteString _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (bytestring s' b p')) ∷ []) | no ¬q = error (con bytestring)
 BUILTIN dropByteString _ _ = error (con bytestring)
 -- BS -> BS
@@ -265,10 +266,12 @@ progress (t · u) | inl (inr p) = inl (inr (E-·₁ p))
 progress (t · u) | inr (t' , p) = inr (t' · u , ξ-·₁ p)
 progress (con c) = inl (inl (V-con c))
 progress (error A) = inl (inr (E-error A))
-progress (builtin b As ts) with progressList ts
-progress (builtin b As ts) | done  vs       = inr (BUILTIN b As vs , β-builtin vs)
-progress (builtin b As ts) | step  vs p ts' = inr (builtin b As _ , ξ-builtin vs p ts')
-progress (builtin b As ts) | error vs e ts' = inl (inr (E-builtin e))
+progress (builtin b As ts) with arity b N.≟ Data.List.length ts
+progress (builtin b As ts) | yes p with progressList ts
+progress (builtin b As ts) | yes p | done vs = inr (BUILTIN b As vs , β-builtin vs)
+progress (builtin b As ts) | yes p | step vs q ts' = inr (builtin b As _ , ξ-builtin vs q ts')
+progress (builtin b As ts) | yes p | error vs e ts' = inl (inr (E-builtin e))
+progress (builtin b As ts) | no ¬p = {!!}
 progress (wrap A B t) = inl (inl (V-wrap A B t))
 progress (unwrap  t) with progress t
 progress (unwrap .(ƛ x A t)) | inl (inl (V-ƛ x A t)) = inl (inr E-ƛunwrap)

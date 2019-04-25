@@ -146,7 +146,7 @@ gen (ℕ.suc m) (ℕ.suc n) p = s≤s (gen m n p)
 
 
 BoundedB : (s : ℕ)(b : ByteString) → Set
-BoundedB s b = length b Data.Nat.≤ s
+BoundedB s b = ⊤ -- length b Data.Nat.≤ s
 
 boundedI? : Decidable BoundedI
 boundedI? = λ x y → yes _
@@ -161,7 +161,7 @@ boundedI? s i | no ¬p | _     = no (¬p ∘ proj₁)
 -}
 
 boundedB? : Decidable BoundedB
-boundedB? s b = length b Data.Nat.≤? s
+boundedB? s b = yes tt -- length b Data.Nat.≤? s
 
 boundedN? : Decidable BoundedN
 boundedN? = λ x y → yes tt

@@ -29,7 +29,7 @@ open import test.AddInteger
 --open import test.IntegerLiteral
 open import test.IntegerOverflow -- can't be used
 open import test.Negation -- TODO
-open import test.StringLiteral
+--open import test.StringLiteral
 
 open Agda.Builtin.IO
 open import Data.String
@@ -109,7 +109,9 @@ stestPLC plc | just t | just t' | t'' ,, p ,, inj₁ (just v) =
 --  prettyPrint (unDeBruijnify zero Z (unsaturate t''))
  prettyPrint (deDeBruijnify [] nil (unsaturate t''))
 stestPLC plc | just t | just t' | t'' ,, p ,, inj₁ nothing = "out of fuel"
-stestPLC plc | just t | just t' | t'' ,, p ,, inj₂ e = "runtime error"
+stestPLC plc | just t | just t' | t'' ,, p ,, inj₂ e =
+  "runtime error" Data.String.++
+  prettyPrint (deDeBruijnify [] nil (unsaturate t''))
 stestPLC plc | just t | nothing = "scope error"
 stestPLC plc | nothing = "parse error"
 
