@@ -69,7 +69,7 @@ convT (TyIFix _ a b)       = RTyMu (convT a) (convT b)
 convC :: Constant a -> RConstant
 convC (BuiltinInt _ i) = RConInt i
 convC (BuiltinBS _ b)  = RConBS b
-convC (BuiltinStr _ s)   = RConStr (T.pack s)
+convC (BuiltinStr _ s) = RConStr (T.pack s)
 
 conv :: Term TyName Name a -> RTerm
 conv (Var _ x)                        = RVar (nameString x)
@@ -101,9 +101,9 @@ unconvT (RTyCon c)        = TyBuiltin () c
 unconvT (RTyMu t u)       = TyIFix () (unconvT t) (unconvT u)
 
 unconvC :: RConstant -> Constant ()
-unconvC (RConInt i) = BuiltinInt () i
-unconvC (RConBS b)  = BuiltinBS () b
-unconvC  (RConStr s)  = BuiltinStr () (T.unpack s)
+unconvC (RConInt i)  = BuiltinInt () i
+unconvC (RConBS b)   = BuiltinBS () b
+unconvC  (RConStr s) = BuiltinStr () (T.unpack s)
 
 unconv :: RTerm -> Term TyName Name ()
 unconv (RVar x)          = Var () (mkName x)
