@@ -26,7 +26,7 @@ open import Data.Integer
 
 open import Data.Product renaming (_,_ to _,,_)
 open import test.AddInteger
-open import test.IntegerLiteral
+--open import test.IntegerLiteral
 open import test.IntegerOverflow -- can't be used
 open import test.Negation -- TODO
 open import test.StringLiteral
@@ -100,7 +100,7 @@ open import Data.Vec hiding (_>>=_)
 stestPLC : ByteString → String
 stestPLC plc with parse plc
 stestPLC plc | just t with deBruijnifyTm nil (convP t)
-stestPLC plc | just t | just t' with S.run (saturate t') 100
+stestPLC plc | just t | just t' with S.run (saturate t') 1000
 stestPLC plc | just t | just t' | t'' ,, p ,, inj₁ (just v) =
 --  prettyPrint (unDeBruijnify zero Z (unsaturate t''))
  prettyPrint (deDeBruijnify [] nil (unsaturate t''))
@@ -108,6 +108,13 @@ stestPLC plc | just t | just t' | t'' ,, p ,, inj₁ nothing = "out of fuel"
 stestPLC plc | just t | just t' | t'' ,, p ,, inj₂ e = "runtime error"
 stestPLC plc | just t | nothing = "scope error"
 stestPLC plc | nothing = "parse error"
+
+blah : ByteString → String
+blah plc with parse plc
+blah plc | nothing = "parse error"
+blah plc | just t with deBruijnifyTm nil (convP t)
+blah plc | just t | just t' = "so far so good"
+blah plc | just t | nothing = "deBruijnifying failed"
 
 testFile : String → IO String
 testFile fn = do
@@ -128,4 +135,10 @@ main = do
   (arg ∷ args) ← getArgs
     where [] → return _
   testFile arg >>= putStrLn
+
+ex0 : RawTm
+ex0 = con (integer 2 (pos 1))
+
+ex1 : RawTm
+ex1 = (Λ "s" # (ƛ "i" (_·_ (con integer) (` "s")) (_·_ (_·_ (_·⋆_ (builtin addInteger) (` "s")) (` "i")) (_·_ (_·_ (_·⋆_ (_·⋆_ (builtin resizeInteger) (size 2)) (` "s")) (_·_ (_·⋆_ (builtin sizeOfInteger) (` "s")) (` "i"))) (con (integer 2 (pos 1)))))))
 \end{code}

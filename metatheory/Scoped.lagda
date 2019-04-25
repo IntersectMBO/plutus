@@ -165,7 +165,6 @@ lookupWeird (consS x xs) Z = x
 lookupWeird (consS x xs) (S i) = lookupWeird xs i
 lookupWeird (consT x xs) (T i) = lookupWeird xs i 
 
--- this could return a proof that that something is out of bounds
 checkSize : RawTermCon → Maybe (SizedTermCon)
 checkSize (integer s i) with boundedI? s i
 checkSize (integer s i) | yes p    = just (integer s i p)
@@ -203,6 +202,9 @@ deBruijnifyTm g (wrap A B t) = do
 deBruijnifyTm g (unwrap t) =  do
   t ← deBruijnifyTm g t
   return (unwrap t)
+
+--{-# COMPILE GHC deBruijnifyTm as deBruijnifyTm #-}
+
 \end{code}
 
 -- SATURATION OF BUILTINS
@@ -407,6 +409,7 @@ deDeBruijnify xs⋆ xs (error x) = error (deDeBruijnify⋆ xs⋆ x)
 deDeBruijnify xs⋆ xs (builtin x _ _) = builtin x
 deDeBruijnify xs⋆ xs (wrap A B t) = wrap (deDeBruijnify⋆ xs⋆ A) (deDeBruijnify⋆ xs⋆ B) (deDeBruijnify xs⋆ xs t)
 deDeBruijnify xs⋆ xs (unwrap t) = unwrap (deDeBruijnify xs⋆ xs t)
+
 \end{code}
 
 
