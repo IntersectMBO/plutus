@@ -12,9 +12,9 @@ open import Declarative.RenamingSubstitution
 open import Type.Equality
 open import Builtin
 open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢⋆_ ` con boolean size⋆
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con boolean
 open import Builtin.Constant.Type
-open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
 open import Declarative.StdLib.Bool
 open import Utils
 
@@ -53,8 +53,8 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Set where
    → {term : Γ ⊢ pat · (μ1 · pat) · arg}
    → Value (wrap1 pat arg term)
 
-  V-con : ∀{Γ}{n}{tcn : TyCon}
-    → (cn : TermCon (con tcn (size⋆ n)))
+  V-con : ∀{Γ}{tcn : TyCon}
+    → (cn : TermCon (con tcn))
     → Value (con {Γ} cn)
 
 \end{code}
@@ -66,6 +66,7 @@ VTel : ∀ Γ Δ → ⋆.Sub Δ ∥ Γ ∥ → List (Δ ⊢⋆ *) → Set
 VTel Γ Δ σ [] = ⊤
 VTel Γ Δ σ (A ∷ As) = Σ (Γ ⊢ ⋆.subst σ A) λ t → Value t × VTel Γ Δ σ As
 
+{-
 BUILTIN : ∀{Γ}
     → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
@@ -297,11 +298,13 @@ BUILTIN
   with equals b b'
 ... | Bool.true  = just true
 ... | Bool.false = just false
+-}
 \end{code}
 
 # recontructing the telescope after a reduction step
 
 \begin{code}
+{-
 reconstTel : ∀{Γ Δ As} Bs Ds
     →  (σ : ⋆.Sub Δ ∥ Γ ∥)
     → (vtel : VTel Γ Δ σ Bs)
@@ -312,11 +315,13 @@ reconstTel : ∀{Γ Δ As} Bs Ds
 reconstTel [] Ds σ vtel t' refl tel' = t' ,, tel'
 reconstTel (B ∷ Bs) Ds σ (X ,, VX ,, vtel) t' refl tel' =
   X ,, reconstTel Bs Ds σ vtel t' refl tel'
+-}
 \end{code}
 
 ## Intrinsically Type Preserving Reduction
 
 \begin{code}
+{-
 infix 2 _—→_
 
 data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ A) → Set where
@@ -381,10 +386,12 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ 
     → builtin bn σ tel
       —→
       builtin bn σ (reconstTel Bs Ds σ vtel t' p tel')
+      -}
 \end{code}
 
 
 \begin{code}
+{-
 data Progress {A : ∅ ⊢⋆ *} (M : ∅ ⊢ A) : Set where
   step : ∀ {N}
     → M —→ N
@@ -395,10 +402,11 @@ data Progress {A : ∅ ⊢⋆ *} (M : ∅ ⊢ A) : Set where
       ----------
     → Progress M
   error : Progress M 
+-}
 \end{code}
 
 \begin{code}
-
+{-
 data TelProgress
   {Γ}
   {Δ}
@@ -460,4 +468,5 @@ progress (builtin bn σ X) | step Bs Ds vtel p q tel' =
   step (ξ-builtin bn σ X Bs Ds vtel p q tel')
 progress (builtin bn σ X) | error = error
 progress (error A) = error
+-}
 \end{code}

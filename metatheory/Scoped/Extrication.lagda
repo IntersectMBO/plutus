@@ -7,7 +7,7 @@ open import Type
 open import Type.BetaNormal
 open import Algorithmic as A
 open import Scoped
-open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢Nf⋆_ con size⋆
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as B
 open import Data.Nat
 open import Data.Fin
 open import Type.BetaNormal
@@ -24,7 +24,6 @@ len⋆ (Γ ,⋆ K) = suc (len⋆ Γ)
 -- scoped kind clearly shoud go...
 eraseK : Kind → ScopedKind
 eraseK * = *
-eraseK # = #
 eraseK (K ⇒ J) = eraseK K ⇒ eraseK J
 
 eraseVar⋆ : ∀{Γ K}(A : Γ ∋⋆ K) → Fin (len⋆ Γ)
@@ -41,8 +40,7 @@ eraseNf⋆ (Π {K = K} A) = Π "x" (eraseK K) (eraseNf⋆ A)
 eraseNf⋆ (A ⇒ B) = eraseNf⋆ A ⇒ eraseNf⋆ B
 eraseNf⋆ (ƛ {K = K} A) = ƛ "x" (eraseK K) (eraseNf⋆ A)
 eraseNf⋆ (ne n) = eraseNe⋆ n
-eraseNf⋆ (size⋆ n) = size n
-eraseNf⋆ (con c A) = con c
+eraseNf⋆ (con c) = con c
 
 eraseNe⋆ (` α) = ` (eraseVar⋆ α)
 eraseNe⋆ (n · n') = eraseNe⋆ n · eraseNf⋆ n'
@@ -70,10 +68,10 @@ eraseVar Z = Z
 eraseVar (S x) = S (eraseVar x)
 eraseVar (T x) = T (eraseVar x)
 
-eraseC : ∀{Γ}{A : Γ ⊢Nf⋆ *} → TermCon A → SizedTermCon
-eraseC (integer s i p) = integer s i p
-eraseC (bytestring s b p) = bytestring s b p
-eraseC (size s) = size s
+
+eraseC : ∀{Γ}{A : Γ ⊢Nf⋆ *} → B.TermCon A → Scoped.TermCon
+eraseC (integer i) = integer i
+eraseC (bytestring b) = bytestring b
 
 open import Data.List as L
 open import Data.Product as P

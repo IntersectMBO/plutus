@@ -6,7 +6,7 @@ module Declarative.StdLib.ChurchNat where
 open import Type
 open import Declarative
 open import Builtin
-open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
 
 open import Data.Unit
 \end{code}
@@ -32,10 +32,11 @@ open import Data.Integer
 open import Data.Nat
 open import Agda.Builtin.Sigma renaming (_,_ to _,,_)
 
-con0 : ∀{Γ} → Γ ⊢ con integer (size⋆ 8)
+{-
+con0 : ∀{Γ} → Γ ⊢ con integer
 con0 = con (integer 8 (ℤ.pos 0) _) -- (-≤+ ,, (+≤+ (s≤s z≤n))))
 
-con1 : ∀{Γ} → Γ ⊢ con integer (size⋆ 8)
+con1 : ∀{Γ} → Γ ⊢ con integer
 con1 = con (integer 8 (ℤ.pos 1) _) -- (-≤+ ,, (+≤+ (s≤s (s≤s z≤n)))))
 
 inc : ∀{Γ} → Γ ⊢ Π (con integer (` Z) ⇒ con integer (` Z))
@@ -48,4 +49,5 @@ Nat2Int = ƛ (Iter
   ·  con0
   ·  (inc ·⋆ size⋆ 8)
   · ` Z)
+-}
 \end{code}

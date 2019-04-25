@@ -17,8 +17,8 @@ import Type.RenamingSubstitution as ⋆
 open import Type.BetaNBE.RenamingSubstitution
 open import Type.Equality
 open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf size⋆
-open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢Nf⋆_ con size⋆
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import AlgorithmicRed.Term
 \end{code}
 
@@ -57,9 +57,8 @@ renameTermCon : ∀ {Φ Ψ}
   → (ρ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
     -----------------------------------------------------
   → ({A : Φ ⊢Nf⋆ *} → TermCon A → TermCon (renameNf ρ⋆ A ))
-renameTermCon ρ⋆ (integer s i p)    = integer s i p
-renameTermCon ρ⋆ (bytestring s b p) = bytestring s b p
-renameTermCon ρ⋆ (size s)           = size s
+renameTermCon ρ⋆ (integer i)    = integer i
+renameTermCon ρ⋆ (bytestring b) = bytestring b
 \end{code}
 
 \begin{code}

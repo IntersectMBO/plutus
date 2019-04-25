@@ -14,7 +14,7 @@ postulate
 open import Type
 open import Builtin
 open import Builtin.Constant.Type
-open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
 open import Builtin.Signature
 
 open import Agda.Builtin.TrustMe
@@ -25,10 +25,10 @@ open import Agda.Builtin.Int
 open import Data.Integer
 
 open import Data.Product renaming (_,_ to _,,_)
-open import test.AddInteger
+--open import test.AddInteger
 --open import test.IntegerLiteral
-open import test.IntegerOverflow -- can't be used
-open import test.Negation -- TODO
+--open import test.IntegerOverflow -- can't be used
+--open import test.Negation -- TODO
 --open import test.StringLiteral
 
 open Agda.Builtin.IO
@@ -143,11 +143,12 @@ main = do
   testFile arg >>= putStrLn
 
 ex0 : RawTm
-ex0 = con (integer 2 (pos 1))
+ex0 = con (integer (pos 1))
 
+{-
 ex1 : RawTm
 ex1 = (Λ "s" # (ƛ "i" (_·_ (con integer) (` "s")) (_·_ (_·_ (_·⋆_ (builtin addInteger) (` "s")) (` "i")) (_·_ (_·_ (_·⋆_ (_·⋆_ (builtin resizeInteger) (size 2)) (` "s")) (_·_ (_·⋆_ (builtin sizeOfInteger) (` "s")) (` "i"))) (con (integer 2 (pos 1)))))))
-
+-}
 
 open import Scoped.Reduction
 frun :  ℕ → (t : ScopedTm Z)
