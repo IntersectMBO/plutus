@@ -38,7 +38,7 @@ let
     "interpreter"
     "marlowe"
     "meadow"
-    "wallet-api"
+    "plutus-wallet-api"
   ];
 
   plutusHaskellPkgList = lib.filter (v: v != "plutus-playground-client" && v != "plutus-server-invoker") plutusPkgList;

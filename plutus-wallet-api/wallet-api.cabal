@@ -1,5 +1,5 @@
 cabal-version: 2.2
-name: wallet-api
+name: plutus-wallet-api
 version: 0.1.0.0
 license: Apache-2.0
 license-files:
@@ -116,10 +116,10 @@ executable emulator
     hs-source-dirs: emulator
     build-depends:
         base <5,
-        wallet-api -any,
+        plutus-wallet-api -any,
         warp -any
 
-test-suite wallet-api-test
+test-suite plutus-wallet-api-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     hs-source-dirs: test
@@ -132,7 +132,7 @@ test-suite wallet-api-test
         tasty-hedgehog -any,
         tasty-hunit -any,
         transformers -any,
-        wallet-api -any,
+        plutus-wallet-api -any,
         plutus-tx -any,
         lens -any,
         bytestring -any,

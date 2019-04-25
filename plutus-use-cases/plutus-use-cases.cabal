@@ -46,7 +46,7 @@ library
         mtl -any,
         template-haskell -any,
         plutus-tx -any,
-        wallet-api -any,
+        plutus-wallet-api -any,
         lens -any,
         text -any
 
@@ -75,7 +75,7 @@ test-suite plutus-use-cases-test
         tasty-hunit -any,
         tasty-hedgehog >=0.2.0.0,
         text -any,
-        wallet-api -any,
+        plutus-wallet-api -any,
         plutus-use-cases -any,
         lens -any,
         mtl -any
