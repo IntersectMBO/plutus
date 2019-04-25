@@ -89,6 +89,10 @@ data ScopedTm : Weirdℕ → Set where
 boolean : ∀{Γ} → ScopedTy Γ
 boolean = Π "α" * (` zero ⇒ (` zero ⇒ ` zero))
 
+unit : ∀{Γ} → ScopedTy Γ
+unit = Π "α" * (` zero ⇒ (` zero ⇒ ` zero))
+
+
 void : ∀{n} → ScopedTm n
 void = Λ "α" * (ƛ "x" (` zero) (` Z))
 
@@ -165,7 +169,6 @@ lookupWeird (consS x xs) Z = x
 lookupWeird (consS x xs) (S i) = lookupWeird xs i
 lookupWeird (consT x xs) (T i) = lookupWeird xs i 
 
--- this could return a proof that that something is out of bounds
 checkSize : RawTermCon → Maybe (SizedTermCon)
 checkSize (integer s i) with boundedI? s i
 checkSize (integer s i) | yes p    = just (integer s i p)
@@ -203,6 +206,9 @@ deBruijnifyTm g (wrap A B t) = do
 deBruijnifyTm g (unwrap t) =  do
   t ← deBruijnifyTm g t
   return (unwrap t)
+
+--{-# COMPILE GHC deBruijnifyTm as deBruijnifyTm #-}
+
 \end{code}
 
 -- SATURATION OF BUILTINS
@@ -302,16 +308,18 @@ saturate (unwrap t)   = unwrap (saturate t)
 \end{code}
 
 \begin{code}
+{-# TERMINATING #-}
+unsaturate : ∀{n} → ScopedTm n → ScopedTm n
+
 builtinBuilder : ∀{n} → Builtin → List (ScopedTy ∥ n ∥) → List (ScopedTm n) → ScopedTm n
 builtinBuilder b [] [] = builtin b [] []
 builtinBuilder b (A ∷ As) [] = builtinBuilder b As [] ·⋆ A
-builtinBuilder b As (t ∷ ts) = builtinBuilder b As ts · t
+builtinBuilder b As (t ∷ ts) = builtinBuilder b As ts · unsaturate t
 \end{code}
 
 \begin{code}
-unsaturate : ∀{n} → ScopedTm n → ScopedTm n
 unsaturate (` x) = ` x
-unsaturate (Λ x K t) = Λ x K (saturate t)
+unsaturate (Λ x K t) = Λ x K (unsaturate t)
 unsaturate (t ·⋆ A) = unsaturate t ·⋆ A
 unsaturate (ƛ x A t) = ƛ x A (unsaturate t)
 unsaturate (t · u) = unsaturate t · unsaturate u
@@ -407,6 +415,7 @@ deDeBruijnify xs⋆ xs (error x) = error (deDeBruijnify⋆ xs⋆ x)
 deDeBruijnify xs⋆ xs (builtin x _ _) = builtin x
 deDeBruijnify xs⋆ xs (wrap A B t) = wrap (deDeBruijnify⋆ xs⋆ A) (deDeBruijnify⋆ xs⋆ B) (deDeBruijnify xs⋆ xs t)
 deDeBruijnify xs⋆ xs (unwrap t) = unwrap (deDeBruijnify xs⋆ xs t)
+
 \end{code}
 
 

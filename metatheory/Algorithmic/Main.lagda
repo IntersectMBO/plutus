@@ -50,20 +50,26 @@ lemma1 = primTrustMe
 lemma2 : length str2 ≡ 7
 lemma2 = primTrustMe
 
+{-
 constr1 : ∀{Γ} → Γ ⊢ con bytestring (size⋆ 16)
 constr1 = con (bytestring 16 str1 (subst (λ x → x Data.Nat.≤ 16) (sym lemma1) (s≤s (s≤s (s≤s (s≤s (s≤s (s≤s (s≤s z≤n)))))))))
+-}
 
+{-
 constr2 : ∀{Γ} → Γ ⊢ con bytestring (size⋆ 16)
 constr2 = con (bytestring 16 str2 (subst (λ x → x Data.Nat.≤ 16) (sym lemma2) (s≤s (s≤s (s≤s (s≤s (s≤s (s≤s (s≤s z≤n)))))))))
+-}
 
+{-
 append12 : ∀{Γ} → Γ ⊢ con bytestring (size⋆ 16)
 append12 = builtin concatenate (λ { Z → size⋆ 16 ; (S ())}) (constr1 ,, constr2 ,, tt)
+-}
 
 con1 : ∀{Γ} → Γ ⊢ con integer (size⋆ 8)
-con1 = con (integer 8 (pos 1) (-≤+ ,, (+≤+ (s≤s (s≤s z≤n)))))
+con1 = con (integer 8 (pos 1) _) -- (-≤+ ,, (+≤+ (s≤s (s≤s z≤n)))))
 
 con2 : ∀{Γ} → Γ ⊢ con integer (size⋆ 8)
-con2 = con (integer 8 (pos 2) (-≤+ ,, (+≤+ (s≤s (s≤s (s≤s z≤n))))))
+con2 = con (integer 8 (pos 2) _) -- (-≤+ ,, (+≤+ (s≤s (s≤s (s≤s z≤n))))))
 
 builtin2plus2 : ∅ ⊢ con integer (size⋆ 8)
 builtin2plus2 = builtin

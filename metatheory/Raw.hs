@@ -112,7 +112,7 @@ unconvC :: RConstant -> Constant ()
 unconvC (RConInt n i) = BuiltinInt () (naturalFromInteger n) i
 unconvC (RConBS n b)  = BuiltinBS () (naturalFromInteger n) b
 unconvC (RConSize n)  = BuiltinSize () (naturalFromInteger n)
-uconvC  (RConStr s)  = BuiltinStr () (T.unpack s)
+unconvC  (RConStr s)  = BuiltinStr () (T.unpack s)
 
 unconv :: RTerm -> Term TyName Name ()
 unconv (RVar x)          = Var () (mkName x)

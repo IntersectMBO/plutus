@@ -77,7 +77,6 @@ executable plc-agda
         MAlonzo.Code.Data.Sum.Base
         MAlonzo.Code.Data.These
         MAlonzo.Code.Data.Vec
-        MAlonzo.Code.Declarative.Term
         MAlonzo.Code.Function.Bijection
         MAlonzo.Code.Function.Equality
         MAlonzo.Code.Function.Equivalence
@@ -117,9 +116,6 @@ executable plc-agda
         MAlonzo.Code.Type
         MAlonzo.Code.Type.Equality
         MAlonzo.Code.Type.RenamingSubstitution
-        MAlonzo.Code.Untyped.Reduction
-        MAlonzo.Code.Untyped.RenamingSubstitution
-        MAlonzo.Code.Untyped.Term
         MAlonzo.Code.Utils
         MAlonzo.RTE
         Raw
