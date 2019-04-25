@@ -131,7 +131,6 @@ data _⊢⋆_ : Ctx⋆ → Kind → Set where
 
   con : ∀{φ}
     → TyCon
-    → φ ⊢⋆ #
       ------
     → φ ⊢⋆ *
 

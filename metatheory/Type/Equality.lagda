@@ -77,12 +77,6 @@ data _≡β_ {Γ} : ∀{J} → Γ ⊢⋆ J → Γ ⊢⋆ J → Set where
     → A · B ≡β A' · B'
     
   -- no μ1 rule is needed
-  -- no size⋆ rule is needed
-
-  con≡β : {tcn : TyCon}{s s' : Γ ⊢⋆ #}
-    → s ≡β s'
-      -----------------------
-    → con tcn s ≡β con tcn s'
 
   -- computation rule
 
@@ -117,7 +111,6 @@ rename≡β ρ (β≡β B A)     =
                  (trans (subst-cong (rename-subst-cons ρ A) B)
                         (rename-subst B)))
           (β≡β _ _)
-rename≡β ρ (con≡β p)     = con≡β (rename≡β ρ p)
 \end{code}
 
 ## Substitution for proofs of type equality
@@ -141,5 +134,4 @@ subst≡β σ (β≡β B A)     =
                         (subst-cong (subst-subst-cons σ A) B))
           (subst-comp B))
           (β≡β _ _)
-subst≡β ρ (con≡β p)     = con≡β (subst≡β ρ p)
 \end{code}

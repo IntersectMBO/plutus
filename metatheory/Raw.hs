@@ -16,7 +16,6 @@ import           Language.PlutusCore.Pretty
 import           Data.Either
 
 data RKind = RKiStar
-           | RKiSize
            | RKiFun RKind RKind
            deriving Show
 
@@ -26,13 +25,11 @@ data RType = RTyVar T.Text
            | RTyLambda T.Text RKind RType
            | RTyApp RType RType
            | RTyCon TypeBuiltin
-           | RTySize Integer
            | RTyMu RType RType
            deriving Show
 
-data RConstant = RConInt Integer Integer
-               | RConBS Integer BSL.ByteString
-               | RConSize Integer
+data RConstant = RConInt Integer
+               | RConBS BSL.ByteString
                | RConStr T.Text
                deriving Show
 
@@ -57,7 +54,6 @@ convP (Program _ _ t) = conv t
 convK :: Kind a -> RKind
 convK (Type _)            = RKiStar
 convK (KindArrow _ _K _J) = RKiFun (convK _K) (convK _J)
-convK (Size _)            = RKiSize
 
 convT :: Type TyName a -> RType
 convT (TyVar _ x)          = RTyVar (nameString $ unTyName x)
@@ -68,13 +64,11 @@ convT (TyLam _ x _K _A)    =
   RTyLambda (nameString $ unTyName x) (convK _K) (convT _A)
 convT (TyApp _ _A _B)      = RTyApp (convT _A) (convT _B)
 convT (TyBuiltin _ b)      = RTyCon b
-convT (TyInt _ n)          = RTySize (toInteger n)
 convT (TyIFix _ a b)       = RTyMu (convT a) (convT b)
 
 convC :: Constant a -> RConstant
-convC (BuiltinInt _ n i) = RConInt (toInteger n) i
-convC (BuiltinBS _ n b)  = RConBS (toInteger n) b
-convC (BuiltinSize _ n)  = RConSize (toInteger n)
+convC (BuiltinInt _ i) = RConInt i
+convC (BuiltinBS _ b)  = RConBS b
 convC (BuiltinStr _ s)   = RConStr (T.pack s)
 
 conv :: Term TyName Name a -> RTerm
@@ -96,7 +90,6 @@ mkName x = Name {nameAttribute = (), nameString = x, nameUnique = undefined}
 unconvK :: RKind -> Kind ()
 unconvK RKiStar        = Type ()
 unconvK (RKiFun _K _J) = KindArrow () (unconvK _K) (unconvK _J)
-unconvK RKiSize        = Size ()
 
 unconvT :: RType -> Type TyName ()
 unconvT (RTyVar x)        = TyVar () (TyName $ mkName x)
@@ -105,13 +98,11 @@ unconvT (RTyPi x k t)     = TyForall () (TyName $ mkName x) (unconvK k) (unconvT
 unconvT (RTyLambda x k t) = TyLam () (TyName $ mkName x) (unconvK k) (unconvT t)
 unconvT (RTyApp t u)      = TyApp () (unconvT t) (unconvT u)
 unconvT (RTyCon c)        = TyBuiltin () c
-unconvT (RTySize i)       = TyInt () (naturalFromInteger i)
 unconvT (RTyMu t u)       = TyIFix () (unconvT t) (unconvT u)
 
 unconvC :: RConstant -> Constant ()
-unconvC (RConInt n i) = BuiltinInt () (naturalFromInteger n) i
-unconvC (RConBS n b)  = BuiltinBS () (naturalFromInteger n) b
-unconvC (RConSize n)  = BuiltinSize () (naturalFromInteger n)
+unconvC (RConInt i) = BuiltinInt () i
+unconvC (RConBS b)  = BuiltinBS () b
 unconvC  (RConStr s)  = BuiltinStr () (T.unpack s)
 
 unconv :: RTerm -> Term TyName Name ()

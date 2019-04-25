@@ -12,8 +12,8 @@ open import Builtin
 
 -- these things should perhaps be rexported...
 open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢⋆_ ` con boolean size⋆
-open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆
+  Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢⋆_ ` con boolean
+open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con
 
 open import Relation.Binary.PropositionalEquality hiding ([_]; subst)
 open import Agda.Builtin.Int
@@ -149,10 +149,10 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
       -----
     → Γ ⊢ B
 
-  con : ∀{Γ s tcn}
-    → TermCon (con tcn s)
+  con : ∀{Γ tcn}
+    → TermCon {∥ Γ ∥} (con tcn)
       -------------------
-    → Γ ⊢ con tcn s
+    → Γ ⊢ con tcn
 
   builtin : ∀{Γ}
     → (bn : Builtin)

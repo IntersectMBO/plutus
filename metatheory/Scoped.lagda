@@ -16,11 +16,10 @@ open import Data.String
 \begin{code}
 data ScopedKind : Set where
   *   : ScopedKind
-  #   : ScopedKind
   _⇒_ : ScopedKind → ScopedKind → ScopedKind
 
 {-# FOREIGN GHC import Scoped #-}
-{-# COMPILE GHC ScopedKind = data ScKind (ScKiStar | ScKiSize | ScKiFun) #-}
+{-# COMPILE GHC ScopedKind = data ScKind (ScKiStar | ScKiFun) #-}
 
 data ScopedTy (n : ℕ) : Set where
   `    : Fin n → ScopedTy n
@@ -29,8 +28,6 @@ data ScopedTy (n : ℕ) : Set where
   ƛ    : String → ScopedKind → ScopedTy (suc n) → ScopedTy n
   _·_  : ScopedTy n → ScopedTy n → ScopedTy n
   con  : TyCon → ScopedTy n
-  size : ℕ → ScopedTy n
-
   μ    : ScopedTy n → ScopedTy n → ScopedTy n
 
 --{-# COMPILE GHC ScopedTy = data ScTy (ScTyVar | ScTyFun | ScTyPi | ScTyLambda | ScTyApp | ScTyCon | ScTySize) #-}
@@ -59,17 +56,14 @@ open import Data.Integer hiding (_*_)
 open import Data.String
 
 -- could index by size here, is there any point?
-data SizedTermCon : Set where
-  integer    : ∀ s
-    → (i : ℤ)
-    → BoundedI s i
-    → SizedTermCon
-  bytestring : ∀ s
-    → (b : ByteString)
-    → BoundedB s b
-    → SizedTermCon
-  size       : ℕ → SizedTermCon
-  string     : String → SizedTermCon
+data TermCon : Set where
+  integer    :
+      (i : ℤ)
+    → TermCon
+  bytestring :
+      (b : ByteString)
+    → TermCon
+  string     : String → TermCon
 
 data ScopedTm : Weirdℕ → Set where
   `    : ∀{n} → WeirdFin n → ScopedTm n 
@@ -77,7 +71,7 @@ data ScopedTm : Weirdℕ → Set where
   _·⋆_ : ∀{n} → ScopedTm n → ScopedTy ∥ n ∥ → ScopedTm n
   ƛ    : ∀{n} → String → ScopedTy ∥ n ∥ → ScopedTm (S n) → ScopedTm n
   _·_  : ∀{n} → ScopedTm n → ScopedTm n → ScopedTm n
-  con  : ∀{n} → SizedTermCon → ScopedTm n
+  con  : ∀{n} → TermCon → ScopedTm n
   error : ∀{n} → ScopedTy ∥ n ∥ → ScopedTm n
   builtin : ∀{n} → Builtin → List (ScopedTy ∥ n ∥) → List (ScopedTm n)
           → ScopedTm n
@@ -109,7 +103,6 @@ false = Λ "α" * (ƛ "t" (` zero) (ƛ "f" (` zero) (` Z)))
 deBruijnifyK : RawKind → ScopedKind
 deBruijnifyK * = *
 deBruijnifyK (K ⇒ J) = deBruijnifyK K ⇒ deBruijnifyK J
-deBruijnifyK # = #
 
 open import Data.Vec hiding (_>>=_; map; _++_; [_])
 open import Utils
@@ -140,7 +133,6 @@ deBruijnifyTy g (A · B) = do
   B ← deBruijnifyTy g B
   return (A · B)
 deBruijnifyTy g (con b)     = just (con b)
-deBruijnifyTy g (size n)    = just (size n)
 deBruijnifyTy g (μ A B)     = do
   A ← deBruijnifyTy g A
   B ← deBruijnifyTy g B
@@ -169,15 +161,11 @@ lookupWeird (consS x xs) Z = x
 lookupWeird (consS x xs) (S i) = lookupWeird xs i
 lookupWeird (consT x xs) (T i) = lookupWeird xs i 
 
-checkSize : RawTermCon → Maybe (SizedTermCon)
-checkSize (integer s i) with boundedI? s i
-checkSize (integer s i) | yes p    = just (integer s i p)
-checkSize (integer s i) | no ¬p    = nothing
-checkSize (bytestring s b) with boundedB? s b
-checkSize (bytestring s b) | yes p = just (bytestring s b p)
-checkSize (bytestring s b) | no ¬p = nothing
-checkSize (size s)                 = just (size s)
-checkSize (string x)               = just (string x)
+deBruijnifyC : RawTermCon → TermCon
+deBruijnifyC (integer i) = integer i
+deBruijnifyC (bytestring b) = bytestring b
+deBruijnifyC (string x) = string x
+  
 
 deBruijnifyTm : ∀{n} → WeirdVec String n → RawTm → Maybe (ScopedTm n)
 deBruijnifyTm g (` x) = map ` (velemIndexWeird x g)
@@ -195,7 +183,7 @@ deBruijnifyTm g (L ·⋆ A) = do
   L ← deBruijnifyTm g L
   A ← deBruijnifyTy ∥ g ∥Vec A
   return (L ·⋆ A)
-deBruijnifyTm g (con t) = map con (checkSize t)
+deBruijnifyTm g (con t) = just (con (deBruijnifyC t))
 deBruijnifyTm g (error A) = map error (deBruijnifyTy ∥ g ∥Vec A)
 deBruijnifyTm g (builtin b) = just (builtin b [] [])
 deBruijnifyTm g (wrap A B t) = do
@@ -235,8 +223,6 @@ arity lessThanEqualsInteger = 2
 arity greaterThanInteger = 2
 arity greaterThanEqualsInteger = 2
 arity equalsInteger = 2
-arity resizeInteger = 2
-arity sizeOfInteger = 1
 arity intToByteString = 2
 arity concatenate = 2
 arity takeByteString = 2
@@ -244,7 +230,6 @@ arity dropByteString = 2
 arity sha2-256 = 1
 arity sha3-256 = 1
 arity verifySignature = 3
-arity resizeByteString = 2
 arity equalsByteString = 2
 
 arity⋆ : Builtin → ℕ
@@ -260,8 +245,6 @@ arity⋆ lessThanEqualsInteger = 1
 arity⋆ greaterThanInteger = 1
 arity⋆ greaterThanEqualsInteger = 1
 arity⋆ equalsInteger = 1
-arity⋆ resizeInteger = 2
-arity⋆ sizeOfInteger = 1
 arity⋆ intToByteString = 2
 arity⋆ concatenate = 1
 arity⋆ takeByteString = 2
@@ -269,7 +252,6 @@ arity⋆ dropByteString = 2
 arity⋆ sha2-256 = 1
 arity⋆ sha3-256 = 1
 arity⋆ verifySignature = 3
-arity⋆ resizeByteString = 2
 arity⋆ equalsByteString = 1
 
 open import Relation.Nullary
@@ -335,7 +317,6 @@ unsaturate (unwrap t)   = unwrap (unsaturate t)
 unDeBruijnifyK : ScopedKind → RawKind
 unDeBruijnifyK * = *
 unDeBruijnifyK (K ⇒ J) = unDeBruijnifyK K ⇒ unDeBruijnifyK J
-unDeBruijnifyK # = #
 \end{code}
 
 \begin{code}
@@ -346,12 +327,11 @@ wftoℕ (T i) = ℕ.suc (wftoℕ i)
 \end{code}
 
 \begin{code}
-unDeBruijnifyC : SizedTermCon → RawTermCon
-unDeBruijnifyC (integer s i x) = integer s i
-unDeBruijnifyC (bytestring s b x) = bytestring s b
-unDeBruijnifyC (size x) = size x
+unDeBruijnifyC : TermCon → RawTermCon
+unDeBruijnifyC (integer i) = integer i
+unDeBruijnifyC (bytestring b) = bytestring b
 unDeBruijnifyC (string x) = string x
-\end{code}
+  \end{code}
 
 \begin{code}
 unDeBruijnify⋆ : ∀{n} → ℕ → ScopedTy n → RawTy
@@ -367,7 +347,6 @@ unDeBruijnify⋆ i (ƛ x K A) = ƛ
   (unDeBruijnify⋆ (ℕ.suc i) A)
 unDeBruijnify⋆ i (A · B) = unDeBruijnify⋆ i A · unDeBruijnify⋆ i B
 unDeBruijnify⋆ i (con c) = con c
-unDeBruijnify⋆ i (size j) = size j
 unDeBruijnify⋆ i (μ A B) = μ (unDeBruijnify⋆ i A) (unDeBruijnify⋆ i B)
 \end{code}
 
@@ -401,7 +380,6 @@ deDeBruijnify⋆ xs (Π x K t) = Π x (unDeBruijnifyK K) (deDeBruijnify⋆ (x �
 deDeBruijnify⋆ xs (ƛ x K t) = ƛ x (unDeBruijnifyK K) (deDeBruijnify⋆ (x ∷ xs) t)
 deDeBruijnify⋆ xs (t · u) = deDeBruijnify⋆ xs t · deDeBruijnify⋆ xs u
 deDeBruijnify⋆ xs (con x) = con x
-deDeBruijnify⋆ xs (size x) = size x
 deDeBruijnify⋆ xs (μ t u) = μ (deDeBruijnify⋆ xs t) (deDeBruijnify⋆ xs u)
 
 deDeBruijnify : ∀{n} → Vec String ∥ n ∥ → WeirdVec String n → ScopedTm n → RawTm
