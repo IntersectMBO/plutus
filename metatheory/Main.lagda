@@ -84,6 +84,10 @@ import Scoped.Reduction as S
 
 open import Data.Sum
 
+mapper : {A B : Set} → (A → B) → Maybe A → Maybe B
+mapper f nothing = nothing
+mapper f (just a) = just (f a)
+
 -- untyped evaluation
 utestPLC : ByteString → Maybe String
 utestPLC plc = mmap (U.ugly ∘ (λ (t : 0 ⊢) → proj₁ (U.run t 100)) ∘ erase⊢) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))
@@ -141,4 +145,43 @@ ex0 = con (integer 2 (pos 1))
 
 ex1 : RawTm
 ex1 = (Λ "s" # (ƛ "i" (_·_ (con integer) (` "s")) (_·_ (_·_ (_·⋆_ (builtin addInteger) (` "s")) (` "i")) (_·_ (_·_ (_·⋆_ (_·⋆_ (builtin resizeInteger) (size 2)) (` "s")) (_·_ (_·⋆_ (builtin sizeOfInteger) (` "s")) (` "i"))) (con (integer 2 (pos 1)))))))
+
+
+open import Scoped.Reduction
+frun :  ℕ → (t : ScopedTm Z)
+    → Σ (ScopedTm Z) λ t' → t —→⋆ t' × (Maybe (Value t') ⊎ Error t')
+frun n t = run t n
 \end{code}
+
+deBruijnifyTm nil ex1
+
+just
+(Λ "s" #
+ (ƛ "i" (con integer · ` zero)
+  (((builtin addInteger [] [] ·⋆ ` zero) · ` Z) ·
+   ((((builtin resizeInteger [] [] ·⋆ size 2) ·⋆ ` zero) ·
+     ((builtin sizeOfInteger [] [] ·⋆ ` zero) · ` Z))
+    · con (integer 2 (pos 1) tt)))))
+
+mapper saturate (deBruijnifyTm nil ex1)
+
+just
+(Λ "s" #
+ (ƛ "i" (con integer · ` zero)
+  (builtin addInteger (` zero ∷ [])
+   (` Z ∷
+    builtin resizeInteger (size 2 ∷ ` zero ∷ [])
+    (builtin sizeOfInteger (` zero ∷ []) (` Z ∷ []) ∷
+     con (integer 2 (pos 1) tt) ∷ [])
+    ∷ []))))
+
+unsaturate
+
+Λ "s" #
+(ƛ "i" (con integer · ` zero)
+ (builtin addInteger (` zero ∷ [])
+  (` Z ∷
+   builtin resizeInteger (size 2 ∷ ` zero ∷ [])
+   (builtin sizeOfInteger (` zero ∷ []) (` Z ∷ []) ∷
+    con (integer 2 (pos 1) tt) ∷ [])
+   ∷ [])))

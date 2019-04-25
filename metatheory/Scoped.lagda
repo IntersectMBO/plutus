@@ -304,16 +304,18 @@ saturate (unwrap t)   = unwrap (saturate t)
 \end{code}
 
 \begin{code}
+{-# TERMINATING #-}
+unsaturate : ∀{n} → ScopedTm n → ScopedTm n
+
 builtinBuilder : ∀{n} → Builtin → List (ScopedTy ∥ n ∥) → List (ScopedTm n) → ScopedTm n
 builtinBuilder b [] [] = builtin b [] []
 builtinBuilder b (A ∷ As) [] = builtinBuilder b As [] ·⋆ A
-builtinBuilder b As (t ∷ ts) = builtinBuilder b As ts · t
+builtinBuilder b As (t ∷ ts) = builtinBuilder b As ts · unsaturate t
 \end{code}
 
 \begin{code}
-unsaturate : ∀{n} → ScopedTm n → ScopedTm n
 unsaturate (` x) = ` x
-unsaturate (Λ x K t) = Λ x K (saturate t)
+unsaturate (Λ x K t) = Λ x K (unsaturate t)
 unsaturate (t ·⋆ A) = unsaturate t ·⋆ A
 unsaturate (ƛ x A t) = ƛ x A (unsaturate t)
 unsaturate (t · u) = unsaturate t · unsaturate u
