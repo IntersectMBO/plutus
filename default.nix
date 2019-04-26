@@ -279,6 +279,34 @@ let
       };
     };
 
+    agdaPackages = rec {
+      # Override the agda builder code from nixpkgs to use our versions of Agda and Haskell.
+      # The Agda version is from our package set, and is newer than the one in nixpkgs.
+      agda = pkgs.agda.override { Agda = haskellPackages.Agda; };
+
+      # We also rely on a newer version of the stdlib
+      AgdaStdlib = (pkgs.AgdaStdlib.override { 
+        # Need to override the builder arguments
+        inherit agda; ghcWithPackages = haskellPackages.ghcWithPackages; 
+      }).overrideAttrs (oldAttrs: rec {
+        # Need to override the source this way
+        name = "agda-stdlib-${version}";
+        version = "1.0.1";
+        src = pkgs.fetchFromGitHub {
+          owner = "agda";
+          repo = "agda-stdlib";
+          rev = "v1.0.1";
+          sha256 = "0ia7mgxs5g9849r26yrx07lrx65vhlrxqqh5b6d69gfi1pykb4j2";
+        };
+      });
+    };
+
+    metatheory = import ./metatheory { 
+      inherit (agdaPackages) agda AgdaStdlib; 
+      inherit (localLib.iohkNix) cleanSourceHaskell; 
+      inherit pkgs haskellPackages; 
+    };
+
     dev = rec {
       packages = localLib.getPackages {
         inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "stylish-haskell" ];

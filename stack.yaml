@@ -33,6 +33,15 @@ packages:
   extra-dep: true
 
 extra-deps:
+# Agda and deps
+- Agda-2.6.0
+- data-hash-0.2.0.1
+- EdisonCore-1.3.2.1
+- EdisonAPI-1.3.1
+- equivalence-0.3.4
+- STMonadTrans-0.4.3
+- geniplate-mirror-0.7.6
+# Other missing packages
 - composition-prelude-2.0.2.1
 - resolv-0.1.1.2
 - monad-stm-0.1.0.2
