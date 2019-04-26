@@ -2,11 +2,7 @@
 
 \begin{document}
 
-
-
-
-
-\begin{figure*}[h]
+\begin{minipage}{\linewidth}
     \judgmentdef{\(\typeBoundedMultistep{n}{A}{S}\)}{Type $A$ reduces in at most $n$ steps to normal type $S$}
 	
 	\begin{prooftree}
@@ -20,8 +16,8 @@
 		\BinaryInfC{\(\typeBoundedMultistep{n+1}{A}{S}\)}
 	\end{prooftree}
     
-    \caption{Bounded Multistep Type Reduction}
-    \label{fig:Plutus_core_bounded_multistep_type_reduction}
-\end{figure*}
+    \captionof{figure}{Bounded Multistep Type Reduction}
+    \label{fig:bounded_multistep_type_reduction}
+\end{minipage}
 
 \end{document}

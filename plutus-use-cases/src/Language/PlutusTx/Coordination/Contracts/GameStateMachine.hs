@@ -5,7 +5,7 @@
 {-# LANGUAGE DataKinds         #-}
 {-# OPTIONS_GHC -O0 #-}
 -- | A guessing game that
--- 
+--
 --   * Uses a state machine to keep track of the current secret word
 --   * Uses a token to keep track of who is allowed to make a guess
 --
@@ -35,20 +35,20 @@ import qualified Data.ByteString.Lazy.Char8   as C
 
 import Language.PlutusTx.StateMachine
 
-data HashedString = HashedString (P.SizedByteString 32)
+data HashedString = HashedString P.ByteString
 
 PlutusTx.makeLift ''HashedString
 
-data ClearString = ClearString (P.SizedByteString 32)
+data ClearString = ClearString P.ByteString
 
 PlutusTx.makeLift ''ClearString
 
 -- | State of the guessing game
-data GameState = 
+data GameState =
     Initialised HashedString
     -- ^ Initial state. In this state only the 'ForgeTokens' action is allowed.
     | Locked TokenName HashedString
-    -- ^ Funds have been locked. In this state only the 'Guess' action is 
+    -- ^ Funds have been locked. In this state only the 'Guess' action is
     --   allowed.
 
 PlutusTx.makeLift ''GameState
@@ -66,19 +66,19 @@ gameValidator :: ValidatorScript
 gameValidator = ValidatorScript ($$(Ledger.compileScript [||
     \(ds :: (GameState, Maybe GameInput)) (vs :: (GameState, Maybe GameInput)) (p :: PendingTx) ->
 
-    let 
+    let
 
         -- | Check whether a 'ClearString' is the preimage of a
         --   'HashedString'
         checkGuess :: HashedString -> ClearString -> Bool
         checkGuess (HashedString actual) (ClearString gss) =
             $$(P.equalsByteString) actual ($$(P.sha2_256) gss)
-            
-        -- | Given a 'TokeName', get the value that contains 
+
+        -- | Given a 'TokeName', get the value that contains
         --   exactly one token of that name in the contract's
         --   currency.
         tokenVal :: TokenName -> V.Value
-        tokenVal tn = 
+        tokenVal tn =
             let ownSymbol = $$(Validation.ownCurrencySymbol) p
             in $$(V.singleton) ownSymbol tn 1
 
@@ -93,7 +93,7 @@ gameValidator = ValidatorScript ($$(Ledger.compileScript [||
         --   equal to the argument.
         checkForge :: Value -> Bool
         checkForge vl = $$(V.eq) vl ($$(Validation.valueForged) p)
-        
+
         -- | Equality of 'GameState' valzes.
         stateEq :: GameState -> GameState -> Bool
         stateEq (Initialised (HashedString s)) (Initialised (HashedString s')) =
@@ -106,10 +106,10 @@ gameValidator = ValidatorScript ($$(Ledger.compileScript [||
         trans :: GameState -> GameInput -> GameState
         trans (Initialised s) (ForgeToken tn) =
             if checkForge (tokenVal tn)
-            then Locked tn s 
+            then Locked tn s
             else $$(P.error) ()
         trans (Locked tn currentSecret) (Guess theGuess nextSecret) =
-            if $$(P.and) 
+            if $$(P.and)
                 (checkGuess currentSecret theGuess)
                 ($$(P.and) (tokenPresent tn) (checkForge $$(V.zero)))
             then Locked tn nextSecret
@@ -135,24 +135,24 @@ gameTokenVal =
     in
         $$(V.singleton) cur gameToken 1
 
--- | Make a guess, take out some funds, and lock the remaining 'Ada' with a new 
+-- | Make a guess, take out some funds, and lock the remaining 'Ada' with a new
 --   secret
-guess :: 
-    (WalletAPI m, WalletDiagnostics m) 
-    => String 
+guess ::
+    (WalletAPI m, WalletDiagnostics m)
+    => String
     -- ^ The guess
-    -> String 
+    -> String
     -- ^ A new secret
-    -> Ada 
+    -> Ada
     -- ^ How much ada to take out
-    -> Ada 
+    -> Ada
     -- ^ How much to put back into the contract
     -> m ()
 guess gss newSecret keepAda restAda = do
 
-    let clear = ClearString (P.SizedByteString (C.pack gss))
+    let clear = ClearString (C.pack gss)
         addr = Ledger.scriptAddress gameValidator
-        scr   = HashedString (plcSHA2_256 (P.SizedByteString (C.pack newSecret)))
+        scr   = HashedString (plcSHA2_256 (C.pack newSecret))
     let step = transition (Locked gameToken scr) (Guess clear scr)
     ins <- WAPI.spendScriptOutputs addr gameValidator (RedeemerScript (Ledger.lifted step))
     ownOutput <- WAPI.ownPubKeyTxOut (Ada.toValue keepAda <> gameTokenVal)
@@ -172,11 +172,11 @@ guess gss newSecret keepAda restAda = do
 
     WAPI.signTxAndSubmit_ tx
 
--- | Lock some funds in the guessing game. Produces the token that is required 
+-- | Lock some funds in the guessing game. Produces the token that is required
 --   when submitting a guess.
 lock :: (WalletAPI m, WalletDiagnostics m) => String -> Ada -> m ()
 lock initialWord adaVl = do
-    let secret = HashedString (plcSHA2_256 (P.SizedByteString (C.pack initialWord)))
+    let secret = HashedString (plcSHA2_256 (C.pack initialWord))
         addr = Ledger.scriptAddress gameValidator
         state = initialState @GameState @GameInput (Initialised secret)
         ds   = DataScript (Ledger.lifted state)

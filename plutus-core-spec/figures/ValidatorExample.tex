@@ -10,7 +10,7 @@ for instance, we write
    |\one| : |\unit|
    |\one| = (abs $a$ (type) (lam $x$ $a$ $x$))
 \end{lstlisting}
-for the element of the type $unit$ (defined Figure~\ref{fig:Plutus_core_type_abbreviations}).
+for the element of the type $unit$ (defined Figure~\ref{fig:type_abbreviations}).
 
 We stress that declarations in this style are not part of the Plutus
 Core language. We merely use the familiar syntax to present our
@@ -21,10 +21,12 @@ a Plutus Core expression, it would result in something like Figure
 We proceed by defining the booleans. Like \textit{unit}, the type \textit{boolean}
 below is an abbreviation in the specification. Some built-in constants
 return values of type $boolean$. When needed, user programs should
-contain the declarations below. We have
+contain the declarations below.
 
 % Note that |\boolean| below causes \boolean to be treated as normal latex.
 % It works like this because of the \escapeinside setting in \lstset in the document header.
+
+\noindent We have
 
 \begin{lstlisting}
   |\true| : |\boolean|
@@ -69,21 +71,18 @@ and
 \noindent We can use \case{} to define the following function:
 \begin{lstlisting}
   verifyIdentity :
-    (fun (con bytestring 256) (fun (con bytestring 32) unit))
+    (fun (con bytestring) (fun (con bytestring) unit))
   verifyIdentity =
-    (lam |\pubkey| (con bytestring 256)
-    (lam |\signed| (con bytestring 32)
-  [ { |\case| |\unit| } [ {(builtin verifySignature)
-                                  (con size 32) (con size 32) (con size 256)}
-                      |\signed| |\txhash| |\pubkey|
-                   ]
+    (lam |\pubkey| (con bytestring)
+    (lam |\signed| (con bytestring)
+  [ { |\case| |\unit| } [ (builtin verifySignature) |\signed| |\txhash| |\pubkey| ]
         (lam u |\unit| |\one|)
         (lam u |\unit| (error |\unit|))
       ]))
 \end{lstlisting}
 the idea being that the first argument is a public key, and the second
 argument is the result of signing the hash of the current transaction
-(contained in $\mathit{txhash} : \texttt{(con bytestring 32)}$) with
+(contained in $\mathit{txhash} : \texttt{(con bytestring)}$) with
 the corresponding private key\footnote{In practice $\mathit{txhash}$
   is contained in a data structure supplied as an extra parameter to
   the validator script at the start of the validation process.  The
@@ -120,8 +119,8 @@ like Figure \ref{fig:Continuized_Let_Example}.
 
 \begin{figure*}[h]  % Using H here causes undefined references to this figure
 \begin{lstlisting}
-(lam |\pubkey| (con bytestring 256)
-(lam |\signed| (con bytestring 32)
+(lam |\pubkey| (con bytestring)
+(lam |\signed| (con bytestring)
     [ 
     {
         (abs $a$ (type)
@@ -138,10 +137,7 @@ like Figure \ref{fig:Continuized_Let_Example}.
         )
         (all $a$ (type) (fun $a$ $a$))
     }
-    [ {(builtin verifySignature)
-                (con size 32) (con size 32) (con size 256)}
-       |\signed| |\txhash| |\pubkey|
-     ]
+    [ (builtin verifySignature) |\signed| |\txhash| |\pubkey| ]
     (lam $u$ (all $a$ (type) (fun $a$ $a$))
         (abs $a$ (type) (lam $x$ $a$ $x$))
     )

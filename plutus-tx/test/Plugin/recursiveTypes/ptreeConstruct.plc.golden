@@ -24,43 +24,28 @@
       )
       [
         {
-          Two [(con integer) (con 8)]
+          Two (con integer)
         }
         [
           {
-            Two [[Tuple2 [(con integer) (con 8)]] [(con integer) (con 8)]]
+            Two [[Tuple2 (con integer)] (con integer)]
           }
           [
             {
               One
-              [[Tuple2 [[Tuple2 [(con integer) (con 8)]] [(con integer) (con 8)]]] [[Tuple2 [(con integer) (con 8)]] [(con integer) (con 8)]]]
+              [[Tuple2 [[Tuple2 (con integer)] (con integer)]] [[Tuple2 (con integer)] (con integer)]]
             }
             [
               [
                 {
-                  {
-                    Tuple2
-                    [[Tuple2 [(con integer) (con 8)]] [(con integer) (con 8)]]
-                  }
-                  [[Tuple2 [(con integer) (con 8)]] [(con integer) (con 8)]]
+                  { Tuple2 [[Tuple2 (con integer)] (con integer)] }
+                  [[Tuple2 (con integer)] (con integer)]
                 }
                 [
-                  [
-                    {
-                      { Tuple2 [(con integer) (con 8)] } [(con integer) (con 8)]
-                    }
-                    (con 8 ! 1)
-                  ]
-                  (con 8 ! 2)
+                  [ { { Tuple2 (con integer) } (con integer) } (con 1) ] (con 2)
                 ]
               ]
-              [
-                [
-                  { { Tuple2 [(con integer) (con 8)] } [(con integer) (con 8)] }
-                  (con 8 ! 3)
-                ]
-                (con 8 ! 4)
-              ]
+              [ [ { { Tuple2 (con integer) } (con integer) } (con 3) ] (con 4) ]
             ]
           ]
         ]

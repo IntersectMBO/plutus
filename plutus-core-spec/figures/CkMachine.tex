@@ -18,7 +18,7 @@
     \end{array}\]
 
     \captionof{figure}{Grammar of CK Machine States}
-    \label{fig:Plutus_core_ck_frames}
+    \label{fig:ck_frames}
 \end{subfigure}
 
 
@@ -37,7 +37,7 @@
         \cksteps{\ckforward{s&}{\lam{x}{A}{M}}&} {&\ckbackward{s}{\lam{x}{A}{M}}}\\
         \cksteps{\ckforward{s&}{\app{M}{N}}&} {&\ckforward{s, \inAppLeftFrame{N}}{M}}\\
         \cksteps{\ckforward{s&}{\builtin{bn}{\repetition{A}}{}}&} {&\ckforward{s}{M}} 
-              \quad (\textit{$bn$ computes on $\repetition{A}$ to $M$ according to Fig.~\ref{fig:Plutus_core_builtins}})\\
+              \quad (\textit{$bn$ computes on $\repetition{A}$ to $M$ according to Fig.~\ref{fig:builtins}})\\
         \cksteps{\ckforward{s&}{\builtin{bn}{\repetition{A}}{M \repetition{M}}}&} {&\ckforward{s, \inBuiltin{bn}{\repetition{A}}{}{\_}{\repetition{M}}}{M}}\\
         \cksteps{\ckforward{s&}{\error{A}}&} {&\ckerror{}}\\
         \\[-10pt] %% Put some vertical space between compute and return rules, but not a whole line
@@ -48,12 +48,12 @@
         \cksteps{\ckbackward{s, \inAppLeftFrame{N}&}{V}&} {&\ckforward{s, \inAppRightFrame{V}}{N}}\\
         \cksteps{\ckbackward{s, \inAppRightFrame{\lam{x}{A}{M}}&}{V}&} {&\ckforward{s}{\subst{V}{x}{M}}}\\
         \cksteps{\ckbackward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{}&}{V}&} {&\ckforward{s}{M}} 
-          \quad (\textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$ to $M$ according to Fig.~\ref{fig:Plutus_core_builtins}})\\
+          \quad (\textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$ to $M$ according to Fig.~\ref{fig:builtins}})\\
         \cksteps{\ckbackward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{M \repetition{M}}&}{V}&} {&\ckforward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V} V}{\_}{\repetition{M}}}{M}}\\
     \end{alignat*}
 \end{minipage}
     \caption{CK Machine Transitions}
-    \label{fig:Plutus_core_ck_machine}
+    \label{fig:ck_machine}
 \end{subfigure}
 \label{fig:ck-machine}
 \caption{CK machine}

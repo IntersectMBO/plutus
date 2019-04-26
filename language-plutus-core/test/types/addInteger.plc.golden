@@ -1,1 +1,1 @@
-(fun [(con integer) (con 8)] (fun [(con integer) (con 8)] [(con integer) (con 8)]))
+(fun (con integer) (fun (con integer) (con integer)))

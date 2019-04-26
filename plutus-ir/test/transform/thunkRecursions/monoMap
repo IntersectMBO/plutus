@@ -12,20 +12,20 @@
     (rec)
     (termbind
       (vardecl
-        map (fun (fun (con 1) (con 1)) (fun [List (con 1)] [List (con 1)]))
+        map (fun (fun (con integer) (con integer)) (fun [List (con integer)] [List (con integer)]))
       )
       (lam
         f
-        (fun (con 1) (con 1))
+        (fun (con integer) (con integer))
         (lam
           lst
-          [List (con 1)]
+          [List (con integer)]
           [
-            [ [ { match_List (con 1) } lst ] Nil ]
+            [ [ { match_List (con integer) } lst ] Nil ]
             (lam
               x
-              (con 1)
-              (lam xs [List (con 1)] [ [ Cons [ f x ] ] [ [ map f ] xs ] ])
+              (con integer)
+              (lam xs [List (con integer)] [ [ Cons [ f x ] ] [ [ map f ] xs ] ])
             )
           ]
         )

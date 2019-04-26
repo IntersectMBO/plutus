@@ -42,8 +42,6 @@ import qualified Language.PlutusCore.StdLib.Data.Unit        as Unit
 
 import qualified GhcPlugins                                  as GHC
 
-import           GHC.Natural
-
 import qualified Language.Haskell.TH.Syntax                  as TH
 
 import           Control.Monad
@@ -126,7 +124,7 @@ For an example of how the "abstract module" approach would look:
 -- | The 'TH.Name's for which 'BuiltinNameInfo' needs to be provided.
 builtinNames :: [TH.Name]
 builtinNames = [
-      ''Builtins.SizedByteString
+      ''Builtins.ByteString
     , ''Int
     , ''Bool
     , ''()
@@ -190,7 +188,7 @@ defineBuiltinType name ty deps = do
 -- | Add definitions for all the builtin terms to the environment.
 defineBuiltinTerms :: Converting m => m ()
 defineBuiltinTerms = do
-    bs <- GHC.getName <$> getThing ''Builtins.SizedByteString
+    bs <- GHC.getName <$> getThing ''Builtins.ByteString
     int <- GHC.getName <$> getThing ''Int
     bool <- GHC.getName <$> getThing ''Bool
     unit <- GHC.getName <$> getThing ''()
@@ -202,10 +200,10 @@ defineBuiltinTerms = do
         let term = mkBuiltin PLC.Concatenate
         defineBuiltinTerm 'Builtins.concatenate term [bs]
     do
-        let term = instSize haskellIntSize $ mkBuiltin PLC.TakeByteString
+        let term = mkBuiltin PLC.TakeByteString
         defineBuiltinTerm 'Builtins.takeByteString term [int, bs]
     do
-        let term = instSize haskellIntSize $ mkBuiltin PLC.DropByteString
+        let term = mkBuiltin PLC.DropByteString
         defineBuiltinTerm 'Builtins.dropByteString term [int]
     do
         let term = mkBuiltin PLC.SHA2
@@ -218,24 +216,24 @@ defineBuiltinTerms = do
         defineBuiltinTerm 'Builtins.equalsByteString term [bs, bool]
 
     do
-        let term = PIR.Constant () $ PLC.BuiltinBS () 32 BSL.empty
+        let term = PIR.Constant () $ PLC.BuiltinBS () BSL.empty
         defineBuiltinTerm 'Builtins.emptyByteString term [bs]
 
     -- Integer builtins
     do
-        let term = mkIntFun PLC.AddInteger
+        let term = mkBuiltin PLC.AddInteger
         defineBuiltinTerm 'Builtins.addInteger term [int]
     do
-        let term = mkIntFun PLC.SubtractInteger
+        let term = mkBuiltin PLC.SubtractInteger
         defineBuiltinTerm 'Builtins.subtractInteger term [int]
     do
-        let term = mkIntFun PLC.MultiplyInteger
+        let term = mkBuiltin PLC.MultiplyInteger
         defineBuiltinTerm 'Builtins.multiplyInteger term [int]
     do
-        let term = mkIntFun PLC.DivideInteger
+        let term = mkBuiltin PLC.DivideInteger
         defineBuiltinTerm 'Builtins.divideInteger term [int]
     do
-        let term = mkIntFun PLC.RemainderInteger
+        let term = mkBuiltin PLC.RemainderInteger
         defineBuiltinTerm 'Builtins.remainderInteger term [int]
     do
         term <- mkIntRel PLC.GreaterThanInteger
@@ -255,7 +253,7 @@ defineBuiltinTerms = do
 
     -- Blockchain builtins
     do
-        term <- wrapSizedBsrel [32, 32, 64] $ instSize haskellBS64Size $ instSize haskellBS32Size $ instSize haskellBS32Size $ mkBuiltin PLC.VerifySignature
+        term <- wrapBsRel 3 $ mkBuiltin PLC.VerifySignature
         defineBuiltinTerm 'Builtins.verifySignature term [bs, bool]
 
     -- Error
@@ -282,9 +280,9 @@ defineBuiltinTypes :: Converting m => m ()
 defineBuiltinTypes = do
     do
         let ty = PLC.TyBuiltin () PLC.TyByteString
-        defineBuiltinType ''Builtins.SizedByteString ty []
+        defineBuiltinType ''Builtins.ByteString ty []
     do
-        let ty = appSize haskellIntSize (PLC.TyBuiltin () PLC.TyInteger)
+        let ty = PLC.TyBuiltin () PLC.TyInteger
         defineBuiltinType ''Int ty []
 
     -- Strings and chars
@@ -361,16 +359,12 @@ wrapIntRel arity term = do
         PIR.Apply () converter (PIR.mkIterApp () term (fmap (PIR.mkVar ()) args))
 
 mkIntRel :: Converting m => PLC.BuiltinName -> m PIRTerm
-mkIntRel name = wrapIntRel 2 $ instSize haskellIntSize (mkBuiltin name)
+mkIntRel name = wrapIntRel 2 $ mkBuiltin name
 
--- | Wrap an size-polymorphic bytestring relation of arity @n@ that produces a Scott
---   boolean.
+-- | Wrap an bytestring relation of arity @n@ that produces a Scott boolean.
 wrapBsRel :: Converting m => Int -> PIRTerm -> m PIRTerm
 wrapBsRel arity term = do
-    bsTy <- lookupBuiltinType ''Builtins.SizedByteString
-    szName <- safeFreshTyName () "size"
-    let tvd = PIR.TyVarDecl () szName (PIR.Size ())
-    let ty = PIR.TyApp () bsTy (PIR.mkTyVar () tvd)
+    ty <- lookupBuiltinType ''Builtins.ByteString
 
     args <- replicateM arity $ do
         name <- safeFreshName () "arg"
@@ -379,29 +373,10 @@ wrapBsRel arity term = do
     converter <- scottBoolToHaskellBool
 
     pure $
-        PIR.mkIterTyAbs [tvd] $
         PIR.mkIterLamAbs args $
         PIR.Apply ()
           converter
-          (PIR.mkIterApp () (PIR.TyInst () term (PIR.mkTyVar () tvd)) (fmap (PIR.mkVar ()) args))
-
-wrapSizedBsrel :: Converting m => [Natural] -> PIRTerm -> m PIRTerm
-wrapSizedBsrel bsls term = do
-    bsTy <- lookupBuiltinType ''Builtins.SizedByteString
-
-    let bsls' = (\s -> appSize s bsTy) <$> bsls
-
-        mkVarDecl ty = do
-            name <- safeFreshName () "arg"
-            pure $ PIR.VarDecl () name ty
-
-    args <- traverse mkVarDecl bsls'
-
-    converter <- scottBoolToHaskellBool
-
-    pure $
-        PIR.mkIterLamAbs args $
-        PIR.Apply () converter (PIR.mkIterApp () term (fmap (PIR.mkVar ()) args))
+          (PIR.mkIterApp () term (fmap (PIR.mkVar ()) args))
 
 -- | Convert a Scott-encoded Unit into a Haskell Unit.
 scottUnitToHaskellUnit :: Converting m => m PIRTerm

@@ -11,16 +11,10 @@
     )
     (lam
       ds
-      [List [(con integer) (con 8)]]
+      [List (con integer)]
       [
-        [
-          {
-            [ { Nil_match [(con integer) (con 8)] } ds ] [(con integer) (con 8)]
-          }
-          (con 8 ! 0)
-        ]
-        (lam x [(con integer) (con 8)] (lam ds [List [(con integer) (con 8)]] x)
-        )
+        [ { [ { Nil_match (con integer) } ds ] (con integer) } (con 0) ]
+        (lam x (con integer) (lam ds [List (con integer)] x))
       ]
     )
   )
