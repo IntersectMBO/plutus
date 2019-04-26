@@ -14,8 +14,8 @@
 %   \centering
 \begin{subfigure}[c]{\linewidth}
     \[\begin{array}{lrclr}
-        \textrm{Type Frame} &\tf & ::= & \inConTFrame{tcn}                          & \textrm{type constant}\\
-                            &    &     & \inFunTLeftFrame{A}                        & \textrm{left arrow}\\
+        \textrm{Type Frame} &\tf & ::= %% & \inConTFrame{tcn}                          & \textrm{type constant}\\ This was here for sized types 
+                                       & \inFunTLeftFrame{A}                        & \textrm{left arrow}\\
                             &    &     & \inFunTRightFrame{S}                       & \textrm{right arrow}\\
                             &    &     & \inAllTFrame{\alpha}{K}                    & \textrm{all}\\
                             &	 &     & \inFixTLeftFrame{B}                        & \textrm{left fix}\\
@@ -26,7 +26,7 @@
     \end{array}\]
 
     \caption{Grammar of Type Reduction Frames}
-    \label{fig:Plutus_core_type_reduction_frames}
+    \label{fig:type_reduction_frames}
 \end{subfigure}
 
 
@@ -47,7 +47,7 @@
     \end{prooftree}
 
     \caption{Type Reduction via Contextual Dynamics}
-    \label{fig:Plutus_core_type_reduction}
+    \label{fig:type_reduction}
 \end{subfigure}
 
 \caption{Type Reduction for Plutus Core}
@@ -105,12 +105,12 @@
 	\begin{prooftree}
 		\AxiomC{\(\typeEquiv{A}{A'}\)}
 		\RightLabel{cong}
-		\UnaryInfC{\(\typeEquiv{\ctxsubst{f}{A}}{\ctxsubst{f}{A'}}\)}
+		\UnaryInfC{\(\typeEquiv{\ctxsubst{tf}{A}}{\ctxsubst{tf}{A'}}\)}
 	\end{prooftree}
 	
 	
 	\caption{Equalities and Equivalences}
-	\label{fig:Plutus_core_equalities_and_equivalences}
+	\label{fig:equalities_and_equivalences}
 \end{subfigure}
 \caption{Type Equivalence for Plutus Core}
 \label{fig:type-equivalence}

@@ -17,13 +17,10 @@
                   (all a_i0 (type) (all b_i0 (type) (fun [[Plugin_Spec_MyPolyData_i6 a_i2] b_i1] (all out_Plugin_Spec_MyPolyData_i0 (type) (fun (fun a_i3 (fun b_i2 out_Plugin_Spec_MyPolyData_i1)) (fun (fun a_i3 out_Plugin_Spec_MyPolyData_i1) out_Plugin_Spec_MyPolyData_i1))))))
                   [
                     [
-                      {
-                        { Plugin_Spec_Poly1_i3 [(con integer) (con 8)] }
-                        [(con integer) (con 8)]
-                      }
-                      (con 8 ! 1)
+                      { { Plugin_Spec_Poly1_i3 (con integer) } (con integer) }
+                      (con 1)
                     ]
-                    (con 8 ! 2)
+                    (con 2)
                   ]
                 )
               )

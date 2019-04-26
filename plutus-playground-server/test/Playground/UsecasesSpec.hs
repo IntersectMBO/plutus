@@ -20,13 +20,14 @@ import           Language.Haskell.Interpreter (InterpreterError, InterpreterResu
 import           Ledger                       (Blockchain)
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Validation            (ValidatorHash (ValidatorHash))
+import           Ledger.Value                 (TokenName (TokenName))
 import           Playground.API               (CompilationResult (CompilationResult), Evaluation (Evaluation),
                                                Expression (Action, Wait), Fn (Fn), FunctionSchema (FunctionSchema),
                                                KnownCurrency (KnownCurrency), PlaygroundError,
                                                SimpleArgumentSchema (SimpleArraySchema, SimpleHexSchema, SimpleIntSchema, SimpleObjectSchema, SimpleStringSchema, SimpleTupleSchema, ValueSchema),
-                                               SimulatorWallet (SimulatorWallet), TokenId (TokenId), adaCurrency,
-                                               argumentSchema, functionName, isSupportedByFrontend,
-                                               simulatorWalletBalance, simulatorWalletWallet)
+                                               SimulatorWallet (SimulatorWallet), adaCurrency, argumentSchema,
+                                               functionName, isSupportedByFrontend, simulatorWalletBalance,
+                                               simulatorWalletWallet)
 import qualified Playground.Interpreter       as PI
 import           Playground.Usecases          (crowdfunding, game, messages, vesting)
 import           Test.Hspec                   (Spec, describe, it, shouldBe, shouldSatisfy)
@@ -400,8 +401,8 @@ crowdfundingSpec =
             , SimulatorWallet
                   {simulatorWalletWallet = w3, simulatorWalletBalance = ten}
             ]
-            [ Action (Fn "scheduleCollection") w1 [theCampaign]
-            , Action (Fn "contribute") w2 [theCampaign, theContribution]
+            [ Action (Fn "scheduleCollection") w1 [theDeadline, theTarget, theCollectionDeadline, theWallet]
+            , Action (Fn "contribute") w2 [theDeadline, theTarget, theCollectionDeadline, theWallet, theContribution]
             , Wait 20
             ]
             (sourceCode crowdfunding)
@@ -415,22 +416,18 @@ crowdfundingSpec =
             , SimulatorWallet
                   {simulatorWalletWallet = w3, simulatorWalletBalance = ten}
             ]
-            [ Action (Fn "scheduleCollection") w1 [theCampaign]
-            , Action (Fn "contribute") w2 [theCampaign, theContribution]
-            , Action (Fn "contribute") w3 [theCampaign, theContribution]
+            [ Action (Fn "scheduleCollection") w1 [theDeadline, theTarget, theCollectionDeadline, theWallet]
+            , Action (Fn "contribute") w2 [theDeadline, theTarget, theCollectionDeadline, theWallet, theContribution]
+            , Action (Fn "contribute") w3 [theDeadline, theTarget, theCollectionDeadline, theWallet, theContribution]
             , Wait 10
             ]
             (sourceCode crowdfunding)
             []
-    theCampaign =
-        toJSONString $
-        object
-            [ "campaignDeadline" .= object ["getSlot" .= mkI 10]
-            , "campaignTarget" .= object ["getAda" .= mkI 15]
-            , "campaignCollectionDeadline" .= object ["getSlot" .= mkI 20]
-            , "campaignOwner" .= walletPubKey w1
-            ]
-    theContribution = toJSONString $ object ["getAda" .= mkI 8]
+    theDeadline = toJSONString (object ["getSlot" .= mkI 10])
+    theTarget   = toJSONString (Ada.adaValueOf 10)
+    theCollectionDeadline = toJSONString (object ["getSlot" .= mkI 20])
+    theWallet = toJSONString w1
+    theContribution = toJSONString $ Ada.adaValueOf 8
 
 knownCurrencySpec :: Spec
 knownCurrencySpec =
@@ -444,14 +441,15 @@ knownCurrencySpec =
         Text.unlines
             [ "import Playground.Contract"
             , "import Data.List.NonEmpty (NonEmpty ((:|)))"
+            , "import Ledger.Value (TokenName(TokenName))"
             , "import Ledger.Validation (ValidatorHash (..))"
-            , "import Playground.API (KnownCurrency (..), TokenId (..))"
+            , "import Playground.API (KnownCurrency (..))"
             , "myCurrency :: KnownCurrency"
-            , "myCurrency = KnownCurrency (ValidatorHash \"\") \"MyCurrency\" (TokenId \"MyToken\" :| [])"
+            , "myCurrency = KnownCurrency (ValidatorHash \"\") \"MyCurrency\" (TokenName \"MyToken\" :| [])"
             , "$(mkKnownCurrencies ['myCurrency])"
             ]
     hasKnownCurrency (Right (InterpreterResult _ (CompilationResult _ [cur1, cur2]))) =
-        cur1 == adaCurrency && cur2 == KnownCurrency (ValidatorHash "") "MyCurrency" (TokenId "MyToken" :| [])
+        cur1 == adaCurrency && cur2 == KnownCurrency (ValidatorHash "") "MyCurrency" (TokenName "MyToken" :| [])
     hasKnownCurrency _ = False
 
 sourceCode :: BSC.ByteString -> SourceCode

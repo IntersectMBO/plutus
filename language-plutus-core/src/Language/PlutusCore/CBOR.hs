@@ -43,14 +43,12 @@ instance Serialise TypeBuiltin where
     encode bi = case bi of
         TyByteString -> encodeTag 0
         TyInteger    -> encodeTag 1
-        TySize       -> encodeTag 2
-        TyString     -> encodeTag 3
+        TyString     -> encodeTag 2
 
     decode = go =<< decodeTag
         where go 0 = pure TyByteString
               go 1 = pure TyInteger
-              go 2 = pure TySize
-              go 3 = pure TyString
+              go 2 = pure TyString
               go _ = fail "Failed to decode TypeBuiltin"
 
 instance Serialise BuiltinName where
@@ -66,19 +64,16 @@ instance Serialise BuiltinName where
                 GreaterThanInteger   -> 7
                 GreaterThanEqInteger -> 8
                 EqInteger            -> 9
-                ResizeInteger        -> 10
-                IntToByteString      -> 11
-                Concatenate          -> 12
-                TakeByteString       -> 13
-                DropByteString       -> 14
-                ResizeByteString     -> 15
-                SHA2                 -> 16
-                SHA3                 -> 17
-                VerifySignature      -> 18
-                EqByteString         -> 19
-                SizeOfInteger        -> 20
-                QuotientInteger      -> 21
-                ModInteger           -> 22
+                IntToByteString      -> 10
+                Concatenate          -> 11
+                TakeByteString       -> 12
+                DropByteString       -> 13
+                SHA2                 -> 14
+                SHA3                 -> 15
+                VerifySignature      -> 16
+                EqByteString         -> 17
+                QuotientInteger      -> 18
+                ModInteger           -> 19
         in encodeTag i
 
     decode = go =<< decodeTag
@@ -92,19 +87,16 @@ instance Serialise BuiltinName where
               go 7  = pure GreaterThanInteger
               go 8  = pure GreaterThanEqInteger
               go 9  = pure EqInteger
-              go 10 = pure ResizeInteger
-              go 11 = pure IntToByteString
-              go 12 = pure Concatenate
-              go 13 = pure TakeByteString
-              go 14 = pure DropByteString
-              go 15 = pure ResizeByteString
-              go 16 = pure SHA2
-              go 17 = pure SHA3
-              go 18 = pure VerifySignature
-              go 19 = pure EqByteString
-              go 20 = pure SizeOfInteger
-              go 21 = pure QuotientInteger
-              go 22 = pure ModInteger
+              go 10 = pure IntToByteString
+              go 11 = pure Concatenate
+              go 12 = pure TakeByteString
+              go 13 = pure DropByteString
+              go 14 = pure SHA2
+              go 15 = pure SHA3
+              go 16 = pure VerifySignature
+              go 17 = pure EqByteString
+              go 18 = pure QuotientInteger
+              go 19 = pure ModInteger
               go _  = fail "Failed to decode BuiltinName"
 
 instance Serialise Unique where
@@ -128,12 +120,10 @@ instance Serialise a => Serialise (Kind a) where
     encode = cata a where
         a (TypeF x)           = encodeTag 0 <> encode x
         a (KindArrowF x k k') = fold [ encodeTag 1, encode x, k , k' ]
-        a (SizeF x)           = encodeTag 2 <> encode x
 
     decode = go =<< decodeTag
         where go 0 = Type <$> decode
               go 1 = KindArrow <$> decode <*> decode <*> decode
-              go 2 = Size <$> decode
               go _ = fail "Failed to decode Kind ()"
 
 instance (Serialise a, Serialise (tyname a)) => Serialise (Type tyname a) where
@@ -143,9 +133,8 @@ instance (Serialise a, Serialise (tyname a)) => Serialise (Type tyname a) where
         a (TyIFixF x pat arg)  = encodeTag 2 <> encode x <> pat <> arg
         a (TyForallF x tn k t) = encodeTag 3 <> encode x <> encode tn <> encode k <> t
         a (TyBuiltinF x bi)    = encodeTag 4 <> encode x <> encode bi
-        a (TyIntF x n)         = encodeTag 5 <> encode x <> encode n
-        a (TyLamF x n k t)     = encodeTag 6 <> encode x <> encode n <> encode k <> t
-        a (TyAppF x t t')      = encodeTag 7 <> encode x <> t <> t'
+        a (TyLamF x n k t)     = encodeTag 5 <> encode x <> encode n <> encode k <> t
+        a (TyAppF x t t')      = encodeTag 6 <> encode x <> t <> t'
 
     decode = go =<< decodeTag
         where go 0 = TyVar <$> decode <*> decode
@@ -153,9 +142,8 @@ instance (Serialise a, Serialise (tyname a)) => Serialise (Type tyname a) where
               go 2 = TyIFix <$> decode <*> decode <*> decode
               go 3 = TyForall <$> decode <*> decode <*> decode <*> decode
               go 4 = TyBuiltin <$> decode <*> decode
-              go 5 = TyInt <$> decode <*> decode
-              go 6 = TyLam <$> decode <*> decode <*> decode <*> decode
-              go 7 = TyApp <$> decode <*> decode <*> decode
+              go 5 = TyLam <$> decode <*> decode <*> decode <*> decode
+              go 6 = TyApp <$> decode <*> decode <*> decode
               go _ = fail "Failed to decode Type TyName ()"
 
 instance Serialise DynamicBuiltinName where
@@ -173,15 +161,13 @@ instance Serialise a => Serialise (Builtin a) where
 
 
 instance Serialise a => Serialise (Constant a) where
-    encode (BuiltinInt x n i) = fold [ encodeTag 0, encode x, encode n, encodeInteger i ]
-    encode (BuiltinBS x n bs) = fold [ encodeTag 1, encode x, encode n, encodeBytes (BSL.toStrict bs) ]
-    encode (BuiltinSize x n)  = encodeTag 2 <> encode x <> encode n
-    encode (BuiltinStr x s)   = encodeTag 3 <> encode x <> encode s
+    encode (BuiltinInt x i) = fold [ encodeTag 0, encode x, encodeInteger i ]
+    encode (BuiltinBS x bs) = fold [ encodeTag 1, encode x, encodeBytes (BSL.toStrict bs) ]
+    encode (BuiltinStr x s) = encodeTag 2 <> encode x <> encode s
     decode = go =<< decodeTag
-        where go 0 = BuiltinInt <$> decode <*> decode <*> decodeInteger
-              go 1 = BuiltinBS <$> decode <*> decode <*> fmap BSL.fromStrict decodeBytes
-              go 2 = BuiltinSize <$> decode <*> decode
-              go 3 = BuiltinStr <$> decode <*> decode
+        where go 0 = BuiltinInt <$> decode <*> decodeInteger
+              go 1 = BuiltinBS <$> decode <*> fmap BSL.fromStrict decodeBytes
+              go 2 = BuiltinStr <$> decode <*> decode
               go _ = fail "Failed to decode Constant ()"
 
 instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (Term tyname name a) where

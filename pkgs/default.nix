@@ -53537,6 +53537,7 @@ lens
 mtl
 plutus-tx
 template-haskell
+text
 wallet-api
 ];
 testHaskellDepends = [

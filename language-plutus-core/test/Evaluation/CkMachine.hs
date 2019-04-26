@@ -102,5 +102,5 @@ test_evaluateCk = testGroup "evaluateCk"
     , goldenVsPretty "even2" . pure . evaluateCk $ Apply () even $ metaIntegerToNat 2
     , goldenVsPretty "even3" . pure . evaluateCk $ Apply () even $ metaIntegerToNat 3
     , goldenVsPretty "evenList" . pure . evaluateCk $
-          Apply () (natSum 64) $ Apply () evenList smallNatList
+          Apply () natSum $ Apply () evenList smallNatList
     ]

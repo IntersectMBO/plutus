@@ -137,7 +137,7 @@ data PendingTx = PendingTx
     , pendingTxFee         :: Ada -- ^ The fee paid by this transaction.
     , pendingTxForge       :: Value -- ^ The 'Value' forged by this transaction.
     , pendingTxIn          :: PendingTxIn -- ^ The 'PendingTxIn' being validated against currently.
-    , pendingTxValidRange  :: SlotRange -- ^ The valid range for the transaction.    
+    , pendingTxValidRange  :: SlotRange -- ^ The valid range for the transaction.
     , pendingTxSignatures  :: [(PubKey, Signature)]
     -- ^ Signatures provided with the transaction
     , pendingTxHash        :: TxHash
@@ -199,7 +199,7 @@ them from the correct types in Haskell, and for comparing them (in
 -}
 -- | Script runtime representation of a @Digest SHA256@.
 newtype ValidatorHash =
-    ValidatorHash (Builtins.SizedByteString 32)
+    ValidatorHash (Builtins.ByteString)
     deriving stock (Eq, Generic)
     deriving newtype (Serialise)
 
@@ -217,28 +217,28 @@ instance FromJSON ValidatorHash where
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype DataScriptHash =
-    DataScriptHash (Builtins.SizedByteString 32)
+    DataScriptHash (Builtins.ByteString)
     deriving (Eq, Generic)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype RedeemerHash =
-    RedeemerHash (Builtins.SizedByteString 32)
+    RedeemerHash (Builtins.ByteString)
     deriving (Eq, Generic)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype TxHash =
-    TxHash (Builtins.SizedByteString 32)
+    TxHash (Builtins.ByteString)
     deriving (Eq, Generic)
 
 plcDataScriptHash :: DataScript -> DataScriptHash
-plcDataScriptHash = DataScriptHash . plcSHA2_256 . Builtins.SizedByteString . BSL.pack . BA.unpack
+plcDataScriptHash = DataScriptHash . plcSHA2_256 . BSL.pack . BA.unpack
 
 -- | Compute the hash of a validator script.
 plcValidatorDigest :: Digest SHA256 -> ValidatorHash
-plcValidatorDigest = ValidatorHash . Builtins.SizedByteString . BSL.pack . BA.unpack
+plcValidatorDigest = ValidatorHash . BSL.pack . BA.unpack
 
 plcRedeemerHash :: RedeemerScript -> RedeemerHash
-plcRedeemerHash = RedeemerHash . plcSHA2_256 . Builtins.SizedByteString . BSL.pack . BA.unpack
+plcRedeemerHash = RedeemerHash . plcSHA2_256 . BSL.pack . BA.unpack
 
 -- | Compute the hash of a redeemer script.
 plcTxHash :: Tx.TxId -> TxHash
@@ -246,15 +246,15 @@ plcTxHash = TxHash . plcDigest . Tx.getTxId
 
 -- | PLC-compatible SHA-256 hash of a hashable value
 plcSHA2_256 :: Builtins.ByteString -> Builtins.ByteString
-plcSHA2_256 = Builtins.SizedByteString . Hash.sha2 . Builtins.unSizedByteString
+plcSHA2_256 = Hash.sha2
 
 -- | PLC-compatible SHA3-256 hash of a hashable value
 plcSHA3_256 :: Builtins.ByteString -> Builtins.ByteString
-plcSHA3_256 = Builtins.SizedByteString . Hash.sha3 . Builtins.unSizedByteString
+plcSHA3_256 = Hash.sha3
 
 -- | Convert a `Digest SHA256` to a PLC `Hash`
-plcDigest :: Digest SHA256 -> P.SizedByteString 32
-plcDigest = P.SizedByteString . BSL.pack . BA.unpack
+plcDigest :: Digest SHA256 -> P.ByteString
+plcDigest = BSL.pack . BA.unpack
 
 -- | The 'CurrencySymbol' of an 'Address'
 plcCurrencySymbol :: Address -> CurrencySymbol
@@ -262,7 +262,7 @@ plcCurrencySymbol = $$(VTH.currencySymbol) . plcDigest . getAddress
 
 -- | Check if two public keys are equal.
 eqPubKey :: Q (TExp (PubKey -> PubKey -> Bool))
-eqPubKey = [|| 
+eqPubKey = [||
     \(PubKey (LedgerBytes l)) (PubKey (LedgerBytes r)) -> $$(P.equalsByteString) l r
     ||]
 
@@ -329,7 +329,7 @@ eqTx = [|| \(TxHash l) (TxHash r) -> Builtins.equalsByteString l r ||]
 -- | Get the hashes of validator script and redeemer script that are
 --   currently being validated
 ownHashes :: Q (TExp (PendingTx -> (ValidatorHash, RedeemerHash)))
-ownHashes = [|| \(PendingTx _ _ _ _ i _ _ _) -> 
+ownHashes = [|| \(PendingTx _ _ _ _ i _ _ _) ->
     case i of
         PendingTxIn _ (Just h) _ -> h
         _ -> $$(P.error) () ||]
@@ -346,10 +346,10 @@ fromSymbol (CurrencySymbol s) = ValidatorHash s
 --   a given script address.
 scriptOutputsAt :: Q (TExp (ValidatorHash -> PendingTx -> [(DataScriptHash, Value)]))
 scriptOutputsAt = [||
-        let 
+        let
             scriptOutputsAt' :: ValidatorHash -> PendingTx -> [(DataScriptHash, Value)]
             scriptOutputsAt' h (PendingTx _ outs _ _ _ _ _ _) =
-                let flt (PendingTxOut vl hashes _) = 
+                let flt (PendingTxOut vl hashes _) =
                         case hashes of
                             Just (h', ds) -> if $$(eqValidator) h h'
                                              then Just (ds, vl)
@@ -375,8 +375,8 @@ adaLockedBy = [|| \ptx h -> $$(Ada.fromValue) ($$valueLockedBy ptx h) ||]
 -- | Check if the provided signature is the result of signing the pending
 --   transaction (without witnesses) with the given public key.
 signsTransaction :: Q (TExp (Signature -> PubKey -> PendingTx -> Bool))
-signsTransaction = [|| 
-    \(Signature sig) (PubKey (LedgerBytes pk)) (p :: PendingTx) -> 
+signsTransaction = [||
+    \(Signature sig) (PubKey (LedgerBytes pk)) (p :: PendingTx) ->
         $$(P.verifySignature) pk (let TxHash h = $$(txHash) p in h) sig
     ||]
 
@@ -400,21 +400,21 @@ valueSpent = [|| \(PendingTx inputs _ _ _ _ _ _ _) ->
 ownCurrencySymbol :: Q (TExp (PendingTx -> CurrencySymbol))
 ownCurrencySymbol = [||
         let ownCurrencySymbol' :: PendingTx -> CurrencySymbol
-            ownCurrencySymbol' p = 
+            ownCurrencySymbol' p =
                 let (ValidatorHash h, _) = $$ownHashes p
                 in  $$(VTH.currencySymbol) h
         in ownCurrencySymbol'
     ||]
 
 -- | Check if the pending transaction spends a specific transaction output
---   (identified by the hash of a transaction and an index into that 
+--   (identified by the hash of a transaction and an index into that
 --   transactions' outputs)
 spendsOutput :: Q (TExp (PendingTx -> TxHash -> Int -> Bool))
 spendsOutput = [||
         let spendsOutput' :: PendingTx -> TxHash -> Int -> Bool
-            spendsOutput' p (TxHash h) i = 
+            spendsOutput' p (TxHash h) i =
                 let PendingTx ins _ _ _ _ _ _ _ = p
-                    spendsOutRef (PendingTxIn (PendingTxOutRef (TxHash h') i') _ _) = 
+                    spendsOutRef (PendingTxIn (PendingTxOutRef (TxHash h') i') _ _) =
                         $$(P.and) ($$(P.equalsByteString) h h') ($$(P.eq) i i')
 
                 in $$(P.any) spendsOutRef ins
@@ -424,7 +424,7 @@ spendsOutput = [||
     ||]
 -- | The hash of a 'ValidatorScript'.
 validatorScriptHash :: ValidatorScript -> ValidatorHash
-validatorScriptHash = 
+validatorScriptHash =
     plcValidatorDigest
     . getAddress
     . scriptAddress

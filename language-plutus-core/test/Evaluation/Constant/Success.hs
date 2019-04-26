@@ -18,19 +18,19 @@ test_typedAddIntegerSuccess :: TestTree
 test_typedAddIntegerSuccess
     = testProperty "typedAddInteger"
     $ prop_applyBuiltinNameSuccess typedAddInteger (+)
-    $ genTypedBuiltinSum
+    $ genTypedBuiltinDef
 
 test_typedSubtractIntegerSuccess :: TestTree
 test_typedSubtractIntegerSuccess
     = testProperty "typedSubtractInteger"
     $ prop_applyBuiltinNameSuccess typedSubtractInteger (-)
-    $ genTypedBuiltinSum
+    $ genTypedBuiltinDef
 
 test_typedMultiplyIntegerSuccess :: TestTree
 test_typedMultiplyIntegerSuccess
     = testProperty "typedMultiplyInteger"
     $ prop_applyBuiltinNameSuccess typedMultiplyInteger (*)
-    $ genTypedBuiltinMultiply
+    $ genTypedBuiltinDef
 
 test_typedDivideIntegerSuccess :: TestTree
 test_typedDivideIntegerSuccess
@@ -90,7 +90,7 @@ test_typedConcatenateSuccess :: TestTree
 test_typedConcatenateSuccess
     = testProperty "typedConcatenate"
     $ prop_applyBuiltinNameSuccess typedConcatenate (<>)
-    $ genTypedBuiltinConcatenate
+    $ genTypedBuiltinDef
 
 test_typedTakeByteStringSuccess :: TestTree
 test_typedTakeByteStringSuccess

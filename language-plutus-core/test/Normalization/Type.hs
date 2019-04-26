@@ -18,7 +18,7 @@ import           Test.Tasty.HUnit
 
 test_appAppLamLam :: IO ()
 test_appAppLamLam = do
-    let integer2 = TyApp () (TyBuiltin () TyInteger) $ TyInt () 2
+    let integer2 = TyBuiltin () TyInteger
         Normalized integer2' = runQuote $ do
             x <- freshTyName () "x"
             y <- freshTyName () "y"

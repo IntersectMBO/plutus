@@ -15,7 +15,11 @@ stdenv.mkDerivation {
   buildInputs = [ tex ];
   src = ./.;
   buildPhase = "latexmk -view=pdf plutus-core-specification.tex";
-  installPhase = "install -D plutus-core-specification.pdf $out/plutus-core-specification.pdf";
+  installPhase = ''
+    install -D plutus-core-specification.pdf $out/plutus-core-specification.pdf
+    mkdir -p $out/nix-support
+    echo "doc-pdf spec $out/plutus-core-specification.pdf" >> $out/nix-support/hydra-build-products
+  '';
 
   meta = with lib; {
     description = "Plutus Core specification";

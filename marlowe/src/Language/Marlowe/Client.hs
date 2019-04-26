@@ -50,7 +50,6 @@ import qualified Ledger                         as Ledger
 import           Ledger.Ada.TH                  (Ada)
 import qualified Ledger.Ada                     as Ada
 import           Ledger.Validation
-import qualified Language.PlutusTx.Builtins     as Builtins
 import           Language.Marlowe
 
 {- Mockchain instantiation of Marlowe Interpreter functions. -}
@@ -172,7 +171,7 @@ commit :: (
 commit tx validator oracles choices identCC value expectedState expectedCont = do
     when (value <= 0) $ throwOtherError "Must commit a positive value"
     let (TxHash hash) = plcTxHash . Ledger.hashTx $ tx
-    sig <- sign $ Builtins.unSizedByteString hash
+    sig <- sign hash
     slot <- slot
     let redeemer = createRedeemer (Commit identCC sig) oracles choices expectedState expectedCont
     let txOut = getScriptOutFromTx tx
@@ -214,7 +213,7 @@ commit' :: (
 commit' contractCreatorPK tx validator oracles choices identCC value inputState inputContract = do
     bh <- slot
     let txHash@(TxHash hash) = plcTxHash . Ledger.hashTx $ tx
-    sig <- sign $ Builtins.unSizedByteString hash
+    sig <- sign hash
     let inputCommand = Commit identCC sig
     let input = Input inputCommand oracles choices
     let txOut = getScriptOutFromTx tx
@@ -252,7 +251,7 @@ receivePayment :: (
 receivePayment tx validator oracles choices identPay value expectedState expectedCont = do
     _ <- if value <= 0 then throwOtherError "Must commit a positive value" else pure ()
     let (TxHash hash) = plcTxHash . Ledger.hashTx $ tx
-    sig <- sign $ Builtins.unSizedByteString hash
+    sig <- sign hash
     slot <- slot
     let txOut = getScriptOutFromTx tx
     let redeemer = createRedeemer (Payment identPay sig) oracles choices expectedState expectedCont
@@ -287,7 +286,7 @@ redeem :: (
 redeem tx validator oracles choices identCC value expectedState expectedCont = do
     _ <- if value <= 0 then throwOtherError "Must commit a positive value" else pure ()
     let (TxHash hash) = plcTxHash . Ledger.hashTx $ tx
-    sig <- sign $ Builtins.unSizedByteString hash
+    sig <- sign hash
     slot <- slot
     let txOut = getScriptOutFromTx tx
     let redeemer = createRedeemer (Redeem identCC sig) oracles choices expectedState expectedCont
@@ -311,7 +310,7 @@ spendDeposit :: (Monad m, WalletAPI m)
     -> m ()
 spendDeposit tx validator state = do
     let (TxHash hash) = plcTxHash . Ledger.hashTx $ tx
-    sig <- sign $ Builtins.unSizedByteString hash
+    sig <- sign hash
     slot <- slot
     let txOut = getScriptOutFromTx tx
     let redeemer = createRedeemer (SpendDeposit sig) [] [] state Null

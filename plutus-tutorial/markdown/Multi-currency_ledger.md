@@ -10,7 +10,7 @@ Each currency on the ledger is identified by two 32-byte bytestrings. To make it
 data KnownCurrency = KnownCurrency
     { hash         :: ValidatorHash
     , friendlyName :: String
-    , knownTokens  :: NonEmpty TokenId
+    , knownTokens  :: NonEmpty TokenName
     }
 ```
 

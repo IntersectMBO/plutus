@@ -100,6 +100,11 @@ in
       enable = true;
       addr = "0.0.0.0";
       rootUrl = "https://${machines.nixops.externalDns}/";
+      extraOptions = {
+            AUTH_GOOGLE_ENABLED = "true";
+            AUTH_GOOGLE_CLIENT_ID = secrets.googleClientID;
+            AUTH_GOOGLE_CLIENT_SECRET = secrets.googleClientSecret;
+      };
     };
 
     services.prometheus2 = {

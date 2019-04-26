@@ -18,7 +18,7 @@ import           Language.PlutusCore.Type
 import           System.IO.Unsafe
 
 dynamicCallAssign
-    :: (forall size. TypedBuiltin size a)
+    :: TypedBuiltin a
     -> DynamicBuiltinName
     -> (a -> IO ())
     -> DynamicBuiltinNameDefinition
@@ -27,7 +27,7 @@ dynamicCallAssign tb name f =
         sch = dynamicCallTypeScheme tb
         sem = unsafePerformIO . f
 
-dynamicCallTypeScheme :: (forall size. TypedBuiltin size a) -> (forall size .TypeScheme size (a -> ()) ())
+dynamicCallTypeScheme :: TypedBuiltin a -> TypeScheme (a -> ()) ()
 dynamicCallTypeScheme tb = TypeSchemeBuiltin tb `TypeSchemeArrow` TypeSchemeBuiltin (TypedBuiltinDyn @())
 
 dynamicCall :: DynamicBuiltinName -> Term tyname name ()

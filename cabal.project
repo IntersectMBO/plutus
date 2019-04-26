@@ -13,7 +13,6 @@ packages: language-plutus-core
           meadow
           plutus-validation-server
           plutus-contract-exe
-with-compiler: ghc-8.6.4
 optimization: 2
 constraints: language-plutus-core +development
            , wallet-api +development

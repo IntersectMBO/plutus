@@ -21,7 +21,7 @@ import Language.Haskell.Interpreter (CompilationError, InterpreterError, Interpr
 import Ledger.Extra (LedgerMap(..))
 import Ledger.Value.TH (CurrencySymbol(..), TokenName(..), Value(..))
 import Node.FS (FS)
-import Playground.API (CompilationResult, EvaluationResult, KnownCurrency(..), TokenId(..))
+import Playground.API (CompilationResult, EvaluationResult, KnownCurrency(..))
 import Test.QuickCheck (arbitrary, withHelp)
 import Test.QuickCheck.Gen (Gen, chooseInt, vectorOf)
 import Test.Unit (TestSuite, suite, test)
@@ -39,16 +39,16 @@ jsonHandlingTests = do
     suite "Json handling" do
       test "Decode a List." do
         assertDecodesTo
-          (Proxy :: Proxy (List TokenId))
-          "test/token_ids.json"
+          (Proxy :: Proxy (List TokenName))
+          "test/token_names.json"
       test ("Decode an empty NonEmptyList.") do
         equalGShow
           (Left "List is empty, expecting non-empty")
-          (decodeJson (Argonaut.fromArray []) :: Either String (NonEmptyList TokenId))
+          (decodeJson (Argonaut.fromArray []) :: Either String (NonEmptyList TokenName))
       test ("Decode a populated NonEmptyList.") do
         assertDecodesTo
-          (Proxy :: Proxy (NonEmptyList TokenId))
-          "test/token_ids.json"
+          (Proxy :: Proxy (NonEmptyList TokenName))
+          "test/token_names.json"
       test "Decode a KnownCurrency." do
         assertDecodesTo
           (Proxy :: Proxy KnownCurrency)
@@ -79,9 +79,13 @@ jsonHandlingTests = do
         assertEncodesTo
           aValue
           "test/value1.json"
+      test "Encode Ada." do
+        let aValue = Value { getValue: LedgerMap [ Tuple (CurrencySymbol { unCurrencySymbol: ""}) (LedgerMap [ Tuple (TokenName { unTokenName: "" }) 50 ])]}
+        assertEncodesTo
+          aValue
+          "test/value_ada.json"
       suite "Roundtrips" do
         testRoundTrip "CurrencySymbol" arbitraryCurrencySymbol
-        testRoundTrip "TokenId" arbitraryTokenId
         testRoundTrip "TokenName" arbitraryTokenName
         testRoundTrip "Value" arbitraryValue
         testRoundTrip "KnownCurrency" arbitraryKnownCurrency
@@ -106,9 +110,6 @@ arbitraryCurrencySymbol = do
   str <- arbitrary
   pure $ CurrencySymbol { unCurrencySymbol: str }
 
-arbitraryTokenId :: Gen TokenId
-arbitraryTokenId = TokenId <$> arbitrary
-
 arbitraryTokenName :: Gen TokenName
 arbitraryTokenName = do
   str <- arbitrary
@@ -129,7 +130,7 @@ arbitraryKnownCurrency :: Gen KnownCurrency
 arbitraryKnownCurrency = do
   hash <- arbitrary
   friendlyName <- arbitrary
-  knownTokens <- arbitraryNonEmptyList arbitraryTokenId
+  knownTokens <- arbitraryNonEmptyList arbitraryTokenName
   pure $ KnownCurrency { hash, friendlyName, knownTokens }
 
 arbitraryNonEmptyList :: forall a. Gen a -> Gen (NonEmptyList a)

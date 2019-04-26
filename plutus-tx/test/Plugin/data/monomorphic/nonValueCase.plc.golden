@@ -26,10 +26,10 @@
           [
             [
               [
-                { [ MyEnum_match ds ] (fun Unit [(con integer) (con 8)]) }
-                (lam thunk Unit (con 8 ! 1))
+                { [ MyEnum_match ds ] (fun Unit (con integer)) }
+                (lam thunk Unit (con 1))
               ]
-              (lam thunk Unit [ { error [(con integer) (con 8)] } Unit ])
+              (lam thunk Unit [ { error (con integer) } Unit ])
             ]
             Unit
           ]

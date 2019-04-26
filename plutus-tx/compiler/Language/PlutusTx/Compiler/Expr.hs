@@ -19,7 +19,6 @@ import           Language.PlutusTx.Compiler.Type
 import           Language.PlutusTx.Compiler.Types
 import           Language.PlutusTx.Compiler.Utils
 import           Language.PlutusTx.PIRTypes
-import           Language.PlutusTx.Utils
 
 import qualified CoreUtils                              as GHC
 import qualified GhcPlugins                             as GHC
@@ -68,9 +67,8 @@ This is a pain to recognize.
 
 convLiteral :: Converting m => GHC.Literal -> m PIRTerm
 convLiteral = \case
-    -- TODO: better sizes
-    (GHC.LitNumber GHC.LitNumInt64 i _) -> pure $ PIR.Constant () $ PLC.BuiltinInt () haskellIntSize i
-    (GHC.LitNumber GHC.LitNumInt i _)   -> pure $ PIR.Constant () $ PLC.BuiltinInt () haskellIntSize i
+    (GHC.LitNumber GHC.LitNumInt64 i _) -> pure $ PIR.Constant () $ PLC.BuiltinInt () i
+    (GHC.LitNumber GHC.LitNumInt i _)   -> pure $ PIR.Constant () $ PLC.BuiltinInt () i
     GHC.MachStr bs     ->
         -- Convert the bytestring into a core expression representing the list
         -- of characters, then compile that!

@@ -72,7 +72,7 @@ hexSchema = mempty & set S.type_ S.SwaggerString & set S.format (Just "hex")
 stringSchema :: S.Schema
 stringSchema = mempty & set S.type_ S.SwaggerString
 
-newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.SizedByteString 32 }
+newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteString }
     deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise) via LedgerBytes
     deriving stock (Eq, Ord, Generic)
 
@@ -85,7 +85,7 @@ instance ToJSON CurrencySymbol where
       [ ( "unCurrencySymbol"
         , JSON.String .
           JSON.encodeByteString .
-          BSL.toStrict . Builtins.unSizedByteString . unCurrencySymbol $
+          BSL.toStrict . unCurrencySymbol $
           currencySymbol)
       ]
 
@@ -94,7 +94,7 @@ instance FromJSON CurrencySymbol where
     JSON.withObject "CurrencySymbol" $ \object -> do
       raw <- object .: "unCurrencySymbol"
       bytes <- JSON.decodeByteString raw
-      pure . CurrencySymbol . Builtins.SizedByteString . BSL.fromStrict $ bytes
+      pure . CurrencySymbol . BSL.fromStrict $ bytes
 
 makeLift ''CurrencySymbol
 
@@ -104,15 +104,15 @@ eqCurSymbol = [|| \(CurrencySymbol l) (CurrencySymbol r) -> $$(P.equalsByteStrin
 currencySymbol :: Q (TExp (P.ByteString -> CurrencySymbol))
 currencySymbol = [|| CurrencySymbol ||]
 
-newtype TokenName = TokenName { unTokenName :: Builtins.SizedByteString 32 }
+newtype TokenName = TokenName { unTokenName :: Builtins.ByteString }
     deriving (Serialise) via LedgerBytes
     deriving stock (Eq, Ord, Generic)
 
 instance IsString TokenName where
-  fromString = TokenName . P.SizedByteString . C8.pack
+  fromString = TokenName . C8.pack
 
 toString :: TokenName -> String
-toString = C8.unpack . Builtins.unSizedByteString . unTokenName
+toString = C8.unpack . unTokenName
 
 instance Show TokenName where
   show = toString
@@ -169,7 +169,7 @@ newtype InnerMap = InnerMap { unMap :: [(TokenName, Int)] }
 instance ToSchema Value where
     declareNamedSchema _ = do
         mapSchema <- declareSchemaRef (Proxy @(Map.Map CurrencySymbol InnerMap))
-        return $ 
+        return $
                 NamedSchema (Just "Value") $ mempty
                     & S.type_ .~ SwaggerObject
                     & S.properties .~ ( [ ("getValue", mapSchema)])
@@ -210,26 +210,26 @@ valueOf = [||
 
 -- | The list of 'CurrencySymbol's of a 'Value'.
 symbols :: Q (TExp (Value -> [CurrencySymbol]))
-symbols = [|| 
+symbols = [||
             let symbols' :: Value -> [CurrencySymbol]
                 symbols' (Value mp) = $$(Map.keys) mp
             in symbols' ||]
 
 -- | Make a 'Value' containing only the given quantity of the given currency.
 singleton :: Q (TExp (CurrencySymbol -> TokenName -> Int -> Value))
-singleton = [|| 
+singleton = [||
              let singleton' :: CurrencySymbol -> TokenName -> Int -> Value
-                 singleton' c tn i = 
-                    Value ($$(Map.singleton) c ($$(Map.singleton) tn i)) 
+                 singleton' c tn i =
+                    Value ($$(Map.singleton) c ($$(Map.singleton) tn i))
              in singleton'
             ||]
 
--- | Combine two 'Value' maps 
+-- | Combine two 'Value' maps
 unionVal :: Q (TExp (Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (Map.These Int Int))))
-unionVal = [|| 
+unionVal = [||
             let unionVal' :: Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (Map.These Int Int))
-                unionVal' (Value l) (Value r) = 
-                    let 
+                unionVal' (Value l) (Value r) =
+                    let
                         combined = $$(Map.union) $$(eqCurSymbol) l r
                         unThese k = case k of
                             Map.This a    -> $$(Map.map) (Map.This) a
@@ -256,10 +256,10 @@ unionWith = [||
 
 -- | Multiply all the quantities in the 'Value' by the given scale factor.
 scale :: Q (TExp (Int -> Value -> Value))
-scale = [|| 
+scale = [||
           let scale' :: Int -> Value -> Value
               scale' i (Value xs) =
-                Value ($$(Map.map) ($$(Map.map) (\i' -> $$(P.multiply) i i')) xs) 
+                Value ($$(Map.map) ($$(Map.map) (\i' -> $$(P.multiply) i i')) xs)
           in scale' ||]
 
 -- Num operations
@@ -286,15 +286,15 @@ zero = [|| Value $$(Map.empty) ||]
 
 -- | Check whether a 'Value' is zero.
 isZero :: Q (TExp (Value -> Bool))
-isZero = [|| 
+isZero = [||
           let isZero' :: Value -> Bool
-              isZero' (Value xs) = $$(Map.all) ($$(Map.all) (\i -> $$(P.eq) 0 i)) xs 
+              isZero' (Value xs) = $$(Map.all) ($$(Map.all) (\i -> $$(P.eq) 0 i)) xs
           in isZero' ||]
 
 checkPred :: Q (TExp ((Map.These Int Int -> Bool) -> Value -> Value -> Bool))
 checkPred = [||
     let checkPred' :: (Map.These Int Int -> Bool) -> Value -> Value -> Bool
-        checkPred' f l r = 
+        checkPred' f l r =
           let
             inner :: Map.Map TokenName (Map.These Int Int) -> Bool
             inner = ($$(Map.all) f)
@@ -309,7 +309,7 @@ checkBinRel :: Q (TExp ((Int -> Int -> Bool) -> Value -> Value -> Bool))
 checkBinRel = [||
     let checkBinRel' :: (Int -> Int -> Bool) -> Value -> Value -> Bool
         checkBinRel' f l r =
-            let 
+            let
                 unThese k' = case k' of
                     Map.This a    -> f a 0
                     Map.That b    -> f 0 b

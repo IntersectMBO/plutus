@@ -48,7 +48,7 @@ import           Ledger.Slot                               (Slot)
 import           Ledger.Value.TH                           (CurrencySymbol, TokenName, Value)
 import           Playground.API                            (CompilationResult, Evaluation, EvaluationResult, Expression,
                                                             Fn, FunctionSchema, KnownCurrency, SimpleArgumentSchema,
-                                                            SimulatorWallet, TokenId)
+                                                            SimulatorWallet)
 import qualified Playground.API                            as API
 import           Playground.Usecases                       (crowdfunding, game, messages, vesting)
 import           Servant                                   ((:<|>))
@@ -166,10 +166,10 @@ nonEmptyBridge = do
     typeModule ^== "GHC.Base"
     psNonEmpty
 
-sizedByteStringBridge :: BridgePart
-sizedByteStringBridge = do
-    typeName ^== "SizedByteString"
-    typeModule ^== "Language.PlutusTx.Builtins"
+byteStringBridge :: BridgePart
+byteStringBridge = do
+    typeName ^== "ByteString"
+    typeModule ^== "Data.ByteString.Lazy.Internal"
     pure psString
 
 mapBridge :: BridgePart
@@ -192,7 +192,7 @@ myBridge =
     headerBridge <|>
     nonEmptyBridge <|>
     validatorHashBridge <|>
-    sizedByteStringBridge <|>
+    byteStringBridge <|>
     mapBridge <|>
     ledgerBytesBridge
 
@@ -251,7 +251,6 @@ myTypes =
     , mkSumType (Proxy @NewGistFile)
     , mkSumType (Proxy @Owner)
     , (equal <*> mkSumType) (Proxy @Value)
-    , (equal <*> (order <*> mkSumType)) (Proxy @TokenId)
     , (equal <*> mkSumType) (Proxy @KnownCurrency)
     , mkSumType (Proxy @InterpreterError)
     , mkSumType (Proxy @(InterpreterResult A))
