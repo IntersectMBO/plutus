@@ -75,6 +75,7 @@ library
         Language.PlutusCore.Lexer
         Language.PlutusCore.Parser
         PlutusPrelude
+        Control.Monad.Trans.Inner
         Common
         Data.ByteString.Lazy.Hash
         PlcTestUtils
