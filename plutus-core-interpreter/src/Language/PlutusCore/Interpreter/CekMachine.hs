@@ -182,11 +182,11 @@ applyEvaluate funVarEnv _         con fun                    arg =
                     ConstAppError   err ->
                         throwError $ MachineException (ConstAppMachineError err) term
 
-evaluateInCekM :: Evaluate (Either CekMachineException) a -> CekM a
+evaluateInCekM :: EvaluateConstApp (Either CekMachineException) a -> CekM (ConstAppResult a)
 evaluateInCekM a =
     ReaderT $ \cekEnv ->
         let eval means' = evaluateCekCatchIn $ cekEnv & cekEnvMeans %~ mappend means'
-            in runEvaluate eval a
+            in runEvaluateConstApp eval a
 
 -- | Apply a 'StagedBuiltinName' to a list of 'Value's.
 applyStagedBuiltinName :: StagedBuiltinName -> [Plain Value] -> CekM ConstAppResultDef
@@ -217,8 +217,8 @@ readDynamicBuiltinCek
     -> Term TyName Name ()
     -> Either CekMachineException (EvaluationResult dyn)
 readDynamicBuiltinCek means term = do
-    res <- readDynamicBuiltin (evaluateCekCatch . mappend means) term
-    case runExceptT res of
+    res <- runReflectT $ readDynamicBuiltin (evaluateCekCatch . mappend means) term
+    case res of
         EvaluationFailure            -> Right EvaluationFailure
         EvaluationSuccess (Left err) -> Left $ MachineException appErr term where
             appErr = ConstAppMachineError $ UnreadableBuiltinConstAppError term err

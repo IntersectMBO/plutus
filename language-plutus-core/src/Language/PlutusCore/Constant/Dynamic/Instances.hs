@@ -1,7 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
@@ -25,12 +24,10 @@ import           Language.PlutusCore.StdLib.Meta
 import           Language.PlutusCore.StdLib.Meta.Data.Tuple
 import           Language.PlutusCore.StdLib.Type
 import           Language.PlutusCore.Type
-import           PlutusPrelude                               (forBind)
 
 import           Control.Monad.Except
 import           Data.Bitraversable
 import           Data.Char
-import           Data.Functor
 import           Data.Proxy
 import qualified Data.Text.Prettyprint.Doc                   as Doc
 
@@ -51,14 +48,14 @@ instance KnownDynamicBuiltinType a => KnownDynamicBuiltinType (EvaluationResult 
     makeDynamicBuiltin EvaluationFailure     = pure . Error () $ toTypeEncoding @a Proxy
     makeDynamicBuiltin (EvaluationSuccess x) = makeDynamicBuiltin x
 
-    -- There are two 'EvaluationResult's here: an external one (which any 'KnownDynamicBuiltinType'
+    -- There are two 'EvaluationResult's here: an external one (which any 'KnownType'
     -- instance has to deal with) and an internal one (specific to this particular instance).
     -- Our approach is to always return 'EvaluationSuccess' for the external 'EvaluationResult'
     -- and catch all 'EvaluationFailure's in the internal 'EvaluationResult'.
-    -- This allows *not* to short-circuit when 'readDynamicBuiltin' fails to read a Haskell value.
+    -- This allows *not* to short-circuit when 'readKnown' fails to read a Haskell value.
     -- Instead the user gets an explicit @EvaluationResult a@ and evaluation proceeds normally.
-    readDynamicBuiltin eval term =
-        mapExceptT (EvaluationSuccess . sequence) <$> readDynamicBuiltin eval term
+    readDynamicBuiltin eval =
+        mapDeepReflectT (fmap $ EvaluationSuccess . sequence) . readDynamicBuiltin eval
 
 instance KnownDynamicBuiltinType Int where
     toTypeEncoding _ = TyBuiltin () TyInteger
@@ -66,10 +63,10 @@ instance KnownDynamicBuiltinType Int where
     makeDynamicBuiltin = Just . Constant () . makeBuiltinInt . fromIntegral
 
     readDynamicBuiltin eval term = do
-        res <- eval mempty term
-        pure $ lift res >>= \case
+        res <- makeRightReflectT $ eval mempty term
+        case res of
             Constant () (BuiltinInt () i) -> pure $ fromIntegral i
-            _                               -> throwError "Not a builtin Int"
+            _                             -> throwError "Not a builtin Int"
 
 instance KnownDynamicBuiltinType [Char] where
     toTypeEncoding _ = TyBuiltin () TyString
@@ -77,8 +74,8 @@ instance KnownDynamicBuiltinType [Char] where
     makeDynamicBuiltin = pure . Constant () . makeBuiltinStr
 
     readDynamicBuiltin eval term = do
-        res <- eval mempty term
-        pure $ lift res >>= \case
+        res <- makeRightReflectT $ eval mempty term
+        case res of
             Constant () (BuiltinStr () s) -> pure s
             _                             -> throwError "Not a builtin String"
 
@@ -90,9 +87,10 @@ instance KnownDynamicBuiltinType Bool where
     readDynamicBuiltin eval b = do
         let int = TyBuiltin () TyInteger
             asInt = Constant () . BuiltinInt ()
-        -- Encode 'Bool' from Haskell as @integer 1@ from PLC.
-        res <- eval mempty (mkIterApp () (TyInst () b int) [asInt 1, asInt 0])
-        pure $ lift res >>= \case
+            -- Encode 'Bool' from Haskell as @integer 1@ from PLC.
+            term = mkIterApp () (TyInst () b int) [asInt 1, asInt 0]
+        res <- makeRightReflectT $ eval mempty term
+        case res of
             Constant () (BuiltinInt () 1) -> pure True
             Constant () (BuiltinInt () 0) -> pure False
             _                             -> throwError "Not an integer-encoded Bool"
@@ -106,8 +104,8 @@ instance KnownDynamicBuiltinType Char where
     readDynamicBuiltin eval term = do
         -- 'term' is supposed to be already evaluated, but calling 'eval' is the easiest way
         -- to turn 'Error' into 'EvaluationFailure', which we later 'lift' to 'Convert'.
-        res <- eval mempty term
-        pure $ lift res >>= \case
+        res <- makeRightReflectT $ eval mempty term
+        case res of
             Constant () (BuiltinInt () int) -> pure . chr $ fromIntegral int
             _                               -> throwError "Not an integer-encoded Char"
 
@@ -119,7 +117,7 @@ instance KnownDynamicBuiltinType a => KnownDynamicBuiltinType (() -> a) where
         fmap (Apply () (mkIterInst () Plc.const [da, unit])) <$> makeDynamicBuiltin $ f () where
             da = toTypeEncoding @a Proxy
 
-    readDynamicBuiltin eval df = fmap const <$> readDynamicBuiltin eval (Apply () df unitval)
+    readDynamicBuiltin eval df = const <$> readDynamicBuiltin eval (Apply () df unitval)
 
 makeTypeAndDynamicBuiltin
     :: forall a. KnownDynamicBuiltinType a => a -> Maybe (Type TyName (), Term TyName Name ())
@@ -146,9 +144,9 @@ instance (KnownDynamicBuiltinType a, KnownDynamicBuiltinType b) =>
             db = toTypeEncoding @b Proxy
             prodNAccessorInst i = mkIterInst () (prodNAccessor 2 i) [da, db]
         -- Read elements of the tuple separately.
-        getX <- readDynamicBuiltin eval $ Apply () (prodNAccessorInst 0) dxy
-        getY <- readDynamicBuiltin eval $ Apply () (prodNAccessorInst 1) dxy
-        pure $ (,) <$> getX <*> getY
+        x <- readDynamicBuiltin eval $ Apply () (prodNAccessorInst 0) dxy
+        y <- readDynamicBuiltin eval $ Apply () (prodNAccessorInst 1) dxy
+        pure (x, y)
 
 instance (KnownDynamicBuiltinType a, KnownDynamicBuiltinType b) =>
             KnownDynamicBuiltinType (Either a b) where
@@ -198,23 +196,22 @@ instance (KnownDynamicBuiltinType a, KnownDynamicBuiltinType b) =>
                     [ LamAbs () x da true
                     , LamAbs () y db false
                     ]
-        getIsL <- readDynamicBuiltin eval branch
-        forBind getIsL $ \isL -> do
-            let term = runQuote $ do
-                    x <- freshName () "x"
-                    y <- freshName () "y"
-                    pure $ if isL
-                        then mkIterApp () (TyInst () ds da)
-                            [ LamAbs () x da $ Var () x
-                            , LamAbs () y db $ Error () da
-                            ]
-                        else mkIterApp () (TyInst () ds db)
-                            [ LamAbs () x da $ Error () db
-                            , LamAbs () y db $ Var () y
-                            ]
-            if isL
-                then fmap Left  <$> readDynamicBuiltin eval term
-                else fmap Right <$> readDynamicBuiltin eval term
+        isL <- readDynamicBuiltin eval branch
+        let term = runQuote $ do
+                x <- freshName () "x"
+                y <- freshName () "y"
+                pure $ if isL
+                    then mkIterApp () (TyInst () ds da)
+                        [ LamAbs () x da $ Var () x
+                        , LamAbs () y db $ Error () da
+                        ]
+                    else mkIterApp () (TyInst () ds db)
+                        [ LamAbs () x da $ Error () db
+                        , LamAbs () y db $ Var () y
+                        ]
+        if isL
+            then Left  <$> readDynamicBuiltin eval term
+            else Right <$> readDynamicBuiltin eval term
 
 newtype PlcList a = PlcList
     { unPlcList :: [a]
@@ -262,10 +259,10 @@ instance KnownDynamicBuiltinType a => KnownDynamicBuiltinType (PlcList a) where
                       $ mkIterApp () (mkIterInst () (prodNConstructor 2) [a, listA])
                           [ Var () x, Var () xs ]
                     ]
-        readDynamicBuiltin eval term <&> \conv -> conv <&> \res ->
-            PlcList $ case res of
-                Left  ()              -> []
-                Right (x, PlcList xs) -> x : xs
+        res <- readDynamicBuiltin eval term
+        pure . PlcList $ case res of
+            Left  ()              -> []
+            Right (x, PlcList xs) -> x : xs
 
 instance PrettyDynamic a => PrettyDynamic (PlcList a) where
     prettyDynamic = Doc.list . map prettyDynamic . unPlcList
