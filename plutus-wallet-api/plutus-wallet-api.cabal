@@ -45,17 +45,13 @@ library
         Data.Aeson.Extras
         Wallet
         Wallet.API
-        Wallet.Emulator
-        Wallet.Emulator.AddressMap
-        Wallet.Emulator.Client
-        Wallet.Emulator.Http
-        Wallet.Emulator.Types
         Wallet.Generators
         Wallet.Graph
         Language.PlutusTx.StateMachine
         Ledger
         Ledger.Ada
         Ledger.Ada.TH
+        Ledger.AddressMap
         Ledger.Map
         Ledger.Map.TH
         Ledger.These
@@ -92,9 +88,6 @@ library
         operational -any,
         serialise -any,
         servant -any,
-        servant-client -any,
-        servant-server -any,
-        stm -any,
         swagger2 -any,
         template-haskell -any,
         text -any,
@@ -109,15 +102,6 @@ library
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
-
-executable emulator
-    import: lang
-    main-is: Main.hs
-    hs-source-dirs: emulator
-    build-depends:
-        base <5,
-        plutus-wallet-api -any,
-        warp -any
 
 test-suite plutus-wallet-api-test
     type: exitcode-stdio-1.0

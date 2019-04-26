@@ -53,6 +53,7 @@ library
         language-plutus-core -any,
         plutus-tx -any,
         plutus-wallet-api -any,
+        plutus-emulator -any,
         containers -any
 
 test-suite tutorial-doctests
@@ -74,6 +75,7 @@ test-suite tutorial-doctests
       language-plutus-core -any,
       plutus-tx -any,
       plutus-wallet-api -any,
+      plutus-emulator -any,
       prettyprinter -any,
       containers -any
 

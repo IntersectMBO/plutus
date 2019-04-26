@@ -75,7 +75,8 @@ library
         time -any,
         time-units -any,
         transformers -any,
-        plutus-wallet-api -any
+        plutus-wallet-api -any,
+        plutus-emulator -any
 
 executable plutus-playground-server
     main-is: Main.hs
@@ -116,6 +117,7 @@ executable plutus-playground-server
         wai-cors -any,
         wai-extra -any,
         plutus-wallet-api -any,
+        plutus-emulator -any,
         warp -any,
         yaml -any
 
@@ -143,6 +145,7 @@ test-suite plutus-playground-server-test
         mtl -any,
         plutus-playground-lib -any,
         plutus-playground-server -any,
+        plutus-emulator -any,
         swagger2 -any,
         text -any,
         time-units -any,

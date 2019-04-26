@@ -44,7 +44,8 @@ library
         Language.Plutus.Contract
     hs-source-dirs: src
     build-depends:
-        plutus-wallet-api -any
+        plutus-wallet-api -any,
+        plutus-emulator -any
     build-depends:
         aeson -any,
         base >=4.7 && <5,

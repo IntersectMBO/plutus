@@ -1,0 +1,119 @@
+cabal-version: 2.2
+name: plutus-emulator
+version: 0.1.0.0
+license: Apache-2.0
+license-files:
+  LICENSE
+  NOTICE
+maintainer: jann.mueller@iohk.io
+author: Michael Peyton Jones, Jann Mueller
+synopsis: Plutus emulator of the extended UTXO model with scripts
+description:
+    Plutus emulator of the extended UTXO model with scripts
+category: Language
+build-type: Simple
+extra-doc-files: README.md
+
+source-repository head
+    type: git
+    location: https://github.com/input-output-hk/plutus
+
+common lang
+    default-language: Haskell2010
+    default-extensions: ExplicitForAll ScopedTypeVariables
+                        DeriveGeneric StandaloneDeriving DeriveLift
+                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+                        DeriveTraversable
+    other-extensions: DeriveAnyClass FlexibleContexts FlexibleInstances
+                      MultiParamTypeClasses TypeFamilies OverloadedStrings
+                      MonadComprehensions ConstrainedClassMethods TupleSections GADTs
+                      RankNTypes TemplateHaskell QuasiQuotes TypeApplications
+                      ExistentialQuantification
+    ghc-options: -Wall -Wnoncanonical-monad-instances
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints -Widentities
+
+flag development
+    description:
+        Enable `-Werror`
+    default: False
+    manual: True
+
+library
+    import: lang
+    exposed-modules:
+        Wallet.Emulator
+        Wallet.Emulator.Client
+        Wallet.Emulator.Http
+        Wallet.Emulator.Types
+        Wallet.Emulator.Generators
+    hs-source-dirs: src
+    default-language: Haskell2010
+    build-depends:
+        plutus-tx -any,
+        plutus-wallet-api -any
+    build-depends:
+        base >=4.9 && <5,
+        aeson -any,
+        base16-bytestring -any,
+        bytestring -any,
+        cborg -any,
+        containers -any,
+        cryptonite >=0.25,
+        hashable -any,
+        hedgehog -any,
+        language-plutus-core -any,
+        memory -any,
+        mtl -any,
+        natural-transformation -any,
+        operational -any,
+        serialise -any,
+        servant -any,
+        servant-client -any,
+        servant-server -any,
+        stm -any,
+        swagger2 -any,
+        template-haskell -any,
+        text -any,
+        text -any,
+        transformers -any,
+        recursion-schemes -any,
+        lens -any,
+        deriving-compat -any,
+        newtype-generics,
+        http-api-data,
+        cardano-crypto
+
+    if (flag(development) && impl(ghc <8.4))
+        ghc-options: -Werror
+
+executable emulator
+    import: lang
+    main-is: Main.hs
+    hs-source-dirs: emulator
+    build-depends:
+        base <5,
+        plutus-wallet-api -any,
+        plutus-emulator -any,
+        warp -any
+
+test-suite plutus-emulator-test
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    hs-source-dirs: test
+    default-language: Haskell2010
+    build-depends:
+        plutus-wallet-api -any,
+        plutus-emulator -any,
+        plutus-tx -any
+    build-depends:
+        base >=4.9 && <5,
+        containers -any,
+        hedgehog -any,
+        tasty -any,
+        tasty-hedgehog -any,
+        tasty-hunit -any,
+        transformers -any,
+        lens -any,
+        bytestring -any,
+        aeson -any

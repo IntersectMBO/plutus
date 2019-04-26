@@ -72,6 +72,7 @@ test-suite marlowe-test
         tasty-hedgehog >=0.2.0.0,
         text -any,
         plutus-wallet-api -any,
+        plutus-emulator -any,
         marlowe,
         plutus-tx -any,
         template-haskell -any
