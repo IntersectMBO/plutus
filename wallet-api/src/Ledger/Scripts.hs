@@ -30,6 +30,7 @@ module Ledger.Scripts(
     unitData
     ) where
 
+import qualified Data.Map as M
 import qualified Codec.CBOR.Write                         as Write
 import           Codec.Serialise                          (serialise)
 import           Codec.Serialise.Class                    (Serialise, encode)
@@ -48,7 +49,6 @@ import           Language.PlutusTx.Lift                   (unsafeLiftProgram)
 import           Language.PlutusTx.Lift.Class             (Lift)
 import           Language.PlutusTx                        (CompiledCode, compile, getPlc)
 import           PlutusPrelude
-import Debug.Trace.Ext
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 newtype Script = Script { unScript :: PLC.Program PLC.TyName PLC.Name () }
@@ -100,15 +100,23 @@ applyScript (unScript -> s1) (unScript -> s2) = Script $ s1 `PLC.applyProgram` s
 -- evaluation was successful.
 evaluateScript :: Script -> ([String], Bool)
 evaluateScript (unScript -> s) =
-    case normalizeAndCheck s of
-        (Left e) -> traceFileBSL "invalid.plci" (serialise s) ([logTypeErr e], False)
+    case check s of
+        (Left e) -> ([logTypeErr e], False)
         Right{} -> (isJust . reoption) <$> evaluateCekTrace s
 
-    where -- check = PLC.runQuoteT . PLC.typecheckPipeline PLC.defOnChainConfig
-          normalizeAndCheck = PLC.runQuoteT . (PLC.typecheckPipeline PLC.defOnChainConfig <=< PLC.normalizeTypesFullInProgram)
+    where check = PLC.runQuoteT . PLC.typecheckPipeline (PLC.defOnChainConfig { PLC._tccDynamicBuiltinNameTypes = traceBuiltins })
+          traceBuiltins = PLC.DynamicBuiltinNameTypes $ M.fromList
+                [ (PLC.DynamicBuiltinName "charToString", PLC.Dupable $ Identity $ PLC.Normalized $ PLC.TyFun () (PLC.TyBuiltin () PLC.TyInteger) (PLC.TyBuiltin () PLC.TyString)) 
+                , (PLC.DynamicBuiltinName "trace", PLC.Dupable $ Identity $ PLC.Normalized $ PLC.TyFun () (PLC.TyBuiltin () PLC.TyString) unitType)
+                , (PLC.DynamicBuiltinName "append", PLC.Dupable $ Identity $ PLC.Normalized $ PLC.TyFun () strType (PLC.TyFun () strType strType))
+                ]
+          unitType =
+            let aName = PLC.TyName (PLC.Name () "a" (PLC.Unique 0))
+                in PLC.TyForall () aName (PLC.Type ()) (PLC.TyFun () (PLC.TyVar () aName) (PLC.TyVar () aName))
+          strType = PLC.TyBuiltin () PLC.TyString
+
           logTypeErr :: PLC.Error () -> String
           logTypeErr = PLC.prettyPlcDefString
-
 
 instance ToJSON Script where
   toJSON = JSON.String . JSON.encodeSerialise
@@ -201,10 +209,12 @@ instance Show ValidationData where
 
 -- | Evaluate a validator script with the given arguments, returning the log and a boolean indicating whether evaluation was successful.
 runScript :: ValidationData -> ValidatorScript -> DataScript -> RedeemerScript -> ([String], Bool)
-runScript (ValidationData valData) (ValidatorScript validator) (DataScript dataScript) (RedeemerScript redeemer) =
+runScript (ValidationData valData@(Script vd)) (ValidatorScript validator) (DataScript dataScript) (RedeemerScript redeemer) =
     let
-        applied = ((validator `applyScript` dataScript) `applyScript` redeemer) `applyScript` valData
+        applied = ((validator `applyScript` dataScript) `applyScript` redeemer) `applyScript` (Script (PLC.runQuote $ PLC.normalizeTypesFullInProgram vd))
         -- TODO: do something with the error
+        -- FIXME: don't normalize validation data b/c that should happen
+        -- elsewhere
     in evaluateScript applied
 
 -- | @()@ as a data script.

@@ -47,6 +47,7 @@ module Language.PlutusCore
     , ValueRestrictionError (..)
     , AsValueRestrictionError (..)
     , rename
+    , Dupable (..)
     -- * Normalization
     , check
     , checkProgram

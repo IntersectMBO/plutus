@@ -228,7 +228,7 @@ invalidScript = property $ do
 
     -- try and spend the script output
     invalidTxn <- forAll $ Gen.genValidTransactionSpending (Set.fromList [scriptTxIn (snd outToSpend) failValidator unitRedeemer]) totalVal
-    Hedgehog.annotateShow (invalidTxn)
+    Hedgehog.annotateShow invalidTxn
 
     let (result, st) = Gen.runTrace m $ do
             processPending

@@ -5,7 +5,7 @@
 
 module Language.PlutusCore.Rename
     ( Rename (..)
-    , Dupable
+    , Dupable (..)
     , liftDupable
     ) where
 
@@ -14,8 +14,6 @@ import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Rename.Internal
 import           Language.PlutusCore.Type
 import           PlutusPrelude
-
-import           Data.Functor.Identity
 
 {- Note [Marking]
 We use functions from the @markNonFresh*@ family in order to ensure that bound variables never get

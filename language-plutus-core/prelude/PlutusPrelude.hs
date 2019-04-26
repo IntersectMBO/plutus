@@ -40,6 +40,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , PairT (..)
                      , Coercible
                      , Typeable
+                     , Identity (..)
                      -- * Lens
                      , Lens'
                      , lens
@@ -115,6 +116,7 @@ import           Data.Foldable                           (fold, toList)
 import           Data.Function                           (on)
 import           Data.Functor                            (void, ($>), (<&>))
 import           Data.Functor.Foldable                   (Base, Corecursive, Recursive, embed, project)
+import           Data.Functor.Identity                   (Identity (..))
 import           Data.List                               (foldl')
 import           Data.List.NonEmpty                      (NonEmpty (..))
 import           Data.Maybe                              (fromMaybe, isJust, isNothing)
