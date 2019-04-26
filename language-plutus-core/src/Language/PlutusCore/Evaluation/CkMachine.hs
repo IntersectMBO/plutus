@@ -12,7 +12,6 @@ module Language.PlutusCore.Evaluation.CkMachine
     ) where
 
 import           Language.PlutusCore.Constant.Apply
-import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Evaluation.MachineException
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
@@ -145,7 +144,7 @@ applyEvaluate stack fun                    arg =
 
 applyEvaluateCkBuiltinName :: BuiltinName -> [Value TyName Name ()] -> ConstAppResultDef
 applyEvaluateCkBuiltinName name =
-    runIdentity . runEvaluate (const $ Identity . evaluateCk) . applyBuiltinName name
+    runIdentity . runApplyBuiltinName (const $ Identity . evaluateCk) name
 
 -- | Evaluate a term using the CK machine. May throw a 'CkMachineException'.
 -- This differs from the spec version: we do not have the following rule:

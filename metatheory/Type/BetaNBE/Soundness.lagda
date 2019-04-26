@@ -25,7 +25,6 @@ type is beta-eta-equal to the result of reifying the value.
 
 \begin{code}
 SR : ∀{Φ} K → Φ ⊢⋆ K → Val Φ K → Set
-SR #       A v        = A ≡β embNf v
 SR *       A v        = A ≡β embNf v
 SR (K ⇒ J) A (inj₁ n) = A ≡β embNeN n
 SR (K ⇒ J) A (inj₂ f) = Σ (_ ,⋆ K ⊢⋆ J) λ B →
@@ -45,7 +44,6 @@ reflectSR : ∀{Φ K}{A : Φ ⊢⋆ K}{n : Φ ⊢NeN⋆ K}
   → A ≡β embNeN n
     ------------------
   → SR K A (reflect n)
-reflectSR {K = #}     p = p
 reflectSR {K = *}     p = p
 reflectSR {K = K ⇒ J} p = p
 
@@ -54,7 +52,6 @@ reifySR : ∀{Φ K}{A : Φ ⊢⋆ K}{v : Val Φ K}
     --------------------
   → A ≡β embNf (reify v)
 reifySR {K = *}                  p            = p
-reifySR {K = #}                  p            = p
 reifySR {K = K ⇒ J} {v = inj₁ n} p            = p
 reifySR {K = K ⇒ J} {v = inj₂ f} (A' , p , q) =
   trans≡β p (substEq (λ B → ƛ B ≡β ƛ (embNf (reify (f S fresh))))
@@ -92,8 +89,6 @@ renSR : ∀{Φ Ψ}(ρ : Ren Φ Ψ){K}{A : Φ ⊢⋆ K}{v : Val Φ K}
   → SR K A v
     ---------------------------------
   → SR K (rename ρ A) (renameVal ρ v)
-renSR ρ {#}{A}{n} p = 
-  substEq (rename ρ A ≡β_) (sym (rename-embNf ρ n)) (rename≡β ρ p)
 renSR ρ {*}{A}{n} p = 
   substEq (rename ρ A ≡β_) (sym (rename-embNf ρ n)) (rename≡β ρ p)
 renSR ρ {K ⇒ J} {A} {inj₁ n} p rewrite rename-embNeN ρ n = rename≡β ρ p  
@@ -152,7 +147,6 @@ substSR : ∀{Φ K}{A A' : Φ ⊢⋆ K}
   → SR K A v
     ---------------------------
   → SR K A' v
-substSR {K = #}     p          q            = trans≡β p q
 substSR {K = *}     p          q            = trans≡β p q
 substSR {K = K ⇒ J} p {inj₁ n} q            = trans≡β p q
 substSR {K = K ⇒ J} p {inj₂ f} (A' , q , r) = _ , trans≡β p q , r
@@ -207,8 +201,7 @@ evalSR (ƛ B)   {σ}{η}          p =
              (evalSR B (SR,,⋆ (renSR ρ ∘ p) q)) )
 evalSR (A · B)     p = SRApp (evalSR A p) (evalSR B p)
 evalSR μ1          p = refl≡β _
-evalSR (size⋆ n)   p = refl≡β _
-evalSR (con tcn s) p = con≡β (evalSR s p)
+evalSR (con tcn)   p = refl≡β _
 \end{code}
 
 Identity SREnv

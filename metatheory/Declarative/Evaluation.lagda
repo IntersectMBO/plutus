@@ -14,9 +14,11 @@ open import Declarative.Reduction
 
 Transitive closure of reduction
 \begin{code}
+{-
 data _—↠_ {J Γ}{A : ∥ Γ ∥ ⊢⋆ J} (L : Γ ⊢ A) : (Γ ⊢ A) → Set where
   done : L —↠ L
   continue : ∀ {M N} → L —→ M → M —↠ N → L —↠ N  
+-}
 \end{code}
 
 As previously, gas is specified by a natural number.
@@ -43,6 +45,7 @@ Given a term `L` of type `A`, the evaluator will, for some `N`, return
 a reduction sequence from `L` to `N` and an indication of whether
 reduction finished.
 \begin{code}
+{-
 data Steps : ∀ {J}{A : ∅ ⊢⋆ J} → ∅ ⊢ A → Set where
 
   steps : ∀ {J}{A : ∅ ⊢⋆ J} {L N : ∅ ⊢ A}
@@ -52,9 +55,11 @@ data Steps : ∀ {J}{A : ∅ ⊢⋆ J} → ∅ ⊢ A → Set where
     → Steps L
 
   error :  ∀ {J}{A : ∅ ⊢⋆ J} {L : ∅ ⊢ A} → Steps L
+-}
 \end{code}
 The evaluator takes gas and a term and returns the corresponding steps.
 \begin{code}
+{-
 eval : ∀ {A : ∅ ⊢⋆ *}
   → Gas
   → (M : ∅ ⊢ A)
@@ -67,4 +72,5 @@ eval (gas (suc n)) M | step {N} p  with eval (gas n) N
 ...                               | error = error
 eval (gas (suc n)) M | step {N} p | steps ps q = steps (continue p ps) q
 eval (gas (suc n)) M | done vM = steps done (done _ vM)
+-}
 \end{code}
