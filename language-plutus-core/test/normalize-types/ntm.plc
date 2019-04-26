@@ -1,11 +1,11 @@
 (program 1.0.0
   (lam
     ds_0
-    [(con integer) (con 64)]
+    (con integer)
     (lam
       ds_1
-      [(con integer) (con 64)]
-      [ [ { (builtin lessThanInteger) (con 64) } ds_0 ] ds_1 ]
+      (con integer)
+      [ [ (builtin lessThanInteger) ds_0 ] ds_1 ]
     )
   )
 )

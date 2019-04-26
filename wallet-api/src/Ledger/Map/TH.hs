@@ -7,6 +7,7 @@
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE MonoLocalBinds         #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
+{-# OPTIONS_GHC -O0                 #-}
 -- A map implementation that can be used in on-chain and off-chain code.
 module Ledger.Map.TH(
     Map
@@ -14,6 +15,8 @@ module Ledger.Map.TH(
     , singleton
     , empty
     , fromList
+    , toList
+    , keys
     , map
     , lookup
     , union
@@ -24,8 +27,7 @@ module Ledger.Map.TH(
     ) where
 
 import           Codec.Serialise.Class        (Serialise)
-import           Data.Aeson                   (ToJSONKey, FromJSONKey, FromJSON(parseJSON), ToJSON(toJSON))
-import qualified Data.Map                     as Map
+import           Data.Aeson                   (FromJSON(parseJSON), ToJSON(toJSON))
 import           Data.Swagger.Internal.Schema (ToSchema)
 import           GHC.Generics                 (Generic)
 import           Language.PlutusTx.Lift       (makeLift)
@@ -43,14 +45,17 @@ data Map k v = Map { unMap :: [(k, v)] }
 
 makeLift ''Map
 
-instance (Ord k, ToJSONKey k, ToJSON v) => ToJSON (Map k v) where
-    toJSON = toJSON . Map.fromList . unMap
+instance (ToJSON v, ToJSON k) => ToJSON (Map k v) where
+    toJSON = toJSON . unMap
 
-instance (Ord k, FromJSONKey k, FromJSON v) => FromJSON (Map k v) where
-    parseJSON v = Map . Map.toList <$> parseJSON v
+instance (FromJSON v, FromJSON k) => FromJSON (Map k v) where
+    parseJSON v = Map <$> parseJSON v
 
 fromList :: Q (TExp ([(k, v)] -> Map k v))
 fromList = [|| Map ||]
+
+toList :: Q (TExp (Map k v -> [(k, v)]))
+toList = [|| \(Map l) -> l ||]
 
 -- | Apply a function to the values of a 'Map'.
 map :: Q (TExp ((v -> w) -> Map k v -> Map k w))
@@ -85,6 +90,14 @@ lookup = [||
         lookup
  ||]
 
+-- | The keys of a 'Map'.
+keys :: Q (TExp (Map k v -> [k]))
+keys = [|| 
+    let keys' :: Map k v -> [k]
+        keys' (Map xs) = $$(P.map) (\(k, _ :: v) -> k) xs
+    in keys'
+    ||]
+
 -- | Combine two 'Map's.
 union :: Q (TExp (IsEqual k -> Map k v -> Map k r -> Map k (These v r)))
 union = [|| 
@@ -118,7 +131,7 @@ all = [||
         all p (Map mps) =
             let go xs = case xs of 
                     []         -> True
-                    (_, x):xs' -> $$(P.and) (p x) (go xs')
+                    (_ :: k, x):xs' -> $$(P.and) (p x) (go xs')
             in go mps 
     in all ||]
 

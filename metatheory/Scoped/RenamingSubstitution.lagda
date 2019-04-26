@@ -26,7 +26,6 @@ ren⋆ ρ (Π x K A) = Π x K (ren⋆ (lift⋆ ρ) A)
 ren⋆ ρ (ƛ x K A) = ƛ x K (ren⋆ (lift⋆ ρ) A)
 ren⋆ ρ (A · B) = ren⋆ ρ A · ren⋆ ρ B
 ren⋆ ρ (con x) = con x
-ren⋆ ρ (size x) = size x
 ren⋆ ρ (μ A B) = μ (ren⋆ ρ A) (ren⋆ ρ B)
 
 ren⋆L : ∀{m n} → Ren⋆ m n → List (ScopedTy m) → List (ScopedTy n)
@@ -77,7 +76,6 @@ sub⋆ σ (Π x K A) = Π x K (sub⋆ (slift⋆ σ) A)
 sub⋆ σ (ƛ x K A) = ƛ x K (sub⋆ (slift⋆ σ) A)
 sub⋆ σ (A · B) = sub⋆ σ A · sub⋆ σ B
 sub⋆ σ (con c) = con c
-sub⋆ σ (size n) = size n
 sub⋆ σ (μ A B) = μ (sub⋆ σ A) (sub⋆ σ B)
 
 sub⋆L : ∀{m n} → Sub⋆ m n → List (ScopedTy m) → List (ScopedTy n)
@@ -125,4 +123,27 @@ t [ u ] = sub ` (ext ` u) t
 
 _[_]⋆ : ∀{n} → ScopedTm (T n) → ScopedTy ∥ n ∥ → ScopedTm n
 t [ A ]⋆ = sub (ext⋆ ` A) (λ { (T x) → ` x}) t
+\end{code}
+
+# Proofs
+
+\begin{code}
+open import Relation.Binary.PropositionalEquality
+
+lift⋆-cong : ∀{m n}{ρ ρ' : Ren⋆ m n}
+  → (∀ x → ρ x ≡ ρ' x)
+  → ∀ x → lift⋆ ρ x ≡ lift⋆ ρ' x
+lift⋆-cong p zero    = refl
+lift⋆-cong p (suc x) = cong suc (p x)
+
+ren⋆-cong : ∀{m n}{ρ ρ' : Ren⋆ m n}
+  → (∀ x → ρ x ≡ ρ' x)
+  → ∀ x → ren⋆ ρ x ≡ ren⋆ ρ' x
+ren⋆-cong p (` x) = cong ` (p x)
+ren⋆-cong p (A ⇒ B) = cong₂ _⇒_ (ren⋆-cong p A) (ren⋆-cong p B)
+ren⋆-cong p (Π x K A) = cong (Π x K) (ren⋆-cong (lift⋆-cong p) A)
+ren⋆-cong p (ƛ x K A) = cong (ƛ x K) (ren⋆-cong (lift⋆-cong p) A)
+ren⋆-cong p (A · B) = cong₂ _·_ (ren⋆-cong p A) (ren⋆-cong p B)
+ren⋆-cong p (con c) = refl
+ren⋆-cong p (μ pat arg) = cong₂ μ (ren⋆-cong p pat) (ren⋆-cong p arg)
 \end{code}

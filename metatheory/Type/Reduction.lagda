@@ -41,17 +41,10 @@ data Value⋆   : ∀ {Γ K} → Γ ⊢⋆ K → Set where
       ----------
     → Value⋆ N
 
-  V-size : ∀{Φ}
-    → {n : Nat}
-      --------------------
-    → Value⋆ (size⋆ {Φ} n)
-
   V-con : ∀{Φ}
     → {tcn : TyCon}
-    → {s : Φ ⊢⋆ #}
-    → Value⋆ s
       ------------------
-    → Value⋆ (con tcn s)
+    → Value⋆ {Γ = Φ} (con tcn)
 
 -- as we only prove progress in the empty context we have no stuck
 -- applications of a variable to an argument outside of a
@@ -100,13 +93,6 @@ data _—→⋆_ : ∀ {Γ J} → (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
     → M —→⋆ M′
       --------------
     → V · M —→⋆ V · M′
-
-  ξ-con : ∀{Φ}
-    → {tcn : TyCon}
-    → {s s' : Φ ⊢⋆ #}
-    → s —→⋆ s'
-      ------------------
-    → con tcn s —→⋆ con tcn s'
 
   ξ-Π : ∀ {Γ K} {M M′ : Γ ,⋆ K ⊢⋆ *}
     → M —→⋆ M′
@@ -177,15 +163,6 @@ data _—↠⋆_ {J Γ} :  (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
 ξ-⇒₂' VS refl—↠⋆ = refl—↠⋆
 ξ-⇒₂' VS (trans—↠⋆ p q) = trans—↠⋆ (ξ-⇒₂ VS p) (ξ-⇒₂' VS q)
 
-ξ-con' : ∀{Φ}
-  → {tcn : TyCon}
-  → {s s' : Φ ⊢⋆ #}
-  → s —↠⋆ s'
-    ------------------
-  → con tcn s —↠⋆ con tcn s'
-ξ-con' refl—↠⋆          = refl—↠⋆
-ξ-con' (trans—↠⋆ p q) = trans—↠⋆ (ξ-con p) (ξ-con' q)
-
 -- like concatenation for lists
 -- the ordinary trans is like cons
 trans—↠⋆' : ∀{Γ J}{L M N : Γ ⊢⋆ J} → L —↠⋆ M → M —↠⋆ N → L —↠⋆ N
@@ -226,10 +203,7 @@ progress⋆ (M · N)  with progress⋆ M
 ...                                | step p = step (ξ-·₂ p)
 progress⋆ (.(ƛ _) · N) | done (V-ƛ _) | done vN = step β-ƛ
 progress⋆ (M · N) | done (N- M') | done vN = done (N- (N-· M' vN))
-progress⋆ (size⋆ n)   = done V-size
-progress⋆ (con tcn s) with progress⋆ s
-... | step p  = step (ξ-con p)
-... | done Vs = done (V-con Vs)
+progress⋆ (con tcn) = done V-con
 
 \end{code}
 
@@ -253,8 +227,7 @@ renameValue⋆ ρ (V-Π N)   = V-Π renameValue⋆ (ext ρ) N
 renameValue⋆ ρ (M V-⇒ N) = renameValue⋆ ρ M V-⇒ renameValue⋆ ρ N
 renameValue⋆ ρ (V-ƛ N)   = V-ƛ renameValue⋆ (ext ρ) N
 renameValue⋆ ρ (N- N)    = N- (renameNeutral⋆ ρ N)
-renameValue⋆ ρ V-size    = V-size
-renameValue⋆ ρ (V-con s) = V-con (renameValue⋆ ρ s)
+renameValue⋆ ρ V-con = V-con 
 
 renameNeutral⋆ ρ N-`       = N-`
 renameNeutral⋆ ρ N-μ1      = N-μ1
@@ -307,7 +280,6 @@ rename—→⋆ ρ (β-ƛ {N = M}{W = N})   =
                  (trans (subst-cong (rename-subst-cons ρ N) M)
                         (rename-subst M)))
           (β-ƛ {N = rename (ext ρ) M}{W = rename ρ N})
-rename—→⋆ ρ (ξ-con p)              = ξ-con (rename—→⋆ ρ p)
 \end{code}
 
 \begin{code}

@@ -20,11 +20,12 @@ import           Language.Haskell.Interpreter (InterpreterError, InterpreterResu
 import           Ledger                       (Blockchain)
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Validation            (ValidatorHash (ValidatorHash))
+import           Ledger.Value                 (TokenName (TokenName))
 import           Playground.API               (CompilationResult (CompilationResult), Evaluation (Evaluation),
                                                Expression (Action, Wait), Fn (Fn), FunctionSchema (FunctionSchema),
                                                KnownCurrency (KnownCurrency), PlaygroundError,
-                                               SimpleArgumentSchema (SimpleArraySchema, SimpleIntSchema, SimpleObjectSchema, SimpleStringSchema, SimpleTupleSchema, ValueSchema),
-                                               SimulatorWallet (SimulatorWallet), TokenId (TokenId), argumentSchema,
+                                               SimpleArgumentSchema (SimpleArraySchema, SimpleHexSchema, SimpleIntSchema, SimpleObjectSchema, SimpleStringSchema, SimpleTupleSchema, ValueSchema),
+                                               SimulatorWallet (SimulatorWallet), adaCurrency, argumentSchema,
                                                functionName, isSupportedByFrontend, simulatorWalletBalance,
                                                simulatorWalletWallet)
 import qualified Playground.Interpreter       as PI
@@ -57,6 +58,21 @@ w5 = Wallet 5
 vestingSpec :: Spec
 vestingSpec =
     describe "vesting" $ do
+        let vlSchema = ValueSchema
+                        [ ( "getValue"
+                          , SimpleObjectSchema
+                                [ ( "unMap"
+                                  , SimpleArraySchema
+                                        (SimpleTupleSchema
+                                            ( SimpleHexSchema
+                                            , SimpleObjectSchema
+                                                  [ ( "unMap"
+                                                    , SimpleArraySchema
+                                                          (SimpleTupleSchema
+                                                                ( SimpleStringSchema
+                                                                , SimpleIntSchema)))
+                                                  ])))
+                                ]) ]
         compilationChecks vesting
         it "should compile with the expected schema" $ do
             Right (InterpreterResult _ (CompilationResult result _)) <-
@@ -72,8 +88,7 @@ vestingSpec =
                                   , ( "vestingTranche2"
                                     , SimpleObjectSchema
                                           [ ( "vestingTrancheAmount"
-                                            , SimpleObjectSchema
-                                                  [("getAda", SimpleIntSchema)])
+                                            , vlSchema )
                                           , ( "vestingTrancheDate"
                                             , SimpleObjectSchema
                                                   [("getSlot", SimpleIntSchema)])
@@ -81,8 +96,7 @@ vestingSpec =
                                   , ( "vestingTranche1"
                                     , SimpleObjectSchema
                                           [ ( "vestingTrancheAmount"
-                                            , SimpleObjectSchema
-                                                  [("getAda", SimpleIntSchema)])
+                                            , vlSchema )
                                           , ( "vestingTrancheDate"
                                             , SimpleObjectSchema
                                                   [("getSlot", SimpleIntSchema)])
@@ -100,8 +114,7 @@ vestingSpec =
                                   , ( "vestingTranche2"
                                     , SimpleObjectSchema
                                           [ ( "vestingTrancheAmount"
-                                            , SimpleObjectSchema
-                                                  [("getAda", SimpleIntSchema)])
+                                            , vlSchema )
                                           , ( "vestingTrancheDate"
                                             , SimpleObjectSchema
                                                   [("getSlot", SimpleIntSchema)])
@@ -109,8 +122,7 @@ vestingSpec =
                                   , ( "vestingTranche1"
                                     , SimpleObjectSchema
                                           [ ( "vestingTrancheAmount"
-                                            , SimpleObjectSchema
-                                                  [("getAda", SimpleIntSchema)])
+                                            , vlSchema )
                                           , ( "vestingTrancheDate"
                                             , SimpleObjectSchema
                                                   [("getSlot", SimpleIntSchema)])
@@ -128,8 +140,7 @@ vestingSpec =
                                   , ( "vestingTranche2"
                                     , SimpleObjectSchema
                                           [ ( "vestingTrancheAmount"
-                                            , SimpleObjectSchema
-                                                  [("getAda", SimpleIntSchema)])
+                                            , vlSchema )
                                           , ( "vestingTrancheDate"
                                             , SimpleObjectSchema
                                                   [("getSlot", SimpleIntSchema)])
@@ -137,14 +148,13 @@ vestingSpec =
                                   , ( "vestingTranche1"
                                     , SimpleObjectSchema
                                           [ ( "vestingTrancheAmount"
-                                            , SimpleObjectSchema
-                                                  [("getAda", SimpleIntSchema)])
+                                            , vlSchema )
                                           , ( "vestingTrancheDate"
                                             , SimpleObjectSchema
                                                   [("getSlot", SimpleIntSchema)])
                                           ])
                                   ]
-                            , SimpleObjectSchema [("getAda", SimpleIntSchema)]
+                            , vlSchema
                             ]
                       }
                 , FunctionSchema
@@ -158,13 +168,7 @@ vestingSpec =
                                     , SimpleObjectSchema
                                           [("getSlot", SimpleIntSchema)])
                                   ]
-                            , ValueSchema
-                                  [ ( "getValue"
-                                    , SimpleArraySchema
-                                          (SimpleTupleSchema
-                                               ( SimpleIntSchema
-                                               , SimpleIntSchema)))
-                                  ]
+                            , vlSchema
                             , SimpleObjectSchema
                                   [("getWallet", SimpleIntSchema)]
                             ]
@@ -208,12 +212,12 @@ vestingSpec =
             [ "vestingTranche1" .=
               object
                   [ "vestingTrancheDate" .= object ["getSlot" .= mkI 1]
-                  , "vestingTrancheAmount" .= object ["getAda" .= mkI 1]
+                  , "vestingTrancheAmount" .= JSON.toJSON (Ada.adaValueOf 1)
                   ]
             , "vestingTranche2" .=
               object
                   [ "vestingTrancheDate" .= object ["getSlot" .= mkI 1]
-                  , "vestingTrancheAmount" .= object ["getAda" .= mkI 1]
+                  , "vestingTrancheAmount" .= JSON.toJSON (Ada.adaValueOf 1)
                   ]
             , "vestingOwner" .= JSON.toJSON (walletPubKey w1)
             ]
@@ -294,7 +298,7 @@ gameSpec =
             , Action
                   (Fn "lock")
                   w2
-                  [JSON.String "\"abcde\"", JSON.String "{\"getAda\": 2}"]
+                  [JSON.String "\"abcde\"", twoAda]
             , Action (Fn "guess") w1 [JSON.String "\"ade\""]
             ]
             (sourceCode game)
@@ -310,7 +314,7 @@ gameSpec =
             , Action
                   (Fn "lock")
                   w2
-                  [JSON.String "\"abcde\"", JSON.String "{\"getAda\": 2}"]
+                  [JSON.String "\"abcde\"", twoAda]
             , Action (Fn "guess") w1 [JSON.String "\"abcde\""]
             ]
             (sourceCode game)
@@ -332,6 +336,7 @@ gameSpec =
             []
     slotRange = JSON.String "{\"ivTo\":null,\"ivFrom\":null}"
     nineAda = toJSONString $ Ada.adaValueOf 9
+    twoAda  = toJSONString $ Ada.adaValueOf 2
 
 hasFundsDistribution ::
        [SimulatorWallet]
@@ -396,8 +401,8 @@ crowdfundingSpec =
             , SimulatorWallet
                   {simulatorWalletWallet = w3, simulatorWalletBalance = ten}
             ]
-            [ Action (Fn "scheduleCollection") w1 [theCampaign]
-            , Action (Fn "contribute") w2 [theCampaign, theContribution]
+            [ Action (Fn "scheduleCollection") w1 [theDeadline, theTarget, theCollectionDeadline, theWallet]
+            , Action (Fn "contribute") w2 [theDeadline, theTarget, theCollectionDeadline, theWallet, theContribution]
             , Wait 20
             ]
             (sourceCode crowdfunding)
@@ -411,22 +416,18 @@ crowdfundingSpec =
             , SimulatorWallet
                   {simulatorWalletWallet = w3, simulatorWalletBalance = ten}
             ]
-            [ Action (Fn "scheduleCollection") w1 [theCampaign]
-            , Action (Fn "contribute") w2 [theCampaign, theContribution]
-            , Action (Fn "contribute") w3 [theCampaign, theContribution]
+            [ Action (Fn "scheduleCollection") w1 [theDeadline, theTarget, theCollectionDeadline, theWallet]
+            , Action (Fn "contribute") w2 [theDeadline, theTarget, theCollectionDeadline, theWallet, theContribution]
+            , Action (Fn "contribute") w3 [theDeadline, theTarget, theCollectionDeadline, theWallet, theContribution]
             , Wait 10
             ]
             (sourceCode crowdfunding)
             []
-    theCampaign =
-        toJSONString $
-        object
-            [ "campaignDeadline" .= object ["getSlot" .= mkI 10]
-            , "campaignTarget" .= object ["getAda" .= mkI 15]
-            , "campaignCollectionDeadline" .= object ["getSlot" .= mkI 20]
-            , "campaignOwner" .= walletPubKey w1
-            ]
-    theContribution = toJSONString $ object ["getAda" .= mkI 8]
+    theDeadline = toJSONString (object ["getSlot" .= mkI 10])
+    theTarget   = toJSONString (Ada.adaValueOf 10)
+    theCollectionDeadline = toJSONString (object ["getSlot" .= mkI 20])
+    theWallet = toJSONString w1
+    theContribution = toJSONString $ Ada.adaValueOf 8
 
 knownCurrencySpec :: Spec
 knownCurrencySpec =
@@ -440,14 +441,15 @@ knownCurrencySpec =
         Text.unlines
             [ "import Playground.Contract"
             , "import Data.List.NonEmpty (NonEmpty ((:|)))"
+            , "import Ledger.Value (TokenName(TokenName))"
             , "import Ledger.Validation (ValidatorHash (..))"
-            , "import Playground.API (KnownCurrency (..), TokenId (..))"
+            , "import Playground.API (KnownCurrency (..))"
             , "myCurrency :: KnownCurrency"
-            , "myCurrency = KnownCurrency (ValidatorHash \"\") \"MyCurrency\" (TokenId \"MyToken\" :| [])"
+            , "myCurrency = KnownCurrency (ValidatorHash \"\") \"MyCurrency\" (TokenName \"MyToken\" :| [])"
             , "$(mkKnownCurrencies ['myCurrency])"
             ]
-    hasKnownCurrency (Right (InterpreterResult _ (CompilationResult _ [KnownCurrency (ValidatorHash "") "MyCurrency" (TokenId "MyToken" :| [])]))) =
-        True
+    hasKnownCurrency (Right (InterpreterResult _ (CompilationResult _ [cur1, cur2]))) =
+        cur1 == adaCurrency && cur2 == KnownCurrency (ValidatorHash "") "MyCurrency" (TokenName "MyToken" :| [])
     hasKnownCurrency _ = False
 
 sourceCode :: BSC.ByteString -> SourceCode

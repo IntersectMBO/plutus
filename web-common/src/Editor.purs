@@ -55,7 +55,7 @@ initEditor initialContents editor = liftEff $ do
 type CompilationState a = RemoteData AjaxError (Either InterpreterError (InterpreterResult a))
 
 editorPane ::
-  forall m aff a s.
+  forall m aff a.
   MonadAff (AceEffects (localStorage :: LOCALSTORAGE | aff)) m
   => Maybe String -> CompilationState a -> ParentHTML Query ChildQuery ChildSlot m
 editorPane initialContents state =

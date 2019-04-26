@@ -37,14 +37,12 @@ instance configName ~ PrettyConfigName => HasPrettyConfigName (PrettyConfigClass
 instance PrettyBy (PrettyConfigClassic configName) (Kind a) where
     prettyBy _ = cata a where
         a TypeF{}             = "(type)"
-        a SizeF{}             = "(size)"
         a (KindArrowF _ k k') = parens ("fun" <+> k <+> k')
 
 instance PrettyBy (PrettyConfigClassic configName) (Constant a) where
-    prettyBy _ (BuiltinInt _ s i) = pretty s <+> "!" <+> pretty i
-    prettyBy _ (BuiltinSize _ s)  = pretty s
-    prettyBy _ (BuiltinBS _ s b)  = pretty s <+> "!" <+> prettyBytes b
-    prettyBy _ (BuiltinStr _ s)   = pretty s
+    prettyBy _ (BuiltinInt _ i) = pretty i
+    prettyBy _ (BuiltinBS _ b)  = prettyBytes b
+    prettyBy _ (BuiltinStr _ s) = pretty s
 
 instance PrettyBy (PrettyConfigClassic configName) (Builtin a) where
     prettyBy _ (BuiltinName    _ n) = pretty n
@@ -59,7 +57,6 @@ instance PrettyClassicBy configName (tyname a) =>
         a (TyIFixF _ pat arg) = parens ("ifix" <+> pat <+> arg)
         a (TyForallF _ n k t) = parens ("all" <+> prettyName n <+> prettyBy config k <+> t)
         a (TyBuiltinF _ n)    = parens ("con" <+> pretty n)
-        a (TyIntF _ n)        = parens ("con" <+> pretty n)
         a (TyLamF _ n k t)    = parens ("lam" <+> prettyName n <+> prettyBy config k <+> t)
 
         prettyName = prettyBy config

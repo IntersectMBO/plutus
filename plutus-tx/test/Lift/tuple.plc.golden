@@ -13,13 +13,10 @@
               (all a_i0 (type) (all b_i0 (type) (fun [[GHC_Tuple_Tuple2_i5 a_i2] b_i1] (all out_GHC_Tuple_Tuple2_i0 (type) (fun (fun a_i3 (fun b_i2 out_GHC_Tuple_Tuple2_i1)) out_GHC_Tuple_Tuple2_i1)))))
               [
                 [
-                  {
-                    { GHC_Tuple_Tuple2_i2 [(con integer) (con 8)] }
-                    [(con integer) (con 8)]
-                  }
-                  (con 8 ! 1)
+                  { { GHC_Tuple_Tuple2_i2 (con integer) } (con integer) }
+                  (con 1)
                 ]
-                (con 8 ! 2)
+                (con 2)
               ]
             )
           )

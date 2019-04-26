@@ -8,6 +8,10 @@ Talk to us! We're active on the [Cardano forum](https://forum.cardano.org/). Tag
 
 Do use the Github issue tracker for bugs and feature requests, but keep other discussions to the forum.
 
+## Contributing
+
+More detailed information for those who want to actually work on the codebase is in [CONTRIBUTING](./CONTRIBUTING.md).
+
 ## Building
 
 ### Binary caches
@@ -40,16 +44,18 @@ is at `docs.combined-haddock`.
 
 ## Docs
 
-Docs are built by hydra. The latest docs for plutus core master branch can be found at
-https://hydra.iohk.io/job/serokell/plutus/language-plutus-core.x86_64-linux/latest
-
-You can also build the docs yourself locally. For example:
+You can build the docs yourself locally. For example:
 ```
+# Plutus Core spec
+nix build -f default.nix doc.plutus-core-spec
 # Haddock for language-plutus-core
 nix build -f default.nix localPackages.language-plutus-core.doc
 # Combined Haddock for all our packages
-nix build -f default.nix localPackages.combined-haddock
+nix build -f default.nix doc.combined-haddock
 ```
+
+They are also built by Hydra, so in some cases you can download the artifact directly.
+- [Latest spec job](https://hydra.iohk.io/job/Cardano/plutus/docs.plutus-core-spec.x86_64-linux/latest)
 
 ### Deploying the docs
 

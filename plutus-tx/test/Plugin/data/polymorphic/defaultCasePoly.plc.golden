@@ -12,22 +12,16 @@
     )
     (lam
       ds
-      [[MyPolyData [(con integer) (con 8)]] [(con integer) (con 8)]]
+      [[MyPolyData (con integer)] (con integer)]
       [
         [
           {
-            [
-              {
-                { MyPolyData_match [(con integer) (con 8)] }
-                [(con integer) (con 8)]
-              }
-              ds
-            ]
-            [(con integer) (con 8)]
+            [ { { MyPolyData_match (con integer) } (con integer) } ds ]
+            (con integer)
           }
-          (lam a [(con integer) (con 8)] (lam ds [(con integer) (con 8)] a))
+          (lam a (con integer) (lam ds (con integer) a))
         ]
-        (lam default_arg0 [(con integer) (con 8)] (con 8 ! 2))
+        (lam default_arg0 (con integer) (con 2))
       ]
     )
   )

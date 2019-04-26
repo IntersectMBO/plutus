@@ -14,15 +14,21 @@ in
       config = { allowUnfree = false; inHydra = true; };
       inherit fasterBuild;
     }
+  # Passed in by Hydra depending on the configuration, contains the revision and the out path
+  , plutus ? null
   }:
 
-with (import (fixedNixpkgs + "/pkgs/top-level/release-lib.nix") {
-  inherit supportedSystems scrubJobs nixpkgsArgs;
+# The revision passed in by Hydra, if there is one
+let rev = if builtins.isNull plutus then null else plutus.rev;
+
+in with (import (fixedNixpkgs + "/pkgs/top-level/release-lib.nix") {
+  inherit supportedSystems scrubJobs;
+  nixpkgsArgs = nixpkgsArgs // { inherit rev; };
   packageSet = import ./.;
 });
 
 let
-  packageSet = import ./. { };
+  packageSet = import ./. { inherit rev; };
 
   # This is a mapping from attribute paths to systems. So it needs to mirror the structure of the
   # attributes in default.nix exactly

@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecordWildCards  #-}
 {-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeApplications #-}
@@ -25,6 +26,8 @@ module Wallet.Generators(
     genAda,
     genValue,
     genValueNonNegative,
+    genSizedByteString,
+    genSizedByteStringExact,
     Wallet.Generators.runTrace,
     runTraceOn,
     splitVal,
@@ -33,6 +36,7 @@ module Wallet.Generators(
     ) where
 
 import           Data.Bifunctor  (Bifunctor (..))
+import qualified Data.ByteString.Lazy as BSL
 import           Data.Foldable   (fold, foldl')
 import           Data.Map        (Map)
 import qualified Data.Map        as Map
@@ -43,6 +47,7 @@ import           GHC.Stack       (HasCallStack)
 import           Hedgehog
 import qualified Hedgehog.Gen    as Gen
 import qualified Hedgehog.Range  as Range
+import qualified Language.PlutusTx.Prelude    as P
 import qualified Ledger.Ada      as Ada
 import qualified Ledger.Index    as Index
 import qualified Ledger.Interval as Interval
@@ -66,12 +71,12 @@ data GeneratorModel = GeneratorModel {
 
 -- | A generator model with some sensible defaults.
 generatorModel :: GeneratorModel
-generatorModel = 
+generatorModel =
     let vl = Ada.toValue $ Ada.fromInt 100000
         pubKeys = toPublicKey <$> knownPrivateKeys
 
     in
-    GeneratorModel 
+    GeneratorModel
     { gmInitialBalance = Map.fromList $ zip pubKeys (repeat vl)
     , gmPubKeys        = Set.fromList pubKeys
     }
@@ -183,7 +188,7 @@ genValidTransactionSpending' g f ins totalVal = do
         then do
             let sz = totalVal - fee
             outVals <- fmap (Ada.toValue) <$> splitVal numOut sz
-            let tx = Tx 
+            let tx = Tx
                         { txInputs = ins
                         , txOutputs = uncurry pubKeyTxOut <$> zip outVals (Set.toList $ gmPubKeys g)
                         , txForge = Value.zero
@@ -200,14 +205,38 @@ genValidTransactionSpending' g f ins totalVal = do
 genAda :: MonadGen m => m Ada
 genAda = Ada.fromInt <$> Gen.int (Range.linear 0 (100000 :: Int))
 
+-- | Generate a 'ByteString s' of up to @s@ bytes.
+genSizedByteString :: forall m. MonadGen m => Int -> m P.ByteString
+genSizedByteString s =
+    let range = Range.linear 0 s in
+    BSL.fromStrict <$> Gen.bytes range
+
+-- | Generate a 'ByteString s' of exactly @s@ bytes.
+genSizedByteStringExact :: forall m. MonadGen m => Int -> m P.ByteString
+genSizedByteStringExact s =
+    let range = Range.singleton s in
+    BSL.fromStrict <$> Gen.bytes range
+
 genValue' :: MonadGen m => Range Int -> m Value
 genValue' valueRange = do
-    let currencyRange = Range.linearBounded @Int
-        sngl          = Value.singleton <$> (Value.currencySymbol <$> Gen.int currencyRange) <*> Gen.int valueRange
+    let
+        -- currency symbol is either a validator hash (bytestring of length 32)
+        -- or the ada symbol (empty bytestring).
+        currency = Gen.choice
+                    [ Value.currencySymbol <$> (genSizedByteStringExact 32)
+                    , pure Ada.adaSymbol
+                    ]
 
-        -- generate values with no more than 10 elements to avoid the tests
+        -- token is either an arbitrary bytestring or the ada token name
+        token   = Gen.choice
+                    [ Value.tokenName <$> (genSizedByteString 32)
+                    , pure Ada.adaToken
+                    ]
+        sngl      = Value.singleton <$> currency <*> token <*> Gen.int valueRange
+
+        -- generate values with no more than 5 elements to avoid the tests
         -- taking too long (due to the map-as-list-of-kv-pairs implementation)
-        maxCurrencies = 10
+        maxCurrencies = 5
 
     numValues <- Gen.int (Range.linear 0 maxCurrencies)
     fold <$> traverse (const sngl) [0 .. numValues]

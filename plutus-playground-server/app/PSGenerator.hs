@@ -45,10 +45,10 @@ import           Ledger.Ada                                (Ada)
 import           Ledger.Index                              (ValidationError)
 import           Ledger.Interval                           (Interval)
 import           Ledger.Slot                               (Slot)
-import           Ledger.Value.TH                           (CurrencySymbol, Value)
+import           Ledger.Value.TH                           (CurrencySymbol, TokenName, Value)
 import           Playground.API                            (CompilationResult, Evaluation, EvaluationResult, Expression,
                                                             Fn, FunctionSchema, KnownCurrency, SimpleArgumentSchema,
-                                                            SimulatorWallet, TokenId)
+                                                            SimulatorWallet)
 import qualified Playground.API                            as API
 import           Playground.Usecases                       (crowdfunding, game, messages, vesting)
 import           Servant                                   ((:<|>))
@@ -84,10 +84,10 @@ ledgerMapBridge = do
     typeModule ^== "Ledger.Map.TH"
     psLedgerMap
 
-keyBytesBridge :: BridgePart
-keyBytesBridge = do
-    typeName ^== "KeyBytes"
-    typeModule ^== "KeyBytes"
+ledgerBytesBridge :: BridgePart
+ledgerBytesBridge = do
+    typeName ^== "LedgerBytes"
+    typeModule ^== "LedgerBytes"
     pure psString
 
 scientificBridge :: BridgePart
@@ -166,10 +166,10 @@ nonEmptyBridge = do
     typeModule ^== "GHC.Base"
     psNonEmpty
 
-sizedByteStringBridge :: BridgePart
-sizedByteStringBridge = do
-    typeName ^== "SizedByteString"
-    typeModule ^== "Language.PlutusTx.Builtins"
+byteStringBridge :: BridgePart
+byteStringBridge = do
+    typeName ^== "ByteString"
+    typeModule ^== "Data.ByteString.Lazy.Internal"
     pure psString
 
 mapBridge :: BridgePart
@@ -192,9 +192,9 @@ myBridge =
     headerBridge <|>
     nonEmptyBridge <|>
     validatorHashBridge <|>
-    sizedByteStringBridge <|>
+    byteStringBridge <|>
     mapBridge <|>
-    keyBytesBridge
+    ledgerBytesBridge
 
 data MyBridge
 
@@ -251,11 +251,11 @@ myTypes =
     , mkSumType (Proxy @NewGistFile)
     , mkSumType (Proxy @Owner)
     , (equal <*> mkSumType) (Proxy @Value)
-    , (equal <*> (order <*> mkSumType)) (Proxy @CurrencySymbol)
-    , (equal <*> (order <*> mkSumType)) (Proxy @TokenId)
-    , mkSumType (Proxy @KnownCurrency)
+    , (equal <*> mkSumType) (Proxy @KnownCurrency)
     , mkSumType (Proxy @InterpreterError)
     , mkSumType (Proxy @(InterpreterResult A))
+    , (equal <*> (order <*> mkSumType)) (Proxy @CurrencySymbol)
+    , (equal <*> (order <*> mkSumType)) (Proxy @TokenName)
     ]
 
 mySettings :: Settings

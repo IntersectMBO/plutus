@@ -1,4 +1,4 @@
-{ mkInstance = { plutus, defaultMachine, machines, serviceConfig, datadogKey, serviceName, server-invoker, client, ... }: node: { config, pkgs, lib, ... }:
+{ mkInstance = { plutus, defaultMachine, machines, serviceConfig, serviceName, server-invoker, client, ... }: node: { config, pkgs, lib, ... }:
   let
     serviceSystemctl = pkgs.writeScriptBin "${serviceName}-systemctl" ''
     COMMAND="$1"

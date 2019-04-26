@@ -194,8 +194,7 @@ test-suite language-plutus-core-test
         Evaluation.Constant.Apply
         Evaluation.Constant.Success
         Evaluation.Constant.SuccessFailure
-        Evaluation.Constant.Failure
-        Evaluation.Constant.Resize
+        Normalization.Check
         Normalization.Type
         Pretty.Readable
         Check.Spec
@@ -247,8 +246,7 @@ benchmark language-plutus-core-bench
         language-plutus-core -any,
         criterion -any,
         bytestring -any,
-        serialise -any,
-        text -any
+        serialise -any
 
     if flag(eventlog)
         ghc-options: -eventlog

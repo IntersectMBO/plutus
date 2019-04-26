@@ -6,7 +6,7 @@ The *extended UTxO model* brings a significant portion of the expressiveness of 
 ## Extension to transaction outputs
 In the classic UTxO model (Cardano SL in Byron and Shelley), a transaction output locked by a script carries two pieces of information:
 
-1. it’s value and
+1. its value and
 2. (the hash of) a validator script.
 
 We extend this to include a second script, which we call the *data script*. This second script is a Plutus Core expression, just like the validator script. However, the requirements on its type are different. The type of the data script can be any monomorphic type.
@@ -44,7 +44,7 @@ For each of the three script types (data, validator, redeemer) there are two art
 |**Provided by Producer**| Data script | *N/A\** |
 |**Provided by Consumer**| Validator script | Redeemer script |
 
-The validator script must be submitted as part of the consuming transaction's input, but its content is determined by the producing transaction. Both hash and content of the data script are provided by the producing transaction, and hash and content of the redeemer are provided by the consumer. 
+The validator script must be submitted as part of the consuming transaction's input, but its content is determined by the producing transaction. Both the hash and content of the data script are provided by the producing transaction, and the hash and content of the redeemer are provided by the consumer. 
 
 When a transaction is validated, the validator script receives data and redeemer scripts and either terminates successfully or in the Plutus `error` state. This means that the producing transaction effectively determines the type of the redeemer script, even though the script itself (ie. a value of that type) is not known at that time. (One has to be careful not to lock a transaction output permanently by specifying a type that has no values other than `error`)
 
@@ -60,7 +60,7 @@ Scripts are interested in additional addresses and a wallet with scripts needs t
 
 Consequences of that extension are the following.
 
-On Page 9 of the wallet spec, the precondition for `newPending` needs to be adapted to the fact that a new pending transaction can now contain inputs that spend outputs whose (script) address the wallet does not own, but that are locked by a script for which the wallet can create a valid redeemer script. *We handle this buy doing the same with the script UTxO as we are doing with the wallet address UTxO, but just for the script inputs.* This ensures locally that we only create transactions that refer to existing unspent outputs and are not double spending.
+On Page 9 of the wallet spec, the precondition for `newPending` needs to be adapted to the fact that a new pending transaction can now contain inputs that spend outputs whose (script) address the wallet does not own, but that are locked by a script for which the wallet can create a valid redeemer script. *We handle this by doing the same with the script UTxO as we are doing with the wallet address UTxO, but just for the script inputs.* This ensures locally that we only create transactions that refer to existing unspent outputs and are not double spending.
 
 * This also affects the removal of transactions from the pending set (if one of their script inputs is spent, they also need to be removed).
 
@@ -77,7 +77,7 @@ In order to avoid rollbacks, we would need to wait for 2160 blocks (the security
 2. the creation of independent transactions, and 
 3. general effects.
 
-In the first case, there is no need to wait and we can immediately react to an event. As the newly created transaction is dependent on the transaction that triggered the event, the newly created transaction will also be rolled back if the event-trigger is rolled back. In the other two cases, we need to be more careful and the most appropriate behaviour will dependent on the risks involved. In general, we will need to wait for a application-specific block depth before processing the event. It probably makes sense to let the script specify that delay when it registers an address for observation.
+In the first case, there is no need to wait, and we can immediately react to an event. As the newly created transaction is dependent on the transaction that triggered the event, the newly created transaction will also be rolled back if the event-trigger is rolled back. In the other two cases, we need to be more careful and the most appropriate behaviour will depend on the risks involved. In general, we will need to wait for an application-specific block depth before processing the event. It probably makes sense to let the script specify that delay when it registers an address for observation.
 
 Ideally, we would want to distinguish the case of the creation of a dependent transaction from the other cases by way of the type system to avoid the accidental immediate reaction in anything, but the first of the three cases.
 
@@ -91,7 +91,7 @@ TTL support (Section 10.4 of the specification) appears rather desirable in the 
 
 ## Wallet API for scripts
 
-Plutus Core (PLC) scripts end up on the blockchain as part of transactions, which are created by wallets. The Plutus coordinating code interacts with a wallet through the wallet API. This API needs to be extended to support
+Plutus Core (PLC) scripts end up on the blockchain as part of transactions, which are created by wallets. The Plutus coordinating code interacts with a wallet through the wallet API. This API needs to be extended to support:
 
 1. Creating transactions based on *transaction templates* 
 2. Registering to be notified on events related to the state of the blockchain (consider [Rollbacks](#plutus/extended-utxo/rollbacks) as well)
@@ -100,4 +100,4 @@ Plutus Core (PLC) scripts end up on the blockchain as part of transactions, whic
 Transaction templates differ from normal transactions in two ways:
 
 1. Some of their output value is not matched by transaction inputs. The wallet is expected to add the missing inputs (coin selection)
-2. They do not include transaction fees. The wallet is expected to compute the fees and either add them to the inputs, or subtract them to the outputs if possible. The exact behaviour should be configurable by the user. (Note that changing the inputs and outputs affects the transaction fees
+2. They do not include transaction fees. The wallet is expected to compute the fees and either add them to the inputs, or subtract them to the outputs if possible. The exact behaviour should be configurable by the user. (Note that changing the inputs and outputs affects the transaction fees)

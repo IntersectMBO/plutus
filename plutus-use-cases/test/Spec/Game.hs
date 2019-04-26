@@ -1,13 +1,13 @@
 module Spec.Game(tests) where
 
 import           Control.Monad                                 (void)
-import           Control.Monad.IO.Class
 import           Data.Either                                   (isRight)
 import           Data.Foldable                                 (traverse_)
 import qualified Data.Map                                      as Map
 
 import           Hedgehog                                      (Property, forAll, property)
 import qualified Hedgehog
+import qualified Spec.Size                                     as Size
 import           Test.Tasty
 import           Test.Tasty.Hedgehog                           (testProperty)
 import qualified Test.Tasty.HUnit                              as HUnit
@@ -29,16 +29,8 @@ tests = testGroup "game" [
     testProperty "lock" lockProp,
     testProperty "guess right" guessRightProp,
     testProperty "guess wrong" guessWrongProp,
-    HUnit.testCase "script size is reasonable" size
+    HUnit.testCase "script size is reasonable" (Size.reasonable gameValidator 25000)
     ]
-
-size :: HUnit.Assertion
-size = do
-    let Ledger.ValidatorScript s = gameValidator
-    let sz = Ledger.scriptSize s
-    -- so the actual size is visible in the log
-    liftIO $ putStrLn ("Script size: " ++ show sz)
-    HUnit.assertBool "script too big" (sz <= 25000)
 
 lockProp :: Property
 lockProp = checkTrace $ do

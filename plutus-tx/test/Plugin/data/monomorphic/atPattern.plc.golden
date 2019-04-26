@@ -1,7 +1,6 @@
 (program
   (let
-    (nonrec
-    )
+    (nonrec)
     (datatypebind
       (datatype
         (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
@@ -11,65 +10,44 @@
       )
     )
     (let
-      (nonrec
-      )
+      (nonrec)
       (termbind
         (vardecl
-          addInteger
-          (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] [(con integer) (con 8)]))
+          addInteger (fun (con integer) (fun (con integer) (con integer)))
         )
-        { (builtin addInteger) (con 8) }
+        (builtin addInteger)
       )
       (lam
         t
-        [[Tuple2 [(con integer) (con 8)]] [(con integer) (con 8)]]
+        [[Tuple2 (con integer)] (con integer)]
         (let
           (nonrec)
-          (termbind
-            (vardecl
-              wild [[Tuple2 [(con integer) (con 8)]] [(con integer) (con 8)]]
-            )
-            t
-          )
+          (termbind (vardecl wild [[Tuple2 (con integer)] (con integer)]) t)
           [
             {
-              [
-                {
-                  { Tuple2_match [(con integer) (con 8)] }
-                  [(con integer) (con 8)]
-                }
-                t
-              ]
-              [(con integer) (con 8)]
+              [ { { Tuple2_match (con integer) } (con integer) } t ]
+              (con integer)
             }
             (lam
               ds
-              [(con integer) (con 8)]
+              (con integer)
               (lam
                 ds
-                [(con integer) (con 8)]
+                (con integer)
                 [
                   [ addInteger ds ]
                   [
                     (lam
                       ds
-                      [[Tuple2 [(con integer) (con 8)]] [(con integer) (con 8)]]
+                      [[Tuple2 (con integer)] (con integer)]
                       [
                         {
                           [
-                            {
-                              { Tuple2_match [(con integer) (con 8)] }
-                              [(con integer) (con 8)]
-                            }
-                            ds
+                            { { Tuple2_match (con integer) } (con integer) } ds
                           ]
-                          [(con integer) (con 8)]
+                          (con integer)
                         }
-                        (lam
-                          a
-                          [(con integer) (con 8)]
-                          (lam b [(con integer) (con 8)] a)
-                        )
+                        (lam a (con integer) (lam b (con integer) a))
                       ]
                     )
                     wild

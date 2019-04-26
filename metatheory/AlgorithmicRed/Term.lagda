@@ -16,8 +16,8 @@ open import Type.BetaNormal
 open import Type.BetaNBE
 open import Builtin
 open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf size⋆
-open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢Nf⋆_ con size⋆
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.List hiding ([_])
 open import Relation.Binary.PropositionalEquality hiding ([_]; subst)
@@ -112,9 +112,7 @@ val2nf (V-ƛ VN) with val2nf VN
 ... | N ,, p = ƛ N ,, cong ƛ p
 val2nf (N- VN) with neu2nen VN
 ... | N ,, p = ne N ,, p
-val2nf V-size = size⋆ _ ,, refl 
-val2nf (V-con {tcn = tcn} vs) with val2nf vs
-... | s ,, p = con tcn s ,, cong (con tcn) p
+val2nf (V-con {tcn = tcn})= con tcn ,, refl
 
 neu2nen N-μ1 = _ ,, refl
 neu2nen (N-· NA VB) with neu2nen NA | val2nf VB
@@ -174,10 +172,10 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢Nf⋆ J → Set where
     → embNf pat · (μ1 · embNf pat) · embNf arg —Nf→⋆ R
     → Γ ⊢ R
 
-  con : ∀{Γ s tcn}
-    → TermCon (con tcn s)
+  con : ∀{Γ tcn}
+    → TermCon {Φ = ∥ Γ ∥} (con tcn )
       -------------------
-    → Γ ⊢ con tcn s
+    → Γ ⊢ con tcn
 
   builtin : ∀{Γ}
     → (bn : Builtin)

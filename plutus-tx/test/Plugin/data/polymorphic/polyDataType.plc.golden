@@ -10,6 +10,6 @@
         (vardecl Poly2 (fun a [[MyPolyData a] b]))
       )
     )
-    (lam ds [[MyPolyData [(con integer) (con 8)]] [(con integer) (con 8)]] ds)
+    (lam ds [[MyPolyData (con integer)] (con integer)] ds)
   )
 )

@@ -58,15 +58,16 @@ instance KnownDynamicBuiltinType a => KnownDynamicBuiltinType (EvaluationResult 
         mapDeepReflectT (fmap $ EvaluationSuccess . sequence) . readDynamicBuiltin eval
 
 instance KnownDynamicBuiltinType Int where
-    toTypeEncoding _ = TyApp () (TyBuiltin () TyInteger) (TyInt () 8)
+    toTypeEncoding _ = TyBuiltin () TyInteger
 
-    makeDynamicBuiltin = fmap (Constant ()) . makeBuiltinInt 8 . fromIntegral
+    makeDynamicBuiltin = Just . Constant () . makeBuiltinInt . fromIntegral
 
     readDynamicBuiltin eval term = do
         res <- makeRightReflectT $ eval mempty term
         case res of
-            Constant () (BuiltinInt () 8 i) -> pure $ fromIntegral i
-            _                               -> throwError "Not a builtin Int"
+            Constant () (BuiltinInt () i) -> pure $ fromIntegral i
+            _                             -> throwError "Not a builtin Int"
+
 instance KnownDynamicBuiltinType [Char] where
     toTypeEncoding _ = TyBuiltin () TyString
 
@@ -84,29 +85,29 @@ instance KnownDynamicBuiltinType Bool where
     makeDynamicBuiltin b = pure $ if b then true else false
 
     readDynamicBuiltin eval b = do
-        let int1 = TyApp () (TyBuiltin () TyInteger) (TyInt () 4)
-            asInt1 = Constant () . BuiltinInt () 1
+        let int = TyBuiltin () TyInteger
+            asInt = Constant () . BuiltinInt ()
             -- Encode 'Bool' from Haskell as @integer 1@ from PLC.
-            term = mkIterApp () (TyInst () b int1) [asInt1 1, asInt1 0]
+            term = mkIterApp () (TyInst () b int) [asInt 1, asInt 0]
         res <- makeRightReflectT $ eval mempty term
         case res of
-            Constant () (BuiltinInt () 1 1) -> pure True
-            Constant () (BuiltinInt () 1 0) -> pure False
-            _                               -> throwError "Not an integer-encoded Bool"
+            Constant () (BuiltinInt () 1) -> pure True
+            Constant () (BuiltinInt () 0) -> pure False
+            _                             -> throwError "Not an integer-encoded Bool"
 
--- Encode 'Char' from Haskell as @integer 4@ from PLC.
+-- Encode 'Char' from Haskell as @integer@ from PLC.
 instance KnownDynamicBuiltinType Char where
-    toTypeEncoding _ = TyApp () (TyBuiltin () TyInteger) (TyInt () 4)
+    toTypeEncoding _ = TyBuiltin () TyInteger
 
-    makeDynamicBuiltin = fmap (Constant ()) . makeBuiltinInt 4 . fromIntegral . ord
+    makeDynamicBuiltin = Just . Constant () . makeBuiltinInt . fromIntegral . ord
 
     readDynamicBuiltin eval term = do
         -- 'term' is supposed to be already evaluated, but calling 'eval' is the easiest way
         -- to turn 'Error' into 'EvaluationFailure', which we later 'lift' to 'Convert'.
         res <- makeRightReflectT $ eval mempty term
         case res of
-            Constant () (BuiltinInt () 4 int) -> pure . chr $ fromIntegral int
-            _                                 -> throwError "Not an integer-encoded Char"
+            Constant () (BuiltinInt () int) -> pure . chr $ fromIntegral int
+            _                               -> throwError "Not an integer-encoded Char"
 
 instance KnownDynamicBuiltinType a => KnownDynamicBuiltinType (() -> a) where
     toTypeEncoding _ = TyFun () unit $ toTypeEncoding @a Proxy

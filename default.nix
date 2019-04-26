@@ -59,8 +59,8 @@
 # Forces all warnings as errors
 , forceError ? true
 
-# If we are in Hydra
-, declInput ? null
+# An explicit git rev to use, passed when we are in Hydra
+, rev ? null
 
 }:
 
@@ -80,6 +80,14 @@ let
   packages = self: (rec {
     inherit pkgs localLib;
 
+    # The git revision comes from `rev` if available (Hydra), otherwise
+    # it is read using IFD and git, which is avilable on local builds.
+    # NOTE: depending on this will make your package rebuild on every commit, regardless of whether
+    # anything else has changed!
+    git-rev = 
+      let ifdRev = (import (pkgs.callPackage ./nix/git-rev.nix { gitDir = builtins.path { name = "gitDir"; path = ./.git; }; })).rev;
+      in removeSuffix "\n" (if isNull rev then ifdRev else rev);
+
     # This is the stackage LTS plus overrides, plus the plutus
     # packages.
     haskellPackages = let
@@ -90,10 +98,9 @@ let
       # When building we want the git sha available in the Haskell code, previously we did this with
       # a template haskell function that ran a git command however the git directory is not available
       # to the derivation so this fails. What we do now is create a derivation that overrides a magic
-      # Haskell module with the git sha, this comes from `declInput.rev` if available (Hydra), otherwise
-      # it is read from the .git directory which is avilable on local builds.
+      # Haskell module with the git sha.
       gitModuleOverlay = import ./nix/overlays/git-module.nix {
-        inherit pkgs declInput;
+        inherit pkgs git-rev;
       };
       customOverlays = optional forceError errorOverlay ++ [gitModuleOverlay];
       # Filter down to local packages, except those named in the given list

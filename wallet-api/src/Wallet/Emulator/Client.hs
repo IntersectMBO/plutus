@@ -98,7 +98,7 @@ instance WalletAPI WalletClient where
   sign bs = Crypto.sign (BSL.toStrict bs) . walletPrivKey <$> asks getWallet
   ownPubKey = liftWallet ownPubKey'
   createPaymentWithChange value = liftWallet (`createPaymentWithChange'` value)
-  register _ _ = pure () -- TODO: Keep track of triggers in emulated wallet
+  registerOnce _ _ = pure () -- TODO: Keep track of triggers in emulated wallet
   watchedAddresses = liftWallet getAddresses
   slot = liftWallet getSlot
   startWatching a = void $ liftWallet (`startWatching'` a)

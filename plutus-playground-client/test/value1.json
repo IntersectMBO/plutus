@@ -1,16 +1,43 @@
 {
   "getValue": [
     [
-      0,
-      100
+      {
+        "unCurrencySymbol": "0"
+      },
+      [
+        [
+          {
+            "unTokenName": "ADA"
+          },
+          100
+        ]
+      ]
     ],
     [
-      1,
-      40
+      {
+        "unCurrencySymbol": "1"
+      },
+      [
+        [
+          {
+            "unTokenName": "USD"
+          },
+          40
+        ]
+      ]
     ],
     [
-      2,
-      40
+      {
+        "unCurrencySymbol": "2"
+      },
+      [
+        [
+          {
+            "unTokenName": "EUR"
+          },
+          40
+        ]
+      ]
     ]
   ]
 }

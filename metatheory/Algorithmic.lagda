@@ -16,8 +16,8 @@ open import Type.BetaNBE
 open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
 open import Builtin
 open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf size⋆
-open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢Nf⋆_ con size⋆
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf 
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con 
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.List hiding ([_])
 open import Relation.Binary.PropositionalEquality hiding ([_])
@@ -136,10 +136,10 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢Nf⋆ J → Set where
     → (term : Γ ⊢ ne (μ1 · pat · arg))
     → Γ ⊢ nf (embNf pat · (μ1 · embNf pat) · embNf arg)
 
-  con : ∀{Γ s tcn}
-    → TermCon (con tcn s)
+  con : ∀{Γ tcn}
+    → TermCon {∥ Γ ∥} (con tcn)
       -------------------
-    → Γ ⊢ con tcn s
+    → Γ ⊢ con tcn
 
   builtin : ∀{Γ}
     → (bn : Builtin)

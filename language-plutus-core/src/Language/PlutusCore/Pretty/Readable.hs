@@ -214,14 +214,12 @@ prettyTypeBinding config name kind
 instance PrettyBy (PrettyConfigReadable configName) (Kind a) where
     prettyBy config = \case
         Type{}          -> unitaryDoc config "*"
-        Size{}          -> unitaryDoc config "size"
         KindArrow _ k l -> arrowDoc   config k l
 
 instance PrettyBy (PrettyConfigReadable configName) (Constant a) where
     prettyBy config = unitaryDoc config . \case
-        BuiltinInt _ size int -> pretty size <> "!" <> pretty int
-        BuiltinSize _ size    -> pretty size
-        BuiltinBS _ size bs   -> pretty size <> "!" <> prettyBytes bs
+        BuiltinInt _ int -> pretty int
+        BuiltinBS _ bs   -> prettyBytes bs
         BuiltinStr _ str      -> pretty str
 
 instance PrettyBy (PrettyConfigReadable configName) (Builtin a) where
@@ -239,7 +237,6 @@ instance PrettyReadableBy configName (tyname a) =>
         TyForall _ name kind ty -> bind $ \bindBody ->
             "all" <+> prettyTypeBinding config name kind <> "." <+> bindBody ty
         TyBuiltin _ builtin     -> unit $ pretty builtin
-        TyInt _ size            -> unit $ pretty size
         TyLam _ name kind ty    -> bind $ \bindBody ->
             "\\" <> prettyTypeBinding config name kind <+> "->" <+> bindBody ty
       where

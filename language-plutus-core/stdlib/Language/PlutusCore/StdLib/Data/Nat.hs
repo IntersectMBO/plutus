@@ -13,7 +13,7 @@ module Language.PlutusCore.StdLib.Data.Nat
 
 import           Prelude                                  hiding (succ)
 
-import           Language.PlutusCore.Constant.Make        (makeDynBuiltinInt)
+import           Language.PlutusCore.Constant.Make        (makeIntConstant)
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
@@ -127,23 +127,12 @@ foldNat = runQuote $ do
 
 -- | Convert a @nat@ to an @integer@.
 --
--- > /\(s :: size) -> \(ss : size s) ->
--- >     foldNat {integer s}
--- >         (addInteger {s} (resizeInteger {1} {s} ss 1!1))
--- >         (resizeInteger {1} {s} ss 1!0)
+-- > foldNat {integer} (addInteger 1) 1
 natToInteger :: TermLike term TyName Name => term ()
 natToInteger = runQuote $ do
-    s  <- freshTyName () "s"
-    ss <- freshName () "ss"
     let addInteger = builtin () $ BuiltinName () AddInteger
-        sv  = TyVar () s
-        ssv = var () ss
-    return
-        . tyAbs ()  s  (Size ())
-        . lamAbs () ss (TyApp () (TyBuiltin () TySize) sv)
-        $ mkIterApp () (tyInst () foldNat $ TyApp () (TyBuiltin () TyInteger) sv)
-          [ apply ()
-              (tyInst () addInteger (TyVar () s))
-              (makeDynBuiltinInt sv ssv 1)
-          , makeDynBuiltinInt sv ssv 0
+    return $
+        mkIterApp () (tyInst () foldNat $ TyBuiltin () TyInteger)
+          [ apply () addInteger (makeIntConstant 1)
+          , makeIntConstant 0
           ]

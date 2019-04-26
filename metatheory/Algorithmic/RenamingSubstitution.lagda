@@ -23,9 +23,9 @@ open import Type.BetaNBE.Completeness
 open import Type.BetaNBE.Stability
 open import Type.BetaNBE.RenamingSubstitution
 open import Algorithmic
-open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢Nf⋆_ con size⋆
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf size⋆
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
 
 
 \end{code}
@@ -83,9 +83,8 @@ renameTermCon : ∀ {Φ Ψ}
   → (ρ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
     -----------------------------------------------------
   → ({A : Φ ⊢Nf⋆ *} → TermCon A → TermCon (renameNf ρ⋆ A ))
-renameTermCon ρ⋆ (integer s i p)    = integer s i p
-renameTermCon ρ⋆ (bytestring s b p) = bytestring s b p
-renameTermCon ρ⋆ (size s)           = size s
+renameTermCon ρ⋆ (integer i)    = integer i
+renameTermCon ρ⋆ (bytestring b) = bytestring b
 \end{code}
 
 \begin{code}
@@ -226,9 +225,8 @@ substTermCon : ∀ {Φ Ψ}
   → (σ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢Nf⋆ J)
     ------------------------------------------------------
   → ({A : Φ ⊢Nf⋆ *} → TermCon A → TermCon (substNf σ⋆ A ))
-substTermCon σ⋆ (integer s i p)    = integer s i p
-substTermCon σ⋆ (bytestring s b p) = bytestring s b p
-substTermCon σ⋆ (size s)           = size s
+substTermCon σ⋆ (integer i)    = integer i
+substTermCon σ⋆ (bytestring b) = bytestring b
 \end{code}
 
 \begin{code}

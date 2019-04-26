@@ -35,7 +35,7 @@ data _⊢ : ℕ → Set where
 \begin{code}
 open import Type
 open import Declarative
-open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆ renaming (TermCon to TyTermCon)
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con renaming (TermCon to TyTermCon)
 
 len : Ctx → ℕ
 len ∅ = 0
@@ -48,9 +48,8 @@ eraseVar (S α) = suc (eraseVar α)
 eraseVar (T α) = eraseVar α
 
 eraseTC : ∀{Γ}{A : ∥ Γ ∥ ⊢⋆ *} → TyTermCon A → TermCon
-eraseTC (integer s i p)    = integer i
-eraseTC (bytestring s b p) = bytestring b
-eraseTC (size s)           = size
+eraseTC (integer i)    = integer i
+eraseTC (bytestring b) = bytestring b
 
 open import Type.RenamingSubstitution
 
@@ -90,11 +89,10 @@ eraseFin S.Z     = zero
 eraseFin (S.S x) = suc (eraseFin x)
 eraseFin (S.T x) = eraseFin x
 
-eraseCon : S.SizedTermCon → TermCon
-eraseCon (S.integer s i x) = integer i
-eraseCon (S.bytestring s b x) = bytestring b
-eraseCon (S.size x) = size
-eraseCon (S.string x) = size -- this is wrong
+eraseCon : S.TermCon → TermCon
+eraseCon (S.integer i) = integer i
+eraseCon (S.bytestring b) = bytestring b
+eraseCon (S.string x) = size -- this is wrong 
 
 open import Data.Sum
 

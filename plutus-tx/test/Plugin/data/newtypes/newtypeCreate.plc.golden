@@ -6,9 +6,9 @@
         (tyvardecl MyNewtype (type))
         
         MyNewtype_match
-        (vardecl MyNewtype (fun [(con integer) (con 8)] MyNewtype))
+        (vardecl MyNewtype (fun (con integer) MyNewtype))
       )
     )
-    (lam ds [(con integer) (con 8)] [ MyNewtype ds ])
+    (lam ds (con integer) [ MyNewtype ds ])
   )
 )

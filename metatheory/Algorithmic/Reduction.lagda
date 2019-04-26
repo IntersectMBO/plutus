@@ -26,9 +26,9 @@ open import Type.BetaNBE.RenamingSubstitution
 open import Type.BetaNormal
 open import Builtin
 open import Builtin.Constant.Type
-open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢Nf⋆_ con size⋆
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf size⋆
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
 open import Utils
 \end{code}
 
@@ -52,19 +52,45 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ⊢ A → Set where
    → {term : Γ ⊢  nf (embNf pat · (μ1 · embNf pat) · embNf arg)}
    → Value (wrap1 pat arg term)
 
-  V-con : ∀{Γ}{n}{tcn : TyCon}
-    → (cn : TermCon (con tcn (size⋆ n)))
+  V-con : ∀{Γ}{tcn : TyCon}
+    → (cn : TermCon (con tcn))
     → Value (con {Γ} cn)
 
 \end{code}
 
 \begin{code}
+VTel : ∀ Γ Δ → (∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K) → List (Δ ⊢Nf⋆ *) → Set
+
 data Error :  ∀ {Γ} {A : ∥ Γ ∥ ⊢Nf⋆ *} → Γ ⊢ A → Set where
+  -- a genuine runtime error returned from a builtin
   E-error : ∀{Γ}{A : ∥ Γ ∥ ⊢Nf⋆ *} → Error (error {Γ} A)
+
+  -- error inside somewhere
+  E-·₁ : ∀{Γ}{A B : ∥ Γ ∥ ⊢Nf⋆ *} {L : Γ ⊢ A ⇒ B}{M : Γ ⊢ A}
+    → Error L → Error (L · M)
+  E-·₂ : ∀{Γ}{A B : ∥ Γ ∥ ⊢Nf⋆ *} {L : Γ ⊢ A ⇒ B}{M : Γ ⊢ A}
+    → Error M → Error (L · M)
+  E-·⋆ : ∀{Γ K}{B : ∥ Γ ∥ ,⋆ K ⊢Nf⋆ *}{L : Γ ⊢ Π B}{A : ∥ Γ ∥ ⊢Nf⋆ K}
+    → Error L → Error (L ·⋆ A)
+  E-unwrap : ∀{Γ K}
+    → {pat : ∥ Γ ∥ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {arg : ∥ Γ ∥ ⊢Nf⋆ K}
+    → {L : Γ ⊢ ne (μ1 · pat · arg)} → Error L → Error (unwrap1 L)
+  E-builtin : ∀{Γ}  → (bn : Builtin)
+    → let Δ ,, As ,, C = SIG bn in
+      (σ : ∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K)
+    → (tel : Tel Γ Δ σ As)
+    → ∀ Bs Ds
+    → (vtel : VTel Γ Δ σ Bs)
+    → ∀{C}{t : Γ ⊢ substNf σ C}
+    → Error t
+    → (p : Bs ++ (C ∷ Ds) ≡ As)
+    → (tel' : Tel Γ Δ σ Ds)
+    → Error (builtin bn σ tel)
+
 \end{code}
 
 \begin{code}
-VTel : ∀ Γ Δ → (∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K) → List (Δ ⊢Nf⋆ *) → Set
 VTel Γ Δ σ [] = ⊤
 VTel Γ Δ σ (A ∷ As) = Σ (Γ ⊢ substNf σ A) λ t → Value t × VTel Γ Δ σ As
 
@@ -75,223 +101,50 @@ BUILTIN : ∀{Γ}
     → (vtel : VTel Γ Δ σ As)
       -----------------------------
     → Maybe (Γ ⊢ substNf σ C)
-BUILTIN addInteger σ vtel with nf (embNf (σ Z))
-BUILTIN
-  addInteger
-  σ
-  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | size⋆ s with boundedI? s (i + j)
-... | yes r = just (con (integer s (i + j) r))
-... | no ¬r = nothing
-BUILTIN subtractInteger σ vtel with nf (embNf (σ Z))
-BUILTIN
-  subtractInteger
-  σ
-  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | size⋆ s
-  with boundedI? s (i - j)
-... | yes r = just (con (integer s (i - j) r))
-... | no ¬p = nothing
-BUILTIN multiplyInteger σ vtel with nf (embNf (σ Z))
-BUILTIN
-  multiplyInteger
-  σ
-  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | size⋆ s
-  with boundedI? s (i ** j)
-... | yes r = just (con (integer s (i ** j) r))
-... | no ¬p = nothing
-BUILTIN divideInteger σ vtel with nf (embNf (σ Z))
-BUILTIN
-  divideInteger
-  σ
-  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | size⋆ s
-  with boundedI? s (div i j)
-... | yes r = just (con (integer s (div i j) r))
-... | no ¬r = nothing
-BUILTIN quotientInteger σ vtel with nf (embNf (σ Z))
-BUILTIN
-  quotientInteger
-  σ
-  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | size⋆ s
-  with boundedI? s (quot i j)
-... | yes r = just (con (integer s (quot i j) r))
-... | no ¬r = nothing
-BUILTIN remainderInteger σ vtel with nf (embNf (σ Z))
-BUILTIN
-  remainderInteger
-  σ
-  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | size⋆ s
-  with boundedI? s (rem i j)
-... | yes r = just (con (integer s (rem i j) r))
-... | no ¬r = nothing
-BUILTIN modInteger σ vtel with nf (embNf (σ Z))
-BUILTIN
-  modInteger
-  σ
-  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | size⋆ s
-  with boundedI? s (mod i j)
-... | yes r = just (con (integer s (mod i j) r))
-... | no ¬r = nothing
-BUILTIN lessThanInteger σ vtel with nf (embNf (σ Z))
-BUILTIN
-  lessThanInteger
-  σ
-  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | size⋆ s
-  with i Builtin.Constant.Type.<? j
+BUILTIN addInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) = just (con (integer (i + j)))
+BUILTIN subtractInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) = just (con (integer (i - j)))
+BUILTIN multiplyInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) = just (con (integer (i ** j)))
+BUILTIN divideInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) = just (con (integer (div i j)))
+BUILTIN quotientInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) = just (con (integer (quot i j)))
+BUILTIN remainderInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) = just (con (integer (rem i j)))
+BUILTIN modInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) = just (con (integer (mod i j)))
+BUILTIN lessThanInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)  with i Builtin.Constant.Type.<? j
 ... | yes _ = just true
 ... | no _  = just false
-BUILTIN lessThanEqualsInteger σ vtel with nf (embNf (σ Z))
-BUILTIN
-  lessThanEqualsInteger
-  σ
-  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | size⋆ s
-  with i ≤? j
+BUILTIN lessThanEqualsInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) with i ≤? j
 ... | yes _ = just true
 ... | no _  = just false
-BUILTIN greaterThanInteger σ vtel with nf (embNf (σ Z))
-BUILTIN
-  greaterThanInteger
-  σ
-  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | size⋆ s
+BUILTIN greaterThanInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)
   with i Builtin.Constant.Type.>? j
 ... | yes _ = just true
 ... | no _  = just false
-BUILTIN greaterThanEqualsInteger σ vtel with nf (embNf (σ Z))
-BUILTIN
-  greaterThanEqualsInteger
-  σ
-  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | size⋆ s
+BUILTIN greaterThanEqualsInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)
   with i Builtin.Constant.Type.≥? j
 ... | yes _ = just true
 ... | no _  = just false
-BUILTIN equalsInteger σ vtel with nf (embNf (σ Z))
-BUILTIN
-  equalsInteger
-  σ
-  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | size⋆ s
+BUILTIN equalsInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)
   with i ≟ j
 ... | yes _ = just true
 ... | no _  = just false
-BUILTIN resizeInteger σ vtel with nf (embNf (σ Z)) | nf (embNf (σ (S Z)))
-BUILTIN
-  resizeInteger
-  σ
-  (_ ,, V-con (size s') ,, _ ,, V-con (integer s i p) ,, tt)
-  | size⋆ s'
-  | size⋆ s
-  with boundedI? s' i
-... | yes r = just (con (integer s' i r))
-... | no ¬r = nothing
-BUILTIN sizeOfInteger σ vtel with nf (embNf (σ Z))
-BUILTIN sizeOfInteger σ (_ ,, V-con (integer s i x) ,, tt) | .(size⋆ s) =
-  just (con (size s))
-BUILTIN intToByteString σ vtel with nf (embNf (σ Z)) | nf (embNf (σ (S Z)))
-BUILTIN
-  intToByteString
-  σ
-  (_ ,, V-con (size s) ,, _ ,, V-con (integer s' i p) ,, tt)
-  | size⋆ s
-  | size⋆ s' with boundedI? s i
-... | no _  = nothing
-... | yes q with boundedB? s (int2ByteString i)
-... | yes r = just (con (bytestring s (int2ByteString i) r))
-... | no _  = nothing
--- ^ should be impossible if we prove something about int2ByteString
-BUILTIN concatenate σ vtel with nf (embNf (σ Z))
-BUILTIN
-  concatenate
-  σ
-  (_ ,, V-con (bytestring s b p) ,, _ ,, V-con (bytestring .s b' q) ,, tt)
-  | size⋆ s
-  with boundedB? s (append b b')
-... | yes r = just (con (bytestring s (append b b') r))
-... | no ¬r = nothing 
-
-BUILTIN takeByteString σ vtel with nf (embNf (σ Z)) | nf (embNf (σ (S Z)))
-BUILTIN
-  takeByteString
-  σ
-  (_ ,, V-con (integer s i p) ,, _ ,, V-con (bytestring s' b q) ,, tt)
-  | .(size⋆ s')
-  | size⋆ s
-  with boundedB? s' (take i b)
-... | yes r = just (con (bytestring s' (take i b) r))
-... | no r = nothing
--- ^ this is impossible but we haven't proved that take cannot
--- increase the length
-BUILTIN dropByteString σ vtel with nf (embNf (σ Z)) | nf (embNf (σ (S Z)))
-BUILTIN
-  dropByteString
-  σ
-  (_ ,, V-con (integer s i p) ,, _ ,, V-con (bytestring s' b q) ,, tt)
-  | size⋆ s'
-  | size⋆ s with boundedB? s' (drop i b)
-... | yes r = just (con (bytestring s' (drop i b) r))
-... | no ¬r = nothing
--- ^ this is impossible but we haven't proved that drop cannot
--- increase the length
-BUILTIN sha2-256 σ vtel with nf (embNf (σ Z))
-BUILTIN
-  sha2-256
-  σ
-  (_ ,, V-con (bytestring s b p) ,, tt)
-  | size⋆ s with boundedB? 32 (SHA2-256 b)
-... | yes q = just (con (bytestring 32 (SHA2-256 b) q))
-... | no  _ = nothing
--- ^ should be impossible
-BUILTIN sha3-256 σ vtel with nf (embNf (σ Z))
-BUILTIN
-  sha3-256
-  σ
-  (_ ,, V-con (bytestring s b p) ,, tt)
-  | size⋆ s with boundedB? 32 (SHA3-256 b)
-... | yes q = just (con (bytestring 32 (SHA3-256 b) q))
-... | no  _ = nothing
--- ^ should be impossible
-BUILTIN verifySignature σ vtel with
-  nf (embNf (σ Z))
-  | nf (embNf (σ (S Z)))
-  | nf (embNf (σ (S (S Z))))
-BUILTIN
-  verifySignature
-  σ
-  (  _ ,, V-con (bytestring s k p)
-  ,, _ ,, V-con (bytestring s' d p')
-  ,, _ ,, V-con (bytestring s'' c p'')
+BUILTIN intToByteString σ (_ ,, V-con (integer i) ,, tt) = just (con (bytestring (int2ByteString i)))
+BUILTIN concatenate σ (_ ,, V-con (bytestring b) ,, _ ,, V-con (bytestring b') ,, tt) =
+  just (con (bytestring (append b b')))
+BUILTIN takeByteString σ (_ ,, V-con (integer i) ,, _ ,, V-con (bytestring b) ,, tt) =
+  just (con (bytestring (take i b)))
+BUILTIN dropByteString σ (_ ,, V-con (integer i) ,, _ ,, V-con (bytestring b) ,, tt) =
+  just (con (bytestring (drop i b)))
+BUILTIN sha2-256 σ (_ ,, V-con (bytestring b) ,, tt) = just (con (bytestring (SHA2-256 b)))
+BUILTIN sha3-256 σ (_ ,, V-con (bytestring b) ,, tt) = just (con (bytestring (SHA3-256 b)))
+BUILTIN verifySignature σ
+  (  _ ,, V-con (bytestring k)
+  ,, _ ,, V-con (bytestring d)
+  ,, _ ,, V-con (bytestring c)
   ,, tt)
-  | size⋆ s''
-  | size⋆ s'
-  | size⋆ s
   with verifySig k d c
 ... | just Bool.true  = just true
 ... | just Bool.false = just false
 ... | nothing = nothing
-BUILTIN resizeByteString σ vtel with nf (embNf (σ Z)) | nf (embNf (σ (S Z)))
-BUILTIN
-  resizeByteString
-  σ
-  (_ ,, V-con (size s) ,, _ ,, V-con (bytestring s' b p) ,, tt)
-  | size⋆ s
-  | size⋆ s'
-  with boundedB? s b
-... | yes q = just (con (bytestring s b q))
-... | no  _ = nothing
-BUILTIN equalsByteString σ vtel with nf (embNf (σ Z))
-BUILTIN
-  equalsByteString
-  σ
-  (_ ,, V-con (bytestring s b p) ,, _ ,, V-con (bytestring .s b' q) ,, tt)
-  | size⋆ s
+BUILTIN equalsByteString σ (_ ,, V-con (bytestring b) ,, _ ,, V-con (bytestring b') ,, tt)
   with equals b b'
 ... | Bool.true  = just true
 ... | Bool.false = just false
@@ -332,6 +185,7 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ �
       --------------
     → V · M —→ V · M′
 
+{-
   E-·₁ : ∀ {Γ A B} {L : Γ ⊢ A ⇒ B} {M : Γ ⊢ A}
     → Error L
       -----------------
@@ -341,17 +195,17 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ �
     → Error M
       -----------------
     → L · M —→ error _
-
+-}
   ξ-·⋆ : ∀ {Γ K}{B : ∥ Γ ∥ ,⋆ K ⊢Nf⋆ *}{L L′ : Γ ⊢ Π B}{A}
     → L —→ L′
       -----------------
     → L ·⋆ A —→ L′ ·⋆ A
-
+{-
   E-·⋆ : ∀ {Γ K}{B : ∥ Γ ∥ ,⋆ K ⊢Nf⋆ *}{L : Γ ⊢ Π B}{A}
     → Error L
       -----------------
     → L ·⋆ A —→ error _
-
+-}
   β-ƛ : ∀ {Γ A B} {N : Γ , A ⊢ B} {W : Γ ⊢ A}
     → Value W
       -------------------
@@ -373,14 +227,14 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ �
     → {M M' : Γ ⊢ ne (μ1 · pat · arg)}
     → M —→ M'
     → unwrap1 M —→ unwrap1 M'
-
+{-
   E-unwrap1 : ∀{Γ K}
     → {pat : ∥ Γ ∥ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {arg : ∥ Γ ∥ ⊢Nf⋆ K}
     → {M : Γ ⊢ ne (μ1 · pat · arg)}
     → Error M
     → unwrap1 M —→ error _
-
+-}
 
   β-builtin : ∀{Γ}
     → (bn : Builtin)
@@ -405,6 +259,7 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ �
       —→
       builtin bn σ (reconstTel Bs Ds σ vtel t' p tel')
 
+{-
   E-builtin : ∀{Γ}  → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K)
@@ -418,7 +273,7 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ �
     → builtin bn σ tel
       —→
       error _
-
+-}
 
 \end{code}
 
@@ -504,29 +359,28 @@ progressTel {As = A ∷ As} (t ,, tel) | done vt | error Bs Ds vtel E q tel' = e
 progress (` ())
 progress (ƛ M) = done V-ƛ
 progress (M · N) with progress M
-...                   | error EM  = step (E-·₁ EM)
+...                   | error EM  = error (E-·₁ EM)
 progress (M · N)      | step p = step (ξ-·₁ p)
 progress (.(ƛ _) · N) | done V-ƛ with progress N
-...                              | error EN  = step (E-·₂ EN)
+...                              | error EN  = error (E-·₂ EN)
 progress (.(ƛ _) · N) | done V-ƛ | step p  = step (ξ-·₂ V-ƛ p)
 progress (.(ƛ _) · N) | done V-ƛ | done VN = step (β-ƛ VN)
 progress (Λ M) = done V-Λ_
 progress (M ·⋆ A) with progress M
-...               | error EM  = step (E-·⋆ EM)
+...               | error EM = error (E-·⋆ EM)
 progress (M ·⋆ A) | step p = step (ξ-·⋆ p)
 progress (.(Λ _) ·⋆ A) | done V-Λ_ = step β-Λ
 progress (wrap1 pat arg term) = done V-wrap1
-progress (unwrap1 M)       with progress M
-...                  | error EM  = step (E-unwrap1 EM)
+progress (unwrap1 M) with progress M
+...                  | error EM  = error (E-unwrap EM)
 progress (unwrap1 M) | step p = step (ξ-unwrap1 p)
 progress (unwrap1 .(wrap1 _ _ _)) | done V-wrap1 = step β-wrap1
-progress (con (integer s i x))    = done (V-con _)
-progress (con (bytestring s b x)) = done (V-con _)
-progress (con (TermCon.size s))   = done (V-con _)
+progress (con (integer i))    = done (V-con (integer i))
+progress (con (bytestring b)) = done (V-con (bytestring b))
 progress (builtin bn σ X) with progressTel X
 progress (builtin bn σ X) | done VX = step (β-builtin bn σ X VX)
 progress (builtin bn σ X) | step Bs Ds vtel p q tel' =
   step (ξ-builtin bn σ X Bs Ds vtel p q tel')
 progress (builtin bn σ X) | error Bs Ds vtel p q tel' =
-  step (E-builtin bn σ X Bs Ds vtel p q tel')
+  error (E-builtin bn σ X Bs Ds vtel p q tel')
 progress (error A)        = error E-error
