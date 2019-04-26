@@ -24,7 +24,6 @@ open import Function
 -- property on function spaces called Unif(ormity).
 
 CR : ∀{Φ} K → Val Φ K → Val Φ K → Set
-CR #       n        n'        = n ≡ n'
 CR *       n        n'        = n ≡ n'
 CR (K ⇒ J) (inj₁ n) (inj₁ n') = n ≡ n' -- reify (inj₁ n) ≡ reify (inj₁ n')
 CR (K ⇒ J) (inj₂ f) (inj₁ n') = ⊥
@@ -62,7 +61,6 @@ symCR : ∀{Φ K}{v v' : Val Φ K}
   → CR K v v'
     ---------------------------
   → CR K v' v
-symCR {K = #}                        p              = sym p
 symCR {K = *}                        p              = sym p
 symCR {K = K ⇒ J} {inj₁ n} {inj₁ n'} p              = sym p
 symCR {K = K ⇒ J} {inj₁ n} {inj₂ f'} ()
@@ -75,8 +73,6 @@ transCR : ∀{Φ K} {v v' v'' : Val Φ K}
   → CR K v' v''
     ----------------------------------
   → CR K v v''
-transCR {K = #}                                   p              q
-  = trans p q
 transCR {K = *}                                   p              q
   = trans p q
 transCR {K = K ⇒ J} {inj₁ n} {inj₁ n'} {inj₁ n''} p              q
@@ -108,7 +104,6 @@ reflectCR : ∀{Φ K} → {n n' : Φ ⊢NeN⋆ K}
   → n ≡ n'
     -----------------------------
   → CR K (reflect n) (reflect n')
-reflectCR {K = #}     p = cong ne p
 reflectCR {K = *}     p = cong ne p
 reflectCR {K = K ⇒ J} p = p
 
@@ -116,7 +111,6 @@ reifyCR : ∀{Φ K} → {v v' : Val Φ K}
   → CR K v v'
     -------------------------------
   → reify v ≡ reify v'
-reifyCR {K = #    }                    p              = p
 reifyCR {K = *    }                    p              = p
 reifyCR {K = K ⇒ J} {inj₁ n} {inj₁ n'} p              = cong ne p
 reifyCR {K = K ⇒ J} {inj₁ n} {inj₂ f'} ()             
@@ -169,7 +163,6 @@ renameVal-reflect : ∀{Φ Ψ K}
   → (n : Φ ⊢NeN⋆ K)
     --------------------------------------------------------
   → CR K (renameVal ρ (reflect n)) (reflect (renameNeN ρ n))
-renameVal-reflect {K = #}     ρ n = refl
 renameVal-reflect {K = *}     ρ n = refl
 renameVal-reflect {K = K ⇒ J} ρ n = refl 
 \end{code}
@@ -182,7 +175,6 @@ rename-reify : ∀{K Φ Ψ}{v v' : Val Φ K}
   → (ρ : Ren Φ Ψ)
     ---------------------------------------------
   → renameNf ρ (reify v) ≡ reify (renameVal ρ v')
-rename-reify {#}                            refl           ρ = refl
 rename-reify {*}                            refl           ρ = refl
 rename-reify {K ⇒ J} {v = inj₁ n} {inj₁ .n} refl           ρ = refl
 rename-reify {K ⇒ J} {v = inj₁ n} {inj₂ f'} ()             ρ
@@ -197,7 +189,6 @@ renameVal-id : ∀ {K Φ}{v v' : Val Φ K}
   → CR K v v'
     ------------------------
   → CR K (renameVal id v) v'
-renameVal-id {#}                            refl = renameNf-id _
 renameVal-id {*}                            refl = renameNf-id _
 renameVal-id {K ⇒ J} {v = inj₁ n} {inj₁ n'} refl = renameNeN-id _
 renameVal-id {K ⇒ J} {v = inj₁ n} {inj₂ f'} ()
@@ -214,8 +205,6 @@ renameVal-comp : ∀ {K Φ Ψ Θ}
   → {v v' : Val Φ K}
   → CR K v v'
   → CR K (renameVal (ρ' ∘ ρ) v) (renameVal ρ' (renameVal ρ v'))
-renameVal-comp {#}      ρ ρ'                    refl           =
-  renameNf-comp _
 renameVal-comp {*}      ρ ρ'                    refl           =
   renameNf-comp _
 renameVal-comp {K ⇒ K₁} ρ ρ' {inj₁ n} {inj₁ n'} refl           =
@@ -237,7 +226,6 @@ renCR : ∀{Φ Ψ K}{v v' : Val Φ K}
   → (ρ : Ren Φ Ψ)
   → CR K v v'
   → CR K (renameVal ρ v) (renameVal ρ v')
-renCR {K = #}                         ρ p              = cong (renameNf ρ) p
 renCR {K = *}                         ρ p              = cong (renameNf ρ) p
 renCR {K = K ⇒ K₁} {inj₁ n} {inj₁ .n} ρ refl           = refl
 renCR {K = K ⇒ K₁} {inj₁ n} {inj₂ f'} ρ ()
@@ -260,9 +248,6 @@ renameVal·V : ∀{K J Φ Ψ}
   → CR K v v'
     --------------------------------------------------------------
   → CR J (renameVal ρ (f ·V v)) (renameVal ρ f' ·V renameVal ρ v')
-renameVal·V {J = #} ρ {inj₁ n} {inj₁ .n} refl {v}{v'} q =
-  cong (ne ∘ (renameNeN ρ n ·_))
-       (trans ( rename-reify (reflCR q) ρ ) (reifyCR (renCR ρ q)))
 renameVal·V {J = *} ρ {inj₁ n} {inj₁ .n} refl {v}{v'} q =
   cong (ne ∘ (renameNeN ρ n ·_))
        (trans ( rename-reify (reflCR q) ρ ) (reifyCR (renCR ρ q)))
@@ -312,8 +297,7 @@ idext p (ƛ B)       =
   λ ρ q → idext (CR,,⋆ (renCR ρ ∘ p) q) B
 idext p (A · B)     = AppCR (idext p A) (idext p B)
 idext p μ1          = refl
-idext p (size⋆ n)   = refl
-idext p (con tcn s) = cong (con tcn) (idext p s)
+idext p (con tcn)   = refl
 
 renameVal-eval (` x) p ρ = renCR ρ (p x)
 renameVal-eval (Π B) p ρ =
@@ -349,8 +333,7 @@ renameVal-eval (A · B) p ρ = transCR
   (renameVal·V ρ (idext (reflCR ∘ p) A) (idext (reflCR ∘ p) B))
   (AppCR (renameVal-eval A p ρ) (renameVal-eval B p ρ))
 renameVal-eval μ1          p ρ = refl
-renameVal-eval (size⋆ n)   p ρ = refl
-renameVal-eval (con tcn s) p ρ = cong (con tcn) (renameVal-eval s p ρ)
+renameVal-eval (con tcn)   p ρ = refl
 \end{code}
 
 (pre) renaming commutes with eval
@@ -391,8 +374,7 @@ rename-eval (ƛ B) p ρ =
               ; (S x) → renCR ρ' (reflCR (symCR (p (ρ x)))) }) B)
 rename-eval (A · B) p ρ = AppCR (rename-eval A p ρ) (rename-eval B p ρ)
 rename-eval μ1          p ρ = refl
-rename-eval (size⋆ n)   p ρ = refl
-rename-eval (con tcn s) p ρ = cong (con tcn) (rename-eval s p ρ)
+rename-eval (con tcn)   p ρ = refl
 \end{code}
 
 Subsitution lemma
@@ -440,8 +422,7 @@ subst-eval (ƛ B)      p σ =
            B)
 subst-eval (A · B)    p σ = AppCR (subst-eval A p σ) (subst-eval B p σ)
 subst-eval μ1          p ρ = refl                 
-subst-eval (size⋆ n)   p ρ = refl
-subst-eval (con tcn s) p ρ = cong (con tcn) (subst-eval s p ρ)
+subst-eval (con tcn) p ρ   = refl
 \end{code}
 
 Fundamental Theorem of logical relations for CR
@@ -477,7 +458,6 @@ fund p (β≡β B A) =
                     ; (S x) → renameVal-id (reflCR (p x))})
                  B)
           (symCR (subst-eval B (symCR ∘ p) (subst-cons ` A)))
-fund p (con≡β q) = cong (con _) (fund p q)
 \end{code}
 
 constructing the identity CR

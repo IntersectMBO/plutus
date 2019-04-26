@@ -33,10 +33,8 @@ stability (ƛ B)    =
                                       ; (S α) → renameVal-reflect S (` α)})
                                    (embNf B)))
                 (stability B))
-stability (size⋆ n)   = refl
-stability (con tcn s) = cong (con tcn) (stability s)
+stability (con tcn)   = refl
 stability {K = *}     (ne n) = stabilityNeN n
-stability {K = #}     (ne n) = stabilityNeN n
 stability {K = K ⇒ J} (ne n) = cong (λ v → reify v) (stabilityNeN n)
 
 stabilityNeN (` α)    = refl

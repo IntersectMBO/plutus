@@ -139,20 +139,19 @@ lem[]' {Γ} A B = trans
                       ; (S α) → idCR α}) B))))
       (sym (subst-eval B idCR (subst-cons ` A)))))
 
-import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢⋆_ ` con boolean size⋆
+import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con boolean
   as SSig
 import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf size⋆
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
   as NSig
 open import Builtin
-import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆ as STermCon 
-import Builtin.Constant.Term Ctx⋆ Kind * # _⊢Nf⋆_ con size⋆ as NTermCon 
+import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon 
+import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon 
 
 
 nfTypeTC : ∀{φ}{A : φ ⊢⋆ *} → STermCon.TermCon A → NTermCon.TermCon (nf A)
-nfTypeTC (STermCon.integer s i p)    = NTermCon.integer s i p
-nfTypeTC (STermCon.bytestring s b p) = NTermCon.bytestring s b p 
-nfTypeTC (STermCon.size s)           = NTermCon.size s
+nfTypeTC (STermCon.integer i)    = NTermCon.integer i
+nfTypeTC (STermCon.bytestring b) = NTermCon.bytestring b
 
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.List
@@ -170,8 +169,6 @@ nfTypeSIG≡₁ lessThanEqualsInteger = refl
 nfTypeSIG≡₁ greaterThanInteger = refl
 nfTypeSIG≡₁ greaterThanEqualsInteger = refl
 nfTypeSIG≡₁ equalsInteger = refl
-nfTypeSIG≡₁ resizeInteger = refl
-nfTypeSIG≡₁ sizeOfInteger = refl
 nfTypeSIG≡₁ intToByteString = refl
 nfTypeSIG≡₁ concatenate = refl
 nfTypeSIG≡₁ takeByteString = refl
@@ -179,7 +176,6 @@ nfTypeSIG≡₁ dropByteString = refl
 nfTypeSIG≡₁ sha2-256 = refl
 nfTypeSIG≡₁ sha3-256 = refl
 nfTypeSIG≡₁ verifySignature = refl
-nfTypeSIG≡₁ resizeByteString = refl
 nfTypeSIG≡₁ equalsByteString = refl
 
 lemσ : ∀{Γ Γ' Δ Δ'}
@@ -222,8 +218,6 @@ nfTypeSIG≡₂ lessThanEqualsInteger = refl
 nfTypeSIG≡₂ greaterThanInteger = refl
 nfTypeSIG≡₂ greaterThanEqualsInteger = refl
 nfTypeSIG≡₂ equalsInteger = refl
-nfTypeSIG≡₂ resizeInteger = refl
-nfTypeSIG≡₂ sizeOfInteger = refl
 nfTypeSIG≡₂ intToByteString = refl
 nfTypeSIG≡₂ concatenate = refl
 nfTypeSIG≡₂ takeByteString = refl
@@ -231,18 +225,17 @@ nfTypeSIG≡₂ dropByteString = refl
 nfTypeSIG≡₂ sha2-256 = refl
 nfTypeSIG≡₂ sha3-256 = refl
 nfTypeSIG≡₂ verifySignature = refl
-nfTypeSIG≡₂ resizeByteString = refl
 nfTypeSIG≡₂ equalsByteString = refl
 open import Builtin.Constant.Type
 
-lemcon : ∀{Γ Γ'}(p : Γ ≡ Γ')(tcn : TyCon)(s : Γ ⊢Nf⋆ #)
-  → con tcn (substEq (_⊢Nf⋆ #) p s) ≡ substEq (_⊢Nf⋆ *) p (con tcn s)
-lemcon refl tcn s = refl
+lemcon : ∀{Γ Γ'}(p : Γ ≡ Γ')(tcn : TyCon)
+  → con tcn ≡ substEq (_⊢Nf⋆ *) p (con tcn)
+lemcon refl tcn = refl
 
-substTC : ∀{Γ Γ'}(p : Γ ≡ Γ')(s : Γ ⊢Nf⋆ #)(tcn : TyCon)
-  → NTermCon.TermCon (con tcn s)
-  → NTermCon.TermCon (con tcn (substEq (_⊢Nf⋆ #) p s))
-substTC refl s tcn t = t
+substTC : ∀{Γ Γ' : Ctx⋆}(p : Γ ≡ Γ')(tcn : TyCon)
+  → NTermCon.TermCon {Φ = Γ} (con tcn)
+  → NTermCon.TermCon {Φ = Γ'}(con tcn)
+substTC refl tcn t = t
 
 nfList : ∀{Δ} → List (Δ ⊢⋆ *) → List (Δ ⊢Nf⋆ *)
 nfList []       = []
@@ -264,8 +257,6 @@ lemList lessThanEqualsInteger = refl
 lemList greaterThanInteger = refl
 lemList greaterThanEqualsInteger = refl
 lemList equalsInteger = refl
-lemList resizeInteger = refl
-lemList sizeOfInteger = refl
 lemList intToByteString = refl
 lemList concatenate = refl
 lemList takeByteString = refl
@@ -273,7 +264,6 @@ lemList dropByteString = refl
 lemList sha2-256 = refl
 lemList sha3-256 = refl
 lemList verifySignature = refl
-lemList resizeByteString = refl
 lemList equalsByteString = refl
 
 nfType : ∀{Γ K}
@@ -337,10 +327,10 @@ nfType {Γ} (Syn.unwrap1 {pat = pat}{arg} t) = subst⊢
   (Norm.unwrap1
     (subst⊢ refl (sym (lemμ' (nfCtx∥ Γ) (nf pat) (nf arg))) (nfType t))) 
 nfType (Syn.conv p t) rewrite sym (completeness p) = nfType t
-nfType {Γ} (Syn.con {s = s}{tcn = tcn} t) = subst⊢
+nfType {Γ} (Syn.con {tcn = tcn} t) = subst⊢
   refl
-  (lemcon (nfCtx∥ Γ) tcn (nf s))
-  (Norm.con (substTC (nfCtx∥ Γ) (nf s) tcn (nfTypeTC t) ))
+  (lemcon (nfCtx∥ Γ) tcn)
+  (Norm.con (substTC (nfCtx∥ Γ) tcn (nfTypeTC t) ))
 nfType {Γ} (Syn.builtin bn σ tel) = let
   Δ ,, As ,, C = SSig.SIG bn
   Δ' ,, As' ,, C' = NSig.SIG bn

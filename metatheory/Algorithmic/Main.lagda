@@ -65,18 +65,19 @@ append12 : ∀{Γ} → Γ ⊢ con bytestring (size⋆ 16)
 append12 = builtin concatenate (λ { Z → size⋆ 16 ; (S ())}) (constr1 ,, constr2 ,, tt)
 -}
 
-con1 : ∀{Γ} → Γ ⊢ con integer (size⋆ 8)
-con1 = con (integer 8 (pos 1) _) -- (-≤+ ,, (+≤+ (s≤s (s≤s z≤n)))))
+con1 : ∀{Γ} → Γ ⊢ con integer
+con1 = con (integer (pos 1)) -- _) -- (-≤+ ,, (+≤+ (s≤s (s≤s z≤n)))))
 
-con2 : ∀{Γ} → Γ ⊢ con integer (size⋆ 8)
-con2 = con (integer 8 (pos 2) _) -- (-≤+ ,, (+≤+ (s≤s (s≤s (s≤s z≤n))))))
+con2 : ∀{Γ} → Γ ⊢ con integer
+con2 = con (integer (pos 2)) -- _) -- (-≤+ ,, (+≤+ (s≤s (s≤s (s≤s z≤n))))))
 
-builtin2plus2 : ∅ ⊢ con integer (size⋆ 8)
+builtin2plus2 : ∅ ⊢ con integer
 builtin2plus2 = builtin
   addInteger
-  (λ { Z → size⋆ 8 ; (S x) → ne (` x)})
+  (λ {()})
   (con2 ,, con2 ,, tt)
 
+{-
 inc : ∅ ⊢ Π (con integer (ne (` Z)) ⇒ con integer (ne (` Z)))
 inc = Λ (ƛ (builtin addInteger (ne ∘ `) ((builtin resizeInteger (λ { Z → (ne (` Z)) ; (S Z) → size⋆ 8 ; (S (S ()))}) (builtin sizeOfInteger (ne ∘ `) (` Z ,, tt) ,, (con1 ,, tt))) ,, (` Z) ,, tt)))
 
@@ -108,5 +109,5 @@ helpB M error                = "something went wrong..."
 
 main : IO ⊤
 main = putStrLn (help _ (eval (gas 100) builtininc2'))
-
+-}
 \end{code}

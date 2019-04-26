@@ -29,7 +29,7 @@ infix 2 _—→_
 data Value {n} : ScopedTm n → Set where
   V-ƛ : ∀ x (A : ScopedTy ∥ n ∥)(t : ScopedTm (S n)) → Value (ƛ x A t)
   V-Λ : ∀ x K (t : ScopedTm (T n)) → Value (Λ x K t)
-  V-con : (tcn : SizedTermCon) → Value (con {n} tcn)
+  V-con : (tcn : TermCon) → Value (con {n} tcn)
   V-wrap : (A B : ScopedTy ∥ n ∥)(t : ScopedTm n) → Value (wrap A B t)
   V-builtin : (b : Builtin)
               (As : List (ScopedTy ∥ n ∥))
@@ -89,115 +89,63 @@ data Error {n} : ScopedTm n → Set where
 BUILTIN : ∀{n} → Builtin
   → List (ScopedTy ∥ n ∥) → List (Σ (ScopedTm n) (Value {n})) → ScopedTm n
 -- Int -> Int -> Int
-BUILTIN addInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ _) with s N.≟ s'
-BUILTIN addInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ _) | yes refl with boundedI? s (i I.+ i')
-BUILTIN addInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ _) | yes refl | yes r = con (integer s (i I.+ i') r)
-BUILTIN addInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ _) | yes refl | no ¬r = error (con integer)
-BUILTIN addInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ _) | no ¬q = error (con integer)
+BUILTIN addInteger       _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) = con (integer (i I.+ i'))
 BUILTIN addInteger _ _ = error (con integer)
-BUILTIN subtractInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
-BUILTIN subtractInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (i I.- i')
-BUILTIN subtractInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (i I.- i') r)
-BUILTIN subtractInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
-BUILTIN subtractInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
-BUILTIN subtractInteger _ _ = error unit -- test
-BUILTIN multiplyInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
-BUILTIN multiplyInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (i I.* i')
-BUILTIN multiplyInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (i I.* i') r)
-BUILTIN multiplyInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
-BUILTIN multiplyInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
-BUILTIN multiplyInteger _ _ = error unit -- test
-BUILTIN divideInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
-BUILTIN divideInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (div i i')
-BUILTIN divideInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (div i i') r)
-BUILTIN divideInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
-BUILTIN divideInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
-BUILTIN divideInteger _ _ = error unit -- test
-BUILTIN quotientInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
-BUILTIN quotientInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (quot i i')
-BUILTIN quotientInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (quot i i') r)
-BUILTIN quotientInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
-BUILTIN quotientInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
-BUILTIN quotientInteger _ _ = error unit -- test
-BUILTIN remainderInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
-BUILTIN remainderInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (rem i i')
-BUILTIN remainderInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (rem i i') r)
-BUILTIN remainderInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
-BUILTIN remainderInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
-BUILTIN remainderInteger _ _ = error unit -- test
-BUILTIN modInteger _ ((_ , V-con (integer  s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with s N.≟ s'
-BUILTIN modInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl with boundedI? s (mod i i')
-BUILTIN modInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | yes r = con (integer s (mod i i') r)
-BUILTIN modInteger _ ((_ , V-con (integer .s i p)) ∷ (_ , V-con (integer s i' p')) ∷ []) | yes refl | no ¬r = error (con integer)
-BUILTIN modInteger _ ((_ , V-con (integer  s  i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬q = error (con integer)
-BUILTIN modInteger _ _ = error unit -- test
+BUILTIN subtractInteger  _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) = con (integer (i I.- i'))
+BUILTIN subtractInteger _ _ = error (con integer)
+BUILTIN multiplyInteger  _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) = con (integer (i I.* i'))
+BUILTIN multiplyInteger _ _ = error (con integer)
+BUILTIN divideInteger    _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) = con (integer (div i i'))
+BUILTIN divideInteger _ _ = error (con integer)
+BUILTIN quotientInteger  _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) = con (integer (quot i i'))
+BUILTIN quotientInteger _ _ = error (con integer)
+BUILTIN remainderInteger _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) = con (integer (rem i i'))
+BUILTIN remainderInteger _ _ = error (con integer)
+BUILTIN modInteger       _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) = con (integer (mod i i'))
+BUILTIN modInteger _ _ = error (con integer)
 -- Int -> Int -> Bool
-BUILTIN lessThanInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with i <? i'
-BUILTIN lessThanInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | yes q = true
-BUILTIN lessThanInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬p = false
+BUILTIN lessThanInteger _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) with i <? i'
+BUILTIN lessThanInteger _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) | yes q = true
+BUILTIN lessThanInteger _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) | no ¬p = false
 BUILTIN lessThanInteger _ _ = error boolean
-BUILTIN lessThanEqualsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with i I.≤? i'
-BUILTIN lessThanEqualsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | yes q = true
-BUILTIN lessThanEqualsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬p = false
+BUILTIN lessThanEqualsInteger _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) with i I.≤? i'
+BUILTIN lessThanEqualsInteger _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) | yes q = true
+BUILTIN lessThanEqualsInteger _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) | no ¬p = false
 BUILTIN lessThanEqualsInteger _ _ = error boolean
-BUILTIN greaterThanInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with i >? i'
-BUILTIN greaterThanInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | yes q = true
-BUILTIN greaterThanInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬p = false
+BUILTIN greaterThanInteger _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) with i >? i'
+BUILTIN greaterThanInteger _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) | yes q = true
+BUILTIN greaterThanInteger _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) | no ¬p = false
 BUILTIN greaterThanInteger _ _ = error boolean
-BUILTIN greaterThanEqualsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with i ≥? i'
-BUILTIN greaterThanEqualsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | yes q = true
-BUILTIN greaterThanEqualsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬p = false
+BUILTIN greaterThanEqualsInteger _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) with i ≥? i'
+BUILTIN greaterThanEqualsInteger _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) | yes q = true
+BUILTIN greaterThanEqualsInteger _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) | no ¬p = false
 BUILTIN greaterThanEqualsInteger _ _ = error boolean
-BUILTIN equalsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) with i I.≟ i'
-BUILTIN equalsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | yes q = true
-BUILTIN equalsInteger _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (integer s' i' p')) ∷ []) | no ¬p = false
+BUILTIN equalsInteger _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) with i I.≟ i'
+BUILTIN equalsInteger _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) | yes q = true
+BUILTIN equalsInteger _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) | no ¬p = false
 BUILTIN equalsInteger _ _ = error boolean
--- Int -> Int
-BUILTIN resizeInteger (_ ∷ size s' ∷ []) (_ ∷ (_ , V-con (integer s i p)) ∷ []) with boundedI? s' i
-BUILTIN resizeInteger (_ ∷ size s' ∷ []) (_ ∷ (_ , V-con (integer s i p)) ∷ []) | yes q = con (integer s' i q)
-BUILTIN resizeInteger (_ ∷ size s' ∷ []) (_ ∷ (_ , V-con (integer s i p)) ∷ []) | no ¬q = error (con integer)
-BUILTIN resizeInteger _ _ = error unit -- test
--- Int -> Size
-BUILTIN sizeOfInteger _  ((_ , V-con (integer s i p)) ∷ []) = con (size s)
-BUILTIN sizeOfInteger _ _ = error (con size)
 -- BS -> BS -> BS
-BUILTIN concatenate _ ((_ , V-con (bytestring s b p)) ∷ (_ , V-con (bytestring s' b' p')) ∷ []) with boundedB? s (append b b')
-BUILTIN concatenate _ ((_ , V-con (bytestring s b p)) ∷ (.(con (bytestring s' b' p')) , V-con (bytestring s' b' p')) ∷ []) | yes q = con (bytestring s (append b b') q)
-BUILTIN concatenate _ ((_ , V-con (bytestring s b p)) ∷ (.(con (bytestring s' b' p')) , V-con (bytestring s' b' p')) ∷ []) | no ¬q = error (con bytestring)
+BUILTIN concatenate _ ((_ , V-con (bytestring b)) ∷ (_ , V-con (bytestring b')) ∷ []) = con (bytestring (append b b'))
 BUILTIN concatenate _ _ = error (con bytestring)
 -- Int -> BS -> BS
-BUILTIN takeByteString _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (bytestring s' b p')) ∷ []) with boundedB? s' (take i b)
-BUILTIN takeByteString _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (bytestring s' b p')) ∷ []) | yes q = con (bytestring s' (take i b) q)
-BUILTIN takeByteString _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (bytestring s' b p')) ∷ []) | no ¬q = error (con bytestring)
+BUILTIN takeByteString _ ((_ , V-con (integer i)) ∷ (_ , V-con (bytestring b)) ∷ []) = con (bytestring (take i b))
 BUILTIN takeByteString _ _ = error (con bytestring)
-BUILTIN dropByteString _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (bytestring s' b p')) ∷ []) with boundedB? s' (drop i b)
-BUILTIN dropByteString _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (bytestring s' b p')) ∷ []) | yes q = con (bytestring s' (drop i b) q)
-BUILTIN dropByteString _ ((_ , V-con (integer s i p)) ∷ (_ , V-con (bytestring s' b p')) ∷ []) | no ¬q = error (con bytestring)
+BUILTIN dropByteString _ ((_ , V-con (integer i)) ∷ (_ , V-con (bytestring b)) ∷ []) = con (bytestring (drop i b))
 BUILTIN dropByteString _ _ = error (con bytestring)
 -- BS -> BS
-BUILTIN sha2-256 _ ((_ , V-con (bytestring s b p)) ∷ []) with boundedB? 32 (SHA2-256 b)
-... | yes q = con (bytestring 32 (SHA2-256 b) q)
-... | no ¬q = error (con bytestring) -- impossible
+BUILTIN sha2-256 _ ((_ , V-con (bytestring b)) ∷ []) = con (bytestring (SHA2-256 b))
 BUILTIN sha2-256 _ _ = error (con bytestring)
-BUILTIN sha3-256 _ ((_ , V-con (bytestring s b p)) ∷ []) with boundedB? 32 (SHA3-256 b)
-... | yes q = con (bytestring 32 (SHA3-256 b) q)
-... | no ¬q = error (con bytestring) -- impossible
+BUILTIN sha3-256 _ ((_ , V-con (bytestring b)) ∷ []) = con (bytestring (SHA3-256 b))
 BUILTIN sha3-256 _ _ = error (con bytestring)
-BUILTIN verifySignature _ ((_ , V-con (bytestring s k p)) ∷ (_ , V-con (bytestring s' d p')) ∷ (_ , V-con (bytestring s'' c p'')) ∷ []) with verifySig k d c
+BUILTIN verifySignature _ ((_ , V-con (bytestring k)) ∷ (_ , V-con (bytestring d)) ∷ (_ , V-con (bytestring c)) ∷ []) with verifySig k d c
 ... | just B.false = false
 ... | just B.true = true
 ... | nothing = error boolean
 BUILTIN verifySignature _ _ = error (con bytestring)
-BUILTIN intToByteString _ ((_ , V-con (size s')) ∷ (_ , V-con (integer s i p)) ∷ []) with boundedB? s' (int2ByteString i)
-... | yes q = con (bytestring s' (int2ByteString i) q)
-... | no ¬q = error (con bytestring)
+BUILTIN intToByteString _ ((_ , V-con (integer i)) ∷ []) = con (bytestring (int2ByteString i))
 BUILTIN intToByteString _ _ = error (con bytestring)
 -- Int -> Int
-BUILTIN resizeByteString (_ ∷ size s' ∷ []) ((_ , V-con (bytestring s b p)) ∷ []) with boundedB? s' b
-... | yes q = con (bytestring s' b q)
-... | no ¬q = error (con bytestring)
-BUILTIN resizeByteString _ _ = error (con bytestring)
-BUILTIN equalsByteString _ ((_ , V-con (bytestring s b p)) ∷ (_ , V-con (bytestring s' b' p')) ∷ []) with equals b b'
+BUILTIN equalsByteString _ ((_ , V-con (bytestring b)) ∷ (_ , V-con (bytestring b')) ∷ []) with equals b b'
 ... | B.true  = true
 ... | B.false = false
 BUILTIN equalsByteString _ _ = error boolean

@@ -17,7 +17,6 @@ The raw un-scope-checked and un-type-checked syntax
 data RawKind : Set where
   *   : RawKind
   _⇒_ : RawKind → RawKind → RawKind
-  #   : RawKind
 
 data RawTy : Set where
   `   : String → RawTy
@@ -26,16 +25,14 @@ data RawTy : Set where
   ƛ   : String → RawKind → RawTy → RawTy
   _·_ : RawTy → RawTy → RawTy
   con : TyCon → RawTy
-  size : ℕ → RawTy
   μ    : RawTy → RawTy → RawTy
 
 open import Data.Nat
 open import Data.Integer
 
 data RawTermCon : Set where
-  integer : ℕ → ℤ → RawTermCon
-  bytestring : ℕ → ByteString → RawTermCon
-  size : ℕ → RawTermCon
+  integer : ℤ → RawTermCon
+  bytestring : ByteString → RawTermCon
   string : String → RawTermCon
 
 data RawTm : Set where
@@ -51,8 +48,8 @@ data RawTm : Set where
   unwrap  : RawTm → RawTm
 
 {-# FOREIGN GHC import Raw #-}
-{-# COMPILE GHC RawTermCon = data RConstant (RConInt | RConBS | RConSize | RConStr) #-}
+{-# COMPILE GHC RawTermCon = data RConstant (RConInt | RConBS | RConStr) #-}
 {-# COMPILE GHC RawTm = data RTerm (RVar | RTLambda  | RTApp | RLambda  | RApp | RCon | RError | RBuiltin | RWrap | RUnWrap) #-}
-{-# COMPILE GHC RawTy = data RType (RTyVar | RTyFun | RTyPi | RTyLambda | RTyApp | RTyCon | RTySize | RTyMu) #-}
-{-# COMPILE GHC RawKind = data RKind (RKiStar | RKiFun | RKiSize) #-}
+{-# COMPILE GHC RawTy = data RType (RTyVar | RTyFun | RTyPi | RTyLambda | RTyApp | RTyCon | RTyMu) #-}
+{-# COMPILE GHC RawKind = data RKind (RKiStar | RKiFun) #-}
 \end{code}

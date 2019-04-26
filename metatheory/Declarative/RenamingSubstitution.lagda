@@ -14,8 +14,8 @@ open import Type
 import Type.RenamingSubstitution as ⋆
 open import Type.Equality
 open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢⋆_ ` con boolean size⋆
-open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con boolean
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
 open import Declarative
 \end{code}
 
@@ -54,9 +54,8 @@ renameTermCon : ∀ {Φ Ψ}
   → (ρ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
     -----------------------------------------------------
   → ({A : Φ ⊢⋆ *} → TermCon A → TermCon (⋆.rename ρ⋆ A ))
-renameTermCon ρ⋆ (integer s i p)    = integer s i p
-renameTermCon ρ⋆ (bytestring s b p) = bytestring s b p
-renameTermCon ρ⋆ (size s)           = size s
+renameTermCon ρ⋆ (integer i)    = integer i
+renameTermCon ρ⋆ (bytestring b) = bytestring b
 \end{code}
 
 \begin{code}
@@ -94,7 +93,7 @@ rename {Γ}{Δ} _ ρ (_·⋆_ {B = B} t A) =
 rename _ ρ (wrap1 pat arg t) = wrap1 _ _ (rename _ ρ t)
 rename _ ρ (unwrap1 t)       = unwrap1 (rename _ ρ t)
 rename _ ρ (conv p t) = conv (rename≡β _ p) (rename _ ρ t)
-rename _ ρ (con cn)   = con (renameTermCon _ cn)
+rename ρ⋆ ρ (con cn)   = con (renameTermCon ρ⋆ cn)
 rename {Γ} {Δ} _ ρ (builtin bn σ X ) = substEq
   (Δ ⊢_)
   (⋆.rename-subst (proj₂ (proj₂ (SIG bn))))
@@ -165,9 +164,8 @@ substTermCon : ∀ {Φ Ψ}
   → (σ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
     ------------------------
   → ({A : Φ ⊢⋆ *} → TermCon A → TermCon (⋆.subst σ⋆ A ))
-substTermCon _ (integer s i p)    = integer s i p
-substTermCon _ (bytestring s b p) = bytestring s b p
-substTermCon _ (size s)           = size s
+substTermCon _ (integer i)    = integer i
+substTermCon _ (bytestring b) = bytestring b
 \end{code}
 
 
@@ -203,7 +201,7 @@ subst {Γ}{Δ} _ σ (_·⋆_ {B = B} L M) =
 subst _ σ (wrap1 pat arg t) = wrap1 _ _ (subst _ σ t)
 subst _ σ (unwrap1 t)       = unwrap1 (subst _ σ t)
 subst _ σ (conv p t) = conv (subst≡β _ p) (subst _ σ t)
-subst _ σ (con cn) = con (substTermCon _ cn)
+subst σ⋆ σ (con cn) = con (substTermCon σ⋆ cn)
 subst {Γ}{Γ'} _ σ (builtin bn σ' tel ) = substEq
   (Γ' ⊢_)
   (⋆.subst-comp (proj₂ (proj₂ (SIG bn))))
