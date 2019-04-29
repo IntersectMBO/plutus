@@ -68,12 +68,46 @@
 %         field2: type2,
 %         ...
 %
-% without a space after the ')'. Unforntunately you have to manually insert a space
+% without a space after the ')'. Unfortunately you have to manually insert a space
 % at the end of the X so you don't get X=
 % There's presumably a better way to do this.
+%
+% You can also use something like
+%
+%    \begin{tabular}{r@{ }l@{}l} ...
+%
+% but the spacing is arguably worse.
 
 
-\newenvironment{ruledfigure}[1]{\begin{figure}[#1]\hrule\vspace{10pt}}{\vspace{10pt}\hrule\end{figure}}
+\newcommand\rfskip{7pt}
+\newenvironment{ruledfigure}[1]{\begin{figure}[#1]\hrule\vspace{\rfskip}}{\vspace{\rfskip}\hrule\end{figure}}
+
+% Macros for xutxo things.
+\newcommand{\mi}[1]{\ensuremath{\mathit{#1}}}
+\newcommand{\txid}{\mi{txid}}
+\newcommand{\inputs}{\mi{inputs}}
+\newcommand{\outputs}{\mi{outputs}}
+\newcommand{\forge}{\mi{forge}}
+\newcommand{\fee}{\mi{fee}}
+\newcommand{\addr}{\mi{addr}}
+\newcommand{\val}{\mi{value}}  %% \value is already defined
+\newcommand{\vals}{\mi{vals}}
+
+\newcommand{\validator}{\mi{validator}}
+\newcommand{\redeemer}{\mi{redeemer}}
+\newcommand{\datascript}{\mi{datascript}}
+\newcommand{\outputref}{\mi{outputRef}}
+\newcommand{\txin}{\mi{in}}
+\newcommand{\txout}{\mi{out}}
+\newcommand{\id}{\mi{id}}
+\newcommand{\getvalue}{\mi{getvalue}}
+
+\newcommand{\msf}[1]{\ensuremath{\mathsf{#1}}}
+\newcommand{\slotnum}{\msf{SlotNumber}}
+\newcommand{\spent}{\msf{spentOutputs}}
+\newcommand{\unspent}{\msf{unspentOutputs}}
+\newcommand{\xutxotx}{\msf{XUtxoTx}}
+
 
 
 %% ------------- Start of document ------------- %%
@@ -114,7 +148,7 @@ increase in expressivity provided by each extension.
 There is no well-defined notion of ownership for UTXOs.  In many
 transactions an output will accrue to a single user who is then
 entitled to spend it at a later date.  However, in general the notion
-of ownership is more complex: an output of a contract might require
+of ownership is more complex: an output of a transaction might require
 the cooperation of several users before it could be spent, or it might
 not be spendable until some other condition has been met (for example
 a certain period of time may have to pass).  At the extremes, an
@@ -133,7 +167,7 @@ transaction supplies another script, called the \i{redeemer}\footnote{
 
 In a process known as \i{validation}, the validator is run with the
 redeemer as input, and if it terminates without an error arising then
-the output can be spent.  Before a transation can proceed, all inputs
+the output can be spent.  Before a transaction can proceed, all inputs
 must be successfully validated: if one or more inputs fails to validate
 then the transaction is rejected (\blue{is this true?}).
 
@@ -166,7 +200,7 @@ The XUTXO model introduces the following new features:
 \item We introduce a new type of script called a \i{data script},
   and each unspent output has a (possibly empty) data script
   associated with it.  The introduction of the data script
-  increases the expresssivity of the model considerably.
+  increases the expressivity of the model considerably.
 \item During validation, validator scripts are provided with
   information about the current state of the blockchain.  This
   includes things such as the current slot number, the validity
@@ -178,11 +212,11 @@ The XUTXO model introduces the following new features:
 \end{itemize}
   
 
-\noindent\blue{We require more exposition here to motivate these extensions.}
+\noindent\blue{We require more exposition here to motivate these
+  extensions.  In particular, say more about determinacy.}
 
 \subsection{A Formal Description of the Extended UTXO Model}
 \label{section:xutxo-spec}
-\red{Say somewhere that transactions have inputs and outputs, and what they are.}
 
 In this section we give a formal description of the XUTXO model.  The
 description is given in a straightforward set-theoretic form, which
@@ -222,10 +256,25 @@ back in the history of the chain), then it could be expensive to
 calculate.  Parameterising things over $P$ allows us to explore these
 sorts of issues in a unified way.
 
-In the remainder of this section we are going to use the type
+In the remainder of this docuemtn we will use the type
 $\mathsf{Script}$ for all scripts, ignoring the Plutus language types
 $d$, $r$ and $P$, and focusing on the blockchain information
-generating function $\sigma$ (dropping the subscript).
+generating function $\sigma$ (dropping the subscript).  We expect
+$\sigma$ to provide at least the following information ($T$ is the
+pending transaction):
+
+\begin{itemize}
+  
+\item The validity interval of $T$.
+\item The hash of $T$.
+\item For every input of $T$, its value and the hashes of its
+  validator, data, and redeemer scripts.
+\item For every output of $T$, its value and the hash of its validator and
+  data script.
+\item The sum of the values of all unspent outputs (of the current
+  blockchain without $T$) which are locked by the validator
+  script currently being executed.
+\end{itemize}
 
 \subsubsection{Notation}
 We generally follow the notation established by
@@ -257,8 +306,9 @@ We generally follow the notation established by
 \item A list $\lambda$ of type $\mathsf{List[}T\mathsf{]}$ is
     either the empty list $[]$ or a list $e :: \lambda'$ with $head$
     $e$ of type $T$ and $tail$ $\lambda'$ of type
-    $\mathsf{List[T]}$. We denote the $i$-th element of a list $L$ by
-    $L[i]$.  The concatenation of two lists $\lambda_1$ and
+    $\mathsf{List[T]}$. We denote the $i$th element of a list
+    $L$ by $L[i]$.
+    The concatenation of two lists $\lambda_1$ and
     $\lambda_2$ is denoted $\lambda_1 ::: \lambda_2$.
 
   \item $x \mapsto f(x)$ denotes an anonymous function.
@@ -295,12 +345,15 @@ are shown in Figure~\ref{fig:basic-types}.
 \noindent In practice an \textsf{Address} will usually be a hash of
 some object (for example, a script), and the blockchain will provide
 an efficient way to retrieve the original object given its hash.
-Similarly, a \textsf{TxId} will be the hash of a transaction.
 Accessing objects indirectly via addresses is helpful because it can
 help to reduce memory and disk usage: for example, there may be
 scripts for common validation scenarios used in many transactions, and
 it is more efficient to store single copies of such scripts rather
 than having hundreds of transactions each with their own copy.
+
+We assume that every transaction in a ledger has a unique identifier
+of type \s{TxId}: in an implementation this would probably be the
+hash of the transaction.
 
 \subsubsection{The Definition of Extended UTXO}
 
@@ -309,35 +362,22 @@ UTXO-based cryptocurrencies with scripts \cite{Zahnentferner18-UTxO},
 with the following additions:
 \begin{itemize}
 \item Every transaction now has a validity interval (see above).
-\item Every output has an asssociated datascript.
+\item Every output has an associated datascript.
 \item The notion of validity (Figure~\ref{fig:basic-xutxo-validity}) is now
   parameterised by $\sigma$, the function which provides state
   information.
 \end{itemize}
 
-\newcommand{\mi}[1]{\ensuremath{\mathit{#1}}}
-\newcommand{\inputs}{\ensuremath{\mathit{inputs}}}
-\newcommand{\outputs}{\ensuremath{\mathit{outputs}}}
-\newcommand{\forge}{\ensuremath{\mathit{forge}}}
-\newcommand{\fee}{\ensuremath{\mathit{fee}}}
-\newcommand{\addr}{\ensuremath{\mathit{address}}}
-\newcommand{\val}{\ensuremath{\mathit{value}}}
-\newcommand{\vals}{\ensuremath{\mathit{values}}}
-
-\newcommand{\slotnum}{\ensuremath{\mathsf{SlotNumber}}}
-\newcommand{\spent}{\ensuremath{\mathsf{spentOutputs}}}
-\newcommand{\unspent}{\ensuremath{\mathsf{unspentOutputs}}}
-\newcommand{\xutxotx}{\ensuremath{\mathsf{XUtxoTx}}}
-
 \noindent Figure~\ref{fig:basic-xutxo-types} lists the types which
 describe transactions in the basic XUTXO model.
+
 
 %%
 \begin{ruledfigure}{H}
   \[
   \begin{arraydefs}{rll}
     
-    \s{Output } &= (&\i{addr}: \s{Address},\\
+    \s{Output } &= (&\addr: \s{Address},\\
     && \i{val}: \s{Value},\\
     &&  \i{datascript}: \s{Script})\\
     \\
@@ -362,11 +402,16 @@ describe transactions in the basic XUTXO model.
 
 \noindent Note that a transaction has a \textsf{Set} of inputs but a
 \textsf{List} of outputs. We use a list because any subsequent
-transaction attempting to use an output $O$ as an input will have to
-be able to determine exactly where $O$ came from: thus each input of a
-transaction refers to the output which it is trying to spend via an
-\s{OutputRef} which specifies the transaction which produced the
-output and an index which says which output of the transaction is required. 
+transaction attempting to use an unspent output $O$ as an input will
+have to be able to determine exactly where $O$ came from: thus each
+input of a transaction refers to the output which it is trying to
+spend via an \s{OutputRef} which specifies the transaction which
+produced the output and an index which says which output of the
+transaction is required.
+
+Note also that we model a ledger as a simple list of transactions:
+a real blockchain ledger will be more complex than this.
+\vspace{10pt}
 
 \noindent Following~\cite{Zahnentferner18-UTxO} we define the function
 
@@ -381,7 +426,23 @@ output and an index which says which output of the transaction is required.
    \unspent(t:::\lambda) &= (\unspent(\lambda) \setminus \spent(\lambda)) \cup t.\inputs.
 \end{align*}
 
-\noindent Note that for a completed transaction $t$, $t.\inputs$ is the set of outputs which $t$ has spent.
+\noindent Note that for a completed transaction $t$, $t.\inputs$ is
+the set of previously unspent outputs which $t$ has spent.
+
+\vspace{7pt}
+\noindent Given a ledger $\lambda$ and a transaction id $\id$, we
+denote by $\lambda\langle\id\rangle$ the unique transaction $T$ in
+$\lambda$ with $T.\txid = \id$, if it exists. In our abstract model
+where $\lambda$ consists of a list of transactions it would suffice to
+take $id$ to be the position of $T$ in $\lambda$, but in an
+implementation we would probably have $id = T^{\#}$.
+
+Now given an input $i$ to some transaction in a ledger $\lambda$
+we define 
+$$
+\getvalue(i,\lambda) = \lambda\langle i.\outputref.\txid \rangle.\outputs[i].value
+$$
+This function simply returns the value of the input.
 
 \subsubsection{Validity}
 A number of conditions must be satisfied in order for a transaction
@@ -415,7 +476,7 @@ the latter in condition \ref{all-inputs-validate}.
       
     \item \label{value-is-preserved} \textbf{Value is preserved}:
     \[
-      t.\forge + \sum_{i \in t.\inputs} t.\mi{value}(i, \lambda) = t.\fee + \sum_{o \in t.\outputs} o.\mi{value}.
+      t.\forge + \sum_{i \in t.\inputs} \getvalue(i, \lambda) = t.\fee + \sum_{o \in t.\outputs} o.\val.
     \]
     \item \label{no-double-spending} \textbf{No output is double spent:}
     \[
@@ -425,11 +486,11 @@ the latter in condition \ref{all-inputs-validate}.
     \item\label{all-inputs-validate} \textbf{All inputs validate:}
     \[
     \textrm{For all } i \in t.\inputs,\enspace \llbracket
-    i.\mi{validator}(\mi{out}(i, \lambda).\mi{datascript},i.\mi{redeemer}, \sigma(\lambda, t, i)) \rrbracket \ne \textsf{error}.
+    i.\validator(\txout(i, \lambda).\datascript,i.\redeemer, \sigma(\lambda, t, i)) \rrbracket \ne \textsf{error}.
       \]
     \item\label{validator-scripts-hash} \textbf{Validator scripts hash to their output addresses:}
     \[
-      \textrm{For all } i \in t.\inputs,\enspace i.\mi{validator}^{\#} = \mi{out}(i, \lambda).\mi{address}.
+      \textrm{For all } i \in t.\inputs,\enspace i.\validator^{\#} = \txout(i, \lambda).\addr.
     \]
 \end{enumerate}
 \caption{$\sigma$-validity of a transaction $t$ in the basic XUTXO model}
@@ -439,8 +500,8 @@ the latter in condition \ref{all-inputs-validate}.
 
 
 \noindent In practice, $\sigma$-validity imposes a limit on the size of the
-$\mathsf{Script}$ values of the $\mi{validator}$, $\mi{redeemer}$ and
-$\mi{datascript}$ fields and the result of $\sigma$. The validation of a
+$\mathsf{Script}$ values of the $\validator$, $\redeemer$ and
+$\datascript$ fields and the result of $\sigma$. The validation of a
 single transaction must take place within one slot, so the evaluation
 of $\llbracket ~ \rrbracket$ cannot take longer than one slot,
 approximately twenty seconds.
@@ -459,8 +520,8 @@ access to the result of $\sigma$.
 \label{sec:multicurrency}
 We now extend the XUTXO model to allow transactions to deal with
 multiple currencies.  In addition to the Ada currency, we allow an
-unlimited number of other currencies, possibly user-defined.  Each currency
-has a unique identifier.
+unlimited number of other \textit{custom currencies}, possibly
+user-defined.  Each currency has a unique identifier.
 
 For this we introduce three new types: see Figure~\ref{fig:more-basic-types}.
 
@@ -472,15 +533,17 @@ For this we introduce three new types: see Figure~\ref{fig:more-basic-types}.
   \begin{tabular}{rll}
     \s{Ada}&: &this type represents the fundamental currency in the Cardano
     blockchain, \\
-    && and is an alias for the type of integers\\
+    && and is an alias for the type of natural numbers.\\
   \s{CurrencyID}&: &an identifier for a currency. This is an alias
   for the \s{Address} type from \\
   &  & Figure~\ref{fig:basic-types}.\\
   \s{Values} &: &a map from \s{CurrencyID}s to quantities of the
   corresponding currencies\\
-  & & (represented using the \s{Value} type.
+  & & (represented using the \s{Value} type).
   This allows an output to consist of\\
   & & multiple currencies.\\
+
+  \s{Values$^{\pm}$} &: &This is like \s{Values}, but  quantities may be either positive or negative.
 
   \end{tabular}
   }
@@ -488,18 +551,24 @@ For this we introduce three new types: see Figure~\ref{fig:more-basic-types}.
   \label{fig:more-basic-types}
 \end{ruledfigure}
 
-\noindent \red{Do we have to allow negative values now?}
-
 \noindent The changes to the basic XUTXO model are now quite simple.
 In the definition of transaction, we allow the \forge{} field to
 contain amounts of multiple currencies; the \fee{} field however still
 contains a single amount of \s{Ada}. We give the types for the XUTXO
 model with multicurrency support in Figure~\ref{fig:mc-xutxo-types}.
 
+\begin{itemize}
+  \item\red{Do we want to call \s{Ada} something else, like {BasicCurrency}?
+  This XUTXO model isn't necessarily tied to Cardano.}
+  \item\red{Do we need some special treatment for Ada in the \forge{} case,
+    especially now that we can forge negative amounts?}
+\end{itemize}
+ 
+
 \begin{ruledfigure}{H}
   \[
   \begin{arraydefs}{rll}
-    \s{Output\textprime } &= (&\addr: \s{Address},\\
+    \s{Output\textprime } &= (&\addr: \s{Address},  \red{\textrm{// Or hash of script?}}\\
     && \vals: \s{Values},\\
     && \i{datascript}: \s{Script})\\
     \\
@@ -512,7 +581,7 @@ model with multicurrency support in Figure~\ref{fig:mc-xutxo-types}.
     \xutxotx\textprime\s{ } &= ( &\inputs: \s{Set[Input]},\\
     &&\outputs: \mathsf{List[Output\textprime]},\\
     &&\i{validityInterval}: \slotnum \times \slotnum,\\
-    &&\forge: \s{Values}, \\
+    &&\forge: \s{Values$^\pm$}, \\
     &&\fee: \s{Ada})\\
     \\
     \s{Ledger\textprime } &=&\!\s{List[}\xutxotx\textprime\s{]}\\
@@ -523,9 +592,9 @@ model with multicurrency support in Figure~\ref{fig:mc-xutxo-types}.
 \end{ruledfigure}
 
 
-  
-\noindent The validity conditions must also take account of 
-multiple currencies.  
+\vspace{10pt}
+\noindent The validity conditions must also be updated to take account
+of multiple currencies: Figure~\ref{fig:mc-xutxo-validity} contains the details.
 
 
 \begin{ruledfigure}{H}
@@ -547,7 +616,7 @@ multiple currencies.
       \end{center}
     \item \label{value-is-preserved-2} \textbf{Value is preserved \red{(fix this)}}:
     \[
-      t.\forge + \sum_{i \in t.\inputs} t.\mi{value}(i, \lambda) = t.\fee + \sum_{o \in t.\outputs} o.\mi{value}.
+      t.\forge + \sum_{i \in t.\inputs} \getvalue(i, \lambda) = t.\fee + \sum_{o \in t.\outputs} o.\val
     \]
     \item \label{no-double-spending-2} \textbf{No output is double spent:}
     \[
@@ -557,25 +626,75 @@ multiple currencies.
     \item\label{all-inputs-validate-2} \textbf{All inputs validate:}
     \[
     \textrm{For all } i \in t.\inputs,\enspace \llbracket
-    i.\mi{validator}(\mi{out}(i,
-    \lambda).\mi{datascript},i.\mi{redeemer}, \sigma(\lambda, t, i))
+    i.\validator(\txout(i,
+    \lambda).\datascript,i.\redeemer, \sigma(\lambda, t, i))
     \rrbracket \ne \textsf{error}.
       \]
     \item\label{validator-scripts-hash-2} \textbf{Validator scripts hash to their output addresses:}
     \[
-      \textrm{For all } i \in t.\inputs,\enspace i.\mi{validator}^{\#} = \mi{out}(i, \lambda).\mi{address}.
+      \textrm{For all } i \in t.\inputs,\enspace i.\validator^{\#} = \txout(i, \lambda).\addr.
     \]
   \end{enumerate}
   \caption{$\sigma$-validity of a transaction $t$ in the multicurrency XUTXO model}
+  \label{fig:mc-xutxo-validity}
 
 \end{ruledfigure}
+
+\paragraph{Monetary policies for custom currencies.}
+The \textbf{Forging$^{\prime}$}
+rule enables custom currencies to implement their own monetary
+policies: for example, one might wish to place some limit on the
+amount of a currency that can be forged, or restrict the creation of
+the currency to owners of particular public keys.
+
+The idea is that a custom currency has a monetary policy which is
+defined by some script $H$, and the hash $h = H^{\#}$ is used as the
+identifier of the currency.  Whenever a new quantity of the currency
+is forged, rules~\ref{forging-2}, \ref{all-inputs-validate-2}, and
+\ref{validator-scripts-hash-2} imply that $H$ must be executed; $H$ is
+provided with the \forge{} field of the transaction via $\sigma$, and
+so it knows how much of the currency is to be forged and can respond
+appropriately.
+
+The fact that \forge{} values are allowed to be negative means we can
+also \textit{destroy} quantities of custom currencies.
+
+The advantage of this scheme is that custom currencies can be handled
+entirely within the smart contract system, without the need to
+introduce any extra blockchain infrastructure such as a central
+regsitry of custom currencies.
 
 
 \subsection{Examples}
 \blue{Show how to define new currencies and do NFTs.}
 
+\section{Non-fungible tokens}
+A non-fungible token (NFT) is a unique object which can be transferred
+to another user, but not duplicated.  NFTs have proven useful in a number
+of blockchain applications.
 
 
+\section{What else do we need to worry about?}
+\begin{itemize}
+\item Do we need to worry about who signs the various scripts, or is that
+  something the wallet deals with?
+\item Is the number of inputs and/or outputs to a transaction always nonzero?
+  Now that we're allowed to destroy currency, maybe we can have transactions
+  with no outputs.
+\item Do we want to include \s{PayToPubKey} transactions in the specification?
+  We definitely want a special case for this in the implementation, but you
+  can do it with the general scripts framework anyway.
+\item Who's responsible for looking after the scripts, and where are they kept?
+  Presumably scripts will be stored in the chain, but how do they get there?
+\item I'm still a bit confused about where the validator for an output
+  $O$ comes from.  In our model, the validator $V$ is supplied as part
+  of a transaction input, but then we require that $O.\addr = V^\#$.
+  This means that $V$ must exists at the time that $O$ is created (as
+  you'd expect), so why is $V$ not just part of $O$, rather than being
+  part of the input?  Is this anything other than a conceptual
+  difference?
+  
+\end{itemize}
 
 
 
