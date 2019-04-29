@@ -1,6 +1,7 @@
 {-# LANGUAGE ConstraintKinds   #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE ViewPatterns      #-}
 
 -- | Functions for compiling GHC types into PlutusCore types, as well as compiling constructors,
@@ -13,9 +14,7 @@ module Language.PlutusTx.Compiler.Type (
     getConstructorsInstantiated,
     getMatch,
     getMatchInstantiated,
-    convAlt,
-    NewtypeCoercion (..),
-    splitNewtypeCoercion) where
+    convAlt) where
 
 import           Language.PlutusTx.Compiler.Binders
 import           Language.PlutusTx.Compiler.Builtins
@@ -29,7 +28,6 @@ import           Language.PlutusTx.Compiler.Utils
 import           Language.PlutusTx.PIRTypes
 
 import qualified GhcPlugins                             as GHC
-import qualified Pair                                   as GHC
 import qualified PrelNames                              as GHC
 import qualified TysPrim                                as GHC
 
@@ -38,6 +36,7 @@ import qualified Language.PlutusIR.Compiler.Definitions as PIR
 import           Language.PlutusIR.Compiler.Names
 import qualified Language.PlutusIR.MkPir                as PIR
 
+import           Control.Monad.Extra
 import           Control.Monad.Reader
 
 import           Data.List                              (reverse, sortBy)
@@ -64,6 +63,7 @@ convType t = withContextM 2 (sdToTxt $ "Converting type:" GHC.<+> GHC.ppr t) $ d
         (GHC.splitCastTy_maybe -> Just (tpe, _)) -> convType tpe
         _ -> throwSd UnsupportedError $ "Type" GHC.<+> GHC.ppr t
 
+-- TODO: fold the special cases into convTyCon as aliases?
 convTyConApp :: (Converting m) => GHC.TyCon -> [GHC.Type] -> m PIRType
 convTyConApp tc ts
     -- this is Int#, convert as Int
@@ -80,6 +80,7 @@ convTyConApp tc ts
 convTyCon :: (Converting m) => GHC.TyCon -> m PIRType
 convTyCon tc = do
     let tcName = GHC.getName tc
+    whenM (blackholed tcName) $ throwSd UnsupportedError $ "Recursive newtypes, use data:" GHC.<+> GHC.ppr tcName
     maybeDef <- PIR.lookupType () tcName
     case maybeDef of
         Just ty -> pure ty
@@ -89,36 +90,33 @@ convTyCon tc = do
             let deps = fmap GHC.getName usedTcs ++ fmap GHC.getName dcs
 
             tvd <- convTcTyVarFresh tc
-            matchName <- safeFreshName () $ (T.pack $ GHC.getOccString $ GHC.getName tc) <> "_match"
 
-            let fakeDatatype = PIR.Datatype () tvd [] matchName []
-            PIR.defineDatatype tcName (PIR.Def tvd fakeDatatype) Set.empty
+            case GHC.unwrapNewTyCon_maybe tc of
+                Just (_, underlying, _) -> do
+                    -- See Note [Coercions and newtypes]
+                    -- Type variables are in scope for the rhs of the alias
+                    alias <- mkIterTyLamScoped (GHC.tyConTyVars tc) $ blackhole (GHC.getName tc) $ convType underlying
+                    PIR.defineType tcName (PIR.Def tvd alias) (Set.fromList deps)
+                    PIR.recordAlias @GHC.Name @() tcName
+                    pure alias
+                Nothing -> do
+                    matchName <- safeFreshName () $ (T.pack $ GHC.getOccString $ GHC.getName tc) <> "_match"
 
-            -- type variables are in scope for the rest of the definition
-            withTyVarsScoped (GHC.tyConTyVars tc) $ \tvs -> do
-                constructors <- for dcs $ \dc -> do
-                    name <- convNameFresh (GHC.getName dc)
-                    ty <- mkConstructorType dc
-                    pure $ PIR.VarDecl () name ty
+                    let fakeDatatype = PIR.Datatype () tvd [] matchName []
+                    PIR.defineDatatype tcName (PIR.Def tvd fakeDatatype) Set.empty
 
-                let datatype = PIR.Datatype () tvd tvs matchName constructors
+                    -- Type variables are in scope for the rest of the definition
+                    withTyVarsScoped (GHC.tyConTyVars tc) $ \tvs -> do
+                        constructors <- for dcs $ \dc -> do
+                            name <- convNameFresh (GHC.getName dc)
+                            ty <- mkConstructorType dc
+                            pure $ PIR.VarDecl () name ty
 
-                PIR.defineDatatype tcName (PIR.Def tvd datatype) (Set.fromList deps)
+                        let datatype = PIR.Datatype () tvd tvs matchName constructors
 
-            pure $ PIR.mkTyVar () tvd
+                        PIR.defineDatatype tcName (PIR.Def tvd datatype) (Set.fromList deps)
+                    pure $ PIR.mkTyVar () tvd
 
--- Newtypes
-
--- | Wrapper for a pair of types with a direction of wrapping or unwrapping.
-data NewtypeCoercion = Wrap GHC.Type GHC.Type
-                     | Unwrap GHC.Type GHC.Type
-
--- | View a 'GHC.Coercion' as possibly a newtype coercion.
-splitNewtypeCoercion :: GHC.Coercion -> Maybe NewtypeCoercion
-splitNewtypeCoercion coerce = case GHC.coercionKind coerce of
-    (GHC.Pair lhs@(GHC.splitTyConApp_maybe -> Just (GHC.unwrapNewTyCon_maybe -> Just (_, inner, _), _)) rhs) | GHC.eqType rhs inner -> Just $ Unwrap lhs rhs
-    (GHC.Pair lhs rhs@(GHC.splitTyConApp_maybe -> Just (GHC.unwrapNewTyCon_maybe -> Just (_, inner, _), _))) | GHC.eqType lhs inner -> Just $ Wrap lhs rhs
-    _ -> Nothing
 
 getUsedTcs :: (Converting m) => GHC.TyCon -> m [GHC.TyCon]
 getUsedTcs tc = do

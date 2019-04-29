@@ -1,0 +1,10 @@
+(program 1.0.0
+  {
+    (abs
+      Lift_Spec_NewtypeInt_i0
+      (type)
+      { (abs Lift_Spec_Newtype2_i0 (type) (con 1)) (con integer) }
+    )
+    (con integer)
+  }
+)
