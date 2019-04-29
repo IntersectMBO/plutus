@@ -97,7 +97,7 @@ library plutus-tx-compiler
         prettyprinter -any,
         serialise -any,
         template-haskell -any,
-        th-abstraction -any,
+        th-abstraction <0.3.0.0,
         text -any,
         transformers -any
 
