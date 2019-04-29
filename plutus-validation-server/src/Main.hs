@@ -42,7 +42,8 @@ data ToValidate = ToValidate { validationData :: BS64.ByteString64
 getScript :: BS.ByteString -> Either CBOR.DeserialiseFailure Script
 getScript bs = CBOR.deserialiseOrFail (BSL.fromStrict bs)
 
--- TODO: make a curl request to test this
+-- TODO: make a curl request to test this (also look at automated tests already
+-- there)
 -- TODO: at least deserialize from a valid script (and then test it)
 -- TODO: should we have a separate way to query run logs?
 validateByteString :: BS.ByteString -- ^ Validation Data
