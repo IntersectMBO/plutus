@@ -34,8 +34,8 @@
 # some files use typed TH but don't produce a parse error. For these files we
 # need to disable warnings about unused language extensions and redundant
 # brackets.
-- ignore: {name: Redundant bracket, within: [Wallet.Emulator.AddressMap]}
-- ignore: {name: Unused LANGUAGE pragma, within: [Wallet.Emulator.AddressMap]}
+- ignore: {name: Redundant bracket, within: [Ledger.AddressMap]}
+- ignore: {name: Unused LANGUAGE pragma, within: [Ledger.AddressMap]}
 # PLC plugin only accepts lists that are constructed in a certain way
 - ignore: {name: Use list literal, within: [Spec.TH]}
 # PLC plugin requires && to be defined in side TH splices

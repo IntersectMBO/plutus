@@ -18,24 +18,24 @@ module Wallet.Emulator.Client
   , process
   ) where
 
-import           Control.Monad              (void)
-import           Control.Monad.Except       (ExceptT (ExceptT), throwError)
-import           Control.Monad.Operational  (interpretWithMonad)
-import           Control.Monad.Reader       (MonadReader, ReaderT, asks, lift, runReaderT)
-import           Control.Monad.Writer       (MonadWriter, WriterT, runWriterT, tell)
-import qualified Data.ByteString.Lazy       as BSL
-import           Data.Foldable              (fold)
-import           Data.Proxy                 (Proxy (Proxy))
-import           Data.Set                   (Set)
-import           Ledger                     (Address, Block, PubKey, Slot, Tx, TxIn, TxOut, Value)
-import qualified Ledger.Crypto              as Crypto
-import           Servant.API                ((:<|>) ((:<|>)), NoContent)
-import           Servant.Client             (ClientEnv, ClientM, ServantError, client, runClientM)
-import           Wallet.API                 (WalletAPI (..), WalletAPIError)
-import           Wallet.Emulator.AddressMap (AddressMap)
-import           Wallet.Emulator.Http       (API)
-import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqual), Event (..),
-                                             Notification (BlockValidated, CurrentSlot), Trace, Wallet, walletPrivKey)
+import           Control.Monad             (void)
+import           Control.Monad.Except      (ExceptT (ExceptT), throwError)
+import           Control.Monad.Operational (interpretWithMonad)
+import           Control.Monad.Reader      (MonadReader, ReaderT, asks, lift, runReaderT)
+import           Control.Monad.Writer      (MonadWriter, WriterT, runWriterT, tell)
+import qualified Data.ByteString.Lazy      as BSL
+import           Data.Foldable             (fold)
+import           Data.Proxy                (Proxy (Proxy))
+import           Data.Set                  (Set)
+import           Ledger                    (Address, Block, PubKey, Slot, Tx, TxIn, TxOut, Value)
+import           Ledger.AddressMap         (AddressMap)
+import qualified Ledger.Crypto             as Crypto
+import           Servant.API               ((:<|>) ((:<|>)), NoContent)
+import           Servant.Client            (ClientEnv, ClientM, ServantError, client, runClientM)
+import           Wallet.API                (WalletAPI (..), WalletAPIError)
+import           Wallet.Emulator.Http      (API)
+import           Wallet.Emulator.Types     (Assertion (IsValidated, OwnFundsEqual), Event (..),
+                                            Notification (BlockValidated, CurrentSlot), Trace, Wallet, walletPrivKey)
 
 api :: Proxy API
 api = Proxy

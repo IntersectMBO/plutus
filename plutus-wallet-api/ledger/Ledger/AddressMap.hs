@@ -7,7 +7,7 @@
 -- 'AddressMap's are used to represent the limited knowledge about the state of the ledger that
 -- the wallet retains. Rather than keeping the entire ledger (which can be very large) the wallet
 -- only tracks the UTxOs at particular addresses.
-module Wallet.Emulator.AddressMap(
+module Ledger.AddressMap(
     AddressMap(..),
     addAddress,
     addAddresses,

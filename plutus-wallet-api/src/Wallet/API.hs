@@ -93,12 +93,12 @@ import           Ledger                     (Address, DataScript, PubKey (..), R
                                              SlotRange, Tx (..), TxId, TxIn, TxOut, TxOutOf (..), TxOutRef,
                                              TxOutType (..), ValidatorScript, Value, getTxId, hashTx, pubKeyTxOut, scriptAddress,
                                              scriptTxIn, signatures, txOutRefId)
+import           Ledger.AddressMap          (AddressMap)
 import           Ledger.Interval            (Interval (..))
 import qualified Ledger.Interval            as Interval
 import qualified Ledger.Slot                as Slot
 import qualified Ledger.Value               as Value
 import           Text.Show.Deriving         (deriveShow1)
-import           Wallet.Emulator.AddressMap (AddressMap)
 
 import           Prelude                    hiding (Ordering (..))
 

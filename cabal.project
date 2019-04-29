@@ -1,8 +1,9 @@
 packages: language-plutus-core
           marlowe
           plutus-core-interpreter
+          plutus-emulator
           plutus-exe
-          wallet-api
+          plutus-wallet-api
           plutus-tx
           plutus-use-cases
           plutus-ir
@@ -14,7 +15,8 @@ packages: language-plutus-core
           plutus-contract-exe
 optimization: 2
 constraints: language-plutus-core +development
-           , wallet-api +development
+           , plutus-wallet-api +development
+           , plutus-emulator +development
            , plutus-exe +development
            , plutus-core-interpreter +development
            , plutus-ir +development

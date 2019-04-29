@@ -21,6 +21,7 @@ import qualified Ledger.Value                                    as Value
 import           Prelude                                         hiding (init)
 import           Wallet.API                                      (PubKey (..))
 import           Wallet.Emulator
+import qualified Wallet.Emulator.Generators                      as Gen
 import qualified Wallet.Generators                               as Gen
 
 import           Language.PlutusTx.Coordination.Contracts.Future (Future (..), FutureData (..))

@@ -40,13 +40,15 @@ library
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
     build-depends:
+        plutus-tx -any,
+        plutus-wallet-api -any,
+        plutus-emulator -any
+    build-depends:
         base -any,
         bytestring -any,
         containers -any,
         mtl -any,
         template-haskell -any,
-        plutus-tx -any,
-        wallet-api -any,
         lens -any,
         text -any
 
@@ -68,6 +70,10 @@ test-suite plutus-use-cases-test
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities -rtsopts
     build-depends:
+        plutus-wallet-api -any,
+        plutus-use-cases -any,
+        plutus-emulator -any
+    build-depends:
         base >=4.9 && <5,
         containers -any,
         hedgehog -any,
@@ -75,7 +81,5 @@ test-suite plutus-use-cases-test
         tasty-hunit -any,
         tasty-hedgehog >=0.2.0.0,
         text -any,
-        wallet-api -any,
-        plutus-use-cases -any,
         lens -any,
         mtl -any

@@ -15,7 +15,7 @@ import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State.Trans (class MonadState)
 import Data.Array (catMaybes, delete, snoc)
 import Data.Array as Array
-import Data.BigInteger (BigInteger, fromInt)
+import Data.BigInteger (BigInteger)
 import Data.Either (Either(..))
 import Data.Foldable (foldrDefault)
 import Data.Function (flip)
@@ -53,8 +53,8 @@ import Marlowe.Types (BlockNumber, Choice, Contract(Null), IdChoice(IdChoice), I
 import Meadow (SPParams_, getOauthStatus, patchGistsByGistId, postGists, postContractHaskell)
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(Success, NotAsked), _Success, isLoading, isSuccess)
-import Prelude (not, (||), type (~>), Unit, Void, bind, const, discard, id, pure, show, unit, void, ($), (+), (-), (<$>), (<<<), (<>), (==))
-import Semantics (ErrorResult(InvalidInput), IdInput(IdOracle, InputIdChoice), MApplicationResult(MCouldNotApply, MSuccessfullyApplied), State(State), TransactionOutcomes, applyTransaction, collectNeededInputsFromContract, emptyState, peopleFromStateAndContract, reduce, scoutPrimitives)
+import Prelude (add, one, zero, not, (||), type (~>), Unit, Void, bind, const, discard, id, pure, show, unit, void, (#), ($), (+), (-), (<$>), (<<<), (<>), (==))
+import Semantics (ErrorResult(InvalidInput), IdInput(IdOracle, InputIdChoice), MApplicationResult(MCouldNotApply, MSuccessfullyApplied), State(State), TransactionOutcomes, applyTransaction, collectNeededInputs, emptyState, peopleFromStateAndContract, reduce, scoutPrimitives)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation (simulationPane)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
@@ -78,8 +78,8 @@ emptyMarloweState :: MarloweState
 emptyMarloweState = { input: emptyInputData
                     , transaction: emptyTransactionData
                     , state: emptyState
-                    , blockNum: (fromInt 0)
-                    , moneyInContract: (fromInt 0)
+                    , blockNum: zero
+                    , moneyInContract: zero
                     , contract: Nothing
                     }
 
@@ -220,9 +220,9 @@ updateChoices (State state) inputs cmap =
                    Nothing -> Map.empty
                    Just y -> y in
       let dval = case Map.lookup person cmap of
-                    Nothing -> fromInt 0
+                    Nothing -> zero
                     Just z -> case Map.lookup idChoice z of
-                                Nothing -> fromInt 0
+                                Nothing -> zero
                                 Just v -> v in
       if Map.member (WIdChoice (IdChoice {choice: idChoice, person})) state.choices
       then a
@@ -235,11 +235,11 @@ updateOracles cbn (State state) inputs omap =
   where
     addOracle (IdOracle idOracle) a =
         case Map.lookup idOracle omap, Map.lookup idOracle state.oracles of
-             Nothing, Nothing -> Map.insert idOracle {blockNumber: cbn, value: fromInt 0} a
+             Nothing, Nothing -> Map.insert idOracle {blockNumber: cbn, value: zero} a
              Just {blockNumber: bn, value}, Just {blockNumber: lbn} ->
                if (lbn >= cbn)
                then a
-               else Map.insert idOracle {blockNumber: max (lbn + fromInt 1) bn, value} a
+               else Map.insert idOracle {blockNumber: max (lbn + one) bn, value} a
              Just {blockNumber, value}, Nothing ->
                Map.insert idOracle {blockNumber: min blockNumber cbn, value} a
              Nothing, Just {blockNumber, value} ->
@@ -249,15 +249,14 @@ updateOracles cbn (State state) inputs omap =
     addOracle _ a = a
 
 updateActions :: MarloweState -> {state :: State, contract :: Contract, outcome :: TransactionOutcomes, validity :: TransactionValidity} -> MarloweState
-updateActions oldState {state, contract, outcome, validity} =
-  set (_input <<< _inputs) (scoutPrimitives oldState.blockNum state contract)
-  (over (_input <<< _choiceData) (updateChoices state neededInputs)
-  (over (_input <<< _oracleData) (updateOracles oldState.blockNum state neededInputs)
-  (set (_transaction <<< _outcomes) outcome
-  (set (_transaction <<< _validity) validity
-   oldState))))
+updateActions oldState {state, contract, outcome, validity}
+  = set (_transaction <<< _validity) validity oldState
+  # set (_transaction <<< _outcomes) outcome
+  # over (_input <<< _oracleData) (updateOracles oldState.blockNum state neededInputs)
+  # over (_input <<< _choiceData) (updateChoices state neededInputs)
+  # set (_input <<< _inputs) (scoutPrimitives oldState.blockNum state contract)
   where
-    neededInputs = collectNeededInputsFromContract contract
+    neededInputs = collectNeededInputs contract
 
 simulateState :: MarloweState -> Maybe {state :: State, contract :: Contract, outcome :: TransactionOutcomes, validity :: TransactionValidity}
 simulateState state =
@@ -474,7 +473,7 @@ evalF (ApplyTransaction next) = do
    Nothing -> pure next
 
 evalF (NextBlock next) = do
-  modifying (_marloweState <<< _blockNum) (\x -> x + ((fromInt 1) :: BigInteger))
+  modifying (_marloweState <<< _blockNum) (add one)
   updateState
   pure next
 

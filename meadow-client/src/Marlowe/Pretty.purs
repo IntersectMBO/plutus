@@ -2,6 +2,7 @@ module Marlowe.Pretty where
 
 import Prelude
 
+import Data.BigInt (BigInt, toString)
 import Data.Generic.Rep (class Generic, Argument(..), Constructor(..), NoArguments, Product(..), Sum(..), from)
 import Data.Monoid (mempty)
 import Data.Symbol (class IsSymbol, SProxy(..), reflectSymbol)
@@ -47,3 +48,6 @@ instance pretty1Sum :: (Pretty1 l, Pretty1 r) => Pretty1 (Sum l r) where
 instance pretty1Product :: (Pretty1 l, Pretty1 r) => Pretty1 (Product l r) where
   pretty1 topLevel (Product l r) = pretty1 topLevel l <> pretty1 topLevel r
   isNullary _ = false
+
+instance prettyBigInt :: Pretty BigInt where
+  prettyFragment = text <<< toString

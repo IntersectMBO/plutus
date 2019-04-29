@@ -10,11 +10,12 @@ packages:
 - interpreter
 - marlowe
 - meadow
-- wallet-api
+- plutus-wallet-api
 - plutus-playground-server
 - plutus-playground-lib
 - plutus-tutorial
 - plutus-contract-exe
+- plutus-emulator
 
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - location:
@@ -56,7 +57,7 @@ extra-deps:
 flags:
   language-plutus-core:
     development: true
-  wallet-api:
+  plutus-wallet-api:
     development: true
   plutus-exe:
     development: true

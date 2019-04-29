@@ -9,7 +9,7 @@
     
     1. [Plutus Tx](../../doctest/Tutorial/01-plutus-tx.md)
     2. [A guessing game](../../doctest/Tutorial/02-validator-scripts.md)
-    3. [A crowdfunding campaign](../../doctest/Tutorial/03-wallet-api.md)
+    3. [A crowdfunding campaign](../../doctest/Tutorial/03-plutus-wallet-api.md)
     4. [Working with the emulator](./Emulator.hs)
     5. A multi-stage contract (this tutorial)
 

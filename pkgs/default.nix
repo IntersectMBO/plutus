@@ -44130,14 +44130,15 @@ license = "GPL";
 , hedgehog
 , memory
 , mtl
+, plutus-emulator
 , plutus-tx
+, plutus-wallet-api
 , stdenv
 , tasty
 , tasty-hedgehog
 , tasty-hunit
 , template-haskell
 , text
-, wallet-api
 , wl-pprint
 }:
 mkDerivation {
@@ -44150,9 +44151,9 @@ base
 containers
 mtl
 plutus-tx
+plutus-wallet-api
 template-haskell
 text
-wallet-api
 wl-pprint
 ];
 testHaskellDepends = [
@@ -44161,13 +44162,14 @@ bytestring
 containers
 hedgehog
 memory
+plutus-emulator
 plutus-tx
+plutus-wallet-api
 tasty
 tasty-hedgehog
 tasty-hunit
 template-haskell
 text
-wallet-api
 ];
 doHaddock = false;
 description = "Marlowe: financial contracts on Cardano Computation Layer";
@@ -53301,12 +53303,13 @@ license = stdenv.lib.licenses.mit;
 , base
 , containers
 , lens
+, plutus-emulator
 , plutus-use-cases
+, plutus-wallet-api
 , servant
 , servant-server
 , stdenv
 , text
-, wallet-api
 , warp
 }:
 mkDerivation {
@@ -53319,8 +53322,9 @@ isExecutable = true;
 libraryHaskellDepends = [
 aeson
 base
+plutus-emulator
+plutus-wallet-api
 text
-wallet-api
 ];
 executableHaskellDepends = [
 aeson
@@ -53328,10 +53332,10 @@ base
 containers
 lens
 plutus-use-cases
+plutus-wallet-api
 servant
 servant-server
 text
-wallet-api
 warp
 ];
 doHaddock = false;
@@ -53376,6 +53380,110 @@ tasty-hunit
 ];
 doHaddock = false;
 description = "Virtual machine for Plutus Core";
+license = stdenv.lib.licenses.asl20;
+
+}) {};
+"plutus-emulator" = callPackage
+({
+  mkDerivation
+, aeson
+, base
+, base16-bytestring
+, bytestring
+, cardano-crypto
+, cborg
+, containers
+, cryptonite
+, deriving-compat
+, hashable
+, hedgehog
+, http-api-data
+, language-plutus-core
+, lens
+, memory
+, mtl
+, natural-transformation
+, newtype-generics
+, operational
+, plutus-tx
+, plutus-wallet-api
+, recursion-schemes
+, serialise
+, servant
+, servant-client
+, servant-server
+, stdenv
+, stm
+, swagger2
+, tasty
+, tasty-hedgehog
+, tasty-hunit
+, template-haskell
+, text
+, transformers
+, warp
+}:
+mkDerivation {
+
+pname = "plutus-emulator";
+version = "0.1.0.0";
+src = .././plutus-emulator;
+isLibrary = true;
+isExecutable = true;
+libraryHaskellDepends = [
+aeson
+base
+base16-bytestring
+bytestring
+cardano-crypto
+cborg
+containers
+cryptonite
+deriving-compat
+hashable
+hedgehog
+http-api-data
+language-plutus-core
+lens
+memory
+mtl
+natural-transformation
+newtype-generics
+operational
+plutus-tx
+plutus-wallet-api
+recursion-schemes
+serialise
+servant
+servant-client
+servant-server
+stm
+swagger2
+template-haskell
+text
+transformers
+];
+executableHaskellDepends = [
+base
+plutus-wallet-api
+warp
+];
+testHaskellDepends = [
+aeson
+base
+bytestring
+containers
+hedgehog
+lens
+plutus-tx
+plutus-wallet-api
+tasty
+tasty-hedgehog
+tasty-hunit
+transformers
+];
+doHaddock = false;
+description = "Plutus emulator of the extended UTXO model with scripts";
 license = stdenv.lib.licenses.asl20;
 
 }) {};
@@ -53493,6 +53601,8 @@ license = stdenv.lib.licenses.asl20;
 , lens
 , memory
 , mtl
+, plutus-emulator
+, plutus-wallet-api
 , QuickCheck
 , servant
 , stdenv
@@ -53502,7 +53612,6 @@ license = stdenv.lib.licenses.asl20;
 , template-haskell
 , text
 , transformers
-, wallet-api
 }:
 mkDerivation {
 
@@ -53519,12 +53628,13 @@ interpreter
 lens
 memory
 mtl
+plutus-emulator
+plutus-wallet-api
 servant
 swagger2
 template-haskell
 text
 transformers
-wallet-api
 ];
 testHaskellDepends = [
 aeson
@@ -53533,13 +53643,14 @@ containers
 hedgehog
 hspec
 interpreter
+plutus-emulator
+plutus-wallet-api
 QuickCheck
 swagger2
 tasty
 tasty-hunit
 template-haskell
 text
-wallet-api
 ];
 testToolDepends = [
 hspec-discover
@@ -53577,7 +53688,9 @@ license = stdenv.lib.licenses.asl20;
 , mtl
 , newtype-generics
 , optparse-applicative
+, plutus-emulator
 , plutus-playground-lib
+, plutus-wallet-api
 , prometheus
 , purescript-bridge
 , regex-compat
@@ -53596,7 +53709,6 @@ license = stdenv.lib.licenses.asl20;
 , wai
 , wai-cors
 , wai-extra
-, wallet-api
 , warp
 , yaml
 }:
@@ -53627,7 +53739,9 @@ lens
 monad-logger
 mtl
 newtype-generics
+plutus-emulator
 plutus-playground-lib
+plutus-wallet-api
 regex-compat
 servant
 servant-client
@@ -53638,7 +53752,6 @@ text
 time
 time-units
 transformers
-wallet-api
 ];
 executableHaskellDepends = [
 adjunctions
@@ -53654,7 +53767,9 @@ lens
 monad-logger
 mtl
 optparse-applicative
+plutus-emulator
 plutus-playground-lib
+plutus-wallet-api
 prometheus
 purescript-bridge
 servant
@@ -53666,7 +53781,6 @@ transformers
 wai
 wai-cors
 wai-extra
-wallet-api
 warp
 yaml
 ];
@@ -53678,12 +53792,13 @@ hspec
 insert-ordered-containers
 interpreter
 mtl
+plutus-emulator
 plutus-playground-lib
+plutus-wallet-api
 swagger2
 text
 time-units
 transformers
-wallet-api
 ];
 testToolDepends = [
 hspec-discover
@@ -53702,11 +53817,12 @@ license = stdenv.lib.licenses.asl20;
 , doctest
 , language-plutus-core
 , markdown-unlit
+, plutus-emulator
 , plutus-tx
+, plutus-wallet-api
 , prettyprinter
 , stdenv
 , template-haskell
-, wallet-api
 }:
 mkDerivation {
 
@@ -53717,9 +53833,10 @@ libraryHaskellDepends = [
 base
 containers
 language-plutus-core
+plutus-emulator
 plutus-tx
+plutus-wallet-api
 template-haskell
-wallet-api
 ];
 libraryToolDepends = [
 doctest
@@ -53729,10 +53846,11 @@ base
 bytestring
 containers
 language-plutus-core
+plutus-emulator
 plutus-tx
+plutus-wallet-api
 prettyprinter
 template-haskell
-wallet-api
 ];
 testToolDepends = [
 doctest
@@ -53817,14 +53935,15 @@ license = stdenv.lib.licenses.asl20;
 , hedgehog
 , lens
 , mtl
+, plutus-emulator
 , plutus-tx
+, plutus-wallet-api
 , stdenv
 , tasty
 , tasty-hedgehog
 , tasty-hunit
 , template-haskell
 , text
-, wallet-api
 }:
 mkDerivation {
 
@@ -53837,10 +53956,11 @@ bytestring
 containers
 lens
 mtl
+plutus-emulator
 plutus-tx
+plutus-wallet-api
 template-haskell
 text
-wallet-api
 ];
 testHaskellDepends = [
 base
@@ -53848,14 +53968,102 @@ containers
 hedgehog
 lens
 mtl
+plutus-emulator
+plutus-wallet-api
 tasty
 tasty-hedgehog
 tasty-hunit
 text
-wallet-api
 ];
 doHaddock = false;
 description = "Collection of smart contracts to develop the plutus/wallet interface";
+license = stdenv.lib.licenses.asl20;
+
+}) {};
+"plutus-wallet-api" = callPackage
+({
+  mkDerivation
+, aeson
+, base
+, base16-bytestring
+, bytestring
+, cardano-crypto
+, cborg
+, containers
+, cryptonite
+, deriving-compat
+, hashable
+, hedgehog
+, http-api-data
+, language-plutus-core
+, lens
+, memory
+, mtl
+, natural-transformation
+, newtype-generics
+, operational
+, plutus-tx
+, recursion-schemes
+, serialise
+, servant
+, stdenv
+, swagger2
+, tasty
+, tasty-hedgehog
+, tasty-hunit
+, template-haskell
+, text
+, transformers
+}:
+mkDerivation {
+
+pname = "plutus-wallet-api";
+version = "0.1.0.0";
+src = .././plutus-wallet-api;
+libraryHaskellDepends = [
+aeson
+base
+base16-bytestring
+bytestring
+cardano-crypto
+cborg
+containers
+cryptonite
+deriving-compat
+hashable
+hedgehog
+http-api-data
+language-plutus-core
+lens
+memory
+mtl
+natural-transformation
+newtype-generics
+operational
+plutus-tx
+recursion-schemes
+serialise
+servant
+swagger2
+template-haskell
+text
+transformers
+];
+testHaskellDepends = [
+aeson
+base
+bytestring
+containers
+hedgehog
+lens
+plutus-tx
+tasty
+tasty-hedgehog
+tasty-hunit
+transformers
+];
+doHaddock = false;
+description = "Wallet API";
 license = stdenv.lib.licenses.asl20;
 
 }) {};
@@ -76258,106 +76466,6 @@ doCheck = false;
 homepage = "http://github.com/yesodweb/wai";
 description = "Provide a bridge between WAI and the websockets package";
 license = stdenv.lib.licenses.mit;
-
-}) {};
-"wallet-api" = callPackage
-({
-  mkDerivation
-, aeson
-, base
-, base16-bytestring
-, bytestring
-, cardano-crypto
-, cborg
-, containers
-, cryptonite
-, deriving-compat
-, hashable
-, hedgehog
-, http-api-data
-, language-plutus-core
-, lens
-, memory
-, mtl
-, natural-transformation
-, newtype-generics
-, operational
-, plutus-tx
-, recursion-schemes
-, serialise
-, servant
-, servant-client
-, servant-server
-, stdenv
-, stm
-, swagger2
-, tasty
-, tasty-hedgehog
-, tasty-hunit
-, template-haskell
-, text
-, transformers
-, warp
-}:
-mkDerivation {
-
-pname = "wallet-api";
-version = "0.1.0.0";
-src = .././wallet-api;
-isLibrary = true;
-isExecutable = true;
-libraryHaskellDepends = [
-aeson
-base
-base16-bytestring
-bytestring
-cardano-crypto
-cborg
-containers
-cryptonite
-deriving-compat
-hashable
-hedgehog
-http-api-data
-language-plutus-core
-lens
-memory
-mtl
-natural-transformation
-newtype-generics
-operational
-plutus-tx
-recursion-schemes
-serialise
-servant
-servant-client
-servant-server
-stm
-swagger2
-template-haskell
-text
-transformers
-];
-executableHaskellDepends = [
-base
-warp
-];
-testHaskellDepends = [
-aeson
-base
-bytestring
-containers
-hedgehog
-lens
-plutus-tx
-tasty
-tasty-hedgehog
-tasty-hunit
-transformers
-];
-doHaddock = false;
-description = "Wallet API";
-license = stdenv.lib.licenses.asl20;
 
 }) {};
 "warp" = callPackage
