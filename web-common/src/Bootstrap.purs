@@ -106,6 +106,15 @@ col12 = ClassName "col-12"
 col12_ :: forall p i. Array (HTML p i) -> HTML p i
 col12_ = div [ classes [ col, col12 ] ]
 
+colXs6 :: ClassName
+colXs6 = ClassName "col-xs-6"
+
+colXs12 :: ClassName
+colXs12 = ClassName "col-xs-12"
+
+colSm5 :: ClassName
+colSm5 = ClassName "col-sm-5"
+
 colSm6 :: ClassName
 colSm6 = ClassName "col-sm-6"
 
@@ -118,11 +127,20 @@ colMd4 = ClassName "col-md-4"
 colMd6 :: ClassName
 colMd6 = ClassName "col-md-6"
 
+colAuto :: ClassName
+colAuto = ClassName "col-auto"
+
+colAuto_ :: forall p i. Array (HTML p i) -> HTML p i
+colAuto_ = div [ class_ colAuto ]
+
 offset3 :: ClassName
 offset3 = ClassName "offset-3"
 
 offset6 :: ClassName
 offset6 = ClassName "offset-6"
+
+justifyContentBetween :: ClassName
+justifyContentBetween = ClassName "justify-content-between"
 
 card :: ClassName
 card = ClassName "card"

@@ -13,7 +13,7 @@ import Action (simulationPane)
 import AjaxUtils (ajaxErrorPane)
 import AjaxUtils as AjaxUtils
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
-import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnSmall, col12, colMd6, container, container_, empty, floatRight, hidden, navItem_, navLink, navTabs_, noGutters, row)
+import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnSmall, colSm5, colSm6, colXs12, container, container_, empty, floatRight, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row)
 import Chain (evaluationPane)
 import Control.Bind (bindFlipped)
 import Control.Comonad (extract)
@@ -53,7 +53,7 @@ import Halogen as H
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
 import Halogen.ECharts as EC
-import Halogen.HTML (ClassName(..), HTML, a, div, div_, h1, strong_, text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, strong_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_)
 import Halogen.Query (HalogenM)
@@ -505,9 +505,9 @@ render state@(State {currentView})  =
         [ class_ $ ClassName "main-frame" ]
         [ container_
             [ mainHeader
-            , div [ classes [ row, noGutters ] ]
-                [ div [ classes [ col12, colMd6 ] ] [ mainTabBar currentView ]
-                , div [ classes [ col12, colMd6 ] ] [ gistControls state ]
+            , div [ classes [ row, noGutters, justifyContentBetween ] ]
+                [ div [ classes [ colXs12, colSm6 ] ] [ mainTabBar currentView ]
+                , div [ classes [ colXs12, colSm5 ] ] [ gistControls state ]
                 ]
             ]
         , viewContainer currentView Editor $
