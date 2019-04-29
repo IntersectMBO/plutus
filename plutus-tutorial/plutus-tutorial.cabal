@@ -52,7 +52,8 @@ library
         template-haskell >=2.13.0.0,
         language-plutus-core -any,
         plutus-tx -any,
-        wallet-api -any,
+        plutus-wallet-api -any,
+        plutus-emulator -any,
         containers -any
 
 test-suite tutorial-doctests
@@ -73,7 +74,8 @@ test-suite tutorial-doctests
       bytestring -any,
       language-plutus-core -any,
       plutus-tx -any,
-      wallet-api -any,
+      plutus-wallet-api -any,
+      plutus-emulator -any,
       prettyprinter -any,
       containers -any
 

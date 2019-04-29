@@ -105,6 +105,7 @@ import qualified Ledger.Ada                 as Ada
 import           Ledger                     (Address, Block, Blockchain, PrivateKey(..), PubKey(..), Slot, Tx (..), TxId, TxOut, TxOutOf (..),
                                              TxOutRef, Value, addSignature, hashTx, lastSlot, pubKeyAddress, pubKeyTxIn, pubKeyTxOut,
                                              toPublicKey, txOutAddress)
+import qualified Ledger.AddressMap          as AM
 import qualified Ledger.Index               as Index
 import qualified Ledger.Slot                as Slot
 import qualified Ledger.Value               as Value
@@ -112,7 +113,6 @@ import           Wallet.API                 (EventHandler (..), EventTrigger, Wa
                                              WalletAPIError (..), WalletDiagnostics (..), WalletLog (..), addresses,
                                              annTruthValue, getAnnot)
 import qualified Wallet.API                 as WAPI
-import qualified Wallet.Emulator.AddressMap as AM
 
 -- | A wallet in the emulator model.
 newtype Wallet = Wallet { getWallet :: Int }

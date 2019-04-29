@@ -1,1 +1,0 @@
-(import ../. {}).shellTemplate "wallet-api"

@@ -32,13 +32,13 @@ import           Servant                    (Application, Handler, ServantErr (e
 import           Servant.API                ((:<|>) ((:<|>)), (:>), Capture, Get, JSON, NoContent (NoContent), Post,
                                              ReqBody)
 import qualified Wallet.API                 as WAPI
-import           Wallet.Emulator.AddressMap (AddressMap)
 import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqual), EmulatorState (_walletStates),
                                              MockWallet, Notification (BlockValidated, CurrentSlot), Wallet,
                                              WalletState, assert, chainNewestFirst, emptyEmulatorState,
                                              emptyWalletState, index, liftMockWallet, txPool, walletStates)
 
 import           Ledger                     (Address, Block, PubKey, Slot, Tx, TxIn, TxOut, Value, lastSlot)
+import           Ledger.AddressMap          (AddressMap)
 import qualified Wallet.Emulator.Types      as Types
 
 type WalletAPI
