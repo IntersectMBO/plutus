@@ -100,7 +100,7 @@
 \newcommand{\txin}{\mi{in}}
 \newcommand{\txout}{\mi{out}}
 \newcommand{\id}{\mi{id}}
-\newcommand{\getvalue}{\mi{getvalue}}
+\newcommand{\getvalue}{\msf{getvalue}}
 
 \newcommand{\msf}[1]{\ensuremath{\mathsf{#1}}}
 \newcommand{\slotnum}{\msf{SlotNumber}}
@@ -356,6 +356,7 @@ of type \s{TxId}: in an implementation this would probably be the
 hash of the transaction.
 
 \subsubsection{The Definition of Extended UTXO}
+\label{sec:basic-xutxo-defn}
 
 The definitions in this section are essentially the definitions of
 UTXO-based cryptocurrencies with scripts \cite{Zahnentferner18-UTxO},
@@ -594,8 +595,9 @@ model with multicurrency support in Figure~\ref{fig:mc-xutxo-types}.
 
 \vspace{10pt}
 \noindent The validity conditions must also be updated to take account
-of multiple currencies: Figure~\ref{fig:mc-xutxo-validity} contains the details.
-
+of multiple currencies: Figure~\ref{fig:mc-xutxo-validity} contains
+the details.  We use the definitions of \unspent{}  and
+\getvalue{} from Section~\ref{sec:basic-xutxo-defn} unchanged.
 
 \begin{ruledfigure}{H}
   \begin{enumerate}
