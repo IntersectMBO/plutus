@@ -2,7 +2,7 @@ module Simulation where
 
 import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.Ord ((>=))
-import Semantics
+import Marlowe.Semantics
 import Data.Semiring ((+))
 import Data.Map (Map)
 import Data.List (List(..))

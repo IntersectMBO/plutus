@@ -1,4 +1,4 @@
-module Semantics where
+module Marlowe.Semantics where
 
 import Prelude
 

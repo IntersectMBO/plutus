@@ -54,7 +54,7 @@ import Meadow (SPParams_, getOauthStatus, patchGistsByGistId, postGists, postCon
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(Success, NotAsked), _Success, isLoading, isSuccess)
 import Prelude (add, one, zero, not, (||), type (~>), Unit, Void, bind, const, discard, id, pure, show, unit, void, (#), ($), (+), (-), (<$>), (<<<), (<>), (==))
-import Semantics (ErrorResult(InvalidInput), IdInput(IdOracle, InputIdChoice), MApplicationResult(MCouldNotApply, MSuccessfullyApplied), State(State), TransactionOutcomes, applyTransaction, collectNeededInputs, emptyState, peopleFromStateAndContract, reduce, scoutPrimitives)
+import Marlowe.Semantics (ErrorResult(InvalidInput), IdInput(IdOracle, InputIdChoice), MApplicationResult(MCouldNotApply, MSuccessfullyApplied), State(State), TransactionOutcomes, applyTransaction, collectNeededInputs, emptyState, peopleFromStateAndContract, reduce, scoutPrimitives)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation (simulationPane)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
