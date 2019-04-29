@@ -12,7 +12,7 @@ module Gists
 import AjaxUtils (ajaxErrorPane)
 import AjaxUtils as AjaxUtils
 import Auth (AuthRole(..), authStatusAuthRole)
-import Bootstrap (btn, btnBlock, btnDanger, btnInfo, btnPrimary, btnSmall, col6_, col_, empty, formControl, isInvalid, isValid, nbsp, offset6, row_)
+import Bootstrap (btn, btnBlock, btnDanger, btnInfo, btnPrimary, btnSmall, col12_, col6_, empty, formControl, isInvalid, isValid, nbsp, pullRight, row_)
 import Cursor (Cursor)
 import DOM.HTML.Indexed.InputType (InputType(..))
 import Data.Argonaut.Core (stringify)
@@ -44,15 +44,14 @@ idLoadGist = id_ "load-gist"
 gistControls :: forall p. State -> HTML p (Query Unit)
 gistControls (State {authStatus, createGistResult, gistUrl}) =
   div
-    [ classes [ ClassName "gist-controls"
-              ]
-    ]
+    [ classes [ ClassName "gist-controls" ] ]
     [ authButton $
         div_
           [ row_
-              [ col6_
+              [ col12_
                   [ input [ type_ InputText
                           , value $ fromMaybe "" $ gistUrl
+                          , id_ "gist-id"
                           , classes
                               ( [ formControl ]
                                 <>
@@ -65,8 +64,8 @@ gistControls (State {authStatus, createGistResult, gistUrl}) =
                           , onValueInput $ HE.input SetGistUrl
                           ]
                   ]
-              , col_ [ publishButton ]
-              , col_ [ loadButton ]
+              , col6_ [ publishButton ]
+              , col6_ [ loadButton ]
               ]
           , case createGistResult of
               Success gist -> gistPane gist
@@ -87,13 +86,13 @@ gistControls (State {authStatus, createGistResult, gistUrl}) =
         Failure _ ->
           button
             [ idPublishGist
-            , classes [ btn, btnDanger, offset6 ]
+            , classes [ btn, btnDanger, pullRight ]
             ]
             [ text "Failure" ]
         Success Anonymous ->
           a
             [ idPublishGist
-            , classes [ btn, btnInfo, offset6 ]
+            , classes [ btn, btnInfo, pullRight ]
             , href "/api/oauth/github"
             ]
             [ icon Github
@@ -104,14 +103,14 @@ gistControls (State {authStatus, createGistResult, gistUrl}) =
         Loading ->
           button
             [ idPublishGist
-            , classes [ btn, btnInfo, offset6 ]
+            , classes [ btn, btnInfo, pullRight ]
             , disabled true
             ]
             [ icon Spinner ]
         NotAsked ->
           button
             [ idPublishGist
-            , classes [ btn, btnInfo, offset6 ]
+            , classes [ btn, btnInfo, pullRight ]
             , disabled true
             ]
             [ icon Spinner ]
