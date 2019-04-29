@@ -53303,6 +53303,7 @@ license = stdenv.lib.licenses.mit;
 , base
 , containers
 , lens
+, plutus-emulator
 , plutus-use-cases
 , plutus-wallet-api
 , servant
@@ -53321,6 +53322,7 @@ isExecutable = true;
 libraryHaskellDepends = [
 aeson
 base
+plutus-emulator
 plutus-wallet-api
 text
 ];
