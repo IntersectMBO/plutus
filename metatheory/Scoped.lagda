@@ -413,6 +413,7 @@ uglyTermCon (integer x) = "(integer " ++ Data.Integer.show x ++ ")"
 uglyTermCon (bytestring x) = "bytestring"
 uglyTermCon size = "size"
 -}
+
 postulate showNat : ℕ → String
 
 {-# FOREIGN GHC import qualified Data.Text as T #-}
