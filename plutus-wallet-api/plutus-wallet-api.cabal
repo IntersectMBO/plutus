@@ -1,5 +1,5 @@
 cabal-version: 2.2
-name: wallet-api
+name: plutus-wallet-api
 version: 0.1.0.0
 license: Apache-2.0
 license-files:
@@ -9,7 +9,7 @@ maintainer: michael.peyton-jones@iohk.io
 author: Michael Peyton Jones, Jann Mueller
 synopsis: Wallet API
 description:
-    Wallet API and emulator
+    Wallet API and ledger types
 category: Language
 build-type: Simple
 extra-doc-files: README.md
@@ -41,21 +41,66 @@ flag development
 
 library
     import: lang
+    hs-source-dirs: src
     exposed-modules:
-        Data.Aeson.Extras
         Wallet
         Wallet.API
-        Wallet.Emulator
-        Wallet.Emulator.AddressMap
-        Wallet.Emulator.Client
-        Wallet.Emulator.Http
-        Wallet.Emulator.Types
         Wallet.Generators
         Wallet.Graph
         Language.PlutusTx.StateMachine
+    reexported-modules:
+        Data.Aeson.Extras,
+        Ledger,
+        Ledger.Ada,
+        Ledger.Ada.TH,
+        Ledger.AddressMap,
+        Ledger.Map,
+        Ledger.Map.TH,
+        Ledger.These,
+        Ledger.These.TH,
+        Ledger.Blockchain,
+        Ledger.Crypto,
+        Ledger.Slot,
+        Ledger.Scripts,
+        Ledger.Tx,
+        Ledger.TxId,
+        Ledger.Validation,
+        Ledger.Index,
+        Ledger.Interval,
+        Ledger.Value,
+        Ledger.Value.TH,
+        LedgerBytes
+    default-language: Haskell2010
+    build-depends:
+        base >=4.9 && <5,
+        aeson -any,
+        bytestring -any,
+        containers -any,
+        hedgehog -any,
+        lens -any,
+        memory -any,
+        mtl -any,
+        plutus-tx -any,
+        plutus-ledger -any,
+        serialise -any,
+        template-haskell -any,
+        text -any,
+        recursion-schemes -any,
+        deriving-compat -any
+
+    if (flag(development) && impl(ghc <8.4))
+        ghc-options: -Werror
+
+library plutus-ledger
+    import: lang
+    hs-source-dirs: ledger
+    default-language: Haskell2010
+    exposed-modules:
+        Data.Aeson.Extras
         Ledger
         Ledger.Ada
         Ledger.Ada.TH
+        Ledger.AddressMap
         Ledger.Map
         Ledger.Map.TH
         Ledger.These
@@ -72,8 +117,6 @@ library
         Ledger.Value
         Ledger.Value.TH
         LedgerBytes
-    hs-source-dirs: src
-    default-language: Haskell2010
     build-depends:
         base >=4.9 && <5,
         aeson -any,
@@ -92,12 +135,8 @@ library
         operational -any,
         serialise -any,
         servant -any,
-        servant-client -any,
-        servant-server -any,
-        stm -any,
         swagger2 -any,
         template-haskell -any,
-        text -any,
         text -any,
         transformers -any,
         recursion-schemes -any,
@@ -107,19 +146,7 @@ library
         http-api-data,
         cardano-crypto
 
-    if (flag(development) && impl(ghc <8.4))
-        ghc-options: -Werror
-
-executable emulator
-    import: lang
-    main-is: Main.hs
-    hs-source-dirs: emulator
-    build-depends:
-        base <5,
-        wallet-api -any,
-        warp -any
-
-test-suite wallet-api-test
+test-suite plutus-wallet-api-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     hs-source-dirs: test
@@ -132,7 +159,7 @@ test-suite wallet-api-test
         tasty-hedgehog -any,
         tasty-hunit -any,
         transformers -any,
-        wallet-api -any,
+        plutus-wallet-api -any,
         plutus-tx -any,
         lens -any,
         bytestring -any,

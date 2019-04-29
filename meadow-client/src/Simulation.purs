@@ -33,6 +33,7 @@ import Data.Either (Either(..))
 import Data.Eq ((==), (/=))
 import Data.Foldable (all)
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Newtype (unwrap)
 import Data.Tuple (Tuple(..))
 import Data.HeytingAlgebra ((&&))
 import Halogen (HTML, action)
@@ -101,7 +102,7 @@ import Prelude
   , (<<<)
   , (<>)
   )
-import Marlowe.Types (Person, IdOracle, Choice, IdAction, IdCommit, Timeout, WIdChoice(..), IdChoice(..))
+import Marlowe.Types (BlockNumber(BlockNumber), Person, IdOracle, Choice, IdAction, IdCommit, Timeout, WIdChoice(..), IdChoice(..))
 import Types
   ( ChildQuery
   , ChildSlot
@@ -358,7 +359,7 @@ inputComposerOracle isEnabled (Tuple idOracle {blockNumber, value}) =
            , spanText " as the value for block "
            , marloweActionInput isEnabled
                                 (\x -> SetOracleBn { idOracle
-                                                   , blockNumber: x}) blockNumber
+                                                   , blockNumber: BlockNumber (unwrap x)}) blockNumber
            ]
 
 marloweActionInput :: forall p a. Show a => Boolean -> (BigInteger -> Unit -> Query Unit) -> a -> HTML p Query

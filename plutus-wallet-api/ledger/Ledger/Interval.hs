@@ -37,7 +37,7 @@ makeLift ''Interval
 
 The purpose of this module is to provide an interval data type that
 can be used in on-chain and off-chain code alike. Its two main uses in the
-'wallet-api' module are the validity range of transactions, and the ranges of
+'plutus-wallet-api' module are the validity range of transactions, and the ranges of
 funds and slot numbers for wallet triggers.
 
 To ensure that 'Interval' can be used in on-chain code, the functions in this

@@ -19,6 +19,7 @@ import qualified Test.Tasty.HUnit                                      as HUnit
 
 import           Wallet                                                (PubKey (..))
 import           Wallet.Emulator
+import qualified Wallet.Emulator.Generators                            as Gen
 import qualified Wallet.Generators                                     as Gen
 
 import qualified Language.PlutusTx.Coordination.Contracts.CrowdFunding as CF

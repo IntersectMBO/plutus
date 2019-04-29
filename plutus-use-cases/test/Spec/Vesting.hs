@@ -27,6 +27,7 @@ import qualified Ledger.Validation                                as Validation
 import qualified Ledger.Value                                     as Value
 import           Wallet                                           (PubKey (..))
 import           Wallet.Emulator
+import qualified Wallet.Emulator.Generators                       as Gen
 import qualified Wallet.Generators                                as Gen
 
 w1, w2 :: Wallet
