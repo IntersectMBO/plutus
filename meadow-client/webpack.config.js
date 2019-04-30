@@ -95,8 +95,9 @@ module.exports = {
             debug: true
         }),
         new HtmlWebpackPlugin({
-            template: 'static/index.html',
+            template: '../web-common/static/index.html',
             favicon: 'static/favicon.ico',
+            title: 'Meadow',
             googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-7'
         }),
         new webpack.NormalModuleReplacementPlugin(/^echarts$/, 'echarts/dist/echarts.min.js')

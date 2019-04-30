@@ -4,8 +4,6 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
 
-        <title>Meadow</title>
-
         <!-- Global site tag (gtag.js) - Google Analytics -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=<%= htmlWebpackPlugin.options.googleAnalyticsId %>"></script>
         <script>
@@ -13,7 +11,13 @@
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
 
-            gtag('config', '<%= htmlWebpackPlugin.options.googleAnalyticsId %>', { 'anonymize_ip': true });
+            gtag(
+                'config',
+                '<%= htmlWebpackPlugin.options.googleAnalyticsId %>',
+                {
+                    'anonymize_ip': true
+                }
+            );
         </script>
     </head>
     <body>
