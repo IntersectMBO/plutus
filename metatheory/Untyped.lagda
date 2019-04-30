@@ -32,52 +32,12 @@ data _⊢ : ℕ → Set where
   unwrap  : ∀{n} → n ⊢ → n ⊢
 \end{code}
 
-\begin{code}
-open import Type
-open import Declarative
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con renaming (TermCon to TyTermCon)
-
-len : Ctx → ℕ
-len ∅ = 0
-len (Γ ,⋆ K) = len Γ
-len (Γ , A)  = suc (len Γ)
-
-eraseVar : ∀{Γ K}{A : ∥ Γ ∥ ⊢⋆ K} → Γ ∋ A → Fin (len Γ)
-eraseVar Z     = zero
-eraseVar (S α) = suc (eraseVar α) 
-eraseVar (T α) = eraseVar α
-
-eraseTC : ∀{Γ}{A : ∥ Γ ∥ ⊢⋆ *} → TyTermCon A → TermCon
-eraseTC (integer i)    = integer i
-eraseTC (bytestring b) = bytestring b
-
-open import Type.RenamingSubstitution
-
-eraseTel : ∀{Γ Δ}{σ : Sub Δ ∥ Γ ∥}{As : List (Δ ⊢⋆ *)}
-  → Tel Γ Δ σ As
-  → List (len Γ ⊢)
-erase : ∀{Γ K}{A : ∥ Γ ∥ ⊢⋆ K} → Γ ⊢ A → len Γ ⊢
-
-erase (` α)             = ` (eraseVar α)
-erase (ƛ t)             = ƛ (erase t) 
-erase (t · u)           = erase t · erase u
-erase (Λ t)             = erase t
-erase (t ·⋆ A)          = erase t
-erase (wrap1 pat arg t) = erase t
-erase (unwrap1 t)       = erase t
-erase (conv p t)        = erase t
-erase {Γ} (con t)       = con (eraseTC {Γ} t)
-erase (builtin bn σ ts) = builtin bn (eraseTel ts)
-erase (error A)         = error
-
-open import Data.Product renaming (_,_ to _,,_)
-
-eraseTel {As = []}     _          = []
-eraseTel {As = x ∷ As} (t ,, tel) = erase t ∷ eraseTel tel
-
 -- conversion for scoped to untyped
 
+
+\begin{code}
 import Scoped as S
+open import Data.Product renaming (_,_ to _,,_)
 
 eraseℕ : S.Weirdℕ → ℕ
 eraseℕ S.Z     = zero
@@ -138,6 +98,8 @@ eraseL [] = []
 eraseL (t ∷ ts) = erase⊢ t ∷ eraseL ts
 \end{code}
 
+
+
 \begin{code}
 open import Data.String
 
@@ -153,6 +115,11 @@ uglyTermCon size = "size"
 
 {-# FOREIGN GHC import qualified Data.Text as T #-}
 
+postulate showNat : ℕ → String
+
+{-# FOREIGN GHC import qualified Data.Text as T #-}
+{-# COMPILE GHC showNat = T.pack . show #-}
+
 uglyBuiltin : Builtin → String
 uglyBuiltin addInteger = "addInteger"
 uglyBuiltin _ = "other"
@@ -161,7 +128,7 @@ ugly (` x) = "(` " ++ uglyFin x ++ ")"
 ugly (ƛ t) = "(ƛ " ++ ugly t ++ ")"
 ugly (t · u) = "( " ++ ugly t ++ " · " ++ ugly u ++ ")"
 ugly (con c) = "(con " ++ uglyTermCon c ++ ")"
-ugly (builtin b ts) = "(builtin " ++ uglyBuiltin b ++ " " ++ S.showNat (Data.List.length ts) ++ ")"
+ugly (builtin b ts) = "(builtin " ++ uglyBuiltin b ++ " " ++ showNat (Data.List.length ts) ++ ")"
 ugly error = "error"
 ugly (wrap t) = "(wrap " ++ ugly t ++ ")"
 ugly (unwrap t) = "(unwrap " ++ ugly t ++ ")"
