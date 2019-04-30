@@ -2,7 +2,6 @@
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PolyKinds         #-}
@@ -331,8 +330,10 @@ compileConstructorClause dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeV
     -- need to be able to lift the argument types
     traverse_ addLiftDep argTys
 
-    -- need the actual type parameters
-    typeExprs <- traverse (compileType Typeable . normalizeType) tvs
+    -- We need the actual type parameters for the non-newtype case, and we have to do
+    -- it out here, but it will give us redundant constraints in the newtype case,
+    -- so we fudge it.
+    typeExprs <- if isNewtype dt then pure [] else traverse (compileType Typeable . normalizeType) tvs
     pure $ do
         patNames <- for argTys $ \_ -> TH.newName "arg"
         let pats = fmap TH.varP patNames
@@ -340,30 +341,28 @@ compileConstructorClause dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeV
         let liftExprs = fmap (\pn -> TH.varE 'lift `TH.appE` TH.varE pn) patNames
         -- see note [Compiling at TH time and runtime]
         expr <- if isNewtype dt
-            then do
-                arg <- case liftExprs of
+            then case liftExprs of
                     [arg] -> pure arg
                     _     -> die "Newtypes must have a single constructor with a single argument"
-                pure [| typeRep (undefined :: Proxy $(TH.conT tyName)) *> $(arg) |]
             else
                 pure [|
-                  do
-                      -- force creation of datatype
-                      _ <- typeRep (undefined :: Proxy $(TH.conT tyName))
+                    do
+                        -- force creation of datatype
+                        _ <- typeRep (undefined :: Proxy $(TH.conT tyName))
 
-                      -- get the right constructor
-                      maybeConstructors <- lookupConstructors () tyName
-                      constrs <- case maybeConstructors of
-                          Nothing -> die $ "Constructors not created for " ++ show tyName
-                          Just cs -> pure cs
-                      let constr = constrs !! index
+                        -- get the right constructor
+                        maybeConstructors <- lookupConstructors () tyName
+                        constrs <- case maybeConstructors of
+                            Nothing -> die $ "Constructors not created for " ++ show tyName
+                            Just cs -> pure cs
+                        let constr = constrs !! index
 
-                      -- need to instantiate it to the right types and then lift all the arguments and apply it to them
-                      types <- sequence $(TH.listE typeExprs)
-                      lifts <- sequence $(TH.listE liftExprs)
+                        -- need to instantiate it to the right types and then lift all the arguments and apply it to them
+                        types <- sequence $(TH.listE typeExprs)
+                        lifts <- sequence $(TH.listE liftExprs)
 
-                      pure $ mkIterApp () (mkIterInst () constr types) lifts
-                |]
+                        pure $ mkIterApp () (mkIterInst () constr types) lifts
+                  |]
         TH.clause [pat] (TH.normalB expr) []
 
 makeLift :: TH.Name -> TH.Q [TH.Dec]
