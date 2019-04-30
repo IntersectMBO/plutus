@@ -23,7 +23,7 @@ import           Language.Haskell.TH       (Q, TExp)
 
 -- | Specification of a state machine 
 data StateMachine s i = StateMachine {
-        smTransition :: s -> i -> s
+      smTransition :: s -> i -> s
     , smStateEq    :: s -> s -> Bool
     }
 

@@ -10,6 +10,7 @@ module Ledger.Slot(
       Slot(..)
     , SlotRange
     , singleton
+    , Ledger.Slot.eq
     , empty
     , member
     , width
@@ -25,7 +26,7 @@ import           GHC.Generics                             (Generic)
 import           Language.Haskell.TH
 
 import           Language.PlutusTx.Lift                   (makeLift)
-import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Prelude                as P
 
 import           Ledger.Interval
 
@@ -45,6 +46,10 @@ type SlotRange = Interval Slot
 -- | A 'SlotRange' that covers only a single slot.
 singleton :: Q (TExp (Slot -> SlotRange))
 singleton = [|| \(Slot s) -> Interval (Just (Slot s)) (Just (Slot ($$plus s 1))) ||]
+
+-- | Equality of 'Slot' values
+eq :: Q (TExp (Slot -> Slot -> Bool))
+eq = [|| \(Slot s) (Slot s') -> $$(P.eq) s s' ||]
 
 -- | Check if a 'SlotRange' is empty.
 empty :: Q (TExp (SlotRange -> Bool))
