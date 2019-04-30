@@ -112,8 +112,6 @@ executable plc-agda
         MAlonzo.Code.Scoped.Reduction
         MAlonzo.Code.Scoped.RenamingSubstitution
         MAlonzo.Code.Type
-        MAlonzo.Code.Type.Equality
-        MAlonzo.Code.Type.RenamingSubstitution
         MAlonzo.Code.Utils
         MAlonzo.RTE
         Raw
