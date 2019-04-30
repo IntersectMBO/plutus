@@ -15,7 +15,11 @@
                 'config',
                 '<%= htmlWebpackPlugin.options.googleAnalyticsId %>',
                 {
-                    'anonymize_ip': true
+                    'anonymize_ip': true,
+                    'custom_map': {
+                        'dimension1': 'product'
+                    },
+                    'product': '<%= htmlWebpackPlugin.options.productName %>'
                 }
             );
         </script>
