@@ -33,6 +33,7 @@ import Declarative
 import Declarative.RenamingSubstitution
 import Declarative.Reduction
 import Declarative.Evaluation
+import Declarative.Erasure
 
 --import Declarative.Examples
 import Declarative.StdLib.Unit

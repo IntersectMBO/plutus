@@ -88,6 +88,8 @@ mapper : {A B : Set} → (A → B) → Maybe A → Maybe B
 mapper f nothing = nothing
 mapper f (just a) = just (f a)
 
+open import Untyped
+
 -- untyped evaluation
 utestPLC : ByteString → Maybe String
 utestPLC plc = mmap (U.ugly ∘ (λ (t : 0 ⊢) → proj₁ (U.run t 100)) ∘ erase⊢) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))
@@ -104,7 +106,7 @@ open import Data.Vec hiding (_>>=_)
 stestPLC : ByteString → String
 stestPLC plc with parse plc
 stestPLC plc | just t with deBruijnifyTm nil (convP t)
-stestPLC plc | just t | just t' with S.run (saturate t') 1000
+stestPLC plc | just t | just t' with S.run (saturate t') 1000000
 stestPLC plc | just t | just t' | t'' ,, p ,, inj₁ (just v) =
 --  prettyPrint (unDeBruijnify zero Z (unsaturate t''))
  prettyPrint (deDeBruijnify [] nil (unsaturate t''))
