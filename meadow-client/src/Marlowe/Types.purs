@@ -98,12 +98,13 @@ instance showIdChoice :: Show IdChoice where
 instance prettyIdChoice :: Pretty IdChoice where
   prettyFragment a = text (show a)
 
-data WIdChoice
+newtype WIdChoice
   = WIdChoice IdChoice
 
 derive instance eqWIdChoice :: Eq WIdChoice
 
 derive instance ordWIdChoice :: Ord WIdChoice
+derive newtype instance showWIdChoice :: Show WIdChoice
 
 newtype IdOracle
   = IdOracle BigInteger

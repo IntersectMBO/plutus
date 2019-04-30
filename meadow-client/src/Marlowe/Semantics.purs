@@ -6,11 +6,15 @@ import Data.BigInteger (BigInteger, fromInt)
 import Data.Foldable (foldMap)
 import Data.Foldable as F
 import Data.FoldableWithIndex (foldrWithIndexDefault)
+import Data.Function (on)
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Show (genericShow)
 import Data.List (List(Nil, Cons), concat, foldl, foldr)
 import Data.Map as M
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Monoid (mempty)
 import Data.Newtype (class Newtype, unwrap, wrap)
+import Data.Record (equal)
 import Data.Set as S
 import Data.Tuple (Tuple(..))
 import Marlowe.Types (BlockNumber, Choice, Contract(Use, Let, Scale, While, When, Choice, Both, Pay, Commit, Null), ContractF(..), IdAction, IdChoice, IdCommit, IdOracle, LetLabel, Observation, ObservationF(..), Person, Timeout, Value(..), ValueF(..), WIdChoice(WIdChoice))
@@ -45,19 +49,45 @@ derive instance ordIdInput :: Ord IdInput
 type TimeoutData
   = M.Map Timeout (S.Set IdCommit)
 
-type CommitInfoRecord
-  = {person :: Person, amount :: BigInteger, timeout :: Timeout}
+newtype CommitInfoRecord
+  = CommitInfoRecord {person :: Person, amount :: BigInteger, timeout :: Timeout}
 
-data CommitInfo
+derive instance newtypeCommitInfoRecord :: Newtype CommitInfoRecord _
+instance eqCommitInfoRecord :: Eq CommitInfoRecord where
+  eq = equal `on` unwrap
+derive instance genericCommitInfoRecord :: Generic CommitInfoRecord _
+instance showCommitInfoRecord :: Show CommitInfoRecord where
+  show = genericShow
+
+newtype CommitInfo
   = CommitInfo {redeemedPerPerson :: M.Map Person BigInteger, currentCommitsById :: M.Map IdCommit CommitInfoRecord, expiredCommitIds :: S.Set IdCommit, timeoutData :: TimeoutData}
 
-type OracleDataPoint
-  = {blockNumber :: BlockNumber, value :: BigInteger}
+derive instance newtypeCommitInfo :: Newtype CommitInfo _
+instance eqCommitInfo :: Eq CommitInfo where
+  eq = equal `on` unwrap
+derive instance genericCommitInfo :: Generic CommitInfo _
+instance showCommitInfo :: Show CommitInfo where
+  show = genericShow
+
+newtype OracleDataPoint
+  = OracleDataPoint {blockNumber :: BlockNumber, value :: BigInteger}
+
+derive instance newtypeOracleDataPoint :: Newtype OracleDataPoint _
+instance eqOracleDataPoint :: Eq OracleDataPoint where
+  eq = equal `on` unwrap
+derive instance genericOracleDataPoint :: Generic OracleDataPoint _
+instance showOracleDataPoint :: Show OracleDataPoint where
+  show = genericShow
 
 newtype State
   = State {commits :: CommitInfo, choices :: M.Map WIdChoice Choice, oracles :: M.Map IdOracle OracleDataPoint, usedIds :: S.Set IdAction}
 
 derive instance newtypeState :: Newtype State _
+instance eqState :: Eq State where
+  eq = equal `on` unwrap
+derive instance genericState :: Generic State _
+instance showState :: Show State where
+  show = genericShow
 
 emptyCommitInfo :: CommitInfo
 emptyCommitInfo = CommitInfo { redeemedPerPerson: M.empty
@@ -104,7 +134,7 @@ addCommit ::
   Timeout ->
   State ->
   State
-addCommit idCommit person value timeout (State state) = State (state { commits = CommitInfo (ci { currentCommitsById = M.insert idCommit ({ person
+addCommit idCommit person value timeout (State state) = State (state { commits = CommitInfo (ci { currentCommitsById = M.insert idCommit (CommitInfoRecord { person
                                                                                                                                           , amount: value
                                                                                                                                           , timeout
                                                                                                                                           }) ci.currentCommitsById, timeoutData = addToCommByTim timeout idCommit ci.timeoutData }) })
@@ -117,7 +147,7 @@ personForCurrentCommit ::
   State ->
   Maybe Person
 personForCurrentCommit idCommit (State state) = case M.lookup idCommit ci.currentCommitsById of
-  Just v -> Just v.person
+  Just v -> Just (unwrap v).person
   Nothing -> Nothing
   where
   (CommitInfo ci) = state.commits
@@ -144,7 +174,7 @@ removeCurrentCommit ::
   State ->
   State
 removeCurrentCommit idCommit (State state) = case M.lookup idCommit commById of
-  Just v -> State (state { commits = CommitInfo (ci { currentCommitsById = M.delete idCommit commById, timeoutData = removeFromCommByTim v.timeout idCommit timData }) })
+  Just v -> State (state { commits = CommitInfo (ci { currentCommitsById = M.delete idCommit commById, timeoutData = removeFromCommByTim (unwrap v).timeout idCommit timData }) })
   Nothing -> State state
   where
   CommitInfo ci = state.commits
@@ -177,7 +207,8 @@ discountAvailableMoneyFromCommit ::
   State ->
   Maybe State
 discountAvailableMoneyFromCommit idCommit discount (State state) = case M.lookup idCommit commById of
-  Just { person, amount, timeout } -> Just (State (state { commits = CommitInfo (ci { currentCommitsById = M.insert idCommit ({ person
+  Just (CommitInfoRecord { person, amount, timeout }) -> Just (State (state { commits = CommitInfo (ci { currentCommitsById = M.insert idCommit (CommitInfoRecord
+                                                                                                                              { person
                                                                                                                               , amount: amount - discount
                                                                                                                               , timeout
                                                                                                                               }) commById }) }))
@@ -188,7 +219,7 @@ discountAvailableMoneyFromCommit idCommit discount (State state) = case M.lookup
 
 getAvailableAmountInCommit :: IdCommit -> State -> BigInteger
 getAvailableAmountInCommit idCommit (State state) = case M.lookup idCommit ci.currentCommitsById of
-  Just v -> v.amount
+  Just v -> (unwrap v).amount
   Nothing -> fromInt 0
   where
   CommitInfo ci = state.commits
@@ -267,14 +298,14 @@ addAnyInput _ (Input (IChoice idChoice choice)) collectNeededInputs (State state
   | true = Nothing
 
 addAnyInput blockNumber (Input (IOracle idOracle timestamp value)) collectNeededInputs (State state) = case M.lookup idOracle oracleMap of
-  Just v -> if (timestamp > v.blockNumber) && (timestamp <= blockNumber) && ((IdOracle idOracle) `S.member` collectNeededInputs)
+  Just v -> if (timestamp > (unwrap v).blockNumber) && (timestamp <= blockNumber) && ((IdOracle idOracle) `S.member` collectNeededInputs)
     then Just newState
     else Nothing
   Nothing -> Just newState
   where
-  newState = State (state { oracles = M.insert idOracle { blockNumber: timestamp
+  newState = State (state { oracles = M.insert idOracle (OracleDataPoint { blockNumber: timestamp
                                                         , value
-                                                        } oracleMap
+                                                        }) oracleMap
                           })
   oracleMap = state.oracles
 
@@ -291,10 +322,10 @@ expireOneCommit ::
   CommitInfo ->
   CommitInfo
 expireOneCommit idCommit (CommitInfo commitInfo) = CommitInfo case M.lookup idCommit currentCommits of
-  Just { person, amount } -> let redeemedBefore = case M.lookup person redPerPer of
+  Just cir -> let redeemedBefore = case M.lookup (unwrap cir).person redPerPer of
                                    Just x -> x
                                    Nothing -> fromInt 0
-                             in commitInfo { redeemedPerPerson = M.insert person (redeemedBefore + amount) redPerPer, currentCommitsById = M.delete idCommit currentCommits }
+                             in commitInfo { redeemedPerPerson = M.insert (unwrap cir).person (redeemedBefore + (unwrap cir).amount) redPerPer, currentCommitsById = M.delete idCommit currentCommits }
   Nothing -> commitInfo
   where
   redPerPer = commitInfo.redeemedPerPerson
@@ -347,7 +378,7 @@ evalValue blockNumber state = cata algebra
     algebra (DivValueF dividend divisor defaultValue) = if divisor == fromInt 0 then defaultValue else div dividend divisor
     algebra (ModValueF dividend divisor defaultValue) = if divisor == fromInt 0 then defaultValue else mod dividend divisor
     algebra (ValueFromChoiceF idChoice val) = fromMaybe val $ M.lookup (WIdChoice idChoice) (unwrap state).choices
-    algebra (ValueFromOracleF idOracle val) = fromMaybe val <<< map _.value $ M.lookup idOracle (unwrap state).oracles
+    algebra (ValueFromOracleF idOracle val) = fromMaybe val <<< map (unwrap >>> _.value) $ M.lookup idOracle (unwrap state).oracles
 
 -- Evaluate an observation
 
@@ -886,6 +917,9 @@ data ErrorResult
 derive instance eqErrorResult :: Eq ErrorResult
 
 derive instance ordErrorResult :: Ord ErrorResult
+derive instance genericErrorResult :: Generic ErrorResult _
+instance showErrorResult :: Show ErrorResult where
+  show = genericShow
 
 data ApplicationResult a
   = SuccessfullyApplied a DynamicProblem
@@ -1004,7 +1038,7 @@ class PeopleFrom a where
 
 instance peopleFromCommitInfo :: PeopleFrom CommitInfo where
   peopleFrom (CommitInfo { redeemedPerPerson: rpp, currentCommitsById: ccbi })
-    = S.fromFoldable (M.keys rpp) <> foldMap (_.person >>> S.singleton) (M.values ccbi)
+    = S.fromFoldable (M.keys rpp) <> foldMap (unwrap >>> _.person >>> S.singleton) (M.values ccbi)
 
 instance peopleFromState :: PeopleFrom State where
   peopleFrom (State { commits: comm }) = peopleFrom comm

@@ -49,12 +49,12 @@ import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Marlowe.Parser (contract)
 import Marlowe.Pretty (pretty)
+import Marlowe.Semantics (ErrorResult(InvalidInput), IdInput(IdOracle, InputIdChoice), MApplicationResult(MCouldNotApply, MSuccessfullyApplied), OracleDataPoint(..), State(State), TransactionOutcomes, applyTransaction, collectNeededInputs, emptyState, peopleFromStateAndContract, reduce, scoutPrimitives)
 import Marlowe.Types (BlockNumber, Choice, Contract(Null), IdChoice(IdChoice), IdOracle, Person, WIdChoice(WIdChoice))
 import Meadow (SPParams_, getOauthStatus, patchGistsByGistId, postGists, postContractHaskell)
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(Success, NotAsked), _Success, isLoading, isSuccess)
 import Prelude (add, one, zero, not, (||), type (~>), Unit, Void, bind, const, discard, id, pure, show, unit, void, (#), ($), (+), (-), (<$>), (<<<), (<>), (==))
-import Marlowe.Semantics (ErrorResult(InvalidInput), IdInput(IdOracle, InputIdChoice), MApplicationResult(MCouldNotApply, MSuccessfullyApplied), State(State), TransactionOutcomes, applyTransaction, collectNeededInputs, emptyState, peopleFromStateAndContract, reduce, scoutPrimitives)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation (simulationPane)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
@@ -236,13 +236,13 @@ updateOracles cbn (State state) inputs omap =
     addOracle (IdOracle idOracle) a =
         case Map.lookup idOracle omap, Map.lookup idOracle state.oracles of
              Nothing, Nothing -> Map.insert idOracle {blockNumber: cbn, value: zero} a
-             Just {blockNumber: bn, value}, Just {blockNumber: lbn} ->
+             Just {blockNumber: bn, value}, Just (OracleDataPoint {blockNumber: lbn}) ->
                if (lbn >= cbn)
                then a
                else Map.insert idOracle {blockNumber: max (lbn + one) bn, value} a
              Just {blockNumber, value}, Nothing ->
                Map.insert idOracle {blockNumber: min blockNumber cbn, value} a
-             Nothing, Just {blockNumber, value} ->
+             Nothing, Just (OracleDataPoint {blockNumber, value}) ->
                if (blockNumber >= cbn)
                then a
                else Map.insert idOracle {blockNumber: cbn, value} a
@@ -287,12 +287,12 @@ applyTransactionM oldState =
     Nothing -> oldState
     Just c -> case applyTransaction inps sigs bn st c mic of
                 MSuccessfullyApplied {funds, state, contract} _ ->
-                   set (_transaction <<< _inputs) []
-                   (set (_transaction <<< _signatures) Map.empty
-                   (set (_state) state
-                   (set (_moneyInContract) funds
-                   (set (_contract) (Just contract)
-                    oldState))))
+                   oldState
+                   # set (_transaction <<< _inputs) []
+                   # set (_transaction <<< _signatures) Map.empty
+                   # set (_state) state
+                   # set (_moneyInContract) funds
+                   # set (_contract) (Just contract)
                 MCouldNotApply _ -> oldState
   where
     inps = Array.toUnfoldable (oldState.transaction.inputs)
