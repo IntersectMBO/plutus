@@ -59,3 +59,40 @@ eraseTel {As = x ∷ As} (t ,, tel) = erase t ∷ eraseTel tel
 Porting this from declarative required basically deleting one line but
 I don't think I can fully exploit this by parameterizing the module as
 I need to pattern match on the term constructors
+
+# Erasing decl/alg terms agree
+
+\begin{code}
+open import Relation.Binary.PropositionalEquality
+import Declarative as D
+import Declarative.Erasure as D
+open import Algorithmic.Completeness
+
+lenLemma : ∀ Γ → len (nfCtx Γ) ≡ D.len Γ
+lenLemma D.∅        = refl
+lenLemma (Γ D.,⋆ J) = lenLemma Γ
+lenLemma (Γ D., A)  = cong suc (lenLemma Γ)
+
+{-
+sameVar : ∀{Γ J}{A : D.∥ Γ ∥ ⊢⋆ J}(x : Γ D.∋ A)
+  → D.eraseVar x ≡ subst Fin (lenLemma Γ) (eraseVar (nfTyVar x))
+sameVar D.Z = {!!}
+sameVar {Γ} (D.S x) with lenLemma Γ
+... | p = {!p!}
+sameVar (D.T x) = {!sameVar x!}
+
+same : ∀{Γ J}{A : D.∥ Γ ∥ ⊢⋆ J}(t : Γ D.⊢ A)
+  → D.erase t ≡ subst _⊢ (lenLemma Γ) (erase (nfType t)) 
+same (D.` x) = {!!}
+same (D.ƛ t) = {!!}
+same (t D.· t₁) = {!!}
+same (D.Λ t) = {!!}
+same (t D.·⋆ A) = {!!}
+same (D.wrap1 pat arg t) = {!!}
+same (D.unwrap1 t) = {!!}
+same (D.conv x t) = {!!}
+same (D.con x) = {!!}
+same (D.builtin bn σ x) = {!!}
+same (D.error A) = {!!}
+-}
+\end{code}
