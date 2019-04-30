@@ -19,14 +19,16 @@ import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Type
 
+import           Data.Proxy
+
 dynamicCharToStringName :: DynamicBuiltinName
 dynamicCharToStringName = DynamicBuiltinName "charToString"
 
 dynamicCharToStringMeaning :: DynamicBuiltinNameMeaning
 dynamicCharToStringMeaning = DynamicBuiltinNameMeaning sch pure where
     sch =
-        TypeSchemeBuiltin (TypedBuiltinDyn @Char) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinDyn @String)
+        Proxy @Char `TypeSchemeArrow`
+        TypeSchemeResult (Proxy @String)
 
 dynamicCharToStringDefinition :: DynamicBuiltinNameDefinition
 dynamicCharToStringDefinition =
@@ -41,9 +43,9 @@ dynamicAppendName = DynamicBuiltinName "append"
 dynamicAppendMeaning :: DynamicBuiltinNameMeaning
 dynamicAppendMeaning = DynamicBuiltinNameMeaning sch (++) where
     sch =
-        TypeSchemeBuiltin (TypedBuiltinDyn @String) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinDyn @String) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinDyn @String)
+        Proxy @String `TypeSchemeArrow`
+        Proxy @String `TypeSchemeArrow`
+        TypeSchemeResult (Proxy @String)
 
 dynamicAppendDefinition :: DynamicBuiltinNameDefinition
 dynamicAppendDefinition =

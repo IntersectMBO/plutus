@@ -73,7 +73,7 @@ subst⊢' refl refl α = α
 
 \begin{code}
 lemƛ' : ∀{Γ Γ'}(A B : Γ ⊢Nf⋆ *) →
-      (p : Γ ≡ Γ') → 
+      (p : Γ ≡ Γ') →
       substEq (_⊢⋆ *) p (embNf A ⇒ embNf B)
       ≡
       substEq (_⊢⋆ *) p (embNf A) ⇒ substEq (_⊢⋆ *) p (embNf B)
@@ -81,7 +81,7 @@ lemƛ' A B refl = refl
 \end{code}
 
 \begin{code}
-lemΠ' :  ∀{Γ Γ' K }(p : Γ ≡ Γ')(q : Γ ,⋆ K ≡ Γ' ,⋆ K)(B : Γ ,⋆ K ⊢Nf⋆ *) → 
+lemΠ' :  ∀{Γ Γ' K }(p : Γ ≡ Γ')(q : Γ ,⋆ K ≡ Γ' ,⋆ K)(B : Γ ,⋆ K ⊢Nf⋆ *) →
   Π (substEq (_⊢⋆ *) q (embNf B)) ≡
   substEq (_⊢⋆ *) p (Π (embNf B))
 lemΠ' refl refl B = refl
@@ -119,7 +119,7 @@ lem[]'' refl refl A B = substEq
 \end{code}
 
 \begin{code}
-lemμ'' : ∀{Γ Γ' K}(p : Γ ≡ Γ')(pat : Γ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)(arg : Γ ⊢Nf⋆ K) → 
+lemμ'' : ∀{Γ Γ' K}(p : Γ ≡ Γ')(pat : Γ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)(arg : Γ ⊢Nf⋆ K) →
   substEq (_⊢⋆ *) p (μ1 · embNf pat · embNf arg) ≡
   μ1 · substEq (_⊢⋆ _) p (embNf pat) · substEq (_⊢⋆ _) p (embNf arg)
 lemμ'' refl pat arg = refl
@@ -156,8 +156,8 @@ import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
   as NSig
 open import Builtin
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon 
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon 
+import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon
+import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon
 
 
 substTC' : ∀{Γ Γ'}(p : Γ ≡ Γ')(tcn : TyCon)
@@ -183,7 +183,7 @@ open import Type.Equality
 lemσ' : ∀{Γ Γ' Δ Δ'}(bn : Builtin)(p : Γ ≡ Γ')
   → (C : Δ ⊢⋆ *)(C' : Δ' ⊢Nf⋆ *) → (q : Δ ≡ Δ')
   → (σ : {J : Kind} → Δ' ∋⋆ J → Γ ⊢Nf⋆ J)
-  → nf C ≡ substEq (_⊢Nf⋆ *) (sym q) C' → 
+  → nf C ≡ substEq (_⊢Nf⋆ *) (sym q) C' →
   subst
   (λ {J} α →
      substEq (_⊢⋆ J) p
@@ -232,7 +232,6 @@ lemList' lessThanEqualsInteger = refl≡β _ ,, refl≡β _ ,, _
 lemList' greaterThanInteger = refl≡β _ ,, refl≡β _ ,, _
 lemList' greaterThanEqualsInteger = refl≡β _ ,, refl≡β _ ,, _
 lemList' equalsInteger = refl≡β _ ,, refl≡β _ ,, _
-lemList' intToByteString = refl≡β _ ,, _
 lemList' concatenate = refl≡β _ ,, refl≡β _ ,, _
 lemList' takeByteString = refl≡β _ ,, refl≡β _ ,, _
 lemList' dropByteString = refl≡β _ ,, refl≡β _ ,, _
@@ -243,7 +242,7 @@ lemList' equalsByteString = refl≡β _ ,, refl≡β _ ,, _
 
 lemsub : ∀{Γ Γ' Δ}(A : Δ ⊢Nf⋆ *)(A' : Δ ⊢⋆ *)(p : Γ ≡ Γ')
   → (σ : {J : Kind} → Δ ∋⋆ J → Γ ⊢Nf⋆ J)
-  → embNf A ≡β A' → 
+  → embNf A ≡β A' →
   substEq (_⊢⋆ *) p (embNf (substNf σ A)) ≡β
   subst (λ {J} α → substEq (_⊢⋆ J) p (embNf (σ α))) A'
 lemsub A A' refl σ p = trans≡β

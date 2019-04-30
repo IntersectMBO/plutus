@@ -75,15 +75,16 @@ type TypeEvalCheckM = Either TypeEvalCheckError
 -- See Note [Type-eval checking].
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 typeEvalCheckBy
-    :: (Term TyName Name () -> EvaluationResultDef) -- ^ An evaluator.
-    -> TermOf (TypedBuiltinValue a)
+    :: KnownType a
+    => (Term TyName Name () -> EvaluationResultDef)  -- ^ An evaluator.
+    -> TermOf a
     -> TypeEvalCheckM (TermOf TypeEvalCheckResult)
-typeEvalCheckBy eval (TermOf term tbv) = TermOf term <$> do
+typeEvalCheckBy eval (TermOf term x) = TermOf term <$> do
     _ <- VR.checkTerm term
     termTy <- runQuoteT $ inferType defOffChainConfig term
-    let resExpected = reoption $ makeBuiltin tbv
+    let valExpected = makeKnown x
     fmap (TypeEvalCheckResult termTy) $
-        for ((,) <$> resExpected <*> eval term) $ \(valExpected, valActual) ->
+        for (eval term) $ \valActual ->
             if valExpected == valActual
                 then return valActual
                 else throwError $ TypeEvalCheckErrorIllEvaled valExpected valActual
@@ -91,7 +92,7 @@ typeEvalCheckBy eval (TermOf term tbv) = TermOf term <$> do
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 -- Throw an error in case something goes wrong.
 unsafeTypeEvalCheck
-    :: forall a. TermOf (TypedBuiltinValue a) -> Maybe (TermOf (Value TyName Name ()))
+    :: forall a. KnownType a => TermOf a -> Maybe (TermOf (Value TyName Name ()))
 unsafeTypeEvalCheck termOfTbv = do
     let errOrRes = typeEvalCheckBy evaluateCk termOfTbv
     case errOrRes of

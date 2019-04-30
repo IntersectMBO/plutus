@@ -1,4 +1,4 @@
--- | @tuple@s of various sizees and related functions.
+-- | @tuple@s of various sizes and related functions.
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE GADTs #-}

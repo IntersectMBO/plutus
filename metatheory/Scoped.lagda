@@ -41,7 +41,7 @@ data WeirdFin : Weirdℕ → Set where
   Z : ∀{n} → WeirdFin (S n)
   S : ∀{n} → WeirdFin n → WeirdFin (S n)
   T : ∀{n} → WeirdFin n → WeirdFin (T n)
-  
+
 ∥_∥ : Weirdℕ → ℕ
 ∥ Z   ∥ = zero
 ∥ S n ∥ = ∥ n ∥
@@ -66,7 +66,7 @@ data TermCon : Set where
   string     : String → TermCon
 
 data ScopedTm : Weirdℕ → Set where
-  `    : ∀{n} → WeirdFin n → ScopedTm n 
+  `    : ∀{n} → WeirdFin n → ScopedTm n
   Λ    : ∀{n} → String → ScopedKind → ScopedTm (T n) → ScopedTm n
   _·⋆_ : ∀{n} → ScopedTm n → ScopedTy ∥ n ∥ → ScopedTm n
   ƛ    : ∀{n} → String → ScopedTy ∥ n ∥ → ScopedTm (S n) → ScopedTm n
@@ -159,13 +159,13 @@ velemIndexWeird x (consT _  xs) = map T (velemIndexWeird x xs)
 lookupWeird  : ∀{n X} → WeirdVec X n → WeirdFin n → X
 lookupWeird (consS x xs) Z = x
 lookupWeird (consS x xs) (S i) = lookupWeird xs i
-lookupWeird (consT x xs) (T i) = lookupWeird xs i 
+lookupWeird (consT x xs) (T i) = lookupWeird xs i
 
 deBruijnifyC : RawTermCon → TermCon
 deBruijnifyC (integer i) = integer i
 deBruijnifyC (bytestring b) = bytestring b
 deBruijnifyC (string x) = string x
-  
+
 
 deBruijnifyTm : ∀{n} → WeirdVec String n → RawTm → Maybe (ScopedTm n)
 deBruijnifyTm g (` x) = map ` (velemIndexWeird x g)
@@ -223,7 +223,6 @@ arity lessThanEqualsInteger = 2
 arity greaterThanInteger = 2
 arity greaterThanEqualsInteger = 2
 arity equalsInteger = 2
-arity intToByteString = 2
 arity concatenate = 2
 arity takeByteString = 2
 arity dropByteString = 2
@@ -245,7 +244,6 @@ arity⋆ lessThanEqualsInteger = 1
 arity⋆ greaterThanInteger = 1
 arity⋆ greaterThanEqualsInteger = 1
 arity⋆ equalsInteger = 1
-arity⋆ intToByteString = 2
 arity⋆ concatenate = 1
 arity⋆ takeByteString = 2
 arity⋆ dropByteString = 2
@@ -276,10 +274,10 @@ saturate (Λ x K t)        = Λ x K (saturate t)
 saturate (t ·⋆ A)       with builtinMatcher (saturate t)
 saturate (t ·⋆ A) | inj₁ (b , As , ts) = builtinEater⋆ b As ts A
 saturate (t ·⋆ A) | inj₂ t'            = t' ·⋆ A
-saturate (ƛ x A t)        = ƛ x A (saturate t) 
+saturate (ƛ x A t)        = ƛ x A (saturate t)
 saturate (t · u)        with builtinMatcher (saturate t)
 saturate (t · u) | inj₁ (b , As , ts) = builtinEater b As ts (saturate u)
-saturate (t · u) | inj₂ t'            = t' · saturate u 
+saturate (t · u) | inj₂ t'            = t' · saturate u
 saturate (con c)        = con c
 saturate (error A)      = error A
 saturate (builtin b As ts) = builtin b As ts
@@ -385,9 +383,9 @@ deDeBruijnify⋆ xs (μ t u) = μ (deDeBruijnify⋆ xs t) (deDeBruijnify⋆ xs u
 deDeBruijnify : ∀{n} → Vec String ∥ n ∥ → WeirdVec String n → ScopedTm n → RawTm
 deDeBruijnify xs⋆ xs (` x) = ` (lookupWeird xs x)
 deDeBruijnify xs⋆ xs (Λ x K t) = Λ x (unDeBruijnifyK K) (deDeBruijnify (x ∷ xs⋆) (consT x xs) t) -- surprised x goes on both
-deDeBruijnify xs⋆ xs (t ·⋆ A) = deDeBruijnify xs⋆ xs t ·⋆ deDeBruijnify⋆ xs⋆ A 
+deDeBruijnify xs⋆ xs (t ·⋆ A) = deDeBruijnify xs⋆ xs t ·⋆ deDeBruijnify⋆ xs⋆ A
 deDeBruijnify xs⋆ xs (ƛ x A t) = ƛ x (deDeBruijnify⋆ xs⋆ A) (deDeBruijnify xs⋆ (consS x xs) t)
-deDeBruijnify xs⋆ xs (t · u) = deDeBruijnify xs⋆ xs t · deDeBruijnify xs⋆ xs u 
+deDeBruijnify xs⋆ xs (t · u) = deDeBruijnify xs⋆ xs t · deDeBruijnify xs⋆ xs u
 deDeBruijnify xs⋆ xs (con x) = con (unDeBruijnifyC x)
 deDeBruijnify xs⋆ xs (error x) = error (deDeBruijnify⋆ xs⋆ x)
 deDeBruijnify xs⋆ xs (builtin x _ _) = builtin x
@@ -434,7 +432,7 @@ ugly (builtin b As ts) =
   uglyBuiltin b ++
   " " ++
   Data.Integer.show (Data.Integer.ℤ.pos (Data.List.length As)) ++
-  " " ++ 
+  " " ++
   Data.Integer.show (Data.Integer.ℤ.pos (Data.List.length ts))
   ++ ")"
 ugly (error _) = "error _"

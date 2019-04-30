@@ -47,7 +47,7 @@ data Error {n} : ScopedTm n → Set where
    E-·₂ : {L M : ScopedTm n} → Error M → Error (L · M)
    E-·⋆ : {L : ScopedTm n}{A : ScopedTy ∥ n ∥} → Error L → Error (L ·⋆ A)
    E-unwrap : {L : ScopedTm n} → Error L → Error (unwrap L)
-     
+
    -- runtime type errors
    -- these couldn't happen in the intrinsically typed version
    E-Λ·    : ∀{x K}{L : ScopedTm (T n)}{M : ScopedTm n} → Error (Λ x K L · M)
@@ -142,8 +142,6 @@ BUILTIN verifySignature _ ((_ , V-con (bytestring k)) ∷ (_ , V-con (bytestring
 ... | just B.true = true
 ... | nothing = error boolean
 BUILTIN verifySignature _ _ = error (con bytestring)
-BUILTIN intToByteString _ ((_ , V-con (integer i)) ∷ []) = con (bytestring (int2ByteString i))
-BUILTIN intToByteString _ _ = error (con bytestring)
 -- Int -> Int
 BUILTIN equalsByteString _ ((_ , V-con (bytestring b)) ∷ (_ , V-con (bytestring b')) ∷ []) with equals b b'
 ... | B.true  = true

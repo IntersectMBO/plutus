@@ -79,10 +79,7 @@ convLiteral = \case
             charExprs = fmap GHC.mkCharExpr str
             listExpr = GHC.mkListExpr GHC.charTy charExprs
         in convExpr listExpr
-    GHC.MachChar c     ->
-        case PLC.makeDynamicBuiltin c of
-            Just t  -> pure $ PIR.embed t
-            Nothing -> throwPlain $ UnsupportedError "Compilation of character failed"
+    GHC.MachChar c     -> pure $ PIR.embed $ PLC.makeKnown c
     GHC.LitNumber {}   -> throwPlain $ UnsupportedError "Literal number"
     GHC.MachFloat _    -> throwPlain $ UnsupportedError "Literal float"
     GHC.MachDouble _   -> throwPlain $ UnsupportedError "Literal double"
