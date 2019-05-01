@@ -79,7 +79,8 @@ So we need to do the same here. This means two things:
   simply call lift on that.
 
 Since we don't "compile" all the way, rather relying on the typeclass system, lifting recursive
-newtypes will hang a runtime. Don't do that.
+newtypes will hang a runtime. Don't do that. (This is worse than what we do in the compiler, see
+Note [Occurrences of recursive names])
 -}
 
 -- Constraints
@@ -272,7 +273,7 @@ compileTypeRep dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeVars=tvs} =
                       let resultType = mkIterTyApp () (mkTyVar () dtvd) (fmap (mkTyVar () . snd) tvds)
                       matchName <- safeFreshName () (T.pack "match_" <> showName tyName)
 
-                      -- Define it so we get something for recursive uses
+                      -- See Note [Occurrences of recursive names]
                       let fakeDatatype = Datatype () dtvd [] matchName []
 
                       defineDatatype tyName (PLC.Def dtvd fakeDatatype) Set.empty

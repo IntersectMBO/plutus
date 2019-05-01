@@ -77,6 +77,23 @@ convTyConApp tc ts
         args' <- mapM convType ts
         pure $ PIR.mkIterTyApp () tc' args'
 
+{- Note [Occurrences of recursive names]
+When we compile recursive types/terms, we need to process their definitions before we can produce
+the final definition that we will use going forward.
+
+But the thing that makes them *recursive* is that they appear in their own definitions! So
+what do we do when we see those occurrences?
+
+For cases where we are introducing a new variable for the definition (terms and datatypes), we
+simply add that variable as a "fake" definition before we process the definition of the main entity.
+That will be enough to ensure that we can make references to it normally, without making us loop.
+Then we fix it up at the end.
+
+For newtypes, we can't do this because the final value we will use is precisely the definition. So
+we just have to ban recursive newtypes, and we do this by blackholing the name while we process the
+definition, and dying if we see it again.
+-}
+
 convTyCon :: (Converting m) => GHC.TyCon -> m PIRType
 convTyCon tc = do
     let tcName = GHC.getName tc
@@ -94,6 +111,7 @@ convTyCon tc = do
             case GHC.unwrapNewTyCon_maybe tc of
                 Just (_, underlying, _) -> do
                     -- See Note [Coercions and newtypes]
+                    -- See Note [Occurrences of recursive names]
                     -- Type variables are in scope for the rhs of the alias
                     alias <- mkIterTyLamScoped (GHC.tyConTyVars tc) $ blackhole (GHC.getName tc) $ convType underlying
                     PIR.defineType tcName (PIR.Def tvd alias) (Set.fromList deps)
@@ -102,6 +120,7 @@ convTyCon tc = do
                 Nothing -> do
                     matchName <- safeFreshName () $ (T.pack $ GHC.getOccString $ GHC.getName tc) <> "_match"
 
+                    -- See Note [Occurrences of recursive names]
                     let fakeDatatype = PIR.Datatype () tvd [] matchName []
                     PIR.defineDatatype tcName (PIR.Def tvd fakeDatatype) Set.empty
 
