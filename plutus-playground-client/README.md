@@ -3,22 +3,30 @@
 ### nix
 
 ```sh
-nix build -f default.nix playground-client 
+nix build -f default.nix plutus-playground.client
 result/bin/plutus-server-invoker webserver -p 4000 ./plutus-playground/plutus-playground-client/dist
 ```
 
 ## Client
 
 ```sh
-cd playground-client
-yarn
-yarn run bower install
+cd plutus-playground-client
+$(nix-build -A dev.scripts.updateClientDeps ../default.nix)
+yarn run webpack
 ```
 
 Then run `yarn run webpack:server` for an auto-reloading dev build on https://localhost:8009
 
 You may also want to run `yarn run purs:ide` to start `psc-ide`
 support running with the correct paths.
+
+## Adding dependencies
+
+* Javascript dependencies are managed with yarn, so add them to [package.json](./package.json)
+* purescript dependencies are managed with psc-package so add them to [psc-package.json](./psc-package.json)
+* purescript uses package sets managed by spago so if the package set doesn't contain a dependency you can add it to [packages.dhall](./packages.dhall)
+
+Whenever you change any of these files you should rerun `$(nix-build -A dev.scripts.updateClientDeps ../default.nix)` to make sure they are available to things that build purescript (such as webpack). Additionally running this script will make changes to various files that will need to be committed for CI to work.
 
 ## nix
 
@@ -34,14 +42,6 @@ nix-build \
 ```
 
 (You may prefer to put those option flags in your global =nix.conf= file.)
-
-When the client's dependencies change you may need to update the nix packages scripts for yarn and bower:
-
-```sh
-cd plutus-playground/plutus-playground-client
-nix-shell -p yarn2nix --run 'yarn2nix | tee yarn.nix'
-nix-shell -p nodePackages.bower2nix --run 'bower2nix | tee bower-packages.nix'
-```
 
 ## Docker image
 

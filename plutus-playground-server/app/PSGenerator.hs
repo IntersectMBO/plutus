@@ -15,62 +15,71 @@ module PSGenerator
     ( generate
     ) where
 
-import           Auth                                      (AuthRole, AuthStatus)
+import           Auth                                       (AuthRole, AuthStatus)
 import qualified Auth
-import           Control.Applicative                       (empty, (<|>))
-import           Control.Lens                              (set, (&))
-import           Control.Monad.Representable.Reader        (MonadReader)
-import qualified Data.ByteString                           as BS
-import           Data.Monoid                               ()
-import           Data.Proxy                                (Proxy (Proxy))
-import qualified Data.Set                                  as Set ()
-import qualified Data.Text                                 as T
-import qualified Data.Text.Encoding                        as T
-import qualified Data.Text.IO                              as T ()
-import           Gist                                      (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
-import           Git                                       (gitRev)
-import           Language.Haskell.Interpreter              (CompilationError, InterpreterError, InterpreterResult,
-                                                            SourceCode, Warning)
-import           Language.PureScript.Bridge                (BridgePart, Language (Haskell), PSType, SumType,
-                                                            TypeInfo (TypeInfo), buildBridge, equal, mkSumType, order,
-                                                            psTypeParameters, typeModule, typeName, writePSTypes, (^==))
-import           Language.PureScript.Bridge.Builder        (BridgeData)
-import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psString)
-import           Language.PureScript.Bridge.TypeParameters (A)
-import           Ledger                                    (AddressOf, DataScript, PubKey, RedeemerScript, Signature,
-                                                            Tx, TxIdOf, TxInOf, TxInType, TxOutOf, TxOutRefOf,
-                                                            TxOutType, ValidatorScript)
-import           Ledger.Ada                                (Ada)
-import           Ledger.Index                              (ValidationError)
-import           Ledger.Interval                           (Interval)
-import           Ledger.Slot                               (Slot)
-import           Ledger.Value                              (CurrencySymbol, TokenName, Value)
-import           Playground.API                            (CompilationResult, Evaluation, EvaluationResult, Expression,
-                                                            Fn, FunctionSchema, KnownCurrency, SimpleArgumentSchema,
-                                                            SimulatorWallet)
-import qualified Playground.API                            as API
-import           Playground.Usecases                       (crowdfunding, game, messages, vesting)
-import           Servant                                   ((:<|>))
-import           Servant.PureScript                        (HasBridge, Settings, apiModuleName, defaultBridge,
-                                                            defaultSettings, languageBridge, writeAPIModuleWithSettings,
-                                                            _generateSubscriberAPI)
-import           System.FilePath                           ((</>))
-import           Wallet.API                                (WalletAPIError)
-import           Wallet.Emulator.Types                     (EmulatorEvent, Wallet)
-import           Wallet.Graph                              (FlowGraph, FlowLink, TxRef, UtxOwner, UtxoLocation)
-
-psNonEmpty :: MonadReader BridgeData m => m PSType
-psNonEmpty =
-    TypeInfo "purescript-lists" "Data.List.NonEmpty" "NonEmptyList" <$>
-    psTypeParameters
+import           Control.Applicative                        (empty, (<|>))
+import           Control.Lens                               (set, (&))
+import           Control.Monad.Reader                       (MonadReader)
+import qualified Data.ByteString                            as BS
+import           Data.Monoid                                ()
+import           Data.Proxy                                 (Proxy (Proxy))
+import qualified Data.Set                                   as Set ()
+import           Data.Text                                  (Text)
+import qualified Data.Text                                  as T ()
+import qualified Data.Text.Encoding                         as T (encodeUtf8)
+import qualified Data.Text.IO                               as T ()
+import           Gist                                       (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
+import           Git                                        (gitRev)
+import           Language.Haskell.Interpreter               (CompilationError, InterpreterError, InterpreterResult,
+                                                             SourceCode, Warning)
+import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), PSType, SumType,
+                                                             TypeInfo (TypeInfo), buildBridge, doCheck, equal,
+                                                             genericShow, haskType, isTuple, mkSumType, order,
+                                                             psTypeParameters, typeModule, typeName, writePSTypesWith,
+                                                             (^==))
+import           Language.PureScript.Bridge.Builder         (BridgeData)
+import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), genForeign,
+                                                             unwrapSingleConstructors)
+import           Language.PureScript.Bridge.PSTypes         (psArray, psInt, psString)
+import           Language.PureScript.Bridge.TypeParameters  (A)
+import           Ledger                                     (AddressOf, DataScript, PubKey, RedeemerScript, Signature,
+                                                             Tx, TxIdOf, TxInOf, TxInType, TxOutOf, TxOutRefOf,
+                                                             TxOutType, ValidatorScript)
+import           Ledger.Ada                                 (Ada)
+import           Ledger.Index                               (ValidationError)
+import           Ledger.Interval                            (Interval)
+import           Ledger.Slot                                (Slot)
+import           Ledger.Value                               (CurrencySymbol, TokenName, Value)
+import           Playground.API                             (CompilationResult, Evaluation, EvaluationResult,
+                                                             Expression, Fn, FunctionSchema, KnownCurrency,
+                                                             SimpleArgumentSchema, SimulatorWallet)
+import qualified Playground.API                             as API
+import           Playground.Usecases                        (crowdfunding, game, messages, vesting)
+import           Servant                                    ((:<|>))
+import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
+                                                             defaultSettings, languageBridge,
+                                                             writeAPIModuleWithSettings, _generateSubscriberAPI)
+import           System.FilePath                            ((</>))
+import           Wallet.API                                 (WalletAPIError)
+import           Wallet.Emulator.Types                      (EmulatorEvent, Wallet)
+import           Wallet.Graph                               (FlowGraph, FlowLink, TxRef, UtxOwner, UtxoLocation)
 
 psLedgerMap :: MonadReader BridgeData m => m PSType
 psLedgerMap =
     TypeInfo "plutus-playground-client" "Ledger.Extra" "LedgerMap" <$>
     psTypeParameters
 
+psNonEmpty :: MonadReader BridgeData m => m PSType
+psNonEmpty = TypeInfo "" "Data.RawJson" "JsonNonEmptyList" <$> psTypeParameters
+
 psJson :: PSType
 psJson = TypeInfo "" "Data.RawJson" "RawJson" []
+
+psJsonEither :: MonadReader BridgeData m => m PSType
+psJsonEither = TypeInfo "" "Data.RawJson" "JsonEither" <$> psTypeParameters
+
+psJsonTuple :: MonadReader BridgeData m => m PSType
+psJsonTuple = TypeInfo "" "Data.RawJson" "JsonTuple" <$> psTypeParameters
 
 integerBridge :: BridgePart
 integerBridge = do
@@ -100,6 +109,16 @@ aesonBridge = do
     typeName ^== "Value"
     typeModule ^== "Data.Aeson.Types.Internal"
     pure psJson
+
+eitherBridge :: BridgePart
+eitherBridge = do
+    typeName ^== "Either"
+    psJsonEither
+
+tupleBridge :: BridgePart
+tupleBridge = do
+    doCheck haskType isTuple
+    psJsonTuple
 
 setBridge :: BridgePart
 setBridge = do
@@ -179,7 +198,9 @@ mapBridge = do
 
 myBridge :: BridgePart
 myBridge =
-    defaultBridge <|> integerBridge <|> ledgerMapBridge <|> scientificBridge <|>
+    eitherBridge <|> tupleBridge <|> defaultBridge <|> integerBridge <|>
+    ledgerMapBridge <|>
+    scientificBridge <|>
     aesonBridge <|>
     setBridge <|>
     digestBridge <|>
@@ -206,10 +227,10 @@ instance HasBridge MyBridge where
 myTypes :: [SumType 'Haskell]
 myTypes =
     [ (equal <*> mkSumType) (Proxy @SimpleArgumentSchema)
-    , mkSumType (Proxy @(FunctionSchema A))
+    , (equal <*> mkSumType) (Proxy @(FunctionSchema A))
     , mkSumType (Proxy @CompilationResult)
     , mkSumType (Proxy @Warning)
-    , mkSumType (Proxy @Fn)
+    , (equal <*> mkSumType) (Proxy @Fn)
     , mkSumType (Proxy @SourceCode)
     , (equal <*> mkSumType) (Proxy @Wallet)
     , (equal <*> mkSumType) (Proxy @SimulatorWallet)
@@ -249,12 +270,13 @@ myTypes =
     , mkSumType (Proxy @NewGist)
     , mkSumType (Proxy @NewGistFile)
     , mkSumType (Proxy @Owner)
-    , (equal <*> mkSumType) (Proxy @Value)
-    , (equal <*> mkSumType) (Proxy @KnownCurrency)
+    , (genericShow <*> (equal <*> mkSumType)) (Proxy @Value)
+    , (genericShow <*> (equal <*> mkSumType)) (Proxy @KnownCurrency)
     , mkSumType (Proxy @InterpreterError)
     , mkSumType (Proxy @(InterpreterResult A))
-    , (equal <*> (order <*> mkSumType)) (Proxy @CurrencySymbol)
-    , (equal <*> (order <*> mkSumType)) (Proxy @TokenName)
+    , (genericShow <*> (equal <*> (order <*> mkSumType)))
+          (Proxy @CurrencySymbol)
+    , (genericShow <*> (equal <*> (order <*> mkSumType))) (Proxy @TokenName)
     ]
 
 mySettings :: Settings
@@ -262,23 +284,24 @@ mySettings =
     (defaultSettings & set apiModuleName "Playground.Server")
         {_generateSubscriberAPI = False}
 
-multilineString :: T.Text -> T.Text -> T.Text
+multilineString :: Text -> Text -> Text
 multilineString name value =
     "\n\n" <> name <> " :: String\n" <> name <> " = \"\"\"" <> value <> "\"\"\""
 
-psModule :: T.Text -> T.Text -> T.Text
+psModule :: Text -> Text -> Text
 psModule name body = "module " <> name <> " where" <> body
 
 writeUsecases :: FilePath -> IO ()
 writeUsecases outputDir = do
     let usecases =
-            multilineString "gitRev" gitRev <>
-            multilineString "vesting" vesting <>
+            multilineString "gitRev" gitRev <> multilineString "vesting" vesting <>
             multilineString "game" game <>
             multilineString "crowdfunding" crowdfunding <>
             multilineString "messages" messages
         usecasesModule = psModule "Playground.Usecases" usecases
-    BS.writeFile (outputDir </> "Playground" </> "Usecases.purs") (T.encodeUtf8 usecasesModule)
+    BS.writeFile
+        (outputDir </> "Playground" </> "Usecases.purs")
+        (T.encodeUtf8 usecasesModule)
     putStrLn outputDir
 
 generate :: FilePath -> IO ()
@@ -290,5 +313,9 @@ generate outputDir = do
         (Proxy
              @(API.API
                :<|> Auth.FrontendAPI))
-    writePSTypes outputDir (buildBridge myBridge) myTypes
+    writePSTypesWith
+        (genForeign (ForeignOptions {unwrapSingleConstructors = True}))
+        outputDir
+        (buildBridge myBridge)
+        myTypes
     writeUsecases outputDir

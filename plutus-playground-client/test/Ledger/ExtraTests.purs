@@ -4,8 +4,6 @@ module Ledger.ExtraTests
 
 import Prelude
 
-import Control.Monad.Eff.Exception (EXCEPTION)
-import Control.Monad.Eff.Random (RANDOM)
 import Data.Lens (preview, set)
 import Data.Lens.At (at)
 import Data.Lens.Index (ix)
@@ -13,12 +11,11 @@ import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Ledger.Extra (LedgerMap(..), unionWith)
 import Ledger.Value (CurrencySymbol(..), TokenName(TokenName))
-import Node.FS (FS)
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (equal)
-import TestUtils (equalGShow)
+import TestUtils (equalGenericShow)
 
-all :: forall eff. TestSuite (exception :: EXCEPTION, fs :: FS, random :: RANDOM | eff)
+all :: TestSuite
 all =
   suite "Ledger.Extra" do
     indexTests
@@ -40,7 +37,7 @@ gbp = TokenName { unTokenName: "GBP"}
 baseValue :: LedgerMap CurrencySymbol (LedgerMap TokenName Int)
 baseValue = LedgerMap [ Tuple currencies (LedgerMap [ Tuple usd 10 ]) ]
 
-indexTests :: forall eff. TestSuite eff
+indexTests :: TestSuite
 indexTests =
   suite "Index" do
     test "simple gets" do
@@ -52,11 +49,11 @@ indexTests =
                        # preview (ix currencies <<< ix usd)
                       )
 
-atTests :: forall eff. TestSuite eff
+atTests :: TestSuite
 atTests =
   suite "At" do
     test "create" do
-      equalGShow
+      equalGenericShow
         baseValue
         (LedgerMap []
          # set (at currencies) (Just (LedgerMap []))
@@ -70,7 +67,7 @@ atTests =
                        # set (ix currencies <<< at usd) Nothing
                        # preview (ix currencies <<< ix usd))
 
-unionWithTests :: forall eff. TestSuite eff
+unionWithTests :: TestSuite
 unionWithTests =
   suite "unionWith" do
     let
@@ -81,14 +78,14 @@ unionWithTests =
                                                         , Tuple gbp 40
                                                         ]) ])
     test "addition" $
-      equalGShow
+      equalGenericShow
         (LedgerMap [ Tuple currencies (LedgerMap [ Tuple usd 10
                                                  , Tuple eur 50
                                                  , Tuple gbp 40
                                                  ]) ])
         (unionWith (unionWith (+)) valueA valueB)
     test "choice" $
-      equalGShow
+      equalGenericShow
         (LedgerMap [ Tuple currencies (LedgerMap [ Tuple usd 10
                                                  , Tuple eur 20
                                                  , Tuple gbp 40

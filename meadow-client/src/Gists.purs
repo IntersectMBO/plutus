@@ -75,7 +75,7 @@ import Prelude
   , ($)
   , (<$>)
   )
-import Servant.PureScript.Affjax
+import Servant.PureScript.Ajax
   ( AjaxError
   )
 import Types

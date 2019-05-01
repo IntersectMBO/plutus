@@ -43,11 +43,6 @@ acceptSourceCode sourceCode = do
         Left (CompilationErrors errors) -> pure . Left $ CompilationErrors errors
         Left  e                         -> throwError $ err400 { errBody = BSL.pack . show $ e }
 
-throwJSONError :: (MonadError ServantErr m, ToJSON a) => ServantErr -> a -> m b
-throwJSONError err json = throwError
-    $ err { errBody = encode json, errHeaders = [jsonHeader] }
-    where jsonHeader = (hContentType, "application/json;charset=utf-8")
-
 checkHealth :: Handler ()
 checkHealth = do
     res <- acceptSourceCode . SourceCode . Text.pack . BS.unpack $ escrow

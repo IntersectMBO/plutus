@@ -4,14 +4,13 @@ module Data.String.ExtraTests
 
 import Prelude
 
-import Control.Monad.Eff.Random (RANDOM)
 import Data.String as String
 import Data.String.Extra (abbreviate, leftPadTo, repeat, toHex)
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (equal)
 import Test.Unit.QuickCheck (quickCheck)
 
-all :: forall eff. TestSuite (random :: RANDOM | eff)
+all :: TestSuite
 all =
   suite "Data.String.Extra" do
     abbreviateTests
@@ -19,7 +18,7 @@ all =
     leftPadToTests
     repeatTests
 
-abbreviateTests :: forall eff. TestSuite (random :: RANDOM | eff)
+abbreviateTests :: TestSuite
 abbreviateTests = do
   suite "abbreviate" do
     test "Always limits the string length" do
@@ -29,14 +28,14 @@ abbreviateTests = do
         String.take 5 str ==
         String.take 5 (abbreviate str)
 
-toHexTests :: forall eff. TestSuite (random :: RANDOM | eff)
+toHexTests :: TestSuite
 toHexTests = do
   suite "toHex" do
     test "A few examples" do
       equal "41" (toHex "A")
       equal "546573746572" (toHex "Tester")
 
-leftPadToTests :: forall eff. TestSuite (random :: RANDOM | eff)
+leftPadToTests :: TestSuite
 leftPadToTests = do
   suite "leftPadTo" do
     test "0 is identity" do
@@ -46,7 +45,7 @@ leftPadToTests = do
       equal "  f" (leftPadTo 3 " " "f")
       equal "f" (leftPadTo 1 "0" "f")
 
-repeatTests :: forall eff. TestSuite (random :: RANDOM | eff)
+repeatTests :: TestSuite
 repeatTests = do
   suite "repeat" do
     test "0 is empty" do

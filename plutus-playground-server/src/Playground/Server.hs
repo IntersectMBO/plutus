@@ -14,23 +14,19 @@ import           Control.Monad.Except         (MonadError, runExceptT, throwErro
 import           Control.Monad.IO.Class       (liftIO)
 import           Control.Monad.Logger         (MonadLogger, logInfoN)
 import           Data.Aeson                   (ToJSON, encode)
-import qualified Data.ByteString.Char8        as BS
 import qualified Data.ByteString.Lazy.Char8   as BSL
-import qualified Data.Text                    as Text
 import           Data.Time.Units              (Microsecond, fromMicroseconds)
 import           Language.Haskell.Interpreter (InterpreterError (CompilationErrors),
                                                InterpreterResult (InterpreterResult), SourceCode (SourceCode))
 import           Ledger                       (hashTx)
 import           Network.HTTP.Types           (hContentType)
-import           Playground.API               (API, CompilationResult, Evaluation, EvaluationResult (EvaluationResult),
-                                               PlaygroundError (PlaygroundTimeout), parseErrorText)
+import           Playground.API               (API, CompilationResult, Evaluation, EvaluationResult (EvaluationResult))
 import qualified Playground.API               as PA
 import qualified Playground.Interpreter       as PI
 import           Playground.Usecases          (vesting)
 import           Servant                      (ServantErr, err400, errBody, errHeaders)
 import           Servant.API                  ((:<|>) ((:<|>)))
 import           Servant.Server               (Handler, Server)
-import           System.Timeout               (timeout)
 import qualified Wallet.Graph                 as V
 
 acceptSourceCode ::
@@ -78,14 +74,6 @@ checkHealth = do
     case res of
         Left e  -> throwError $ err400 {errBody = BSL.pack . show $ e}
         Right _ -> pure ()
-
-timeoutInterpreter ::
-       Int -> IO (Either PlaygroundError a) -> IO (Either PlaygroundError a)
-timeoutInterpreter n action = do
-    res <- timeout n action
-    case res of
-        Nothing -> pure . Left $ PlaygroundTimeout
-        Just a  -> pure a
 
 {-# ANN mkHandlers
           ("HLint: ignore Avoid restricted function" :: String)

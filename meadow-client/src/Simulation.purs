@@ -8,8 +8,8 @@ import Data.Map (Map)
 import Data.List (List(..))
 import Data.Set as Set
 import API (RunResult(RunResult))
-import Ace.Halogen.Component (AceEffects, Autocomplete(Live), aceComponent)
-import Ace.Types (ACE, Editor)
+import Ace.Halogen.Component (Autocomplete(Live), aceComponent)
+import Ace.Types (Editor)
 import Bootstrap
   ( btn
   , btnInfo
@@ -26,9 +26,9 @@ import Bootstrap
   , listGroup_
   )
 import Control.Alternative (map, (<|>))
-import Control.Monad.Aff.Class (class MonadAff)
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Class (liftEff)
+import Effect.Aff.Class (class MonadAff)
+import Effect (Effect)
+import Effect.Class (liftEffect)
 import Data.Either (Either(..))
 import Data.Eq ((==), (/=))
 import Data.Foldable (all)
@@ -84,14 +84,13 @@ import Halogen.HTML.Properties
   , type_
   , value
   )
-import LocalStorage (LOCALSTORAGE)
 import Prelude
   ( Unit
   , bind
   , const
   , discard
   , flip
-  , id
+  , identity
   , pure
   , show
   , class Show
@@ -153,8 +152,8 @@ isContractValid :: FrontendState -> Boolean
 isContractValid x = (x.marloweState.contract /= Nothing)
 
 simulationPane ::
-  forall m aff.
-  MonadAff (AceEffects (localStorage :: LOCALSTORAGE | aff)) m =>
+  forall m.
+  MonadAff m =>
   FrontendState ->
   ParentHTML Query ChildQuery ChildSlot m
 simulationPane state =
@@ -190,18 +189,16 @@ simulationPane state =
     Left errors -> listGroup_ (listGroupItem_ <<< pure <<< compilationErrorPane <$> errors)
     _ -> empty
 
-loadBuffer ::
-  forall eff.
-  Eff (localStorage :: LOCALSTORAGE | eff) (Maybe String)
+loadBuffer :: Effect (Maybe String)
 loadBuffer = LocalStorage.getItem StaticData.marloweBufferLocalStorageKey
 
 initEditor ::
-  forall m aff.
-  MonadAff (ace :: ACE, localStorage :: LOCALSTORAGE | aff) m =>
+  forall m.
+  MonadAff m =>
   Editor ->
   m Unit
-initEditor editor = liftEff $ do
-  savedContents <- liftEff loadBuffer
+initEditor editor = liftEffect $ do
+  savedContents <- liftEffect loadBuffer
   let defaultContents = Map.lookup "Deposit Incentive" StaticData.marloweContracts
   let contents = fromMaybe "" (savedContents <|> defaultContents)
   void $ Editor.setValue contents (Just 1) editor
@@ -263,7 +260,7 @@ inputComposer isEnabled { inputs, choiceData, oracleData } =
    ik = Set.fromFoldable (Map.keys inputs)
    cdk = Set.fromFoldable (Map.keys choiceData)
    people = Set.toUnfoldable (Set.union ik cdk) :: List Person
-   oracles = Map.toAscUnfoldable oracleData :: List (Tuple IdOracle OracleEntry)
+   oracles = Map.toUnfoldable oracleData :: List (Tuple IdOracle OracleEntry)
 
 inputComposerPerson :: forall p. Boolean -> Person
                        -> Map Person (List DetachedPrimitiveWIA)
@@ -283,7 +280,7 @@ inputComposerPerson isEnabled person inputs choices =
                        pure (inputPay isEnabled person idAction idCommit val)
   , case Map.lookup person choices of
       Nothing -> []
-      Just x -> do (Tuple idChoice choice) <- Map.toAscUnfoldable x
+      Just x -> do (Tuple idChoice choice) <- Map.toUnfoldable x
                    pure (inputChoice isEnabled person idChoice choice)
   ]
   where
@@ -396,7 +393,7 @@ transactionComposerPane state =
               , div [ class_ $ ClassName "wallet"
                     ] [ div [ classes ((if (isInvalidTransaction state.marloweState.transaction.validity)
                                         then (flip Array.snoc) (ClassName "invalid-transaction")
-                                        else id) [card]) ]
+                                        else identity) [card]) ]
                             [ cardBody_ $ transactionInputs state.marloweState
                                <> (signatures state.marloweState.transaction.signatures
                                    (isContractValid state)
@@ -504,7 +501,7 @@ signatures people isEnabled outcomes =
                        , ClassName "align-items-center"
                        , ClassName "justify-content-start"
                        ]
-             ] (map (\x -> signature x isEnabled outcomes) $ Map.toAscUnfoldable people)
+             ] (map (\x -> signature x isEnabled outcomes) $ Map.toUnfoldable people)
   ]
 
 signature :: forall p. Tuple Person Boolean -> Boolean -> Map Person BigInteger -> HTML p Query
@@ -667,7 +664,7 @@ renderMoneyOwed (CommitInfo ci) =
                   ]
          , tbody_ (Array.fromFoldable (map renderMoneyOwedIndividual owedList))
          ]
-  where owedList = Map.toAscUnfoldable ci.redeemedPerPerson :: List (Tuple Person BigInteger)
+  where owedList = Map.toUnfoldable ci.redeemedPerPerson :: List (Tuple Person BigInteger)
 
 renderMoneyOwedIndividual :: forall p. Tuple Person BigInteger -> HTML p Query
 renderMoneyOwedIndividual (Tuple person amount) =
@@ -698,7 +695,7 @@ renderCommits (CommitInfo ci) =
                   ]
          , tbody_ (Array.fromFoldable (map renderCommit commitList))
          ]
-  where commitList = Map.toAscUnfoldable ci.currentCommitsById :: List (Tuple IdCommit CommitInfoRecord)
+  where commitList = Map.toUnfoldable ci.currentCommitsById :: List (Tuple IdCommit CommitInfoRecord)
 
 renderCommit :: forall p. Tuple IdCommit CommitInfoRecord -> HTML p Query
 renderCommit (Tuple idCommit (CommitInfoRecord {person, amount, timeout})) =
@@ -731,7 +728,7 @@ renderChoices choices =
                   ]
          , tbody_ (Array.fromFoldable (map renderChoice choiceList))
          ]
-  where choiceList = Map.toAscUnfoldable choices :: List (Tuple WIdChoice Choice)
+  where choiceList = Map.toUnfoldable choices :: List (Tuple WIdChoice Choice)
 
 renderChoice :: forall p. Tuple WIdChoice Choice -> HTML p Query
 renderChoice (Tuple (WIdChoice (IdChoice {choice, person})) value) =
@@ -761,7 +758,7 @@ renderOracles oracles =
                   ]
          , tbody_ (Array.fromFoldable (map renderOracle oracleList))
          ]
-  where oracleList = Map.toAscUnfoldable oracles :: List (Tuple IdOracle OracleDataPoint)
+  where oracleList = Map.toUnfoldable oracles :: List (Tuple IdOracle OracleDataPoint)
 
 renderOracle :: forall p. Tuple IdOracle OracleDataPoint -> HTML p Query
 renderOracle (Tuple idOracle (OracleDataPoint {blockNumber, value})) =

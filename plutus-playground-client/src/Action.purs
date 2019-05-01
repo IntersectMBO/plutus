@@ -3,15 +3,14 @@ module Action
        ) where
 
 import Bootstrap (badge, badgePrimary, btn, btnDanger, btnGroup, btnGroupSmall, btnInfo, btnLink, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, col10_, col2_, col_, formControl, formGroup_, invalidFeedback_, nbsp, pullRight, responsiveThird, row, row_, validFeedback_, wasValidated)
-import Control.Monad.Aff.Class (class MonadAff)
 import Cursor (Cursor, current)
 import Cursor as Cursor
-import DOM.HTML.Event.Types (DragEvent)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Int as Int
 import Data.Lens (preview, view)
 import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
+import Data.RawJson (JsonTuple(..))
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Halogen (HTML)
@@ -27,11 +26,13 @@ import Ledger.Value (Value)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
 import Playground.API (EvaluationResult, _Fn, _FunctionSchema)
 import Prelude (Unit, map, pure, show, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==))
+import Prim.TypeError (class Warn, Text)
 import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, DragAndDropEventType(..), FormEvent(..), Query(..), SimpleArgument(..), Simulation(Simulation), WebData, _Action, _argumentSchema, _functionName, _resultBlockchain, _simulatorWallet, _simulatorWalletWallet, _walletId)
 import Validation (ValidationError, WithPath, joinPath, showPathValue, validate)
 import ValueEditor (valueForm)
 import Wallet (walletIdPane, walletsPane)
 import Wallet.Emulator.Types (Wallet)
+import Web.HTML.Event.DragEvent (DragEvent)
 
 simulationPane ::
   forall m.
@@ -221,7 +222,7 @@ actionArgumentForm index arguments =
        arguments)
 
 actionArgumentField ::
-  forall p. Warn "We're still not handling the Unknowable case."
+  forall p. Warn (Text "We're still not handling the Unknowable case.")
   => Array String
   -> Boolean
   -> SimpleArgument
@@ -262,7 +263,7 @@ actionArgumentField ancestors _ arg@(SimpleHex s) =
       ]
     , validationFeedback (joinPath ancestors <$> validate arg)
   ]
-actionArgumentField ancestors isNested (SimpleTuple (subFieldA /\subFieldB)) =
+actionArgumentField ancestors isNested (SimpleTuple (JsonTuple (Tuple subFieldA subFieldB))) =
   row_
     [ col_ [ SetSubField 1 <$> actionArgumentField (Array.snoc ancestors "_1") true subFieldA ]
     , col_ [ SetSubField 2 <$> actionArgumentField (Array.snoc ancestors "_2") true subFieldB ]
@@ -296,7 +297,7 @@ actionArgumentField ancestors isNested (SimpleArray schema subFields) =
 
 actionArgumentField ancestors isNested (SimpleObject _ subFields) =
   div [ nesting isNested ]
-     (mapWithIndex (\i field -> map (SetSubField i) (subForm field)) subFields)
+    (mapWithIndex (\i (JsonTuple field) -> map (SetSubField i) (subForm field)) subFields)
   where
     subForm (name /\ arg) =
       (formGroup_

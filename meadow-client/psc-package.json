@@ -1,0 +1,23 @@
+{
+    "set": "local",
+    "depends":
+    [ "prelude"
+        , "halogen"
+        , "effect"
+        , "parsing"
+        , "test-unit"
+        , "node-fs"
+        , "remotedata"
+        , "console"
+        , "psci-support"
+        , "servant-support"
+        , "ace"
+        , "ace-halogen"
+        , "bigints"
+        , "undefinable"
+        , "matryoshka"
+        , "numerics"
+        ],
+    "name": "meadow-client",
+    "source": ""
+}

@@ -3,14 +3,11 @@ module MainFrame (mainFrame) where
 import API (_RunResult)
 import Ace.EditSession as Session
 import Ace.Editor as Editor
-import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged), AceQuery(GetEditor))
-import Ace.Types (ACE, Editor, Annotation)
+import Ace.Halogen.Component (AceMessage(TextChanged), AceQuery(GetEditor))
+import Ace.Types (Editor, Annotation)
 import AjaxUtils (runAjaxTo)
-import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
+import Analytics (Event, defaultEvent, trackEvent)
 import Bootstrap (active, btn, btnGroup, btnInfo, btnPrimary, btnSmall, col_, container, container_, empty, hidden, listGroupItem_, listGroup_, navItem_, navLink, navTabs_, noGutters, pullRight, row)
-import Control.Monad.Aff.Class (class MonadAff, liftAff)
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Class (class MonadEff, liftEff)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State.Trans (class MonadState)
 import Data.Array (catMaybes, delete, snoc)
@@ -33,33 +30,33 @@ import Data.String as String
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
 import Editor (editorPane)
-import FileEvents (FILE, preventDefault, readFileFromDragEvent)
+import Effect (Effect)
+import Effect.Aff.Class (class MonadAff, liftAff)
+import Effect.Class (class MonadEffect, liftEffect)
+import FileEvents (preventDefault, readFileFromDragEvent)
 import Gist (gistId)
 import Gists (mkNewGist)
 import Halogen (Component, action)
 import Halogen as H
 import Halogen.Component (ParentHTML)
-import Halogen.ECharts (EChartsEffects)
 import Halogen.HTML (ClassName(ClassName), HTML, a, button, code_, div, div_, h1, pre, strong_, text)
 import Halogen.HTML.Events (onClick, input_)
 import Halogen.HTML.Properties (class_, classes, href, disabled)
 import Halogen.Query (HalogenM)
 import Language.Haskell.Interpreter (SourceCode(SourceCode), InterpreterError(CompilationErrors, TimeoutError), CompilationError(CompilationError, RawError), InterpreterResult(InterpreterResult), _InterpreterResult)
-import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Marlowe.Parser (contract)
 import Marlowe.Pretty (pretty)
 import Marlowe.Semantics (ErrorResult(InvalidInput), IdInput(IdOracle, InputIdChoice), MApplicationResult(MCouldNotApply, MSuccessfullyApplied), OracleDataPoint(..), State(State), TransactionOutcomes, applyTransaction, collectNeededInputs, emptyState, peopleFromStateAndContract, reduce, scoutPrimitives)
 import Marlowe.Types (BlockNumber, Choice, Contract(Null), IdChoice(IdChoice), IdOracle, Person, WIdChoice(WIdChoice))
 import Meadow (SPParams_, getOauthStatus, patchGistsByGistId, postGists, postContractHaskell)
-import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(Success, NotAsked), _Success, isLoading, isSuccess)
-import Prelude (add, one, zero, not, (||), type (~>), Unit, Void, bind, const, discard, id, pure, show, unit, void, (#), ($), (+), (-), (<$>), (<<<), (<>), (==))
+import Prelude (add, one, zero, not, (||), type (~>), Unit, Void, bind, const, discard, identity, pure, show, unit, void, (#), ($), (+), (-), (<$>), (<<<), (<>), (==))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation (simulationPane)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
 import StaticData as StaticData
-import Text.Parsing.Simple (parse)
+import Text.Parsing.Parser (runParser)
 import Types (ChildQuery, ChildSlot, EditorSlot(EditorSlot), FrontendState, InputData, MarloweEditorSlot(MarloweEditorSlot), MarloweState, OracleEntry, Query(ChangeView, ResetSimulator, SetOracleBn, SetOracleVal, SetChoice, RemoveAnyInput, AddAnyInput, NextBlock, ApplyTransaction, SetSignature, ScrollTo, CompileProgram, LoadMarloweScript, LoadScript, PublishGist, SendResult, CheckAuthStatus, MarloweHandleDropEvent, MarloweHandleDragEvent, MarloweHandleEditorMessage, HandleDropEvent, HandleDragEvent, HandleEditorMessage), TransactionData, TransactionValidity(..), View(Simulation, Editor), _authStatus, _blockNum, _choiceData, _contract, _createGistResult, _input, _inputs, _marloweState, _moneyInContract, _oldContract, _oracleData, _outcomes, _compilationResult, _signatures, _state, _transaction, _validity, _view, cpEditor, cpMarloweEditor, _result)
 
 emptyInputData :: InputData
@@ -95,8 +92,8 @@ initialState = { view: Editor
 
 ------------------------------------------------------------
 mainFrame ::
-  forall m aff.
-  MonadAff (EChartsEffects (AceEffects (localStorage :: LOCALSTORAGE, file :: FILE, ajax :: AJAX, analytics :: ANALYTICS | aff))) m =>
+  forall m.
+  MonadAff m =>
   MonadAsk (SPSettings_ SPParams_) m =>
   Component HTML Query Unit Void m
 mainFrame = H.lifecycleParentComponent { initialState: const initialState
@@ -108,19 +105,19 @@ mainFrame = H.lifecycleParentComponent { initialState: const initialState
                                        }
 
 evalWithAnalyticsTracking ::
-  forall m aff.
-  MonadAff (localStorage :: LOCALSTORAGE, file :: FILE, ace :: ACE, ajax :: AJAX, analytics :: ANALYTICS | aff) m =>
+  forall m.
+  MonadAff m =>
   MonadAsk (SPSettings_ SPParams_) m =>
   Query
     ~> HalogenM FrontendState Query ChildQuery ChildSlot Void m
 evalWithAnalyticsTracking query = do
-  liftEff $ analyticsTracking query
+  liftEffect $ analyticsTracking query
   evalF query
 
 analyticsTracking ::
-  forall eff a.
+  forall a.
   Query a ->
-  Eff (analytics :: ANALYTICS | eff) Unit
+  Effect Unit
 analyticsTracking query = do
   case toEvent query of
     Nothing -> pure unit
@@ -179,15 +176,13 @@ toEvent (SetOracleBn _ _) = Nothing
 toEvent (ResetSimulator _) = Nothing
 
 saveBuffer ::
-  forall eff.
   String ->
-  Eff (localStorage :: LOCALSTORAGE | eff) Unit
+  Effect Unit
 saveBuffer text = LocalStorage.setItem bufferLocalStorageKey text
 
 saveMarloweBuffer ::
-  forall eff.
   String ->
-  Eff (localStorage :: LOCALSTORAGE | eff) Unit
+  Effect Unit
 saveMarloweBuffer text = LocalStorage.setItem marloweBufferLocalStorageKey text
 
 resizeSigsAux ::
@@ -276,7 +271,7 @@ simulateState state =
     Nothing -> Nothing
   where
     inps = Array.toUnfoldable (state.transaction.inputs)
-    sigs = Set.fromFoldable (Map.keys (Map.filter id (state.transaction.signatures)))
+    sigs = Set.fromFoldable (Map.keys (Map.filter identity (state.transaction.signatures)))
     bn = state.blockNum
     st = state.state
     mic = state.moneyInContract
@@ -296,7 +291,7 @@ applyTransactionM oldState =
                 MCouldNotApply _ -> oldState
   where
     inps = Array.toUnfoldable (oldState.transaction.inputs)
-    sigs = Set.fromFoldable (Map.keys (Map.filter id (oldState.transaction.signatures)))
+    sigs = Set.fromFoldable (Map.keys (Map.filter identity (oldState.transaction.signatures)))
     bn = oldState.blockNum
     st = oldState.state
     mic = oldState.moneyInContract
@@ -311,8 +306,8 @@ updateStateP oldState = actState
                  Nothing -> sigState
 
 updateState ::
-  forall eff m.
-  MonadEff (ace :: ACE | eff) m
+  forall m.
+  MonadEffect m
   => HalogenM FrontendState Query (Coproduct AceQuery AceQuery) (Either EditorSlot MarloweEditorSlot) Void m Unit
 updateState = do
   saveInitialState
@@ -321,7 +316,7 @@ updateState = do
 updateContractInStateP :: String -> MarloweState -> MarloweState
 updateContractInStateP text state = set (_contract) con state
   where
-    con = case parse contract text of
+    con = case runParser text contract of
             Right pcon -> Just pcon
             Left _ -> Nothing
 
@@ -331,8 +326,8 @@ updateContractInState text = do
    modifying (_marloweState) (updateStateP)
 
 saveInitialState ::
-  forall eff m.
-  MonadEff (ace :: ACE | eff) m
+  forall m.
+  MonadEffect m
   => HalogenM FrontendState Query (Coproduct AceQuery AceQuery) (Either EditorSlot MarloweEditorSlot) Void m Unit
 saveInitialState = do
   oldContract <- withMarloweEditor Editor.getValue
@@ -342,8 +337,9 @@ saveInitialState = do
                                                       Just y -> y)
                                     _ -> x)
 
-resetContract :: forall m eff.
-  MonadEff (ace :: ACE | eff) m
+resetContract :: 
+  forall m.
+  MonadEffect m
   => HalogenM FrontendState Query (Coproduct AceQuery AceQuery) (Either EditorSlot MarloweEditorSlot) Void m Unit
 resetContract = do
   newContract <- withMarloweEditor Editor.getValue
@@ -355,36 +351,36 @@ resetContract = do
 
 
 evalF ::
-  forall m aff.
-  MonadAff (localStorage :: LOCALSTORAGE, file :: FILE, ace :: ACE, ajax :: AJAX | aff) m =>
+  forall m.
+  MonadAff m =>
   MonadAsk (SPSettings_ SPParams_) m =>
   Query
     ~> HalogenM FrontendState Query ChildQuery ChildSlot Void m
 evalF (HandleEditorMessage (TextChanged text) next) = do
-  liftEff $ saveBuffer text
+  liftEffect $ saveBuffer text
   pure next
 
 evalF (HandleDragEvent event next) = do
-  liftEff $ preventDefault event
+  liftEffect $ preventDefault event
   pure next
 
 evalF (HandleDropEvent event next) = do
-  liftEff $ preventDefault event
+  liftEffect $ preventDefault event
   contents <- liftAff $ readFileFromDragEvent event
   void $ withEditor $ Editor.setValue contents (Just 1)
   pure next
 
 evalF (MarloweHandleEditorMessage (TextChanged text) next) = do
-  liftEff $ saveMarloweBuffer text
+  liftEffect $ saveMarloweBuffer text
   updateContractInState text
   pure next
 
 evalF (MarloweHandleDragEvent event next) = do
-  liftEff $ preventDefault event
+  liftEffect $ preventDefault event
   pure next
 
 evalF (MarloweHandleDropEvent event next) = do
-  liftEff $ preventDefault event
+  liftEffect $ preventDefault event
   contents <- liftAff $ readFileFromDragEvent event
   void $ withMarloweEditor $ Editor.setValue contents (Just 1)
   updateContractInState contents
@@ -431,7 +427,7 @@ evalF (CompileProgram next) = do
   case mContents of
     Nothing -> pure next
     Just contents -> do
-      result <- runAjaxTo _compilationResult $ postContractHaskell $ SourceCode contents
+      result <- runAjaxTo _compilationResult $ unwrap <$> (postContractHaskell $ SourceCode contents)
       -- Update the error display.
       -- Update the error display.
       -- Update the error display.
@@ -538,34 +534,33 @@ evalF (ResetSimulator next) = do
 -- | Handles the messy business of running an editor command if the
 -- editor is up and running.
 withEditor ::
-  forall m eff a.
-  MonadEff (ace :: ACE | eff) m =>
-  (Editor -> Eff (ace :: ACE | eff) a) ->
+  forall m a.
+  MonadEffect m =>
+  (Editor -> Effect a) ->
   HalogenM FrontendState Query ChildQuery ChildSlot Void m (Maybe a)
 withEditor action = do
   mEditor <- H.query' cpEditor EditorSlot $ H.request GetEditor
   case mEditor of
     Just (Just editor) -> do
-      liftEff $ Just <$> action editor
+      liftEffect $ Just <$> action editor
     _ -> pure Nothing
 
 withMarloweEditor ::
-  forall m eff a.
-  MonadEff (ace :: ACE | eff) m =>
-  (Editor -> Eff (ace :: ACE | eff) a) ->
+  forall m a.
+  MonadEffect m =>
+  (Editor -> Effect a) ->
   HalogenM FrontendState Query ChildQuery ChildSlot Void m (Maybe a)
 withMarloweEditor action = do
   mEditor <- H.query' cpMarloweEditor MarloweEditorSlot $ H.request GetEditor
   case mEditor of
     Just (Just editor) -> do
-      liftEff $ Just <$> action editor
+      liftEffect $ Just <$> action editor
     _ -> pure Nothing
 
 showCompilationErrorAnnotations ::
-  forall m.
   Array Annotation ->
   Editor ->
-  Eff (ace :: ACE | m) Unit
+  Effect Unit
 showCompilationErrorAnnotations annotations editor = do
   session <- Editor.getSession editor
   Session.setAnnotations annotations session
@@ -584,8 +579,8 @@ toAnnotation (CompilationError { row, column, text }) = Just { "type": "error"
                                                              }
 
 render ::
-  forall m aff.
-  MonadAff (EChartsEffects (AceEffects (localStorage :: LOCALSTORAGE | aff))) m =>
+  forall m.
+  MonadAff m =>
   FrontendState ->
   ParentHTML Query ChildQuery ChildSlot m
 render state = div [ class_ $ ClassName "main-frame" ]

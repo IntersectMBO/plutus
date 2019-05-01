@@ -3,23 +3,27 @@ module Marlowe.Parser where
 import Prelude
 
 import Control.Alternative ((<|>))
-import Data.BigInteger (BigInteger)
+import Control.Lazy (fix)
 import Data.BigInt (BigInt)
 import Data.BigInt as BigInt
+import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
-import Data.List (List)
+import Data.List (List, many, some)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (wrap)
 import Marlowe.Types (BlockNumber(BlockNumber), Choice, Contract(..), IdAction(IdAction), IdChoice, IdCommit(IdCommit), IdOracle(IdOracle), LetLabel, Observation(..), Person(Person), Timeout(Timeout), Value(..))
-import Text.Parsing.Simple (Parser, char, fail, fix, integral, many, parens, some, string, whitespace)
+import Text.Parsing.Parser (Parser, fail)
+import Text.Parsing.Parser.Basic (integral, parens)
+import Text.Parsing.Parser.String (char, string)
+import Text.Parsing.Parser.Token (space)
 
 -- All arguments are space separated so we add **> to reduce boilerplate
 
 maybeSpaces :: Parser String (List Char)
-maybeSpaces = many whitespace
+maybeSpaces = many space
 
 spaces :: Parser String (List Char)
-spaces = some whitespace
+spaces = some space
 
 appRSpaces :: forall a b. Parser String a -> Parser String b -> Parser String b
 appRSpaces p q = p *> spaces *> q
@@ -31,7 +35,7 @@ appSpaces p q = p <*> (spaces *> q)
 
 infixl 4 appSpaces as <**>
 
-------------------------------------------------------------------------
+----------------------------------------------------------------------
 
 bigInteger :: Parser String BigInteger
 bigInteger = do
@@ -103,7 +107,7 @@ recValue =
 
 value :: Parser String Value
 value = atomValue <|> recValue
-
+-- 
 atomObservation :: Parser String Observation
 atomObservation
   =   pure TrueObs <* string "TrueObs"
@@ -167,4 +171,3 @@ contract = do void maybeSpaces
               c <- (atomContract <|> recContract)
               void maybeSpaces
               pure c
-
