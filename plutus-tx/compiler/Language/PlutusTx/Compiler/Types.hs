@@ -19,6 +19,7 @@ import           Control.Monad.Reader
 
 import qualified Data.List.NonEmpty                     as NE
 import qualified Data.Map                               as Map
+import qualified Data.Set                               as Set
 
 import qualified Language.Haskell.TH.Syntax             as TH
 
@@ -30,11 +31,20 @@ data ConvertingContext = ConvertingContext {
     ccOpts            :: ConversionOptions,
     ccFlags           :: GHC.DynFlags,
     ccBuiltinNameInfo :: BuiltinNameInfo,
-    ccScopes          :: ScopeStack
+    ccScopes          :: ScopeStack,
+    ccBlackholed      :: Set.Set GHC.Name
     }
 
 -- See Note [Scopes]
 type Converting m = (Monad m, MonadError ConvError m, MonadQuote m, MonadReader ConvertingContext m, MonadDefs GHC.Name () m)
+
+blackhole :: MonadReader ConvertingContext m => GHC.Name -> m a -> m a
+blackhole name = local (\cc -> cc {ccBlackholed=Set.insert name (ccBlackholed cc)})
+
+blackholed :: MonadReader ConvertingContext m => GHC.Name -> m Bool
+blackholed name = do
+    ConvertingContext {ccBlackholed=bh} <- ask
+    pure $ Set.member name bh
 
 {- Note [Scopes]
 We need a notion of scope, because we have to make sure that if we convert a GHC

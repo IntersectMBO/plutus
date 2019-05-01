@@ -195,6 +195,9 @@ runghcOpts =
     , "-XTemplateHaskell"
     , "-XScopedTypeVariables"
     , "-O0"
+    -- FIXME: stupid GHC bug still
+    , "-package plutus-wallet-api"
+    , "-package plutus-tx"
     ]
 
 jsonToString :: ToJSON a => a -> String

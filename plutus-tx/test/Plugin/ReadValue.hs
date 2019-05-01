@@ -4,7 +4,6 @@
 -- the simplifier messes with things otherwise
 {-# OPTIONS_GHC   -O0 #-}
 {-# OPTIONS_GHC   -Wno-orphans #-}
-{-# OPTIONS_GHC   -fmax-simplifier-iterations=0 #-}  -- being paranoid
 -- this adds source notes which helps the plugin give better errors
 {-# OPTIONS_GHC   -g #-}
 

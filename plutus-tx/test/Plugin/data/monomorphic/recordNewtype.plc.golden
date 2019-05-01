@@ -3,23 +3,12 @@
     (nonrec)
     (datatypebind
       (datatype
-        (tyvardecl MyNewtype (type))
+        (tyvardecl RecordNewtype (type))
         
-        MyNewtype_match
-        (vardecl MyNewtype (fun (con integer) MyNewtype))
+        RecordNewtype_match
+        (vardecl RecordNewtype (fun (con integer) RecordNewtype))
       )
     )
-    (let
-      (nonrec)
-      (datatypebind
-        (datatype
-          (tyvardecl RecordNewtype (type))
-          
-          RecordNewtype_match
-          (vardecl RecordNewtype (fun MyNewtype RecordNewtype))
-        )
-      )
-      (lam ds RecordNewtype ds)
-    )
+    (lam ds RecordNewtype ds)
   )
 )
