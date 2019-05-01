@@ -2,7 +2,7 @@ module Simulation where
 
 import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.Ord ((>=))
-import Semantics
+import Marlowe.Semantics
 import Data.Semiring ((+))
 import Data.Map (Map)
 import Data.List (List(..))
@@ -701,7 +701,7 @@ renderCommits (CommitInfo ci) =
   where commitList = Map.toAscUnfoldable ci.currentCommitsById :: List (Tuple IdCommit CommitInfoRecord)
 
 renderCommit :: forall p. Tuple IdCommit CommitInfoRecord -> HTML p Query
-renderCommit (Tuple idCommit {person, amount, timeout}) =
+renderCommit (Tuple idCommit (CommitInfoRecord {person, amount, timeout})) =
   tr [] [ td_ [ text (show idCommit)
               ]
         , td [ class_ $ ClassName "middle-column"
@@ -764,7 +764,7 @@ renderOracles oracles =
   where oracleList = Map.toAscUnfoldable oracles :: List (Tuple IdOracle OracleDataPoint)
 
 renderOracle :: forall p. Tuple IdOracle OracleDataPoint -> HTML p Query
-renderOracle (Tuple idOracle {blockNumber, value}) =
+renderOracle (Tuple idOracle (OracleDataPoint {blockNumber, value})) =
   tr [] [ td_ [ text (show idOracle)
               ]
         , td [ class_ $ ClassName "middle-column"
