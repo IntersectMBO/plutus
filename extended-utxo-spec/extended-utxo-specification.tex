@@ -188,6 +188,8 @@ based on the models appearing in the
 papers~\cite{Zahnentferner18-Chimeric} and
 \cite{Zahnentferner18-UTxO}.
 
+\medskip
+
 The rationale for providing three separate specifications is that (1)
 introducing extensions one by one clarifies the structure of the
 models and makes it easier to explain the relevant design decisions,
@@ -195,48 +197,12 @@ and (2) it is possible that a particular blockchain might not need the
 full power of XUTXO-3 and so could use a simpler model, perhaps with
 less computational overhead.
 
+\bigskip
 
-\section{The Basic UTXO model: Outputs and scripts}
-\label{sec:utxo-intro}
+\noindent Before presenting the extended models we will define some
+basic notation and give a little background on the standard UTXO
+model.
 
-There is no well-defined notion of ownership for UTXOs.  In many
-transactions an output will accrue to a single user who is then
-entitled to spend it at a later date.  However, in general the notion
-of ownership is more complex: an output of a transaction might require
-the cooperation of several users before it could be spent, or it might
-not be spendable until some other condition has been met (for example
-a certain period of time may have to pass).  At the extremes, an
-output could be spendable by anyone, or by no-one.
-
-In order to deal with this complexity, an output can be locked by a
-\textit{script}, requiring another script to unlock it.  In the
-Cardano setting, scripts are Plutus Core
-programs~\cite{Plutus-Core-spec} (equivalently, expressions).  In the
-basic model, each input to a transaction comes with a \i{validator}
-script which checks that the transaction is allowed to spend the
-output. To prove that it is allowed to spend an output, the
-transaction supplies another script, called the \i{redeemer}\footnote{
-  The validator plays a role similar to that of BitCoin's
-  \texttt{scriptPubKey} and the redeemer to \texttt{scriptSig}.}.
-
-In a process known as \i{validation}, the validator is run with the
-redeemer as input, and if it terminates without an error arising then
-the output can be spent.  Before a transaction can proceed, all inputs
-must be successfully validated: if one or more inputs fails to validate
-then the transaction is rejected (\blue{is this true?}).
-
-A simple example of this is a \i{pay-to-pubkey} script, where the
-redeemer consists of a signature for the current transaction produced
-using a private key belonging to the owner of the output.  The
-validator (provided by the owner of the output) would check the
-signature using a known public key: if the public key corresponds to
-the private key then validation succeeds, otherwise it fails.  Thus
-the output can only be spent by the owner of the relevant private key
-
-\vfill
-\blue{(I'll improve the page breaks when the document is closer to completion.)}
-
-\newpage
 
 \section{Notation}
 This section defines some basic notation.  We generally follow the
@@ -347,6 +313,46 @@ hash of the transaction.
 
 
 
+
+
+\section{The Basic UTXO model: Outputs and scripts}
+\label{sec:utxo-intro}
+
+There is no well-defined notion of ownership for UTXOs.  In many
+transactions an output will accrue to a single user who is then
+entitled to spend it at a later date.  However, in general the notion
+of ownership is more complex: an output of a transaction might require
+the cooperation of several users before it could be spent, or it might
+not be spendable until some other condition has been met (for example
+a certain period of time may have to pass).  At the extremes, an
+output could be spendable by anyone, or by no-one.
+
+In order to deal with this complexity, an output can be locked by a
+\textit{script}, requiring another script to unlock it.  In the
+Cardano setting, scripts are Plutus Core
+programs~\cite{Plutus-Core-spec} (equivalently, expressions).  In the
+basic model, each input to a transaction comes with a \i{validator}
+script which checks that the transaction is allowed to spend the
+output. To prove that it is allowed to spend an output, the
+transaction supplies another script, called the \i{redeemer}\footnote{
+  The validator plays a role similar to that of BitCoin's
+  \texttt{scriptPubKey} and the redeemer to \texttt{scriptSig}.}.
+
+In a process known as \i{validation}, the validator is run with the
+redeemer as input, and if it terminates without an error arising then
+the output can be spent.  Before a transaction can proceed, all inputs
+must be successfully validated: if one or more inputs fails to validate
+then the transaction is rejected (\blue{is this true?}).
+
+A simple example of this is a \i{pay-to-pubkey} script, where the
+redeemer consists of a signature for the current transaction produced
+using a private key belonging to the owner of the output.  The
+validator (provided by the owner of the output) would check the
+signature using a known public key: if the public key corresponds to
+the private key then validation succeeds, otherwise it fails.  Thus
+the output can only be spent by the owner of the relevant private key
+
+\newpage
 
 \section{XUTXO-1: Enhanced scripting}
 \label{sec:xutxo-1}
@@ -928,7 +934,7 @@ The new definition is given in Figure~\ref{fig:xutxo-3-types}:
   \[
   \newvaluemap = \Map{\s{CurrencyId}}{\Map{\s{Token}}{\s{Quantity}}}
   \]
-  Where
+  where
   \begin{itemize}
 \item \s{CurrencyId} is the type we are using to identify currencies, as in Figure~\ref{fig:xutxo-2-types}.
 \item \s{Token} is an identifier for an individual token, probably a hash.
