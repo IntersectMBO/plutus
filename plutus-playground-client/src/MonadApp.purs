@@ -16,6 +16,10 @@ import Control.Monad.Except.Trans (ExceptT, runExceptT)
 import Control.Monad.Reader.Class (class MonadAsk, ask)
 import Control.Monad.State.Class (class MonadState, state)
 import Control.Monad.Trans.Class (class MonadTrans, lift)
+import DOM (DOM)
+import DOM.HTML.Event.DataTransfer (DropEffect)
+import DOM.HTML.Event.DataTransfer as DataTransfer
+import DOM.HTML.Event.DragEvent (dataTransfer)
 import DOM.HTML.Event.Types (DragEvent)
 import Data.Either (Either)
 import Data.Lens (use)
@@ -49,6 +53,7 @@ class Monad m <= MonadApp m where
   --
   saveBuffer :: String -> m Unit
   preventDefault :: DragEvent -> m Unit
+  setDropEffect :: DropEffect -> DragEvent -> m Unit
   readFileFromDragEvent :: DragEvent -> m String
   updateChartsIfPossible :: m Unit
   --
@@ -98,7 +103,7 @@ runHalogenApp = unwrap
 
 instance monadAppHalogenApp ::
   ( MonadAsk (SPSettings_ SPParams_) m
-  , MonadEff (ace :: ACE, localStorage :: LOCALSTORAGE | eff) m
+  , MonadEff (ace :: ACE, localStorage :: LOCALSTORAGE, dom :: DOM | eff) m
   , MonadAff (ajax :: AJAX, file :: FILE | aff) m
   )
   => MonadApp (HalogenApp m) where
@@ -112,6 +117,8 @@ instance monadAppHalogenApp ::
   editorGotoLine row column = void $ withEditor $ Editor.gotoLine row column (Just true)
 
   preventDefault event = wrap $ liftEff $ FileEvents.preventDefault event
+
+  setDropEffect dropEffect event = wrap $ liftEff $ DataTransfer.setDropEffect dropEffect $ dataTransfer event
 
   readFileFromDragEvent event = wrap $ liftAff $ FileEvents.readFileFromDragEvent event
 

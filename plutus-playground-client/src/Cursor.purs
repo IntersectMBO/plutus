@@ -26,6 +26,7 @@ module Cursor
 
 import Control.Monad.Gen.Class (chooseInt)
 import Data.Array as Array
+import Data.Foldable
 import Data.Generic (class Generic)
 import Data.Lens (Traversal', wander)
 import Data.Lens.Index (class Index)
@@ -41,6 +42,11 @@ derive instance eqCursor :: Eq a => Eq (Cursor a)
 derive instance ordCursor :: Ord a => Ord (Cursor a)
 derive instance functorCursor :: Functor Cursor
 derive instance genericCursor :: Generic a => Generic (Cursor a)
+
+instance foldableCursor :: Foldable Cursor where
+  foldr f acc (Cursor _ xs) = foldr f acc xs
+  foldl f acc (Cursor _ xs) = foldl f acc xs
+  foldMap f (Cursor _ xs) = foldMap f xs
 
 instance showCursor :: Show a => Show (Cursor a) where
   show (Cursor index xs) = "Cursor " <> show index <> " " <> show xs
