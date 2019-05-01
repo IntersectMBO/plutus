@@ -237,7 +237,8 @@ convertExpr opts locStr codeTy origE = do
             ccOpts=ConversionOptions { coCheckValueRestriction=poDoTypecheck opts },
             ccFlags=flags,
             ccBuiltinNameInfo=nameInfo,
-            ccScopes=initialScopeStack
+            ccScopes=initialScopeStack,
+            ccBlackholed=mempty
             }
     case runExcept . runQuoteT . flip runReaderT context $ result of
         Left s ->

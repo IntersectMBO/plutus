@@ -1,14 +1,1 @@
-(program
-  (let
-    (nonrec)
-    (datatypebind
-      (datatype
-        (tyvardecl MyNewtype (type))
-        
-        MyNewtype_match
-        (vardecl MyNewtype (fun (con integer) MyNewtype))
-      )
-    )
-    (lam ds MyNewtype ds)
-  )
-)
+(program (lam ds (con integer) ds))

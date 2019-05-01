@@ -7,7 +7,6 @@
 -- the simplifier messes with things otherwise
 {-# OPTIONS_GHC   -O0 #-}
 {-# OPTIONS_GHC   -Wno-orphans #-}
-{-# OPTIONS_GHC   -fmax-simplifier-iterations=0 #-}  -- being paranoid
 -- this adds source notes which helps the plugin give better errors
 {-# OPTIONS_GHC   -g #-}
 
@@ -267,6 +266,7 @@ newtypes = testNested "newtypes" [
    , goldenPir "newtypeCreate2" newtypeCreate2
    , goldenPir "nestedNewtypeMatch" nestedNewtypeMatch
    , goldenEval "newtypeCreatDest" [ getProgram $ newtypeMatch, getProgram $ newtypeCreate2 ]
+   , goldenPir "paramNewtype" paramNewtype
    ]
 
 newtype MyNewtype = MyNewtype Int
@@ -291,6 +291,11 @@ newtypeCreate2 = plc @"newtypeCreate2" (MyNewtype 1)
 
 nestedNewtypeMatch :: CompiledCode (MyNewtype2 -> Int)
 nestedNewtypeMatch = plc @"nestedNewtypeMatch" (\(MyNewtype2 (MyNewtype x)) -> x)
+
+newtype ParamNewtype a = ParamNewtype (Maybe a)
+
+paramNewtype :: CompiledCode (ParamNewtype Int -> ParamNewtype Int)
+paramNewtype = plc @"paramNewtype" (\(x ::ParamNewtype Int) -> x)
 
 recursiveTypes :: TestNested
 recursiveTypes = testNested "recursiveTypes" [
@@ -348,7 +353,7 @@ ptreeFirst = plc @"ptreeFirst" (
         go k (Two b) = go (\(x, _) -> k x) b
     in go (\x -> x))
 
-newtype EmptyRose = EmptyRose [EmptyRose]
+data EmptyRose = EmptyRose [EmptyRose]
 
 emptyRoseConstruct :: CompiledCode EmptyRose
 emptyRoseConstruct = plc @"emptyRoseConstruct" (EmptyRose [EmptyRose [], EmptyRose []])
@@ -414,6 +419,7 @@ errors = testNested "errors" [
     , goldenPlcCatch "negativeInt" negativeInt
     , goldenPlcCatch "valueRestriction" valueRestriction
     , goldenPlcCatch "recordSelector" recordSelector
+    , goldenPlcCatch "recursiveNewtype" recursiveNewtype
     , goldenPlcCatch "emptyRoseId1" emptyRoseId1
   ]
 
@@ -433,6 +439,11 @@ valueRestriction = plc @"valueRestriction" (let { f :: forall a . a; f = Builtin
 
 recordSelector :: CompiledCode (MyMonoRecord -> Int)
 recordSelector = plc @"recordSelector" (\(x :: MyMonoRecord) -> mrA x)
+
+newtype RecursiveNewtype = RecursiveNewtype [RecursiveNewtype]
+
+recursiveNewtype :: CompiledCode (RecursiveNewtype)
+recursiveNewtype = plc @"recursiveNewtype" (RecursiveNewtype [])
 
 emptyRoseId1 :: CompiledCode (EmptyRose -> EmptyRose)
 emptyRoseId1 = plc @"emptyRoseId1" (
