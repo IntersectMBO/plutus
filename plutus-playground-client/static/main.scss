@@ -120,6 +120,10 @@ table.balance-map {
     .action {
         text-align: left;
         margin-bottom: 30px;
+        transition-property: opacity, border-color;
+        transition-duration: 500ms;
+        border: dashed 2px transparent;
+        opacity: 1;
 
         label {
             margin-bottom: 0;
@@ -135,8 +139,20 @@ table.balance-map {
             margin-left: 1rem;
         }
     }
+
     .action-invalid-wallet {
         border: solid 1px $red;
+    }
+
+    &.actions-being-dragged {
+        .action {
+            opacity: 0.5;
+            border: dashed 2px $white;
+
+            &.drag-source {
+                opacity: 0;
+            }
+        }
     }
 }
 
@@ -177,5 +193,3 @@ table.balance-map {
         padding-right: 0;
     }
 }
-
-

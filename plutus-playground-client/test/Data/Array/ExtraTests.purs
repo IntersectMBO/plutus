@@ -5,13 +5,13 @@ module Data.Array.ExtraTests
 import Prelude
 
 import Control.Monad.Eff.Random (RANDOM)
-import Data.Array (deleteAt, index, length)
+import Data.Array (length)
 import Data.Array.Extra (move)
-import Test.QuickCheck (arbitrary, (<?>))
+import Test.QuickCheck (arbitrary)
 import Test.QuickCheck.Gen (Gen)
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (equal)
-import Test.Unit.QuickCheck (quickCheck, quickCheck')
+import Test.Unit.QuickCheck (quickCheck)
 import TestUtils (genIndex, genLooseIndex)
 
 all :: forall eff. TestSuite (random :: RANDOM | eff)
