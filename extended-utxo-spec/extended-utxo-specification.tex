@@ -6,7 +6,7 @@
   \red{\textsf{PRELIMINARY DRAFT!}}}
 
 \pagestyle{plain}
-\date{26th April 2019}
+\date{1st May 2019}
 \author{}
 
 \documentclass[a4paper]{article}
@@ -27,6 +27,10 @@
 \usepackage{float}  %% Try to improve placement of figures.  Doesn't work well with subcaption package.
 \usepackage{subcaption}
 \usepackage{caption}
+
+% Stuff for splitting figures over page breaks
+%\DeclareCaptionLabelFormat{continued}{#1~#2 (Continued)}
+%\captionsetup[ContinuedFloat]{labelformat=continued}
 
 % correct bad hyphenation here
 \hyphenation{}
@@ -118,6 +122,22 @@
 \newcommand{\unspent}{\msf{unspentOutputs}}
 \newcommand{\xutxotx}{\msf{XUtxoTx}}
 
+\newcommand{\valuetype}{\ensuremath{\s{Value}}}
+\newcommand{\newvaluetype}{\ensuremath{\s{Value}^{\prime}}}
+
+\newcommand{\valuemap}{\ensuremath{\s{ValueMap}}}
+\newcommand{\newvaluemap}{\ensuremath{\s{ValueMap}^{\prime}}}
+
+
+
+
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily,
+  columns=fullflexible,
+  mathescape=true,
+  escapeinside={|}{|}   %% Inside listings you can say things like |\textit{blah blah}|
+}
 
 
 %% ------------- Start of document ------------- %%
@@ -139,6 +159,13 @@ the user.  Every core node on the blockchain maintains a record of all
 of the currently unspent outputs, the \textit{UTXO set}; when outputs
 are spent, they are removed from the UTXO set.
 
+Our main concern here is to facilitate the implementation of
+\textit{smart contracts}: programs which perform automated and
+irrevocable transfer of funds on the blockchain, subject to certain
+conditions being met.  A smart contract may involve multiple
+transactions, and our aim is to define a transaction model which
+enables the implementation of highly expressive contracts.
+
 \subsection{Structure of the document}
 \label{sec:doc-structure}
 This document proposes three extensions of the basic UTXO model, each
@@ -146,124 +173,27 @@ one more general than the previous one (XUTXO stands for
 \textit{Extended UTXO}):
 
 \begin{itemize}
-  \item \textbf{XUTXO-1} (Section~\ref{sec:xutxo-1}): this extends the basic UTXO model with
-    enhanced scripting features, allowing the implementation of
-    complex smart contracts..
-  \item \textbf{XUTXO-2} (Section~\ref{sec:xutxo-2}): this adds multicurrency features to XUTXO-1,
-    allowing users to define \textit{custom currencies}.
-  \item \textbf{XUTXO-3} (Section~\ref{sec:xutxo-3}): this adds direct 
+  \item \textbf{XUTXO-1} (Section~\ref{sec:xutxo-1}): this extends the
+    basic UTXO model with enhanced scripting features, allowing the
+    implementation of complex smart contracts.
+  \item \textbf{XUTXO-2} (Section~\ref{sec:xutxo-2}): this adds
+    multicurrency features to XUTXO-1, allowing users to define
+    \textit{custom currencies}.
+  \item \textbf{XUTXO-3} (Section~\ref{sec:xutxo-3}): this adds direct
     support for non-fungible tokens to XUTXO-2.
 \end{itemize}
 
-We give formal specifications of each of these versions.  The
-rationale for providing three separate specifications is that (1)
+\noindent We give formal specifications of each of these versions,
+based on the models appearing in the
+papers~\cite{Zahnentferner18-Chimeric} and
+\cite{Zahnentferner18-UTxO}.
+
+The rationale for providing three separate specifications is that (1)
 introducing extensions one by one clarifies the structure of the
 models and makes it easier to explain the relevant design decisions,
 and (2) it is possible that a particular blockchain might not need the
-full power of XUTXO-3 and so could use a simpler model, perhaps
-with less computational overhead.
-
-
-\subsection{Notation}
-This section defines some basic notation.  We generally follow the
-notation established by \cite{Zahnentferner18-UTxO}.
-
-\begin{ruledfigure}{H}
-\begin{itemize}
-\item Types are typeset in $\mathsf{sans~serif}$.
-
-\item All scripts are of type $\mathsf{Script}$.
-
-\item The only operation on $\mathsf{Script}$ from the ledger's
-  perspective is applying a validator script to three arguments,
-  which is denoted by $\llbracket \cdots \rrbracket :
-  \mathsf{Script} \rightarrow \mathsf{Script} \times \mathsf{Script}
-    \times \mathsf{Script} \rightarrow \mathbb{V}$ where $\mathbb{V}$
-    is some type containing a distinguished value
-    \textsf{error}\footnotemark.
-
-\item A record type with fields $\phi_1, \ldots, \phi_n$ of types $T_1,
-  \ldots, T_n$ is denoted by $(\phi_1 : T_1, \ldots, \phi_n : T_n)$.
-
-\item If $t$ is a value of a record type $T$ and $\phi$ is the name
-  of a field of $T$ then $t.\phi$ denotes the value of $\phi$ for
-  $t$.
-  
-\item A list $\lambda$ of type $\List{T}$ is
-    either the empty list $[]$ or a list $e :: \lambda'$ with $head$
-    $e$ of type $T$ and $tail$ $\lambda'$ of type
-    $\List{T}$. We denote the $i$th element of a list
-    $L$ by $L[i]$.
-    The concatenation of two lists $\lambda_1$ and
-    $\lambda_2$ is denoted $\lambda_1 ::: \lambda_2$.
-
-  \item For two types $S$ and $T$, $\Map{S}{T}$ denotes the type
-    of partial functions from \textit{keys} in $S$ to \textit{values}
-    in $T$.  If $m$ is such a map then $\dom m$ (the
-    \textit{domain} of $m$) is the set of keys of $m$.  Given a map $m$
-    and a key $k \in \dom m$, we denote the result of looking
-    up $k$ in $m$ by $m[k]$.
-    
-  \item If $T$ is a numeric type and $f, g \in \Map{S}{T}$ then we define
-    their sum $f+g \in \Map{S}{T}$ with domain $\dom (f+g) = \dom f \cup \dom g$ by
-    \[
-    (f+g)[x] =
-    \left\{ \begin{array}{ll}
-        f[x] + g[x] & \mbox{if $x \in \dom f \cap \dom g$}\\
-        f[x] & \mbox{if $x \in \dom f \setminus \dom g$}\\
-        g[x] & \mbox{if $x \in \dom g \setminus \dom f$}
-      \end{array}
-      \right.
-      \]
-      We generalise this to the sum of a finite number of maps using the $\sum$
-      notation in the usual way.
-  \item $x \mapsto f(x)$ denotes an anonymous function.
-
-  \item A cryptographic
-    collision-resistant hash of a value $c$ is denoted $c^{\#}$.
-
-  \item If any operation fails (for example, indexing a list out of
-    range or trying to spend an output which has already been spent)
-    then we assume that the containing script returns \textsf{error}
-    immediately.
-\end{itemize}
-\caption{Basic notation}
-\label{fig:basic-notation}
-\end{ruledfigure}
-
-\footnotetext{We could equally well use the type of booleans, but the
-  version involving \textsf{error} fits Plutus Core better.}
-
-
-\noindent Throughout the document we assume a number of basic types, all of
-which we regard as aliases for the type of natural numbers.  These
-are shown in Figure~\ref{fig:basic-types}.
-
-\begin{ruledfigure}{H}
-  \center{
-  \begin{tabular}{rl}
-    \s{Value}&: a currency value\\
-    \s{SlotNumber}&: a slot number\\
-    \s{Address}&: the address of an object in the blockchain\\
-    \s{TxId}&: the identifier of a previous transaction on the chain\\
-  \end{tabular}
-  }
-  \caption{Basic types}
-  \label{fig:basic-types}
-\end{ruledfigure}
-
-\noindent In practice an \textsf{Address} will usually be a hash of
-some object (for example, a script), and the blockchain will provide
-an efficient way to retrieve the original object given its hash.
-Accessing objects indirectly via addresses is helpful because it can
-help to reduce memory and disk usage: for example, there may be
-scripts for common validation scenarios used in many transactions, and
-it is more efficient to store single copies of such scripts rather
-than having hundreds of transactions each with their own copy.
-
-We assume that every transaction in a ledger has a unique identifier
-of type \s{TxId}: in an implementation this would probably be the
-hash of the transaction.
+full power of XUTXO-3 and so could use a simpler model, perhaps with
+less computational overhead.
 
 
 \section{The Basic UTXO model: Outputs and scripts}
@@ -301,19 +231,125 @@ using a private key belonging to the owner of the output.  The
 validator (provided by the owner of the output) would check the
 signature using a known public key: if the public key corresponds to
 the private key then validation succeeds, otherwise it fails.  Thus
-the output can only be spent by the owner of the relevant private key.
+the output can only be spent by the owner of the relevant private key
+
+\vfill
+\blue{I'll improve the page breaks when the document is closer to completion.}
+
+\newpage
+
+\section{Notation}
+This section defines some basic notation.  We generally follow the
+notation established by \cite{Zahnentferner18-UTxO}.
+
+\begin{ruledfigure}{H}
+\begin{itemize}
+\item Types are typeset in $\mathsf{sans~serif}$.
+
+\item All scripts are of type $\mathsf{Script}$.
+
+\item The only operation on $\mathsf{Script}$ from the ledger's
+  perspective is applying a validator script to three arguments,
+  which is denoted by $\llbracket \cdots \rrbracket :
+  \mathsf{Script} \rightarrow \mathsf{Script} \times \mathsf{Script}
+    \times \mathsf{Script} \rightarrow \mathbb{V}$ where $\mathbb{V}$
+    is some type containing a distinguished value
+    \textsf{error}\footnotemark.
+
+\item A record type with fields $\phi_1, \ldots, \phi_n$ of types $T_1,
+  \ldots, T_n$ is denoted by $(\phi_1 : T_1, \ldots, \phi_n : T_n)$.
+
+\item If $t$ is a value of a record type $T$ and $\phi$ is the name
+  of a field of $T$ then $t.\phi$ denotes the value of $\phi$ for
+  $t$.
+  
+\item A list $\lambda$ of type $\List{T}$ is
+    either the empty list $[]$ or a list $e :: \lambda'$ with $head$
+    $e$ of type $T$ and $tail$ $\lambda'$ of type
+    $\List{T}$. We denote the $i$th element of a list
+    $L$ by $L[i]$.
+    The concatenation of two lists $\lambda_1$ and
+    $\lambda_2$ is denoted $\lambda_1 ::: \lambda_2$.
+
+  \item For two types $S$ and $T$, $\Map{S}{T}$ denotes the type of
+    partial functions from \textit{keys} in $S$ to \textit{values} in
+    $T$.  If $m$ is such a map then $\dom m$ (the \textit{domain} of
+    $m$) is the set of keys of $m$.  Given a map $m$ and a key $k \in
+    \dom m$, we denote the result of looking up $k$ in $m$ by $m[k]$.
+    Equality for maps is defined in the obvious way: $m_1 = m_2$ if and only if
+    $\dom m_1 = \dom m_2$ and $m_1[k] = m_2[k]$ for all $k \in \dom m_1$.
+    
+  \item If the type $T$ is a monoid with binary operation $+$ (for
+    example, a numeric type) and $f, g \in \Map{S}{T}$ then we define
+    their sum $f+g \in \Map{S}{T}$ with domain $\dom (f+g) = \dom f
+    \cup \dom g$ by
+    \[
+    (f+g)[x] =
+    \left\{ \begin{array}{ll}
+        f[x] + g[x] & \mbox{if $x \in \dom f \cap \dom g$}\\
+        f[x] & \mbox{if $x \in \dom f \setminus \dom g$}\\
+        g[x] & \mbox{if $x \in \dom g \setminus \dom f$}
+      \end{array}
+      \right.
+      \]
+      We generalise this to the sum of a finite number of maps using
+      the $\sum$ notation in the usual way.  Note that the type
+      $\Map{S}{T}$ itself becomes a monoid under the operation $+$
+      which we have just defined (with the empty map as identity element).
+
+    \item $x \mapsto f(x)$ denotes an anonymous function.
+
+  \item A cryptographic
+    collision-resistant hash of a value $c$ is denoted $c^{\#}$.
+
+  \item If any operation fails (for example, indexing a list out of
+    range or trying to spend an output which has already been spent)
+    then we assume that the containing script returns \textsf{error}
+    immediately.
+\end{itemize}
+\caption{Basic notation}
+\label{fig:basic-notation}
+\end{ruledfigure}
+
+\footnotetext{We could equally well use the type of booleans, but the
+  version involving \textsf{error} fits Plutus Core better.}
+
+
+\noindent Throughout the document we assume a number of basic types, all of
+which we regard as aliases for the type of natural numbers.  These
+are shown in Figure~\ref{fig:basic-types}.
+
+\begin{ruledfigure}{H}
+  \center{
+  \begin{tabular}{rl}
+    \valuetype&: a currency value\\
+    \s{SlotNumber}&: a slot number\\
+    \s{Address}&: the address of an object in the blockchain\\
+    \s{TxId}&: the identifier of a previous transaction on the chain\\
+  \end{tabular}
+  }
+  \caption{Basic types}
+  \label{fig:basic-types}
+\end{ruledfigure}
+
+\noindent In practice an \textsf{Address} will usually be a hash of
+some object (for example, a script), and the blockchain will provide
+an efficient way to retrieve the original object given its hash.
+Accessing objects indirectly via addresses is helpful because it can
+help to reduce memory and disk usage: for example, there may be
+scripts for common validation scenarios used in many transactions, and
+it is more efficient to store single copies of such scripts rather
+than having hundreds of transactions each with their own copy.
+
+We assume that every transaction in a ledger has a unique identifier
+of type \s{TxId}: in an implementation this would probably be the
+hash of the transaction.
+
+
+
 
 \section{XUTXO-1: Enhanced scripting}
 \label{sec:xutxo-1}
-The papers~\cite{Zahnentferner18-UTxO}
-and~\cite{Zahnentferner18-Chimeric} contain a mathematical description
-of the UTXO model currently used in Cardano, which is basically that
-described in Section~\ref{sec:utxo-intro}.  In this document we specify
-some extensions which increase the expressivity of the existing UTXO
-model.  We refer to the extended version as the \textit{Extended UTXO}
-(XUTXO) model.  
-
-
 The XUTXO-1 model introduces the following new features:
 
 \begin{itemize}
@@ -321,10 +357,14 @@ The XUTXO-1 model introduces the following new features:
   of two slot numbers: a core node will only process the transaction
   if the current slot number lies within the transaction's validity
   interval.
-\item We introduce a new type of script called a \i{data script},
-  and each unspent output has a (possibly empty) data script
-  associated with it.  The introduction of the data script
-  increases the expressivity of the model considerably.
+
+\item We introduce a new type of script called a \i{data script}, and
+  each unspent output has a (possibly empty) data script associated
+  with it.  The introduction of the data script increases the
+  expressivity of the model considerably. For example, one can use the
+  datascript to propagate state between transactions, and this can be
+  used to give a contract the structure of a finite state machine.
+
 \item During validation, validator scripts are provided with
   information about the current state of the blockchain.  This
   includes things such as the current slot number, the validity
@@ -338,16 +378,6 @@ The XUTXO-1 model introduces the following new features:
 
 \noindent\blue{We require more exposition here to motivate these
   extensions.  In particular, say more about determinacy.}
-
-\subsection{A Formal Description of the XUTXO-1 Model}
-\label{section:xutxo-spec}
-
-In this section we give a formal description of the XUTXO-1 model.  The
-description is given in a straightforward set-theoretic form, which
-(a) admits an almost direct translation into Haskell, and (b) should
-easily be amenable to mechanical formalisation.  This will potentially
-allow us to argue formally about smart contracts and to develop tools
-for automatic contract analysis.
 
 A validator script is a function of three arguments: the data script
 of type $d$, redeemer script of type $r$, and information of type $P$
@@ -400,8 +430,15 @@ pending transaction):
   script currently being executed.
 \end{itemize}
 
-\subsubsection{The Definition of Extended UTXO}
-\label{sec:xutxo-1-defn}
+\subsection{A Formal Description of the XUTXO-1 Model}
+\label{section:xutxo-spec}
+
+In this section we give a formal description of the XUTXO-1 model.  The
+description is given in a straightforward set-theoretic form, which
+(a) admits an almost direct translation into Haskell, and (b) should
+easily be amenable to mechanical formalisation.  This will potentially
+allow us to argue formally about smart contracts and to develop tools
+for automatic contract analysis.
 
 The definitions in this section are essentially the definitions of
 UTXO-based cryptocurrencies with scripts \cite{Zahnentferner18-UTxO},
@@ -424,7 +461,7 @@ describe transactions in the basic XUTXO model.
   \begin{arraydefs}{rll}
     
     \s{Output } &= (&\addr: \s{Address},\\
-    && \i{val}: \s{Value},\\
+    && \i{val}: \valuetype,\\
     &&  \i{datascript}: \s{Script})\\
     \\
     \s{OutputRef } &= (&\i{id}: \s{TxId}, \idx: \s{Int})\\
@@ -436,8 +473,8 @@ describe transactions in the basic XUTXO model.
      \xutxotx\s{ } &= (&\inputs: \Set{\s{Input}},\\
      &&\outputs: \List{\s{Output}},\\
      &&\i{validityInterval}: \slotnum \times \slotnum,\\
-     && \fee: \s{Value},\\
-     &&\forge: \s{Value}) \\
+     && \fee: \valuetype,\\
+     &&\forge: \valuetype) \\
      \\
      \s{Ledger } &=&\!\List{\xutxotx}\\
   \end{arraydefs}
@@ -494,7 +531,9 @@ scripts, with the signatures being verified prior to on-chain
 execution.  In the XUTXO-1 model, the validator and datascript are
 signed by the producer of an output, and the redeemer is signed by the
 consumer.  The details of this are outside the scope of this document.
-\red{So where are they actually specified?}
+\red{So where are the details actually specified? Also, the producer and
+  consumer aren't people, they're transactions.  There may not be any
+  people involved at all.}
 
 \paragraph{Ledger structure.} We model a ledger as a simple
 list of transactions: a real blockchain ledger will be more complex
@@ -611,7 +650,7 @@ access to the result of $\sigma$.
   demonstrating what the separation of redeemer and datascript does.}
 
 \newpage
-\section{XUTXO-2: muticurrency support}
+\section{XUTXO-2: multicurrency support}
 \label{sec:xutxo-2}
 We now extend the XUTXO model to allow transactions to deal with
 multiple currencies.  We assume that the underlying blockchain has a
@@ -635,34 +674,25 @@ Figure~\ref{fig:more-basic-types}.
   \s{CurrencyID}&: &an identifier for a custom currency. This is an alias
   for the \s{Address} type\\
   & & from Figure~\ref{fig:basic-types}.\\
-  \s{ValueMap} &: &a map from \s{CurrencyID}s to quantities of the
+  \valuemap &: &a map from \s{CurrencyID}s to quantities of the
   corresponding currencies\\
-  & & (represented using the non-negative \s{Value} type). This allows an output\\
+  & & (represented using the non-negative \valuetype type). This allows an output\\
   & & to contain quantities of multiple custom currencies in addition to some \\
   & & quantity (possibly zero) of the native currency.\\
 
-  \s{ValueMap$^{\pm}$} &: &This is like \s{ValueMap}, but quantities may be either positive or negative.
+  \s{ValueMap$^{\pm}$} &: &This is like \valuemap{}, but quantities may be either positive or negative.
   \end{tabular}
   }
   \caption{Extra basic types for the XUTXO-2 model}
   \label{fig:more-basic-types}
 \end{ruledfigure}
 
-\noindent The changes to the basic XUTXO model are now quite simple.
-We add a \s{ValueMap} to the \s{Output} type, representing values of custom
-currencies; we also add a \customforge{} field of type
-$\s{ValueMap}^{\pm}$ to transactions to allow the creation and
-destruction of tokens in custom currencies; the supply of a custom
-currency can be reduced by forging a negative amount of that currency.
-The fields \val, \fee, and \forge{} all represent quantities of the
-native currency, as in the XUTXO-1 model.
-
 \begin{ruledfigure}{H}
   \[
   \begin{arraydefs}{rll}
     \s{Output}_2 &= (&\addr: \s{Address},\\
-    && \val: \s{Value}\\
-    && \customvals: \s{ValueMap},\\
+    && \val: \valuetype\\
+    && \customvals: \valuemap,\\
     && \i{datascript}: \s{Script})\\
     \\
     \s{OutputRef}_2 &= (&\i{id}: \s{TxId}, \idx: \s{Int})\\
@@ -674,9 +704,9 @@ native currency, as in the XUTXO-1 model.
     \xutxotx_2 &= ( &\inputs: \Set{\s{Input}_2},\\
     &&\outputs: \List{\s{Output}_2},\\
     &&\i{validityInterval}: \slotnum \times \slotnum,\\
-    &&\fee: \s{Value},\\
-    &&\forge: \s{Value},\\
-    &&\customforge: \s{ValueMap}^{\pm})\\
+    &&\fee: \valuetype,\\
+    &&\forge: \valuetype,\\
+    &&\customforge: \valuemap^{\pm})\\
     \\
     \s{Ledger}_2 &=&\!\List{\xutxotx_2}\\
 \end{arraydefs}
@@ -685,20 +715,20 @@ native currency, as in the XUTXO-1 model.
   \label{fig:xutxo-2-types}
 \end{ruledfigure}
 
+\noindent The changes to the basic XUTXO-1 types are now quite simple: see Figure~\ref{fig:xutxo-2-types}.
+We add a \valuemap{} to the \s{Output} type, representing values of custom
+currencies; we also add a \customforge{} field of type
+$\valuemap^{\pm}$ to transactions to allow the creation and
+destruction of tokens in custom currencies; the supply of a custom
+currency can be reduced by forging a negative amount of that currency.
 
+The fields \val, \fee, and \forge{} all represent quantities of the
+native currency, as in the XUTXO-1 model.
 
+\medskip
 \noindent The validity conditions must also be updated to take account
 of multiple currencies: Figure~\ref{fig:xutxo-2-validity} contains
-the details.  We use the definitions of \unspent{}  and
-\getvalue{} from Section~\ref{sec:xutxo-1-validity} unchanged,
-but we also require a similar function to retrieve the values of
-custom currencies from inputs. If $t$ is a transaction in a ledger
-$\lambda$ and $i \in t.\inputs$, then we define 
-$$
-\s{getCustomValues}(i,\lambda) = \lambda\langle i.\outputref.\txid \rangle.\outputs[i.\outputref.\idx].\customvals
-$$
-\noindent If any of the indexing operations here fail then the
-transaction is invalid.
+the details.
 
 \begin{ruledfigure}{H}
   \begin{enumerate}
@@ -760,6 +790,17 @@ transaction is invalid.
 
 \end{ruledfigure}
 
+We use the definitions of \unspent{}  and
+\getvalue{} from Section~\ref{sec:xutxo-1-validity} unchanged,
+but we also require a similar function to retrieve the values of
+custom currencies from inputs. If $t$ is a transaction in a ledger
+$\lambda$ and $i \in t.\inputs$, then we define 
+$$
+\s{getCustomValues}(i,\lambda) = \lambda\langle i.\outputref.\txid \rangle.\outputs[i.\outputref.\idx].\customvals
+$$
+\noindent If any of the indexing operations here fail then the
+transaction is invalid.
+
 \paragraph{Note.} In rule~\ref{rule:custom-values-are-preserved-2}, $+$ and $\sum$ are the
 sum of maps as defined in Figure~\ref{fig:basic-notation}. Essentially
 we require that the quantities of the individual custom currencies
@@ -779,54 +820,210 @@ the currency to owners of particular public keys.
 
 The idea is that a custom currency has a monetary policy which is
 defined by some script $H$, and the hash $h = H^{\#}$ is used as the
-identifier of the currency.  Whenever a new quantity of the currency
-is forged, rules~\ref{rule:custom-forge}, \ref{rule:all-inputs-validate-2}, and
-\ref{rule:validator-scripts-hash-2} imply that $H$ must be executed; $H$ is
-provided with the \forge{} field of the transaction via $\sigma$, and
-so it knows how much of the currency is to be forged and can respond
-appropriately.
-
-The fact that \forge{} values are allowed to be negative means we can
-also \textit{destroy} quantities of custom currencies.
+identifier of the currency\footnotemark.  Whenever a new quantity of
+the currency is forged, rules~\ref{rule:custom-forge},
+\ref{rule:all-inputs-validate-2}, and
+\ref{rule:validator-scripts-hash-2} imply that $H$ must be executed;
+$H$ is provided with the \forge{} field of the transaction via
+$\sigma$, and so it knows how much of the currency is to be forged and
+can respond appropriately.
 
 The advantage of this scheme is that custom currencies can be handled
 entirely within the smart contract system, without the need to
 introduce any extra blockchain infrastructure such as a central
 registry of custom currencies.
 
-
+\footnotetext{In fact it is not quite enough to use the hash of the
+  script here, because many different currencies might wish to use the
+  same policy and hence the same script.  One way to remedy this is to
+  embed a reference to an unspent output in the script and say that
+  the currency can only be forged if the referenced output is spent at
+  the same time, so it can only be forged once. \red{I don't think
+    that's quite what we want here though: we have one opportunity
+    to forge the currency, then we can't make any more.}}
+  
 \subsection{Examples}
-\blue{Show how to define new currencies and do NFTs.}
-
-\section{XUTXO-3: Non-fungible tokens}
-\label{sec:xutxo-3}
 A non-fungible token (NFT) is a unique object which can be transferred
 to another user, but not duplicated.  NFTs have proven useful in a number
 of blockchain applications; for example, they can represent ownership of
 some object in a game.
+
+\subsection{Non-fungible tokens}
+An important example that motivated the design XUTXO-2 model was the
+idea of implementing NFTs as currencies with a supply of 1. If NFTs are
+used to represent different stakes in a contract, then a single
+instance of a contract requires multiple NFTs, so it is crucial that
+currency creation is as lightweight as possible. In our proposal, each
+NFT adds a single pay-to-script transaction output to the initial
+transaction of the contract, and does not otherwise put a burden on
+core nodes.
+
+Here is an example of a validator script that implements a
+non-fungible token using our proposal.  This is expressed as a Haskell
+function, and is very similar to the Haskell code that would be used
+in in a Plutus contract.
+
+\begin{lstlisting}
+data NFT = NFT { nftName :: String, nftBootstrapTxOut :: TxOutput }
+
+ nftValidator :: NFT -> Data -> Redeemer -> PendingTx -> ()
+ nftValidator (NFT nm txout) _ _ ptx =
+  let con1 = ptx `spends` txout
+      con2 = ptx `forges` 1 (ownAddress ptx)
+  in if con1 && con2 then () else error
+\end{lstlisting}
+
+The function \verb|spends :: PendingTx -> TxOut -> Bool| checks if the
+pending transaction spends the output \verb|txout| (uniquely
+identified by transaction hash and the index into its list of
+outputs). The function
+\verb|forges :: PendingTx -> Int -> ByteString -> Bool|
+checks if the
+pending transaction forges the given amount of the
+address. \verb|Data| and \verb|Redeemer| are the types (in Plutus
+Core) of the data and redeemer scripts, which we ignore here (so
+effectively both are the unit type \verb|()|). For an actual currency we could use the
+data script to keep track of the current supply.
+
+Note that the validator script for a given NFT definition is given by
+\verb|nftValidator nft|, so its address is the hash of
+\verb|nftValidator nft|.
+
+The key is the \verb|nftBootstrapTxOut| field. The condition
+\verb|con1| ensures that there is only a single transaction that can
+forge a value of the NFT, because \verb|txout| can only be spent once
+thanks to the no-double-spending rule. Condition \verb|con2| ensures
+that only a single token of the currency is created, effectively
+making it non-fungible.
+
+It is of course possible to produce multiple script outputs to the
+same address of \verb|nftValidator nft| but only one of them can be spent,
+because the referenced tx output can only be spent once.
+
+Note that creating an NFT with this contract requires three
+transactions: One for the nftBootstrapTxOut transaction output, one
+for producing an output to the NFT address, and one that forges the
+token, consuming the output from the NFT address and the
+\verb|nftBootstrapTxOut|. Note that the bootstrap transaction output can be
+any unspent transaction output owned by us, in particular it can be
+the same output that pays the fees for the forging transaction.
+
+\section{XUTXO-3: Non-fungible tokens}
+\label{sec:xutxo-3}
+
+We have shown above how NFTs can be implemented in the XUTXO-2 model,
+but this method is arguably a little heavyweight.  In this section we
+describe the XUTXO-3 model which provides much more lightweight
+support of NFTs.
+
+The basic idea is to change the \valuemap{} type used in XUTXO-2.  The
+new definition will allow us to support both fungible and non-fungible
+tokens, with no need to change any of the other ledger rules.
+
+The new definition is given in Figure~\ref{fig:xutxo-3-types}:
+
+\begin{ruledfigure}{H}
+  \[
+  \newvaluemap = \Map{\s{CurrencyId}}{\Map{\s{Token}}{\s{Quantity}}}
+  \]
+  Where
+  \begin{itemize}
+\item \s{CurrencyId} is the type we are using to identify currencies, as in Figure~\ref{fig:xutxo-2-types}.
+\item \s{Token} is an identifier for an individual token, probably a hash.
+\item \s{Quantity} is a type used to measure the amount of a token
+  that is present, probably the type of natural numbers.
+  \end{itemize}
+  \caption{Modified \valuemap{} type for XUTXO-3}
+  \label{fig:xutxo-3-types}
+\end{ruledfigure}
+
+\noindent Note that the comparison and addition operations for maps defined in
+Figure~\ref{fig:basic-notation} carry over to the type \newvaluemap.
+This allows us to define XUTXO-3 by exactly the same types and
+validity rules as XUTXO-2, simply replacing \valuemap{} by
+\newvaluemap{} everywhere.
+
+\subsection{Implications}
+This model allows us to implement fungible (normal) and non-fungible
+token currencies, as well as ``mixed states'':
+\begin{itemize}
+\item Fungible token currencies are implemented by only ever issuing
+  \s{Quantity}s of a single \s{Token}.
+\item Non-fungible token currencies are implemented by only ever
+  issuing unit \s{Quantity}s of many unique \s{Token}s.
+\item Note that there is nothing in this model which enforces
+  uniqueness: having multiples of a single \s{Token} merely means that
+  those can be used fungibly. If a currency wants to make sure it only
+  issues unique tokens it must track this itself.  These ``mixed'' token
+  currencies can have many \s{Token}s, but these can have more than unit
+  \s{Quantity}s in circulation.  These can be useful to model distinct
+  categories of thing where there are fungible quantities within
+  those, for example share classes. \red{Eh?}
+\end{itemize}
+
+\paragraph{Performance.}
+\red{I'm just making random stuff up here.}
+The UTXO-2 and UTXO-3 models will lose some efficiency in comparison
+to the UTXO-1 model, simply because the data structures are more
+complicated.  This would even apply to transactions which only involve
+to native currency, since it would be necessary to check whether the
+\valuemap{} contains anything that needs to be processed.  If this is
+a concern then one could implement a model with two types of
+transaction, essentially just the disjoint union of the XUTXO-1 and
+XUTXO-2 or XUTXO-3 transaction types. A simple case distinction at the
+start of a transaction could then select either a fast
+native-currency-only calculation or a slower multicurrency calculation.
+This would be harder to maintain though.
+
+\medskip
+A more significant cost may be that we can no longer use \verb|{-# UNPACK #-}|
+when our Value type stops being a simple combination of wrappers
+and products around primitives, but this is again an issue with any
+multi-currency proposal.
+
+  
+\subsection{Further generalisations}
+We have assumed that our basic \valuetype{} type is the type of
+natural numbers.  However, the models mostly carry over to the case
+where \valuetype{} is an arbitrary abelian group\footnotemark.  We can
+even replace \valuetype{} with a commutative monoid as long as we
+relinquish the ability to destroy quantities of currencies (since we
+can no longer subtract in general). Whether these generalisations are
+useful in practice remains to be seen.
+
+\footnotetext{If we allow a non-abelian group then we may be in
+  trouble.  If we forge $a$ units of currency, then forge $b$ units,
+  then destroy $a$ units again, we're left with $aba^{-1}$ (or
+  $a+b-a$) units, which won't be equal to $b$ in general: if your
+  currency consists of elements of the free group on $\{a,b\}$ then
+  things could get pretty interesting.  Similar things may happen if
+  we need to split up an output to get some change. In the monoid
+  case, we might get unexpected cancellation as well: $a+b=0$, but
+  $a,b \ne 0$: consider $\mathbb{Z}_{24}$ or something. I suppose
+  doing things like this would let us write weird papers to impress
+  the cryptocurrency community. It could still be useful for something
+  though...}
+
 
 
 \section{What else do we need to worry about?}
 \begin{itemize}
 \item Do we need to worry about who signs the various scripts, or is that
   something the wallet deals with?
+
+\item Who's responsible for looking after the scripts, and where are they kept?
+  Presumably scripts will be stored in the chain, but how do they get there?
+
 \item Is the number of inputs and/or outputs to a transaction always nonzero?
   Now that we're allowed to destroy currency, maybe we can have transactions
   with no outputs.
+
 \item Do we want to include \s{PayToPubKey} transactions in the specification?
   We definitely want a special case for this in the implementation, but you
   can do it with the general scripts framework anyway.
-\item Who's responsible for looking after the scripts, and where are they kept?
-  Presumably scripts will be stored in the chain, but how do they get there?
-\item I'm still a bit confused about where the validator for an output
-  $O$ comes from.  In our model, the validator $V$ is supplied as part
-  of a transaction input, but then we require that $O.\addr = V^\#$.
-  This means that $V$ must exists at the time that $O$ is created (as
-  you'd expect), so why is $V$ not just part of $O$, rather than being
-  part of the input?  Is this anything other than a conceptual
-  difference?
-  
+
 \end{itemize}
+  
 
 
 
