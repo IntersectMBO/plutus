@@ -101,9 +101,9 @@ application.
 \begin{code}
 Tel : ∀ {Γ⋆} Γ Δ → Sub Δ Γ⋆ → List (Δ ⊢⋆ *) → Set
 
-data _⊢_ {Γ⋆} (Γ : Ctx Γ⋆) : Γ⋆ ⊢⋆ * → Set where
+data _⊢_ {Γ⋆} (Γ : Ctx Γ⋆) : ∀{J} → Γ⋆ ⊢⋆ J → Set where
 
-  ` : ∀ {A : Γ⋆ ⊢⋆ *}
+  ` : ∀{J}{A : Γ⋆ ⊢⋆ J}
     → Γ ∋ A
       ------
     → Γ ⊢ A
