@@ -126,7 +126,6 @@ BUILTIN equalsInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt
   with i ≟ j
 ... | yes _ = just true
 ... | no _  = just false
-BUILTIN intToByteString σ (_ ,, V-con (integer i) ,, tt) = just (con (bytestring (int2ByteString i)))
 BUILTIN concatenate σ (_ ,, V-con (bytestring b) ,, _ ,, V-con (bytestring b') ,, tt) =
   just (con (bytestring (append b b')))
 BUILTIN takeByteString σ (_ ,, V-con (integer i) ,, _ ,, V-con (bytestring b) ,, tt) =
@@ -331,8 +330,8 @@ data TelProgress
     → Bs ++ (C ∷ Ds) ≡ As
     → Tel Γ Δ σ Ds
     → TelProgress tel
-   
-    
+
+
 \end{code}
 
 \begin{code}

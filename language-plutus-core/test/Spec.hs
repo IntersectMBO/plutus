@@ -13,7 +13,6 @@ import           Evaluation.CkMachine
 import           Evaluation.Constant.All
 import           Hedgehog                                   hiding (Var)
 import           Language.PlutusCore
-import           Language.PlutusCore.Constant
 import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Evaluation.CkMachine   (runCk)
 import           Language.PlutusCore.Generators
@@ -98,7 +97,7 @@ propRename = property $ do
     prog <- forAll genProgram
     Hedgehog.assert $ runQuote (rename prog) == prog
 
-propDeBruijn :: Gen (TermOf (TypedBuiltinValue a)) -> Property
+propDeBruijn :: Gen (TermOf a) -> Property
 propDeBruijn gen = property . generalizeT $ do
     (TermOf body _) <- forAllNoShowT gen
     let

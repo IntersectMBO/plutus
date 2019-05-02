@@ -31,16 +31,16 @@ open import Builtin
 
 Sig : Ctx⋆ → Set
 Sig Δ = List (Δ ⊢⋆ *) × Δ ⊢⋆ *
-  
+
 SIG : Builtin → Σ Ctx⋆ λ Δ → Sig Δ
 -- could have just one context so Signatures extend from ∅...
 -- going in the other direction could take a substitution as an arg and
 -- extend it appropriately...
 SIG addInteger =
   ∅ ,, (con integer ∷ con integer ∷ []) ,, con integer
-SIG subtractInteger = 
+SIG subtractInteger =
   ∅ ,, (con integer ∷ con integer ∷ []) ,, con integer
-SIG multiplyInteger = 
+SIG multiplyInteger =
   ∅ ,, (con integer ∷ con integer ∷ []) ,, con integer
 SIG divideInteger =
   ∅
@@ -96,12 +96,6 @@ SIG equalsInteger =
   con integer ∷ con integer  ∷ []
   ,,
   boolean
-SIG intToByteString =
-  ∅
-  ,,
-  con integer ∷ []
-  ,,
-  con bytestring
 SIG concatenate =
   ∅
   ,,

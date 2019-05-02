@@ -19,6 +19,7 @@ import           DynamicBuiltins.Common
 
 import           Control.Monad.Except
 import           Data.Either                          (isRight)
+import           Data.Proxy
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
@@ -27,9 +28,7 @@ dynamicIntToStringName = DynamicBuiltinName "intToString"
 
 dynamicIntToStringMeaning :: DynamicBuiltinNameMeaning
 dynamicIntToStringMeaning = DynamicBuiltinNameMeaning sch show where
-    sch =
-        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinDyn @String)
+    sch = Proxy @Int `TypeSchemeArrow` TypeSchemeResult Proxy
 
 dynamicIntToString :: Term tyname name ()
 dynamicIntToString = dynamicBuiltinNameAsTerm dynamicIntToStringName

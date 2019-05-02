@@ -64,16 +64,15 @@ instance Serialise BuiltinName where
                 GreaterThanInteger   -> 7
                 GreaterThanEqInteger -> 8
                 EqInteger            -> 9
-                IntToByteString      -> 10
-                Concatenate          -> 11
-                TakeByteString       -> 12
-                DropByteString       -> 13
-                SHA2                 -> 14
-                SHA3                 -> 15
-                VerifySignature      -> 16
-                EqByteString         -> 17
-                QuotientInteger      -> 18
-                ModInteger           -> 19
+                Concatenate          -> 10
+                TakeByteString       -> 11
+                DropByteString       -> 12
+                SHA2                 -> 13
+                SHA3                 -> 14
+                VerifySignature      -> 15
+                EqByteString         -> 16
+                QuotientInteger      -> 17
+                ModInteger           -> 18
         in encodeTag i
 
     decode = go =<< decodeTag
@@ -87,16 +86,15 @@ instance Serialise BuiltinName where
               go 7  = pure GreaterThanInteger
               go 8  = pure GreaterThanEqInteger
               go 9  = pure EqInteger
-              go 10 = pure IntToByteString
-              go 11 = pure Concatenate
-              go 12 = pure TakeByteString
-              go 13 = pure DropByteString
-              go 14 = pure SHA2
-              go 15 = pure SHA3
-              go 16 = pure VerifySignature
-              go 17 = pure EqByteString
-              go 18 = pure QuotientInteger
-              go 19 = pure ModInteger
+              go 10 = pure Concatenate
+              go 11 = pure TakeByteString
+              go 12 = pure DropByteString
+              go 13 = pure SHA2
+              go 14 = pure SHA3
+              go 15 = pure VerifySignature
+              go 16 = pure EqByteString
+              go 17 = pure QuotientInteger
+              go 18 = pure ModInteger
               go _  = fail "Failed to decode BuiltinName"
 
 instance Serialise Unique where

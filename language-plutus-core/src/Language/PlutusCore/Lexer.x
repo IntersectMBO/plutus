@@ -83,7 +83,6 @@ tokens :-
     <0> greaterThanInteger       { mkBuiltin GreaterThanInteger }
     <0> greaterThanEqualsInteger { mkBuiltin GreaterThanEqInteger }
     <0> equalsInteger            { mkBuiltin EqInteger }
-    <0> intToByteString          { mkBuiltin IntToByteString }
     <0> concatenate              { mkBuiltin Concatenate }
     <0> takeByteString           { mkBuiltin TakeByteString }
     <0> dropByteString           { mkBuiltin DropByteString }

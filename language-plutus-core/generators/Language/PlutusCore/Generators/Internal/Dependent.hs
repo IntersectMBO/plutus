@@ -6,7 +6,10 @@
 
 {-# LANGUAGE GADTs #-}
 
-module Language.PlutusCore.Generators.Internal.Dependent () where
+module Language.PlutusCore.Generators.Internal.Dependent
+    ( AsKnownType (..)
+    , proxyAsKnownType
+    ) where
 
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Pretty
@@ -20,32 +23,26 @@ liftOrdering LT = GLT
 liftOrdering EQ = error "'liftOrdering': 'Eq'"
 liftOrdering GT = GGT
 
--- I tried using the 'dependent-sum-template' package,
--- but see https://stackoverflow.com/q/50048842/3237465
-instance GEq TypedBuiltinStatic where
-    TypedBuiltinStaticInt  `geq` TypedBuiltinStaticInt  = Just Refl
-    TypedBuiltinStaticBS   `geq` TypedBuiltinStaticBS   = Just Refl
-    _                     `geq` _                     = Nothing
+-- | Contains a proof that @a@ is a 'KnownType'.
+data AsKnownType a where
+    AsKnownType :: KnownType a => AsKnownType a
 
-instance GEq TypedBuiltin where
-    TypedBuiltinStatic tbs1 `geq` TypedBuiltinStatic tbs2 = tbs1 `geq` tbs2
-    dyn1@TypedBuiltinDyn         `geq` dyn2@TypedBuiltinDyn         = do
-        guard $ prettyString dyn1 == prettyString dyn2
+instance Pretty (AsKnownType a) where
+    pretty a@AsKnownType = pretty $ toTypeAst a
+
+instance GEq AsKnownType where
+    a `geq` b = do
+        -- We can probably require each 'KnownType' to be 'Typeable' and avoid checking for equality
+        -- string representations here, but I don't want to complicate the library just to avoid
+        -- silly things in tests.
+        guard $ prettyString a == prettyString b
         Just $ unsafeCoerce Refl
-    _                            `geq` _                            = Nothing
 
-instance GCompare TypedBuiltin where
-    tb1                          `gcompare` tb2
-        | Just Refl <- tb1  `geq` tb2  = GEQ
-    TypedBuiltinStatic tbs1 `gcompare` TypedBuiltinStatic tbs2
-        | Just Refl <- tbs1 `geq` tbs2 = GEQ
-        | otherwise                    = case (tbs1, tbs2) of
-            (TypedBuiltinStaticInt , _                    )  -> GLT
-            (TypedBuiltinStaticBS  , TypedBuiltinStaticInt ) -> GGT
-            (TypedBuiltinStaticBS  , _                    )  -> GLT
-    dyn1@TypedBuiltinDyn         `gcompare` dyn2@TypedBuiltinDyn
-        = liftOrdering $ prettyString dyn1 `compare` prettyString dyn2
-    TypedBuiltinStatic _        `gcompare` TypedBuiltinDyn
-        = GLT
-    TypedBuiltinDyn              `gcompare` TypedBuiltinStatic _
-        = GGT
+instance GCompare AsKnownType where
+    a `gcompare` b
+        | Just Refl <- a `geq` b = GEQ
+        | otherwise              = liftOrdering $ prettyString a `compare` prettyString b
+
+-- | Turn any @proxy a@ into an @AsKnownType a@ provided @a@ is a 'KnownType'.
+proxyAsKnownType :: KnownType a => proxy a -> AsKnownType a
+proxyAsKnownType _ = AsKnownType

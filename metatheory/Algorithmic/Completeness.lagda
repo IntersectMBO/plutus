@@ -57,7 +57,7 @@ nfTyVar {Γ Syn.,⋆ K} (Syn.T {A = A} α) = subst∋
 lemƛ : ∀{Γ Γ'}(p : Γ ≡ Γ')(A B : Γ ⊢Nf⋆ *)
    → substEq  (_⊢Nf⋆ *) p A ⇒ substEq  (_⊢Nf⋆ *) p B
      ≡
-     substEq  (_⊢Nf⋆ *) p (A ⇒ B) 
+     substEq  (_⊢Nf⋆ *) p (A ⇒ B)
 lemƛ refl A B = refl
 
 lemΠ : ∀{Γ Γ' K }(p : Γ ≡ Γ')(q : Γ ,⋆ K ≡ Γ' ,⋆ K)(B : Γ ,⋆ K ⊢Nf⋆ *) →
@@ -110,7 +110,7 @@ lemμ' refl pat arg = refl
 lem[] : ∀{Γ Γ' K}(p : Γ ≡ Γ')(q : Γ ,⋆ K ≡ Γ' ,⋆ K)(A : Γ ⊢Nf⋆ K)(B : Γ ,⋆ K ⊢Nf⋆ *) →
   (substEq (_⊢Nf⋆ *) q B [ substEq (_⊢Nf⋆ K) p A ]Nf)
   ≡ substEq (_⊢Nf⋆ *) p (nf (subst (subst-cons ` (embNf A)) (embNf B)))
-lem[] refl refl A B =  evalCRSubst idCR (subst-cong (λ { Z → refl ; (S α) → refl}) (embNf B)) 
+lem[] refl refl A B =  evalCRSubst idCR (subst-cong (λ { Z → refl ; (S α) → refl}) (embNf B))
 
 lem[]' : ∀{Γ K}(A : Syn.∥ Γ ∥ ⊢⋆ K)(B : Syn.∥ Γ ∥ ,⋆ K ⊢⋆ *) → (substEq (_⊢Nf⋆ *) (cong (_,⋆ K) (nfCtx∥ Γ))
  (eval B (exte (idEnv Syn.∥ Γ ∥)))
@@ -145,8 +145,8 @@ import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
   as NSig
 open import Builtin
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon 
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon 
+import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon
+import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon
 
 
 nfTypeTC : ∀{φ}{A : φ ⊢⋆ *} → STermCon.TermCon A → NTermCon.TermCon (nf A)
@@ -169,7 +169,6 @@ nfTypeSIG≡₁ lessThanEqualsInteger = refl
 nfTypeSIG≡₁ greaterThanInteger = refl
 nfTypeSIG≡₁ greaterThanEqualsInteger = refl
 nfTypeSIG≡₁ equalsInteger = refl
-nfTypeSIG≡₁ intToByteString = refl
 nfTypeSIG≡₁ concatenate = refl
 nfTypeSIG≡₁ takeByteString = refl
 nfTypeSIG≡₁ dropByteString = refl
@@ -184,7 +183,7 @@ lemσ : ∀{Γ Γ' Δ Δ'}
   → (C : Δ ⊢⋆ *)
   → (C' : Δ' ⊢Nf⋆ *)
   → (q : Δ' ≡ Δ)
-  → nf C ≡ substEq (_⊢Nf⋆ *) q C' → 
+  → nf C ≡ substEq (_⊢Nf⋆ *) q C' →
   substNf
       (λ {J} α →
          nf
@@ -200,9 +199,9 @@ lemσ σ refl C _ refl refl = trans
     (trans
       (subst-eval (embNf (nf C)) idCR (embNf ∘ nf ∘ σ))
       (fund (λ α → fund idCR (sym≡β (soundness (σ α)))) (sym≡β (soundness C))))
-    (sym (subst-eval C idCR σ)) 
+    (sym (subst-eval C idCR σ))
 
-nfTypeSIG≡₂ : (bn : Builtin) → 
+nfTypeSIG≡₂ : (bn : Builtin) →
   nf (proj₂ (proj₂ (SSig.SIG bn))) ≡
   substEq (_⊢Nf⋆ *) (sym (nfTypeSIG≡₁ bn))
   (proj₂ (proj₂ (NSig.SIG bn)))
@@ -218,7 +217,6 @@ nfTypeSIG≡₂ lessThanEqualsInteger = refl
 nfTypeSIG≡₂ greaterThanInteger = refl
 nfTypeSIG≡₂ greaterThanEqualsInteger = refl
 nfTypeSIG≡₂ equalsInteger = refl
-nfTypeSIG≡₂ intToByteString = refl
 nfTypeSIG≡₂ concatenate = refl
 nfTypeSIG≡₂ takeByteString = refl
 nfTypeSIG≡₂ dropByteString = refl
@@ -257,7 +255,6 @@ lemList lessThanEqualsInteger = refl
 lemList greaterThanInteger = refl
 lemList greaterThanEqualsInteger = refl
 lemList equalsInteger = refl
-lemList intToByteString = refl
 lemList concatenate = refl
 lemList takeByteString = refl
 lemList dropByteString = refl
@@ -270,11 +267,11 @@ nfType : ∀{Γ K}
   → {A : Syn.∥ Γ ∥ ⊢⋆ K}
   → Γ Syn.⊢ A
   → nfCtx Γ Norm.⊢ substEq (_⊢Nf⋆ K) (nfCtx∥ Γ) (nf A)
-  
+
 nfTypeTel : ∀{Γ Δ}(σ : Sub Δ Syn.∥ Γ ∥)(As : List (Δ ⊢⋆ *))
   → Syn.Tel Γ Δ σ As
   → Norm.Tel (nfCtx Γ) Δ (nf ∘ substEq (_⊢⋆ _) (nfCtx∥ Γ) ∘ σ) (nfList As)
-  
+
 nfTypeTel σ []        _ = _
 nfTypeTel {Γ} σ (A ∷ As) (M ,, Ms) =
   subst⊢ refl (sym (lemσ σ (nfCtx∥ Γ) A (nf A) refl refl)) (nfType M)
@@ -313,7 +310,7 @@ nfType {Γ} (Syn._·⋆_ {B = B} t A) = subst⊢
   (subst⊢ refl (sym (lemΠ (nfCtx∥ Γ) (cong (_,⋆ _) (nfCtx∥ Γ)) _)) (nfType t)
   Norm.·⋆
   -- is there another version where this is just nf A?
-  substEq (_⊢Nf⋆ _) (nfCtx∥ Γ) (nf A)) 
+  substEq (_⊢Nf⋆ _) (nfCtx∥ Γ) (nf A))
 nfType {Γ} (Syn.wrap1 pat arg t) = subst⊢
   refl
   (lemμ' (nfCtx∥ Γ) (nf pat) (nf arg))
@@ -325,7 +322,7 @@ nfType {Γ} (Syn.unwrap1 {pat = pat}{arg} t) = subst⊢
   refl
   (sym (lemXX {Γ} pat arg))
   (Norm.unwrap1
-    (subst⊢ refl (sym (lemμ' (nfCtx∥ Γ) (nf pat) (nf arg))) (nfType t))) 
+    (subst⊢ refl (sym (lemμ' (nfCtx∥ Γ) (nf pat) (nf arg))) (nfType t)))
 nfType (Syn.conv p t) rewrite sym (completeness p) = nfType t
 nfType {Γ} (Syn.con {tcn = tcn} t) = subst⊢
   refl
@@ -351,4 +348,3 @@ completenessT : ∀{Γ K}{A : Syn.∥ Γ ∥ ⊢⋆ K} → Γ Syn.⊢ A
   → nfCtx Γ Norm.⊢ substEq (_⊢Nf⋆ K) (nfCtx∥ Γ) (nf A) × (A ≡β embNf (nf A))
 completenessT {A = A} t = nfType t ,, soundness A
 \end{code}
-

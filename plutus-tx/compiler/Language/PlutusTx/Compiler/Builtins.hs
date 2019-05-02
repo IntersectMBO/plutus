@@ -287,10 +287,10 @@ defineBuiltinTypes = do
 
     -- Strings and chars
     do
-        let ty = PLC.toTypeEncoding $ Proxy @String
+        let ty = PLC.toTypeAst $ Proxy @String
         defineBuiltinType ''Builtins.String ty []
     do
-        let ty = PLC.toTypeEncoding $ Proxy @Char
+        let ty = PLC.toTypeAst $ Proxy @Char
         defineBuiltinType ''Char ty []
 
 -- | Lookup a builtin term by its TH name. These are assumed to be present, so fails if it cannot find it.
