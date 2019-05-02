@@ -20,6 +20,7 @@ module Ledger.Scripts(
     applyScript,
     evaluateScript,
     runScript,
+    normalizeScript,
     -- * Script wrappers
     ValidatorScript(..),
     RedeemerScript(..),
@@ -44,6 +45,8 @@ import qualified Language.Haskell.TH                      as TH
 import qualified Language.PlutusCore                      as PLC
 import qualified Language.PlutusCore.Normalize            as PLC
 import qualified Language.PlutusCore.Pretty               as PLC
+import qualified Language.PlutusCore.Constant             as PLC
+import qualified Language.PlutusCore.Constant.Dynamic     as PLC
 import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
 import           Language.PlutusTx.Lift                   (unsafeLiftProgram)
 import           Language.PlutusTx.Lift.Class             (Lift)
@@ -96,6 +99,10 @@ compileScript a = [|| fromCompiledCode $$(compile a) ||]
 applyScript :: Script -> Script -> Script
 applyScript (unScript -> s1) (unScript -> s2) = Script $ s1 `PLC.applyProgram` s2
 
+-- | Normalize a 'Script' so that it is suitable to be run on-chain
+normalizeScript :: PLC.MonadQuote m => Script -> m Script
+normalizeScript (Script p) = Script <$> PLC.normalizeTypesFullInProgram p
+
 -- | Evaluate a script, returning the trace log and a boolean indicating whether
 -- evaluation was successful.
 evaluateScript :: Script -> ([String], Bool)
@@ -104,16 +111,14 @@ evaluateScript (unScript -> s) =
         (Left e) -> ([logTypeErr e], False)
         Right{} -> (isJust . reoption) <$> evaluateCekTrace s
 
-    where check = PLC.runQuoteT . PLC.typecheckPipeline (PLC.defOnChainConfig { PLC._tccDynamicBuiltinNameTypes = traceBuiltins })
-          traceBuiltins = PLC.DynamicBuiltinNameTypes $ M.fromList
-                [ (PLC.DynamicBuiltinName "charToString", PLC.Dupable $ Identity $ PLC.Normalized $ PLC.TyFun () (PLC.TyBuiltin () PLC.TyInteger) (PLC.TyBuiltin () PLC.TyString)) 
-                , (PLC.DynamicBuiltinName "trace", PLC.Dupable $ Identity $ PLC.Normalized $ PLC.TyFun () (PLC.TyBuiltin () PLC.TyString) unitType)
-                , (PLC.DynamicBuiltinName "append", PLC.Dupable $ Identity $ PLC.Normalized $ PLC.TyFun () strType (PLC.TyFun () strType strType))
+    where check p = PLC.runQuoteT $ do
+                builtins <- traceBuiltins
+                PLC.typecheckPipeline (PLC.defOnChainConfig { PLC._tccDynamicBuiltinNameTypes = builtins }) p
+          traceBuiltins = PLC.dynamicBuiltinNameMeaningsToTypes () $ PLC.DynamicBuiltinNameMeanings $ M.fromList
+                [ (PLC.dynamicCharToStringName, PLC.dynamicCharToStringMeaning)
+                -- , (PLC.DynamicBuiltinName "trace", PLC.Dupable $ Identity $ PLC.Normalized $ PLC.TyFun () (PLC.TyBuiltin () PLC.TyString) unitType)
+                , (PLC.dynamicAppendName, PLC.dynamicAppendMeaning)
                 ]
-          unitType =
-            let aName = PLC.TyName (PLC.Name () "a" (PLC.Unique 0))
-                in PLC.TyForall () aName (PLC.Type ()) (PLC.TyFun () (PLC.TyVar () aName) (PLC.TyVar () aName))
-          strType = PLC.TyBuiltin () PLC.TyString
 
           logTypeErr :: PLC.Error () -> String
           logTypeErr = PLC.prettyPlcDefString
@@ -209,9 +214,9 @@ instance Show ValidationData where
 
 -- | Evaluate a validator script with the given arguments, returning the log and a boolean indicating whether evaluation was successful.
 runScript :: ValidationData -> ValidatorScript -> DataScript -> RedeemerScript -> ([String], Bool)
-runScript (ValidationData valData@(Script vd)) (ValidatorScript validator) (DataScript dataScript) (RedeemerScript redeemer) =
+runScript (ValidationData valData) (ValidatorScript validator) (DataScript dataScript) (RedeemerScript redeemer) =
     let
-        applied = ((validator `applyScript` dataScript) `applyScript` redeemer) `applyScript` (Script (PLC.runQuote $ PLC.normalizeTypesFullInProgram vd))
+        applied = ((validator `applyScript` dataScript) `applyScript` redeemer) `applyScript` valData
         -- TODO: do something with the error
         -- FIXME: don't normalize validation data b/c that should happen
         -- elsewhere

@@ -34,6 +34,7 @@ import qualified Data.Map             as Map
 import           Data.Semigroup       (Semigroup)
 import qualified Data.Set             as Set
 import           GHC.Generics         (Generic)
+import qualified Language.PlutusCore  as PLC
 import qualified Ledger.Slot          as Slot
 import           Ledger.Crypto
 import           Ledger.Blockchain
@@ -232,6 +233,8 @@ checkMatch v = \case
         | otherwise -> do
             pTxIn <- mkIn txin
             let v' = ValidationData
+                    $ PLC.runQuote
+                    $ normalizeScript
                     $ lifted
                     $ v { pendingTxIn = pTxIn }
                 (logOut, success) = runScript v' vl d r

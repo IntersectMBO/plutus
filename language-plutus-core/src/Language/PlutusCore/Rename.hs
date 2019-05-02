@@ -5,7 +5,7 @@
 
 module Language.PlutusCore.Rename
     ( Rename (..)
-    , Dupable (..)
+    , Dupable
     , liftDupable
     ) where
 
