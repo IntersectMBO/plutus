@@ -34,7 +34,8 @@
     "purescript-aff": "4.1.1",
     "purescript-bigints": "^3.5.0",
     "purescript-matryoshka": "0.3.0",
-    "purescript-simple-parser": "^7.0.0"
+    "purescript-simple-parser": "^7.0.0",
+    "purescript-numerics": "0.1.1"
   },
   "devDependencies": {
     "purescript-psci-support": "3.0.0",

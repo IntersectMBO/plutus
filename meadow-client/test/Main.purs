@@ -4,6 +4,7 @@ import Prelude
 
 import BridgeTests as BridgeTests
 import Marlowe.ParserTests as ParserTests
+import Marlowe.ContractTests as ContractTests
 import Control.Monad.Aff.AVar (AVAR)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE)
@@ -19,3 +20,4 @@ main :: forall eff. Eff (testOutput :: TESTOUTPUT, exception :: EXCEPTION, fs ::
 main = runTest do
   BridgeTests.all
   ParserTests.all
+  ContractTests.all

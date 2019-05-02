@@ -2,7 +2,7 @@ module Simulation where
 
 import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.Ord ((>=))
-import Semantics
+import Marlowe.Semantics
 import Data.Semiring ((+))
 import Data.Map (Map)
 import Data.List (List(..))
@@ -33,6 +33,7 @@ import Data.Either (Either(..))
 import Data.Eq ((==), (/=))
 import Data.Foldable (all)
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Newtype (unwrap)
 import Data.Tuple (Tuple(..))
 import Data.HeytingAlgebra ((&&))
 import Halogen (HTML, action)
@@ -101,7 +102,7 @@ import Prelude
   , (<<<)
   , (<>)
   )
-import Marlowe.Types (Person, IdOracle, Choice, IdAction, IdCommit, Timeout, WIdChoice(..), IdChoice(..))
+import Marlowe.Types (BlockNumber(BlockNumber), Person, IdOracle, Choice, IdAction, IdCommit, Timeout, WIdChoice(..), IdChoice(..))
 import Types
   ( ChildQuery
   , ChildSlot
@@ -358,7 +359,7 @@ inputComposerOracle isEnabled (Tuple idOracle {blockNumber, value}) =
            , spanText " as the value for block "
            , marloweActionInput isEnabled
                                 (\x -> SetOracleBn { idOracle
-                                                   , blockNumber: x}) blockNumber
+                                                   , blockNumber: BlockNumber (unwrap x)}) blockNumber
            ]
 
 marloweActionInput :: forall p a. Show a => Boolean -> (BigInteger -> Unit -> Query Unit) -> a -> HTML p Query
@@ -700,7 +701,7 @@ renderCommits (CommitInfo ci) =
   where commitList = Map.toAscUnfoldable ci.currentCommitsById :: List (Tuple IdCommit CommitInfoRecord)
 
 renderCommit :: forall p. Tuple IdCommit CommitInfoRecord -> HTML p Query
-renderCommit (Tuple idCommit {person, amount, timeout}) =
+renderCommit (Tuple idCommit (CommitInfoRecord {person, amount, timeout})) =
   tr [] [ td_ [ text (show idCommit)
               ]
         , td [ class_ $ ClassName "middle-column"
@@ -763,7 +764,7 @@ renderOracles oracles =
   where oracleList = Map.toAscUnfoldable oracles :: List (Tuple IdOracle OracleDataPoint)
 
 renderOracle :: forall p. Tuple IdOracle OracleDataPoint -> HTML p Query
-renderOracle (Tuple idOracle {blockNumber, value}) =
+renderOracle (Tuple idOracle (OracleDataPoint {blockNumber, value})) =
   tr [] [ td_ [ text (show idOracle)
               ]
         , td [ class_ $ ClassName "middle-column"

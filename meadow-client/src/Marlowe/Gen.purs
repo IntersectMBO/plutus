@@ -6,12 +6,14 @@ import Control.Lazy (class Lazy, defer)
 import Control.Monad.Gen (class MonadGen, chooseInt)
 import Control.Monad.Gen as Gen
 import Control.Monad.Rec.Class (class MonadRec)
+import Data.BigInt (BigInt)
+import Data.BigInt as BigInt
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
 import Data.Foldable (class Foldable)
 import Data.Newtype (wrap)
 import Data.NonEmpty (NonEmpty, foldl1, (:|))
-import Marlowe.Types (Contract(..), IdChoice, Observation(..), Value(..))
+import Marlowe.Types (BlockNumber(BlockNumber), Contract(..), IdAction(..), IdChoice, IdCommit(..), IdOracle(IdOracle), Observation(..), Person(Person), Timeout(Timeout), Value(..))
 
 oneOf ::
   forall m a f.
@@ -24,10 +26,31 @@ oneOf = foldl1 Gen.choose
 genBigInteger :: forall m. MonadGen m => MonadRec m => m BigInteger
 genBigInteger = BigInteger.fromInt <$> chooseInt bottom top
 
+genBigInt :: forall m. MonadGen m => MonadRec m => m BigInt
+genBigInt = BigInt.fromInt <$> chooseInt bottom top
+
+genBlockNumber :: forall m. MonadGen m => MonadRec m => m BlockNumber
+genBlockNumber = BlockNumber <$> genBigInt
+
+genTimeout :: forall m. MonadGen m => MonadRec m => m Timeout
+genTimeout = (Timeout <<< BlockNumber) <$> genBigInt
+
+genPerson :: forall m. MonadGen m => MonadRec m => m Person
+genPerson = Person <$> genBigInt
+
+genIdAction :: forall m. MonadGen m => MonadRec m => m IdAction
+genIdAction = IdAction <$> genBigInteger
+
+genIdCommit :: forall m. MonadGen m => MonadRec m => m IdCommit
+genIdCommit = IdCommit <$> genBigInteger
+
+genIdOracle :: forall m. MonadGen m => MonadRec m => m IdOracle
+genIdOracle = IdOracle <$> genBigInteger
+
 genIdChoice :: forall m. MonadGen m => MonadRec m => m IdChoice
 genIdChoice = do
   choice <- genBigInteger
-  person <- genBigInteger
+  person <- genPerson
   pure $ wrap { choice, person }
 
 genValue :: forall m. MonadGen m => MonadRec m => Lazy (m Value) => m Value
@@ -43,7 +66,7 @@ genValue' ::
 genValue' size
   | size > 1 = defer \_ ->
     let newSize = (size - 1)
-    in oneOf $ pure CurrentBlock :| [ Committed <$> genBigInteger
+    in oneOf $ pure CurrentBlock :| [ Committed <$> genIdCommit
                                     , Constant <$> genBigInteger
                                     , NegValue <$> genValue' newSize
                                     , AddValue <$> genValue' newSize <*> genValue' newSize
@@ -52,9 +75,9 @@ genValue' size
                                     , DivValue <$> genValue' newSize <*> genValue' newSize <*> genValue' newSize
                                     , ModValue <$> genValue' newSize <*> genValue' newSize <*> genValue' newSize
                                     , ValueFromChoice <$> genIdChoice <*> genValue' newSize
-                                    , ValueFromOracle <$> genBigInteger <*> genValue' newSize
+                                    , ValueFromOracle <$> genIdOracle <*> genValue' newSize
                                     ]
-  | otherwise = oneOf $ pure CurrentBlock :| [ Committed <$> genBigInteger
+  | otherwise = oneOf $ pure CurrentBlock :| [ Committed <$> genIdCommit
                                              , Constant <$> genBigInteger
                                              ]
 
@@ -79,7 +102,7 @@ genObservation' size
   | size > 1 = defer \_ ->
     let newSize = (size - 1)
     in oneOf $ pure TrueObs :| [ pure FalseObs
-                               , BelowTimeout <$> genBigInteger
+                               , BelowTimeout <$> genTimeout
                                , ChoseThis <$> genIdChoice <*> genBigInteger
                                , ChoseSomething <$> genIdChoice
                                , AndObs <$> genObservation' newSize <*> genObservation' newSize
@@ -96,7 +119,7 @@ genObservation' size
     genLeaf ::
       m Observation
     genLeaf = oneOf $ pure TrueObs :| [ pure FalseObs
-                                      , BelowTimeout <$> genBigInteger
+                                      , BelowTimeout <$> genTimeout
                                       , ChoseThis <$> genIdChoice <*> genBigInteger
                                       , ChoseSomething <$> genIdChoice
                                       ]
@@ -124,12 +147,12 @@ genContract' size
   | size > 1 = defer \_ ->
     let newSize = (size - 1)
     in oneOf $ pure Null :| [ Use <$> genBigInteger
-                            , Commit <$> genBigInteger <*> genBigInteger <*> genBigInteger <*> genValue' newSize <*> genBigInteger <*> genBigInteger <*> genContract' newSize <*> genContract' newSize
-                            , Pay <$> genBigInteger <*> genBigInteger <*> genBigInteger <*> genValue' newSize <*> genBigInteger <*> genContract' newSize <*> genContract' newSize
+                            , Commit <$> genIdAction <*> genIdCommit <*> genPerson <*> genValue' newSize <*> genTimeout <*> genTimeout <*> genContract' newSize <*> genContract' newSize
+                            , Pay <$> genIdAction <*> genIdCommit <*> genPerson <*> genValue' newSize <*> genTimeout <*> genContract' newSize <*> genContract' newSize
                             , Both <$> genContract' newSize <*> genContract' newSize
                             , Choice <$> genObservation <*> genContract' newSize <*> genContract' newSize
-                            , When <$> genObservation <*> genBigInteger <*> genContract' newSize <*> genContract' newSize
-                            , While <$> genObservation <*> genBigInteger <*> genContract' newSize <*> genContract' newSize
+                            , When <$> genObservation <*> genTimeout <*> genContract' newSize <*> genContract' newSize
+                            , While <$> genObservation <*> genTimeout <*> genContract' newSize <*> genContract' newSize
                             , Scale <$> genValue' newSize <*> genValue' newSize <*> genValue' newSize <*> genContract' newSize
                             , Let <$> genBigInteger <*> genContract' newSize <*> genContract' newSize
                             ]

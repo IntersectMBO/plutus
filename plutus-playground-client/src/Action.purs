@@ -6,6 +6,7 @@ import Bootstrap (badge, badgePrimary, btn, btnDanger, btnGroup, btnGroupSmall, 
 import Control.Monad.Aff.Class (class MonadAff)
 import Cursor (Cursor, current)
 import Cursor as Cursor
+import DOM.HTML.Event.Types (DragEvent)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Int as Int
@@ -18,16 +19,16 @@ import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
 import Halogen.HTML (ClassName(ClassName), IProp, br_, button, code_, div, div_, h2_, h3_, input, label, p_, small_, strong_, text)
 import Halogen.HTML.Elements.Keyed as Keyed
-import Halogen.HTML.Events (input_, onClick, onValueInput)
+import Halogen.HTML.Events (input_, onClick, onDragEnd, onDragEnter, onDragLeave, onDragOver, onDragStart, onDrop, onValueInput)
 import Halogen.HTML.Events as HE
-import Halogen.HTML.Properties (InputType(InputText, InputNumber), class_, classes, disabled, for, id_, placeholder, required, type_, value)
+import Halogen.HTML.Properties (InputType(InputText, InputNumber), class_, classes, disabled, draggable, for, id_, placeholder, required, type_, value)
 import Halogen.Query as HQ
 import Icons (Icon(..), icon)
 import Ledger.Value.TH (Value)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
 import Playground.API (EvaluationResult, _Fn, _FunctionSchema)
-import Prelude (map, pure, show, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==))
-import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, FormEvent(..), Query(..), SimpleArgument(..), Simulation(Simulation), WebData, _Action, _argumentSchema, _functionName, _resultBlockchain, _simulatorWallet, _simulatorWalletWallet, _walletId)
+import Prelude (Unit, map, pure, show, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==))
+import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, DragAndDropEventType(..), FormEvent(..), Query(..), SimpleArgument(..), Simulation(Simulation), WebData, _Action, _argumentSchema, _functionName, _resultBlockchain, _simulatorWallet, _simulatorWalletWallet, _walletId)
 import Validation (ValidationError, WithPath, joinPath, showPathValue, validate)
 import ValueEditor (valueForm)
 import Wallet (walletIdPane, walletsPane)
@@ -37,10 +38,11 @@ simulationPane ::
   forall m aff.
   MonadAff (EChartsEffects aff) m
   => Value
+  -> Maybe Int
   -> Cursor Simulation
   -> WebData EvaluationResult
   -> ParentHTML Query ChildQuery ChildSlot m
-simulationPane initialValue simulations evaluationResult =
+simulationPane initialValue actionDrag simulations evaluationResult =
   case current simulations of
     Just (Simulation simulation) ->
       let
@@ -55,7 +57,7 @@ simulationPane initialValue simulations evaluationResult =
           [ simulationsNav simulations
           , walletsPane simulation.signatures initialValue simulation.wallets
           , br_
-          , actionsPane isValidWallet simulation.actions (view _resultBlockchain <$> evaluationResult)
+          , actionsPane isValidWallet actionDrag simulation.actions (view _resultBlockchain <$> evaluationResult)
           ]
     Nothing ->
       div_
@@ -118,32 +120,46 @@ addSimulationControl =
     ]
     [ icon Plus ]
 
-actionsPane :: forall p. (Wallet -> Boolean) -> Array Action -> WebData Blockchain -> HTML p Query
-actionsPane isValidWallet actions evaluationResult =
+actionsPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Array Action -> WebData Blockchain -> HTML p Query
+actionsPane isValidWallet actionDrag actions evaluationResult =
   div_
     [ h2_ [ text "Actions" ]
     , p_ [ text "This is your action sequence. Click 'Evaluate' to run these actions against a simulated blockchain." ]
     , Keyed.div
-        [ classes [ ClassName "actions", row ] ]
-        (Array.snoc (mapWithIndex (actionPane isValidWallet) actions) addWaitActionPane)
+        [ classes $ [ row, ClassName "actions" ]
+                    <>
+                    if actionDrag == Nothing
+                    then []
+                    else [ ClassName "actions-being-dragged" ]
+        ]
+        (Array.snoc
+           (mapWithIndex (actionPane isValidWallet actionDrag) actions)
+           (addWaitActionPane (Array.length actions)))
     , br_
     , row_ [ evaluateActionsPane evaluationResult actions ]
     , br_
     , div_ [ small_ [ text "Run this set of actions against a simulated blockchain." ] ]
     ]
 
-actionPane :: forall p. (Wallet -> Boolean) -> Int -> Action -> Tuple String (HTML p Query)
-actionPane isValidWallet index action =
+actionPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Int -> Action -> Tuple String (HTML p Query)
+actionPane isValidWallet actionDrag index action =
   Tuple (show index) $
     responsiveThird
-      [ div [ classes [ ClassName "action"
-                      , ClassName ("action-" <> show index)
-                      , ClassName ("action-" <> (case isValidWallet <$> (preview (_Action <<< _simulatorWallet <<< _simulatorWalletWallet) action) of
-                                                   Nothing -> "valid-wallet"
-                                                   Just true ->  "valid-wallet"
-                                                   Just false ->  "invalid-wallet"))
-                      ]
-            ]
+      [ div ([ classes ([ ClassName "action"
+                        , ClassName ("action-" <> show index)
+                        , ClassName ("action-" <> (case isValidWallet <$> (preview (_Action <<< _simulatorWallet <<< _simulatorWalletWallet) action) of
+                                                      Nothing -> "valid-wallet"
+                                                      Just true ->  "valid-wallet"
+                                                      Just false ->  "invalid-wallet"))
+                        ]
+                        <> if actionDrag == Just index
+                           then [ ClassName "drag-source" ]
+                           else []
+                       )
+             ]
+             <> dragSourceProperties index
+             <> dragTargetProperties index
+            )
         [ div [ class_ card ]
           [ cardBody_
             [ div
@@ -310,15 +326,16 @@ validationFeedback [] =
 validationFeedback errors =
   invalidFeedback_ (div_ <<< pure <<< text <<< showPathValue <$> errors)
 
-addWaitActionPane :: forall p. Tuple String (HTML p Query)
-addWaitActionPane =
+addWaitActionPane :: forall p. Int -> Tuple String (HTML p Query)
+addWaitActionPane index =
   Tuple "add-wait" $
     responsiveThird
       [ div
           [ class_ $ ClassName "add-wait-action" ]
-          [ div [ class_ card
+          [ div ([ class_ card
                 , onClick $ input_ $ ModifyActions $ AddWaitAction 10
                 ]
+                 <> dragTargetProperties index)
               [ cardBody_
                   [ icon Plus
                   , div_ [ text "Add Wait Action" ]
@@ -352,3 +369,44 @@ evaluateActionsPane evaluationResult actions =
     validationErrors = Array.concat $ validate <$> actions
 
     hasErrors = validationErrors /= []
+
+dragSourceProperties :: forall i.
+  Int
+  -> Array
+       (IProp
+          ( draggable :: Boolean
+          , onDragStart :: DragEvent
+          , onDragEnd :: DragEvent
+          | i
+          )
+          (Query Unit)
+       )
+dragSourceProperties index =
+  [ draggable true
+  , onDragStart $ dragAndDropAction index DragStart
+  , onDragEnd $ dragAndDropAction index DragEnd
+  ]
+
+dragTargetProperties ::
+  forall i.
+  Int
+  -> Array
+       (IProp
+          ( onDragEnter :: DragEvent
+          , onDragOver :: DragEvent
+          , onDragLeave :: DragEvent
+          , onDrop :: DragEvent
+          | i
+          )
+          (Query Unit)
+       )
+dragTargetProperties index =
+  [ onDragEnter $ dragAndDropAction index DragEnter
+  , onDragOver $ dragAndDropAction index DragOver
+  , onDragLeave $ dragAndDropAction index DragLeave
+  , onDrop $ dragAndDropAction index Drop
+  ]
+
+dragAndDropAction :: Int -> DragAndDropEventType -> DragEvent -> Maybe (Query Unit)
+dragAndDropAction index eventType =
+  Just <<< HQ.action <<< ActionDragAndDrop index eventType

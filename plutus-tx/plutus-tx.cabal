@@ -89,6 +89,7 @@ library plutus-tx-compiler
         base >=4.9 && <5,
         bytestring -any,
         containers -any,
+        extra -any,
         ghc >=8.6 && <8.7,
         language-plutus-core -any,
         lens -any,
@@ -97,7 +98,7 @@ library plutus-tx-compiler
         prettyprinter -any,
         serialise -any,
         template-haskell -any,
-        th-abstraction -any,
+        th-abstraction <0.3.0.0,
         text -any,
         transformers -any
 

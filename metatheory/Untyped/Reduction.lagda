@@ -69,7 +69,7 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
               {ts : List (n ⊢)}
               (vs : List (Σ (n ⊢) (Value {n})))
             → builtin b ts —→ maybe id error (BUILTIN b vs)
-            
+
 open import Data.Unit
 
 \end{code}
@@ -100,7 +100,6 @@ BUILTIN greaterThanEqualsInteger vs = {!!}
 BUILTIN equalsInteger vs = {!!}
 BUILTIN resizeInteger vs = {!!}
 BUILTIN sizeOfInteger vs = {!!}
-BUILTIN intToByteString vs = {!!}
 BUILTIN concatenate vs = {!!}
 BUILTIN takeByteString vs = {!!}
 BUILTIN dropByteString vs = {!!}

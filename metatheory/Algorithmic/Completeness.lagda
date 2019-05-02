@@ -64,14 +64,15 @@ open import Type.BetaNBE.Stability
 lem[] : ∀{Γ K}(A : Γ ⊢⋆ K)(B : Γ ,⋆ K ⊢⋆ *) →
   nf B [ nf A ]Nf ≡ nf (B [ A ])
 lem[] A B = trans (subst-eval (embNf (nf B)) idCR (embNf ∘ substNf-cons (ne ∘ `) (nf A))) (trans (fund (λ { Z → symCR (fund idCR (soundness A)) ; (S α) → idCR _}) (sym≡β (soundness B))) (sym (subst-eval B idCR (subst-cons ` A)))) 
+
 import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con boolean
   as SSig
 import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
   as NSig
 open import Builtin
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon 
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon 
+import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon
+import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon
 
 
 nfTypeTC : ∀{φ}{A : φ ⊢⋆ *} → STermCon.TermCon A → NTermCon.TermCon (nf A)
@@ -94,7 +95,6 @@ nfTypeSIG≡₁ lessThanEqualsInteger = refl
 nfTypeSIG≡₁ greaterThanInteger = refl
 nfTypeSIG≡₁ greaterThanEqualsInteger = refl
 nfTypeSIG≡₁ equalsInteger = refl
-nfTypeSIG≡₁ intToByteString = refl
 nfTypeSIG≡₁ concatenate = refl
 nfTypeSIG≡₁ takeByteString = refl
 nfTypeSIG≡₁ dropByteString = refl
@@ -108,7 +108,7 @@ lemσ : ∀{Γ Δ Δ'}
   → (C : Δ ⊢⋆ *)
   → (C' : Δ' ⊢Nf⋆ *)
   → (q : Δ' ≡ Δ)
-  → nf C ≡ substEq (_⊢Nf⋆ *) q C' → 
+  → nf C ≡ substEq (_⊢Nf⋆ *) q C' →
   substNf
       (λ {J} α →
          nf
@@ -122,9 +122,9 @@ lemσ σ C _ refl refl = trans
     (trans
       (subst-eval (embNf (nf C)) idCR (embNf ∘ nf ∘ σ))
       (fund (λ α → fund idCR (sym≡β (soundness (σ α)))) (sym≡β (soundness C))))
-    (sym (subst-eval C idCR σ)) 
+    (sym (subst-eval C idCR σ))
 
-nfTypeSIG≡₂ : (bn : Builtin) → 
+nfTypeSIG≡₂ : (bn : Builtin) →
   nf (proj₂ (proj₂ (SSig.SIG bn))) ≡
   substEq (_⊢Nf⋆ *) (sym (nfTypeSIG≡₁ bn))
   (proj₂ (proj₂ (NSig.SIG bn)))
@@ -140,7 +140,6 @@ nfTypeSIG≡₂ lessThanEqualsInteger = refl
 nfTypeSIG≡₂ greaterThanInteger = refl
 nfTypeSIG≡₂ greaterThanEqualsInteger = refl
 nfTypeSIG≡₂ equalsInteger = refl
-nfTypeSIG≡₂ intToByteString = refl
 nfTypeSIG≡₂ concatenate = refl
 nfTypeSIG≡₂ takeByteString = refl
 nfTypeSIG≡₂ dropByteString = refl
@@ -179,7 +178,6 @@ lemList lessThanEqualsInteger = refl
 lemList greaterThanInteger = refl
 lemList greaterThanEqualsInteger = refl
 lemList equalsInteger = refl
-lemList intToByteString = refl
 lemList concatenate = refl
 lemList takeByteString = refl
 lemList dropByteString = refl
@@ -196,7 +194,7 @@ nfType : ∀{Φ Γ K}
 nfTypeTel : ∀{Φ Γ Δ}(σ : Sub Δ Φ)(As : List (Δ ⊢⋆ *))
   → Syn.Tel Γ Δ σ As
   → Norm.Tel (nfCtx Γ) Δ (nf ∘ σ) (nfList As)
-  
+
 nfTypeTel σ []        _ = _
 nfTypeTel {Γ} σ (A ∷ As) (M ,, Ms) = subst⊢
   -- this should be a lemma in NBE/RenSubst
@@ -250,4 +248,3 @@ completenessT : ∀{Φ Γ K}{A : Φ ⊢⋆ K} → Γ Syn.⊢ A
   → nfCtx Γ Norm.⊢ nf A × (A ≡β embNf (nf A))
 completenessT {A = A} t = nfType t ,, soundness A
 \end{code}
-

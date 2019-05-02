@@ -19,7 +19,7 @@ module Language.PlutusCore.Interpreter.CekMachine
     , EvaluationResultDef
     , evaluateCekCatch
     , evaluateCek
-    , readDynamicBuiltinCek
+    , readKnownCek
     , runCek
     ) where
 
@@ -211,13 +211,13 @@ evaluateCek :: DynamicBuiltinNameMeanings -> Term TyName Name () -> EvaluationRe
 evaluateCek = either throw id .* evaluateCekCatch
 
 -- The implementation is a bit of a hack.
-readDynamicBuiltinCek
-    :: KnownDynamicBuiltinType dyn
+readKnownCek
+    :: KnownType a
     => DynamicBuiltinNameMeanings
     -> Term TyName Name ()
-    -> Either CekMachineException (EvaluationResult dyn)
-readDynamicBuiltinCek means term = do
-    res <- runReflectT $ readDynamicBuiltin (evaluateCekCatch . mappend means) term
+    -> Either CekMachineException (EvaluationResult a)
+readKnownCek means term = do
+    res <- runReflectT $ readKnown (evaluateCekCatch . mappend means) term
     case res of
         EvaluationFailure            -> Right EvaluationFailure
         EvaluationSuccess (Left err) -> Left $ MachineException appErr term where

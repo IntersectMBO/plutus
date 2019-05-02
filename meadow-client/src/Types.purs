@@ -20,7 +20,7 @@ import Language.Haskell.Interpreter (InterpreterError, InterpreterResult)
 import Marlowe.Types (BlockNumber, Choice, Contract, IdChoice, IdOracle, Person)
 import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Ord, class Show, Unit)
-import Semantics (DetachedPrimitiveWIA, AnyInput, State, ErrorResult, DynamicProblem)
+import Marlowe.Semantics (DetachedPrimitiveWIA, AnyInput, State, ErrorResult, DynamicProblem)
 import Servant.PureScript.Affjax (AjaxError)
 import Type.Data.Boolean (kind Boolean)
 

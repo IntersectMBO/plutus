@@ -13,7 +13,7 @@ import Action (simulationPane)
 import AjaxUtils (ajaxErrorPane)
 import AjaxUtils as AjaxUtils
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
-import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnSmall, col12, colMd6, container, container_, empty, floatRight, hidden, navItem_, navLink, navTabs_, noGutters, row)
+import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnSmall, colSm5, colSm6, colXs12, container, container_, empty, floatRight, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row)
 import Chain (evaluationPane)
 import Control.Bind (bindFlipped)
 import Control.Comonad (extract)
@@ -26,9 +26,12 @@ import Control.Monad.State (class MonadState, evalState)
 import Control.Monad.Trans.Class (lift)
 import Cursor (_current)
 import Cursor as Cursor
+import DOM (DOM)
+import DOM.HTML.Event.DataTransfer as DataTransfer
 import Data.Argonaut.Parser (jsonParser)
 import Data.Array (catMaybes, (..))
-import Data.Array as Array
+import Data.Array (concat, deleteAt, fromFoldable, snoc) as Array
+import Data.Array.Extra (move) as Array
 import Data.Either (Either(..), note)
 import Data.Generic (gEq)
 import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, traversed, use, view)
@@ -38,6 +41,7 @@ import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.MediaType.Common (textPlain)
 import Data.Newtype (unwrap)
 import Data.String as String
 import Data.Traversable (foldl)
@@ -53,7 +57,7 @@ import Halogen as H
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
 import Halogen.ECharts as EC
-import Halogen.HTML (ClassName(..), HTML, a, div, div_, h1, strong_, text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, strong_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_)
 import Halogen.Query (HalogenM)
@@ -63,13 +67,13 @@ import Ledger.Extra (LedgerMap(LedgerMap))
 import Ledger.Extra as LedgerMap
 import Ledger.Value.TH (CurrencySymbol(CurrencySymbol), TokenName(TokenName), Value(Value))
 import LocalStorage (LOCALSTORAGE)
-import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, updateChartsIfPossible)
+import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect, updateChartsIfPossible)
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
 import Playground.API (KnownCurrency(..), SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
 import Playground.Server (SPParams_)
 import Playground.Usecases (gitHead)
-import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, map, pure, show, unit, unless, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (=<<), (==))
+import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, map, pure, show, unit, unless, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (=<<), (==), (>>=))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData as StaticData
 import Wallet.Emulator.Types (Wallet(Wallet))
@@ -110,6 +114,7 @@ initialState = State
   { currentView: Editor
   , compilationResult: NotAsked
   , simulations: Cursor.empty
+  , actionDrag: Nothing
   , evaluationResult: NotAsked
   , authStatus: NotAsked
   , createGistResult: NotAsked
@@ -134,7 +139,7 @@ mainFrame =
     }
 
 evalWithAnalyticsTracking :: forall m eff aff.
-  MonadEff (analytics :: ANALYTICS, ace :: ACE, localStorage :: LOCALSTORAGE | eff) m
+  MonadEff (analytics :: ANALYTICS, ace :: ACE, localStorage :: LOCALSTORAGE, dom :: DOM | eff) m
   => MonadAsk (SPSettings_ SPParams_) m
   => MonadAff (ajax :: AJAX, file :: FILE | aff) m
   => Query ~> HalogenM State Query ChildQuery ChildSlot Void m
@@ -171,6 +176,7 @@ toEvent (ModifyWallets AddWallet _) = Just $ (defaultEvent "AddWallet") { catego
 toEvent (ModifyWallets (RemoveWallet _) _) = Just $ (defaultEvent "RemoveWallet") { category = Just "Wallet" }
 toEvent (ModifyWallets (ModifyBalance _ (SetBalance _ _ _)) _) = Just $ (defaultEvent "SetBalance") { category = Just "Wallet" }
 toEvent (ModifyActions (AddAction _) _) = Just $ (defaultEvent "AddAction") { category = Just "Action" }
+toEvent (ActionDragAndDrop _ eventType _ _) = Just $ (defaultEvent (show eventType)) { category = Just "Action" }
 toEvent (ModifyActions (AddWaitAction _) _) = Just $ (defaultEvent "AddWaitAction") { category = Just "Action" }
 toEvent (ModifyActions (RemoveAction _) _) = Just $ (defaultEvent "RemoveAction") { category = Just "Action" }
 toEvent (ModifyActions (SetWaitTime _ _) _) = Just $ (defaultEvent "SetWaitTime") { category = Just "Action" }
@@ -185,6 +191,37 @@ eval ::
   => Query ~> m
 eval (HandleEditorMessage (TextChanged text) next) = do
   saveBuffer text
+  pure next
+
+eval (ActionDragAndDrop index DragStart event next) = do
+  setDataTransferData event textPlain (show index)
+  assign _actionDrag (Just index)
+  pure next
+
+eval (ActionDragAndDrop _ DragEnd event next) = do
+  assign _actionDrag Nothing
+  pure next
+
+eval (ActionDragAndDrop _ DragEnter event next) = do
+  preventDefault event
+  setDropEffect DataTransfer.Move event
+  pure next
+
+eval (ActionDragAndDrop _ DragOver event next) = do
+  preventDefault event
+  setDropEffect DataTransfer.Move event
+  pure next
+
+eval (ActionDragAndDrop _ DragLeave event next) = do
+  pure next
+
+eval (ActionDragAndDrop destination Drop event next) = do
+  use _actionDrag >>= case _ of
+    Just source ->
+      modifying (_simulations <<< _current <<< _actions) (Array.move source destination)
+    _ -> pure unit
+  preventDefault event
+  assign _actionDrag Nothing
   pure next
 
 eval (HandleDragEvent event next) = do
@@ -505,9 +542,9 @@ render state@(State {currentView})  =
         [ class_ $ ClassName "main-frame" ]
         [ container_
             [ mainHeader
-            , div [ classes [ row, noGutters ] ]
-                [ div [ classes [ col12, colMd6 ] ] [ mainTabBar currentView ]
-                , div [ classes [ col12, colMd6 ] ] [ gistControls state ]
+            , div [ classes [ row, noGutters, justifyContentBetween ] ]
+                [ div [ classes [ colXs12, colSm6 ] ] [ mainTabBar currentView ]
+                , div [ classes [ colXs12, colSm5 ] ] [ gistControls state ]
                 ]
             ]
         , viewContainer currentView Editor $
@@ -523,6 +560,7 @@ render state@(State {currentView})  =
             in
                 [ simulationPane
                     initialValue
+                    (view _actionDrag state)
                     (view _simulations state)
                     (view _evaluationResult state)
                 , case (view _evaluationResult state) of
