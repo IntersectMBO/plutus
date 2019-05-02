@@ -147,7 +147,7 @@
 
 \section{Introduction: The Extended UTXO Model}
 \label{sec:intro}
-The Cardano blockchain uses a variant of the \textit{Unspent
+The Cardano blockchain~\cite{Cardano} uses a variant of the \textit{Unspent
   Transaction Output} (UTXO) model used by Bitcoin.  Transactions
 consume \textit{unspent outputs} (UTXOs) from previous transactions
 and produce new outputs which can be used as inputs to later
@@ -237,30 +237,31 @@ notation established by \cite{Zahnentferner18-UTxO}.
     The concatenation of two lists $\lambda_1$ and
     $\lambda_2$ is denoted $\lambda_1 ::: \lambda_2$.
 
-  \item For two types $S$ and $T$, $\Map{S}{T}$ denotes the type of
-    partial functions from \textit{keys} in $S$ to \textit{values} in
-    $T$.  If $m$ is such a map then $\dom m$ (the \textit{domain} of
-    $m$) is the set of keys of $m$.  Given a map $m$ and a key $k \in
-    \dom m$, we denote the result of looking up $k$ in $m$ by $m[k]$.
-    Equality for maps is defined in the obvious way: $m_1 = m_2$ if and only if
-    $\dom m_1 = \dom m_2$ and $m_1[k] = m_2[k]$ for all $k \in \dom m_1$.
+  \item For two types $K$ and $V$, $\Map{K}{V}$ denotes the type of
+    partial functions from \textit{keys} in $K$ to \textit{values} in
+    $V$.  If $m$ is such a map then $\dom m$ (the \textit{domain} of
+    $m$) is the set of keys of $m$ (ie, $K$).  Given a map $m$ and a
+    key $k \in \dom m$, we denote the result of looking up $k$ in $m$
+    by $m[k]$.  Equality for maps is defined in the obvious way: $m_1
+    = m_2$ if and only if $\dom m_1 = \dom m_2$ and $m_1[k] = m_2[k]$
+    for all $k \in \dom m_1$.
     
-  \item If the type $T$ is a monoid with binary operation $+$ (for
-    example, a numeric type) and $f, g \in \Map{S}{T}$ then we define
-    their sum $f+g \in \Map{S}{T}$ with domain $\dom (f+g) = \dom f
+  \item If the type $V$ is a monoid with binary operation $+$ (for
+    example, a numeric type) and $f, g \in \Map{K}{V}$ then we define
+    their sum $f+g \in \Map{K}{V}$ with domain $\dom (f+g) = \dom f
     \cup \dom g$ by
     \[
-    (f+g)[x] =
+    (f+g)[k] =
     \left\{ \begin{array}{ll}
-        f[x] + g[x] & \mbox{if $x \in \dom f \cap \dom g$}\\
-        f[x] & \mbox{if $x \in \dom f \setminus \dom g$}\\
-        g[x] & \mbox{if $x \in \dom g \setminus \dom f$}
+        f[k] + g[k] & \mbox{if $k \in \dom f \cap \dom g$}\\
+        f[k] & \mbox{if $k \in \dom f \setminus \dom g$}\\
+        g[k] & \mbox{if $k \in \dom g \setminus \dom f$}
       \end{array}
       \right.
       \]
       We generalise this to the sum of a finite number of maps using
       the $\sum$ notation in the usual way.  Note that the type
-      $\Map{S}{T}$ itself becomes a monoid under the operation $+$
+      $\Map{K}{V}$ itself becomes a monoid under the operation $+$
       which we have just defined (with the empty map as identity element).
 
     \item $x \mapsto f(x)$ denotes an anonymous function.
@@ -352,7 +353,22 @@ signature using a known public key: if the public key corresponds to
 the private key then validation succeeds, otherwise it fails.  Thus
 the output can only be spent by the owner of the relevant private key
 
-\newpage
+\paragraph{Blockchain terminology.}
+\label{sec:blockchain-terminology}
+We require a little blockchain background. A \textit{blockchain} is a
+ledger consisting of a sequence of \textit{blocks}, each block
+containing a number of transactions (and possibly other data).  A
+typical blockchain will be maintained by a peer-to-peer network
+consisting of \textit{core nodes} who compete to create new blocks,
+generally receving some monetary reward for doing so; after a new
+block has been created, it will be propagated to the rest of the
+network, which will eventually reach consensus on the current state of
+the blockchain.  The opportunity to create a new block is known as a
+\textit{slot}: slots occur at regular intervals (about once every 20
+seconds on Cardano), and hence the current \textit{slot number} can be
+used as a proxy for time on the blockchain (using real times would
+lead to problems with accuracy and synchronisation).
+
 
 \section{XUTXO-1: Enhanced scripting}
 \label{sec:xutxo-1}
@@ -639,12 +655,12 @@ the latter in condition \ref{rule:all-inputs-validate}.
 
 
 
-\noindent In practice, $\sigma$-validity imposes a limit on the size of the
-$\mathsf{Script}$ values of the $\validator$, $\redeemer$ and
+\noindent In practice, $\sigma$-validity imposes a limit on the size
+of the $\mathsf{Script}$ values of the $\validator$, $\redeemer$ and
 $\datascript$ fields and the result of $\sigma$. The validation of a
 single transaction must take place within one slot, so the evaluation
-of $\llbracket ~ \rrbracket$ cannot take longer than one slot,
-approximately twenty seconds.
+of $\llbracket ~ \rrbracket$ cannot take longer than one slot
+(approximately twenty seconds on the Cardano blockchain).
 
 By parameterising transaction validity by the blockchain information
 generating function $\sigma$, we obtain an equivalence class of
@@ -668,7 +684,7 @@ In addition to the native currency, the XUTXO-2 model allows an
 unlimited number of other \textit{custom currencies}, possibly
 user-defined.  Each custom currency has a unique identifier; the
 native currency is handled separately and has no identifier.  To
-support this we introduce three new types: see
+support custom currencies we introduce three new types: see
 Figure~\ref{fig:more-basic-types}.
 
 \newcommand{\emspace}{\hspace{1em}}
@@ -682,7 +698,7 @@ Figure~\ref{fig:more-basic-types}.
   & & from Figure~\ref{fig:basic-types}.\\
   \valuemap &: &a map from \s{CurrencyID}s to quantities of the
   corresponding currencies\\
-  & & (represented using the non-negative \valuetype type). This allows an output\\
+  & & (represented using the non-negative \valuetype{} type). This allows an output\\
   & & to contain quantities of multiple custom currencies in addition to some \\
   & & quantity (possibly zero) of the native currency.\\
 
@@ -798,7 +814,7 @@ the details.
 
 We use the definitions of \unspent{}  and
 \getvalue{} from Section~\ref{sec:xutxo-1-validity} unchanged,
-but we also require a similar function to retrieve the values of
+but we also require a function to retrieve the values of
 custom currencies from inputs. If $t$ is a transaction in a ledger
 $\lambda$ and $i \in t.\inputs$, then we define 
 $$
@@ -809,7 +825,7 @@ transaction is invalid.
 
 \paragraph{Note.} In rule~\ref{rule:custom-values-are-preserved-2}, $+$ and $\sum$ are the
 sum of maps as defined in Figure~\ref{fig:basic-notation}. Essentially
-we require that the quantities of the individual custom currencies
+we require that the quantities of each of the individual custom currencies
 involved in the transaction are preserved.  Recall that values in
 $\customforge$ can be negative whereas values in outputs must
 be non-negative.  Thus rule~\ref{rule:custom-values-are-preserved-2} implies
@@ -849,12 +865,14 @@ registry of custom currencies.
     to forge the currency, then we can't make any more.}}
   
 \subsection{Examples}
-A non-fungible token (NFT) is a unique object which can be transferred
-to another user, but not duplicated.  NFTs have proven useful in a number
-of blockchain applications; for example, they can represent ownership of
-some object in a game.
-
 \subsubsection{Non-fungible tokens}
+A non-fungible token (NFT) is a unique object which can be transferred
+to another user, but not duplicated.  NFTs have proven useful in a
+number of blockchain applications (see~\cite{ERC-721} for example);
+for example, they can represent ownership of some object in a game.
+
+\medskip
+
 An important example that motivated the design XUTXO-2 model was the
 idea of implementing NFTs as currencies with a supply of 1. If NFTs are
 used to represent different stakes in a contract, then a single
@@ -864,6 +882,7 @@ NFT adds a single pay-to-script transaction output to the initial
 transaction of the contract, and does not otherwise put a burden on
 core nodes.
 
+\medskip 
 Here is an example of a validator script that implements a
 non-fungible token using our proposal.  This is expressed as a Haskell
 function, and is very similar to the Haskell code that would be used
@@ -879,7 +898,7 @@ data NFT = NFT { nftName :: String, nftBootstrapTxOut :: TxOutput }
   in if con1 && con2 then () else error
 \end{lstlisting}
 
-The function \verb|spends :: PendingTx -> TxOut -> Bool| checks if the
+\noindent The function \verb|spends :: PendingTx -> TxOut -> Bool| checks if the
 pending transaction spends the output \verb|txout| (uniquely
 identified by transaction hash and the index into its list of
 outputs). The function
@@ -937,7 +956,8 @@ The new definition is given in Figure~\ref{fig:xutxo-3-types}:
   where
   \begin{itemize}
 \item \s{CurrencyId} is the type we are using to identify currencies, as in Figure~\ref{fig:xutxo-2-types}.
-\item \s{Token} is an identifier for an individual token, probably a hash.
+\item \s{Token} is a type consisting of identifiers for individual
+  tokens.  These will probably be hashes in practice.
 \item \s{Quantity} is a type used to measure the amount of a token
   that is present, probably the type of natural numbers.
   \end{itemize}
