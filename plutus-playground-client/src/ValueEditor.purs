@@ -17,7 +17,7 @@ import Halogen.HTML.Properties (InputType(InputNumber), classes, placeholder, re
 import Halogen.Query as HQ
 import Ledger.Extra (LedgerMap(..))
 import Ledger.Value.TH (CurrencySymbol, TokenName, Value(Value))
-import Types (ValueEvent(SetBalance), _tokenName)
+import Types (ValueEvent(SetBalance), _currencySymbol, _tokenName)
 
 valueForm :: forall p i. (ValueEvent -> HQ.Action i) -> Value -> HTML p i
 valueForm handler (Value { getValue: LedgerMap balances }) =
@@ -53,9 +53,9 @@ balanceRow handler currencyIndex currencySymbol tokenIndex (Tuple tokenName amou
     [ formRow_ $
         [ label
             [ classes [ col, colFormLabel ] ]
-            [ text $ case view _tokenName tokenName of
-                       "" -> "Ada"
-                       other -> other
+            [ text $ case view _currencySymbol currencySymbol, view _tokenName tokenName of
+                       "5fff", "" -> "Ada"
+                       _, other -> other
             ]
         , col_
             [ input

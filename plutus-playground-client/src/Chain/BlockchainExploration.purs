@@ -189,10 +189,11 @@ toBalanceMap =
                            })
           = Tuple (Tuple (ScriptIx owner hash) row) (CurrencyBalance currencyBalances)
 
-    -- | TODO Ask Jann if txFee is going to change away from `Ada` (the type) soon.
-    adaCurrencySymbol = CurrencySymbol { unCurrencySymbol: "" }
-    adaTokenName = TokenName { unTokenName: "ada" }
+adaCurrencySymbol :: CurrencySymbol
+adaCurrencySymbol = CurrencySymbol { unCurrencySymbol: "5fff" }
 
+adaTokenName :: TokenName
+adaTokenName = TokenName { unTokenName: "" }
 
 balanceClassname :: ClassName
 balanceClassname = ClassName "balance"
@@ -215,10 +216,13 @@ balanceView Remainder =
 
 valueView :: forall p i. CurrencySymbol /\ TokenName /\ Int -> HTML p i
 valueView
-  (CurrencySymbol { unCurrencySymbol: symbol }
-   /\ TokenName { unTokenName: token }
-   /\ balance) =
-  amountView token balance
+  (currencySymbol@(CurrencySymbol { unCurrencySymbol: symbol })
+   /\ tokenName@(TokenName { unTokenName: token })
+   /\ balance)
+  | currencySymbol == adaCurrencySymbol && tokenName == adaTokenName =
+      amountView "Ada" balance
+  | otherwise =
+      amountView token balance
 
 amountView :: forall p i. String -> Int -> HTML p i
 amountView name balance =
