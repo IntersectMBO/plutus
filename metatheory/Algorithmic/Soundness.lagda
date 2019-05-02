@@ -14,22 +14,17 @@ open import Type.BetaNBE.Stability
 open import Type.BetaNBE.RenamingSubstitution
 open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq) hiding ([_])
-open import Algorithmic.Completeness
 
 open import Function
 \end{code}
 
 \begin{code}
-embCtx : Alg.Ctx → Dec.Ctx
-embCtx∥ : ∀ Γ → Alg.∥ Γ ∥ ≡ Dec.∥ embCtx Γ ∥
+embCtx : ∀{Φ} → Alg.Ctx Φ → Dec.Ctx Φ
+--embCtx∥ : ∀ Γ → Alg.∥ Γ ∥ ≡ Dec.∥ embCtx Γ ∥
 
 embCtx Alg.∅       = Dec.∅
 embCtx (Γ Alg.,⋆ K) = embCtx Γ Dec.,⋆ K
-embCtx (Γ Alg., A)  = embCtx Γ Dec., substEq (_⊢⋆ _) (embCtx∥ Γ) (embNf A)
-
-embCtx∥ Alg.∅       = refl
-embCtx∥ (Γ Alg.,⋆ K) = cong (_,⋆ K) (embCtx∥ Γ)
-embCtx∥ (Γ Alg., A)  = embCtx∥ Γ
+embCtx (Γ Alg., A)  = embCtx Γ Dec., embNf A
 \end{code}
 
 
@@ -44,68 +39,32 @@ lemT' A refl refl = sym (rename-embNf S A)
 \end{code}
 
 \begin{code}
-subst∋' : ∀ {Γ Γ' K}{A : Dec.∥ Γ ∥ ⊢⋆ K}{A' : Dec.∥ Γ' ∥ ⊢⋆ K}
- → (p : Γ ≡ Γ')
- → substEq (_⊢⋆ K) (cong Dec.∥_∥ p) A ≡ A' →
- (Γ Dec.∋ A) → Γ' Dec.∋ A'
-subst∋' refl refl α = α
+conv∋ : ∀ {Φ Γ K}{A : Φ ⊢⋆ K}{A' : Φ ⊢⋆ K}
+ → A ≡ A' →
+ (Γ Dec.∋ A) → Γ Dec.∋ A'
+conv∋ refl α = α
 \end{code}
 
 \begin{code}
-embVar : ∀{Γ K}{A : Alg.∥ Γ ∥ ⊢Nf⋆ K}
+embVar : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K}
   → Γ Alg.∋ A
-  → embCtx Γ Dec.∋ substEq (_⊢⋆ K) (embCtx∥ Γ) (embNf A)
+  → embCtx Γ Dec.∋ embNf A
 embVar Alg.Z     = Dec.Z
 embVar (Alg.S α) = Dec.S (embVar α)
-embVar {Γ Alg.,⋆ K} (Alg.T {A = A} α) = subst∋'
-  refl
-  (lemT' A (embCtx∥ Γ) (embCtx∥ (Γ Alg.,⋆ K)))
-  (Dec.T (embVar α))
+embVar {Γ = Γ Alg.,⋆ K} (Alg.T {A = A} α) =
+  conv∋ (sym (rename-embNf S A)) (Dec.T (embVar α))
 \end{code}
 
 \begin{code}
-subst⊢' : ∀ {Γ Γ' K}{A : Dec.∥ Γ ∥ ⊢⋆ K}{A' : Dec.∥ Γ' ∥ ⊢⋆ K}
- → (p : Γ ≡ Γ')
- → substEq (_⊢⋆ K) (cong Dec.∥_∥ p) A ≡ A' →
- (Γ Dec.⊢ A) → Γ' Dec.⊢ A'
-subst⊢' refl refl α = α
+conv⊢ : ∀ {Φ Γ K}{A : Φ ⊢⋆ K}{A' : Φ ⊢⋆ K}
+ → A ≡ A' →
+ (Γ Dec.⊢ A) → Γ Dec.⊢ A'
+conv⊢ refl α = α
 \end{code}
-
 \begin{code}
-lemƛ' : ∀{Γ Γ'}(A B : Γ ⊢Nf⋆ *) →
-      (p : Γ ≡ Γ') → 
-      substEq (_⊢⋆ *) p (embNf A ⇒ embNf B)
-      ≡
-      substEq (_⊢⋆ *) p (embNf A) ⇒ substEq (_⊢⋆ *) p (embNf B)
-lemƛ' A B refl = refl
-\end{code}
-
-\begin{code}
-lemΠ' :  ∀{Γ Γ' K }(p : Γ ≡ Γ')(q : Γ ,⋆ K ≡ Γ' ,⋆ K)(B : Γ ,⋆ K ⊢Nf⋆ *) → 
-  Π (substEq (_⊢⋆ *) q (embNf B)) ≡
-  substEq (_⊢⋆ *) p (Π (embNf B))
-lemΠ' refl refl B = refl
-\end{code}
-
-\begin{code}
-lem[]'' : ∀{Γ Γ' K}
-  → (p : Γ ≡ Γ')
-  → (q : Γ ,⋆ K ≡ Γ' ,⋆ K)
-  → (A : Γ ⊢Nf⋆ K)
-  → (B : Γ ,⋆ K ⊢Nf⋆ *) →
-  (((substEq (_⊢⋆ *) q (embNf B)) [ (substEq (_⊢⋆ K) p (embNf A)) ])
-  ≡β
-  substEq (_⊢⋆ *) p
-  (embNf
-   (eval
-    (subst
-     (λ x →
-        embNf
-        (substNf-cons
-         (λ {K₁} x₁ → ne (` x₁)) A x))
-     (embNf B))
-    (idEnv Γ))))
-lem[]'' refl refl A B = substEq
+lem[]'' : ∀{Γ K}(A : Γ ⊢Nf⋆ K)(B : Γ ,⋆ K ⊢Nf⋆ *) →
+  embNf B [ embNf A ] ≡β embNf (B [ A ]Nf)
+lem[]'' A B = substEq
   (embNf B [ embNf A ] ≡β_)
   (cong
     embNf
@@ -119,13 +78,7 @@ lem[]'' refl refl A B = substEq
 \end{code}
 
 \begin{code}
-lemμ'' : ∀{Γ Γ' K}(p : Γ ≡ Γ')(pat : Γ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)(arg : Γ ⊢Nf⋆ K) → 
-  substEq (_⊢⋆ *) p (μ1 · embNf pat · embNf arg) ≡
-  μ1 · substEq (_⊢⋆ _) p (embNf pat) · substEq (_⊢⋆ _) p (embNf arg)
-lemμ'' refl pat arg = refl
-\end{code}
 
-\begin{code}
 open import Data.Sum
 lemμ''' : ∀{Γ Γ' K}(p : Γ ≡ Γ')(pat : Γ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)(arg : Γ ⊢Nf⋆ K) →
   substEq (_⊢⋆ (K ⇒ *) ⇒ K ⇒ *) p (embNf pat) ·
@@ -142,14 +95,6 @@ lemμ''' refl pat arg = soundness (embNf pat · (μ1 · embNf pat) · embNf arg)
 \end{code}
 
 \begin{code}
-open import Builtin.Constant.Type
-
-lemcon' : ∀{Γ Γ' : Ctx⋆}(p : Γ ≡ Γ')(tcn : TyCon)
-  → Type.con {φ = Γ'} tcn ≡ substEq (_⊢⋆ *) p (con {φ = Γ} tcn)
-lemcon' refl tcn = refl
-\end{code}
-
-\begin{code}
 import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con boolean
   as SSig
 import Builtin.Signature
@@ -159,18 +104,13 @@ open import Builtin
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon 
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon 
 
-
-substTC' : ∀{Γ Γ'}(p : Γ ≡ Γ')(tcn : TyCon)
-  → STermCon.TermCon {Φ = Γ} (con tcn)
-  → STermCon.TermCon {Φ = Γ'}(con tcn)
-substTC' refl tcn t = t
-
 embTC : ∀{φ}{A : φ ⊢Nf⋆ *}
   → NTermCon.TermCon A
   → STermCon.TermCon (embNf A)
 embTC (NTermCon.integer i)    = STermCon.integer i
 embTC (NTermCon.bytestring b) = STermCon.bytestring b
 \end{code}
+
 \begin{code}
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.List
@@ -206,6 +146,7 @@ lemσ' bn refl C C' refl σ refl = trans≡β
 
 open import Data.Unit
 open import Data.Empty
+
 _≡βL_ : ∀{Δ} → (As As' : List (Δ ⊢⋆ *)) → Set
 []       ≡βL []         = ⊤
 []       ≡βL (A' ∷ As') = ⊥
@@ -215,6 +156,8 @@ _≡βL_ : ∀{Δ} → (As As' : List (Δ ⊢⋆ *)) → Set
 embList : ∀{Δ} → List (Δ ⊢Nf⋆ *) → List (Δ ⊢⋆ *)
 embList []       = []
 embList (A ∷ As) = embNf A ∷ embList As
+
+open import Algorithmic.Completeness
 
 lemList' : (bn : Builtin)
   → embList (proj₁ (proj₂ (NSig.SIG bn))) ≡βL
@@ -241,12 +184,12 @@ lemList' sha3-256 = refl≡β _ ,, _
 lemList' verifySignature = refl≡β _ ,, refl≡β _ ,, refl≡β _ ,, _
 lemList' equalsByteString = refl≡β _ ,, refl≡β _ ,, _
 
-lemsub : ∀{Γ Γ' Δ}(A : Δ ⊢Nf⋆ *)(A' : Δ ⊢⋆ *)(p : Γ ≡ Γ')
+lemsub : ∀{Γ Δ}(A : Δ ⊢Nf⋆ *)(A' : Δ ⊢⋆ *)
   → (σ : {J : Kind} → Δ ∋⋆ J → Γ ⊢Nf⋆ J)
   → embNf A ≡β A' → 
-  substEq (_⊢⋆ *) p (embNf (substNf σ A)) ≡β
-  subst (λ {J} α → substEq (_⊢⋆ J) p (embNf (σ α))) A'
-lemsub A A' refl σ p = trans≡β
+  (embNf (substNf σ A)) ≡β
+  subst (λ {J} α → embNf (σ α)) A'
+lemsub A A' σ p = trans≡β
   (trans≡β
     (≡2≡β (cong embNf (subst-eval (embNf A) idCR (embNf ∘ σ))))
     (trans≡β
@@ -254,73 +197,49 @@ lemsub A A' refl σ p = trans≡β
       ((≡2≡β (sym (cong embNf (subst-eval A' idCR (embNf ∘ σ))))))))
   (sym≡β (soundness (subst (embNf ∘ σ) A')))
 
-embTel : ∀{Γ Δ Δ'}(q : Δ' ≡ Δ)
+embTel : ∀{Φ Γ Δ Δ'}(q : Δ' ≡ Δ)
   → (As  : List (Δ ⊢Nf⋆ *))
   → (As' : List (Δ' ⊢⋆ *))
   → embList As ≡βL substEq (λ Δ → List (Δ ⊢⋆ *)) q As'
-  → (σ : {J : Kind} → Δ ∋⋆ J → Alg.∥ Γ ∥ ⊢Nf⋆ J)
+  → (σ : {J : Kind} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)
   → Alg.Tel Γ Δ σ As
-  → Dec.Tel (embCtx Γ) Δ'
-      (λ {J} α →
-         substEq (_⊢⋆ J) (embCtx∥ Γ)
-         (embNf (σ (substEq (_∋⋆ J) q α))))
-      As'
+  → Dec.Tel (embCtx Γ) Δ' (λ {J} α → (embNf (σ (substEq (_∋⋆ J) q α)))) As'
 
-emb : ∀{Γ K}{A : Alg.∥ Γ ∥ ⊢Nf⋆ K}
+emb : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K}
   → Γ Alg.⊢ A
-  → embCtx Γ Dec.⊢ substEq (_⊢⋆ K) (embCtx∥ Γ) (embNf A)
+  → embCtx Γ Dec.⊢ embNf A
 
 embTel refl [] [] p σ x = tt
 embTel refl [] (A' ∷ As') () σ x
 embTel refl (A ∷ As) [] () σ x
-embTel {Γ} refl (A ∷ As) (A' ∷ As') (p ,, p') σ (t ,, tel) =
-  Dec.conv (lemsub A A' (embCtx∥ Γ)  σ p) (emb t)
-  ,,
-  embTel refl As As' p' σ tel
+embTel refl (A ∷ As) (A' ∷ As') (p ,, p') σ (t ,, tel) =
+  Dec.conv (lemsub A A' σ p) (emb t) ,, embTel refl As As' p' σ tel
 
 emb (Alg.` α) = Dec.` (embVar α)
-emb {Γ} (Alg.ƛ {A = A}{B} t) =
-  subst⊢' refl (sym (lemƛ' A B (embCtx∥ Γ)) ) (Dec.ƛ (emb t))
-emb {Γ} (Alg._·_ {A = A}{B} t u) =
-  subst⊢' refl (lemƛ' A B (embCtx∥ Γ)) (emb t) Dec.· emb u
-emb {Γ} (Alg.Λ {B = B} t) =
-  subst⊢' refl (lemΠ' (embCtx∥ Γ) (embCtx∥ (Γ Alg.,⋆ _)) B) (Dec.Λ (emb t))
-emb {Γ}(Alg._·⋆_ {K = K}{B = B} t A) = Dec.conv
-  (lem[]'' (embCtx∥ Γ) (embCtx∥ (Γ Alg.,⋆ K)) A B)
-  (Dec._·⋆_
-    (subst⊢' refl (sym (lemΠ' (embCtx∥ Γ) (embCtx∥ (Γ Alg.,⋆ K)) B)) (emb t))
-    (substEq (_⊢⋆ K) (embCtx∥ Γ) (embNf A)))
-emb {Γ} (Alg.wrap1 pat arg t) = subst⊢'
-  refl
-  (sym (lemμ'' (embCtx∥ Γ) pat arg))
-  (Dec.wrap1
-    (substEq (_⊢⋆ _) (embCtx∥ Γ) (embNf pat))
-    (substEq (_⊢⋆ _) (embCtx∥ Γ) (embNf arg))
-    (Dec.conv (sym≡β (lemμ''' (embCtx∥ Γ) pat arg)) (emb t)))
-emb {Γ} (Alg.unwrap1 {pat = pat}{arg} t) = Dec.conv
-  (lemμ'''
-    (embCtx∥ Γ) pat arg)
-    (Dec.unwrap1 (subst⊢' refl (lemμ'' (embCtx∥ Γ) pat arg) (emb t)))
-emb {Γ} (Alg.con  {tcn = tcn} t ) = subst⊢'
-  refl
-  (lemcon' (embCtx∥ Γ) tcn)
-  (Dec.con (substTC' (embCtx∥ Γ) tcn (embTC t)))
-emb {Γ} (Alg.builtin bn σ tel) = let
+emb (Alg.ƛ {A = A}{B} t) = Dec.ƛ (emb t)
+emb (Alg._·_ {A = A}{B} t u) = emb t Dec.· emb u
+emb (Alg.Λ {B = B} t) = Dec.Λ (emb t)
+emb (Alg._·⋆_ {K = K}{B = B} t A) =
+  Dec.conv (lem[]'' A B) (emb t Dec.·⋆ embNf A)
+emb (Alg.wrap1 pat arg t) =
+  Dec.wrap1
+    (embNf pat)
+    (embNf arg)
+    (Dec.conv (sym≡β (lemμ''' refl pat arg)) (emb t))
+emb (Alg.unwrap1 {pat = pat}{arg} t) =
+  Dec.conv (lemμ''' refl pat arg) (Dec.unwrap1 (emb t))
+emb (Alg.con  {tcn = tcn} t ) = Dec.con (embTC t)
+emb (Alg.builtin bn σ tel) = let
   Δ  ,, As  ,, C  = SSig.SIG bn
   Δ' ,, As' ,, C' = NSig.SIG bn
   in Dec.conv
-    (lemσ' bn (embCtx∥ Γ) C C' (nfTypeSIG≡₁ bn) σ (nfTypeSIG≡₂ bn))
+    (lemσ' bn refl C C' (nfTypeSIG≡₁ bn) σ (nfTypeSIG≡₂ bn))
     (Dec.builtin
       bn
-      (λ {J} α → substEq
-        (_⊢⋆ J)
-        (embCtx∥ Γ)
-        (embNf (σ (substEq (_∋⋆ J) (nfTypeSIG≡₁ bn) α))))
+      (embNf ∘ σ ∘ substEq (_∋⋆ _) (nfTypeSIG≡₁ bn))
       (embTel (nfTypeSIG≡₁ bn) As' As (lemList' bn) σ tel))
-emb {Γ} (Alg.error A) = Dec.error (substEq (_⊢⋆ _) (embCtx∥ Γ) (embNf A) )
+emb (Alg.error A) = Dec.error (embNf A)
 
-soundnessT : ∀{Γ K}{A : Alg.∥ Γ ∥ ⊢Nf⋆ K}
-  → Γ Alg.⊢ A
-  → embCtx Γ Dec.⊢ substEq (_⊢⋆ K) (embCtx∥ Γ) (embNf A)
+soundnessT : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A
 soundnessT = emb
 \end{code}
