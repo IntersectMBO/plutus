@@ -244,7 +244,7 @@ notation established by \cite{Zahnentferner18-UTxO}.
     key $k \in \dom m$, we denote the result of looking up $k$ in $m$
     by $m[k]$.  Equality for maps is defined in the obvious way: $m_1
     = m_2$ if and only if $\dom m_1 = \dom m_2$ and $m_1[k] = m_2[k]$
-    for all $k \in \dom m_1$.
+    for all $k \in \dom m_1$ (assuming we have decidable equality in $V$).
     
   \item If the type $V$ is a monoid with binary operation $+$ (for
     example, a numeric type) and $f, g \in \Map{K}{V}$ then we define
@@ -1040,6 +1040,12 @@ useful in practice remains to be seen.
 
 \section{What else do we need to worry about?}
 \begin{itemize}
+\item Should we mention the problem of \textbf{validating the next data script}?
+%% https://github.com/input-output-hk/plutus/issues/426
+
+\item Sometimes I'm saying ``datascript'' and at other times ``data script''.
+  Maybe we should try to be consistent about this.
+  
 \item Do we need to worry about who signs the various scripts, or is that
   something the wallet deals with?
 
@@ -1050,9 +1056,10 @@ useful in practice remains to be seen.
   Now that we're allowed to destroy currency, maybe we can have transactions
   with no outputs.
 
-\item Do we want to include \s{PayToPubKey} transactions in the specification?
-  We definitely want a special case for this in the implementation, but you
-  can do it with the general scripts framework anyway.
+\item Do we want to include \s{PayToPubKey} transactions in the
+  specification?  We definitely want a special case for this in the
+  implementation, but you can do it with the general scripts framework
+  anyway. Maybe we should mention that somewhere.
 
 \end{itemize}
   
