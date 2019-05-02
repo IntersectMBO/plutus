@@ -10,135 +10,60 @@ open import Type.BetaNBE
 open import Type.BetaNBE.Completeness
 open import Type.BetaNBE.RenamingSubstitution
 
-open import Relation.Binary.PropositionalEquality renaming (subst to substEq)
+open import Relation.Binary.PropositionalEquality renaming (subst to substEq) hiding ([_])
 open import Function
 
-nfCtx : Syn.Ctx → Norm.Ctx
-nfCtx∥ : ∀ Γ → Syn.∥ Γ ∥ ≡ Norm.∥ nfCtx Γ ∥
-
+nfCtx : ∀ {Φ} → Syn.Ctx Φ → Norm.Ctx Φ
 nfCtx Syn.∅ = Norm.∅
 nfCtx (Γ Syn.,⋆ K) = nfCtx Γ Norm.,⋆ K
-nfCtx (Γ Syn., A) = nfCtx Γ Norm., substEq (_⊢Nf⋆ _) (nfCtx∥ Γ) (nf A)
+nfCtx (Γ Syn., A) = nfCtx Γ Norm., nf A
 
-nfCtx∥ Syn.∅ = refl
-nfCtx∥ (Γ Syn.,⋆ K) = cong (_,⋆ K) (nfCtx∥ Γ)
-nfCtx∥ (Γ Syn., A)  = nfCtx∥ Γ
+conv∋ : ∀ {Φ Γ K}{A : Φ ⊢Nf⋆ K}{A' : Φ ⊢Nf⋆ K}
+ → A ≡ A' →
+ (Γ Norm.∋ A) → Γ Norm.∋ A'
+conv∋ refl α = α
 
-lemT : ∀{Γ Γ' K J}(A : Γ ⊢⋆ K)
-  → (p : Γ ≡ Γ')
-  → (q : Γ ,⋆ J ≡ Γ' ,⋆ J)
-  → weakenNf (substEq (_⊢Nf⋆ K) p (nf A)) ≡
-    substEq (_⊢Nf⋆ K) q (nf (rename S A))
-lemT A refl refl = rename-nf S A
 
-subst∋ : ∀ {Γ Γ' K}{A : Norm.∥ Γ ∥ ⊢Nf⋆ K}{A' : Norm.∥ Γ' ∥ ⊢Nf⋆ K}
- → (p : Γ ≡ Γ')
- → substEq (_⊢Nf⋆ K) (cong Norm.∥_∥ p) A ≡ A' →
- (Γ Norm.∋ A) → Γ' Norm.∋ A'
-subst∋ refl refl α = α
+subst⊢ : ∀ {Φ Γ K}{A : Φ ⊢Nf⋆ K}{A' : Φ ⊢Nf⋆ K}
+ → A ≡ A' →
+ (Γ Norm.⊢ A) → Γ Norm.⊢ A'
+subst⊢ refl α = α
 
-subst⊢ : ∀ {Γ Γ' K}{A : Norm.∥ Γ ∥ ⊢Nf⋆ K}{A' : Norm.∥ Γ' ∥ ⊢Nf⋆ K}
- → (p : Γ ≡ Γ')
- → substEq (_⊢Nf⋆ K) (cong Norm.∥_∥ p) A ≡ A' →
- (Γ Norm.⊢ A) → Γ' Norm.⊢ A'
-subst⊢ refl refl α = α
-
-nfTyVar : ∀{Γ K}
-  → {A : Syn.∥ Γ ∥ ⊢⋆ K}
+nfTyVar : ∀{Φ Γ K}
+  → {A : Φ ⊢⋆ K}
   → Γ Syn.∋ A
-  → nfCtx Γ Norm.∋ substEq (_⊢Nf⋆ K) (nfCtx∥ Γ) (nf A)
+  → nfCtx Γ Norm.∋ nf A
 nfTyVar Syn.Z = Norm.Z
 nfTyVar (Syn.S α) =  Norm.S (nfTyVar α)
-nfTyVar {Γ Syn.,⋆ K} (Syn.T {A = A} α) = subst∋
-  refl
-  (lemT A (nfCtx∥ Γ) (nfCtx∥ (Γ Syn.,⋆ K)))
-  (Norm.T (nfTyVar α))
+nfTyVar {Γ = Γ Syn.,⋆ K} (Syn.T {A = A} α) =
+  conv∋ (rename-nf S A) (Norm.T (nfTyVar α))
 
-lemƛ : ∀{Γ Γ'}(p : Γ ≡ Γ')(A B : Γ ⊢Nf⋆ *)
-   → substEq  (_⊢Nf⋆ *) p A ⇒ substEq  (_⊢Nf⋆ *) p B
-     ≡
-     substEq  (_⊢Nf⋆ *) p (A ⇒ B) 
-lemƛ refl A B = refl
-
-lemΠ : ∀{Γ Γ' K }(p : Γ ≡ Γ')(q : Γ ,⋆ K ≡ Γ' ,⋆ K)(B : Γ ,⋆ K ⊢Nf⋆ *) →
-       Π (substEq (_⊢Nf⋆ *) q B) ≡ substEq (_⊢Nf⋆ *) p (Π B)
-lemΠ refl refl B = refl
-
-open import Type.BetaNBE.RenamingSubstitution
-
-lemΠnf : ∀{Γ K}(B : Γ ,⋆ K ⊢⋆ *) → Π (nf B) ≡ nf (Π B)
-lemΠnf B = cong Π (substNf-lemma' B)
-
-lemμ : ∀{Γ Γ' K}(p : Γ ≡ Γ')(pat : Γ ⊢Nf⋆ _)(arg : Γ ⊢Nf⋆ _) →
-      substEq (_⊢Nf⋆ *) p (nf (embNf pat · (μ1 · embNf pat) · embNf arg) ) ≡
-      nf
-      (embNf (substEq (_⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *) p pat) ·
-       (μ1 ·
-        embNf (substEq (_⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *) p pat))
-       · embNf (substEq (_⊢Nf⋆ K) p arg))
-lemμ refl pat arg = refl
-
-lemX : ∀{Γ Γ' K}(p : Γ ≡ Γ')(pat : Γ ⊢Nf⋆ _)(arg : Γ ⊢Nf⋆ _) →
-  substEq (_⊢Nf⋆ *) p (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
-  ≡
-  nf (embNf (substEq (_⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *) p pat) · (μ1 · embNf (substEq (_⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *) p pat)) · embNf (substEq (_⊢Nf⋆ K) p arg))
-lemX refl pat arg = refl
+lemΠ : ∀{Γ K }(B : Γ ,⋆ K ⊢⋆ *) →
+       nf (Π B) ≡ Π (nf B)
+lemΠ B = cong Π (sym (substNf-lemma' B))
 
 open import Type.Equality
 open import Type.BetaNBE.Soundness
 
-lemXX : ∀{Γ K}(pat : Syn.∥ Γ ∥ ⊢⋆ _)(arg : Syn.∥ Γ ∥ ⊢⋆ _) →
-  substEq (_⊢Nf⋆ *) (nfCtx∥ Γ) (nf (pat · (μ1 · pat) · arg)) ≡
+lemXX : ∀{Φ K}(pat :  Φ ⊢⋆ _)(arg : Φ ⊢⋆ K) →
+  nf (pat · (μ1 · pat) · arg) ≡
   nf
-  (embNf (substEq (_⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *) (nfCtx∥ Γ) (nf pat)) ·
+  (embNf (nf pat) ·
    (μ1 ·
-    embNf (substEq (_⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *) (nfCtx∥ Γ) (nf pat)))
-   · embNf (substEq (_⊢Nf⋆ K) (nfCtx∥ Γ) (nf arg)))
-lemXX {Γ} pat arg = trans
-  (cong (substEq (_⊢Nf⋆ *) (nfCtx∥ Γ))  (completeness (·≡β (·≡β (soundness pat) (·≡β (refl≡β μ1) (soundness pat))) (soundness arg))))
-  (lemX (nfCtx∥ Γ) (nf pat) (nf arg))
+    embNf (nf pat))
+   · embNf (nf arg))
+lemXX {Γ} pat arg = completeness
+  (·≡β
+    (·≡β (soundness pat) (·≡β (refl≡β μ1) (soundness pat)))
+    (soundness arg))
 
+open import Type.BetaNBE.Completeness
+open import Type.BetaNBE.Soundness
 open import Type.BetaNBE.Stability
 
-lemμ' : ∀{Γ Γ' K}(p : Γ ≡ Γ')(pat : Γ ⊢Nf⋆ _)(arg : Γ ⊢Nf⋆ _) →
-  ne ((μ1 · substEq (_⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *) p pat) · substEq (_⊢Nf⋆ K) p arg)
-  ≡
-  substEq (_⊢Nf⋆ *) p (ne (μ1 · pat · arg))
-lemμ' refl pat arg = refl
-
-
-lem[] : ∀{Γ Γ' K}(p : Γ ≡ Γ')(q : Γ ,⋆ K ≡ Γ' ,⋆ K)(A : Γ ⊢Nf⋆ K)(B : Γ ,⋆ K ⊢Nf⋆ *) →
-  (substEq (_⊢Nf⋆ *) q B [ substEq (_⊢Nf⋆ K) p A ]Nf)
-  ≡ substEq (_⊢Nf⋆ *) p (nf (subst (subst-cons ` (embNf A)) (embNf B)))
-lem[] refl refl A B =  evalCRSubst idCR (subst-cong (λ { Z → refl ; (S α) → refl}) (embNf B)) 
-
-lem[]' : ∀{Γ K}(A : Syn.∥ Γ ∥ ⊢⋆ K)(B : Syn.∥ Γ ∥ ,⋆ K ⊢⋆ *) → (substEq (_⊢Nf⋆ *) (cong (_,⋆ K) (nfCtx∥ Γ))
- (eval B (exte (idEnv Syn.∥ Γ ∥)))
- [ substEq (_⊢Nf⋆ K) (nfCtx∥ Γ) (nf A) ]Nf)
-  ≡ substEq (_⊢Nf⋆ *) (nfCtx∥ Γ) (nf (subst (subst-cons ` A) B))
-lem[]' {Γ} A B = trans
-  (lem[] (nfCtx∥ Γ) (cong (_,⋆ _) (nfCtx∥ Γ)) (nf A) (eval B (exte (idEnv _))))
-  (cong
-    (substEq (_⊢Nf⋆ *) (nfCtx∥ Γ))
-    (trans
-      (trans
-        (subst-eval
-          (embNf (eval B (exte (idEnv _))))
-          idCR
-          (subst-cons ` (embNf (nf A))))
-        (trans
-          (fund
-            (λ x → idext idCR (subst-cons ` (embNf (nf A)) x))
-            (sym≡β (evalSR B (SRweak idSR))))
-          (trans
-            (subst-eval
-              B
-              (λ x → idext idCR (subst-cons ` (embNf (nf A)) x))
-              (exts `))
-            (idext (λ { Z → symCR (fund idCR (soundness A))
-                      ; (S α) → idCR α}) B))))
-      (sym (subst-eval B idCR (subst-cons ` A)))))
-
+lem[] : ∀{Γ K}(A : Γ ⊢⋆ K)(B : Γ ,⋆ K ⊢⋆ *) →
+  nf B [ nf A ]Nf ≡ nf (B [ A ])
+lem[] A B = trans (subst-eval (embNf (nf B)) idCR (embNf ∘ substNf-cons (ne ∘ `) (nf A))) (trans (fund (λ { Z → symCR (fund idCR (soundness A)) ; (S α) → idCR _}) (sym≡β (soundness B))) (sym (subst-eval B idCR (subst-cons ` A)))) 
 import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con boolean
   as SSig
 import Builtin.Signature
@@ -178,9 +103,8 @@ nfTypeSIG≡₁ sha3-256 = refl
 nfTypeSIG≡₁ verifySignature = refl
 nfTypeSIG≡₁ equalsByteString = refl
 
-lemσ : ∀{Γ Γ' Δ Δ'}
+lemσ : ∀{Γ Δ Δ'}
   → (σ : Sub Δ Γ)
-  → (p : Γ ≡ Γ')
   → (C : Δ ⊢⋆ *)
   → (C' : Δ' ⊢Nf⋆ *)
   → (q : Δ' ≡ Δ)
@@ -188,13 +112,11 @@ lemσ : ∀{Γ Γ' Δ Δ'}
   substNf
       (λ {J} α →
          nf
-         (substEq (_⊢⋆ J) p
-          (σ (substEq (_∋⋆ J) q α))))
+          (σ (substEq (_∋⋆ J) q α)))
       C'
       ≡
-      substEq (_⊢Nf⋆ *) p
-      (nf (subst σ C))
-lemσ σ refl C _ refl refl = trans
+      nf (subst σ C)
+lemσ σ C _ refl refl = trans
 -- this should be a lemma in NBE/RenSubst
 -- substNf (nf ∘ σ) (nf C) ≡ nf (subst σ C)
     (trans
@@ -266,22 +188,30 @@ lemList sha3-256 = refl
 lemList verifySignature = refl
 lemList equalsByteString = refl
 
-nfType : ∀{Γ K}
-  → {A : Syn.∥ Γ ∥ ⊢⋆ K}
+nfType : ∀{Φ Γ K}
+  → {A : Φ ⊢⋆ K}
   → Γ Syn.⊢ A
-  → nfCtx Γ Norm.⊢ substEq (_⊢Nf⋆ K) (nfCtx∥ Γ) (nf A)
+  → nfCtx Γ Norm.⊢ nf A
   
-nfTypeTel : ∀{Γ Δ}(σ : Sub Δ Syn.∥ Γ ∥)(As : List (Δ ⊢⋆ *))
+nfTypeTel : ∀{Φ Γ Δ}(σ : Sub Δ Φ)(As : List (Δ ⊢⋆ *))
   → Syn.Tel Γ Δ σ As
-  → Norm.Tel (nfCtx Γ) Δ (nf ∘ substEq (_⊢⋆ _) (nfCtx∥ Γ) ∘ σ) (nfList As)
+  → Norm.Tel (nfCtx Γ) Δ (nf ∘ σ) (nfList As)
   
 nfTypeTel σ []        _ = _
-nfTypeTel {Γ} σ (A ∷ As) (M ,, Ms) =
-  subst⊢ refl (sym (lemσ σ (nfCtx∥ Γ) A (nf A) refl refl)) (nfType M)
+nfTypeTel {Γ} σ (A ∷ As) (M ,, Ms) = subst⊢
+  -- this should be a lemma in NBE/RenSubst
+  -- substNf (nf ∘ σ) (nf C) ≡ nf (subst σ C)
+  -- also it might go away if we simplify the builtins post size removal
+  (sym (trans (trans
+      (subst-eval (embNf (nf A)) idCR (embNf ∘ nf ∘ σ))
+      (fund (λ α → fund idCR (sym≡β (soundness (σ α)))) (sym≡β (soundness A))))
+    (sym (subst-eval A idCR σ))))
+  (nfType M)
   ,,
   nfTypeTel σ As Ms
 
-nfTypeTel' : ∀{Γ Δ Δ'}(σ : Sub Δ Syn.∥ Γ ∥)(As : List (Δ ⊢⋆ *))
+
+nfTypeTel' : ∀{Φ Γ Δ Δ'}(σ : Sub Δ Φ)(As : List (Δ ⊢⋆ *))
   → (q : Δ' ≡ Δ)
   → (As' : List (Δ' ⊢Nf⋆ *))
   → (substEq (λ Δ → List (Δ ⊢Nf⋆ *)) q As' ≡ nfList As)
@@ -289,66 +219,35 @@ nfTypeTel' : ∀{Γ Δ Δ'}(σ : Sub Δ Syn.∥ Γ ∥)(As : List (Δ ⊢⋆ *))
   → Norm.Tel
       (nfCtx Γ)
       Δ'
-      (nf ∘ substEq (_⊢⋆ _) (nfCtx∥ Γ) ∘ σ ∘ substEq (_∋⋆ _) q)
+      (nf ∘ σ ∘ substEq (_∋⋆ _) q)
       As'
 nfTypeTel' σ As refl .(nfList As) refl tel = nfTypeTel σ As tel
 
 nfType (Syn.` α) = Norm.` (nfTyVar α)
-nfType {Γ} (Syn.ƛ t) =
-  subst⊢ refl (lemƛ (nfCtx∥ Γ) _ _) (Norm.ƛ (nfType t))
-nfType {Γ} (t Syn.· u) =
-  subst⊢ refl (sym (lemƛ (nfCtx∥ Γ) _ _)) (nfType t)  Norm.· nfType u
-nfType {Γ} (Syn.Λ {B = B} t)    = subst⊢
-  refl
-  (trans
-    (lemΠ
-      (nfCtx∥ Γ)
-      (nfCtx∥ (Γ Syn.,⋆ _))
-      (nf B))
-    (cong (substEq (_⊢Nf⋆ *) (nfCtx∥ Γ)) (lemΠnf B)))
-  (Norm.Λ (nfType t))
-nfType {Γ} (Syn._·⋆_ {B = B} t A) = subst⊢
-  refl
-  (lem[]' {Γ} A B)
-  (subst⊢ refl (sym (lemΠ (nfCtx∥ Γ) (cong (_,⋆ _) (nfCtx∥ Γ)) _)) (nfType t)
-  Norm.·⋆
-  -- is there another version where this is just nf A?
-  substEq (_⊢Nf⋆ _) (nfCtx∥ Γ) (nf A)) 
-nfType {Γ} (Syn.wrap1 pat arg t) = subst⊢
-  refl
-  (lemμ' (nfCtx∥ Γ) (nf pat) (nf arg))
-  (Norm.wrap1
-    (substEq (_⊢Nf⋆ _) (nfCtx∥ Γ ) (nf pat))
-    (substEq (_⊢Nf⋆ _) (nfCtx∥ Γ) (nf arg))
-    (subst⊢ refl (lemXX {Γ} pat arg) (nfType t)))
-nfType {Γ} (Syn.unwrap1 {pat = pat}{arg} t) = subst⊢
-  refl
-  (sym (lemXX {Γ} pat arg))
-  (Norm.unwrap1
-    (subst⊢ refl (sym (lemμ' (nfCtx∥ Γ) (nf pat) (nf arg))) (nfType t))) 
+nfType {Γ} (Syn.ƛ t) = Norm.ƛ (nfType t)
+nfType {Γ} (t Syn.· u) = nfType t Norm.· nfType u
+nfType {Γ} (Syn.Λ {B = B} t)    = Norm.Λ (subst⊢ (substNf-lemma' B) (nfType t))
+nfType {Γ} (Syn._·⋆_ {B = B} t A) =
+  subst⊢ (lem[] A B) (subst⊢ (lemΠ B) (nfType t) Norm.·⋆ nf A)
+nfType {Γ} (Syn.wrap1 pat arg t) =
+  Norm.wrap1 (nf pat) (nf arg) (subst⊢ (lemXX pat arg) (nfType t))
+nfType {Γ} (Syn.unwrap1 {pat = pat}{arg} t) =
+  subst⊢ (sym (lemXX pat arg)) (Norm.unwrap1 (nfType t))
 nfType (Syn.conv p t) rewrite sym (completeness p) = nfType t
-nfType {Γ} (Syn.con {tcn = tcn} t) = subst⊢
-  refl
-  (lemcon (nfCtx∥ Γ) tcn)
-  (Norm.con (substTC (nfCtx∥ Γ) tcn (nfTypeTC t) ))
+nfType {Γ} (Syn.con {tcn = tcn} t) = Norm.con (nfTypeTC t)
 nfType {Γ} (Syn.builtin bn σ tel) = let
   Δ ,, As ,, C = SSig.SIG bn
   Δ' ,, As' ,, C' = NSig.SIG bn
   in subst⊢
-  refl
-  (lemσ σ (nfCtx∥ Γ) C C'  (sym (nfTypeSIG≡₁ bn)) (nfTypeSIG≡₂ bn))
-  (Norm.builtin
-    bn
-    (λ α → nf
-      (substEq
-        (_⊢⋆ _)
-        (nfCtx∥ Γ)
-        (σ (substEq (_∋⋆ _) (sym (nfTypeSIG≡₁ bn)) α))))
-        (nfTypeTel' σ As (sym (nfTypeSIG≡₁ bn)) As' (lemList bn) tel ))
-nfType {Γ} (Syn.error A) = Norm.error (substEq  (_⊢Nf⋆ *) (nfCtx∥ Γ) (nf A))
+    (lemσ σ C C' (sym (nfTypeSIG≡₁ bn)) (nfTypeSIG≡₂ bn))
+    (Norm.builtin
+      bn
+      (nf ∘ σ ∘ substEq (_∋⋆ _) (sym (nfTypeSIG≡₁ bn)))
+      (nfTypeTel' σ As (sym (nfTypeSIG≡₁ bn)) As' (lemList bn) tel))
+nfType {Γ} (Syn.error A) = Norm.error (nf A)
 
-completenessT : ∀{Γ K}{A : Syn.∥ Γ ∥ ⊢⋆ K} → Γ Syn.⊢ A
-  → nfCtx Γ Norm.⊢ substEq (_⊢Nf⋆ K) (nfCtx∥ Γ) (nf A) × (A ≡β embNf (nf A))
+completenessT : ∀{Φ Γ K}{A : Φ ⊢⋆ K} → Γ Syn.⊢ A
+  → nfCtx Γ Norm.⊢ nf A × (A ≡β embNf (nf A))
 completenessT {A = A} t = nfType t ,, soundness A
 \end{code}
 
