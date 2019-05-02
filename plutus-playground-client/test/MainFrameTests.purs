@@ -125,6 +125,7 @@ instance monadAppMockApp :: Monad m => MonadApp (MockApp m) where
 
   preventDefault event = pure unit
   setDropEffect effectType event = pure unit
+  setDataTransferData event mimeType value = pure unit
   readFileFromDragEvent event = pure "TEST"
   updateChartsIfPossible = pure unit
   --

@@ -41,6 +41,7 @@ import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.MediaType.Common (textPlain)
 import Data.Newtype (unwrap)
 import Data.String as String
 import Data.Traversable (foldl)
@@ -66,7 +67,7 @@ import Ledger.Extra (LedgerMap(LedgerMap))
 import Ledger.Extra as LedgerMap
 import Ledger.Value.TH (CurrencySymbol(CurrencySymbol), TokenName(TokenName), Value(Value))
 import LocalStorage (LOCALSTORAGE)
-import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, setDropEffect, updateChartsIfPossible)
+import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect, updateChartsIfPossible)
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
 import Playground.API (KnownCurrency(..), SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
@@ -193,6 +194,7 @@ eval (HandleEditorMessage (TextChanged text) next) = do
   pure next
 
 eval (ActionDragAndDrop index DragStart event next) = do
+  setDataTransferData event textPlain (show index)
   assign _actionDrag (Just index)
   pure next
 
@@ -218,6 +220,7 @@ eval (ActionDragAndDrop destination Drop event next) = do
     Just source ->
       modifying (_simulations <<< _current <<< _actions) (Array.move source destination)
     _ -> pure unit
+  preventDefault event
   assign _actionDrag Nothing
   pure next
 
