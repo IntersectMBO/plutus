@@ -24,6 +24,7 @@ import DOM.HTML.Event.Types (DragEvent)
 import Data.Either (Either)
 import Data.Lens (use)
 import Data.Maybe (Maybe(..))
+import Data.MediaType (MediaType)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import ECharts.Monad (interpret)
 import FileEvents (FILE)
@@ -54,6 +55,7 @@ class Monad m <= MonadApp m where
   saveBuffer :: String -> m Unit
   preventDefault :: DragEvent -> m Unit
   setDropEffect :: DropEffect -> DragEvent -> m Unit
+  setDataTransferData :: DragEvent -> MediaType -> String -> m Unit
   readFileFromDragEvent :: DragEvent -> m String
   updateChartsIfPossible :: m Unit
   --
@@ -119,6 +121,8 @@ instance monadAppHalogenApp ::
   preventDefault event = wrap $ liftEff $ FileEvents.preventDefault event
 
   setDropEffect dropEffect event = wrap $ liftEff $ DataTransfer.setDropEffect dropEffect $ dataTransfer event
+  setDataTransferData event mimeType value =
+    wrap $ liftEff $ DataTransfer.setData mimeType value $ dataTransfer event
 
   readFileFromDragEvent event = wrap $ liftAff $ FileEvents.readFileFromDragEvent event
 
