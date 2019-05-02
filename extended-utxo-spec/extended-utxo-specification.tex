@@ -359,11 +359,14 @@ We require a little blockchain background. A \textit{blockchain} is a
 ledger consisting of a sequence of \textit{blocks}, each block
 containing a number of transactions (and possibly other data).  A
 typical blockchain will be maintained by a peer-to-peer network
-consisting of \textit{core nodes} who compete to create new blocks,
-generally receving some monetary reward for doing so; after a new
-block has been created, it will be propagated to the rest of the
-network, which will eventually reach consensus on the current state of
-the blockchain.  The opportunity to create a new block is known as a
+consisting of \textit{core nodes} who compete to execute users'
+transactions and create new blocks, generally receiving some monetary
+reward for doing so (for example, in order to have a transaction
+executed on the chain, users may have to pay a \textit{fee} calculated
+from the transaction size and execution time). After a new block has
+been created, it will be propagated to the rest of the network, which
+will eventually reach consensus on the current state of the
+blockchain.  The opportunity to create a new block is known as a
 \textit{slot}: slots occur at regular intervals (about once every 20
 seconds on Cardano), and hence the current \textit{slot number} can be
 used as a proxy for time on the blockchain (using real times would
@@ -372,7 +375,8 @@ lead to problems with accuracy and synchronisation).
 
 \section{XUTXO-1: Enhanced scripting}
 \label{sec:xutxo-1}
-The XUTXO-1 model introduces the following new features:
+The XUTXO-1 model adds the following new features to the model 
+proposed in~\cite{Zahnentferner18-UTxO}:
 
 \begin{itemize}
 \item Every transaction has a \textit{validity interval}, consisting
