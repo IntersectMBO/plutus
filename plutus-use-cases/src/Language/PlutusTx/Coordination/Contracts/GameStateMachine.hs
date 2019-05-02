@@ -162,7 +162,7 @@ guess gss newSecret keepAda restAda = do
     (i, own) <- createPaymentWithChange gameTokenVal
 
     let tx = Ledger.Tx
-                { txInputs = Set.union i (Set.fromList ins)
+                { txInputs = Set.union i (Set.fromList $ fmap fst ins)
                 , txOutputs = [ownOutput, scriptOut] ++ maybeToList own
                 , txForge = $$(V.zero)
                 , txFee   = Ada.zero
@@ -200,7 +200,7 @@ lock initialWord adaVl = do
             ins <- WAPI.spendScriptOutputs addr gameValidator redeemer
 
             let tx = Ledger.Tx
-                        { txInputs = Set.fromList ins
+                        { txInputs = Set.fromList (fmap fst ins)
                         , txOutputs = [ownOutput, scriptOut]
                         , txForge = gameTokenVal
                         , txFee   = Ada.zero

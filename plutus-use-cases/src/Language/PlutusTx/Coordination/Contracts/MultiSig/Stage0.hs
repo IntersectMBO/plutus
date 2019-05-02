@@ -11,6 +11,7 @@ module Language.PlutusTx.Coordination.Contracts.MultiSig.Stage0(
     , State(..)
     , Input(..)
     , step
+    , stepWithChecks
     , stateEq
     ) where
 
@@ -144,7 +145,7 @@ valuePreserved = [||
 
     ||]
 
--- | @valuePaid pm ptx@ is true of the pending transaction @ptx@ pays
+-- | @valuePaid pm ptx@ is true if the pending transaction @ptx@ pays
 --   the amount specified in @pm@ to the public key address specified in @pm@
 valuePaid :: Q (TExp (Payment -> PendingTx -> Bool))
 valuePaid = [||
@@ -154,6 +155,7 @@ valuePaid = [||
         in valuePaid'
     ||]
 
+-- | Equality of 'Payment' values
 paymentEq :: Q (TExp (Payment -> Payment -> Bool))
 paymentEq = [||
 
@@ -164,6 +166,7 @@ paymentEq = [||
 
     ||]
 
+-- | Equality of 'State' values
 stateEq :: Q (TExp (State -> State -> Bool))
 stateEq = [||
         let stateEq' :: State -> State -> Bool
@@ -176,12 +179,33 @@ stateEq = [||
         in stateEq'
     ||]
 
--- | @step params ptx state input@ computes the next state given current state
---   @state@ and the input. It checks whether the pending transaction @ptx@
---   pays the expected amounts to script and public key addresses. Fails with 
---   'P.error' if an invalid transition is attempted.
-step :: Q (TExp (Params -> PendingTx -> State -> Input -> State))
+-- | @step params state input@ computes the next state given current state
+--   @state@ and the input.
+step :: Q (TExp (Params -> State -> Input -> State))
 step = [||
+
+    let step' :: Params -> State -> Input -> State
+        step' p s i = 
+            case (s, i) of
+                (InitialState vl, ProposePayment pmt) -> 
+                    CollectingSignatures vl pmt []
+                (CollectingSignatures vl pmt pks, AddSignature pk) ->
+                    CollectingSignatures vl pmt (pk:pks)
+                (CollectingSignatures vl pmt _, Cancel) ->
+                    InitialState vl
+                (CollectingSignatures vl pmt@(Payment vp _ _) pks, Pay) ->
+                    let vl' = $$(Value.minus) vl vp in
+                    InitialState vl'
+                _ -> $$(P.error) ($$(P.traceH) "invalid transition" ())
+    in step'
+    ||]
+
+-- | @stepWithChecks params ptx state input@ computes the next state given 
+--   current state @state@ and the input. It checks whether the pending 
+--   transaction @ptx@ pays the expected amounts to script and public key 
+--   addresses. Fails with 'P.error' if an invalid transition is attempted.
+stepWithChecks :: Q (TExp (Params -> PendingTx -> State -> Input -> State))
+stepWithChecks = [||
 
     let and_ :: Bool -> Bool -> Bool
         and_ = $$(P.and)
@@ -191,32 +215,33 @@ step = [||
         
         step' :: Params -> PendingTx -> State -> Input -> State
         step' p ptx s i = 
+            let newState = $$step p s i in
             case (s, i) of
                 (InitialState vl, ProposePayment pmt) -> 
                     if $$isValidProposal vl pmt `and_`
-                       $$valuePreserved vl ptx
-                    then CollectingSignatures vl pmt []
-                    else $$(P.error) ()
+                        $$valuePreserved vl ptx
+                    then newState
+                    else $$(P.error) ($$(P.traceH) "ProposePayment invalid" ())
                 (CollectingSignatures vl pmt pks, AddSignature pk) ->
                     if $$(Validation.txSignedBy) ptx pk `and_` 
-                       $$isSignatory pk p `and_`
-                       not_ ($$containsPk pk pks) `and_`
-                       $$valuePreserved vl ptx
-                    then CollectingSignatures vl pmt (pk:pks)
-                    else $$(P.error) ()
+                        $$isSignatory pk p `and_`
+                        not_ ($$containsPk pk pks) `and_`
+                        $$valuePreserved vl ptx
+                    then newState
+                    else $$(P.error) ($$(P.traceH) "AddSignature invalid" ())
                 (CollectingSignatures vl pmt _, Cancel) ->
                     if $$proposalExpired ptx pmt `and_`
                         $$valuePreserved vl ptx
                     then InitialState vl
-                    else $$(P.error) ()
+                    else $$(P.error) ($$(P.traceH) "Cancel invalid" ())
                 (CollectingSignatures vl pmt@(Payment vp _ _) pks, Pay) ->
                     let vl' = $$(Value.minus) vl vp in
                     if not_ ($$proposalExpired ptx pmt) `and_`
-                       $$proposalAccepted p pks `and_`
-                       $$valuePreserved vl' ptx `and_`
-                       $$valuePaid pmt ptx
-                    then InitialState vl'
-                    else $$(P.error) ()
+                        $$proposalAccepted p pks `and_`
+                        $$valuePreserved vl' ptx `and_`
+                        $$valuePaid pmt ptx
+                    then newState
+                    else $$(P.error) ($$(P.traceH) "Pay invalid" ())
                 _ -> $$(P.error) ($$(P.traceH) "invalid transition" ())
     in step'
     ||]
