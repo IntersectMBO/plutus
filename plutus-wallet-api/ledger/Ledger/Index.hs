@@ -237,7 +237,7 @@ checkMatch v = \case
                     $ normalizeScript
                     $ lifted
                     $ v { pendingTxIn = pTxIn }
-                (logOut, success) = runScript v' vl d r
+                (logOut, success) = runScriptTrace v' vl d r
             if success
             then pure ()
             else throwError $ ScriptFailure logOut

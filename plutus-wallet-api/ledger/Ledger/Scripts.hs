@@ -20,6 +20,7 @@ module Ledger.Scripts(
     applyScript,
     evaluateScript,
     runScript,
+    runScriptTrace,
     normalizeScript,
     -- * Script wrappers
     ValidatorScript(..),
@@ -103,25 +104,38 @@ applyScript (unScript -> s1) (unScript -> s2) = Script $ s1 `PLC.applyProgram` s
 normalizeScript :: PLC.MonadQuote m => Script -> m Script
 normalizeScript (Script p) = Script <$> PLC.normalizeTypesFullInProgram p
 
--- | Evaluate a script, returning the trace log and a boolean indicating whether
--- evaluation was successful.
-evaluateScript :: Script -> ([String], Bool)
-evaluateScript (unScript -> s) =
+logErr :: PLC.Error () -> String
+logErr = PLC.prettyPlcDefString
+
+-- | Evaluate a 'Script' with some 'PLC.DynamicBuiltinNameTypes', i.e. off-chain
+-- or in simulation
+evaluateScriptDynamic :: PLC.DynamicBuiltinNameTypes -> Script -> ([String], Bool)
+evaluateScriptDynamic dynamics (unScript -> s) =
     case check s of
-        (Left e) -> ([logTypeErr e], False)
+        (Left e) -> ([logErr e], False)
         Right{} -> (isJust . reoption) <$> evaluateCekTrace s
 
-    where check p = PLC.runQuoteT $ do
-                builtins <- traceBuiltins
-                PLC.typecheckPipeline (PLC.defOnChainConfig { PLC._tccDynamicBuiltinNameTypes = builtins }) p
+    where check = PLC.runQuoteT . PLC.typecheckPipeline (PLC.defOnChainConfig { PLC._tccDynamicBuiltinNameTypes = dynamics })
+
+-- | Evaluate a 'Script', returning the trace log and a boolean indicating whether
+-- evaluation was successful.
+evaluateScript :: Script -> ([String], Bool)
+evaluateScript = evaluateScriptDynamic mempty
+
+evaluateScriptTrace :: Script -> ([String], Bool)
+evaluateScriptTrace s =
+    let traced = PLC.runQuoteT traceBuiltins
+    in
+    case traced of
+        (Left e) -> ([logErr e], False)
+        (Right tr) -> evaluateScriptDynamic tr s
+
+    where traceBuiltins :: PLC.QuoteT (Either (PLC.Error ())) PLC.DynamicBuiltinNameTypes
           traceBuiltins = PLC.dynamicBuiltinNameMeaningsToTypes () $ PLC.DynamicBuiltinNameMeanings $ M.fromList
                 [ (PLC.dynamicCharToStringName, PLC.dynamicCharToStringMeaning)
                 , (PLC.dynamicTraceName, PLC.dynamicTraceMeaning)
                 , (PLC.dynamicAppendName, PLC.dynamicAppendMeaning)
                 ]
-
-          logTypeErr :: PLC.Error () -> String
-          logTypeErr = PLC.prettyPlcDefString
 
 instance ToJSON Script where
   toJSON = JSON.String . JSON.encodeSerialise
@@ -212,15 +226,19 @@ newtype ValidationData = ValidationData Script
 instance Show ValidationData where
     show = const "ValidationData { <script> }"
 
--- | Evaluate a validator script with the given arguments, returning the log and a boolean indicating whether evaluation was successful.
-runScript :: ValidationData -> ValidatorScript -> DataScript -> RedeemerScript -> ([String], Bool)
-runScript (ValidationData valData) (ValidatorScript validator) (DataScript dataScript) (RedeemerScript redeemer) =
+runScriptEvaluator :: (Script -> ([String], Bool)) -> ValidationData -> ValidatorScript -> DataScript -> RedeemerScript -> ([String], Bool)
+runScriptEvaluator eval (ValidationData valData) (ValidatorScript validator) (DataScript dataScript) (RedeemerScript redeemer) =
     let
         applied = ((validator `applyScript` dataScript) `applyScript` redeemer) `applyScript` valData
         -- TODO: do something with the error
-        -- FIXME: don't normalize validation data b/c that should happen
-        -- elsewhere
-    in evaluateScript applied
+    in eval applied
+
+-- | Evaluate a validator script with the given arguments, returning the log and a boolean indicating whether evaluation was successful.
+runScript :: ValidationData -> ValidatorScript -> DataScript -> RedeemerScript -> ([String], Bool)
+runScript = runScriptEvaluator evaluateScript
+
+runScriptTrace :: ValidationData -> ValidatorScript -> DataScript -> RedeemerScript -> ([String], Bool)
+runScriptTrace = runScriptEvaluator evaluateScriptTrace
 
 -- | @()@ as a data script.
 unitData :: DataScript
