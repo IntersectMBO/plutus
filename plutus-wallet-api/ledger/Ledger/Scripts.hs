@@ -116,7 +116,7 @@ evaluateScript (unScript -> s) =
                 PLC.typecheckPipeline (PLC.defOnChainConfig { PLC._tccDynamicBuiltinNameTypes = builtins }) p
           traceBuiltins = PLC.dynamicBuiltinNameMeaningsToTypes () $ PLC.DynamicBuiltinNameMeanings $ M.fromList
                 [ (PLC.dynamicCharToStringName, PLC.dynamicCharToStringMeaning)
-                -- , (PLC.DynamicBuiltinName "trace", PLC.Dupable $ Identity $ PLC.Normalized $ PLC.TyFun () (PLC.TyBuiltin () PLC.TyString) unitType)
+                , (PLC.dynamicTraceName, PLC.dynamicTraceMeaning)
                 , (PLC.dynamicAppendName, PLC.dynamicAppendMeaning)
                 ]
 
