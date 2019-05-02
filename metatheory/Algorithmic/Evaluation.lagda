@@ -22,7 +22,7 @@ data Gas : Set where
 When our evaluator returns a term `N`, it will either give evidence that
 `N` is a value or indicate that it ran out of gas.
 \begin{code}
-data Finished {Γ J}{A : ∥ Γ ∥ ⊢Nf⋆ J} :  (N : Γ ⊢ A) →  Set where
+data Finished {Φ Γ J}{A : Φ ⊢Nf⋆ J} :  (N : Γ ⊢ A) →  Set where
 
    done : ∀ N → 
        Value N

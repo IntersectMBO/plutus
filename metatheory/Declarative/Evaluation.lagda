@@ -30,6 +30,7 @@ data Gas : Set where
 When our evaluator returns a term `N`, it will either give evidence that
 `N` is a value or indicate that it ran out of gas.
 \begin{code}
+{-
 data Finished {Γ J}{A : ∥ Γ ∥ ⊢⋆ J} :  (N : Γ ⊢ A) →  Set where
 
    done : ∀ N → 
@@ -40,6 +41,7 @@ data Finished {Γ J}{A : ∥ Γ ∥ ⊢⋆ J} :  (N : Γ ⊢ A) →  Set where
    out-of-gas : ∀{N} → 
        ----------
        Finished N
+-}
 \end{code}
 Given a term `L` of type `A`, the evaluator will, for some `N`, return
 a reduction sequence from `L` to `N` and an indication of whether
