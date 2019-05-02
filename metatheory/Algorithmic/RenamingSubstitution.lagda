@@ -34,38 +34,34 @@ open import Builtin.Signature
 ## Renaming
 
 \begin{code}
-ext : ∀ {Γ Δ}
-  → (ρ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ∋⋆ K)
-  → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ∋ renameNf ρ⋆ A)
-    ---------------------------------------------------
-  → (∀ {J K } {A : ∥ Γ ∥ ⊢Nf⋆ J} {B : ∥ Γ ∥ ⊢Nf⋆ K}
-     → Γ , B ∋ A
-       -------------------------------
-     → Δ , renameNf ρ⋆ B ∋ renameNf ρ⋆ A)
+ext : ∀ {Φ Ψ Γ Δ}
+  → (ρ⋆ : ∀ {K} → Φ ∋⋆ K → Ψ ∋⋆ K)
+  → (∀ {J} {A : Φ ⊢Nf⋆ J} → Γ ∋ A → Δ ∋ renameNf ρ⋆ A)
+  → ∀ {J K }
+    {A : Φ ⊢Nf⋆ J}
+    --------------------------------------------------------------
+  → {B : Φ ⊢Nf⋆ K} → Γ , B ∋ A → Δ , renameNf ρ⋆ B ∋ renameNf ρ⋆ A
 ext ρ⋆ ρ Z     = Z
 ext ρ⋆ ρ (S x) = S (ρ x)
 \end{code}
 
 \begin{code}
-
-ext⋆ : ∀ {Γ Δ}
-  → (ρ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ∋⋆ K)
-  → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ∋ renameNf ρ⋆ A)
+ext⋆ : ∀ {Φ Ψ Γ Δ}
+  → (ρ⋆ : ∀ {K} → Φ ∋⋆ K → Ψ ∋⋆ K)
+  → (∀ {J} {A : Φ ⊢Nf⋆ J} → Γ ∋ A → Δ ∋ renameNf ρ⋆ A)
+  → ∀ {J K}
     ---------------------------------------------------
-  → (∀ {J K}{A : ∥ Γ ,⋆ K ∥ ⊢Nf⋆ J}
-     → Γ ,⋆ K ∋ A 
-       -------------------------------
-     → Δ ,⋆ K ∋ renameNf (⋆.ext ρ⋆) A )
-ext⋆ {Γ}{Δ} ρ⋆ ρ {J}{K}{A} (T x) =
+  → {A : Φ ,⋆ K ⊢Nf⋆ J} → Γ ,⋆ K ∋ A → Δ ,⋆ K ∋ renameNf (⋆.ext ρ⋆) A
+ext⋆ {Δ = Δ} ρ⋆ ρ {K = K}{A = A} (T x) =
   substEq (λ A → Δ ,⋆ K ∋ A)
           (trans (sym (renameNf-comp _)) (renameNf-comp _))
           (T (ρ x))
 \end{code}
 
 \begin{code}
-rename-nf' : ∀{Γ Δ K}
-  → (A : ∥ Γ ∥ ⊢⋆ K)
-  → (ρ⋆ : ∀ {J} → ∥ Γ ∥ ∋⋆ J → ∥ Δ ∥ ∋⋆ J)
+rename-nf' : ∀{Φ Ψ K}
+  → (A : Φ ⊢⋆ K)
+  → (ρ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
   → renameNf ρ⋆ (nf A) ≡ nf (⋆.rename ρ⋆ A)
 rename-nf' A ρ⋆ = trans
   (rename-reify (idext idCR A) ρ⋆)
@@ -88,16 +84,17 @@ renameTermCon ρ⋆ (bytestring b) = bytestring b
 \end{code}
 
 \begin{code}
-rename : ∀ {Γ Δ}
-  → (ρ⋆ : ∀ {J} → ∥ Γ ∥ ∋⋆ J → ∥ Δ ∥ ∋⋆ J)
-  → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ∋ renameNf ρ⋆ A)
-    ------------------------
-  → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ⊢ A → Δ ⊢ renameNf ρ⋆ A )
 
-renameTel : ∀ {Γ Γ' Δ}
- → (ρ⋆ : ⋆.Ren ∥ Γ ∥ ∥ Γ' ∥)
- → (ρ :  ∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Γ' ∋ renameNf ρ⋆ A)
- → {σ : ∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K}
+rename : ∀ {Φ Ψ Γ Δ}
+  → (ρ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
+  → (∀ {J} {A : Φ ⊢Nf⋆ J} → Γ ∋ A → Δ ∋ renameNf ρ⋆ A)
+    ------------------------
+  → (∀ {J} {A : Φ ⊢Nf⋆ J} → Γ ⊢ A → Δ ⊢ renameNf ρ⋆ A )
+
+renameTel : ∀ {Φ Φ' Γ Γ' Δ}
+ → (ρ⋆ : ⋆.Ren Φ Φ')
+ → (ρ :  ∀ {J} {A : Φ ⊢Nf⋆ J} → Γ ∋ A → Γ' ∋ renameNf ρ⋆ A)
+ → {σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}
  → {As : List (Δ ⊢Nf⋆ *)}
  → Tel Γ Δ σ As
  → Tel Γ' Δ (renameNf ρ⋆ ∘ σ) As
@@ -106,31 +103,31 @@ rename ρ⋆ ρ (` x)    = ` (ρ x)
 rename ρ⋆ ρ (ƛ N)    = ƛ (rename ρ⋆ (ext ρ⋆ ρ) N)
 rename ρ⋆ ρ (L · M)  = rename ρ⋆ ρ L · rename ρ⋆ ρ M 
 rename ρ⋆ ρ (Λ N)    = Λ (rename (⋆.ext ρ⋆) (ext⋆ ρ⋆ ρ) N)
-rename {Γ}{Δ} ρ⋆ ρ (_·⋆_ {B = B} t A) =
+rename {Φ}{Ψ}{Γ}{Δ} ρ⋆ ρ (_·⋆_ {B = B} t A) =
   substEq (Δ ⊢_)
           (sym (rename[]Nf ρ⋆ B A))
           (rename ρ⋆ ρ t ·⋆ renameNf ρ⋆ A)
-rename {Γ}{Δ} ρ⋆ ρ (wrap1 pat arg term) = wrap1
+rename {Φ}{Ψ}{Γ}{Δ} ρ⋆ ρ (wrap1 pat arg term) = wrap1
   (renameNf ρ⋆ pat)
   (renameNf ρ⋆ arg)
   (substEq
     (Δ ⊢_)
     (trans
-      (rename-nf' {Γ}{Δ} (embNf pat · (μ1 · embNf pat) · embNf arg) ρ⋆)
-      (cong₂ (λ (p : ∥ Δ ∥ ⊢⋆ _)(a : ∥ Δ ∥ ⊢⋆ _) → nf (p · (μ1 · p) · a))
+      (rename-nf' {Φ}{Ψ} (embNf pat · (μ1 · embNf pat) · embNf arg) ρ⋆)
+      (cong₂ (λ (p : Ψ ⊢⋆ _)(a : Ψ ⊢⋆ _) → nf (p · (μ1 · p) · a))
              (sym (rename-embNf ρ⋆ pat))
              (sym (rename-embNf ρ⋆ arg))))
     (rename ρ⋆ ρ term))
-rename {Γ}{Δ} ρ⋆ ρ (unwrap1 {pat = pat}{arg} term) = substEq
+rename {Φ}{Ψ}{Γ}{Δ} ρ⋆ ρ (unwrap1 {pat = pat}{arg} term) = substEq
   (Δ ⊢_)
   (trans  -- same as above but backwards
-    (cong₂ (λ (p : ∥ Δ ∥ ⊢⋆ _)(a : ∥ Δ ∥ ⊢⋆ _) → nf (p · (μ1 · p) · a))
+    (cong₂ (λ (p : Ψ ⊢⋆ _)(a : Ψ ⊢⋆ _) → nf (p · (μ1 · p) · a))
              (rename-embNf ρ⋆ pat)
              (rename-embNf ρ⋆ arg))
-    (sym (rename-nf' {Γ}{Δ} (embNf pat · (μ1 · embNf pat) · embNf arg) ρ⋆)))
+    (sym (rename-nf' {Φ}{Ψ} (embNf pat · (μ1 · embNf pat) · embNf arg) ρ⋆)))
   (unwrap1 (rename ρ⋆ ρ term))
 rename ρ⋆ ρ (con c) = con (renameTermCon ρ⋆ c)
-rename {Γ}{Δ} ρ⋆ ρ (builtin bn σ X) = let _ ,, _ ,, A = SIG bn in substEq
+rename {Φ}{Ψ}{Γ}{Δ} ρ⋆ ρ (builtin bn σ X) = let _ ,, _ ,, A = SIG bn in substEq
   (Δ ⊢_)
   (trans -- renameNf-substNf lemma?
     (trans
@@ -149,7 +146,7 @@ rename {Γ}{Δ} ρ⋆ ρ (builtin bn σ X) = let _ ,, _ ,, A = SIG bn in substEq
 rename ρ⋆ ρ (error A) = error (renameNf ρ⋆ A)
 
 renameTel ρ⋆ ρ {As = []}     _         = _
-renameTel {Γ}{Δ} ρ⋆ ρ {σ} {As = A ∷ As} (M ,, Ms) =
+renameTel {Φ}{Ψ}{Γ}{Δ} ρ⋆ ρ {σ} {As = A ∷ As} (M ,, Ms) =
   substEq
     (Δ ⊢_)
     (trans -- renameNf-substNf lemma?
@@ -169,29 +166,30 @@ renameTel {Γ}{Δ} ρ⋆ ρ {σ} {As = A ∷ As} (M ,, Ms) =
 \end{code}
 
 \begin{code}
-weaken : ∀ {Φ J}{A : ∥ Φ ∥ ⊢Nf⋆ J}{K}{B : ∥ Φ ∥ ⊢Nf⋆ K}
-  → Φ ⊢ A
+weaken : ∀ {Φ Γ J}{A : Φ ⊢Nf⋆ J}{K}{B : Φ ⊢Nf⋆ K}
+  → Γ ⊢ A
     -------------
-  → Φ , B ⊢ A
-weaken {Φ}{J}{A}{K}{B} x = 
-  substEq (λ x → Φ , B ⊢ x)
+  → Γ , B ⊢ A
+weaken {Φ}{Γ}{J}{A}{K}{B} x = 
+  substEq (λ x → Γ , B ⊢ x)
           (renameNf-id A)
           (rename id
-                  (λ x → substEq (λ A → Φ , B ∋ A) (sym (renameNf-id _)) (S x))
+                  (λ x → substEq (λ A → Γ , B ∋ A) (sym (renameNf-id _)) (S x))
                   x)
 \end{code}
 
 \begin{code}
-weaken⋆ : ∀ {Φ J}{A : ∥ Φ ∥ ⊢Nf⋆ J}{K}
-  → Φ ⊢ A
+weaken⋆ : ∀ {Φ Γ J}{A : Φ ⊢Nf⋆ J}{K}
+  → Γ ⊢ A
     ------------------
-  → Φ ,⋆ K ⊢ weakenNf A
+  → Γ ,⋆ K ⊢ weakenNf A
 weaken⋆ x = rename _∋⋆_.S _∋_.T x
 \end{code}
 
 ## Substitution
 
 \begin{code}
+{-
 exts : ∀ {Γ Δ}
   → (σ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ⊢Nf⋆ K)
   → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ⊢ substNf σ⋆ A)
@@ -341,4 +339,5 @@ _[_]⋆ {J}{Γ}{K}{B} b A =
                                      (trans (trans (trans (sym (stability A')) (sym (reifyCR (rename-eval (embNf A') (λ x → idext idCR (embNf (substNf-cons (ne ∘ `) A x))) S)))) (sym (reifyCR (evalCRSubst (λ x → idext idCR (embNf (substNf-cons (ne ∘ `) A x))) (rename-embNf S A'))))) (reifyCR (symCR (subst-eval (embNf (renameNf S A')) idCR (embNf ∘ (substNf-cons (ne ∘ `) A))))))
                                      (` x)}))
                  b
+-}
 \end{code}
