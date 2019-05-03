@@ -5,6 +5,7 @@
 {-# LANGUAGE DataKinds         #-}
 {-# OPTIONS_GHC -O0 #-}
 -- | A multisig contract written as a state machine. 
+--   $multisig
 module Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine(
       Params(..)
     , Payment(..)
@@ -31,6 +32,20 @@ import qualified Wallet                       as WAPI
 import           Language.PlutusTx.StateMachine
 import           Language.PlutusTx.Coordination.Contracts.MultiSig.Stage0 as MultiSig
 import qualified Language.PlutusTx.StateMachine as SM
+
+--   $multisig
+--   The n-out-of-m multisig contract works like a joint account of
+--   m people, requiring the consent of n people for any payments.
+--   In the smart contract the signatories are represented by public keys,
+--   and approval takes the form of signatures on transactions. 
+--   
+--   The multisig contract in  
+--   'Language.PlutusTx.Coordination.Contracts.MultiSig' expects n signatures on
+--   a single transaction. This requires an off-chain communication channel. The
+--   multisig contract implemented in this module uses a proposal system that 
+--   allows participants to propose payments and attach their signatures to 
+--   proposals over a period of time, using separate transactions. All contract 
+--   state is kept on the chain so there is no need for off-chain communication.
 
 validator :: Params -> ValidatorScript
 validator params = ValidatorScript val where
@@ -110,7 +125,7 @@ makePayment prms st = do
         CollectingSignatures vl (Payment pd pk _) _ -> pure (vl, pd, pk)
         _ -> WAPI.throwOtherError "Cannot make payment because no payment has been proposed. Run the 'proposePayment' action first."
     
-    let newState = $$step prms st Pay
+    let newState = $$step st Pay
         vl       = validator prms
         redeemer = RedeemerScript (Ledger.lifted (SM.transition newState Pay))
         dataScript = DataScript (Ledger.lifted (SM.transition newState Pay))
@@ -138,7 +153,7 @@ mkStep
     -> m MultiSig.State
     -- ^ New state after applying the input
 mkStep prms st input = do
-    let newState = $$step prms st input
+    let newState = $$step st input
         vl       = validator prms
         redeemer = RedeemerScript (Ledger.lifted (SM.transition newState input))
         dataScript = DataScript (Ledger.lifted (SM.transition newState input))
@@ -149,7 +164,7 @@ mkStep prms st input = do
     _ <- WAPI.createTxAndSubmit WAPI.defaultSlotRange (Set.fromList $ fmap fst inputs) [output]
     pure newState
 
-{- note [Current state of the contract]
+{- Note [Current state of the contract]
 
 The 'mkStep' function takes the current state of the contract and returns the 
 new state. Both values are placed on the chain, so technically we don't have to

@@ -180,20 +180,22 @@ stateEq = [||
     ||]
 
 -- | @step params state input@ computes the next state given current state
---   @state@ and the input.
-step :: Q (TExp (Params -> State -> Input -> State))
+--   @state@ and the input. 
+--   'step' does not perform any checks of the preconditions. This is done in
+--   'stepWithChecks' below.
+step :: Q (TExp (State -> Input -> State))
 step = [||
 
-    let step' :: Params -> State -> Input -> State
-        step' p s i = 
+    let step' :: State -> Input -> State
+        step' s i = 
             case (s, i) of
                 (InitialState vl, ProposePayment pmt) -> 
                     CollectingSignatures vl pmt []
                 (CollectingSignatures vl pmt pks, AddSignature pk) ->
                     CollectingSignatures vl pmt (pk:pks)
-                (CollectingSignatures vl pmt _, Cancel) ->
+                (CollectingSignatures vl _ _, Cancel) ->
                     InitialState vl
-                (CollectingSignatures vl pmt@(Payment vp _ _) pks, Pay) ->
+                (CollectingSignatures vl (Payment vp _ _) _, Pay) ->
                     let vl' = $$(Value.minus) vl vp in
                     InitialState vl'
                 _ -> $$(P.error) ($$(P.traceH) "invalid transition" ())
@@ -215,14 +217,14 @@ stepWithChecks = [||
         
         step' :: Params -> PendingTx -> State -> Input -> State
         step' p ptx s i = 
-            let newState = $$step p s i in
+            let newState = $$step s i in
             case (s, i) of
                 (InitialState vl, ProposePayment pmt) -> 
                     if $$isValidProposal vl pmt `and_`
                         $$valuePreserved vl ptx
                     then newState
                     else $$(P.error) ($$(P.traceH) "ProposePayment invalid" ())
-                (CollectingSignatures vl pmt pks, AddSignature pk) ->
+                (CollectingSignatures vl _ pks, AddSignature pk) ->
                     if $$(Validation.txSignedBy) ptx pk `and_` 
                         $$isSignatory pk p `and_`
                         not_ ($$containsPk pk pks) `and_`
