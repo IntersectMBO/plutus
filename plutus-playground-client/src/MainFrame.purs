@@ -79,9 +79,9 @@ import StaticData as StaticData
 import Wallet.Emulator.Types (Wallet(Wallet))
 
 mkSimulatorWallet :: Array KnownCurrency -> Int -> SimulatorWallet
-mkSimulatorWallet currencies id =
+mkSimulatorWallet currencies walletId =
   SimulatorWallet
-    { simulatorWalletWallet: Wallet { getWallet: id }
+    { simulatorWalletWallet: Wallet { getWallet: walletId }
     , simulatorWalletBalance: mkInitialValue currencies 10
     }
 
