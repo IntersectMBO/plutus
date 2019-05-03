@@ -8,9 +8,11 @@ import Bootstrap (nbsp)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Generic (class Generic)
+import Data.Lens (preview)
+import Data.Lens.Index (ix)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromJust, maybe)
+import Data.Maybe (Maybe(Nothing, Just), fromJust, maybe)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String as String
@@ -25,11 +27,12 @@ import Ledger.Crypto (PubKey(PubKey))
 import Ledger.Extra (LedgerMap(..), collapse)
 import Ledger.Extra as Ledger
 import Ledger.Scripts (DataScript(..), RedeemerScript(..))
-import Ledger.Tx (Tx(Tx), TxInOf(TxInOf), TxInType(..), TxOutOf(TxOutOf), TxOutRefOf(TxOutRefOf), TxOutType(..))
+import Ledger.Tx (Tx(Tx), TxInOf(TxInOf), TxInType(ConsumeScriptAddress, ConsumePublicKeyAddress), TxOutOf(TxOutOf), TxOutRefOf(TxOutRefOf), TxOutType(PayToScript, PayToPubKey))
 import Ledger.TxId (TxIdOf(TxIdOf))
 import Ledger.Value.TH (CurrencySymbol(..), TokenName(..), Value(..))
 import Partial.Unsafe (unsafePartial)
-import Types (Blockchain)
+import Types (Blockchain, _walletId)
+import Wallet.Emulator.Types (Wallet)
 
 type SlotId = Int
 type StepId = Int
@@ -56,8 +59,8 @@ type Row = Tuple SlotId StepId
 type BalanceMap =
   Map (Tuple Column Row) Balance
 
-blockchainExploration :: forall p i. Blockchain -> HTML p i
-blockchainExploration blockchain =
+blockchainExploration :: forall p i. Map String Wallet -> Blockchain -> HTML p i
+blockchainExploration addressTargets blockchain =
   div_ [ h2_ [ text "Blockchain" ]
        , blockchainTable
        ]
@@ -96,9 +99,12 @@ blockchainExploration blockchain =
 
     balanceMap = toBalanceMap blockchain
 
+    -- Attempt to replace the owner hash with a wallet ID.
+    formatOwner owner = maybe owner show $ preview (ix owner <<< _walletId) addressTargets
+
     columnHeading FeeIx = "Fee"
     columnHeading ForgeIx = "Forge"
-    columnHeading (OwnerIx owner hash) = "Wallet #" <> abbreviate (show owner)
+    columnHeading (OwnerIx owner hash) = "Wallet #" <> abbreviate (formatOwner owner)
     columnHeading (ScriptIx owner hash) = "Script #" <> abbreviate owner
 
     columnSubheading FeeIx = ""

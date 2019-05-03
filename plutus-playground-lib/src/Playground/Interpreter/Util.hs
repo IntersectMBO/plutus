@@ -9,18 +9,16 @@ import           Data.Aeson                 (FromJSON)
 import qualified Data.Aeson                 as JSON
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import           Data.Foldable              (foldl')
-import           Data.Map                   (Map)
 import qualified Data.Map                   as Map
 import qualified Data.Set                   as Set
-import           Data.Tuple                 (swap)
 import qualified Data.Typeable              as T
 import           Ledger                     (Blockchain, PubKey, Tx, TxOutOf (txOutValue), toPublicKey)
 import qualified Ledger.Value               as V
 import           Playground.API             (PlaygroundError (OtherError), SimulatorWallet (SimulatorWallet),
                                              simulatorWalletBalance, simulatorWalletWallet)
 import           Wallet.Emulator.Types      (EmulatorEvent, EmulatorState (_chainNewestFirst, _emulatorLog), MockWallet,
-                                             Trace, Wallet, ownFunds, ownPrivateKey, processPending, runTraceTxPool,
-                                             walletPubKey, walletStates, walletsNotifyBlock)
+                                             Trace, Wallet, WalletState, ownFunds, ownPrivateKey, processPending,
+                                             runTraceTxPool, walletPubKey, walletStates, walletsNotifyBlock)
 import           Wallet.Generators          (GeneratorModel (GeneratorModel))
 import qualified Wallet.Generators          as Gen
 
@@ -58,27 +56,31 @@ runTrace wallets actions =
                     (eRes, newState) = runTraceTxPool [initialTx] action
                     blockchain = _chainNewestFirst newState
                     emulatorLog = _emulatorLog newState
-                    fundsDistribution :: Map Wallet V.Value
+                    fundsDistribution :: [SimulatorWallet]
                     fundsDistribution =
-                        Map.map
-                            (foldl' V.plus V.zero .
-                             fmap txOutValue . view ownFunds) .
-                        view walletStates $
-                        newState
-                    walletTargets :: Map Wallet PubKey
-                    walletTargets =
-                        Map.map (view (ownPrivateKey . to toPublicKey)) .
-                        view walletStates $
-                        newState
+                        Map.foldMapWithKey (\k v -> [toSimulatorWallet k v]) $
+                        view walletStates newState
+                    walletKeys :: [(PubKey, Wallet)]
+                    walletKeys =
+                        Map.foldMapWithKey
+                            (\k v ->
+                                 [(view (ownPrivateKey . to toPublicKey) v, k)]) $
+                        view walletStates newState
                  in case eRes of
                         Right _ ->
                             Right
                                 ( blockchain
                                 , emulatorLog
-                                , uncurry SimulatorWallet <$>
-                                  Map.toList fundsDistribution
-                                , swap <$> Map.toList walletTargets)
+                                , fundsDistribution
+                                , walletKeys)
                         Left e -> Left . OtherError . show $ e
+  where
+    walletStateBalance :: WalletState -> V.Value
+    walletStateBalance = foldl' V.plus V.zero . fmap txOutValue . view ownFunds
+    toSimulatorWallet :: Wallet -> WalletState -> SimulatorWallet
+    toSimulatorWallet simulatorWalletWallet walletState = SimulatorWallet {..}
+      where
+        simulatorWalletBalance = walletStateBalance walletState
 
 -- | This will throw an exception if it cannot decode the json however it should
 --   never do this as long as it is only called in places where we have already
