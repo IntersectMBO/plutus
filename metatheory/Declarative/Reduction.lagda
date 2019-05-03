@@ -36,6 +36,7 @@ import Data.Bool as Bool
 ## Values
 
 \begin{code}
+{-
 data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Set where
 
   V-ƛ : ∀ {Γ A B} {N : Γ , A ⊢ B}
@@ -56,17 +57,17 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Set where
   V-con : ∀{Γ}{tcn : TyCon}
     → (cn : TermCon (con tcn))
     → Value (con {Γ} cn)
-
+-}
 \end{code}
 
 ## BUILTIN
 
 \begin{code}
+{-
 VTel : ∀ Γ Δ → ⋆.Sub Δ ∥ Γ ∥ → List (Δ ⊢⋆ *) → Set
 VTel Γ Δ σ [] = ⊤
 VTel Γ Δ σ (A ∷ As) = Σ (Γ ⊢ ⋆.subst σ A) λ t → Value t × VTel Γ Δ σ As
 
-{-
 BUILTIN : ∀{Γ}
     → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in

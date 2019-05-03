@@ -65,10 +65,10 @@ append12 : ∀{Γ} → Γ ⊢ con bytestring (size⋆ 16)
 append12 = builtin concatenate (λ { Z → size⋆ 16 ; (S ())}) (constr1 ,, constr2 ,, tt)
 -}
 
-con1 : ∀{Γ} → Γ ⊢ con integer
+con1 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer
 con1 = con (integer (pos 1)) -- _) -- (-≤+ ,, (+≤+ (s≤s (s≤s z≤n)))))
 
-con2 : ∀{Γ} → Γ ⊢ con integer
+con2 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer
 con2 = con (integer (pos 2)) -- _) -- (-≤+ ,, (+≤+ (s≤s (s≤s (s≤s z≤n))))))
 
 builtin2plus2 : ∅ ⊢ con integer

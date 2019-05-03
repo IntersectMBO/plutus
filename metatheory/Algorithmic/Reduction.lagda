@@ -35,50 +35,50 @@ open import Utils
 ## Values
 
 \begin{code}
-data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ⊢ A → Set where
+data Value :  ∀ {J Φ Γ} {A : Φ ⊢Nf⋆ J} → Γ ⊢ A → Set where
 
-  V-ƛ : ∀ {Γ A B} {N : Γ , A ⊢ B}
+  V-ƛ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *} {N : Γ , A ⊢ B}
       ---------------------------
     → Value (ƛ N)
 
-  V-Λ_ : ∀ {Γ K} {B : ∥ Γ ∥ ,⋆ K ⊢Nf⋆ *}
+  V-Λ_ : ∀ {Φ Γ K} {B : Φ ,⋆ K ⊢Nf⋆ *}
     → {N : Γ ,⋆ K ⊢ B}
       ----------------
     → Value (Λ N)
 
-  V-wrap1 : ∀{Γ K}
-   → {pat : ∥ Γ ∥ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-   → {arg : ∥ Γ ∥ ⊢Nf⋆ K}
+  V-wrap1 : ∀{Φ Γ K}
+   → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+   → {arg : Φ ⊢Nf⋆ K}
    → {term : Γ ⊢  nf (embNf pat · (μ1 · embNf pat) · embNf arg)}
    → Value (wrap1 pat arg term)
 
-  V-con : ∀{Γ}{tcn : TyCon}
+  V-con : ∀{Φ Γ}{tcn : TyCon}
     → (cn : TermCon (con tcn))
-    → Value (con {Γ} cn)
+    → Value {Γ = Γ} (con {Φ} cn)
 
 \end{code}
 
 \begin{code}
-VTel : ∀ Γ Δ → (∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K) → List (Δ ⊢Nf⋆ *) → Set
+VTel : ∀ {Φ} Γ Δ → (∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K) → List (Δ ⊢Nf⋆ *) → Set
 
-data Error :  ∀ {Γ} {A : ∥ Γ ∥ ⊢Nf⋆ *} → Γ ⊢ A → Set where
+data Error :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
   -- a genuine runtime error returned from a builtin
-  E-error : ∀{Γ}{A : ∥ Γ ∥ ⊢Nf⋆ *} → Error (error {Γ} A)
+  E-error : ∀{Φ Γ }{A : Φ ⊢Nf⋆ *} → Error {Γ = Γ} (error {Φ} A)
 
   -- error inside somewhere
-  E-·₁ : ∀{Γ}{A B : ∥ Γ ∥ ⊢Nf⋆ *} {L : Γ ⊢ A ⇒ B}{M : Γ ⊢ A}
+  E-·₁ : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *} {L : Γ ⊢ A ⇒ B}{M : Γ ⊢ A}
     → Error L → Error (L · M)
-  E-·₂ : ∀{Γ}{A B : ∥ Γ ∥ ⊢Nf⋆ *} {L : Γ ⊢ A ⇒ B}{M : Γ ⊢ A}
+  E-·₂ : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *} {L : Γ ⊢ A ⇒ B}{M : Γ ⊢ A}
     → Error M → Error (L · M)
-  E-·⋆ : ∀{Γ K}{B : ∥ Γ ∥ ,⋆ K ⊢Nf⋆ *}{L : Γ ⊢ Π B}{A : ∥ Γ ∥ ⊢Nf⋆ K}
+  E-·⋆ : ∀{Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}{L : Γ ⊢ Π B}{A : Φ ⊢Nf⋆ K}
     → Error L → Error (L ·⋆ A)
-  E-unwrap : ∀{Γ K}
-    → {pat : ∥ Γ ∥ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-    → {arg : ∥ Γ ∥ ⊢Nf⋆ K}
+  E-unwrap : ∀{Φ Γ K}
+    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {arg : Φ ⊢Nf⋆ K}
     → {L : Γ ⊢ ne (μ1 · pat · arg)} → Error L → Error (unwrap1 L)
-  E-builtin : ∀{Γ}  → (bn : Builtin)
+  E-builtin : ∀{Φ Γ}  → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
-      (σ : ∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K)
+      (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
     → (tel : Tel Γ Δ σ As)
     → ∀ Bs Ds
     → (vtel : VTel Γ Δ σ Bs)
@@ -94,10 +94,10 @@ data Error :  ∀ {Γ} {A : ∥ Γ ∥ ⊢Nf⋆ *} → Γ ⊢ A → Set where
 VTel Γ Δ σ [] = ⊤
 VTel Γ Δ σ (A ∷ As) = Σ (Γ ⊢ substNf σ A) λ t → Value t × VTel Γ Δ σ As
 
-BUILTIN : ∀{Γ}
+BUILTIN : ∀{Φ Γ}
     → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
-      (σ : ∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K)
+      (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
     → (vtel : VTel Γ Δ σ As)
       -----------------------------
     → Maybe (Γ ⊢ substNf σ C)
@@ -153,8 +153,8 @@ BUILTIN equalsByteString σ (_ ,, V-con (bytestring b) ,, _ ,, V-con (bytestring
 # recontructing the telescope after a reduction step
 
 \begin{code}
-reconstTel : ∀{Γ Δ As} Bs Ds
-    → (σ : ∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K)
+reconstTel : ∀{Φ Γ Δ As} Bs Ds
+    → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
     → (vtel : VTel Γ Δ σ Bs)
     → ∀{C}(t' : Γ ⊢ substNf σ C)
     → (p : Bs ++ (C ∷ Ds) ≡ As)
@@ -171,82 +171,82 @@ reconstTel (B ∷ Bs) Ds σ (X ,, VX ,, vtel) t' refl tel' =
 \begin{code}
 infix 2 _—→_
 
-data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ ⊢ A) → Set where
+data _—→_ : ∀ {J Φ Γ} {A : Φ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ ⊢ A) → Set where
 
-  ξ-·₁ : ∀ {Γ A B} {L L′ : Γ ⊢ A ⇒ B} {M : Γ ⊢ A}
+  ξ-·₁ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *} {L L′ : Γ ⊢ A ⇒ B} {M : Γ ⊢ A}
     → L —→ L′
       -----------------
     → L · M —→ L′ · M
 
-  ξ-·₂ : ∀ {Γ A B} {V : Γ ⊢ A ⇒ B} {M M′ : Γ ⊢ A}
+  ξ-·₂ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}{V : Γ ⊢ A ⇒ B} {M M′ : Γ ⊢ A}
     → Value V
     → M —→ M′
       --------------
     → V · M —→ V · M′
 
 {-
-  E-·₁ : ∀ {Γ A B} {L : Γ ⊢ A ⇒ B} {M : Γ ⊢ A}
+  E-·₁ : ∀ {Φ Γ A B} {L : Γ ⊢ A ⇒ B} {M : Γ ⊢ A}
     → Error L
       -----------------
     → L · M —→ error _
 
-  E-·₂ : ∀ {Γ A B} {L : Γ ⊢ A ⇒ B} {M : Γ ⊢ A}
+  E-·₂ : ∀ {Φ Γ A B} {L : Γ ⊢ A ⇒ B} {M : Γ ⊢ A}
     → Error M
       -----------------
     → L · M —→ error _
 -}
-  ξ-·⋆ : ∀ {Γ K}{B : ∥ Γ ∥ ,⋆ K ⊢Nf⋆ *}{L L′ : Γ ⊢ Π B}{A}
+  ξ-·⋆ : ∀ {Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}{L L′ : Γ ⊢ Π B}{A}
     → L —→ L′
       -----------------
     → L ·⋆ A —→ L′ ·⋆ A
 {-
-  E-·⋆ : ∀ {Γ K}{B : ∥ Γ ∥ ,⋆ K ⊢Nf⋆ *}{L : Γ ⊢ Π B}{A}
+  E-·⋆ : ∀ {Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}{L : Γ ⊢ Π B}{A}
     → Error L
       -----------------
     → L ·⋆ A —→ error _
 -}
-  β-ƛ : ∀ {Γ A B} {N : Γ , A ⊢ B} {W : Γ ⊢ A}
+  β-ƛ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}{N : Γ , A ⊢ B} {W : Γ ⊢ A}
     → Value W
       -------------------
     → (ƛ N) · W —→ N [ W ]
 
-  β-Λ : ∀ {Γ K}{B : ∥ Γ ∥ ,⋆ K ⊢Nf⋆ *}{N : Γ ,⋆ K ⊢ B}{W}
+  β-Λ : ∀ {Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}{N : Γ ,⋆ K ⊢ B}{W}
       -------------------
     → (Λ N) ·⋆ W —→ N [ W ]⋆
 
-  β-wrap1 : ∀{Γ K}
-    → {pat : ∥ Γ ∥ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-    → {arg : ∥ Γ ∥ ⊢Nf⋆ K}
+  β-wrap1 : ∀{Φ Γ K}
+    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {arg : Φ ⊢Nf⋆ K}
     → {term : Γ ⊢  nf (embNf pat · (μ1 · embNf pat) · embNf arg)}
     → unwrap1 (wrap1 pat arg term) —→ term
 
-  ξ-unwrap1 : ∀{Γ K}
-    → {pat : ∥ Γ ∥ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-    → {arg : ∥ Γ ∥ ⊢Nf⋆ K}
+  ξ-unwrap1 : ∀{Φ Γ K}
+    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {arg : Φ ⊢Nf⋆ K}
     → {M M' : Γ ⊢ ne (μ1 · pat · arg)}
     → M —→ M'
     → unwrap1 M —→ unwrap1 M'
 {-
-  E-unwrap1 : ∀{Γ K}
-    → {pat : ∥ Γ ∥ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-    → {arg : ∥ Γ ∥ ⊢Nf⋆ K}
+  E-unwrap1 : ∀{Φ Γ K}
+    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {arg : Φ ⊢Nf⋆ K}
     → {M : Γ ⊢ ne (μ1 · pat · arg)}
     → Error M
     → unwrap1 M —→ error _
 -}
 
-  β-builtin : ∀{Γ}
+  β-builtin : ∀{Φ Γ}
     → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
-      (σ : ∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K)
+      (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
     → (tel : Tel Γ Δ σ As)
     → (vtel : VTel Γ Δ σ As)
       -----------------------------
     → builtin bn σ tel —→ maybe id (error _) (BUILTIN bn σ vtel)
 
-  ξ-builtin : ∀{Γ}  → (bn : Builtin)
+  ξ-builtin : ∀{Φ Γ}  → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
-      (σ : ∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K)
+      (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
     → (tel : Tel Γ Δ σ As)
     → ∀ Bs Ds
     → (vtel : VTel Γ Δ σ Bs)
@@ -259,9 +259,9 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ �
       builtin bn σ (reconstTel Bs Ds σ vtel t' p tel')
 
 {-
-  E-builtin : ∀{Γ}  → (bn : Builtin)
+  E-builtin : ∀{Φ Γ}  → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
-      (σ : ∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K)
+      (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
     → (tel : Tel Γ Δ σ As)
     → ∀ Bs Ds
     → (vtel : VTel Γ Δ σ Bs)
@@ -277,14 +277,14 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ �
 \end{code}
 
 \begin{code}
-data _—↠_ {J Γ} : {A : ∥ Γ ∥ ⊢Nf⋆ J}{A' : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ⊢ A → Γ ⊢ A' → Set
+data _—↠_ {J Φ Γ} : {A : Φ ⊢Nf⋆ J}{A' : Φ ⊢Nf⋆ J} → Γ ⊢ A → Γ ⊢ A' → Set
   where
 
   refl—↠ : ∀{A}{M : Γ ⊢ A}
       --------
     → M —↠ M
 
-  trans—↠ : {A : ∥ Γ ∥ ⊢Nf⋆ J}{M  M' M'' : Γ ⊢ A}
+  trans—↠ : {A : Φ ⊢Nf⋆ J}{M  M' M'' : Γ ⊢ A}
     → M —→ M'
     → M' —↠ M''
       ---------
@@ -309,9 +309,9 @@ data Progress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
 
 \begin{code}
 data TelProgress
-  {Γ}
+  {Φ Γ}
   {Δ}
-  {σ : ∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K}
+  {σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}
   {As : List (Δ ⊢Nf⋆ *)}
   (tel : Tel Γ Δ σ As)
   : Set where
