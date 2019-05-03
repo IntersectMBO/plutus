@@ -40,12 +40,10 @@ runTrace ::
     -> Either PlaygroundError TraceResult
 runTrace wallets actions =
     let walletToBalance SimulatorWallet {..} =
-            ( walletPubKey simulatorWalletWallet
-            , simulatorWalletBalance)
+            (walletPubKey simulatorWalletWallet, simulatorWalletBalance)
         initialBalance = Map.fromList $ fmap walletToBalance wallets
         pubKeys =
-            Set.fromList $
-            fmap (walletPubKey . simulatorWalletWallet) wallets
+            Set.fromList $ fmap (walletPubKey . simulatorWalletWallet) wallets
         eActions = sequence actions
      in case eActions of
             Left e -> Left e

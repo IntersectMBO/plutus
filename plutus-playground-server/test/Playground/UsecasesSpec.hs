@@ -58,21 +58,23 @@ w5 = Wallet 5
 vestingSpec :: Spec
 vestingSpec =
     describe "vesting" $ do
-        let vlSchema = ValueSchema
-                        [ ( "getValue"
-                          , SimpleObjectSchema
-                                [ ( "unMap"
-                                  , SimpleArraySchema
-                                        (SimpleTupleSchema
-                                            ( SimpleHexSchema
-                                            , SimpleObjectSchema
-                                                  [ ( "unMap"
-                                                    , SimpleArraySchema
-                                                          (SimpleTupleSchema
-                                                                ( SimpleStringSchema
-                                                                , SimpleIntSchema)))
-                                                  ])))
-                                ]) ]
+        let vlSchema =
+                ValueSchema
+                    [ ( "getValue"
+                      , SimpleObjectSchema
+                            [ ( "unMap"
+                              , SimpleArraySchema
+                                    (SimpleTupleSchema
+                                         ( SimpleHexSchema
+                                         , SimpleObjectSchema
+                                               [ ( "unMap"
+                                                 , SimpleArraySchema
+                                                       (SimpleTupleSchema
+                                                            ( SimpleStringSchema
+                                                            , SimpleIntSchema)))
+                                               ])))
+                            ])
+                    ]
         compilationChecks vesting
         it "should compile with the expected schema" $ do
             Right (InterpreterResult _ (CompilationResult result _)) <-
@@ -87,16 +89,14 @@ vestingSpec =
                                           [("getPubKey", SimpleStringSchema)])
                                   , ( "vestingTranche2"
                                     , SimpleObjectSchema
-                                          [ ( "vestingTrancheAmount"
-                                            , vlSchema )
+                                          [ ("vestingTrancheAmount", vlSchema)
                                           , ( "vestingTrancheDate"
                                             , SimpleObjectSchema
                                                   [("getSlot", SimpleIntSchema)])
                                           ])
                                   , ( "vestingTranche1"
                                     , SimpleObjectSchema
-                                          [ ( "vestingTrancheAmount"
-                                            , vlSchema )
+                                          [ ("vestingTrancheAmount", vlSchema)
                                           , ( "vestingTrancheDate"
                                             , SimpleObjectSchema
                                                   [("getSlot", SimpleIntSchema)])
@@ -113,16 +113,14 @@ vestingSpec =
                                           [("getPubKey", SimpleStringSchema)])
                                   , ( "vestingTranche2"
                                     , SimpleObjectSchema
-                                          [ ( "vestingTrancheAmount"
-                                            , vlSchema )
+                                          [ ("vestingTrancheAmount", vlSchema)
                                           , ( "vestingTrancheDate"
                                             , SimpleObjectSchema
                                                   [("getSlot", SimpleIntSchema)])
                                           ])
                                   , ( "vestingTranche1"
                                     , SimpleObjectSchema
-                                          [ ( "vestingTrancheAmount"
-                                            , vlSchema )
+                                          [ ("vestingTrancheAmount", vlSchema)
                                           , ( "vestingTrancheDate"
                                             , SimpleObjectSchema
                                                   [("getSlot", SimpleIntSchema)])
@@ -139,16 +137,14 @@ vestingSpec =
                                           [("getPubKey", SimpleStringSchema)])
                                   , ( "vestingTranche2"
                                     , SimpleObjectSchema
-                                          [ ( "vestingTrancheAmount"
-                                            , vlSchema )
+                                          [ ("vestingTrancheAmount", vlSchema)
                                           , ( "vestingTrancheDate"
                                             , SimpleObjectSchema
                                                   [("getSlot", SimpleIntSchema)])
                                           ])
                                   , ( "vestingTranche1"
                                     , SimpleObjectSchema
-                                          [ ( "vestingTrancheAmount"
-                                            , vlSchema )
+                                          [ ("vestingTrancheAmount", vlSchema)
                                           , ( "vestingTrancheDate"
                                             , SimpleObjectSchema
                                                   [("getSlot", SimpleIntSchema)])
@@ -295,10 +291,7 @@ gameSpec =
                   {simulatorWalletWallet = w2, simulatorWalletBalance = ten}
             ]
             [ Action (Fn "startGame") w1 []
-            , Action
-                  (Fn "lock")
-                  w2
-                  [JSON.String "\"abcde\"", twoAda]
+            , Action (Fn "lock") w2 [JSON.String "\"abcde\"", twoAda]
             , Action (Fn "guess") w1 [JSON.String "\"ade\""]
             ]
             (sourceCode game)
@@ -311,10 +304,7 @@ gameSpec =
                   {simulatorWalletWallet = w2, simulatorWalletBalance = ten}
             ]
             [ Action (Fn "startGame") w1 []
-            , Action
-                  (Fn "lock")
-                  w2
-                  [JSON.String "\"abcde\"", twoAda]
+            , Action (Fn "lock") w2 [JSON.String "\"abcde\"", twoAda]
             , Action (Fn "guess") w1 [JSON.String "\"abcde\""]
             ]
             (sourceCode game)
@@ -336,7 +326,7 @@ gameSpec =
             []
     slotRange = JSON.String "{\"ivTo\":null,\"ivFrom\":null}"
     nineAda = toJSONString $ Ada.adaValueOf 9
-    twoAda  = toJSONString $ Ada.adaValueOf 2
+    twoAda = toJSONString $ Ada.adaValueOf 2
 
 hasFundsDistribution ::
        [SimulatorWallet]
@@ -399,8 +389,19 @@ crowdfundingSpec =
             , SimulatorWallet
                   {simulatorWalletWallet = w3, simulatorWalletBalance = ten}
             ]
-            [ Action (Fn "scheduleCollection") w1 [theDeadline, theTarget, theCollectionDeadline, theWallet]
-            , Action (Fn "contribute") w2 [theDeadline, theTarget, theCollectionDeadline, theWallet, theContribution]
+            [ Action
+                  (Fn "scheduleCollection")
+                  w1
+                  [theDeadline, theTarget, theCollectionDeadline, theWallet]
+            , Action
+                  (Fn "contribute")
+                  w2
+                  [ theDeadline
+                  , theTarget
+                  , theCollectionDeadline
+                  , theWallet
+                  , theContribution
+                  ]
             , Wait 20
             ]
             (sourceCode crowdfunding)
@@ -414,15 +415,34 @@ crowdfundingSpec =
             , SimulatorWallet
                   {simulatorWalletWallet = w3, simulatorWalletBalance = ten}
             ]
-            [ Action (Fn "scheduleCollection") w1 [theDeadline, theTarget, theCollectionDeadline, theWallet]
-            , Action (Fn "contribute") w2 [theDeadline, theTarget, theCollectionDeadline, theWallet, theContribution]
-            , Action (Fn "contribute") w3 [theDeadline, theTarget, theCollectionDeadline, theWallet, theContribution]
+            [ Action
+                  (Fn "scheduleCollection")
+                  w1
+                  [theDeadline, theTarget, theCollectionDeadline, theWallet]
+            , Action
+                  (Fn "contribute")
+                  w2
+                  [ theDeadline
+                  , theTarget
+                  , theCollectionDeadline
+                  , theWallet
+                  , theContribution
+                  ]
+            , Action
+                  (Fn "contribute")
+                  w3
+                  [ theDeadline
+                  , theTarget
+                  , theCollectionDeadline
+                  , theWallet
+                  , theContribution
+                  ]
             , Wait 10
             ]
             (sourceCode crowdfunding)
             []
     theDeadline = toJSONString (object ["getSlot" .= mkI 10])
-    theTarget   = toJSONString (Ada.adaValueOf 10)
+    theTarget = toJSONString (Ada.adaValueOf 10)
     theCollectionDeadline = toJSONString (object ["getSlot" .= mkI 20])
     theWallet = toJSONString w1
     theContribution = toJSONString $ Ada.adaValueOf 8
@@ -447,7 +467,12 @@ knownCurrencySpec =
             , "$(mkKnownCurrencies ['myCurrency])"
             ]
     hasKnownCurrency (Right (InterpreterResult _ (CompilationResult _ [cur1, cur2]))) =
-        cur1 == adaCurrency && cur2 == KnownCurrency (ValidatorHash "") "MyCurrency" (TokenName "MyToken" :| [])
+        cur1 == adaCurrency &&
+        cur2 ==
+        KnownCurrency
+            (ValidatorHash "")
+            "MyCurrency"
+            (TokenName "MyToken" :| [])
     hasKnownCurrency _ = False
 
 sourceCode :: BSC.ByteString -> SourceCode
@@ -459,8 +484,7 @@ compile ::
 compile = runExceptT . PI.compile maxInterpretationTime . sourceCode
 
 evaluate ::
-       Evaluation
-    -> IO (Either PlaygroundError (InterpreterResult TraceResult))
+       Evaluation -> IO (Either PlaygroundError (InterpreterResult TraceResult))
 evaluate evaluation =
     runExceptT $ PI.runFunction maxInterpretationTime evaluation
 

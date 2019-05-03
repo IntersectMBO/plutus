@@ -274,7 +274,8 @@ writeUsecases :: FilePath -> IO ()
 writeUsecases outputDir = do
     let usecases =
             multilineString "gitHead" (CBS.pack gitHead) <>
-            multilineString "vesting" vesting <> multilineString "game" game <>
+            multilineString "vesting" vesting <>
+            multilineString "game" game <>
             multilineString "crowdfunding" crowdfunding <>
             multilineString "messages" messages
         usecasesModule = psModule "Playground.Usecases" usecases
