@@ -15,11 +15,12 @@ import Data.Int as Int
 import Data.Lens (_Just, preview, toListOf, traversed, view)
 import Data.Lens.At (at)
 import Data.List (List)
+import Data.Map as Map
 import Data.Maybe (Maybe(..), maybe)
 import Data.Newtype (unwrap)
 import Data.Set (Set)
 import Data.Set as Set
-import Data.Traversable (traverse_)
+import Data.Traversable (foldMap, traverse_)
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
 import ECharts.Commands (addItem, addLink, axisLine, axisType, backgroundColor, bar, bottom, buildItems, buildLinks, color, colorSource, colors, formatterString, items, label, left, lineStyle, name, nameGap, nameLocationMiddle, nameRotate, normal, right, sankey, series, sourceName, splitLine, targetName, textStyle, tooltip, top, trigger, value, xAxis, yAxis) as E
@@ -41,7 +42,7 @@ import Ledger.TxId (TxIdOf(TxIdOf))
 import Ledger.Value.TH (CurrencySymbol, TokenName)
 import Playground.API (EvaluationResult(EvaluationResult), SimulatorWallet)
 import Prelude (class Monad, Unit, discard, map, show, unit, ($), (<$>), (<<<), (<>), (>>>))
-import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, Query(HandleBalancesChartMessage), _simulatorWalletBalance, _simulatorWalletWallet, _tokenName, _value, _walletId, cpBalancesChart)
+import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, Query(HandleBalancesChartMessage), _simulatorWalletBalance, _simulatorWalletWallet, _tokenName, _value, _walletId, cpBalancesChart, _pubKey)
 import Wallet.Emulator.Types (EmulatorEvent(..), Wallet(..))
 import Wallet.Graph (FlowGraph(FlowGraph), FlowLink(FlowLink), TxRef(TxRef))
 
@@ -50,9 +51,11 @@ evaluationPane::
   MonadAff (EChartsEffects aff) m
   => EvaluationResult
   -> ParentHTML Query ChildQuery ChildSlot m
-evaluationPane e@(EvaluationResult {emulatorLog, resultBlockchain}) =
+evaluationPane e@(EvaluationResult {emulatorLog, resultBlockchain, fundsDistribution, walletKeys}) =
   div_
-    [ blockchainExploration resultBlockchain
+    [ blockchainExploration
+        (foldMap (\(Tuple key wallet) -> Map.singleton (view _pubKey key) wallet) walletKeys)
+        resultBlockchain
     , br_
     , div_
         [ h2_ [ text "Final Balances" ]

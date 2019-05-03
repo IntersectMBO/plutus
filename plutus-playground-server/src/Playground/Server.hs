@@ -34,16 +34,17 @@ import           System.Timeout               (timeout)
 import qualified Wallet.Graph                 as V
 
 acceptSourceCode ::
-       SourceCode -> Handler (Either InterpreterError (InterpreterResult CompilationResult))
+       SourceCode
+    -> Handler (Either InterpreterError (InterpreterResult CompilationResult))
 acceptSourceCode sourceCode = do
-    let maxInterpretationTime :: Microsecond = fromMicroseconds (20 * 1000 * 1000)
-    r <-
-        liftIO .
-        runExceptT $ PI.compile maxInterpretationTime sourceCode
+    let maxInterpretationTime :: Microsecond =
+            fromMicroseconds (20 * 1000 * 1000)
+    r <- liftIO . runExceptT $ PI.compile maxInterpretationTime sourceCode
     case r of
-        Right vs                        -> pure . Right $ vs
-        Left (CompilationErrors errors) -> pure . Left $ CompilationErrors errors
-        Left e                          -> throwError $ err400 {errBody = BSL.pack . show $ e}
+        Right vs -> pure . Right $ vs
+        Left (CompilationErrors errors) ->
+            pure . Left $ CompilationErrors errors
+        Left e -> throwError $ err400 {errBody = BSL.pack . show $ e}
 
 throwJSONError :: (MonadError ServantErr m, ToJSON a) => ServantErr -> a -> m b
 throwJSONError err json =
@@ -53,13 +54,13 @@ throwJSONError err json =
 
 runFunction :: Evaluation -> Handler EvaluationResult
 runFunction evaluation = do
-    let maxInterpretationTime :: Microsecond = fromMicroseconds (20 * 1000 * 1000)
+    let maxInterpretationTime :: Microsecond =
+            fromMicroseconds (20 * 1000 * 1000)
     result <-
-        liftIO .
-        runExceptT $ PI.runFunction maxInterpretationTime evaluation
+        liftIO . runExceptT $ PI.runFunction maxInterpretationTime evaluation
     let pubKeys = PA.pubKeys evaluation
     case result of
-        Right (InterpreterResult _ (blockchain, emulatorLog, fundsDistribution)) -> do
+        Right (InterpreterResult _ (blockchain, emulatorLog, fundsDistribution, walletAddresses)) -> do
             let flowgraph = V.graph $ V.txnFlows pubKeys blockchain
             pure $
                 EvaluationResult
@@ -67,6 +68,7 @@ runFunction evaluation = do
                     flowgraph
                     emulatorLog
                     fundsDistribution
+                    walletAddresses
         Left (PA.InterpreterError errors) -> throwJSONError err400 errors
         Left err -> throwError $ err400 {errBody = BSL.pack . show $ err}
 
