@@ -30,6 +30,7 @@ module Wallet.Emulator.Types(
     WalletState(..),
     emptyWalletState,
     ownPrivateKey,
+    ownAddress,
     ownFunds,
     addressMap,
     walletSlot,

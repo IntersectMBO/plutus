@@ -3,22 +3,24 @@
 
 module Playground.Interpreter.Util where
 
-import           Control.Lens               (view)
+import           Control.Lens               (to, view)
 import           Control.Monad.Error.Class  (MonadError, throwError)
 import           Data.Aeson                 (FromJSON)
 import qualified Data.Aeson                 as JSON
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import           Data.Foldable              (foldl')
+import           Data.Map                   (Map)
 import qualified Data.Map                   as Map
 import qualified Data.Set                   as Set
+import           Data.Tuple                 (swap)
 import qualified Data.Typeable              as T
-import           Ledger                     (Blockchain, Tx, TxOutOf (txOutValue))
+import           Ledger                     (Blockchain, PubKey, Tx, TxOutOf (txOutValue), toPublicKey)
 import qualified Ledger.Value               as V
 import           Playground.API             (PlaygroundError (OtherError), SimulatorWallet (SimulatorWallet),
                                              simulatorWalletBalance, simulatorWalletWallet)
 import           Wallet.Emulator.Types      (EmulatorEvent, EmulatorState (_chainNewestFirst, _emulatorLog), MockWallet,
-                                             Trace, ownFunds, processPending, runTraceTxPool, walletPubKey,
-                                             walletStates, walletsNotifyBlock)
+                                             Trace, Wallet, ownFunds, ownPrivateKey, processPending, runTraceTxPool,
+                                             walletPubKey, walletStates, walletsNotifyBlock)
 import           Wallet.Generators          (GeneratorModel (GeneratorModel))
 import qualified Wallet.Generators          as Gen
 
@@ -29,7 +31,8 @@ import qualified Wallet.Generators          as Gen
 -- decode JSON inside the interpreter (since we don't have access to
 -- it's type outside) so we need to wrap the @apply functions up in
 -- something that can throw errors.
-type TraceResult = (Blockchain, [EmulatorEvent], [SimulatorWallet])
+type TraceResult
+     = (Blockchain, [EmulatorEvent], [SimulatorWallet], [(PubKey, Wallet)])
 
 runTrace ::
        [SimulatorWallet]
@@ -57,10 +60,16 @@ runTrace wallets actions =
                     (eRes, newState) = runTraceTxPool [initialTx] action
                     blockchain = _chainNewestFirst newState
                     emulatorLog = _emulatorLog newState
+                    fundsDistribution :: Map Wallet V.Value
                     fundsDistribution =
                         Map.map
                             (foldl' V.plus V.zero .
                              fmap txOutValue . view ownFunds) .
+                        view walletStates $
+                        newState
+                    walletTargets :: Map Wallet PubKey
+                    walletTargets =
+                        Map.map (view (ownPrivateKey . to toPublicKey)) .
                         view walletStates $
                         newState
                  in case eRes of
@@ -69,7 +78,8 @@ runTrace wallets actions =
                                 ( blockchain
                                 , emulatorLog
                                 , uncurry SimulatorWallet <$>
-                                  Map.toList fundsDistribution)
+                                  Map.toList fundsDistribution
+                                , swap <$> Map.toList walletTargets)
                         Left e -> Left . OtherError . show $ e
 
 -- | This will throw an exception if it cannot decode the json however it should

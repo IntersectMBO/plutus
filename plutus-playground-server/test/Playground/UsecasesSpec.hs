@@ -17,7 +17,6 @@ import qualified Data.Text.Lazy               as TL
 import           Data.Time.Units              (Microsecond, fromMicroseconds)
 import           Language.Haskell.Interpreter (InterpreterError, InterpreterResult (InterpreterResult),
                                                SourceCode (SourceCode))
-import           Ledger                       (Blockchain)
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Validation            (ValidatorHash (ValidatorHash))
 import           Ledger.Value                 (TokenName (TokenName))
@@ -32,7 +31,7 @@ import qualified Playground.Interpreter       as PI
 import           Playground.Interpreter.Util  (TraceResult)
 import           Playground.Usecases          (crowdfunding, game, messages, vesting)
 import           Test.Hspec                   (Spec, describe, it, shouldBe, shouldSatisfy)
-import           Wallet.Emulator.Types        (EmulatorEvent, Wallet (Wallet), walletPubKey)
+import           Wallet.Emulator.Types        (Wallet (Wallet), walletPubKey)
 
 spec :: Spec
 spec = do

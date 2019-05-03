@@ -59,7 +59,7 @@ runFunction evaluation = do
         runExceptT $ PI.runFunction maxInterpretationTime evaluation
     let pubKeys = PA.pubKeys evaluation
     case result of
-        Right (InterpreterResult _ (blockchain, emulatorLog, fundsDistribution)) -> do
+        Right (InterpreterResult _ (blockchain, emulatorLog, fundsDistribution, walletAddresses)) -> do
             let flowgraph = V.graph $ V.txnFlows pubKeys blockchain
             pure $
                 EvaluationResult
@@ -67,6 +67,7 @@ runFunction evaluation = do
                     flowgraph
                     emulatorLog
                     fundsDistribution
+                    walletAddresses
         Left (PA.InterpreterError errors) -> throwJSONError err400 errors
         Left err -> throwError $ err400 {errBody = BSL.pack . show $ err}
 
