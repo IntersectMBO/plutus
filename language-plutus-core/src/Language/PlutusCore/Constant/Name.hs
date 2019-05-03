@@ -56,6 +56,9 @@ withTypedBuiltinName EqByteString         k = k typedEqByteString
 intIntInt :: TypeScheme (Integer -> Integer -> Integer) Integer
 intIntInt = Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
 
+intIntResInt :: TypeScheme (Integer -> Integer -> EvaluationResult Integer) (EvaluationResult Integer)
+intIntResInt = Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
+
 intIntDyn :: KnownType a => TypeScheme (Integer -> Integer -> a) a
 intIntDyn = Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
 
@@ -72,20 +75,24 @@ typedMultiplyInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
 typedMultiplyInteger = TypedBuiltinName MultiplyInteger intIntInt
 
 -- | Typed 'DivideInteger'.
-typedDivideInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
-typedDivideInteger = TypedBuiltinName DivideInteger intIntInt
+typedDivideInteger
+    :: TypedBuiltinName (Integer -> Integer -> EvaluationResult Integer) (EvaluationResult Integer)
+typedDivideInteger = TypedBuiltinName DivideInteger intIntResInt
 
 -- | Typed 'QuotientInteger'
-typedQuotientInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
-typedQuotientInteger = TypedBuiltinName QuotientInteger intIntInt
+typedQuotientInteger
+    :: TypedBuiltinName (Integer -> Integer -> EvaluationResult Integer) (EvaluationResult Integer)
+typedQuotientInteger = TypedBuiltinName QuotientInteger intIntResInt
 
 -- | Typed 'RemainderInteger'.
-typedRemainderInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
-typedRemainderInteger = TypedBuiltinName RemainderInteger intIntInt
+typedRemainderInteger
+    :: TypedBuiltinName (Integer -> Integer -> EvaluationResult Integer) (EvaluationResult Integer)
+typedRemainderInteger = TypedBuiltinName RemainderInteger intIntResInt
 
 -- | Typed 'ModInteger'
-typedModInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
-typedModInteger = TypedBuiltinName ModInteger intIntInt
+typedModInteger
+    :: TypedBuiltinName (Integer -> Integer -> EvaluationResult Integer) (EvaluationResult Integer)
+typedModInteger = TypedBuiltinName ModInteger intIntResInt
 
 -- | Typed 'LessThanInteger'.
 typedLessThanInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool

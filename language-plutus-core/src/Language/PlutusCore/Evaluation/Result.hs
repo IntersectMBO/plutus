@@ -27,7 +27,7 @@ data EvaluationResult a
     deriving (Show, Eq, Functor, Foldable, Traversable)
 
 -- | The default type of results various evaluation engines return.
-type EvaluationResultDef = EvaluationResult (Value TyName Name ())
+type EvaluationResultDef = EvaluationResult (Term TyName Name ())
 
 instance Applicative EvaluationResult where
     pure = EvaluationSuccess
