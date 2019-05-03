@@ -35,6 +35,7 @@ import Gist (Gist)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.ECharts (EChartsMessage, EChartsQuery)
 import Language.Haskell.Interpreter (SourceCode, InterpreterError, InterpreterResult)
+import Ledger.Crypto (PubKey, _PubKey)
 import Ledger.Extra (LedgerMap)
 import Ledger.Tx (Tx)
 import Ledger.TxId (TxIdOf)
@@ -60,6 +61,9 @@ _simulatorWalletBalance = _SimulatorWallet <<< prop (SProxy :: SProxy "simulator
 
 _walletId :: Lens' Wallet Int
 _walletId = _Wallet <<< prop (SProxy :: SProxy "getWallet")
+
+_pubKey :: Lens' PubKey String
+_pubKey = _PubKey <<< prop (SProxy :: SProxy "getPubKey")
 
 _value :: Lens' Value (LedgerMap CurrencySymbol (LedgerMap TokenName Int))
 _value = _Value <<< prop (SProxy :: SProxy "getValue")
