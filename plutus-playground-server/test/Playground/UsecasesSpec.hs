@@ -29,6 +29,7 @@ import           Playground.API               (CompilationResult (CompilationRes
                                                functionName, isSupportedByFrontend, simulatorWalletBalance,
                                                simulatorWalletWallet)
 import qualified Playground.Interpreter       as PI
+import           Playground.Interpreter.Util  (TraceResult)
 import           Playground.Usecases          (crowdfunding, game, messages, vesting)
 import           Test.Hspec                   (Spec, describe, it, shouldBe, shouldSatisfy)
 import           Wallet.Emulator.Types        (EmulatorEvent, Wallet (Wallet), walletPubKey)
@@ -340,12 +341,10 @@ gameSpec =
 
 hasFundsDistribution ::
        [SimulatorWallet]
-    -> Either PlaygroundError (InterpreterResult ( Blockchain
-                                                 , [EmulatorEvent]
-                                                 , [SimulatorWallet]))
+    -> Either PlaygroundError (InterpreterResult TraceResult)
     -> Bool
 hasFundsDistribution _ (Left _) = False
-hasFundsDistribution requiredDistribution (Right (InterpreterResult _ (_, _, actualDistribution))) =
+hasFundsDistribution requiredDistribution (Right (InterpreterResult _ (_, _, actualDistribution, _))) =
     requiredDistribution == actualDistribution
 
 messagesSpec :: Spec
@@ -462,9 +461,7 @@ compile = runExceptT . PI.compile maxInterpretationTime . sourceCode
 
 evaluate ::
        Evaluation
-    -> IO (Either PlaygroundError (InterpreterResult ( Blockchain
-                                                     , [EmulatorEvent]
-                                                     , [SimulatorWallet])))
+    -> IO (Either PlaygroundError (InterpreterResult TraceResult))
 evaluate evaluation =
     runExceptT $ PI.runFunction maxInterpretationTime evaluation
 

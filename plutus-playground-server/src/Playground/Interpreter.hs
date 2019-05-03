@@ -28,6 +28,7 @@ import           Playground.API               (CompilationResult (CompilationRes
                                                PlaygroundError (DecodeJsonTypeError, OtherError), SimulatorWallet,
                                                program, simulatorWalletWallet, toSimpleArgumentSchema, wallets)
 import qualified Playground.API               as API
+import           Playground.Interpreter.Util  (TraceResult)
 import           System.IO                    (Handle, hFlush)
 import           System.IO.Temp.Extras        (withSystemTempFile)
 import qualified Text.Regex                   as Regex
@@ -151,7 +152,7 @@ runFunction ::
        )
     => t
     -> Evaluation
-    -> m (InterpreterResult (Blockchain, [EmulatorEvent], [SimulatorWallet]))
+    -> m (InterpreterResult TraceResult)
 runFunction timeout evaluation = do
     let source = sourceCode evaluation
     mapError API.InterpreterError $ avoidUnsafe source
@@ -161,9 +162,7 @@ runFunction timeout evaluation = do
             mapError API.InterpreterError . runscript handle file timeout $
             mkRunScript (Newtype.unpack source) (Text.pack . BS8.unpack $ expr)
         let decodeResult =
-                JSON.eitherDecodeStrict . BS8.pack $ result :: Either String (Either PlaygroundError ( Blockchain
-                                                                                                     , [EmulatorEvent]
-                                                                                                     , [SimulatorWallet]))
+                JSON.eitherDecodeStrict . BS8.pack $ result :: Either String (Either PlaygroundError TraceResult)
         case decodeResult of
             Left err ->
                 throwError . OtherError $

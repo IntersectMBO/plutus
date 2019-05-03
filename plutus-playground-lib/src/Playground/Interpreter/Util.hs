@@ -29,10 +29,12 @@ import qualified Wallet.Generators          as Gen
 -- decode JSON inside the interpreter (since we don't have access to
 -- it's type outside) so we need to wrap the @apply functions up in
 -- something that can throw errors.
+type TraceResult = (Blockchain, [EmulatorEvent], [SimulatorWallet])
+
 runTrace ::
        [SimulatorWallet]
     -> [Either PlaygroundError (Trace MockWallet [Tx])]
-    -> Either PlaygroundError (Blockchain, [EmulatorEvent], [SimulatorWallet])
+    -> Either PlaygroundError TraceResult
 runTrace wallets actions =
     let walletToBalance SimulatorWallet {..} =
             ( walletPubKey simulatorWalletWallet
