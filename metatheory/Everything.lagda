@@ -65,6 +65,7 @@ import AlgorithmicRed.Term.RenamingSubstitution
 import Untyped
 import Untyped.RenamingSubstitution
 import Untyped.Reduction
+import Untyped.Erasure
 
 -- Extrinsically typed terms, reduction and evaluation
 

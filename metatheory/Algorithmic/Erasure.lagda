@@ -16,28 +16,28 @@ open import Data.List
 \end{code}
 
 \begin{code}
-len : Ctx → ℕ
+len : ∀{Φ} → Ctx Φ → ℕ
 len ∅ = 0
 len (Γ ,⋆ K) = len Γ
 len (Γ , A)  = suc (len Γ)
 \end{code}
 
 \begin{code}
-eraseVar : ∀{Γ K}{A : ∥ Γ ∥ ⊢Nf⋆ K} → Γ ∋ A → Fin (len Γ)
+eraseVar : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K} → Γ ∋ A → Fin (len Γ)
 eraseVar Z     = zero
 eraseVar (S α) = suc (eraseVar α) 
 eraseVar (T α) = eraseVar α
 
-eraseTC : ∀{Γ}{A : ∥ Γ ∥ ⊢Nf⋆ *} → TyTermCon A → TermCon
+eraseTC : ∀{Φ}{A : Φ ⊢Nf⋆ *} → TyTermCon A → TermCon
 eraseTC (integer i)    = integer i
 eraseTC (bytestring b) = bytestring b
 
 open import Type.BetaNBE.RenamingSubstitution
 
-eraseTel : ∀{Γ Δ}{σ : SubNf Δ ∥ Γ ∥}{As : List (Δ ⊢Nf⋆ *)}
+eraseTel : ∀{Φ Γ Δ}{σ : SubNf Δ Φ}{As : List (Δ ⊢Nf⋆ *)}
   → Tel Γ Δ σ As
   → List (len Γ ⊢)
-erase : ∀{Γ K}{A : ∥ Γ ∥ ⊢Nf⋆ K} → Γ ⊢ A → len Γ ⊢
+erase : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K} → Γ ⊢ A → len Γ ⊢
 
 erase (` α)             = ` (eraseVar α)
 erase (ƛ t)             = ƛ (erase t) 
@@ -68,22 +68,38 @@ import Declarative as D
 import Declarative.Erasure as D
 open import Algorithmic.Completeness
 
-lenLemma : ∀ Γ → len (nfCtx Γ) ≡ D.len Γ
+lenLemma : ∀ {Φ}(Γ : D.Ctx Φ) → len (nfCtx Γ) ≡ D.len Γ
 lenLemma D.∅        = refl
 lenLemma (Γ D.,⋆ J) = lenLemma Γ
 lenLemma (Γ D., A)  = cong suc (lenLemma Γ)
 
-{-
-sameVar : ∀{Γ J}{A : D.∥ Γ ∥ ⊢⋆ J}(x : Γ D.∋ A)
-  → D.eraseVar x ≡ subst Fin (lenLemma Γ) (eraseVar (nfTyVar x))
-sameVar D.Z = {!!}
-sameVar {Γ} (D.S x) with lenLemma Γ
-... | p = {!p!}
-sameVar (D.T x) = {!sameVar x!}
+lemzero : ∀{n n'}(p : suc n ≡ suc n') → zero ≡ subst Fin p zero
+lemzero refl = refl
 
-same : ∀{Γ J}{A : D.∥ Γ ∥ ⊢⋆ J}(t : Γ D.⊢ A)
+lemsuc : ∀{n n'}(p : suc n ≡ suc n')(q : n ≡ n')(i : Fin n) →
+  suc (subst Fin q i) ≡ subst Fin p (suc i)
+lemsuc refl refl i = refl
+
+lemT : ∀{Φ J K}{Γ : Ctx Φ}{A A' : Φ ⊢Nf⋆ J}{A'' : Φ ,⋆ K ⊢Nf⋆ J}(p : weakenNf {K = K} A ≡ A'')(q : A ≡ A')(x : Γ ∋ A)
+  → eraseVar x ≡ eraseVar (conv∋ p (T x))
+lemT refl refl x = refl
+
+open import Function
+
+sameVar : ∀{Φ Γ J}{A : Φ ⊢⋆ J}(x : Γ D.∋ A)
+  → D.eraseVar x ≡ subst Fin (lenLemma Γ) (eraseVar (nfTyVar x))
+sameVar {Γ = Γ D., _} D.Z = lemzero (cong suc (lenLemma Γ))
+sameVar {Γ = Γ D., _} (D.S x) = trans
+  (cong suc (sameVar x))
+  (lemsuc (cong suc (lenLemma Γ)) (lenLemma Γ) (eraseVar (nfTyVar x)))
+sameVar {Γ = Γ D.,⋆ _} (D.T {A = A} x) = trans
+  (sameVar x)
+  (cong (subst Fin (lenLemma Γ)) (lemT (rename-nf S A) refl (nfTyVar x)))
+
+{-
+same : ∀{Φ Γ J}{A : Φ ⊢⋆ J}(t : Γ D.⊢ A)
   → D.erase t ≡ subst _⊢ (lenLemma Γ) (erase (nfType t)) 
-same (D.` x) = {!!}
+same {Γ = Γ}(D.` x) = {!!}
 same (D.ƛ t) = {!!}
 same (t D.· t₁) = {!!}
 same (D.Λ t) = {!!}
