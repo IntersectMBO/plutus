@@ -126,12 +126,12 @@ evaluateScriptTrace :: Script -> ([String], Bool)
 evaluateScriptTrace s =
     let traced = PLC.runQuoteT traceBuiltins
     in
+
     case traced of
         (Left e) -> ([logErr e], False)
         (Right tr) -> evaluateScriptDynamic tr s
 
-    where traceBuiltins :: PLC.QuoteT (Either (PLC.Error ())) PLC.DynamicBuiltinNameTypes
-          traceBuiltins = PLC.dynamicBuiltinNameMeaningsToTypes () $ PLC.DynamicBuiltinNameMeanings $ M.fromList
+    where traceBuiltins = PLC.dynamicBuiltinNameMeaningsToTypes () $ PLC.DynamicBuiltinNameMeanings $ M.fromList
                 [ (PLC.dynamicCharToStringName, PLC.dynamicCharToStringMeaning)
                 , (PLC.dynamicTraceName, PLC.dynamicTraceMeaning)
                 , (PLC.dynamicAppendName, PLC.dynamicAppendMeaning)
