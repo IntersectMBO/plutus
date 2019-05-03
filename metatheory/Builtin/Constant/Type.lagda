@@ -68,7 +68,6 @@ postulate
 -- no binding needed for equals
 -- no binding needed for resize
 -- no binding needed for sizeOf
--- TODO: intToByteString
 
 {-# COMPILE GHC append = BS.append #-}
 {-# COMPILE GHC take = BS.take . fromIntegral #-}
@@ -100,13 +99,13 @@ x ^ ℕ.suc n = x ** (x ^ n)
 
 
 _<?_ : Decidable _<_
-i <? j = Data.Integer.suc i ≤? j 
+i <? j = Data.Integer.suc i ≤? j
 
 _>?_ : Decidable _>_
 i >? j = j <? i
 
 _≥?_ : Decidable _≥_
-i ≥? j = j ≤? i 
+i ≥? j = j ≤? i
 
 
 trans≤Nat : ∀{i j k} → i Data.Nat.≤ j → j Data.Nat.≤ k → i Data.Nat.≤ k

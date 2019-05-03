@@ -53868,6 +53868,7 @@ license = stdenv.lib.licenses.asl20;
 , bytestring
 , containers
 , doctest
+, extra
 , ghc
 , language-plutus-core
 , lens
@@ -53893,6 +53894,7 @@ libraryHaskellDepends = [
 base
 bytestring
 containers
+extra
 ghc
 language-plutus-core
 lens

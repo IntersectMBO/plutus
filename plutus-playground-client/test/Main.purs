@@ -9,6 +9,7 @@ import Control.Monad.Eff.Console (CONSOLE)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Random (RANDOM)
 import CursorTests as CursorTests
+import Data.Array.ExtraTests as Data.Array.ExtraTests
 import Data.String.ExtraTests as Data.String.ExtraTests
 import Ledger.ExtraTests as Ledger.ExtraTests
 import FileEvents (FILE)
@@ -30,5 +31,6 @@ main = runTest do
   ChainTests.all
   CursorTests.all
   MainFrameTests.all
+  Data.Array.ExtraTests.all
   Data.String.ExtraTests.all
   Ledger.ExtraTests.all

@@ -13,7 +13,7 @@ open import Data.Unit
 
 \begin{code}
 -- all (r :: *). r -> (r -> r) -> r
-N : ∀{Γ} → Γ ⊢⋆ *
+N : ∀{Φ} → Φ ⊢⋆ *
 N = Π (` Z ⇒ (` Z ⇒ ` Z) ⇒ ` Z)
 
 -- /\(r :: *) -> \(z : r) (f : r -> r) -> z
@@ -24,7 +24,7 @@ Zero = Λ (ƛ (ƛ (` (S Z))))
 Succ : ∅ ⊢ N ⇒ N
 Succ = ƛ (Λ (ƛ (ƛ (` Z · ((` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (` Z))))))
 
-Iter : ∀{Γ} → Γ ⊢ Π (` Z ⇒ (` Z ⇒ ` Z) ⇒ N ⇒ (` Z))
+Iter : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ Π (` Z ⇒ (` Z ⇒ ` Z) ⇒ N ⇒ (` Z))
 Iter = Λ (ƛ (ƛ (ƛ ((` Z) ·⋆ (` Z) · (` (S (S Z))) · (` (S Z))))))
 
 open import Builtin.Constant.Type
@@ -33,13 +33,13 @@ open import Data.Nat
 open import Agda.Builtin.Sigma renaming (_,_ to _,,_)
 
 {-
-con0 : ∀{Γ} → Γ ⊢ con integer
+con0 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer
 con0 = con (integer 8 (ℤ.pos 0) _) -- (-≤+ ,, (+≤+ (s≤s z≤n))))
 
-con1 : ∀{Γ} → Γ ⊢ con integer
+con1 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer
 con1 = con (integer 8 (ℤ.pos 1) _) -- (-≤+ ,, (+≤+ (s≤s (s≤s z≤n)))))
 
-inc : ∀{Γ} → Γ ⊢ Π (con integer (` Z) ⇒ con integer (` Z))
+inc : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ Π (con integer (` Z) ⇒ con integer (` Z))
 inc = Λ (ƛ (builtin addInteger (λ { Z → ` Z ; (S ())}) ((builtin resizeInteger (λ { Z → ` Z ; (S Z) → size⋆ 8 ; (S (S ()))}) (builtin sizeOfInteger (λ { Z → ` Z ; (S ())}) (` Z ,, tt) ,, (con1 ,, tt))) ,, (` Z) ,, tt)))
 
 

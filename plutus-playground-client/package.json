@@ -10,6 +10,7 @@
     "start": "node bundle.js",
     "test": "pulp test -I generated:../web-common",
     "test:watch": "pulp -w test -I generated:../web-common",
+    "docs": "pulp docs -I generated:../web-common -- --format html",
     "repl": "purs repl 'src/**/*.purs' 'bower_components/purescript-*/src/**/*.purs' 'generated/**/*.purs' 'test/**/*.purs' '../web-common/src/**/*.purs'"
   },
   "dependencies": {

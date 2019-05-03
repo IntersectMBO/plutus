@@ -298,9 +298,9 @@
                                                                             [List_i14 EmptyRose_i10]
                                                                           }
                                                                           (lam
-                                                                            inner_i0
+                                                                            x_i0
                                                                             [List_i15 EmptyRose_i11]
-                                                                            inner_i1
+                                                                            x_i1
                                                                           )
                                                                         ]
                                                                       )

@@ -46,6 +46,11 @@ rename-nf σ A = trans
         (symCR (rename-eval A idCR σ))  )))
 \end{code}
 
+\begin{code}
+SubNf : Ctx⋆ → Ctx⋆ → Set
+SubNf φ Ψ = ∀ {J} → φ ∋⋆ J → Ψ ⊢Nf⋆ J
+\end{code}
+
 Substitution for normal forms:
 1. embed back into syntax;
 2. perform substitution;
@@ -53,7 +58,7 @@ Substitution for normal forms:
 
 \begin{code}
 substNf : ∀ {Φ Ψ}
-  → (∀ {J} → Φ ∋⋆ J → Ψ ⊢Nf⋆ J)
+  → SubNf Φ Ψ
     -------------------------
   → (∀ {J} → Φ ⊢Nf⋆ J → Ψ ⊢Nf⋆ J)
 substNf ρ n = nf (subst (embNf ∘ ρ) (embNf n))
@@ -90,7 +95,7 @@ This is often holds definitionally for substitution (e.g. subst) but not here.
 
 \begin{code}
 substNf-∋ : ∀ {Φ Ψ J}
-  → (ρ : ∀{K} → Φ ∋⋆ K → Ψ ⊢Nf⋆ K)
+  → (ρ : SubNf Φ Ψ)
   → (α : Φ ∋⋆ J)
   → substNf ρ (ne (` α)) ≡ ρ α
 substNf-∋ ρ α = stability (ρ α) 
@@ -120,8 +125,8 @@ Third Monad Law for substNf
 
 \begin{code}
 substNf-comp : ∀{Φ Ψ Θ}
-  (g : ∀ {J} → Φ ∋⋆ J → Ψ ⊢Nf⋆ J)
-  (f : ∀ {J} → Ψ ∋⋆ J → Θ ⊢Nf⋆ J)
+  (g : SubNf Φ Ψ)
+  (f : SubNf Ψ Θ)
   → ∀{J}(A : Φ ⊢Nf⋆ J)
     -----------------------------------------------
   → substNf (substNf f ∘ g) A ≡ substNf f (substNf g A)
@@ -152,9 +157,9 @@ extending a normal substitution
 
 \begin{code}
 extsNf : ∀ {Φ Ψ}
-  → (∀ {J} → Φ ∋⋆ J → Ψ ⊢Nf⋆ J)
-    -------------------------------------
-  → (∀ {J K} → Φ ,⋆ K ∋⋆ J → Ψ ,⋆ K ⊢Nf⋆ J)
+  → SubNf Φ Ψ
+    -------------------------------
+  → ∀ {K} → SubNf (Φ ,⋆ K) (Ψ ,⋆ K)
 extsNf σ Z      =  ne (` Z)
 extsNf σ (S α)  =  weakenNf (σ α)
 \end{code}

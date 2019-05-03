@@ -27,7 +27,6 @@ import qualified PrelNames                              as GHC
 
 import qualified Language.PlutusIR                      as PIR
 import qualified Language.PlutusIR.Compiler.Definitions as PIR
-import           Language.PlutusIR.Compiler.Names
 import qualified Language.PlutusIR.MkPir                as PIR
 import qualified Language.PlutusIR.Value                as PIR
 
@@ -79,10 +78,7 @@ convLiteral = \case
             charExprs = fmap GHC.mkCharExpr str
             listExpr = GHC.mkListExpr GHC.charTy charExprs
         in convExpr listExpr
-    GHC.MachChar c     ->
-        case PLC.makeDynamicBuiltin c of
-            Just t  -> pure $ PIR.embed t
-            Nothing -> throwPlain $ UnsupportedError "Compilation of character failed"
+    GHC.MachChar c     -> pure $ PIR.embed $ PLC.makeKnown c
     GHC.LitNumber {}   -> throwPlain $ UnsupportedError "Literal number"
     GHC.MachFloat _    -> throwPlain $ UnsupportedError "Literal float"
     GHC.MachDouble _   -> throwPlain $ UnsupportedError "Literal double"
@@ -133,6 +129,35 @@ of the expression.
 
 We handle this by simply let-binding that variable outside our generated case. In the instances
 where it's not used, the PIR dead-binding pass will remove it.
+-}
+
+{- Note [Coercions and newtypes]
+GHC is keen to put coercions in, they're usually great for it. However, this is a pain for us, since
+you can have all kinds of fancy coercions, like coercions between functions where some of the arguments
+are newtypes. We don't need to support all the stuff you can do with coercions, but we do want to
+support newtypes.
+
+A previous approach was to inspect coercions to try and work out if they were coercions between a newtype
+and its underlying type, and if so manually construct/deconstruct it. This had a number of disadvantages.
+- It only worked on very specific cases (e.g. if the simplifier gets loose it can make more complicated
+  coercions that we can't obviously deconstruct without much more work)
+- It wasn't future-proof. It's likely that GHC will move in the direction of getting rid of the structure
+  of coercions (see https://gitlab.haskell.org//ghc/ghc/issues/8095#note_108189), so this approach might
+  well stop working in the future.
+
+So we would like to "believe" coercions, for at least some cases. We can
+do this by always treating a newtype as it's underlying type. Except - this doesn't work for recursive
+newtypes (we loop!). GHC doesn't have this problem because it treats the underlying type and the
+newtype as separate types that happen to have the same representation. We don't have a separate representation
+so we don't have that option.
+
+So for the moment we:
+- Treat newtypes as their underlying type.
+- Blackhole newtypes when we start converting them so we can bail if they're recursive.
+- Always believe coercions (i.e. just treat casts as the identity).
+
+The final point could get us into trouble with fancier uses of coercions (since we will just accept them),
+but those should fail when we typecheck the PLC. And we explicitly say we don't support such things.
 -}
 
 -- Expressions
@@ -242,21 +267,8 @@ convExpr e = withContextM 2 (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ d
             withContextM 1 (sdToTxt $ "Converting expr at:" GHC.<+> GHC.ppr src) $ convExpr body
         -- ignore other annotations
         GHC.Tick _ body -> convExpr body
-        GHC.Cast body coerce -> do
-            body' <- convExpr body
-            case splitNewtypeCoercion coerce of
-                Just (Unwrap outer inner) -> do
-                    match <- getMatchInstantiated outer
-                    -- unwrap by doing a "trivial match" - instantiate to the inner type and apply the identity
-                    inner' <- convType inner
-                    let instantiated = PIR.TyInst () (PIR.Apply () match body') inner'
-                    name <- safeFreshName () "inner"
-                    let identity = PIR.LamAbs () name inner' (PIR.Var () name)
-                    pure $ PIR.Apply () instantiated identity
-                Just (Wrap _ outer) -> do
-                    constr <- head <$> getConstructorsInstantiated outer
-                    pure $ PIR.Apply () constr body'
-                _ -> throwSd UnsupportedError $ "Coercion" GHC.$+$ GHC.ppr coerce
+        -- See Note [Coercions and newtypes]
+        GHC.Cast body _ -> convExpr body
         GHC.Type _ -> throwPlain $ UnsupportedError "Types as standalone expressions"
         GHC.Coercion _ -> throwPlain $ UnsupportedError "Coercions as expressions"
 

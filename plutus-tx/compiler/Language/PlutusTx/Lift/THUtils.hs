@@ -12,6 +12,7 @@ import           Control.Monad
 import qualified Data.Text                        as T
 
 import qualified Language.Haskell.TH              as TH
+import qualified Language.Haskell.TH.Datatype     as TH
 import qualified Language.Haskell.TH.Syntax       as TH
 
 -- | Very nearly the same as 'TH.showName', but doesn't print uniques, since we don't need to
@@ -49,3 +50,8 @@ mkTyVarDecl :: (MonadQuote m) => TH.Name -> Kind () -> m (TH.Name, TyVarDecl TyN
 mkTyVarDecl name kind = do
     tyName <- safeFreshTyName () $ showName name
     pure (name, TyVarDecl () tyName kind)
+
+isNewtype :: TH.DatatypeInfo -> Bool
+isNewtype TH.DatatypeInfo{TH.datatypeVariant=variant} = case variant of
+    TH.Newtype -> True
+    _          -> False

@@ -10,45 +10,42 @@ module DynamicBuiltins.MakeRead
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Constant.Dynamic
-import           Language.PlutusCore.MkPlc
+import           Language.PlutusCore.Evaluation.Result
+import           Language.PlutusCore.MkPlc             hiding (error)
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.StdLib.Data.Unit
-import           PlutusPrelude
-
-import           Language.PlutusCore.Interpreter.CekMachine
 
 import           DynamicBuiltins.Common
 
-import           Control.Monad.IO.Class                     (liftIO)
-import           Hedgehog                                   hiding (Size, Var)
-import qualified Hedgehog.Gen                               as Gen
-import qualified Hedgehog.Range                             as Range
+import           Control.Monad.IO.Class                (liftIO)
+import           Hedgehog                              hiding (Size, Var)
+import qualified Hedgehog.Gen                          as Gen
+import qualified Hedgehog.Range                        as Range
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
 
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of a different type.
-readMakeHetero
-    :: (KnownDynamicBuiltinType a, KnownDynamicBuiltinType b)
-    => a -> Maybe (Either (Error ()) (Either CekMachineException b))
-readMakeHetero =
-    makeDynamicBuiltin >=> reoption . traverse sequence . typecheckReadDynamicBuiltinCek mempty
+readMakeHetero :: (KnownType a, KnownType b) => a -> EvaluationResult b
+readMakeHetero x =
+    case typecheckReadKnownCek mempty $ makeKnown x of
+        Left err          ->
+            error $ "Type error" ++ prettyPlcCondensedErrorClassicString err
+        Right (Left err)  -> error $ "Evaluation error" ++ show err
+        Right (Right res) -> res
 
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of the same type.
-readMake
-    :: KnownDynamicBuiltinType a => a -> Maybe (Either (Error ()) (Either CekMachineException a))
+readMake :: KnownType a => a -> EvaluationResult a
 readMake = readMakeHetero
 
-dynamicBuiltinRoundtrip :: (KnownDynamicBuiltinType a, Show a, Eq a) => Gen a -> Property
+dynamicBuiltinRoundtrip :: (KnownType a, Show a, Eq a) => Gen a -> Property
 dynamicBuiltinRoundtrip genX = property $ do
     x <- forAll genX
     case readMake x of
-        Nothing                 -> fail "EvaluationFailure"
-        Just (Left err)         -> fail $ "Type error" ++ prettyPlcCondensedErrorClassicString err
-        Just (Right (Left err)) -> fail $ "Evaluation error" ++ show err
-        Just (Right (Right x')) -> x === x'
+        EvaluationFailure    -> fail "EvaluationFailure"
+        EvaluationSuccess x' -> x === x'
 
 test_eitherRoundtrip :: TestTree
 test_eitherRoundtrip =
@@ -93,9 +90,9 @@ test_plcListOfSumsRoundtrip =
 test_collectChars :: TestTree
 test_collectChars = testProperty "collectChars" . property $ do
     str <- forAll $ Gen.string (Range.linear 0 20) Gen.unicode
-    (str', errOrRes) <- liftIO . withEmitEvaluateBy typecheckEvaluateCek TypedBuiltinDyn $ \emit ->
+    (str', errOrRes) <- liftIO . withEmitEvaluateBy typecheckEvaluateCek $ \emit ->
         let step arg rest = mkIterApp () sequ [Apply () emit arg, rest]
-            chars = map unsafeMakeDynamicBuiltin str
+            chars = map makeKnown str
             in foldr step unitval chars
     case errOrRes of
         Left _                      -> failure
@@ -105,26 +102,29 @@ test_collectChars = testProperty "collectChars" . property $ do
 
 test_noticeEvaluationFailure :: TestTree
 test_noticeEvaluationFailure =
-    testCase "noticeEvaluationFailure" . assertBool "'EvaluationFailure' ignored" . isNothing $ do
-        _ <- readMake True
-        _ <- readMakeHetero @(EvaluationResult ()) @() EvaluationFailure
-        readMake 'a'
+    testCase "noticeEvaluationFailure" . assertBool "'EvaluationFailure' ignored" $
+        isEvaluationFailure $ do
+            _ <- readMake True
+            _ <- readMakeHetero @(EvaluationResult ()) @() EvaluationFailure
+            readMake 'a'
 
 test_ignoreEvaluationFailure :: TestTree
 test_ignoreEvaluationFailure =
-    testCase "ignoreEvaluationFailure" . assertBool "'EvaluationFailure' not ignored" . isJust $ do
-        _ <- readMake True
-        -- 'readMakeHetero' is used here instead of 'readMake' for clarity.
-        _ <- readMakeHetero @(EvaluationResult ()) @(EvaluationResult ()) EvaluationFailure
-        readMake 'a'
+    testCase "ignoreEvaluationFailure" . assertBool "'EvaluationFailure' not ignored" $
+        isEvaluationSuccess $ do
+            _ <- readMake True
+            -- 'readMakeHetero' is used here instead of 'readMake' for clarity.
+            _ <- readMakeHetero @(EvaluationResult ()) @(EvaluationResult ()) EvaluationFailure
+            readMake 'a'
 
 test_delayEvaluationFailure :: TestTree
 test_delayEvaluationFailure =
-    testCase "delayEvaluationFailure" . assertBool "'EvaluationFailure' not delayed" . isJust $ do
-        errOrErrOrF <- readMake $ \() -> EvaluationFailure
-        for errOrErrOrF $ \errOrF -> for errOrF $ \f -> case f () of
-            EvaluationFailure    -> Just ()
-            EvaluationSuccess () -> Nothing
+    testCase "delayEvaluationFailure" . assertBool "'EvaluationFailure' not delayed" $
+        isEvaluationSuccess $ do
+            f <- readMake $ \() -> EvaluationFailure
+            case f () of
+                EvaluationFailure    -> EvaluationSuccess ()
+                EvaluationSuccess () -> EvaluationFailure
 
 test_EvaluationFailure :: TestTree
 test_EvaluationFailure =

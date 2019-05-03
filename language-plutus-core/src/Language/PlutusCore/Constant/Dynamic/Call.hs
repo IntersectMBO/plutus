@@ -1,12 +1,9 @@
 -- | A dynamic built-in name that allows to call arbitrary 'IO' actions over
 -- PLC values of a built-in types (including dynamic built-in types).
 
-{-# LANGUAGE RankNTypes       #-}
-{-# LANGUAGE TypeApplications #-}
-
 module Language.PlutusCore.Constant.Dynamic.Call
-    ( dynamicCallAssign
-    , dynamicCallTypeScheme
+    ( dynamicCallTypeScheme
+    , dynamicCallAssign
     , dynamicCall
     ) where
 
@@ -15,20 +12,20 @@ import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Lexer.Type     hiding (name)
 import           Language.PlutusCore.Type
 
+import           Data.Proxy
 import           System.IO.Unsafe
 
+dynamicCallTypeScheme :: KnownType a => TypeScheme (a -> ()) ()
+dynamicCallTypeScheme = Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
+
 dynamicCallAssign
-    :: TypedBuiltin a
-    -> DynamicBuiltinName
+    :: KnownType a
+    => DynamicBuiltinName
     -> (a -> IO ())
     -> DynamicBuiltinNameDefinition
-dynamicCallAssign tb name f =
-    DynamicBuiltinNameDefinition name $ DynamicBuiltinNameMeaning sch sem where
-        sch = dynamicCallTypeScheme tb
-        sem = unsafePerformIO . f
-
-dynamicCallTypeScheme :: TypedBuiltin a -> TypeScheme (a -> ()) ()
-dynamicCallTypeScheme tb = TypeSchemeBuiltin tb `TypeSchemeArrow` TypeSchemeBuiltin (TypedBuiltinDyn @())
+dynamicCallAssign name f =
+    DynamicBuiltinNameDefinition name $
+        DynamicBuiltinNameMeaning dynamicCallTypeScheme (unsafePerformIO . f)
 
 dynamicCall :: DynamicBuiltinName -> Term tyname name ()
 dynamicCall = dynamicBuiltinNameAsTerm

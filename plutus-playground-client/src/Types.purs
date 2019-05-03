@@ -161,6 +161,7 @@ data Query a
   -- SubEvents.
   = HandleEditorMessage AceMessage a
   | HandleDragEvent DragEvent a
+  | ActionDragAndDrop Int DragAndDropEventType DragEvent a
   | HandleDropEvent DragEvent a
   | HandleMockchainChartMessage EChartsMessage a
   | HandleBalancesChartMessage EChartsMessage a
@@ -199,6 +200,22 @@ data ActionEvent
   | AddWaitAction Int
   | RemoveAction Int
   | SetWaitTime Int Int
+
+data DragAndDropEventType
+  = DragStart
+  | DragEnd
+  | DragEnter
+  | DragOver
+  | DragLeave
+  | Drop
+
+instance showDragAndDropEventType :: Show DragAndDropEventType where
+  show DragStart = "DragStart"
+  show DragEnd = "DragEnd"
+  show DragEnter = "DragEnter"
+  show DragOver = "DragOver"
+  show DragLeave = "DragLeave"
+  show Drop = "Drop"
 
 data FormEvent a
   = SetIntField (Maybe Int) a
@@ -275,6 +292,7 @@ newtype State = State
   { currentView :: View
   , compilationResult :: WebData (Either InterpreterError (InterpreterResult CompilationResult))
   , simulations :: Cursor Simulation
+  , actionDrag :: Maybe Int
   , evaluationResult :: WebData EvaluationResult
   , authStatus :: WebData AuthStatus
   , createGistResult :: WebData Gist
@@ -288,6 +306,9 @@ _currentView = _Newtype <<< prop (SProxy :: SProxy "currentView")
 
 _simulations :: Lens' State (Cursor Simulation)
 _simulations = _Newtype <<< prop (SProxy :: SProxy "simulations")
+
+_actionDrag :: Lens' State (Maybe Int)
+_actionDrag = _Newtype <<< prop (SProxy :: SProxy "actionDrag")
 
 _signatures :: Lens' Simulation Signatures
 _signatures = _Newtype <<< prop (SProxy :: SProxy "signatures")

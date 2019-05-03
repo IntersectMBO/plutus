@@ -36,6 +36,7 @@ import Data.Bool as Bool
 ## Values
 
 \begin{code}
+{-
 data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Set where
 
   V-ƛ : ∀ {Γ A B} {N : Γ , A ⊢ B}
@@ -56,17 +57,17 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Set where
   V-con : ∀{Γ}{tcn : TyCon}
     → (cn : TermCon (con tcn))
     → Value (con {Γ} cn)
-
+-}
 \end{code}
 
 ## BUILTIN
 
 \begin{code}
+{-
 VTel : ∀ Γ Δ → ⋆.Sub Δ ∥ Γ ∥ → List (Δ ⊢⋆ *) → Set
 VTel Γ Δ σ [] = ⊤
 VTel Γ Δ σ (A ∷ As) = Σ (Γ ⊢ ⋆.subst σ A) λ t → Value t × VTel Γ Δ σ As
 
-{-
 BUILTIN : ∀{Γ}
     → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
@@ -169,7 +170,7 @@ BUILTIN
   | size⋆ s
   with i >? j
 ... | yes _ = just true
-... | no _  = just false 
+... | no _  = just false
 BUILTIN greaterThanEqualsInteger σ vtel with σ Z
 BUILTIN
   greaterThanEqualsInteger
@@ -201,18 +202,6 @@ BUILTIN
 BUILTIN sizeOfInteger σ vtel with σ Z
 BUILTIN sizeOfInteger σ (_ ,, V-con (integer s i x) ,, tt) | .(size⋆ s) =
   just (con (size s))
-BUILTIN intToByteString σ vtel with σ Z | σ (S Z)
-BUILTIN
-  intToByteString
-  σ
-  (_ ,, V-con (size s) ,, _ ,, V-con (integer s' i p) ,, tt)
-  | size⋆ s
-  | size⋆ s' with boundedI? s i
-... | no _  = nothing
-... | yes q with boundedB? s (int2ByteString i)
-... | yes r = just (con (bytestring s (int2ByteString i) r))
-... | no _  = nothing
--- ^ should be impossible if we prove something about int2ByteString
 BUILTIN concatenate σ vtel with σ Z
 BUILTIN
   concatenate
@@ -221,7 +210,7 @@ BUILTIN
   | size⋆ s
   with boundedB? s (append b b')
 ... | yes r = just (con (bytestring s (append b b') r))
-... | no ¬r = nothing 
+... | no ¬r = nothing
 
 BUILTIN takeByteString σ vtel with σ Z | σ (S Z)
 BUILTIN
@@ -235,7 +224,7 @@ BUILTIN
 ... | no r = nothing
 -- ^ this is impossible but we haven't proved that take cannot
 -- increase the length
-BUILTIN dropByteString σ vtel with σ Z | σ (S Z) 
+BUILTIN dropByteString σ vtel with σ Z | σ (S Z)
 BUILTIN
   dropByteString
   σ
@@ -341,7 +330,7 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ 
     → L —→ L′
       -----------------
     → L ·⋆ A —→ L′ ·⋆ A
-    
+
   β-ƛ : ∀ {Γ A B} {N : Γ , A ⊢ B} {W : Γ ⊢ A}
     → Value W
       --------------------
@@ -401,7 +390,7 @@ data Progress {A : ∅ ⊢⋆ *} (M : ∅ ⊢ A) : Set where
       Value M
       ----------
     → Progress M
-  error : Progress M 
+  error : Progress M
 -}
 \end{code}
 

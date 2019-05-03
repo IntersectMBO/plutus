@@ -22,7 +22,6 @@ import qualified Language.PlutusCore.StdLib.Data.List       as Plc
 import           DynamicBuiltins.Common
 
 import           Data.Either                                (isRight)
-import           Data.Maybe
 import           Data.Proxy
 import           Hedgehog                                   hiding (Size, Var)
 import qualified Hedgehog.Gen                               as Gen
@@ -36,9 +35,7 @@ dynamicFactorialName = DynamicBuiltinName "factorial"
 
 dynamicFactorialMeaning :: DynamicBuiltinNameMeaning
 dynamicFactorialMeaning = DynamicBuiltinNameMeaning sch fac where
-    sch =
-        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt)
+    sch = Proxy @Integer `TypeSchemeArrow` TypeSchemeResult Proxy
     fac n = product [1..n]
 
 dynamicFactorialDefinition :: DynamicBuiltinNameDefinition
@@ -67,9 +64,7 @@ dynamicConstMeaning = DynamicBuiltinNameMeaning sch Prelude.const where
     sch =
         TypeSchemeAllType @"a" @0 Proxy $ \a ->
         TypeSchemeAllType @"b" @1 Proxy $ \b ->
-            TypeSchemeBuiltin a `TypeSchemeArrow`
-            TypeSchemeBuiltin b `TypeSchemeArrow`
-            TypeSchemeBuiltin a
+            a `TypeSchemeArrow` b `TypeSchemeArrow` TypeSchemeResult a
 
 dynamicConstDefinition :: DynamicBuiltinNameDefinition
 dynamicConstDefinition =
@@ -85,13 +80,13 @@ test_dynamicConst =
     testProperty "dynamicConst" . property $ do
         c <- forAll Gen.unicode
         b <- forAll Gen.bool
-        let tC = fromMaybe (Prelude.error "Can't make a char") $ makeDynamicBuiltin c
-            tB = fromMaybe (Prelude.error "Can't make a bool") $ makeDynamicBuiltin b
-            char = toTypeEncoding @Char Proxy
+        let tC = makeKnown c
+            tB = makeKnown b
+            char = toTypeAst @Char Proxy
             runConst con = mkIterApp () (mkIterInst () con [char, bool]) [tC, tB]
             env = insertDynamicBuiltinNameDefinition dynamicConstDefinition mempty
-            lhs = typecheckReadDynamicBuiltinCek env $ runConst dynamicConst
-            rhs = typecheckReadDynamicBuiltinCek mempty $ runConst Plc.const
+            lhs = typecheckReadKnownCek env $ runConst dynamicConst
+            rhs = typecheckReadKnownCek mempty $ runConst Plc.const
         lhs === Right (Right (EvaluationSuccess c))
         lhs === rhs
 
@@ -101,9 +96,8 @@ dynamicReverseName = DynamicBuiltinName "reverse"
 dynamicReverseMeaning :: DynamicBuiltinNameMeaning
 dynamicReverseMeaning = DynamicBuiltinNameMeaning sch (PlcList . Prelude.reverse . unPlcList) where
     sch =
-        TypeSchemeAllType @"a" @0 Proxy $ \(_ :: TypedBuiltin a) ->
-            TypeSchemeBuiltin (TypedBuiltinDyn @(PlcList a)) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinDyn @(PlcList a))
+        TypeSchemeAllType @"a" @0 Proxy $ \(_ :: Proxy a) ->
+            Proxy @(PlcList a) `TypeSchemeArrow` TypeSchemeResult (Proxy @(PlcList a))
 
 dynamicReverseDefinition :: DynamicBuiltinNameDefinition
 dynamicReverseDefinition =
@@ -118,12 +112,12 @@ test_dynamicReverse :: TestTree
 test_dynamicReverse =
     testProperty "dynamicReverse" . property $ do
         is <- forAll . Gen.list (Range.linear 0 20) $ Gen.int (Range.linear 0 1000)
-        let tIs = fromMaybe (Prelude.error "Can't make a list") $ makeDynamicBuiltin (PlcList is)
-            int = toTypeEncoding @Int Proxy
+        let tIs = makeKnown $ PlcList is
+            int = toTypeAst @Int Proxy
             runReverse rev = Apply () (TyInst () rev int) tIs
             env = insertDynamicBuiltinNameDefinition dynamicReverseDefinition mempty
-            lhs = typecheckReadDynamicBuiltinCek env $ runReverse dynamicReverse
-            rhs = typecheckReadDynamicBuiltinCek mempty $ runReverse Plc.reverse
+            lhs = typecheckReadKnownCek env $ runReverse dynamicReverse
+            rhs = typecheckReadKnownCek mempty $ runReverse Plc.reverse
         lhs === Right (Right (EvaluationSuccess . PlcList $ Prelude.reverse is))
         lhs === rhs
 
