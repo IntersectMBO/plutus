@@ -169,7 +169,7 @@ enables the implementation of highly expressive contracts.
 \subsection{Structure of the document}
 \label{sec:doc-structure}
 This document proposes three extensions of the basic UTXO model, each
-one more general than the previous one (XUTXO\footnotemark stands for
+one more general than the previous one (XUTXO \blue{(or EUTXO or whatever)} stands for
 \textit{Extended UTXO}):
 
 \begin{itemize}
@@ -183,7 +183,6 @@ one more general than the previous one (XUTXO\footnotemark stands for
     support for non-fungible tokens to XUTXO-2.
 \end{itemize}
 
-\footnotetext{\blue{Or EUTXO or whatever.}}
 \noindent We give formal specifications of each of these versions,
 based on the models appearing in the
 papers~\cite{Zahnentferner18-Chimeric} and
@@ -1041,6 +1040,10 @@ useful in practice remains to be seen.
 
 \section{What else do we need to worry about?}
 \begin{itemize}
+
+\item It might be worth adding an appendix that contains the entire
+  description of XUTXO-3 plus the relevant types and so on in one place.
+  
 \item Should we mention the problem of \textbf{validating the next data script}?
 %% https://github.com/input-output-hk/plutus/issues/426
 
