@@ -123,12 +123,14 @@
 \newcommand{\xutxotx}{\msf{XUtxoTx}}
 
 \newcommand{\valuetype}{\ensuremath{\s{Value}}}
+\newcommand{\valuetypepm}{\ensuremath{\s{Value}^{\pm}}}
 \newcommand{\newvaluetype}{\ensuremath{\s{Value}^{\prime}}}
 
 \newcommand{\valuemap}{\ensuremath{\s{ValueMap}}}
-\newcommand{\newvaluemap}{\ensuremath{\s{ValueMap}^{\prime}}}
+\newcommand{\tokenmap}{\ensuremath{\s{TokenMap}}}
 
-
+\newcommand\Z{\ensuremath{\mathbb{Z}}}
+\newcommand\N{\ensuremath{\mathbb{N}}}
 
 
 \usepackage{listings}
@@ -209,7 +211,7 @@ This section defines some basic notation.  We generally follow the
 notation established by \cite{Zahnentferner18-UTxO}.
 
 \begin{ruledfigure}{H}
-\begin{itemize}
+  \begin{itemize}
 \item Types are typeset in $\mathsf{sans~serif}$.
 
 \item All scripts are of type $\mathsf{Script}$.
@@ -282,23 +284,29 @@ notation established by \cite{Zahnentferner18-UTxO}.
   version involving \textsf{error} fits Plutus Core better.}
 
 
-\noindent Throughout the document we assume a number of basic types, all of
-which we regard as aliases for the type of natural numbers.  These
-are shown in Figure~\ref{fig:basic-types}.
+\noindent Throughout the document we assume a number of basic types.
+These are shown in Figure~\ref{fig:basic-types}.
 
 \begin{ruledfigure}{H}
   \center{
-  \begin{tabular}{rl}
-    \valuetype&: a currency value\\
-    \s{SlotNumber}&: a slot number\\
-    \s{Address}&: the address of an object in the blockchain\\
-    \s{TxId}&: the identifier of a previous transaction on the chain\\
-  \end{tabular}
+    \begin{tabular}{rl}
+      \N&: the type of natural numbers, $\{0, 1, 2, \ldots\}$.\\
+      \Z&: the type of integers, $\{,\ldots, -2, -1, 0, 1, 2, \ldots\}$\\
+      $\valuetype = \N$&: a currency value, always non-negative\\
+      $\valuetypepm = \Z$&: a possibly negative currency value\\
+      $\s{SlotNumber} = \N$&: a slot number\\
+      $\s{Address} = \N$&: the address of an object in the blockchain\\
+      $\s{TxId} = \N$&: the identifier of a previous transaction on the chain\\
+    \end{tabular}
   }
   \caption{Basic types}
   \label{fig:basic-types}
 \end{ruledfigure}
 
+\noindent We regard $\N$ as a subtype of $\Z$ and convert freely between
+natural numbers and non-negative integers.
+
+\medskip
 \noindent In practice an \textsf{Address} will usually be a hash of
 some object (for example, a script), and the blockchain will provide
 an efficient way to retrieve the original object given its hash.
@@ -308,7 +316,8 @@ scripts for common validation scenarios used in many transactions, and
 it is more efficient to store single copies of such scripts rather
 than having hundreds of transactions each with their own copy.
 
-We assume that every transaction in a ledger has a unique identifier
+\medskip
+\noindent We assume that every transaction in a ledger has a unique identifier
 of type \s{TxId}: in an implementation this would probably be the
 hash of the transaction.
 
@@ -697,16 +706,16 @@ Figure~\ref{fig:more-basic-types}.
 \begin{ruledfigure}{H}
   \center{
   \begin{tabular}{rll}
-  \s{CurrencyID}&: &an identifier for a custom currency. This is an alias
+  \s{CurrencyID}&: & an identifier for a custom currency. This is an alias
   for the \s{Address} type\\
   & & from Figure~\ref{fig:basic-types}.\\
-  \valuemap &: &a map from \s{CurrencyID}s to quantities of the
-  corresponding currencies\\
-  & & (represented using the non-negative \valuetype{} type). This allows an output\\
-  & & to contain quantities of multiple custom currencies in addition to some \\
-  & & quantity (possibly zero) of the native currency.\\
+  \valuemap&:  & \Map{\s{CurrencyID}}{\valuetype}, ie a map from \s{CurrencyID}s to quantities of the\\
+  & &   corresponding currencies (represented using the non-negative \valuetype{} type).\\
+  & & This allows an output to contain quantities of multiple custom currencies\\
+  & & in addition to some quantity (possibly zero) of the native currency.\\
 
-  \s{ValueMap$^{\pm}$} &: &This is like \valuemap{}, but quantities may be either positive or negative.
+  \s{ValueMap$^{\pm}$} &: &\Map{\s{CurrencyID}}{\valuetypepm}.  This is like \valuemap{}, but currency quantities\\
+  & &  may be either positive or negative.
   \end{tabular}
   }
   \caption{Extra basic types for the XUTXO-2 model}
@@ -947,48 +956,57 @@ but this method is arguably a little heavyweight.  In this section we
 describe the XUTXO-3 model which provides much more lightweight
 support of NFTs.
 
-The basic idea is to change the \valuemap{} type used in XUTXO-2.  The
-new definition will allow us to support both fungible and non-fungible
-tokens, with no need to change any of the other ledger rules.
-
-The new definition is given in Figure~\ref{fig:xutxo-3-types}:
+The basic idea is to change the \valuemap{} type used in XUTXO-2.  We
+replace it with a type \tokenmap{} which will allow us to support both
+fungible and non-fungible tokens, with no need to change any of the
+other ledger rules: see Figure~\ref{fig:xutxo-3-types}.
 
 \begin{ruledfigure}{H}
-  \[
-  \newvaluemap = \Map{\s{CurrencyId}}{\Map{\s{Token}}{\s{Quantity}}}
-  \]
+  \begin{align*}
+  \tokenmap &= \Map{\s{CurrencyId}}{\Map{\s{Token}}{\s{Value}}}\\
+  \tokenmap^{\pm} &= \Map{\s{CurrencyId}}{\Map{\s{Token}}{\s{Value}^{\pm}}}\\
+  \end{align*}
   where
   \begin{itemize}
 \item \s{CurrencyId} is the type we are using to identify currencies, as in Figure~\ref{fig:xutxo-2-types}.
 \item \s{Token} is a type consisting of identifiers for individual
   tokens.  These will probably be hashes in practice.
-\item \s{Quantity} is a type used to measure the amount of a token
-  that is present, probably the type of natural numbers.
+% \item \s{Quantity} is a type used to measure the amount of a token
+%   that is present, probably the type of natural numbers.  
   \end{itemize}
   \caption{Modified \valuemap{} type for XUTXO-3}
   \label{fig:xutxo-3-types}
 \end{ruledfigure}
 
 \noindent Note that the comparison and addition operations for maps defined in
-Figure~\ref{fig:basic-notation} carry over to the type \newvaluemap.
+Figure~\ref{fig:basic-notation} carry over to the type \tokenmap.
 This allows us to define XUTXO-3 by exactly the same types and
 validity rules as XUTXO-2, simply replacing \valuemap{} by
-\newvaluemap{} everywhere.
+\tokenmap{} everywhere.
+
+\medskip \noindent\red{I'm slightly confused about what we want to do here.  In
+  Jann's multicurrency proposal, we have a type \s{Quantity} which is
+  used to measure quantities of tokens, but it's left open-ended
+  exactly what \s{Quantity} should be.  The problem is that if we're
+  following the convention of destroying things by forging
+  negative amounts, then we have to know what ``negative'' means, and
+  I think you need at least an ordered abelian group for that.  Will
+  anyone ever use anything that isn't \Z?}
 
 \subsection{Implications}
 This model allows us to implement fungible (normal) and non-fungible
 token currencies, as well as ``mixed states'':
 \begin{itemize}
 \item Fungible token currencies are implemented by only ever issuing
-  \s{Quantity}s of a single \s{Token}.
+  \s{Value}s of a single \s{Token}.
 \item Non-fungible token currencies are implemented by only ever
-  issuing unit \s{Quantity}s of many unique \s{Token}s.
+  issuing single \s{Value}s of many unique \s{Token}s.
 \item Note that there is nothing in this model which enforces
   uniqueness: having multiples of a single \s{Token} merely means that
   those can be used fungibly. If a currency wants to make sure it only
   issues unique tokens it must track this itself.  These ``mixed'' token
   currencies can have many \s{Token}s, but these can have more than unit
-  \s{Quantity}s in circulation.  These can be useful to model distinct
+  \s{Value}s in circulation.  These can be useful to model distinct
   categories of thing where there are fungible quantities within
   those, for example share classes. \red{Eh?}
 \end{itemize}
@@ -999,12 +1017,12 @@ The UTXO-2 and UTXO-3 models will lose some efficiency in comparison
 to the UTXO-1 model, simply because the data structures are more
 complicated.  This would even apply to transactions which only involve
 to native currency, since it would be necessary to check whether the
-\valuemap{} contains anything that needs to be processed.  If this is
+\valuemap{} or \tokenmap{} contains anything that needs to be processed.  If this is
 a concern then one could implement a model with two types of
 transaction, essentially just the disjoint union of the XUTXO-1 and
 XUTXO-2 or XUTXO-3 transaction types. A simple case distinction at the
 start of a transaction could then select either a fast
-native-currency-only calculation or a slower multicurrency calculation.
+native-currency-only computation or a slower multicurrency computation.
 This would be harder to maintain though.
 
 \medskip
