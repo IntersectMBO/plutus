@@ -32,9 +32,12 @@ instance Pretty (AsKnownType a) where
 
 instance GEq AsKnownType where
     a `geq` b = do
+        -- TODO: there is a HUGE problem here. @EvaluationResult a@ and @a@ have the same string
+        -- representation currently, so we need to either fix that or come up with a more sensible
+        -- approach, because an attempt to generate a constant application that may fail results in
+        -- UNDEFINED BEHAVIOR.
         -- We can probably require each 'KnownType' to be 'Typeable' and avoid checking for equality
-        -- string representations here, but I don't want to complicate the library just to avoid
-        -- silly things in tests.
+        -- string representations here, but this complicates the library.
         guard $ prettyString a == prettyString b
         Just $ unsafeCoerce Refl
 

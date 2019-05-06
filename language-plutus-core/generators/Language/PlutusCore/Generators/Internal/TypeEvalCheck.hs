@@ -40,7 +40,7 @@ the actual one. Thus "type-eval checking".
 -- | The type of errors that can occur during type-eval checking.
 data TypeEvalCheckError
     = TypeEvalCheckErrorIllFormed (Error ())
-    | TypeEvalCheckErrorIllEvaled (Value TyName Name ()) (Value TyName Name ())
+    | TypeEvalCheckErrorIllEvaled EvaluationResultDef EvaluationResultDef
       -- ^ The former is an expected result of evaluation, the latter -- is an actual one.
 makeClassyPrisms ''TypeEvalCheckError
 
@@ -82,12 +82,14 @@ typeEvalCheckBy
 typeEvalCheckBy eval (TermOf term x) = TermOf term <$> do
     _ <- VR.checkTerm term
     termTy <- runQuoteT $ inferType defOffChainConfig term
-    let valExpected = makeKnown x
-    fmap (TypeEvalCheckResult termTy) $
-        for (eval term) $ \valActual ->
-            if valExpected == valActual
-                then return valActual
-                else throwError $ TypeEvalCheckErrorIllEvaled valExpected valActual
+    let valExpected = case makeKnown x of
+            Error _ _ -> EvaluationFailure
+            t         -> EvaluationSuccess t
+    fmap (TypeEvalCheckResult termTy) $ do
+        let valActual = eval term
+        if valExpected == valActual
+            then return valActual
+            else throwError $ TypeEvalCheckErrorIllEvaled valExpected valActual
 
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 -- Throw an error in case something goes wrong.
@@ -96,5 +98,9 @@ unsafeTypeEvalCheck
 unsafeTypeEvalCheck termOfTbv = do
     let errOrRes = typeEvalCheckBy evaluateCk termOfTbv
     case errOrRes of
-        Left err         -> errorPlc err
+        Left err         -> error $ concat
+            [ prettyPlcErrorString err
+            , "\nin\n"
+            , docString . prettyPlcClassicDebug $ _termOfTerm termOfTbv
+            ]
         Right termOfTecr -> traverse (reoption . _termCheckResultValue) termOfTecr

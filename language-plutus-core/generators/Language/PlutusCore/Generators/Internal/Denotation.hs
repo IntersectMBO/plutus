@@ -21,7 +21,6 @@ import           Language.PlutusCore.Type
 
 import           Language.PlutusCore.Generators.Internal.Dependent
 
-import           Crypto
 import qualified Data.ByteString.Lazy                              as BSL
 import qualified Data.ByteString.Lazy.Hash                         as Hash
 import           Data.Dependent.Map                                (DMap)
@@ -94,16 +93,18 @@ insertTypedBuiltinName tbn@(TypedBuiltinName _ scheme) meta =
     case typeSchemeResult scheme of
         AsKnownType -> insertDenotation (denoteTypedBuiltinName tbn meta)
 
+-- Builtins that may fail are commented out, because we cannot handle them right now.
+-- Look for "UNDEFINED BEHAVIOR" in "Language.PlutusCore.Generators.Internal.Dependent".
 -- | A 'DenotationContext' that consists of 'TypedBuiltinName's.
 typedBuiltinNames :: DenotationContext
 typedBuiltinNames
     = insertTypedBuiltinName typedAddInteger           (+)
     . insertTypedBuiltinName typedSubtractInteger      (-)
     . insertTypedBuiltinName typedMultiplyInteger      (*)
-    . insertTypedBuiltinName typedDivideInteger        div
-    . insertTypedBuiltinName typedRemainderInteger     rem
-    . insertTypedBuiltinName typedQuotientInteger      quot
-    . insertTypedBuiltinName typedModInteger           mod
+--     . insertTypedBuiltinName typedDivideInteger        (nonZeroArg div)
+--     . insertTypedBuiltinName typedRemainderInteger     (nonZeroArg rem)
+--     . insertTypedBuiltinName typedQuotientInteger      (nonZeroArg quot)
+--     . insertTypedBuiltinName typedModInteger           (nonZeroArg mod)
     . insertTypedBuiltinName typedLessThanInteger      (<)
     . insertTypedBuiltinName typedLessThanEqInteger    (<=)
     . insertTypedBuiltinName typedGreaterThanInteger   (>)
@@ -114,6 +115,6 @@ typedBuiltinNames
     . insertTypedBuiltinName typedDropByteString       (BSL.drop . fromIntegral)
     . insertTypedBuiltinName typedSHA2                 Hash.sha2
     . insertTypedBuiltinName typedSHA3                 Hash.sha3
-    . insertTypedBuiltinName typedVerifySignature      verifySignature
+--     . insertTypedBuiltinName typedVerifySignature      verifySignature
     . insertTypedBuiltinName typedEqByteString         (==)
     $ DenotationContext mempty

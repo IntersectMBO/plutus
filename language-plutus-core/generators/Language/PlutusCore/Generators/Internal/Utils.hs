@@ -17,7 +17,7 @@ module Language.PlutusCore.Generators.Internal.Utils
     , forAllPrettyPlcMaybe
     , forAllPrettyPlcMaybeT
     , runSampleSucceed
-    , errorPlc
+    , prettyPlcErrorString
     ) where
 
 import           Language.PlutusCore.Pretty
@@ -89,6 +89,6 @@ forAllPrettyPlcMaybeT = forAllWithT $ maybe "Nothing" prettyPlcDefString
 runSampleSucceed :: Gen (Maybe a) -> IO a
 runSampleSucceed = Gen.sample . Gen.just
 
--- | Throw a PLC error.
-errorPlc :: PrettyPlc err => err -> b
-errorPlc = error . docString . prettyPlcCondensedErrorBy debugPrettyConfigPlcClassic
+-- | Pretty-print a PLC error.
+prettyPlcErrorString :: PrettyPlc err => err -> String
+prettyPlcErrorString = docString . prettyPlcCondensedErrorBy debugPrettyConfigPlcClassic

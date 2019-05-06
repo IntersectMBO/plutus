@@ -77,7 +77,7 @@ propEvaluate
 propEvaluate eval genTermOfTbv = withTests 200 . property $ do
     termOfTbv <- forAllNoShow genTermOfTbv
     case typeEvalCheckBy eval termOfTbv of
-        Left (TypeEvalCheckErrorIllFormed err)             -> errorPlc err
+        Left (TypeEvalCheckErrorIllFormed err)             -> error $ prettyPlcErrorString err
         Left (TypeEvalCheckErrorIllEvaled expected actual) ->
             expected === actual  -- We know that these two are distinct, but there is no nice way we
                                  -- can report this via 'hedgehog' except by comparing them here again.
