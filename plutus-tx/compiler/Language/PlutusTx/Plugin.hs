@@ -210,7 +210,7 @@ getStringBuiltinTypes ann =
     -- another 'unsafePerformIO' (perhaps we should do the latter).
     -- Anyway, here we only care about types, so we provide a fake definition of @trace@ that does
     -- nothing just to be able to extract types in a convenient way.
-    let fakeTraceDefinition = PLC.dynamicCallAssign (PLC.TypedBuiltinDyn @String) PLC.dynamicTraceName mempty
+    let fakeTraceDefinition = PLC.dynamicCallAssign @String PLC.dynamicTraceName mempty
     in PLC.dynamicBuiltinNameMeaningsToTypes ann $
        PLC.insertDynamicBuiltinNameDefinition fakeTraceDefinition $
        PLC.insertDynamicBuiltinNameDefinition PLC.dynamicCharToStringDefinition $

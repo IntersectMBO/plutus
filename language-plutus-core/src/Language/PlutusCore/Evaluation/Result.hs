@@ -8,6 +8,8 @@
 module Language.PlutusCore.Evaluation.Result
     ( EvaluationResult (..)
     , EvaluationResultDef
+    , isEvaluationSuccess
+    , isEvaluationFailure
     ) where
 
 import           Language.PlutusCore.Name
@@ -17,7 +19,7 @@ import           Language.PlutusCore.Type
 import           Control.Applicative
 
 -- | The parameterized type of results various evaluation engines return.
--- On the PLC side this becomes (via @makeDynamicBuiltin@) either a call to 'error' or
+-- On the PLC side this becomes (via @makeKnown@) either a call to 'error' or
 -- a value of the PLC counterpart of type @a@.
 data EvaluationResult a
     = EvaluationSuccess a
@@ -25,7 +27,7 @@ data EvaluationResult a
     deriving (Show, Eq, Functor, Foldable, Traversable)
 
 -- | The default type of results various evaluation engines return.
-type EvaluationResultDef = EvaluationResult (Value TyName Name ())
+type EvaluationResultDef = EvaluationResult (Term TyName Name ())
 
 instance Applicative EvaluationResult where
     pure = EvaluationSuccess
@@ -49,3 +51,11 @@ instance PrettyBy config a => PrettyBy config (EvaluationResult a) where
 
 instance PrettyClassic a => Pretty (EvaluationResult a) where
     pretty = prettyClassicDef
+
+-- | Check whether an 'EvaluationResult' is an 'EvaluationSuccess'.
+isEvaluationSuccess :: EvaluationResult a -> Bool
+isEvaluationSuccess = not . null
+
+-- | Check whether an 'EvaluationResult' is an 'EvaluationFailure'.
+isEvaluationFailure :: EvaluationResult a -> Bool
+isEvaluationFailure = null

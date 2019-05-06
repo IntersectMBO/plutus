@@ -35,6 +35,7 @@ import Gist (Gist)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.ECharts (EChartsMessage, EChartsQuery)
 import Language.Haskell.Interpreter (SourceCode, InterpreterError, InterpreterResult)
+import Ledger.Crypto (PubKey, _PubKey)
 import Ledger.Extra (LedgerMap)
 import Ledger.Tx (Tx)
 import Ledger.TxId (TxIdOf)
@@ -60,6 +61,9 @@ _simulatorWalletBalance = _SimulatorWallet <<< prop (SProxy :: SProxy "simulator
 
 _walletId :: Lens' Wallet Int
 _walletId = _Wallet <<< prop (SProxy :: SProxy "getWallet")
+
+_pubKey :: Lens' PubKey String
+_pubKey = _PubKey <<< prop (SProxy :: SProxy "getPubKey")
 
 _value :: Lens' Value (LedgerMap CurrencySymbol (LedgerMap TokenName Int))
 _value = _Value <<< prop (SProxy :: SProxy "getValue")
@@ -161,6 +165,7 @@ data Query a
   -- SubEvents.
   = HandleEditorMessage AceMessage a
   | HandleDragEvent DragEvent a
+  | ActionDragAndDrop Int DragAndDropEventType DragEvent a
   | HandleDropEvent DragEvent a
   | HandleMockchainChartMessage EChartsMessage a
   | HandleBalancesChartMessage EChartsMessage a
@@ -199,6 +204,22 @@ data ActionEvent
   | AddWaitAction Int
   | RemoveAction Int
   | SetWaitTime Int Int
+
+data DragAndDropEventType
+  = DragStart
+  | DragEnd
+  | DragEnter
+  | DragOver
+  | DragLeave
+  | Drop
+
+instance showDragAndDropEventType :: Show DragAndDropEventType where
+  show DragStart = "DragStart"
+  show DragEnd = "DragEnd"
+  show DragEnter = "DragEnter"
+  show DragOver = "DragOver"
+  show DragLeave = "DragLeave"
+  show Drop = "Drop"
 
 data FormEvent a
   = SetIntField (Maybe Int) a
@@ -275,6 +296,7 @@ newtype State = State
   { currentView :: View
   , compilationResult :: WebData (Either InterpreterError (InterpreterResult CompilationResult))
   , simulations :: Cursor Simulation
+  , actionDrag :: Maybe Int
   , evaluationResult :: WebData EvaluationResult
   , authStatus :: WebData AuthStatus
   , createGistResult :: WebData Gist
@@ -288,6 +310,9 @@ _currentView = _Newtype <<< prop (SProxy :: SProxy "currentView")
 
 _simulations :: Lens' State (Cursor Simulation)
 _simulations = _Newtype <<< prop (SProxy :: SProxy "simulations")
+
+_actionDrag :: Lens' State (Maybe Int)
+_actionDrag = _Newtype <<< prop (SProxy :: SProxy "actionDrag")
 
 _signatures :: Lens' Simulation Signatures
 _signatures = _Newtype <<< prop (SProxy :: SProxy "signatures")

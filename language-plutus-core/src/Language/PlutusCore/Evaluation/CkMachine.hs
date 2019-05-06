@@ -136,7 +136,7 @@ applyEvaluate stack fun                    arg =
                 throwCkMachineException (OtherMachineError NoDynamicBuiltinNamesMachineError) term
             Just (IterApp (StaticStagedBuiltinName name) spine) ->
                 case applyEvaluateCkBuiltinName name spine of
-                    ConstAppSuccess term' -> stack <| term'
+                    ConstAppSuccess term' -> stack |> term'
                     ConstAppFailure       -> EvaluationFailure
                     ConstAppStuck         -> stack <| term
                     ConstAppError err     ->

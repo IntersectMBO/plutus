@@ -2,16 +2,18 @@
 -- | some Class instances that BigInt doesn't have
 module Data.BigInteger (BigInteger, fromInt, fromString) where
 
-import Prelude
-
 import Data.BigInt (BigInt, toString)
 import Data.BigInt as BigInt
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Ord (genericCompare)
+import Data.Integral (class Integral)
 import Data.Maybe (Maybe)
-import Data.Newtype (class Newtype, over2, unwrap)
+import Data.Newtype (class Newtype, over, over2, unwrap, wrap)
+import Data.Num (class Num, abs, negate, signum)
+import Data.Real (class Real, toRational)
 import Marlowe.Pretty (class Pretty)
+import Prelude (class CommutativeRing, class Eq, class EuclideanRing, class Ord, class Ring, class Semiring, class Show, show, add, sub, div, mul, mod, degree, (<<<), (>>>), (<$>))
 import Text.PrettyPrint.Leijen (text)
 
 newtype BigInteger
@@ -54,3 +56,15 @@ instance euclideanRingBigInteger :: EuclideanRing BigInteger where
   div = over2 BigInteger div
   mod = over2 BigInteger mod
   degree = degree <<< unwrap
+
+instance integralBigInteger :: Integral BigInteger where
+  toBigInt = unwrap
+
+instance realBigInteger :: Real BigInteger where
+  toRational = unwrap >>> toRational
+
+instance numBigInteger :: Num BigInteger where
+  negate = over BigInteger negate
+  abs = over BigInteger abs
+  signum = over BigInteger signum
+  fromBigInt = wrap

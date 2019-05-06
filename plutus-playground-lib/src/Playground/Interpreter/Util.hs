@@ -3,7 +3,7 @@
 
 module Playground.Interpreter.Util where
 
-import           Control.Lens               (view)
+import           Control.Lens               (to, view)
 import           Control.Monad.Error.Class  (MonadError, throwError)
 import           Data.Aeson                 (FromJSON)
 import qualified Data.Aeson                 as JSON
@@ -12,13 +12,13 @@ import           Data.Foldable              (foldl')
 import qualified Data.Map                   as Map
 import qualified Data.Set                   as Set
 import qualified Data.Typeable              as T
-import           Ledger                     (Blockchain, Tx, TxOutOf (txOutValue))
+import           Ledger                     (Blockchain, PubKey, Tx, TxOutOf (txOutValue), toPublicKey)
 import qualified Ledger.Value               as V
 import           Playground.API             (PlaygroundError (OtherError), SimulatorWallet (SimulatorWallet),
                                              simulatorWalletBalance, simulatorWalletWallet)
 import           Wallet.Emulator.Types      (EmulatorEvent, EmulatorState (_chainNewestFirst, _emulatorLog), MockWallet,
-                                             Trace, ownFunds, processPending, runTraceTxPool, walletPubKey,
-                                             walletStates, walletsNotifyBlock)
+                                             Trace, Wallet, WalletState, ownFunds, ownPrivateKey, processPending,
+                                             runTraceTxPool, walletPubKey, walletStates, walletsNotifyBlock)
 import           Wallet.Generators          (GeneratorModel (GeneratorModel))
 import qualified Wallet.Generators          as Gen
 
@@ -29,18 +29,19 @@ import qualified Wallet.Generators          as Gen
 -- decode JSON inside the interpreter (since we don't have access to
 -- it's type outside) so we need to wrap the @apply functions up in
 -- something that can throw errors.
+type TraceResult
+     = (Blockchain, [EmulatorEvent], [SimulatorWallet], [(PubKey, Wallet)])
+
 runTrace ::
        [SimulatorWallet]
     -> [Either PlaygroundError (Trace MockWallet [Tx])]
-    -> Either PlaygroundError (Blockchain, [EmulatorEvent], [SimulatorWallet])
+    -> Either PlaygroundError TraceResult
 runTrace wallets actions =
     let walletToBalance SimulatorWallet {..} =
-            ( walletPubKey simulatorWalletWallet
-            , simulatorWalletBalance)
+            (walletPubKey simulatorWalletWallet, simulatorWalletBalance)
         initialBalance = Map.fromList $ fmap walletToBalance wallets
         pubKeys =
-            Set.fromList $
-            fmap (walletPubKey . simulatorWalletWallet) wallets
+            Set.fromList $ fmap (walletPubKey . simulatorWalletWallet) wallets
         eActions = sequence actions
      in case eActions of
             Left e -> Left e
@@ -55,20 +56,31 @@ runTrace wallets actions =
                     (eRes, newState) = runTraceTxPool [initialTx] action
                     blockchain = _chainNewestFirst newState
                     emulatorLog = _emulatorLog newState
+                    fundsDistribution :: [SimulatorWallet]
                     fundsDistribution =
-                        Map.map
-                            (foldl' V.plus V.zero .
-                             fmap txOutValue . view ownFunds) .
-                        view walletStates $
-                        newState
+                        Map.foldMapWithKey (\k v -> [toSimulatorWallet k v]) $
+                        view walletStates newState
+                    walletKeys :: [(PubKey, Wallet)]
+                    walletKeys =
+                        Map.foldMapWithKey
+                            (\k v ->
+                                 [(view (ownPrivateKey . to toPublicKey) v, k)]) $
+                        view walletStates newState
                  in case eRes of
                         Right _ ->
                             Right
                                 ( blockchain
                                 , emulatorLog
-                                , uncurry SimulatorWallet <$>
-                                  Map.toList fundsDistribution)
+                                , fundsDistribution
+                                , walletKeys)
                         Left e -> Left . OtherError . show $ e
+  where
+    walletStateBalance :: WalletState -> V.Value
+    walletStateBalance = foldl' V.plus V.zero . fmap txOutValue . view ownFunds
+    toSimulatorWallet :: Wallet -> WalletState -> SimulatorWallet
+    toSimulatorWallet simulatorWalletWallet walletState = SimulatorWallet {..}
+      where
+        simulatorWalletBalance = walletStateBalance walletState
 
 -- | This will throw an exception if it cannot decode the json however it should
 --   never do this as long as it is only called in places where we have already

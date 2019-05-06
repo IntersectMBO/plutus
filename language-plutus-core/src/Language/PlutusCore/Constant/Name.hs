@@ -14,7 +14,6 @@ module Language.PlutusCore.Constant.Name
     , typedGreaterThanInteger
     , typedGreaterThanEqInteger
     , typedEqInteger
-    , typedIntToByteString
     , typedConcatenate
     , typedTakeByteString
     , typedDropByteString
@@ -30,6 +29,7 @@ import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Lexer.Type
 
 import qualified Data.ByteString.Lazy.Char8                     as BSL
+import           Data.Proxy
 
 -- | Apply a continuation to the typed version of a 'BuiltinName'.
 withTypedBuiltinName :: BuiltinName -> (forall a r. TypedBuiltinName a r -> c) -> c
@@ -45,7 +45,6 @@ withTypedBuiltinName LessThanEqInteger    k = k typedLessThanEqInteger
 withTypedBuiltinName GreaterThanInteger   k = k typedGreaterThanInteger
 withTypedBuiltinName GreaterThanEqInteger k = k typedGreaterThanEqInteger
 withTypedBuiltinName EqInteger            k = k typedEqInteger
-withTypedBuiltinName IntToByteString      k = k typedIntToByteString
 withTypedBuiltinName Concatenate          k = k typedConcatenate
 withTypedBuiltinName TakeByteString       k = k typedTakeByteString
 withTypedBuiltinName DropByteString       k = k typedDropByteString
@@ -55,16 +54,13 @@ withTypedBuiltinName VerifySignature      k = k typedVerifySignature
 withTypedBuiltinName EqByteString         k = k typedEqByteString
 
 intIntInt :: TypeScheme (Integer -> Integer -> Integer) Integer
-intIntInt =
-    TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt) `TypeSchemeArrow`
-    TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt) `TypeSchemeArrow`
-    TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt)
+intIntInt = Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
 
-intIntBool :: TypeScheme (Integer -> Integer -> Bool) Bool
-intIntBool =
-    TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt) `TypeSchemeArrow`
-    TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt) `TypeSchemeArrow`
-    TypeSchemeBuiltin TypedBuiltinDyn
+intIntResInt :: TypeScheme (Integer -> Integer -> EvaluationResult Integer) (EvaluationResult Integer)
+intIntResInt = Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
+
+intIntDyn :: KnownType a => TypeScheme (Integer -> Integer -> a) a
+intIntDyn = Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
 
 -- | Typed 'AddInteger'.
 typedAddInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
@@ -79,99 +75,83 @@ typedMultiplyInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
 typedMultiplyInteger = TypedBuiltinName MultiplyInteger intIntInt
 
 -- | Typed 'DivideInteger'.
-typedDivideInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
-typedDivideInteger = TypedBuiltinName DivideInteger intIntInt
+typedDivideInteger
+    :: TypedBuiltinName (Integer -> Integer -> EvaluationResult Integer) (EvaluationResult Integer)
+typedDivideInteger = TypedBuiltinName DivideInteger intIntResInt
 
 -- | Typed 'QuotientInteger'
-typedQuotientInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
-typedQuotientInteger = TypedBuiltinName QuotientInteger intIntInt
+typedQuotientInteger
+    :: TypedBuiltinName (Integer -> Integer -> EvaluationResult Integer) (EvaluationResult Integer)
+typedQuotientInteger = TypedBuiltinName QuotientInteger intIntResInt
 
 -- | Typed 'RemainderInteger'.
-typedRemainderInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
-typedRemainderInteger = TypedBuiltinName RemainderInteger intIntInt
+typedRemainderInteger
+    :: TypedBuiltinName (Integer -> Integer -> EvaluationResult Integer) (EvaluationResult Integer)
+typedRemainderInteger = TypedBuiltinName RemainderInteger intIntResInt
 
 -- | Typed 'ModInteger'
-typedModInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
-typedModInteger = TypedBuiltinName ModInteger intIntInt
+typedModInteger
+    :: TypedBuiltinName (Integer -> Integer -> EvaluationResult Integer) (EvaluationResult Integer)
+typedModInteger = TypedBuiltinName ModInteger intIntResInt
 
 -- | Typed 'LessThanInteger'.
 typedLessThanInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool
-typedLessThanInteger = TypedBuiltinName LessThanInteger intIntBool
+typedLessThanInteger = TypedBuiltinName LessThanInteger intIntDyn
 
 -- | Typed 'LessThanEqInteger'.
 typedLessThanEqInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool
-typedLessThanEqInteger = TypedBuiltinName LessThanEqInteger intIntBool
+typedLessThanEqInteger = TypedBuiltinName LessThanEqInteger intIntDyn
 
 -- | Typed 'GreaterThanInteger'.
 typedGreaterThanInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool
-typedGreaterThanInteger = TypedBuiltinName GreaterThanInteger intIntBool
+typedGreaterThanInteger = TypedBuiltinName GreaterThanInteger intIntDyn
 
 -- | Typed 'GreaterThanEqInteger'.
 typedGreaterThanEqInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool
-typedGreaterThanEqInteger = TypedBuiltinName GreaterThanEqInteger intIntBool
+typedGreaterThanEqInteger = TypedBuiltinName GreaterThanEqInteger intIntDyn
 
 -- | Typed 'EqInteger'.
 typedEqInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool
-typedEqInteger = TypedBuiltinName EqInteger intIntBool
-
--- | Typed 'IntToByteString'.
-typedIntToByteString :: TypedBuiltinName (Integer -> BSL.ByteString) BSL.ByteString
-typedIntToByteString =
-    TypedBuiltinName IntToByteString $
-        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS)
+typedEqInteger = TypedBuiltinName EqInteger intIntDyn
 
 -- | Typed 'Concatenate'.
 typedConcatenate :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> BSL.ByteString) BSL.ByteString
 typedConcatenate =
     TypedBuiltinName Concatenate $
-        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS)
+        Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
 
 -- | Typed 'TakeByteString'.
 typedTakeByteString :: TypedBuiltinName (Integer -> BSL.ByteString -> BSL.ByteString) BSL.ByteString
 typedTakeByteString =
     TypedBuiltinName TakeByteString $
-        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS)
+        Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
 
 -- | Typed 'DropByteString'.
 typedDropByteString :: TypedBuiltinName (Integer -> BSL.ByteString -> BSL.ByteString) BSL.ByteString
 typedDropByteString =
     TypedBuiltinName DropByteString $
-        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticInt) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS)
+        Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
 
 -- | Typed 'SHA2'.
 typedSHA2 :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString) BSL.ByteString
 typedSHA2 =
     TypedBuiltinName SHA2 $
-        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS)
+        Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
 
 -- | Typed 'SHA3'.
 typedSHA3 :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString) BSL.ByteString
 typedSHA3 =
     TypedBuiltinName SHA3 $
-        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS)
+        Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
 
 -- | Typed 'VerifySignature'.
 typedVerifySignature :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> BSL.ByteString -> EvaluationResult Bool) (EvaluationResult Bool)
 typedVerifySignature =
     TypedBuiltinName VerifySignature $
-        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS) `TypeSchemeArrow`
-        TypeSchemeBuiltin TypedBuiltinDyn
+        Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
 
 -- | Typed 'EqByteString'.
 typedEqByteString :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> Bool) Bool
 typedEqByteString =
     TypedBuiltinName EqByteString $
-        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinStatic TypedBuiltinStaticBS) `TypeSchemeArrow`
-        TypeSchemeBuiltin TypedBuiltinDyn
+        Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy

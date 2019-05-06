@@ -124,6 +124,8 @@ instance monadAppMockApp :: Monad m => MonadApp (MockApp m) where
     assign (_1 <<< _localStorage <<< at (unwrap bufferLocalStorageKey)) (Just contents)
 
   preventDefault event = pure unit
+  setDropEffect effectType event = pure unit
+  setDataTransferData event mimeType value = pure unit
   readFileFromDragEvent event = pure "TEST"
   updateChartsIfPossible = pure unit
   --

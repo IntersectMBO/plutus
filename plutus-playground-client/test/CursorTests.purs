@@ -5,8 +5,6 @@ module CursorTests
 import Prelude
 
 import Control.Monad.Eff.Random (RANDOM)
-import Control.Monad.Gen (chooseInt)
-import Control.Monad.Gen.Class (class MonadGen)
 import Cursor (Cursor)
 import Cursor as Cursor
 import Data.Array as Array
@@ -21,6 +19,7 @@ import Test.QuickCheck.Gen (Gen, arrayOf, elements)
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (equal)
 import Test.Unit.QuickCheck (quickCheck)
+import TestUtils (genIndex, genLooseIndex)
 
 data Operation
   = Set Int
@@ -40,13 +39,6 @@ applyOperation Left = Cursor.left
 applyOperation Right = Cursor.right
 applyOperation First = Cursor.first
 applyOperation Last = Cursor.last
-
-genIndex :: forall m a. MonadGen m => Cursor a -> m Int
-genIndex cursor = chooseInt 0 (Cursor.length cursor - 1)
-
--- | Generate an index which is roughly in range, but may be slightly out of bounds.
-genLooseIndex :: forall m a. MonadGen m => Cursor a -> m Int
-genLooseIndex cursor = chooseInt (-5) (Cursor.length cursor + 5)
 
 genOperation :: forall a. Cursor a -> Gen Operation
 genOperation cursor = do

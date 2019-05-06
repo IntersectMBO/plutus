@@ -18,6 +18,7 @@ module Language.PlutusCore.Generators.Interesting
     ) where
 
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
@@ -39,28 +40,26 @@ import qualified Hedgehog.Gen                             as Gen
 import qualified Hedgehog.Range                           as Range
 
 -- | The type of terms-and-their-values generators.
-type TermGen a = Gen (TermOf (TypedBuiltinValue a))
+type TermGen a = Gen (TermOf a)
 
 -- | Generates application of a built-in that returns a @boolean@, immediately saturated afterwards.
 --
 -- > lessThanInteger {integer} $i1 $i2 {integer} $j1 $j2 == if i1 < i2 then j1 else j2
 genOverapplication :: TermGen Integer
 genOverapplication = do
-    let typedInt1 = TypedBuiltinStatic TypedBuiltinStaticInt
-        typedInt2 = TypedBuiltinStatic TypedBuiltinStaticInt
-        int2 = typedBuiltinToType typedInt2
-    TermOf ti1 i1 <- genTypedBuiltinDef typedInt1
-    TermOf ti2 i2 <- genTypedBuiltinDef typedInt1
-    TermOf tj1 j1 <- genTypedBuiltinDef typedInt2
-    TermOf tj2 j2 <- genTypedBuiltinDef typedInt2
+    let typedInt = AsKnownType
+        int = toTypeAst typedInt
+    TermOf ti1 i1 <- genTypedBuiltinDef typedInt
+    TermOf ti2 i2 <- genTypedBuiltinDef typedInt
+    TermOf tj1 j1 <- genTypedBuiltinDef typedInt
+    TermOf tj2 j2 <- genTypedBuiltinDef typedInt
     let term =
             mkIterApp ()
                 (TyInst ()
                     (mkIterApp () (builtinNameAsTerm LessThanInteger) [ti1, ti2])
-                    int2)
+                    int)
                 [tj1, tj2]
-        value = TypedBuiltinValue typedInt2 $ if i1 < i2 then j1 else j2
-    return $ TermOf term value
+    return . TermOf term $ if i1 < i2 then j1 else j2
 
 -- | @\i -> product [1 :: Integer .. i]@ as a PLC term.
 --
@@ -117,10 +116,9 @@ naiveFib = runQuote $ do
 genFactorial :: TermGen Integer
 genFactorial = do
     let m = 10
-        typedIntS = TypedBuiltinStatic TypedBuiltinStaticInt
     iv <- Gen.integral $ Range.linear 1 m
     let term = Apply () factorial (makeIntConstant iv)
-    return . TermOf term . TypedBuiltinValue typedIntS $ Prelude.product [1..iv]
+    return . TermOf term $ Prelude.product [1..iv]
 
 -- | Generate a term that computes the ith Fibonacci number and return it
 -- along with the corresponding 'Integer' computed on the Haskell side.
@@ -128,10 +126,9 @@ genNaiveFib :: TermGen Integer
 genNaiveFib = do
     let fibs = scanl (+) 0 $ 1 : fibs
         m = 16
-        typedIntS = TypedBuiltinStatic TypedBuiltinStaticInt
     iv <- Gen.integral $ Range.linear 0 m
     let term = Apply () naiveFib . Constant () $ BuiltinInt () iv
-    return . TermOf term . TypedBuiltinValue typedIntS $ fibs `genericIndex` iv
+    return . TermOf term $ fibs `genericIndex` iv
 
 -- | Generate an 'Integer', turn it into a Scott-encoded PLC @Nat@ (see 'Nat'),
 -- turn that @Nat@ into the corresponding PLC @integer@ using a fold (see 'FoldNat')
@@ -139,10 +136,10 @@ genNaiveFib = do
 -- along with the original 'Integer'
 genNatRoundtrip :: TermGen Integer
 genNatRoundtrip = do
-    let typedIntS = TypedBuiltinStatic TypedBuiltinStaticInt
-    TermOf _ iv <- Gen.filter ((>= 0) . _termOfValue) $ genTypedBuiltinDef typedIntS
+    let typedInt = AsKnownType
+    TermOf _ iv <- Gen.filter ((>= 0) . _termOfValue) $ genTypedBuiltinDef typedInt
     let term = mkIterApp () natToInteger [metaIntegerToNat iv]
-    return . TermOf term $ TypedBuiltinValue typedIntS iv
+    return $ TermOf term iv
 
 -- | @sumNat@ as a PLC term.
 natSum :: Term TyName Name ()
@@ -167,62 +164,70 @@ natSum = runQuote $ do
 -- sum elements of the list (see 'Sum') and return it along with the sum of the original list.
 genListSum :: TermGen Integer
 genListSum = do
-    let typedIntS = TypedBuiltinStatic TypedBuiltinStaticInt
-        intS = typedBuiltinToType typedIntS
-    ps <- Gen.list (Range.linear 0 10) $ genTypedBuiltinDef typedIntS
+    let typedInt = AsKnownType
+        intS = toTypeAst typedInt
+    ps <- Gen.list (Range.linear 0 10) $ genTypedBuiltinDef typedInt
     let list = metaListToList intS $ map _termOfTerm ps
         term = mkIterApp () List.sum [list]
     let haskSum = Prelude.sum $ map _termOfValue ps
-    return . TermOf term $ TypedBuiltinValue typedIntS haskSum
+    return $ TermOf term haskSum
 
 -- | Generate a @boolean@ and two @integer@s and check whether @if b then i1 else i2@
 -- means the same thing in Haskell and PLC. Terms are generated using 'genTermLoose'.
 genIfIntegers :: TermGen Integer
 genIfIntegers = do
-    let typedIntS = TypedBuiltinStatic TypedBuiltinStaticInt
-        intS = typedBuiltinToType typedIntS
-    TermOf b bv <- genTermLoose $ TypedBuiltinDyn @Bool
-    TermOf i iv <- genTermLoose typedIntS
-    TermOf j jv <- genTermLoose typedIntS
-    let instConst = Apply () $ mkIterInst () Function.const [intS, unit]
+    let typedInt = AsKnownType
+        int = toTypeAst typedInt
+    TermOf b bv <- genTermLoose AsKnownType
+    TermOf i iv <- genTermLoose typedInt
+    TermOf j jv <- genTermLoose typedInt
+    let instConst = Apply () $ mkIterInst () Function.const [int, unit]
         value = if bv then iv else jv
         term =
             mkIterApp ()
-                (TyInst () ifThenElse intS)
+                (TyInst () ifThenElse int)
                 [b, instConst i, instConst j]
-    return . TermOf term $ TypedBuiltinValue typedIntS value
+    return $ TermOf term value
 
 -- | Check that builtins can be partially applied.
 genApplyAdd1 :: TermGen Integer
 genApplyAdd1 = do
-    let typedIntS = TypedBuiltinStatic TypedBuiltinStaticInt
-        intS = typedBuiltinToType typedIntS
-    TermOf i iv <- genTermLoose typedIntS
-    TermOf j jv <- genTermLoose typedIntS
+    let typedInt = AsKnownType
+        int = toTypeAst typedInt
+    TermOf i iv <- genTermLoose typedInt
+    TermOf j jv <- genTermLoose typedInt
     let term =
-            mkIterApp () (mkIterInst () applyFun [intS, intS])
+            mkIterApp () (mkIterInst () applyFun [int, int])
                 [ Apply () (builtinNameAsTerm AddInteger) i
                 , j
                 ]
-    return . TermOf term . TypedBuiltinValue typedIntS $ iv + jv
+    return . TermOf term $ iv + jv
 
 -- | Check that builtins can be partially applied.
 genApplyAdd2 :: TermGen Integer
 genApplyAdd2 = do
-    let typedIntS = TypedBuiltinStatic TypedBuiltinStaticInt
-        intS = typedBuiltinToType typedIntS
-    TermOf i iv <- genTermLoose typedIntS
-    TermOf j jv <- genTermLoose typedIntS
+    let typedInt = AsKnownType
+        int = toTypeAst typedInt
+    TermOf i iv <- genTermLoose typedInt
+    TermOf j jv <- genTermLoose typedInt
     let term =
-            mkIterApp () (mkIterInst () applyFun [intS, TyFun () intS intS])
+            mkIterApp () (mkIterInst () applyFun [int, TyFun () int int])
                 [ builtinNameAsTerm AddInteger
                 , i
                 , j
                 ]
-    return . TermOf term . TypedBuiltinValue typedIntS $ iv + jv
+    return . TermOf term $ iv + jv
+
+-- | Check that division by zero results in 'Error'.
+genDivideByZero :: TermGen (EvaluationResult Integer)
+genDivideByZero = do
+    op <- Gen.element [DivideInteger, QuotientInteger, ModInteger, RemainderInteger]
+    TermOf i _ <- genTermLoose $ AsKnownType @Integer
+    let term = mkIterApp () (builtinNameAsTerm op) [i, makeIntConstant 0]
+    return $ TermOf term EvaluationFailure
 
 -- | Apply a function to all interesting generators and collect the results.
-fromInterestingTermGens :: (forall a. String -> TermGen a -> c) -> [c]
+fromInterestingTermGens :: (forall a. KnownType a => String -> TermGen a -> c) -> [c]
 fromInterestingTermGens f =
     [ f "overapplication" genOverapplication
     , f "factorial"       genFactorial
@@ -232,4 +237,5 @@ fromInterestingTermGens f =
     , f "IfIntegers"      genIfIntegers
     , f "ApplyAdd1"       genApplyAdd1
     , f "ApplyAdd2"       genApplyAdd2
+    , f "DivideByZero"    genDivideByZero
     ]

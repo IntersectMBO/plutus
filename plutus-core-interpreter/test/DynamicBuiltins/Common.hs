@@ -2,7 +2,7 @@
 
 module DynamicBuiltins.Common
     ( typecheckEvaluateCek
-    , typecheckReadDynamicBuiltinCek
+    , typecheckReadKnownCek
     ) where
 
 import           Language.PlutusCore
@@ -31,9 +31,9 @@ typecheckEvaluateCek
 typecheckEvaluateCek = typecheckAnd evaluateCek
 
 -- | Type check and convert a Plutus Core term to a Haskell value.
-typecheckReadDynamicBuiltinCek
-    :: (MonadError (Error ()) m, KnownDynamicBuiltinType a)
+typecheckReadKnownCek
+    :: (MonadError (Error ()) m, KnownType a)
     => DynamicBuiltinNameMeanings
     -> Term TyName Name ()
     -> m (Either CekMachineException (EvaluationResult a))
-typecheckReadDynamicBuiltinCek = typecheckAnd readDynamicBuiltinCek
+typecheckReadKnownCek = typecheckAnd readKnownCek

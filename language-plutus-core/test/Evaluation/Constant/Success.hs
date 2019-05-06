@@ -35,25 +35,25 @@ test_typedMultiplyIntegerSuccess
 test_typedDivideIntegerSuccess :: TestTree
 test_typedDivideIntegerSuccess
     = testProperty "typedDivideInteger"
-    $ prop_applyBuiltinNameSuccess typedDivideInteger div
+    $ prop_applyBuiltinNameSuccess typedDivideInteger (nonZeroArg div)
     $ genTypedBuiltinDivide
 
 test_typedQuotientIntegerSuccess :: TestTree
 test_typedQuotientIntegerSuccess =
     testProperty "typedQuotientInteger"
-    $ prop_applyBuiltinNameSuccess typedQuotientInteger quot
+    $ prop_applyBuiltinNameSuccess typedQuotientInteger (nonZeroArg quot)
     $ genTypedBuiltinDivide
 
 test_typedModIntegerSuccess :: TestTree
 test_typedModIntegerSuccess
     = testProperty "typedModInteger"
-    $ prop_applyBuiltinNameSuccess typedModInteger mod
+    $ prop_applyBuiltinNameSuccess typedModInteger (nonZeroArg mod)
     $ genTypedBuiltinDivide
 
 test_typedRemainderIntegerSuccess :: TestTree
 test_typedRemainderIntegerSuccess
     = testProperty "typedRemainderInteger"
-    $ prop_applyBuiltinNameSuccess typedRemainderInteger rem
+    $ prop_applyBuiltinNameSuccess typedRemainderInteger (nonZeroArg rem)
     $ genTypedBuiltinDivide
 
 test_typedLessThanIntegerSuccess :: TestTree

@@ -43,7 +43,6 @@ data BuiltinName = AddInteger
                  | GreaterThanInteger
                  | GreaterThanEqInteger
                  | EqInteger
-                 | IntToByteString
                  | Concatenate
                  | TakeByteString
                  | DropByteString
@@ -171,7 +170,6 @@ instance Pretty BuiltinName where
     pretty GreaterThanInteger   = "greaterThanInteger"
     pretty GreaterThanEqInteger = "greaterThanEqualsInteger"
     pretty EqInteger            = "equalsInteger"
-    pretty IntToByteString      = "intToByteString"
     pretty Concatenate          = "concatenate"
     pretty TakeByteString       = "takeByteString"
     pretty DropByteString       = "dropByteString"
