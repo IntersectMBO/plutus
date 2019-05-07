@@ -231,7 +231,7 @@ convertExpr opts locStr codeTy origE = do
               (plcP::PLCProgram) <- void <$> (flip runReaderT PIR.NoProvenance $ PIR.compileProgram pirP)
               when (poDoTypecheck opts) $ void $ do
                   stringBuiltinTypes <- getStringBuiltinTypes ()
-                  PLC.inferTypeOfProgram (PLC.offChainConfig stringBuiltinTypes) plcP
+                  PLC.typecheckPipeline (PLC.offChainConfig stringBuiltinTypes) plcP
               pure (pirP, plcP)
         context = ConvertingContext {
             ccOpts=ConversionOptions { coCheckValueRestriction=poDoTypecheck opts },
