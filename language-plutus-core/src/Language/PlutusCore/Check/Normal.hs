@@ -59,7 +59,8 @@ termValue :: Term tyname name a -> Either (NormalizationError tyname name a) (Te
 termValue (LamAbs l n ty t)      = LamAbs l n ty <$> checkT t
 termValue (IWrap l pat arg term) = IWrap l pat arg <$> termValue term
 termValue (TyAbs l tn k t)       = TyAbs l tn k <$> termValue t
-termValue t                      = builtinValue t
+termValue t@Constant{}           = pure t
+termValue t                      = Left $ BadTerm (termLoc t) t "term value"
 
 {- Note [Builtin applications and values]
 An older version of the specification had a special case for builtin applications being
@@ -101,6 +102,4 @@ typeValue = cataM aM where
 neutralType :: Type tyname a -> Either (NormalizationError tyname name a) (Type tyname a)
 neutralType ty@TyVar{}       = pure ty
 neutralType (TyApp x ty ty') = TyApp x <$> neutralType ty <*> typeValue ty'
--- See note [Builtin applications and values]
-neutralType ty@TyBuiltin{}   = pure ty
 neutralType ty               = Left (BadType (tyLoc ty) ty "neutral type")
