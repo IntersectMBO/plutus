@@ -2,7 +2,6 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE LambdaCase             #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TemplateHaskell        #-}
 module Language.PlutusTx.Compiler.Error (
@@ -73,6 +72,9 @@ instance (PP.Pretty a) => PP.Pretty (Error a) where
 
 instance PLC.AsTypeError ConvError () where
     _TypeError = _NoContext . _PLCError . PLC._TypeError
+
+instance PLC.AsNormalizationError ConvError PLC.TyName PLC.Name () where
+    _NormalizationError = _NoContext . _PLCError . PLC._NormalizationError
 
 instance PIR.AsError ConvError (PIR.Provenance ()) where
     _Error = _NoContext . _PIRError
