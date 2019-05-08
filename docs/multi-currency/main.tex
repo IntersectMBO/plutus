@@ -32,7 +32,9 @@
 \usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
 \newcommand{\comment}[1]{\todo[linecolor=OliveGreen,backgroundcolor=OliveGreen!25,bordercolor=OliveGreen]{#1}\xspace}
 
+\usepackage{lmodern} % Avoid bitmap fonts with T1
 \usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
 \usepackage{dsfont}
 \usepackage{textcomp}
 
@@ -264,6 +266,8 @@ The standard equality symbol ($=$) is used to state that two values are equal. T
 %An anonymous function that takes a tuple as argument may be denoted as $(a_1,\ldots,a_n) \Rightarrow \ldots$. 
 %For instance, the $k$-th projection of a tuple may be denoted $(a_1,\ldots,a_n) \Rightarrow a_k$. 
 %The cryptographic collision-resistant hash of an object $c$ is denoted $\hash{c}$. The assignment of a value $c$ to a variable $v$ is denoted $v \leftarrow c$.
+
+\section{Balanced Transactions}
 
 
 \section{Multi-Currency Values}
