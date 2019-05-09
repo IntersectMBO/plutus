@@ -237,6 +237,16 @@ The abstract \emph{multi-currency ledger} model described in this paper is inspi
 %
 A reference implementation in Scala is available in \url{https://github.com/input-output-hk/chimeric-ledgers-spec-scala}.
 
+\section{Financial Assets}
+Another reason for choosing a native multi-currency implementation over one  based on smart contract is that the former allows us to model the relationship between contracts and assets in real-world financial markets more closely. 
+
+Consider a simple loan that is backed by collateral, for example a mortgage backed by a house. The mortgage contract defines \emph{a set of rules} that regulate the exchange of money between the bank and the homeowner. At the beginning of the contract the bank pays out the principal to the borrower. After that, the homeowner has to make a monthly payment to the bank over a fixed number of months. 
+
+Looking at the mortgage as an \emph{asset} (ie. from a bookkeeping perspective) we need to distinguish the roles of borrower and lender. For the lender, the mortgage represents a stream of positive cashflows and shows up as an asset on the balance sheet. For the borrower, the mortgage is stream of negative cashflows, or a liability. 
+
+This distinction between a contract as set of rules and the stakes in a contract as assets is important because assets can be traded. For example, the bank might choose to sell the mortgage to another bank. With the blockchain we have a mechanism for keeping track of the ownership of assets, so it is sensible to use that mechanism for non-cash assets (including stakes in financial contracts) instead of re-implementing ownership and permissions features over and over again within the contracts themselves.
+
+The question of asset vs set-of-rules is even more important for derivative financial contracts, for example pools of mortgages. Our proposal for a multi-currency ledger cleanly separates the two concerns. Section \ref{sec:financial-example} describes the modeling of derviative contracts in more detail.
 
 \section{Assets and Currencies}
 \label{sec:Preliminaries}
@@ -266,14 +276,18 @@ The standard equality symbol ($=$) is used to state that two values are equal. T
 %An anonymous function that takes a tuple as argument may be denoted as $(a_1,\ldots,a_n) \Rightarrow \ldots$. 
 %For instance, the $k$-th projection of a tuple may be denoted $(a_1,\ldots,a_n) \Rightarrow a_k$. 
 %The cryptographic collision-resistant hash of an object $c$ is denoted $\hash{c}$. The assignment of a value $c$ to a variable $v$ is denoted $v \leftarrow c$.
-
-\section{Balanced Transactions}
-
-
 \section{Multi-Currency Values}
 \label{sec:MultiCurrencyValues}
 
-In the chimeric ledger model of \cite{ChimericLedgers} and \cite{UTxOScripts}, the type $\valueT$ was assumed to be the type of integers, and values of this type were used to denote the (often non-negative) quantity of an implicitly known single currency that was transferred, forged, paid as fee or generally considered as the balance of an address in a transaction or in a ledger. In a multi-currency setting, the least that is needed is a generalization of the notion of $\valueT$ so that it contains not only a quantity but also the name of the currency. This could be achieved by turning the type $\valueT$ into, for instance, a pair of an integer quantity and a string for the currency's name. However, such a new $\valueT$ would not have the same algebraic properties that it used to have. Integers form a commutative group with respect to the operation of addition. On the other hand, integers paired with currency names do not. For instance, ``adding'' $(10, \mathrm{``euro''})$ and $(5, \mathrm{``dollar''})$ does not result in something that could be meaningfully represented as a single pair of an integer quantity and a single currency name. 
+In the chimeric ledger model of \cite{ChimericLedgers} and \cite{UTxOScripts}, the type $\valueT$ was assumed to be the type of integers, and values of this type were used to denote the (often non-negative) quantity of an implicitly known single currency that was transferred, forged, paid as fee or generally considered as the balance of an address in a transaction or in a ledger. In a multi-currency setting, the least that is needed is a generalization of the notion of $\valueT$ so that it contains not only a quantity but also the name of the currency. When generalizing $\valueT$ we should aim to impose as few constraints as possible so as not to restrict the implementations unnecessarily. What do we need to be able to do with $\valueT$? From the ledger's point of view we need to check whether a given transaction that involves $\valueT$ is valid, and in particular whether it is balanced.
+
+Transactions are balanced if the total amount of $\valueT$ they consume is equal to the total amount of $\valueT$ they produce. To check whether a transaction is balanced we need two operations: Sum (associative) and equality (an equivalence relation).
+
+\begin{figure}
+\end{figure}
+
+
+This could be achieved by turning the type $\valueT$ into, for instance, a pair of an integer quantity and a string for the currency's name. However, such a new $\valueT$ would not have the same algebraic properties that it used to have. Integers form a commutative group with respect to the operation of addition. On the other hand, integers paired with currency names do not. For instance, ``adding'' $(10, \mathrm{``euro''})$ and $(5, \mathrm{``dollar''})$ does not result in something that could be meaningfully represented as a single pair of an integer quantity and a single currency name. 
 
 A quick inspection of the definitions of balance and the validity conditions in \cite{ChimericLedgers} and \cite{UTxOScripts} reveals that it is important to be able to add, subtract and compare values. Therefore, it is more sensible to generalize $\valueT$ in a such way that $\valueT$ is, as it used to be before, a commutative group with a (partial) order. This can be done by turning $\valueT$ into a map from currency names (strings) to quantities (integers) and defining addition and inverse operators and the order relation appropriately.
 
@@ -495,6 +509,8 @@ In the multi-currency case, as described in Section \ref{sec:MultiCurrencyValues
 
 Note that \verb+toBeWithdrawn+ has to be defined outside the \verb+withdraw+ function because Solidity does not allow the declaration of local variables of type \verb+mapping+ inside functions. Despite the stateful non-local mapping, this \verb+withdraw+ function is immune to the reentrancy bug because it follows the \emph{Checks-Effects-Interactions Pattern} \cite{SoliditySecurity}.
 
+\section{Financial Example}\label{sec:financial-example}
+\comment{TODO: Describe a derivative contract in more detail}
 
 \section{Discussion}
 \label{sec:Discussion}
