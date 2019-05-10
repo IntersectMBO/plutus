@@ -7,7 +7,7 @@ import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Int as Int
 import Data.Lens (view)
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..), fst)
 import Data.Tuple.Nested ((/\))
 import Halogen (HTML)
 import Halogen.HTML (ClassName(ClassName), div, input, label, text)
@@ -22,7 +22,7 @@ import Types (ValueEvent(SetBalance), _currencySymbol, _tokenName)
 valueForm :: forall p i. (ValueEvent -> HQ.Action i) -> Value -> HTML p i
 valueForm handler (Value { getValue: LedgerMap balances }) =
   Keyed.div_
-    (Array.concat (mapWithIndex (currencyRow handler) balances))
+    (Array.concat (mapWithIndex (currencyRow handler) (Array.sortWith fst balances)))
 
 currencyRow ::
   forall p i.
@@ -31,7 +31,7 @@ currencyRow ::
   -> Tuple CurrencySymbol (LedgerMap TokenName Int)
   -> Array (Tuple String (HTML p i))
 currencyRow handler currencyIndex (Tuple currencySymbol (LedgerMap tokenBalances)) =
-  mapWithIndex (balanceRow handler currencyIndex currencySymbol) tokenBalances
+  mapWithIndex (balanceRow handler currencyIndex currencySymbol) (Array.sortWith fst tokenBalances)
 
 balanceRow ::
   forall p i.
