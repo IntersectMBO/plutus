@@ -211,7 +211,7 @@ balanceView (CurrencyBalance currencyBalances) =
                   else ClassName "balance-currencies"
                 ]
       ]
-      (map valueView (collapse currencyBalances))
+      (valueView <$> Array.sort (collapse currencyBalances))
 
 balanceView Remainder =
   div [ classes [ balanceClassname
