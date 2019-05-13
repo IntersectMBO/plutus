@@ -16,7 +16,6 @@ import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Halogen (HTML)
 import Halogen.Component (ParentHTML)
-import Halogen.ECharts (EChartsEffects)
 import Halogen.HTML (ClassName(ClassName), IProp, br_, button, code_, div, div_, h2_, h3_, input, label, p_, small_, strong_, text)
 import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (input_, onClick, onDragEnd, onDragEnter, onDragLeave, onDragOver, onDragStart, onDrop, onValueInput)
@@ -35,9 +34,8 @@ import Wallet (walletIdPane, walletsPane)
 import Wallet.Emulator.Types (Wallet)
 
 simulationPane ::
-  forall m aff.
-  MonadAff (EChartsEffects aff) m
-  => Value
+  forall m.
+  Value
   -> Maybe Int
   -> Cursor Simulation
   -> WebData EvaluationResult

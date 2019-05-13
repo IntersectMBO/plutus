@@ -1,0 +1,41 @@
+.ct-chart {
+    .chartist-tooltip {
+        color: $white;
+        background-color: $fadedblue;
+
+        &:before {
+            border-top-color: $fadedblue;
+        }
+    }
+
+    .ct-chart-bar {
+        background-color: $gray-800;
+
+        .ct-x-axis-title,
+        .ct-y-axis-title {
+            fill: $fadedblue;
+        }
+
+        .ct-label {
+            color: $fadedblue;
+        }
+
+        .ct-grid.ct-vertical,
+        .ct-grid.ct-horizontal {
+            stroke: $fadedblue;
+            stroke-dasharray: none;
+        }
+
+        .ct-bar {
+            stroke-width: 30px;
+        }
+
+        .ct-series-a .ct-bar { stroke: $red; }
+        .ct-series-b .ct-bar { stroke: $pink; }
+        .ct-series-c .ct-bar { stroke: $orange; }
+        .ct-series-d .ct-bar { stroke: $yellow; }
+        .ct-series-e .ct-bar { stroke: $green; }
+        .ct-series-f .ct-bar { stroke: $blue; }
+        .ct-series-g .ct-bar { stroke: $indigo; }
+    }
+}

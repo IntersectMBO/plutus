@@ -54,9 +54,8 @@ import Gists (gistControls, mkNewGist, playgroundGistFile, simulationGistFile)
 import Gists as Gists
 import Halogen (Component, action)
 import Halogen as H
+import Halogen.Chartist (ChartistEffects)
 import Halogen.Component (ParentHTML)
-import Halogen.ECharts (EChartsEffects)
-import Halogen.ECharts as EC
 import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, strong_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_)
@@ -67,7 +66,7 @@ import Ledger.Extra (LedgerMap(LedgerMap))
 import Ledger.Extra as LedgerMap
 import Ledger.Value.TH (CurrencySymbol(CurrencySymbol), TokenName(TokenName), Value(Value))
 import LocalStorage (LOCALSTORAGE)
-import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect, updateChartsIfPossible)
+import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect)
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
 import Playground.API (KnownCurrency(..), SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
@@ -125,7 +124,7 @@ initialState = State
 
 mainFrame ::
   forall m aff.
-  MonadAff (EChartsEffects (AceEffects (ajax :: AJAX, analytics :: ANALYTICS, file :: FILE, localStorage :: LOCALSTORAGE | aff))) m
+  MonadAff (ChartistEffects (AceEffects (ajax :: AJAX, analytics :: ANALYTICS, file :: FILE, localStorage :: LOCALSTORAGE | aff))) m
   => MonadAsk (SPSettings_ SPParams_) m
   => Component HTML Query Unit Void m
 mainFrame =
@@ -159,7 +158,6 @@ toEvent :: forall a. Query a -> Maybe Event
 toEvent (HandleEditorMessage _ _) = Nothing
 toEvent (HandleDragEvent _ _) = Nothing
 toEvent (HandleDropEvent _ _) = Just $ defaultEvent "DropScript"
-toEvent (HandleMockchainChartMessage _ _) = Nothing
 toEvent (HandleBalancesChartMessage _ _) = Nothing
 toEvent (CheckAuthStatus _) = Nothing
 toEvent (PublishGist _) = Just $ (defaultEvent "Publish") { category = Just "Gist" }
@@ -235,21 +233,8 @@ eval (HandleDropEvent event next) = do
   saveBuffer contents
   pure next
 
-eval (HandleMockchainChartMessage EC.Initialized next) = do
-  updateChartsIfPossible
-  pure next
-
--- We just ignore most ECharts events.
-eval (HandleMockchainChartMessage (EC.EventRaised event) next) =
-  pure next
-
-eval (HandleBalancesChartMessage EC.Initialized next) = do
-  updateChartsIfPossible
-  pure next
-
--- We just ignore most ECharts events.
-eval (HandleBalancesChartMessage (EC.EventRaised event) next) =
-  pure next
+-- We just ignore most Chartist events.
+eval (HandleBalancesChartMessage _ next) = pure next
 
 eval (CheckAuthStatus next) = do
   assign _authStatus Loading
@@ -392,8 +377,6 @@ eval (EvaluateActions next) = do
 
           replaceViewOnSuccess result Simulations Transactions
 
-          lift updateChartsIfPossible
-
           pure unit
   pure next
 
@@ -533,7 +516,7 @@ toAnnotation (CompilationError {row, column, text}) =
 
 render ::
   forall m aff.
-  MonadAff (EChartsEffects (AceEffects (localStorage :: LOCALSTORAGE | aff))) m
+  MonadAff (ChartistEffects (AceEffects (localStorage :: LOCALSTORAGE | aff))) m
   => State -> ParentHTML Query ChildQuery ChildSlot m
 render state@(State {currentView})  =
   div_
