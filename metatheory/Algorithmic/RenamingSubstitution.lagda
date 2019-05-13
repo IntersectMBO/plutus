@@ -26,10 +26,7 @@ open import Algorithmic
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
-
-
 \end{code}
-
 
 ## Renaming
 
