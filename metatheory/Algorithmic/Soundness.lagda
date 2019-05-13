@@ -27,7 +27,6 @@ embCtx (Γ Alg.,⋆ K) = embCtx Γ Dec.,⋆ K
 embCtx (Γ Alg., A)  = embCtx Γ Dec., embNf A
 \end{code}
 
-
 \begin{code}
 lemT' : ∀{Γ Γ' J K}(A :  Γ ⊢Nf⋆ K)
  → (p : Γ ≡ Γ')
@@ -204,9 +203,7 @@ embTel : ∀{Φ Γ Δ Δ'}(q : Δ' ≡ Δ)
   → Alg.Tel Γ Δ σ As
   → Dec.Tel (embCtx Γ) Δ' (λ {J} α → (embNf (σ (substEq (_∋⋆ J) q α)))) As'
 
-emb : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K}
-  → Γ Alg.⊢ A
-  → embCtx Γ Dec.⊢ embNf A
+emb : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A
 
 embTel refl [] [] p σ x = tt
 embTel refl [] (A' ∷ As') () σ x

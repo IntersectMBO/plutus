@@ -231,7 +231,7 @@ nfType {Γ} (Syn.wrap1 pat arg t) =
   Norm.wrap1 (nf pat) (nf arg) (subst⊢ (lemXX pat arg) (nfType t))
 nfType {Γ} (Syn.unwrap1 {pat = pat}{arg} t) =
   subst⊢ (sym (lemXX pat arg)) (Norm.unwrap1 (nfType t))
-nfType (Syn.conv p t) rewrite sym (completeness p) = nfType t
+nfType (Syn.conv p t) = subst⊢ (completeness p) (nfType t)
 nfType {Γ} (Syn.con {tcn = tcn} t) = Norm.con (nfTypeTC t)
 nfType {Γ} (Syn.builtin bn σ tel) = let
   Δ ,, As ,, C = SSig.SIG bn

@@ -44,7 +44,7 @@ erase (t ·⋆ A)          = erase t
 erase (wrap1 pat arg t) = erase t
 erase (unwrap1 t)       = erase t
 erase (conv p t)        = erase t
-erase {Φ}{Γ} (con t)       = con (eraseTC {Γ = Γ} t)
+erase {Φ}{Γ} (con t)    = con (eraseTC {Γ = Γ} t)
 erase (builtin bn σ ts) = builtin bn (eraseTel ts)
 erase (error A)         = error
 
