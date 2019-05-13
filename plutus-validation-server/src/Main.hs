@@ -11,8 +11,8 @@ import           Data.ByteString.Base64.Type (getByteString64)
 import qualified Data.ByteString.Base64.Type as BS64
 import qualified Data.ByteString.Lazy        as BSL
 import           GHC.Generics                (Generic)
-import           Ledger                      (DataScript (..), RedeemerScript (..), Script, ValidationData (..),
-                                              ValidatorScript (..), runScript)
+import           Ledger                      (DataScript (..), PendingTx, RedeemerScript (..), Script,
+                                              ValidationData (..), ValidatorScript (..), lifted, runScript)
 import           Network.HTTP.Types.Status
 import           Network.Wai
 import           Network.Wai.Handler.Warp
@@ -26,14 +26,17 @@ trueJSON = "{\"isValid\":true}"
 falseJSON :: BSL.ByteString
 falseJSON = "{\"isValid\":false}"
 
+convertPendingTx :: PendingTx -> ValidationData
+convertPendingTx = ValidationData . lifted
+
 -- includes: slot, inputs, outputs, input/output pair currently being validated
 -- fee, value forged by transation
 --
 -- I should ask Vincent what he wants to/is able to provide (look at checkMatch)
 
--- TODO: encoding: base16 or base64? Ask Vincent
+-- base16
 -- If base16 we probably want to use the module in wallet-api
-data ToValidate = ToValidate { validationData :: BS64.ByteString64
+data ToValidate = ToValidate { validationData :: PendingTx -- FIXME: this should be PendingTx info instead
                              , validator      :: BS64.ByteString64
                              , redeemer       :: BS64.ByteString64
                              , dataScript     :: BS64.ByteString64
@@ -46,21 +49,21 @@ getScript bs = CBOR.deserialiseOrFail (BSL.fromStrict bs)
 -- there)
 -- TODO: at least deserialize from a valid script (and then test it)
 -- TODO: should we have a separate way to query run logs?
-validateByteString :: BS.ByteString -- ^ Validation Data
+validateByteString :: PendingTx -- ^ Validation Data
                    -> BS.ByteString -- ^ Validator script
                    -> BS.ByteString -- ^ Data script
                    -> BS.ByteString -- ^ Redeemer script
                    -> Either CBOR.DeserialiseFailure Bool
 validateByteString vd vs d r =
     fmap snd $ runScript
-        <$> (ValidationData <$> getScript vd)
-        <*> (ValidatorScript <$> getScript vs)
+            (convertPendingTx vd)
+        <$> (ValidatorScript <$> getScript vs)
         <*> (DataScript <$> getScript d)
         <*> (RedeemerScript <$> getScript r)
 
 validateResponse :: ToValidate -> (Status, BSL.ByteString)
 validateResponse (ToValidate vd v r d) =
-    case validateByteString (getByteString64 vd) (getByteString64 v) (getByteString64 d) (getByteString64 r) of
+    case validateByteString vd (getByteString64 v) (getByteString64 d) (getByteString64 r) of
         Left{}        -> (status400, mempty)
         (Right True)  -> (status200, trueJSON)
         (Right False) -> (status200, falseJSON)
