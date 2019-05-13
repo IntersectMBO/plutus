@@ -54,6 +54,7 @@ import Algorithmic.Evaluation
 import Algorithmic.Main
 import Algorithmic.Soundness
 import Algorithmic.Completeness
+import Algorithmic.Erasure
 
 -- Terms, that carry witnesses of their type's reduction to normal form
 
@@ -65,7 +66,6 @@ import AlgorithmicRed.Term.RenamingSubstitution
 import Untyped
 import Untyped.RenamingSubstitution
 import Untyped.Reduction
-import Untyped.Erasure
 
 -- Extrinsically typed terms, reduction and evaluation
 
