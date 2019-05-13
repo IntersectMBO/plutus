@@ -38,12 +38,14 @@ module Ledger.Validation
     , pubKeyOutput
     , scriptOutput
     , scriptOutputsAt
+    , pubKeyOutputsAt
     , eqPubKey
     , eqDataScript
     , eqRedeemer
     , eqValidator
     , eqTx
     , valueLockedBy
+    , valuePaidTo
     , adaLockedBy
     , signsTransaction
     , spendsOutput
@@ -367,6 +369,27 @@ valueLockedBy = [|| \ptx h ->
     in $$(P.foldr) $$(VTH.plus) $$(VTH.zero) outputs
 
   ||]
+
+-- | Get the values paid to a public key address by a pending transaction.
+pubKeyOutputsAt :: Q (TExp (PubKey -> PendingTx -> [Value]))
+pubKeyOutputsAt = [||
+
+    let pubKeyOutputsAt' :: PubKey -> PendingTx -> [Value]
+        pubKeyOutputsAt' pk (PendingTx _ outs _ _ _ _ _ _) =
+            let flt (PendingTxOut vl _ dt) =
+                    case dt of
+                        PubKeyTxOut pk' -> 
+                            if $$eqPubKey pk' pk then Just vl else Nothing
+                        _ -> Nothing
+            in $$(P.mapMaybe) flt outs
+    in pubKeyOutputsAt'
+
+    ||]
+
+-- | Get the total value paid to a public key address by a pending transaction.
+valuePaidTo :: Q (TExp (PendingTx -> PubKey -> Value))
+valuePaidTo = [|| \ptx pk -> $$(P.foldr) $$(VTH.plus) $$(VTH.zero) ($$pubKeyOutputsAt pk ptx)
+    ||]
 
 -- | Get the total amount of 'Ada' locked by the given validator in this transaction.
 adaLockedBy :: Q (TExp (PendingTx -> ValidatorHash -> Ada))

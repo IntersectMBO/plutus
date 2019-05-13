@@ -64,7 +64,13 @@ termAsPrimIterApp :: Term tyname name a -> Maybe (PrimIterApp tyname name a)
 termAsPrimIterApp term = do
     let IterApp termHead spine = termAsTermIterApp term
     headName <- constantAsStagedBuiltinName <$> termAsBuiltin termHead
-    guard $ all isTermValue spine
+    -- This is commented out for two reasons:
+    -- 1. we use 'termAsPrimIterApp' in abstract machines and we may not want to have this overhead
+    -- 2. 'Error' is not a value, but we can return 'Error' from a failed constant application
+    --    and then this function incorrectly returns 'Nothing' instead of indicating that an error
+    --    has occurred or doing something else that makes sense.
+    -- TODO: resolve this.
+    -- guard $ all isTermValue spine
     Just $ IterApp headName spine
 
 -- | Check whether a 'Term' is a 'Value'. The term is assumed to be valid.

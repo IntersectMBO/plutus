@@ -105,6 +105,7 @@ data EvaluationResult = EvaluationResult
   , resultGraph       :: FlowGraph
   , emulatorLog       :: [EmulatorEvent]
   , fundsDistribution :: [SimulatorWallet]
+  , walletKeys        :: [(PubKey,Wallet)]
   }
   deriving (Generic, ToJSON)
 

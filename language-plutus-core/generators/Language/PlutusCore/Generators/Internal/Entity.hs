@@ -33,8 +33,6 @@ import           Language.PlutusCore.Type
 import           Language.PlutusCore.View
 import           PlutusPrelude
 
-import           Control.Exception                                       (evaluate)
-import           Control.Exception.Safe                                  (tryAny)
 import qualified Control.Monad.Morph                                     as Morph
 import           Control.Monad.Reader
 import           Control.Monad.Trans.Class                               (lift)
@@ -45,7 +43,6 @@ import           Data.Proxy
 import           Data.Text.Prettyprint.Doc
 import           Hedgehog                                                hiding (Size, Var)
 import qualified Hedgehog.Gen                                            as Gen
-import           System.IO.Unsafe
 
 -- | Generators of built-ins supplied to computations that run in the 'PlcGenT' monad.
 newtype BuiltinGensT m = BuiltinGensT
@@ -116,9 +113,7 @@ withCheckedTermGen genTb k =
 
 -- | Generate an 'IterAppValue' from a 'Denotation'.
 -- If the 'Denotation' has a functional type, then all arguments are generated and
--- supplied to the denotation, the resulting value is forced and if there are any exceptions,
--- then all generated arguments are discarded and another attempt is performed
--- (this process does not loop). Since 'IterAppValue' consists of three components, we
+-- supplied to the denotation. Since 'IterAppValue' consists of three components, we
 --   1. grow the 'Term' component by applying it to arguments using 'Apply'
 --   2. grow the 'IterApp' component by appending arguments to its spine
 --   3. feed arguments to the Haskell function
@@ -127,21 +122,17 @@ genIterAppValue
     => Denotation head r
     -> PlcGenT m (IterAppValue head (Term TyName Name ()) r)
 genIterAppValue (Denotation object toTerm meta scheme) = result where
-    result = Gen.just $ go scheme (toTerm object) id meta
+    result = go scheme (toTerm object) id meta
 
     go
         :: TypeScheme c r
         -> Term TyName Name ()
         -> ([Term TyName Name ()] -> [Term TyName Name ()])
         -> c
-        -> PlcGenT m (Maybe (IterAppValue head (Term TyName Name ()) r))
-    go (TypeSchemeResult _)       term args y =     -- Computed the result.
-        -- TODO: there should never be any exceptions, fix this.
-        return $ case unsafePerformIO . tryAny $ evaluate y of
-            Left _   -> Nothing
-            Right y' -> do
-                let pia = IterApp object $ args []
-                return $ IterAppValue term pia y'
+        -> PlcGenT m (IterAppValue head (Term TyName Name ()) r)
+    go (TypeSchemeResult _)       term args y = do  -- Computed the result.
+        let pia = IterApp object $ args []
+        return $ IterAppValue term pia y
     go (TypeSchemeArrow _ schB)   term args f = do  -- Another argument is required.
         BuiltinGensT genTb <- ask
         TermOf v x <- liftT $ genTb AsKnownType  -- Get a Haskell and the correspoding PLC values.
@@ -189,7 +180,7 @@ genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0 whe
             -- Generate a lambda and immediately apply it to a generated argument of a generated type.
             lambdaApply = withTypedBuiltinGen $ \argKt@AsKnownType -> do
                 -- Generate a name for the name representing the argument.
-                name  <- lift $ revealUnique <$> freshName () "x"
+                name <- lift $ revealUnique <$> freshName () "x"
                 -- Get the 'Type' of the argument from a generated 'TypedBuiltin'.
                 let argTy = toTypeAst argKt
                 -- Generate the argument.

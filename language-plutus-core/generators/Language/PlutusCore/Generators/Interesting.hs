@@ -2,6 +2,7 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module Language.PlutusCore.Generators.Interesting
     ( TermGen
@@ -17,6 +18,7 @@ module Language.PlutusCore.Generators.Interesting
     ) where
 
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
@@ -216,6 +218,14 @@ genApplyAdd2 = do
                 ]
     return . TermOf term $ iv + jv
 
+-- | Check that division by zero results in 'Error'.
+genDivideByZero :: TermGen (EvaluationResult Integer)
+genDivideByZero = do
+    op <- Gen.element [DivideInteger, QuotientInteger, ModInteger, RemainderInteger]
+    TermOf i _ <- genTermLoose $ AsKnownType @Integer
+    let term = mkIterApp () (builtinNameAsTerm op) [i, makeIntConstant 0]
+    return $ TermOf term EvaluationFailure
+
 -- | Apply a function to all interesting generators and collect the results.
 fromInterestingTermGens :: (forall a. KnownType a => String -> TermGen a -> c) -> [c]
 fromInterestingTermGens f =
@@ -227,4 +237,5 @@ fromInterestingTermGens f =
     , f "IfIntegers"      genIfIntegers
     , f "ApplyAdd1"       genApplyAdd1
     , f "ApplyAdd2"       genApplyAdd2
+    , f "DivideByZero"    genDivideByZero
     ]

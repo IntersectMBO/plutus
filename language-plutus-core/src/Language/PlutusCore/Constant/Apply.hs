@@ -14,6 +14,7 @@ module Language.PlutusCore.Constant.Apply
     , ConstAppResultDef
     , EvaluateConstApp
     , EvaluateConstAppDef
+    , nonZeroArg
     , makeConstAppResult
     , runEvaluateConstApp
     , applyTypeSchemed
@@ -109,6 +110,13 @@ type EvaluateConstApp m = EvaluateT (InnerT ConstAppResult) m
 -- a 'Value'.
 type EvaluateConstAppDef m = EvaluateConstApp m (Value TyName Name ())
 
+-- | Turn a function into another function that returns 'EvaluationFailure' when its second argument
+-- is 0 or calls the original function otherwise and wraps the result in 'EvaluationSuccess'.
+-- Useful for correctly handling `div`, `mod`, etc.
+nonZeroArg :: (Integer -> Integer -> Integer) -> Integer -> Integer -> EvaluationResult Integer
+nonZeroArg _ _ 0 = EvaluationFailure
+nonZeroArg f x y = EvaluationSuccess $ f x y
+
 -- | Evaluate a constant application computation using the given evaluator.
 runEvaluateConstApp :: Evaluator Term m -> EvaluateConstApp m a -> m (ConstAppResult a)
 runEvaluateConstApp eval = unInnerT . runEvaluateT eval
@@ -167,27 +175,44 @@ applyTypedBuiltinName (TypedBuiltinName _ schema) = applyTypeSchemed schema
 -- Checks that the values are of expected types.
 applyBuiltinName
     :: Monad m => BuiltinName -> [Value TyName Name ()] -> EvaluateConstAppDef m
-applyBuiltinName AddInteger           = applyTypedBuiltinName typedAddInteger           (+)
-applyBuiltinName SubtractInteger      = applyTypedBuiltinName typedSubtractInteger      (-)
-applyBuiltinName MultiplyInteger      = applyTypedBuiltinName typedMultiplyInteger      (*)
-applyBuiltinName DivideInteger        = applyTypedBuiltinName typedDivideInteger        div
-applyBuiltinName QuotientInteger      = applyTypedBuiltinName typedQuotientInteger      quot
-applyBuiltinName RemainderInteger     = applyTypedBuiltinName typedRemainderInteger     rem
-applyBuiltinName ModInteger           = applyTypedBuiltinName typedModInteger           mod
-applyBuiltinName LessThanInteger      = applyTypedBuiltinName typedLessThanInteger      (<)
-applyBuiltinName LessThanEqInteger    = applyTypedBuiltinName typedLessThanEqInteger    (<=)
-applyBuiltinName GreaterThanInteger   = applyTypedBuiltinName typedGreaterThanInteger   (>)
-applyBuiltinName GreaterThanEqInteger = applyTypedBuiltinName typedGreaterThanEqInteger (>=)
-applyBuiltinName EqInteger            = applyTypedBuiltinName typedEqInteger            (==)
-applyBuiltinName Concatenate          = applyTypedBuiltinName typedConcatenate          (<>)
-applyBuiltinName TakeByteString       = applyTypedBuiltinName typedTakeByteString
-                                                                  (BSL.take . fromIntegral)
-applyBuiltinName DropByteString       = applyTypedBuiltinName typedDropByteString
-                                                                  (BSL.drop . fromIntegral)
-applyBuiltinName SHA2                 = applyTypedBuiltinName typedSHA2                 Hash.sha2
-applyBuiltinName SHA3                 = applyTypedBuiltinName typedSHA3                 Hash.sha3
-applyBuiltinName VerifySignature      = applyTypedBuiltinName typedVerifySignature      verifySignature
-applyBuiltinName EqByteString         = applyTypedBuiltinName typedEqByteString         (==)
+applyBuiltinName AddInteger           =
+    applyTypedBuiltinName typedAddInteger           (+)
+applyBuiltinName SubtractInteger      =
+    applyTypedBuiltinName typedSubtractInteger      (-)
+applyBuiltinName MultiplyInteger      =
+    applyTypedBuiltinName typedMultiplyInteger      (*)
+applyBuiltinName DivideInteger        =
+    applyTypedBuiltinName typedDivideInteger        (nonZeroArg div)
+applyBuiltinName QuotientInteger      =
+    applyTypedBuiltinName typedQuotientInteger      (nonZeroArg quot)
+applyBuiltinName RemainderInteger     =
+    applyTypedBuiltinName typedRemainderInteger     (nonZeroArg rem)
+applyBuiltinName ModInteger           =
+    applyTypedBuiltinName typedModInteger           (nonZeroArg mod)
+applyBuiltinName LessThanInteger      =
+    applyTypedBuiltinName typedLessThanInteger      (<)
+applyBuiltinName LessThanEqInteger    =
+    applyTypedBuiltinName typedLessThanEqInteger    (<=)
+applyBuiltinName GreaterThanInteger   =
+    applyTypedBuiltinName typedGreaterThanInteger   (>)
+applyBuiltinName GreaterThanEqInteger =
+    applyTypedBuiltinName typedGreaterThanEqInteger (>=)
+applyBuiltinName EqInteger            =
+    applyTypedBuiltinName typedEqInteger            (==)
+applyBuiltinName Concatenate          =
+    applyTypedBuiltinName typedConcatenate          (<>)
+applyBuiltinName TakeByteString       =
+    applyTypedBuiltinName typedTakeByteString       (BSL.take . fromIntegral)
+applyBuiltinName DropByteString       =
+    applyTypedBuiltinName typedDropByteString       (BSL.drop . fromIntegral)
+applyBuiltinName SHA2                 =
+    applyTypedBuiltinName typedSHA2                 Hash.sha2
+applyBuiltinName SHA3                 =
+    applyTypedBuiltinName typedSHA3                 Hash.sha3
+applyBuiltinName VerifySignature      =
+    applyTypedBuiltinName typedVerifySignature      verifySignature
+applyBuiltinName EqByteString         =
+    applyTypedBuiltinName typedEqByteString         (==)
 
 -- | Apply a 'BuiltinName' to a list of 'Value's and evaluate the resulting computation usign the
 -- given evaluator.

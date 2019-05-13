@@ -39,8 +39,7 @@ table.balance-map {
         border: solid 1px darken($blue, 20%);
         background-color: $blue;
         color: $gray-300;
-        min-height: 3rem;
-        padding: 3px;
+        padding: 3px 8px;
         min-width: 5rem;
 
         &.balance-remainder {
@@ -54,11 +53,6 @@ table.balance-map {
         &.balance-no-currencies {
             background-color: transparent;
             border: none;
-        }
-
-        & div {
-            min-height: 2rem;
-            border-top: dotted 1px $blue;
         }
 
         & div:first-child {
@@ -121,7 +115,7 @@ table.balance-map {
         text-align: left;
         margin-bottom: 30px;
         transition-property: opacity, border-color;
-        transition-duration: 500ms;
+        transition-duration: 250ms;
         border: dashed 2px transparent;
         opacity: 1;
 

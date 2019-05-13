@@ -76,6 +76,7 @@ import           Control.Lens               hiding (contains)
 import           Control.Monad              (void, when)
 import           Control.Monad.Error.Class  (MonadError (..))
 import           Data.Aeson                 (FromJSON, ToJSON)
+import           Data.Bifunctor             (Bifunctor(bimap))
 import qualified Data.ByteArray             as BA
 import qualified Data.ByteString.Lazy       as BSL
 import           Data.Eq.Deriving           (deriveEq1)
@@ -91,7 +92,7 @@ import qualified Data.Text                  as Text
 import           GHC.Generics               (Generic)
 import           Ledger                     (Address, DataScript, PubKey (..), RedeemerScript, Signature, Slot,
                                              SlotRange, Tx (..), TxId, TxIn, TxOut, TxOutOf (..), TxOutRef,
-                                             TxOutType (..), ValidatorScript, Value, getTxId, hashTx, pubKeyTxOut, scriptAddress,
+                                             TxOutType (..), ValidatorScript, Value, getTxId, hashTx, outValue, pubKeyTxOut, scriptAddress,
                                              scriptTxIn, signatures, txOutRefId)
 import           Ledger.AddressMap          (AddressMap)
 import           Ledger.Interval            (Interval (..))
@@ -351,11 +352,11 @@ payToScript_ range addr v = void . payToScript range addr v
 
 -- | Take all known outputs at an 'Address' and spend them using the 
 --   validator and redeemer scripts.
-spendScriptOutputs :: (Monad m, WalletAPI m) => Address -> ValidatorScript -> RedeemerScript -> m [TxIn]
+spendScriptOutputs :: (Monad m, WalletAPI m) => Address -> ValidatorScript -> RedeemerScript -> m [(TxIn, Value)]
 spendScriptOutputs addr  val redeemer = do
     am <- watchedAddresses
     let inputs' = am ^. at addr . to (Map.toList . fromMaybe Map.empty)
-        con (r, _) = scriptTxIn r val redeemer
+        con = bimap (\r -> scriptTxIn r val redeemer) (view outValue)
     pure (fmap con inputs')
 
 -- | Collect all unspent outputs from a pay to script address and transfer them
