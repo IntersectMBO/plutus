@@ -7,7 +7,7 @@
 -- reusing functions.
 module Language.PlutusTx.Prelude.Stage0 where
 
-import           Prelude                    (Bool (..), Int, Maybe (..), String, (<), (>), (+))
+import           Prelude                    (Bool (..), Integer, Maybe (..), String, (<), (>), (+))
 import qualified Prelude                    as P
 
 import qualified Language.PlutusTx.Builtins as Builtins
@@ -80,7 +80,7 @@ not = [|| \(a :: Bool) -> if a then False else True  ||]
 --   >>> $$([|| $$(gt) 2 1 ||])
 --   True
 --
-gt :: Q (TExp (Int -> Int -> Bool))
+gt :: Q (TExp (Integer -> Integer -> Bool))
 gt = [|| Builtins.greaterThanInteger ||]
 
 -- | Greater than or equal to
@@ -88,7 +88,7 @@ gt = [|| Builtins.greaterThanInteger ||]
 --   >>> $$([|| $$(geq) 2 2 ||])
 --   True
 --
-geq :: Q (TExp (Int -> Int -> Bool))
+geq :: Q (TExp (Integer -> Integer -> Bool))
 geq = [|| Builtins.greaterThanEqInteger ||]
 
 -- | Less than
@@ -96,7 +96,7 @@ geq = [|| Builtins.greaterThanEqInteger ||]
 --   >>> $$([|| $$(lt) 2 1 ||])
 --   False
 --
-lt :: Q (TExp (Int -> Int -> Bool))
+lt :: Q (TExp (Integer -> Integer -> Bool))
 lt = [|| Builtins.lessThanInteger ||]
 
 -- | Less than or equal to
@@ -104,15 +104,15 @@ lt = [|| Builtins.lessThanInteger ||]
 --   >>> $$([|| $$(leq) 2 2 ||])
 --   True
 --
-leq :: Q (TExp (Int -> Int -> Bool))
+leq :: Q (TExp (Integer -> Integer -> Bool))
 leq = [|| Builtins.lessThanEqInteger ||]
 
--- | Eq for 'Int'
+-- | Eq for 'Integer'
 --
 --   >>> $$([|| $$(eq) 2 1 ||])
 --   False
 --
-eq :: Q (TExp (Int -> Int -> Bool))
+eq :: Q (TExp (Integer -> Integer -> Bool))
 eq = [|| Builtins.equalsInteger ||]
 
 -- | Addition
@@ -120,7 +120,7 @@ eq = [|| Builtins.equalsInteger ||]
 --   >>> $$([|| $$(plus) 2 1 ||])
 --   3
 --
-plus :: Q (TExp (Int -> Int -> Int))
+plus :: Q (TExp (Integer -> Integer -> Integer))
 plus = [|| Builtins.addInteger ||]
 
 -- | Subtraction
@@ -128,7 +128,7 @@ plus = [|| Builtins.addInteger ||]
 --   >>> $$([|| $$(minus) 2 1 ||])
 --   1
 --
-minus :: Q (TExp (Int -> Int -> Int))
+minus :: Q (TExp (Integer -> Integer -> Integer))
 minus = [|| Builtins.subtractInteger ||]
 
 -- | Multiplication
@@ -136,7 +136,7 @@ minus = [|| Builtins.subtractInteger ||]
 --   >>> $$([|| $$(multiply) 2 1 ||])
 --   2
 --
-multiply :: Q (TExp (Int -> Int -> Int))
+multiply :: Q (TExp (Integer -> Integer -> Integer))
 multiply = [|| Builtins.multiplyInteger ||]
 
 -- | Integer division
@@ -144,7 +144,7 @@ multiply = [|| Builtins.multiplyInteger ||]
 --   >>> $$([|| $$(divide) 3 2 ||])
 --   1
 --
-divide :: Q (TExp (Int -> Int -> Int))
+divide :: Q (TExp (Integer -> Integer -> Integer))
 divide = [|| Builtins.divideInteger ||]
 
 -- | Remainder (of integer division)
@@ -152,24 +152,24 @@ divide = [|| Builtins.divideInteger ||]
 --   >>> $$([|| $$(remainder) 3 2 ||])
 --   1
 --
-remainder :: Q (TExp (Int -> Int -> Int))
+remainder :: Q (TExp (Integer -> Integer -> Integer))
 remainder = [|| Builtins.remainderInteger ||]
 
--- | The smaller of two 'Int's
+-- | The smaller of two 'Integer's
 --
 --   >>> $$([|| $$(min) 10 5 ||])
 --   5
 --
-min :: Q (TExp (Int -> Int -> Int))
-min = [|| \(a :: Int) (b :: Int) -> if Builtins.lessThanInteger a b then a else b ||]
+min :: Q (TExp (Integer -> Integer -> Integer))
+min = [|| \(a :: Integer) (b :: Integer) -> if Builtins.lessThanInteger a b then a else b ||]
 
--- | The larger of two 'Int's
+-- | The larger of two 'Integer's
 --
 --   >>> $$([|| $$(max) 10 5 ||])
 --   10
 --
-max :: Q (TExp (Int -> Int -> Int))
-max = [|| \(a :: Int) (b :: Int) -> if Builtins.greaterThanInteger a b then a else b ||]
+max :: Q (TExp (Integer -> Integer -> Integer))
+max = [|| \(a :: Integer) (b :: Integer) -> if Builtins.greaterThanInteger a b then a else b ||]
 
 -- | Check if a 'Maybe' @a@ is @Just a@
 --
@@ -278,11 +278,11 @@ equalsByteString :: Q (TExp (Builtins.ByteString -> Builtins.ByteString -> Bool)
 equalsByteString = [|| Builtins.equalsByteString ||]
 
 -- | Returns the n length prefix of a 'ByteString'
-takeByteString :: Q (TExp (Int -> Builtins.ByteString -> Builtins.ByteString))
+takeByteString :: Q (TExp (Integer -> Builtins.ByteString -> Builtins.ByteString))
 takeByteString = [|| Builtins.takeByteString ||]
 
 -- | Returns the suffix of a 'ByteString' after n elements
-dropByteString :: Q (TExp (Int -> Builtins.ByteString -> Builtins.ByteString))
+dropByteString :: Q (TExp (Integer -> Builtins.ByteString -> Builtins.ByteString))
 dropByteString = [|| Builtins.dropByteString ||]
 
 -- | Concatenates two 'ByteString's together.

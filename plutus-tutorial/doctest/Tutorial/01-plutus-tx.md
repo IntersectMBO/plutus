@@ -104,20 +104,20 @@ it's instructive to look at it to get a vague idea of what's going on.
   (con 8 ! 1)
 )
 -}
-integerOne :: CompiledCode Int
-integerOne = $$( -- The splice inserts the `Q (CompiledCode Int)` into the program
-    -- compile turns the `Q Int` into a `Q (CompiledCode Int)`
+integerOne :: CompiledCode Integer
+integerOne = $$( -- The splice inserts the `Q (CompiledCode Integer)` into the program
+    -- compile turns the `Q Integer` into a `Q (CompiledCode Integer)`
     compile
-        -- The quote has type `Q Int`
+        -- The quote has type `Q Integer`
         [||
-          -- We don't have unbounded integers in Plutus Core, so we have to pin
-          -- down this numeric literal to an `Int` rather than an `Integer`
-          (1 :: Int)
+          -- We always use unbounded integers in Plutus Core, so we have to pin
+          -- down this numeric literal to an `Integer` rather than an `Int`
+          (1 :: Integer)
         ||])
 ```
 
 We can see how the metaprogramming works here: the Haskell program `1` was
-turned into a `CompiledCode Int` at compile time, which we spliced into our Haskell program,
+turned into a `CompiledCode Integer` at compile time, which we spliced into our Haskell program,
 and which we can then inspect at runtime to see the generated Plutus Core (or to put it
 on the blockchain).
 
@@ -134,8 +134,8 @@ Here's a slightly more complex program, namely the identity function on integers
   (lam ds [(con integer) (con 8)] ds)
 )
 -}
-integerIdentity :: CompiledCode (Int -> Int)
-integerIdentity = $$(compile [|| \(x:: Int) -> x ||])
+integerIdentity :: CompiledCode (Integer -> Integer)
+integerIdentity = $$(compile [|| \(x:: Integer) -> x ||])
 ```
 
 So far, so familiar: we compiled a lambda into a lambda (the "lam").
@@ -147,13 +147,13 @@ You can also define functions locally to use inside your expression. At the mome
 You can, however, splice in TH quotes, which lets you define reusable functions.
 
 ```haskell
-plusOne :: Int -> Int
+plusOne :: Integer -> Integer
 plusOne x = x `addInteger` 1
 
-functions :: CompiledCode Int
+functions :: CompiledCode Integer
 functions = $$(compile [||
     let
-        plusOneLocal :: Int -> Int
+        plusOneLocal :: Integer -> Integer
         plusOneLocal x = x `addInteger` 1
 
         -- This won't work:
@@ -165,7 +165,7 @@ functions = $$(compile [||
         -- You can of course bind this to a name, but for the purposes
         -- of this tutorial we won't since TH requires it to be in
         -- another module.
-        thWorks = $$([|| \(x::Int) -> x `addInteger` 1 ||]) 1
+        thWorks = $$([|| \(x::Integer) -> x `addInteger` 1 ||]) 1
     in localWorks `addInteger` thWorks
     ||])
 ```
@@ -176,8 +176,8 @@ which is mapped on the builtin integer addition in Plutus Core.
 We can use normal Haskell datatypes and pattern matching freely:
 
 ```haskell
-matchMaybe :: CompiledCode (Maybe Int -> Int)
-matchMaybe = $$(compile [|| \(x:: Maybe Int) -> case x of
+matchMaybe :: CompiledCode (Maybe Integer -> Integer)
+matchMaybe = $$(compile [|| \(x:: Maybe Integer) -> case x of
     Just n -> n
     Nothing -> 0
    ||])
@@ -192,11 +192,11 @@ end date.
 
 ```haskell
 -- | Either a specific end date, or "never".
-data EndDate = Fixed Int | Never
+data EndDate = Fixed Integer | Never
 
 -- | Check whether a given time is past the end date.
-pastEnd :: CompiledCode (EndDate -> Int -> Bool)
-pastEnd = $$(compile [|| \(end::EndDate) (current::Int) -> case end of
+pastEnd :: CompiledCode (EndDate -> Integer -> Bool)
+pastEnd = $$(compile [|| \(end::EndDate) (current::Integer) -> case end of
     Fixed n -> n `lessThanEqInteger` current
     Never -> False
    ||])
@@ -228,8 +228,8 @@ argument at runtime by *lifting* it and then applying the two programs together.
 very simple example, let's write an add-one function.
 
 ```haskell
-addOne :: CompiledCode (Int -> Int)
-addOne = $$(compile [|| \(x:: Int) -> x `addInteger` 1 ||])
+addOne :: CompiledCode (Integer -> Integer)
+addOne = $$(compile [|| \(x:: Integer) -> x `addInteger` 1 ||])
 ```
 
 Now, suppose we want to apply this to `4` at runtime, giving us a program that computes
@@ -256,7 +256,7 @@ we need to apply the function to it.
 >>> pretty $ runCk program
 (con 8 ! 5)
 -}
-addOneToN :: Int -> CompiledCode Int
+addOneToN :: Integer -> CompiledCode Integer
 addOneToN n = addOne `applyCode` unsafeLiftCode n
 ```
 
@@ -284,7 +284,7 @@ makeLift ''EndDate
   out_Bool (type) (lam case_True out_Bool (lam case_False out_Bool case_False))
 )
 -}
-pastEndAt :: EndDate -> Int -> CompiledCode Bool
+pastEndAt :: EndDate -> Integer -> CompiledCode Bool
 pastEndAt end current =
     pastEnd
     `applyCode`

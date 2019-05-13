@@ -164,7 +164,7 @@ adjustMargin refs ft fd vl = do
 --
 data Future = Future {
     futureDeliveryDate  :: Slot,
-    futureUnits         :: Int,
+    futureUnits         :: Integer,
     futureUnitPrice     :: Ada,
     futureInitialMargin :: Ada,
     futurePriceOracle   :: PubKey,
@@ -234,7 +234,7 @@ validatorScript ft = ValidatorScript val where
                 --  | Check if a `PendingTxOut` is a public key output for the given pub. key and ada value
                 paidOutTo :: Ada -> PubKey -> PendingTxOut -> Bool
                 paidOutTo vl pk txo =
-                    let PendingTxOut vl' _ _ = txo 
+                    let PendingTxOut vl' _ _ = txo
                         adaVl' = $$(Ada.fromValue) vl'
                     in
                     isPubKeyOutput txo pk && $$(Ada.eq) vl adaVl'

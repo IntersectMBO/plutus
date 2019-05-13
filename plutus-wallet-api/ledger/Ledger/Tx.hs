@@ -201,7 +201,7 @@ hashTx = TxIdOf . hash . preHash . strip
 -- of that transaction we are referring to.
 data TxOutRefOf h = TxOutRefOf {
     txOutRefId  :: TxIdOf h,
-    txOutRefIdx :: Int -- ^ Index into the referenced transaction's outputs
+    txOutRefIdx :: Integer -- ^ Index into the referenced transaction's outputs
     } deriving (Show, Eq, Ord, Generic)
 
 -- | A reference to a transaction output, using a SHA256 hash.
@@ -263,9 +263,9 @@ inPubKey TxInOf{ txInType = t } = case t of
 -- | The address of the output spent by a 'TxIn'.
 inAddress :: TxInOf h -> BSL.ByteString
 inAddress TxInOf{ txInType = t } = case t of
-    ConsumeScriptAddress v _ -> 
+    ConsumeScriptAddress v _ ->
         BSL.fromStrict . BA.convert . getAddress . scriptAddress $ v
-    ConsumePublicKeyAddress pk  -> 
+    ConsumePublicKeyAddress pk  ->
         LB.bytes (getPubKey pk)
 
 -- | A transaction input that spends a "pay to public key" output, given the witness.
@@ -383,7 +383,7 @@ updateUtxo t unspent = (unspent `Map.difference` lift' (spentOutputs t)) `Map.un
     lift' = Map.fromSet (const ())
     outs = unspentOutputsTx t
 
--- | Sign the transaction with a 'PrivateKey' and add the signature to the 
+-- | Sign the transaction with a 'PrivateKey' and add the signature to the
 --   transaction's list of signatures.
 addSignature :: PrivateKey -> Tx -> Tx
 addSignature privK tx = tx & signatures . at pubK .~ Just sig where

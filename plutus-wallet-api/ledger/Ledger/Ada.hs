@@ -46,15 +46,15 @@ fromValue :: Value -> Ada
 fromValue = $$(TH.fromValue)
 
 -- | See 'TH.toInt'.
-toInt :: Ada -> Int
+toInt :: Ada -> Integer
 toInt = $$(TH.toInt)
 
 -- | See 'TH.fromInt'.
-fromInt :: Int -> Ada
+fromInt :: Integer -> Ada
 fromInt = $$(TH.fromInt)
 
 -- | See 'TH.adaValueOf'.
-adaValueOf :: Int -> Value
+adaValueOf :: Integer -> Value
 adaValueOf = $$(TH.adaValueOf)
 
 -- | See 'TH.zero'.

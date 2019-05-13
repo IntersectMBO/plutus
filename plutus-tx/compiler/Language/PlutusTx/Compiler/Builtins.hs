@@ -82,38 +82,38 @@ whereas when we compile them from Haskell they will end up as abstract types, an
 won't line up at the call site.
 
 That is, we generate something like this:
-(/\ (Int :: *) .
-  (\ addInteger : Int -> Int -> Int .
+(/\ (Integer :: *) .
+  (\ addInteger : Integer -> Integer -> Integer .
       <use addInteger>
   )
-  (\ x,y : Int . <builtin addInteger> x y) -- Uh oh, type error, can't show that Int = <builtin int>!
+  (\ x,y : Integer . <builtin addInteger> x y) -- Uh oh, type error, can't show that Integer = <builtin int>!
 )
 {<builtin int>}
 
 We handle this in two different ways:
 - For the types like Bool and Unit which are really algebraic types, and which have constructors etc.
 that we care about elsewhere, we insert adaptor code into the definition of the builtin (see note [Mapping builtins]).
-- For types like Int and Bytestring which don't have visible constructors, we can treat them as completely opaque,
+- For types like Integer and Bytestring which don't have visible constructors, we can treat them as completely opaque,
 and we use a transparent type alias. (Actually we fake the alias by actually just substituting the definition in
 everywhere until we have aliases in PIR. Bear this in mind for the examples below.)
 
-Here's how that looks for a primitive that takes Ints and returns a Boolean, assuming we have bound Int and Bool
+Here's how that looks for a primitive that takes Ints and returns a Boolean, assuming we have bound Integer and Bool
 already as an alias and an abstract type respectively:
-(\ equalsInteger : Int -> Int -> Bool .
+(\ equalsInteger : Integer -> Integer -> Bool .
   <use equalsInteger>
 )
-(\ x, y : Int . -- No need to do anything to the arguments, since we're using a transparent alias for Int
+(\ x, y : Integer . -- No need to do anything to the arguments, since we're using a transparent alias for Int
   (<builtin equalsInteger> x y) {Bool} True False -- Immediately match the builtin bool into an abstract Bool
 )
 
 We *could* do something like the interleaved definitions that we do for datatypes in PIR. Morally this is perhaps the
-right thing to do: we should think of Int and its builtins as a "module" that goes together and where all the definitions
+right thing to do: we should think of Integer and its builtins as a "module" that goes together and where all the definitions
 have access to the internals of the other definitions. A datatype definition is then a special case of a module definition.
 However, for the moment this would be quite a bit more design work and so we leave it for future work.
 
 For an example of how the "abstract module" approach would look:
-(/\ (Int :: *) .
-  (\ addInteger : Int -> Int -> Int . -- Type signature is fine inside the abstraction
+(/\ (Integer :: *) .
+  (\ addInteger : Integer -> Integer -> Integer . -- Type signature is fine inside the abstraction
       <use addInteger>
   )
 )
@@ -125,7 +125,7 @@ For an example of how the "abstract module" approach would look:
 builtinNames :: [TH.Name]
 builtinNames = [
       ''Builtins.ByteString
-    , ''Int
+    , ''Integer
     , ''Bool
     , ''()
 
@@ -189,7 +189,7 @@ defineBuiltinType name ty deps = do
 defineBuiltinTerms :: Converting m => m ()
 defineBuiltinTerms = do
     bs <- GHC.getName <$> getThing ''Builtins.ByteString
-    int <- GHC.getName <$> getThing ''Int
+    int <- GHC.getName <$> getThing ''Integer
     bool <- GHC.getName <$> getThing ''Bool
     unit <- GHC.getName <$> getThing ''()
     str <- GHC.getName <$> getThing ''Builtins.String
@@ -283,7 +283,7 @@ defineBuiltinTypes = do
         defineBuiltinType ''Builtins.ByteString ty []
     do
         let ty = PLC.TyBuiltin () PLC.TyInteger
-        defineBuiltinType ''Int ty []
+        defineBuiltinType ''Integer ty []
 
     -- Strings and chars
     do
@@ -346,7 +346,7 @@ scottBoolToHaskellBool = do
 -- | Wrap an integer relation of arity @n@ that produces a Scott boolean.
 wrapIntRel :: Converting m => Int -> PIRTerm -> m PIRTerm
 wrapIntRel arity term = do
-    intTy <- lookupBuiltinType ''Int
+    intTy <- lookupBuiltinType ''Integer
     args <- replicateM arity $ do
         name <- safeFreshName () "arg"
         pure $ PIR.VarDecl () name intTy

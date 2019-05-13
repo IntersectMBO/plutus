@@ -8,7 +8,7 @@ import           Wallet.API       (PubKey (..))
     but is traded at a deep discount, rendering profit at maturity
     when the bond is redeemed for its full face value.
 -}
-zeroCouponBond :: PubKey -> PubKey -> Int -> Int -> Timeout -> Timeout -> Timeout -> Contract
+zeroCouponBond :: PubKey -> PubKey -> Integer -> Integer -> Timeout -> Timeout -> Timeout -> Contract
 zeroCouponBond issuer investor notional discount startDate maturityDate gracePeriod =
     -- prepare money for zero-coupon bond, before it could be used
     CommitCash (IdentCC 1) investor (Value (notional - discount)) startDate maturityDate
@@ -34,7 +34,7 @@ zeroCouponBond issuer investor notional discount startDate maturityDate gracePer
     If an @investor@ does not redeem the bond value during @gracePeriod@ after @maturityDate@
     the @issuer@ can keep the value.
 -}
-trustedZeroCouponBond :: PubKey -> PubKey -> Int -> Int -> Timeout -> Timeout -> Timeout -> Contract
+trustedZeroCouponBond :: PubKey -> PubKey -> Integer -> Integer -> Timeout -> Timeout -> Timeout -> Contract
 trustedZeroCouponBond issuer investor notional discount startDate maturityDate gracePeriod =
     -- prepare money for zero-coupon bond, before it could be used
     -- if the issuer won't pull the payment, investor can redeem the commit after maturityDate
@@ -59,7 +59,7 @@ trustedZeroCouponBond issuer investor notional discount startDate maturityDate g
     Zero coupon bond with @guarantor@ party, who secures @issuer@ payment with
     `guarantee` collateral.
 -}
-zeroCouponBondGuaranteed :: PubKey -> PubKey -> PubKey -> Int -> Int -> Timeout -> Timeout -> Timeout -> Contract
+zeroCouponBondGuaranteed :: PubKey -> PubKey -> PubKey -> Integer -> Integer -> Timeout -> Timeout -> Timeout -> Contract
 zeroCouponBondGuaranteed issuer investor guarantor notional discount startDate maturityDate gracePeriod =
     -- prepare money for zero-coupon bond, before it could be used
     CommitCash (IdentCC 1) investor (Value (notional - discount)) startDate maturityDate

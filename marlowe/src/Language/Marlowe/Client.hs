@@ -65,10 +65,10 @@ eqContract = $$(equalContract) eqValue eqObservation
 validContract :: State -> Contract -> Slot -> Ada -> Bool
 validContract = $$(validateContract)
 
-evalValue :: Slot -> [OracleValue Int] -> State -> Value -> Int
+evalValue :: Slot -> [OracleValue Integer] -> State -> Value -> Integer
 evalValue pendingTxBlockHeight inputOracles = $$(evaluateValue) pendingTxBlockHeight inputOracles
 
-interpretObs :: [OracleValue Int] -> Int -> State -> Observation -> Bool
+interpretObs :: [OracleValue Integer] -> Integer -> State -> Observation -> Bool
 interpretObs inputOracles blockNumber state obs = let
     ev = evalValue (Slot blockNumber) inputOracles
     in $$(interpretObservation) ev blockNumber state obs
@@ -100,7 +100,7 @@ createContract :: (
     WalletAPI m)
     => ValidatorScript
     -> Contract
-    -> Int
+    -> Integer
     -> m ()
 createContract validator contract value = do
     _ <- if value <= 0 then throwOtherError "Must contribute a positive value" else pure ()
@@ -123,7 +123,7 @@ marloweTx ::
     -- ^ reference to Marlowe contract UTxO
     -> ValidatorScript
     -- ^ actuall contract script
-    -> (TxIn -> (Int -> TxOut) -> Int -> m ())
+    -> (TxIn -> (Integer -> TxOut) -> Integer -> m ())
     -- ^ do wallet actions given Marlowe contract 'TxIn', contract 'TxOut' generator,
     --   and current contract money
     -> m ()
@@ -139,7 +139,7 @@ marloweTx inputState txOut validator f = let
 
 -- | Create Marlowe Redeemer Script as @(Input, MarloweData)@.
 createRedeemer
-    :: InputCommand -> [OracleValue Int] -> [Choice] -> State -> Contract -> (Input, MarloweData)
+    :: InputCommand -> [OracleValue Integer] -> [Choice] -> State -> Contract -> (Input, MarloweData)
 createRedeemer inputCommand oracles choices expectedState expectedCont =
     let input = Input inputCommand oracles choices
         mdata = MarloweData { marloweContract = expectedCont, marloweState = expectedState }
@@ -155,13 +155,13 @@ commit :: (
     -- ^ reference to Marlowe contract UTxO
     -> ValidatorScript
     -- ^ actuall contract script
-    -> [OracleValue Int]
+    -> [OracleValue Integer]
     -- ^ Oracles values
     -> [Choice]
     -- ^ new 'Choice's
     -> IdentCC
     -- ^ commit identifier
-    -> Int
+    -> Integer
     -- ^ amount
     -> State
     -- ^ expected contract 'State' after commit
@@ -197,13 +197,13 @@ commit' :: (
     -- ^ reference to Marlowe contract UTxO
     -> ValidatorScript
     -- ^ actuall contract script
-    -> [OracleValue Int]
+    -> [OracleValue Integer]
     -- ^ Oracles values
     -> [Choice]
     -- ^ new 'Choice's
     -> IdentCC
     -- ^ commit identifier
-    -> Int
+    -> Integer
     -- ^ amount
     -> State
     -- ^ contract 'State' before commit
@@ -235,13 +235,13 @@ receivePayment :: (
     -- ^ reference to Marlowe contract UTxO
     -> ValidatorScript
     -- ^ actuall contract script
-    -> [OracleValue Int]
+    -> [OracleValue Integer]
     -- ^ Oracles values
     -> [Choice]
     -- ^ new 'Choice's
     -> IdentPay
     -- ^ payment identifier
-    -> Int
+    -> Integer
     -- ^ amount
     -> State
     -- ^ expected contract 'State' after commit
@@ -270,13 +270,13 @@ redeem :: (
     -- ^ reference to Marlowe contract UTxO
     -> ValidatorScript
     -- ^ actuall contract script
-    -> [OracleValue Int]
+    -> [OracleValue Integer]
     -- ^ Oracles values
     -> [Choice]
     -- ^ new 'Choice's
     -> IdentCC
     -- ^ commit identifier
-    -> Int
+    -> Integer
     -- ^ amount to redeem
     -> State
     -- ^ expected contract 'State' after commit
