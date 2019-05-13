@@ -14,8 +14,8 @@ import Data.Argonaut.Core as Json
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Either (Either)
-import Data.Either.Nested (Either3)
-import Data.Functor.Coproduct.Nested (Coproduct3)
+import Data.Either.Nested (Either2)
+import Data.Functor.Coproduct.Nested (Coproduct2)
 import Data.Generic (class Generic, gEq, gShow)
 import Data.Int as Int
 import Data.Lens (Lens, Lens', Prism', _2, over, prism', to, traversed, view)
@@ -32,8 +32,8 @@ import Data.Traversable (sequence, traverse)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Gist (Gist)
-import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
-import Halogen.ECharts (EChartsMessage, EChartsQuery)
+import Halogen.Chartist (ChartistMessage, ChartistQuery)
+import Halogen.Component.ChildPath (ChildPath, cp1, cp2)
 import Language.Haskell.Interpreter (SourceCode, InterpreterError, InterpreterResult)
 import Ledger.Crypto (PubKey, _PubKey)
 import Ledger.Extra (LedgerMap)
@@ -167,8 +167,7 @@ data Query a
   | HandleDragEvent DragEvent a
   | ActionDragAndDrop Int DragAndDropEventType DragEvent a
   | HandleDropEvent DragEvent a
-  | HandleMockchainChartMessage EChartsMessage a
-  | HandleBalancesChartMessage EChartsMessage a
+  | HandleBalancesChartMessage ChartistMessage a
   -- Gist support.
   | CheckAuthStatus a
   | PublishGist a
@@ -252,16 +251,12 @@ instance comonadFormEvent :: Comonad FormEvent where
 
 ------------------------------------------------------------
 
-type ChildQuery = Coproduct3 AceQuery EChartsQuery EChartsQuery
-type ChildSlot = Either3 EditorSlot MockchainChartSlot BalancesChartSlot
+type ChildQuery = Coproduct2 AceQuery ChartistQuery
+type ChildSlot = Either2 EditorSlot BalancesChartSlot
 
 data EditorSlot = EditorSlot
 derive instance eqComponentEditorSlot :: Eq EditorSlot
 derive instance ordComponentEditorSlot :: Ord EditorSlot
-
-data MockchainChartSlot = MockchainChartSlot
-derive instance eqComponentMockchainChartSlot :: Eq MockchainChartSlot
-derive instance ordComponentMockchainChartSlot :: Ord MockchainChartSlot
 
 data BalancesChartSlot = BalancesChartSlot
 derive instance eqComponentBalancesChartSlot :: Eq BalancesChartSlot
@@ -270,11 +265,8 @@ derive instance ordComponentBalancesChartSlot :: Ord BalancesChartSlot
 cpEditor :: ChildPath AceQuery ChildQuery EditorSlot ChildSlot
 cpEditor = cp1
 
-cpMockchainChart :: ChildPath EChartsQuery ChildQuery MockchainChartSlot ChildSlot
-cpMockchainChart = cp2
-
-cpBalancesChart :: ChildPath EChartsQuery ChildQuery BalancesChartSlot ChildSlot
-cpBalancesChart = cp3
+cpBalancesChart :: ChildPath ChartistQuery ChildQuery BalancesChartSlot ChildSlot
+cpBalancesChart = cp2
 
 -----------------------------------------------------------
 
