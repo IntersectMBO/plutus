@@ -127,7 +127,6 @@ instance monadAppMockApp :: Monad m => MonadApp (MockApp m) where
   setDropEffect effectType event = pure unit
   setDataTransferData event mimeType value = pure unit
   readFileFromDragEvent event = pure "TEST"
-  updateChartsIfPossible = pure unit
   --
   getOauthStatus =
     pure $ Success $ AuthStatus { _authStatusAuthRole: GithubUser }

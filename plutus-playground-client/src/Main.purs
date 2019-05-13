@@ -15,14 +15,14 @@ import Data.Maybe (Maybe(Nothing))
 import FileEvents (FILE)
 import Halogen (hoist)
 import Halogen.Aff (HalogenEffects, awaitBody, runHalogenAff)
-import Halogen.ECharts (EChartsEffects)
+import Halogen.Chartist (ChartistEffects)
 import Halogen.VDom.Driver (runUI)
 import LocalStorage (LOCALSTORAGE, RawStorageEvent)
 import LocalStorage as LocalStorage
 import MainFrame (mainFrame)
 import Network.HTTP.Affjax (AJAX)
 
-main :: Eff (HalogenEffects (EChartsEffects (AceEffects (console :: CONSOLE, ajax :: AJAX, analytics :: ANALYTICS, localStorage :: LOCALSTORAGE, file :: FILE)))) Unit
+main :: Eff (HalogenEffects (ChartistEffects (AceEffects (console :: CONSOLE, ajax :: AJAX, analytics :: ANALYTICS, localStorage :: LOCALSTORAGE, file :: FILE)))) Unit
 main = runHalogenAff do
   body <- awaitBody
   driver <- runUI (hoist (flip runReaderT ajaxSettings) mainFrame) unit body

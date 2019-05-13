@@ -1092,6 +1092,33 @@
     }
 
     {
+      name = "chartist-plugin-axistitle-0.0.4.tgz";
+      path = fetchurl {
+        name = "chartist-plugin-axistitle-0.0.4.tgz";
+        url  = "https://registry.yarnpkg.com/chartist-plugin-axistitle/-/chartist-plugin-axistitle-0.0.4.tgz";
+        sha1 = "102d7b84260061292dff666b918fedc955deb144";
+      };
+    }
+
+    {
+      name = "chartist-plugin-tooltips-0.0.17.tgz";
+      path = fetchurl {
+        name = "chartist-plugin-tooltips-0.0.17.tgz";
+        url  = "https://registry.yarnpkg.com/chartist-plugin-tooltips/-/chartist-plugin-tooltips-0.0.17.tgz";
+        sha1 = "fc1a98eb5d3771235b6e08cd1c18cc96c2110660";
+      };
+    }
+
+    {
+      name = "chartist-0.11.0.tgz";
+      path = fetchurl {
+        name = "chartist-0.11.0.tgz";
+        url  = "https://registry.yarnpkg.com/chartist/-/chartist-0.11.0.tgz";
+        sha1 = "84ba5e05490d096d93dcfa9343ebc31ef6a3bd28";
+      };
+    }
+
+    {
       name = "chokidar-2.0.4.tgz";
       path = fetchurl {
         name = "chokidar-2.0.4.tgz";
@@ -1934,15 +1961,6 @@
         name = "ecc-jsbn-0.1.2.tgz";
         url  = "https://registry.yarnpkg.com/ecc-jsbn/-/ecc-jsbn-0.1.2.tgz";
         sha1 = "3a83a904e54353287874c564b7549386849a98c9";
-      };
-    }
-
-    {
-      name = "echarts-4.2.0-rc.2.tgz";
-      path = fetchurl {
-        name = "echarts-4.2.0-rc.2.tgz";
-        url  = "https://registry.yarnpkg.com/echarts/-/echarts-4.2.0-rc.2.tgz";
-        sha1 = "6a98397aafa81b65cbf0bc15d9afdbfb244df91e";
       };
     }
 
@@ -7172,15 +7190,6 @@
         name = "yargs-7.1.0.tgz";
         url  = "https://registry.yarnpkg.com/yargs/-/yargs-7.1.0.tgz";
         sha1 = "6ba318eb16961727f5d284f8ea003e8d6154d0c8";
-      };
-    }
-
-    {
-      name = "zrender-4.0.5.tgz";
-      path = fetchurl {
-        name = "zrender-4.0.5.tgz";
-        url  = "https://registry.yarnpkg.com/zrender/-/zrender-4.0.5.tgz";
-        sha1 = "6e8f738971ce2cd624aac82b2156729b1c0e5a82";
       };
     }
   ];
