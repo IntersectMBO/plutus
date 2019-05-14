@@ -136,7 +136,7 @@ type EventTrigger = Fix EventTriggerF
 getAnnot :: AnnotatedEventTrigger a -> a
 getAnnot = fst . getCompose . unfix
 
--- | Remove annotations from an 'AnnotatedEventTrigger' 
+-- | Remove annotations from an 'AnnotatedEventTrigger'
 unAnnot :: AnnotatedEventTrigger a -> EventTrigger
 unAnnot = cata (embed . snd . getCompose)
 
@@ -265,11 +265,11 @@ class WalletAPI m where
     createPaymentWithChange :: Value -> m (Set.Set TxIn, Maybe TxOut)
 
     {- |
-    Register a 'EventHandler' in @m ()@ to be run a single time when the 
+    Register a 'EventHandler' in @m ()@ to be run a single time when the
     condition is true.
 
     * The action will be run when the condition holds for the first time.
-      For example, @registerOnce (slotRangeT (Interval 3 6)) a@ causes @a@ to 
+      For example, @registerOnce (slotRangeT (Interval 3 6)) a@ causes @a@ to
       be run at block 3. See 'register' for a variant that runs the action
       multiple times.
 
@@ -350,7 +350,7 @@ payToScript range addr v ds = payToScripts range [(addr, v, ds)]
 payToScript_ :: (Monad m, WalletAPI m) => SlotRange -> Address -> Value -> DataScript -> m ()
 payToScript_ range addr v = void . payToScript range addr v
 
--- | Take all known outputs at an 'Address' and spend them using the 
+-- | Take all known outputs at an 'Address' and spend them using the
 --   validator and redeemer scripts.
 spendScriptOutputs :: (Monad m, WalletAPI m) => Address -> ValidatorScript -> RedeemerScript -> m [(TxIn, Value)]
 spendScriptOutputs addr  val redeemer = do
@@ -376,11 +376,11 @@ collectFromScriptTxn ::
     -> m ()
 collectFromScriptTxn range vls red txid =
     let flt k _ = txid == Ledger.txOutRefId k in
-    collectFromScriptFilter flt range vls red        
+    collectFromScriptFilter flt range vls red
 
 -- | Given the pay to script address of the 'ValidatorScript', collect from it
 --   all the outputs that match a predicate, using the 'RedeemerScript'.
-collectFromScriptFilter :: 
+collectFromScriptFilter ::
     (WalletAPI m, WalletDiagnostics m)
     => (TxOutRef -> TxOut -> Bool)
     -> SlotRange
@@ -480,7 +480,7 @@ always :: Interval a
 always = $$(Interval.always)
 
 -- | See 'Slot.width'.
-width :: SlotRange -> Maybe Int
+width :: SlotRange -> Maybe Integer
 width = $$(Slot.width)
 
 -- | See 'Slot.before'.
@@ -505,12 +505,12 @@ contains = $$(Slot.contains)
 
 -- | Emit a warning if the value at an address is zero.
 warnEmptyTransaction :: (WalletDiagnostics m) => Value -> Address -> m ()
-warnEmptyTransaction value addr = 
+warnEmptyTransaction value addr =
     when (Value.eq Value.zero value)
-        $ logMsg 
+        $ logMsg
         $ Text.unwords [
               "Attempting to collect transaction outputs from"
             , "'" <> Text.pack (show addr) <> "'" <> ","
             , "but there are no known outputs at that address."
             , "An empty transaction will be submitted."
-            ] 
+            ]

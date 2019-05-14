@@ -46,10 +46,10 @@ import           Language.PlutusTx.Utils   (mustBeReplaced)
 concatenate :: ByteString -> ByteString -> ByteString
 concatenate = BSL.append
 
-takeByteString :: Int -> ByteString -> ByteString
+takeByteString :: Integer -> ByteString -> ByteString
 takeByteString i = BSL.take (fromIntegral i)
 
-dropByteString :: Int -> ByteString -> ByteString
+dropByteString :: Integer -> ByteString -> ByteString
 dropByteString i = BSL.drop (fromIntegral i)
 
 emptyByteString :: ByteString
@@ -68,34 +68,34 @@ verifySignature pubKey message signature =
 equalsByteString :: ByteString -> ByteString -> Bool
 equalsByteString = (==)
 
-addInteger :: Int -> Int -> Int
+addInteger :: Integer -> Integer -> Integer
 addInteger = (+)
 
-subtractInteger :: Int -> Int -> Int
+subtractInteger :: Integer -> Integer -> Integer
 subtractInteger = (-)
 
-multiplyInteger :: Int -> Int -> Int
+multiplyInteger :: Integer -> Integer -> Integer
 multiplyInteger = (*)
 
-divideInteger :: Int -> Int -> Int
+divideInteger :: Integer -> Integer -> Integer
 divideInteger = div
 
-remainderInteger :: Int -> Int -> Int
+remainderInteger :: Integer -> Integer -> Integer
 remainderInteger = rem
 
-greaterThanInteger :: Int -> Int -> Bool
+greaterThanInteger :: Integer -> Integer -> Bool
 greaterThanInteger = (>)
 
-greaterThanEqInteger :: Int -> Int -> Bool
+greaterThanEqInteger :: Integer -> Integer -> Bool
 greaterThanEqInteger = (>=)
 
-lessThanInteger :: Int -> Int -> Bool
+lessThanInteger :: Integer -> Integer -> Bool
 lessThanInteger = (<)
 
-lessThanEqInteger :: Int -> Int -> Bool
+lessThanEqInteger :: Integer -> Integer -> Bool
 lessThanEqInteger = (<=)
 
-equalsInteger :: Int -> Int -> Bool
+equalsInteger :: Integer -> Integer -> Bool
 equalsInteger = (==)
 
 error :: () -> a

@@ -28,7 +28,6 @@ import           Language.PlutusTx.Compiler.Utils
 import           Language.PlutusTx.PIRTypes
 
 import qualified GhcPlugins                             as GHC
-import qualified PrelNames                              as GHC
 import qualified TysPrim                                as GHC
 
 import qualified Language.PlutusIR                      as PIR
@@ -66,10 +65,9 @@ convType t = withContextM 2 (sdToTxt $ "Converting type:" GHC.<+> GHC.ppr t) $ d
 -- TODO: fold the special cases into convTyCon as aliases?
 convTyConApp :: (Converting m) => GHC.TyCon -> [GHC.Type] -> m PIRType
 convTyConApp tc ts
-    -- this is Int#, convert as Int
-    | tc == GHC.intPrimTyCon = convTyCon GHC.intTyCon
-    -- we don't support Integer
-    | GHC.getName tc == GHC.integerTyConName = throwPlain $ UnsupportedError "Integer: use Int instead"
+    -- we don't support Int or Int#
+    | GHC.getName tc == GHC.intTyConName = throwPlain $ UnsupportedError "Int: use Integer instead"
+    | tc == GHC.intPrimTyCon = throwPlain $ UnsupportedError "Int#: unboxed integers are not supported"
     -- this is Void#, see Note [Value restriction]
     | tc == GHC.voidPrimTyCon = errorTy
     | otherwise = do

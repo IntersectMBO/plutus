@@ -20,7 +20,7 @@ import qualified Ledger.Ada.TH                as Ada
 import           Ledger.Ada.TH                (Ada)
 import           Ledger.Value                 (Value)
 
-import           Prelude                      (Bool (..), Eq (..), Int)
+import           Prelude                      (Bool (..), Eq (..), Integer)
 
 data Ratio a = a :% a  deriving Eq
 
@@ -37,8 +37,8 @@ data Ratio a = a :% a  deriving Eq
 data Swap = Swap
     { swapNotionalAmt     :: !Ada
     , swapObservationTime :: !Slot
-    , swapFixedRate       :: !(Ratio Int) -- ^ Interest rate fixed at the beginning of the contract
-    , swapFloatingRate    :: !(Ratio Int) -- ^ Interest rate whose value will be observed (by an oracle) on the day of the payment
+    , swapFixedRate       :: !(Ratio Integer) -- ^ Interest rate fixed at the beginning of the contract
+    , swapFloatingRate    :: !(Ratio Integer) -- ^ Interest rate whose value will be observed (by an oracle) on the day of the payment
     , swapMargin          :: !Ada -- ^ Margin deposited at the beginning of the contract to protect against default (one party failing to pay)
     , swapOracle          :: !PubKey -- ^ Public key of the oracle (see note [Oracles] in [[Language.PlutusTx.Coordination.Contracts]])
     }
@@ -54,7 +54,7 @@ data SwapOwners = SwapOwners {
     swapOwnersFloating :: !PubKey
     }
 
-type SwapOracle = OracleValue (Ratio Int)
+type SwapOracle = OracleValue (Ratio Integer)
 
 -- | Validator script for the two transactions that initialise the swap.
 --   See note [Swap Transactions]
@@ -68,35 +68,35 @@ swapValidator _ = ValidatorScript result where
             (&&) :: Bool -> Bool -> Bool
             (&&) = $$(PlutusTx.and)
 
-            mn :: Int -> Int -> Int
+            mn :: Integer -> Integer -> Integer
             mn = $$(PlutusTx.min)
 
-            mx :: Int -> Int -> Int
+            mx :: Integer -> Integer -> Integer
             mx = $$(PlutusTx.max)
 
-            timesR :: Ratio Int -> Ratio Int -> Ratio Int
+            timesR :: Ratio Integer -> Ratio Integer -> Ratio Integer
             timesR (x :% y) (x' :% y') = ($$(P.multiply) x x') :% ($$(P.multiply) y y')
 
-            plusR :: Ratio Int -> Ratio Int -> Ratio Int
+            plusR :: Ratio Integer -> Ratio Integer -> Ratio Integer
             plusR (x :% y) (x' :% y') = ($$(P.plus) ($$(P.multiply) x y') ($$(P.multiply) x' y)) :% ($$(P.multiply) y y')
 
-            minusR :: Ratio Int -> Ratio Int -> Ratio Int
+            minusR :: Ratio Integer -> Ratio Integer -> Ratio Integer
             minusR (x :% y) (x' :% y') = ($$(P.minus) ($$(P.multiply) x y') ($$(P.multiply) x' y)) :% ($$(P.multiply) y y')
 
-            extractVerifyAt :: OracleValue (Ratio Int) -> PubKey -> Ratio Int -> Slot -> Ratio Int
+            extractVerifyAt :: OracleValue (Ratio Integer) -> PubKey -> Ratio Integer -> Slot -> Ratio Integer
             extractVerifyAt = $$(PlutusTx.error) ()
 
-            round :: Ratio Int -> Int
+            round :: Ratio Integer -> Integer
             round = $$(PlutusTx.error) ()
 
-            -- | Convert an [[Int]] to a [[Ratio Int]]
-            fromInt :: Int -> Ratio Int
+            -- | Convert an [[Integer]] to a [[Ratio Integer]]
+            fromInt :: Integer -> Ratio Integer
             fromInt = $$(PlutusTx.error) ()
 
             signedBy :: PendingTx -> PubKey -> Bool
             signedBy = $$(Validation.txSignedBy)
 
-            adaValueIn :: Value -> Int
+            adaValueIn :: Value -> Integer
             adaValueIn v = $$(Ada.toInt) ($$(Ada.fromValue) v)
 
             infixr 3 ||
@@ -110,28 +110,28 @@ swapValidator _ = ValidatorScript result where
             -- the payments.
             rt = extractVerifyAt redeemer swapOracle swapFloatingRate swapObservationTime
 
-            rtDiff :: Ratio Int
+            rtDiff :: Ratio Integer
             rtDiff = rt `minusR` swapFixedRate
 
             amt    = $$(Ada.toInt) swapNotionalAmt
             margin = $$(Ada.toInt) swapMargin
 
-            amt' :: Ratio Int
+            amt' :: Ratio Integer
             amt' = fromInt amt
 
-            delta :: Ratio Int
+            delta :: Ratio Integer
             delta = amt' `timesR` rtDiff
 
-            fixedPayment :: Int
+            fixedPayment :: Integer
             fixedPayment = round (amt' `plusR` delta)
 
-            floatPayment :: Int
+            floatPayment :: Integer
             floatPayment = round (amt' `plusR` delta)
 
             -- Compute the payouts (initial margin +/- the sum of the two
             -- payments), ensuring that it is at least 0 and does not exceed
             -- the total amount of money at stake (2 * margin)
-            clamp :: Int -> Int
+            clamp :: Integer -> Integer
             clamp x = mn 0 (mx ($$(P.multiply) 2 margin) x)
             fixedRemainder = clamp ($$(P.plus) ($$(P.minus) margin fixedPayment) floatPayment)
             floatRemainder = clamp ($$(P.plus) ($$(P.minus) margin floatPayment) fixedPayment)

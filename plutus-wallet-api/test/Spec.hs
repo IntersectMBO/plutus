@@ -90,8 +90,8 @@ initialTxnValid = property $ do
 
 splitVal :: Property
 splitVal = property $ do
-    i <- forAll $ Gen.int $ Range.linear 1 (100000 :: Int)
-    n <- forAll $ Gen.int $ Range.linear 1 100
+    i <- forAll $ Gen.integral $ Range.linear 1 (100000 :: Integer)
+    n <- forAll $ Gen.integral $ Range.linear 1 100
     vs <- forAll $ Gen.splitVal n i
     Hedgehog.assert $ sum vs == i
     Hedgehog.assert $ length vs <= n
@@ -117,14 +117,14 @@ valueScalarDistrib :: Property
 valueScalarDistrib = property $ do
     vl1 <- forAll Gen.genValue
     vl2 <- forAll Gen.genValue
-    scalar <- forAll (Gen.int Range.linearBounded)
+    scalar <- forAll (Gen.integral (fromIntegral <$> Range.linearBounded @Int))
     let r1 = Value.scale scalar (Value.plus vl1 vl2)
         r2 = Value.plus (Value.scale scalar vl1) (Value.scale scalar vl2)
     Hedgehog.assert $ Value.eq r1 r2
 
 intvlMember :: Property
 intvlMember = property $ do
-    (i1, i2) <- forAll $ (,) <$> Gen.int Range.linearBounded <*> Gen.int Range.linearBounded
+    (i1, i2) <- forAll $ (,) <$> Gen.integral (fromIntegral <$> Range.linearBounded @Int) <*> Gen.integral (fromIntegral <$> Range.linearBounded @Int)
     let (from, to) = (Slot $ min i1 i2, Slot $ max i1 i2)
         i          = W.interval from to
     Hedgehog.assert $ W.member from i || W.empty i
@@ -134,7 +134,7 @@ intvlContains :: Property
 intvlContains = property $ do
     -- generate two intervals from a sorted list of ints
     -- the outer interval contains the inner interval
-    ints <- forAll $ traverse (const $ Gen.int Range.linearBounded) [1..4]
+    ints <- forAll $ traverse (const $ Gen.integral (fromIntegral <$> Range.linearBounded @Int)) [1..4]
     let [i1, i2, i3, i4] = Slot <$> sort ints
         outer = W.interval i1 i4
         inner = W.interval i2 i3
