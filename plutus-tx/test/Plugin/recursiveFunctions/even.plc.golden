@@ -46,26 +46,6 @@
           (let
             (rec)
             (termbind
-              (vardecl odd (fun (con integer) Bool))
-              (lam
-                n
-                (con integer)
-                [
-                  [
-                    [
-                      {
-                        [ Bool_match [ [ equalsInteger n ] (con 0) ] ]
-                        (fun Unit Bool)
-                      }
-                      (lam thunk Unit False)
-                    ]
-                    (lam thunk Unit [ even [ [ subtractInteger n ] (con 1) ] ])
-                  ]
-                  Unit
-                ]
-              )
-            )
-            (termbind
               (vardecl even (fun (con integer) Bool))
               (lam
                 n
@@ -79,7 +59,34 @@
                       }
                       (lam thunk Unit True)
                     ]
-                    (lam thunk Unit [ odd [ [ subtractInteger n ] (con 1) ] ])
+                    (lam
+                      thunk
+                      Unit
+                      (let
+                        (nonrec)
+                        (termbind
+                          (vardecl n (con integer))
+                          [ [ subtractInteger n ] (con 1) ]
+                        )
+                        [
+                          [
+                            [
+                              {
+                                [ Bool_match [ [ equalsInteger n ] (con 0) ] ]
+                                (fun Unit Bool)
+                              }
+                              (lam thunk Unit False)
+                            ]
+                            (lam
+                              thunk
+                              Unit
+                              [ even [ [ subtractInteger n ] (con 1) ] ]
+                            )
+                          ]
+                          Unit
+                        ]
+                      )
+                    )
                   ]
                   Unit
                 ]

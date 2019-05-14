@@ -28,15 +28,7 @@
           )
         )
       )
-      (lam
-        ds
-        (con integer)
-        (lam
-          ds
-          (con integer)
-          [ (lam z (con integer) [ [ equalsInteger ds ] z ]) ds ]
-        )
-      )
+      equalsInteger
     )
   )
 )

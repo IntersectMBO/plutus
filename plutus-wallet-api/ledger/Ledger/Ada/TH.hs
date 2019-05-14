@@ -2,6 +2,8 @@
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE TemplateHaskell    #-}
+-- Otherwise we get a complaint about the 'fromIntegral' call in the generated instance of 'Integral' for 'Ada'
+{-# OPTIONS_GHC -Wno-identities #-}
 -- | Functions for working with 'Ada' in Template Haskell.
 module Ledger.Ada.TH(
       Ada
@@ -51,7 +53,7 @@ adaToken = [|| $$(TH.tokenName) $$(P.emptyByteString) ||]
 
 -- | ADA, the special currency on the Cardano blockchain.
 --   See note [Currencies] in 'Ledger.Validation.Value.TH'.
-newtype Ada = Ada { getAda :: Int }
+newtype Ada = Ada { getAda :: Integer }
     deriving (Eq, Ord, Show, Enum)
     deriving stock (Generic)
     deriving anyclass (ToSchema, ToJSON, FromJSON)
@@ -68,18 +70,18 @@ fromValue :: Q (TExp (Value -> Ada))
 fromValue = [||  \v -> Ada ($$(TH.valueOf) v $$adaSymbol $$adaToken) ||]
 
 -- | Get the amount of 'Ada'.
-toInt :: Q (TExp (Ada -> Int))
+toInt :: Q (TExp (Ada -> Integer))
 toInt = [|| \(Ada i) -> i ||]
 
 -- | Turn a quantity into 'Ada'.
-fromInt :: Q (TExp (Int -> Ada))
+fromInt :: Q (TExp (Integer -> Ada))
 fromInt = [|| Ada ||]
 
 -- | A 'Value' with the given amount of 'Ada'.
 --
 --   @adaValueOf == toValue . fromInt@
 --
-adaValueOf :: Q (TExp (Int -> Value))
+adaValueOf :: Q (TExp (Integer -> Value))
 adaValueOf = [|| $$(TH.singleton) $$adaSymbol $$adaToken ||]
 
 -- | Add two 'Ada' values together.

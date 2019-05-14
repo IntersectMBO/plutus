@@ -88,7 +88,7 @@ import           Prelude                        ( Show(..)
                                                 , Eq(..)
                                                 , Bool(..)
                                                 , Ord(..)
-                                                , Int
+                                                , Integer
                                                 , Maybe(..)
                                                 , (.)
                                                 )
@@ -113,8 +113,8 @@ import GHC.Generics (Generic)
 import Language.Marlowe.Pretty (Pretty, prettyFragment)
 import Text.PrettyPrint.Leijen (text)
 
-type Timeout = Int
-type Cash = Int
+type Timeout = Integer
+type Cash = Integer
 
 type Person = PubKey
 
@@ -130,19 +130,19 @@ be generated automatically (and so uniquely); here we simply assume that
 they are unique.
 
 -}
-newtype IdentCC = IdentCC Int
+newtype IdentCC = IdentCC Integer
                deriving stock (Eq, Ord, Show, Generic)
                deriving anyclass (Pretty)
 
-newtype IdentChoice = IdentChoice Int
+newtype IdentChoice = IdentChoice Integer
                deriving stock (Eq, Ord, Show, Generic)
                deriving anyclass (Pretty)
 
-newtype IdentPay = IdentPay Int
+newtype IdentPay = IdentPay Integer
                deriving stock (Eq, Ord, Show, Generic)
                deriving anyclass (Pretty)
 
-type ConcreteChoice = Int
+type ConcreteChoice = Integer
 
 type CCStatus = (Person, CCRedeemStatus)
 
@@ -161,7 +161,7 @@ type Commit = (IdentCC, CCStatus)
 -}
 data Value  = Committed IdentCC
             -- ^ available amount by 'IdentCC'
-            | Value Int
+            | Value Integer
             | AddValue Value Value
             | MulValue Value Value
             | DivValue Value Value Value
@@ -177,7 +177,7 @@ data Value  = Committed IdentCC
 {-| Predicate on outer world and contract 'State'.
     'interpretObservation' evaluates 'Observation' to 'Bool'
 -}
-data Observation = BelowTimeout Int
+data Observation = BelowTimeout Integer
             -- ^ are we still on time for something that expires on Timeout?
             | AndObs Observation Observation
             | OrObs Observation Observation
@@ -216,8 +216,8 @@ data Contract = Null
     State of a contract validation function.
 -}
 data ValidatorState = ValidatorState {
-        maxCCId  :: Int,
-        maxPayId :: Int
+        maxCCId  :: Integer,
+        maxPayId :: Integer
     }
 
 {-|
@@ -255,7 +255,7 @@ makeLift ''InputCommand
     Marlowe Contract Input.
     May contain oracle values, and newly made choices.
 -}
-data Input = Input InputCommand [OracleValue Int] [Choice]
+data Input = Input InputCommand [OracleValue Integer] [Choice]
 
 {-|
     This data type is a content of a contract's /Data Script/
@@ -433,7 +433,7 @@ validateContract = [|| \State{stateCommitted} contract (Slot bn) actualMoney' ->
 {-|
     Evaluates 'Value' given current block number 'Slot', oracle values, and current 'State'.
 -}
-evaluateValue :: Q (TExp (Slot -> [OracleValue Int] -> State -> Value -> Int))
+evaluateValue :: Q (TExp (Slot -> [OracleValue Integer] -> State -> Value -> Integer))
 evaluateValue = [|| \pendingTxSlot inputOracles state value -> let
     infixr 3 &&
     (&&) :: Bool -> Bool -> Bool
@@ -448,7 +448,7 @@ evaluateValue = [|| \pendingTxSlot inputOracles state value -> let
         _ : xs -> findCommit i xs
         _ -> Nothing
 
-    fromOracle :: PubKey -> Slot -> [OracleValue Int] -> Maybe Int
+    fromOracle :: PubKey -> Slot -> [OracleValue Integer] -> Maybe Integer
     fromOracle pubKey h@(Slot blockNumber) oracles = case oracles of
         OracleValue pk (Slot bn) value : _
             | pk `eqPk` pubKey && bn `Builtins.equalsInteger` blockNumber -> Just value
@@ -461,7 +461,7 @@ evaluateValue = [|| \pendingTxSlot inputOracles state value -> let
         _ : rest -> fromChoices identChoice pubKey rest
         _ -> Nothing
 
-    evalValue :: State -> Value -> Int
+    evalValue :: State -> Value -> Integer
     evalValue state@(State committed choices) value = case value of
         Committed ident -> case findCommit ident committed of
             Just (_, NotRedeemed c _) -> c
@@ -486,8 +486,8 @@ evaluateValue = [|| \pendingTxSlot inputOracles state value -> let
 
 -- | Interpret 'Observation' as 'Bool'.
 interpretObservation :: Q (TExp (
-    (State -> Value -> Int)
-    -> Int -> State -> Observation -> Bool))
+    (State -> Value -> Integer)
+    -> Integer -> State -> Observation -> Bool))
 interpretObservation = [|| \evalValue blockNumber state@(State _ choices) obs -> let
     not :: Bool -> Bool
     not = $$(PlutusTx.not)
@@ -566,7 +566,7 @@ discountFromPairList = [|| \ from (Slot currentBlockNumber) value' commits -> le
     infixr 3 &&
     (&&) = $$(PlutusTx.and)
 
-    discount :: Int -> [Commit] -> Maybe [Commit]
+    discount :: Integer -> [Commit] -> Maybe [Commit]
     discount value commits = case commits of
         (ident, (party, NotRedeemed available expire)) : rest
             | currentBlockNumber `Builtins.lessThanEqInteger` expire && $$(Validation.eqPubKey) from party ->
@@ -644,10 +644,10 @@ evaluateContract = [|| \
     nullContract Null = True
     nullContract _    = False
 
-    evalValue :: State -> Value -> Int
+    evalValue :: State -> Value -> Integer
     evalValue = $$(evaluateValue) (Slot currentBlockNumber) inputOracles
 
-    interpretObs :: Int -> State -> Observation -> Bool
+    interpretObs :: Integer -> State -> Observation -> Bool
     interpretObs = $$(interpretObservation) evalValue
 
     signedBy :: Signature -> PubKey -> Bool

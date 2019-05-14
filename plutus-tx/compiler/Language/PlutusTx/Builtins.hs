@@ -1,6 +1,5 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE PolyKinds #-}
-{-# OPTIONS_GHC -O0 #-}
 -- | Primitive names and functions for working with Plutus Core builtins.
 module Language.PlutusTx.Builtins (
                                 -- * Bytestring builtins
@@ -43,75 +42,106 @@ import           Prelude                   hiding (String, error)
 
 import           Language.PlutusTx.Utils   (mustBeReplaced)
 
+{- Note [Builtin name definitions]
+The builtins here have definitions so they can be used in off-chain code too.
+
+However they *must* be replaced by the compiler when used in Plutus Tx code, so
+in particular they must *not* be inlined, otherwise we can't spot them to replace
+them.
+-}
+
+{-# NOINLINE concatenate #-}
 concatenate :: ByteString -> ByteString -> ByteString
 concatenate = BSL.append
 
-takeByteString :: Int -> ByteString -> ByteString
+{-# NOINLINE takeByteString #-}
+takeByteString :: Integer -> ByteString -> ByteString
 takeByteString i = BSL.take (fromIntegral i)
 
-dropByteString :: Int -> ByteString -> ByteString
+{-# NOINLINE dropByteString #-}
+dropByteString :: Integer -> ByteString -> ByteString
 dropByteString i = BSL.drop (fromIntegral i)
 
+{-# NOINLINE emptyByteString #-}
 emptyByteString :: ByteString
 emptyByteString = BSL.empty
 
+{-# NOINLINE sha2_256 #-}
 sha2_256 :: ByteString -> ByteString
 sha2_256 = Hash.sha2
 
+{-# NOINLINE sha3_256 #-}
 sha3_256 :: ByteString -> ByteString
 sha3_256 = Hash.sha3
 
+{-# NOINLINE verifySignature #-}
 verifySignature :: ByteString -> ByteString -> ByteString -> Bool
 verifySignature pubKey message signature =
   fromMaybe False (Crypto.verifySignature pubKey message signature)
 
+{-# NOINLINE equalsByteString #-}
 equalsByteString :: ByteString -> ByteString -> Bool
 equalsByteString = (==)
 
-addInteger :: Int -> Int -> Int
+{-# NOINLINE addInteger #-}
+addInteger :: Integer -> Integer -> Integer
 addInteger = (+)
 
-subtractInteger :: Int -> Int -> Int
+{-# NOINLINE subtractInteger #-}
+subtractInteger :: Integer -> Integer -> Integer
 subtractInteger = (-)
 
-multiplyInteger :: Int -> Int -> Int
+{-# NOINLINE multiplyInteger #-}
+multiplyInteger :: Integer -> Integer -> Integer
 multiplyInteger = (*)
 
-divideInteger :: Int -> Int -> Int
+{-# NOINLINE divideInteger #-}
+divideInteger :: Integer -> Integer -> Integer
 divideInteger = div
 
-remainderInteger :: Int -> Int -> Int
+{-# NOINLINE remainderInteger #-}
+remainderInteger :: Integer -> Integer -> Integer
 remainderInteger = rem
 
-greaterThanInteger :: Int -> Int -> Bool
+{-# NOINLINE greaterThanInteger #-}
+greaterThanInteger :: Integer -> Integer -> Bool
 greaterThanInteger = (>)
 
-greaterThanEqInteger :: Int -> Int -> Bool
+{-# NOINLINE greaterThanEqInteger #-}
+greaterThanEqInteger :: Integer -> Integer -> Bool
 greaterThanEqInteger = (>=)
 
-lessThanInteger :: Int -> Int -> Bool
+{-# NOINLINE lessThanInteger #-}
+lessThanInteger :: Integer -> Integer -> Bool
 lessThanInteger = (<)
 
-lessThanEqInteger :: Int -> Int -> Bool
+{-# NOINLINE lessThanEqInteger #-}
+lessThanEqInteger :: Integer -> Integer -> Bool
 lessThanEqInteger = (<=)
 
-equalsInteger :: Int -> Int -> Bool
+{-# NOINLINE equalsInteger #-}
+equalsInteger :: Integer -> Integer -> Bool
 equalsInteger = (==)
 
+{-# NOINLINE error #-}
 error :: () -> a
-error = mustBeReplaced
+error = mustBeReplaced "error"
 
 -- | An opaque type representing PLC strings.
 data String
 
+{-# NOINLINE appendString #-}
 appendString :: String -> String -> String
-appendString = mustBeReplaced
+appendString = mustBeReplaced "appendString"
 
+{-# NOINLINE emptyString #-}
 emptyString :: String
-emptyString = mustBeReplaced
+emptyString = mustBeReplaced "emptyString"
 
+{-# NOINLINE charToString #-}
 charToString :: Char -> String
-charToString = mustBeReplaced
+charToString = mustBeReplaced "charToString"
 
+{-# NOINLINE trace #-}
 trace :: String -> ()
-trace = mustBeReplaced
+trace = mustBeReplaced "trace"

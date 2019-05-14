@@ -27,7 +27,6 @@ We need the same language extensions and imports as [before](./02-validator-scri
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings   #-}
-{-# OPTIONS_GHC -O0 #-}
 module Tutorial.WalletAPI where
 
 import qualified Language.PlutusTx            as P

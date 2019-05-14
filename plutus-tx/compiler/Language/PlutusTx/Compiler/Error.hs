@@ -85,5 +85,5 @@ instance (PP.Pretty a) => PLC.PrettyBy PLC.PrettyConfigPlc (Error a) where
         PIRError e -> PP.vsep [ "Error from the PIR compiler:", PLC.prettyBy config e ]
         CompilationError e -> "Unexpected error during compilation, please report this to the Plutus team:" PP.<+> PP.pretty e
         UnsupportedError e -> "Unsupported feature:" PP.<+> PP.pretty e
-        FreeVariableError e -> "Reference to a value which is not a local, nor a builtin:" PP.<+> PP.pretty e
+        FreeVariableError e -> "Reference to a name which is not a local, a builtin, or an external INLINABLE function:" PP.<+> PP.pretty e
         ValueRestrictionError -> "Attempt to polymorphically generalize something which is not a value (often a let-binding)"

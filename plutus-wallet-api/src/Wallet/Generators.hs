@@ -79,7 +79,7 @@ generatorModel =
     }
 
 -- | A function that estimates a transaction fee based on the number of its inputs and outputs.
-newtype FeeEstimator = FeeEstimator { estimateFee :: Int -> Int -> Ada }
+newtype FeeEstimator = FeeEstimator { estimateFee :: Integer -> Integer -> Ada }
 
 -- | Estimate a constant fee for all transactions.
 constantFee :: Ada -> FeeEstimator
@@ -179,7 +179,7 @@ genValidTransactionSpending' :: MonadGen m
     -> Ada
     -> m Tx
 genValidTransactionSpending' g f ins totalVal = do
-    let fee = estimateFee f (length ins) 3
+    let fee = estimateFee f (fromIntegral $ length ins) 3
         numOut = Set.size $ gmPubKeys g
     if fee < totalVal
         then do
@@ -200,7 +200,7 @@ genValidTransactionSpending' g f ins totalVal = do
         else Gen.discard
 
 genAda :: MonadGen m => m Ada
-genAda = Ada.fromInt <$> Gen.int (Range.linear 0 (100000 :: Int))
+genAda = Ada.fromInt <$> Gen.integral (Range.linear 0 (100000 :: Integer))
 
 -- | Generate a 'ByteString s' of up to @s@ bytes.
 genSizedByteString :: forall m. MonadGen m => Int -> m P.ByteString
@@ -214,7 +214,7 @@ genSizedByteStringExact s =
     let range = Range.singleton s in
     BSL.fromStrict <$> Gen.bytes range
 
-genValue' :: MonadGen m => Range Int -> m Value
+genValue' :: MonadGen m => Range Integer -> m Value
 genValue' valueRange = do
     let
         -- currency symbol is either a validator hash (bytestring of length 32)
@@ -229,7 +229,7 @@ genValue' valueRange = do
                     [ Value.tokenName <$> (genSizedByteString 32)
                     , pure Ada.adaToken
                     ]
-        sngl      = Value.singleton <$> currency <*> token <*> Gen.int valueRange
+        sngl      = Value.singleton <$> currency <*> token <*> Gen.integral valueRange
 
         -- generate values with no more than 5 elements to avoid the tests
         -- taking too long (due to the map-as-list-of-kv-pairs implementation)
@@ -240,11 +240,11 @@ genValue' valueRange = do
 
 -- | Generate a 'Value' with a value range of @minBound .. maxBound@.
 genValue :: MonadGen m => m Value
-genValue = genValue' Range.linearBounded
+genValue = genValue' $ fmap fromIntegral $ Range.linearBounded @Int
 
 -- | Generate a 'Value' with a value range of @0 .. maxBound@.
 genValueNonNegative :: MonadGen m => m Value
-genValueNonNegative = genValue' (Range.linear 0 maxBound)
+genValueNonNegative = genValue' $ fmap fromIntegral $ (Range.linear @Int 0 maxBound)
 
 -- | Assert that a transaction is valid in a chain.
 assertValid :: (MonadTest m, HasCallStack)

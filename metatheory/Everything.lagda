@@ -54,6 +54,7 @@ import Algorithmic.Evaluation
 import Algorithmic.Main
 import Algorithmic.Soundness
 import Algorithmic.Completeness
+import Algorithmic.Erasure
 
 -- Terms, that carry witnesses of their type's reduction to normal form
 
