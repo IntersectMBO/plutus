@@ -29,85 +29,17 @@ module Ledger.Value(
     , isZero
     ) where
 
-import qualified Ledger.Value.TH            as TH
-import           Ledger.Value.TH            (CurrencySymbol, TokenName, Value)
+import Ledger.Value.TH
 import           Prelude                    hiding (negate)
-import qualified Language.PlutusTx.Prelude  as P
 
 instance Eq Value where
-  (==) = $$(TH.eq)
+  (==) = eq
 
 instance Ord Value where
-  (<=) = $$(TH.leq)
+  (<=) = leq
 
 instance Semigroup Value where
   (<>) = plus
 
 instance Monoid Value where
   mempty = zero
-
-currencySymbol :: P.ByteString -> CurrencySymbol
-currencySymbol = $$(TH.currencySymbol)
-
-tokenName :: P.ByteString -> TokenName
-tokenName = $$(TH.tokenName)
-
--- | See 'TH.singleton'.
-singleton :: CurrencySymbol -> TokenName -> Integer -> Value
-singleton = $$(TH.singleton)
-
--- | See 'TH.valueOf'.
-valueOf :: Value -> CurrencySymbol -> TokenName -> Integer
-valueOf = $$(TH.valueOf)
-
--- | See 'TH.scale'.
-scale :: Integer -> Value -> Value
-scale = $$(TH.scale)
-
--- | See 'TH.symbols'.
-symbols :: Value -> [CurrencySymbol]
-symbols = $$(TH.symbols)
-
--- | See 'TH.zero'.
-zero :: Value
-zero = $$(TH.zero)
-
--- | See 'TH.plus'.
-plus :: Value -> Value -> Value
-plus = $$(TH.plus)
-
--- | See 'TH.minus'.
-minus :: Value -> Value -> Value
-minus = $$(TH.minus)
-
--- | See 'TH.multiply'.
-multiply :: Value -> Value -> Value
-multiply = $$(TH.multiply)
-
--- | See 'TH.negate'.
-negate :: Value -> Value
-negate = $$(TH.negate)
-
--- | See 'TH.geq'.
-geq :: Value -> Value -> Bool
-geq = $$(TH.geq)
-
--- | See 'TH.gt'.
-gt :: Value -> Value -> Bool
-gt = $$(TH.gt)
-
--- | See 'TH.leq'.
-leq :: Value -> Value -> Bool
-leq = $$(TH.leq)
-
--- | See 'TH.lt'.
-lt :: Value -> Value -> Bool
-lt = $$(TH.lt)
-
--- | See 'TH.eq'.
-eq :: Value -> Value -> Bool
-eq = $$(TH.eq)
-
--- | See 'TH.isZero'.
-isZero :: Value -> Bool
-isZero = $$(TH.isZero)

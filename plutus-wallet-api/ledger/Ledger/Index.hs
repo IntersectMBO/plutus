@@ -2,7 +2,6 @@
 {-# LANGUAGE DeriveGeneric    #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE TemplateHaskell  #-}
 -- | An index of unspent transaction outputs, and some functions for validating
 --   transactions using the index.
 module Ledger.Index(
@@ -139,7 +138,7 @@ validateTransaction h t = do
 -- | Check that a transaction can be validated in the given slot.
 checkSlotRange :: ValidationMonad m => Slot.Slot -> Tx -> m ()
 checkSlotRange sl tx =
-    if $$(Slot.member) sl (txValidRange tx)
+    if Slot.member sl (txValidRange tx)
     then pure ()
     else throwError $ CurrentSlotOutOfRange sl
 

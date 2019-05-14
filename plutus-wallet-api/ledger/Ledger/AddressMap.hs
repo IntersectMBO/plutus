@@ -86,7 +86,7 @@ addAddresses = flip (foldr addAddress)
 
 -- | The total value of unspent outputs (which the map knows about) at an address.
 values :: AddressMap -> Map Address Value
-values = Map.map (Map.foldl' $$(V.plus) $$(V.zero) . Map.map txOutValue) . getAddressMap
+values = Map.map (Map.foldl' V.plus V.zero . Map.map txOutValue) . getAddressMap
 
 -- | Create an 'AddressMap' with the unspent outputs of a single transaction.
 fromTxOutputs :: Tx -> AddressMap

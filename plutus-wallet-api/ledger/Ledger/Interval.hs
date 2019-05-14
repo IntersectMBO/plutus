@@ -23,7 +23,6 @@ import           Data.Swagger.Internal.Schema             (ToSchema)
 import           Data.Maybe                               (isNothing)
 import           Data.Semigroup                           (Min(..), Max(..), Semigroup((<>)), Option(..))
 import           GHC.Generics                             (Generic)
-import           Language.Haskell.TH
 
 import           Language.PlutusTx.Lift                   (makeLift)
 
@@ -84,21 +83,21 @@ query functions specialized to 'Interval Slot' exported from 'Ledger.Slot'.
 -}
 
 -- | An 'Interval' that covers every slot.
-always :: Q (TExp (Interval a))
-always = [|| Interval Nothing Nothing ||]
+always :: Interval a
+always = Interval Nothing Nothing
 
 -- | @from a@ is an 'Interval' that includes all values that are
 --  greater than or equal to @a@.
-from :: Q (TExp (a -> Interval a))
-from = [|| \s -> Interval (Just s) Nothing ||]
+from :: a -> Interval a
+from s = Interval (Just s) Nothing
 
 -- | @to a@ is an 'Interval' that includes all values that are
 --  smaller than @a@.
-to :: Q (TExp (a -> Interval a))
-to = [|| \s -> Interval Nothing (Just s) ||]
+to :: a -> Interval a
+to s = Interval Nothing (Just s)
 
 -- | @interval a b@ includes all values that are greater than or equal
 --   to @a@ and smaller than @b@. Therefore it includes @a@ but not it
 --   does not include @b@.
-interval :: Q (TExp (a -> a -> Interval a))
-interval = [|| \s s' -> Interval (Just s) (Just s') ||]
+interval :: a -> a -> Interval a
+interval s s' = Interval (Just s) (Just s')

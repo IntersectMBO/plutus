@@ -158,12 +158,12 @@ Then we compute the total value of all transaction inputs, using `P.foldr` on th
                         -- define a function "addToTotal" that adds the ada
                         -- value of a 'PendingTxIn' to the total
                         let addToTotal (PendingTxIn _ _ vl) total =
-                                let adaVl = $$(Ada.fromValue) vl
-                                in $$(Ada.plus) total adaVl
+                                let adaVl = Ada.fromValue vl
+                                in Ada.plus total adaVl
 
                         -- Apply "addToTotal" to each transaction input,
                         -- summing up the results
-                        in P.foldr addToTotal $$(Ada.zero) ins
+                        in P.foldr addToTotal Ada.zero ins
 ```
 
 We now have all the information we need to check whether the action `act` is allowed. This will be computed as
@@ -196,7 +196,7 @@ The predicate `contribTxOut` is applied to all outputs of the current transactio
 For the contribution to be refundable, three conditions must hold. The collection deadline must have passed, all outputs of this transaction must go to the contributor `con`, and the transaction was signed by the contributor. To check whether the collection deadline has passed, we use `P.before :: Slot -> SlotRange -> Bool`. `before` is exported by the `Ledger.Intervals` module, alongside other useful functions for working with `SlotRange` values.
 
 ```haskell
-                              refundable = $$(P.before) collectionDeadline txnValidRange &&
+                              refundable = P.before collectionDeadline txnValidRange &&
                                            contributorOnly &&
                                            p `signedBy` pkCon
 ```
@@ -216,8 +216,8 @@ The second branch represents a successful campaign.
 In the `Collect` case, the current slot must be between `deadline` and `collectionDeadline`, the target must have been met, and and transaction has to be signed by the campaign owner. We use `interval :: Slot -> Slot -> SlotRange` and `contains :: SlotRange -> SlotRange -> Bool` from the `Ledger.Intervals` module to ensure that the spending transactions validity range, `txnValidRange`, is completely contained in the time between campaign deadline and collection deadline.
 
 ```haskell
-                          $$(P.contains) ($$(P.interval) deadline collectionDeadline) txnValidRange &&
-                          $$(Ada.geq) totalInputs target &&
+                          P.contains (P.interval deadline collectionDeadline) txnValidRange &&
+                          Ada.geq totalInputs target &&
                           p `signedBy` campaignOwner
 
               in
@@ -274,7 +274,7 @@ collectFundsTrigger :: Campaign -> EventTrigger
 collectFundsTrigger c = W.andT
     -- We use `W.intervalFrom` to create an open-ended interval that starts
     -- at the funding target.
-    (W.fundsAtAddressT (campaignAddress c) (W.intervalFrom ($$(Ada.toValue) (fundingTarget c))))
+    (W.fundsAtAddressT (campaignAddress c) (W.intervalFrom (Ada.toValue (fundingTarget c))))
 
     -- With `W.interval` we create an interval from the campaign's end date
     -- (inclusive) to the collection deadline (exclusive)
@@ -340,7 +340,7 @@ Now we can register the refund handler when we make the contribution. The condit
 ```haskell
 refundTrigger :: Campaign -> EventTrigger
 refundTrigger c = W.andT
-    (W.fundsAtAddressT (campaignAddress c) (W.intervalFrom ($$(Ada.toValue) 1)))
+    (W.fundsAtAddressT (campaignAddress c) (W.intervalFrom (Ada.toValue 1)))
     (W.slotRangeT (W.intervalFrom (collectionDeadline c)))
 ```
 
@@ -351,7 +351,7 @@ contribute :: MonadWallet m => Campaign -> Ada -> m ()
 contribute cmp adaAmount = do
       pk <- W.ownPubKey
       let dataScript = mkDataScript pk
-          amount = $$(Ada.toValue) adaAmount
+          amount = Ada.toValue adaAmount
 
       -- payToScript returns the transaction that was submitted
       -- (unlike payToScript_ which returns unit)

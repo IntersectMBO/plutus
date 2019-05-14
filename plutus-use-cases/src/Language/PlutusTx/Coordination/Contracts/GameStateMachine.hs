@@ -79,19 +79,19 @@ gameValidator = ValidatorScript ($$(Ledger.compileScript [||
         tokenVal :: TokenName -> V.Value
         tokenVal tn =
             let ownSymbol = $$(Validation.ownCurrencySymbol) p
-            in $$(V.singleton) ownSymbol tn 1
+            in V.singleton ownSymbol tn 1
 
         -- | Check whether the token that was forged at the beginning of the
         --   contract is present in the pending transaction
         tokenPresent :: TokenName -> Bool
         tokenPresent tn =
             let vSpent = $$(Validation.valueSpent) p
-            in  $$(V.geq) vSpent (tokenVal tn)
+            in  V.geq vSpent (tokenVal tn)
 
         -- | Check whether the value forged by the  pending transaction 'p' is
         --   equal to the argument.
         checkForge :: Value -> Bool
-        checkForge vl = $$(V.eq) vl ($$(Validation.valueForged) p)
+        checkForge vl = V.eq vl ($$(Validation.valueForged) p)
 
         -- | Equality of 'GameState' valzes.
         stateEq :: GameState -> GameState -> Bool
@@ -110,7 +110,7 @@ gameValidator = ValidatorScript ($$(Ledger.compileScript [||
         trans (Locked tn currentSecret) (Guess theGuess nextSecret) =
             if P.and
                 (checkGuess currentSecret theGuess)
-                (P.and (tokenPresent tn) (checkForge $$(V.zero)))
+                (P.and (tokenPresent tn) (checkForge V.zero))
             then Locked tn nextSecret
             else P.error ()
         trans _ _ = P.traceH "Invalid transition" (P.error ())
@@ -132,7 +132,7 @@ gameTokenVal =
         -- see note [Obtaining the currency symbol]
         cur = plcCurrencySymbol (Ledger.scriptAddress gameValidator)
     in
-        $$(V.singleton) cur gameToken 1
+        V.singleton cur gameToken 1
 
 -- | Make a guess, take out some funds, and lock the remaining 'Ada' with a new
 --   secret
@@ -163,7 +163,7 @@ guess gss newSecret keepAda restAda = do
     let tx = Ledger.Tx
                 { txInputs = Set.union i (Set.fromList $ fmap fst ins)
                 , txOutputs = [ownOutput, scriptOut] ++ maybeToList own
-                , txForge = $$(V.zero)
+                , txForge = V.zero
                 , txFee   = Ada.zero
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty

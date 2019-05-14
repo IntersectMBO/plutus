@@ -6,13 +6,4 @@ module Ledger.These(
   , theseWithDefault
   ) where
 
-import           Ledger.These.TH (These (..))
-import qualified Ledger.These.TH as TH
-
--- | See 'Ledger.These.TH.these'
-these :: (a -> c) -> (b -> c) -> (a -> b -> c) -> These a b -> c
-these = $$(TH.these)
-
--- | See 'Ledger.These.TH.theseWithDefault
-theseWithDefault :: a -> b -> (a -> b -> c) -> These a b -> c
-theseWithDefault = $$(TH.theseWithDefault)
+import Ledger.These.TH

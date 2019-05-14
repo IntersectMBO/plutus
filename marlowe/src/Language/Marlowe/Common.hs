@@ -392,7 +392,7 @@ equalContract = [|| \eqValue eqObservation l r -> let
 validateContract :: Q (TExp (State -> Contract -> Slot -> Ada -> Bool))
 validateContract = [|| \State{stateCommitted} contract (Slot bn) actualMoney' -> let
 
-    actualMoney = $$(Ada.toInt) actualMoney'
+    actualMoney = Ada.toInt actualMoney'
 
     calcCommittedMoney :: [Commit] -> Cash -> Cash
     calcCommittedMoney [] r = r
@@ -561,7 +561,7 @@ discountFromPairList :: Q (TExp (
     -> [Commit]
     -> Maybe [Commit]))
 discountFromPairList = [|| \ from (Slot currentBlockNumber) value' commits -> let
-    value = $$(Ada.toInt) value'
+    value = Ada.toInt value'
 
     infixr 3 &&
     (&&) = PlutusTx.and
@@ -624,8 +624,8 @@ evaluateContract = [|| \
     state
     contract -> let
 
-    scriptInValue  = $$(Ada.toInt) scriptInValue'
-    scriptOutValue = $$(Ada.toInt) scriptOutValue'
+    scriptInValue  = Ada.toInt scriptInValue'
+    scriptOutValue = Ada.toInt scriptOutValue'
 
     Slot currentBlockNumber = blockHeight
 
@@ -704,7 +704,7 @@ evaluateContract = [|| \
                 && scriptOutValue `Builtins.equalsInteger` (scriptInValue `Builtins.subtractInteger` pv)
                 && signature `signedBy` to
             in  if isValid then let
-                in case $$(discountFromPairList) from blockHeight ($$(Ada.fromInt) pv) commits of
+                in case $$(discountFromPairList) from blockHeight (Ada.fromInt pv) commits of
                     Just updatedCommits -> let
                         updatedState = State updatedCommits choices
                         in (updatedState, con, True)
@@ -827,11 +827,11 @@ validatorScript = [|| \
             PendingTxIn _ (Just (vHash, RedeemerHash rHash)) value -> (vHash, rHash, value)
             _ -> Builtins.error ()
 
-        scriptInAdaValue = $$(Ada.fromValue) scriptInValue
+        scriptInAdaValue = Ada.fromValue scriptInValue
 
         -- Expected amount of money in TxOut Marlowe Contract
         scriptOutValue = case inputCommand of
-            SpendDeposit _ -> $$(Ada.fromInt) 0
+            SpendDeposit _ -> Ada.fromInt 0
             _ -> let (PendingTxOut change
                         (Just (outputValidatorHash, DataScriptHash dataScriptHash)) DataTxOut : _) = pendingTxOutputs
                 {-  Check that TxOut is a valid continuation.
@@ -839,7 +839,7 @@ validatorScript = [|| \
                     and that TxOut has the same validator -}
                  in if Builtins.equalsByteString dataScriptHash redeemerHash
                         && $$(Validation.eqValidator) inputValidatorHash outputValidatorHash
-                    then $$(Ada.fromValue) change else Builtins.error ()
+                    then Ada.fromValue change else Builtins.error ()
 
         eval :: Input -> Slot -> Ada -> Ada -> State -> Contract -> (State, Contract, Bool)
         eval = $$(evaluateContract) contractCreatorPK pendingTxHash

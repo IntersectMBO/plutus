@@ -118,12 +118,12 @@ mkValidatorScript campaign = ValidatorScript val where
               -- define a function "addToTotal" that adds the ada
               -- value of a 'PendingTxIn' to the total
               let addToTotal (PendingTxIn _ _ vl) total =
-                      let adaVl = $$(Ada.fromValue) vl
-                      in $$(Ada.plus) total adaVl
+                      let adaVl = Ada.fromValue vl
+                      in Ada.plus total adaVl
 
               -- Apply "addToTotal" to each transaction input,
               -- summing up the results
-              in P.foldr addToTotal $$(Ada.zero) ins
+              in P.foldr addToTotal Ada.zero ins
 
         isValid = case act of
                     Refund ->
@@ -139,7 +139,7 @@ mkValidatorScript campaign = ValidatorScript val where
                             contributorOnly = P.all contribTxOut outs
 
                             refundable =
-                              $$(Slot.before) collectionDeadline txnValidRange &&
+                              Slot.before collectionDeadline txnValidRange &&
                               contributorOnly &&
                               p `signedBy` pkCon
 
@@ -152,12 +152,12 @@ mkValidatorScript campaign = ValidatorScript val where
                         -- | Check whether a given 'Slot' is after the current
                         --   transaction's valid range
                         isFutureSlot :: Slot -> Bool
-                        isFutureSlot sl = $$(Slot.after) sl txnValidRange
+                        isFutureSlot sl = Slot.after sl txnValidRange
 
                         -- | Return the smaller of two 'Ada' values
                         --   (NB this should be in the standard library)
                         minAda :: Ada -> Ada -> Ada
-                        minAda l r = if $$(Ada.lt) l r then l else r
+                        minAda l r = if Ada.lt l r then l else r
 
                         -- | Return the minimum of a list of 'Ada' values, if
                         --   it exists
@@ -183,7 +183,7 @@ mkValidatorScript campaign = ValidatorScript val where
                         targetMet =
                             case currentTarget of
                               Nothing -> False
-                              Just a  -> $$(Ada.geq) totalInputs a
+                              Just a  -> Ada.geq totalInputs a
 
                       in
                         -- note that we don't need to check the pending
@@ -215,14 +215,14 @@ refundHandler txid cmp = EventHandler (\_ -> do
 
 refundTrigger :: Campaign -> EventTrigger
 refundTrigger c = W.andT
-    (W.fundsAtAddressT (campaignAddress c) (W.intervalFrom ($$(Ada.toValue) 1)))
+    (W.fundsAtAddressT (campaignAddress c) (W.intervalFrom (Ada.toValue 1)))
     (W.slotRangeT (W.intervalFrom (collectionDeadline c)))
 
 contribute :: MonadWallet m => Campaign -> Ada -> m ()
 contribute cmp adaAmount = do
         pk <- W.ownPubKey
         let dataScript = mkDataScript pk
-            amount = $$(Ada.toValue) adaAmount
+            amount = Ada.toValue adaAmount
 
         -- payToScript returns the transaction that was submitted
         -- (unlike payToScript_ which returns unit)
@@ -248,7 +248,7 @@ mkCollectTrigger :: Address -> Slot -> Ada -> EventTrigger
 mkCollectTrigger addr sl target = W.andT
     -- We use `W.intervalFrom` to create an open-ended interval that starts
     -- at the funding target.
-    (W.fundsAtAddressT addr (W.intervalFrom ($$(Ada.toValue) target)))
+    (W.fundsAtAddressT addr (W.intervalFrom (Ada.toValue target)))
     -- With `W.intervalTo` we create an interval from now to the target slot 'sl'
     (W.slotRangeT (W.intervalTo sl))
 

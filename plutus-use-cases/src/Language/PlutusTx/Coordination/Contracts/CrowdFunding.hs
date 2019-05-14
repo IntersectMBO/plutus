@@ -104,15 +104,15 @@ contributionScript cmp  = ValidatorScript val where
                 PendingTx ps outs _ _ _ range _ _ = p
 
                 collRange :: SlotRange
-                collRange = $$(Interval.interval) campaignDeadline campaignCollectionDeadline
+                collRange = Interval.interval campaignDeadline campaignCollectionDeadline
 
                 refndRange :: SlotRange
-                refndRange = $$(Interval.from) campaignCollectionDeadline
+                refndRange = Interval.from campaignCollectionDeadline
 
                 totalInputs :: Value
                 totalInputs =
                     let v (PendingTxIn _ _ vl) = vl in
-                    P.foldr (\i total -> $$(VTH.plus) total (v i)) $$(VTH.zero) ps
+                    P.foldr (\i total -> VTH.plus total (v i)) VTH.zero ps
 
                 isValid = case act of
                     Refund ->
@@ -126,15 +126,15 @@ contributionScript cmp  = ValidatorScript val where
                             contributorOnly = P.all contributorTxOut outs
 
                             refundable =
-                                $$(Slot.contains) refndRange range
+                                Slot.contains refndRange range
                                 && contributorOnly && p `signedBy'` con
 
                         in refundable
                     Collect ->
                         let
                             payToOwner =
-                                $$(Slot.contains) collRange range
-                                && $$(VTH.geq) totalInputs campaignTarget
+                                Slot.contains collRange range
+                                && VTH.geq totalInputs campaignTarget
                                 && p `signedBy'` campaignOwner
                         in payToOwner
             in

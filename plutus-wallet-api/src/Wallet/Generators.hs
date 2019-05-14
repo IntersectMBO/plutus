@@ -184,13 +184,13 @@ genValidTransactionSpending' g f ins totalVal = do
     if fee < totalVal
         then do
             let sz = totalVal - fee
-            outVals <- fmap (Ada.toValue) <$> splitVal numOut sz
+            outVals <- fmap Ada.toValue <$> splitVal numOut sz
             let tx = Tx
                         { txInputs = ins
                         , txOutputs = uncurry pubKeyTxOut <$> zip outVals (Set.toList $ gmPubKeys g)
                         , txForge = Value.zero
                         , txFee = fee
-                        , txValidRange = $$(Interval.always)
+                        , txValidRange = Interval.always
                         , txSignatures = Map.empty
                         }
 

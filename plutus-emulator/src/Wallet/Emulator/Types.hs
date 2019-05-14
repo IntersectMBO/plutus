@@ -532,7 +532,7 @@ validateBlock currentSlot idx txns =
 
 -- | Check whether the given transaction can be validated in the given slot.
 canValidateNow :: Slot -> Tx -> Bool
-canValidateNow currentSlot tx = $$(Slot.member) currentSlot (txValidRange tx)
+canValidateNow currentSlot tx = Slot.member currentSlot (txValidRange tx)
 
 mkEvent :: Tx -> Maybe Index.ValidationError -> EmulatorEvent
 mkEvent t result =

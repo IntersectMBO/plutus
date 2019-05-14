@@ -259,7 +259,7 @@ plcDigest = BSL.pack . BA.unpack
 
 -- | The 'CurrencySymbol' of an 'Address'
 plcCurrencySymbol :: Address -> CurrencySymbol
-plcCurrencySymbol = $$(VTH.currencySymbol) . plcDigest . getAddress
+plcCurrencySymbol = VTH.currencySymbol . plcDigest . getAddress
 
 -- | Check if two public keys are equal.
 eqPubKey :: Q (TExp (PubKey -> PubKey -> Bool))
@@ -365,7 +365,7 @@ scriptOutputsAt = [||
 valueLockedBy :: Q (TExp (PendingTx -> ValidatorHash -> Value))
 valueLockedBy = [|| \ptx h ->
     let outputs = P.map (\(_, vl) -> vl) ($$scriptOutputsAt h ptx)
-    in P.foldr $$(VTH.plus) $$(VTH.zero) outputs
+    in P.foldr VTH.plus VTH.zero outputs
 
   ||]
 
@@ -387,11 +387,11 @@ pubKeyOutputsAt = [||
 
 -- | Get the total value paid to a public key address by a pending transaction.
 valuePaidTo :: Q (TExp (PendingTx -> PubKey -> Value))
-valuePaidTo = [|| \ptx pk -> P.foldr $$(VTH.plus) $$(VTH.zero) ($$pubKeyOutputsAt pk ptx) ||]
+valuePaidTo = [|| \ptx pk -> P.foldr VTH.plus VTH.zero ($$pubKeyOutputsAt pk ptx) ||]
 
 -- | Get the total amount of 'Ada' locked by the given validator in this transaction.
 adaLockedBy :: Q (TExp (PendingTx -> ValidatorHash -> Ada))
-adaLockedBy = [|| \ptx h -> $$(Ada.fromValue) ($$valueLockedBy ptx h) ||]
+adaLockedBy = [|| \ptx h -> Ada.fromValue ($$valueLockedBy ptx h) ||]
 
 -- | Check if the provided signature is the result of signing the pending
 --   transaction (without witnesses) with the given public key.
@@ -414,7 +414,7 @@ valueForged = [||
 valueSpent :: Q (TExp (PendingTx -> Value))
 valueSpent = [|| \(PendingTx inputs _ _ _ _ _ _ _) ->
     let inputs' = P.map (\(PendingTxIn _ _ vl) -> vl) inputs
-    in P.foldr $$(VTH.plus) $$(VTH.zero) inputs'
+    in P.foldr VTH.plus VTH.zero inputs'
   ||]
 
 -- | The 'CurrencySymbol' of the current validator script.
@@ -423,7 +423,7 @@ ownCurrencySymbol = [||
         let ownCurrencySymbol' :: PendingTx -> CurrencySymbol
             ownCurrencySymbol' p =
                 let (ValidatorHash h, _) = $$ownHashes p
-                in  $$(VTH.currencySymbol) h
+                in  VTH.currencySymbol h
         in ownCurrencySymbol'
     ||]
 

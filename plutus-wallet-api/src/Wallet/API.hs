@@ -88,6 +88,7 @@ import           Data.Maybe                 (fromMaybe, maybeToList)
 import           Data.Ord.Deriving          (deriveOrd1)
 import qualified Data.Set                   as Set
 import           Data.Text                  (Text)
+
 import qualified Data.Text                  as Text
 import           GHC.Generics               (Generic)
 import           Ledger                     (Address, DataScript, PubKey (..), RedeemerScript, Signature, Slot,
@@ -95,9 +96,9 @@ import           Ledger                     (Address, DataScript, PubKey (..), R
                                              TxOutType (..), ValidatorScript, Value, getTxId, hashTx, outValue, pubKeyTxOut, scriptAddress,
                                              scriptTxIn, signatures, txOutRefId)
 import           Ledger.AddressMap          (AddressMap)
-import           Ledger.Interval            (Interval (..))
+import           Ledger.Interval            (Interval (..), interval, always)
 import qualified Ledger.Interval            as Interval
-import qualified Ledger.Slot                as Slot
+import Ledger.Slot (before, after, singleton, contains, width, empty)
 import qualified Ledger.Value               as Value
 import           Text.Show.Deriving         (deriveShow1)
 
@@ -127,7 +128,7 @@ type AnnotatedEventTrigger a = Fix (Compose ((,) a) EventTriggerF)
 -- at my address are between 100 and 200".
 -- @
 --   andT
---     (fundsAtAddressT addr (W.interval ($$(Ada.toValue) 100) ($$(Ada.toValue) 200))
+--     (fundsAtAddressT addr (W.interval (Ada.toValue 100) (Ada.toValue 200))
 --     (slotRangeT (W.interval 0 5))
 -- @
 type EventTrigger = Fix EventTriggerF
@@ -455,41 +456,13 @@ signTxAndSubmit_ = void . signTxAndSubmit
 defaultSlotRange :: SlotRange
 defaultSlotRange = always
 
--- | See 'Interval.interval'.
-interval :: a -> a -> Interval a
-interval = $$(Interval.interval)
-
 -- | See 'Interval.from'.
 intervalFrom :: a -> Interval a
-intervalFrom = $$(Interval.from)
+intervalFrom = Interval.from
 
 -- | See 'Interval.to'.
 intervalTo :: a -> Interval a
-intervalTo = $$(Interval.to)
-
--- | See 'Slot.singleton'.
-singleton :: Slot -> SlotRange
-singleton = $$(Slot.singleton)
-
--- | See 'Slot.empty'.
-empty :: SlotRange -> Bool
-empty = $$(Slot.empty)
-
--- | See 'Interval.always'.
-always :: Interval a
-always = $$(Interval.always)
-
--- | See 'Slot.width'.
-width :: SlotRange -> Maybe Integer
-width = $$(Slot.width)
-
--- | See 'Slot.before'.
-before :: Slot -> SlotRange -> Bool
-before = $$(Slot.before)
-
--- | See 'Slot.after'.
-after :: Slot -> SlotRange -> Bool
-after = $$(Slot.after)
+intervalTo = Interval.to
 
 -- | Check whether an 'Interval' @a@ includes an @a@.
 member :: Ord a => a -> Interval a -> Bool
@@ -498,10 +471,6 @@ member v (Interval.Interval f t) =
         hg = case t of { Nothing -> True; Just v' -> v < v';  }
     in
         lw && hg
-
--- | See 'Slot.contains'.
-contains :: SlotRange -> SlotRange -> Bool
-contains = $$(Slot.contains)
 
 -- | Emit a warning if the value at an address is zero.
 warnEmptyTransaction :: (WalletDiagnostics m) => Value -> Address -> m ()

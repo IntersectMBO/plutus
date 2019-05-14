@@ -166,7 +166,7 @@ instance BA.ByteArrayAccess Tx where
 validValuesTx :: Tx -> Bool
 validValuesTx Tx{..}
   = all (nonNegative . txOutValue) txOutputs && nonNegative txForge  && txFee >= 0 where
-    nonNegative i = $$(V.geq) i $$(V.zero)
+    nonNegative i = V.geq i V.zero
 
 -- | A transaction without witnesses for its inputs.
 data TxStripped = TxStripped {

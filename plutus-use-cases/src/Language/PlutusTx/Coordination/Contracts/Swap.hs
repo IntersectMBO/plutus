@@ -96,9 +96,8 @@ swapValidator _ = ValidatorScript result where
             signedBy = $$(Validation.txSignedBy)
 
             adaValueIn :: Value -> Integer
-            adaValueIn v = $$(Ada.toInt) ($$(Ada.fromValue) v)
+            adaValueIn v = Ada.toInt (Ada.fromValue v)
 
-            infixr 3 ||
             (||) :: Bool -> Bool -> Bool
             (||) = PlutusTx.or
 
@@ -112,8 +111,8 @@ swapValidator _ = ValidatorScript result where
             rtDiff :: Ratio Integer
             rtDiff = rt `minusR` swapFixedRate
 
-            amt    = $$(Ada.toInt) swapNotionalAmt
-            margin = $$(Ada.toInt) swapMargin
+            amt    = Ada.toInt swapNotionalAmt
+            margin = Ada.toInt swapMargin
 
             amt' :: Ratio Integer
             amt' = fromInt amt
