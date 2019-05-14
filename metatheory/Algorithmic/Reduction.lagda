@@ -104,10 +104,18 @@ BUILTIN : ∀{Φ Γ}
 BUILTIN addInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) = just (con (integer (i + j)))
 BUILTIN subtractInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) = just (con (integer (i - j)))
 BUILTIN multiplyInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) = just (con (integer (i ** j)))
-BUILTIN divideInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) = just (con (integer (div i j)))
-BUILTIN quotientInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) = just (con (integer (quot i j)))
-BUILTIN remainderInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) = just (con (integer (rem i j)))
-BUILTIN modInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) = just (con (integer (mod i j)))
+BUILTIN divideInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) with ∣ j ∣ Data.Nat.≟ zero
+... | yes p = nothing
+... | no ¬p = just (con (integer (div i j)))
+BUILTIN quotientInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) with ∣ j ∣ Data.Nat.≟ zero
+... | yes p = nothing
+... | no ¬p = just (con (integer (quot i j)))
+BUILTIN remainderInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) with ∣ j ∣ Data.Nat.≟ zero
+... | yes p = nothing
+... | no ¬p = just (con (integer (rem i j)))
+BUILTIN modInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) with ∣ j ∣ Data.Nat.≟ zero
+... | yes p = nothing
+... | no ¬p = just (con (integer (mod i j)))
 BUILTIN lessThanInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)  with i Builtin.Constant.Type.<? j
 ... | yes _ = just true
 ... | no _  = just false
