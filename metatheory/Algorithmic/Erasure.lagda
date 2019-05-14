@@ -35,7 +35,7 @@ eraseVar Z     = zero
 eraseVar (S α) = suc (eraseVar α) 
 eraseVar (T α) = eraseVar α
 
-eraseTC : ∀{Φ}{A : Φ ⊢Nf⋆ *} → AC.TyTermCon A → TermCon
+eraseTC : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *} → AC.TyTermCon A → TermCon
 eraseTC (AC.integer i)    = integer i
 eraseTC (AC.bytestring b) = bytestring b
 
@@ -53,7 +53,7 @@ erase (Λ t)             = erase t
 erase (t ·⋆ A)          = erase t
 erase (wrap1 pat arg t) = erase t
 erase (unwrap1 t)       = erase t
-erase {Γ} (con t)       = con (eraseTC {Γ} t)
+erase {Γ = Γ} (con t)       = con (eraseTC {Γ = Γ} t)
 erase (builtin bn σ ts) = builtin bn (eraseTel ts)
 erase (error A)         = error
 
@@ -100,7 +100,7 @@ lemT refl refl x = refl
 open import Function
 
 sameTC : ∀{Φ Γ}{A : Φ ⊢⋆ *}(tcn : DC.TyTermCon A)
-  → D.eraseTC {Γ = Γ} tcn ≡ eraseTC (nfTypeTC tcn)
+  → D.eraseTC {Γ = Γ} tcn ≡ eraseTC {Γ = nfCtx Γ} (nfTypeTC tcn)
 sameTC (DC.integer i)    = refl
 sameTC (DC.bytestring b) = refl
 
@@ -192,7 +192,7 @@ same {Γ = Γ} (D.conv p t) = trans
   (cong (subst _⊢ (lenLemma Γ)) (lem-erase (completeness p) (nfType t)))
 same {Γ = Γ} (D.con tcn) = trans
   (cong con (sameTC {Γ = Γ} tcn))
-  (lemcon' (lenLemma Γ) (eraseTC (nfTypeTC tcn)))
+  (lemcon' (lenLemma Γ) (eraseTC {Γ = nfCtx Γ} (nfTypeTC tcn)))
 same {Γ = Γ} (D.builtin addInteger σ ts) = trans (cong (builtin addInteger) (sameTel σ (proj₁ (proj₂ (DS.SIG addInteger))) ts)) (lemTel (lenLemma Γ) addInteger _)
 same {Γ = Γ} (D.builtin subtractInteger σ ts) = trans (cong (builtin subtractInteger) (sameTel σ (proj₁ (proj₂ (DS.SIG subtractInteger))) ts)) (lemTel (lenLemma Γ) subtractInteger _)
 same {Γ = Γ} (D.builtin multiplyInteger σ ts) = trans (cong (builtin multiplyInteger) (sameTel σ (proj₁ (proj₂ (DS.SIG multiplyInteger))) ts)) (lemTel (lenLemma Γ) multiplyInteger _)
@@ -213,4 +213,135 @@ same {Γ = Γ} (D.builtin sha3-256 σ ts) = trans (cong (builtin sha3-256) (same
 same {Γ = Γ} (D.builtin verifySignature σ ts) = trans (cong (builtin verifySignature) (sameTel σ (proj₁ (proj₂ (DS.SIG verifySignature))) ts)) (lemTel (lenLemma Γ) verifySignature _)
 same {Γ = Γ} (D.builtin equalsByteString σ ts) = trans (cong (builtin equalsByteString) (sameTel σ (proj₁ (proj₂ (DS.SIG equalsByteString))) ts)) (lemTel (lenLemma Γ) equalsByteString _)
 same {Γ = Γ} (D.error A) = lemerror (lenLemma Γ)
+
+open import Algorithmic.Soundness
+
+same'Len : ∀ {Φ}(Γ : A.Ctx Φ) → D.len (embCtx Γ) ≡ len Γ
+same'Len ∅          = refl
+same'Len (Γ ,⋆ J)   = same'Len Γ
+same'Len (Γ , A)    = cong suc (same'Len Γ)
+
+lemT'' : ∀{Φ K}{Γ : D.Ctx Φ}{A A' : Φ ⊢⋆ *}{A'' : Φ ,⋆ K ⊢⋆ *}
+  → (p : weaken {K = K} A ≡ A'')(q : A ≡ A')(x : Γ D.∋ A)
+  → D.eraseVar x ≡ D.eraseVar (Algorithmic.Soundness.conv∋ p (D.T x)) -- 
+lemT'' refl refl x = refl
+
+same'Var : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ A.∋ A)
+  →  eraseVar x ≡ subst Fin (same'Len Γ) (D.eraseVar (embVar x))
+same'Var {Γ = Γ , _} Z     = lemzero (cong suc (same'Len Γ))
+same'Var {Γ = Γ , _} (S x) = trans
+  (cong suc (same'Var x))
+  (lemsuc (cong suc (same'Len Γ)) (same'Len Γ) (D.eraseVar (embVar x)))
+same'Var {Γ = Γ ,⋆ _} (T {A = A} x) = trans
+  (same'Var x)
+  (cong (subst Fin (same'Len Γ))
+        (lemT'' (sym (rename-embNf S A)) refl (embVar x)))
+
+
+
+same'TC : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(tcn : AC.TyTermCon A)
+  → eraseTC {Γ = Γ} tcn ≡ D.eraseTC {Φ}{Γ = embCtx Γ} (embTC tcn)
+same'TC (AC.integer i)    = refl
+same'TC (AC.bytestring b) = refl
+
+same' : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ A.⊢ A)
+  →  erase x ≡ subst _⊢ (same'Len Γ) (D.erase (emb x))
+
+same'Tel : ∀{Φ Γ Δ}(σ : SubNf Δ Φ)(As : List (Δ ⊢Nf⋆ *))(tel : A.Tel Γ Δ σ As)
+  → eraseTel tel
+    ≡
+    subst (List ∘ _⊢) (same'Len Γ) (D.eraseTel (embTel refl As (embList As) (refl≡βL (embList As)) σ tel)) 
+
+same'Tel {Γ = Γ} σ [] tel = lem[]' (same'Len Γ)
+same'Tel {Γ = Γ} σ (A ∷ As) (t ,, ts) = trans (cong₂ _∷_ (same' t) (same'Tel σ As ts)) (lem∷ (same'Len Γ) (D.erase (emb t)) (D.eraseTel (embTel refl As (embList As) (refl≡βL (embList As)) σ ts)))
+same' {Γ = Γ} (` x) =
+  trans (cong ` (same'Var x)) (lemVar (same'Len Γ) (D.eraseVar (embVar x)))
+same' {Γ = Γ} (ƛ t)      = trans
+  (cong ƛ (same' t))
+  (lemƛ (same'Len Γ) (cong suc (same'Len Γ)) (D.erase (emb t)))
+same' {Γ = Γ} (t · u)    = trans
+  (cong₂ _·_ (same' t) (same' u))
+  (lem· (same'Len Γ) (D.erase (emb t)) (D.erase (emb u)))
+same' {Γ = Γ} (Λ t)      = same' t
+same' {Γ = Γ} (t ·⋆ A)   = same' t
+same' {Γ = Γ} (wrap1 pat arg t)   = same' t
+same' {Γ = Γ} (unwrap1 t) = same' t
+same' {Γ = Γ} (con x) = trans (cong con (same'TC {Γ = Γ} x)) (lemcon' (same'Len Γ) (D.eraseTC {Γ = embCtx Γ}(embTC x))) 
+same' {Γ = Γ} (builtin addInteger σ ts) = trans
+  (cong (builtin addInteger)
+        (same'Tel σ (proj₁ (proj₂ (AS.SIG addInteger))) ts))
+  (lemTel (same'Len Γ) addInteger _)
+same' {Γ = Γ} (builtin subtractInteger σ ts) = trans
+  (cong (builtin subtractInteger)
+        (same'Tel σ (proj₁ (proj₂ (AS.SIG subtractInteger))) ts))
+  (lemTel (same'Len Γ) subtractInteger _)
+same' {Γ = Γ} (builtin multiplyInteger σ ts) = trans
+  (cong (builtin multiplyInteger)
+        (same'Tel σ (proj₁ (proj₂ (AS.SIG multiplyInteger))) ts))
+  (lemTel (same'Len Γ) multiplyInteger _)
+same' {Γ = Γ} (builtin divideInteger σ ts) = trans
+  (cong (builtin divideInteger)
+        (same'Tel σ (proj₁ (proj₂ (AS.SIG divideInteger))) ts))
+  (lemTel (same'Len Γ) divideInteger _)
+same' {Γ = Γ} (builtin quotientInteger σ ts) = trans
+  (cong (builtin quotientInteger)
+        (same'Tel σ (proj₁ (proj₂ (AS.SIG quotientInteger))) ts))
+  (lemTel (same'Len Γ) quotientInteger _)
+same' {Γ = Γ} (builtin remainderInteger σ ts) = trans
+  (cong (builtin remainderInteger)
+        (same'Tel σ (proj₁ (proj₂ (AS.SIG remainderInteger))) ts))
+  (lemTel (same'Len Γ) remainderInteger _)
+same' {Γ = Γ} (builtin modInteger σ ts) = trans
+  (cong (builtin modInteger)
+        (same'Tel σ (proj₁ (proj₂ (AS.SIG modInteger))) ts))
+  (lemTel (same'Len Γ) modInteger _)
+same' {Γ = Γ} (builtin lessThanInteger σ ts) = trans
+  (cong (builtin lessThanInteger)
+        (same'Tel σ (proj₁ (proj₂ (AS.SIG lessThanInteger))) ts))
+  (lemTel (same'Len Γ) lessThanInteger _)
+same' {Γ = Γ} (builtin lessThanEqualsInteger σ ts) = trans
+  (cong (builtin lessThanEqualsInteger)
+        (same'Tel σ (proj₁ (proj₂ (AS.SIG lessThanEqualsInteger))) ts))
+  (lemTel (same'Len Γ) lessThanEqualsInteger _)
+same' {Γ = Γ} (builtin greaterThanInteger σ ts) = trans
+  (cong (builtin greaterThanInteger)
+        (same'Tel σ (proj₁ (proj₂ (AS.SIG greaterThanInteger))) ts))
+  (lemTel (same'Len Γ) greaterThanInteger _)
+same' {Γ = Γ} (builtin greaterThanEqualsInteger σ ts) = trans
+  (cong (builtin greaterThanEqualsInteger)
+        (same'Tel σ (proj₁ (proj₂ (AS.SIG greaterThanEqualsInteger))) ts))
+  (lemTel (same'Len Γ) greaterThanEqualsInteger _)
+same' {Γ = Γ} (builtin equalsInteger σ ts) = trans
+  (cong (builtin equalsInteger)
+        (same'Tel σ (proj₁ (proj₂ (AS.SIG equalsInteger))) ts))
+  (lemTel (same'Len Γ) equalsInteger _)
+same' {Γ = Γ} (builtin concatenate σ ts) = trans
+  (cong (builtin concatenate)
+        (same'Tel σ (proj₁ (proj₂ (AS.SIG concatenate))) ts))
+  (lemTel (same'Len Γ) concatenate _)
+same' {Γ = Γ} (builtin takeByteString σ ts) = trans
+  (cong (builtin takeByteString)
+        (same'Tel σ (proj₁ (proj₂ (AS.SIG takeByteString))) ts))
+  (lemTel (same'Len Γ) takeByteString _)
+same' {Γ = Γ} (builtin dropByteString σ ts) = trans
+  (cong (builtin dropByteString)
+        (same'Tel σ (proj₁ (proj₂ (AS.SIG dropByteString))) ts))
+  (lemTel (same'Len Γ) dropByteString _)
+same' {Γ = Γ} (builtin sha2-256 σ ts) = trans
+  (cong (builtin sha2-256)
+        (same'Tel σ (proj₁ (proj₂ (AS.SIG sha2-256))) ts))
+  (lemTel (same'Len Γ) sha2-256 _)
+same' {Γ = Γ} (builtin sha3-256 σ ts) = trans
+  (cong (builtin sha3-256)
+        (same'Tel σ (proj₁ (proj₂ (AS.SIG sha3-256))) ts))
+  (lemTel (same'Len Γ) sha3-256 _)
+same' {Γ = Γ} (builtin verifySignature σ ts) = trans
+  (cong (builtin verifySignature)
+        (same'Tel σ (proj₁ (proj₂ (AS.SIG verifySignature))) ts))
+  (lemTel (same'Len Γ) verifySignature _)
+same' {Γ = Γ} (builtin equalsByteString σ ts) = trans
+  (cong (builtin equalsByteString)
+        (same'Tel σ (proj₁ (proj₂ (AS.SIG equalsByteString))) ts))
+  (lemTel (same'Len Γ) equalsByteString _)
+same' {Γ = Γ} (error A) = lemerror (same'Len Γ)
 \end{code}

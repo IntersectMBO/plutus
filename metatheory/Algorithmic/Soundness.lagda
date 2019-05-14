@@ -152,6 +152,11 @@ _≡βL_ : ∀{Δ} → (As As' : List (Δ ⊢⋆ *)) → Set
 (A ∷ As) ≡βL []         = ⊥
 (A ∷ As) ≡βL (A' ∷ As') = (A ≡β A') × (As ≡βL As')
 
+refl≡βL : ∀{Δ} → (As : List (Δ ⊢⋆ *)) → As ≡βL As
+refl≡βL [] = tt
+refl≡βL (x ∷ As) = (refl≡β x) ,, (refl≡βL As)
+
+
 embList : ∀{Δ} → List (Δ ⊢Nf⋆ *) → List (Δ ⊢⋆ *)
 embList []       = []
 embList (A ∷ As) = embNf A ∷ embList As
