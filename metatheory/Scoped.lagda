@@ -30,7 +30,7 @@ data ScopedTy (n : ℕ) : Set where
   con  : TyCon → ScopedTy n
   μ    : ScopedTy n → ScopedTy n → ScopedTy n
 
---{-# COMPILE GHC ScopedTy = data ScTy (ScTyVar | ScTyFun | ScTyPi | ScTyLambda | ScTyApp | ScTyCon | ScTySize) #-}
+--{-# COMPILE GHC ScopedTy = data ScTy (ScTyVar | ScTyFun | ScTyPi | ScTyLambda | ScTyApp | ScTyCon) #-}
 
 data Weirdℕ : Set where
   Z : Weirdℕ

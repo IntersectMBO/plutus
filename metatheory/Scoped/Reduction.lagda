@@ -97,19 +97,19 @@ BUILTIN multiplyInteger  _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i'))
 BUILTIN multiplyInteger _ _ = error (con integer)
 BUILTIN divideInteger    _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) with ∣ i' ∣ N.≟ zero
 ... | yes p = error (con integer)
-... | no ¬p = con (integer (div i i' ¬p))
+... | no ¬p = con (integer (div i i'))
 BUILTIN divideInteger _ _ = error (con integer)
 BUILTIN quotientInteger  _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) with ∣ i' ∣ N.≟ zero
 ... | yes p = error (con integer)
-... | no ¬p = con (integer (quot i i' ¬p))
+... | no ¬p = con (integer (quot i i'))
 BUILTIN quotientInteger _ _ = error (con integer)
 BUILTIN remainderInteger _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) with ∣ i' ∣ N.≟ zero
 ... | yes p = error (con integer)
-... | no ¬p = con (integer (rem i i' ¬p))
+... | no ¬p = con (integer (rem i i'))
 BUILTIN remainderInteger _ _ = error (con integer)
 BUILTIN modInteger       _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) with ∣ i' ∣ N.≟ zero
 ... | yes p = error (con integer)
-... | no ¬p = con (integer (mod i i' ¬p))
+... | no ¬p = con (integer (mod i i'))
 BUILTIN modInteger _ _ = error (con integer)
 -- Int -> Int -> Bool
 BUILTIN lessThanInteger _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) with i <? i'
