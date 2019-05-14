@@ -95,13 +95,21 @@ BUILTIN subtractInteger  _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i'))
 BUILTIN subtractInteger _ _ = error (con integer)
 BUILTIN multiplyInteger  _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) = con (integer (i I.* i'))
 BUILTIN multiplyInteger _ _ = error (con integer)
-BUILTIN divideInteger    _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) = con (integer (div i i'))
+BUILTIN divideInteger    _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) with ∣ i' ∣ N.≟ zero
+... | yes p = error (con integer)
+... | no ¬p = con (integer (div i i' ¬p))
 BUILTIN divideInteger _ _ = error (con integer)
-BUILTIN quotientInteger  _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) = con (integer (quot i i'))
+BUILTIN quotientInteger  _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) with ∣ i' ∣ N.≟ zero
+... | yes p = error (con integer)
+... | no ¬p = con (integer (quot i i' ¬p))
 BUILTIN quotientInteger _ _ = error (con integer)
-BUILTIN remainderInteger _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) = con (integer (rem i i'))
+BUILTIN remainderInteger _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) with ∣ i' ∣ N.≟ zero
+... | yes p = error (con integer)
+... | no ¬p = con (integer (rem i i' ¬p))
 BUILTIN remainderInteger _ _ = error (con integer)
-BUILTIN modInteger       _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) = con (integer (mod i i'))
+BUILTIN modInteger       _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) with ∣ i' ∣ N.≟ zero
+... | yes p = error (con integer)
+... | no ¬p = con (integer (mod i i' ¬p))
 BUILTIN modInteger _ _ = error (con integer)
 -- Int -> Int -> Bool
 BUILTIN lessThanInteger _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) with i <? i'

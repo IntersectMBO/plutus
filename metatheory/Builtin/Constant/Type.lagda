@@ -11,6 +11,7 @@ open import Data.Bool
 open import Data.Product
 open import Relation.Binary
 open import Data.Nat hiding (_^_; _≤_; _<_; _>_; _≥_; _≤?_;_<?_;_>?_;_≥?_) renaming (_*_ to _**_)
+open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
 open import Function
 
@@ -24,12 +25,12 @@ postulate
   ByteString : Set
   length     : ByteString → ℕ
 
-  div            : Int → Int → Int
-  quot           : Int → Int → Int
-  rem            : Int → Int → Int
-  mod            : Int → Int → Int
-  int2ByteString : Int → ByteString
+  div            : Int → (i : Int) → ¬ (∣ i ∣ ≡ 0) → Int
+  quot           : Int → (i : Int) → ¬ (∣ i ∣ ≡ 0) → Int
+  rem            : Int → (i : Int) → ¬ (∣ i ∣ ≡ 0) → Int
+  mod            : Int → (i : Int) → ¬ (∣ i ∣ ≡ 0) → Int
 
+  int2ByteString : Int → ByteString
   append    : ByteString → ByteString → ByteString
   take      : Int → ByteString → ByteString
   drop      : Int → ByteString → ByteString
@@ -57,10 +58,16 @@ postulate
 -- no binding needed for addition
 -- no binding needed for subtract
 -- no binding needed for multiply
-{-# COMPILE GHC div  = div  #-}
-{-# COMPILE GHC quot = quot #-}
-{-# COMPILE GHC rem  = rem  #-}
-{-# COMPILE GHC mod  = mod  #-}
+
+-- These are intended to be safe versions of division related operations
+-- In agda they can only be used if we have a proof that th divisor is non-zero
+-- When compiled to haskell the proof is thrown away
+
+{-# COMPILE GHC div  = \ i j p -> div i j  #-}
+{-# COMPILE GHC quot = \ i j p -> quot i j #-}
+{-# COMPILE GHC rem  = \ i j p -> rem i j  #-}
+{-# COMPILE GHC mod  = \ i j p -> mod i j  #-}
+
 -- no binding needed for lessthan
 -- no binding needed for lessthaneq
 -- no binding needed for greaterthan
