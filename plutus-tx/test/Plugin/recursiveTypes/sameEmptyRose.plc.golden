@@ -286,25 +286,18 @@
                                                                       go_i2
                                                                     ]
                                                                     [
-                                                                      (lam
-                                                                        ds_i0
-                                                                        EmptyRose_i10
+                                                                      {
                                                                         [
-                                                                          {
-                                                                            [
-                                                                              EmptyRose_match_i8
-                                                                              ds_i1
-                                                                            ]
-                                                                            [List_i14 EmptyRose_i10]
-                                                                          }
-                                                                          (lam
-                                                                            x_i0
-                                                                            [List_i15 EmptyRose_i11]
-                                                                            x_i1
-                                                                          )
+                                                                          EmptyRose_match_i7
+                                                                          x_i1
                                                                         ]
+                                                                        [List_i13 EmptyRose_i9]
+                                                                      }
+                                                                      (lam
+                                                                        x_i0
+                                                                        [List_i14 EmptyRose_i10]
+                                                                        x_i1
                                                                       )
-                                                                      x_i1
                                                                     ]
                                                                   ]
                                                                 ]

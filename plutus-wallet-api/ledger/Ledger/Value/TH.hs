@@ -8,7 +8,6 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE TypeApplications   #-}
-{-# OPTIONS_GHC -O0             #-}
 -- | Functions for working with 'Value' in Template Haskell.
 module Ledger.Value.TH(
     -- ** Currency symbols

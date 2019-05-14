@@ -1,0 +1,28 @@
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl MyExternalRecord (type))
+        
+        MyExternalRecord_match
+        (vardecl MyExternalRecord (fun (con integer) MyExternalRecord))
+      )
+    )
+    (let
+      (nonrec)
+      (termbind
+        (vardecl myExternal (fun MyExternalRecord (con integer)))
+        (lam
+          ds
+          MyExternalRecord
+          [
+            { [ MyExternalRecord_match ds ] (con integer) }
+            (lam ds1 (con integer) ds1)
+          ]
+        )
+      )
+      myExternal
+    )
+  )
+)

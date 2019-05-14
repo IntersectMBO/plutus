@@ -3,7 +3,6 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE DataKinds         #-}
-{-# OPTIONS_GHC -O0 #-}
 -- | A guessing game that
 --
 --   * Uses a state machine to keep track of the current secret word

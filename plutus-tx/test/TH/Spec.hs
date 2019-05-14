@@ -2,8 +2,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:strip-context #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
-{-# OPTIONS_GHC -O0 #-}
+{-# OPTIONS_GHC   -g #-}
 
 module TH.Spec (tests) where
 
@@ -17,7 +18,7 @@ import           TH.TestTH
 import           Language.PlutusTx.TH
 import           Language.PlutusTx.Code
 import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Prelude as P
 import           Language.PlutusTx.Evaluation
 
 import qualified Language.PlutusIR          as PIR

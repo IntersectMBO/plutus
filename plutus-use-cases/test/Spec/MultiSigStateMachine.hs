@@ -24,7 +24,7 @@ tests :: TestTree
 tests = testGroup "multi sig state machine tests" [
     HUnit.testCaseSteps "lock, propose, sign 3x, pay - SUCCESS" (runTrace (lockProposeSignPay 3) isRight),
     HUnit.testCaseSteps "lock, propose, sign 2x, pay - FAILURE" (runTrace (lockProposeSignPay 2) isLeft),
-    HUnit.testCase "script size is reasonable" (Size.reasonable (MS.validator params) 330000)
+    HUnit.testCase "script size is reasonable" (Size.reasonable (MS.validator params) 350000)
     ]
 
 runTrace :: EM.EmulatorAction a -> (Either EM.AssertionError a -> Bool) -> (String -> IO ()) -> IO ()
@@ -82,8 +82,8 @@ lockProposeSignPay i = do
     let getResult = EM.processEmulated >=> extract where
         extract = either (throwError . EM.AssertionError . Text.pack . show) pure . fst
 
-    -- stX contain the state of the contract. See note [Current state of the 
-    -- contract] in 
+    -- stX contain the state of the contract. See note [Current state of the
+    -- contract] in
     -- Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine
     st1 <- getResult $ do
         processAndNotify

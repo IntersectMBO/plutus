@@ -1,5 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE DataKinds           #-}
 module TH.TestTH where
 
 import           Language.Haskell.TH
