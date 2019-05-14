@@ -20,7 +20,6 @@ import           Language.PlutusTx.Compiler.Types
 import           Language.PlutusTx.Compiler.Utils
 import           Language.PlutusTx.PIRTypes
 
-import qualified CoreUtils                              as GHC
 import qualified FV                                     as GHC
 import qualified GhcPlugins                             as GHC
 import qualified MkId                                   as GHC
@@ -268,8 +267,15 @@ convExpr e = withContextM 2 (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ d
 
             -- the variable for the scrutinee is bound inside the cases, but not in the scrutinee expression itself
             withVarScoped b $ \v -> do
+                (tc, argTys) <- case GHC.splitTyConApp_maybe scrutineeType of
+                    Just (tc, argTys) -> pure (tc, argTys)
+                    Nothing      -> throwPlain $ CompilationError "Scrutinee's type was not a type constructor application"
+                dcs <- getDataCons tc
+
                 -- See Note [Case expressions and laziness]
-                isValueAlt <- forM alts (\(_, vars, body) -> if null vars then PIR.isTermValue <$> convExpr body else pure True)
+                isValueAlt <- forM dcs $ \dc ->
+                    let (_, vars, body) = findAlt dc alts t
+                    in if null vars then PIR.isTermValue <$> convExpr body else pure True
                 let lazyCase = not $ and isValueAlt
 
                 match <- getMatchInstantiated scrutineeType
@@ -277,21 +283,15 @@ convExpr e = withContextM 2 (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ d
 
                 -- See Note [Scott encoding of datatypes]
                 -- we're going to delay the body, so the scrutinee needs to be instantiated the delayed type
-                instantiated <- PIR.TyInst () matched <$> (convType t >>= maybeDelayType lazyCase)
+                resultType <- convType t >>= maybeDelayType lazyCase
+                let instantiated = PIR.TyInst () matched resultType
 
-                (tc, argTys) <- case GHC.splitTyConApp_maybe scrutineeType of
-                    Just (tc, argTys) -> pure (tc, argTys)
-                    Nothing      -> throwPlain $ CompilationError "Scrutinee's type was not a type constructor application"
-                dcs <- getDataCons tc
-
-                branches <- forM dcs $ \dc -> case GHC.findAlt (GHC.DataAlt dc) alts of
-                    Just alt ->
-                        let
-                            -- these are the instantiated type arguments, e.g. for the data constructor Just when
-                            -- matching on Maybe Int it is [Int] (crucially, not [a])
-                            instArgTys = GHC.dataConInstOrigArgTys dc argTys
-                        in convAlt lazyCase instArgTys alt
-                    Nothing  -> throwPlain $ CompilationError "No case matched and no default case"
+                branches <- forM dcs $ \dc ->
+                    let alt = findAlt dc alts t
+                        -- these are the instantiated type arguments, e.g. for the data constructor Just when
+                        -- matching on Maybe Int it is [Int] (crucially, not [a])
+                        instArgTys = GHC.dataConInstOrigArgTys dc argTys
+                    in convAlt lazyCase instArgTys alt
 
                 let applied = PIR.mkIterApp () instantiated branches
                 -- See Note [Case expressions and laziness]

@@ -14,6 +14,7 @@ module Language.PlutusTx.Compiler.Type (
     getConstructorsInstantiated,
     getMatch,
     getMatchInstantiated,
+    findAlt,
     convAlt) where
 
 import           Language.PlutusTx.Compiler.Binders
@@ -266,6 +267,17 @@ getMatchInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated matche
         pure $ PIR.mkIterInst () match args'
     -- must be a TC app
     _ -> throwSd CompilationError $ "Type was not a type constructor application:" GHC.<+> GHC.ppr t
+
+-- | Finds the alternative for a given data constructor in a list of alternatives. The type
+-- of the overall match must also be provided.
+--
+-- This differs from 'GHC.findAlt' in what it does when the constructor is not matched (this can
+-- happen when the match is exhaustive *in context* only, see the doc on 'GHC.Expr'). We need an
+-- alternative regardless, so we make an "impossible" alternative since this case should be unreachable.
+findAlt :: GHC.DataCon -> [GHC.CoreAlt] -> GHC.Type -> GHC.CoreAlt
+findAlt dc alts t = case GHC.findAlt (GHC.DataAlt dc) alts of
+    Just alt -> alt
+    Nothing  -> (GHC.DEFAULT, [], GHC.mkImpossibleExpr t)
 
 -- | Make the alternative for a given 'CoreAlt'.
 convAlt
