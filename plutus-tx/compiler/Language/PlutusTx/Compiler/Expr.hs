@@ -232,7 +232,9 @@ convExpr e = withContextM 2 (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ d
             case maybeDef of
                 Just term -> pure term
                 Nothing -> throwSd FreeVariableError $
-                    "Variable" GHC.<+> GHC.ppr n GHC.$+$ (GHC.ppr $ GHC.idDetails n)
+                    "Variable" GHC.<+> GHC.ppr n
+                    GHC.$+$ (GHC.ppr $ GHC.idDetails n)
+                    GHC.$+$ (GHC.ppr $ GHC.realIdUnfolding n)
         GHC.Lit lit -> convLiteral lit
         -- arg can be a type here, in which case it's a type instantiation
         GHC.App l (GHC.Type t) -> PIR.TyInst () <$> convExpr l <*> convType t
