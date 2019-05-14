@@ -188,7 +188,7 @@ marginRange = (forwardPrice - delta, forwardPrice + delta) where
     delta = forwardPrice `div` 20
 
 -- | How many units of the underlying asset are covered by the contract.
-units :: Int
+units :: Integer
 units = 187
 
 oracle :: PubKey

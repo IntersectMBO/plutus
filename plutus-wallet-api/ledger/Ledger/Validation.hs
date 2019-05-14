@@ -9,7 +9,6 @@
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
-{-# OPTIONS_GHC   -O0 #-}
 module Ledger.Validation
     (
     -- * Pending transactions and related types
@@ -121,7 +120,7 @@ data PendingTxOut = PendingTxOut
 -- | A reference to a transaction output in a pending transaction.
 data PendingTxOutRef = PendingTxOutRef
     { pendingTxOutRefId  :: TxHash -- ^ Transaction whose output are consumed.
-    , pendingTxOutRefIdx :: Int -- ^ Index into the referenced transaction's list of outputs.
+    , pendingTxOutRefIdx :: Integer -- ^ Index into the referenced transaction's list of outputs.
     } deriving (Generic)
 
 -- | An input of a pending transaction.
@@ -378,7 +377,7 @@ pubKeyOutputsAt = [||
         pubKeyOutputsAt' pk (PendingTx _ outs _ _ _ _ _ _) =
             let flt (PendingTxOut vl _ dt) =
                     case dt of
-                        PubKeyTxOut pk' -> 
+                        PubKeyTxOut pk' ->
                             if $$eqPubKey pk' pk then Just vl else Nothing
                         _ -> Nothing
             in $$(P.mapMaybe) flt outs
@@ -432,9 +431,9 @@ ownCurrencySymbol = [||
 -- | Check if the pending transaction spends a specific transaction output
 --   (identified by the hash of a transaction and an index into that
 --   transactions' outputs)
-spendsOutput :: Q (TExp (PendingTx -> TxHash -> Int -> Bool))
+spendsOutput :: Q (TExp (PendingTx -> TxHash -> Integer -> Bool))
 spendsOutput = [||
-        let spendsOutput' :: PendingTx -> TxHash -> Int -> Bool
+        let spendsOutput' :: PendingTx -> TxHash -> Integer -> Bool
             spendsOutput' p (TxHash h) i =
                 let PendingTx ins _ _ _ _ _ _ _ = p
                     spendsOutRef (PendingTxIn (PendingTxOutRef (TxHash h') i') _ _) =

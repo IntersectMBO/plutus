@@ -1,2 +1,2 @@
-Error: Reference to a value which is not a local, nor a builtin: Variable negate
+Error: Reference to a name which is not a local, a builtin, or an external INLINEABLE function: Variable negate
        [ClassOp]

@@ -2,8 +2,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:strip-context #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
-{-# OPTIONS_GHC -O0 #-}
+{-# OPTIONS_GHC   -g #-}
 
 module TH.Spec (tests) where
 
@@ -17,7 +18,7 @@ import           TH.TestTH
 import           Language.PlutusTx.TH
 import           Language.PlutusTx.Code
 import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Prelude as P
 import           Language.PlutusTx.Evaluation
 
 import qualified Language.PlutusIR          as PIR
@@ -67,18 +68,18 @@ tests = testNested "TH" [
     , goldenEvalCekLog "traceRepeatedly" [traceRepeatedly]
   ]
 
-simple :: CompiledCode (Bool -> Int)
-simple = $$(compile [|| \(x::Bool) -> if x then (1::Int) else (2::Int) ||])
+simple :: CompiledCode (Bool -> Integer)
+simple = $$(compile [|| \(x::Bool) -> if x then (1::Integer) else (2::Integer) ||])
 
 -- similar to the power example for Feldspar - should be completely unrolled at compile time
-powerPlc :: CompiledCode (Int -> Int)
-powerPlc = $$(compile [|| $$(power (4::Int)) ||])
+powerPlc :: CompiledCode (Integer -> Integer)
+powerPlc = $$(compile [|| $$(power (4::Integer)) ||])
 
 andPlc :: CompiledCode Bool
 andPlc = $$(compile [|| $$(andTH) True False ||])
 
 allPlc :: CompiledCode Bool
-allPlc = $$(compile [|| $$(all) (\(x::Int) -> $$gt x 5) [7, 6] ||])
+allPlc = $$(compile [|| $$(all) (\(x::Integer) -> $$gt x 5) [7, 6] ||])
 
 convertString :: CompiledCode Builtins.String
 convertString = $$(compile [|| $$(toPlutusString) "test" ||])
@@ -86,16 +87,16 @@ convertString = $$(compile [|| $$(toPlutusString) "test" ||])
 traceDirect :: CompiledCode ()
 traceDirect = $$(compile [|| Builtins.trace ($$(toPlutusString) "test") ||])
 
-tracePrelude :: CompiledCode Int
-tracePrelude = $$(compile [|| $$(trace) ($$(toPlutusString) "test") (1::Int) ||])
+tracePrelude :: CompiledCode Integer
+tracePrelude = $$(compile [|| $$(trace) ($$(toPlutusString) "test") (1::Integer) ||])
 
-traceRepeatedly :: CompiledCode Int
+traceRepeatedly :: CompiledCode Integer
 traceRepeatedly = $$(compile
      [||
                -- This will in fact print the third log first, and then the others, but this
                -- is the same behaviour as Debug.trace
-               let i1 = $$(traceH) "Making my first int" (1::Int)
-                   i2 = $$(traceH) "Making my second int" (2::Int)
+               let i1 = $$(traceH) "Making my first int" (1::Integer)
+                   i2 = $$(traceH) "Making my second int" (2::Integer)
                    i3 = $$(traceH) "Adding them up" ($$plus i1 i2)
               in i3
     ||])

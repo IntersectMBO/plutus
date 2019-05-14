@@ -53,15 +53,15 @@ tokenName :: P.ByteString -> TokenName
 tokenName = $$(TH.tokenName)
 
 -- | See 'TH.singleton'.
-singleton :: CurrencySymbol -> TokenName -> Int -> Value
+singleton :: CurrencySymbol -> TokenName -> Integer -> Value
 singleton = $$(TH.singleton)
 
 -- | See 'TH.valueOf'.
-valueOf :: Value -> CurrencySymbol -> TokenName -> Int
+valueOf :: Value -> CurrencySymbol -> TokenName -> Integer
 valueOf = $$(TH.valueOf)
 
 -- | See 'TH.scale'.
-scale :: Int -> Value -> Value
+scale :: Integer -> Value -> Value
 scale = $$(TH.scale)
 
 -- | See 'TH.symbols'.

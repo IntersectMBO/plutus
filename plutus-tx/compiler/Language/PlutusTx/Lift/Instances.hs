@@ -29,11 +29,11 @@ instance (Typeable (a :: *), Typeable (b :: *)) => Typeable (a -> b) where
 
 -- Primitives
 
-instance Typeable Int where
+instance Typeable Integer where
     typeRep _ = pure $ TyBuiltin () PLC.TyInteger
 
-instance Lift Int where
-    lift i = pure $ Constant () $ PLC.BuiltinInt () $ fromIntegral i
+instance Lift Integer where
+    lift i = pure $ Constant () $ PLC.BuiltinInt () i
 
 instance Typeable ByteString where
     typeRep _ = pure $ TyBuiltin () PLC.TyByteString

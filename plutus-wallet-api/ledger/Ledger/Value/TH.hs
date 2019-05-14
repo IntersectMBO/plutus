@@ -8,7 +8,6 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE TypeApplications   #-}
-{-# OPTIONS_GHC -O0             #-}
 -- | Functions for working with 'Value' in Template Haskell.
 module Ledger.Value.TH(
     -- ** Currency symbols
@@ -154,7 +153,7 @@ tokenName = [|| TokenName ||]
 -- taken to be zero.
 --
 -- See note [Currencies] for more details.
-newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Int) }
+newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
     deriving (Show)
     deriving stock (Generic)
     deriving anyclass (ToJSON, FromJSON)
@@ -162,7 +161,7 @@ newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName In
 
 -- 'InnerMap' exists only to trick swagger's generic deriving mechanism
 -- into not looping indefinitely when it encounters a nested map.
-newtype InnerMap = InnerMap { unMap :: [(TokenName, Int)] }
+newtype InnerMap = InnerMap { unMap :: [(TokenName, Integer)] }
     deriving stock (Generic)
     deriving anyclass (ToJSON, FromJSON, ToSchema)
 
@@ -196,12 +195,12 @@ similar to 'Ledger.Ada' for their own currencies.
 -}
 
 -- | Get the quantity of the given currency in the 'Value'.
-valueOf :: Q (TExp (Value -> CurrencySymbol -> TokenName -> Int))
+valueOf :: Q (TExp (Value -> CurrencySymbol -> TokenName -> Integer))
 valueOf = [||
-            let valueOf' :: Value -> CurrencySymbol -> TokenName -> Int
+            let valueOf' :: Value -> CurrencySymbol -> TokenName -> Integer
                 valueOf' (Value mp) cur tn =
                     case $$(Map.lookup) $$(eqCurSymbol) cur mp of
-                        Nothing -> 0 :: Int
+                        Nothing -> 0 :: Integer
                         Just i  -> case $$(Map.lookup) $$(eqTokenName) tn i of
                             Nothing -> 0
                             Just v  -> v
@@ -216,18 +215,18 @@ symbols = [||
             in symbols' ||]
 
 -- | Make a 'Value' containing only the given quantity of the given currency.
-singleton :: Q (TExp (CurrencySymbol -> TokenName -> Int -> Value))
+singleton :: Q (TExp (CurrencySymbol -> TokenName -> Integer -> Value))
 singleton = [||
-             let singleton' :: CurrencySymbol -> TokenName -> Int -> Value
+             let singleton' :: CurrencySymbol -> TokenName -> Integer -> Value
                  singleton' c tn i =
                     Value ($$(Map.singleton) c ($$(Map.singleton) tn i))
              in singleton'
             ||]
 
 -- | Combine two 'Value' maps
-unionVal :: Q (TExp (Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (Map.These Int Int))))
+unionVal :: Q (TExp (Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (Map.These Integer Integer))))
 unionVal = [||
-            let unionVal' :: Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (Map.These Int Int))
+            let unionVal' :: Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (Map.These Integer Integer))
                 unionVal' (Value l) (Value r) =
                     let
                         combined = $$(Map.union) $$(eqCurSymbol) l r
@@ -240,9 +239,9 @@ unionVal = [||
 
         ||]
 
-unionWith :: Q (TExp ((Int -> Int -> Int) -> Value -> Value -> Value))
+unionWith :: Q (TExp ((Integer -> Integer -> Integer) -> Value -> Value -> Value))
 unionWith = [||
-              let unionWith' :: (Int -> Int -> Int) -> Value -> Value -> Value
+              let unionWith' :: (Integer -> Integer -> Integer) -> Value -> Value -> Value
                   unionWith' f ls rs =
                     let
                         combined = $$unionVal ls rs
@@ -255,9 +254,9 @@ unionWith = [||
   ||]
 
 -- | Multiply all the quantities in the 'Value' by the given scale factor.
-scale :: Q (TExp (Int -> Value -> Value))
+scale :: Q (TExp (Integer -> Value -> Value))
 scale = [||
-          let scale' :: Int -> Value -> Value
+          let scale' :: Integer -> Value -> Value
               scale' i (Value xs) =
                 Value ($$(Map.map) ($$(Map.map) (\i' -> $$(P.multiply) i i')) xs)
           in scale' ||]
@@ -291,12 +290,12 @@ isZero = [||
               isZero' (Value xs) = $$(Map.all) ($$(Map.all) (\i -> $$(P.eq) 0 i)) xs
           in isZero' ||]
 
-checkPred :: Q (TExp ((Map.These Int Int -> Bool) -> Value -> Value -> Bool))
+checkPred :: Q (TExp ((Map.These Integer Integer -> Bool) -> Value -> Value -> Bool))
 checkPred = [||
-    let checkPred' :: (Map.These Int Int -> Bool) -> Value -> Value -> Bool
+    let checkPred' :: (Map.These Integer Integer -> Bool) -> Value -> Value -> Bool
         checkPred' f l r =
           let
-            inner :: Map.Map TokenName (Map.These Int Int) -> Bool
+            inner :: Map.Map TokenName (Map.These Integer Integer) -> Bool
             inner = ($$(Map.all) f)
           in
             $$(Map.all) inner ($$unionVal l r)
@@ -305,9 +304,9 @@ checkPred = [||
 
 -- | Check whether a binary relation holds for value pairs of two 'Value' maps,
 --   supplying 0 where a key is only present in one of them.
-checkBinRel :: Q (TExp ((Int -> Int -> Bool) -> Value -> Value -> Bool))
+checkBinRel :: Q (TExp ((Integer -> Integer -> Bool) -> Value -> Value -> Bool))
 checkBinRel = [||
-    let checkBinRel' :: (Int -> Int -> Bool) -> Value -> Value -> Bool
+    let checkBinRel' :: (Integer -> Integer -> Bool) -> Value -> Value -> Bool
         checkBinRel' f l r =
             let
                 unThese k' = case k' of

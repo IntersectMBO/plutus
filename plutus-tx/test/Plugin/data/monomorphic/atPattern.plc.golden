@@ -37,20 +37,11 @@
                 [
                   [ addInteger ds ]
                   [
-                    (lam
-                      ds
-                      [[Tuple2 (con integer)] (con integer)]
-                      [
-                        {
-                          [
-                            { { Tuple2_match (con integer) } (con integer) } ds
-                          ]
-                          (con integer)
-                        }
-                        (lam a (con integer) (lam b (con integer) a))
-                      ]
-                    )
-                    wild
+                    {
+                      [ { { Tuple2_match (con integer) } (con integer) } wild ]
+                      (con integer)
+                    }
+                    (lam a (con integer) (lam b (con integer) a))
                   ]
                 ]
               )

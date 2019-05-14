@@ -5,6 +5,8 @@
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE DeriveAnyClass       #-}
 {-# LANGUAGE MonoLocalBinds       #-}
+-- Otherwise we get a complaint about the 'fromIntegral' call in the generated instance of 'Integral' for 'Ada'
+{-# OPTIONS_GHC -Wno-identities #-}
 -- | Slots and slot ranges.
 module Ledger.Slot(
       Slot(..)
@@ -32,7 +34,7 @@ import           Ledger.Interval
 
 -- | The slot number. This is a good proxy for time, since on the Cardano blockchain
 -- slots pass at a constant rate.
-newtype Slot = Slot { getSlot :: Int }
+newtype Slot = Slot { getSlot :: Integer }
     deriving (Eq, Ord, Show, Enum)
     deriving stock (Generic)
     deriving anyclass (ToSchema, FromJSON, ToJSON)
@@ -73,7 +75,7 @@ member = [||
     ||]
 
 -- | Number of 'Slot's covered by the interval. @width (from x) == Nothing@.
-width :: Q (TExp (SlotRange -> Maybe Int))
+width :: Q (TExp (SlotRange -> Maybe Integer))
 width = [||
     \(Interval f t) ->
         case f of

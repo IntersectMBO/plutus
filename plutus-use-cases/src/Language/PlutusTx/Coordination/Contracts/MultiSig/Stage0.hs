@@ -26,8 +26,8 @@ import           Ledger.Validation            (PendingTx(..))
 import qualified Ledger.Validation            as Validation
 import           Wallet
 
--- | A proposal for making a payment under the multisig scheme. 
-data Payment = Payment 
+-- | A proposal for making a payment under the multisig scheme.
+data Payment = Payment
     { paymentAmount    :: Value
     -- ^ How much to pay out
     , paymentRecipient :: PubKey
@@ -41,7 +41,7 @@ PlutusTx.makeLift ''Payment
 data Params = Params
     { mspSignatories :: [PubKey]
     -- ^ Public keys that are allowed to authorise payments
-    , mspRequiredSigs :: Int
+    , mspRequiredSigs :: Integer
     -- ^ How many signatures are required for a payment
     }
 
@@ -59,7 +59,7 @@ PlutusTx.makeLift ''State
 
 data Input =
     ProposePayment Payment
-    -- ^ Propose a payment. The payment can be made as soon as enough 
+    -- ^ Propose a payment. The payment can be made as soon as enough
     --   signatures have been collected.
 
     | AddSignature PubKey
@@ -68,7 +68,7 @@ data Input =
 
     | Cancel
     -- ^ Cancel the current proposal if the deadline has passed
- 
+
     | Pay
     -- ^ Make the payment.
 
@@ -76,7 +76,7 @@ PlutusTx.makeLift ''Input
 
 -- | Check if a public key is one of the signatories of the multisig contract.
 isSignatory :: Q (TExp (PubKey -> Params -> Bool))
-isSignatory = [|| 
+isSignatory = [||
 
         let isSignatory' :: PubKey -> Params -> Bool
             isSignatory' pk (Params sigs _) = $$(P.any) (\pk' -> $$(Validation.eqPubKey) pk pk') sigs
@@ -96,7 +96,7 @@ pkListEq = [||
         pkListEq' [] [] = True
         pkListEq' (k:ks) (k':ks') = $$(P.and) ($$(Validation.eqPubKey) k k') (pkListEq' ks ks')
         pkListEq' _ _ = False
-    
+
     in pkListEq'
 
     ||]
@@ -114,8 +114,8 @@ isValidProposal = [||
 
 -- | Check whether a proposed 'Payment' has expired.
 proposalExpired :: Q (TExp (PendingTx -> Payment -> Bool))
-proposalExpired = [|| 
-    \(PendingTx _ _ _ _ _ rng _ _) (Payment _ _ ddl) -> 
+proposalExpired = [||
+    \(PendingTx _ _ _ _ _ rng _ _) (Payment _ _ ddl) ->
         $$(Slot.before) ddl rng
     ||]
 
@@ -124,7 +124,7 @@ proposalExpired = [||
 proposalAccepted :: Q (TExp (Params -> [PubKey] -> Bool))
 proposalAccepted = [||
         let proposalAccepted' :: Params -> [PubKey] -> Bool
-            proposalAccepted' (Params signatories numReq) pks = 
+            proposalAccepted' (Params signatories numReq) pks =
                 let numSigned = $$(P.length) ($$(P.filter) (\pk -> $$containsPk pk pks) signatories)
                 in $$(P.geq) numSigned numReq
         in proposalAccepted'
@@ -136,7 +136,7 @@ valuePreserved :: Q (TExp (Value -> PendingTx -> Bool))
 valuePreserved = [||
 
         let valuePreserved' :: Value -> PendingTx -> Bool
-            valuePreserved' vl ptx = 
+            valuePreserved' vl ptx =
                 let ownHash = $$(Validation.ownHash) ptx
                     numOutputs = $$(P.length) ($$(Validation.scriptOutputsAt) ownHash ptx)
                     valueLocked = $$(Validation.valueLockedBy) ptx ownHash
@@ -160,7 +160,7 @@ paymentEq :: Q (TExp (Payment -> Payment -> Bool))
 paymentEq = [||
 
         let paymentEq' :: Payment -> Payment -> Bool
-            paymentEq' (Payment vl pk sl) (Payment vl' pk' sl') = 
+            paymentEq' (Payment vl pk sl) (Payment vl' pk' sl') =
                 $$(P.and) ($$(P.and) ($$(Value.eq) vl vl') ($$(Validation.eqPubKey) pk pk')) ($$(Slot.eq) sl sl')
         in paymentEq'
 
@@ -180,16 +180,16 @@ stateEq = [||
     ||]
 
 -- | @step params state input@ computes the next state given current state
---   @state@ and the input. 
+--   @state@ and the input.
 --   'step' does not perform any checks of the preconditions. This is done in
 --   'stepWithChecks' below.
 step :: Q (TExp (State -> Input -> State))
 step = [||
 
     let step' :: State -> Input -> State
-        step' s i = 
+        step' s i =
             case (s, i) of
-                (InitialState vl, ProposePayment pmt) -> 
+                (InitialState vl, ProposePayment pmt) ->
                     CollectingSignatures vl pmt []
                 (CollectingSignatures vl pmt pks, AddSignature pk) ->
                     CollectingSignatures vl pmt (pk:pks)
@@ -202,9 +202,9 @@ step = [||
     in step'
     ||]
 
--- | @stepWithChecks params ptx state input@ computes the next state given 
---   current state @state@ and the input. It checks whether the pending 
---   transaction @ptx@ pays the expected amounts to script and public key 
+-- | @stepWithChecks params ptx state input@ computes the next state given
+--   current state @state@ and the input. It checks whether the pending
+--   transaction @ptx@ pays the expected amounts to script and public key
 --   addresses. Fails with 'P.error' if an invalid transition is attempted.
 stepWithChecks :: Q (TExp (Params -> PendingTx -> State -> Input -> State))
 stepWithChecks = [||
@@ -214,18 +214,18 @@ stepWithChecks = [||
 
         not_ :: Bool -> Bool
         not_ = $$(P.not)
-        
+
         step' :: Params -> PendingTx -> State -> Input -> State
-        step' p ptx s i = 
+        step' p ptx s i =
             let newState = $$step s i in
             case (s, i) of
-                (InitialState vl, ProposePayment pmt) -> 
+                (InitialState vl, ProposePayment pmt) ->
                     if $$isValidProposal vl pmt `and_`
                         $$valuePreserved vl ptx
                     then newState
                     else $$(P.error) ($$(P.traceH) "ProposePayment invalid" ())
                 (CollectingSignatures vl _ pks, AddSignature pk) ->
-                    if $$(Validation.txSignedBy) ptx pk `and_` 
+                    if $$(Validation.txSignedBy) ptx pk `and_`
                         $$isSignatory pk p `and_`
                         not_ ($$containsPk pk pks) `and_`
                         $$valuePreserved vl ptx

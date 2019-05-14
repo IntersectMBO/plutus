@@ -43,13 +43,13 @@ import qualified Tutorial.ExUtil              as EXU
 
 -}
 
-trickier2 :: P.CompiledCode (Int -> Int)
+trickier2 :: P.CompiledCode (Integer -> Integer)
 trickier2 = $$(P.compile [|| $$(TH.trickier 2) ||])
 
-trickier5 :: P.CompiledCode (Int -> Int)
+trickier5 :: P.CompiledCode (Integer -> Integer)
 trickier5 = $$(P.compile [|| $$(TH.trickier 5) ||])
 
-trickier10 :: P.CompiledCode (Int -> Int)
+trickier10 :: P.CompiledCode (Integer -> Integer)
 trickier10 = $$(P.compile [|| $$(TH.trickier 10) ||])
 
 {- |
@@ -74,10 +74,10 @@ trickier10 = $$(P.compile [|| $$(TH.trickier 10) ||])
 
 -}
 
-data SecretNumber = SecretNumber Int
+data SecretNumber = SecretNumber Integer
 P.makeLift ''SecretNumber
 
-data ClearNumber = ClearNumber Int
+data ClearNumber = ClearNumber Integer
 P.makeLift ''ClearNumber
 
 intGameValidator :: ValidatorScript
@@ -86,14 +86,14 @@ intGameValidator = error "exercise"
 gameAddress :: Address
 gameAddress = L.scriptAddress intGameValidator
 
-lock :: (WalletAPI m, WalletDiagnostics m) => Int -> Ada -> m ()
+lock :: (WalletAPI m, WalletDiagnostics m) => Integer -> Ada -> m ()
 lock _i adaVl = do
     let secretInt = error "exercise"
         vl = Ada.toValue adaVl
         ds = DataScript (L.lifted (SecretNumber secretInt))
     W.payToScript_ W.defaultSlotRange gameAddress vl ds
 
-guess :: (WalletAPI m, WalletDiagnostics m) => Int -> m ()
+guess :: (WalletAPI m, WalletDiagnostics m) => Integer -> m ()
 guess i = do
     let redeemer = RedeemerScript (L.lifted (ClearNumber i))
     W.collectFromScript W.defaultSlotRange intGameValidator redeemer

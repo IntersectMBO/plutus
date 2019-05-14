@@ -1,8 +1,6 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:strip-context #-}
--- the simplifier messes with things otherwise
-{-# OPTIONS_GHC   -O0 #-}
 {-# OPTIONS_GHC   -Wno-orphans #-}
 -- this adds source notes which helps the plugin give better errors
 {-# OPTIONS_GHC   -g #-}
@@ -26,13 +24,13 @@ import           Test.Tasty.HUnit
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
 
-newtype MyNewtype = MyNewtype Int
+newtype MyNewtype = MyNewtype Integer
     deriving (Show, Eq)
 
-data MyMonoRecord = MyMonoRecord { mrA :: Int , mrB :: Int}
+data MyMonoRecord = MyMonoRecord { mrA :: Integer , mrB :: Integer}
     deriving (Show, Eq)
 
-data MyMonoData = Mono1 Int Int | Mono2 Int | Mono3 Int
+data MyMonoData = Mono1 Integer Integer | Mono2 Integer | Mono3 Integer
     deriving (Show, Eq)
 
 -- | Convert a Plutus Core term into a Haskell value of type @a@ and inject it into the type @b@
@@ -68,7 +66,7 @@ compiledMyMonoRecords = plc @"compiledMyMonoRecords" (
         [MyMonoRecord 0 1, MyMonoRecord 1 2, MyMonoRecord 2 3, MyMonoRecord 3 4, MyMonoRecord 4 5]
     )
 
-toMyMonoData :: Either (Int, Int) (Either Int Int) -> MyMonoData
+toMyMonoData :: Either (Integer, Integer) (Either Integer Integer) -> MyMonoData
 toMyMonoData (Left  (i, j)   ) = Mono1 i j
 toMyMonoData (Right (Left  i)) = Mono2 i
 toMyMonoData (Right (Right i)) = Mono3 i
@@ -84,10 +82,10 @@ compiledMyMonoDatas = plc @"compiledMyMonoDatas" (
         [Mono2 2, Mono1 0 1, Mono1 4 3, Mono3 5, Mono2 8, Mono1 6 7]
     )
 
-data MyMonoData2 = Mono21 Int Int | Mono22 Int
+data MyMonoData2 = Mono21 Integer Integer | Mono22 Integer
     deriving (Show, Eq)
 
-toMyMonoData2 :: Either (Int, Int) Int -> MyMonoData2
+toMyMonoData2 :: Either (Integer, Integer) Integer -> MyMonoData2
 toMyMonoData2 (Left  (i, j)) = Mono21 i j
 toMyMonoData2 (Right i     ) = Mono22 i
 
@@ -117,10 +115,10 @@ compiledMyMonoData2s = plc @"compiledMyMonoData2s" (
         [Mono22 2, Mono21 0 1, Mono21 4 3, Mono22 8, Mono21 6 7]
     )
 
-data MyMonoData3 = Mono31 Int | Mono32 Int
+data MyMonoData3 = Mono31 Integer | Mono32 Integer
     deriving (Show, Eq)
 
-toMyMonoData3 :: Either Int Int -> MyMonoData3
+toMyMonoData3 :: Either Integer Integer -> MyMonoData3
 toMyMonoData3 (Left  i) = Mono31 i
 toMyMonoData3 (Right i) = Mono32 i
 
@@ -150,7 +148,7 @@ compiledMyMonoData3s = plc @"compiledMyMonoData3s" (
         [Mono31 2, Mono31 0, Mono31 4, Mono32 8, Mono31 6]
     )
 
--- data MyMonoData = Mono1 Int Int | Mono2 Int | Mono3 Int
+-- data MyMonoData = Mono1 Integer Integer | Mono2 Integer | Mono3 Integer
 
 -- This gives this error:
 -- >      error: undefined reference to 'PluginziSpec_MyNewtype_closure'
