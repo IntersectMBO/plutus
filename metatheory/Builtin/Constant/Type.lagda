@@ -58,10 +58,6 @@ postulate
 -- no binding needed for subtract
 -- no binding needed for multiply
 
--- These are intended to be safe versions of division related operations
--- In agda they can only be used if we have a proof that th divisor is non-zero
--- When compiled to haskell the proof is thrown away
-
 {-# COMPILE GHC div  = div  #-}
 {-# COMPILE GHC quot = quot #-}
 {-# COMPILE GHC rem  = rem  #-}
