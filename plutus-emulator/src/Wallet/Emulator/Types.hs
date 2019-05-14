@@ -116,19 +116,19 @@ import           Wallet.API                 (EventHandler (..), EventTrigger, Wa
 import qualified Wallet.API                 as WAPI
 
 -- | A wallet in the emulator model.
-newtype Wallet = Wallet { getWallet :: Int }
+newtype Wallet = Wallet { getWallet :: Integer }
     deriving (Show, Eq, Ord, Generic)
     deriving newtype (ToHttpApiData, FromHttpApiData, Hashable)
     deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey, ToSchema)
-        
+
 -- | Get a wallet's public key.
 walletPubKey :: Wallet -> PubKey
 walletPubKey = toPublicKey . walletPrivKey
 
--- | Get a wallet's private key by looking it up in the list of 
+-- | Get a wallet's private key by looking it up in the list of
 --   private keys in 'Ledger.Crypto.knownPrivateKeys'
 walletPrivKey :: Wallet -> PrivateKey
-walletPrivKey (Wallet i) = (cycle Crypto.knownPrivateKeys) !! i
+walletPrivKey (Wallet i) = (cycle Crypto.knownPrivateKeys) !! (fromIntegral i)
 
 -- | Sign a 'Tx' using the wallet's privat key.
 signWithWallet :: Wallet -> Tx -> Tx
@@ -545,7 +545,7 @@ processEmulated = interpretWithMonad evalEmulated
 
 -- | A synonym for 'execWalletAction'.
 walletAction :: Wallet -> m a -> Trace m [Tx]
-walletAction = execWalletAction 
+walletAction = execWalletAction
 
 -- | Perform a wallet action as the given 'Wallet', returning
 --   the transactions that were submitted.
@@ -574,11 +574,11 @@ processPending = Op.singleton BlockchainProcessPending
 
 -- | Add a number of empty blocks to the blockchain, by performing
 --   'processPending' @n@ times.
-addBlocks :: Int -> Trace m [Block]
+addBlocks :: Integer -> Trace m [Block]
 addBlocks i = traverse (const processPending) [1..i]
 
 -- | Add a number of blocks, notifying all the given 'Wallet's after each block.
-addBlocksAndNotify :: [Wallet] -> Int -> Trace m ()
+addBlocksAndNotify :: [Wallet] -> Integer -> Trace m ()
 addBlocksAndNotify wallets i =
     traverse_ (\_ -> processPending >>= walletsNotifyBlock wallets) [1..i]
 
@@ -597,7 +597,7 @@ assertIsValidated = assertion . IsValidated
 newtype EmulatorAction a = EmulatorAction { unEmulatorAction :: ExceptT AssertionError (State EmulatorState) a }
     deriving newtype (Functor, Applicative, Monad, MonadState EmulatorState, MonadError AssertionError)
 
--- | Run a 'MonadEmulator' action on an 'EmulatorState', returning the final 
+-- | Run a 'MonadEmulator' action on an 'EmulatorState', returning the final
 --   state and either the result or an 'AssertionError'.
 runEmulator :: EmulatorState -> EmulatorAction a -> (Either AssertionError a, EmulatorState)
 runEmulator e a = runState (runExceptT $ unEmulatorAction a) e

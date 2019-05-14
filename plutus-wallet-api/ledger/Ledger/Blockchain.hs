@@ -41,7 +41,7 @@ type Blockchain = [Block]
 --   has precisely one block. This is true in the
 --   emulator but not necessarily on the real chain.
 lastSlot :: Blockchain -> Slot
-lastSlot = Slot . length
+lastSlot = Slot . fromIntegral . length
 
 -- | Lookup a transaction in a 'Blockchain' by its id.
 transaction :: Blockchain -> TxId -> Maybe Tx
@@ -53,9 +53,9 @@ out :: Blockchain -> TxOutRef -> Maybe TxOut
 out bc o = do
     t <- transaction bc (txOutRefId o)
     let i = txOutRefIdx o
-    if length (txOutputs t) <= i
+    if fromIntegral (length (txOutputs t)) <= i
         then Nothing
-        else Just $ txOutputs t !! i
+        else Just $ txOutputs t !! fromIntegral i
 
 -- | Determine the unspent value that a transaction output refers to.
 value :: Blockchain -> TxOutRef -> Maybe Value

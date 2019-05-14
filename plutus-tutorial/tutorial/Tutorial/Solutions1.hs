@@ -11,7 +11,7 @@ import Language.PlutusTx.Prelude (lt, minus)
 import Language.Haskell.TH
 
 {-
-    E2. 
+    E2.
 
     >>> $$(trickier 1) 1
     -8
@@ -21,18 +21,18 @@ import Language.Haskell.TH
     -76403960
 
 -}
-trickier :: Int -> Q (TExp (Int -> Int))
+trickier :: Integer -> Q (TExp (Integer -> Integer))
 trickier i = if $$lt i 1 then tricky else [|| \k -> $$(tricky) ($$(trickier ($$minus i 1)) k)  ||]
 
 
 -- E3*. `trickier n` inlines the `tricky` function n times. In `trickierLight`
 --      we bind `tricky` to a local name and use recursion instead. Note that
 --      this only results in smaller code for n >= 10 (see Solutions2.hs)
-trickierLight :: Int -> Q (TExp (Int -> Int))
-trickierLight i = [|| 
-  \(j :: Int) ->
+trickierLight :: Integer -> Q (TExp (Integer -> Integer))
+trickierLight i = [||
+  \(j :: Integer) ->
     let
       trk = $$(tricky)
-      go k = if $$lt k (1 :: Int) then trk j else trk (go ($$minus k 1))
-      
+      go k = if $$lt k (1 :: Integer) then trk j else trk (go ($$minus k 1))
+
   in go i ||]

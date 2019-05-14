@@ -51,7 +51,7 @@ import           Spec.Common
 
 
 tests :: TestTree
-tests = testGroup "Marlowe" [validatorTests] 
+tests = testGroup "Marlowe" [validatorTests]
     --, contractsTests]
     -- TODO: fix 'contractsTests' and add them back in
 
@@ -93,10 +93,10 @@ eqContract = $$(equalContract) eqValue eqObservation
 validContract :: State -> Contract -> Slot -> Ada -> Bool
 validContract = $$(Marlowe.validateContract)
 
-evalValue :: Slot -> [OracleValue Int] -> State -> Value -> Int
+evalValue :: Slot -> [OracleValue Integer] -> State -> Value -> Integer
 evalValue pendingTxBlockHeight inputOracles = $$(evaluateValue) pendingTxBlockHeight inputOracles
 
-interpretObs :: [OracleValue Int] -> Int -> State -> Observation -> Bool
+interpretObs :: [OracleValue Integer] -> Integer -> State -> Observation -> Bool
 interpretObs inputOracles blockNumber state obs = let
     ev = evalValue (Slot blockNumber) inputOracles
     in $$(interpretObservation) ev blockNumber state obs
@@ -114,7 +114,7 @@ discountFromPairList = $$(Marlowe.discountFromPairList)
 mergeChoices :: [Choice] -> [Choice] -> [Choice]
 mergeChoices = $$(Marlowe.mergeChoices)
 
-money :: Commit -> Int
+money :: Commit -> Integer
 money (_, (_, NotRedeemed m _)) = m
 
 {-| Slide across a list with 2 elements window
@@ -590,4 +590,3 @@ futuresTest = checkMarloweTrace (MarloweScenario {
     bob = Wallet 2
     bobPk = toPublicKey privateKey2
     update = updateAll [alice, bob]
-

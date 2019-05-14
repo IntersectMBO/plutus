@@ -34,8 +34,8 @@ import           Wallet.API                as WAPI
 import qualified Language.PlutusTx.Coordination.Contracts.PubKey as PK
 import           Language.PlutusTx.Coordination.Contracts.Currency.Stage0 as Stage0
 
-mkCurrency :: TxOutRef -> [(String, Int)] -> Currency
-mkCurrency (TxOutRefOf h i) amts = 
+mkCurrency :: TxOutRef -> [(String, Integer)] -> Currency
+mkCurrency (TxOutRefOf h i) amts =
     Currency
         { curRefTransactionOutput = (V.plcTxHash h, i)
         , curAmounts              = LMap.fromList (fmap (first fromString) amts)
@@ -46,14 +46,14 @@ curValidator cur =
     ValidatorScript (Ledger.applyScript mkValidator (Ledger.lifted cur)) where
         mkValidator = Ledger.fromCompiledCode ($$(P.compile [||
             let validate :: Currency -> () -> () -> V.PendingTx -> ()
-                validate c@(Currency (refHash, refIdx) _) () () p = 
-                    let 
+                validate c@(Currency (refHash, refIdx) _) () () p =
+                    let
                         -- see note [Obtaining the currency symbol]
                         ownSymbol = $$(V.ownCurrencySymbol) p
 
                         forged = $$(V.valueForged) p
                         expected = $$currencyValue ownSymbol c
-                            
+
 
                         -- True if the pending transaction forges the amount of
                         -- currency that we expect
@@ -63,7 +63,7 @@ curValidator cur =
 
                         -- True if the pending transaction spends the output
                         -- identified by @(refHash, refIdx)@
-                        txOutputSpent = 
+                        txOutputSpent =
                             let v = $$(V.spendsOutput) p refHash refIdx
                             in  $$(P.traceIfFalseH) "Pending transaction does not spend the designated transaction output" v
 
@@ -78,7 +78,7 @@ curValidator cur =
 {- note [Obtaining the currency symbol]
 
 The currency symbol is the address (hash) of the validator. That is why
-we can use 'Ledger.scriptAddress' here to get the symbol  in off-chain code, 
+we can use 'Ledger.scriptAddress' here to get the symbol  in off-chain code,
 for example in 'forgedValue'.
 
 Inside the validator script (on-chain) we can't use 'Ledger.scriptAddress',
@@ -90,24 +90,24 @@ is why we use 'V.ownCurrencySymbol', which obtains the hash from the
 
 -- | The 'Value' forged by the 'curValidator' contract
 forgedValue :: Currency -> Value
-forgedValue cur = 
-    let 
+forgedValue cur =
+    let
         -- see note [Obtaining the currency symbol]
         a = plcCurrencySymbol (Ledger.scriptAddress (curValidator cur))
     in
         $$currencyValue a cur
 
--- | @forge [(n1, c1), ..., (n_k, c_k)]@ creates a new currency with 
+-- | @forge [(n1, c1), ..., (n_k, c_k)]@ creates a new currency with
 --   @k@ token names, forging @c_i@ units of each token @n_i@.
 --   If @k == 0@ then no value is forged.
-forge :: (WalletAPI m, WalletDiagnostics m) => [(String, Int)] -> m Currency
+forge :: (WalletAPI m, WalletDiagnostics m) => [(String, Integer)] -> m Currency
 forge amounts = do
     pk <- WAPI.ownPubKey
 
-    -- 1. We need to create the reference transaction output using the 
+    -- 1. We need to create the reference transaction output using the
     --    'PublicKey' contract. That way we get an output that behaves
     --    like a normal public key output, but is not selected by the
-    --    wallet during coin selection. This ensures that the output still 
+    --    wallet during coin selection. This ensures that the output still
     --    exists when we spend it in our forging transaction.
     (refAddr, refTxIn) <- PK.lock pk (Ada.adaValueOf 1)
 
@@ -121,8 +121,8 @@ forge amounts = do
 
         -- trg1 fires when 'refTxIn' can be spent by our forging transaction
         trg1 = fundsAtAddressT refAddr oneOrMore
-        
-        -- trg2 fires when the pay-to-script output locked by 'curValidator' 
+
+        -- trg2 fires when the pay-to-script output locked by 'curValidator'
         -- is ready to be spent.
         trg2 = fundsAtAddressT curAddr oneOrMore
 
@@ -154,7 +154,7 @@ forge amounts = do
     --    placed on the chain.
     registerOnce trg2 (EventHandler $ const forge_)
 
-    -- 3. When trg1 fires we submit a transaction that creates a 
+    -- 3. When trg1 fires we submit a transaction that creates a
     --    pay-to-script output locked by the monetary policy
     registerOnce trg1 (EventHandler $ const $ do
         payToScript_ defaultSlotRange curAddr (Ada.adaValueOf 1) (DataScript $ Ledger.lifted ()))

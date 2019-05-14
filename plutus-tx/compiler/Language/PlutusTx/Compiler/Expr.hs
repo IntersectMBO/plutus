@@ -66,8 +66,8 @@ This is a pain to recognize.
 
 convLiteral :: Converting m => GHC.Literal -> m PIRTerm
 convLiteral = \case
-    (GHC.LitNumber GHC.LitNumInt64 i _) -> pure $ PIR.Constant () $ PLC.BuiltinInt () i
-    (GHC.LitNumber GHC.LitNumInt i _)   -> pure $ PIR.Constant () $ PLC.BuiltinInt () i
+    -- Just accept any kind of number literal, we'll complain about types we don't support elsewhere
+    (GHC.LitNumber _ i _) -> pure $ PIR.Constant () $ PLC.BuiltinInt () i
     GHC.MachStr bs     ->
         -- Convert the bytestring into a core expression representing the list
         -- of characters, then compile that!
@@ -79,7 +79,6 @@ convLiteral = \case
             listExpr = GHC.mkListExpr GHC.charTy charExprs
         in convExpr listExpr
     GHC.MachChar c     -> pure $ PIR.embed $ PLC.makeKnown c
-    GHC.LitNumber {}   -> throwPlain $ UnsupportedError "Literal number"
     GHC.MachFloat _    -> throwPlain $ UnsupportedError "Literal float"
     GHC.MachDouble _   -> throwPlain $ UnsupportedError "Literal double"
     GHC.MachLabel {}   -> throwPlain $ UnsupportedError "Literal label"

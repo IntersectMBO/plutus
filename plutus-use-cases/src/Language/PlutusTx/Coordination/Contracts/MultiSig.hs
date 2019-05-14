@@ -27,23 +27,23 @@ import           Ledger                       as Ledger hiding (initialise, to)
 import           Ledger.Validation            as V
 import           Wallet.API                   as WAPI
 
-data MultiSig = MultiSig 
+data MultiSig = MultiSig
                 { signatories :: [Ledger.PubKey]
                 -- ^ List of public keys of people who may sign the transaction
-                , requiredSignatures :: Int
+                , requiredSignatures :: Integer
                 -- ^ Minimum number of signatures required to unlock
                 --   the output (should not exceed @length signatories@)
                 }
 P.makeLift ''MultiSig
 
 msValidator :: MultiSig -> ValidatorScript
-msValidator sig = 
+msValidator sig =
   ValidatorScript (Ledger.applyScript mkValidator (Ledger.lifted sig)) where
     mkValidator = Ledger.fromCompiledCode ($$(P.compile [||
-      let 
+      let
         validate :: MultiSig -> () -> () -> PendingTx -> ()
-        validate (MultiSig keys num) () () p = 
-            let 
+        validate (MultiSig keys num) () () p =
+            let
                 present = $$(P.length) ($$(P.filter) ($$(V.txSignedBy) p) keys)
             in
                 if $$(P.geq) present num
@@ -84,7 +84,7 @@ unlockTx ms = do
 
     utxos <- WAPI.outputsAt address
 
-    let 
+    let
 
         mkIn :: TxOutRef -> TxIn
         mkIn r = Ledger.scriptTxIn r validator msRedeemer
