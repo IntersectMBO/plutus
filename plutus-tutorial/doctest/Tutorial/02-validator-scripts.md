@@ -106,21 +106,21 @@ gameValidator = ValidatorScript ($$(L.compileScript [||
     \(HashedText actual) (ClearText guessed) (_ :: PendingTx) ->
 ```
 
-The actual game logic is very simple: We compare the hash of the `guessed` argument with the `actual` secret hash, and throw an error if the two don't match. In on-chain code, we can use the `$$()` splicing operator to access functions from the Plutus prelude, imported as `P`. For example, `$$(P.equalsByteString) :: ByteString -> ByteString -> Bool`  compares two `ByteString` values for equality.
+The actual game logic is very simple: We compare the hash of the `guessed` argument with the `actual` secret hash, and throw an error if the two don't match. In on-chain code, we can use the `$$()` splicing operator to access functions from the Plutus prelude, imported as `P`. For example, `P.equalsByteString :: ByteString -> ByteString -> Bool`  compares two `ByteString` values for equality.
 
 ```haskell
-    if $$(P.equalsByteString) actual ($$(P.sha2_256) guessed)
+    if P.equalsByteString actual (P.sha2_256 guessed)
     then ()
-    else ($$(P.error) ($$(P.traceH) "WRONG!" ()))
+    else (P.error (P.traceH "WRONG!" ()))
 
     ||])) -- marks the end of the quoted (on-chain) code
 ```
 
-`$$(P.traceH) :: String -> a -> a` returns its second argument after adding its first argument to the log output of this script. The log output is only available in the emulator and on the playground, and will be ignored when the code is run on the real blockchain.
+`P.traceH :: String -> a -> a` returns its second argument after adding its first argument to the log output of this script. The log output is only available in the emulator and on the playground, and will be ignored when the code is run on the real blockchain.
 
 Before we move on to the wallet interactions that produces transactions for our game, let us look at the failure case more closely. There are two two subtle differences between on-chain and off-chain code that we need to be aware of. First, the signature of `P.error` is `forall a. () -> a` and therefore we alway have to apply it to a unit value. `P.error` is different from Haskell's `undefined :: forall a. a` because of differences in the type systems of the two languages.
 
-Second, `$$(P.error)` terminates evaluation of the script when it is encountered, but (due to the strict evaluation order of on-chain code) only *after* its argument has been evaluated. That is why we need to put the call to `P.traceH` as the argument to `P.error`. In regular Haskell we would write `traceH "WRONG!" undefined`.
+Second, `P.error` terminates evaluation of the script when it is encountered, but (due to the strict evaluation order of on-chain code) only *after* its argument has been evaluated. That is why we need to put the call to `P.traceH` as the argument to `P.error`. In regular Haskell we would write `traceH "WRONG!" undefined`.
 
 ## 1.3 Contract endpoints
 
@@ -196,7 +196,7 @@ If you change the word "plutus" in the third item of the trace to "pluto" and cl
 # 3. Problems / Questions
 
 1. Run traces for a successful game and a failed game in the Playground, and examine the logs after each trace.
-1. Change the error case of the validator script to `($$(P.traceH) "WRONG!" ($$(P.error) ()))` and run the trace again with a wrong guess. Note how this time the log does not include the error message.
+1. Change the error case of the validator script to `(P.traceH "WRONG!" (P.error ()))` and run the trace again with a wrong guess. Note how this time the log does not include the error message.
 1. Look at the trace shown below. What will the logs say after running "Evaluate"?
 
 ![A trace for the guessing game](game-actions-2.PNG)

@@ -264,7 +264,7 @@ plcCurrencySymbol = $$(VTH.currencySymbol) . plcDigest . getAddress
 -- | Check if two public keys are equal.
 eqPubKey :: Q (TExp (PubKey -> PubKey -> Bool))
 eqPubKey = [||
-    \(PubKey (LedgerBytes l)) (PubKey (LedgerBytes r)) -> $$(P.equalsByteString) l r
+    \(PubKey (LedgerBytes l)) (PubKey (LedgerBytes r)) -> P.equalsByteString l r
     ||]
 
 -- | Check if a transaction was signed by the given public key.
@@ -279,7 +279,7 @@ txSignedBy = [||
                 let
                     PubKey (LedgerBytes pk) = k
                     TxHash msg           = hsh
-                in $$(P.verifySignature) pk msg sig
+                in P.verifySignature pk msg sig
 
             go :: [(PubKey, Signature)] -> Bool
             go l = case l of
@@ -287,7 +287,7 @@ txSignedBy = [||
                             if $$(eqPubKey) k pk
                             then if signedBy' sig
                                  then True
-                                 else $$(P.traceH) "matching pub key with invalid signature" (go r)
+                                 else P.traceH "matching pub key with invalid signature" (go r)
                             else go r
                         []  -> False
         in
@@ -333,7 +333,7 @@ ownHashes :: Q (TExp (PendingTx -> (ValidatorHash, RedeemerHash)))
 ownHashes = [|| \(PendingTx _ _ _ _ i _ _ _) ->
     case i of
         PendingTxIn _ (Just h) _ -> h
-        _ -> $$(P.error) () ||]
+        _ -> P.error () ||]
 
 -- | Get the hash of the validator script that is currently being validated.
 ownHash :: Q (TExp (PendingTx -> ValidatorHash))
@@ -356,7 +356,7 @@ scriptOutputsAt = [||
                                              then Just (ds, vl)
                                              else Nothing
                             Nothing -> Nothing
-                in $$(P.mapMaybe) flt outs
+                in P.mapMaybe flt outs
 
         in scriptOutputsAt'
     ||]
@@ -364,8 +364,8 @@ scriptOutputsAt = [||
 -- | Get the total value locked by the given validator in this transaction.
 valueLockedBy :: Q (TExp (PendingTx -> ValidatorHash -> Value))
 valueLockedBy = [|| \ptx h ->
-    let outputs = $$(P.map) (\(_, vl) -> vl) ($$scriptOutputsAt h ptx)
-    in $$(P.foldr) $$(VTH.plus) $$(VTH.zero) outputs
+    let outputs = P.map (\(_, vl) -> vl) ($$scriptOutputsAt h ptx)
+    in P.foldr $$(VTH.plus) $$(VTH.zero) outputs
 
   ||]
 
@@ -380,15 +380,14 @@ pubKeyOutputsAt = [||
                         PubKeyTxOut pk' ->
                             if $$eqPubKey pk' pk then Just vl else Nothing
                         _ -> Nothing
-            in $$(P.mapMaybe) flt outs
+            in P.mapMaybe flt outs
     in pubKeyOutputsAt'
 
     ||]
 
 -- | Get the total value paid to a public key address by a pending transaction.
 valuePaidTo :: Q (TExp (PendingTx -> PubKey -> Value))
-valuePaidTo = [|| \ptx pk -> $$(P.foldr) $$(VTH.plus) $$(VTH.zero) ($$pubKeyOutputsAt pk ptx)
-    ||]
+valuePaidTo = [|| \ptx pk -> P.foldr $$(VTH.plus) $$(VTH.zero) ($$pubKeyOutputsAt pk ptx) ||]
 
 -- | Get the total amount of 'Ada' locked by the given validator in this transaction.
 adaLockedBy :: Q (TExp (PendingTx -> ValidatorHash -> Ada))
@@ -399,7 +398,7 @@ adaLockedBy = [|| \ptx h -> $$(Ada.fromValue) ($$valueLockedBy ptx h) ||]
 signsTransaction :: Q (TExp (Signature -> PubKey -> PendingTx -> Bool))
 signsTransaction = [||
     \(Signature sig) (PubKey (LedgerBytes pk)) (p :: PendingTx) ->
-        $$(P.verifySignature) pk (let TxHash h = $$(txHash) p in h) sig
+        P.verifySignature pk (let TxHash h = $$(txHash) p in h) sig
     ||]
 
 -- | Value forged by a 'PendingTx'.
@@ -407,15 +406,15 @@ valueForged :: Q (TExp (PendingTx -> Value))
 valueForged = [||
         let valueForged' :: PendingTx -> Value
             valueForged' (PendingTx _ _ _ forge _ _ _ _) = forge
-            valueForged' _                               = $$(P.error) ()
+            valueForged' _                               = P.error ()
         in valueForged'
     ||]
 
 -- | Get the total value of inputs spent by this transaction.
 valueSpent :: Q (TExp (PendingTx -> Value))
 valueSpent = [|| \(PendingTx inputs _ _ _ _ _ _ _) ->
-    let inputs' = $$(P.map) (\(PendingTxIn _ _ vl) -> vl) inputs
-    in $$(P.foldr) $$(VTH.plus) $$(VTH.zero) inputs'
+    let inputs' = P.map (\(PendingTxIn _ _ vl) -> vl) inputs
+    in P.foldr $$(VTH.plus) $$(VTH.zero) inputs'
   ||]
 
 -- | The 'CurrencySymbol' of the current validator script.
@@ -437,9 +436,9 @@ spendsOutput = [||
             spendsOutput' p (TxHash h) i =
                 let PendingTx ins _ _ _ _ _ _ _ = p
                     spendsOutRef (PendingTxIn (PendingTxOutRef (TxHash h') i') _ _) =
-                        $$(P.and) ($$(P.equalsByteString) h h') ($$(P.eq) i i')
+                        P.and (P.equalsByteString h h') (P.eq i i')
 
-                in $$(P.any) spendsOutRef ins
+                in P.any spendsOutRef ins
 
         in
             spendsOutput'

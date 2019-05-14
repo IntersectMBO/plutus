@@ -28,7 +28,8 @@
           )
         )
       )
-      lessThanInteger
+      (lam ds (con integer) (lam ds (con integer) [ [ lessThanInteger ds ] ds ])
+      )
     )
   )
 )

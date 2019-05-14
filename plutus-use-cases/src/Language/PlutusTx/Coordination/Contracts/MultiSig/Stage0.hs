@@ -3,7 +3,6 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE DataKinds         #-}
-{-# OPTIONS_GHC -O0 #-}
 -- | Types and TH quotes for the multisig state machine contract.
 module Language.PlutusTx.Coordination.Contracts.MultiSig.Stage0(
       Payment(..)
@@ -79,22 +78,21 @@ isSignatory :: Q (TExp (PubKey -> Params -> Bool))
 isSignatory = [||
 
         let isSignatory' :: PubKey -> Params -> Bool
-            isSignatory' pk (Params sigs _) = $$(P.any) (\pk' -> $$(Validation.eqPubKey) pk pk') sigs
+            isSignatory' pk (Params sigs _) = P.any (\pk' -> $$(Validation.eqPubKey) pk pk') sigs
         in isSignatory'
 
   ||]
 
 -- | Check whether a list of public keys contains a given key.
 containsPk :: Q (TExp (PubKey -> [PubKey] -> Bool))
-containsPk = [|| \pk -> $$(P.any) (\pk' -> $$(Validation.eqPubKey) pk' pk)
-    ||]
+containsPk = [|| \pk -> P.any (\pk' -> $$(Validation.eqPubKey) pk' pk) ||]
 
 pkListEq :: Q (TExp ([PubKey] -> [PubKey] -> Bool))
 pkListEq = [||
 
     let pkListEq' :: [PubKey] -> [PubKey] -> Bool
         pkListEq' [] [] = True
-        pkListEq' (k:ks) (k':ks') = $$(P.and) ($$(Validation.eqPubKey) k k') (pkListEq' ks ks')
+        pkListEq' (k:ks) (k':ks') = P.and ($$(Validation.eqPubKey) k k') (pkListEq' ks ks')
         pkListEq' _ _ = False
 
     in pkListEq'
@@ -125,8 +123,8 @@ proposalAccepted :: Q (TExp (Params -> [PubKey] -> Bool))
 proposalAccepted = [||
         let proposalAccepted' :: Params -> [PubKey] -> Bool
             proposalAccepted' (Params signatories numReq) pks =
-                let numSigned = $$(P.length) ($$(P.filter) (\pk -> $$containsPk pk pks) signatories)
-                in $$(P.geq) numSigned numReq
+                let numSigned = P.length (P.filter (\pk -> $$containsPk pk pks) signatories)
+                in P.geq numSigned numReq
         in proposalAccepted'
     ||]
 
@@ -138,9 +136,9 @@ valuePreserved = [||
         let valuePreserved' :: Value -> PendingTx -> Bool
             valuePreserved' vl ptx =
                 let ownHash = $$(Validation.ownHash) ptx
-                    numOutputs = $$(P.length) ($$(Validation.scriptOutputsAt) ownHash ptx)
+                    numOutputs = P.length ($$(Validation.scriptOutputsAt) ownHash ptx)
                     valueLocked = $$(Validation.valueLockedBy) ptx ownHash
-                in $$(P.and) ($$(P.eq) 1 numOutputs) ($$(Value.eq) valueLocked vl)
+                in P.and (P.eq 1 numOutputs) ($$(Value.eq) valueLocked vl)
         in valuePreserved'
 
     ||]
@@ -161,7 +159,7 @@ paymentEq = [||
 
         let paymentEq' :: Payment -> Payment -> Bool
             paymentEq' (Payment vl pk sl) (Payment vl' pk' sl') =
-                $$(P.and) ($$(P.and) ($$(Value.eq) vl vl') ($$(Validation.eqPubKey) pk pk')) ($$(Slot.eq) sl sl')
+                P.and (P.and ($$(Value.eq) vl vl') ($$(Validation.eqPubKey) pk pk')) ($$(Slot.eq) sl sl')
         in paymentEq'
 
     ||]
@@ -173,7 +171,7 @@ stateEq = [||
             stateEq' (InitialState v) (InitialState v') =
                 $$(Value.eq) v v'
             stateEq' (CollectingSignatures vl pmt pks) (CollectingSignatures vl' pmt' pks') =
-                $$(P.and) ($$(P.and) ($$(Value.eq) vl vl') ($$paymentEq pmt pmt')) ($$pkListEq pks pks')
+                P.and (P.and ($$(Value.eq) vl vl') ($$paymentEq pmt pmt')) ($$pkListEq pks pks')
             stateEq' _ _ = False
 
         in stateEq'
@@ -198,7 +196,7 @@ step = [||
                 (CollectingSignatures vl (Payment vp _ _) _, Pay) ->
                     let vl' = $$(Value.minus) vl vp in
                     InitialState vl'
-                _ -> $$(P.error) ($$(P.traceH) "invalid transition" ())
+                _ -> P.error (P.traceH "invalid transition" ())
     in step'
     ||]
 
@@ -209,41 +207,35 @@ step = [||
 stepWithChecks :: Q (TExp (Params -> PendingTx -> State -> Input -> State))
 stepWithChecks = [||
 
-    let and_ :: Bool -> Bool -> Bool
-        and_ = $$(P.and)
-
-        not_ :: Bool -> Bool
-        not_ = $$(P.not)
-
-        step' :: Params -> PendingTx -> State -> Input -> State
+    let step' :: Params -> PendingTx -> State -> Input -> State
         step' p ptx s i =
             let newState = $$step s i in
             case (s, i) of
                 (InitialState vl, ProposePayment pmt) ->
-                    if $$isValidProposal vl pmt `and_`
+                    if $$isValidProposal vl pmt `P.and`
                         $$valuePreserved vl ptx
                     then newState
-                    else $$(P.error) ($$(P.traceH) "ProposePayment invalid" ())
+                    else P.error (P.traceH "ProposePayment invalid" ())
                 (CollectingSignatures vl _ pks, AddSignature pk) ->
-                    if $$(Validation.txSignedBy) ptx pk `and_`
-                        $$isSignatory pk p `and_`
-                        not_ ($$containsPk pk pks) `and_`
+                    if $$(Validation.txSignedBy) ptx pk `P.and`
+                        $$isSignatory pk p `P.and`
+                        P.not ($$containsPk pk pks) `P.and`
                         $$valuePreserved vl ptx
                     then newState
-                    else $$(P.error) ($$(P.traceH) "AddSignature invalid" ())
+                    else P.error (P.traceH "AddSignature invalid" ())
                 (CollectingSignatures vl pmt _, Cancel) ->
-                    if $$proposalExpired ptx pmt `and_`
+                    if $$proposalExpired ptx pmt `P.and`
                         $$valuePreserved vl ptx
                     then InitialState vl
-                    else $$(P.error) ($$(P.traceH) "Cancel invalid" ())
+                    else P.error (P.traceH "Cancel invalid" ())
                 (CollectingSignatures vl pmt@(Payment vp _ _) pks, Pay) ->
                     let vl' = $$(Value.minus) vl vp in
-                    if not_ ($$proposalExpired ptx pmt) `and_`
-                        $$proposalAccepted p pks `and_`
-                        $$valuePreserved vl' ptx `and_`
+                    if P.not ($$proposalExpired ptx pmt) `P.and`
+                        $$proposalAccepted p pks `P.and`
+                        $$valuePreserved vl' ptx `P.and`
                         $$valuePaid pmt ptx
                     then newState
-                    else $$(P.error) ($$(P.traceH) "Pay invalid" ())
-                _ -> $$(P.error) ($$(P.traceH) "invalid transition" ())
+                    else P.error (P.traceH "Pay invalid" ())
+                _ -> P.error (P.traceH "invalid transition" ())
     in step'
     ||]

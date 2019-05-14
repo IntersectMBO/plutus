@@ -5,6 +5,6 @@
       (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
       (builtin addInteger)
     )
-    addInteger
+    (lam ds (con integer) (lam ds (con integer) [ [ addInteger ds ] ds ]))
   )
 )

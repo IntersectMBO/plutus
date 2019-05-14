@@ -39,7 +39,15 @@
           )
         )
       )
-      verifySignature
+      (lam
+        ds
+        (con bytestring)
+        (lam
+          ds
+          (con bytestring)
+          (lam ds (con bytestring) [ [ [ verifySignature ds ] ds ] ds ])
+        )
+      )
     )
   )
 )

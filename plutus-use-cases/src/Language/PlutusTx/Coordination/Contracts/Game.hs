@@ -34,9 +34,9 @@ gameValidator :: ValidatorScript
 gameValidator = ValidatorScript ($$(Ledger.compileScript [||
     \(HashedString actual) (ClearString guess') (_ :: PendingTx) ->
 
-    if $$(P.equalsByteString) actual ($$(P.sha2_256) guess')
+    if P.equalsByteString actual (P.sha2_256 guess')
     then ()
-    else $$(P.traceH) "WRONG!" ($$(P.error) ())
+    else P.traceH "WRONG!" (P.error ())
 
     ||]))
 

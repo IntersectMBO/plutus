@@ -28,8 +28,8 @@ currencyValue = [||
             currencyValue' s c =
                 let
                     Currency _ amts = c
-                    values = $$(P.map) (\(tn, i) -> ($$(Value.TH.singleton) s tn i)) ($$(LMap.TH.toList) amts)
-                in $$(P.foldr) $$(Value.TH.plus) $$(Value.TH.zero) values
+                    values = P.map (\(tn, i) -> ($$(Value.TH.singleton) s tn i)) ($$(LMap.TH.toList) amts)
+                in P.foldr $$(Value.TH.plus) $$(Value.TH.zero) values
 
         in currencyValue'
     ||]
