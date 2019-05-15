@@ -9,7 +9,6 @@
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
-{-# OPTIONS_GHC   -O0 #-}
 module Ledger.Validation
     (
     -- * Pending transactions and related types

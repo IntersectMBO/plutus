@@ -12,5 +12,5 @@ mkBuiltin n = PIR.Builtin () $ PLC.BuiltinName () n
 mkDynBuiltin :: PLC.DynamicBuiltinName -> PIR.Term tyname name ()
 mkDynBuiltin n = PIR.Builtin () $ PLC.DynBuiltinName () n
 
-mustBeReplaced :: a
-mustBeReplaced = error "This must be replaced by the core-to-plc plugin during compilation"
+mustBeReplaced :: String -> a
+mustBeReplaced message = error $ "This must be replaced by the core-to-plc plugin during compilation: " <> message

@@ -14,6 +14,7 @@ module Language.PlutusTx.Compiler.Type (
     getConstructorsInstantiated,
     getMatch,
     getMatchInstantiated,
+    findAlt,
     convAlt) where
 
 import           Language.PlutusTx.Compiler.Binders
@@ -134,7 +135,6 @@ convTyCon tc = do
                         PIR.defineDatatype tcName (PIR.Def tvd datatype) (Set.fromList deps)
                     pure $ PIR.mkTyVar () tvd
 
-
 getUsedTcs :: (Converting m) => GHC.TyCon -> m [GHC.TyCon]
 getUsedTcs tc = do
     dcs <- getDataCons tc
@@ -231,10 +231,10 @@ getConstructors tc = do
     maybeConstrs <- PIR.lookupConstructors () (GHC.getName tc)
     case maybeConstrs of
         Just constrs -> pure constrs
-        Nothing      -> throwPlain $ CompilationError "Constructors have not been compiled"
+        Nothing      -> throwSd CompilationError $ "Constructors have not been compiled for:" GHC.<+> GHC.ppr tc
 
 -- | Get the constructors of the given 'Type' (which must be equal to a type constructor application) as PLC terms instantiated for
-    -- the type constructor argument types.
+-- the type constructor argument types.
 getConstructorsInstantiated :: Converting m => GHC.Type -> m [PIRTerm]
 getConstructorsInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated constructors for type:" GHC.<+> GHC.ppr t) $ case t of
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do
@@ -244,7 +244,7 @@ getConstructorsInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated
             args' <- mapM convType args
             pure $ PIR.mkIterInst () c args'
     -- must be a TC app
-    _ -> throwPlain $ CompilationError "Type was not a type constructor application"
+    _ -> throwSd CompilationError $ "Type was not a type constructor application:" GHC.<+> GHC.ppr t
 
 -- | Get the matcher of the given 'TyCon' as a PLC term
 getMatch :: Converting m => GHC.TyCon -> m PIRTerm
@@ -254,7 +254,7 @@ getMatch tc = do
     maybeMatch <- PIR.lookupDestructor () (GHC.getName tc)
     case maybeMatch of
         Just match -> pure match
-        Nothing    -> throwPlain $ CompilationError "Match has not been compiled"
+        Nothing    -> throwSd CompilationError $ "Match has not been compiled for:" GHC.<+> GHC.ppr tc
 
 -- | Get the matcher of the given 'Type' (which must be equal to a type constructor application) as a PLC term instantiated for
 -- the type constructor argument types.
@@ -266,7 +266,18 @@ getMatchInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated matche
         args' <- mapM convType args
         pure $ PIR.mkIterInst () match args'
     -- must be a TC app
-    _ -> throwPlain $ CompilationError "Type was not a type constructor application"
+    _ -> throwSd CompilationError $ "Type was not a type constructor application:" GHC.<+> GHC.ppr t
+
+-- | Finds the alternative for a given data constructor in a list of alternatives. The type
+-- of the overall match must also be provided.
+--
+-- This differs from 'GHC.findAlt' in what it does when the constructor is not matched (this can
+-- happen when the match is exhaustive *in context* only, see the doc on 'GHC.Expr'). We need an
+-- alternative regardless, so we make an "impossible" alternative since this case should be unreachable.
+findAlt :: GHC.DataCon -> [GHC.CoreAlt] -> GHC.Type -> GHC.CoreAlt
+findAlt dc alts t = case GHC.findAlt (GHC.DataAlt dc) alts of
+    Just alt -> alt
+    Nothing  -> (GHC.DEFAULT, [], GHC.mkImpossibleExpr t)
 
 -- | Make the alternative for a given 'CoreAlt'.
 convAlt

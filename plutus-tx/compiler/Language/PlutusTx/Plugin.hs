@@ -50,10 +50,12 @@ import qualified Data.Text.Prettyprint.Doc              as PP
 import           GHC.TypeLits
 import           System.IO.Unsafe                       (unsafePerformIO)
 
+-- if we inline this then we won't be able to find it later!
+{-# NOINLINE plc #-}
 -- | Marks the given expression for conversion to PLC.
 plc :: forall (loc::Symbol) a . a -> CompiledCode a
 -- this constructor is only really there to get rid of the unused warning
-plc _ = SerializedCode mustBeReplaced mustBeReplaced
+plc _ = SerializedCode (mustBeReplaced "pir") (mustBeReplaced "plc")
 
 data PluginOptions = PluginOptions {
     poDoTypecheck    :: Bool
@@ -64,16 +66,45 @@ data PluginOptions = PluginOptions {
 plugin :: GHC.Plugin
 plugin = GHC.defaultPlugin { GHC.installCoreToDos = install, GHC.pluginRecompile = GHC.flagRecompile }
 
+{- Note [Making sure unfoldings are present]
+Our plugin runs at the start of the Core pipeline. If we look around us, we will find
+that as expected, we have unfoldings for some bindings from other modules or packages
+depending on whether GHC thinks they're good to inline/are marked INLINEABLE.
+
+But there will be no unfoldings for local bindings!
+
+It turns out that these are added by the simplifier, of all things. To avoid relying too
+much on the shape of the subsequent passes, we add a single, very gentle, simplifier
+pass before we run, turning off everything that we can and running only once.
+
+This means that we need to be robust to the transformations that the simplifier performs
+unconditionally which we pretty much are.
+
+See https://gitlab.haskell.org/ghc/ghc/issues/16615 for upstream discussion.
+-}
+
 install :: [GHC.CommandLineOption] -> [GHC.CoreToDo] -> GHC.CoreM [GHC.CoreToDo]
-install args todo =
-    let
-        opts = PluginOptions {
+install args todo = do
+    flags <- GHC.getDynFlags
+    let opts = PluginOptions {
             poDoTypecheck = notElem "dont-typecheck" args
             , poDeferErrors = elem "defer-errors" args
             , poContextLevel = if elem "no-context" args then 0 else if elem "debug-context" args then 3 else 1
             }
-    in
-        pure (GHC.CoreDoPluginPass "Core to PLC" (pluginPass opts) : todo)
+        pass = GHC.CoreDoPluginPass "Core to PLC" (pluginPass opts)
+        -- See Note [Making sure unfoldings are present]
+        mode = GHC.SimplMode {
+                    GHC.sm_names = ["Ensure unfoldings are present"]
+                  , GHC.sm_phase = GHC.Phase 0
+                  , GHC.sm_dflags = flags
+                  , GHC.sm_rules = False
+                  -- You might think you would need this, but apparently not
+                  , GHC.sm_inline = False
+                  , GHC.sm_case_case = False
+                  , GHC.sm_eta_expand = False
+                  }
+        simpl = GHC.CoreDoSimplify 1 mode
+    pure $ simpl:pass:todo
 
 pluginPass :: PluginOptions -> GHC.ModGuts -> GHC.CoreM GHC.ModGuts
 pluginPass opts guts = getMarkerName >>= \case
