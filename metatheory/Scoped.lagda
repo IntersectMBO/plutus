@@ -32,51 +32,49 @@ data ScopedTy (n : ℕ) : Set where
 
 --{-# COMPILE GHC ScopedTy = data ScTy (ScTyVar | ScTyFun | ScTyPi | ScTyLambda | ScTyApp | ScTyCon) #-}
 
-data Weirdℕ : Set where
-  Z : Weirdℕ
-  S : Weirdℕ → Weirdℕ
-  T : Weirdℕ → Weirdℕ
+data Weirdℕ : ℕ → Set where
+  Z : Weirdℕ 0
+  S : ∀{n} → Weirdℕ n  → Weirdℕ n
+  T : ∀{n} → Weirdℕ n → Weirdℕ (suc n)
 
-data WeirdFin : Weirdℕ → Set where
-  Z : ∀{n} → WeirdFin (S n)
-  S : ∀{n} → WeirdFin n → WeirdFin (S n)
-  T : ∀{n} → WeirdFin n → WeirdFin (T n)
+data WeirdFin : ∀{n} → Weirdℕ n → Set where
+  Z : ∀{n}{w : Weirdℕ n} → WeirdFin (S w)
+  S : ∀{n}{w : Weirdℕ n} → WeirdFin w → WeirdFin (S w)
+  T : ∀{n}{w : Weirdℕ n} → WeirdFin w → WeirdFin (T w)
 
-∥_∥ : Weirdℕ → ℕ
-∥ Z   ∥ = zero
-∥ S n ∥ = ∥ n ∥
-∥ T n ∥ = suc ∥ n ∥
 
-wtoℕ : Weirdℕ → ℕ
+-- what is this for?
+-- there are two meaningful things here:
+-- 1. one to literally convert the number
+-- 2. to extract a type context from a term one
+-- this looks like (1)
+wtoℕ : ∀{n} → Weirdℕ n → ℕ
 wtoℕ Z = zero
 wtoℕ (S x) = suc (wtoℕ x)
 wtoℕ (T x) = suc (wtoℕ x)
+
 
 open import Data.Integer hiding (_*_)
 open import Data.String
 
 -- could index by size here, is there any point?
 data TermCon : Set where
-  integer    :
-      (i : ℤ)
-    → TermCon
-  bytestring :
-      (b : ByteString)
-    → TermCon
+  integer    : (i : ℤ) → TermCon
+  bytestring : (b : ByteString) → TermCon
   string     : String → TermCon
 
-data ScopedTm : Weirdℕ → Set where
-  `    : ∀{n} → WeirdFin n → ScopedTm n
-  Λ    : ∀{n} → String → ScopedKind → ScopedTm (T n) → ScopedTm n
-  _·⋆_ : ∀{n} → ScopedTm n → ScopedTy ∥ n ∥ → ScopedTm n
-  ƛ    : ∀{n} → String → ScopedTy ∥ n ∥ → ScopedTm (S n) → ScopedTm n
-  _·_  : ∀{n} → ScopedTm n → ScopedTm n → ScopedTm n
-  con  : ∀{n} → TermCon → ScopedTm n
-  error : ∀{n} → ScopedTy ∥ n ∥ → ScopedTm n
-  builtin : ∀{n} → Builtin → List (ScopedTy ∥ n ∥) → List (ScopedTm n)
-          → ScopedTm n
-  wrap : ∀{n} → ScopedTy ∥ n ∥ → ScopedTy ∥ n ∥ → ScopedTm n → ScopedTm n
-  unwrap : ∀{n} → ScopedTm n → ScopedTm n
+data ScopedTm {n}(w : Weirdℕ n) : Set where
+  `    :    WeirdFin w → ScopedTm w
+  Λ    :    String → ScopedKind → ScopedTm (T w) → ScopedTm w
+  _·⋆_ :    ScopedTm w → ScopedTy n → ScopedTm w
+  ƛ    :    String → ScopedTy n → ScopedTm (S w) → ScopedTm w
+  _·_  :    ScopedTm w → ScopedTm w → ScopedTm w
+  con  :    TermCon → ScopedTm w
+  error :   ScopedTy n → ScopedTm w
+  builtin : Builtin → List (ScopedTy n) → List (ScopedTm w)
+            → ScopedTm w
+  wrap :    ScopedTy n → ScopedTy n → ScopedTm w → ScopedTm w
+  unwrap :  ScopedTm w → ScopedTm w
 
 -- term/type synonyms
 
@@ -87,19 +85,20 @@ unit : ∀{Γ} → ScopedTy Γ
 unit = Π "α" * (` zero ⇒ (` zero ⇒ ` zero))
 
 
-void : ∀{n} → ScopedTm n
+void : ∀{Φ}{Γ : Weirdℕ Φ} → ScopedTm Γ
 void = Λ "α" * (ƛ "x" (` zero) (` Z))
 
-true : ∀{Γ} → ScopedTm Γ
+true : ∀{Φ}{Γ : Weirdℕ Φ} → ScopedTm Γ
 true = Λ "α" * (ƛ "t" (` zero) (ƛ "f" (` zero) (` (S Z))))
 
-false : ∀{Γ} → ScopedTm Γ
+false : ∀{Φ}{Γ : Weirdℕ Φ} → ScopedTm Γ
 false = Λ "α" * (ƛ "t" (` zero) (ƛ "f" (` zero) (` Z)))
 
 
 -- SCOPE CHECKING / CONVERSION FROM RAW TO SCOPED
 
 -- should just use ordinary kind for everything
+{-
 deBruijnifyK : RawKind → ScopedKind
 deBruijnifyK * = *
 deBruijnifyK (K ⇒ J) = deBruijnifyK K ⇒ deBruijnifyK J
@@ -439,4 +438,5 @@ ugly (builtin b As ts) =
 ugly (error _) = "error _"
 ugly (wrap _ _ t) = "(wrap " ++ ugly t ++ ")"
 ugly (unwrap t) = "(unwrap " ++ ugly t ++ ")"
+-}
 \end{code}
