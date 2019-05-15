@@ -12,11 +12,16 @@ module Ledger.Interval(
     , from
     , to
     , always
+    , hull
+    , intersection
+    , overlaps
     ) where
 
 import           Codec.Serialise.Class                    (Serialise)
 import           Data.Aeson                               (FromJSON, ToJSON)
 import           Data.Swagger.Internal.Schema             (ToSchema)
+import           Data.Maybe                               (isNothing)
+import           Data.Semigroup                           (Min(..), Max(..), Semigroup((<>)), Option(..))
 import           GHC.Generics                             (Generic)
 import           Language.Haskell.TH
 
@@ -32,6 +37,39 @@ data Interval a = Interval { ivFrom :: Maybe a, ivTo :: Maybe a }
     deriving anyclass (ToSchema, FromJSON, ToJSON, Serialise)
 
 makeLift ''Interval
+
+-- | Check whether a value is covered by an interval.
+member :: (a -> a -> Ordering) -> a -> Interval a -> Bool
+member comp a i =
+    let lw = case ivFrom i of { Nothing -> True; Just f' -> not (comp f' a == GT) }
+        hg = case ivTo i of { Nothing -> True; Just t' -> comp t' a == GT }
+    in lw && hg
+
+-- | Check whether two intervals overlap, that is, whether there is a value that
+--   is a member of both intervals.
+overlaps :: (a -> a -> Ordering) -> Interval a -> Interval a -> Bool
+overlaps comp l r =
+    let inLow a i = case a of
+            Nothing -> isNothing (ivFrom i)
+            Just a' -> (member comp) a' i
+    in
+        inLow (ivFrom l) r || inLow (ivFrom r) l
+
+-- | 'intersection a b' is the largest interval that is contained in 'a' and in 
+--   'b', if it exists.
+intersection :: Ord a => Interval a -> Interval a -> Maybe (Interval a)
+intersection l r =
+    if not (overlaps compare l r)
+    then Nothing
+    else Just (Interval fr t) where
+            fr = fmap getMax $ getOption $ (Max <$> Option (ivFrom l)) <> (Max <$> Option (ivFrom r))
+            t  = fmap getMin $ getOption $ (Min <$> Option (ivTo l)) <> (Min <$> Option (ivTo r))
+
+-- | 'hull a b' is the smallest interval containing 'a' and 'b'.
+hull :: Ord a => Interval a -> Interval a -> Interval a
+hull l r = Interval fr t where
+        fr = fmap getMin $ (Min <$> ivFrom l) <> (Min <$> ivFrom r)
+        t = fmap getMax $ (Max <$> ivTo l) <> (Max <$> ivTo r)
 
 {- note [Definition of Interval]
 
