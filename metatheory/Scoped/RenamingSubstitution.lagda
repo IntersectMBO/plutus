@@ -42,7 +42,7 @@ lift ρ (S x) = S (ρ x)
 ⋆lift : ∀{m n} → Ren m n → Ren (T m) (T n)
 ⋆lift ρ (T x) = T (ρ x)
 
-ren : ∀{m n} → Ren⋆ ∥ m ∥ ∥ n ∥ → Ren m n → ScopedTm m → ScopedTm n
+ren : ∀{m n w v} → Ren⋆ ∥ m ∥ ∥ n ∥ → Ren m n → ScopedTm m → ScopedTm n
 renL : ∀{m n} → Ren⋆ ∥ m ∥ ∥ n ∥ → Ren m n
       → List (ScopedTm m) → List (ScopedTm n)
 

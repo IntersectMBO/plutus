@@ -39,12 +39,12 @@ data _⊢ : ℕ → Set where
 import Scoped as S
 open import Data.Product renaming (_,_ to _,,_)
 
-eraseℕ : S.Weirdℕ → ℕ
+eraseℕ : ∀{n} → S.Weirdℕ n → ℕ
 eraseℕ S.Z     = zero
 eraseℕ (S.S n) = suc (eraseℕ n)
 eraseℕ (S.T n) = eraseℕ n
 
-eraseFin : ∀{n} → S.WeirdFin n → Fin (eraseℕ n)
+eraseFin : ∀{n}{w : S.Weirdℕ n} → S.WeirdFin w → Fin (eraseℕ w)
 eraseFin S.Z     = zero
 eraseFin (S.S x) = suc (eraseFin x)
 eraseFin (S.T x) = eraseFin x
@@ -78,8 +78,8 @@ builtinEater b ts u | Dec.yes p = builtin b (ts Data.List.++ [ u ])
 builtinEater b ts u | Dec.no ¬p = builtin b ts · u
 
 
-erase⊢ : ∀{n} → S.ScopedTm n → eraseℕ n ⊢
-eraseL : ∀{n} → List (S.ScopedTm n) → List (eraseℕ n ⊢)
+erase⊢ : ∀{n}{w : S.Weirdℕ n} → S.ScopedTm w → eraseℕ w ⊢
+eraseL : ∀{n}{w : S.Weirdℕ n} → List (S.ScopedTm w) → List (eraseℕ w ⊢)
 
 erase⊢ (S.` x)    = ` (eraseFin x)
 erase⊢ (S.Λ x K t)  = erase⊢ t
