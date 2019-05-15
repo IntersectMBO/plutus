@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 -- Need some extra imports from the Prelude for doctests, annoyingly
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 module Language.PlutusTx.Prelude (
@@ -59,7 +58,7 @@ module Language.PlutusTx.Prelude (
 
 import           Language.PlutusTx.Builtins (ByteString)
 import qualified Language.PlutusTx.Builtins as Builtins
-import           Prelude                    (Bool (..), Integer, Maybe (..), String, (+), (==), (>))
+import           Prelude                    (Bool (..), Integer, Maybe (..), String)
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
@@ -67,6 +66,10 @@ import           Prelude                    (Bool (..), Integer, Maybe (..), Str
 -- $prelude
 -- The PlutusTx Prelude is a collection of useful functions that work with
 -- builtin Haskell data types such as 'Maybe' and @[]@ (list).
+
+-- $setup
+-- >>> :set -XNoImplicitPrelude
+-- >>> import Prelude (Bool (..), Integer, Maybe (..), String, (+), (==), (>))
 
 {-# INLINABLE error #-}
 -- | Terminate the evaluation of the script with an error message
