@@ -52,17 +52,17 @@ eraseNe⋆ (μ1 {K = K}) = ƛ "x"
 
 
 \begin{code}
-len : ∀{Φ} → Ctx Φ → Weirdℕ
+len : ∀{Φ} → Ctx Φ → Weirdℕ (len⋆ Φ)
 len ∅ = Z
 len (Γ ,⋆ K) = T (len Γ)
 len (Γ , A) = S (len Γ)
 
 open import Relation.Binary.PropositionalEquality as Eq
-lem : ∀ {Φ}(Γ : Ctx Φ) → Scoped.∥ len Γ ∥ ≡ len⋆ Φ
+{-lem : ∀ {Φ}(Γ : Ctx Φ) → len Γ ≡ len⋆ Φ
 lem ∅ = refl
 lem (Γ ,⋆ K) = cong suc (lem Γ)
 lem (Γ , A) = lem Γ
-
+-}
 eraseVar : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K} → Γ ∋ A → WeirdFin (len Γ)
 eraseVar Z = Z
 eraseVar (S x) = S (eraseVar x)
@@ -81,10 +81,6 @@ eraseSub : ∀ {Γ Δ} → (∀ {J} → Δ ∋⋆ J → Γ ⊢Nf⋆ J) → List 
 eraseSub {Δ = ∅} σ = []
 eraseSub {Δ = Δ ,⋆ K} σ = eraseSub {Δ = Δ} (σ ∘ S) ++ L.[ eraseNf⋆ (σ Z) ]
 
-eraseSub' : ∀ {Φ} Γ {Δ} → (∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)
-  → List (ScopedTy (Scoped.∥ len Γ ∥))
-eraseSub' Γ rewrite lem Γ = eraseSub
-
 eraseTel : ∀ {Φ Γ Δ}(σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)(as : List (Δ ⊢Nf⋆ *)) → Tel Γ Δ σ as
   → List (ScopedTm (len Γ))
 erase : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K} → Γ ⊢ A → ScopedTm (len Γ)
@@ -93,17 +89,14 @@ eraseTel σ [] x = []
 eraseTel σ (A ∷ As) (t P., ts) = eraseTel σ As ts ++ L.[ erase t ]
 
 erase (` x) = ` (eraseVar x)
-erase {Φ}{Γ} (ƛ {A = A} t) =
-  ƛ "x" (Eq.subst ScopedTy (sym (lem Γ)) (eraseNf⋆ A) ) (erase t)
+erase {Φ}{Γ} (ƛ {A = A} t) = ƛ "x" (eraseNf⋆ A) (erase t)
 erase (t · u) = erase t · erase u
 erase (Λ {K = K} t) = Λ "x" (eraseK K) (erase t)
-erase {Φ}{Γ} (t ·⋆ A) = erase t ·⋆ Eq.subst ScopedTy (sym (lem Γ)) (eraseNf⋆ A) 
-erase {Φ}{Γ} (wrap1 pat arg t) = wrap
-  (Eq.subst ScopedTy (sym (lem Γ)) (eraseNf⋆ pat))
-  (Eq.subst ScopedTy (sym (lem Γ)) (eraseNf⋆ arg))
+erase {Φ}{Γ} (t ·⋆ A) = erase t ·⋆ eraseNf⋆ A
+erase {Φ}{Γ} (wrap1 pat arg t) = wrap (eraseNf⋆ pat) (eraseNf⋆ arg)
   (erase t)
 erase (unwrap1 t) = unwrap (erase t)
 erase (con c) = con (eraseC c)
-erase {Φ}{Γ} (builtin b σ ts) = builtin b (eraseSub' Γ σ) (eraseTel σ _ ts)
-erase {Φ}{Γ} (error A) = error (Eq.subst ScopedTy (sym (lem Γ)) (eraseNf⋆ A) )
+erase {Φ}{Γ} (builtin b σ ts) = builtin b (eraseSub σ) (eraseTel σ _ ts)
+erase {Φ}{Γ} (error A) = error (eraseNf⋆ A)
 \end{code}
