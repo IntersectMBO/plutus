@@ -32,51 +32,49 @@ data ScopedTy (n : ℕ) : Set where
 
 --{-# COMPILE GHC ScopedTy = data ScTy (ScTyVar | ScTyFun | ScTyPi | ScTyLambda | ScTyApp | ScTyCon) #-}
 
-data Weirdℕ : Set where
-  Z : Weirdℕ
-  S : Weirdℕ → Weirdℕ
-  T : Weirdℕ → Weirdℕ
+data Weirdℕ : ℕ → Set where
+  Z : Weirdℕ 0
+  S : ∀{n} → Weirdℕ n  → Weirdℕ n
+  T : ∀{n} → Weirdℕ n → Weirdℕ (suc n)
 
-data WeirdFin : Weirdℕ → Set where
-  Z : ∀{n} → WeirdFin (S n)
-  S : ∀{n} → WeirdFin n → WeirdFin (S n)
-  T : ∀{n} → WeirdFin n → WeirdFin (T n)
+data WeirdFin : ∀{n} → Weirdℕ n → Set where
+  Z : ∀{n}{w : Weirdℕ n} → WeirdFin (S w)
+  S : ∀{n}{w : Weirdℕ n} → WeirdFin w → WeirdFin (S w)
+  T : ∀{n}{w : Weirdℕ n} → WeirdFin w → WeirdFin (T w)
 
-∥_∥ : Weirdℕ → ℕ
-∥ Z   ∥ = zero
-∥ S n ∥ = ∥ n ∥
-∥ T n ∥ = suc ∥ n ∥
 
-wtoℕ : Weirdℕ → ℕ
+-- what is this for?
+-- there are two meaningful things here:
+-- 1. one to literally convert the number
+-- 2. to extract a type context from a term one
+-- this looks like (1)
+wtoℕ : ∀{n} → Weirdℕ n → ℕ
 wtoℕ Z = zero
 wtoℕ (S x) = suc (wtoℕ x)
 wtoℕ (T x) = suc (wtoℕ x)
+
 
 open import Data.Integer hiding (_*_)
 open import Data.String
 
 -- could index by size here, is there any point?
 data TermCon : Set where
-  integer    :
-      (i : ℤ)
-    → TermCon
-  bytestring :
-      (b : ByteString)
-    → TermCon
+  integer    : (i : ℤ) → TermCon
+  bytestring : (b : ByteString) → TermCon
   string     : String → TermCon
 
-data ScopedTm : Weirdℕ → Set where
-  `    : ∀{n} → WeirdFin n → ScopedTm n
-  Λ    : ∀{n} → String → ScopedKind → ScopedTm (T n) → ScopedTm n
-  _·⋆_ : ∀{n} → ScopedTm n → ScopedTy ∥ n ∥ → ScopedTm n
-  ƛ    : ∀{n} → String → ScopedTy ∥ n ∥ → ScopedTm (S n) → ScopedTm n
-  _·_  : ∀{n} → ScopedTm n → ScopedTm n → ScopedTm n
-  con  : ∀{n} → TermCon → ScopedTm n
-  error : ∀{n} → ScopedTy ∥ n ∥ → ScopedTm n
-  builtin : ∀{n} → Builtin → List (ScopedTy ∥ n ∥) → List (ScopedTm n)
-          → ScopedTm n
-  wrap : ∀{n} → ScopedTy ∥ n ∥ → ScopedTy ∥ n ∥ → ScopedTm n → ScopedTm n
-  unwrap : ∀{n} → ScopedTm n → ScopedTm n
+data ScopedTm {n}(w : Weirdℕ n) : Set where
+  `    :    WeirdFin w → ScopedTm w
+  Λ    :    String → ScopedKind → ScopedTm (T w) → ScopedTm w
+  _·⋆_ :    ScopedTm w → ScopedTy n → ScopedTm w
+  ƛ    :    String → ScopedTy n → ScopedTm (S w) → ScopedTm w
+  _·_  :    ScopedTm w → ScopedTm w → ScopedTm w
+  con  :    TermCon → ScopedTm w
+  error :   ScopedTy n → ScopedTm w
+  builtin : Builtin → List (ScopedTy n) → List (ScopedTm w)
+            → ScopedTm w
+  wrap :    ScopedTy n → ScopedTy n → ScopedTm w → ScopedTm w
+  unwrap :  ScopedTm w → ScopedTm w
 
 -- term/type synonyms
 
@@ -87,19 +85,20 @@ unit : ∀{Γ} → ScopedTy Γ
 unit = Π "α" * (` zero ⇒ (` zero ⇒ ` zero))
 
 
-void : ∀{n} → ScopedTm n
+void : ∀{Φ}{Γ : Weirdℕ Φ} → ScopedTm Γ
 void = Λ "α" * (ƛ "x" (` zero) (` Z))
 
-true : ∀{Γ} → ScopedTm Γ
+true : ∀{Φ}{Γ : Weirdℕ Φ} → ScopedTm Γ
 true = Λ "α" * (ƛ "t" (` zero) (ƛ "f" (` zero) (` (S Z))))
 
-false : ∀{Γ} → ScopedTm Γ
+false : ∀{Φ}{Γ : Weirdℕ Φ} → ScopedTm Γ
 false = Λ "α" * (ƛ "t" (` zero) (ƛ "f" (` zero) (` Z)))
 
 
 -- SCOPE CHECKING / CONVERSION FROM RAW TO SCOPED
 
 -- should just use ordinary kind for everything
+
 deBruijnifyK : RawKind → ScopedKind
 deBruijnifyK * = *
 deBruijnifyK (K ⇒ J) = deBruijnifyK K ⇒ deBruijnifyK J
@@ -139,24 +138,24 @@ deBruijnifyTy g (μ A B)     = do
   return (μ A B)
 
 
-data WeirdVec (X : Set) : Weirdℕ → Set where
+data WeirdVec (X : Set) : ∀{n} → Weirdℕ n → Set where
   nil : WeirdVec X Z
-  consS : ∀{n} → X → WeirdVec X n → WeirdVec X (S n)
-  consT : ∀{n} → X → WeirdVec X n → WeirdVec X (T n)
+  consS : ∀{n}{w : Weirdℕ n} → X → WeirdVec X w → WeirdVec X (S w)
+  consT : ∀{n}{w : Weirdℕ n} → X → WeirdVec X w → WeirdVec X (T w)
 
-∥_∥Vec : ∀{X n} → WeirdVec X n → Vec X ∥ n ∥
+∥_∥Vec : ∀{X}{n}{w : Weirdℕ n} → WeirdVec X w → Vec X n
 ∥ nil        ∥Vec = []
 ∥ consS x xs ∥Vec = ∥ xs ∥Vec
 ∥ consT x xs ∥Vec = x ∷ ∥ xs ∥Vec
 
-velemIndexWeird : String → ∀{n} → WeirdVec String n → Maybe (WeirdFin n)
+velemIndexWeird : String → ∀{n}{w : Weirdℕ n} → WeirdVec String w → Maybe (WeirdFin w)
 velemIndexWeird x nil = nothing
 velemIndexWeird x (consS x' xs) with x Data.String.≟ x'
 velemIndexWeird x (consS x' xs) | yes p = just Z
 velemIndexWeird x (consS _  xs) | no ¬p = map S (velemIndexWeird x xs)
 velemIndexWeird x (consT _  xs) = map T (velemIndexWeird x xs)
 
-lookupWeird  : ∀{n X} → WeirdVec X n → WeirdFin n → X
+lookupWeird  : ∀{X}{n}{w : Weirdℕ n} → WeirdVec X w → WeirdFin w → X
 lookupWeird (consS x xs) Z = x
 lookupWeird (consS x xs) (S i) = lookupWeird xs i
 lookupWeird (consT x xs) (T i) = lookupWeird xs i
@@ -166,8 +165,7 @@ deBruijnifyC (integer i) = integer i
 deBruijnifyC (bytestring b) = bytestring b
 deBruijnifyC (string x) = string x
 
-
-deBruijnifyTm : ∀{n} → WeirdVec String n → RawTm → Maybe (ScopedTm n)
+deBruijnifyTm : ∀{n}{w : Weirdℕ n} → WeirdVec String w → RawTm → Maybe (ScopedTm w)
 deBruijnifyTm g (` x) = map ` (velemIndexWeird x g)
 deBruijnifyTm g (ƛ x A L) = do
   A ← deBruijnifyTy ∥ g ∥Vec A
@@ -206,7 +204,7 @@ deBruijnifyTm g (unwrap t) =  do
 open import Data.Product
 open import Data.Sum
 
-builtinMatcher : ∀{n} → ScopedTm n → (Builtin × List (ScopedTy ∥ n ∥) × List (ScopedTm n)) ⊎ ScopedTm n
+builtinMatcher : ∀{n}{w : Weirdℕ n} → ScopedTm w → (Builtin × List (ScopedTy n) × List (ScopedTm w)) ⊎ ScopedTm w
 builtinMatcher (builtin b As ts) = inj₁ (b , As , ts)
 builtinMatcher t              = inj₂ t
 
@@ -254,21 +252,21 @@ arity⋆ equalsByteString = 1
 
 open import Relation.Nullary
 
-builtinEater : ∀{n} → Builtin
- → List (ScopedTy ∥ n ∥) → List (ScopedTm n) → ScopedTm n → ScopedTm n
+builtinEater : ∀{n}{w : Weirdℕ n} → Builtin
+ → List (ScopedTy n) → List (ScopedTm w) → ScopedTm w → ScopedTm w
 builtinEater b As ts u
   with Data.List.length ts Data.Nat.+ 1 Data.Nat.≤? arity b
 builtinEater b As ts u | yes p = builtin b As (ts Data.List.++ [ u ])
 builtinEater b As ts u | no ¬p = builtin b As ts · u
 
-builtinEater⋆ : ∀{n} → Builtin
-  → List (ScopedTy ∥ n ∥) → List (ScopedTm n) → ScopedTy ∥ n ∥ → ScopedTm n
+builtinEater⋆ : ∀{n}{w : Weirdℕ n} → Builtin
+  → List (ScopedTy n) → List (ScopedTm w) → ScopedTy n → ScopedTm w
 builtinEater⋆ b As ts A
   with Data.List.length ts Data.Nat.+ 1 Data.Nat.≤? arity⋆ b
 builtinEater⋆ b As ts A | yes p = builtin b (As Data.List.++ [ A ]) ts
 builtinEater⋆ b As ts A | no ¬p = builtin b As ts ·⋆ A
 
-saturate : ∀{n} → ScopedTm n → ScopedTm n
+saturate : ∀{n}{w : Weirdℕ n} → ScopedTm w → ScopedTm w
 saturate (` x)          = ` x
 saturate (Λ x K t)        = Λ x K (saturate t)
 saturate (t ·⋆ A)       with builtinMatcher (saturate t)
@@ -289,9 +287,9 @@ saturate (unwrap t)   = unwrap (saturate t)
 
 \begin{code}
 {-# TERMINATING #-}
-unsaturate : ∀{n} → ScopedTm n → ScopedTm n
+unsaturate : ∀{n}{w : Weirdℕ n} → ScopedTm w → ScopedTm w
 
-builtinBuilder : ∀{n} → Builtin → List (ScopedTy ∥ n ∥) → List (ScopedTm n) → ScopedTm n
+builtinBuilder : ∀{n}{w : Weirdℕ n} → Builtin → List (ScopedTy n) → List (ScopedTm w) → ScopedTm w
 builtinBuilder b [] [] = builtin b [] []
 builtinBuilder b (A ∷ As) [] = builtinBuilder b As [] ·⋆ A
 builtinBuilder b As (t ∷ ts) = builtinBuilder b As ts · unsaturate t
@@ -318,7 +316,7 @@ unDeBruijnifyK (K ⇒ J) = unDeBruijnifyK K ⇒ unDeBruijnifyK J
 \end{code}
 
 \begin{code}
-wftoℕ : ∀{n} → WeirdFin n → ℕ
+wftoℕ : ∀{n}{w : Weirdℕ n} → WeirdFin w → ℕ
 wftoℕ Z = zero
 wftoℕ (S i) = ℕ.suc (wftoℕ i)
 wftoℕ (T i) = ℕ.suc (wftoℕ i)
@@ -350,7 +348,7 @@ unDeBruijnify⋆ i (μ A B) = μ (unDeBruijnify⋆ i A) (unDeBruijnify⋆ i B)
 
 This should be run on unsaturated terms
 \begin{code}
-unDeBruijnify : ∀{n} →  ℕ → Weirdℕ → ScopedTm n → RawTm
+unDeBruijnify : ∀{n}{w : Weirdℕ n} →  ∀ n' → Weirdℕ n' → ScopedTm w → RawTm
 unDeBruijnify i⋆ i (` x) = ` ("var" ++ Data.Integer.show (ℤ.pos (wtoℕ i) - ℤ.pos (ℕ.suc (wftoℕ x))))
 unDeBruijnify i⋆ i (Λ x K t) = Λ
   ("tvar" ++ Data.Integer.show (ℤ.pos (wtoℕ i)))
@@ -380,7 +378,7 @@ deDeBruijnify⋆ xs (t · u) = deDeBruijnify⋆ xs t · deDeBruijnify⋆ xs u
 deDeBruijnify⋆ xs (con x) = con x
 deDeBruijnify⋆ xs (μ t u) = μ (deDeBruijnify⋆ xs t) (deDeBruijnify⋆ xs u)
 
-deDeBruijnify : ∀{n} → Vec String ∥ n ∥ → WeirdVec String n → ScopedTm n → RawTm
+deDeBruijnify : ∀{n}{w : Weirdℕ n} → Vec String n → WeirdVec String w → ScopedTm w → RawTm
 deDeBruijnify xs⋆ xs (` x) = ` (lookupWeird xs x)
 deDeBruijnify xs⋆ xs (Λ x K t) = Λ x (unDeBruijnifyK K) (deDeBruijnify (x ∷ xs⋆) (consT x xs) t) -- surprised x goes on both
 deDeBruijnify xs⋆ xs (t ·⋆ A) = deDeBruijnify xs⋆ xs t ·⋆ deDeBruijnify⋆ xs⋆ A
@@ -400,7 +398,7 @@ deDeBruijnify xs⋆ xs (unwrap t) = unwrap (deDeBruijnify xs⋆ xs t)
 \begin{code}
 open import Data.String
 
-uglyWeirdFin : ∀{n} → WeirdFin n → String
+uglyWeirdFin : ∀{n}{w : Weirdℕ n} → WeirdFin w → String
 uglyWeirdFin Z = "0"
 uglyWeirdFin (T x) = "(T " ++ uglyWeirdFin x ++ ")"
 uglyWeirdFin (S x) = "(S " ++ uglyWeirdFin x ++ ")"
@@ -420,7 +418,7 @@ postulate showNat : ℕ → String
 uglyBuiltin : Builtin → String
 uglyBuiltin addInteger = "addInteger"
 uglyBuiltin _ = "other"
-ugly : ∀{n} → ScopedTm n → String
+ugly : ∀{n}{w : Weirdℕ n} → ScopedTm w → String
 ugly (` x) = "(` " ++ uglyWeirdFin x ++ ")"
 ugly (ƛ x _ t) = "(ƛ " ++ ugly t ++ ")"
 ugly (t · u) = "( " ++ ugly t ++ " · " ++ ugly u ++ ")"

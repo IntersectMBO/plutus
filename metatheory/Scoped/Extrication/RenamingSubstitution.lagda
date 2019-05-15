@@ -55,22 +55,23 @@ ren⋆-erase⋆ ρ⋆ (ƛ A) = cong
     {!!}
     (ren⋆-erase⋆ (T.ext ρ⋆) A))
 ren⋆-erase⋆ ρ⋆ (ne x) = {!!}
-ren⋆-erase⋆ ρ⋆ (size⋆ x) = {!!}
-ren⋆-erase⋆ ρ⋆ (con x A) = {!!}
+ren⋆-erase⋆ ρ⋆ (con x) = {!!}
 
 -- term level renamings
 
-eraseRen : ∀{Γ Δ}(ρ⋆ : ∀ {J} → A.∥ Γ ∥ ∋⋆ J → A.∥ Δ ∥ ∋⋆ J) →
-  (ρ : ∀{J}{A : A.∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ∋ renameNf ρ⋆ A)
+eraseRen : ∀{Φ Ψ Γ Δ}(ρ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J) →
+  (ρ : ∀{J}{A : Φ ⊢Nf⋆ J} → Γ ∋ A → Δ ∋ renameNf ρ⋆ A)
   → SS.Ren (len Γ) (len Δ)
+eraseRen ρ⋆ ρ x = {!x!}
+{-
 eraseRen {Γ ,⋆ K} {Δ} ρ⋆ ρ (T x) = eraseRen
   (ρ⋆ ∘ S)
   (λ {_}{A} x → Eq.subst (Δ ∋_) (sym (renameNf-comp A)) (ρ (T x)))
   x
 eraseRen {Γ A., A} ρ⋆ ρ Z = eraseVar (ρ Z)
 eraseRen {Γ A., A} ρ⋆ ρ (S x) = eraseRen ρ⋆ (ρ ∘ S) x
-
-
+-}
+{-
 ren-eraseVar-T : ∀{Δ K}{A A' : A.∥ Δ ∥ ⊢Nf⋆ K}(p :  A ≡ A') → (x : Δ ∋ A) → 
   eraseVar (Eq.subst (Δ ∋_) p x)
   ≡
@@ -171,6 +172,7 @@ erase—→ β-wrap1 = β-wrap
 erase—→ (ξ-unwrap1 p) = ξ-unwrap (erase—→ p)
 erase—→ (β-builtin bn σ tel vtel) = {!!}
 erase—→ (ξ-builtin bn σ tel Bs Ds vtel p p' tel') = {!SR.ξ-builtin {b = bn} ? (erase—→ p) ?!}
+-}
 
 {-
 lemma : {A : ∅ ⊢Nf⋆ *}(t : ∅ ⊢ A) →
