@@ -25,6 +25,9 @@ module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     , contributionScript
     , mkValidator
     , mkCampaign
+    , CampaignAction(..)
+    , collectionRange
+    , refundRange
     ) where
 
 import qualified Language.PlutusTx           as PlutusTx

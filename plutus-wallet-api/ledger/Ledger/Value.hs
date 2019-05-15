@@ -40,6 +40,7 @@ module Ledger.Value(
     , lt
       -- * Etc.
     , isZero
+    , split
     ) where
 
 import qualified Prelude                      as Haskell
@@ -360,3 +361,17 @@ lt l r = not (isZero l && isZero r) && checkBinRel (<) l r
 eq :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true, but this is fine.
 eq = checkBinRel (==)
+
+-- | Split a value into its positive and negative parts. The first element of 
+--   the tuple contains the negative parts of the value, the second element
+--   contains the positive parts.
+--
+--   @negate (fst (split a)) `plus` (snd (split a)) == a@
+--
+split :: Value -> (Value, Value)
+split (Value mp) = (negate (Value neg), Value pos) where
+  (neg, pos) = Map.mapThese splitIntl mp
+
+  splitIntl :: Map.Map TokenName Integer -> These (Map.Map TokenName Integer) (Map.Map TokenName Integer)
+  splitIntl mp' = These l r where
+    (l, r) = Map.mapThese (\i -> if i <= 0 then This i else That i) mp'

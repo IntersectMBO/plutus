@@ -13,7 +13,7 @@ packages: language-plutus-core
           plutus-book
           playground-common
           marlowe-playground-server
-          plutus-contract-exe
+          plutus-contract
           deployment-server
 optimization: 2
 constraints: language-plutus-core +development

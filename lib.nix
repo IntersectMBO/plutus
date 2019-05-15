@@ -24,7 +24,7 @@ let
   # List of all public (i.e. published Haddock, will go on Hackage) Plutus pkgs
   plutusPublicPkgList = [
     "language-plutus-core"
-    "plutus-contract-exe"
+    "plutus-contract"
     "plutus-core-interpreter"
     "plutus-playground-lib"
     "plutus-exe"

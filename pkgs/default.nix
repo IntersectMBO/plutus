@@ -53642,47 +53642,81 @@ description = "The Plutus Book";
 license = stdenv.lib.licenses.asl20;
 
 }) {};
-"plutus-contract-exe" = callPackage
+"plutus-contract" = callPackage
 ({
   mkDerivation
 , aeson
 , base
+, bytestring
 , containers
+, extensible-effects
+, hedgehog
 , lens
+, monad-control
+, mtl
 , plutus-emulator
 , plutus-use-cases
 , plutus-wallet-api
+, profunctors
+, semigroupoids
 , servant
 , servant-server
 , stdenv
+, tasty
+, tasty-hedgehog
+, tasty-hunit
 , text
+, transformers
+, transformers-base
 , warp
 }:
 mkDerivation {
 
-pname = "plutus-contract-exe";
+pname = "plutus-contract";
 version = "0.1.0.0";
-src = .././plutus-contract-exe;
+src = .././plutus-contract;
 isLibrary = true;
 isExecutable = true;
 libraryHaskellDepends = [
 aeson
 base
-plutus-emulator
-plutus-wallet-api
-text
-];
-executableHaskellDepends = [
-aeson
-base
+bytestring
 containers
+extensible-effects
 lens
+monad-control
+mtl
+plutus-emulator
 plutus-use-cases
 plutus-wallet-api
+profunctors
+semigroupoids
 servant
 servant-server
 text
+transformers
+transformers-base
 warp
+];
+executableHaskellDepends = [
+base
+];
+testHaskellDepends = [
+aeson
+base
+containers
+extensible-effects
+hedgehog
+lens
+mtl
+plutus-emulator
+plutus-use-cases
+plutus-wallet-api
+tasty
+tasty-hedgehog
+tasty-hunit
+text
+transformers
 ];
 doHaddock = false;
 homepage = "https://github.com/iohk/plutus#readme";
@@ -63045,8 +63079,8 @@ version = "0.9.0.2";
 src = fetchgit {
 
 url = "https://github.com/shmish111/servant-purescript.git";
-sha256 = "1axcbsaym64q67hvjc7b3izd48cgqwi734l7f7m22jpdc80li5f6";
-rev = "ece5d1dad16a5731ac22040075615803796c7c21";
+sha256 = "09nyxv1j4igda45r4fjamxmhh0h0nxi1ix4jz26yvswjprhm3qa6";
+rev = "6f17281567152c11c9368ed1861b6d421b258863";
 fetchSubmodules = true;
 
 };

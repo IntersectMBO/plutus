@@ -15,7 +15,7 @@ packages:
 - plutus-playground-lib
 - plutus-tutorial
 - plutus-book
-- plutus-contract-exe
+- plutus-contract
 - plutus-emulator
 - deployment-server
 
@@ -72,7 +72,7 @@ flags:
     development: true
   plutus-playground-server:
     development: true
-  plutus-contract-exe:
+  plutus-contract:
     development: true
 extra-package-dbs: []
 nix:
