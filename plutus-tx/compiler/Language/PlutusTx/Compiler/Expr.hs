@@ -85,15 +85,6 @@ convLiteral = \case
     GHC.MachLabel {}   -> throwPlain $ UnsupportedError "Literal label"
     GHC.MachNullAddr   -> throwPlain $ UnsupportedError "Literal null"
 
-isPrimitiveWrapper :: GHC.Id -> Bool
-isPrimitiveWrapper i = case GHC.idDetails i of
-    GHC.DataConWorkId dc -> isPrimitiveDataCon dc
-    GHC.VanillaId        -> GHC.getName i == GHC.unpackCStringName
-    _                    -> False
-
-isPrimitiveDataCon :: GHC.DataCon -> Bool
-isPrimitiveDataCon dc = dc == GHC.intDataCon || dc == GHC.charDataCon
-
 -- | Convert a reference to a data constructor, i.e. a call to it.
 convDataConRef :: Converting m => GHC.DataCon -> m PIRTerm
 convDataConRef dc =
@@ -207,7 +198,10 @@ convExpr e = withContextM 2 (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ d
     let top = NE.head stack
     case e of
         -- See Note [Literals]
-        GHC.App (GHC.Var (isPrimitiveWrapper -> True)) arg -> convExpr arg
+        -- unpackCString# is just a wrapper around a literal
+        GHC.App (GHC.Var n) arg | GHC.getName n == GHC.unpackCStringName -> convExpr arg
+        -- C# is just a wrapper around a literal
+        GHC.App (GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc)) arg | dc == GHC.charDataCon -> convExpr arg
         -- void# - values of type void get represented as error, since they should be unreachable
         GHC.Var n | n == GHC.voidPrimId || n == GHC.voidArgId -> errorFunc
         -- See note [GHC runtime errors]
