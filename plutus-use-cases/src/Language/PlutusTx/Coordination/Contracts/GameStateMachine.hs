@@ -118,7 +118,7 @@ gameValidator = ValidatorScript ($$(Ledger.compileScript [||
         sm = StateMachine trans stateEq
 
     in
-        $$(mkValidator) sm ds vs p
+        mkValidator sm ds vs p
 
     ||]))
 

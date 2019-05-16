@@ -51,7 +51,7 @@ curValidator cur =
                         ownSymbol = V.ownCurrencySymbol p
 
                         forged = V.valueForged p
-                        expected = $$currencyValue ownSymbol c
+                        expected = currencyValue ownSymbol c
 
 
                         -- True if the pending transaction forges the amount of
@@ -94,7 +94,7 @@ forgedValue cur =
         -- see note [Obtaining the currency symbol]
         a = plcCurrencySymbol (Ledger.scriptAddress (curValidator cur))
     in
-        $$currencyValue a cur
+        currencyValue a cur
 
 -- | @forge [(n1, c1), ..., (n_k, c_k)]@ creates a new currency with
 --   @k@ token names, forging @c_i@ units of each token @n_i@.
