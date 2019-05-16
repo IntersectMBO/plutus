@@ -28,7 +28,7 @@ pkValidator pk =
                 let
                     validate :: PubKey -> () -> () -> PendingTx -> ()
                     validate pk' () () p =
-                        if $$(V.txSignedBy) p pk'
+                        if V.txSignedBy p pk'
                         then ()
                         else P.error (P.traceH "Required signature not present!" ())
                 in validate

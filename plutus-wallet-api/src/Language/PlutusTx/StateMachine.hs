@@ -45,7 +45,7 @@ mkValidator = [||
           mkValidator' sm (currentState, _) (newState, Just input) p =
               let
                   StateMachine trans sEq = sm
-                  (vh, V.RedeemerHash rh) = $$(V.ownHashes) p
+                  (vh, V.RedeemerHash rh) = V.ownHashes p
                   expectedState = trans currentState input
 
                   stateOk =
@@ -55,7 +55,7 @@ mkValidator = [||
                   dataScriptHashOk =
                       let relevantOutputs =
                               P.map (\(ds, _) -> ds)
-                              ($$(V.scriptOutputsAt) vh p)
+                              (V.scriptOutputsAt vh p)
                           dsHashOk (V.DataScriptHash dh) = P.equalsByteString dh rh
                       in
                           P.traceIfFalseH "State transition invalid - data script hash not equal to redeemer hash"

@@ -10,6 +10,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
 module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     -- * Campaign parameters
     Campaign(..)
@@ -99,42 +100,42 @@ contributionScript cmp  = ValidatorScript val where
                 (&&) = P.and
 
                 signedBy' :: PendingTx -> PubKey -> Bool
-                signedBy' = $$(V.txSignedBy)
+                signedBy' = V.txSignedBy
 
                 PendingTx ps outs _ _ _ range _ _ = p
 
                 collRange :: SlotRange
-                collRange = $$(Interval.interval) campaignDeadline campaignCollectionDeadline
+                collRange = Interval.interval campaignDeadline campaignCollectionDeadline
 
                 refndRange :: SlotRange
-                refndRange = $$(Interval.from) campaignCollectionDeadline
+                refndRange = Interval.from campaignCollectionDeadline
 
                 totalInputs :: Value
                 totalInputs =
                     let v (PendingTxIn _ _ vl) = vl in
-                    P.foldr (\i total -> $$(VTH.plus) total (v i)) $$(VTH.zero) ps
+                    P.foldr (\i total -> VTH.plus total (v i)) VTH.zero ps
 
                 isValid = case act of
                     Refund ->
                         let
 
                             contributorTxOut :: PendingTxOut -> Bool
-                            contributorTxOut o = case $$(pubKeyOutput) o of
+                            contributorTxOut o = case pubKeyOutput o of
                                 Nothing -> False
-                                Just pk -> $$(eqPubKey) pk con
+                                Just pk -> eqPubKey pk con
 
                             contributorOnly = P.all contributorTxOut outs
 
                             refundable =
-                                $$(Slot.contains) refndRange range
+                                Slot.contains refndRange range
                                 && contributorOnly && p `signedBy'` con
 
                         in refundable
                     Collect ->
                         let
                             payToOwner =
-                                $$(Slot.contains) collRange range
-                                && $$(VTH.geq) totalInputs campaignTarget
+                                Slot.contains collRange range
+                                && VTH.geq totalInputs campaignTarget
                                 && p `signedBy'` campaignOwner
                         in payToOwner
             in

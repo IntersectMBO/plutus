@@ -4,10 +4,11 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE TypeApplications   #-}
+-- Prevent unboxing, which the plugin can't deal with
+{-# OPTIONS_GHC -fno-strictness #-}
 -- | Functions for working with 'Value' in Template Haskell.
 module Ledger.Value.TH(
     -- ** Currency symbols
@@ -59,7 +60,6 @@ import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift       (makeLift)
 import qualified Language.PlutusTx.Prelude    as P
-import           Language.Haskell.TH          (Q, TExp)
 import qualified Ledger.Map.TH                as Map
 import           Prelude                      hiding (all, lookup, negate)
 import           LedgerBytes                  (LedgerBytes(LedgerBytes))
@@ -97,11 +97,13 @@ instance FromJSON CurrencySymbol where
 
 makeLift ''CurrencySymbol
 
-eqCurSymbol :: Q (TExp (CurrencySymbol -> CurrencySymbol -> Bool))
-eqCurSymbol = [|| \(CurrencySymbol l) (CurrencySymbol r) -> P.equalsByteString l r ||]
+{-# INLINABLE eqCurSymbol #-}
+eqCurSymbol :: CurrencySymbol -> CurrencySymbol -> Bool
+eqCurSymbol (CurrencySymbol l) (CurrencySymbol r) = P.equalsByteString l r
 
-currencySymbol :: Q (TExp (P.ByteString -> CurrencySymbol))
-currencySymbol = [|| CurrencySymbol ||]
+{-# INLINABLE currencySymbol #-}
+currencySymbol :: P.ByteString -> CurrencySymbol
+currencySymbol = CurrencySymbol
 
 newtype TokenName = TokenName { unTokenName :: Builtins.ByteString }
     deriving (Serialise) via LedgerBytes
@@ -110,6 +112,7 @@ newtype TokenName = TokenName { unTokenName :: Builtins.ByteString }
 instance IsString TokenName where
   fromString = TokenName . C8.pack
 
+{-# INLINABLE toString #-}
 toString :: TokenName -> String
 toString = C8.unpack . unTokenName
 
@@ -132,11 +135,13 @@ instance FromJSON TokenName where
 
 makeLift ''TokenName
 
-eqTokenName :: Q (TExp (TokenName -> TokenName -> Bool))
-eqTokenName = [|| \(TokenName l) (TokenName r) -> P.equalsByteString l r ||]
+{-# INLINABLE eqTokenName #-}
+eqTokenName :: TokenName -> TokenName -> Bool
+eqTokenName (TokenName l) (TokenName r) = P.equalsByteString l r
 
-tokenName :: Q (TExp (P.ByteString -> TokenName))
-tokenName = [|| TokenName ||]
+{-# INLINABLE tokenName #-}
+tokenName :: P.ByteString -> TokenName
+tokenName = TokenName
 
 -- | A cryptocurrency value. This is a map from 'CurrencySymbol's to a
 -- quantity of that currency.
@@ -194,145 +199,128 @@ similar to 'Ledger.Ada' for their own currencies.
 
 -}
 
+{-# INLINABLE valueOf #-}
 -- | Get the quantity of the given currency in the 'Value'.
-valueOf :: Q (TExp (Value -> CurrencySymbol -> TokenName -> Integer))
-valueOf = [||
-            let valueOf' :: Value -> CurrencySymbol -> TokenName -> Integer
-                valueOf' (Value mp) cur tn =
-                    case $$(Map.lookup) $$(eqCurSymbol) cur mp of
-                        Nothing -> 0 :: Integer
-                        Just i  -> case $$(Map.lookup) $$(eqTokenName) tn i of
-                            Nothing -> 0
-                            Just v  -> v
-            in valueOf'
-   ||]
+valueOf :: Value -> CurrencySymbol -> TokenName -> Integer
+valueOf (Value mp) cur tn =
+    case Map.lookup eqCurSymbol cur mp of
+        Nothing -> 0 :: Integer
+        Just i  -> case Map.lookup eqTokenName tn i of
+            Nothing -> 0
+            Just v  -> v
 
+{-# INLINABLE symbols #-}
 -- | The list of 'CurrencySymbol's of a 'Value'.
-symbols :: Q (TExp (Value -> [CurrencySymbol]))
-symbols = [||
-            let symbols' :: Value -> [CurrencySymbol]
-                symbols' (Value mp) = $$(Map.keys) mp
-            in symbols' ||]
+symbols :: Value -> [CurrencySymbol]
+symbols (Value mp) = Map.keys mp
 
+{-# INLINABLE singleton #-}
 -- | Make a 'Value' containing only the given quantity of the given currency.
-singleton :: Q (TExp (CurrencySymbol -> TokenName -> Integer -> Value))
-singleton = [||
-             let singleton' :: CurrencySymbol -> TokenName -> Integer -> Value
-                 singleton' c tn i =
-                    Value ($$(Map.singleton) c ($$(Map.singleton) tn i))
-             in singleton'
-            ||]
+singleton :: CurrencySymbol -> TokenName -> Integer -> Value
+singleton c tn i = Value (Map.singleton c (Map.singleton tn i))
 
+{-# INLINABLE unionVal #-}
 -- | Combine two 'Value' maps
-unionVal :: Q (TExp (Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (Map.These Integer Integer))))
-unionVal = [||
-            let unionVal' :: Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (Map.These Integer Integer))
-                unionVal' (Value l) (Value r) =
-                    let
-                        combined = $$(Map.union) $$(eqCurSymbol) l r
-                        unThese k = case k of
-                            Map.This a    -> $$(Map.map) (Map.This) a
-                            Map.That b    -> $$(Map.map) (Map.That) b
-                            Map.These a b -> $$(Map.union) $$(eqTokenName) a b
-                    in ($$(Map.map) unThese combined)
-            in unionVal'
+unionVal :: Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (Map.These Integer Integer))
+unionVal (Value l) (Value r) =
+    let
+        combined = Map.union eqCurSymbol l r
+        unThese k = case k of
+            Map.This a    -> Map.map Map.This a
+            Map.That b    -> Map.map Map.That b
+            Map.These a b -> Map.union eqTokenName a b
+    in Map.map unThese combined
 
-        ||]
+{-# INLINABLE unionWith #-}
+unionWith :: (Integer -> Integer -> Integer) -> Value -> Value -> Value
+unionWith f ls rs =
+    let
+        combined = unionVal ls rs
+        unThese k' = case k' of
+            Map.This a -> f a 0
+            Map.That b -> f 0 b
+            Map.These a b -> f a b
+    in Value (Map.map (Map.map unThese) combined)
 
-unionWith :: Q (TExp ((Integer -> Integer -> Integer) -> Value -> Value -> Value))
-unionWith = [||
-              let unionWith' :: (Integer -> Integer -> Integer) -> Value -> Value -> Value
-                  unionWith' f ls rs =
-                    let
-                        combined = $$unionVal ls rs
-                        unThese k' = case k' of
-                            Map.This a -> f a 0
-                            Map.That b -> f 0 b
-                            Map.These a b -> f a b
-                    in Value ($$(Map.map) ($$(Map.map) unThese) combined)
-              in unionWith'
-  ||]
-
+{-# INLINABLE scale #-}
 -- | Multiply all the quantities in the 'Value' by the given scale factor.
-scale :: Q (TExp (Integer -> Value -> Value))
-scale = [||
-          let scale' :: Integer -> Value -> Value
-              scale' i (Value xs) =
-                Value ($$(Map.map) ($$(Map.map) (\i' -> P.multiply i i')) xs)
-          in scale' ||]
+scale :: Integer -> Value -> Value
+scale i (Value xs) = Value (Map.map (Map.map (\i' -> P.multiply i i')) xs)
 
 -- Num operations
 
+{-# INLINABLE plus #-}
 -- | Add two 'Value's together. See 'Value' for an explanation of how operations on 'Value's work.
-plus :: Q (TExp (Value -> Value -> Value))
-plus = [|| $$(unionWith) P.plus ||]
+plus :: Value -> Value -> Value
+plus = unionWith P.plus
 
+{-# INLINABLE negate #-}
 -- | Negate a 'Value's. See 'Value' for an explanation of how operations on 'Value's work.
-negate :: Q (TExp (Value -> Value))
-negate = [|| $$(scale) (-1) ||]
+negate :: Value -> Value
+negate = scale (-1)
 
+{-# INLINABLE minus #-}
 -- | Subtract one 'Value' from another. See 'Value' for an explanation of how operations on 'Value's work.
-minus :: Q (TExp (Value -> Value -> Value))
-minus = [|| $$(unionWith) P.minus ||]
+minus :: Value -> Value -> Value
+minus = unionWith P.minus
 
+{-# INLINABLE multiply #-}
 -- | Multiply two 'Value's together. See 'Value' for an explanation of how operations on 'Value's work.
-multiply :: Q (TExp (Value -> Value -> Value))
-multiply = [|| $$(unionWith) P.multiply ||]
+multiply :: Value -> Value -> Value
+multiply = unionWith P.multiply
 
+{-# INLINABLE zero #-}
 -- | The empty 'Value'.
-zero :: Q (TExp Value)
-zero = [|| Value $$(Map.empty) ||]
+zero :: Value
+zero = Value (Map.empty ())
 
+{-# INLINABLE isZero #-}
 -- | Check whether a 'Value' is zero.
-isZero :: Q (TExp (Value -> Bool))
-isZero = [||
-          let isZero' :: Value -> Bool
-              isZero' (Value xs) = $$(Map.all) ($$(Map.all) (\i -> P.eq 0 i)) xs
-          in isZero' ||]
+isZero :: Value -> Bool
+isZero (Value xs) = Map.all (Map.all (\i -> P.eq 0 i)) xs
 
-checkPred :: Q (TExp ((Map.These Integer Integer -> Bool) -> Value -> Value -> Bool))
-checkPred = [||
-    let checkPred' :: (Map.These Integer Integer -> Bool) -> Value -> Value -> Bool
-        checkPred' f l r =
-          let
-            inner :: Map.Map TokenName (Map.These Integer Integer) -> Bool
-            inner = ($$(Map.all) f)
-          in
-            $$(Map.all) inner ($$unionVal l r)
-    in checkPred'
-     ||]
+{-# INLINABLE checkPred #-}
+checkPred :: (Map.These Integer Integer -> Bool) -> Value -> Value -> Bool
+checkPred f l r =
+    let
+      inner :: Map.Map TokenName (Map.These Integer Integer) -> Bool
+      inner = (Map.all f)
+    in
+      Map.all inner (unionVal l r)
 
+{-# INLINABLE checkBinRel #-}
 -- | Check whether a binary relation holds for value pairs of two 'Value' maps,
 --   supplying 0 where a key is only present in one of them.
-checkBinRel :: Q (TExp ((Integer -> Integer -> Bool) -> Value -> Value -> Bool))
-checkBinRel = [||
-    let checkBinRel' :: (Integer -> Integer -> Bool) -> Value -> Value -> Bool
-        checkBinRel' f l r =
-            let
-                unThese k' = case k' of
-                    Map.This a    -> f a 0
-                    Map.That b    -> f 0 b
-                    Map.These a b -> f a b
-            in $$checkPred unThese l r
-    in checkBinRel'
-    ||]
+checkBinRel :: (Integer -> Integer -> Bool) -> Value -> Value -> Bool
+checkBinRel f l r =
+    let
+        unThese k' = case k' of
+            Map.This a    -> f a 0
+            Map.That b    -> f 0 b
+            Map.These a b -> f a b
+    in checkPred unThese l r
 
+{-# INLINABLE geq #-}
 -- | Check whether one 'Value' is greater than or equal to another. See 'Value' for an explanation of how operations on 'Value's work.
-geq :: Q (TExp (Value -> Value -> Bool))
-geq = [|| $$checkBinRel P.geq ||]
+geq :: Value -> Value -> Bool
+geq = checkBinRel P.geq
 
+{-# INLINABLE gt #-}
 -- | Check whether one 'Value' is strictly greater than another. See 'Value' for an explanation of how operations on 'Value's work.
-gt :: Q (TExp (Value -> Value -> Bool))
-gt = [|| $$checkBinRel P.gt ||]
+gt :: Value -> Value -> Bool
+gt = checkBinRel P.gt
 
+{-# INLINABLE leq #-}
 -- | Check whether one 'Value' is less than or equal to another. See 'Value' for an explanation of how operations on 'Value's work.
-leq :: Q (TExp (Value -> Value -> Bool))
-leq = [|| $$checkBinRel P.leq ||]
+leq :: Value -> Value -> Bool
+leq = checkBinRel P.leq
 
+{-# INLINABLE lt #-}
 -- | Check whether one 'Value' is strictly less than another. See 'Value' for an explanation of how operations on 'Value's work.
-lt :: Q (TExp (Value -> Value -> Bool))
-lt = [|| $$checkBinRel P.lt ||]
+lt :: Value -> Value -> Bool
+lt = checkBinRel P.lt
 
+{-# INLINABLE eq #-}
 -- | Check whether one 'Value' is equal to another. See 'Value' for an explanation of how operations on 'Value's work.
-eq :: Q (TExp (Value -> Value -> Bool))
-eq = [|| $$checkBinRel P.eq ||]
+eq :: Value -> Value -> Bool
+eq = checkBinRel P.eq

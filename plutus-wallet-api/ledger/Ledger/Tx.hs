@@ -3,10 +3,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE FlexibleInstances  #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE RecordWildCards    #-}
-{-# LANGUAGE TemplateHaskell    #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Ledger.Tx(
     -- * Transactions
@@ -60,29 +57,29 @@ module Ledger.Tx(
     inAddress
     ) where
 
-import qualified Codec.CBOR.Write                         as Write
-import           Codec.Serialise.Class                    (Serialise, encode)
-import           Control.Lens                             hiding (lifted)
-import           Crypto.Hash                              (Digest, SHA256, hash)
-import           Data.Aeson                               (FromJSON, ToJSON)
-import qualified Data.ByteArray                           as BA
-import qualified Data.ByteString.Lazy                     as BSL
-import qualified Data.ByteString.Char8                    as BS8
-import           Data.Maybe                               (isJust)
-import           Data.Map                                 (Map)
-import qualified Data.Map                                 as Map
-import qualified Data.Set                                 as Set
-import           GHC.Generics                             (Generic)
-import           Data.Swagger.Internal.Schema             (ToSchema)
+import qualified Codec.CBOR.Write             as Write
+import           Codec.Serialise.Class        (Serialise, encode)
+import           Control.Lens                 hiding (lifted)
+import           Crypto.Hash                  (Digest, SHA256, hash)
+import           Data.Aeson                   (FromJSON, ToJSON)
+import qualified Data.ByteArray               as BA
+import qualified Data.ByteString.Char8        as BS8
+import qualified Data.ByteString.Lazy         as BSL
+import           Data.Map                     (Map)
+import qualified Data.Map                     as Map
+import           Data.Maybe                   (isJust)
+import qualified Data.Set                     as Set
+import           Data.Swagger.Internal.Schema (ToSchema)
+import           GHC.Generics                 (Generic)
 
 import           Ledger.Ada
 import           Ledger.Crypto
-import           Ledger.Slot
 import           Ledger.Scripts
+import           Ledger.Slot
 import           Ledger.TxId
 import           Ledger.Value
-import qualified Ledger.Value.TH                          as V
-import qualified LedgerBytes                              as LB
+import qualified Ledger.Value.TH              as V
+import qualified LedgerBytes                  as LB
 
 {- Note [Serialisation and hashing]
 
@@ -166,7 +163,7 @@ instance BA.ByteArrayAccess Tx where
 validValuesTx :: Tx -> Bool
 validValuesTx Tx{..}
   = all (nonNegative . txOutValue) txOutputs && nonNegative txForge  && txFee >= 0 where
-    nonNegative i = $$(V.geq) i $$(V.zero)
+    nonNegative i = V.geq i V.zero
 
 -- | A transaction without witnesses for its inputs.
 data TxStripped = TxStripped {
@@ -386,6 +383,6 @@ updateUtxo t unspent = (unspent `Map.difference` lift' (spentOutputs t)) `Map.un
 -- | Sign the transaction with a 'PrivateKey' and add the signature to the
 --   transaction's list of signatures.
 addSignature :: PrivateKey -> Tx -> Tx
-addSignature privK tx = tx & signatures . at pubK .~ Just sig where
+addSignature privK tx = tx & signatures . at pubK ?~ sig where
     sig = signTx (hashTx tx) privK
     pubK = toPublicKey privK
