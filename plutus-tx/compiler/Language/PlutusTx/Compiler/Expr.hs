@@ -182,7 +182,7 @@ hoistExpr :: Converting m => GHC.Var -> GHC.CoreExpr -> m PIRTerm
 hoistExpr var t =
     let
         name = GHC.getName var
-    in withContextM 2 (sdToTxt $ "Converting definition of:" GHC.<+> GHC.ppr var) $ do
+    in withContextM 1 (sdToTxt $ "Converting definition of:" GHC.<+> GHC.ppr var) $ do
         maybeDef <- PIR.lookupTerm () name
         case maybeDef of
             Just term -> pure term
