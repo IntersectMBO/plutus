@@ -7,11 +7,14 @@ let
   addRealTimeTestLogs = drv: overrideCabal drv (attrs: {
     testTarget = "--show-details=streaming";
   });
+  # We do this for things where we need to run the plugin, but where Haddock chokes on it. We can't just turn it off,
+  # so we run it with deferred errors. This runs the slight risk that we will miss a real error until runtime, but
+  # we only do this in the CI build, so we should be okay.
+  deferPluginErrors = drv: appendConfigureFlag drv "-f defer-plugin-errors";
   doctest = opts: drv: overrideCabal drv (attrs: {
     postCheck = "./Setup doctest --doctest-options=\"${opts}\"";
   });
-  doctestOpts = "-pgmL markdown-unlit -XTemplateHaskell -XDeriveFunctor -XScopedTypeVariables";
-
+  doctestOpts = "-pgmL markdown-unlit -XTemplateHaskell -XDeriveFunctor -XScopedTypeVariables -fno-ignore-interface-pragmas -fobject-code";
 in
 
 self: super: {
@@ -22,7 +25,11 @@ self: super: {
     # cabal doctest doesn't seem to be clever enough to pick these up from the cabal file
     plutus-tx = doctest doctestOpts super.plutus-tx;
 
-    plutus-tutorial = doctest doctestOpts super.plutus-tutorial;
+    plutus-tutorial = doctest doctestOpts (deferPluginErrors super.plutus-tutorial);
+
+    plutus-use-cases = deferPluginErrors super.plutus-use-cases;
+
+    marlowe = deferPluginErrors super.marlowe;
 
     ########################################################################
     # The base Haskell package builder

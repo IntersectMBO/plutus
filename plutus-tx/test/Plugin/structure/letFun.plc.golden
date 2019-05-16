@@ -28,7 +28,7 @@
           )
         )
       )
-      equalsInteger
+      (lam ds (con integer) (lam ds (con integer) [ [ equalsInteger ds ] ds ]))
     )
   )
 )

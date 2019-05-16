@@ -131,7 +131,7 @@ validatorScript v = ValidatorScript val where
 
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
-            (&&) = $$(PlutusTx.and)
+            (&&) = PlutusTx.and
 
             PendingTx _ os _ _ _ range _ _ = p
             VestingTranche d1 a1 = vestingTranche1
@@ -143,7 +143,7 @@ validatorScript v = ValidatorScript val where
             amountSpent = case os of
                 PendingTxOut v' _ (PubKeyTxOut pk):_
                     | pk `eqPk` vestingOwner -> $$(Ada.fromValue) v'
-                _ -> $$(PlutusTx.error) ()
+                _ -> PlutusTx.error ()
 
             -- Value that has been released so far under the scheme
             currentThreshold =
@@ -169,8 +169,8 @@ validatorScript v = ValidatorScript val where
             txnOutputsValid = case os of
                 _:PendingTxOut _ (Just (vl', _)) DataTxOut:_ ->
                     vl' `eqBs` vestingDataHash
-                _ -> $$(PlutusTx.error) ()
+                _ -> PlutusTx.error ()
 
             isValid = amountsValid && txnOutputsValid
         in
-        if isValid then () else $$(PlutusTx.error) () ||])
+        if isValid then () else PlutusTx.error () ||])

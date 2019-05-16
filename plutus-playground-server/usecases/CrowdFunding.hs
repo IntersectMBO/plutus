@@ -36,17 +36,17 @@ PlutusTx.makeLift ''Campaign
 -- | Construct a 'Campaign' value from the campaign parameters,
 --   using the wallet's public key.
 mkCampaign :: Slot -> Value -> Slot -> Wallet -> Campaign
-mkCampaign ddl target collectionDdl ownerWallet = 
+mkCampaign ddl target collectionDdl ownerWallet =
     Campaign
         { campaignDeadline = ddl
         , campaignTarget   = target
         , campaignCollectionDeadline = collectionDdl
-        , campaignOwner = EM.walletPubKey ownerWallet            
+        , campaignOwner = EM.walletPubKey ownerWallet
         }
 
 -- | The 'SlotRange' during which the funds can be collected
 collectionRange :: Campaign -> SlotRange
-collectionRange cmp = 
+collectionRange cmp =
     W.interval (campaignDeadline cmp) (campaignCollectionDeadline cmp)
 
 -- | The 'SlotRange' during which a refund may be claimed
@@ -92,7 +92,7 @@ contributionScript cmp  = ValidatorScript val where
                 -- lot of additional brackets)
                 infixr 3 &&
                 (&&) :: Bool -> Bool -> Bool
-                (&&) = $$(P.and)
+                (&&) = P.and
 
                 signedBy :: PendingTx -> PubKey -> Bool
                 signedBy = $$(V.txSignedBy)
@@ -107,7 +107,7 @@ contributionScript cmp  = ValidatorScript val where
 
                 collRange :: SlotRange
                 collRange = $$(Interval.interval) campaignDeadline campaignCollectionDeadline
-    
+
                 refndRange :: SlotRange
                 refndRange = $$(Interval.from) campaignCollectionDeadline
 
@@ -117,7 +117,7 @@ contributionScript cmp  = ValidatorScript val where
                 totalInputs :: Value
                 totalInputs =
                     let v (PendingTxIn _ _ vl) = vl in
-                    $$(P.foldr) (\i total -> $$(VTH.plus) total (v i)) $$(VTH.zero) ps
+                    P.foldr (\i total -> $$(VTH.plus) total (v i)) $$(VTH.zero) ps
 
                 isValid = case act of
                     Refund -> -- the "refund" branch
@@ -130,22 +130,22 @@ contributionScript cmp  = ValidatorScript val where
 
                             -- Check that all outputs are paid to the public key
                             -- of the contributor (this key is provided as the data script `con`)
-                            contributorOnly = $$(P.all) contributorTxOut outs
+                            contributorOnly = P.all contributorTxOut outs
 
-                            refundable = 
+                            refundable =
                                 $$(Slot.contains) refndRange range
                                 && contributorOnly && p `signedBy` con
 
                         in refundable
                     Collect -> -- the "successful campaign" branch
                         let
-                            payToOwner = 
+                            payToOwner =
                                 $$(Slot.contains) collRange range
                                 && $$(VTH.geq) totalInputs campaignTarget
                                 && p `signedBy` campaignOwner
                         in payToOwner
             in
-            if isValid then () else $$(P.error) () ||])
+            if isValid then () else P.error () ||])
 
 -- | The address of a [[Campaign]]
 campaignAddress :: Campaign -> Ledger.Address

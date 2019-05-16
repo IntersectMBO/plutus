@@ -206,18 +206,18 @@ validatorScript ft = ValidatorScript val where
                 PendingTx _ outs _ _ (PendingTxIn _ witness _) range _ _ = p
                 ownHash = case witness of
                     Just (vhash, _) -> vhash
-                    _ -> $$(PlutusTx.error) ()
+                    _ -> PlutusTx.error ()
 
                 eqPk :: PubKey -> PubKey -> Bool
                 eqPk = $$(Validation.eqPubKey)
 
                 infixr 3 &&
                 (&&) :: Bool -> Bool -> Bool
-                (&&) = $$(PlutusTx.and)
+                (&&) = PlutusTx.and
 
                 infixr 3 ||
                 (||) :: Bool -> Bool -> Bool
-                (||) = $$(PlutusTx.or)
+                (||) = PlutusTx.or
 
                 -- Compute the required margin from the current price of the
                 -- underlying asset.
@@ -229,7 +229,7 @@ validatorScript ft = ValidatorScript val where
                         $$(Ada.plus) futureMarginPenalty delta
 
                 isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
-                isPubKeyOutput o k = $$(PlutusTx.maybe) False ($$(Validation.eqPubKey) k) ($$(Validation.pubKeyOutput) o)
+                isPubKeyOutput o k = PlutusTx.maybe False ($$(Validation.eqPubKey) k) ($$(Validation.pubKeyOutput) o)
 
                 --  | Check if a `PendingTxOut` is a public key output for the given pub. key and ada value
                 paidOutTo :: Ada -> PubKey -> PendingTxOut -> Bool
@@ -241,7 +241,7 @@ validatorScript ft = ValidatorScript val where
 
                 verifyOracle :: OracleValue a -> (Slot, a)
                 verifyOracle (OracleValue pk h t) =
-                    if pk `eqPk` futurePriceOracle then (h, t) else $$(PlutusTx.error) ()
+                    if pk `eqPk` futurePriceOracle then (h, t) else PlutusTx.error ()
 
                 isValid =
                     case r of
@@ -301,7 +301,7 @@ validatorScript ft = ValidatorScript val where
 
                                 _ -> False
             in
-                if isValid then () else $$(PlutusTx.error) ()
+                if isValid then () else PlutusTx.error ()
             ||])
 
 PlutusTx.makeLift ''Future

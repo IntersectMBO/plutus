@@ -93,7 +93,7 @@ lookup = [||
 keys :: Q (TExp (Map k v -> [k]))
 keys = [||
     let keys' :: Map k v -> [k]
-        keys' (Map xs) = $$(P.map) (\(k, _ :: v) -> k) xs
+        keys' (Map xs) = P.map (\(k, _ :: v) -> k) xs
     in keys'
     ||]
 
@@ -110,15 +110,15 @@ union = [||
                     Just b  -> These a b
 
                 ls' :: [(k, These v r)]
-                ls' = $$(P.map) (\(c, i) -> (c, (f i ($$(lookup) eq c (Map rs))))) ls
+                ls' = P.map (\(c, i) -> (c, (f i ($$(lookup) eq c (Map rs))))) ls
 
                 rs' :: [(k, r)]
-                rs' = $$(P.filter) (\(c, _) -> $$(P.not) ($$(P.any) (\(c', _) -> eq c' c) ls)) rs
+                rs' = P.filter (\(c, _) -> P.not (P.any (\(c', _) -> eq c' c) ls)) rs
 
                 rs'' :: [(k, These v r)]
-                rs'' = $$(P.map) (\(c, b) -> (c, (That b))) rs'
+                rs'' = P.map (\(c, b) -> (c, (That b))) rs'
 
-            in Map ($$(P.append) ls' rs'')
+            in Map (P.append ls' rs'')
     in union
     ||]
 
@@ -130,7 +130,7 @@ all = [||
         all p (Map mps) =
             let go xs = case xs of
                     []         -> True
-                    (_ :: k, x):xs' -> $$(P.and) (p x) (go xs')
+                    (_ :: k, x):xs' -> P.and (p x) (go xs')
             in go mps
     in all ||]
 

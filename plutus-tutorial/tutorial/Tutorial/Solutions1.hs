@@ -22,7 +22,7 @@ import Language.Haskell.TH
 
 -}
 trickier :: Integer -> Q (TExp (Integer -> Integer))
-trickier i = if $$lt i 1 then tricky else [|| \k -> $$(tricky) ($$(trickier ($$minus i 1)) k)  ||]
+trickier i = if lt i 1 then tricky else [|| \k -> $$(tricky) ($$(trickier (minus i 1)) k)  ||]
 
 
 -- E3*. `trickier n` inlines the `tricky` function n times. In `trickierLight`
@@ -33,6 +33,6 @@ trickierLight i = [||
   \(j :: Integer) ->
     let
       trk = $$(tricky)
-      go k = if $$lt k (1 :: Integer) then trk j else trk (go ($$minus k 1))
+      go k = if lt k (1 :: Integer) then trk j else trk (go (minus k 1))
 
   in go i ||]

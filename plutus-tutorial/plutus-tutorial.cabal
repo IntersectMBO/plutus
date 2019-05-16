@@ -18,6 +18,12 @@ source-repository head
     type: git
     location: https://github.com/input-output-hk/plutus
 
+flag defer-plugin-errors
+    description:
+        Defer errors from the plugin, useful for things like Haddock that can't handle it.
+    default: False
+    manual: True
+
 common lang
     default-language: Haskell2010
     default-extensions: ExplicitForAll ScopedTypeVariables
@@ -32,6 +38,9 @@ common lang
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
+
+    if flag(defer-plugin-errors)
+        ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
 
 library
     import: lang

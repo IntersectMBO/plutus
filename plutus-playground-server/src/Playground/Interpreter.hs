@@ -193,6 +193,12 @@ runghcOpts =
     , "-XStandaloneDeriving"
     , "-XTemplateHaskell"
     , "-XScopedTypeVariables"
+    -- We need this to load unfoldings from interfaces with -O0, which is what we
+    -- get with runghc (higher optimization levels are just ignored).
+    , "-fno-ignore-interface-pragmas"
+    -- We need this otherwise the bytecode interpreter can't deal with the code
+    -- it loads from the interfaces.
+    , "-fobject-code"
     -- FIXME: stupid GHC bug still
     , "-package plutus-wallet-api"
     , "-package plutus-tx"
