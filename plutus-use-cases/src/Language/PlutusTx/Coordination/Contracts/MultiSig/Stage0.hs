@@ -78,21 +78,21 @@ isSignatory :: Q (TExp (PubKey -> Params -> Bool))
 isSignatory = [||
 
         let isSignatory' :: PubKey -> Params -> Bool
-            isSignatory' pk (Params sigs _) = P.any (\pk' -> $$(Validation.eqPubKey) pk pk') sigs
+            isSignatory' pk (Params sigs _) = P.any (\pk' -> Validation.eqPubKey pk pk') sigs
         in isSignatory'
 
   ||]
 
 -- | Check whether a list of public keys contains a given key.
 containsPk :: Q (TExp (PubKey -> [PubKey] -> Bool))
-containsPk = [|| \pk -> P.any (\pk' -> $$(Validation.eqPubKey) pk' pk) ||]
+containsPk = [|| \pk -> P.any (\pk' -> Validation.eqPubKey pk' pk) ||]
 
 pkListEq :: Q (TExp ([PubKey] -> [PubKey] -> Bool))
 pkListEq = [||
 
     let pkListEq' :: [PubKey] -> [PubKey] -> Bool
         pkListEq' [] [] = True
-        pkListEq' (k:ks) (k':ks') = P.and ($$(Validation.eqPubKey) k k') (pkListEq' ks ks')
+        pkListEq' (k:ks) (k':ks') = P.and (Validation.eqPubKey k k') (pkListEq' ks ks')
         pkListEq' _ _ = False
 
     in pkListEq'
@@ -135,9 +135,9 @@ valuePreserved = [||
 
         let valuePreserved' :: Value -> PendingTx -> Bool
             valuePreserved' vl ptx =
-                let ownHash = $$(Validation.ownHash) ptx
-                    numOutputs = P.length ($$(Validation.scriptOutputsAt) ownHash ptx)
-                    valueLocked = $$(Validation.valueLockedBy) ptx ownHash
+                let ownHash = Validation.ownHash ptx
+                    numOutputs = P.length (Validation.scriptOutputsAt ownHash ptx)
+                    valueLocked = Validation.valueLockedBy ptx ownHash
                 in P.and (P.eq 1 numOutputs) (Value.eq valueLocked vl)
         in valuePreserved'
 
@@ -149,7 +149,7 @@ valuePaid :: Q (TExp (Payment -> PendingTx -> Bool))
 valuePaid = [||
 
         let valuePaid' :: Payment -> PendingTx -> Bool
-            valuePaid' (Payment vl pk _) ptx = Value.eq vl ($$(Validation.valuePaidTo) ptx pk)
+            valuePaid' (Payment vl pk _) ptx = Value.eq vl (Validation.valuePaidTo ptx pk)
         in valuePaid'
     ||]
 
@@ -159,7 +159,7 @@ paymentEq = [||
 
         let paymentEq' :: Payment -> Payment -> Bool
             paymentEq' (Payment vl pk sl) (Payment vl' pk' sl') =
-                P.and (P.and (Value.eq vl vl') ($$(Validation.eqPubKey) pk pk')) (Slot.eq sl sl')
+                P.and (P.and (Value.eq vl vl') (Validation.eqPubKey pk pk')) (Slot.eq sl sl')
         in paymentEq'
 
     ||]
@@ -217,7 +217,7 @@ stepWithChecks = [||
                     then newState
                     else P.error (P.traceH "ProposePayment invalid" ())
                 (CollectingSignatures vl _ pks, AddSignature pk) ->
-                    if $$(Validation.txSignedBy) ptx pk `P.and`
+                    if Validation.txSignedBy ptx pk `P.and`
                         $$isSignatory pk p `P.and`
                         P.not ($$containsPk pk pks) `P.and`
                         $$valuePreserved vl ptx

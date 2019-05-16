@@ -93,7 +93,7 @@ swapValidator _ = ValidatorScript result where
             fromInt = PlutusTx.error ()
 
             signedBy :: PendingTx -> PubKey -> Bool
-            signedBy = $$(Validation.txSignedBy)
+            signedBy = Validation.txSignedBy
 
             adaValueIn :: Value -> Integer
             adaValueIn v = Ada.toInt (Ada.fromValue v)
@@ -102,7 +102,7 @@ swapValidator _ = ValidatorScript result where
             (||) = PlutusTx.or
 
             isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
-            isPubKeyOutput o k = PlutusTx.maybe False ($$(Validation.eqPubKey) k) ($$(Validation.pubKeyOutput) o)
+            isPubKeyOutput o k = PlutusTx.maybe False (Validation.eqPubKey k) (Validation.pubKeyOutput o)
 
             -- Verify the authenticity of the oracle value and compute
             -- the payments.

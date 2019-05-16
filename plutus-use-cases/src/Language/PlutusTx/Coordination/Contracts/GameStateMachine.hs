@@ -78,20 +78,20 @@ gameValidator = ValidatorScript ($$(Ledger.compileScript [||
         --   currency.
         tokenVal :: TokenName -> V.Value
         tokenVal tn =
-            let ownSymbol = $$(Validation.ownCurrencySymbol) p
+            let ownSymbol = Validation.ownCurrencySymbol p
             in V.singleton ownSymbol tn 1
 
         -- | Check whether the token that was forged at the beginning of the
         --   contract is present in the pending transaction
         tokenPresent :: TokenName -> Bool
         tokenPresent tn =
-            let vSpent = $$(Validation.valueSpent) p
+            let vSpent = Validation.valueSpent p
             in  V.geq vSpent (tokenVal tn)
 
         -- | Check whether the value forged by the  pending transaction 'p' is
         --   equal to the argument.
         checkForge :: Value -> Bool
-        checkForge vl = V.eq vl ($$(Validation.valueForged) p)
+        checkForge vl = V.eq vl (Validation.valueForged p)
 
         -- | Equality of 'GameState' valzes.
         stateEq :: GameState -> GameState -> Bool

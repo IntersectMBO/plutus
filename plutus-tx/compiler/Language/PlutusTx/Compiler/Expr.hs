@@ -219,6 +219,14 @@ convExpr e = withContextM 2 (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ d
                 -- type of overall expression
                 (GHC.Type t))
             _ -> force =<< PIR.TyInst () <$> errorFunc <*> convType t
+        GHC.App (GHC.App (GHC.App
+                -- error function
+                (GHC.Var (isErrorId -> True))
+                -- type of overall expression
+                (GHC.Type t))
+                -- message
+                _)
+            _ -> force =<< PIR.TyInst () <$> errorFunc <*> convType t
         -- locally bound vars
         GHC.Var (lookupName top . GHC.getName -> Just (PIR.VarDecl _ name _)) -> pure $ PIR.Var () name
         -- Special kinds of id

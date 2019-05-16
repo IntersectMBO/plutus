@@ -124,10 +124,10 @@ validatorScript v = ValidatorScript val where
         let
 
             eqBs :: ValidatorHash -> ValidatorHash -> Bool
-            eqBs = $$(Validation.eqValidator)
+            eqBs = Validation.eqValidator
 
             eqPk :: PubKey -> PubKey -> Bool
-            eqPk = $$(Validation.eqPubKey)
+            eqPk = Validation.eqPubKey
 
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool

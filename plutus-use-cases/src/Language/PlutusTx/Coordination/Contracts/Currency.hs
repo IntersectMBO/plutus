@@ -48,9 +48,9 @@ curValidator cur =
                 validate c@(Currency (refHash, refIdx) _) () () p =
                     let
                         -- see note [Obtaining the currency symbol]
-                        ownSymbol = $$(V.ownCurrencySymbol) p
+                        ownSymbol = V.ownCurrencySymbol p
 
-                        forged = $$(V.valueForged) p
+                        forged = V.valueForged p
                         expected = $$currencyValue ownSymbol c
 
 
@@ -63,7 +63,7 @@ curValidator cur =
                         -- True if the pending transaction spends the output
                         -- identified by @(refHash, refIdx)@
                         txOutputSpent =
-                            let v = $$(V.spendsOutput) p refHash refIdx
+                            let v = V.spendsOutput p refHash refIdx
                             in  P.traceIfFalseH "Pending transaction does not spend the designated transaction output" v
 
                     in

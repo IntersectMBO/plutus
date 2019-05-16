@@ -126,7 +126,7 @@ Before we check whether `act` is permitted, we define a number of intermediate v
 
 
                   signedBy :: PendingTx -> PubKey -> Bool
-                  signedBy = $$(V.txSignedBy)
+                  signedBy = V.txSignedBy
 ```
 
 There is no standard library of functions that are automatically in scope for on-chain code, so we need to import the ones that we want to use from the [`Ledger.Validation`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html) module using the `$$()` splicing operator. [`Ledger.Validation`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html) contains a subset of the standard Haskell prelude, exported as Template Haskell quotes. Code from other libraries can only be used in validator scripts if it is available as a Template Haskell quote (so we can use `$$()` to splice it in).
@@ -180,9 +180,9 @@ In the `Refund` branch we check that the outputs of this transaction all go to t
 ```haskell
                               contribTxOut :: PendingTxOut -> Bool
                               contribTxOut o =
-                                case $$(V.pubKeyOutput) o of
+                                case V.pubKeyOutput o of
                                   Nothing -> False
-                                  Just pk -> $$(V.eqPubKey) pk pkCon
+                                  Just pk -> V.eqPubKey pk pkCon
 ```
 
 We check if `o` is a pay-to-pubkey output. If it isn't, then the predicate `contribTxOut` is false. If it is, then we check if the public key matches the one we got from the data script.

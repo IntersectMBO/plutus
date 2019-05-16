@@ -209,7 +209,7 @@ validatorScript ft = ValidatorScript val where
                     _ -> PlutusTx.error ()
 
                 eqPk :: PubKey -> PubKey -> Bool
-                eqPk = $$(Validation.eqPubKey)
+                eqPk = Validation.eqPubKey
 
                 infixr 3 &&
                 (&&) :: Bool -> Bool -> Bool
@@ -229,7 +229,7 @@ validatorScript ft = ValidatorScript val where
                         Ada.plus futureMarginPenalty delta
 
                 isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
-                isPubKeyOutput o k = PlutusTx.maybe False ($$(Validation.eqPubKey) k) ($$(Validation.pubKeyOutput) o)
+                isPubKeyOutput o k = PlutusTx.maybe False (Validation.eqPubKey k) (Validation.pubKeyOutput o)
 
                 --  | Check if a `PendingTxOut` is a public key output for the given pub. key and ada value
                 paidOutTo :: Ada -> PubKey -> PendingTxOut -> Bool
@@ -296,7 +296,7 @@ validatorScript ft = ValidatorScript val where
                                     case ot of
                                         PendingTxOut v (Just (vh, _)) DataTxOut ->
                                             Ada.gt (Ada.fromValue v) ((Ada.plus futureDataMarginShort futureDataMarginLong))
-                                            && $$(Validation.eqValidator) vh ownHash
+                                            && Validation.eqValidator vh ownHash
                                         _ -> True
 
                                 _ -> False

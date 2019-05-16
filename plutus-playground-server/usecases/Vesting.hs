@@ -102,7 +102,7 @@ vestingValidator v = ValidatorScript val where
             -- We need the hash of this validator script in order to ensure
             -- that the pending transaction locks the remaining amount of funds
             -- at the contract address.
-            ownHash = $$(V.ownHash) p
+            ownHash = V.ownHash p
 
             -- The total value that has been vested:
             totalAmount :: Value
@@ -166,13 +166,13 @@ vestingValidator v = ValidatorScript val where
             -- transaction 'p' to the script address 'ownHash'.
             con1 :: Bool
             con1 =
-                let remainsLocked = $$(V.valueLockedBy) p ownHash
+                let remainsLocked = V.valueLockedBy p ownHash
                 in Value.TH.geq remainsLocked unreleased
 
             -- con2 is true if the scheme owner has signed the pending
             -- transaction 'p'.
             con2 :: Bool
-            con2 = $$(V.txSignedBy) p owner
+            con2 = V.txSignedBy p owner
 
         in
 

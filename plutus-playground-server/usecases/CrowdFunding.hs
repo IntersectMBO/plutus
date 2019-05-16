@@ -95,7 +95,7 @@ contributionScript cmp  = ValidatorScript val where
                 (&&) = P.and
 
                 signedBy :: PendingTx -> PubKey -> Bool
-                signedBy = $$(V.txSignedBy)
+                signedBy = V.txSignedBy
 
                 -- We pattern match on the pending transaction `p` to get the
                 -- information we need:
@@ -124,9 +124,9 @@ contributionScript cmp  = ValidatorScript val where
                         let
 
                             contributorTxOut :: PendingTxOut -> Bool
-                            contributorTxOut o = case $$(pubKeyOutput) o of
+                            contributorTxOut o = case pubKeyOutput o of
                                 Nothing -> False
-                                Just pk -> $$(eqPubKey) pk con
+                                Just pk -> eqPubKey pk con
 
                             -- Check that all outputs are paid to the public key
                             -- of the contributor (this key is provided as the data script `con`)

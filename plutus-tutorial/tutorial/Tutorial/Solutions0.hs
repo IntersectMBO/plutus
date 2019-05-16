@@ -106,7 +106,7 @@ mkValidatorScript campaign = ValidatorScript val where
 
 
         signedBy :: PendingTx -> PubKey -> Bool
-        signedBy = $$(V.txSignedBy)
+        signedBy = V.txSignedBy
 
         PendingTx ins outs _ _ _ txnValidRange _ _ = p
         -- p is bound to the pending transaction.
@@ -132,9 +132,9 @@ mkValidatorScript campaign = ValidatorScript val where
 
                             contribTxOut :: PendingTxOut -> Bool
                             contribTxOut o =
-                              case $$(V.pubKeyOutput) o of
+                              case V.pubKeyOutput o of
                                 Nothing -> False
-                                Just pk -> $$(V.eqPubKey) pk pkCon
+                                Just pk -> V.eqPubKey pk pkCon
 
                             contributorOnly = P.all contribTxOut outs
 

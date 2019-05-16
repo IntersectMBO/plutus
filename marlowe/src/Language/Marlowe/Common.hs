@@ -290,7 +290,7 @@ equalValue = [|| \l r -> let
     (&&) = PlutusTx.and
 
     eqPk :: PubKey -> PubKey -> Bool
-    eqPk = $$(Validation.eqPubKey)
+    eqPk = Validation.eqPubKey
 
     eq l r = case (l, r) of
         (Committed idl, Committed idr) -> $$(eqIdentCC) idl idr
@@ -318,7 +318,7 @@ equalObservation = [|| \eqValue l r -> let
     (&&) = PlutusTx.and
 
     eqPk :: PubKey -> PubKey -> Bool
-    eqPk = $$(Validation.eqPubKey)
+    eqPk = Validation.eqPubKey
 
     eq :: Observation -> Observation -> Bool
     eq l r = case (l, r) of
@@ -345,7 +345,7 @@ equalContract = [|| \eqValue eqObservation l r -> let
     (&&) = PlutusTx.and
 
     eqPk :: PubKey -> PubKey -> Bool
-    eqPk = $$(Validation.eqPubKey)
+    eqPk = Validation.eqPubKey
 
     eq :: Contract -> Contract -> Bool
     eq l r = case (l, r) of
@@ -440,7 +440,7 @@ evaluateValue = [|| \pendingTxSlot inputOracles state value -> let
     (&&) = PlutusTx.and
 
     eqPk :: PubKey -> PubKey -> Bool
-    eqPk = $$(Validation.eqPubKey)
+    eqPk = Validation.eqPubKey
 
     findCommit :: IdentCC -> [Commit] -> Maybe CCStatus
     findCommit i@(IdentCC searchId) commits = case commits of
@@ -501,7 +501,7 @@ interpretObservation = [|| \evalValue blockNumber state@(State _ choices) obs ->
     (||) = PlutusTx.or
 
     eqPk :: PubKey -> PubKey -> Bool
-    eqPk = $$(Validation.eqPubKey)
+    eqPk = Validation.eqPubKey
 
     isJust :: Maybe a -> Bool
     isJust = PlutusTx.isJust
@@ -540,7 +540,7 @@ insertCommit = [|| \ commit commits -> let
     (&&) = PlutusTx.and
 
     eqPk :: PubKey -> PubKey -> Bool
-    eqPk = $$(Validation.eqPubKey)
+    eqPk = Validation.eqPubKey
 
     insert :: Commit -> [Commit] -> [Commit]
     insert commit commits = let
@@ -569,7 +569,7 @@ discountFromPairList = [|| \ from (Slot currentBlockNumber) value' commits -> le
     discount :: Integer -> [Commit] -> Maybe [Commit]
     discount value commits = case commits of
         (ident, (party, NotRedeemed available expire)) : rest
-            | currentBlockNumber `Builtins.lessThanEqInteger` expire && $$(Validation.eqPubKey) from party ->
+            | currentBlockNumber `Builtins.lessThanEqInteger` expire && Validation.eqPubKey from party ->
             if available `Builtins.greaterThanInteger` value then let
                 change = available `Builtins.subtractInteger` value
                 updatedCommit = (ident, (party, NotRedeemed change expire))
@@ -754,7 +754,7 @@ mergeChoices = [|| \ input choices -> let
                 ((IdentChoice insId, insPK), _) = choice
                 in   if insId `Builtins.lessThanInteger` id then choice : choices
                 else if insId `Builtins.equalsInteger` id then
-                        if $$(Validation.eqPubKey) insPK pk
+                        if Validation.eqPubKey insPK pk
                         then choices
                         else current : insert choice rest
                 else {- insId > id -} current : insert choice rest
@@ -780,7 +780,7 @@ validatorScript = [|| \
         contractCreatorPK = creator
 
         eqPk :: PubKey -> PubKey -> Bool
-        eqPk = $$(Validation.eqPubKey)
+        eqPk = Validation.eqPubKey
 
         eqIdentCC :: IdentCC -> IdentCC -> Bool
         eqIdentCC (IdentCC a) (IdentCC b) = a `Builtins.equalsInteger` b
@@ -838,7 +838,7 @@ validatorScript = [|| \
                     For that we need to ensure dataScriptHash == redeemerHash
                     and that TxOut has the same validator -}
                  in if Builtins.equalsByteString dataScriptHash redeemerHash
-                        && $$(Validation.eqValidator) inputValidatorHash outputValidatorHash
+                        && Validation.eqValidator inputValidatorHash outputValidatorHash
                     then Ada.fromValue change else Builtins.error ()
 
         eval :: Input -> Slot -> Ada -> Ada -> State -> Contract -> (State, Contract, Bool)

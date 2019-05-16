@@ -10,6 +10,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
 module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     -- * Campaign parameters
     Campaign(..)
@@ -99,7 +100,7 @@ contributionScript cmp  = ValidatorScript val where
                 (&&) = P.and
 
                 signedBy' :: PendingTx -> PubKey -> Bool
-                signedBy' = $$(V.txSignedBy)
+                signedBy' = V.txSignedBy
 
                 PendingTx ps outs _ _ _ range _ _ = p
 
@@ -119,9 +120,9 @@ contributionScript cmp  = ValidatorScript val where
                         let
 
                             contributorTxOut :: PendingTxOut -> Bool
-                            contributorTxOut o = case $$(pubKeyOutput) o of
+                            contributorTxOut o = case pubKeyOutput o of
                                 Nothing -> False
-                                Just pk -> $$(eqPubKey) pk con
+                                Just pk -> eqPubKey pk con
 
                             contributorOnly = P.all contributorTxOut outs
 
