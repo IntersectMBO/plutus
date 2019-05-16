@@ -97,9 +97,9 @@ renameTel : ∀ {Φ Φ' Γ Γ' Δ}
  → Tel Γ' Δ (renameNf ρ⋆ ∘ σ) As
 
 rename ρ⋆ ρ (` x)    = ` (ρ x)
-rename ρ⋆ ρ (ƛ N)    = ƛ (rename ρ⋆ (ext ρ⋆ ρ) N)
+rename ρ⋆ ρ (ƛ x N)    = ƛ x (rename ρ⋆ (ext ρ⋆ ρ) N)
 rename ρ⋆ ρ (L · M)  = rename ρ⋆ ρ L · rename ρ⋆ ρ M 
-rename ρ⋆ ρ (Λ N)    = Λ (rename (⋆.ext ρ⋆) (ext⋆ ρ⋆ ρ) N)
+rename ρ⋆ ρ (Λ x N)    = Λ x (rename (⋆.ext ρ⋆) (ext⋆ ρ⋆ ρ) N)
 rename {Φ}{Ψ}{Γ}{Δ} ρ⋆ ρ (_·⋆_ {B = B} t A) =
   substEq (Δ ⊢_)
           (sym (rename[]Nf ρ⋆ B A))
@@ -246,10 +246,10 @@ substTel {Φ}{Φ'}{Γ}{Γ'} σ⋆ σ {σ'} {As = A ∷ As} (M ,, Ms) =
   substTel σ⋆ σ Ms
 
 subst σ⋆ σ (` k)                     = σ k
-subst σ⋆ σ (ƛ N)                     = ƛ (subst σ⋆ (exts σ⋆ σ) N)
+subst σ⋆ σ (ƛ x N)                     = ƛ x (subst σ⋆ (exts σ⋆ σ) N)
 subst σ⋆ σ (L · M)                   = subst σ⋆ σ L · subst σ⋆ σ M
-subst {Φ}{Ψ}{Γ}{Δ} σ⋆ σ {J} (Λ {K = K}{B = B} N)                     =
-  Λ (substEq (λ A → Δ ,⋆ K ⊢ A)
+subst {Φ}{Ψ}{Γ}{Δ} σ⋆ σ {J} (Λ {K = K} x {B = B} N)                     =
+  Λ x (substEq (λ A → Δ ,⋆ K ⊢ A)
              (trans (sym (evalCRSubst idCR (substNf-lemma σ⋆ (embNf B))))
                     (substNf-lemma' (⋆.subst (⋆.exts (embNf ∘ σ⋆)) (embNf B))))
              (subst (extsNf σ⋆) (exts⋆ σ⋆ σ) N))

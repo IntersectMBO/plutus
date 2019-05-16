@@ -91,9 +91,9 @@ extricateTel σ [] x = []
 extricateTel σ (A ∷ As) (t P., ts) = extricateTel σ As ts ++ L.[ extricate t ]
 
 extricate (` x) = ` (extricateVar x)
-extricate {Φ}{Γ} (ƛ {A = A} t) = ƛ "x" (extricateNf⋆ A) (extricate t)
+extricate {Φ}{Γ} (ƛ {A = A} x t) = ƛ x (extricateNf⋆ A) (extricate t)
 extricate (t · u) = extricate t · extricate u
-extricate (Λ {K = K} t) = Λ "x" (extricateK K) (extricate t)
+extricate (Λ {K = K} x t) = Λ x (extricateK K) (extricate t)
 extricate {Φ}{Γ} (t ·⋆ A) = extricate t ·⋆ extricateNf⋆ A
 extricate {Φ}{Γ} (wrap1 pat arg t) = wrap (extricateNf⋆ pat) (extricateNf⋆ arg)
   (extricate t)
