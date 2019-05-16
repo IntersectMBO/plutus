@@ -65,6 +65,21 @@ containing the actual data, but are wrapped in special functions (often ending i
 This is a pain to recognize.
 -}
 
+{- Note [unpackFoldrCString#]
+This function is introduced by rewrite rules, and usually eliminated by them in concert with `build`.
+
+However, since we often mark things as INLINABLE, we get pre-optimization Core where only the
+first transformation has fired. So we need to do something with the function. (Note: this might
+be easier if we used `-fexpose-all-unfoldings` instead.)
+
+- We can't easily turn it into a normal fold expression, since we'd need to make a lambda and
+  we're not in 'CoreM' so we can't make fresh names.
+- We can't easily translate it to a builtin, since we don't support higher-order functions.
+
+So we use a horrible hack and match on `build . unpackFoldrCString#` to "undo" the original rewrite
+rule.
+-}
+
 convLiteral :: Converting m => GHC.Literal -> m PIRTerm
 convLiteral = \case
     -- Just accept any kind of number literal, we'll complain about types we don't support elsewhere
@@ -199,7 +214,10 @@ convExpr e = withContextM 2 (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ d
     case e of
         -- See Note [Literals]
         -- unpackCString# is just a wrapper around a literal
-        GHC.App (GHC.Var n) arg | GHC.getName n == GHC.unpackCStringName -> convExpr arg
+        GHC.Var n `GHC.App` arg | GHC.getName n == GHC.unpackCStringName -> convExpr arg
+        -- See Note [unpackFoldrCString#]
+        GHC.Var build `GHC.App` _ `GHC.App` GHC.Lam _ (GHC.Var unpack `GHC.App` _ `GHC.App` str)
+            | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName -> convExpr str
         -- C# is just a wrapper around a literal
         GHC.App (GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc)) arg | dc == GHC.charDataCon -> convExpr arg
         -- void# - values of type void get represented as error, since they should be unreachable

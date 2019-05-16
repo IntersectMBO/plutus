@@ -95,7 +95,7 @@ install args todo = do
         -- See Note [Making sure unfoldings are present]
         mode = GHC.SimplMode {
                     GHC.sm_names = ["Ensure unfoldings are present"]
-                  , GHC.sm_phase = GHC.Phase 0
+                  , GHC.sm_phase = GHC.InitialPhase
                   , GHC.sm_dflags = flags
                   , GHC.sm_rules = False
                   -- You might think you would need this, but apparently not
