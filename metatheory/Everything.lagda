@@ -73,5 +73,6 @@ import Scoped
 import Scoped.RenamingSubstitution
 import Scoped.Reduction
 import Scoped.Extrication
---import Scoped.Extrication.RenamingSubstitution
+import Scoped.Extrication.RenamingSubstitution
+--import Scoped.Reduction
 \end{code}
