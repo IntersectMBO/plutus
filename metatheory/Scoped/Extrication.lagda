@@ -22,32 +22,32 @@ len⋆ ∅ = zero
 len⋆ (Γ ,⋆ K) = suc (len⋆ Γ)
 
 -- scoped kind clearly shoud go...
-eraseK : Kind → ScopedKind
-eraseK * = *
-eraseK (K ⇒ J) = eraseK K ⇒ eraseK J
+extricateK : Kind → ScopedKind
+extricateK * = *
+extricateK (K ⇒ J) = extricateK K ⇒ extricateK J
 
-eraseVar⋆ : ∀{Γ K}(A : Γ ∋⋆ K) → Fin (len⋆ Γ)
-eraseVar⋆ Z     = zero
-eraseVar⋆ (S α) = suc (eraseVar⋆ α)
+extricateVar⋆ : ∀{Γ K}(A : Γ ∋⋆ K) → Fin (len⋆ Γ)
+extricateVar⋆ Z     = zero
+extricateVar⋆ (S α) = suc (extricateVar⋆ α)
 
-eraseNf⋆ : ∀{Γ K}(A : Γ ⊢Nf⋆ K) → ScopedTy (len⋆ Γ)
-eraseNe⋆ : ∀{Γ K}(A : Γ ⊢NeN⋆ K) → ScopedTy (len⋆ Γ)
+extricateNf⋆ : ∀{Γ K}(A : Γ ⊢Nf⋆ K) → ScopedTy (len⋆ Γ)
+extricateNe⋆ : ∀{Γ K}(A : Γ ⊢NeN⋆ K) → ScopedTy (len⋆ Γ)
 
 -- intrinsically typed terms should also carry user chosen names as
 -- instructions to the pretty printer
 
-eraseNf⋆ (Π {K = K} A) = Π "x" (eraseK K) (eraseNf⋆ A)
-eraseNf⋆ (A ⇒ B) = eraseNf⋆ A ⇒ eraseNf⋆ B
-eraseNf⋆ (ƛ {K = K} A) = ƛ "x" (eraseK K) (eraseNf⋆ A)
-eraseNf⋆ (ne n) = eraseNe⋆ n
-eraseNf⋆ (con c) = con c
+extricateNf⋆ (Π {K = K} A) = Π "x" (extricateK K) (extricateNf⋆ A)
+extricateNf⋆ (A ⇒ B) = extricateNf⋆ A ⇒ extricateNf⋆ B
+extricateNf⋆ (ƛ {K = K} A) = ƛ "x" (extricateK K) (extricateNf⋆ A)
+extricateNf⋆ (ne n) = extricateNe⋆ n
+extricateNf⋆ (con c) = con c
 
-eraseNe⋆ (` α) = ` (eraseVar⋆ α)
-eraseNe⋆ (n · n') = eraseNe⋆ n · eraseNf⋆ n'
+extricateNe⋆ (` α) = ` (extricateVar⋆ α)
+extricateNe⋆ (n · n') = extricateNe⋆ n · extricateNf⋆ n'
 -- ((K ⇒ *) ⇒ K ⇒ *) ⇒ K ⇒ *
-eraseNe⋆ (μ1 {K = K}) = ƛ "x"
-  ((eraseK K ⇒ *) ⇒ eraseK K ⇒ *)
-  (ƛ "y" (eraseK K) (μ (` (suc zero)) (` zero)))
+extricateNe⋆ (μ1 {K = K}) = ƛ "x"
+  ((extricateK K ⇒ *) ⇒ extricateK K ⇒ *)
+  (ƛ "y" (extricateK K) (μ (` (suc zero)) (` zero)))
 \end{code}
 
 
@@ -63,40 +63,43 @@ lem ∅ = refl
 lem (Γ ,⋆ K) = cong suc (lem Γ)
 lem (Γ , A) = lem Γ
 -}
-eraseVar : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K} → Γ ∋ A → WeirdFin (len Γ)
-eraseVar Z = Z
-eraseVar (S x) = S (eraseVar x)
-eraseVar (T x) = T (eraseVar x)
+extricateVar : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K} → Γ ∋ A → WeirdFin (len Γ)
+extricateVar Z = Z
+extricateVar (S x) = S (extricateVar x)
+extricateVar (T x) = T (extricateVar x)
 
 
-eraseC : ∀{Γ}{A : Γ ⊢Nf⋆ *} → B.TermCon A → Scoped.TermCon
-eraseC (integer i) = integer i
-eraseC (bytestring b) = bytestring b
+extricateC : ∀{Γ}{A : Γ ⊢Nf⋆ *} → B.TermCon A → Scoped.TermCon
+extricateC (integer i) = integer i
+extricateC (bytestring b) = bytestring b
 
 open import Data.List as L
 open import Data.Product as P
 open import Function hiding (_∋_)
 
-eraseSub : ∀ {Γ Δ} → (∀ {J} → Δ ∋⋆ J → Γ ⊢Nf⋆ J) → List (ScopedTy (len⋆ Γ))
-eraseSub {Δ = ∅} σ = []
-eraseSub {Δ = Δ ,⋆ K} σ = eraseSub {Δ = Δ} (σ ∘ S) ++ L.[ eraseNf⋆ (σ Z) ]
+extricateSub : ∀ {Γ Δ} → (∀ {J} → Δ ∋⋆ J → Γ ⊢Nf⋆ J) → List (ScopedTy (len⋆ Γ))
+extricateSub {Δ = ∅} σ = []
+extricateSub {Δ = Δ ,⋆ K} σ =
+  extricateSub {Δ = Δ} (σ ∘ S) ++ L.[ extricateNf⋆ (σ Z) ]
 
-eraseTel : ∀ {Φ Γ Δ}(σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)(as : List (Δ ⊢Nf⋆ *)) → Tel Γ Δ σ as
+extricateTel : ∀ {Φ Γ Δ}(σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)(as : List (Δ ⊢Nf⋆ *))
+  → Tel Γ Δ σ as
   → List (ScopedTm (len Γ))
-erase : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K} → Γ ⊢ A → ScopedTm (len Γ)
+extricate : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K} → Γ ⊢ A → ScopedTm (len Γ)
 
-eraseTel σ [] x = []
-eraseTel σ (A ∷ As) (t P., ts) = eraseTel σ As ts ++ L.[ erase t ]
+extricateTel σ [] x = []
+extricateTel σ (A ∷ As) (t P., ts) = extricateTel σ As ts ++ L.[ extricate t ]
 
-erase (` x) = ` (eraseVar x)
-erase {Φ}{Γ} (ƛ {A = A} t) = ƛ "x" (eraseNf⋆ A) (erase t)
-erase (t · u) = erase t · erase u
-erase (Λ {K = K} t) = Λ "x" (eraseK K) (erase t)
-erase {Φ}{Γ} (t ·⋆ A) = erase t ·⋆ eraseNf⋆ A
-erase {Φ}{Γ} (wrap1 pat arg t) = wrap (eraseNf⋆ pat) (eraseNf⋆ arg)
-  (erase t)
-erase (unwrap1 t) = unwrap (erase t)
-erase (con c) = con (eraseC c)
-erase {Φ}{Γ} (builtin b σ ts) = builtin b (eraseSub σ) (eraseTel σ _ ts)
-erase {Φ}{Γ} (error A) = error (eraseNf⋆ A)
+extricate (` x) = ` (extricateVar x)
+extricate {Φ}{Γ} (ƛ {A = A} t) = ƛ "x" (extricateNf⋆ A) (extricate t)
+extricate (t · u) = extricate t · extricate u
+extricate (Λ {K = K} t) = Λ "x" (extricateK K) (extricate t)
+extricate {Φ}{Γ} (t ·⋆ A) = extricate t ·⋆ extricateNf⋆ A
+extricate {Φ}{Γ} (wrap1 pat arg t) = wrap (extricateNf⋆ pat) (extricateNf⋆ arg)
+  (extricate t)
+extricate (unwrap1 t) = unwrap (extricate t)
+extricate (con c) = con (extricateC c)
+extricate {Φ}{Γ} (builtin b σ ts) =
+  builtin b (extricateSub σ) (extricateTel σ _ ts)
+extricate {Φ}{Γ} (error A) = error (extricateNf⋆ A)
 \end{code}
