@@ -65,6 +65,21 @@ containing the actual data, but are wrapped in special functions (often ending i
 This is a pain to recognize.
 -}
 
+{- Note [unpackFoldrCString#]
+This function is introduced by rewrite rules, and usually eliminated by them in concert with `build`.
+
+However, since we often mark things as INLINABLE, we get pre-optimization Core where only the
+first transformation has fired. So we need to do something with the function. (Note: this might
+be easier if we used `-fexpose-all-unfoldings` instead.)
+
+- We can't easily turn it into a normal fold expression, since we'd need to make a lambda and
+  we're not in 'CoreM' so we can't make fresh names.
+- We can't easily translate it to a builtin, since we don't support higher-order functions.
+
+So we use a horrible hack and match on `build . unpackFoldrCString#` to "undo" the original rewrite
+rule.
+-}
+
 convLiteral :: Converting m => GHC.Literal -> m PIRTerm
 convLiteral = \case
     -- Just accept any kind of number literal, we'll complain about types we don't support elsewhere
@@ -84,15 +99,6 @@ convLiteral = \case
     GHC.MachDouble _   -> throwPlain $ UnsupportedError "Literal double"
     GHC.MachLabel {}   -> throwPlain $ UnsupportedError "Literal label"
     GHC.MachNullAddr   -> throwPlain $ UnsupportedError "Literal null"
-
-isPrimitiveWrapper :: GHC.Id -> Bool
-isPrimitiveWrapper i = case GHC.idDetails i of
-    GHC.DataConWorkId dc -> isPrimitiveDataCon dc
-    GHC.VanillaId        -> GHC.getName i == GHC.unpackCStringName
-    _                    -> False
-
-isPrimitiveDataCon :: GHC.DataCon -> Bool
-isPrimitiveDataCon dc = dc == GHC.intDataCon || dc == GHC.charDataCon
 
 -- | Convert a reference to a data constructor, i.e. a call to it.
 convDataConRef :: Converting m => GHC.DataCon -> m PIRTerm
@@ -182,7 +188,7 @@ hoistExpr :: Converting m => GHC.Var -> GHC.CoreExpr -> m PIRTerm
 hoistExpr var t =
     let
         name = GHC.getName var
-    in withContextM 2 (sdToTxt $ "Converting definition of:" GHC.<+> GHC.ppr var) $ do
+    in withContextM 1 (sdToTxt $ "Converting definition of:" GHC.<+> GHC.ppr var) $ do
         maybeDef <- PIR.lookupTerm () name
         case maybeDef of
             Just term -> pure term
@@ -207,26 +213,22 @@ convExpr e = withContextM 2 (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ d
     let top = NE.head stack
     case e of
         -- See Note [Literals]
-        GHC.App (GHC.Var (isPrimitiveWrapper -> True)) arg -> convExpr arg
+        -- unpackCString# is just a wrapper around a literal
+        GHC.Var n `GHC.App` arg | GHC.getName n == GHC.unpackCStringName -> convExpr arg
+        -- See Note [unpackFoldrCString#]
+        GHC.Var build `GHC.App` _ `GHC.App` GHC.Lam _ (GHC.Var unpack `GHC.App` _ `GHC.App` str)
+            | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName -> convExpr str
+        -- C# is just a wrapper around a literal
+        GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | dc == GHC.charDataCon -> convExpr arg
         -- void# - values of type void get represented as error, since they should be unreachable
         GHC.Var n | n == GHC.voidPrimId || n == GHC.voidArgId -> errorFunc
         -- See note [GHC runtime errors]
-        GHC.App (GHC.App (GHC.App
-                -- error function
-                (GHC.Var (isErrorId -> True))
-                -- runtime rep
-                _)
-                -- type of overall expression
-                (GHC.Type t))
-            _ -> force =<< PIR.TyInst () <$> errorFunc <*> convType t
-        GHC.App (GHC.App (GHC.App
-                -- error function
-                (GHC.Var (isErrorId -> True))
-                -- type of overall expression
-                (GHC.Type t))
-                -- message
-                _)
-            _ -> force =<< PIR.TyInst () <$> errorFunc <*> convType t
+        -- <error func> <runtime rep> <overall type> <message>
+        GHC.Var (isErrorId -> True) `GHC.App` _ `GHC.App` GHC.Type t `GHC.App` _ ->
+            force =<< PIR.TyInst () <$> errorFunc <*> convType t
+        -- <error func> <overall type> <message>
+        GHC.Var (isErrorId -> True) `GHC.App` GHC.Type t `GHC.App` _ ->
+            force =<< PIR.TyInst () <$> errorFunc <*> convType t
         -- locally bound vars
         GHC.Var (lookupName top . GHC.getName -> Just (PIR.VarDecl _ name _)) -> pure $ PIR.Var () name
         -- Special kinds of id
@@ -245,9 +247,9 @@ convExpr e = withContextM 2 (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ d
                     GHC.$+$ (GHC.ppr $ GHC.realIdUnfolding n)
         GHC.Lit lit -> convLiteral lit
         -- arg can be a type here, in which case it's a type instantiation
-        GHC.App l (GHC.Type t) -> PIR.TyInst () <$> convExpr l <*> convType t
+        l `GHC.App` GHC.Type t -> PIR.TyInst () <$> convExpr l <*> convType t
         -- otherwise it's a normal application
-        GHC.App l arg -> PIR.Apply () <$> convExpr l <*> convExpr arg
+        l `GHC.App` arg -> PIR.Apply () <$> convExpr l <*> convExpr arg
         -- if we're biding a type variable it's a type abstraction
         GHC.Lam b@(GHC.isTyVar -> True) body -> mkTyAbsScoped b $ convExpr body
         -- othewise it's a normal lambda

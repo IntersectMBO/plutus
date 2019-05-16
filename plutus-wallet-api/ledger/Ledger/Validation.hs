@@ -9,8 +9,6 @@
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
--- FIXME: 'unpackFoldrCString#'
-{-# OPTIONS_GHC -fno-enable-rewrite-rules #-}
 module Ledger.Validation
     (
     -- * Pending transactions and related types
