@@ -32,19 +32,20 @@ ren⋆L : ∀{m n} → Ren⋆ m n → List (ScopedTy m) → List (ScopedTy n)
 ren⋆L ρ⋆ []       = []
 ren⋆L ρ⋆ (A ∷ As) = ren⋆ ρ⋆ A ∷ ren⋆L ρ⋆ As
 
-Ren : Weirdℕ → Weirdℕ → Set
+Ren : ∀{m n} → Weirdℕ m → Weirdℕ n → Set
 Ren m n = WeirdFin m → WeirdFin n
 
-lift : ∀{m n} → Ren m n → Ren (S m) (S n)
+lift : ∀{m n}{w : Weirdℕ m}{v : Weirdℕ n} → Ren w v → Ren (S w) (S v)
 lift ρ Z     = Z
 lift ρ (S x) = S (ρ x)
 
-⋆lift : ∀{m n} → Ren m n → Ren (T m) (T n)
+⋆lift : ∀{m n}{w : Weirdℕ m}{v : Weirdℕ n} → Ren w v → Ren (T w) (T v)
 ⋆lift ρ (T x) = T (ρ x)
 
-ren : ∀{m n} → Ren⋆ ∥ m ∥ ∥ n ∥ → Ren m n → ScopedTm m → ScopedTm n
-renL : ∀{m n} → Ren⋆ ∥ m ∥ ∥ n ∥ → Ren m n
-      → List (ScopedTm m) → List (ScopedTm n)
+ren : ∀{m n}{w : Weirdℕ m}{v : Weirdℕ n} → Ren⋆ m n → Ren w v → ScopedTm w
+  → ScopedTm v
+renL : ∀{m n}{w : Weirdℕ m}{v : Weirdℕ n} → Ren⋆ m n → Ren w v
+  → List (ScopedTm w) → List (ScopedTm v)
 
 ren ρ⋆ ρ (` x) = ` (ρ x)
 ren ρ⋆ ρ (Λ x K t) = Λ x K (ren (lift⋆ ρ⋆) (⋆lift ρ) t) 
@@ -61,7 +62,6 @@ renL ρ⋆ ρ []       = []
 renL ρ⋆ ρ (t ∷ ts) = ren ρ⋆ ρ t ∷ renL ρ⋆ ρ ts
 
 -- substitution
-
 Sub⋆ : ℕ → ℕ → Set
 Sub⋆ m n = Fin m → ScopedTy n
 
@@ -82,19 +82,20 @@ sub⋆L : ∀{m n} → Sub⋆ m n → List (ScopedTy m) → List (ScopedTy n)
 sub⋆L σ⋆ []       = []
 sub⋆L σ⋆ (A ∷ As) = sub⋆ σ⋆ A ∷ sub⋆L σ⋆ As
 
-Sub : Weirdℕ → Weirdℕ → Set
-Sub m n = WeirdFin m → ScopedTm n
+Sub : ∀{m n} → Weirdℕ m → Weirdℕ n → Set
+Sub v w = WeirdFin v → ScopedTm w
 
-slift : ∀{m n} → Sub m n → Sub (S m) (S n)
+slift : ∀{m n}{w : Weirdℕ m}{v : Weirdℕ n} → Sub v w → Sub (S v) (S w)
 slift σ Z     = ` Z
 slift σ (S x) = ren id S (σ x)
 
-⋆slift : ∀{m n} → Sub m n → Sub (T m) (T n)
+⋆slift : ∀{m n}{w : Weirdℕ m}{v : Weirdℕ n} → Sub w v → Sub (T w) (T v)
 ⋆slift σ (T x) = ren suc T (σ x)
 
-sub : ∀{m n} → Sub⋆ ∥ m ∥ ∥ n ∥ → Sub m n → ScopedTm m → ScopedTm n
-subL : ∀{m n} → Sub⋆ ∥ m ∥ ∥ n ∥ → Sub m n
-  → List (ScopedTm m) → List (ScopedTm n)
+sub : ∀{m n}{v : Weirdℕ m}{w : Weirdℕ n} → Sub⋆ m n → Sub v w
+  → ScopedTm v → ScopedTm w
+subL : ∀{m n}{v : Weirdℕ m}{w : Weirdℕ n} → Sub⋆ m n → Sub v w
+  → List (ScopedTm v) → List (ScopedTm w)
 
 sub σ⋆ σ (` x) = σ x
 sub σ⋆ σ (Λ x K t) = Λ x K (sub (slift⋆ σ⋆) (⋆slift σ) t)
@@ -110,7 +111,7 @@ sub σ⋆ σ (unwrap t) = unwrap (sub σ⋆ σ t)
 subL σ⋆ σ []       = []
 subL σ⋆ σ (t ∷ ts) = sub σ⋆ σ t ∷ subL σ⋆ σ ts
 
-ext : ∀{m n} → Sub m n → ScopedTm n → Sub (S m) n
+ext : ∀{m n}{v : Weirdℕ m}{w : Weirdℕ n} → Sub v w → ScopedTm w → Sub (S v) w
 ext σ t Z = t
 ext σ t (S x) = σ x
 
@@ -118,10 +119,10 @@ ext⋆ : ∀{m n} → Sub⋆ m n → ScopedTy n → Sub⋆ (suc m) n
 ext⋆ σ A zero = A
 ext⋆ σ A (suc α) = σ α
 
-_[_] : ∀{n} → ScopedTm (S n) → ScopedTm n → ScopedTm n
+_[_] : ∀{n}{v : Weirdℕ n} → ScopedTm (S v) → ScopedTm v → ScopedTm v
 t [ u ] = sub ` (ext ` u) t
 
-_[_]⋆ : ∀{n} → ScopedTm (T n) → ScopedTy ∥ n ∥ → ScopedTm n
+_[_]⋆ : ∀{n}{w : Weirdℕ n} → ScopedTm (T w) → ScopedTy n → ScopedTm w
 t [ A ]⋆ = sub (ext⋆ ` A) (λ { (T x) → ` x}) t
 \end{code}
 

@@ -26,68 +26,68 @@ infix 2 _—→_
 \end{code}
 
 \begin{code}
-data Value {n} : ScopedTm n → Set where
-  V-ƛ : ∀ x (A : ScopedTy ∥ n ∥)(t : ScopedTm (S n)) → Value (ƛ x A t)
-  V-Λ : ∀ x K (t : ScopedTm (T n)) → Value (Λ x K t)
+data Value {n}{w : Weirdℕ n} : ScopedTm w → Set where
+  V-ƛ : ∀ x (A : ScopedTy n)(t : ScopedTm (S w)) → Value (ƛ x A t)
+  V-Λ : ∀ x K (t : ScopedTm (T w)) → Value (Λ x K t)
   V-con : (tcn : TermCon) → Value (con {n} tcn)
-  V-wrap : (A B : ScopedTy ∥ n ∥)(t : ScopedTm n) → Value (wrap A B t)
+  V-wrap : (A B : ScopedTy n)(t : ScopedTm w) → Value (wrap A B t)
   V-builtin : (b : Builtin)
-              (As : List (ScopedTy ∥ n ∥))
-              (ts : List (ScopedTm n))
+              (As : List (ScopedTy n))
+              (ts : List (ScopedTm w))
               → Value (builtin b As ts)
 
 -- a term that satisfies this predicate has an error term in it somewhere
 -- or we encountered a rumtime type error
-data Error {n} : ScopedTm n → Set where
+data Error {n}{w : Weirdℕ n} : ScopedTm w → Set where
    -- a genuine runtime error returned from a builtin
-   E-error : (A : ScopedTy ∥ n ∥) → Error (error A)
+   E-error : (A : ScopedTy n) → Error (error A)
 
    -- error inside somewhere
-   E-·₁ : {L M : ScopedTm n} → Error L → Error (L · M)
-   E-·₂ : {L M : ScopedTm n} → Error M → Error (L · M)
-   E-·⋆ : {L : ScopedTm n}{A : ScopedTy ∥ n ∥} → Error L → Error (L ·⋆ A)
-   E-unwrap : {L : ScopedTm n} → Error L → Error (unwrap L)
+   E-·₁ : {L M : ScopedTm w} → Error L → Error (L · M)
+   E-·₂ : {L M : ScopedTm w} → Error M → Error (L · M)
+   E-·⋆ : {L : ScopedTm w}{A : ScopedTy n} → Error L → Error (L ·⋆ A)
+   E-unwrap : {L : ScopedTm w} → Error L → Error (unwrap L)
 
    -- runtime type errors
    -- these couldn't happen in the intrinsically typed version
-   E-Λ·    : ∀{x K}{L : ScopedTm (T n)}{M : ScopedTm n} → Error (Λ x K L · M)
-   E-ƛ·⋆   : ∀{x}{B : ScopedTy ∥ n ∥}{L : ScopedTm (S n)}{A : ScopedTy ∥ n ∥}
+   E-Λ·    : ∀{x K}{L : ScopedTm (T w)}{M : ScopedTm w} → Error (Λ x K L · M)
+   E-ƛ·⋆   : ∀{x}{B : ScopedTy n}{L : ScopedTm (S w)}{A : ScopedTy n}
      → Error (ƛ x B L ·⋆ A)
-   E-con·  : ∀{tcn}{M : ScopedTm n} → Error (con tcn · M)
-   E-con·⋆ : ∀{tcn}{A : ScopedTy ∥ n ∥} → Error (con tcn ·⋆ A)
-   E-wrap· : {A B : ScopedTy ∥ n ∥}{t M : ScopedTm n} → Error (wrap A B t · M)
-   E-wrap·⋆ : {A' B A : ScopedTy ∥ n ∥}{t : ScopedTm n}
+   E-con·  : ∀{tcn}{M : ScopedTm w} → Error (con tcn · M)
+   E-con·⋆ : ∀{tcn}{A : ScopedTy n} → Error (con tcn ·⋆ A)
+   E-wrap· : {A B : ScopedTy n}{t M : ScopedTm w} → Error (wrap A B t · M)
+   E-wrap·⋆ : {A' B A : ScopedTy n}{t : ScopedTm w}
      → Error (wrap A' B t ·⋆ A)
-   E-ƛunwrap : ∀{x}{A : ScopedTy ∥ n ∥}{t : ScopedTm (S n)}
+   E-ƛunwrap : ∀{x}{A : ScopedTy n}{t : ScopedTm (S w)}
      → Error (unwrap (ƛ x A t) )
-   E-Λunwrap : ∀{x K}{t : ScopedTm (T n)} → Error (unwrap (Λ x K t))
+   E-Λunwrap : ∀{x K}{t : ScopedTm (T w)} → Error (unwrap (Λ x K t))
    E-conunwrap : ∀{tcn} → Error (unwrap (con tcn))
 
    -- this stuff is required due to unsaturated builtins in term args only
    E-builtin·⋆ : {b : Builtin}
-              {As : List (ScopedTy ∥ n ∥)}
-              {ts : List (ScopedTm n)}
-              {A : ScopedTy ∥ n ∥}
+              {As : List (ScopedTy n)}
+              {ts : List (ScopedTm w)}
+              {A : ScopedTy n}
               → Error (builtin b As ts ·⋆ A)
 
    E-builtinunwrap : {b : Builtin}
-              {As : List (ScopedTy ∥ n ∥)}
-              {ts : List (ScopedTm n)}
+              {As : List (ScopedTy n)}
+              {ts : List (ScopedTm w)}
               → Error (unwrap (builtin b As ts))
 
    -- an error occured in one of reducing an argument
    E-builtin : {b : Builtin}
-              {As : List (ScopedTy ∥ n ∥)}
-              {ts : List (ScopedTm n)}
-              {t : ScopedTm n}
+              {As : List (ScopedTy n)}
+              {ts : List (ScopedTm w)}
+              {t : ScopedTm w}
               → Error t
               → Error (builtin b As ts)
 
 -- doing minimal size checking
 
 
-BUILTIN : ∀{n} → Builtin
-  → List (ScopedTy ∥ n ∥) → List (Σ (ScopedTm n) (Value {n})) → ScopedTm n
+BUILTIN : ∀{n}{w : Weirdℕ n} → Builtin
+  → List (ScopedTy n) → List (Σ (ScopedTm w) (Value {n})) → ScopedTm w
 -- Int -> Int -> Int
 BUILTIN addInteger       _ ((_ , V-con (integer i)) ∷ (_ , V-con (integer i')) ∷ []) = con (integer (i I.+ i'))
 BUILTIN addInteger _ _ = error (con integer)
@@ -159,50 +159,50 @@ BUILTIN equalsByteString _ _ = error boolean
 
 
 
-data _—→_ {n} : ScopedTm n → ScopedTm n → Set where
-  ξ-·₁ : {L L' M : ScopedTm n} → L —→ L' → L · M —→ L' · M
-  ξ-·₂ : {L M M' : ScopedTm n} → Value L → M —→ M' → L · M —→ L · M'
-  ξ-·⋆ : {L L' : ScopedTm n}{A : ScopedTy ∥ n ∥} → L —→ L' → L ·⋆ A —→ L' ·⋆ A
-  β-ƛ : ∀{x}{A : ScopedTy ∥ n ∥}{L : ScopedTm (S n)}{M : ScopedTm n}
+data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
+  ξ-·₁ : {L L' M : ScopedTm w} → L —→ L' → L · M —→ L' · M
+  ξ-·₂ : {L M M' : ScopedTm w} → Value L → M —→ M' → L · M —→ L · M'
+  ξ-·⋆ : {L L' : ScopedTm w}{A : ScopedTy n} → L —→ L' → L ·⋆ A —→ L' ·⋆ A
+  β-ƛ : ∀{x}{A : ScopedTy n}{L : ScopedTm (S w)}{M : ScopedTm w}
       → (ƛ x A L) · M —→ (L [ M ])
-  β-Λ : ∀{x K}{L : ScopedTm (T n)}{A : ScopedTy ∥ n ∥}
+  β-Λ : ∀{x K}{L : ScopedTm (T w)}{A : ScopedTy n}
       → (Λ x K L) ·⋆ A —→ (L [ A ]⋆)
   ξ-builtin : {b : Builtin}
-              {As : List (ScopedTy ∥ n ∥)}
-              {ts : List (ScopedTm n)}
-              (vs : List (Σ (ScopedTm n) (Value {n})))
-              {t t' : ScopedTm n}
+              {As : List (ScopedTy n)}
+              {ts : List (ScopedTm w)}
+              (vs : List (Σ (ScopedTm w) (Value {n})))
+              {t t' : ScopedTm w}
             → t —→ t'
-            → (ts' : List (ScopedTm n))
+            → (ts' : List (ScopedTm w))
             → builtin b As ts —→
               builtin b As (Data.List.map proj₁ vs ++ Data.List.[ t' ] ++ ts')
   β-builtin : {b : Builtin}
-              {As : List (ScopedTy ∥ n ∥)}
-              {ts : List (ScopedTm n)}
-              (vs : List (Σ (ScopedTm n) (Value {n})))
+              {As : List (ScopedTy n)}
+              {ts : List (ScopedTm w)}
+              (vs : List (Σ (ScopedTm w) (Value {n})))
             → builtin b As ts —→ BUILTIN b As vs
   sat-builtin : {b : Builtin}
-              {As : List (ScopedTy ∥ n ∥)}
-              {ts : List (ScopedTm n)}
-              {t : ScopedTm n}
+              {As : List (ScopedTy n)}
+              {ts : List (ScopedTm w)}
+              {t : ScopedTm w}
             → builtin b As ts · t —→ builtin b As (ts ++ Data.List.[ t ])
 
-  ξ-unwrap : {t t' : ScopedTm n} → t —→ t' → unwrap t —→ unwrap t'
-  β-wrap : {A B : ScopedTy ∥ n ∥}{t : ScopedTm n} → unwrap (wrap A B t) —→ t
+  ξ-unwrap : {t t' : ScopedTm w} → t —→ t' → unwrap t —→ unwrap t'
+  β-wrap : {A B : ScopedTy n}{t : ScopedTm w} → unwrap (wrap A B t) —→ t
 \end{code}
 
 \begin{code}
-data _—→⋆_ {n} : ScopedTm n → ScopedTm n → Set where
-  refl  : {t : ScopedTm n} → t —→⋆ t
-  trans : {t t' t'' : ScopedTm n} → t —→ t' → t' —→⋆ t'' → t —→⋆ t''
+data _—→⋆_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
+  refl  : {t : ScopedTm w} → t —→⋆ t
+  trans : {t t' t'' : ScopedTm w} → t —→ t' → t' —→⋆ t'' → t —→⋆ t''
 \end{code}
 
 \begin{code}
-data ProgList {n} : Set where
-  done : List (Σ (ScopedTm n) (Value {n})) → ProgList
-  step : (vs : List (Σ (ScopedTm n) (Value {n}))){t t' : ScopedTm n} → t —→ t' → List (ScopedTm n)
+data ProgList {n}{w : Weirdℕ n} : Set where
+  done : List (Σ (ScopedTm w) (Value {n})) → ProgList
+  step : (vs : List (Σ (ScopedTm w) (Value {n}))){t t' : ScopedTm w} → t —→ t' → List (ScopedTm w)
        → ProgList
-  error : (vs : List (Σ (ScopedTm n) (Value {n}))){t : ScopedTm n} → Error t → List (ScopedTm n)
+  error : (vs : List (Σ (ScopedTm w) (Value {n}))){t : ScopedTm w} → Error t → List (ScopedTm w)
         → ProgList
 \end{code}
 
@@ -210,8 +210,8 @@ data ProgList {n} : Set where
 
 \begin{code}
 progress : (t : ScopedTm Z)
-         → (Value {Z} t ⊎ Error t) ⊎ Σ (ScopedTm Z) λ t' → t —→ t'
-progressList : List (ScopedTm Z) → ProgList {Z}
+         → (Value {w = Z} t ⊎ Error t) ⊎ Σ (ScopedTm Z) λ t' → t —→ t'
+progressList : List (ScopedTm Z) → ProgList {w = Z}
 progressList []       = done []
 progressList (t ∷ ts) with progress t
 progressList (t ∷ ts) | inl (inl vt) with progressList ts
