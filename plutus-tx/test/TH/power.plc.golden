@@ -7,22 +7,27 @@
       )
       (builtin multiplyInteger)
     )
-    (lam
-      ds
-      (con integer)
-      (let
-        (nonrec)
-        (termbind
-          (vardecl y (con integer))
-          (let
-            (nonrec)
-            (termbind
-              (vardecl y (con integer)) [ [ multiplyInteger ds ] (con 1) ]
+    (let
+      (nonrec)
+      (termbind
+        (vardecl multiply (fun (con integer) (fun (con integer) (con integer))))
+        multiplyInteger
+      )
+      (lam
+        ds
+        (con integer)
+        (let
+          (nonrec)
+          (termbind
+            (vardecl y (con integer))
+            (let
+              (nonrec)
+              (termbind (vardecl y (con integer)) [ [ multiply ds ] (con 1) ])
+              [ [ multiply y ] y ]
             )
-            [ [ multiplyInteger y ] y ]
           )
+          [ [ multiply y ] y ]
         )
-        [ [ multiplyInteger y ] y ]
       )
     )
   )

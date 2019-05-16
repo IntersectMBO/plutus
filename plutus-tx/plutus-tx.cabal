@@ -47,9 +47,6 @@ library
         Language.PlutusTx.Lift.Class,
         Language.PlutusTx.Builtins,
         Language.PlutusTx.Plugin
-    other-modules:
-        Language.PlutusTx.Prelude.Stage0
-        Language.PlutusTx.Prelude.Stage1
     build-tool-depends: doctest:doctest
     build-depends:
         base >=4.9 && <5,

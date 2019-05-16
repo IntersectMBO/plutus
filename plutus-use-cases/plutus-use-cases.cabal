@@ -17,6 +17,12 @@ source-repository head
     type: git
     location: https://github.com/input-output-hk/plutus
 
+flag defer-plugin-errors
+    description:
+        Defer errors from the plugin, useful for things like Haddock that can't handle it.
+    default: False
+    manual: True
+
 library
     exposed-modules:
         Language.PlutusTx.Coordination.Contracts
@@ -53,6 +59,9 @@ library
         template-haskell -any,
         lens -any,
         text -any
+
+    if flag(defer-plugin-errors)
+        ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
 
 test-suite plutus-use-cases-test
     type: exitcode-stdio-1.0

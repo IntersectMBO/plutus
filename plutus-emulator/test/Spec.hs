@@ -97,7 +97,7 @@ txnValid :: Property
 txnValid = property $ do
     (m, txn) <- forAll genChainTxn
     Gen.assertValid txn m
-    
+
 txnValidFrom :: Property
 txnValidFrom = property $ do
     (e, _) <- forAll $ Gen.runTraceOn Gen.generatorModel validFromTransaction
@@ -232,7 +232,7 @@ invalidScript = property $ do
 
     where
         failValidator :: ValidatorScript
-        failValidator = ValidatorScript $ $$(compileScript [|| \() () () -> $$(PlutusTx.traceH) "I always fail everything" (Builtins.error @()) ||])
+        failValidator = ValidatorScript $ $$(compileScript [|| \() () () -> PlutusTx.traceH "I always fail everything" (Builtins.error @()) ||])
 
 
 txnFlowsTest :: Property
@@ -349,7 +349,7 @@ watchFundsAtAddress = property $ do
             assertOwnFundsEq w (initialBalance `Value.minus` Ada.adaValueOf 200)
 
     Hedgehog.assert $ isRight e
-    
+
 genChainTxn :: Hedgehog.MonadGen m => m (Mockchain, Tx)
 genChainTxn = do
     m <- Gen.genMockchain
@@ -359,4 +359,3 @@ genChainTxn = do
 
 initialBalance :: Value
 initialBalance = Ada.adaValueOf 100000
-    

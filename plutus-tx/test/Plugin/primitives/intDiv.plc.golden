@@ -7,6 +7,6 @@
       )
       (builtin divideInteger)
     )
-    divideInteger
+    (lam ds (con integer) (lam ds (con integer) [ [ divideInteger ds ] ds ]))
   )
 )

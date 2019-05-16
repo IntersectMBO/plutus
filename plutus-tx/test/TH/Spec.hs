@@ -2,7 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:strip-context #-}
+{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC   -g #-}
 
@@ -79,24 +79,22 @@ andPlc :: CompiledCode Bool
 andPlc = $$(compile [|| $$(andTH) True False ||])
 
 allPlc :: CompiledCode Bool
-allPlc = $$(compile [|| $$(all) (\(x::Integer) -> $$gt x 5) [7, 6] ||])
+allPlc = $$(compile [|| all (\(x::Integer) -> gt x 5) [7, 6] ||])
 
 convertString :: CompiledCode Builtins.String
-convertString = $$(compile [|| $$(toPlutusString) "test" ||])
+convertString = $$(compile [|| toPlutusString "test" ||])
 
 traceDirect :: CompiledCode ()
-traceDirect = $$(compile [|| Builtins.trace ($$(toPlutusString) "test") ||])
+traceDirect = $$(compile [|| Builtins.trace (toPlutusString "test") ||])
 
 tracePrelude :: CompiledCode Integer
-tracePrelude = $$(compile [|| $$(trace) ($$(toPlutusString) "test") (1::Integer) ||])
+tracePrelude = $$(compile [|| trace (toPlutusString "test") (1::Integer) ||])
 
 traceRepeatedly :: CompiledCode Integer
 traceRepeatedly = $$(compile
      [||
-               -- This will in fact print the third log first, and then the others, but this
-               -- is the same behaviour as Debug.trace
-               let i1 = $$(traceH) "Making my first int" (1::Integer)
-                   i2 = $$(traceH) "Making my second int" (2::Integer)
-                   i3 = $$(traceH) "Adding them up" ($$plus i1 i2)
+               let i1 = traceH "Making my first int" (1::Integer)
+                   i2 = traceH "Making my second int" (2::Integer)
+                   i3 = traceH "Adding them up" (plus i1 i2)
               in i3
     ||])

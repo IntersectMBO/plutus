@@ -287,7 +287,7 @@ equalValue = [|| \l r -> let
 
     infixr 3 &&
     (&&) :: Bool -> Bool -> Bool
-    (&&) = $$(PlutusTx.and)
+    (&&) = PlutusTx.and
 
     eqPk :: PubKey -> PubKey -> Bool
     eqPk = $$(Validation.eqPubKey)
@@ -315,7 +315,7 @@ equalObservation :: Q (TExp ((Value -> Value -> Bool) -> Observation -> Observat
 equalObservation = [|| \eqValue l r -> let
     infixr 3 &&
     (&&) :: Bool -> Bool -> Bool
-    (&&) = $$(PlutusTx.and)
+    (&&) = PlutusTx.and
 
     eqPk :: PubKey -> PubKey -> Bool
     eqPk = $$(Validation.eqPubKey)
@@ -342,7 +342,7 @@ equalContract :: Q (TExp ((Value -> Value -> Bool) -> (Observation -> Observatio
 equalContract = [|| \eqValue eqObservation l r -> let
     infixr 3 &&
     (&&) :: Bool -> Bool -> Bool
-    (&&) = $$(PlutusTx.and)
+    (&&) = PlutusTx.and
 
     eqPk :: PubKey -> PubKey -> Bool
     eqPk = $$(Validation.eqPubKey)
@@ -437,7 +437,7 @@ evaluateValue :: Q (TExp (Slot -> [OracleValue Integer] -> State -> Value -> Int
 evaluateValue = [|| \pendingTxSlot inputOracles state value -> let
     infixr 3 &&
     (&&) :: Bool -> Bool -> Bool
-    (&&) = $$(PlutusTx.and)
+    (&&) = PlutusTx.and
 
     eqPk :: PubKey -> PubKey -> Bool
     eqPk = $$(Validation.eqPubKey)
@@ -490,24 +490,24 @@ interpretObservation :: Q (TExp (
     -> Integer -> State -> Observation -> Bool))
 interpretObservation = [|| \evalValue blockNumber state@(State _ choices) obs -> let
     not :: Bool -> Bool
-    not = $$(PlutusTx.not)
+    not = PlutusTx.not
 
     infixr 3 &&
     (&&) :: Bool -> Bool -> Bool
-    (&&) = $$(PlutusTx.and)
+    (&&) = PlutusTx.and
 
     infixr 3 ||
     (||) :: Bool -> Bool -> Bool
-    (||) = $$(PlutusTx.or)
+    (||) = PlutusTx.or
 
     eqPk :: PubKey -> PubKey -> Bool
     eqPk = $$(Validation.eqPubKey)
 
     isJust :: Maybe a -> Bool
-    isJust = $$(PlutusTx.isJust)
+    isJust = PlutusTx.isJust
 
     maybe :: r -> (a -> r) -> Maybe a -> r
-    maybe = $$(PlutusTx.maybe)
+    maybe = PlutusTx.maybe
 
     find :: IdentChoice -> Person -> [Choice] -> Maybe ConcreteChoice
     find choiceId@(IdentChoice cid) person choices = case choices of
@@ -537,7 +537,7 @@ insertCommit = [|| \ commit commits -> let
 
     infixr 3 &&
     (&&) :: Bool -> Bool -> Bool
-    (&&) = $$(PlutusTx.and)
+    (&&) = PlutusTx.and
 
     eqPk :: PubKey -> PubKey -> Bool
     eqPk = $$(Validation.eqPubKey)
@@ -564,7 +564,7 @@ discountFromPairList = [|| \ from (Slot currentBlockNumber) value' commits -> le
     value = $$(Ada.toInt) value'
 
     infixr 3 &&
-    (&&) = $$(PlutusTx.and)
+    (&&) = PlutusTx.and
 
     discount :: Integer -> [Commit] -> Maybe [Commit]
     discount value commits = case commits of
@@ -631,11 +631,11 @@ evaluateContract = [|| \
 
     infixr 3 &&
     (&&) :: Bool -> Bool -> Bool
-    (&&) = $$(PlutusTx.and)
+    (&&) = PlutusTx.and
 
     infixr 3 ||
     (||) :: Bool -> Bool -> Bool
-    (||) = $$(PlutusTx.or)
+    (||) = PlutusTx.or
 
     eqIdentCC :: IdentCC -> IdentCC -> Bool
     eqIdentCC (IdentCC a) (IdentCC b) = a `Builtins.equalsInteger` b
@@ -653,7 +653,7 @@ evaluateContract = [|| \
     signedBy :: Signature -> PubKey -> Bool
     signedBy (Signature sig) (PubKey (LedgerBytes pk)) = let
         TxHash msg = txHash
-        in $$(PlutusTx.verifySignature) pk msg sig
+        in PlutusTx.verifySignature pk msg sig
 
     eval :: InputCommand -> State -> Contract -> (State, Contract, Bool)
     eval input state@(State commits choices) contract = case (contract, input) of
@@ -734,7 +734,7 @@ evaluateContract = [|| \
                 Just updatedCommits -> (State updatedCommits choices, contract, True)
                 Nothing -> (state, contract, False)
 
-        (Null, SpendDeposit sig) | $$(PlutusTx.null) commits
+        (Null, SpendDeposit sig) | PlutusTx.null commits
             && sig `signedBy` contractCreatorPK -> (state, Null, True)
 
         _ -> (state, Null, False)
@@ -787,7 +787,7 @@ validatorScript = [|| \
 
         infixr 3 &&
         (&&) :: Bool -> Bool -> Bool
-        (&&) = $$(PlutusTx.and)
+        (&&) = PlutusTx.and
 
         eqValue :: Value -> Value -> Bool
         eqValue = $$(equalValue)
@@ -820,7 +820,7 @@ validatorScript = [|| \
             We use it as a current slot, basically. -}
         minSlot = case pendingTxValidRange of
             Interval (Just slot) _ -> slot
-            _ -> $$(PlutusTx.traceH) "Tx valid slot must have lower bound" Builtins.error ()
+            _ -> PlutusTx.traceH "Tx valid slot must have lower bound" Builtins.error ()
 
         -- TxIn we're validating is obviously a Script TxIn.
         (inputValidatorHash, redeemerHash, scriptInValue) = case pendingTxIn of
@@ -869,5 +869,5 @@ validatorScript = [|| \
             in if allowTransaction then () else Builtins.error ()
         {-  if the contract is invalid and there are no commit,
             allow to spend contract's money. It's likely to be created by mistake -}
-        else if $$(PlutusTx.null) currentCommits then () else Builtins.error ()
+        else if PlutusTx.null currentCommits then () else Builtins.error ()
     ||]

@@ -98,7 +98,7 @@ instance FromJSON CurrencySymbol where
 makeLift ''CurrencySymbol
 
 eqCurSymbol :: Q (TExp (CurrencySymbol -> CurrencySymbol -> Bool))
-eqCurSymbol = [|| \(CurrencySymbol l) (CurrencySymbol r) -> $$(P.equalsByteString) l r ||]
+eqCurSymbol = [|| \(CurrencySymbol l) (CurrencySymbol r) -> P.equalsByteString l r ||]
 
 currencySymbol :: Q (TExp (P.ByteString -> CurrencySymbol))
 currencySymbol = [|| CurrencySymbol ||]
@@ -133,7 +133,7 @@ instance FromJSON TokenName where
 makeLift ''TokenName
 
 eqTokenName :: Q (TExp (TokenName -> TokenName -> Bool))
-eqTokenName = [|| \(TokenName l) (TokenName r) -> $$(P.equalsByteString) l r ||]
+eqTokenName = [|| \(TokenName l) (TokenName r) -> P.equalsByteString l r ||]
 
 tokenName :: Q (TExp (P.ByteString -> TokenName))
 tokenName = [|| TokenName ||]
@@ -258,14 +258,14 @@ scale :: Q (TExp (Integer -> Value -> Value))
 scale = [||
           let scale' :: Integer -> Value -> Value
               scale' i (Value xs) =
-                Value ($$(Map.map) ($$(Map.map) (\i' -> $$(P.multiply) i i')) xs)
+                Value ($$(Map.map) ($$(Map.map) (\i' -> P.multiply i i')) xs)
           in scale' ||]
 
 -- Num operations
 
 -- | Add two 'Value's together. See 'Value' for an explanation of how operations on 'Value's work.
 plus :: Q (TExp (Value -> Value -> Value))
-plus = [|| $$(unionWith) $$(P.plus) ||]
+plus = [|| $$(unionWith) P.plus ||]
 
 -- | Negate a 'Value's. See 'Value' for an explanation of how operations on 'Value's work.
 negate :: Q (TExp (Value -> Value))
@@ -273,11 +273,11 @@ negate = [|| $$(scale) (-1) ||]
 
 -- | Subtract one 'Value' from another. See 'Value' for an explanation of how operations on 'Value's work.
 minus :: Q (TExp (Value -> Value -> Value))
-minus = [|| $$(unionWith) $$(P.minus) ||]
+minus = [|| $$(unionWith) P.minus ||]
 
 -- | Multiply two 'Value's together. See 'Value' for an explanation of how operations on 'Value's work.
 multiply :: Q (TExp (Value -> Value -> Value))
-multiply = [|| $$(unionWith) $$(P.multiply) ||]
+multiply = [|| $$(unionWith) P.multiply ||]
 
 -- | The empty 'Value'.
 zero :: Q (TExp Value)
@@ -287,7 +287,7 @@ zero = [|| Value $$(Map.empty) ||]
 isZero :: Q (TExp (Value -> Bool))
 isZero = [||
           let isZero' :: Value -> Bool
-              isZero' (Value xs) = $$(Map.all) ($$(Map.all) (\i -> $$(P.eq) 0 i)) xs
+              isZero' (Value xs) = $$(Map.all) ($$(Map.all) (\i -> P.eq 0 i)) xs
           in isZero' ||]
 
 checkPred :: Q (TExp ((Map.These Integer Integer -> Bool) -> Value -> Value -> Bool))
@@ -319,20 +319,20 @@ checkBinRel = [||
 
 -- | Check whether one 'Value' is greater than or equal to another. See 'Value' for an explanation of how operations on 'Value's work.
 geq :: Q (TExp (Value -> Value -> Bool))
-geq = [|| $$checkBinRel $$(P.geq) ||]
+geq = [|| $$checkBinRel P.geq ||]
 
 -- | Check whether one 'Value' is strictly greater than another. See 'Value' for an explanation of how operations on 'Value's work.
 gt :: Q (TExp (Value -> Value -> Bool))
-gt = [|| $$checkBinRel $$(P.gt) ||]
+gt = [|| $$checkBinRel P.gt ||]
 
 -- | Check whether one 'Value' is less than or equal to another. See 'Value' for an explanation of how operations on 'Value's work.
 leq :: Q (TExp (Value -> Value -> Bool))
-leq = [|| $$checkBinRel $$(P.leq) ||]
+leq = [|| $$checkBinRel P.leq ||]
 
 -- | Check whether one 'Value' is strictly less than another. See 'Value' for an explanation of how operations on 'Value's work.
 lt :: Q (TExp (Value -> Value -> Bool))
-lt = [|| $$checkBinRel $$(P.lt) ||]
+lt = [|| $$checkBinRel P.lt ||]
 
 -- | Check whether one 'Value' is equal to another. See 'Value' for an explanation of how operations on 'Value's work.
 eq :: Q (TExp (Value -> Value -> Bool))
-eq = [|| $$checkBinRel $$(P.eq) ||]
+eq = [|| $$checkBinRel P.eq ||]

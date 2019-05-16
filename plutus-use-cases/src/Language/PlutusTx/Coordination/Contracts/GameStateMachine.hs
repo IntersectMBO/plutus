@@ -71,7 +71,7 @@ gameValidator = ValidatorScript ($$(Ledger.compileScript [||
         --   'HashedString'
         checkGuess :: HashedString -> ClearString -> Bool
         checkGuess (HashedString actual) (ClearString gss) =
-            $$(P.equalsByteString) actual ($$(P.sha2_256) gss)
+            P.equalsByteString actual (P.sha2_256 gss)
 
         -- | Given a 'TokeName', get the value that contains
         --   exactly one token of that name in the contract's
@@ -96,24 +96,24 @@ gameValidator = ValidatorScript ($$(Ledger.compileScript [||
         -- | Equality of 'GameState' valzes.
         stateEq :: GameState -> GameState -> Bool
         stateEq (Initialised (HashedString s)) (Initialised (HashedString s')) =
-            $$(P.equalsByteString) s s'
+            P.equalsByteString s s'
         stateEq (Locked (V.TokenName n) (HashedString s)) (Locked (V.TokenName n') (HashedString s')) =
-            $$(P.and) ($$(P.equalsByteString) s s') ($$(P.equalsByteString) n n')
-        stateEq _ _ = $$(P.traceIfFalseH) "states not equal" False
+            P.and (P.equalsByteString s s') (P.equalsByteString n n')
+        stateEq _ _ = P.traceIfFalseH "states not equal" False
 
         -- | The transition function of the game's state machine
         trans :: GameState -> GameInput -> GameState
         trans (Initialised s) (ForgeToken tn) =
             if checkForge (tokenVal tn)
             then Locked tn s
-            else $$(P.error) ()
+            else P.error ()
         trans (Locked tn currentSecret) (Guess theGuess nextSecret) =
-            if $$(P.and)
+            if P.and
                 (checkGuess currentSecret theGuess)
-                ($$(P.and) (tokenPresent tn) (checkForge $$(V.zero)))
+                (P.and (tokenPresent tn) (checkForge $$(V.zero)))
             then Locked tn nextSecret
-            else $$(P.error) ()
-        trans _ _ = $$(P.traceH) "Invalid transition" ($$(P.error) ())
+            else P.error ()
+        trans _ _ = P.traceH "Invalid transition" (P.error ())
 
         sm = StateMachine trans stateEq
 

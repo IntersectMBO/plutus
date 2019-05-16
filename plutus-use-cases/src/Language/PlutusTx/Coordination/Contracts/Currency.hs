@@ -58,18 +58,18 @@ curValidator cur =
                         -- currency that we expect
                         forgeOK =
                             let v = $$(Value.eq) expected forged
-                            in $$(P.traceIfFalseH) "Value forged different from expected" v
+                            in P.traceIfFalseH "Value forged different from expected" v
 
                         -- True if the pending transaction spends the output
                         -- identified by @(refHash, refIdx)@
                         txOutputSpent =
                             let v = $$(V.spendsOutput) p refHash refIdx
-                            in  $$(P.traceIfFalseH) "Pending transaction does not spend the designated transaction output" v
+                            in  P.traceIfFalseH "Pending transaction does not spend the designated transaction output" v
 
                     in
-                        if $$(P.and) forgeOK txOutputSpent
+                        if P.and forgeOK txOutputSpent
                         then ()
-                        else $$(P.error) ($$(P.traceH) "Invalid forge" ())
+                        else P.error (P.traceH "Invalid forge" ())
             in
                 validate
             ||]))
