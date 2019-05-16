@@ -1,10 +1,10 @@
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE DerivingStrategies   #-}
-{-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DeriveGeneric        #-}
+{-# LANGUAGE DerivingStrategies   #-}
+{-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE MonoLocalBinds       #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE UndecidableInstances #-}
 -- Otherwise we get a complaint about the 'fromIntegral' call in the generated instance of 'Integral' for 'Ada'
 {-# OPTIONS_GHC -Wno-identities #-}
 -- | Slots and slot ranges.
@@ -21,13 +21,13 @@ module Ledger.Slot(
     , after
     ) where
 
-import           Codec.Serialise.Class                    (Serialise)
-import           Data.Aeson                               (FromJSON, ToJSON)
-import           Data.Swagger.Internal.Schema             (ToSchema)
-import           GHC.Generics                             (Generic)
+import           Codec.Serialise.Class        (Serialise)
+import           Data.Aeson                   (FromJSON, ToJSON)
+import           Data.Swagger.Internal.Schema (ToSchema)
+import           GHC.Generics                 (Generic)
 
-import           Language.PlutusTx.Lift                   (makeLift)
-import           Language.PlutusTx.Prelude                as P
+import           Language.PlutusTx.Lift       (makeLift)
+import           Language.PlutusTx.Prelude    as P
 
 import           Ledger.Interval
 
@@ -57,7 +57,7 @@ empty :: SlotRange -> Bool
 empty (Interval f t) = case f of
     Nothing -> False
     Just (Slot f') -> case t of
-        Nothing -> False
+        Nothing        -> False
         Just (Slot t') -> geq f' t'
 
 -- | Check if 'Slot' is contained in a 'SlotRange'.
@@ -73,7 +73,7 @@ width :: SlotRange -> Maybe Integer
 width (Interval f t) = case f of
     Nothing -> Nothing
     Just (Slot f') -> case t of
-        Nothing -> Nothing
+        Nothing        -> Nothing
         Just (Slot t') -> Just (minus t' f')
 
 -- | @a `contains` b@ is true if the 'SlotRange' @b@ is entirely contained in
@@ -84,12 +84,12 @@ contains (Interval af at) (Interval bf bt) =
     let lw = case af of
             Nothing -> True
             Just (Slot af') -> case bf of
-                Nothing -> False
+                Nothing         -> False
                 Just (Slot bf') -> leq af' bf'
         hg = case at of
             Nothing -> True
             Just (Slot at') -> case bt of
-                Nothing -> False
+                Nothing         -> False
                 Just (Slot bt') -> geq at' bt'
     in
         if lw then hg else False

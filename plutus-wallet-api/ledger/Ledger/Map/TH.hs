@@ -1,11 +1,11 @@
-{-# LANGUAGE UndecidableInstances   #-}
-{-# LANGUAGE FlexibleContexts       #-}
-{-# LANGUAGE DeriveAnyClass         #-}
-{-# LANGUAGE DeriveGeneric          #-}
-{-# LANGUAGE DerivingStrategies     #-}
-{-# LANGUAGE TemplateHaskell        #-}
-{-# LANGUAGE LambdaCase             #-}
-{-# LANGUAGE MonoLocalBinds         #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DeriveGeneric        #-}
+{-# LANGUAGE DerivingStrategies   #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE MonoLocalBinds       #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 -- Prevent unboxing, which the plugin can't deal with
 {-# OPTIONS_GHC -fno-strictness #-}
@@ -28,12 +28,12 @@ module Ledger.Map.TH(
     ) where
 
 import           Codec.Serialise.Class        (Serialise)
-import           Data.Aeson                   (FromJSON(parseJSON), ToJSON(toJSON))
+import           Data.Aeson                   (FromJSON (parseJSON), ToJSON (toJSON))
 import           Data.Swagger.Internal.Schema (ToSchema)
 import           GHC.Generics                 (Generic)
 import           Language.PlutusTx.Lift       (makeLift)
 import qualified Language.PlutusTx.Prelude    as P
-import           Ledger.These.TH              (These(..), these)
+import           Ledger.These.TH              (These (..), these)
 import           Prelude                      hiding (all, lookup, map, negate)
 
 
@@ -65,7 +65,7 @@ map :: forall k v w . (v -> w) -> Map k v -> Map k w
 map f (Map mp) =
     let
         go :: [(k, v)] -> [(k, w)]
-        go [] = []
+        go []           = []
         go ((c, i):xs') = (c, f i) : go xs'
     in Map (go mp)
 
@@ -113,7 +113,7 @@ union eq (Map ls) (Map rs) =
 all :: (v -> Bool) -> Map k v -> Bool
 all p (Map mps) =
     let go xs = case xs of
-            []         -> True
+            []              -> True
             (_ :: k, x):xs' -> P.and (p x) (go xs')
     in go mps
 

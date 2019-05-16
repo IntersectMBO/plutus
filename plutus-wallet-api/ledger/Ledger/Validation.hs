@@ -68,13 +68,13 @@ import           Data.Aeson                   (FromJSON, ToJSON (toJSON))
 import qualified Data.Aeson                   as JSON
 import qualified Data.Aeson.Extras            as JSON
 import qualified Data.ByteArray               as BA
-import qualified Data.ByteString.Lazy.Hash    as Hash
 import qualified Data.ByteString.Lazy         as BSL
+import qualified Data.ByteString.Lazy.Hash    as Hash
 import           Data.Proxy                   (Proxy (Proxy))
 import           Data.Swagger.Internal.Schema (ToSchema (declareNamedSchema), paramSchemaToSchema, plain)
 import           GHC.Generics                 (Generic)
-import           Language.PlutusTx.Lift       (makeLift)
 import qualified Language.PlutusTx.Builtins   as Builtins
+import           Language.PlutusTx.Lift       (makeLift)
 import qualified Language.PlutusTx.Prelude    as P
 
 import           Ledger.Ada                   (Ada)
@@ -82,11 +82,11 @@ import qualified Ledger.Ada.TH                as Ada
 import           Ledger.Crypto                (PubKey (..), Signature (..))
 import           Ledger.Scripts
 import           Ledger.Slot                  (Slot, SlotRange)
-import qualified Ledger.TxId                  as Tx
 import           Ledger.Tx                    (Address, getAddress, scriptAddress)
-import           Ledger.Value                 (CurrencySymbol(..), Value)
+import qualified Ledger.TxId                  as Tx
+import           Ledger.Value                 (CurrencySymbol (..), Value)
 import qualified Ledger.Value.TH              as VTH
-import           LedgerBytes                  (LedgerBytes(..))
+import           LedgerBytes                  (LedgerBytes (..))
 
 -- Ignore newtype warnings related to `Oracle` and `Signed` because it causes
 -- problems with the plugin
@@ -126,23 +126,23 @@ data PendingTxOutRef = PendingTxOutRef
 
 -- | An input of a pending transaction.
 data PendingTxIn = PendingTxIn
-    { pendingTxInRef       :: PendingTxOutRef
-    , pendingTxInWitness   :: Maybe (ValidatorHash, RedeemerHash)
+    { pendingTxInRef     :: PendingTxOutRef
+    , pendingTxInWitness :: Maybe (ValidatorHash, RedeemerHash)
     -- ^ Tx input witness, hashes for Script input, or signature for a PubKey
-    , pendingTxInValue     :: Value -- ^ Value consumed by this txn input
+    , pendingTxInValue   :: Value -- ^ Value consumed by this txn input
     } deriving (Generic)
 
 -- | A pending transaction. This is the view as seen by validator scripts, so some details are stripped out.
 data PendingTx = PendingTx
-    { pendingTxInputs      :: [PendingTxIn] -- ^ Transaction inputs
-    , pendingTxOutputs     :: [PendingTxOut] -- ^ Transaction outputs
-    , pendingTxFee         :: Ada -- ^ The fee paid by this transaction.
-    , pendingTxForge       :: Value -- ^ The 'Value' forged by this transaction.
-    , pendingTxIn          :: PendingTxIn -- ^ The 'PendingTxIn' being validated against currently.
-    , pendingTxValidRange  :: SlotRange -- ^ The valid range for the transaction.
-    , pendingTxSignatures  :: [(PubKey, Signature)]
+    { pendingTxInputs     :: [PendingTxIn] -- ^ Transaction inputs
+    , pendingTxOutputs    :: [PendingTxOut] -- ^ Transaction outputs
+    , pendingTxFee        :: Ada -- ^ The fee paid by this transaction.
+    , pendingTxForge      :: Value -- ^ The 'Value' forged by this transaction.
+    , pendingTxIn         :: PendingTxIn -- ^ The 'PendingTxIn' being validated against currently.
+    , pendingTxValidRange :: SlotRange -- ^ The valid range for the transaction.
+    , pendingTxSignatures :: [(PubKey, Signature)]
     -- ^ Signatures provided with the transaction
-    , pendingTxHash        :: TxHash
+    , pendingTxHash       :: TxHash
     -- ^ Hash of the pending transaction (excluding witnesses)
     } deriving (Generic)
 
@@ -337,7 +337,7 @@ eqTx (TxHash l) (TxHash r) = Builtins.equalsByteString l r
 ownHashes :: PendingTx -> (ValidatorHash, RedeemerHash)
 ownHashes (PendingTx _ _ _ _ i _ _ _) = case i of
     PendingTxIn _ (Just h) _ -> h
-    _ -> P.error ()
+    _                        -> P.error ()
 
 {-# INLINABLE ownHash #-}
 -- | Get the hash of the validator script that is currently being validated.

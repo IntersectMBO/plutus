@@ -19,4 +19,4 @@ module Ledger.Map(
     ) where
 
 import           Ledger.Map.TH
-import           Prelude hiding (all, lookup, map)
+import           Prelude       hiding (all, lookup, map)

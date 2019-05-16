@@ -78,42 +78,41 @@ module Wallet.Emulator.Types(
     selectCoin
     ) where
 
-import           Control.Lens               hiding (index)
+import           Control.Lens              hiding (index)
 import           Control.Monad.Except
-import           Control.Monad.Operational  as Op hiding (view)
+import           Control.Monad.Operational as Op hiding (view)
 import           Control.Monad.State
 import           Control.Monad.Writer
-import           Control.Newtype.Generics   (Newtype)
-import qualified Ledger.Crypto                     as Crypto
-import           Data.Aeson                 (FromJSON, ToJSON, ToJSONKey)
-import           Data.Bifunctor             (Bifunctor (..))
-import qualified Data.ByteString.Lazy       as BSL
-import           Data.Foldable              (fold, traverse_)
-import           Data.Hashable              (Hashable)
-import           Data.List                  (partition)
-import           Data.Map                   (Map)
-import qualified Data.Map                   as Map
+import           Control.Newtype.Generics  (Newtype)
+import           Data.Aeson                (FromJSON, ToJSON, ToJSONKey)
+import           Data.Bifunctor            (Bifunctor (..))
+import qualified Data.ByteString.Lazy      as BSL
+import           Data.Foldable             (fold, traverse_)
+import           Data.Hashable             (Hashable)
+import           Data.List                 (partition)
+import           Data.Map                  (Map)
+import qualified Data.Map                  as Map
 import           Data.Maybe
-import qualified Data.Set                   as Set
-import           Data.Swagger               (ToSchema)
-import qualified Data.Text                  as T
-import           Data.Traversable           (for)
-import           GHC.Generics               (Generic)
-import           Prelude                    as P
-import           Servant.API                (FromHttpApiData(..), ToHttpApiData(..))
+import qualified Data.Set                  as Set
+import           Data.Swagger              (ToSchema)
+import qualified Data.Text                 as T
+import           Data.Traversable          (for)
+import           GHC.Generics              (Generic)
+import qualified Ledger.Crypto             as Crypto
+import           Prelude                   as P
+import           Servant.API               (FromHttpApiData (..), ToHttpApiData (..))
 
-import qualified Ledger.Ada                 as Ada
-import           Ledger                     (Address, Block, Blockchain, PrivateKey(..), PubKey(..), Slot, Tx (..), TxId, TxOut, TxOutOf (..),
-                                             TxOutRef, Value, addSignature, hashTx, lastSlot, pubKeyAddress, pubKeyTxIn, pubKeyTxOut,
-                                             toPublicKey, txOutAddress)
-import qualified Ledger.AddressMap          as AM
-import qualified Ledger.Index               as Index
-import qualified Ledger.Slot                as Slot
-import qualified Ledger.Value               as Value
-import           Wallet.API                 (EventHandler (..), EventTrigger, WalletAPI (..),
-                                             WalletAPIError (..), WalletDiagnostics (..), WalletLog (..), addresses,
-                                             annTruthValue, getAnnot)
-import qualified Wallet.API                 as WAPI
+import           Ledger                    (Address, Block, Blockchain, PrivateKey (..), PubKey (..), Slot, Tx (..),
+                                            TxId, TxOut, TxOutOf (..), TxOutRef, Value, addSignature, hashTx, lastSlot,
+                                            pubKeyAddress, pubKeyTxIn, pubKeyTxOut, toPublicKey, txOutAddress)
+import qualified Ledger.Ada                as Ada
+import qualified Ledger.AddressMap         as AM
+import qualified Ledger.Index              as Index
+import qualified Ledger.Slot               as Slot
+import qualified Ledger.Value              as Value
+import           Wallet.API                (EventHandler (..), EventTrigger, WalletAPI (..), WalletAPIError (..),
+                                            WalletDiagnostics (..), WalletLog (..), addresses, annTruthValue, getAnnot)
+import qualified Wallet.API                as WAPI
 
 -- | A wallet in the emulator model.
 newtype Wallet = Wallet { getWallet :: Integer }
@@ -160,11 +159,11 @@ tellTx tx = MockWallet $ tell (mempty, tx)
 data WalletState = WalletState {
     _ownPrivateKey :: PrivateKey,
     -- ^ User's 'PrivateKey'.
-    _walletSlot :: Slot,
+    _walletSlot    :: Slot,
     -- ^ Current slot as far as the wallet is concerned.
-    _addressMap :: AM.AddressMap,
+    _addressMap    :: AM.AddressMap,
     -- ^ Addresses that we watch.
-    _triggers   :: Map EventTrigger (EventHandler MockWallet)
+    _triggers      :: Map EventTrigger (EventHandler MockWallet)
     -- ^ Triggers registered by the user.
     }
 

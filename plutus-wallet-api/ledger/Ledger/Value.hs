@@ -29,8 +29,8 @@ module Ledger.Value(
     , isZero
     ) where
 
-import Ledger.Value.TH
-import           Prelude                    hiding (negate)
+import           Ledger.Value.TH
+import           Prelude         hiding (negate)
 
 instance Eq Value where
   (==) = eq

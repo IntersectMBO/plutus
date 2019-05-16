@@ -1,8 +1,8 @@
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE RecordWildCards  #-}
-{-# LANGUAGE TemplateHaskell  #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
 -- | Generators for constructing blockchains and transactions for use in property-based testing.
 module Wallet.Generators(
     -- * Mockchain
@@ -33,26 +33,26 @@ module Wallet.Generators(
     signAll
     ) where
 
-import           Data.Bifunctor  (Bifunctor (..))
-import qualified Data.ByteString.Lazy as BSL
-import           Data.Foldable   (fold, foldl')
-import           Data.Map        (Map)
-import qualified Data.Map        as Map
-import           Data.Maybe      (catMaybes, isNothing)
-import           Data.Set        (Set)
-import qualified Data.Set        as Set
-import           GHC.Stack       (HasCallStack)
+import           Data.Bifunctor            (Bifunctor (..))
+import qualified Data.ByteString.Lazy      as BSL
+import           Data.Foldable             (fold, foldl')
+import           Data.Map                  (Map)
+import qualified Data.Map                  as Map
+import           Data.Maybe                (catMaybes, isNothing)
+import           Data.Set                  (Set)
+import qualified Data.Set                  as Set
+import           GHC.Stack                 (HasCallStack)
 import           Hedgehog
-import qualified Hedgehog.Gen    as Gen
-import qualified Hedgehog.Range  as Range
-import qualified Language.PlutusTx.Prelude    as P
-import qualified Ledger.Ada      as Ada
-import qualified Ledger.Index    as Index
-import qualified Ledger.Interval as Interval
-import qualified Ledger.Value    as Value
+import qualified Hedgehog.Gen              as Gen
+import qualified Hedgehog.Range            as Range
+import qualified Language.PlutusTx.Prelude as P
+import qualified Ledger.Ada                as Ada
+import qualified Ledger.Index              as Index
+import qualified Ledger.Interval           as Interval
+import qualified Ledger.Value              as Value
 
 import           Ledger
-import qualified Wallet.API      as W
+import qualified Wallet.API                as W
 
 -- | Attach signatures of all known private keys to a transaction.
 signAll :: Tx -> Tx

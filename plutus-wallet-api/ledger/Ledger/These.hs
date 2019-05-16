@@ -6,4 +6,4 @@ module Ledger.These(
   , theseWithDefault
   ) where
 
-import Ledger.These.TH
+import           Ledger.These.TH

@@ -1,14 +1,14 @@
-{-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE ConstraintKinds    #-}
+{-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE RankNTypes         #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeFamilies       #-}
-{-# LANGUAGE OverloadedStrings  #-}
 -- | The interface between the wallet and Plutus client code.
 module Wallet.API(
     WalletAPI(..),
@@ -72,37 +72,37 @@ module Wallet.API(
     WalletLog(..)
     ) where
 
-import           Control.Lens               hiding (contains)
-import           Control.Monad              (void, when)
-import           Control.Monad.Error.Class  (MonadError (..))
-import           Data.Aeson                 (FromJSON, ToJSON)
-import           Data.Bifunctor             (Bifunctor(bimap))
-import qualified Data.ByteArray             as BA
-import qualified Data.ByteString.Lazy       as BSL
-import           Data.Eq.Deriving           (deriveEq1)
-import           Data.Foldable              (fold)
-import           Data.Functor.Compose       (Compose (..))
-import           Data.Functor.Foldable      (Corecursive (..), Fix (..), Recursive (..), unfix)
-import qualified Data.Map                   as Map
-import           Data.Maybe                 (fromMaybe, maybeToList)
-import           Data.Ord.Deriving          (deriveOrd1)
-import qualified Data.Set                   as Set
-import           Data.Text                  (Text)
+import           Control.Lens              hiding (contains)
+import           Control.Monad             (void, when)
+import           Control.Monad.Error.Class (MonadError (..))
+import           Data.Aeson                (FromJSON, ToJSON)
+import           Data.Bifunctor            (Bifunctor (bimap))
+import qualified Data.ByteArray            as BA
+import qualified Data.ByteString.Lazy      as BSL
+import           Data.Eq.Deriving          (deriveEq1)
+import           Data.Foldable             (fold)
+import           Data.Functor.Compose      (Compose (..))
+import           Data.Functor.Foldable     (Corecursive (..), Fix (..), Recursive (..), unfix)
+import qualified Data.Map                  as Map
+import           Data.Maybe                (fromMaybe, maybeToList)
+import           Data.Ord.Deriving         (deriveOrd1)
+import qualified Data.Set                  as Set
+import           Data.Text                 (Text)
 
-import qualified Data.Text                  as Text
-import           GHC.Generics               (Generic)
-import           Ledger                     (Address, DataScript, PubKey (..), RedeemerScript, Signature, Slot,
-                                             SlotRange, Tx (..), TxId, TxIn, TxOut, TxOutOf (..), TxOutRef,
-                                             TxOutType (..), ValidatorScript, Value, getTxId, hashTx, outValue, pubKeyTxOut, scriptAddress,
-                                             scriptTxIn, signatures, txOutRefId)
-import           Ledger.AddressMap          (AddressMap)
-import           Ledger.Interval            (Interval (..), interval, always)
-import qualified Ledger.Interval            as Interval
-import Ledger.Slot (before, after, singleton, contains, width, empty)
-import qualified Ledger.Value               as Value
-import           Text.Show.Deriving         (deriveShow1)
+import qualified Data.Text                 as Text
+import           GHC.Generics              (Generic)
+import           Ledger                    (Address, DataScript, PubKey (..), RedeemerScript, Signature, Slot,
+                                            SlotRange, Tx (..), TxId, TxIn, TxOut, TxOutOf (..), TxOutRef,
+                                            TxOutType (..), ValidatorScript, Value, getTxId, hashTx, outValue,
+                                            pubKeyTxOut, scriptAddress, scriptTxIn, signatures, txOutRefId)
+import           Ledger.AddressMap         (AddressMap)
+import           Ledger.Interval           (Interval (..), always, interval)
+import qualified Ledger.Interval           as Interval
+import           Ledger.Slot               (after, before, contains, empty, singleton, width)
+import qualified Ledger.Value              as Value
+import           Text.Show.Deriving        (deriveShow1)
 
-import           Prelude                    hiding (Ordering (..))
+import           Prelude                   hiding (Ordering (..))
 
 data EventTriggerF f =
     TAnd f f

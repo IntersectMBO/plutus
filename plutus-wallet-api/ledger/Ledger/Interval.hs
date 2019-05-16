@@ -1,10 +1,10 @@
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE DerivingStrategies   #-}
-{-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DeriveGeneric        #-}
+{-# LANGUAGE DerivingStrategies   #-}
+{-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE MonoLocalBinds       #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE UndecidableInstances #-}
 -- | A type for intervals and associated functions.
 module Ledger.Interval(
       Interval(..)
@@ -17,14 +17,14 @@ module Ledger.Interval(
     , overlaps
     ) where
 
-import           Codec.Serialise.Class                    (Serialise)
-import           Data.Aeson                               (FromJSON, ToJSON)
-import           Data.Swagger.Internal.Schema             (ToSchema)
-import           Data.Maybe                               (isNothing)
-import           Data.Semigroup                           (Min(..), Max(..), Semigroup((<>)), Option(..))
-import           GHC.Generics                             (Generic)
+import           Codec.Serialise.Class        (Serialise)
+import           Data.Aeson                   (FromJSON, ToJSON)
+import           Data.Maybe                   (isNothing)
+import           Data.Semigroup               (Max (..), Min (..), Option (..), Semigroup ((<>)))
+import           Data.Swagger.Internal.Schema (ToSchema)
+import           GHC.Generics                 (Generic)
 
-import           Language.PlutusTx.Lift                   (makeLift)
+import           Language.PlutusTx.Lift       (makeLift)
 
 -- | An interval of @a@s. The interval is closed below and open above, meaning
 --   that @Interval (Just (10 :: Int)) (Just 11)@ contains a single value @11@.
@@ -54,7 +54,7 @@ overlaps comp l r =
     in
         inLow (ivFrom l) r || inLow (ivFrom r) l
 
--- | 'intersection a b' is the largest interval that is contained in 'a' and in 
+-- | 'intersection a b' is the largest interval that is contained in 'a' and in
 --   'b', if it exists.
 intersection :: Ord a => Interval a -> Interval a -> Maybe (Interval a)
 intersection l r =
