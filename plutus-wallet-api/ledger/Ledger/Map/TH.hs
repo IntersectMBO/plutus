@@ -36,6 +36,7 @@ import qualified Language.PlutusTx.Prelude    as P
 import           Ledger.These.TH              (These (..), these)
 import           Prelude                      hiding (all, lookup, map, negate)
 
+{-# ANN module ("HLint: ignore Use newtype instead of data"::String) #-}
 
 -- | A 'Map' of key-value pairs.
 data Map k v = Map { unMap :: [(k, v)] }
@@ -98,13 +99,13 @@ union eq (Map ls) (Map rs) =
             Just b  -> These a b
 
         ls' :: [(k, These v r)]
-        ls' = P.map (\(c, i) -> (c, (f i (lookup eq c (Map rs))))) ls
+        ls' = P.map (\(c, i) -> (c, f i (lookup eq c (Map rs)))) ls
 
         rs' :: [(k, r)]
         rs' = P.filter (\(c, _) -> P.not (P.any (\(c', _) -> eq c' c) ls)) rs
 
         rs'' :: [(k, These v r)]
-        rs'' = P.map (\(c, b) -> (c, (That b))) rs'
+        rs'' = P.map (\(c, b) -> (c, That b)) rs'
 
     in Map (P.append ls' rs'')
 

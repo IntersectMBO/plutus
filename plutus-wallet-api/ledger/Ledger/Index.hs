@@ -130,7 +130,7 @@ validateTransaction h t = do
 
     -- see note [Forging of Ada]
     emptyUtxoSet <- reader (Map.null . getIndex)
-    _ <- unless emptyUtxoSet (checkForgingAuthorised t)
+    unless emptyUtxoSet (checkForgingAuthorised t)
 
     _ <- checkValidInputs t
     insert t <$> ask

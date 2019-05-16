@@ -93,6 +93,8 @@ import           LedgerBytes                  (LedgerBytes (..))
 --
 -- TODO: Remove annotation once `newtype Oracle = (...)` works
 {-# ANN module ("HLint: ignore Use newtype instead of data"::String) #-}
+{-# ANN module "HLint: ignore Redundant if" #-}
+{-# ANN module "HLint: ignore Use snd" #-}
 
 {- Note [Script types in pending transactions]
 To validate a transaction, we have to evaluate the validation script of each of

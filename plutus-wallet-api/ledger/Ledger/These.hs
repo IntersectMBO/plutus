@@ -1,4 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
 -- A version of 'Data.These' that can be used in on-chain and off-chain code.
 module Ledger.These(
     These(..)

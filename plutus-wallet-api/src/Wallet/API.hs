@@ -326,7 +326,7 @@ signTxn   :: (WalletAPI m, Monad m) => Tx -> m Tx
 signTxn tx = do
     sig <- sign (BSL.pack $ BA.unpack $ getTxId $ hashTx tx)
     pubK <- ownPubKey
-    pure $ tx & signatures . at pubK .~ Just sig
+    pure $ tx & signatures . at pubK ?~ sig
 
 -- | Transfer some funds to a number of script addresses, returning the
 -- transaction that was submitted.

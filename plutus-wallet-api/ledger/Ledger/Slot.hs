@@ -31,6 +31,8 @@ import           Language.PlutusTx.Prelude    as P
 
 import           Ledger.Interval
 
+{-# ANN module "HLint: ignore Redundant if" #-}
+
 -- | The slot number. This is a good proxy for time, since on the Cardano blockchain
 -- slots pass at a constant rate.
 newtype Slot = Slot { getSlot :: Integer }

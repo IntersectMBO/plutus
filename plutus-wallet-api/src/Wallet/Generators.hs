@@ -1,7 +1,5 @@
-{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 -- | Generators for constructing blockchains and transactions for use in property-based testing.
 module Wallet.Generators(
@@ -56,7 +54,7 @@ import qualified Wallet.API                as W
 
 -- | Attach signatures of all known private keys to a transaction.
 signAll :: Tx -> Tx
-signAll tx = foldl (flip addSignature) tx knownPrivateKeys
+signAll tx = foldl' (flip addSignature) tx knownPrivateKeys
 
 -- | The parameters for the generators in this module.
 data GeneratorModel = GeneratorModel {
@@ -162,7 +160,7 @@ genValidTransaction' g f (Mockchain bc ops) = do
                     <$> (catMaybes
                         $ traverse (pubKeyTxo [bc]) . (di . fst) <$> inUTXO)
         inUTXO = take nUtxo $ Map.toList ops
-        totalVal = foldl' (+) 0 $ (map (Ada.fromValue . txOutValue . snd) inUTXO)
+        totalVal = foldl' (+) 0 $ map (Ada.fromValue . txOutValue . snd) inUTXO
         di a = (a, a)
     genValidTransactionSpending' g f ins totalVal
 
@@ -220,13 +218,13 @@ genValue' valueRange = do
         -- currency symbol is either a validator hash (bytestring of length 32)
         -- or the ada symbol (empty bytestring).
         currency = Gen.choice
-                    [ Value.currencySymbol <$> (genSizedByteStringExact 32)
+                    [ Value.currencySymbol <$> genSizedByteStringExact 32
                     , pure Ada.adaSymbol
                     ]
 
         -- token is either an arbitrary bytestring or the ada token name
         token   = Gen.choice
-                    [ Value.tokenName <$> (genSizedByteString 32)
+                    [ Value.tokenName <$> genSizedByteString 32
                     , pure Ada.adaToken
                     ]
         sngl      = Value.singleton <$> currency <*> token <*> Gen.integral valueRange
@@ -240,11 +238,11 @@ genValue' valueRange = do
 
 -- | Generate a 'Value' with a value range of @minBound .. maxBound@.
 genValue :: MonadGen m => m Value
-genValue = genValue' $ fmap fromIntegral $ Range.linearBounded @Int
+genValue = genValue' $ fromIntegral <$> Range.linearBounded @Int
 
 -- | Generate a 'Value' with a value range of @0 .. maxBound@.
 genValueNonNegative :: MonadGen m => m Value
-genValueNonNegative = genValue' $ fmap fromIntegral $ (Range.linear @Int 0 maxBound)
+genValueNonNegative = genValue' $ fromIntegral <$> Range.linear @Int 0 maxBound
 
 -- | Assert that a transaction is valid in a chain.
 assertValid :: (MonadTest m, HasCallStack)

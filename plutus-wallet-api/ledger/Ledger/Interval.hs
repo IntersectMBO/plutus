@@ -40,7 +40,7 @@ makeLift ''Interval
 -- | Check whether a value is covered by an interval.
 member :: (a -> a -> Ordering) -> a -> Interval a -> Bool
 member comp a i =
-    let lw = case ivFrom i of { Nothing -> True; Just f' -> not (comp f' a == GT) }
+    let lw = case ivFrom i of { Nothing -> True; Just f' -> comp f' a /= GT }
         hg = case ivTo i of { Nothing -> True; Just t' -> comp t' a == GT }
     in lw && hg
 
@@ -50,7 +50,7 @@ overlaps :: (a -> a -> Ordering) -> Interval a -> Interval a -> Bool
 overlaps comp l r =
     let inLow a i = case a of
             Nothing -> isNothing (ivFrom i)
-            Just a' -> (member comp) a' i
+            Just a' -> member comp a' i
     in
         inLow (ivFrom l) r || inLow (ivFrom r) l
 

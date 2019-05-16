@@ -127,7 +127,7 @@ walletPubKey = toPublicKey . walletPrivKey
 -- | Get a wallet's private key by looking it up in the list of
 --   private keys in 'Ledger.Crypto.knownPrivateKeys'
 walletPrivKey :: Wallet -> PrivateKey
-walletPrivKey (Wallet i) = (cycle Crypto.knownPrivateKeys) !! (fromIntegral i)
+walletPrivKey (Wallet i) = cycle Crypto.knownPrivateKeys !! fromIntegral i
 
 -- | Sign a 'Tx' using the wallet's privat key.
 signWithWallet :: Wallet -> Tx -> Tx
@@ -234,7 +234,7 @@ handleNotifications = mapM_ (updateState >=> runTriggers)  where
 
         let values = AM.values adrs
             annotate = annTruthValue h values
-            trueConditions = filter (getAnnot . fst) $ fmap (first annotate) $ Map.toList trg
+            trueConditions = filter (getAnnot . fst) $ first annotate <$> Map.toList trg
 
         -- We need to do 2 passes over the list of triggers that fired.
         --

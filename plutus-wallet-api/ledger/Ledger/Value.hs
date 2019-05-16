@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 -- need orphan instances due to staging restriction
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -- | Functions for working with 'Value' in Haskell.

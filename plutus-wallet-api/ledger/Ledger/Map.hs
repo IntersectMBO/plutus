@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 -- A map implementation that can be used in on-chain and off-chain code.
 module Ledger.Map(
     Map
