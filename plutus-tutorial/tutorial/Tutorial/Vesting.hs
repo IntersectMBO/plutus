@@ -37,6 +37,9 @@ import qualified Wallet.Emulator.Types     as EM
 
 import           Tutorial.ExUtil
 
+-- $setup
+-- >>> import Tutorial.Vesting
+
 {- |
     A vesting contract.
 
