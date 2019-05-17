@@ -88,7 +88,7 @@ extricateTel : ∀ {Φ Γ Δ}(σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)(as
 extricate : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K} → Γ ⊢ A → ScopedTm (len Γ)
 
 extricateTel σ [] x = []
-extricateTel σ (A ∷ As) (t P., ts) = extricateTel σ As ts ++ L.[ extricate t ]
+extricateTel σ (A ∷ As) (t P., ts) = extricate t ∷ extricateTel σ As ts
 
 extricate (` x) = ` (extricateVar x)
 extricate {Φ}{Γ} (ƛ {A = A} x t) = ƛ x (extricateNf⋆ A) (extricate t)
