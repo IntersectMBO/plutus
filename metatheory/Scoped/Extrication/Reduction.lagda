@@ -255,8 +255,11 @@ extricate—→⋆ : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K}{t t' : Γ ⊢ A}
 extricate—→⋆ refl—↠ = refl
 extricate—→⋆ (trans—↠ r p) = _—→⋆_.trans (extricate—→ r) (extricate—→⋆ p)
 
--- given the result of intrinsic progress this gives rise to extrinsic progress
+lem-step : ∀{t t' t'' : ScopedTm Z}(p : t SR.—→ t')(r : t' ≡ t'') → SR.Progress.step (Eq.subst (SR._—→_ t) r p) ≡ step p
+lem-step p refl = refl
 
+
+-- given the result of intrinsic progress this gives rise to extrinsic progress
 extricateProgress : ∀{A}{t : ∅ ⊢ A} → AR.Progress t  → SR.Progress (extricate t)
 extricateProgress (step p)  = step (extricate—→ p)
 extricateProgress (done v)  = done (extricateVal v)
@@ -265,13 +268,13 @@ extricateProgress (error e) = error (extricateE e)
 extricate-progress· : ∀{A B}{t : ∅ ⊢ A ⇒ B}(p : AR.Progress t) → (u : ∅ ⊢ A)
   → extricateProgress (AR.progress· p u) ≡ SR.progress· (extricateProgress p) (extricate u)
 extricate-progress· (step p)   u = refl
-extricate-progress· (done V-ƛ) u = {!!}
+extricate-progress· (done (V-ƛ {A = A}{x = x}{N = N})) u = lem-step β-ƛ (lem[] N u)
 extricate-progress· (error e)  u = refl
 
 extricate-progress·⋆ : ∀{K x B}{t : ∅ ⊢ Π x B}(p : AR.Progress t) → (A : ∅ ⊢Nf⋆ K)
   → extricateProgress (AR.progress·⋆ p A) ≡ SR.progress·⋆ (extricateProgress p) (extricateNf⋆ A)
 extricate-progress·⋆ (step p)    A = refl
-extricate-progress·⋆ (done V-Λ_) A = {!!}
+extricate-progress·⋆ (done (V-Λ_ {N = N})) A = lem-step β-Λ (lem[]⋆ N A)
 extricate-progress·⋆ (error e)   A = refl
 
 extricate-progress-unwrap : ∀{K}{pat}{arg : ∅ ⊢Nf⋆ K}{t : ∅ ⊢ ne ((μ1 · pat) · arg)}(p : AR.Progress t)
@@ -294,6 +297,6 @@ extricate-progress (unwrap1 t) = Eq.trans
   (extricate-progress-unwrap (AR.progress t))
   (cong SR.progress-unwrap (extricate-progress t))
 extricate-progress (con x) = refl
-extricate-progress (builtin bn σ x₁) = {!!}
+extricate-progress (builtin bn σ tel) = {!!}
 extricate-progress (error A) = refl
 \end{code}
