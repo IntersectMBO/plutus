@@ -44,11 +44,11 @@ msValidator sig =
         validate :: MultiSig -> () -> () -> PendingTx -> ()
         validate (MultiSig keys num) () () p =
             let
-                present = $$(P.length) ($$(P.filter) ($$(V.txSignedBy) p) keys)
+                present = P.length (P.filter (V.txSignedBy p) keys)
             in
-                if $$(P.geq) present num
+                if P.geq present num
                 then ()
-                else $$(P.error) ($$(P.traceH) "WRONG!" ())
+                else P.error (P.traceH "WRONG!" ())
 
       in
         validate

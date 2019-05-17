@@ -38,7 +38,7 @@ acceptSourceCode ::
     -> Handler (Either InterpreterError (InterpreterResult CompilationResult))
 acceptSourceCode sourceCode = do
     let maxInterpretationTime :: Microsecond =
-            fromMicroseconds (20 * 1000 * 1000)
+            fromMicroseconds (40 * 1000 * 1000)
     r <- liftIO . runExceptT $ PI.compile maxInterpretationTime sourceCode
     case r of
         Right vs -> pure . Right $ vs
@@ -55,7 +55,7 @@ throwJSONError err json =
 runFunction :: Evaluation -> Handler EvaluationResult
 runFunction evaluation = do
     let maxInterpretationTime :: Microsecond =
-            fromMicroseconds (20 * 1000 * 1000)
+            fromMicroseconds (40 * 1000 * 1000)
     result <-
         liftIO . runExceptT $ PI.runFunction maxInterpretationTime evaluation
     let pubKeys = PA.pubKeys evaluation

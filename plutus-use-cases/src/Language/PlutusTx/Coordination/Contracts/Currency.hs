@@ -25,7 +25,7 @@ import qualified Ledger.Ada                as Ada
 import qualified Ledger.Map                as LMap
 import           Ledger.Scripts            (ValidatorScript(..))
 import qualified Ledger.Validation         as V
-import qualified Ledger.Value.TH           as Value
+import qualified Ledger.Value              as Value
 import           Ledger                    as Ledger hiding (to)
 import           Ledger.Value              (Value)
 import           Wallet.API                as WAPI
@@ -48,28 +48,28 @@ curValidator cur =
                 validate c@(Currency (refHash, refIdx) _) () () p =
                     let
                         -- see note [Obtaining the currency symbol]
-                        ownSymbol = $$(V.ownCurrencySymbol) p
+                        ownSymbol = V.ownCurrencySymbol p
 
-                        forged = $$(V.valueForged) p
-                        expected = $$currencyValue ownSymbol c
+                        forged = V.valueForged p
+                        expected = currencyValue ownSymbol c
 
 
                         -- True if the pending transaction forges the amount of
                         -- currency that we expect
                         forgeOK =
-                            let v = $$(Value.eq) expected forged
-                            in $$(P.traceIfFalseH) "Value forged different from expected" v
+                            let v = Value.eq expected forged
+                            in P.traceIfFalseH "Value forged different from expected" v
 
                         -- True if the pending transaction spends the output
                         -- identified by @(refHash, refIdx)@
                         txOutputSpent =
-                            let v = $$(V.spendsOutput) p refHash refIdx
-                            in  $$(P.traceIfFalseH) "Pending transaction does not spend the designated transaction output" v
+                            let v = V.spendsOutput p refHash refIdx
+                            in  P.traceIfFalseH "Pending transaction does not spend the designated transaction output" v
 
                     in
-                        if $$(P.and) forgeOK txOutputSpent
+                        if P.and forgeOK txOutputSpent
                         then ()
-                        else $$(P.error) ($$(P.traceH) "Invalid forge" ())
+                        else P.error (P.traceH "Invalid forge" ())
             in
                 validate
             ||]))
@@ -94,7 +94,7 @@ forgedValue cur =
         -- see note [Obtaining the currency symbol]
         a = plcCurrencySymbol (Ledger.scriptAddress (curValidator cur))
     in
-        $$currencyValue a cur
+        currencyValue a cur
 
 -- | @forge [(n1, c1), ..., (n_k, c_k)]@ creates a new currency with
 --   @k@ token names, forging @c_i@ units of each token @n_i@.

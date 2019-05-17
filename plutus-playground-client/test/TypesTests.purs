@@ -13,7 +13,7 @@ import Data.StrMap as StrMap
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Ledger.Extra (LedgerMap(..))
-import Ledger.Value.TH (CurrencySymbol(..), TokenName(..), Value(..))
+import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Playground.API (Fn(Fn), FunctionSchema(FunctionSchema), SimpleArgumentSchema(..), SimulatorWallet(SimulatorWallet))
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (equal)

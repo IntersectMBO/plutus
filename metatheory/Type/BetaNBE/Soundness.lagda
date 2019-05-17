@@ -16,6 +16,7 @@ open import Function
 open import Data.Sum
 open import Data.Empty
 open import Data.Product
+open import Data.String
 \end{code}
 
 The Soundness Relation (SR) is a Kripke logical relation between types
@@ -27,8 +28,8 @@ type is beta-eta-equal to the result of reifying the value.
 SR : ∀{Φ} K → Φ ⊢⋆ K → Val Φ K → Set
 SR *       A v        = A ≡β embNf v
 SR (K ⇒ J) A (inj₁ n) = A ≡β embNeN n
-SR (K ⇒ J) A (inj₂ f) = Σ (_ ,⋆ K ⊢⋆ J) λ B →
-  (A ≡β ƛ B) -- this bit of indirection is needed as we have only β not βη
+SR (K ⇒ J) A (inj₂ (x , f)) = Σ (_ ,⋆ K ⊢⋆ J) λ B →
+  (A ≡β ƛ x B) -- this bit of indirection is needed as we have only β not βη
   ×
   ∀{Ψ}
     → (ρ : Ren _ Ψ)
@@ -36,7 +37,7 @@ SR (K ⇒ J) A (inj₂ f) = Σ (_ ,⋆ K ⊢⋆ J) λ B →
     → {v : Val Ψ K}
     → SR K u v
       -----------------------------------------------------
-    → SR J (rename ρ (ƛ B) · u) (renameVal ρ (inj₂ f) ·V v)
+    → SR J (rename ρ (ƛ x B) · u) (renameVal ρ (inj₂ (x , f)) ·V v)
 \end{code}
 
 \begin{code}
@@ -53,8 +54,8 @@ reifySR : ∀{Φ K}{A : Φ ⊢⋆ K}{v : Val Φ K}
   → A ≡β embNf (reify v)
 reifySR {K = *}                  p            = p
 reifySR {K = K ⇒ J} {v = inj₁ n} p            = p
-reifySR {K = K ⇒ J} {v = inj₂ f} (A' , p , q) =
-  trans≡β p (substEq (λ B → ƛ B ≡β ƛ (embNf (reify (f S fresh))))
+reifySR {K = K ⇒ J} {v = inj₂ (x , f)} (A' , p , q) =
+  trans≡β p (substEq (λ B → ƛ x B ≡β ƛ x (embNf (reify (f S fresh))))
                      (trans (sym (subst-rename A'))
                             (trans (subst-cong (λ { Z → refl
                                                   ; (S x) → refl}) A')
@@ -92,12 +93,12 @@ renSR : ∀{Φ Ψ}(ρ : Ren Φ Ψ){K}{A : Φ ⊢⋆ K}{v : Val Φ K}
 renSR ρ {*}{A}{n} p = 
   substEq (rename ρ A ≡β_) (sym (rename-embNf ρ n)) (rename≡β ρ p)
 renSR ρ {K ⇒ J} {A} {inj₁ n} p rewrite rename-embNeN ρ n = rename≡β ρ p  
-renSR ρ {K ⇒ J} {A} {inj₂ f} (A' , p , q) =
+renSR ρ {K ⇒ J} {A} {inj₂ (x , f)} (A' , p , q) =
   rename (ext ρ) A'
   ,
   rename≡β ρ p
   ,
-  λ ρ' {u}{v} r → substEq (λ A → SR J (ƛ A · u) (f (ρ' ∘ ρ) v))
+  λ ρ' {u}{v} r → substEq (λ A → SR J (ƛ x A · u) (f (ρ' ∘ ρ) v))
                           (trans (rename-cong ext-comp A') (rename-comp A'))
                           (q (ρ' ∘ ρ) r)
 \end{code}
@@ -165,9 +166,9 @@ SRApp : ∀{Φ K J}
     ---------------------
   → SR J (A · u) (f ·V v)
 SRApp {f = inj₁ n} p            q = reflectSR (·≡β (reflectSR p) (reifySR q))
-SRApp {f = inj₂ f} (A' , p , q) r =
+SRApp {f = inj₂ (x , f)} (A' , p , q) r =
   substSR (·≡β (substEq
-                 (λ B → _ ≡β ƛ B)
+                 (λ B → _ ≡β ƛ x B)
                  (trans (sym (rename-id A')) (rename-cong (sym ∘ ext-id) A'))
                  p)
                (refl≡β _))
@@ -181,9 +182,9 @@ evalSR : ∀{Φ Ψ K}(A : Φ ⊢⋆ K){σ : Sub Φ Ψ}{η : Env Φ Ψ}
   → SREnv σ η
   → SR K (subst σ A) (eval A η)
 evalSR (` α)                   p = p α
-evalSR (Π B)                   p = Π≡β (evalSR B (SRweak p))
+evalSR (Π x B)                   p = Π≡β (evalSR B (SRweak p))
 evalSR (A ⇒ B)                 p = ⇒≡β (evalSR A p) (evalSR B p)
-evalSR (ƛ B)   {σ}{η}          p =
+evalSR (ƛ x B)   {σ}{η}          p =
   subst (exts σ) B
   ,
   refl≡β _

@@ -46,9 +46,9 @@ gameValidator = ValidatorScript ($$(Ledger.compileScript [||
     -- inside the on-chain code we can write $$(P.xxx) to use functions
     -- from the PlutusTx Prelude (imported qualified at the top of the
     -- module)
-    if $$(P.equalsByteString) actual ($$(P.sha2_256) guess)
+    if P.equalsByteString actual (P.sha2_256 guess)
     then ()
-    else ($$(P.error) ($$(P.traceH) "WRONG!" ()))
+    else (P.error (P.traceH "WRONG!" ()))
 
     ||]))
 

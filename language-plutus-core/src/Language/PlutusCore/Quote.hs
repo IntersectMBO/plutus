@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE UndecidableInstances  #-}
 -- just for the type equality constraint
 {-# LANGUAGE GADTs                 #-}
 
@@ -14,6 +15,7 @@ module Language.PlutusCore.Quote (
             , freshenName
             , freshenTyName
             , markNonFresh
+            , markNonFreshBelow
             , markNonFreshTerm
             , markNonFreshType
             , markNonFreshProgram
@@ -51,7 +53,13 @@ emptyFreshState = Unique 0
 -- | The "quotation" monad transformer. Within this monad you can do safe construction of PLC terms using quasiquotation,
 -- fresh-name generation, and parsing.
 newtype QuoteT m a = QuoteT { unQuoteT :: StateT FreshState m a }
-    deriving (Functor, Applicative, Monad, MonadTrans, MM.MFunctor, MonadState FreshState, MonadError e, MonadReader r)
+    deriving (Functor, Applicative, Monad, MonadTrans, MM.MFunctor, MonadError e, MonadReader r)
+
+-- Need to write this by hand, deriving wants to derive the one for DefState
+instance MonadState s m => MonadState s (QuoteT m) where
+    get = lift get
+    put = lift . put
+    state = lift . state
 
 -- | A monad that allows lifting of quoted expressions.
 class Monad m => MonadQuote m where
@@ -115,8 +123,14 @@ markNonFreshMax = markNonFresh . fromMaybe (Unique 0) . Set.lookupMax
 -- | Mark a given 'Unique' (and implicitly all 'Unique's less than it) as used, so they will not be generated in future.
 markNonFresh :: MonadQuote m => Unique -> m ()
 markNonFresh nonFresh = liftQuote $ do
-    nextU <- get
-    put $ Unique (max (unUnique nonFresh + 1) (unUnique nextU))
+    nextU <- QuoteT get
+    QuoteT $ put $ Unique (max (unUnique nonFresh + 1) (unUnique nextU))
+
+-- | Mark a all 'Unique's less than the given 'Unique' as used, so they will not be generated in future.
+markNonFreshBelow :: MonadQuote m => Unique -> m ()
+markNonFreshBelow nonFresh = liftQuote $ do
+    nextU <- QuoteT get
+    QuoteT $ put $ Unique (max (unUnique nonFresh) (unUnique nextU))
 
 collectTypeUniques :: (HasUnique (tyname a) TypeUnique) => Type tyname a -> Set.Set Unique
 collectTypeUniques = cata f where
@@ -145,8 +159,8 @@ collectTermUniques = cata f where
 -- | Get a fresh 'Unique'.
 freshUnique :: MonadQuote m => m Unique
 freshUnique = liftQuote $ do
-    nextU <- get
-    put $ Unique (unUnique nextU + 1)
+    nextU <- QuoteT get
+    QuoteT $ put $ Unique (unUnique nextU + 1)
     pure nextU
 
 -- | Get a fresh 'Name', given the annotation and the 'Text.Text' name.

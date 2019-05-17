@@ -73,6 +73,9 @@ app :: Application
 app req respond = do
     bsReq <- lazyRequestBody req
     -- TODO: check that it's a GET method
+    -- testing idea: use approach present in plutus-playground-server, i.e. the
+    -- approach of only testing pure appratus with JSON but not actual requests.
+    -- Also look at Servant
     let decoded = decode bsReq
         validated = fmap validateResponse decoded
         (stat, resp) = case validated of

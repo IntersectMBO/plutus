@@ -50,13 +50,13 @@ tricky = [||
   let
     infixl 6 +
     (+) :: Integer -> Integer -> Integer
-    (+) = $$plus
+    (+) = plus
     infixl 6 -
     (-) :: Integer -> Integer -> Integer
-    (-) = $$minus
+    (-) = minus
     infixl 7 *
     (*) :: Integer -> Integer -> Integer
-    (*) = $$multiply
+    (*) = multiply
   in \i -> (2 * i) - i * i + 5 * i * i * i - 6 * i * i * i - 8
   ||]
 
@@ -84,7 +84,7 @@ tricky = [||
     Then test it in GHCi.
 -}
 trickier :: Integer -> Q (TExp (Integer -> Integer))
-trickier i = if $$lt i 1 then tricky else [|| error "exercise" ||]
+trickier i = if lt i 1 then tricky else [|| error "exercise" ||]
 
 {-
 

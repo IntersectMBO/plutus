@@ -7,6 +7,7 @@ open import Data.Nat
 open import Data.Fin
 open import Data.Integer hiding (suc)
 open import Data.List hiding (_++_)
+open import Data.String
 
 open import Builtin.Constant.Type -- perhaps the postulates should be elsewhere
 open import Builtin
@@ -23,7 +24,7 @@ data TermCon : Set where
 \begin{code}
 data _⊢ : ℕ → Set where
   `       : ∀{n} → Fin n → n ⊢
-  ƛ       : ∀{n} → suc n ⊢ → n ⊢
+  ƛ       : ∀{n} → String → suc n ⊢ → n ⊢
   _·_     : ∀{n} → n ⊢ → n ⊢ → n ⊢
   con     : ∀{n} → TermCon → n ⊢
   builtin : ∀{n} → Builtin → List (n ⊢) → n ⊢
@@ -59,7 +60,7 @@ open import Data.Sum
 -- should do this when de Bruijnifying so it can be shared
 builtinMatcher : ∀{n} → n ⊢ → (Builtin × List (n ⊢)) ⊎ n ⊢
 builtinMatcher (` x) = inj₂ (` x)
-builtinMatcher (ƛ t) = inj₂ (ƛ t)
+builtinMatcher (ƛ x t) = inj₂ (ƛ x t)
 builtinMatcher (t · u) = inj₂ (t · u)
 builtinMatcher (con c) = inj₂ (con c)
 builtinMatcher (builtin b ts) = inj₁ (b ,, ts)
@@ -84,7 +85,7 @@ eraseL : ∀{n}{w : S.Weirdℕ n} → List (S.ScopedTm w) → List (eraseℕ w �
 erase⊢ (S.` x)    = ` (eraseFin x)
 erase⊢ (S.Λ x K t)  = erase⊢ t
 erase⊢ (t S.·⋆ A) = erase⊢ t
-erase⊢ (S.ƛ x A t)  = ƛ (erase⊢ t)
+erase⊢ (S.ƛ x A t)  = ƛ x (erase⊢ t)
 erase⊢ (t S.· u) with builtinMatcher (erase⊢ t)
 erase⊢ (t S.· u) | inj₁ (b ,, ts) = builtinEater b ts (erase⊢ u)
 erase⊢ (t S.· u) | inj₂ t' = t' · erase⊢ u
@@ -125,7 +126,7 @@ uglyBuiltin addInteger = "addInteger"
 uglyBuiltin _ = "other"
 ugly : ∀{n} → n  ⊢ → String
 ugly (` x) = "(` " ++ uglyFin x ++ ")"
-ugly (ƛ t) = "(ƛ " ++ ugly t ++ ")"
+ugly (ƛ x t) = "(ƛ " ++ x ++  ugly t ++ ")"
 ugly (t · u) = "( " ++ ugly t ++ " · " ++ ugly u ++ ")"
 ugly (con c) = "(con " ++ uglyTermCon c ++ ")"
 ugly (builtin b ts) = "(builtin " ++ uglyBuiltin b ++ " " ++ showNat (Data.List.length ts) ++ ")"

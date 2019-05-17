@@ -33,7 +33,7 @@ import           Prelude                      hiding ((&&))
 import qualified Wallet                       as W
 import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, ownPubKeyTxOut, createTxAndSubmit, defaultSlotRange)
 import           Ledger.Ada                   (Ada)
-import qualified Ledger.Ada.TH                as Ada
+import qualified Ledger.Ada                as Ada
 
 -- | Tranche of a vesting scheme.
 data VestingTranche = VestingTranche {
@@ -76,7 +76,7 @@ vestFunds :: (
     -> m VestingData
 vestFunds vst adaAmount = do
     _ <- if adaAmount < totalAmount vst then throwOtherError "Value must not be smaller than vested amount" else pure ()
-    let value = $$(Ada.toValue) adaAmount
+    let value = Ada.toValue adaAmount
     (payment, change) <- createPaymentWithChange value
     let vs = validatorScript vst
         o = scriptTxOut value vs (DataScript $ Ledger.lifted vd)
@@ -98,12 +98,12 @@ retrieveFunds :: (
     -- ^ Value we want to take out now
     -> m VestingData
 retrieveFunds vs vd r anow = do
-    let vnow = $$(Ada.toValue) anow
+    let vnow = Ada.toValue anow
     oo <- ownPubKeyTxOut vnow
     currentSlot <- slot
     let val = validatorScript vs
         o   = scriptTxOut remaining val (DataScript $ Ledger.lifted vd')
-        remaining = $$(Ada.toValue) (totalAmount vs - anow)
+        remaining = Ada.toValue (totalAmount vs - anow)
         vd' = vd {vestingDataPaidOut = anow + vestingDataPaidOut vd }
         inp = scriptTxIn r val Ledger.unitRedeemer
         range = W.intervalFrom currentSlot
@@ -124,14 +124,14 @@ validatorScript v = ValidatorScript val where
         let
 
             eqBs :: ValidatorHash -> ValidatorHash -> Bool
-            eqBs = $$(Validation.eqValidator)
+            eqBs = Validation.eqValidator
 
             eqPk :: PubKey -> PubKey -> Bool
-            eqPk = $$(Validation.eqPubKey)
+            eqPk = Validation.eqPubKey
 
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
-            (&&) = $$(PlutusTx.and)
+            (&&) = PlutusTx.and
 
             PendingTx _ os _ _ _ range _ _ = p
             VestingTranche d1 a1 = vestingTranche1
@@ -142,35 +142,35 @@ validatorScript v = ValidatorScript val where
             amountSpent :: Ada
             amountSpent = case os of
                 PendingTxOut v' _ (PubKeyTxOut pk):_
-                    | pk `eqPk` vestingOwner -> $$(Ada.fromValue) v'
-                _ -> $$(PlutusTx.error) ()
+                    | pk `eqPk` vestingOwner -> Ada.fromValue v'
+                _ -> PlutusTx.error ()
 
             -- Value that has been released so far under the scheme
             currentThreshold =
-                if $$(Slot.contains) ($$(Interval.from) d1) range
-                then if $$(Slot.contains) ($$(Interval.from) d2) range
+                if Slot.contains (Interval.from d1) range
+                then if Slot.contains (Interval.from d2) range
                     -- everything can be spent
-                     then $$(Ada.plus) a1 a2
+                     then Ada.plus a1 a2
                      -- only the first tranche can be spent (we are between d1 and d2)
                      else a1
                 -- Nothing has been released yet
-                else $$(Ada.zero)
+                else Ada.zero
 
             paidOut = vestingDataPaidOut
-            newAmount = $$(Ada.plus) paidOut amountSpent
+            newAmount = Ada.plus paidOut amountSpent
 
             -- Verify that the amount taken out, plus the amount already taken
             -- out before, does not exceed the threshold that is currently
             -- allowed
-            amountsValid = $$(Ada.leq) newAmount currentThreshold
+            amountsValid = Ada.leq newAmount currentThreshold
 
             -- Check that the remaining output is locked by the same validation
             -- script
             txnOutputsValid = case os of
                 _:PendingTxOut _ (Just (vl', _)) DataTxOut:_ ->
                     vl' `eqBs` vestingDataHash
-                _ -> $$(PlutusTx.error) ()
+                _ -> PlutusTx.error ()
 
             isValid = amountsValid && txnOutputsValid
         in
-        if isValid then () else $$(PlutusTx.error) () ||])
+        if isValid then () else PlutusTx.error () ||])

@@ -23,7 +23,7 @@ import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties (InputType(InputText, InputNumber), class_, classes, disabled, draggable, for, id_, placeholder, required, type_, value)
 import Halogen.Query as HQ
 import Icons (Icon(..), icon)
-import Ledger.Value.TH (Value)
+import Ledger.Value (Value)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
 import Playground.API (EvaluationResult, _Fn, _FunctionSchema)
 import Prelude (Unit, map, pure, show, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==))

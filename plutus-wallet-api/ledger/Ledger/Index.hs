@@ -2,7 +2,6 @@
 {-# LANGUAGE DeriveGeneric    #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE TemplateHaskell  #-}
 -- | An index of unspent transaction outputs, and some functions for validating
 --   transactions using the index.
 module Ledger.Index(
@@ -23,10 +22,10 @@ module Ledger.Index(
     validateTransaction
     ) where
 
-import           Control.Lens         ((^.), at)
+import           Control.Lens         (at, (^.))
+import           Control.Monad
 import           Control.Monad.Except (MonadError (..))
 import           Control.Monad.Reader (MonadReader (..), ReaderT (..), ask)
-import           Control.Monad
 import           Crypto.Hash          (Digest, SHA256)
 import           Data.Aeson           (FromJSON, ToJSON)
 import           Data.Foldable        (foldl', traverse_)
@@ -34,17 +33,17 @@ import qualified Data.Map             as Map
 import           Data.Semigroup       (Semigroup)
 import qualified Data.Set             as Set
 import           GHC.Generics         (Generic)
-import qualified Ledger.Slot          as Slot
-import           Ledger.Crypto
+import qualified Ledger.Ada           as Ada
 import           Ledger.Blockchain
+import           Ledger.Crypto
 import           Ledger.Scripts
+import qualified Ledger.Slot          as Slot
 import           Ledger.Tx
 import           Ledger.TxId
 import           Ledger.Validation    (PendingTx (..))
 import qualified Ledger.Validation    as Validation
-import           Prelude              hiding (lookup)
 import qualified Ledger.Value         as V
-import qualified Ledger.Ada           as Ada
+import           Prelude              hiding (lookup)
 
 -- | Context for validating transactions. We need access to the unspent
 --   transaction outputs of the blockchain, and we can throw 'ValidationError's.
@@ -69,7 +68,7 @@ insertBlock blck i = foldl' (flip insert) i blck
 -- | Find an unspent transaction output by the 'TxOutRef' that spends it.
 lookup :: MonadError ValidationError m => TxOutRef -> UtxoIndex -> m TxOut
 lookup i index = case Map.lookup i $ getIndex index of
-    Just t -> pure t
+    Just t  -> pure t
     Nothing -> throwError $ TxOutRefNotFound i
 
 -- | A reason why a transaction is invalid.
@@ -131,7 +130,7 @@ validateTransaction h t = do
 
     -- see note [Forging of Ada]
     emptyUtxoSet <- reader (Map.null . getIndex)
-    _ <- unless emptyUtxoSet (checkForgingAuthorised t)
+    unless emptyUtxoSet (checkForgingAuthorised t)
 
     _ <- checkValidInputs t
     insert t <$> ask
@@ -139,7 +138,7 @@ validateTransaction h t = do
 -- | Check that a transaction can be validated in the given slot.
 checkSlotRange :: ValidationMonad m => Slot.Slot -> Tx -> m ()
 checkSlotRange sl tx =
-    if $$(Slot.member) sl (txValidRange tx)
+    if Slot.member sl (txValidRange tx)
     then pure ()
     else throwError $ CurrentSlotOutOfRange sl
 
@@ -215,7 +214,7 @@ matchInputOutput txid mp i txo = case (txInType i, txOutType txo) of
         pure $ ScriptMatch i v r d (txOutAddress txo)
     (ConsumePublicKeyAddress pk', PayToPubKey pk)
         | pk == pk' -> case mp ^. at pk' of
-                        Nothing -> throwError (SignatureMissing pk')
+                        Nothing  -> throwError (SignatureMissing pk')
                         Just sig -> pure (PubKeyMatch txid pk sig)
     _ -> throwError $ InOutTypeMismatch i txo
 

@@ -60,15 +60,15 @@ data _≡β_ {Γ} : ∀{J} → Γ ⊢⋆ J → Γ ⊢⋆ J → Set where
       ---------------------
     → (A ⇒ B) ≡β (A' ⇒ B')
     
-  Π≡β : ∀{J}{B B' : Γ ,⋆ J ⊢⋆ *}
+  Π≡β : ∀{J}{B B' : Γ ,⋆ J ⊢⋆ *}{x}
     → B ≡β B'
       -------
-    → Π B ≡β Π B'
+    → Π x B ≡β Π x B'
     
-  ƛ≡β : ∀{K J}{B B' : Γ ,⋆ J ⊢⋆ K}
+  ƛ≡β : ∀{K J}{B B' : Γ ,⋆ J ⊢⋆ K}{x}
     → B ≡β B'
       ---------------
-    → ƛ B ≡β ƛ B'
+    → ƛ x B ≡β ƛ x B'
     
   ·≡β : ∀{K J}{A A' : Γ ⊢⋆ K ⇒ J}{B B' : Γ ⊢⋆ K}
     → A ≡β A'
@@ -80,11 +80,11 @@ data _≡β_ {Γ} : ∀{J} → Γ ⊢⋆ J → Γ ⊢⋆ J → Set where
 
   -- computation rule
 
-  β≡β : ∀{K J}
+  β≡β : ∀{K J x}
     → (B : Γ ,⋆ J ⊢⋆ K)
     → (A : Γ ⊢⋆ J)
       ------------------------
-    → ƛ B · A ≡β B [ A ]
+    → ƛ x B · A ≡β B [ A ]
     
 \end{code}
 
@@ -106,7 +106,7 @@ rename≡β ρ (Π≡β p)       = Π≡β (rename≡β (ext ρ) p)
 rename≡β ρ (ƛ≡β p)       = ƛ≡β (rename≡β (ext ρ) p)
 rename≡β ρ (·≡β p q)     = ·≡β (rename≡β ρ p) (rename≡β ρ q)
 rename≡β ρ (β≡β B A)     =
-  substEq (rename ρ ((ƛ B) · A) ≡β_)
+  substEq (rename ρ ((ƛ _ B) · A) ≡β_)
           (trans (sym (subst-rename B))
                  (trans (subst-cong (rename-subst-cons ρ A) B)
                         (rename-subst B)))
@@ -129,7 +129,7 @@ subst≡β σ (Π≡β p)       = Π≡β (subst≡β (exts σ) p)
 subst≡β σ (ƛ≡β p)       = ƛ≡β (subst≡β (exts σ) p)
 subst≡β σ (·≡β p q)     = ·≡β (subst≡β σ p) (subst≡β σ q)
 subst≡β σ (β≡β B A)     =
-  substEq (subst σ ((ƛ B) · A) ≡β_)
+  substEq (subst σ ((ƛ _ B) · A) ≡β_)
           (trans (trans (sym (subst-comp B))
                         (subst-cong (subst-subst-cons σ A) B))
           (subst-comp B))

@@ -1,5 +1,14 @@
-{-# LANGUAGE TemplateHaskell #-}
-
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DeriveGeneric        #-}
+{-# LANGUAGE DerivingStrategies   #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE MonoLocalBinds       #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
+-- Prevent unboxing, which the plugin can't deal with
+{-# OPTIONS_GHC -fno-strictness #-}
 -- A map implementation that can be used in on-chain and off-chain code.
 module Ledger.Map(
     Map
@@ -17,47 +26,106 @@ module Ledger.Map(
     , These(..)
     , these
     ) where
-    
-import           Ledger.Map.TH (IsEqual, Map, These(..))
-import qualified Ledger.Map.TH as TH
-import           Prelude hiding (all, lookup, map)
 
--- | See 'Ledger.Map.TH.map'
-map :: (v -> w) -> Map k v -> Map k w
-map = $$(TH.map)
+import           Codec.Serialise.Class        (Serialise)
+import           Data.Aeson                   (FromJSON (parseJSON), ToJSON (toJSON))
+import           Data.Swagger.Internal.Schema (ToSchema)
+import           GHC.Generics                 (Generic)
+import           Language.PlutusTx.Lift       (makeLift)
+import qualified Language.PlutusTx.Prelude    as P
+import           Prelude                      hiding (all, lookup, map)
 
--- | See 'Ledger.Map.TH.lookup'
-lookup :: IsEqual k -> k -> Map k v -> Maybe v
-lookup = $$(TH.lookup)
+import           Ledger.These
 
--- | See 'Ledger.Map.TH.union'
-union :: IsEqual k -> Map k v -> Map k r -> Map k (These v r)
-union = $$(TH.union)
+{-# ANN module ("HLint: ignore Use newtype instead of data"::String) #-}
 
--- | See 'Ledger.Map.TH.all'
-all :: (v -> Bool) -> Map k v -> Bool
-all = $$(TH.all)
+-- | A 'Map' of key-value pairs.
+data Map k v = Map { unMap :: [(k, v)] }
+    deriving (Show)
+    deriving stock (Generic)
+    deriving anyclass (ToSchema, Serialise)
 
--- | See 'Ledger.Map.TH.singleton'
-singleton :: k -> v -> Map k v
-singleton = $$(TH.singleton)
+makeLift ''Map
 
--- | See 'Ledger.Map.TH.empty'
-empty :: Map k v
-empty = $$(TH.empty)
+instance (ToJSON v, ToJSON k) => ToJSON (Map k v) where
+    toJSON = toJSON . unMap
 
--- | See 'Ledger.These.TH.these'
-these :: (a -> c) -> (b -> c) -> (a -> b -> c) -> These a b -> c
-these = $$(TH.these)
+instance (FromJSON v, FromJSON k) => FromJSON (Map k v) where
+    parseJSON v = Map <$> parseJSON v
 
--- | See 'Ledger.Map.TH.fromList'
+{-# INLINABLE fromList #-}
 fromList :: [(k, v)] -> Map k v
-fromList = $$(TH.fromList)
+fromList = Map
 
--- | See 'Ledger.Map.TH.toList'
+{-# INLINABLE toList #-}
 toList :: Map k v -> [(k, v)]
-toList = $$(TH.toList)
+toList (Map l) = l
 
--- | See 'Ledger.Map.TH.keys'.
+{-# INLINABLE map #-}
+-- | Apply a function to the values of a 'Map'.
+map :: forall k v w . (v -> w) -> Map k v -> Map k w
+map f (Map mp) =
+    let
+        go :: [(k, v)] -> [(k, w)]
+        go []           = []
+        go ((c, i):xs') = (c, f i) : go xs'
+    in Map (go mp)
+
+-- | Compare two 'k's for equality.
+type IsEqual k = k -> k -> Bool
+
+{-# INLINABLE lookup #-}
+-- | Find an entry in a 'Map'.
+lookup :: forall k v . IsEqual k -> k -> Map k v -> Maybe v
+lookup eq c (Map xs) =
+    let
+        go :: [(k, v)] -> Maybe v
+        go []            = Nothing
+        go ((c', i):xs') = if eq c' c then Just i else go xs'
+    in go xs
+
+{-# INLINABLE keys #-}
+-- | The keys of a 'Map'.
 keys :: Map k v -> [k]
-keys = $$(TH.keys)
+keys (Map xs) = P.map (\(k, _ :: v) -> k) xs
+
+{-# INLINABLE union #-}
+-- | Combine two 'Map's.
+union :: forall k v r . IsEqual k -> Map k v -> Map k r -> Map k (These v r)
+union eq (Map ls) (Map rs) =
+    let
+        f :: v -> Maybe r -> These v r
+        f a b' = case b' of
+            Nothing -> This a
+            Just b  -> These a b
+
+        ls' :: [(k, These v r)]
+        ls' = P.map (\(c, i) -> (c, f i (lookup eq c (Map rs)))) ls
+
+        rs' :: [(k, r)]
+        rs' = P.filter (\(c, _) -> P.not (P.any (\(c', _) -> eq c' c) ls)) rs
+
+        rs'' :: [(k, These v r)]
+        rs'' = P.map (\(c, b) -> (c, That b)) rs'
+
+    in Map (P.append ls' rs'')
+
+{-# INLINABLE all #-}
+-- | See 'Data.Map.all'
+all :: (v -> Bool) -> Map k v -> Bool
+all p (Map mps) =
+    let go xs = case xs of
+            []              -> True
+            (_ :: k, x):xs' -> P.and (p x) (go xs')
+    in go mps
+
+{-# INLINABLE singleton #-}
+-- | A singleton map.
+singleton :: k -> v -> Map k v
+singleton c i = Map [(c, i)]
+
+{-# INLINABLE empty #-}
+-- this has to take unit otherwise it falls foul of the value restriction
+-- | An empty 'Map'.
+empty :: () -> Map k v
+empty _ = Map ([] :: [(k, v)])

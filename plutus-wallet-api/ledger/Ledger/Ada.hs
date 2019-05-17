@@ -1,102 +1,151 @@
-{-# LANGUAGE TemplateHaskell #-}
--- | Functions for working with 'Ada' in Haskell.
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE TemplateHaskell    #-}
+-- Otherwise we get a complaint about the 'fromIntegral' call in the generated instance of 'Integral' for 'Ada'
+{-# OPTIONS_GHC -Wno-identities #-}
+-- | Functions for working with 'Ada' in Template Haskell.
 module Ledger.Ada(
       Ada
-      , adaSymbol
-      , adaToken
-      -- * Constructor
-      , fromValue
-      , fromInt
-      , toValue
-      , toInt
-      , adaValueOf
-      , zero
-      -- * Num operations
-      , plus
-      , minus
-      , multiply
-      , divide
-      , negate
-      , geq
-      , gt
-      , leq
-      , lt
-      , eq
+    , adaSymbol
+    , adaToken
+    -- * Constructors
+    , fromValue
+    , fromInt
+    , toValue
+    , toInt
+    , adaValueOf
+    , zero
+    -- * Num operations
+    , plus
+    , minus
+    , multiply
+    , divide
+    , negate
+    , geq
+    , gt
+    , leq
+    , lt
+    , eq
+    -- * Etc.
+    , isZero
     ) where
 
-import qualified Ledger.Ada.TH as TH
-import           Ledger.Ada.TH (Ada)
-import           Ledger.Value  (CurrencySymbol, TokenName, Value)
-import           Prelude       hiding (negate)
+import           Codec.Serialise.Class        (Serialise)
+import           Data.Aeson                   (FromJSON, ToJSON)
+import           Data.Swagger.Internal.Schema (ToSchema)
+import           GHC.Generics                 (Generic)
+import           Language.PlutusTx.Lift       (makeLift)
+import qualified Language.PlutusTx.Prelude    as P
+import           Prelude                      hiding (negate)
 
--- | See 'TH.adaSymbol'
+import           Ledger.Value                 (CurrencySymbol, TokenName, Value)
+import qualified Ledger.Value                 as TH
+
+{-# INLINABLE adaSymbol #-}
+-- | The 'CurrencySymbol' of the 'Ada' currency.
 adaSymbol :: CurrencySymbol
-adaSymbol = $$(TH.adaSymbol)
+adaSymbol = TH.currencySymbol P.emptyByteString
 
--- | See 'TH.adaToken'
+{-# INLINABLE adaToken #-}
+-- | The 'TokenName' of the 'Ada' currency.
 adaToken :: TokenName
-adaToken = $$(TH.adaToken)
+adaToken = TH.tokenName P.emptyByteString
 
--- | See 'TH.toValue'.
+-- | ADA, the special currency on the Cardano blockchain.
+--   See note [Currencies] in 'Ledger.Validation.Value.TH'.
+newtype Ada = Ada { getAda :: Integer }
+    deriving (Eq, Ord, Show, Enum)
+    deriving stock (Generic)
+    deriving anyclass (ToSchema, ToJSON, FromJSON)
+    deriving newtype (Num, Integral, Real, Serialise)
+
+makeLift ''Ada
+
+{-# INLINABLE toValue #-}
+-- | Create a 'Value' containing only the given 'Ada'.
 toValue :: Ada -> Value
-toValue = $$(TH.toValue)
+toValue (Ada i) = TH.singleton adaSymbol adaToken i
 
--- | See 'TH.fromValue'.
+{-# INLINABLE fromValue #-}
+-- | Get the 'Ada' in the given 'Value'.
 fromValue :: Value -> Ada
-fromValue = $$(TH.fromValue)
+fromValue v = Ada (TH.valueOf v adaSymbol adaToken)
 
--- | See 'TH.toInt'.
+{-# INLINABLE toInt #-}
+-- | Get the amount of 'Ada'.
 toInt :: Ada -> Integer
-toInt = $$(TH.toInt)
+toInt (Ada i) = i
 
--- | See 'TH.fromInt'.
+{-# INLINABLE fromInt #-}
+-- | Turn a quantity into 'Ada'.
 fromInt :: Integer -> Ada
-fromInt = $$(TH.fromInt)
+fromInt = Ada
 
--- | See 'TH.adaValueOf'.
+{-# INLINABLE adaValueOf #-}
+-- | A 'Value' with the given amount of 'Ada'.
+--
+--   @adaValueOf == toValue . fromInt@
+--
 adaValueOf :: Integer -> Value
-adaValueOf = $$(TH.adaValueOf)
+adaValueOf = TH.singleton adaSymbol adaToken
 
--- | See 'TH.zero'.
-zero :: Ada
-zero = $$(TH.zero)
-
--- | See 'TH.plus'.
+{-# INLINABLE plus #-}
+-- | Add two 'Ada' values together.
 plus :: Ada -> Ada -> Ada
-plus = $$(TH.plus)
+plus (Ada a) (Ada b) = Ada (P.plus a b)
 
--- | See 'TH.minus'.
+{-# INLINABLE minus #-}
+-- | Subtract one 'Ada' value from another.
 minus :: Ada -> Ada -> Ada
-minus = $$(TH.minus)
+minus (Ada a) (Ada b) = Ada (P.minus a b)
 
--- | See 'TH.multiply'.
+{-# INLINABLE multiply #-}
+-- | Multiply two 'Ada' values together.
 multiply :: Ada -> Ada -> Ada
-multiply = $$(TH.multiply)
+multiply (Ada a) (Ada b) = Ada (P.multiply a b)
 
--- | See 'TH.divide'.
+{-# INLINABLE divide #-}
+-- | Divide one 'Ada' value by another.
 divide :: Ada -> Ada -> Ada
-divide = $$(TH.divide)
+divide (Ada a) (Ada b) = Ada (P.divide a b)
 
--- | See 'TH.negate'.
+{-# INLINABLE zero #-}
+-- | The zero 'Ada' value.
+zero :: Ada
+zero = Ada 0
+
+{-# INLINABLE negate #-}
+-- | Negate an 'Ada' value.
 negate :: Ada -> Ada
-negate = $$(TH.negate)
+negate (Ada i) = Ada (P.multiply (-1) i)
 
--- | See 'TH.geq'.
+{-# INLINABLE isZero #-}
+-- | Check whether an 'Ada' value is zero.
+isZero :: Ada -> Bool
+isZero (Ada i) = P.eq i 0
+
+{-# INLINABLE geq #-}
+-- | Check whether one 'Ada' is greater than or equal to another.
 geq :: Ada -> Ada -> Bool
-geq = $$(TH.geq)
+geq (Ada i) (Ada j) = P.geq i j
 
--- | See 'TH.gt'.
+{-# INLINABLE gt #-}
+-- | Check whether one 'Ada' is strictly greater than another.
 gt :: Ada -> Ada -> Bool
-gt = $$(TH.gt)
+gt (Ada i) (Ada j) = P.gt i j
 
--- | See 'TH.leq'.
+{-# INLINABLE leq #-}
+-- | Check whether one 'Ada' is less than or equal to another.
 leq :: Ada -> Ada -> Bool
-leq = $$(TH.leq)
+leq (Ada i) (Ada j) = P.leq i j
 
--- | See 'TH.lt'.
+{-# INLINABLE lt #-}
+-- | Check whether one 'Ada' is strictly less than another.
 lt :: Ada -> Ada -> Bool
-lt = $$(TH.lt)
+lt (Ada i) (Ada j) = P.lt i j
 
--- | See 'TH.eq'.
+{-# INLINABLE eq #-}
+-- | Check whether one 'Ada' is equal to another.
 eq :: Ada -> Ada -> Bool
-eq = $$(TH.eq)
+eq (Ada i) (Ada j) = P.eq i j

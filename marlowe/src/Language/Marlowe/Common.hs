@@ -98,8 +98,8 @@ import           Ledger                         ( PubKey(..)
                                                 , Signature(..)
                                                 , Slot(..)
                                                 )
-import qualified Ledger.Ada.TH                  as Ada
-import           Ledger.Ada.TH                  (Ada)
+import qualified Ledger.Ada                  as Ada
+import           Ledger.Ada                  (Ada)
 import           Ledger.Interval                (Interval(..))
 import           Ledger.Validation
 import qualified Ledger.Validation              as Validation
@@ -287,10 +287,10 @@ equalValue = [|| \l r -> let
 
     infixr 3 &&
     (&&) :: Bool -> Bool -> Bool
-    (&&) = $$(PlutusTx.and)
+    (&&) = PlutusTx.and
 
     eqPk :: PubKey -> PubKey -> Bool
-    eqPk = $$(Validation.eqPubKey)
+    eqPk = Validation.eqPubKey
 
     eq l r = case (l, r) of
         (Committed idl, Committed idr) -> $$(eqIdentCC) idl idr
@@ -315,10 +315,10 @@ equalObservation :: Q (TExp ((Value -> Value -> Bool) -> Observation -> Observat
 equalObservation = [|| \eqValue l r -> let
     infixr 3 &&
     (&&) :: Bool -> Bool -> Bool
-    (&&) = $$(PlutusTx.and)
+    (&&) = PlutusTx.and
 
     eqPk :: PubKey -> PubKey -> Bool
-    eqPk = $$(Validation.eqPubKey)
+    eqPk = Validation.eqPubKey
 
     eq :: Observation -> Observation -> Bool
     eq l r = case (l, r) of
@@ -342,10 +342,10 @@ equalContract :: Q (TExp ((Value -> Value -> Bool) -> (Observation -> Observatio
 equalContract = [|| \eqValue eqObservation l r -> let
     infixr 3 &&
     (&&) :: Bool -> Bool -> Bool
-    (&&) = $$(PlutusTx.and)
+    (&&) = PlutusTx.and
 
     eqPk :: PubKey -> PubKey -> Bool
-    eqPk = $$(Validation.eqPubKey)
+    eqPk = Validation.eqPubKey
 
     eq :: Contract -> Contract -> Bool
     eq l r = case (l, r) of
@@ -392,7 +392,7 @@ equalContract = [|| \eqValue eqObservation l r -> let
 validateContract :: Q (TExp (State -> Contract -> Slot -> Ada -> Bool))
 validateContract = [|| \State{stateCommitted} contract (Slot bn) actualMoney' -> let
 
-    actualMoney = $$(Ada.toInt) actualMoney'
+    actualMoney = Ada.toInt actualMoney'
 
     calcCommittedMoney :: [Commit] -> Cash -> Cash
     calcCommittedMoney [] r = r
@@ -437,10 +437,10 @@ evaluateValue :: Q (TExp (Slot -> [OracleValue Integer] -> State -> Value -> Int
 evaluateValue = [|| \pendingTxSlot inputOracles state value -> let
     infixr 3 &&
     (&&) :: Bool -> Bool -> Bool
-    (&&) = $$(PlutusTx.and)
+    (&&) = PlutusTx.and
 
     eqPk :: PubKey -> PubKey -> Bool
-    eqPk = $$(Validation.eqPubKey)
+    eqPk = Validation.eqPubKey
 
     findCommit :: IdentCC -> [Commit] -> Maybe CCStatus
     findCommit i@(IdentCC searchId) commits = case commits of
@@ -490,24 +490,24 @@ interpretObservation :: Q (TExp (
     -> Integer -> State -> Observation -> Bool))
 interpretObservation = [|| \evalValue blockNumber state@(State _ choices) obs -> let
     not :: Bool -> Bool
-    not = $$(PlutusTx.not)
+    not = PlutusTx.not
 
     infixr 3 &&
     (&&) :: Bool -> Bool -> Bool
-    (&&) = $$(PlutusTx.and)
+    (&&) = PlutusTx.and
 
     infixr 3 ||
     (||) :: Bool -> Bool -> Bool
-    (||) = $$(PlutusTx.or)
+    (||) = PlutusTx.or
 
     eqPk :: PubKey -> PubKey -> Bool
-    eqPk = $$(Validation.eqPubKey)
+    eqPk = Validation.eqPubKey
 
     isJust :: Maybe a -> Bool
-    isJust = $$(PlutusTx.isJust)
+    isJust = PlutusTx.isJust
 
     maybe :: r -> (a -> r) -> Maybe a -> r
-    maybe = $$(PlutusTx.maybe)
+    maybe = PlutusTx.maybe
 
     find :: IdentChoice -> Person -> [Choice] -> Maybe ConcreteChoice
     find choiceId@(IdentChoice cid) person choices = case choices of
@@ -537,10 +537,10 @@ insertCommit = [|| \ commit commits -> let
 
     infixr 3 &&
     (&&) :: Bool -> Bool -> Bool
-    (&&) = $$(PlutusTx.and)
+    (&&) = PlutusTx.and
 
     eqPk :: PubKey -> PubKey -> Bool
-    eqPk = $$(Validation.eqPubKey)
+    eqPk = Validation.eqPubKey
 
     insert :: Commit -> [Commit] -> [Commit]
     insert commit commits = let
@@ -561,15 +561,15 @@ discountFromPairList :: Q (TExp (
     -> [Commit]
     -> Maybe [Commit]))
 discountFromPairList = [|| \ from (Slot currentBlockNumber) value' commits -> let
-    value = $$(Ada.toInt) value'
+    value = Ada.toInt value'
 
     infixr 3 &&
-    (&&) = $$(PlutusTx.and)
+    (&&) = PlutusTx.and
 
     discount :: Integer -> [Commit] -> Maybe [Commit]
     discount value commits = case commits of
         (ident, (party, NotRedeemed available expire)) : rest
-            | currentBlockNumber `Builtins.lessThanEqInteger` expire && $$(Validation.eqPubKey) from party ->
+            | currentBlockNumber `Builtins.lessThanEqInteger` expire && Validation.eqPubKey from party ->
             if available `Builtins.greaterThanInteger` value then let
                 change = available `Builtins.subtractInteger` value
                 updatedCommit = (ident, (party, NotRedeemed change expire))
@@ -624,18 +624,18 @@ evaluateContract = [|| \
     state
     contract -> let
 
-    scriptInValue  = $$(Ada.toInt) scriptInValue'
-    scriptOutValue = $$(Ada.toInt) scriptOutValue'
+    scriptInValue  = Ada.toInt scriptInValue'
+    scriptOutValue = Ada.toInt scriptOutValue'
 
     Slot currentBlockNumber = blockHeight
 
     infixr 3 &&
     (&&) :: Bool -> Bool -> Bool
-    (&&) = $$(PlutusTx.and)
+    (&&) = PlutusTx.and
 
     infixr 3 ||
     (||) :: Bool -> Bool -> Bool
-    (||) = $$(PlutusTx.or)
+    (||) = PlutusTx.or
 
     eqIdentCC :: IdentCC -> IdentCC -> Bool
     eqIdentCC (IdentCC a) (IdentCC b) = a `Builtins.equalsInteger` b
@@ -653,7 +653,7 @@ evaluateContract = [|| \
     signedBy :: Signature -> PubKey -> Bool
     signedBy (Signature sig) (PubKey (LedgerBytes pk)) = let
         TxHash msg = txHash
-        in $$(PlutusTx.verifySignature) pk msg sig
+        in PlutusTx.verifySignature pk msg sig
 
     eval :: InputCommand -> State -> Contract -> (State, Contract, Bool)
     eval input state@(State commits choices) contract = case (contract, input) of
@@ -704,7 +704,7 @@ evaluateContract = [|| \
                 && scriptOutValue `Builtins.equalsInteger` (scriptInValue `Builtins.subtractInteger` pv)
                 && signature `signedBy` to
             in  if isValid then let
-                in case $$(discountFromPairList) from blockHeight ($$(Ada.fromInt) pv) commits of
+                in case $$(discountFromPairList) from blockHeight (Ada.fromInt pv) commits of
                     Just updatedCommits -> let
                         updatedState = State updatedCommits choices
                         in (updatedState, con, True)
@@ -734,7 +734,7 @@ evaluateContract = [|| \
                 Just updatedCommits -> (State updatedCommits choices, contract, True)
                 Nothing -> (state, contract, False)
 
-        (Null, SpendDeposit sig) | $$(PlutusTx.null) commits
+        (Null, SpendDeposit sig) | PlutusTx.null commits
             && sig `signedBy` contractCreatorPK -> (state, Null, True)
 
         _ -> (state, Null, False)
@@ -754,7 +754,7 @@ mergeChoices = [|| \ input choices -> let
                 ((IdentChoice insId, insPK), _) = choice
                 in   if insId `Builtins.lessThanInteger` id then choice : choices
                 else if insId `Builtins.equalsInteger` id then
-                        if $$(Validation.eqPubKey) insPK pk
+                        if Validation.eqPubKey insPK pk
                         then choices
                         else current : insert choice rest
                 else {- insId > id -} current : insert choice rest
@@ -780,14 +780,14 @@ validatorScript = [|| \
         contractCreatorPK = creator
 
         eqPk :: PubKey -> PubKey -> Bool
-        eqPk = $$(Validation.eqPubKey)
+        eqPk = Validation.eqPubKey
 
         eqIdentCC :: IdentCC -> IdentCC -> Bool
         eqIdentCC (IdentCC a) (IdentCC b) = a `Builtins.equalsInteger` b
 
         infixr 3 &&
         (&&) :: Bool -> Bool -> Bool
-        (&&) = $$(PlutusTx.and)
+        (&&) = PlutusTx.and
 
         eqValue :: Value -> Value -> Bool
         eqValue = $$(equalValue)
@@ -820,26 +820,26 @@ validatorScript = [|| \
             We use it as a current slot, basically. -}
         minSlot = case pendingTxValidRange of
             Interval (Just slot) _ -> slot
-            _ -> $$(PlutusTx.traceH) "Tx valid slot must have lower bound" Builtins.error ()
+            _ -> PlutusTx.traceH "Tx valid slot must have lower bound" Builtins.error ()
 
         -- TxIn we're validating is obviously a Script TxIn.
         (inputValidatorHash, redeemerHash, scriptInValue) = case pendingTxIn of
             PendingTxIn _ (Just (vHash, RedeemerHash rHash)) value -> (vHash, rHash, value)
             _ -> Builtins.error ()
 
-        scriptInAdaValue = $$(Ada.fromValue) scriptInValue
+        scriptInAdaValue = Ada.fromValue scriptInValue
 
         -- Expected amount of money in TxOut Marlowe Contract
         scriptOutValue = case inputCommand of
-            SpendDeposit _ -> $$(Ada.fromInt) 0
+            SpendDeposit _ -> Ada.fromInt 0
             _ -> let (PendingTxOut change
                         (Just (outputValidatorHash, DataScriptHash dataScriptHash)) DataTxOut : _) = pendingTxOutputs
                 {-  Check that TxOut is a valid continuation.
                     For that we need to ensure dataScriptHash == redeemerHash
                     and that TxOut has the same validator -}
                  in if Builtins.equalsByteString dataScriptHash redeemerHash
-                        && $$(Validation.eqValidator) inputValidatorHash outputValidatorHash
-                    then $$(Ada.fromValue) change else Builtins.error ()
+                        && Validation.eqValidator inputValidatorHash outputValidatorHash
+                    then Ada.fromValue change else Builtins.error ()
 
         eval :: Input -> Slot -> Ada -> Ada -> State -> Contract -> (State, Contract, Bool)
         eval = $$(evaluateContract) contractCreatorPK pendingTxHash
@@ -869,5 +869,5 @@ validatorScript = [|| \
             in if allowTransaction then () else Builtins.error ()
         {-  if the contract is invalid and there are no commit,
             allow to spend contract's money. It's likely to be created by mistake -}
-        else if $$(PlutusTx.null) currentCommits then () else Builtins.error ()
+        else if PlutusTx.null currentCommits then () else Builtins.error ()
     ||]

@@ -25,7 +25,7 @@ import qualified Language.PlutusTx.Prelude    as P
 import           Ledger                       hiding (to)
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Value                 (TokenName)
-import qualified Ledger.Value.TH              as V
+import qualified Ledger.Value                 as V
 import qualified Ledger.Validation            as Validation
 import           Wallet
 import qualified Wallet                       as WAPI
@@ -71,54 +71,54 @@ gameValidator = ValidatorScript ($$(Ledger.compileScript [||
         --   'HashedString'
         checkGuess :: HashedString -> ClearString -> Bool
         checkGuess (HashedString actual) (ClearString gss) =
-            $$(P.equalsByteString) actual ($$(P.sha2_256) gss)
+            P.equalsByteString actual (P.sha2_256 gss)
 
         -- | Given a 'TokeName', get the value that contains
         --   exactly one token of that name in the contract's
         --   currency.
         tokenVal :: TokenName -> V.Value
         tokenVal tn =
-            let ownSymbol = $$(Validation.ownCurrencySymbol) p
-            in $$(V.singleton) ownSymbol tn 1
+            let ownSymbol = Validation.ownCurrencySymbol p
+            in V.singleton ownSymbol tn 1
 
         -- | Check whether the token that was forged at the beginning of the
         --   contract is present in the pending transaction
         tokenPresent :: TokenName -> Bool
         tokenPresent tn =
-            let vSpent = $$(Validation.valueSpent) p
-            in  $$(V.geq) vSpent (tokenVal tn)
+            let vSpent = Validation.valueSpent p
+            in  V.geq vSpent (tokenVal tn)
 
         -- | Check whether the value forged by the  pending transaction 'p' is
         --   equal to the argument.
         checkForge :: Value -> Bool
-        checkForge vl = $$(V.eq) vl ($$(Validation.valueForged) p)
+        checkForge vl = V.eq vl (Validation.valueForged p)
 
         -- | Equality of 'GameState' valzes.
         stateEq :: GameState -> GameState -> Bool
         stateEq (Initialised (HashedString s)) (Initialised (HashedString s')) =
-            $$(P.equalsByteString) s s'
+            P.equalsByteString s s'
         stateEq (Locked (V.TokenName n) (HashedString s)) (Locked (V.TokenName n') (HashedString s')) =
-            $$(P.and) ($$(P.equalsByteString) s s') ($$(P.equalsByteString) n n')
-        stateEq _ _ = $$(P.traceIfFalseH) "states not equal" False
+            P.and (P.equalsByteString s s') (P.equalsByteString n n')
+        stateEq _ _ = P.traceIfFalseH "states not equal" False
 
         -- | The transition function of the game's state machine
         trans :: GameState -> GameInput -> GameState
         trans (Initialised s) (ForgeToken tn) =
             if checkForge (tokenVal tn)
             then Locked tn s
-            else $$(P.error) ()
+            else P.error ()
         trans (Locked tn currentSecret) (Guess theGuess nextSecret) =
-            if $$(P.and)
+            if P.and
                 (checkGuess currentSecret theGuess)
-                ($$(P.and) (tokenPresent tn) (checkForge $$(V.zero)))
+                (P.and (tokenPresent tn) (checkForge V.zero))
             then Locked tn nextSecret
-            else $$(P.error) ()
-        trans _ _ = $$(P.traceH) "Invalid transition" ($$(P.error) ())
+            else P.error ()
+        trans _ _ = P.traceH "Invalid transition" (P.error ())
 
         sm = StateMachine trans stateEq
 
     in
-        $$(mkValidator) sm ds vs p
+        mkValidator sm ds vs p
 
     ||]))
 
@@ -132,7 +132,7 @@ gameTokenVal =
         -- see note [Obtaining the currency symbol]
         cur = plcCurrencySymbol (Ledger.scriptAddress gameValidator)
     in
-        $$(V.singleton) cur gameToken 1
+        V.singleton cur gameToken 1
 
 -- | Make a guess, take out some funds, and lock the remaining 'Ada' with a new
 --   secret
@@ -163,7 +163,7 @@ guess gss newSecret keepAda restAda = do
     let tx = Ledger.Tx
                 { txInputs = Set.union i (Set.fromList $ fmap fst ins)
                 , txOutputs = [ownOutput, scriptOut] ++ maybeToList own
-                , txForge = $$(V.zero)
+                , txForge = V.zero
                 , txFee   = Ada.zero
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty

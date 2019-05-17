@@ -1,18 +1,26 @@
-{-# LANGUAGE TemplateHaskell #-}
--- A version of 'Data.These' that can be used in on-chain and off-chain code.
+{-# LANGUAGE LambdaCase #-}
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 module Ledger.These(
     These(..)
   , these
   , theseWithDefault
   ) where
 
-import           Ledger.These.TH (These (..))
-import qualified Ledger.These.TH as TH
+-- | A 'These' @a@ @b@ is either an @a@, or a @b@ or an @a@ and a @b@.
+-- Plutus version of 'Data.These'.
+data These a b = This a | That b | These a b
 
--- | See 'Ledger.These.TH.these'
-these :: (a -> c) -> (b -> c) -> (a -> b -> c) -> These a b -> c
-these = $$(TH.these)
-
--- | See 'Ledger.These.TH.theseWithDefault
+{-# INLINABLE theseWithDefault #-}
+-- | Consume a 'These a b' value.
 theseWithDefault :: a -> b -> (a -> b -> c) -> These a b -> c
-theseWithDefault = $$(TH.theseWithDefault)
+theseWithDefault a' b' f = \case
+    This a -> f a b'
+    That b -> f a' b
+    These a b -> f a b
+
+{-# INLINABLE these #-}
+these :: (a -> c) -> (b -> c) -> (a -> b -> c) -> These a b -> c
+these f g h = \case
+    This a -> f a
+    That b -> g b
+    These a b -> h a b

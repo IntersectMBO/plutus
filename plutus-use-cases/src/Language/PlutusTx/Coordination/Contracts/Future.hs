@@ -35,8 +35,8 @@ import qualified Ledger.Slot                  as Slot
 import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxIn(..), PendingTxOut (..),
                                               PendingTxOutType (..))
 import qualified Ledger.Validation            as Validation
-import qualified Ledger.Ada.TH                as Ada
-import           Ledger.Ada.TH                (Ada)
+import qualified Ledger.Ada                as Ada
+import           Ledger.Ada                (Ada)
 import qualified Wallet                       as W
 import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, createTxAndSubmit, defaultSlotRange)
 
@@ -86,10 +86,10 @@ initialise :: (
 initialise long short f = do
     let
         im = futureInitialMargin f
-        o  = scriptTxOut ($$(Ada.toValue) im) (validatorScript f) ds
+        o  = scriptTxOut (Ada.toValue im) (validatorScript f) ds
         ds = DataScript $ Ledger.lifted $ FutureData long short im im
 
-    (payment, change) <- createPaymentWithChange ($$(Ada.toValue) im)
+    (payment, change) <- createPaymentWithChange (Ada.toValue im)
     void $ createTxAndSubmit defaultSlotRange payment (o : maybeToList change)
 
 -- | Close the position by extracting the payment
@@ -106,9 +106,9 @@ settle refs ft fd ov = do
         delDate = futureDeliveryDate ft
         forwardPrice = futureUnitPrice ft
         OracleValue _ _ spotPrice = ov
-        delta = $$(Ada.multiply) ($$(Ada.fromInt) $ futureUnits ft) ($$(Ada.minus) spotPrice forwardPrice)
-        longOut = $$(Ada.toValue) ($$(Ada.plus) (futureDataMarginLong fd) delta)
-        shortOut = $$(Ada.toValue) ($$(Ada.minus) (futureDataMarginShort fd) delta)
+        delta = Ada.multiply (Ada.fromInt $ futureUnits ft) (Ada.minus spotPrice forwardPrice)
+        longOut = Ada.toValue (Ada.plus (futureDataMarginLong fd) delta)
+        shortOut = Ada.toValue (Ada.minus (futureDataMarginShort fd) delta)
         red = Ledger.RedeemerScript $ Ledger.lifted $ Settle ov
         outs = [
             Ledger.pubKeyTxOut longOut (futureDataLong fd),
@@ -128,7 +128,7 @@ settleEarly :: (
     -> OracleValue Ada
     -> m ()
 settleEarly refs ft fd ov = do
-    let totalVal = $$(Ada.toValue) ($$(Ada.plus) (futureDataMarginLong fd) (futureDataMarginShort fd))
+    let totalVal = Ada.toValue (Ada.plus (futureDataMarginLong fd) (futureDataMarginShort fd))
         outs = [Ledger.pubKeyTxOut totalVal (futureDataLong fd)]
         inp = (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
         red = Ledger.RedeemerScript $ Ledger.lifted $ Settle ov
@@ -144,17 +144,17 @@ adjustMargin :: (
     -> m ()
 adjustMargin refs ft fd vl = do
     pk <- ownPubKey
-    (payment, change) <- createPaymentWithChange ($$(Ada.toValue) vl)
+    (payment, change) <- createPaymentWithChange (Ada.toValue vl)
     fd' <- let fd''
-                | pk == futureDataLong fd = pure $ fd { futureDataMarginLong  = $$(Ada.plus) vl (futureDataMarginLong fd)  }
-                | pk == futureDataShort fd = pure $ fd { futureDataMarginShort = $$(Ada.plus) vl (futureDataMarginShort fd) }
+                | pk == futureDataLong fd = pure $ fd { futureDataMarginLong  = Ada.plus vl (futureDataMarginLong fd)  }
+                | pk == futureDataShort fd = pure $ fd { futureDataMarginShort = Ada.plus vl (futureDataMarginShort fd) }
                 | otherwise = throwOtherError "Private key is not part of futures contrat"
             in fd''
     let
         red = Ledger.RedeemerScript $ Ledger.lifted AdjustMargin
         ds  = DataScript $ Ledger.lifted fd'
         o = scriptTxOut outVal (validatorScript ft) ds
-        outVal = $$(Ada.toValue) ($$(Ada.plus) vl ($$(Ada.plus) (futureDataMarginLong fd) (futureDataMarginShort fd)))
+        outVal = Ada.toValue (Ada.plus vl (Ada.plus (futureDataMarginLong fd) (futureDataMarginShort fd)))
         inp = Set.fromList $ (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
     void $ createTxAndSubmit defaultSlotRange (Set.union payment inp) (o : maybeToList change)
 
@@ -206,42 +206,42 @@ validatorScript ft = ValidatorScript val where
                 PendingTx _ outs _ _ (PendingTxIn _ witness _) range _ _ = p
                 ownHash = case witness of
                     Just (vhash, _) -> vhash
-                    _ -> $$(PlutusTx.error) ()
+                    _ -> PlutusTx.error ()
 
                 eqPk :: PubKey -> PubKey -> Bool
-                eqPk = $$(Validation.eqPubKey)
+                eqPk = Validation.eqPubKey
 
                 infixr 3 &&
                 (&&) :: Bool -> Bool -> Bool
-                (&&) = $$(PlutusTx.and)
+                (&&) = PlutusTx.and
 
                 infixr 3 ||
                 (||) :: Bool -> Bool -> Bool
-                (||) = $$(PlutusTx.or)
+                (||) = PlutusTx.or
 
                 -- Compute the required margin from the current price of the
                 -- underlying asset.
                 requiredMargin :: Ada -> Ada
                 requiredMargin spotPrice =
                     let
-                        delta  = $$(Ada.multiply) ($$(Ada.fromInt) futureUnits) ($$(Ada.minus) spotPrice futureUnitPrice)
+                        delta  = Ada.multiply (Ada.fromInt futureUnits) (Ada.minus spotPrice futureUnitPrice)
                     in
-                        $$(Ada.plus) futureMarginPenalty delta
+                        Ada.plus futureMarginPenalty delta
 
                 isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
-                isPubKeyOutput o k = $$(PlutusTx.maybe) False ($$(Validation.eqPubKey) k) ($$(Validation.pubKeyOutput) o)
+                isPubKeyOutput o k = PlutusTx.maybe False (Validation.eqPubKey k) (Validation.pubKeyOutput o)
 
                 --  | Check if a `PendingTxOut` is a public key output for the given pub. key and ada value
                 paidOutTo :: Ada -> PubKey -> PendingTxOut -> Bool
                 paidOutTo vl pk txo =
                     let PendingTxOut vl' _ _ = txo
-                        adaVl' = $$(Ada.fromValue) vl'
+                        adaVl' = Ada.fromValue vl'
                     in
-                    isPubKeyOutput txo pk && $$(Ada.eq) vl adaVl'
+                    isPubKeyOutput txo pk && Ada.eq vl adaVl'
 
                 verifyOracle :: OracleValue a -> (Slot, a)
                 verifyOracle (OracleValue pk h t) =
-                    if pk `eqPk` futurePriceOracle then (h, t) else $$(PlutusTx.error) ()
+                    if pk `eqPk` futurePriceOracle then (h, t) else PlutusTx.error ()
 
                 isValid =
                     case r of
@@ -258,10 +258,10 @@ validatorScript ft = ValidatorScript val where
                         Settle ov ->
                             let
                                 (_, spotPrice) = verifyOracle ov
-                                delta  = $$(Ada.multiply) ($$(Ada.fromInt) futureUnits) ($$(Ada.minus) spotPrice futureUnitPrice)
-                                expShort = $$(Ada.minus) futureDataMarginShort delta
-                                expLong  = $$(Ada.plus) futureDataMarginLong delta
-                                slotvalid = $$(Slot.member) futureDeliveryDate range
+                                delta  = Ada.multiply (Ada.fromInt futureUnits) (Ada.minus spotPrice futureUnitPrice)
+                                expShort = Ada.minus futureDataMarginShort delta
+                                expLong  = Ada.plus futureDataMarginLong delta
+                                slotvalid = Slot.member futureDeliveryDate range
 
                                 canSettle =
                                     case outs of
@@ -273,11 +273,11 @@ validatorScript ft = ValidatorScript val where
                                                 slotvalid && paymentsValid
                                         o1:_ ->
                                             let
-                                                totalMargin = $$(Ada.plus) futureDataMarginShort futureDataMarginLong
-                                                case2 = $$(Ada.lt) futureDataMarginLong (requiredMargin spotPrice)
+                                                totalMargin = Ada.plus futureDataMarginShort futureDataMarginLong
+                                                case2 = Ada.lt futureDataMarginLong (requiredMargin spotPrice)
                                                         && paidOutTo totalMargin futureDataShort o1
 
-                                                case3 = $$(Ada.lt) futureDataMarginShort (requiredMargin spotPrice)
+                                                case3 = Ada.lt futureDataMarginShort (requiredMargin spotPrice)
                                                         && paidOutTo totalMargin futureDataLong o1
 
                                             in
@@ -295,13 +295,13 @@ validatorScript ft = ValidatorScript val where
                                 ot:_ ->
                                     case ot of
                                         PendingTxOut v (Just (vh, _)) DataTxOut ->
-                                            $$(Ada.gt) ($$(Ada.fromValue) v) (($$(Ada.plus) futureDataMarginShort futureDataMarginLong))
-                                            && $$(Validation.eqValidator) vh ownHash
+                                            Ada.gt (Ada.fromValue v) ((Ada.plus futureDataMarginShort futureDataMarginLong))
+                                            && Validation.eqValidator vh ownHash
                                         _ -> True
 
                                 _ -> False
             in
-                if isValid then () else $$(PlutusTx.error) ()
+                if isValid then () else PlutusTx.error ()
             ||])
 
 PlutusTx.makeLift ''Future

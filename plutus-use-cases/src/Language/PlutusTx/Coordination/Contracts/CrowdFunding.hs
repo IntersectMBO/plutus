@@ -31,7 +31,7 @@ import qualified Language.PlutusTx.Prelude   as P
 import           Ledger
 import           Ledger.Validation           as V
 import           Ledger.Value                (Value)
-import qualified Ledger.Value.TH             as VTH
+import qualified Ledger.Value                as VTH
 import           Wallet                      as W
 import qualified Wallet.Emulator             as EM
 import           Wallet.Emulator             (Wallet)
@@ -57,17 +57,17 @@ PlutusTx.makeLift ''Campaign
 -- | Construct a 'Campaign' value from the campaign parameters,
 --   using the wallet's public key.
 mkCampaign :: Slot -> Value -> Slot -> Wallet -> Campaign
-mkCampaign ddl target collectionDdl ownerWallet = 
+mkCampaign ddl target collectionDdl ownerWallet =
     Campaign
         { campaignDeadline = ddl
         , campaignTarget   = target
         , campaignCollectionDeadline = collectionDdl
-        , campaignOwner = EM.walletPubKey ownerWallet            
+        , campaignOwner = EM.walletPubKey ownerWallet
         }
 
 -- | The 'SlotRange' during which the funds can be collected
 collectionRange :: Campaign -> SlotRange
-collectionRange cmp = 
+collectionRange cmp =
     W.interval (campaignDeadline cmp) (campaignCollectionDeadline cmp)
 
 -- | The 'SlotRange' during which a refund may be claimed
@@ -96,49 +96,49 @@ contributionScript cmp  = ValidatorScript val where
 
                 infixr 3 &&
                 (&&) :: Bool -> Bool -> Bool
-                (&&) = $$(P.and)
+                (&&) = P.and
 
                 signedBy' :: PendingTx -> PubKey -> Bool
-                signedBy' = $$(V.txSignedBy)
-                
+                signedBy' = V.txSignedBy
+
                 PendingTx ps outs _ _ _ range _ _ = p
 
                 collRange :: SlotRange
-                collRange = $$(Interval.interval) campaignDeadline campaignCollectionDeadline
-    
+                collRange = Interval.interval campaignDeadline campaignCollectionDeadline
+
                 refndRange :: SlotRange
-                refndRange = $$(Interval.from) campaignCollectionDeadline
+                refndRange = Interval.from campaignCollectionDeadline
 
                 totalInputs :: Value
                 totalInputs =
                     let v (PendingTxIn _ _ vl) = vl in
-                    $$(P.foldr) (\i total -> $$(VTH.plus) total (v i)) $$(VTH.zero) ps
+                    P.foldr (\i total -> VTH.plus total (v i)) VTH.zero ps
 
                 isValid = case act of
                     Refund ->
                         let
 
                             contributorTxOut :: PendingTxOut -> Bool
-                            contributorTxOut o = case $$(pubKeyOutput) o of
+                            contributorTxOut o = case pubKeyOutput o of
                                 Nothing -> False
-                                Just pk -> $$(eqPubKey) pk con
+                                Just pk -> eqPubKey pk con
 
-                            contributorOnly = $$(P.all) contributorTxOut outs
+                            contributorOnly = P.all contributorTxOut outs
 
-                            refundable = 
-                                $$(Slot.contains) refndRange range
+                            refundable =
+                                Slot.contains refndRange range
                                 && contributorOnly && p `signedBy'` con
 
                         in refundable
                     Collect ->
                         let
-                            payToOwner = 
-                                $$(Slot.contains) collRange range
-                                && $$(VTH.geq) totalInputs campaignTarget
+                            payToOwner =
+                                Slot.contains collRange range
+                                && VTH.geq totalInputs campaignTarget
                                 && p `signedBy'` campaignOwner
                         in payToOwner
             in
-            if isValid then () else $$(P.error) () ||])
+            if isValid then () else P.error () ||])
 
 -- | The address of a [[Campaign]]
 campaignAddress :: Campaign -> Ledger.Address

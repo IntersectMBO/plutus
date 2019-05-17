@@ -14,6 +14,7 @@ packages: language-plutus-core
           meadow
           plutus-validation-server
           plutus-contract-exe
+          metatheory
 optimization: 2
 constraints: language-plutus-core +development
            , plutus-wallet-api +development

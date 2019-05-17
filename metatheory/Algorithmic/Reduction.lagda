@@ -30,6 +30,7 @@ open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
 open import Utils
+open import Data.String hiding (_++_; _≟_)
 \end{code}
 
 ## Values
@@ -37,14 +38,14 @@ open import Utils
 \begin{code}
 data Value :  ∀ {J Φ Γ} {A : Φ ⊢Nf⋆ J} → Γ ⊢ A → Set where
 
-  V-ƛ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *} {N : Γ , A ⊢ B}
+  V-ƛ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}{x : String}{N : Γ , A ⊢ B}
       ---------------------------
-    → Value (ƛ N)
+    → Value (ƛ x N)
 
-  V-Λ_ : ∀ {Φ Γ K} {B : Φ ,⋆ K ⊢Nf⋆ *}
+  V-Λ_ : ∀ {Φ Γ K}{x : String}{B : Φ ,⋆ K ⊢Nf⋆ *}
     → {N : Γ ,⋆ K ⊢ B}
       ----------------
-    → Value (Λ N)
+    → Value (Λ x N)
 
   V-wrap1 : ∀{Φ Γ K}
    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
@@ -70,7 +71,7 @@ data Error :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
     → Error L → Error (L · M)
   E-·₂ : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *} {L : Γ ⊢ A ⇒ B}{M : Γ ⊢ A}
     → Error M → Error (L · M)
-  E-·⋆ : ∀{Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}{L : Γ ⊢ Π B}{A : Φ ⊢Nf⋆ K}
+  E-·⋆ : ∀{Φ Γ K x}{B : Φ ,⋆ K ⊢Nf⋆ *}{L : Γ ⊢ Π x B}{A : Φ ⊢Nf⋆ K}
     → Error L → Error (L ·⋆ A)
   E-unwrap : ∀{Φ Γ K}
     → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
@@ -203,7 +204,7 @@ data _—→_ : ∀ {J Φ Γ} {A : Φ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ ⊢ A) 
       -----------------
     → L · M —→ error _
 -}
-  ξ-·⋆ : ∀ {Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}{L L′ : Γ ⊢ Π B}{A}
+  ξ-·⋆ : ∀ {Φ Γ K x}{B : Φ ,⋆ K ⊢Nf⋆ *}{L L′ : Γ ⊢ Π x B}{A}
     → L —→ L′
       -----------------
     → L ·⋆ A —→ L′ ·⋆ A
@@ -213,14 +214,14 @@ data _—→_ : ∀ {J Φ Γ} {A : Φ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ ⊢ A) 
       -----------------
     → L ·⋆ A —→ error _
 -}
-  β-ƛ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}{N : Γ , A ⊢ B} {W : Γ ⊢ A}
+  β-ƛ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}{x}{N : Γ , A ⊢ B} {W : Γ ⊢ A}
     → Value W
       -------------------
-    → (ƛ N) · W —→ N [ W ]
+    → (ƛ x N) · W —→ N [ W ]
 
-  β-Λ : ∀ {Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}{N : Γ ,⋆ K ⊢ B}{W}
+  β-Λ : ∀ {Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}{x}{N : Γ ,⋆ K ⊢ B}{W}
       -------------------
-    → (Λ N) ·⋆ W —→ N [ W ]⋆
+    → (Λ x N) ·⋆ W —→ N [ W ]⋆
 
   β-wrap1 : ∀{Φ Γ K}
     → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
@@ -364,19 +365,19 @@ progressTel {As = A ∷ As} (t ,, tel) | done vt | error Bs Ds vtel E q tel' = e
 
 
 progress (` ())
-progress (ƛ M) = done V-ƛ
+progress (ƛ x M) = done V-ƛ
 progress (M · N) with progress M
 ...                   | error EM  = error (E-·₁ EM)
 progress (M · N)      | step p = step (ξ-·₁ p)
-progress (.(ƛ _) · N) | done V-ƛ with progress N
+progress (.(ƛ _ _) · N) | done V-ƛ with progress N
 ...                              | error EN  = error (E-·₂ EN)
-progress (.(ƛ _) · N) | done V-ƛ | step p  = step (ξ-·₂ V-ƛ p)
-progress (.(ƛ _) · N) | done V-ƛ | done VN = step (β-ƛ VN)
-progress (Λ M) = done V-Λ_
+progress (.(ƛ _ _) · N) | done V-ƛ | step p  = step (ξ-·₂ V-ƛ p)
+progress (.(ƛ _ _) · N) | done V-ƛ | done VN = step (β-ƛ VN)
+progress (Λ _ M) = done V-Λ_
 progress (M ·⋆ A) with progress M
 ...               | error EM = error (E-·⋆ EM)
 progress (M ·⋆ A) | step p = step (ξ-·⋆ p)
-progress (.(Λ _) ·⋆ A) | done V-Λ_ = step β-Λ
+progress (.(Λ _ _) ·⋆ A) | done V-Λ_ = step β-Λ
 progress (wrap1 pat arg term) = done V-wrap1
 progress (unwrap1 M) with progress M
 ...                  | error EM  = error (E-unwrap EM)

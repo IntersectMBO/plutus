@@ -15,8 +15,8 @@ import           Ledger                       (Slot, PubKey, ValidatorScript (..
 import qualified Ledger                       as Ledger
 import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxIn (..), PendingTxOut (..))
 import qualified Ledger.Validation            as Validation
-import qualified Ledger.Ada.TH                as Ada
-import           Ledger.Ada.TH                (Ada)
+import qualified Ledger.Ada                as Ada
+import           Ledger.Ada                (Ada)
 import           Ledger.Value                 (Value)
 
 import           Prelude                      (Bool (..), Eq (..), Integer)
@@ -65,45 +65,44 @@ swapValidator _ = ValidatorScript result where
         let
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
-            (&&) = $$(PlutusTx.and)
+            (&&) = PlutusTx.and
 
             mn :: Integer -> Integer -> Integer
-            mn = $$(PlutusTx.min)
+            mn = PlutusTx.min
 
             mx :: Integer -> Integer -> Integer
-            mx = $$(PlutusTx.max)
+            mx = PlutusTx.max
 
             timesR :: Ratio Integer -> Ratio Integer -> Ratio Integer
-            timesR (x :% y) (x' :% y') = ($$(P.multiply) x x') :% ($$(P.multiply) y y')
+            timesR (x :% y) (x' :% y') = (P.multiply x x') :% (P.multiply y y')
 
             plusR :: Ratio Integer -> Ratio Integer -> Ratio Integer
-            plusR (x :% y) (x' :% y') = ($$(P.plus) ($$(P.multiply) x y') ($$(P.multiply) x' y)) :% ($$(P.multiply) y y')
+            plusR (x :% y) (x' :% y') = (P.plus (P.multiply x y') (P.multiply x' y)) :% (P.multiply y y')
 
             minusR :: Ratio Integer -> Ratio Integer -> Ratio Integer
-            minusR (x :% y) (x' :% y') = ($$(P.minus) ($$(P.multiply) x y') ($$(P.multiply) x' y)) :% ($$(P.multiply) y y')
+            minusR (x :% y) (x' :% y') = (P.minus (P.multiply x y') (P.multiply x' y)) :% (P.multiply y y')
 
             extractVerifyAt :: OracleValue (Ratio Integer) -> PubKey -> Ratio Integer -> Slot -> Ratio Integer
-            extractVerifyAt = $$(PlutusTx.error) ()
+            extractVerifyAt = PlutusTx.error ()
 
             round :: Ratio Integer -> Integer
-            round = $$(PlutusTx.error) ()
+            round = PlutusTx.error ()
 
             -- | Convert an [[Integer]] to a [[Ratio Integer]]
             fromInt :: Integer -> Ratio Integer
-            fromInt = $$(PlutusTx.error) ()
+            fromInt = PlutusTx.error ()
 
             signedBy :: PendingTx -> PubKey -> Bool
-            signedBy = $$(Validation.txSignedBy)
+            signedBy = Validation.txSignedBy
 
             adaValueIn :: Value -> Integer
-            adaValueIn v = $$(Ada.toInt) ($$(Ada.fromValue) v)
+            adaValueIn v = Ada.toInt (Ada.fromValue v)
 
-            infixr 3 ||
             (||) :: Bool -> Bool -> Bool
-            (||) = $$(PlutusTx.or)
+            (||) = PlutusTx.or
 
             isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
-            isPubKeyOutput o k = $$(PlutusTx.maybe) False ($$(Validation.eqPubKey) k) ($$(Validation.pubKeyOutput) o)
+            isPubKeyOutput o k = PlutusTx.maybe False (Validation.eqPubKey k) (Validation.pubKeyOutput o)
 
             -- Verify the authenticity of the oracle value and compute
             -- the payments.
@@ -112,8 +111,8 @@ swapValidator _ = ValidatorScript result where
             rtDiff :: Ratio Integer
             rtDiff = rt `minusR` swapFixedRate
 
-            amt    = $$(Ada.toInt) swapNotionalAmt
-            margin = $$(Ada.toInt) swapMargin
+            amt    = Ada.toInt swapNotionalAmt
+            margin = Ada.toInt swapMargin
 
             amt' :: Ratio Integer
             amt' = fromInt amt
@@ -131,9 +130,9 @@ swapValidator _ = ValidatorScript result where
             -- payments), ensuring that it is at least 0 and does not exceed
             -- the total amount of money at stake (2 * margin)
             clamp :: Integer -> Integer
-            clamp x = mn 0 (mx ($$(P.multiply) 2 margin) x)
-            fixedRemainder = clamp ($$(P.plus) ($$(P.minus) margin fixedPayment) floatPayment)
-            floatRemainder = clamp ($$(P.plus) ($$(P.minus) margin floatPayment) fixedPayment)
+            clamp x = mn 0 (mx (P.multiply 2 margin) x)
+            fixedRemainder = clamp (P.plus (P.minus margin fixedPayment) floatPayment)
+            floatRemainder = clamp (P.plus (P.minus margin floatPayment) fixedPayment)
 
             -- The transaction must have one input from each of the
             -- participants.
@@ -150,12 +149,12 @@ swapValidator _ = ValidatorScript result where
             -- True if the transaction input is the margin payment of the
             -- fixed leg
             iP1 :: PendingTxIn -> Bool
-            iP1 (PendingTxIn _ _ v) = signedBy p swapOwnersFixedLeg && $$(PlutusTx.eq) (adaValueIn v) margin
+            iP1 (PendingTxIn _ _ v) = signedBy p swapOwnersFixedLeg && PlutusTx.eq (adaValueIn v) margin
 
             -- True if the transaction input is the margin payment of the
             -- floating leg
             iP2 :: PendingTxIn -> Bool
-            iP2 (PendingTxIn _ _ v) = signedBy p swapOwnersFloating && $$(PlutusTx.eq) (adaValueIn v) margin
+            iP2 (PendingTxIn _ _ v) = signedBy p swapOwnersFloating && PlutusTx.eq (adaValueIn v) margin
 
             inConditions = (iP1 t1  && iP2 t2) || (iP1 t2 && iP2 t1)
 
@@ -165,11 +164,11 @@ swapValidator _ = ValidatorScript result where
 
             -- True if the output is the payment of the fixed leg.
             ol1 :: PendingTxOut -> Bool
-            ol1 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFixedLeg && $$(PlutusTx.leq) (adaValueIn v) fixedRemainder
+            ol1 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFixedLeg && PlutusTx.leq (adaValueIn v) fixedRemainder
 
             -- True if the output is the payment of the floating leg.
             ol2 :: PendingTxOut -> Bool
-            ol2 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFloating && $$(PlutusTx.leq) (adaValueIn v) floatRemainder
+            ol2 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFloating && PlutusTx.leq (adaValueIn v) floatRemainder
 
             -- NOTE: I didn't include a check that the slot is greater
             -- than the observation time. This is because the slot is
@@ -179,7 +178,7 @@ swapValidator _ = ValidatorScript result where
 
 
         in
-        if inConditions && outConditions then () else $$(PlutusTx.error) ()
+        if inConditions && outConditions then () else PlutusTx.error ()
         ) ||])
 
 {- Note [Swap Transactions]

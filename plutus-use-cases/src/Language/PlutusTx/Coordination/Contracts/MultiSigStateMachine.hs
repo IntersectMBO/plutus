@@ -3,8 +3,7 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE DataKinds         #-}
-{-# OPTIONS_GHC -O0 #-}
--- | A multisig contract written as a state machine. 
+-- | A multisig contract written as a state machine.
 --   $multisig
 module Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine(
       Params(..)
@@ -37,27 +36,27 @@ import qualified Language.PlutusTx.StateMachine as SM
 --   The n-out-of-m multisig contract works like a joint account of
 --   m people, requiring the consent of n people for any payments.
 --   In the smart contract the signatories are represented by public keys,
---   and approval takes the form of signatures on transactions. 
---   
---   The multisig contract in  
+--   and approval takes the form of signatures on transactions.
+--
+--   The multisig contract in
 --   'Language.PlutusTx.Coordination.Contracts.MultiSig' expects n signatures on
 --   a single transaction. This requires an off-chain communication channel. The
---   multisig contract implemented in this module uses a proposal system that 
---   allows participants to propose payments and attach their signatures to 
---   proposals over a period of time, using separate transactions. All contract 
+--   multisig contract implemented in this module uses a proposal system that
+--   allows participants to propose payments and attach their signatures to
+--   proposals over a period of time, using separate transactions. All contract
 --   state is kept on the chain so there is no need for off-chain communication.
 
 validator :: Params -> ValidatorScript
 validator params = ValidatorScript val where
     val = Ledger.applyScript script (Ledger.lifted params)
-    
+
     script = ($$(Ledger.compileScript [||
 
         \(p :: Params) (ds :: (State, Maybe Input)) (vs :: (State, Maybe Input)) (ptx :: PendingTx) ->
-            let 
-                trans = $$stepWithChecks p ptx
-                sm = StateMachine trans $$stateEq
-            in $$(mkValidator) sm ds vs ptx
+            let
+                trans = stepWithChecks p ptx
+                sm = StateMachine trans stateEq
+            in mkValidator sm ds vs ptx
 
         ||]))
 
@@ -75,7 +74,7 @@ lock
     -> m MultiSig.State
     -- ^ The initial state of the contract
 lock prms vl = do
-    let 
+    let
         addr = Ledger.scriptAddress (validator prms)
         state = InitialState vl
         dataScript = DataScript (Ledger.lifted (SM.initialState @State @Input state))
@@ -84,7 +83,7 @@ lock prms vl = do
 
     pure state
 
--- | Propose a payment from funds that are locked up in a state-machine based 
+-- | Propose a payment from funds that are locked up in a state-machine based
 --   multisig contract.
 proposePayment
     :: (WalletAPI m, WalletDiagnostics m)
@@ -117,15 +116,15 @@ makePayment
     -> MultiSig.State
     -> m MultiSig.State
 makePayment prms st = do
-    -- we can't use 'mkStep' because the outputs of the transaction are 
+    -- we can't use 'mkStep' because the outputs of the transaction are
     -- different from the other transitions: We need two outputs, a public
     -- key output with the payment, and the script output with the remaining
     -- funds.
     (currentValue, valuePaid, recipient) <- case st of
         CollectingSignatures vl (Payment pd pk _) _ -> pure (vl, pd, pk)
         _ -> WAPI.throwOtherError "Cannot make payment because no payment has been proposed. Run the 'proposePayment' action first."
-    
-    let newState = $$step st Pay
+
+    let newState = step st Pay
         vl       = validator prms
         redeemer = RedeemerScript (Ledger.lifted (SM.transition newState Pay))
         dataScript = DataScript (Ledger.lifted (SM.transition newState Pay))
@@ -137,7 +136,7 @@ makePayment prms st = do
     _ <- WAPI.createTxAndSubmit WAPI.defaultSlotRange (Set.fromList $ fmap fst inputs) [scriptOut, pkOut]
     pure newState
 
--- | Advance a running multisig contract. This applies the transition function 
+-- | Advance a running multisig contract. This applies the transition function
 --   'SM.transition' to the current contract state and uses the result to unlock
 --   the funds currently in the contract, and lock them again with a data script
 --   containing the new state.
@@ -153,7 +152,7 @@ mkStep
     -> m MultiSig.State
     -- ^ New state after applying the input
 mkStep prms st input = do
-    let newState = $$step st input
+    let newState = step st input
         vl       = validator prms
         redeemer = RedeemerScript (Ledger.lifted (SM.transition newState input))
         dataScript = DataScript (Ledger.lifted (SM.transition newState input))
@@ -166,9 +165,9 @@ mkStep prms st input = do
 
 {- Note [Current state of the contract]
 
-The 'mkStep' function takes the current state of the contract and returns the 
+The 'mkStep' function takes the current state of the contract and returns the
 new state. Both values are placed on the chain, so technically we don't have to
-pass them around like this, but we currently can't decode 'State' values from 
+pass them around like this, but we currently can't decode 'State' values from
 PLC back to Haskell.
 
 -}

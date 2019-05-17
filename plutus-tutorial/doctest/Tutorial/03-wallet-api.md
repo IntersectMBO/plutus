@@ -8,13 +8,13 @@ This tutorial shows how to implement a crowdfunding campaign as a Plutus contrac
 4. [Working with the emulator](../../tutorial/Tutorial/Emulator.hs)
 5. [A multi-stage contract](../../tutorial/Tutorial/Vesting.hs)
 
-You can run this code in the [Plutus Playground](https://prod.playground.plutus.iohkdev.io/) - see Section 2.1, "Testing the contract in the Playground". 
+You can run this code in the [Plutus Playground](https://prod.playground.plutus.iohkdev.io/) - see Section 2.1, "Testing the contract in the Playground".
 
-We assume the reader is familiar with the [UTxO model with scripts](../../../docs/extended-utxo/README.md) and the [first](./01-plutus-tx.md) [two](./02-validator-scripts.md) tutorials. 
+We assume the reader is familiar with the [UTxO model with scripts](../../../docs/extended-utxo/README.md) and the [first](./01-plutus-tx.md) [two](./02-validator-scripts.md) tutorials.
 
-**WARNING** The wallet API and by extension the wallet API tutorial is a work in progress and may be changed without much warning. 
+**WARNING** The wallet API and by extension the wallet API tutorial is a work in progress and may be changed without much warning.
 
-The tutorial has three parts. In part 1 we write the contract, including all the data types we need, validator scripts, and contract endpoints that handle the interactions between wallet and blockchain. In part 2 we show how to test the contract. Part 3 contains a number of questions and exercises related to this contract. 
+The tutorial has three parts. In part 1 we write the contract, including all the data types we need, validator scripts, and contract endpoints that handle the interactions between wallet and blockchain. In part 2 we show how to test the contract. Part 3 contains a number of questions and exercises related to this contract.
 
 # 1. Contract Definition
 
@@ -34,8 +34,8 @@ import qualified Ledger.Interval              as P
 import qualified Ledger.Slot                  as P
 import           Ledger                       (Address, DataScript(..), PubKey(..), RedeemerScript(..), Signature(..), Slot(..), TxId, ValidatorScript(..))
 import qualified Ledger                       as L
-import qualified Ledger.Ada.TH                as Ada
-import           Ledger.Ada.TH                (Ada)
+import qualified Ledger.Ada                   as Ada
+import           Ledger.Ada                   (Ada)
 import           Ledger.Validation            (PendingTx(..), PendingTxIn(..), PendingTxOut)
 import qualified Ledger.Validation            as V
 import           Wallet                       (WalletAPI(..), WalletDiagnostics(..), MonadWallet, EventHandler(..), EventTrigger)
@@ -78,7 +78,7 @@ Now we need to figure out what the campaign will look like on the blockchain. Wh
 
 Each contributor pays their contribution to the address of the campaign script. When the slot `endDate` is reached, the campaign owner submits a single transaction, spending all inputs from the campaign address and paying them to a pubkey address. If the funding target isn't reached, or the campaign owner fails to collect the funds, then each contributor can claim a refund, in the form of a transaction that spends their own contribution. This means that the validator script is going to be run once per contribution, and we need to tell it which of the two cases outcomes it should check.
 
-We can encode the two possible actions in a data type called `Action`. 
+We can encode the two possible actions in a data type called `Action`.
 
 ```haskell
 data CampaignAction = Collect | Refund
@@ -94,7 +94,7 @@ P.makeLift ''Contributor
 
 **Note (What is the role of the data script?)** Pay-to-script outputs contain a (hash of a) validator script and a data script, but their address is the hash of the validator script only, not of the data script. The wallet uses the address to track the state of a contract, by watching the outputs at that address. So the separate data script allows us to have multiple outputs belonging to the same contract but with different data scripts.
 
-In the crowdfunding campaign the data script contains a `Contributor` value, which is used to verify the "refund" transaction. If that data was part of the validator script, then each contribution would go to a unique address, and the campaign owner would have to be informed of all the addresses through some other mechanism. 
+In the crowdfunding campaign the data script contains a `Contributor` value, which is used to verify the "refund" transaction. If that data was part of the validator script, then each contribution would go to a unique address, and the campaign owner would have to be informed of all the addresses through some other mechanism.
 
 ## 1.2 The Validator Script
 
@@ -122,11 +122,11 @@ Before we check whether `act` is permitted, we define a number of intermediate v
               let
                   infixr 3 &&
                   (&&) :: Bool -> Bool -> Bool
-                  (&&) = $$(P.and)
+                  (&&) = P.and
 
-                  
+
                   signedBy :: PendingTx -> PubKey -> Bool
-                  signedBy = $$(V.txSignedBy)
+                  signedBy = V.txSignedBy
 ```
 
 There is no standard library of functions that are automatically in scope for on-chain code, so we need to import the ones that we want to use from the [`Ledger.Validation`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html) module using the `$$()` splicing operator. [`Ledger.Validation`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html) contains a subset of the standard Haskell prelude, exported as Template Haskell quotes. Code from other libraries can only be used in validator scripts if it is available as a Template Haskell quote (so we can use `$$()` to splice it in).
@@ -134,11 +134,11 @@ There is no standard library of functions that are automatically in scope for on
 Next, we pattern match on the structure of the [`PendingTx`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html#t:PendingTx) value `p` to get the Validation information we care about:
 
 ```haskell
-                  PendingTx ins outs _ _ _ txnValidRange _  _ = p 
+                  PendingTx ins outs _ _ _ txnValidRange _  _ = p
                   -- p is bound to the pending transaction.
 ```
 
-This binds `ins` to the list of all inputs of the current transaction, `outs` to the list of all its outputs, and `txnValidRange` to the validity interval of the pending transaction. 
+This binds `ins` to the list of all inputs of the current transaction, `outs` to the list of all its outputs, and `txnValidRange` to the validity interval of the pending transaction.
 
 In the extended UTXO model with scripts that underlies Plutus, each transaction has a validity range, an interval of slots during which it may be validated by core nodes. The validity interval is passed to validator scripts via the `PendingTx` argument, and it is the only information we have about the current time. For example, if `txnValidRange` was the interval between slots 10 and 20, then we would know that the current slot number is greater than or equal to 10, and less than 20 (the interval is inclusive-exclusive). In terms of clock time we could say that the current time is between the beginning of slot 10 and the end of slot 19.
 
@@ -155,15 +155,15 @@ Then we compute the total value of all transaction inputs, using `P.foldr` on th
 ```haskell
                   totalInputs :: Ada
                   totalInputs =
-                        -- define a function "addToTotal" that adds the ada 
+                        -- define a function "addToTotal" that adds the ada
                         -- value of a 'PendingTxIn' to the total
-                        let addToTotal (PendingTxIn _ _ vl) total = 
-                                let adaVl = $$(Ada.fromValue) vl 
-                                in $$(Ada.plus) total adaVl
+                        let addToTotal (PendingTxIn _ _ vl) total =
+                                let adaVl = Ada.fromValue vl
+                                in Ada.plus total adaVl
 
-                        -- Apply "addToTotal" to each transaction input, 
+                        -- Apply "addToTotal" to each transaction input,
                         -- summing up the results
-                        in $$(P.foldr) addToTotal $$(Ada.zero) ins
+                        in P.foldr addToTotal Ada.zero ins
 ```
 
 We now have all the information we need to check whether the action `act` is allowed. This will be computed as
@@ -180,9 +180,9 @@ In the `Refund` branch we check that the outputs of this transaction all go to t
 ```haskell
                               contribTxOut :: PendingTxOut -> Bool
                               contribTxOut o =
-                                case $$(V.pubKeyOutput) o of
+                                case V.pubKeyOutput o of
                                   Nothing -> False
-                                  Just pk -> $$(V.eqPubKey) pk pkCon
+                                  Just pk -> V.eqPubKey pk pkCon
 ```
 
 We check if `o` is a pay-to-pubkey output. If it isn't, then the predicate `contribTxOut` is false. If it is, then we check if the public key matches the one we got from the data script.
@@ -190,13 +190,13 @@ We check if `o` is a pay-to-pubkey output. If it isn't, then the predicate `cont
 The predicate `contribTxOut` is applied to all outputs of the current transaction:
 
 ```haskell
-                              contributorOnly = $$(P.all) contribTxOut outs
+                              contributorOnly = P.all contribTxOut outs
 ```
 
 For the contribution to be refundable, three conditions must hold. The collection deadline must have passed, all outputs of this transaction must go to the contributor `con`, and the transaction was signed by the contributor. To check whether the collection deadline has passed, we use `P.before :: Slot -> SlotRange -> Bool`. `before` is exported by the `Ledger.Intervals` module, alongside other useful functions for working with `SlotRange` values.
 
 ```haskell
-                              refundable = $$(P.before) collectionDeadline txnValidRange &&
+                              refundable = P.before collectionDeadline txnValidRange &&
                                            contributorOnly &&
                                            p `signedBy` pkCon
 ```
@@ -216,8 +216,8 @@ The second branch represents a successful campaign.
 In the `Collect` case, the current slot must be between `deadline` and `collectionDeadline`, the target must have been met, and and transaction has to be signed by the campaign owner. We use `interval :: Slot -> Slot -> SlotRange` and `contains :: SlotRange -> SlotRange -> Bool` from the `Ledger.Intervals` module to ensure that the spending transactions validity range, `txnValidRange`, is completely contained in the time between campaign deadline and collection deadline.
 
 ```haskell
-                          $$(P.contains) ($$(P.interval) deadline collectionDeadline) txnValidRange &&
-                          $$(Ada.geq) totalInputs target &&
+                          P.contains (P.interval deadline collectionDeadline) txnValidRange &&
+                          Ada.geq totalInputs target &&
                           p `signedBy` campaignOwner
 
               in
@@ -228,15 +228,15 @@ In the `Collect` case, the current slot must be between `deadline` and `collecti
 Finally, we can return `()` if `isValid` is true, or fail with an error if it isn't.
 
 ```haskell
-              if isValid then () else ($$(P.error) ())
-                  ||]) 
-                  -- this is the end of the on-chain (quoted Template 
+              if isValid then () else (P.error ())
+                  ||])
+                  -- this is the end of the on-chain (quoted Template
                   -- Haskell) code
 ```
 
 ## 1.3 Contract Endpoints
 
-Now that we have the validator script, we need to set up contract endpoints for contributors and the campaign owner. The endpoints for the crowdfunding campaign are more complex than the endpoints of the guessing game because we need to do more than just create or spend a single transaction output. As a contributor we need to watch the campaign and claim a refund if it fails. As the campaign owner we need to collect the funds, but only if the target has been reached before the deadline has passed. 
+Now that we have the validator script, we need to set up contract endpoints for contributors and the campaign owner. The endpoints for the crowdfunding campaign are more complex than the endpoints of the guessing game because we need to do more than just create or spend a single transaction output. As a contributor we need to watch the campaign and claim a refund if it fails. As the campaign owner we need to collect the funds, but only if the target has been reached before the deadline has passed.
 
 Both tasks can be implemented using *blockchain triggers*.
 
@@ -272,11 +272,11 @@ The `collect` endpoint does not require any user input, so it can be run automat
 ```haskell
 collectFundsTrigger :: Campaign -> EventTrigger
 collectFundsTrigger c = W.andT
-    -- We use `W.intervalFrom` to create an open-ended interval that starts 
+    -- We use `W.intervalFrom` to create an open-ended interval that starts
     -- at the funding target.
-    (W.fundsAtAddressT (campaignAddress c) (W.intervalFrom ($$(Ada.toValue) (fundingTarget c))))
+    (W.fundsAtAddressT (campaignAddress c) (W.intervalFrom (Ada.toValue (fundingTarget c))))
 
-    -- With `W.interval` we create an interval from the campaign's end date 
+    -- With `W.interval` we create an interval from the campaign's end date
     -- (inclusive) to the collection deadline (exclusive)
     (W.slotRangeT (W.interval (endDate c) (collectionDeadline c)))
 ```
@@ -314,15 +314,15 @@ scheduleCollection cmp = W.register (collectFundsTrigger cmp) (collectionHandler
 
 Now the campaign owner only has to run `scheduleCollection` at the beginning of the campaign and the wallet will collect the funds automatically.
 
-This takes care of the functionality needed by campaign owners. We need another contract endpoint for making contributions and claiming a refund in case the goal was not reached. 
+This takes care of the functionality needed by campaign owners. We need another contract endpoint for making contributions and claiming a refund in case the goal was not reached.
 
 ### The `contribute` endpoint
 
-After contributing to a campaign we do not need any user input to determine whether we are eligible for a refund of our contribution. Eligibility is defined entirely in terms of the blockchain state, and therefore we can use the event mechanism to automatically process our refund. 
+After contributing to a campaign we do not need any user input to determine whether we are eligible for a refund of our contribution. Eligibility is defined entirely in terms of the blockchain state, and therefore we can use the event mechanism to automatically process our refund.
 
-To contribute to a campaign we need to pay the desired amount to a script address, and provide our own public key as the data script. In the [guessing game](./02-validator-scripts.md) we used [`payToScript_`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:payToScript_), which returns `()` instead of the transaction that was submitted. For the crowdfunding contribution we need to hold on the transaction. Why? 
+To contribute to a campaign we need to pay the desired amount to a script address, and provide our own public key as the data script. In the [guessing game](./02-validator-scripts.md) we used [`payToScript_`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:payToScript_), which returns `()` instead of the transaction that was submitted. For the crowdfunding contribution we need to hold on the transaction. Why?
 
-Think back to the `guess` action of the game. We used [`collectFromScript`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:collectFromScript) to collect *all* outputs at the game address. This works only if all all outputs are unlocked by the same redeemer (see also exercise 3 of the previous tutorial). 
+Think back to the `guess` action of the game. We used [`collectFromScript`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:collectFromScript) to collect *all* outputs at the game address. This works only if all all outputs are unlocked by the same redeemer (see also exercise 3 of the previous tutorial).
 
 In our crowdfunding campaign, the redeemer is a signed `Action`. In case of a refund, we sign the `Refund` action with our public key, allowing us to unlock our own contribution. But if we try to use the same redeemer to unlock other contributions the script will fail, invalidating the entire transaction. We therefore need a way to restrict the outputs that [`collectFromScript`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:collectFromScript) spends. To achieve this, the wallet API provides [`collectFromScriptTxn`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:collectFromScriptTxn), which takes an additional `TxId` parameter and only collects outputs produced by that transaction. To get the `TxId` parameter we need to hold on to the transaction that commits our contribution, which we can do with [`payToScript`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:payToScript).
 
@@ -340,7 +340,7 @@ Now we can register the refund handler when we make the contribution. The condit
 ```haskell
 refundTrigger :: Campaign -> EventTrigger
 refundTrigger c = W.andT
-    (W.fundsAtAddressT (campaignAddress c) (W.intervalFrom ($$(Ada.toValue) 1)))
+    (W.fundsAtAddressT (campaignAddress c) (W.intervalFrom (Ada.toValue 1)))
     (W.slotRangeT (W.intervalFrom (collectionDeadline c)))
 ```
 
@@ -351,7 +351,7 @@ contribute :: MonadWallet m => Campaign -> Ada -> m ()
 contribute cmp adaAmount = do
       pk <- W.ownPubKey
       let dataScript = mkDataScript pk
-          amount = $$(Ada.toValue) adaAmount
+          amount = Ada.toValue adaAmount
 
       -- payToScript returns the transaction that was submitted
       -- (unlike payToScript_ which returns unit)
@@ -379,13 +379,13 @@ $(mkFunctions ['scheduleCollection, 'contribute])
 
 (We can't use the usual Haskell syntax highlighting for this line because the entire script is compiled and executed as part of the test suite for the `wallet-api` project. The Playground-specific [`mkFunctions`](https://input-output-hk.github.io/plutus/plutus-playground-lib-0.1.0.0/html/Playground-Contract.html#v:mkFunctions) is defined in a different library (`plutus-playground-lib`) and it is not available for this tutorial.)
 
-Alternatively, you can click the "Crowdfunding" button in the Playground to load the sample contract including the `mkFunctions` line. Note that the sample code differs slightly from what is written in this tutorial, because it does not include some of the intermediate definitions of contract endpoints such as `startCampaign` (which was superseded by `scheduleCollection`) and `contribute` (superseded by `contribute2`). 
+Alternatively, you can click the "Crowdfunding" button in the Playground to load the sample contract including the `mkFunctions` line. Note that the sample code differs slightly from what is written in this tutorial, because it does not include some of the intermediate definitions of contract endpoints such as `startCampaign` (which was superseded by `scheduleCollection`) and `contribute` (superseded by `contribute2`).
 
 Either way, once the contract is defined we click "Compile" to get a list of endpoints:
 
 ![Compiling a contract](compile-contract.gif)
 
-We can then simulate a campaign by adding actions for `scheduleCollection` and `contribute`. Note that we also need to add a number of empty blocks to make sure the time advances past the `endDate` of the campaign. 
+We can then simulate a campaign by adding actions for `scheduleCollection` and `contribute`. Note that we also need to add a number of empty blocks to make sure the time advances past the `endDate` of the campaign.
 
 ![Contract actions](actions.PNG)
 
@@ -405,7 +405,7 @@ You can run the test suite with `nix build -f default.nix localPackages.plutus-u
 
 1. Run traces for successful and failed campaigns
 2. Change the validator script to produce more detailed log messages using `P.traceH`
-3. Write a variation of the crowdfunding campaign that uses 
+3. Write a variation of the crowdfunding campaign that uses
 
 ```
 data Campaign = Campaign {
@@ -415,7 +415,7 @@ data Campaign = Campaign {
  }
 ```
 
-where `fundingTargets` is a list of slot numbers with associated Ada amounts. The campaign is successful if the funding target for one of the slots has been reached *before* that slot begins. For example, campaign with 
+where `fundingTargets` is a list of slot numbers with associated Ada amounts. The campaign is successful if the funding target for one of the slots has been reached *before* that slot begins. For example, campaign with
 `Campaign [(Slot 20, Ada 100), (Slot 30, Ada 200)]` is successful if the contributions amount to 100 Ada or more by slot 20, or 200 Ada or more by slot 30.
 
 Solutions to these problems can be found [`Solutions0.hs`](../../tutorial/Tutorial/Solutions0.hs).

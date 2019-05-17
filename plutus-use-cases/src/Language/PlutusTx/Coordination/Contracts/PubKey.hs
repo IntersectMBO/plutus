@@ -21,16 +21,16 @@ import           Ledger.Validation            as V
 import           Wallet.API                   as WAPI
 
 pkValidator :: PubKey -> ValidatorScript
-pkValidator pk = 
+pkValidator pk =
     ValidatorScript (Ledger.applyScript mkValidator (Ledger.lifted pk)) where
-        mkValidator = 
+        mkValidator =
             Ledger.fromCompiledCode ($$(P.compile [||
-                let 
+                let
                     validate :: PubKey -> () -> () -> PendingTx -> ()
                     validate pk' () () p =
-                        if $$(V.txSignedBy) p pk'
+                        if V.txSignedBy p pk'
                         then ()
-                        else $$(P.error) ($$(P.traceH) "Required signature not present!" ())
+                        else P.error (P.traceH "Required signature not present!" ())
                 in validate
             ||]))
 
@@ -55,5 +55,5 @@ lock pk vl = getRef =<< payToScript defaultSlotRange addr vl pkDataScript where
                                 <> Text.pack (show pk)
                                 <> "'"
                     Just o  -> pure (scriptTxIn o (pkValidator pk) pkRedeemer)
-            
+
         pure (addr, txin)

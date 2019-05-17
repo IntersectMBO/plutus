@@ -33,7 +33,7 @@ import           GHC.Generics          (Generic)
 
 import           Ledger                (Address, Tx (..), TxInOf (..), TxOut, TxOutOf (..), TxOutRef, TxOutRefOf (..),
                                         Value, hashTx)
-import qualified Ledger.Value.TH       as V
+import qualified Ledger.Value          as V
 
 -- | A map of 'Address'es and their unspent outputs.
 newtype AddressMap = AddressMap { getAddressMap :: Map Address (Map TxOutRef TxOut) }
@@ -86,7 +86,7 @@ addAddresses = flip (foldr addAddress)
 
 -- | The total value of unspent outputs (which the map knows about) at an address.
 values :: AddressMap -> Map Address Value
-values = Map.map (Map.foldl' $$(V.plus) $$(V.zero) . Map.map txOutValue) . getAddressMap
+values = Map.map (Map.foldl' V.plus V.zero . Map.map txOutValue) . getAddressMap
 
 -- | Create an 'AddressMap' with the unspent outputs of a single transaction.
 fromTxOutputs :: Tx -> AddressMap

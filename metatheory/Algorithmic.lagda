@@ -91,6 +91,8 @@ A term is indexed over by its context and type.  A term is a variable,
 an abstraction, an application, a type abstraction, or a type
 application.
 \begin{code}
+open import Data.String
+
 Tel : ∀ {Φ} Γ Δ → (∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J) → List (Δ ⊢Nf⋆ *) → Set
 
 data _⊢_ : ∀ {Φ J} (Γ : Ctx Φ) → Φ ⊢Nf⋆ J → Set where
@@ -101,6 +103,7 @@ data _⊢_ : ∀ {Φ J} (Γ : Ctx Φ) → Φ ⊢Nf⋆ J → Set where
     → Γ ⊢ A
 
   ƛ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}
+    → String
     → Γ , A ⊢ B
       -----------
     → Γ ⊢ A ⇒ B
@@ -112,14 +115,15 @@ data _⊢_ : ∀ {Φ J} (Γ : Ctx Φ) → Φ ⊢Nf⋆ J → Set where
     → Γ ⊢ B
 
   Λ : ∀ {Φ Γ K}
+    → (x : String)
     → {B : Φ ,⋆ K ⊢Nf⋆ *}
     → Γ ,⋆ K ⊢ B
       ----------
-    → Γ ⊢ Π B
+    → Γ ⊢ Π x B
 
-  _·⋆_ : ∀ {Φ Γ K}
+  _·⋆_ : ∀ {Φ Γ K x}
     → {B : Φ ,⋆ K ⊢Nf⋆ *}
-    → Γ ⊢ Π B
+    → Γ ⊢ Π x B
     → (A : Φ ⊢Nf⋆ K)
       ---------------
     → Γ ⊢ B [ A ]
@@ -162,8 +166,8 @@ Tel Γ Δ σ (A ∷ As) = Γ ⊢ substNf σ A × Tel Γ Δ σ As
 --void = Λ (ƛ (` Z))
 
 true : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ booleanNf
-true = Λ (ƛ (ƛ (` (S Z))))
+true = Λ "α" (ƛ "t" (ƛ "f" (` (S Z))))
 
 false : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ booleanNf
-false = Λ (ƛ (ƛ (` Z)))
+false = Λ "α" (ƛ "t" (ƛ "f" (` Z)))
 \end{code}
