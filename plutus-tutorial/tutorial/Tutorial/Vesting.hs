@@ -37,7 +37,7 @@ import qualified Wallet.Emulator.Types     as EM
 
 import           Tutorial.ExUtil
 
--- | $setup
+-- $setup
 -- >>> import Tutorial.Vesting
 
 {- |
@@ -127,11 +127,11 @@ vestingValidator v = ValidatorScript val where
             -- We need the hash of this validator script in order to ensure
             -- that the pending transaction locks the remaining amount of funds
             -- at the contract address.
-            ownHash = $$(V.ownHash) p
+            ownHash = V.ownHash p
 
             -- The total amount of Ada that has been vested:
             totalAmount :: Ada
-            totalAmount = $$(ATH.plus) a1 a2
+            totalAmount = ATH.plus a1 a2
 
             -- It will be useful to know the amount of money that has been
             -- released so far. This means we need to check the current slot
@@ -144,19 +144,19 @@ vestingValidator v = ValidatorScript val where
             -- We can think of 'd1' as an interval as well: It is
             -- the open-ended interval starting with slot 'd1'. At any point
             -- during this interval we may take out up to 'a1' Ada.
-            d1Intvl = $$(Interval.from) d1
+            d1Intvl = Interval.from d1
 
             -- Likewise for 'd2'
-            d2Intvl = $$(Interval.from) d2
+            d2Intvl = Interval.from d2
 
             -- Now we can compare the validity range 'range' against our two
             -- intervals. If 'range' is completely contained in 'd1Intvl', then
             -- we know for certain that the current slot is in 'd1Intvl', so the
             -- amount 'a1' of the first tranche has been released.
-            inD1Intvl = $$(Slot.contains) d1Intvl range
+            inD1Intvl = Slot.contains d1Intvl range
 
             -- Likewise for 'd2'
-            inD2Intvl = $$(Slot.contains) d2Intvl range
+            inD2Intvl = Slot.contains d2Intvl range
 
             released :: Ada
             released
@@ -172,11 +172,11 @@ vestingValidator v = ValidatorScript val where
                 | inD1Intvl = a1
 
                 -- Otherwise nothing has been released yet
-                | True      = $$(ATH.zero)
+                | True      = ATH.zero
 
             -- And the following amount has not been released yet:
             unreleased :: Ada
-            unreleased = $$(ATH.minus) totalAmount released
+            unreleased = ATH.minus totalAmount released
 
             -- To check whether the withdrawal is legitimate we need to
             -- 1. Ensure that the amount taken out does not exceed the current
@@ -191,13 +191,13 @@ vestingValidator v = ValidatorScript val where
             -- transaction 'p' to the script address 'ownHash'.
             con1 :: Bool
             con1 =
-                let remainsLocked = $$(V.adaLockedBy) p ownHash
-                in $$(ATH.geq) remainsLocked unreleased
+                let remainsLocked = V.adaLockedBy p ownHash
+                in ATH.geq remainsLocked unreleased
 
             -- con2 is true if the pending transaction 'p' has  been signed
             -- by the owner of the vesting scheme
             con2 :: Bool
-            con2 = $$(V.txSignedBy) p owner
+            con2 = V.txSignedBy p owner
 
         in
 

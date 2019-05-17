@@ -1,10 +1,10 @@
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE DerivingStrategies   #-}
-{-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DeriveGeneric        #-}
+{-# LANGUAGE DerivingStrategies   #-}
+{-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE MonoLocalBinds       #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE UndecidableInstances #-}
 -- | A type for intervals and associated functions.
 module Ledger.Interval(
       Interval(..)
@@ -17,15 +17,14 @@ module Ledger.Interval(
     , overlaps
     ) where
 
-import           Codec.Serialise.Class                    (Serialise)
-import           Data.Aeson                               (FromJSON, ToJSON)
-import           Data.Swagger.Internal.Schema             (ToSchema)
-import           Data.Maybe                               (isNothing)
-import           Data.Semigroup                           (Min(..), Max(..), Semigroup((<>)), Option(..))
-import           GHC.Generics                             (Generic)
-import           Language.Haskell.TH
+import           Codec.Serialise.Class        (Serialise)
+import           Data.Aeson                   (FromJSON, ToJSON)
+import           Data.Maybe                   (isNothing)
+import           Data.Semigroup               (Max (..), Min (..), Option (..), Semigroup ((<>)))
+import           Data.Swagger.Internal.Schema (ToSchema)
+import           GHC.Generics                 (Generic)
 
-import           Language.PlutusTx.Lift                   (makeLift)
+import           Language.PlutusTx.Lift       (makeLift)
 
 -- | An interval of @a@s. The interval is closed below and open above, meaning
 --   that @Interval (Just (10 :: Int)) (Just 11)@ contains a single value @11@.
@@ -41,7 +40,7 @@ makeLift ''Interval
 -- | Check whether a value is covered by an interval.
 member :: (a -> a -> Ordering) -> a -> Interval a -> Bool
 member comp a i =
-    let lw = case ivFrom i of { Nothing -> True; Just f' -> not (comp f' a == GT) }
+    let lw = case ivFrom i of { Nothing -> True; Just f' -> comp f' a /= GT }
         hg = case ivTo i of { Nothing -> True; Just t' -> comp t' a == GT }
     in lw && hg
 
@@ -51,11 +50,11 @@ overlaps :: (a -> a -> Ordering) -> Interval a -> Interval a -> Bool
 overlaps comp l r =
     let inLow a i = case a of
             Nothing -> isNothing (ivFrom i)
-            Just a' -> (member comp) a' i
+            Just a' -> member comp a' i
     in
         inLow (ivFrom l) r || inLow (ivFrom r) l
 
--- | 'intersection a b' is the largest interval that is contained in 'a' and in 
+-- | 'intersection a b' is the largest interval that is contained in 'a' and in
 --   'b', if it exists.
 intersection :: Ord a => Interval a -> Interval a -> Maybe (Interval a)
 intersection l r =
@@ -84,21 +83,21 @@ query functions specialized to 'Interval Slot' exported from 'Ledger.Slot'.
 -}
 
 -- | An 'Interval' that covers every slot.
-always :: Q (TExp (Interval a))
-always = [|| Interval Nothing Nothing ||]
+always :: Interval a
+always = Interval Nothing Nothing
 
 -- | @from a@ is an 'Interval' that includes all values that are
 --  greater than or equal to @a@.
-from :: Q (TExp (a -> Interval a))
-from = [|| \s -> Interval (Just s) Nothing ||]
+from :: a -> Interval a
+from s = Interval (Just s) Nothing
 
 -- | @to a@ is an 'Interval' that includes all values that are
 --  smaller than @a@.
-to :: Q (TExp (a -> Interval a))
-to = [|| \s -> Interval Nothing (Just s) ||]
+to :: a -> Interval a
+to s = Interval Nothing (Just s)
 
 -- | @interval a b@ includes all values that are greater than or equal
 --   to @a@ and smaller than @b@. Therefore it includes @a@ but not it
 --   does not include @b@.
-interval :: Q (TExp (a -> a -> Interval a))
-interval = [|| \s s' -> Interval (Just s) (Just s') ||]
+interval :: a -> a -> Interval a
+interval s s' = Interval (Just s) (Just s')
