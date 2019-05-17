@@ -78,7 +78,7 @@ import           Ledger.Scripts
 import           Ledger.Slot
 import           Ledger.TxId
 import           Ledger.Value
-import qualified Ledger.Value.TH              as V
+import qualified Ledger.Value                 as V
 import qualified LedgerBytes                  as LB
 
 {- Note [Serialisation and hashing]

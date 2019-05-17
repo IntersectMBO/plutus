@@ -9,7 +9,7 @@ import           Data.Swagger                 (toInlinedSchema)
 import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), column, filename, row,
                                                text)
 import           Ledger.Interval              (Interval)
-import           Ledger.Value.TH              (Value)
+import           Ledger.Value                 (Value)
 import           Playground.API               (SimpleArgumentSchema (SimpleArraySchema, SimpleHexSchema, SimpleIntSchema, SimpleObjectSchema, SimpleStringSchema, SimpleTupleSchema, ValueSchema),
                                                isSupportedByFrontend, parseErrorText, toSimpleArgumentSchema)
 import           Test.Hspec                   (Spec, describe, it, shouldBe)

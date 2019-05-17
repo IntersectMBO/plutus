@@ -25,7 +25,7 @@ import           Ledger                    (Address, DataScript(..), RedeemerScr
 import qualified Ledger                    as L
 import           Ledger.Ada                (Ada)
 import qualified Ledger.Ada                as Ada
-import qualified Ledger.Ada.TH             as ATH
+import qualified Ledger.Ada             as ATH
 import qualified Ledger.Interval           as Interval
 import qualified Ledger.Slot               as Slot
 import qualified Ledger.Validation         as V

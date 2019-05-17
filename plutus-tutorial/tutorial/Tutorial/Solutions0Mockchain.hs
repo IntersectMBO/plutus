@@ -7,8 +7,8 @@ import qualified Language.PlutusTx     as P
 import           Ledger                (Address, DataScript (..), PubKey (..), RedeemerScript (..), Signature (..),
                                         Slot (..), TxId, ValidatorScript (..))
 import qualified Ledger                as L
-import           Ledger.Ada.TH         (Ada)
-import qualified Ledger.Ada.TH         as Ada
+import           Ledger.Ada            (Ada)
+import qualified Ledger.Ada            as Ada
 import qualified Ledger.Interval       as P
 import qualified Ledger.Interval       as Interval
 import           Ledger.Validation     (PendingTx (..), PendingTxIn (..), PendingTxOut)

@@ -9,7 +9,7 @@ import           Ledger                    (Address, DataScript(..), RedeemerScr
 import qualified Ledger                    as L
 import           Ledger.Value              (Value)
 import qualified Ledger.Value              as Value
-import qualified Ledger.Value.TH           as Value.TH
+import qualified Ledger.Value              as Value.TH
 import qualified Ledger.Interval           as Interval
 import qualified Ledger.Slot               as Slot
 import qualified Ledger.Validation         as V

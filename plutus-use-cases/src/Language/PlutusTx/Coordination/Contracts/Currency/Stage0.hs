@@ -5,9 +5,9 @@ import qualified Language.PlutusTx         as P
 
 import           Ledger.Validation         (TxHash)
 import qualified Ledger.Map                as LMap
-import qualified Ledger.Map.TH             as LMap.TH
+import qualified Ledger.Map             as LMap.TH
 import           Ledger.Value              (CurrencySymbol, TokenName, Value)
-import qualified Ledger.Value.TH           as Value.TH
+import qualified Ledger.Value              as Value.TH
 
 import           Language.Haskell.TH       (Q, TExp)
 

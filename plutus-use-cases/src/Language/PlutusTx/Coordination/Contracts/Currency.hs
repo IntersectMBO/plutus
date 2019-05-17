@@ -25,7 +25,7 @@ import qualified Ledger.Ada                as Ada
 import qualified Ledger.Map                as LMap
 import           Ledger.Scripts            (ValidatorScript(..))
 import qualified Ledger.Validation         as V
-import qualified Ledger.Value.TH           as Value
+import qualified Ledger.Value              as Value
 import           Ledger                    as Ledger hiding (to)
 import           Ledger.Value              (Value)
 import           Wallet.API                as WAPI

@@ -76,14 +76,14 @@ import           Language.PlutusTx.Lift       (makeLift)
 import qualified Language.PlutusTx.Prelude    as P
 
 import           Ledger.Ada                   (Ada)
-import qualified Ledger.Ada.TH                as Ada
+import qualified Ledger.Ada                   as Ada
 import           Ledger.Crypto                (PubKey (..), Signature (..))
 import           Ledger.Scripts
 import           Ledger.Slot                  (Slot, SlotRange)
 import           Ledger.Tx                    (Address, getAddress, scriptAddress)
 import qualified Ledger.TxId                  as Tx
 import           Ledger.Value                 (CurrencySymbol (..), Value)
-import qualified Ledger.Value.TH              as VTH
+import qualified Ledger.Value                 as VTH
 import           LedgerBytes                  (LedgerBytes (..))
 
 -- Ignore newtype warnings related to `Oracle` and `Signed` because it causes
