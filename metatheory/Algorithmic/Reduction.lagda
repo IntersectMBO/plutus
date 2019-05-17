@@ -344,10 +344,17 @@ data TelProgress
 \end{code}
 
 \begin{code}
-progress· : ∀{A B}{t : ∅ ⊢ A ⇒ B} → Progress t → (u : ∅ ⊢ A) → Progress (t · u)
+progress· : ∀{A B}{t : ∅ ⊢ A ⇒ B} → Progress t → (u : ∅ ⊢ A)
+  → Progress (t · u)
 progress· (step p)  u = step (ξ-·₁ p)
 progress· (done V-ƛ) u = step β-ƛ
 progress· (error e) u = error (E-·₁ e)
+
+progress·⋆ : ∀{K x B}{t : ∅ ⊢ Π x B} → Progress t → (A : ∅ ⊢Nf⋆ K)
+  → Progress (t ·⋆ A)
+progress·⋆ (step p)  A = step (ξ-·⋆ p)
+progress·⋆ (done V-Λ_) A = step β-Λ
+progress·⋆ (error e) A = error (E-·⋆ e)
 
 progress : ∀ {A} → (M : ∅ ⊢ A) → Progress M
 
@@ -372,10 +379,7 @@ progress (` ())
 progress (ƛ x M) = done V-ƛ
 progress (M · N) = progress· (progress M) N
 progress (Λ _ M) = done V-Λ_
-progress (M ·⋆ A) with progress M
-...               | error EM = error (E-·⋆ EM)
-progress (M ·⋆ A) | step p = step (ξ-·⋆ p)
-progress (.(Λ _ _) ·⋆ A) | done V-Λ_ = step β-Λ
+progress (M ·⋆ A) = progress·⋆ (progress M) A
 progress (wrap1 pat arg term) = done V-wrap1
 progress (unwrap1 M) with progress M
 ...                  | error EM  = error (E-unwrap EM)

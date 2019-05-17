@@ -218,14 +218,22 @@ progress· (done (V-ƛ x A t))         u = step β-ƛ
 progress· (done (V-Λ x K t))         u = error E-Λ·
 progress· (done (V-con tcn))         u = error E-con·
 progress· (done (V-wrap A B t))      u = error E-wrap·
-progress· (done (V-builtin b As ts)) u = step sat-builtin
+progress· (done (V-builtin b As ts)) u = step sat-builtin -- TODO
 progress· (error e)                  u = error (E-·₁ e)
 
-progress : (t : ScopedTm Z)
-  → Progress t
+progress·⋆ : ∀{t : ScopedTm Z} → Progress t → (A : ScopedTy 0)
+  → Progress (t ·⋆ A)
+progress·⋆ (step p)                   A = step (ξ-·⋆ p)
+progress·⋆ (done (V-ƛ x B t))         A = error E-ƛ·⋆
+progress·⋆ (done (V-Λ x K t))         A = step β-Λ
+progress·⋆ (done (V-con tcn))         A = error E-con·⋆
+progress·⋆ (done (V-wrap pat arg t))  A = error E-wrap·⋆
+progress·⋆ (done (V-builtin b As ts)) A = error E-builtin·⋆ -- TODO
+progress·⋆ (error e)                  A = error (E-·⋆ e)
 
-
+progress : (t : ScopedTm Z) → Progress t
 progressList : List (ScopedTm Z) → ProgList {w = Z}
+
 progressList []       = done []
 progressList (t ∷ ts) with progress t
 progressList (t ∷ ts) | done vt with progressList ts
@@ -239,14 +247,7 @@ progressList (t ∷ ts) | step p = step [] p ts
 
 progress (` ())
 progress (Λ x K t) = done (V-Λ x K t)
-progress (t ·⋆ A) with progress t
-progress (.(ƛ x B t) ·⋆ A) | done (V-ƛ x B t) = error E-ƛ·⋆
-progress (.(Λ x K t) ·⋆ A) | done (V-Λ x K t) = step β-Λ
-progress (.(con tcn) ·⋆ A) | done (V-con tcn) = error E-con·⋆
-progress (.(wrap A' B t) ·⋆ A) | done (V-wrap A' B t) = error E-wrap·⋆
-progress (.(builtin b As ts) ·⋆ A) | done (V-builtin b As ts) = error E-builtin·⋆
-progress (t ·⋆ A) | error p = error (E-·⋆ p)
-progress (t ·⋆ A) | step p = step (ξ-·⋆ p)
+progress (t ·⋆ A) = progress·⋆ (progress t) A
 progress (ƛ x A t) = done (V-ƛ x A t)
 progress (t · u) = progress· (progress t) u
 progress (con c) = done (V-con c)
@@ -257,6 +258,7 @@ progress (builtin b As ts) | yes p | done vs = step (β-builtin vs)
 progress (builtin b As ts) | yes p | step vs q ts' = step (ξ-builtin vs q ts')
 progress (builtin b As ts) | yes p | error vs e ts' = error (E-builtin e)
 progress (builtin b As ts) | no ¬p = done (V-builtin b As ts)
+ -- TODO what about over saturation?
 progress (wrap A B t) = done (V-wrap A B t)
 
 progress (unwrap  t) with progress t
@@ -264,7 +266,8 @@ progress (unwrap .(ƛ x A t)) | done (V-ƛ x A t) = error E-ƛunwrap
 progress (unwrap .(Λ x K t)) | done (V-Λ x K t) = error E-Λunwrap
 progress (unwrap .(con tcn)) | done (V-con tcn) = error E-conunwrap
 progress (unwrap .(wrap A B t)) | done (V-wrap A B t) = step β-wrap
-progress (unwrap .(builtin b As ts)) | done (V-builtin b As ts) = error E-builtinunwrap
+progress (unwrap .(builtin b As ts)) | done (V-builtin b As ts) =
+  error E-builtinunwrap
 progress (unwrap t) | error e = error (E-unwrap e)
 progress (unwrap t) | step p = step (ξ-unwrap p)
 \end{code}

@@ -264,16 +264,25 @@ extricateProgress (error e) = error (extricateE e)
 
 extricate-progress· : ∀{A B}{t : ∅ ⊢ A ⇒ B}(p : AR.Progress t) → (u : ∅ ⊢ A)
   → extricateProgress (AR.progress· p u) ≡ SR.progress· (extricateProgress p) (extricate u)
-extricate-progress· (step x) u = refl
+extricate-progress· (step p)   u = refl
 extricate-progress· (done V-ƛ) u = {!!}
-extricate-progress· (error x) u = refl
+extricate-progress· (error e)  u = refl
+
+extricate-progress·⋆ : ∀{K x B}{t : ∅ ⊢ Π x B}(p : AR.Progress t) → (A : ∅ ⊢Nf⋆ K)
+  → extricateProgress (AR.progress·⋆ p A) ≡ SR.progress·⋆ (extricateProgress p) (extricateNf⋆ A)
+extricate-progress·⋆ (step p)    A = refl
+extricate-progress·⋆ (done V-Λ_) A = {!!}
+extricate-progress·⋆ (error e)   A = refl
 
 extricate-progress : ∀{A}(t : ∅ ⊢ A) → extricateProgress (AR.progress t) ≡ SR.progress (extricate t)
 extricate-progress (ƛ x t) = refl
-extricate-progress (t · u) =
-  Eq.trans (extricate-progress· (AR.progress t) u) (cong (λ p → SR.progress· p (extricate u)) (extricate-progress t))
+extricate-progress (t · u) = Eq.trans
+  (extricate-progress· (AR.progress t) u)
+  (cong (λ p → SR.progress· p (extricate u)) (extricate-progress t))
 extricate-progress (Λ x t) = refl
-extricate-progress (t ·⋆ A) = {!!}
+extricate-progress (t ·⋆ A) = Eq.trans
+  (extricate-progress·⋆ (AR.progress t) A)
+  (cong (λ p → SR.progress·⋆ p (extricateNf⋆ A)) (extricate-progress t))
 extricate-progress (wrap1 pat arg t) = refl
 extricate-progress (unwrap1 t) = {!!}
 extricate-progress (con x) = refl
