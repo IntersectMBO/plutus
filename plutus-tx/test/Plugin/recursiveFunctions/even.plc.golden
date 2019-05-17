@@ -65,14 +65,17 @@
                       (let
                         (nonrec)
                         (termbind
-                          (vardecl n (con integer))
-                          [ [ subtractInteger n ] (con 1) ]
+                          (vardecl n (fun Unit (con integer)))
+                          (lam thunk Unit [ [ subtractInteger n ] (con 1) ])
                         )
                         [
                           [
                             [
                               {
-                                [ Bool_match [ [ equalsInteger n ] (con 0) ] ]
+                                [
+                                  Bool_match
+                                  [ [ equalsInteger [ n Unit ] ] (con 0) ]
+                                ]
                                 (fun Unit Bool)
                               }
                               (lam thunk Unit False)
@@ -80,7 +83,9 @@
                             (lam
                               thunk
                               Unit
-                              [ even [ [ subtractInteger n ] (con 1) ] ]
+                              [
+                                even [ [ subtractInteger [ n Unit ] ] (con 1) ]
+                              ]
                             )
                           ]
                           Unit

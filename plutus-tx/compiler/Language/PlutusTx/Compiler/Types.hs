@@ -16,6 +16,7 @@ import qualified GhcPlugins                             as GHC
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
+import           Control.Monad.State
 
 import qualified Data.List.NonEmpty                     as NE
 import qualified Data.Map                               as Map
@@ -35,8 +36,13 @@ data ConvertingContext = ConvertingContext {
     ccBlackholed      :: Set.Set GHC.Name
     }
 
+newtype ConvertingState = ConvertingState {
+    -- See Note [Lazy let-bindings]
+    csLazyNames :: Set.Set GHC.Name
+    }
+
 -- See Note [Scopes]
-type Converting m = (Monad m, MonadError ConvError m, MonadQuote m, MonadReader ConvertingContext m, MonadDefs GHC.Name () m)
+type Converting m = (Monad m, MonadError ConvError m, MonadQuote m, MonadReader ConvertingContext m, MonadState ConvertingState m, MonadDefs GHC.Name () m)
 
 blackhole :: MonadReader ConvertingContext m => GHC.Name -> m a -> m a
 blackhole name = local (\cc -> cc {ccBlackholed=Set.insert name (ccBlackholed cc)})
@@ -45,6 +51,14 @@ blackholed :: MonadReader ConvertingContext m => GHC.Name -> m Bool
 blackholed name = do
     ConvertingContext {ccBlackholed=bh} <- ask
     pure $ Set.member name bh
+
+markLazyName :: MonadState ConvertingState m => GHC.Name -> m ()
+markLazyName name = modify (\s -> s {csLazyNames= Set.insert name (csLazyNames s)})
+
+isLazyName :: MonadState ConvertingState m => GHC.Name -> m Bool
+isLazyName name = do
+    ConvertingState {csLazyNames=ln} <- get
+    pure $ Set.member name ln
 
 {- Note [Scopes]
 We need a notion of scope, because we have to make sure that if we convert a GHC

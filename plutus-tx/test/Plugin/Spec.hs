@@ -42,6 +42,7 @@ tests = testNested "Plugin" [
   , recursion
   , pure readDyns
   , unfoldings
+  , laziness
   , errors
   , wobbly
   ]
@@ -451,6 +452,15 @@ recordSelector = plc @"recordSelector" (\(x :: MyMonoRecord) -> mrA x)
 
 recordSelectorExternal :: CompiledCode (MyExternalRecord -> Integer)
 recordSelectorExternal = plc @"recordSelectorExternal" (\(x :: MyExternalRecord) -> myExternal x)
+
+laziness :: TestNested
+laziness = testNested "laziness" [
+    goldenPir "joinError" joinErrorPir
+    , goldenEval "joinErrorEval" [ getProgram $ joinErrorPir, getProgram $ plc @"T" (True), getProgram $ plc @"F" (False)]
+  ]
+
+joinErrorPir :: CompiledCode (Bool -> Bool -> ())
+joinErrorPir = plc @"joinError" joinError
 
 errors :: TestNested
 errors = testNested "errors" [
