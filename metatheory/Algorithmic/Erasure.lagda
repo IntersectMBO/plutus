@@ -47,9 +47,9 @@ eraseTel : ∀{Φ Γ Δ}{σ : SubNf Δ Φ}{As : List (Δ ⊢Nf⋆ *)}
 erase : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K} → Γ ⊢ A → len Γ ⊢
 
 erase (` α)             = ` (eraseVar α)
-erase (ƛ t)             = ƛ (erase t) 
+erase (ƛ x t)           = ƛ x (erase t) 
 erase (t · u)           = erase t · erase u
-erase (Λ t)             = erase t
+erase (Λ x t)           = erase t
 erase (t ·⋆ A)          = erase t
 erase (wrap1 pat arg t) = erase t
 erase (unwrap1 t)       = erase t
@@ -117,8 +117,8 @@ sameVar {Γ = Γ D.,⋆ _} (D.T {A = A} x) = trans
 lemVar : ∀{n n'}(p : n ≡ n')(i : Fin n) →  ` (subst Fin p i) ≡ subst _⊢ p (` i)
 lemVar refl i = refl
 
-lemƛ : ∀{n n'}(p : n ≡ n')(q : suc n ≡ suc n')(t : suc n ⊢)
-  → ƛ (subst _⊢ q t) ≡ subst _⊢ p (ƛ t)  
+lemƛ : ∀{n n'}{x}(p : n ≡ n')(q : suc n ≡ suc n')(t : suc n ⊢)
+  → ƛ x (subst _⊢ q t) ≡ subst _⊢ p (ƛ x t)  
 lemƛ refl refl t = refl
 
 lem· : ∀{n n'}(p : n ≡ n')(t u : n ⊢) → subst _⊢ p t · subst _⊢ p u ≡ subst _⊢ p (t · u)
@@ -166,13 +166,13 @@ lemTel refl bn ts = refl
 
 same {Γ = Γ}(D.` x) =
   trans (cong ` (sameVar x)) (lemVar (lenLemma Γ) (eraseVar (nfTyVar x)))
-same {Γ = Γ} (D.ƛ t) = trans
-  (cong ƛ (same t))
+same {Γ = Γ} (D.ƛ x t) = trans
+  (cong (ƛ x) (same t))
   (lemƛ (lenLemma Γ) (cong suc (lenLemma Γ)) (erase (nfType t)))
 same {Γ = Γ} (t D.· u) = trans
   (cong₂ _·_ (same t) (same u))
   (lem· (lenLemma Γ) (erase (nfType t)) (erase (nfType u)))
-same {Γ = Γ} (D.Λ {B = B} t) = trans
+same {Γ = Γ} (D.Λ {B = B} x t) = trans
   (same t)
   (cong (subst _⊢ (lenLemma Γ)) (lem-erase (substNf-lemma' B) (nfType t)))
 same {Γ = Γ} (D._·⋆_ {B = B} t A) = trans
@@ -256,13 +256,13 @@ same'Tel {Γ = Γ} σ [] tel = lem[]' (same'Len Γ)
 same'Tel {Γ = Γ} σ (A ∷ As) (t ,, ts) = trans (cong₂ _∷_ (same' t) (same'Tel σ As ts)) (lem∷ (same'Len Γ) (D.erase (emb t)) (D.eraseTel (embTel refl As (embList As) (refl≡βL (embList As)) σ ts)))
 same' {Γ = Γ} (` x) =
   trans (cong ` (same'Var x)) (lemVar (same'Len Γ) (D.eraseVar (embVar x)))
-same' {Γ = Γ} (ƛ t)      = trans
-  (cong ƛ (same' t))
+same' {Γ = Γ} (ƛ x t)      = trans
+  (cong (ƛ x) (same' t))
   (lemƛ (same'Len Γ) (cong suc (same'Len Γ)) (D.erase (emb t)))
 same' {Γ = Γ} (t · u)    = trans
   (cong₂ _·_ (same' t) (same' u))
   (lem· (same'Len Γ) (D.erase (emb t)) (D.erase (emb u)))
-same' {Γ = Γ} (Λ t)      = same' t
+same' {Γ = Γ} (Λ x t)    = same' t
 same' {Γ = Γ} (t ·⋆ A)   = same' t
 same' {Γ = Γ} (wrap1 pat arg t)   = same' t
 same' {Γ = Γ} (unwrap1 t) = same' t

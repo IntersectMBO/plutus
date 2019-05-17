@@ -37,9 +37,9 @@ eraseTel : ∀{Φ Γ Δ}{σ : Sub Δ Φ}{As : List (Δ ⊢⋆ *)}
 erase : ∀{Φ Γ K}{A : Φ ⊢⋆ K} → Γ ⊢ A → len Γ ⊢
 
 erase (` α)             = ` (eraseVar α)
-erase (ƛ t)             = ƛ (erase t) 
+erase (ƛ x t)           = ƛ x (erase t) 
 erase (t · u)           = erase t · erase u
-erase (Λ t)             = erase t
+erase (Λ x t)           = erase t
 erase (t ·⋆ A)          = erase t
 erase (wrap1 pat arg t) = erase t
 erase (unwrap1 t)       = erase t

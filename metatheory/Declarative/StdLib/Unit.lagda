@@ -10,5 +10,5 @@ open import Declarative
 # Term Abbreviations
 \begin{code}
 void : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ unit
-void = Λ (ƛ (` Z))
+void = Λ "α" (ƛ "x" (` Z))
 \end{code}

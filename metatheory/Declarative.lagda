@@ -29,6 +29,7 @@ open import Data.Product renaming (_,_ to _,,_)
 open import Data.Nat hiding (_^_; _≤_; _<_; _>_; _≥_)
 open import Function hiding (_∋_)
 import Data.Bool as Bool
+open import Data.String
 \end{code}
 
 ## Fixity declarations
@@ -109,6 +110,7 @@ data _⊢_ {Γ⋆} (Γ : Ctx Γ⋆) : ∀{J} → Γ⋆ ⊢⋆ J → Set where
     → Γ ⊢ A
 
   ƛ : ∀ {A B}
+    → String
     → Γ , A ⊢ B
       -----------
     → Γ ⊢ A ⇒ B
@@ -119,7 +121,8 @@ data _⊢_ {Γ⋆} (Γ : Ctx Γ⋆) : ∀{J} → Γ⋆ ⊢⋆ J → Set where
       -----------
     → Γ ⊢ B
 
-  Λ : ∀ {K}{B : Γ⋆ ,⋆ K ⊢⋆ *}{x}
+  Λ : ∀ {K}{B : Γ⋆ ,⋆ K ⊢⋆ *}
+    → (x : String)
     → Γ ,⋆ K ⊢ B
       ----------
     → Γ ⊢ Π x B

@@ -14,18 +14,18 @@ open import Data.Unit
 \begin{code}
 -- all (r :: *). r -> (r -> r) -> r
 N : ∀{Φ} → Φ ⊢⋆ *
-N = Π (` Z ⇒ (` Z ⇒ ` Z) ⇒ ` Z)
+N = Π "α" (` Z ⇒ (` Z ⇒ ` Z) ⇒ ` Z)
 
 -- /\(r :: *) -> \(z : r) (f : r -> r) -> z
 Zero : ∅ ⊢ N
-Zero = Λ (ƛ (ƛ (` (S Z))))
+Zero = Λ "α" (ƛ "z" (ƛ "f" (` (S Z))))
 
 -- \(n : nat) -> /\(r :: *) -> \(z : r) (f : r -> r) -> f (n {r} z f)
 Succ : ∅ ⊢ N ⇒ N
-Succ = ƛ (Λ (ƛ (ƛ (` Z · ((` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (` Z))))))
+Succ = ƛ "n" (Λ "α" (ƛ "z" (ƛ "f" (` Z · ((` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (` Z))))))
 
-Iter : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ Π (` Z ⇒ (` Z ⇒ ` Z) ⇒ N ⇒ (` Z))
-Iter = Λ (ƛ (ƛ (ƛ ((` Z) ·⋆ (` Z) · (` (S (S Z))) · (` (S Z))))))
+Iter : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ Π "α" (` Z ⇒ (` Z ⇒ ` Z) ⇒ N ⇒ (` Z))
+Iter = Λ "α" (ƛ "x" (ƛ "y" (ƛ "z" ((` Z) ·⋆ (` Z) · (` (S (S Z))) · (` (S Z))))))
 
 open import Builtin.Constant.Type
 open import Data.Integer
