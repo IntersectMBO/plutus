@@ -274,6 +274,12 @@ extricate-progress·⋆ (step p)    A = refl
 extricate-progress·⋆ (done V-Λ_) A = {!!}
 extricate-progress·⋆ (error e)   A = refl
 
+extricate-progress-unwrap : ∀{K}{pat}{arg : ∅ ⊢Nf⋆ K}{t : ∅ ⊢ ne ((μ1 · pat) · arg)}(p : AR.Progress t)
+  → extricateProgress (AR.progress-unwrap p) ≡ SR.progress-unwrap (extricateProgress p)
+extricate-progress-unwrap (step p)  = refl
+extricate-progress-unwrap (done V-wrap1) = refl
+extricate-progress-unwrap (error e) = refl
+
 extricate-progress : ∀{A}(t : ∅ ⊢ A) → extricateProgress (AR.progress t) ≡ SR.progress (extricate t)
 extricate-progress (ƛ x t) = refl
 extricate-progress (t · u) = Eq.trans
@@ -284,7 +290,9 @@ extricate-progress (t ·⋆ A) = Eq.trans
   (extricate-progress·⋆ (AR.progress t) A)
   (cong (λ p → SR.progress·⋆ p (extricateNf⋆ A)) (extricate-progress t))
 extricate-progress (wrap1 pat arg t) = refl
-extricate-progress (unwrap1 t) = {!!}
+extricate-progress (unwrap1 t) = Eq.trans
+  (extricate-progress-unwrap (AR.progress t))
+  (cong SR.progress-unwrap (extricate-progress t))
 extricate-progress (con x) = refl
 extricate-progress (builtin bn σ x₁) = {!!}
 extricate-progress (error A) = refl

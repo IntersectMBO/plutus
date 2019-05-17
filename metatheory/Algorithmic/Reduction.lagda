@@ -356,6 +356,12 @@ progress·⋆ (step p)  A = step (ξ-·⋆ p)
 progress·⋆ (done V-Λ_) A = step β-Λ
 progress·⋆ (error e) A = error (E-·⋆ e)
 
+progress-unwrap : ∀{K}{pat}{arg : ∅ ⊢Nf⋆ K}{t : ∅ ⊢ ne ((μ1 · pat) · arg)}
+  → Progress t → Progress (unwrap1 t)
+progress-unwrap (step p) = step (ξ-unwrap1 p)
+progress-unwrap (done V-wrap1) = step β-wrap1
+progress-unwrap (error e) = error (E-unwrap e)
+
 progress : ∀ {A} → (M : ∅ ⊢ A) → Progress M
 
 progressTel : ∀ {Δ}
@@ -381,10 +387,7 @@ progress (M · N) = progress· (progress M) N
 progress (Λ _ M) = done V-Λ_
 progress (M ·⋆ A) = progress·⋆ (progress M) A
 progress (wrap1 pat arg term) = done V-wrap1
-progress (unwrap1 M) with progress M
-...                  | error EM  = error (E-unwrap EM)
-progress (unwrap1 M) | step p = step (ξ-unwrap1 p)
-progress (unwrap1 .(wrap1 _ _ _)) | done V-wrap1 = step β-wrap1
+progress (unwrap1 M) = progress-unwrap (progress M)
 progress (con c)    = done (V-con c)
 progress (builtin bn σ X) with progressTel X
 progress (builtin bn σ X) | done VX = step (β-builtin bn σ X VX)

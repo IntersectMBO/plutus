@@ -231,6 +231,15 @@ progress·⋆ (done (V-wrap pat arg t))  A = error E-wrap·⋆
 progress·⋆ (done (V-builtin b As ts)) A = error E-builtin·⋆ -- TODO
 progress·⋆ (error e)                  A = error (E-·⋆ e)
 
+progress-unwrap : ∀{t : ScopedTm Z} → Progress t → Progress (unwrap t)
+progress-unwrap (step p) = step (ξ-unwrap p)
+progress-unwrap (done (V-ƛ x A t)) = error E-ƛunwrap
+progress-unwrap (done (V-Λ x K t)) = error E-Λunwrap
+progress-unwrap (done (V-con tcn)) = error E-conunwrap
+progress-unwrap (done (V-wrap A B t)) = step β-wrap
+progress-unwrap (done (V-builtin b As ts)) = error E-builtinunwrap -- TODO
+progress-unwrap (error e) = error (E-unwrap e)
+
 progress : (t : ScopedTm Z) → Progress t
 progressList : List (ScopedTm Z) → ProgList {w = Z}
 
@@ -260,16 +269,7 @@ progress (builtin b As ts) | yes p | error vs e ts' = error (E-builtin e)
 progress (builtin b As ts) | no ¬p = done (V-builtin b As ts)
  -- TODO what about over saturation?
 progress (wrap A B t) = done (V-wrap A B t)
-
-progress (unwrap  t) with progress t
-progress (unwrap .(ƛ x A t)) | done (V-ƛ x A t) = error E-ƛunwrap
-progress (unwrap .(Λ x K t)) | done (V-Λ x K t) = error E-Λunwrap
-progress (unwrap .(con tcn)) | done (V-con tcn) = error E-conunwrap
-progress (unwrap .(wrap A B t)) | done (V-wrap A B t) = step β-wrap
-progress (unwrap .(builtin b As ts)) | done (V-builtin b As ts) =
-  error E-builtinunwrap
-progress (unwrap t) | error e = error (E-unwrap e)
-progress (unwrap t) | step p = step (ξ-unwrap p)
+progress (unwrap t) = progress-unwrap (progress t)
 \end{code}
 
 \begin{code}
