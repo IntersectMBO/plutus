@@ -7,10 +7,10 @@
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE UndecidableInstances   #-}
-{-# LANGUAGE RankNTypes   #-}
 -- | Support for generating PIR with global definitions with dependencies between them.
 module Language.PlutusIR.Compiler.Definitions (DefT
                                               , MonadDefs (..)
