@@ -64,7 +64,7 @@ import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), _InterpreterResult)
 import Ledger.Extra (LedgerMap(LedgerMap))
 import Ledger.Extra as LedgerMap
-import Ledger.Value.TH (CurrencySymbol(CurrencySymbol), TokenName(TokenName), Value(Value))
+import Ledger.Value (CurrencySymbol(CurrencySymbol), TokenName(TokenName), Value(Value))
 import LocalStorage (LOCALSTORAGE)
 import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect)
 import Network.HTTP.Affjax (AJAX)
