@@ -198,6 +198,11 @@ data _—→⋆_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
 \end{code}
 
 \begin{code}
+data Progress (t : ScopedTm Z) : Set where
+  step : ∀{t'} → t —→ t' → Progress t
+  done : Value t → Progress t
+  error : Error t → Progress t
+  
 data ProgList {n}{w : Weirdℕ n} : Set where
   done : List (Σ (ScopedTm w) (Value {n})) → ProgList
   step : (vs : List (Σ (ScopedTm w) (Value {n}))){t t' : ScopedTm w} → t —→ t' → List (ScopedTm w)
@@ -206,71 +211,72 @@ data ProgList {n}{w : Weirdℕ n} : Set where
         → ProgList
 \end{code}
 
-
-
 \begin{code}
+progress· : ∀{t : ScopedTm Z} → Progress t → (u : ScopedTm Z) → Progress (t · u)
+progress· (step p)                   u = step (ξ-·₁ p)
+progress· (done (V-ƛ x A t))         u = step β-ƛ
+progress· (done (V-Λ x K t))         u = error E-Λ·
+progress· (done (V-con tcn))         u = error E-con·
+progress· (done (V-wrap A B t))      u = error E-wrap·
+progress· (done (V-builtin b As ts)) u = step sat-builtin
+progress· (error e)                  u = error (E-·₁ e)
+
 progress : (t : ScopedTm Z)
-         → Value {w = Z} t ⊎ Error t ⊎ Σ (ScopedTm Z) λ t' → t —→ t'
+  → Progress t
+
+
 progressList : List (ScopedTm Z) → ProgList {w = Z}
 progressList []       = done []
 progressList (t ∷ ts) with progress t
-progressList (t ∷ ts) | inl vt with progressList ts
-progressList (t ∷ ts) | inl vt | done  vs       = done ((t , vt) ∷ vs)
-progressList (t ∷ ts) | inl vt | step  vs p ts' =
+progressList (t ∷ ts) | done vt with progressList ts
+progressList (t ∷ ts) | done vt | done  vs       = done ((t , vt) ∷ vs)
+progressList (t ∷ ts) | done vt | step  vs p ts' =
   step ((t , vt) ∷ vs) p ts'
-progressList (t ∷ ts) | inl vt | error vs e ts' =
+progressList (t ∷ ts) | done vt | error vs e ts' =
   error ((t , vt) ∷ vs) e ts'
-progressList (t ∷ ts) | inr (inl e) = error [] e ts
-progressList (t ∷ ts) | inr (inr (t' , p)) = step [] p ts
+progressList (t ∷ ts) | error e = error [] e ts
+progressList (t ∷ ts) | step p = step [] p ts
 
 progress (` ())
-progress (Λ x K t) = inl (V-Λ x K t)
+progress (Λ x K t) = done (V-Λ x K t)
 progress (t ·⋆ A) with progress t
-progress (.(ƛ x B t) ·⋆ A) | inl (V-ƛ x B t) = inr (inl E-ƛ·⋆)
-progress (.(Λ x K t) ·⋆ A) | inl (V-Λ x K t) = inr (inr (t [ A ]⋆ , β-Λ))
-progress (.(con tcn) ·⋆ A) | inl (V-con tcn) = inr (inl E-con·⋆)
-progress (.(wrap A' B t) ·⋆ A) | inl (V-wrap A' B t) = inr (inl E-wrap·⋆)
-progress (.(builtin b As ts) ·⋆ A) | inl (V-builtin b As ts) = inr (inl E-builtin·⋆)
-progress (t ·⋆ A) | inr (inl p) = inr (inl (E-·⋆ p))
-progress (t ·⋆ A) | inr (inr (t' , p)) = inr (inr (t' ·⋆ A , ξ-·⋆ p))
-
-progress (ƛ x A t) = inl (V-ƛ x A t)
-progress (t · u) with progress t
-progress (.(ƛ x A t) · u) | inl (V-ƛ x A t) = inr (inr (t [ u ] , β-ƛ))
-progress (.(Λ x K t) · u) | inl (V-Λ x K t) = inr (inl E-Λ·)
-progress (.(con tcn) · u) | inl (V-con tcn) = inr (inl E-con·)
-progress (.(wrap A B t) · u) | inl (V-wrap A B t) = inr (inl E-wrap·)
-progress (.(builtin b As ts) · t) | inl (V-builtin b As ts) = inr (inr (builtin b As (ts ++ Data.List.[ t ]) , sat-builtin))
-progress (t · u) | inr (inl p) = inr (inl (E-·₁ p))
-progress (t · u) | inr (inr (t' , p)) = inr (inr (t' · u , ξ-·₁ p))
-progress (con c) = inl (V-con c)
-progress (error A) = inr (inl (E-error A))
+progress (.(ƛ x B t) ·⋆ A) | done (V-ƛ x B t) = error E-ƛ·⋆
+progress (.(Λ x K t) ·⋆ A) | done (V-Λ x K t) = step β-Λ
+progress (.(con tcn) ·⋆ A) | done (V-con tcn) = error E-con·⋆
+progress (.(wrap A' B t) ·⋆ A) | done (V-wrap A' B t) = error E-wrap·⋆
+progress (.(builtin b As ts) ·⋆ A) | done (V-builtin b As ts) = error E-builtin·⋆
+progress (t ·⋆ A) | error p = error (E-·⋆ p)
+progress (t ·⋆ A) | step p = step (ξ-·⋆ p)
+progress (ƛ x A t) = done (V-ƛ x A t)
+progress (t · u) = progress· (progress t) u
+progress (con c) = done (V-con c)
+progress (error A) = error (E-error A)
 progress (builtin b As ts) with arity b N.≟ Data.List.length ts
 progress (builtin b As ts) | yes p with progressList ts
-progress (builtin b As ts) | yes p | done vs = inr (inr (BUILTIN b As vs , β-builtin vs))
-progress (builtin b As ts) | yes p | step vs q ts' = inr (inr (builtin b As _ , ξ-builtin vs q ts'))
-progress (builtin b As ts) | yes p | error vs e ts' = inr (inl (E-builtin e))
-progress (builtin b As ts) | no ¬p = inl (V-builtin b As ts)
-progress (wrap A B t) = inl (V-wrap A B t)
+progress (builtin b As ts) | yes p | done vs = step (β-builtin vs)
+progress (builtin b As ts) | yes p | step vs q ts' = step (ξ-builtin vs q ts')
+progress (builtin b As ts) | yes p | error vs e ts' = error (E-builtin e)
+progress (builtin b As ts) | no ¬p = done (V-builtin b As ts)
+progress (wrap A B t) = done (V-wrap A B t)
+
 progress (unwrap  t) with progress t
-progress (unwrap .(ƛ x A t)) | inl (V-ƛ x A t) = inr (inl E-ƛunwrap)
-progress (unwrap .(Λ x K t)) | inl (V-Λ x K t) = inr (inl E-Λunwrap)
-progress (unwrap .(con tcn)) | inl (V-con tcn) = inr (inl E-conunwrap)
-progress (unwrap .(wrap A B t)) | inl (V-wrap A B t) = inr (inr (t , β-wrap))
-progress (unwrap .(builtin b As ts)) | inl (V-builtin b As ts) = inr (inl E-builtinunwrap)
-progress (unwrap t) | inr (inl e) = inr (inl (E-unwrap e))
-progress (unwrap t) | inr (inr (t' , p)) = inr (inr (unwrap t' , ξ-unwrap p))
+progress (unwrap .(ƛ x A t)) | done (V-ƛ x A t) = error E-ƛunwrap
+progress (unwrap .(Λ x K t)) | done (V-Λ x K t) = error E-Λunwrap
+progress (unwrap .(con tcn)) | done (V-con tcn) = error E-conunwrap
+progress (unwrap .(wrap A B t)) | done (V-wrap A B t) = step β-wrap
+progress (unwrap .(builtin b As ts)) | done (V-builtin b As ts) = error E-builtinunwrap
+progress (unwrap t) | error e = error (E-unwrap e)
+progress (unwrap t) | step p = step (ξ-unwrap p)
 \end{code}
 
 \begin{code}
 open import Data.Nat
-
 run : (t : ScopedTm Z) → ℕ
     → Σ (ScopedTm Z) λ t' → t —→⋆ t' × (Maybe (Value t') ⊎ Error t')
 run t 0       = t , (refl , inl nothing) -- out of fuel
 run t (suc n) with progress t
-run t (suc n) | inl vt = t , refl , inl (just vt)
-run t (suc n) | inr (inl et) = t , refl , inr et
-run t (suc n) | inr (inr (t' , p)) with run t' n
-run t (suc n) | inr (inr (t' , p)) | t'' , q , mvt'' = t'' , trans p q , mvt''
+run t (suc n) | done vt = t , refl , inl (just vt)
+run t (suc n) | error et = t , refl , inr et
+run t (suc n) | step {t' = t'} p with run t' n
+run t (suc n) | step {t' = t'} p | t'' , q , mvt'' = t'' , trans p q , mvt''
 \end{code}

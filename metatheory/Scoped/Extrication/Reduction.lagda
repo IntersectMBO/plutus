@@ -58,7 +58,7 @@ extricateVTel Γ Δ σ (A ∷ As) (t Σ., v Σ., vtel) =
 extricate—→ (ξ-·₁ p)   = ξ-·₁ (extricate—→ p)
 extricate—→ (ξ-·₂ p q) = ξ-·₂ (extricateVal p) (extricate—→ q)
 extricate—→ (ξ-·⋆ p) = ξ-·⋆ (extricate—→ p)
-extricate—→ (β-ƛ {A = A}{N = N}{W = W} p) = Eq.subst
+extricate—→ (β-ƛ {A = A}{N = N}{W = W}) = Eq.subst
   (ƛ _ (extricateNf⋆ A) (extricate N) · extricate W  SR.—→_)
   (lem[] N W)
   SR.β-ƛ
@@ -257,9 +257,26 @@ extricate—→⋆ (trans—↠ r p) = _—→⋆_.trans (extricate—→ r) (ex
 
 -- given the result of intrinsic progress this gives rise to extrinsic progress
 
-extricateProgress : ∀{A}{t : ∅ ⊢ A} → Progress t  → SR.Value {w = Z} (extricate t) ⊎ SR.Error (extricate t) ⊎ Σ (ScopedTm Z) λ t' → extricate t SR.—→ t'
-extricateProgress (step p)  = inj₂ (inj₂ (_ ,, (extricate—→ p)))
-extricateProgress (done v)  = inj₁ (extricateVal v)
-extricateProgress (error e) = inj₂ (inj₁ (extricateE e))
+extricateProgress : ∀{A}{t : ∅ ⊢ A} → AR.Progress t  → SR.Progress (extricate t)
+extricateProgress (step p)  = step (extricate—→ p)
+extricateProgress (done v)  = done (extricateVal v)
+extricateProgress (error e) = error (extricateE e)
 
+extricate-progress· : ∀{A B}{t : ∅ ⊢ A ⇒ B}(p : AR.Progress t) → (u : ∅ ⊢ A)
+  → extricateProgress (AR.progress· p u) ≡ SR.progress· (extricateProgress p) (extricate u)
+extricate-progress· (step x) u = refl
+extricate-progress· (done V-ƛ) u = {!!}
+extricate-progress· (error x) u = refl
+
+extricate-progress : ∀{A}(t : ∅ ⊢ A) → extricateProgress (AR.progress t) ≡ SR.progress (extricate t)
+extricate-progress (ƛ x t) = refl
+extricate-progress (t · u) =
+  Eq.trans (extricate-progress· (AR.progress t) u) (cong (λ p → SR.progress· p (extricate u)) (extricate-progress t))
+extricate-progress (Λ x t) = refl
+extricate-progress (t ·⋆ A) = {!!}
+extricate-progress (wrap1 pat arg t) = refl
+extricate-progress (unwrap1 t) = {!!}
+extricate-progress (con x) = refl
+extricate-progress (builtin bn σ x₁) = {!!}
+extricate-progress (error A) = refl
 \end{code}

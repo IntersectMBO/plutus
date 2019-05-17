@@ -215,7 +215,7 @@ data _—→_ : ∀ {J Φ Γ} {A : Φ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ ⊢ A) 
     → L ·⋆ A —→ error _
 -}
   β-ƛ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}{x}{N : Γ , A ⊢ B} {W : Γ ⊢ A}
-    → Value W
+--    → Value W
       -------------------
     → (ƛ x N) · W —→ N [ W ]
 
@@ -344,6 +344,11 @@ data TelProgress
 \end{code}
 
 \begin{code}
+progress· : ∀{A B}{t : ∅ ⊢ A ⇒ B} → Progress t → (u : ∅ ⊢ A) → Progress (t · u)
+progress· (step p)  u = step (ξ-·₁ p)
+progress· (done V-ƛ) u = step β-ƛ
+progress· (error e) u = error (E-·₁ e)
+
 progress : ∀ {A} → (M : ∅ ⊢ A) → Progress M
 
 progressTel : ∀ {Δ}
@@ -363,16 +368,9 @@ progressTel {As = A ∷ As} (t ,, tel) | done vt | step Bs Ds vtel p q tel' =
   step (A ∷ Bs) Ds (t ,, vt ,, vtel) p (cong (A ∷_) q) tel'
 progressTel {As = A ∷ As} (t ,, tel) | done vt | error Bs Ds vtel E q tel' = error (A ∷ Bs) Ds (t ,, vt ,, vtel) E (cong (A ∷_) q) tel'
 
-
 progress (` ())
 progress (ƛ x M) = done V-ƛ
-progress (M · N) with progress M
-...                   | error EM  = error (E-·₁ EM)
-progress (M · N)      | step p = step (ξ-·₁ p)
-progress (.(ƛ _ _) · N) | done V-ƛ with progress N
-...                              | error EN  = error (E-·₂ EN)
-progress (.(ƛ _ _) · N) | done V-ƛ | step p  = step (ξ-·₂ V-ƛ p)
-progress (.(ƛ _ _) · N) | done V-ƛ | done VN = step (β-ƛ VN)
+progress (M · N) = progress· (progress M) N
 progress (Λ _ M) = done V-Λ_
 progress (M ·⋆ A) with progress M
 ...               | error EM = error (E-·⋆ EM)
