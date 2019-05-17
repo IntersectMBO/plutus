@@ -47,7 +47,7 @@ import           Ledger                         ( DataScript(..)
                                                 , scriptTxOut
                                                 )
 import qualified Ledger                         as Ledger
-import           Ledger.Ada.TH                  (Ada)
+import           Ledger.Ada                  (Ada)
 import qualified Ledger.Ada                     as Ada
 import           Ledger.Validation
 import           Language.Marlowe

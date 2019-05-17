@@ -33,7 +33,7 @@ import           GHC.Generics          (Generic)
 
 import           Ledger                (Address, Tx (..), TxInOf (..), TxOut, TxOutOf (..), TxOutRef, TxOutRefOf (..),
                                         Value, hashTx)
-import qualified Ledger.Value.TH       as V
+import qualified Ledger.Value          as V
 
 -- | A map of 'Address'es and their unspent outputs.
 newtype AddressMap = AddressMap { getAddressMap :: Map Address (Map TxOutRef TxOut) }

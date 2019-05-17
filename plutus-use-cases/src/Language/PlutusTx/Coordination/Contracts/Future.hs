@@ -35,8 +35,8 @@ import qualified Ledger.Slot                  as Slot
 import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxIn(..), PendingTxOut (..),
                                               PendingTxOutType (..))
 import qualified Ledger.Validation            as Validation
-import qualified Ledger.Ada.TH                as Ada
-import           Ledger.Ada.TH                (Ada)
+import qualified Ledger.Ada                as Ada
+import           Ledger.Ada                (Ada)
 import qualified Wallet                       as W
 import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, createTxAndSubmit, defaultSlotRange)
 

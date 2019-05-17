@@ -33,7 +33,7 @@ import qualified Ledger.Ada                 as Ada
 import qualified Ledger.Index               as Index
 import qualified Ledger.Map
 import qualified Ledger.Value               as Value
-import           Ledger.Value.TH            (CurrencySymbol, Value (Value))
+import           Ledger.Value               (CurrencySymbol, Value (Value))
 import           LedgerBytes                as LedgerBytes
 import           Test.Tasty
 import           Test.Tasty.Hedgehog        (testProperty)

@@ -25,7 +25,7 @@ import qualified Language.PlutusTx.Prelude    as P
 import           Ledger                       hiding (to)
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Value                 (TokenName)
-import qualified Ledger.Value.TH              as V
+import qualified Ledger.Value                 as V
 import qualified Ledger.Validation            as Validation
 import           Wallet
 import qualified Wallet                       as WAPI

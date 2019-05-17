@@ -20,7 +20,7 @@ import qualified Language.PlutusTx.Prelude    as P
 import           Ledger.Slot                  (Slot)
 import qualified Ledger.Slot                  as Slot
 import           Ledger.Value                 (Value)
-import qualified Ledger.Value.TH              as Value
+import qualified Ledger.Value                 as Value
 import           Ledger.Validation            (PendingTx(..))
 import qualified Ledger.Validation            as Validation
 import           Wallet

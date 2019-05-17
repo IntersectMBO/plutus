@@ -15,8 +15,8 @@ import           Ledger                       (Slot, PubKey, ValidatorScript (..
 import qualified Ledger                       as Ledger
 import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxIn (..), PendingTxOut (..))
 import qualified Ledger.Validation            as Validation
-import qualified Ledger.Ada.TH                as Ada
-import           Ledger.Ada.TH                (Ada)
+import qualified Ledger.Ada                as Ada
+import           Ledger.Ada                (Ada)
 import           Ledger.Value                 (Value)
 
 import           Prelude                      (Bool (..), Eq (..), Integer)

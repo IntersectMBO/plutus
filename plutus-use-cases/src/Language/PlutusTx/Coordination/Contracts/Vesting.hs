@@ -33,7 +33,7 @@ import           Prelude                      hiding ((&&))
 import qualified Wallet                       as W
 import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, ownPubKeyTxOut, createTxAndSubmit, defaultSlotRange)
 import           Ledger.Ada                   (Ada)
-import qualified Ledger.Ada.TH                as Ada
+import qualified Ledger.Ada                as Ada
 
 -- | Tranche of a vesting scheme.
 data VestingTranche = VestingTranche {
