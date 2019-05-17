@@ -105,8 +105,14 @@ test-suite plutus-tx-tests
     main-is: Spec.hs
     other-modules:
         Lift.Spec
-        Plugin.ReadValue
         Plugin.Spec
+        Plugin.Basic.Spec
+        Plugin.Data.Spec
+        Plugin.Errors.Spec
+        Plugin.Functions.Spec
+        Plugin.Laziness.Spec
+        Plugin.Primitives.Spec
+        Plugin.ReadValue.Spec
         Plugin.Lib
         TH.Spec
         TH.TestTH
@@ -123,3 +129,5 @@ test-suite plutus-tx-tests
         template-haskell -any,
         tasty -any,
         tasty-hunit -any
+    -- this makes the plugin give better errors
+    ghc-options: -g

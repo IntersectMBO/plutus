@@ -20,7 +20,7 @@
           MyMonoRecord
           [
             { [ MyMonoRecord_match ds ] (con integer) }
-            (lam ds (con integer) (lam ds (con integer) ds))
+            (lam ds1 (con integer) (lam ds2 (con integer) ds1))
           ]
         )
       )
