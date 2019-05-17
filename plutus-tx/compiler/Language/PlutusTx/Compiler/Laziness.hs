@@ -32,11 +32,19 @@ delay body = PIR.LamAbs () <$> liftQuote (freshName () "thunk") <*> convType GHC
 delayType :: Converting m => PIRType -> m PIRType
 delayType orig = PIR.TyFun () <$> convType GHC.unitTy <*> pure orig
 
+delayVar :: Converting m => PIRVar -> m PIRVar
+delayVar (PIR.VarDecl () n ty) = do
+    ty' <- delayType ty
+    pure $ PIR.VarDecl () n ty'
+
 force :: Converting m => PIRTerm -> m PIRTerm
 force thunk = PIR.Apply () thunk <$> convExpr (GHC.Var GHC.unitDataConId)
 
 maybeDelay :: Converting m => Bool -> PIRTerm -> m PIRTerm
 maybeDelay yes t = if yes then delay t else pure t
+
+maybeDelayVar :: Converting m => Bool -> PIRVar -> m PIRVar
+maybeDelayVar yes v = if yes then delayVar v else pure v
 
 maybeDelayType :: Converting m => Bool -> PIRType -> m PIRType
 maybeDelayType yes t = if yes then delayType t else pure t

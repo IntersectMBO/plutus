@@ -40,6 +40,7 @@ import           Codec.Serialise                        (serialise)
 import           Control.Monad
 import           Control.Monad.Except
 import           Control.Monad.Reader
+import           Control.Monad.State
 
 import qualified Data.ByteString                        as BS
 import qualified Data.ByteString.Lazy                   as BSL
@@ -274,7 +275,8 @@ convertExpr opts locStr codeTy origE = do
             ccScopes=initialScopeStack,
             ccBlackholed=mempty
             }
-    case runExcept . runQuoteT . flip runReaderT context $ result of
+        initialState = ConvertingState mempty
+    case runExcept . runQuoteT . flip evalStateT initialState . flip runReaderT context $ result of
         Left s ->
             let shown = show $ PP.pretty (pruneContext (poContextLevel opts) s) in
             -- TODO: is this the right way to do either of these things?
