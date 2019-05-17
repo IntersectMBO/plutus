@@ -90,6 +90,8 @@ constant (base type). Note that recursive types range over an
 arbitrary kind `k` which goes beyond standard iso-recursive types.
 
 \begin{code}
+open import Data.String
+
 data _⊢⋆_ : Ctx⋆ → Kind → Set where
 
   ` : ∀ {Φ J}
@@ -98,6 +100,7 @@ data _⊢⋆_ : Ctx⋆ → Kind → Set where
     → Φ ⊢⋆ J
 
   Π : ∀ {Φ K}
+    → String
     → Φ ,⋆ K ⊢⋆ *
       -----------
     → Φ ⊢⋆ *
@@ -109,6 +112,7 @@ data _⊢⋆_ : Ctx⋆ → Kind → Set where
     → Φ ⊢⋆ *
 
   ƛ :  ∀ {Φ K J}
+    → String
     → Φ ,⋆ K ⊢⋆ J 
       -----------
     → Φ ⊢⋆ K ⇒ J
@@ -136,8 +140,8 @@ Let `A`, `B`, `C` range over types.
 TODO: these should be in the stdlib
 \begin{code}
 unit : ∀{Γ} → Γ ⊢⋆ *
-unit = Π (` Z ⇒ ` Z)
+unit = Π "α" (` Z ⇒ ` Z)
 
 boolean : ∀{Γ} → Γ ⊢⋆ *
-boolean = Π (` Z ⇒ ` Z ⇒ ` Z)
+boolean = Π "α" (` Z ⇒ ` Z ⇒ ` Z)
 \end{code}

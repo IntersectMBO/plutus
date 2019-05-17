@@ -36,9 +36,9 @@ extricateNe⋆ : ∀{Γ K}(A : Γ ⊢NeN⋆ K) → ScopedTy (len⋆ Γ)
 -- intrinsically typed terms should also carry user chosen names as
 -- instructions to the pretty printer
 
-extricateNf⋆ (Π {K = K} A) = Π "x" (extricateK K) (extricateNf⋆ A)
+extricateNf⋆ (Π {K = K} x A) = Π x (extricateK K) (extricateNf⋆ A)
 extricateNf⋆ (A ⇒ B) = extricateNf⋆ A ⇒ extricateNf⋆ B
-extricateNf⋆ (ƛ {K = K} A) = ƛ "x" (extricateK K) (extricateNf⋆ A)
+extricateNf⋆ (ƛ {K = K} x A) = ƛ x (extricateK K) (extricateNf⋆ A)
 extricateNf⋆ (ne n) = extricateNe⋆ n
 extricateNf⋆ (con c) = con c
 

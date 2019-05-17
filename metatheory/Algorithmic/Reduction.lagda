@@ -71,7 +71,7 @@ data Error :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
     → Error L → Error (L · M)
   E-·₂ : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *} {L : Γ ⊢ A ⇒ B}{M : Γ ⊢ A}
     → Error M → Error (L · M)
-  E-·⋆ : ∀{Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}{L : Γ ⊢ Π B}{A : Φ ⊢Nf⋆ K}
+  E-·⋆ : ∀{Φ Γ K x}{B : Φ ,⋆ K ⊢Nf⋆ *}{L : Γ ⊢ Π x B}{A : Φ ⊢Nf⋆ K}
     → Error L → Error (L ·⋆ A)
   E-unwrap : ∀{Φ Γ K}
     → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
@@ -204,7 +204,7 @@ data _—→_ : ∀ {J Φ Γ} {A : Φ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ ⊢ A) 
       -----------------
     → L · M —→ error _
 -}
-  ξ-·⋆ : ∀ {Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}{L L′ : Γ ⊢ Π B}{A}
+  ξ-·⋆ : ∀ {Φ Γ K x}{B : Φ ,⋆ K ⊢Nf⋆ *}{L L′ : Γ ⊢ Π x B}{A}
     → L —→ L′
       -----------------
     → L ·⋆ A —→ L′ ·⋆ A

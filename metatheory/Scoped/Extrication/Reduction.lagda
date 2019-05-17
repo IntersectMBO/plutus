@@ -20,6 +20,7 @@ open import Data.List
 open import Data.Unit
 open import Data.Nat
 open import Data.Integer
+open import Data.Bool
 open import Relation.Nullary
 
 open import Builtin
@@ -89,7 +90,6 @@ extricate—→ (β-builtin modInteger σ tel vtel@(_ ,, V-con (integer i) ,, _ 
 extricate—→ (β-builtin lessThanInteger σ tel vtel@(_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)) with i Builtin.Constant.Type.<? j | SR.β-builtin {b = lessThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG lessThanInteger))) vtel) 
 ... | yes p | r = r
 ... | no ¬p | r = r
-
 extricate—→ (β-builtin lessThanEqualsInteger σ tel vtel@(_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)) with i Data.Integer.≤? j | SR.β-builtin {b = lessThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanEqualsInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG lessThanEqualsInteger))) vtel) 
 ... | yes p | r = r
 ... | no ¬p | r = r
@@ -102,12 +102,20 @@ extricate—→ (β-builtin greaterThanEqualsInteger σ tel vtel@(_ ,, V-con (in
 extricate—→ (β-builtin equalsInteger σ tel vtel@(_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)) with i Data.Integer.≟ j | SR.β-builtin {b = equalsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG equalsInteger))) vtel) 
 ... | yes p | r = r
 ... | no ¬p | r = r
-extricate—→ (β-builtin concatenate σ tel vtel) = {!!}
-extricate—→ (β-builtin takeByteString σ tel vtel) = {!!}
-extricate—→ (β-builtin dropByteString σ tel vtel) = {!!}
-extricate—→ (β-builtin sha2-256 σ tel vtel) = {!!}
-extricate—→ (β-builtin sha3-256 σ tel vtel) = {!!}
-extricate—→ (β-builtin verifySignature σ tel vtel) = {!!}
-extricate—→ (β-builtin equalsByteString σ tel vtel) = {!!}
+extricate—→ (β-builtin concatenate σ tel vtel@(_ ,, V-con (bytestring b) ,, _ ,, V-con (bytestring b') ,, tt)) =
+  SR.β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG concatenate))) vtel) 
+extricate—→ (β-builtin takeByteString σ tel vtel@(_ ,, V-con (integer i) ,, _ ,, V-con (bytestring b) ,, tt)) =
+  SR.β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG takeByteString))) vtel)
+extricate—→ (β-builtin dropByteString σ tel vtel@(_ ,, V-con (integer i) ,, _ ,, V-con (bytestring b) ,, tt)) =
+  SR.β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG dropByteString))) vtel)
+extricate—→ (β-builtin sha2-256 σ tel vtel@(_ ,, V-con (bytestring b) ,, tt)) = SR.β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG sha2-256))) vtel)
+extricate—→ (β-builtin sha3-256 σ tel vtel@(_ ,, V-con (bytestring b) ,, tt)) = SR.β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG sha3-256))) vtel)
+extricate—→ (β-builtin verifySignature σ tel vtel@(_ ,, V-con (bytestring k) ,, _ ,, V-con (bytestring d) ,, _ ,, V-con (bytestring c) ,, tt)) with verifySig k d c | SR.β-builtin {b = verifySignature}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG verifySignature))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG verifySignature))) vtel) 
+... | just true  | r = r
+... | just false | r = r
+... | nothing    | r = r
+extricate—→ (β-builtin equalsByteString σ tel vtel@(_ ,, V-con (bytestring b) ,, _ ,, V-con (bytestring b') ,, tt)) with equals b b' | SR.β-builtin {b = equalsByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsByteString))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG equalsByteString))) vtel) 
+... | true  | r = r
+... | false | r = r
 extricate—→ (ξ-builtin bn σ tel Bs Ds vtel p p' tel') = {!SR.ξ-builtin {b = bn} ? ? ?!}
 \end{code}
