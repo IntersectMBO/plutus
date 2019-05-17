@@ -23,7 +23,7 @@ import Halogen.HTML (ClassName(..), HTML, br_, div, div_, pre_, text)
 import Halogen.HTML.Properties (class_)
 import Language.Haskell.Interpreter (CompilationError(..))
 import Network.HTTP.StatusCode (StatusCode(..))
-import Ledger.Value.TH (TokenName)
+import Ledger.Value (TokenName)
 import Playground.Server (SPParams_(..))
 import Prelude (bind, pure, show, unit, ($), (<$>), (<>), (>>>))
 import Servant.PureScript.Affjax (AjaxError, ErrorDescription(ConnectionError, DecodingError, ParsingError, UnexpectedHTTPStatus), runAjaxError)
@@ -60,7 +60,7 @@ decodeTokenNameLists :: Options -> GenericSignature -> Json -> Maybe (Either Str
 decodeTokenNameLists opts sig@(SigProd "Data.List.Types.List" [{sigValues: [a, _]}, _]) json =
   runExceptT do
     case a unit of
-      (SigProd "Ledger.Value.TH.TokenName" _) -> do
+      (SigProd "Ledger.Value.TokenName" _) -> do
         tokenNames :: Array TokenName <- ExceptT $ Just $ decodeJson json
         pure $ toSpine $ List.fromFoldable tokenNames
       _ -> empty
@@ -69,7 +69,7 @@ decodeTokenNameLists opts (SigProd "Data.List.Types.NonEmptyList" [{sigValues: [
     case l unit of
       (SigProd "Data.List.Types.List" [{sigValues: [a, _]}, _])  -> do
         case a unit of
-          (SigProd "Ledger.Value.TH.TokenName" _) -> do
+          (SigProd "Ledger.Value.TokenName" _) -> do
             tokenNames :: Array TokenName <- ExceptT $ Just $ decodeJson json
             nonEmpty <- ExceptT $ Just $ note "List is empty, expecting non-empty" $ NonEmpty.fromFoldable tokenNames
             pure $ toSpine nonEmpty

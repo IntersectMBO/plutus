@@ -152,7 +152,7 @@ library
         safe-exceptions -any,
         dependent-sum -any,
         dependent-map -any,
-        hedgehog -any,
+        hedgehog <1.0,
         filepath -any,
         tasty -any,
         tasty-golden -any,

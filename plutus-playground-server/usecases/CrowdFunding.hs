@@ -12,7 +12,7 @@ import qualified Language.PlutusTx.Prelude    as P
 import           Ledger
 import           Ledger.Validation           as V
 import           Ledger.Value                (Value)
-import qualified Ledger.Value.TH             as VTH
+import qualified Ledger.Value                as VTH
 import           Playground.Contract
 import           Wallet                       as W
 import qualified Wallet.Emulator              as EM

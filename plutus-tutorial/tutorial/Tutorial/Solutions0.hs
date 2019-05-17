@@ -11,8 +11,8 @@ import           Data.Foldable                (traverse_)
 import qualified Language.PlutusTx            as P
 import           Ledger                       (Address, DataScript(..), PubKey(..), RedeemerScript(..), Slot(..), TxId, ValidatorScript(..))
 import qualified Ledger                       as L
-import qualified Ledger.Ada.TH                as Ada
-import           Ledger.Ada.TH                (Ada)
+import qualified Ledger.Ada                as Ada
+import           Ledger.Ada                (Ada)
 import qualified Ledger.Interval              as Interval
 import qualified Ledger.Slot                  as Slot
 import           Ledger.Validation            (PendingTx(..), PendingTxIn(..), PendingTxOut)

@@ -13,8 +13,7 @@
       (nonrec)
       (termbind
         (vardecl andExternal (fun Bool (fun Bool Bool)))
-        (lam ds Bool (lam ds1 Bool [ [ { [ Bool_match ds ] Bool } ds1 ] False ])
-        )
+        (lam a Bool (lam b Bool [ [ { [ Bool_match a ] Bool } b ] False ]))
       )
       [ [ andExternal True ] False ]
     )

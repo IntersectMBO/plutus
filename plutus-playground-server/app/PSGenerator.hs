@@ -45,7 +45,7 @@ import           Ledger.Ada                                (Ada)
 import           Ledger.Index                              (ValidationError)
 import           Ledger.Interval                           (Interval)
 import           Ledger.Slot                               (Slot)
-import           Ledger.Value.TH                           (CurrencySymbol, TokenName, Value)
+import           Ledger.Value                              (CurrencySymbol, TokenName, Value)
 import           Playground.API                            (CompilationResult, Evaluation, EvaluationResult, Expression,
                                                             Fn, FunctionSchema, KnownCurrency, SimpleArgumentSchema,
                                                             SimulatorWallet)
@@ -81,7 +81,7 @@ integerBridge = do
 ledgerMapBridge :: BridgePart
 ledgerMapBridge = do
     typeName ^== "Map"
-    typeModule ^== "Ledger.Map.TH"
+    typeModule ^== "Ledger.Map"
     psLedgerMap
 
 ledgerBytesBridge :: BridgePart

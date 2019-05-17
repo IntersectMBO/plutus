@@ -10,7 +10,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
 module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     -- * Campaign parameters
     Campaign(..)
@@ -32,7 +31,7 @@ import qualified Language.PlutusTx.Prelude   as P
 import           Ledger
 import           Ledger.Validation           as V
 import           Ledger.Value                (Value)
-import qualified Ledger.Value.TH             as VTH
+import qualified Ledger.Value                as VTH
 import           Wallet                      as W
 import qualified Wallet.Emulator             as EM
 import           Wallet.Emulator             (Wallet)

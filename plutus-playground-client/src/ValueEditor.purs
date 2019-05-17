@@ -16,7 +16,7 @@ import Halogen.HTML.Events (onValueInput)
 import Halogen.HTML.Properties (InputType(InputNumber), classes, placeholder, required, type_, value)
 import Halogen.Query as HQ
 import Ledger.Extra (LedgerMap(..))
-import Ledger.Value.TH (CurrencySymbol, TokenName, Value(Value))
+import Ledger.Value (CurrencySymbol, TokenName, Value(Value))
 import Types (ValueEvent(SetBalance), _currencySymbol, _tokenName)
 
 valueForm :: forall p i. (ValueEvent -> HQ.Action i) -> Value -> HTML p i

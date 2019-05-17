@@ -156,9 +156,9 @@ mapParseRun :: (AsParseError e a, MonadError e m, MonadQuote m) => StateT Identi
 -- we need to run the parser starting from our current next unique, then throw away the rest of the
 -- parser state and get back the new next unique
 mapParseRun run = do
-    nextU <- liftQuote get
+    nextU <- liftQuote freshUnique
     (p, (_, u)) <- throwingEither _ParseError $ runExcept $ runStateT run (identifierStateFrom nextU)
-    liftQuote $ put u
+    liftQuote $ markNonFreshBelow u
     pure p
 
 -- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable

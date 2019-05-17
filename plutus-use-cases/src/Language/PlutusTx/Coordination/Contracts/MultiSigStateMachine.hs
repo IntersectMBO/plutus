@@ -54,9 +54,9 @@ validator params = ValidatorScript val where
 
         \(p :: Params) (ds :: (State, Maybe Input)) (vs :: (State, Maybe Input)) (ptx :: PendingTx) ->
             let
-                trans = $$stepWithChecks p ptx
-                sm = StateMachine trans $$stateEq
-            in $$(mkValidator) sm ds vs ptx
+                trans = stepWithChecks p ptx
+                sm = StateMachine trans stateEq
+            in mkValidator sm ds vs ptx
 
         ||]))
 
@@ -124,7 +124,7 @@ makePayment prms st = do
         CollectingSignatures vl (Payment pd pk _) _ -> pure (vl, pd, pk)
         _ -> WAPI.throwOtherError "Cannot make payment because no payment has been proposed. Run the 'proposePayment' action first."
 
-    let newState = $$step st Pay
+    let newState = step st Pay
         vl       = validator prms
         redeemer = RedeemerScript (Ledger.lifted (SM.transition newState Pay))
         dataScript = DataScript (Ledger.lifted (SM.transition newState Pay))
@@ -152,7 +152,7 @@ mkStep
     -> m MultiSig.State
     -- ^ New state after applying the input
 mkStep prms st input = do
-    let newState = $$step st input
+    let newState = step st input
         vl       = validator prms
         redeemer = RedeemerScript (Ledger.lifted (SM.transition newState input))
         dataScript = DataScript (Ledger.lifted (SM.transition newState input))
