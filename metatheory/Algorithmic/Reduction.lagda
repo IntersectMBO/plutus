@@ -383,8 +383,7 @@ progress (unwrap1 M) with progress M
 ...                  | error EM  = error (E-unwrap EM)
 progress (unwrap1 M) | step p = step (ξ-unwrap1 p)
 progress (unwrap1 .(wrap1 _ _ _)) | done V-wrap1 = step β-wrap1
-progress (con (integer i))    = done (V-con (integer i))
-progress (con (bytestring b)) = done (V-con (bytestring b))
+progress (con c)    = done (V-con c)
 progress (builtin bn σ X) with progressTel X
 progress (builtin bn σ X) | done VX = step (β-builtin bn σ X VX)
 progress (builtin bn σ X) | step Bs Ds vtel p q tel' =

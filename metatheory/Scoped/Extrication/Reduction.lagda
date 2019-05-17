@@ -248,4 +248,18 @@ extricate—→ (ξ-builtin equalsByteString σ tel (.(con bytestring) ∷ []) .
 extricate—→ (ξ-builtin equalsByteString σ tel (B ∷ B' ∷ []) Ds vtel p () tel')
 extricate—→ (ξ-builtin equalsByteString σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds vtel p () tel')
 
+-- extrication for a sequence of steps
+
+extricate—→⋆ : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K}{t t' : Γ ⊢ A}
+  → t AR.—↠ t' → extricate t SR.—→⋆ extricate t'
+extricate—→⋆ refl—↠ = refl
+extricate—→⋆ (trans—↠ r p) = _—→⋆_.trans (extricate—→ r) (extricate—→⋆ p)
+
+-- given the result of intrinsic progress this gives rise to extrinsic progress
+
+extricateProgress : ∀{A}{t : ∅ ⊢ A} → Progress t  → SR.Value {w = Z} (extricate t) ⊎ SR.Error (extricate t) ⊎ Σ (ScopedTm Z) λ t' → extricate t SR.—→ t'
+extricateProgress (step p)  = inj₂ (inj₂ (_ ,, (extricate—→ p)))
+extricateProgress (done v)  = inj₁ (extricateVal v)
+extricateProgress (error e) = inj₂ (inj₁ (extricateE e))
+
 \end{code}
