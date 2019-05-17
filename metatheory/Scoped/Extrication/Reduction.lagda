@@ -201,11 +201,51 @@ extricate—→ (ξ-builtin equalsInteger σ tel (.(con integer) ∷ []) .[] vte
 extricate—→ (ξ-builtin equalsInteger σ tel (B ∷ B' ∷ []) Ds vtel p () tel')
 extricate—→ (ξ-builtin equalsInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds vtel p () tel')
 
-extricate—→ (ξ-builtin concatenate σ tel Bs Ds vtel p p' tel') = {!!}
-extricate—→ (ξ-builtin takeByteString σ tel Bs Ds vtel p p' tel') = {!!}
-extricate—→ (ξ-builtin dropByteString σ tel Bs Ds vtel p p' tel') = {!!}
-extricate—→ (ξ-builtin sha2-256 σ tel Bs Ds vtel p p' tel') = {!!}
-extricate—→ (ξ-builtin sha3-256 σ tel Bs Ds vtel p p' tel') = {!!}
-extricate—→ (ξ-builtin verifySignature σ tel Bs Ds vtel p p' tel') = {!!}
-extricate—→ (ξ-builtin equalsByteString σ tel Bs Ds vtel p p' tel') = {!!}
+extricate—→ (ξ-builtin concatenate σ tel [] .(con bytestring ∷ []) vtel p refl tel') =
+  SR.ξ-builtin {b = concatenate}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG concatenate))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ (con bytestring ∷ []) tel')
+extricate—→ (ξ-builtin concatenate σ tel (.(con bytestring) ∷ []) .[] vtel p refl tel') =
+  SR.ξ-builtin {b = concatenate}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG concatenate))) tel}(extricateVTel _ _ σ (con bytestring ∷ []) vtel) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin concatenate σ tel (B ∷ B' ∷ []) Ds vtel p () tel')
+extricate—→ (ξ-builtin concatenate σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds vtel p () tel')
+
+extricate—→ (ξ-builtin takeByteString σ tel [] .(con bytestring ∷ []) vtel p refl tel') =
+  SR.ξ-builtin {b = takeByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG takeByteString))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ (con bytestring ∷ []) tel')
+extricate—→ (ξ-builtin takeByteString σ tel (.(con integer) ∷ []) .[] vtel p refl tel') =
+  SR.ξ-builtin {b = takeByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG takeByteString))) tel}(extricateVTel _ _ σ (con integer ∷ []) vtel) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin takeByteString σ tel (B ∷ B' ∷ []) Ds vtel p () tel')
+extricate—→ (ξ-builtin takeByteString σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds vtel p () tel')
+
+extricate—→ (ξ-builtin dropByteString σ tel [] .(con bytestring ∷ []) vtel p refl tel') =
+  SR.ξ-builtin {b = dropByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG dropByteString))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ (con bytestring ∷ []) tel')
+extricate—→ (ξ-builtin dropByteString σ tel (.(con integer) ∷ []) .[] vtel p refl tel') =
+  SR.ξ-builtin {b = dropByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG dropByteString))) tel}(extricateVTel _ _ σ (con integer ∷ []) vtel) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin dropByteString σ tel (B ∷ B' ∷ []) Ds vtel p () tel')
+extricate—→ (ξ-builtin dropByteString σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds vtel p () tel')
+
+extricate—→ (ξ-builtin sha2-256 σ tel [] .[] vtel p refl tel') =
+  SR.ξ-builtin {b = sha2-256}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG sha2-256))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin sha2-256 σ tel (B ∷ []) Ds vtel p () tel')
+extricate—→ (ξ-builtin sha2-256 σ tel (B ∷ B' ∷ Bs) Ds vtel p () tel')
+
+extricate—→ (ξ-builtin sha3-256 σ tel [] .[] vtel p refl tel') =
+  SR.ξ-builtin {b = sha3-256}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG sha3-256))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin sha3-256 σ tel (B ∷ []) Ds vtel p () tel')
+extricate—→ (ξ-builtin sha3-256 σ tel (B ∷ B' ∷ Bs) Ds vtel p () tel')
+
+extricate—→ (ξ-builtin verifySignature σ tel [] .(con bytestring ∷ con bytestring ∷ []) vtel p refl tel') =
+  SR.ξ-builtin {b = verifySignature}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG verifySignature))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ (con bytestring ∷ con bytestring ∷ []) tel')
+extricate—→ (ξ-builtin verifySignature σ tel (.(con bytestring) ∷ []) .(con bytestring ∷ []) vtel p refl tel') =
+  SR.ξ-builtin {b = verifySignature}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG verifySignature))) tel}(extricateVTel _ _ σ (con bytestring ∷ []) vtel) (extricate—→ p) (extricateTel σ (con bytestring ∷ []) tel')
+extricate—→ (ξ-builtin verifySignature σ tel (.(con bytestring) ∷ .(con bytestring) ∷ []) .[] vtel p refl tel') =
+  SR.ξ-builtin {b = verifySignature}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG verifySignature))) tel}(extricateVTel _ _ σ (con bytestring ∷ con bytestring ∷ []) vtel) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin verifySignature σ tel (B ∷ B' ∷ B'' ∷ []) Ds vtel p () tel')
+extricate—→ (ξ-builtin verifySignature σ tel (B ∷ B' ∷ B'' ∷ B''' ∷ Bs) Ds vtel p () tel')
+
+extricate—→ (ξ-builtin equalsByteString σ tel [] .(con bytestring ∷ []) vtel p refl tel') =
+  SR.ξ-builtin {b = equalsByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsByteString))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ (con bytestring ∷ []) tel')
+extricate—→ (ξ-builtin equalsByteString σ tel (.(con bytestring) ∷ []) .[] vtel p refl tel') =
+  SR.ξ-builtin {b = equalsByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsByteString))) tel}(extricateVTel _ _ σ (con bytestring ∷ []) vtel) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin equalsByteString σ tel (B ∷ B' ∷ []) Ds vtel p () tel')
+extricate—→ (ξ-builtin equalsByteString σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds vtel p () tel')
+
 \end{code}
