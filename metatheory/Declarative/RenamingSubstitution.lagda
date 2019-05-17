@@ -83,9 +83,9 @@ renameTel _ ρ {As = A ∷ As} (M ,, Ms) =
   substEq (_ ⊢_) (sym (⋆.rename-subst A)) (rename _ ρ M) ,, renameTel _ ρ Ms
 
 rename _ ρ (` x)    = ` (ρ x)
-rename _ ρ (ƛ N)    = ƛ (rename _ (ext _ ρ) N)
+rename _ ρ (ƛ x N)  = ƛ x (rename _ (ext _ ρ) N)
 rename _ ρ (L · M)  = rename _ ρ L · rename _ ρ M 
-rename _ ρ (Λ N)    = Λ (rename _ (ext⋆ _ ρ) N )
+rename _ ρ (Λ x N)  = Λ x (rename _ (ext⋆ _ ρ) N )
 rename {Δ = Δ} _ ρ (_·⋆_ {B = B} t A) =
   substEq (λ A → Δ ⊢ A)
           (trans (sym (⋆.subst-rename B))
@@ -191,9 +191,9 @@ substTel _ σ {As = A ∷ As} (M ,, Ms) =
   substEq (_ ⊢_) (sym (⋆.subst-comp A)) (subst _ σ M) ,, substTel _ σ Ms
 
 subst _ σ (` k)                     = σ k
-subst _ σ (ƛ N)                     = ƛ (subst _ (exts _ σ) N)
+subst _ σ (ƛ x N)                   = ƛ x (subst _ (exts _ σ) N)
 subst _ σ (L · M)                   = subst _ σ L · subst _ σ M
-subst _ σ (Λ N)                     = Λ (subst _ (exts⋆ _ σ) N)
+subst _ σ (Λ x N)                   = Λ x (subst _ (exts⋆ _ σ) N)
 subst {Δ = Δ} _ σ (_·⋆_ {B = B} L M) =
   substEq (λ A → Δ ⊢ A)
           (trans (sym (⋆.subst-comp B))

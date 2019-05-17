@@ -217,9 +217,9 @@ embTel refl (A ∷ As) (A' ∷ As') (p ,, p') σ (t ,, tel) =
   Dec.conv (lemsub A A' σ p) (emb t) ,, embTel refl As As' p' σ tel
 
 emb (Alg.` α) = Dec.` (embVar α)
-emb (Alg.ƛ {A = A}{B} t) = Dec.ƛ (emb t)
+emb (Alg.ƛ {A = A}{B} x t) = Dec.ƛ x (emb t)
 emb (Alg._·_ {A = A}{B} t u) = emb t Dec.· emb u
-emb (Alg.Λ {B = B} t) = Dec.Λ (emb t)
+emb (Alg.Λ x {B = B} t) = Dec.Λ x (emb t)
 emb (Alg._·⋆_ {K = K}{B = B} t A) =
   Dec.conv (lem[]'' A B) (emb t Dec.·⋆ embNf A)
 emb (Alg.wrap1 pat arg t) =

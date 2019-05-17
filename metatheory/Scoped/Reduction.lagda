@@ -177,7 +177,7 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
             → builtin b As ts —→
               builtin b As (Data.List.map proj₁ vs ++ Data.List.[ t' ] ++ ts')
   β-builtin : {b : Builtin}
-              {As : List (ScopedTy n)}
+              {As : List (ScopedTy n)} -- this is the sub???
               {ts : List (ScopedTm w)}
               (vs : List (Σ (ScopedTm w) (Value {n})))
             → builtin b As ts —→ BUILTIN b As vs

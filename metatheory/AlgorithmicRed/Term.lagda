@@ -105,11 +105,11 @@ val2nf : ∀{Γ K}{A : Γ ⊢⋆ K} → Value⋆ A → Σ (Γ ⊢Nf⋆ K) λ N �
 neu2nen : ∀{Γ K}{A : Γ ⊢⋆ K} → Neutral⋆ A → Σ (Γ ⊢NeN⋆ K) λ N → embNeN N ≡ A
 
 val2nf (V-Π VN) with val2nf VN
-... | N ,, q = Π N ,, cong Π q
+... | N ,, q = Π _ N ,, cong (Π _) q
 val2nf (VM V-⇒ VN) with val2nf VM | val2nf VN
 ... | M ,, p | N ,, q = M ⇒ N ,, cong₂ _⇒_ p q
 val2nf (V-ƛ VN) with val2nf VN
-... | N ,, p = ƛ N ,, cong ƛ p
+... | N ,, p = ƛ _ N ,, cong (ƛ _) p
 val2nf (N- VN) with neu2nen VN
 ... | N ,, p = ne N ,, p
 val2nf (V-con {tcn = tcn})= con tcn ,, refl
@@ -141,15 +141,15 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢Nf⋆ J → Set where
       -----------
     → Γ ⊢ B
 
-  Λ : ∀ {Γ K}
+  Λ : ∀ {Γ K}{x}
     → {B : ∥ Γ ∥ ,⋆ K ⊢Nf⋆ *}
     → Γ ,⋆ K ⊢ B
       ----------
-    → Γ ⊢ Π B
+    → Γ ⊢ Π x B
 
-  _·⋆_ : ∀ {Γ K}
+  _·⋆_ : ∀ {Γ K}{x}
     → {B : ∥ Γ ∥ ,⋆ K ⊢Nf⋆ *}
-    → Γ ⊢ Π B
+    → Γ ⊢ Π x B
     → (A : ∥ Γ ∥ ⊢Nf⋆ K)
     → {R : ∥ Γ ∥ ⊢Nf⋆ *}
     → embNf B [ embNf A ] —Nf→⋆ R

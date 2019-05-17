@@ -32,6 +32,7 @@ position cannot be a lambda), or recursive types. Normal forms can be
 pi types, function types, lambdas or neutral terms.
 
 \begin{code}
+open import Data.String
 
 data _⊢Nf⋆_ : Ctx⋆ → Kind → Set
 
@@ -54,6 +55,7 @@ data _⊢NeN⋆_ : Ctx⋆ → Kind → Set where
 data _⊢Nf⋆_ where
 
   Π : ∀ {Φ K}
+    → String
     → Φ ,⋆ K ⊢Nf⋆ *
       -----------
     → Φ ⊢Nf⋆ *
@@ -65,6 +67,7 @@ data _⊢Nf⋆_ where
     → Φ ⊢Nf⋆ *
 
   ƛ :  ∀ {Φ K J}
+    → String
     → Φ ,⋆ K ⊢Nf⋆ J
       -----------
     → Φ ⊢Nf⋆ (K ⇒ J)
@@ -94,9 +97,9 @@ renameNeN : ∀ {Φ Ψ}
     -------------------------------
   → (∀ {J} → Φ ⊢NeN⋆ J → Ψ ⊢NeN⋆ J)
 
-renameNf ρ (Π A)       = Π (renameNf (ext ρ) A)
+renameNf ρ (Π x A)     = Π x (renameNf (ext ρ) A)
 renameNf ρ (A ⇒ B)     = renameNf ρ A ⇒ renameNf ρ B
-renameNf ρ (ƛ B)       = ƛ (renameNf (ext ρ) B)
+renameNf ρ (ƛ x B)     = ƛ x (renameNf (ext ρ) B)
 renameNf ρ (ne A)      = ne (renameNeN ρ A)
 renameNf ρ (con tcn)   = con tcn
 
@@ -127,9 +130,9 @@ renameNf-cong : ∀ {Φ Ψ}
   → ∀{K}(A : Φ ⊢Nf⋆ K)
     ---------------------------
   → renameNf f A ≡ renameNf g A
-renameNf-cong p (Π A)       = cong Π (renameNf-cong (ext-cong p) A)
+renameNf-cong p (Π x A)     = cong (Π x) (renameNf-cong (ext-cong p) A)
 renameNf-cong p (A ⇒ B)     = cong₂ _⇒_ (renameNf-cong p A) (renameNf-cong p B)
-renameNf-cong p (ƛ A)       = cong ƛ (renameNf-cong (ext-cong p) A)
+renameNf-cong p (ƛ x A)     = cong (ƛ x) (renameNf-cong (ext-cong p) A)
 renameNf-cong p (ne A)      = cong ne (renameNeN-cong p A)
 renameNf-cong p (con tcn)   = refl
 
@@ -151,11 +154,11 @@ renameNeN-id : ∀ {Φ}
     ------------------
   → renameNeN id n ≡ n
 
-renameNf-id (Π n)       =
-  cong Π (trans (renameNf-cong ext-id n) (renameNf-id n))
+renameNf-id (Π x n)       =
+  cong (Π x) (trans (renameNf-cong ext-id n) (renameNf-id n))
 renameNf-id (n ⇒ n')    = cong₂ _⇒_ (renameNf-id n) (renameNf-id n')
-renameNf-id (ƛ n)       =
-  cong ƛ (trans (renameNf-cong ext-id n) (renameNf-id n))
+renameNf-id (ƛ x n)       =
+  cong (ƛ x) (trans (renameNf-cong ext-id n) (renameNf-id n))
 renameNf-id (ne x)      = cong ne (renameNeN-id x)
 renameNf-id (con tcn)   = refl
 
@@ -178,11 +181,11 @@ renameNeN-comp : ∀{Φ Ψ Θ}
     -------------------------------------------
   → renameNeN (f ∘ g) A ≡ renameNeN f (renameNeN g A)
 
-renameNf-comp (Π B)       =
-  cong Π (trans (renameNf-cong ext-comp B) (renameNf-comp B))
+renameNf-comp (Π x B)     =
+  cong (Π x) (trans (renameNf-cong ext-comp B) (renameNf-comp B))
 renameNf-comp (A ⇒ B)     = cong₂ _⇒_ (renameNf-comp A) (renameNf-comp B)
-renameNf-comp (ƛ B)       = 
-  cong ƛ (trans (renameNf-cong ext-comp B) (renameNf-comp B))
+renameNf-comp (ƛ x B)     = 
+  cong (ƛ x) (trans (renameNf-cong ext-comp B) (renameNf-comp B))
 renameNf-comp (ne n)      = cong ne (renameNeN-comp n)
 renameNf-comp (con tcn)   = refl
 
@@ -197,9 +200,9 @@ Embedding normal forms back into terms
 embNf : ∀{Γ K} → Γ ⊢Nf⋆ K → Γ ⊢⋆ K
 embNeN : ∀{Γ K} → Γ ⊢NeN⋆ K → Γ ⊢⋆ K
 
-embNf (Π B)       = Π (embNf B)
+embNf (Π x B)     = Π x (embNf B)
 embNf (A ⇒ B)     = embNf A ⇒ embNf B
-embNf (ƛ B)       = ƛ (embNf B)
+embNf (ƛ x B)     = ƛ x (embNf B)
 embNf (ne B)      = embNeN B
 embNf (con tcn)   = con tcn
 
@@ -223,9 +226,9 @@ rename-embNeN : ∀ {Φ Ψ}
     --------------------------------------------
   → embNeN (renameNeN ρ n) ≡ rename ρ (embNeN n)
 
-rename-embNf ρ (Π B)       = cong Π (rename-embNf (ext ρ) B)
+rename-embNf ρ (Π x B)     = cong (Π x) (rename-embNf (ext ρ) B)
 rename-embNf ρ (A ⇒ B)     = cong₂ _⇒_ (rename-embNf ρ A) (rename-embNf ρ B)
-rename-embNf ρ (ƛ B)       = cong ƛ (rename-embNf (ext ρ) B)
+rename-embNf ρ (ƛ x B)     = cong (ƛ x) (rename-embNf (ext ρ) B)
 rename-embNf ρ (ne n)      = rename-embNeN ρ n
 rename-embNf ρ (con tcn  ) = refl
 
@@ -238,5 +241,5 @@ rename-embNeN ρ μ1       = refl
 
 \begin{code}
 booleanNf : ∀{Γ} → Γ ⊢Nf⋆ *
-booleanNf = Π (ne (` Z) ⇒ ne (` Z) ⇒ ne (` Z))
+booleanNf = Π "α" (ne (` Z) ⇒ ne (` Z) ⇒ ne (` Z))
 \end{code}

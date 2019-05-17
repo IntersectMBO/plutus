@@ -38,9 +38,9 @@ nfTyVar (Syn.S α) =  Norm.S (nfTyVar α)
 nfTyVar {Γ = Γ Syn.,⋆ K} (Syn.T {A = A} α) =
   conv∋ (rename-nf S A) (Norm.T (nfTyVar α))
 
-lemΠ : ∀{Γ K }(B : Γ ,⋆ K ⊢⋆ *) →
-       nf (Π B) ≡ Π (nf B)
-lemΠ B = cong Π (sym (substNf-lemma' B))
+lemΠ : ∀{Γ K }(B : Γ ,⋆ K ⊢⋆ *){x} →
+       nf (Π x B) ≡ Π x (nf B)
+lemΠ B = cong (Π _) (sym (substNf-lemma' B))
 
 open import Type.Equality
 open import Type.BetaNBE.Soundness
@@ -222,9 +222,9 @@ nfTypeTel' : ∀{Φ Γ Δ Δ'}(σ : Sub Δ Φ)(As : List (Δ ⊢⋆ *))
 nfTypeTel' σ As refl .(nfList As) refl tel = nfTypeTel σ As tel
 
 nfType (Syn.` α) = Norm.` (nfTyVar α)
-nfType {Γ} (Syn.ƛ t) = Norm.ƛ (nfType t)
+nfType {Γ} (Syn.ƛ x t) = Norm.ƛ x (nfType t)
 nfType {Γ} (t Syn.· u) = nfType t Norm.· nfType u
-nfType {Γ} (Syn.Λ {B = B} t)    = Norm.Λ (subst⊢ (substNf-lemma' B) (nfType t))
+nfType {Γ} (Syn.Λ {B = B} x t) = Norm.Λ x (subst⊢ (substNf-lemma' B) (nfType t))
 nfType {Γ} (Syn._·⋆_ {B = B} t A) =
   subst⊢ (lem[] A B) (subst⊢ (lemΠ B) (nfType t) Norm.·⋆ nf A)
 nfType {Γ} (Syn.wrap1 pat arg t) =
