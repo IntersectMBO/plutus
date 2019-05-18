@@ -43,17 +43,16 @@ extricateE (E-·₁ p) = E-·₁ (extricateE p)
 extricateE (E-·₂ p) = E-·₂ (extricateE p)
 extricateE (E-·⋆ p) = E-·⋆ (extricateE p)
 extricateE (E-unwrap p) = E-unwrap (extricateE p)
-extricateE (E-builtin bn σ tel Bs Ds vtel x p tel') = E-builtin (extricateE x)
+extricateE (E-builtin bn σ tel Bs Ds telB vtel e p telD) = E-builtin (extricateE e)
 
 extricateVal V-ƛ = V-ƛ _ _ _
 extricateVal V-Λ_ = SR.V-Λ _ _ _
 extricateVal V-wrap1 = V-wrap _ _ _
 extricateVal (V-con cn) = V-con (extricateC cn)
-
-extricateVTel :  ∀ {Φ} Γ Δ (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)(As : List (Δ ⊢Nf⋆ *)) → VTel Γ Δ σ As → List (Σ (ScopedTm (len Γ)) (SR.Value {len⋆ Φ}{len Γ}))  
-extricateVTel Γ Δ σ [] vtel = []
-extricateVTel Γ Δ σ (A ∷ As) (t Σ., v Σ., vtel) =
-  (extricate t ,, extricateVal v) ∷ extricateVTel Γ Δ σ As vtel
+extricateVTel :  ∀ {Φ} Γ Δ (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)(As : List (Δ ⊢Nf⋆ *))(tel : Tel Γ Δ σ As) → VTel Γ Δ σ As tel → List (Σ (ScopedTm (len Γ)) (SR.Value {len⋆ Φ}{len Γ}))  
+extricateVTel Γ Δ σ [] tel vtel = []
+extricateVTel Γ Δ σ (A ∷ As) (t Σ., tel) (v Σ., vtel) =
+  (extricate t ,, extricateVal v) ∷ extricateVTel Γ Δ σ As tel vtel
 
 extricate—→ (ξ-·₁ p)   = ξ-·₁ (extricate—→ p)
 extricate—→ (ξ-·₂ p q) = ξ-·₂ (extricateVal p) (extricate—→ q)
@@ -66,187 +65,186 @@ extricate—→ (β-Λ {K = K}{N = N}{W = W}) = Eq.subst
   (Λ _ (extricateK K) (extricate N) ·⋆ extricateNf⋆ W SR.—→_)
   (lem[]⋆ N W)
   SR.β-Λ
-
 extricate—→ β-wrap1 = β-wrap
 extricate—→ (ξ-unwrap1 p) = ξ-unwrap (extricate—→ p)
-extricate—→ (β-builtin addInteger σ _ vtel@(_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)) =
-  β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG addInteger))) vtel)
-extricate—→ (β-builtin subtractInteger σ _ vtel@(_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)) =
-  β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG subtractInteger))) vtel)
-extricate—→ (β-builtin multiplyInteger σ _ vtel@(_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)) =
-  β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG multiplyInteger))) vtel)
-extricate—→ (β-builtin divideInteger σ tel vtel@(_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)) with ∣ j ∣ Data.Nat.≟ 0 | SR.β-builtin {b = divideInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG divideInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG divideInteger))) vtel) 
+extricate—→ (β-builtin addInteger σ _ vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) =
+  β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG addInteger))) _ vtel)
+extricate—→ (β-builtin subtractInteger σ _ vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) =
+  β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG subtractInteger))) _ vtel)
+extricate—→ (β-builtin multiplyInteger σ _ vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) =
+  β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG multiplyInteger))) _ vtel)
+extricate—→ (β-builtin divideInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) with ∣ j ∣ Data.Nat.≟ 0 | SR.β-builtin {b = divideInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG divideInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG divideInteger))) _ vtel) 
 ... | yes p | r = r
 ... | no ¬p | r = r
-extricate—→ (β-builtin quotientInteger σ tel vtel@(_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)) with ∣ j ∣ Data.Nat.≟ 0 | SR.β-builtin {b = quotientInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG quotientInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG quotientInteger))) vtel) 
+extricate—→ (β-builtin quotientInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) with ∣ j ∣ Data.Nat.≟ 0 | SR.β-builtin {b = quotientInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG quotientInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG quotientInteger))) _ vtel) 
 ... | yes p | r = r
 ... | no ¬p | r = r
-extricate—→ (β-builtin remainderInteger σ tel vtel@(_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)) with ∣ j ∣ Data.Nat.≟ 0 | SR.β-builtin {b = remainderInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG remainderInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG remainderInteger))) vtel) 
+extricate—→ (β-builtin remainderInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) with ∣ j ∣ Data.Nat.≟ 0 | SR.β-builtin {b = remainderInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG remainderInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG remainderInteger))) _ vtel) 
 ... | yes p | r = r
 ... | no ¬p | r = r
-extricate—→ (β-builtin modInteger σ tel vtel@(_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)) with ∣ j ∣ Data.Nat.≟ 0 | SR.β-builtin {b = modInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG modInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG modInteger))) vtel) 
+extricate—→ (β-builtin modInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) with ∣ j ∣ Data.Nat.≟ 0 | SR.β-builtin {b = modInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG modInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG modInteger))) _ vtel) 
 ... | yes p | r = r
 ... | no ¬p | r = r
-extricate—→ (β-builtin lessThanInteger σ tel vtel@(_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)) with i Builtin.Constant.Type.<? j | SR.β-builtin {b = lessThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG lessThanInteger))) vtel) 
+extricate—→ (β-builtin lessThanInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) with i Builtin.Constant.Type.<? j | SR.β-builtin {b = lessThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG lessThanInteger))) _ vtel) 
 ... | yes p | r = r
 ... | no ¬p | r = r
-extricate—→ (β-builtin lessThanEqualsInteger σ tel vtel@(_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)) with i Data.Integer.≤? j | SR.β-builtin {b = lessThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanEqualsInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG lessThanEqualsInteger))) vtel) 
+extricate—→ (β-builtin lessThanEqualsInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) with i Data.Integer.≤? j | SR.β-builtin {b = lessThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanEqualsInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG lessThanEqualsInteger))) _ vtel) 
 ... | yes p | r = r
 ... | no ¬p | r = r
-extricate—→ (β-builtin greaterThanInteger σ tel vtel@(_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)) with i Builtin.Constant.Type.>? j | SR.β-builtin {b = greaterThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG greaterThanInteger))) vtel) 
+extricate—→ (β-builtin greaterThanInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) with i Builtin.Constant.Type.>? j | SR.β-builtin {b = greaterThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG greaterThanInteger))) _ vtel) 
 ... | yes p | r = r
 ... | no ¬p | r = r
-extricate—→ (β-builtin greaterThanEqualsInteger σ tel vtel@(_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)) with i Builtin.Constant.Type.≥? j | SR.β-builtin {b = greaterThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanEqualsInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG greaterThanEqualsInteger))) vtel) 
+extricate—→ (β-builtin greaterThanEqualsInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) with i Builtin.Constant.Type.≥? j | SR.β-builtin {b = greaterThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanEqualsInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG greaterThanEqualsInteger))) _ vtel) 
 ... | yes p | r = r
 ... | no ¬p | r = r
-extricate—→ (β-builtin equalsInteger σ tel vtel@(_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)) with i Data.Integer.≟ j | SR.β-builtin {b = equalsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG equalsInteger))) vtel) 
+extricate—→ (β-builtin equalsInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) with i Data.Integer.≟ j | SR.β-builtin {b = equalsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG equalsInteger))) _ vtel) 
 ... | yes p | r = r
 ... | no ¬p | r = r
-extricate—→ (β-builtin concatenate σ tel vtel@(_ ,, V-con (bytestring b) ,, _ ,, V-con (bytestring b') ,, tt)) =
-  SR.β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG concatenate))) vtel) 
-extricate—→ (β-builtin takeByteString σ tel vtel@(_ ,, V-con (integer i) ,, _ ,, V-con (bytestring b) ,, tt)) =
-  SR.β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG takeByteString))) vtel)
-extricate—→ (β-builtin dropByteString σ tel vtel@(_ ,, V-con (integer i) ,, _ ,, V-con (bytestring b) ,, tt)) =
-  SR.β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG dropByteString))) vtel)
-extricate—→ (β-builtin sha2-256 σ tel vtel@(_ ,, V-con (bytestring b) ,, tt)) = SR.β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG sha2-256))) vtel)
-extricate—→ (β-builtin sha3-256 σ tel vtel@(_ ,, V-con (bytestring b) ,, tt)) = SR.β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG sha3-256))) vtel)
-extricate—→ (β-builtin verifySignature σ tel vtel@(_ ,, V-con (bytestring k) ,, _ ,, V-con (bytestring d) ,, _ ,, V-con (bytestring c) ,, tt)) with verifySig k d c | SR.β-builtin {b = verifySignature}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG verifySignature))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG verifySignature))) vtel) 
+extricate—→ (β-builtin concatenate σ tel vtel@(V-con (bytestring b) ,, V-con (bytestring b') ,, tt)) =
+  SR.β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG concatenate))) _ vtel) 
+extricate—→ (β-builtin takeByteString σ tel vtel@(V-con (integer i) ,, V-con (bytestring b) ,, tt)) =
+  SR.β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG takeByteString))) _ vtel)
+extricate—→ (β-builtin dropByteString σ tel vtel@(V-con (integer i) ,, V-con (bytestring b) ,, tt)) =
+  SR.β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG dropByteString))) _ vtel)
+extricate—→ (β-builtin sha2-256 σ tel vtel@(V-con (bytestring b) ,, tt)) = SR.β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG sha2-256))) _ vtel)
+extricate—→ (β-builtin sha3-256 σ tel vtel@(V-con (bytestring b) ,, tt)) = SR.β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG sha3-256))) _ vtel)
+extricate—→ (β-builtin verifySignature σ tel vtel@(V-con (bytestring k) ,, V-con (bytestring d) ,, V-con (bytestring c) ,, tt)) with verifySig k d c | SR.β-builtin {b = verifySignature}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG verifySignature))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG verifySignature))) _ vtel) 
 ... | just true  | r = r
 ... | just false | r = r
 ... | nothing    | r = r
-extricate—→ (β-builtin equalsByteString σ tel vtel@(_ ,, V-con (bytestring b) ,, _ ,, V-con (bytestring b') ,, tt)) with equals b b' | SR.β-builtin {b = equalsByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsByteString))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG equalsByteString))) vtel) 
+extricate—→ (β-builtin equalsByteString σ tel vtel@(V-con (bytestring b) ,, V-con (bytestring b') ,, tt)) with equals b b' | SR.β-builtin {b = equalsByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsByteString))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG equalsByteString))) _ vtel) 
 ... | true  | r = r
 ... | false | r = r
-extricate—→ (ξ-builtin addInteger σ tel [] .(con integer ∷ []) vtel p refl tel') =
-  SR.ξ-builtin {b = addInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG addInteger))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) tel')
-extricate—→ (ξ-builtin addInteger σ tel (.(con integer) ∷ []) .[] vtel p refl tel') =
-  SR.ξ-builtin {b = addInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG addInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) vtel) (extricate—→ p) (extricateTel σ [] tt)
-extricate—→ (ξ-builtin addInteger σ tel (B ∷ B' ∷ []) Ds vtel p () tel')
-extricate—→ (ξ-builtin addInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds vtel p () tel')
+extricate—→ (ξ-builtin addInteger σ tel [] .(con integer ∷ []) telB telD vtel p refl) =
+  SR.ξ-builtin {b = addInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG addInteger))) tel}(extricateVTel _ _ σ [] _ tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) _)
+extricate—→ (ξ-builtin addInteger σ tel (.(con integer) ∷ []) .[] telB telD vtel p refl) =
+  SR.ξ-builtin {b = addInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG addInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) _ vtel) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin addInteger σ tel (B ∷ B' ∷ []) Ds telB telD vtel p ())
+extricate—→ (ξ-builtin addInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds telB telD vtel p ())
 
-extricate—→ (ξ-builtin subtractInteger σ tel [] .(con integer ∷ []) vtel p refl tel') =
-  SR.ξ-builtin {b = subtractInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG subtractInteger))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) tel')
-extricate—→ (ξ-builtin subtractInteger σ tel (.(con integer) ∷ []) .[] vtel p refl tel') =
-  SR.ξ-builtin {b = subtractInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG subtractInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) vtel) (extricate—→ p) (extricateTel σ [] tt)
-extricate—→ (ξ-builtin subtractInteger σ tel (B ∷ B' ∷ []) Ds vtel p () tel')
-extricate—→ (ξ-builtin subtractInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds vtel p () tel')
+extricate—→ (ξ-builtin subtractInteger σ tel [] .(con integer ∷ []) telB telD vtel p refl) =
+  SR.ξ-builtin {b = subtractInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG subtractInteger))) tel}(extricateVTel _ _ σ [] _ tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) _)
+extricate—→ (ξ-builtin subtractInteger σ tel (.(con integer) ∷ []) .[] telB telD vtel p refl) =
+  SR.ξ-builtin {b = subtractInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG subtractInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) _ vtel) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin subtractInteger σ tel (B ∷ B' ∷ []) Ds telB telD vtel p ())
+extricate—→ (ξ-builtin subtractInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds telB telD vtel p ())
 
-extricate—→ (ξ-builtin multiplyInteger σ tel [] .(con integer ∷ []) vtel p refl tel') =
-  SR.ξ-builtin {b = multiplyInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG multiplyInteger))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) tel')
-extricate—→ (ξ-builtin multiplyInteger σ tel (.(con integer) ∷ []) .[] vtel p refl tel') =
-  SR.ξ-builtin {b = multiplyInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG multiplyInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) vtel) (extricate—→ p) (extricateTel σ [] tt)
-extricate—→ (ξ-builtin multiplyInteger σ tel (B ∷ B' ∷ []) Ds vtel p () tel')
-extricate—→ (ξ-builtin multiplyInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds vtel p () tel')
+extricate—→ (ξ-builtin multiplyInteger σ tel [] .(con integer ∷ []) telB telD vtel p refl) =
+  SR.ξ-builtin {b = multiplyInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG multiplyInteger))) tel}(extricateVTel _ _ σ [] _ tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) _)
+extricate—→ (ξ-builtin multiplyInteger σ tel (.(con integer) ∷ []) .[] telB telD vtel p refl) =
+  SR.ξ-builtin {b = multiplyInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG multiplyInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) _ vtel) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin multiplyInteger σ tel (B ∷ B' ∷ []) Ds telB telD vtel p ())
+extricate—→ (ξ-builtin multiplyInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds telB telD vtel p ())
 
-extricate—→ (ξ-builtin divideInteger σ tel [] .(con integer ∷ []) vtel p refl tel') =
-  SR.ξ-builtin {b = divideInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG divideInteger))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) tel')
-extricate—→ (ξ-builtin divideInteger σ tel (.(con integer) ∷ []) .[] vtel p refl tel') =
-  SR.ξ-builtin {b = divideInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG divideInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) vtel) (extricate—→ p) (extricateTel σ [] tt)
-extricate—→ (ξ-builtin divideInteger σ tel (B ∷ B' ∷ []) Ds vtel p () tel')
-extricate—→ (ξ-builtin divideInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds vtel p () tel')
+extricate—→ (ξ-builtin divideInteger σ tel [] .(con integer ∷ []) telB telD vtel p refl) =
+  SR.ξ-builtin {b = divideInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG divideInteger))) tel}(extricateVTel _ _ σ [] _ tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) _)
+extricate—→ (ξ-builtin divideInteger σ tel (.(con integer) ∷ []) .[] telB telD vtel p refl) =
+  SR.ξ-builtin {b = divideInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG divideInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) _ vtel) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin divideInteger σ tel (B ∷ B' ∷ []) Ds telB telD vtel p ())
+extricate—→ (ξ-builtin divideInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds telB telD vtel p ())
 
-extricate—→ (ξ-builtin quotientInteger σ tel [] .(con integer ∷ []) vtel p refl tel') =
-  SR.ξ-builtin {b = quotientInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG quotientInteger))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) tel')
-extricate—→ (ξ-builtin quotientInteger σ tel (.(con integer) ∷ []) .[] vtel p refl tel') =
-  SR.ξ-builtin {b = quotientInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG quotientInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) vtel) (extricate—→ p) (extricateTel σ [] tt)
-extricate—→ (ξ-builtin quotientInteger σ tel (B ∷ B' ∷ []) Ds vtel p () tel')
-extricate—→ (ξ-builtin quotientInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds vtel p () tel')
+extricate—→ (ξ-builtin quotientInteger σ tel [] .(con integer ∷ []) telB telD vtel p refl) =
+  SR.ξ-builtin {b = quotientInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG quotientInteger))) tel}(extricateVTel _ _ σ [] _ tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) _)
+extricate—→ (ξ-builtin quotientInteger σ tel (.(con integer) ∷ []) .[] telB telD vtel p refl) =
+  SR.ξ-builtin {b = quotientInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG quotientInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) _ vtel) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin quotientInteger σ tel (B ∷ B' ∷ []) Ds telB telD vtel p ())
+extricate—→ (ξ-builtin quotientInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds telB telD vtel p ())
 
-extricate—→ (ξ-builtin remainderInteger σ tel [] .(con integer ∷ []) vtel p refl tel') =
-  SR.ξ-builtin {b = remainderInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG remainderInteger))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) tel')
-extricate—→ (ξ-builtin remainderInteger σ tel (.(con integer) ∷ []) .[] vtel p refl tel') =
-  SR.ξ-builtin {b = remainderInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG remainderInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) vtel) (extricate—→ p) (extricateTel σ [] tt)
-extricate—→ (ξ-builtin remainderInteger σ tel (B ∷ B' ∷ []) Ds vtel p () tel')
-extricate—→ (ξ-builtin remainderInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds vtel p () tel')
+extricate—→ (ξ-builtin remainderInteger σ tel [] .(con integer ∷ []) telB telD vtel p refl) =
+  SR.ξ-builtin {b = remainderInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG remainderInteger))) tel}(extricateVTel _ _ σ [] _ tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) _)
+extricate—→ (ξ-builtin remainderInteger σ tel (.(con integer) ∷ []) .[] telB telD vtel p refl) =
+  SR.ξ-builtin {b = remainderInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG remainderInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) _ vtel) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin remainderInteger σ tel (B ∷ B' ∷ []) Ds telB telD vtel p ())
+extricate—→ (ξ-builtin remainderInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds telB telD vtel p ())
 
-extricate—→ (ξ-builtin modInteger σ tel [] .(con integer ∷ []) vtel p refl tel') =
-  SR.ξ-builtin {b = modInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG modInteger))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) tel')
-extricate—→ (ξ-builtin modInteger σ tel (.(con integer) ∷ []) .[] vtel p refl tel') =
-  SR.ξ-builtin {b = modInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG modInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) vtel) (extricate—→ p) (extricateTel σ [] tt)
-extricate—→ (ξ-builtin modInteger σ tel (B ∷ B' ∷ []) Ds vtel p () tel')
-extricate—→ (ξ-builtin modInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds vtel p () tel')
+extricate—→ (ξ-builtin modInteger σ tel [] .(con integer ∷ []) telB telD vtel p refl) =
+  SR.ξ-builtin {b = modInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG modInteger))) tel}(extricateVTel _ _ σ [] _ tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) _)
+extricate—→ (ξ-builtin modInteger σ tel (.(con integer) ∷ []) .[] telB telD vtel p refl) =
+  SR.ξ-builtin {b = modInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG modInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) _ vtel) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin modInteger σ tel (B ∷ B' ∷ []) Ds telB telD vtel p ())
+extricate—→ (ξ-builtin modInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds telB telD vtel p ())
 
-extricate—→ (ξ-builtin lessThanInteger σ tel [] .(con integer ∷ []) vtel p refl tel') =
-  SR.ξ-builtin {b = lessThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanInteger))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) tel')
-extricate—→ (ξ-builtin lessThanInteger σ tel (.(con integer) ∷ []) .[] vtel p refl tel') =
-  SR.ξ-builtin {b = lessThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) vtel) (extricate—→ p) (extricateTel σ [] tt)
-extricate—→ (ξ-builtin lessThanInteger σ tel (B ∷ B' ∷ []) Ds vtel p () tel')
-extricate—→ (ξ-builtin lessThanInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds vtel p () tel')
+extricate—→ (ξ-builtin lessThanInteger σ tel [] .(con integer ∷ []) telB telD vtel p refl) =
+  SR.ξ-builtin {b = lessThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanInteger))) tel}(extricateVTel _ _ σ [] _ tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) _)
+extricate—→ (ξ-builtin lessThanInteger σ tel (.(con integer) ∷ []) .[] telB telD vtel p refl) =
+  SR.ξ-builtin {b = lessThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) _ vtel) (extricate—→ p) _
+extricate—→ (ξ-builtin lessThanInteger σ tel (B ∷ B' ∷ []) Ds telB telD vtel p ())
+extricate—→ (ξ-builtin lessThanInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds telB telD vtel p ())
 
-extricate—→ (ξ-builtin lessThanEqualsInteger σ tel [] .(con integer ∷ []) vtel p refl tel') =
-  SR.ξ-builtin {b = lessThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanEqualsInteger))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) tel')
-extricate—→ (ξ-builtin lessThanEqualsInteger σ tel (.(con integer) ∷ []) .[] vtel p refl tel') =
-  SR.ξ-builtin {b = lessThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanEqualsInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) vtel) (extricate—→ p) (extricateTel σ [] tt)
-extricate—→ (ξ-builtin lessThanEqualsInteger σ tel (B ∷ B' ∷ []) Ds vtel p () tel')
-extricate—→ (ξ-builtin lessThanEqualsInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds vtel p () tel')
+extricate—→ (ξ-builtin lessThanEqualsInteger σ tel [] .(con integer ∷ []) telB telD vtel p refl) =
+  SR.ξ-builtin {b = lessThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanEqualsInteger))) tel}(extricateVTel _ _ σ [] _ tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) _)
+extricate—→ (ξ-builtin lessThanEqualsInteger σ tel (.(con integer) ∷ []) .[] telB telD vtel p refl) =
+  SR.ξ-builtin {b = lessThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanEqualsInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) _ vtel) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin lessThanEqualsInteger σ tel (B ∷ B' ∷ []) Ds telB telD vtel p ())
+extricate—→ (ξ-builtin lessThanEqualsInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds telB telD vtel p ())
 
-extricate—→ (ξ-builtin greaterThanInteger σ tel [] .(con integer ∷ []) vtel p refl tel') =
-  SR.ξ-builtin {b = greaterThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanInteger))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) tel')
-extricate—→ (ξ-builtin greaterThanInteger σ tel (.(con integer) ∷ []) .[] vtel p refl tel') =
-  SR.ξ-builtin {b = greaterThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) vtel) (extricate—→ p) (extricateTel σ [] tt)
-extricate—→ (ξ-builtin greaterThanInteger σ tel (B ∷ B' ∷ []) Ds vtel p () tel')
-extricate—→ (ξ-builtin greaterThanInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds vtel p () tel')
+extricate—→ (ξ-builtin greaterThanInteger σ tel [] .(con integer ∷ []) telB telD vtel p refl) =
+  SR.ξ-builtin {b = greaterThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanInteger))) tel}(extricateVTel _ _ σ [] _ tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) _)
+extricate—→ (ξ-builtin greaterThanInteger σ tel (.(con integer) ∷ []) .[] telB telD vtel p refl) =
+  SR.ξ-builtin {b = greaterThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) _ vtel) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin greaterThanInteger σ tel (B ∷ B' ∷ []) Ds telB telD vtel p ())
+extricate—→ (ξ-builtin greaterThanInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds telB telD vtel p ())
 
-extricate—→ (ξ-builtin greaterThanEqualsInteger σ tel [] .(con integer ∷ []) vtel p refl tel') =
-  SR.ξ-builtin {b = greaterThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanEqualsInteger))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) tel')
-extricate—→ (ξ-builtin greaterThanEqualsInteger σ tel (.(con integer) ∷ []) .[] vtel p refl tel') =
-  SR.ξ-builtin {b = greaterThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanEqualsInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) vtel) (extricate—→ p) (extricateTel σ [] tt)
-extricate—→ (ξ-builtin greaterThanEqualsInteger σ tel (B ∷ B' ∷ []) Ds vtel p () tel')
-extricate—→ (ξ-builtin greaterThanEqualsInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds vtel p () tel')
+extricate—→ (ξ-builtin greaterThanEqualsInteger σ tel [] .(con integer ∷ []) telB telD vtel p refl) =
+  SR.ξ-builtin {b = greaterThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanEqualsInteger))) tel}(extricateVTel _ _ σ [] _ tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) _)
+extricate—→ (ξ-builtin greaterThanEqualsInteger σ tel (.(con integer) ∷ []) .[] telB telD vtel p refl) =
+  SR.ξ-builtin {b = greaterThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanEqualsInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) _ vtel) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin greaterThanEqualsInteger σ tel (B ∷ B' ∷ []) Ds telB telD vtel p ())
+extricate—→ (ξ-builtin greaterThanEqualsInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds telB telD vtel p ())
 
-extricate—→ (ξ-builtin equalsInteger σ tel [] .(con integer ∷ []) vtel p refl tel') =
-  SR.ξ-builtin {b = equalsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsInteger))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) tel')
-extricate—→ (ξ-builtin equalsInteger σ tel (.(con integer) ∷ []) .[] vtel p refl tel') =
-  SR.ξ-builtin {b = equalsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) vtel) (extricate—→ p) (extricateTel σ [] tt)
-extricate—→ (ξ-builtin equalsInteger σ tel (B ∷ B' ∷ []) Ds vtel p () tel')
-extricate—→ (ξ-builtin equalsInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds vtel p () tel')
+extricate—→ (ξ-builtin equalsInteger σ tel [] .(con integer ∷ []) telB telD vtel p refl) =
+  SR.ξ-builtin {b = equalsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsInteger))) tel}(extricateVTel _ _ σ [] _ tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) _)
+extricate—→ (ξ-builtin equalsInteger σ tel (.(con integer) ∷ []) .[] telB telD vtel p refl) =
+  SR.ξ-builtin {b = equalsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsInteger))) tel}(extricateVTel _ _ σ (con integer ∷ []) _ vtel) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin equalsInteger σ tel (B ∷ B' ∷ []) Ds telB telD vtel p ())
+extricate—→ (ξ-builtin equalsInteger σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds telB telD vtel p ())
 
-extricate—→ (ξ-builtin concatenate σ tel [] .(con bytestring ∷ []) vtel p refl tel') =
-  SR.ξ-builtin {b = concatenate}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG concatenate))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ (con bytestring ∷ []) tel')
-extricate—→ (ξ-builtin concatenate σ tel (.(con bytestring) ∷ []) .[] vtel p refl tel') =
-  SR.ξ-builtin {b = concatenate}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG concatenate))) tel}(extricateVTel _ _ σ (con bytestring ∷ []) vtel) (extricate—→ p) (extricateTel σ [] tt)
-extricate—→ (ξ-builtin concatenate σ tel (B ∷ B' ∷ []) Ds vtel p () tel')
-extricate—→ (ξ-builtin concatenate σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds vtel p () tel')
+extricate—→ (ξ-builtin concatenate σ tel [] .(con bytestring ∷ []) telB telD vtel p refl) =
+  SR.ξ-builtin {b = concatenate}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG concatenate))) tel}(extricateVTel _ _ σ [] _ tt) (extricate—→ p) (extricateTel σ (con bytestring ∷ []) _)
+extricate—→ (ξ-builtin concatenate σ tel (.(con bytestring) ∷ []) .[] telB telD vtel p refl) =
+  SR.ξ-builtin {b = concatenate}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG concatenate))) tel}(extricateVTel _ _ σ (con bytestring ∷ []) _ vtel) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin concatenate σ tel (B ∷ B' ∷ []) Ds telB telD vtel p ())
+extricate—→ (ξ-builtin concatenate σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds telB telD vtel p ())
 
-extricate—→ (ξ-builtin takeByteString σ tel [] .(con bytestring ∷ []) vtel p refl tel') =
-  SR.ξ-builtin {b = takeByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG takeByteString))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ (con bytestring ∷ []) tel')
-extricate—→ (ξ-builtin takeByteString σ tel (.(con integer) ∷ []) .[] vtel p refl tel') =
-  SR.ξ-builtin {b = takeByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG takeByteString))) tel}(extricateVTel _ _ σ (con integer ∷ []) vtel) (extricate—→ p) (extricateTel σ [] tt)
-extricate—→ (ξ-builtin takeByteString σ tel (B ∷ B' ∷ []) Ds vtel p () tel')
-extricate—→ (ξ-builtin takeByteString σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds vtel p () tel')
+extricate—→ (ξ-builtin takeByteString σ tel [] .(con bytestring ∷ []) telB telD vtel p refl) =
+  SR.ξ-builtin {b = takeByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG takeByteString))) tel}(extricateVTel _ _ σ [] _ tt) (extricate—→ p) (extricateTel σ (con bytestring ∷ []) _)
+extricate—→ (ξ-builtin takeByteString σ tel (.(con integer) ∷ []) .[] telB telD vtel p refl) =
+  SR.ξ-builtin {b = takeByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG takeByteString))) tel}(extricateVTel _ _ σ (con integer ∷ []) _ vtel) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin takeByteString σ tel (B ∷ B' ∷ []) Ds telB telD vtel p ())
+extricate—→ (ξ-builtin takeByteString σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds telB telD vtel p ())
 
-extricate—→ (ξ-builtin dropByteString σ tel [] .(con bytestring ∷ []) vtel p refl tel') =
-  SR.ξ-builtin {b = dropByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG dropByteString))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ (con bytestring ∷ []) tel')
-extricate—→ (ξ-builtin dropByteString σ tel (.(con integer) ∷ []) .[] vtel p refl tel') =
-  SR.ξ-builtin {b = dropByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG dropByteString))) tel}(extricateVTel _ _ σ (con integer ∷ []) vtel) (extricate—→ p) (extricateTel σ [] tt)
-extricate—→ (ξ-builtin dropByteString σ tel (B ∷ B' ∷ []) Ds vtel p () tel')
-extricate—→ (ξ-builtin dropByteString σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds vtel p () tel')
+extricate—→ (ξ-builtin dropByteString σ tel [] .(con bytestring ∷ []) telB telD vtel p refl) =
+  SR.ξ-builtin {b = dropByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG dropByteString))) tel}(extricateVTel _ _ σ [] _ tt) (extricate—→ p) (extricateTel σ (con bytestring ∷ []) _)
+extricate—→ (ξ-builtin dropByteString σ tel (.(con integer) ∷ []) .[] telB telD vtel p refl) =
+  SR.ξ-builtin {b = dropByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG dropByteString))) tel}(extricateVTel _ _ σ (con integer ∷ []) _ vtel) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin dropByteString σ tel (B ∷ B' ∷ []) Ds telB telD vtel p ())
+extricate—→ (ξ-builtin dropByteString σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds telB telD vtel p ())
 
-extricate—→ (ξ-builtin sha2-256 σ tel [] .[] vtel p refl tel') =
-  SR.ξ-builtin {b = sha2-256}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG sha2-256))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ [] tt)
-extricate—→ (ξ-builtin sha2-256 σ tel (B ∷ []) Ds vtel p () tel')
-extricate—→ (ξ-builtin sha2-256 σ tel (B ∷ B' ∷ Bs) Ds vtel p () tel')
+extricate—→ (ξ-builtin sha2-256 σ tel [] .[] telB telD vtel p refl) =
+  SR.ξ-builtin {b = sha2-256}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG sha2-256))) tel}(extricateVTel _ _ σ [] _ tt) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin sha2-256 σ tel (B ∷ []) Ds telB telD vtel p ())
+extricate—→ (ξ-builtin sha2-256 σ tel (B ∷ B' ∷ Bs) Ds telB telD vtel p ())
 
-extricate—→ (ξ-builtin sha3-256 σ tel [] .[] vtel p refl tel') =
-  SR.ξ-builtin {b = sha3-256}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG sha3-256))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ [] tt)
-extricate—→ (ξ-builtin sha3-256 σ tel (B ∷ []) Ds vtel p () tel')
-extricate—→ (ξ-builtin sha3-256 σ tel (B ∷ B' ∷ Bs) Ds vtel p () tel')
+extricate—→ (ξ-builtin sha3-256 σ tel [] .[] telB telD vtel p refl) =
+  SR.ξ-builtin {b = sha3-256}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG sha3-256))) tel}(extricateVTel _ _ σ [] _ tt) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin sha3-256 σ tel (B ∷ []) Ds telB telD vtel p ())
+extricate—→ (ξ-builtin sha3-256 σ tel (B ∷ B' ∷ Bs) Ds telB telD vtel p ())
 
-extricate—→ (ξ-builtin verifySignature σ tel [] .(con bytestring ∷ con bytestring ∷ []) vtel p refl tel') =
-  SR.ξ-builtin {b = verifySignature}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG verifySignature))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ (con bytestring ∷ con bytestring ∷ []) tel')
-extricate—→ (ξ-builtin verifySignature σ tel (.(con bytestring) ∷ []) .(con bytestring ∷ []) vtel p refl tel') =
-  SR.ξ-builtin {b = verifySignature}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG verifySignature))) tel}(extricateVTel _ _ σ (con bytestring ∷ []) vtel) (extricate—→ p) (extricateTel σ (con bytestring ∷ []) tel')
-extricate—→ (ξ-builtin verifySignature σ tel (.(con bytestring) ∷ .(con bytestring) ∷ []) .[] vtel p refl tel') =
-  SR.ξ-builtin {b = verifySignature}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG verifySignature))) tel}(extricateVTel _ _ σ (con bytestring ∷ con bytestring ∷ []) vtel) (extricate—→ p) (extricateTel σ [] tt)
-extricate—→ (ξ-builtin verifySignature σ tel (B ∷ B' ∷ B'' ∷ []) Ds vtel p () tel')
-extricate—→ (ξ-builtin verifySignature σ tel (B ∷ B' ∷ B'' ∷ B''' ∷ Bs) Ds vtel p () tel')
+extricate—→ (ξ-builtin verifySignature σ tel [] .(con bytestring ∷ con bytestring ∷ []) telB telD vtel p refl) =
+  SR.ξ-builtin {b = verifySignature}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG verifySignature))) tel}(extricateVTel _ _ σ [] _ tt) (extricate—→ p) (extricateTel σ (con bytestring ∷ con bytestring ∷ []) _)
+extricate—→ (ξ-builtin verifySignature σ tel (.(con bytestring) ∷ []) .(con bytestring ∷ []) telB telD vtel p refl) =
+  SR.ξ-builtin {b = verifySignature}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG verifySignature))) tel}(extricateVTel _ _ σ (con bytestring ∷ []) _ vtel) (extricate—→ p) (extricateTel σ (con bytestring ∷ []) _)
+extricate—→ (ξ-builtin verifySignature σ tel (.(con bytestring) ∷ .(con bytestring) ∷ []) .[] telB telD vtel p refl) =
+  SR.ξ-builtin {b = verifySignature}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG verifySignature))) tel}(extricateVTel _ _ σ (con bytestring ∷ con bytestring ∷ []) _ vtel) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin verifySignature σ tel (B ∷ B' ∷ B'' ∷ []) Ds telB telD vtel p ())
+extricate—→ (ξ-builtin verifySignature σ tel (B ∷ B' ∷ B'' ∷ B''' ∷ Bs) Ds telB telD vtel p ())
 
-extricate—→ (ξ-builtin equalsByteString σ tel [] .(con bytestring ∷ []) vtel p refl tel') =
-  SR.ξ-builtin {b = equalsByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsByteString))) tel}(extricateVTel _ _ σ [] tt) (extricate—→ p) (extricateTel σ (con bytestring ∷ []) tel')
-extricate—→ (ξ-builtin equalsByteString σ tel (.(con bytestring) ∷ []) .[] vtel p refl tel') =
-  SR.ξ-builtin {b = equalsByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsByteString))) tel}(extricateVTel _ _ σ (con bytestring ∷ []) vtel) (extricate—→ p) (extricateTel σ [] tt)
-extricate—→ (ξ-builtin equalsByteString σ tel (B ∷ B' ∷ []) Ds vtel p () tel')
-extricate—→ (ξ-builtin equalsByteString σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds vtel p () tel')
+extricate—→ (ξ-builtin equalsByteString σ tel [] .(con bytestring ∷ []) telB telD vtel p refl) =
+  SR.ξ-builtin {b = equalsByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsByteString))) tel}(extricateVTel _ _ σ [] _ tt) (extricate—→ p) (extricateTel σ (con bytestring ∷ []) _)
+extricate—→ (ξ-builtin equalsByteString σ tel (.(con bytestring) ∷ []) .[] telB telD vtel p refl) =
+  SR.ξ-builtin {b = equalsByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsByteString))) tel}(extricateVTel _ _ σ (con bytestring ∷ []) _ vtel) (extricate—→ p) (extricateTel σ [] tt)
+extricate—→ (ξ-builtin equalsByteString σ tel (B ∷ B' ∷ []) Ds telB telD vtel p ())
+extricate—→ (ξ-builtin equalsByteString σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds telB telD vtel p ())
 
 -- extrication for a sequence of steps
 
@@ -257,7 +255,6 @@ extricate—→⋆ (trans—↠ r p) = _—→⋆_.trans (extricate—→ r) (ex
 
 lem-step : ∀{t t' t'' : ScopedTm Z}(p : t SR.—→ t')(r : t' ≡ t'') → SR.Progress.step (Eq.subst (SR._—→_ t) r p) ≡ step p
 lem-step p refl = refl
-
 
 -- given the result of intrinsic progress this gives rise to extrinsic progress
 extricateProgress : ∀{A}{t : ∅ ⊢ A} → AR.Progress t  → SR.Progress (extricate t)
@@ -298,5 +295,35 @@ extricate-progress (unwrap1 t) = Eq.trans
   (cong SR.progress-unwrap (extricate-progress t))
 extricate-progress (con x) = refl
 extricate-progress (builtin bn σ tel) = {!!}
+{-
+with progressTel tel
+extricate-progress (builtin addInteger σ tel) | done (V-con (integer i) ,, V-con (integer i₁) ,, tt) with progressList (extricateTel σ (proj₁ (proj₂ (SIG addInteger))) tel) | inspect progressList (extricateTel σ (proj₁ (proj₂ (SIG addInteger))) tel)
+extricate-progress (builtin addInteger σ (fst ,, fst₁ ,, snd)) | done (.(con (integer i)) ,, V-con (integer i) ,, .(con (integer i₁)) ,, V-con (integer i₁) ,, tt) | done x | Reveal_·_is_.[ eq ] with SR.progress (extricate fst)
+extricate-progress (builtin addInteger σ (fst ,, fst₁ ,, snd)) | done (.(con (integer i)) ,, V-con (integer i) ,, .(con (integer i₁)) ,, V-con (integer i₁) ,, tt) | done x | Reveal_·_is_.[ eq ] | done x₁ = {!!}
+extricate-progress (builtin addInteger σ tel) | done (.(con (integer i)) ,, V-con (integer i) ,, .(con (integer i₁)) ,, V-con (integer i₁) ,, tt) | step vs x x₁ | p = {!!}
+extricate-progress (builtin addInteger σ tel) | done (.(con (integer i)) ,, V-con (integer i) ,, .(con (integer i₁)) ,, V-con (integer i₁) ,, tt) | error vs x x₁ | p = {!!}
+extricate-progress (builtin subtractInteger σ tel) | done x = {!!}
+extricate-progress (builtin multiplyInteger σ tel) | done x = {!!}
+extricate-progress (builtin divideInteger σ tel) | done x = {!!}
+extricate-progress (builtin quotientInteger σ tel) | done x = {!!}
+extricate-progress (builtin remainderInteger σ tel) | done x = {!!}
+extricate-progress (builtin modInteger σ tel) | done x = {!!}
+extricate-progress (builtin lessThanInteger σ tel) | done x = {!!}
+extricate-progress (builtin lessThanEqualsInteger σ tel) | done x = {!!}
+extricate-progress (builtin greaterThanInteger σ tel) | done x = {!!}
+extricate-progress (builtin greaterThanEqualsInteger σ tel) | done x = {!!}
+extricate-progress (builtin equalsInteger σ tel) | done x = {!!}
+extricate-progress (builtin concatenate σ tel) | done x = {!!}
+extricate-progress (builtin takeByteString σ tel) | done x = {!!}
+extricate-progress (builtin dropByteString σ tel) | done x = {!!}
+extricate-progress (builtin sha2-256 σ tel) | done x = {!!}
+extricate-progress (builtin sha3-256 σ tel) | done x = {!!}
+extricate-progress (builtin verifySignature σ tel) | done x = {!!}
+extricate-progress (builtin equalsByteString σ tel) | done x = {!!}
+extricate-progress (builtin bn σ tel) | step Bs Ds x x₁ x₂ x₃ = {!!}
+extricate-progress (builtin bn σ tel) | error Bs Ds x x₁ x₂ x₃ = {!!}
+-}
 extricate-progress (error A) = refl
+
+
 \end{code}

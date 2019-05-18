@@ -60,7 +60,7 @@ data Value :  ∀ {J Φ Γ} {A : Φ ⊢Nf⋆ J} → Γ ⊢ A → Set where
 \end{code}
 
 \begin{code}
-VTel : ∀ {Φ} Γ Δ → (∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K) → List (Δ ⊢Nf⋆ *) → Set
+VTel : ∀ {Φ} Γ Δ → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)(As : List (Δ ⊢Nf⋆ *)) → Tel Γ Δ σ As → Set
 
 data Error :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
   -- a genuine runtime error returned from a builtin
@@ -77,82 +77,82 @@ data Error :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
     → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {arg : Φ ⊢Nf⋆ K}
     → {L : Γ ⊢ ne (μ1 · pat · arg)} → Error L → Error (unwrap1 L)
+
   E-builtin : ∀{Φ Γ}  → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
     → (tel : Tel Γ Δ σ As)
     → ∀ Bs Ds
-    → (vtel : VTel Γ Δ σ Bs)
+    → (telB : Tel Γ Δ σ Bs)
+    → (vtel : VTel Γ Δ σ Bs telB)
     → ∀{C}{t : Γ ⊢ substNf σ C}
     → Error t
     → (p : Bs ++ (C ∷ Ds) ≡ As)
-    → (tel' : Tel Γ Δ σ Ds)
+    → (telD : Tel Γ Δ σ Ds)
     → Error (builtin bn σ tel)
-
 \end{code}
 
 \begin{code}
-VTel Γ Δ σ [] = ⊤
-VTel Γ Δ σ (A ∷ As) = Σ (Γ ⊢ substNf σ A) λ t → Value t × VTel Γ Δ σ As
+-- this should be a predicate over telescopes
+
+VTel Γ Δ σ []       tt         = ⊤
+VTel Γ Δ σ (A ∷ As) (t ,, tel) = Value t × VTel Γ Δ σ As tel
 
 BUILTIN : ∀{Φ Γ}
     → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
-    → (vtel : VTel Γ Δ σ As)
+    → (tel : Tel Γ Δ σ As)
+    → (vtel : VTel Γ Δ σ As tel)
       -----------------------------
     → Maybe (Γ ⊢ substNf σ C)
-BUILTIN addInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) = just (con (integer (i + j)))
-BUILTIN subtractInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) = just (con (integer (i - j)))
-BUILTIN multiplyInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) = just (con (integer (i ** j)))
-BUILTIN divideInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) with ∣ j ∣ Data.Nat.≟ zero
+BUILTIN addInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) = just (con (integer (i + j)))
+BUILTIN subtractInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) = just (con (integer (i - j)))
+BUILTIN multiplyInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) = just (con (integer (i ** j)))
+BUILTIN divideInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) with ∣ j ∣ Data.Nat.≟ zero
 ... | yes p = nothing
 ... | no ¬p = just (con (integer (div i j)))
-BUILTIN quotientInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) with ∣ j ∣ Data.Nat.≟ zero
+BUILTIN quotientInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) with ∣ j ∣ Data.Nat.≟ zero
 ... | yes p = nothing
 ... | no ¬p = just (con (integer (quot i j)))
-BUILTIN remainderInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) with ∣ j ∣ Data.Nat.≟ zero
+BUILTIN remainderInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) with ∣ j ∣ Data.Nat.≟ zero
 ... | yes p = nothing
 ... | no ¬p = just (con (integer (rem i j)))
-BUILTIN modInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) with ∣ j ∣ Data.Nat.≟ zero
+BUILTIN modInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) with ∣ j ∣ Data.Nat.≟ zero
 ... | yes p = nothing
 ... | no ¬p = just (con (integer (mod i j)))
-BUILTIN lessThanInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)  with i Builtin.Constant.Type.<? j
+BUILTIN lessThanInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt)  with i Builtin.Constant.Type.<? j
 ... | yes _ = just true
 ... | no _  = just false
-BUILTIN lessThanEqualsInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt) with i ≤? j
+BUILTIN lessThanEqualsInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) with i ≤? j
 ... | yes _ = just true
 ... | no _  = just false
-BUILTIN greaterThanInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)
+BUILTIN greaterThanInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt)
   with i Builtin.Constant.Type.>? j
 ... | yes _ = just true
 ... | no _  = just false
-BUILTIN greaterThanEqualsInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)
+BUILTIN greaterThanEqualsInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt)
   with i Builtin.Constant.Type.≥? j
 ... | yes _ = just true
 ... | no _  = just false
-BUILTIN equalsInteger σ (_ ,, V-con (integer i) ,, _ ,, V-con (integer j) ,, tt)
+BUILTIN equalsInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt)
   with i ≟ j
 ... | yes _ = just true
 ... | no _  = just false
-BUILTIN concatenate σ (_ ,, V-con (bytestring b) ,, _ ,, V-con (bytestring b') ,, tt) =
+BUILTIN concatenate _ _ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) =
   just (con (bytestring (append b b')))
-BUILTIN takeByteString σ (_ ,, V-con (integer i) ,, _ ,, V-con (bytestring b) ,, tt) =
+BUILTIN takeByteString _ _ (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
   just (con (bytestring (take i b)))
-BUILTIN dropByteString σ (_ ,, V-con (integer i) ,, _ ,, V-con (bytestring b) ,, tt) =
+BUILTIN dropByteString _ _ (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
   just (con (bytestring (drop i b)))
-BUILTIN sha2-256 σ (_ ,, V-con (bytestring b) ,, tt) = just (con (bytestring (SHA2-256 b)))
-BUILTIN sha3-256 σ (_ ,, V-con (bytestring b) ,, tt) = just (con (bytestring (SHA3-256 b)))
-BUILTIN verifySignature σ
-  (  _ ,, V-con (bytestring k)
-  ,, _ ,, V-con (bytestring d)
-  ,, _ ,, V-con (bytestring c)
-  ,, tt)
+BUILTIN sha2-256 _ _ (V-con (bytestring b) ,, tt) = just (con (bytestring (SHA2-256 b)))
+BUILTIN sha3-256 _ _ (V-con (bytestring b) ,, tt) = just (con (bytestring (SHA3-256 b)))
+BUILTIN verifySignature _ _ (V-con (bytestring k) ,, V-con (bytestring d) ,, V-con (bytestring c) ,, tt)
   with verifySig k d c
 ... | just Bool.true  = just true
 ... | just Bool.false = just false
 ... | nothing = nothing
-BUILTIN equalsByteString σ (_ ,, V-con (bytestring b) ,, _ ,, V-con (bytestring b') ,, tt)
+BUILTIN equalsByteString _ _ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt)
   with equals b b'
 ... | Bool.true  = just true
 ... | Bool.false = just false
@@ -164,14 +164,14 @@ BUILTIN equalsByteString σ (_ ,, V-con (bytestring b) ,, _ ,, V-con (bytestring
 \begin{code}
 reconstTel : ∀{Φ Γ Δ As} Bs Ds
     → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
-    → (vtel : VTel Γ Δ σ Bs)
+    → (telB : Tel Γ Δ σ Bs)
     → ∀{C}(t' : Γ ⊢ substNf σ C)
     → (p : Bs ++ (C ∷ Ds) ≡ As)
     → (tel' : Tel Γ Δ σ Ds)
     → Tel Γ Δ σ As
-reconstTel [] Ds σ vtel t' refl tel' = t' ,, tel'
-reconstTel (B ∷ Bs) Ds σ (X ,, VX ,, vtel) t' refl tel' =
-  X ,, reconstTel Bs Ds σ vtel t' refl tel'
+reconstTel [] Ds σ telB t' refl telD = t' ,, telD
+reconstTel (B ∷ Bs) Ds σ (X ,, telB) t' refl tel' =
+  X ,, reconstTel Bs Ds σ telB t' refl tel'
 \end{code}
 
 
@@ -199,7 +199,7 @@ data _—→_ : ∀ {J Φ Γ} {A : Φ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ ⊢ A) 
       -----------------
     → L · M —→ error _
 
-  E-·₂ : ∀ {Φ Γ A B} {L : Γ ⊢ A ⇒ B} {M : Γ ⊢ A}
+ß  E-·₂ : ∀ {Φ Γ A B} {L : Γ ⊢ A ⇒ B} {M : Γ ⊢ A}
     → Error M
       -----------------
     → L · M —→ error _
@@ -249,25 +249,27 @@ data _—→_ : ∀ {J Φ Γ} {A : Φ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ ⊢ A) 
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
     → (tel : Tel Γ Δ σ As)
-    → (vtel : VTel Γ Δ σ As)
+    → (vtel : VTel Γ Δ σ As tel)
       -----------------------------
-    → builtin bn σ tel —→ maybe id (error _) (BUILTIN bn σ vtel)
-
+    → builtin bn σ tel —→ maybe id (error _) (BUILTIN bn σ tel vtel)
+    
   ξ-builtin : ∀{Φ Γ}  → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
     → (tel : Tel Γ Δ σ As)
     → ∀ Bs Ds
-    → (vtel : VTel Γ Δ σ Bs)
+    → (telB : Tel Γ Δ σ Bs)
+    → (telD : Tel Γ Δ σ Ds)
+    → (vtel : VTel Γ Δ σ Bs telB)
     → ∀{C}{t t' : Γ ⊢ substNf σ C}
     → t —→ t'
     → (p : Bs ++ (C ∷ Ds) ≡ As)
-    → (tel' : Tel Γ Δ σ Ds)
+--    → (q : telB ++ (t ∷ telD) ≡ tel) -- need to define ++ for tels
     → builtin bn σ tel
       —→
-      builtin bn σ (reconstTel Bs Ds σ vtel t' p tel')
+      builtin bn σ (reconstTel Bs Ds σ telB t' p telD)
 
-{-
+{- this was already commented out
   E-builtin : ∀{Φ Γ}  → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
@@ -317,6 +319,7 @@ data Progress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
 \end{code}
 
 \begin{code}
+
 data TelProgress
   {Φ Γ}
   {Δ}
@@ -324,22 +327,23 @@ data TelProgress
   {As : List (Δ ⊢Nf⋆ *)}
   (tel : Tel Γ Δ σ As)
   : Set where
-  done : VTel Γ Δ σ As → TelProgress tel
+  done : VTel Γ Δ σ As tel → TelProgress tel
   step : ∀ Bs Ds
-    → VTel Γ Δ σ Bs
+    → (telB : Tel Γ Δ σ Bs)
+    → VTel Γ Δ σ Bs telB
     → ∀{C}{t t' : Γ ⊢ substNf σ C}
     → t —→ t'
     → Bs ++ (C ∷ Ds) ≡ As
     → Tel Γ Δ σ Ds
     → TelProgress tel
   error : ∀ Bs Ds
-    → VTel Γ Δ σ Bs
+    → (telB : Tel Γ Δ σ Bs)
+    → VTel Γ Δ σ Bs telB
     → ∀{C}{t  : Γ ⊢ substNf σ C}
     → Error t
     → Bs ++ (C ∷ Ds) ≡ As
     → Tel Γ Δ σ Ds
     → TelProgress tel
-
 
 \end{code}
 
@@ -362,37 +366,43 @@ progress-unwrap (step p) = step (ξ-unwrap1 p)
 progress-unwrap (done V-wrap1) = step β-wrap1
 progress-unwrap (error e) = error (E-unwrap e)
 
+progress-builtin : ∀ bn (σ : ∀{J} → proj₁ (SIG bn) ∋⋆ J → ∅ ⊢Nf⋆ J)(tel : Tel ∅ (proj₁ (SIG bn)) σ (proj₁ (proj₂ (SIG bn)))) → TelProgress tel → Progress (builtin bn σ tel)
+progress-builtin bn σ tel (done vtel)                      = step (β-builtin bn σ tel vtel)
+progress-builtin bn σ tel (step Bs Ds telB vtel p q telD)  = step (ξ-builtin bn σ tel Bs Ds telB telD vtel p q)
+progress-builtin bn σ tel (error Bs Ds telB vtel e p telD) = error (E-builtin bn σ tel Bs Ds telB vtel e p telD)
+
 progress : ∀ {A} → (M : ∅ ⊢ A) → Progress M
+
+progressTelCons : ∀ {Δ}
+  → {σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K}
+  → {A : Δ ⊢Nf⋆ *}
+  → {t : ∅ ⊢ substNf σ A}
+  → Progress t
+  → {As : List (Δ ⊢Nf⋆ *)}
+  → {tel : Tel ∅ Δ σ As}
+  → TelProgress tel
+  → TelProgress {As = A ∷ As} (t ,, tel)
+progressTelCons (step p){As}{tel}   q                                = step [] As tt tt p refl tel
+progressTelCons (done v)            (done vtel)                      = done (v ,, vtel)
+progressTelCons (done v)            (step Bs Ds telB vtel p q telD)  = step (_ ∷ Bs) Ds (_ ,, telB) (v ,, vtel) p (cong (_ ∷_) q) telD
+progressTelCons (done v)            (error Bs Ds telB vtel e p telD) = error (_ ∷ Bs) Ds (_ ,, telB) (v ,, vtel) e (cong (_ ∷_) p) telD
+progressTelCons (error e) {As}{tel} q                                = error [] As tt tt e refl tel
 
 progressTel : ∀ {Δ}
   → {σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K}
   → {As : List (Δ ⊢Nf⋆ *)}
   → (tel : Tel ∅ Δ σ As)
   → TelProgress tel
-
-progressTel {As = []}     _   = done _
-progressTel {As = A ∷ As} (t ,, tel) with progress t
-progressTel {As = A ∷ As} (t ,, tel) | error E = error [] As tt E refl tel
-progressTel {As = A ∷ As} (t ,, tel) | step p  = step [] As tt p refl tel
-progressTel {As = A ∷ As} (t ,, tel) | done vt with progressTel tel
-progressTel {As = A ∷ As} (t ,, tel) | done vt | done vtel =
-  done (t ,, vt ,, vtel)
-progressTel {As = A ∷ As} (t ,, tel) | done vt | step Bs Ds vtel p q tel' =
-  step (A ∷ Bs) Ds (t ,, vt ,, vtel) p (cong (A ∷_) q) tel'
-progressTel {As = A ∷ As} (t ,, tel) | done vt | error Bs Ds vtel E q tel' = error (A ∷ Bs) Ds (t ,, vt ,, vtel) E (cong (A ∷_) q) tel'
+progressTel {As = []}     tt         = done tt
+progressTel {As = A ∷ As} (t ,, tel) = progressTelCons (progress t) (progressTel tel)
 
 progress (` ())
-progress (ƛ x M) = done V-ƛ
-progress (M · N) = progress· (progress M) N
-progress (Λ _ M) = done V-Λ_
-progress (M ·⋆ A) = progress·⋆ (progress M) A
+progress (ƛ x M)              = done V-ƛ
+progress (M · N)              = progress· (progress M) N
+progress (Λ _ M)              = done V-Λ_
+progress (M ·⋆ A)             = progress·⋆ (progress M) A
 progress (wrap1 pat arg term) = done V-wrap1
-progress (unwrap1 M) = progress-unwrap (progress M)
-progress (con c)    = done (V-con c)
-progress (builtin bn σ X) with progressTel X
-progress (builtin bn σ X) | done VX = step (β-builtin bn σ X VX)
-progress (builtin bn σ X) | step Bs Ds vtel p q tel' =
-  step (ξ-builtin bn σ X Bs Ds vtel p q tel')
-progress (builtin bn σ X) | error Bs Ds vtel p q tel' =
-  error (E-builtin bn σ X Bs Ds vtel p q tel')
-progress (error A)        = error E-error
+progress (unwrap1 M)          = progress-unwrap (progress M)
+progress (con c)              = done (V-con c)
+progress (builtin bn σ X)     = progress-builtin bn σ X (progressTel X)
+progress (error A)            = error E-error

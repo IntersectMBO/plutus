@@ -47,7 +47,7 @@ extricateRen {Γ = Γ , A}  {Δ} ρ⋆ ρ (S x) = extricateRen ρ⋆ (ρ ∘ S) 
 
 
 -- these are the two properties of extrication/ren/sub needed to define
--- extricate—→ (excluding whatever is needed for builtins)
+-- extricate—→
 
 postulate
   lem[] : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}(N : Γ , A ⊢ B)(W : Γ ⊢ A)
