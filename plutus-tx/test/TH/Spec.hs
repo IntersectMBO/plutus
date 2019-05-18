@@ -18,7 +18,7 @@ import           TH.TestTH
 import           Language.PlutusTx.TH
 import           Language.PlutusTx.Code
 import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.Prelude as P
+import           Language.PlutusTx.Prelude as P hiding (fst)
 import           Language.PlutusTx.Evaluation
 
 import qualified Language.PlutusIR          as PIR
