@@ -193,27 +193,11 @@ data _—→_ : ∀ {J Φ Γ} {A : Φ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ ⊢ A) 
       --------------
     → V · M —→ V · M′
 
-{-
-  E-·₁ : ∀ {Φ Γ A B} {L : Γ ⊢ A ⇒ B} {M : Γ ⊢ A}
-    → Error L
-      -----------------
-    → L · M —→ error _
-
-ß  E-·₂ : ∀ {Φ Γ A B} {L : Γ ⊢ A ⇒ B} {M : Γ ⊢ A}
-    → Error M
-      -----------------
-    → L · M —→ error _
--}
   ξ-·⋆ : ∀ {Φ Γ K x}{B : Φ ,⋆ K ⊢Nf⋆ *}{L L′ : Γ ⊢ Π x B}{A}
     → L —→ L′
       -----------------
     → L ·⋆ A —→ L′ ·⋆ A
-{-
-  E-·⋆ : ∀ {Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}{L : Γ ⊢ Π B}{A}
-    → Error L
-      -----------------
-    → L ·⋆ A —→ error _
--}
+
   β-ƛ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}{x}{N : Γ , A ⊢ B} {W : Γ ⊢ A}
 --    → Value W
       -------------------
@@ -235,14 +219,6 @@ data _—→_ : ∀ {J Φ Γ} {A : Φ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ ⊢ A) 
     → {M M' : Γ ⊢ ne (μ1 · pat · arg)}
     → M —→ M'
     → unwrap1 M —→ unwrap1 M'
-{-
-  E-unwrap1 : ∀{Φ Γ K}
-    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-    → {arg : Φ ⊢Nf⋆ K}
-    → {M : Γ ⊢ ne (μ1 · pat · arg)}
-    → Error M
-    → unwrap1 M —→ error _
--}
 
   β-builtin : ∀{Φ Γ}
     → (bn : Builtin)
@@ -265,26 +241,7 @@ data _—→_ : ∀ {J Φ Γ} {A : Φ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ ⊢ A) 
     → t —→ t'
     → (p : Bs ++ (C ∷ Ds) ≡ As)
 --    → (q : telB ++ (t ∷ telD) ≡ tel) -- need to define ++ for tels
-    → builtin bn σ tel
-      —→
-      builtin bn σ (reconstTel Bs Ds σ telB t' p telD)
-
-{- this was already commented out
-  E-builtin : ∀{Φ Γ}  → (bn : Builtin)
-    → let Δ ,, As ,, C = SIG bn in
-      (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
-    → (tel : Tel Γ Δ σ As)
-    → ∀ Bs Ds
-    → (vtel : VTel Γ Δ σ Bs)
-    → ∀{C}{t : Γ ⊢ substNf σ C}
-    → Error t
-    → (p : Bs ++ (C ∷ Ds) ≡ As)
-    → (tel' : Tel Γ Δ σ Ds)
-    → builtin bn σ tel
-      —→
-      error _
--}
-
+    → builtin bn σ tel —→ builtin bn σ (reconstTel Bs Ds σ telB t' p telD)
 \end{code}
 
 \begin{code}
