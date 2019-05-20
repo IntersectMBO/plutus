@@ -53,7 +53,7 @@ emptyFreshState = Unique 0
 -- | The "quotation" monad transformer. Within this monad you can do safe construction of PLC terms using quasiquotation,
 -- fresh-name generation, and parsing.
 newtype QuoteT m a = QuoteT { unQuoteT :: StateT FreshState m a }
-    deriving (Functor, Applicative, Monad, MonadTrans, MM.MFunctor, MonadError e, MonadReader r)
+    deriving (Functor, Applicative, Monad, MonadTrans, MM.MFunctor, MonadError e, MonadReader r, MonadIO)
 
 -- Need to write this by hand, deriving wants to derive the one for DefState
 instance MonadState s m => MonadState s (QuoteT m) where
