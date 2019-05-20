@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE KindSignatures             #-}
 {-# LANGUAGE LambdaCase                 #-}
@@ -62,6 +63,8 @@ data PluginOptions = PluginOptions {
     poDoTypecheck    :: Bool
     , poDeferErrors  :: Bool
     , poContextLevel :: Int
+    , poDumpPir      :: Bool
+    , poDumpPlc      :: Bool
     }
 
 plugin :: GHC.Plugin
@@ -91,6 +94,8 @@ install args todo = do
             poDoTypecheck = notElem "dont-typecheck" args
             , poDeferErrors = elem "defer-errors" args
             , poContextLevel = if elem "no-context" args then 0 else if elem "debug-context" args then 3 else 1
+            , poDumpPir = elem "dump-pir" args
+            , poDumpPlc = elem "dump-plc" args
             }
         pass = GHC.CoreDoPluginPass "Core to PLC" (pluginPass opts)
         -- See Note [Making sure unfoldings are present]
@@ -258,17 +263,7 @@ convertExpr opts locStr codeTy origE = do
     flags <- GHC.getDynFlags
     -- We need to do this out here, since it has to run in CoreM
     nameInfo <- makePrimitiveNameInfo builtinNames
-    let result = withContextM 1 (sdToTxt $ "Converting expr at" GHC.<+> GHC.text locStr) $ do
-              (pirP::PIRProgram) <- PIR.Program () . PIR.removeDeadBindings <$> (PIR.runDefT () $ convExprWithDefs origE)
-              (plcP::PLCProgram) <- void <$> (flip runReaderT PIR.NoProvenance $ PIR.compileProgram pirP)
-              when (poDoTypecheck opts) $ void $ do
-                  stringBuiltinTypes <- getStringBuiltinTypes ()
-                  checkVr <- asks (coCheckValueRestriction.ccOpts)
-                  if checkVr
-                        then PLC.typecheckPipeline (PLC.offChainConfig stringBuiltinTypes) plcP
-                        else PLC.inferTypeOfProgram (PLC.offChainConfig stringBuiltinTypes) plcP
-              pure (pirP, plcP)
-        context = ConvertingContext {
+    let context = ConvertingContext {
             ccOpts=ConversionOptions { coCheckValueRestriction=poDoTypecheck opts },
             ccFlags=flags,
             ccBuiltinNameInfo=nameInfo,
@@ -276,11 +271,13 @@ convertExpr opts locStr codeTy origE = do
             ccBlackholed=mempty
             }
         initialState = ConvertingState mempty
-    case runExcept . runQuoteT . flip evalStateT initialState . flip runReaderT context $ result of
+    res <- runExceptT . runQuoteT . flip evalStateT initialState . flip runReaderT context $
+        withContextM 1 (sdToTxt $ "Converting expr at" GHC.<+> GHC.text locStr) $ runCompiler opts origE
+    case res of
         Left s ->
-            let shown = show $ PP.pretty (pruneContext (poContextLevel opts) s) in
+            let shown = show $ PP.pretty (pruneContext (poContextLevel opts) s)
             -- TODO: is this the right way to do either of these things?
-            if poDeferErrors opts
+            in if poDeferErrors opts
             -- this will blow up at runtime
             then do
                 tcName <- thNameToGhcNameOrFail ''CompiledCode
@@ -299,3 +296,22 @@ convertExpr opts locStr codeTy origE = do
                 `GHC.App` GHC.Type codeTy
                 `GHC.App` bsLitPlc
                 `GHC.App` bsLitPir
+
+runCompiler
+    :: (MonadReader ConvertingContext m, MonadState ConvertingState m, MonadQuote m, MonadError ConvError m, MonadIO m)
+    => PluginOptions
+    -> GHC.CoreExpr
+    -> m (PIRProgram, PLCProgram)
+runCompiler opts expr = do
+    (pirP::PIRProgram) <- PIR.Program () . PIR.removeDeadBindings <$> (PIR.runDefT () $ convExprWithDefs expr)
+    when (poDumpPir opts) $ liftIO $ print $ PP.pretty pirP
+    (plcP::PLCProgram) <- void <$> (flip runReaderT PIR.NoProvenance $ PIR.compileProgram pirP)
+    when (poDumpPlc opts) $ liftIO $ print $ PP.pretty plcP
+    -- We do this after dumping the programs so that if we fail typechecking we still get the dump
+    when (poDoTypecheck opts) $ void $ do
+        stringBuiltinTypes <- getStringBuiltinTypes ()
+        checkVr <- asks (coCheckValueRestriction.ccOpts)
+        if checkVr
+              then PLC.typecheckPipeline (PLC.offChainConfig stringBuiltinTypes) plcP
+              else PLC.inferTypeOfProgram (PLC.offChainConfig stringBuiltinTypes) plcP
+    pure (pirP, plcP)
