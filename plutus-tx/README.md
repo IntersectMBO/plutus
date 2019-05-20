@@ -1,27 +1,34 @@
-# plutus-tx: PlutusTx Haskell support
+# plutus-tx: Plutus Tx Haskell support
 
-This provides support for writing Plutus Tx programs in Haskell using Template Haskell.
+This provides support for writing Plutus Tx programs in Haskell.
 
 This package just provides support for Plutus Tx, if you are looking for support for
-writing smart contracts using Plutus Tx, please look in `wallet-api`.
+writing smart contracts using Plutus Tx, please look in `plutus-wallet-api`.
+
+## Using `plutus-tx`
+
+More extensive tutorials are available in `plutus-tutorial`.
+
+### Compiling Haskell code
+
+The entry point is the `compile` function, which takes a typed Template Haskell
+quote and compiles it into a Plutus Tx program (represented as a `CompiledCode`) at
+Haskell compilation time.
+
+### Lifting Haskell values at runtime
+
+Haskell values can be lifted into code at runtime using the `lift` functions.
+
+Instances of the `Lift` typeclass should be created only with the `makeLift` Template Haskell
+function.
+
+Lifting can be used to pass values to compiled Plutus Tx programs using `applyCode`.
 
 ## Haskell language support
 
-In general, most "straightforward" Haskell should work. 
+In general, most "straightforward" Haskell should work.
 
 The things that don't work broadly fall into a few categories:
-- Not implemented yet
-- Incompatible with the design of Plutus Core
-- Requires access to function definitions 
-    - Normal function uage requires `INLINEABLE` in some circumstances (external packages)
-    - Typeclass dictionaries
-- Use of coercions required
-- Assumes "normal" codegen
-- Miscellaneous difficult features
-
-In addition, there are some features that do not work but which we plan to support.
-
-Here are a few notable items that do not work:
 
 - Not implemented yet
     - Mutually recursive datatypes
@@ -29,8 +36,9 @@ Here are a few notable items that do not work:
     - `PolyKinds`, `DataKinds`, anything that moves towards "Dependent Haskell"
     - Literal patterns
     - `StrictData` and bang patterns (may be allowed in future)
-- Access to function definitions required (may be improved in future)
-    - Typeclasses (dictionary construction)
+- Requires access to function definitions
+    - Normal function usage requires `INLINEABLE` in some circumstances
+    - Typeclass dictionaries
 - Use of coercions required
     - GADTs
     - `Data.Coerce`
@@ -40,3 +48,4 @@ Here are a few notable items that do not work:
     - Numeric types other than integers
     - `MagicHash` types
     - Machine words, C strings, etc.
+- Miscellaneous difficult features

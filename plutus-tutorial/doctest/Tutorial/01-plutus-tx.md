@@ -18,16 +18,16 @@ Some basic familiarity with Template Haskell (TH) is also helpful.
 
 Plutus Tx is the name that we give to specially-delimited sections of a
 Haskell program which will be compiled into Plutus Core (usually to go in
-a transaction, hence the "Tx"). 
+a transaction, hence the "Tx").
 
 This means that Plutus Tx *is just Haskell*. Strictly, only a subset of Haskell
 is supported, but most simple Haskell should work, and the compiler will tell
-you if you use something that is unsupported. 
+you if you use something that is unsupported.
 (See [Haskell language support](../../../plutus-tx/README.md#haskell-language-support)
 for more details on what is supported.)
 
-The key technique that the Plutus Platform uses is called *staged metaprogramming*. 
-What that means is that the main Haskell program *generates* another program, 
+The key technique that the Plutus Platform uses is called *staged metaprogramming*.
+What that means is that the main Haskell program *generates* another program,
 in this case the Plutus Core program that will run on the blockchain. Plutus
 Tx is the mechanism that we use to write those programs. But the fact that it
 is just Haskell means that we can use all the same techinques we use in the
@@ -57,15 +57,12 @@ import Language.PlutusCore.Evaluation.CkMachine
 import Data.Text.Prettyprint.Doc
 ```
 
-Plutus Tx makes heavy use of Template Haskell. There are a few reasons for this:
+Plutus Tx makes some use of Template Haskell. There are a few reasons for this:
 - Template Haskell allows us to do work at compile time, which is when we do
   Plutus Tx compilation.
-- The Plutus Tx compiler can't see the definitions of arbitrary functions. However,
-  a Template Haskell "splice" is inserted into the program entirely, which allows
-  us to see all the code that we need to see.
 - It allows us to wire up the machinery that actually invokes the Plutus Tx compiler.
 
-Consequently, many of the definitions we will see will be Template Haskell quotes.
+Consequently, we will see some use of Template Haskell quotes.
 A Template Haskell quote is introduced with the special brackets `[||` and `||]`,
 and will have type `Q (TExp a)`. This means it represents an expression of
 type `a`, which lives in the `Q` type of quotes. You can splice a definition with this
@@ -77,7 +74,7 @@ The key function we will use is the `compile` function. `compile` has type
 `Q (TExp a) -> Q (TExp (CompiledCode a))`. What does this mean?
 - `Q` and `TExp` we have already seen
 - `CompiledCode a` is a compiled Plutus Core program corresponding to a Haskell program of type `a`
-  
+
 What this means is that `compile` lets you take a (quoted) Haskell program and turn it into a (quoted) Plutus
 Core program, which you can then splice into the main program. This happens when you *compile* the main
 Haskell program (since that's when Template Haskell runs).
@@ -93,8 +90,8 @@ is just normal Haskell.
 
 Here's the most basic program we can write: one that just evaluates to the integer `1`.
 
-The Plutus Core syntax will look unfamiliar. This is fine, since it is the "assembly language" 
-and you won't need to inspect the output of the compiler. However, for the purposes of this tutorial 
+The Plutus Core syntax will look unfamiliar. This is fine, since it is the "assembly language"
+and you won't need to inspect the output of the compiler. However, for the purposes of this tutorial
 it's instructive to look at it to get a vague idea of what's going on.
 
 ```haskell
@@ -122,8 +119,8 @@ and which we can then inspect at runtime to see the generated Plutus Core (or to
 on the blockchain).
 
 The most important thing to get comfortable with here is the pattern we saw in the first
-example: a TH quote, wrapped in a call to `compile`, wrapped in a `$$` splice. This is 
-how we write all of our Plutus Tx blocks.
+example: a TH quote, wrapped in a call to `compile`, wrapped in a `$$` splice. This is
+how we write all of our Plutus Tx programs.
 
 Here's a slightly more complex program, namely the identity function on integers.
 
@@ -142,36 +139,38 @@ So far, so familiar: we compiled a lambda into a lambda (the "lam").
 
 ## Functions and datatypes
 
-You can also define functions locally to use inside your expression. At the moment you
-*cannot* use functions that are defined outside the Plutus Tx expression.
-You can, however, splice in TH quotes, which lets you define reusable functions.
+You can also use functions inside your expression. In practice, you may well want to
+define the entirety of your Plutus Tx program as a definition outside the quote, and
+then simply call it inside the quote.
 
 ```haskell
+{-# INLINABLE plusOne #-}
 plusOne :: Integer -> Integer
 plusOne x = x `addInteger` 1
 
-functions :: CompiledCode Integer
-functions = $$(compile [||
+{-# INLINABLE myProgram #-}
+myProgram :: Integer
+myProgram =
     let
         plusOneLocal :: Integer -> Integer
         plusOneLocal x = x `addInteger` 1
 
-        -- This won't work:
-        -- nonLocalDoesntWork = plusOne 1
+        localPlus = plusOneLocal 1
+        externalPlus = plusOne 1
+    in localPlus `addInteger` externalPlus
 
-        -- This will work:
-        localWorks = plusOneLocal 1
-
-        -- You can of course bind this to a name, but for the purposes
-        -- of this tutorial we won't since TH requires it to be in
-        -- another module.
-        thWorks = $$([|| \(x::Integer) -> x `addInteger` 1 ||]) 1
-    in localWorks `addInteger` thWorks
-    ||])
+functions :: CompiledCode Integer
+functions = $$(compile [|| myProgram ||])
 ```
 
-Here we used the function `addInteger` from `Language.PlutusTx.Builtins`, 
+Here we used the function `addInteger` from `Language.PlutusTx.Builtins`,
 which is mapped on the builtin integer addition in Plutus Core.
+
+The previous example marked the functions that we used using GHC's `INLINABLE`
+pragma. This is usually necessary for non-local functions to be usable
+in Plutus Tx blocks, as it instructs GHC to keep the information that the
+Plutus Tx compiler needs. While this is not always necessary, it is
+a good idea to simply mark all such functions as `INLINABLE`.
 
 We can use normal Haskell datatypes and pattern matching freely:
 
@@ -204,12 +203,13 @@ pastEnd = $$(compile [|| \(end::EndDate) (current::Integer) -> case end of
 
 ## The Plutus Tx Prelude and Plutus Tx Builtins
 
-The `Language.PlutusTx.Prelude` module contains TH versions of a number of
-useful standard Haskell functions.
+The `Language.PlutusTx.Prelude` module contains versions of a number of
+useful standard Haskell functions. This is necessary mostly so that they can be
+marked `INLINABLE` (see above).
 
-PlutusTx has some builtin types and functions available for working with primitive
-data (integers and bytestrings), as well as a few special functions. These builtins 
-are also exported as TH functions from the Plutus Tx prelude.
+Plutus Tx has some builtin types and functions available for working with primitive
+data (integers and bytestrings), as well as a few special functions. These builtins
+are also exported from the Plutus Tx prelude.
 
 The `error` builtin deserves a special mention. `error` causes the transaction to abort when it is
 evaluated, which is the way that validation failure is signaled.
@@ -293,4 +293,5 @@ pastEndAt end current =
     unsafeLiftCode current
 ```
 
-The [next part](./02-validator-scripts.md) of the tutorial explains how to get Plutus onto the blockchain, using a simple guessing game as an example.
+The [next part](./02-validator-scripts.md) of the tutorial explains how to get Plutus onto the blockchain,
+using a simple guessing game as an example.
