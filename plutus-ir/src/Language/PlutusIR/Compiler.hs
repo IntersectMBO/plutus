@@ -15,7 +15,8 @@ import           Language.PlutusIR.Compiler.Lower
 import           Language.PlutusIR.Compiler.Provenance
 import           Language.PlutusIR.Compiler.Types
 import           Language.PlutusIR.Transform.Rename          ()
-import           Language.PlutusIR.Transform.ThunkRecursions
+import qualified Language.PlutusIR.Transform.ThunkRecursions as ThunkRec
+import qualified Language.PlutusIR.Optimizer.DeadCode        as DeadCode
 
 import qualified Language.PlutusCore                         as PLC
 
@@ -26,9 +27,11 @@ compileTerm :: Compiling m e a => Term TyName Name a -> m (PLCTerm a)
 compileTerm =
     lowerTerm
     <=< Let.compileLets Let.NonRecTerms
+    <=< (pure . DeadCode.removeDeadBindings)
     <=< Let.compileLets Let.RecTerms
     <=< Let.compileLets Let.Types
-    <=< thunkRecursionsTerm . original
+    <=< ThunkRec.thunkRecursionsTerm
+    <=< (pure . original)
 
 -- | Compile a 'Program' into a PLC Program. Note: the result *does* have globally unique names.
 compileProgram :: Compiling m e a => Program TyName Name a -> m (PLC.Program TyName Name (Provenance a))

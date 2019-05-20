@@ -52,6 +52,8 @@ class TermLike term tyname name | term -> tyname, term -> name where
     unwrap   :: a -> term a -> term a
     iWrap    :: a -> Type tyname a -> Type tyname a -> term a -> term a
     error    :: a -> Type tyname a -> term a
+    termLet  :: a -> TermDef term tyname name a -> term a -> term a
+    typeLet  :: a -> TypeDef tyname a -> term a -> term a
 
 instance TermLike (Term tyname name) tyname name where
     var      = Var
@@ -64,6 +66,8 @@ instance TermLike (Term tyname name) tyname name where
     unwrap   = Unwrap
     iWrap    = IWrap
     error    = Error
+    termLet  = mkTermLet
+    typeLet  = mkTypeLet
 
 embed :: TermLike term tyname name => Term tyname name a -> term a
 embed = \case
