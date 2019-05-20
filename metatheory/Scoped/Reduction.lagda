@@ -249,7 +249,19 @@ progress-unwrap (done (V-wrap A B t)) = step β-wrap
 progress-unwrap (done (V-builtin b As ts)) = error E-builtinunwrap -- TODO
 progress-unwrap (error e) = error (E-unwrap e)
 
-progressTelCons : {t : ScopedTm Z} → Progress t → {tel : Tel Z} → TelProgress tel → TelProgress (t ∷ tel)
+progress-builtin : ∀ bn → (As : List (ScopedTy 0)) (tel : Tel Z)
+  → TelProgress tel → Progress (builtin bn As tel)
+progress-builtin bn As tel p with arity bn N.≟ Data.List.length tel
+progress-builtin bn As tel (done .tel vtel)               | yes p =
+  step (β-builtin vtel)
+progress-builtin bn As tel (step .tel telA vtelA x telB)  | yes p =
+  step (ξ-builtin vtelA x telB)
+progress-builtin bn As tel (error .tel telA vtelA x telB) | yes p =
+  error (E-builtin x)
+progress-builtin bn As tel p | no ¬p = done (V-builtin bn As tel)
+
+progressTelCons : {t : ScopedTm Z} → Progress t → {tel : Tel Z}
+  → TelProgress tel → TelProgress (t ∷ tel)
 progressTelCons {t}(step p){tel}  q = step (t ∷ tel) [] tt p tel
 progressTelCons (done v) (done tel vtel) = done (_ ∷ tel) (v , vtel)
 progressTelCons (done v) (step tel telA vtelA p telB) =
@@ -265,23 +277,15 @@ progressTel [] = done [] tt
 progressTel (t ∷ tel) = progressTelCons (progress t) (progressTel tel)
 
 progress (` ())
-progress (Λ x K t) = done (V-Λ x K t)
-progress (t ·⋆ A) = progress·⋆ (progress t) A
-progress (ƛ x A t) = done (V-ƛ x A t)
-progress (t · u) = progress· (progress t) u
-progress (con c) = done (V-con c)
-progress (error A) = error (E-error A)
-progress (builtin b As ts) with arity b N.≟ Data.List.length ts
-progress (builtin b As ts) | yes p with progressTel ts
-progress (builtin b As ts) | yes p | done ts vs = step (β-builtin vs)
-progress (builtin b As ts) | yes p | step ts telA vsA q tsB =
-  step (ξ-builtin vsA q tsB)
-progress (builtin b As ts) | yes p | error ts tsA vsA e tsB =
-  error (E-builtin e)
-progress (builtin b As ts) | no ¬p = done (V-builtin b As ts)
- -- TODO what about over saturation?
-progress (wrap A B t) = done (V-wrap A B t)
-progress (unwrap t) = progress-unwrap (progress t)
+progress (Λ x K t)         = done (V-Λ x K t)
+progress (t ·⋆ A)          = progress·⋆ (progress t) A
+progress (ƛ x A t)         = done (V-ƛ x A t)
+progress (t · u)           = progress· (progress t) u
+progress (con c)           = done (V-con c)
+progress (error A)         = error (E-error A)
+progress (builtin b As ts) = progress-builtin b As ts (progressTel ts)
+progress (wrap A B t)      = done (V-wrap A B t)
+progress (unwrap t)        = progress-unwrap (progress t)
 \end{code}
 
 \begin{code}
