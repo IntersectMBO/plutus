@@ -21,7 +21,20 @@ laziness :: TestNested
 laziness = testNested "Laziness" [
     goldenPir "joinError" joinErrorPir
     , goldenEval "joinErrorEval" [ getProgram joinErrorPir, getProgram $ plc @"T" True, getProgram $ plc @"F" False]
+    , goldenPir "lazyDepUnit" lazyDepUnit
   ]
 
 joinErrorPir :: CompiledCode (Bool -> Bool -> ())
 joinErrorPir = plc @"joinError" joinError
+
+{-# NOINLINE monoId #-}
+monoId :: Builtins.ByteString -> Builtins.ByteString
+monoId x = x
+
+-- This is a non-value let-binding, so will be delayed, and needs a dependency on Unit
+{-# NOINLINE aByteString #-}
+aByteString :: Builtins.ByteString
+aByteString = monoId Builtins.emptyByteString
+
+lazyDepUnit :: CompiledCode (Builtins.ByteString)
+lazyDepUnit = plc @"lazyDepUnit" aByteString

@@ -238,9 +238,11 @@ hoistExpr var t =
                 when (recursive && lazy) $ throwSd UnsupportedError $ "Recursive let-binding of non-value" GHC.<+> GHC.ppr name
                 rhs <- maybeDelay lazy t'
                 var'' <- maybeDelayVar lazy var'
+                -- if we delayed, we now have a dependency on unit
+                let deps = if lazy then Set.insert (GHC.getName GHC.unitTyCon) allFvs else allFvs
                 when lazy $ markLazyName name
 
-                PIR.defineTerm name (PIR.Def var'' rhs) allFvs
+                PIR.defineTerm name (PIR.Def var'' rhs) deps
                 maybeForce lazy $ PIR.mkVar () var''
 
 -- Expressions
