@@ -50,7 +50,7 @@ curValidator cur =
                         -- see note [Obtaining the currency symbol]
                         ownSymbol = V.ownCurrencySymbol p
 
-                        forged = V.valueForged p
+                        forged = V.pendingTxForge p
                         expected = currencyValue ownSymbol c
 
 

@@ -91,7 +91,7 @@ gameValidator = ValidatorScript ($$(Ledger.compileScript [||
         -- | Check whether the value forged by the  pending transaction 'p' is
         --   equal to the argument.
         checkForge :: Value -> Bool
-        checkForge vl = V.eq vl (Validation.valueForged p)
+        checkForge vl = V.eq vl (Validation.pendingTxForge p)
 
         -- | Equality of 'GameState' valzes.
         stateEq :: GameState -> GameState -> Bool

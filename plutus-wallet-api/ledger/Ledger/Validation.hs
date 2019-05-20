@@ -35,7 +35,6 @@ module Ledger.Validation
     , txSignedBy
     -- ** Transactions
     , pubKeyOutput
-    , scriptOutput
     , scriptOutputsAt
     , pubKeyOutputsAt
     , eqPubKey
@@ -48,8 +47,6 @@ module Ledger.Validation
     , adaLockedBy
     , signsTransaction
     , spendsOutput
-    , txHash
-    , valueForged
     , valueSpent
     , ownCurrencySymbol
     , ownHashes
@@ -262,16 +259,13 @@ eqPubKey (PubKey (LedgerBytes l)) (PubKey (LedgerBytes r)) = P.equalsByteString 
 {-# INLINABLE txSignedBy #-}
 -- | Check if a transaction was signed by the given public key.
 txSignedBy :: PendingTx -> PubKey -> Bool
-txSignedBy ptx k =
+txSignedBy PendingTx{pendingTxSignatures=sigs, pendingTxHash=hash} k =
     let
-        sigs = pendingTxSignatures ptx
-        hsh = pendingTxHash ptx
-
         signedBy' :: Signature -> Bool
         signedBy' (Signature sig) =
             let
                 PubKey (LedgerBytes pk) = k
-                TxHash msg           = hsh
+                TxHash msg           = hash
             in P.verifySignature pk msg sig
 
         go :: [(PubKey, Signature)] -> Bool
@@ -285,23 +279,12 @@ txSignedBy ptx k =
     in
         go sigs
 
-{-# INLINABLE txHash #-}
--- | Get the 'TxHash' of a 'PendingTx'.
-txHash :: PendingTx -> TxHash
-txHash = pendingTxHash
-
 {-# INLINABLE pubKeyOutput #-}
 -- | Get the public key that locks the transaction output, if any.
 pubKeyOutput :: PendingTxOut -> Maybe PubKey
 pubKeyOutput o = case pendingTxOutData o of
     PubKeyTxOut pk -> Just pk
     _              -> Nothing
-
-{-# INLINABLE scriptOutput #-}
--- | Get the validator and data script hashes from a pay-to-script transaction
---   output, if there are any.
-scriptOutput :: PendingTxOut -> Maybe (ValidatorHash, DataScriptHash)
-scriptOutput = pendingTxOutHashes
 
 {-# INLINABLE eqDataScript #-}
 -- | Check if two data script hashes are equal.
@@ -389,12 +372,7 @@ adaLockedBy ptx h = Ada.fromValue (valueLockedBy ptx h)
 --   transaction (without witnesses) with the given public key.
 signsTransaction :: Signature -> PubKey -> PendingTx -> Bool
 signsTransaction (Signature sig) (PubKey (LedgerBytes pk)) p =
-    P.verifySignature pk (let TxHash h = txHash p in h) sig
-
-{-# INLINABLE valueForged #-}
--- | Value forged by a 'PendingTx'.
-valueForged :: PendingTx -> Value
-valueForged = pendingTxForge
+    P.verifySignature pk (let TxHash h = pendingTxHash p in h) sig
 
 {-# INLINABLE valueSpent #-}
 -- | Get the total value of inputs spent by this transaction.
@@ -416,14 +394,12 @@ ownCurrencySymbol p =
 --   transactions' outputs)
 spendsOutput :: PendingTx -> TxHash -> Integer -> Bool
 spendsOutput p h i =
-    let ins = pendingTxInputs p
-        spendsOutRef inp =
+    let spendsOutRef inp =
             let outRef = pendingTxInRef inp
-                h' = pendingTxOutRefId outRef
-                i' = pendingTxOutRefIdx outRef
-            in eqTx h h' `P.and` P.eq i i'
+            in eqTx h (pendingTxOutRefId outRef)
+                `P.and` P.eq i (pendingTxOutRefIdx outRef)
 
-    in P.any spendsOutRef ins
+    in P.any spendsOutRef (pendingTxInputs p)
 
 {-# INLINABLE validatorScriptHash #-}
 -- | The hash of a 'ValidatorScript'.
