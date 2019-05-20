@@ -2,23 +2,23 @@
   (let
     (nonrec)
     (datatypebind
-      (datatype
-        (tyvardecl MyEnum (type))
-        
-        MyEnum_match
-        (vardecl Enum1 MyEnum) (vardecl Enum2 MyEnum)
-      )
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
     )
     (let
       (nonrec)
-      (datatypebind
-        (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+      (termbind
+        (vardecl error (all a (type) (fun Unit a)))
+        (abs e (type) (lam thunk Unit (error e)))
       )
       (let
         (nonrec)
-        (termbind
-          (vardecl error (all a (type) (fun Unit a)))
-          (abs e (type) (lam thunk Unit (error e)))
+        (datatypebind
+          (datatype
+            (tyvardecl MyEnum (type))
+            
+            MyEnum_match
+            (vardecl Enum1 MyEnum) (vardecl Enum2 MyEnum)
+          )
         )
         (lam
           ds

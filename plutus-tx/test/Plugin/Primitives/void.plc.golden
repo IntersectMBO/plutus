@@ -2,17 +2,17 @@
   (let
     (nonrec)
     (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+      (datatype
+        (tyvardecl Bool (type))
+        
+        Bool_match
+        (vardecl True Bool) (vardecl False Bool)
+      )
     )
     (let
       (nonrec)
       (datatypebind
-        (datatype
-          (tyvardecl Bool (type))
-          
-          Bool_match
-          (vardecl True Bool) (vardecl False Bool)
-        )
+        (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
       )
       (let
         (nonrec)
