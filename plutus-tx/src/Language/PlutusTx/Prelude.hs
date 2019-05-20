@@ -28,6 +28,9 @@ module Language.PlutusTx.Prelude (
     -- * Numbers
     min,
     max,
+    -- * Tuples
+    fst,
+    snd,
     -- * Maybe
     isJust,
     isNothing,
@@ -415,3 +418,13 @@ filter pred = foldr (\e xs -> if pred e then e:xs else xs) []
 --
 mapMaybe :: (a -> Maybe b) -> [a] -> [b]
 mapMaybe pred = foldr (\e xs -> case pred e of { Just e' -> e':xs; Nothing -> xs}) []
+
+{-# INLINABLE fst #-}
+-- | PlutusTx version of 'Data.Tuple.fst'
+fst :: (a, b) -> a
+fst (a, _) = a
+
+{-# INLINABLE snd #-}
+-- | PlutusTx version of 'Data.Tuple.snd'
+snd :: (a, b) -> b
+snd (_, b) = b
