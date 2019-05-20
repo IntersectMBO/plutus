@@ -6,15 +6,14 @@ module Language.PlutusIR.Compiler.Recursion where
 import           Language.PlutusIR
 import           Language.PlutusIR.Compiler.Error
 import           Language.PlutusIR.Compiler.Provenance
-import {-# SOURCE #-} Language.PlutusIR.Compiler.Term
 import           Language.PlutusIR.Compiler.Types
+import qualified Language.PlutusIR.MkPir as PIR
 
 import           Control.Monad
 import           Control.Monad.Error.Lens
 import           Control.Monad.Reader
 
 import qualified Language.PlutusCore                        as PLC
-import qualified Language.PlutusCore.MkPlc                  as PLC
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Data.Function   as Function
 import qualified Language.PlutusCore.StdLib.Meta.Data.Tuple as Tuple
@@ -59,23 +58,22 @@ Here we merely have to provide it with the types of the f_is, which we *do* know
 
  -- See note [Recursive lets]
 -- | Compile a mutually recursive list of var decls bound in a body.
-compileRecTerms :: Compiling m e a => PLCTerm a -> [TermDef TyName Name (Provenance a)] -> m (PLCTerm a)
+compileRecTerms :: Compiling m e a => PIRTerm a -> [TermDef TyName Name (Provenance a)] -> m (PIRTerm a)
 compileRecTerms body bs = do
     p <- ask
     fixpoint <- mkFixpoint bs
-    Tuple.bindTuple p (PLC.varDeclName . PLC.defVar <$> bs) fixpoint body
+    Tuple.bindTuple p (PIR.varDeclName . PIR.defVar <$> bs) fixpoint body
 
 -- | Given a list of var decls, create a tuples of values that computes their mutually recursive fixpoint.
 mkFixpoint
     :: Compiling m e a
     => [TermDef TyName Name (Provenance a)]
-    -> m (Tuple.Tuple (PLC.Term TyName Name) (Provenance a))
+    -> m (Tuple.Tuple (Term TyName Name) (Provenance a))
 mkFixpoint bs = do
     p0 <- ask
 
-    funs <- forM bs $ \(PLC.Def (PLC.VarDecl p name ty) term) -> do
-        compTerm <- compileTerm term
-        case PLC.mkFunctionDef p name ty compTerm of
+    funs <- forM bs $ \(PIR.Def (PIR.VarDecl p name ty) term) ->
+        case PIR.mkFunctionDef p name ty term of
             Just fun -> pure fun
             Nothing  -> throwing _Error $ CompilationError (PLC.tyLoc ty) "Recursive values must be of function type. You may need to manually add unit arguments."
 

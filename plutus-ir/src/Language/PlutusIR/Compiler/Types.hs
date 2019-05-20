@@ -27,16 +27,16 @@ getType r = case r of
     RecursiveType Types.RecursiveType {Types._recursiveType=t} -> t
 
 -- | Wrap a term appropriately for a possibly recursive type.
-wrap :: Provenance a -> PLCRecType a -> [PLCType a] -> PLCTerm a -> PLCTerm a
+wrap :: Provenance a -> PLCRecType a -> [PLCType a] -> PIRTerm a -> PIRTerm a
 wrap p r tvs t = case r of
     PlainType _                                                      -> t
     RecursiveType Types.RecursiveType {Types._recursiveWrap=wrapper} -> setProvenance p $ wrapper tvs t
 
 -- | Unwrap a term appropriately for a possibly recursive type.
-unwrap :: Provenance a -> PLCRecType a -> PLCTerm a -> PLCTerm a
+unwrap :: Provenance a -> PLCRecType a -> PIRTerm a -> PIRTerm a
 unwrap p r t = case r of
     PlainType _                          -> t
-    RecursiveType Types.RecursiveType {} -> PLC.Unwrap p t
+    RecursiveType Types.RecursiveType {} -> PIR.Unwrap p t
 
 type PIRTerm a = PIR.Term PIR.TyName PIR.Name (Provenance a)
 type PIRType a = PIR.Type PIR.TyName (Provenance a)

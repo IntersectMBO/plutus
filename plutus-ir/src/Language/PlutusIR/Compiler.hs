@@ -10,8 +10,9 @@ module Language.PlutusIR.Compiler (
 import           Language.PlutusIR
 
 import           Language.PlutusIR.Compiler.Error
+import           Language.PlutusIR.Compiler.Lower
 import           Language.PlutusIR.Compiler.Provenance
-import qualified Language.PlutusIR.Compiler.Term             as Term
+import qualified Language.PlutusIR.Compiler.Let             as Let
 import           Language.PlutusIR.Compiler.Types
 import           Language.PlutusIR.Transform.Rename          ()
 import           Language.PlutusIR.Transform.ThunkRecursions
@@ -22,7 +23,7 @@ import           Control.Monad
 
 -- | Compile a 'Term' into a PLC Term. Note: the result *does* have globally unique names.
 compileTerm :: Compiling m e a => Term TyName Name a -> m (PLCTerm a)
-compileTerm = Term.compileTerm <=< thunkRecursionsTerm . original
+compileTerm = lowerTerm <=< Let.compileLets <=< thunkRecursionsTerm . original
 
 -- | Compile a 'Program' into a PLC Program. Note: the result *does* have globally unique names.
 compileProgram :: Compiling m e a => Program TyName Name a -> m (PLC.Program TyName Name (Provenance a))
