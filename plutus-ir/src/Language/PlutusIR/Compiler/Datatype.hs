@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 -- | Functions for compiling let-bound PIR datatypes into PLC.
-module Language.PlutusIR.Compiler.Datatype (compileDatatype) where
+module Language.PlutusIR.Compiler.Datatype (compileDatatype, compileRecDatatypes) where
 
 import           PlutusPrelude                         (showText)
 
@@ -10,6 +10,7 @@ import           Language.PlutusIR
 import           Language.PlutusIR.Compiler.Names
 import           Language.PlutusIR.Compiler.Provenance
 import           Language.PlutusIR.Compiler.Types
+import           Language.PlutusIR.Compiler.Error
 import qualified Language.PlutusIR.MkPir as PIR
 
 import qualified Language.PlutusCore.MkPlc             as PLC
@@ -18,6 +19,7 @@ import qualified Language.PlutusCore.StdLib.Type       as Types
 import qualified Language.PlutusCore.Subst             as PLC
 
 import           Control.Monad.Reader
+import           Control.Monad.Error.Lens
 
 import qualified Data.Text                             as T
 import           Data.Traversable
@@ -393,3 +395,9 @@ compileDatatype r body d@(Datatype _ tn _ destr constrs) = do
         vals = fmap PIR.defVal constrDefs ++ [PIR.defVal destrDef]
     -- See note [Abstract data types]
     pure $ PIR.mkIterApp p (PIR.mkIterInst p (PIR.mkIterTyAbs tyVars (PIR.mkIterLamAbs vars body)) tys) vals
+
+compileRecDatatypes :: Compiling m e a => PIRTerm a -> [Datatype TyName Name (Provenance a)] -> m (PIRTerm a)
+compileRecDatatypes body ds = case ds of
+    [] -> pure body
+    [d] -> compileDatatype Rec body d
+    _   -> ask >>= \p -> throwing _Error $ UnsupportedError p "Mutually recursive datatypes"

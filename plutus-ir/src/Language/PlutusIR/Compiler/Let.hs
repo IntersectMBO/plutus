@@ -25,8 +25,8 @@ compileLets = \case
         body' <- compileLets body
         bs' <- traverse compileInBinding bs
         case r of
-            NonRec -> compileNonRecBindings r body' bs'
-            Rec    -> compileRecBindings r body' bs'
+            NonRec -> foldM compileNonRecBinding body' bs'
+            Rec    -> compileRecBindings body' bs'
     Var x n -> pure $ Var x n
     TyAbs x n k t -> TyAbs x n k <$> compileLets t
     LamAbs x n ty t -> LamAbs x n ty <$> compileLets t
@@ -42,46 +42,38 @@ compileInBinding
     :: Compiling m e a
     => Binding TyName Name (Provenance a)
     -> m (Binding TyName Name (Provenance a))
-compileInBinding b =  case b of
+compileInBinding b = case b of
     TermBind x d rhs -> TermBind x d <$> compileLets rhs
-    b@TypeBind {} -> pure b
-    b@DatatypeBind {} -> pure b
+    _ -> pure b
 
-compileNonRecBindings :: Compiling m e a => Recursivity -> PIRTerm a -> [Binding TyName Name (Provenance a)] -> m (PIRTerm a)
-compileNonRecBindings r = foldM (compileSingleBinding r)
-
-compileRecBindings :: Compiling m e a => Recursivity -> PIRTerm a -> [Binding TyName Name (Provenance a)] -> m (PIRTerm a)
-compileRecBindings r body bs =
+compileRecBindings :: Compiling m e a => PIRTerm a -> [Binding TyName Name (Provenance a)] -> m (PIRTerm a)
+compileRecBindings body bs =
     let
         partitionBindings = partition (\case { TermBind {} -> True ; _ -> False; })
         (termBinds, typeBinds) = partitionBindings bs
-    in do
-        tysBound <- compileRecTypeBindings r body typeBinds
-        compileRecTermBindings r tysBound termBinds
+    in if null typeBinds then compileRecTermBindings body termBinds
+       else if null termBinds then compileRecTypeBindings body typeBinds
+       else ask >>= \p -> throwing _Error $ CompilationError p "Mixed term and type bindings in recursive let"
 
-compileRecTermBindings :: Compiling m e a => Recursivity -> PIRTerm a -> [Binding TyName Name (Provenance a)] -> m (PIRTerm a)
-compileRecTermBindings _ body bs = case bs of
-    [] -> pure body
-    _ -> do
-        binds <- forM bs $ \case
-            TermBind _ vd rhs -> pure $ PIR.Def vd rhs
-            _ -> ask >>= \p -> throwing _Error $ CompilationError p "Internal error: type binding in term binding group"
-        compileRecTerms body binds
+compileRecTermBindings :: Compiling m e a => PIRTerm a -> [Binding TyName Name (Provenance a)] -> m (PIRTerm a)
+compileRecTermBindings body bs = do
+    binds <- forM bs $ \case
+        TermBind _ vd rhs -> pure $ PIR.Def vd rhs
+        _ -> ask >>= \p -> throwing _Error $ CompilationError p "Internal error: type binding in term binding group"
+    compileRecTerms body binds
 
-compileRecTypeBindings :: Compiling m e a => Recursivity -> PIRTerm a -> [Binding TyName Name (Provenance a)] -> m (PIRTerm a)
-compileRecTypeBindings r body bs = case bs of
-    []  -> pure body
-    [b] -> compileSingleBinding r body b
-    _   -> ask >>= \p -> throwing _Error $ UnsupportedError p "Mutually recursive datatypes"
+compileRecTypeBindings :: Compiling m e a => PIRTerm a -> [Binding TyName Name (Provenance a)] -> m (PIRTerm a)
+compileRecTypeBindings body bs = do
+    binds <- forM bs $ \case
+        DatatypeBind _ d -> pure d
+        _ -> ask >>= \p -> throwing _Error $ CompilationError p "Internal error: term or type binding in datatype binding group"
+    compileRecDatatypes body binds
 
-compileSingleBinding :: Compiling m e a => Recursivity -> PIRTerm a -> Binding TyName Name (Provenance a) ->  m (PIRTerm a)
-compileSingleBinding r body b =  case b of
-    TermBind x d rhs -> local (const x) $ case r of
-        Rec -> compileRecTerms body [PIR.Def d rhs]
-        NonRec -> local (TermBinding (varDeclNameString d)) $
-            PIR.mkTermLet <$> ask <*> pure (PIR.Def d rhs) <*> pure body
-    TypeBind x d rhs -> local (const x) $ local (TypeBinding (tyVarDeclNameString d)) $ do
-        let def = PIR.Def d rhs
-        PIR.mkTypeLet <$> ask <*> pure def <*> pure body
+compileNonRecBinding :: Compiling m e a => PIRTerm a -> Binding TyName Name (Provenance a) ->  m (PIRTerm a)
+compileNonRecBinding body b =  case b of
+    TermBind x d rhs -> local (const x) $ local (TermBinding (varDeclNameString d)) $
+        PIR.mkTermLet <$> ask <*> pure (PIR.Def d rhs) <*> pure body
+    TypeBind x d rhs -> local (const x) $ local (TypeBinding (tyVarDeclNameString d)) $
+        PIR.mkTypeLet <$> ask <*> pure (PIR.Def d rhs) <*> pure body
     DatatypeBind x d -> local (const x) $ local (TypeBinding (datatypeNameString d)) $
-        compileDatatype r body d
+        compileDatatype NonRec body d
