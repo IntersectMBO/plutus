@@ -1,14 +1,10 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:strip-context #-}
-{-# OPTIONS_GHC   -Wno-orphans #-}
--- this adds source notes which helps the plugin give better errors
-{-# OPTIONS_GHC   -g #-}
 
-module Plugin.ReadValue
+module Plugin.ReadValue.Spec
     ( readDyns
     ) where
-
 
 import           Language.PlutusTx.Code
 import           Language.PlutusTx.Plugin

@@ -28,6 +28,9 @@ module Language.PlutusTx.Prelude (
     -- * Numbers
     min,
     max,
+    -- * Tuples
+    fst,
+    snd,
     -- * Maybe
     isJust,
     isNothing,
@@ -56,7 +59,8 @@ module Language.PlutusTx.Prelude (
     verifySignature
     ) where
 
-import           Language.PlutusTx.Builtins (ByteString)
+import           Language.PlutusTx.Builtins (ByteString, concatenate, dropByteString, emptyByteString, equalsByteString,
+                                             sha2_256, sha3_256, takeByteString, verifySignature)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Prelude                    (Bool (..), Integer, Maybe (..), String)
 
@@ -322,45 +326,6 @@ foldl f acc l = case l of
     []   -> acc
     x:xs -> foldl f (f acc x) xs
 
-{-# INLINABLE sha2_256 #-}
--- | The double SHA256 hash of a 'ByteString'
-sha2_256 :: Builtins.ByteString -> Builtins.ByteString
-sha2_256 = Builtins.sha2_256
-
-{-# INLINABLE sha3_256 #-}
--- | The triple SHA256 hash of a 'ByteString'
-sha3_256 :: Builtins.ByteString -> Builtins.ByteString
-sha3_256 = Builtins.sha3_256
-
-{-# INLINABLE verifySignature #-}
-verifySignature :: Builtins.ByteString -> Builtins.ByteString -> Builtins.ByteString -> Bool
-verifySignature = Builtins.verifySignature
-
-{-# INLINABLE equalsByteString #-}
--- | Check if two 'ByteString's are equal
-equalsByteString :: Builtins.ByteString -> Builtins.ByteString -> Bool
-equalsByteString = Builtins.equalsByteString
-
-{-# INLINABLE takeByteString #-}
--- | Returns the n length prefix of a 'ByteString'
-takeByteString :: Integer -> Builtins.ByteString -> Builtins.ByteString
-takeByteString = Builtins.takeByteString
-
-{-# INLINABLE dropByteString #-}
--- | Returns the suffix of a 'ByteString' after n elements
-dropByteString :: Integer -> Builtins.ByteString -> Builtins.ByteString
-dropByteString = Builtins.dropByteString
-
-{-# INLINABLE concatenate #-}
--- | Concatenates two 'ByteString's together.
-concatenate :: Builtins.ByteString -> Builtins.ByteString -> Builtins.ByteString
-concatenate = Builtins.concatenate
-
-{-# INLINABLE emptyByteString #-}
--- | An empty 'ByteString'.
-emptyByteString :: Builtins.ByteString
-emptyByteString = Builtins.emptyByteString
-
 {-# INLINABLE length #-}
 -- | 'length' @xs@ is the number of elements in @xs@.
 --
@@ -415,3 +380,13 @@ filter pred = foldr (\e xs -> if pred e then e:xs else xs) []
 --
 mapMaybe :: (a -> Maybe b) -> [a] -> [b]
 mapMaybe pred = foldr (\e xs -> case pred e of { Just e' -> e':xs; Nothing -> xs}) []
+
+{-# INLINABLE fst #-}
+-- | PlutusTx version of 'Data.Tuple.fst'
+fst :: (a, b) -> a
+fst (a, _) = a
+
+{-# INLINABLE snd #-}
+-- | PlutusTx version of 'Data.Tuple.snd'
+snd :: (a, b) -> b
+snd (_, b) = b

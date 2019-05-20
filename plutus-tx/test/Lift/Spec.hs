@@ -6,7 +6,8 @@
 {-# OPTIONS_GHC   -Wno-orphans #-}
 module Lift.Spec where
 
-import           Plugin.Spec
+import           Plugin.Data.Spec
+import           Plugin.Primitives.Spec
 
 import           Common
 import           PlcTestUtils

@@ -1,6 +1,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Plugin.Lib where
 
+import           Common
+import           PlcTestUtils
+
 import           Language.Haskell.TH
 import           Language.PlutusTx.Prelude
 
@@ -10,7 +13,16 @@ import           Language.PlutusTx.Evaluation
 import           Language.PlutusTx.Prelude
 import           Language.PlutusTx.TH
 
+import           Data.Text.Prettyprint.Doc
+
 {-# ANN module "HLint: ignore" #-}
+
+instance GetProgram (CompiledCode a) where
+    getProgram = catchAll . getPlc
+
+goldenPir :: String -> CompiledCode a -> TestNested
+goldenPir name value = nestedGoldenVsDoc name $ pretty $ getPir value
+
 
 -- This is here for the Plugin spec, but we're testing using things from a different module
 andExternal :: Bool -> Bool -> Bool
