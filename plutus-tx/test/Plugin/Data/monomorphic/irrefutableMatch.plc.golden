@@ -2,19 +2,19 @@
   (let
     (nonrec)
     (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+      (datatype
+        (tyvardecl MyMonoData (type))
+        
+        MyMonoData_match
+        (vardecl Mono1 (fun (con integer) (fun (con integer) MyMonoData)))
+        (vardecl Mono2 (fun (con integer) MyMonoData))
+        (vardecl Mono3 (fun (con integer) MyMonoData))
+      )
     )
     (let
       (nonrec)
       (datatypebind
-        (datatype
-          (tyvardecl MyMonoData (type))
-          
-          MyMonoData_match
-          (vardecl Mono1 (fun (con integer) (fun (con integer) MyMonoData)))
-          (vardecl Mono2 (fun (con integer) MyMonoData))
-          (vardecl Mono3 (fun (con integer) MyMonoData))
-        )
+        (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
       )
       (lam
         ds

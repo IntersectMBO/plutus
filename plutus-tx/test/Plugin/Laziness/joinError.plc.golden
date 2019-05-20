@@ -2,29 +2,29 @@
   (let
     (nonrec)
     (datatypebind
-      (datatype
-        (tyvardecl Bool (type))
-        
-        Bool_match
-        (vardecl True Bool) (vardecl False Bool)
-      )
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
     )
     (let
       (nonrec)
-      (datatypebind
-        (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+      (termbind
+        (vardecl error (all a (type) (fun Unit a)))
+        (abs e (type) (lam thunk Unit (error e)))
       )
       (let
         (nonrec)
         (termbind
-          (vardecl error (all a (type) (fun Unit a)))
-          (abs e (type) (lam thunk Unit (error e)))
+          (vardecl joinError1 (fun Unit Unit))
+          (lam thunk Unit [ { error Unit } Unit ])
         )
         (let
           (nonrec)
-          (termbind
-            (vardecl joinError1 (fun Unit Unit))
-            (lam thunk Unit [ { error Unit } Unit ])
+          (datatypebind
+            (datatype
+              (tyvardecl Bool (type))
+              
+              Bool_match
+              (vardecl True Bool) (vardecl False Bool)
+            )
           )
           (let
             (nonrec)

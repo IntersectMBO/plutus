@@ -1,18 +1,19 @@
 (program
   (let
     (nonrec)
-    (datatypebind
-      (datatype
-        (tyvardecl Bool (type))
-        
-        Bool_match
-        (vardecl True Bool) (vardecl False Bool)
-      )
+    (termbind
+      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
+      (builtin addInteger)
     )
     (let
       (nonrec)
       (datatypebind
-        (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+        (datatype
+          (tyvardecl Bool (type))
+          
+          Bool_match
+          (vardecl True Bool) (vardecl False Bool)
+        )
       )
       (let
         (nonrec)
@@ -37,11 +38,8 @@
         )
         (let
           (nonrec)
-          (termbind
-            (vardecl
-              addInteger (fun (con integer) (fun (con integer) (con integer)))
-            )
-            (builtin addInteger)
+          (datatypebind
+            (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
           )
           (let
             (nonrec)
