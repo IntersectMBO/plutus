@@ -90,30 +90,38 @@ extricate—→ (β-builtin divideInteger σ tel vtel@(V-con (integer i) ,, V-co
   (builtin divideInteger [] (con (integer i) ∷ con (integer j) ∷ []) SR.—→_)
   (extricate-decIf (∣ j ∣ Data.Nat.≟ 0) (error (con integer)) (con (integer (div i j))))
   (SR.β-builtin {b = divideInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG divideInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG divideInteger))) _ vtel))  
-extricate—→ (β-builtin quotientInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) with ∣ j ∣ Data.Nat.≟ 0 | SR.β-builtin {b = quotientInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG quotientInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG quotientInteger))) _ vtel) 
-... | yes p | r = r
-... | no ¬p | r = r
-extricate—→ (β-builtin remainderInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) with ∣ j ∣ Data.Nat.≟ 0 | SR.β-builtin {b = remainderInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG remainderInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG remainderInteger))) _ vtel) 
-... | yes p | r = r
-... | no ¬p | r = r
-extricate—→ (β-builtin modInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) with ∣ j ∣ Data.Nat.≟ 0 | SR.β-builtin {b = modInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG modInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG modInteger))) _ vtel) 
-... | yes p | r = r
-... | no ¬p | r = r
-extricate—→ (β-builtin lessThanInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) with i Builtin.Constant.Type.<? j | SR.β-builtin {b = lessThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG lessThanInteger))) _ vtel) 
-... | yes p | r = r
-... | no ¬p | r = r
-extricate—→ (β-builtin lessThanEqualsInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) with i Data.Integer.≤? j | SR.β-builtin {b = lessThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanEqualsInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG lessThanEqualsInteger))) _ vtel) 
-... | yes p | r = r
-... | no ¬p | r = r
-extricate—→ (β-builtin greaterThanInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) with i Builtin.Constant.Type.>? j | SR.β-builtin {b = greaterThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG greaterThanInteger))) _ vtel) 
-... | yes p | r = r
-... | no ¬p | r = r
-extricate—→ (β-builtin greaterThanEqualsInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) with i Builtin.Constant.Type.≥? j | SR.β-builtin {b = greaterThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanEqualsInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG greaterThanEqualsInteger))) _ vtel) 
-... | yes p | r = r
-... | no ¬p | r = r
-extricate—→ (β-builtin equalsInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) with i Data.Integer.≟ j | SR.β-builtin {b = equalsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG equalsInteger))) _ vtel) 
-... | yes p | r = r
-... | no ¬p | r = r
+extricate—→ (β-builtin quotientInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = Eq.subst
+  (builtin quotientInteger [] (con (integer i) ∷ con (integer j) ∷ []) SR.—→_)
+  (extricate-decIf (∣ j ∣ Data.Nat.≟ 0) (error (con integer)) (con (integer (quot i j))))
+  (SR.β-builtin {b = quotientInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG quotientInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG quotientInteger))) _ vtel)) 
+extricate—→ (β-builtin remainderInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = Eq.subst
+  (builtin remainderInteger [] (con (integer i) ∷ con (integer j) ∷ []) SR.—→_)
+  (extricate-decIf (∣ j ∣ Data.Nat.≟ 0) (error (con integer)) (con (integer (rem i j))))
+  (SR.β-builtin {b = remainderInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG remainderInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG remainderInteger))) _ vtel)) 
+extricate—→ (β-builtin modInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = Eq.subst
+  (builtin modInteger [] (con (integer i) ∷ con (integer j) ∷ []) SR.—→_)
+  (extricate-decIf (∣ j ∣ Data.Nat.≟ 0) (error (con integer)) (con (integer (mod i j))))
+  (SR.β-builtin {b = modInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG modInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG modInteger))) _ vtel))
+extricate—→ (β-builtin lessThanInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = Eq.subst
+  (builtin lessThanInteger [] (con (integer i) ∷ con (integer j) ∷ []) SR.—→_)
+  (extricate-decIf (i Builtin.Constant.Type.<? j) A.true A.false)
+  (SR.β-builtin {b = lessThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG lessThanInteger))) _ vtel))
+extricate—→ (β-builtin lessThanEqualsInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = Eq.subst
+  (builtin lessThanEqualsInteger [] (con (integer i) ∷ con (integer j) ∷ []) SR.—→_)
+  (extricate-decIf (i Data.Integer.≤? j) A.true A.false)
+  (SR.β-builtin {b = lessThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanEqualsInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG lessThanEqualsInteger))) _ vtel))
+extricate—→ (β-builtin greaterThanInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = Eq.subst
+  (builtin greaterThanInteger [] (con (integer i) ∷ con (integer j) ∷ []) SR.—→_)
+  (extricate-decIf (i Builtin.Constant.Type.>? j) A.true A.false)
+  (SR.β-builtin {b = greaterThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG greaterThanInteger))) _ vtel))
+extricate—→ (β-builtin greaterThanEqualsInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = Eq.subst
+  (builtin greaterThanEqualsInteger [] (con (integer i) ∷ con (integer j) ∷ []) SR.—→_)
+  (extricate-decIf (i Builtin.Constant.Type.≥? j) A.true A.false)
+  (SR.β-builtin {b = greaterThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanEqualsInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG greaterThanEqualsInteger))) _ vtel))
+extricate—→ (β-builtin equalsInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt))  = Eq.subst
+  (builtin equalsInteger [] (con (integer i) ∷ con (integer j) ∷ []) SR.—→_)
+  (extricate-decIf (i Data.Integer.≟ j) A.true A.false)
+  (SR.β-builtin {b = equalsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG equalsInteger))) _ vtel))
 extricate—→ (β-builtin concatenate σ tel vtel@(V-con (bytestring b) ,, V-con (bytestring b') ,, tt)) =
   SR.β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG concatenate))) _ vtel) 
 extricate—→ (β-builtin takeByteString σ tel vtel@(V-con (integer i) ,, V-con (bytestring b) ,, tt)) =
@@ -336,14 +344,30 @@ extricate-progress-builtin multiplyInteger σ tel (done (V-con (integer i) ,, V-
 extricate-progress-builtin divideInteger σ tel (done vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = lem-step
   (SR.β-builtin {b = divideInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG divideInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG divideInteger))) _ vtel))  
   (extricate-decIf (∣ j ∣ Data.Nat.≟ 0) (error (con integer)) (con (integer (div i j))))
-extricate-progress-builtin quotientInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = {!!}
-extricate-progress-builtin remainderInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = {!!}
-extricate-progress-builtin modInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = {!!}
-extricate-progress-builtin lessThanInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = {!!}
-extricate-progress-builtin lessThanEqualsInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = {!!}
-extricate-progress-builtin greaterThanInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = {!!}
-extricate-progress-builtin greaterThanEqualsInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = {!!}
-extricate-progress-builtin equalsInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = {!!}
+extricate-progress-builtin quotientInteger σ tel (done vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = lem-step
+  (SR.β-builtin {b = quotientInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG quotientInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG quotientInteger))) _ vtel))  
+  (extricate-decIf (∣ j ∣ Data.Nat.≟ 0) (error (con integer)) (con (integer (quot i j))))
+extricate-progress-builtin remainderInteger σ tel (done vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = lem-step
+  (SR.β-builtin {b = remainderInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG remainderInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG remainderInteger))) _ vtel))  
+  (extricate-decIf (∣ j ∣ Data.Nat.≟ 0) (error (con integer)) (con (integer (rem i j))))
+extricate-progress-builtin modInteger σ tel (done vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = lem-step
+  (SR.β-builtin {b = modInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG modInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG modInteger))) _ vtel))  
+  (extricate-decIf (∣ j ∣ Data.Nat.≟ 0) (error (con integer)) (con (integer (mod i j))))
+extricate-progress-builtin lessThanInteger σ tel (done vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = lem-step
+  (SR.β-builtin {b = lessThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG lessThanInteger))) _ vtel))  
+  (extricate-decIf (i Builtin.Constant.Type.<? j) A.true A.false)
+extricate-progress-builtin lessThanEqualsInteger σ tel (done vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = lem-step
+  (SR.β-builtin {b = lessThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanEqualsInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG lessThanEqualsInteger))) _ vtel))  
+  (extricate-decIf (i Data.Integer.≤? j) A.true A.false)
+extricate-progress-builtin greaterThanInteger σ tel (done vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = lem-step
+  (SR.β-builtin {b = greaterThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG greaterThanInteger))) _ vtel))  
+  (extricate-decIf (i Builtin.Constant.Type.>? j) A.true A.false)
+extricate-progress-builtin greaterThanEqualsInteger σ tel (done vtel@ (V-con (integer i) ,, V-con (integer j) ,, tt)) =  lem-step
+  (SR.β-builtin {b = greaterThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanEqualsInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG greaterThanEqualsInteger))) _ vtel))  
+  (extricate-decIf (i Builtin.Constant.Type.≥? j) A.true A.false)
+extricate-progress-builtin equalsInteger σ tel (done vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = lem-step
+  (SR.β-builtin {b = equalsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG equalsInteger))) _ vtel))  
+  (extricate-decIf (i Data.Integer.≟ j) A.true A.false)
 extricate-progress-builtin concatenate σ tel (done (V-con (bytestring b) ,, V-con (bytestring b') ,, tt)) = refl
 extricate-progress-builtin takeByteString σ tel (done (V-con (integer i) ,, V-con (bytestring b) ,, tt)) = refl
 extricate-progress-builtin dropByteString σ tel (done (V-con (integer i) ,, V-con (bytestring b) ,, tt)) = refl

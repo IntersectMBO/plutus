@@ -111,33 +111,22 @@ BUILTIN subtractInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) = con
 BUILTIN multiplyInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) = con (integer (i ** j))
 BUILTIN divideInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
   decIf (∣ j ∣ Data.Nat.≟ zero) (error _) (con (integer (div i j)))
-BUILTIN quotientInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) with ∣ j ∣ Data.Nat.≟ zero
-... | yes p = error _
-... | no ¬p = con (integer (quot i j))
-BUILTIN remainderInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) with ∣ j ∣ Data.Nat.≟ zero
-... | yes p = error _
-... | no ¬p = con (integer (rem i j))
-BUILTIN modInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) with ∣ j ∣ Data.Nat.≟ zero
-... | yes p = error _
-... | no ¬p = con (integer (mod i j))
-BUILTIN lessThanInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt)  with i Builtin.Constant.Type.<? j
-... | yes _ = true
-... | no _  = false
-BUILTIN lessThanEqualsInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) with i ≤? j
-... | yes _ = true
-... | no _  = false
-BUILTIN greaterThanInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt)
-  with i Builtin.Constant.Type.>? j
-... | yes _ = true
-... | no _  = false
-BUILTIN greaterThanEqualsInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt)
-  with i Builtin.Constant.Type.≥? j
-... | yes _ = true
-... | no _  = false
-BUILTIN equalsInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt)
-  with i ≟ j
-... | yes _ = true
-... | no _  = false
+BUILTIN quotientInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
+  decIf (∣ j ∣ Data.Nat.≟ zero) (error _) (con (integer (quot i j)))
+BUILTIN remainderInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
+  decIf (∣ j ∣ Data.Nat.≟ zero) (error _) (con (integer (rem i j)))
+BUILTIN modInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
+  decIf (∣ j ∣ Data.Nat.≟ zero) (error _) (con (integer (mod i j)))
+BUILTIN lessThanInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
+  decIf (i Builtin.Constant.Type.<? j) true false
+BUILTIN lessThanEqualsInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
+  decIf (i ≤? j) true false
+BUILTIN greaterThanInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
+  decIf (i Builtin.Constant.Type.>? j) true false
+BUILTIN greaterThanEqualsInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
+  decIf (i Builtin.Constant.Type.≥? j) true false
+BUILTIN equalsInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
+  decIf (i ≟ j) true false
 BUILTIN concatenate _ _ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) =
   con (bytestring (append b b'))
 BUILTIN takeByteString _ _ (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
@@ -151,10 +140,8 @@ BUILTIN verifySignature _ _ (V-con (bytestring k) ,, V-con (bytestring d) ,, V-c
 ... | just Bool.true  = true
 ... | just Bool.false = false
 ... | nothing = error _
-BUILTIN equalsByteString _ _ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt)
-  with equals b b'
-... | Bool.true  = true
-... | Bool.false = false
+BUILTIN equalsByteString _ _ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) =
+  Bool.if (equals b b') then true else false
 \end{code}
 
 
