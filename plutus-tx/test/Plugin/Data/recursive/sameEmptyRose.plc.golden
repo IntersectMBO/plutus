@@ -1,70 +1,70 @@
 (program 1.0.0
   [
     [
-      {
-        (abs
-          Unit_i0
-          (type)
-          (lam
-            Unit_i0
-            Unit_i2
+      [
+        {
+          (abs
+            List_i0
+            (fun (type) (type))
             (lam
-              Unit_match_i0
-              (fun Unit_i3 (all out_Unit_i0 (type) (fun out_Unit_i1 out_Unit_i1)))
-              [
-                [
+              Nil_i0
+              (all a_i0 (type) [List_i3 a_i1])
+              (lam
+                Cons_i0
+                (all a_i0 (type) (fun a_i1 (fun [List_i4 a_i1] [List_i4 a_i1])))
+                (lam
+                  Nil_match_i0
+                  (all a_i0 (type) (fun [List_i5 a_i1] (all out_List_i0 (type) (fun out_List_i1 (fun (fun a_i2 (fun [List_i6 a_i2] out_List_i1)) out_List_i1)))))
                   [
-                    {
-                      (abs
-                        List_i0
-                        (fun (type) (type))
-                        (lam
-                          Nil_i0
-                          (all a_i0 (type) [List_i3 a_i1])
+                    [
+                      {
+                        (abs
+                          EmptyRose_i0
+                          (type)
                           (lam
-                            Cons_i0
-                            (all a_i0 (type) (fun a_i1 (fun [List_i4 a_i1] [List_i4 a_i1])))
+                            EmptyRose_i0
+                            (fun [List_i6 EmptyRose_i2] EmptyRose_i2)
                             (lam
-                              Nil_match_i0
-                              (all a_i0 (type) (fun [List_i5 a_i1] (all out_List_i0 (type) (fun out_List_i1 (fun (fun a_i2 (fun [List_i6 a_i2] out_List_i1)) out_List_i1)))))
+                              EmptyRose_match_i0
+                              (fun EmptyRose_i3 (all out_EmptyRose_i0 (type) (fun (fun [List_i8 EmptyRose_i4] out_EmptyRose_i1) out_EmptyRose_i1)))
                               [
                                 [
                                   {
                                     (abs
-                                      EmptyRose_i0
+                                      Unit_i0
                                       (type)
                                       (lam
-                                        EmptyRose_i0
-                                        (fun [List_i6 EmptyRose_i2] EmptyRose_i2)
+                                        Unit_i0
+                                        Unit_i2
                                         (lam
-                                          EmptyRose_match_i0
-                                          (fun EmptyRose_i3 (all out_EmptyRose_i0 (type) (fun (fun [List_i8 EmptyRose_i4] out_EmptyRose_i1) out_EmptyRose_i1)))
+                                          Unit_match_i0
+                                          (fun Unit_i3 (all out_Unit_i0 (type) (fun out_Unit_i1 out_Unit_i1)))
                                           [
                                             (lam
                                               tup_i0
-                                              (all r_i0 (type) (fun (fun (fun (fun EmptyRose_i5 EmptyRose_i5) (fun [List_i9 EmptyRose_i5] [List_i9 EmptyRose_i5])) r_i1) r_i1))
+                                              (all r_i0 (type) (fun (fun (fun (fun EmptyRose_i8 EmptyRose_i8) (fun [List_i12 EmptyRose_i8] [List_i12 EmptyRose_i8])) r_i1) r_i1))
                                               [
                                                 (lam
                                                   map_i0
-                                                  (fun (fun EmptyRose_i5 EmptyRose_i5) (fun [List_i9 EmptyRose_i5] [List_i9 EmptyRose_i5]))
+                                                  (fun (fun EmptyRose_i8 EmptyRose_i8) (fun [List_i12 EmptyRose_i8] [List_i12 EmptyRose_i8]))
                                                   [
                                                     (lam
                                                       tup_i0
-                                                      (all r_i0 (type) (fun (fun (fun EmptyRose_i7 EmptyRose_i7) r_i1) r_i1))
+                                                      (all r_i0 (type) (fun (fun (fun EmptyRose_i10 EmptyRose_i10) r_i1) r_i1))
                                                       [
                                                         (lam
                                                           go_i0
-                                                          (fun EmptyRose_i7 EmptyRose_i7)
+                                                          (fun EmptyRose_i10 EmptyRose_i10)
                                                           go_i1
                                                         )
                                                         [
                                                           {
                                                             tup_i1
-                                                            (fun EmptyRose_i6 EmptyRose_i6)
+                                                            (fun EmptyRose_i9 EmptyRose_i9)
                                                           }
                                                           (lam
                                                             arg_0_i0
-                                                            (fun EmptyRose_i7 EmptyRose_i7)
+                                                            (fun EmptyRose_i10 EmptyRose_i10)
                                                             arg_0_i1
                                                           )
                                                         ]
@@ -260,26 +260,26 @@
                                                               )
                                                             )
                                                           )
-                                                          EmptyRose_i5
+                                                          EmptyRose_i8
                                                         }
-                                                        EmptyRose_i5
+                                                        EmptyRose_i8
                                                       }
                                                       (abs
                                                         Q_i0
                                                         (type)
                                                         (lam
                                                           choose_i0
-                                                          (fun (fun EmptyRose_i7 EmptyRose_i7) Q_i2)
+                                                          (fun (fun EmptyRose_i10 EmptyRose_i10) Q_i2)
                                                           (lam
                                                             go_i0
-                                                            (fun EmptyRose_i8 EmptyRose_i8)
+                                                            (fun EmptyRose_i11 EmptyRose_i11)
                                                             [
                                                               choose_i2
                                                               (lam
                                                                 x_i0
-                                                                EmptyRose_i9
+                                                                EmptyRose_i12
                                                                 [
-                                                                  EmptyRose_i8
+                                                                  EmptyRose_i11
                                                                   [
                                                                     [
                                                                       map_i5
@@ -288,14 +288,14 @@
                                                                     [
                                                                       {
                                                                         [
-                                                                          EmptyRose_match_i7
+                                                                          EmptyRose_match_i10
                                                                           x_i1
                                                                         ]
-                                                                        [List_i13 EmptyRose_i9]
+                                                                        [List_i16 EmptyRose_i12]
                                                                       }
                                                                       (lam
                                                                         x_i0
-                                                                        [List_i14 EmptyRose_i10]
+                                                                        [List_i17 EmptyRose_i13]
                                                                         x_i1
                                                                       )
                                                                     ]
@@ -312,11 +312,11 @@
                                                 [
                                                   {
                                                     tup_i1
-                                                    (fun (fun EmptyRose_i4 EmptyRose_i4) (fun [List_i8 EmptyRose_i4] [List_i8 EmptyRose_i4]))
+                                                    (fun (fun EmptyRose_i7 EmptyRose_i7) (fun [List_i11 EmptyRose_i7] [List_i11 EmptyRose_i7]))
                                                   }
                                                   (lam
                                                     arg_0_i0
-                                                    (fun (fun EmptyRose_i5 EmptyRose_i5) (fun [List_i9 EmptyRose_i5] [List_i9 EmptyRose_i5]))
+                                                    (fun (fun EmptyRose_i8 EmptyRose_i8) (fun [List_i12 EmptyRose_i8] [List_i12 EmptyRose_i8]))
                                                     arg_0_i1
                                                   )
                                                 ]
@@ -512,63 +512,63 @@
                                                       )
                                                     )
                                                   )
-                                                  (fun EmptyRose_i3 EmptyRose_i3)
+                                                  (fun EmptyRose_i6 EmptyRose_i6)
                                                 }
-                                                (fun [List_i7 EmptyRose_i3] [List_i7 EmptyRose_i3])
+                                                (fun [List_i10 EmptyRose_i6] [List_i10 EmptyRose_i6])
                                               }
                                               (abs
                                                 Q_i0
                                                 (type)
                                                 (lam
                                                   choose_i0
-                                                  (fun (fun (fun EmptyRose_i5 EmptyRose_i5) (fun [List_i9 EmptyRose_i5] [List_i9 EmptyRose_i5])) Q_i2)
+                                                  (fun (fun (fun EmptyRose_i8 EmptyRose_i8) (fun [List_i12 EmptyRose_i8] [List_i12 EmptyRose_i8])) Q_i2)
                                                   (lam
                                                     map_i0
-                                                    (fun (fun EmptyRose_i6 EmptyRose_i6) (fun [List_i10 EmptyRose_i6] [List_i10 EmptyRose_i6]))
+                                                    (fun (fun EmptyRose_i9 EmptyRose_i9) (fun [List_i13 EmptyRose_i9] [List_i13 EmptyRose_i9]))
                                                     [
                                                       choose_i2
                                                       (lam
                                                         ds_i0
-                                                        (fun EmptyRose_i7 EmptyRose_i7)
+                                                        (fun EmptyRose_i10 EmptyRose_i10)
                                                         (lam
                                                           ds_i0
-                                                          [List_i12 EmptyRose_i8]
+                                                          [List_i15 EmptyRose_i11]
                                                           [
                                                             [
                                                               [
                                                                 {
                                                                   [
                                                                     {
-                                                                      Nil_match_i9
-                                                                      EmptyRose_i8
+                                                                      Nil_match_i12
+                                                                      EmptyRose_i11
                                                                     }
                                                                     ds_i1
                                                                   ]
-                                                                  (fun Unit_i15 [List_i12 EmptyRose_i8])
+                                                                  (fun Unit_i8 [List_i15 EmptyRose_i11])
                                                                 }
                                                                 (lam
                                                                   thunk_i0
-                                                                  Unit_i16
+                                                                  Unit_i9
                                                                   {
-                                                                    Nil_i12
-                                                                    EmptyRose_i9
+                                                                    Nil_i15
+                                                                    EmptyRose_i12
                                                                   }
                                                                 )
                                                               ]
                                                               (lam
                                                                 x_i0
-                                                                EmptyRose_i9
+                                                                EmptyRose_i12
                                                                 (lam
                                                                   xs_i0
-                                                                  [List_i14 EmptyRose_i10]
+                                                                  [List_i17 EmptyRose_i13]
                                                                   (lam
                                                                     thunk_i0
-                                                                    Unit_i18
+                                                                    Unit_i11
                                                                     [
                                                                       [
                                                                         {
-                                                                          Cons_i13
-                                                                          EmptyRose_i11
+                                                                          Cons_i16
+                                                                          EmptyRose_i14
                                                                         }
                                                                         [
                                                                           ds_i5
@@ -587,7 +587,7 @@
                                                                 )
                                                               )
                                                             ]
-                                                            Unit_i14
+                                                            Unit_i7
                                                           ]
                                                         )
                                                       )
@@ -600,107 +600,115 @@
                                         )
                                       )
                                     )
-                                    (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam EmptyRose_i0 (type) (all out_EmptyRose_i0 (type) (fun (fun [List_i8 EmptyRose_i2] out_EmptyRose_i1) out_EmptyRose_i1))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))
+                                    (all out_Unit_i0 (type) (fun out_Unit_i1 out_Unit_i1))
                                   }
-                                  (lam
-                                    arg_0_i0
-                                    [List_i5 (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam EmptyRose_i0 (type) (all out_EmptyRose_i0 (type) (fun (fun [List_i9 EmptyRose_i2] out_EmptyRose_i1) out_EmptyRose_i1))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))]
-                                    (iwrap
-                                      (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam EmptyRose_i0 (type) (all out_EmptyRose_i0 (type) (fun (fun [List_i9 EmptyRose_i2] out_EmptyRose_i1) out_EmptyRose_i1))) [rec_i2 (lam dat_i0 (type) dat_i1)]]]))
-                                      (lam dat_i0 (type) dat_i1)
-                                      (abs
-                                        out_EmptyRose_i0
-                                        (type)
-                                        (lam
-                                          case_EmptyRose_i0
-                                          (fun [List_i7 (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam EmptyRose_i0 (type) (all out_EmptyRose_i0 (type) (fun (fun [List_i11 EmptyRose_i2] out_EmptyRose_i1) out_EmptyRose_i1))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))] out_EmptyRose_i2)
-                                          [ case_EmptyRose_i1 arg_0_i3 ]
-                                        )
-                                      )
-                                    )
+                                  (abs
+                                    out_Unit_i0
+                                    (type)
+                                    (lam case_Unit_i0 out_Unit_i2 case_Unit_i1)
                                   )
                                 ]
                                 (lam
                                   x_i0
-                                  (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam EmptyRose_i0 (type) (all out_EmptyRose_i0 (type) (fun (fun [List_i9 EmptyRose_i2] out_EmptyRose_i1) out_EmptyRose_i1))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))
-                                  (unwrap x_i1)
+                                  (all out_Unit_i0 (type) (fun out_Unit_i1 out_Unit_i1))
+                                  x_i1
                                 )
                               ]
                             )
                           )
                         )
-                      )
-                      (lam a_i0 (type) (ifix (lam rec_i0 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_i0 (fun (fun (type) (type)) (type)) [spine_i1 [(lam List_i0 (fun (type) (type)) (lam a_i0 (type) (all out_List_i0 (type) (fun out_List_i1 (fun (fun a_i2 (fun [List_i3 a_i2] out_List_i1)) out_List_i1))))) (lam a_i0 (type) [rec_i3 (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])])]])) (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])))
-                    }
-                    (abs
-                      a_i0
-                      (type)
-                      (iwrap
-                        (lam rec_i0 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_i0 (fun (fun (type) (type)) (type)) [spine_i1 [(lam List_i0 (fun (type) (type)) (lam a_i0 (type) (all out_List_i0 (type) (fun out_List_i1 (fun (fun a_i2 (fun [List_i3 a_i2] out_List_i1)) out_List_i1))))) (lam a_i0 (type) [rec_i3 (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])])]]))
-                        (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])
-                        (abs
-                          out_List_i0
-                          (type)
-                          (lam
-                            case_Nil_i0
-                            out_List_i2
-                            (lam
-                              case_Cons_i0
-                              (fun a_i4 (fun [(lam a_i0 (type) (ifix (lam rec_i0 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_i0 (fun (fun (type) (type)) (type)) [spine_i1 [(lam List_i0 (fun (type) (type)) (lam a_i0 (type) (all out_List_i0 (type) (fun out_List_i1 (fun (fun a_i2 (fun [List_i3 a_i2] out_List_i1)) out_List_i1))))) (lam a_i0 (type) [rec_i3 (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])])]])) (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2]))) a_i4] out_List_i3))
-                              case_Nil_i2
-                            )
-                          )
-                        )
-                      )
-                    )
-                  ]
-                  (abs
-                    a_i0
-                    (type)
-                    (lam
-                      arg_0_i0
-                      a_i2
+                        (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam EmptyRose_i0 (type) (all out_EmptyRose_i0 (type) (fun (fun [List_i8 EmptyRose_i2] out_EmptyRose_i1) out_EmptyRose_i1))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))
+                      }
                       (lam
-                        arg_1_i0
-                        [(lam a_i0 (type) (ifix (lam rec_i0 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_i0 (fun (fun (type) (type)) (type)) [spine_i1 [(lam List_i0 (fun (type) (type)) (lam a_i0 (type) (all out_List_i0 (type) (fun out_List_i1 (fun (fun a_i2 (fun [List_i3 a_i2] out_List_i1)) out_List_i1))))) (lam a_i0 (type) [rec_i3 (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])])]])) (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2]))) a_i3]
+                        arg_0_i0
+                        [List_i5 (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam EmptyRose_i0 (type) (all out_EmptyRose_i0 (type) (fun (fun [List_i9 EmptyRose_i2] out_EmptyRose_i1) out_EmptyRose_i1))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))]
                         (iwrap
-                          (lam rec_i0 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_i0 (fun (fun (type) (type)) (type)) [spine_i1 [(lam List_i0 (fun (type) (type)) (lam a_i0 (type) (all out_List_i0 (type) (fun out_List_i1 (fun (fun a_i2 (fun [List_i3 a_i2] out_List_i1)) out_List_i1))))) (lam a_i0 (type) [rec_i3 (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])])]]))
-                          (lam dat_i0 (fun (type) (type)) [dat_i1 a_i4])
+                          (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam EmptyRose_i0 (type) (all out_EmptyRose_i0 (type) (fun (fun [List_i9 EmptyRose_i2] out_EmptyRose_i1) out_EmptyRose_i1))) [rec_i2 (lam dat_i0 (type) dat_i1)]]]))
+                          (lam dat_i0 (type) dat_i1)
                           (abs
-                            out_List_i0
+                            out_EmptyRose_i0
                             (type)
                             (lam
-                              case_Nil_i0
-                              out_List_i2
-                              (lam
-                                case_Cons_i0
-                                (fun a_i6 (fun [(lam a_i0 (type) (ifix (lam rec_i0 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_i0 (fun (fun (type) (type)) (type)) [spine_i1 [(lam List_i0 (fun (type) (type)) (lam a_i0 (type) (all out_List_i0 (type) (fun out_List_i1 (fun (fun a_i2 (fun [List_i3 a_i2] out_List_i1)) out_List_i1))))) (lam a_i0 (type) [rec_i3 (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])])]])) (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2]))) a_i6] out_List_i3))
-                                [ [ case_Cons_i1 arg_0_i5 ] arg_1_i4 ]
-                              )
+                              case_EmptyRose_i0
+                              (fun [List_i7 (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam EmptyRose_i0 (type) (all out_EmptyRose_i0 (type) (fun (fun [List_i11 EmptyRose_i2] out_EmptyRose_i1) out_EmptyRose_i1))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))] out_EmptyRose_i2)
+                              [ case_EmptyRose_i1 arg_0_i3 ]
                             )
                           )
                         )
                       )
+                    ]
+                    (lam
+                      x_i0
+                      (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam EmptyRose_i0 (type) (all out_EmptyRose_i0 (type) (fun (fun [List_i9 EmptyRose_i2] out_EmptyRose_i1) out_EmptyRose_i1))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))
+                      (unwrap x_i1)
                     )
-                  )
-                ]
-                (abs
-                  a_i0
-                  (type)
-                  (lam
-                    x_i0
-                    [(lam a_i0 (type) (ifix (lam rec_i0 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_i0 (fun (fun (type) (type)) (type)) [spine_i1 [(lam List_i0 (fun (type) (type)) (lam a_i0 (type) (all out_List_i0 (type) (fun out_List_i1 (fun (fun a_i2 (fun [List_i3 a_i2] out_List_i1)) out_List_i1))))) (lam a_i0 (type) [rec_i3 (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])])]])) (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2]))) a_i2]
-                    (unwrap x_i1)
-                  )
+                  ]
                 )
-              ]
+              )
+            )
+          )
+          (lam a_i0 (type) (ifix (lam rec_i0 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_i0 (fun (fun (type) (type)) (type)) [spine_i1 [(lam List_i0 (fun (type) (type)) (lam a_i0 (type) (all out_List_i0 (type) (fun out_List_i1 (fun (fun a_i2 (fun [List_i3 a_i2] out_List_i1)) out_List_i1))))) (lam a_i0 (type) [rec_i3 (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])])]])) (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])))
+        }
+        (abs
+          a_i0
+          (type)
+          (iwrap
+            (lam rec_i0 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_i0 (fun (fun (type) (type)) (type)) [spine_i1 [(lam List_i0 (fun (type) (type)) (lam a_i0 (type) (all out_List_i0 (type) (fun out_List_i1 (fun (fun a_i2 (fun [List_i3 a_i2] out_List_i1)) out_List_i1))))) (lam a_i0 (type) [rec_i3 (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])])]]))
+            (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])
+            (abs
+              out_List_i0
+              (type)
+              (lam
+                case_Nil_i0
+                out_List_i2
+                (lam
+                  case_Cons_i0
+                  (fun a_i4 (fun [(lam a_i0 (type) (ifix (lam rec_i0 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_i0 (fun (fun (type) (type)) (type)) [spine_i1 [(lam List_i0 (fun (type) (type)) (lam a_i0 (type) (all out_List_i0 (type) (fun out_List_i1 (fun (fun a_i2 (fun [List_i3 a_i2] out_List_i1)) out_List_i1))))) (lam a_i0 (type) [rec_i3 (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])])]])) (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2]))) a_i4] out_List_i3))
+                  case_Nil_i2
+                )
+              )
             )
           )
         )
-        (all out_Unit_i0 (type) (fun out_Unit_i1 out_Unit_i1))
-      }
-      (abs out_Unit_i0 (type) (lam case_Unit_i0 out_Unit_i2 case_Unit_i1))
+      ]
+      (abs
+        a_i0
+        (type)
+        (lam
+          arg_0_i0
+          a_i2
+          (lam
+            arg_1_i0
+            [(lam a_i0 (type) (ifix (lam rec_i0 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_i0 (fun (fun (type) (type)) (type)) [spine_i1 [(lam List_i0 (fun (type) (type)) (lam a_i0 (type) (all out_List_i0 (type) (fun out_List_i1 (fun (fun a_i2 (fun [List_i3 a_i2] out_List_i1)) out_List_i1))))) (lam a_i0 (type) [rec_i3 (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])])]])) (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2]))) a_i3]
+            (iwrap
+              (lam rec_i0 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_i0 (fun (fun (type) (type)) (type)) [spine_i1 [(lam List_i0 (fun (type) (type)) (lam a_i0 (type) (all out_List_i0 (type) (fun out_List_i1 (fun (fun a_i2 (fun [List_i3 a_i2] out_List_i1)) out_List_i1))))) (lam a_i0 (type) [rec_i3 (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])])]]))
+              (lam dat_i0 (fun (type) (type)) [dat_i1 a_i4])
+              (abs
+                out_List_i0
+                (type)
+                (lam
+                  case_Nil_i0
+                  out_List_i2
+                  (lam
+                    case_Cons_i0
+                    (fun a_i6 (fun [(lam a_i0 (type) (ifix (lam rec_i0 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_i0 (fun (fun (type) (type)) (type)) [spine_i1 [(lam List_i0 (fun (type) (type)) (lam a_i0 (type) (all out_List_i0 (type) (fun out_List_i1 (fun (fun a_i2 (fun [List_i3 a_i2] out_List_i1)) out_List_i1))))) (lam a_i0 (type) [rec_i3 (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])])]])) (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2]))) a_i6] out_List_i3))
+                    [ [ case_Cons_i1 arg_0_i5 ] arg_1_i4 ]
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
     ]
-    (lam x_i0 (all out_Unit_i0 (type) (fun out_Unit_i1 out_Unit_i1)) x_i1)
+    (abs
+      a_i0
+      (type)
+      (lam
+        x_i0
+        [(lam a_i0 (type) (ifix (lam rec_i0 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_i0 (fun (fun (type) (type)) (type)) [spine_i1 [(lam List_i0 (fun (type) (type)) (lam a_i0 (type) (all out_List_i0 (type) (fun out_List_i1 (fun (fun a_i2 (fun [List_i3 a_i2] out_List_i1)) out_List_i1))))) (lam a_i0 (type) [rec_i3 (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])])]])) (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2]))) a_i2]
+        (unwrap x_i1)
+      )
+    )
   ]
 )

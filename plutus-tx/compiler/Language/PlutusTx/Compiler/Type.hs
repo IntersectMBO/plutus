@@ -97,7 +97,7 @@ convTyCon :: (Converting m) => GHC.TyCon -> m PIRType
 convTyCon tc = do
     let tcName = GHC.getName tc
     whenM (blackholed tcName) $ throwSd UnsupportedError $ "Recursive newtypes, use data:" GHC.<+> GHC.ppr tcName
-    maybeDef <- PIR.lookupType () tcName
+    maybeDef <- PIR.lookupType () (LexName tcName)
     case maybeDef of
         Just ty -> pure ty
         Nothing -> do
@@ -113,15 +113,15 @@ convTyCon tc = do
                     -- See Note [Occurrences of recursive names]
                     -- Type variables are in scope for the rhs of the alias
                     alias <- mkIterTyLamScoped (GHC.tyConTyVars tc) $ blackhole (GHC.getName tc) $ convType underlying
-                    PIR.defineType tcName (PIR.Def tvd alias) (Set.fromList deps)
-                    PIR.recordAlias @GHC.Name @() tcName
+                    PIR.defineType (LexName tcName) (PIR.Def tvd alias) (Set.fromList $ LexName <$> deps)
+                    PIR.recordAlias @LexName @() (LexName tcName)
                     pure alias
                 Nothing -> do
                     matchName <- safeFreshName () $ (T.pack $ GHC.getOccString $ GHC.getName tc) <> "_match"
 
                     -- See Note [Occurrences of recursive names]
                     let fakeDatatype = PIR.Datatype () tvd [] matchName []
-                    PIR.defineDatatype tcName (PIR.Def tvd fakeDatatype) Set.empty
+                    PIR.defineDatatype (LexName tcName) (PIR.Def tvd fakeDatatype) Set.empty
 
                     -- Type variables are in scope for the rest of the definition
                     withTyVarsScoped (GHC.tyConTyVars tc) $ \tvs -> do
@@ -132,7 +132,7 @@ convTyCon tc = do
 
                         let datatype = PIR.Datatype () tvd tvs matchName constructors
 
-                        PIR.defineDatatype tcName (PIR.Def tvd datatype) (Set.fromList deps)
+                        PIR.defineDatatype (LexName tcName) (PIR.Def tvd datatype) (Set.fromList $ LexName <$> deps)
                     pure $ PIR.mkTyVar () tvd
 
 getUsedTcs :: (Converting m) => GHC.TyCon -> m [GHC.TyCon]
@@ -228,7 +228,7 @@ getConstructors :: Converting m => GHC.TyCon -> m [PIRTerm]
 getConstructors tc = do
     -- make sure the constructors have been created
     _ <- convTyCon tc
-    maybeConstrs <- PIR.lookupConstructors () (GHC.getName tc)
+    maybeConstrs <- PIR.lookupConstructors () (LexName $ GHC.getName tc)
     case maybeConstrs of
         Just constrs -> pure constrs
         Nothing      -> throwSd CompilationError $ "Constructors have not been compiled for:" GHC.<+> GHC.ppr tc
@@ -251,7 +251,7 @@ getMatch :: Converting m => GHC.TyCon -> m PIRTerm
 getMatch tc = do
     -- ensure the tycon has been compiled, which will create the matcher
     _ <- convTyCon tc
-    maybeMatch <- PIR.lookupDestructor () (GHC.getName tc)
+    maybeMatch <- PIR.lookupDestructor () (LexName $ GHC.getName tc)
     case maybeMatch of
         Just match -> pure match
         Nothing    -> throwSd CompilationError $ "Match has not been compiled for:" GHC.<+> GHC.ppr tc

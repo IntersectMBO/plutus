@@ -1,16 +1,16 @@
 (program
   (let
     (nonrec)
-    (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    (termbind
+      (vardecl
+        multiplyInteger (fun (con integer) (fun (con integer) (con integer)))
+      )
+      (builtin multiplyInteger)
     )
     (let
       (nonrec)
-      (termbind
-        (vardecl
-          multiplyInteger (fun (con integer) (fun (con integer) (con integer)))
-        )
-        (builtin multiplyInteger)
+      (datatypebind
+        (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
       )
       (let
         (nonrec)

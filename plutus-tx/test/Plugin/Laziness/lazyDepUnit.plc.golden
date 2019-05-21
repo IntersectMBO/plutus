@@ -1,7 +1,9 @@
 (program
   (let
     (nonrec)
-    (termbind (vardecl emptyByteString (con bytestring)) (con #))
+    (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    )
     (let
       (nonrec)
       (termbind
@@ -10,9 +12,7 @@
       )
       (let
         (nonrec)
-        (datatypebind
-          (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-        )
+        (termbind (vardecl emptyByteString (con bytestring)) (con #))
         (let
           (nonrec)
           (termbind
