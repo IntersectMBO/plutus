@@ -10,7 +10,7 @@ import           Language.PlutusIR.Compiler.Error
 import           Language.PlutusIR.Compiler.Provenance
 import           Language.PlutusIR.Compiler.Recursion
 import           Language.PlutusIR.Compiler.Types
-import qualified Language.PlutusIR.MkPir as PIR
+import qualified Language.PlutusIR.MkPir               as PIR
 
 import           Control.Monad
 import           Control.Monad.Error.Lens
@@ -47,7 +47,7 @@ compileInBinding
     -> m (Binding TyName Name (Provenance a))
 compileInBinding kind b = case b of
     TermBind x d rhs -> TermBind x d <$> compileLets kind rhs
-    _ -> pure b
+    _                -> pure b
 
 compileRecBindings :: Compiling m e a => LetKind -> PIRTerm a -> [Binding TyName Name (Provenance a)] -> m (PIRTerm a)
 compileRecBindings kind body bs =

@@ -7,7 +7,7 @@ import           Language.PlutusIR
 import           Language.PlutusIR.Compiler.Error
 import           Language.PlutusIR.Compiler.Provenance
 import           Language.PlutusIR.Compiler.Types
-import qualified Language.PlutusIR.MkPir as PIR
+import qualified Language.PlutusIR.MkPir                    as PIR
 
 import           Control.Monad
 import           Control.Monad.Error.Lens

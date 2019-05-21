@@ -7,19 +7,19 @@ module Language.PlutusIR.Compiler.Datatype (compileDatatype, compileRecDatatypes
 import           PlutusPrelude                         (showText)
 
 import           Language.PlutusIR
+import           Language.PlutusIR.Compiler.Error
 import           Language.PlutusIR.Compiler.Names
 import           Language.PlutusIR.Compiler.Provenance
 import           Language.PlutusIR.Compiler.Types
-import           Language.PlutusIR.Compiler.Error
-import qualified Language.PlutusIR.MkPir as PIR
+import qualified Language.PlutusIR.MkPir               as PIR
 
 import qualified Language.PlutusCore.MkPlc             as PLC
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Type       as Types
 import qualified Language.PlutusCore.Subst             as PLC
 
-import           Control.Monad.Reader
 import           Control.Monad.Error.Lens
+import           Control.Monad.Reader
 
 import qualified Data.Text                             as T
 import           Data.Traversable
@@ -30,7 +30,7 @@ import           Data.Traversable
 replaceFunTyTarget :: Type tyname a -> Type tyname a -> Type tyname a
 replaceFunTyTarget newTarget t = case t of
     TyFun a t1 t2 -> TyFun a t1 $ replaceFunTyTarget newTarget t2
-    _                 -> newTarget
+    _             -> newTarget
 
 -- | Given the type of a constructor, get the type of the "case" type with the given result type.
 -- @constructorCaseType R (A->Maybe A) = (A -> R)@
@@ -42,7 +42,7 @@ constructorCaseType resultType = replaceFunTyTarget resultType . varDeclType
 funTyArgs :: Type tyname a -> [Type tyname a]
 funTyArgs t = case t of
     TyFun _ t1 t2 -> t1 : funTyArgs t2
-    _                 -> []
+    _             -> []
 
 -- | Given the type of a constructor, get its argument types.
 -- @constructorArgTypes (A->Maybe A) = [A]
@@ -398,6 +398,6 @@ compileDatatype r body d@(Datatype _ tn _ destr constrs) = do
 
 compileRecDatatypes :: Compiling m e a => PIRTerm a -> [Datatype TyName Name (Provenance a)] -> m (PIRTerm a)
 compileRecDatatypes body ds = case ds of
-    [] -> pure body
+    []  -> pure body
     [d] -> compileDatatype Rec body d
     _   -> ask >>= \p -> throwing _Error $ UnsupportedError p "Mutually recursive datatypes"

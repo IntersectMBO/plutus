@@ -10,9 +10,9 @@ module Language.PlutusIR.Compiler (
 import           Language.PlutusIR
 
 import           Language.PlutusIR.Compiler.Error
+import qualified Language.PlutusIR.Compiler.Let              as Let
 import           Language.PlutusIR.Compiler.Lower
 import           Language.PlutusIR.Compiler.Provenance
-import qualified Language.PlutusIR.Compiler.Let             as Let
 import           Language.PlutusIR.Compiler.Types
 import           Language.PlutusIR.Transform.Rename          ()
 import           Language.PlutusIR.Transform.ThunkRecursions
