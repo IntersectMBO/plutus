@@ -35,7 +35,6 @@ library
         Playground.Server
         Playground.Interpreter
         Playground.Usecases
-        Git
         Gist
         Auth
         Auth.Types
@@ -65,12 +64,14 @@ library
         mtl -any,
         newtype-generics -any,
         plutus-playground-lib -any,
+        process -any,
         regex-compat -any,
         servant <0.16,
         servant-client -any,
         servant-client-core -any,
         servant-purescript -any,
         servant-server -any,
+        template-haskell -any,
         text -any,
         time -any,
         time-units -any,

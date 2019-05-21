@@ -82,11 +82,15 @@ let
 
     # The git revision comes from `rev` if available (Hydra), otherwise
     # it is read using IFD and git, which is avilable on local builds.
-    # NOTE: depending on this will make your package rebuild on every commit, regardless of whether
-    # anything else has changed!
     git-rev = 
       let ifdRev = (import (pkgs.callPackage ./nix/git-rev.nix { gitDir = builtins.path { name = "gitDir"; path = ./.git; }; })).rev;
       in removeSuffix "\n" (if isNull rev then ifdRev else rev);
+
+    # set-git-rev is a function that can be called on a haskellPackages package to inject the git revision post-compile
+    set-git-rev = self.callPackage ./scripts/set-git-rev {
+      inherit (self.haskellPackages) ghc;
+      inherit git-rev;
+    };
 
     # This is the stackage LTS plus overrides, plus the plutus
     # packages.
@@ -95,14 +99,7 @@ let
         inherit pkgs;
         filter = localLib.isPlutus;
       };
-      # When building we want the git sha available in the Haskell code, previously we did this with
-      # a template haskell function that ran a git command however the git directory is not available
-      # to the derivation so this fails. What we do now is create a derivation that overrides a magic
-      # Haskell module with the git sha.
-      gitModuleOverlay = import ./nix/overlays/git-module.nix {
-        inherit pkgs git-rev;
-      };
-      customOverlays = optional forceError errorOverlay ++ [gitModuleOverlay];
+      customOverlays = optional forceError errorOverlay;
       # Filter down to local packages, except those named in the given list
       localButNot = nope:
         let okay = builtins.filter (name: !(builtins.elem name nope)) localLib.plutusPkgList;
@@ -168,17 +165,18 @@ let
     };
 
     plutus-playground = rec {
+      playground-exe = set-git-rev haskellPackages.plutus-playground-server;
       server-invoker = let
         # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
         runtimeGhc = haskellPackages.ghcWithPackages (ps: [
-          haskellPackages.plutus-playground-server
+          playground-exe
           haskellPackages.plutus-playground-lib
           haskellPackages.plutus-use-cases
         ]);
       in pkgs.runCommand "plutus-server-invoker" { buildInputs = [pkgs.makeWrapper]; } ''
         # We need to provide the ghc interpreter with the location of the ghc lib dir and the package db
         mkdir -p $out/bin
-        ln -s ${haskellPackages.plutus-playground-server}/bin/plutus-playground-server $out/bin/plutus-playground
+        ln -s ${playground-exe}/bin/plutus-playground-server $out/bin/plutus-playground
         wrapProgram $out/bin/plutus-playground \
           --set GHC_LIB_DIR "${runtimeGhc}/lib/ghc-${runtimeGhc.version}" \
           --set GHC_BIN_DIR "${runtimeGhc}/bin" \
@@ -189,7 +187,7 @@ let
       client = let
         generated-purescript = pkgs.runCommand "plutus-playground-purescript" {} ''
           mkdir $out
-          ${haskellPackages.plutus-playground-server}/bin/plutus-playground-server psgenerator $out
+          ${playground-exe}/bin/plutus-playground-server psgenerator $out
         '';
         in
         pkgs.callPackage ./plutus-playground-client {
@@ -200,11 +198,12 @@ let
     };
 
     meadow = rec {
+      meadow-exe = set-git-rev haskellPackages.meadow;
       server-invoker = let
         # meadow uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
         runtimeGhc = haskellPackages.ghcWithPackages (ps: [
           haskellPackages.marlowe
-          haskellPackages.meadow
+          meadow-exe
         ]);
       in pkgs.runCommand "meadow-server-invoker" { buildInputs = [pkgs.makeWrapper]; } ''
         # We need to provide the ghc interpreter with the location of the ghc lib dir and the package db
@@ -220,7 +219,7 @@ let
       client = let
         generated-purescript = pkgs.runCommand "meadow-purescript" {} ''
           mkdir $out
-          ${haskellPackages.meadow}/bin/meadow-exe psgenerator $out
+          ${meadow-exe}/bin/meadow-exe psgenerator $out
         '';
         in
         pkgs.callPackage ./meadow-client {
