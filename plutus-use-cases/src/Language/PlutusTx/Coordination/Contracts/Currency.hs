@@ -27,11 +27,29 @@ import           Ledger.Scripts            (ValidatorScript(..))
 import qualified Ledger.Validation         as V
 import qualified Ledger.Value              as Value
 import           Ledger                    as Ledger hiding (to)
-import           Ledger.Value              (Value)
+import           Ledger.Value              (TokenName, Value)
 import           Wallet.API                as WAPI
 
 import qualified Language.PlutusTx.Coordination.Contracts.PubKey as PK
-import           Language.PlutusTx.Coordination.Contracts.Currency.Stage0 as Stage0
+
+{-# ANN module ("HLint: ignore Use uncurry" :: String) #-}
+
+data Currency = Currency
+  { curRefTransactionOutput :: (TxHash, Integer)
+  -- ^ Transaction input that must be spent when
+  --   the currency is forged.
+  , curAmounts              :: LMap.Map TokenName Integer
+  -- ^ How many units of each 'TokenName' are to
+  --   be forged.
+  }
+
+P.makeLift ''Currency
+
+currencyValue :: CurrencySymbol -> Currency -> Value
+currencyValue s Currency{curAmounts = amts} =
+    let
+        values = P.map (\(tn, i) -> (Value.singleton s tn i)) (LMap.toList amts)
+    in P.foldr Value.plus Value.zero values
 
 mkCurrency :: TxOutRef -> [(String, Integer)] -> Currency
 mkCurrency (TxOutRefOf h i) amts =
@@ -40,39 +58,38 @@ mkCurrency (TxOutRefOf h i) amts =
         , curAmounts              = LMap.fromList (fmap (first fromString) amts)
         }
 
+validate :: Currency -> () -> () -> V.PendingTx -> ()
+validate c@(Currency (refHash, refIdx) _) () () p =
+    let
+        -- see note [Obtaining the currency symbol]
+        ownSymbol = V.ownCurrencySymbol p
+
+        forged = V.pendingTxForge p
+        expected = currencyValue ownSymbol c
+
+        -- True if the pending transaction forges the amount of
+        -- currency that we expect
+        forgeOK =
+            let v = Value.eq expected forged
+            in P.traceIfFalseH "Value forged different from expected" v
+
+        -- True if the pending transaction spends the output
+        -- identified by @(refHash, refIdx)@
+        txOutputSpent =
+            let v = V.spendsOutput p refHash refIdx
+            in  P.traceIfFalseH "Pending transaction does not spend the designated transaction output" v
+
+    in
+        if forgeOK `P.and` txOutputSpent
+        then ()
+        else P.traceErrorH "Invalid forge"
+
 curValidator :: Currency -> ValidatorScript
 curValidator cur =
-    ValidatorScript (Ledger.applyScript mkValidator (Ledger.lifted cur)) where
-        mkValidator = Ledger.fromCompiledCode ($$(P.compile [||
-            let validate :: Currency -> () -> () -> V.PendingTx -> ()
-                validate c@(Currency (refHash, refIdx) _) () () p =
-                    let
-                        -- see note [Obtaining the currency symbol]
-                        ownSymbol = V.ownCurrencySymbol p
-
-                        forged = V.pendingTxForge p
-                        expected = currencyValue ownSymbol c
-
-
-                        -- True if the pending transaction forges the amount of
-                        -- currency that we expect
-                        forgeOK =
-                            let v = Value.eq expected forged
-                            in P.traceIfFalseH "Value forged different from expected" v
-
-                        -- True if the pending transaction spends the output
-                        -- identified by @(refHash, refIdx)@
-                        txOutputSpent =
-                            let v = V.spendsOutput p refHash refIdx
-                            in  P.traceIfFalseH "Pending transaction does not spend the designated transaction output" v
-
-                    in
-                        if P.and forgeOK txOutputSpent
-                        then ()
-                        else P.error (P.traceH "Invalid forge" ())
-            in
-                validate
-            ||]))
+    ValidatorScript $
+        Ledger.applyScript 
+            (Ledger.fromCompiledCode $$(P.compile [|| validate ||]))
+            (Ledger.lifted cur)
 
 {- note [Obtaining the currency symbol]
 
