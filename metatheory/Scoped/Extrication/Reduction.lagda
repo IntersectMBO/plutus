@@ -27,6 +27,8 @@ open import Builtin
 open import Builtin.Constant.Term
 open import Builtin.Constant.Type
 
+open import Relation.Nullary
+
 
 open import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf 
@@ -61,6 +63,9 @@ extricateVTel Γ Δ σ []       _ _ = tt
 extricateVTel Γ Δ σ (A ∷ As) (t Σ., tel) (v Σ., vtel) =
   extricateVal v ,, extricateVTel Γ Δ σ As tel vtel
 
+extricate-decIf : ∀{X Φ}{Γ : A.Ctx Φ}{A : Φ ⊢Nf⋆ *}(p : Dec X)(t f : Γ A.⊢ A) → decIf p (extricate t) (extricate f) ≡ extricate (decIf p t f)
+extricate-decIf (yes p) t f = refl
+extricate-decIf (no ¬p) t f = refl
 
 extricate—→ (ξ-·₁ p)   = ξ-·₁ (extricate—→ p)
 extricate—→ (ξ-·₂ p q) = ξ-·₂ (extricateVal p) (extricate—→ q)
@@ -81,9 +86,10 @@ extricate—→ (β-builtin subtractInteger σ _ vtel@(V-con (integer i) ,, V-co
   β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG subtractInteger))) _ vtel)
 extricate—→ (β-builtin multiplyInteger σ _ vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) =
   β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG multiplyInteger))) _ vtel)
-extricate—→ (β-builtin divideInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) with ∣ j ∣ Data.Nat.≟ 0 | SR.β-builtin {b = divideInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG divideInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG divideInteger))) _ vtel) 
-... | yes p | r = r
-... | no ¬p | r = r
+extricate—→ (β-builtin divideInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) =  Eq.subst
+  (builtin divideInteger [] (con (integer i) ∷ con (integer j) ∷ []) SR.—→_)
+  (extricate-decIf (∣ j ∣ Data.Nat.≟ 0) (error (con integer)) (con (integer (div i j))))
+  (SR.β-builtin {b = divideInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG divideInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG divideInteger))) _ vtel))  
 extricate—→ (β-builtin quotientInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) with ∣ j ∣ Data.Nat.≟ 0 | SR.β-builtin {b = quotientInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG quotientInteger))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG quotientInteger))) _ vtel) 
 ... | yes p | r = r
 ... | no ¬p | r = r
@@ -327,7 +333,9 @@ extricate-progress-builtin : ∀ bn
 extricate-progress-builtin addInteger σ _ (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = refl
 extricate-progress-builtin subtractInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = refl
 extricate-progress-builtin multiplyInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = refl
-extricate-progress-builtin divideInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = {!!}
+extricate-progress-builtin divideInteger σ tel (done vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = lem-step
+  (SR.β-builtin {b = divideInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG divideInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG divideInteger))) _ vtel))  
+  (extricate-decIf (∣ j ∣ Data.Nat.≟ 0) (error (con integer)) (con (integer (div i j))))
 extricate-progress-builtin quotientInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = {!!}
 extricate-progress-builtin remainderInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = {!!}
 extricate-progress-builtin modInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = {!!}
@@ -415,7 +423,6 @@ extricate-progress-builtin verifySignature σ tel (step (.(con bytestring) ∷ [
 extricate-progress-builtin verifySignature σ tel (step (.(con bytestring) ∷ .(con bytestring) ∷ []) .[] telB vtelB p refl telD) = refl
 extricate-progress-builtin verifySignature σ tel (step (B ∷ B' ∷ B'' ∷ []) Ds telB vtelB p () telD)
 extricate-progress-builtin verifySignature σ tel (step (B ∷ B' ∷ B'' ∷ B''' ∷ Bs) Ds telB vtelB p () telD)
-
 extricate-progress-builtin equalsByteString σ tel (step [] .(con bytestring ∷ []) telB vtelB p refl telD) = refl
 extricate-progress-builtin equalsByteString σ tel (step (._ ∷ []) Ds telB vtelB p refl telD) = refl
 extricate-progress-builtin equalsByteString σ tel (step (B ∷ B' ∷ []) Ds telB vtelB p () telD)

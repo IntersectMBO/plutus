@@ -18,7 +18,7 @@ open import Data.Integer as I
 open import Data.Nat as N hiding (_<?_;_>?_;_≥?_)
 open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality hiding ([_];trans)
-import Agda.Builtin.Bool as B
+import Data.Bool as B
 \end{code}
 
 \begin{code}
@@ -104,42 +104,33 @@ BUILTIN subtractInteger _ _ _ = error (con integer)
 BUILTIN multiplyInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
   con (integer (i I.* i'))
 BUILTIN multiplyInteger _ _ _ = error (con integer)
-BUILTIN divideInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) with ∣ i' ∣ N.≟ zero
-... | yes p = error (con integer)
-... | no ¬p = con (integer (div i i'))
+BUILTIN divideInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
+  decIf (∣ i' ∣ N.≟ 0) (error (con integer)) (con (integer (div i i')))
 BUILTIN divideInteger _ _ _ = error (con integer)
-BUILTIN quotientInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) with ∣ i' ∣ N.≟ zero
-... | yes p = error (con integer)
-... | no ¬p = con (integer (quot i i'))
+BUILTIN quotientInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
+  decIf (∣ i' ∣ N.≟ 0) (error (con integer)) (con (integer (quot i i')))
 BUILTIN quotientInteger _ _ _ = error (con integer)
-BUILTIN remainderInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) with ∣ i' ∣ N.≟ zero
-... | yes p = error (con integer)
-... | no ¬p = con (integer (rem i i'))
+BUILTIN remainderInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
+    decIf (∣ i' ∣ N.≟ 0) (error (con integer)) (con (integer (rem i i')))
 BUILTIN remainderInteger _ _ _ = error (con integer)
-BUILTIN modInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) with ∣ i' ∣ N.≟ zero
-... | yes p = error (con integer)
-... | no ¬p = con (integer (mod i i'))
+BUILTIN modInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
+    decIf (∣ i' ∣ N.≟ 0) (error (con integer)) (con (integer (mod i i')))
 BUILTIN modInteger _ _ _ = error (con integer)
 -- Int -> Int -> Bool
-BUILTIN lessThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i'), tt) with i <? i'
-... | yes q = true
-... | no ¬p = false
+BUILTIN lessThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i'), tt) =
+  decIf (i <? i') true false
 BUILTIN lessThanInteger _ _ _ = error boolean
-BUILTIN lessThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) with i I.≤? i'
-... | yes q = true
-... | no ¬p = false
+BUILTIN lessThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
+  decIf (i I.≤? i') true false
 BUILTIN lessThanEqualsInteger _ _ _ = error boolean
-BUILTIN greaterThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) with i >? i'
-... | yes q = true
-... | no ¬p = false
+BUILTIN greaterThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
+  decIf (i >? i') true false
 BUILTIN greaterThanInteger _ _ _ = error boolean
-BUILTIN greaterThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) with i ≥? i'
-... | yes q = true
-... | no ¬p = false
+BUILTIN greaterThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
+  decIf (i ≥? i') true false
 BUILTIN greaterThanEqualsInteger _ _ _ = error boolean
-BUILTIN equalsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) with i I.≟ i'
-... | yes q = true
-... | no ¬p = false
+BUILTIN equalsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
+  decIf (i I.≟ i') true false
 BUILTIN equalsInteger _ _ _ = error boolean
 -- BS -> BS -> BS
 BUILTIN concatenate _ (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) = con (bytestring (append b b'))
@@ -154,15 +145,14 @@ BUILTIN sha2-256 _ (_ ∷ []) (V-con (bytestring b) , tt) = con (bytestring (SHA
 BUILTIN sha2-256 _ _ _ = error (con bytestring)
 BUILTIN sha3-256 _ (_ ∷ []) (V-con (bytestring b) , tt) = con (bytestring (SHA3-256 b))
 BUILTIN sha3-256 _ _ _ = error (con bytestring)
-BUILTIN verifySignature _ (_ ∷ _ ∷ _ ∷ []) (V-con (bytestring k) , V-con (bytestring d) , V-con (bytestring c) , tt) with verifySig k d c
+BUILTIN verifySignature _ (_ ∷ _ ∷ _ ∷ []) (V-con (bytestring k) , V-con (bytestring d) , V-con (bytestring c) , tt) with verifySig k d c 
 ... | just B.false = false
 ... | just B.true = true
 ... | nothing = error boolean
 BUILTIN verifySignature _ _ _ = error (con bytestring)
 -- Int -> Int
-BUILTIN equalsByteString _ (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) with equals b b'
-... | B.true  = true
-... | B.false = false
+BUILTIN equalsByteString _ (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) =
+  B.if equals b b' then true else false
 BUILTIN equalsByteString _ _ _ = error boolean
 
 data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
@@ -227,7 +217,7 @@ progress· (done (V-ƛ x A t))         u = step β-ƛ
 progress· (done (V-Λ x K t))         u = error E-Λ·
 progress· (done (V-con tcn))         u = error E-con·
 progress· (done (V-wrap A B t))      u = error E-wrap·
-progress· (done (V-builtin b As ts)) u = step sat-builtin -- TODO
+progress· (done (V-builtin b As ts)) u = step sat-builtin
 progress· (error e)                  u = error (E-·₁ e)
 
 progress·⋆ : ∀{t : ScopedTm Z} → Progress t → (A : ScopedTy 0)
@@ -237,7 +227,7 @@ progress·⋆ (done (V-ƛ x B t))         A = error E-ƛ·⋆
 progress·⋆ (done (V-Λ x K t))         A = step β-Λ
 progress·⋆ (done (V-con tcn))         A = error E-con·⋆
 progress·⋆ (done (V-wrap pat arg t))  A = error E-wrap·⋆
-progress·⋆ (done (V-builtin b As ts)) A = error E-builtin·⋆ -- TODO
+progress·⋆ (done (V-builtin b As ts)) A = error E-builtin·⋆
 progress·⋆ (error e)                  A = error (E-·⋆ e)
 
 progress-unwrap : ∀{t : ScopedTm Z} → Progress t → Progress (unwrap t)
@@ -246,7 +236,7 @@ progress-unwrap (done (V-ƛ x A t)) = error E-ƛunwrap
 progress-unwrap (done (V-Λ x K t)) = error E-Λunwrap
 progress-unwrap (done (V-con tcn)) = error E-conunwrap
 progress-unwrap (done (V-wrap A B t)) = step β-wrap
-progress-unwrap (done (V-builtin b As ts)) = error E-builtinunwrap -- TODO
+progress-unwrap (done (V-builtin b As ts)) = error E-builtinunwrap
 progress-unwrap (error e) = error (E-unwrap e)
 
 progress-builtin : ∀ bn → (As : List (ScopedTy 0)) (tel : Tel Z)

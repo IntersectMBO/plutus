@@ -105,57 +105,56 @@ BUILTIN : ∀{Φ Γ}
     → (tel : Tel Γ Δ σ As)
     → (vtel : VTel Γ Δ σ As tel)
       -----------------------------
-    → Maybe (Γ ⊢ substNf σ C)
-BUILTIN addInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) = just (con (integer (i + j)))
-BUILTIN subtractInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) = just (con (integer (i - j)))
-BUILTIN multiplyInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) = just (con (integer (i ** j)))
-BUILTIN divideInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) with ∣ j ∣ Data.Nat.≟ zero
-... | yes p = nothing
-... | no ¬p = just (con (integer (div i j)))
+    → Γ ⊢ substNf σ C
+BUILTIN addInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) = con (integer (i + j))
+BUILTIN subtractInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) = con (integer (i - j))
+BUILTIN multiplyInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) = con (integer (i ** j))
+BUILTIN divideInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
+  decIf (∣ j ∣ Data.Nat.≟ zero) (error _) (con (integer (div i j)))
 BUILTIN quotientInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) with ∣ j ∣ Data.Nat.≟ zero
-... | yes p = nothing
-... | no ¬p = just (con (integer (quot i j)))
+... | yes p = error _
+... | no ¬p = con (integer (quot i j))
 BUILTIN remainderInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) with ∣ j ∣ Data.Nat.≟ zero
-... | yes p = nothing
-... | no ¬p = just (con (integer (rem i j)))
+... | yes p = error _
+... | no ¬p = con (integer (rem i j))
 BUILTIN modInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) with ∣ j ∣ Data.Nat.≟ zero
-... | yes p = nothing
-... | no ¬p = just (con (integer (mod i j)))
+... | yes p = error _
+... | no ¬p = con (integer (mod i j))
 BUILTIN lessThanInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt)  with i Builtin.Constant.Type.<? j
-... | yes _ = just true
-... | no _  = just false
+... | yes _ = true
+... | no _  = false
 BUILTIN lessThanEqualsInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) with i ≤? j
-... | yes _ = just true
-... | no _  = just false
+... | yes _ = true
+... | no _  = false
 BUILTIN greaterThanInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt)
   with i Builtin.Constant.Type.>? j
-... | yes _ = just true
-... | no _  = just false
+... | yes _ = true
+... | no _  = false
 BUILTIN greaterThanEqualsInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt)
   with i Builtin.Constant.Type.≥? j
-... | yes _ = just true
-... | no _  = just false
+... | yes _ = true
+... | no _  = false
 BUILTIN equalsInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt)
   with i ≟ j
-... | yes _ = just true
-... | no _  = just false
+... | yes _ = true
+... | no _  = false
 BUILTIN concatenate _ _ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) =
-  just (con (bytestring (append b b')))
+  con (bytestring (append b b'))
 BUILTIN takeByteString _ _ (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
-  just (con (bytestring (take i b)))
+  con (bytestring (take i b))
 BUILTIN dropByteString _ _ (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
-  just (con (bytestring (drop i b)))
-BUILTIN sha2-256 _ _ (V-con (bytestring b) ,, tt) = just (con (bytestring (SHA2-256 b)))
-BUILTIN sha3-256 _ _ (V-con (bytestring b) ,, tt) = just (con (bytestring (SHA3-256 b)))
+  con (bytestring (drop i b))
+BUILTIN sha2-256 _ _ (V-con (bytestring b) ,, tt) = con (bytestring (SHA2-256 b))
+BUILTIN sha3-256 _ _ (V-con (bytestring b) ,, tt) = con (bytestring (SHA3-256 b))
 BUILTIN verifySignature _ _ (V-con (bytestring k) ,, V-con (bytestring d) ,, V-con (bytestring c) ,, tt)
   with verifySig k d c
-... | just Bool.true  = just true
-... | just Bool.false = just false
-... | nothing = nothing
+... | just Bool.true  = true
+... | just Bool.false = false
+... | nothing = error _
 BUILTIN equalsByteString _ _ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt)
   with equals b b'
-... | Bool.true  = just true
-... | Bool.false = just false
+... | Bool.true  = true
+... | Bool.false = false
 \end{code}
 
 
@@ -227,7 +226,7 @@ data _—→_ : ∀ {J Φ Γ} {A : Φ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ ⊢ A) 
     → (tel : Tel Γ Δ σ As)
     → (vtel : VTel Γ Δ σ As tel)
       -----------------------------
-    → builtin bn σ tel —→ maybe id (error _) (BUILTIN bn σ tel vtel)
+    → builtin bn σ tel —→ BUILTIN bn σ tel vtel
     
   ξ-builtin : ∀{Φ Γ}  → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
