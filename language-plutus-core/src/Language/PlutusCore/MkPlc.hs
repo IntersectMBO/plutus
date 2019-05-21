@@ -20,8 +20,8 @@ module Language.PlutusCore.MkPlc ( TermLike (..)
                                  , functionDefToType
                                  , functionDefVarDecl
                                  , mkFunctionDef
-                                 , mkTermLet
-                                 , mkTypeLet
+                                 , mkImmediateLamAbs
+                                 , mkImmediateTyAbs
                                  , mkIterTyForall
                                  , mkIterTyLam
                                  , mkIterApp
@@ -66,8 +66,8 @@ instance TermLike (Term tyname name) tyname name where
     unwrap   = Unwrap
     iWrap    = IWrap
     error    = Error
-    termLet  = mkTermLet
-    typeLet  = mkTypeLet
+    termLet  = mkImmediateLamAbs
+    typeLet  = mkImmediateTyAbs
 
 embed :: TermLike term tyname name => Term tyname name a -> term a
 embed = \case
@@ -154,23 +154,23 @@ mkFunctionDef annName name (TyFun annTy dom cod) term =
     Just $ FunctionDef annName name (FunctionType annTy dom cod) term
 mkFunctionDef _       _    _                     _    = Nothing
 
--- | Make a "let-binding" for a term.
-mkTermLet
+-- | Make a "let-binding" for a term as an immediately applied lambda abstraction.
+mkImmediateLamAbs
     :: TermLike term tyname name
     => a
     -> TermDef term tyname name a
     -> term a -- ^ The body of the let, possibly referencing the name.
     -> term a
-mkTermLet x1 (Def (VarDecl x2 name ty) bind) body = apply x1 (lamAbs x2 name ty body) bind
+mkImmediateLamAbs x1 (Def (VarDecl x2 name ty) bind) body = apply x1 (lamAbs x2 name ty body) bind
 
--- | Make a "let-binding" for a type. Note: the body must be a value.
-mkTypeLet
+-- | Make a "let-binding" for a type as an immediately instantiated type abstraction. Note: the body must be a value.
+mkImmediateTyAbs
     :: TermLike term tyname name
     => a
     -> TypeDef tyname a
     -> term a -- ^ The body of the let, possibly referencing the name.
     -> term a
-mkTypeLet x1 (Def (TyVarDecl x2 name k) bind) body = tyInst x1 (tyAbs x2 name k body) bind
+mkImmediateTyAbs x1 (Def (TyVarDecl x2 name k) bind) body = tyInst x1 (tyAbs x2 name k body) bind
 
 -- | Make an iterated application.
 mkIterApp
