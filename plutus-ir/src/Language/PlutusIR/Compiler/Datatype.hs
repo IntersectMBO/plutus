@@ -2,21 +2,23 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 -- | Functions for compiling let-bound PIR datatypes into PLC.
-module Language.PlutusIR.Compiler.Datatype (compileDatatype) where
+module Language.PlutusIR.Compiler.Datatype (compileDatatype, compileRecDatatypes) where
 
 import           PlutusPrelude                         (showText)
 
 import           Language.PlutusIR
+import           Language.PlutusIR.Compiler.Error
 import           Language.PlutusIR.Compiler.Names
 import           Language.PlutusIR.Compiler.Provenance
 import           Language.PlutusIR.Compiler.Types
+import qualified Language.PlutusIR.MkPir               as PIR
 
-import qualified Language.PlutusCore                   as PLC
 import qualified Language.PlutusCore.MkPlc             as PLC
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Type       as Types
 import qualified Language.PlutusCore.Subst             as PLC
 
+import           Control.Monad.Error.Lens
 import           Control.Monad.Reader
 
 import qualified Data.Text                             as T
@@ -25,26 +27,26 @@ import           Data.Traversable
 -- Utilities
 
 -- | @replaceFunTyTarget X (A->..->Z) = (A->..->X)@
-replaceFunTyTarget :: PLC.Type tyname a -> PLC.Type tyname a -> PLC.Type tyname a
+replaceFunTyTarget :: Type tyname a -> Type tyname a -> Type tyname a
 replaceFunTyTarget newTarget t = case t of
-    PLC.TyFun a t1 t2 -> PLC.TyFun a t1 $ replaceFunTyTarget newTarget t2
-    _                 -> newTarget
+    TyFun a t1 t2 -> TyFun a t1 $ replaceFunTyTarget newTarget t2
+    _             -> newTarget
 
 -- | Given the type of a constructor, get the type of the "case" type with the given result type.
 -- @constructorCaseType R (A->Maybe A) = (A -> R)@
-constructorCaseType :: PLC.Type tyname a -> VarDecl tyname name a -> PLC.Type tyname a
+constructorCaseType :: Type tyname a -> VarDecl tyname name a -> Type tyname a
 constructorCaseType resultType = replaceFunTyTarget resultType . varDeclType
 
 -- | Get the argument types of a function type.
 -- @funTyArgs (A->B->C) = [A, B]@
-funTyArgs :: PLC.Type tyname a -> [PLC.Type tyname a]
+funTyArgs :: Type tyname a -> [Type tyname a]
 funTyArgs t = case t of
-    PLC.TyFun _ t1 t2 -> t1 : funTyArgs t2
-    _                 -> []
+    TyFun _ t1 t2 -> t1 : funTyArgs t2
+    _             -> []
 
 -- | Given the type of a constructor, get its argument types.
 -- @constructorArgTypes (A->Maybe A) = [A]
-constructorArgTypes :: VarDecl tyname name a -> [PLC.Type tyname a]
+constructorArgTypes :: VarDecl tyname name a -> [Type tyname a]
 constructorArgTypes = funTyArgs . varDeclType
 
 -- | "Unveil" a datatype definition in a type, by replacing uses of the name as a type variable with the concrete definition.
@@ -214,21 +216,21 @@ For a (self-)recursive datatype we have to change three things:
 -- See note [Scott encoding of datatypes]
 -- | Make the "Scott-encoded" type for a 'Datatype', with type variables free.
 -- @mkScottTy Maybe = forall out_Maybe. out_Maybe -> (a -> out_Maybe) -> out_Maybe@
-mkScottTy :: forall m e a . Compiling m e a => Datatype TyName Name (Provenance a) -> m (PLCType a)
+mkScottTy :: forall m e a . Compiling m e a => Datatype TyName Name (Provenance a) -> m (PIRType a)
 mkScottTy d@(Datatype _ _ _ _ constrs) = do
     p <- ask
     resultType <- resultTypeName d
-    let caseTys = fmap (constructorCaseType (PLC.TyVar p resultType)) constrs
+    let caseTys = fmap (constructorCaseType (TyVar p resultType)) constrs
     pure $
         -- forall resultType
-        PLC.TyForall p resultType (PLC.Type p) $
+        TyForall p resultType (Type p) $
         -- c_1 -> .. -> c_n -> resultType
-        PLC.mkIterTyFun p caseTys (PLC.TyVar p resultType)
+        PIR.mkIterTyFun p caseTys (TyVar p resultType)
 
 -- | Make the "pattern functor" of a 'Datatype'. This is just the normal type, but with the
 -- type variable for the type itself free and its type variables free.
 -- @mkDatatypePatternFunctor List = forall (r :: *) . r -> (a -> List a -> r) -> r@
-mkDatatypePatternFunctor :: Compiling m e a => Datatype TyName Name (Provenance a) -> m (PLCType a)
+mkDatatypePatternFunctor :: Compiling m e a => Datatype TyName Name (Provenance a) -> m (PIRType a)
 mkDatatypePatternFunctor d = local (DatatypeComponent PatternFunctor) $ mkScottTy d
 
 -- | Make the real PLC type corresponding to a 'Datatype' with the given pattern functor.
@@ -237,7 +239,7 @@ mkDatatypePatternFunctor d = local (DatatypeComponent PatternFunctor) $ mkScottT
 --         = fix list . <pattern functor of List>
 --         = fix list . \(a :: *) -> forall (r :: *) . r -> (a -> List a -> r) -> r
 -- @
-mkDatatypeType :: forall m e a. Compiling m e a => Recursivity -> PLCType a -> Datatype TyName Name (Provenance a) -> m (PLCRecType a)
+mkDatatypeType :: forall m e a. Compiling m e a => Recursivity -> PIRType a -> Datatype TyName Name (Provenance a) -> m (PLCRecType a)
 mkDatatypeType r pf (Datatype _ tn tvs _ _) = local (DatatypeComponent DatatypeType) $ case r of
     NonRec -> PlainType <$> (PLC.mkIterTyLam <$> pure tvs <*> pure pf)
     -- See note [Recursive datatypes]
@@ -254,11 +256,11 @@ mkDatatypeType r pf (Datatype _ tn tvs _ _) = local (DatatypeComponent DatatypeT
 -- @
 --     mkConstructorType List Cons = forall (a :: *) . a -> List a -> List a
 -- @
-mkConstructorType :: Compiling m e a => Datatype TyName Name (Provenance a) -> VarDecl TyName Name (Provenance a) -> m (PLCType a)
+mkConstructorType :: Compiling m e a => Datatype TyName Name (Provenance a) -> VarDecl TyName Name (Provenance a) -> m (PIRType a)
 -- this type appears *inside* the scope of the abstraction for the datatype so we can just reference the name and
 -- we don't need to do anything to the declared type
 -- see note [Abstract data types]
-mkConstructorType (Datatype _ _ tvs _ _) constr = local (DatatypeComponent ConstructorType) $ PLC.mkIterTyForall <$> pure tvs <*> pure (varDeclType constr)
+mkConstructorType (Datatype _ _ tvs _ _) constr = local (DatatypeComponent ConstructorType) $ PIR.mkIterTyForall <$> pure tvs <*> pure (varDeclType constr)
 
 -- See note [Scott encoding of datatypes]
 -- | Make a constructor of a 'Datatype' with the given pattern functor. The constructor argument mostly serves to identify the constructor
@@ -269,7 +271,7 @@ mkConstructorType (Datatype _ _ tvs _ _) constr = local (DatatypeComponent Const
 --             wrap <pattern functor of List> /\(out_List :: *) .
 --                 \(case_Nil : out_List) (case_Cons : a -> List a -> out_List) . case_Cons arg1 arg2
 -- @
-mkConstructor :: Compiling m e a => PLCRecType a -> Datatype TyName Name (Provenance a) -> Int -> m (PLCTerm a)
+mkConstructor :: Compiling m e a => PLCRecType a -> Datatype TyName Name (Provenance a) -> Int -> m (PIRTerm a)
 mkConstructor dty d@(Datatype _ _ tvs _ constrs) index = local (DatatypeComponent Constructor) $ do
     p <- ask
     resultType <- resultTypeName d
@@ -278,13 +280,13 @@ mkConstructor dty d@(Datatype _ _ tvs _ constrs) index = local (DatatypeComponen
     casesAndTypes <- do
           -- these types appear *outside* the scope of the abstraction for the datatype, so we need to use the concrete datatype here
           -- see note [Abstract data types]
-          let caseTypes = unveilDatatype (getType dty) d <$> fmap (constructorCaseType (PLC.TyVar p resultType)) constrs
+          let caseTypes = unveilDatatype (getType dty) d <$> fmap (constructorCaseType (TyVar p resultType)) constrs
           caseArgNames <- for constrs (\c -> safeFreshName p $ "case_" <> T.pack (varDeclNameString c))
           pure $ zipWith (VarDecl p) caseArgNames caseTypes
 
     -- This is inelegant, but it should never fail
     let constr = constrs !! index
-    let thisCase = PLC.mkVar p $ casesAndTypes !! index
+    let thisCase = PIR.mkVar p $ casesAndTypes !! index
 
     -- constructor args and their types
     argsAndTypes <- do
@@ -298,19 +300,19 @@ mkConstructor dty d@(Datatype _ _ tvs _ constrs) index = local (DatatypeComponen
 
     pure $
         -- /\t_1 .. t_n
-        PLC.mkIterTyAbs tvs $
+        PIR.mkIterTyAbs tvs $
         -- \arg_1 .. arg_m
-        PLC.mkIterLamAbs argsAndTypes $
+        PIR.mkIterLamAbs argsAndTypes $
         -- See Note [Recursive datatypes]
         -- wrap
-        wrap p dty (fmap (PLC.mkTyVar p) tvs)$
+        wrap p dty (fmap (PIR.mkTyVar p) tvs)$
         -- no need for a body value check here, we know it's a lambda (see Note [Value restriction])
         -- forall out
-        PLC.TyAbs p resultType (PLC.Type p) $
+        TyAbs p resultType (Type p) $
         -- \case_1 .. case_j
-        PLC.mkIterLamAbs casesAndTypes $
+        PIR.mkIterLamAbs casesAndTypes $
         -- c_i arg_1 .. arg_m
-        PLC.mkIterApp p thisCase (fmap (PLC.mkVar p) argsAndTypes)
+        PIR.mkIterApp p thisCase (fmap (PIR.mkVar p) argsAndTypes)
 
 -- Destructors
 
@@ -321,25 +323,25 @@ mkConstructor dty d@(Datatype _ _ tvs _ constrs) index = local (DatatypeComponen
 --        = /\(a :: *) -> \(x : (<definition of List> a)) -> unwrap x
 --        = /\(a :: *) -> \(x : (fix List . \(a :: *) -> forall (r :: *) . r -> (a -> List a -> r) -> r) a) -> unwrap x
 -- @
-mkDestructor :: Compiling m e a => PLCRecType a -> Datatype TyName Name (Provenance a) -> m (PLCTerm a)
+mkDestructor :: Compiling m e a => PLCRecType a -> Datatype TyName Name (Provenance a) -> m (PIRTerm a)
 mkDestructor dty (Datatype _ _ tvs _ _) = local (DatatypeComponent Destructor) $ do
     p <- ask
 
     -- This term appears *outside* the scope of the abstraction for the datatype, so we need to put in the Scott-encoded type here
     -- see note [Abstract data types]
     -- dty t_1 .. t_n
-    let appliedReal = PLC.mkIterTyApp p (getType dty) (fmap (PLC.mkTyVar p) tvs)
+    let appliedReal = PIR.mkIterTyApp p (getType dty) (fmap (PIR.mkTyVar p) tvs)
 
     xn <- safeFreshName p "x"
     pure $
         -- /\t_1 .. t_n
-        PLC.mkIterTyAbs tvs $
+        PIR.mkIterTyAbs tvs $
         -- \x
-        PLC.LamAbs p xn appliedReal $
+        LamAbs p xn appliedReal $
         -- See note [Recursive datatypes]
         -- unwrap
         unwrap p dty $
-        PLC.Var p xn
+        Var p xn
 
 -- See note [Scott encoding of datatypes]
 -- | Make the type of a destructor for a 'Datatype'.
@@ -348,7 +350,7 @@ mkDestructor dty (Datatype _ _ tvs _ _) = local (DatatypeComponent Destructor) $
 --         = forall (a :: *) . (List a) -> (<pattern functor of List>)
 --         = forall (a :: *) . (List a) -> (forall (out_List :: *) . (out_List -> (a -> List a -> out_List) -> out_List))
 -- @
-mkDestructorTy :: Compiling m e a => PLCType a -> Datatype TyName Name (Provenance a) -> m (PLCType a)
+mkDestructorTy :: Compiling m e a => PIRType a -> Datatype TyName Name (Provenance a) -> m (PIRType a)
 mkDestructorTy pf (Datatype _ tn tvs _ _) = local (DatatypeComponent DestructorType) $ do
     p <- ask
 
@@ -361,35 +363,41 @@ mkDestructorTy pf (Datatype _ tn tvs _ _) = local (DatatypeComponent DestructorT
     -- and we don't need to do anything to the pattern functor
     -- see note [Abstract data types]
     -- t t_1 .. t_n
-    let appliedAbstract = PLC.mkIterTyApp p (PLC.mkTyVar p tn) (fmap (PLC.mkTyVar p) tvs)
+    let appliedAbstract = PIR.mkIterTyApp p (PIR.mkTyVar p tn) (fmap (PIR.mkTyVar p) tvs)
     -- forall t_1 .. t_n
     pure $
-        PLC.mkIterTyForall tvs $
-        PLC.TyFun p appliedAbstract pf
+        PIR.mkIterTyForall tvs $
+        TyFun p appliedAbstract pf
 
 -- The main function
 
 -- | Compile a 'Datatype' bound with the given body.
-compileDatatype :: Compiling m e a => Recursivity -> PLCTerm a -> Datatype TyName Name (Provenance a) -> m (PLCTerm a)
+compileDatatype :: Compiling m e a => Recursivity -> PIRTerm a -> Datatype TyName Name (Provenance a) -> m (PIRTerm a)
 compileDatatype r body d@(Datatype _ tn _ destr constrs) = do
     p <- ask
 
     -- we compute the pattern functor and pass it around to avoid recomputing it
     pf <- mkDatatypePatternFunctor d
-    concreteTyDef <- PLC.Def tn <$> mkDatatypeType r pf d
+    concreteTyDef <- PIR.Def tn <$> mkDatatypeType r pf d
 
     constrDefs <- for (zip constrs [0..]) $ \(c, i) -> do
         constrTy <- mkConstructorType d c
-        PLC.Def (VarDecl p (varDeclName c) constrTy) <$> mkConstructor (PLC.defVal concreteTyDef) d i
+        PIR.Def (VarDecl p (varDeclName c) constrTy) <$> mkConstructor (PIR.defVal concreteTyDef) d i
 
     destrDef <- do
         destTy <- mkDestructorTy pf d
-        PLC.Def (VarDecl p destr destTy) <$> mkDestructor (PLC.defVal concreteTyDef) d
+        PIR.Def (VarDecl p destr destTy) <$> mkDestructor (PIR.defVal concreteTyDef) d
 
     let
-        tyVars = [PLC.defVar concreteTyDef]
-        tys = [getType $ PLC.defVal concreteTyDef]
-        vars = fmap PLC.defVar constrDefs ++ [PLC.defVar destrDef]
-        vals = fmap PLC.defVal constrDefs ++ [PLC.defVal destrDef]
+        tyVars = [PIR.defVar concreteTyDef]
+        tys = [getType $ PIR.defVal concreteTyDef]
+        vars = fmap PIR.defVar constrDefs ++ [PIR.defVar destrDef]
+        vals = fmap PIR.defVal constrDefs ++ [PIR.defVal destrDef]
     -- See note [Abstract data types]
-    pure $ PLC.mkIterApp p (PLC.mkIterInst p (PLC.mkIterTyAbs tyVars (PLC.mkIterLamAbs vars body)) tys) vals
+    pure $ PIR.mkIterApp p (PIR.mkIterInst p (PIR.mkIterTyAbs tyVars (PIR.mkIterLamAbs vars body)) tys) vals
+
+compileRecDatatypes :: Compiling m e a => PIRTerm a -> [Datatype TyName Name (Provenance a)] -> m (PIRTerm a)
+compileRecDatatypes body ds = case ds of
+    []  -> pure body
+    [d] -> compileDatatype Rec body d
+    _   -> ask >>= \p -> throwing _Error $ UnsupportedError p "Mutually recursive datatypes"

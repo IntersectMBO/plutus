@@ -59,6 +59,7 @@ tests :: TestNested
 tests = testGroup "plutus-ir" <$> sequence
     [ prettyprinting
     , parsing
+    , lets
     , datatypes
     , recursion
     , serialization
@@ -72,6 +73,11 @@ prettyprinting = testNested "prettyprinting"
     $ map (goldenPir id term)
     [ "basic"
     , "maybe"
+    ]
+
+lets :: TestNested
+lets = testNested "lets"
+    [ goldenPlcFromPir term "letInLet"
     ]
 
 datatypes :: TestNested
