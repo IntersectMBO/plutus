@@ -323,10 +323,17 @@ progress-unwrap (step p) = step (ξ-unwrap1 p)
 progress-unwrap (done V-wrap1) = step β-wrap1
 progress-unwrap (error e) = error (E-unwrap e)
 
-progress-builtin : ∀ bn (σ : ∀{J} → proj₁ (SIG bn) ∋⋆ J → ∅ ⊢Nf⋆ J)(tel : Tel ∅ (proj₁ (SIG bn)) σ (proj₁ (proj₂ (SIG bn)))) → TelProgress tel → Progress (builtin bn σ tel)
-progress-builtin bn σ tel (done vtel)                      = step (β-builtin bn σ tel vtel)
-progress-builtin bn σ tel (step Bs Ds telB vtel p q telD)  = step (ξ-builtin bn σ tel Bs Ds telB telD vtel p q)
-progress-builtin bn σ tel (error Bs Ds telB vtel e p telD) = error (E-builtin bn σ tel Bs Ds telB vtel e p telD)
+progress-builtin : ∀ bn
+  (σ : ∀{J} → proj₁ (SIG bn) ∋⋆ J → ∅ ⊢Nf⋆ J)
+  (tel : Tel ∅ (proj₁ (SIG bn)) σ (proj₁ (proj₂ (SIG bn))))
+  → TelProgress tel
+  → Progress (builtin bn σ tel)
+progress-builtin bn σ tel (done vtel)                      =
+  step (β-builtin bn σ tel vtel)
+progress-builtin bn σ tel (step Bs Ds telB vtel p q telD)  =
+  step (ξ-builtin bn σ tel Bs Ds telB telD vtel p q)
+progress-builtin bn σ tel (error Bs Ds telB vtel e p telD) =
+  error (E-builtin bn σ tel Bs Ds telB vtel e p telD)
 
 progress : ∀ {A} → (M : ∅ ⊢ A) → Progress M
 
@@ -339,11 +346,16 @@ progressTelCons : ∀ {Δ}
   → {tel : Tel ∅ Δ σ As}
   → TelProgress tel
   → TelProgress {As = A ∷ As} (t ,, tel)
-progressTelCons (step p){As}{tel}   q                                = step [] As tt tt p refl tel
-progressTelCons (done v)            (done vtel)                      = done (v ,, vtel)
-progressTelCons (done v)            (step Bs Ds telB vtel p q telD)  = step (_ ∷ Bs) Ds (_ ,, telB) (v ,, vtel) p (cong (_ ∷_) q) telD
-progressTelCons (done v)            (error Bs Ds telB vtel e p telD) = error (_ ∷ Bs) Ds (_ ,, telB) (v ,, vtel) e (cong (_ ∷_) p) telD
-progressTelCons (error e) {As}{tel} q                                = error [] As tt tt e refl tel
+progressTelCons (step p){As}{tel}   q                                =
+  step [] As tt tt p refl tel
+progressTelCons (done v)            (done vtel)                      =
+  done (v ,, vtel)
+progressTelCons (done v)            (step Bs Ds telB vtel p q telD)  =
+  step (_ ∷ Bs) Ds (_ ,, telB) (v ,, vtel) p (cong (_ ∷_) q) telD
+progressTelCons (done v)            (error Bs Ds telB vtel e p telD) =
+  error (_ ∷ Bs) Ds (_ ,, telB) (v ,, vtel) e (cong (_ ∷_) p) telD
+progressTelCons (error e) {As}{tel} q                                =
+  error [] As tt tt e refl tel
 
 progressTel : ∀ {Δ}
   → {σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K}
@@ -351,7 +363,8 @@ progressTel : ∀ {Δ}
   → (tel : Tel ∅ Δ σ As)
   → TelProgress tel
 progressTel {As = []}     tt         = done tt
-progressTel {As = A ∷ As} (t ,, tel) = progressTelCons (progress t) (progressTel tel)
+progressTel {As = A ∷ As} (t ,, tel) =
+  progressTelCons (progress t) (progressTel tel)
 
 progress (` ())
 progress (ƛ x M)              = done V-ƛ
