@@ -92,9 +92,14 @@ data Error {n}{w : Weirdℕ n} : ScopedTm w → Set where
               → Error t
               → Error (builtin b As ts)
 
+VERIFYSIG : ∀{n}{w : Weirdℕ n} → Maybe B.Bool → ScopedTm w
+VERIFYSIG (just B.false) = false
+VERIFYSIG (just B.true)  = true
+VERIFYSIG nothing        = error boolean
+
+
 BUILTIN : ∀{n}{w : Weirdℕ n} → Builtin
   → List (ScopedTy n) → (ts : Tel w) → VTel w ts → ScopedTm w
-
 BUILTIN addInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
   con (integer (i I.+ i'))
 BUILTIN addInteger _ _ _ = error (con integer)
@@ -145,10 +150,7 @@ BUILTIN sha2-256 _ (_ ∷ []) (V-con (bytestring b) , tt) = con (bytestring (SHA
 BUILTIN sha2-256 _ _ _ = error (con bytestring)
 BUILTIN sha3-256 _ (_ ∷ []) (V-con (bytestring b) , tt) = con (bytestring (SHA3-256 b))
 BUILTIN sha3-256 _ _ _ = error (con bytestring)
-BUILTIN verifySignature _ (_ ∷ _ ∷ _ ∷ []) (V-con (bytestring k) , V-con (bytestring d) , V-con (bytestring c) , tt) with verifySig k d c 
-... | just B.false = false
-... | just B.true = true
-... | nothing = error boolean
+BUILTIN verifySignature _ (_ ∷ _ ∷ _ ∷ []) (V-con (bytestring k) , V-con (bytestring d) , V-con (bytestring c) , tt) = VERIFYSIG (verifySig k d c)
 BUILTIN verifySignature _ _ _ = error (con bytestring)
 -- Int -> Int
 BUILTIN equalsByteString _ (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) =

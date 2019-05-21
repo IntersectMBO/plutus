@@ -71,6 +71,11 @@ extricate-if : ∀{Φ}{Γ : A.Ctx Φ}{A : Φ ⊢Nf⋆ *}(b : Bool)(t f : Γ A.�
 extricate-if Bool.true  t f = refl
 extricate-if Bool.false t f = refl
 
+extricate-VERIFYSIG : ∀{Φ}{Γ : Ctx Φ}(p : Maybe Bool) → SR.VERIFYSIG p ≡ extricate {Φ}{Γ} (AR.VERIFYSIG p)
+extricate-VERIFYSIG (just Bool.false) = refl
+extricate-VERIFYSIG (just Bool.true)  = refl
+extricate-VERIFYSIG nothing           = refl
+
 extricate—→ (ξ-·₁ p)   = ξ-·₁ (extricate—→ p)
 extricate—→ (ξ-·₂ p q) = ξ-·₂ (extricateVal p) (extricate—→ q)
 extricate—→ (ξ-·⋆ p) = ξ-·⋆ (extricate—→ p)
@@ -134,10 +139,10 @@ extricate—→ (β-builtin dropByteString σ tel vtel@(V-con (integer i) ,, V-c
   SR.β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG dropByteString))) _ vtel)
 extricate—→ (β-builtin sha2-256 σ tel vtel@(V-con (bytestring b) ,, tt)) = SR.β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG sha2-256))) _ vtel)
 extricate—→ (β-builtin sha3-256 σ tel vtel@(V-con (bytestring b) ,, tt)) = SR.β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG sha3-256))) _ vtel)
-extricate—→ (β-builtin verifySignature σ tel vtel@(V-con (bytestring k) ,, V-con (bytestring d) ,, V-con (bytestring c) ,, tt)) with verifySig k d c | SR.β-builtin {b = verifySignature}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG verifySignature))) tel}  (extricateVTel _ _ σ (proj₁ (proj₂ (SIG verifySignature))) _ vtel) 
-... | just true  | r = r
-... | just false | r = r
-... | nothing    | r = r
+extricate—→ (β-builtin verifySignature σ tel vtel@(V-con (bytestring k) ,, V-con (bytestring d) ,, V-con (bytestring c) ,, tt)) =  Eq.subst
+  (builtin verifySignature [] (con (bytestring k) ∷ con (bytestring d) ∷ con (bytestring c) ∷ []) SR.—→_)
+  (extricate-VERIFYSIG (verifySig k d c))
+  (SR.β-builtin {b = verifySignature}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG verifySignature))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG verifySignature))) _ vtel))
 extricate—→ (β-builtin equalsByteString σ tel vtel@(V-con (bytestring b) ,, V-con (bytestring b') ,, tt)) = Eq.subst
   (builtin equalsByteString [] (con (bytestring b) ∷ con (bytestring b') ∷ []) SR.—→_)
   (extricate-if (equals b b') A.true A.false)
@@ -367,7 +372,7 @@ extricate-progress-builtin lessThanEqualsInteger σ tel (done vtel@(V-con (integ
 extricate-progress-builtin greaterThanInteger σ tel (done vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = lem-step
   (SR.β-builtin {b = greaterThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG greaterThanInteger))) _ vtel))  
   (extricate-decIf (i Builtin.Constant.Type.>? j) A.true A.false)
-extricate-progress-builtin greaterThanEqualsInteger σ tel (done vtel@ (V-con (integer i) ,, V-con (integer j) ,, tt)) =  lem-step
+extricate-progress-builtin greaterThanEqualsInteger σ tel (done vtel@ (V-con (integer i) ,, V-con (integer j) ,, tt)) = lem-step
   (SR.β-builtin {b = greaterThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanEqualsInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG greaterThanEqualsInteger))) _ vtel))  
   (extricate-decIf (i Builtin.Constant.Type.≥? j) A.true A.false)
 extricate-progress-builtin equalsInteger σ tel (done vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = lem-step
@@ -378,7 +383,9 @@ extricate-progress-builtin takeByteString σ tel (done (V-con (integer i) ,, V-c
 extricate-progress-builtin dropByteString σ tel (done (V-con (integer i) ,, V-con (bytestring b) ,, tt)) = refl
 extricate-progress-builtin sha2-256 σ tel (done (V-con (bytestring b) ,, tt)) = refl
 extricate-progress-builtin sha3-256 σ tel (done (V-con (bytestring b) ,, tt)) = refl
-extricate-progress-builtin verifySignature σ tel (done vtel@(V-con (bytestring b) ,, V-con (bytestring b') ,, V-con (bytestring b'') ,, tt)) = {!!}
+extricate-progress-builtin verifySignature σ tel (done vtel@(V-con (bytestring k) ,, V-con (bytestring d) ,, V-con (bytestring c) ,, tt)) = lem-step
+  (SR.β-builtin {b = verifySignature}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG verifySignature))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG verifySignature))) _ vtel))  
+  (extricate-VERIFYSIG (verifySig k d c))
 extricate-progress-builtin equalsByteString σ tel (done vtel@(V-con (bytestring b) ,, V-con (bytestring b') ,, tt)) = lem-step
   (SR.β-builtin {b = equalsByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsByteString))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG equalsByteString))) _ vtel))  
   (extricate-if (equals b b') A.true A.false)

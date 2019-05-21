@@ -98,6 +98,11 @@ data Error :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
 VTel Γ Δ σ []       tt         = ⊤
 VTel Γ Δ σ (A ∷ As) (t ,, tel) = Value t × VTel Γ Δ σ As tel
 
+VERIFYSIG : ∀{Φ}{Γ : Ctx Φ} → Maybe Bool.Bool → Γ ⊢ booleanNf
+VERIFYSIG (just Bool.false) = false
+VERIFYSIG (just Bool.true)  = true
+VERIFYSIG nothing           = error booleanNf
+
 BUILTIN : ∀{Φ Γ}
     → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
@@ -135,11 +140,7 @@ BUILTIN dropByteString _ _ (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
   con (bytestring (drop i b))
 BUILTIN sha2-256 _ _ (V-con (bytestring b) ,, tt) = con (bytestring (SHA2-256 b))
 BUILTIN sha3-256 _ _ (V-con (bytestring b) ,, tt) = con (bytestring (SHA3-256 b))
-BUILTIN verifySignature _ _ (V-con (bytestring k) ,, V-con (bytestring d) ,, V-con (bytestring c) ,, tt)
-  with verifySig k d c
-... | just Bool.true  = true
-... | just Bool.false = false
-... | nothing = error _
+BUILTIN verifySignature _ _ (V-con (bytestring k) ,, V-con (bytestring d) ,, V-con (bytestring c) ,, tt) = VERIFYSIG (verifySig k d c)
 BUILTIN equalsByteString _ _ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) =
   Bool.if (equals b b') then true else false
 \end{code}
