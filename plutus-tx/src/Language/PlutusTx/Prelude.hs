@@ -102,7 +102,7 @@ traceH :: String -> a -> a
 traceH str = trace (toPlutusString str)
 
 {-# INLINABLE traceErrorH #-}
--- | Terminate the evaluation with an error message
+-- | Log a message and then terminate the evaluation with an error.
 traceErrorH :: String -> a
 traceErrorH str = error (traceH str ())
 

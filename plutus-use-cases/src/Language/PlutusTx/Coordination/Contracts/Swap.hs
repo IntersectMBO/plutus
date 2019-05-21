@@ -23,13 +23,13 @@ data Ratio a = a :% a  deriving Eq
 PlutusTx.makeLift ''Ratio
 
 timesR :: Ratio Integer -> Ratio Integer -> Ratio Integer
-timesR (x :% y) (x' :% y') = (P.multiply x x') :% (P.multiply y y')
+timesR (x :% y) (x' :% y') = (x `P.multiply` x') :% (y `P.multiply` y')
 
 plusR :: Ratio Integer -> Ratio Integer -> Ratio Integer
-plusR (x :% y) (x' :% y') = (P.plus (P.multiply x y') (P.multiply x' y)) :% (P.multiply y y')
+plusR (x :% y) (x' :% y') = ((x `P.multiply` y') `P.plus` (x' `P.multiply` y)) :% (y `P.multiply` y')
 
 minusR :: Ratio Integer -> Ratio Integer -> Ratio Integer
-minusR (x :% y) (x' :% y') = (P.minus (P.multiply x y') (P.multiply x' y)) :% (P.multiply y y')
+minusR (x :% y) (x' :% y') = ((x `P.multiply` y') `P.minus` (x' `P.multiply` y)) :% (y `P.multiply` y')
 
 -- | A swap is an agreement to exchange cashflows at future dates. To keep
 --  things simple, this is an interest rate swap (meaning that the cashflows are
@@ -167,10 +167,10 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
 --   See note [Contracts and Validator Scripts] in
 --       Language.Plutus.Coordination.Contracts
 swapValidator :: Swap -> ValidatorScript
-swapValidator swp = 
-    ValidatorScript $ Ledger.applyScript
-        $$(Ledger.compileScript [|| mkValidator ||])
-        (Ledger.lifted swp)
+swapValidator swp = ValidatorScript $
+    $$(Ledger.compileScript [|| mkValidator ||])
+        `Ledger.applyScript`
+            Ledger.lifted swp
 
 {- Note [Swap Transactions]
 

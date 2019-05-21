@@ -45,9 +45,9 @@ validate (MultiSig keys num) () () p =
 
 msValidator :: MultiSig -> ValidatorScript
 msValidator sig = ValidatorScript $
-    Ledger.applyScript 
-        (Ledger.fromCompiledCode $$(P.compile [|| validate ||]))
-        (Ledger.lifted sig)
+    Ledger.fromCompiledCode $$(P.compile [|| validate ||])
+        `Ledger.applyScript`
+            Ledger.lifted sig
 
 -- | Multisig data script (unit value).
 msDataScript :: DataScript

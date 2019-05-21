@@ -279,11 +279,10 @@ mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pe
         if isValid then () else PlutusTx.error ()
 
 validatorScript :: Future -> ValidatorScript
-validatorScript ft = 
-    ValidatorScript $ 
-        Ledger.applyScript 
-            $$(Ledger.compileScript [|| mkValidator ||])
-            (Ledger.lifted ft)
+validatorScript ft = ValidatorScript $ 
+    $$(Ledger.compileScript [|| mkValidator ||])
+        `Ledger.applyScript` 
+            Ledger.lifted ft
 
 PlutusTx.makeLift ''Future
 PlutusTx.makeLift ''FutureData

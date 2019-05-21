@@ -106,11 +106,10 @@ mkValidator c con act p =
 --   retrieve the funds or the contributors can claim a refund.
 --
 contributionScript :: Campaign -> ValidatorScript
-contributionScript cmp  = 
-    ValidatorScript $
-        Ledger.applyScript
-            $$(Ledger.compileScript [|| mkValidator ||])
-            (Ledger.lifted cmp)
+contributionScript cmp  = ValidatorScript $
+    $$(Ledger.compileScript [|| mkValidator ||]) 
+        `Ledger.applyScript` 
+            Ledger.lifted cmp
 
 -- | The address of a [[Campaign]]
 campaignAddress :: Campaign -> Ledger.Address

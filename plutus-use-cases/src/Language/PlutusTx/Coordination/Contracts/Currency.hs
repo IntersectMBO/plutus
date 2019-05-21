@@ -85,11 +85,10 @@ validate c@(Currency (refHash, refIdx) _) () () p =
         else P.traceErrorH "Invalid forge"
 
 curValidator :: Currency -> ValidatorScript
-curValidator cur =
-    ValidatorScript $
-        Ledger.applyScript 
-            (Ledger.fromCompiledCode $$(P.compile [|| validate ||]))
-            (Ledger.lifted cur)
+curValidator cur = ValidatorScript $
+    Ledger.fromCompiledCode $$(P.compile [|| validate ||]) 
+        `Ledger.applyScript`
+            Ledger.lifted cur
 
 {- note [Obtaining the currency symbol]
 

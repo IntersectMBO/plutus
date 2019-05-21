@@ -27,11 +27,10 @@ mkValidator pk' () () p =
     else P.traceErrorH "Required signature not present!"
 
 pkValidator :: PubKey -> ValidatorScript
-pkValidator pk =
-    ValidatorScript $
-        Ledger.applyScript 
-            (Ledger.fromCompiledCode $$(P.compile [|| mkValidator ||]))
-            (Ledger.lifted pk) where
+pkValidator pk = ValidatorScript $
+    Ledger.fromCompiledCode $$(P.compile [|| mkValidator ||])
+        `Ledger.applyScript`
+            Ledger.lifted pk
 
 -- | Lock some funds in a 'PayToPubKey' contract, returning the output's address
 --   and a 'TxIn' transaction input that can spend it.

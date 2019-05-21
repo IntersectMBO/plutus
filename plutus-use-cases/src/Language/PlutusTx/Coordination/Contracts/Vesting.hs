@@ -157,7 +157,7 @@ mkValidator d@Vesting{..} VestingData{..} () p@PendingTx{pendingTxValidRange = r
     if isValid then () else PlutusTx.error ()
 
 validatorScript :: Vesting -> ValidatorScript
-validatorScript v = 
-    ValidatorScript $ Ledger.applyScript 
-        $$(Ledger.compileScript [|| mkValidator ||])
-        (Ledger.lifted v)
+validatorScript v = ValidatorScript $ 
+    $$(Ledger.compileScript [|| mkValidator ||])
+        `Ledger.applyScript`
+            Ledger.lifted v

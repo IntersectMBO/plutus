@@ -222,11 +222,10 @@ mkValidator p ds vs ptx =
     SM.mkValidator sm ds vs ptx
 
 validator :: Params -> ValidatorScript
-validator params = 
-    ValidatorScript $ 
-        Ledger.applyScript
-            $$(Ledger.compileScript [|| mkValidator ||])
-            (Ledger.lifted params)
+validator params = ValidatorScript $ 
+    $$(Ledger.compileScript [|| mkValidator ||])
+        `Ledger.applyScript`
+            Ledger.lifted params
 
 -- | Start watching the contract address
 initialise :: WalletAPI m => Params -> m ()
