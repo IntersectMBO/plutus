@@ -82,9 +82,7 @@ let
 
     # The git revision comes from `rev` if available (Hydra), otherwise
     # it is read using IFD and git, which is avilable on local builds.
-    git-rev = 
-      let ifdRev = (import (pkgs.callPackage ./nix/git-rev.nix { gitDir = builtins.path { name = "gitDir"; path = ./.git; }; })).rev;
-      in removeSuffix "\n" (if isNull rev then ifdRev else rev);
+    git-rev = if isNull rev then localLib.iohkNix.commitIdFromGitRepo ./.git else rev;
 
     # set-git-rev is a function that can be called on a haskellPackages package to inject the git revision post-compile
     set-git-rev = self.callPackage ./scripts/set-git-rev {

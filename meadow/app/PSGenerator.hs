@@ -135,7 +135,7 @@ psModule name body = "module " <> name <> " where" <> body
 writeUsecases :: FilePath -> IO ()
 writeUsecases outputDir = do
     let usecases =
-            multilineString "gitHead" (CBS.pack . T.unpack $ gitRev)
+            multilineString "gitRev" (CBS.pack . T.unpack $ gitRev)
          <> multilineString "escrow" escrow
          <> multilineString "zeroCouponBond" zeroCouponBond
          <> multilineString "couponBondGuaranteed" couponBondGuaranteed
