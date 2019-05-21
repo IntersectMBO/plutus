@@ -28,12 +28,10 @@ library
         Language.PlutusTx.Coordination.Contracts
         Language.PlutusTx.Coordination.Contracts.CrowdFunding
         Language.PlutusTx.Coordination.Contracts.Currency
-        Language.PlutusTx.Coordination.Contracts.Currency.Stage0
         Language.PlutusTx.Coordination.Contracts.Future
         Language.PlutusTx.Coordination.Contracts.Game
         Language.PlutusTx.Coordination.Contracts.GameStateMachine
         Language.PlutusTx.Coordination.Contracts.MultiSig
-        Language.PlutusTx.Coordination.Contracts.MultiSig.Stage0
         Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine
         Language.PlutusTx.Coordination.Contracts.PubKey
         Language.PlutusTx.Coordination.Contracts.Vesting

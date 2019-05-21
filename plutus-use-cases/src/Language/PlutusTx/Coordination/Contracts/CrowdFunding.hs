@@ -24,7 +24,6 @@ module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     ) where
 
 import qualified Language.PlutusTx           as PlutusTx
-import qualified Ledger.Interval             as Interval
 import           Ledger.Slot                 (SlotRange)
 import qualified Ledger.Slot                 as Slot
 import qualified Language.PlutusTx.Prelude   as P
@@ -52,7 +51,6 @@ data Campaign = Campaign
     }
 
 PlutusTx.makeLift ''Campaign
-
 
 -- | Construct a 'Campaign' value from the campaign parameters,
 --   using the wallet's public key.
@@ -83,62 +81,35 @@ data CampaignAction = Collect | Refund
 
 PlutusTx.makeLift ''CampaignAction
 
+type CrowdfundingValidator = PubKey -> CampaignAction -> PendingTx -> ()
+
+validRefund :: Campaign -> PubKey -> PendingTx -> Bool
+validRefund campaign contributor ptx =
+    Slot.contains (refundRange campaign) (pendingTxValidRange ptx)
+        `P.and` (ptx `V.txSignedBy` contributor)
+
+validCollection :: Campaign -> PendingTx -> Bool
+validCollection campaign p = 
+     (collectionRange campaign `Slot.contains` pendingTxValidRange p)
+        `P.and` (valueSpent p `VTH.geq` campaignTarget campaign)
+        `P.and` (p `V.txSignedBy` campaignOwner campaign)
+
+mkValidator :: Campaign -> CrowdfundingValidator
+mkValidator c con act p = 
+    let
+        isValid = case act of
+            Refund -> validRefund c con p
+            Collect -> validCollection c p
+    in if isValid then () else P.error ()
+
 -- | The validator script that determines whether the campaign owner can
 --   retrieve the funds or the contributors can claim a refund.
 --
 contributionScript :: Campaign -> ValidatorScript
-contributionScript cmp  = ValidatorScript val where
-    val = Ledger.applyScript mkValidator (Ledger.lifted cmp)
-    mkValidator = $$(Ledger.compileScript [||
-
-        \Campaign{..} (con :: PubKey) (act :: CampaignAction) (p :: PendingTx) ->
-            let
-
-                infixr 3 &&
-                (&&) :: Bool -> Bool -> Bool
-                (&&) = P.and
-
-                signedBy' :: PendingTx -> PubKey -> Bool
-                signedBy' = V.txSignedBy
-
-                PendingTx ps outs _ _ _ range _ _ = p
-
-                collRange :: SlotRange
-                collRange = Interval.interval campaignDeadline campaignCollectionDeadline
-
-                refndRange :: SlotRange
-                refndRange = Interval.from campaignCollectionDeadline
-
-                totalInputs :: Value
-                totalInputs =
-                    let v (PendingTxIn _ _ vl) = vl in
-                    P.foldr (\i total -> VTH.plus total (v i)) VTH.zero ps
-
-                isValid = case act of
-                    Refund ->
-                        let
-
-                            contributorTxOut :: PendingTxOut -> Bool
-                            contributorTxOut o = case pubKeyOutput o of
-                                Nothing -> False
-                                Just pk -> eqPubKey pk con
-
-                            contributorOnly = P.all contributorTxOut outs
-
-                            refundable =
-                                Slot.contains refndRange range
-                                && contributorOnly && p `signedBy'` con
-
-                        in refundable
-                    Collect ->
-                        let
-                            payToOwner =
-                                Slot.contains collRange range
-                                && VTH.geq totalInputs campaignTarget
-                                && p `signedBy'` campaignOwner
-                        in payToOwner
-            in
-            if isValid then () else P.error () ||])
+contributionScript cmp  = ValidatorScript $
+    $$(Ledger.compileScript [|| mkValidator ||]) 
+        `Ledger.applyScript` 
+            Ledger.lifted cmp
 
 -- | The address of a [[Campaign]]
 campaignAddress :: Campaign -> Ledger.Address

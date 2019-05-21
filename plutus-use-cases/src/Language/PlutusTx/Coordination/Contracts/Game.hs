@@ -30,15 +30,19 @@ data ClearString = ClearString P.ByteString
 
 PlutusTx.makeLift ''ClearString
 
-gameValidator :: ValidatorScript
-gameValidator = ValidatorScript ($$(Ledger.compileScript [||
-    \(HashedString actual) (ClearString guess') (_ :: PendingTx) ->
+correctGuess :: HashedString -> ClearString -> Bool
+correctGuess (HashedString actual) (ClearString guess') =
+    P.equalsByteString actual (P.sha2_256 guess')
 
-    if P.equalsByteString actual (P.sha2_256 guess')
+validateGuess :: HashedString -> ClearString -> PendingTx -> ()
+validateGuess dataScript redeemerScript _ =
+    if correctGuess dataScript redeemerScript
     then ()
-    else P.traceH "WRONG!" (P.error ())
+    else P.traceErrorH "WRONG!"
 
-    ||]))
+gameValidator :: ValidatorScript
+gameValidator = 
+    ValidatorScript ($$(Ledger.compileScript [|| validateGuess ||]))
 
 gameDataScript :: String -> DataScript
 gameDataScript =
