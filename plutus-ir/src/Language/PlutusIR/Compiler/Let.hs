@@ -74,8 +74,10 @@ compileRecTypeBindings _ body bs = getEnclosing >>= \p -> pure $ Let p Rec bs bo
 
 compileNonRecBinding :: Compiling m e a => LetKind -> PIRTerm a -> Binding TyName Name (Provenance a) -> m (PIRTerm a)
 compileNonRecBinding NonRecTerms body (TermBind x d rhs) = withEnclosing (const $ TermBinding (varDeclNameString d) x) $
+    -- Note this is *not* from 'TermLike', which would created exactly the let binding we are trying to get rid of
    PIR.mkTermLet <$> getEnclosing <*> pure (PIR.Def d rhs) <*> pure body
 compileNonRecBinding Types body (TypeBind x d rhs) = withEnclosing (const $ TypeBinding (tyVarDeclNameString d) x) $
+    -- Note this is *not* from 'TermLike', which would created exactly the let binding we are trying to get rid of
    PIR.mkTypeLet <$> getEnclosing <*> pure (PIR.Def d rhs) <*> pure body
 compileNonRecBinding Types body (DatatypeBind x d) = withEnclosing (const $ TypeBinding (datatypeNameString d) x) $
    compileDatatype NonRec body d
