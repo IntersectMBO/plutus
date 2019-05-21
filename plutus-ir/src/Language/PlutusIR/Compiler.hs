@@ -2,10 +2,18 @@
 module Language.PlutusIR.Compiler (
     compileTerm,
     compileProgram,
+    simplifyTerm,
     Compiling,
     Error (..),
     AsError (..),
-    Provenance (..)) where
+    Provenance (..),
+    CompilationOpts,
+    coOptimize,
+    defaultCompilationOpts,
+    CompilationCtx,
+    ccOpts,
+    ccEnclosing,
+    defaultCompilationCtx) where
 
 import           Language.PlutusIR
 
@@ -21,16 +29,22 @@ import qualified Language.PlutusIR.Optimizer.DeadCode        as DeadCode
 import qualified Language.PlutusCore                         as PLC
 
 import           Control.Monad
+import           Control.Monad.Reader
+
+-- | Perform some simplification of a 'Term'.
+simplifyTerm :: MonadReader (CompilationCtx a) m => Term TyName Name b -> m (Term TyName Name b)
+simplifyTerm = runIfOpts (pure . DeadCode.removeDeadBindings)
 
 -- | Compile a 'Term' into a PLC Term. Note: the result *does* have globally unique names.
 compileTerm :: Compiling m e a => Term TyName Name a -> m (PLCTerm a)
 compileTerm =
     lowerTerm
     <=< Let.compileLets Let.NonRecTerms
-    <=< (pure . DeadCode.removeDeadBindings)
+    <=< simplifyTerm
     <=< Let.compileLets Let.RecTerms
     <=< Let.compileLets Let.Types
     <=< ThunkRec.thunkRecursionsTerm
+    <=< simplifyTerm
     <=< (pure . original)
 
 -- | Compile a 'Program' into a PLC Program. Note: the result *does* have globally unique names.
