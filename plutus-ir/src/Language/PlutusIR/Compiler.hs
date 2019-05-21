@@ -38,14 +38,16 @@ simplifyTerm = runIfOpts (pure . DeadCode.removeDeadBindings)
 -- | Compile a 'Term' into a PLC Term. Note: the result *does* have globally unique names.
 compileTerm :: Compiling m e a => Term TyName Name a -> m (PLCTerm a)
 compileTerm =
-    lowerTerm
-    <=< Let.compileLets Let.NonRecTerms
-    <=< simplifyTerm
-    <=< Let.compileLets Let.RecTerms
-    <=< Let.compileLets Let.Types
-    <=< ThunkRec.thunkRecursionsTerm
-    <=< simplifyTerm
-    <=< (pure . original)
+    (pure . original)
+    >=> simplifyTerm
+    >=> ThunkRec.thunkRecursionsTerm
+    >=> Let.compileLets Let.Types
+    >=> Let.compileLets Let.RecTerms
+    -- We introduce some non-recursive let bindings while eliminating recursive let-bindings, so we
+    -- can eliminate any of them which are unused here.
+    >=> simplifyTerm
+    >=> Let.compileLets Let.NonRecTerms
+    >=> lowerTerm
 
 -- | Compile a 'Program' into a PLC Program. Note: the result *does* have globally unique names.
 compileProgram :: Compiling m e a => Program TyName Name a -> m (PLC.Program TyName Name (Provenance a))
