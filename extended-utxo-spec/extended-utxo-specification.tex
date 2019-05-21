@@ -271,10 +271,10 @@ notation established by \cite{Zahnentferner18-UTxO}.
     and only if $\dom m_1 = \dom m_2$ and $m_1[k] = m_2[k]$ for all
     $k \in \dom m_1$ (assuming we have decidable equality in $V$).
     
-  \item If the type $V$ is a monoid with binary operation $+$ (for
-    example, a numeric type) and $f, g \in \Map{K}{V}$ then we define
-    their sum $f+g \in \Map{K}{V}$ with domain $\dom (f+g) = \dom f
-    \cup \dom g$ by
+  \item If the type $M$ is a monoid with binary operation $+$ (for
+    example, a numeric type) the we define the sum of two maps
+    $f, g \in \Map{K}{M}$ to be the map $f+g \in \Map{K}{M}$ with
+    domain $\dom (f+g) = \dom f \cup \dom g$ given by
     \[
     (f+g)[k] =
     \left\{ \begin{array}{ll}
@@ -288,7 +288,7 @@ notation established by \cite{Zahnentferner18-UTxO}.
       the $\sum$ notation in the usual way; care is required if the
       operation $+$ is non-commutative, since then the sum of a number of
       maps will depend on the order in which they appear. Note that
-      the type $\Map{K}{V}$ itself becomes a monoid under the
+      the type $\Map{K}{M}$ itself becomes a monoid under the
       operation $+$ which we have just defined, with the empty map $\{\}$ as
       identity element.
 
@@ -379,8 +379,7 @@ In the basic model, each input to a transaction comes with a
 spend the output. In order to spend an output, the
 transaction supplies another script, called the \i{redeemer},
 which provides evidence that the transaction has the authority
-to do so.
-\footnote{The validator plays a role similar to that of BitCoin's
+to do so.\footnote{The validator plays a role similar to that of BitCoin's
   \texttt{scriptPubKey} and the redeemer to \texttt{scriptSig}.
 }
 
@@ -648,10 +647,11 @@ example) which would not incur large storage charges.
 \paragraph{Special types of transaction.} In a practical
 implementation it might be useful to include special cases for common
 transaction types such as pay-to-pukbey transactions in order to
-increase efficiency and decrease storage requirements.  These have
-been ommitted from this model because it subsumes all of the other
-transaction types we're likely to encounter, and also because it's
-difficult to give a definitive list of such special cases.
+increase efficiency and decrease storage requirements (and hence
+reduce fees).  These have been ommitted from this model because it
+subsumes all of the other transaction types we're likely to encounter,
+and also because it's difficult to give a definitive list of such
+special cases.
 
 \paragraph{Signing scripts.}
 \ \\
@@ -1257,14 +1257,15 @@ numbers.  However, the models mostly carry over to the case where
   community. It could still be useful for something
   though...}\textsuperscript{,}%
 \footnote{We mentioned earlier that the functor $\Map{K}{-}$ preserves
-  the property of being a monoid; however, in general it does
-  not preserve the property of being a group, abelian or
-  otherwise.  Let $K=\{X,Y\}$ and consider the map
-  $m = \{(X,1)\} \in \Map{K}{\Z}$: for every map $n$, we have
-  $X \in \dom (m+n)$, so we cannot have $m+n = \emptymap$, the
-  identity element of $\Map{K}{\Z}$. However, if we consider equality
-  modulo elements which map to 0 (ie, $m \equiv n$ if
-  $\mu(m) = \mu(n)$), then we \textit{do} get a group.}
+  the property of being a monoid; however, in general it does not
+  preserve the property of being a group, abelian or otherwise.  Let
+  $K=\{X,Y\}$ and consider the map $m = \{(X,1)\} \in \Map{K}{\Z}$:
+  for every map $n$, we have $X \in \dom (m+n)$, so we cannot have
+  $m+n = \emptymap$, the identity element of $\Map{K}{\Z}$. However,
+  if $M$ is a monoid then the relation $m \equiv n$ if
+  $\mu(m) = \mu(n)$ (ie, two maps are equivalent if they only differ by
+  elements mapping to 0) is a congruence on the monoid $\Map{K}{M}$,
+  and the quotient \textit{is} a group.}
 
     
   We can even replace \qtytype{} with a commutative
