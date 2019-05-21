@@ -8,6 +8,7 @@ module Language.PlutusTx.Prelude (
     traceH,
     traceIfTrueH,
     traceIfFalseH,
+    traceErrorH,
     -- * Error
     error,
     -- * Boolean operators
@@ -99,6 +100,11 @@ trace str a = case Builtins.trace str of () -> a
 -- | A version of 'trace' that takes a Haskell 'String'.
 traceH :: String -> a -> a
 traceH str = trace (toPlutusString str)
+
+{-# INLINABLE traceErrorH #-}
+-- | Terminate the evaluation with an error message
+traceErrorH :: String -> a
+traceErrorH str = error (traceH str ())
 
 {-# INLINABLE traceIfFalseH #-}
 -- | Emit the given Haskell 'String' only if the argument evaluates to 'False'.
