@@ -50,13 +50,12 @@ compileInBinding kind b = case b of
     _                -> pure b
 
 compileRecBindings :: Compiling m e a => LetKind -> PIRTerm a -> [Binding TyName Name (Provenance a)] -> m (PIRTerm a)
-compileRecBindings kind body bs =
-    let
-        partitionBindings = partition (\case { TermBind {} -> True ; _ -> False; })
-        (termBinds, typeBinds) = partitionBindings bs
-    in if null typeBinds then compileRecTermBindings kind body termBinds
-       else if null termBinds then compileRecTypeBindings kind body typeBinds
-       else ask >>= \p -> throwing _Error $ CompilationError p "Mixed term and type bindings in recursive let"
+compileRecBindings kind body bs
+    | null typeBinds = compileRecTermBindings kind body termBinds
+    | null termBinds = compileRecTypeBindings kind body typeBinds
+    | otherwise      = ask >>= \p -> throwing _Error $ CompilationError p "Mixed term and type bindings in recursive let"
+    where
+        (termBinds, typeBinds) = partition (\case { TermBind {} -> True ; _ -> False; }) bs
 
 compileRecTermBindings :: Compiling m e a => LetKind -> PIRTerm a -> [Binding TyName Name (Provenance a)] -> m (PIRTerm a)
 compileRecTermBindings RecTerms body bs = do
@@ -75,10 +74,10 @@ compileRecTypeBindings Types body bs = do
 compileRecTypeBindings _ body bs = ask >>= \p -> pure $ Let p Rec bs body
 
 compileNonRecBinding :: Compiling m e a => LetKind -> PIRTerm a -> Binding TyName Name (Provenance a) -> m (PIRTerm a)
-compileNonRecBinding NonRecTerms body (TermBind x d rhs) = local (const x) $ local (TermBinding (varDeclNameString d)) $
+compileNonRecBinding NonRecTerms body (TermBind x d rhs) = local (const $ TermBinding (varDeclNameString d) x) $
    PIR.mkTermLet <$> ask <*> pure (PIR.Def d rhs) <*> pure body
-compileNonRecBinding Types body (TypeBind x d rhs) = local (const x) $ local (TypeBinding (tyVarDeclNameString d)) $
+compileNonRecBinding Types body (TypeBind x d rhs) = local (const $ TypeBinding (tyVarDeclNameString d) x) $
    PIR.mkTypeLet <$> ask <*> pure (PIR.Def d rhs) <*> pure body
-compileNonRecBinding Types body (DatatypeBind x d) = local (const x) $ local (TypeBinding (datatypeNameString d)) $
+compileNonRecBinding Types body (DatatypeBind x d) = local (const $ TypeBinding (datatypeNameString d) x) $
    compileDatatype NonRec body d
 compileNonRecBinding _ body b = ask >>= \p -> pure $ Let p NonRec [b] body
