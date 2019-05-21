@@ -270,24 +270,6 @@ extricateProgress (step p)  = step (extricate—→ p)
 extricateProgress (done v)  = done (extricateVal v)
 extricateProgress (error e) = error (extricateE e)
 
-extricate-progress· : ∀{A B}{t : ∅ ⊢ A ⇒ B}(p : AR.Progress t) → (u : ∅ ⊢ A)
-  → extricateProgress (AR.progress· p u) ≡ SR.progress· (extricateProgress p) (extricate u)
-extricate-progress· (step p)   u = refl
-extricate-progress· (done (V-ƛ {A = A}{x = x}{N = N})) u = lem-step β-ƛ (lem[] N u)
-extricate-progress· (error e)  u = refl
-
-extricate-progress·⋆ : ∀{K x B}{t : ∅ ⊢ Π x B}(p : AR.Progress t) → (A : ∅ ⊢Nf⋆ K)
-  → extricateProgress (AR.progress·⋆ p A) ≡ SR.progress·⋆ (extricateProgress p) (extricateNf⋆ A)
-extricate-progress·⋆ (step p)    A = refl
-extricate-progress·⋆ (done (V-Λ_ {N = N})) A = lem-step β-Λ (lem[]⋆ N A)
-extricate-progress·⋆ (error e)   A = refl
-
-extricate-progress-unwrap : ∀{K}{pat}{arg : ∅ ⊢Nf⋆ K}{t : ∅ ⊢ ne ((μ1 · pat) · arg)}(p : AR.Progress t)
-  → extricateProgress (AR.progress-unwrap p) ≡ SR.progress-unwrap (extricateProgress p)
-extricate-progress-unwrap (step p)  = refl
-extricate-progress-unwrap (done V-wrap1) = refl
-extricate-progress-unwrap (error e) = refl
-
 extricateProgressTel : ∀{Φ Ψ}{Γ : Ctx Φ}
   {σ : ∀{K} → Ψ ∋⋆ K → Φ ⊢Nf⋆ K}
   {As : List (Ψ ⊢Nf⋆ *)} →
@@ -311,6 +293,26 @@ extricateProgressTel tel (error Bs Ds telB vtelB e q telD) =
     (extricateE e)
     (extricateTel _ _ telD)
 
+-- proofs below
+
+extricate-progress· : ∀{A B}{t : ∅ ⊢ A ⇒ B}(p : AR.Progress t) → (u : ∅ ⊢ A)
+  → extricateProgress (AR.progress· p u) ≡ SR.progress· (extricateProgress p) (extricate u)
+extricate-progress· (step p)   u = refl
+extricate-progress· (done (V-ƛ {A = A}{x = x}{N = N})) u = lem-step β-ƛ (lem[] N u)
+extricate-progress· (error e)  u = refl
+
+extricate-progress·⋆ : ∀{K x B}{t : ∅ ⊢ Π x B}(p : AR.Progress t) → (A : ∅ ⊢Nf⋆ K)
+  → extricateProgress (AR.progress·⋆ p A) ≡ SR.progress·⋆ (extricateProgress p) (extricateNf⋆ A)
+extricate-progress·⋆ (step p)    A = refl
+extricate-progress·⋆ (done (V-Λ_ {N = N})) A = lem-step β-Λ (lem[]⋆ N A)
+extricate-progress·⋆ (error e)   A = refl
+
+extricate-progress-unwrap : ∀{K}{pat}{arg : ∅ ⊢Nf⋆ K}{t : ∅ ⊢ ne ((μ1 · pat) · arg)}(p : AR.Progress t)
+  → extricateProgress (AR.progress-unwrap p) ≡ SR.progress-unwrap (extricateProgress p)
+extricate-progress-unwrap (step p)  = refl
+extricate-progress-unwrap (done V-wrap1) = refl
+extricate-progress-unwrap (error e) = refl
+
 extricate-progress-builtin : ∀ bn
   (σ : ∀{J} → proj₁ (SIG bn) ∋⋆ J → ∅ ⊢Nf⋆ J)
   (tel : A.Tel ∅ (proj₁ (SIG bn)) σ (proj₁ (proj₂ (SIG bn))))
@@ -322,7 +324,27 @@ extricate-progress-builtin : ∀ bn
       (extricateSub σ)
       (extricateTel σ (proj₁ (proj₂ (SIG bn))) tel)
       (extricateProgressTel tel telp)
-extricate-progress-builtin bn σ tel telp = ?
+extricate-progress-builtin addInteger σ _ (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = refl
+extricate-progress-builtin subtractInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = refl
+extricate-progress-builtin multiplyInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = refl
+extricate-progress-builtin divideInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = {!!}
+extricate-progress-builtin quotientInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = {!!}
+extricate-progress-builtin remainderInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = {!!}
+extricate-progress-builtin modInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = {!!}
+extricate-progress-builtin lessThanInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = {!!}
+extricate-progress-builtin lessThanEqualsInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = {!!}
+extricate-progress-builtin greaterThanInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = {!!}
+extricate-progress-builtin greaterThanEqualsInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = {!!}
+extricate-progress-builtin equalsInteger σ tel (done (V-con (integer i) ,, V-con (integer j) ,, tt)) = {!!}
+extricate-progress-builtin concatenate σ tel (done (V-con (bytestring b) ,, V-con (bytestring b') ,, tt)) = refl
+extricate-progress-builtin takeByteString σ tel (done (V-con (integer i) ,, V-con (bytestring b) ,, tt)) = refl
+extricate-progress-builtin dropByteString σ tel (done (V-con (integer i) ,, V-con (bytestring b) ,, tt)) = refl
+extricate-progress-builtin sha2-256 σ tel (done (V-con (bytestring b) ,, tt)) = refl
+extricate-progress-builtin sha3-256 σ tel (done (V-con (bytestring b) ,, tt)) = refl
+extricate-progress-builtin verifySignature σ tel (done p) = {!!}
+extricate-progress-builtin equalsByteString σ tel (done (V-con (bytestring b) ,, V-con (bytestring b') ,, tt)) = {!!}
+extricate-progress-builtin bn σ tel (step Bs Ds telB vtelB p q telD) = {!!}
+extricate-progress-builtin bn σ tel (error Bs Ds telB vtelB e q telD) = {!!}
 
 extricate-progress : ∀{A}(t : ∅ ⊢ A) → extricateProgress (AR.progress t) ≡ SR.progress (extricate t)
 extricate-progress (ƛ x t) = refl
@@ -338,24 +360,6 @@ extricate-progress (unwrap1 t) = Eq.trans
   (extricate-progress-unwrap (AR.progress t))
   (cong SR.progress-unwrap (extricate-progress t))
 extricate-progress (con x) = refl
-extricate-progress (builtin addInteger σ tel) = {!!}
-extricate-progress (builtin subtractInteger σ tel) = {!!}
-extricate-progress (builtin multiplyInteger σ tel) = {!!}
-extricate-progress (builtin divideInteger σ tel) = {!!}
-extricate-progress (builtin quotientInteger σ tel) = {!!}
-extricate-progress (builtin remainderInteger σ tel) = {!!}
-extricate-progress (builtin modInteger σ tel) = {!!}
-extricate-progress (builtin lessThanInteger σ tel) = {!!}
-extricate-progress (builtin lessThanEqualsInteger σ tel) = {!!}
-extricate-progress (builtin greaterThanInteger σ tel) = {!!}
-extricate-progress (builtin greaterThanEqualsInteger σ tel) = {!!}
-extricate-progress (builtin equalsInteger σ tel) = {!!}
-extricate-progress (builtin concatenate σ tel) = {!!}
-extricate-progress (builtin takeByteString σ tel) = {!!}
-extricate-progress (builtin dropByteString σ tel) = {!!}
-extricate-progress (builtin sha2-256 σ tel) = {!!}
-extricate-progress (builtin sha3-256 σ tel) = {!!}
-extricate-progress (builtin verifySignature σ tel) = {!!}
-extricate-progress (builtin equalsByteString σ tel) = {!!}
+extricate-progress (builtin bn σ tel) = Eq.trans (extricate-progress-builtin bn σ tel (AR.progressTel tel)) (cong (SR.progress-builtin bn (extricateSub σ) (extricateTel σ (proj₁ (proj₂ (SIG bn))) tel)) {!!})
 extricate-progress (error A) = refl
 \end{code}
