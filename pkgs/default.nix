@@ -53990,10 +53990,10 @@ license = stdenv.lib.licenses.asl20;
 , base64-bytestring-type
 , bytestring
 , http-types
+, plutus-wallet-api
 , serialise
 , stdenv
 , wai
-, wallet-api
 , warp
 }:
 mkDerivation {
@@ -54009,9 +54009,9 @@ base
 base64-bytestring-type
 bytestring
 http-types
+plutus-wallet-api
 serialise
 wai
-wallet-api
 warp
 ];
 doHaddock = false;
