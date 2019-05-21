@@ -19,41 +19,33 @@
       (let
         (nonrec
         )
-        (datatypebind
-          (datatype
-            (tyvardecl Bool (type))
-            
-            Bool_match
-            (vardecl True Bool) (vardecl False Bool)
+        (termbind
+          (vardecl
+            build
+            (all a (type) (fun (all b (type) (fun (fun a (fun b b)) (fun b b))) [List a]))
+          )
+          (abs
+            a
+            (type)
+            (lam
+              g
+              (all b (type) (fun (fun a (fun b b)) (fun b b)))
+              [ [ { g [List a] } { Cons a } ] { Nil a } ]
+            )
           )
         )
         (let
-          (nonrec
-          )
-          (termbind
-            (vardecl
-              greaterThanInteger (fun (con integer) (fun (con integer) Bool))
-            )
-            (lam
-              arg
-              (con integer)
-              (lam
-                arg
-                (con integer)
-                [
-                  (lam
-                    b
-                    (all a (type) (fun a (fun a a)))
-                    [ [ { b Bool } True ] False ]
-                  )
-                  [ [ (builtin greaterThanInteger) arg ] arg ]
-                ]
-              )
+          (nonrec)
+          (datatypebind
+            (datatype
+              (tyvardecl Bool (type))
+              
+              Bool_match
+              (vardecl True Bool) (vardecl False Bool)
             )
           )
           (let
-            (nonrec
-            )
+            (nonrec)
             (termbind
               (vardecl nandDirect (fun Bool (fun Bool Bool)))
               (lam
@@ -78,8 +70,7 @@
               )
             )
             (let
-              (nonrec
-              )
+              (nonrec)
               (termbind
                 (vardecl andDirect (fun Bool (fun Bool Bool)))
                 (lam
@@ -96,8 +87,7 @@
                 )
               )
               (let
-                (rec
-                )
+                (rec)
                 (termbind
                   (vardecl
                     allDirect
@@ -132,20 +122,26 @@
                   )
                 )
                 (let
-                  (nonrec
-                  )
+                  (nonrec)
                   (termbind
                     (vardecl
-                      build
-                      (all a (type) (fun (all b (type) (fun (fun a (fun b b)) (fun b b))) [List a]))
+                      greaterThanInteger
+                      (fun (con integer) (fun (con integer) Bool))
                     )
-                    (abs
-                      a
-                      (type)
+                    (lam
+                      arg
+                      (con integer)
                       (lam
-                        g
-                        (all b (type) (fun (fun a (fun b b)) (fun b b)))
-                        [ [ { g [List a] } { Cons a } ] { Nil a } ]
+                        arg
+                        (con integer)
+                        [
+                          (lam
+                            b
+                            (all a (type) (fun a (fun a a)))
+                            [ [ { b Bool } True ] False ]
+                          )
+                          [ [ (builtin greaterThanInteger) arg ] arg ]
+                        ]
                       )
                     )
                   )

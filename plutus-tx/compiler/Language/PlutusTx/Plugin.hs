@@ -65,6 +65,7 @@ data PluginOptions = PluginOptions {
     , poContextLevel :: Int
     , poDumpPir      :: Bool
     , poDumpPlc      :: Bool
+    , poOptimize     :: Bool
     }
 
 plugin :: GHC.Plugin
@@ -96,6 +97,7 @@ install args todo = do
             , poContextLevel = if elem "no-context" args then 0 else if elem "debug-context" args then 3 else 1
             , poDumpPir = elem "dump-pir" args
             , poDumpPlc = elem "dump-plc" args
+            , poOptimize = notElem "dont-optimize" args
             }
         pass = GHC.CoreDoPluginPass "Core to PLC" (pluginPass opts)
         -- See Note [Making sure unfoldings are present]
@@ -303,10 +305,13 @@ runCompiler
     -> GHC.CoreExpr
     -> m (PIRProgram, PLCProgram)
 runCompiler opts expr = do
-    (pirP::PIRProgram) <- PIR.Program () . PIR.removeDeadBindings <$> (PIR.runDefT () $ convExprWithDefs expr)
+    (pirT::PIRTerm) <- PIR.runDefT () $ convExprWithDefs expr
+    let (pirP::PIRProgram) = PIR.Program () $ if poOptimize opts then PIR.removeDeadBindings pirT else pirT
     when (poDumpPir opts) $ liftIO $ print $ PP.pretty pirP
+
     (plcP::PLCProgram) <- void <$> (flip runReaderT PIR.NoProvenance $ PIR.compileProgram pirP)
     when (poDumpPlc opts) $ liftIO $ print $ PP.pretty plcP
+
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump
     when (poDoTypecheck opts) $ void $ do
         stringBuiltinTypes <- getStringBuiltinTypes ()

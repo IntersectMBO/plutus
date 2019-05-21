@@ -174,16 +174,16 @@ defineBuiltinTerm :: Converting m => TH.Name -> PIRTerm -> [GHC.Name] -> m ()
 defineBuiltinTerm name term deps = do
     ghcId <- GHC.tyThingId <$> getThing name
     var <- convVarFresh ghcId
-    PIR.defineTerm (GHC.getName ghcId) (PIR.Def var term) (Set.fromList deps)
+    PIR.defineTerm (LexName $ GHC.getName ghcId) (PIR.Def var term) (Set.fromList $ LexName <$> deps)
 
 -- | Add definitions for all the builtin types to the environment.
 defineBuiltinType :: Converting m => TH.Name -> PIRType -> [GHC.Name] -> m ()
 defineBuiltinType name ty deps = do
     tc <- GHC.tyThingTyCon <$> getThing name
     var <- convTcTyVarFresh tc
-    PIR.defineType (GHC.getName tc) (PIR.Def var ty) (Set.fromList deps)
+    PIR.defineType (LexName $ GHC.getName tc) (PIR.Def var ty) (Set.fromList $ LexName <$> deps)
     -- these are all aliases for now
-    PIR.recordAlias @GHC.Name @() (GHC.getName tc)
+    PIR.recordAlias @LexName @() (LexName $ GHC.getName tc)
 
 -- | Add definitions for all the builtin terms to the environment.
 defineBuiltinTerms :: Converting m => m ()
@@ -297,7 +297,7 @@ defineBuiltinTypes = do
 lookupBuiltinTerm :: Converting m => TH.Name -> m PIRTerm
 lookupBuiltinTerm name = do
     ghcName <- GHC.getName <$> getThing name
-    maybeTerm <- PIR.lookupTerm () ghcName
+    maybeTerm <- PIR.lookupTerm () (LexName ghcName)
     case maybeTerm of
         Just t  -> pure t
         Nothing -> throwSd CompilationError $ "Missing builtin definition:" GHC.<+> (GHC.text $ show name)
@@ -306,7 +306,7 @@ lookupBuiltinTerm name = do
 lookupBuiltinType :: Converting m => TH.Name -> m PIRType
 lookupBuiltinType name = do
     ghcName <- GHC.getName <$> getThing name
-    maybeType <- PIR.lookupType () ghcName
+    maybeType <- PIR.lookupType () (LexName ghcName)
     case maybeType of
         Just t  -> pure t
         Nothing -> throwSd CompilationError $ "Missing builtin definition:" GHC.<+> (GHC.text $ show name)

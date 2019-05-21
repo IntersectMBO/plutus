@@ -215,7 +215,7 @@ hoistExpr var t =
     let
         name = GHC.getName var
     in withContextM 1 (sdToTxt $ "Converting definition of:" GHC.<+> GHC.ppr var) $ do
-        maybeDef <- PIR.lookupTerm () name
+        maybeDef <- PIR.lookupTerm () (LexName name)
         case maybeDef of
             Just term -> do
                 -- See Note [Lazy let-bindings]
@@ -229,7 +229,7 @@ hoistExpr var t =
 
                 var' <- convVarFresh var
                 -- See Note [Occurrences of recursive names]
-                PIR.defineTerm name (PIR.Def var' (PIR.mkVar () var')) mempty
+                PIR.defineTerm (LexName name) (PIR.Def var' (PIR.mkVar () var')) mempty
 
                 t' <- convExpr t
 
@@ -238,11 +238,15 @@ hoistExpr var t =
                 when (recursive && lazy) $ throwSd UnsupportedError $ "Recursive let-binding of non-value" GHC.<+> GHC.ppr name
                 rhs <- maybeDelay lazy t'
                 var'' <- maybeDelayVar lazy var'
-                -- if we delayed, we now have a dependency on unit
-                let deps = if lazy then Set.insert (GHC.getName GHC.unitTyCon) allFvs else allFvs
+                -- We could incur a dependency on unit for a number of reasons: we delayed,
+                -- or we used it for a lazy case expression. Rather than tear our hair out
+                -- trying to work out whether we do depend on it, just assume that we do.
+                -- This should get better when we push the laziness handling to PIR so we
+                -- can trust the source-level dependencies on unit.
+                let deps = Set.insert (GHC.getName GHC.unitTyCon) allFvs
                 when lazy $ markLazyName name
 
-                PIR.defineTerm name (PIR.Def var'' rhs) deps
+                PIR.defineTerm (LexName name) (PIR.Def var'' rhs) (Set.map LexName deps)
                 maybeForce lazy $ PIR.mkVar () var''
 
 -- Expressions
@@ -282,7 +286,7 @@ convExpr e = withContextM 2 (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ d
         GHC.Var n@(GHC.realIdUnfolding -> GHC.CoreUnfolding{GHC.uf_tmpl=unfolding}) -> hoistExpr n unfolding
         GHC.Var n -> do
             -- Defined names, including builtin names
-            maybeDef <- PIR.lookupTerm () (GHC.getName n)
+            maybeDef <- PIR.lookupTerm () (LexName $ GHC.getName n)
             case maybeDef of
                 -- See Note [Lazy let-bindings]
                 Just term -> do
