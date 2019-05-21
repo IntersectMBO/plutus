@@ -37,11 +37,11 @@ import qualified Language.PlutusIR.Compiler.Definitions as PIR
 import           Language.Haskell.TH.Syntax             as TH
 
 import           Codec.Serialise                        (serialise)
+import           Control.Lens
 import           Control.Monad
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State
-import           Control.Lens
 
 import qualified Data.ByteString                        as BS
 import qualified Data.ByteString.Lazy                   as BSL

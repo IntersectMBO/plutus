@@ -27,7 +27,7 @@ defaultCompilationOpts :: CompilationOpts
 defaultCompilationOpts = CompilationOpts True
 
 data CompilationCtx a = CompilationCtx {
-    _ccOpts :: CompilationOpts
+    _ccOpts        :: CompilationOpts
     , _ccEnclosing :: Provenance a
     } deriving (Eq, Show)
 

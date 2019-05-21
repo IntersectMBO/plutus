@@ -27,7 +27,7 @@ import           PlutusPrelude
 import           Language.PlutusCore        (Kind, Name, TyName, Type (..))
 import qualified Language.PlutusCore        as PLC
 import           Language.PlutusCore.CBOR   ()
-import           Language.PlutusCore.MkPlc  (TermLike (..), TyVarDecl (..), VarDecl (..), Def(..))
+import           Language.PlutusCore.MkPlc  (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
 import qualified Language.PlutusCore.Pretty as PLC
 
 import           Codec.Serialise            (Serialise)
@@ -128,8 +128,8 @@ instance TermLike (Term tyname name) tyname name where
     unwrap   = Unwrap
     iWrap    = IWrap
     error    = Error
-    termLet x (Def vd bind) body = Let x NonRec [TermBind x vd bind] body
-    typeLet x (Def vd bind) body = Let x NonRec [TypeBind x vd bind] body
+    termLet x (Def vd bind) = Let x NonRec [TermBind x vd bind]
+    typeLet x (Def vd bind) = Let x NonRec [TypeBind x vd bind]
 
 -- no version as PIR is not versioned
 data Program tyname name a = Program a (Term tyname name a) deriving Generic

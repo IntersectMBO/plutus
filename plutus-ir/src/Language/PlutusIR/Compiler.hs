@@ -22,9 +22,9 @@ import qualified Language.PlutusIR.Compiler.Let              as Let
 import           Language.PlutusIR.Compiler.Lower
 import           Language.PlutusIR.Compiler.Provenance
 import           Language.PlutusIR.Compiler.Types
+import qualified Language.PlutusIR.Optimizer.DeadCode        as DeadCode
 import           Language.PlutusIR.Transform.Rename          ()
 import qualified Language.PlutusIR.Transform.ThunkRecursions as ThunkRec
-import qualified Language.PlutusIR.Optimizer.DeadCode        as DeadCode
 
 import qualified Language.PlutusCore                         as PLC
 
