@@ -36,23 +36,18 @@ data MultiSig = MultiSig
                 }
 P.makeLift ''MultiSig
 
-msValidator :: MultiSig -> ValidatorScript
-msValidator sig =
-  ValidatorScript (Ledger.applyScript mkValidator (Ledger.lifted sig)) where
-    mkValidator = Ledger.fromCompiledCode ($$(P.compile [||
-      let
-        validate :: MultiSig -> () -> () -> PendingTx -> ()
-        validate (MultiSig keys num) () () p =
-            let
-                present = P.length (P.filter (V.txSignedBy p) keys)
-            in
-                if P.geq present num
-                then ()
-                else P.error (P.traceH "WRONG!" ())
+validate :: MultiSig -> () -> () -> PendingTx -> ()
+validate (MultiSig keys num) () () p =
+    let present = P.length (P.filter (V.txSignedBy p) keys) in
+    if present `P.geq` num
+    then ()
+    else P.traceErrorH "WRONG!"
 
-      in
-        validate
-      ||]))
+msValidator :: MultiSig -> ValidatorScript
+msValidator sig = ValidatorScript $
+    Ledger.applyScript 
+        (Ledger.fromCompiledCode $$(P.compile [|| validate ||]))
+        (Ledger.lifted sig)
 
 -- | Multisig data script (unit value).
 msDataScript :: DataScript
