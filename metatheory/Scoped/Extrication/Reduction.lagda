@@ -406,7 +406,48 @@ extricate-progress-builtin sha3-256 σ tel (error Bs Ds telB vtelB e q telD) = r
 extricate-progress-builtin verifySignature σ tel (error Bs Ds telB vtelB e q telD) = refl
 extricate-progress-builtin equalsByteString σ tel (error Bs Ds telB vtelB e q telD) = refl
 
+open import Type.BetaNBE.RenamingSubstitution
+
+extricateProgressTelCons-progressTelCons : ∀ Φ (A : Φ ⊢Nf⋆ *)(As : List (Φ ⊢Nf⋆ *)) → 
+ (σ   : ∀{J} → Φ ∋⋆ J → ∅ ⊢Nf⋆ J)
+ (t : ∅ ⊢ substNf σ A)
+ (tp : AR.Progress t)
+ (tel : A.Tel ∅ Φ σ As)
+ (telp : AR.TelProgress tel)
+ → extricateProgressTel {As = A ∷ As} (t ,, tel) (AR.progressTelCons tp telp)
+   ≡
+   SR.progressTelCons (extricateProgress tp) (extricateProgressTel tel telp)
+extricateProgressTelCons-progressTelCons Φ A As σ t (step p)  tel telp                              = refl
+extricateProgressTelCons-progressTelCons Φ A As σ t (done vt) tel (done vtel)                       = refl
+extricateProgressTelCons-progressTelCons Φ A As σ t (done vt) tel (step Bs Ds telB vtelB p q telD)  = refl
+extricateProgressTelCons-progressTelCons Φ A As σ t (done vt) tel (error Bs Ds telB vtelB e p telD) = refl
+extricateProgressTelCons-progressTelCons Φ A As σ t (error e) tel telp                              = refl
+
+cong₄ : ∀{A C : Set}{B : A → Set}{D : C → Set}{E : A → C → Set}(f : ∀{a} → B a → ∀{c} → D c → E a c)
+  → (a : A)
+  → {b b' : B a} → b ≡ b'
+  → (c : C)
+  → {d d' : D c} → d ≡ d'
+  → f {a} b {c} d ≡ f {a} b' {c} d'
+cong₄ f a refl c refl = refl
+  
 extricate-progress : ∀{A}(t : ∅ ⊢ A) → extricateProgress (AR.progress t) ≡ SR.progress (extricate t)
+
+extricateTel-progressTel : ∀ Φ (As : List (Φ ⊢Nf⋆ *)) → 
+ (σ   : ∀{J} → Φ ∋⋆ J → ∅ ⊢Nf⋆ J)
+ ( tel : A.Tel ∅ Φ σ As)
+ → extricateProgressTel tel (AR.progressTel tel) ≡ SR.progressTel (extricateTel σ As tel)
+extricateTel-progressTel Φ []       σ tt         = refl
+extricateTel-progressTel Φ (A ∷ As) σ (t ,, tel) = Eq.trans
+  (extricateProgressTelCons-progressTelCons Φ A As σ t (AR.progress t) tel (AR.progressTel tel))
+  (cong₄
+    {B = SR.Progress}
+    SR.progressTelCons
+    (extricate t)
+    (extricate-progress t)
+    (extricateTel _ _ tel)
+    (extricateTel-progressTel Φ As σ tel))
+
 extricate-progress (ƛ x t) = refl
 extricate-progress (t · u) = Eq.trans
   (extricate-progress· (AR.progress t) u)
@@ -420,6 +461,9 @@ extricate-progress (unwrap1 t) = Eq.trans
   (extricate-progress-unwrap (AR.progress t))
   (cong SR.progress-unwrap (extricate-progress t))
 extricate-progress (con x) = refl
-extricate-progress (builtin bn σ tel) = Eq.trans (extricate-progress-builtin bn σ tel (AR.progressTel tel)) (cong (SR.progress-builtin bn (extricateSub σ) (extricateTel σ (proj₁ (proj₂ (SIG bn))) tel)) {!!})
+extricate-progress (builtin bn σ tel) = Eq.trans
+  (extricate-progress-builtin bn σ tel (AR.progressTel tel))
+  (cong (SR.progress-builtin bn (extricateSub σ) (extricateTel σ (proj₁ (proj₂ (SIG bn))) tel))
+        (extricateTel-progressTel (proj₁ (SIG bn)) (proj₁ (proj₂ (SIG bn))) σ tel))
 extricate-progress (error A) = refl
 \end{code}
