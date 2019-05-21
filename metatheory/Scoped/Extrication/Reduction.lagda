@@ -341,14 +341,21 @@ extricate-progress-builtin takeByteString σ tel (done (V-con (integer i) ,, V-c
 extricate-progress-builtin dropByteString σ tel (done (V-con (integer i) ,, V-con (bytestring b) ,, tt)) = refl
 extricate-progress-builtin sha2-256 σ tel (done (V-con (bytestring b) ,, tt)) = refl
 extricate-progress-builtin sha3-256 σ tel (done (V-con (bytestring b) ,, tt)) = refl
-extricate-progress-builtin verifySignature σ tel (done p) = {!!}
+extricate-progress-builtin verifySignature σ tel (done (V-con (bytestring b) ,, V-con (bytestring b') ,, V-con (bytestring b'') ,, tt)) = {!!}
 extricate-progress-builtin equalsByteString σ tel (done (V-con (bytestring b) ,, V-con (bytestring b') ,, tt)) = {!!}
 extricate-progress-builtin addInteger σ tel (step [] .(con integer ∷ []) telB vtelB p refl telD) = refl
 extricate-progress-builtin addInteger σ tel (step (._ ∷ []) Ds telB vtelB p refl telD) = refl
 extricate-progress-builtin addInteger σ tel (step (B ∷ B' ∷ []) Ds telB vtelB p () telD)
 extricate-progress-builtin addInteger σ tel (step (B ∷ B' ∷ B'' ∷ Bs) Ds telB vtelB p () telD)
-extricate-progress-builtin subtractInteger σ tel (step Bs Ds telB vtelB p q telD) = {!!}
-extricate-progress-builtin multiplyInteger σ tel (step Bs Ds telB vtelB p q telD) = {!!}
+extricate-progress-builtin subtractInteger σ tel (step [] .(con integer ∷ []) telB vtelB p refl telD) = refl
+extricate-progress-builtin subtractInteger σ tel (step (._ ∷ []) Ds telB vtelB p refl telD) = refl
+extricate-progress-builtin subtractInteger σ tel (step (B ∷ B' ∷ []) Ds telB vtelB p () telD)
+extricate-progress-builtin subtractInteger σ tel (step (B ∷ B' ∷ B'' ∷ Bs) Ds telB vtelB p () telD)
+extricate-progress-builtin multiplyInteger σ tel (step [] .(con integer ∷ []) telB vtelB p refl telD) = refl
+extricate-progress-builtin multiplyInteger σ tel (step (._ ∷ []) Ds telB vtelB p refl telD) = refl
+extricate-progress-builtin multiplyInteger σ tel (step (B ∷ B' ∷ []) Ds telB vtelB p () telD)
+extricate-progress-builtin multiplyInteger σ tel (step (B ∷ B' ∷ B'' ∷ Bs) Ds telB vtelB p () telD)
+
 extricate-progress-builtin divideInteger σ tel (step Bs Ds telB vtelB p q telD) = {!!}
 extricate-progress-builtin quotientInteger σ tel (step Bs Ds telB vtelB p q telD) = {!!}
 extricate-progress-builtin remainderInteger σ tel (step Bs Ds telB vtelB p q telD) = {!!}
@@ -358,13 +365,27 @@ extricate-progress-builtin lessThanEqualsInteger σ tel (step Bs Ds telB vtelB p
 extricate-progress-builtin greaterThanInteger σ tel (step Bs Ds telB vtelB p q telD) = {!!}
 extricate-progress-builtin greaterThanEqualsInteger σ tel (step Bs Ds telB vtelB p q telD) = {!!}
 extricate-progress-builtin equalsInteger σ tel (step Bs Ds telB vtelB p q telD) = {!!}
-extricate-progress-builtin concatenate σ tel (step Bs Ds telB vtelB p q telD) = {!!}
-extricate-progress-builtin takeByteString σ tel (step Bs Ds telB vtelB p q telD) = {!!}
-extricate-progress-builtin dropByteString σ tel (step Bs Ds telB vtelB p q telD) = {!!}
+
+extricate-progress-builtin concatenate σ tel (step [] .(con bytestring ∷ []) telB vtelB p refl telD) = refl
+extricate-progress-builtin concatenate σ tel (step (._ ∷ []) Ds telB vtelB p refl telD) = refl
+extricate-progress-builtin concatenate σ tel (step (B ∷ B' ∷ []) Ds telB vtelB p () telD)
+extricate-progress-builtin concatenate σ tel (step (B ∷ B' ∷ B'' ∷ Bs) Ds telB vtelB p () telD)
+
+extricate-progress-builtin takeByteString σ tel (step [] .(con bytestring ∷ []) telB vtelB p refl telD) = refl
+extricate-progress-builtin takeByteString σ tel (step (._ ∷ []) Ds telB vtelB p refl telD) = refl
+extricate-progress-builtin takeByteString σ tel (step (B ∷ B' ∷ []) Ds telB vtelB p () telD)
+extricate-progress-builtin takeByteString σ tel (step (B ∷ B' ∷ B'' ∷ Bs) Ds telB vtelB p () telD)
+
+extricate-progress-builtin dropByteString σ tel (step [] .(con bytestring ∷ []) telB vtelB p refl telD) = refl
+extricate-progress-builtin dropByteString σ tel (step (._ ∷ []) Ds telB vtelB p refl telD) = refl
+extricate-progress-builtin dropByteString σ tel (step (B ∷ B' ∷ []) Ds telB vtelB p () telD)
+extricate-progress-builtin dropByteString σ tel (step (B ∷ B' ∷ B'' ∷ Bs) Ds telB vtelB p () telD)
+
 extricate-progress-builtin sha2-256 σ tel (step Bs Ds telB vtelB p q telD) = {!!}
 extricate-progress-builtin sha3-256 σ tel (step Bs Ds telB vtelB p q telD) = {!!}
 extricate-progress-builtin verifySignature σ tel (step Bs Ds telB vtelB p q telD) = {!!}
 extricate-progress-builtin equalsByteString σ tel (step Bs Ds telB vtelB p q telD) = {!!}
+
 extricate-progress-builtin addInteger σ tel (error Bs Ds telB vtelB e q telD) = refl
 extricate-progress-builtin subtractInteger σ tel (error Bs Ds telB vtelB e q telD) = refl
 extricate-progress-builtin multiplyInteger σ tel (error Bs Ds telB vtelB e q telD) = refl
