@@ -86,16 +86,16 @@ type CrowdfundingValidator = PubKey -> CampaignAction -> PendingTx -> ()
 validRefund :: Campaign -> PubKey -> PendingTx -> Bool
 validRefund campaign contributor ptx =
     Slot.contains (refundRange campaign) (pendingTxValidRange ptx)
-        `P.and` (ptx `V.txSignedBy` contributor)
+    `P.and` (ptx `V.txSignedBy` contributor)
 
 validCollection :: Campaign -> PendingTx -> Bool
-validCollection campaign p = 
-     (collectionRange campaign `Slot.contains` pendingTxValidRange p)
-        `P.and` (valueSpent p `VTH.geq` campaignTarget campaign)
-        `P.and` (p `V.txSignedBy` campaignOwner campaign)
+validCollection campaign p =
+    (collectionRange campaign `Slot.contains` pendingTxValidRange p)
+    `P.and` (valueSpent p `VTH.geq` campaignTarget campaign)
+    `P.and` (p `V.txSignedBy` campaignOwner campaign)
 
 mkValidator :: Campaign -> CrowdfundingValidator
-mkValidator c con act p = 
+mkValidator c con act p =
     let
         isValid = case act of
             Refund -> validRefund c con p
@@ -107,8 +107,8 @@ mkValidator c con act p =
 --
 contributionScript :: Campaign -> ValidatorScript
 contributionScript cmp  = ValidatorScript $
-    $$(Ledger.compileScript [|| mkValidator ||]) 
-        `Ledger.applyScript` 
+    $$(Ledger.compileScript [|| mkValidator ||])
+        `Ledger.applyScript`
             Ledger.lifted cmp
 
 -- | The address of a [[Campaign]]
