@@ -21,12 +21,11 @@ import           Control.Applicative                       (empty, (<|>))
 import           Control.Lens                              (set, (&))
 import           Control.Monad.Representable.Reader        (MonadReader)
 import qualified Data.ByteString                           as BS
-import qualified Data.ByteString.Char8                     as CBS
 import           Data.Monoid                               ()
 import           Data.Proxy                                (Proxy (Proxy))
 import qualified Data.Set                                  as Set ()
 import qualified Data.Text                                 as T
-import qualified Data.Text.Encoding                        as T ()
+import qualified Data.Text.Encoding                        as T
 import qualified Data.Text.IO                              as T ()
 import           Gist                                      (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
 import           Git                                       (gitRev)
@@ -263,23 +262,23 @@ mySettings =
     (defaultSettings & set apiModuleName "Playground.Server")
         {_generateSubscriberAPI = False}
 
-multilineString :: BS.ByteString -> BS.ByteString -> BS.ByteString
+multilineString :: T.Text -> T.Text -> T.Text
 multilineString name value =
     "\n\n" <> name <> " :: String\n" <> name <> " = \"\"\"" <> value <> "\"\"\""
 
-psModule :: BS.ByteString -> BS.ByteString -> BS.ByteString
+psModule :: T.Text -> T.Text -> T.Text
 psModule name body = "module " <> name <> " where" <> body
 
 writeUsecases :: FilePath -> IO ()
 writeUsecases outputDir = do
     let usecases =
-            multilineString "gitRev" (CBS.pack . T.unpack $ gitRev) <>
+            multilineString "gitRev" gitRev <>
             multilineString "vesting" vesting <>
             multilineString "game" game <>
             multilineString "crowdfunding" crowdfunding <>
             multilineString "messages" messages
         usecasesModule = psModule "Playground.Usecases" usecases
-    BS.writeFile (outputDir </> "Playground" </> "Usecases.purs") usecasesModule
+    BS.writeFile (outputDir </> "Playground" </> "Usecases.purs") (T.encodeUtf8 usecasesModule)
     putStrLn outputDir
 
 generate :: FilePath -> IO ()

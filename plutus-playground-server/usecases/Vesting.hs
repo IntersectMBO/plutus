@@ -1,5 +1,15 @@
--- | Vesting scheme as a PLC contract
-
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
+module Vesting where
+-- TRIM TO HERE
+-- Vesting scheme as a PLC contract
 import           Control.Monad                (void)
 import qualified Data.Map                  as Map
 import qualified Data.Set                  as Set

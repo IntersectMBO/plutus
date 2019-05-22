@@ -9,7 +9,6 @@ import           Control.Monad.Except         (runExceptT)
 import qualified Data.Aeson                   as JSON
 import qualified Data.Aeson.Text              as JSON
 import           Data.Aeson.Types             (object, (.=))
-import qualified Data.ByteString.Char8        as BSC
 import           Data.Either                  (isRight)
 import           Data.List.NonEmpty           (NonEmpty ((:|)))
 import           Data.Swagger                 ()
@@ -184,14 +183,14 @@ vestingSpec =
   where
     ten = Ada.adaValueOf 10
     simpleEvaluation =
-        Evaluation [mkSimulatorWallet w1 ten] [] (sourceCode vesting) []
+        Evaluation [mkSimulatorWallet w1 ten] [] (SourceCode vesting) []
     simpleWaitEval =
-        Evaluation [mkSimulatorWallet w1 ten] [Wait 10] (sourceCode vesting) []
+        Evaluation [mkSimulatorWallet w1 ten] [Wait 10] (SourceCode vesting) []
     vestFundsEval =
         Evaluation
             [mkSimulatorWallet w1 ten]
             [Action (Fn "vestFunds") w1 [theVesting]]
-            (sourceCode vesting)
+            (SourceCode vesting)
             []
     theVesting =
         toJSONString $
@@ -248,7 +247,7 @@ gameSpec =
             , Action (Fn "lock") w2 [JSON.String "\"abcde\"", twoAda]
             , Action (Fn "guess") w1 [JSON.String "\"ade\""]
             ]
-            (sourceCode game)
+            (SourceCode game)
             []
     gameEvalSuccess =
         Evaluation
@@ -257,7 +256,7 @@ gameSpec =
             , Action (Fn "lock") w2 [JSON.String "\"abcde\"", twoAda]
             , Action (Fn "guess") w1 [JSON.String "\"abcde\""]
             ]
-            (sourceCode game)
+            (SourceCode game)
             []
     payAll a b c =
         Evaluation
@@ -269,7 +268,7 @@ gameSpec =
             , Action (Fn "payToWallet_") b [slotRange, nineAda, toJSONString c]
             , Action (Fn "payToWallet_") c [slotRange, nineAda, toJSONString a]
             ]
-            (sourceCode game)
+            (SourceCode game)
             []
     slotRange = JSON.String "{\"ivTo\":null,\"ivFrom\":null}"
     nineAda = toJSONString $ Ada.adaValueOf 9
@@ -327,7 +326,7 @@ crowdfundingSpec =
                   ]
             , Wait 20
             ]
-            (sourceCode crowdfunding)
+            (SourceCode crowdfunding)
             []
     successfulCampaign =
         Evaluation
@@ -359,7 +358,7 @@ crowdfundingSpec =
                   ]
             , Wait 10
             ]
-            (sourceCode crowdfunding)
+            (SourceCode crowdfunding)
             []
     theDeadline = toJSONString (object ["getSlot" .= mkI 10])
     theTarget = toJSONString (Ada.adaValueOf 10)
@@ -395,20 +394,17 @@ knownCurrencySpec =
             (TokenName "MyToken" :| [])
     hasKnownCurrency _ = False
 
-sourceCode :: BSC.ByteString -> SourceCode
-sourceCode = SourceCode . Text.pack . BSC.unpack
-
 compile ::
-       BSC.ByteString
+       Text.Text
     -> IO (Either InterpreterError (InterpreterResult CompilationResult))
-compile = runExceptT . PI.compile maxInterpretationTime . sourceCode
+compile = runExceptT . PI.compile maxInterpretationTime . SourceCode
 
 evaluate ::
        Evaluation -> IO (Either PlaygroundError (InterpreterResult TraceResult))
 evaluate evaluation =
     runExceptT $ PI.runFunction maxInterpretationTime evaluation
 
-compilationChecks :: BSC.ByteString -> Spec
+compilationChecks :: Text.Text -> Spec
 compilationChecks f = do
     it "should compile" $ compile f >>= (`shouldSatisfy` isRight)
     it "should be representable on the frontend" $
