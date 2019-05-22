@@ -65,7 +65,7 @@ startingBalance :: Ledger.Value
 startingBalance = Ada.adaValueOf 1000000
 
 lockFunds :: Trace MockWallet ()
-lockFunds = void $ walletAction w1 (lock "abcde" 10) >> updateAll
+lockFunds = void $ walletAction w1 (lock "abcde" (Ada.adaValueOf 10)) >> updateAll
 
 checkTrace :: Trace MockWallet () -> Property
 checkTrace t = property $ do

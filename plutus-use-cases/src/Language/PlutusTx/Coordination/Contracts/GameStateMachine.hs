@@ -134,7 +134,7 @@ gameTokenVal =
     in
         V.singleton cur gameToken 1
 
--- | Make a guess, take out some funds, and lock the remaining 'Ada' with a new
+-- | Make a guess, take out some funds, and lock the remaining 'Value' with a new
 --   secret
 guess ::
     (WalletAPI m, WalletDiagnostics m)
@@ -142,21 +142,21 @@ guess ::
     -- ^ The guess
     -> String
     -- ^ A new secret
-    -> Ada
+    -> Value
     -- ^ How much ada to take out
-    -> Ada
+    -> Value
     -- ^ How much to put back into the contract
     -> m ()
-guess gss newSecret keepAda restAda = do
+guess gss newSecret keepVal restVal = do
 
     let clear = ClearString (C.pack gss)
         addr = Ledger.scriptAddress gameValidator
         scr   = HashedString (plcSHA2_256 (C.pack newSecret))
     let step = SM.transition (Locked gameToken scr) (Guess clear scr)
     ins <- WAPI.spendScriptOutputs addr gameValidator (RedeemerScript (Ledger.lifted step))
-    ownOutput <- WAPI.ownPubKeyTxOut (Ada.toValue keepAda <> gameTokenVal)
+    ownOutput <- WAPI.ownPubKeyTxOut (keepVal <> gameTokenVal)
 
-    let scriptOut = scriptTxOut (Ada.toValue restAda) gameValidator (DataScript (Ledger.lifted step))
+    let scriptOut = scriptTxOut restVal gameValidator (DataScript (Ledger.lifted step))
 
     (i, own) <- createPaymentWithChange gameTokenVal
 
@@ -173,15 +173,15 @@ guess gss newSecret keepAda restAda = do
 
 -- | Lock some funds in the guessing game. Produces the token that is required
 --   when submitting a guess.
-lock :: (WalletAPI m, WalletDiagnostics m) => String -> Ada -> m ()
-lock initialWord adaVl = do
+lock :: (WalletAPI m, WalletDiagnostics m) => String -> Value -> m ()
+lock initialWord vl = do
     let secret = HashedString (plcSHA2_256 (C.pack initialWord))
         addr = Ledger.scriptAddress gameValidator
         state = SM.initialState @GameState @GameInput (Initialised secret)
         ds   = DataScript (Ledger.lifted state)
 
     -- 1. Create a transaction output with the value and the secret
-    payToScript_ defaultSlotRange addr (Ada.toValue adaVl) ds
+    payToScript_ defaultSlotRange addr vl ds
 
     -- 2. Define a trigger that fires when the first transaction (1.) is
     --    placed on the chain.
@@ -194,7 +194,7 @@ lock initialWord adaVl = do
         forge = do
             ownOutput <- WAPI.ownPubKeyTxOut gameTokenVal
             let step = SM.transition (Locked gameToken secret) (ForgeToken gameToken)
-                scriptOut = scriptTxOut (Ada.toValue adaVl) gameValidator (DataScript (Ledger.lifted step))
+                scriptOut = scriptTxOut vl gameValidator (DataScript (Ledger.lifted step))
                 redeemer = RedeemerScript (Ledger.lifted step)
             ins <- WAPI.spendScriptOutputs addr gameValidator redeemer
 
