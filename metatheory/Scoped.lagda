@@ -6,11 +6,14 @@ module Scoped where
 open import Data.Nat hiding (_*_)
 open import Data.Fin hiding (_-_)
 open import Data.List hiding (map; _++_)
+open import Data.Integer hiding (_*_; suc)
+open import Data.String
+open import Data.Unit
 
 open import Builtin.Constant.Type
 open import Builtin
 open import Raw
-open import Data.String
+
 \end{code}
 
 \begin{code}
@@ -31,6 +34,18 @@ data ScopedTy (n : ℕ) : Set where
   μ    : ScopedTy n → ScopedTy n → ScopedTy n
 
 --{-# COMPILE GHC ScopedTy = data ScTy (ScTyVar | ScTyFun | ScTyPi | ScTyLambda | ScTyApp | ScTyCon) #-}
+
+-- type synonyms
+
+boolean : ∀{Γ} → ScopedTy Γ
+boolean = Π "α" * (` zero ⇒ (` zero ⇒ ` zero))
+
+unit : ∀{Γ} → ScopedTy Γ
+unit = Π "α" * (` zero ⇒ (` zero ⇒ ` zero))
+
+open import Builtin.Signature ℕ ⊤ 0 (λ n _ → suc n) tt (λ n _ → Fin n) zero suc (λ n _ → ScopedTy n) ` con boolean
+
+-- variables
 
 data Weirdℕ : ℕ → Set where
   Z : Weirdℕ 0
@@ -53,11 +68,6 @@ wtoℕ Z = zero
 wtoℕ (S x) = suc (wtoℕ x)
 wtoℕ (T x) = suc (wtoℕ x)
 
-
-open import Data.Integer hiding (_*_)
-open import Data.String
-
--- could index by size here, is there any point?
 data TermCon : Set where
   integer    : (i : ℤ) → TermCon
   bytestring : (b : ByteString) → TermCon
@@ -71,20 +81,12 @@ data ScopedTm {n}(w : Weirdℕ n) : Set where
   _·_  :    ScopedTm w → ScopedTm w → ScopedTm w
   con  :    TermCon → ScopedTm w
   error :   ScopedTy n → ScopedTm w
-  builtin : Builtin → List (ScopedTy n) → List (ScopedTm w)
+  builtin : (bn : Builtin) → List (ScopedTy n) → List (ScopedTm w)
             → ScopedTm w
   wrap :    ScopedTy n → ScopedTy n → ScopedTm w → ScopedTm w
   unwrap :  ScopedTm w → ScopedTm w
 
--- term/type synonyms
-
-boolean : ∀{Γ} → ScopedTy Γ
-boolean = Π "α" * (` zero ⇒ (` zero ⇒ ` zero))
-
-unit : ∀{Γ} → ScopedTy Γ
-unit = Π "α" * (` zero ⇒ (` zero ⇒ ` zero))
-
-
+-- term synonyms
 void : ∀{Φ}{Γ : Weirdℕ Φ} → ScopedTm Γ
 void = Λ "α" * (ƛ "x" (` zero) (` Z))
 
