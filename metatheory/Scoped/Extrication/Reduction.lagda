@@ -545,4 +545,18 @@ extricate-progress (builtin bn σ tel) = Eq.trans
   (cong (SR.progress-builtin bn (extricateSub σ) (extricateTel σ (proj₁ (proj₂ (SIG bn))) tel))
         (extricateTel-progressTel (proj₁ (SIG bn)) (proj₁ (proj₂ (SIG bn))) σ tel))
 extricate-progress (error A) = refl
+
+extricateRun : {A : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ A} → Steps t →
+  Σ (ScopedTm Z) λ t' → extricate t —→⋆ t' × (Maybe (SR.Value t') ⊎ SR.Error t')
+extricateRun (steps p (done N VN)) =
+  _ ,, extricate—→⋆ p ,, inj₁ (just (extricateVal VN))
+extricateRun (steps p out-of-gas) = _ ,, extricate—→⋆ p ,, (inj₁ nothing)
+extricateRun (steps p (error e)) = _ ,, extricate—→⋆ p ,, inj₂ (extricateE e)
+
+open import Algorithmic.Evaluation
+
+extricate-run : ∀{A}(t : ∅ ⊢ A) n
+  → extricateRun (eval (gas n) t) ≡ SR.run (extricate t) n
+extricate-run t zero = refl
+extricate-run t (ℕ.suc n) = {!!}
 \end{code}

@@ -22,7 +22,7 @@ data Gas : Set where
 When our evaluator returns a term `N`, it will either give evidence that
 `N` is a value or indicate that it ran out of gas.
 \begin{code}
-data Finished {Φ Γ J}{A : Φ ⊢Nf⋆ J} :  (N : Γ ⊢ A) →  Set where
+data Finished {Φ Γ}{A : Φ ⊢Nf⋆ *} :  (N : Γ ⊢ A) →  Set where
 
    done : ∀ N → 
        Value N
@@ -32,20 +32,22 @@ data Finished {Φ Γ J}{A : Φ ⊢Nf⋆ J} :  (N : Γ ⊢ A) →  Set where
    out-of-gas : ∀{N} → 
        ----------
        Finished N
+
+   error : {L : Γ ⊢ A} → Error L → Finished L
+
 \end{code}
 Given a term `L` of type `A`, the evaluator will, for some `N`, return
 a reduction sequence from `L` to `N` and an indication of whether
 reduction finished.
 \begin{code}
-data Steps : ∀ {J}{A : ∅ ⊢Nf⋆ J} → ∅ ⊢ A → Set where
+data Steps : ∀ {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set where
 
-  steps : ∀ {J}{A : ∅ ⊢Nf⋆ J} {L N : ∅ ⊢ A}
+  steps : {A : ∅ ⊢Nf⋆ *} {L N : ∅ ⊢ A}
     → L —↠ N
     → Finished N
       ----------
     → Steps L
 
-  error :  ∀ {J}{A : ∅ ⊢Nf⋆ J} {L : ∅ ⊢ A} → Steps L
 
 \end{code}
 The evaluator takes gas and a term and returns the corresponding steps.
@@ -57,9 +59,8 @@ eval : ∀ {A : ∅ ⊢Nf⋆ *}
   → Steps M
 eval (gas zero) M = steps refl—↠ out-of-gas
 eval (gas (suc n)) M with progress M
-...                  | error p   = error
+...                  | error p   = steps refl—↠ (error p)
 eval (gas (suc n)) M | step {N} p  with eval (gas n) N
-...                               | error = error
 eval (gas (suc n)) M | step {N} p | steps ps q = steps (trans—↠ p ps) q
 eval (gas (suc n)) M | done vM = steps refl—↠ (done _ vM)
 \end{code}
