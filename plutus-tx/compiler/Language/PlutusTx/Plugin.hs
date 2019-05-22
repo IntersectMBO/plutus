@@ -33,11 +33,11 @@ import           Language.PlutusCore.Quote
 import qualified Language.PlutusIR                      as PIR
 import qualified Language.PlutusIR.Compiler             as PIR
 import qualified Language.PlutusIR.Compiler.Definitions as PIR
-import qualified Language.PlutusIR.Optimizer.DeadCode   as PIR
 
 import           Language.Haskell.TH.Syntax             as TH
 
 import           Codec.Serialise                        (serialise)
+import           Control.Lens
 import           Control.Monad
 import           Control.Monad.Except
 import           Control.Monad.Reader
@@ -187,11 +187,11 @@ makeByteStringLiteral bs = do
 -- 'GHC.TyThing's for later reference.
 makePrimitiveNameInfo :: [TH.Name] -> GHC.CoreM BuiltinNameInfo
 makePrimitiveNameInfo names = do
-    mapped <- forM names $ \name -> do
+    infos <- forM names $ \name -> do
         ghcName <- thNameToGhcNameOrFail name
         thing <- GHC.lookupThing ghcName
         pure (name, thing)
-    pure $ Map.fromList mapped
+    pure $ Map.fromList infos
 
 -- | Strips all enclosing 'GHC.Tick's off an expression.
 stripTicks :: GHC.CoreExpr -> GHC.CoreExpr
@@ -305,11 +305,14 @@ runCompiler
     -> GHC.CoreExpr
     -> m (PIRProgram, PLCProgram)
 runCompiler opts expr = do
+    let (ctx :: PIR.CompilationCtx ()) = PIR.defaultCompilationCtx & set (PIR.ccOpts . PIR.coOptimize) (poOptimize opts)
+
     (pirT::PIRTerm) <- PIR.runDefT () $ convExprWithDefs expr
-    let (pirP::PIRProgram) = PIR.Program () $ if poOptimize opts then PIR.removeDeadBindings pirT else pirT
+    -- We manually run a simplifier pass here before dumping/storing the PIR
+    (pirP::PIRProgram) <- PIR.Program () <$> (flip runReaderT ctx $ PIR.simplifyTerm pirT)
     when (poDumpPir opts) $ liftIO $ print $ PP.pretty pirP
 
-    (plcP::PLCProgram) <- void <$> (flip runReaderT PIR.NoProvenance $ PIR.compileProgram pirP)
+    (plcP::PLCProgram) <- void <$> (flip runReaderT ctx $ PIR.compileProgram pirP)
     when (poDumpPlc opts) $ liftIO $ print $ PP.pretty plcP
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump

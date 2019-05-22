@@ -6,13 +6,14 @@ import qualified Data.Set                  as Set
 
 import qualified Language.PlutusTx         as P
 import           Ledger                    (Address, DataScript(..), RedeemerScript(..), Signature, Slot, TxOutRef, TxIn, ValidatorScript(..))
-import qualified Ledger                    as L
+import qualified Ledger                    as Ledger
 import           Ledger.Value              (Value)
 import qualified Ledger.Value              as Value
 import qualified Ledger.Value              as Value.TH
 import qualified Ledger.Interval           as Interval
 import qualified Ledger.Slot               as Slot
 import qualified Ledger.Validation         as V
+import           Ledger.Validation         (PendingTx(..))
 import qualified Ledger.Value              as Value
 import           Wallet                    (WalletAPI(..), WalletDiagnostics, PubKey)
 import qualified Wallet                    as W
@@ -63,8 +64,19 @@ data Vesting = Vesting {
 P.makeLift ''Vesting
 
 -- | The total value locked by a vesting scheme
-totalVested :: Vesting -> Value
-totalVested (Vesting l r _) = Value.plus (vestingTrancheAmount l) (vestingTrancheAmount r)
+totalAmount :: Vesting -> Value
+totalAmount (Vesting l r _) = (vestingTrancheAmount l) `Value.plus` (vestingTrancheAmount r)
+
+-- | The amount guaranteed to be available from a given tranche in a given slot range.
+{-# INLINABLE availableFrom #-}
+availableFrom :: VestingTranche -> Slot.SlotRange -> Value
+availableFrom (VestingTranche d v) range =
+    -- The valid range is an open-ended range starting from the tranche vesting date
+    let validRange = Interval.from d
+    -- If the valid range completely contains the argument range (meaning in particular
+    -- that the start slot of the argument range is after the tranche vesting date), then
+    -- the money in the tranche is available, otherwise nothing is available.
+    in if validRange `Slot.contains` range then v else Value.zero
 
 {- |
 
@@ -86,104 +98,55 @@ totalVested (Vesting l r _) = Value.plus (vestingTrancheAmount l) (vestingTranch
 -}
 
 -- | The validator script
-vestingValidator :: Vesting -> ValidatorScript
-vestingValidator v = ValidatorScript val where
-    val = L.applyScript inner (L.lifted v)
-    inner = $$(L.compileScript [|| \(scheme :: Vesting) () () (p :: V.PendingTx) ->
-        let
+mkValidator :: Vesting -> () -> () -> PendingTx -> ()
+mkValidator d@Vesting{..} () () p@PendingTx{pendingTxValidRange = range} =
+    let
+        -- We need the hash of this validator script in order to ensure
+        -- that the pending transaction locks the remaining amount of funds
+        -- at the contract address.
+        ownHash = V.ownHash p
 
-            Vesting tranche1 tranche2 owner = scheme
-            VestingTranche d1 a1 = tranche1
-            VestingTranche d2 a2 = tranche2
+        -- Value that has been released so far under the scheme
+        released = availableFrom vestingTranche1 range
+            `Value.plus` availableFrom vestingTranche2 range
 
-            V.PendingTx _ _ _ _ _ range _ _ = p
-            -- range :: SlotRange, validity range of the pending transaction
+        -- And the following amount has not been released yet:
+        unreleased :: Value
+        unreleased = (totalAmount d) `Value.minus` released
 
-            -- We need the hash of this validator script in order to ensure
-            -- that the pending transaction locks the remaining amount of funds
-            -- at the contract address.
-            ownHash = V.ownHash p
+        -- To check whether the withdrawal is legitimate we need to
+        -- 1. Ensure that the amount taken out does not exceed the current
+        --    limit
+        -- 2. Compare the provded signature with the public key of the
+        --    vesting owner
+        -- We will call these conditions con1 and con2.
 
-            -- The total value that has been vested:
-            totalAmount :: Value
-            totalAmount = Value.TH.plus a1 a2
+        -- con1 is true if the amount that remains locked in the contract
+        -- is greater than or equal to 'unreleased'. We use the
+        -- `valueLockedBy` function to get the value paid by pending
+        -- transaction 'p' to the script address 'ownHash'.
+        con1 :: Bool
+        con1 =
+            let remaining = V.valueLockedBy p ownHash
+            in remaining `Value.geq` unreleased
 
-            -- It will be useful to know the amount of money that has been
-            -- released so far. This means we need to check the current slot
-            -- against the slots 'd1' and 'd2', defined in 'tranche1' and
-            -- 'tranche2' respectively. But the only indication of the current
-            -- time that we have is the 'range' value of the pending
-            -- transaction 'p', telling us that the current slot is one of the
-            -- slots contained in 'range'.
-            --
-            -- We can think of 'd1' as an interval as well: It is
-            -- the open-ended interval starting with slot 'd1'. At any point
-            -- during this interval we may take out up to a value of 'a1'.
-            d1Intvl = Interval.from d1
+        -- con2 is true if the scheme owner has signed the pending
+        -- transaction 'p'.
+        con2 :: Bool
+        con2 = p `V.txSignedBy` vestingOwner
+    in
+        if con1 `P.and` con2
+        then ()
+        else P.traceErrorH "Cannot withdraw"
 
-            -- Likewise for 'd2'
-            d2Intvl = Interval.from d2
-
-            -- Now we can compare the validity range 'range' against our two
-            -- intervals. If 'range' is completely contained in 'd1Intvl', then
-            -- we know for certain that the current slot is in 'd1Intvl', so the
-            -- amount 'a1' of the first tranche has been released.
-            inD1Intvl = Slot.contains d1Intvl range
-
-            -- Likewise for 'd2'
-            inD2Intvl = Slot.contains d2Intvl range
-
-            released :: Value
-            released
-                -- to compute the amount that has been released we need to
-                -- consider three cases:
-
-                -- If we are in d2Intvl then the current slot is greater than
-                -- or equal to 'd2', so everything has been released:
-                | inD2Intvl = totalAmount
-
-                -- If we are not in d2Intvl but in d1Intvl then only the first
-                -- tranche 'a1' has been released:
-                | inD1Intvl = a1
-
-                -- Otherwise nothing has been released yet
-                | True      = Value.TH.zero
-
-            -- And the following amount has not been released yet:
-            unreleased :: Value
-            unreleased = Value.TH.minus totalAmount released
-
-            -- To check whether the withdrawal is legitimate we need to
-            -- 1. Ensure that the amount taken out does not exceed the current
-            --    limit
-            -- 2. Compare the provded signature with the public key of the
-            --    vesting owner
-            -- We will call these conditions con1 and con2.
-
-            -- con1 is true if the amount that remains locked in the contract
-            -- is greater than or equal to 'unreleased'. We use the
-            -- `valueLockedBy` function to get the value paid by pending
-            -- transaction 'p' to the script address 'ownHash'.
-            con1 :: Bool
-            con1 =
-                let remainsLocked = V.valueLockedBy p ownHash
-                in Value.TH.geq remainsLocked unreleased
-
-            -- con2 is true if the scheme owner has signed the pending
-            -- transaction 'p'.
-            con2 :: Bool
-            con2 = V.txSignedBy p owner
-
-        in
-
-            if P.and con1 con2
-            then ()
-            else P.error (P.traceH "Cannot withdraw" ())
-
-        ||])
+validatorScript :: Vesting -> ValidatorScript
+validatorScript v = ValidatorScript $
+    $$(Ledger.compileScript [|| mkValidator ||])
+        `Ledger.applyScript`
+            Ledger.lifted v
 
 contractAddress :: Vesting -> Address
-contractAddress vst = L.scriptAddress (vestingValidator vst)
+contractAddress vst = Ledger.scriptAddress (validatorScript vst)
 
 {- |
 
@@ -200,9 +163,9 @@ contractAddress vst = L.scriptAddress (vestingValidator vst)
 
 vestFunds :: (Monad m, WalletAPI m) => Vesting -> m ()
 vestFunds vst = do
-    let amt = totalVested vst
+    let amt = totalAmount vst
         adr = contractAddress vst
-        dataScript = DataScript (L.lifted ())
+        dataScript = DataScript (Ledger.lifted ())
     W.payToScript_ W.defaultSlotRange adr amt dataScript
 
 registerVestingScheme :: (WalletAPI m) =>  Vesting -> m ()
@@ -219,7 +182,7 @@ withdraw :: (Monad m, WalletAPI m) => Vesting -> Value -> m ()
 withdraw vst vl = do
 
     let address = contractAddress vst
-        validator = vestingValidator vst
+        validator = validatorScript vst
 
     -- We are going to use the wallet API to build the transaction "by hand",
     -- that is without using 'collectFromScript'.
@@ -238,11 +201,11 @@ withdraw vst vl = do
 
     let
         -- the redeemer script with the unit value ()
-        redeemer  = RedeemerScript (L.lifted ())
+        redeemer  = RedeemerScript (Ledger.lifted ())
 
         -- Turn the 'utxos' map into a set of 'TxIn' values
         mkIn :: TxOutRef -> TxIn
-        mkIn r = L.scriptTxIn r validator redeemer
+        mkIn r = Ledger.scriptTxIn r validator redeemer
 
         ins = Set.map mkIn (Map.keysSet utxos)
 
@@ -260,12 +223,12 @@ withdraw vst vl = do
     -- Now to compute the difference between 'vl' and what is currently in the
     -- scheme:
     let
-        currentlyLocked = Map.foldr (\txo vl' -> vl' `Value.plus` L.txOutValue txo) Value.zero utxos
+        currentlyLocked = Map.foldr (\txo vl' -> vl' `Value.plus` Ledger.txOutValue txo) Value.zero utxos
         remaining = currentlyLocked `Value.minus` vl
 
         otherOutputs = if Value.eq Value.zero remaining
                        then []
-                       else [L.scriptTxOut remaining validator (DataScript (L.lifted ()))]
+                       else [Ledger.scriptTxOut remaining validator (DataScript (Ledger.lifted ()))]
 
     -- Finally we have everything we need for `createTxAndSubmit`
     _ <- WAPI.createTxAndSubmit range ins (ownOutput:otherOutputs)

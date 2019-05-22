@@ -10,12 +10,15 @@ category: Web
 build-type: Simple
 
 library
+    other-modules:
+        Git.TH
     exposed-modules:
         System.IO.Temp.Extras
         Control.Monad.Except.Extras
         Language.Haskell.Interpreter
         Servant.Extra
         Servant.Prometheus
+        Git
     hs-source-dirs: src
     default-language: Haskell2010
     build-depends:
@@ -27,6 +30,7 @@ library
         directory -any,
         exceptions -any,
         filepath -any,
+        file-embed -any,
         hashable -any,
         http-types -any,
         monad-logger -any,
@@ -34,10 +38,12 @@ library
         newtype-generics -any,
         process -any,
         prometheus >=2,
+        safe-exceptions -any,
         servant <0.16,
         servant-purescript -any,
         servant-server -any,
         temporary -any,
+        template-haskell -any,
         text -any,
         time -any,
         time-out -any,

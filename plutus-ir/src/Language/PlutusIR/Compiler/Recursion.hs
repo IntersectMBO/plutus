@@ -11,7 +11,6 @@ import qualified Language.PlutusIR.MkPir                    as PIR
 
 import           Control.Monad
 import           Control.Monad.Error.Lens
-import           Control.Monad.Reader
 
 import qualified Language.PlutusCore                        as PLC
 import           Language.PlutusCore.Quote
@@ -60,7 +59,7 @@ Here we merely have to provide it with the types of the f_is, which we *do* know
 -- | Compile a mutually recursive list of var decls bound in a body.
 compileRecTerms :: Compiling m e a => PIRTerm a -> [TermDef TyName Name (Provenance a)] -> m (PIRTerm a)
 compileRecTerms body bs = do
-    p <- ask
+    p <- getEnclosing
     fixpoint <- mkFixpoint bs
     Tuple.bindTuple p (PIR.varDeclName . PIR.defVar <$> bs) fixpoint body
 
@@ -70,7 +69,7 @@ mkFixpoint
     => [TermDef TyName Name (Provenance a)]
     -> m (Tuple.Tuple (Term TyName Name) (Provenance a))
 mkFixpoint bs = do
-    p0 <- ask
+    p0 <- getEnclosing
 
     funs <- forM bs $ \(PIR.Def (PIR.VarDecl p name ty) term) ->
         case PIR.mkFunctionDef p name ty term of

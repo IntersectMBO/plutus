@@ -28,7 +28,6 @@ library
         Interpreter
         Meadow.Contracts
         Gist
-        Git
         Auth
         Auth.Types
         Control.Monad.Now
