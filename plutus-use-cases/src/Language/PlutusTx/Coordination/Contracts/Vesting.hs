@@ -21,19 +21,17 @@ import           Control.Monad.Error.Class    (MonadError (..))
 import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
-import           Ledger.Validation            (PendingTx (..), PendingTxOut (..), PendingTxOutType (..),
-                                              ValidatorHash)
+import           Ledger.Validation            (PendingTx (..), ValidatorHash)
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       (DataScript (..), Slot(..), PubKey (..), TxOutRef, ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
 import qualified Ledger.Interval              as Interval
 import qualified Ledger.Slot                  as Slot
 import qualified Ledger.Validation            as Validation
-import           Prelude                      hiding ((&&))
 import qualified Wallet                       as W
 import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, ownPubKeyTxOut, createTxAndSubmit, defaultSlotRange)
 import           Ledger.Ada                   (Ada)
-import qualified Ledger.Ada                as Ada
+import qualified Ledger.Ada                   as Ada
 
 -- | Tranche of a vesting scheme.
 data VestingTranche = VestingTranche {
@@ -54,9 +52,10 @@ data Vesting = Vesting {
 PlutusTx.makeLift ''Vesting
 
 -- | The total amount of Ada vested
+{-# INLINABLE totalAmount #-}
 totalAmount :: Vesting -> Ada
 totalAmount Vesting{..} =
-    vestingTrancheAmount vestingTranche1 + vestingTrancheAmount vestingTranche2
+    vestingTrancheAmount vestingTranche1 `Ada.plus` vestingTrancheAmount vestingTranche2
 
 -- | Data script for vesting utxo
 data VestingData = VestingData {
@@ -117,60 +116,48 @@ validatorScriptHash =
     . Ledger.scriptAddress
     . validatorScript
 
+mkValidator :: Vesting -> VestingData -> () -> PendingTx -> ()
+mkValidator d@Vesting{..} VestingData{..} () p@PendingTx{pendingTxValidRange = range} =
+    let
+        VestingTranche d1 a1 = vestingTranche1
+        VestingTranche d2 a2 = vestingTranche2
+
+        -- We assume here that the txn outputs are always given in the same
+        -- order (1 PubKey output, followed by 0 or 1 script outputs)
+        amountSpent :: Ada
+        amountSpent = Ada.fromValue (Validation.valuePaidTo p vestingOwner)
+
+        -- Value that has been released so far under the scheme
+        currentThreshold =
+            if Slot.contains (Interval.from d1) range
+            then if Slot.contains (Interval.from d2) range
+                -- everything can be spent
+                    then Ada.plus a1 a2
+                    -- only the first tranche can be spent (we are between d1 and d2)
+                    else a1
+            -- Nothing has been released yet
+            else Ada.zero
+
+        paidOut = vestingDataPaidOut
+        newAmount = Ada.plus paidOut amountSpent
+
+        -- Verify that the amount taken out, plus the amount already taken
+        -- out before, does not exceed the threshold that is currently
+        -- allowed
+        amountsValid = Ada.leq newAmount currentThreshold
+
+        -- Check that the remaining output is locked by the same validation
+        -- script
+        txnOutputsValid = 
+            let remaining = Validation.adaLockedBy p (Validation.ownHash p) in
+            remaining `Ada.eq` (totalAmount d `Ada.minus` newAmount) 
+
+        isValid = amountsValid `PlutusTx.and` txnOutputsValid
+    in
+    if isValid then () else PlutusTx.error ()
+
 validatorScript :: Vesting -> ValidatorScript
-validatorScript v = ValidatorScript val where
-    val = Ledger.applyScript inner (Ledger.lifted v)
-    inner = $$(Ledger.compileScript [|| \Vesting{..} VestingData{..} () (p :: PendingTx) ->
-        let
-
-            eqBs :: ValidatorHash -> ValidatorHash -> Bool
-            eqBs = Validation.eqValidator
-
-            eqPk :: PubKey -> PubKey -> Bool
-            eqPk = Validation.eqPubKey
-
-            infixr 3 &&
-            (&&) :: Bool -> Bool -> Bool
-            (&&) = PlutusTx.and
-
-            PendingTx _ os _ _ _ range _ _ = p
-            VestingTranche d1 a1 = vestingTranche1
-            VestingTranche d2 a2 = vestingTranche2
-
-            -- We assume here that the txn outputs are always given in the same
-            -- order (1 PubKey output, followed by 0 or 1 script outputs)
-            amountSpent :: Ada
-            amountSpent = case os of
-                PendingTxOut v' _ (PubKeyTxOut pk):_
-                    | pk `eqPk` vestingOwner -> Ada.fromValue v'
-                _ -> PlutusTx.error ()
-
-            -- Value that has been released so far under the scheme
-            currentThreshold =
-                if Slot.contains (Interval.from d1) range
-                then if Slot.contains (Interval.from d2) range
-                    -- everything can be spent
-                     then Ada.plus a1 a2
-                     -- only the first tranche can be spent (we are between d1 and d2)
-                     else a1
-                -- Nothing has been released yet
-                else Ada.zero
-
-            paidOut = vestingDataPaidOut
-            newAmount = Ada.plus paidOut amountSpent
-
-            -- Verify that the amount taken out, plus the amount already taken
-            -- out before, does not exceed the threshold that is currently
-            -- allowed
-            amountsValid = Ada.leq newAmount currentThreshold
-
-            -- Check that the remaining output is locked by the same validation
-            -- script
-            txnOutputsValid = case os of
-                _:PendingTxOut _ (Just (vl', _)) DataTxOut:_ ->
-                    vl' `eqBs` vestingDataHash
-                _ -> PlutusTx.error ()
-
-            isValid = amountsValid && txnOutputsValid
-        in
-        if isValid then () else PlutusTx.error () ||])
+validatorScript v = ValidatorScript $ 
+    $$(Ledger.compileScript [|| mkValidator ||])
+        `Ledger.applyScript`
+            Ledger.lifted v

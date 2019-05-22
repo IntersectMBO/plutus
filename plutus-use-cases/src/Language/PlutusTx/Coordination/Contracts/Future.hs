@@ -32,15 +32,12 @@ import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       (DataScript (..), Slot(..), PubKey, TxOutRef, ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
 import qualified Ledger.Slot                  as Slot
-import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxIn(..), PendingTxOut (..),
-                                              PendingTxOutType (..))
+import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxOut (..))
 import qualified Ledger.Validation            as Validation
-import qualified Ledger.Ada                as Ada
-import           Ledger.Ada                (Ada)
+import qualified Ledger.Ada                   as Ada
+import           Ledger.Ada                   (Ada)
 import qualified Wallet                       as W
 import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, createTxAndSubmit, defaultSlotRange)
-
-import           Prelude                      hiding ((&&), (||))
 
 {- note [Futures in Plutus]
 
@@ -196,113 +193,96 @@ data FutureRedeemer =
     -- ^ Settle the contract
     deriving Generic
 
-validatorScript :: Future -> ValidatorScript
-validatorScript ft = ValidatorScript val where
-    val = Ledger.applyScript inner (Ledger.lifted ft)
-    inner = $$(Ledger.compileScript [||
-        \Future{..} FutureData{..} (r :: FutureRedeemer) (p :: PendingTx) ->
+-- | Compute the required margin from the current price of the
+--   underlying asset.
+requiredMargin :: Future -> Ada -> Ada
+requiredMargin Future{futureUnits=units, futureUnitPrice=unitPrice, futureMarginPenalty=pnlty} spotPrice =
+    let
+        delta  = Ada.multiply (Ada.fromInt units) (Ada.minus spotPrice unitPrice)
+    in
+        Ada.plus pnlty delta
 
-            let
-                PendingTx _ outs _ _ (PendingTxIn _ witness _) range _ _ = p
-                ownHash = case witness of
-                    Just (vhash, _) -> vhash
-                    _ -> PlutusTx.error ()
+mkValidator :: Future -> FutureData -> FutureRedeemer -> PendingTx -> ()
+mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pendingTxValidRange=range} =
+    let
 
-                eqPk :: PubKey -> PubKey -> Bool
-                eqPk = Validation.eqPubKey
+        isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
+        isPubKeyOutput o k = PlutusTx.maybe False (Validation.eqPubKey k) (Validation.pubKeyOutput o)
 
-                infixr 3 &&
-                (&&) :: Bool -> Bool -> Bool
-                (&&) = PlutusTx.and
-
-                infixr 3 ||
-                (||) :: Bool -> Bool -> Bool
-                (||) = PlutusTx.or
-
-                -- Compute the required margin from the current price of the
-                -- underlying asset.
-                requiredMargin :: Ada -> Ada
-                requiredMargin spotPrice =
-                    let
-                        delta  = Ada.multiply (Ada.fromInt futureUnits) (Ada.minus spotPrice futureUnitPrice)
-                    in
-                        Ada.plus futureMarginPenalty delta
-
-                isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
-                isPubKeyOutput o k = PlutusTx.maybe False (Validation.eqPubKey k) (Validation.pubKeyOutput o)
-
-                --  | Check if a `PendingTxOut` is a public key output for the given pub. key and ada value
-                paidOutTo :: Ada -> PubKey -> PendingTxOut -> Bool
-                paidOutTo vl pk txo =
-                    let PendingTxOut vl' _ _ = txo
-                        adaVl' = Ada.fromValue vl'
-                    in
-                    isPubKeyOutput txo pk && Ada.eq vl adaVl'
-
-                verifyOracle :: OracleValue a -> (Slot, a)
-                verifyOracle (OracleValue pk h t) =
-                    if pk `eqPk` futurePriceOracle then (h, t) else PlutusTx.error ()
-
-                isValid =
-                    case r of
-
-                        -- Settling the contract is allowed if any of three conditions hold:
-                        --
-                        -- 1. The `deliveryDate` has been reached. In this case both parties get what is left of their margin
-                        -- plus/minus the difference between spot and forward price.
-                        -- 2. The owner of the long position has failed to make a margin payment. In this case the owner of the short position gets both margins.
-                        -- 3. The owner of the short position has failed to make a margin payment. In this case the owner of the long position gets both margins.
-                        --
-                        -- In case (1) there are two payments (1 to each of the participants). In cases (2) and (3) there is only one payment.
-
-                        Settle ov ->
-                            let
-                                (_, spotPrice) = verifyOracle ov
-                                delta  = Ada.multiply (Ada.fromInt futureUnits) (Ada.minus spotPrice futureUnitPrice)
-                                expShort = Ada.minus futureDataMarginShort delta
-                                expLong  = Ada.plus futureDataMarginLong delta
-                                slotvalid = Slot.member futureDeliveryDate range
-
-                                canSettle =
-                                    case outs of
-                                        o1:o2:_ ->
-                                            let paymentsValid =
-                                                    (paidOutTo expShort futureDataShort o1 && paidOutTo expLong futureDataLong o2)
-                                                    || (paidOutTo expShort futureDataShort o2 && paidOutTo expLong futureDataLong o1)
-                                            in
-                                                slotvalid && paymentsValid
-                                        o1:_ ->
-                                            let
-                                                totalMargin = Ada.plus futureDataMarginShort futureDataMarginLong
-                                                case2 = Ada.lt futureDataMarginLong (requiredMargin spotPrice)
-                                                        && paidOutTo totalMargin futureDataShort o1
-
-                                                case3 = Ada.lt futureDataMarginShort (requiredMargin spotPrice)
-                                                        && paidOutTo totalMargin futureDataLong o1
-
-                                            in
-                                                case2 || case3
-                                        _ -> False
-
-                            in
-                               canSettle
-
-                        -- For adjusting the margin we simply check that the amount locked in the contract
-                        -- is larger than it was before.
-                        --
-                        AdjustMargin ->
-                            case outs of
-                                ot:_ ->
-                                    case ot of
-                                        PendingTxOut v (Just (vh, _)) DataTxOut ->
-                                            Ada.gt (Ada.fromValue v) ((Ada.plus futureDataMarginShort futureDataMarginLong))
-                                            && Validation.eqValidator vh ownHash
-                                        _ -> True
-
-                                _ -> False
+        --  | Check if a `PendingTxOut` is a public key output for the given pub. key and ada value
+        paidOutTo :: Ada -> PubKey -> PendingTxOut -> Bool
+        paidOutTo vl pk txo =
+            let PendingTxOut vl' _ _ = txo
+                adaVl' = Ada.fromValue vl'
             in
-                if isValid then () else PlutusTx.error ()
-            ||])
+            isPubKeyOutput txo pk `PlutusTx.and` Ada.eq vl adaVl'
+
+        verifyOracle :: OracleValue a -> (Slot, a)
+        verifyOracle (OracleValue pk h t) =
+            if pk `Validation.eqPubKey` futurePriceOracle then (h, t) else PlutusTx.error ()
+
+        isValid =
+            case r of
+
+                -- Settling the contract is allowed if any of three conditions hold:
+                --
+                -- 1. The `deliveryDate` has been reached. In this case both parties get what is left of their margin
+                -- plus/minus the difference between spot and forward price.
+                -- 2. The owner of the long position has failed to make a margin payment. In this case the owner of the short position gets both margins.
+                -- 3. The owner of the short position has failed to make a margin payment. In this case the owner of the long position gets both margins.
+                --
+                -- In case (1) there are two payments (1 to each of the participants). In cases (2) and (3) there is only one payment.
+
+                Settle ov ->
+                    let
+                        spotPrice = PlutusTx.snd (verifyOracle ov)
+                        delta  = Ada.multiply (Ada.fromInt futureUnits) (Ada.minus spotPrice futureUnitPrice)
+                        expShort = Ada.minus futureDataMarginShort delta
+                        expLong  = Ada.plus futureDataMarginLong delta
+                        slotvalid = Slot.member futureDeliveryDate range
+
+                        canSettle =
+                            case outs of
+                                o1:o2:_ ->
+                                    let paymentsValid =
+                                            (paidOutTo expShort futureDataShort o1 `PlutusTx.and` paidOutTo expLong futureDataLong o2)
+                                            `PlutusTx.or` (paidOutTo expShort futureDataShort o2 `PlutusTx.and` paidOutTo expLong futureDataLong o1)
+                                    in
+                                        slotvalid `PlutusTx.and` paymentsValid
+                                o1:_ ->
+                                    let
+                                        totalMargin = Ada.plus futureDataMarginShort futureDataMarginLong
+                                        reqMargin   = requiredMargin ft spotPrice
+                                        case2 = Ada.lt futureDataMarginLong reqMargin
+                                                `PlutusTx.and` paidOutTo totalMargin futureDataShort o1
+
+                                        case3 = Ada.lt futureDataMarginShort reqMargin
+                                                `PlutusTx.and` paidOutTo totalMargin futureDataLong o1
+
+                                    in
+                                        case2 `PlutusTx.or` case3
+                                _ -> False
+
+                    in
+                       canSettle
+
+                -- For adjusting the margin we simply check that the amount locked in the contract
+                -- is larger than it was before.
+                --
+                AdjustMargin ->
+                    let 
+                        ownHash = PlutusTx.fst (Validation.ownHashes p)
+                        vl = Validation.adaLockedBy p ownHash
+                    in
+                        vl `Ada.gt` (futureDataMarginShort `Ada.plus` futureDataMarginLong)
+    in
+        if isValid then () else PlutusTx.error ()
+
+validatorScript :: Future -> ValidatorScript
+validatorScript ft = ValidatorScript $ 
+    $$(Ledger.compileScript [|| mkValidator ||])
+        `Ledger.applyScript` 
+            Ledger.lifted ft
 
 PlutusTx.makeLift ''Future
 PlutusTx.makeLift ''FutureData

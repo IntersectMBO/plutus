@@ -20,19 +20,17 @@ import           Ledger                       as Ledger hiding (initialise, to)
 import           Ledger.Validation            as V
 import           Wallet.API                   as WAPI
 
+mkValidator :: PubKey -> () -> () -> PendingTx -> ()
+mkValidator pk' () () p =
+    if V.txSignedBy p pk'
+    then ()
+    else P.traceErrorH "Required signature not present!"
+
 pkValidator :: PubKey -> ValidatorScript
-pkValidator pk =
-    ValidatorScript (Ledger.applyScript mkValidator (Ledger.lifted pk)) where
-        mkValidator =
-            Ledger.fromCompiledCode ($$(P.compile [||
-                let
-                    validate :: PubKey -> () -> () -> PendingTx -> ()
-                    validate pk' () () p =
-                        if V.txSignedBy p pk'
-                        then ()
-                        else P.error (P.traceH "Required signature not present!" ())
-                in validate
-            ||]))
+pkValidator pk = ValidatorScript $
+    Ledger.fromCompiledCode $$(P.compile [|| mkValidator ||])
+        `Ledger.applyScript`
+            Ledger.lifted pk
 
 -- | Lock some funds in a 'PayToPubKey' contract, returning the output's address
 --   and a 'TxIn' transaction input that can spend it.

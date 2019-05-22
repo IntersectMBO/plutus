@@ -17,8 +17,6 @@ import qualified Language.PlutusTx as P
 import           Ledger.Validation (PendingTx)
 import qualified Ledger.Validation as V
 
-{-# ANN module "HLint: ignore Use fst" #-}
-
 -- | Specification of a state machine
 data StateMachine s i = StateMachine {
       smTransition :: s -> i -> s
@@ -52,7 +50,7 @@ mkValidator sm (currentState, _) (newState, Just input) p =
 
         dataScriptHashOk =
             let relevantOutputs =
-                    P.map (\(ds, _) -> ds)
+                    P.map P.fst
                     (V.scriptOutputsAt vh p)
                 dsHashOk (V.DataScriptHash dh) = P.equalsByteString dh rh
             in
