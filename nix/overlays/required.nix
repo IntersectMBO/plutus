@@ -29,6 +29,8 @@ self: super: {
 
     plutus-use-cases = deferPluginErrors super.plutus-use-cases;
 
+    plutus-playground-server = deferPluginErrors super.plutus-playground-server;
+
     marlowe = deferPluginErrors super.marlowe;
 
     ########################################################################
@@ -38,6 +40,10 @@ self: super: {
       pkgs.lib.optionalAttrs (args ? src) {
         src = iohkNix.cleanSourceHaskell args.src;
     });
+
+    # Cuts down time for doctests by an order of magnitude, see https://gitlab.haskell.org/ghc/ghc/issues/15524
+    # Should also not be necessary once we bump nixpkgs to 19.03 and --enable-library-for-ghci isn't the default
+    doctest = enableSharedExecutables super.doctest;
 
     # stack2nix doesn't have the right set of GHC base packages nulled out for 8.4, as
     # per https://github.com/input-output-hk/stack2nix/issues/84, which means

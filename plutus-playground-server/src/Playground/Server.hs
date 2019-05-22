@@ -74,7 +74,7 @@ runFunction evaluation = do
 
 checkHealth :: Handler ()
 checkHealth = do
-    res <- acceptSourceCode . SourceCode . Text.pack . BS.unpack $ vesting
+    res <- acceptSourceCode . SourceCode $ vesting
     case res of
         Left e  -> throwError $ err400 {errBody = BSL.pack . show $ e}
         Right _ -> pure ()

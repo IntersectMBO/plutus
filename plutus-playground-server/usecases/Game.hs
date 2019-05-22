@@ -1,9 +1,20 @@
--- | A game with two players. Player 1 thinks of a secret word
---   and uses its hash, and the game validator script, to lock
---   some funds (the prize) in a pay-to-script transaction output.
---   Player 2 guesses the word by attempting to spend the transaction
---   output. If the guess is correct, the validator script releases the funds.
---   If it isn't, the funds stay locked.
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
+module Game where
+-- TRIM TO HERE
+-- A game with two players. Player 1 thinks of a secret word
+-- and uses its hash, and the game validator script, to lock
+-- some funds (the prize) in a pay-to-script transaction output.
+-- Player 2 guesses the word by attempting to spend the transaction
+-- output. If the guess is correct, the validator script releases the funds.
+-- If it isn't, the funds stay locked.
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Language.PlutusTx.Prelude    as P
 import           Ledger
