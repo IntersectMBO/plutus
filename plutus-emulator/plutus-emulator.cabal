@@ -59,6 +59,7 @@ library
         bytestring -any,
         cborg -any,
         containers -any,
+        unordered-containers -any,
         cryptonite >=0.25,
         hashable -any,
         hedgehog -any,

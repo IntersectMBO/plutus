@@ -169,13 +169,13 @@ scheduleCollection deadline target collectionDeadline ownerWallet = do
 -- | An event trigger that fires when a refund of campaign contributions can be claimed
 refundTrigger :: Value -> Campaign -> EventTrigger
 refundTrigger vl c = andT
-    (fundsAtAddressT (campaignAddress c) (W.intervalFrom vl))
+    (fundsAtAddressGeqT (campaignAddress c) vl)
     (slotRangeT (refundRange c))
 
 -- | An event trigger that fires when the funds for a campaign can be collected
 collectFundsTrigger :: Campaign -> EventTrigger
 collectFundsTrigger c = andT
-    (fundsAtAddressT (campaignAddress c) (W.intervalFrom (campaignTarget c)))
+    (fundsAtAddressGeqT (campaignAddress c) (campaignTarget c))
     (slotRangeT (collectionRange c))
 
 -- | Claim a refund of our campaign contribution

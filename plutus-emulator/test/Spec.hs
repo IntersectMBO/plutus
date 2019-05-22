@@ -336,7 +336,7 @@ watchFundsAtAddress = property $ do
             let mkPayment =
                     EventHandler $ \_ -> payToPublicKey_ W.always (Ada.adaValueOf 100) pubKey2
                 t1 = slotRangeT (W.interval 3 4)
-                t2 = fundsAtAddressT (pubKeyAddress pkTarget) (W.intervalFrom (Ada.adaValueOf 1))
+                t2 = fundsAtAddressGtT (pubKeyAddress pkTarget) Value.zero
             walletNotifyBlock w =<<
                 (walletAction wallet1 $ do
                     register t1 mkPayment

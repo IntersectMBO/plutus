@@ -29,6 +29,7 @@ module Ledger.Map(
 
 import           Codec.Serialise.Class        (Serialise)
 import           Data.Aeson                   (FromJSON (parseJSON), ToJSON (toJSON))
+import           Data.Hashable                (Hashable)
 import           Data.Swagger.Internal.Schema (ToSchema)
 import           GHC.Generics                 (Generic)
 import           Language.PlutusTx.Lift       (makeLift)
@@ -43,7 +44,7 @@ import           Ledger.These
 data Map k v = Map { unMap :: [(k, v)] }
     deriving (Show)
     deriving stock (Generic)
-    deriving anyclass (ToSchema, Serialise)
+    deriving anyclass (ToSchema, Serialise, Hashable)
 
 makeLift ''Map
 

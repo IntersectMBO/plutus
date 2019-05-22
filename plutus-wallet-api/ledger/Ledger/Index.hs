@@ -51,7 +51,7 @@ type ValidationMonad m = (MonadReader UtxoIndex m, MonadError ValidationError m)
 
 -- | The UTxOs of a blockchain indexed by their references.
 newtype UtxoIndex = UtxoIndex { getIndex :: Map.Map TxOutRef TxOut }
-    deriving (Eq, Ord, Show, Semigroup, Monoid)
+    deriving (Eq, Show, Semigroup, Monoid)
 
 -- | Create an index of all UTxOs on the chain.
 initialise :: Blockchain -> UtxoIndex
