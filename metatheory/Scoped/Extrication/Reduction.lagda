@@ -546,15 +546,34 @@ extricate-progress (builtin bn σ tel) = Eq.trans
         (extricateTel-progressTel (proj₁ (SIG bn)) (proj₁ (proj₂ (SIG bn))) σ tel))
 extricate-progress (error A) = refl
 
-extricateRun : {A : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ A} → AE.Steps t →
-  Σ (ScopedTm Z) λ t' → extricate t —→⋆ t' × (Maybe (SR.Value t') ⊎ SR.Error t')
-extricateRun (steps p (done N VN)) =
+-- we could extricate Finished separately
+extricateSteps : {A : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ A} → AE.Steps t →
+  SR.Steps (extricate t)
+extricateSteps (steps p (done N VN)) =
   _ ,, extricate—→⋆ p ,, inj₁ (just (extricateVal VN))
-extricateRun (steps p out-of-gas) = _ ,, extricate—→⋆ p ,, (inj₁ nothing)
-extricateRun (steps p (error e)) = _ ,, extricate—→⋆ p ,, inj₂ (extricateE e)
+extricateSteps (steps p out-of-gas) = _ ,, extricate—→⋆ p ,, (inj₁ nothing)
+extricateSteps (steps p (error e)) = _ ,, extricate—→⋆ p ,, inj₂ (extricateE e)
+
+extricate-run—→ : ∀{A}{t t' : ∅ ⊢ A}(p : t AR.—→ t')(q : AE.Steps t') →
+  extricateSteps (eval—→ p q) ≡ run—→ (extricate—→ p) (extricateSteps q)
+extricate-run—→ p (steps q (done N VN)) = refl
+extricate-run—→ p (steps q out-of-gas)  = refl
+extricate-run—→ p (steps q (error e))   = refl
 
 extricate-run : ∀{A}(t : ∅ ⊢ A) n
-  → extricateRun (eval (gas n) t) ≡ SR.run (extricate t) n
+  → extricateSteps (eval (gas n) t) ≡ SR.run (extricate t) n
+
+extricate-runProg : ∀{A}{t : ∅ ⊢ A}(p : AR.Progress t) n
+  → extricateSteps (evalProg (gas n) p) ≡ SR.runProg n (extricateProgress p)
+
+extricate-runProg (step p)  n = Eq.trans
+  (extricate-run—→ p (eval (gas n) _))
+  (cong (run—→ (extricate—→ p)) (extricate-run _ n))
+extricate-runProg (done v)  n = refl
+extricate-runProg (error e) n = refl
+
 extricate-run t zero = refl
-extricate-run t (ℕ.suc n) = {!!}
+extricate-run t (ℕ.suc n) = Eq.trans
+  (extricate-runProg (AR.progress t) n)
+  (cong (runProg n) (extricate-progress t)) 
 \end{code}
