@@ -282,12 +282,21 @@ progress (unwrap t)        = progress-unwrap (progress t)
 
 \begin{code}
 open import Data.Nat
-run : (t : ScopedTm Z) → ℕ
-    → Σ (ScopedTm Z) λ t' → t —→⋆ t' × (Maybe (Value t') ⊎ Error t')
+
+Steps : ScopedTm Z → Set
+Steps t = Σ (ScopedTm Z) λ t' → t —→⋆ t' × (Maybe (Value t') ⊎ Error t')
+
+run—→ : {t t' : ScopedTm Z} → t —→ t' → Steps t' → Steps t
+run—→ p (t' , ps , q) = _ , ((trans p ps) , q)
+
+run : (t : ScopedTm Z) → ℕ → Steps t
+runProg : ℕ → {t : ScopedTm Z} → Progress t → Steps t
+
 run t 0       = t , (refl , inl nothing) -- out of fuel
-run t (suc n) with progress t
-run t (suc n) | done vt = t , refl , inl (just vt)
-run t (suc n) | error et = t , refl , inr et
-run t (suc n) | step {t' = t'} p with run t' n
-run t (suc n) | step {t' = t'} p | t'' , q , mvt'' = t'' , trans p q , mvt''
+run t (suc n) = runProg n (progress t)
+
+runProg n (step {t' = t'} p)  = run—→ p (run t' n)
+runProg n (done V)  = _ , refl , inl (just V)
+runProg n (error e) = _ , refl , inr e 
+
 \end{code}

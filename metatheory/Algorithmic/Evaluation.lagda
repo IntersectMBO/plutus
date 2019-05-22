@@ -52,20 +52,20 @@ data Steps : ∀ {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set where
 \end{code}
 
 \begin{code}
-evalStep : ∀{A : ∅ ⊢Nf⋆ *} → Gas → {t t' : ∅ ⊢ A} → t —→ t' →
+eval—→  : ∀{A : ∅ ⊢Nf⋆ *} → {t t' : ∅ ⊢ A} → t —→ t' →
   Steps t' → Steps t
-evalStep g p (steps ps q) = steps (trans—↠ p ps) q
+eval—→ p (steps ps q) = steps (trans—↠ p ps) q
 \end{code}
 
 The evaluator takes gas and a term and returns the corresponding steps.
 \begin{code}
 eval : ∀ {A : ∅ ⊢Nf⋆ *} → Gas → (M : ∅ ⊢ A) → Steps M
-evalNext : ∀{A : ∅ ⊢Nf⋆ *} → Gas → {t : ∅ ⊢ A} → Progress t → Steps t
+evalProg : ∀{A : ∅ ⊢Nf⋆ *} → Gas → {t : ∅ ⊢ A} → Progress t → Steps t
 
 eval (gas zero) M = steps refl—↠ out-of-gas
-eval (gas (suc n)) M = evalNext (gas n) (progress M)
+eval (gas (suc n)) M = evalProg (gas n) (progress M)
 
-evalNext g (step p)  = evalStep g p (eval g _)
-evalNext g (done VM) = steps refl—↠ (done _ VM)
-evalNext g (error e) = steps refl—↠ (error e)
+evalProg g (step {N = t'} p)  = eval—→ p (eval g t')
+evalProg g (done VM) = steps refl—↠ (done _ VM)
+evalProg g (error e) = steps refl—↠ (error e)
 \end{code}
