@@ -38593,6 +38593,7 @@ license = stdenv.lib.licenses.mit;
 , cookie
 , directory
 , exceptions
+, file-embed
 , filepath
 , hashable
 , http-types
@@ -38601,10 +38602,12 @@ license = stdenv.lib.licenses.mit;
 , newtype-generics
 , process
 , prometheus
+, safe-exceptions
 , servant
 , servant-purescript
 , servant-server
 , stdenv
+, template-haskell
 , temporary
 , text
 , time
@@ -38626,6 +38629,7 @@ bytestring
 cookie
 directory
 exceptions
+file-embed
 filepath
 hashable
 http-types
@@ -38634,9 +38638,11 @@ mtl
 newtype-generics
 process
 prometheus
+safe-exceptions
 servant
 servant-purescript
 servant-server
+template-haskell
 temporary
 text
 time
@@ -53691,6 +53697,7 @@ license = stdenv.lib.licenses.asl20;
 , plutus-emulator
 , plutus-playground-lib
 , plutus-wallet-api
+, process
 , prometheus
 , purescript-bridge
 , regex-compat
@@ -53702,6 +53709,7 @@ license = stdenv.lib.licenses.asl20;
 , servant-server
 , stdenv
 , swagger2
+, template-haskell
 , text
 , time
 , time-units
@@ -53742,12 +53750,14 @@ newtype-generics
 plutus-emulator
 plutus-playground-lib
 plutus-wallet-api
+process
 regex-compat
 servant
 servant-client
 servant-client-core
 servant-purescript
 servant-server
+template-haskell
 text
 time
 time-units

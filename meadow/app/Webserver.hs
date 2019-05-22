@@ -25,8 +25,7 @@ import           Control.Monad.Reader                           (ReaderT, runRea
 import           Data.Default.Class                             (def)
 import           Data.Proxy                                     (Proxy (Proxy))
 import           Data.Text                                      (Text)
-import qualified Data.Text                                      as Text
-import           Git                                            (gitHead)
+import           Git                                            (gitRev)
 import           Network.HTTP.Types                             (Method)
 import           Network.Wai                                    (Application)
 import           Network.Wai.Handler.Warp                       (Settings, runSettings)
@@ -70,7 +69,7 @@ server handlers _staticDir githubEndpoints Config {..} =
   serveDirectoryFileServer _staticDir
 
 version :: Applicative m => m Text
-version = pure (Text.pack gitHead)
+version = pure gitRev
 
 app ::
      Server MA.API -> FilePath -> Auth.GithubEndpoints -> Config -> Application
