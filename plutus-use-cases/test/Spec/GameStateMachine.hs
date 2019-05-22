@@ -61,12 +61,12 @@ runGameSuccess = void $ EM.processEmulated $ do
         _   <- EM.runWalletAction w1 G.startGame
         _   <- EM.runWalletAction w2 G.startGame
         processAndNotify
-        _ <- EM.runWalletAction w1 (G.lock "hello" 8)
+        _ <- EM.runWalletAction w1 (G.lock "hello" (Ada.adaValueOf 8))
         processAndNotify
         processAndNotify
         _ <- EM.runWalletAction w1 (W.payToPublicKey_ W.defaultSlotRange G.gameTokenVal (EM.walletPubKey w2))
         processAndNotify
-        _ <- EM.runWalletAction w2 (guess "hello" "new secret" 3 5)
+        _ <- EM.runWalletAction w2 (guess "hello" "new secret" (Ada.adaValueOf 3) (Ada.adaValueOf 5))
         processAndNotify
         EM.assertOwnFundsEq w2 (initialVal <> Ada.adaValueOf 3 <> G.gameTokenVal)
 
@@ -79,7 +79,7 @@ runGameSuccess2 = do
     void $ EM.processEmulated $ do
         _ <- EM.runWalletAction w2 (W.payToPublicKey_ W.defaultSlotRange G.gameTokenVal (EM.walletPubKey w1))
         processAndNotify
-        _ <- EM.runWalletAction w1 (guess "new secret" "hello" 2 3)
+        _ <- EM.runWalletAction w1 (guess "new secret" "hello" (Ada.adaValueOf 2) (Ada.adaValueOf 3))
         processAndNotify
         EM.assertOwnFundsEq w1 (Ada.adaValueOf 4 <> G.gameTokenVal)
 
@@ -90,12 +90,11 @@ runGameFailure = void $ EM.processEmulated $ do
         _   <- EM.runWalletAction w1 G.startGame
         _   <- EM.runWalletAction w2 G.startGame
         processAndNotify
-        _ <- EM.runWalletAction w1 (G.lock "hello" 8)
+        _ <- EM.runWalletAction w1 (G.lock "hello" (Ada.adaValueOf 8))
         processAndNotify
         processAndNotify
         _ <- EM.runWalletAction w1 (W.payToPublicKey_ W.defaultSlotRange G.gameTokenVal (EM.walletPubKey w2))
         processAndNotify
-        _ <- EM.runWalletAction w2 (guess "hola" "new secret" 3 5)
+        _ <- EM.runWalletAction w2 (guess "hola" "new secret" (Ada.adaValueOf 3) (Ada.adaValueOf 5))
         processAndNotify
         EM.assertOwnFundsEq w2 (initialVal <> G.gameTokenVal)
-

@@ -16,8 +16,7 @@ module Language.PlutusTx.Coordination.Contracts.Game(
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Language.PlutusTx.Prelude    as P
 import           Ledger
-import qualified Ledger.Ada                   as Ada
-import           Ledger.Ada                   (Ada)
+import           Ledger.Value                 (Value)
 import           Wallet
 
 import qualified Data.ByteString.Lazy.Char8   as C
@@ -41,7 +40,7 @@ validateGuess dataScript redeemerScript _ =
     else P.traceErrorH "WRONG!"
 
 gameValidator :: ValidatorScript
-gameValidator = 
+gameValidator =
     ValidatorScript ($$(Ledger.compileScript [|| validateGuess ||]))
 
 gameDataScript :: String -> DataScript
@@ -55,10 +54,9 @@ gameRedeemerScript =
 gameAddress :: Address
 gameAddress = Ledger.scriptAddress gameValidator
 
-lock :: (WalletAPI m, WalletDiagnostics m) => String -> Ada -> m ()
-lock word adaVl = do
-    let vl = Ada.toValue adaVl
-        ds = gameDataScript word
+lock :: (WalletAPI m, WalletDiagnostics m) => String -> Value -> m ()
+lock word vl = do
+    let ds = gameDataScript word
     payToScript_ defaultSlotRange gameAddress vl ds
 
 guess :: (WalletAPI m, WalletDiagnostics m) => String -> m ()
