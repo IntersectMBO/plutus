@@ -21,28 +21,28 @@ import           Control.Monad.Error.Class    (MonadError (..))
 import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
-import           Ledger.Validation            (PendingTx (..), ValidatorHash)
 import qualified Language.PlutusTx            as PlutusTx
-import           Ledger                       (DataScript (..), Slot(..), PubKey (..), TxOutRef, ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
+import           Ledger                       (DataScript (..), Slot(..), PubKey (..), TxOutRef, ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger.Interval              as Interval
 import qualified Ledger.Slot                  as Slot
+import           Ledger.Value                 (Value)
+import qualified Ledger.Value                 as Value
 import qualified Ledger.Validation            as Validation
+import           Ledger.Validation            (PendingTx (..), ValidatorHash)
 import qualified Wallet                       as W
 import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, ownPubKeyTxOut, createTxAndSubmit, defaultSlotRange)
-import           Ledger.Ada                   (Ada)
-import qualified Ledger.Ada                   as Ada
 
 -- | Tranche of a vesting scheme.
 data VestingTranche = VestingTranche {
     vestingTrancheDate   :: Slot,
-    vestingTrancheAmount :: Ada
+    vestingTrancheAmount :: Value
     } deriving Generic
 
 PlutusTx.makeLift ''VestingTranche
 
 -- | A vesting scheme consisting of two tranches. Each tranche defines a date
---   (slot) after which an additional amount of Ada can be spent.
+--   (slot) after which an additional amount can be spent.
 data Vesting = Vesting {
     vestingTranche1 :: VestingTranche,
     vestingTranche2 :: VestingTranche,
@@ -51,27 +51,27 @@ data Vesting = Vesting {
 
 PlutusTx.makeLift ''Vesting
 
--- | The total amount of Ada vested
+-- | The total amount vested
 {-# INLINABLE totalAmount #-}
-totalAmount :: Vesting -> Ada
+totalAmount :: Vesting -> Value
 totalAmount Vesting{..} =
-    vestingTrancheAmount vestingTranche1 `Ada.plus` vestingTrancheAmount vestingTranche2
+    vestingTrancheAmount vestingTranche1 `Value.plus` vestingTrancheAmount vestingTranche2
 
--- | The amount of Ada guaranteed to be available from a given tranche in a given slot range.
+-- | The amount guaranteed to be available from a given tranche in a given slot range.
 {-# INLINABLE availableFrom #-}
-availableFrom :: VestingTranche -> Slot.SlotRange -> Ada
+availableFrom :: VestingTranche -> Slot.SlotRange -> Value
 availableFrom (VestingTranche d v) range =
     -- The valid range is an open-ended range starting from the tranche vesting date
     let validRange = Interval.from d
     -- If the valid range completely contains the argument range (meaning in particular
     -- that the start slot of the argument range is after the tranche vesting date), then
     -- the money in the tranche is available, otherwise nothing is available.
-    in if validRange `Slot.contains` range then v else Ada.zero
+    in if validRange `Slot.contains` range then v else Value.zero
 
 -- | Data script for vesting utxo
 data VestingData = VestingData {
     vestingDataHash    :: ValidatorHash, -- ^ Hash of the validator script
-    vestingDataPaidOut :: Ada            -- ^ How much of the vested value has already been retrieved
+    vestingDataPaidOut :: Value          -- ^ How much of the vested value has already been retrieved
     } deriving (Eq, Generic)
 
 PlutusTx.makeLift ''VestingData
@@ -82,15 +82,14 @@ vestFunds :: (
     MonadError WalletAPIError m,
     WalletAPI m)
     => Vesting
-    -> Ada
+    -> Value
     -> m VestingData
-vestFunds vst adaAmount = do
-    _ <- if adaAmount < totalAmount vst then throwOtherError "Value must not be smaller than vested amount" else pure ()
-    let value = Ada.toValue adaAmount
+vestFunds vst value = do
+    _ <- if value `Value.lt` totalAmount vst then throwOtherError "Value must not be smaller than vested amount" else pure ()
     (payment, change) <- createPaymentWithChange value
     let vs = validatorScript vst
         o = scriptTxOut value vs (DataScript $ Ledger.lifted vd)
-        vd =  VestingData (validatorScriptHash vst) 0
+        vd =  VestingData (validatorScriptHash vst) Value.zero
     _ <- createTxAndSubmit defaultSlotRange payment (o : maybeToList change)
     pure vd
 
@@ -104,17 +103,16 @@ retrieveFunds :: (
     -- ^ Value that has already been taken out
     -> TxOutRef
     -- ^ Transaction output locked by the vesting validator script
-    -> Ada
+    -> Value
     -- ^ Value we want to take out now
     -> m VestingData
-retrieveFunds vs vd r anow = do
-    let vnow = Ada.toValue anow
+retrieveFunds vs vd r vnow = do
     oo <- ownPubKeyTxOut vnow
     currentSlot <- slot
     let val = validatorScript vs
         o   = scriptTxOut remaining val (DataScript $ Ledger.lifted vd')
-        remaining = Ada.toValue (totalAmount vs - anow)
-        vd' = vd {vestingDataPaidOut = anow + vestingDataPaidOut vd }
+        remaining = totalAmount vs `Value.minus` vnow
+        vd' = vd {vestingDataPaidOut = vnow `Value.plus` vestingDataPaidOut vd }
         inp = scriptTxIn r val Ledger.unitRedeemer
         range = W.intervalFrom currentSlot
     _ <- createTxAndSubmit range (Set.singleton inp) [oo, o]
@@ -132,26 +130,26 @@ mkValidator d@Vesting{..} VestingData{..} () p@PendingTx{pendingTxValidRange = r
     let
         -- We assume here that the txn outputs are always given in the same
         -- order (1 PubKey output, followed by 0 or 1 script outputs)
-        amountSpent :: Ada
-        amountSpent = Ada.fromValue (Validation.valuePaidTo p vestingOwner)
+        amountSpent :: Value
+        amountSpent = Validation.valuePaidTo p vestingOwner
 
         -- Value that has been released so far under the scheme
         released = availableFrom vestingTranche1 range
-            `Ada.plus` availableFrom vestingTranche2 range
+            `Value.plus` availableFrom vestingTranche2 range
 
         paidOut = vestingDataPaidOut
-        newAmount = Ada.plus paidOut amountSpent
+        newAmount = paidOut `Value.plus` amountSpent
 
         -- Verify that the amount taken out, plus the amount already taken
         -- out before, does not exceed the threshold that is currently
         -- allowed
-        amountsValid = newAmount `Ada.leq` released
+        amountsValid = newAmount `Value.leq` released
 
         -- Check that the remaining output is locked by the same validation
         -- script
         txnOutputsValid =
-            let remaining = Validation.adaLockedBy p (Validation.ownHash p) in
-            remaining `Ada.eq` (totalAmount d `Ada.minus` newAmount)
+            let remaining = Validation.valueLockedBy p (Validation.ownHash p) in
+            remaining `Value.eq` (totalAmount d `Value.minus` newAmount)
 
         isValid = amountsValid `PlutusTx.and` txnOutputsValid
     in

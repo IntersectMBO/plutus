@@ -15,4 +15,10 @@ map : {A B : Set} → (A → B) → Maybe A → Maybe B
 map f (just a) = just (f a)
 map f nothing  = nothing
 
+open import Relation.Nullary
+
+decIf : ∀{A B : Set} → Dec A → B → B → B
+decIf (yes p) t f = t
+decIf (no ¬p) t f = f
+
 \end{code}
