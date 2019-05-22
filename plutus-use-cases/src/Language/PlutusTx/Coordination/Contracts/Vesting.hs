@@ -57,6 +57,17 @@ totalAmount :: Vesting -> Ada
 totalAmount Vesting{..} =
     vestingTrancheAmount vestingTranche1 `Ada.plus` vestingTrancheAmount vestingTranche2
 
+-- | The amount of Ada guaranteed to be available from a given tranche in a given slot range.
+{-# INLINABLE availableFrom #-}
+availableFrom :: VestingTranche -> Slot.SlotRange -> Ada
+availableFrom (VestingTranche d v) range =
+    -- The valid range is an open-ended range starting from the tranche vesting date
+    let validRange = Interval.from d
+    -- If the valid range completely contains the argument range (meaning in particular
+    -- that the start slot of the argument range is after the tranche vesting date), then
+    -- the money in the tranche is available, otherwise nothing is available.
+    in if validRange `Slot.contains` range then v else Ada.zero
+
 -- | Data script for vesting utxo
 data VestingData = VestingData {
     vestingDataHash    :: ValidatorHash, -- ^ Hash of the validator script
@@ -119,24 +130,14 @@ validatorScriptHash =
 mkValidator :: Vesting -> VestingData -> () -> PendingTx -> ()
 mkValidator d@Vesting{..} VestingData{..} () p@PendingTx{pendingTxValidRange = range} =
     let
-        VestingTranche d1 a1 = vestingTranche1
-        VestingTranche d2 a2 = vestingTranche2
-
         -- We assume here that the txn outputs are always given in the same
         -- order (1 PubKey output, followed by 0 or 1 script outputs)
         amountSpent :: Ada
         amountSpent = Ada.fromValue (Validation.valuePaidTo p vestingOwner)
 
         -- Value that has been released so far under the scheme
-        currentThreshold =
-            if Slot.contains (Interval.from d1) range
-            then if Slot.contains (Interval.from d2) range
-                -- everything can be spent
-                    then Ada.plus a1 a2
-                    -- only the first tranche can be spent (we are between d1 and d2)
-                    else a1
-            -- Nothing has been released yet
-            else Ada.zero
+        released = availableFrom vestingTranche1 range
+            `Ada.plus` availableFrom vestingTranche2 range
 
         paidOut = vestingDataPaidOut
         newAmount = Ada.plus paidOut amountSpent
@@ -144,20 +145,20 @@ mkValidator d@Vesting{..} VestingData{..} () p@PendingTx{pendingTxValidRange = r
         -- Verify that the amount taken out, plus the amount already taken
         -- out before, does not exceed the threshold that is currently
         -- allowed
-        amountsValid = Ada.leq newAmount currentThreshold
+        amountsValid = newAmount `Ada.leq` released
 
         -- Check that the remaining output is locked by the same validation
         -- script
-        txnOutputsValid = 
+        txnOutputsValid =
             let remaining = Validation.adaLockedBy p (Validation.ownHash p) in
-            remaining `Ada.eq` (totalAmount d `Ada.minus` newAmount) 
+            remaining `Ada.eq` (totalAmount d `Ada.minus` newAmount)
 
         isValid = amountsValid `PlutusTx.and` txnOutputsValid
     in
     if isValid then () else PlutusTx.error ()
 
 validatorScript :: Vesting -> ValidatorScript
-validatorScript v = ValidatorScript $ 
+validatorScript v = ValidatorScript $
     $$(Ledger.compileScript [|| mkValidator ||])
         `Ledger.applyScript`
             Ledger.lifted v

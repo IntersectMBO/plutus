@@ -5,17 +5,17 @@
 -- Note [Transactions in the crowdfunding campaign] explains the structure of
 -- this contract on the blockchain.
 import qualified Language.PlutusTx            as PlutusTx
-import qualified Ledger.Interval              as Interval
 import           Ledger.Slot                  (SlotRange)
 import qualified Ledger.Slot                  as Slot
 import qualified Language.PlutusTx.Prelude    as P
 import           Ledger
-import           Ledger.Validation           as V
-import           Ledger.Value                (Value)
-import qualified Ledger.Value                as VTH
+import           Ledger.Validation            as V
+import           Ledger.Value                 (Value)
+import qualified Ledger.Value                 as VTH
 import           Playground.Contract
 import           Wallet                       as W
 import qualified Wallet.Emulator              as EM
+import           Wallet.Emulator             (Wallet)
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
@@ -63,89 +63,54 @@ data CampaignAction = Collect | Refund
 
 PlutusTx.makeLift ''CampaignAction
 
+-- | The validator script is a function of three arguments:
+-- 1. A 'PubKey'. This is the data script. It is provided by the producing transaction (the contribution)
+--
+-- 2. A 'CampaignAction'. This is the redeemer script. It is provided by the redeeming transaction.
+--
+-- 3. A 'PendingTx value. It contains information about the current transaction and is provided by the slot leader.
+--    See note [PendingTx]
+type CrowdfundingValidator = PubKey -> CampaignAction -> PendingTx -> ()
+
+validRefund :: Campaign -> PubKey -> PendingTx -> Bool
+validRefund campaign contributor ptx =
+    -- Check that the transaction falls in the refund range of the campaign
+    Slot.contains (refundRange campaign) (pendingTxValidRange ptx)
+    -- Check that the transaction is signed by the contributor
+    `P.and` (ptx `V.txSignedBy` contributor)
+
+validCollection :: Campaign -> PendingTx -> Bool
+validCollection campaign p =
+    -- Check that the transaction falls in the collection range of the campaign
+    (collectionRange campaign `Slot.contains` pendingTxValidRange p)
+    -- Check that the transaction is trying to spend more money than the campaign
+    -- target (and hence the target was reached)
+    `P.and` (valueSpent p `VTH.geq` campaignTarget campaign)
+    -- Check that the transaction is signed by the campaign owner
+    `P.and` (p `V.txSignedBy` campaignOwner campaign)
+
+-- | The validator script is of type 'CrowdfundingValidator', and is additionally parameterized by a
+-- 'Campaign' definition. This argument is provided by the Plutus client, using 'Ledger.applyScript'.
+-- As a result, the 'Campaign' definition is part of the script address, and different campaigns have different addresses.
+-- The Campaign{..} syntax means that all fields of the 'Campaign' value are in scope (for example 'campaignDeadline' in l. 70).
+mkValidator :: Campaign -> CrowdfundingValidator
+mkValidator c con act p =
+    let
+        isValid = case act of
+            -- the "refund" branch
+            Refund -> validRefund c con p
+            -- the "collection" branch
+            Collect -> validCollection c p
+    in if isValid then () else P.error ()
+
 -- | The validator script that determines whether the campaign owner can
 --   retrieve the funds or the contributors can claim a refund.
 --
 contributionScript :: Campaign -> ValidatorScript
-contributionScript cmp  = ValidatorScript val where
-    val = Ledger.applyScript mkValidator (Ledger.lifted cmp)
-    mkValidator = $$(Ledger.compileScript [||
-
-        -- The validator script is a function of four arguments:
-        -- 1. The 'Campaign' definition. This argument is provided by the Plutus client, using 'Ledger.applyScript'.
-        --    As a result, the 'Campaign' definition is part of the script address, and different campaigns have different addresses.
-        --    The Campaign{..} syntax means that all fields of the 'Campaign' value are in scope (for example 'campaignDeadline' in l. 70).
-        --    See note [RecordWildCards].
-        --
-        -- 2. A 'PubKey'. This is the data script. It is provided by the producing transaction (the contribution)
-        --
-        -- 3. A 'CampaignAction'. This is the redeemer script. It is provided by the redeeming transaction.
-        --
-        -- 4. A 'PendingTx value. It contains information about the current transaction and is provided by the slot leader.
-        --    See note [PendingTx]
-        \Campaign{..} (con :: PubKey) (act :: CampaignAction) (p :: PendingTx) ->
-            let
-
-                -- In Haskell we can define new operators. We import
-                -- `P.and` from the PlutusTx prelude here so that we can use it
-                -- in infix position rather than prefix (which would require a
-                -- lot of additional brackets)
-                infixr 3 &&
-                (&&) :: Bool -> Bool -> Bool
-                (&&) = P.and
-
-                signedBy :: PendingTx -> PubKey -> Bool
-                signedBy = V.txSignedBy
-
-                -- We pattern match on the pending transaction `p` to get the
-                -- information we need:
-                -- `ps` is the list of inputs of the transaction
-                -- `outs` is the list of outputs
-                -- `slFrom` is the beginning of the validation interval
-                -- `slTo` is the end of the validation interval
-                PendingTx ps outs _ _ _ range _ _ = p
-
-                collRange :: SlotRange
-                collRange = Interval.interval campaignDeadline campaignCollectionDeadline
-
-                refndRange :: SlotRange
-                refndRange = Interval.from campaignCollectionDeadline
-
-                -- `totalInputs` is the sum of the values of all transaction
-                -- inputs. We use `foldr` from the Prelude to go through the
-                -- list and sum up the values.
-                totalInputs :: Value
-                totalInputs =
-                    let v (PendingTxIn _ _ vl) = vl in
-                    P.foldr (\i total -> VTH.plus total (v i)) VTH.zero ps
-
-                isValid = case act of
-                    Refund -> -- the "refund" branch
-                        let
-
-                            contributorTxOut :: PendingTxOut -> Bool
-                            contributorTxOut o = case pubKeyOutput o of
-                                Nothing -> False
-                                Just pk -> eqPubKey pk con
-
-                            -- Check that all outputs are paid to the public key
-                            -- of the contributor (this key is provided as the data script `con`)
-                            contributorOnly = P.all contributorTxOut outs
-
-                            refundable =
-                                Slot.contains refndRange range
-                                && contributorOnly && p `signedBy` con
-
-                        in refundable
-                    Collect -> -- the "successful campaign" branch
-                        let
-                            payToOwner =
-                                Slot.contains collRange range
-                                && VTH.geq totalInputs campaignTarget
-                                && p `signedBy` campaignOwner
-                        in payToOwner
-            in
-            if isValid then () else P.error () ||])
+contributionScript cmp  = ValidatorScript $
+    $$(Ledger.compileScript [|| mkValidator ||])
+        `Ledger.applyScript`
+            Ledger.lifted cmp
 
 -- | The address of a [[Campaign]]
 campaignAddress :: Campaign -> Ledger.Address
