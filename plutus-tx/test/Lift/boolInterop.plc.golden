@@ -1,9 +1,9 @@
 (abs
-  out_GHC_Types_Bool_9
+  out_GHC_Types_Bool_6
   (type)
   (lam
-    case_GHC_Types_True_10
-    out_GHC_Types_Bool_9
-    (lam case_GHC_Types_False_11 out_GHC_Types_Bool_9 case_GHC_Types_True_10)
+    case_GHC_Types_True_7
+    out_GHC_Types_Bool_6
+    (lam case_GHC_Types_False_8 out_GHC_Types_Bool_6 case_GHC_Types_True_7)
   )
 )

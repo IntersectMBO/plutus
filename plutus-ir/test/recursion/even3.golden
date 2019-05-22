@@ -43,27 +43,7 @@
                                             (lam
                                               even_i0
                                               (fun Nat_i11 Bool_i6)
-                                              [
-                                                (lam
-                                                  odd_i0
-                                                  (fun Nat_i12 Bool_i7)
-                                                  [ even_i2 three_i8 ]
-                                                )
-                                                [
-                                                  {
-                                                    tup_i2 (fun Nat_i11 Bool_i6)
-                                                  }
-                                                  (lam
-                                                    arg_0_i0
-                                                    (fun Nat_i12 Bool_i7)
-                                                    (lam
-                                                      arg_1_i0
-                                                      (fun Nat_i13 Bool_i8)
-                                                      arg_1_i1
-                                                    )
-                                                  )
-                                                ]
-                                              ]
+                                              [ even_i1 three_i7 ]
                                             )
                                             [
                                               { tup_i1 (fun Nat_i10 Bool_i5) }
