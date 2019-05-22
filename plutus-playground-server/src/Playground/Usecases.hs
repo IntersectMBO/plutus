@@ -1,18 +1,28 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Playground.Usecases where
 
-import           Data.ByteString (ByteString)
-import           Data.FileEmbed  (embedFile, makeRelativeToProject)
+import           Data.ByteString    (ByteString)
+import qualified Data.ByteString    as BS
+import           Data.FileEmbed     (embedFile, makeRelativeToProject)
+import qualified Data.Text          as T
+import qualified Data.Text.Encoding as T
 
-vesting :: ByteString
-vesting = $(makeRelativeToProject "usecases/Vesting.hs" >>= embedFile)
+marker :: T.Text
+marker = "TRIM TO HERE"
 
-game :: ByteString
-game = $(makeRelativeToProject "usecases/Game.hs" >>= embedFile)
+strip :: T.Text -> T.Text
+strip text = snd $ T.breakOnEnd marker text
 
-messages :: ByteString
-messages = $(makeRelativeToProject "usecases/Messages.hs" >>= embedFile)
+vesting :: T.Text
+vesting = strip $ T.decodeUtf8 $(makeRelativeToProject "usecases/Vesting.hs" >>= embedFile)
 
-crowdfunding :: ByteString
-crowdfunding = $(makeRelativeToProject "usecases/CrowdFunding.hs" >>= embedFile)
+game :: T.Text
+game = strip $ T.decodeUtf8 $(makeRelativeToProject "usecases/Game.hs" >>= embedFile)
+
+messages :: T.Text
+messages = strip $ T.decodeUtf8 $(makeRelativeToProject "usecases/Messages.hs" >>= embedFile)
+
+crowdfunding :: T.Text
+crowdfunding = strip $ T.decodeUtf8 $(makeRelativeToProject "usecases/CrowdFunding.hs" >>= embedFile)

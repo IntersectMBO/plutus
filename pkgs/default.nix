@@ -53696,6 +53696,7 @@ license = stdenv.lib.licenses.asl20;
 , optparse-applicative
 , plutus-emulator
 , plutus-playground-lib
+, plutus-tx
 , plutus-wallet-api
 , process
 , prometheus
@@ -53737,10 +53738,12 @@ containers
 cookie
 exceptions
 file-embed
+hspec
 http-client
 http-client-tls
 http-conduit
 http-types
+insert-ordered-containers
 interpreter
 jwt
 lens
@@ -53749,6 +53752,7 @@ mtl
 newtype-generics
 plutus-emulator
 plutus-playground-lib
+plutus-tx
 plutus-wallet-api
 process
 regex-compat
@@ -53757,6 +53761,7 @@ servant-client
 servant-client-core
 servant-purescript
 servant-server
+swagger2
 template-haskell
 text
 time

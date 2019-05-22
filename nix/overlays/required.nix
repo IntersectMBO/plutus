@@ -29,6 +29,8 @@ self: super: {
 
     plutus-use-cases = deferPluginErrors super.plutus-use-cases;
 
+    plutus-playground-server = deferPluginErrors super.plutus-playground-server;
+
     marlowe = deferPluginErrors super.marlowe;
 
     ########################################################################

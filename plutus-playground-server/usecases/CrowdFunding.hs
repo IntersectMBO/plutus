@@ -1,4 +1,15 @@
--- | Crowdfunding contract implemented using the [[Plutus]] interface.
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
+module CrowdFunding where
+-- TRIM TO HERE
+-- Crowdfunding contract implemented using the [[Plutus]] interface.
 -- This is the fully parallel version that collects all contributions
 -- in a single transaction.
 --
