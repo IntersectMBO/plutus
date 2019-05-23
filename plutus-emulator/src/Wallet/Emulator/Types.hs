@@ -89,6 +89,8 @@ import           Data.Bifunctor            (Bifunctor (..))
 import qualified Data.ByteString.Lazy      as BSL
 import           Data.Foldable             (fold, traverse_)
 import           Data.Hashable             (Hashable)
+import           Data.HashMap.Strict       (HashMap)
+import qualified Data.HashMap.Strict       as HashMap
 import           Data.List                 (partition)
 import           Data.Map                  (Map)
 import qualified Data.Map                  as Map
@@ -139,7 +141,7 @@ type TxPool = [Tx]
 -- | A notification sent to a wallet about a change in the ledger.
 data Notification = BlockValidated Block -- ^ A new block has been validated.
                   | CurrentSlot Slot -- ^ The current slot has changed.
-                  deriving (Show, Eq, Ord)
+                  deriving (Show, Eq)
 
 -- manually records the list of transactions to be submitted
 -- | A mock wallet environment to allow pure testing of the wallet API. This type simply records the list of transactions
@@ -155,6 +157,8 @@ tellTx tx = MockWallet $ tell (mempty, tx)
 
 -- Wallet code
 
+
+-- EventTrigger is not Ord so we use a HashMap in here
 -- | The state used by the mock wallet environment.
 data WalletState = WalletState {
     _ownPrivateKey :: PrivateKey,
@@ -163,7 +167,7 @@ data WalletState = WalletState {
     -- ^ Current slot as far as the wallet is concerned.
     _addressMap    :: AM.AddressMap,
     -- ^ Addresses that we watch.
-    _triggers      :: Map EventTrigger (EventHandler MockWallet)
+    _triggers      :: HashMap EventTrigger (EventHandler MockWallet)
     -- ^ Triggers registered by the user.
     }
 
@@ -173,7 +177,7 @@ instance Show WalletState where
             . showChar ' ' . showsPrec 10 kp
             . showChar ' ' . showsPrec 10 bh
             . showChar ' ' . showsPrec 10 wa
-            . showChar ' ' . showsPrec 10 (Map.map (const ("<..>" :: String)) tr))
+            . showChar ' ' . showsPrec 10 (HashMap.map (const ("<..>" :: String)) tr))
 
 makeLenses ''WalletState
 
@@ -191,7 +195,7 @@ ownFunds = lens g s where
 -- | An empty wallet state with the public/private key pair for a wallet, and the public-key address
 -- for that wallet as the sole watched address.
 emptyWalletState :: Wallet -> WalletState
-emptyWalletState w = WalletState pk 0 oa Map.empty where
+emptyWalletState w = WalletState pk 0 oa mempty where
     oa = AM.addAddress ownAddr mempty
     pk = walletPrivKey w
     ownAddr = pubKeyAddress (toPublicKey pk)
@@ -234,7 +238,7 @@ handleNotifications = mapM_ (updateState >=> runTriggers)  where
 
         let values = AM.values adrs
             annotate = annTruthValue h values
-            trueConditions = filter (getAnnot . fst) $ first annotate <$> Map.toList trg
+            trueConditions = filter (getAnnot . fst) $ first annotate <$> HashMap.toList trg
 
         -- We need to do 2 passes over the list of triggers that fired.
         --
@@ -274,7 +278,7 @@ instance WalletAPI MockWallet where
         pure (ins, txOutput)
 
     registerOnce tr action =
-        modify (over triggers (Map.insertWith (<>) tr action))
+        modify (over triggers (HashMap.insertWith (<>) tr action))
         >> modify (over addressMap (AM.addAddresses (addresses tr)))
 
     watchedAddresses = use addressMap

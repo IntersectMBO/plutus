@@ -19,6 +19,7 @@ module Ledger.Interval(
 
 import           Codec.Serialise.Class        (Serialise)
 import           Data.Aeson                   (FromJSON, ToJSON)
+import           Data.Hashable                (Hashable)
 import           Data.Maybe                   (isNothing)
 import           Data.Semigroup               (Max (..), Min (..), Option (..), Semigroup ((<>)))
 import           Data.Swagger.Internal.Schema (ToSchema)
@@ -33,7 +34,7 @@ import           Language.PlutusTx.Lift       (makeLift)
 data Interval a = Interval { ivFrom :: Maybe a, ivTo :: Maybe a }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
-    deriving anyclass (ToSchema, FromJSON, ToJSON, Serialise)
+    deriving anyclass (ToSchema, FromJSON, ToJSON, Serialise, Hashable)
 
 makeLift ''Interval
 

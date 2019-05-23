@@ -23,6 +23,7 @@ module Ledger.Slot(
 
 import           Codec.Serialise.Class        (Serialise)
 import           Data.Aeson                   (FromJSON, ToJSON)
+import           Data.Hashable                (Hashable)
 import           Data.Swagger.Internal.Schema (ToSchema)
 import           GHC.Generics                 (Generic)
 
@@ -39,7 +40,7 @@ newtype Slot = Slot { getSlot :: Integer }
     deriving (Eq, Ord, Show, Enum)
     deriving stock (Generic)
     deriving anyclass (ToSchema, FromJSON, ToJSON)
-    deriving newtype (Num, Real, Integral, Serialise)
+    deriving newtype (Num, Real, Integral, Serialise, Hashable)
 
 makeLift ''Slot
 

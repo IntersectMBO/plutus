@@ -73,6 +73,7 @@ library
         bytestring -any,
         containers -any,
         hedgehog -any,
+        hashable -any,
         lens -any,
         memory -any,
         mtl -any,

@@ -65,6 +65,7 @@ import           Data.Aeson                   (FromJSON, ToJSON)
 import qualified Data.ByteArray               as BA
 import qualified Data.ByteString.Char8        as BS8
 import qualified Data.ByteString.Lazy         as BSL
+import           Data.Hashable                (Hashable, hashWithSalt)
 import           Data.Map                     (Map)
 import qualified Data.Map                     as Map
 import           Data.Maybe                   (isJust)
@@ -106,10 +107,13 @@ especially because we only need one direction (to binary).
 
 -- | A payment address using some id type. This corresponds to a Bitcoin pay-to-witness-script-hash.
 newtype AddressOf h = AddressOf { getAddress :: h }
-    deriving (Eq, Ord, Show, Generic)
+    deriving stock (Eq, Ord, Show, Generic)
 
 -- | A payment address using a SHA256 hash as the address id type.
 type Address = AddressOf (Digest SHA256)
+
+instance Hashable Address where
+    hashWithSalt s (AddressOf digest) = hashWithSalt s $ BA.unpack digest
 
 deriving newtype instance Serialise Address
 deriving anyclass instance ToJSON Address
@@ -129,7 +133,7 @@ data Tx = Tx {
     -- ^ The 'SlotRange' during which this transaction may be validated.
     txSignatures :: Map PubKey Signature
     -- ^ Signatures of this transaction
-    } deriving stock (Show, Eq, Ord, Generic)
+    } deriving stock (Show, Eq, Generic)
       deriving anyclass (ToJSON, FromJSON, Serialise)
 
 -- | The inputs of a transaction.
@@ -175,7 +179,7 @@ data TxStripped = TxStripped {
     -- ^ The 'Value' forged by this transaction.
     txStrippedFee     :: !Ada
     -- ^ The fee for this transaction.
-    } deriving (Show, Eq, Ord)
+    } deriving (Show, Eq)
 
 instance BA.ByteArrayAccess TxStripped where
     length = BA.length . BS8.pack . show
@@ -290,7 +294,7 @@ data TxOutOf h = TxOutOf {
     txOutValue   :: !Value,
     txOutType    :: !TxOutType
     }
-    deriving (Show, Eq, Ord, Generic)
+    deriving (Show, Eq, Generic)
 
 -- | A transaction output, using a SHA256 hash as the transaction id type.
 type TxOut = TxOutOf (Digest SHA256)

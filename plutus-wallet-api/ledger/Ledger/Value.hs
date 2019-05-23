@@ -49,6 +49,7 @@ import qualified Data.Aeson                   as JSON
 import qualified Data.Aeson.Extras            as JSON
 import qualified Data.ByteString.Lazy         as BSL
 import qualified Data.ByteString.Lazy.Char8   as C8
+import           Data.Hashable                (Hashable)
 import qualified Data.Swagger.Internal        as S
 import           Data.Swagger.Schema          (ToSchema(declareNamedSchema))
 import qualified Data.Swagger.Lens            as S
@@ -74,6 +75,7 @@ stringSchema = mempty & set S.type_ S.SwaggerString
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteString }
     deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise) via LedgerBytes
     deriving stock (Eq, Ord, Generic)
+    deriving anyclass (Hashable)
 
 instance ToSchema CurrencySymbol where
   declareNamedSchema _ = pure $ S.NamedSchema (Just "CurrencySymbol") hexSchema
@@ -108,6 +110,7 @@ currencySymbol = CurrencySymbol
 newtype TokenName = TokenName { unTokenName :: Builtins.ByteString }
     deriving (Serialise) via LedgerBytes
     deriving stock (Eq, Ord, Generic)
+    deriving anyclass (Hashable)
 
 instance IsString TokenName where
   fromString = TokenName . C8.pack
@@ -159,10 +162,23 @@ tokenName = TokenName
 --
 -- See note [Currencies] for more details.
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
-    deriving (Show)
-    deriving stock (Generic)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON, Hashable)
     deriving newtype (Serialise)
+
+makeLift ''Value
+
+instance Eq Value where
+    (==) = eq
+
+-- No 'Ord Value' instance since 'Value' is only a partial order, so 'compare' can't
+-- do the right thing in some cases.
+
+instance Semigroup Value where
+    (<>) = plus
+
+instance Monoid Value where
+    mempty = zero
 
 -- 'InnerMap' exists only to trick swagger's generic deriving mechanism
 -- into not looping indefinitely when it encounters a nested map.
@@ -176,10 +192,8 @@ instance ToSchema Value where
         return $
                 NamedSchema (Just "Value") $ mempty
                     & S.type_ .~ SwaggerObject
-                    & S.properties .~ ( [ ("getValue", mapSchema)])
+                    & S.properties .~ [ ("getValue", mapSchema) ]
                     & S.required .~ [ "getValue" ]
-
-makeLift ''Value
 
 {- note [Currencies]
 
@@ -284,7 +298,7 @@ checkPred :: (Map.These Integer Integer -> Bool) -> Value -> Value -> Bool
 checkPred f l r =
     let
       inner :: Map.Map TokenName (Map.These Integer Integer) -> Bool
-      inner = (Map.all f)
+      inner = Map.all f
     in
       Map.all inner (unionVal l r)
 
@@ -303,36 +317,29 @@ checkBinRel f l r =
 {-# INLINABLE geq #-}
 -- | Check whether one 'Value' is greater than or equal to another. See 'Value' for an explanation of how operations on 'Value's work.
 geq :: Value -> Value -> Bool
+-- If both are zero then checkBinRel will be vacuously true, but this is fine.
 geq = checkBinRel P.geq
 
 {-# INLINABLE gt #-}
 -- | Check whether one 'Value' is strictly greater than another. See 'Value' for an explanation of how operations on 'Value's work.
 gt :: Value -> Value -> Bool
-gt = checkBinRel P.gt
+-- If both are zero then checkBinRel will be vacuously true. So we have a special case.
+gt l r = not (isZero l `P.and` isZero r) `P.and` checkBinRel P.gt l r
 
 {-# INLINABLE leq #-}
 -- | Check whether one 'Value' is less than or equal to another. See 'Value' for an explanation of how operations on 'Value's work.
 leq :: Value -> Value -> Bool
+-- If both are zero then checkBinRel will be vacuously true, but this is fine.
 leq = checkBinRel P.leq
 
 {-# INLINABLE lt #-}
 -- | Check whether one 'Value' is strictly less than another. See 'Value' for an explanation of how operations on 'Value's work.
 lt :: Value -> Value -> Bool
-lt = checkBinRel P.lt
+-- If both are zero then checkBinRel will be vacuously true. So we have a special case.
+lt l r = not (isZero l `P.and` isZero r) `P.and` checkBinRel P.lt l r
 
 {-# INLINABLE eq #-}
 -- | Check whether one 'Value' is equal to another. See 'Value' for an explanation of how operations on 'Value's work.
 eq :: Value -> Value -> Bool
+-- If both are zero then checkBinRel will be vacuously true, but this is fine.
 eq = checkBinRel P.eq
-
-instance Eq Value where
-  (==) = eq
-
-instance Ord Value where
-  (<=) = leq
-
-instance Semigroup Value where
-  (<>) = plus
-
-instance Monoid Value where
-  mempty = zero
