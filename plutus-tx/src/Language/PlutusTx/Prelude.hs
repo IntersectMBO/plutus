@@ -11,6 +11,7 @@ module Language.PlutusTx.Prelude (
     traceErrorH,
     -- * Error
     error,
+    check,
     -- * Boolean operators
     and,
     or,
@@ -77,9 +78,14 @@ import           Prelude                    (Bool (..), Integer, Maybe (..), Str
 -- >>> import Prelude (Bool (..), Integer, Maybe (..), String, (+), (==), (>))
 
 {-# INLINABLE error #-}
--- | Terminate the evaluation of the script with an error message
+-- | Terminate the evaluation of the script with an error message.
 error :: () -> a
 error = Builtins.error
+
+{-# INLINABLE check #-}
+-- | Checks a 'Bool' and aborts if it is false.
+check :: Bool -> ()
+check b = if b then () else error ()
 
 {-# INLINABLE toPlutusString #-}
 -- | Convert a Haskell 'String' into a PlutusTx 'Builtins.String'.

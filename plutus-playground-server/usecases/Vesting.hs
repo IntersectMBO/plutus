@@ -108,7 +108,7 @@ availableFrom (VestingTranche d v) range =
 -}
 
 -- | The validator script
-mkValidator :: Vesting -> () -> () -> PendingTx -> ()
+mkValidator :: Vesting -> () -> () -> PendingTx -> Bool
 mkValidator d@Vesting{..} () () p@PendingTx{pendingTxValidRange = range} =
     let
         -- We need the hash of this validator script in order to ensure
@@ -144,10 +144,7 @@ mkValidator d@Vesting{..} () () p@PendingTx{pendingTxValidRange = range} =
         -- transaction 'p'.
         con2 :: Bool
         con2 = p `V.txSignedBy` vestingOwner
-    in
-        if con1 `P.and` con2
-        then ()
-        else P.traceErrorH "Cannot withdraw"
+    in con1 `P.and` con2
 
 validatorScript :: Vesting -> ValidatorScript
 validatorScript v = ValidatorScript $

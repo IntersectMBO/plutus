@@ -45,6 +45,7 @@ import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
 import           Language.PlutusTx.Lift                   (unsafeLiftProgram)
 import           Language.PlutusTx.Lift.Class             (Lift)
 import           Language.PlutusTx                        (CompiledCode, compile, getPlc)
+import qualified Language.PlutusTx.Prelude                as P
 import           PlutusPrelude
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
@@ -191,11 +192,26 @@ instance Show ValidationData where
 runScript :: ValidationData -> ValidatorScript -> DataScript -> RedeemerScript -> ([String], Bool)
 runScript (ValidationData valData) (ValidatorScript validator) (DataScript dataScript) (RedeemerScript redeemer) =
     let
-        applied = ((validator `applyScript` dataScript) `applyScript` redeemer) `applyScript` valData
+        -- See Note [Scripts returning Bool]
+        applied = checker `applyScript` (((validator `applyScript` dataScript) `applyScript` redeemer) `applyScript` valData)
         -- TODO: do something with the error
     in evaluateScript applied
         -- TODO: Enable type checking of the program
         -- void typecheck
+
+{- Note [Scripts returning Bool]
+It used to be that the signal for validation failure was a script being `error`. This is nice for the validator, since
+you can determine whether the script evaluation is error-or-not without having to look at what the result actually
+*is* if there is one.
+
+However, from the script author's point of view, it would be nicer to return a Bool, since otherwise you end up doing a
+lot of `if realCondition then () else error ()` which is rubbish.
+
+So we changed the result type to be Bool. But now we have to answer the question of how the validator knows what the
+result value is. All *sorts* of terms can be True or False in disguise. The easiest way to tell is by reducing it
+to the previous problem: apply a function which does a pattern match and returns error in the case of False and ()
+otherwise. Then, as before, we just check for error in the overall evaluation.
+-}
 
 -- | @()@ as a data script.
 unitData :: DataScript
@@ -204,3 +220,7 @@ unitData = DataScript $ fromCompiledCode $$(compile [|| () ||])
 -- | @()@ as a redeemer.
 unitRedeemer :: RedeemerScript
 unitRedeemer = RedeemerScript $ fromCompiledCode $$(compile [|| () ||])
+
+-- | @()@ as a redeemer.
+checker :: Script
+checker = fromCompiledCode $$(compile [|| P.check ||])

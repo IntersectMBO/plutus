@@ -196,7 +196,7 @@ mkValidatorScript campaign = ValidatorScript val where
                           p `signedBy` campaignOwner
 
                             -- END OF NEW CODE
-      in if isValid then () else (P.error ()) ||])
+      in isValid ||])
 
 campaignAddress :: Campaign -> Address
 campaignAddress cmp = L.scriptAddress (mkValidatorScript cmp)

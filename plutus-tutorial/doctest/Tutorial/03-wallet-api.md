@@ -100,10 +100,10 @@ In the crowdfunding campaign the data script contains a `Contributor` value, whi
 
 ## 1.2 The Validator Script
 
-The general form of a validator script is `DataScript -> RedeemerScript -> PendingTx -> Answer`. The types of data and redeemer scripts are `Contributor` and `CampaignAction`, respectively, so the signature of the validator script is:
+The general form of a validator script is `DataScript -> RedeemerScript -> PendingTx -> Bool`. The types of data and redeemer scripts are `Contributor` and `CampaignAction`, respectively, so the signature of the validator script is:
 
 ```haskell
-type CampaignValidator = Contributor -> CampaignAction -> PendingTx -> ()
+type CampaignValidator = Contributor -> CampaignAction -> PendingTx -> Bool
 ```
 
 If we want to implement `CampaignValidator` we need to have access to the parameters of the campaign, so that we can check if the selected `CampaignAction` is allowed. In Haskell we can do this by writing a function `mkValidator :: Campaign -> CampaignValidator` that takes a `Campaign` and produces a `CampaignValidator`. However, we need to wrap `mkValidator` in Template Haskell quotes so that it can be compiled to Plutus Core. To apply the compiled `mkValidator` function to the `campaign :: Campaign` argument that is provided at runtime, we use `Ledger.lifted` to get the on-chain representation of `campaign`, and apply `mkValidator` to it with `Ledger.applyScript`:
@@ -222,19 +222,10 @@ In the `Collect` case, the current slot must be between `deadline` and `collecti
                           Ada.geq totalInputs target &&
                           p `signedBy` campaignOwner
 
-              in
+              in isValid ||])
 ```
 
 **Note (Builtins in On-Chain Code)** We can use the functions `greaterThanInteger`, `lessThanInteger`, `greaterThanEqInteger`, `lessThanEqInteger` and `equalsInteger` from the `Language.PlutusTx.Builtins` module to compare `Int` values in PLC without having to define them in the script itself, as we did with `&&`. The compiler plugin that translates Haskell Core to Plutus Core knows about those functions because `Int` is a primitive type in Plutus Core and operations on it are built in. `Bool` on the other hand is treated like any other user-defined data type, and all functions that operate on it must be defined locally. More details can be found in the [PlutusTx tutorial](../plutus-tx/tutorial/Tutorial.md).
-
-Finally, we can return `()` if `isValid` is true, or fail with an error if it isn't.
-
-```haskell
-              if isValid then () else (P.error ())
-                  ||])
-                  -- this is the end of the on-chain (quoted Template
-                  -- Haskell) code
-```
 
 ## 1.3 Contract Endpoints
 

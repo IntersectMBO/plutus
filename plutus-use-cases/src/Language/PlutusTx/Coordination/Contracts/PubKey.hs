@@ -20,11 +20,8 @@ import           Ledger                       as Ledger hiding (initialise, to)
 import           Ledger.Validation            as V
 import           Wallet.API                   as WAPI
 
-mkValidator :: PubKey -> () -> () -> PendingTx -> ()
-mkValidator pk' () () p =
-    if V.txSignedBy p pk'
-    then ()
-    else P.traceErrorH "Required signature not present!"
+mkValidator :: PubKey -> () -> () -> PendingTx -> Bool
+mkValidator pk' () () p = V.txSignedBy p pk'
 
 pkValidator :: PubKey -> ValidatorScript
 pkValidator pk = ValidatorScript $

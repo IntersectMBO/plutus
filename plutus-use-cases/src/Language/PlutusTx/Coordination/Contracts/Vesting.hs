@@ -125,7 +125,7 @@ validatorScriptHash =
     . Ledger.scriptAddress
     . validatorScript
 
-mkValidator :: Vesting -> VestingData -> () -> PendingTx -> ()
+mkValidator :: Vesting -> VestingData -> () -> PendingTx -> Bool
 mkValidator d@Vesting{..} VestingData{..} () p@PendingTx{pendingTxValidRange = range} =
     let
         -- We assume here that the txn outputs are always given in the same
@@ -151,9 +151,7 @@ mkValidator d@Vesting{..} VestingData{..} () p@PendingTx{pendingTxValidRange = r
             let remaining = Validation.valueLockedBy p (Validation.ownHash p) in
             remaining `Value.eq` (totalAmount d `Value.minus` newAmount)
 
-        isValid = amountsValid `PlutusTx.and` txnOutputsValid
-    in
-    if isValid then () else PlutusTx.error ()
+    in amountsValid `PlutusTx.and` txnOutputsValid
 
 validatorScript :: Vesting -> ValidatorScript
 validatorScript v = ValidatorScript $

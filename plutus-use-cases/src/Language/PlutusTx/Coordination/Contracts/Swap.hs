@@ -67,7 +67,7 @@ PlutusTx.makeLift ''SwapOwners
 
 type SwapOracle = OracleValue (Ratio Integer)
 
-mkValidator :: Swap -> SwapOwners -> SwapOracle -> PendingTx -> ()
+mkValidator :: Swap -> SwapOwners -> SwapOracle -> PendingTx -> Bool
 mkValidator Swap{..} SwapOwners{..} redeemer p =
     let
         extractVerifyAt :: OracleValue (Ratio Integer) -> PubKey -> Ratio Integer -> Slot -> Ratio Integer
@@ -159,8 +159,7 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
 
         outConditions = (ol1 o1 `P.and` ol2 o2) `P.or` (ol1 o2 `P.and` ol2 o1)
 
-    in
-    if inConditions `P.and` outConditions then () else PlutusTx.error ()
+    in inConditions `P.and` outConditions
 
 -- | Validator script for the two transactions that initialise the swap.
 --   See note [Swap Transactions]
