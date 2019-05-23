@@ -11,10 +11,12 @@ import           Data.Foldable                (traverse_)
 import qualified Language.PlutusTx            as P
 import           Ledger                       (Address, DataScript(..), PubKey(..), RedeemerScript(..), Slot(..), TxId, ValidatorScript(..))
 import qualified Ledger                       as L
-import qualified Ledger.Ada                as Ada
-import           Ledger.Ada                (Ada)
+import qualified Ledger.Ada                   as Ada
+import           Ledger.Ada                   (Ada)
 import qualified Ledger.Interval              as Interval
 import qualified Ledger.Slot                  as Slot
+import qualified Ledger.Value                 as Value
+import           Ledger.Value                 (Value)
 import           Ledger.Validation            (PendingTx(..), PendingTxIn(..), PendingTxOut)
 import qualified Ledger.Validation            as V
 import           Wallet                       (WalletAPI(..), WalletDiagnostics(..), MonadWallet, EventHandler(..), EventTrigger)
@@ -215,7 +217,7 @@ refundHandler txid cmp = EventHandler (\_ -> do
 
 refundTrigger :: Campaign -> EventTrigger
 refundTrigger c = W.andT
-    (W.fundsAtAddressT (campaignAddress c) (W.intervalFrom (Ada.toValue 1)))
+    (W.fundsAtAddressGtT (campaignAddress c) Value.zero)
     (W.slotRangeT (W.intervalFrom (collectionDeadline c)))
 
 contribute :: MonadWallet m => Campaign -> Ada -> m ()
@@ -248,7 +250,7 @@ mkCollectTrigger :: Address -> Slot -> Ada -> EventTrigger
 mkCollectTrigger addr sl target = W.andT
     -- We use `W.intervalFrom` to create an open-ended interval that starts
     -- at the funding target.
-    (W.fundsAtAddressT addr (W.intervalFrom (Ada.toValue target)))
+    (W.fundsAtAddressGeqT addr (Ada.toValue target))
     -- With `W.intervalTo` we create an interval from now to the target slot 'sl'
     (W.slotRangeT (W.intervalTo sl))
 

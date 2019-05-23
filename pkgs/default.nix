@@ -53427,6 +53427,7 @@ license = stdenv.lib.licenses.asl20;
 , template-haskell
 , text
 , transformers
+, unordered-containers
 , warp
 }:
 mkDerivation {
@@ -53468,6 +53469,7 @@ swagger2
 template-haskell
 text
 transformers
+unordered-containers
 ];
 executableHaskellDepends = [
 base

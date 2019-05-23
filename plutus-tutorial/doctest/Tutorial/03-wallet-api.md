@@ -36,6 +36,8 @@ import           Ledger                       (Address, DataScript(..), PubKey(.
 import qualified Ledger                       as L
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Ada                   (Ada)
+import qualified Ledger.Value                 as Value
+import           Ledger.Value                 (Value)
 import           Ledger.Validation            (PendingTx(..), PendingTxIn(..), PendingTxOut)
 import qualified Ledger.Validation            as V
 import           Wallet                       (WalletAPI(..), WalletDiagnostics(..), MonadWallet, EventHandler(..), EventTrigger)
@@ -242,7 +244,7 @@ Both tasks can be implemented using *blockchain triggers*.
 
 ### Blockchain Triggers
 
-The wallet API allows us to specify a pair of [`EventTrigger`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#t:EventTrigger) and [`EventHandler`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:EventHandler) to automatically run `collect`. An event trigger describes a condition of the blockchain and can be true or false. There are four basic triggers: [`slotRangeT`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:slotRangeT) is true when the slot number is in a specific range, [`fundsAtAddressT`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:fundsAtAddressT) is true when the total value of unspent outputs at an address is within a range, [`alwaysT`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:alwaysT) is always true and [`neverT`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:neverT) is never true. We also have boolean connectives [`andT`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:andT), [`orT`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:orT) and [`notT`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:notT) to describe more complex conditions.
+The wallet API allows us to specify a pair of [`EventTrigger`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#t:EventTrigger) and [`EventHandler`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:EventHandler) to automatically run `collect`. An event trigger describes a condition of the blockchain and can be true or false. There are four basic triggers: [`slotRangeT`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:slotRangeT) is true when the slot number is in a specific range, [`fundsAtAddressGeqT`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:fundsAtAddressGeqT) is true when the total value of unspent outputs at an address is within a range, [`alwaysT`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:alwaysT) is always true and [`neverT`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:neverT) is never true. We also have boolean connectives [`andT`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:andT), [`orT`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:orT) and [`notT`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:notT) to describe more complex conditions.
 
 We will need to know the address of a campaign, which amounts to  hashing the output of `mkValidatorScript`:
 
@@ -274,14 +276,14 @@ collectFundsTrigger :: Campaign -> EventTrigger
 collectFundsTrigger c = W.andT
     -- We use `W.intervalFrom` to create an open-ended interval that starts
     -- at the funding target.
-    (W.fundsAtAddressT (campaignAddress c) (W.intervalFrom (Ada.toValue (fundingTarget c))))
+    (W.fundsAtAddressGeqT (campaignAddress c) (Ada.toValue (fundingTarget c)))
 
     -- With `W.interval` we create an interval from the campaign's end date
     -- (inclusive) to the collection deadline (exclusive)
     (W.slotRangeT (W.interval (endDate c) (collectionDeadline c)))
 ```
 
-`fundsAtAddressT` and `slotRangeT` take `Interval Value` and `Interval Slot` arguments respectively. The [`Interval`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#t:Interval) type is part of the `wallet-api` package. The [`Ledger.Interval`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Interval.html#v:Interval) module that originally defines it illustrates how to write a data type and associated operations that can be used both in off-chain and in on-chain code.
+`fundsAtAddressGeqT` and `slotRangeT` take `Value` and `Interval Slot` arguments respectively. The [`Interval`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#t:Interval) type is part of the `wallet-api` package. The [`Ledger.Interval`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Interval.html#v:Interval) module that originally defines it illustrates how to write a data type and associated operations that can be used both in off-chain and in on-chain code.
 
 The campaign owner can collect contributions when two conditions hold: The funds at the address must have reached the target, and the current slot must be greater than the campaign deadline but smaller than the collection deadline.
 
@@ -292,7 +294,7 @@ collectionHandler :: MonadWallet m => Campaign -> EventHandler m
 collectionHandler cmp = EventHandler (\_ -> do
 ```
 
-`EventHandler` is a function of one argument, which we ignore in this case (the argument tells us which of the conditions in the trigger are true, which can be useful if we used [`orT`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:orT) to build a complex condition). In our case we don't need this information because we know that both the [`fundsAtAddressT`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:fundsAtAddressT) and the [`slotRangeT`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:slotRangeT) conditions hold when the event handler is run, so we can call [`collectFromScript`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:collectFromScript) immediately.
+`EventHandler` is a function of one argument, which we ignore in this case (the argument tells us which of the conditions in the trigger are true, which can be useful if we used [`orT`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:orT) to build a complex condition). In our case we don't need this information because we know that both the [`fundsAtAddressGeqT`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:fundsAtAddressGeqT) and the [`slotRangeT`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:slotRangeT) conditions hold when the event handler is run, so we can call [`collectFromScript`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:collectFromScript) immediately.
 
 To collect the funds we use [`collectFromScript`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:collectFromScript), which expects a validator script and a redeemer script.
 
@@ -340,7 +342,7 @@ Now we can register the refund handler when we make the contribution. The condit
 ```haskell
 refundTrigger :: Campaign -> EventTrigger
 refundTrigger c = W.andT
-    (W.fundsAtAddressT (campaignAddress c) (W.intervalFrom (Ada.toValue 1)))
+    (W.fundsAtAddressGtT (campaignAddress c) Value.zero)
     (W.slotRangeT (W.intervalFrom (collectionDeadline c)))
 ```
 

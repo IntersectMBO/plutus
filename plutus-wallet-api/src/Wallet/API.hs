@@ -9,6 +9,7 @@
 {-# LANGUAGE RankNTypes         #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeFamilies       #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 -- | The interface between the wallet and Plutus client code.
 module Wallet.API(
     WalletAPI(..),
@@ -57,7 +58,8 @@ module Wallet.API(
     alwaysT,
     neverT,
     slotRangeT,
-    fundsAtAddressT,
+    fundsAtAddressGeqT,
+    fundsAtAddressGtT,
     checkTrigger,
     addresses,
     -- AnnTriggerF,
@@ -75,7 +77,7 @@ module Wallet.API(
 import           Control.Lens              hiding (contains)
 import           Control.Monad             (void, when)
 import           Control.Monad.Error.Class (MonadError (..))
-import           Data.Aeson                (FromJSON, ToJSON)
+import           Data.Aeson                (FromJSON, FromJSON1, ToJSON, ToJSON1)
 import           Data.Bifunctor            (Bifunctor (bimap))
 import qualified Data.ByteArray            as BA
 import qualified Data.ByteString.Lazy      as BSL
@@ -83,14 +85,15 @@ import           Data.Eq.Deriving          (deriveEq1)
 import           Data.Foldable             (fold)
 import           Data.Functor.Compose      (Compose (..))
 import           Data.Functor.Foldable     (Corecursive (..), Fix (..), Recursive (..), unfix)
+import           Data.Hashable             (Hashable, hashWithSalt)
+import           Data.Hashable.Lifted      (Hashable1, hashWithSalt1)
 import qualified Data.Map                  as Map
 import           Data.Maybe                (fromMaybe, maybeToList)
-import           Data.Ord.Deriving         (deriveOrd1)
 import qualified Data.Set                  as Set
 import           Data.Text                 (Text)
 
 import qualified Data.Text                 as Text
-import           GHC.Generics              (Generic)
+import           GHC.Generics              (Generic, Generic1)
 import           Ledger                    (Address, DataScript, PubKey (..), RedeemerScript, Signature, Slot,
                                             SlotRange, Tx (..), TxId, TxIn, TxOut, TxOutOf (..), TxOutRef,
                                             TxOutType (..), ValidatorScript, Value, getTxId, hashTx, outValue,
@@ -111,12 +114,12 @@ data EventTriggerF f =
     | TAlways
     | TNever
     | TSlotRange !SlotRange
-    | TFundsAtAddress !Address !(Interval Value)
-    deriving stock (Eq, Ord, Show, Functor, Foldable, Traversable, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    | TFundsAtAddressGeq !Address !Value
+    | TFundsAtAddressGt !Address !Value
+    deriving stock (Eq, Show, Functor, Foldable, Traversable, Generic1)
+    deriving anyclass (FromJSON1, ToJSON1, Hashable1)
 
 $(deriveEq1 ''EventTriggerF)
-$(deriveOrd1 ''EventTriggerF)
 $(deriveShow1 ''EventTriggerF)
 
 -- | An 'EventTrigger' where each level is annotated with a value of @a@.
@@ -132,6 +135,9 @@ type AnnotatedEventTrigger a = Fix (Compose ((,) a) EventTriggerF)
 --     (slotRangeT (W.interval 0 5))
 -- @
 type EventTrigger = Fix EventTriggerF
+
+instance Hashable1 f => Hashable (Fix f) where
+    hashWithSalt s (Fix x) = hashWithSalt1 s x
 
 -- | Get the annotation on an 'AnnotatedEventTrigger'.
 getAnnot :: AnnotatedEventTrigger a -> a
@@ -161,9 +167,13 @@ neverT = embed TNever
 slotRangeT :: SlotRange -> EventTrigger
 slotRangeT = embed . TSlotRange
 
--- | @fundsAtAddressT a r@ is true when the funds at @a@ are in the range @r@.
-fundsAtAddressT :: Address -> Interval Value -> EventTrigger
-fundsAtAddressT a = embed . TFundsAtAddress a
+-- | @fundsAtAddressGeqT a t@ is true when the funds at @a@ are greater than or equal to the threshold @t@.
+fundsAtAddressGeqT :: Address -> Value -> EventTrigger
+fundsAtAddressGeqT a = embed . TFundsAtAddressGeq a
+
+-- | @fundsAtAddressGtT a t@ is true when the funds at @a@ are strictly greater than the threshold @t@.
+fundsAtAddressGtT :: Address -> Value -> EventTrigger
+fundsAtAddressGtT a = embed . TFundsAtAddressGt a
 
 -- | @notT t@ is true when @t@ is false.
 notT :: EventTrigger -> EventTrigger
@@ -186,9 +196,12 @@ annTruthValue h mp = cata f where
         TAlways -> embedC (True, TAlways)
         TNever -> embedC (False, TNever)
         TSlotRange r -> embedC (h `member` r, TSlotRange r)
-        TFundsAtAddress a r ->
+        TFundsAtAddressGeq a r ->
             let funds = Map.findWithDefault Value.zero a mp in
-            embedC (funds `member` r, TFundsAtAddress a r)
+            embedC (funds `Value.geq` r, TFundsAtAddressGeq a r)
+        TFundsAtAddressGt a r ->
+            let funds = Map.findWithDefault Value.zero a mp in
+            embedC (funds `Value.gt` r, TFundsAtAddressGt a r)
 
 -- | The addresses that an 'EventTrigger' refers to.
 addresses :: EventTrigger -> [Address]
@@ -200,7 +213,8 @@ addresses = cata adr where
         TAlways -> []
         TNever -> []
         TSlotRange _ -> []
-        TFundsAtAddress a _ -> [a]
+        TFundsAtAddressGeq a _ -> [a]
+        TFundsAtAddressGt a _ -> [a]
 
 -- | An action that can be run in response to a blockchain event.
 --

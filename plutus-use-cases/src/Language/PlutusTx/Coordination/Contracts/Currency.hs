@@ -86,7 +86,7 @@ validate c@(Currency (refHash, refIdx) _) () () p =
 
 curValidator :: Currency -> ValidatorScript
 curValidator cur = ValidatorScript $
-    Ledger.fromCompiledCode $$(P.compile [|| validate ||]) 
+    Ledger.fromCompiledCode $$(P.compile [|| validate ||])
         `Ledger.applyScript`
             Ledger.lifted cur
 
@@ -132,14 +132,13 @@ forge amounts = do
         theCurrency = mkCurrency (txInRef refTxIn) amounts
         curAddr     = Ledger.scriptAddress (curValidator theCurrency)
         forgedVal   = forgedValue theCurrency
-        oneOrMore   = WAPI.intervalFrom $ Ada.adaValueOf 1
 
         -- trg1 fires when 'refTxIn' can be spent by our forging transaction
-        trg1 = fundsAtAddressT refAddr oneOrMore
+        trg1 = fundsAtAddressGtT refAddr Value.zero
 
         -- trg2 fires when the pay-to-script output locked by 'curValidator'
         -- is ready to be spent.
-        trg2 = fundsAtAddressT curAddr oneOrMore
+        trg2 = fundsAtAddressGtT curAddr Value.zero
 
         -- The 'forge_' action creates a transaction that spends the contract
         -- output, forging the currency in the process.

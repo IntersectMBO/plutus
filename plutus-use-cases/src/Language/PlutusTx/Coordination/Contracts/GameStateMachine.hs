@@ -185,8 +185,7 @@ lock initialWord vl = do
 
     -- 2. Define a trigger that fires when the first transaction (1.) is
     --    placed on the chain.
-    let oneOrMore   = WAPI.intervalFrom $ Ada.adaValueOf 1
-        trg1        = fundsAtAddressT addr oneOrMore
+    let trg1        = fundsAtAddressGtT addr V.zero
 
     -- 3. Define a forge_ action that creates the token by and puts the contract
     --    into its new state.
