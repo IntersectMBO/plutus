@@ -39,6 +39,12 @@ flag development
     default: False
     manual: True
 
+flag defer-plugin-errors
+    description:
+        Defer errors from the plugin, useful for things like Haddock that can't handle it.
+    default: False
+    manual: True
+
 library
     import: lang
     hs-source-dirs: src
@@ -87,6 +93,9 @@ library
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
+
+    if flag(defer-plugin-errors)
+        ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
 
 library plutus-ledger
     import: lang
@@ -138,6 +147,9 @@ library plutus-ledger
         newtype-generics,
         http-api-data,
         cardano-crypto
+
+    if flag(defer-plugin-errors)
+        ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
 
 test-suite plutus-wallet-api-test
     type: exitcode-stdio-1.0
