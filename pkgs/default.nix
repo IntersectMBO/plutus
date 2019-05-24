@@ -19627,6 +19627,30 @@ description = "Simple trace-based debugger";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
+"debug-dump" = callPackage
+({
+  mkDerivation
+, base
+, bytestring
+, stdenv
+, text
+}:
+mkDerivation {
+
+pname = "debug-dump";
+version = "0.1.0.0";
+src = .././debug-dump;
+libraryHaskellDepends = [
+base
+bytestring
+text
+];
+doHaddock = false;
+homepage = "https://github.com/vmchale/debug-dump#readme";
+description = "File-based debug output";
+license = stdenv.lib.licenses.asl20;
+
+}) {};
 "debug-trace-var" = callPackage
 ({
   mkDerivation
