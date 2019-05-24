@@ -6,6 +6,9 @@
   - {name: fromJust, within: [Language.PlutusTx.Lift]}
   - {name: foldl, within: []}
   - {name: traceShowId, within: []} # for debugging only, should not be merged to master
+  - {name: traceFile, within: []}
+  - {name: traceFileText, within: []}
+  - {name: traceFileBSL, within: []}
 
 - error: {lhs: "hylo embed", rhs: "ana", name: "Use anamorphism"}
 - error: {lhs: "hylo f project", rhs: "cata f", name: "Use catamorphism"}
