@@ -72,6 +72,7 @@ library
         mtl -any,
         mmorph -any,
         prettyprinter -any,
+        recursion-schemes -any,
         serialise -any,
         text -any,
         transformers -any,

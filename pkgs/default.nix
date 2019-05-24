@@ -53547,6 +53547,7 @@ license = stdenv.lib.licenses.asl20;
 , mmorph
 , mtl
 , prettyprinter
+, recursion-schemes
 , serialise
 , stdenv
 , tasty
@@ -53571,6 +53572,7 @@ megaparsec
 mmorph
 mtl
 prettyprinter
+recursion-schemes
 serialise
 text
 transformers

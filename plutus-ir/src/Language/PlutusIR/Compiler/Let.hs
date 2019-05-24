@@ -15,38 +15,22 @@ import qualified Language.PlutusIR.MkPir               as PIR
 import           Control.Monad
 import           Control.Monad.Error.Lens
 
+import           Control.Lens
+
 import           Data.List
 
 data LetKind = RecTerms | NonRecTerms | Types
 
 -- | Compile the let terms out of a 'Term'. Note: the result does *not* have globally unique names.
 compileLets :: Compiling m e a => LetKind -> PIRTerm a -> m (PIRTerm a)
-compileLets kind = \case
-    Let p r bs body -> withEnclosing (const $ LetBinding r p) $ do
-        body' <- compileLets kind body
-        bs' <- traverse (compileInBinding kind) bs
-        case r of
-            NonRec -> foldM (compileNonRecBinding kind) body' bs'
-            Rec    -> compileRecBindings kind body' bs'
-    Var x n -> pure $ Var x n
-    TyAbs x n k t -> TyAbs x n k <$> compileLets kind t
-    LamAbs x n ty t -> LamAbs x n ty <$> compileLets kind t
-    Apply x t1 t2 -> Apply x <$> compileLets kind t1 <*> compileLets kind t2
-    Constant x c -> pure $ Constant x c
-    Builtin x bi -> pure $ Builtin x bi
-    TyInst x t ty -> TyInst x <$> compileLets kind t <*> pure ty
-    Error x ty -> pure $ Error x ty
-    IWrap x tn ty t -> IWrap x tn ty <$> compileLets kind t
-    Unwrap x t -> Unwrap x <$> compileLets kind t
+compileLets kind = transformMOf termSubterms (compileLet kind)
 
-compileInBinding
-    :: Compiling m e a
-    => LetKind
-    -> Binding TyName Name (Provenance a)
-    -> m (Binding TyName Name (Provenance a))
-compileInBinding kind b = case b of
-    TermBind x d rhs -> TermBind x d <$> compileLets kind rhs
-    _                -> pure b
+compileLet :: Compiling m e a => LetKind -> PIRTerm a -> m (PIRTerm a)
+compileLet kind = \case
+    Let p r bs body -> withEnclosing (const $ LetBinding r p) $ case r of
+            NonRec -> foldM (compileNonRecBinding kind) body bs
+            Rec    -> compileRecBindings kind body bs
+    x -> pure x
 
 compileRecBindings :: Compiling m e a => LetKind -> PIRTerm a -> [Binding TyName Name (Provenance a)] -> m (PIRTerm a)
 compileRecBindings kind body bs
