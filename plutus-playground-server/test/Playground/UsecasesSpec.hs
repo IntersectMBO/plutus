@@ -160,15 +160,7 @@ vestingSpec =
                 , FunctionSchema
                       { functionName = Fn "payToWallet_"
                       , argumentSchema =
-                            [ SimpleObjectSchema
-                                  [ ( "ivTo"
-                                    , SimpleObjectSchema
-                                          [("getSlot", SimpleIntSchema)])
-                                  , ( "ivFrom"
-                                    , SimpleObjectSchema
-                                          [("getSlot", SimpleIntSchema)])
-                                  ]
-                            , vlSchema
+                            [ vlSchema
                             , SimpleObjectSchema
                                   [("getWallet", SimpleIntSchema)]
                             ]
@@ -264,13 +256,12 @@ gameSpec =
             , mkSimulatorWallet b ten
             , mkSimulatorWallet c ten
             ]
-            [ Action (Fn "payToWallet_") a [slotRange, nineAda, toJSONString b]
-            , Action (Fn "payToWallet_") b [slotRange, nineAda, toJSONString c]
-            , Action (Fn "payToWallet_") c [slotRange, nineAda, toJSONString a]
+            [ Action (Fn "payToWallet_") a [nineAda, toJSONString b]
+            , Action (Fn "payToWallet_") b [nineAda, toJSONString c]
+            , Action (Fn "payToWallet_") c [nineAda, toJSONString a]
             ]
             (SourceCode game)
             []
-    slotRange = JSON.String "{\"ivTo\":null,\"ivFrom\":null}"
     nineAda = toJSONString $ Ada.adaValueOf 9
     twoAda = toJSONString $ Ada.adaValueOf 2
 

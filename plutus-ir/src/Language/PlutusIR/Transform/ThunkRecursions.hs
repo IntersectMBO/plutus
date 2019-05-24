@@ -203,9 +203,7 @@ constructThunkedLet ann okay needThunking body = do
           let substitutionMap = Map.fromList $ processed ^.. traverse . _1
               -- substitution function for names
               nameF n = Map.lookup n substitutionMap
-              -- do nothing for type names
-              tynameF = const Nothing
-          in fmap (substBinding tynameF nameF) newBindings
+          in fmap (bindingSubstNames nameF) newBindings
 
     let adaptorBindings = processed ^.. traverse . _3
 

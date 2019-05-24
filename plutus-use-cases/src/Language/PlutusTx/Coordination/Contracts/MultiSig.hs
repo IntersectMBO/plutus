@@ -36,12 +36,10 @@ data MultiSig = MultiSig
                 }
 P.makeLift ''MultiSig
 
-validate :: MultiSig -> () -> () -> PendingTx -> ()
+validate :: MultiSig -> () -> () -> PendingTx -> Bool
 validate (MultiSig keys num) () () p =
-    let present = P.length (P.filter (V.txSignedBy p) keys) in
-    if present `P.geq` num
-    then ()
-    else P.traceErrorH "WRONG!"
+    let present = P.length (P.filter (V.txSignedBy p) keys)
+    in present `P.geq` num
 
 msValidator :: MultiSig -> ValidatorScript
 msValidator sig = ValidatorScript $

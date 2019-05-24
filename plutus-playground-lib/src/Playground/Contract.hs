@@ -40,17 +40,18 @@ import qualified Data.ByteString.Lazy.Char8  as LBC8
 import           Data.List.NonEmpty          (NonEmpty ((:|)))
 import           Data.Swagger                (Schema, ToSchema)
 import           GHC.Generics                (Generic)
+import           Ledger.Interval             (always)
 import           Ledger.Validation           (ValidatorHash (ValidatorHash))
 import           Ledger.Value                (TokenName (TokenName), Value)
 import           Playground.API              (FunctionSchema, KnownCurrency (KnownCurrency), adaCurrency)
 import           Playground.Interpreter.Util
 import           Playground.TH               (mkFunction, mkFunctions, mkKnownCurrencies, mkSingleFunction)
-import           Wallet.API                  (SlotRange, WalletAPI, payToPublicKey_)
+import           Wallet.API                  (WalletAPI, payToPublicKey_)
 import           Wallet.Emulator             (addBlocksAndNotify, runWalletActionAndProcessPending, walletPubKey)
 import           Wallet.Emulator.Types       (MockWallet, Wallet (..))
 
-payToWallet_ :: (Monad m, WalletAPI m) => SlotRange -> Value -> Wallet -> m ()
-payToWallet_ r v = payToPublicKey_ r v . walletPubKey
+payToWallet_ :: (Monad m, WalletAPI m) => Value -> Wallet -> m ()
+payToWallet_ v = payToPublicKey_ always v . walletPubKey
 
 -- We need to work with lazy 'ByteString's in contracts,
 -- but 'ByteArrayAccess' (which we need for hashing) is only defined for strict

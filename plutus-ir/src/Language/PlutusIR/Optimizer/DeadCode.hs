@@ -27,15 +27,20 @@ removeDeadBindings
     => Term tyname name a
     -> Term tyname name a
 removeDeadBindings t =
-    let
-        tRen = PLC.runQuote $ PLC.rename t
-        depGraph :: G.Graph Deps.Node
-        depGraph = Deps.runTermDeps tRen
-        liveNodes :: Liveness
-        liveNodes = Set.fromList $ T.reachable Deps.Root depGraph
-    in runReader (processTerm tRen) liveNodes
+    let tRen = PLC.runQuote $ PLC.rename t
+    in runReader (transformMOf termSubterms processTerm tRen) (calculateLiveness tRen)
 
 type Liveness = Set.Set Deps.Node
+
+calculateLiveness
+    :: (PLC.HasUnique (name a) PLC.TermUnique, PLC.HasUnique (tyname a) PLC.TypeUnique)
+    => Term tyname name a
+    -> Liveness
+calculateLiveness t =
+    let
+        depGraph :: G.Graph Deps.Node
+        depGraph = Deps.runTermDeps t
+    in Set.fromList $ T.reachable Deps.Root depGraph
 
 live :: (MonadReader Liveness m, PLC.HasUnique n unique) => n -> m Bool
 live n =
@@ -47,12 +52,12 @@ liveBinding
     :: (MonadReader Liveness m, PLC.HasUnique (name a) PLC.TermUnique, PLC.HasUnique (tyname a) PLC.TypeUnique)
     => Binding tyname name a
     -> m Bool
-liveBinding b =
+liveBinding =
     let
         -- TODO: HasUnique instances for VarDecl and TyVarDecl?
         liveVarDecl (VarDecl _ n _) = live n
         liveTyVarDecl (TyVarDecl _ n _) = live n
-    in case b of
+    in \case
         TermBind _ d _ -> liveVarDecl d
         TypeBind _ d _ -> liveTyVarDecl d
         DatatypeBind _ (Datatype _ d _ destr constrs) -> or <$> (sequence $ [liveTyVarDecl d,  live destr] ++ fmap liveVarDecl constrs)
@@ -61,33 +66,7 @@ processTerm
     :: (MonadReader Liveness m, PLC.HasUnique (name a) PLC.TermUnique, PLC.HasUnique (tyname a) PLC.TypeUnique)
     => Term tyname name a
     -> m (Term tyname name a)
-processTerm term = case term of
-    Let x r bs t -> do
-        t' <- processTerm t
-
-        -- throw away dead bindings
-        liveBindings <- filterM liveBinding bs
-
-        -- now handle usages and dead bindings with the bindings themselves
-        processedBindings <- traverse processBinding liveBindings
-
-        pure $ mkLet x r processedBindings t'
-    TyAbs x tn k t -> TyAbs x tn k <$> processTerm t
-    LamAbs x n ty t -> LamAbs x n ty <$> processTerm t
-    Apply x t1 t2 -> Apply x <$> processTerm t1 <*> processTerm t2
-    TyInst x t ty -> TyInst x <$> processTerm t <*> pure ty
-    IWrap x pat arg t -> IWrap x pat arg <$> processTerm t
-    Unwrap x t -> Unwrap x <$> processTerm t
-    t@Constant{} -> pure t
-    t@Builtin{} -> pure t
-    t@Var{} -> pure t
-    t@Error{} -> pure t
-
-processBinding
-    :: (MonadReader Liveness m, PLC.HasUnique (name a) PLC.TermUnique, PLC.HasUnique (tyname a) PLC.TypeUnique)
-    => Binding tyname name a
-    -> m (Binding tyname name a)
-processBinding = \case
-    TermBind x d rhs -> TermBind x d <$> processTerm rhs
-    b@TypeBind{} -> pure b
-    b@DatatypeBind{} -> pure b
+processTerm = \case
+    -- throw away dead bindings
+    Let x r bs t -> mkLet x r <$> filterM liveBinding bs <*> pure t
+    x -> pure x

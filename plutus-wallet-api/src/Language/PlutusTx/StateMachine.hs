@@ -37,7 +37,7 @@ transition newState input = (newState, Just input)
 
 {-# INLINABLE mkValidator #-}
 -- | Turn a transition function 's -> i -> s' into a validator script.
-mkValidator :: StateMachine s i -> (s, Maybe i) -> (s, Maybe i) -> PendingTx -> ()
+mkValidator :: StateMachine s i -> (s, Maybe i) -> (s, Maybe i) -> PendingTx -> Bool
 mkValidator sm (currentState, _) (newState, Just input) p =
     let
         StateMachine trans sEq = sm
@@ -56,8 +56,5 @@ mkValidator sm (currentState, _) (newState, Just input) p =
             in
                 P.traceIfFalseH "State transition invalid - data script hash not equal to redeemer hash"
                 (P.all dsHashOk relevantOutputs)
-    in
-        if P.and stateOk dataScriptHashOk
-        then ()
-        else P.error (P.traceH "State transition failed" ())
-mkValidator _ _ _ _ = P.error ()
+    in stateOk `P.and` dataScriptHashOk
+mkValidator _ _ _ _ = False

@@ -58,7 +58,7 @@ mkCurrency (TxOutRefOf h i) amts =
         , curAmounts              = LMap.fromList (fmap (first fromString) amts)
         }
 
-validate :: Currency -> () -> () -> V.PendingTx -> ()
+validate :: Currency -> () -> () -> V.PendingTx -> Bool
 validate c@(Currency (refHash, refIdx) _) () () p =
     let
         -- see note [Obtaining the currency symbol]
@@ -79,10 +79,7 @@ validate c@(Currency (refHash, refIdx) _) () () p =
             let v = V.spendsOutput p refHash refIdx
             in  P.traceIfFalseH "Pending transaction does not spend the designated transaction output" v
 
-    in
-        if forgeOK `P.and` txOutputSpent
-        then ()
-        else P.traceErrorH "Invalid forge"
+    in forgeOK `P.and` txOutputSpent
 
 curValidator :: Currency -> ValidatorScript
 curValidator cur = ValidatorScript $

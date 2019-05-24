@@ -92,9 +92,9 @@ mkRedeemerScript word =
 
 ## 1.2 The Validator Script
 
-The general form of a validator script is `DataScript -> Redeemer -> PendingTx -> Answer`. That is, the validator script is a function of three arguments that produces a value of type `Answer` (or fails with an error). As contract authors we can freely choose the types of `DataScript`, `Redeemer` and `Answer`. The third argument has to be of type [`PendingTx`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html#t:PendingTx) because that is the information about the current transaction, provided by the slot leader. When the evaluation of the script has finished without an error, the result is discarded and never used again. The value of `Answer` is not relevant, and therefore we usually choose `Answer` to be the unit type `()`.
+The general form of a validator script is `DataScript -> Redeemer -> PendingTx -> Bool`. That is, the validator script is a function of three arguments that produces a value of type `Bool` indicating whether the validation was a success (or fails with an error). As contract authors we can freely choose the types of `DataScript`, `Redeemer`. The third argument has to be of type [`PendingTx`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html#t:PendingTx) because that is the information about the current transaction, provided by the slot leader.
 
-In our case, the data script is a `HashedText`, and the redeemer is a `ClearText`. This gives us a script with the signature `HashedText -> ClearText -> PendingTx -> ()`. The function needs to be wrapped in Template Haskell quotes, beginning with `[||` and ending with `||]`.
+In our case, the data script is a `HashedText`, and the redeemer is a `ClearText`. This gives us a script with the signature `HashedText -> ClearText -> PendingTx -> Bool`. The function needs to be wrapped in Template Haskell quotes, beginning with `[||` and ending with `||]`.
 
 We can then use `L.compileScript`, a function exported by the `Ledger` module, to compile the TH quote to its on-chain representation:
 
@@ -110,13 +110,15 @@ The actual game logic is very simple: We compare the hash of the `guessed` argum
 
 ```haskell
     if P.equalsByteString actual (P.sha2_256 guessed)
-    then ()
-    else (P.error (P.traceH "WRONG!" ()))
+    then (P.traceH "RIGHT!" True)
+    else (P.traceH "WRONG!" False)
 
     ||])) -- marks the end of the quoted (on-chain) code
 ```
 
 `P.traceH :: String -> a -> a` returns its second argument after adding its first argument to the log output of this script. The log output is only available in the emulator and on the playground, and will be ignored when the code is run on the real blockchain.
+
+TODO: The example doesn't use `error` anymore
 
 Before we move on to the wallet interactions that produces transactions for our game, let us look at the failure case more closely. There are two two subtle differences between on-chain and off-chain code that we need to be aware of. First, the signature of `P.error` is `forall a. () -> a` and therefore we alway have to apply it to a unit value. `P.error` is different from Haskell's `undefined :: forall a. a` because of differences in the type systems of the two languages.
 

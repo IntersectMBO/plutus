@@ -38,11 +38,8 @@ correctGuess :: HashedString -> ClearString -> Bool
 correctGuess (HashedString actual) (ClearString guess') =
     P.equalsByteString actual (P.sha2_256 guess')
 
-validateGuess :: HashedString -> ClearString -> PendingTx -> ()
-validateGuess dataScript redeemerScript _ =
-    if correctGuess dataScript redeemerScript
-    then ()
-    else P.traceErrorH "WRONG!"
+validateGuess :: HashedString -> ClearString -> PendingTx -> Bool
+validateGuess dataScript redeemerScript _ = correctGuess dataScript redeemerScript
 
 -- | The validator script of the game.
 gameValidator :: ValidatorScript

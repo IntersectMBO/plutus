@@ -216,13 +216,13 @@ stepWithChecks p ptx s i =
             else P.traceErrorH "Pay invalid"
         _ -> P.traceErrorH "invalid transition"
 
-mkValidator :: Params -> (State, Maybe Input) -> (State, Maybe Input) -> PendingTx -> ()
-mkValidator p ds vs ptx = 
+mkValidator :: Params -> (State, Maybe Input) -> (State, Maybe Input) -> PendingTx -> Bool
+mkValidator p ds vs ptx =
     let sm = StateMachine (stepWithChecks p ptx) stateEq in
     SM.mkValidator sm ds vs ptx
 
 validator :: Params -> ValidatorScript
-validator params = ValidatorScript $ 
+validator params = ValidatorScript $
     $$(Ledger.compileScript [|| mkValidator ||])
         `Ledger.applyScript`
             Ledger.lifted params

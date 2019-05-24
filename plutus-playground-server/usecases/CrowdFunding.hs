@@ -81,7 +81,7 @@ PlutusTx.makeLift ''CampaignAction
 --
 -- 3. A 'PendingTx value. It contains information about the current transaction and is provided by the slot leader.
 --    See note [PendingTx]
-type CrowdfundingValidator = PubKey -> CampaignAction -> PendingTx -> ()
+type CrowdfundingValidator = PubKey -> CampaignAction -> PendingTx -> Bool
 
 validRefund :: Campaign -> PubKey -> PendingTx -> Bool
 validRefund campaign contributor ptx =
@@ -105,14 +105,11 @@ validCollection campaign p =
 -- As a result, the 'Campaign' definition is part of the script address, and different campaigns have different addresses.
 -- The Campaign{..} syntax means that all fields of the 'Campaign' value are in scope (for example 'campaignDeadline' in l. 70).
 mkValidator :: Campaign -> CrowdfundingValidator
-mkValidator c con act p =
-    let
-        isValid = case act of
-            -- the "refund" branch
-            Refund -> validRefund c con p
-            -- the "collection" branch
-            Collect -> validCollection c p
-    in if isValid then () else P.error ()
+mkValidator c con act p = case act of
+    -- the "refund" branch
+    Refund -> validRefund c con p
+    -- the "collection" branch
+    Collect -> validCollection c p
 
 -- | The validator script that determines whether the campaign owner can
 --   retrieve the funds or the contributors can claim a refund.
