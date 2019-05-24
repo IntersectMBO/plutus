@@ -31,7 +31,7 @@ mergeLets t =
         depGraph :: G.Graph Deps.Node
         depGraph = Deps.runTermDeps t
     in
-        runReader (mergeTerm t) (traceShow (T.edgeList depGraph) depGraph)
+        runReader (transformMOf termSubterms mergeTerm t) (traceShow (T.edgeList depGraph) depGraph)
 
 {- Note [Merging lets]
 We can merge independent, non-recursive, let bindings together into a single let binding, which is
@@ -47,7 +47,7 @@ mergeTerm
     => Term tyname name a
     -> m (Term tyname name a)
 mergeTerm = \case
-    Let x NonRec bs t -> do
+    Let x NonRec bs (Let x' NonRec bs' t) -> do
         deps <- ask
         let dependents :: Set.Set PLC.Unique
             dependents = Set.fromList $ do
@@ -64,44 +64,11 @@ mergeTerm = \case
                 -}
                 mapMaybe Deps.nodeUnique $ Set.toList $ T.preSet (Deps.Variable u) deps
 
-        (mergeableBindings, newInner) <- extractMergeable dependents <$> mergeTerm t
+        let (mergeable, nonMergeable) = partition (\b -> (Set.fromList $ bindingUniques b) `Set.disjoint` dependents) bs'
+        let msg = "Unsafe: " <> show dependents <> " Mergeable: " <> show (mergeable >>= bindingUniques) <> " Unmergeable: " <> show (nonMergeable >>= bindingUniques)
 
-        mergedOwnBindings <- traverse mergeBinding bs
-
-        pure $ Let x NonRec (mergedOwnBindings ++ mergeableBindings) newInner
-    Let x Rec bs t -> Let x Rec <$> traverse mergeBinding bs <*> mergeTerm t
-    TyAbs x tn k t -> TyAbs x tn k <$> mergeTerm t
-    LamAbs x n ty t -> LamAbs x n ty <$> mergeTerm t
-    Apply x t1 t2 -> Apply x <$> mergeTerm t1 <*> mergeTerm t2
-    TyInst x t ty -> TyInst x <$> mergeTerm t <*> pure ty
-    IWrap x pat arg t -> IWrap x pat arg <$> mergeTerm t
-    Unwrap x t -> Unwrap x <$> mergeTerm t
-    t@Constant{} -> pure t
-    t@Builtin{} -> pure t
-    t@Var{} -> pure t
-    t@Error{} -> pure t
-
-extractMergeable
-    :: (PLC.HasUnique (name a) PLC.TermUnique, PLC.HasUnique (tyname a) PLC.TypeUnique)
-    => Set.Set PLC.Unique
-    -> Term tyname name a
-    -> ([Binding tyname name a], Term tyname name a)
-extractMergeable unsafe = \case
-    Let x NonRec bs t ->
-        let
-            (mergeable, nonMergeable) = partition (\b -> (Set.fromList $ bindingUniques b) `Set.disjoint` unsafe) bs
-            msg = "Unsafe: " <> show unsafe <> " Mergeable: " <> show (mergeable >>= bindingUniques) <> " Unmergeable: " <> show (nonMergeable >>= bindingUniques)
-        in trace msg (mergeable, mkLet x NonRec nonMergeable t)
-    other -> ([], other)
-
-mergeBinding
-    :: (MonadReader (G.Graph Deps.Node) m, PLC.HasUnique (name a) PLC.TermUnique, PLC.HasUnique (tyname a) PLC.TypeUnique)
-    => Binding tyname name a
-    -> m (Binding tyname name a)
-mergeBinding = \case
-    TermBind x d rhs -> TermBind x d <$> mergeTerm rhs
-    b@TypeBind{} -> pure b
-    b@DatatypeBind{} -> pure b
+        pure $ mkLet x NonRec (bs ++ mergeable) (mkLet x' NonRec nonMergeable t)
+    x -> pure x
 
 bindingUniques
     :: (PLC.HasUnique (name a) PLC.TermUnique, PLC.HasUnique (tyname a) PLC.TypeUnique)
