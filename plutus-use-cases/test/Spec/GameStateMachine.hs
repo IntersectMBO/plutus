@@ -33,6 +33,9 @@ tests =
                     Size.reasonable G.gameValidator 55000
     in
         testGroup "state machine tests" [
+            --HUnit.testCaseSteps "run a successful game trace" (checkResult (EM.runEmulator initialState runGameSuccess)),
+            --HUnit.testCaseSteps "run a 2nd successful game trace" (checkResult (EM.runEmulator initialState runGameSuccess2)),
+            --HUnit.testCaseSteps "run a failed trace" (checkResult (EM.runEmulator initialState runGameFailure))
             HUnit.testCase "print" (printScript G.scriptPlc)
         ]
 
@@ -41,6 +44,7 @@ tests =
 printScript :: PlutusTx.CompiledCode a -> HUnit.Assertion
 printScript script = do
     liftIO $ putStrLn (show $ pretty $ PlutusTx.getPir script)
+    liftIO $ putStrLn (show $ pretty $ PlutusTx.getPlc script)
     HUnit.assertBool "wot" True
 
 initialVal :: Value

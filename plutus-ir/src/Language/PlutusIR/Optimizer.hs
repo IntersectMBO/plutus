@@ -11,4 +11,5 @@ import           Control.Monad.Reader
 
 -- | Perform some simplification of a 'Term'.
 simplify :: MonadReader (CompilationCtx a) m => Term TyName Name b -> m (Term TyName Name b)
-simplify = runIfOpts (pure . DeadCode.removeDeadBindings >=> pure . Merge.mergeLets)
+--simplify = runIfOpts (pure . DeadCode.removeDeadBindings >=> pure . Merge.mergeLets)
+simplify = runIfOpts (pure . Merge.mergeLets)

@@ -79,6 +79,8 @@ data GameInput =
 
 PlutusTx.makeLift ''GameInput
 
+
+
 scriptPlc :: PlutusTx.CompiledCode ((GameState, Maybe GameInput) -> (GameState, Maybe GameInput) -> PendingTx -> Bool)
 scriptPlc = $$(PlutusTx.compile [|| mkValidator ||])
 

@@ -31,7 +31,7 @@ mergeLets t =
         depGraph :: G.Graph Deps.Node
         depGraph = Deps.runTermDeps t
     in
-        runReader (transformMOf termSubterms mergeTerm t) (traceShow (T.edgeList depGraph) depGraph)
+        runReader (transformMOf termSubterms mergeTerm t) depGraph
 
 {- Note [Merging lets]
 We can merge independent, non-recursive, let bindings together into a single let binding, which is
@@ -65,7 +65,7 @@ mergeTerm = \case
                 mapMaybe Deps.nodeUnique $ Set.toList $ T.preSet (Deps.Variable u) deps
 
         let (mergeable, nonMergeable) = partition (\b -> (Set.fromList $ bindingUniques b) `Set.disjoint` dependents) bs'
-        let msg = "Unsafe: " <> show dependents <> " Mergeable: " <> show (mergeable >>= bindingUniques) <> " Unmergeable: " <> show (nonMergeable >>= bindingUniques)
+        --let msg = "Unsafe: " <> show dependents <> " Mergeable: " <> show (mergeable >>= bindingUniques) <> " Unmergeable: " <> show (nonMergeable >>= bindingUniques)
 
         pure $ mkLet x NonRec (bs ++ mergeable) (mkLet x' NonRec nonMergeable t)
     x -> pure x
