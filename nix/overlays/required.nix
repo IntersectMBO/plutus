@@ -14,6 +14,7 @@ let
   doctest = opts: drv: overrideCabal drv (attrs: {
     postCheck = "./Setup doctest --doctest-options=\"${opts}\"";
   });
+  # cabal doctest doesn't seem to be clever enough to pick these up from the cabal file
   doctestOpts = "-pgmL markdown-unlit -XTemplateHaskell -XDeriveFunctor -XScopedTypeVariables -fno-ignore-interface-pragmas -fobject-code";
 in
 
@@ -22,15 +23,11 @@ self: super: {
     ########################################################################
     # Overides of local packages
     language-plutus-core = addRealTimeTestLogs super.language-plutus-core;
-    # cabal doctest doesn't seem to be clever enough to pick these up from the cabal file
     plutus-tx = doctest doctestOpts super.plutus-tx;
-
     plutus-tutorial = doctest doctestOpts (deferPluginErrors super.plutus-tutorial);
-
     plutus-use-cases = deferPluginErrors super.plutus-use-cases;
-
     plutus-playground-server = deferPluginErrors super.plutus-playground-server;
-
+    plutus-wallet-api = deferPluginErrors super.plutus-wallet-api;
     marlowe = deferPluginErrors super.marlowe;
 
     ########################################################################

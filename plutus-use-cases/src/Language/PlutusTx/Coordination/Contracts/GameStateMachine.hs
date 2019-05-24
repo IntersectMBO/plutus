@@ -76,7 +76,7 @@ data GameInput =
 
 PlutusTx.makeLift ''GameInput
 
-mkValidator :: (GameState, Maybe GameInput) -> (GameState, Maybe GameInput) -> PendingTx -> ()
+mkValidator :: (GameState, Maybe GameInput) -> (GameState, Maybe GameInput) -> PendingTx -> Bool
 mkValidator ds vs p =
     let
 
@@ -116,8 +116,7 @@ mkValidator ds vs p =
 
         sm = SM.StateMachine trans stateEq
 
-    in
-        SM.mkValidator sm ds vs p
+    in SM.mkValidator sm ds vs p
 
 gameValidator :: ValidatorScript
 gameValidator = ValidatorScript $$(Ledger.compileScript [|| mkValidator ||])

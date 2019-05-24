@@ -81,7 +81,7 @@ data CampaignAction = Collect | Refund
 
 PlutusTx.makeLift ''CampaignAction
 
-type CrowdfundingValidator = PubKey -> CampaignAction -> PendingTx -> ()
+type CrowdfundingValidator = PubKey -> CampaignAction -> PendingTx -> Bool
 
 validRefund :: Campaign -> PubKey -> PendingTx -> Bool
 validRefund campaign contributor ptx =
@@ -95,12 +95,9 @@ validCollection campaign p =
     `P.and` (p `V.txSignedBy` campaignOwner campaign)
 
 mkValidator :: Campaign -> CrowdfundingValidator
-mkValidator c con act p =
-    let
-        isValid = case act of
-            Refund -> validRefund c con p
-            Collect -> validCollection c p
-    in if isValid then () else P.error ()
+mkValidator c con act p = case act of
+    Refund -> validRefund c con p
+    Collect -> validCollection c p
 
 -- | The validator script that determines whether the campaign owner can
 --   retrieve the funds or the contributors can claim a refund.

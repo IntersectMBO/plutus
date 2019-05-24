@@ -199,12 +199,7 @@ vestingValidator v = ValidatorScript val where
             con2 :: Bool
             con2 = V.txSignedBy p owner
 
-        in
-
-            if P.and con1 con2
-            then ()
-            else P.error (P.traceH "Cannot withdraw" ())
-
+        in con1 `P.and` con2
         ||])
 
 contractAddress :: Vesting -> Address

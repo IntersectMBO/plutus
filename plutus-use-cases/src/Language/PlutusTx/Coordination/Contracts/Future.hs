@@ -202,7 +202,7 @@ requiredMargin Future{futureUnits=units, futureUnitPrice=unitPrice, futureMargin
     in
         Ada.plus pnlty delta
 
-mkValidator :: Future -> FutureData -> FutureRedeemer -> PendingTx -> ()
+mkValidator :: Future -> FutureData -> FutureRedeemer -> PendingTx -> Bool
 mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pendingTxValidRange=range} =
     let
 
@@ -221,67 +221,63 @@ mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pe
         verifyOracle (OracleValue pk h t) =
             if pk `Validation.eqPubKey` futurePriceOracle then (h, t) else PlutusTx.error ()
 
-        isValid =
-            case r of
+    in case r of
+            -- Settling the contract is allowed if any of three conditions hold:
+            --
+            -- 1. The `deliveryDate` has been reached. In this case both parties get what is left of their margin
+            -- plus/minus the difference between spot and forward price.
+            -- 2. The owner of the long position has failed to make a margin payment. In this case the owner of the short position gets both margins.
+            -- 3. The owner of the short position has failed to make a margin payment. In this case the owner of the long position gets both margins.
+            --
+            -- In case (1) there are two payments (1 to each of the participants). In cases (2) and (3) there is only one payment.
 
-                -- Settling the contract is allowed if any of three conditions hold:
-                --
-                -- 1. The `deliveryDate` has been reached. In this case both parties get what is left of their margin
-                -- plus/minus the difference between spot and forward price.
-                -- 2. The owner of the long position has failed to make a margin payment. In this case the owner of the short position gets both margins.
-                -- 3. The owner of the short position has failed to make a margin payment. In this case the owner of the long position gets both margins.
-                --
-                -- In case (1) there are two payments (1 to each of the participants). In cases (2) and (3) there is only one payment.
+            Settle ov ->
+                let
+                    spotPrice = PlutusTx.snd (verifyOracle ov)
+                    delta  = Ada.multiply (Ada.fromInt futureUnits) (Ada.minus spotPrice futureUnitPrice)
+                    expShort = Ada.minus futureDataMarginShort delta
+                    expLong  = Ada.plus futureDataMarginLong delta
+                    slotvalid = Slot.member futureDeliveryDate range
 
-                Settle ov ->
-                    let
-                        spotPrice = PlutusTx.snd (verifyOracle ov)
-                        delta  = Ada.multiply (Ada.fromInt futureUnits) (Ada.minus spotPrice futureUnitPrice)
-                        expShort = Ada.minus futureDataMarginShort delta
-                        expLong  = Ada.plus futureDataMarginLong delta
-                        slotvalid = Slot.member futureDeliveryDate range
+                    canSettle =
+                        case outs of
+                            o1:o2:_ ->
+                                let paymentsValid =
+                                        (paidOutTo expShort futureDataShort o1 `PlutusTx.and` paidOutTo expLong futureDataLong o2)
+                                        `PlutusTx.or` (paidOutTo expShort futureDataShort o2 `PlutusTx.and` paidOutTo expLong futureDataLong o1)
+                                in
+                                    slotvalid `PlutusTx.and` paymentsValid
+                            o1:_ ->
+                                let
+                                    totalMargin = Ada.plus futureDataMarginShort futureDataMarginLong
+                                    reqMargin   = requiredMargin ft spotPrice
+                                    case2 = Ada.lt futureDataMarginLong reqMargin
+                                            `PlutusTx.and` paidOutTo totalMargin futureDataShort o1
 
-                        canSettle =
-                            case outs of
-                                o1:o2:_ ->
-                                    let paymentsValid =
-                                            (paidOutTo expShort futureDataShort o1 `PlutusTx.and` paidOutTo expLong futureDataLong o2)
-                                            `PlutusTx.or` (paidOutTo expShort futureDataShort o2 `PlutusTx.and` paidOutTo expLong futureDataLong o1)
-                                    in
-                                        slotvalid `PlutusTx.and` paymentsValid
-                                o1:_ ->
-                                    let
-                                        totalMargin = Ada.plus futureDataMarginShort futureDataMarginLong
-                                        reqMargin   = requiredMargin ft spotPrice
-                                        case2 = Ada.lt futureDataMarginLong reqMargin
-                                                `PlutusTx.and` paidOutTo totalMargin futureDataShort o1
+                                    case3 = Ada.lt futureDataMarginShort reqMargin
+                                            `PlutusTx.and` paidOutTo totalMargin futureDataLong o1
 
-                                        case3 = Ada.lt futureDataMarginShort reqMargin
-                                                `PlutusTx.and` paidOutTo totalMargin futureDataLong o1
+                                in
+                                    case2 `PlutusTx.or` case3
+                            _ -> False
 
-                                    in
-                                        case2 `PlutusTx.or` case3
-                                _ -> False
+                in
+                    canSettle
 
-                    in
-                       canSettle
-
-                -- For adjusting the margin we simply check that the amount locked in the contract
-                -- is larger than it was before.
-                --
-                AdjustMargin ->
-                    let 
-                        ownHash = PlutusTx.fst (Validation.ownHashes p)
-                        vl = Validation.adaLockedBy p ownHash
-                    in
-                        vl `Ada.gt` (futureDataMarginShort `Ada.plus` futureDataMarginLong)
-    in
-        if isValid then () else PlutusTx.error ()
+            -- For adjusting the margin we simply check that the amount locked in the contract
+            -- is larger than it was before.
+            --
+            AdjustMargin ->
+                let
+                    ownHash = PlutusTx.fst (Validation.ownHashes p)
+                    vl = Validation.adaLockedBy p ownHash
+                in
+                    vl `Ada.gt` (futureDataMarginShort `Ada.plus` futureDataMarginLong)
 
 validatorScript :: Future -> ValidatorScript
-validatorScript ft = ValidatorScript $ 
+validatorScript ft = ValidatorScript $
     $$(Ledger.compileScript [|| mkValidator ||])
-        `Ledger.applyScript` 
+        `Ledger.applyScript`
             Ledger.lifted ft
 
 PlutusTx.makeLift ''Future
