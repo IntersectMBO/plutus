@@ -3,10 +3,9 @@ name: debug-dump
 version: 0.1.0.0
 license: Apache-2.0
 license-file: LICENSE NOTICE
-copyright: Copyright: (c) 2019 Vanessa McHale
+copyright: Copyright: (c) 2019 IOHK
 maintainer: vanessa.mchale@iohk.io
 author: Vanessa McHale
-homepage: https://github.com/vmchale/debug-dump#readme
 synopsis: File-based debug output
 description:
     A package emulating the functionality of Debug.Trace, but capable of writing to files
