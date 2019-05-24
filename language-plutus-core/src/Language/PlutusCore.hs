@@ -12,7 +12,10 @@ module Language.PlutusCore
     , parseType
     -- * AST
     , Term (..)
+    , termSubterms
+    , termSubtypes
     , Type (..)
+    , typeSubtypes
     , Constant (..)
     , Builtin (..)
     , Kind (..)

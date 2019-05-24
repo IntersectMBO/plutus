@@ -29,7 +29,7 @@ module Language.PlutusIR (
 
 import           PlutusPrelude
 
-import           Language.PlutusCore        (Kind, Name, TyName, Type (..))
+import           Language.PlutusCore        (Kind, Name, TyName, Type (..), typeSubtypes)
 import qualified Language.PlutusCore        as PLC
 import           Language.PlutusCore.CBOR   ()
 import           Language.PlutusCore.MkPlc  (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
@@ -39,7 +39,6 @@ import           Control.Lens
 
 import           Codec.Serialise            (Serialise)
 
-import           Data.Functor.Foldable      (embed, project)
 import qualified Data.Text                  as T
 
 import           GHC.Generics               (Generic)
@@ -67,11 +66,6 @@ tyVarDeclNameString = T.unpack . PLC.nameString . PLC.unTyName . tyVarDeclName
 
 datatypeNameString :: Datatype TyName name a -> String
 datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn
-
--- TODO: move to language-plutus-core
--- | Get all the direct child 'Type's of the given 'Type'.
-typeSubtypes :: Traversal' (Type tyname a) (Type tyname a)
-typeSubtypes f = fmap embed . traverse f . project
 
 -- Bindings
 

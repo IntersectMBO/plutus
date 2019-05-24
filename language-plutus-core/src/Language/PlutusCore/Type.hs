@@ -1,14 +1,20 @@
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Type ( Term (..)
+                                , termSubterms
+                                , termSubtypes
+                                , termVars
                                 , Value
                                 , Type (..)
+                                , typeSubtypes
+                                , typeTyVars
                                 , Kind (..)
                                 , Program (..)
                                 , Constant (..)
@@ -81,6 +87,23 @@ instance Corecursive (Type tyname a) where
     embed (TyBuiltinF l b)      = TyBuiltin l b
     embed (TyLamF l tn k ty)    = TyLam l tn k ty
     embed (TyAppF l ty ty')     = TyApp l ty ty'
+
+-- | Get all the direct child 'Type's of the given 'Type'.
+typeSubtypes :: Traversal' (Type tyname a) (Type tyname a)
+typeSubtypes f = \case
+    TyFun x ty1 ty2 -> TyFun x <$> f ty1 <*> f ty2
+    TyIFix x pat arg -> TyIFix x <$> f pat <*> f arg
+    TyForall x tn k ty -> TyForall x tn k <$> f ty
+    TyLam x tn k ty -> TyLam x tn k <$> f ty
+    TyApp x ty1 ty2 -> TyApp x <$> f ty1 <*> f ty2
+    b@TyBuiltin {} -> pure b
+    v@TyVar {} -> pure v
+
+-- | Get all the direct child 'tyname a's of the given 'Type' from 'TyVar's.
+typeTyVars :: Traversal' (Type tyname a) (tyname a)
+typeTyVars f = \case
+    TyVar a n -> TyVar a <$> f n
+    x -> pure x
 
 -- this type is used for replacing type names in
 -- the Eq instance
@@ -282,6 +305,40 @@ instance Corecursive (Term tyname name a) where
     embed (UnwrapF x t)        = Unwrap x t
     embed (IWrapF x pat arg t) = IWrap x pat arg t
     embed (ErrorF x ty)        = Error x ty
+
+-- | Get all the direct child 'Term's of the given 'Term'.
+termSubterms :: Traversal' (Term tyname name a) (Term tyname name a)
+termSubterms f = \case
+    LamAbs x n ty t -> LamAbs x n ty <$> f t
+    TyInst x t ty -> TyInst x <$> f t <*> pure ty
+    IWrap x ty1 ty2 t -> IWrap x ty1 ty2 <$> f t
+    TyAbs x n k t -> TyAbs x n k <$> f t
+    Apply x t1 t2 -> Apply x <$> f t1 <*> f t2
+    Unwrap x t -> Unwrap x <$> f t
+    e@Error {} -> pure e
+    v@Var {} -> pure v
+    c@Constant {} -> pure c
+    b@Builtin {} -> pure b
+
+-- | Get all the direct child 'Type's of the given 'Term'.
+termSubtypes :: Traversal' (Term tyname name a) (Type tyname a)
+termSubtypes f = \case
+    LamAbs x n ty t -> LamAbs x n <$> f ty <*> pure t
+    TyInst x t ty -> TyInst x t <$> f ty
+    IWrap x ty1 ty2 t -> IWrap x <$> f ty1 <*> f ty2 <*> pure t
+    Error x ty -> Error x <$> f ty
+    t@TyAbs {} -> pure t
+    a@Apply {} -> pure a
+    u@Unwrap {} -> pure u
+    v@Var {} -> pure v
+    c@Constant {} -> pure c
+    b@Builtin {} -> pure b
+
+-- | Get all the direct child 'name a's of the given 'Term' from 'Var's.
+termVars :: Traversal' (Term tyname name a) (name a)
+termVars f = \case
+    Var a n -> Var a <$> f n
+    x -> pure x
 
 -- | Kinds. Each type has an associated kind.
 data Kind a = Type a

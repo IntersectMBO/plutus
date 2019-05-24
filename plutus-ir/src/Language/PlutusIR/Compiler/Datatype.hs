@@ -4,23 +4,23 @@
 -- | Functions for compiling let-bound PIR datatypes into PLC.
 module Language.PlutusIR.Compiler.Datatype (compileDatatype, compileRecDatatypes) where
 
-import           PlutusPrelude                         (showText)
+import           PlutusPrelude                          (showText)
 
 import           Language.PlutusIR
 import           Language.PlutusIR.Compiler.Error
 import           Language.PlutusIR.Compiler.Names
 import           Language.PlutusIR.Compiler.Provenance
 import           Language.PlutusIR.Compiler.Types
-import qualified Language.PlutusIR.MkPir               as PIR
+import qualified Language.PlutusIR.MkPir                as PIR
+import           Language.PlutusIR.Transform.Substitute
 
-import qualified Language.PlutusCore.MkPlc             as PLC
+import qualified Language.PlutusCore.MkPlc              as PLC
 import           Language.PlutusCore.Quote
-import qualified Language.PlutusCore.StdLib.Type       as Types
-import qualified Language.PlutusCore.Subst             as PLC
+import qualified Language.PlutusCore.StdLib.Type        as Types
 
 import           Control.Monad.Error.Lens
 
-import qualified Data.Text                             as T
+import qualified Data.Text                              as T
 import           Data.Traversable
 
 -- Utilities
@@ -50,7 +50,7 @@ constructorArgTypes = funTyArgs . varDeclType
 
 -- | "Unveil" a datatype definition in a type, by replacing uses of the name as a type variable with the concrete definition.
 unveilDatatype :: Eq (tyname a) => Type tyname a -> Datatype tyname name a -> Type tyname a -> Type tyname a
-unveilDatatype dty (Datatype _ tn _ _ _) = PLC.substTy (\n -> if n == tyVarDeclName tn then Just dty else Nothing)
+unveilDatatype dty (Datatype _ tn _ _ _) = typeSubstTyNames (\n -> if n == tyVarDeclName tn then Just dty else Nothing)
 
 resultTypeName :: Compiling m e a => Datatype TyName Name (Provenance a) -> m (TyName (Provenance a))
 resultTypeName (Datatype _ tn _ _ _) = getEnclosing >>= \p -> liftQuote $ freshTyName p $ "out_" <> (nameString $ unTyName $ tyVarDeclName tn)

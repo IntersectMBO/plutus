@@ -1,45 +1,42 @@
+{-# LANGUAGE ViewPatterns #-}
 module Language.PlutusCore.Subst(
-                                  substTerm
-                                , substTy
+                                  termSubstNames
+                                , termSubstTyNames
+                                , typeSubstTyNames
+                                , substTyVar
+                                , substVar
                                 , fvTerm
                                 , ftvTerm
                                 , ftvTy
                                 ) where
 
+import           Control.Lens
 import           Language.PlutusCore.Type
-import           PlutusPrelude            hiding (empty)
 
-import           Data.Functor.Foldable    (cata, project)
+import           Data.Functor.Foldable    (cata)
 import           Data.Set
 
--- | Naively substitute names using the given functions (i.e. do not account for scoping).
-substTerm ::
-  (tyname a -> Maybe (Type tyname a)) ->
-  (name a -> Maybe (Term tyname name a)) ->
-  Term tyname name a ->
-  Term tyname name a
-substTerm tynameF nameF = hoist f
-  where
-    f (VarF a bnd)         = case nameF bnd of
-      Just t  -> project t
-      Nothing -> VarF a bnd
-    f (LamAbsF a bnd ty t)  = LamAbsF a bnd (substTy tynameF ty) t
-    f (TyInstF a t ty)      = TyInstF a t (substTy tynameF ty)
-    f (IWrapF a pat arg t)  = IWrapF a (substTy tynameF pat) (substTy tynameF arg) t
-    f (ErrorF a ty)         = ErrorF a (substTy tynameF ty)
-    f x                     = x
+-- | Replace a type variable using the given function.
+substTyVar :: (tyname a -> Maybe (Type tyname a)) -> Type tyname a -> Type tyname a
+substTyVar tynameF (TyVar _ (tynameF -> Just t)) = t
+substTyVar _ t                                   = t
 
--- | Naively substitute names using the given function (i.e. do not account for scoping).
-substTy ::
-  (tyname a -> Maybe (Type tyname a)) ->
-  Type tyname a ->
-  Type tyname a
-substTy tynameF = hoist f
-  where
-    f (TyVarF a ty) = case tynameF ty of
-       Just t  -> project t
-       Nothing -> TyVarF a ty
-    f x           = x
+-- | Replace a variable using the given function.
+substVar :: (name a -> Maybe (Term tyname name a)) -> Term tyname name a -> Term tyname name a
+substVar nameF (Var _ (nameF -> Just t)) = t
+substVar _ t                             = t
+
+-- | Naively substitute type names (i.e. do not substitute binders).
+typeSubstTyNames :: (tyname a -> Maybe (Type tyname a)) -> Type tyname a -> Type tyname a
+typeSubstTyNames tynameF = transformOf typeSubtypes (substTyVar tynameF)
+
+-- | Naively substitute names using the given functions (i.e. do not substitute binders).
+termSubstNames :: (name a -> Maybe (Term tyname name a)) -> Term tyname name a -> Term tyname name a
+termSubstNames nameF = transformOf termSubterms (substVar nameF)
+
+-- | Naively substitute type names using the given functions (i.e. do not substitute binders).
+termSubstTyNames :: (tyname a -> Maybe (Type tyname a)) -> Term tyname name a -> Term tyname name a
+termSubstTyNames tynameF = over termSubterms (termSubstTyNames tynameF) . over termSubtypes (typeSubstTyNames tynameF)
 
 -- Free variables
 
