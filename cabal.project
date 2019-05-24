@@ -13,6 +13,7 @@ packages: language-plutus-core
           interpreter
           meadow
           plutus-contract-exe
+          debug-dump
 optimization: 2
 constraints: language-plutus-core +development
            , plutus-wallet-api +development
@@ -22,6 +23,7 @@ constraints: language-plutus-core +development
            , plutus-ir +development
            , plutus-playground-server +development
            , plutus-playground-lib +development
+           , debug-dump +development
 max-backjumps: 40000
 write-ghc-environment-files: never
 tests: true

@@ -16,6 +16,7 @@ packages:
 - plutus-tutorial
 - plutus-contract-exe
 - plutus-emulator
+- debug-dump
 
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - location:
@@ -66,6 +67,8 @@ flags:
   plutus-playground-server:
     development: true
   plutus-contract-exe:
+    development: true
+  debug-dump:
     development: true
 extra-package-dbs: []
 nix:
