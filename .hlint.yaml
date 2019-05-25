@@ -43,6 +43,7 @@
 - ignore: {name: Use asks}
 # It seems clearer to use case than fromMaybe
 - ignore: {name: Use fromMaybe}
+- ignore: {name: Use section}
 
 - fixity: infixr 8 .*
 - fixity: infixr 3 ***
