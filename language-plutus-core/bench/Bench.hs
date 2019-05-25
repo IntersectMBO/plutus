@@ -47,7 +47,7 @@ main =
                       mkBench = bench "typeCheck (Plutus Tx)" . nf typeCheckConcrete . deserialise
                   in
 
-                  bgroup "renamer" $ mkBench <$> [f]
+                  bgroup "type-check" $ mkBench <$> [f]
 
                 , env largeTypeFiles $ \ ~(f, g, h) ->
                   let typeCheckConcrete :: Program TyName Name AlexPosn -> Either (Error AlexPosn) (Normalized (Type TyName ()))
@@ -56,6 +56,11 @@ main =
                   in
 
                    bgroup "type-check" $ mkBench <$> [f, g, h]
+                , env largeTypeFiles $ \ ~(f, g, h) ->
+                   let mkBench = bench "check" . nf (fmap check) . parse
+                   in
+                   bgroup "normal-form check" $ mkBench <$> [f, g, h]
+
                 , env sampleScript $ \ f ->
                     let renameConcrete :: Program TyName Name () -> Program TyName Name ()
                         renameConcrete = runQuote . rename
@@ -63,11 +68,6 @@ main =
                   in
 
                   bgroup "renamer" $ mkBench <$> [f]
-
-                , env largeTypeFiles $ \ ~(f, g, h) ->
-                   let mkBench = bench "check" . nf (fmap check) . parse
-                   in
-                   bgroup "normal-form check" $ mkBench <$> [f, g, h]
 
                 , env largeTypeFiles $ \ ~(f, g, h) ->
                     let renameConcrete :: Program TyName Name AlexPosn -> Program TyName Name AlexPosn
