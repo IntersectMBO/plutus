@@ -36,6 +36,13 @@ main =
                   in
 
                    bgroup "type-check" $ mkBench <$> [f, g, h]
+                , env sampleScript $ \ f ->
+                    let renameConcrete :: Program TyName Name () -> Program TyName Name ()
+                        renameConcrete = runQuote . rename
+                        mkBench = bench "rename (Plutus Tx)" . nf renameConcrete . deserialise
+                  in
+
+                  bgroup "renamer" $ mkBench <$> [f]
 
                 , env largeTypeFiles $ \ ~(f, g, h) ->
                    let mkBench = bench "check" . nf (fmap check) . parse
@@ -78,3 +85,4 @@ main =
           typeCompare0 = BSL.readFile "test/types/example.plc"
           typeCompare1 = BSL.readFile "bench/example-compare.plc"
           typeCompare = (,) <$> typeCompare0 <*> typeCompare1
+          sampleScript = BSL.readFile "bench/script.plci"
