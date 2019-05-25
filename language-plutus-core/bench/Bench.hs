@@ -6,6 +6,16 @@ import           Criterion.Main
 import qualified Data.ByteString.Lazy       as BSL
 import           Language.PlutusCore
 import           Language.PlutusCore.Pretty
+import qualified Data.Map as M
+import Language.PlutusCore.Constant.Dynamic
+import Language.PlutusCore.Constant
+
+traceBuiltins :: QuoteT (Either (Error ())) DynamicBuiltinNameTypes
+traceBuiltins = dynamicBuiltinNameMeaningsToTypes () $ DynamicBuiltinNameMeanings $ M.fromList
+    [ (dynamicCharToStringName, dynamicCharToStringMeaning)
+    , (dynamicTraceName, dynamicTraceMeaning)
+    , (dynamicAppendName, dynamicAppendMeaning)
+    ]
 
 main :: IO ()
 main =
@@ -28,6 +38,16 @@ main =
                       [ bench "addInteger" $ nf parse f
                       , bench "stringLiteral" $ nf parse g
                       ]
+
+                , env sampleScript $ \ f ->
+                  let typeCheckConcrete :: Program TyName Name () -> Either (Error ()) (Normalized (Type TyName ()))
+                      typeCheckConcrete p = runQuoteT $ do
+                            bis <- traceBuiltins
+                            inferTypeOfProgram (defOffChainConfig { _tccDynamicBuiltinNameTypes = bis }) p
+                      mkBench = bench "typeCheck (Plutus Tx)" . nf typeCheckConcrete . deserialise
+                  in
+
+                  bgroup "renamer" $ mkBench <$> [f]
 
                 , env largeTypeFiles $ \ ~(f, g, h) ->
                   let typeCheckConcrete :: Program TyName Name AlexPosn -> Either (Error AlexPosn) (Normalized (Type TyName ()))
