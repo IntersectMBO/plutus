@@ -21,7 +21,7 @@ import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Type
 
 import           Data.Proxy
-import Debug.Trace (trace)
+import           Debug.Trace                                    (trace)
 
 dynamicCharToStringName :: DynamicBuiltinName
 dynamicCharToStringName = DynamicBuiltinName "charToString"

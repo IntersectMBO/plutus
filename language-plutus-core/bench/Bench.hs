@@ -3,12 +3,12 @@ module Main (main) where
 import           Codec.Serialise
 import           Control.Monad
 import           Criterion.Main
-import qualified Data.ByteString.Lazy       as BSL
+import qualified Data.ByteString.Lazy                 as BSL
+import qualified Data.Map                             as M
 import           Language.PlutusCore
+import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.Pretty
-import qualified Data.Map as M
-import Language.PlutusCore.Constant.Dynamic
-import Language.PlutusCore.Constant
 
 traceBuiltins :: QuoteT (Either (Error ())) DynamicBuiltinNameTypes
 traceBuiltins = dynamicBuiltinNameMeaningsToTypes () $ DynamicBuiltinNameMeanings $ M.fromList
