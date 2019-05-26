@@ -1,6 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 -- | Definition analysis for Plutus Core.
-module Language.PlutusCore.Analysis.Definitions (UniqueInfos, ScopeType, termDefs, typeDefs, runTermDefs, runTypeDefs) where
+module Language.PlutusCore.Analysis.Definitions where
 
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Name

@@ -42,8 +42,10 @@ library
         Language.PlutusIR.Transform.Rename
     hs-source-dirs: src
     other-modules:
+        Language.PlutusIR.Analysis.Definitions
         Language.PlutusIR.Analysis.Dependencies
         Language.PlutusIR.Analysis.Usages
+        Language.PlutusIR.Check.Uniques
         Language.PlutusIR.Compiler.Error
         Language.PlutusIR.Compiler.Let
         Language.PlutusIR.Compiler.Datatype

@@ -37,6 +37,7 @@ library
         Language.PlutusCore.Quote
         Language.PlutusCore.MkPlc
         Language.PlutusCore.TH
+        Language.PlutusCore.Analysis.Definitions
         Language.PlutusCore.Evaluation.CkMachine
         Language.PlutusCore.Evaluation.MachineException
         Language.PlutusCore.Evaluation.Result
@@ -103,7 +104,6 @@ library
         Language.PlutusCore.Size
         Language.PlutusCore.TypeCheck.Internal
         Language.PlutusCore.TypeCheck
-        Language.PlutusCore.Analysis.Definitions
         Language.PlutusCore.Examples.Data.InterList
         Language.PlutusCore.Examples.Data.TreeForest
         Language.PlutusCore.Generators.Internal.Denotation

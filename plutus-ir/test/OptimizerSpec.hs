@@ -29,6 +29,7 @@ deadCode = testNested "deadCode"
     , "nestedBindingsIndirect"
     , "recBindingSimple"
     , "recBindingComplex"
+    , "multipleBindings"
     ]
 
 merge :: TestNested
