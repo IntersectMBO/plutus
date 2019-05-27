@@ -6,6 +6,7 @@
 
 \usepackage{blindtext, graphicx}
 \usepackage{url}
+\usepackage{natbib}
 
 % *** MATH PACKAGES ***
 %
@@ -219,8 +220,8 @@
 Plutus Core is a typed, eagerly evaluated $\lambda$-calculus designed
 for use as a transaction validation language in blockchain
 systems. More precisely, Plutus Core is the system $F_\omega$ of
-Girard and Reynolds (see \cite{Girard-thesis},
-\cite{Reynolds-type-structure}, \cite[\S30]{Pierce:TAPL}) with a
+Girard and Reynolds (see \citep{Girard-thesis},
+\citep{Reynolds-type-structure}, \citep[\S30]{Pierce:TAPL}) with a
 number of extensions (isorecursive types, higher kinds, and a library
 of basic types and functions).  Plutus Core is meant to be a
 compilation target, and this is reflected in the design of the
@@ -230,8 +231,8 @@ with a proof assistant.
 
 We have tried to keep the Plutus Core language small. There is no
 explicit support for algebraic datatypes, but they are representable
-using, for example, the Scott encoding (\cite{Scott-encoding}: see
-also \cite{Koopman:2014} and ~\cite{Geuvers-2014} for example; note that
+using, for example, the Scott encoding (\citep{Scott-encoding}: see
+also \citep{Koopman:2014} and ~\citep{Geuvers-2014} for example; note that
 the Scott encoding coincides with the Church encoding for
 non-recursive types). Similarly, there are no explicit constructs for
 recursion or branching, but the type system is sufficiently expressive
@@ -369,7 +370,7 @@ is the type of integers.  See Section~\ref{sec:builtins} for more information.
   reduction: see section~\ref{sec:reduction}.  The type normalisation
   process always terminates: the proof is similar to the proof of the
   fact that reduction of terms in the simply typed lambda calculus
-  always terminates (\cite[\S12]{Pierce:TAPL}).  The type-level
+  always terminates \citep[\S12]{Pierce:TAPL}.  The type-level
   structure of Plutus Core is slightly more complicated than the
   simply typed lambda calculus, but the extra forms (\texttt{ifix},
   \texttt{all}, built-in base types) don't provide any new
@@ -446,7 +447,7 @@ Plutus Core language.
 The operator \texttt{ifix} allows one to define recursive types in
 Plutus Core: \texttt{ifix A B} is a type such that \texttt{ifix A B
   $\cong$ A (ifix A) B} where \texttt{A} is a \textit{pattern
-  functor}~\cite[2.4]{backhouseetal98} and \texttt{B} is an
+  functor}~\citep[2.4]{backhouseetal98} and \texttt{B} is an
 index. Pattern functors that \texttt{ifix} receives bind two variables:
 one for building recursive occurrences and the other to act as an
 index. Indices can be used in order to get parameterised data types,
@@ -460,7 +461,7 @@ mutually recursive data types\blue{\footnote{\blue{We could do with more detail 
 
 Note that we have an \textit{isomporhism} of types here rather than
 equality: fixpoint types are
-\textit{isorecursive}~\cite[20.2]{Pierce:TAPL} with explicit maps
+\textit{isorecursive}~\citep[20.2]{Pierce:TAPL} with explicit maps
 
 $$
 \texttt{iwrap} : \texttt{A (fix A) B} \rightarrow \texttt{ifix A B}
@@ -491,12 +492,12 @@ considerably.
 In $\abs{\alpha}{K}{V}$ we require the body $V$ to be a value. We will
 refer to this restriction as the \textit{value restriction} because it
 can be regarded as a generalisation of the value restriction in
-Standard ML (\cite[22.7]{Pierce:TAPL}). Experience has shown that
+Standard ML \citep[22.7]{Pierce:TAPL}. Experience has shown that
 allowing general terms as bodies of type abstractions can cause a
 number of difficulties.  For example, Standard ML's value restriction
 is required to avoid a number of problems when (implicit) type
 abstractions include non-values; other issues are explored
-in~\cite[2.4]{Ahmed:2017}. Plutus Core's restriction to values avoids
+in~\citep[2.4]{Ahmed:2017}. Plutus Core's restriction to values avoids
 these problems and is not very onerous in practice.
   
 \section{Type Correctness}
@@ -778,8 +779,8 @@ semantics. This table also specifies what conditions trigger an error.
 \label{sec:reduction}
 
 In this section we define a standard eager,
-small-step contextual semantics~\cite[5.3]{Harper:PFPL} (or
-\textit{reduction semantics}~\cite[\S2]{Felleisen-Hieb}) for Plutus
+small-step contextual semantics~\citep[5.3]{Harper:PFPL} (or
+\textit{reduction semantics}~\citep[\S2]{Felleisen-Hieb}) for Plutus
 Core in terms of the reduction relation for types
 (\(\typeStep{A}{A'}\)) (Figure~\ref{fig:type-reduction}) 
 and terms (\(\step{M}{M'}\)) (Figure~\ref{fig:term-reduction}), which
@@ -830,7 +831,7 @@ standard operational semantics.
 \subsection{An abstract machine for evaluating Plutus Core programs}
 This section contains a description of an abstract machine for
 executing Plutus Core.  This is based on the CK machine of Felleisen
-and Friedman~\cite{Felleisen-CK-CEK}. 
+and Friedman~\citep{Felleisen-CK-CEK}. 
 
 This machine is intended as a reference implementation which is
 amenable to formalisation, ideally so that it can be proved to
@@ -839,7 +840,7 @@ is inefficient because it implements application as $\beta$-reduction,
 so that when evaluating $(\lambda x.M)V$, $V$ must be substituted
 bodily for $x$ wherever it occurs in $M$.  This process can require
 considerable amounts of time and space.  More efficient machines are
-available (for example the CEK machine from~\cite{Felleisen-CK-CEK},
+available (for example the CEK machine from~\citep{Felleisen-CK-CEK},
 which uses environments binding actual arguments to variables), and in
 practice we would use something based on such a machine; however, the
 CK machine will still provide a useful bridge for formalisation
@@ -902,13 +903,15 @@ at some time in the future.
 \item We provide two versions of the division and remainder operations
   for integers.  These differ in their treatment of negative
   arguments\footnote{The standard mathematical definition (the
-  so-called \textit{division algorithm}, or \textit{Euclidean
-  division}) is as follows: if $n,d \in \mathbb{Z}$ and $d \ne 0$ then
-  there exist unique integers $q, r \in \mathbb{Z}$ such that $n=qb+r$
-  and $0 \le r < \lvert d \rvert$; $q$ is the \textit{quotient} and
-  $r$ is the \textit{remainder}.  Neither of our sets of operations
-  implements this definition! This could conceivably be problematic if we
-  ever need to do number-theoretic calculations.}:
+    so-called \textit{division algorithm}, or \textit{Euclidean
+      division}) is as follows: if $n,d \in \mathbb{Z}$ and $d \ne 0$
+    then there exist unique integers $q, r \in \mathbb{Z}$ such that
+    $n=qb+r$ and $0 \le r < \lvert d \rvert$; $q$ is the
+    \textit{quotient} and $r$ is the \textit{remainder}.  Neither of
+    our sets of operations implements this definition! For $d > 0$,
+    \texttt{divideInteger} and \texttt{modInteger} give the correct
+    results, but they can give negative remainders for $d<0$.  In any sensible
+  computation we'd probably have $d>0$, but it's worth being careful.}:
 
   \begin{itemize}
   
@@ -965,8 +968,8 @@ which in our case will be Plutus Core programs.
 Cardano uses a validation strategy which we call the \textit{Extended
   UTXO model}.  A full specification of the Extended UTXO model is
 currently being prepared: in the meantime the fundamental ideas can be
-found in~\cite{Zahnentferner18-Chimeric} and
-\cite{Zahnentferner18-UTxO}.
+found in~\citep{Zahnentferner18-Chimeric} and
+\citep{Zahnentferner18-UTxO}.
 
 The basic idea is that when a transaction wishes $T$ to consume an
 unspent output $U$, it applies a script called the \textit{validator}
@@ -1043,7 +1046,7 @@ differences.
 
 \end{appendices}
 
-\bibliographystyle{plain} %% ... or whatever
+\bibliographystyle{plainnat} %% ... or whatever
 \bibliography{plutus-core-specification}
 
 \end{document}
