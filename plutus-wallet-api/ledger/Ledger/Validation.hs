@@ -208,7 +208,7 @@ instance FromJSON ValidatorHash where
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype DataScriptHash =
-    DataScriptHash (Builtins.ByteString)
+    DataScriptHash Builtins.ByteString
     deriving stock (Eq, Generic)
     deriving newtype (Serialise)
 
@@ -220,7 +220,7 @@ instance FromJSON DataScriptHash where
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype RedeemerHash =
-    RedeemerHash (Builtins.ByteString)
+    RedeemerHash Builtins.ByteString
     deriving stock (Eq, Generic)
     deriving newtype (Serialise)
 
@@ -232,7 +232,7 @@ instance FromJSON RedeemerHash where
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype TxHash =
-    TxHash (Builtins.ByteString)
+    TxHash Builtins.ByteString
     deriving stock (Eq, Generic)
     deriving newtype (Serialise)
 
