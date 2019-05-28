@@ -37,7 +37,7 @@ The things that don't work broadly fall into a few categories:
     - Literal patterns
     - `StrictData` and bang patterns (may be allowed in future)
 - Requires access to function definitions
-    - Normal function usage requires `INLINEABLE` in some circumstances
+    - Normal function usage requires `INLINEABLE` or `-fexpose-all-unfoldings`
     - Typeclass dictionaries
 - Use of coercions required
     - GADTs
@@ -54,7 +54,5 @@ The things that don't work broadly fall into a few categories:
 
 Most build tools should work just fine with projects that use `plutus-tx`. However,
 if you want to use it in a project you are *intepreting* (e.g. loading into GHCI, using
-doctest), then you need to compile with `-fobject-code -fno-ignore-interface-pragmas`.
-
-If you are not interpreting code and you find it complains that functions are not `INLINABLE`,
-you may need `-fno-ignore-interface-pragmas`.
+doctest), then you need to compile with `-fno-ignore-interface-pragmas`
+(which in turn requires `-fobject-code`).

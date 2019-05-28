@@ -69,6 +69,8 @@ convTyConApp tc ts
     -- we don't support Int or Int#
     | GHC.getName tc == GHC.intTyConName = throwPlain $ UnsupportedError "Int: use Integer instead"
     | tc == GHC.intPrimTyCon = throwPlain $ UnsupportedError "Int#: unboxed integers are not supported"
+    -- See Note [Addr#]
+    | tc == GHC.addrPrimTyCon = convType GHC.stringTy
     -- this is Void#, see Note [Value restriction]
     | tc == GHC.voidPrimTyCon = errorTy
     | otherwise = do
