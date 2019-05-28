@@ -11,6 +11,8 @@
 
 \documentclass[a4paper]{article}
 
+\usepackage{natbib}
+
 \usepackage{blindtext, graphicx}
 \usepackage{url}
 %\usepackage{cleveref}
@@ -167,7 +169,7 @@
 
 \section{Introduction: The Extended UTXO Model}
 \label{sec:intro}
-The Cardano blockchain~\cite{Cardano, Cardano-ledger-spec} uses a
+The Cardano blockchain~\citep{Cardano, Cardano-ledger-spec} uses a
 variant of the \textit{Unspent Transaction Output} (UTXO) model used
 by Bitcoin.  Transactions consume \textit{unspent outputs} (UTXOs)
 from previous transactions and produce new outputs which can be used
@@ -205,8 +207,8 @@ one more general than the previous one (EUTXO stands for
 
 \noindent We give formal specifications of each of these versions,
 based on the models appearing in the
-papers~\cite{Zahnentferner18-Chimeric} and
-\cite{Zahnentferner18-UTxO}.
+papers~\citep{Zahnentferner18-Chimeric} and
+\citep{Zahnentferner18-UTxO}.
 
 \medskip
 
@@ -226,7 +228,7 @@ model.
 
 \section{Notation}
 This section defines some basic notation.  We generally follow the
-notation established by \cite{Zahnentferner18-UTxO}.
+notation established by \citep{Zahnentferner18-UTxO}.
 
 \begin{ruledfigure}{H}
   \begin{itemize}
@@ -371,7 +373,7 @@ output could be spendable by anyone, or by no-one.
 In order to deal with this complexity, an output can be locked by a
 \textit{script},%
 \footnote{In the Cardano setting, scripts are Plutus Core
-  programs~\cite{Plutus-Core-spec} (equivalently, expressions).
+  programs~\citep{Plutus-Core-spec} (equivalently, expressions).
 }
 requiring another script to unlock it.
 In the basic model, each input to a transaction comes with a
@@ -437,7 +439,7 @@ exceeds the amount covered by the fee then the transaction will fail.
 \section{EUTXO-1: Enhanced scripting}
 \label{sec:eutxo-1}
 The EUTXO-1 model adds the following new features to the model 
-proposed in~\cite{Zahnentferner18-UTxO}:
+proposed in~\citep{Zahnentferner18-UTxO}:
 
 \begin{itemize}
 \item Every transaction has a \textit{validity interval}, consisting
@@ -569,7 +571,7 @@ for automatic contract analysis.
 
 The definitions in this section are essentially the definitions of
 UTXO-based cryptocurrencies with scripts from
-\cite{Zahnentferner18-UTxO}, with the addition of the new features
+\citep{Zahnentferner18-UTxO}, with the addition of the new features
 mentioned above: the validity interval, the data script, and the
 state-information function $\sigma$.
 
@@ -688,7 +690,7 @@ given blockchain-information generating function $\sigma :
 \mathsf{Ledger} \times \mathsf{Transaction} \times \mathsf{Input}
 \rightarrow \mathsf{Script}$.  In order to define these we require a
 couple of auxiliary functions.  Firstly,
-following~\cite{Zahnentferner18-UTxO} we define
+following~\citep{Zahnentferner18-UTxO} we define
 
 $$
   \txunspent : \eutxotx \rightarrow \FinSet{\s{OutputRef}}
@@ -741,7 +743,7 @@ This function simply returns the value of the input.
 \noindent We can now define what it means for a transaction to be
 valid for a ledger: see Figure~\ref{fig:eutxo-1-validity}.  Our
 definition combines Definitions 6 and 14 from
-\cite{Zahnentferner18-UTxO}, differing from the latter in condition
+\citep{Zahnentferner18-UTxO}, differing from the latter in condition
 \ref{rule:all-inputs-validate}.
 
 
@@ -1078,7 +1080,7 @@ output is spent at the same time, so it can only be forged once.
 \subsubsection{Non-fungible tokens}
 A non-fungible token (NFT) is a unique object which can be transferred
 to another user, but not duplicated.  NFTs have proven useful in a
-number of blockchain applications (see~\cite{ERC-721} for example);
+number of blockchain applications (see~\citep{ERC-721} for example);
 for example, they can represent ownership of some object in a game.
 
 \medskip
@@ -1409,7 +1411,7 @@ numbers.  However, the models mostly carry over to the case where
 %% failed validations that still incur fees.    
 
 
-\bibliographystyle{plain} %% ... or whatever
+\bibliographystyle{plainnat} %% ... or whatever
 \bibliography{extended-utxo-specification}
 
 
