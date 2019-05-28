@@ -36,7 +36,7 @@ convertPendingTx = ValidationData . lifted
 
 -- base16
 -- If base16 we probably want to use the module in wallet-api
-data ToValidate = ToValidate { validationData :: PendingTx -- FIXME: this should be PendingTx info instead
+data ToValidate = ToValidate { validationData :: PendingTx
                              , validator      :: BS64.ByteString64
                              , redeemer       :: BS64.ByteString64
                              , dataScript     :: BS64.ByteString64

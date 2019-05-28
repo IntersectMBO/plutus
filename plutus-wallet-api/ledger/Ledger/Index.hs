@@ -28,10 +28,12 @@ import           Control.Monad.Except (MonadError (..))
 import           Control.Monad.Reader (MonadReader (..), ReaderT (..), ask)
 import           Crypto.Hash          (Digest, SHA256)
 import           Data.Aeson           (FromJSON, ToJSON)
+import qualified Data.Aeson           as Aeson
 import           Data.Foldable        (foldl', traverse_)
 import qualified Data.Map             as Map
 import           Data.Semigroup       (Semigroup)
 import qualified Data.Set             as Set
+import           Debug.Trace.Dump
 import           GHC.Generics         (Generic)
 import qualified Ledger.Ada           as Ada
 import           Ledger.Blockchain
@@ -233,7 +235,8 @@ checkMatch v = \case
             let v' = ValidationData
                     $ lifted
                     $ v { pendingTxIn = pTxIn }
-                (logOut, success) = runScript v' vl d r
+                ptxDump = Aeson.encode pTxIn
+                (logOut, success) = traceFileBSL "ptx" ptxDump $ runScript v' vl d r
             if success
             then pure ()
             else throwError $ ScriptFailure logOut
