@@ -22,15 +22,12 @@ module Ledger.Index(
     validateTransaction
     ) where
 
-import           Codec.Serialise      (serialise)
 import           Control.Lens         (at, (^.))
 import           Control.Monad
 import           Control.Monad.Except (MonadError (..))
 import           Control.Monad.Reader (MonadReader (..), ReaderT (..), ask)
 import           Crypto.Hash          (Digest, SHA256)
 import           Data.Aeson           (FromJSON, ToJSON)
-import qualified Data.Aeson           as Aeson
-import qualified Data.ByteString.Lazy as BSL
 import           Data.Foldable        (foldl', traverse_)
 import qualified Data.Map             as Map
 import           Data.Semigroup       (Semigroup)
