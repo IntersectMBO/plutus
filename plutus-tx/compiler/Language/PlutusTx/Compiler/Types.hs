@@ -26,17 +26,17 @@ import qualified Language.Haskell.TH.Syntax             as TH
 
 type BuiltinNameInfo = Map.Map TH.Name GHC.TyThing
 
-newtype ConversionOptions = ConversionOptions { coCheckValueRestriction :: Bool }
+newtype CompileOptions = CompileOptions { coCheckValueRestriction :: Bool }
 
-data ConvertingContext = ConvertingContext {
-    ccOpts            :: ConversionOptions,
+data CompileContext = CompileContext {
+    ccOpts            :: CompileOptions,
     ccFlags           :: GHC.DynFlags,
     ccBuiltinNameInfo :: BuiltinNameInfo,
     ccScopes          :: ScopeStack,
     ccBlackholed      :: Set.Set GHC.Name
     }
 
-newtype ConvertingState = ConvertingState {
+newtype CompileState = CompileState {
     -- See Note [Lazy let-bindings]
     csLazyNames :: Set.Set GHC.Name
     }
@@ -57,22 +57,22 @@ instance Ord LexName where
     compare (LexName n1) (LexName n2) = GHC.stableNameCmp n1 n2
 
 -- See Note [Scopes]
-type Converting m = (Monad m, MonadError ConvError m, MonadQuote m, MonadReader ConvertingContext m, MonadState ConvertingState m, MonadDefs LexName () m)
+type Compiling m = (Monad m, MonadError CompileError m, MonadQuote m, MonadReader CompileContext m, MonadState CompileState m, MonadDefs LexName () m)
 
-blackhole :: MonadReader ConvertingContext m => GHC.Name -> m a -> m a
+blackhole :: MonadReader CompileContext m => GHC.Name -> m a -> m a
 blackhole name = local (\cc -> cc {ccBlackholed=Set.insert name (ccBlackholed cc)})
 
-blackholed :: MonadReader ConvertingContext m => GHC.Name -> m Bool
+blackholed :: MonadReader CompileContext m => GHC.Name -> m Bool
 blackholed name = do
-    ConvertingContext {ccBlackholed=bh} <- ask
+    CompileContext {ccBlackholed=bh} <- ask
     pure $ Set.member name bh
 
-markLazyName :: MonadState ConvertingState m => GHC.Name -> m ()
+markLazyName :: MonadState CompileState m => GHC.Name -> m ()
 markLazyName name = modify (\s -> s {csLazyNames= Set.insert name (csLazyNames s)})
 
-isLazyName :: MonadState ConvertingState m => GHC.Name -> m Bool
+isLazyName :: MonadState CompileState m => GHC.Name -> m Bool
 isLazyName name = do
-    ConvertingState {csLazyNames=ln} <- get
+    CompileState {csLazyNames=ln} <- get
     pure $ Set.member name ln
 
 {- Note [Scopes]

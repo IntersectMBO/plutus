@@ -7,6 +7,6 @@ import Language.PlutusTx.PIRTypes
 
 import qualified GhcPlugins                               as GHC
 
-convType :: Converting m => GHC.Type -> m PIRType
+compileType :: Compiling m => GHC.Type -> m PIRType
 
-getMatchInstantiated :: Converting m => GHC.Type -> m PIRTerm
+getMatchInstantiated :: Compiling m => GHC.Type -> m PIRTerm

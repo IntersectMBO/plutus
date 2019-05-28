@@ -5,7 +5,7 @@
 {-# LANGUAGE ViewPatterns      #-}
 
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
-module Language.PlutusTx.Compiler.Expr (convExpr, convExprWithDefs, convDataConRef) where
+module Language.PlutusTx.Compiler.Expr (compileExpr, compileExprWithDefs, compileDataConRef) where
 
 import           PlutusPrelude                          (bsToStr)
 
@@ -90,8 +90,8 @@ and put in a reference... except that the binding would need to be of type `Addr
 So we use another horrible hack and pretend that `Addr#` is `String`, since we treat `unpackCString#` as doing nothing.
 -}
 
-convLiteral :: Converting m => GHC.Literal -> m PIRTerm
-convLiteral = \case
+compileLiteral :: Compiling m => GHC.Literal -> m PIRTerm
+compileLiteral = \case
     -- Just accept any kind of number literal, we'll complain about types we don't support elsewhere
     (GHC.LitNumber _ i _) -> pure $ PIR.Constant () $ PLC.BuiltinInt () i
     GHC.MachStr bs     ->
@@ -103,7 +103,7 @@ convLiteral = \case
             str = bsToStr (BSL.fromStrict bs)
             charExprs = fmap GHC.mkCharExpr str
             listExpr = GHC.mkListExpr GHC.charTy charExprs
-        in convExpr listExpr
+        in compileExpr listExpr
     GHC.MachChar c     -> pure $ PIR.embed $ PLC.makeKnown c
     GHC.MachFloat _    -> throwPlain $ UnsupportedError "Literal float"
     GHC.MachDouble _   -> throwPlain $ UnsupportedError "Literal double"
@@ -111,8 +111,8 @@ convLiteral = \case
     GHC.MachNullAddr   -> throwPlain $ UnsupportedError "Literal null"
 
 -- | Convert a reference to a data constructor, i.e. a call to it.
-convDataConRef :: Converting m => GHC.DataCon -> m PIRTerm
-convDataConRef dc =
+compileDataConRef :: Compiling m => GHC.DataCon -> m PIRTerm
+compileDataConRef dc =
     let
         tc = GHC.dataConTyCon dc
     in do
@@ -220,11 +220,11 @@ temporary variable reference before we start, which will have the wrong type. We
 such things - this will work if we do it as part of PIR.
 -}
 
-hoistExpr :: Converting m => GHC.Var -> GHC.CoreExpr -> m PIRTerm
+hoistExpr :: Compiling m => GHC.Var -> GHC.CoreExpr -> m PIRTerm
 hoistExpr var t =
     let
         name = GHC.getName var
-    in withContextM 1 (sdToTxt $ "Converting definition of:" GHC.<+> GHC.ppr var) $ do
+    in withContextM 1 (sdToTxt $ "Compiling definition of:" GHC.<+> GHC.ppr var) $ do
         maybeDef <- PIR.lookupTerm () (LexName name)
         case maybeDef of
             Just term -> do
@@ -237,11 +237,11 @@ hoistExpr var t =
                 let allFvs = Set.fromList $ fvs ++ tcs
                 let recursive = Set.member name allFvs
 
-                var' <- convVarFresh var
+                var' <- compileVarFresh var
                 -- See Note [Occurrences of recursive names]
                 PIR.defineTerm (LexName name) (PIR.Def var' (PIR.mkVar () var')) mempty
 
-                t' <- convExpr t
+                t' <- compileExpr t
 
                 -- See Note [Lazy let-bindings]
                 let lazy = not $ PIR.isTermValue t'
@@ -261,37 +261,37 @@ hoistExpr var t =
 
 -- Expressions
 
-convExpr :: Converting m => GHC.CoreExpr -> m PIRTerm
-convExpr e = withContextM 2 (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
+compileExpr :: Compiling m => GHC.CoreExpr -> m PIRTerm
+compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- See Note [Scopes]
-    ConvertingContext {ccScopes=stack} <- ask
+    CompileContext {ccScopes=stack} <- ask
     let top = NE.head stack
     case e of
         -- See Note [Literals]
         -- unpackCString# is just a wrapper around a literal
-        GHC.Var n `GHC.App` arg | GHC.getName n == GHC.unpackCStringName -> convExpr arg
+        GHC.Var n `GHC.App` arg | GHC.getName n == GHC.unpackCStringName -> compileExpr arg
         -- See Note [unpackFoldrCString#]
         GHC.Var build `GHC.App` _ `GHC.App` GHC.Lam _ (GHC.Var unpack `GHC.App` _ `GHC.App` str)
-            | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName -> convExpr str
+            | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName -> compileExpr str
         -- C# is just a wrapper around a literal
-        GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | dc == GHC.charDataCon -> convExpr arg
+        GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | dc == GHC.charDataCon -> compileExpr arg
         -- void# - values of type void get represented as error, since they should be unreachable
         GHC.Var n | n == GHC.voidPrimId || n == GHC.voidArgId -> errorFunc
         -- See note [GHC runtime errors]
         -- <error func> <runtime rep> <overall type> <message>
         GHC.Var (isErrorId -> True) `GHC.App` _ `GHC.App` GHC.Type t `GHC.App` _ ->
-            force =<< PIR.TyInst () <$> errorFunc <*> convType t
+            force =<< PIR.TyInst () <$> errorFunc <*> compileType t
         -- <error func> <overall type> <message>
         GHC.Var (isErrorId -> True) `GHC.App` GHC.Type t `GHC.App` _ ->
-            force =<< PIR.TyInst () <$> errorFunc <*> convType t
+            force =<< PIR.TyInst () <$> errorFunc <*> compileType t
         -- locally bound vars
         GHC.Var n@(lookupName top . GHC.getName -> Just var) -> do
             -- See Note [Lazy let-bindings]
             lazy <- isLazyName (GHC.getName n)
             maybeForce lazy $ PIR.mkVar () var
         -- Special kinds of id
-        GHC.Var (GHC.idDetails -> GHC.PrimOpId po) -> convPrimitiveOp po
-        GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> convDataConRef dc
+        GHC.Var (GHC.idDetails -> GHC.PrimOpId po) -> compilePrimitiveOp po
+        GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> compileDataConRef dc
         -- See Note [Unfoldings]
         GHC.Var n@(GHC.realIdUnfolding -> GHC.CoreUnfolding{GHC.uf_tmpl=unfolding}) -> hoistExpr n unfolding
         GHC.Var n -> do
@@ -306,19 +306,19 @@ convExpr e = withContextM 2 (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ d
                     "Variable" GHC.<+> GHC.ppr n
                     GHC.$+$ (GHC.ppr $ GHC.idDetails n)
                     GHC.$+$ (GHC.ppr $ GHC.realIdUnfolding n)
-        GHC.Lit lit -> convLiteral lit
+        GHC.Lit lit -> compileLiteral lit
         -- arg can be a type here, in which case it's a type instantiation
-        l `GHC.App` GHC.Type t -> PIR.TyInst () <$> convExpr l <*> convType t
+        l `GHC.App` GHC.Type t -> PIR.TyInst () <$> compileExpr l <*> compileType t
         -- otherwise it's a normal application
-        l `GHC.App` arg -> PIR.Apply () <$> convExpr l <*> convExpr arg
+        l `GHC.App` arg -> PIR.Apply () <$> compileExpr l <*> compileExpr arg
         -- if we're biding a type variable it's a type abstraction
-        GHC.Lam b@(GHC.isTyVar -> True) body -> mkTyAbsScoped b $ convExpr body
+        GHC.Lam b@(GHC.isTyVar -> True) body -> mkTyAbsScoped b $ compileExpr body
         -- othewise it's a normal lambda
-        GHC.Lam b body -> mkLamAbsScoped b $ convExpr body
+        GHC.Lam b body -> mkLamAbsScoped b $ compileExpr body
         GHC.Let (GHC.NonRec b arg) body -> do
             let name = GHC.getName b
             -- the binding is in scope for the body, but not for the arg
-            arg' <- convExpr arg
+            arg' <- compileExpr arg
 
             -- See Note [Lazy let-bindings]
             let lazy = not $ PIR.isTermValue arg'
@@ -329,23 +329,23 @@ convExpr e = withContextM 2 (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ d
                 -- See Note [Lazy let-bindings]
                 v' <- maybeDelayVar lazy v
                 let binds = [ PIR.TermBind () v' rhs ]
-                body' <- convExpr body
+                body' <- compileExpr body
                 pure $ PIR.Let () PIR.NonRec binds body'
         GHC.Let (GHC.Rec bs) body ->
             withVarsScoped (fmap fst bs) $ \vars -> do
                 -- the bindings are scope in both the body and the args
                 -- TODO: this is a bit inelegant matching the vars back up
                 binds <- for (zip vars bs) $ \(v, (b, arg)) -> do
-                    arg' <- convExpr arg
+                    arg' <- compileExpr arg
                     -- See Note [Lazy let-bindings]
                     let lazy = not $ PIR.isTermValue arg'
                     when lazy $ throwSd UnsupportedError $ "Recursive let-binding of non-value" GHC.<+> GHC.ppr (GHC.getName b)
                     pure $ PIR.TermBind () v arg'
-                body' <- convExpr body
+                body' <- compileExpr body
                 pure $ PIR.Let () PIR.Rec binds body'
         GHC.Case scrutinee b t alts -> do
             -- See Note [At patterns]
-            scrutinee' <- convExpr scrutinee
+            scrutinee' <- compileExpr scrutinee
             let scrutineeType = GHC.varType b
             -- This is something of a stop-gap error, we should use Integer everywhere
             when (scrutineeType `GHC.eqType` GHC.intTy) $ throwPlain $ UnsupportedError "Case on Int"
@@ -360,7 +360,7 @@ convExpr e = withContextM 2 (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ d
                 -- See Note [Case expressions and laziness]
                 isValueAlt <- forM dcs $ \dc ->
                     let (_, vars, body) = findAlt dc alts t
-                    in if null vars then PIR.isTermValue <$> convExpr body else pure True
+                    in if null vars then PIR.isTermValue <$> compileExpr body else pure True
                 let lazyCase = not $ and isValueAlt
 
                 match <- getMatchInstantiated scrutineeType
@@ -368,7 +368,7 @@ convExpr e = withContextM 2 (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ d
 
                 -- See Note [Scott encoding of datatypes]
                 -- we're going to delay the body, so the scrutinee needs to be instantiated the delayed type
-                resultType <- convType t >>= maybeDelayType lazyCase
+                resultType <- compileType t >>= maybeDelayType lazyCase
                 let instantiated = PIR.TyInst () matched resultType
 
                 branches <- forM dcs $ \dc ->
@@ -376,7 +376,7 @@ convExpr e = withContextM 2 (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ d
                         -- these are the instantiated type arguments, e.g. for the data constructor Just when
                         -- matching on Maybe Int it is [Int] (crucially, not [a])
                         instArgTys = GHC.dataConInstOrigArgTys dc argTys
-                    in convAlt lazyCase instArgTys alt
+                    in compileAlt lazyCase instArgTys alt
 
                 let applied = PIR.mkIterApp () instantiated branches
                 -- See Note [Case expressions and laziness]
@@ -388,16 +388,16 @@ convExpr e = withContextM 2 (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ d
         -- we can use source notes to get a better context for the inner expression
         -- these are put in when you compile with -g
         GHC.Tick GHC.SourceNote{GHC.sourceSpan=src} body ->
-            withContextM 1 (sdToTxt $ "Converting expr at:" GHC.<+> GHC.ppr src) $ convExpr body
+            withContextM 1 (sdToTxt $ "Compiling expr at:" GHC.<+> GHC.ppr src) $ compileExpr body
         -- ignore other annotations
-        GHC.Tick _ body -> convExpr body
+        GHC.Tick _ body -> compileExpr body
         -- See Note [Coercions and newtypes]
-        GHC.Cast body _ -> convExpr body
+        GHC.Cast body _ -> compileExpr body
         GHC.Type _ -> throwPlain $ UnsupportedError "Types as standalone expressions"
         GHC.Coercion _ -> throwPlain $ UnsupportedError "Coercions as expressions"
 
-convExprWithDefs :: Converting m => GHC.CoreExpr -> m PIRTerm
-convExprWithDefs e = do
+compileExprWithDefs :: Compiling m => GHC.CoreExpr -> m PIRTerm
+compileExprWithDefs e = do
     defineBuiltinTypes
     defineBuiltinTerms
-    convExpr e
+    compileExpr e
