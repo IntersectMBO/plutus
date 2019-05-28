@@ -98,20 +98,20 @@ redeemer and data scripts of all of its inputs and outputs.
 data PendingTxOutType
     = PubKeyTxOut PubKey -- ^ Pub key address
     | DataTxOut -- ^ The data script of the pending transaction output (see note [Script types in pending transactions])
-    deriving (Generic, ToJSON, FromJSON)
+    deriving (Generic, FromJSON)
 
 -- | An output of a pending transaction.
 data PendingTxOut = PendingTxOut
     { pendingTxOutValue  :: Value
     , pendingTxOutHashes :: Maybe (ValidatorHash, DataScriptHash) -- ^ Hashes of validator script and data script.
     , pendingTxOutData   :: PendingTxOutType
-    } deriving (Generic, ToJSON, FromJSON)
+    } deriving (Generic, FromJSON)
 
 -- | A reference to a transaction output in a pending transaction.
 data PendingTxOutRef = PendingTxOutRef
     { pendingTxOutRefId  :: TxHash -- ^ Transaction whose output are consumed.
     , pendingTxOutRefIdx :: Integer -- ^ Index into the referenced transaction's list of outputs.
-    } deriving (Generic, ToJSON, FromJSON)
+    } deriving (Generic, FromJSON)
 
 -- | An input of a pending transaction.
 data PendingTxIn = PendingTxIn
@@ -119,7 +119,7 @@ data PendingTxIn = PendingTxIn
     , pendingTxInWitness :: Maybe (ValidatorHash, RedeemerHash)
     -- ^ Tx input witness, hashes for Script input, or signature for a PubKey
     , pendingTxInValue   :: Value -- ^ Value consumed by this txn input
-    } deriving (Generic, ToJSON, FromJSON)
+    } deriving (Generic, FromJSON)
 
 -- | A pending transaction. This is the view as seen by validator scripts, so some details are stripped out.
 data PendingTx = PendingTx
@@ -133,7 +133,7 @@ data PendingTx = PendingTx
     -- ^ Signatures provided with the transaction
     , pendingTxHash       :: TxHash
     -- ^ Hash of the pending transaction (excluding witnesses)
-    } deriving (Generic, ToJSON, FromJSON)
+    } deriving (Generic, FromJSON)
 
 {- Note [Oracles]
 I'm not sure how oracles are going to work eventually, so I'm going to use this
@@ -212,9 +212,6 @@ newtype DataScriptHash =
     deriving stock (Eq, Generic)
     deriving newtype (Serialise)
 
-instance ToJSON DataScriptHash where
-    toJSON = toJSON . JSON.encodeSerialise
-
 instance FromJSON DataScriptHash where
     parseJSON = JSON.decodeSerialise
 
@@ -223,9 +220,6 @@ newtype RedeemerHash =
     RedeemerHash Builtins.ByteString
     deriving stock (Eq, Generic)
     deriving newtype (Serialise)
-
-instance ToJSON RedeemerHash where
-    toJSON = toJSON . JSON.encodeSerialise
 
 instance FromJSON RedeemerHash where
     parseJSON = JSON.decodeSerialise

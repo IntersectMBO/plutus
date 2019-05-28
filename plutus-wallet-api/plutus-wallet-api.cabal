@@ -150,10 +150,6 @@ library plutus-ledger
         http-api-data,
         cardano-crypto
 
-    if flag(development)
-        build-depends:
-            debug-dump -any
-
     if flag(defer-plugin-errors)
         ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
 
