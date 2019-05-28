@@ -39,7 +39,7 @@ common lang
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
                  -- Needed for GHCI to work with the plugin
-                 -fobject-code
+                 -fobject-code -fno-ignore-interface-pragmas
 
     if flag(defer-plugin-errors)
         ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
