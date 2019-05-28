@@ -88,6 +88,7 @@ instance Corecursive (Type tyname a) where
     embed (TyLamF l tn k ty)    = TyLam l tn k ty
     embed (TyAppF l ty ty')     = TyApp l ty ty'
 
+{-# INLINE typeSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'Type'.
 typeSubtypes :: Traversal' (Type tyname a) (Type tyname a)
 typeSubtypes f = \case
@@ -306,6 +307,7 @@ instance Corecursive (Term tyname name a) where
     embed (IWrapF x pat arg t) = IWrap x pat arg t
     embed (ErrorF x ty)        = Error x ty
 
+{-# INLINE termSubterms #-}
 -- | Get all the direct child 'Term's of the given 'Term'.
 termSubterms :: Traversal' (Term tyname name a) (Term tyname name a)
 termSubterms f = \case
@@ -320,6 +322,7 @@ termSubterms f = \case
     c@Constant {} -> pure c
     b@Builtin {} -> pure b
 
+{-# INLINE termSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'Term'.
 termSubtypes :: Traversal' (Term tyname name a) (Type tyname a)
 termSubtypes f = \case
