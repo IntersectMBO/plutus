@@ -46,7 +46,7 @@ library
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
                  -- Needed for GHCI to work with the plugin
-                 -fobject-code
+                 -fobject-code -fno-ignore-interface-pragmas
     build-depends:
         plutus-tx -any,
         plutus-wallet-api -any,
