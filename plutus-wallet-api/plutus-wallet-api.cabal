@@ -32,6 +32,8 @@ common lang
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
+                 -- Needed for GHCI to work with the plugin
+                 -fobject-code -fno-ignore-interface-pragmas
 
 flag development
     description:
