@@ -118,7 +118,10 @@ all p (Map mps) =
 singleton :: k -> v -> Map k v
 singleton c i = Map [(c, i)]
 
--- this has to take unit otherwise it falls foul of the value restriction
+-- This has to take unit otherwise it falls foul of the value restriction. Moreover,
+-- we need to mark it INLINABLE, since the optimized unfolding we get from `-fexpose-all-unfoldings`
+-- ignores the unit, breaking our workaround.
+{-# INLINABLE empty #-}
 -- | An empty 'Map'.
 empty :: () -> Map k v
 empty _ = Map ([] :: [(k, v)])
