@@ -13,16 +13,12 @@ module Language.PlutusTx.Compiler.Type (
     getConstructors,
     getConstructorsInstantiated,
     getMatch,
-    getMatchInstantiated,
-    findAlt,
-    compileAlt) where
+    getMatchInstantiated) where
 
 import           Language.PlutusTx.Compiler.Binders
 import           Language.PlutusTx.Compiler.Builtins
 import           Language.PlutusTx.Compiler.Error
-import {-# SOURCE #-} Language.PlutusTx.Compiler.Expr
 import           Language.PlutusTx.Compiler.Kind
-import           Language.PlutusTx.Compiler.Laziness
 import           Language.PlutusTx.Compiler.Names
 import           Language.PlutusTx.Compiler.Types
 import           Language.PlutusTx.Compiler.Utils
@@ -262,35 +258,3 @@ getMatchInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated matche
         pure $ PIR.mkIterInst () match args'
     -- must be a TC app
     _ -> throwSd CompilationError $ "Type was not a type constructor application:" GHC.<+> GHC.ppr t
-
--- | Finds the alternative for a given data constructor in a list of alternatives. The type
--- of the overall match must also be provided.
---
--- This differs from 'GHC.findAlt' in what it does when the constructor is not matched (this can
--- happen when the match is exhaustive *in context* only, see the doc on 'GHC.Expr'). We need an
--- alternative regardless, so we make an "impossible" alternative since this case should be unreachable.
-findAlt :: GHC.DataCon -> [GHC.CoreAlt] -> GHC.Type -> GHC.CoreAlt
-findAlt dc alts t = case GHC.findAlt (GHC.DataAlt dc) alts of
-    Just alt -> alt
-    Nothing  -> (GHC.DEFAULT, [], GHC.mkImpossibleExpr t)
-
--- | Make the alternative for a given 'CoreAlt'.
-compileAlt
-    :: Compiling m
-    => Bool -- ^ Whether we must delay the alternative.
-    -> [GHC.Type] -- ^ The instantiated type arguments for the data constructor.
-    -> GHC.CoreAlt -- ^ The 'CoreAlt' representing the branch itself.
-    -> m PIRTerm
-compileAlt mustDelay instArgTys (alt, vars, body) = withContextM 3 (sdToTxt $ "Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
-    GHC.LitAlt _  -> throwPlain $ UnsupportedError "Literal case"
-    GHC.DEFAULT   -> do
-        body' <- compileExpr body >>= maybeDelay mustDelay
-        -- need to consume the args
-        argTypes <- mapM compileType instArgTys
-        argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName () $ "default_arg" <> (T.pack $ show i))
-        pure $ PIR.mkIterLamAbs (zipWith (PIR.VarDecl ()) argNames argTypes) body'
-    -- We just package it up as a lambda bringing all the
-    -- vars into scope whose body is the body of the case alternative.
-    -- See Note [Iterated abstraction and application]
-    -- See Note [Case expressions and laziness]
-    GHC.DataAlt _ -> mkIterLamAbsScoped vars (compileExpr body >>= maybeDelay mustDelay)
