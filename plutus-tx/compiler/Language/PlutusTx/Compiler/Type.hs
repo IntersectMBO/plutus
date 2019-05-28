@@ -57,26 +57,11 @@ convType t = withContextM 2 (sdToTxt $ "Converting type:" GHC.<+> GHC.ppr t) $ d
         (GHC.getTyVar_maybe -> Just (lookupTyName top . GHC.getName -> Just (PIR.TyVarDecl _ name _))) -> pure $ PIR.TyVar () name
         (GHC.getTyVar_maybe -> Just v) -> throwSd FreeVariableError $ "Type variable:" GHC.<+> GHC.ppr v
         (GHC.splitFunTy_maybe -> Just (i, o)) -> PIR.TyFun () <$> convType i <*> convType o
-        (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> convTyConApp tc ts
+        (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> PIR.mkIterTyApp () <$> convTyCon tc <*> traverse convType ts
         (GHC.splitForAllTy_maybe -> Just (tv, tpe)) -> mkTyForallScoped tv (convType tpe)
         -- I think it's safe to ignore the coercion here
         (GHC.splitCastTy_maybe -> Just (tpe, _)) -> convType tpe
         _ -> throwSd UnsupportedError $ "Type" GHC.<+> GHC.ppr t
-
--- TODO: fold the special cases into convTyCon as aliases?
-convTyConApp :: (Converting m) => GHC.TyCon -> [GHC.Type] -> m PIRType
-convTyConApp tc ts
-    -- we don't support Int or Int#
-    | GHC.getName tc == GHC.intTyConName = throwPlain $ UnsupportedError "Int: use Integer instead"
-    | tc == GHC.intPrimTyCon = throwPlain $ UnsupportedError "Int#: unboxed integers are not supported"
-    -- See Note [Addr#]
-    | tc == GHC.addrPrimTyCon = convType GHC.stringTy
-    -- this is Void#, see Note [Value restriction]
-    | tc == GHC.voidPrimTyCon = errorTy
-    | otherwise = do
-        tc' <- convTyCon tc
-        args' <- mapM convType ts
-        pure $ PIR.mkIterTyApp () tc' args'
 
 {- Note [Occurrences of recursive names]
 When we compile recursive types/terms, we need to process their definitions before we can produce
@@ -96,7 +81,15 @@ definition, and dying if we see it again.
 -}
 
 convTyCon :: (Converting m) => GHC.TyCon -> m PIRType
-convTyCon tc = do
+convTyCon tc
+    | tc == GHC.intTyCon = throwPlain $ UnsupportedError "Int: use Integer instead"
+    | tc == GHC.intPrimTyCon = throwPlain $ UnsupportedError "Int#: unboxed integers are not supported"
+    -- See Note [Addr#]
+    | tc == GHC.addrPrimTyCon = convType GHC.stringTy
+    -- this is Void#, see Note [Value restriction]
+    | tc == GHC.voidPrimTyCon = errorTy
+    | otherwise = do
+
     let tcName = GHC.getName tc
     whenM (blackholed tcName) $ throwSd UnsupportedError $ "Recursive newtypes, use data:" GHC.<+> GHC.ppr tcName
     maybeDef <- PIR.lookupType () (LexName tcName)

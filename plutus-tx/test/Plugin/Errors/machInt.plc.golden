@@ -1,1 +1,1 @@
-Error: Unsupported feature: Int#: unboxed integers are not supported
+Error: Unsupported feature: Int: use Integer instead
