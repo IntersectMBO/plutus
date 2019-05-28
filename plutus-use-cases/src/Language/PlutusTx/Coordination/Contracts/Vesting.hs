@@ -52,13 +52,11 @@ data Vesting = Vesting {
 PlutusTx.makeLift ''Vesting
 
 -- | The total amount vested
-{-# INLINABLE totalAmount #-}
 totalAmount :: Vesting -> Value
 totalAmount Vesting{..} =
     vestingTrancheAmount vestingTranche1 `Value.plus` vestingTrancheAmount vestingTranche2
 
 -- | The amount guaranteed to be available from a given tranche in a given slot range.
-{-# INLINABLE availableFrom #-}
 availableFrom :: VestingTranche -> Slot.SlotRange -> Value
 availableFrom (VestingTranche d v) range =
     -- The valid range is an open-ended range starting from the tranche vesting date
