@@ -22,7 +22,7 @@ import           Test.Tasty.HUnit
 
 import           Language.Marlowe           hiding (discountFromPairList, insertCommit, mergeChoices)
 import           Language.Marlowe.Actus     as Actus
-import           Language.Marlowe.Client    (commit', evalContract, receivePayment, redeem)
+import           Language.Marlowe.Client    (commit', receivePayment, redeem)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Ledger                     hiding (Value)
 import qualified Ledger.Ada                 as Ada
@@ -66,7 +66,7 @@ checkZeroCouponBond = do
         gracePeriod = 30240 -- about a week, 20sec * 3 * 60 * 24 * 7
         deposit = 12
         contract = zeroCouponBond issuerPk investorPk notional discount startDate maturityDate gracePeriod
-        eval = evalContract issuerPk testTxHash
+        eval = evaluateContract issuerPk testTxHash
     -- investor commits money for a bond with discount
     let (state1, con1, v) = eval (input $ Commit (IdentCC 1) signature2) (Slot 10)
                                     (Ada.fromInt deposit)
@@ -122,7 +122,7 @@ checkTrustedZeroCouponBond = do
                         startDate
                         maturityDate
                         gracePeriod
-        eval = evalContract issuerPk testTxHash
+        eval = evaluateContract issuerPk testTxHash
     -- investor commits money for a bond with discount
     let (state1, con1, v) = eval (input $ Commit (IdentCC 1) signature2) (Slot 10)
                                     (Ada.fromInt deposit)
