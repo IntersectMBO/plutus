@@ -226,8 +226,8 @@ for use as a transaction validation language in blockchain
 systems. More precisely, Plutus Core is the system $F_\omega$ of
 Girard and Reynolds (see \citep{Girard-thesis},
 \citep{Reynolds-type-structure}, \citep[\S30]{Pierce:TAPL}) with a
-number of extensions (isorecursive types, higher kinds, and a library
-of basic types and functions).  Plutus Core is meant to be a
+number of extensions (isorecursive types, higher kinds, and additional
+builtin types and functions).  Plutus Core is meant to be a
 compilation target, and this is reflected in the design of the
 language: while writing large Plutus Core programs by hand is
 difficult, the language is relatively straightforward to formalise
@@ -244,14 +244,12 @@ to allow us to use standard combinators (for example the $Z$
 combinator and Church/Scott encoded booleans) for such purposes.
 
 
-\subsection{Blockchain issues}
-Plutus Core code (and code intended for execution on a blockchain in
-general) can be executed in two different environments:
-\textit{off-chain} and \textit{on-chain}.  As the name suggests,
-off-chain execution doesn't happen on the blockchain itself, but in
-some other environment, such as in an electronic wallet on a
-smartphone or PC.  In contrast, on-chain execution takes place on
-\textit{core nodes}, machines which are actually maintaining the
+\subsection{Running code on the blockchain}
+
+Plutus Core code is intended to be executed ``on'' a blockchain.
+This means that it is executed as part of a distributed block validation
+process, with the actual computation happening on
+\emph{core nodes}, machines which are actually maintaining the
 blockchain.
 
 It is important that core nodes process transactions quickly and
@@ -260,7 +258,7 @@ and compete with each other to do so.  Denial of service thus becomes
 an issue for on-chain code, and it is important that a malicious user
 cannot submit code which consumes excessive amounts of processor time
 or memory. To deal with this problem, a charge is levied when a core
-node runs on-chain code.  Units of so-called \textit{gas} are consumed
+node runs on-chain code.  Units of so-called \emph{gas} are consumed
 as a program runs, and users must pay a fee in advance to cover gas
 costs.  If at any point during execution the amount of gas consumed
 exceeds the amount than has been paid for then the program is
@@ -271,14 +269,6 @@ and verification.  We perform type checking prior to execution of
 Plutus Core Code, but no other validation.  Type checking itself takes
 time and requires memory, so there is also a gas charge for on-chain
 type checking.
-
-%% Because of these issues, it is important that the cost of on-chain
-%% code execution is easy to calculate, certainly during execution (so
-%% that gas consumption can be accounted for), but ideally also in
-%% advance so that a user has some idea of how much a contract is likely
-%% to cost and can make sure that they buy enough gas to allow their
-%% contract to run to completion.  The design of Plutus Core incorporates
-%% a number of features to facilitate cost analysis for this purpose.
 
 
 \section{Syntax}
@@ -316,11 +306,16 @@ For instance,
 All subsequent definitions assume iterated application and instantiation
 has been expanded out, and use only the binary form. Implementations
 may use the multi-argument forms.
+\todompj{We only use this in the examples, should we drop it?}
 
 
 \subfile{figures/LexicalGrammar}
 
 \subfile{figures/Grammar}
+
+\todompj{The syntax for builtins is ambiguous: we can't tell where the list of
+  types ends. There are a number of forms that could be either depending on
+  context, e.g. variables!}
 
 \newcommand\fixtype[1]{\mu\,\alpha.#1}  % Just for talking about the fix operator in the notes.
 
