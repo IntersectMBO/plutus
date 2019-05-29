@@ -69,8 +69,7 @@ This is a pain to recognize.
 This function is introduced by rewrite rules, and usually eliminated by them in concert with `build`.
 
 However, since we often mark things as INLINABLE, we get pre-optimization Core where only the
-first transformation has fired. So we need to do something with the function. (Note: this might
-be easier if we used `-fexpose-all-unfoldings` instead.)
+first transformation has fired. So we need to do something with the function.
 
 - We can't easily turn it into a normal fold expression, since we'd need to make a lambda and
   we're not in 'CoreM' so we can't make fresh names.
@@ -78,6 +77,17 @@ be easier if we used `-fexpose-all-unfoldings` instead.)
 
 So we use a horrible hack and match on `build . unpackFoldrCString#` to "undo" the original rewrite
 rule.
+-}
+
+{- Note [Addr#]
+String literals usually have type `Addr#`. This is not very nice for us, since we certainly don't have
+those.
+
+However, they should only appear wrapped by an `unpackCString#` or similar. Except if the string literal
+gets lifted out by GHC! This is no problem for our compiler, we will just compile the literal as a binding
+and put in a reference... except that the binding would need to be of type `Addr#`.
+
+So we use another horrible hack and pretend that `Addr#` is `String`, since we treat `unpackCString#` as doing nothing.
 -}
 
 convLiteral :: Converting m => GHC.Literal -> m PIRTerm
@@ -170,7 +180,7 @@ but those should fail when we typecheck the PLC. And we explicitly say we don't 
 GHC stores the current RHS of bindings in "unfoldings". These are used for inlining, but
 also generally provide the compiler's view of the RHS of a binding. They are usually available
 for other modules in the same package, and can be available cross-package if GHC decides it's
-a good idea or if the binding is marked INLINABLE.
+a good idea or if the binding is marked INLINABLE (or if you use `-fexpose-all-unfoldings`).
 
 We use unfoldings to get the definitions of non-locally bound names. We then hoist these into
 definitions using PIR's support for definitions. This allows a relatively direct form of code

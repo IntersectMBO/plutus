@@ -99,34 +99,28 @@ data Input =
 
 PlutusTx.makeLift ''Input
 
-{-# INLINABLE isSignatory #-}
 -- | Check if a public key is one of the signatories of the multisig contract.
 isSignatory :: PubKey -> Params -> Bool
 isSignatory pk (Params sigs _) = P.any (\pk' -> Validation.eqPubKey pk pk') sigs
 
-{-# INLINABLE containsPk #-}
 -- | Check whether a list of public keys contains a given key.
 containsPk :: PubKey -> [PubKey] -> Bool
 containsPk pk = P.any (\pk' -> Validation.eqPubKey pk' pk)
 
-{-# INLINABLE pkListEq #-}
 pkListEq :: [PubKey] -> [PubKey] -> Bool
 pkListEq [] []           = True
 pkListEq (k:ks) (k':ks') = P.and (Validation.eqPubKey k k') (pkListEq ks ks')
 pkListEq _ _             = False
 
-{-# INLINABLE isValidProposal #-}
 -- | Check whether a proposed 'Payment' is valid given the total
 --   amount of funds currently locked in the contract.
 isValidProposal :: Value -> Payment -> Bool
 isValidProposal vl (Payment amt _ _) = Value.leq amt vl
 
-{-# INLINABLE proposalExpired #-}
 -- | Check whether a proposed 'Payment' has expired.
 proposalExpired :: PendingTx -> Payment -> Bool
 proposalExpired (PendingTx _ _ _ _ _ rng _ _) (Payment _ _ ddl) = Slot.before ddl rng
 
-{-# INLINABLE proposalAccepted #-}
 -- | Check whether enough signatories (represented as a list of public keys)
 --   have signed a proposed payment.
 proposalAccepted :: Params -> [PubKey] -> Bool
@@ -134,7 +128,6 @@ proposalAccepted (Params signatories numReq) pks =
     let numSigned = P.length (P.filter (\pk -> containsPk pk pks) signatories)
     in P.geq numSigned numReq
 
-{-# INLINABLE valuePreserved #-}
 -- | @valuePreserved v p@ is true if the pending transaction @p@ pays the amount
 --   @v@ to a single pay-to-script output at this script's address.
 valuePreserved :: Value -> PendingTx -> Bool
@@ -144,19 +137,16 @@ valuePreserved vl ptx =
         valueLocked = Validation.valueLockedBy ptx ownHash
     in P.and (P.eq 1 numOutputs) (Value.eq valueLocked vl)
 
-{-# INLINABLE valuePaid #-}
 -- | @valuePaid pm ptx@ is true if the pending transaction @ptx@ pays
 --   the amount specified in @pm@ to the public key address specified in @pm@
 valuePaid :: Payment -> PendingTx -> Bool
 valuePaid (Payment vl pk _) ptx = Value.eq vl (Validation.valuePaidTo ptx pk)
 
-{-# INLINABLE paymentEq #-}
 -- | Equality of 'Payment' values
 paymentEq :: Payment -> Payment -> Bool
 paymentEq (Payment vl pk sl) (Payment vl' pk' sl') =
     P.and (P.and (Value.eq vl vl') (Validation.eqPubKey pk pk')) (Slot.eq sl sl')
 
-{-# INLINABLE stateEq #-}
 -- | Equality of 'State' values
 stateEq :: State -> State -> Bool
 stateEq (InitialState v) (InitialState v') = Value.eq v v'

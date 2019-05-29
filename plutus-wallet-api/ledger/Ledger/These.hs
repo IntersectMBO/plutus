@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
+{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 module Ledger.These(
     These(..)
   , these
@@ -10,7 +11,6 @@ module Ledger.These(
 -- Plutus version of 'Data.These'.
 data These a b = This a | That b | These a b
 
-{-# INLINABLE theseWithDefault #-}
 -- | Consume a 'These a b' value.
 theseWithDefault :: a -> b -> (a -> b -> c) -> These a b -> c
 theseWithDefault a' b' f = \case
@@ -18,7 +18,6 @@ theseWithDefault a' b' f = \case
     That b -> f a' b
     These a b -> f a b
 
-{-# INLINABLE these #-}
 these :: (a -> c) -> (b -> c) -> (a -> b -> c) -> These a b -> c
 these f g h = \case
     This a -> f a

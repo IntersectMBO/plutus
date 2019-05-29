@@ -1,5 +1,6 @@
 -- Need some extra imports from the Prelude for doctests, annoyingly
 {-# OPTIONS_GHC -Wno-unused-imports #-}
+{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 module Language.PlutusTx.Prelude (
     -- $prelude
     -- * String and tracing functions
@@ -77,24 +78,20 @@ import           Prelude                    (Bool (..), Integer, Maybe (..), Str
 -- >>> :set -XNoImplicitPrelude
 -- >>> import Prelude (Bool (..), Integer, Maybe (..), String, (+), (==), (>))
 
-{-# INLINABLE error #-}
 -- | Terminate the evaluation of the script with an error message.
 error :: () -> a
 error = Builtins.error
 
-{-# INLINABLE check #-}
 -- | Checks a 'Bool' and aborts if it is false.
 check :: Bool -> ()
 check b = if b then () else error ()
 
-{-# INLINABLE toPlutusString #-}
 -- | Convert a Haskell 'String' into a PlutusTx 'Builtins.String'.
 toPlutusString :: String -> Builtins.String
 toPlutusString str = case str of
     []       -> Builtins.emptyString
     (c:rest) -> Builtins.charToString c `Builtins.appendString` toPlutusString rest
 
-{-# INLINABLE trace #-}
 -- | Emit the given string as a trace message before evaluating the argument.
 trace :: Builtins.String -> a -> a
 -- The builtin trace is just a side-effecting function that returns unit, so
@@ -102,27 +99,22 @@ trace :: Builtins.String -> a -> a
 -- thrown away by GHC or the PIR compiler.
 trace str a = case Builtins.trace str of () -> a
 
-{-# INLINABLE traceH #-}
 -- | A version of 'trace' that takes a Haskell 'String'.
 traceH :: String -> a -> a
 traceH str = trace (toPlutusString str)
 
-{-# INLINABLE traceErrorH #-}
 -- | Log a message and then terminate the evaluation with an error.
 traceErrorH :: String -> a
 traceErrorH str = error (traceH str ())
 
-{-# INLINABLE traceIfFalseH #-}
 -- | Emit the given Haskell 'String' only if the argument evaluates to 'False'.
 traceIfFalseH :: String -> Bool -> Bool
 traceIfFalseH str a = if a then True else traceH str False
 
-{-# INLINABLE traceIfTrueH #-}
 -- | Emit the given Haskell 'String' only if the argument evaluates to 'True'.
 traceIfTrueH :: String -> Bool -> Bool
 traceIfTrueH str a = if a then traceH str True else False
 
-{-# INLINABLE and #-}
 -- | Logical AND
 --
 --   >>> and True False
@@ -131,7 +123,6 @@ traceIfTrueH str a = if a then traceH str True else False
 and :: Bool -> Bool -> Bool
 and l r = if l then r else False
 
-{-# INLINABLE or #-}
 -- | Logical OR
 --
 --   >>> or True False
@@ -140,7 +131,6 @@ and l r = if l then r else False
 or :: Bool -> Bool -> Bool
 or l r = if l then True else r
 
-{-# INLINABLE not #-}
 -- | Logical negation
 --
 --   >>> not True
@@ -149,7 +139,6 @@ or l r = if l then True else r
 not :: Bool -> Bool
 not a = if a then False else True
 
-{-# INLINABLE gt #-}
 -- | Greater than
 --
 --   >>> gt 2 1
@@ -158,7 +147,6 @@ not a = if a then False else True
 gt :: Integer -> Integer -> Bool
 gt = Builtins.greaterThanInteger
 
-{-# INLINABLE geq #-}
 -- | Greater than or equal to
 --
 --   >>> geq 2 2
@@ -167,7 +155,6 @@ gt = Builtins.greaterThanInteger
 geq :: Integer -> Integer -> Bool
 geq = Builtins.greaterThanEqInteger
 
-{-# INLINABLE lt #-}
 -- | Less than
 --
 --   >>> lt 2 1
@@ -176,7 +163,6 @@ geq = Builtins.greaterThanEqInteger
 lt :: Integer -> Integer -> Bool
 lt = Builtins.lessThanInteger
 
-{-# INLINABLE leq #-}
 -- | Less than or equal to
 --
 --   >>> leq 2 2
@@ -185,7 +171,6 @@ lt = Builtins.lessThanInteger
 leq :: Integer -> Integer -> Bool
 leq = Builtins.lessThanEqInteger
 
-{-# INLINABLE eq #-}
 -- | Eq for 'Integer'
 --
 --   >>> eq 2 1
@@ -194,7 +179,6 @@ leq = Builtins.lessThanEqInteger
 eq :: Integer -> Integer -> Bool
 eq = Builtins.equalsInteger
 
-{-# INLINABLE plus #-}
 -- | Addition
 --
 --   >>> plus 2 1
@@ -203,7 +187,6 @@ eq = Builtins.equalsInteger
 plus :: Integer -> Integer -> Integer
 plus = Builtins.addInteger
 
-{-# INLINABLE minus #-}
 -- | Subtraction
 --
 --   >>> minus 2 1
@@ -212,7 +195,6 @@ plus = Builtins.addInteger
 minus :: Integer -> Integer -> Integer
 minus = Builtins.subtractInteger
 
-{-# INLINABLE multiply #-}
 -- | Multiplication
 --
 --   >>> multiply 2 1
@@ -221,7 +203,6 @@ minus = Builtins.subtractInteger
 multiply :: Integer -> Integer -> Integer
 multiply = Builtins.multiplyInteger
 
-{-# INLINABLE divide #-}
 -- | Integer division
 --
 --   >>> divide 3 2
@@ -230,7 +211,6 @@ multiply = Builtins.multiplyInteger
 divide :: Integer -> Integer -> Integer
 divide = Builtins.divideInteger
 
-{-# INLINABLE remainder #-}
 -- | Remainder (of integer division)
 --
 --   >>> remainder 3 2
@@ -239,7 +219,6 @@ divide = Builtins.divideInteger
 remainder :: Integer -> Integer -> Integer
 remainder = Builtins.remainderInteger
 
-{-# INLINABLE min #-}
 -- | The smaller of two 'Integer's
 --
 --   >>> min 10 5
@@ -248,7 +227,6 @@ remainder = Builtins.remainderInteger
 min :: Integer -> Integer -> Integer
 min a b = if Builtins.lessThanInteger a b then a else b
 
-{-# INLINABLE max #-}
 -- | The larger of two 'Integer's
 --
 --   >>> max 10 5
@@ -257,7 +235,6 @@ min a b = if Builtins.lessThanInteger a b then a else b
 max :: Integer -> Integer -> Integer
 max a b = if Builtins.greaterThanInteger a b then a else b
 
-{-# INLINABLE isJust #-}
 -- | Check if a 'Maybe' @a@ is @Just a@
 --
 --   >>> isJust Nothing
@@ -268,7 +245,6 @@ max a b = if Builtins.greaterThanInteger a b then a else b
 isJust :: Maybe a -> Bool
 isJust m = case m of { Just _ -> True; _ -> False; }
 
-{-# INLINABLE isNothing #-}
 -- | Check if a 'Maybe' @a@ is @Nothing@
 --
 --   >>> isNothing Nothing
@@ -279,7 +255,6 @@ isJust m = case m of { Just _ -> True; _ -> False; }
 isNothing :: Maybe a -> Bool
 isNothing m = case m of { Just _ -> False; _ -> True; }
 
-{-# INLINABLE maybe #-}
 -- | PlutusTx version of 'Prelude.maybe'.
 --
 --   >>> maybe "platypus" (\s -> s) (Just "plutus")
@@ -292,7 +267,6 @@ maybe b f m = case m of
     Nothing -> b
     Just a  -> f a
 
-{-# INLINABLE null #-}
 -- | PlutusTx version of 'Data.List.null'.
 --
 --   >>> null [1]
@@ -305,7 +279,6 @@ null l = case l of
     [] -> True
     _  -> False
 
-{-# INLINABLE map #-}
 -- | PlutusTx version of 'Data.List.map'.
 --
 --   >>> map (\i -> i + 1) [1, 2, 3]
@@ -316,7 +289,6 @@ map f l = case l of
     []   -> []
     x:xs -> f x : map f xs
 
-{-# INLINABLE foldr #-}
 -- | PlutusTx version of 'Data.List.foldr'.
 --
 --   >>> foldr (\i s -> s + i) 0 [1, 2, 3, 4]
@@ -327,7 +299,6 @@ foldr f acc l = case l of
     []   -> acc
     x:xs -> f x (foldr f acc xs)
 
-{-# INLINABLE foldl #-}
 -- | PlutusTx version of 'Data.List.foldl'.
 --
 --   >>> foldl (\s i -> s + i) 0 [1, 2, 3, 4]
@@ -338,7 +309,6 @@ foldl f acc l = case l of
     []   -> acc
     x:xs -> foldl f (f acc x) xs
 
-{-# INLINABLE length #-}
 -- | 'length' @xs@ is the number of elements in @xs@.
 --
 --   >>> length [1, 2, 3, 4]
@@ -348,7 +318,6 @@ length :: [a] -> Integer
 -- eta-expanded to avoid the value restriction
 length as = foldr (\_ acc -> plus acc 1) 0 as
 
-{-# INLINABLE all #-}
 -- | PlutusTx version of 'Data.List.all'.
 --
 --   >>> all (\i -> i > 5) [6, 8, 12]
@@ -357,7 +326,6 @@ length as = foldr (\_ acc -> plus acc 1) 0 as
 all :: (a -> Bool) -> [a] -> Bool
 all pred = foldr (\a acc -> acc `and` pred a) True
 
-{-# INLINABLE any #-}
 -- | PlutusTx version of 'Data.List.any'.
 --
 --   >>> any (\i -> i > 5) [6, 2, 1]
@@ -366,7 +334,6 @@ all pred = foldr (\a acc -> acc `and` pred a) True
 any :: (a -> Bool) -> [a] -> Bool
 any pred = foldr (\a acc -> acc `or` pred a) False
 
-{-# INLINABLE append #-}
 -- | PlutusTx version of 'Data.List.(++)'.
 --
 --   >>> append [0, 1, 2] [1, 2, 3, 4]
@@ -375,7 +342,6 @@ any pred = foldr (\a acc -> acc `or` pred a) False
 append :: [a] -> [a] -> [a]
 append l r = foldr (:) r l
 
-{-# INLINABLE filter #-}
 -- | PlutusTx version of 'Data.List.filter'.
 --
 --   >>> filter (> 1) [1, 2, 3, 4]
@@ -384,7 +350,6 @@ append l r = foldr (:) r l
 filter :: (a -> Bool) -> [a] -> [a]
 filter pred = foldr (\e xs -> if pred e then e:xs else xs) []
 
-{-# INLINABLE mapMaybe #-}
 -- | PlutusTx version of 'Data.Maybe.mapMaybe'.
 --
 --   >>> mapMaybe (\i -> if i == 2 then Just '2' else Nothing) [1, 2, 3, 4]
@@ -393,12 +358,10 @@ filter pred = foldr (\e xs -> if pred e then e:xs else xs) []
 mapMaybe :: (a -> Maybe b) -> [a] -> [b]
 mapMaybe pred = foldr (\e xs -> case pred e of { Just e' -> e':xs; Nothing -> xs}) []
 
-{-# INLINABLE fst #-}
 -- | PlutusTx version of 'Data.Tuple.fst'
 fst :: (a, b) -> a
 fst (a, _) = a
 
-{-# INLINABLE snd #-}
 -- | PlutusTx version of 'Data.Tuple.snd'
 snd :: (a, b) -> b
 snd (_, b) = b
