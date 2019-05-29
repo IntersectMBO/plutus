@@ -57,6 +57,7 @@
 % *** DEFINITIONS FOR PLUTUS LANGUAGE ***
 
 \newcommand{\todompj}[1]{\todo[inline,color=yellow!40,author=Michael]{#1}}
+\newcommand{\todokwxm}[1]{\todo[inline,color=blue!40,author=Kenneth]{#1}}
 
 %%% General Misc. Definitions
 
@@ -324,16 +325,16 @@ may use the multi-argument forms.
 \begin{itemize}
 \item $\con{cn}$ represents a constant belonging to some built-in
   type: for example \texttt{(con 4)} is an integer with the value 127.
-  See \cref{sec:builtins} for more on this.
+  See \cref{sec:builtins}.
 \item $\abs{\alpha}{K}{V}$ represents a polymorphic value abstracted
   over a type; this would often be donated by $\Lambda\alpha{::}K.V$.
   Note that we require the body of the abstraction to be a
   \textit{value}, not a term: see the note on the value restriction below.
 \item $\inst{M}{A}$ represents a polymorphic term instantiated at a particular type.
-\item $\iwrap{A}{B}{M}$ and $\unwrap{M}$: see the note on recursive types below.
+\item $\iwrap{A}{B}{M}$ and $\unwrap{M}$: see \cref{sec:ifix-note}.
 \item $\lam{x}{A}{M}$ is standard lambda-abstraction, $\lambda{}x{:}{A}.{M}$.
 \item $\app{M}{N}$ is standard function application.
-\item $\builtin{bn}{A^*}{M^*}$ is application of a built-in function: see \cref{sec:builtins} for more information.
+\item $\builtin{bn}{A^*}{M^*}$ is application of a built-in function: see \cref{sec:builtins}.
 \item $\error{A}$ causes an error, terminating computation immediately.
 \end{itemize}
 
@@ -357,11 +358,11 @@ may use the multi-argument forms.
 \begin{itemize}
 \item $\funT{A}{B}$ is the type of functions from $A$ to $B$, $A \rightarrow B$.
 \item $\allT{\alpha}{K}{A}$ represents the type of a polymorphic term (eg a type abstraction), $\forall \alpha{::}K.A$.
-\item $\fixT{A}{B}$ represents a recursive type: see the note in \cref{sec:ifix-note} below for more information.
+\item $\fixT{A}{B}$ represents a recursive type: see \cref{sec:ifix-note}.
 \item $\lamT{\alpha}{K}{A}$ is abstraction of types over types, $\lambda \alpha{::}K.A$.
 \item $\appT{A}{B}$ is function application at the type level.
 \item $\conT{tcn}$ represents a built-in type: for example, $\conT{\textrm{integer}}$
-is the type of integers.  See \cref{sec:builtins} for more information.
+is the type of integers.  See \cref{sec:builtins}.
 \end{itemize}
 
 \paragraph{Type Values.} All types can be reduced to a type value (or
@@ -404,63 +405,42 @@ Plutus Core language.
 
 \subsection{More detailed remarks}
 \subsubsection{Type Normalisation}
- Type checking requires normalisation to be performed, for example to
- check that two types are equal.  This process can be expensive, so we
- require that code supplied for on-chain execution comes with all type
- annotations pre-normalised.  This can be done during off-chain type
- checking.  Another issue here is that normalisation can cause the
- size of a type to increase (in the worst case, exponentially), and
- requiring normalisation to be performed before a program is submitted
- to the chain reduces on-chain gas costs.
+Type checking requires normalising types, for example to
+check that two types are equal.  This process can be expensive, so we
+require that code supplied for on-chain execution comes with all type
+annotations pre-normalised, which allows the typechecker to perform
+normalizing substitutions and so only deal with normalised types.
+This can be done during off-chain type
+checking.  Another issue here is that normalisation can cause the
+size of a type to increase (in the worst case, exponentially),
+requiring normalisation to be performed before a program is submitted
+to the chain reduces on-chain gas costs.
 
-%% \subsubsection{Sizes and built-in types and functions}
-%% \label{sec:size-note}
-%% Details of built-in types and functions are given
-%% in \cref{sec:builtins}, but a remark on sizes may be helpful at this
-%% point.  Plutus Core currently provides two types of built-in data with
-%% variable sizes: integers and bytestrings (blocks of binary data used
-%% for cryptographic purposes).  There is no fixed upper bound on the
-%% size of values of these types, but -- as mentioned in the introduction -- it
-%% could be problematic if users were allowed to create values of arbitrary size
-%% at runtime. To avoid this, sizes are tracked in the type system so that
-%% appropriate charges can be made.
-
-%% For integers, this works as follows (the system for
-%% bytestrings is similar).  Integers are signed values:
-%% there is no fixed upper bound, but values are represented as sequences
-%% of a specified number of 8-bit bytes.  For example, \texttt{1~!~100}
-%% is the integer 100 stored as a single byte.  Literal constants must
-%% fit into the specified size: \texttt{1~!~200} gives a compile-time
-%% error. If a value overflows at runtime then an error occurs and
-%% execution is terminated.  Integers are manipulated using built-in
-%% functions (see \cref{fig:builtins}) whose types
-%% include the size. This prevents users from writing programs which
-%% generate arbitrarily large values during execution; it also allows us
-%% to charge according to the actual amount of computation performed,
-%% which will increase as the size of the integers involved increases.
-
+\todompj{I don't understand the last sentence. Why is it an issue to reduce
+  costs? Also, it reduces typechecking costs, but may well increase the cost for
+  the size of the program, which as you've pointed out can be exponential.}
 
 \subsubsection{Recursive types}
 \label{sec:ifix-note}
-\noindent
 The operator \texttt{ifix} allows one to define recursive types in
 Plutus Core: \texttt{ifix A B} is a type such that \texttt{ifix A B
-  $\cong$ A (ifix A) B} where \texttt{A} is a \textit{pattern
+  $\cong$ A (ifix A) B} where \texttt{A} is a \emph{pattern
   functor}~\citep[2.4]{backhouseetal98} and \texttt{B} is an
-index. Pattern functors that \texttt{ifix} receives bind two variables:
+index. Pattern functors bind two variables:
 one for building recursive occurrences and the other to act as an
-index. Indices can be used in order to get parameterised data types,
-but also in order to control the shape of the data type: depending on
+index. Indices can be used to encode parameterised data types,
+but also to control the shape of the data type: depending on
 an index, recursive occurrences can be instantiated differently.  This
 allows us to encode a wide variety of data types, including non-regular and
-mutually recursive data types\blue{\footnote{\blue{We could do with more detail (or perhaps an example) here, since
+mutually recursive data types.
+\todokwxm{We could do with more detail (or perhaps an example) here, since
   it'll be much more difficult for the reader to work out what's going
   on than with standard \texttt{fix}.  With luck we'll soon have a publication
-  to refer to.}}}.
+  to refer to.}
 
-Note that we have an \textit{isomporhism} of types here rather than
+Note that we have an \emph{isomporhism} of types here rather than
 equality: fixpoint types are
-\textit{isorecursive}~\citep[20.2]{Pierce:TAPL} with explicit maps
+\emph{isorecursive}~\citep[20.2]{Pierce:TAPL} with explicit maps
 
 $$
 \texttt{iwrap} : \texttt{A (fix A) B} \rightarrow \texttt{ifix A B}
