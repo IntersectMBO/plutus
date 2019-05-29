@@ -27,8 +27,8 @@ import qualified PrelNames                              as GHC
 
 import qualified Language.PlutusIR                      as PIR
 import qualified Language.PlutusIR.Compiler.Definitions as PIR
-import qualified Language.PlutusIR.MkPir                as PIR
 import           Language.PlutusIR.Compiler.Names
+import qualified Language.PlutusIR.MkPir                as PIR
 import qualified Language.PlutusIR.Value                as PIR
 
 import qualified Language.PlutusCore                    as PLC
@@ -40,8 +40,8 @@ import qualified Data.ByteString.Lazy                   as BSL
 import           Data.List                              (elem, elemIndex)
 import qualified Data.List.NonEmpty                     as NE
 import qualified Data.Set                               as Set
-import           Data.Traversable
 import qualified Data.Text                              as T
+import           Data.Traversable
 
 {- Note [System FC and System FW]
 Haskell uses system FC, which includes type equalities and coercions.
