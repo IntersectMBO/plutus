@@ -438,7 +438,7 @@ mutually recursive data types.
   on than with standard \texttt{fix}.  With luck we'll soon have a publication
   to refer to.}
 
-Note that we have an \emph{isomporhism} of types here rather than
+Note that we have an \emph{isomorphism} of types here rather than
 equality: fixpoint types are
 \emph{isorecursive}~\citep[20.2]{Pierce:TAPL} with explicit maps
 
@@ -449,7 +449,7 @@ $$
 \noindent and
 
 $$
-\texttt{unwrap} : \texttt{ifix A B} \rightarrow  \texttt{A (ifix A) B}
+\texttt{unwrap} : \texttt{ifix A B} \rightarrow \texttt{A (ifix A) B}
 $$
 
 \noindent such that
@@ -479,35 +479,32 @@ abstractions include non-values; other issues are explored
 in~\citep[2.4]{Ahmed:2017}. Plutus Core's restriction to values avoids
 these problems and is not very onerous in practice.
 
+\todompj{Is it definitely a \emph{generalization} of the ML case? Shame there
+  isn't a better cite about why we do this.}
+
+\todompj{Include something about erasure: the fact that it lets us soundly erase
+  an abstraction to its body is important.}
+
 \section{Type Correctness}
 
 We define for Plutus Core a number of typing judgments which explain
-ways that a program can be well-formed. First, in
-\cref{fig:contexts}, we define the grammar of contexts as
-contexts appear here for the first time. Contexts are sequences of
+ways that a program can be well-formed.
+
+First, in \cref{fig:contexts}, we define the grammar of contexts, which
+appear here for the first time. Contexts are sequences of
 variables. In System F there are two different sorts of variables:
 term variables and type variables. For succinctness of presentation we
 keep information about both sorts of variables in the same
 context. Type variables carry their name and a kind and term variables
 carry their name and a type. The rules for context validity explain
-how valid contexts can be constructed, the empty context is valid,
+how valid contexts can be constructed: the empty context is valid;
 given valid context $\Gamma$, it can be extended with a fresh variable
-and kind or a fresh variable and a valid type in $\Gamma$. Note we do
-not need a separate judgement for valid kinds. They are so simple that
+and kind or a fresh variable and a valid type in $\Gamma$.
+
+Note that we do not need a separate judgement for kind validity.
+Our kinds are so simple that
 any kind that can be constructed according to the grammar is a valid
 kind.
-
-%We also consider variable judgements in
-%\cref{fig:contexts}. Technically this judgement is defined
-%mutually with the typing and kinding judgement defined in
-%\cref{fig:type_synthesis, fig:kind_synthesis}. We give axiomatic rules for term
-%and type variables at the right-hand end of the context. For term and
-%type variables defined further to the left in the context the
-%judgement is dependent on a judgement about a shorter context. These
-%two styles of rules for all combinations of term and type variables
-%allow us to give judgements for variables in all positions in the
-%context. This style of presentation is analogous to how one might
-%define instrinsically typed/kinded de Bruijn indices.
 
 %% ---------------- Contexts ---------------- %%
 
@@ -585,8 +582,7 @@ it means for a type to synthesise a kind. Plutus Core is a
 higher-kinded version of System F, so we have a number of standard
 System F rules (tyvar,tyall,tyfun) together with some extensions with
 extensions to higher kinds (tylam,tyapp) and to indexed
-recursive types (tyfix). We also introduce builtin types (tycon) to
-support integers and bytestrings.
+recursive types (tyfix). We also have the tycon rule to support builtin types.
 
 %% ---------------- Kind synthesis ---------------- %%
 
@@ -647,11 +643,13 @@ support integers and bytestrings.
 
 \noindent In \cref{fig:type_synthesis}, we define the type
 synthesis judgment, which explains how a term synthesises a type. We
-have rules analogous to STLC (var,lam,app), extensions to System F
-(abs,inst). Higher-kinding introduces computation in types so we need
+have rules analogous to those for the simply typed lambda calculus (var,lam,app),
+and System F (abs,inst). Higher kinds lead to computation in types, so we need
 the rule conv. Iso-recursive types introduce terms for wrapping and
 unwrapping recursive values (wrap,unwrap), and to support constants
 and builtins we have con, builtin and error.
+
+Type synthesis relies on type equivalence as defined in \cref{fig:type-equivalence}.
 
 %% ---------------- Type synthesis ---------------- %%
 
@@ -748,10 +746,7 @@ and builtins we have con, builtin and error.
 \end{figure}
 
 \noindent Finally, type synthesis for builtins are elaborated in tabular form
-rather than in inference rule form, in
-\cref{fig:builtins}, which also gives the reduction
-semantics. This table also specifies what conditions trigger an error.
-
+rather than in inference rule form, in \cref{fig:builtins}.
 
 \section{Reduction and Execution}
 \label{sec:reduction}
@@ -780,7 +775,12 @@ have. In this setting, we would pick some upper bound $\mathit{max}$
 and then perform steps of terms $M$ by computing which $M'$ is such
 that \(\multistepIndexed{M}{\mathit{max}}{M'}\).
 
-
+A version of the typesystem
+which incorporates such an upper bound on computation can be found in
+\cref{sec:algorithmic-restricted}.
+\todompj{What about bounded term reduction? We go as far as having a figure for
+  type reduction, why not for term reduction? Maybe put both in a section at the
+  end of the reduction section and then reference from the appendix?}
 
 \subsection{Type reduction}
 Because the Plutus Core type system contains a copy of the simply
@@ -791,8 +791,8 @@ level.  In conjunction with the fact that type reduction always
 terminates, this allows us to perform normalisation (i.e., reduction to
 a form which cannot undergo any further reduction) statically, before
 execution begins.  \Cref{fig:type-reduction} contains the rules
-for type reduction, and \cref{fig:type-equivalence} contains
-rules for type equivalence.
+for type reduction, giving a standard contextual semantics; and
+\cref{fig:type-equivalence} contains rules for type equivalence.
 
 \subfile{figures/TypeReduction}
 
@@ -801,8 +801,8 @@ rules for type equivalence.
 \subsection{Term reduction}
 Execution of Plutus Core programs is performed by (possibly
 non-terminating) reduction of well-typed terms.  The reduction rules
-are contained in \cref{fig:term-reduction}, and give us a fairly
-standard operational semantics.
+are contained in \cref{fig:term-reduction}, and give us a
+standard contextual semantics.
 
 \subfile{figures/TermReduction}
 
@@ -990,6 +990,7 @@ section.
 
 \begin{appendices}
 \section{Unrestricted Algorithmic Type System}
+\label{sec:algorithmic}
 
 For implementation purposes it is useful to have a variant of the type
 system that is more algorithmic in its presentation. We give this
@@ -1002,6 +1003,7 @@ each rule that is different, where possible (\cref{fig:contexts_algorithmic_unre
 \newpage
 
 \section{Restricted Algorithmic Type System}
+\label{sec:restricted-algorithmic}
 
 For blockchain purposes, it is useful to not only have an algorithmic
 system, but to require that no un-normalised types are present in
