@@ -10,13 +10,13 @@ for instance, we write
    |\one| : |\unit|
    |\one| = (abs $a$ (type) (lam $x$ $a$ $x$))
 \end{lstlisting}
-for the element of the type $unit$ (defined Figure~\ref{fig:type_abbreviations}).
+for the element of the type $unit$ (defined \cref{fig:type_abbreviations}).
 
 We stress that declarations in this style are not part of the Plutus
 Core language. We merely use the familiar syntax to present our
 example. If the high-level definitions in our example were compiled to
-a Plutus Core expression, it would result in something like Figure
-\ref{fig:Continuized_Let_Example}.
+a Plutus Core expression, it would result in something like
+\cref{fig:Continuized_Let_Example}.
 
 We proceed by defining the booleans. Like \textit{unit}, the type \textit{boolean}
 below is an abbreviation in the specification. Some built-in constants
@@ -95,9 +95,9 @@ Alice's public key we can apply our function to obtain one that
 verifies whether or not its input is the result of Alice signing the
 current block number. Again, we stress that the Plutus Core expression
 corresponding to \texttt{verifyIdentity} is going to look something
-like Figure \ref{fig:Continuized_Let_Example}.
+like \cref{fig:Continuized_Let_Example}.
 
-% The next bit no longer makes a lot of sense because 
+% The next bit no longer makes a lot of sense because
 
 %% With minimal modification we might turn our function into one that
 %% verifies a signature of the current block number; specifically, we
@@ -121,7 +121,7 @@ like Figure \ref{fig:Continuized_Let_Example}.
 \begin{lstlisting}
 (lam |\pubkey| (con bytestring)
 (lam |\signed| (con bytestring)
-    [ 
+    [
     {
         (abs $a$ (type)
         (lam $b$ (all $a$ (type) (fun $a$ (fun $a$ $a$)))
@@ -153,4 +153,3 @@ like Figure \ref{fig:Continuized_Let_Example}.
 \end{figure*}
 
 \end{document}
-

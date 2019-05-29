@@ -50,7 +50,8 @@
   escapeinside={|}{|}   %% Inside listings you can say things like |\textit{blah blah}|
 }
 
-
+\usepackage{hyperref}
+\usepackage{cleveref}
 
 
 % *** DEFINITIONS FOR PLUTUS LANGUAGE ***
@@ -274,8 +275,7 @@ type checking.
 \section{Syntax}
 
 The grammar of Plutus Core is given in
-Figures~\ref{fig:lexical_grammar} and
-\ref{fig:grammar}. This grammar describes the abstract
+\cref{fig:lexical_grammar,fig:grammar}. This grammar describes the abstract
 syntax trees of Plutus Core in a convenient notation which can also be
 used as concrete syntax for purposes such as experimentation and
 debugging.
@@ -324,7 +324,7 @@ may use the multi-argument forms.
 \begin{itemize}
 \item $\con{cn}$ represents a constant belonging to some built-in
   type: for example \texttt{(con 4)} is an integer with the value 127.
-  See Section~\ref{sec:builtins} for more on this.
+  See \cref{sec:builtins} for more on this.
 \item $\abs{\alpha}{K}{V}$ represents a polymorphic value abstracted
   over a type; this would often be donated by $\Lambda\alpha{::}K.V$.
   Note that we require the body of the abstraction to be a
@@ -333,7 +333,7 @@ may use the multi-argument forms.
 \item $\iwrap{A}{B}{M}$ and $\unwrap{M}$: see the note on recursive types below.
 \item $\lam{x}{A}{M}$ is standard lambda-abstraction, $\lambda{}x{:}{A}.{M}$.
 \item $\app{M}{N}$ is standard function application.
-\item $\builtin{bn}{A^*}{M^*}$ is application of a built-in function: see Section~\ref{sec:builtins} for more information.
+\item $\builtin{bn}{A^*}{M^*}$ is application of a built-in function: see \cref{sec:builtins} for more information.
 \item $\error{A}$ causes an error, terminating computation immediately.
 \end{itemize}
 
@@ -357,11 +357,11 @@ may use the multi-argument forms.
 \begin{itemize}
 \item $\funT{A}{B}$ is the type of functions from $A$ to $B$, $A \rightarrow B$.
 \item $\allT{\alpha}{K}{A}$ represents the type of a polymorphic term (eg a type abstraction), $\forall \alpha{::}K.A$.
-\item $\fixT{A}{B}$ represents a recursive type: see the note in Section~\ref{sec:ifix-note} below for more information.
+\item $\fixT{A}{B}$ represents a recursive type: see the note in \cref{sec:ifix-note} below for more information.
 \item $\lamT{\alpha}{K}{A}$ is abstraction of types over types, $\lambda \alpha{::}K.A$.
 \item $\appT{A}{B}$ is function application at the type level.
 \item $\conT{tcn}$ represents a built-in type: for example, $\conT{\textrm{integer}}$
-is the type of integers.  See Section~\ref{sec:builtins} for more information.
+is the type of integers.  See \cref{sec:builtins} for more information.
 \end{itemize}
 
 \paragraph{Type Values.} All types can be reduced to a type value (or
@@ -376,7 +376,7 @@ is the type of integers.  See Section~\ref{sec:builtins} for more information.
   opportunities for type reduction and thus have little effect on the
   proof.
 
-\paragraph{Kinds.} In Plutus Core we have a copy of the 
+\paragraph{Kinds.} In Plutus Core we have a copy of the
 simply typed lambda calculus at the type level. The types of the
 simply typed lambda calculus are lifted to the level of
 \textit{kinds} in Plutus Core, allowing the type system to talk about
@@ -394,7 +394,7 @@ Signatures are not used in the concrete syntax of Plutus Core, but we
 do use them later in this document, in typing rules and in the
 description of built-in values and functions.
 
-\paragraph{Programs and Versions.} A complete Plutus Core program 
+\paragraph{Programs and Versions.} A complete Plutus Core program
 consists of a standard version number (1.0.2, for example) indicating
 the Plutus Core version and a \textit{closed} term (i.e., a term with no
 free variables) forming the body of the program.  The version number
@@ -416,16 +416,16 @@ Plutus Core language.
 %% \subsubsection{Sizes and built-in types and functions}
 %% \label{sec:size-note}
 %% Details of built-in types and functions are given
-%% in Section~\ref{sec:builtins}, but a remark on sizes may be helpful at this
+%% in \cref{sec:builtins}, but a remark on sizes may be helpful at this
 %% point.  Plutus Core currently provides two types of built-in data with
 %% variable sizes: integers and bytestrings (blocks of binary data used
 %% for cryptographic purposes).  There is no fixed upper bound on the
 %% size of values of these types, but -- as mentioned in the introduction -- it
-%% could be problematic if users were allowed to create values of arbitrary size 
-%% at runtime. To avoid this, sizes are tracked in the type system so that 
-%% appropriate charges can be made. 
+%% could be problematic if users were allowed to create values of arbitrary size
+%% at runtime. To avoid this, sizes are tracked in the type system so that
+%% appropriate charges can be made.
 
-%% For integers, this works as follows (the system for 
+%% For integers, this works as follows (the system for
 %% bytestrings is similar).  Integers are signed values:
 %% there is no fixed upper bound, but values are represented as sequences
 %% of a specified number of 8-bit bytes.  For example, \texttt{1~!~100}
@@ -433,7 +433,7 @@ Plutus Core language.
 %% fit into the specified size: \texttt{1~!~200} gives a compile-time
 %% error. If a value overflows at runtime then an error occurs and
 %% execution is terminated.  Integers are manipulated using built-in
-%% functions (see Figure~\ref{fig:builtins}) whose types
+%% functions (see \cref{fig:builtins}) whose types
 %% include the size. This prevents users from writing programs which
 %% generate arbitrarily large values during execution; it also allows us
 %% to charge according to the actual amount of computation performed,
@@ -498,12 +498,12 @@ is required to avoid a number of problems when (implicit) type
 abstractions include non-values; other issues are explored
 in~\citep[2.4]{Ahmed:2017}. Plutus Core's restriction to values avoids
 these problems and is not very onerous in practice.
-  
+
 \section{Type Correctness}
 
 We define for Plutus Core a number of typing judgments which explain
-ways that a program can be well-formed. First, in Figure
-\ref{fig:contexts}, we define the grammar of contexts as
+ways that a program can be well-formed. First, in
+\cref{fig:contexts}, we define the grammar of contexts as
 contexts appear here for the first time. Contexts are sequences of
 variables. In System F there are two different sorts of variables:
 term variables and type variables. For succinctness of presentation we
@@ -517,11 +517,10 @@ not need a separate judgement for valid kinds. They are so simple that
 any kind that can be constructed according to the grammar is a valid
 kind.
 
-%We also consider variable judgements in Figure
-%\ref{fig:contexts}. Technically this judgement is defined
-%mutually with the typing and kinding judgement defined in Figures
-%\ref{fig:type_synthesis} and
-%\ref{fig:kind_synthesis}. We give axiomatic rules for term
+%We also consider variable judgements in
+%\cref{fig:contexts}. Technically this judgement is defined
+%mutually with the typing and kinding judgement defined in
+%\cref{fig:type_synthesis, fig:kind_synthesis}. We give axiomatic rules for term
 %and type variables at the right-hand end of the context. For term and
 %type variables defined further to the left in the context the
 %judgement is dependent on a judgement about a shorter context. These
@@ -590,7 +589,7 @@ kind.
 %
 %     \begin{prooftree}
 %        \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{A}}\)}
-%        \AxiomC{\(x \not= y\)}        
+%        \AxiomC{\(x \not= y\)}
 %        \BinaryInfC{\(\ctxni{\Gamma, \termJ{y}{B}}{\termJ{x}{A}}\)}
 %    \end{prooftree}
 
@@ -600,8 +599,8 @@ kind.
     \label{fig:contexts}
 \end{figure}
 
-\newpage 
-\noindent Figure \ref{fig:kind_synthesis} defines what
+\newpage
+\noindent \cref{fig:kind_synthesis} defines what
 it means for a type to synthesise a kind. Plutus Core is a
 higher-kinded version of System F, so we have a number of standard
 System F rules (tyvar,tyall,tyfun) together with some extensions with
@@ -655,7 +654,7 @@ support integers and bytestrings.
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{$tcn$ is a type constant in in Figure \ref{fig:type_constants}}
+        \AxiomC{$tcn$ is a type constant in in \cref{fig:type_constants}}
         \RightLabel{tycon}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\conT{tcn}}{\typeK{}}}\)}
     \end{prooftree}
@@ -666,7 +665,7 @@ support integers and bytestrings.
 \end{figure}
 
 
-\noindent In Figure \ref{fig:type_synthesis}, we define the type
+\noindent In \cref{fig:type_synthesis}, we define the type
 synthesis judgment, which explains how a term synthesises a type. We
 have rules analogous to STLC (var,lam,app), extensions to System F
 (abs,inst). Higher-kinding introduces computation in types so we need
@@ -686,7 +685,7 @@ and builtins we have con, builtin and error.
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{$cn$ has constant signature $\constsig{tcn}$ in Figure \ref{fig:constants}}
+        \AxiomC{$cn$ has constant signature $\constsig{tcn}$ in \cref{fig:constants}}
         \RightLabel{con}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{cn}{\conT{tcn}}}\)}
     \end{prooftree}
@@ -742,7 +741,7 @@ and builtins we have con, builtin and error.
 
     \begin{prooftree}
         \alwaysNoLine
-        \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in Figure \ref{fig:builtins}}
+        \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in \cref{fig:builtins}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M_i}{D_i}}\)}
         \UnaryInfC{\(\typeEquiv{D_i}{\subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{B_i}}\)}
         \alwaysSingleLine
@@ -755,7 +754,7 @@ and builtins we have con, builtin and error.
         \RightLabel{error}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\error{A}}{A}}\)}
     \end{prooftree}
-    
+
     \begin{prooftree}
     	\AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{A}}\)}
 		\AxiomC{\(\typeEquiv{A}{A'}\)}
@@ -769,8 +768,8 @@ and builtins we have con, builtin and error.
 \end{figure}
 
 \noindent Finally, type synthesis for builtins are elaborated in tabular form
-rather than in inference rule form, in Figure
-\ref{fig:builtins}, which also gives the reduction
+rather than in inference rule form, in
+\cref{fig:builtins}, which also gives the reduction
 semantics. This table also specifies what conditions trigger an error.
 
 
@@ -781,12 +780,12 @@ In this section we define a standard eager,
 small-step contextual semantics~\citep[5.3]{Harper:PFPL} (or
 \textit{reduction semantics}~\citep[\S2]{Felleisen-Hieb}) for Plutus
 Core in terms of the reduction relation for types
-(\(\typeStep{A}{A'}\)) (Figure~\ref{fig:type-reduction}) 
-and terms (\(\step{M}{M'}\)) (Figure~\ref{fig:term-reduction}), which
+(\(\typeStep{A}{A'}\)) (\cref{fig:type-reduction})
+and terms (\(\step{M}{M'}\)) (\cref{fig:term-reduction}), which
 incorporates both $\beta$ reduction and contextual congruence. We make
 use of the transitive closure of these stepping relations via the
 usual Kleene star notation.
-% It seems that Harper talks about "contextual semactics" in the 
+% It seems that Harper talks about "contextual semactics" in the
 % first edition of his book, but changed it to "contextual dymanics"
 % in the second.  It doesn't seem to be a standard term elsewhere though.
 
@@ -811,8 +810,8 @@ given type into an equivalent type, and so have no effect on the term
 level.  In conjunction with the fact that type reduction always
 terminates, this allows us to perform normalisation (i.e., reduction to
 a form which cannot undergo any further reduction) statically, before
-execution begins.  Figure~\ref{fig:type-reduction} contains the rules
-for type reduction, and Figure~\ref{fig:type-equivalence} contains
+execution begins.  \Cref{fig:type-reduction} contains the rules
+for type reduction, and \cref{fig:type-equivalence} contains
 rules for type equivalence.
 
 \subfile{figures/TypeReduction}
@@ -822,15 +821,15 @@ rules for type equivalence.
 \subsection{Term reduction}
 Execution of Plutus Core programs is performed by (possibly
 non-terminating) reduction of well-typed terms.  The reduction rules
-are contained in Figure~\ref{fig:term-reduction}, and give us a fairly
-standard operational semantics.  
+are contained in \cref{fig:term-reduction}, and give us a fairly
+standard operational semantics.
 
 \subfile{figures/TermReduction}
 
 \subsection{An abstract machine for evaluating Plutus Core programs}
 This section contains a description of an abstract machine for
 executing Plutus Core.  This is based on the CK machine of Felleisen
-and Friedman~\citep{Felleisen-CK-CEK}. 
+and Friedman~\citep{Felleisen-CK-CEK}.
 
 This machine is intended as a reference implementation which is
 amenable to formalisation, ideally so that it can be proved to
@@ -850,7 +849,7 @@ purposes.
 \noindent The machine alternates between two main phases: the
 \textit{compute} phase ($\triangleright$), where it recurses down
 the AST looking for values, saving surrounding contexts as frames (or
-\textit{reduction contexts}) on a stack as it goes; and the 
+\textit{reduction contexts}) on a stack as it goes; and the
 \textit{return} phase ($\triangleleft$), where it has obtained a value and
 pops a frame off the stack to tell it how to proceed next.  In
 addition there is an error state $\blacklozenge$ which halts execution
@@ -860,7 +859,7 @@ returns a value to the outside world.
 To evaluate a program $\texttt{(program } v\ M \texttt{)}$, we first
 check that the version number $v$ is valid, then start the machine in
 the state $\cdot \triangleright M$.  It can be proved that the
-transitions in Figure~\ref{fig:ck_machine} always preserve
+transitions in \cref{fig:ck_machine} always preserve
 validity of states, so that the machine can never enter a state such as
   $\cdot \triangleleft M$
 or
@@ -881,21 +880,21 @@ to allow customisation for specialised blockchains.
 
 As mentioned earlier, there are two basic types: \texttt{integer} and
 \texttt{bytestring}.  These types are given in
-Figure~\ref{fig:type_constants}: for example \texttt{(con
+\cref{fig:type_constants}: for example \texttt{(con
   integer)} is the type of signed integers.
 We provide standard arithmetic and comparison operations for integers
 and a number of list-like functions for bytestrings. The details are
-given in Figure~\ref{fig:builtins}, using a number of
-abbreviations given in Figure~\ref{fig:type_abbreviations}.
+given in \cref{fig:builtins}, using a number of
+abbreviations given in \cref{fig:type_abbreviations}.
 
 
 Note the following:
 \begin{itemize}
-\item The built-in functions in Figure~\ref{fig:builtins}
-are all monomorphic, and hence the type arguments are all empty: []. 
+\item The built-in functions in \cref{fig:builtins}
+are all monomorphic, and hence the type arguments are all empty: [].
 It is possible that we may add some polymorphic built-in functions
 at some time in the future.
-\item Some of the entries in Figure~\ref{fig:builtins}
+\item Some of the entries in \cref{fig:builtins}
   contain \textit{success conditions}.  If a success condition is
   violated then the program terminates immediately and returns
   the value \texttt{(error)}.
@@ -913,7 +912,7 @@ at some time in the future.
   computation we'd probably have $d>0$, but it's worth being careful.}:
 
   \begin{itemize}
-  
+
   \item \texttt{divideInteger} and \texttt{modInteger} implement the
     standard mathematical integer division
     operations: \texttt{divideInteger} rounds downwards and the sign
@@ -928,7 +927,7 @@ at some time in the future.
     $n$.  These correspond to Haskell's \texttt{rem} and \texttt{quot}
     operators.  \end{itemize}
 
-  
+
 \item We use fixed Scott encodings for certain types and values, specifically for
   the \textit{unit} and \textit{boolean} types.  Compilers targeting
   Plutus Core must be aware of these encodings and use them
@@ -1016,8 +1015,7 @@ For implementation purposes it is useful to have a variant of the type
 system that is more algorithmic in its presentation. We give this
 here, showing the figures that have been changed (relative to the
 declarative version above), and highlighting the specific parts of
-each rule that is different, where possible (Figures~\ref{fig:contexts_algorithmic_unrestricted}
-and~\ref{fig:type_synthesis_algorithmic_unrestricted}) .
+each rule that is different, where possible (\cref{fig:contexts_algorithmic_unrestricted,fig:type_synthesis_algorithmic_unrestricted}) .
 
 \subfile{figures/TypeSynthesis-Algorithmic-Unrestricted.tex}
 
@@ -1032,7 +1030,7 @@ typecheck a program. It's also useful to have a way of bounding the
 amount of computation that can be done in type checking, for security
 purposes. To that end, we present a restricted grammar and type
 reduction, and a type system that reflects these.
-Figures~\ref{fig:grammar_algorithmic_restricted}--\ref{fig:type_synthesis_algorithmic_restricted}
+\Cref{fig:grammar_algorithmic_restricted, fig:type_synthesis_algorithmic_restricted}
 are additions with respect to the unrestricted version, and show only
 the new or changed figures and their respective highlighted
 differences.
