@@ -821,7 +821,7 @@ considerable amounts of time and space.  More efficient machines are
 available (for example the CEK machine from~\citep{Felleisen-CK-CEK},
 which uses environments binding actual arguments to variables), and in
 practice we would use something based on such a machine; however, the
-CK machine will still provide a useful bridge for formalisation
+CK machine still provides a useful bridge for formalisation
 purposes.
 
 \subfile{figures/CkMachine}
@@ -853,12 +853,12 @@ parsing or typechecking.
 
 \section{Built in types, functions, and values}
 \label{sec:builtins}
-Plutus Core comes with a pre-defined set of built-in types and
-functions which will be useful for blockchain applications.  The set
-of built-ins is fixed, although in future we may provide a framework
-to allow customisation for specialised blockchains.
 
-As mentioned earlier, there are two basic types: \texttt{integer} and
+Plutus Core comes with a pre-defined set of built-in types and
+functions.  The set of built-ins is fixed, although in future
+we may allow extensible builtins.
+
+There are two builtin types: \texttt{integer} and
 \texttt{bytestring}.  These types are given in
 \cref{fig:type_constants}: for example \texttt{(con
   integer)} is the type of signed integers.
@@ -867,17 +867,19 @@ and a number of list-like functions for bytestrings. The details are
 given in \cref{fig:builtins}, using a number of
 abbreviations given in \cref{fig:type_abbreviations}.
 
+\todompj{We barely use the abbreviations: I suggest ditching them or at most
+  scoping them to the examples section.}
 
 Note the following:
 \begin{itemize}
 \item The built-in functions in \cref{fig:builtins}
-are all monomorphic, and hence the type arguments are all empty: [].
-It is possible that we may add some polymorphic built-in functions
-at some time in the future.
+  are all monomorphic, and hence the type arguments are all empty: [].
+  It is possible that we may add polymorphic built-in functions
+  in the future, or that they may be used for extensible builtins.
 \item Some of the entries in \cref{fig:builtins}
   contain \emph{success conditions}.  If a success condition is
   violated then the program terminates immediately and returns
-  the value \texttt{(error)}.
+  an error.
 \item We provide two versions of the division and remainder operations
   for integers.  These differ in their treatment of negative
   arguments\footnote{The standard mathematical definition (the
@@ -906,14 +908,16 @@ at some time in the future.
     of \texttt{remainderInteger $n$ $d$} is the same as the sign of
     $n$.  These correspond to Haskell's \texttt{rem} and \texttt{quot}
     operators.  \end{itemize}
-
-
-\item We use fixed Scott encodings for certain types and values, specifically for
-  the \emph{unit} and \emph{boolean} types.  Compilers targeting
-  Plutus Core must be aware of these encodings and use them
-  appropriately.
 \end{itemize}
+
+\todompj{I'm not sure what the footnote about division is trying to get across.}
 \subfile{figures/Builtins}
+\todompj{\Cref{fig:constants} is hard to understand.}
+\todompj{\texttt{verifySignature} needs to say something about what crypto it is
+  using.}
+\todompj{\texttt{takeByteString} and \texttt{dropByteString} should perhaps
+  fail if the bytestring is shorter than the amount to be taken?}
+\todompj{The sha functions don't have a very informative semantics.}
 
 \section{Transaction Validation}
 The primary use for Plutus Core is for executing code on blockchain
@@ -942,21 +946,24 @@ The process of verifying that an output can be spent is called
 \emph{validation}, and is performed by executing \emph{scripts},
 which in our case will be Plutus Core programs.
 
-
 Cardano uses a validation strategy which we call the \emph{Extended
   UTXO model}.  A full specification of the Extended UTXO model is
 currently being prepared: in the meantime the fundamental ideas can be
 found in~\citep{Zahnentferner18-Chimeric} and
 \citep{Zahnentferner18-UTxO}.
 
-The basic idea is that when a transaction wishes $T$ to consume an
+The basic idea is that when a transaction $T$ wishes to consume an
 unspent output $U$, it applies a script called the \emph{validator}
 to another script called the \emph{redeemer}\footnote{The Extended
   UTXO model also involves another script called the \emph{data
-    script}, but for simplicity we won't discuss this here}; the
-validator also has access to certain parts of the blockchain state,
-such as the current block number (\emph{blocknum}) and the hash
-\emph{txhash} of the current transaction.  If the result of applying
+    script}, but for simplicity we won't discuss that here.}.
+
+The validator also has access to certain information about the transaction
+currently being validated, such as the hash of the current transaction. This
+information is passed in via an additional argument which we will not discuss
+here, in the example we will assume that the transaction hash is in scope as \texttt{txhash}.
+
+If the result of applying
 the validator to the redeemer is the Plutus Core \texttt{error} term
 then validation fails and the output cannot be spent; otherwise
 validation succeeds and the output can be spent.
@@ -996,7 +1003,7 @@ For implementation purposes it is useful to have a variant of the type
 system that is more algorithmic in its presentation. We give this
 here, showing the figures that have been changed (relative to the
 declarative version above), and highlighting the specific parts of
-each rule that is different, where possible (\cref{fig:contexts_algorithmic_unrestricted,fig:type_synthesis_algorithmic_unrestricted}) .
+each rule that is different, where possible (\cref{fig:contexts_algorithmic_unrestricted,fig:type_synthesis_algorithmic_unrestricted}).
 
 \subfile{figures/TypeSynthesis-Algorithmic-Unrestricted.tex}
 
@@ -1006,7 +1013,7 @@ each rule that is different, where possible (\cref{fig:contexts_algorithmic_unre
 \label{sec:restricted-algorithmic}
 
 For blockchain purposes, it is useful to not only have an algorithmic
-system, but to require that no un-normalised types are present in
+system, but to require that no non-normalised types are present in
 programs, so as to reduce the amount of computation necessary to
 typecheck a program. It's also useful to have a way of bounding the
 amount of computation that can be done in type checking, for security
