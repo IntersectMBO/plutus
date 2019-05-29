@@ -34,6 +34,10 @@ result*
 *.pdf
 *.gz
 *.synctex(busy)
+*.bbl
+*.blg
+*.out
+auto
 
 .terraform
 *.tfvars
