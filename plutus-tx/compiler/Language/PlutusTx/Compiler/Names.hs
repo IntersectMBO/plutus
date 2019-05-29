@@ -26,31 +26,31 @@ import qualified Data.Text                        as T
 lookupName :: Scope -> GHC.Name -> Maybe PLCVar
 lookupName (Scope ns _) n = Map.lookup n ns
 
-convNameFresh :: MonadQuote m => GHC.Name -> m (PLC.Name ())
-convNameFresh n = safeFreshName () $ T.pack $ GHC.getOccString n
+compileNameFresh :: MonadQuote m => GHC.Name -> m (PLC.Name ())
+compileNameFresh n = safeFreshName () $ T.pack $ GHC.getOccString n
 
-convVarFresh :: Converting m => GHC.Var -> m PLCVar
-convVarFresh v = do
-    t' <- convType $ GHC.varType v
-    n' <- convNameFresh $ GHC.getName v
+compileVarFresh :: Compiling m => GHC.Var -> m PLCVar
+compileVarFresh v = do
+    t' <- compileType $ GHC.varType v
+    n' <- compileNameFresh $ GHC.getName v
     pure $ PLC.VarDecl () n' t'
 
 lookupTyName :: Scope -> GHC.Name -> Maybe PLCTyVar
 lookupTyName (Scope _ tyns) n = Map.lookup n tyns
 
-convTyNameFresh :: MonadQuote m => GHC.Name -> m (PLC.TyName ())
-convTyNameFresh n = safeFreshTyName () $ T.pack $ GHC.getOccString n
+compileTyNameFresh :: MonadQuote m => GHC.Name -> m (PLC.TyName ())
+compileTyNameFresh n = safeFreshTyName () $ T.pack $ GHC.getOccString n
 
-convTyVarFresh :: Converting m => GHC.TyVar -> m PLCTyVar
-convTyVarFresh v = do
-    k' <- convKind $ GHC.tyVarKind v
-    t' <- convTyNameFresh $ GHC.getName v
+compileTyVarFresh :: Compiling m => GHC.TyVar -> m PLCTyVar
+compileTyVarFresh v = do
+    k' <- compileKind $ GHC.tyVarKind v
+    t' <- compileTyNameFresh $ GHC.getName v
     pure $ PLC.TyVarDecl () t' k'
 
-convTcTyVarFresh :: Converting m => GHC.TyCon -> m PLCTyVar
-convTcTyVarFresh tc = do
-    k' <- convKind $ GHC.tyConKind tc
-    t' <- convTyNameFresh $ GHC.getName tc
+compileTcTyVarFresh :: Compiling m => GHC.TyCon -> m PLCTyVar
+compileTcTyVarFresh tc = do
+    k' <- compileKind $ GHC.tyConKind tc
+    t' <- compileTyNameFresh $ GHC.getName tc
     pure $ PLC.TyVarDecl () t' k'
 
 pushName :: GHC.Name -> PLCVar-> ScopeStack -> ScopeStack

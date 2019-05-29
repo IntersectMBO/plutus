@@ -15,12 +15,12 @@ import           Control.Monad.Reader
 
 import qualified Data.Text                        as T
 
-sdToTxt :: (MonadReader ConvertingContext m) => GHC.SDoc -> m T.Text
+sdToTxt :: MonadReader CompileContext m => GHC.SDoc -> m T.Text
 sdToTxt sd = do
-  ConvertingContext { ccFlags=flags } <- ask
+  CompileContext { ccFlags=flags } <- ask
   pure $ T.pack $ GHC.showSDoc flags sd
 
-throwSd :: (MonadError ConvError m, MonadReader ConvertingContext m) => (T.Text -> Error ()) -> GHC.SDoc -> m a
+throwSd :: (MonadError CompileError m, MonadReader CompileContext m) => (T.Text -> Error ()) -> GHC.SDoc -> m a
 throwSd constr = (throwPlain . constr) <=< sdToTxt
 
 tyConsOfExpr :: GHC.CoreExpr -> GHC.UniqSet GHC.TyCon

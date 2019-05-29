@@ -5,7 +5,7 @@
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TemplateHaskell        #-}
 module Language.PlutusTx.Compiler.Error (
-    ConvError
+    CompileError
     , Error (..)
     , WithContext (..)
     , withContext
@@ -31,7 +31,7 @@ data WithContext c e = NoContext e | WithContextC Int c (WithContext c e)
     deriving Functor
 makeClassyPrisms ''WithContext
 
-type ConvError = WithContext T.Text (Error ())
+type CompileError = WithContext T.Text (Error ())
 
 withContext :: (MonadError (WithContext c e) m) => Int -> c -> m a -> m a
 withContext p c act = catchError act $ \err -> throwError (WithContextC p c err)
@@ -70,13 +70,13 @@ makeClassyPrisms ''Error
 instance (PP.Pretty a) => PP.Pretty (Error a) where
     pretty = PLC.prettyPlcClassicDebug
 
-instance PLC.AsTypeError ConvError () where
+instance PLC.AsTypeError CompileError () where
     _TypeError = _NoContext . _PLCError . PLC._TypeError
 
-instance PLC.AsNormalizationError ConvError PLC.TyName PLC.Name () where
+instance PLC.AsNormalizationError CompileError PLC.TyName PLC.Name () where
     _NormalizationError = _NoContext . _PLCError . PLC._NormalizationError
 
-instance PIR.AsError ConvError (PIR.Provenance ()) where
+instance PIR.AsError CompileError (PIR.Provenance ()) where
     _Error = _NoContext . _PIRError
 
 instance (PP.Pretty a) => PLC.PrettyBy PLC.PrettyConfigPlc (Error a) where
