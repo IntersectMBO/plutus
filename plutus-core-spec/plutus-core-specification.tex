@@ -329,7 +329,7 @@ may use the multi-argument forms.
 \item $\abs{\alpha}{K}{V}$ represents a polymorphic value abstracted
   over a type; this would often be donated by $\Lambda\alpha{::}K.V$.
   Note that we require the body of the abstraction to be a
-  \textit{value}, not a term: see the note on the value restriction below.
+  \emph{value}, not a term: see the note on the value restriction below.
 \item $\inst{M}{A}$ represents a polymorphic term instantiated at a particular type.
 \item $\iwrap{A}{B}{M}$ and $\unwrap{M}$: see \cref{sec:ifix-note}.
 \item $\lam{x}{A}{M}$ is standard lambda-abstraction, $\lambda{}x{:}{A}.{M}$.
@@ -366,7 +366,7 @@ is the type of integers.  See \cref{sec:builtins}.
 \end{itemize}
 
 \paragraph{Type Values.} All types can be reduced to a type value (or
-  \textit{normalised type}) which cannot undergo any further
+  \emph{normalised type}) which cannot undergo any further
   reduction: see section~\ref{sec:reduction}.  The type normalisation
   process always terminates: the proof is similar to the proof of the
   fact that reduction of terms in the simply typed lambda calculus
@@ -380,7 +380,7 @@ is the type of integers.  See \cref{sec:builtins}.
 \paragraph{Kinds.} In Plutus Core we have a copy of the
 simply typed lambda calculus at the type level. The types of the
 simply typed lambda calculus are lifted to the level of
-\textit{kinds} in Plutus Core, allowing the type system to talk about
+\emph{kinds} in Plutus Core, allowing the type system to talk about
 operations which themselves occur at the level of types.
 The basic kind (usually written as $\star$) is denoted by \texttt{(type)}.
 
@@ -397,7 +397,7 @@ description of built-in values and functions.
 
 \paragraph{Programs and Versions.} A complete Plutus Core program
 consists of a standard version number (1.0.2, for example) indicating
-the Plutus Core version and a \textit{closed} term (i.e., a term with no
+the Plutus Core version and a \emph{closed} term (i.e., a term with no
 free variables) forming the body of the program.  The version number
 is used by the Plutus Core evaluator and other tools to check that
 they are dealing with code conforming to the correct version of the
@@ -462,14 +462,14 @@ $$
 %% I really hate not having a full stop after the second equation, but it looks weird.
 
 \noindent The use of isorecursive types makes it somewhat more difficult to
-write \textit{terms}, but makes it much easier to reason about
-\textit{types}, and in particular simplifies the typechecking process
+write \emph{terms}, but makes it much easier to reason about
+\emph{types}, and in particular simplifies the typechecking process
 considerably.
 
 
 \subsubsection{The value restriction}
 In $\abs{\alpha}{K}{V}$ we require the body $V$ to be a value. We will
-refer to this restriction as the \textit{value restriction} because it
+refer to this restriction as the \emph{value restriction} because it
 can be regarded as a generalisation of the value restriction in
 Standard ML \citep[22.7]{Pierce:TAPL}. Experience has shown that
 allowing general terms as bodies of type abstractions can cause a
@@ -758,7 +758,7 @@ semantics. This table also specifies what conditions trigger an error.
 
 In this section we define a standard eager,
 small-step contextual semantics~\citep[5.3]{Harper:PFPL} (or
-\textit{reduction semantics}~\citep[\S2]{Felleisen-Hieb}) for Plutus
+\emph{reduction semantics}~\citep[\S2]{Felleisen-Hieb}) for Plutus
 Core in terms of the reduction relation for types
 (\(\typeStep{A}{A'}\)) (\cref{fig:type-reduction})
 and terms (\(\step{M}{M'}\)) (\cref{fig:term-reduction}), which
@@ -827,10 +827,10 @@ purposes.
 \subfile{figures/CkMachine}
 
 \noindent The machine alternates between two main phases: the
-\textit{compute} phase ($\triangleright$), where it recurses down
+\emph{compute} phase ($\triangleright$), where it recurses down
 the AST looking for values, saving surrounding contexts as frames (or
-\textit{reduction contexts}) on a stack as it goes; and the
-\textit{return} phase ($\triangleleft$), where it has obtained a value and
+\emph{reduction contexts}) on a stack as it goes; and the
+\emph{return} phase ($\triangleleft$), where it has obtained a value and
 pops a frame off the stack to tell it how to proceed next.  In
 addition there is an error state $\blacklozenge$ which halts execution
 with an error, and a stop state $\square$ which halts execution and
@@ -875,17 +875,17 @@ are all monomorphic, and hence the type arguments are all empty: [].
 It is possible that we may add some polymorphic built-in functions
 at some time in the future.
 \item Some of the entries in \cref{fig:builtins}
-  contain \textit{success conditions}.  If a success condition is
+  contain \emph{success conditions}.  If a success condition is
   violated then the program terminates immediately and returns
   the value \texttt{(error)}.
 \item We provide two versions of the division and remainder operations
   for integers.  These differ in their treatment of negative
   arguments\footnote{The standard mathematical definition (the
-    so-called \textit{division algorithm}, or \textit{Euclidean
+    so-called \emph{division algorithm}, or \emph{Euclidean
       division}) is as follows: if $n,d \in \mathbb{Z}$ and $d \ne 0$
     then there exist unique integers $q, r \in \mathbb{Z}$ such that
     $n=qb+r$ and $0 \le r < \lvert d \rvert$; $q$ is the
-    \textit{quotient} and $r$ is the \textit{remainder}.  Neither of
+    \emph{quotient} and $r$ is the \emph{remainder}.  Neither of
     our sets of operations implements this definition! For $d > 0$,
     \texttt{divideInteger} and \texttt{modInteger} give the correct
     results, but they can give negative remainders for $d<0$.  In any sensible
@@ -909,7 +909,7 @@ at some time in the future.
 
 
 \item We use fixed Scott encodings for certain types and values, specifically for
-  the \textit{unit} and \textit{boolean} types.  Compilers targeting
+  the \emph{unit} and \emph{boolean} types.  Compilers targeting
   Plutus Core must be aware of these encodings and use them
   appropriately.
 \end{itemize}
@@ -922,7 +922,7 @@ transactions taking place on the chain.  This section will give a
 brief description of the background which will be useful in a
 subsequent example.
 
-The Cardano blockchain uses a variant of Bitcoin's \textit{Unspent
+The Cardano blockchain uses a variant of Bitcoin's \emph{Unspent
   Transaction Output} (UTXO) model.  Transactions on the chain consume
 inputs and produce outputs consisting of cryptocurrency, and outputs
 from a transaction can be spent as inputs to a later transaction.
@@ -939,24 +939,24 @@ a particular output, or an output might not be spendable until a
 certain period of time has passed since its production.
 
 The process of verifying that an output can be spent is called
-\textit{validation}, and is performed by executing \textit{scripts},
+\emph{validation}, and is performed by executing \emph{scripts},
 which in our case will be Plutus Core programs.
 
 
-Cardano uses a validation strategy which we call the \textit{Extended
+Cardano uses a validation strategy which we call the \emph{Extended
   UTXO model}.  A full specification of the Extended UTXO model is
 currently being prepared: in the meantime the fundamental ideas can be
 found in~\citep{Zahnentferner18-Chimeric} and
 \citep{Zahnentferner18-UTxO}.
 
 The basic idea is that when a transaction wishes $T$ to consume an
-unspent output $U$, it applies a script called the \textit{validator}
-to another script called the \textit{redeemer}\footnote{The Extended
-  UTXO model also involves another script called the \textit{data
+unspent output $U$, it applies a script called the \emph{validator}
+to another script called the \emph{redeemer}\footnote{The Extended
+  UTXO model also involves another script called the \emph{data
     script}, but for simplicity we won't discuss this here}; the
 validator also has access to certain parts of the blockchain state,
-such as the current block number (\textit{blocknum}) and the hash
-\textit{txhash} of the current transaction.  If the result of applying
+such as the current block number (\emph{blocknum}) and the hash
+\emph{txhash} of the current transaction.  If the result of applying
 the validator to the redeemer is the Plutus Core \texttt{error} term
 then validation fails and the output cannot be spent; otherwise
 validation succeeds and the output can be spent.
