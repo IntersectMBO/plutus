@@ -32,6 +32,7 @@
 \usepackage{geometry}
 \usepackage{pdflscape}
 \usepackage[title]{appendix}
+\usepackage{todonotes}
 
 
 % *** IMPORTS FOR PLUTUS LANGUAGE ***
@@ -53,6 +54,8 @@
 
 
 % *** DEFINITIONS FOR PLUTUS LANGUAGE ***
+
+\newcommand{\todompj}[1]{\todo[inline,color=yellow!40,author=Michael]{#1}}
 
 %%% General Misc. Definitions
 
@@ -179,7 +182,8 @@
 % just put something like "integer" in math text.
 \newcommand\unit{\ensuremath{\mathit{unit}}}
 \newcommand\one{\ensuremath{\mathit{one}}}
-\newcommand\boolean{\ensuremath{\mathit{boolean}}}
+% clashes with something from ifthenelse
+\def\boolean{\ensuremath{\mathit{boolean}}}
 \newcommand\integer{\ensuremath{\mathit{integer}}}
 \newcommand\bytestring{\ensuremath{\mathit{bytestring}}}
 \newcommand\str{\ensuremath{\mathit{str}}}
