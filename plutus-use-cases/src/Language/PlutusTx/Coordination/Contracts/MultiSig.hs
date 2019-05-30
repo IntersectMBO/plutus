@@ -6,6 +6,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- | Implements an n-out-of-m multisig contract.
 module Language.PlutusTx.Coordination.Contracts.MultiSig
     ( MultiSig(..)

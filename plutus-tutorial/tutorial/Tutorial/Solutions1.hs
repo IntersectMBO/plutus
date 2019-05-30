@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Tutorial.Solutions1 where
 
 -- Solutions to E2 and E4*

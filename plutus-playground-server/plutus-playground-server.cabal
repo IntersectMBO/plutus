@@ -94,6 +94,8 @@ library plutus-playground-usecases
         Vesting
     default-language: Haskell2010
     ghc-options: -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -- See Plutus Tx readme
+                 -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     build-depends:
         aeson -any,
         base >=4.7 && <5,

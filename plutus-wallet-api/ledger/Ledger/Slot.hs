@@ -8,6 +8,8 @@
 {-# LANGUAGE UndecidableInstances #-}
 -- Otherwise we get a complaint about the 'fromIntegral' call in the generated instance of 'Integral' for 'Ada'
 {-# OPTIONS_GHC -Wno-identities #-}
+{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 -- | Slots and slot ranges.
 module Ledger.Slot(
       Slot(..)

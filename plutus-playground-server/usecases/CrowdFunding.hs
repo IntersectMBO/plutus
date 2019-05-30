@@ -8,6 +8,7 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module CrowdFunding where
 -- TRIM TO HERE
 -- Crowdfunding contract implemented using the [[Plutus]] interface.

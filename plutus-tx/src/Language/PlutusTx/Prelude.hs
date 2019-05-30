@@ -1,6 +1,7 @@
 -- Need some extra imports from the Prelude for doctests, annoyingly
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Language.PlutusTx.Prelude (
     -- $prelude
     -- * String and tracing functions
