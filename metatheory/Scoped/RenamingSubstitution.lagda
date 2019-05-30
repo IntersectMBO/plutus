@@ -147,4 +147,21 @@ ren⋆-cong p (ƛ x K A) = cong (ƛ x K) (ren⋆-cong (lift⋆-cong p) A)
 ren⋆-cong p (A · B) = cong₂ _·_ (ren⋆-cong p A) (ren⋆-cong p B)
 ren⋆-cong p (con c) = refl
 ren⋆-cong p (μ pat arg) = cong₂ μ (ren⋆-cong p pat) (ren⋆-cong p arg)
+
+slift⋆-cong : ∀{m n}{ρ ρ' : Sub⋆ m n}
+  → (∀ x → ρ x ≡ ρ' x)
+  → ∀ x → slift⋆ ρ x ≡ slift⋆ ρ' x
+slift⋆-cong p zero    = refl
+slift⋆-cong p (suc x) = cong (ren⋆ suc) (p x) 
+
+sub⋆-cong : ∀{m n}{σ σ' : Sub⋆ m n}
+  → (∀ x → σ x ≡ σ' x)
+  → ∀ x → sub⋆ σ x ≡ sub⋆ σ' x
+sub⋆-cong p (` x)       = p x
+sub⋆-cong p (A ⇒ B)     = cong₂ _⇒_ (sub⋆-cong p A) (sub⋆-cong p B)
+sub⋆-cong p (Π x K A)   = cong (Π x K) (sub⋆-cong (slift⋆-cong p) A)
+sub⋆-cong p (ƛ x K A)   = cong (ƛ x K) (sub⋆-cong (slift⋆-cong p) A)
+sub⋆-cong p (A · B)     = cong₂ _·_ (sub⋆-cong p A) (sub⋆-cong p B)
+sub⋆-cong p (con c)     = refl
+sub⋆-cong p (μ pat arg) = cong₂ μ (sub⋆-cong p pat) (sub⋆-cong p arg)
 \end{code}

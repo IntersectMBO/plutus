@@ -81,7 +81,7 @@ extricate—→ (ξ-·₂ p q) = ξ-·₂ (extricateVal p) (extricate—→ q)
 extricate—→ (ξ-·⋆ p) = ξ-·⋆ (extricate—→ p)
 extricate—→ (β-ƛ {A = A}{N = N}{W = W}) = Eq.subst
   (ƛ _ (extricateNf⋆ A) (extricate N) · extricate W  SR.—→_)
-  (lem[] N W)
+  {!!} -- (lem[] N W)
   SR.β-ƛ
 extricate—→ (β-Λ {K = K}{N = N}{W = W}) = Eq.subst
   (Λ _ (extricateK K) (extricate N) ·⋆ extricateNf⋆ W SR.—→_)

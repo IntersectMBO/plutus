@@ -14,6 +14,9 @@ open import Relation.Binary.PropositionalEquality as Eq
 open import Algorithmic as A
 open import Type.RenamingSubstitution as T
 open import Type.BetaNormal
+open import Type.BetaNBE
+open import Type.BetaNBE.Completeness
+open import Type.BetaNBE.RenamingSubstitution
 open import Scoped
 open import Scoped.Extrication
 open import Algorithmic.RenamingSubstitution as AS
@@ -47,48 +50,12 @@ extricateRenNf⋆ : ∀{Γ Δ}(ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)
   → Ren⋆ (len⋆ Γ) (len⋆ Δ)
 extricateRenNf⋆ ρ⋆ x = extricateVar⋆ (ρ⋆ (proj₂ (backVar x)))
 
-
-
-{-
-extricateRenNf⋆ {Γ ,⋆ K} ρ⋆ zero = extricateVar⋆ (ρ⋆ Z)
-extricateRenNf⋆ {Γ ,⋆ K} ρ⋆ (suc α) = extricateRenNf⋆ (ρ⋆ ∘ S) α
--}
-
-{-
-ren-extricateVar⋆ : ∀{Γ Δ J}
-  → (ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)
-  → (α : Γ ∋⋆ J)
-  → extricateRenNf⋆ ρ⋆ (extricateVar⋆ α) ≡ extricateVar⋆ (ρ⋆ α)
-ren-extricateVar⋆ ρ⋆ Z     = ? -- refl
-ren-extricateVar⋆ ρ⋆ (S α) = ren-extricateVar⋆ (ρ⋆ ∘ S) α
-
-
-extricateRenNf⋆-comp : ∀{B Γ Δ}
-  → (ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J) (ρ⋆' : ∀ {J} → B ∋⋆ J → Γ ∋⋆ J)
-  → (α : Fin (len⋆ B))
-  → extricateRenNf⋆ ρ⋆ (extricateRenNf⋆ ρ⋆' α) ≡ extricateRenNf⋆ (ρ⋆ ∘ ρ⋆') α
-extricateRenNf⋆-comp {B ,⋆ K} ρ⋆ ρ⋆' zero    = ren-extricateVar⋆ ρ⋆ (ρ⋆' Z)
-extricateRenNf⋆-comp {B ,⋆ K} ρ⋆ ρ⋆' (suc α) =
-  extricateRenNf⋆-comp ρ⋆ (ρ⋆' ∘ S) α
-
-lift⋆-ext : ∀{Γ Δ J K}
-  → (ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)
-  → (α : Γ ,⋆ K ∋⋆ J)
-  → lift⋆ (extricateRenNf⋆ ρ⋆) (extricateVar⋆ α) ≡ extricateVar⋆ (T.ext ρ⋆ α)
-lift⋆-ext ρ⋆ Z = refl
-lift⋆-ext ρ⋆ (S α) = cong suc (ren-extricateVar⋆ ρ⋆ α)
--}
-lift⋆-ext' : ∀{Γ Δ K}
+lift⋆-ext : ∀{Γ Δ K}
   → (ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)
   → (α : Fin (len⋆ (Γ ,⋆ K)))
   → lift⋆ (extricateRenNf⋆ ρ⋆) α ≡ extricateRenNf⋆ (T.ext ρ⋆ {K = K}) α -- 
-lift⋆-ext' ρ⋆ zero = refl
-lift⋆-ext' ρ⋆ (suc α) = refl
-
-ren-extricateNf⋆ :  ∀{Γ Δ J}
-  → (ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)
-  → (A : Γ ⊢Nf⋆ J)
-  → ren⋆ (extricateRenNf⋆ ρ⋆) (extricateNf⋆ A) ≡ extricateNf⋆ (renameNf ρ⋆ A)
+lift⋆-ext ρ⋆ zero = refl
+lift⋆-ext ρ⋆ (suc α) = refl
 
 lem-extricateVar⋆ :  ∀{Γ Δ J J'}
   → (ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)
@@ -96,6 +63,11 @@ lem-extricateVar⋆ :  ∀{Γ Δ J J'}
   → (p : J ≡ J')
   → extricateVar⋆ (ρ⋆ α) ≡ extricateVar⋆ (ρ⋆ (Eq.subst (Γ ∋⋆_) p α))
 lem-extricateVar⋆ ρ⋆ α refl = refl
+
+ren-extricateNf⋆ :  ∀{Γ Δ J}
+  → (ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)
+  → (A : Γ ⊢Nf⋆ J)
+  → ren⋆ (extricateRenNf⋆ ρ⋆) (extricateNf⋆ A) ≡ extricateNf⋆ (renameNf ρ⋆ A)
 
 ren-extricateNe⋆ :  ∀{Γ Δ J}
   → (ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)
@@ -111,15 +83,63 @@ ren-extricateNe⋆ ρ⋆ μ1      = refl
 
 ren-extricateNf⋆ ρ⋆ (Π x A)  =
   cong (Π x (extricateK _))
-       (trans (ren⋆-cong (lift⋆-ext' ρ⋆) (extricateNf⋆ A))
+       (trans (ren⋆-cong (lift⋆-ext ρ⋆) (extricateNf⋆ A))
               (ren-extricateNf⋆ (T.ext ρ⋆) A))
 ren-extricateNf⋆ ρ⋆ (A ⇒ B)  =
   cong₂ _⇒_ (ren-extricateNf⋆ ρ⋆ A) (ren-extricateNf⋆ ρ⋆ B)
 ren-extricateNf⋆ ρ⋆ (ƛ x A)  =
   cong (ƛ x (extricateK _))
-       (trans (ren⋆-cong (lift⋆-ext' ρ⋆) (extricateNf⋆ A)) (ren-extricateNf⋆ (T.ext ρ⋆) A))
+       (trans (ren⋆-cong (lift⋆-ext ρ⋆) (extricateNf⋆ A)) (ren-extricateNf⋆ (T.ext ρ⋆) A))
 ren-extricateNf⋆ ρ⋆ (ne A)   = ren-extricateNe⋆ ρ⋆ A
 ren-extricateNf⋆ ρ⋆ (con c)  = refl
+
+extricateSubNf⋆ : ∀{Γ Δ}(σ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ⊢Nf⋆ J) 
+  → Sub⋆ (len⋆ Γ) (len⋆ Δ)
+extricateSubNf⋆ σ⋆ α = extricateNf⋆ (σ⋆ (proj₂ (backVar α)))
+
+suclem : ∀{Δ K} → (x : Fin (len⋆ Δ)) → Fin.suc x ≡ extricateRenNf⋆ (λ {J} → S {K = K}) x
+suclem {Δ ,⋆ _} zero = refl
+suclem {Δ ,⋆ _} {K} (suc x) = cong suc (suclem {Δ}{K} x)
+
+slift⋆-exts : ∀{Γ Δ K}
+  → (σ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ⊢Nf⋆ J)
+  → (α : Fin (len⋆ (Γ ,⋆ K)))
+  → slift⋆ (extricateSubNf⋆ σ⋆) α ≡ extricateSubNf⋆ (extsNf σ⋆ {K = K}) α -- 
+slift⋆-exts σ⋆ zero = refl
+slift⋆-exts {K = K} σ⋆ (suc α) = trans
+  (ren⋆-cong (suclem {K = K}) (extricateNf⋆ (σ⋆ (proj₂ (backVar α)))))
+  (ren-extricateNf⋆ S (σ⋆ (proj₂ (backVar α))))
+
+{-
+sub-extricateNf⋆ :  ∀{Γ Δ J}
+  → (σ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ⊢Nf⋆ J)
+  → (A : Γ ⊢Nf⋆ J)
+  → sub⋆ (extricateSubNf⋆ σ⋆) (extricateNf⋆ A) ≡ extricateNf⋆ (substNf σ⋆ A)
+
+sub-extricateNe⋆ :  ∀{Γ Δ J}
+  → (σ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ⊢Nf⋆ J)
+  → (A : Γ ⊢NeN⋆ J)
+  → sub⋆ (extricateSubNf⋆ σ⋆) (extricateNe⋆ A) ≡ extricateNf⋆ (nf (T.subst (embNf ∘ σ⋆) (embNeN A)))
+sub-extricateNe⋆ σ⋆ (` x)   = {!!}
+sub-extricateNe⋆ σ⋆ (A · B) = trans (cong₂ _·_ (sub-extricateNe⋆ σ⋆ A) (sub-extricateNf⋆ σ⋆ B)) {!!}
+sub-extricateNe⋆ σ⋆ μ1      = refl
+
+
+sub-extricateNf⋆ σ⋆ (Π {K = K} x A) = cong
+  (Π x (extricateK _))
+  (trans (trans (sub⋆-cong (slift⋆-exts σ⋆) (extricateNf⋆ A))
+                (sub-extricateNf⋆ (extsNf σ⋆) A))
+         (cong extricateNf⋆ {x = substNf (extsNf σ⋆) A}{y = reify (eval (T.subst (T.exts (embNf ∘ σ⋆)) (embNf A)) (exte (idEnv _)))}
+            (trans (subst-eval (embNf A) idCR (embNf ∘ extsNf σ⋆)) (trans (idext (λ { Z → reflectCR (refl {x = ` Z}) ; (S α) → transCR (transCR (evalCRSubst idCR (rename-embNf S (σ⋆ α))) (rename-eval (embNf (σ⋆ α)) idCR S)) (transCR (symCR (rename-eval (embNf (σ⋆ α)) idCR S)) (idext (λ { Z → reflectCR (refl {x = ` Z}) ; (S β) → symCR (renameVal-reflect S (` β))}) (T.weaken (embNf (σ⋆ α)))))}) (embNf A)) (sym (subst-eval (embNf A) (CR,,⋆ (renCR S ∘ idCR) (reflectCR (refl {x = ` Z}))) (T.exts (embNf ∘ σ⋆))))))))
+sub-extricateNf⋆ σ⋆ (A ⇒ B) = cong₂ _⇒_ (sub-extricateNf⋆ σ⋆ A) (sub-extricateNf⋆ σ⋆ B)
+sub-extricateNf⋆ σ⋆ (ƛ {K = K} x  A) = cong
+  (ƛ x (extricateK _))
+  (trans (sub⋆-cong (slift⋆-exts σ⋆) (extricateNf⋆ A))
+         (trans (sub-extricateNf⋆ (extsNf σ⋆) A)
+                (cong extricateNf⋆ {x = substNf (extsNf σ⋆) A}{y = reify (eval (T.subst (T.exts (embNf ∘ σ⋆)) (embNf A)) ((renameVal S ∘ idEnv _) ,,⋆ fresh))} (reifyCR (transCR (subst-eval (embNf A) idCR (embNf ∘ extsNf σ⋆)) (transCR (idext (λ { Z → reflectCR {K = K} (refl {x = ` Z}) ; (S α) → transCR (transCR (evalCRSubst idCR (rename-embNf S (σ⋆ α))) (rename-eval (embNf (σ⋆ α)) idCR S)) (transCR (symCR (rename-eval (embNf (σ⋆ α)) idCR S)) (idext (λ { Z → reflectCR (refl {x = ` Z}) ; (S β) → symCR (renameVal-reflect S (` β))}) (T.weaken (embNf (σ⋆ α)))) ) }) (embNf A)) (symCR (subst-eval (embNf A) (CR,,⋆ (renCR S ∘ idCR) (reflectCR {K = K} (refl {x = ` Z}))) (T.exts (embNf ∘ σ⋆))))) )))))
+sub-extricateNf⋆ σ⋆ (ne A)  = {!!}
+sub-extricateNf⋆ σ⋆ (con c) = refl
+-}
 
 {-
 -- term level renamings
