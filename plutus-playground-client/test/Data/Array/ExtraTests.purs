@@ -4,7 +4,6 @@ module Data.Array.ExtraTests
 
 import Prelude
 
-import Control.Monad.Eff.Random (RANDOM)
 import Data.Array (length)
 import Data.Array.Extra (move)
 import Test.QuickCheck (arbitrary)
@@ -14,12 +13,12 @@ import Test.Unit.Assert (equal)
 import Test.Unit.QuickCheck (quickCheck)
 import TestUtils (genIndex, genLooseIndex)
 
-all :: forall eff. TestSuite (random :: RANDOM | eff)
+all :: TestSuite
 all =
   suite "Data.Array.Extra" do
     moveTests
 
-moveTests :: forall eff. TestSuite (random :: RANDOM | eff)
+moveTests :: TestSuite
 moveTests = do
   suite "move" do
     test "length is always preserved" do

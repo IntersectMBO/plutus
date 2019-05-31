@@ -32,7 +32,7 @@ let
 
   # This is a mapping from attribute paths to systems. So it needs to mirror the structure of the
   # attributes in default.nix exactly
-  systemMapping = {
+  systemMapping = lib.recursiveUpdate {
     localPackages = 
       # Due to the magical split test machinery, packages that have a 'testdata' attribute should
       # have their tests run via the 'testrun' derivation. I don't know how to *also* have a mapping
@@ -51,7 +51,8 @@ let
     tests = lib.mapAttrs (_: _: supportedSystems) packageSet.tests;  
     dev.packages = lib.mapAttrs (_: _: supportedSystems) packageSet.dev.packages;  
     dev.scripts = lib.mapAttrs (_: _: supportedSystems) packageSet.dev.scripts; 
-  }; 
+  }
+  { dev.scripts.updateClientDeps = linux; };
   
   testJobsets = mapTestOn systemMapping;
 

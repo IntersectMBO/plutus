@@ -1,28 +1,24 @@
 module FileEvents
        ( preventDefault
        , readFileFromDragEvent
-       , FILE
        ) where
 
-import Control.Monad.Aff (Aff, Canceler, Error, makeAff)
-import Control.Monad.Eff (Eff, kind Effect)
-import DOM.HTML.Event.Types (DragEvent)
+import Effect.Aff (Aff, Canceler, Error, makeAff)
+import Effect (Effect)
+import Web.HTML.Event.DragEvent (DragEvent)
 import Data.Either (Either(..))
 import Data.Function.Uncurried (Fn3, runFn3)
 import Prelude (Unit, ($), (<<<))
 
-foreign import preventDefault :: forall eff. DragEvent -> Eff eff Unit
-
-foreign import data FILE :: Effect
+foreign import preventDefault :: DragEvent -> Effect Unit
 
 foreign import _readFileFromDragEvent ::
-  forall eff.
   Fn3
-    (String -> Eff (file :: FILE | eff) Unit)
-    (Error -> Eff (file :: FILE | eff) Unit)
+    (String -> Effect Unit)
+    (Error -> Effect Unit)
     DragEvent
-    (Eff (file :: FILE | eff) (Canceler (file :: FILE | eff)))
+    (Effect Canceler)
 
-readFileFromDragEvent :: forall aff. DragEvent -> Aff (file :: FILE | aff) String
+readFileFromDragEvent :: DragEvent -> Aff String
 readFileFromDragEvent event =
   makeAff $ \callback -> runFn3 _readFileFromDragEvent (callback <<< Right) (callback <<< Left) event

@@ -7,7 +7,7 @@ import Prelude
 import Data.Array as Array
 import Data.Maybe (fromMaybe)
 
-move :: forall a. Show a => Int -> Int -> Array a -> Array a
+move :: forall a. Int -> Int -> Array a -> Array a
 move source destination before
  | destination == source = before
  | otherwise = fromMaybe before do

@@ -16,21 +16,6 @@ import Control.Monad.Reader
 import Control.Monad.State
   ( class MonadState
   )
-import Control.MonadPlus
-  ( (=<<)
-  )
-import Data.Argonaut.Generic.Aeson
-  ( decodeJson
-  )
-import Data.Argonaut.Parser
-  ( jsonParser
-  )
-import Data.Array
-  ( intercalate
-  )
-import Data.Either
-  ( Either(..)
-  )
 import Data.Lens
   ( Lens'
   , assign
@@ -39,14 +24,7 @@ import Halogen.HTML
   ( HTML
   , br_
   , div_
-  , pre_
   , text
-  )
-import Language.Haskell.Interpreter
-  ( CompilationError(..)
-  )
-import Network.HTTP.StatusCode
-  ( StatusCode(..)
   )
 import Network.RemoteData
   ( RemoteData(..)
@@ -56,19 +34,16 @@ import Prelude
   ( discard
   , bind
   , pure
-  , show
   , ($)
-  , (<$>)
   , (<>)
   , (>>>)
   )
-import Servant.PureScript.Affjax
+import Servant.PureScript.Ajax
   ( AjaxError
   , ErrorDescription
       ( ConnectionError
       , DecodingError
-      , ParsingError
-      , UnexpectedHTTPStatus
+      , ResponseFormatError
       )
   , runAjaxError
   )
@@ -83,21 +58,8 @@ showErrorDescription ::
   forall p i.
   ErrorDescription ->
   HTML p i
-showErrorDescription (UnexpectedHTTPStatus { status, response }) = case status, response of
-  (StatusCode 400), _ -> case (decodeJson =<< jsonParser response) :: Either String (Array CompilationError) of
-    Left _ -> defaultError status
-    Right compilationErrors -> div_ (showCompilationError <$> compilationErrors)
-  _, _ -> defaultError status
-  where
-  defaultError status = text $ "UnexpectedHTTPStatus: " <> response <> " " <> show status
-  showCompilationError (RawError rawError) = text rawError
-  showCompilationError (CompilationError error) = pre_ [ text $ intercalate "\n" error.text
-                                                       ]
-
-showErrorDescription (ParsingError err) = text $ "ParsingError: " <> err
-
+showErrorDescription (ResponseFormatError err) = text $ "ResponseFormatError: " <> err
 showErrorDescription (DecodingError err) = text $ "DecodingError: " <> err
-
 showErrorDescription (ConnectionError err) = text $ "ConnectionError: " <> err
 
 ajaxErrorPane ::

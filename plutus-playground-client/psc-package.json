@@ -1,0 +1,25 @@
+{
+    "set": "local",
+    "depends": [
+        "prelude",
+        "ace-halogen",
+        "ace",
+        "bigints",
+        "console",
+        "debug",
+        "effect",
+        "halogen",
+        "matryoshka",
+        "node-fs",
+        "numerics",
+        "parsing",
+        "foreign-generic",
+        "psci-support",
+        "remotedata",
+        "servant-support",
+        "test-unit",
+        "undefinable"
+    ],
+    "name": "plutus-playground-client",
+    "source": ""
+}

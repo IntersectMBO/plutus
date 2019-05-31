@@ -1,69 +1,80 @@
-{ stdenv, pkgs, fetchurl, psSrc }:
+{ stdenv
+, pkgs
+, fetchurl
+, psSrc
+, yarn2nix
+, pp2nSrc
+, haskellPackages
+}:
 
 with pkgs;
 
 let
-  yarnDeps = import ./yarn.nix { inherit fetchurl linkFarm; };
-  patchShebangs = dir: ''
-    node=`type -p node`
-    coffee=`type -p coffee || true`
-    find -L ${dir} -type f -print0 | xargs -0 grep -Il . | \
-    xargs sed --follow-symlinks -i \
-        -e 's@#!/usr/bin/env node@#!'"$node"'@' \
-        -e 's@#!/usr/bin/env coffee@#!'"$coffee"'@' \
-        -e 's@#!/.*/node@#!'"$node"'@' \
-        -e 's@#!/.*/coffee@#!'"$coffee"'@' || true
-  '';
-
   # node-sass is terrible and we have to get it its binaries otherwise it will try to build them
   nodeSassBinLinux = fetchurl {
-    url = "https://github.com/sass/node-sass/releases/download/v4.11.0/linux-x64-48_binding.node";
-    sha256 = "0by4hp7wxdzl8dq5svs2c11i93zsdkmn1v2009lqcrw3jyg6fxym";
+    url = "https://github.com/sass/node-sass/releases/download/v4.11.0/linux-x64-57_binding.node";
+    sha256 = "1hv63bxf3wsknczg0x4431lfgizwqa1fvlhqblh5j4bw3p8mp3c0";
   };
   nodeSassBinDarwin = fetchurl {
-    url = "https://github.com/sass/node-sass/releases/download/v4.11.0/darwin-x64-48_binding.node";
-    sha256 = "11jik9r379dxnx5v9h79sirqlk7ixdspnccfibzd4pgm6s2mw4vn";
+    url = "https://github.com/sass/node-sass/releases/download/v4.11.0/darwin-x64-57_binding.node";
+    sha256 = "04m3lpqapsx1nsaz7xr6k0yr64car1447v5gf6x6sfiszmshvjw2";
   };
   webCommon = pkgs.copyPathToStore ../web-common;
-in stdenv.mkDerivation {
-  srcs = ./.;
 
+  packages = callPackage ./packages.nix {};
+  mkCopyHook = import "${pp2nSrc}/nix/mkCopyHook.nix";
+  installPackages = builtins.toString (builtins.map (mkCopyHook packages) (builtins.attrValues packages.inputs));
+
+in yarn2nix.mkYarnPackage {
   name = "meadow-client";
+  src = ./.;
+  packageJSON = ./package.json;
+  yarnLock = ./yarn.lock;
+  yarnNix = ./yarn.nix;
+  nodejs = nodejs-10_x; 
 
-  buildInputs = [ nodejs yarn git cacert purescript yarnDeps.offline_cache python2 webCommon ];
-
-  bowerComponents = pkgs.buildBowerComponents {
-    name = "my-web-app";
-    generated = ./bower-packages.nix;
-    src = ./.;
-  };
-
-  configurePhase = ''
-    export HOME="$NIX_BUILD_TOP"
-    export SASS_BINARY_PATH=${if stdenv.isDarwin then nodeSassBinDarwin else nodeSassBinLinux}
-
-    sed -i -E 's|^(\s*resolved\s*")https?://.*/|\1|' yarn.lock
-    yarn --offline config set yarn-offline-mirror ${yarnDeps.offline_cache}
-    yarn --offline config set yarn-offline-mirror-pruning true
-    yarn --offline install
-
-    ${patchShebangs "node_modules/.bin/"}
-
-    mkdir generated
-    mkdir ../web-common
-    cp -R ${psSrc}/* generated/
-    cp -R ${webCommon}/* ../web-common/
-    cp --reflink=auto --no-preserve=mode -R $bowerComponents/bower_components .
-  '';
+  buildInputs = [ git cacert python2 webCommon ];
+  nativeBuildInputs = [ psc-package haskellPackages.purescript ];
 
   buildPhase = ''
+    export HOME=$NIX_BUILD_TOP
+    export SASS_BINARY_PATH=${if stdenv.isDarwin then nodeSassBinDarwin else nodeSassBinLinux}
+
+    # mkYarnPackage moves everything into deps/meadow
+    cd deps/meadow
+
+    # move everything into its correct place
+    cp -R ${psSrc} generated
+    cp -R ${webCommon} ../web-common
+
+    # do all the psc-package stuff
+    ${installPackages}
+    mkdir -p .psc-package/local/.set
+    cp ${./packages.json} .psc-package/local/.set/packages.json
+
+    # for some reason, mkYarnPackage creates an empty node_modules in deps/meadow.
+    rm -Rf ./node_modules
+
+    # Everything is correctly in the top level node_modules though so we link it
+    ln -s ../../node_modules
+    
+    # We have to use nix patched purs and yarn will look in node_modules/.bin first so we have to delete the bad one
+    rm ./node_modules/.bin/purs
+    
+    # we also need to use the nix installed psc-package so don't do yarn run psc-package
+    psc-package install
+
     yarn --offline run webpack
   '';
 
   doCheck = true;
 
   checkPhase = ''
-    yarn test
+    yarn --offline test
+  '';
+
+  distPhase = ''
+    true
   '';
 
   installPhase = ''

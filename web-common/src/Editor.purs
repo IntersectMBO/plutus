@@ -5,15 +5,15 @@ module Editor
 
 import Ace.EditSession as Session
 import Ace.Editor as Editor
-import Ace.Halogen.Component (AceEffects, Autocomplete(Live), aceComponent)
-import Ace.Types (ACE, Editor)
+import Ace.Halogen.Component (Autocomplete(Live), aceComponent)
+import Ace.Types (Editor)
 import AjaxUtils (ajaxErrorPane)
 import Bootstrap (btn, btnDanger, btnInfo, btnPrimary, btnSecondary, btnSmall, btnSuccess, empty, listGroupItem_, listGroup_, pullRight)
 import Control.Alternative ((<|>))
-import Control.Monad.Aff.Class (class MonadAff)
-import Servant.PureScript.Affjax (AjaxError)
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Class (liftEff)
+import Effect.Aff.Class (class MonadAff)
+import Servant.PureScript.Ajax (AjaxError)
+import Effect (Effect)
+import Effect.Class (liftEffect)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Lens (_Right, preview, to, view)
@@ -27,23 +27,21 @@ import Halogen.HTML.Events (input, input_, onClick, onDragOver, onDrop)
 import Halogen.HTML.Properties (class_, classes, disabled, id_)
 import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), Warning, _Warning, InterpreterResult, _InterpreterResult)
-import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Network.RemoteData (RemoteData(..), _Success, isLoading)
--- import Playground.API (_CompilationResult)
 import Prelude (Unit, bind, discard, pure, show, unit, void, ($), (<$>), (<<<), (<>), map)
 import StaticData as StaticData
 import Types (ChildQuery, ChildSlot, EditorSlot(EditorSlot), Query(ScrollTo, LoadScript, CompileProgram, HandleEditorMessage, HandleDropEvent, HandleDragEvent), cpEditor, _warnings)
 
-loadBuffer :: forall eff. Eff (localStorage :: LOCALSTORAGE | eff) (Maybe String)
+loadBuffer :: Effect (Maybe String)
 loadBuffer = LocalStorage.getItem StaticData.bufferLocalStorageKey
 
-initEditor ∷
-  forall m aff.
-  MonadAff (ace :: ACE, localStorage :: LOCALSTORAGE | aff) m
+initEditor
+  ∷ forall m
+  . MonadAff m
   => Maybe String -> Editor -> m Unit
-initEditor initialContents editor = liftEff $ do
-  savedContents <- liftEff loadBuffer
+initEditor initialContents editor = liftEffect $ do
+  savedContents <- liftEffect loadBuffer
   let contents = fromMaybe "" (savedContents <|> initialContents)
   void $ Editor.setValue contents (Just 1) editor
 
@@ -55,8 +53,8 @@ initEditor initialContents editor = liftEff $ do
 type CompilationState a = RemoteData AjaxError (Either InterpreterError (InterpreterResult a))
 
 editorPane ::
-  forall m aff a.
-  MonadAff (AceEffects (localStorage :: LOCALSTORAGE | aff)) m
+  forall m a.
+  MonadAff m
   => Maybe String -> CompilationState a -> ParentHTML Query ChildQuery ChildSlot m
 editorPane initialContents state =
   div_

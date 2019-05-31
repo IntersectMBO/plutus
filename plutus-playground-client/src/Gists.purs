@@ -10,20 +10,20 @@ module Gists
        where
 
 import AjaxUtils (ajaxErrorPane)
-import AjaxUtils as AjaxUtils
 import Auth (AuthRole(..), authStatusAuthRole)
 import Bootstrap (btn, btnBlock, btnDanger, btnInfo, btnPrimary, btnSmall, col12_, col6_, empty, formControl, isInvalid, isValid, nbsp, pullRight, row_)
 import Cursor (Cursor)
 import DOM.HTML.Indexed.InputType (InputType(..))
-import Data.Argonaut.Core (stringify)
 import Data.Array (catMaybes)
 import Data.Array as Array
+import Data.Array.NonEmpty as NonEmptyArray
 import Data.Either (Either(..), isRight, note)
 import Data.Lens (findOf, traversed, view)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
 import Data.String.Regex (Regex, match, regex)
 import Data.String.Regex.Flags (ignoreCase)
+import Foreign.Generic (encodeJSON)
 import Gist (Gist, GistFile, GistId(GistId), NewGist(NewGist), NewGistFile(NewGistFile), gistFileFilename, gistFiles, gistHtmlUrl)
 import Halogen.HTML (ClassName(ClassName), HTML, IProp, a, button, div, div_, input, text)
 import Halogen.HTML.Events (input_, onClick, onValueInput)
@@ -194,7 +194,7 @@ mkNewGist  { source, simulations } =
                         }
   where
     gistFiles = catMaybes [ mkNewGistFile gistSourceFilename <<< unwrap <$> source
-                          , Just (mkNewGistFile gistSimulationFilename $ stringify $ AjaxUtils.encodeJson simulations)
+                          , Just (mkNewGistFile gistSimulationFilename $ encodeJSON simulations)
                           ]
     mkNewGistFile _newGistFilename _newGistFileContent =
       NewGistFile { _newGistFilename
@@ -214,7 +214,7 @@ parseGistUrl :: String -> Either String GistId
 parseGistUrl str = do
   gistIdInLink <- gistIdInLinkRegex
   note "Could not parse Gist Url" $ do matches <- match gistIdInLink str
-                                       match <- Array.index matches 2
+                                       match <- NonEmptyArray.index matches 2
                                        GistId <$> match
 
 firstMatch :: String -> Gist -> Maybe GistFile

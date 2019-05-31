@@ -32,15 +32,18 @@ import           Data.Aeson        (FromJSON, GFromJSON, GToJSON, ToJSON, Value,
                                     object, parseJSON, toJSON, withObject, (.:), (.:?), (.=))
 import           Data.Aeson.Casing (aesonPrefix, snakeCase)
 import           Data.Aeson.Types  (Parser)
+import           Data.Bifunctor    (bimap)
 import           Data.Map          (Map)
 import qualified Data.Map          as Map
 import           Data.Proxy        (Proxy (Proxy))
 import           Data.Text         (Text)
+import qualified Data.Text         as T
 import           GHC.Generics      (Generic, Rep)
 import           Servant.API       ((:<|>), (:>), Capture, FromHttpApiData (parseQueryParam), Get, Header, JSON, Patch,
                                     Post, ReqBody, ToHttpApiData (toQueryParam))
 import           Servant.Client    (ClientM, client)
 import qualified Servant.Extra
+import           Text.Read         (readEither)
 
 type API = Header "Authorization" (Token 'Github) :> "gists" :> GistAPI
 
@@ -73,19 +76,23 @@ updateGist =
     Servant.Extra.right . Servant.Extra.right . Servant.Extra.right . apiClient
 
 ------------------------------------------------------------
-data Owner = Owner
-    { _ownerLogin   :: !Text
-    , _ownerHtmlUrl :: !Text
-    } deriving (Show, Eq, Generic, ToJSON)
+data Owner =
+    Owner
+        { _ownerLogin   :: !Text
+        , _ownerHtmlUrl :: !Text
+        }
+    deriving (Show, Eq, Generic, ToJSON)
 
 instance FromJSON Owner where
     parseJSON = githubParseJSON
 
-data NewGist = NewGist
-    { _newGistDescription :: !Text
-    , _newGistPublic      :: !Bool
-    , _newGistFiles       :: ![NewGistFile]
-    } deriving (Show, Eq, Generic, FromJSON)
+data NewGist =
+    NewGist
+        { _newGistDescription :: !Text
+        , _newGistPublic      :: !Bool
+        , _newGistFiles       :: ![NewGistFile]
+        }
+    deriving (Show, Eq, Generic, FromJSON)
 
 instance ToJSON NewGist where
     toJSON NewGist {..} =
@@ -98,10 +105,12 @@ instance ToJSON NewGist where
         toPair NewGistFile {..} =
             (_newGistFilename, object ["content" .= _newGistFileContent])
 
-data NewGistFile = NewGistFile
-    { _newGistFilename    :: !Text
-    , _newGistFileContent :: !Text
-    } deriving (Show, Eq, Generic, FromJSON)
+data NewGistFile =
+    NewGistFile
+        { _newGistFilename    :: !Text
+        , _newGistFileContent :: !Text
+        }
+    deriving (Show, Eq, Generic, FromJSON)
 
 newtype GistId =
     GistId Text
@@ -111,16 +120,18 @@ instance ToHttpApiData GistId where
     toQueryParam (GistId gistId) = gistId
 
 instance FromHttpApiData GistId where
-    parseQueryParam = Right . GistId
+    parseQueryParam = bimap T.pack GistId . readEither . T.unpack
 
-data Gist = Gist
-    { _gistId         :: !GistId
-    , _gistGitPushUrl :: !Text
-    , _gistHtmlUrl    :: !Text
-    , _gistOwner      :: !Owner
-    , _gistFiles      :: ![GistFile]
-    , _gistTruncated  :: !Bool
-    } deriving (Show, Eq, Generic, ToJSON)
+data Gist =
+    Gist
+        { _gistId         :: !GistId
+        , _gistGitPushUrl :: !Text
+        , _gistHtmlUrl    :: !Text
+        , _gistOwner      :: !Owner
+        , _gistFiles      :: ![GistFile]
+        , _gistTruncated  :: !Bool
+        }
+    deriving (Show, Eq, Generic, ToJSON)
 
 instance FromJSON Gist where
     parseJSON =
@@ -134,13 +145,15 @@ instance FromJSON Gist where
             _gistTruncated <- o .: "truncated"
             pure Gist {..}
 
-data GistFile = GistFile
-    { _gistFileFilename  :: !Text
-    , _gistFileLanguage  :: !(Maybe Text)
-    , _gistFileType      :: !Text
-    , _gistFileTruncated :: !(Maybe Bool)
-    , _gistFileContent   :: !(Maybe Text)
-    } deriving (Show, Eq, Generic, ToJSON)
+data GistFile =
+    GistFile
+        { _gistFileFilename  :: !Text
+        , _gistFileLanguage  :: !(Maybe Text)
+        , _gistFileType      :: !Text
+        , _gistFileTruncated :: !(Maybe Bool)
+        , _gistFileContent   :: !(Maybe Text)
+        }
+    deriving (Show, Eq, Generic, ToJSON)
 
 instance FromJSON GistFile where
     parseJSON =

@@ -3,11 +3,12 @@ module Types where
 import API (RunResult)
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
-import DOM.HTML.Event.Types (DragEvent)
+import Web.HTML.Event.DragEvent (DragEvent)
 import Data.BigInteger (BigInteger)
 import Data.Either (Either)
 import Data.Functor.Coproduct (Coproduct)
-import Data.Generic (class Generic, gShow)
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.List (List)
@@ -21,7 +22,7 @@ import Marlowe.Types (BlockNumber, Choice, Contract, IdChoice, IdOracle, Person)
 import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Ord, class Show, Unit)
 import Marlowe.Semantics (DetachedPrimitiveWIA, AnyInput, State, ErrorResult, DynamicProblem)
-import Servant.PureScript.Affjax (AjaxError)
+import Servant.PureScript.Ajax (AjaxError)
 import Type.Data.Boolean (kind Boolean)
 
 ------------------------------------------------------------
@@ -84,10 +85,10 @@ data View
 
 derive instance eqView :: Eq View
 
-derive instance genericView :: Generic View
+derive instance genericView :: Generic View _
 
 instance showView :: Show View where
-  show = gShow
+  show = genericShow
 
 type FrontendState
   = { view :: View

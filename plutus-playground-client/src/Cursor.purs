@@ -26,12 +26,14 @@ module Cursor
 
 import Control.Monad.Gen.Class (chooseInt)
 import Data.Array as Array
-import Data.Foldable
-import Data.Generic (class Generic)
+import Data.Foldable (class Foldable, foldMap, foldl, foldr)
+import Data.Generic.Rep (class Generic)
 import Data.Lens (Traversal', wander)
 import Data.Lens.Index (class Index)
 import Data.Maybe (Maybe, fromMaybe, maybe)
 import Data.Ord as Ord
+import Foreign (ForeignError(..), fail, readArray, readInt)
+import Foreign.Class (class Decode, class Encode, decode, encode)
 import Prelude (class Eq, class Functor, class Ord, class Show, bind, map, otherwise, pure, show, (#), ($), (+), (-), (<<<), (<>), (>=), (>>>))
 import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
 import Test.QuickCheck.Gen (arrayOf)
@@ -41,7 +43,7 @@ data Cursor a = Cursor Int (Array a)
 derive instance eqCursor :: Eq a => Eq (Cursor a)
 derive instance ordCursor :: Ord a => Ord (Cursor a)
 derive instance functorCursor :: Functor Cursor
-derive instance genericCursor :: Generic a => Generic (Cursor a)
+derive instance genericCursor :: Generic (Cursor a) _
 
 instance foldableCursor :: Foldable Cursor where
   foldr f acc (Cursor _ xs) = foldr f acc xs
@@ -65,6 +67,18 @@ instance indexCursor :: Index (Cursor a) Int a where
         (let f x = fromMaybe xs $ Array.updateAt n x xs
          in coalg >>> map f)
     # map (Cursor index)
+
+instance encodeCursor :: Encode a => Encode (Cursor a) where
+  encode (Cursor n xs) = encode [ encode n, encode xs ]
+
+instance decodeCursor :: Decode a => Decode (Cursor a) where
+  decode value = do
+    xs <- readArray value
+    case xs of
+      [x, y] -> do index <- readInt x
+                   elements <- decode y
+                   pure $ Cursor index elements
+      _ -> fail $ ForeignError "Decoding a Cursor, expected to see an array with exactly 2 elements."
 
 _current :: forall a. Traversal' (Cursor a) a
 _current =

@@ -4,11 +4,11 @@ module CursorTests
 
 import Prelude
 
-import Control.Monad.Eff.Random (RANDOM)
 import Cursor (Cursor)
 import Cursor as Cursor
 import Data.Array as Array
-import Data.Generic (class Generic, gShow)
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (over, preview)
 import Data.Lens.Index (ix)
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
@@ -28,10 +28,10 @@ data Operation
   | First
   | Last
 
-derive instance genericOperation :: Generic Operation
+derive instance genericOperation :: Generic Operation _
 
 instance showOperation :: Show Operation where
-  show = gShow
+  show = genericShow
 
 applyOperation :: forall a. Operation -> Cursor a -> Cursor a
 applyOperation (Set index) = Cursor.setIndex index
@@ -55,7 +55,7 @@ genScenario = do
 
 ------------------------------------------------------------
 
-all :: forall aff. TestSuite (random :: RANDOM | aff)
+all :: TestSuite
 all =
   suite "Cursor" do
     operationsTests
@@ -64,7 +64,7 @@ all =
     mapWithIndexTests
     deleteAtTests
 
-operationsTests :: forall eff. TestSuite (random :: RANDOM | eff)
+operationsTests :: TestSuite
 operationsTests =
   test "Operations are safe." do
     quickCheck do
@@ -74,7 +74,7 @@ operationsTests =
           (isJust (Cursor.current finalCursor) || (Cursor.null finalCursor))
           ("Invalid state with cursor: " <> show cursor <> " and operations: " <> show operations)
 
-lensTests :: forall eff. TestSuite (random :: RANDOM | eff)
+lensTests :: TestSuite
 lensTests =
   test "Lens indexing works." do
     quickCheck do
@@ -90,7 +90,7 @@ lensTests =
       (Cursor.fromArray [1,4,3])
       (over (ix 1) ((*) 2) (Cursor.fromArray [1,2,3]))
 
-snocTests :: forall eff. TestSuite (random :: RANDOM | eff)
+snocTests :: TestSuite
 snocTests =
   test "snoc appends a new value to the end of the cursor." do
     quickCheck do
@@ -98,7 +98,7 @@ snocTests =
       cursor <- arbitrary
       pure $ Just x == Cursor.current (Cursor.snoc cursor x)
 
-mapWithIndexTests :: forall eff. TestSuite (random :: RANDOM | eff)
+mapWithIndexTests :: TestSuite
 mapWithIndexTests =
   test "mapWithIndex works" do
     equal
@@ -109,7 +109,7 @@ mapWithIndexTests =
                           ==
                           Array.mapWithIndex (+) (Cursor.toArray cursor)
 
-deleteAtTests :: forall eff. TestSuite (random :: RANDOM | eff)
+deleteAtTests :: TestSuite
 deleteAtTests =
   suite "deleteAt" do
     test "deleteAt amends the contents correctly." do
