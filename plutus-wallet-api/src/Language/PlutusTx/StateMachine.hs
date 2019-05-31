@@ -13,6 +13,9 @@ module Language.PlutusTx.StateMachine(
     ) where
 
 
+import           Prelude           hiding ((&&))
+
+import           Language.PlutusTx ((&&))
 import qualified Language.PlutusTx as P
 
 import           Ledger.Validation (PendingTx)
@@ -54,5 +57,5 @@ mkValidator sm (currentState, _) (newState, Just input) p =
             in
                 P.traceIfFalseH "State transition invalid - data script hash not equal to redeemer hash"
                 (P.all dsHashOk relevantOutputs)
-    in stateOk `P.and` dataScriptHashOk
+    in stateOk && dataScriptHashOk
 mkValidator _ _ _ _ = False

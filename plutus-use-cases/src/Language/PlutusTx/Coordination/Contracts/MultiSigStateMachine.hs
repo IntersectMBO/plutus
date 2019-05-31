@@ -18,6 +18,8 @@ module Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine(
     , makePayment
     ) where
 
+import           Prelude                      hiding ((&&))
+
 import           Data.Foldable                (foldMap)
 import qualified Data.Set                     as Set
 import           Ledger                       (DataScript(..), RedeemerScript(..), ValidatorScript(..))
@@ -32,6 +34,7 @@ import           Wallet
 import qualified Wallet                       as WAPI
 
 import qualified Language.PlutusTx              as PlutusTx
+import           Language.PlutusTx.Prelude      ((&&))
 import qualified Language.PlutusTx.Prelude      as P
 import           Language.PlutusTx.StateMachine (StateMachine(..))
 import qualified Language.PlutusTx.StateMachine as SM
@@ -109,7 +112,7 @@ containsPk pk = P.any (\pk' -> Validation.eqPubKey pk' pk)
 
 pkListEq :: [PubKey] -> [PubKey] -> Bool
 pkListEq [] []           = True
-pkListEq (k:ks) (k':ks') = P.and (Validation.eqPubKey k k') (pkListEq ks ks')
+pkListEq (k:ks) (k':ks') = Validation.eqPubKey k k' && pkListEq ks ks'
 pkListEq _ _             = False
 
 -- | Check whether a proposed 'Payment' is valid given the total
@@ -135,7 +138,7 @@ valuePreserved vl ptx =
     let ownHash = Validation.ownHash ptx
         numOutputs = P.length (Validation.scriptOutputsAt ownHash ptx)
         valueLocked = Validation.valueLockedBy ptx ownHash
-    in P.and (P.eq 1 numOutputs) (Value.eq valueLocked vl)
+    in P.eq 1 numOutputs && Value.eq valueLocked vl
 
 -- | @valuePaid pm ptx@ is true if the pending transaction @ptx@ pays
 --   the amount specified in @pm@ to the public key address specified in @pm@
@@ -145,13 +148,13 @@ valuePaid (Payment vl pk _) ptx = Value.eq vl (Validation.valuePaidTo ptx pk)
 -- | Equality of 'Payment' values
 paymentEq :: Payment -> Payment -> Bool
 paymentEq (Payment vl pk sl) (Payment vl' pk' sl') =
-    P.and (P.and (Value.eq vl vl') (Validation.eqPubKey pk pk')) (Slot.eq sl sl')
+    Value.eq vl vl' && Validation.eqPubKey pk pk' && Slot.eq sl sl'
 
 -- | Equality of 'State' values
 stateEq :: State -> State -> Bool
 stateEq (InitialState v) (InitialState v') = Value.eq v v'
 stateEq (CollectingSignatures vl pmt pks) (CollectingSignatures vl' pmt' pks') =
-    P.and (P.and (Value.eq vl vl') (paymentEq pmt pmt')) (pkListEq pks pks')
+    Value.eq vl vl' && paymentEq pmt pmt' && pkListEq pks pks'
 stateEq _ _ = False
 
 -- | @step params state input@ computes the next state given current state
@@ -180,27 +183,27 @@ stepWithChecks p ptx s i =
     let newState = step s i in
     case (s, i) of
         (InitialState vl, ProposePayment pmt) ->
-            if isValidProposal vl pmt `P.and`
+            if isValidProposal vl pmt &&
                 valuePreserved vl ptx
             then newState
             else P.traceErrorH "ProposePayment invalid"
         (CollectingSignatures vl _ pks, AddSignature pk) ->
-            if Validation.txSignedBy ptx pk `P.and`
-                isSignatory pk p `P.and`
-                P.not (containsPk pk pks) `P.and`
+            if Validation.txSignedBy ptx pk &&
+                isSignatory pk p &&
+                P.not (containsPk pk pks) &&
                 valuePreserved vl ptx
             then newState
             else P.traceErrorH "AddSignature invalid"
         (CollectingSignatures vl pmt _, Cancel) ->
-            if proposalExpired ptx pmt `P.and`
+            if proposalExpired ptx pmt &&
                 valuePreserved vl ptx
             then InitialState vl
             else P.traceErrorH "Cancel invalid"
         (CollectingSignatures vl pmt@(Payment vp _ _) pks, Pay) ->
             let vl' = Value.minus vl vp in
-            if P.not (proposalExpired ptx pmt) `P.and`
-                proposalAccepted p pks `P.and`
-                valuePreserved vl' ptx `P.and`
+            if P.not (proposalExpired ptx pmt) &&
+                proposalAccepted p pks &&
+                valuePreserved vl' ptx &&
                 valuePaid pmt ptx
             then newState
             else P.traceErrorH "Pay invalid"

@@ -93,6 +93,7 @@ import           Language.Marlowe.Pretty    (Pretty, prettyFragment)
 import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift     (makeLift)
+import           Language.PlutusTx.Prelude  (not, (&&), (||))
 import           Ledger                     (PubKey (..), Signature (..), Slot (..))
 import           Ledger.Ada                 (Ada)
 import qualified Ledger.Ada                 as Ada
@@ -274,88 +275,73 @@ eqIdentCC (IdentCC a) (IdentCC b) = a `Builtins.equalsInteger` b
 
 -- | 'Value' equality
 equalValue :: Value -> Value -> Bool
-equalValue l r = let
-
-    infixr 3 &&
-    (&&) :: Bool -> Bool -> Bool
-    (&&) = PlutusTx.and
-
+equalValue = let
     eq l r = case (l, r) of
-        (Committed idl, Committed idr) -> eqIdentCC idl idr
-        (Value vl, Value vr) -> vl `Builtins.equalsInteger` vr
-        (AddValue v1l v2l, AddValue v1r v2r) -> eq v1l v1r && eq v2l v2r
-        (MulValue v1l v2l, MulValue v1r v2r) -> eq v1l v1r && eq v2l v2r
-        (DivValue v1l v2l v3l, DivValue v1r v2r v3r) ->
-            eq v1l v1r
-            && eq v2l v2r
-            && eq v3l v3r
-        (ValueFromChoice (IdentChoice idl) pkl vl, ValueFromChoice (IdentChoice idr) pkr vr) ->
-            idl `Builtins.equalsInteger` idr
-            && pkl `Validation.eqPubKey` pkr
-            && eq vl vr
-        (ValueFromOracle pkl vl, ValueFromOracle pkr vr) -> pkl `Validation.eqPubKey` pkr && eq vl vr
-        _ -> False
-    in eq l r
+            (Committed idl, Committed idr) -> eqIdentCC idl idr
+            (Value vl, Value vr) -> vl `Builtins.equalsInteger` vr
+            (AddValue v1l v2l, AddValue v1r v2r) -> eq v1l v1r && eq v2l v2r
+            (MulValue v1l v2l, MulValue v1r v2r) -> eq v1l v1r && eq v2l v2r
+            (DivValue v1l v2l v3l, DivValue v1r v2r v3r) ->
+                eq v1l v1r
+                && eq v2l v2r
+                && eq v3l v3r
+            (ValueFromChoice (IdentChoice idl) pkl vl, ValueFromChoice (IdentChoice idr) pkr vr) ->
+                idl `Builtins.equalsInteger` idr
+                && pkl `Validation.eqPubKey` pkr
+                && eq vl vr
+            (ValueFromOracle pkl vl, ValueFromOracle pkr vr) -> pkl `Validation.eqPubKey` pkr && eq vl vr
+            _ -> False
+    in eq
 
 -- | 'Observation' equality
 equalObservation :: (Value -> Value -> Bool) -> Observation -> Observation -> Bool
-equalObservation eqValue l r = let
-    infixr 3 &&
-    (&&) :: Bool -> Bool -> Bool
-    (&&) = PlutusTx.and
-
-    eq :: Observation -> Observation -> Bool
+equalObservation eqValue = let
     eq l r = case (l, r) of
-        (BelowTimeout tl, BelowTimeout tr) -> tl `Builtins.equalsInteger` tr
-        (AndObs o1l o2l, AndObs o1r o2r) -> o1l `eq` o1r && o2l `eq` o2r
-        (OrObs o1l o2l, OrObs o1r o2r) -> o1l `eq` o1r && o2l `eq` o2r
-        (NotObs ol, NotObs or) -> ol `eq` or
-        (PersonChoseThis (IdentChoice idl) pkl cl, PersonChoseThis (IdentChoice idr) pkr cr) ->
-            idl `Builtins.equalsInteger` idr && pkl `Validation.eqPubKey` pkr && cl `Builtins.equalsInteger` cr
-        (PersonChoseSomething (IdentChoice idl) pkl, PersonChoseSomething (IdentChoice idr) pkr) ->
-            idl `Builtins.equalsInteger` idr && pkl `Validation.eqPubKey` pkr
-        (ValueGE v1l v2l, ValueGE v1r v2r) -> v1l `eqValue` v1r && v2l `eqValue` v2r
-        (TrueObs, TrueObs) -> True
-        (FalseObs, FalseObs) -> True
-        _ -> False
-    in eq l r
+            (BelowTimeout tl, BelowTimeout tr) -> tl `Builtins.equalsInteger` tr
+            (AndObs o1l o2l, AndObs o1r o2r) -> o1l `eq` o1r && o2l `eq` o2r
+            (OrObs o1l o2l, OrObs o1r o2r) -> o1l `eq` o1r && o2l `eq` o2r
+            (NotObs ol, NotObs or) -> ol `eq` or
+            (PersonChoseThis (IdentChoice idl) pkl cl, PersonChoseThis (IdentChoice idr) pkr cr) ->
+                idl `Builtins.equalsInteger` idr && pkl `Validation.eqPubKey` pkr && cl `Builtins.equalsInteger` cr
+            (PersonChoseSomething (IdentChoice idl) pkl, PersonChoseSomething (IdentChoice idr) pkr) ->
+                idl `Builtins.equalsInteger` idr && pkl `Validation.eqPubKey` pkr
+            (ValueGE v1l v2l, ValueGE v1r v2r) -> v1l `eqValue` v1r && v2l `eqValue` v2r
+            (TrueObs, TrueObs) -> True
+            (FalseObs, FalseObs) -> True
+            _ -> False
+    in eq
 
 -- | 'Contract' equality
 equalContract :: (Value -> Value -> Bool) -> (Observation -> Observation -> Bool) -> Contract -> Contract -> Bool
-equalContract eqValue eqObservation l r = let
-    infixr 3 &&
-    (&&) :: Bool -> Bool -> Bool
-    (&&) = PlutusTx.and
-
-    eq :: Contract -> Contract -> Bool
-    eq l r = case (l, r) of
-        (Null, Null) -> True
-        (CommitCash (IdentCC idl) pkl vl t1l t2l c1l c2l, CommitCash (IdentCC idr) pkr vr t1r t2r c1r c2r) ->
-            idl `Builtins.equalsInteger` idr
-            && pkl `Validation.eqPubKey` pkr
-            && vl `eqValue` vr
-            && t1l `Builtins.equalsInteger` t1r && t2l `Builtins.equalsInteger` t2r
-            && eq c1l c1r && eq c2l c2r
-        (RedeemCC (IdentCC idl) c1l, RedeemCC (IdentCC idr) c1r) -> idl `Builtins.equalsInteger` idr && eq c1l c1r
-        (Pay (IdentPay idl) pk1l pk2l vl tl cl, Pay (IdentPay idr) pk1r pk2r vr tr cr) ->
-            idl `Builtins.equalsInteger` idr
-            && pk1l `Validation.eqPubKey` pk1r
-            && pk2l `Validation.eqPubKey` pk2r
-            && vl `eqValue` vr
-            && tl `Builtins.equalsInteger` tr
-            && eq cl cr
-        (Both c1l c2l, Both c1r c2r) -> eq c1l c1r && eq c2l c2r
-        (Choice ol c1l c2l, Choice or c1r c2r) ->
-            ol `eqObservation` or
-            && eq c1l c1r
-            && eq c2l c2r
-        (When ol tl c1l c2l, When or tr c1r c2r) ->
-            ol `eqObservation` or
-            && tl `Builtins.equalsInteger` tr
-            && eq c1l c1r
-            && eq c2l c2r
-        _ -> False
-    in eq l r
+equalContract eqValue eqObservation =
+    let eq l r = case (l, r) of
+            (Null, Null) -> True
+            (CommitCash (IdentCC idl) pkl vl t1l t2l c1l c2l, CommitCash (IdentCC idr) pkr vr t1r t2r c1r c2r) ->
+                idl `Builtins.equalsInteger` idr
+                && pkl `Validation.eqPubKey` pkr
+                && vl `eqValue` vr
+                && t1l `Builtins.equalsInteger` t1r && t2l `Builtins.equalsInteger` t2r
+                && eq c1l c1r && eq c2l c2r
+            (RedeemCC (IdentCC idl) c1l, RedeemCC (IdentCC idr) c1r) -> idl `Builtins.equalsInteger` idr && eq c1l c1r
+            (Pay (IdentPay idl) pk1l pk2l vl tl cl, Pay (IdentPay idr) pk1r pk2r vr tr cr) ->
+                idl `Builtins.equalsInteger` idr
+                && pk1l `Validation.eqPubKey` pk1r
+                && pk2l `Validation.eqPubKey` pk2r
+                && vl `eqValue` vr
+                && tl `Builtins.equalsInteger` tr
+                && eq cl cr
+            (Both c1l c2l, Both c1r c2r) -> eq c1l c1r && eq c2l c2r
+            (Choice ol c1l c2l, Choice or c1r c2r) ->
+                ol `eqObservation` or
+                && eq c1l c1r
+                && eq c2l c2r
+            (When ol tl c1l c2l, When or tr c1r c2r) ->
+                ol `eqObservation` or
+                && tl `Builtins.equalsInteger` tr
+                && eq c1l c1r
+                && eq c2l c2r
+            _ -> False
+   in eq
 
 eqValue :: Value -> Value -> Bool
 eqValue = equalValue
@@ -422,10 +408,6 @@ validateContract State{stateCommitted} contract (Slot bn) actualMoney' = let
 -}
 evaluateValue :: Slot -> [OracleValue Integer] -> State -> Value -> Integer
 evaluateValue pendingTxSlot inputOracles state value = let
-    infixr 3 &&
-    (&&) :: Bool -> Bool -> Bool
-    (&&) = PlutusTx.and
-
     findCommit :: IdentCC -> [Commit] -> Maybe CCStatus
     findCommit i@(IdentCC searchId) commits = case commits of
         (IdentCC id, status) : _ | id `Builtins.equalsInteger` searchId -> Just status
@@ -470,17 +452,6 @@ evaluateValue pendingTxSlot inputOracles state value = let
 -- | Interpret 'Observation' as 'Bool'.
 interpretObservation :: (State -> Value -> Integer) -> Integer -> State -> Observation -> Bool
 interpretObservation evalValue blockNumber state@(State _ choices) obs = let
-    not :: Bool -> Bool
-    not = PlutusTx.not
-
-    infixr 3 &&
-    (&&) :: Bool -> Bool -> Bool
-    (&&) = PlutusTx.and
-
-    infixr 3 ||
-    (||) :: Bool -> Bool -> Bool
-    (||) = PlutusTx.or
-
     find :: IdentChoice -> Person -> [Choice] -> Maybe ConcreteChoice
     find choiceId@(IdentChoice cid) person choices = case choices of
         (((IdentChoice id, party), choice) : _)
@@ -505,11 +476,6 @@ interpretObservation evalValue blockNumber state@(State _ choices) obs = let
 -- | Add a 'Commit', placing it in order by endTimeout per 'Person'
 insertCommit :: Commit -> [Commit] -> [Commit]
 insertCommit commit commits = let
-
-    infixr 3 &&
-    (&&) :: Bool -> Bool -> Bool
-    (&&) = PlutusTx.and
-
     insert :: Commit -> [Commit] -> [Commit]
     insert commit commits = let
         (_, (pubKey, NotRedeemed _ endTimeout)) = commit
@@ -529,9 +495,6 @@ discountFromPairList ::
     -> Maybe [Commit]
 discountFromPairList from (Slot currentBlockNumber) value' commits = let
     value = Ada.toInt value'
-
-    infixr 3 &&
-    (&&) = PlutusTx.and
 
     discount :: Integer -> [Commit] -> Maybe [Commit]
     discount value commits = case commits of
@@ -593,14 +556,6 @@ evaluateContract
     scriptOutValue = Ada.toInt scriptOutValue'
 
     Slot currentBlockNumber = blockHeight
-
-    infixr 3 &&
-    (&&) :: Bool -> Bool -> Bool
-    (&&) = PlutusTx.and
-
-    infixr 3 ||
-    (||) :: Bool -> Bool -> Bool
-    (||) = PlutusTx.or
 
     nullContract :: Contract -> Bool
     nullContract Null = True
@@ -735,10 +690,6 @@ validatorScript
             which makes a particular contract to have a unique script address.
             That makes it easier to watch for contrac actions inside a wallet. -}
         contractCreatorPK = creator
-
-        infixr 3 &&
-        (&&) :: Bool -> Bool -> Bool
-        (&&) = PlutusTx.and
 
         all :: () -> forall a. (a -> a -> Bool) -> [a] -> [a] -> Bool
         all _ = go where

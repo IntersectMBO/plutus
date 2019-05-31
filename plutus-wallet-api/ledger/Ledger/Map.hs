@@ -34,8 +34,9 @@ import           Data.Hashable                (Hashable)
 import           Data.Swagger.Internal.Schema (ToSchema)
 import           GHC.Generics                 (Generic)
 import           Language.PlutusTx.Lift       (makeLift)
+import           Language.PlutusTx.Prelude    ((&&))
 import qualified Language.PlutusTx.Prelude    as P
-import           Prelude                      hiding (all, lookup, map)
+import           Prelude                      hiding (all, lookup, map, (&&), (||))
 
 import           Ledger.These
 
@@ -111,7 +112,7 @@ all :: (v -> Bool) -> Map k v -> Bool
 all p (Map mps) =
     let go xs = case xs of
             []              -> True
-            (_ :: k, x):xs' -> P.and (p x) (go xs')
+            (_ :: k, x):xs' -> p x && go xs'
     in go mps
 
 -- | A singleton map.

@@ -11,6 +11,8 @@ module Language.PlutusTx.Coordination.Contracts.Currency(
     , forgedValue
     ) where
 
+import           Prelude                   hiding ((&&))
+
 import           Control.Lens              ((^.), at, to)
 import           Data.Bifunctor            (Bifunctor(first))
 import qualified Data.Set                  as Set
@@ -19,6 +21,7 @@ import           Data.Maybe                (fromMaybe)
 import           Data.String               (IsString(fromString))
 import qualified Data.Text                 as Text
 
+import           Language.PlutusTx.Prelude ((&&))
 import qualified Language.PlutusTx         as P
 
 import qualified Ledger.Ada                as Ada
@@ -79,7 +82,7 @@ validate c@(Currency (refHash, refIdx) _) () () p =
             let v = V.spendsOutput p refHash refIdx
             in  P.traceIfFalseH "Pending transaction does not spend the designated transaction output" v
 
-    in forgeOK `P.and` txOutputSpent
+    in forgeOK && txOutputSpent
 
 curValidator :: Currency -> ValidatorScript
 curValidator cur = ValidatorScript $

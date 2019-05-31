@@ -15,10 +15,13 @@ module CrowdFunding where
 --
 -- Note [Transactions in the crowdfunding campaign] explains the structure of
 -- this contract on the blockchain.
+import           Prelude                      hiding ((&&))
+
 import qualified Language.PlutusTx            as PlutusTx
+import           Language.PlutusTx.Prelude    ((&&))
+import qualified Language.PlutusTx.Prelude    as P
 import           Ledger.Slot                  (SlotRange)
 import qualified Ledger.Slot                  as Slot
-import qualified Language.PlutusTx.Prelude    as P
 import           Ledger
 import           Ledger.Validation            as V
 import           Ledger.Value                 (Value)
@@ -88,7 +91,7 @@ validRefund campaign contributor ptx =
     -- Check that the transaction falls in the refund range of the campaign
     Slot.contains (refundRange campaign) (pendingTxValidRange ptx)
     -- Check that the transaction is signed by the contributor
-    `P.and` (ptx `V.txSignedBy` contributor)
+    && (ptx `V.txSignedBy` contributor)
 
 validCollection :: Campaign -> PendingTx -> Bool
 validCollection campaign p =
@@ -96,9 +99,9 @@ validCollection campaign p =
     (collectionRange campaign `Slot.contains` pendingTxValidRange p)
     -- Check that the transaction is trying to spend more money than the campaign
     -- target (and hence the target was reached)
-    `P.and` (valueSpent p `VTH.geq` campaignTarget campaign)
+    && (valueSpent p `VTH.geq` campaignTarget campaign)
     -- Check that the transaction is signed by the campaign owner
-    `P.and` (p `V.txSignedBy` campaignOwner campaign)
+    && (p `V.txSignedBy` campaignOwner campaign)
 
 -- | The validator script is of type 'CrowdfundingValidator', and is additionally parameterized by a
 -- 'Campaign' definition. This argument is provided by the Plutus client, using 'Ledger.applyScript'.

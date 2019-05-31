@@ -16,11 +16,14 @@ module Language.PlutusTx.Coordination.Contracts.GameStateMachine(
     , gameValidator
     ) where
 
+import           Prelude                      hiding ((&&))
+
 import qualified Data.Map                     as Map
 import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
 import qualified Data.Text                    as Text
 import qualified Language.PlutusTx            as PlutusTx
+import           Language.PlutusTx.Prelude    ((&&))
 import qualified Language.PlutusTx.Prelude    as P
 import           Ledger                       hiding (to)
 import qualified Ledger.Ada                   as Ada
@@ -58,7 +61,7 @@ stateEq :: GameState -> GameState -> Bool
 stateEq (Initialised (HashedString s)) (Initialised (HashedString s')) =
     P.equalsByteString s s'
 stateEq (Locked (V.TokenName n) (HashedString s)) (Locked (V.TokenName n') (HashedString s')) =
-    P.and (P.equalsByteString s s') (P.equalsByteString n n')
+    P.equalsByteString s s' && P.equalsByteString n n'
 stateEq _ _ = P.traceIfFalseH "states not equal" False
 
 -- | Check whether a 'ClearString' is the preimage of a
@@ -107,9 +110,7 @@ mkValidator ds vs p =
             then Locked tn s
             else P.error ()
         trans (Locked tn currentSecret) (Guess theGuess nextSecret) =
-            if P.and
-                (checkGuess currentSecret theGuess)
-                (P.and (tokenPresent tn) (checkForge V.zero))
+            if checkGuess currentSecret theGuess && tokenPresent tn && checkForge V.zero
             then Locked tn nextSecret
             else P.error ()
         trans _ _ = P.traceErrorH "Invalid SM.transition"

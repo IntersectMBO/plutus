@@ -29,6 +29,9 @@ We need the same language extensions and imports as [before](./02-validator-scri
 {-# LANGUAGE OverloadedStrings   #-}
 module Tutorial.WalletAPI where
 
+import           Prelude                      hiding ((&&))
+
+import           Language.PlutusTx.Prelude    ((&&))
 import qualified Language.PlutusTx            as P
 import qualified Ledger.Interval              as P
 import qualified Ledger.Slot                  as P
@@ -42,7 +45,6 @@ import           Ledger.Validation            (PendingTx(..), PendingTxIn(..), P
 import qualified Ledger.Validation            as V
 import           Wallet                       (WalletAPI(..), WalletDiagnostics(..), MonadWallet, EventHandler(..), EventTrigger)
 import qualified Wallet                       as W
-import           Prelude                      hiding ((&&))
 import           GHC.Generics                 (Generic)
 ```
 
@@ -122,11 +124,6 @@ Before we check whether `act` is permitted, we define a number of intermediate v
 
 ```haskell
               let
-                  infixr 3 &&
-                  (&&) :: Bool -> Bool -> Bool
-                  (&&) = P.and
-
-
                   signedBy :: PendingTx -> PubKey -> Bool
                   signedBy = V.txSignedBy
 ```
