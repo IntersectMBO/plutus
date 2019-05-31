@@ -199,9 +199,16 @@ let
           ${playground-exe}/bin/plutus-playground-server psgenerator $out
         '';
         in
-        pkgs.callPackage ./plutus-playground-client {
+        pkgs.callPackage ./nix/purescript.nix rec {
           inherit pkgs yarn2nix pp2nSrc haskellPackages;
           psSrc = generated-purescript;
+          src = ./plutus-playground-client;
+          webCommonPath = ./web-common;
+          packageJSON = ./plutus-playground-client/package.json;
+          yarnLock = ./plutus-playground-client/yarn.lock;
+          yarnNix = ./plutus-playground-client/yarn.nix;
+          packages = pkgs.callPackage ./plutus-playground-client/packages.nix {};
+          name = (pkgs.lib.importJSON packageJSON).name;
         };
     };
 
@@ -230,9 +237,16 @@ let
           ${meadow-exe}/bin/meadow-exe psgenerator $out
         '';
         in
-        pkgs.callPackage ./meadow-client {
+        pkgs.callPackage ./nix/purescript.nix rec {
           inherit pkgs yarn2nix pp2nSrc haskellPackages;
           psSrc = generated-purescript;
+          src = ./meadow-client;
+          webCommonPath = ./web-common;
+          packageJSON = ./meadow-client/package.json;
+          yarnLock = ./meadow-client/yarn.lock;
+          yarnNix = ./meadow-client/yarn.nix;
+          packages = pkgs.callPackage ./meadow-client/packages.nix {};
+          name = (pkgs.lib.importJSON packageJSON).name;
         };
     };
 

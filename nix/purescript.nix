@@ -5,6 +5,13 @@
 , yarn2nix
 , pp2nSrc
 , haskellPackages
+, src
+, webCommonPath
+, packages
+, name
+, packageJSON
+, yarnLock
+, yarnNix
 }:
 
 with pkgs;
@@ -19,18 +26,14 @@ let
     url = "https://github.com/sass/node-sass/releases/download/v4.11.0/darwin-x64-57_binding.node";
     sha256 = "04m3lpqapsx1nsaz7xr6k0yr64car1447v5gf6x6sfiszmshvjw2";
   };
-  webCommon = pkgs.copyPathToStore ../web-common;
+  webCommon = pkgs.copyPathToStore webCommonPath;
 
-  packages = callPackage ./packages.nix {};
   mkCopyHook = import "${pp2nSrc}/nix/mkCopyHook.nix";
   installPackages = builtins.toString (builtins.map (mkCopyHook packages) (builtins.attrValues packages.inputs));
+  packagesJson = "${src}/packages.json";
 
 in yarn2nix.mkYarnPackage {
-  name = "plutus-playground-client";
-  src = ./.;
-  packageJSON = ./package.json;
-  yarnLock = ./yarn.lock;
-  yarnNix = ./yarn.nix;
+  inherit name src packageJSON yarnLock yarnNix;
   nodejs = nodejs-10_x; 
 
   buildInputs = [ git cacert python2 webCommon ];
@@ -40,8 +43,8 @@ in yarn2nix.mkYarnPackage {
     export HOME=$NIX_BUILD_TOP
     export SASS_BINARY_PATH=${if stdenv.isDarwin then nodeSassBinDarwin else nodeSassBinLinux}
 
-    # mkYarnPackage moves everything into deps/plutus-playground
-    cd deps/plutus-playground
+    # mkYarnPackage moves everything into deps/${name}
+    cd deps/${name}
 
     # move everything into its correct place
     cp -R ${psSrc} generated
@@ -50,14 +53,14 @@ in yarn2nix.mkYarnPackage {
     # do all the psc-package stuff
     ${installPackages}
     mkdir -p .psc-package/local/.set
-    cp ${./packages.json} .psc-package/local/.set/packages.json
+    cp ${packagesJson} .psc-package/local/.set/packages.json
 
-    # for some reason, mkYarnPackage creates an empty node_modules in deps/plutus-playground.
+    # for some reason, mkYarnPackage creates an empty node_modules in deps/${name}.
     rm -Rf ./node_modules
 
     # Everything is correctly in the top level node_modules though so we link it
     ln -s ../../node_modules
-
+    
     # We have to use nix patched purs and yarn will look in node_modules/.bin first so we have to delete the bad one
     rm ./node_modules/.bin/purs
     
