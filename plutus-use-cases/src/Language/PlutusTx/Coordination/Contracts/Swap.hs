@@ -1,6 +1,7 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 module Language.PlutusTx.Coordination.Contracts.Swap(
     Swap(..),
@@ -8,11 +9,8 @@ module Language.PlutusTx.Coordination.Contracts.Swap(
     swapValidator
     ) where
 
-import           Prelude                   hiding ((&&), (||))
-
 import qualified Language.PlutusTx         as PlutusTx
-import           Language.PlutusTx.Prelude ((&&), (||))
-import qualified Language.PlutusTx.Prelude as P
+import           Language.PlutusTx.Prelude
 import           Ledger                    (Slot, PubKey, ValidatorScript (..))
 import qualified Ledger                    as Ledger
 import           Ledger.Validation         (OracleValue (..), PendingTx (..), PendingTxIn (..), PendingTxOut (..))
@@ -26,13 +24,13 @@ data Ratio a = a :% a  deriving Eq
 PlutusTx.makeLift ''Ratio
 
 timesR :: Ratio Integer -> Ratio Integer -> Ratio Integer
-timesR (x :% y) (x' :% y') = (x `P.multiply` x') :% (y `P.multiply` y')
+timesR (x :% y) (x' :% y') = (x `multiply` x') :% (y `multiply` y')
 
 plusR :: Ratio Integer -> Ratio Integer -> Ratio Integer
-plusR (x :% y) (x' :% y') = ((x `P.multiply` y') `P.plus` (x' `P.multiply` y)) :% (y `P.multiply` y')
+plusR (x :% y) (x' :% y') = ((x `multiply` y') `plus` (x' `multiply` y)) :% (y `multiply` y')
 
 minusR :: Ratio Integer -> Ratio Integer -> Ratio Integer
-minusR (x :% y) (x' :% y') = ((x `P.multiply` y') `P.minus` (x' `P.multiply` y)) :% (y `P.multiply` y')
+minusR (x :% y) (x' :% y') = ((x `multiply` y') `minus` (x' `multiply` y)) :% (y `multiply` y')
 
 -- | A swap is an agreement to exchange cashflows at future dates. To keep
 --  things simple, this is an interest rate swap (meaning that the cashflows are
@@ -74,20 +72,20 @@ mkValidator :: Swap -> SwapOwners -> SwapOracle -> PendingTx -> Bool
 mkValidator Swap{..} SwapOwners{..} redeemer p =
     let
         extractVerifyAt :: OracleValue (Ratio Integer) -> PubKey -> Ratio Integer -> Slot -> Ratio Integer
-        extractVerifyAt = PlutusTx.error ()
+        extractVerifyAt = error ()
 
         round_ :: Ratio Integer -> Integer
-        round_ = PlutusTx.error ()
+        round_ = error ()
 
         -- | Convert an [[Integer]] to a [[Ratio Integer]]
         fromInt :: Integer -> Ratio Integer
-        fromInt = PlutusTx.error ()
+        fromInt = error ()
 
         adaValueIn :: Value -> Integer
         adaValueIn v = Ada.toInt (Ada.fromValue v)
 
         isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
-        isPubKeyOutput o k = PlutusTx.maybe False (Validation.eqPubKey k) (Validation.pubKeyOutput o)
+        isPubKeyOutput o k = maybe False (Validation.eqPubKey k) (Validation.pubKeyOutput o)
 
         -- Verify the authenticity of the oracle value and compute
         -- the payments.
@@ -115,9 +113,9 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
         -- payments), ensuring that it is at least 0 and does not exceed
         -- the total amount of money at stake (2 * margin)
         clamp :: Integer -> Integer
-        clamp x = P.min 0 (P.max (P.multiply 2 margin) x)
-        fixedRemainder = clamp (P.plus (P.minus margin fixedPayment) floatPayment)
-        floatRemainder = clamp (P.plus (P.minus margin floatPayment) fixedPayment)
+        clamp x = min 0 (max (multiply 2 margin) x)
+        fixedRemainder = clamp (plus (minus margin fixedPayment) floatPayment)
+        floatRemainder = clamp (plus (minus margin floatPayment) fixedPayment)
 
         -- The transaction must have one input from each of the
         -- participants.
@@ -135,12 +133,12 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
         -- True if the transaction input is the margin payment of the
         -- fixed leg
         iP1 :: PendingTxIn -> Bool
-        iP1 (PendingTxIn _ _ v) = Validation.txSignedBy p swapOwnersFixedLeg && PlutusTx.eq (adaValueIn v) margin
+        iP1 (PendingTxIn _ _ v) = Validation.txSignedBy p swapOwnersFixedLeg && eq (adaValueIn v) margin
 
         -- True if the transaction input is the margin payment of the
         -- floating leg
         iP2 :: PendingTxIn -> Bool
-        iP2 (PendingTxIn _ _ v) = Validation.txSignedBy p swapOwnersFloating && PlutusTx.eq (adaValueIn v) margin
+        iP2 (PendingTxIn _ _ v) = Validation.txSignedBy p swapOwnersFloating && eq (adaValueIn v) margin
 
         inConditions = (iP1 t1 && iP2 t2) || (iP1 t2 && iP2 t1)
 
@@ -150,11 +148,11 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
 
         -- True if the output is the payment of the fixed leg.
         ol1 :: PendingTxOut -> Bool
-        ol1 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFixedLeg && PlutusTx.leq (adaValueIn v) fixedRemainder
+        ol1 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFixedLeg && leq (adaValueIn v) fixedRemainder
 
         -- True if the output is the payment of the floating leg.
         ol2 :: PendingTxOut -> Bool
-        ol2 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFloating && PlutusTx.leq (adaValueIn v) floatRemainder
+        ol2 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFloating && leq (adaValueIn v) floatRemainder
 
         -- NOTE: I didn't include a check that the slot is greater
         -- than the observation time. This is because the slot is

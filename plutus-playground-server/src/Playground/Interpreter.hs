@@ -193,6 +193,7 @@ runghcOpts =
     , "-XStandaloneDeriving"
     , "-XTemplateHaskell"
     , "-XScopedTypeVariables"
+    , "-XNoImplicitPrelude"
     -- We need this to load unfoldings from interfaces with -O0, which is what we
     -- get with runghc (higher optimization levels are just ignored).
     , "-fno-ignore-interface-pragmas"

@@ -1,10 +1,12 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 module Tutorial.Solutions2 where
 
 import qualified Data.Map                     as Map
 
-import qualified Language.PlutusTx            as P
+import qualified Language.PlutusTx            as PlutusTx
+import           Language.PlutusTx.Prelude
 import           Ledger                       (Address, DataScript(..), RedeemerScript(..), ValidatorScript(..), Value)
 import qualified Ledger                       as L
 import           Ledger.Validation            (PendingTx)
@@ -41,8 +43,8 @@ import Tutorial.Emulator (SecretNumber(..), ClearNumber(..))
     >>> PL.sizePlc trickier10Light
     3799
 -}
-trickier10Light :: P.CompiledCode (Integer -> Integer)
-trickier10Light = $$(P.compile [|| $$(TH.trickierLight 10) ||])
+trickier10Light :: PlutusTx.CompiledCode (Integer -> Integer)
+trickier10Light = $$(PlutusTx.compile [|| $$(TH.trickierLight 10) ||])
 
 {-
 
@@ -51,7 +53,7 @@ trickier10Light = $$(P.compile [|| $$(TH.trickierLight 10) ||])
 -}
 intGameValidator :: ValidatorScript
 intGameValidator = ValidatorScript ($$(L.compileScript [||
-  \(SecretNumber actual) (ClearNumber guess') (_ :: PendingTx) -> P.eq actual ($$(TH.trickier 2) guess')
+  \(SecretNumber actual) (ClearNumber guess') (_ :: PendingTx) -> eq actual ($$(TH.trickier 2) guess')
   ||]))
 
 gameAddress :: Address

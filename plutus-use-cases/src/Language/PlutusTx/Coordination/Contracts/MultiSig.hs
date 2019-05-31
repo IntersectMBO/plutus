@@ -5,6 +5,7 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 -- | Implements an n-out-of-m multisig contract.
 module Language.PlutusTx.Coordination.Contracts.MultiSig
     ( MultiSig(..)
@@ -22,7 +23,8 @@ import qualified Data.Set                     as Set
 import           Data.Foldable                (fold)
 import qualified Ledger.Ada                   as Ada
 import qualified Ledger.Value                 as Value
-import qualified Language.PlutusTx            as P
+import           Language.PlutusTx.Prelude
+import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       as Ledger hiding (initialise, to)
 import           Ledger.Validation            as V
 import           Wallet.API                   as WAPI
@@ -34,16 +36,16 @@ data MultiSig = MultiSig
                 -- ^ Minimum number of signatures required to unlock
                 --   the output (should not exceed @length signatories@)
                 }
-P.makeLift ''MultiSig
+PlutusTx.makeLift ''MultiSig
 
 validate :: MultiSig -> () -> () -> PendingTx -> Bool
 validate (MultiSig keys num) () () p =
-    let present = P.length (P.filter (V.txSignedBy p) keys)
-    in present `P.geq` num
+    let present = length (filter (V.txSignedBy p) keys)
+    in present `geq` num
 
 msValidator :: MultiSig -> ValidatorScript
 msValidator sig = ValidatorScript $
-    Ledger.fromCompiledCode $$(P.compile [|| validate ||])
+    Ledger.fromCompiledCode $$(PlutusTx.compile [|| validate ||])
         `Ledger.applyScript`
             Ledger.lifted sig
 

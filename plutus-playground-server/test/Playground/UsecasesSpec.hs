@@ -372,6 +372,7 @@ knownCurrencySpec =
             , "import Ledger.Value (TokenName(TokenName))"
             , "import Ledger.Validation (ValidatorHash (..))"
             , "import Playground.API (KnownCurrency (..))"
+            , "import Language.PlutusTx.Prelude"
             , "myCurrency :: KnownCurrency"
             , "myCurrency = KnownCurrency (ValidatorHash \"\") \"MyCurrency\" (TokenName \"MyToken\" :| [])"
             , "$(mkKnownCurrencies ['myCurrency])"

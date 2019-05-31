@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE MonoLocalBinds       #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
@@ -34,9 +35,8 @@ import           Data.Hashable                (Hashable)
 import           Data.Swagger.Internal.Schema (ToSchema)
 import           GHC.Generics                 (Generic)
 import           Language.PlutusTx.Lift       (makeLift)
-import           Language.PlutusTx.Prelude    ((&&))
+import           Language.PlutusTx.Prelude    hiding (all, lookup, map)
 import qualified Language.PlutusTx.Prelude    as P
-import           Prelude                      hiding (all, lookup, map, (&&), (||))
 
 import           Ledger.These
 
@@ -100,12 +100,12 @@ union eq (Map ls) (Map rs) =
         ls' = P.map (\(c, i) -> (c, f i (lookup eq c (Map rs)))) ls
 
         rs' :: [(k, r)]
-        rs' = P.filter (\(c, _) -> P.not (P.any (\(c', _) -> eq c' c) ls)) rs
+        rs' = filter (\(c, _) -> not (any (\(c', _) -> eq c' c) ls)) rs
 
         rs'' :: [(k, These v r)]
         rs'' = P.map (\(c, b) -> (c, That b)) rs'
 
-    in Map (P.append ls' rs'')
+    in Map (append ls' rs'')
 
 -- | See 'Data.Map.all'
 all :: (v -> Bool) -> Map k v -> Bool

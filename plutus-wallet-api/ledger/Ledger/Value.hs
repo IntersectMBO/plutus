@@ -7,6 +7,7 @@
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE NoImplicitPrelude  #-}
 -- Prevent unboxing, which the plugin can't deal with
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
@@ -61,10 +62,9 @@ import qualified Data.Text                    as Text
 import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift       (makeLift)
-import           Language.PlutusTx.Prelude    ((&&))
+import           Language.PlutusTx.Prelude    hiding (eq, plus, minus, negate, multiply, leq, lt, geq, gt)
 import qualified Language.PlutusTx.Prelude    as P
 import qualified Ledger.Map                   as Map
-import           Prelude                      hiding ((&&), (||), all, lookup, negate)
 import           LedgerBytes                  (LedgerBytes(LedgerBytes))
 import           Data.Function                ((&))
 
@@ -102,9 +102,9 @@ instance FromJSON CurrencySymbol where
 makeLift ''CurrencySymbol
 
 eqCurSymbol :: CurrencySymbol -> CurrencySymbol -> Bool
-eqCurSymbol (CurrencySymbol l) (CurrencySymbol r) = P.equalsByteString l r
+eqCurSymbol (CurrencySymbol l) (CurrencySymbol r) = equalsByteString l r
 
-currencySymbol :: P.ByteString -> CurrencySymbol
+currencySymbol :: ByteString -> CurrencySymbol
 currencySymbol = CurrencySymbol
 
 newtype TokenName = TokenName { unTokenName :: Builtins.ByteString }
@@ -138,9 +138,9 @@ instance FromJSON TokenName where
 makeLift ''TokenName
 
 eqTokenName :: TokenName -> TokenName -> Bool
-eqTokenName (TokenName l) (TokenName r) = P.equalsByteString l r
+eqTokenName (TokenName l) (TokenName r) = equalsByteString l r
 
-tokenName :: P.ByteString -> TokenName
+tokenName :: ByteString -> TokenName
 tokenName = TokenName
 
 -- | A cryptocurrency value. This is a map from 'CurrencySymbol's to a

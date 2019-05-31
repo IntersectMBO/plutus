@@ -8,7 +8,6 @@ module Language.PlutusTx (
     liftCode,
     unsafeLiftCode) where
 
-import           Language.PlutusTx.Code    (CompiledCode, applyCode, getPir, getPlc)
-import           Language.PlutusTx.Lift    (liftCode, makeLift, unsafeLiftCode)
-import           Language.PlutusTx.Prelude as Export
-import           Language.PlutusTx.TH      as Export
+import           Language.PlutusTx.Code (CompiledCode, applyCode, getPir, getPlc)
+import           Language.PlutusTx.Lift (liftCode, makeLift, unsafeLiftCode)
+import           Language.PlutusTx.TH   as Export

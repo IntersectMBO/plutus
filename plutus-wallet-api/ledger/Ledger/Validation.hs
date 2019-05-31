@@ -4,6 +4,7 @@
 {-# LANGUAGE DerivingStrategies   #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE TypeApplications     #-}
@@ -71,9 +72,7 @@ import           Data.Swagger.Internal.Schema (ToSchema (declareNamedSchema), pa
 import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx.Builtins   as Builtins
 import           Language.PlutusTx.Lift       (makeLift)
-import           Language.PlutusTx.Prelude    ((&&), (||))
-import qualified Language.PlutusTx.Prelude    as P
-import           Prelude                      hiding ((&&), (||))
+import           Language.PlutusTx.Prelude
 
 import           Ledger.Ada                   (Ada)
 import qualified Ledger.Ada                   as Ada
@@ -247,7 +246,7 @@ plcSHA3_256 :: Builtins.ByteString -> Builtins.ByteString
 plcSHA3_256 = Hash.sha3
 
 -- | Convert a `Digest SHA256` to a PLC `Hash`
-plcDigest :: Digest SHA256 -> P.ByteString
+plcDigest :: Digest SHA256 -> ByteString
 plcDigest = BSL.pack . BA.unpack
 
 -- | The 'CurrencySymbol' of an 'Address'
@@ -256,7 +255,7 @@ plcCurrencySymbol = VTH.currencySymbol . plcDigest . getAddress
 
 -- | Check if two public keys are equal.
 eqPubKey :: PubKey -> PubKey -> Bool
-eqPubKey (PubKey (LedgerBytes l)) (PubKey (LedgerBytes r)) = P.equalsByteString l r
+eqPubKey (PubKey (LedgerBytes l)) (PubKey (LedgerBytes r)) = equalsByteString l r
 
 -- | Check if a transaction was signed by the given public key.
 txSignedBy :: PendingTx -> PubKey -> Bool
@@ -267,14 +266,14 @@ txSignedBy PendingTx{pendingTxSignatures=sigs, pendingTxHash=hash} k =
             let
                 PubKey (LedgerBytes pk) = k
                 TxHash msg           = hash
-            in P.verifySignature pk msg sig
+            in verifySignature pk msg sig
 
         go :: [(PubKey, Signature)] -> Bool
         go l = case l of
                     (pk, sig):r ->
                         if eqPubKey k pk
                         then  signedBy' sig
-                              || P.traceH "matching pub key with invalid signature" (go r)
+                              || traceH "matching pub key with invalid signature" (go r)
                         else go r
                     []  -> False
     in
@@ -307,11 +306,11 @@ eqTx (TxHash l) (TxHash r) = Builtins.equalsByteString l r
 ownHashes :: PendingTx -> (ValidatorHash, RedeemerHash)
 ownHashes (PendingTx _ _ _ _ i _ _ _) = case i of
     PendingTxIn _ (Just h) _ -> h
-    _                        -> P.error ()
+    _                        -> error ()
 
 -- | Get the hash of the validator script that is currently being validated.
 ownHash :: PendingTx -> ValidatorHash
-ownHash p = P.fst (ownHashes p)
+ownHash p = fst (ownHashes p)
 
 -- | Convert a 'CurrencySymbol' to a 'ValidatorHash'
 fromSymbol :: CurrencySymbol -> ValidatorHash
@@ -327,13 +326,13 @@ scriptOutputsAt h p =
                                  then Just (ds, pendingTxOutValue ptxo)
                                  else Nothing
                 Nothing -> Nothing
-    in P.mapMaybe flt (pendingTxOutputs p)
+    in mapMaybe flt (pendingTxOutputs p)
 
 -- | Get the total value locked by the given validator in this transaction.
 valueLockedBy :: PendingTx -> ValidatorHash -> Value
 valueLockedBy ptx h =
-    let outputs = P.map P.snd (scriptOutputsAt h ptx)
-    in P.foldr VTH.plus VTH.zero outputs
+    let outputs = map snd (scriptOutputsAt h ptx)
+    in foldr VTH.plus VTH.zero outputs
 
 -- | Get the values paid to a public key address by a pending transaction.
 pubKeyOutputsAt :: PubKey -> PendingTx -> [Value]
@@ -345,11 +344,11 @@ pubKeyOutputsAt pk p =
                     then Just (pendingTxOutValue ptxo)
                     else Nothing
                 _ -> Nothing
-    in P.mapMaybe flt (pendingTxOutputs p)
+    in mapMaybe flt (pendingTxOutputs p)
 
 -- | Get the total value paid to a public key address by a pending transaction.
 valuePaidTo :: PendingTx -> PubKey -> Value
-valuePaidTo ptx pk = P.foldr VTH.plus VTH.zero (pubKeyOutputsAt pk ptx)
+valuePaidTo ptx pk = foldr VTH.plus VTH.zero (pubKeyOutputsAt pk ptx)
 
 -- | Get the total amount of 'Ada' locked by the given validator in this transaction.
 adaLockedBy :: PendingTx -> ValidatorHash -> Ada
@@ -359,18 +358,18 @@ adaLockedBy ptx h = Ada.fromValue (valueLockedBy ptx h)
 --   transaction (without witnesses) with the given public key.
 signsTransaction :: Signature -> PubKey -> PendingTx -> Bool
 signsTransaction (Signature sig) (PubKey (LedgerBytes pk)) p =
-    P.verifySignature pk (let TxHash h = pendingTxHash p in h) sig
+    verifySignature pk (let TxHash h = pendingTxHash p in h) sig
 
 -- | Get the total value of inputs spent by this transaction.
 valueSpent :: PendingTx -> Value
 valueSpent p =
-    let inputs' = P.map pendingTxInValue (pendingTxInputs p)
-    in P.foldr VTH.plus VTH.zero inputs'
+    let inputs' = map pendingTxInValue (pendingTxInputs p)
+    in foldr VTH.plus VTH.zero inputs'
 
 -- | The 'CurrencySymbol' of the current validator script.
 ownCurrencySymbol :: PendingTx -> CurrencySymbol
 ownCurrencySymbol p =
-    let ValidatorHash h = P.fst (ownHashes p)
+    let ValidatorHash h = fst (ownHashes p)
     in  VTH.currencySymbol h
 
 -- | Check if the pending transaction spends a specific transaction output
@@ -381,9 +380,9 @@ spendsOutput p h i =
     let spendsOutRef inp =
             let outRef = pendingTxInRef inp
             in eqTx h (pendingTxOutRefId outRef)
-                && P.eq i (pendingTxOutRefIdx outRef)
+                && eq i (pendingTxOutRefIdx outRef)
 
-    in P.any spendsOutRef (pendingTxInputs p)
+    in any spendsOutRef (pendingTxInputs p)
 
 -- | The hash of a 'ValidatorScript'.
 validatorScriptHash :: ValidatorScript -> ValidatorHash
