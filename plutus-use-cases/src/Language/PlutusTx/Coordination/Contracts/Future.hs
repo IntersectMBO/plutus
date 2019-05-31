@@ -23,11 +23,14 @@ module Language.PlutusTx.Coordination.Contracts.Future(
     validatorScript
     ) where
 
+import           Prelude                      hiding ((&&), (||))
+
 import           Control.Monad                (void)
 import           Control.Monad.Error.Class    (MonadError (..))
 import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
+import           Language.PlutusTx.Prelude    ((&&), (||))
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       (DataScript (..), Slot(..), PubKey, TxOutRef, ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
@@ -215,7 +218,7 @@ mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pe
             let PendingTxOut vl' _ _ = txo
                 adaVl' = Ada.fromValue vl'
             in
-            isPubKeyOutput txo pk `PlutusTx.and` Ada.eq vl adaVl'
+            isPubKeyOutput txo pk && Ada.eq vl adaVl'
 
         verifyOracle :: OracleValue a -> (Slot, a)
         verifyOracle (OracleValue pk h t) =
@@ -243,22 +246,22 @@ mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pe
                         case outs of
                             o1:o2:_ ->
                                 let paymentsValid =
-                                        (paidOutTo expShort futureDataShort o1 `PlutusTx.and` paidOutTo expLong futureDataLong o2)
-                                        `PlutusTx.or` (paidOutTo expShort futureDataShort o2 `PlutusTx.and` paidOutTo expLong futureDataLong o1)
+                                        (paidOutTo expShort futureDataShort o1 && paidOutTo expLong futureDataLong o2)
+                                        || (paidOutTo expShort futureDataShort o2 && paidOutTo expLong futureDataLong o1)
                                 in
-                                    slotvalid `PlutusTx.and` paymentsValid
+                                    slotvalid && paymentsValid
                             o1:_ ->
                                 let
                                     totalMargin = Ada.plus futureDataMarginShort futureDataMarginLong
                                     reqMargin   = requiredMargin ft spotPrice
                                     case2 = Ada.lt futureDataMarginLong reqMargin
-                                            `PlutusTx.and` paidOutTo totalMargin futureDataShort o1
+                                            && paidOutTo totalMargin futureDataShort o1
 
                                     case3 = Ada.lt futureDataMarginShort reqMargin
-                                            `PlutusTx.and` paidOutTo totalMargin futureDataLong o1
+                                            && paidOutTo totalMargin futureDataLong o1
 
                                 in
-                                    case2 `PlutusTx.or` case3
+                                    case2 || case3
                             _ -> False
 
                 in

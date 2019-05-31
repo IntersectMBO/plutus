@@ -8,7 +8,10 @@ module Language.PlutusTx.Coordination.Contracts.Swap(
     swapValidator
     ) where
 
+import           Prelude                   hiding ((&&), (||))
+
 import qualified Language.PlutusTx         as PlutusTx
+import           Language.PlutusTx.Prelude ((&&), (||))
 import qualified Language.PlutusTx.Prelude as P
 import           Ledger                    (Slot, PubKey, ValidatorScript (..))
 import qualified Ledger                    as Ledger
@@ -132,14 +135,14 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
         -- True if the transaction input is the margin payment of the
         -- fixed leg
         iP1 :: PendingTxIn -> Bool
-        iP1 (PendingTxIn _ _ v) = Validation.txSignedBy p swapOwnersFixedLeg `P.and` PlutusTx.eq (adaValueIn v) margin
+        iP1 (PendingTxIn _ _ v) = Validation.txSignedBy p swapOwnersFixedLeg && PlutusTx.eq (adaValueIn v) margin
 
         -- True if the transaction input is the margin payment of the
         -- floating leg
         iP2 :: PendingTxIn -> Bool
-        iP2 (PendingTxIn _ _ v) = Validation.txSignedBy p swapOwnersFloating `P.and` PlutusTx.eq (adaValueIn v) margin
+        iP2 (PendingTxIn _ _ v) = Validation.txSignedBy p swapOwnersFloating && PlutusTx.eq (adaValueIn v) margin
 
-        inConditions = (iP1 t1 `P.and` iP2 t2) `P.or` (iP1 t2 `P.and` iP2 t1)
+        inConditions = (iP1 t1 && iP2 t2) || (iP1 t2 && iP2 t1)
 
         -- The transaction must have two outputs, one for each of the
         -- participants, which equal the margin adjusted by the difference
@@ -147,19 +150,19 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
 
         -- True if the output is the payment of the fixed leg.
         ol1 :: PendingTxOut -> Bool
-        ol1 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFixedLeg `P.and` PlutusTx.leq (adaValueIn v) fixedRemainder
+        ol1 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFixedLeg && PlutusTx.leq (adaValueIn v) fixedRemainder
 
         -- True if the output is the payment of the floating leg.
         ol2 :: PendingTxOut -> Bool
-        ol2 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFloating `P.and` PlutusTx.leq (adaValueIn v) floatRemainder
+        ol2 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFloating && PlutusTx.leq (adaValueIn v) floatRemainder
 
         -- NOTE: I didn't include a check that the slot is greater
         -- than the observation time. This is because the slot is
         -- already part of the oracle value and we trust the oracle.
 
-        outConditions = (ol1 o1 `P.and` ol2 o2) `P.or` (ol1 o2 `P.and` ol2 o1)
+        outConditions = (ol1 o1 && ol2 o2) || (ol1 o2 && ol2 o1)
 
-    in inConditions `P.and` outConditions
+    in inConditions && outConditions
 
 -- | Validator script for the two transactions that initialise the swap.
 --   See note [Swap Transactions]

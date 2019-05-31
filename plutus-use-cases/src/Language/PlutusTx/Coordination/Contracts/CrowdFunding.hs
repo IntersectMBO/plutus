@@ -23,10 +23,12 @@ module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     , mkCampaign
     ) where
 
+import           Prelude                     hiding ((&&))
+
 import qualified Language.PlutusTx           as PlutusTx
 import           Ledger.Slot                 (SlotRange)
 import qualified Ledger.Slot                 as Slot
-import qualified Language.PlutusTx.Prelude   as P
+import           Language.PlutusTx.Prelude   ((&&))
 import           Ledger
 import           Ledger.Validation           as V
 import           Ledger.Value                (Value)
@@ -34,8 +36,6 @@ import qualified Ledger.Value                as VTH
 import           Wallet                      as W
 import qualified Wallet.Emulator             as EM
 import           Wallet.Emulator             (Wallet)
-
-import           Prelude                     hiding ((&&))
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
@@ -86,13 +86,13 @@ type CrowdfundingValidator = PubKey -> CampaignAction -> PendingTx -> Bool
 validRefund :: Campaign -> PubKey -> PendingTx -> Bool
 validRefund campaign contributor ptx =
     Slot.contains (refundRange campaign) (pendingTxValidRange ptx)
-    `P.and` (ptx `V.txSignedBy` contributor)
+    && (ptx `V.txSignedBy` contributor)
 
 validCollection :: Campaign -> PendingTx -> Bool
 validCollection campaign p =
     (collectionRange campaign `Slot.contains` pendingTxValidRange p)
-    `P.and` (valueSpent p `VTH.geq` campaignTarget campaign)
-    `P.and` (p `V.txSignedBy` campaignOwner campaign)
+    && (valueSpent p `VTH.geq` campaignTarget campaign)
+    && (p `V.txSignedBy` campaignOwner campaign)
 
 mkValidator :: Campaign -> CrowdfundingValidator
 mkValidator c con act p = case act of

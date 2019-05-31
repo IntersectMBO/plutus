@@ -61,9 +61,10 @@ import qualified Data.Text                    as Text
 import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift       (makeLift)
+import           Language.PlutusTx.Prelude    ((&&))
 import qualified Language.PlutusTx.Prelude    as P
 import qualified Ledger.Map                   as Map
-import           Prelude                      hiding (all, lookup, negate)
+import           Prelude                      hiding ((&&), (||), all, lookup, negate)
 import           LedgerBytes                  (LedgerBytes(LedgerBytes))
 import           Data.Function                ((&))
 
@@ -304,7 +305,7 @@ geq = checkBinRel P.geq
 -- | Check whether one 'Value' is strictly greater than another. See 'Value' for an explanation of how operations on 'Value's work.
 gt :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true. So we have a special case.
-gt l r = not (isZero l `P.and` isZero r) `P.and` checkBinRel P.gt l r
+gt l r = not (isZero l && isZero r) && checkBinRel P.gt l r
 
 -- | Check whether one 'Value' is less than or equal to another. See 'Value' for an explanation of how operations on 'Value's work.
 leq :: Value -> Value -> Bool
@@ -314,7 +315,7 @@ leq = checkBinRel P.leq
 -- | Check whether one 'Value' is strictly less than another. See 'Value' for an explanation of how operations on 'Value's work.
 lt :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true. So we have a special case.
-lt l r = not (isZero l `P.and` isZero r) `P.and` checkBinRel P.lt l r
+lt l r = not (isZero l && isZero r) && checkBinRel P.lt l r
 
 -- | Check whether one 'Value' is equal to another. See 'Value' for an explanation of how operations on 'Value's work.
 eq :: Value -> Value -> Bool

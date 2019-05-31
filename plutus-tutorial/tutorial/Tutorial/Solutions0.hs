@@ -7,7 +7,10 @@
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 module Tutorial.Solutions0 where
 
+import           Prelude                      hiding ((&&))
+
 import           Data.Foldable                (traverse_)
+import           Language.PlutusTx.Prelude    ((&&))
 import qualified Language.PlutusTx            as P
 import           Ledger                       (Address, DataScript(..), PubKey(..), RedeemerScript(..), Slot(..), TxId, ValidatorScript(..))
 import qualified Ledger                       as L
@@ -21,7 +24,6 @@ import           Ledger.Validation            (PendingTx(..), PendingTxIn(..), P
 import qualified Ledger.Validation            as V
 import           Wallet                       (WalletAPI(..), WalletDiagnostics(..), MonadWallet, EventHandler(..), EventTrigger)
 import qualified Wallet                       as W
-import           Prelude                      hiding ((&&))
 import           GHC.Generics                 (Generic)
 
 {-
@@ -102,11 +104,6 @@ mkValidatorScript campaign = ValidatorScript val where
   mkValidator = L.fromCompiledCode $$(P.compile [||
               \(c :: Campaign) (con :: Contributor) (act :: CampaignAction) (p :: PendingTx) ->
       let
-        infixr 3 &&
-        (&&) :: Bool -> Bool -> Bool
-        (&&) = P.and
-
-
         signedBy :: PendingTx -> PubKey -> Bool
         signedBy = V.txSignedBy
 

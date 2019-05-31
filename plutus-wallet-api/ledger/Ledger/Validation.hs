@@ -71,7 +71,9 @@ import           Data.Swagger.Internal.Schema (ToSchema (declareNamedSchema), pa
 import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx.Builtins   as Builtins
 import           Language.PlutusTx.Lift       (makeLift)
+import           Language.PlutusTx.Prelude    ((&&), (||))
 import qualified Language.PlutusTx.Prelude    as P
+import           Prelude                      hiding ((&&), (||))
 
 import           Ledger.Ada                   (Ada)
 import qualified Ledger.Ada                   as Ada
@@ -272,7 +274,7 @@ txSignedBy PendingTx{pendingTxSignatures=sigs, pendingTxHash=hash} k =
                     (pk, sig):r ->
                         if eqPubKey k pk
                         then  signedBy' sig
-                              `P.or` P.traceH "matching pub key with invalid signature" (go r)
+                              || P.traceH "matching pub key with invalid signature" (go r)
                         else go r
                     []  -> False
     in
@@ -379,7 +381,7 @@ spendsOutput p h i =
     let spendsOutRef inp =
             let outRef = pendingTxInRef inp
             in eqTx h (pendingTxOutRefId outRef)
-                `P.and` P.eq i (pendingTxOutRefIdx outRef)
+                && P.eq i (pendingTxOutRefIdx outRef)
 
     in P.any spendsOutRef (pendingTxInputs p)
 

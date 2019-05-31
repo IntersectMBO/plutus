@@ -14,8 +14,8 @@ module Language.PlutusTx.Prelude (
     error,
     check,
     -- * Boolean operators
-    and,
-    or,
+    (&&),
+    (||),
     not,
     -- * Int operators
     gt,
@@ -117,19 +117,21 @@ traceIfTrueH str a = if a then traceH str True else False
 
 -- | Logical AND
 --
---   >>> and True False
+--   >>> True && False
 --   False
 --
-and :: Bool -> Bool -> Bool
-and l r = if l then r else False
+infixr 3 &&
+(&&) :: Bool -> Bool -> Bool
+(&&) l r = if l then r else False
 
 -- | Logical OR
 --
---   >>> or True False
+--   >>> True || False
 --   True
 --
-or :: Bool -> Bool -> Bool
-or l r = if l then True else r
+infixr 2 ||
+(||) :: Bool -> Bool -> Bool
+(||) l r = if l then True else r
 
 -- | Logical negation
 --
@@ -324,7 +326,7 @@ length as = foldr (\_ acc -> plus acc 1) 0 as
 --   True
 --
 all :: (a -> Bool) -> [a] -> Bool
-all pred = foldr (\a acc -> acc `and` pred a) True
+all pred = foldr (\a acc -> acc && pred a) True
 
 -- | PlutusTx version of 'Data.List.any'.
 --
@@ -332,7 +334,7 @@ all pred = foldr (\a acc -> acc `and` pred a) True
 --   True
 --
 any :: (a -> Bool) -> [a] -> Bool
-any pred = foldr (\a acc -> acc `or` pred a) False
+any pred = foldr (\a acc -> acc || pred a) False
 
 -- | PlutusTx version of 'Data.List.(++)'.
 --

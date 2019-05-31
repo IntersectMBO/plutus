@@ -16,16 +16,19 @@
 -}
 module Tutorial.Vesting where
 
+import           Prelude                      hiding ((&&))
+
 import           GHC.Generics              (Generic)
 import qualified Data.Map                  as Map
 import qualified Data.Set                  as Set
 
+import           Language.PlutusTx.Prelude ((&&))
 import qualified Language.PlutusTx         as P
 import           Ledger                    (Address, DataScript(..), RedeemerScript(..), Slot, TxOutRef, TxIn, ValidatorScript(..))
 import qualified Ledger                    as L
 import           Ledger.Ada                (Ada)
 import qualified Ledger.Ada                as Ada
-import qualified Ledger.Ada             as ATH
+import qualified Ledger.Ada                as ATH
 import qualified Ledger.Interval           as Interval
 import qualified Ledger.Slot               as Slot
 import qualified Ledger.Validation         as V
@@ -199,7 +202,7 @@ vestingValidator v = ValidatorScript val where
             con2 :: Bool
             con2 = V.txSignedBy p owner
 
-        in con1 `P.and` con2
+        in con1 && con2
         ||])
 
 contractAddress :: Vesting -> Address

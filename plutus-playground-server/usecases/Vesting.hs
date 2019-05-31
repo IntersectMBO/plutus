@@ -10,11 +10,14 @@
 module Vesting where
 -- TRIM TO HERE
 -- Vesting scheme as a PLC contract
-import           Control.Monad                (void)
+import           Prelude                      hiding ((&&))
+
+import           Control.Monad             (void)
 import qualified Data.Map                  as Map
 import qualified Data.Set                  as Set
 
 import qualified Language.PlutusTx         as P
+import           Language.PlutusTx.Prelude ((&&))
 import           Ledger                    (Address, DataScript(..), RedeemerScript(..), Signature, Slot, TxOutRef, TxIn, ValidatorScript(..))
 import qualified Ledger                    as Ledger
 import           Ledger.Value              (Value)
@@ -144,7 +147,7 @@ mkValidator d@Vesting{..} () () p@PendingTx{pendingTxValidRange = range} =
         -- transaction 'p'.
         con2 :: Bool
         con2 = p `V.txSignedBy` vestingOwner
-    in con1 `P.and` con2
+    in con1 && con2
 
 validatorScript :: Vesting -> ValidatorScript
 validatorScript v = ValidatorScript $

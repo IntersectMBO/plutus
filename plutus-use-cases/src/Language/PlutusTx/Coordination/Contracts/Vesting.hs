@@ -17,10 +17,13 @@ module Language.PlutusTx.Coordination.Contracts.Vesting (
     validatorScript
     ) where
 
+import           Prelude                      hiding ((&&))
+
 import           Control.Monad.Error.Class    (MonadError (..))
 import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
+import           Language.PlutusTx.Prelude    ((&&))
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Ledger                       as Ledger
 import           Ledger                       (DataScript (..), Slot(..), PubKey (..), TxOutRef, ValidatorScript (..), scriptTxIn, scriptTxOut)
@@ -149,7 +152,7 @@ mkValidator d@Vesting{..} VestingData{..} () p@PendingTx{pendingTxValidRange = r
             let remaining = Validation.valueLockedBy p (Validation.ownHash p) in
             remaining `Value.eq` (totalAmount d `Value.minus` newAmount)
 
-    in amountsValid `PlutusTx.and` txnOutputsValid
+    in amountsValid && txnOutputsValid
 
 validatorScript :: Vesting -> ValidatorScript
 validatorScript v = ValidatorScript $
