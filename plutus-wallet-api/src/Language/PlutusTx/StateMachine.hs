@@ -1,6 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 -- | On-chain code fragments for creating a state machine. First
 --   define a @StateMachine s i@ with input type @i@ and state type @s@. Then
@@ -26,16 +25,19 @@ data StateMachine s i = StateMachine {
     , smStateEq    :: s -> s -> Bool
     }
 
+{-# INLINABLE initialState #-}
 -- | Create a transition script from an initial state of type
 --   @s@.
 initialState :: forall s i. s -> (s, Maybe i)
 initialState s = (s, Nothing)
 
+{-# INLINABLE transition #-}
 -- | Create a transition script from a new state of type @s@ and
 --   an input of type @i@.
 transition :: forall s i. s -> i -> (s, Maybe i)
 transition newState input = (newState, Just input)
 
+{-# INLINABLE mkValidator #-}
 -- | Turn a transition function 's -> i -> s' into a validator script.
 mkValidator :: StateMachine s i -> (s, Maybe i) -> (s, Maybe i) -> PendingTx -> Bool
 mkValidator sm (currentState, _) (newState, Just input) p =
