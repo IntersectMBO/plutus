@@ -92,13 +92,13 @@ instance showView :: Show View where
 
 type FrontendState
   = { view :: View
-    , compilationResult :: RemoteData AjaxError (Either InterpreterError (InterpreterResult RunResult))
-    , marloweCompileResult :: Either (Array MarloweError) Unit
-    , authStatus :: RemoteData AjaxError AuthStatus
-    , createGistResult :: RemoteData AjaxError Gist
-    , marloweState :: MarloweState
-    , oldContract :: Maybe String
-    }
+  , compilationResult :: RemoteData AjaxError (Either InterpreterError (InterpreterResult RunResult))
+  , marloweCompileResult :: Either (Array MarloweError) Unit
+  , authStatus :: RemoteData AjaxError AuthStatus
+  , createGistResult :: RemoteData AjaxError Gist
+  , marloweState :: MarloweState
+  , oldContract :: Maybe String
+  }
 
 data MarloweError
   = MarloweError String
@@ -140,9 +140,9 @@ _value = prop (SProxy :: SProxy "value")
 
 type InputData
   = { inputs :: Map Person (List DetachedPrimitiveWIA)
-    , choiceData :: Map Person (Map BigInteger Choice)
-    , oracleData :: Map IdOracle OracleEntry
-    }
+  , choiceData :: Map Person (Map BigInteger Choice)
+  , oracleData :: Map IdOracle OracleEntry
+  }
 
 _inputs :: forall s a. Lens' {inputs :: a | s} a
 _inputs = prop (SProxy :: SProxy "inputs")
@@ -155,9 +155,10 @@ _oracleData ::
   Lens' {oracleData :: a | s} a
 _oracleData = prop (SProxy :: SProxy "oracleData")
 
-data TransactionValidity = EmptyTransaction
-                         | ValidTransaction (List DynamicProblem)
-                         | InvalidTransaction ErrorResult
+data TransactionValidity
+  = EmptyTransaction
+  | ValidTransaction (List DynamicProblem)
+  | InvalidTransaction ErrorResult
 
 derive instance eqTransactionValidity :: Eq TransactionValidity
 
@@ -165,17 +166,18 @@ derive instance ordTransactionValidity :: Ord TransactionValidity
 
 isValidTransaction :: TransactionValidity -> Boolean
 isValidTransaction (ValidTransaction _) = true
+
 isValidTransaction _ = false
 
 isInvalidTransaction :: TransactionValidity -> Boolean
 isInvalidTransaction (InvalidTransaction _) = true
+
 isInvalidTransaction _ = false
 
 type TransactionData
   = {inputs :: Array AnyInput, signatures :: Map Person Boolean, outcomes :: Map Person BigInteger, validity :: TransactionValidity}
 
 -- table under checkboxes
-
 _signatures ::
   forall s a.
   Lens' {signatures :: a | s} a
@@ -189,7 +191,7 @@ _validity = prop (SProxy :: SProxy "validity")
 
 -- "Choice $IdChoice: Choose value [$Choice]"
 type MarloweState
-        = {input :: InputData, transaction :: TransactionData, state :: State, blockNum :: BlockNumber, moneyInContract :: BigInteger, contract :: Maybe Contract}
+  = {input :: InputData, transaction :: TransactionData, state :: State, blockNum :: BlockNumber, moneyInContract :: BigInteger, contract :: Maybe Contract}
 
 _input :: forall s a. Lens' {input :: a | s} a
 _input = prop (SProxy :: SProxy "input")
@@ -210,7 +212,6 @@ _contract :: forall s a. Lens' {contract :: a | s} a
 _contract = prop (SProxy :: SProxy "contract")
 
 --- Language.Haskell.Interpreter ---
-
 _result :: forall s a. Lens' {result :: a | s} a
 _result = prop (SProxy :: SProxy "result")
 
