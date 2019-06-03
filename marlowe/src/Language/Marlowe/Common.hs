@@ -15,7 +15,6 @@
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns -Wno-name-shadowing #-}
 
 {-# OPTIONS_GHC -fno-strictness #-}
-{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
@@ -222,6 +221,7 @@ data State = State {
         stateChoices   :: [Choice]
     } deriving (Eq, Ord, Show)
 
+{-# INLINABLE emptyState #-}
 emptyState :: State
 emptyState = State { stateCommitted = [], stateChoices = [] }
 
@@ -270,10 +270,12 @@ makeLift ''MarloweData
 makeLift ''Input
 makeLift ''State
 
+{-# INLINABLE eqIdentCC #-}
 -- | 'IdentCC' equality
 eqIdentCC :: IdentCC -> IdentCC -> Bool
 eqIdentCC (IdentCC a) (IdentCC b) = a `Builtins.equalsInteger` b
 
+{-# INLINABLE equalValue #-}
 -- | 'Value' equality
 equalValue :: Value -> Value -> Bool
 equalValue = let
@@ -294,6 +296,7 @@ equalValue = let
             _ -> False
     in eq
 
+{-# INLINABLE equalObservation #-}
 -- | 'Observation' equality
 equalObservation :: (Value -> Value -> Bool) -> Observation -> Observation -> Bool
 equalObservation eqValue = let
@@ -312,6 +315,7 @@ equalObservation eqValue = let
             _ -> False
     in eq
 
+{-# INLINABLE equalContract #-}
 -- | 'Contract' equality
 equalContract :: (Value -> Value -> Bool) -> (Observation -> Observation -> Bool) -> Contract -> Contract -> Bool
 equalContract eqValue eqObservation =
@@ -344,15 +348,19 @@ equalContract eqValue eqObservation =
             _ -> False
    in eq
 
+{-# INLINABLE eqValue #-}
 eqValue :: Value -> Value -> Bool
 eqValue = equalValue
 
+{-# INLINABLE eqObservation #-}
 eqObservation :: Observation -> Observation -> Bool
 eqObservation = equalObservation eqValue
 
+{-# INLINABLE eqContract #-}
 eqContract :: Contract -> Contract -> Bool
 eqContract = equalContract eqValue eqObservation
 
+{-# INLINABLE validateContract #-}
 {-| Contract validation.
 
     * Check that 'IdentCC' and 'IdentPay' identifiers are unique.
@@ -404,6 +412,7 @@ validateContract State{stateCommitted} contract (Slot bn) actualMoney' = let
             in validIds
        else False
 
+{-# INLINABLE evaluateValue #-}
 {-|
     Evaluates 'Value' given current block number 'Slot', oracle values, and current 'State'.
 -}
@@ -450,6 +459,7 @@ evaluateValue pendingTxSlot inputOracles state value = let
 
         in evalValue state value
 
+{-# INLINABLE interpretObservation #-}
 -- | Interpret 'Observation' as 'Bool'.
 interpretObservation :: (State -> Value -> Integer) -> Integer -> State -> Observation -> Bool
 interpretObservation evalValue blockNumber state@(State _ choices) obs = let
@@ -474,6 +484,7 @@ interpretObservation evalValue blockNumber state@(State _ choices) obs = let
         FalseObs -> False
     in go obs
 
+{-# INLINABLE insertCommit #-}
 -- | Add a 'Commit', placing it in order by endTimeout per 'Person'
 insertCommit :: Commit -> [Commit] -> [Commit]
 insertCommit commit commits = let
@@ -487,6 +498,7 @@ insertCommit commit commits = let
             c : cs -> c : insert commit cs
     in insert commit commits
 
+{-# INLINABLE discountFromPairList #-}
 -- | Discounts the Cash from an initial segment of the list of pairs.
 discountFromPairList ::
     PubKey
@@ -512,6 +524,7 @@ discountFromPairList from (Slot currentBlockNumber) value' commits = let
         [] -> if value `Builtins.equalsInteger` 0 then Just [] else Nothing
     in discount value commits
 
+{-# INLINABLE findAndRemove #-}
 {-| Look for first 'Commit' satisfying @predicate@ and remove it.
     Returns 'Nothing' if the 'Commit' wasn't found,
     otherwise 'Just' modified @[Commit]@
@@ -530,6 +543,7 @@ findAndRemove predicate commits = let
 
     in findAndRemove False commits
 
+{-# INLINABLE evaluateContract #-}
 {-|
     Evaluates Marlowe Contract
     Returns contract 'State', remaining 'Contract', and validation result.
@@ -655,6 +669,7 @@ evaluateContract
         _ -> (state, Null, False)
     in eval inputCommand state contract
 
+{-# INLINABLE mergeChoices #-}
 {-| Merge lists of 'Choice's.
     Return a partialy ordered list of unique choices.
 -}
@@ -677,6 +692,7 @@ mergeChoices input choices = let
     merge (i:rest) choices = merge rest (insert i choices)
     in merge input choices
 
+{-# INLINABLE validatorScript #-}
 {-|
     Marlowe main Validator Script
 -}

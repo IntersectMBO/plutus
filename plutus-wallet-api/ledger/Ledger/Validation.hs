@@ -10,7 +10,6 @@
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
-{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Ledger.Validation
     (
@@ -224,40 +223,50 @@ newtype TxHash =
     TxHash Builtins.ByteString
     deriving (Eq, Generic)
 
+{-# INLINABLE plcDataScriptHash #-}
 plcDataScriptHash :: DataScript -> DataScriptHash
 plcDataScriptHash = DataScriptHash . plcSHA2_256 . BSL.pack . BA.unpack
 
+{-# INLINABLE plcValidatorDigest #-}
 -- | Compute the hash of a validator script.
 plcValidatorDigest :: Digest SHA256 -> ValidatorHash
 plcValidatorDigest = ValidatorHash . BSL.pack . BA.unpack
 
+{-# INLINABLE plcRedeemerHash #-}
 plcRedeemerHash :: RedeemerScript -> RedeemerHash
 plcRedeemerHash = RedeemerHash . plcSHA2_256 . BSL.pack . BA.unpack
 
+{-# INLINABLE plcTxHash #-}
 -- | Compute the hash of a redeemer script.
 plcTxHash :: Tx.TxId -> TxHash
 plcTxHash = TxHash . plcDigest . Tx.getTxId
 
+{-# INLINABLE plcSHA2_256 #-}
 -- | PLC-compatible SHA-256 hash of a hashable value
 plcSHA2_256 :: Builtins.ByteString -> Builtins.ByteString
 plcSHA2_256 = Hash.sha2
 
+{-# INLINABLE plcSHA3_256 #-}
 -- | PLC-compatible SHA3-256 hash of a hashable value
 plcSHA3_256 :: Builtins.ByteString -> Builtins.ByteString
 plcSHA3_256 = Hash.sha3
 
+{-# INLINABLE plcDigest #-}
 -- | Convert a `Digest SHA256` to a PLC `Hash`
 plcDigest :: Digest SHA256 -> ByteString
 plcDigest = BSL.pack . BA.unpack
 
+{-# INLINABLE plcCurrencySymbol #-}
 -- | The 'CurrencySymbol' of an 'Address'
 plcCurrencySymbol :: Address -> CurrencySymbol
 plcCurrencySymbol = VTH.currencySymbol . plcDigest . getAddress
 
+{-# INLINABLE eqPubKey #-}
 -- | Check if two public keys are equal.
 eqPubKey :: PubKey -> PubKey -> Bool
 eqPubKey (PubKey (LedgerBytes l)) (PubKey (LedgerBytes r)) = equalsByteString l r
 
+{-# INLINABLE txSignedBy #-}
 -- | Check if a transaction was signed by the given public key.
 txSignedBy :: PendingTx -> PubKey -> Bool
 txSignedBy PendingTx{pendingTxSignatures=sigs, pendingTxHash=hash} k =
@@ -280,28 +289,34 @@ txSignedBy PendingTx{pendingTxSignatures=sigs, pendingTxHash=hash} k =
     in
         go sigs
 
+{-# INLINABLE pubKeyOutput #-}
 -- | Get the public key that locks the transaction output, if any.
 pubKeyOutput :: PendingTxOut -> Maybe PubKey
 pubKeyOutput o = case pendingTxOutData o of
     PubKeyTxOut pk -> Just pk
     _              -> Nothing
 
+{-# INLINABLE eqDataScript #-}
 -- | Check if two data script hashes are equal.
 eqDataScript :: DataScriptHash -> DataScriptHash -> Bool
 eqDataScript (DataScriptHash l) (DataScriptHash r) = Builtins.equalsByteString l r
 
+{-# INLINABLE eqValidator #-}
 -- | Check if two validator script hashes are equal.
 eqValidator :: ValidatorHash -> ValidatorHash -> Bool
 eqValidator (ValidatorHash l) (ValidatorHash r) = Builtins.equalsByteString l r
 
+{-# INLINABLE eqRedeemer #-}
 -- | Check if two redeemer script hashes are equal.
 eqRedeemer :: RedeemerHash -> RedeemerHash -> Bool
 eqRedeemer (RedeemerHash l) (RedeemerHash r) = Builtins.equalsByteString l r
 
+{-# INLINABLE eqTx #-}
 -- | Check if two transaction hashes are equal.
 eqTx :: TxHash -> TxHash -> Bool
 eqTx (TxHash l) (TxHash r) = Builtins.equalsByteString l r
 
+{-# INLINABLE ownHashes #-}
 -- | Get the hashes of validator script and redeemer script that are
 --   currently being validated
 ownHashes :: PendingTx -> (ValidatorHash, RedeemerHash)
@@ -309,14 +324,17 @@ ownHashes (PendingTx _ _ _ _ i _ _ _) = case i of
     PendingTxIn _ (Just h) _ -> h
     _                        -> error ()
 
+{-# INLINABLE ownHash #-}
 -- | Get the hash of the validator script that is currently being validated.
 ownHash :: PendingTx -> ValidatorHash
 ownHash p = fst (ownHashes p)
 
+{-# INLINABLE fromSymbol #-}
 -- | Convert a 'CurrencySymbol' to a 'ValidatorHash'
 fromSymbol :: CurrencySymbol -> ValidatorHash
 fromSymbol (CurrencySymbol s) = ValidatorHash s
 
+{-# INLINABLE scriptOutputsAt #-}
 -- | Get the list of 'PendingTxOut' outputs of the pending transaction at
 --   a given script address.
 scriptOutputsAt :: ValidatorHash -> PendingTx -> [(DataScriptHash, Value)]
@@ -329,12 +347,14 @@ scriptOutputsAt h p =
                 Nothing -> Nothing
     in mapMaybe flt (pendingTxOutputs p)
 
+{-# INLINABLE valueLockedBy #-}
 -- | Get the total value locked by the given validator in this transaction.
 valueLockedBy :: PendingTx -> ValidatorHash -> Value
 valueLockedBy ptx h =
     let outputs = map snd (scriptOutputsAt h ptx)
     in foldr VTH.plus VTH.zero outputs
 
+{-# INLINABLE pubKeyOutputsAt #-}
 -- | Get the values paid to a public key address by a pending transaction.
 pubKeyOutputsAt :: PubKey -> PendingTx -> [Value]
 pubKeyOutputsAt pk p =
@@ -347,32 +367,38 @@ pubKeyOutputsAt pk p =
                 _ -> Nothing
     in mapMaybe flt (pendingTxOutputs p)
 
+{-# INLINABLE valuePaidTo #-}
 -- | Get the total value paid to a public key address by a pending transaction.
 valuePaidTo :: PendingTx -> PubKey -> Value
 valuePaidTo ptx pk = foldr VTH.plus VTH.zero (pubKeyOutputsAt pk ptx)
 
+{-# INLINABLE adaLockedBy #-}
 -- | Get the total amount of 'Ada' locked by the given validator in this transaction.
 adaLockedBy :: PendingTx -> ValidatorHash -> Ada
 adaLockedBy ptx h = Ada.fromValue (valueLockedBy ptx h)
 
+{-# INLINABLE signsTransaction #-}
 -- | Check if the provided signature is the result of signing the pending
 --   transaction (without witnesses) with the given public key.
 signsTransaction :: Signature -> PubKey -> PendingTx -> Bool
 signsTransaction (Signature sig) (PubKey (LedgerBytes pk)) p =
     verifySignature pk (let TxHash h = pendingTxHash p in h) sig
 
+{-# INLINABLE valueSpent #-}
 -- | Get the total value of inputs spent by this transaction.
 valueSpent :: PendingTx -> Value
 valueSpent p =
     let inputs' = map pendingTxInValue (pendingTxInputs p)
     in foldr VTH.plus VTH.zero inputs'
 
+{-# INLINABLE ownCurrencySymbol #-}
 -- | The 'CurrencySymbol' of the current validator script.
 ownCurrencySymbol :: PendingTx -> CurrencySymbol
 ownCurrencySymbol p =
     let ValidatorHash h = fst (ownHashes p)
     in  VTH.currencySymbol h
 
+{-# INLINABLE spendsOutput #-}
 -- | Check if the pending transaction spends a specific transaction output
 --   (identified by the hash of a transaction and an index into that
 --   transactions' outputs)
@@ -385,6 +411,7 @@ spendsOutput p h i =
 
     in any spendsOutRef (pendingTxInputs p)
 
+{-# INLINABLE validatorScriptHash #-}
 -- | The hash of a 'ValidatorScript'.
 validatorScriptHash :: ValidatorScript -> ValidatorHash
 validatorScriptHash =

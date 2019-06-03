@@ -170,8 +170,7 @@ The previous example marked the functions that we used using GHC's `INLINABLE`
 pragma. This is usually necessary for non-local functions to be usable
 in Plutus Tx blocks, as it instructs GHC to keep the information that the
 Plutus Tx compiler needs. While this is not always necessary, it is
-a good idea to simply mark all such functions as `INLINABLE`. An
-alternative is to use the `-fexpose-all-unfoldings` GHC option.
+a good idea to simply mark all such functions as `INLINABLE`.
 
 We can use normal Haskell datatypes and pattern matching freely:
 
