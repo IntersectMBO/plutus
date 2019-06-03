@@ -9,6 +9,7 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE TypeApplications    #-}
 module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     -- * Campaign parameters
@@ -23,12 +24,10 @@ module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     , mkCampaign
     ) where
 
-import           Prelude                     hiding ((&&))
-
 import qualified Language.PlutusTx           as PlutusTx
 import           Ledger.Slot                 (SlotRange)
 import qualified Ledger.Slot                 as Slot
-import           Language.PlutusTx.Prelude   ((&&))
+import           Language.PlutusTx.Prelude
 import           Ledger
 import           Ledger.Validation           as V
 import           Ledger.Value                (Value)

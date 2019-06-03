@@ -59,24 +59,31 @@ module Language.PlutusTx.Prelude (
     -- * Hashes and Signatures
     sha2_256,
     sha3_256,
-    verifySignature
+    verifySignature,
+    module Prelude
     ) where
 
 import           Language.PlutusTx.Builtins (ByteString, concatenate, dropByteString, emptyByteString, equalsByteString,
                                              sha2_256, sha3_256, takeByteString, verifySignature)
 import qualified Language.PlutusTx.Builtins as Builtins
-import           Prelude                    (Bool (..), Integer, Maybe (..), String)
+import           Prelude                    as Prelude hiding (all, any, error, filter, foldl, foldr, fst, length, map,
+                                                        max, maybe, min, not, null, snd, (&&), (||))
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
 
 -- $prelude
--- The PlutusTx Prelude is a collection of useful functions that work with
--- builtin Haskell data types such as 'Maybe' and @[]@ (list).
+-- The PlutusTx Prelude is a replacement for the Haskell Prelude that works
+-- better with Plutus Tx. You should use it if you're writing code that
+-- will be compiled with the Plutus Tx compiler.
+-- @
+--     {-# LANGUAGE NoImplicitPrelude #-}
+--     import Language.PlutusTx.Prelude
+-- @
 
 -- $setup
 -- >>> :set -XNoImplicitPrelude
--- >>> import Prelude (Bool (..), Integer, Maybe (..), String, (+), (==), (>))
+-- >>> import Language.PlutusTx.Prelude
 
 -- | Terminate the evaluation of the script with an error message.
 error :: () -> a
@@ -326,7 +333,7 @@ length as = foldr (\_ acc -> plus acc 1) 0 as
 --   True
 --
 all :: (a -> Bool) -> [a] -> Bool
-all pred = foldr (\a acc -> acc && pred a) True
+all p = foldr (\a acc -> acc && p a) True
 
 -- | PlutusTx version of 'Data.List.any'.
 --
@@ -334,7 +341,7 @@ all pred = foldr (\a acc -> acc && pred a) True
 --   True
 --
 any :: (a -> Bool) -> [a] -> Bool
-any pred = foldr (\a acc -> acc || pred a) False
+any p = foldr (\a acc -> acc || p a) False
 
 -- | PlutusTx version of 'Data.List.(++)'.
 --
@@ -350,7 +357,7 @@ append l r = foldr (:) r l
 --   [2,3,4]
 --
 filter :: (a -> Bool) -> [a] -> [a]
-filter pred = foldr (\e xs -> if pred e then e:xs else xs) []
+filter p = foldr (\e xs -> if p e then e:xs else xs) []
 
 -- | PlutusTx version of 'Data.Maybe.mapMaybe'.
 --
@@ -358,7 +365,7 @@ filter pred = foldr (\e xs -> if pred e then e:xs else xs) []
 --   "2"
 --
 mapMaybe :: (a -> Maybe b) -> [a] -> [b]
-mapMaybe pred = foldr (\e xs -> case pred e of { Just e' -> e':xs; Nothing -> xs}) []
+mapMaybe p = foldr (\e xs -> case p e of { Just e' -> e':xs; Nothing -> xs}) []
 
 -- | PlutusTx version of 'Data.Tuple.fst'
 fst :: (a, b) -> a

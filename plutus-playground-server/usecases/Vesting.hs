@@ -7,17 +7,16 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 module Vesting where
 -- TRIM TO HERE
 -- Vesting scheme as a PLC contract
-import           Prelude                      hiding ((&&))
-
 import           Control.Monad             (void)
 import qualified Data.Map                  as Map
 import qualified Data.Set                  as Set
 
-import qualified Language.PlutusTx         as P
-import           Language.PlutusTx.Prelude ((&&))
+import qualified Language.PlutusTx         as PlutusTx
+import           Language.PlutusTx.Prelude
 import           Ledger                    (Address, DataScript(..), RedeemerScript(..), Signature, Slot, TxOutRef, TxIn, ValidatorScript(..))
 import qualified Ledger                    as Ledger
 import           Ledger.Value              (Value)
@@ -58,7 +57,7 @@ data VestingTranche = VestingTranche {
     -- ^ How much money is locked in this tranche
     } deriving (Generic, ToJSON, FromJSON, ToSchema)
 
-P.makeLift ''VestingTranche
+PlutusTx.makeLift ''VestingTranche
 
 -- | A vesting scheme consisting of two tranches. Each tranche defines a date
 --   (slot) after which an additional amount of money can be spent.
@@ -74,7 +73,7 @@ data Vesting = Vesting {
     --   it has been released)
     } deriving (Generic, ToJSON, FromJSON, ToSchema)
 
-P.makeLift ''Vesting
+PlutusTx.makeLift ''Vesting
 
 -- | The total value locked by a vesting scheme
 totalAmount :: Vesting -> Value

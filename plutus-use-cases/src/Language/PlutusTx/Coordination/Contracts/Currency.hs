@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 -- | Implements a custom currency with a monetary policy that allows
 --   the forging of a fixed amount of units.
 module Language.PlutusTx.Coordination.Contracts.Currency(
@@ -11,8 +12,6 @@ module Language.PlutusTx.Coordination.Contracts.Currency(
     , forgedValue
     ) where
 
-import           Prelude                   hiding ((&&))
-
 import           Control.Lens              ((^.), at, to)
 import           Data.Bifunctor            (Bifunctor(first))
 import qualified Data.Set                  as Set
@@ -21,8 +20,8 @@ import           Data.Maybe                (fromMaybe)
 import           Data.String               (IsString(fromString))
 import qualified Data.Text                 as Text
 
-import           Language.PlutusTx.Prelude ((&&))
-import qualified Language.PlutusTx         as P
+import           Language.PlutusTx.Prelude
+import qualified Language.PlutusTx         as PlutusTx
 
 import qualified Ledger.Ada                as Ada
 import qualified Ledger.Map                as LMap
@@ -46,13 +45,13 @@ data Currency = Currency
   --   be forged.
   }
 
-P.makeLift ''Currency
+PlutusTx.makeLift ''Currency
 
 currencyValue :: CurrencySymbol -> Currency -> Value
 currencyValue s Currency{curAmounts = amts} =
     let
-        values = P.map (\(tn, i) -> (Value.singleton s tn i)) (LMap.toList amts)
-    in P.foldr Value.plus Value.zero values
+        values = map (\(tn, i) -> (Value.singleton s tn i)) (LMap.toList amts)
+    in foldr Value.plus Value.zero values
 
 mkCurrency :: TxOutRef -> [(String, Integer)] -> Currency
 mkCurrency (TxOutRefOf h i) amts =
@@ -74,19 +73,19 @@ validate c@(Currency (refHash, refIdx) _) () () p =
         -- currency that we expect
         forgeOK =
             let v = Value.eq expected forged
-            in P.traceIfFalseH "Value forged different from expected" v
+            in traceIfFalseH "Value forged different from expected" v
 
         -- True if the pending transaction spends the output
         -- identified by @(refHash, refIdx)@
         txOutputSpent =
             let v = V.spendsOutput p refHash refIdx
-            in  P.traceIfFalseH "Pending transaction does not spend the designated transaction output" v
+            in  traceIfFalseH "Pending transaction does not spend the designated transaction output" v
 
     in forgeOK && txOutputSpent
 
 curValidator :: Currency -> ValidatorScript
 curValidator cur = ValidatorScript $
-    Ledger.fromCompiledCode $$(P.compile [|| validate ||])
+    Ledger.fromCompiledCode $$(PlutusTx.compile [|| validate ||])
         `Ledger.applyScript`
             Ledger.lifted cur
 

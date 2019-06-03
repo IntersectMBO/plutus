@@ -86,14 +86,12 @@ Or, in case Bob didn't demand payment before timeout2, Alice can require a redee
 -}
 
 module Language.Marlowe.Common where
-import           Prelude                    (Bool (..), Eq (..), Integer, Maybe (..), Ord (..), Show (..), String, (.))
 
 import           GHC.Generics               (Generic)
 import           Language.Marlowe.Pretty    (Pretty, prettyFragment)
-import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift     (makeLift)
-import           Language.PlutusTx.Prelude  (not, (&&), (||))
+import           Language.PlutusTx.Prelude
 import           Ledger                     (PubKey (..), Signature (..), Slot (..))
 import           Ledger.Ada                 (Ada)
 import qualified Ledger.Ada                 as Ada
@@ -466,8 +464,8 @@ interpretObservation evalValue blockNumber state@(State _ choices) obs = let
         OrObs obs1 obs2 -> go obs1 || go obs2
         NotObs obs -> not (go obs)
         PersonChoseThis choiceId person referenceChoice ->
-            PlutusTx.maybe False (Builtins.equalsInteger referenceChoice) (find choiceId person choices)
-        PersonChoseSomething choiceId person -> PlutusTx.isJust (find choiceId person choices)
+            maybe False (Builtins.equalsInteger referenceChoice) (find choiceId person choices)
+        PersonChoseSomething choiceId person -> isJust (find choiceId person choices)
         ValueGE a b -> evalValue state a `Builtins.greaterThanEqInteger` evalValue state b
         TrueObs -> True
         FalseObs -> False
@@ -570,7 +568,7 @@ evaluateContract
     signedBy :: Signature -> PubKey -> Bool
     signedBy (Signature sig) (PubKey (LedgerBytes pk)) = let
         TxHash msg = txHash
-        in PlutusTx.verifySignature pk msg sig
+        in verifySignature pk msg sig
 
     eval :: InputCommand -> State -> Contract -> (State, Contract, Bool)
     eval input state@(State commits choices) contract = case (contract, input) of
@@ -648,7 +646,7 @@ evaluateContract
                 Just updatedCommits -> (State updatedCommits choices, contract, True)
                 Nothing             -> (state, contract, False)
 
-        (Null, SpendDeposit sig) | PlutusTx.null commits
+        (Null, SpendDeposit sig) | null commits
             && sig `signedBy` contractCreatorPK -> (state, Null, True)
 
         _ -> (state, Null, False)
@@ -713,7 +711,7 @@ validatorScript
             We use it as a current slot, basically. -}
         minSlot = case pendingTxValidRange of
             Interval (Just slot) _ -> slot
-            _                      -> PlutusTx.traceH "Tx valid slot must have lower bound" Builtins.error ()
+            _                      -> traceH "Tx valid slot must have lower bound" Builtins.error ()
 
         -- TxIn we're validating is obviously a Script TxIn.
         (inputValidatorHash, redeemerHash, scriptInValue) = case pendingTxIn of
@@ -762,4 +760,4 @@ validatorScript
             in if allowTransaction then () else Builtins.error ()
         {-  if the contract is invalid and there are no commit,
             allow to spend contract's money. It's likely to be created by mistake -}
-        else if PlutusTx.null currentCommits then () else Builtins.error ()
+        else if null currentCommits then () else Builtins.error ()

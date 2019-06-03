@@ -27,14 +27,13 @@ We need the same language extensions and imports as [before](./02-validator-scri
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 module Tutorial.WalletAPI where
 
-import           Prelude                      hiding ((&&))
-
-import           Language.PlutusTx.Prelude    ((&&))
-import qualified Language.PlutusTx            as P
-import qualified Ledger.Interval              as P
-import qualified Ledger.Slot                  as P
+import           Language.PlutusTx.Prelude
+import qualified Language.PlutusTx            as PlutusTx
+import qualified Ledger.Interval              as I
+import qualified Ledger.Slot                  as S
 import           Ledger                       (Address, DataScript(..), PubKey(..), RedeemerScript(..), Signature(..), Slot(..), TxId, ValidatorScript(..))
 import qualified Ledger                       as L
 import qualified Ledger.Ada                   as Ada
@@ -75,7 +74,7 @@ The type of Ada values is [`Ada`](https://input-output-hk.github.io/plutus/walle
 Just like we did in the [guessing game](./02-validator-scripts.md), we need to call `makeLift` for data types that we want to convert to Plutus at Haskell runtime:
 
 ```haskell
-P.makeLift ''Campaign
+PlutusTx.makeLift ''Campaign
 ```
 
 Now we need to figure out what the campaign will look like on the blockchain. Which transactions are involved, who submits them, and in what order?
@@ -86,14 +85,14 @@ We can encode the two possible actions in a data type called `Action`.
 
 ```haskell
 data CampaignAction = Collect | Refund
-P.makeLift ''CampaignAction
+PlutusTx.makeLift ''CampaignAction
 ```
 
 Now we need one final bit of information, namely the identity (public key) of each contributor, so that we know the recipient of the refund. This data can't be part of the redeemer script because then a reclaim could be made by anyone, not just the original contributor. Therefore the public key is going to be stored in the data script of the contribution.
 
 ```haskell
 data Contributor = Contributor PubKey
-P.makeLift ''Contributor
+PlutusTx.makeLift ''Contributor
 ```
 
 **Note (What is the role of the data script?)** Pay-to-script outputs contain a (hash of a) validator script and a data script, but their address is the hash of the validator script only, not of the data script. The wallet uses the address to track the state of a contract, by watching the outputs at that address. So the separate data script allows us to have multiple outputs belonging to the same contract but with different data scripts.
@@ -114,7 +113,7 @@ If we want to implement `CampaignValidator` we need to have access to the parame
 mkValidatorScript :: Campaign -> ValidatorScript
 mkValidatorScript campaign = ValidatorScript val where
   val = L.applyScript mkValidator (L.lifted campaign)
-  mkValidator = L.fromCompiledCode $$(P.compile [||
+  mkValidator = L.fromCompiledCode $$(PlutusTx.compile [||
               \(c :: Campaign) (con :: Contributor) (act :: CampaignAction) (p :: PendingTx) ->
 ```
 
@@ -149,7 +148,7 @@ We also need the parameters of the campaign, which we can get by pattern matchin
                   Campaign target deadline collectionDeadline campaignOwner = c
 ```
 
-Then we compute the total value of all transaction inputs, using `P.foldr` on the list of inputs `ins`. Note that there is a limit on the number of inputs a transaction may have, and thus on the number of contributions in this crowdfunding campaign. In this tutorial we ignore that limit, because it depends on the details of the implementation of Plutus on the Cardano chain, and that implementation has not happened yet.
+Then we compute the total value of all transaction inputs, using `foldr` on the list of inputs `ins`. Note that there is a limit on the number of inputs a transaction may have, and thus on the number of contributions in this crowdfunding campaign. In this tutorial we ignore that limit, because it depends on the details of the implementation of Plutus on the Cardano chain, and that implementation has not happened yet.
 
 ```haskell
                   totalInputs :: Ada
@@ -162,7 +161,7 @@ Then we compute the total value of all transaction inputs, using `P.foldr` on th
 
                         -- Apply "addToTotal" to each transaction input,
                         -- summing up the results
-                        in P.foldr addToTotal Ada.zero ins
+                        in foldr addToTotal Ada.zero ins
 ```
 
 We now have all the information we need to check whether the action `act` is allowed. This will be computed as
@@ -189,13 +188,13 @@ We check if `o` is a pay-to-pubkey output. If it isn't, then the predicate `cont
 The predicate `contribTxOut` is applied to all outputs of the current transaction:
 
 ```haskell
-                              contributorOnly = P.all contribTxOut outs
+                              contributorOnly = all contribTxOut outs
 ```
 
-For the contribution to be refundable, three conditions must hold. The collection deadline must have passed, all outputs of this transaction must go to the contributor `con`, and the transaction was signed by the contributor. To check whether the collection deadline has passed, we use `P.before :: Slot -> SlotRange -> Bool`. `before` is exported by the `Ledger.Intervals` module, alongside other useful functions for working with `SlotRange` values.
+For the contribution to be refundable, three conditions must hold. The collection deadline must have passed, all outputs of this transaction must go to the contributor `con`, and the transaction was signed by the contributor. To check whether the collection deadline has passed, we use `S.before :: Slot -> SlotRange -> Bool`. `before` is exported by the `Ledger.Slot` module, alongside other useful functions for working with `SlotRange` values.
 
 ```haskell
-                              refundable = P.before collectionDeadline txnValidRange &&
+                              refundable = S.before collectionDeadline txnValidRange &&
                                            contributorOnly &&
                                            p `signedBy` pkCon
 ```
@@ -212,10 +211,10 @@ The second branch represents a successful campaign.
                       Collect ->
 ```
 
-In the `Collect` case, the current slot must be between `deadline` and `collectionDeadline`, the target must have been met, and and transaction has to be signed by the campaign owner. We use `interval :: Slot -> Slot -> SlotRange` and `contains :: SlotRange -> SlotRange -> Bool` from the `Ledger.Intervals` module to ensure that the spending transactions validity range, `txnValidRange`, is completely contained in the time between campaign deadline and collection deadline.
+In the `Collect` case, the current slot must be between `deadline` and `collectionDeadline`, the target must have been met, and and transaction has to be signed by the campaign owner. We use `interval :: Slot -> Slot -> SlotRange` and `contains :: SlotRange -> SlotRange -> Bool` from the `Ledger.Slot` module to ensure that the spending transactions validity range, `txnValidRange`, is completely contained in the time between campaign deadline and collection deadline.
 
 ```haskell
-                          P.contains (P.interval deadline collectionDeadline) txnValidRange &&
+                          S.contains (I.interval deadline collectionDeadline) txnValidRange &&
                           Ada.geq totalInputs target &&
                           p `signedBy` campaignOwner
 
@@ -394,7 +393,7 @@ You can run the test suite with `nix build -f default.nix localPackages.plutus-u
 # 3. Problems / Questions
 
 1. Run traces for successful and failed campaigns
-2. Change the validator script to produce more detailed log messages using `P.traceH`
+2. Change the validator script to produce more detailed log messages using `traceH`
 3. Write a variation of the crowdfunding campaign that uses
 
 ```
