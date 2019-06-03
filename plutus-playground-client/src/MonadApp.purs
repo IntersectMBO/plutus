@@ -11,15 +11,21 @@ import Control.Monad.Except.Trans (ExceptT, runExceptT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State.Class (class MonadState)
 import Control.Monad.Trans.Class (class MonadTrans, lift)
+import Data.Argonaut.Encode ((:=))
+import Data.GraphQL (GraphQLQuery(..))
+import Data.GraphQL as GraphQL
 import Data.Maybe (Maybe(..))
 import Data.MediaType (MediaType)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.RawJson (JsonEither)
 import Editor as Editor
+import Debug.Trace (spy)
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import FileEvents as FileEvents
+import Foreign.Class (decode)
+import Foreign.Index (ix)
 import Gist (Gist, GistId, NewGist)
 import Halogen (HalogenM)
 import Language.Haskell.Interpreter (InterpreterError, SourceCode(SourceCode), InterpreterResult)
@@ -31,7 +37,7 @@ import Playground.Server as Server
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey)
-import Types (ChildQuery, ChildSlot, EditorSlot(EditorSlot), Query, State, WebData, cpEditor)
+import Types (ChildQuery, ChildSlot, Country, EditorSlot(..), Greeting, Query, State, WebData, cpEditor)
 import Web.HTML.Event.DataTransfer (DropEffect)
 import Web.HTML.Event.DataTransfer as DataTransfer
 import Web.HTML.Event.DragEvent (DragEvent, dataTransfer)
@@ -49,6 +55,8 @@ class Monad m <= MonadApp m where
   readFileFromDragEvent :: DragEvent -> m String
   --
   getOauthStatus :: m (WebData AuthStatus)
+  getCountryByCode :: String -> m (WebData Country)
+  getGreeting :: String -> m (WebData Greeting)
   getGistByGistId :: GistId -> m (WebData Gist)
   postEvaluation :: Evaluation -> m (WebData EvaluationResult)
   postGist :: NewGist -> m (WebData Gist)
@@ -108,6 +116,81 @@ instance monadAppHalogenApp ::
   patchGistByGistId newGist gistId = runAjax $ Server.patchGistsByGistId newGist gistId
   postContract source = runAjax $ Server.postContract source
 
+  getCountryByCode code = wrap $ liftAff $ RemoteData.fromEither <$>
+    runExceptT (GraphQL.runQuery
+                  { baseURL: "https://countries.trevorblades.com/"
+                  , query: countryQuery code
+                  }
+                  (\obj -> ix obj "country" >>= decode))
+
+  getGreeting username = wrap $ liftAff $ RemoteData.fromEither <$>
+    runExceptT (GraphQL.runQuery
+                  { baseURL: "/api/graphql"
+                  , query: greetingQuery username
+                  }
+                  decode)
+
+schemadoc :: String
+schemadoc = """
+  type SourceCode {
+    text: String
+  }
+
+  type TxId {
+    id: String!
+  }
+
+  type FunctionSchema {
+    name: String!
+    schema: String!
+  }
+
+  type Tx {
+    txInputs: [TxId!]!
+    txOutputs: [TxId!]!
+  }
+
+  type Transaction {
+    txId: TxId!
+    tx: Tx!
+  }
+
+  type EvaluationResult {
+    resultBlockchain: [[Transaction!]!]!
+  }
+
+  type TokenName {
+    name: String!
+  }
+
+  type KnownCurrency {
+    hash: String!
+    friendlyName: String!
+    knownTokens: [TokenName!]!
+  }
+
+  type CompilationResult {
+    functionSchema: [FunctionSchema]!
+    knownCurrencies: [KnownCurrency!]!
+  }
+
+  # the schema allows the following query:
+  type Query {
+    compile(source: SourceCode!): EvaluationResult
+    evaluate(source: SourceCode!): CompilationResult
+  }
+
+  # this schema allows the following mutation:
+  # type Mutation {
+  # }
+"""
+
+
+logSpy :: forall m a. Monad m => String -> a -> m Unit
+logSpy msg x = do
+  let r = spy msg x
+  pure unit
+
 runAjax :: forall m a.
   ExceptT AjaxError (HalogenM State Query ChildQuery ChildSlot Void m) a
   -> HalogenApp m (WebData a)
@@ -115,3 +198,39 @@ runAjax action = wrap $ RemoteData.fromEither <$> runExceptT action
 
 withEditor :: forall a m. MonadEffect m => (Editor -> Effect a) -> HalogenApp m (Maybe a)
 withEditor = HalogenApp <<< Editor.withEditor cpEditor EditorSlot
+
+countryQuery :: String -> GraphQLQuery Country
+countryQuery code =
+  GraphQLQuery
+    { operationName: Just "CountryQuery"
+    , query
+    , variables: [ "code" := code ]
+    }
+  where
+    query = """
+      query CountryQuery ($code: String!) {
+        country(code: $code) {
+          name
+          emoji
+          currency
+          languages {
+            code
+            name
+          }
+        }
+      }
+    """
+
+greetingQuery :: String -> GraphQLQuery Greeting
+greetingQuery username =
+  GraphQLQuery
+    { operationName: Just "GreetingQuery"
+    , query
+    , variables: [ "username" := username ]
+    }
+  where
+    query = """
+      query GreetingQuery ($username: String!) {
+        greeting(username: $username)
+      }
+    """

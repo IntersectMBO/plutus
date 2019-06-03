@@ -117,6 +117,9 @@ instance monadAppMockApp :: Monad m => MonadApp (MockApp m) where
   getOauthStatus =
     pure $ Success $ AuthStatus { _authStatusAuthRole: GithubUser }
 
+  getCountryByCode code = MockApp $ pure NotAsked
+  getGreeting name = MockApp $ pure  NotAsked
+
   getGistByGistId gistId = MockApp do
     Tuple {gists} _ <- get
     pure $ RemoteData.fromMaybe $ Map.lookup gistId gists

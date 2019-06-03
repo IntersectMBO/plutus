@@ -9,7 +9,7 @@ module Playground.THSpec where
 
 import           Data.Aeson            (FromJSON, ToJSON)
 import           Data.Proxy            (Proxy (Proxy))
-import           Data.Swagger          (ToSchema, toInlinedSchema)
+import           Schema                (toInlinedSchema)
 import           Data.Text             (Text)
 import           GHC.Generics          (Generic)
 import           Playground.API        (Fn (Fn), FunctionSchema (FunctionSchema), SimpleArgumentSchema)

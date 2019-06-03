@@ -52,9 +52,10 @@ import           Ledger.Slot                                (Slot)
 import           Ledger.Value                               (CurrencySymbol, TokenName, Value)
 import           Playground.API                             (CompilationResult, Evaluation, EvaluationResult,
                                                              Expression, Fn, FunctionSchema, KnownCurrency,
-                                                             SimpleArgumentSchema, SimulatorWallet)
+                                                             SimulatorWallet)
 import qualified Playground.API                             as API
 import           Playground.Usecases                        (crowdfunding, game, messages, vesting)
+import           Schema                                     (SimpleArgumentSchema)
 import           Servant                                    ((:<|>))
 import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
                                                              defaultSettings, languageBridge,

@@ -20,8 +20,7 @@ import qualified Data.Aeson.Extras          as JSON
 import           Data.Bifunctor             (bimap)
 import qualified Data.ByteString.Lazy       as BSL
 import           Data.String                (IsString (..))
-import           Data.Swagger.Internal
-import           Data.Swagger.Schema
+import           Schema                     (ToSchema, toSchema, SimpleArgumentSchema(SimpleStringSchema))
 import qualified Data.Text                  as Text
 import           Data.Word                  (Word8)
 import           GHC.Generics               (Generic)
@@ -73,7 +72,7 @@ instance Show LedgerBytes where
     show = Text.unpack . JSON.encodeByteString . BSL.toStrict . bytes
 
 instance ToSchema LedgerBytes where
-    declareNamedSchema _ = pure $ NamedSchema (Just "LedgerBytes") byteSchema
+    toSchema _ = SimpleStringSchema
 
 instance ToJSON LedgerBytes where
     toJSON = JSON.String . JSON.encodeByteString . BSL.toStrict . bytes

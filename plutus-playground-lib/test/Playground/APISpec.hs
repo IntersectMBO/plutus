@@ -5,7 +5,7 @@ module Playground.APISpec
     ) where
 
 import           Data.Proxy                   (Proxy (Proxy))
-import           Data.Swagger                 (toInlinedSchema)
+import           Schema                       (toInlinedSchema)
 import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), column, filename, row,
                                                text)
 import           Ledger.Interval              (Interval)

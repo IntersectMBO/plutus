@@ -73,7 +73,6 @@ library
         servant-client -any,
         servant-server -any,
         stm -any,
-        swagger2 -any,
         template-haskell -any,
         text -any,
         text -any,

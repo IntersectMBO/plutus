@@ -22,17 +22,16 @@ import           Language.Haskell.Interpreter (CompilationError (CompilationErro
                                                InterpreterError (CompilationErrors),
                                                InterpreterResult (InterpreterResult), SourceCode, Warning (Warning),
                                                avoidUnsafe, runghc)
-import           Ledger                       (Blockchain)
 import           Playground.API               (CompilationResult (CompilationResult), Evaluation (sourceCode),
                                                Expression (Action, Wait), Fn (Fn),
-                                               PlaygroundError (DecodeJsonTypeError, OtherError), SimulatorWallet,
-                                               program, simulatorWalletWallet, toSimpleArgumentSchema, wallets)
+                                               PlaygroundError (DecodeJsonTypeError, OtherError), program,
+                                               simulatorWalletWallet, wallets)
 import qualified Playground.API               as API
 import           Playground.Interpreter.Util  (TraceResult)
 import           System.IO                    (Handle, hFlush)
 import           System.IO.Temp.Extras        (withSystemTempFile)
 import qualified Text.Regex                   as Regex
-import           Wallet.Emulator.Types        (EmulatorEvent, Wallet)
+import           Wallet.Emulator.Types        (Wallet)
 
 replaceModuleName :: Text -> Text
 replaceModuleName script =
@@ -134,14 +133,10 @@ compile timeout source
                             "It looks like you have not made any functions available, use `$(mkFunctions ['functionA, 'functionB])` to be able to use `functionA` and `functionB`" :
                         warnings
                 pure . InterpreterResult warnings' $
-                    CompilationResult
-                        [toSimpleArgumentSchema <$> schema]
-                        currencies
+                    CompilationResult [schema] currencies
             Right (schemas, currencies) ->
                 pure . InterpreterResult warnings $
-                CompilationResult
-                    (fmap toSimpleArgumentSchema <$> schemas)
-                    currencies
+                CompilationResult schemas currencies
 
 runFunction ::
        ( Show t

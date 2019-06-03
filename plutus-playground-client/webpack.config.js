@@ -87,7 +87,7 @@ module.exports = {
             'node_modules',
             'bower_components'
         ],
-        extensions: [ '.purs', '.js']
+        extensions: [ '.purs', '.mjs', '.js' ]
     },
 
     plugins: [

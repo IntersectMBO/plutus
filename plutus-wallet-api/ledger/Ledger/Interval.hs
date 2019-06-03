@@ -24,9 +24,8 @@ import           Data.Aeson                   (FromJSON, ToJSON)
 import           Data.Hashable                (Hashable)
 import           Data.Maybe                   (isNothing)
 import           Data.Semigroup               (Max (..), Min (..), Option (..), Semigroup ((<>)))
-import           Data.Swagger.Internal.Schema (ToSchema)
+import           Schema                       (ToSchema)
 import           GHC.Generics                 (Generic)
-
 import           Language.PlutusTx.Lift       (makeLift)
 
 -- | An interval of @a@s. The interval is closed below and open above, meaning

@@ -37,8 +37,7 @@ import qualified Data.Aeson.Extras          as JSON
 import qualified Data.ByteArray             as BA
 import qualified Data.ByteString            as BS
 import qualified Data.ByteString.Lazy       as BSL
-import           Data.Swagger               (ToSchema (declareNamedSchema), byteSchema)
-import           Data.Swagger.Internal
+import           Schema                     (ToSchema,toSchema,SimpleArgumentSchema(SimpleHexSchema))
 import           GHC.Generics               (Generic)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift     (makeLift)
@@ -77,7 +76,7 @@ newtype Signature = Signature { getSignature :: Builtins.ByteString }
     deriving newtype (Serialise)
 
 instance ToSchema Signature where
-    declareNamedSchema _ = pure $ NamedSchema (Just "Signature") byteSchema
+    toSchema _ = SimpleHexSchema
 
 instance ToJSON Signature where
   toJSON signature =

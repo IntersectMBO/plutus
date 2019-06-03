@@ -56,6 +56,18 @@ let
       installPhase = "ln -s $src $out";
     };
 
+    "argonaut-codecs" = pkgs.stdenv.mkDerivation {
+      name = "argonaut-codecs";
+      version = "v6.0.1";
+      src = pkgs.fetchgit {
+        url = "https://github.com/purescript-contrib/purescript-argonaut-codecs.git";
+        rev = "v6.0.1";
+        sha256 = "05js7gllwbjj48kb1ma4by9n369ihpa7fggg6r6i6mylai0zr8kq";
+      };
+      phases = "installPhase";
+      installPhase = "ln -s $src $out";
+    };
+
     "argonaut-core" = pkgs.stdenv.mkDerivation {
       name = "argonaut-core";
       version = "v5.0.0";

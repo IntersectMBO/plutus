@@ -139,7 +139,6 @@ library plutus-ledger
         operational -any,
         serialise -any,
         servant -any,
-        swagger2 <2.4,
         template-haskell -any,
         text -any,
         transformers -any,

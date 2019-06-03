@@ -30,7 +30,8 @@ import           Playground.Contract
 import           Wallet                       as W
 import qualified Wallet.Emulator              as EM
 import           Wallet.Emulator             (Wallet)
-
+import Data.Proxy
+import Schema (toSchema,SimpleArgumentSchema)
 -- | A crowdfunding campaign.
 data Campaign = Campaign
     { campaignDeadline           :: Slot
@@ -44,6 +45,8 @@ data Campaign = Campaign
     --   funds if the campaign is successful.
     } deriving (Generic, ToJSON, FromJSON, ToSchema)
 
+k :: SimpleArgumentSchema
+k = toSchema (Proxy :: Proxy Campaign)
 PlutusTx.makeLift ''Campaign
 
 -- | Construct a 'Campaign' value from the campaign parameters,
@@ -72,7 +75,7 @@ refundRange cmp =
 --   checks if the conditions for performing this action are met.
 --
 data CampaignAction = Collect | Refund
-    deriving (Generic, ToJSON, FromJSON, ToSchema)
+    deriving (Generic, ToJSON, FromJSON)
 
 PlutusTx.makeLift ''CampaignAction
 
@@ -191,8 +194,6 @@ refundHandler txid cmp = EventHandler (\_ -> do
     -- funds (if we did that, the validator script would fail and the entire
     -- transaction would be invalid).
     collectFromScriptTxn (refundRange cmp) validatorScript redeemerScript txid)
-
-$(mkFunctions ['scheduleCollection, 'contribute])
 
 {- note [Transactions in the crowdfunding campaign]
 

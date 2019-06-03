@@ -98,7 +98,7 @@ import           Data.Map                  (Map)
 import qualified Data.Map                  as Map
 import           Data.Maybe
 import qualified Data.Set                  as Set
-import           Data.Swagger              (ToSchema)
+import           Schema                    (ToSchema)
 import qualified Data.Text                 as T
 import           Data.Traversable          (for)
 import           GHC.Generics              (Generic)

@@ -27,7 +27,7 @@ module Ledger.Slot(
 import           Codec.Serialise.Class        (Serialise)
 import           Data.Aeson                   (FromJSON, ToJSON)
 import           Data.Hashable                (Hashable)
-import           Data.Swagger.Internal.Schema (ToSchema)
+import           Schema                       (ToSchema)
 import           GHC.Generics                 (Generic)
 
 import           Language.PlutusTx.Lift       (makeLift)

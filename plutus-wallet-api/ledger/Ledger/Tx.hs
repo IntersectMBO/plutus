@@ -70,7 +70,7 @@ import           Data.Map                     (Map)
 import qualified Data.Map                     as Map
 import           Data.Maybe                   (isJust)
 import qualified Data.Set                     as Set
-import           Data.Swagger.Internal.Schema (ToSchema)
+import           Schema                       (ToSchema)
 import           GHC.Generics                 (Generic)
 
 import           Ledger.Ada

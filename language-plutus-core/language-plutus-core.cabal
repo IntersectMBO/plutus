@@ -78,6 +78,7 @@ library
         PlutusPrelude
         Control.Monad.Trans.Inner
         Common
+        Schema
         Data.ByteString.Lazy.Hash
         PlcTestUtils
         Crypto
@@ -131,6 +132,7 @@ library
                  -Wnoncanonical-monoid-instances
     build-depends:
         base >=4.9 && <5,
+        aeson -any,
         bytestring -any,
         cryptonite -any,
         containers -any,
@@ -143,6 +145,7 @@ library
         text -any,
         prettyprinter >=1.1.0.1,
         lens -any,
+        generics-sop -any,
         composition-prelude >=1.1.0.1,
         template-haskell -any,
         th-lift-instances -any,

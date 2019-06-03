@@ -20,8 +20,7 @@ import qualified Data.Aeson                   as JSON
 import qualified Data.Aeson.Extras            as JSON
 import qualified Data.ByteArray               as BA
 import qualified Data.ByteString              as BSS
-import           Data.Proxy                   (Proxy (Proxy))
-import           Data.Swagger.Internal.Schema (ToSchema (declareNamedSchema), paramSchemaToSchema, plain)
+import           Schema                       (ToSchema, toSchema, SimpleArgumentSchema(SimpleHexSchema))
 import           GHC.Generics                 (Generic)
 import           Language.PlutusTx.Lift       (makeLift)
 
@@ -38,7 +37,7 @@ instance ToJSON (Digest SHA256) where
     toJSON = JSON.String . JSON.encodeSerialise
 
 instance ToSchema (Digest SHA256) where
-    declareNamedSchema _ = plain $ paramSchemaToSchema (Proxy @String)
+    toSchema _ = SimpleHexSchema
 
 instance FromJSON (Digest SHA256) where
     parseJSON = JSON.decodeSerialise

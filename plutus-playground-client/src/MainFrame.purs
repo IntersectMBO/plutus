@@ -54,7 +54,7 @@ import Gists as Gists
 import Halogen (Component, action)
 import Halogen as H
 import Halogen.Component (ParentHTML)
-import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, strong_, text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, code_, div, div_, h1, strong_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_)
 import Halogen.Query (HalogenM)
@@ -63,7 +63,7 @@ import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError
 import Ledger.Extra (LedgerMap(LedgerMap))
 import Ledger.Extra as LedgerMap
 import Ledger.Value (CurrencySymbol(CurrencySymbol), TokenName(TokenName), Value(Value))
-import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect)
+import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getCountryByCode, getGistByGistId, getGreeting, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
 import Playground.API (KnownCurrency(..), SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
 import Playground.Server (SPParams_)
@@ -115,6 +115,8 @@ initialState = State
   , authStatus: NotAsked
   , createGistResult: NotAsked
   , gistUrl: Nothing
+  , location: NotAsked
+  , greeting: NotAsked
   }
 
 ------------------------------------------------------------
@@ -237,6 +239,15 @@ eval (CheckAuthStatus next) = do
   assign _authStatus Loading
   authResult <- getOauthStatus
   assign _authStatus authResult
+
+  assign _location Loading
+  country <- getCountryByCode "ES"
+  assign _location country
+
+  assign _greeting Loading
+  greeting <- getGreeting "David"
+  assign _greeting greeting
+
   pure next
 
 eval (PublishGist next) = do
@@ -525,6 +536,18 @@ render state@(State {currentView})  =
                 [ div [ classes [ colXs12, colSm6 ] ] [ mainTabBar currentView ]
                 , div [ classes [ colXs12, colSm5 ] ] [ gistControls (unwrap state) ]
                 ]
+            , div_ [ case view _location state of
+                       Success result -> code_ [ text $ show result ]
+                       Failure err -> ajaxErrorPane err
+                       NotAsked -> code_ [ text "Not Asked" ]
+                       Loading -> code_ [ text "Loading" ]
+                   ]
+            , div_ [ case view _greeting state of
+                       Success result -> code_ [ text $ show result ]
+                       Failure err -> ajaxErrorPane err
+                       NotAsked -> code_ [ text "Not Asked" ]
+                       Loading -> code_ [ text "Loading" ]
+                   ]
             ]
         , viewContainer currentView Editor $
             [ demoScriptsPane

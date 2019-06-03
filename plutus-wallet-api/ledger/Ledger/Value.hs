@@ -45,17 +45,13 @@ module Ledger.Value(
     ) where
 
 import           Codec.Serialise.Class        (Serialise)
-import           Control.Lens                 (set,(.~))
 import           Data.Aeson                   (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
 import qualified Data.Aeson                   as JSON
 import qualified Data.Aeson.Extras            as JSON
 import qualified Data.ByteString.Lazy         as BSL
 import qualified Data.ByteString.Lazy.Char8   as C8
 import           Data.Hashable                (Hashable)
-import qualified Data.Swagger.Internal        as S
-import           Data.Swagger.Schema          (ToSchema(declareNamedSchema))
-import qualified Data.Swagger.Lens            as S
-import           Data.Swagger                 (SwaggerType(SwaggerObject), NamedSchema(NamedSchema), declareSchemaRef)
+import           Schema                       (ToSchema, toSchema, SimpleArgumentSchema(..))
 import           Data.Proxy                   (Proxy(Proxy))
 import           Data.String                  (IsString(fromString))
 import qualified Data.Text                    as Text
@@ -66,13 +62,6 @@ import           Language.PlutusTx.Prelude    hiding (eq, plus, minus, negate, m
 import qualified Language.PlutusTx.Prelude    as P
 import qualified Ledger.Map                   as Map
 import           LedgerBytes                  (LedgerBytes(LedgerBytes))
-import           Data.Function                ((&))
-
-hexSchema :: S.Schema
-hexSchema = mempty & set S.type_ S.SwaggerString & set S.format (Just "hex")
-
-stringSchema :: S.Schema
-stringSchema = mempty & set S.type_ S.SwaggerString
 
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteString }
     deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise) via LedgerBytes
@@ -80,7 +69,7 @@ newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteStrin
     deriving anyclass (Hashable)
 
 instance ToSchema CurrencySymbol where
-  declareNamedSchema _ = pure $ S.NamedSchema (Just "CurrencySymbol") hexSchema
+  toSchema _ = SimpleHexSchema
 
 instance ToJSON CurrencySymbol where
   toJSON currencySymbol =
@@ -124,7 +113,7 @@ instance Show TokenName where
   show = toString
 
 instance ToSchema TokenName where
-    declareNamedSchema _ = pure $ S.NamedSchema (Just "TokenName") stringSchema
+    toSchema _ = SimpleStringSchema
 
 instance ToJSON TokenName where
     toJSON tokenName =
@@ -181,20 +170,12 @@ instance Semigroup Value where
 instance Monoid Value where
     mempty = zero
 
--- 'InnerMap' exists only to trick swagger's generic deriving mechanism
--- into not looping indefinitely when it encounters a nested map.
-newtype InnerMap = InnerMap { unMap :: [(TokenName, Integer)] }
-    deriving stock (Generic)
-    deriving anyclass (ToJSON, FromJSON, ToSchema)
-
 instance ToSchema Value where
-    declareNamedSchema _ = do
-        mapSchema <- declareSchemaRef (Proxy @(Map.Map CurrencySymbol InnerMap))
-        return $
-                NamedSchema (Just "Value") $ mempty
-                    & S.type_ .~ SwaggerObject
-                    & S.properties .~ [ ("getValue", mapSchema) ]
-                    & S.required .~ [ "getValue" ]
+  toSchema _ =
+    ValueSchema
+      [ ( "getValue"
+        , toSchema (Proxy :: Proxy [(CurrencySymbol, [(TokenName, Integer)])]))
+      ]
 
 {- note [Currencies]
 

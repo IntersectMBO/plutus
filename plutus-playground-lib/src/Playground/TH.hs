@@ -10,7 +10,7 @@ module Playground.TH
     ) where
 
 import           Data.Proxy          (Proxy (Proxy))
-import           Data.Swagger.Schema (toInlinedSchema)
+import           Schema              (toSchema)
 import           Data.Text           (pack)
 import           Language.Haskell.TH (Body (NormalB), Clause (Clause), Dec (FunD, SigD, ValD), Exp (ListE, VarE),
                                       Info (VarI), Name, Pat (VarP), Q,
@@ -71,7 +71,7 @@ toSchemas :: Fn -> [Type] -> Q Exp
 toSchemas fn ts = do
     es <-
         foldr
-            (\t e -> [|toInlinedSchema (Proxy :: Proxy $(pure t)) : $e|])
+            (\t e -> [|toSchema (Proxy :: Proxy $(pure t)) : $e|])
             [|[]|]
             ts
     [|FunctionSchema fn $(pure es)|]

@@ -13,6 +13,7 @@
         "node-fs",
         "numerics",
         "parsing",
+        "argonaut-codecs",
         "foreign-generic",
         "psci-support",
         "remotedata",

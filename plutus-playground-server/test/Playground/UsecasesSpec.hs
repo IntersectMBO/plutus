@@ -11,7 +11,6 @@ import qualified Data.Aeson.Text              as JSON
 import           Data.Aeson.Types             (object, (.=))
 import           Data.Either                  (isRight)
 import           Data.List.NonEmpty           (NonEmpty ((:|)))
-import           Data.Swagger                 ()
 import qualified Data.Text                    as Text
 import qualified Data.Text.Lazy               as TL
 import           Data.Time.Units              (Microsecond, fromMicroseconds)
@@ -23,13 +22,14 @@ import           Ledger.Value                 (TokenName (TokenName), Value)
 import           Playground.API               (CompilationResult (CompilationResult), Evaluation (Evaluation),
                                                Expression (Action, Wait), Fn (Fn), FunctionSchema (FunctionSchema),
                                                KnownCurrency (KnownCurrency), PlaygroundError,
-                                               SimpleArgumentSchema (SimpleArraySchema, SimpleHexSchema, SimpleIntSchema, SimpleObjectSchema, SimpleStringSchema, SimpleTupleSchema, ValueSchema),
                                                SimulatorWallet (SimulatorWallet), adaCurrency, argumentSchema,
                                                functionName, isSupportedByFrontend, simulatorWalletBalance,
                                                simulatorWalletWallet)
 import qualified Playground.Interpreter       as PI
 import           Playground.Interpreter.Util  (TraceResult)
 import           Playground.Usecases          (crowdfunding, game, messages, vesting)
+import           Schema                       ()
+import           Schema                       (SimpleArgumentSchema (SimpleArraySchema, SimpleHexSchema, SimpleIntSchema, SimpleObjectSchema, SimpleStringSchema, SimpleTupleSchema, ValueSchema))
 import           Test.Hspec                   (Spec, describe, it, shouldBe, shouldSatisfy)
 import           Wallet.Emulator.Types        (Wallet (Wallet), walletPubKey)
 
@@ -65,19 +65,13 @@ vestingSpec =
         let vlSchema =
                 ValueSchema
                     [ ( "getValue"
-                      , SimpleObjectSchema
-                            [ ( "unMap"
-                              , SimpleArraySchema
-                                    (SimpleTupleSchema
-                                         ( SimpleHexSchema
-                                         , SimpleObjectSchema
-                                               [ ( "unMap"
-                                                 , SimpleArraySchema
-                                                       (SimpleTupleSchema
-                                                            ( SimpleStringSchema
-                                                            , SimpleIntSchema)))
-                                               ])))
-                            ])
+                      , SimpleArraySchema
+                            (SimpleTupleSchema
+                                 ( SimpleHexSchema
+                                 , SimpleArraySchema
+                                       (SimpleTupleSchema
+                                            ( SimpleStringSchema
+                                            , SimpleIntSchema)))))
                     ]
         compilationChecks vesting
         it "should compile with the expected schema" $ do
@@ -88,23 +82,23 @@ vestingSpec =
                       { functionName = Fn "vestFunds"
                       , argumentSchema =
                             [ SimpleObjectSchema
-                                  [ ( "vestingOwner"
+                                  [ ( "vestingTranche1"
                                     , SimpleObjectSchema
-                                          [("getPubKey", SimpleStringSchema)])
+                                          [ ( "vestingTrancheDate"
+                                            , SimpleObjectSchema
+                                                  [("getSlot", SimpleIntSchema)])
+                                          , ("vestingTrancheAmount", vlSchema)
+                                          ])
                                   , ( "vestingTranche2"
                                     , SimpleObjectSchema
-                                          [ ("vestingTrancheAmount", vlSchema)
-                                          , ( "vestingTrancheDate"
+                                          [ ( "vestingTrancheDate"
                                             , SimpleObjectSchema
                                                   [("getSlot", SimpleIntSchema)])
+                                          , ("vestingTrancheAmount", vlSchema)
                                           ])
-                                  , ( "vestingTranche1"
+                                  , ( "vestingOwner"
                                     , SimpleObjectSchema
-                                          [ ("vestingTrancheAmount", vlSchema)
-                                          , ( "vestingTrancheDate"
-                                            , SimpleObjectSchema
-                                                  [("getSlot", SimpleIntSchema)])
-                                          ])
+                                          [("getPubKey", SimpleStringSchema)])
                                   ]
                             ]
                       }
@@ -112,23 +106,23 @@ vestingSpec =
                       { functionName = Fn "registerVestingScheme"
                       , argumentSchema =
                             [ SimpleObjectSchema
-                                  [ ( "vestingOwner"
+                                  [ ( "vestingTranche1"
                                     , SimpleObjectSchema
-                                          [("getPubKey", SimpleStringSchema)])
+                                          [ ( "vestingTrancheDate"
+                                            , SimpleObjectSchema
+                                                  [("getSlot", SimpleIntSchema)])
+                                          , ("vestingTrancheAmount", vlSchema)
+                                          ])
                                   , ( "vestingTranche2"
                                     , SimpleObjectSchema
-                                          [ ("vestingTrancheAmount", vlSchema)
-                                          , ( "vestingTrancheDate"
+                                          [ ( "vestingTrancheDate"
                                             , SimpleObjectSchema
                                                   [("getSlot", SimpleIntSchema)])
+                                          , ("vestingTrancheAmount", vlSchema)
                                           ])
-                                  , ( "vestingTranche1"
+                                  , ( "vestingOwner"
                                     , SimpleObjectSchema
-                                          [ ("vestingTrancheAmount", vlSchema)
-                                          , ( "vestingTrancheDate"
-                                            , SimpleObjectSchema
-                                                  [("getSlot", SimpleIntSchema)])
-                                          ])
+                                          [("getPubKey", SimpleStringSchema)])
                                   ]
                             ]
                       }
@@ -136,23 +130,23 @@ vestingSpec =
                       { functionName = Fn "withdraw"
                       , argumentSchema =
                             [ SimpleObjectSchema
-                                  [ ( "vestingOwner"
+                                  [ ( "vestingTranche1"
                                     , SimpleObjectSchema
-                                          [("getPubKey", SimpleStringSchema)])
+                                          [ ( "vestingTrancheDate"
+                                            , SimpleObjectSchema
+                                                  [("getSlot", SimpleIntSchema)])
+                                          , ("vestingTrancheAmount", vlSchema)
+                                          ])
                                   , ( "vestingTranche2"
                                     , SimpleObjectSchema
-                                          [ ("vestingTrancheAmount", vlSchema)
-                                          , ( "vestingTrancheDate"
+                                          [ ( "vestingTrancheDate"
                                             , SimpleObjectSchema
                                                   [("getSlot", SimpleIntSchema)])
+                                          , ("vestingTrancheAmount", vlSchema)
                                           ])
-                                  , ( "vestingTranche1"
+                                  , ( "vestingOwner"
                                     , SimpleObjectSchema
-                                          [ ("vestingTrancheAmount", vlSchema)
-                                          , ( "vestingTrancheDate"
-                                            , SimpleObjectSchema
-                                                  [("getSlot", SimpleIntSchema)])
-                                          ])
+                                          [("getPubKey", SimpleStringSchema)])
                                   ]
                             , vlSchema
                             ]

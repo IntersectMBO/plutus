@@ -67,8 +67,7 @@ import qualified Data.Aeson.Extras            as JSON
 import qualified Data.ByteArray               as BA
 import qualified Data.ByteString.Lazy         as BSL
 import qualified Data.ByteString.Lazy.Hash    as Hash
-import           Data.Proxy                   (Proxy (Proxy))
-import           Data.Swagger.Internal.Schema (ToSchema (declareNamedSchema), paramSchemaToSchema, plain)
+import           Schema                       (ToSchema,toSchema,SimpleArgumentSchema(SimpleStringSchema))
 import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx.Builtins   as Builtins
 import           Language.PlutusTx.Lift       (makeLift)
@@ -200,7 +199,7 @@ instance Show ValidatorHash where
     show = show . JSON.encodeSerialise
 
 instance ToSchema ValidatorHash where
-    declareNamedSchema _ = plain . paramSchemaToSchema $ (Proxy :: Proxy String)
+    toSchema _ = SimpleStringSchema
 
 instance ToJSON ValidatorHash where
     toJSON = JSON.String . JSON.encodeSerialise

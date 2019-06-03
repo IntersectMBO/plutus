@@ -12,6 +12,7 @@ import Data.Array as Array
 import Data.Either.Nested (Either2)
 import Data.Functor.Coproduct.Nested (Coproduct2)
 import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens, Lens', Prism', _2, over, prism', to, traversed, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
@@ -24,9 +25,10 @@ import Data.Symbol (SProxy(..))
 import Data.Traversable (sequence, traverse)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
-import Foreign (Foreign)
-import Foreign.Class (class Decode, class Encode, encode)
+import Foreign (Foreign, readString)
+import Foreign.Class (class Decode, class Encode, decode, encode)
 import Foreign.Generic (aesonSumEncoding, defaultOptions, encodeJSON, genericDecode, genericEncode)
+import Foreign.Index (ix)
 import Foreign.Object as FO
 import Gist (Gist)
 import Halogen.Chartist (ChartistMessage, ChartistQuery)
@@ -39,8 +41,9 @@ import Ledger.TxId (TxIdOf)
 import Ledger.Value (CurrencySymbol, TokenName, Value, _CurrencySymbol, _TokenName, _Value)
 import Matryoshka (class Corecursive, class Recursive, Algebra, cata)
 import Network.RemoteData (RemoteData)
-import Playground.API (CompilationResult, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency, SimpleArgumentSchema(..), SimulatorWallet, _FunctionSchema, _SimulatorWallet)
+import Playground.API (CompilationResult, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency, SimulatorWallet, _FunctionSchema, _SimulatorWallet)
 import Playground.API as API
+import Schema (SimpleArgumentSchema(..))
 import Servant.PureScript.Ajax (AjaxError)
 import Test.QuickCheck.Arbitrary (class Arbitrary)
 import Test.QuickCheck.Gen as Gen
@@ -296,6 +299,62 @@ instance decodeSimulation :: Decode Simulation where
 
 type WebData = RemoteData AjaxError
 
+------------------------------------------------------------
+
+newtype Language = Language
+  { code :: String
+  , name :: String
+  }
+
+derive instance genericLanguage :: Generic Language _
+derive instance newtypeLanguage :: Newtype Language _
+
+instance showLanguage :: Show Language where
+  show = genericShow
+
+instance decodeLanguage :: Decode Language where
+  decode language = do
+    code <- ix language "code" >>= readString
+    name <- ix language "name" >>= readString
+    pure $ Language { code, name }
+
+
+newtype Country = Country
+  { name :: String
+  , emoji :: String
+  , currency :: String
+  , languages :: Array Language
+  }
+
+derive instance genericCountry :: Generic Country _
+derive instance newtypeCountry :: Newtype Country _
+
+instance showCountry :: Show Country where
+  show = genericShow
+
+instance decodeCountry :: Decode Country where
+  decode country = do
+    name <- ix country "name" >>= readString
+    emoji <- ix country "emoji" >>= readString
+    currency <- ix country "currency" >>= readString
+    languages <- ix country "languages" >>= decode
+    pure $ Country { name, emoji, currency, languages }
+
+newtype Greeting = Greeting { greeting :: String }
+
+derive instance genericGreeting :: Generic Greeting _
+derive instance newtypeGreeting :: Newtype Greeting _
+
+instance showGreeting :: Show Greeting where
+  show = genericShow
+
+instance decodeGreeting :: Decode Greeting where
+  decode obj = do
+    str <- ix obj "greeting" >>= readString
+    pure $ Greeting { greeting: str }
+
+------------------------------------------------------------
+
 newtype State = State
   { currentView :: View
   , compilationResult :: WebData (JsonEither InterpreterError (InterpreterResult CompilationResult))
@@ -305,6 +364,8 @@ newtype State = State
   , authStatus :: WebData AuthStatus
   , createGistResult :: WebData Gist
   , gistUrl :: Maybe String
+  , location :: WebData Country
+  , greeting :: WebData Greeting
   }
 
 derive instance newtypeState :: Newtype State _
@@ -335,6 +396,12 @@ _compilationResult = _Newtype <<< prop (SProxy :: SProxy "compilationResult")
 
 _authStatus :: Lens' State (WebData AuthStatus)
 _authStatus = _Newtype <<< prop (SProxy :: SProxy "authStatus")
+
+_location :: Lens' State (WebData Country)
+_location = _Newtype <<< prop (SProxy :: SProxy "location")
+
+_greeting :: Lens' State (WebData Greeting)
+_greeting = _Newtype <<< prop (SProxy :: SProxy "greeting")
 
 _createGistResult :: Lens' State (WebData Gist)
 _createGistResult = _Newtype <<< prop (SProxy :: SProxy "createGistResult")

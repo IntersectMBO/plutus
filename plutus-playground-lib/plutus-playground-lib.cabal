@@ -28,6 +28,7 @@ library
   exposed-modules:
       Playground.Contract
       Playground.API
+      Playground.GraphQL
       Playground.TH
       Playground.Interpreter.Util
   other-modules:
@@ -42,16 +43,20 @@ library
     , containers
     , insert-ordered-containers
     , playground-common
+    , unordered-containers
+    , language-plutus-core
     , lens
+    , morpheus-graphql
     , memory
     , mtl
     , servant
-    , swagger2
+    , servant-server
     , template-haskell
     , text
     , transformers
     , plutus-wallet-api
     , plutus-emulator
+    , plutus-tx
   default-language: Haskell2010
 
 test-suite plutus-playground-lib-test
@@ -69,7 +74,6 @@ test-suite plutus-playground-lib-test
         containers -any,
         hedgehog -any,
         playground-common -any,
-        swagger2 -any,
         tasty -any,
         tasty-hunit -any,
         text -any,
