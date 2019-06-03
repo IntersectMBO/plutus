@@ -1,39 +1,49 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 module Tutorial.Solutions1 where
 
--- Solutions to E2 and E4*
--- (Rest of the solutions can be found in Tutorial.Solutions2 because of
---  TH staging restrictions)
+import qualified Data.Map                     as Map
 
-import Tutorial.TH               (tricky)
-import Language.PlutusTx.Prelude (lt, minus)
-import Language.Haskell.TH
+import qualified Language.PlutusTx            as PlutusTx
+import           Language.PlutusTx.Prelude
+import           Ledger                       (Address, DataScript(..), RedeemerScript(..), ValidatorScript(..), Value)
+import qualified Ledger                       as L
+import           Ledger.Validation            (PendingTx)
+import qualified Ledger.Ada                   as Ada
+import           Ledger.Ada                   (Ada)
+import           Wallet                       (WalletAPI(..), WalletDiagnostics(..))
+import qualified Wallet                       as W
+import qualified Wallet.Emulator.Types        as EM
+import qualified Wallet.API                   as WAPI
+
+import qualified Tutorial.ExUtil                as EXU
+import Tutorial.Emulator (SecretNumber(..), ClearNumber(..))
 
 {-
-    E2.
 
-    >>> $$(trickier 1) 1
-    -8
-    >>> $$(trickier 2) 1
-    424
-    >>> $$(trickier 3) 0
-    -76403960
+    E1 (validator script)
 
 -}
-trickier :: Integer -> Q (TExp (Integer -> Integer))
-trickier i = if lt i 1 then tricky else [|| \k -> $$(tricky) ($$(trickier (minus i 1)) k)  ||]
+intGameValidator :: ValidatorScript
+intGameValidator = ValidatorScript $$(L.compileScript [|| val ||])
+    where
+        val = \(SecretNumber actual) (ClearNumber guess') (_ :: PendingTx) -> actual `eq` (EXU.encode guess')
 
+gameAddress :: Address
+gameAddress = L.scriptAddress intGameValidator
 
--- E3*. `trickier n` inlines the `tricky` function n times. In `trickierLight`
---      we bind `tricky` to a local name and use recursion instead. Note that
---      this only results in smaller code for n >= 10 (see Solutions2.hs)
-trickierLight :: Integer -> Q (TExp (Integer -> Integer))
-trickierLight i = [||
-  \(j :: Integer) ->
-    let
-      trk = $$(tricky)
-      go k = if lt k (1 :: Integer) then trk j else trk (go (minus k 1))
+{-
 
-  in go i ||]
+      E1 (lock endpoint) Note how we use the same TH quote, $$(TH.trickier 2),
+      in on-chain and off-chain code. This is how code can be shared between
+      the two. Write once, run anywhere!
+
+-}
+lock :: (WalletAPI m, WalletDiagnostics m) => Integer -> Ada -> m ()
+lock i adaVl = do
+    let secretInt = EXU.encode i
+        vl = Ada.toValue adaVl
+        ds = DataScript (L.lifted (SecretNumber secretInt))
+    W.payToScript_ W.defaultSlotRange gameAddress vl ds

@@ -31,11 +31,16 @@ We need some language extensions and imports:
 module Tutorial.ValidatorScripts where
 ```
 
-The language extensions fall into three categories. The first category is extensions required by the plugin that translates Haskell Core to Plutus IR (Intermediate Representation - a more abstract form of Plutus Core). This category includes [`DataKinds`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#datatype-promotion), [`TemplateHaskell`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#template-haskell) and [`ScopedTypeVariables`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#lexically-scoped-type-variables). The second category is extensions that contract endpoints to be automatically generated in the Plutus Playground, and it contains only the [`DeriveGeneric`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#deriving-representations) extension. The final category is extensions that make the code look nicer. These include [`RecordWildCards`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#record-wildcards), which lets us use write `Campaign{..}` in pattern matching to bring into scope all fields of a `Campaign` value, and [`OverloadedStrings`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#overloaded-string-literals) which allows us to write log messages as string literals without having to convert them to `Text` values first.
+The language extensions fall into three categories. The first category is extensions required by the plugin that translates Haskell Core to Plutus IR (Intermediate Representation - a more abstract form of Plutus Core). This category includes [`DataKinds`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#datatype-promotion), [`TemplateHaskell`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#template-haskell), [`ScopedTypeVariables`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#lexically-scoped-type-variables).
+
+The second category is extensions that contract endpoints to be automatically generated in the Plutus Playground, and it contains only the [`DeriveGeneric`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#deriving-representations) extension.
+
+The final category is extensions that make the code look nicer. These include [`RecordWildCards`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#record-wildcards), which lets us use write `Campaign{..}` in pattern matching to bring into scope all fields of a `Campaign` value, and [`OverloadedStrings`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#overloaded-string-literals) which allows us to write log messages as string literals without having to convert them to `Text` values first.
 
 ```haskell
-import qualified Language.PlutusTx            as PlutusTx
 import           Language.PlutusTx.Prelude
+
+import qualified Language.PlutusTx            as PlutusTx
 import qualified Ledger.Interval              as I
 import           Ledger                       (Address, DataScript(..), PubKey(..), RedeemerScript(..), Signature(..), Slot(..), TxId, ValidatorScript(..))
 import qualified Ledger                       as L
@@ -96,16 +101,12 @@ mkRedeemerScript word =
 
 The general form of a validator script is `DataScript -> Redeemer -> PendingTx -> Bool`. That is, the validator script is a function of three arguments that produces a value of type `Bool` indicating whether the validation was a success (or fails with an error). As contract authors we can freely choose the types of `DataScript`, `Redeemer`. The third argument has to be of type [`PendingTx`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html#t:PendingTx) because that is the information about the current transaction, provided by the slot leader.
 
-In our case, the data script is a `HashedText`, and the redeemer is a `ClearText`. This gives us a script with the signature `HashedText -> ClearText -> PendingTx -> Bool`. The function needs to be wrapped in Template Haskell quotes, beginning with `[||` and ending with `||]`.
-
-We can then use `L.compileScript`, a function exported by the `Ledger` module, to compile the TH quote to its on-chain representation:
+In our case, the data script is a `HashedText`, and the redeemer is a `ClearText`. This gives us a script with the signature `HashedText -> ClearText -> PendingTx -> Bool`.
 
 ```haskell
 -- | The validator script of the game.
-gameValidator :: ValidatorScript
-gameValidator = ValidatorScript ($$(L.compileScript [||
-    -- The code between the '[||' and  '||]' quotes is on-chain code.
-    \(HashedText actual) (ClearText guessed) (_ :: PendingTx) ->
+validator :: HashedText -> ClearText -> PendingTx -> Bool
+validator (HashedText actual) (ClearText guessed) _ =
 ```
 
 The actual game logic is very simple: We compare the hash of the `guessed` argument with the `actual` secret hash, and throw an error if the two don't match. In on-chain code, we can use the `$$()` splicing operator to access functions from the Plutus prelude, imported as `P`. For example, `equalsByteString :: ByteString -> ByteString -> Bool`  compares two `ByteString` values for equality.
@@ -114,17 +115,17 @@ The actual game logic is very simple: We compare the hash of the `guessed` argum
     if equalsByteString actual (sha2_256 guessed)
     then (traceH "RIGHT!" True)
     else (traceH "WRONG!" False)
-
-    ||])) -- marks the end of the quoted (on-chain) code
 ```
 
 `traceH :: String -> a -> a` returns its second argument after adding its first argument to the log output of this script. The log output is only available in the emulator and on the playground, and will be ignored when the code is run on the real blockchain.
 
-TODO: The example doesn't use `error` anymore
+Finally, we can use `L.compileScript` to compile this into on-chain code. The reference to the validator script that we defined needs to be wrapped in Template Haskell *quotes* (`[||` and `||]`), and then the result of `L.compileScript` must be *spliced* in with `$$`. However, the form that we use here is the same every time, so you don't need to understand how Template Haskell works in detail.
 
-Before we move on to the wallet interactions that produces transactions for our game, let us look at the failure case more closely. There are two two subtle differences between on-chain and off-chain code that we need to be aware of. First, the signature of `error` is `forall a. () -> a` and therefore we alway have to apply it to a unit value. `error` is different from Haskell's `undefined :: forall a. a` because of differences in the type systems of the two languages.
-
-Second, `error` terminates evaluation of the script when it is encountered, but (due to the strict evaluation order of on-chain code) only *after* its argument has been evaluated. That is why we need to put the call to `traceH` as the argument to `error`. In regular Haskell we would write `traceH "WRONG!" undefined`.
+```haskell
+-- | The validator script of the game.
+gameValidator :: ValidatorScript
+gameValidator = ValidatorScript ($$(L.compileScript [|| validator ||]))
+```
 
 ## 1.3 Contract endpoints
 

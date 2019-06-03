@@ -1,4 +1,4 @@
-{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-
     A Plutus emulator (mockchain) tutorial. This is the fourth in a series of
@@ -13,67 +13,52 @@
 -}
 module Tutorial.Emulator where
 
-import qualified Data.Map                     as Map
+import qualified Data.Map              as Map
 
-import qualified Language.PlutusTx            as P
-import           Ledger                       (Address, DataScript(..), RedeemerScript(..), ValidatorScript(..), Value)
-import qualified Ledger                       as L
-import           Ledger.Validation            (PendingTx)
-import qualified Ledger.Ada                   as Ada
-import           Ledger.Ada                   (Ada)
-import           Wallet                       (WalletAPI(..), WalletDiagnostics(..))
-import qualified Wallet                       as W
-import qualified Wallet.Generators            as Gen
-import qualified Wallet.Emulator.Types        as EM
-import qualified Wallet.API                   as WAPI
+import qualified Language.PlutusTx     as P
+import           Ledger                (Address, DataScript (..), RedeemerScript (..), ValidatorScript (..), Value)
+import qualified Ledger                as L
+import           Ledger.Ada            (Ada)
+import qualified Ledger.Ada            as Ada
+import           Ledger.Validation     (PendingTx)
+import           Wallet                (WalletAPI (..), WalletDiagnostics (..))
+import qualified Wallet                as W
+import qualified Wallet.API            as WAPI
+import qualified Wallet.Emulator.Types as EM
+import qualified Wallet.Generators     as Gen
 
-import qualified Tutorial.Solutions1          as TH
-import qualified Tutorial.ExUtil              as EXU
+import qualified Tutorial.ExUtil       as EXU
 
 -- | $setup
 -- >>> import Tutorial.Emulator
 -- >>> import qualified Wallet.Emulator.Types as EM
 
 {- |
-    Compiling Plutus programs
+  In this module we will implement a function and in `Tutorial.Emulator` we will
+  use this function in a smart contract.
 
-    To use `TH.trickier` from `Tutorial.TH` in our smart contract we need to
-    compile it using `Language.PlutusTx.compile :: Q (TExp a) -> CompiledCode
-    a`. `compile` takes a typed Template Haskell quote and compiles it to
-    Plutus Core. The parameter `a` indicates that the generated program is of
-    the Plutus type that corresponds to `a`.
+  Both modules are intended to be loaded in GHCi, GHC's interactive environment
+  (https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/ghci.html).
 
-    We need some instances of `trickier` with different parameters:
+  The problems in this module follow the numbering scheme E1, E2, etc. In many
+  places the `error` function is used to mark the spot where you need to fill
+  in the implementation.
 
--}
+  Some of the comments in this module contain GHCi commands. Each GHCi command
+  is placed in a separate line prefixed by >>>, and its expected output (if any)
+  is written in the following line.
 
-trickier2 :: P.CompiledCode (Integer -> Integer)
-trickier2 = $$(P.compile [|| $$(TH.trickier 2) ||])
+  After making changes to the source file (TH.hs) you can type `:r` in
+  GHCi to load the changes.
 
-trickier5 :: P.CompiledCode (Integer -> Integer)
-trickier5 = $$(P.compile [|| $$(TH.trickier 5) ||])
+  The topics covered by the exercises are
+  * GHCi
+  * Compiling plutus programs
+  * Testing smart contracts in GHCi
+    Testing smart contracts in GHCi, using the mockchain
 
-trickier10 :: P.CompiledCode (Integer -> Integer)
-trickier10 = $$(P.compile [|| $$(TH.trickier 10) ||])
-
-{- |
-
-    `Language.PlutusTx.Plugin.sizePlc` tells us the size in bytes of a piece of
-    `CompiledCode` when placed in a transaction.
-
-    E3. Use `sizePlc` to get the size of `trickier2` and `trickier5`. How large
-    do you expect `trickier10` to be?
-
-    E3* Write a function `trickier10Light` that computes the same
-        result as `trickier10`, but has a smaller code size when compiled to Plutus.
-
--}
-
-{- |
-    Part 3. Testing smart contracts in GHCi, using the mockchain
-
-    E4: Below is the outline of a contract similar to the guessing game. It
-        uses `trickier2` instead of `hash`. Fill in the missing
+    E1: Below is the outline of a contract similar to the guessing game. It
+        uses `EXU.encode` instead of `hash`. Fill in the missing
         definitions in `intGameValidator` and the `lock` and `guess` endpoints.
 
 -}
@@ -339,10 +324,8 @@ gameFailure = do
     second entry of the log above shows that a transaction failed with the
     message "Wrong number".
 
-    E5. Implement the int game in the Playground and run the 'gameSuccess' and
+    E4. Implement the int game in the Playground and run the 'gameSuccess' and
        'gameFailure' traces in the Playground. Compare the final distribution
        and emulator logs.
-       NOTE. In the Playground, every contract has to be written in a single
-       file. Therefore we can't define the TH quoted function 'trickier' in a separate module, so you have to write it directly in the validator script (in place of $$(TH.trickier 2)). (See also exercise E3*)
 
 -}
