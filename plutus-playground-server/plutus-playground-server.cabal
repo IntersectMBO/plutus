@@ -85,6 +85,36 @@ library
         plutus-wallet-api -any,
         plutus-emulator -any
 
+library plutus-playground-usecases
+    hs-source-dirs: usecases
+    other-modules:
+        CrowdFunding
+        Game
+        Messages
+        Vesting
+    default-language: Haskell2010
+    ghc-options: -Wincomplete-uni-patterns -Wincomplete-record-updates
+    build-depends:
+        aeson -any,
+        base >=4.7 && <5,
+        bytestring -any,
+        containers -any,
+        hspec -any,
+        insert-ordered-containers -any,
+        interpreter -any,
+        mtl -any,
+        plutus-playground-lib -any,
+        plutus-emulator -any,
+        plutus-tx -any,
+        plutus-wallet-api -any,
+        swagger2 -any,
+        text -any,
+        time-units -any,
+        transformers -any
+
+    if flag(defer-plugin-errors)
+        ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
+
 executable plutus-playground-server
     main-is: Main.hs
     hs-source-dirs: app
@@ -127,36 +157,6 @@ executable plutus-playground-server
         plutus-emulator -any,
         warp -any,
         yaml -any
-
-library plutus-playground-usecases
-    hs-source-dirs: usecases
-    other-modules:
-        CrowdFunding
-        Game
-        Messages
-        Vesting
-    default-language: Haskell2010
-    ghc-options: -Wincomplete-uni-patterns -Wincomplete-record-updates
-    build-depends:
-        aeson -any,
-        base >=4.7 && <5,
-        bytestring -any,
-        containers -any,
-        hspec -any,
-        insert-ordered-containers -any,
-        interpreter -any,
-        mtl -any,
-        plutus-playground-lib -any,
-        plutus-emulator -any,
-        plutus-tx -any,
-        plutus-wallet-api -any,
-        swagger2 -any,
-        text -any,
-        time-units -any,
-        transformers -any
-
-    if flag(defer-plugin-errors)
-        ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
 
 test-suite plutus-playground-server-test
     type: exitcode-stdio-1.0
