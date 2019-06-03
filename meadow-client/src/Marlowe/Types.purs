@@ -1,7 +1,6 @@
 module Marlowe.Types where
 
 import Prelude
-
 import Data.BigInt (BigInt, toString)
 import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)
@@ -20,27 +19,43 @@ newtype BlockNumber
   = BlockNumber BigInt
 
 derive instance genericBlockNumber :: Generic BlockNumber _
+
 derive instance newtypeBlockNumber :: Newtype BlockNumber _
+
 derive instance eqBlockNumber :: Eq BlockNumber
+
 derive instance ordBlockNumber :: Ord BlockNumber
+
 instance showBlockNumber :: Show BlockNumber where
   show = toString <<< unwrap
+
 derive newtype instance prettyBlockNumber :: Pretty BlockNumber
+
 derive newtype instance integralBlockNumber :: Integral BlockNumber
+
 derive newtype instance numBlockNumber :: Num BlockNumber
+
 derive newtype instance semiringBlockNumber :: Semiring BlockNumber
+
 derive newtype instance ringBlockNumber :: Ring BlockNumber
+
 derive newtype instance euclideanRingBlock :: EuclideanRing BlockNumber
+
 derive newtype instance realRingBlock :: Real BlockNumber
+
 instance commutativeRingBlockNumber :: CommutativeRing BlockNumber
 
 newtype Timeout
   = Timeout BlockNumber
 
 derive newtype instance showTimeout :: Show Timeout
+
 derive newtype instance prettyTimeout :: Pretty Timeout
+
 derive newtype instance eqTimeout :: Eq Timeout
+
 derive newtype instance ordTimeout :: Ord Timeout
+
 derive instance newtypeTimeout :: Newtype Timeout _
 
 newtype Person
@@ -48,9 +63,13 @@ newtype Person
 
 instance showPerson :: Show Person where
   show = toString <<< unwrap
+
 derive newtype instance prettyPerson :: Pretty Person
+
 derive newtype instance eqPerson :: Eq Person
+
 derive newtype instance ordPerson :: Ord Person
+
 derive instance newtypePerson :: Newtype Person _
 
 type Choice
@@ -61,9 +80,13 @@ newtype IdAction
 
 instance showIdAction :: Show IdAction where
   show = show <<< unwrap
+
 derive newtype instance prettyIdAction :: Pretty IdAction
+
 derive newtype instance eqIdAction :: Eq IdAction
+
 derive newtype instance ordIdAction :: Ord IdAction
+
 derive instance newtypeIdAction :: Newtype IdAction _
 
 newtype IdCommit
@@ -71,9 +94,13 @@ newtype IdCommit
 
 instance showIdCommit :: Show IdCommit where
   show = show <<< unwrap
+
 derive newtype instance prettyIdCommit :: Pretty IdCommit
+
 derive newtype instance eqIdCommit :: Eq IdCommit
+
 derive newtype instance ordIdCommit :: Ord IdCommit
+
 derive instance newtypeIdCommit :: Newtype IdCommit _
 
 newtype IdChoice
@@ -88,12 +115,14 @@ derive instance genericIdChoice :: Generic IdChoice _
 derive instance newtypeIdChoice :: Newtype IdChoice _
 
 instance showIdChoice :: Show IdChoice where
-  show (IdChoice { choice, person }) = joinWith "" [ "("
-                                                   , show choice
-                                                   , ", "
-                                                   , show person
-                                                   , ")"
-                                                   ]
+  show (IdChoice {choice, person}) =
+    joinWith ""
+      [ "("
+      , show choice
+      , ", "
+      , show person
+      , ")"
+      ]
 
 instance prettyIdChoice :: Pretty IdChoice where
   prettyFragment a = text (show a)
@@ -104,6 +133,7 @@ newtype WIdChoice
 derive instance eqWIdChoice :: Eq WIdChoice
 
 derive instance ordWIdChoice :: Ord WIdChoice
+
 derive newtype instance showWIdChoice :: Show WIdChoice
 
 newtype IdOracle
@@ -111,9 +141,13 @@ newtype IdOracle
 
 instance showIdOracle :: Show IdOracle where
   show = show <<< unwrap
+
 derive newtype instance prettyIdOracle :: Pretty IdOracle
+
 derive newtype instance eqIdOracle :: Eq IdOracle
+
 derive newtype instance ordIdOracle :: Ord IdOracle
+
 derive instance newtypeIdOracle :: Newtype IdOracle _
 
 type LetLabel
@@ -159,6 +193,7 @@ data ValueF f
   | ValueFromOracleF IdOracle f
 
 derive instance functorValueF :: Functor ValueF
+
 derive instance eqValueF :: Eq f => Eq (ValueF f)
 
 instance recursiveValue :: Recursive Value ValueF where
@@ -186,6 +221,7 @@ instance corecursiveValue :: Corecursive Value ValueF where
   embed (ModValueF v1 v2 v3) = ModValue v1 v2 v3
   embed (ValueFromChoiceF i v) = ValueFromChoice i v
   embed (ValueFromOracleF i v) = ValueFromOracle i v
+
 ---------------------------- Observation ----------------------------
 data Observation
   = BelowTimeout Timeout
@@ -230,6 +266,7 @@ data ObservationF f
   | FalseObsF
 
 derive instance functorObservationF :: Functor ObservationF
+
 derive instance eqObservationF :: Eq f => Eq (ObservationF f)
 
 instance recursiveObservation :: Recursive Observation ObservationF where
@@ -300,6 +337,7 @@ data ContractF f
   | UseF LetLabel
 
 derive instance functorContractF :: Functor ContractF
+
 derive instance eqContractF :: Eq f => Eq (ContractF f)
 
 instance recursiveContract :: Recursive Contract ContractF where
