@@ -42,7 +42,7 @@ spec = do
     knownCurrencySpec
 
 maxInterpretationTime :: Microsecond
-maxInterpretationTime = fromMicroseconds 10000000
+maxInterpretationTime = fromMicroseconds 40000000
 
 w1, w2, w3, w4, w5 :: Wallet
 w1 = Wallet 1
