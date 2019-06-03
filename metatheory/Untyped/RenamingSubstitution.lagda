@@ -8,6 +8,7 @@ open import Untyped
 open import Data.Nat
 open import Data.Fin
 open import Data.List
+open import Relation.Binary.PropositionalEquality
 \end{code}
 
 \begin{code}
@@ -30,6 +31,34 @@ ren ρ error          = error
 
 renList ρ []       = []
 renList ρ (t ∷ ts) = ren ρ t ∷ renList ρ ts
+
+ext-cong : ∀{m n}{ρ ρ' : Ren m n}
+  → (∀ α → ρ α ≡ ρ' α)
+  → (α : Fin (suc m))
+  → ext ρ α ≡ ext ρ' α
+ext-cong p zero    = refl
+ext-cong p (suc α) = cong suc (p α)
+
+ren-cong : ∀{m n}{ρ ρ' : Ren m n}
+  → (∀ α → ρ α ≡ ρ' α)
+  → (t : m ⊢)
+  → ren ρ t ≡ ren ρ' t
+
+renList-cong : ∀{m n}{ρ ρ' : Ren m n}
+  → (∀ α → ρ α ≡ ρ' α)
+  → (ts : List(m ⊢))
+  → renList ρ ts ≡ renList ρ' ts
+renList-cong p []       = refl
+renList-cong p (t ∷ ts) = cong₂ _∷_ (ren-cong p t) (renList-cong p ts)
+
+ren-cong p (` x)          = cong ` (p x)
+ren-cong p (ƛ x t)        = cong (ƛ x) (ren-cong (ext-cong p) t)
+ren-cong p (t · u)        = cong₂ _·_ (ren-cong p t) (ren-cong p u)
+ren-cong p (con c)        = refl
+ren-cong p (builtin b ts) = cong (builtin b) (renList-cong p ts)
+ren-cong p error          = refl
+
+--
 
 Sub : ℕ → ℕ → Set
 Sub m n = Fin m → n ⊢
