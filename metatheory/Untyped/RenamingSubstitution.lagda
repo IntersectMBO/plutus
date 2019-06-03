@@ -27,8 +27,6 @@ ren ρ (t · u)        = ren ρ t · ren ρ u
 ren ρ (con tcn)      = con tcn
 ren ρ (builtin b ts) = builtin b (renList ρ ts)
 ren ρ error          = error
-ren ρ (wrap t)       = wrap (ren ρ t)
-ren ρ (unwrap t)     = unwrap (ren ρ t)
 
 renList ρ []       = []
 renList ρ (t ∷ ts) = ren ρ t ∷ renList ρ ts
@@ -49,8 +47,6 @@ sub σ (t · u)        = sub σ t · sub σ u
 sub σ (con tcn)      = con tcn
 sub σ (builtin b ts) = builtin b (subList σ ts)
 sub σ error          = error
-sub σ (wrap t)       = wrap (sub σ t)
-sub σ (unwrap t)     = unwrap (sub σ t)
 
 subList σ []       = []
 subList σ (t ∷ ts) = sub σ t ∷ subList σ ts

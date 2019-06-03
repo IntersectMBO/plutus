@@ -149,8 +149,6 @@ progress (builtin b ts) | step  vs p ts' =
 progress (builtin b ts) | error vs e ts' =
   inr (error     , E-builtin vs e ts')
 progress error        = inl (inr E-error)
-progress (wrap {zero} t) = inl (inr E-todo)
-progress (unwrap {zero} t) = inl (inr E-todo)
 \end{code}
 
 \begin{code}

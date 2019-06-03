@@ -63,6 +63,7 @@ data WeirdFin : ∀{n} → Weirdℕ n → Set where
 -- 1. one to literally convert the number
 -- 2. to extract a type context from a term one
 -- this looks like (1)
+
 wtoℕ : ∀{n} → Weirdℕ n → ℕ
 wtoℕ Z = zero
 wtoℕ (S x) = suc (wtoℕ x)
