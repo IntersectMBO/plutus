@@ -18,7 +18,7 @@ open import Builtin
 data TermCon : Set where
   integer : ℤ → TermCon
   bytestring : ByteString → TermCon
-  size : TermCon
+  string : String → TermCon
 \end{code}
 
 \begin{code}
@@ -29,33 +29,12 @@ data _⊢ : ℕ → Set where
   con     : ∀{n} → TermCon → n ⊢
   builtin : ∀{n} → Builtin → List (n ⊢) → n ⊢
   error   : ∀{n} → n ⊢
-  wrap    : ∀{n} → n ⊢ → n ⊢
-  unwrap  : ∀{n} → n ⊢ → n ⊢
 \end{code}
-
--- conversion for scoped to untyped
 
 
 \begin{code}
-import Scoped as S
-open import Data.Product renaming (_,_ to _,,_)
-
-eraseℕ : ∀{n} → S.Weirdℕ n → ℕ
-eraseℕ S.Z     = zero
-eraseℕ (S.S n) = suc (eraseℕ n)
-eraseℕ (S.T n) = eraseℕ n
-
-eraseFin : ∀{n}{w : S.Weirdℕ n} → S.WeirdFin w → Fin (eraseℕ w)
-eraseFin S.Z     = zero
-eraseFin (S.S x) = suc (eraseFin x)
-eraseFin (S.T x) = eraseFin x
-
-eraseCon : S.TermCon → TermCon
-eraseCon (S.integer i) = integer i
-eraseCon (S.bytestring b) = bytestring b
-eraseCon (S.string x) = size -- this is wrong 
-
 open import Data.Sum
+open import Data.Product renaming (_,_ to _,,_)
 
 -- should do this when de Bruijnifying so it can be shared
 builtinMatcher : ∀{n} → n ⊢ → (Builtin × List (n ⊢)) ⊎ n ⊢
@@ -65,8 +44,6 @@ builtinMatcher (t · u) = inj₂ (t · u)
 builtinMatcher (con c) = inj₂ (con c)
 builtinMatcher (builtin b ts) = inj₁ (b ,, ts)
 builtinMatcher error = inj₂ error
-builtinMatcher (wrap t)   = inj₂ (wrap t)
-builtinMatcher (unwrap t) = inj₂ (unwrap t)
 
 arity : Builtin → ℕ
 arity _ = 2
@@ -77,29 +54,7 @@ builtinEater : ∀{n} → Builtin → List (n ⊢) → n ⊢ → n ⊢
 builtinEater b ts u with Data.List.length ts Data.Nat.+ 1 Data.Nat.≤? arity b
 builtinEater b ts u | Dec.yes p = builtin b (ts Data.List.++ [ u ])
 builtinEater b ts u | Dec.no ¬p = builtin b ts · u
-
-
-erase⊢ : ∀{n}{w : S.Weirdℕ n} → S.ScopedTm w → eraseℕ w ⊢
-eraseL : ∀{n}{w : S.Weirdℕ n} → List (S.ScopedTm w) → List (eraseℕ w ⊢)
-
-erase⊢ (S.` x)    = ` (eraseFin x)
-erase⊢ (S.Λ x K t)  = erase⊢ t
-erase⊢ (t S.·⋆ A) = erase⊢ t
-erase⊢ (S.ƛ x A t)  = ƛ x (erase⊢ t)
-erase⊢ (t S.· u) with builtinMatcher (erase⊢ t)
-erase⊢ (t S.· u) | inj₁ (b ,, ts) = builtinEater b ts (erase⊢ u)
-erase⊢ (t S.· u) | inj₂ t' = t' · erase⊢ u
-erase⊢ (S.con c) = con (eraseCon c)
-erase⊢ (S.error A) = error
-erase⊢ (S.builtin b _ ts) = builtin b (eraseL ts)
-erase⊢ (S.wrap A B t) = wrap (erase⊢ t)
-erase⊢ (S.unwrap t)   = unwrap (erase⊢ t)
-
-eraseL [] = []
-eraseL (t ∷ ts) = erase⊢ t ∷ eraseL ts
 \end{code}
-
-
 
 \begin{code}
 open import Data.String
@@ -131,6 +86,4 @@ ugly (t · u) = "( " ++ ugly t ++ " · " ++ ugly u ++ ")"
 ugly (con c) = "(con " ++ uglyTermCon c ++ ")"
 ugly (builtin b ts) = "(builtin " ++ uglyBuiltin b ++ " " ++ showNat (Data.List.length ts) ++ ")"
 ugly error = "error"
-ugly (wrap t) = "(wrap " ++ ugly t ++ ")"
-ugly (unwrap t) = "(unwrap " ++ ugly t ++ ")"
 \end{code}
