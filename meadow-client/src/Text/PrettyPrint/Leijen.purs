@@ -368,7 +368,7 @@ equals = Char '='
 -- characters. It is used instead of 'text' whenever the text contains
 -- newline characters.
 string :: String -> Doc
-string = intercalate line <<< map text <<< split (String.Pattern "\\n")
+string = intercalate line <<< map text <<< split (String.Pattern "\n")
 
 -- | The document @(bool b)@ shows the literal bool @b@ using 'text'.
 bool :: Boolean -> Doc
@@ -775,7 +775,8 @@ renderSmart = renderFits fitsR
 renderFits ::
   (Int -> Int -> Int -> SimpleDoc -> Boolean) ->
   Number -> Int -> Doc -> SimpleDoc
-renderFits fits rfrac w headNode -- I used to do a @SSGR [Reset]@ here, but if you do that it will result -- in any rendered @Doc@ containing at least some ANSI control codes. This
+renderFits fits rfrac w headNode -- I used to do a @SSGR [Reset]@ here, but if you do that it will result
+ -- in any rendered @Doc@ containing at least some ANSI control codes. This
  -- may be undesirable if you want to render to non-ANSI devices by simply
  -- not making use of the ANSI color combinators I provide.
  --
@@ -917,7 +918,7 @@ displayS (SChar c x) = fromCharArray [c] <> displayS x
 
 displayS (SText l s x) = s <> displayS x
 
-displayS (SLine i x) = "\\n" <> indentation i <> displayS x
+displayS (SLine i x) = "\n" <> indentation i <> displayS x
 
 instance docShow :: Show Doc where
   show = displayS <<< renderPretty 0.4 80
