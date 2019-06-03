@@ -6,6 +6,7 @@
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Language.PlutusTx.Coordination.Contracts.Vesting (
     Vesting(..),
     VestingTranche(..),

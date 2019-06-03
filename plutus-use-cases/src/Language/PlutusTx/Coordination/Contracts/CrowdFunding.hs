@@ -11,6 +11,7 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     -- * Campaign parameters
     Campaign(..)

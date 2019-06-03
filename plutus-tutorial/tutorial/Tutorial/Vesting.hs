@@ -3,6 +3,7 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-
     A vesting contract in Plutus
 

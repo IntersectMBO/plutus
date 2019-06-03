@@ -1,6 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 -- | On-chain code fragments for creating a state machine. First
 --   define a @StateMachine s i@ with input type @i@ and state type @s@. Then
 --   use 'mkValidator' in on-chain code to check the required hashes and

@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Tutorial.Solutions2 where
 
 import qualified Data.Map                     as Map

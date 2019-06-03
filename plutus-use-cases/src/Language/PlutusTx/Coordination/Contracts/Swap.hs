@@ -3,6 +3,7 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Language.PlutusTx.Coordination.Contracts.Swap(
     Swap(..),
     -- * Script

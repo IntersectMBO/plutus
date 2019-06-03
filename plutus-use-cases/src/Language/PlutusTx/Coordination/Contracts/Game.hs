@@ -2,6 +2,7 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Language.PlutusTx.Coordination.Contracts.Game(
     lock,
     guess,

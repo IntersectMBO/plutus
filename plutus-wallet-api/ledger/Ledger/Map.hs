@@ -11,6 +11,7 @@
 -- Prevent unboxing, which the plugin can't deal with
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 -- A map implementation that can be used in on-chain and off-chain code.
 module Ledger.Map(
     Map

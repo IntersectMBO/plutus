@@ -8,6 +8,7 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Vesting where
 -- TRIM TO HERE
 -- Vesting scheme as a PLC contract

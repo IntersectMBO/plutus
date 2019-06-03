@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- Some utility functions for the tutorials
 module Tutorial.ExUtil(
       initialTx

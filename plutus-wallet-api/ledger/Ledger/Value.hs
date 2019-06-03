@@ -11,6 +11,7 @@
 -- Prevent unboxing, which the plugin can't deal with
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 -- | Functions for working with 'Value'.
 module Ledger.Value(
     -- ** Currency symbols

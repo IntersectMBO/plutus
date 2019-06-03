@@ -8,6 +8,7 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Game where
 -- TRIM TO HERE
 -- A game with two players. Player 1 thinks of a secret word

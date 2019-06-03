@@ -4,6 +4,7 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- | A guessing game that
 --
 --   * Uses a state machine to keep track of the current secret word

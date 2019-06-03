@@ -2,6 +2,7 @@
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- | Implements a custom currency with a monetary policy that allows
 --   the forging of a fixed amount of units.
 module Language.PlutusTx.Coordination.Contracts.Currency(

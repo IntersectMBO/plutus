@@ -6,6 +6,8 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# OPTIONS_GHC -g #-}
 module Tutorial.Solutions0 where
 
 import           Data.Foldable                (traverse_)

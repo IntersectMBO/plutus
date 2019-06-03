@@ -90,4 +90,3 @@ campaignFail = do
     _ <- EM.addBlocksAndNotify [ExUtil.w1, ExUtil.w2, ExUtil.w3] 20
 
     pure ()
-

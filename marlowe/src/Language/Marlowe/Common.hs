@@ -12,9 +12,12 @@
 {-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns -Wno-name-shadowing #-}
+
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
-{-# OPTIONS_GHC -Wno-incomplete-uni-patterns -Wno-name-shadowing #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
 {-| = Marlowe: financial contracts on Cardano Computation Layer
 
