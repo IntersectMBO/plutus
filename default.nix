@@ -152,7 +152,7 @@ let
       shellcheck = pkgs.callPackage localLib.iohkNix.tests.shellcheck { inherit src; };
       hlint = pkgs.callPackage localLib.iohkNix.tests.hlint {
         inherit src;
-        projects = localLib.plutusHaskellPkgList;
+        projects = localLib.plutusPkgList;
       };
       stylishHaskell = pkgs.callPackage localLib.iohkNix.tests.stylishHaskell {
         inherit (self.haskellPackages) stylish-haskell;
@@ -165,11 +165,16 @@ let
       multi-currency = pkgs.callPackage ./docs/multi-currency {};
       extended-utxo-spec = pkgs.callPackage ./extended-utxo-spec {};
       lazy-machine = pkgs.callPackage ./docs/fomega/lazy-machine {};
-      combined-haddock = (pkgs.callPackage ./nix/haddock-combine.nix {}) {
-        hspkgs = builtins.attrValues localPackages;
-        prologue = pkgs.writeTextFile {
-          name = "prologue";
-          text = "Combined documentation for all the Plutus libraries.";
+      public-combined-haddock = let
+        haddock-combine = pkgs.callPackage ./nix/haddock-combine.nix {};
+        publicPackages = localLib.getPackages {
+          inherit (self) haskellPackages; filter = localLib.isPublicPlutus;
+        };
+        in haddock-combine {
+          hspkgs = builtins.attrValues publicPackages;
+          prologue = pkgs.writeTextFile {
+            name = "prologue";
+            text = "Combined documentation for all the public Plutus libraries.";
         };
       };
     };
