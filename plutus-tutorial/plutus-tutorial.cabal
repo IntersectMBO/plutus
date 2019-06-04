@@ -12,7 +12,7 @@ description:
     A tutorial for PlutusTx.
 category: Language
 build-type: Simple
-extra-doc-files: README.md
+extra-doc-files: README.adoc
 
 source-repository head
     type: git
