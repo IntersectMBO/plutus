@@ -115,6 +115,9 @@ ext : ∀{m n}{v : Weirdℕ m}{w : Weirdℕ n} → Sub v w → ScopedTm w → Su
 ext σ t Z = t
 ext σ t (S x) = σ x
 
+⋆ext : ∀{m n}{v : Weirdℕ m}{w : Weirdℕ n} → Sub v w → Sub (T v) w
+⋆ext σ (T x) = σ x
+
 ext⋆ : ∀{m n} → Sub⋆ m n → ScopedTy n → Sub⋆ (suc m) n
 ext⋆ σ A zero = A
 ext⋆ σ A (suc α) = σ α
@@ -123,7 +126,7 @@ _[_] : ∀{n}{v : Weirdℕ n} → ScopedTm (S v) → ScopedTm v → ScopedTm v
 t [ u ] = sub ` (ext ` u) t
 
 _[_]⋆ : ∀{n}{w : Weirdℕ n} → ScopedTm (T w) → ScopedTy n → ScopedTm w
-t [ A ]⋆ = sub (ext⋆ ` A) (λ { (T x) → ` x}) t
+t [ A ]⋆ = sub (ext⋆ ` A) (⋆ext `) t
 \end{code}
 
 # Proofs
