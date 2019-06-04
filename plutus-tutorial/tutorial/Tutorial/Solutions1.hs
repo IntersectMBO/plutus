@@ -36,7 +36,7 @@ gameAddress = L.scriptAddress intGameValidator
 
 {-
 
-      E1 (lock endpoint) Note how we use the same TH quote, $$(TH.trickier 2),
+      E1 (lock endpoint) Note how we use the code, EXU.encode,
       in on-chain and off-chain code. This is how code can be shared between
       the two. Write once, run anywhere!
 

@@ -22,7 +22,6 @@ We need the same language extensions and imports as [before](./02-validator-scri
 
 ```haskell
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
