@@ -4,18 +4,18 @@ This document is a series of tutorials that explain various
 aspects of the Plutus smart contract platform.
 
 [arabic]
-. xref:intro#intro[Introduction to Plutus] introduces smart
+. xref:intro#intro[] introduces smart
 contracts and related terms
-. xref:01-plutus-tx#plutus-tx[Plutus Tx] explains the basics of using
+. xref:01-plutus-tx#plutus-tx[] explains the basics of using
 the Plutus Tx compiler to create embedded (on-chain) programs
-. xref:02-validator-scripts#validator-scripts[A guessing game] implements a
+. xref:02-validator-scripts#validator-scripts[] implements a
 guessing game. Topics covered:
     * Signature of validator script
     * `Ledger.makeLift`, `Ledger.compileScript`
     * Contract endpoints
     * `Wallet.payToScript_`, `Wallet.collectFromScript`
     * Playground
-. xref:03-wallet-api#wallet-api[A crowdfunding campaign] implements a
+. xref:03-wallet-api#wallet-api[] implements a
 crowdfunding campaign. Topics covered:
     * Parameterising a contract through partial application using
     `Ledger.applyScript`
@@ -35,7 +35,7 @@ a vesting scheme. Topics covered:
 Note that (5) and (6) are written as regular Haskell modules and include
 exercises (marked by `error`). They are intended to be edited
 interactively with the help of GHCi. See
-link:../tutorial/Tutorial/Emulator.hs[4.1] for details. Solutions for the
+link:../tutorial/Tutorial/Emulator.hs[the first such tutorial] for details. Solutions for the
 exercises are located in `Solutions0.hs`.
 
 Additional documentation will be added for the following
@@ -47,8 +47,8 @@ work-in-progress features, when they are available on the mockchain:
 
 == Prerequisites
 
-To follow the xref:02-validator-scripts#validator-scripts[Wallet API, Part I]
-and xref:03-wallet-api#wallet-api[Wallet API, Part II] tutorials you
+To follow the xref:02-validator-scripts#validator-scripts[]
+and xref:03-wallet-api#wallet-api[] tutorials you
 should have access to a recent version of the Plutus Playground.
 
 To follow the link:../tutorial/Tutorial/Emulator.hs[mockchain tutorial], you should
@@ -70,8 +70,8 @@ To install the emulator (not the Playground) locally, follow these steps.
 . Install the nix package manager following the instructions on
 https://nixos.org/nix/.
 +
-IMPORTANT: Add the IOHK binary cache to your Nix configuration. See
-link:../README.md#binary-caches[here] for details.
+IMPORTANT: Make sure to add the IOHK binary cache to your Nix configuration. See
+link:../README.md#binary-caches[the repository README] for details.
 . Move to the plutus-tutorial folder.
 . Type `nix-shell`. This will download all of the dependencies and
 populate the PATH with a correctly configured cabal. If `nix-shell`
