@@ -7,7 +7,7 @@ packages:
 - plutus-ir
 - plutus-tx
 - plutus-use-cases
-- interpreter
+- playground-common
 - marlowe
 - meadow
 - plutus-wallet-api

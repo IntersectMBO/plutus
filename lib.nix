@@ -35,7 +35,7 @@ let
     "plutus-tx"
     "plutus-tutorial"
     "plutus-use-cases"
-    "interpreter"
+    "playground-common"
     "marlowe"
     "meadow"
     "plutus-wallet-api"
