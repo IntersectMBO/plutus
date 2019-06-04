@@ -144,6 +144,7 @@ executable plutus-playground-server
         optparse-applicative -any,
         plutus-playground-lib -any,
         plutus-playground-server -any,
+        plutus-playground-usecases -any,
         prometheus >=2,
         purescript-bridge -any,
         servant -any,
