@@ -49,14 +49,12 @@ library
     hs-source-dirs: tutorial
     default-language: Haskell2010
     exposed-modules:
-        Tutorial.TH
         Tutorial.Emulator
         Tutorial.Vesting
         Tutorial.ExUtil
         Tutorial.Solutions0
         Tutorial.Solutions0Mockchain
         Tutorial.Solutions1
-        Tutorial.Solutions2
     ghc-options: -Wno-unused-imports
     build-tool-depends: doctest:doctest -any
     build-depends:

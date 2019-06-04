@@ -22,7 +22,6 @@ We need the same language extensions and imports as [before](./02-validator-scri
 
 ```haskell
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -107,33 +106,29 @@ The general form of a validator script is `DataScript -> RedeemerScript -> Pendi
 type CampaignValidator = Contributor -> CampaignAction -> PendingTx -> Bool
 ```
 
-If we want to implement `CampaignValidator` we need to have access to the parameters of the campaign, so that we can check if the selected `CampaignAction` is allowed. In Haskell we can do this by writing a function `mkValidator :: Campaign -> CampaignValidator` that takes a `Campaign` and produces a `CampaignValidator`. However, we need to wrap `mkValidator` in Template Haskell quotes so that it can be compiled to Plutus Core. To apply the compiled `mkValidator` function to the `campaign :: Campaign` argument that is provided at runtime, we use `Ledger.lifted` to get the on-chain representation of `campaign`, and apply `mkValidator` to it with `Ledger.applyScript`:
+If we want to implement `CampaignValidator` we need to have access to the parameters of the campaign, so that we can check if the selected `CampaignAction` is allowed. In Haskell we can do this by writing a function `mkValidator :: Campaign -> CampaignValidator` that takes a `Campaign` and produces a `CampaignValidator`.
+
+We then need to compile this into on-chain code using `L.compileScript`, which we do in `mkValidatorScript`. To apply the compiled `mkValidator` function to the `campaign :: Campaign` argument that is provided at runtime, we use `Ledger.lifted` to get the on-chain representation of `campaign`, and apply `mkValidator` to it with `Ledger.applyScript`:
 
 ```haskell
 mkValidatorScript :: Campaign -> ValidatorScript
 mkValidatorScript campaign = ValidatorScript val where
-  val = L.applyScript mkValidator (L.lifted campaign)
-  mkValidator = L.fromCompiledCode $$(PlutusTx.compile [||
-              \(c :: Campaign) (con :: Contributor) (act :: CampaignAction) (p :: PendingTx) ->
+  val = $$(L.compileScript [|| mkValidator ||]) `L.applyScript` L.lifted campaign
+
+mkValidator :: Campaign -> CampaignValidator
+mkValidator campaign con act p =
 ```
 
 You may wonder why we use `L.applyScript` to supply the `Campaign` argument. Why can we not write `$$(L.lifted campaign)` inside the validator script? The reason is that `campaign` is not known at the time the validator script is compiled. The names of `lifted` and `compile` indicate their chronological order: `mkValidator` is compiled (via a compiler plugin) to Plutus Core when GHC compiles the contract module, and the `campaign` value is lifted to Plutus Core at runtime, when the contract module is executed. But we know that `mkValidator` is a function, and that is why we can apply it to the campaign definition.
 
 Before we check whether `act` is permitted, we define a number of intermediate values that will make the checking code much more readable. These definitions are placed inside a `let` block, which is closed by a corresponding `in` below.
 
-```haskell
-              let
-                  signedBy :: PendingTx -> PubKey -> Bool
-                  signedBy = V.txSignedBy
-```
-
-There is no standard library of functions that are automatically in scope for on-chain code, so we need to import the ones that we want to use from the [`Ledger.Validation`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html) module using the `$$()` splicing operator. [`Ledger.Validation`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html) contains a subset of the standard Haskell prelude, exported as Template Haskell quotes. Code from other libraries can only be used in validator scripts if it is available as a Template Haskell quote (so we can use `$$()` to splice it in).
-
-Next, we pattern match on the structure of the [`PendingTx`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html#t:PendingTx) value `p` to get the Validation information we care about:
+First we pattern match on the structure of the [`PendingTx`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html#t:PendingTx) value `p` to get the Validation information we care about:
 
 ```haskell
-                  PendingTx ins outs _ _ _ txnValidRange _  _ = p
-                  -- p is bound to the pending transaction.
+    let
+        PendingTx ins outs _ _ _ txnValidRange _  _ = p
+        -- p is bound to the pending transaction.
 ```
 
 This binds `ins` to the list of all inputs of the current transaction, `outs` to the list of all its outputs, and `txnValidRange` to the validity interval of the pending transaction.
@@ -142,45 +137,45 @@ In the extended UTXO model with scripts that underlies Plutus, each transaction 
 
 The three underscores in the match stand for fields whose values are not relevant for validating the crowdfunding transaction. The fields are `pendingTxFee` (the fee of this transaction), `pendingTxForge` (how much, if any, value was forged) and `PendingTxIn` (the current [transaction input](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html#t:PendingTxIn)) respectively. You can click the link [`PendingTx`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html#t:PendingTx) to learn more about the data that is available.
 
-We also need the parameters of the campaign, which we can get by pattern matching on `c`.
+We also need the parameters of the campaign, which we can get by pattern matching on `campaign`.
 
 ```haskell
-                  Campaign target deadline collectionDeadline campaignOwner = c
+        Campaign target deadline collectionDeadline campaignOwner = campaign
 ```
 
 Then we compute the total value of all transaction inputs, using `foldr` on the list of inputs `ins`. Note that there is a limit on the number of inputs a transaction may have, and thus on the number of contributions in this crowdfunding campaign. In this tutorial we ignore that limit, because it depends on the details of the implementation of Plutus on the Cardano chain, and that implementation has not happened yet.
 
 ```haskell
-                  totalInputs :: Ada
-                  totalInputs =
-                        -- define a function "addToTotal" that adds the ada
-                        -- value of a 'PendingTxIn' to the total
-                        let addToTotal (PendingTxIn _ _ vl) total =
-                                let adaVl = Ada.fromValue vl
-                                in Ada.plus total adaVl
+        totalInputs :: Ada
+        totalInputs =
+            -- define a function "addToTotal" that adds the ada
+            -- value of a 'PendingTxIn' to the total
+            let addToTotal (PendingTxIn _ _ vl) total =
+                  let adaVl = Ada.fromValue vl
+                  in Ada.plus total adaVl
 
-                        -- Apply "addToTotal" to each transaction input,
-                        -- summing up the results
-                        in foldr addToTotal Ada.zero ins
+            -- Apply "addToTotal" to each transaction input,
+            -- summing up the results
+            in foldr addToTotal Ada.zero ins
 ```
 
 We now have all the information we need to check whether the action `act` is allowed. This will be computed as
 
 ```haskell
-                  isValid = case act of
-                      Refund ->
-                          let
-                              Contributor pkCon = con
+    in case act of
+        Refund ->
+            let
+                Contributor pkCon = con
 ```
 
 In the `Refund` branch we check that the outputs of this transaction all go to the contributor identified by `pkCon`. To that end we define a predicate
 
 ```haskell
-                              contribTxOut :: PendingTxOut -> Bool
-                              contribTxOut o =
-                                case V.pubKeyOutput o of
-                                  Nothing -> False
-                                  Just pk -> V.eqPubKey pk pkCon
+                contribTxOut :: PendingTxOut -> Bool
+                contribTxOut o =
+                  case V.pubKeyOutput o of
+                    Nothing -> False
+                    Just pk -> V.eqPubKey pk pkCon
 ```
 
 We check if `o` is a pay-to-pubkey output. If it isn't, then the predicate `contribTxOut` is false. If it is, then we check if the public key matches the one we got from the data script.
@@ -188,40 +183,30 @@ We check if `o` is a pay-to-pubkey output. If it isn't, then the predicate `cont
 The predicate `contribTxOut` is applied to all outputs of the current transaction:
 
 ```haskell
-                              contributorOnly = all contribTxOut outs
+                contributorOnly = all contribTxOut outs
 ```
 
 For the contribution to be refundable, three conditions must hold. The collection deadline must have passed, all outputs of this transaction must go to the contributor `con`, and the transaction was signed by the contributor. To check whether the collection deadline has passed, we use `S.before :: Slot -> SlotRange -> Bool`. `before` is exported by the `Ledger.Slot` module, alongside other useful functions for working with `SlotRange` values.
 
 ```haskell
-                              refundable = S.before collectionDeadline txnValidRange &&
-                                           contributorOnly &&
-                                           p `signedBy` pkCon
-```
-
-The overall result of this branch is the `refundable` value:
-
-```haskell
-                          in refundable
+            in S.before collectionDeadline txnValidRange &&
+               contributorOnly &&
+               p `V.txSignedBy` pkCon
 ```
 
 The second branch represents a successful campaign.
 
 ```haskell
-                      Collect ->
+        Collect ->
 ```
 
 In the `Collect` case, the current slot must be between `deadline` and `collectionDeadline`, the target must have been met, and and transaction has to be signed by the campaign owner. We use `interval :: Slot -> Slot -> SlotRange` and `contains :: SlotRange -> SlotRange -> Bool` from the `Ledger.Slot` module to ensure that the spending transactions validity range, `txnValidRange`, is completely contained in the time between campaign deadline and collection deadline.
 
 ```haskell
-                          S.contains (I.interval deadline collectionDeadline) txnValidRange &&
-                          Ada.geq totalInputs target &&
-                          p `signedBy` campaignOwner
-
-              in isValid ||])
+            S.contains (I.interval deadline collectionDeadline) txnValidRange &&
+            Ada.geq totalInputs target &&
+            p `V.txSignedBy` campaignOwner
 ```
-
-**Note (Builtins in On-Chain Code)** We can use the functions `greaterThanInteger`, `lessThanInteger`, `greaterThanEqInteger`, `lessThanEqInteger` and `equalsInteger` from the `Language.PlutusTx.Builtins` module to compare `Int` values in PLC without having to define them in the script itself, as we did with `&&`. The compiler plugin that translates Haskell Core to Plutus Core knows about those functions because `Int` is a primitive type in Plutus Core and operations on it are built in. `Bool` on the other hand is treated like any other user-defined data type, and all functions that operate on it must be defined locally. More details can be found in the [PlutusTx tutorial](../plutus-tx/tutorial/Tutorial.md).
 
 ## 1.3 Contract Endpoints
 
@@ -286,10 +271,10 @@ collectionHandler cmp = EventHandler (\_ -> do
 To collect the funds we use [`collectFromScript`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:collectFromScript), which expects a validator script and a redeemer script.
 
 ```haskell
-        W.logMsg "Collecting funds"
-        let redeemerScript = mkRedeemer Collect
-            range          = W.interval (endDate cmp) (collectionDeadline cmp)
-        W.collectFromScript range (mkValidatorScript cmp) redeemerScript)
+    W.logMsg "Collecting funds"
+    let redeemerScript = mkRedeemer Collect
+        range          = W.interval (endDate cmp) (collectionDeadline cmp)
+    W.collectFromScript range (mkValidatorScript cmp) redeemerScript)
 ```
 
 Note that the trigger mechanism is a feature of the wallet, not of the blockchain. That means that the wallet needs to be running when the condition becomes true, so that it can react to it and submit transactions. Anything that happens in an [`EventHandler`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#t:EventHandler) is a normal interaction with the blockchain facilitated by the wallet.
@@ -338,20 +323,20 @@ The `contribute` action has two effects: It makes the contribution using the wal
 ```haskell
 contribute :: MonadWallet m => Campaign -> Ada -> m ()
 contribute cmp adaAmount = do
-      pk <- W.ownPubKey
-      let dataScript = mkDataScript pk
-          amount = Ada.toValue adaAmount
+    pk <- W.ownPubKey
+    let dataScript = mkDataScript pk
+        amount = Ada.toValue adaAmount
 
-      -- payToScript returns the transaction that was submitted
-      -- (unlike payToScript_ which returns unit)
-      tx <- W.payToScript W.defaultSlotRange (campaignAddress cmp) amount dataScript
-      W.logMsg "Submitted contribution"
+    -- payToScript returns the transaction that was submitted
+    -- (unlike payToScript_ which returns unit)
+    tx <- W.payToScript W.defaultSlotRange (campaignAddress cmp) amount dataScript
+    W.logMsg "Submitted contribution"
 
-      -- L.hashTx gives the `TxId` of a transaction
-      let txId = L.hashTx tx
+    -- L.hashTx gives the `TxId` of a transaction
+    let txId = L.hashTx tx
 
-      W.register (refundTrigger cmp) (refundHandler txId cmp)
-      W.logMsg "Registered refund trigger"
+    W.register (refundTrigger cmp) (refundHandler txId cmp)
+    W.logMsg "Registered refund trigger"
 ```
 
 # 2. Testing the Contract
