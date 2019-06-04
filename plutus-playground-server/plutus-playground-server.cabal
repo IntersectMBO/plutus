@@ -41,9 +41,7 @@ library
         Playground.Server
         Playground.Interpreter
         Playground.Usecases
-        Gist
         Auth
-        Auth.Types
         Control.Monad.Now
         Control.Monad.Trace
         Control.Monad.Web
@@ -52,7 +50,6 @@ library
     default-language: Haskell2010
     build-depends:
         aeson -any,
-        aeson-casing -any,
         base >=4.7 && <5,
         bytestring -any,
         containers -any,
@@ -63,13 +60,15 @@ library
         http-client-tls -any,
         http-conduit -any,
         http-types -any,
-        interpreter -any,
         jwt -any,
         lens -any,
         monad-logger -any,
         mtl -any,
         newtype-generics -any,
+        playground-common -any,
+        plutus-emulator -any,
         plutus-playground-lib -any,
+        plutus-wallet-api -any,
         process -any,
         regex-compat -any,
         servant <0.16,
@@ -81,9 +80,39 @@ library
         text -any,
         time -any,
         time-units -any,
-        transformers -any,
+        transformers -any
+
+library plutus-playground-usecases
+    hs-source-dirs: usecases
+    other-modules:
+        CrowdFunding
+        Game
+        Messages
+        Vesting
+    default-language: Haskell2010
+    ghc-options: -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -- See Plutus Tx readme
+                 -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+    build-depends:
+        aeson -any,
+        base >=4.7 && <5,
+        bytestring -any,
+        containers -any,
+        hspec -any,
+        insert-ordered-containers -any,
+        mtl -any,
+        playground-common -any,
+        plutus-emulator -any,
+        plutus-playground-lib -any,
+        plutus-tx -any,
         plutus-wallet-api -any,
-        plutus-emulator -any
+        swagger2 -any,
+        text -any,
+        time-units -any,
+        transformers -any
+
+    if flag(defer-plugin-errors)
+        ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
 
 executable plutus-playground-server
     main-is: Main.hs
@@ -105,13 +134,14 @@ executable plutus-playground-server
         data-default-class -any,
         filepath -any,
         http-types -any,
-        interpreter -any,
+        playground-common -any,
         lens -any,
         monad-logger -any,
         mtl -any,
         optparse-applicative -any,
         plutus-playground-lib -any,
         plutus-playground-server -any,
+        plutus-playground-usecases -any,
         prometheus >=2,
         purescript-bridge -any,
         servant -any,
@@ -127,36 +157,6 @@ executable plutus-playground-server
         plutus-emulator -any,
         warp -any,
         yaml -any
-
-library plutus-playground-usecases
-    hs-source-dirs: usecases
-    other-modules:
-        CrowdFunding
-        Game
-        Messages
-        Vesting
-    default-language: Haskell2010
-    ghc-options: -Wincomplete-uni-patterns -Wincomplete-record-updates
-    build-depends:
-        aeson -any,
-        base >=4.7 && <5,
-        bytestring -any,
-        containers -any,
-        hspec -any,
-        insert-ordered-containers -any,
-        interpreter -any,
-        mtl -any,
-        plutus-playground-lib -any,
-        plutus-emulator -any,
-        plutus-tx -any,
-        plutus-wallet-api -any,
-        swagger2 -any,
-        text -any,
-        time-units -any,
-        transformers -any
-
-    if flag(defer-plugin-errors)
-        ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
 
 test-suite plutus-playground-server-test
     type: exitcode-stdio-1.0
@@ -178,7 +178,7 @@ test-suite plutus-playground-server-test
         bytestring -any,
         hspec -any,
         insert-ordered-containers -any,
-        interpreter -any,
+        playground-common -any,
         mtl -any,
         plutus-playground-lib -any,
         plutus-playground-server -any,

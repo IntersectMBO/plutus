@@ -42,7 +42,7 @@ spec = do
     knownCurrencySpec
 
 maxInterpretationTime :: Microsecond
-maxInterpretationTime = fromMicroseconds 10000000
+maxInterpretationTime = fromMicroseconds 40000000
 
 w1, w2, w3, w4, w5 :: Wallet
 w1 = Wallet 1
@@ -372,6 +372,7 @@ knownCurrencySpec =
             , "import Ledger.Value (TokenName(TokenName))"
             , "import Ledger.Validation (ValidatorHash (..))"
             , "import Playground.API (KnownCurrency (..))"
+            , "import Language.PlutusTx.Prelude"
             , "myCurrency :: KnownCurrency"
             , "myCurrency = KnownCurrency (ValidatorHash \"\") \"MyCurrency\" (TokenName \"MyToken\" :| [])"
             , "$(mkKnownCurrencies ['myCurrency])"

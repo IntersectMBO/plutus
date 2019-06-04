@@ -1,7 +1,9 @@
-{-# LANGUAGE DataKinds       #-}
-{-# LANGUAGE DeriveGeneric   #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-
     A vesting contract in Plutus
 
@@ -16,14 +18,12 @@
 -}
 module Tutorial.Vesting where
 
-import           Prelude                      hiding ((&&))
-
 import           GHC.Generics              (Generic)
 import qualified Data.Map                  as Map
 import qualified Data.Set                  as Set
 
-import           Language.PlutusTx.Prelude ((&&))
-import qualified Language.PlutusTx         as P
+import           Language.PlutusTx.Prelude
+import qualified Language.PlutusTx         as PlutusTx
 import           Ledger                    (Address, DataScript(..), RedeemerScript(..), Slot, TxOutRef, TxIn, ValidatorScript(..))
 import qualified Ledger                    as L
 import           Ledger.Ada                (Ada)
@@ -70,7 +70,7 @@ data VestingTranche = VestingTranche {
     -- ^ How much money is locked in this tranche
     } deriving (Generic)
 
-P.makeLift ''VestingTranche
+PlutusTx.makeLift ''VestingTranche
 
 -- | A vesting scheme consisting of two tranches. Each tranche defines a date
 --   (slot) after which an additional amount of money can be spent.
@@ -86,7 +86,7 @@ data Vesting = Vesting {
     --   it has been released)
     } deriving (Generic)
 
-P.makeLift ''Vesting
+PlutusTx.makeLift ''Vesting
 
 -- | The total amount of Ada locked by a vesting scheme
 totalVested :: Vesting -> Ada

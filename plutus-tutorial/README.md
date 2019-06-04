@@ -17,20 +17,19 @@ This project contains a collection of tutorials that explain various aspects of 
   * Working with Ada values
   * Blockchain triggers
 5. Mockchain (emulator), [Part 1](./tutorial/Tutorial/TH.hs) and [Part 2](./tutorial/Tutorial/Emulator.hs) deal with developing contracts off-line, as Haskell modules. Topics covered:
-  * Template Haskell (TH is the reason why this oart of the tutorial is split into two .hs files)
   * Developing contracts in GHCi
   * How does the mockchain work
   * Writing and running traces from the terminal
 6. [A multi-stage contract](./tutorial/Tutorial/Vesting.hs) implements a vesting scheme. Topics covered:
   * Writing a contract that extends over multiple transactions
 
-Note that (4) and (5) are written as regular Haskell modules and include exercises (marked by `error`). They are intended to be edited interactively with the help of GHCi. See [4.1](./tutorial/Tutorial/TH.hs) for details. 
-Solutions for the exercises are located in `Solutions1.hs` and `Solutions2.hs`.
+Note that (4) and (5) are written as regular Haskell modules and include exercises (marked by `error`). They are intended to be edited interactively with the help of GHCi. See [4.1](./tutorial/Tutorial/TH.hs) for details.
+Solutions for the exercises are located in `Solutions1.hs`.
 
 Additional documentation will be added for the following work-in-progress features, when they are available on the mockchain:
 
 * Forging new currencies
-* Using NFTs to represent permissions  
+* Using NFTs to represent permissions
 * Decoding values from their on-chain representation back to Haskell
 
 # Prerequisites
@@ -59,4 +58,3 @@ To install the emulator (not the Playground) locally, follow these steps on Wind
 ## Ubuntu
 
 Follow steps 4-8 above.
-

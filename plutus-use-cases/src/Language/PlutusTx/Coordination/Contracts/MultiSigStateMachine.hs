@@ -3,6 +3,8 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- | A multisig contract written as a state machine.
 --   $multisig
 module Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine(
@@ -18,8 +20,6 @@ module Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine(
     , makePayment
     ) where
 
-import           Prelude                      hiding ((&&))
-
 import           Data.Foldable                (foldMap)
 import qualified Data.Set                     as Set
 import           Ledger                       (DataScript(..), RedeemerScript(..), ValidatorScript(..))
@@ -34,8 +34,7 @@ import           Wallet
 import qualified Wallet                       as WAPI
 
 import qualified Language.PlutusTx              as PlutusTx
-import           Language.PlutusTx.Prelude      ((&&))
-import qualified Language.PlutusTx.Prelude      as P
+import           Language.PlutusTx.Prelude
 import           Language.PlutusTx.StateMachine (StateMachine(..))
 import qualified Language.PlutusTx.StateMachine as SM
 
@@ -104,11 +103,11 @@ PlutusTx.makeLift ''Input
 
 -- | Check if a public key is one of the signatories of the multisig contract.
 isSignatory :: PubKey -> Params -> Bool
-isSignatory pk (Params sigs _) = P.any (\pk' -> Validation.eqPubKey pk pk') sigs
+isSignatory pk (Params sigs _) = any (\pk' -> Validation.eqPubKey pk pk') sigs
 
 -- | Check whether a list of public keys contains a given key.
 containsPk :: PubKey -> [PubKey] -> Bool
-containsPk pk = P.any (\pk' -> Validation.eqPubKey pk' pk)
+containsPk pk = any (\pk' -> Validation.eqPubKey pk' pk)
 
 pkListEq :: [PubKey] -> [PubKey] -> Bool
 pkListEq [] []           = True
@@ -128,17 +127,17 @@ proposalExpired (PendingTx _ _ _ _ _ rng _ _) (Payment _ _ ddl) = Slot.before dd
 --   have signed a proposed payment.
 proposalAccepted :: Params -> [PubKey] -> Bool
 proposalAccepted (Params signatories numReq) pks =
-    let numSigned = P.length (P.filter (\pk -> containsPk pk pks) signatories)
-    in P.geq numSigned numReq
+    let numSigned = length (filter (\pk -> containsPk pk pks) signatories)
+    in geq numSigned numReq
 
 -- | @valuePreserved v p@ is true if the pending transaction @p@ pays the amount
 --   @v@ to a single pay-to-script output at this script's address.
 valuePreserved :: Value -> PendingTx -> Bool
 valuePreserved vl ptx =
     let ownHash = Validation.ownHash ptx
-        numOutputs = P.length (Validation.scriptOutputsAt ownHash ptx)
+        numOutputs = length (Validation.scriptOutputsAt ownHash ptx)
         valueLocked = Validation.valueLockedBy ptx ownHash
-    in P.eq 1 numOutputs && Value.eq valueLocked vl
+    in eq 1 numOutputs && Value.eq valueLocked vl
 
 -- | @valuePaid pm ptx@ is true if the pending transaction @ptx@ pays
 --   the amount specified in @pm@ to the public key address specified in @pm@
@@ -172,12 +171,12 @@ step s i = case (s, i) of
     (CollectingSignatures vl (Payment vp _ _) _, Pay) ->
         let vl' = Value.minus vl vp in
         InitialState vl'
-    _ -> P.error (P.traceH "invalid transition" ())
+    _ -> error (traceH "invalid transition" ())
 
 -- | @stepWithChecks params ptx state input@ computes the next state given
 --   current state @state@ and the input. It checks whether the pending
 --   transaction @ptx@ pays the expected amounts to script and public key
---   addresses. Fails with 'P.error' if an invalid transition is attempted.
+--   addresses. Fails with 'error' if an invalid transition is attempted.
 stepWithChecks :: Params -> PendingTx -> State -> Input -> State
 stepWithChecks p ptx s i =
     let newState = step s i in
@@ -186,28 +185,28 @@ stepWithChecks p ptx s i =
             if isValidProposal vl pmt &&
                 valuePreserved vl ptx
             then newState
-            else P.traceErrorH "ProposePayment invalid"
+            else traceErrorH "ProposePayment invalid"
         (CollectingSignatures vl _ pks, AddSignature pk) ->
             if Validation.txSignedBy ptx pk &&
                 isSignatory pk p &&
-                P.not (containsPk pk pks) &&
+                not (containsPk pk pks) &&
                 valuePreserved vl ptx
             then newState
-            else P.traceErrorH "AddSignature invalid"
+            else traceErrorH "AddSignature invalid"
         (CollectingSignatures vl pmt _, Cancel) ->
             if proposalExpired ptx pmt &&
                 valuePreserved vl ptx
             then InitialState vl
-            else P.traceErrorH "Cancel invalid"
+            else traceErrorH "Cancel invalid"
         (CollectingSignatures vl pmt@(Payment vp _ _) pks, Pay) ->
             let vl' = Value.minus vl vp in
-            if P.not (proposalExpired ptx pmt) &&
+            if not (proposalExpired ptx pmt) &&
                 proposalAccepted p pks &&
                 valuePreserved vl' ptx &&
                 valuePaid pmt ptx
             then newState
-            else P.traceErrorH "Pay invalid"
-        _ -> P.traceErrorH "invalid transition"
+            else traceErrorH "Pay invalid"
+        _ -> traceErrorH "invalid transition"
 
 mkValidator :: Params -> (State, Maybe Input) -> (State, Maybe Input) -> PendingTx -> Bool
 mkValidator p ds vs ptx =

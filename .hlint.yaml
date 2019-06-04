@@ -1,7 +1,7 @@
 ---
 - functions:
   - {name: unsafePerformIO, within: [PlutusPrelude, Language.PlutusCore.Generators.Internal.Entity, Language.PlutusCore.Constant.Dynamic.Call, Language.PlutusCore.Constant.Dynamic.Emit, Language.PlutusCore.Constant.Dynamic.Instances, Language.PlutusCore.StdLib.Type, Language.PlutusTx.Plugin, Language.PlutusTx.Evaluation]}
-  - {name: error, within: [Main, PlutusPrelude, Language.PlutusCore.StdLib.Meta, Evaluation.Constant.Success, Language.PlutusCore.Constant.Apply, Language.PlutusCore.Evaluation.CkMachine, Language.PlutusCore.TypeSynthesis, Language.PlutusCore.Generators.Internal.Dependent, Language.PlutusCore.Generators.Internal.Entity, Language.PlutusCore.Generators.Internal.TypeEvalCheck, Language.PlutusCore.Generators.Test, Language.PlutusCore.Constant.Make, DynamicBuiltins.Definition, DynamicBuiltins.MakeRead, Language.PlutusCore.TH, Language.PlutusTx.Utils, Language.PlutusIR.Compiler.Datatype, LedgerBytes, Language.PlutusTx.Builtins, Language.PlutusIR.Compiler.Definitions]}
+  - {name: error}
   - {name: undefined, within: [Language.PlutusCore.Constant.Apply, Language.PlutusTx.Lift.Class, Language.PlutusTx.Lift.Instances]}
   - {name: fromJust, within: [Language.PlutusTx.Lift]}
   - {name: foldl, within: []}
@@ -16,9 +16,10 @@
 - error: {lhs: "maybe mempty", rhs: "foldMap", name: "Use foldMap"}
 - error: {lhs: "mconcat", rhs: "fold", name: "Generalize mconcat"}
 
-- ignore: {name: Reduce duplication, within: [Language.PlutusCore.Renamer, Language.PlutusCore.Constant.Prelude, Language.PlutusCore.StdLib.Data.Bool, Language.PlutusCore.StdLib.Data.ChurchNat, Language.PlutusCore.StdLib.Data.Function, Language.PlutusCore.StdLib.Data.List, Language.PlutusCore.StdLib.Data.Sum, Language.PlutusCore.StdLib.Data.Nat, Language.PlutusCore.Pretty.Readable, Language.PlutusCore.Examples.Data.InterList, Language.PlutusCore.Examples.Data.TreeForest, Language.PlutusCore.Generators.Interesting, Language.PlutusTx.Compiler.Binders, Language.PlutusTx.Compiler.Type, Evaluation.CkMachine, Spec.Crowdfunding, Spec.Vesting, Spec.Actus, Language.PlutusTx.Lift, OptimizerSpec, TransformSpec, Tutorial.Solutions0Mockchain, Spec.GameStateMachine]}
+- ignore: {name: Reduce duplication, within: [Language.PlutusCore.Renamer, Language.PlutusCore.Constant.Prelude, Language.PlutusCore.StdLib.Data.Bool, Language.PlutusCore.StdLib.Data.ChurchNat, Language.PlutusCore.StdLib.Data.Function, Language.PlutusCore.StdLib.Data.List, Language.PlutusCore.StdLib.Data.Sum, Language.PlutusCore.StdLib.Data.Nat, Language.PlutusCore.Pretty.Readable, Language.PlutusCore.Examples.Data.InterList, Language.PlutusCore.Examples.Data.TreeForest, Language.PlutusCore.Generators.Interesting, Language.PlutusTx.Compiler.Binders, Language.PlutusTx.Compiler.Type, Evaluation.CkMachine, Spec.Crowdfunding, Spec.Vesting, Spec.Actus, Language.PlutusTx.Lift, OptimizerSpec, TransformSpec, Tutorial.Solutions0Mockchain, Spec.GameStateMachine, Tutorial.Emulator]}
 - ignore: {name: Redundant $, within: [Evaluation.Constant.Success, Language.PlutusCore.Generators.Internal.TypedBuiltinGen]}
 - ignore: {name: Redundant bracket, within: [Language.PlutusTx.TH]}
+- ignore: {name: Use newtype instead of data, within: [Tutorial.Emulator]}
 # this is rarely an improvement, also ignored in cardano
 - ignore: {name: Move brackets to avoid $}
 # this aids clarity since you can name the parameters

@@ -7,6 +7,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module CrowdFunding where
 -- TRIM TO HERE
 -- Crowdfunding contract implemented using the [[Plutus]] interface.
@@ -15,11 +17,9 @@ module CrowdFunding where
 --
 -- Note [Transactions in the crowdfunding campaign] explains the structure of
 -- this contract on the blockchain.
-import           Prelude                      hiding ((&&))
 
 import qualified Language.PlutusTx            as PlutusTx
-import           Language.PlutusTx.Prelude    ((&&))
-import qualified Language.PlutusTx.Prelude    as P
+import           Language.PlutusTx.Prelude
 import           Ledger.Slot                  (SlotRange)
 import qualified Ledger.Slot                  as Slot
 import           Ledger
@@ -45,7 +45,6 @@ data Campaign = Campaign
     } deriving (Generic, ToJSON, FromJSON, ToSchema)
 
 PlutusTx.makeLift ''Campaign
-
 
 -- | Construct a 'Campaign' value from the campaign parameters,
 --   using the wallet's public key.

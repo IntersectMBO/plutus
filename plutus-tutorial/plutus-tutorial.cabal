@@ -2,7 +2,7 @@ cabal-version: 2.2
 name: plutus-tutorial
 version: 0.1.0.0
 license: Apache-2.0
-license-files: 
+license-files:
   LICENSE
   NOTICE
 maintainer: jann.mueller@iohk.io
@@ -38,8 +38,8 @@ common lang
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
-                 -- Needed for GHCI to work with the plugin
-                 -fobject-code -fno-ignore-interface-pragmas
+                 -- See Plutus Tx readme
+                 -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
 
     if flag(defer-plugin-errors)
         ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
@@ -47,15 +47,14 @@ common lang
 library
     import: lang
     hs-source-dirs: tutorial
+    default-language: Haskell2010
     exposed-modules:
-        Tutorial.TH
         Tutorial.Emulator
         Tutorial.Vesting
         Tutorial.ExUtil
         Tutorial.Solutions0
         Tutorial.Solutions0Mockchain
         Tutorial.Solutions1
-        Tutorial.Solutions2
     ghc-options: -Wno-unused-imports
     build-tool-depends: doctest:doctest -any
     build-depends:
@@ -70,11 +69,10 @@ library
 test-suite tutorial-doctests
     type: exitcode-stdio-1.0
     hs-source-dirs: doctest
+    default-language: Haskell2010
     main-is: Main.hs
     ghc-options: -pgmL markdown-unlit -Wno-unused-imports
-    build-tool-depends: markdown-unlit:markdown-unlit -any
-    build-tool-depends: doctest:doctest -any
-    build-depends: plutus-tutorial
+    build-tool-depends: markdown-unlit:markdown-unlit -any, doctest:doctest -any
     other-modules:
       Tutorial.PlutusTx
       Tutorial.WalletAPI
@@ -87,7 +85,6 @@ test-suite tutorial-doctests
       plutus-tx -any,
       plutus-wallet-api -any,
       plutus-emulator -any,
+      plutus-tutorial -any,
       prettyprinter -any,
       containers -any
-
-

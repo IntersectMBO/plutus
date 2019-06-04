@@ -1,6 +1,9 @@
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 -- Some utility functions for the tutorials
 module Tutorial.ExUtil(
-      initialTx
+      encode
+    , initialTx
     , w1
     , w2
     , w3
@@ -12,14 +15,19 @@ module Tutorial.ExUtil(
     , runTraceLog
     ) where
 
-import qualified Data.Map              as Map
-import qualified Data.Set              as S
+import qualified Data.Map                  as Map
+import qualified Data.Set                  as S
+import qualified Language.PlutusTx.Prelude as P
 import           Ledger
-import qualified Ledger.Ada            as Ada
-import qualified Ledger.Value          as Value
-import qualified Wallet.API            as WAPI
-import qualified Wallet.Emulator.Types as EM
-import qualified Wallet.Generators     as Gen
+import qualified Ledger.Ada                as Ada
+import qualified Ledger.Value              as Value
+import qualified Wallet.API                as WAPI
+import qualified Wallet.Emulator.Types     as EM
+import qualified Wallet.Generators         as Gen
+
+{-# INLINABLE encode #-}
+encode :: Integer -> Integer
+encode x = x `P.multiply` 2
 
 initialTx :: Tx
 initialTx =

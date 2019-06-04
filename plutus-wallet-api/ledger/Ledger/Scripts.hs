@@ -8,7 +8,9 @@
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE ViewPatterns       #-}
+{-# LANGUAGE NoImplicitPrelude  #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- | Functions for working with scripts on the ledger.
 module Ledger.Scripts(
     -- * Scripts
@@ -37,7 +39,6 @@ import           Data.Aeson                               (FromJSON (parseJSON),
 import qualified Data.Aeson                               as JSON
 import qualified Data.Aeson.Extras                        as JSON
 import qualified Data.ByteArray                           as BA
-import           Data.Maybe                               (isJust)
 import           GHC.Generics                             (Generic)
 import qualified Language.Haskell.TH                      as TH
 import qualified Language.PlutusCore                      as PLC
@@ -45,8 +46,8 @@ import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
 import           Language.PlutusTx.Lift                   (unsafeLiftProgram)
 import           Language.PlutusTx.Lift.Class             (Lift)
 import           Language.PlutusTx                        (CompiledCode, compile, getPlc)
-import qualified Language.PlutusTx.Prelude                as P
-import           PlutusPrelude
+import           Language.PlutusTx.Prelude
+import           PlutusPrelude                            (reoption)
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 newtype Script = Script { unScript :: PLC.Program PLC.TyName PLC.Name () }
@@ -223,4 +224,4 @@ unitRedeemer = RedeemerScript $ fromCompiledCode $$(compile [|| () ||])
 
 -- | @()@ as a redeemer.
 checker :: Script
-checker = fromCompiledCode $$(compile [|| P.check ||])
+checker = fromCompiledCode $$(compile [|| check ||])

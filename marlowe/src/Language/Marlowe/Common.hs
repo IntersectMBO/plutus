@@ -12,9 +12,11 @@
 {-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# OPTIONS_GHC -fno-strictness #-}
-{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns -Wno-name-shadowing #-}
+
+{-# OPTIONS_GHC -fno-strictness #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
 {-| = Marlowe: financial contracts on Cardano Computation Layer
 
@@ -86,14 +88,12 @@ Or, in case Bob didn't demand payment before timeout2, Alice can require a redee
 -}
 
 module Language.Marlowe.Common where
-import           Prelude                    (Bool (..), Eq (..), Integer, Maybe (..), Ord (..), Show (..), String, (.))
 
 import           GHC.Generics               (Generic)
 import           Language.Marlowe.Pretty    (Pretty, prettyFragment)
-import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift     (makeLift)
-import           Language.PlutusTx.Prelude  (not, (&&), (||))
+import           Language.PlutusTx.Prelude
 import           Ledger                     (PubKey (..), Signature (..), Slot (..))
 import           Ledger.Ada                 (Ada)
 import qualified Ledger.Ada                 as Ada
@@ -221,6 +221,7 @@ data State = State {
         stateChoices   :: [Choice]
     } deriving (Eq, Ord, Show)
 
+{-# INLINABLE emptyState #-}
 emptyState :: State
 emptyState = State { stateCommitted = [], stateChoices = [] }
 
@@ -269,10 +270,12 @@ makeLift ''MarloweData
 makeLift ''Input
 makeLift ''State
 
+{-# INLINABLE eqIdentCC #-}
 -- | 'IdentCC' equality
 eqIdentCC :: IdentCC -> IdentCC -> Bool
 eqIdentCC (IdentCC a) (IdentCC b) = a `Builtins.equalsInteger` b
 
+{-# INLINABLE equalValue #-}
 -- | 'Value' equality
 equalValue :: Value -> Value -> Bool
 equalValue = let
@@ -293,6 +296,7 @@ equalValue = let
             _ -> False
     in eq
 
+{-# INLINABLE equalObservation #-}
 -- | 'Observation' equality
 equalObservation :: (Value -> Value -> Bool) -> Observation -> Observation -> Bool
 equalObservation eqValue = let
@@ -311,6 +315,7 @@ equalObservation eqValue = let
             _ -> False
     in eq
 
+{-# INLINABLE equalContract #-}
 -- | 'Contract' equality
 equalContract :: (Value -> Value -> Bool) -> (Observation -> Observation -> Bool) -> Contract -> Contract -> Bool
 equalContract eqValue eqObservation =
@@ -343,15 +348,19 @@ equalContract eqValue eqObservation =
             _ -> False
    in eq
 
+{-# INLINABLE eqValue #-}
 eqValue :: Value -> Value -> Bool
 eqValue = equalValue
 
+{-# INLINABLE eqObservation #-}
 eqObservation :: Observation -> Observation -> Bool
 eqObservation = equalObservation eqValue
 
+{-# INLINABLE eqContract #-}
 eqContract :: Contract -> Contract -> Bool
 eqContract = equalContract eqValue eqObservation
 
+{-# INLINABLE validateContract #-}
 {-| Contract validation.
 
     * Check that 'IdentCC' and 'IdentPay' identifiers are unique.
@@ -403,6 +412,7 @@ validateContract State{stateCommitted} contract (Slot bn) actualMoney' = let
             in validIds
        else False
 
+{-# INLINABLE evaluateValue #-}
 {-|
     Evaluates 'Value' given current block number 'Slot', oracle values, and current 'State'.
 -}
@@ -449,6 +459,7 @@ evaluateValue pendingTxSlot inputOracles state value = let
 
         in evalValue state value
 
+{-# INLINABLE interpretObservation #-}
 -- | Interpret 'Observation' as 'Bool'.
 interpretObservation :: (State -> Value -> Integer) -> Integer -> State -> Observation -> Bool
 interpretObservation evalValue blockNumber state@(State _ choices) obs = let
@@ -466,13 +477,14 @@ interpretObservation evalValue blockNumber state@(State _ choices) obs = let
         OrObs obs1 obs2 -> go obs1 || go obs2
         NotObs obs -> not (go obs)
         PersonChoseThis choiceId person referenceChoice ->
-            PlutusTx.maybe False (Builtins.equalsInteger referenceChoice) (find choiceId person choices)
-        PersonChoseSomething choiceId person -> PlutusTx.isJust (find choiceId person choices)
+            maybe False (Builtins.equalsInteger referenceChoice) (find choiceId person choices)
+        PersonChoseSomething choiceId person -> isJust (find choiceId person choices)
         ValueGE a b -> evalValue state a `Builtins.greaterThanEqInteger` evalValue state b
         TrueObs -> True
         FalseObs -> False
     in go obs
 
+{-# INLINABLE insertCommit #-}
 -- | Add a 'Commit', placing it in order by endTimeout per 'Person'
 insertCommit :: Commit -> [Commit] -> [Commit]
 insertCommit commit commits = let
@@ -486,6 +498,7 @@ insertCommit commit commits = let
             c : cs -> c : insert commit cs
     in insert commit commits
 
+{-# INLINABLE discountFromPairList #-}
 -- | Discounts the Cash from an initial segment of the list of pairs.
 discountFromPairList ::
     PubKey
@@ -511,6 +524,7 @@ discountFromPairList from (Slot currentBlockNumber) value' commits = let
         [] -> if value `Builtins.equalsInteger` 0 then Just [] else Nothing
     in discount value commits
 
+{-# INLINABLE findAndRemove #-}
 {-| Look for first 'Commit' satisfying @predicate@ and remove it.
     Returns 'Nothing' if the 'Commit' wasn't found,
     otherwise 'Just' modified @[Commit]@
@@ -529,6 +543,7 @@ findAndRemove predicate commits = let
 
     in findAndRemove False commits
 
+{-# INLINABLE evaluateContract #-}
 {-|
     Evaluates Marlowe Contract
     Returns contract 'State', remaining 'Contract', and validation result.
@@ -570,7 +585,7 @@ evaluateContract
     signedBy :: Signature -> PubKey -> Bool
     signedBy (Signature sig) (PubKey (LedgerBytes pk)) = let
         TxHash msg = txHash
-        in PlutusTx.verifySignature pk msg sig
+        in verifySignature pk msg sig
 
     eval :: InputCommand -> State -> Contract -> (State, Contract, Bool)
     eval input state@(State commits choices) contract = case (contract, input) of
@@ -648,12 +663,13 @@ evaluateContract
                 Just updatedCommits -> (State updatedCommits choices, contract, True)
                 Nothing             -> (state, contract, False)
 
-        (Null, SpendDeposit sig) | PlutusTx.null commits
+        (Null, SpendDeposit sig) | null commits
             && sig `signedBy` contractCreatorPK -> (state, Null, True)
 
         _ -> (state, Null, False)
     in eval inputCommand state contract
 
+{-# INLINABLE mergeChoices #-}
 {-| Merge lists of 'Choice's.
     Return a partialy ordered list of unique choices.
 -}
@@ -676,6 +692,7 @@ mergeChoices input choices = let
     merge (i:rest) choices = merge rest (insert i choices)
     in merge input choices
 
+{-# INLINABLE validatorScript #-}
 {-|
     Marlowe main Validator Script
 -}
@@ -713,7 +730,7 @@ validatorScript
             We use it as a current slot, basically. -}
         minSlot = case pendingTxValidRange of
             Interval (Just slot) _ -> slot
-            _                      -> PlutusTx.traceH "Tx valid slot must have lower bound" Builtins.error ()
+            _                      -> traceH "Tx valid slot must have lower bound" Builtins.error ()
 
         -- TxIn we're validating is obviously a Script TxIn.
         (inputValidatorHash, redeemerHash, scriptInValue) = case pendingTxIn of
@@ -762,4 +779,4 @@ validatorScript
             in if allowTransaction then () else Builtins.error ()
         {-  if the contract is invalid and there are no commit,
             allow to spend contract's money. It's likely to be created by mistake -}
-        else if PlutusTx.null currentCommits then () else Builtins.error ()
+        else if null currentCommits then () else Builtins.error ()

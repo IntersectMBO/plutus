@@ -1,15 +1,7 @@
 module Icons where
 
-import Halogen.HTML
-  ( ClassName
-      ( ClassName
-      )
-  , HTML
-  , i
-  )
-import Halogen.HTML.Properties
-  ( classes
-  )
+import Halogen.HTML (ClassName(ClassName), HTML, i)
+import Halogen.HTML.Properties (classes)
 
 data Icon
   = CreditCard
@@ -25,10 +17,13 @@ icon ::
   forall p i.
   Icon ->
   HTML p i
-icon iconType = i [ classes [ ClassName "fa"
-                            , iconClass iconType
-                            ]
-                  ] []
+icon iconType =
+  i
+    [ classes
+        [ ClassName "fa"
+        , iconClass iconType
+        ]
+    ] []
 
 iconClass ::
   Icon ->

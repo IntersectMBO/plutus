@@ -38644,78 +38644,6 @@ description = "Runtime interpolation of environment variables in records using p
 license = stdenv.lib.licenses.mit;
 
 }) {};
-"interpreter" = callPackage
-({
-  mkDerivation
-, aeson
-, base
-, bytestring
-, cookie
-, directory
-, exceptions
-, file-embed
-, filepath
-, hashable
-, http-types
-, monad-logger
-, mtl
-, newtype-generics
-, process
-, prometheus
-, safe-exceptions
-, servant
-, servant-purescript
-, servant-server
-, stdenv
-, template-haskell
-, temporary
-, text
-, time
-, time-out
-, time-units
-, transformers
-, unordered-containers
-, wai
-}:
-mkDerivation {
-
-pname = "interpreter";
-version = "0.1.0.0";
-src = .././interpreter;
-libraryHaskellDepends = [
-aeson
-base
-bytestring
-cookie
-directory
-exceptions
-file-embed
-filepath
-hashable
-http-types
-monad-logger
-mtl
-newtype-generics
-process
-prometheus
-safe-exceptions
-servant
-servant-purescript
-servant-server
-template-haskell
-temporary
-text
-time
-time-out
-time-units
-transformers
-unordered-containers
-wai
-];
-doHaddock = false;
-license = stdenv.lib.licenses.asl20;
-
-}) {};
 "intervals" = callPackage
 ({
   mkDerivation
@@ -44721,7 +44649,6 @@ license = stdenv.lib.licenses.mit;
 ({
   mkDerivation
 , aeson
-, aeson-casing
 , base
 , bytestring
 , containers
@@ -44736,7 +44663,6 @@ license = stdenv.lib.licenses.mit;
 , http-client-tls
 , http-conduit
 , http-types
-, interpreter
 , jwt
 , lens
 , marlowe
@@ -44744,6 +44670,7 @@ license = stdenv.lib.licenses.mit;
 , mtl
 , newtype-generics
 , optparse-applicative
+, playground-common
 , process
 , prometheus
 , purescript-bridge
@@ -44775,7 +44702,6 @@ isLibrary = true;
 isExecutable = true;
 libraryHaskellDepends = [
 aeson
-aeson-casing
 base
 bytestring
 containers
@@ -44788,13 +44714,13 @@ http-client
 http-client-tls
 http-conduit
 http-types
-interpreter
 jwt
 lens
 marlowe
 monad-logger
 mtl
 newtype-generics
+playground-common
 process
 servant
 servant-client
@@ -44816,11 +44742,11 @@ data-default-class
 directory
 filepath
 http-types
-interpreter
 lens
 monad-logger
 mtl
 optparse-applicative
+playground-common
 prometheus
 purescript-bridge
 servant-foreign
@@ -44837,8 +44763,8 @@ testHaskellDepends = [
 base
 bytestring
 hspec
-interpreter
 mtl
+playground-common
 raw-strings-qq
 text
 time-units
@@ -53347,6 +53273,86 @@ description = "Placeholders for use while developing Haskell code";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
+"playground-common" = callPackage
+({
+  mkDerivation
+, aeson
+, aeson-casing
+, base
+, bytestring
+, containers
+, cookie
+, directory
+, exceptions
+, file-embed
+, filepath
+, hashable
+, http-conduit
+, http-types
+, monad-logger
+, mtl
+, newtype-generics
+, process
+, prometheus
+, safe-exceptions
+, servant
+, servant-client
+, servant-purescript
+, servant-server
+, stdenv
+, template-haskell
+, temporary
+, text
+, time
+, time-out
+, time-units
+, transformers
+, unordered-containers
+, wai
+}:
+mkDerivation {
+
+pname = "playground-common";
+version = "0.1.0.0";
+src = .././playground-common;
+libraryHaskellDepends = [
+aeson
+aeson-casing
+base
+bytestring
+containers
+cookie
+directory
+exceptions
+file-embed
+filepath
+hashable
+http-conduit
+http-types
+monad-logger
+mtl
+newtype-generics
+process
+prometheus
+safe-exceptions
+servant
+servant-client
+servant-purescript
+servant-server
+template-haskell
+temporary
+text
+time
+time-out
+time-units
+transformers
+unordered-containers
+wai
+];
+doHaddock = false;
+license = stdenv.lib.licenses.asl20;
+
+}) {};
 "plotlyhs" = callPackage
 ({
   mkDerivation
@@ -53691,10 +53697,10 @@ license = stdenv.lib.licenses.asl20;
 , hspec
 , hspec-discover
 , insert-ordered-containers
-, interpreter
 , lens
 , memory
 , mtl
+, playground-common
 , plutus-emulator
 , plutus-wallet-api
 , QuickCheck
@@ -53718,10 +53724,10 @@ base
 bytestring
 containers
 insert-ordered-containers
-interpreter
 lens
 memory
 mtl
+playground-common
 plutus-emulator
 plutus-wallet-api
 servant
@@ -53736,7 +53742,7 @@ base
 containers
 hedgehog
 hspec
-interpreter
+playground-common
 plutus-emulator
 plutus-wallet-api
 QuickCheck
@@ -53759,7 +53765,6 @@ license = stdenv.lib.licenses.asl20;
   mkDerivation
 , adjunctions
 , aeson
-, aeson-casing
 , base
 , bytestring
 , containers
@@ -53775,13 +53780,13 @@ license = stdenv.lib.licenses.asl20;
 , http-conduit
 , http-types
 , insert-ordered-containers
-, interpreter
 , jwt
 , lens
 , monad-logger
 , mtl
 , newtype-generics
 , optparse-applicative
+, playground-common
 , plutus-emulator
 , plutus-playground-lib
 , plutus-tx
@@ -53819,7 +53824,6 @@ isExecutable = true;
 enableSeparateDataOutput = true;
 libraryHaskellDepends = [
 aeson
-aeson-casing
 base
 bytestring
 containers
@@ -53832,12 +53836,12 @@ http-client-tls
 http-conduit
 http-types
 insert-ordered-containers
-interpreter
 jwt
 lens
 monad-logger
 mtl
 newtype-generics
+playground-common
 plutus-emulator
 plutus-playground-lib
 plutus-tx
@@ -53865,11 +53869,11 @@ containers
 data-default-class
 filepath
 http-types
-interpreter
 lens
 monad-logger
 mtl
 optparse-applicative
+playground-common
 plutus-emulator
 plutus-playground-lib
 plutus-wallet-api
@@ -53893,8 +53897,8 @@ base
 bytestring
 hspec
 insert-ordered-containers
-interpreter
 mtl
+playground-common
 plutus-emulator
 plutus-playground-lib
 plutus-wallet-api

@@ -10,7 +10,7 @@ packages: language-plutus-core
           plutus-playground-server
           plutus-playground-lib
           plutus-tutorial
-          interpreter
+          playground-common
           meadow
           plutus-contract-exe
 optimization: 2

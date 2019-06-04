@@ -35,9 +35,9 @@ import           Git                                        (gitRev)
 import           Language.Haskell.Interpreter               (CompilationError, InterpreterError, InterpreterResult,
                                                              SourceCode, Warning)
 import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), PSType, SumType,
-                                                             TypeInfo (TypeInfo), buildBridge, doCheck, haskType,
-                                                             isTuple, mkSumType, psTypeParameters, typeModule, typeName,
-                                                             writePSTypesWith, (^==))
+                                                             TypeInfo (TypeInfo), buildBridge, doCheck, equal, haskType,
+                                                             isTuple, mkSumType, order, psTypeParameters, typeModule,
+                                                             typeName, writePSTypesWith, (^==))
 import           Language.PureScript.Bridge.Builder         (BridgeData)
 import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), defaultSwitch, genForeign)
 import           Language.PureScript.Bridge.PSTypes         (psArray, psInt)
@@ -141,7 +141,7 @@ myTypes =
     , mkSumType (Proxy @InterpreterError)
     , mkSumType (Proxy @AuthStatus)
     , mkSumType (Proxy @AuthRole)
-    , mkSumType (Proxy @GistId)
+    , (equal <*> (order <*> mkSumType)) (Proxy @GistId)
     , mkSumType (Proxy @Gist)
     , mkSumType (Proxy @GistFile)
     , mkSumType (Proxy @NewGist)

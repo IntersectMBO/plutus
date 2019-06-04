@@ -15,6 +15,7 @@ let
     postCheck = "./Setup doctest --doctest-options=\"${opts}\"";
   });
   # cabal doctest doesn't seem to be clever enough to pick these up from the cabal file
+  # See Plutus Tx readme for information on the flags
   doctestOpts = "-pgmL markdown-unlit -XTemplateHaskell -XDeriveFunctor -XScopedTypeVariables -fno-ignore-interface-pragmas -fobject-code";
 in
 

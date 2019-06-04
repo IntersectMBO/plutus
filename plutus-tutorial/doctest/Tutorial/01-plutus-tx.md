@@ -170,8 +170,7 @@ The previous example marked the functions that we used using GHC's `INLINABLE`
 pragma. This is usually necessary for non-local functions to be usable
 in Plutus Tx blocks, as it instructs GHC to keep the information that the
 Plutus Tx compiler needs. While this is not always necessary, it is
-a good idea to simply mark all such functions as `INLINABLE`. An
-alternative is to use the `-fexpose-all-unfoldings` GHC option.
+a good idea to simply mark all such functions as `INLINABLE`.
 
 We can use normal Haskell datatypes and pattern matching freely:
 
@@ -204,13 +203,17 @@ pastEnd = $$(compile [|| \(end::EndDate) (current::Integer) -> case end of
 
 ## The Plutus Tx Prelude and Plutus Tx Builtins
 
-The `Language.PlutusTx.Prelude` module contains versions of a number of
-useful standard Haskell functions. This is necessary mostly so that they can be
-marked `INLINABLE` (see above).
+The `Language.PlutusTx.Prelude` module is a drop-in replacement for the normal
+Haskell Prelude, but with some functions redefined to be easier for the Plutus Tx
+compiler to handle. You should use the Plutus Tx Prelude whenever you are writing
+code that you expect to compile with the Plutus Tx compiler.
+
+To use the Plutus Tx Prelude, use the `NoImplicitPrelude` language pragma, and import
+`Language.PlutusTx.Prelude`.
 
 Plutus Tx has some builtin types and functions available for working with primitive
 data (integers and bytestrings), as well as a few special functions. These builtins
-are also exported from the Plutus Tx prelude.
+are also exported from the Plutus Tx Prelude.
 
 The `error` builtin deserves a special mention. `error` causes the transaction to abort when it is
 evaluated, which is the way that validation failure is signaled.
