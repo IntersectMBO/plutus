@@ -41,9 +41,7 @@ library
         Playground.Server
         Playground.Interpreter
         Playground.Usecases
-        Gist
         Auth
-        Auth.Types
         Control.Monad.Now
         Control.Monad.Trace
         Control.Monad.Web
@@ -52,7 +50,6 @@ library
     default-language: Haskell2010
     build-depends:
         aeson -any,
-        aeson-casing -any,
         base >=4.7 && <5,
         bytestring -any,
         containers -any,
