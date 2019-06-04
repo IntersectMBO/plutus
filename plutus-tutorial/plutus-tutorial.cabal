@@ -12,7 +12,7 @@ description:
     A tutorial for PlutusTx.
 category: Language
 build-type: Simple
-extra-doc-files: README.md
+extra-doc-files: README.adoc
 
 source-repository head
     type: git
@@ -71,8 +71,8 @@ test-suite tutorial-doctests
     hs-source-dirs: doctest
     default-language: Haskell2010
     main-is: Main.hs
-    ghc-options: -pgmL markdown-unlit -Wno-unused-imports
-    build-tool-depends: markdown-unlit:markdown-unlit -any, doctest:doctest -any
+    ghc-options: -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc -Wno-unused-imports
+    build-tool-depends: unlit:unlit -any, doctest:doctest -any
     other-modules:
       Tutorial.PlutusTx
       Tutorial.WalletAPI
