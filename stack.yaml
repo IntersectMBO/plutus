@@ -30,7 +30,11 @@ packages:
     git: https://github.com/input-output-hk/cardano-crypto.git
     commit: f5cecb6e424cc84f85b6a3e1f803517bb7b4cfb1
   extra-dep: true
-
+# Needs a fix (https://github.com/wenkokke/unlit/pull/11) and a Hackage release
+- location:
+    git: https://github.com/michaelpj/unlit.git
+    commit: 9ca1112093c5ffd356fc99c7dafa080e686dd748
+  extra-dep: true
 # Needs looser containers bound, committed upstream but not released
 - location:
     git: https://github.com/bitnomial/prometheus.git

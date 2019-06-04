@@ -53923,13 +53923,13 @@ license = stdenv.lib.licenses.asl20;
 , containers
 , doctest
 , language-plutus-core
-, markdown-unlit
 , plutus-emulator
 , plutus-tx
 , plutus-wallet-api
 , prettyprinter
 , stdenv
 , template-haskell
+, unlit
 }:
 mkDerivation {
 
@@ -53961,7 +53961,7 @@ template-haskell
 ];
 testToolDepends = [
 doctest
-markdown-unlit
+unlit
 ];
 doHaddock = false;
 description = "PlutusTx tutorial";
@@ -74195,14 +74195,22 @@ license = stdenv.lib.licenses.mit;
   mkDerivation
 , base
 , directory
+, fetchgit
 , stdenv
 , text
 }:
 mkDerivation {
 
 pname = "unlit";
-version = "0.4.0.0";
-sha256 = "489ecde4843f1911ebdaac3099241d703bb1161f3d386e2b5143f2fd6c355515";
+version = "0.4.0.1";
+src = fetchgit {
+
+url = "https://github.com/michaelpj/unlit.git";
+sha256 = "145sffn8gbdn6xp9q5b75yd3m46ql5bnc02arzmpfs6wgjslfhff";
+rev = "9ca1112093c5ffd356fc99c7dafa080e686dd748";
+fetchSubmodules = true;
+
+};
 isLibrary = true;
 isExecutable = true;
 libraryHaskellDepends = [
