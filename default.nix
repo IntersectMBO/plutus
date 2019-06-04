@@ -161,10 +161,13 @@ let
     };
 
     docs = {
+      plutus-tutorial = pkgs.callPackage ./plutus-tutorial/doc {};
+
       plutus-core-spec = pkgs.callPackage ./plutus-core-spec {};
       multi-currency = pkgs.callPackage ./docs/multi-currency {};
       extended-utxo-spec = pkgs.callPackage ./extended-utxo-spec {};
       lazy-machine = pkgs.callPackage ./docs/fomega/lazy-machine {};
+
       public-combined-haddock = let
         haddock-combine = pkgs.callPackage ./nix/haddock-combine.nix {};
         publicPackages = localLib.getPackages {
