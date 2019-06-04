@@ -2,7 +2,6 @@
 *.dvi
 *.fls
 *.ptb
-*.fdb_latexmk
 .ghc.environment*
 tags
 dist-newstyle
@@ -34,6 +33,9 @@ result*
 *.pdf
 *.gz
 *.synctex(busy)
+*.bbl
+*.fdb_latexmk
+*.blg
 
 .terraform
 *.tfvars

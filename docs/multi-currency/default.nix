@@ -1,24 +1,16 @@
-{ stdenv, lib, texlive }:
+{ lib, latex, texlive }:
 
-let
-  tex = texlive.combine {
+latex.buildLatex {
+  name = "multi-currency";
+  src = latex.filterLatex ./.;
+  texInputs = { 
     inherit (texlive)
     scheme-small
     collection-latexextra
     collection-latexrecommended
     collection-mathscience
-    collection-fontsextra
-    latexmk;
+    collection-fontsextra;
   };
-in
-stdenv.mkDerivation {
-  name = "multi-currency";
-  buildInputs = [ tex ];
-  src = lib.sourceFilesBySuffices ./. [ ".tex" ".bib" ".cls" ".bst" ];
-  buildPhase = "latexmk -view=pdf main.tex";
-  installPhase = ''
-    install -D main.pdf $out/multi-currency.pdf
-  '';
 
   meta = with lib; {
     description = "Multi-currency paper";

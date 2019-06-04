@@ -1,23 +1,19 @@
-{ stdenv, lib, texlive }:
+{ lib, latex, texlive }:
 
-let
-  tex = texlive.combine {
+latex.buildLatex {
+  name = "lazy-machine";
+  texInputs = {
     inherit (texlive)
     scheme-small
     collection-latexextra
-    collection-mathscience
-    latexmk;
+    collection-mathscience;
   };
-in
-stdenv.mkDerivation {
-  name = "lazy-machine";
-  buildInputs = [ tex ];
-  src = ./.;
-  installPhase = "install -D lazy-plutus-core.pdf $out/lazy-plutus-core.pdf";
+  texFiles = [ "lazy-plutus-core.tex" ];
+  src = latex.filterLatex ./.;
 
   meta = with lib; {
     description = "Lazy machine discussion";
-    license = licenses.bsd3;
+    license = licenses.asl20;
     platforms = platforms.linux;
   };
 }
