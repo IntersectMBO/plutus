@@ -5,19 +5,20 @@ import Ace.EditSession as Session
 import Ace.Editor as Editor
 import Ace.Halogen.Component (AceMessage(TextChanged), AceQuery(GetEditor))
 import Ace.Types (Editor, Annotation)
-import AjaxUtils (runAjaxTo)
+import AjaxUtils (runAjaxTo, runAjax)
 import Analytics (Event, defaultEvent, trackEvent)
-import Bootstrap (active, btn, btnGroup, btnInfo, btnPrimary, btnSmall, col_, container, container_, empty, hidden, listGroupItem_, listGroup_, navItem_, navLink, navTabs_, noGutters, pullRight, row)
+import Bootstrap (active, btn, btnGroup, btnInfo, btnPrimary, btnSmall, col_, colXs12, colSm6, colSm5, container, container_, empty, hidden, listGroupItem_, listGroup_, navItem_, navLink, navTabs_, noGutters, pullRight, row, justifyContentBetween)
+import Control.Bind (bindFlipped)
 import Control.Monad.Reader.Class (class MonadAsk)
-import Control.Monad.State.Trans (class MonadState)
+import Control.Monad.State.Trans (class MonadState, get)
 import Data.Array (catMaybes, delete, snoc)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
-import Data.Either (Either(..))
+import Data.Either (Either(..), note)
 import Data.Foldable (foldrDefault)
 import Data.Function (flip)
 import Data.Functor.Coproduct (Coproduct)
-import Data.Lens (assign, modifying, over, preview, set, use, view)
+import Data.Lens (_Just, assign, modifying, over, preview, set, use, view)
 import Data.List (List(..))
 import Data.Map (Map)
 import Data.Map as Map
@@ -34,8 +35,9 @@ import Effect (Effect)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import FileEvents (preventDefault, readFileFromDragEvent)
-import Gist (gistId)
-import Gists (mkNewGist)
+import Gist (gistFileContent, gistId)
+import Gists (parseGistUrl, gistControls)
+import Meadow.Gists (mkNewGist, playgroundGistFile)
 import Halogen (Component, action)
 import Halogen as H
 import Halogen.Component (ParentHTML)
@@ -50,14 +52,15 @@ import Marlowe.Pretty (pretty)
 import Marlowe.Semantics (ErrorResult(InvalidInput), IdInput(IdOracle, InputIdChoice), MApplicationResult(MCouldNotApply, MSuccessfullyApplied), OracleDataPoint(..), State(State), TransactionOutcomes, applyTransaction, collectNeededInputs, emptyState, peopleFromStateAndContract, reduce, scoutPrimitives)
 import Marlowe.Types (BlockNumber, Choice, Contract(Null), IdChoice(IdChoice), IdOracle, Person, WIdChoice(WIdChoice))
 import Meadow (SPParams_, getOauthStatus, patchGistsByGistId, postGists, postContractHaskell)
-import Network.RemoteData (RemoteData(Success, NotAsked), _Success, isLoading, isSuccess)
+import Meadow as Meadow
+import Network.RemoteData (RemoteData(Success, NotAsked, Loading), _Success, isLoading, isSuccess)
 import Prelude (add, one, zero, not, (||), type (~>), Unit, Void, bind, const, discard, identity, pure, show, unit, void, (#), ($), (+), (-), (<$>), (<<<), (<>), (==))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation (simulationPane)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Parsing.Parser (runParser)
-import Types (ChildQuery, ChildSlot, EditorSlot(EditorSlot), FrontendState, InputData, MarloweEditorSlot(MarloweEditorSlot), MarloweState, OracleEntry, Query(ChangeView, ResetSimulator, SetOracleBn, SetOracleVal, SetChoice, RemoveAnyInput, AddAnyInput, NextBlock, ApplyTransaction, SetSignature, ScrollTo, CompileProgram, LoadMarloweScript, LoadScript, PublishGist, SendResult, CheckAuthStatus, MarloweHandleDropEvent, MarloweHandleDragEvent, MarloweHandleEditorMessage, HandleDropEvent, HandleDragEvent, HandleEditorMessage), TransactionData, TransactionValidity(..), View(Simulation, Editor), _authStatus, _blockNum, _choiceData, _contract, _createGistResult, _input, _inputs, _marloweState, _moneyInContract, _oldContract, _oracleData, _outcomes, _compilationResult, _signatures, _state, _transaction, _validity, _view, cpEditor, cpMarloweEditor, _result)
+import Types (ChildQuery, ChildSlot, EditorSlot(EditorSlot), FrontendState, InputData, MarloweEditorSlot(MarloweEditorSlot), MarloweState, OracleEntry, Query(ChangeView, ResetSimulator, SetOracleBn, SetOracleVal, SetChoice, RemoveAnyInput, AddAnyInput, NextBlock, ApplyTransaction, SetSignature, ScrollTo, CompileProgram, LoadMarloweScript, LoadScript, PublishGist, SendResult, CheckAuthStatus, MarloweHandleDropEvent, MarloweHandleDragEvent, MarloweHandleEditorMessage, HandleDropEvent, HandleDragEvent, HandleEditorMessage, SetGistUrl, LoadGist), TransactionData, TransactionValidity(..), View(Simulation, Editor), _authStatus, _gistUrl, _blockNum, _choiceData, _contract, _createGistResult, _input, _inputs, _marloweState, _moneyInContract, _oldContract, _oracleData, _outcomes, _compilationResult, _signatures, _state, _transaction, _validity, _view, cpEditor, cpMarloweEditor, _result)
 
 emptyInputData :: InputData
 emptyInputData =
@@ -93,6 +96,7 @@ initialState =
   , createGistResult: NotAsked
   , marloweState: emptyMarloweState
   , oldContract: Nothing
+  , gistUrl: Nothing
   }
 
 ------------------------------------------------------------
@@ -151,6 +155,10 @@ toEvent (MarloweHandleDropEvent _ _) = Just $ defaultEvent "MarloweDropScript"
 toEvent (CheckAuthStatus _) = Nothing
 
 toEvent (PublishGist _) = Just $ (defaultEvent "Publish") {label = Just "Gist"}
+
+toEvent (SetGistUrl _ _) = Nothing
+
+toEvent (LoadGist _) = Just $ (defaultEvent "LoadGist") { category = Just "Gist" }
 
 toEvent (ChangeView view _) = Just $ (defaultEvent "View") {label = Just $ show view}
 
@@ -432,7 +440,7 @@ evalF (CheckAuthStatus next) = do
 
 evalF (PublishGist next) = do
   mContents <- withEditor Editor.getValue
-  case mkNewGist mContents of
+  case mkNewGist (SourceCode <$> mContents) of
     Nothing -> pure next
     Just newGist -> do
       mGist <- use _createGistResult
@@ -442,6 +450,33 @@ evalF (PublishGist next) = do
           Just gistId -> patchGistsByGistId newGist gistId
       void $ runAjaxTo _createGistResult apiCall
       pure next
+
+evalF (SetGistUrl newGistUrl next) = do
+  assign _gistUrl (Just newGistUrl)
+  pure next
+
+evalF (LoadGist next) = do
+  eGistId <- (bindFlipped parseGistUrl <<< note "Gist Url not set.") <$> use _gistUrl
+  case eGistId of
+    Left err -> pure next
+    Right gistId -> do
+      assign _createGistResult Loading
+      aGist <- getGistByGistId gistId
+      assign _createGistResult aGist
+
+      case aGist of
+        Success gist -> do
+          -- Load the source, if available.
+          case preview (_Just <<< gistFileContent <<< _Just) (playgroundGistFile gist) of
+            Nothing -> pure next
+            Just contents -> do
+              void $ withEditor $ Editor.setValue contents (Just 1)
+              liftEffect $ saveBuffer contents
+              assign _compilationResult NotAsked
+              pure next
+        _ -> pure next
+  where
+    getGistByGistId gistId = runAjax $ Meadow.getGistsByGistId gistId
 
 evalF (ChangeView view next) = do
   assign _view view
@@ -632,8 +667,9 @@ render state =
   div [class_ $ ClassName "main-frame"]
     [ container_
         [ mainHeader
-        , div [classes [row, noGutters]]
-            [ col_ [mainTabBar state.view]
+        , div [ classes [ row, noGutters, justifyContentBetween ] ]
+            [ div [ classes [ colXs12, colSm6 ] ] [ mainTabBar state.view ]
+            , div [ classes [ colXs12, colSm5 ] ] [ gistControls state ]
             ]
         ]
     , viewContainer state.view Editor

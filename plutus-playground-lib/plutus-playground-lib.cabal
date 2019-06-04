@@ -41,7 +41,7 @@ library
     , bytestring
     , containers
     , insert-ordered-containers
-    , interpreter
+    , playground-common
     , lens
     , memory
     , mtl
@@ -68,7 +68,7 @@ test-suite plutus-playground-lib-test
         base >=4.9 && <5,
         containers -any,
         hedgehog -any,
-        interpreter -any,
+        playground-common -any,
         swagger2 -any,
         tasty -any,
         tasty-hunit -any,

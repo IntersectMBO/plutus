@@ -33,8 +33,11 @@ data Query a
   | MarloweHandleEditorMessage AceMessage a
   | MarloweHandleDragEvent DragEvent a
   | MarloweHandleDropEvent DragEvent a
+  -- Gist support.
   | CheckAuthStatus a
   | PublishGist a
+  | SetGistUrl String a
+  | LoadGist a
   | ChangeView View a
   | LoadScript String a
   | CompileProgram a
@@ -96,6 +99,7 @@ type FrontendState
   , marloweCompileResult :: Either (Array MarloweError) Unit
   , authStatus :: RemoteData AjaxError AuthStatus
   , createGistResult :: RemoteData AjaxError Gist
+  , gistUrl :: Maybe String
   , marloweState :: MarloweState
   , oldContract :: Maybe String
   }
@@ -117,6 +121,9 @@ _authStatus = prop (SProxy :: SProxy "authStatus")
 
 _createGistResult :: forall s a. Lens' {createGistResult :: a | s} a
 _createGistResult = prop (SProxy :: SProxy "createGistResult")
+
+_gistUrl :: forall s a. Lens' {gistUrl :: a | s} a
+_gistUrl = prop (SProxy :: SProxy "gistUrl")
 
 _marloweState :: forall s a. Lens' {marloweState :: a | s} a
 _marloweState = prop (SProxy :: SProxy "marloweState")
