@@ -48,7 +48,8 @@ import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Foreign.Generic (decodeJSON)
 import Gist (gistFileContent, gistId)
-import Gists (gistControls, mkNewGist, playgroundGistFile, simulationGistFile)
+import Gists (gistControls)
+import Playground.Gists (mkNewGist, playgroundGistFile, simulationGistFile)
 import Gists as Gists
 import Halogen (Component, action)
 import Halogen as H
@@ -522,7 +523,7 @@ render state@(State {currentView})  =
             [ mainHeader
             , div [ classes [ row, noGutters, justifyContentBetween ] ]
                 [ div [ classes [ colXs12, colSm6 ] ] [ mainTabBar currentView ]
-                , div [ classes [ colXs12, colSm5 ] ] [ gistControls state ]
+                , div [ classes [ colXs12, colSm5 ] ] [ gistControls (unwrap state) ]
                 ]
             ]
         , viewContainer currentView Editor $

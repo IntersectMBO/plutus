@@ -1,13 +1,11 @@
 module Gists
   ( gistControls
-  , mkNewGist
-  , gistSourceFilename
   , parseGistUrl
-  , playgroundGistFile
+  , firstMatch
   ) where
 
 import AjaxUtils (ajaxErrorPane)
-import Auth (AuthRole(..), authStatusAuthRole)
+import Auth (AuthRole(..), AuthStatus, authStatusAuthRole)
 import Bootstrap (btn, btnBlock, btnDanger, btnInfo, btnPrimary, btnSmall, col12_, col6_, empty, formControl, isInvalid, isValid, nbsp, pullRight, row_)
 import DOM.HTML.Indexed.InputType (InputType(..))
 import Data.Array (catMaybes)
@@ -31,7 +29,8 @@ import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (SourceCode)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success))
 import Prelude (Unit, bind, ($), (<$>), (<<<), (<>), (=<<), (==))
-import Types (FrontendState, Query(SetGistUrl, LoadGist, PublishGist), MarloweState)
+import Servant.PureScript.Ajax (AjaxError)
+import Types (Query(SetGistUrl, LoadGist, PublishGist))
 
 idPublishGist :: forall r i. IProp (id :: String | r) i
 idPublishGist = id_ "publish-gist"
@@ -39,7 +38,9 @@ idPublishGist = id_ "publish-gist"
 idLoadGist :: forall r i. IProp (id :: String | r) i
 idLoadGist = id_ "load-gist"
 
-gistControls :: forall p. FrontendState -> HTML p (Query Unit)
+gistControls :: forall a p. { authStatus :: RemoteData AjaxError AuthStatus
+  , createGistResult :: RemoteData AjaxError Gist
+  , gistUrl :: Maybe String | a } -> HTML p (Query Unit)
 gistControls {authStatus, createGistResult, gistUrl} =
   div [classes [ClassName "gist-controls"]]
     [ authButton
@@ -165,33 +166,6 @@ gistPane gist =
         ] [text $ "View on Github"]
     ]
 
-mkNewGist ::
-  Maybe SourceCode ->
-  Maybe NewGist
-mkNewGist source = if Array.null gistFiles
-  then Nothing
-  else
-    Just
-      $ NewGist
-          { _newGistDescription: "Marlowe Smart Contract"
-          , _newGistPublic: true
-          , _newGistFiles: gistFiles
-          }
-  where
-  gistFiles =
-    catMaybes
-      [ mkNewGistFile gistSourceFilename <<< unwrap <$> source
-      ]
-
-  mkNewGistFile _newGistFilename _newGistFileContent =
-    NewGistFile
-      { _newGistFilename
-      , _newGistFileContent
-      }
-
-gistSourceFilename :: String
-gistSourceFilename = "Meadow.hs"
-
 gistIdInLinkRegex :: Either String Regex
 gistIdInLinkRegex = regex "^(.*/)?([0-9a-f]{32})$" ignoreCase
 
@@ -207,5 +181,5 @@ parseGistUrl str = do
 firstMatch :: String -> Gist -> Maybe GistFile
 firstMatch filename = findOf (gistFiles <<< traversed) (\gistFile -> view gistFileFilename gistFile == filename)
 
-playgroundGistFile :: Gist -> Maybe GistFile
-playgroundGistFile = firstMatch gistSourceFilename
+-- playgroundGistFile :: Gist -> Maybe GistFile
+-- playgroundGistFile = firstMatch gistSourceFilename
