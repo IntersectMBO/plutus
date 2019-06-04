@@ -3,6 +3,7 @@
 :numbered:
 :source-highlighter: pygments
 :imagesdir: images
+:icons: font
 
 // unfortunately, asciidoctor likes to parse these as definition lists :(
 // https://github.com/asciidoctor/asciidoctor/issues/1066
