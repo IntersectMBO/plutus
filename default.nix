@@ -162,6 +162,7 @@ let
 
     docs = {
       plutus-core-spec = pkgs.callPackage ./plutus-core-spec {};
+      multi-currency = pkgs.callPackage ./docs/multi-currency {};
       extended-utxo-spec = pkgs.callPackage ./extended-utxo-spec {};
       lazy-machine = pkgs.callPackage ./docs/fomega/lazy-machine {};
       combined-haddock = (pkgs.callPackage ./nix/haddock-combine.nix {}) {
