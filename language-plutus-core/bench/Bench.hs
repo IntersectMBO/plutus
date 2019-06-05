@@ -13,7 +13,7 @@ import           Language.PlutusCore.Pretty
 traceBuiltins :: QuoteT (Either (Error ())) DynamicBuiltinNameTypes
 traceBuiltins = dynamicBuiltinNameMeaningsToTypes () $ DynamicBuiltinNameMeanings $ M.fromList
     [ (dynamicCharToStringName, dynamicCharToStringMeaning)
-    , (dynamicTraceName, dynamicTraceMeaning)
+    , (dynamicTraceName, dynamicTraceMeaningMock)
     , (dynamicAppendName, dynamicAppendMeaning)
     ]
 
@@ -44,7 +44,7 @@ main =
                       typeCheckConcrete p = runQuoteT $ do
                             bis <- traceBuiltins
                             inferTypeOfProgram (defOffChainConfig { _tccDynamicBuiltinNameTypes = bis }) p
-                      mkBench = bench "typeCheck (Plutus Tx)" . nf typeCheckConcrete . deserialise
+                      mkBench = bench "type-check" . nf typeCheckConcrete . deserialise
                   in
 
                   bgroup "type-check" $ mkBench <$> [f]
@@ -52,7 +52,7 @@ main =
                 , env largeTypeFiles $ \ ~(f, g, h) ->
                   let typeCheckConcrete :: Program TyName Name AlexPosn -> Either (Error AlexPosn) (Normalized (Type TyName ()))
                       typeCheckConcrete = runQuoteT . inferTypeOfProgram defOffChainConfig
-                      mkBench = bench "typeCheck" . nf (typeCheckConcrete =<<) . runQuoteT . parseScoped
+                      mkBench = bench "type-check" . nf (typeCheckConcrete =<<) . runQuoteT . parseScoped
                   in
 
                    bgroup "type-check" $ mkBench <$> [f, g, h]

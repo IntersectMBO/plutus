@@ -11,7 +11,8 @@ module Language.PlutusCore.Constant.Dynamic.BuiltinName
     , dynamicAppendDefinition
     , dynamicAppend
     , dynamicTraceName
-    , dynamicTraceMeaning
+    , dynamicTraceMeaningMock
+    , dynamicTraceDefinitionMock
     ) where
 
 import           Language.PlutusCore.Constant.Dynamic.Instances ()
@@ -59,8 +60,12 @@ dynamicAppend = dynamicBuiltinNameAsTerm dynamicAppendName
 dynamicTraceName :: DynamicBuiltinName
 dynamicTraceName = DynamicBuiltinName "trace"
 
-dynamicTraceMeaning :: DynamicBuiltinNameMeaning
-dynamicTraceMeaning = DynamicBuiltinNameMeaning sch (flip trace ()) where
+dynamicTraceMeaningMock :: DynamicBuiltinNameMeaning
+dynamicTraceMeaningMock = DynamicBuiltinNameMeaning sch (flip trace ()) where
     sch =
         Proxy @String `TypeSchemeArrow`
         TypeSchemeResult (Proxy @())
+
+dynamicTraceDefinitionMock :: DynamicBuiltinNameDefinition
+dynamicTraceDefinitionMock =
+    DynamicBuiltinNameDefinition dynamicTraceName dynamicTraceMeaningMock
