@@ -18,7 +18,7 @@ that handle the interactions between wallet and blockchain. In part 2 we
 show how to test the contract. Part 3 contains a number of questions and
 exercises related to this contract.
 
-== Contract Definition
+== Contract definition
 
 We need the same language extensions and imports as
 xref:02-validator-scripts#validator-scripts[before]:
@@ -53,7 +53,7 @@ import qualified Wallet                       as W
 import           GHC.Generics                 (Generic)
 ----
 
-=== Data Types
+=== Datatypes
 
 The crowdfunding campaign has the following parameters:
 
@@ -141,7 +141,7 @@ was part of the validator script, then each contribution would go to a
 unique address, and the campaign owner would have to be informed of all
 the addresses through some other mechanism.
 
-=== The Validator Script
+=== The validator script
 
 The general form of a validator script is
 `DataScript -> RedeemerScript -> PendingTx -> Bool`. The types of data
@@ -329,7 +329,7 @@ to ensure that the transaction's validity range,
 deadline and collection deadline.
 
 
-=== Contract Endpoints
+=== Contract endpoints
 
 Now that we have the validator script, we need to set up contract
 endpoints for contributors and the campaign owner. The endpoints for the
@@ -342,7 +342,7 @@ deadline has passed.
 
 Both tasks can be implemented using _blockchain triggers_.
 
-==== Blockchain Triggers
+==== Blockchain triggers
 
 The wallet API allows us to specify a pair of
 link:{wallet-api-haddock}/Wallet-API.html#t:EventTrigger[`EventTrigger`]
@@ -562,7 +562,7 @@ contribute cmp adaAmount = do
 <2> `L.hashTx` gives the `TxId` of a transaction.
 
 [#testing-contract-03]
-== Testing the Contract
+== Testing the contract
 
 There are two ways to test a Plutus contract. We can run it
 interactively in the
@@ -638,7 +638,7 @@ You can run the test suite with
 `nix build -f default.nix localPackages.plutus-use-cases` or
 `cabal test plutus-use-cases`.
 
-== Problems / Questions
+== Exercises
 
 [arabic]
 . Run traces for successful and failed campaigns

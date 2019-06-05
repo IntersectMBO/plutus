@@ -77,6 +77,7 @@ test-suite tutorial-doctests
       Tutorial.PlutusTx
       Tutorial.WalletAPI
       Tutorial.ValidatorScripts
+      Tutorial.Vesting
     build-depends:
       base >=4.9 && <5,
       template-haskell >=2.13.0.0,

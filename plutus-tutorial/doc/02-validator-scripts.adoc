@@ -17,7 +17,7 @@ endpoints that handle the interactions between wallet and blockchain. In
 part 2 we show how to test the contract. Part 3 contains a number of
 questions and exercises.
 
-== Contract Definition
+== Contract definition
 
 We need some language extensions and imports:
 
@@ -70,7 +70,7 @@ is the wallet API. It covers interactions with the wallet, for example
 generating the transactions that actually get the crowdfunding contract
 onto the blockchain.
 
-=== Data Types
+=== Datatypes
 
 The guessing game involves two moves: First, player A chooses a secret
 word, and uses the game validator script to lock some Ada (the prize),
@@ -109,7 +109,7 @@ the string and lifting the hash to its on-chain representation.
 <4> `mkRedeemerScript` creates a redeemer script for the guessing game by
 lifting the string to its on-chain representation
 
-=== The Validator Script
+=== The validator script
 
 The general form of a validator script is
 `DataScript -> Redeemer -> PendingTx -> Bool`. That is, the validator
@@ -297,7 +297,7 @@ If you change the word "plutus" in the third item of the trace to
 
 image:game-logs.PNG[Emulator log for a failed attempt]
 
-== Problems / Questions
+== Exercises
 
 [arabic]
 . Run traces for a successful game and a failed game in the Playground,
