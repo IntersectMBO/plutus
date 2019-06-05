@@ -659,6 +659,3 @@ slots has been reached _before_ that slot begins. For example, campaign
 with `Campaign [(Slot 20, Ada 100), (Slot 30, Ada 200)]` is successful
 if the contributions amount to 100 Ada or more by slot 20, or 200 Ada or
 more by slot 30.
-
-Solutions to these problems can be found
-link:../../tutorial/Tutorial/Solutions0.hs[`Solutions0.hs`].

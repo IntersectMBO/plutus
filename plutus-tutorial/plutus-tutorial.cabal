@@ -44,28 +44,6 @@ common lang
     if flag(defer-plugin-errors)
         ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
 
-library
-    import: lang
-    hs-source-dirs: tutorial
-    default-language: Haskell2010
-    exposed-modules:
-        Tutorial.Emulator
-        Tutorial.Vesting
-        Tutorial.ExUtil
-        Tutorial.Solutions0
-        Tutorial.Solutions0Mockchain
-        Tutorial.Solutions1
-    ghc-options: -Wno-unused-imports
-    build-tool-depends: doctest:doctest -any
-    build-depends:
-        base >=4.9 && <5,
-        template-haskell >=2.13.0.0,
-        language-plutus-core -any,
-        plutus-tx -any,
-        plutus-wallet-api -any,
-        plutus-emulator -any,
-        containers -any
-
 test-suite tutorial-doctests
     type: exitcode-stdio-1.0
     hs-source-dirs: doctest
@@ -86,6 +64,5 @@ test-suite tutorial-doctests
       plutus-tx -any,
       plutus-wallet-api -any,
       plutus-emulator -any,
-      plutus-tutorial -any,
       prettyprinter -any,
       containers -any

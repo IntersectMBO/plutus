@@ -53936,18 +53936,8 @@ mkDerivation {
 pname = "plutus-tutorial";
 version = "0.1.0.0";
 src = .././plutus-tutorial;
-libraryHaskellDepends = [
-base
-containers
-language-plutus-core
-plutus-emulator
-plutus-tx
-plutus-wallet-api
-template-haskell
-];
-libraryToolDepends = [
-doctest
-];
+isLibrary = false;
+isExecutable = false;
 testHaskellDepends = [
 base
 bytestring
