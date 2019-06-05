@@ -1,1 +1,1 @@
-01-plutus-tx.md
+../../doc/01-plutus-tx.adoc

@@ -203,18 +203,5 @@ substNormalizeTypeM ty name = withExtendedTypeVarEnv name ty . normalizeTypeM
 normalizeTypesInM
     :: (HasUnique (tyname ann) TypeUnique, MonadQuote m)
     => Term tyname name ann -> NormalizeTypeT m tyname ann (Term tyname name ann)
-normalizeTypesInM = go where
-    -- | Normalize a 'Type' and return the result as a 'Type' (as opposed to 'NormalizedType').
-    normalizeReturnType = fmap unNormalized . normalizeTypeM
-
-    go (LamAbs ann name ty body)  = LamAbs ann name <$> normalizeReturnType ty <*> go body
-    go (TyAbs ann name kind body) = TyAbs ann name kind <$> go body
-    go (IWrap ann pat arg term)   =
-        IWrap ann <$> normalizeReturnType pat <*> normalizeReturnType arg <*> go term
-    go (Apply ann fun arg)        = Apply ann <$> go fun <*> go arg
-    go (Unwrap ann term)          = Unwrap ann <$> go term
-    go (Error ann ty)             = Error ann <$> normalizeReturnType ty
-    go (TyInst ann body ty)       = TyInst ann <$> go body <*> normalizeReturnType ty
-    go (Var ann name)             = return $ Var ann name
-    go con@Constant{}             = pure con
-    go bi@Builtin{}               = pure bi
+normalizeTypesInM = transformMOf termSubterms normalizeChildTypes where
+    normalizeChildTypes = termSubtypes (fmap unNormalized . normalizeTypeM)

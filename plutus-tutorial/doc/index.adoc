@@ -1,0 +1,19 @@
+= Plutus Tutorial
+:toc: left
+:numbered:
+:source-highlighter: pygments
+:imagesdir: images
+
+// unfortunately, asciidoctor likes to parse these as definition lists :(
+// https://github.com/asciidoctor/asciidoctor/issues/1066
+:2c: ::
+:playground: https://prod.playground.plutus.iohkdev.io/
+:haddock: https://input-output-hk.github.io/plutus/
+:wallet-api-haddock: https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html
+
+include::overview.adoc[leveloffset=+ 1]
+include::intro.adoc[leveloffset=+ 1]
+include::01-plutus-tx.adoc[leveloffset=+1]
+include::02-validator-scripts.adoc[leveloffset=+1]
+include::03-wallet-api.adoc[leveloffset=+1]
+include::glossary.adoc[leveloffset=+1]

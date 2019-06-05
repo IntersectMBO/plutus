@@ -69,6 +69,7 @@ with pkgs.lib;
 let
   localLib = import ./lib.nix { inherit config system; } ;
   src = localLib.iohkNix.cleanSourceHaskell ./.;
+  latex = pkgs.callPackage ./nix/latex.nix {};
 
   pp2nSrc = pkgs.fetchFromGitHub {
     owner = "justinwoo";
@@ -161,10 +162,13 @@ let
     };
 
     docs = {
-      plutus-core-spec = pkgs.callPackage ./plutus-core-spec {};
-      multi-currency = pkgs.callPackage ./docs/multi-currency {};
-      extended-utxo-spec = pkgs.callPackage ./extended-utxo-spec {};
-      lazy-machine = pkgs.callPackage ./docs/fomega/lazy-machine {};
+      plutus-tutorial = pkgs.callPackage ./plutus-tutorial/doc {};
+
+      plutus-core-spec = pkgs.callPackage ./plutus-core-spec { inherit latex; };
+      multi-currency = pkgs.callPackage ./docs/multi-currency { inherit latex; };
+      extended-utxo-spec = pkgs.callPackage ./extended-utxo-spec { inherit latex; };
+      lazy-machine = pkgs.callPackage ./docs/fomega/lazy-machine { inherit latex; };
+
       public-combined-haddock = let
         haddock-combine = pkgs.callPackage ./nix/haddock-combine.nix {};
         publicPackages = localLib.getPackages {

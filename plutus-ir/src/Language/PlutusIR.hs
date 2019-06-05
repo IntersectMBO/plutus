@@ -29,7 +29,7 @@ module Language.PlutusIR (
 
 import           PlutusPrelude
 
-import           Language.PlutusCore        (Kind, Name, TyName, Type (..))
+import           Language.PlutusCore        (Kind, Name, TyName, Type (..), typeSubtypes)
 import qualified Language.PlutusCore        as PLC
 import           Language.PlutusCore.CBOR   ()
 import           Language.PlutusCore.MkPlc  (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
@@ -39,7 +39,6 @@ import           Control.Lens
 
 import           Codec.Serialise            (Serialise)
 
-import           Data.Functor.Foldable      (embed, project)
 import qualified Data.Text                  as T
 
 import           GHC.Generics               (Generic)
@@ -68,11 +67,6 @@ tyVarDeclNameString = T.unpack . PLC.nameString . PLC.unTyName . tyVarDeclName
 datatypeNameString :: Datatype TyName name a -> String
 datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn
 
--- TODO: move to language-plutus-core
--- | Get all the direct child 'Type's of the given 'Type'.
-typeSubtypes :: Traversal' (Type tyname a) (Type tyname a)
-typeSubtypes f = fmap embed . traverse f . project
-
 -- Bindings
 
 data Recursivity = NonRec | Rec
@@ -87,6 +81,7 @@ data Binding tyname name a = TermBind a (VarDecl tyname name a) (Term tyname nam
 
 instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (Binding tyname name a)
 
+{-# INLINE bindingSubterms #-}
 -- | Get all the direct child 'Term's of the given 'Binding'.
 bindingSubterms :: Traversal' (Binding tyname name a) (Term tyname name a)
 bindingSubterms f = \case
@@ -94,14 +89,17 @@ bindingSubterms f = \case
     b@TypeBind {} -> pure b
     d@DatatypeBind {} -> pure d
 
+{-# INLINE varDeclSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'VarDecl'.
 varDeclSubtypes :: Traversal' (VarDecl tyname name a) (Type tyname a)
 varDeclSubtypes f (VarDecl a n ty) = VarDecl a n <$> f ty
 
+{-# INLINE datatypeSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'Datatype'.
 datatypeSubtypes :: Traversal' (Datatype tyname name a) (Type tyname a)
 datatypeSubtypes f (Datatype a n vs m cs) = Datatype a n vs m <$> (traverse . varDeclSubtypes) f cs
 
+{-# INLINE bindingSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'Binding'.
 bindingSubtypes :: Traversal' (Binding tyname name a) (Type tyname a)
 bindingSubtypes f = \case
@@ -168,6 +166,7 @@ instance TermLike (Term tyname name) tyname name where
     termLet x (Def vd bind) = Let x NonRec [TermBind x vd bind]
     typeLet x (Def vd bind) = Let x NonRec [TypeBind x vd bind]
 
+{-# INLINE termSubterms #-}
 -- | Get all the direct child 'Term's of the given 'Term', including those within 'Binding's.
 termSubterms :: Traversal' (Term tyname name a) (Term tyname name a)
 termSubterms f = \case
@@ -183,6 +182,7 @@ termSubterms f = \case
     c@Constant {} -> pure c
     b@Builtin {} -> pure b
 
+{-# INLINE termSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'Term', including those within 'Binding's.
 termSubtypes :: Traversal' (Term tyname name a) (Type tyname a)
 termSubtypes f = \case

@@ -1,4 +1,4 @@
-{ stdenv, lib, texlive }:
+{ lib, latex, texlive }:
 
 let
   tex = texlive.combine {
@@ -10,16 +10,20 @@ let
     latexmk;
   };
 in
-stdenv.mkDerivation {
+latex.buildLatex {
   name = "extended-utxo-spec";
-  buildInputs = [ tex ];
-  src = ./.;
-  buildPhase = "latexmk -view=pdf extended-utxo-specification.tex";
-  installPhase = "install -D extended-utxo-specification.pdf $out/extended-utxo-specification.pdf";
+  texInputs = {
+    inherit (texlive)
+    scheme-small
+    collection-latexextra
+    collection-latexrecommended
+    collection-mathscience;
+  };
+  src = latex.filterLatex ./.;
 
   meta = with lib; {
     description = "Extended UTXO specification";
-    license = licenses.bsd3;
+    license = licenses.asl20;
     platforms = platforms.linux;
   };
 }
