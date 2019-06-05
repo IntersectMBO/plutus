@@ -26,7 +26,6 @@ import qualified GhcPlugins                             as GHC
 import qualified Panic                                  as GHC
 
 import qualified Language.PlutusCore                    as PLC
-import qualified Language.PlutusCore.Constant           as PLC
 import qualified Language.PlutusCore.Constant.Dynamic   as PLC
 import           Language.PlutusCore.Quote
 
@@ -239,22 +238,6 @@ compileMarkedExprs opts markerName =
       e@(GHC.Var _) -> pure e
       e@(GHC.Type _) -> pure e
 
--- TODO: move this somewhere common
-getStringBuiltinTypes
-    :: (PLC.AsTypeError e ann, MonadError e m, MonadQuote m) => ann -> m PLC.DynamicBuiltinNameTypes
-getStringBuiltinTypes ann =
-    -- In order to define @trace@ we have to provide a function that actually performs tracing,
-    -- but this can't be done once and for all, because we do tracing via 'unsafePerformIO' and 'IORef'
-    -- and thus need to either be in the 'IO' monad to create an 'IORef' or create a global 'IORef' via
-    -- another 'unsafePerformIO' (perhaps we should do the latter).
-    -- Anyway, here we only care about types, so we provide a fake definition of @trace@ that does
-    -- nothing just to be able to extract types in a convenient way.
-    let fakeTraceDefinition = PLC.dynamicCallAssign @String PLC.dynamicTraceName mempty
-    in PLC.dynamicBuiltinNameMeaningsToTypes ann $
-       PLC.insertDynamicBuiltinNameDefinition fakeTraceDefinition $
-       PLC.insertDynamicBuiltinNameDefinition PLC.dynamicCharToStringDefinition $
-       PLC.insertDynamicBuiltinNameDefinition PLC.dynamicAppendDefinition mempty
-
 -- Helper to avoid doing too much construction of Core ourselves
 mkCompiledCode :: forall a . BS.ByteString -> BS.ByteString -> CompiledCode a
 mkCompiledCode plcBS pirBS = SerializedCode plcBS (Just pirBS)
@@ -317,7 +300,7 @@ runCompiler opts expr = do
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump
     when (poDoTypecheck opts) $ void $ do
-        stringBuiltinTypes <- getStringBuiltinTypes ()
+        stringBuiltinTypes <- PLC.getStringBuiltinTypes ()
         checkVr <- asks (coCheckValueRestriction.ccOpts)
         if checkVr
               then PLC.typecheckPipeline (PLC.offChainConfig stringBuiltinTypes) plcP

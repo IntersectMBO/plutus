@@ -3,9 +3,13 @@ module Main (main) where
 import           Codec.Serialise
 import           Control.Monad
 import           Criterion.Main
-import qualified Data.ByteString.Lazy       as BSL
+import qualified Data.ByteString.Lazy                 as BSL
 import           Language.PlutusCore
+import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.Pretty
+
+traceBuiltins :: QuoteT (Either (Error ())) DynamicBuiltinNameTypes
+traceBuiltins = getStringBuiltinTypes ()
 
 main :: IO ()
 main =
@@ -29,18 +33,35 @@ main =
                       , bench "stringLiteral" $ nf parse g
                       ]
 
+                , env sampleScript $ \ f ->
+                  let typeCheckConcrete :: Program TyName Name () -> Either (Error ()) (Normalized (Type TyName ()))
+                      typeCheckConcrete p = runQuoteT $ do
+                            bis <- traceBuiltins
+                            inferTypeOfProgram (defOffChainConfig { _tccDynamicBuiltinNameTypes = bis }) p
+                      mkBench = bench "type-check" . nf typeCheckConcrete . deserialise
+                  in
+
+                  bgroup "type-check" $ mkBench <$> [f]
+
                 , env largeTypeFiles $ \ ~(f, g, h) ->
                   let typeCheckConcrete :: Program TyName Name AlexPosn -> Either (Error AlexPosn) (Normalized (Type TyName ()))
                       typeCheckConcrete = runQuoteT . inferTypeOfProgram defOffChainConfig
-                      mkBench = bench "typeCheck" . nf (typeCheckConcrete =<<) . runQuoteT . parseScoped
+                      mkBench = bench "type-check" . nf (typeCheckConcrete =<<) . runQuoteT . parseScoped
                   in
 
                    bgroup "type-check" $ mkBench <$> [f, g, h]
-
                 , env largeTypeFiles $ \ ~(f, g, h) ->
                    let mkBench = bench "check" . nf (fmap check) . parse
                    in
                    bgroup "normal-form check" $ mkBench <$> [f, g, h]
+
+                , env sampleScript $ \ f ->
+                    let renameConcrete :: Program TyName Name () -> Program TyName Name ()
+                        renameConcrete = runQuote . rename
+                        mkBench = bench "rename (Plutus Tx)" . nf renameConcrete . deserialise
+                  in
+
+                  bgroup "renamer" $ mkBench <$> [f]
 
                 , env largeTypeFiles $ \ ~(f, g, h) ->
                     let renameConcrete :: Program TyName Name AlexPosn -> Program TyName Name AlexPosn
@@ -78,3 +99,4 @@ main =
           typeCompare0 = BSL.readFile "test/types/example.plc"
           typeCompare1 = BSL.readFile "bench/example-compare.plc"
           typeCompare = (,) <$> typeCompare0 <*> typeCompare1
+          sampleScript = BSL.readFile "bench/script.plci"
