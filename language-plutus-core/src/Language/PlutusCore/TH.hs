@@ -76,19 +76,16 @@ metavarSubstType ::
   Type TyName () ->
   Map.Map T.Text (Type TyName ()) ->
   Type TyName ()
-metavarSubstType ty tyMetavars = substTy
-                        (\n -> Map.lookup (nameString $ unTyName n) tyMetavars)
-                        ty
+metavarSubstType ty tyMetavars = typeSubstTyNames (\n -> Map.lookup (nameString $ unTyName n) tyMetavars) ty
 
 metavarSubstTerm ::
   Term TyName Name () ->
   Map.Map T.Text (Type TyName ()) ->
   Map.Map T.Text (Term TyName Name ()) ->
   Term TyName Name ()
-metavarSubstTerm t tyMetavars termMetavars = substTerm
-                        (\n -> Map.lookup (nameString $ unTyName n) tyMetavars)
-                        (\n -> Map.lookup (nameString n) termMetavars)
-                        t
+metavarSubstTerm t tyMetavars termMetavars =
+    termSubstTyNames (\n -> Map.lookup (nameString $ unTyName n) tyMetavars) $
+    termSubstNames (\n -> Map.lookup (nameString n) termMetavars) t
 
 -- | Runs a 'QuoteT' in the 'Q' context. Note that this uses 'runQuoteT', so does note preserve freshness.
 eval :: (Pretty b) => QuoteT (Except (Error b)) a -> Q a
