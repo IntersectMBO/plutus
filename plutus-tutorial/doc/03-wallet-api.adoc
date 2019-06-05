@@ -7,7 +7,7 @@ contract, using the wallet API to submit it to the blockchain. It is the
 third in a series of tutorials on Plutus smart contracts.
 
 You can run this code in the
-{playground}[Plutus Playground] - see <<testing-contract-03>>.
+link:{playground}[Plutus Playground] - see <<testing-contract-03>>.
 
 WARNING: The wallet API and by extension the wallet API tutorial is a
 work in progress and may be changed without much warning.
@@ -81,9 +81,9 @@ data Campaign = Campaign {
 PlutusTx.makeLift ''Campaign -- <4>
 ----
 <1> The type of Ada values is
-{wallet-api-haddock}/Ledger-Ada.html#v:Ada[`Ada`].
+link:{wallet-api-haddock}/Ledger-Ada.html#v:Ada[`Ada`].
 <2> Dates are expressed in terms of slots, and their type is
-{wallet-api-haddock}/Ledger-Slot.html#v:Slot[`Slot`].
+link:{wallet-api-haddock}/Ledger-Slot.html#v:Slot[`Slot`].
 <3> The campaign owner is identified by their public key.
 <4> Just like we did in the xref:02-validator-scripts#validator-scripts[guessing game],
 we need to call `makeLift` for data types that we want to lift to
@@ -215,7 +215,7 @@ validity interval of the pending transaction.
 we are not interested int. The fields are
 `pendingTxFee` (the fee of this transaction), `pendingTxForge` (how
 much, if any, value was forged) and `PendingTxIn` (the current
-{wallet-api-haddock}/Ledger-Validation.html#t:PendingTxIn[transaction
+link:{wallet-api-haddock}/Ledger-Validation.html#t:PendingTxIn[transaction
 input]) respectively.
 <3> This binds the parameters of the `Campaign`.
 
@@ -345,25 +345,25 @@ Both tasks can be implemented using _blockchain triggers_.
 ==== Blockchain Triggers
 
 The wallet API allows us to specify a pair of
-{wallet-api-haddock}/Wallet-API.html#t:EventTrigger[`EventTrigger`]
+link:{wallet-api-haddock}/Wallet-API.html#t:EventTrigger[`EventTrigger`]
 and
-{wallet-api-haddock}/Wallet-API.html#v:EventHandler[`EventHandler`]
+link:{wallet-api-haddock}/Wallet-API.html#v:EventHandler[`EventHandler`]
 to automatically run `collect`. An event trigger describes a condition
 of the blockchain and can be true or false. There are four basic
 triggers:
-{wallet-api-haddock}/Wallet-API.html#v:slotRangeT[`slotRangeT`]
+link:{wallet-api-haddock}/Wallet-API.html#v:slotRangeT[`slotRangeT`]
 is true when the slot number is in a specific range,
-{wallet-api-haddock}/Wallet-API.html#v:fundsAtAddressGeqT[`fundsAtAddressGeqT`]
+link:{wallet-api-haddock}/Wallet-API.html#v:fundsAtAddressGeqT[`fundsAtAddressGeqT`]
 is true when the total value of unspent outputs at an address is within
 a range,
-{wallet-api-haddock}/Wallet-API.html#v:alwaysT[`alwaysT`]
+link:{wallet-api-haddock}/Wallet-API.html#v:alwaysT[`alwaysT`]
 is always true and
-{wallet-api-haddock}/Wallet-API.html#v:neverT[`neverT`]
+link:{wallet-api-haddock}/Wallet-API.html#v:neverT[`neverT`]
 is never true. We also have boolean connectives
-{wallet-api-haddock}/Wallet-API.html#v:andT[`andT`],
-{wallet-api-haddock}/Wallet-API.html#v:orT[`orT`]
+link:{wallet-api-haddock}/Wallet-API.html#v:andT[`andT`],
+link:{wallet-api-haddock}/Wallet-API.html#v:orT[`orT`]
 and
-{wallet-api-haddock}/Wallet-API.html#v:notT[`notT`]
+link:{wallet-api-haddock}/Wallet-API.html#v:notT[`notT`]
 to describe more complex conditions.
 
 We will need to know the address of a campaign, which amounts to hashing
@@ -384,7 +384,7 @@ mkDataScript pk = DataScript (L.lifted (Contributor pk))
 ----
 
 When we want to spend the contributions we need to provide a
-{wallet-api-haddock}/Ledger-Scripts.html#v:RedeemerScript[`RedeemerScript`]
+link:{wallet-api-haddock}/Ledger-Scripts.html#v:RedeemerScript[`RedeemerScript`]
 value. In our case this is just the `CampaignAction`:
 
 [source,haskell]
@@ -414,7 +414,7 @@ at the funding target.
 
 `fundsAtAddressGeqT` and `slotRangeT` take `Value` and `Interval Slot`
 arguments respectively. The
-{wallet-api-haddock}/Wallet-API.html#t:Interval[`Interval`]
+link:{wallet-api-haddock}/Wallet-API.html#t:Interval[`Interval`]
 type is part of the `wallet-api` package.
 
 The campaign owner can collect contributions when two conditions hold:
@@ -433,14 +433,14 @@ collectionHandler cmp = EventHandler $ \_ -> do
 `EventHandler` is a function of one argument, which we ignore in this
 case (the argument tells us which of the conditions in the trigger are
 true, which can be useful if we used
-{wallet-api-haddock}/Wallet-API.html#v:orT[`orT`]
+link:{wallet-api-haddock}/Wallet-API.html#v:orT[`orT`]
 to build a complex condition). In our case we don’t need this
 information because we know that both the
-{wallet-api-haddock}/Wallet-API.html#v:fundsAtAddressGeqT[`fundsAtAddressGeqT`]
+link:{wallet-api-haddock}/Wallet-API.html#v:fundsAtAddressGeqT[`fundsAtAddressGeqT`]
 and the
-{wallet-api-haddock}/Wallet-API.html#v:slotRangeT[`slotRangeT`]
+link:{wallet-api-haddock}/Wallet-API.html#v:slotRangeT[`slotRangeT`]
 conditions hold when the event handler is run, so we can call
-{wallet-api-haddock}/Wallet-API.html#v:collectFromScript[`collectFromScript`]
+link:{wallet-api-haddock}/Wallet-API.html#v:collectFromScript[`collectFromScript`]
 immediately.
 
 
@@ -452,14 +452,14 @@ immediately.
     W.collectFromScript range (mkValidatorScript cmp) redeemerScript -- <1>
 ----
 <1> To collect the funds we use
-{wallet-api-haddock}/Wallet-API.html#v:collectFromScript[`collectFromScript`],
+link:{wallet-api-haddock}/Wallet-API.html#v:collectFromScript[`collectFromScript`],
 which expects a validator script and a redeemer script.
 
 NOTE: The trigger mechanism is a feature of the wallet, not of the
 blockchain. That means that the wallet needs to be running when the
 condition becomes true, so that it can react to it and submit
 transactions. Anything that happens in an
-{wallet-api-haddock}/Wallet-API.html#t:EventHandler[`EventHandler`]
+link:{wallet-api-haddock}/Wallet-API.html#t:EventHandler[`EventHandler`]
 is a normal interaction with the blockchain facilitated by the wallet.
 
 With that, we can write the `scheduleCollection` endpoint to register a
@@ -491,12 +491,12 @@ refund.
 To contribute to a campaign we need to pay the desired amount to a
 script address, and provide our own public key as the data script. In
 the link:./02-validator-scripts.md[guessing game] we used
-{wallet-api-haddock}/Wallet-API.html#v:payToScript_[`payToScript_`],
+link:{wallet-api-haddock}/Wallet-API.html#v:payToScript_[`payToScript_`],
 which returns `()` instead of the transaction that was submitted. For
 the crowdfunding contribution we need to hold on the transaction. Why?
 
 Think back to the `guess` action of the game. We used
-{wallet-api-haddock}/Wallet-API.html#v:collectFromScript[`collectFromScript`]
+link:{wallet-api-haddock}/Wallet-API.html#v:collectFromScript[`collectFromScript`]
 to collect _all_ outputs at the game address. This works only if all all
 outputs are unlocked by the same redeemer (see also exercise 3 of the
 previous tutorial).
@@ -507,14 +507,14 @@ us to unlock our own contribution. But if we try to use the same
 redeemer to unlock other contributions the script will fail,
 invalidating the entire transaction. We therefore need a way to restrict
 the outputs that
-{wallet-api-haddock}/Wallet-API.html#v:collectFromScript[`collectFromScript`]
+link:{wallet-api-haddock}/Wallet-API.html#v:collectFromScript[`collectFromScript`]
 spends. To achieve this, the wallet API provides
-{wallet-api-haddock}/Wallet-API.html#v:collectFromScriptTxn[`collectFromScriptTxn`],
+link:{wallet-api-haddock}/Wallet-API.html#v:collectFromScriptTxn[`collectFromScriptTxn`],
 which takes an additional `TxId` parameter and only collects outputs
 produced by that transaction. To get the `TxId` parameter we need to
 hold on to the transaction that commits our contribution, which we can
 do with
-{wallet-api-haddock}/Wallet-API.html#v:payToScript[`payToScript`].
+link:{wallet-api-haddock}/Wallet-API.html#v:payToScript[`payToScript`].
 
 [source,haskell]
 ----
@@ -566,7 +566,7 @@ contribute cmp adaAmount = do
 
 There are two ways to test a Plutus contract. We can run it
 interactively in the
-{playground}[Playground], or test it like
+link:{playground}[Playground], or test it like
 any other program by writing some unit and property tests. Both methods
 give the same results because they do the same thing behind the scenes:
 Generate some transactions and evaluate them on the mockchain. The
@@ -579,7 +579,7 @@ it.
 
 We need to tell the Playground what our contract endpoints are, so that
 it can generate a UI for them. This is done by adding a call to
-{haddock}/plutus-playground-lib-0.1.0.0/html/Playground-Contract.html#v:mkFunctions[`mkFunctions`]
+link:{haddock}/plutus-playground-lib-0.1.0.0/html/Playground-Contract.html#v:mkFunctions[`mkFunctions`]
 for the endpoints to the end of the script:
 
 ....
@@ -589,7 +589,7 @@ $(mkFunctions ['scheduleCollection, 'contribute])
 NOTE: We can’t use the usual Haskell syntax highlighting for this line
 because the entire script is compiled and executed as part of the test
 suite for the `wallet-api` project. The Playground-specific
-{haddock}/plutus-playground-lib-0.1.0.0/html/Playground-Contract.html#v:mkFunctions[`mkFunctions`]
+link:{haddock}/plutus-playground-lib-0.1.0.0/html/Playground-Contract.html#v:mkFunctions[`mkFunctions`]
 is defined in a different library (`plutus-playground-lib`) and it is
 not available for this tutorial.
 

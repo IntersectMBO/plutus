@@ -6,7 +6,7 @@ This tutorial explains how to get Plutus onto the blockchain, using a
 simple guessing game as an example.
 
 You can run this code in the
-{playground}[Plutus Playground] - see <<testing-contract-02>>.
+link:{playground}[Plutus Playground] - see <<testing-contract-02>>.
 
 WARNING: The wallet API and by extension the wallet API tutorial is a
 work in progress and may be changed without notice.
@@ -62,10 +62,10 @@ import qualified Data.ByteString.Lazy.Char8   as C
 <5> The Plutus Tx Prelude.
 <6> `Language.PlutusTx` lets us translate code between
 Haskell and Plutus Core (see the xref:01-plutus-tx#plutus-tx[PlutusTx tutorial]).
-<7> {wallet-api-haddock}/Ledger.html[`Ledger`] has data types for the ledger model.
-<8> {wallet-api-haddock}/Ledger-Validation.html[`Ledger.Validation`] contains types and
+<7> link:{wallet-api-haddock}/Ledger.html[`Ledger`] has data types for the ledger model.
+<8> link:{wallet-api-haddock}/Ledger-Validation.html[`Ledger.Validation`] contains types and
 functions that can be used in on-chain code.
-<9> {wallet-api-haddock}/Wallet.html[`Wallet`]
+<9> link:{wallet-api-haddock}/Wallet.html[`Wallet`]
 is the wallet API. It covers interactions with the wallet, for example
 generating the transactions that actually get the crowdfunding contract
 onto the blockchain.
@@ -117,7 +117,7 @@ script is a function of three arguments that produces a value of type
 `Bool` indicating whether the validation was a success (or fails with an
 error). As contract authors we can freely choose the types of
 `DataScript`, `Redeemer`. The third argument has to be of type
-{wallet-api-haddock}/Ledger-Validation.html#t:PendingTx[`PendingTx`]
+link:{wallet-api-haddock}/Ledger-Validation.html#t:PendingTx[`PendingTx`]
 because that is the information about the current transaction, provided
 by the slot leader.
 
@@ -204,11 +204,11 @@ The first endpoint we need for our game is the function `lock`. It pays
 the specified amount of Ada to the script address. Paying to a script
 address is a common task at the beginning of a contract, and the wallet
 API implements it in
-{wallet-api-haddock}/Wallet-API.html#v:payToScript_[`payToScript_`].
+link:{wallet-api-haddock}/Wallet-API.html#v:payToScript_[`payToScript_`].
 The underscore is a Haskell naming convention, indicating that
-{wallet-api-haddock}/Wallet-API.html#v:payToScript_[`payToScript_`]
+link:{wallet-api-haddock}/Wallet-API.html#v:payToScript_[`payToScript_`]
 is a variant of
-{wallet-api-haddock}/Wallet-API.html#v:payToScript[`payToScript`]
+link:{wallet-api-haddock}/Wallet-API.html#v:payToScript[`payToScript`]
 which ignores its return value and produces a `()` instead.
 
 [source,haskell]
@@ -267,7 +267,7 @@ where the parameters can be entered.
 == Testing the contract in the Playground
 
 To test this contract, open the
-{playground}[Plutus Playground] and click
+link:{playground}[Plutus Playground] and click
 the "Game" button above the editor field. Then click "Compile".
 
 You can now create a trace using the endpoints `lock`, `guess` and
