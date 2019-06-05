@@ -8,8 +8,10 @@ import           Criterion.Main
 import           Crypto
 import qualified Data.ByteString.Lazy                     as BSL
 import           Language.PlutusCore
+import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.Evaluation.CkMachine (runCk)
 import           Language.PlutusCore.Pretty
+
 
 pubKey, sig, msg :: BSL.ByteString
 sig = "e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b"
