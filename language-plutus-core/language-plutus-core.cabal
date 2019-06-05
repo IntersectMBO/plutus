@@ -91,6 +91,7 @@ library
         Language.PlutusCore.Constant.Dynamic.Emit
         Language.PlutusCore.Constant.Dynamic.Instances
         Language.PlutusCore.Constant.Dynamic.OnChain
+        Language.PlutusCore.Constant.Dynamic.OffChain
         Language.PlutusCore.Constant.Function
         Language.PlutusCore.Constant.Make
         Language.PlutusCore.Constant.Name
