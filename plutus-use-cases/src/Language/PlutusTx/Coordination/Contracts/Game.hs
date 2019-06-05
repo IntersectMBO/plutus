@@ -1,6 +1,8 @@
 -- | A guessing game
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE DataKinds       #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Language.PlutusTx.Coordination.Contracts.Game(
     lock,
     guess,
@@ -14,24 +16,24 @@ module Language.PlutusTx.Coordination.Contracts.Game(
     ) where
 
 import qualified Language.PlutusTx            as PlutusTx
-import qualified Language.PlutusTx.Prelude    as P
+import           Language.PlutusTx.Prelude
 import           Ledger
 import           Ledger.Value                 (Value)
 import           Wallet
 
 import qualified Data.ByteString.Lazy.Char8   as C
 
-data HashedString = HashedString P.ByteString
+data HashedString = HashedString ByteString
 
 PlutusTx.makeLift ''HashedString
 
-data ClearString = ClearString P.ByteString
+data ClearString = ClearString ByteString
 
 PlutusTx.makeLift ''ClearString
 
 correctGuess :: HashedString -> ClearString -> Bool
 correctGuess (HashedString actual) (ClearString guess') =
-    P.equalsByteString actual (P.sha2_256 guess')
+    equalsByteString actual (sha2_256 guess')
 
 validateGuess :: HashedString -> ClearString -> PendingTx -> Bool
 validateGuess dataScript redeemerScript _ = correctGuess dataScript redeemerScript

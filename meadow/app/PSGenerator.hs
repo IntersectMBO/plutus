@@ -15,36 +15,52 @@ module PSGenerator
     ( generate
     ) where
 
-import           API                                       (RunResult)
+import           API                                        (RunResult)
 import qualified API
-import           Auth                                      (AuthRole, AuthStatus)
+import           Auth                                       (AuthRole, AuthStatus)
 import qualified Auth
-import           Control.Applicative                       (empty, (<|>))
-import           Control.Lens                              (set, (&))
-import qualified Data.ByteString                           as BS
-import qualified Data.ByteString.Char8                     as CBS
-import           Data.Monoid                               ()
-import           Data.Proxy                                (Proxy (Proxy))
-import qualified Data.Set                                  as Set ()
-import qualified Data.Text                                 as T (unpack)
-import qualified Data.Text.Encoding                        as T ()
-import qualified Data.Text.IO                              as T ()
-import           Gist                                      (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
-import           Git                                       (gitRev)
-import           Language.Haskell.Interpreter              (CompilationError, InterpreterError, InterpreterResult,
-                                                            SourceCode, Warning)
-import           Language.PureScript.Bridge                (BridgePart, Language (Haskell), PSType, SumType,
-                                                            TypeInfo (TypeInfo), buildBridge, mkSumType,
-                                                            psTypeParameters, typeModule, typeName, writePSTypes, (^==))
-import           Language.PureScript.Bridge.PSTypes        (psArray, psInt)
-import           Language.PureScript.Bridge.TypeParameters (A)
-import           Meadow.Contracts                          (couponBondGuaranteed, escrow, zeroCouponBond)
-import           Servant                                   ((:<|>))
-import           Servant.PureScript                        (HasBridge, Settings, apiModuleName, defaultBridge,
-                                                            defaultSettings, languageBridge, writeAPIModuleWithSettings,
-                                                            _generateSubscriberAPI)
-import           System.Directory                          (createDirectoryIfMissing)
-import           System.FilePath                           ((</>))
+import           Control.Applicative                        (empty, (<|>))
+import           Control.Lens                               (set, (&))
+import           Control.Monad.Reader                       (MonadReader)
+import qualified Data.ByteString                            as BS
+import qualified Data.ByteString.Char8                      as CBS
+import           Data.Monoid                                ()
+import           Data.Proxy                                 (Proxy (Proxy))
+import qualified Data.Set                                   as Set ()
+import qualified Data.Text                                  as T (unpack)
+import qualified Data.Text.Encoding                         as T ()
+import qualified Data.Text.IO                               as T ()
+import           Gist                                       (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
+import           Git                                        (gitRev)
+import           Language.Haskell.Interpreter               (CompilationError, InterpreterError, InterpreterResult,
+                                                             SourceCode, Warning)
+import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), PSType, SumType,
+                                                             TypeInfo (TypeInfo), buildBridge, doCheck, equal, haskType,
+                                                             isTuple, mkSumType, order, psTypeParameters, typeModule,
+                                                             typeName, writePSTypesWith, (^==))
+import           Language.PureScript.Bridge.Builder         (BridgeData)
+import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), defaultSwitch, genForeign)
+import           Language.PureScript.Bridge.PSTypes         (psArray, psInt)
+import           Language.PureScript.Bridge.TypeParameters  (A)
+import           Meadow.Contracts                           (couponBondGuaranteed, escrow, zeroCouponBond)
+import           Servant                                    ((:<|>))
+import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
+                                                             defaultSettings, languageBridge,
+                                                             writeAPIModuleWithSettings, _generateSubscriberAPI)
+import           System.Directory                           (createDirectoryIfMissing)
+import           System.FilePath                            ((</>))
+
+psNonEmpty :: MonadReader BridgeData m => m PSType
+psNonEmpty = TypeInfo "" "Data.RawJson" "JsonNonEmptyList" <$> psTypeParameters
+
+psJson :: PSType
+psJson = TypeInfo "" "Data.RawJson" "RawJson" []
+
+psJsonEither :: MonadReader BridgeData m => m PSType
+psJsonEither = TypeInfo "" "Data.RawJson" "JsonEither" <$> psTypeParameters
+
+psJsonTuple :: MonadReader BridgeData m => m PSType
+psJsonTuple = TypeInfo "" "Data.RawJson" "JsonTuple" <$> psTypeParameters
 
 integerBridge :: BridgePart
 integerBridge = do
@@ -63,8 +79,15 @@ aesonBridge = do
     typeModule ^== "Data.Aeson.Types.Internal"
     pure psJson
 
-psJson :: PSType
-psJson = TypeInfo "" "Data.RawJson" "RawJson" []
+eitherBridge :: BridgePart
+eitherBridge = do
+    typeName ^== "Either"
+    psJsonEither
+
+tupleBridge :: BridgePart
+tupleBridge = do
+    doCheck haskType isTuple
+    psJsonTuple
 
 setBridge :: BridgePart
 setBridge = do
@@ -87,12 +110,20 @@ headerBridge = do
     typeName ^== "Header'"
     empty
 
+nonEmptyBridge :: BridgePart
+nonEmptyBridge = do
+    typeName ^== "NonEmpty"
+    typeModule ^== "GHC.Base"
+    psNonEmpty
+
 myBridge :: BridgePart
 myBridge =
+    eitherBridge <|> tupleBridge <|>
     defaultBridge <|> integerBridge <|> scientificBridge <|> aesonBridge <|>
     setBridge <|>
     headersBridge <|>
-    headerBridge
+    headerBridge <|>
+    nonEmptyBridge
 
 data MyBridge
 
@@ -110,7 +141,7 @@ myTypes =
     , mkSumType (Proxy @InterpreterError)
     , mkSumType (Proxy @AuthStatus)
     , mkSumType (Proxy @AuthRole)
-    , mkSumType (Proxy @GistId)
+    , (equal <*> (order <*> mkSumType)) (Proxy @GistId)
     , mkSumType (Proxy @Gist)
     , mkSumType (Proxy @GistFile)
     , mkSumType (Proxy @NewGist)
@@ -151,5 +182,5 @@ generate outputDir = do
         outputDir
         myBridgeProxy
         (Proxy @(API.API :<|> Auth.FrontendAPI))
-    writePSTypes outputDir (buildBridge myBridge) myTypes
+    writePSTypesWith (defaultSwitch <> genForeign (ForeignOptions True)) outputDir (buildBridge myBridge) myTypes
     writeUsecases outputDir

@@ -4,18 +4,14 @@ module MainFrameTests
 
 import Prelude
 
-import AjaxUtils (decodeJson)
 import Auth (AuthRole(..), AuthStatus(..))
-import Control.Monad.Eff.Class (class MonadEff, liftEff)
-import Control.Monad.Eff.Exception (EXCEPTION)
-import Control.Monad.Eff.Random (RANDOM)
+import Control.Monad.Except (runExcept)
 import Control.Monad.Free (Free, foldFree, liftF)
 import Control.Monad.RWS.Trans (RWSResult(..), RWST(..), runRWST)
 import Control.Monad.Reader.Class (class MonadAsk, ask)
 import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM)
 import Control.Monad.State.Class (class MonadState, get)
 import Cursor as Cursor
-import Data.Argonaut.Parser (jsonParser)
 import Data.Array as Array
 import Data.Either (Either(Right, Left))
 import Data.Identity (Identity)
@@ -30,10 +26,12 @@ import Data.Map as Map
 import Data.Maybe (Maybe(Nothing, Just))
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.NonEmpty ((:|))
+import Data.RawJson (JsonEither, JsonNonEmptyList(..))
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
-import FileEvents (FILE)
+import Effect.Class (class MonadEffect, liftEffect)
+import Foreign.Generic (decodeJSON)
 import Gist (Gist, GistId, gistId)
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode(SourceCode))
 import Ledger.Extra (LedgerMap(..))
@@ -43,7 +41,6 @@ import MonadApp (class MonadApp)
 import Network.RemoteData (RemoteData(..), isNotAsked, isSuccess)
 import Network.RemoteData as RemoteData
 import Node.Encoding (Encoding(..))
-import Node.FS (FS)
 import Node.FS.Sync as FS
 import Playground.API (CompilationResult, EvaluationResult, KnownCurrency(..))
 import Playground.Server (SPParams_(..))
@@ -53,10 +50,10 @@ import StaticData as StaticData
 import Test.Unit (TestSuite, failure, suite, test)
 import Test.Unit.Assert (assert, equal')
 import Test.Unit.QuickCheck (quickCheck)
-import TestUtils (equalGShow)
+import TestUtils (equalGenericShow)
 import Types (Query(LoadScript, ChangeView, CompileProgram, LoadGist, SetGistUrl, CheckAuthStatus), State, View(Editor, Simulations), WebData, _authStatus, _compilationResult, _createGistResult, _currentView, _evaluationResult, _simulations)
 
-all :: forall aff. TestSuite (exception :: EXCEPTION, fs :: FS, random :: RANDOM, file :: FILE | aff)
+all :: TestSuite
 all =
   suite "MainFrame" do
     evalTests
@@ -69,7 +66,7 @@ type World =
   , editorContents :: Maybe String
   , localStorage :: Map String String
   , evaluationResult :: WebData EvaluationResult
-  , compilationResult :: (WebData (Either InterpreterError (InterpreterResult CompilationResult)))
+  , compilationResult :: (WebData (JsonEither InterpreterError (InterpreterResult CompilationResult)))
   }
 
 _gists :: forall r a. Lens' {gists :: a | r} a
@@ -173,7 +170,7 @@ mockWorld =
   , evaluationResult: NotAsked
   }
 
-evalTests :: forall aff. TestSuite (file :: FILE, fs :: FS, exception :: EXCEPTION, random :: RANDOM | aff)
+evalTests :: TestSuite
 evalTests =
   suite "eval" do
 
@@ -200,9 +197,9 @@ evalTests =
         assert "Gist not loaded." $ isNotAsked (view  _createGistResult finalState)
 
       test "Successfully" do
-        contents <- liftEff $ FS.readTextFile UTF8 "test/gist1.json"
-        case jsonParser contents >>= decodeJson of
-          Left err -> failure err
+        contents <- liftEffect $ FS.readTextFile UTF8 "test/gist1.json"
+        case runExcept $ decodeJSON contents of
+          Left err -> failure $ show err
           Right gist -> do
             Tuple finalWorld finalState <-
               execMockApp
@@ -212,7 +209,7 @@ evalTests =
 
             assert "Gist gets loaded." $ isSuccess (view  _createGistResult finalState)
             equal'
-              "Simulations gets loaded."
+              "Simulation gets loaded."
               1
               (Cursor.length (view  _simulations finalState))
             case Array.head (unwrap gist)._gistFiles >>= (unwrap >>> _._gistFileContent) of
@@ -259,28 +256,28 @@ evalTests =
             equal' "View is reset." Editor $ view _currentView finalState
 
 loadCompilationResponse1 ::
-  forall m eff.
-  MonadEff (fs :: FS, exception :: EXCEPTION | eff) m
-  => m (Either String (WebData (Either InterpreterError (InterpreterResult CompilationResult))))
+  forall m.
+  MonadEffect m
+  => m (Either String (WebData (JsonEither InterpreterError (InterpreterResult CompilationResult))))
 loadCompilationResponse1 = do
-  contents <- liftEff $ FS.readTextFile UTF8 "test/compilation_response1.json"
-  case jsonParser contents >>= decodeJson of
-    Left err -> pure $ Left err
+  contents <- liftEffect $ FS.readTextFile UTF8 "test/compilation_response1.json"
+  case runExcept $ decodeJSON contents of
+    Left err -> pure $ Left $ show err
     Right value -> pure $ Right $ Success value
 
-mkInitialValueTests :: forall eff. TestSuite eff
+mkInitialValueTests :: TestSuite
 mkInitialValueTests =
   suite "mkInitialValue" do
     test "balance" do
-      equalGShow
+      equalGenericShow
         (Value { getValue: LedgerMap [ ada /\ LedgerMap [ adaToken /\ 10 ]
                                       , currencies /\ LedgerMap [ usdToken /\ 10
                                                                 , eurToken /\ 10
                                                                 ]
                                       ] })
         (mkInitialValue
-           [ KnownCurrency { hash: "", friendlyName: "Ada", knownTokens: pure (TokenName { unTokenName : "" }) }
-           , KnownCurrency { hash: "Currency", friendlyName: "Currencies", knownTokens: NonEmptyList ((TokenName { unTokenName: "USDToken" }) :| (Cons (TokenName { unTokenName:  "EURToken" }) Nil)) }
+           [ KnownCurrency { hash: "", friendlyName: "Ada", knownTokens: (JsonNonEmptyList (pure (TokenName { unTokenName : "" }))) }
+           , KnownCurrency { hash: "Currency", friendlyName: "Currencies", knownTokens: JsonNonEmptyList( NonEmptyList ((TokenName { unTokenName: "USDToken" }) :| (Cons (TokenName { unTokenName:  "EURToken" }) Nil))) }
            ]
            10)
 

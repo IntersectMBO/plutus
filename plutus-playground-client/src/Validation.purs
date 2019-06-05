@@ -4,7 +4,7 @@ import Prelude
 
 import Data.Array as Array
 import Data.Foldable (class Foldable)
-import Data.Generic (class Generic)
+import Data.Generic.Rep (class Generic)
 
 class Validation a where
   validate ::  a -> Array (WithPath ValidationError)
@@ -14,7 +14,7 @@ data ValidationError
   | Unsupported
 
 derive instance eqValidationError :: Eq ValidationError
-derive instance genericValidationError :: Generic ValidationError
+derive instance genericValidationError :: Generic ValidationError _
 
 instance showValidationError :: Show ValidationError where
   show Required = "Required"

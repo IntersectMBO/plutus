@@ -1,0 +1,88 @@
+= Overview
+
+This document is a series of tutorials that explain various
+aspects of the Plutus smart contract platform.
+
+[arabic]
+. xref:intro#intro[Introduction to Plutus] introduces smart
+contracts and related terms
+. xref:01-plutus-tx#plutus-tx[Plutus Tx] explains the basics of using
+the Plutus Tx compiler to create embedded (on-chain) programs
+. xref:02-validator-scripts#validator-scripts[A guessing game] implements a
+guessing game. Topics covered:
+    * Signature of validator script
+    * `Ledger.makeLift`, `Ledger.compileScript`
+    * Contract endpoints
+    * `Wallet.payToScript_`, `Wallet.collectFromScript`
+    * Playground
+. xref:03-wallet-api#wallet-api[A crowdfunding campaign] implements a
+crowdfunding campaign. Topics covered:
+    * Parameterising a contract through partial application using
+    `Ledger.applyScript`
+    * Operators in on-chain code
+    * On-chain time (slot intervals)
+    * Working with Ada values
+    * Blockchain triggers
+. link:../tutorial/Tutorial/Emulator.hs[Mockchain (emulator)] deals
+with developing contracts off-line, as Haskell modules. Topics covered:
+    * Developing contracts in GHCi
+    * How does the mockchain work
+    * Writing and running traces from the terminal
+. link:../tutorial/Tutorial/Vesting.hs[A multi-stage contract] implements
+a vesting scheme. Topics covered:
+    * Writing a contract that extends over multiple transactions
+
+Note that (5) and (6) are written as regular Haskell modules and include
+exercises (marked by `error`). They are intended to be edited
+interactively with the help of GHCi. See
+link:../tutorial/Tutorial/Emulator.hs[4.1] for details. Solutions for the
+exercises are located in `Solutions0.hs`.
+
+Additional documentation will be added for the following
+work-in-progress features, when they are available on the mockchain:
+
+* Forging new currencies
+* Using NFTs to represent permissions
+* Decoding values from their on-chain representation back to Haskell
+
+== Prerequisites
+
+To follow the xref:02-validator-scripts#validator-scripts[Wallet API, Part I]
+and xref:03-wallet-api#wallet-api[Wallet API, Part II] tutorials you
+should have access to a recent version of the Plutus Playground.
+
+To follow the link:../tutorial/Tutorial/Emulator.hs[mockchain tutorial], you should
+have a local copy of the source code, and a recent GHC and cabal in your
+environment. See below for instructions on setting this up on Windows
+and Ubunutu systems.
+
+The link:../tutorial/Tutorial/Vesting.hs[multi-stage contract] code works
+in the Playground and in GHCi alike.
+
+== Installing the emulator locally
+
+To install the emulator (not the Playground) locally, follow these steps.
+
+=== Linux/macOS
+
+[arabic]
+. Clone this repository.
+. Install the nix package manager following the instructions on
+https://nixos.org/nix/.
++
+IMPORTANT: Add the IOHK binary cache to your Nix configuration. See
+link:../README.md#binary-caches[here] for details.
+. Move to the plutus-tutorial folder.
+. Type `nix-shell`. This will download all of the dependencies and
+populate the PATH with a correctly configured cabal. If `nix-shell`
+results in nix attempting to compile a lot of dependencies then
+something went wrong earlier and you should go back to step 4.
+. Type `cabal repl plutus-tutorial`.
+
+=== Windows
+
+[arabic]
+. Install the "Ubuntu 18.04" app from the app store
+. Open the "Ubuntu 18.04" terminal by clicking on the icon
+
+Then follow the steps for "Linux" above.

@@ -1,22 +1,19 @@
 module Halogen.Chartist
        ( chartist
-       , ChartistEffects
        , ChartistQuery(..)
        , ChartistMessage(..)
        ) where
 
-import Chartist (CHARTIST, Chart, ChartistData, ChartistOptions, updateData)
+import Chartist (Chart, ChartistData, ChartistOptions, updateData)
 import Chartist as Chartist
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (>>=))
-import Control.Monad.Aff.Class (class MonadAff)
-import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Exception (EXCEPTION)
-import DOM (DOM)
 import Data.Function (($))
 import Data.Maybe (Maybe(Just, Nothing))
 import Data.NaturalTransformation (type (~>))
 import Data.Unit (unit)
+import Effect.Aff.Class (class MonadAff)
+import Effect.Class (liftEffect)
 import Halogen (RefLabel(..))
 import Halogen as H
 import Halogen.HTML (ClassName(..))
@@ -40,16 +37,9 @@ type HTML = H.ComponentHTML ChartistQuery
 
 type DSL m = H.ComponentDSL ChartistState ChartistQuery ChartistMessage m
 
-type ChartistEffects eff =
-  ( chartist :: CHARTIST
-  , dom :: DOM
-  , exception :: EXCEPTION
-  | eff
-  )
-
 chartist ::
-  forall eff m.
-  MonadAff (ChartistEffects eff) m
+  forall m.
+  MonadAff m
   => ChartistOptions
   -> H.Component HH.HTML ChartistQuery ChartistData ChartistMessage m
 chartist options = H.lifecycleComponent
@@ -62,23 +52,23 @@ chartist options = H.lifecycleComponent
   }
 
 eval ::
-  forall eff m.
-  MonadAff (ChartistEffects eff) m
+  forall m.
+  MonadAff m
   => ChartistQuery ~> DSL m
 eval (Init options next) = do
   mElement <- H.getHTMLElementRef chartRefLabel
   case mElement of
     Nothing -> pure unit
     Just element -> do
-      chart <- liftEff $ Chartist.barChart element options
-      H.modify _{ chart = Just chart }
+      chart <- liftEffect $ Chartist.barChart element options
+      _ <- H.modify _{ chart = Just chart }
       H.raise Initialized
   pure next
 
 eval (SetData chartistData next) = do
   H.gets _.chart >>= case _ of
     Nothing -> pure unit
-    Just chart -> liftEff $ updateData chart chartistData
+    Just chart -> liftEffect $ updateData chart chartistData
   pure next
 
 chartRefLabel :: RefLabel

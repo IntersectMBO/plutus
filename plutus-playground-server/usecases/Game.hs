@@ -7,6 +7,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Game where
 -- TRIM TO HERE
 -- A game with two players. Player 1 thinks of a secret word
@@ -16,7 +18,7 @@ module Game where
 -- output. If the guess is correct, the validator script releases the funds.
 -- If it isn't, the funds stay locked.
 import qualified Language.PlutusTx            as PlutusTx
-import qualified Language.PlutusTx.Prelude    as P
+import           Language.PlutusTx.Prelude
 import           Ledger
 import qualified Ledger.Value                 as Value
 import           Ledger.Value                 (Value)
@@ -26,17 +28,17 @@ import           Playground.Contract
 
 import qualified Data.ByteString.Lazy.Char8   as C
 
-data HashedString = HashedString P.ByteString
+data HashedString = HashedString ByteString
 
 PlutusTx.makeLift ''HashedString
 
-data ClearString = ClearString P.ByteString
+data ClearString = ClearString ByteString
 
 PlutusTx.makeLift ''ClearString
 
 correctGuess :: HashedString -> ClearString -> Bool
 correctGuess (HashedString actual) (ClearString guess') =
-    P.equalsByteString actual (P.sha2_256 guess')
+    equalsByteString actual (sha2_256 guess')
 
 validateGuess :: HashedString -> ClearString -> PendingTx -> Bool
 validateGuess dataScript redeemerScript _ = correctGuess dataScript redeemerScript

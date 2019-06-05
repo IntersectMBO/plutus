@@ -1,7 +1,6 @@
 module Marlowe.Semantics where
 
 import Prelude
-
 import Data.BigInteger (BigInteger, fromInt)
 import Data.Foldable (foldMap)
 import Data.Foldable as F
@@ -14,7 +13,7 @@ import Data.Map as M
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Monoid (mempty)
 import Data.Newtype (class Newtype, unwrap, wrap)
-import Data.Record (equal)
+import Record (equal)
 import Data.Set as S
 import Data.Tuple (Tuple(..))
 import Marlowe.Types (BlockNumber, Choice, Contract(Use, Let, Scale, While, When, Choice, Both, Pay, Commit, Null), ContractF(..), IdAction, IdChoice, IdCommit, IdOracle, LetLabel, Observation, ObservationF(..), Person, Timeout, Value(..), ValueF(..), WIdChoice(WIdChoice))
@@ -53,9 +52,12 @@ newtype CommitInfoRecord
   = CommitInfoRecord {person :: Person, amount :: BigInteger, timeout :: Timeout}
 
 derive instance newtypeCommitInfoRecord :: Newtype CommitInfoRecord _
+
 instance eqCommitInfoRecord :: Eq CommitInfoRecord where
   eq = equal `on` unwrap
+
 derive instance genericCommitInfoRecord :: Generic CommitInfoRecord _
+
 instance showCommitInfoRecord :: Show CommitInfoRecord where
   show = genericShow
 
@@ -63,9 +65,12 @@ newtype CommitInfo
   = CommitInfo {redeemedPerPerson :: M.Map Person BigInteger, currentCommitsById :: M.Map IdCommit CommitInfoRecord, expiredCommitIds :: S.Set IdCommit, timeoutData :: TimeoutData}
 
 derive instance newtypeCommitInfo :: Newtype CommitInfo _
+
 instance eqCommitInfo :: Eq CommitInfo where
   eq = equal `on` unwrap
+
 derive instance genericCommitInfo :: Generic CommitInfo _
+
 instance showCommitInfo :: Show CommitInfo where
   show = genericShow
 
@@ -73,9 +78,12 @@ newtype OracleDataPoint
   = OracleDataPoint {blockNumber :: BlockNumber, value :: BigInteger}
 
 derive instance newtypeOracleDataPoint :: Newtype OracleDataPoint _
+
 instance eqOracleDataPoint :: Eq OracleDataPoint where
   eq = equal `on` unwrap
+
 derive instance genericOracleDataPoint :: Generic OracleDataPoint _
+
 instance showOracleDataPoint :: Show OracleDataPoint where
   show = genericShow
 
@@ -83,25 +91,32 @@ newtype State
   = State {commits :: CommitInfo, choices :: M.Map WIdChoice Choice, oracles :: M.Map IdOracle OracleDataPoint, usedIds :: S.Set IdAction}
 
 derive instance newtypeState :: Newtype State _
+
 instance eqState :: Eq State where
   eq = equal `on` unwrap
+
 derive instance genericState :: Generic State _
+
 instance showState :: Show State where
   show = genericShow
 
 emptyCommitInfo :: CommitInfo
-emptyCommitInfo = CommitInfo { redeemedPerPerson: M.empty
-                             , currentCommitsById: M.empty
-                             , expiredCommitIds: S.empty
-                             , timeoutData: M.empty
-                             }
+emptyCommitInfo =
+  CommitInfo
+    { redeemedPerPerson: M.empty
+    , currentCommitsById: M.empty
+    , expiredCommitIds: S.empty
+    , timeoutData: M.empty
+    }
 
 emptyState :: State
-emptyState = State { commits: emptyCommitInfo
-                   , choices: M.empty
-                   , oracles: M.empty
-                   , usedIds: S.empty
-                   }
+emptyState =
+  State
+    { commits: emptyCommitInfo
+    , choices: M.empty
+    , oracles: M.empty
+    , usedIds: S.empty
+    }
 
 -- Adds a commit identifier to the timeout data map
 addToCommByTim ::
@@ -120,10 +135,13 @@ removeFromCommByTim ::
   TimeoutData ->
   TimeoutData
 removeFromCommByTim timeout idCommit timData = case M.lookup timeout timData of
-  Just commSet -> let newCommSet = S.delete idCommit commSet
-                  in if S.isEmpty newCommSet
-                    then M.delete timeout timData
-                    else M.insert timeout newCommSet timData
+  Just commSet ->
+    let
+      newCommSet = S.delete idCommit commSet
+    in
+      if S.isEmpty newCommSet
+        then M.delete timeout timData
+        else M.insert timeout newCommSet timData
   Nothing -> timData
 
 -- Add a commit to CommitInfo
@@ -134,10 +152,25 @@ addCommit ::
   Timeout ->
   State ->
   State
-addCommit idCommit person value timeout (State state) = State (state { commits = CommitInfo (ci { currentCommitsById = M.insert idCommit (CommitInfoRecord { person
-                                                                                                                                          , amount: value
-                                                                                                                                          , timeout
-                                                                                                                                          }) ci.currentCommitsById, timeoutData = addToCommByTim timeout idCommit ci.timeoutData }) })
+addCommit idCommit person value timeout (State state) =
+  State
+    ( state
+      { commits =
+        CommitInfo
+          ( ci
+            { currentCommitsById =
+              M.insert idCommit
+                ( CommitInfoRecord
+                  { person
+                  , amount: value
+                  , timeout
+                  }
+                ) ci.currentCommitsById
+            , timeoutData = addToCommByTim timeout idCommit ci.timeoutData
+            }
+          )
+      }
+    )
   where
   (CommitInfo ci) = state.commits
 
@@ -157,7 +190,7 @@ isCurrentCommit ::
   IdCommit ->
   State ->
   Boolean
-isCurrentCommit idCommit (State { commits: (CommitInfo ci) }) = M.member idCommit ci.currentCommitsById
+isCurrentCommit idCommit (State {commits: (CommitInfo ci)}) = M.member idCommit ci.currentCommitsById
 
 -- Check whether the commit is expired
 isExpiredCommit ::
@@ -174,11 +207,13 @@ removeCurrentCommit ::
   State ->
   State
 removeCurrentCommit idCommit (State state) = case M.lookup idCommit commById of
-  Just v -> State (state { commits = CommitInfo (ci { currentCommitsById = M.delete idCommit commById, timeoutData = removeFromCommByTim (unwrap v).timeout idCommit timData }) })
+  Just v -> State (state {commits = CommitInfo (ci {currentCommitsById = M.delete idCommit commById, timeoutData = removeFromCommByTim (unwrap v).timeout idCommit timData})})
   Nothing -> State state
   where
   CommitInfo ci = state.commits
+
   commById = ci.currentCommitsById
+
   timData = ci.timeoutData
 
 -- Get expired not collected for person
@@ -196,9 +231,10 @@ resetRedeemedForPerson ::
   Person ->
   State ->
   State
-resetRedeemedForPerson person (State state) = State (state { commits = CommitInfo (ci { redeemedPerPerson = M.delete person rppm }) })
+resetRedeemedForPerson person (State state) = State (state {commits = CommitInfo (ci {redeemedPerPerson = M.delete person rppm})})
   where
   (CommitInfo ci) = state.commits
+
   rppm = ci.redeemedPerPerson
 
 discountAvailableMoneyFromCommit ::
@@ -207,14 +243,30 @@ discountAvailableMoneyFromCommit ::
   State ->
   Maybe State
 discountAvailableMoneyFromCommit idCommit discount (State state) = case M.lookup idCommit commById of
-  Just (CommitInfoRecord { person, amount, timeout }) -> Just (State (state { commits = CommitInfo (ci { currentCommitsById = M.insert idCommit (CommitInfoRecord
-                                                                                                                              { person
-                                                                                                                              , amount: amount - discount
-                                                                                                                              , timeout
-                                                                                                                              }) commById }) }))
+  Just (CommitInfoRecord {person, amount, timeout}) ->
+    Just
+      ( State
+        ( state
+          { commits =
+            CommitInfo
+              ( ci
+                { currentCommitsById =
+                  M.insert idCommit
+                    ( CommitInfoRecord
+                      { person
+                      , amount: amount - discount
+                      , timeout
+                      }
+                    ) commById
+                }
+              )
+          }
+        )
+      )
   Nothing -> Nothing
   where
   CommitInfo ci = state.commits
+
   commById = ci.currentCommitsById
 
 getAvailableAmountInCommit :: IdCommit -> State -> BigInteger
@@ -231,51 +283,82 @@ class InputsFrom a where
 instance inputsFromValue :: InputsFrom Value where
   collectNeededInputs = cata algebra
     where
-      algebra :: Algebra ValueF (S.Set IdInput)
-      algebra CurrentBlockF = mempty
-      algebra (CommittedF _) = mempty
-      algebra (ConstantF _) = mempty
-      algebra (NegValueF v) = v
-      algebra (AddValueF v1 v2) = v1 <> v2
-      algebra (SubValueF v1 v2) = v1 <> v2
-      algebra (MulValueF v1 v2) = v1 <> v2
-      algebra (DivValueF v1 v2 v3) = v1 <> v2 <> v3
-      algebra (ModValueF v1 v2 v3) = v1 <> v2 <> v3
-      algebra (ValueFromChoiceF idChoice value) = S.singleton (InputIdChoice idChoice) <> value
-      algebra (ValueFromOracleF idOracle value) = S.singleton (IdOracle idOracle) <> value
+    algebra :: Algebra ValueF (S.Set IdInput)
+    algebra CurrentBlockF = mempty
+
+    algebra (CommittedF _) = mempty
+
+    algebra (ConstantF _) = mempty
+
+    algebra (NegValueF v) = v
+
+    algebra (AddValueF v1 v2) = v1 <> v2
+
+    algebra (SubValueF v1 v2) = v1 <> v2
+
+    algebra (MulValueF v1 v2) = v1 <> v2
+
+    algebra (DivValueF v1 v2 v3) = v1 <> v2 <> v3
+
+    algebra (ModValueF v1 v2 v3) = v1 <> v2 <> v3
+
+    algebra (ValueFromChoiceF idChoice value) = S.singleton (InputIdChoice idChoice) <> value
+
+    algebra (ValueFromOracleF idOracle value) = S.singleton (IdOracle idOracle) <> value
 
 instance inputsFromObservation :: InputsFrom Observation where
   collectNeededInputs = cata algebra
     where
-      algebra :: Algebra ObservationF (S.Set IdInput)
-      algebra (BelowTimeoutF _) = mempty
-      algebra (AndObsF o1 o2) = o1 <> o2
-      algebra (OrObsF o1 o2) = o1 <> o2
-      algebra (NotObsF o) = o
-      algebra (ChoseThisF idChoice _) = S.singleton (InputIdChoice idChoice)
-      algebra (ChoseSomethingF idChoice) = S.singleton (InputIdChoice idChoice)
-      algebra (ValueGEF v1 v2) = foldMap collectNeededInputs [v1, v2]
-      algebra (ValueGTF v1 v2) = foldMap collectNeededInputs [v1, v2]
-      algebra (ValueLTF v1 v2) = foldMap collectNeededInputs [v1, v2]
-      algebra (ValueLEF v1 v2) = foldMap collectNeededInputs [v1, v2]
-      algebra (ValueEQF v1 v2) = foldMap collectNeededInputs [v1, v2]
-      algebra TrueObsF = mempty
-      algebra FalseObsF = mempty
+    algebra :: Algebra ObservationF (S.Set IdInput)
+    algebra (BelowTimeoutF _) = mempty
+
+    algebra (AndObsF o1 o2) = o1 <> o2
+
+    algebra (OrObsF o1 o2) = o1 <> o2
+
+    algebra (NotObsF o) = o
+
+    algebra (ChoseThisF idChoice _) = S.singleton (InputIdChoice idChoice)
+
+    algebra (ChoseSomethingF idChoice) = S.singleton (InputIdChoice idChoice)
+
+    algebra (ValueGEF v1 v2) = foldMap collectNeededInputs [v1, v2]
+
+    algebra (ValueGTF v1 v2) = foldMap collectNeededInputs [v1, v2]
+
+    algebra (ValueLTF v1 v2) = foldMap collectNeededInputs [v1, v2]
+
+    algebra (ValueLEF v1 v2) = foldMap collectNeededInputs [v1, v2]
+
+    algebra (ValueEQF v1 v2) = foldMap collectNeededInputs [v1, v2]
+
+    algebra TrueObsF = mempty
+
+    algebra FalseObsF = mempty
 
 instance inputsFromContract :: InputsFrom Contract where
   collectNeededInputs = cata algebra
     where
-      algebra :: Algebra ContractF (S.Set IdInput)
-      algebra NullF = mempty
-      algebra (CommitF _ _ _ value _ _ v1 v2) = collectNeededInputs value <> v1 <> v2
-      algebra (PayF _ _ _ value _ v1 v2) = collectNeededInputs value <> v1 <> v2
-      algebra (BothF v1 v2) = v1 <> v2
-      algebra (ChoiceF o v1 v2) = collectNeededInputs o <> v1 <> v2
-      algebra (WhenF o _ v1 v2) = collectNeededInputs o <> v1 <> v2
-      algebra (WhileF o _ v1 v2) = collectNeededInputs o <> v1 <> v2
-      algebra (ScaleF v1 v2 v3 c) = foldMap collectNeededInputs [v1, v2, v3] <> c
-      algebra (LetF _ v1 v2) = v1 <> v2
-      algebra (UseF _) = mempty
+    algebra :: Algebra ContractF (S.Set IdInput)
+    algebra NullF = mempty
+
+    algebra (CommitF _ _ _ value _ _ v1 v2) = collectNeededInputs value <> v1 <> v2
+
+    algebra (PayF _ _ _ value _ v1 v2) = collectNeededInputs value <> v1 <> v2
+
+    algebra (BothF v1 v2) = v1 <> v2
+
+    algebra (ChoiceF o v1 v2) = collectNeededInputs o <> v1 <> v2
+
+    algebra (WhenF o _ v1 v2) = collectNeededInputs o <> v1 <> v2
+
+    algebra (WhileF o _ v1 v2) = collectNeededInputs o <> v1 <> v2
+
+    algebra (ScaleF v1 v2 v3 c) = foldMap collectNeededInputs [v1, v2, v3] <> c
+
+    algebra (LetF _ v1 v2) = v1 <> v2
+
+    algebra (UseF _) = mempty
 
 -- Add inputs and action ids to state.
 -- Return Nothing on redundant or irrelevant inputs
@@ -288,13 +371,13 @@ addAnyInput ::
 --  current block ---^
 addAnyInput _ (Action idInput) _ (State state)
   | idInput `S.member` state.usedIds = Nothing
-  | true = Just (State (state { usedIds = S.insert idInput usedIdsSet }))
+  | true = Just (State (state {usedIds = S.insert idInput usedIdsSet}))
     where
     usedIdsSet = state.usedIds
 
 addAnyInput _ (Input (IChoice idChoice choice)) collectNeededInputs (State state)
   | (WIdChoice idChoice) `M.member` state.choices = Nothing
-  | (InputIdChoice idChoice) `S.member` collectNeededInputs = Just (State (state { choices = M.insert (WIdChoice idChoice) choice state.choices }))
+  | (InputIdChoice idChoice) `S.member` collectNeededInputs = Just (State (state {choices = M.insert (WIdChoice idChoice) choice state.choices}))
   | true = Nothing
 
 addAnyInput blockNumber (Input (IOracle idOracle timestamp value)) collectNeededInputs (State state) = case M.lookup idOracle oracleMap of
@@ -303,10 +386,19 @@ addAnyInput blockNumber (Input (IOracle idOracle timestamp value)) collectNeeded
     else Nothing
   Nothing -> Just newState
   where
-  newState = State (state { oracles = M.insert idOracle (OracleDataPoint { blockNumber: timestamp
-                                                        , value
-                                                        }) oracleMap
-                          })
+  newState =
+    State
+      ( state
+        { oracles =
+          M.insert idOracle
+            ( OracleDataPoint
+              { blockNumber: timestamp
+              , value
+              }
+            ) oracleMap
+        }
+      )
+
   oracleMap = state.oracles
 
 -- Decides whether something has expired
@@ -321,45 +413,67 @@ expireOneCommit ::
   IdCommit ->
   CommitInfo ->
   CommitInfo
-expireOneCommit idCommit (CommitInfo commitInfo) = CommitInfo case M.lookup idCommit currentCommits of
-  Just cir -> let redeemedBefore = case M.lookup (unwrap cir).person redPerPer of
-                                   Just x -> x
-                                   Nothing -> fromInt 0
-                             in commitInfo { redeemedPerPerson = M.insert (unwrap cir).person (redeemedBefore + (unwrap cir).amount) redPerPer, currentCommitsById = M.delete idCommit currentCommits }
-  Nothing -> commitInfo
+expireOneCommit idCommit (CommitInfo commitInfo) =
+  CommitInfo case M.lookup idCommit currentCommits of
+    Just cir ->
+      let
+        redeemedBefore = case M.lookup (unwrap cir).person redPerPer of
+          Just x -> x
+          Nothing -> fromInt 0
+      in
+        commitInfo {redeemedPerPerson = M.insert (unwrap cir).person (redeemedBefore + (unwrap cir).amount) redPerPer, currentCommitsById = M.delete idCommit currentCommits}
+    Nothing -> commitInfo
   where
   redPerPer = commitInfo.redeemedPerPerson
+
   currentCommits = commitInfo.currentCommitsById
 
 expireManyCommits :: S.Set IdCommit -> CommitInfo -> CommitInfo
 expireManyCommits commitIds (CommitInfo commitInfo) = foldr expireOneCommit semiUpdatedCI commitIds
   where
-  semiUpdatedCI = CommitInfo (commitInfo { expiredCommitIds = S.union expiComms commitIds
-                                         })
+  semiUpdatedCI =
+    CommitInfo
+      ( commitInfo
+        { expiredCommitIds = S.union expiComms commitIds
+        }
+      )
+
   expiComms = commitInfo.expiredCommitIds
 
 expireCommitsCI :: BlockNumber -> CommitInfo -> CommitInfo
 expireCommitsCI blockNumber (CommitInfo commitInfo) = case M.findMin timData of
-  Just res -> let minBlock = res.key
-                  commIds = res.value
-                  remTimData = M.delete minBlock timData
-              in if isExpired blockNumber minBlock
-                then let partUpdatedCommitInfo = CommitInfo (commitInfo { timeoutData = remTimData
-                                                                        })
-                         updatedCommitInfo = expireManyCommits commIds partUpdatedCommitInfo
-                     in expireCommitsCI blockNumber updatedCommitInfo
-                else CommitInfo commitInfo
+  Just res ->
+    let
+      minBlock = res.key
+
+      commIds = res.value
+
+      remTimData = M.delete minBlock timData
+    in
+      if isExpired blockNumber minBlock
+        then
+          let
+            partUpdatedCommitInfo =
+              CommitInfo
+                ( commitInfo
+                  { timeoutData = remTimData
+                  }
+                )
+
+            updatedCommitInfo = expireManyCommits commIds partUpdatedCommitInfo
+          in
+            expireCommitsCI blockNumber updatedCommitInfo
+        else CommitInfo commitInfo
   Nothing -> CommitInfo commitInfo
   where
   timData = commitInfo.timeoutData
 
 expireCommits :: BlockNumber -> State -> State
-expireCommits blockNumber (State state) = State (state { commits = expireCommitsCI blockNumber commitInfo })
+expireCommits blockNumber (State state) = State (state {commits = expireCommitsCI blockNumber commitInfo})
   where
   commitInfo = state.commits
 
 -- Evaluate a value
-
 evalValue ::
   BlockNumber ->
   State ->
@@ -367,22 +481,30 @@ evalValue ::
   BigInteger
 evalValue blockNumber state = cata algebra
   where
-    algebra :: Algebra ValueF BigInteger
-    algebra CurrentBlockF = wrap $ unwrap blockNumber
-    algebra (CommittedF idCommit) = getAvailableAmountInCommit idCommit state
-    algebra (ConstantF value) = value
-    algebra (NegValueF value) = -value
-    algebra (AddValueF v1 v2) = v1 + v2
-    algebra (SubValueF v1 v2) = v1 - v2
-    algebra (MulValueF v1 v2) = v1 * v2
-    algebra (DivValueF dividend divisor defaultValue) = if divisor == fromInt 0 then defaultValue else div dividend divisor
-    algebra (ModValueF dividend divisor defaultValue) = if divisor == fromInt 0 then defaultValue else mod dividend divisor
-    algebra (ValueFromChoiceF idChoice val) = fromMaybe val $ M.lookup (WIdChoice idChoice) (unwrap state).choices
-    algebra (ValueFromOracleF idOracle val) = fromMaybe val <<< map (unwrap >>> _.value) $ M.lookup idOracle (unwrap state).oracles
+  algebra :: Algebra ValueF BigInteger
+  algebra CurrentBlockF = wrap $ unwrap blockNumber
+
+  algebra (CommittedF idCommit) = getAvailableAmountInCommit idCommit state
+
+  algebra (ConstantF value) = value
+
+  algebra (NegValueF value) = -value
+
+  algebra (AddValueF v1 v2) = v1 + v2
+
+  algebra (SubValueF v1 v2) = v1 - v2
+
+  algebra (MulValueF v1 v2) = v1 * v2
+
+  algebra (DivValueF dividend divisor defaultValue) = if divisor == fromInt 0 then defaultValue else div dividend divisor
+
+  algebra (ModValueF dividend divisor defaultValue) = if divisor == fromInt 0 then defaultValue else mod dividend divisor
+
+  algebra (ValueFromChoiceF idChoice val) = fromMaybe val $ M.lookup (WIdChoice idChoice) (unwrap state).choices
+
+  algebra (ValueFromOracleF idOracle val) = fromMaybe val <<< map (unwrap >>> _.value) $ M.lookup idOracle (unwrap state).oracles
 
 -- Evaluate an observation
-
-
 evalObservation ::
   BlockNumber ->
   State ->
@@ -390,22 +512,34 @@ evalObservation ::
   Boolean
 evalObservation blockNumber state = cata algebra
   where
-    algebra :: Algebra ObservationF Boolean
-    algebra (BelowTimeoutF timeout) = not (isExpired blockNumber timeout)
-    algebra (AndObsF o1 o2) = o1 && o2
-    algebra (OrObsF o1 o2) = o1 || o2
-    algebra (NotObsF o) = not o
-    algebra (ChoseThisF idChoice choice) = case M.lookup (WIdChoice idChoice) (unwrap state).choices of
-                                            Just actualChoice -> choice == actualChoice
-                                            Nothing -> false
-    algebra (ChoseSomethingF idChoice) = (WIdChoice idChoice) `M.member` (unwrap state).choices
-    algebra (ValueGEF v1 v2) = v1 >= v2
-    algebra (ValueGTF v1 v2) = v1 > v2
-    algebra (ValueLTF v1 v2) = v1 < v2
-    algebra (ValueLEF v1 v2) = v1 <= v2
-    algebra (ValueEQF v1 v2) = v1 == v2
-    algebra TrueObsF = true
-    algebra FalseObsF = false
+  algebra :: Algebra ObservationF Boolean
+  algebra (BelowTimeoutF timeout) = not (isExpired blockNumber timeout)
+
+  algebra (AndObsF o1 o2) = o1 && o2
+
+  algebra (OrObsF o1 o2) = o1 || o2
+
+  algebra (NotObsF o) = not o
+
+  algebra (ChoseThisF idChoice choice) = case M.lookup (WIdChoice idChoice) (unwrap state).choices of
+    Just actualChoice -> choice == actualChoice
+    Nothing -> false
+
+  algebra (ChoseSomethingF idChoice) = (WIdChoice idChoice) `M.member` (unwrap state).choices
+
+  algebra (ValueGEF v1 v2) = v1 >= v2
+
+  algebra (ValueGTF v1 v2) = v1 > v2
+
+  algebra (ValueLTF v1 v2) = v1 < v2
+
+  algebra (ValueLEF v1 v2) = v1 <= v2
+
+  algebra (ValueEQF v1 v2) = v1 == v2
+
+  algebra TrueObsF = true
+
+  algebra FalseObsF = false
 
 isNormalised :: BigInteger -> BigInteger -> Boolean
 isNormalised divid divis = divid == divis && divid /= (fromInt 0)
@@ -428,17 +562,26 @@ maxIdFromContract ::
   LetLabel
 maxIdFromContract = cata algebra
   where
-    algebra :: Algebra ContractF LetLabel
-    algebra NullF = fromInt 0
-    algebra (CommitF _ _ _ _ _ _ contract1 contract2) = max contract1 contract2
-    algebra (PayF _ _ _ _ _ contract1 contract2) = max contract1 contract2
-    algebra (BothF contract1 contract2) = max contract1 contract2
-    algebra (ChoiceF _ contract1 contract2) = max contract1 contract2
-    algebra (WhenF _ _ contract1 contract2) = max contract1 contract2
-    algebra (WhileF _ _ contract1 contract2) = max contract1 contract2
-    algebra (ScaleF _ _ _ contract) = contract
-    algebra (LetF letLabel contract1 contract2) = max letLabel (max contract1 contract2)
-    algebra (UseF letLabel) = letLabel
+  algebra :: Algebra ContractF LetLabel
+  algebra NullF = fromInt 0
+
+  algebra (CommitF _ _ _ _ _ _ contract1 contract2) = max contract1 contract2
+
+  algebra (PayF _ _ _ _ _ contract1 contract2) = max contract1 contract2
+
+  algebra (BothF contract1 contract2) = max contract1 contract2
+
+  algebra (ChoiceF _ contract1 contract2) = max contract1 contract2
+
+  algebra (WhenF _ _ contract1 contract2) = max contract1 contract2
+
+  algebra (WhileF _ _ contract1 contract2) = max contract1 contract2
+
+  algebra (ScaleF _ _ _ contract) = contract
+
+  algebra (LetF letLabel contract1 contract2) = max letLabel (max contract1 contract2)
+
+  algebra (UseF letLabel) = letLabel
 
 -- Looks for an unused label in the Environment and Contract provided
 -- (assuming that labels are numbers)
@@ -446,9 +589,14 @@ getFreshLabel ::
   Environment ->
   Contract ->
   LetLabel
-getFreshLabel env c = (fromInt 1) + (max (case M.findMax env of
-  Nothing -> fromInt 0
-  Just v -> v.key) (maxIdFromContract c))
+getFreshLabel env c =
+  (fromInt 1)
+    + ( max
+        ( case M.findMax env of
+          Nothing -> fromInt 0
+          Just v -> v.key
+        ) (maxIdFromContract c)
+      )
 
 -- We check subcontract in case it uses undefined labels
 -- (to prevent potential infinite loop)
@@ -507,9 +655,12 @@ relabel startLabel endLabel (While observation timeout contract1 contract2) = Wh
 
 relabel startLabel endLabel (Scale value1 value2 value3 contract) = Scale value1 value2 value3 (relabel startLabel endLabel contract)
 
-relabel startLabel endLabel (Let letLabel contract1 contract2) = Let letLabel (relabel startLabel endLabel contract1) (if (letLabel == startLabel)
-  then contract2
-  else relabel startLabel endLabel contract2)
+relabel startLabel endLabel (Let letLabel contract1 contract2) =
+  Let letLabel (relabel startLabel endLabel contract1)
+    ( if (letLabel == startLabel)
+      then contract2
+      else relabel startLabel endLabel contract2
+    )
 
 relabel startLabel endLabel (Use letLabel) = if (letLabel == startLabel)
   then Use endLabel
@@ -536,9 +687,12 @@ reduceRec blockNum state env (Both cont1 cont2) = Both (go cont1) (go cont2)
   where
   go = reduceRec blockNum state env
 
-reduceRec blockNum state env (Choice obs cont1 cont2) = reduceRec blockNum state env (if (evalObservation blockNum state obs)
-  then cont1
-  else cont2)
+reduceRec blockNum state env (Choice obs cont1 cont2) =
+  reduceRec blockNum state env
+    ( if (evalObservation blockNum state obs)
+      then cont1
+      else cont2
+    )
 
 reduceRec blockNum state env c@(When obs timeout cont1 cont2) = if isExpired blockNum timeout
   then go cont2
@@ -551,11 +705,14 @@ reduceRec blockNum state env c@(When obs timeout cont1 cont2) = if isExpired blo
 reduceRec blockNum state env (Scale divid divis def contract) = Scale (Constant vsDivid) (Constant vsDivis) (Constant vsDef) (go contract)
   where
   go = reduceRec blockNum state env
+
   vsDivid = evalValue blockNum state divid
+
   vsDivis = evalValue blockNum state divis
+
   vsDef = evalValue blockNum state def
 
-reduceRec blockNum state env (While obs timeout contractWhile contractAfter) = if isExpired blockNum timeout 
+reduceRec blockNum state env (While obs timeout contractWhile contractAfter) = if isExpired blockNum timeout
   then go contractAfter
   else if evalObservation blockNum state obs
     then (While obs timeout (go contractWhile) contractAfter)
@@ -564,12 +721,20 @@ reduceRec blockNum state env (While obs timeout contractWhile contractAfter) = i
   go = reduceRec blockNum state env
 
 reduceRec blockNum state env (Let label boundContract contract) = case lookupEnvironment label env of
-  Nothing -> let newEnv = addToEnvironment label checkedBoundContract env
-             in Let label checkedBoundContract (reduceRec blockNum state newEnv contract)
-  Just _ -> let freshLabel = getFreshLabel env contract
-                newEnv = addToEnvironment freshLabel checkedBoundContract env
-                fixedContract = relabel label freshLabel contract
-            in Let freshLabel checkedBoundContract (reduceRec blockNum state newEnv fixedContract)
+  Nothing ->
+    let
+      newEnv = addToEnvironment label checkedBoundContract env
+    in
+      Let label checkedBoundContract (reduceRec blockNum state newEnv contract)
+  Just _ ->
+    let
+      freshLabel = getFreshLabel env contract
+
+      newEnv = addToEnvironment freshLabel checkedBoundContract env
+
+      fixedContract = relabel label freshLabel contract
+    in
+      Let freshLabel checkedBoundContract (reduceRec blockNum state newEnv fixedContract)
   where
   checkedBoundContract = nullifyInvalidUses env boundContract
 
@@ -591,55 +756,81 @@ reduce blockNum state contract = reduceRec blockNum state emptyEnvironment contr
 simplify :: Contract -> Contract
 simplify c = (cata algebra c).contract
   where
-    algebra :: Algebra ContractF {contract :: Contract, uses :: S.Set LetLabel}
-    algebra NullF = { contract: Null, uses: mempty }
-    algebra (CommitF idAction idCommit person value timeout1 timeout2 v1 v2) = { contract: Commit idAction idCommit person value timeout1 timeout2 v1.contract v2.contract
-                                                                               , uses: v1.uses <> v2.uses
-                                                                               }
-    algebra (PayF idAction idCommit person value timeout v1 v2) = { contract: Pay idAction idCommit person value timeout v1.contract v2.contract
-                                                                                , uses: v1.uses <> v2.uses
-                                                                                }
-    algebra (BothF { contract: Null, uses: _} v2) = v2
-    algebra (BothF v1 { contract: Null, uses: _}) = v1
-    algebra (BothF v1 v2) = { contract: Both v1.contract v2.contract, uses: v1.uses <> v2.uses }
-    algebra (ChoiceF observation v1 v2) = let contract = if (v1.contract == Null) && (v2.contract == Null)
-                                                then Null
-                                                else Choice observation v1.contract v2.contract
-                                              uses = v1.uses <> v2.uses
-                                          in { contract, uses }
-    algebra (WhenF observation timeout v1 v2) = let contract = if (v1.contract == Null) && (v2.contract == Null)
-                                                      then Null
-                                                      else When observation timeout v1.contract v2.contract
-                                                    uses = v1.uses <> v2.uses
-                                                in { contract
-                                                   , uses
-                                                   }
-    algebra (WhileF observation timeout v1 v2) = if (v1.contract == Null) && (v2.contract == Null)
-                                                 then { contract: Null
-                                                      , uses: mempty
-                                                      }
-                                                 else { contract: While observation timeout v1.contract v2.contract
-                                                      , uses: v1.uses <> v2.uses
-                                                      }
+  algebra :: Algebra ContractF {contract :: Contract, uses :: S.Set LetLabel}
+  algebra NullF = {contract: Null, uses: mempty}
 
-    algebra (ScaleF value1 value2 value3 v) = if (v.contract == Null)
-                                              then { contract: Null
-                                                   , uses: mempty
-                                                   }
-                                              else { contract: Scale value1 value2 value3 v.contract
-                                                   , uses: v.uses
-                                                   }
-    algebra (LetF letLabel v1 v2) = if S.member letLabel v2.uses
-                                    then { contract: Let letLabel v1.contract v2.contract
-                                         , uses: v1.uses <> (S.delete letLabel v2.uses)
-                                         }
-                                    else { contract: v2.contract
-                                         , uses: v2.uses
-                                         }
+  algebra (CommitF idAction idCommit person value timeout1 timeout2 v1 v2) =
+    { contract: Commit idAction idCommit person value timeout1 timeout2 v1.contract v2.contract
+    , uses: v1.uses <> v2.uses
+    }
 
-    algebra (UseF letLabel) = { contract: Use letLabel
-                              , uses: S.singleton letLabel
-                              }
+  algebra (PayF idAction idCommit person value timeout v1 v2) =
+    { contract: Pay idAction idCommit person value timeout v1.contract v2.contract
+    , uses: v1.uses <> v2.uses
+    }
+
+  algebra (BothF {contract: Null, uses: _} v2) = v2
+
+  algebra (BothF v1 {contract: Null, uses: _}) = v1
+
+  algebra (BothF v1 v2) = {contract: Both v1.contract v2.contract, uses: v1.uses <> v2.uses}
+
+  algebra (ChoiceF observation v1 v2) =
+    let
+      contract = if (v1.contract == Null) && (v2.contract == Null)
+        then Null
+        else Choice observation v1.contract v2.contract
+
+      uses = v1.uses <> v2.uses
+    in
+      {contract, uses}
+
+  algebra (WhenF observation timeout v1 v2) =
+    let
+      contract = if (v1.contract == Null) && (v2.contract == Null)
+        then Null
+        else When observation timeout v1.contract v2.contract
+
+      uses = v1.uses <> v2.uses
+    in
+      { contract
+      , uses
+      }
+
+  algebra (WhileF observation timeout v1 v2) = if (v1.contract == Null) && (v2.contract == Null)
+    then
+      { contract: Null
+      , uses: mempty
+      }
+    else
+      { contract: While observation timeout v1.contract v2.contract
+      , uses: v1.uses <> v2.uses
+      }
+
+  algebra (ScaleF value1 value2 value3 v) = if (v.contract == Null)
+    then
+      { contract: Null
+      , uses: mempty
+      }
+    else
+      { contract: Scale value1 value2 value3 v.contract
+      , uses: v.uses
+      }
+
+  algebra (LetF letLabel v1 v2) = if S.member letLabel v2.uses
+    then
+      { contract: Let letLabel v1.contract v2.contract
+      , uses: v1.uses <> (S.delete letLabel v2.uses)
+      }
+    else
+      { contract: v2.contract
+      , uses: v2.uses
+      }
+
+  algebra (UseF letLabel) =
+    { contract: Use letLabel
+    , uses: S.singleton letLabel
+    }
 
 -- How much everybody pays or receives in transaction
 type TransactionOutcomes
@@ -649,8 +840,10 @@ emptyOutcome :: TransactionOutcomes
 emptyOutcome = M.empty
 
 isEmptyOutcome :: TransactionOutcomes -> Boolean
-isEmptyOutcome trOut = F.all (\x ->
-  x == (fromInt 0)) trOut
+isEmptyOutcome trOut =
+  F.all
+    ( \x -> x == (fromInt 0)
+    ) trOut
 
 -- Adds a value to the map of outcomes
 addOutcome ::
@@ -660,8 +853,9 @@ addOutcome ::
   TransactionOutcomes
 addOutcome person diffValue trOut = M.alter f person trOut
   where
-    f (Just value) = Just $ value + diffValue
-    f Nothing = Just diffValue
+  f (Just value) = Just $ value + diffValue
+
+  f Nothing = Just diffValue
 
 -- Get effect of outcomes on the bank of the contract
 outcomeEffect ::
@@ -721,124 +915,143 @@ fetchPrimitive ::
   FetchResult {prim :: DetachedPrimitive, contract :: Contract}
 --                                 Remaining contract --^
 fetchPrimitive idAction blockNum state (Commit idActionC idCommit person value _ timeout continuation _) = if (idAction == idActionC && notCurrentCommit && notExpiredCommit)
-  then Picked { prim: (DCommit idCommit person actualValue timeout)
-              , contract: continuation
-              }
+  then
+    Picked
+      { prim: (DCommit idCommit person actualValue timeout)
+      , contract: continuation
+      }
   else NoMatch
   where
   notCurrentCommit = not (isCurrentCommit idCommit state)
+
   notExpiredCommit = not (isExpiredCommit idCommit state)
+
   actualValue = evalValue blockNum state value
 
 fetchPrimitive idAction blockNum state (Pay idActionC idCommit person value _ continuation _) = if (idAction == idActionC)
-  then Picked { prim: (DPay idCommit person actualValue)
-              , contract: continuation
-              }
+  then
+    Picked
+      { prim: (DPay idCommit person actualValue)
+      , contract: continuation
+      }
   else NoMatch
   where
   actualValue = evalValue blockNum state value
 
 fetchPrimitive idAction blockNum state (Both leftContract rightContract) = case Tuple (go leftContract) (go rightContract) of
-  Tuple (Picked v) NoMatch -> Picked { prim: v.prim
-                                     , contract: Both v.contract rightContract
-                                     }
-  Tuple NoMatch (Picked v) -> Picked { prim: v.prim
-                                     , contract: Both leftContract v.contract
-                                     }
+  Tuple (Picked v) NoMatch ->
+    Picked
+      { prim: v.prim
+      , contract: Both v.contract rightContract
+      }
+  Tuple NoMatch (Picked v) ->
+    Picked
+      { prim: v.prim
+      , contract: Both leftContract v.contract
+      }
   Tuple NoMatch NoMatch -> NoMatch
   _ -> MultipleMatches
   where
   go = fetchPrimitive idAction blockNum state
 
 fetchPrimitive idAction blockNum state (While obs timeout contract1 contract2) = case fetchPrimitive idAction blockNum state contract1 of
-  Picked v -> Picked { prim: v.prim
-                     , contract: While obs timeout v.contract contract2
-                     }
+  Picked v ->
+    Picked
+      { prim: v.prim
+      , contract: While obs timeout v.contract contract2
+      }
   NoMatch -> NoMatch
   MultipleMatches -> MultipleMatches
 
 fetchPrimitive idAction blockNum state (Let label boundContract subContract) = case fetchPrimitive idAction blockNum state subContract of
-  Picked v -> Picked { prim: v.prim
-                     , contract: Let label boundContract v.contract
-                     }
+  Picked v ->
+    Picked
+      { prim: v.prim
+      , contract: Let label boundContract v.contract
+      }
   NoMatch -> NoMatch
   MultipleMatches -> MultipleMatches
 
 fetchPrimitive idAction blockNum state (Scale divid divis def subContract) = case fetchPrimitive idAction blockNum state subContract of
-  Picked v -> Picked { prim: scaleResult sDivid sDivis sDef v.prim
-                     , contract: Scale divid divis def v.contract
-                     }
+  Picked v ->
+    Picked
+      { prim: scaleResult sDivid sDivis sDef v.prim
+      , contract: Scale divid divis def v.contract
+      }
   NoMatch -> NoMatch
   MultipleMatches -> MultipleMatches
   where
   sDivid = evalValue blockNum state divid
+
   sDivis = evalValue blockNum state divis
+
   sDef = evalValue blockNum state def
 
 fetchPrimitive _ _ _ _ = NoMatch
 
 -- Gather all the primitives that are reachable given the current state of the contract 
 scoutPrimitivesAux :: BlockNumber -> State -> Contract -> M.Map IdAction (Maybe DetachedPrimitive)
-scoutPrimitivesAux blockNum state (Commit idActionC idCommit person value _ timeout continuation _) =
-  if (notCurrentCommit && notExpiredCommit)
+scoutPrimitivesAux blockNum state (Commit idActionC idCommit person value _ timeout continuation _) = if (notCurrentCommit && notExpiredCommit)
   then M.insert idActionC (Just (DCommit idCommit person actualValue timeout)) M.empty
-  else M.empty 
+  else M.empty
   where
   notCurrentCommit = not (isCurrentCommit idCommit state)
+
   notExpiredCommit = not (isExpiredCommit idCommit state)
+
   actualValue = evalValue blockNum state value
 
-scoutPrimitivesAux blockNum state (Pay idActionC idCommit person value _ continuation _) =
-  M.insert idActionC (Just (DPay idCommit person actualValue)) M.empty
+scoutPrimitivesAux blockNum state (Pay idActionC idCommit person value _ continuation _) = M.insert idActionC (Just (DPay idCommit person actualValue)) M.empty
   where
   actualValue = evalValue blockNum state value
 
-scoutPrimitivesAux blockNum state (Both leftContract rightContract) =
-  M.unionWith (\_ _ -> Nothing) leftC rightC 
+scoutPrimitivesAux blockNum state (Both leftContract rightContract) = M.unionWith (\_ _ -> Nothing) leftC rightC
   where
   leftC = go leftContract
+
   rightC = go rightContract
+
   go = scoutPrimitivesAux blockNum state
 
-scoutPrimitivesAux blockNum state (While obs timeout contract1 contract2) =
-  scoutPrimitivesAux blockNum state contract1
+scoutPrimitivesAux blockNum state (While obs timeout contract1 contract2) = scoutPrimitivesAux blockNum state contract1
 
-scoutPrimitivesAux blockNum state (Let label boundContract subContract) =
-  scoutPrimitivesAux blockNum state subContract
+scoutPrimitivesAux blockNum state (Let label boundContract subContract) = scoutPrimitivesAux blockNum state subContract
 
-scoutPrimitivesAux blockNum state (Scale divid divis def subContract) =
-  map (\x -> (scaleResult sDivid sDivis sDef) <$> x) subC
+scoutPrimitivesAux blockNum state (Scale divid divis def subContract) = map (\x -> (scaleResult sDivid sDivis sDef) <$> x) subC
   where
   subC = scoutPrimitivesAux blockNum state subContract
+
   sDivid = evalValue blockNum state divid
+
   sDivis = evalValue blockNum state divis
+
   sDef = evalValue blockNum state def
 
-scoutPrimitivesAux _ _ _ = M.empty 
+scoutPrimitivesAux _ _ _ = M.empty
 
-data DetachedPrimitiveWIA =
-    DWAICommit IdAction IdCommit BigInteger Timeout
+data DetachedPrimitiveWIA
+  = DWAICommit IdAction IdCommit BigInteger Timeout
   | DWAIPay IdAction IdCommit BigInteger
 
 addMaybePrimitive :: IdAction -> Maybe DetachedPrimitive -> M.Map Person (List DetachedPrimitiveWIA) -> M.Map Person (List DetachedPrimitiveWIA)
 addMaybePrimitive _ Nothing x = x
-addMaybePrimitive idAction (Just (DCommit idCommit person val timeout)) pmap =
-    M.insert person (Cons (DWAICommit idAction idCommit val timeout) plist) pmap
+
+addMaybePrimitive idAction (Just (DCommit idCommit person val timeout)) pmap = M.insert person (Cons (DWAICommit idAction idCommit val timeout) plist) pmap
   where
   plist = case M.lookup person pmap of
-            Just l -> l
-            Nothing -> Nil
-addMaybePrimitive idAction (Just (DPay idCommit person val)) pmap =
-    M.insert person (Cons (DWAIPay idAction idCommit val) plist) pmap
+    Just l -> l
+    Nothing -> Nil
+
+addMaybePrimitive idAction (Just (DPay idCommit person val)) pmap = M.insert person (Cons (DWAIPay idAction idCommit val) plist) pmap
   where
   plist = case M.lookup person pmap of
-            Just l -> l
-            Nothing -> Nil
+    Just l -> l
+    Nothing -> Nil
 
 scoutPrimitives :: BlockNumber -> State -> Contract -> M.Map Person (List DetachedPrimitiveWIA)
-scoutPrimitives blockNum state contract =
-  foldrWithIndexDefault addMaybePrimitive M.empty res
-  where res = scoutPrimitivesAux blockNum state contract
+scoutPrimitives blockNum state contract = foldrWithIndexDefault addMaybePrimitive M.empty res
+  where
+  res = scoutPrimitivesAux blockNum state contract
 
 data DynamicProblem
   = NoProblem
@@ -862,25 +1075,35 @@ eval ::
   EvaluationResult {outcome :: TransactionOutcomes, state :: State}
 eval (DCommit idCommit person value timeout) state = if (isCurrentCommit idCommit state) || (isExpiredCommit idCommit state)
   then InconsistentState
-  else Result { outcome: addOutcome person (-value) emptyOutcome
-              , state: addCommit idCommit person value timeout state
-              } NoProblem
+  else
+    Result
+      { outcome: addOutcome person (-value) emptyOutcome
+      , state: addCommit idCommit person value timeout state
+      } NoProblem
 
 eval (DPay idCommit person value) state = if (not (isCurrentCommit idCommit state))
-  then (if (not (isExpiredCommit idCommit state))
-    then Result { outcome: emptyOutcome, state } CommitNotMade
-    else Result { outcome: emptyOutcome, state } CommitIsExpired)
-  else (if value > maxValue
-    then case discountAvailableMoneyFromCommit idCommit maxValue state of
-      Just newState -> Result { outcome: addOutcome person maxValue emptyOutcome
-                              , state: newState
-                              } NotEnoughMoneyLeftInCommit
-      Nothing -> InconsistentState
-    else case discountAvailableMoneyFromCommit idCommit value state of
-      Just newState -> Result { outcome: addOutcome person value emptyOutcome
-                              , state: newState
-                              } NoProblem
-      Nothing -> InconsistentState)
+  then
+    ( if (not (isExpiredCommit idCommit state))
+      then Result {outcome: emptyOutcome, state} CommitNotMade
+      else Result {outcome: emptyOutcome, state} CommitIsExpired
+    )
+  else
+    ( if value > maxValue
+      then case discountAvailableMoneyFromCommit idCommit maxValue state of
+        Just newState ->
+          Result
+            { outcome: addOutcome person maxValue emptyOutcome
+            , state: newState
+            } NotEnoughMoneyLeftInCommit
+        Nothing -> InconsistentState
+      else case discountAvailableMoneyFromCommit idCommit value state of
+        Just newState ->
+          Result
+            { outcome: addOutcome person value emptyOutcome
+            , state: newState
+            } NoProblem
+        Nothing -> InconsistentState
+    )
   where
   maxValue = getAvailableAmountInCommit idCommit state
 
@@ -917,7 +1140,9 @@ data ErrorResult
 derive instance eqErrorResult :: Eq ErrorResult
 
 derive instance ordErrorResult :: Ord ErrorResult
+
 derive instance genericErrorResult :: Generic ErrorResult _
+
 instance showErrorResult :: Show ErrorResult where
   show = genericShow
 
@@ -938,20 +1163,24 @@ applyAnyInput ::
 applyAnyInput anyInput sigs collectNeededInputs blockNum state contract = case addAnyInput blockNum anyInput collectNeededInputs state of
   Just updatedState -> case anyInput of
     Input input -> if areInputPermissionsValid input sigs
-      then SuccessfullyApplied { outcome: emptyOutcome
-                               , state: updatedState
-                               , contract
-                               } NoProblem
+      then
+        SuccessfullyApplied
+          { outcome: emptyOutcome
+          , state: updatedState
+          , contract
+          } NoProblem
       else CouldNotApply NoValidSignature
     Action idAction -> case fetchPrimitive idAction blockNum updatedState contract of
       Picked v -> case eval v.prim updatedState of
         Result v2 dynamicProblem -> if isTransactionNegative v.prim
           then CouldNotApply NegativeTransaction
           else if areActionPermissionsValid v.prim sigs
-            then SuccessfullyApplied { outcome: v2.outcome
-                                     , state: v2.state
-                                     , contract: v.contract
-                                     } dynamicProblem
+            then
+              SuccessfullyApplied
+                { outcome: v2.outcome
+                , state: v2.state
+                , contract: v.contract
+                } dynamicProblem
             else CouldNotApply NoValidSignature
         InconsistentState -> CouldNotApply InternalError
       NoMatch -> CouldNotApply InvalidInput
@@ -965,14 +1194,15 @@ redeemMoney ::
   {outcome :: TransactionOutcomes, state :: State}
 redeemMoney sigs initialState = foldr f init sigs
   where
-    init = {outcome: emptyOutcome, state: initialState} 
-    f person c = let
-                    redeemed = getRedeemedForPerson person c.state
-                  in
-                    { outcome: addOutcome person redeemed c.outcome
-                    , state: resetRedeemedForPerson person c.state
-                    }
+  init = {outcome: emptyOutcome, state: initialState}
 
+  f person c =
+    let
+      redeemed = getRedeemedForPerson person c.state
+    in
+      { outcome: addOutcome person redeemed c.outcome
+      , state: resetRedeemedForPerson person c.state
+      }
 
 data MApplicationResult a
   = MSuccessfullyApplied a (List DynamicProblem)
@@ -992,25 +1222,41 @@ applyAnyInputs ::
   TransactionOutcomes ->
   List DynamicProblem ->
   MApplicationResult {funds :: BigInteger, outcome :: TransactionOutcomes, state :: State, contract :: Contract}
-applyAnyInputs Nil sigs _ _ state contract value trOut dynProbList = let v = redeemMoney sigs state
-                                                                         newValue = value + outcomeEffect v.outcome
-                                                                     in if newValue < fromInt 0
-                                                                       then MCouldNotApply InternalError
-                                                                       else let newTrOut = combineOutcomes v.outcome trOut
-                                                                                simplifiedContract = simplify contract
-                                                                            in MSuccessfullyApplied { funds: newValue
-                                                                                                    , outcome: newTrOut
-                                                                                                    , state: v.state
-                                                                                                    , contract: simplifiedContract
-                                                                                                    } dynProbList
+applyAnyInputs Nil sigs _ _ state contract value trOut dynProbList =
+  let
+    v = redeemMoney sigs state
+
+    newValue = value + outcomeEffect v.outcome
+  in
+    if newValue < fromInt 0
+      then MCouldNotApply InternalError
+      else
+        let
+          newTrOut = combineOutcomes v.outcome trOut
+
+          simplifiedContract = simplify contract
+        in
+          MSuccessfullyApplied
+            { funds: newValue
+            , outcome: newTrOut
+            , state: v.state
+            , contract: simplifiedContract
+            } dynProbList
 
 applyAnyInputs (Cons h t) sigs collectNeededInputs blockNum state contract value trOut dynProbList = case applyAnyInput h sigs collectNeededInputs blockNum state contract of
-  SuccessfullyApplied v newDynProb -> let newValue = value + outcomeEffect v.outcome
-                                      in if newValue < fromInt 0
-                                        then MCouldNotApply InternalError
-                                        else let newTrOut = combineOutcomes v.outcome trOut
-                                                 reducedNewContract = reduce blockNum v.state v.contract
-                                             in applyAnyInputs t sigs collectNeededInputs blockNum v.state reducedNewContract newValue newTrOut (concat (Cons dynProbList (Cons (Cons newDynProb Nil) Nil)))
+  SuccessfullyApplied v newDynProb ->
+    let
+      newValue = value + outcomeEffect v.outcome
+    in
+      if newValue < fromInt 0
+        then MCouldNotApply InternalError
+        else
+          let
+            newTrOut = combineOutcomes v.outcome trOut
+
+            reducedNewContract = reduce blockNum v.state v.contract
+          in
+            applyAnyInputs t sigs collectNeededInputs blockNum v.state reducedNewContract newValue newTrOut (concat (Cons dynProbList (Cons (Cons newDynProb Nil) Nil)))
   CouldNotApply currError -> MCouldNotApply currError
 
 -- Expire commits and apply applyAnyInputs
@@ -1029,7 +1275,9 @@ applyTransaction inputs sigs blockNum state contract value = case appResult of
   _ -> appResult
   where
   expiredState = expireCommits blockNum state
+
   reducedContract = reduce blockNum expiredState contract
+
   appResult = applyAnyInputs inputs sigs (collectNeededInputs contract) blockNum expiredState reducedContract value emptyOutcome Nil
 
 -- Extract participants from state and contract
@@ -1037,60 +1285,90 @@ class PeopleFrom a where
   peopleFrom :: a -> S.Set Person
 
 instance peopleFromCommitInfo :: PeopleFrom CommitInfo where
-  peopleFrom (CommitInfo { redeemedPerPerson: rpp, currentCommitsById: ccbi })
-    = S.fromFoldable (M.keys rpp) <> foldMap (unwrap >>> _.person >>> S.singleton) (M.values ccbi)
+  peopleFrom (CommitInfo {redeemedPerPerson: rpp, currentCommitsById: ccbi}) = S.fromFoldable (M.keys rpp) <> foldMap (unwrap >>> _.person >>> S.singleton) (M.values ccbi)
 
 instance peopleFromState :: PeopleFrom State where
-  peopleFrom (State { commits: comm }) = peopleFrom comm
+  peopleFrom (State {commits: comm}) = peopleFrom comm
 
 instance peopleFromValue :: PeopleFrom Value where
   peopleFrom = cata algebra
     where
-      algebra :: Algebra ValueF (S.Set Person)
-      algebra CurrentBlockF = mempty
-      algebra (CommittedF _) = mempty
-      algebra (ConstantF _) = mempty
-      algebra (NegValueF value) = value
-      algebra (AddValueF value1 value2) = value1 <> value2
-      algebra (SubValueF value1 value2) = value1 <> value2
-      algebra (MulValueF value1 value2) = value1 <> value2
-      algebra (DivValueF value1 value2 value3) = value1 <> value2 <> value3
-      algebra (ModValueF value1 value2 value3) = value1 <> value2 <> value3
-      algebra (ValueFromChoiceF v value) = S.singleton (unwrap v).person <> value
-      algebra (ValueFromOracleF _ value) = value
+    algebra :: Algebra ValueF (S.Set Person)
+    algebra CurrentBlockF = mempty
+
+    algebra (CommittedF _) = mempty
+
+    algebra (ConstantF _) = mempty
+
+    algebra (NegValueF value) = value
+
+    algebra (AddValueF value1 value2) = value1 <> value2
+
+    algebra (SubValueF value1 value2) = value1 <> value2
+
+    algebra (MulValueF value1 value2) = value1 <> value2
+
+    algebra (DivValueF value1 value2 value3) = value1 <> value2 <> value3
+
+    algebra (ModValueF value1 value2 value3) = value1 <> value2 <> value3
+
+    algebra (ValueFromChoiceF v value) = S.singleton (unwrap v).person <> value
+
+    algebra (ValueFromOracleF _ value) = value
 
 instance peopleFromObservation :: PeopleFrom Observation where
   peopleFrom = cata algebra
     where
-      algebra :: Algebra ObservationF (S.Set Person)
-      algebra (BelowTimeoutF _) = mempty
-      algebra (AndObsF observation1 observation2) = observation1 <> observation2
-      algebra (OrObsF observation1 observation2) = observation1 <> observation2
-      algebra (NotObsF observation) = observation
-      algebra (ChoseThisF v _) = S.singleton (unwrap v).person
-      algebra (ChoseSomethingF v) = S.singleton (unwrap v).person
-      algebra (ValueGEF value1 value2) = peopleFrom value1 <> peopleFrom value2
-      algebra (ValueGTF value1 value2) = peopleFrom value1 <> peopleFrom value2
-      algebra (ValueLTF value1 value2) = peopleFrom value1 <> peopleFrom value2
-      algebra (ValueLEF value1 value2) = peopleFrom value1 <> peopleFrom value2
-      algebra (ValueEQF value1 value2) = peopleFrom value1 <> peopleFrom value2
-      algebra TrueObsF = mempty
-      algebra FalseObsF = mempty
+    algebra :: Algebra ObservationF (S.Set Person)
+    algebra (BelowTimeoutF _) = mempty
+
+    algebra (AndObsF observation1 observation2) = observation1 <> observation2
+
+    algebra (OrObsF observation1 observation2) = observation1 <> observation2
+
+    algebra (NotObsF observation) = observation
+
+    algebra (ChoseThisF v _) = S.singleton (unwrap v).person
+
+    algebra (ChoseSomethingF v) = S.singleton (unwrap v).person
+
+    algebra (ValueGEF value1 value2) = peopleFrom value1 <> peopleFrom value2
+
+    algebra (ValueGTF value1 value2) = peopleFrom value1 <> peopleFrom value2
+
+    algebra (ValueLTF value1 value2) = peopleFrom value1 <> peopleFrom value2
+
+    algebra (ValueLEF value1 value2) = peopleFrom value1 <> peopleFrom value2
+
+    algebra (ValueEQF value1 value2) = peopleFrom value1 <> peopleFrom value2
+
+    algebra TrueObsF = mempty
+
+    algebra FalseObsF = mempty
 
 instance peopleFromContract :: PeopleFrom Contract where
   peopleFrom = cata algebra
     where
-      algebra :: Algebra ContractF (S.Set Person)
-      algebra NullF = mempty
-      algebra (CommitF _ _ person value _ _ v1 v2) = S.singleton person <> peopleFrom value <> v1 <> v2
-      algebra (PayF _ _ person value _  v1 v2) = S.singleton person <> peopleFrom value <> v1 <> v2
-      algebra (BothF v1 v2) = v1 <> v2
-      algebra (ChoiceF observation v1 v2) = peopleFrom observation <> v1 <> v2
-      algebra (WhenF observation _ v1 v2) = peopleFrom observation <> v1 <> v2
-      algebra (WhileF observation _ v1 v2) = peopleFrom observation <> v1 <> v2
-      algebra (ScaleF v1 v2 v3 c) = foldMap peopleFrom [v1, v2, v3] <> c
-      algebra (LetF _ v1 v2) = v1 <> v2
-      algebra (UseF _) = mempty
+    algebra :: Algebra ContractF (S.Set Person)
+    algebra NullF = mempty
+
+    algebra (CommitF _ _ person value _ _ v1 v2) = S.singleton person <> peopleFrom value <> v1 <> v2
+
+    algebra (PayF _ _ person value _ v1 v2) = S.singleton person <> peopleFrom value <> v1 <> v2
+
+    algebra (BothF v1 v2) = v1 <> v2
+
+    algebra (ChoiceF observation v1 v2) = peopleFrom observation <> v1 <> v2
+
+    algebra (WhenF observation _ v1 v2) = peopleFrom observation <> v1 <> v2
+
+    algebra (WhileF observation _ v1 v2) = peopleFrom observation <> v1 <> v2
+
+    algebra (ScaleF v1 v2 v3 c) = foldMap peopleFrom [v1, v2, v3] <> c
+
+    algebra (LetF _ v1 v2) = v1 <> v2
+
+    algebra (UseF _) = mempty
 
 peopleFromStateAndContract :: State -> Contract -> List Person
 peopleFromStateAndContract sta con = S.toUnfoldable (peopleFrom sta <> peopleFrom con)

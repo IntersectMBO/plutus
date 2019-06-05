@@ -1,4 +1,6 @@
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 -- | On-chain code fragments for creating a state machine. First
 --   define a @StateMachine s i@ with input type @i@ and state type @s@. Then
 --   use 'mkValidator' in on-chain code to check the required hashes and
@@ -12,10 +14,10 @@ module Language.PlutusTx.StateMachine(
     ) where
 
 
-import qualified Language.PlutusTx as P
+import           Language.PlutusTx.Prelude
 
-import           Ledger.Validation (PendingTx)
-import qualified Ledger.Validation as V
+import           Ledger.Validation         (PendingTx)
+import qualified Ledger.Validation         as V
 
 -- | Specification of a state machine
 data StateMachine s i = StateMachine {
@@ -45,16 +47,16 @@ mkValidator sm (currentState, _) (newState, Just input) p =
         expectedState = trans currentState input
 
         stateOk =
-            P.traceIfFalseH "State transition invalid - 'expectedState' not equal to 'newState'"
+            traceIfFalseH "State transition invalid - 'expectedState' not equal to 'newState'"
             (sEq expectedState newState)
 
         dataScriptHashOk =
             let relevantOutputs =
-                    P.map P.fst
+                    map fst
                     (V.scriptOutputsAt vh p)
-                dsHashOk (V.DataScriptHash dh) = P.equalsByteString dh rh
+                dsHashOk (V.DataScriptHash dh) = equalsByteString dh rh
             in
-                P.traceIfFalseH "State transition invalid - data script hash not equal to redeemer hash"
-                (P.all dsHashOk relevantOutputs)
-    in stateOk `P.and` dataScriptHashOk
+                traceIfFalseH "State transition invalid - data script hash not equal to redeemer hash"
+                (all dsHashOk relevantOutputs)
+    in stateOk && dataScriptHashOk
 mkValidator _ _ _ _ = False

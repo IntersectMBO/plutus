@@ -32,6 +32,8 @@ common lang
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
+                 -- See Plutus Tx readme
+                 -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
 
 flag development
     description:
@@ -137,7 +139,7 @@ library plutus-ledger
         operational -any,
         serialise -any,
         servant -any,
-        swagger2 -any,
+        swagger2 <2.4,
         template-haskell -any,
         text -any,
         transformers -any,

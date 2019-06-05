@@ -45,8 +45,8 @@ library
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
-                 -- Needed for GHCI to work with the plugin
-                 -fobject-code
+                 -- See Plutus Tx readme
+                 -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     build-depends:
         plutus-tx -any,
         plutus-wallet-api -any,

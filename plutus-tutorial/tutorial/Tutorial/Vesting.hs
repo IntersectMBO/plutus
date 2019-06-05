@@ -1,7 +1,9 @@
-{-# LANGUAGE DataKinds       #-}
-{-# LANGUAGE DeriveGeneric   #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-
     A vesting contract in Plutus
 
@@ -20,12 +22,13 @@ import           GHC.Generics              (Generic)
 import qualified Data.Map                  as Map
 import qualified Data.Set                  as Set
 
-import qualified Language.PlutusTx         as P
+import           Language.PlutusTx.Prelude
+import qualified Language.PlutusTx         as PlutusTx
 import           Ledger                    (Address, DataScript(..), RedeemerScript(..), Slot, TxOutRef, TxIn, ValidatorScript(..))
 import qualified Ledger                    as L
 import           Ledger.Ada                (Ada)
 import qualified Ledger.Ada                as Ada
-import qualified Ledger.Ada             as ATH
+import qualified Ledger.Ada                as ATH
 import qualified Ledger.Interval           as Interval
 import qualified Ledger.Slot               as Slot
 import qualified Ledger.Validation         as V
@@ -67,7 +70,7 @@ data VestingTranche = VestingTranche {
     -- ^ How much money is locked in this tranche
     } deriving (Generic)
 
-P.makeLift ''VestingTranche
+PlutusTx.makeLift ''VestingTranche
 
 -- | A vesting scheme consisting of two tranches. Each tranche defines a date
 --   (slot) after which an additional amount of money can be spent.
@@ -83,7 +86,7 @@ data Vesting = Vesting {
     --   it has been released)
     } deriving (Generic)
 
-P.makeLift ''Vesting
+PlutusTx.makeLift ''Vesting
 
 -- | The total amount of Ada locked by a vesting scheme
 totalVested :: Vesting -> Ada
@@ -199,7 +202,7 @@ vestingValidator v = ValidatorScript val where
             con2 :: Bool
             con2 = V.txSignedBy p owner
 
-        in con1 `P.and` con2
+        in con1 && con2
         ||])
 
 contractAddress :: Vesting -> Address

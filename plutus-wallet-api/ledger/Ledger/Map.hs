@@ -4,11 +4,13 @@
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE MonoLocalBinds       #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 -- Prevent unboxing, which the plugin can't deal with
 {-# OPTIONS_GHC -fno-strictness #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 -- A map implementation that can be used in on-chain and off-chain code.
 module Ledger.Map(
     Map
@@ -33,8 +35,8 @@ import           Data.Hashable                (Hashable)
 import           Data.Swagger.Internal.Schema (ToSchema)
 import           GHC.Generics                 (Generic)
 import           Language.PlutusTx.Lift       (makeLift)
+import           Language.PlutusTx.Prelude    hiding (all, lookup, map)
 import qualified Language.PlutusTx.Prelude    as P
-import           Prelude                      hiding (all, lookup, map)
 
 import           Ledger.These
 
@@ -104,12 +106,12 @@ union eq (Map ls) (Map rs) =
         ls' = P.map (\(c, i) -> (c, f i (lookup eq c (Map rs)))) ls
 
         rs' :: [(k, r)]
-        rs' = P.filter (\(c, _) -> P.not (P.any (\(c', _) -> eq c' c) ls)) rs
+        rs' = filter (\(c, _) -> not (any (\(c', _) -> eq c' c) ls)) rs
 
         rs'' :: [(k, These v r)]
         rs'' = P.map (\(c, b) -> (c, That b)) rs'
 
-    in Map (P.append ls' rs'')
+    in Map (append ls' rs'')
 
 {-# INLINABLE all #-}
 -- | See 'Data.Map.all'
@@ -117,7 +119,7 @@ all :: (v -> Bool) -> Map k v -> Bool
 all p (Map mps) =
     let go xs = case xs of
             []              -> True
-            (_ :: k, x):xs' -> P.and (p x) (go xs')
+            (_ :: k, x):xs' -> p x && go xs'
     in go mps
 
 {-# INLINABLE singleton #-}
@@ -125,8 +127,8 @@ all p (Map mps) =
 singleton :: k -> v -> Map k v
 singleton c i = Map [(c, i)]
 
+-- This has to take unit otherwise it falls foul of the value restriction.
 {-# INLINABLE empty #-}
--- this has to take unit otherwise it falls foul of the value restriction
 -- | An empty 'Map'.
 empty :: () -> Map k v
 empty _ = Map ([] :: [(k, v)])

@@ -5,26 +5,23 @@ module ChainTests
 import Prelude
 
 import Chain (extractAmount)
-import Control.Monad.Eff.Exception (EXCEPTION)
-import Control.Monad.Eff.Random (RANDOM)
 import Data.Array (mapWithIndex)
 import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested ((/\))
 import Ledger.Extra (LedgerMap(..))
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
-import Node.FS (FS)
 import Playground.API (SimulatorWallet(..))
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (equal)
 import Wallet.Emulator.Types (Wallet(..))
 
 
-all :: forall eff. TestSuite (exception :: EXCEPTION, fs :: FS, random :: RANDOM | eff)
+all :: TestSuite
 all =
   suite "Chain" do
     extractAmountsTests
 
-extractAmountsTests :: forall eff. TestSuite eff
+extractAmountsTests :: TestSuite
 extractAmountsTests =
   suite "extractAmount" do
     test "All present" $

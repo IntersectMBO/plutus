@@ -3,24 +3,22 @@ module MainFrame (mainFrame) where
 import API (_RunResult)
 import Ace.EditSession as Session
 import Ace.Editor as Editor
-import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged), AceQuery(GetEditor))
-import Ace.Types (ACE, Editor, Annotation)
-import AjaxUtils (runAjaxTo)
-import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
-import Bootstrap (active, btn, btnGroup, btnInfo, btnPrimary, btnSmall, col_, container, container_, empty, hidden, listGroupItem_, listGroup_, navItem_, navLink, navTabs_, noGutters, pullRight, row)
-import Control.Monad.Aff.Class (class MonadAff, liftAff)
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Class (class MonadEff, liftEff)
+import Ace.Halogen.Component (AceMessage(TextChanged), AceQuery(GetEditor))
+import Ace.Types (Editor, Annotation)
+import AjaxUtils (runAjaxTo, runAjax)
+import Analytics (Event, defaultEvent, trackEvent)
+import Bootstrap (active, btn, btnGroup, btnInfo, btnPrimary, btnSmall, col_, colXs12, colSm6, colSm5, container, container_, empty, hidden, listGroupItem_, listGroup_, navItem_, navLink, navTabs_, noGutters, pullRight, row, justifyContentBetween)
+import Control.Bind (bindFlipped)
 import Control.Monad.Reader.Class (class MonadAsk)
-import Control.Monad.State.Trans (class MonadState)
+import Control.Monad.State.Trans (class MonadState, get)
 import Data.Array (catMaybes, delete, snoc)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
-import Data.Either (Either(..))
+import Data.Either (Either(..), note)
 import Data.Foldable (foldrDefault)
 import Data.Function (flip)
 import Data.Functor.Coproduct (Coproduct)
-import Data.Lens (assign, modifying, over, preview, set, use, view)
+import Data.Lens (_Just, assign, modifying, over, preview, set, use, view)
 import Data.List (List(..))
 import Data.Map (Map)
 import Data.Map as Map
@@ -33,94 +31,104 @@ import Data.String as String
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
 import Editor (editorPane)
-import FileEvents (FILE, preventDefault, readFileFromDragEvent)
-import Gist (gistId)
-import Gists (mkNewGist)
+import Effect (Effect)
+import Effect.Aff.Class (class MonadAff, liftAff)
+import Effect.Class (class MonadEffect, liftEffect)
+import FileEvents (preventDefault, readFileFromDragEvent)
+import Gist (gistFileContent, gistId)
+import Gists (parseGistUrl, gistControls)
+import Meadow.Gists (mkNewGist, playgroundGistFile)
 import Halogen (Component, action)
 import Halogen as H
 import Halogen.Component (ParentHTML)
-import Halogen.ECharts (EChartsEffects)
 import Halogen.HTML (ClassName(ClassName), HTML, a, button, code_, div, div_, h1, pre, strong_, text)
 import Halogen.HTML.Events (onClick, input_)
 import Halogen.HTML.Properties (class_, classes, href, disabled)
 import Halogen.Query (HalogenM)
 import Language.Haskell.Interpreter (SourceCode(SourceCode), InterpreterError(CompilationErrors, TimeoutError), CompilationError(CompilationError, RawError), InterpreterResult(InterpreterResult), _InterpreterResult)
-import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Marlowe.Parser (contract)
 import Marlowe.Pretty (pretty)
 import Marlowe.Semantics (ErrorResult(InvalidInput), IdInput(IdOracle, InputIdChoice), MApplicationResult(MCouldNotApply, MSuccessfullyApplied), OracleDataPoint(..), State(State), TransactionOutcomes, applyTransaction, collectNeededInputs, emptyState, peopleFromStateAndContract, reduce, scoutPrimitives)
 import Marlowe.Types (BlockNumber, Choice, Contract(Null), IdChoice(IdChoice), IdOracle, Person, WIdChoice(WIdChoice))
 import Meadow (SPParams_, getOauthStatus, patchGistsByGistId, postGists, postContractHaskell)
-import Network.HTTP.Affjax (AJAX)
-import Network.RemoteData (RemoteData(Success, NotAsked), _Success, isLoading, isSuccess)
-import Prelude (add, one, zero, not, (||), type (~>), Unit, Void, bind, const, discard, id, pure, show, unit, void, (#), ($), (+), (-), (<$>), (<<<), (<>), (==))
+import Meadow as Meadow
+import Network.RemoteData (RemoteData(Success, NotAsked, Loading), _Success, isLoading, isSuccess)
+import Prelude (add, one, zero, not, (||), type (~>), Unit, Void, bind, const, discard, identity, pure, show, unit, void, (#), ($), (+), (-), (<$>), (<<<), (<>), (==))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation (simulationPane)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
 import StaticData as StaticData
-import Text.Parsing.Simple (parse)
-import Types (ChildQuery, ChildSlot, EditorSlot(EditorSlot), FrontendState, InputData, MarloweEditorSlot(MarloweEditorSlot), MarloweState, OracleEntry, Query(ChangeView, ResetSimulator, SetOracleBn, SetOracleVal, SetChoice, RemoveAnyInput, AddAnyInput, NextBlock, ApplyTransaction, SetSignature, ScrollTo, CompileProgram, LoadMarloweScript, LoadScript, PublishGist, SendResult, CheckAuthStatus, MarloweHandleDropEvent, MarloweHandleDragEvent, MarloweHandleEditorMessage, HandleDropEvent, HandleDragEvent, HandleEditorMessage), TransactionData, TransactionValidity(..), View(Simulation, Editor), _authStatus, _blockNum, _choiceData, _contract, _createGistResult, _input, _inputs, _marloweState, _moneyInContract, _oldContract, _oracleData, _outcomes, _compilationResult, _signatures, _state, _transaction, _validity, _view, cpEditor, cpMarloweEditor, _result)
+import Text.Parsing.Parser (runParser)
+import Types (ChildQuery, ChildSlot, EditorSlot(EditorSlot), FrontendState, InputData, MarloweEditorSlot(MarloweEditorSlot), MarloweState, OracleEntry, Query(ChangeView, ResetSimulator, SetOracleBn, SetOracleVal, SetChoice, RemoveAnyInput, AddAnyInput, NextBlock, ApplyTransaction, SetSignature, ScrollTo, CompileProgram, LoadMarloweScript, LoadScript, PublishGist, SendResult, CheckAuthStatus, MarloweHandleDropEvent, MarloweHandleDragEvent, MarloweHandleEditorMessage, HandleDropEvent, HandleDragEvent, HandleEditorMessage, SetGistUrl, LoadGist), TransactionData, TransactionValidity(..), View(Simulation, Editor), _authStatus, _gistUrl, _blockNum, _choiceData, _contract, _createGistResult, _input, _inputs, _marloweState, _moneyInContract, _oldContract, _oracleData, _outcomes, _compilationResult, _signatures, _state, _transaction, _validity, _view, cpEditor, cpMarloweEditor, _result)
 
 emptyInputData :: InputData
-emptyInputData = { inputs: Map.empty
-                 , choiceData: Map.empty
-                 , oracleData: Map.empty }
+emptyInputData =
+  { inputs: Map.empty
+  , choiceData: Map.empty
+  , oracleData: Map.empty
+  }
 
 emptyTransactionData :: TransactionData
-emptyTransactionData = { inputs: []
-                       , signatures: Map.empty
-                       , outcomes: Map.empty
-                       , validity: EmptyTransaction
-                       }
+emptyTransactionData =
+  { inputs: []
+  , signatures: Map.empty
+  , outcomes: Map.empty
+  , validity: EmptyTransaction
+  }
 
 emptyMarloweState :: MarloweState
-emptyMarloweState = { input: emptyInputData
-                    , transaction: emptyTransactionData
-                    , state: emptyState
-                    , blockNum: zero
-                    , moneyInContract: zero
-                    , contract: Nothing
-                    }
+emptyMarloweState =
+  { input: emptyInputData
+  , transaction: emptyTransactionData
+  , state: emptyState
+  , blockNum: zero
+  , moneyInContract: zero
+  , contract: Nothing
+  }
 
 initialState :: FrontendState
-initialState = { view: Editor
-               , compilationResult: NotAsked
-               , marloweCompileResult: Right unit
-               , authStatus: NotAsked
-               , createGistResult: NotAsked
-               , marloweState: emptyMarloweState
-               , oldContract: Nothing
-               }
+initialState =
+  { view: Editor
+  , compilationResult: NotAsked
+  , marloweCompileResult: Right unit
+  , authStatus: NotAsked
+  , createGistResult: NotAsked
+  , marloweState: emptyMarloweState
+  , oldContract: Nothing
+  , gistUrl: Nothing
+  }
 
 ------------------------------------------------------------
 mainFrame ::
-  forall m aff.
-  MonadAff (EChartsEffects (AceEffects (localStorage :: LOCALSTORAGE, file :: FILE, ajax :: AJAX, analytics :: ANALYTICS | aff))) m =>
+  forall m.
+  MonadAff m =>
   MonadAsk (SPSettings_ SPParams_) m =>
   Component HTML Query Unit Void m
-mainFrame = H.lifecycleParentComponent { initialState: const initialState
-                                       , render
-                                       , eval: evalWithAnalyticsTracking
-                                       , receiver: const Nothing
-                                       , initializer: Just $ H.action $ CheckAuthStatus
-                                       , finalizer: Nothing
-                                       }
+mainFrame =
+  H.lifecycleParentComponent
+    { initialState: const initialState
+    , render
+    , eval: evalWithAnalyticsTracking
+    , receiver: const Nothing
+    , initializer: Just $ H.action $ CheckAuthStatus
+    , finalizer: Nothing
+    }
 
 evalWithAnalyticsTracking ::
-  forall m aff.
-  MonadAff (localStorage :: LOCALSTORAGE, file :: FILE, ace :: ACE, ajax :: AJAX, analytics :: ANALYTICS | aff) m =>
+  forall m.
+  MonadAff m =>
   MonadAsk (SPSettings_ SPParams_) m =>
   Query
     ~> HalogenM FrontendState Query ChildQuery ChildSlot Void m
 evalWithAnalyticsTracking query = do
-  liftEff $ analyticsTracking query
+  liftEffect $ analyticsTracking query
   evalF query
 
 analyticsTracking ::
-  forall eff a.
+  forall a.
   Query a ->
-  Eff (analytics :: ANALYTICS | eff) Unit
+  Effect Unit
 analyticsTracking query = do
   case toEvent query of
     Nothing -> pure unit
@@ -146,13 +154,17 @@ toEvent (MarloweHandleDropEvent _ _) = Just $ defaultEvent "MarloweDropScript"
 
 toEvent (CheckAuthStatus _) = Nothing
 
-toEvent (PublishGist _) = Just $ (defaultEvent "Publish") { label = Just "Gist" }
+toEvent (PublishGist _) = Just $ (defaultEvent "Publish") {label = Just "Gist"}
 
-toEvent (ChangeView view _) = Just $ (defaultEvent "View") { label = Just $ show view }
+toEvent (SetGistUrl _ _) = Nothing
 
-toEvent (LoadScript script a) = Just $ (defaultEvent "LoadScript") { label = Just script }
+toEvent (LoadGist _) = Just $ (defaultEvent "LoadGist") { category = Just "Gist" }
 
-toEvent (LoadMarloweScript script a) = Just $ (defaultEvent "LoadMarloweScript") { label = Just script }
+toEvent (ChangeView view _) = Just $ (defaultEvent "View") {label = Just $ show view}
+
+toEvent (LoadScript script a) = Just $ (defaultEvent "LoadScript") {label = Just script}
+
+toEvent (LoadMarloweScript script a) = Just $ (defaultEvent "LoadMarloweScript") {label = Just script}
 
 toEvent (CompileProgram a) = Just $ defaultEvent "CompileProgram"
 
@@ -179,15 +191,13 @@ toEvent (SetOracleBn _ _) = Nothing
 toEvent (ResetSimulator _) = Nothing
 
 saveBuffer ::
-  forall eff.
   String ->
-  Eff (localStorage :: LOCALSTORAGE | eff) Unit
+  Effect Unit
 saveBuffer text = LocalStorage.setItem bufferLocalStorageKey text
 
 saveMarloweBuffer ::
-  forall eff.
   String ->
-  Eff (localStorage :: LOCALSTORAGE | eff) Unit
+  Effect Unit
 saveMarloweBuffer text = LocalStorage.setItem marloweBufferLocalStorageKey text
 
 resizeSigsAux ::
@@ -205,115 +215,142 @@ resizeSigs :: List Person -> Map Person Boolean -> Map Person Boolean
 resizeSigs li ma = resizeSigsAux ma Map.empty li
 
 updateSignatures :: MarloweState -> MarloweState
-updateSignatures oldState =
-  case oldState.contract of
-    Just oldContract -> over (_transaction <<< _signatures) (resizeSigs (peopleFromStateAndContract (oldState.state) oldContract)) oldState
-    Nothing -> oldState
+updateSignatures oldState = case oldState.contract of
+  Just oldContract -> over (_transaction <<< _signatures) (resizeSigs (peopleFromStateAndContract (oldState.state) oldContract)) oldState
+  Nothing -> oldState
 
-updateChoices :: State -> Set IdInput -> Map Person (Map BigInteger Choice)
-                 -> Map Person (Map BigInteger Choice)
-updateChoices (State state) inputs cmap =
-  foldrDefault addChoice Map.empty inputs
+updateChoices ::
+  State ->
+  Set IdInput ->
+  Map Person (Map BigInteger Choice) ->
+  Map Person (Map BigInteger Choice)
+updateChoices (State state) inputs cmap = foldrDefault addChoice Map.empty inputs
   where
-    addChoice (InputIdChoice (IdChoice {choice: idChoice, person})) a =
-      let pmap = case Map.lookup person a of
-                   Nothing -> Map.empty
-                   Just y -> y in
-      let dval = case Map.lookup person cmap of
-                    Nothing -> zero
-                    Just z -> case Map.lookup idChoice z of
-                                Nothing -> zero
-                                Just v -> v in
-      if Map.member (WIdChoice (IdChoice {choice: idChoice, person})) state.choices
-      then a
-      else Map.insert person (Map.insert idChoice dval pmap) a
-    addChoice _ a = a
+  addChoice (InputIdChoice (IdChoice {choice: idChoice, person})) a =
+    let
+      pmap = case Map.lookup person a of
+        Nothing -> Map.empty
+        Just y -> y
+    in
+      let
+        dval = case Map.lookup person cmap of
+          Nothing -> zero
+          Just z -> case Map.lookup idChoice z of
+            Nothing -> zero
+            Just v -> v
+      in
+        if Map.member (WIdChoice (IdChoice {choice: idChoice, person})) state.choices
+          then a
+          else Map.insert person (Map.insert idChoice dval pmap) a
+
+  addChoice _ a = a
 
 updateOracles :: BlockNumber -> State -> Set IdInput -> Map IdOracle OracleEntry -> Map IdOracle OracleEntry
-updateOracles cbn (State state) inputs omap =
-  foldrDefault addOracle Map.empty inputs
+updateOracles cbn (State state) inputs omap = foldrDefault addOracle Map.empty inputs
   where
-    addOracle (IdOracle idOracle) a =
-        case Map.lookup idOracle omap, Map.lookup idOracle state.oracles of
-             Nothing, Nothing -> Map.insert idOracle {blockNumber: cbn, value: zero} a
-             Just {blockNumber: bn, value}, Just (OracleDataPoint {blockNumber: lbn}) ->
-               if (lbn >= cbn)
-               then a
-               else Map.insert idOracle {blockNumber: max (lbn + one) bn, value} a
-             Just {blockNumber, value}, Nothing ->
-               Map.insert idOracle {blockNumber: min blockNumber cbn, value} a
-             Nothing, Just (OracleDataPoint {blockNumber, value}) ->
-               if (blockNumber >= cbn)
-               then a
-               else Map.insert idOracle {blockNumber: cbn, value} a
-    addOracle _ a = a
+  addOracle (IdOracle idOracle) a = case Map.lookup idOracle omap, Map.lookup idOracle state.oracles of
+    Nothing, Nothing -> Map.insert idOracle {blockNumber: cbn, value: zero} a
+    Just {blockNumber: bn, value}, Just (OracleDataPoint {blockNumber: lbn}) -> if (lbn >= cbn)
+      then a
+      else Map.insert idOracle {blockNumber: max (lbn + one) bn, value} a
+    Just {blockNumber, value}, Nothing -> Map.insert idOracle {blockNumber: min blockNumber cbn, value} a
+    Nothing, Just (OracleDataPoint {blockNumber, value}) -> if (blockNumber >= cbn)
+      then a
+      else Map.insert idOracle {blockNumber: cbn, value} a
+
+  addOracle _ a = a
 
 updateActions :: MarloweState -> {state :: State, contract :: Contract, outcome :: TransactionOutcomes, validity :: TransactionValidity} -> MarloweState
-updateActions oldState {state, contract, outcome, validity}
-  = set (_transaction <<< _validity) validity oldState
-  # set (_transaction <<< _outcomes) outcome
-  # over (_input <<< _oracleData) (updateOracles oldState.blockNum state neededInputs)
-  # over (_input <<< _choiceData) (updateChoices state neededInputs)
-  # set (_input <<< _inputs) (scoutPrimitives oldState.blockNum state contract)
+updateActions oldState {state, contract, outcome, validity} =
+  set (_transaction <<< _validity) validity oldState
+    # set (_transaction <<< _outcomes) outcome
+    # over (_input <<< _oracleData) (updateOracles oldState.blockNum state neededInputs)
+    # over (_input <<< _choiceData) (updateChoices state neededInputs)
+    # set (_input <<< _inputs) (scoutPrimitives oldState.blockNum state contract)
   where
-    neededInputs = collectNeededInputs contract
+  neededInputs = collectNeededInputs contract
 
 simulateState :: MarloweState -> Maybe {state :: State, contract :: Contract, outcome :: TransactionOutcomes, validity :: TransactionValidity}
-simulateState state =
-  case state.contract of
-    Just c -> Just (case applyTransaction inps sigs bn st c mic of
-                      MSuccessfullyApplied {state: newState, contract: newContract, outcome: outcome} inputWarnings ->
-                              {state: newState, contract: newContract,
-                               outcome: outcome, validity: ValidTransaction inputWarnings}
-                      MCouldNotApply InvalidInput ->
-                              if (inps == Nil)
-                              then {state: st, contract: reduce state.blockNum state.state c,
-                                    outcome: Map.empty, validity: EmptyTransaction}
-                              else {state: emptyState, contract: Null,
-                                    outcome: Map.empty, validity: InvalidTransaction InvalidInput}
-                      MCouldNotApply err -> {state: emptyState, contract: Null,
-                                             outcome: Map.empty, validity: InvalidTransaction err})
-    Nothing -> Nothing
+simulateState state = case state.contract of
+  Just c ->
+    Just
+      ( case applyTransaction inps sigs bn st c mic of
+        MSuccessfullyApplied {state: newState, contract: newContract, outcome: outcome} inputWarnings ->
+          { state: newState
+          , contract: newContract
+          , outcome: outcome
+          , validity: ValidTransaction inputWarnings
+          }
+        MCouldNotApply InvalidInput -> if (inps == Nil)
+          then
+            { state: st
+            , contract: reduce state.blockNum state.state c
+            , outcome: Map.empty
+            , validity: EmptyTransaction
+            }
+          else
+            { state: emptyState
+            , contract: Null
+            , outcome: Map.empty
+            , validity: InvalidTransaction InvalidInput
+            }
+        MCouldNotApply err ->
+          { state: emptyState
+          , contract: Null
+          , outcome: Map.empty
+          , validity: InvalidTransaction err
+          }
+      )
+  Nothing -> Nothing
   where
-    inps = Array.toUnfoldable (state.transaction.inputs)
-    sigs = Set.fromFoldable (Map.keys (Map.filter id (state.transaction.signatures)))
-    bn = state.blockNum
-    st = state.state
-    mic = state.moneyInContract
+  inps = Array.toUnfoldable (state.transaction.inputs)
+
+  sigs = Set.fromFoldable (Map.keys (Map.filter identity (state.transaction.signatures)))
+
+  bn = state.blockNum
+
+  st = state.state
+
+  mic = state.moneyInContract
 
 applyTransactionM :: MarloweState -> MarloweState
-applyTransactionM oldState =
-  case oldState.contract of
-    Nothing -> oldState
-    Just c -> case applyTransaction inps sigs bn st c mic of
-                MSuccessfullyApplied {funds, state, contract} _ ->
-                   oldState
-                   # set (_transaction <<< _inputs) []
-                   # set (_transaction <<< _signatures) Map.empty
-                   # set (_state) state
-                   # set (_moneyInContract) funds
-                   # set (_contract) (Just contract)
-                MCouldNotApply _ -> oldState
+applyTransactionM oldState = case oldState.contract of
+  Nothing -> oldState
+  Just c -> case applyTransaction inps sigs bn st c mic of
+    MSuccessfullyApplied {funds, state, contract} _ ->
+      oldState
+        # set (_transaction <<< _inputs) []
+        # set (_transaction <<< _signatures) Map.empty
+        # set (_state) state
+        # set (_moneyInContract) funds
+        # set (_contract) (Just contract)
+    MCouldNotApply _ -> oldState
   where
-    inps = Array.toUnfoldable (oldState.transaction.inputs)
-    sigs = Set.fromFoldable (Map.keys (Map.filter id (oldState.transaction.signatures)))
-    bn = oldState.blockNum
-    st = oldState.state
-    mic = oldState.moneyInContract
+  inps = Array.toUnfoldable (oldState.transaction.inputs)
+
+  sigs = Set.fromFoldable (Map.keys (Map.filter identity (oldState.transaction.signatures)))
+
+  bn = oldState.blockNum
+
+  st = oldState.state
+
+  mic = oldState.moneyInContract
 
 updateStateP :: MarloweState -> MarloweState
 updateStateP oldState = actState
   where
-    sigState = updateSignatures oldState
-    mSimulatedState = simulateState sigState
-    actState = case mSimulatedState of
-                 Just simulatedState -> updateActions sigState simulatedState
-                 Nothing -> sigState
+  sigState = updateSignatures oldState
+
+  mSimulatedState = simulateState sigState
+
+  actState = case mSimulatedState of
+    Just simulatedState -> updateActions sigState simulatedState
+    Nothing -> sigState
 
 updateState ::
-  forall eff m.
-  MonadEff (ace :: ACE | eff) m
-  => HalogenM FrontendState Query (Coproduct AceQuery AceQuery) (Either EditorSlot MarloweEditorSlot) Void m Unit
+  forall m.
+  MonadEffect m =>
+  HalogenM FrontendState Query (Coproduct AceQuery AceQuery) (Either EditorSlot MarloweEditorSlot) Void m Unit
 updateState = do
   saveInitialState
   modifying (_marloweState) (updateStateP)
@@ -321,70 +358,77 @@ updateState = do
 updateContractInStateP :: String -> MarloweState -> MarloweState
 updateContractInStateP text state = set (_contract) con state
   where
-    con = case parse contract text of
-            Right pcon -> Just pcon
-            Left _ -> Nothing
+  con = case runParser text contract of
+    Right pcon -> Just pcon
+    Left _ -> Nothing
 
 updateContractInState :: forall m. MonadState FrontendState m => String -> m Unit
 updateContractInState text = do
-   modifying (_marloweState) (updateContractInStateP text)
-   modifying (_marloweState) (updateStateP)
+  modifying (_marloweState) (updateContractInStateP text)
+  modifying (_marloweState) (updateStateP)
 
 saveInitialState ::
-  forall eff m.
-  MonadEff (ace :: ACE | eff) m
-  => HalogenM FrontendState Query (Coproduct AceQuery AceQuery) (Either EditorSlot MarloweEditorSlot) Void m Unit
+  forall m.
+  MonadEffect m =>
+  HalogenM FrontendState Query (Coproduct AceQuery AceQuery) (Either EditorSlot MarloweEditorSlot) Void m Unit
 saveInitialState = do
   oldContract <- withMarloweEditor Editor.getValue
-  modifying (_oldContract) (\x -> case x of
-                                    Nothing -> Just (case oldContract of
-                                                      Nothing -> ""
-                                                      Just y -> y)
-                                    _ -> x)
+  modifying (_oldContract)
+    ( \x -> case x of
+      Nothing ->
+        Just
+          ( case oldContract of
+            Nothing -> ""
+            Just y -> y
+          )
+      _ -> x
+    )
 
-resetContract :: forall m eff.
-  MonadEff (ace :: ACE | eff) m
-  => HalogenM FrontendState Query (Coproduct AceQuery AceQuery) (Either EditorSlot MarloweEditorSlot) Void m Unit
+resetContract ::
+  forall m.
+  MonadEffect m =>
+  HalogenM FrontendState Query (Coproduct AceQuery AceQuery) (Either EditorSlot MarloweEditorSlot) Void m Unit
 resetContract = do
   newContract <- withMarloweEditor Editor.getValue
   modifying (_marloweState) (const emptyMarloweState)
   modifying (_oldContract) (const Nothing)
-  updateContractInState (case newContract of
-                           Nothing -> ""
-                           Just x -> x)
-
+  updateContractInState
+    ( case newContract of
+      Nothing -> ""
+      Just x -> x
+    )
 
 evalF ::
-  forall m aff.
-  MonadAff (localStorage :: LOCALSTORAGE, file :: FILE, ace :: ACE, ajax :: AJAX | aff) m =>
+  forall m.
+  MonadAff m =>
   MonadAsk (SPSettings_ SPParams_) m =>
   Query
     ~> HalogenM FrontendState Query ChildQuery ChildSlot Void m
 evalF (HandleEditorMessage (TextChanged text) next) = do
-  liftEff $ saveBuffer text
+  liftEffect $ saveBuffer text
   pure next
 
 evalF (HandleDragEvent event next) = do
-  liftEff $ preventDefault event
+  liftEffect $ preventDefault event
   pure next
 
 evalF (HandleDropEvent event next) = do
-  liftEff $ preventDefault event
+  liftEffect $ preventDefault event
   contents <- liftAff $ readFileFromDragEvent event
   void $ withEditor $ Editor.setValue contents (Just 1)
   pure next
 
 evalF (MarloweHandleEditorMessage (TextChanged text) next) = do
-  liftEff $ saveMarloweBuffer text
+  liftEffect $ saveMarloweBuffer text
   updateContractInState text
   pure next
 
 evalF (MarloweHandleDragEvent event next) = do
-  liftEff $ preventDefault event
+  liftEffect $ preventDefault event
   pure next
 
 evalF (MarloweHandleDropEvent event next) = do
-  liftEff $ preventDefault event
+  liftEffect $ preventDefault event
   contents <- liftAff $ readFileFromDragEvent event
   void $ withMarloweEditor $ Editor.setValue contents (Just 1)
   updateContractInState contents
@@ -396,15 +440,43 @@ evalF (CheckAuthStatus next) = do
 
 evalF (PublishGist next) = do
   mContents <- withEditor Editor.getValue
-  case mkNewGist mContents of
+  case mkNewGist (SourceCode <$> mContents) of
     Nothing -> pure next
     Just newGist -> do
       mGist <- use _createGistResult
-      let apiCall = case preview (_Success <<< gistId) mGist of
-            Nothing -> postGists newGist
-            Just gistId -> patchGistsByGistId newGist gistId
+      let
+        apiCall = case preview (_Success <<< gistId) mGist of
+          Nothing -> postGists newGist
+          Just gistId -> patchGistsByGistId newGist gistId
       void $ runAjaxTo _createGistResult apiCall
       pure next
+
+evalF (SetGistUrl newGistUrl next) = do
+  assign _gistUrl (Just newGistUrl)
+  pure next
+
+evalF (LoadGist next) = do
+  eGistId <- (bindFlipped parseGistUrl <<< note "Gist Url not set.") <$> use _gistUrl
+  case eGistId of
+    Left err -> pure next
+    Right gistId -> do
+      assign _createGistResult Loading
+      aGist <- getGistByGistId gistId
+      assign _createGistResult aGist
+
+      case aGist of
+        Success gist -> do
+          -- Load the source, if available.
+          case preview (_Just <<< gistFileContent <<< _Just) (playgroundGistFile gist) of
+            Nothing -> pure next
+            Just contents -> do
+              void $ withEditor $ Editor.setValue contents (Just 1)
+              liftEffect $ saveBuffer contents
+              assign _compilationResult NotAsked
+              pure next
+        _ -> pure next
+  where
+    getGistByGistId gistId = runAjax $ Meadow.getGistsByGistId gistId
 
 evalF (ChangeView view next) = do
   assign _view view
@@ -431,33 +503,34 @@ evalF (CompileProgram next) = do
   case mContents of
     Nothing -> pure next
     Just contents -> do
-      result <- runAjaxTo _compilationResult $ postContractHaskell $ SourceCode contents
+      result <- runAjaxTo _compilationResult $ unwrap <$> (postContractHaskell $ SourceCode contents)
       -- Update the error display.
       -- Update the error display.
       -- Update the error display.
       -- Update the error display.
-      void $ withEditor $ showCompilationErrorAnnotations $ case result of
-        Success (Left errors) -> toAnnotations errors
-        _ -> []
+      void $ withEditor $ showCompilationErrorAnnotations
+        $ case result of
+            Success (Left errors) -> toAnnotations errors
+            _ -> []
       pure next
 
 evalF (SendResult next) = do
   mContract <- use (_compilationResult)
-  let contract = case mContract of
-                   Success (Right x) -> view (_InterpreterResult <<< _result <<< _RunResult) x
-                   _ -> ""
+  let
+    contract = case mContract of
+      Success (Right x) -> view (_InterpreterResult <<< _result <<< _RunResult) x
+      _ -> ""
   void $ withMarloweEditor $ Editor.setValue contract (Just 1)
   updateContractInState contract
   resetContract
   assign _view (Simulation)
   pure next
 
-
-evalF (ScrollTo { row, column } next) = do
+evalF (ScrollTo {row, column} next) = do
   void $ withEditor $ Editor.gotoLine row (Just column) (Just true)
   pure next
 
-evalF (SetSignature { person, isChecked } next) = do
+evalF (SetSignature {person, isChecked} next) = do
   modifying (_marloweState <<< _transaction <<< _signatures) (Map.insert person isChecked)
   updateState
   pure next
@@ -467,10 +540,11 @@ evalF (ApplyTransaction next) = do
   modifying (_marloweState) applyTransactionM
   mCurrContract <- use (_marloweState <<< _contract)
   case mCurrContract of
-   Just currContract -> do void $ withMarloweEditor $ Editor.setValue (show $ pretty currContract) (Just 1)
-                           updateState
-                           pure next
-   Nothing -> pure next
+    Just currContract -> do
+      void $ withMarloweEditor $ Editor.setValue (show $ pretty currContract) (Just 1)
+      updateState
+      pure next
+    Nothing -> pure next
 
 evalF (NextBlock next) = do
   modifying (_marloweState <<< _blockNum) (add one)
@@ -480,12 +554,13 @@ evalF (NextBlock next) = do
 evalF (AddAnyInput {person, anyInput} next) = do
   modifying (_marloweState <<< _transaction <<< _inputs) ((flip snoc) anyInput)
   case person of
-    Just per -> do modifying (_marloweState <<< _transaction <<< _signatures)
-                             (Map.insert per true)
-                   updateState
-                   pure next
-    Nothing -> do updateState
-                  pure next
+    Just per -> do
+      modifying (_marloweState <<< _transaction <<< _signatures) (Map.insert per true)
+      updateState
+      pure next
+    Nothing -> do
+      updateState
+      pure next
 
 evalF (RemoveAnyInput anyInput next) = do
   modifying (_marloweState <<< _transaction <<< _inputs) (delete anyInput)
@@ -493,34 +568,33 @@ evalF (RemoveAnyInput anyInput next) = do
   pure next
 
 evalF (SetChoice {idChoice: (IdChoice {choice, person}), value} next) = do
-  modifying (_marloweState <<< _input <<< _choiceData)
-    (Map.update (Just <<< (Map.update (const $ Just value) choice)) person)
+  modifying (_marloweState <<< _input <<< _choiceData) (Map.update (Just <<< (Map.update (const $ Just value) choice)) person)
   updateState
   pure next
 
 evalF (SetOracleVal {idOracle, value} next) = do
-  modifying (_marloweState <<< _input <<< _oracleData)
-    (Map.update (\x -> Just (x {value = value})) idOracle)
+  modifying (_marloweState <<< _input <<< _oracleData) (Map.update (\x -> Just (x {value = value})) idOracle)
   updateState
   pure next
 
 evalF (SetOracleBn {idOracle, blockNumber} next) = do
-  modifying (_marloweState <<< _input <<< _oracleData)
-    (Map.update (\x -> Just (x {blockNumber = blockNumber})) idOracle)
+  modifying (_marloweState <<< _input <<< _oracleData) (Map.update (\x -> Just (x {blockNumber = blockNumber})) idOracle)
   updateState
   pure next
 
 evalF (ResetSimulator next) = do
   oldContract <- use (_oldContract)
   currContract <- withMarloweEditor Editor.getValue
-  let newContract = case oldContract of
-                      Just x -> x
-                      Nothing -> case currContract of
-                                   Nothing -> ""
-                                   Just y -> y
+  let
+    newContract = case oldContract of
+      Just x -> x
+      Nothing -> case currContract of
+        Nothing -> ""
+        Just y -> y
   void $ withMarloweEditor $ Editor.setValue newContract (Just 1)
   resetContract
   pure next
+
 --  mContents <- withMarloweEditor Editor.getValue
 --  case mContents of
 --    Nothing -> pure next
@@ -533,86 +607,99 @@ evalF (ResetSimulator next) = do
 --        Left err -> do
 --          assign _marloweCompileResult $ Left [MarloweError err]
 --          pure next
-
 ------------------------------------------------------------
 -- | Handles the messy business of running an editor command if the
 -- editor is up and running.
 withEditor ::
-  forall m eff a.
-  MonadEff (ace :: ACE | eff) m =>
-  (Editor -> Eff (ace :: ACE | eff) a) ->
+  forall m a.
+  MonadEffect m =>
+  (Editor -> Effect a) ->
   HalogenM FrontendState Query ChildQuery ChildSlot Void m (Maybe a)
 withEditor action = do
   mEditor <- H.query' cpEditor EditorSlot $ H.request GetEditor
   case mEditor of
     Just (Just editor) -> do
-      liftEff $ Just <$> action editor
+      liftEffect $ Just <$> action editor
     _ -> pure Nothing
 
 withMarloweEditor ::
-  forall m eff a.
-  MonadEff (ace :: ACE | eff) m =>
-  (Editor -> Eff (ace :: ACE | eff) a) ->
+  forall m a.
+  MonadEffect m =>
+  (Editor -> Effect a) ->
   HalogenM FrontendState Query ChildQuery ChildSlot Void m (Maybe a)
 withMarloweEditor action = do
   mEditor <- H.query' cpMarloweEditor MarloweEditorSlot $ H.request GetEditor
   case mEditor of
     Just (Just editor) -> do
-      liftEff $ Just <$> action editor
+      liftEffect $ Just <$> action editor
     _ -> pure Nothing
 
 showCompilationErrorAnnotations ::
-  forall m.
   Array Annotation ->
   Editor ->
-  Eff (ace :: ACE | m) Unit
+  Effect Unit
 showCompilationErrorAnnotations annotations editor = do
   session <- Editor.getSession editor
   Session.setAnnotations annotations session
 
 toAnnotations :: InterpreterError -> Array Annotation
 toAnnotations (TimeoutError _) = []
+
 toAnnotations (CompilationErrors errors) = catMaybes (toAnnotation <$> errors)
 
 toAnnotation :: CompilationError -> Maybe Annotation
 toAnnotation (RawError _) = Nothing
 
-toAnnotation (CompilationError { row, column, text }) = Just { "type": "error"
-                                                             , row: row - 1
-                                                             , column
-                                                             , text: String.joinWith "\n" text
-                                                             }
+toAnnotation (CompilationError {row, column, text}) =
+  Just
+    { "type": "error"
+    , row: row - 1
+    , column
+    , text: String.joinWith "\\n" text
+    }
 
 render ::
-  forall m aff.
-  MonadAff (EChartsEffects (AceEffects (localStorage :: LOCALSTORAGE | aff))) m =>
+  forall m.
+  MonadAff m =>
   FrontendState ->
   ParentHTML Query ChildQuery ChildSlot m
-render state = div [ class_ $ ClassName "main-frame" ]
-                   [ container_ [ mainHeader
-                                , div [ classes [ row, noGutters ] ]
-                                      [ col_ [ mainTabBar state.view ]
-                                      ]
-                                ]
-                   , viewContainer state.view Editor $ [ loadScriptsPane
-                                                       , editorPane defaultContents state.compilationResult
-                                                       , resultPane state
-                                                       ]
-                   , viewContainer state.view Simulation $ [ simulationPane state
-                                                           ]
-                   ]
-    where
-      defaultContents = Map.lookup "Escrow" StaticData.demoFiles
+render state =
+  div [class_ $ ClassName "main-frame"]
+    [ container_
+        [ mainHeader
+        , div [ classes [ row, noGutters, justifyContentBetween ] ]
+            [ div [ classes [ colXs12, colSm6 ] ] [ mainTabBar state.view ]
+            , div [ classes [ colXs12, colSm5 ] ] [ gistControls state ]
+            ]
+        ]
+    , viewContainer state.view Editor
+        $ [ loadScriptsPane
+          , editorPane defaultContents state.compilationResult
+          , resultPane state
+          ]
+    , viewContainer state.view Simulation
+        $ [ simulationPane state
+          ]
+    ]
+  where
+  defaultContents = Map.lookup "Escrow" StaticData.demoFiles
 
 loadScriptsPane :: forall p. HTML p (Query Unit)
-loadScriptsPane = div [class_ $ ClassName "mb-3"]
-                      (Array.cons (strong_ [ text "Demos: "
-                                            ]) (loadScriptButton <$> Array.fromFoldable (Map.keys StaticData.demoFiles)))
+loadScriptsPane =
+  div [class_ $ ClassName "mb-3"]
+    ( Array.cons
+      ( strong_
+        [ text "Demos: "
+        ]
+      ) (loadScriptButton <$> Array.fromFoldable (Map.keys StaticData.demoFiles))
+    )
 
 loadScriptButton :: forall p. String -> HTML p (Query Unit)
-loadScriptButton key = button [ classes [btn, btnInfo, btnSmall]
-                              , onClick $ input_ $ LoadScript key
-                              ] [text key]
+loadScriptButton key =
+  button
+    [ classes [btn, btnInfo, btnSmall]
+    , onClick $ input_ $ LoadScript key
+    ] [text key]
 
 viewContainer :: forall p i. View -> View -> Array (HTML p i) -> HTML p i
 viewContainer currentView targetView = if currentView == targetView
@@ -620,57 +707,74 @@ viewContainer currentView targetView = if currentView == targetView
   else div [classes [container, hidden]]
 
 mainHeader :: forall p. HTML p (Query Unit)
-mainHeader = div_ [ div [classes [btnGroup, pullRight]] (makeLink <$> links)
-                  , h1 [class_ $ ClassName "main-title"] [text "Meadow"]
-                  ]
+mainHeader =
+  div_
+    [ div [classes [btnGroup, pullRight]] (makeLink <$> links)
+    , h1 [class_ $ ClassName "main-title"] [text "Meadow"]
+    ]
   where
-  links = [ Tuple "Tutorial" $ "https://github.com/input-output-hk/marlowe/blob/master/docs/tutorial-v2.0/README.md"
-          , Tuple "Privacy" "https://static.iohk.io/docs/data-protection/iohk-data-protection-gdpr-policy.pdf"
+  links =
+    [ Tuple "Tutorial" $ "https://github.com/input-output-hk/marlowe/blob/master/docs/tutorial-v2.0/README.md"
+    , Tuple "Privacy" "https://static.iohk.io/docs/data-protection/iohk-data-protection-gdpr-policy.pdf"
+    ]
+
+  makeLink (Tuple name link) =
+    a
+      [ classes
+          [ btn
+          , btnSmall
           ]
-  makeLink (Tuple name link) = a [ classes [ btn
-                                           , btnSmall
-                                           ]
-                                 , href link
-                                 ] [ text name
-                                   ]
+      , href link
+      ]
+      [ text name
+      ]
 
 mainTabBar :: forall p. View -> HTML p (Query Unit)
 mainTabBar activeView = navTabs_ (mkTab <$> tabs)
   where
-  tabs = [ Editor /\ "Haskell Editor"
-         , Simulation /\ "Simulation"
-         ]
-  mkTab (link /\ title) = navItem_ [ a [ classes $ [ navLink
-                                                   ] <> activeClass
-                                       , onClick $ const $ Just $ action $ ChangeView link
-                                       ] [ text title
-                                         ]
-                                   ]
+  tabs =
+    [ Editor /\ "Haskell Editor"
+    , Simulation /\ "Simulation"
+    ]
+
+  mkTab (link /\ title) =
+    navItem_
+      [ a
+          [ classes
+              $ [ navLink
+                ]
+              <> activeClass
+          , onClick $ const $ Just $ action $ ChangeView link
+          ]
+          [ text title
+          ]
+      ]
     where
     activeClass = if link == activeView
-      then [ active
-           ]
+      then
+        [ active
+        ]
       else []
 
 resultPane :: forall p. FrontendState -> HTML p (Query Unit)
 resultPane state = case state.compilationResult of
-    Success (Right (InterpreterResult result)) ->
-      listGroup_
-        [ listGroupItem_
+  Success (Right (InterpreterResult result)) ->
+    listGroup_
+      [ listGroupItem_
           [ div_
-            [ button [ classes [ btn
-                                   , btnPrimary
-                                   , ClassName "float-right"
-                                   ]
-                         , onClick $ input_ SendResult
-                         , disabled ((isLoading state.compilationResult) || ((not isSuccess) state.compilationResult))
-                         ] [ text "Send to Simulator" ]
-            , code_
-              [ pre
-                [class_ $ ClassName "success-code"]
-                [ text (unwrap result.result) ]
+              [ button
+                  [ classes
+                      [ btn
+                      , btnPrimary
+                      , ClassName "float-right"
+                      ]
+                  , onClick $ input_ SendResult
+                  , disabled ((isLoading state.compilationResult) || ((not isSuccess) state.compilationResult))
+                  ] [text "Send to Simulator"]
+              , code_
+                  [ pre [class_ $ ClassName "success-code"] [text (unwrap result.result)]
+                  ]
               ]
-            ]
           ]
-        ]
-    _ -> empty
+      ]
+  _ -> empty

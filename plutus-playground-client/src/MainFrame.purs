@@ -7,33 +7,27 @@ module MainFrame
 
 import Types
 
-import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged))
-import Ace.Types (ACE, Annotation)
+import Ace.Halogen.Component (AceMessage(TextChanged))
+import Ace.Types (Annotation)
 import Action (simulationPane)
 import AjaxUtils (ajaxErrorPane)
-import AjaxUtils as AjaxUtils
-import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
+import Analytics (Event, defaultEvent, trackEvent)
 import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnSmall, colSm5, colSm6, colXs12, container, container_, empty, floatRight, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row)
 import Chain (evaluationPane)
 import Control.Bind (bindFlipped)
 import Control.Comonad (extract)
-import Control.Monad.Aff.Class (class MonadAff)
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Class (class MonadEff, liftEff)
+import Control.Monad.Except (runExcept)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State (class MonadState, evalState)
 import Control.Monad.Trans.Class (lift)
 import Cursor (_current)
 import Cursor as Cursor
-import DOM (DOM)
-import DOM.HTML.Event.DataTransfer as DataTransfer
-import Data.Argonaut.Parser (jsonParser)
 import Data.Array (catMaybes, (..))
 import Data.Array (concat, deleteAt, fromFoldable, snoc) as Array
 import Data.Array.Extra (move) as Array
 import Data.Either (Either(..), note)
-import Data.Generic (gEq)
+import Data.Generic.Rep.Eq (genericEq)
 import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, traversed, use, view)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Fold (maximumOf, preview)
@@ -43,18 +37,22 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.MediaType.Common (textPlain)
 import Data.Newtype (unwrap)
+import Data.RawJson (JsonEither(..))
 import Data.String as String
 import Data.Traversable (foldl)
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
 import Editor (demoScriptsPane, editorPane)
-import FileEvents (FILE)
+import Effect (Effect)
+import Effect.Aff.Class (class MonadAff)
+import Effect.Class (class MonadEffect, liftEffect)
+import Foreign.Generic (decodeJSON)
 import Gist (gistFileContent, gistId)
-import Gists (gistControls, mkNewGist, playgroundGistFile, simulationGistFile)
+import Gists (gistControls)
+import Playground.Gists (mkNewGist, playgroundGistFile, simulationGistFile)
 import Gists as Gists
 import Halogen (Component, action)
 import Halogen as H
-import Halogen.Chartist (ChartistEffects)
 import Halogen.Component (ParentHTML)
 import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, strong_, text)
 import Halogen.HTML.Events (onClick)
@@ -65,17 +63,16 @@ import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError
 import Ledger.Extra (LedgerMap(LedgerMap))
 import Ledger.Extra as LedgerMap
 import Ledger.Value (CurrencySymbol(CurrencySymbol), TokenName(TokenName), Value(Value))
-import LocalStorage (LOCALSTORAGE)
 import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect)
-import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
 import Playground.API (KnownCurrency(..), SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
 import Playground.Server (SPParams_)
 import Playground.Usecases (gitRev)
-import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, map, pure, show, unit, unless, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (=<<), (==), (>>=))
+import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, map, pure, show, unit, unless, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData as StaticData
 import Wallet.Emulator.Types (Wallet(Wallet))
+import Web.HTML.Event.DataTransfer as DataTransfer
 
 mkSimulatorWallet :: Array KnownCurrency -> Int -> SimulatorWallet
 mkSimulatorWallet currencies walletId =
@@ -123,8 +120,8 @@ initialState = State
 ------------------------------------------------------------
 
 mainFrame ::
-  forall m aff.
-  MonadAff (ChartistEffects (AceEffects (ajax :: AJAX, analytics :: ANALYTICS, file :: FILE, localStorage :: LOCALSTORAGE | aff))) m
+  forall m.
+  MonadAff m
   => MonadAsk (SPSettings_ SPParams_) m
   => Component HTML Query Unit Void m
 mainFrame =
@@ -137,16 +134,16 @@ mainFrame =
     , finalizer: Nothing
     }
 
-evalWithAnalyticsTracking :: forall m eff aff.
-  MonadEff (analytics :: ANALYTICS, ace :: ACE, localStorage :: LOCALSTORAGE, dom :: DOM | eff) m
+evalWithAnalyticsTracking :: forall m.
+  MonadEffect m
   => MonadAsk (SPSettings_ SPParams_) m
-  => MonadAff (ajax :: AJAX, file :: FILE | aff) m
+  => MonadAff m
   => Query ~> HalogenM State Query ChildQuery ChildSlot Void m
 evalWithAnalyticsTracking query = do
-  liftEff $ analyticsTracking query
+  liftEffect $ analyticsTracking query
   runHalogenApp $ eval query
 
-analyticsTracking :: forall eff a. Query a -> Eff (analytics :: ANALYTICS | eff) Unit
+analyticsTracking :: forall a. Query a -> Effect Unit
 analyticsTracking query = do
   case toEvent query of
     Nothing -> pure unit
@@ -292,7 +289,7 @@ eval (LoadGist next) = do
           case preview (_Just <<< gistFileContent <<< _Just) (simulationGistFile gist) of
             Nothing -> pure unit
             Just simulationString -> do
-              case (AjaxUtils.decodeJson =<< jsonParser simulationString) of
+              case runExcept (decodeJSON simulationString) of
                 Left err -> pure unit
                 Right simulations -> do
                   assign _simulations simulations
@@ -330,13 +327,13 @@ eval (CompileProgram next) = do
 
       -- If we got a successful result, switch tab.
       case result of
-        Success (Left _) -> pure unit
+        Success (JsonEither (Left _)) -> pure unit
         _ -> replaceViewOnSuccess result Editor Simulations
 
       -- Update the error display.
       editorSetAnnotations $
         case result of
-          Success (Left errors) -> toAnnotations errors
+          Success (JsonEither (Left errors)) -> toAnnotations errors
           _ -> []
 
       -- If we have a result with new signatures, we can only hold
@@ -345,12 +342,12 @@ eval (CompileProgram next) = do
       -- Same thing for currencies.
       -- Potentially we could be smarter about this. But for now,
       -- let's at least be correct.
-      case preview (_Success <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult) result of
+      case preview (_Success <<< _Newtype <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult) result of
         Just { functionSchema: newSignatures, knownCurrencies: newCurrencies } -> do
           oldSimulation <- peruse (_simulations <<< _current <<< _Newtype)
-          unless (((_.signatures <$> oldSimulation) `gEq` Just newSignatures)
+          unless (((_.signatures <$> oldSimulation) `genericEq` Just newSignatures)
                   &&
-                  ((_.currencies <$> oldSimulation) `gEq` Just newCurrencies))
+                  ((_.currencies <$> oldSimulation) `genericEq` Just newCurrencies))
             (assign _simulations $ Cursor.singleton $ mkSimulation newCurrencies newSignatures)
         _ -> pure unit
 
@@ -382,7 +379,7 @@ eval (EvaluateActions next) = do
 
 eval (AddSimulationSlot next) = do
   knownCurrencies <- getKnownCurrencies
-  mSignatures <- peruse (_compilationResult <<< _Success <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult <<< _functionSchema)
+  mSignatures <- peruse (_compilationResult <<< _Success <<< _Newtype <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult <<< _functionSchema)
 
   case mSignatures of
     Just signatures -> modifying _simulations (flip Cursor.snoc (mkSimulation knownCurrencies signatures))
@@ -420,8 +417,7 @@ eval (PopulateAction n l event) = do
 
 getKnownCurrencies :: forall m. MonadState State m => m (Array KnownCurrency)
 getKnownCurrencies = do
-  knownCurrencies <- peruse (_compilationResult <<< _Success <<< _Right <<< _InterpreterResult <<< _result <<<  _knownCurrencies)
-  -- TODO Should we be adding in ADA here? Check with Jann.
+  knownCurrencies <- peruse (_compilationResult <<< _Success <<< _Newtype <<< _Right <<< _InterpreterResult <<< _result <<<  _knownCurrencies)
   pure $ fromMaybe [] knownCurrencies
 
 evalWalletEvent :: (Int -> SimulatorWallet) -> WalletEvent -> Array SimulatorWallet -> Array SimulatorWallet
@@ -463,8 +459,8 @@ evalForm initialValue = rec
       ValueArgument schema $ evalValueEvent valueEvent value
     rec (SetValueField _ _) arg = arg
 
-    rec (SetSubField 1 subEvent) (SimpleTuple fields) = SimpleTuple $ over _1 (rec subEvent) fields
-    rec (SetSubField 2 subEvent) (SimpleTuple fields) = SimpleTuple $ over _2 (rec subEvent) fields
+    rec (SetSubField 1 subEvent) (SimpleTuple fields) = SimpleTuple $ over (_Newtype <<< _1) (rec subEvent) fields
+    rec (SetSubField 2 subEvent) (SimpleTuple fields) = SimpleTuple $ over (_Newtype <<< _2) (rec subEvent) fields
     rec (SetSubField _ subEvent) arg@(SimpleTuple _) = arg
     rec (SetSubField _ subEvent) arg@(SimpleString _) = arg
     rec (SetSubField _ subEvent) arg@(SimpleInt _) = arg
@@ -485,7 +481,7 @@ evalForm initialValue = rec
       SimpleArray schema $ over (ix n) (rec subEvent) fields
 
     rec (SetSubField n subEvent) s@(SimpleObject schema fields) =
-      SimpleObject schema $ over (ix n <<< _2) (rec subEvent) fields
+      SimpleObject schema $ over (ix n <<< _Newtype <<< _2) (rec subEvent) fields
     rec (SetSubField n subEvent) arg@(Unknowable _) = arg
 
     rec (RemoveSubField n subEvent) arg@(SimpleArray schema fields ) =
@@ -515,8 +511,8 @@ toAnnotation (CompilationError {row, column, text}) =
     }
 
 render ::
-  forall m aff.
-  MonadAff (ChartistEffects (AceEffects (localStorage :: LOCALSTORAGE | aff))) m
+  forall m.
+  MonadAff m
   => State -> ParentHTML Query ChildQuery ChildSlot m
 render state@(State {currentView})  =
   div_
@@ -527,12 +523,12 @@ render state@(State {currentView})  =
             [ mainHeader
             , div [ classes [ row, noGutters, justifyContentBetween ] ]
                 [ div [ classes [ colXs12, colSm6 ] ] [ mainTabBar currentView ]
-                , div [ classes [ colXs12, colSm5 ] ] [ gistControls state ]
+                , div [ classes [ colXs12, colSm5 ] ] [ gistControls (unwrap state) ]
                 ]
             ]
         , viewContainer currentView Editor $
             [ demoScriptsPane
-            , editorPane defaultContents (view _compilationResult state)
+            , editorPane defaultContents (map unwrap (view _compilationResult state))
             , case view _compilationResult state of
                 Failure error -> ajaxErrorPane error
                 _ -> empty

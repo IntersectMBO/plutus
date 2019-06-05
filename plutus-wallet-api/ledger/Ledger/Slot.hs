@@ -3,10 +3,13 @@
 {-# LANGUAGE DerivingStrategies   #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE MonoLocalBinds       #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE UndecidableInstances #-}
 -- Otherwise we get a complaint about the 'fromIntegral' call in the generated instance of 'Integral' for 'Ada'
 {-# OPTIONS_GHC -Wno-identities #-}
+{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 -- | Slots and slot ranges.
 module Ledger.Slot(
       Slot(..)
@@ -28,7 +31,8 @@ import           Data.Swagger.Internal.Schema (ToSchema)
 import           GHC.Generics                 (Generic)
 
 import           Language.PlutusTx.Lift       (makeLift)
-import           Language.PlutusTx.Prelude    as P
+import           Language.PlutusTx.Prelude    hiding (eq)
+import qualified Language.PlutusTx.Prelude    as P
 
 import           Ledger.Interval
 

@@ -8,7 +8,6 @@ import Data.Lens (set)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.List as List
 import Data.Map as Map
-import Data.Monoid (mempty)
 import Data.Newtype (wrap)
 import Data.Set as Set
 import Data.Tuple (Tuple(..))
@@ -19,12 +18,12 @@ import Marlowe.Test (Action(..), TestState, _state, initialState, run)
 import Marlowe.Types (IdAction(..), IdChoice(..), IdCommit(..), Person(..), WIdChoice(..))
 import Test.Unit (TestSuite, Test, failure, suite, test)
 import Test.Unit.Assert (assert)
-import Text.Parsing.Simple (parse)
+import Text.Parsing.Parser (runParser)
 
-all :: forall eff. TestSuite eff
+all :: TestSuite
 all = suite "Contract Tests" do
         test "Escrow" do
-          case parse contract Contracts.escrow of
+          case runParser Contracts.escrow contract of
             Left parseError -> failure "could not parse escrow contract"
             Right escrow -> let choiceA = IdChoice {choice: (fromIntegral 1), person: Person (fromIntegral 1)} 
                                 choiceB = IdChoice {choice: (fromIntegral 1), person: Person (fromIntegral 2)}
@@ -55,5 +54,5 @@ all = suite "Contract Tests" do
                             in
                                 assertState expectedTestState finalState
 
-assertState :: forall e. TestState -> TestState -> Test e
+assertState :: TestState -> TestState -> Test
 assertState a b = assert ("TestState not equal, expected: \n\n" <> show a <> "\n\n but got:\n\n" <> show b) $ a == b

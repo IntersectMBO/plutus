@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Ledger.These(
     These(..)
   , these

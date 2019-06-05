@@ -7,7 +7,7 @@ packages:
 - plutus-ir
 - plutus-tx
 - plutus-use-cases
-- interpreter
+- playground-common
 - marlowe
 - meadow
 - plutus-wallet-api
@@ -19,14 +19,22 @@ packages:
 
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - location:
+    git: https://github.com/shmish111/purescript-bridge.git
+    commit: a7069a515800135ce932742e995f3a96bc1c7129
+  extra-dep: true
+- location:
     git: https://github.com/shmish111/servant-purescript.git
-    commit: 18e1b61bf0aa3792285c6d8ecd0e4a72d76e34f5
+    commit: ab14502279c92084f06aa6222a17873275279e63
   extra-dep: true
 - location:
     git: https://github.com/input-output-hk/cardano-crypto.git
     commit: f5cecb6e424cc84f85b6a3e1f803517bb7b4cfb1
   extra-dep: true
-
+# Needs a fix (https://github.com/wenkokke/unlit/pull/11) and a Hackage release
+- location:
+    git: https://github.com/michaelpj/unlit.git
+    commit: 9ca1112093c5ffd356fc99c7dafa080e686dd748
+  extra-dep: true
 # Needs looser containers bound, committed upstream but not released
 - location:
     git: https://github.com/bitnomial/prometheus.git
@@ -46,6 +54,7 @@ extra-deps:
 - composition-prelude-2.0.2.1
 - resolv-0.1.1.2
 - monad-stm-0.1.0.2
+- purescript-0.12.4
 - servant-options-0.1.0.0
 - servant-subscriber-0.6.0.2
 - tasty-hedgehog-0.2.0.0

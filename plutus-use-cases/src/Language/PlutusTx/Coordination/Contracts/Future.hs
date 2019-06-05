@@ -4,7 +4,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- | A futures contract in Plutus. This example illustrates three concepts.
 --   1. Maintaining a margin (a kind of deposit) during the duration of the contract to protect against breach of contract (see note [Futures in Plutus])
 --   2. Using oracle values to obtain current pricing information (see note [Oracles] in Language.PlutusTx.Coordination.Contracts)
@@ -28,6 +30,7 @@ import           Control.Monad.Error.Class    (MonadError (..))
 import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
+import           Language.PlutusTx.Prelude
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       (DataScript (..), Slot(..), PubKey, TxOutRef, ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
@@ -207,7 +210,7 @@ mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pe
     let
 
         isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
-        isPubKeyOutput o k = PlutusTx.maybe False (Validation.eqPubKey k) (Validation.pubKeyOutput o)
+        isPubKeyOutput o k = maybe False (Validation.eqPubKey k) (Validation.pubKeyOutput o)
 
         --  | Check if a `PendingTxOut` is a public key output for the given pub. key and ada value
         paidOutTo :: Ada -> PubKey -> PendingTxOut -> Bool
@@ -215,11 +218,11 @@ mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pe
             let PendingTxOut vl' _ _ = txo
                 adaVl' = Ada.fromValue vl'
             in
-            isPubKeyOutput txo pk `PlutusTx.and` Ada.eq vl adaVl'
+            isPubKeyOutput txo pk && Ada.eq vl adaVl'
 
         verifyOracle :: OracleValue a -> (Slot, a)
         verifyOracle (OracleValue pk h t) =
-            if pk `Validation.eqPubKey` futurePriceOracle then (h, t) else PlutusTx.error ()
+            if pk `Validation.eqPubKey` futurePriceOracle then (h, t) else error ()
 
     in case r of
             -- Settling the contract is allowed if any of three conditions hold:
@@ -233,7 +236,7 @@ mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pe
 
             Settle ov ->
                 let
-                    spotPrice = PlutusTx.snd (verifyOracle ov)
+                    spotPrice = snd (verifyOracle ov)
                     delta  = Ada.multiply (Ada.fromInt futureUnits) (Ada.minus spotPrice futureUnitPrice)
                     expShort = Ada.minus futureDataMarginShort delta
                     expLong  = Ada.plus futureDataMarginLong delta
@@ -243,22 +246,22 @@ mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pe
                         case outs of
                             o1:o2:_ ->
                                 let paymentsValid =
-                                        (paidOutTo expShort futureDataShort o1 `PlutusTx.and` paidOutTo expLong futureDataLong o2)
-                                        `PlutusTx.or` (paidOutTo expShort futureDataShort o2 `PlutusTx.and` paidOutTo expLong futureDataLong o1)
+                                        (paidOutTo expShort futureDataShort o1 && paidOutTo expLong futureDataLong o2)
+                                        || (paidOutTo expShort futureDataShort o2 && paidOutTo expLong futureDataLong o1)
                                 in
-                                    slotvalid `PlutusTx.and` paymentsValid
+                                    slotvalid && paymentsValid
                             o1:_ ->
                                 let
                                     totalMargin = Ada.plus futureDataMarginShort futureDataMarginLong
                                     reqMargin   = requiredMargin ft spotPrice
                                     case2 = Ada.lt futureDataMarginLong reqMargin
-                                            `PlutusTx.and` paidOutTo totalMargin futureDataShort o1
+                                            && paidOutTo totalMargin futureDataShort o1
 
                                     case3 = Ada.lt futureDataMarginShort reqMargin
-                                            `PlutusTx.and` paidOutTo totalMargin futureDataLong o1
+                                            && paidOutTo totalMargin futureDataLong o1
 
                                 in
-                                    case2 `PlutusTx.or` case3
+                                    case2 || case3
                             _ -> False
 
                 in
@@ -269,7 +272,7 @@ mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pe
             --
             AdjustMargin ->
                 let
-                    ownHash = PlutusTx.fst (Validation.ownHashes p)
+                    ownHash = fst (Validation.ownHashes p)
                     vl = Validation.adaLockedBy p ownHash
                 in
                     vl `Ada.gt` (futureDataMarginShort `Ada.plus` futureDataMarginLong)

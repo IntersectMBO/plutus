@@ -5,6 +5,8 @@
 {-# LANGUAGE MonoLocalBinds       #-}
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 -- | A type for intervals and associated functions.
 module Ledger.Interval(
       Interval(..)

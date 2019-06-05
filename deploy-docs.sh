@@ -30,7 +30,7 @@ git fetch $UPSTREAM $BRANCH
 git worktree add -B $BRANCH $WORKTREE_NAME $UPSTREAM/$BRANCH
 
 echo "Generating"
-nix build -f default.nix docs.combined-haddock
+nix build -f default.nix docs.public-combined-haddock
 cp -ar result/share/doc/* $WORKTREE_NAME
 # The results are copied from the store so have read-only permissions, which
 # will upset git. We will own the files, so we can change the perms.

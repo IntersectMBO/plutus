@@ -1,5 +1,6 @@
 -- Need some extra imports from the Prelude for doctests, annoyingly
 {-# OPTIONS_GHC -Wno-unused-imports #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Language.PlutusTx.Prelude (
     -- $prelude
     -- * String and tracing functions
@@ -13,8 +14,8 @@ module Language.PlutusTx.Prelude (
     error,
     check,
     -- * Boolean operators
-    and,
-    or,
+    (&&),
+    (||),
     not,
     -- * Int operators
     gt,
@@ -58,24 +59,31 @@ module Language.PlutusTx.Prelude (
     -- * Hashes and Signatures
     sha2_256,
     sha3_256,
-    verifySignature
+    verifySignature,
+    module Prelude
     ) where
 
 import           Language.PlutusTx.Builtins (ByteString, concatenate, dropByteString, emptyByteString, equalsByteString,
                                              sha2_256, sha3_256, takeByteString, verifySignature)
 import qualified Language.PlutusTx.Builtins as Builtins
-import           Prelude                    (Bool (..), Integer, Maybe (..), String)
+import           Prelude                    as Prelude hiding (all, any, error, filter, foldl, foldr, fst, length, map,
+                                                        max, maybe, min, not, null, snd, (&&), (||))
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
 
 -- $prelude
--- The PlutusTx Prelude is a collection of useful functions that work with
--- builtin Haskell data types such as 'Maybe' and @[]@ (list).
+-- The PlutusTx Prelude is a replacement for the Haskell Prelude that works
+-- better with Plutus Tx. You should use it if you're writing code that
+-- will be compiled with the Plutus Tx compiler.
+-- @
+--     {-# LANGUAGE NoImplicitPrelude #-}
+--     import Language.PlutusTx.Prelude
+-- @
 
 -- $setup
 -- >>> :set -XNoImplicitPrelude
--- >>> import Prelude (Bool (..), Integer, Maybe (..), String, (+), (==), (>))
+-- >>> import Language.PlutusTx.Prelude
 
 {-# INLINABLE error #-}
 -- | Terminate the evaluation of the script with an error message.
@@ -122,23 +130,25 @@ traceIfFalseH str a = if a then True else traceH str False
 traceIfTrueH :: String -> Bool -> Bool
 traceIfTrueH str a = if a then traceH str True else False
 
-{-# INLINABLE and #-}
+{-# INLINABLE (&&) #-}
 -- | Logical AND
 --
---   >>> and True False
+--   >>> True && False
 --   False
 --
-and :: Bool -> Bool -> Bool
-and l r = if l then r else False
+infixr 3 &&
+(&&) :: Bool -> Bool -> Bool
+(&&) l r = if l then r else False
 
-{-# INLINABLE or #-}
+{-# INLINABLE (||) #-}
 -- | Logical OR
 --
---   >>> or True False
+--   >>> True || False
 --   True
 --
-or :: Bool -> Bool -> Bool
-or l r = if l then True else r
+infixr 2 ||
+(||) :: Bool -> Bool -> Bool
+(||) l r = if l then True else r
 
 {-# INLINABLE not #-}
 -- | Logical negation
@@ -355,7 +365,7 @@ length as = foldr (\_ acc -> plus acc 1) 0 as
 --   True
 --
 all :: (a -> Bool) -> [a] -> Bool
-all pred = foldr (\a acc -> acc `and` pred a) True
+all p = foldr (\a acc -> acc && p a) True
 
 {-# INLINABLE any #-}
 -- | PlutusTx version of 'Data.List.any'.
@@ -364,7 +374,7 @@ all pred = foldr (\a acc -> acc `and` pred a) True
 --   True
 --
 any :: (a -> Bool) -> [a] -> Bool
-any pred = foldr (\a acc -> acc `or` pred a) False
+any p = foldr (\a acc -> acc || p a) False
 
 {-# INLINABLE append #-}
 -- | PlutusTx version of 'Data.List.(++)'.
@@ -382,7 +392,7 @@ append l r = foldr (:) r l
 --   [2,3,4]
 --
 filter :: (a -> Bool) -> [a] -> [a]
-filter pred = foldr (\e xs -> if pred e then e:xs else xs) []
+filter p = foldr (\e xs -> if p e then e:xs else xs) []
 
 {-# INLINABLE mapMaybe #-}
 -- | PlutusTx version of 'Data.Maybe.mapMaybe'.
@@ -391,7 +401,7 @@ filter pred = foldr (\e xs -> if pred e then e:xs else xs) []
 --   "2"
 --
 mapMaybe :: (a -> Maybe b) -> [a] -> [b]
-mapMaybe pred = foldr (\e xs -> case pred e of { Just e' -> e':xs; Nothing -> xs}) []
+mapMaybe p = foldr (\e xs -> case p e of { Just e' -> e':xs; Nothing -> xs}) []
 
 {-# INLINABLE fst #-}
 -- | PlutusTx version of 'Data.Tuple.fst'

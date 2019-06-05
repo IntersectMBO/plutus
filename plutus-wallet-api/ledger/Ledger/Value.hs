@@ -7,8 +7,10 @@
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE NoImplicitPrelude  #-}
 -- Prevent unboxing, which the plugin can't deal with
 {-# OPTIONS_GHC -fno-strictness #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 -- | Functions for working with 'Value'.
 module Ledger.Value(
     -- ** Currency symbols
@@ -60,9 +62,9 @@ import qualified Data.Text                    as Text
 import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift       (makeLift)
+import           Language.PlutusTx.Prelude    hiding (eq, plus, minus, negate, multiply, leq, lt, geq, gt)
 import qualified Language.PlutusTx.Prelude    as P
 import qualified Ledger.Map                   as Map
-import           Prelude                      hiding (all, lookup, negate)
 import           LedgerBytes                  (LedgerBytes(LedgerBytes))
 import           Data.Function                ((&))
 
@@ -101,10 +103,10 @@ makeLift ''CurrencySymbol
 
 {-# INLINABLE eqCurSymbol #-}
 eqCurSymbol :: CurrencySymbol -> CurrencySymbol -> Bool
-eqCurSymbol (CurrencySymbol l) (CurrencySymbol r) = P.equalsByteString l r
+eqCurSymbol (CurrencySymbol l) (CurrencySymbol r) = equalsByteString l r
 
 {-# INLINABLE currencySymbol #-}
-currencySymbol :: P.ByteString -> CurrencySymbol
+currencySymbol :: ByteString -> CurrencySymbol
 currencySymbol = CurrencySymbol
 
 newtype TokenName = TokenName { unTokenName :: Builtins.ByteString }
@@ -115,7 +117,6 @@ newtype TokenName = TokenName { unTokenName :: Builtins.ByteString }
 instance IsString TokenName where
   fromString = TokenName . C8.pack
 
-{-# INLINABLE toString #-}
 toString :: TokenName -> String
 toString = C8.unpack . unTokenName
 
@@ -140,10 +141,10 @@ makeLift ''TokenName
 
 {-# INLINABLE eqTokenName #-}
 eqTokenName :: TokenName -> TokenName -> Bool
-eqTokenName (TokenName l) (TokenName r) = P.equalsByteString l r
+eqTokenName (TokenName l) (TokenName r) = equalsByteString l r
 
 {-# INLINABLE tokenName #-}
-tokenName :: P.ByteString -> TokenName
+tokenName :: ByteString -> TokenName
 tokenName = TokenName
 
 -- | A cryptocurrency value. This is a map from 'CurrencySymbol's to a
@@ -324,7 +325,7 @@ geq = checkBinRel P.geq
 -- | Check whether one 'Value' is strictly greater than another. See 'Value' for an explanation of how operations on 'Value's work.
 gt :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true. So we have a special case.
-gt l r = not (isZero l `P.and` isZero r) `P.and` checkBinRel P.gt l r
+gt l r = not (isZero l && isZero r) && checkBinRel P.gt l r
 
 {-# INLINABLE leq #-}
 -- | Check whether one 'Value' is less than or equal to another. See 'Value' for an explanation of how operations on 'Value's work.
@@ -336,7 +337,7 @@ leq = checkBinRel P.leq
 -- | Check whether one 'Value' is strictly less than another. See 'Value' for an explanation of how operations on 'Value's work.
 lt :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true. So we have a special case.
-lt l r = not (isZero l `P.and` isZero r) `P.and` checkBinRel P.lt l r
+lt l r = not (isZero l && isZero r) && checkBinRel P.lt l r
 
 {-# INLINABLE eq #-}
 -- | Check whether one 'Value' is equal to another. See 'Value' for an explanation of how operations on 'Value's work.

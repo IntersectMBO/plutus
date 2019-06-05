@@ -4,11 +4,15 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# OPTIONS_GHC -g #-}
 module Tutorial.Solutions0 where
 
 import           Data.Foldable                (traverse_)
-import qualified Language.PlutusTx            as P
+import           Language.PlutusTx.Prelude
+import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       (Address, DataScript(..), PubKey(..), RedeemerScript(..), Slot(..), TxId, ValidatorScript(..))
 import qualified Ledger                       as L
 import qualified Ledger.Ada                   as Ada
@@ -21,7 +25,6 @@ import           Ledger.Validation            (PendingTx(..), PendingTxIn(..), P
 import qualified Ledger.Validation            as V
 import           Wallet                       (WalletAPI(..), WalletDiagnostics(..), MonadWallet, EventHandler(..), EventTrigger)
 import qualified Wallet                       as W
-import           Prelude                      hiding ((&&))
 import           GHC.Generics                 (Generic)
 
 {-
@@ -35,7 +38,7 @@ import           GHC.Generics                 (Generic)
 
 -- 1. Run traces for a successful game and a failed game in the Playground, and examine the logs after each trace.
 -- (the logs should show the error message for the failed trace)
--- 2. Change the error case of the validator script to `($$(P.traceH) "WRONG!" ($$(P.error) ()))` and run the trace again with a wrong guess. Note how this time the log does not include the error message.
+-- 2. Change the error case of the validator script to `($$(traceH) "WRONG!" ($$(error) ()))` and run the trace again with a wrong guess. Note how this time the log does not include the error message.
 -- (there should be a failed transaction without log message)
 -- 1. Look at the trace shown below. What will the logs say after running "Evaluate"?
 -- Wallet 1's transaction attempts to unlock both outputs with the same redeemer ("plutus"). This fails for the second output (which expects "pluto"), making the entire transaction invalid.
@@ -49,7 +52,7 @@ import           GHC.Generics                 (Generic)
 --    should end with refunds being claimed after the `collectionDeadline` slot.
 
 -- 2. Change the validator script to produce more detailed log messages using
---    `P.traceH`
+--    `traceH`
 --    The log messages are only printed when validation of the script output
 --    fails. The triggers for both outcomes (successful campaign and refund)
 --    are set up to ensure that they only submit valid transactions to the
@@ -88,25 +91,20 @@ data Campaign = Campaign {
       campaignOwner      :: PubKey
  }
 
-P.makeLift ''Campaign
+PlutusTx.makeLift ''Campaign
 
 data CampaignAction = Collect | Refund
-P.makeLift ''CampaignAction
+PlutusTx.makeLift ''CampaignAction
 
 data Contributor = Contributor PubKey
-P.makeLift ''Contributor
+PlutusTx.makeLift ''Contributor
 
 mkValidatorScript :: Campaign -> ValidatorScript
 mkValidatorScript campaign = ValidatorScript val where
   val = L.applyScript mkValidator (L.lifted campaign)
-  mkValidator = L.fromCompiledCode $$(P.compile [||
+  mkValidator = L.fromCompiledCode $$(PlutusTx.compile [||
               \(c :: Campaign) (con :: Contributor) (act :: CampaignAction) (p :: PendingTx) ->
       let
-        infixr 3 &&
-        (&&) :: Bool -> Bool -> Bool
-        (&&) = P.and
-
-
         signedBy :: PendingTx -> PubKey -> Bool
         signedBy = V.txSignedBy
 
@@ -125,7 +123,7 @@ mkValidatorScript campaign = ValidatorScript val where
 
               -- Apply "addToTotal" to each transaction input,
               -- summing up the results
-              in P.foldr addToTotal Ada.zero ins
+              in foldr addToTotal Ada.zero ins
 
         isValid = case act of
                     Refund ->
@@ -138,7 +136,7 @@ mkValidatorScript campaign = ValidatorScript val where
                                 Nothing -> False
                                 Just pk -> V.eqPubKey pk pkCon
 
-                            contributorOnly = P.all contribTxOut outs
+                            contributorOnly = all contribTxOut outs
 
                             refundable =
                               Slot.before collectionDeadline txnValidRange &&
@@ -166,18 +164,18 @@ mkValidatorScript campaign = ValidatorScript val where
                         minimumAda :: [Ada] -> Maybe Ada
                         minimumAda slts = case slts of
                                         []   -> Nothing
-                                        x:xs -> Just (P.foldr minAda x xs)
+                                        x:xs -> Just (foldr minAda x xs)
 
                         -- | The list of 'targets' filtered to those targets
                         --   that are in the future
                         futureTargets :: [(Slot, Ada)]
-                        futureTargets = P.filter (\(a, _) -> isFutureSlot a) targets
+                        futureTargets = filter (\(a, _) -> isFutureSlot a) targets
 
                         -- | The amount we have to exceed if we want to collect
                         --   all the contributions now. It is the smallest of
                         --   all target amounts that are in the future.
                         currentTarget :: Maybe Ada
-                        currentTarget = minimumAda (P.map (\(_, a) -> a) futureTargets)
+                        currentTarget = minimumAda (map (\(_, a) -> a) futureTargets)
 
                         -- We may collect the contributions if the
                         -- 'currentTarget' is defined and the sum of all

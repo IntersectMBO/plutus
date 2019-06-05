@@ -21,32 +21,34 @@ let
   lib = pkgs.lib;
   getPackages = iohkNix.getPackages;
 
-  # List of all plutus pkgs. This is used for `isPlutus` filter and `mapTestOn`
-  plutusPkgList = [
+  # List of all public (i.e. published Haddock, will go on Hackage) Plutus pkgs
+  plutusPublicPkgList = [
     "language-plutus-core"
     "plutus-contract-exe"
     "plutus-core-interpreter"
-    "plutus-playground-server"
     "plutus-playground-lib"
-    "plutus-playground-client"
-    "plutus-server-invoker"
     "plutus-exe"
     "plutus-ir"
     "plutus-tx"
-    "plutus-tutorial"
-    "plutus-use-cases"
-    "interpreter"
-    "marlowe"
-    "meadow"
     "plutus-wallet-api"
     "plutus-emulator"
   ];
 
-  plutusHaskellPkgList = lib.filter (v: v != "plutus-playground-client" && v != "plutus-server-invoker") plutusPkgList;
+  isPublicPlutus = name: builtins.elem name plutusPublicPkgList;
+
+  # List of all Plutus packges in this repository.
+  plutusPkgList = plutusPublicPkgList ++ [
+    "plutus-playground-server"
+    "plutus-tutorial"
+    "plutus-use-cases"
+    "playground-common"
+    "marlowe"
+    "meadow"
+  ];
 
   isPlutus = name: builtins.elem name plutusPkgList;
 
-  regeneratePackages = iohkNix.stack2nix.regeneratePackages { hackageSnapshot = "2019-04-24T09:58:14Z"; };
+  regeneratePackages = iohkNix.stack2nix.regeneratePackages { hackageSnapshot = "2019-05-28T09:58:14Z"; };
 
   comp = f: g: (v: f(g v));
 in lib // {
@@ -54,7 +56,8 @@ in lib // {
   getPackages 
   iohkNix 
   isPlutus 
-  plutusHaskellPkgList 
+  isPublicPlutus 
+  plutusPublicPkgList 
   plutusPkgList 
   regeneratePackages 
   nixpkgs 

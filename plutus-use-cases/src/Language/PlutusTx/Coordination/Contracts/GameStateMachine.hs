@@ -3,6 +3,8 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- | A guessing game that
 --
 --   * Uses a state machine to keep track of the current secret word
@@ -21,7 +23,7 @@ import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
 import qualified Data.Text                    as Text
 import qualified Language.PlutusTx            as PlutusTx
-import qualified Language.PlutusTx.Prelude    as P
+import           Language.PlutusTx.Prelude
 import           Ledger                       hiding (to)
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Value                 (TokenName)
@@ -35,11 +37,11 @@ import qualified Data.ByteString.Lazy.Char8   as C
 import qualified Language.PlutusTx.StateMachine as SM
 import           Language.PlutusTx.StateMachine ()
 
-data HashedString = HashedString P.ByteString
+data HashedString = HashedString ByteString
 
 PlutusTx.makeLift ''HashedString
 
-data ClearString = ClearString P.ByteString
+data ClearString = ClearString ByteString
 
 PlutusTx.makeLift ''ClearString
 
@@ -56,16 +58,16 @@ PlutusTx.makeLift ''GameState
 -- | Equality of 'GameState' valzes.
 stateEq :: GameState -> GameState -> Bool
 stateEq (Initialised (HashedString s)) (Initialised (HashedString s')) =
-    P.equalsByteString s s'
+    equalsByteString s s'
 stateEq (Locked (V.TokenName n) (HashedString s)) (Locked (V.TokenName n') (HashedString s')) =
-    P.and (P.equalsByteString s s') (P.equalsByteString n n')
-stateEq _ _ = P.traceIfFalseH "states not equal" False
+    equalsByteString s s' && equalsByteString n n'
+stateEq _ _ = traceIfFalseH "states not equal" False
 
 -- | Check whether a 'ClearString' is the preimage of a
 --   'HashedString'
 checkGuess :: HashedString -> ClearString -> Bool
 checkGuess (HashedString actual) (ClearString gss) =
-    P.equalsByteString actual (P.sha2_256 gss)
+    equalsByteString actual (sha2_256 gss)
 
 -- | Inputs (actions)
 data GameInput =
@@ -105,14 +107,12 @@ mkValidator ds vs p =
         trans (Initialised s) (ForgeToken tn) =
             if checkForge (tokenVal tn)
             then Locked tn s
-            else P.error ()
+            else error ()
         trans (Locked tn currentSecret) (Guess theGuess nextSecret) =
-            if P.and
-                (checkGuess currentSecret theGuess)
-                (P.and (tokenPresent tn) (checkForge V.zero))
+            if checkGuess currentSecret theGuess && tokenPresent tn && checkForge V.zero
             then Locked tn nextSecret
-            else P.error ()
-        trans _ _ = P.traceErrorH "Invalid SM.transition"
+            else error ()
+        trans _ _ = traceErrorH "Invalid SM.transition"
 
         sm = SM.StateMachine trans stateEq
 

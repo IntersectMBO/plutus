@@ -11,6 +11,10 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns -Wno-name-shadowing #-}
 
+{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+
 {-|
     Marlowe Mockchain client code.
 
@@ -47,37 +51,16 @@ import           Ledger                         ( DataScript(..)
                                                 , scriptTxOut
                                                 )
 import qualified Ledger                         as Ledger
-import           Ledger.Ada                  (Ada)
 import qualified Ledger.Ada                     as Ada
 import           Ledger.Validation
 import           Language.Marlowe
 
 {- Mockchain instantiation of Marlowe Interpreter functions. -}
-eqValue :: Value -> Value -> Bool
-eqValue = $$(equalValue)
-
-eqObservation :: Observation -> Observation -> Bool
-eqObservation = $$(equalObservation) eqValue
-
-eqContract :: Contract -> Contract -> Bool
-eqContract = $$(equalContract) eqValue eqObservation
-
-validContract :: State -> Contract -> Slot -> Ada -> Bool
-validContract = $$(validateContract)
-
-evalValue :: Slot -> [OracleValue Integer] -> State -> Value -> Integer
-evalValue pendingTxBlockHeight inputOracles = $$(evaluateValue) pendingTxBlockHeight inputOracles
 
 interpretObs :: [OracleValue Integer] -> Integer -> State -> Observation -> Bool
 interpretObs inputOracles blockNumber state obs = let
-    ev = evalValue (Slot blockNumber) inputOracles
-    in $$(interpretObservation) ev blockNumber state obs
-
-evalContract :: PubKey -> TxHash -> Input -> Slot
-    -> Ada -> Ada
-    -> State -> Contract
-    -> (State, Contract, Bool)
-evalContract = $$(evaluateContract)
+    ev = evaluateValue (Slot blockNumber) inputOracles
+    in interpretObservation ev blockNumber state obs
 
 getScriptOutFromTx :: Tx -> (TxOut, TxOutRef)
 getScriptOutFromTx = head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs
@@ -90,7 +73,7 @@ getScriptOutFromTx = head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOu
 marloweValidator :: PubKey -> ValidatorScript
 marloweValidator creator = ValidatorScript result where
     result = Ledger.applyScript inner (Ledger.lifted creator)
-    inner  = $$(Ledger.compileScript validatorScript)
+    inner  = $$(Ledger.compileScript [|| validatorScript ||])
 
 {-| Create and submit a transaction that creates a Marlowe Contract @contract@
     using @validator@ script, and put @value@ Ada as a deposit.
@@ -220,7 +203,7 @@ commit' contractCreatorPK tx validator oracles choices identCC value inputState 
     let scriptInValue = Ada.fromValue . txOutValue . fst $ txOut
     let scriptOutValue = scriptInValue + Ada.fromInt value
     let (expectedState, expectedCont, isValid) =
-            evalContract contractCreatorPK txHash
+            evaluateContract contractCreatorPK txHash
             input bh scriptInValue scriptOutValue inputState inputContract
     when (not isValid) $ throwOtherError "Invalid commit"
     commit tx validator oracles choices identCC value expectedState expectedCont

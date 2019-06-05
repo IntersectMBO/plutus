@@ -1,9 +1,11 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE TemplateHaskell    #-}
 -- Otherwise we get a complaint about the 'fromIntegral' call in the generated instance of 'Integral' for 'Ada'
 {-# OPTIONS_GHC -Wno-identities #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 -- | Functions for working with 'Ada' in Template Haskell.
 module Ledger.Ada(
       Ada
@@ -36,8 +38,8 @@ import           Data.Aeson                   (FromJSON, ToJSON)
 import           Data.Swagger.Internal.Schema (ToSchema)
 import           GHC.Generics                 (Generic)
 import           Language.PlutusTx.Lift       (makeLift)
+import           Language.PlutusTx.Prelude    hiding (divide, eq, geq, gt, leq, lt, minus, multiply, negate, plus)
 import qualified Language.PlutusTx.Prelude    as P
-import           Prelude                      hiding (negate)
 
 import           Ledger.Value                 (CurrencySymbol, TokenName, Value)
 import qualified Ledger.Value                 as TH
@@ -45,12 +47,12 @@ import qualified Ledger.Value                 as TH
 {-# INLINABLE adaSymbol #-}
 -- | The 'CurrencySymbol' of the 'Ada' currency.
 adaSymbol :: CurrencySymbol
-adaSymbol = TH.currencySymbol P.emptyByteString
+adaSymbol = TH.currencySymbol emptyByteString
 
 {-# INLINABLE adaToken #-}
 -- | The 'TokenName' of the 'Ada' currency.
 adaToken :: TokenName
-adaToken = TH.tokenName P.emptyByteString
+adaToken = TH.tokenName emptyByteString
 
 -- | ADA, the special currency on the Cardano blockchain.
 --   See note [Currencies] in 'Ledger.Validation.Value.TH'.

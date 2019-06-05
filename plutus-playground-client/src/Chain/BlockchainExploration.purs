@@ -7,12 +7,13 @@ import Prelude hiding (div)
 import Bootstrap (nbsp)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
-import Data.Generic (class Generic)
+import Data.Generic.Rep (class Generic)
 import Data.Lens (preview)
 import Data.Lens.Index (ix)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(Nothing, Just), fromJust, maybe)
+import Data.RawJson (JsonTuple(..))
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String as String
@@ -44,7 +45,7 @@ data Column
   | OwnerIx String Hash
   | ScriptIx String Hash
 
-derive instance genericColumn :: Generic Column
+derive instance genericColumn :: Generic Column _
 derive instance eqColumn :: Eq Column
 derive instance ordColumn :: Ord Column
 
@@ -129,10 +130,10 @@ blockchainExploration addressTargets blockchain =
     columnClass (ScriptIx _ _) = ClassName "script"
 
     columns :: Set Column
-    columns = Set.fromFoldable $ map fst $ Map.keys $ balanceMap
+    columns = Set.map fst $ Map.keys $ balanceMap
 
     rows :: Set Row
-    rows = Set.fromFoldable $ map snd $ Map.keys $ balanceMap
+    rows = Set.map snd $ Map.keys $ balanceMap
 
 data Balance
   = CurrencyBalance (LedgerMap CurrencySymbol (LedgerMap TokenName Int))
@@ -159,16 +160,16 @@ toBalanceMap =
                                     <> outputTransactions row tx
                                ))
   where
-    forgeTransactions :: Row -> Tuple (TxIdOf String) Tx -> Tuple (Tuple Column Row) Balance
-    forgeTransactions row (Tuple _ (Tx {txForge: (Value { getValue: balances })})) =
+    forgeTransactions :: Row -> JsonTuple (TxIdOf String) Tx -> Tuple (Tuple Column Row) Balance
+    forgeTransactions row (JsonTuple (Tuple _ (Tx {txForge: (Value { getValue: balances })}))) =
       Tuple (Tuple ForgeIx row) (CurrencyBalance balances)
 
-    feeTransactions :: Row -> Tuple (TxIdOf String) Tx -> Tuple (Tuple Column Row) Balance
-    feeTransactions row (Tuple _ (Tx {txFee: (Ada {getAda: adaBalance})})) =
+    feeTransactions :: Row -> JsonTuple (TxIdOf String) Tx -> Tuple (Tuple Column Row) Balance
+    feeTransactions row (JsonTuple (Tuple _ (Tx {txFee: (Ada {getAda: adaBalance})}))) =
       Tuple (Tuple FeeIx row) (CurrencyBalance $ LedgerMap [Tuple adaCurrencySymbol (LedgerMap [Tuple adaTokenName adaBalance])])
 
-    inputTransactions :: Row -> Tuple (TxIdOf String) Tx -> Array (Tuple (Tuple Column Row) Balance)
-    inputTransactions row (Tuple _ (Tx {txInputs})) =
+    inputTransactions :: Row -> JsonTuple (TxIdOf String) Tx -> Array (Tuple (Tuple Column Row) Balance)
+    inputTransactions row (JsonTuple (Tuple _ (Tx {txInputs}))) =
       fromTxIn <$> txInputs
       where
         fromTxIn :: TxInOf String -> Tuple (Tuple Column Row) Balance
@@ -181,8 +182,8 @@ toBalanceMap =
                          })
           = Tuple (Tuple (ScriptIx owner hash) row) Remainder
 
-    outputTransactions :: Row -> Tuple (TxIdOf String) Tx -> Array (Tuple (Tuple Column Row) Balance)
-    outputTransactions row (Tuple (TxIdOf {getTxId: hash}) (Tx {txOutputs})) =
+    outputTransactions :: Row -> JsonTuple (TxIdOf String) Tx -> Array (Tuple (Tuple Column Row) Balance)
+    outputTransactions row (JsonTuple (Tuple (TxIdOf {getTxId: hash}) (Tx {txOutputs}))) =
       fromTxOut <$> txOutputs
       where
         fromTxOut :: TxOutOf String -> Tuple (Tuple Column Row) Balance
