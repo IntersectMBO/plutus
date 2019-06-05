@@ -49,7 +49,7 @@ extricateE (E-builtin bn σ tel Bs Ds telB vtel e p telD) =
   E-builtin (extricateE e)
 
 extricateVal V-ƛ = V-ƛ _ _ _
-extricateVal V-Λ_ = SR.V-Λ _ _ _
+extricateVal V-Λ_ = SR.V-Λ _ _
 extricateVal V-wrap1 = V-wrap _ _ _
 extricateVal (V-con cn) = V-con (extricateC cn)
 

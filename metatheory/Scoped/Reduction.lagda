@@ -28,7 +28,7 @@ infix 2 _—→_
 \begin{code}
 data Value {n}{w : Weirdℕ n} : ScopedTm w → Set where
   V-ƛ : ∀ x (A : ScopedTy n)(t : ScopedTm (S w)) → Value (ƛ x A t)
-  V-Λ : ∀ x K (t : ScopedTm (T w)) → Value (Λ x K t)
+  V-Λ : ∀ x {K}(t : ScopedTm (T w)) → Value (Λ x K t)
   V-con : (tcn : TermCon) → Value (con {n} tcn)
   V-wrap : (A B : ScopedTy n)(t : ScopedTm w) → Value (wrap A B t)
   V-builtin : (b : Builtin)
@@ -216,7 +216,7 @@ data TelProgress {n}{w : Weirdℕ n} : Tel w → Set where
 progress· : ∀{t : ScopedTm Z} → Progress t → (u : ScopedTm Z) → Progress (t · u)
 progress· (step p)                   u = step (ξ-·₁ p)
 progress· (done (V-ƛ x A t))         u = step β-ƛ
-progress· (done (V-Λ x K t))         u = error E-Λ·
+progress· (done (V-Λ x p))           u = error E-Λ·
 progress· (done (V-con tcn))         u = error E-con·
 progress· (done (V-wrap A B t))      u = error E-wrap·
 progress· (done (V-builtin b As ts)) u = step sat-builtin
@@ -226,20 +226,20 @@ progress·⋆ : ∀{t : ScopedTm Z} → Progress t → (A : ScopedTy 0)
   → Progress (t ·⋆ A)
 progress·⋆ (step p)                   A = step (ξ-·⋆ p)
 progress·⋆ (done (V-ƛ x B t))         A = error E-ƛ·⋆
-progress·⋆ (done (V-Λ x K t))         A = step β-Λ
+progress·⋆ (done (V-Λ x p))           A = step β-Λ
 progress·⋆ (done (V-con tcn))         A = error E-con·⋆
 progress·⋆ (done (V-wrap pat arg t))  A = error E-wrap·⋆
 progress·⋆ (done (V-builtin b As ts)) A = error E-builtin·⋆
 progress·⋆ (error e)                  A = error (E-·⋆ e)
 
 progress-unwrap : ∀{t : ScopedTm Z} → Progress t → Progress (unwrap t)
-progress-unwrap (step p) = step (ξ-unwrap p)
-progress-unwrap (done (V-ƛ x A t)) = error E-ƛunwrap
-progress-unwrap (done (V-Λ x K t)) = error E-Λunwrap
-progress-unwrap (done (V-con tcn)) = error E-conunwrap
-progress-unwrap (done (V-wrap A B t)) = step β-wrap
+progress-unwrap (step p)                   = step (ξ-unwrap p)
+progress-unwrap (done (V-ƛ x A t))         = error E-ƛunwrap
+progress-unwrap (done (V-Λ x p))           = error E-Λunwrap
+progress-unwrap (done (V-con tcn))         = error E-conunwrap
+progress-unwrap (done (V-wrap A B t))      = step β-wrap
 progress-unwrap (done (V-builtin b As ts)) = error E-builtinunwrap
-progress-unwrap (error e) = error (E-unwrap e)
+progress-unwrap (error e)                  = error (E-unwrap e)
 
 progress-builtin : ∀ bn → (As : List (ScopedTy 0)) (tel : Tel Z)
   → TelProgress tel → Progress (builtin bn As tel)
@@ -269,7 +269,7 @@ progressTel [] = done [] tt
 progressTel (t ∷ tel) = progressTelCons (progress t) (progressTel tel)
 
 progress (` ())
-progress (Λ x K t)         = done (V-Λ x K t)
+progress (Λ x K t)         = done (V-Λ x t)
 progress (t ·⋆ A)          = progress·⋆ (progress t) A
 progress (ƛ x A t)         = done (V-ƛ x A t)
 progress (t · u)           = progress· (progress t) u

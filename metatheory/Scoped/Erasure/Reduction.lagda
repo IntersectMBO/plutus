@@ -21,8 +21,15 @@ open import Function
 \begin{code}
 erase—→ : ∀{n}{w : Weirdℕ n}{t t' : ScopedTm w}
   → t S.—→ t' → eraseTm t U.—→ eraseTm t' ⊎ eraseTm t ≡ eraseTm t'
-erase—→ (S.ξ-·₁ p) = {!!}
-erase—→ (S.ξ-·₂ p q) = {!!}
+
+eraseVal : ∀{n}{w : Weirdℕ n}{t : ScopedTm w}
+  → S.Value t
+  → U.Value (eraseTm t)
+eraseVal x = {!!}
+
+erase—→ (S.ξ-·₁ {M = u} p) = map U.ξ-·₁ (cong (_· eraseTm u)) (erase—→ p)
+erase—→ (S.ξ-·₂ {L = t} p q) =
+  map (U.ξ-·₂ (eraseVal p)) (cong (eraseTm t ·_)) (erase—→ q)
 erase—→ (S.ξ-·⋆ p) = erase—→ p
 erase—→ (S.β-ƛ {x = x}{L = t}{M = u}) = inj₁ (subst
   ((ƛ x (eraseTm t) · eraseTm u) U.—→_)
