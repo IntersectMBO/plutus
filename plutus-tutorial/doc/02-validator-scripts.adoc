@@ -297,6 +297,7 @@ If you change the word "plutus" in the third item of the trace to
 
 image:game-logs.PNG[Emulator log for a failed attempt]
 
+[#02-exercises]
 == Exercises
 
 [arabic]

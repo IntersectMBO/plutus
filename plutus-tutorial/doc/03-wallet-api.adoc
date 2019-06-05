@@ -497,8 +497,8 @@ the crowdfunding contribution we need to hold on the transaction. Why?
 Think back to the `guess` action of the game. We used
 link:{wallet-api-haddock}/Wallet-API.html#v:collectFromScript[`collectFromScript`]
 to collect _all_ outputs at the game address. This works only if all all
-outputs are unlocked by the same redeemer (see also exercise 3 of the
-previous tutorial).
+outputs are unlocked by the same redeemer (see also xref:02-exercises[exercise 3 of the
+previous tutorial]).
 
 In our crowdfunding campaign, the redeemer is a signed `Action`. In case
 of a refund, we sign the `Refund` action with our public key, allowing

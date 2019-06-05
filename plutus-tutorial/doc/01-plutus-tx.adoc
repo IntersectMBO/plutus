@@ -49,9 +49,11 @@ import Data.Text.Prettyprint.Doc -- <4>
 <4> Used for examples.
 
 Plutus Tx makes some use of Template Haskell. There are a few reasons
-for this: - Template Haskell allows us to do work at compile time, which
-is when we do Plutus Tx compilation. - It allows us to wire up the
-machinery that actually invokes the Plutus Tx compiler.
+for this:
+
+. Template Haskell allows us to do work at compile time, which
+is when we do Plutus Tx compilation.
+. It allows us to wire up the machinery that actually invokes the Plutus Tx compiler.
 
 Consequently, we will see some use of Template Haskell quotes. A
 Template Haskell quote is introduced with the special brackets `[||` and
@@ -142,7 +144,7 @@ So far, so familiar: we compiled a lambda into a lambda (the "lam").
 
 == Functions and datatypes
 
-You can also use functions inside your expression. In practice, you may
+You can also use functions inside your expression. In practice, you
 will usually want to define the entirety of your Plutus Tx program as a
 definition outside the quote, and then simply call it inside the quote.
 
@@ -287,6 +289,7 @@ generate these with the `makeLift` TH function from
 `Language.PlutusTx.Lift`. Lifting makes it easy to use the same types
 both inside your Plutus Tx program and in the external code that uses
 it.
+
 NOTE: `unsafeLiftCode` is "unsafe" because it ignores any errors that might occur from
 lifting something that isn't supported.
 

@@ -23,7 +23,7 @@
 // https://github.com/asciidoctor/asciidoctor/issues/1066
 :2c: ::
 :playground: https://prod.playground.plutus.iohkdev.io/
-:haddock: https://input-output-hk.github.io/plutus/
+:haddock: https://input-output-hk.github.io/plutus
 :wallet-api-haddock: {haddock}/plutus-wallet-api-0.1.0.0/html
 
 include::overview.adoc[leveloffset=+ 1]
