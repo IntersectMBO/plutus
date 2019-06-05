@@ -67,7 +67,7 @@ Let's start with the data types.
 data VestingTranche = VestingTranche {
     vestingTrancheDate   :: Slot,
     -- ^ When this tranche is released
-    vestingTrancheAmount :: Value
+    vestingTrancheAmount :: Value -- <1>
     -- ^ How much money is locked in this tranche
     } deriving (Generic)
 
@@ -102,6 +102,9 @@ availableFrom (VestingTranche d v) range =
     -- the money in the tranche is available, otherwise nothing is available.
     in if validRange `Slot.contains` range then v else Value.zero
 ----
+<1> `Value` is the general type of assets on chain, which includes tokens other than `Ada`.
+Most of the functions work very similarly, so there is usually little reason not
+to use `Value` instead of `Ada`.
 
 === The validator script
 

@@ -10,21 +10,21 @@ contracts and related terms
 the Plutus Tx compiler to create embedded (on-chain) programs
 . xref:02-validator-scripts#validator-scripts[] implements a
 guessing game. Topics covered:
-    * Signature of validator script
-    * `Ledger.makeLift`, `Ledger.compileScript`
+    * Validation scripts
+    * Lifting and compiling with the `Ledger` functions
     * Contract endpoints
-    * `Wallet.payToScript_`, `Wallet.collectFromScript`
-    * Playground
+    * Paying to and collecting from a script with the `Wallet` functions
+    * Using the playground
 . xref:03-wallet-api#wallet-api[] implements a
 crowdfunding campaign. Topics covered:
-    * Parameterising a contract through partial application using
-    `Ledger.applyScript`
-    * Operators in on-chain code
+    * Parameterising a validator through partial application
     * On-chain time (slot intervals)
-    * Working with Ada values
+    * Working with `Ada`
     * Blockchain triggers
 . xref:04-vesting#multi-stage[] implements a vesting scheme. Topics covered:
     * Writing a contract that extends over multiple transactions
+    * Working with `Value`
+    * Creating and submitting complex transactions
 
 Additional documentation will be added for the following
 work-in-progress features, when they are available on the mockchain:

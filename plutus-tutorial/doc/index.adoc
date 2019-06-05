@@ -1,9 +1,23 @@
 = Plutus Tutorial
+:email: plutus@iohk.io
+:orgname: IOHK
+:doctype: article
 :toc: left
-:numbered:
+:sectnums:
 :source-highlighter: pygments
+// Considerations:
+// - Shouldn't mess up alignment (weirdly some of them do, including the default)
+// - Shouldn't have a dark background, otherwise callouts don't show up (otherwise I'd pick monokai)
+// - Should have a non-white background, to distinguish code blocks
+:pygments-style: tango
 :imagesdir: images
+// uses fontawesome, seems okay for now, could use real icons later
 :icons: font
+:favicon: {imagesdir}/favicon.ico
+:stylesdir: css
+:linkcss:
+// prevents setting the last-updated-label etc.
+:reproducible:
 
 // unfortunately, asciidoctor likes to parse these as definition lists :(
 // https://github.com/asciidoctor/asciidoctor/issues/1066

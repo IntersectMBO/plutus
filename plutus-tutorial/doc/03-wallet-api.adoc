@@ -1,10 +1,9 @@
 [#wallet-api]
-= Wallet API II: Smart Contracts
+= Smart Contracts
 ifndef::imagesdir[:imagesdir: ./images]
 
 This tutorial shows how to implement a crowdfunding campaign as a Plutus
-contract, using the wallet API to submit it to the blockchain. It is the
-third in a series of tutorials on Plutus smart contracts.
+contract, using the wallet API to submit it to the blockchain.
 
 You can run this code in the
 link:{playground}[Plutus Playground] - see <<testing-contract-03>>.

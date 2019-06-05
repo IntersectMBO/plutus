@@ -1,5 +1,5 @@
 [#validator-scripts]
-= Wallet API I: Basics
+= Ledger and Wallet basics
 ifndef::imagesdir[:imagesdir: ./images]
 
 This tutorial explains how to get Plutus onto the blockchain, using a
@@ -264,7 +264,7 @@ Playground then uses this schema to present an HTML form to the user
 where the parameters can be entered.
 
 [#testing-contract-02]
-== Testing the contract in the Playground
+== Testing the contract
 
 To test this contract, open the
 link:{playground}[Plutus Playground] and click
@@ -309,9 +309,3 @@ guess. Note how this time the log does not include the error message.
 "Evaluate"?
 
 image:game-actions-2.PNG[A trace for the guessing game]
-
-== Next steps
-
-The xref:03-wallet-api#wallet-api[next part] of the tutorial shows how to
-implement a crowdfunding campaign. It covers blockchain triggers and the
-validity range of transactions.

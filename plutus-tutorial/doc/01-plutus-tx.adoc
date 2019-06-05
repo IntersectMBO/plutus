@@ -13,9 +13,7 @@ in a transaction, hence the "Tx").
 
 This means that Plutus Tx _is just Haskell_. Strictly, only a subset of
 Haskell is supported, but most simple Haskell should work, and the
-compiler will tell you if you use something that is unsupported. (See
-link:../../plutus-tx/README.md#haskell-language-support[Haskell
-language support] for more details on what is supported.)
+compiler will tell you if you use something that is unsupported.
 
 The key technique that the Plutus Platform uses is called _staged
 metaprogramming_. What that means is that the main Haskell program
@@ -89,7 +87,7 @@ write inside the quote is just normal Haskell.
 Here’s the most basic program we can write: one that just evaluates to
 the integer `1`.
 
-The Plutus Core syntax will look unfamiliar. This is fine, since it is
+NOTE: The Plutus Core syntax will look unfamiliar. This is fine, since it is
 the "assembly language" and you won’t need to inspect the output of
 the compiler. However, for the purposes of this tutorial it’s
 instructive to look at it to get a vague idea of what’s going on.
@@ -320,7 +318,3 @@ pastEndAt end current =
     `applyCode`
     unsafeLiftCode current
 ----
-
-The xref:02-validator-scripts#validator-scripts[next part] of the tutorial explains
-how to get Plutus onto the blockchain, using a simple guessing game as
-an example.
