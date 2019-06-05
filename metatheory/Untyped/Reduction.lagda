@@ -34,7 +34,7 @@ data Error {n} : n ⊢ → Set where
 \begin{code}
 
 
-data Value {n} : ∀{n} → n ⊢ → Set where
+data Value {n} : n ⊢ → Set where
   V-ƛ : ∀{x}(t : suc n ⊢) → Value (ƛ x t)
   V-con : (tcn : TermCon) → Value (con {n} tcn)
 
@@ -45,7 +45,9 @@ BUILTIN : ∀{n}
     → Maybe (n ⊢)
 
 data _—→_ {n} : n ⊢ → n ⊢ → Set where
-  ξ-· : {L L' : n ⊢}{M : n ⊢} → L —→ L' → L · M —→ L' · M
+  ξ-·₁ : {L L' M : n ⊢} → L —→ L' → L · M —→ L' · M
+  ξ-·₂ : {L M M' : n ⊢} → Value L → M —→ M' → L · M —→ L · M'
+
   E-· : {L : n ⊢}{M : n ⊢} → Error L → L · M —→ error
   E-con : {tcn : TermCon}{L : n ⊢} → con tcn · L —→ error
   β-ƛ : ∀{x}{L : suc n ⊢}{M : n ⊢} → ƛ x L · M —→ L [ M ]
@@ -139,7 +141,7 @@ progress (t · u)      with progress t
 progress (.(ƛ _ t) · u)   | inl (inl (V-ƛ t))     = inr (t [ u ] , β-ƛ)
 progress (.(con tcn) · u) | inl (inl (V-con tcn)) = inr (error , E-con)
 progress (t · u)          | inl (inr e)  = inr (error , E-· e)
-progress (t · u)          | inr (t' , p) = inr (t' · u  , ξ-· p)
+progress (t · u)          | inr (t' , p) = inr (t' · u  , ξ-·₁ p)
 progress (con tcn)    = inl (inl (V-con tcn))
 progress (builtin b ts) with progressList ts
 progress (builtin b ts) | done  vs       =
@@ -149,8 +151,6 @@ progress (builtin b ts) | step  vs p ts' =
 progress (builtin b ts) | error vs e ts' =
   inr (error     , E-builtin vs e ts')
 progress error        = inl (inr E-error)
-progress (wrap {zero} t) = inl (inr E-todo)
-progress (unwrap {zero} t) = inl (inr E-todo)
 \end{code}
 
 \begin{code}

@@ -90,9 +90,10 @@ mapper f (just a) = just (f a)
 
 open import Untyped
 
+
 -- untyped evaluation
-utestPLC : ByteString → Maybe String
-utestPLC plc = mmap (U.ugly ∘ (λ (t : 0 ⊢) → proj₁ (U.run t 100)) ∘ erase⊢) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))
+--utestPLC : ByteString → Maybe String
+--utestPLC plc = mmap (U.ugly ∘ (λ (t : 0 ⊢) → proj₁ (U.run t 100)) ∘ erase⊢) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))
 
 open import Data.Fin
 
