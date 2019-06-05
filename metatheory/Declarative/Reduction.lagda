@@ -12,9 +12,9 @@ open import Declarative.RenamingSubstitution
 open import Type.Equality
 open import Builtin
 open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢⋆_ ` con boolean size⋆
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con boolean
 open import Builtin.Constant.Type
-open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
 open import Declarative.StdLib.Bool
 open import Utils
 
@@ -36,6 +36,7 @@ import Data.Bool as Bool
 ## Values
 
 \begin{code}
+{-
 data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Set where
 
   V-ƛ : ∀ {Γ A B} {N : Γ , A ⊢ B}
@@ -53,15 +54,16 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Set where
    → {term : Γ ⊢ pat · (μ1 · pat) · arg}
    → Value (wrap1 pat arg term)
 
-  V-con : ∀{Γ}{n}{tcn : TyCon}
-    → (cn : TermCon (con tcn (size⋆ n)))
+  V-con : ∀{Γ}{tcn : TyCon}
+    → (cn : TermCon (con tcn))
     → Value (con {Γ} cn)
-
+-}
 \end{code}
 
 ## BUILTIN
 
 \begin{code}
+{-
 VTel : ∀ Γ Δ → ⋆.Sub Δ ∥ Γ ∥ → List (Δ ⊢⋆ *) → Set
 VTel Γ Δ σ [] = ⊤
 VTel Γ Δ σ (A ∷ As) = Σ (Γ ⊢ ⋆.subst σ A) λ t → Value t × VTel Γ Δ σ As
@@ -168,7 +170,7 @@ BUILTIN
   | size⋆ s
   with i >? j
 ... | yes _ = just true
-... | no _  = just false 
+... | no _  = just false
 BUILTIN greaterThanEqualsInteger σ vtel with σ Z
 BUILTIN
   greaterThanEqualsInteger
@@ -200,18 +202,6 @@ BUILTIN
 BUILTIN sizeOfInteger σ vtel with σ Z
 BUILTIN sizeOfInteger σ (_ ,, V-con (integer s i x) ,, tt) | .(size⋆ s) =
   just (con (size s))
-BUILTIN intToByteString σ vtel with σ Z | σ (S Z)
-BUILTIN
-  intToByteString
-  σ
-  (_ ,, V-con (size s) ,, _ ,, V-con (integer s' i p) ,, tt)
-  | size⋆ s
-  | size⋆ s' with boundedI? s i
-... | no _  = nothing
-... | yes q with boundedB? s (int2ByteString i)
-... | yes r = just (con (bytestring s (int2ByteString i) r))
-... | no _  = nothing
--- ^ should be impossible if we prove something about int2ByteString
 BUILTIN concatenate σ vtel with σ Z
 BUILTIN
   concatenate
@@ -220,7 +210,7 @@ BUILTIN
   | size⋆ s
   with boundedB? s (append b b')
 ... | yes r = just (con (bytestring s (append b b') r))
-... | no ¬r = nothing 
+... | no ¬r = nothing
 
 BUILTIN takeByteString σ vtel with σ Z | σ (S Z)
 BUILTIN
@@ -234,7 +224,7 @@ BUILTIN
 ... | no r = nothing
 -- ^ this is impossible but we haven't proved that take cannot
 -- increase the length
-BUILTIN dropByteString σ vtel with σ Z | σ (S Z) 
+BUILTIN dropByteString σ vtel with σ Z | σ (S Z)
 BUILTIN
   dropByteString
   σ
@@ -297,11 +287,13 @@ BUILTIN
   with equals b b'
 ... | Bool.true  = just true
 ... | Bool.false = just false
+-}
 \end{code}
 
 # recontructing the telescope after a reduction step
 
 \begin{code}
+{-
 reconstTel : ∀{Γ Δ As} Bs Ds
     →  (σ : ⋆.Sub Δ ∥ Γ ∥)
     → (vtel : VTel Γ Δ σ Bs)
@@ -312,11 +304,13 @@ reconstTel : ∀{Γ Δ As} Bs Ds
 reconstTel [] Ds σ vtel t' refl tel' = t' ,, tel'
 reconstTel (B ∷ Bs) Ds σ (X ,, VX ,, vtel) t' refl tel' =
   X ,, reconstTel Bs Ds σ vtel t' refl tel'
+-}
 \end{code}
 
 ## Intrinsically Type Preserving Reduction
 
 \begin{code}
+{-
 infix 2 _—→_
 
 data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ A) → Set where
@@ -336,7 +330,7 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ 
     → L —→ L′
       -----------------
     → L ·⋆ A —→ L′ ·⋆ A
-    
+
   β-ƛ : ∀ {Γ A B} {N : Γ , A ⊢ B} {W : Γ ⊢ A}
     → Value W
       --------------------
@@ -381,10 +375,12 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ 
     → builtin bn σ tel
       —→
       builtin bn σ (reconstTel Bs Ds σ vtel t' p tel')
+      -}
 \end{code}
 
 
 \begin{code}
+{-
 data Progress {A : ∅ ⊢⋆ *} (M : ∅ ⊢ A) : Set where
   step : ∀ {N}
     → M —→ N
@@ -394,11 +390,12 @@ data Progress {A : ∅ ⊢⋆ *} (M : ∅ ⊢ A) : Set where
       Value M
       ----------
     → Progress M
-  error : Progress M 
+  error : Progress M
+-}
 \end{code}
 
 \begin{code}
-
+{-
 data TelProgress
   {Γ}
   {Δ}
@@ -460,4 +457,5 @@ progress (builtin bn σ X) | step Bs Ds vtel p q tel' =
   step (ξ-builtin bn σ X Bs Ds vtel p q tel')
 progress (builtin bn σ X) | error = error
 progress (error A) = error
+-}
 \end{code}

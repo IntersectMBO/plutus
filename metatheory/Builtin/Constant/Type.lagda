@@ -11,6 +11,7 @@ open import Data.Bool
 open import Data.Product
 open import Relation.Binary
 open import Data.Nat hiding (_^_; _≤_; _<_; _>_; _≥_; _≤?_;_<?_;_>?_;_≥?_) renaming (_*_ to _**_)
+open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
 open import Function
 
@@ -28,7 +29,6 @@ postulate
   quot           : Int → Int → Int
   rem            : Int → Int → Int
   mod            : Int → Int → Int
-  int2ByteString : Int → ByteString
 
   append    : ByteString → ByteString → ByteString
   take      : Int → ByteString → ByteString
@@ -57,10 +57,12 @@ postulate
 -- no binding needed for addition
 -- no binding needed for subtract
 -- no binding needed for multiply
+
 {-# COMPILE GHC div  = div  #-}
 {-# COMPILE GHC quot = quot #-}
 {-# COMPILE GHC rem  = rem  #-}
 {-# COMPILE GHC mod  = mod  #-}
+
 -- no binding needed for lessthan
 -- no binding needed for lessthaneq
 -- no binding needed for greaterthan
@@ -68,7 +70,6 @@ postulate
 -- no binding needed for equals
 -- no binding needed for resize
 -- no binding needed for sizeOf
--- TODO: intToByteString
 
 {-# COMPILE GHC append = BS.append #-}
 {-# COMPILE GHC take = BS.take . fromIntegral #-}
@@ -100,13 +101,13 @@ x ^ ℕ.suc n = x ** (x ^ n)
 
 
 _<?_ : Decidable _<_
-i <? j = Data.Integer.suc i ≤? j 
+i <? j = Data.Integer.suc i ≤? j
 
 _>?_ : Decidable _>_
 i >? j = j <? i
 
 _≥?_ : Decidable _≥_
-i ≥? j = j ≤? i 
+i ≥? j = j ≤? i
 
 
 trans≤Nat : ∀{i j k} → i Data.Nat.≤ j → j Data.Nat.≤ k → i Data.Nat.≤ k
@@ -125,11 +126,11 @@ trans≤Int (+≤+ p) (+≤+ q) = +≤+ (trans≤Nat p q)
 \begin{code}
 open import Data.Unit hiding (_≤_;_≤?_)
 BoundedI : (s : ℕ)(i : Int)  → Set
-BoundedI s i = - (pos (2 ^ (8 ** (s ∸ 1)))) ≤ i × i < pos (2 ^ (8 ** (s ∸ 1)))
+BoundedI s i = ⊤ -- - (pos (2 ^ (8 ** (s ∸ 1)))) ≤ i × i ≤ pos (2 ^ (8 ** (s ∸ 1)))
 
 BoundedN : (s : ℕ)(i : ℤ) → Set
-BoundedN s i =
-  pos 0 ≤ i × i < pos (2 ^ (8 ** (s ∸ 1)))
+BoundedN s i = ⊤
+  -- pos 0 ≤ i × i ≤ pos (2 ^ (8 ** (s ∸ 1)))
 
 -- a more efficient version of leq
 open import Data.Empty
@@ -146,30 +147,37 @@ gen (ℕ.suc m) (ℕ.suc n) p = s≤s (gen m n p)
 
 
 BoundedB : (s : ℕ)(b : ByteString) → Set
-BoundedB s b = length b Data.Nat.≤ s
+BoundedB s b = ⊤ -- length b Data.Nat.≤ s
 
 boundedI? : Decidable BoundedI
+boundedI? = λ x y → yes _
 
+{-
 boundedI? s i
   with (- pos (2 ^ (8 ** (s ∸ 1)))) ≤? i
-  | i <? pos (2 ^ (8 ** (s ∸ 1)))
+  | i ≤? pos (2 ^ (8 ** (s ∸ 1)))
 boundedI? s i | yes p | yes q = yes (p , q)
 boundedI? s i | yes p | no ¬q = no (¬q ∘ proj₂)
 boundedI? s i | no ¬p | _     = no (¬p ∘ proj₁)
+-}
 
 boundedB? : Decidable BoundedB
-boundedB? s b = length b Data.Nat.≤? s
+boundedB? s b = yes tt -- length b Data.Nat.≤? s
 
 boundedN? : Decidable BoundedN
+boundedN? = λ x y → yes tt
+{-
 boundedN? s i
   with pos 0 ≤? i
-  | i <? pos (2 ^ (8 ** (s ∸ 1)))
+  | i ≤? pos (2 ^ (8 ** (s ∸ 1)))
 boundedN? s i | yes p | yes q = yes (p , q)
 boundedN? s i | yes p | no ¬q = no (¬q ∘ proj₂)
 boundedN? s i | no ¬p | _     = no (¬p ∘ proj₁)
+-}
 
-bN2I : ∀ s i → BoundedN s i → BoundedI s i 
-bN2I s i (p , p') = trans≤Int (-≤0 (2 ^ (8 ** (s ∸ 1)))) p , p'
+bN2I : ∀ s i → BoundedN s i → BoundedI s i
+bN2I = λ s i x → tt
+--bN2I s i (p , p') = trans≤Int (-≤0 (2 ^ (8 ** (s ∸ 1)))) p , p'
 \end{code}
 
 ## Type constants
@@ -182,9 +190,8 @@ bytestrings
 data TyCon : Set where
   integer    : TyCon
   bytestring : TyCon
-  size       : TyCon
   string     : TyCon
 
 {-# FOREIGN GHC import Language.PlutusCore #-}
-{-# COMPILE GHC TyCon = data TypeBuiltin (TyInteger | TyByteString | TySize | TyString) #-}
+{-# COMPILE GHC TyCon = data TypeBuiltin (TyInteger | TyByteString | TyString) #-}
 \end{code}

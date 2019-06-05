@@ -29,6 +29,6 @@ evaluateCekTrace
 evaluateCekTrace p =
     unsafePerformIO $ withEmit $ \emit -> do
         let logName       = dynamicTraceName
-            logDefinition = dynamicCallAssign TypedBuiltinDyn logName emit
+            logDefinition = dynamicCallAssign logName emit
             env  = insertDynamicBuiltinNameDefinition logDefinition stringBuiltins
         evaluate $ runCek env p

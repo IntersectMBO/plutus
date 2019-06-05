@@ -2,43 +2,45 @@ module BridgeTests
        ( all
        ) where
 
-import Control.Monad.Eff.Class (class MonadEff, liftEff)
-import Control.Monad.Eff.Exception (EXCEPTION)
-import Control.Monad.Eff.Random (RANDOM)
-import Data.Argonaut.Generic.Aeson (decodeJson)
-import Data.Argonaut.Parser (jsonParser)
+import Prelude
+
+import API (RunResult)
+import Control.Monad.Except (runExcept)
 import Data.Either (Either(..))
-import Data.Generic (class Generic)
+import Effect.Aff.Class (class MonadAff)
+import Effect.Class (liftEffect)
+import Foreign (F, MultipleErrors)
+import Foreign.Class (class Decode)
+import Foreign.Generic (decodeJSON)
 import Language.Haskell.Interpreter (CompilationError)
 import Node.Encoding (Encoding(UTF8))
-import Node.FS (FS)
-import API (RunResult)
 import Node.FS.Sync as FS
-import Prelude
 import Test.Unit (TestSuite, Test, failure, success, suite, test)
 
-all :: forall eff. TestSuite (exception :: EXCEPTION, fs :: FS, random :: RANDOM | eff)
+all :: TestSuite
 all =
   suite "Bridge" do
     jsonHandling
 
-jsonHandling :: forall eff. TestSuite (exception :: EXCEPTION, fs :: FS, random :: RANDOM | eff)
+jsonHandling :: TestSuite
 jsonHandling = do
     test "Json handling" do
-      response1 :: Either String RunResult <- decodeFile "test/evaluation_response1.json"
-      assertRight response1
-      error1 :: Either String (Array CompilationError) <- decodeFile "test/evaluation_error1.json"
-      assertRight error1
+      response1 :: F RunResult <- decodeFile "test/evaluation_response1.json"
+      let r = runExcept response1
+      assertRight r
+      error1 :: F (Array CompilationError) <- decodeFile "test/evaluation_error1.json"
+      let e = runExcept error1
+      assertRight e
 
-assertRight :: forall e a. Either String a -> Test e
-assertRight (Left err) = failure err
+assertRight :: forall a. Either MultipleErrors a -> Test
+assertRight (Left err) = failure (show err)
 assertRight (Right _) = success
 
-decodeFile :: forall m a eff.
-  MonadEff (fs :: FS, exception :: EXCEPTION | eff) m
-  => Generic a
+decodeFile :: forall m a.
+  MonadAff m
+  => Decode a
   => String
-  -> m (Either String a)
+  -> m (F a)
 decodeFile filename = do
-  contents <- liftEff $ FS.readTextFile UTF8 filename
-  pure (jsonParser contents >>= decodeJson)
+  contents <- liftEffect $ FS.readTextFile UTF8 filename
+  pure (decodeJSON contents)

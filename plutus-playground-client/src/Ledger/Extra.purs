@@ -5,30 +5,32 @@ import Prelude
 import Data.Array as Array
 import Data.Foldable (class Foldable, foldMap, foldl, foldr)
 import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndex)
-import Data.Generic (class Generic, gShow)
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens', lens, wander)
 import Data.Lens.At (class At)
 import Data.Lens.Index (class Index)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
-import Data.Monoid (class Monoid)
 import Data.Newtype (class Newtype, unwrap)
+import Data.RawJson (JsonTuple(..))
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst, snd, uncurry)
 import Data.Tuple.Nested (type (/\), (/\))
+import Foreign.Class (class Decode, class Encode, decode, encode)
 
 newtype LedgerMap k v = LedgerMap (Array (Tuple k v))
 
-derive instance genericLedgerMap :: (Generic k, Generic v) => Generic (LedgerMap k v)
+derive instance genericLedgerMap :: Generic (LedgerMap k v) _
 derive instance newtypeLedgerMap :: Newtype (LedgerMap k v) _
 
 instance eqLedgerMap :: (Ord k, Eq v) => Eq (LedgerMap k v) where
   eq (LedgerMap xs) (LedgerMap ys) =
     Array.sortWith fst xs == Array.sortWith fst ys
 
-instance showValue :: (Generic k, Generic v, Show k, Show v) => Show (LedgerMap k v) where
-  show = gShow
+instance showValue :: (Show k, Show v) => Show (LedgerMap k v) where
+  show = genericShow
 
 _LedgerMap :: forall k v. Lens' (LedgerMap k v) (Array (Tuple k v))
 _LedgerMap = _Newtype
@@ -96,3 +98,13 @@ collapse ::
   -> Array (i /\ j /\ a)
 collapse =
   foldMapWithIndex (\i -> foldMapWithIndex (\j a -> [ i /\ j /\ a ]))
+
+instance encodeLedgerMap :: (Encode k, Encode v) => Encode (LedgerMap k v) where
+  encode value = encode (map JsonTuple (unwrap value))
+
+instance decodeLedgerMap :: (Decode k, Decode v) => Decode (LedgerMap k v) where
+  decode value = LedgerMap <<< map f <$> decode value
+    where
+      -- Type hint me Obi-Wan, it's my only hope.
+      f :: forall a b. JsonTuple a b -> Tuple a b
+      f = unwrap

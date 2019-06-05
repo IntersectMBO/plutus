@@ -41,7 +41,7 @@ library
     , bytestring
     , containers
     , insert-ordered-containers
-    , interpreter
+    , playground-common
     , lens
     , memory
     , mtl
@@ -50,7 +50,8 @@ library
     , template-haskell
     , text
     , transformers
-    , wallet-api
+    , plutus-wallet-api
+    , plutus-emulator
   default-language: Haskell2010
 
 test-suite plutus-playground-lib-test
@@ -67,14 +68,15 @@ test-suite plutus-playground-lib-test
         base >=4.9 && <5,
         containers -any,
         hedgehog -any,
-        interpreter -any,
+        playground-common -any,
         swagger2 -any,
         tasty -any,
         tasty-hunit -any,
         text -any,
         template-haskell -any,
         plutus-playground-lib -any,
-        wallet-api -any,
+        plutus-wallet-api -any,
+        plutus-emulator -any,
         hspec -any,
         QuickCheck -any,
         aeson -any

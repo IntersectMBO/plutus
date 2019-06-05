@@ -2,11 +2,11 @@
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PolyKinds         #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE ViewPatterns      #-}
 module Language.PlutusTx.Lift.Class (Typeable (..),  Lift (..), makeTypeable, makeLift)where
 
@@ -66,6 +66,21 @@ awkward, but I couldn't think of a better way of doing it.
 A particularly awkward feature is that the typeclass constriants required by the code in each
 instance are going to be different, and so we can't use reusable functions, instead we need to
 inline all the definitions so that the overall expression can have the right constraints inferred.
+-}
+
+{- Note [Lifting newtypes]
+Newtypes are handled differently in the compiler, in that we identify them with their underlying type.
+See Note [Coercions and newtypes] for details.
+
+So we need to do the same here. This means two things:
+- For Typeable, we look for the unique field of the unique constructor, and then make a type lambda
+  binding the type variables whose body is that type.
+- For Lift, we assert that all constructors must have precisely one argument (as newtypes do), and we
+  simply call lift on that.
+
+Since we don't "compile" all the way, rather relying on the typeclass system, lifting recursive
+newtypes will hang a runtime. Don't do that. (This is worse than what we do in the compiler, see
+Note [Occurrences of recursive names])
 -}
 
 -- Constraints
@@ -212,29 +227,53 @@ class Typeable (a :: k) where
     -- | Get the Plutus IR type corresponding to this type.
     typeRep :: (RTCompiling m) => Proxy a -> m (Type TyName ())
 
+-- TODO: there is an unpleasant amount of duplication between this and the main compiler, but
+-- I'm not sure how to unify them better
 compileTypeRep :: (THCompiling m) => TH.DatatypeInfo -> m (TH.Q TH.Exp)
-compileTypeRep dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeVars=tvs}= do
+compileTypeRep dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeVars=tvs} = do
     tvNamesAndKinds <- traverse tvNameAndKind tvs
     -- annoyingly th-abstraction doesn't give us a kind we can compile here
-    let datatypeKind = foldr (\(_, k) acc -> KindArrow () k acc) (Type ()) tvNamesAndKinds
+    let typeKind = foldr (\(_, k) acc -> KindArrow () k acc) (Type ()) tvNamesAndKinds
+    let cons = sortedCons dt
 
-    constrExprs <- traverse compileConstructorDecl (sortedCons dt)
-    deps <- gets getTyConDeps
     -- see note [Compiling at TH time and runtime]
-    pure [|
+    if isNewtype dt
+    then do
+        -- Extract the unique field of the unique constructor
+        argTy <- case cons of
+            [ TH.ConstructorInfo {TH.constructorFields=[argTy]} ] -> compileType Local $ normalizeType argTy
+            _ -> die "Newtypes must have a single constructor with a single argument"
+        deps <- gets getTyConDeps
+        pure [|
+            flip runReaderT mempty $ do
+                maybeDefined <- lookupType () tyName
+                case maybeDefined of
+                    Just ty -> pure ty
+                    Nothing -> do
+                        (_, dtvd) <- mkTyVarDecl tyName typeKind
+                        tvds <- traverse (uncurry mkTyVarDecl) tvNamesAndKinds
+
+                        alias <- withTyVars tvds $ mkIterTyLam (fmap snd tvds) <$> $(argTy)
+                        defineType tyName (PLC.Def dtvd alias) deps
+                        recordAlias @TH.Name @() tyName
+                        pure alias
+            |]
+    else do
+        constrExprs <- traverse compileConstructorDecl cons
+        deps <- gets getTyConDeps
+        pure [|
           flip runReaderT mempty $ do
-              -- TODO: this is essentially the same as the code in Type.hs, really unify them
               maybeDefined <- lookupType () tyName
               case maybeDefined of
                   Just ty -> pure ty
                   Nothing -> do
-                      (_, dtvd) <- mkTyVarDecl tyName datatypeKind
+                      (_, dtvd) <- mkTyVarDecl tyName typeKind
                       tvds <- traverse (uncurry mkTyVarDecl) tvNamesAndKinds
 
                       let resultType = mkIterTyApp () (mkTyVar () dtvd) (fmap (mkTyVar () . snd) tvds)
                       matchName <- safeFreshName () (T.pack "match_" <> showName tyName)
 
-                      -- Define it so we get something for recursive uses
+                      -- See Note [Occurrences of recursive names]
                       let fakeDatatype = Datatype () dtvd [] matchName []
 
                       defineDatatype tyName (PLC.Def dtvd fakeDatatype) Set.empty
@@ -248,7 +287,6 @@ compileTypeRep dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeVars=tvs}= 
                           let datatype = Datatype () dtvd (fmap snd tvds) matchName constrs
 
                           defineDatatype tyName (PLC.Def dtvd datatype) deps
-
                       pure $ mkTyVar () dtvd
           |]
 
@@ -289,38 +327,44 @@ compileLift :: THCompiling m => TH.DatatypeInfo -> m [TH.Q TH.Clause]
 compileLift dt = traverse (uncurry (compileConstructorClause dt)) (zip [0..] (sortedCons dt))
 
 compileConstructorClause :: (THCompiling m) => TH.DatatypeInfo -> Int -> TH.ConstructorInfo -> m (TH.Q TH.Clause)
-compileConstructorClause TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeVars=tvs} index TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys} = do
+compileConstructorClause dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeVars=tvs} index TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys} = do
     -- need to be able to lift the argument types
     traverse_ addLiftDep argTys
 
-    -- need the actual type parameters
-    typeExprs <- traverse (compileType Typeable . normalizeType) tvs
+    -- We need the actual type parameters for the non-newtype case, and we have to do
+    -- it out here, but it will give us redundant constraints in the newtype case,
+    -- so we fudge it.
+    typeExprs <- if isNewtype dt then pure [] else traverse (compileType Typeable . normalizeType) tvs
     pure $ do
         patNames <- for argTys $ \_ -> TH.newName "arg"
         let pats = fmap TH.varP patNames
         let pat = TH.conP name pats
         let liftExprs = fmap (\pn -> TH.varE 'lift `TH.appE` TH.varE pn) patNames
         -- see note [Compiling at TH time and runtime]
-        expr <-
-            [|
-              do
-                  -- force creation of datatype
-                  _ <- typeRep (undefined :: Proxy $(TH.conT tyName))
+        expr <- if isNewtype dt
+            then case liftExprs of
+                    [arg] -> pure arg
+                    _     -> die "Newtypes must have a single constructor with a single argument"
+            else
+                pure [|
+                    do
+                        -- force creation of datatype
+                        _ <- typeRep (undefined :: Proxy $(TH.conT tyName))
 
-                  -- get the right constructor
-                  maybeConstructors <- lookupConstructors () tyName
-                  constrs <- case maybeConstructors of
-                      Nothing -> die $ "Constructors not created for " ++ show tyName
-                      Just cs -> pure cs
-                  let constr = constrs !! index
+                        -- get the right constructor
+                        maybeConstructors <- lookupConstructors () tyName
+                        constrs <- case maybeConstructors of
+                            Nothing -> die $ "Constructors not created for " ++ show tyName
+                            Just cs -> pure cs
+                        let constr = constrs !! index
 
-                  -- need to instantiate it to the right types and then lift all the arguments and apply it to them
-                  types <- sequence $(TH.listE typeExprs)
-                  lifts <- sequence $(TH.listE liftExprs)
+                        -- need to instantiate it to the right types and then lift all the arguments and apply it to them
+                        types <- sequence $(TH.listE typeExprs)
+                        lifts <- sequence $(TH.listE liftExprs)
 
-                  pure $ mkIterApp () (mkIterInst () constr types) lifts
-            |]
-        TH.clause [pat] (TH.normalB $ pure expr) []
+                        pure $ mkIterApp () (mkIterInst () constr types) lifts
+                  |]
+        TH.clause [pat] (TH.normalB expr) []
 
 makeLift :: TH.Name -> TH.Q [TH.Dec]
 makeLift name = do

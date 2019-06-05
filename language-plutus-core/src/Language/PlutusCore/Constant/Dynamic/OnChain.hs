@@ -102,10 +102,10 @@ handleDynamicByMeaning mean eval env = eval env' . mangleOnChain where
 
 handleDynamicEmitter
     :: forall name f r. KnownSymbol name
-    => OnChainHandler name f r (forall a. (forall size. TypedBuiltin size a) -> IO ([a], r))
-handleDynamicEmitter eval env term tb = withEmit $ \emit -> do
+    => OnChainHandler name f r (forall a. KnownType a => IO ([a], r))
+handleDynamicEmitter eval env term = withEmit $ \emit -> do
     let emitName = DynamicBuiltinName . Text.pack $ symbolVal (Proxy :: Proxy name)
-        emitDef  = dynamicCallAssign tb emitName emit
+        emitDef  = dynamicCallAssign emitName emit
         env' = insertDynamicBuiltinNameDefinition emitDef env
     evaluate . eval env' $ mangleOnChain term
 
@@ -113,14 +113,14 @@ dynamicEmit :: Term tyname name ()
 dynamicEmit = dynamicBuiltinNameAsTerm $ DynamicBuiltinName "emit"
 
 handleDynamicEmit
-    :: OnChainHandler "emit" f r (forall a. (forall size. TypedBuiltin size a) -> IO ([a], r))
+    :: OnChainHandler "emit" f r (forall a. KnownType a => IO ([a], r))
 handleDynamicEmit = handleDynamicEmitter
 
 dynamicLog :: Term tyname name ()
 dynamicLog = dynamicBuiltinNameAsTerm $ DynamicBuiltinName "log"
 
 handleDynamicLog :: OnChainHandler "log" f r (IO ([String], r))
-handleDynamicLog eval env term = handleDynamicEmitter eval env term TypedBuiltinDyn
+handleDynamicLog = handleDynamicEmitter
 
 evaluateHandlersBy
     :: Evaluator f m

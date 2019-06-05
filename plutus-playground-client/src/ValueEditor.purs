@@ -7,7 +7,7 @@ import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Int as Int
 import Data.Lens (view)
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..), fst)
 import Data.Tuple.Nested ((/\))
 import Halogen (HTML)
 import Halogen.HTML (ClassName(ClassName), div, input, label, text)
@@ -16,13 +16,13 @@ import Halogen.HTML.Events (onValueInput)
 import Halogen.HTML.Properties (InputType(InputNumber), classes, placeholder, required, type_, value)
 import Halogen.Query as HQ
 import Ledger.Extra (LedgerMap(..))
-import Ledger.Value.TH (CurrencySymbol, TokenName, Value(Value))
-import Types (ValueEvent(SetBalance), _tokenName)
+import Ledger.Value (CurrencySymbol, TokenName, Value(Value))
+import Types (ValueEvent(SetBalance), _currencySymbol, _tokenName)
 
 valueForm :: forall p i. (ValueEvent -> HQ.Action i) -> Value -> HTML p i
 valueForm handler (Value { getValue: LedgerMap balances }) =
   Keyed.div_
-    (Array.concat (mapWithIndex (currencyRow handler) balances))
+    (Array.concat (mapWithIndex (currencyRow handler) (Array.sortWith fst balances)))
 
 currencyRow ::
   forall p i.
@@ -31,7 +31,7 @@ currencyRow ::
   -> Tuple CurrencySymbol (LedgerMap TokenName Int)
   -> Array (Tuple String (HTML p i))
 currencyRow handler currencyIndex (Tuple currencySymbol (LedgerMap tokenBalances)) =
-  mapWithIndex (balanceRow handler currencyIndex currencySymbol) tokenBalances
+  mapWithIndex (balanceRow handler currencyIndex currencySymbol) (Array.sortWith fst tokenBalances)
 
 balanceRow ::
   forall p i.
@@ -53,7 +53,10 @@ balanceRow handler currencyIndex currencySymbol tokenIndex (Tuple tokenName amou
     [ formRow_ $
         [ label
             [ classes [ col, colFormLabel ] ]
-            [ text $ view _tokenName tokenName ]
+            [ text $ case view _currencySymbol currencySymbol, view _tokenName tokenName of
+                       "5fff", "" -> "Ada"
+                       _, other -> other
+            ]
         , col_
             [ input
                 [ type_ InputNumber

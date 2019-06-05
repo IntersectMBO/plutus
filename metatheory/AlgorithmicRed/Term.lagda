@@ -16,8 +16,8 @@ open import Type.BetaNormal
 open import Type.BetaNBE
 open import Builtin
 open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf size⋆
-open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢Nf⋆_ con size⋆
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.List hiding ([_])
 open import Relation.Binary.PropositionalEquality hiding ([_]; subst)
@@ -105,16 +105,14 @@ val2nf : ∀{Γ K}{A : Γ ⊢⋆ K} → Value⋆ A → Σ (Γ ⊢Nf⋆ K) λ N �
 neu2nen : ∀{Γ K}{A : Γ ⊢⋆ K} → Neutral⋆ A → Σ (Γ ⊢NeN⋆ K) λ N → embNeN N ≡ A
 
 val2nf (V-Π VN) with val2nf VN
-... | N ,, q = Π N ,, cong Π q
+... | N ,, q = Π _ N ,, cong (Π _) q
 val2nf (VM V-⇒ VN) with val2nf VM | val2nf VN
 ... | M ,, p | N ,, q = M ⇒ N ,, cong₂ _⇒_ p q
 val2nf (V-ƛ VN) with val2nf VN
-... | N ,, p = ƛ N ,, cong ƛ p
+... | N ,, p = ƛ _ N ,, cong (ƛ _) p
 val2nf (N- VN) with neu2nen VN
 ... | N ,, p = ne N ,, p
-val2nf V-size = size⋆ _ ,, refl 
-val2nf (V-con {tcn = tcn} vs) with val2nf vs
-... | s ,, p = con tcn s ,, cong (con tcn) p
+val2nf (V-con {tcn = tcn})= con tcn ,, refl
 
 neu2nen N-μ1 = _ ,, refl
 neu2nen (N-· NA VB) with neu2nen NA | val2nf VB
@@ -143,15 +141,15 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢Nf⋆ J → Set where
       -----------
     → Γ ⊢ B
 
-  Λ : ∀ {Γ K}
+  Λ : ∀ {Γ K}{x}
     → {B : ∥ Γ ∥ ,⋆ K ⊢Nf⋆ *}
     → Γ ,⋆ K ⊢ B
       ----------
-    → Γ ⊢ Π B
+    → Γ ⊢ Π x B
 
-  _·⋆_ : ∀ {Γ K}
+  _·⋆_ : ∀ {Γ K}{x}
     → {B : ∥ Γ ∥ ,⋆ K ⊢Nf⋆ *}
-    → Γ ⊢ Π B
+    → Γ ⊢ Π x B
     → (A : ∥ Γ ∥ ⊢Nf⋆ K)
     → {R : ∥ Γ ∥ ⊢Nf⋆ *}
     → embNf B [ embNf A ] —Nf→⋆ R
@@ -174,10 +172,10 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢Nf⋆ J → Set where
     → embNf pat · (μ1 · embNf pat) · embNf arg —Nf→⋆ R
     → Γ ⊢ R
 
-  con : ∀{Γ s tcn}
-    → TermCon (con tcn s)
+  con : ∀{Γ tcn}
+    → TermCon {Φ = ∥ Γ ∥} (con tcn )
       -------------------
-    → Γ ⊢ con tcn s
+    → Γ ⊢ con tcn
 
   builtin : ∀{Γ}
     → (bn : Builtin)

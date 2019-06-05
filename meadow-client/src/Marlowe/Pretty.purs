@@ -1,7 +1,7 @@
 module Marlowe.Pretty where
 
 import Prelude
-
+import Data.BigInt (BigInt, toString)
 import Data.Generic.Rep (class Generic, Argument(..), Constructor(..), NoArguments, Product(..), Sum(..), from)
 import Data.Monoid (mempty)
 import Data.Symbol (class IsSymbol, SProxy(..), reflectSymbol)
@@ -28,10 +28,12 @@ instance pretty1ArgsNoArguments :: Pretty1 NoArguments where
 instance pretty1Constructor :: (Pretty1 a, IsSymbol name) => Pretty1 (Constructor name a) where
   pretty1 topLevel (Constructor a) = line' $ parens' $ hang 2 $ text conName <> pretty1 false a
     where
-      conName :: String
-      conName = reflectSymbol (SProxy :: SProxy name)
-      parens' f = if topLevel || isNullary a then f else parens f
-      line' f = if topLevel || isNullary a then f else line <> f
+    conName :: String
+    conName = reflectSymbol (SProxy :: SProxy name)
+
+    parens' f = if topLevel || isNullary a then f else parens f
+
+    line' f = if topLevel || isNullary a then f else line <> f
   isNullary (Constructor a) = isNullary a
 
 instance pretty1Argument :: (Pretty a) => Pretty1 (Argument a) where
@@ -47,3 +49,6 @@ instance pretty1Sum :: (Pretty1 l, Pretty1 r) => Pretty1 (Sum l r) where
 instance pretty1Product :: (Pretty1 l, Pretty1 r) => Pretty1 (Product l r) where
   pretty1 topLevel (Product l r) = pretty1 topLevel l <> pretty1 topLevel r
   isNullary _ = false
+
+instance prettyBigInt :: Pretty BigInt where
+  prettyFragment = text <<< toString

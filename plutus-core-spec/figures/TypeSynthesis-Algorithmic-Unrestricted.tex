@@ -1,0 +1,111 @@
+\documentclass[../plutus-core-specification.tex]{subfiles}
+
+\begin{document}
+
+\begin{figure}[ht]
+    \centering
+    \[\begin{array}{lrclr}
+        \textrm{Ctx} & \Gamma  & ::= & \epsilon                    & \textrm{empty context} \\
+                     &         &     & \Gamma, \typeJ{\alpha}{K}   & \textrm{type variable} \\
+                     &         &     & \Gamma, \termJ{x}{\diffbox{S}}        & \textrm{term variable} \\
+    \end{array}\]
+
+    \caption{Contexts}
+    \label{fig:contexts_algorithmic_unrestricted}
+\end{figure}
+
+\begin{figure}[H]
+    \judgmentdef{\(\hypJ{\Gamma}{\istermJ{M}{S}}\)}{In context $\Gamma$, term $M$ has normal type $S$}
+
+    \begin{prooftree}
+        \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{\diffbox{S}}}\)}
+        \RightLabel{var}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{x}{\diffbox{S}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{$cn$ has constant signature $\constsig{tcn}$ in Figure \ref{fig:constants}}
+        \RightLabel{con}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{cn}{\conT{tcn}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{K}}{\istermJ{M}{\diffbox{T}}}\)}
+        \RightLabel{abs}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\abs{\alpha}{K}{M}}{\allT{\alpha}{K}{\diffbox{T}}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma}{\istermJ{L}{\diffbox{\allT{\alpha}{K}{T}}}}\)}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{K}}\)}
+        \AxiomC{\(\diffbox{\typeMultistep{\subst{A}{\alpha}{T}}{R}}\)}
+        \RightLabel{inst}
+        \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\inst{L}{A}}{\diffbox{R}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+    	\AxiomC{\(\hypJ{\Gamma}{\istypeJ{\diffbox{T}}{K}}\)}
+		\alwaysNoLine
+		\UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\diffbox{S}}{\funK{\funK{K}{\typeK{}}}{\funK{K}{\typeK{}}}}}\)}
+		\UnaryInfC{\(\diffbox{\typeMultistep{\appT{\appT{S}{\lamT{\beta}{K}{\fixT{S}{\beta}}}}{T}}{R}}\)}
+		\UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M}{\diffbox{R'}}}\)}
+		\UnaryInfC{\(\diffbox{\typeEqual{R}{R'}}\)}
+		\alwaysSingleLine
+    	\RightLabel{wrap}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\wrap{\diffbox{S}}{\diffbox{T}}{M}}{\fixT{\diffbox{S}}{\diffbox{T}}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+    	\AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{\fixT{\diffbox{S}}{\diffbox{T}}}}\)}
+		\AxiomC{\(\hypJ{\Gamma}{\istypeJ{\diffbox{T}}{K}}\)}
+		\AxiomC{\(\diffbox{\typeMultistep{\appT{\appT{S}{\lamT{\beta}{K}{\fixT{S}{\beta}}}}{T}}{R}}\)}
+		\RightLabel{unwrap}
+        \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\unwrap{M}}{\diffbox{R}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
+    	\AxiomC{\(\diffbox{\typeMultistep{A}{S}}\)}
+        \AxiomC{\(\hypJ{\Gamma, \termJ{y}{\diffbox{S}}}{\istermJ{M}{\diffbox{T}}}\)}
+        \RightLabel{lam}
+        \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\lam{y}{A}{M}}{\funT{\diffbox{S}}{\diffbox{T}}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma}{\istermJ{L}{\diffbox{\funT{S}{T}}}}\)}
+        \AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{\diffbox{S'}}}\)}
+        \AxiomC{\(\diffbox{\typeEqual{S}{S'}}\)}
+        \RightLabel{app}
+        \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\app{L}{M}}{T}}\)}
+    \end{prooftree}
+    \caption{Type Synthesis (Algorithmic, Unrestricted)}
+\end{figure}
+
+%% Break to improve figure layout
+
+\begin{figure}[H]
+  \ContinuedFloat
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in Figure \ref{fig:builtins}}
+        \UnaryInfC{\(\diffbox{\typeMultistep{\subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{B_i}}{T_i}}\)}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M_i}{\diffbox{T'_i}}}\)}
+        \UnaryInfC{\(\diffbox{\typeEqual{T_i}{T'_i}}\)}
+        \UnaryInfC{\(\diffbox{\typeMultistep{\subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{C}}{R}}\)}
+        \alwaysSingleLine
+        \RightLabel{builtin}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\builtin{bn}{A_0 ... A_m}{M_0 ... M_n}}{\diffbox{R}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
+        \AxiomC{\(\diffbox{\typeMultistep{A}{S}}\)}
+        \RightLabel{error}
+        \BinaryInfC{\(\hypJ{\Gamma}{\istermJ{\error{A}}{\diffbox{S}}}\)}
+    \end{prooftree}
+
+    \caption{Type Synthesis (Algorithmic, Unrestricted)}
+    \label{fig:type_synthesis_algorithmic_unrestricted}
+\end{figure}
+
+\end{document}

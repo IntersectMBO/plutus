@@ -20,10 +20,10 @@ open import Relation.Binary.PropositionalEquality
 data Neutral⋆ : ∀ {Γ K} → Γ ⊢⋆ K → Set
 data Value⋆   : ∀ {Γ K} → Γ ⊢⋆ K → Set where
 
-  V-Π_ : ∀ {Φ K} {N : Φ ,⋆ K ⊢⋆ *}
+  V-Π_ : ∀ {Φ K} {N : Φ ,⋆ K ⊢⋆ *}{x}
     → Value⋆ N
       ----------------------------
-    → Value⋆ (Π N)
+    → Value⋆ (Π x N)
 
   _V-⇒_ : ∀ {Φ} {S : Φ ⊢⋆ *} {T : Φ ⊢⋆ *}
     → Value⋆ S
@@ -31,27 +31,20 @@ data Value⋆   : ∀ {Γ K} → Γ ⊢⋆ K → Set where
       -----------------------------------
     → Value⋆ (S ⇒ T)
 
-  V-ƛ_ : ∀ {Φ K J} {N : Φ ,⋆ K ⊢⋆ J}
+  V-ƛ_ : ∀ {Φ K J} {N : Φ ,⋆ K ⊢⋆ J}{x}
     → Value⋆ N
       -----------------------------
-    → Value⋆ (ƛ N)
+    → Value⋆ (ƛ x N)
 
   N- : ∀ {Φ K} {N : Φ ⊢⋆ K}
     → Neutral⋆ N
       ----------
     → Value⋆ N
 
-  V-size : ∀{Φ}
-    → {n : Nat}
-      --------------------
-    → Value⋆ (size⋆ {Φ} n)
-
   V-con : ∀{Φ}
     → {tcn : TyCon}
-    → {s : Φ ⊢⋆ #}
-    → Value⋆ s
       ------------------
-    → Value⋆ (con tcn s)
+    → Value⋆ {Γ = Φ} (con tcn)
 
 -- as we only prove progress in the empty context we have no stuck
 -- applications of a variable to an argument outside of a
@@ -101,29 +94,22 @@ data _—→⋆_ : ∀ {Γ J} → (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
       --------------
     → V · M —→⋆ V · M′
 
-  ξ-con : ∀{Φ}
-    → {tcn : TyCon}
-    → {s s' : Φ ⊢⋆ #}
-    → s —→⋆ s'
-      ------------------
-    → con tcn s —→⋆ con tcn s'
-
-  ξ-Π : ∀ {Γ K} {M M′ : Γ ,⋆ K ⊢⋆ *}
+  ξ-Π : ∀ {Γ K} {M M′ : Γ ,⋆ K ⊢⋆ *}{x}
     → M —→⋆ M′
       -----------------
-    → Π M —→⋆ Π M′
+    → Π x M —→⋆ Π x M′
 
-  ξ-ƛ : ∀ {Γ K J} {M M′ : Γ ,⋆ K ⊢⋆ J}
+  ξ-ƛ : ∀ {Γ K J} {M M′ : Γ ,⋆ K ⊢⋆ J}{x}
     → M —→⋆ M′
       -----------------
-    → ƛ M —→⋆ ƛ M′
+    → ƛ x M —→⋆ ƛ x M′
 
 
 
-  β-ƛ : ∀ {Γ K J} {N : Γ ,⋆ K ⊢⋆ J} {W : Γ ⊢⋆ K}
+  β-ƛ : ∀ {Γ K J} {N : Γ ,⋆ K ⊢⋆ J} {W : Γ ⊢⋆ K}{x}
  --   → Value⋆ W
       -------------------
-    → ƛ N · W —→⋆ N [ W ]
+    → ƛ x N · W —→⋆ N [ W ]
 \end{code}
 
 \begin{code}
@@ -139,11 +125,11 @@ data _—↠⋆_ {J Γ} :  (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
       ---------
     → L —↠⋆ N
 
-ƛ—↠⋆ : ∀{Γ K J}{M N : Γ ,⋆ K ⊢⋆ J} → M —↠⋆ N → ƛ M —↠⋆ ƛ N
+ƛ—↠⋆ : ∀{Γ K J}{M N : Γ ,⋆ K ⊢⋆ J}{x} → M —↠⋆ N → ƛ x M —↠⋆ ƛ x N
 ƛ—↠⋆ refl—↠⋆          = refl—↠⋆
 ƛ—↠⋆ (trans—↠⋆ p q) = trans—↠⋆ (ξ-ƛ p) (ƛ—↠⋆ q)
 
-Π—↠⋆ : ∀{Γ K}{M N : Γ ,⋆ K ⊢⋆ *} → M —↠⋆ N → Π M —↠⋆ Π N
+Π—↠⋆ : ∀{Γ K}{M N : Γ ,⋆ K ⊢⋆ *}{x} → M —↠⋆ N → Π x M —↠⋆ Π x N
 Π—↠⋆ refl—↠⋆          = refl—↠⋆
 Π—↠⋆ (trans—↠⋆ p q) = trans—↠⋆ (ξ-Π p) (Π—↠⋆ q)
 
@@ -177,15 +163,6 @@ data _—↠⋆_ {J Γ} :  (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
 ξ-⇒₂' VS refl—↠⋆ = refl—↠⋆
 ξ-⇒₂' VS (trans—↠⋆ p q) = trans—↠⋆ (ξ-⇒₂ VS p) (ξ-⇒₂' VS q)
 
-ξ-con' : ∀{Φ}
-  → {tcn : TyCon}
-  → {s s' : Φ ⊢⋆ #}
-  → s —↠⋆ s'
-    ------------------
-  → con tcn s —↠⋆ con tcn s'
-ξ-con' refl—↠⋆          = refl—↠⋆
-ξ-con' (trans—↠⋆ p q) = trans—↠⋆ (ξ-con p) (ξ-con' q)
-
 -- like concatenation for lists
 -- the ordinary trans is like cons
 trans—↠⋆' : ∀{Γ J}{L M N : Γ ⊢⋆ J} → L —↠⋆ M → M —↠⋆ N → L —↠⋆ N
@@ -209,27 +186,24 @@ data Progress⋆ {Γ K} (M : Γ ⊢⋆ K) : Set where
 progress⋆ : ∀ {Γ K} → (M : Γ ⊢⋆ K) → Progress⋆ M
 progress⋆ (` α) = done (N- N-`)
 progress⋆ μ1      = done (N- N-μ1)
-progress⋆ (Π M)   with progress⋆ M
-progress⋆ (Π M) | step p = step (ξ-Π p)
-progress⋆ (Π M) | done p = done (V-Π p)
+progress⋆ (Π _ M)   with progress⋆ M
+progress⋆ (Π _ M) | step p = step (ξ-Π p)
+progress⋆ (Π _ M) | done p = done (V-Π p)
 progress⋆ (M ⇒ N) with progress⋆ M
 progress⋆ (M ⇒ N) | step p = step (ξ-⇒₁ p)
 progress⋆ (M ⇒ N) | done VM with progress⋆ N
 progress⋆ (M ⇒ N) | done VM | step q  = step (ξ-⇒₂ VM q)
 progress⋆ (M ⇒ N) | done VM | done VN = done (VM V-⇒ VN)
-progress⋆ (ƛ M)   with progress⋆ M
-progress⋆ (ƛ M) | step p  = step (ξ-ƛ p)
-progress⋆ (ƛ M) | done VM = done (V-ƛ VM)
+progress⋆ (ƛ _ M)   with progress⋆ M
+progress⋆ (ƛ _ M) | step p  = step (ξ-ƛ p)
+progress⋆ (ƛ _ M) | done VM = done (V-ƛ VM)
 progress⋆ (M · N)  with progress⋆ M
 ...                    | step p = step (ξ-·₁ p)
 ...                    | done vM with progress⋆ N
 ...                                | step p = step (ξ-·₂ p)
-progress⋆ (.(ƛ _) · N) | done (V-ƛ _) | done vN = step β-ƛ
+progress⋆ (.(ƛ _ _) · N) | done (V-ƛ _) | done vN = step β-ƛ
 progress⋆ (M · N) | done (N- M') | done vN = done (N- (N-· M' vN))
-progress⋆ (size⋆ n)   = done V-size
-progress⋆ (con tcn s) with progress⋆ s
-... | step p  = step (ξ-con p)
-... | done Vs = done (V-con Vs)
+progress⋆ (con tcn) = done V-con
 
 \end{code}
 
@@ -253,8 +227,7 @@ renameValue⋆ ρ (V-Π N)   = V-Π renameValue⋆ (ext ρ) N
 renameValue⋆ ρ (M V-⇒ N) = renameValue⋆ ρ M V-⇒ renameValue⋆ ρ N
 renameValue⋆ ρ (V-ƛ N)   = V-ƛ renameValue⋆ (ext ρ) N
 renameValue⋆ ρ (N- N)    = N- (renameNeutral⋆ ρ N)
-renameValue⋆ ρ V-size    = V-size
-renameValue⋆ ρ (V-con s) = V-con (renameValue⋆ ρ s)
+renameValue⋆ ρ V-con = V-con 
 
 renameNeutral⋆ ρ N-`       = N-`
 renameNeutral⋆ ρ N-μ1      = N-μ1
@@ -302,12 +275,11 @@ rename—→⋆ ρ (ξ-·₂ p)               = ξ-·₂ (rename—→⋆ ρ p)
 rename—→⋆ ρ (ξ-Π p)                = ξ-Π (rename—→⋆ (ext ρ) p)
 rename—→⋆ ρ (ξ-ƛ p)                = ξ-ƛ (rename—→⋆ (ext ρ) p)
 rename—→⋆ ρ (β-ƛ {N = M}{W = N})   =
-  substEq (λ X → rename ρ ((ƛ M) · N) —→⋆ X)
+  substEq (λ X → rename ρ ((ƛ _ M) · N) —→⋆ X)
           (trans (sym (subst-rename M))
                  (trans (subst-cong (rename-subst-cons ρ N) M)
                         (rename-subst M)))
           (β-ƛ {N = rename (ext ρ) M}{W = rename ρ N})
-rename—→⋆ ρ (ξ-con p)              = ξ-con (rename—→⋆ ρ p)
 \end{code}
 
 \begin{code}

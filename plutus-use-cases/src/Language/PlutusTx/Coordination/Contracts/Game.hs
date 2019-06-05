@@ -1,6 +1,8 @@
 -- | A guessing game
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE DataKinds       #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Language.PlutusTx.Coordination.Contracts.Game(
     lock,
     guess,
@@ -14,47 +16,46 @@ module Language.PlutusTx.Coordination.Contracts.Game(
     ) where
 
 import qualified Language.PlutusTx            as PlutusTx
-import qualified Language.PlutusTx.Prelude    as P
+import           Language.PlutusTx.Prelude
 import           Ledger
-import qualified Ledger.Ada                   as Ada
-import           Ledger.Ada                   (Ada)
+import           Ledger.Value                 (Value)
 import           Wallet
 
 import qualified Data.ByteString.Lazy.Char8   as C
 
-data HashedString = HashedString (P.SizedByteString 32)
+data HashedString = HashedString ByteString
 
 PlutusTx.makeLift ''HashedString
 
-data ClearString = ClearString (P.SizedByteString 32)
+data ClearString = ClearString ByteString
 
 PlutusTx.makeLift ''ClearString
 
+correctGuess :: HashedString -> ClearString -> Bool
+correctGuess (HashedString actual) (ClearString guess') =
+    equalsByteString actual (sha2_256 guess')
+
+validateGuess :: HashedString -> ClearString -> PendingTx -> Bool
+validateGuess dataScript redeemerScript _ = correctGuess dataScript redeemerScript
+
 gameValidator :: ValidatorScript
-gameValidator = ValidatorScript ($$(Ledger.compileScript [||
-    \(HashedString actual) (ClearString guess') (_ :: PendingTx) ->
-
-    if $$(P.equalsByteString) actual ($$(P.sha2_256) guess')
-    then ()
-    else $$(P.traceH) "WRONG!" ($$(P.error) ())
-
-    ||]))
+gameValidator =
+    ValidatorScript ($$(Ledger.compileScript [|| validateGuess ||]))
 
 gameDataScript :: String -> DataScript
-gameDataScript = 
-    DataScript . Ledger.lifted . HashedString . plcSHA2_256 . P.SizedByteString . C.pack
+gameDataScript =
+    DataScript . Ledger.lifted . HashedString . plcSHA2_256 . C.pack
 
 gameRedeemerScript :: String -> RedeemerScript
-gameRedeemerScript = 
-    RedeemerScript . Ledger.lifted . ClearString . P.SizedByteString . C.pack
+gameRedeemerScript =
+    RedeemerScript . Ledger.lifted . ClearString . C.pack
 
 gameAddress :: Address
 gameAddress = Ledger.scriptAddress gameValidator
 
-lock :: (WalletAPI m, WalletDiagnostics m) => String -> Ada -> m ()
-lock word adaVl = do
-    let vl = Ada.toValue adaVl
-        ds = gameDataScript word
+lock :: (WalletAPI m, WalletDiagnostics m) => String -> Value -> m ()
+lock word vl = do
+    let ds = gameDataScript word
     payToScript_ defaultSlotRange gameAddress vl ds
 
 guess :: (WalletAPI m, WalletDiagnostics m) => String -> m ()

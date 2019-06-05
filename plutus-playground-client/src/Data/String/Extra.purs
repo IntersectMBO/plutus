@@ -10,6 +10,7 @@ import Data.Char as Char
 import Data.Int as Int
 import Data.Monoid (class Monoid, mempty)
 import Data.String as String
+import Data.String.CodeUnits as CodeUnits
 import Prelude (map, max, (-), (<=), (<>), (>>>))
 
 abbreviate :: String -> String
@@ -20,7 +21,7 @@ abbreviate str =
 
 toHex :: String -> String
 toHex =
-  String.toCharArray
+  CodeUnits.toCharArray
   >>> map (Char.toCharCode
            >>> Int.toStringAs Int.hexadecimal
            >>> leftPadTo 2 " ")

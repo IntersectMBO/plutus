@@ -70,23 +70,35 @@ let
   localLib = import ./lib.nix { inherit config system; } ;
   src = localLib.iohkNix.cleanSourceHaskell ./.;
 
-  # We have to use purescript 0.11.7 - because purescript-bridge
-  # hasn't been updated for 0.12 yet - but our pinned nixpkgs
-  # has 0.12, and overriding doesn't work easily because we
-  # can't built 0.11.7 with the default compiler either.
-  purescriptNixpkgs = import (localLib.iohkNix.fetchNixpkgs ./purescript-11-nixpkgs-src.json) {};
+  pp2nSrc = pkgs.fetchFromGitHub {
+    owner = "justinwoo";
+    repo = "psc-package2nix";
+    rev = "6e8f6dc6dea896c71b30cc88a2d95d6d1e48a6f0";
+    sha256 = "0fa6zaxxmqxva1xmnap9ng7b90zr9a55x1l5xk8igdw2nldqfa46";
+  };
 
+  yarn2nixSrc = pkgs.fetchFromGitHub {
+    owner = "moretea";
+    repo = "yarn2nix";
+    rev = "780e33a07fd821e09ab5b05223ddb4ca15ac663f";
+    sha256 = "1f83cr9qgk95g3571ps644rvgfzv2i4i7532q8pg405s4q5ada3h";
+  };
+
+  pp2n = import pp2nSrc { inherit pkgs; };
+  yarn2nix = import yarn2nixSrc { inherit pkgs; };
 
   packages = self: (rec {
     inherit pkgs localLib;
 
     # The git revision comes from `rev` if available (Hydra), otherwise
     # it is read using IFD and git, which is avilable on local builds.
-    # NOTE: depending on this will make your package rebuild on every commit, regardless of whether
-    # anything else has changed!
-    git-rev = 
-      let ifdRev = (import (pkgs.callPackage ./nix/git-rev.nix { gitDir = builtins.path { name = "gitDir"; path = ./.git; }; })).rev;
-      in removeSuffix "\n" (if isNull rev then ifdRev else rev);
+    git-rev = if isNull rev then localLib.iohkNix.commitIdFromGitRepo ./.git else rev;
+
+    # set-git-rev is a function that can be called on a haskellPackages package to inject the git revision post-compile
+    set-git-rev = self.callPackage ./scripts/set-git-rev {
+      inherit (self.haskellPackages) ghc;
+      inherit git-rev;
+    };
 
     # This is the stackage LTS plus overrides, plus the plutus
     # packages.
@@ -95,14 +107,7 @@ let
         inherit pkgs;
         filter = localLib.isPlutus;
       };
-      # When building we want the git sha available in the Haskell code, previously we did this with
-      # a template haskell function that ran a git command however the git directory is not available
-      # to the derivation so this fails. What we do now is create a derivation that overrides a magic
-      # Haskell module with the git sha.
-      gitModuleOverlay = import ./nix/overlays/git-module.nix {
-        inherit pkgs git-rev;
-      };
-      customOverlays = optional forceError errorOverlay ++ [gitModuleOverlay];
+      customOverlays = optional forceError errorOverlay;
       # Filter down to local packages, except those named in the given list
       localButNot = nope:
         let okay = builtins.filter (name: !(builtins.elem name nope)) localLib.plutusPkgList;
@@ -120,7 +125,7 @@ let
       filterOverrides = {
         splitCheck = localButNot [
             # Broken for things with test tool dependencies
-            "wallet-api"
+            "plutus-wallet-api"
             "plutus-tx"
             "plutus-tutorial"
             # Broken for things which pick up other files at test runtime
@@ -147,7 +152,7 @@ let
       shellcheck = pkgs.callPackage localLib.iohkNix.tests.shellcheck { inherit src; };
       hlint = pkgs.callPackage localLib.iohkNix.tests.hlint {
         inherit src;
-        projects = localLib.plutusHaskellPkgList;
+        projects = localLib.plutusPkgList;
       };
       stylishHaskell = pkgs.callPackage localLib.iohkNix.tests.stylishHaskell {
         inherit (self.haskellPackages) stylish-haskell;
@@ -156,29 +161,40 @@ let
     };
 
     docs = {
+      plutus-tutorial = pkgs.callPackage ./plutus-tutorial/doc {};
+
       plutus-core-spec = pkgs.callPackage ./plutus-core-spec {};
+      multi-currency = pkgs.callPackage ./docs/multi-currency {};
+      extended-utxo-spec = pkgs.callPackage ./extended-utxo-spec {};
       lazy-machine = pkgs.callPackage ./docs/fomega/lazy-machine {};
-      combined-haddock = (pkgs.callPackage ./nix/haddock-combine.nix {}) {
-        hspkgs = builtins.attrValues localPackages;
-        prologue = pkgs.writeTextFile {
-          name = "prologue";
-          text = "Combined documentation for all the Plutus libraries.";
+
+      public-combined-haddock = let
+        haddock-combine = pkgs.callPackage ./nix/haddock-combine.nix {};
+        publicPackages = localLib.getPackages {
+          inherit (self) haskellPackages; filter = localLib.isPublicPlutus;
+        };
+        in haddock-combine {
+          hspkgs = builtins.attrValues publicPackages;
+          prologue = pkgs.writeTextFile {
+            name = "prologue";
+            text = "Combined documentation for all the public Plutus libraries.";
         };
       };
     };
 
     plutus-playground = rec {
+      playground-exe = set-git-rev haskellPackages.plutus-playground-server;
       server-invoker = let
         # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
         runtimeGhc = haskellPackages.ghcWithPackages (ps: [
-          haskellPackages.plutus-playground-server
+          playground-exe
           haskellPackages.plutus-playground-lib
           haskellPackages.plutus-use-cases
         ]);
       in pkgs.runCommand "plutus-server-invoker" { buildInputs = [pkgs.makeWrapper]; } ''
         # We need to provide the ghc interpreter with the location of the ghc lib dir and the package db
         mkdir -p $out/bin
-        ln -s ${haskellPackages.plutus-playground-server}/bin/plutus-playground-server $out/bin/plutus-playground
+        ln -s ${playground-exe}/bin/plutus-playground-server $out/bin/plutus-playground
         wrapProgram $out/bin/plutus-playground \
           --set GHC_LIB_DIR "${runtimeGhc}/lib/ghc-${runtimeGhc.version}" \
           --set GHC_BIN_DIR "${runtimeGhc}/bin" \
@@ -189,22 +205,29 @@ let
       client = let
         generated-purescript = pkgs.runCommand "plutus-playground-purescript" {} ''
           mkdir $out
-          ${haskellPackages.plutus-playground-server}/bin/plutus-playground-server psgenerator $out
+          ${playground-exe}/bin/plutus-playground-server psgenerator $out
         '';
         in
-        pkgs.callPackage ./plutus-playground-client {
-          pkgs = purescriptNixpkgs;
+        pkgs.callPackage ./nix/purescript.nix rec {
+          inherit pkgs yarn2nix pp2nSrc haskellPackages;
           psSrc = generated-purescript;
+          src = ./plutus-playground-client;
+          webCommonPath = ./web-common;
+          packageJSON = ./plutus-playground-client/package.json;
+          yarnLock = ./plutus-playground-client/yarn.lock;
+          yarnNix = ./plutus-playground-client/yarn.nix;
+          packages = pkgs.callPackage ./plutus-playground-client/packages.nix {};
+          name = (pkgs.lib.importJSON packageJSON).name;
         };
-
     };
 
     meadow = rec {
+      meadow-exe = set-git-rev haskellPackages.meadow;
       server-invoker = let
         # meadow uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
         runtimeGhc = haskellPackages.ghcWithPackages (ps: [
           haskellPackages.marlowe
-          haskellPackages.meadow
+          meadow-exe
         ]);
       in pkgs.runCommand "meadow-server-invoker" { buildInputs = [pkgs.makeWrapper]; } ''
         # We need to provide the ghc interpreter with the location of the ghc lib dir and the package db
@@ -220,12 +243,19 @@ let
       client = let
         generated-purescript = pkgs.runCommand "meadow-purescript" {} ''
           mkdir $out
-          ${haskellPackages.meadow}/bin/meadow-exe psgenerator $out
+          ${meadow-exe}/bin/meadow-exe psgenerator $out
         '';
         in
-        pkgs.callPackage ./meadow-client {
-          pkgs = purescriptNixpkgs;
+        pkgs.callPackage ./nix/purescript.nix rec {
+          inherit pkgs yarn2nix pp2nSrc haskellPackages;
           psSrc = generated-purescript;
+          src = ./meadow-client;
+          webCommonPath = ./web-common;
+          packageJSON = ./meadow-client/package.json;
+          yarnLock = ./meadow-client/yarn.lock;
+          yarnNix = ./meadow-client/yarn.nix;
+          packages = pkgs.callPackage ./meadow-client/packages.nix {};
+          name = (pkgs.lib.importJSON packageJSON).name;
         };
     };
 
@@ -279,6 +309,34 @@ let
       };
     };
 
+    agdaPackages = rec {
+      # Override the agda builder code from nixpkgs to use our versions of Agda and Haskell.
+      # The Agda version is from our package set, and is newer than the one in nixpkgs.
+      agda = pkgs.agda.override { Agda = haskellPackages.Agda; };
+
+      # We also rely on a newer version of the stdlib
+      AgdaStdlib = (pkgs.AgdaStdlib.override { 
+        # Need to override the builder arguments
+        inherit agda; ghcWithPackages = haskellPackages.ghcWithPackages; 
+      }).overrideAttrs (oldAttrs: rec {
+        # Need to override the source this way
+        name = "agda-stdlib-${version}";
+        version = "1.0.1";
+        src = pkgs.fetchFromGitHub {
+          owner = "agda";
+          repo = "agda-stdlib";
+          rev = "v1.0.1";
+          sha256 = "0ia7mgxs5g9849r26yrx07lrx65vhlrxqqh5b6d69gfi1pykb4j2";
+        };
+      });
+    };
+
+    metatheory = import ./metatheory { 
+      inherit (agdaPackages) agda AgdaStdlib; 
+      inherit (localLib.iohkNix) cleanSourceHaskell; 
+      inherit pkgs haskellPackages; 
+    };
+
     dev = rec {
       packages = localLib.getPackages {
         inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "stylish-haskell" ];
@@ -303,6 +361,26 @@ let
           fi
           rm pre-stylish.diff post-stylish.diff
           exit
+        '';
+
+        updateClientDeps = pkgs.writeScript "update-client-deps" ''
+          if [ ! -f package.json ]
+          then
+              echo "package.json not found. Please run this script from the client directory." >&2
+              exit 1
+          fi
+
+          echo Installing JavaScript Dependencies
+          ${pkgs.yarn}/bin/yarn
+          echo Generating psc-package config
+          ${pkgs.yarn}/bin/yarn spago psc-package-insdhall
+          echo Installing PureScript Dependencies
+          ${pkgs.yarn}/bin/yarn psc-package install
+          echo Generating nix config
+          ${pp2n}/bin/pp2n psc-package2nix
+          ${yarn2nix.yarn2nix}/bin/yarn2nix > yarn.nix
+          cp .psc-package/local/.set/packages.json packages.json
+          echo Done
         '';
       };
 

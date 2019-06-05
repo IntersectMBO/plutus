@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE KindSignatures             #-}
 {-# LANGUAGE LambdaCase                 #-}
@@ -25,21 +26,21 @@ import qualified GhcPlugins                             as GHC
 import qualified Panic                                  as GHC
 
 import qualified Language.PlutusCore                    as PLC
-import qualified Language.PlutusCore.Constant           as PLC
 import qualified Language.PlutusCore.Constant.Dynamic   as PLC
 import           Language.PlutusCore.Quote
 
 import qualified Language.PlutusIR                      as PIR
 import qualified Language.PlutusIR.Compiler             as PIR
 import qualified Language.PlutusIR.Compiler.Definitions as PIR
-import qualified Language.PlutusIR.Optimizer.DeadCode   as PIR
 
 import           Language.Haskell.TH.Syntax             as TH
 
 import           Codec.Serialise                        (serialise)
+import           Control.Lens
 import           Control.Monad
 import           Control.Monad.Except
 import           Control.Monad.Reader
+import           Control.Monad.State
 
 import qualified Data.ByteString                        as BS
 import qualified Data.ByteString.Lazy                   as BSL
@@ -50,36 +51,73 @@ import qualified Data.Text.Prettyprint.Doc              as PP
 import           GHC.TypeLits
 import           System.IO.Unsafe                       (unsafePerformIO)
 
--- | Marks the given expression for conversion to PLC.
+-- if we inline this then we won't be able to find it later!
+{-# NOINLINE plc #-}
+-- | Marks the given expression for compilation to PLC.
 plc :: forall (loc::Symbol) a . a -> CompiledCode a
 -- this constructor is only really there to get rid of the unused warning
-plc _ = SerializedCode mustBeReplaced mustBeReplaced
+plc _ = SerializedCode (mustBeReplaced "pir") (mustBeReplaced "plc")
 
 data PluginOptions = PluginOptions {
     poDoTypecheck    :: Bool
     , poDeferErrors  :: Bool
     , poContextLevel :: Int
+    , poDumpPir      :: Bool
+    , poDumpPlc      :: Bool
+    , poOptimize     :: Bool
     }
 
 plugin :: GHC.Plugin
 plugin = GHC.defaultPlugin { GHC.installCoreToDos = install, GHC.pluginRecompile = GHC.flagRecompile }
 
+{- Note [Making sure unfoldings are present]
+Our plugin runs at the start of the Core pipeline. If we look around us, we will find
+that as expected, we have unfoldings for some bindings from other modules or packages
+depending on whether GHC thinks they're good to inline/are marked INLINEABLE.
+
+But there will be no unfoldings for local bindings!
+
+It turns out that these are added by the simplifier, of all things. To avoid relying too
+much on the shape of the subsequent passes, we add a single, very gentle, simplifier
+pass before we run, turning off everything that we can and running only once.
+
+This means that we need to be robust to the transformations that the simplifier performs
+unconditionally which we pretty much are.
+
+See https://gitlab.haskell.org/ghc/ghc/issues/16615 for upstream discussion.
+-}
+
 install :: [GHC.CommandLineOption] -> [GHC.CoreToDo] -> GHC.CoreM [GHC.CoreToDo]
-install args todo =
-    let
-        opts = PluginOptions {
+install args todo = do
+    flags <- GHC.getDynFlags
+    let opts = PluginOptions {
             poDoTypecheck = notElem "dont-typecheck" args
             , poDeferErrors = elem "defer-errors" args
             , poContextLevel = if elem "no-context" args then 0 else if elem "debug-context" args then 3 else 1
+            , poDumpPir = elem "dump-pir" args
+            , poDumpPlc = elem "dump-plc" args
+            , poOptimize = notElem "dont-optimize" args
             }
-    in
-        pure (GHC.CoreDoPluginPass "Core to PLC" (pluginPass opts) : todo)
+        pass = GHC.CoreDoPluginPass "Core to PLC" (pluginPass opts)
+        -- See Note [Making sure unfoldings are present]
+        mode = GHC.SimplMode {
+                    GHC.sm_names = ["Ensure unfoldings are present"]
+                  , GHC.sm_phase = GHC.InitialPhase
+                  , GHC.sm_dflags = flags
+                  , GHC.sm_rules = False
+                  -- You might think you would need this, but apparently not
+                  , GHC.sm_inline = False
+                  , GHC.sm_case_case = False
+                  , GHC.sm_eta_expand = False
+                  }
+        simpl = GHC.CoreDoSimplify 1 mode
+    pure $ simpl:pass:todo
 
 pluginPass :: PluginOptions -> GHC.ModGuts -> GHC.CoreM GHC.ModGuts
 pluginPass opts guts = getMarkerName >>= \case
     -- nothing to do
     Nothing -> pure guts
-    Just name -> GHC.bindsOnlyPass (mapM $ convertMarkedExprsBind opts name) guts
+    Just name -> GHC.bindsOnlyPass (mapM $ compileMarkedExprsBind opts name) guts
 
 {- Note [Hooking in the plugin]
 Working out what to process and where to put it is tricky. We are going to turn the result in
@@ -148,11 +186,11 @@ makeByteStringLiteral bs = do
 -- 'GHC.TyThing's for later reference.
 makePrimitiveNameInfo :: [TH.Name] -> GHC.CoreM BuiltinNameInfo
 makePrimitiveNameInfo names = do
-    mapped <- forM names $ \name -> do
+    infos <- forM names $ \name -> do
         ghcName <- thNameToGhcNameOrFail name
         thing <- GHC.lookupThing ghcName
         pure (name, thing)
-    pure $ Map.fromList mapped
+    pure $ Map.fromList infos
 
 -- | Strips all enclosing 'GHC.Tick's off an expression.
 stripTicks :: GHC.CoreExpr -> GHC.CoreExpr
@@ -160,18 +198,18 @@ stripTicks = \case
     GHC.Tick _ e -> stripTicks e
     e -> e
 
--- | Converts all the marked expressions in the given binder into PLC literals.
-convertMarkedExprsBind :: PluginOptions -> GHC.Name -> GHC.CoreBind -> GHC.CoreM GHC.CoreBind
-convertMarkedExprsBind opts markerName = \case
-    GHC.NonRec b e -> GHC.NonRec b <$> convertMarkedExprs opts markerName e
-    GHC.Rec bs -> GHC.Rec <$> mapM (\(b, e) -> (,) b <$> convertMarkedExprs opts markerName e) bs
+-- | Compiles all the marked expressions in the given binder into PLC literals.
+compileMarkedExprsBind :: PluginOptions -> GHC.Name -> GHC.CoreBind -> GHC.CoreM GHC.CoreBind
+compileMarkedExprsBind opts markerName = \case
+    GHC.NonRec b e -> GHC.NonRec b <$> compileMarkedExprs opts markerName e
+    GHC.Rec bs -> GHC.Rec <$> mapM (\(b, e) -> (,) b <$> compileMarkedExprs opts markerName e) bs
 
--- | Converts all the marked expressions in the given expression into PLC literals.
-convertMarkedExprs :: PluginOptions -> GHC.Name -> GHC.CoreExpr -> GHC.CoreM GHC.CoreExpr
-convertMarkedExprs opts markerName =
+-- | Compiles all the marked expressions in the given expression into PLC literals.
+compileMarkedExprs :: PluginOptions -> GHC.Name -> GHC.CoreExpr -> GHC.CoreM GHC.CoreExpr
+compileMarkedExprs opts markerName =
     let
-        conv = convertMarkedExprs opts markerName
-        convB = convertMarkedExprsBind opts markerName
+        comp = compileMarkedExprs opts markerName
+        compB = compileMarkedExprsBind opts markerName
     in \case
       GHC.App (GHC.App (GHC.App
                           -- function id
@@ -183,67 +221,48 @@ convertMarkedExprs opts markerName =
                      (GHC.Type codeTy))
             -- value argument
             inner
-          | markerName == GHC.idName fid -> convertExpr opts (show fs_locStr) codeTy inner
+          | markerName == GHC.idName fid -> compileCoreExpr opts (show fs_locStr) codeTy inner
       e@(GHC.Var fid) | markerName == GHC.idName fid -> failCompilationSDoc "Found invalid marker, not applied correctly" (GHC.ppr e)
-      GHC.App e a -> GHC.App <$> conv e <*> conv a
-      GHC.Lam b e -> GHC.Lam b <$> conv e
-      GHC.Let bnd e -> GHC.Let <$> convB bnd <*> conv e
+      GHC.App e a -> GHC.App <$> comp e <*> comp a
+      GHC.Lam b e -> GHC.Lam b <$> comp e
+      GHC.Let bnd e -> GHC.Let <$> compB bnd <*> comp e
       GHC.Case e b t alts -> do
-            e' <- conv e
-            let expAlt (a, bs, rhs) = (,,) a bs <$> conv rhs
+            e' <- comp e
+            let expAlt (a, bs, rhs) = (,,) a bs <$> comp rhs
             alts' <- mapM expAlt alts
             pure $ GHC.Case e' b t alts'
-      GHC.Cast e c -> flip GHC.Cast c <$> conv e
-      GHC.Tick t e -> GHC.Tick t <$> conv e
+      GHC.Cast e c -> flip GHC.Cast c <$> comp e
+      GHC.Tick t e -> GHC.Tick t <$> comp e
       e@(GHC.Coercion _) -> pure e
       e@(GHC.Lit _) -> pure e
       e@(GHC.Var _) -> pure e
       e@(GHC.Type _) -> pure e
 
--- TODO: move this somewhere common
-getStringBuiltinTypes
-    :: (PLC.AsTypeError e ann, MonadError e m, MonadQuote m) => ann -> m PLC.DynamicBuiltinNameTypes
-getStringBuiltinTypes ann =
-    -- In order to define @trace@ we have to provide a function that actually performs tracing,
-    -- but this can't be done once and for all, because we do tracing via 'unsafePerformIO' and 'IORef'
-    -- and thus need to either be in the 'IO' monad to create an 'IORef' or create a global 'IORef' via
-    -- another 'unsafePerformIO' (perhaps we should do the latter).
-    -- Anyway, here we only care about types, so we provide a fake definition of @trace@ that does
-    -- nothing just to be able to extract types in a convenient way.
-    let fakeTraceDefinition = PLC.dynamicCallAssign (PLC.TypedBuiltinDyn @String) PLC.dynamicTraceName mempty
-    in PLC.dynamicBuiltinNameMeaningsToTypes ann $
-       PLC.insertDynamicBuiltinNameDefinition fakeTraceDefinition $
-       PLC.insertDynamicBuiltinNameDefinition PLC.dynamicCharToStringDefinition $
-       PLC.insertDynamicBuiltinNameDefinition PLC.dynamicAppendDefinition mempty
-
 -- Helper to avoid doing too much construction of Core ourselves
 mkCompiledCode :: forall a . BS.ByteString -> BS.ByteString -> CompiledCode a
 mkCompiledCode plcBS pirBS = SerializedCode plcBS (Just pirBS)
 
--- | Actually invokes the Core to PLC compiler to convert an expression into a PLC literal.
-convertExpr :: PluginOptions -> String -> GHC.Type -> GHC.CoreExpr -> GHC.CoreM GHC.CoreExpr
-convertExpr opts locStr codeTy origE = do
+-- | Actually invokes the Core to PLC compiler to compile an expression into a PLC literal.
+compileCoreExpr :: PluginOptions -> String -> GHC.Type -> GHC.CoreExpr -> GHC.CoreM GHC.CoreExpr
+compileCoreExpr opts locStr codeTy origE = do
     flags <- GHC.getDynFlags
     -- We need to do this out here, since it has to run in CoreM
     nameInfo <- makePrimitiveNameInfo builtinNames
-    let result = withContextM 1 (sdToTxt $ "Converting expr at" GHC.<+> GHC.text locStr) $ do
-              (pirP::PIRProgram) <- PIR.Program () . PIR.removeDeadBindings <$> (PIR.runDefT () $ convExprWithDefs origE)
-              (plcP::PLCProgram) <- void <$> (flip runReaderT PIR.NoProvenance $ PIR.compileProgram pirP)
-              when (poDoTypecheck opts) $ void $ do
-                  stringBuiltinTypes <- getStringBuiltinTypes ()
-                  PLC.inferTypeOfProgram (PLC.offChainConfig stringBuiltinTypes) plcP
-              pure (pirP, plcP)
-        context = ConvertingContext {
-            ccOpts=ConversionOptions { coCheckValueRestriction=poDoTypecheck opts },
+    let context = CompileContext {
+            ccOpts=CompileOptions { coCheckValueRestriction=poDoTypecheck opts },
             ccFlags=flags,
             ccBuiltinNameInfo=nameInfo,
-            ccScopes=initialScopeStack
+            ccScopes=initialScopeStack,
+            ccBlackholed=mempty
             }
-    case runExcept . runQuoteT . flip runReaderT context $ result of
+        initialState = CompileState mempty
+    res <- runExceptT . runQuoteT . flip evalStateT initialState . flip runReaderT context $
+        withContextM 1 (sdToTxt $ "Compiling expr at" GHC.<+> GHC.text locStr) $ runCompiler opts origE
+    case res of
         Left s ->
-            let shown = show $ PP.pretty (pruneContext (poContextLevel opts) s) in
+            let shown = show $ PP.pretty (pruneContext (poContextLevel opts) s)
             -- TODO: is this the right way to do either of these things?
-            if poDeferErrors opts
+            in if poDeferErrors opts
             -- this will blow up at runtime
             then do
                 tcName <- thNameToGhcNameOrFail ''CompiledCode
@@ -262,3 +281,28 @@ convertExpr opts locStr codeTy origE = do
                 `GHC.App` GHC.Type codeTy
                 `GHC.App` bsLitPlc
                 `GHC.App` bsLitPir
+
+runCompiler
+    :: (MonadReader CompileContext m, MonadState CompileState m, MonadQuote m, MonadError CompileError m, MonadIO m)
+    => PluginOptions
+    -> GHC.CoreExpr
+    -> m (PIRProgram, PLCProgram)
+runCompiler opts expr = do
+    let (ctx :: PIR.CompilationCtx ()) = PIR.defaultCompilationCtx & set (PIR.ccOpts . PIR.coOptimize) (poOptimize opts)
+
+    (pirT::PIRTerm) <- PIR.runDefT () $ compileExprWithDefs expr
+    -- We manually run a simplifier pass here before dumping/storing the PIR
+    (pirP::PIRProgram) <- PIR.Program () <$> (flip runReaderT ctx $ PIR.simplifyTerm pirT)
+    when (poDumpPir opts) $ liftIO $ print $ PP.pretty pirP
+
+    (plcP::PLCProgram) <- void <$> (flip runReaderT ctx $ PIR.compileProgram pirP)
+    when (poDumpPlc opts) $ liftIO $ print $ PP.pretty plcP
+
+    -- We do this after dumping the programs so that if we fail typechecking we still get the dump
+    when (poDoTypecheck opts) $ void $ do
+        stringBuiltinTypes <- PLC.getStringBuiltinTypes ()
+        checkVr <- asks (coCheckValueRestriction.ccOpts)
+        if checkVr
+              then PLC.typecheckPipeline (PLC.offChainConfig stringBuiltinTypes) plcP
+              else PLC.inferTypeOfProgram (PLC.offChainConfig stringBuiltinTypes) plcP
+    pure (pirP, plcP)

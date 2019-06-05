@@ -1,7 +1,7 @@
 ---
 - functions:
   - {name: unsafePerformIO, within: [PlutusPrelude, Language.PlutusCore.Generators.Internal.Entity, Language.PlutusCore.Constant.Dynamic.Call, Language.PlutusCore.Constant.Dynamic.Emit, Language.PlutusCore.Constant.Dynamic.Instances, Language.PlutusCore.StdLib.Type, Language.PlutusTx.Plugin, Language.PlutusTx.Evaluation]}
-  - {name: error, within: [Main, PlutusPrelude, Language.PlutusCore.StdLib.Meta, Evaluation.Constant.Success, Language.PlutusCore.Constant.Apply, Language.PlutusCore.Evaluation.CkMachine, Language.PlutusCore.TypeSynthesis, Language.PlutusCore.Generators.Internal.Dependent, Language.PlutusCore.Generators.Internal.Entity, Language.PlutusCore.Generators.Internal.Utils, Language.PlutusCore.Constant.Make, DynamicBuiltins.Definition, Language.PlutusCore.TH, Language.PlutusTx.Utils, Language.PlutusIR.Compiler.Datatype, LedgerBytes]}
+  - {name: error}
   - {name: undefined, within: [Language.PlutusCore.Constant.Apply, Language.PlutusTx.Lift.Class, Language.PlutusTx.Lift.Instances]}
   - {name: fromJust, within: [Language.PlutusTx.Lift]}
   - {name: foldl, within: []}
@@ -16,9 +16,10 @@
 - error: {lhs: "maybe mempty", rhs: "foldMap", name: "Use foldMap"}
 - error: {lhs: "mconcat", rhs: "fold", name: "Generalize mconcat"}
 
-- ignore: {name: Reduce duplication, within: [Language.PlutusCore.Renamer, Language.PlutusCore.Constant.Prelude, Language.PlutusCore.StdLib.Data.Bool, Language.PlutusCore.StdLib.Data.ChurchNat, Language.PlutusCore.StdLib.Data.Function, Language.PlutusCore.StdLib.Data.List, Language.PlutusCore.StdLib.Data.Sum, Language.PlutusCore.StdLib.Data.Nat, Language.PlutusCore.Pretty.Readable, Language.PlutusCore.Examples.Data.InterList, Language.PlutusCore.Examples.Data.TreeForest, Language.PlutusCore.Generators.Interesting, Language.PlutusTx.Compiler.Binders, Language.PlutusTx.Compiler.Type, Evaluation.CkMachine, Spec.Crowdfunding, Spec.Vesting, Spec.Actus, Language.PlutusTx.Lift, OptimizerSpec, TransformSpec, Tutorial.Solutions0Mockchain, Spec.GameStateMachine]}
+- ignore: {name: Reduce duplication, within: [Language.PlutusCore.Renamer, Language.PlutusCore.Constant.Prelude, Language.PlutusCore.StdLib.Data.Bool, Language.PlutusCore.StdLib.Data.ChurchNat, Language.PlutusCore.StdLib.Data.Function, Language.PlutusCore.StdLib.Data.List, Language.PlutusCore.StdLib.Data.Sum, Language.PlutusCore.StdLib.Data.Nat, Language.PlutusCore.Pretty.Readable, Language.PlutusCore.Examples.Data.InterList, Language.PlutusCore.Examples.Data.TreeForest, Language.PlutusCore.Generators.Interesting, Language.PlutusTx.Compiler.Binders, Language.PlutusTx.Compiler.Type, Evaluation.CkMachine, Spec.Crowdfunding, Spec.Vesting, Spec.Actus, Language.PlutusTx.Lift, OptimizerSpec, TransformSpec, Tutorial.Solutions0Mockchain, Spec.GameStateMachine, Tutorial.Emulator]}
 - ignore: {name: Redundant $, within: [Evaluation.Constant.Success, Language.PlutusCore.Generators.Internal.TypedBuiltinGen]}
 - ignore: {name: Redundant bracket, within: [Language.PlutusTx.TH]}
+- ignore: {name: Use newtype instead of data, within: [Tutorial.Emulator]}
 # this is rarely an improvement, also ignored in cardano
 - ignore: {name: Move brackets to avoid $}
 # this aids clarity since you can name the parameters
@@ -33,8 +34,8 @@
 # some files use typed TH but don't produce a parse error. For these files we
 # need to disable warnings about unused language extensions and redundant
 # brackets.
-- ignore: {name: Redundant bracket, within: [Wallet.Emulator.AddressMap]}
-- ignore: {name: Unused LANGUAGE pragma, within: [Wallet.Emulator.AddressMap]}
+- ignore: {name: Redundant bracket, within: [Ledger.AddressMap]}
+- ignore: {name: Unused LANGUAGE pragma, within: [Ledger.AddressMap]}
 # PLC plugin only accepts lists that are constructed in a certain way
 - ignore: {name: Use list literal, within: [Spec.TH]}
 # PLC plugin requires && to be defined in side TH splices
@@ -43,6 +44,7 @@
 - ignore: {name: Use asks}
 # It seems clearer to use case than fromMaybe
 - ignore: {name: Use fromMaybe}
+- ignore: {name: Use section}
 
 - fixity: infixr 8 .*
 - fixity: infixr 3 ***

@@ -1,64 +1,64 @@
 module Chain
-       ( mockchainChartOptions
-       , balancesChartOptions
+       ( balancesChartOptions
        , evaluationPane
        , extractAmount
        ) where
 
 import Bootstrap (empty, nbsp)
 import Chain.BlockchainExploration (blockchainExploration)
-import Color (Color, rgb, white)
-import Control.Monad.Aff.Class (class MonadAff)
+import Chartist (ChartistData, ChartistItem, ChartistOptions, ChartistPoint, toChartistData)
+import Chartist as Chartist
 import Data.Array as Array
-import Data.Generic (gShow)
+import Data.Generic.Rep.Show (genericShow)
 import Data.Int as Int
-import Data.Lens (_Just, preview, toListOf, traversed, view)
+import Data.Lens (_2, _Just, preview, toListOf, traversed, view)
 import Data.Lens.At (at)
 import Data.List (List)
-import Data.Maybe (Maybe(..), maybe)
-import Data.Newtype (unwrap)
+import Data.Map as Map
+import Data.Maybe (Maybe, fromMaybe)
+import Data.RawJson (JsonTuple(..))
+import Data.Semiring (zero)
 import Data.Set (Set)
 import Data.Set as Set
-import Data.Traversable (traverse_)
+import Data.Traversable (foldMap)
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
-import ECharts.Commands (addItem, addLink, axisLine, axisType, backgroundColor, bar, bottom, buildItems, buildLinks, color, colorSource, colors, formatterString, items, label, left, lineStyle, name, nameGap, nameLocationMiddle, nameRotate, normal, right, sankey, series, sourceName, splitLine, targetName, textStyle, tooltip, top, trigger, value, xAxis, yAxis) as E
-import ECharts.Extras (focusNodeAdjacencyAllEdges, orientVertical, positionBottom)
-import ECharts.Internal (undefinedValue)
-import ECharts.Monad (CommandsT, DSL) as E
-import ECharts.Types (AxisType(Value, Category), PixelOrPercent(Pixel), TooltipTrigger(ItemTrigger), numItem, strItem) as E
-import ECharts.Types (Item(..))
-import ECharts.Types.Phantom (I)
+import Effect.Aff.Class (class MonadAff)
 import Halogen (HTML)
+import Halogen.Chartist (chartist)
 import Halogen.Component (ParentHTML)
-import Halogen.ECharts (EChartsEffects, echarts)
 import Halogen.HTML (ClassName(ClassName), br_, div, div_, h2_, slot', text)
 import Halogen.HTML.Events (input)
 import Halogen.HTML.Properties (class_)
 import Ledger.Extra (LedgerMap, collapse)
+import Ledger.Index (ValidationError(..))
 import Ledger.Slot (Slot(..))
+import Ledger.Tx (TxInOf(..), TxOutOf(..), TxOutRefOf(..))
 import Ledger.TxId (TxIdOf(TxIdOf))
-import Ledger.Value.TH (CurrencySymbol, TokenName)
+import Ledger.Value (CurrencySymbol, TokenName)
 import Playground.API (EvaluationResult(EvaluationResult), SimulatorWallet)
-import Prelude (class Monad, Unit, discard, map, show, unit, ($), (<$>), (<<<), (<>), (>>>))
-import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, Query(HandleBalancesChartMessage), _simulatorWalletBalance, _simulatorWalletWallet, _tokenName, _value, _walletId, cpBalancesChart)
+import Prelude (map, show, ($), (<$>), (<<<), (<>))
+import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, Query(HandleBalancesChartMessage), _pubKey, _simulatorWalletBalance, _simulatorWalletWallet, _tokenName, _value, _walletId, cpBalancesChart)
 import Wallet.Emulator.Types (EmulatorEvent(..), Wallet(..))
-import Wallet.Graph (FlowGraph(FlowGraph), FlowLink(FlowLink), TxRef(TxRef))
 
 evaluationPane::
-  forall m aff.
-  MonadAff (EChartsEffects aff) m
+  forall m.
+  MonadAff m
   => EvaluationResult
   -> ParentHTML Query ChildQuery ChildSlot m
-evaluationPane e@(EvaluationResult {emulatorLog, resultBlockchain}) =
+evaluationPane e@(EvaluationResult {emulatorLog, resultBlockchain, fundsDistribution, walletKeys}) =
   div_
-    [ blockchainExploration resultBlockchain
+    [ blockchainExploration
+        (foldMap (\(JsonTuple (Tuple key wallet)) -> Map.singleton (view _pubKey key) wallet) walletKeys)
+        resultBlockchain
     , br_
     , div_
         [ h2_ [ text "Final Balances" ]
-        , slot' cpBalancesChart BalancesChartSlot
-            (echarts Nothing)
-            ({width: 930, height: 300} /\ unit)
+        , slot'
+            cpBalancesChart
+            BalancesChartSlot
+            (chartist balancesChartOptions)
+            (balancesToChartistData fundsDistribution)
             (input HandleBalancesChartMessage)
         ]
     , br_
@@ -71,15 +71,6 @@ evaluationPane e@(EvaluationResult {emulatorLog, resultBlockchain}) =
                 [ class_ $ ClassName "logs" ]
                 (emulatorEventPane <$> Array.reverse logs)
         ]
-    -- TODO Needs adapting for multicurrency.
-    -- , br_
-    -- , div_
-    --     [ h2_ [ text "Chain" ]
-    --     , slot' cpMockchainChart MockchainChartSlot
-    --         (echarts Nothing)
-    --         ({width: 930, height: 600} /\ unit)
-    --         (input HandleMockchainChartMessage)
-    --     ]
     ]
 
 emulatorEventPane :: forall i p. EmulatorEvent -> HTML p i
@@ -96,7 +87,7 @@ emulatorEventPane (TxnValidationFail (TxIdOf txId) error) =
     [ text $ "Validation failed for transaction: " <> txId.getTxId
     , br_
     , nbsp
-    , text $ gShow error
+    , text $ showValidationError error
     ]
 
 emulatorEventPane (SlotAdd (Slot slot)) =
@@ -105,7 +96,7 @@ emulatorEventPane (SlotAdd (Slot slot)) =
 
 emulatorEventPane (WalletError (Wallet walletId) error) =
   div [ class_ $ ClassName "error" ]
-    [ text $ "Error from wallet #" <> show walletId.getWallet <> ": " <> gShow error ]
+    [ text $ "Error from wallet #" <> show walletId.getWallet <> ": " <> genericShow error ]
 
 emulatorEventPane (WalletInfo (Wallet walletId) info) =
   div_
@@ -113,101 +104,33 @@ emulatorEventPane (WalletInfo (Wallet walletId) info) =
 
 ------------------------------------------------------------
 
-lightPurple :: Color
-lightPurple = rgb 163 128 188
+formatWalletId :: SimulatorWallet -> String
+formatWalletId wallet = "Wallet #" <> show (view (_simulatorWalletWallet <<< _walletId) wallet)
 
-lightBlue :: Color
-lightBlue = rgb 88 119 182
+extractAmount :: Tuple CurrencySymbol TokenName -> SimulatorWallet -> Maybe Int
+extractAmount (Tuple currencySymbol tokenName) =
+  preview
+    (_simulatorWalletBalance
+     <<< _value
+     <<< at currencySymbol
+     <<< _Just
+     <<< at tokenName
+     <<< _Just)
 
-fadedBlue :: Color
-fadedBlue = rgb 35 39 64
-
-hardPalette :: Array Color
-hardPalette =
-  [ rgb 210 112 240
-  , rgb 252 255 119
-  , rgb 255 126 119
-  , rgb 112 240 130
-  , rgb 163 128 188
-  , rgb 112 156 240
-  ]
-
-------------------------------------------------------------
-
--- | Remember here that the Blockchain is latest-block *first*.
-mockchainChartOptions ::
-  forall m.
-  Monad m
-  => FlowGraph
-  -> E.CommandsT (series :: I, tooltip :: I, color :: I) m Unit
-mockchainChartOptions (FlowGraph {flowGraphLinks, flowGraphNodes}) = do
-  E.tooltip $ do
-    E.trigger E.ItemTrigger
-  E.colors hardPalette
-  E.series do
-    E.sankey do
-      traverse_ (\f -> f (E.Pixel 30)) [ E.top, E.right, E.bottom, E.left ]
-      focusNodeAdjacencyAllEdges
-      orientVertical
-      E.lineStyle $ E.normal do
-        E.colorSource
-      E.buildLinks $ traverse_ toEchartLink flowGraphLinks
-      E.buildItems $ traverse_ toEchartItem flowGraphNodes
-      E.label $ E.normal do
-        E.color white
-        positionBottom
-
-toEchartItem :: forall m i. Monad m => TxRef -> E.CommandsT (item :: I | i) m Unit
-toEchartItem (TxRef name) =
-  E.addItem do
-    E.name name
-    E.value 0.0
-
-toEchartLink :: forall m i. Monad m => FlowLink -> E.CommandsT (link :: I | i) m Unit
-toEchartLink (FlowLink link) =
-  E.addLink do
-    E.sourceName $ unwrap $ link.flowLinkSource
-    E.targetName $ unwrap $ link.flowLinkTarget
-    E.value $ Int.toNumber link.flowLinkValue
-
-------------------------------------------------------------
-
-balancesChartOptions ::
-  forall m.
-  Monad m
-  => Array SimulatorWallet
-  -> E.CommandsT ( series :: I
-                 , grid :: I
-                 , xAxis :: I
-                 , yAxis :: I
-                 , backgroundColor :: I
-                 , tooltip :: I
-                 , textStyle :: I
-                 ) m Unit
-balancesChartOptions wallets = do
-  E.tooltip $ do
-    E.trigger E.ItemTrigger
-    E.formatterString "{b}: {a} {c}"
-  E.textStyle $ E.color lightBlue
-  E.backgroundColor fadedBlue
-  E.xAxis do
-    E.axisType E.Category
-    E.items $ map (E.strItem <<< formatWalletId) wallets
-    axisLineStyle
-  E.yAxis do
-    E.name "Final Balance"
-    E.nameRotate 90.0
-    E.nameLocationMiddle
-    E.nameGap 30.0
-    E.axisType E.Value
-    axisLineStyle
-  E.series do
-    traverse_ (buildCurrencySeries wallets) allCurrencies
+balancesToChartistData :: Array SimulatorWallet -> ChartistData
+balancesToChartistData wallets = toChartistData $ toChartistItem <$> wallets
   where
-    axisLineStyle :: forall i. E.DSL (axisLine :: I, splitLine :: I | i) m
-    axisLineStyle = do
-      E.axisLine $ E.lineStyle $ E.color lightBlue
-      E.splitLine $ E.lineStyle $ E.color lightBlue
+    toChartistItem :: SimulatorWallet -> ChartistItem
+    toChartistItem wallet =
+      { label: formatWalletId wallet
+      , points: toChartistPoint wallet <$> Set.toUnfoldable allCurrencies
+      }
+
+    toChartistPoint :: SimulatorWallet -> Tuple CurrencySymbol TokenName -> ChartistPoint
+    toChartistPoint wallet key =
+      { meta: view (_2 <<< _tokenName) key
+      , value: Int.toNumber $ fromMaybe zero $ extractAmount key wallet
+      }
 
     allValues :: List (LedgerMap CurrencySymbol (LedgerMap TokenName Int))
     allValues =
@@ -224,26 +147,46 @@ balancesChartOptions wallets = do
       $ map collapse
       $ Array.fromFoldable allValues
 
-formatWalletId :: SimulatorWallet -> String
-formatWalletId wallet = "Wallet #" <> show (view (_simulatorWalletWallet <<< _walletId) wallet)
+balancesChartOptions :: ChartistOptions
+balancesChartOptions =
+  { seriesBarDistance: 45
+  , chartPadding:
+      { top: 30
+      , bottom: 30
+      , right: 30
+      , left: 30
+      }
+  , axisY: Chartist.intAutoScaleAxis
+  , plugins: [ Chartist.tooltipPlugin
+             , Chartist.axisTitlePlugin
+                 { axisX: { axisTitle: "Wallet"
+                          , axisClass: "ct-x-axis-title"
+                          , offset: { x: 0
+                                    , y: 40
+                                    }
+                          , textAnchor: "middle"
+                          , flipTitle: false
+                          }
+                 , axisY: { axisTitle: "Final Balance"
+                          , axisClass: "ct-y-axis-title"
+                          , offset: { x: 0
+                                    , y: (30)
+                                    }
+                          , textAnchor: "middle"
+                          , flipTitle: true
+                          }
+                 }
+             ]
+  }
 
-buildCurrencySeries :: forall m i. Monad m => Array SimulatorWallet -> Tuple CurrencySymbol TokenName -> E.CommandsT (bar :: I | i) m Unit
-buildCurrencySeries wallets token@(Tuple currencySymbol tokenName) =
-  E.bar do
-    -- Optionally: `E.stack "One bar"`
-    E.name $ view _tokenName tokenName
-    E.items $ map (extractAmount token
-                   >>> maybe nullItem (E.numItem <<< Int.toNumber))
-                   wallets
-
-nullItem :: Item
-nullItem = Item undefinedValue
-
-extractAmount :: Tuple CurrencySymbol TokenName -> SimulatorWallet -> Maybe Int
-extractAmount (Tuple currencySymbol tokenName) =
-  preview (_simulatorWalletBalance
-           <<< _value
-           <<< at currencySymbol
-           <<< _Just
-           <<< at tokenName
-           <<< _Just)
+showValidationError :: ValidationError -> String
+showValidationError (InOutTypeMismatch (TxInOf txIn) (TxOutOf txOut)) = "InOutTypeMismatch"
+showValidationError (TxOutRefNotFound (TxOutRefOf txOut)) = "TxOutRefNotFound"
+showValidationError (InvalidScriptHash hash) = "InvalidScriptHash"
+showValidationError (InvalidSignature key signature) = "InvalidSignature"
+showValidationError (ValueNotPreserved before after) = "ValueNotPreserved"
+showValidationError (NegativeValue tx) = "NegativeValue"
+showValidationError (ScriptFailure xs) = "ScriptFailure"
+showValidationError (CurrentSlotOutOfRange slot) = "CurrentSlotOutOfRange"
+showValidationError (SignatureMissing key) = "SignatureMissing"
+showValidationError (ForgeWithoutScript str) = "ForgeWithoutScript"

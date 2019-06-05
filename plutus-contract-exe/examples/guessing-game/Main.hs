@@ -26,7 +26,7 @@ import           Language.PlutusTx.Coordination.Contracts.Game (gameAddress, gam
 import qualified Ledger                                        as L
 import           Ledger.Ada                                    (Ada)
 import qualified Ledger.Ada                                    as Ada
-import qualified Wallet.Emulator.AddressMap                    as AM
+import qualified Ledger.AddressMap                             as AM
 
 -- | Parameters for the "lock" endpoint
 data LockParams = LockParams

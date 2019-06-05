@@ -1,6 +1,7 @@
 @import url(https://fonts.googleapis.com/css?family=Open+Sans);
 
 @import 'variables.scss';
+@import 'chartist.scss';
 
 @import './node_modules/bootstrap/scss/functions';
 @import './node_modules/bootstrap/scss/variables';
@@ -87,6 +88,10 @@ h2 {
     input {
         padding: 0.375rem;
     }
+    #gist-id {
+        margin-bottom: 10px;
+    }
+
     .gist-link {
         text-align: center;
         text-decoration: underline;
@@ -223,9 +228,9 @@ h2 {
 
 .nav-tabs {
     margin-bottom: 15px;
-    border-bottom: dotted 1px $lightPurple;
     text-transform: uppercase;
     letter-spacing: 0.1rem;
+    border-bottom: none;
 
     a.nav-link {
         color: $lightPurple;
@@ -234,10 +239,21 @@ h2 {
         &:hover {
             color: $white;
             border: dotted 1px $lightPurple;
-            border-bottom: dotted 1px transparent;
             border-radius: 0;
         }
     }
+
+    @include media-breakpoint-up(lg) {
+        border-bottom: dotted 1px $lightPurple;
+
+        a.nav-link {
+            &.active,
+            &:hover {
+                border-bottom: dotted 1px transparent;
+            }
+        }
+    }
+
 }
 
 #banner-message {

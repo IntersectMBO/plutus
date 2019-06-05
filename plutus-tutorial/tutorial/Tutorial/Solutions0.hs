@@ -4,24 +4,27 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
-{-# OPTIONS_GHC -O0 #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
-{-# OPTIONS_GHC -fno-warn-unused-matches #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# OPTIONS_GHC -g #-}
 module Tutorial.Solutions0 where
 
 import           Data.Foldable                (traverse_)
-import qualified Language.PlutusTx            as P
+import           Language.PlutusTx.Prelude
+import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       (Address, DataScript(..), PubKey(..), RedeemerScript(..), Slot(..), TxId, ValidatorScript(..))
 import qualified Ledger                       as L
-import qualified Ledger.Ada.TH                as Ada
-import           Ledger.Ada.TH                (Ada)
+import qualified Ledger.Ada                   as Ada
+import           Ledger.Ada                   (Ada)
 import qualified Ledger.Interval              as Interval
 import qualified Ledger.Slot                  as Slot
+import qualified Ledger.Value                 as Value
+import           Ledger.Value                 (Value)
 import           Ledger.Validation            (PendingTx(..), PendingTxIn(..), PendingTxOut)
 import qualified Ledger.Validation            as V
 import           Wallet                       (WalletAPI(..), WalletDiagnostics(..), MonadWallet, EventHandler(..), EventTrigger)
 import qualified Wallet                       as W
-import           Prelude                      hiding ((&&))
 import           GHC.Generics                 (Generic)
 
 {-
@@ -35,7 +38,7 @@ import           GHC.Generics                 (Generic)
 
 -- 1. Run traces for a successful game and a failed game in the Playground, and examine the logs after each trace.
 -- (the logs should show the error message for the failed trace)
--- 2. Change the error case of the validator script to `($$(P.traceH) "WRONG!" ($$(P.error) ()))` and run the trace again with a wrong guess. Note how this time the log does not include the error message.
+-- 2. Change the error case of the validator script to `($$(traceH) "WRONG!" ($$(error) ()))` and run the trace again with a wrong guess. Note how this time the log does not include the error message.
 -- (there should be a failed transaction without log message)
 -- 1. Look at the trace shown below. What will the logs say after running "Evaluate"?
 -- Wallet 1's transaction attempts to unlock both outputs with the same redeemer ("plutus"). This fails for the second output (which expects "pluto"), making the entire transaction invalid.
@@ -49,7 +52,7 @@ import           GHC.Generics                 (Generic)
 --    should end with refunds being claimed after the `collectionDeadline` slot.
 
 -- 2. Change the validator script to produce more detailed log messages using
---    `P.traceH`
+--    `traceH`
 --    The log messages are only printed when validation of the script output
 --    fails. The triggers for both outcomes (successful campaign and refund)
 --    are set up to ensure that they only submit valid transactions to the
@@ -73,13 +76,13 @@ import           GHC.Generics                 (Generic)
 -- `Campaign [(Slot 20, Ada 100), (Slot 30, Ada 200)]` is successful if the contributions amount to 100 Ada or more by slot 20, or 200 Ada or more by slot 30.
 
 -- SOLUTION
--- For this solution we use a `Campaign` type that also has the 
--- `collectionDeadline` field from the original crowdfunding campaign (this was 
+-- For this solution we use a `Campaign` type that also has the
+-- `collectionDeadline` field from the original crowdfunding campaign (this was
 -- on oversight on my part)
--- 
--- The remaining types are the same. We can re-use the code from the original 
--- crowdfunder that deals with refunds. Only the code that deals with a 
--- successful campaign needs to be changed. Below is the full contract. I added 
+--
+-- The remaining types are the same. We can re-use the code from the original
+-- crowdfunder that deals with refunds. Only the code that deals with a
+-- successful campaign needs to be changed. Below is the full contract. I added
 -- comments where the code differs from the original.
 
 data Campaign = Campaign {
@@ -88,44 +91,39 @@ data Campaign = Campaign {
       campaignOwner      :: PubKey
  }
 
-P.makeLift ''Campaign
+PlutusTx.makeLift ''Campaign
 
 data CampaignAction = Collect | Refund
-P.makeLift ''CampaignAction
+PlutusTx.makeLift ''CampaignAction
 
 data Contributor = Contributor PubKey
-P.makeLift ''Contributor
+PlutusTx.makeLift ''Contributor
 
 mkValidatorScript :: Campaign -> ValidatorScript
 mkValidatorScript campaign = ValidatorScript val where
   val = L.applyScript mkValidator (L.lifted campaign)
-  mkValidator = L.fromCompiledCode $$(P.compile [||
-              \(c :: Campaign) (con :: Contributor) (act :: CampaignAction) (p :: PendingTx) -> 
+  mkValidator = L.fromCompiledCode $$(PlutusTx.compile [||
+              \(c :: Campaign) (con :: Contributor) (act :: CampaignAction) (p :: PendingTx) ->
       let
-        infixr 3 &&
-        (&&) :: Bool -> Bool -> Bool
-        (&&) = $$(P.and)
-
-        
         signedBy :: PendingTx -> PubKey -> Bool
-        signedBy = $$(V.txSignedBy)
+        signedBy = V.txSignedBy
 
-        PendingTx ins outs _ _ _ txnValidRange _ _ = p 
+        PendingTx ins outs _ _ _ txnValidRange _ _ = p
         -- p is bound to the pending transaction.
 
         Campaign targets collectionDeadline campaignOwner = c
 
         totalInputs :: Ada
         totalInputs =
-              -- define a function "addToTotal" that adds the ada 
+              -- define a function "addToTotal" that adds the ada
               -- value of a 'PendingTxIn' to the total
-              let addToTotal (PendingTxIn _ _ vl) total = 
-                      let adaVl = $$(Ada.fromValue) vl 
-                      in $$(Ada.plus) total adaVl
+              let addToTotal (PendingTxIn _ _ vl) total =
+                      let adaVl = Ada.fromValue vl
+                      in Ada.plus total adaVl
 
-              -- Apply "addToTotal" to each transaction input, 
+              -- Apply "addToTotal" to each transaction input,
               -- summing up the results
-              in $$(P.foldr) addToTotal $$(Ada.zero) ins
+              in foldr addToTotal Ada.zero ins
 
         isValid = case act of
                     Refund ->
@@ -134,69 +132,69 @@ mkValidatorScript campaign = ValidatorScript val where
 
                             contribTxOut :: PendingTxOut -> Bool
                             contribTxOut o =
-                              case $$(V.pubKeyOutput) o of
+                              case V.pubKeyOutput o of
                                 Nothing -> False
-                                Just pk -> $$(V.eqPubKey) pk pkCon
+                                Just pk -> V.eqPubKey pk pkCon
 
-                            contributorOnly = $$(P.all) contribTxOut outs
+                            contributorOnly = all contribTxOut outs
 
-                            refundable = 
-                              $$(Slot.before) collectionDeadline txnValidRange &&
+                            refundable =
+                              Slot.before collectionDeadline txnValidRange &&
                               contributorOnly &&
                               p `signedBy` pkCon
 
                         in refundable
 
                     -- START OF NEW CODE
-                    Collect -> 
+                    Collect ->
                       let
 
-                        -- | Check whether a given 'Slot' is after the current 
+                        -- | Check whether a given 'Slot' is after the current
                         --   transaction's valid range
                         isFutureSlot :: Slot -> Bool
-                        isFutureSlot sl = $$(Slot.after) sl txnValidRange
+                        isFutureSlot sl = Slot.after sl txnValidRange
 
                         -- | Return the smaller of two 'Ada' values
                         --   (NB this should be in the standard library)
                         minAda :: Ada -> Ada -> Ada
-                        minAda l r = if $$(Ada.lt) l r then l else r
+                        minAda l r = if Ada.lt l r then l else r
 
-                        -- | Return the minimum of a list of 'Ada' values, if 
+                        -- | Return the minimum of a list of 'Ada' values, if
                         --   it exists
                         minimumAda :: [Ada] -> Maybe Ada
                         minimumAda slts = case slts of
                                         []   -> Nothing
-                                        x:xs -> Just ($$(P.foldr) minAda x xs)
+                                        x:xs -> Just (foldr minAda x xs)
 
-                        -- | The list of 'targets' filtered to those targets 
+                        -- | The list of 'targets' filtered to those targets
                         --   that are in the future
                         futureTargets :: [(Slot, Ada)]
-                        futureTargets = $$(P.filter) (\(a, _) -> isFutureSlot a) targets
+                        futureTargets = filter (\(a, _) -> isFutureSlot a) targets
 
                         -- | The amount we have to exceed if we want to collect
-                        --   all the contributions now. It is the smallest of 
+                        --   all the contributions now. It is the smallest of
                         --   all target amounts that are in the future.
                         currentTarget :: Maybe Ada
-                        currentTarget = minimumAda ($$(P.map) (\(_, a) -> a) futureTargets)
+                        currentTarget = minimumAda (map (\(_, a) -> a) futureTargets)
 
-                        -- We may collect the contributions if the 
+                        -- We may collect the contributions if the
                         -- 'currentTarget' is defined and the sum of all
                         -- inputs meets it.
-                        targetMet =     
+                        targetMet =
                             case currentTarget of
                               Nothing -> False
-                              Just a  -> $$(Ada.geq) totalInputs a
+                              Just a  -> Ada.geq totalInputs a
 
                       in
-                        -- note that we don't need to check the pending 
-                        -- transaction's validity interval separately. 
-                        -- 'targetMet' is only true if the interval ends 
+                        -- note that we don't need to check the pending
+                        -- transaction's validity interval separately.
+                        -- 'targetMet' is only true if the interval ends
                         -- before at least one of the targets.
                           targetMet &&
                           p `signedBy` campaignOwner
 
                             -- END OF NEW CODE
-      in if isValid then () else ($$(P.error) ()) ||])
+      in isValid ||])
 
 campaignAddress :: Campaign -> Address
 campaignAddress cmp = L.scriptAddress (mkValidatorScript cmp)
@@ -217,14 +215,14 @@ refundHandler txid cmp = EventHandler (\_ -> do
 
 refundTrigger :: Campaign -> EventTrigger
 refundTrigger c = W.andT
-    (W.fundsAtAddressT (campaignAddress c) (W.intervalFrom ($$(Ada.toValue) 1)))
+    (W.fundsAtAddressGtT (campaignAddress c) Value.zero)
     (W.slotRangeT (W.intervalFrom (collectionDeadline c)))
 
 contribute :: MonadWallet m => Campaign -> Ada -> m ()
 contribute cmp adaAmount = do
         pk <- W.ownPubKey
         let dataScript = mkDataScript pk
-            amount = $$(Ada.toValue) adaAmount
+            amount = Ada.toValue adaAmount
 
         -- payToScript returns the transaction that was submitted
         -- (unlike payToScript_ which returns unit)
@@ -239,7 +237,7 @@ contribute cmp adaAmount = do
 
 {-
 
-    We will define a collection trigger for each '(Slot, Ada)' entry in the 
+    We will define a collection trigger for each '(Slot, Ada)' entry in the
     'fundingTargets' list. This trigger fires if the specified amount has been
     contributed before the slot.
 
@@ -248,14 +246,14 @@ contribute cmp adaAmount = do
 -}
 mkCollectTrigger :: Address -> Slot -> Ada -> EventTrigger
 mkCollectTrigger addr sl target = W.andT
-    -- We use `W.intervalFrom` to create an open-ended interval that starts 
+    -- We use `W.intervalFrom` to create an open-ended interval that starts
     -- at the funding target.
-    (W.fundsAtAddressT addr (W.intervalFrom ($$(Ada.toValue) target)))
+    (W.fundsAtAddressGeqT addr (Ada.toValue target))
     -- With `W.intervalTo` we create an interval from now to the target slot 'sl'
     (W.slotRangeT (W.intervalTo sl))
 
-{- 
-    Each '(Slot, Ada)' entry in 'fundingTargets' also gets its own handler. In 
+{-
+    Each '(Slot, Ada)' entry in 'fundingTargets' also gets its own handler. In
     the handler we create a transaction that must be validated before the slot,
     using 'W.interval'
 -}
@@ -268,10 +266,10 @@ collectionHandler cmp targetSlot = EventHandler (\_ -> do
     W.collectFromScript range (mkValidatorScript cmp) redeemerScript)
 
 scheduleCollection :: MonadWallet m => Campaign -> m ()
-scheduleCollection cmp = 
-    let 
+scheduleCollection cmp =
+    let
         addr = campaignAddress cmp
-        ts = fundingTargets cmp 
+        ts = fundingTargets cmp
         regTarget (targetSlot, ada) = W.register (mkCollectTrigger addr targetSlot ada) (collectionHandler cmp targetSlot)
     in
     traverse_ regTarget ts

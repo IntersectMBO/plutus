@@ -80,19 +80,19 @@ bit of a hack, though.
 -}
 
 -- See Note [Value restriction]
-mangleTyForall :: Converting m => PIRType -> m PIRType
+mangleTyForall :: Compiling m => PIRType -> m PIRType
 mangleTyForall = \case
     PIR.TyForall a t k body -> PIR.TyForall a t k <$> delayType body
     x -> pure x
 
 -- See Note [Value restriction]
-mangleTyAbs :: Converting m => PIRTerm -> m PIRTerm
+mangleTyAbs :: Compiling m => PIRTerm -> m PIRTerm
 mangleTyAbs = \case
     PIR.TyAbs a t k body -> PIR.TyAbs a t k <$> delay body
     x -> pure x
 
-checkTyAbsBody :: Converting m => PIRTerm -> m ()
+checkTyAbsBody :: Compiling m => PIRTerm -> m ()
 checkTyAbsBody t = do
-    ConvertingContext {ccOpts=opts} <- ask
+    CompileContext {ccOpts=opts} <- ask
     -- we sometimes need to turn this off, as checking for term values also checks for normalized types at the moment
     unless (not (coCheckValueRestriction opts) || PIR.isTermValue t) $ throwPlain ValueRestrictionError

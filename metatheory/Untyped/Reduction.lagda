@@ -35,7 +35,7 @@ data Error {n} : n ⊢ → Set where
 
 
 data Value {n} : ∀{n} → n ⊢ → Set where
-  V-ƛ : (t : suc n ⊢) → Value (ƛ t)
+  V-ƛ : ∀{x}(t : suc n ⊢) → Value (ƛ x t)
   V-con : (tcn : TermCon) → Value (con {n} tcn)
 
 BUILTIN : ∀{n}
@@ -48,7 +48,7 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
   ξ-· : {L L' : n ⊢}{M : n ⊢} → L —→ L' → L · M —→ L' · M
   E-· : {L : n ⊢}{M : n ⊢} → Error L → L · M —→ error
   E-con : {tcn : TermCon}{L : n ⊢} → con tcn · L —→ error
-  β-ƛ : {L : suc n ⊢}{M : n ⊢} → ƛ L · M —→ L [ M ]
+  β-ƛ : ∀{x}{L : suc n ⊢}{M : n ⊢} → ƛ x L · M —→ L [ M ]
 
   ξ-builtin : {b : Builtin}
               {ts : List (n ⊢)}
@@ -69,7 +69,7 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
               {ts : List (n ⊢)}
               (vs : List (Σ (n ⊢) (Value {n})))
             → builtin b ts —→ maybe id error (BUILTIN b vs)
-            
+
 open import Data.Unit
 
 \end{code}
@@ -100,7 +100,6 @@ BUILTIN greaterThanEqualsInteger vs = {!!}
 BUILTIN equalsInteger vs = {!!}
 BUILTIN resizeInteger vs = {!!}
 BUILTIN sizeOfInteger vs = {!!}
-BUILTIN intToByteString vs = {!!}
 BUILTIN concatenate vs = {!!}
 BUILTIN takeByteString vs = {!!}
 BUILTIN dropByteString vs = {!!}
@@ -135,9 +134,9 @@ progressList (t ∷ ts) | inl (inr e) = error [] e ts
 progressList (t ∷ ts) | inr (t' , p) = step [] p ts
 
 progress (` ())
-progress (ƛ t)        = inl (inl (V-ƛ t))
+progress (ƛ x t)      = inl (inl (V-ƛ t))
 progress (t · u)      with progress t
-progress (.(ƛ t) · u)     | inl (inl (V-ƛ t))     = inr (t [ u ] , β-ƛ)
+progress (.(ƛ _ t) · u)   | inl (inl (V-ƛ t))     = inr (t [ u ] , β-ƛ)
 progress (.(con tcn) · u) | inl (inl (V-con tcn)) = inr (error , E-con)
 progress (t · u)          | inl (inr e)  = inr (error , E-· e)
 progress (t · u)          | inr (t' , p) = inr (t' · u  , ξ-· p)

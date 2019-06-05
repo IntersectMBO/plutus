@@ -14,11 +14,16 @@ module Language.PlutusIR (
     tyVarDeclNameString,
     Kind (..),
     Type (..),
+    typeSubtypes,
     Datatype (..),
     datatypeNameString,
     Recursivity (..),
     Binding (..),
+    bindingSubterms,
+    bindingSubtypes,
     Term (..),
+    termSubterms,
+    termSubtypes,
     Program (..)
     ) where
 
@@ -27,11 +32,16 @@ import           PlutusPrelude
 import           Language.PlutusCore        (Kind, Name, TyName, Type (..))
 import qualified Language.PlutusCore        as PLC
 import           Language.PlutusCore.CBOR   ()
-import           Language.PlutusCore.MkPlc  (TermLike (..), TyVarDecl (..), VarDecl (..))
+import           Language.PlutusCore.MkPlc  (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
 import qualified Language.PlutusCore.Pretty as PLC
 
+import           Control.Lens
+
 import           Codec.Serialise            (Serialise)
+
+import           Data.Functor.Foldable      (embed, project)
 import qualified Data.Text                  as T
+
 import           GHC.Generics               (Generic)
 
 -- Datatypes
@@ -58,6 +68,11 @@ tyVarDeclNameString = T.unpack . PLC.nameString . PLC.unTyName . tyVarDeclName
 datatypeNameString :: Datatype TyName name a -> String
 datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn
 
+-- TODO: move to language-plutus-core
+-- | Get all the direct child 'Type's of the given 'Type'.
+typeSubtypes :: Traversal' (Type tyname a) (Type tyname a)
+typeSubtypes f = fmap embed . traverse f . project
+
 -- Bindings
 
 data Recursivity = NonRec | Rec
@@ -71,6 +86,28 @@ data Binding tyname name a = TermBind a (VarDecl tyname name a) (Term tyname nam
     deriving (Functor, Show, Eq, Generic)
 
 instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (Binding tyname name a)
+
+-- | Get all the direct child 'Term's of the given 'Binding'.
+bindingSubterms :: Traversal' (Binding tyname name a) (Term tyname name a)
+bindingSubterms f = \case
+    TermBind x d t -> TermBind x d <$> f t
+    b@TypeBind {} -> pure b
+    d@DatatypeBind {} -> pure d
+
+-- | Get all the direct child 'Type's of the given 'VarDecl'.
+varDeclSubtypes :: Traversal' (VarDecl tyname name a) (Type tyname a)
+varDeclSubtypes f (VarDecl a n ty) = VarDecl a n <$> f ty
+
+-- | Get all the direct child 'Type's of the given 'Datatype'.
+datatypeSubtypes :: Traversal' (Datatype tyname name a) (Type tyname a)
+datatypeSubtypes f (Datatype a n vs m cs) = Datatype a n vs m <$> (traverse . varDeclSubtypes) f cs
+
+-- | Get all the direct child 'Type's of the given 'Binding'.
+bindingSubtypes :: Traversal' (Binding tyname name a) (Type tyname a)
+bindingSubtypes f = \case
+    TermBind x d t -> TermBind x <$> varDeclSubtypes f d <*> pure t
+    DatatypeBind x d -> DatatypeBind x <$> datatypeSubtypes f d
+    TypeBind a d ty -> TypeBind a d <$> f ty
 
 -- Terms
 
@@ -128,6 +165,38 @@ instance TermLike (Term tyname name) tyname name where
     unwrap   = Unwrap
     iWrap    = IWrap
     error    = Error
+    termLet x (Def vd bind) = Let x NonRec [TermBind x vd bind]
+    typeLet x (Def vd bind) = Let x NonRec [TypeBind x vd bind]
+
+-- | Get all the direct child 'Term's of the given 'Term', including those within 'Binding's.
+termSubterms :: Traversal' (Term tyname name a) (Term tyname name a)
+termSubterms f = \case
+    Let x r bs t -> Let x r <$> (traverse . bindingSubterms) f bs <*> f t
+    TyAbs x tn k t -> TyAbs x tn k <$> f t
+    LamAbs x n ty t -> LamAbs x n ty <$> f t
+    Apply x t1 t2 -> Apply x <$> f t1 <*> f t2
+    TyInst x t ty -> TyInst x <$> f t <*> pure ty
+    IWrap x ty1 ty2 t -> IWrap x ty1 ty2 <$> f t
+    Unwrap x t -> Unwrap x <$> f t
+    e@Error {} -> pure e
+    v@Var {} -> pure v
+    c@Constant {} -> pure c
+    b@Builtin {} -> pure b
+
+-- | Get all the direct child 'Type's of the given 'Term', including those within 'Binding's.
+termSubtypes :: Traversal' (Term tyname name a) (Type tyname a)
+termSubtypes f = \case
+    Let x r bs t -> Let x r <$> (traverse . bindingSubtypes) f bs <*> pure t
+    LamAbs x n ty t -> LamAbs x n <$> f ty <*> pure t
+    TyInst x t ty -> TyInst x t <$> f ty
+    IWrap x ty1 ty2 t -> IWrap x <$> f ty1 <*> f ty2 <*> pure t
+    Error x ty -> Error x <$> f ty
+    t@TyAbs {} -> pure t
+    a@Apply {} -> pure a
+    u@Unwrap {} -> pure u
+    v@Var {} -> pure v
+    c@Constant {} -> pure c
+    b@Builtin {} -> pure b
 
 -- no version as PIR is not versioned
 data Program tyname name a = Program a (Term tyname name a) deriving Generic

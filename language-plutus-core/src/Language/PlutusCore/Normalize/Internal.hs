@@ -179,8 +179,6 @@ normalizeTypeM var@(TyVar _ name)            = do
     case mayTy of
         Nothing -> pure $ Normalized var
         Just ty -> liftDupable ty
-normalizeTypeM size@TyInt{}                  =
-    pure $ Normalized size
 normalizeTypeM builtin@TyBuiltin{}           =
     pure $ Normalized builtin
 

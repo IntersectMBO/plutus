@@ -51,22 +51,22 @@ withEmitHandler :: Evaluator Term m -> (EmitHandler (m EvaluationResultDef) -> I
 withEmitHandler eval k = k . EmitHandler $ \env -> evaluate . eval env
 
 withEmitTerm
-    :: (forall size. TypedBuiltin size a)
-    -> (Term TyName Name () -> EmitHandler r1 -> IO r2)
+    :: KnownType a
+    => (Term TyName Name () -> EmitHandler r1 -> IO r2)
     -> EmitHandler r1
     -> IO ([a], r2)
-withEmitTerm tb cont (EmitHandler handler) =
+withEmitTerm cont (EmitHandler handler) =
     withEmit $ \emit -> do
         counter <- nextGlobalUnique
         let dynEmitName = DynamicBuiltinName $ "emit" <> prettyText counter
             dynEmitTerm = dynamicCall dynEmitName
-            dynEmitDef  = dynamicCallAssign tb dynEmitName emit
+            dynEmitDef  = dynamicCallAssign dynEmitName emit
         cont dynEmitTerm . EmitHandler $ handler . insertDynamicBuiltinNameDefinition dynEmitDef
 
 withEmitEvaluateBy
-    :: Evaluator Term m
-    -> (forall size. TypedBuiltin size a)
+    :: KnownType a
+    => Evaluator Term m
     -> (Term TyName Name () -> Term TyName Name ())
     -> IO ([a], m EvaluationResultDef)
-withEmitEvaluateBy eval tb toTerm =
-    withEmitHandler eval . withEmitTerm tb $ feedEmitHandler . toTerm
+withEmitEvaluateBy eval toTerm =
+    withEmitHandler eval . withEmitTerm $ feedEmitHandler . toTerm

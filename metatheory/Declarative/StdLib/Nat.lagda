@@ -11,25 +11,25 @@ open import Declarative.StdLib.Function
 \end{code}
 
 \begin{code}
-G : ∀{Γ} → Γ ,⋆  * ⊢⋆ *
-G = Π (` Z ⇒ (` (S Z) ⇒ ` Z) ⇒ ` Z)
+G : ∀{Φ} → Φ ,⋆  * ⊢⋆ *
+G = Π "α" (` Z ⇒ (` (S Z) ⇒ ` Z) ⇒ ` Z)
 
-M : ∀{Γ} → Γ ⊢⋆ *
-M {Γ} = μ0 · ƛ G
+M : ∀{Φ} → Φ ⊢⋆ *
+M = μ0 · ƛ "x" G
 
-N : ∀{Γ} → Γ ⊢⋆ *
+N : ∀{Φ} → Φ ⊢⋆ *
 N  =  G ⋆.[ M ]
 
-Zero : ∀{Γ} → Γ ⊢ N
-Zero = Λ (ƛ (ƛ (` (S (Z )))))
+Zero : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N
+Zero = Λ "α" (ƛ "x" (ƛ "y" (` (S (Z )))))
 
 -- succ = λ n : N . Λ R . λ x : R . λ y : M → R . y (in n)
 -- : N → N
 
-Succ : ∀{Γ} → Γ ⊢ N ⇒ N
-Succ = ƛ (Λ (ƛ (ƛ
-  (` Z · (wrap0 (ƛ G) (conv (sym≡β (β≡β _ _)) (` (S (S (T Z))))))))))
+Succ : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ N
+Succ = ƛ "x" (Λ "α" (ƛ "y" (ƛ "z"
+  (` Z · (wrap0 (ƛ "x" G) (conv (sym≡β (β≡β _ _)) (` (S (S (T Z))))))))))
 
---FoldNat : ∀{Γ} → {!!}
+--FoldNat : ∀{Φ}{Γ : Ctx Φ} → {!!}
 --FoldNat = {!!}
 \end{code}

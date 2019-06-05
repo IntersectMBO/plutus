@@ -19,9 +19,9 @@ import qualified Test.Tasty.HUnit                                      as HUnit
 
 import           Wallet                                                (PubKey (..))
 import           Wallet.Emulator
+import qualified Wallet.Emulator.Generators                            as Gen
 import qualified Wallet.Generators                                     as Gen
 
-import           Language.PlutusTx.Coordination.Contracts.CrowdFunding (Campaign (..), contribute)
 import qualified Language.PlutusTx.Coordination.Contracts.CrowdFunding as CF
 import qualified Ledger
 import           Ledger.Ada                                            (Ada)
@@ -41,15 +41,25 @@ tests = testGroup "crowdfunding" [
         testProperty "cannot collect money too late" cantCollectLate,
         testProperty "cannot collect unless notified" cantCollectUnlessNotified,
         testProperty "can claim a refund" canRefund,
-        HUnit.testCase "script size is reasonable" (Size.reasonable (CF.contributionScript (cfCampaign scenario1)) 50000)
+        let
+            deadline = 10
+            target = Ada.adaValueOf 1000
+            collectionDeadline = 15
+            owner = w1
+            cmp = CF.mkCampaign deadline target collectionDeadline owner
+        in HUnit.testCase "script size is reasonable" (Size.reasonable (CF.contributionScript cmp) 50000)
         ]
 
 -- | Make a contribution to the campaign from a wallet. Returns the reference
 --   to the transaction output that is locked by the campaign's validator
 --   script (and can be collected by the campaign owner)
 contrib :: Wallet -> Ada -> Trace MockWallet ()
-contrib w v = void $ walletAction w (contribute cmp v) where
-    cmp = cfCampaign scenario1
+contrib w v = void $ walletAction w (CF.contribute deadline target collectionDeadline owner vl) where
+    vl = Ada.toValue v
+    deadline = 10
+    target = Ada.adaValueOf 1000
+    collectionDeadline = 15
+    owner = w1
 
 -- | Make a contribution from wallet 2
 contrib2 :: Ada -> Trace MockWallet ()
@@ -61,19 +71,21 @@ contrib3 = contrib w3
 
 -- | Collect the contributions of a crowdfunding campaign
 collect :: Wallet -> Trace MockWallet ()
-collect w = void $ walletAction w $ CF.collect $ cfCampaign scenario1
+collect w =
+    void
+    $ walletAction w
+    $ CF.scheduleCollection deadline target collectionDeadline owner
+        where
+            deadline = 10
+            target = Ada.adaValueOf 1000
+            collectionDeadline = 15
+            owner = w1
 
 -- | The scenario used in the property tests. In includes a campaign
 --   definition and the initial distribution of funds to the wallets
 --   that are involved in the campaign.
 scenario1 :: CFScenario
 scenario1 = CFScenario{..} where
-    cfCampaign = Campaign {
-        campaignDeadline = 10,
-        campaignTarget   = 1000,
-        campaignCollectionDeadline = 15,
-        campaignOwner              = walletPubKey w1
-        }
     cfWallets = [w1, w2, w3]
     cfInitialBalances = Map.fromList [
         (walletPubKey w1, startingBalance),
@@ -221,7 +233,6 @@ canRefund = checkCFTrace scenario1 $ do
 
 -- | Crowdfunding scenario with test parameters
 data CFScenario = CFScenario {
-    cfCampaign        :: Campaign,
     cfWallets         :: [Wallet],
     cfInitialBalances :: Map.Map PubKey Ledger.Value
     }

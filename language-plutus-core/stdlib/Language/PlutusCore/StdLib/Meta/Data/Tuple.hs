@@ -1,4 +1,4 @@
--- | @tuple@s of various sizees and related functions.
+-- | @tuple@s of various sizes and related functions.
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE GADTs #-}
@@ -106,7 +106,7 @@ bindTuple ann names (Tuple elTys term) body = liftQuote $ do
     let tupVar = Tuple elTys $ var ann tup
     tupTy <- getTupleType ann tupVar
     tupDefs <- itraverse (\i name -> tupleDefAt ann i name tupVar) names
-    pure $ apply ann (lamAbs ann tup tupTy $ foldr (mkTermLet ann) body tupDefs) term
+    pure $ apply ann (lamAbs ann tup tupTy $ foldr (termLet ann) body tupDefs) term
 
 -- | Given an arity @n@, create the n-ary product type.
 --

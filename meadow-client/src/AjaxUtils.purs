@@ -1,77 +1,14 @@
 module AjaxUtils where
 
-import Bootstrap
-  ( alertDanger_
-  )
-import Control.Monad.Except
-  ( ExceptT
-  , runExceptT
-  )
-import Control.Monad.Reader
-  ( class MonadAsk
-  , ReaderT
-  , ask
-  , runReaderT
-  )
-import Control.Monad.State
-  ( class MonadState
-  )
-import Control.MonadPlus
-  ( (=<<)
-  )
-import Data.Argonaut.Generic.Aeson
-  ( decodeJson
-  )
-import Data.Argonaut.Parser
-  ( jsonParser
-  )
-import Data.Array
-  ( intercalate
-  )
-import Data.Either
-  ( Either(..)
-  )
-import Data.Lens
-  ( Lens'
-  , assign
-  )
-import Halogen.HTML
-  ( HTML
-  , br_
-  , div_
-  , pre_
-  , text
-  )
-import Language.Haskell.Interpreter
-  ( CompilationError(..)
-  )
-import Network.HTTP.StatusCode
-  ( StatusCode(..)
-  )
-import Network.RemoteData
-  ( RemoteData(..)
-  , fromEither
-  )
-import Prelude
-  ( discard
-  , bind
-  , pure
-  , show
-  , ($)
-  , (<$>)
-  , (<>)
-  , (>>>)
-  )
-import Servant.PureScript.Affjax
-  ( AjaxError
-  , ErrorDescription
-      ( ConnectionError
-      , DecodingError
-      , ParsingError
-      , UnexpectedHTTPStatus
-      )
-  , runAjaxError
-  )
+import Bootstrap (alertDanger_)
+import Control.Monad.Except (ExceptT, runExceptT)
+import Control.Monad.Reader (class MonadAsk, ReaderT, ask, runReaderT)
+import Control.Monad.State (class MonadState)
+import Data.Lens (Lens', assign)
+import Halogen.HTML (HTML, br_, div_, text)
+import Network.RemoteData (RemoteData(..), fromEither)
+import Prelude (discard, bind, pure, ($), (<>), (>>>))
+import Servant.PureScript.Ajax (AjaxError, ErrorDescription(ConnectionError, DecodingError, ResponseFormatError), runAjaxError)
 
 showAjaxError ::
   forall p i.
@@ -83,18 +20,7 @@ showErrorDescription ::
   forall p i.
   ErrorDescription ->
   HTML p i
-showErrorDescription (UnexpectedHTTPStatus { status, response }) = case status, response of
-  (StatusCode 400), _ -> case (decodeJson =<< jsonParser response) :: Either String (Array CompilationError) of
-    Left _ -> defaultError status
-    Right compilationErrors -> div_ (showCompilationError <$> compilationErrors)
-  _, _ -> defaultError status
-  where
-  defaultError status = text $ "UnexpectedHTTPStatus: " <> response <> " " <> show status
-  showCompilationError (RawError rawError) = text rawError
-  showCompilationError (CompilationError error) = pre_ [ text $ intercalate "\n" error.text
-                                                       ]
-
-showErrorDescription (ParsingError err) = text $ "ParsingError: " <> err
+showErrorDescription (ResponseFormatError err) = text $ "ResponseFormatError: " <> err
 
 showErrorDescription (DecodingError err) = text $ "DecodingError: " <> err
 
@@ -104,11 +30,14 @@ ajaxErrorPane ::
   forall p i.
   AjaxError ->
   HTML p i
-ajaxErrorPane error = div_ [ alertDanger_ [ showAjaxError error
-                                          , br_
-                                          , text "Please try again or contact support for assistance."
-                                          ]
-                           ]
+ajaxErrorPane error =
+  div_
+    [ alertDanger_
+        [ showAjaxError error
+        , br_
+        , text "Please try again or contact support for assistance."
+        ]
+    ]
 
 runAjax ::
   forall m env a e.

@@ -5,7 +5,8 @@ echo '~~~ Evaluating release.nix'
 command time --format '%e' -o eval-time.txt \
     hydra-eval-jobs \
     --option allowed-uris "https://github.com/NixOS https://github.com/input-output-hk" \
-    -I . release.nix > eval.json
+    -I . release.nix \
+    --arg plutus '{ rev = "fake"; }' > eval.json
 EVAL_EXIT_CODE="$?"
 if [ "$EVAL_EXIT_CODE" != 0 ]
 then

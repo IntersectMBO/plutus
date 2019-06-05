@@ -4,36 +4,37 @@ module TypesTests
 
 import Prelude
 
-import Control.Monad.Aff (Aff)
-import Control.Monad.Eff.Exception (EXCEPTION)
-import Control.Monad.Eff.Random (RANDOM)
-import Data.Argonaut.Core (fromArray, fromNumber, fromObject, fromString)
 import Data.Maybe (Maybe(..))
-import Data.StrMap as StrMap
+import Data.RawJson (JsonTuple(..))
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
+import Effect.Aff (Aff)
+import Foreign (Foreign)
+import Foreign.Class (encode)
+import Foreign.Generic (encodeJSON)
+import Foreign.Object as FO
 import Ledger.Extra (LedgerMap(..))
-import Ledger.Value.TH (CurrencySymbol(..), TokenName(..), Value(..))
+import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Playground.API (Fn(Fn), FunctionSchema(FunctionSchema), SimpleArgumentSchema(..), SimulatorWallet(SimulatorWallet))
-import Test.Unit (TestSuite, suite, test)
+import Test.Unit (TestSuite, Test, suite, test)
 import Test.Unit.Assert (equal)
-import Types (Action(Action, Wait), SimpleArgument(SimpleInt, SimpleString, SimpleObject, SimpleArray, SimpleTuple, Unknowable), simpleArgumentToJson)
+import Types (Action(Action, Wait), SimpleArgument(..), simpleArgumentToJson)
 import Validation (class Validation, ValidationError(..), validate, withPath)
 import Wallet.Emulator.Types (Wallet(..))
 
-all :: forall eff. TestSuite (exception :: EXCEPTION, random :: RANDOM | eff)
+all :: TestSuite
 all =
   suite "Types" do
     validateTests
     simpleArgumentToJsonTests
 
-validateTests :: forall eff. TestSuite (exception :: EXCEPTION, random :: RANDOM | eff)
+validateTests :: TestSuite
 validateTests = do
   test "No validation errors" do
     isValid $ Wait {blocks: 1}
     isValid $ makeTestAction [ SimpleInt (Just 5) ]
     isValid $ makeTestAction [ SimpleString (Just "TEST") ]
-    isValid $ makeTestAction [ SimpleTuple (Tuple (SimpleInt (Just 5)) (SimpleInt (Just 6))) ]
+    isValid $ makeTestAction [ SimpleTuple (JsonTuple (Tuple (SimpleInt (Just 5)) (SimpleInt (Just 6)))) ]
     isValid $ makeTestAction [ SimpleArray SimpleIntSchema [] ]
     isValid $ makeTestAction [ SimpleObject (SimpleObjectSchema []) [] ]
     --
@@ -45,9 +46,9 @@ validateTests = do
       [ withPath ["0", "_1"] Required
       , withPath ["0", "_2"] Unsupported
       ]
-      (validate (makeTestAction [ SimpleTuple (Tuple (SimpleInt Nothing) (Unknowable { context: "TEST", description: "Test." })) ]))
-    equal [ withPath ["0", "_1"] Required ] $ validate (makeTestAction [ SimpleTuple (Tuple (SimpleInt Nothing) (SimpleInt (Just 5))) ])
-    equal [ withPath ["0", "_2"] Required ] $ validate (makeTestAction [ SimpleTuple (Tuple (SimpleInt (Just 5)) (SimpleInt Nothing)) ])
+      (validate (makeTestAction [ SimpleTuple (JsonTuple (Tuple (SimpleInt Nothing) (Unknowable { context: "TEST", description: "Test." }))) ]))
+    equal [ withPath ["0", "_1"] Required ] $ validate (makeTestAction [ SimpleTuple (JsonTuple (Tuple (SimpleInt Nothing) (SimpleInt (Just 5)))) ])
+    equal [ withPath ["0", "_2"] Required ] $ validate (makeTestAction [ SimpleTuple (JsonTuple (Tuple (SimpleInt (Just 5)) (SimpleInt Nothing))) ])
     equal [ withPath ["0", "2"] Required ]
       $ validate (makeTestAction [ SimpleArray SimpleIntSchema [ SimpleInt (Just 5)
                                                                , SimpleInt (Just 6)
@@ -59,14 +60,14 @@ validateTests = do
       [ withPath ["0", "name"] Required
       , withPath ["1", "test"] Required
       ]
-      (let objectSchema = SimpleObjectSchema [ Tuple "name" SimpleStringSchema
-                                             , Tuple "test" SimpleIntSchema
+      (let objectSchema = SimpleObjectSchema [ JsonTuple $ Tuple "name" SimpleStringSchema
+                                             , JsonTuple $ Tuple "test" SimpleIntSchema
                                              ]
-       in validate (makeTestAction [ SimpleObject objectSchema  [ Tuple "name" (SimpleString Nothing)
-                                                                , Tuple "test" (SimpleInt (Just 5))
+       in validate (makeTestAction [ SimpleObject objectSchema  [ JsonTuple $ Tuple "name" (SimpleString Nothing)
+                                                                , JsonTuple $ Tuple "test" (SimpleInt (Just 5))
                                                                 ]
-                                   , SimpleObject objectSchema  [ Tuple "name" (SimpleString (Just "burt"))
-                                                                , Tuple "test" (SimpleInt Nothing)
+                                   , SimpleObject objectSchema  [ JsonTuple $ Tuple "name" (SimpleString (Just "burt"))
+                                                                , JsonTuple $ Tuple "test" (SimpleInt Nothing)
                                                                 ]
                                    ])
       )
@@ -84,54 +85,109 @@ makeTestAction arguments =
                         }
     }
 
-isValid :: forall m a. Validation a => a -> Aff m Unit
+isValid :: forall a. Validation a => a -> Aff Unit
 isValid = validate >>> equal []
 
-simpleArgumentToJsonTests :: forall eff. TestSuite (exception :: EXCEPTION, random :: RANDOM | eff)
+simpleArgumentToJsonTests :: TestSuite
 simpleArgumentToJsonTests = do
   suite "SimpleArgument to JSON" do
     test "Ints" $ do
-      equal
+      equalJson
         Nothing
         (simpleArgumentToJson (SimpleInt Nothing))
-      equal
-        (Just (fromNumber 5.0))
+      equalJson
+        (Just (encodeJSON 5))
         (simpleArgumentToJson (SimpleInt (Just 5)))
     test "Strings" $ do
-      equal
+      equalJson
         Nothing
         (simpleArgumentToJson (SimpleString Nothing))
-      equal
-        (Just (fromString "Test"))
+      equalJson
+        (Just (encodeJSON "Test"))
         (simpleArgumentToJson (SimpleString (Just "Test")))
     test "Tuples" $ do
-      equal
+      equalJson
         Nothing
-        (simpleArgumentToJson (SimpleTuple (SimpleInt Nothing /\ SimpleString Nothing)))
-      equal
+        (simpleArgumentToJson (SimpleTuple (JsonTuple (SimpleInt Nothing /\ SimpleString Nothing))))
+      equalJson
         Nothing
-        (simpleArgumentToJson (SimpleTuple (SimpleInt Nothing /\ SimpleString (Just "Test"))))
-      equal
+        (simpleArgumentToJson (SimpleTuple (JsonTuple (SimpleInt Nothing /\ SimpleString (Just "Test")))))
+      equalJson
         Nothing
-        (simpleArgumentToJson (SimpleTuple (SimpleInt (Just 5) /\ SimpleString Nothing)))
-      equal
-        (Just (fromArray [ fromNumber 5.0, fromString "Test" ]))
-        (simpleArgumentToJson (SimpleTuple (SimpleInt (Just 5) /\ SimpleString (Just "Test"))))
+        (simpleArgumentToJson (SimpleTuple (JsonTuple (SimpleInt (Just 5) /\ SimpleString Nothing))))
+      equalJson
+        (Just (encodeJSON [ encode 5.0, encode "Test" ]))
+        (simpleArgumentToJson (SimpleTuple (JsonTuple (SimpleInt (Just 5) /\ SimpleString (Just "Test")))))
     test "Arrays" $ do
-      equal
-        (Just (fromArray (fromNumber <$> [ 1.0, 2.0, 3.0 ])))
+      equalJson
+        (Just (encodeJSON [ 1.0, 2.0, 3.0 ]))
         (simpleArgumentToJson (SimpleArray SimpleIntSchema [ SimpleInt (Just 1)
                                                            , SimpleInt (Just 2)
                                                            , SimpleInt (Just 3)
                                                            ]))
+    test "Values" $ do
+      let valueSchema = ValueSchema [
+            JsonTuple (
+               "getValue"
+               /\
+               SimpleObjectSchema [
+                 JsonTuple (
+                    "unMap"
+                    /\
+                    SimpleArraySchema (
+                      SimpleTupleSchema (
+                         JsonTuple (
+                            SimpleHexSchema
+                            /\
+                            SimpleObjectSchema [
+                              JsonTuple (
+                                 "unMap"
+                                 /\
+                                 SimpleArraySchema (
+                                   SimpleTupleSchema (
+                                      JsonTuple (
+                                         SimpleStringSchema
+                                         /\
+                                         SimpleIntSchema
+                                         )
+                                      )
+                                   )
+                                 )
+                              ]
+                            )
+                         )
+                      )
+                    )
+                 ]
+               )
+            ]
+      equalJson
+        (Just (encodeJSON (FO.singleton "getValue" [
+                              [ encode (FO.singleton "unCurrencySymbol" "5fff")
+                              , encode [
+                                   [ encode (FO.singleton "unTokenName" "")
+                                   , encode 4
+                                   ]
+                                   ]
+                              ]
+                              ])))
+        (simpleArgumentToJson
+          (ValueArgument
+             valueSchema
+             (Value { getValue: (LedgerMap [CurrencySymbol { unCurrencySymbol: "5fff" } /\ LedgerMap [TokenName { unTokenName: "" } /\ 4]]) })))
+
     test "Objects" $ do
-      let objectSchema = SimpleObjectSchema [ Tuple "name" SimpleStringSchema
-                                            , Tuple "test" SimpleIntSchema
+      let objectSchema = SimpleObjectSchema [ JsonTuple $ Tuple "name" SimpleStringSchema
+                                            , JsonTuple $ Tuple "test" SimpleIntSchema
                                             ]
-      equal
-        (Just (fromObject (StrMap.fromFoldable [ "name" /\ fromString "Tester"
-                                               , "arg" /\ fromNumber 20.0
-                                               ])))
-        (simpleArgumentToJson (SimpleObject objectSchema [ "name" /\ SimpleString (Just "Tester")
-                                                         , "arg" /\ SimpleInt (Just 20)
+      equalJson
+        (Just (encodeJSON (FO.fromFoldable [ "name" /\ encode "Tester"
+                                           , "arg" /\ encode 20.0
+                                           ])))
+        (simpleArgumentToJson (SimpleObject objectSchema [ JsonTuple $ "name" /\ SimpleString (Just "Tester")
+                                                         , JsonTuple $ "arg" /\ SimpleInt (Just 20)
                                                          ]))
+
+equalJson :: Maybe String -> Maybe Foreign -> Test
+equalJson expected actual =
+  equal expected (encodeJSON <$> actual)

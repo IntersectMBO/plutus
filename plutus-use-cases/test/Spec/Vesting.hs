@@ -21,12 +21,13 @@ import           Language.PlutusTx.Coordination.Contracts.Vesting (Vesting (..),
                                                                    retrieveFunds, totalAmount, validatorScript,
                                                                    validatorScriptHash, vestFunds)
 import qualified Ledger
-import           Ledger.Ada                                       (Ada)
 import qualified Ledger.Ada                                       as Ada
 import qualified Ledger.Validation                                as Validation
+import           Ledger.Value                                     (Value)
 import qualified Ledger.Value                                     as Value
 import           Wallet                                           (PubKey (..))
 import           Wallet.Emulator
+import qualified Wallet.Emulator.Generators                       as Gen
 import qualified Wallet.Generators                                as Gen
 
 w1, w2 :: Wallet
@@ -56,8 +57,8 @@ size = do
 scen1 :: VestingScenario
 scen1 = VestingScenario{..} where
     vsVestingScheme = Vesting {
-        vestingTranche1 = VestingTranche (Ledger.Slot 10) 200,
-        vestingTranche2 = VestingTranche (Ledger.Slot 20) 400,
+        vestingTranche1 = VestingTranche (Ledger.Slot 10) (Ada.adaValueOf 200),
+        vestingTranche2 = VestingTranche (Ledger.Slot 20) (Ada.adaValueOf 400),
         vestingOwner    = walletPubKey w1 }
     vsInitialBalances = Map.fromList [
         (walletPubKey w1, startingBalance),
@@ -67,7 +68,7 @@ scen1 = VestingScenario{..} where
 -- | Commit some funds from a wallet to a vesting scheme. Returns the reference
 --   to the transaction output that is locked by the schemes's validator
 --   script (and can be collected by the scheme's owner)
-commit :: Wallet -> Vesting -> Ada -> Trace MockWallet Ledger.TxOutRef
+commit :: Wallet -> Vesting -> Value -> Trace MockWallet Ledger.TxOutRef
 commit w vv vl = exScriptOut <$> walletAction w (void $ vestFunds vv vl) where
     exScriptOut = snd . head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs . head
 
@@ -84,7 +85,7 @@ secureFunds = checkVestingTrace scen1 $ do
 canRetrieveFunds :: Property
 canRetrieveFunds = checkVestingTrace scen1 $ do
     let VestingScenario s _ _ = scen1
-        amt = Ada.fromInt 150
+        amt = Ada.adaValueOf 150
     updateAll
 
     -- Wallet 2 locks 600 ada under the scheme described in `scen1`
@@ -100,7 +101,7 @@ canRetrieveFunds = checkVestingTrace scen1 $ do
     updateAll
     traverse_ (uncurry assertOwnFundsEq) [
         (w2, w2Funds),
-        (w1, Value.plus startingBalance (Ada.toValue amt))]
+        (w1, Value.plus startingBalance amt)]
 
 cannotRetrieveTooMuch :: Property
 cannotRetrieveTooMuch = checkVestingTrace scen1 $ do
@@ -113,8 +114,8 @@ cannotRetrieveTooMuch = checkVestingTrace scen1 $ do
     -- at slot 11, not more than 200 may be taken out
     -- so the transaction submitted by `retrieveFunds` below
     -- is invalid and will be rejected by the mockchain.
-    let ds = VestingData (vsScriptHash scen1) 250
-    walletAction w1 $ void (retrieveFunds s ds ref 250)
+    let ds = VestingData (vsScriptHash scen1) (Ada.adaValueOf 250)
+    walletAction w1 $ void (retrieveFunds s ds ref (Ada.adaValueOf 250))
     updateAll
 
     -- The funds of both wallets should be unchanged.
@@ -129,15 +130,15 @@ canRetrieveFundsAtEnd = checkVestingTrace scen1 $ do
     addBlocks' 20
 
     -- everything can be taken out at h=21
-    let ds = VestingData (vsScriptHash scen1) 600
-    walletAction w1 $ void (retrieveFunds s ds ref 600)
+    let ds = VestingData (vsScriptHash scen1) (Ada.adaValueOf 600)
+    walletAction w1 $ void (retrieveFunds s ds ref (Ada.adaValueOf 600))
     updateAll
 
     -- Wallet 1 now has control of all the funds that were locked in the
     -- vesting scheme.
     traverse_ (uncurry assertOwnFundsEq) [
         (w2, w2Funds),
-        (w1, Value.plus startingBalance (Ada.toValue total))]
+        (w1, Value.plus startingBalance total)]
 
 -- | Vesting scenario with test parameters
 data VestingScenario = VestingScenario {
@@ -154,10 +155,10 @@ startingBalance = Ada.adaValueOf 1000
 -- | Amount of money left in wallet `Wallet 2` after committing funds to the
 --   vesting scheme
 w2Funds :: Ledger.Value
-w2Funds = Value.minus startingBalance (Ada.toValue total)
+w2Funds = Value.minus startingBalance total
 
 -- | Total amount of money vested in the scheme `scen1`
-total :: Ada
+total :: Value
 total = totalAmount $ vsVestingScheme scen1
 
 -- | Run a trace with the given scenario and check that the emulator finished

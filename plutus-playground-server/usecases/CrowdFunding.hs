@@ -1,26 +1,41 @@
--- | Crowdfunding contract implemented using the [[Plutus]] interface.
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+module CrowdFunding where
+-- TRIM TO HERE
+-- Crowdfunding contract implemented using the [[Plutus]] interface.
 -- This is the fully parallel version that collects all contributions
 -- in a single transaction.
 --
 -- Note [Transactions in the crowdfunding campaign] explains the structure of
 -- this contract on the blockchain.
+
 import qualified Language.PlutusTx            as PlutusTx
-import qualified Ledger.Interval              as Interval
+import           Language.PlutusTx.Prelude
 import           Ledger.Slot                  (SlotRange)
 import qualified Ledger.Slot                  as Slot
-import qualified Language.PlutusTx.Prelude    as P
 import           Ledger
-import qualified Ledger.Ada.TH                as Ada
-import           Ledger.Ada                   (Ada)
-import           Ledger.Validation           as V
+import           Ledger.Validation            as V
+import           Ledger.Value                 (Value)
+import qualified Ledger.Value                 as VTH
 import           Playground.Contract
 import           Wallet                       as W
+import qualified Wallet.Emulator              as EM
+import           Wallet.Emulator             (Wallet)
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
     { campaignDeadline           :: Slot
     -- ^ The date by which the campaign target has to be met
-    , campaignTarget             :: Ada
+    , campaignTarget             :: Value
     -- ^ Target amount of funds
     , campaignCollectionDeadline :: Slot
     -- ^ The date by which the campaign owner has to collect the funds
@@ -31,9 +46,20 @@ data Campaign = Campaign
 
 PlutusTx.makeLift ''Campaign
 
+-- | Construct a 'Campaign' value from the campaign parameters,
+--   using the wallet's public key.
+mkCampaign :: Slot -> Value -> Slot -> Wallet -> Campaign
+mkCampaign ddl target collectionDdl ownerWallet =
+    Campaign
+        { campaignDeadline = ddl
+        , campaignTarget   = target
+        , campaignCollectionDeadline = collectionDdl
+        , campaignOwner = EM.walletPubKey ownerWallet
+        }
+
 -- | The 'SlotRange' during which the funds can be collected
 collectionRange :: Campaign -> SlotRange
-collectionRange cmp = 
+collectionRange cmp =
     W.interval (campaignDeadline cmp) (campaignCollectionDeadline cmp)
 
 -- | The 'SlotRange' during which a refund may be claimed
@@ -50,89 +76,51 @@ data CampaignAction = Collect | Refund
 
 PlutusTx.makeLift ''CampaignAction
 
+-- | The validator script is a function of three arguments:
+-- 1. A 'PubKey'. This is the data script. It is provided by the producing transaction (the contribution)
+--
+-- 2. A 'CampaignAction'. This is the redeemer script. It is provided by the redeeming transaction.
+--
+-- 3. A 'PendingTx value. It contains information about the current transaction and is provided by the slot leader.
+--    See note [PendingTx]
+type CrowdfundingValidator = PubKey -> CampaignAction -> PendingTx -> Bool
+
+validRefund :: Campaign -> PubKey -> PendingTx -> Bool
+validRefund campaign contributor ptx =
+    -- Check that the transaction falls in the refund range of the campaign
+    Slot.contains (refundRange campaign) (pendingTxValidRange ptx)
+    -- Check that the transaction is signed by the contributor
+    && (ptx `V.txSignedBy` contributor)
+
+validCollection :: Campaign -> PendingTx -> Bool
+validCollection campaign p =
+    -- Check that the transaction falls in the collection range of the campaign
+    (collectionRange campaign `Slot.contains` pendingTxValidRange p)
+    -- Check that the transaction is trying to spend more money than the campaign
+    -- target (and hence the target was reached)
+    && (valueSpent p `VTH.geq` campaignTarget campaign)
+    -- Check that the transaction is signed by the campaign owner
+    && (p `V.txSignedBy` campaignOwner campaign)
+
+-- | The validator script is of type 'CrowdfundingValidator', and is additionally parameterized by a
+-- 'Campaign' definition. This argument is provided by the Plutus client, using 'Ledger.applyScript'.
+-- As a result, the 'Campaign' definition is part of the script address, and different campaigns have different addresses.
+-- The Campaign{..} syntax means that all fields of the 'Campaign' value are in scope (for example 'campaignDeadline' in l. 70).
+mkValidator :: Campaign -> CrowdfundingValidator
+mkValidator c con act p = case act of
+    -- the "refund" branch
+    Refund -> validRefund c con p
+    -- the "collection" branch
+    Collect -> validCollection c p
+
 -- | The validator script that determines whether the campaign owner can
 --   retrieve the funds or the contributors can claim a refund.
 --
 contributionScript :: Campaign -> ValidatorScript
-contributionScript cmp  = ValidatorScript val where
-    val = Ledger.applyScript mkValidator (Ledger.lifted cmp)
-    mkValidator = $$(Ledger.compileScript [||
-
-        -- The validator script is a function of four arguments:
-        -- 1. The 'Campaign' definition. This argument is provided by the Plutus client, using 'Ledger.applyScript'.
-        --    As a result, the 'Campaign' definition is part of the script address, and different campaigns have different addresses.
-        --    The Campaign{..} syntax means that all fields of the 'Campaign' value are in scope (for example 'campaignDeadline' in l. 70).
-        --    See note [RecordWildCards].
-        --
-        -- 2. A 'PubKey'. This is the data script. It is provided by the producing transaction (the contribution)
-        --
-        -- 3. A 'CampaignAction'. This is the redeemer script. It is provided by the redeeming transaction.
-        --
-        -- 4. A 'PendingTx value. It contains information about the current transaction and is provided by the slot leader.
-        --    See note [PendingTx]
-        \Campaign{..} (con :: PubKey) (act :: CampaignAction) (p :: PendingTx) ->
-            let
-
-                -- In Haskell we can define new operators. We import
-                -- `P.and` from the PlutusTx prelude here so that we can use it
-                -- in infix position rather than prefix (which would require a
-                -- lot of additional brackets)
-                infixr 3 &&
-                (&&) :: Bool -> Bool -> Bool
-                (&&) = $$(P.and)
-
-                signedBy :: PendingTx -> PubKey -> Bool
-                signedBy = $$(V.txSignedBy)
-
-                -- We pattern match on the pending transaction `p` to get the
-                -- information we need:
-                -- `ps` is the list of inputs of the transaction
-                -- `outs` is the list of outputs
-                -- `slFrom` is the beginning of the validation interval
-                -- `slTo` is the end of the validation interval
-                PendingTx ps outs _ _ _ range _ _ = p
-
-                collRange :: SlotRange
-                collRange = $$(Interval.interval) campaignDeadline campaignCollectionDeadline
-    
-                refndRange :: SlotRange
-                refndRange = $$(Interval.from) campaignCollectionDeadline
-
-                -- `totalInputs` is the sum of the ada values of all transaction
-                -- inputs. We ise `foldr` from the Prelude to go through the
-                -- list and sum up the values.
-                totalInputs :: Ada
-                totalInputs =
-                    let v (PendingTxIn _ _ vl) = $$(Ada.fromValue) vl in
-                    $$(P.foldr) (\i total -> $$(Ada.plus) total (v i)) $$(Ada.zero) ps
-
-                isValid = case act of
-                    Refund -> -- the "refund" branch
-                        let
-
-                            contributorTxOut :: PendingTxOut -> Bool
-                            contributorTxOut o = case $$(pubKeyOutput) o of
-                                Nothing -> False
-                                Just pk -> $$(eqPubKey) pk con
-
-                            -- Check that all outputs are paid to the public key
-                            -- of the contributor (this key is provided as the data script `con`)
-                            contributorOnly = $$(P.all) contributorTxOut outs
-
-                            refundable = 
-                                $$(Slot.contains) refndRange range
-                                && contributorOnly && p `signedBy` con
-
-                        in refundable
-                    Collect -> -- the "successful campaign" branch
-                        let
-                            payToOwner = 
-                                $$(Slot.contains) collRange range
-                                && $$(Ada.geq) totalInputs campaignTarget
-                                && p `signedBy` campaignOwner
-                        in payToOwner
-            in
-            if isValid then () else $$(P.error) () ||])
+contributionScript cmp  = ValidatorScript $
+    $$(Ledger.compileScript [|| mkValidator ||])
+        `Ledger.applyScript`
+            Ledger.lifted cmp
 
 -- | The address of a [[Campaign]]
 campaignAddress :: Campaign -> Ledger.Address
@@ -140,9 +128,9 @@ campaignAddress = Ledger.scriptAddress . contributionScript
 
 -- | Contribute funds to the campaign (contributor)
 --
-contribute :: MonadWallet m => Campaign -> Ada -> m ()
-contribute cmp value = do
-    _ <- if value <= 0 then throwOtherError "Must contribute a positive value" else pure ()
+contribute :: MonadWallet m => Slot -> Value -> Slot -> Wallet -> Value -> m ()
+contribute deadline target collectionDeadline ownerWallet value = do
+    let cmp = mkCampaign deadline target collectionDeadline ownerWallet
     ownPK <- ownPubKey
     let ds = DataScript (Ledger.lifted ownPK)
         range = W.interval 1 (campaignDeadline cmp)
@@ -154,7 +142,7 @@ contribute cmp value = do
     -- If we were not interested in the transaction produced by `payToScript`
     -- we could have used `payeToScript_`, which has the same effect but
     -- discards the result.
-    tx <- payToScript range (campaignAddress cmp) ($$(Ada.toValue) value) ds
+    tx <- payToScript range (campaignAddress cmp) value ds
 
     logMsg "Submitted contribution"
 
@@ -162,15 +150,15 @@ contribute cmp value = do
     -- event. It instructs the wallet to start watching the addresses mentioned
     -- in the trigger definition and run the handler when the refund condition
     -- is true.
-    register (refundTrigger cmp) (refundHandler (Ledger.hashTx tx) cmp)
-
+    register (refundTrigger value cmp) (refundHandler (Ledger.hashTx tx) cmp)
 
     logMsg "Registered refund trigger"
 
 -- | Register a [[EventHandler]] to collect all the funds of a campaign
 --
-scheduleCollection :: MonadWallet m => Campaign -> m ()
-scheduleCollection cmp = do
+scheduleCollection :: MonadWallet m => Slot -> Value -> Slot -> Wallet -> m ()
+scheduleCollection deadline target collectionDeadline ownerWallet = do
+    let cmp = mkCampaign deadline target collectionDeadline ownerWallet
     register (collectFundsTrigger cmp) (EventHandler (\_ -> do
         logMsg "Collecting funds"
         let redeemerScript = Ledger.RedeemerScript (Ledger.lifted Collect)
@@ -178,15 +166,15 @@ scheduleCollection cmp = do
         collectFromScript range (contributionScript cmp) redeemerScript))
 
 -- | An event trigger that fires when a refund of campaign contributions can be claimed
-refundTrigger :: Campaign -> EventTrigger
-refundTrigger c = andT
-    (fundsAtAddressT (campaignAddress c) (W.intervalFrom ($$(Ada.toValue) 1)))
+refundTrigger :: Value -> Campaign -> EventTrigger
+refundTrigger vl c = andT
+    (fundsAtAddressGeqT (campaignAddress c) vl)
     (slotRangeT (refundRange c))
 
 -- | An event trigger that fires when the funds for a campaign can be collected
 collectFundsTrigger :: Campaign -> EventTrigger
 collectFundsTrigger c = andT
-    (fundsAtAddressT (campaignAddress c) (W.intervalFrom ($$(Ada.toValue) (campaignTarget c))))
+    (fundsAtAddressGeqT (campaignAddress c) (campaignTarget c))
     (slotRangeT (collectionRange c))
 
 -- | Claim a refund of our campaign contribution

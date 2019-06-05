@@ -115,10 +115,8 @@ occasionally. This suggests to change the kind signature of @fix@ to
 
     fix :: (k -> k) -> k
 
-which covers all those cases. However,
-
-1. It also can be instantiated as @fix :: (size -> size) -> size@ which doesn't make sense.
-2. It's not clear how to implement such @fix@. See @docs/fomega/deep-isorecursive/README.md@ for details.
+which covers all those cases. However, it's not clear how to implement such @fix@.
+See @docs/fomega/deep-isorecursive/README.md@ for details.
 
 But it turns out that
 

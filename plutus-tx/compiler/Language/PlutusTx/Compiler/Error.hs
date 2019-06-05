@@ -2,11 +2,10 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE LambdaCase             #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TemplateHaskell        #-}
 module Language.PlutusTx.Compiler.Error (
-    ConvError
+    CompileError
     , Error (..)
     , WithContext (..)
     , withContext
@@ -32,7 +31,7 @@ data WithContext c e = NoContext e | WithContextC Int c (WithContext c e)
     deriving Functor
 makeClassyPrisms ''WithContext
 
-type ConvError = WithContext T.Text (Error ())
+type CompileError = WithContext T.Text (Error ())
 
 withContext :: (MonadError (WithContext c e) m) => Int -> c -> m a -> m a
 withContext p c act = catchError act $ \err -> throwError (WithContextC p c err)
@@ -71,10 +70,13 @@ makeClassyPrisms ''Error
 instance (PP.Pretty a) => PP.Pretty (Error a) where
     pretty = PLC.prettyPlcClassicDebug
 
-instance PLC.AsTypeError ConvError () where
+instance PLC.AsTypeError CompileError () where
     _TypeError = _NoContext . _PLCError . PLC._TypeError
 
-instance PIR.AsError ConvError (PIR.Provenance ()) where
+instance PLC.AsNormalizationError CompileError PLC.TyName PLC.Name () where
+    _NormalizationError = _NoContext . _PLCError . PLC._NormalizationError
+
+instance PIR.AsError CompileError (PIR.Provenance ()) where
     _Error = _NoContext . _PIRError
 
 instance (PP.Pretty a) => PLC.PrettyBy PLC.PrettyConfigPlc (Error a) where
@@ -83,5 +85,5 @@ instance (PP.Pretty a) => PLC.PrettyBy PLC.PrettyConfigPlc (Error a) where
         PIRError e -> PP.vsep [ "Error from the PIR compiler:", PLC.prettyBy config e ]
         CompilationError e -> "Unexpected error during compilation, please report this to the Plutus team:" PP.<+> PP.pretty e
         UnsupportedError e -> "Unsupported feature:" PP.<+> PP.pretty e
-        FreeVariableError e -> "Reference to a value which is not a local, nor a builtin:" PP.<+> PP.pretty e
+        FreeVariableError e -> "Reference to a name which is not a local, a builtin, or an external INLINABLE function:" PP.<+> PP.pretty e
         ValueRestrictionError -> "Attempt to polymorphically generalize something which is not a value (often a let-binding)"

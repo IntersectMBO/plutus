@@ -2,56 +2,44 @@
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns
 -fno-warn-name-shadowing
--fno-warn-unused-do-bind #-}
+-fno-warn-unused-do-bind
+-fno-warn-unused-top-binds #-}
 module Spec.Marlowe
     ( tests
     )
 where
 
+import           Control.Monad           (void, when)
+import qualified Data.List               as List
+import qualified Data.Map.Strict         as Map
 import           Data.Maybe
-import           Control.Monad                  ( void, when )
-import qualified Data.List                      as List
-import qualified Data.Set                       as Set
-import qualified Data.Map.Strict                as Map
+import qualified Data.Set                as Set
 
-import           Hedgehog                       ( Property
-                                                , forAll
-                                                , property
-                                                )
-import qualified Hedgehog.Range                 as Range
-import           Hedgehog.Gen                   (list
-                                                )
+import           Hedgehog                (Property, forAll, property)
 import qualified Hedgehog
+import           Hedgehog.Gen            (list)
+import qualified Hedgehog.Range          as Range
 import           Test.Tasty
+import           Test.Tasty.Hedgehog     (HedgehogTestLimit (..), testProperty)
 import           Test.Tasty.HUnit
-import           Test.Tasty.Hedgehog            ( testProperty
-                                                , HedgehogTestLimit(..)
-                                                )
 
-import           Ledger                  hiding ( Value )
-import qualified Ledger.Ada                     as Ada
-import           Ledger.Validation              ( OracleValue(..) )
-import           Wallet                         ( PubKey(..)
-                                                , startWatching
-                                                )
+import           Language.Marlowe
+import           Ledger                  hiding (Value)
+import qualified Ledger.Ada              as Ada
+import           Ledger.Validation       (OracleValue (..))
+import           Wallet                  (PubKey (..), startWatching)
 import           Wallet.Emulator
-import           Language.Marlowe        hiding (insertCommit, discountFromPairList, mergeChoices)
-import qualified Language.Marlowe               as Marlowe
-import           Language.Marlowe.Client        ( commit'
-                                                , commit
-                                                , redeem
-                                                , receivePayment
-                                                , marloweValidator
-                                                )
-import           Language.Marlowe.Escrow        as Escrow
+
+import           Language.Marlowe.Client (commit, commit', interpretObs, marloweValidator, receivePayment, redeem)
+import           Language.Marlowe.Escrow as Escrow
 import           Spec.Common
 
+{-# ANN module ("HLint: ignore"::String) #-}
 
 tests :: TestTree
-tests = testGroup "Marlowe" [validatorTests] 
+tests = testGroup "Marlowe" [validatorTests]
     --, contractsTests]
     -- TODO: fix 'contractsTests' and add them back in
 
@@ -80,41 +68,7 @@ contractsTests = localOption (HedgehogTestLimit $ Just 3) $ testGroup "Marlowe C
     testProperty "redeem after commit expired" redeemAfterCommitExpired
     ]
 
-
-eqValue :: Value -> Value -> Bool
-eqValue = $$(equalValue)
-
-eqObservation :: Observation -> Observation -> Bool
-eqObservation = $$(equalObservation) eqValue
-
-eqContract :: Contract -> Contract -> Bool
-eqContract = $$(equalContract) eqValue eqObservation
-
-validContract :: State -> Contract -> Slot -> Ada -> Bool
-validContract = $$(Marlowe.validateContract)
-
-evalValue :: Slot -> [OracleValue Int] -> State -> Value -> Int
-evalValue pendingTxBlockHeight inputOracles = $$(evaluateValue) pendingTxBlockHeight inputOracles
-
-interpretObs :: [OracleValue Int] -> Int -> State -> Observation -> Bool
-interpretObs inputOracles blockNumber state obs = let
-    ev = evalValue (Slot blockNumber) inputOracles
-    in $$(interpretObservation) ev blockNumber state obs
-
-insertCommit :: Commit -> [Commit] -> [Commit]
-insertCommit = $$(Marlowe.insertCommit)
-
-discountFromPairList :: PubKey
-    -> Slot
-    -> Ada
-    -> [(IdentCC, CCStatus)]
-    -> Maybe [(IdentCC, CCStatus)]
-discountFromPairList = $$(Marlowe.discountFromPairList)
-
-mergeChoices :: [Choice] -> [Choice] -> [Choice]
-mergeChoices = $$(Marlowe.mergeChoices)
-
-money :: Commit -> Int
+money :: Commit -> Integer
 money (_, (_, NotRedeemed m _)) = m
 
 {-| Slide across a list with 2 elements window
@@ -122,9 +76,9 @@ money (_, (_, NotRedeemed m _)) = m
     [(1,2), (2,3)]
 -}
 slide :: [a] -> [(a, a)]
-slide [a, b] = [(a, b)]
+slide [a, b]     = [(a, b)]
 slide (a:b:rest) = (a, b) : slide (b:rest)
-slide _ = error "at least 2 elements"
+slide _          = error "at least 2 elements"
 
 pubKey1 :: PubKey
 pubKey1 = toPublicKey privateKey1
@@ -177,7 +131,7 @@ checkFindAndRemove = do
     let commits =   [ (IdentCC 1, (pk, NotRedeemed 12 10))
                     , (IdentCC 2, (pk, NotRedeemed 22 10))
                     , (IdentCC 2, (pk, NotRedeemed 33 10))]
-    let r = $$(Marlowe.findAndRemove) (\(IdentCC id, _) -> id == 2) commits
+    let r = findAndRemove (\(IdentCC id, _) -> id == 2) commits
     r @?= Just  [ (IdentCC 1, (pk, NotRedeemed 12 10))
                 , (IdentCC 2, (pk, NotRedeemed 33 10))]
 
@@ -263,7 +217,7 @@ duplicateIdentCC = property $ do
             (CommitCash (IdentCC 1) (pubKey1) (Value 100) 128 256 Null Null)
             Null
 
-        contractIsValid = validContract (State [] []) contract (Slot 1) (Ada.fromInt 12)
+        contractIsValid = validateContract (State [] []) contract (Slot 1) (Ada.fromInt 12)
     Hedgehog.assert (not contractIsValid)
 
 checkValidateContract :: Property
@@ -275,14 +229,14 @@ checkValidateContract = property $ do
 
     let contract = boundedContract (Set.fromList [pubKey1, pubKey2]) (Set.fromList [IdentCC 1]) bounds
     a <- forAll contract
-    let r = validContract (State [] []) a (Slot 1) (Ada.fromInt 12)
+    let r = validateContract (State [] []) a (Slot 1) (Ada.fromInt 12)
     Hedgehog.assert (r || not r)
 
 notEnoughMoney :: IO ()
 notEnoughMoney = do
     let commits =   [(IdentCC 1, (pubKey1, NotRedeemed 60 100))
                     , (IdentCC 1, (pubKey1, NotRedeemed 40 200))]
-    let test = validContract (State commits []) Null
+    let test = validateContract (State commits []) Null
     let enoughOk = test (Slot 100) (Ada.fromInt 100)
     let enoughFail = test (Slot 1) (Ada.fromInt 99)
     let firstCommitTimedOutOk = test (Slot 101) (Ada.fromInt 45)
@@ -590,4 +544,3 @@ futuresTest = checkMarloweTrace (MarloweScenario {
     bob = Wallet 2
     bobPk = toPublicKey privateKey2
     update = updateAll [alice, bob]
-

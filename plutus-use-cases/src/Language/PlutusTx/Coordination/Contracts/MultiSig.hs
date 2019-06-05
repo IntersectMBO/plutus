@@ -5,6 +5,8 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- | Implements an n-out-of-m multisig contract.
 module Language.PlutusTx.Coordination.Contracts.MultiSig
     ( MultiSig(..)
@@ -22,37 +24,31 @@ import qualified Data.Set                     as Set
 import           Data.Foldable                (fold)
 import qualified Ledger.Ada                   as Ada
 import qualified Ledger.Value                 as Value
-import qualified Language.PlutusTx            as P
+import           Language.PlutusTx.Prelude
+import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       as Ledger hiding (initialise, to)
 import           Ledger.Validation            as V
 import           Wallet.API                   as WAPI
 
-data MultiSig = MultiSig 
+data MultiSig = MultiSig
                 { signatories :: [Ledger.PubKey]
                 -- ^ List of public keys of people who may sign the transaction
-                , requiredSignatures :: Int
+                , requiredSignatures :: Integer
                 -- ^ Minimum number of signatures required to unlock
                 --   the output (should not exceed @length signatories@)
                 }
-P.makeLift ''MultiSig
+PlutusTx.makeLift ''MultiSig
+
+validate :: MultiSig -> () -> () -> PendingTx -> Bool
+validate (MultiSig keys num) () () p =
+    let present = length (filter (V.txSignedBy p) keys)
+    in present `geq` num
 
 msValidator :: MultiSig -> ValidatorScript
-msValidator sig = 
-  ValidatorScript (Ledger.applyScript mkValidator (Ledger.lifted sig)) where
-    mkValidator = Ledger.fromCompiledCode ($$(P.compile [||
-      let 
-        validate :: MultiSig -> () -> () -> PendingTx -> ()
-        validate (MultiSig keys num) () () p = 
-            let 
-                present = $$(P.length) ($$(P.filter) ($$(V.txSignedBy) p) keys)
-            in
-                if $$(P.geq) present num
-                then ()
-                else $$(P.error) ($$(P.traceH) "WRONG!" ())
-
-      in
-        validate
-      ||]))
+msValidator sig = ValidatorScript $
+    Ledger.fromCompiledCode $$(PlutusTx.compile [|| validate ||])
+        `Ledger.applyScript`
+            Ledger.lifted sig
 
 -- | Multisig data script (unit value).
 msDataScript :: DataScript
@@ -84,7 +80,7 @@ unlockTx ms = do
 
     utxos <- WAPI.outputsAt address
 
-    let 
+    let
 
         mkIn :: TxOutRef -> TxIn
         mkIn r = Ledger.scriptTxIn r validator msRedeemer

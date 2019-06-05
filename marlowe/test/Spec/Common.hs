@@ -7,25 +7,26 @@
 -fno-warn-unused-do-bind #-}
 module Spec.Common where
 
-import           Control.Monad           (void)
-import           Data.Either             (isRight)
-import           Data.Map.Strict         (Map)
-import qualified Data.Map.Strict         as Map
-import           Data.Set                (Set)
-import qualified Data.Set                as Set
+import           Control.Monad              (void)
+import           Data.Either                (isRight)
+import           Data.Map.Strict            (Map)
+import qualified Data.Map.Strict            as Map
+import           Data.Set                   (Set)
+import qualified Data.Set                   as Set
 
-import           Hedgehog                (Gen, Property, Size (..), forAll, property)
+import           Hedgehog                   (Gen, Property, Size (..), forAll, property)
 import qualified Hedgehog
-import           Hedgehog.Gen            (choice, element, int, sized)
-import qualified Hedgehog.Range          as Range
+import           Hedgehog.Gen               (choice, element, integral, sized)
+import qualified Hedgehog.Range             as Range
 
-import           Language.Marlowe        hiding (discountFromPairList, insertCommit, mergeChoices)
-import           Language.Marlowe.Client (createContract, marloweValidator, spendDeposit)
-import           Ledger                  hiding (Value)
+import           Language.Marlowe           hiding (discountFromPairList, insertCommit, mergeChoices)
+import           Language.Marlowe.Client    (createContract, marloweValidator, spendDeposit)
+import           Ledger                     hiding (Value)
 import qualified Ledger
-import           Wallet                  (PubKey (..))
+import           Wallet                     (PubKey (..))
 import           Wallet.Emulator
-import qualified Wallet.Generators       as Gen
+import qualified Wallet.Emulator.Generators as Gen
+import qualified Wallet.Generators          as Gen
 
 newtype MarloweScenario = MarloweScenario { mlInitialBalances :: Map.Map PubKey Ledger.Value }
 data Bounds = Bounds {
@@ -36,22 +37,22 @@ data Bounds = Bounds {
 emptyBounds :: Bounds
 emptyBounds = Bounds Map.empty Map.empty
 
-positiveAmount :: Gen Int
-positiveAmount = int $ Range.linear 0 100
+positiveAmount :: Gen Integer
+positiveAmount = integral $ Range.linear 0 100
 
 pubKeyGen :: Gen PubKey
-pubKeyGen = toPublicKey . (knownPrivateKeys !!) <$> int (Range.linear 0 10)
+pubKeyGen = toPublicKey . (knownPrivateKeys !!) <$> integral (Range.linear 0 10)
 
 commitGen :: Gen Commit
 commitGen = do
     person <- pubKeyGen
-    cash <- int (Range.linear 1 10000)
-    timeout <- int (Range.linear 1 50)
+    cash <- integral (Range.linear 1 10000)
+    timeout <- integral (Range.linear 1 50)
     return (IdentCC 123, (person, NotRedeemed cash timeout))
 
 choiceGen :: Gen Choice
 choiceGen = do
-    ident <- int (Range.linear 1 50)
+    ident <- integral (Range.linear 1 50)
     person <- pubKeyGen
     return ((IdentChoice ident, person), 123)
 

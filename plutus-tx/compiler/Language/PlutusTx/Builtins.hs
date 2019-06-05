@@ -1,11 +1,13 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE PolyKinds #-}
+-- This ensures that we don't put *anything* about these functions into the interface
+-- file, otherwise GHC can be clever about the ones that are always error, even though
+-- they're NOINLINE!
 {-# OPTIONS_GHC -O0 #-}
 -- | Primitive names and functions for working with Plutus Core builtins.
 module Language.PlutusTx.Builtins (
                                 -- * Bytestring builtins
-                                SizedByteString(..)
-                                , ByteString
+                                ByteString
                                 , concatenate
                                 , takeByteString
                                 , dropByteString
@@ -36,95 +38,137 @@ module Language.PlutusTx.Builtins (
                                 , trace
                                 ) where
 
-import           Codec.Serialise
 import qualified Crypto
-import qualified Data.ByteString.Lazy      as BSL
+import           Data.ByteString.Lazy      as BSL
 import qualified Data.ByteString.Lazy.Hash as Hash
 import           Data.Maybe                (fromMaybe)
-import           Data.String               (IsString)
-import           GHC.TypeLits
 import           Prelude                   hiding (String, error)
 
 import           Language.PlutusTx.Utils   (mustBeReplaced)
 
--- TODO: resizing primitives? better handling of sizes?
+{- Note [Builtin name definitions]
+The builtins here have definitions so they can be used in off-chain code too.
 
--- | A sized bytestring.
-newtype SizedByteString (s::Nat) = SizedByteString { unSizedByteString :: BSL.ByteString }
-        deriving (Eq, Ord, Show, IsString, Serialise)
+However they *must* be replaced by the compiler when used in Plutus Tx code, so
+in particular they must *not* be inlined, otherwise we can't spot them to replace
+them.
+-}
 
--- | A bytestring of default size (32 bytes).
-type ByteString = SizedByteString 32
+{-# NOINLINE concatenate #-}
+-- | Concatenates two 'ByteString's.
+concatenate :: ByteString -> ByteString -> ByteString
+concatenate = BSL.append
 
-concatenate :: SizedByteString s -> SizedByteString s -> SizedByteString s
-concatenate (SizedByteString l) (SizedByteString r) = SizedByteString (BSL.append l r)
+{-# NOINLINE takeByteString #-}
+-- | Returns the n length prefix of a 'ByteString'.
+takeByteString :: Integer -> ByteString -> ByteString
+takeByteString n = BSL.take (fromIntegral n)
 
-takeByteString :: Int -> SizedByteString s -> SizedByteString s
-takeByteString i (SizedByteString bs) = SizedByteString (BSL.take (fromIntegral i) bs)
+{-# NOINLINE dropByteString #-}
+-- | Returns the suffix of a 'ByteString' after n elements.
+dropByteString :: Integer -> ByteString -> ByteString
+dropByteString n = BSL.drop (fromIntegral n)
 
-dropByteString :: Int -> SizedByteString s -> SizedByteString s
-dropByteString i (SizedByteString bs) = SizedByteString (BSL.drop (fromIntegral i) bs)
+{-# NOINLINE emptyByteString #-}
+-- | An empty 'ByteString'.
+emptyByteString :: ByteString
+emptyByteString = BSL.empty
 
-emptyByteString :: SizedByteString 32
-emptyByteString = SizedByteString BSL.empty
+{-# NOINLINE sha2_256 #-}
+-- | The SHA2-256 hash of a 'ByteString'
+sha2_256 :: ByteString -> ByteString
+sha2_256 = Hash.sha2
 
-sha2_256 :: SizedByteString s -> SizedByteString 32
-sha2_256 (SizedByteString bs) = SizedByteString (Hash.sha2 bs)
+{-# NOINLINE sha3_256 #-}
+-- | The SHA3-256 hash of a 'ByteString'
+sha3_256 :: ByteString -> ByteString
+sha3_256 = Hash.sha3
 
-sha3_256 :: SizedByteString s -> SizedByteString 32
-sha3_256 (SizedByteString bs) = SizedByteString (Hash.sha3 bs)
-
-verifySignature :: SizedByteString 32 -> SizedByteString 32 -> SizedByteString 64 -> Bool
-verifySignature (SizedByteString pubKey) (SizedByteString message) (SizedByteString signature) =
+{-# NOINLINE verifySignature #-}
+-- | Verify that the signature is a signature of the message by the public key.
+verifySignature :: ByteString -> ByteString -> ByteString -> Bool
+verifySignature pubKey message signature =
   fromMaybe False (Crypto.verifySignature pubKey message signature)
 
-equalsByteString :: SizedByteString s -> SizedByteString s -> Bool
+{-# NOINLINE equalsByteString #-}
+-- | Check if two 'ByteString's are equal.
+equalsByteString :: ByteString -> ByteString -> Bool
 equalsByteString = (==)
 
-addInteger :: Int -> Int -> Int
+{-# NOINLINE addInteger #-}
+-- | Add two 'Integer's.
+addInteger :: Integer -> Integer -> Integer
 addInteger = (+)
 
-subtractInteger :: Int -> Int -> Int
+{-# NOINLINE subtractInteger #-}
+-- | Subtract two 'Integer's.
+subtractInteger :: Integer -> Integer -> Integer
 subtractInteger = (-)
 
-multiplyInteger :: Int -> Int -> Int
+{-# NOINLINE multiplyInteger #-}
+-- | Multiply two 'Integer's.
+multiplyInteger :: Integer -> Integer -> Integer
 multiplyInteger = (*)
 
-divideInteger :: Int -> Int -> Int
+{-# NOINLINE divideInteger #-}
+-- | Divide two integers.
+divideInteger :: Integer -> Integer -> Integer
 divideInteger = div
 
-remainderInteger :: Int -> Int -> Int
+{-# NOINLINE remainderInteger #-}
+-- | Take the remainder of dividing two 'Integer's.
+remainderInteger :: Integer -> Integer -> Integer
 remainderInteger = rem
 
-greaterThanInteger :: Int -> Int -> Bool
+{-# NOINLINE greaterThanInteger #-}
+-- | Check whether one 'Integer' is greater than another.
+greaterThanInteger :: Integer -> Integer -> Bool
 greaterThanInteger = (>)
 
-greaterThanEqInteger :: Int -> Int -> Bool
+{-# NOINLINE greaterThanEqInteger #-}
+-- | Check whether one 'Integer' is greater than or equal to another.
+greaterThanEqInteger :: Integer -> Integer -> Bool
 greaterThanEqInteger = (>=)
 
-lessThanInteger :: Int -> Int -> Bool
+{-# NOINLINE lessThanInteger #-}
+-- | Check whether one 'Integer' is less than another.
+lessThanInteger :: Integer -> Integer -> Bool
 lessThanInteger = (<)
 
-lessThanEqInteger :: Int -> Int -> Bool
+{-# NOINLINE lessThanEqInteger #-}
+-- | Check whether one 'Integer' is less than or equal to another.
+lessThanEqInteger :: Integer -> Integer -> Bool
 lessThanEqInteger = (<=)
 
-equalsInteger :: Int -> Int -> Bool
+{-# NOINLINE equalsInteger #-}
+-- | Check if two 'Integer's are equal.
+equalsInteger :: Integer -> Integer -> Bool
 equalsInteger = (==)
 
+{-# NOINLINE error #-}
+-- | Aborts evaluation with an error.
 error :: () -> a
-error = mustBeReplaced
+error = mustBeReplaced "error"
 
--- | An opaque type representing PLC strings.
+-- | An opaque type representing Plutus Core strings.
 data String
 
+{-# NOINLINE appendString #-}
+-- | Append two 'String's.
 appendString :: String -> String -> String
-appendString = mustBeReplaced
+appendString = mustBeReplaced "appendString"
 
+{-# NOINLINE emptyString #-}
+-- | An empty 'String'.
 emptyString :: String
-emptyString = mustBeReplaced
+emptyString = mustBeReplaced "emptyString"
 
+{-# NOINLINE charToString #-}
+-- | Turn a 'Char' into a 'String'.
 charToString :: Char -> String
-charToString = mustBeReplaced
+charToString = mustBeReplaced "charToString"
 
+{-# NOINLINE trace #-}
+-- | Logs the given 'String' to the evaluation log.
 trace :: String -> ()
-trace = mustBeReplaced
+trace = mustBeReplaced "trace"

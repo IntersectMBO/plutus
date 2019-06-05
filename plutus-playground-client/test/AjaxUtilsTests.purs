@@ -4,63 +4,63 @@ module AjaxUtilsTests
 
 import Prelude
 
-import AjaxUtils (decodeJson, encodeJson)
-import AjaxUtils as AjaxUtils
-import Control.Monad.Eff.Exception (EXCEPTION)
-import Control.Monad.Eff.Random (RANDOM)
-import Data.Argonaut.Core as Argonaut
+import Auth (AuthStatus)
+import Control.Monad.Except (runExcept)
+import Cursor (Cursor)
+import Cursor as Cursor
 import Data.Either (Either(..))
-import Data.Generic (class Generic, gShow)
-import Data.List (List)
-import Data.List as List
-import Data.List.NonEmpty (NonEmptyList(..))
-import Data.List.Types (NonEmptyList)
-import Data.NonEmpty ((:|))
+import Data.RawJson (JsonEither(..), JsonNonEmptyList(..), JsonTuple(..))
 import Data.Tuple (Tuple(..))
+import Foreign (MultipleErrors)
+import Foreign.Class (class Decode, class Encode, decode, encode)
 import Language.Haskell.Interpreter (CompilationError, InterpreterError, InterpreterResult)
 import Ledger.Extra (LedgerMap(..))
-import Ledger.Value.TH (CurrencySymbol(..), TokenName(..), Value(..))
-import Node.FS (FS)
+import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Playground.API (CompilationResult, EvaluationResult, KnownCurrency(..))
 import Test.QuickCheck (arbitrary, withHelp)
 import Test.QuickCheck.Gen (Gen, chooseInt, vectorOf)
-import Test.Unit (TestSuite, suite, test)
+import Test.Unit (TestSuite, failure, success, suite, test)
+import Test.Unit.Assert (equal)
 import Test.Unit.QuickCheck (quickCheck)
-import TestUtils (assertDecodesTo, assertEncodesTo, equalGShow)
+import TestUtils (arbitraryEither, arbitraryNonEmptyList, assertDecodesTo, assertEncodesTo)
 import Type.Proxy (Proxy(..))
 
-all :: forall eff. TestSuite (exception :: EXCEPTION, fs :: FS, random :: RANDOM | eff)
+all :: TestSuite
 all =
   suite "AjaxUtils" do
     jsonHandlingTests
 
-jsonHandlingTests :: forall eff. TestSuite (exception :: EXCEPTION, fs :: FS, random :: RANDOM | eff)
+jsonHandlingTests :: TestSuite
 jsonHandlingTests = do
     suite "Json handling" do
       test "Decode a List." do
         assertDecodesTo
-          (Proxy :: Proxy (List TokenName))
+          (Proxy :: Proxy (Array TokenName))
           "test/token_names.json"
-      test ("Decode an empty NonEmptyList.") do
-        equalGShow
-          (Left "List is empty, expecting non-empty")
-          (decodeJson (Argonaut.fromArray []) :: Either String (NonEmptyList TokenName))
+      test ("Decode an empty NonEmptyList should fail.") do
+        case (runExcept (decode (encode ([] :: Array TokenName))) :: Either MultipleErrors (JsonNonEmptyList TokenName)) of
+          Left _ -> success
+          Right value -> failure $ "A empty list shouldn't decode into a NonEmptyList. Expected failure, got: " <> show value
       test ("Decode a populated NonEmptyList.") do
         assertDecodesTo
-          (Proxy :: Proxy (NonEmptyList TokenName))
+          (Proxy :: Proxy (JsonNonEmptyList TokenName))
           "test/token_names.json"
       test "Decode a KnownCurrency." do
         assertDecodesTo
           (Proxy :: Proxy KnownCurrency)
           "test/known_currency.json"
-      test "Decode a CompilationResult." do
+      test "Decode a compilation response." do
         assertDecodesTo
-          (Proxy :: Proxy (Either InterpreterError (InterpreterResult CompilationResult)))
+          (Proxy :: Proxy (JsonEither InterpreterError (InterpreterResult CompilationResult)))
           "test/compilation_response1.json"
       test "Decode an EvaluationResult." do
         assertDecodesTo
           (Proxy :: Proxy EvaluationResult)
           "test/evaluation_response1.json"
+      test "Decode an AuthStatus." do
+        assertDecodesTo
+          (Proxy :: Proxy AuthStatus)
+          "test/authstatus.json"
       test "Decode a CompilationError." do
         assertDecodesTo
           (Proxy :: Proxy (Array CompilationError))
@@ -69,8 +69,9 @@ jsonHandlingTests = do
         let aValue = Value { getValue: LedgerMap [ Tuple (CurrencySymbol { unCurrencySymbol: "0"}) (LedgerMap [ Tuple (TokenName { unTokenName: "ADA" }) 10 ])
                                                  , Tuple (CurrencySymbol { unCurrencySymbol: "1"}) (LedgerMap [ Tuple (TokenName { unTokenName: "USD" }) 20 ])
                                                  ]}
-        equalGShow (Right aValue)
-          (decodeJson (encodeJson aValue))
+        equal
+          (Right aValue)
+          (runExcept (decode (encode aValue)))
       test "Encode a Value." do
         let aValue = Value { getValue: LedgerMap [ Tuple (CurrencySymbol { unCurrencySymbol: "0" }) (LedgerMap [ Tuple (TokenName { unTokenName: "ADA" }) 100 ])
                                                  , Tuple (CurrencySymbol { unCurrencySymbol: "1" }) (LedgerMap [ Tuple (TokenName { unTokenName: "USD" }) 40 ])
@@ -89,21 +90,27 @@ jsonHandlingTests = do
         testRoundTrip "TokenName" arbitraryTokenName
         testRoundTrip "Value" arbitraryValue
         testRoundTrip "KnownCurrency" arbitraryKnownCurrency
+        testRoundTrip "JsonEither" ((JsonEither <$> arbitraryEither arbitrary arbitrary) :: Gen (JsonEither String Int))
+        testRoundTrip "JsonTuple" ((JsonTuple <$> (Tuple <$> arbitrary <*> arbitrary)) :: Gen (JsonTuple String Int))
+        testRoundTrip "JsonNonEmptyList" ((JsonNonEmptyList <$> arbitrary) :: Gen (JsonNonEmptyList String))
+        testRoundTrip "Cursor" ((Cursor.fromArray <$> arbitrary) :: Gen (Cursor String))
 
 testRoundTrip ::
-  forall eff a.
+  forall a.
   Eq a =>
-  Generic a =>
+  Decode a =>
+  Encode a =>
+  Show a =>
   String ->
   Gen a ->
-  TestSuite (random :: RANDOM | eff)
+  TestSuite
 testRoundTrip title gen = do
   test title do
     quickCheck do
       value <- gen
       let expect = Right value
-      let actual = AjaxUtils.decodeJson (AjaxUtils.encodeJson value)
-      pure $ withHelp (expect == actual) $ "Expected: " <> gShow expect <> "Got: " <> gShow actual
+      let actual = runExcept $ decode $ encode value
+      pure $ withHelp (expect == actual) $ "Expected: " <> show expect <> "Got: " <> show actual
 
 arbitraryCurrencySymbol :: Gen CurrencySymbol
 arbitraryCurrencySymbol = do
@@ -130,12 +137,5 @@ arbitraryKnownCurrency :: Gen KnownCurrency
 arbitraryKnownCurrency = do
   hash <- arbitrary
   friendlyName <- arbitrary
-  knownTokens <- arbitraryNonEmptyList arbitraryTokenName
+  knownTokens <- JsonNonEmptyList <$> arbitraryNonEmptyList arbitraryTokenName
   pure $ KnownCurrency { hash, friendlyName, knownTokens }
-
-arbitraryNonEmptyList :: forall a. Gen a -> Gen (NonEmptyList a)
-arbitraryNonEmptyList genX = do
-  n <- chooseInt 0 5
-  x <- genX
-  xs <- List.fromFoldable <$> vectorOf n genX
-  pure $ NonEmptyList $ x :| xs

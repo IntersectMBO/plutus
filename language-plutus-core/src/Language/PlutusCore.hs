@@ -23,7 +23,6 @@ module Language.PlutusCore
     , TyName (..)
     , Unique (..)
     , UniqueMap (..)
-    , Size
     , Value
     , BuiltinName (..)
     , DynamicBuiltinName (..)
@@ -72,6 +71,7 @@ module Language.PlutusCore
     -- * Errors
     , Error (..)
     , AsError (..)
+    , AsNormalizationError (..)
     , UnknownDynamicBuiltinNameError (..)
     , UniqueError (..)
     -- * Base functors

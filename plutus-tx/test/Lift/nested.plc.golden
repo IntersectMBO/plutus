@@ -1,32 +1,32 @@
 (program 1.0.0
   [
     [
-      {
-        (abs
-          GHC_Tuple_Tuple2_i0
-          (fun (type) (fun (type) (type)))
-          (lam
-            GHC_Tuple_Tuple2_i0
-            (all a_i0 (type) (all b_i0 (type) (fun a_i2 (fun b_i1 [[GHC_Tuple_Tuple2_i4 a_i2] b_i1]))))
+      [
+        {
+          (abs
+            GHC_Maybe_Maybe_i0
+            (fun (type) (type))
             (lam
-              match_GHC_Tuple_Tuple2_i0
-              (all a_i0 (type) (all b_i0 (type) (fun [[GHC_Tuple_Tuple2_i5 a_i2] b_i1] (all out_GHC_Tuple_Tuple2_i0 (type) (fun (fun a_i3 (fun b_i2 out_GHC_Tuple_Tuple2_i1)) out_GHC_Tuple_Tuple2_i1)))))
-              [
-                [
+              GHC_Maybe_Just_i0
+              (all a_i0 (type) (fun a_i1 [GHC_Maybe_Maybe_i3 a_i1]))
+              (lam
+                GHC_Maybe_Nothing_i0
+                (all a_i0 (type) [GHC_Maybe_Maybe_i4 a_i1])
+                (lam
+                  match_GHC_Maybe_Maybe_i0
+                  (all a_i0 (type) (fun [GHC_Maybe_Maybe_i5 a_i1] (all out_GHC_Maybe_Maybe_i0 (type) (fun (fun a_i2 out_GHC_Maybe_Maybe_i1) (fun out_GHC_Maybe_Maybe_i1 out_GHC_Maybe_Maybe_i1)))))
                   [
-                    {
-                      (abs
-                        GHC_Maybe_Maybe_i0
-                        (fun (type) (type))
-                        (lam
-                          GHC_Maybe_Just_i0
-                          (all a_i0 (type) (fun a_i1 [GHC_Maybe_Maybe_i3 a_i1]))
+                    [
+                      {
+                        (abs
+                          GHC_Tuple_Tuple2_i0
+                          (fun (type) (fun (type) (type)))
                           (lam
-                            GHC_Maybe_Nothing_i0
-                            (all a_i0 (type) [GHC_Maybe_Maybe_i4 a_i1])
+                            GHC_Tuple_Tuple2_i0
+                            (all a_i0 (type) (all b_i0 (type) (fun a_i2 (fun b_i1 [[GHC_Tuple_Tuple2_i4 a_i2] b_i1]))))
                             (lam
-                              match_GHC_Maybe_Maybe_i0
-                              (all a_i0 (type) (fun [GHC_Maybe_Maybe_i5 a_i1] (all out_GHC_Maybe_Maybe_i0 (type) (fun (fun a_i2 out_GHC_Maybe_Maybe_i1) (fun out_GHC_Maybe_Maybe_i1 out_GHC_Maybe_Maybe_i1)))))
+                              match_GHC_Tuple_Tuple2_i0
+                              (all a_i0 (type) (all b_i0 (type) (fun [[GHC_Tuple_Tuple2_i5 a_i2] b_i1] (all out_GHC_Tuple_Tuple2_i0 (type) (fun (fun a_i3 (fun b_i2 out_GHC_Tuple_Tuple2_i1)) out_GHC_Tuple_Tuple2_i1)))))
                               [
                                 [
                                   {
@@ -35,46 +35,46 @@
                                       (type)
                                       (lam
                                         Lift_Spec_NestedRecord_i0
-                                        (fun [GHC_Maybe_Maybe_i6 [[GHC_Tuple_Tuple2_i9 [(con integer) (con 8)]] [(con integer) (con 8)]]] Lift_Spec_NestedRecord_i2)
+                                        (fun [GHC_Maybe_Maybe_i9 [[GHC_Tuple_Tuple2_i5 (con integer)] (con integer)]] Lift_Spec_NestedRecord_i2)
                                         (lam
                                           match_Lift_Spec_NestedRecord_i0
-                                          (fun Lift_Spec_NestedRecord_i3 (all out_Lift_Spec_NestedRecord_i0 (type) (fun (fun [GHC_Maybe_Maybe_i8 [[GHC_Tuple_Tuple2_i11 [(con integer) (con 8)]] [(con integer) (con 8)]]] out_Lift_Spec_NestedRecord_i1) out_Lift_Spec_NestedRecord_i1)))
+                                          (fun Lift_Spec_NestedRecord_i3 (all out_Lift_Spec_NestedRecord_i0 (type) (fun (fun [GHC_Maybe_Maybe_i11 [[GHC_Tuple_Tuple2_i7 (con integer)] (con integer)]] out_Lift_Spec_NestedRecord_i1) out_Lift_Spec_NestedRecord_i1)))
                                           [
                                             Lift_Spec_NestedRecord_i2
                                             [
                                               {
-                                                GHC_Maybe_Just_i6
-                                                [[GHC_Tuple_Tuple2_i10 [(con integer) (con 8)]] [(con integer) (con 8)]]
+                                                GHC_Maybe_Just_i9
+                                                [[GHC_Tuple_Tuple2_i6 (con integer)] (con integer)]
                                               }
                                               [
                                                 [
                                                   {
                                                     {
-                                                      GHC_Tuple_Tuple2_i9
-                                                      [(con integer) (con 8)]
+                                                      GHC_Tuple_Tuple2_i5
+                                                      (con integer)
                                                     }
-                                                    [(con integer) (con 8)]
+                                                    (con integer)
                                                   }
-                                                  (con 8 ! 1)
+                                                  (con 1)
                                                 ]
-                                                (con 8 ! 2)
+                                                (con 2)
                                               ]
                                             ]
                                           ]
                                         )
                                       )
                                     )
-                                    (all out_Lift_Spec_NestedRecord_i0 (type) (fun (fun [GHC_Maybe_Maybe_i5 [[GHC_Tuple_Tuple2_i8 [(con integer) (con 8)]] [(con integer) (con 8)]]] out_Lift_Spec_NestedRecord_i1) out_Lift_Spec_NestedRecord_i1))
+                                    (all out_Lift_Spec_NestedRecord_i0 (type) (fun (fun [GHC_Maybe_Maybe_i8 [[GHC_Tuple_Tuple2_i4 (con integer)] (con integer)]] out_Lift_Spec_NestedRecord_i1) out_Lift_Spec_NestedRecord_i1))
                                   }
                                   (lam
                                     arg_0_i0
-                                    [GHC_Maybe_Maybe_i5 [[GHC_Tuple_Tuple2_i8 [(con integer) (con 8)]] [(con integer) (con 8)]]]
+                                    [GHC_Maybe_Maybe_i8 [[GHC_Tuple_Tuple2_i4 (con integer)] (con integer)]]
                                     (abs
                                       out_Lift_Spec_NestedRecord_i0
                                       (type)
                                       (lam
                                         case_Lift_Spec_NestedRecord_i0
-                                        (fun [GHC_Maybe_Maybe_i7 [[GHC_Tuple_Tuple2_i10 [(con integer) (con 8)]] [(con integer) (con 8)]]] out_Lift_Spec_NestedRecord_i2)
+                                        (fun [GHC_Maybe_Maybe_i10 [[GHC_Tuple_Tuple2_i6 (con integer)] (con integer)]] out_Lift_Spec_NestedRecord_i2)
                                         [
                                           case_Lift_Spec_NestedRecord_i1
                                           arg_0_i3
@@ -85,92 +85,99 @@
                                 ]
                                 (lam
                                   x_i0
-                                  (all out_Lift_Spec_NestedRecord_i0 (type) (fun (fun [GHC_Maybe_Maybe_i6 [[GHC_Tuple_Tuple2_i9 [(con integer) (con 8)]] [(con integer) (con 8)]]] out_Lift_Spec_NestedRecord_i1) out_Lift_Spec_NestedRecord_i1))
+                                  (all out_Lift_Spec_NestedRecord_i0 (type) (fun (fun [GHC_Maybe_Maybe_i9 [[GHC_Tuple_Tuple2_i5 (con integer)] (con integer)]] out_Lift_Spec_NestedRecord_i1) out_Lift_Spec_NestedRecord_i1))
                                   x_i1
                                 )
                               ]
                             )
                           )
                         )
-                      )
-                      (lam a_i0 (type) (all out_GHC_Maybe_Maybe_i0 (type) (fun (fun a_i2 out_GHC_Maybe_Maybe_i1) (fun out_GHC_Maybe_Maybe_i1 out_GHC_Maybe_Maybe_i1))))
-                    }
-                    (abs
-                      a_i0
-                      (type)
-                      (lam
-                        arg_0_i0
-                        a_i2
+                        (lam a_i0 (type) (lam b_i0 (type) (all out_GHC_Tuple_Tuple2_i0 (type) (fun (fun a_i3 (fun b_i2 out_GHC_Tuple_Tuple2_i1)) out_GHC_Tuple_Tuple2_i1))))
+                      }
+                      (abs
+                        a_i0
+                        (type)
                         (abs
-                          out_GHC_Maybe_Maybe_i0
+                          b_i0
                           (type)
                           (lam
-                            case_GHC_Maybe_Just_i0
-                            (fun a_i4 out_GHC_Maybe_Maybe_i2)
+                            arg_0_i0
+                            a_i3
                             (lam
-                              case_GHC_Maybe_Nothing_i0
-                              out_GHC_Maybe_Maybe_i3
-                              [ case_GHC_Maybe_Just_i2 arg_0_i4 ]
+                              arg_1_i0
+                              b_i3
+                              (abs
+                                out_GHC_Tuple_Tuple2_i0
+                                (type)
+                                (lam
+                                  case_GHC_Tuple_Tuple2_i0
+                                  (fun a_i6 (fun b_i5 out_GHC_Tuple_Tuple2_i2))
+                                  [
+                                    [ case_GHC_Tuple_Tuple2_i1 arg_0_i4 ]
+                                    arg_1_i3
+                                  ]
+                                )
+                              )
                             )
                           )
                         )
                       )
-                    )
-                  ]
-                  (abs
-                    a_i0
-                    (type)
+                    ]
                     (abs
-                      out_GHC_Maybe_Maybe_i0
+                      a_i0
                       (type)
-                      (lam
-                        case_GHC_Maybe_Just_i0
-                        (fun a_i3 out_GHC_Maybe_Maybe_i2)
+                      (abs
+                        b_i0
+                        (type)
                         (lam
-                          case_GHC_Maybe_Nothing_i0
-                          out_GHC_Maybe_Maybe_i3
-                          case_GHC_Maybe_Nothing_i1
+                          x_i0
+                          [[(lam a_i0 (type) (lam b_i0 (type) (all out_GHC_Tuple_Tuple2_i0 (type) (fun (fun a_i3 (fun b_i2 out_GHC_Tuple_Tuple2_i1)) out_GHC_Tuple_Tuple2_i1)))) a_i3] b_i2]
+                          x_i1
                         )
                       )
                     )
-                  )
-                ]
-                (abs
-                  a_i0
-                  (type)
-                  (lam
-                    x_i0
-                    [(lam a_i0 (type) (all out_GHC_Maybe_Maybe_i0 (type) (fun (fun a_i2 out_GHC_Maybe_Maybe_i1) (fun out_GHC_Maybe_Maybe_i1 out_GHC_Maybe_Maybe_i1)))) a_i2]
-                    x_i1
-                  )
+                  ]
                 )
-              ]
+              )
+            )
+          )
+          (lam a_i0 (type) (all out_GHC_Maybe_Maybe_i0 (type) (fun (fun a_i2 out_GHC_Maybe_Maybe_i1) (fun out_GHC_Maybe_Maybe_i1 out_GHC_Maybe_Maybe_i1))))
+        }
+        (abs
+          a_i0
+          (type)
+          (lam
+            arg_0_i0
+            a_i2
+            (abs
+              out_GHC_Maybe_Maybe_i0
+              (type)
+              (lam
+                case_GHC_Maybe_Just_i0
+                (fun a_i4 out_GHC_Maybe_Maybe_i2)
+                (lam
+                  case_GHC_Maybe_Nothing_i0
+                  out_GHC_Maybe_Maybe_i3
+                  [ case_GHC_Maybe_Just_i2 arg_0_i4 ]
+                )
+              )
             )
           )
         )
-        (lam a_i0 (type) (lam b_i0 (type) (all out_GHC_Tuple_Tuple2_i0 (type) (fun (fun a_i3 (fun b_i2 out_GHC_Tuple_Tuple2_i1)) out_GHC_Tuple_Tuple2_i1))))
-      }
+      ]
       (abs
         a_i0
         (type)
         (abs
-          b_i0
+          out_GHC_Maybe_Maybe_i0
           (type)
           (lam
-            arg_0_i0
-            a_i3
+            case_GHC_Maybe_Just_i0
+            (fun a_i3 out_GHC_Maybe_Maybe_i2)
             (lam
-              arg_1_i0
-              b_i3
-              (abs
-                out_GHC_Tuple_Tuple2_i0
-                (type)
-                (lam
-                  case_GHC_Tuple_Tuple2_i0
-                  (fun a_i6 (fun b_i5 out_GHC_Tuple_Tuple2_i2))
-                  [ [ case_GHC_Tuple_Tuple2_i1 arg_0_i4 ] arg_1_i3 ]
-                )
-              )
+              case_GHC_Maybe_Nothing_i0
+              out_GHC_Maybe_Maybe_i3
+              case_GHC_Maybe_Nothing_i1
             )
           )
         )
@@ -179,14 +186,10 @@
     (abs
       a_i0
       (type)
-      (abs
-        b_i0
-        (type)
-        (lam
-          x_i0
-          [[(lam a_i0 (type) (lam b_i0 (type) (all out_GHC_Tuple_Tuple2_i0 (type) (fun (fun a_i3 (fun b_i2 out_GHC_Tuple_Tuple2_i1)) out_GHC_Tuple_Tuple2_i1)))) a_i3] b_i2]
-          x_i1
-        )
+      (lam
+        x_i0
+        [(lam a_i0 (type) (all out_GHC_Maybe_Maybe_i0 (type) (fun (fun a_i2 out_GHC_Maybe_Maybe_i1) (fun out_GHC_Maybe_Maybe_i1 out_GHC_Maybe_Maybe_i1)))) a_i2]
+        x_i1
       )
     )
   ]

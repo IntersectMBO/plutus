@@ -37,7 +37,7 @@ import qualified Language.Haskell.Interpreter as HI
 import qualified Language.Haskell.TH.Syntax   as TH
 import           Ledger                       (Blockchain, PubKey, Tx, TxId)
 import qualified Ledger.Ada                   as Ada
-import qualified Ledger.Map.TH                as Map
+import qualified Ledger.Map                   as Map
 import           Ledger.Validation            (ValidatorHash, fromSymbol)
 import           Ledger.Value                 (TokenName)
 import qualified Ledger.Value                 as V
@@ -105,6 +105,7 @@ data EvaluationResult = EvaluationResult
   , resultGraph       :: FlowGraph
   , emulatorLog       :: [EmulatorEvent]
   , fundsDistribution :: [SimulatorWallet]
+  , walletKeys        :: [(PubKey,Wallet)]
   }
   deriving (Generic, ToJSON)
 

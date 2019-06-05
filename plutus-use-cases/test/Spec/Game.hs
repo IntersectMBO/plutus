@@ -16,6 +16,7 @@ import qualified Ledger
 import qualified Ledger.Ada                                    as Ada
 import qualified Ledger.Value                                  as Value
 import           Wallet.Emulator
+import qualified Wallet.Emulator.Generators                    as Gen
 import qualified Wallet.Generators                             as Gen
 
 import           Language.PlutusTx.Coordination.Contracts.Game (gameValidator, guess, lock, startGame)
@@ -64,7 +65,7 @@ startingBalance :: Ledger.Value
 startingBalance = Ada.adaValueOf 1000000
 
 lockFunds :: Trace MockWallet ()
-lockFunds = void $ walletAction w1 (lock "abcde" 10) >> updateAll
+lockFunds = void $ walletAction w1 (lock "abcde" (Ada.adaValueOf 10)) >> updateAll
 
 checkTrace :: Trace MockWallet () -> Property
 checkTrace t = property $ do

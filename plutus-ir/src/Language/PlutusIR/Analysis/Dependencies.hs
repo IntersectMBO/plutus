@@ -126,15 +126,10 @@ termDeps = \case
         bodyGraph <- termDeps t
         pure $ G.overlays $ bGraphs ++ [bodyGraph]
     Var _ n -> recordDeps [n ^. PLC.unique . coerced]
-    TyAbs _ _ _ t -> termDeps t
-    LamAbs _ _ ty t -> G.overlay <$> typeDeps ty <*> termDeps t
-    Apply _ t1 t2 -> G.overlay <$> termDeps t1 <*> termDeps t2
-    TyInst _ t ty -> G.overlay <$> termDeps t <*> typeDeps ty
-    Error _ ty -> typeDeps ty
-    IWrap _ pat arg t -> G.overlays <$> sequence [typeDeps pat, typeDeps arg, termDeps t]
-    Unwrap _ t -> termDeps t
-    Constant{} -> pure G.empty
-    Builtin{} -> pure G.empty
+    x -> do
+        tds <- traverse termDeps (x ^.. termSubterms)
+        tyds <- traverse typeDeps (x ^.. termSubtypes)
+        pure $ G.overlays $ tds ++ tyds
 
 -- | Compute the dependency graph of a type. Takes an initial 'Node' indicating what the type itself depends on
 -- (usually 'Root' if it is the real type you are interested in).
@@ -145,6 +140,5 @@ typeDeps
 typeDeps ty =
     -- The dependency graph of a type is very simple since it doesn't have any internal let-bindings. So we just
     -- need to find all the used variables and mark them as dependencies of the current node.
-    let
-        used = Usages.allUsed $ Usages.runTypeUsages ty
+    let used = Usages.allUsed $ Usages.runTypeUsages ty
     in recordDeps (Set.toList used)

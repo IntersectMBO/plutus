@@ -14,7 +14,7 @@ import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (input_, onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
-import Ledger.Value.TH (Value)
+import Ledger.Value (Value)
 import Playground.API (FunctionSchema, SimpleArgumentSchema, SimulatorWallet(..), _Fn, _FunctionSchema)
 import Prelude (show, ($), (<$>), (<<<), (<>))
 import ValueEditor (valueForm)

@@ -16,6 +16,9 @@ sig = "e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb882159
 pubKey = "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
 msg = ""
 
+traceBuiltins :: QuoteT (Either (Error ())) DynamicBuiltinNameTypes
+traceBuiltins = getStringBuiltinTypes ()
+
 main :: IO ()
 main =
     defaultMain [ env largeTypeFiles $ \ ~(f, g, h) ->
@@ -38,18 +41,35 @@ main =
                       , bench "stringLiteral" $ nf parse g
                       ]
 
+                , env sampleScript $ \ f ->
+                  let typeCheckConcrete :: Program TyName Name () -> Either (Error ()) (Normalized (Type TyName ()))
+                      typeCheckConcrete p = runQuoteT $ do
+                            bis <- traceBuiltins
+                            inferTypeOfProgram (defOffChainConfig { _tccDynamicBuiltinNameTypes = bis }) p
+                      mkBench = bench "type-check" . nf typeCheckConcrete . deserialise
+                  in
+
+                  bgroup "type-check" $ mkBench <$> [f]
+
                 , env largeTypeFiles $ \ ~(f, g, h) ->
                   let typeCheckConcrete :: Program TyName Name AlexPosn -> Either (Error AlexPosn) (Normalized (Type TyName ()))
                       typeCheckConcrete = runQuoteT . inferTypeOfProgram defOffChainConfig
-                      mkBench = bench "typeCheck" . nf (typeCheckConcrete =<<) . runQuoteT . parseScoped
+                      mkBench = bench "type-check" . nf (typeCheckConcrete =<<) . runQuoteT . parseScoped
                   in
 
                    bgroup "type-check" $ mkBench <$> [f, g, h]
-
                 , env largeTypeFiles $ \ ~(f, g, h) ->
                    let mkBench = bench "check" . nf (fmap check) . parse
                    in
                    bgroup "normal-form check" $ mkBench <$> [f, g, h]
+
+                , env sampleScript $ \ f ->
+                    let renameConcrete :: Program TyName Name () -> Program TyName Name ()
+                        renameConcrete = runQuote . rename
+                        mkBench = bench "rename (Plutus Tx)" . nf renameConcrete . deserialise
+                  in
+
+                  bgroup "renamer" $ mkBench <$> [f]
 
                 , env largeTypeFiles $ \ ~(f, g, h) ->
                     let renameConcrete :: Program TyName Name AlexPosn -> Program TyName Name AlexPosn
@@ -111,3 +131,4 @@ main =
           evalFile0 = BSL.readFile "test/Evaluation/Golden/verifySignature.plc"
           evalFile1 = BSL.readFile "test/Evaluation/Golden/verifySignatureError.plc"
           evalFiles = (,) <$> evalFile0 <*> evalFile1
+          sampleScript = BSL.readFile "bench/script.plci"

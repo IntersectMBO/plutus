@@ -11,6 +11,10 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns -Wno-name-shadowing #-}
 
+{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+
 {-|
     Marlowe Mockchain client code.
 
@@ -47,38 +51,16 @@ import           Ledger                         ( DataScript(..)
                                                 , scriptTxOut
                                                 )
 import qualified Ledger                         as Ledger
-import           Ledger.Ada.TH                  (Ada)
 import qualified Ledger.Ada                     as Ada
 import           Ledger.Validation
-import qualified Language.PlutusTx.Builtins     as Builtins
 import           Language.Marlowe
 
 {- Mockchain instantiation of Marlowe Interpreter functions. -}
-eqValue :: Value -> Value -> Bool
-eqValue = $$(equalValue)
 
-eqObservation :: Observation -> Observation -> Bool
-eqObservation = $$(equalObservation) eqValue
-
-eqContract :: Contract -> Contract -> Bool
-eqContract = $$(equalContract) eqValue eqObservation
-
-validContract :: State -> Contract -> Slot -> Ada -> Bool
-validContract = $$(validateContract)
-
-evalValue :: Slot -> [OracleValue Int] -> State -> Value -> Int
-evalValue pendingTxBlockHeight inputOracles = $$(evaluateValue) pendingTxBlockHeight inputOracles
-
-interpretObs :: [OracleValue Int] -> Int -> State -> Observation -> Bool
+interpretObs :: [OracleValue Integer] -> Integer -> State -> Observation -> Bool
 interpretObs inputOracles blockNumber state obs = let
-    ev = evalValue (Slot blockNumber) inputOracles
-    in $$(interpretObservation) ev blockNumber state obs
-
-evalContract :: PubKey -> TxHash -> Input -> Slot
-    -> Ada -> Ada
-    -> State -> Contract
-    -> (State, Contract, Bool)
-evalContract = $$(evaluateContract)
+    ev = evaluateValue (Slot blockNumber) inputOracles
+    in interpretObservation ev blockNumber state obs
 
 getScriptOutFromTx :: Tx -> (TxOut, TxOutRef)
 getScriptOutFromTx = head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs
@@ -91,7 +73,7 @@ getScriptOutFromTx = head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOu
 marloweValidator :: PubKey -> ValidatorScript
 marloweValidator creator = ValidatorScript result where
     result = Ledger.applyScript inner (Ledger.lifted creator)
-    inner  = $$(Ledger.compileScript validatorScript)
+    inner  = $$(Ledger.compileScript [|| validatorScript ||])
 
 {-| Create and submit a transaction that creates a Marlowe Contract @contract@
     using @validator@ script, and put @value@ Ada as a deposit.
@@ -101,7 +83,7 @@ createContract :: (
     WalletAPI m)
     => ValidatorScript
     -> Contract
-    -> Int
+    -> Integer
     -> m ()
 createContract validator contract value = do
     _ <- if value <= 0 then throwOtherError "Must contribute a positive value" else pure ()
@@ -124,7 +106,7 @@ marloweTx ::
     -- ^ reference to Marlowe contract UTxO
     -> ValidatorScript
     -- ^ actuall contract script
-    -> (TxIn -> (Int -> TxOut) -> Int -> m ())
+    -> (TxIn -> (Integer -> TxOut) -> Integer -> m ())
     -- ^ do wallet actions given Marlowe contract 'TxIn', contract 'TxOut' generator,
     --   and current contract money
     -> m ()
@@ -140,7 +122,7 @@ marloweTx inputState txOut validator f = let
 
 -- | Create Marlowe Redeemer Script as @(Input, MarloweData)@.
 createRedeemer
-    :: InputCommand -> [OracleValue Int] -> [Choice] -> State -> Contract -> (Input, MarloweData)
+    :: InputCommand -> [OracleValue Integer] -> [Choice] -> State -> Contract -> (Input, MarloweData)
 createRedeemer inputCommand oracles choices expectedState expectedCont =
     let input = Input inputCommand oracles choices
         mdata = MarloweData { marloweContract = expectedCont, marloweState = expectedState }
@@ -156,13 +138,13 @@ commit :: (
     -- ^ reference to Marlowe contract UTxO
     -> ValidatorScript
     -- ^ actuall contract script
-    -> [OracleValue Int]
+    -> [OracleValue Integer]
     -- ^ Oracles values
     -> [Choice]
     -- ^ new 'Choice's
     -> IdentCC
     -- ^ commit identifier
-    -> Int
+    -> Integer
     -- ^ amount
     -> State
     -- ^ expected contract 'State' after commit
@@ -172,7 +154,7 @@ commit :: (
 commit tx validator oracles choices identCC value expectedState expectedCont = do
     when (value <= 0) $ throwOtherError "Must commit a positive value"
     let (TxHash hash) = plcTxHash . Ledger.hashTx $ tx
-    sig <- sign $ Builtins.unSizedByteString hash
+    sig <- sign hash
     slot <- slot
     let redeemer = createRedeemer (Commit identCC sig) oracles choices expectedState expectedCont
     let txOut = getScriptOutFromTx tx
@@ -198,13 +180,13 @@ commit' :: (
     -- ^ reference to Marlowe contract UTxO
     -> ValidatorScript
     -- ^ actuall contract script
-    -> [OracleValue Int]
+    -> [OracleValue Integer]
     -- ^ Oracles values
     -> [Choice]
     -- ^ new 'Choice's
     -> IdentCC
     -- ^ commit identifier
-    -> Int
+    -> Integer
     -- ^ amount
     -> State
     -- ^ contract 'State' before commit
@@ -214,14 +196,14 @@ commit' :: (
 commit' contractCreatorPK tx validator oracles choices identCC value inputState inputContract = do
     bh <- slot
     let txHash@(TxHash hash) = plcTxHash . Ledger.hashTx $ tx
-    sig <- sign $ Builtins.unSizedByteString hash
+    sig <- sign hash
     let inputCommand = Commit identCC sig
     let input = Input inputCommand oracles choices
     let txOut = getScriptOutFromTx tx
     let scriptInValue = Ada.fromValue . txOutValue . fst $ txOut
     let scriptOutValue = scriptInValue + Ada.fromInt value
     let (expectedState, expectedCont, isValid) =
-            evalContract contractCreatorPK txHash
+            evaluateContract contractCreatorPK txHash
             input bh scriptInValue scriptOutValue inputState inputContract
     when (not isValid) $ throwOtherError "Invalid commit"
     commit tx validator oracles choices identCC value expectedState expectedCont
@@ -236,13 +218,13 @@ receivePayment :: (
     -- ^ reference to Marlowe contract UTxO
     -> ValidatorScript
     -- ^ actuall contract script
-    -> [OracleValue Int]
+    -> [OracleValue Integer]
     -- ^ Oracles values
     -> [Choice]
     -- ^ new 'Choice's
     -> IdentPay
     -- ^ payment identifier
-    -> Int
+    -> Integer
     -- ^ amount
     -> State
     -- ^ expected contract 'State' after commit
@@ -252,7 +234,7 @@ receivePayment :: (
 receivePayment tx validator oracles choices identPay value expectedState expectedCont = do
     _ <- if value <= 0 then throwOtherError "Must commit a positive value" else pure ()
     let (TxHash hash) = plcTxHash . Ledger.hashTx $ tx
-    sig <- sign $ Builtins.unSizedByteString hash
+    sig <- sign hash
     slot <- slot
     let txOut = getScriptOutFromTx tx
     let redeemer = createRedeemer (Payment identPay sig) oracles choices expectedState expectedCont
@@ -271,13 +253,13 @@ redeem :: (
     -- ^ reference to Marlowe contract UTxO
     -> ValidatorScript
     -- ^ actuall contract script
-    -> [OracleValue Int]
+    -> [OracleValue Integer]
     -- ^ Oracles values
     -> [Choice]
     -- ^ new 'Choice's
     -> IdentCC
     -- ^ commit identifier
-    -> Int
+    -> Integer
     -- ^ amount to redeem
     -> State
     -- ^ expected contract 'State' after commit
@@ -287,7 +269,7 @@ redeem :: (
 redeem tx validator oracles choices identCC value expectedState expectedCont = do
     _ <- if value <= 0 then throwOtherError "Must commit a positive value" else pure ()
     let (TxHash hash) = plcTxHash . Ledger.hashTx $ tx
-    sig <- sign $ Builtins.unSizedByteString hash
+    sig <- sign hash
     slot <- slot
     let txOut = getScriptOutFromTx tx
     let redeemer = createRedeemer (Redeem identCC sig) oracles choices expectedState expectedCont
@@ -311,7 +293,7 @@ spendDeposit :: (Monad m, WalletAPI m)
     -> m ()
 spendDeposit tx validator state = do
     let (TxHash hash) = plcTxHash . Ledger.hashTx $ tx
-    sig <- sign $ Builtins.unSizedByteString hash
+    sig <- sign hash
     slot <- slot
     let txOut = getScriptOutFromTx tx
     let redeemer = createRedeemer (SpendDeposit sig) [] [] state Null

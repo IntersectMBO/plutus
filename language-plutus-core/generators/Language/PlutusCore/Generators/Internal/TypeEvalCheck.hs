@@ -2,7 +2,6 @@
 
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeFamilies           #-}
@@ -41,7 +40,7 @@ the actual one. Thus "type-eval checking".
 -- | The type of errors that can occur during type-eval checking.
 data TypeEvalCheckError
     = TypeEvalCheckErrorIllFormed (Error ())
-    | TypeEvalCheckErrorIllEvaled (Value TyName Name ()) (Value TyName Name ())
+    | TypeEvalCheckErrorIllEvaled EvaluationResultDef EvaluationResultDef
       -- ^ The former is an expected result of evaluation, the latter -- is an actual one.
 makeClassyPrisms ''TypeEvalCheckError
 
@@ -76,25 +75,32 @@ type TypeEvalCheckM = Either TypeEvalCheckError
 -- See Note [Type-eval checking].
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 typeEvalCheckBy
-    :: (Term TyName Name () -> EvaluationResultDef) -- ^ An evaluator.
-    -> TermOf (TypedBuiltinValue Size a)
+    :: KnownType a
+    => (Term TyName Name () -> EvaluationResultDef)  -- ^ An evaluator.
+    -> TermOf a
     -> TypeEvalCheckM (TermOf TypeEvalCheckResult)
-typeEvalCheckBy eval (TermOf term tbv) = TermOf term <$> do
+typeEvalCheckBy eval (TermOf term x) = TermOf term <$> do
     _ <- VR.checkTerm term
     termTy <- runQuoteT $ inferType defOffChainConfig term
-    let resExpected = reoption $ makeBuiltin tbv
-    fmap (TypeEvalCheckResult termTy) $
-        for ((,) <$> resExpected <*> eval term) $ \(valExpected, valActual) ->
-            if valExpected == valActual
-                then return valActual
-                else throwError $ TypeEvalCheckErrorIllEvaled valExpected valActual
+    let valExpected = case makeKnown x of
+            Error _ _ -> EvaluationFailure
+            t         -> EvaluationSuccess t
+    fmap (TypeEvalCheckResult termTy) $ do
+        let valActual = eval term
+        if valExpected == valActual
+            then return valActual
+            else throwError $ TypeEvalCheckErrorIllEvaled valExpected valActual
 
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 -- Throw an error in case something goes wrong.
 unsafeTypeEvalCheck
-    :: forall a. TermOf (TypedBuiltinValue Size a) -> Maybe (TermOf (Value TyName Name ()))
+    :: forall a. KnownType a => TermOf a -> Maybe (TermOf (Value TyName Name ()))
 unsafeTypeEvalCheck termOfTbv = do
     let errOrRes = typeEvalCheckBy evaluateCk termOfTbv
     case errOrRes of
-        Left err         -> errorPlc err
+        Left err         -> error $ concat
+            [ prettyPlcErrorString err
+            , "\nin\n"
+            , docString . prettyPlcClassicDebug $ _termOfTerm termOfTbv
+            ]
         Right termOfTecr -> traverse (reoption . _termCheckResultValue) termOfTecr

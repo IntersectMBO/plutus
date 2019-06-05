@@ -2,3 +2,6 @@ bower_components/
 node_modules/
 output/
 generated/
+generated-docs/
+.psc-package
+.psc-package2nix

@@ -26,20 +26,28 @@ with the standard library because it makes the generated terms simpler without t
 a simplifier pass. Also, PLC isn't lazy, so combinators work less well.
 -}
 
-delay :: Converting m => PIRTerm -> m PIRTerm
-delay body = PIR.LamAbs () <$> liftQuote (freshName () "thunk") <*> convType GHC.unitTy <*> pure body
+delay :: Compiling m => PIRTerm -> m PIRTerm
+delay body = PIR.LamAbs () <$> liftQuote (freshName () "thunk") <*> compileType GHC.unitTy <*> pure body
 
-delayType :: Converting m => PIRType -> m PIRType
-delayType orig = PIR.TyFun () <$> convType GHC.unitTy <*> pure orig
+delayType :: Compiling m => PIRType -> m PIRType
+delayType orig = PIR.TyFun () <$> compileType GHC.unitTy <*> pure orig
 
-force :: Converting m => PIRTerm -> m PIRTerm
-force thunk = PIR.Apply () thunk <$> convExpr (GHC.Var GHC.unitDataConId)
+delayVar :: Compiling m => PIRVar -> m PIRVar
+delayVar (PIR.VarDecl () n ty) = do
+    ty' <- delayType ty
+    pure $ PIR.VarDecl () n ty'
 
-maybeDelay :: Converting m => Bool -> PIRTerm -> m PIRTerm
+force :: Compiling m => PIRTerm -> m PIRTerm
+force thunk = PIR.Apply () thunk <$> compileExpr (GHC.Var GHC.unitDataConId)
+
+maybeDelay :: Compiling m => Bool -> PIRTerm -> m PIRTerm
 maybeDelay yes t = if yes then delay t else pure t
 
-maybeDelayType :: Converting m => Bool -> PIRType -> m PIRType
+maybeDelayVar :: Compiling m => Bool -> PIRVar -> m PIRVar
+maybeDelayVar yes v = if yes then delayVar v else pure v
+
+maybeDelayType :: Compiling m => Bool -> PIRType -> m PIRType
 maybeDelayType yes t = if yes then delayType t else pure t
 
-maybeForce :: Converting m => Bool -> PIRTerm -> m PIRTerm
+maybeForce :: Compiling m => Bool -> PIRTerm -> m PIRTerm
 maybeForce yes t = if yes then force t else pure t

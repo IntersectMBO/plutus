@@ -21,6 +21,7 @@ import qualified Ledger.Value                                    as Value
 import           Prelude                                         hiding (init)
 import           Wallet.API                                      (PubKey (..))
 import           Wallet.Emulator
+import qualified Wallet.Emulator.Generators                      as Gen
 import qualified Wallet.Generators                               as Gen
 
 import           Language.PlutusTx.Coordination.Contracts.Future (Future (..), FutureData (..))
@@ -187,7 +188,7 @@ marginRange = (forwardPrice - delta, forwardPrice + delta) where
     delta = forwardPrice `div` 20
 
 -- | How many units of the underlying asset are covered by the contract.
-units :: Int
+units :: Integer
 units = 187
 
 oracle :: PubKey

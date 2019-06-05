@@ -3,33 +3,33 @@
     [
       {
         (abs
-          Plugin_Spec_MyMonoRecord_i0
+          Plugin_Data_Spec_MyMonoRecord_i0
           (type)
           (lam
-            Plugin_Spec_MyMonoRecord_i0
-            (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] Plugin_Spec_MyMonoRecord_i2))
+            Plugin_Data_Spec_MyMonoRecord_i0
+            (fun (con integer) (fun (con integer) Plugin_Data_Spec_MyMonoRecord_i2))
             (lam
-              match_Plugin_Spec_MyMonoRecord_i0
-              (fun Plugin_Spec_MyMonoRecord_i3 (all out_Plugin_Spec_MyMonoRecord_i0 (type) (fun (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] out_Plugin_Spec_MyMonoRecord_i1)) out_Plugin_Spec_MyMonoRecord_i1)))
-              [ [ Plugin_Spec_MyMonoRecord_i2 (con 8 ! 1) ] (con 8 ! 2) ]
+              match_Plugin_Data_Spec_MyMonoRecord_i0
+              (fun Plugin_Data_Spec_MyMonoRecord_i3 (all out_Plugin_Data_Spec_MyMonoRecord_i0 (type) (fun (fun (con integer) (fun (con integer) out_Plugin_Data_Spec_MyMonoRecord_i1)) out_Plugin_Data_Spec_MyMonoRecord_i1)))
+              [ [ Plugin_Data_Spec_MyMonoRecord_i2 (con 1) ] (con 2) ]
             )
           )
         )
-        (all out_Plugin_Spec_MyMonoRecord_i0 (type) (fun (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] out_Plugin_Spec_MyMonoRecord_i1)) out_Plugin_Spec_MyMonoRecord_i1))
+        (all out_Plugin_Data_Spec_MyMonoRecord_i0 (type) (fun (fun (con integer) (fun (con integer) out_Plugin_Data_Spec_MyMonoRecord_i1)) out_Plugin_Data_Spec_MyMonoRecord_i1))
       }
       (lam
         arg_0_i0
-        [(con integer) (con 8)]
+        (con integer)
         (lam
           arg_1_i0
-          [(con integer) (con 8)]
+          (con integer)
           (abs
-            out_Plugin_Spec_MyMonoRecord_i0
+            out_Plugin_Data_Spec_MyMonoRecord_i0
             (type)
             (lam
-              case_Plugin_Spec_MyMonoRecord_i0
-              (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] out_Plugin_Spec_MyMonoRecord_i2))
-              [ [ case_Plugin_Spec_MyMonoRecord_i1 arg_0_i4 ] arg_1_i3 ]
+              case_Plugin_Data_Spec_MyMonoRecord_i0
+              (fun (con integer) (fun (con integer) out_Plugin_Data_Spec_MyMonoRecord_i2))
+              [ [ case_Plugin_Data_Spec_MyMonoRecord_i1 arg_0_i4 ] arg_1_i3 ]
             )
           )
         )
@@ -37,7 +37,7 @@
     ]
     (lam
       x_i0
-      (all out_Plugin_Spec_MyMonoRecord_i0 (type) (fun (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] out_Plugin_Spec_MyMonoRecord_i1)) out_Plugin_Spec_MyMonoRecord_i1))
+      (all out_Plugin_Data_Spec_MyMonoRecord_i0 (type) (fun (fun (con integer) (fun (con integer) out_Plugin_Data_Spec_MyMonoRecord_i1)) out_Plugin_Data_Spec_MyMonoRecord_i1))
       x_i1
     )
   ]

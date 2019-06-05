@@ -12,8 +12,8 @@ open import Builtin
 
 -- these things should perhaps be rexported...
 open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢⋆_ ` con boolean size⋆
-open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con boolean
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
 
 open import Relation.Binary.PropositionalEquality hiding ([_]; subst)
 open import Agda.Builtin.Int
@@ -29,6 +29,7 @@ open import Data.Product renaming (_,_ to _,,_)
 open import Data.Nat hiding (_^_; _≤_; _<_; _>_; _≥_)
 open import Function hiding (_∋_)
 import Data.Bool as Bool
+open import Data.String
 \end{code}
 
 ## Fixity declarations
@@ -46,18 +47,18 @@ infixl 5 _,_
 We need to mutually define contexts and their
 erasure to type contexts.
 \begin{code}
-data Ctx : Set
-∥_∥ : Ctx → Ctx⋆
+--data Ctx : Set
+--∥_∥ : Ctx → Ctx⋆
 \end{code}
 
 A context is either empty, or extends a context by
 a type variable of a given kind, or extends a context
 by a variable of a given type.
 \begin{code}
-data Ctx where
-  ∅ : Ctx
-  _,⋆_ : Ctx → Kind → Ctx
-  _,_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Ctx
+data Ctx : Ctx⋆ → Set where
+  ∅ : Ctx ∅
+  _,⋆_ : ∀{Γ⋆} → Ctx Γ⋆ → (J : Kind) → Ctx (Γ⋆ ,⋆ J)
+  _,_ : ∀{Γ⋆ J}(Γ : Ctx Γ⋆) → Γ⋆ ⊢⋆ J → Ctx Γ⋆
 \end{code}
 Let `Γ` range over contexts.  In the last rule,
 the type is indexed by the erasure of the previous
@@ -65,9 +66,9 @@ context to a type context and a kind.
 
 The erasure of a context is a type context.
 \begin{code}
-∥ ∅ ∥       =  ∅
-∥ Γ ,⋆ J ∥  =  ∥ Γ ∥ ,⋆ J
-∥ Γ , A ∥   =  ∥ Γ ∥
+--∥ ∅ ∥       =  ∅
+--∥ Γ ,⋆ J ∥  =  ∥ Γ ∥ ,⋆ J
+--∥ Γ , A ∥   =  ∥ Γ ∥
 \end{code}
 
 ## Variables
@@ -75,17 +76,17 @@ The erasure of a context is a type context.
 A variable is indexed by its context and type. Notice there is only
 one Z as a type variable cannot be a term.
 \begin{code}
-data _∋_ : ∀{J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
-  Z : ∀ {Γ J} {A : ∥ Γ ∥ ⊢⋆ J}
+data _∋_ : ∀{Γ⋆ J}(Γ : Ctx Γ⋆) → Γ⋆ ⊢⋆ J → Set where
+  Z : ∀ {Γ⋆ Γ J}{A : Γ⋆ ⊢⋆ J}
       ----------
     → Γ , A ∋ A
 
-  S : ∀ {Γ J K} {A : ∥ Γ ∥ ⊢⋆ J} {B : ∥ Γ ∥ ⊢⋆ K}
+  S : ∀ {Γ⋆ Γ J K} {A : Γ⋆ ⊢⋆ J} {B : Γ⋆ ⊢⋆ K}
     → Γ ∋ A
       ----------
     → Γ , B ∋ A
 
-  T : ∀ {Γ J K} {A : ∥ Γ ∥ ⊢⋆ J}
+  T : ∀ {Γ⋆ Γ J K} {A : Γ⋆ ⊢⋆ J}
     → Γ ∋ A
       -------------------
     → Γ ,⋆ K ∋ weaken A
@@ -99,70 +100,71 @@ an abstraction, an application, a type abstraction, or a type
 application.
 
 \begin{code}
-Tel : ∀ Γ Δ → Sub Δ ∥ Γ ∥ → List (Δ ⊢⋆ *) → Set
+Tel : ∀ {Γ⋆} Γ Δ → Sub Δ Γ⋆ → List (Δ ⊢⋆ *) → Set
 
-data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
+data _⊢_ {Γ⋆} (Γ : Ctx Γ⋆) : ∀{J} → Γ⋆ ⊢⋆ J → Set where
 
-  ` : ∀ {Γ J} {A : ∥ Γ ∥ ⊢⋆ J}
+  ` : ∀{J}{A : Γ⋆ ⊢⋆ J}
     → Γ ∋ A
       ------
     → Γ ⊢ A
 
-  ƛ : ∀ {Γ A B}
+  ƛ : ∀ {A B}
+    → String
     → Γ , A ⊢ B
       -----------
     → Γ ⊢ A ⇒ B
 
-  _·_ : ∀ {Γ A B}
+  _·_ : ∀ {A B}
     → Γ ⊢ A ⇒ B
     → Γ ⊢ A
       -----------
     → Γ ⊢ B
 
-  Λ : ∀ {Γ K} {B : ∥ Γ ∥ ,⋆ K ⊢⋆ *}
+  Λ : ∀ {K}{B : Γ⋆ ,⋆ K ⊢⋆ *}
+    → (x : String)
     → Γ ,⋆ K ⊢ B
       ----------
-    → Γ ⊢ Π B
+    → Γ ⊢ Π x B
 
-  _·⋆_ : ∀ {Γ K B}
-    → Γ ⊢ Π  B
-    → (A : ∥ Γ ∥ ⊢⋆ K)
+  _·⋆_ : ∀ {K B x}
+    → Γ ⊢ Π x B
+    → (A : Γ⋆ ⊢⋆ K)
       ---------------
     → Γ ⊢ B [ A ]
 
-  wrap1 : ∀{Γ K}
-   → (pat : ∥ Γ ∥ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *)
-   → (arg : ∥ Γ ∥ ⊢⋆ K)
+  wrap1 : ∀{K}
+   → (pat : Γ⋆ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *)
+   → (arg : Γ⋆ ⊢⋆ K)
    → (term : Γ ⊢ pat · (μ1 · pat) · arg)
    → Γ ⊢ μ1 · pat · arg
 
-  unwrap1 : ∀{Γ K}
-    → {pat : ∥ Γ ∥ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *}
-    → {arg : ∥ Γ ∥ ⊢⋆ K}
+  unwrap1 : ∀{K}
+    → {pat : Γ⋆ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {arg : Γ⋆ ⊢⋆ K}
     → (term : Γ ⊢ μ1 · pat · arg)
     → Γ ⊢ pat · (μ1 · pat) · arg
     
-  conv : ∀{Γ J}
-    → {A B : ∥ Γ ∥ ⊢⋆ J}
+  conv : {A B : Γ⋆ ⊢⋆ *}
     → A ≡β B
     → Γ ⊢ A
       -----
     → Γ ⊢ B
 
-  con : ∀{Γ s tcn}
-    → TermCon (con tcn s)
+  con : ∀{tcn}
+    → TermCon {Γ⋆} (con tcn)
       -------------------
-    → Γ ⊢ con tcn s
+    → Γ ⊢ con tcn
 
-  builtin : ∀{Γ}
-    → (bn : Builtin)
+  builtin : 
+      (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
-      (σ : Sub Δ ∥ Γ ∥) -- substitutes for new vars introduced by the Sig
+      (σ : Sub Δ Γ⋆) -- substitutes for new vars introduced by the Sig
     → Tel Γ Δ σ As     -- a telescope of terms M_i typed in subst σ
     -----------------------------
     → Γ ⊢ subst σ C
 
-  error : ∀{Γ} → (A : ∥ Γ ∥ ⊢⋆ *) → Γ ⊢ A
+  error : (A : Γ⋆ ⊢⋆ *) → Γ ⊢ A
 
 Tel Γ Δ σ [] = ⊤
 Tel Γ Δ σ (A ∷ As) = Γ ⊢ subst σ A × Tel Γ Δ σ As

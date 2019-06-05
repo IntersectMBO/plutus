@@ -37,8 +37,7 @@ data MachineException err = MachineException
     , _machineExceptionCause :: Term TyName Name ()  -- ^ A 'Term' that caused the error.
     } deriving (Eq)
 
-instance ( PrettyBy config (Constant ())
-         , PrettyBy config (Value TyName Name ())
+instance ( PrettyBy config (Term TyName Name ())
          , Pretty err
          ) => PrettyBy config (MachineError err) where
     prettyBy _      NonPrimitiveInstantiationMachineError =

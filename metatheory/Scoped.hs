@@ -3,7 +3,6 @@ module Scoped where
 import           Language.PlutusCore
 
 data ScKind = ScKiStar
-            | ScKiSize
             | ScKiFun ScKind ScKind
             deriving Show
 
@@ -13,5 +12,4 @@ data ScType = ScTyVar Integer
            | ScTyLambda ScKind ScType
            | ScTyApp ScType ScType
            | ScTyCon TypeBuiltin
-           | ScTySize Integer
            deriving Show

@@ -36,7 +36,6 @@ a kind called `#` which is used for sized integers and bytestrings.
 \begin{code}
 data Kind : Set where
   *   : Kind               -- type
-  #   : Kind               -- size
   _⇒_ : Kind → Kind → Kind -- function kind
 \end{code}
 
@@ -91,6 +90,8 @@ constant (base type). Note that recursive types range over an
 arbitrary kind `k` which goes beyond standard iso-recursive types.
 
 \begin{code}
+open import Data.String
+
 data _⊢⋆_ : Ctx⋆ → Kind → Set where
 
   ` : ∀ {Φ J}
@@ -99,6 +100,7 @@ data _⊢⋆_ : Ctx⋆ → Kind → Set where
     → Φ ⊢⋆ J
 
   Π : ∀ {Φ K}
+    → String
     → Φ ,⋆ K ⊢⋆ *
       -----------
     → Φ ⊢⋆ *
@@ -110,6 +112,7 @@ data _⊢⋆_ : Ctx⋆ → Kind → Set where
     → Φ ⊢⋆ *
 
   ƛ :  ∀ {Φ K J}
+    → String
     → Φ ,⋆ K ⊢⋆ J 
       -----------
     → Φ ⊢⋆ K ⇒ J
@@ -124,14 +127,8 @@ data _⊢⋆_ : Ctx⋆ → Kind → Set where
       --------------------------------
     → φ ⊢⋆ ((K ⇒ *) ⇒ K ⇒ *) ⇒ K ⇒ *
 
-  size⋆ : ∀{φ}
-    → Nat
-      ------
-    → φ ⊢⋆ #
-
   con : ∀{φ}
     → TyCon
-    → φ ⊢⋆ #
       ------
     → φ ⊢⋆ *
 
@@ -143,8 +140,8 @@ Let `A`, `B`, `C` range over types.
 TODO: these should be in the stdlib
 \begin{code}
 unit : ∀{Γ} → Γ ⊢⋆ *
-unit = Π (` Z ⇒ ` Z)
+unit = Π "α" (` Z ⇒ ` Z)
 
 boolean : ∀{Γ} → Γ ⊢⋆ *
-boolean = Π (` Z ⇒ ` Z ⇒ ` Z)
+boolean = Π "α" (` Z ⇒ ` Z ⇒ ` Z)
 \end{code}

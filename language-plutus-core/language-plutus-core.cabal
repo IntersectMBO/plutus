@@ -75,6 +75,7 @@ library
         Language.PlutusCore.Lexer
         Language.PlutusCore.Parser
         PlutusPrelude
+        Control.Monad.Trans.Inner
         Common
         Data.ByteString.Lazy.Hash
         PlcTestUtils
@@ -90,7 +91,7 @@ library
         Language.PlutusCore.Constant.Dynamic.Emit
         Language.PlutusCore.Constant.Dynamic.Instances
         Language.PlutusCore.Constant.Dynamic.OnChain
-        Language.PlutusCore.Constant.Dynamic.Pretty
+        Language.PlutusCore.Constant.Dynamic.OffChain
         Language.PlutusCore.Constant.Function
         Language.PlutusCore.Constant.Make
         Language.PlutusCore.Constant.Name
@@ -152,7 +153,7 @@ library
         safe-exceptions -any,
         dependent-sum -any,
         dependent-map -any,
-        hedgehog -any,
+        hedgehog <1.0,
         filepath -any,
         tasty -any,
         tasty-golden -any,
@@ -193,8 +194,7 @@ test-suite language-plutus-core-test
         Evaluation.Constant.Apply
         Evaluation.Constant.Success
         Evaluation.Constant.SuccessFailure
-        Evaluation.Constant.Failure
-        Evaluation.Constant.Resize
+        Normalization.Check
         Normalization.Type
         Pretty.Readable
         Check.Spec
@@ -246,7 +246,8 @@ benchmark language-plutus-core-bench
         language-plutus-core -any,
         criterion -any,
         bytestring -any,
-        serialise -any
+        serialise -any,
+        containers
 
     if flag(eventlog)
         ghc-options: -eventlog

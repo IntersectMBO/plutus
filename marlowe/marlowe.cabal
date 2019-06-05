@@ -22,6 +22,12 @@ source-repository head
   type: git
   location: https://github.com/input-output-hk/plutus
 
+flag defer-plugin-errors
+    description:
+        Defer errors from the plugin, useful for things like Haddock that can't handle it.
+    default: False
+    manual: True
+
 library
   hs-source-dirs: src
   build-depends:
@@ -32,7 +38,7 @@ library
     plutus-tx -any,
     text,
     wl-pprint -any,
-    wallet-api -any
+    plutus-wallet-api -any
   default-language: Haskell2010
   default-extensions: ExplicitForAll ScopedTypeVariables
                       DeriveGeneric StandaloneDeriving DeriveLift
@@ -51,6 +57,9 @@ library
     -Wall -Wnoncanonical-monad-instances
     -Wincomplete-uni-patterns -Wincomplete-record-updates
     -Wredundant-constraints -Widentities
+
+  if flag(defer-plugin-errors)
+    ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
 
 test-suite marlowe-test
     default-language: Haskell2010
@@ -71,7 +80,8 @@ test-suite marlowe-test
         tasty-hunit -any,
         tasty-hedgehog >=0.2.0.0,
         text -any,
-        wallet-api -any,
+        plutus-wallet-api -any,
+        plutus-emulator -any,
         marlowe,
         plutus-tx -any,
         template-haskell -any

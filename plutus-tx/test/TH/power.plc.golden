@@ -1,31 +1,48 @@
 (program
   (let
-    (nonrec
-    )
+    (nonrec)
     (termbind
       (vardecl
-        multiplyInteger
-        (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] [(con integer) (con 8)]))
+        multiplyInteger (fun (con integer) (fun (con integer) (con integer)))
       )
-      { (builtin multiplyInteger) (con 8) }
+      (builtin multiplyInteger)
     )
-    (lam
-      ds
-      [(con integer) (con 8)]
+    (let
+      (nonrec)
+      (datatypebind
+        (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+      )
       (let
         (nonrec)
         (termbind
-          (vardecl y [(con integer) (con 8)])
+          (vardecl
+            multiply (fun (con integer) (fun (con integer) (con integer)))
+          )
+          multiplyInteger
+        )
+        (lam
+          ds
+          (con integer)
           (let
             (nonrec)
             (termbind
-              (vardecl y [(con integer) (con 8)])
-              [ [ multiplyInteger ds ] (con 8 ! 1) ]
+              (vardecl y (fun Unit (con integer)))
+              (lam
+                thunk
+                Unit
+                (let
+                  (nonrec)
+                  (termbind
+                    (vardecl y (fun Unit (con integer)))
+                    (lam thunk Unit [ [ multiply ds ] (con 1) ])
+                  )
+                  [ [ multiply [ y Unit ] ] [ y Unit ] ]
+                )
+              )
             )
-            [ [ multiplyInteger y ] y ]
+            [ [ multiply [ y Unit ] ] [ y Unit ] ]
           )
         )
-        [ [ multiplyInteger y ] y ]
       )
     )
   )

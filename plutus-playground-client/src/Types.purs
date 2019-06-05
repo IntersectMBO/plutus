@@ -3,51 +3,50 @@ module Types where
 import Prelude
 
 import Ace.Halogen.Component (AceMessage, AceQuery)
-import AjaxUtils as AjaxUtils
 import Auth (AuthStatus)
 import Control.Comonad (class Comonad, extract)
 import Control.Extend (class Extend, extend)
 import Cursor (Cursor)
-import DOM.HTML.Event.Types (DragEvent)
-import Data.Argonaut.Core (Json)
-import Data.Argonaut.Core as Json
 import Data.Array (mapWithIndex)
 import Data.Array as Array
-import Data.Either (Either)
-import Data.Either.Nested (Either3)
-import Data.Functor.Coproduct.Nested (Coproduct3)
-import Data.Generic (class Generic, gEq, gShow)
-import Data.Int as Int
+import Data.Either.Nested (Either2)
+import Data.Functor.Coproduct.Nested (Coproduct2)
+import Data.Generic.Rep (class Generic)
 import Data.Lens (Lens, Lens', Prism', _2, over, prism', to, traversed, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap)
 import Data.NonEmpty ((:|))
-import Data.RawJson (RawJson(..))
-import Data.StrMap as M
+import Data.RawJson (JsonEither, JsonTuple(..), RawJson(..))
 import Data.String.Extra (toHex) as String
 import Data.Symbol (SProxy(..))
 import Data.Traversable (sequence, traverse)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
+import Foreign (Foreign)
+import Foreign.Class (class Decode, class Encode, encode)
+import Foreign.Generic (aesonSumEncoding, defaultOptions, encodeJSON, genericDecode, genericEncode)
+import Foreign.Object as FO
 import Gist (Gist)
-import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
-import Halogen.ECharts (EChartsMessage, EChartsQuery)
+import Halogen.Chartist (ChartistMessage, ChartistQuery)
+import Halogen.Component.ChildPath (ChildPath, cp1, cp2)
 import Language.Haskell.Interpreter (SourceCode, InterpreterError, InterpreterResult)
+import Ledger.Crypto (PubKey, _PubKey)
 import Ledger.Extra (LedgerMap)
 import Ledger.Tx (Tx)
 import Ledger.TxId (TxIdOf)
-import Ledger.Value.TH (CurrencySymbol, TokenName, Value, _CurrencySymbol, _TokenName, _Value)
+import Ledger.Value (CurrencySymbol, TokenName, Value, _CurrencySymbol, _TokenName, _Value)
 import Matryoshka (class Corecursive, class Recursive, Algebra, cata)
 import Network.RemoteData (RemoteData)
-import Playground.API (CompilationResult, Evaluation(Evaluation), EvaluationResult, FunctionSchema, KnownCurrency, SimpleArgumentSchema(UnknownSchema, ValueSchema, SimpleObjectSchema, SimpleTupleSchema, SimpleArraySchema, SimpleHexSchema, SimpleStringSchema, SimpleIntSchema), SimulatorWallet, _FunctionSchema, _SimulatorWallet)
+import Playground.API (CompilationResult, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency, SimpleArgumentSchema(..), SimulatorWallet, _FunctionSchema, _SimulatorWallet)
 import Playground.API as API
-import Servant.PureScript.Affjax (AjaxError)
+import Servant.PureScript.Ajax (AjaxError)
 import Test.QuickCheck.Arbitrary (class Arbitrary)
 import Test.QuickCheck.Gen as Gen
 import Validation (class Validation, ValidationError(..), WithPath, addPath, noPath, validate)
 import Wallet.Emulator.Types (Wallet, _Wallet)
+import Web.HTML.Event.DragEvent (DragEvent)
 
 _simulatorWallet :: forall r a. Lens' { simulatorWallet :: a | r } a
 _simulatorWallet = prop (SProxy :: SProxy "simulatorWallet")
@@ -60,6 +59,9 @@ _simulatorWalletBalance = _SimulatorWallet <<< prop (SProxy :: SProxy "simulator
 
 _walletId :: Lens' Wallet Int
 _walletId = _Wallet <<< prop (SProxy :: SProxy "getWallet")
+
+_pubKey :: Lens' PubKey String
+_pubKey = _PubKey <<< prop (SProxy :: SProxy "getPubKey")
 
 _value :: Lens' Value (LedgerMap CurrencySymbol (LedgerMap TokenName Int))
 _value = _Value <<< prop (SProxy :: SProxy "getValue")
@@ -78,13 +80,18 @@ data Action
       }
   | Wait { blocks :: Int }
 
-instance eqAction :: Eq Action where
-  eq = gEq
+derive instance genericAction :: Generic Action _
+derive instance eqAction :: Eq Action
 
-derive instance genericAction :: Generic Action
+instance encodeAction :: Encode Action where
+  encode value = genericEncode (defaultOptions { unwrapSingleConstructors = true
+                                               , sumEncoding = aesonSumEncoding
+                                               }) value
 
-instance showAction :: Show Action where
-  show = gShow
+instance decodeAction :: Decode Action where
+  decode value = genericDecode (defaultOptions { unwrapSingleConstructors = true
+                                               , sumEncoding = aesonSumEncoding
+                                               }) value
 
 _Action ::
   Prism'
@@ -142,9 +149,8 @@ toExpression (Action action) = do
     function = view (_functionSchema <<< to unwrap <<< _functionName) action
     argumentSchema = view (_functionSchema <<< to unwrap <<< _argumentSchema) action
 
-    jsonArguments = do
-      jsonValues <- traverse simpleArgumentToJson argumentSchema
-      pure $ RawJson <<< Json.stringify <$> jsonValues
+    jsonArguments =
+      traverse (map (RawJson <<< encodeJSON) <<< simpleArgumentToJson) argumentSchema
 
 toEvaluation :: SourceCode -> Simulation -> Maybe Evaluation
 toEvaluation sourceCode (Simulation {actions, wallets}) = do
@@ -161,9 +167,9 @@ data Query a
   -- SubEvents.
   = HandleEditorMessage AceMessage a
   | HandleDragEvent DragEvent a
+  | ActionDragAndDrop Int DragAndDropEventType DragEvent a
   | HandleDropEvent DragEvent a
-  | HandleMockchainChartMessage EChartsMessage a
-  | HandleBalancesChartMessage EChartsMessage a
+  | HandleBalancesChartMessage ChartistMessage a
   -- Gist support.
   | CheckAuthStatus a
   | PublishGist a
@@ -200,6 +206,22 @@ data ActionEvent
   | RemoveAction Int
   | SetWaitTime Int Int
 
+data DragAndDropEventType
+  = DragStart
+  | DragEnd
+  | DragEnter
+  | DragOver
+  | DragLeave
+  | Drop
+
+instance showDragAndDropEventType :: Show DragAndDropEventType where
+  show DragStart = "DragStart"
+  show DragEnd = "DragEnd"
+  show DragEnter = "DragEnter"
+  show DragOver = "DragOver"
+  show DragLeave = "DragLeave"
+  show Drop = "Drop"
+
 data FormEvent a
   = SetIntField (Maybe Int) a
   | SetStringField String a
@@ -231,16 +253,12 @@ instance comonadFormEvent :: Comonad FormEvent where
 
 ------------------------------------------------------------
 
-type ChildQuery = Coproduct3 AceQuery EChartsQuery EChartsQuery
-type ChildSlot = Either3 EditorSlot MockchainChartSlot BalancesChartSlot
+type ChildQuery = Coproduct2 AceQuery ChartistQuery
+type ChildSlot = Either2 EditorSlot BalancesChartSlot
 
 data EditorSlot = EditorSlot
 derive instance eqComponentEditorSlot :: Eq EditorSlot
 derive instance ordComponentEditorSlot :: Ord EditorSlot
-
-data MockchainChartSlot = MockchainChartSlot
-derive instance eqComponentMockchainChartSlot :: Eq MockchainChartSlot
-derive instance ordComponentMockchainChartSlot :: Ord MockchainChartSlot
 
 data BalancesChartSlot = BalancesChartSlot
 derive instance eqComponentBalancesChartSlot :: Eq BalancesChartSlot
@@ -249,15 +267,12 @@ derive instance ordComponentBalancesChartSlot :: Ord BalancesChartSlot
 cpEditor :: ChildPath AceQuery ChildQuery EditorSlot ChildSlot
 cpEditor = cp1
 
-cpMockchainChart :: ChildPath EChartsQuery ChildQuery MockchainChartSlot ChildSlot
-cpMockchainChart = cp2
-
-cpBalancesChart :: ChildPath EChartsQuery ChildQuery BalancesChartSlot ChildSlot
-cpBalancesChart = cp3
+cpBalancesChart :: ChildPath ChartistQuery ChildQuery BalancesChartSlot ChildSlot
+cpBalancesChart = cp2
 
 -----------------------------------------------------------
 
-type Blockchain = Array (Array (Tuple (TxIdOf String) Tx))
+type Blockchain = Array (Array (JsonTuple (TxIdOf String) Tx))
 type Signatures = Array (FunctionSchema SimpleArgumentSchema)
 newtype Simulation = Simulation
   { signatures :: Signatures
@@ -267,14 +282,25 @@ newtype Simulation = Simulation
   }
 
 derive instance newtypeSimulation :: Newtype Simulation _
-derive instance genericSimulation :: Generic Simulation
+derive instance genericSimulation :: Generic Simulation _
+
+instance encodeSimulation :: Encode Simulation where
+  encode value = genericEncode (defaultOptions { unwrapSingleConstructors = true
+                                               , sumEncoding = aesonSumEncoding
+                                               }) value
+
+instance decodeSimulation :: Decode Simulation where
+  decode value = genericDecode (defaultOptions { unwrapSingleConstructors = true
+                                               , sumEncoding = aesonSumEncoding
+                                               }) value
 
 type WebData = RemoteData AjaxError
 
 newtype State = State
   { currentView :: View
-  , compilationResult :: WebData (Either InterpreterError (InterpreterResult CompilationResult))
+  , compilationResult :: WebData (JsonEither InterpreterError (InterpreterResult CompilationResult))
   , simulations :: Cursor Simulation
+  , actionDrag :: Maybe Int
   , evaluationResult :: WebData EvaluationResult
   , authStatus :: WebData AuthStatus
   , createGistResult :: WebData Gist
@@ -289,6 +315,9 @@ _currentView = _Newtype <<< prop (SProxy :: SProxy "currentView")
 _simulations :: Lens' State (Cursor Simulation)
 _simulations = _Newtype <<< prop (SProxy :: SProxy "simulations")
 
+_actionDrag :: Lens' State (Maybe Int)
+_actionDrag = _Newtype <<< prop (SProxy :: SProxy "actionDrag")
+
 _signatures :: Lens' Simulation Signatures
 _signatures = _Newtype <<< prop (SProxy :: SProxy "signatures")
 
@@ -301,7 +330,7 @@ _wallets = _Newtype <<< prop (SProxy :: SProxy "wallets")
 _evaluationResult :: Lens' State (WebData EvaluationResult)
 _evaluationResult = _Newtype <<< prop (SProxy :: SProxy "evaluationResult")
 
-_compilationResult :: Lens' State (WebData (Either InterpreterError (InterpreterResult CompilationResult)))
+_compilationResult :: Lens' State (WebData (JsonEither InterpreterError (InterpreterResult CompilationResult)))
 _compilationResult = _Newtype <<< prop (SProxy :: SProxy "compilationResult")
 
 _authStatus :: Lens' State (WebData AuthStatus)
@@ -325,7 +354,7 @@ data View
   | Transactions
 
 derive instance eqView :: Eq View
-derive instance genericView :: Generic View
+derive instance genericView :: Generic View _
 
 instance arbitraryView :: Arbitrary View where
   arbitrary = Gen.elements (Editor :| [ Simulations, Transactions ])
@@ -342,15 +371,24 @@ data SimpleArgument
   | SimpleString (Maybe String)
   | SimpleHex (Maybe String)
   | SimpleArray SimpleArgumentSchema (Array SimpleArgument)
-  | SimpleTuple (Tuple SimpleArgument SimpleArgument)
-  | SimpleObject SimpleArgumentSchema (Array (Tuple String SimpleArgument))
+  | SimpleTuple (JsonTuple SimpleArgument SimpleArgument)
+  | SimpleObject SimpleArgumentSchema (Array (JsonTuple String SimpleArgument))
   | ValueArgument SimpleArgumentSchema Value
   | Unknowable { context :: String, description :: String }
 
-derive instance genericSimpleArgument :: Generic SimpleArgument
+derive instance genericSimpleArgument :: Generic SimpleArgument _
+derive instance eqSimpleArgument :: Eq SimpleArgument
 
-instance showSimpleArgument :: Show SimpleArgument where
-  show = gShow
+instance encodeSimpleArgument :: Encode SimpleArgument where
+  encode value = genericEncode (defaultOptions { unwrapSingleConstructors = true
+                                               , sumEncoding = aesonSumEncoding
+                                               }) value
+
+instance decodeSimpleArgument :: Decode SimpleArgument where
+  decode value = genericDecode (defaultOptions { unwrapSingleConstructors = true
+                                               , sumEncoding = aesonSumEncoding
+                                               }) value
+
 
 toArgument :: Value -> SimpleArgumentSchema -> SimpleArgument
 toArgument initialValue = rec
@@ -360,8 +398,9 @@ toArgument initialValue = rec
     rec SimpleStringSchema = SimpleString Nothing
     rec SimpleHexSchema = SimpleHex Nothing
     rec (SimpleArraySchema field) = SimpleArray field []
-    rec (SimpleTupleSchema (fieldA /\ fieldB)) = SimpleTuple (rec fieldA /\ rec fieldB)
-    rec schema@(SimpleObjectSchema fields) = SimpleObject schema (over (traversed <<< _2) rec fields)
+    rec (SimpleTupleSchema (JsonTuple (fieldA /\ fieldB))) = SimpleTuple (JsonTuple (rec fieldA /\ rec fieldB))
+    rec schema@(SimpleObjectSchema fields) =
+        SimpleObject schema $ map JsonTuple $ over (traversed <<< _2) rec (map unwrap fields)
     rec schema@(ValueSchema fields) = ValueArgument schema initialValue
     rec (UnknownSchema context description) = Unknowable { context, description }
 
@@ -378,9 +417,9 @@ data SimpleArgumentF a
   = SimpleIntF (Maybe Int)
   | SimpleStringF (Maybe String)
   | SimpleHexF (Maybe String)
-  | SimpleTupleF (Tuple a a)
+  | SimpleTupleF (JsonTuple a a)
   | SimpleArrayF SimpleArgumentSchema (Array a)
-  | SimpleObjectF SimpleArgumentSchema (Array (Tuple String a))
+  | SimpleObjectF SimpleArgumentSchema (Array (JsonTuple String a))
   | ValueArgumentF SimpleArgumentSchema Value
   | UnknowableF { context :: String, description :: String }
 
@@ -388,7 +427,7 @@ instance functorSimpleArgumentF :: Functor SimpleArgumentF where
   map f (SimpleIntF x) = SimpleIntF x
   map f (SimpleStringF x) = SimpleStringF x
   map f (SimpleHexF x) = SimpleHexF x
-  map f (SimpleTupleF (Tuple x y)) = SimpleTupleF (Tuple (f x) (f y))
+  map f (SimpleTupleF (JsonTuple (Tuple x y))) = SimpleTupleF (JsonTuple (Tuple (f x) (f y)))
   map f (SimpleArrayF schema xs) = SimpleArrayF schema (map f xs)
   map f (SimpleObjectF schema xs) = SimpleObjectF schema (map (map f) xs)
   map f (ValueArgumentF schema x) = ValueArgumentF schema x
@@ -431,7 +470,7 @@ instance validationSimpleArgument :: Validation SimpleArgument where
       algebra (SimpleHexF (Just _)) = []
       algebra (SimpleHexF Nothing) = [ noPath Required ]
 
-      algebra (SimpleTupleF (Tuple xs ys)) =
+      algebra (SimpleTupleF (JsonTuple (Tuple xs ys))) =
         Array.concat [ addPath "_1" <$> xs
                      , addPath "_2" <$> ys
                      ]
@@ -440,27 +479,34 @@ instance validationSimpleArgument :: Validation SimpleArgument where
         Array.concat $ mapWithIndex (\i values-> addPath (show i) <$> values) xs
 
       algebra (SimpleObjectF schema xs) =
-        Array.concat $ map (\(Tuple name values) -> addPath name <$> values) xs
+        Array.concat $ map (\(JsonTuple (Tuple name values)) -> addPath name <$> values) xs
 
       algebra (ValueArgumentF schema x) = []
 
       algebra (UnknowableF _) = [ noPath Unsupported ]
 
-simpleArgumentToJson :: SimpleArgument -> Maybe Json
-simpleArgumentToJson = cata algebra
+simpleArgumentToJson :: SimpleArgument -> Maybe Foreign
+simpleArgumentToJson arg = cata algebra arg
   where
-    algebra :: Algebra SimpleArgumentF (Maybe Json)
-    algebra (SimpleIntF (Just n)) = Just $ Json.fromNumber $ Int.toNumber n
+    algebra :: Algebra SimpleArgumentF (Maybe Foreign)
+    algebra (SimpleIntF (Just n)) = Just $ encode n
     algebra (SimpleIntF Nothing) = Nothing
-    algebra (SimpleStringF (Just str)) = Just $ Json.fromString str
+    algebra (SimpleStringF (Just str)) = Just $ encode str
     algebra (SimpleStringF Nothing) = Nothing
-    algebra (SimpleHexF (Just str)) = Just $ Json.fromString $ String.toHex str
+    algebra (SimpleHexF (Just str)) = Just $ encode $ String.toHex str
     algebra (SimpleHexF Nothing) = Nothing
-    algebra (SimpleTupleF (Just fieldA /\ Just fieldB)) = Just $ Json.fromArray [ fieldA, fieldB ]
+    algebra (SimpleTupleF (JsonTuple (Just fieldA /\ Just fieldB))) = Just $ encode [ fieldA, fieldB ]
     algebra (SimpleTupleF _) = Nothing
-    algebra (SimpleArrayF _ fields) = Json.fromArray <$> sequence fields
-    algebra (SimpleObjectF _ fields) = (Json.fromObject <<< M.fromFoldable) <$> sequence (map sequence fields)
-    algebra (ValueArgumentF _ x) = Just $ AjaxUtils.encodeJson x
+    algebra (SimpleArrayF _ fields) = Just $ encode fields
+    algebra (SimpleObjectF _ fields) = encodeFields fields
+      where
+        encodeFields :: Array (JsonTuple String (Maybe Foreign)) -> Maybe Foreign
+        encodeFields xs = map (encode <<< FO.fromFoldable) $ prepareObject xs
+        prepareObject :: Array (JsonTuple String (Maybe Foreign)) -> Maybe (Array (Tuple String Foreign))
+        prepareObject = traverse processTuples
+        processTuples :: JsonTuple String (Maybe Foreign) -> Maybe (Tuple String Foreign)
+        processTuples = unwrap >>> sequence
+    algebra (ValueArgumentF _ x) = Just $ encode x
     algebra (UnknowableF _) = Nothing
 
 --- Language.Haskell.Interpreter ---

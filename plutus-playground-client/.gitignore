@@ -4,3 +4,6 @@
 /generated/
 /yarn-error.log
 /.psci_modules/
+/generated-docs/
+.psc-package/
+.psc-package2nix/

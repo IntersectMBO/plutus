@@ -33,6 +33,7 @@ import Declarative
 import Declarative.RenamingSubstitution
 import Declarative.Reduction
 import Declarative.Evaluation
+import Declarative.Erasure
 
 --import Declarative.Examples
 import Declarative.StdLib.Unit
@@ -53,6 +54,7 @@ import Algorithmic.Evaluation
 import Algorithmic.Main
 import Algorithmic.Soundness
 import Algorithmic.Completeness
+import Algorithmic.Erasure
 
 -- Terms, that carry witnesses of their type's reduction to normal form
 
@@ -70,5 +72,7 @@ import Untyped.Reduction
 import Scoped
 import Scoped.RenamingSubstitution
 import Scoped.Reduction
-
+import Scoped.Extrication
+import Scoped.Extrication.RenamingSubstitution
+import Scoped.Extrication.Reduction
 \end{code}

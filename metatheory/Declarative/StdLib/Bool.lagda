@@ -9,13 +9,13 @@ open import Declarative
 
 # Term Abbreviations
 \begin{code}
-true : ∀{Γ} → Γ ⊢ boolean
-true = Λ (ƛ (ƛ (` (S Z))))
+true : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ boolean
+true = Λ "α" (ƛ "t" (ƛ "f" (` (S Z))))
 
-false : ∀{Γ} → Γ ⊢ boolean
-false = Λ (ƛ (ƛ (` Z)))
+false : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ boolean
+false = Λ "α" (ƛ "t" (ƛ "f" (` Z)))
 
-if : ∀{Γ} → Γ ⊢ Π (boolean ⇒ ` Z ⇒ ` Z ⇒  ` Z)
-if = Λ (ƛ (ƛ (ƛ (` (S (S Z)) ·⋆ ` Z · ` (S Z) · ` Z))))
+if : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ Π "α" (boolean ⇒ ` Z ⇒ ` Z ⇒  ` Z)
+if = Λ "α" (ƛ "x" (ƛ "y" (ƛ "z" (` (S (S Z)) ·⋆ ` Z · ` (S Z) · ` Z))))
 \end{code}
 

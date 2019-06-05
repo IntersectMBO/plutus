@@ -1,0 +1,34 @@
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl Bool (type))
+        
+        Bool_match
+        (vardecl True Bool) (vardecl False Bool)
+      )
+    )
+    (let
+      (nonrec)
+      (termbind
+        (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
+        (lam
+          arg
+          (con integer)
+          (lam
+            arg
+            (con integer)
+            [
+              (lam
+                b (all a (type) (fun a (fun a a))) [ [ { b Bool } True ] False ]
+              )
+              [ [ (builtin equalsInteger) arg ] arg ]
+            ]
+          )
+        )
+      )
+      (lam ds (con integer) (lam ds (con integer) [ [ equalsInteger ds ] ds ]))
+    )
+  )
+)

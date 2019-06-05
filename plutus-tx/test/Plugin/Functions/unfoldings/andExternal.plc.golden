@@ -1,0 +1,21 @@
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl Bool (type))
+        
+        Bool_match
+        (vardecl True Bool) (vardecl False Bool)
+      )
+    )
+    (let
+      (nonrec)
+      (termbind
+        (vardecl andExternal (fun Bool (fun Bool Bool)))
+        (lam a Bool (lam b Bool [ [ { [ Bool_match a ] Bool } b ] False ]))
+      )
+      [ [ andExternal True ] False ]
+    )
+  )
+)

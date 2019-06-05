@@ -16,6 +16,10 @@ variable "plutus_tld" {
   default = "plutus.iohkdev.io"
 }
 
+variable "plutus_full_domain" {
+  default = ""
+}
+
 variable "plutus_public_zone" {
   default = "ZBC2AQBA8QH4G"
 }
@@ -24,12 +28,20 @@ variable "meadow_tld" {
   default = "marlowe.iohkdev.io"
 }
 
+variable "meadow_full_domain" {
+  default = ""
+}
+
 variable "meadow_public_zone" {
   default = "Z1VIYCTCY8RMLZ"
 }
 
 variable "monitoring_tld" {
   default = "goguen.monitoring.iohkdev.io"
+}
+
+variable "monitoring_full_domain" {
+  default = ""
 }
 
 variable "monitoring_public_zone" {

@@ -1,56 +1,64 @@
--- | A game with two players. Player 1 thinks of a secret word
---   and uses its hash, and the game validator script, to lock
---   some funds (the prize) in a pay-to-script transaction output.
---   Player 2 guesses the word by attempting to spend the transaction
---   output. If the guess is correct, the validator script releases the funds.
---   If it isn't, the funds stay locked.
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+module Game where
+-- TRIM TO HERE
+-- A game with two players. Player 1 thinks of a secret word
+-- and uses its hash, and the game validator script, to lock
+-- some funds (the prize) in a pay-to-script transaction output.
+-- Player 2 guesses the word by attempting to spend the transaction
+-- output. If the guess is correct, the validator script releases the funds.
+-- If it isn't, the funds stay locked.
 import qualified Language.PlutusTx            as PlutusTx
-import qualified Language.PlutusTx.Prelude    as P
+import           Language.PlutusTx.Prelude
 import           Ledger
-import qualified Ledger.Value                   as Value
-import           Ledger.Value                   (Value)
+import qualified Ledger.Value                 as Value
+import           Ledger.Value                 (Value)
 import           Ledger.Validation
 import           Wallet
 import           Playground.Contract
 
 import qualified Data.ByteString.Lazy.Char8   as C
 
-data HashedString = HashedString (P.SizedByteString 32)
+data HashedString = HashedString ByteString
 
 PlutusTx.makeLift ''HashedString
 
--- create a data script for the guessing game by hashing the string
--- and lifting the hash to its on-chain representation
-mkDataScript :: String -> DataScript
-mkDataScript word =
-    let hashedWord = plcSHA2_256 (P.SizedByteString (C.pack word))
-    in  DataScript (Ledger.lifted (HashedString hashedWord))
-
-data ClearString = ClearString (P.SizedByteString 32)
+data ClearString = ClearString ByteString
 
 PlutusTx.makeLift ''ClearString
 
--- create a redeemer script for the guessing game by lifting the
--- string to its on-chain representation
-mkRedeemerScript :: String -> RedeemerScript
-mkRedeemerScript word =
-    let clearWord = P.SizedByteString (C.pack word)
-    in RedeemerScript (Ledger.lifted (ClearString clearWord))
+correctGuess :: HashedString -> ClearString -> Bool
+correctGuess (HashedString actual) (ClearString guess') =
+    equalsByteString actual (sha2_256 guess')
+
+validateGuess :: HashedString -> ClearString -> PendingTx -> Bool
+validateGuess dataScript redeemerScript _ = correctGuess dataScript redeemerScript
 
 -- | The validator script of the game.
 gameValidator :: ValidatorScript
-gameValidator = ValidatorScript ($$(Ledger.compileScript [||
-    -- The code between the '[||' and  '||]' quotes is on-chain code.
-    \(HashedString actual) (ClearString guess) (p :: PendingTx) ->
+gameValidator =
+    ValidatorScript ($$(Ledger.compileScript [|| validateGuess ||]))
 
-    -- inside the on-chain code we can write $$(P.xxx) to use functions
-    -- from the PlutusTx Prelude (imported qualified at the top of the
-    -- module)
-    if $$(P.equalsByteString) actual ($$(P.sha2_256) guess)
-    then ()
-    else ($$(P.error) ($$(P.traceH) "WRONG!" ()))
+-- create a data script for the guessing game by hashing the string
+-- and lifting the hash to its on-chain representation
+gameDataScript :: String -> DataScript
+gameDataScript =
+    DataScript . Ledger.lifted . HashedString . plcSHA2_256 . C.pack
 
-    ||]))
+-- create a redeemer script for the guessing game by lifting the
+-- string to its on-chain representation
+gameRedeemerScript :: String -> RedeemerScript
+gameRedeemerScript =
+    RedeemerScript . Ledger.lifted . ClearString . C.pack
 
 -- | The address of the game (the hash of its validator script)
 gameAddress :: Address
@@ -58,19 +66,20 @@ gameAddress = Ledger.scriptAddress gameValidator
 
 -- | The "lock" contract endpoint. See note [Contract endpoints]
 lock :: MonadWallet m => String -> Value -> m ()
-lock word value =
+lock word vl =
     -- 'payToScript_' is a function of the wallet API. It takes a script
-    -- address, a currency value and a data script, and submits a transaction 
+    -- address, a currency value and a data script, and submits a transaction
     -- that pays the value to the address, using the data script.
     --
     -- The underscore at the end of the name indicates that 'payToScript_'
     -- discards its result. If you want to hold on to the transaction you can
     -- use 'payToScript'.
-    payToScript_ defaultSlotRange gameAddress value (mkDataScript word)
+    payToScript_ defaultSlotRange gameAddress vl (gameDataScript word)
 
 -- | The "guess" contract endpoint. See note [Contract endpoints]
-guess :: MonadWallet m => String -> m ()
-guess word =
+guess :: (WalletAPI m, WalletDiagnostics m) => String -> m ()
+guess word = do
+    let redeemer = gameRedeemerScript word
     -- 'collectFromScript' is a function of the wallet API. It consumes the
     -- unspent transaction outputs at a script address and pays them to a
     -- public key address owned by this wallet. It takes the validator script
@@ -79,7 +88,7 @@ guess word =
     -- Note that before we can use 'collectFromScript', we need to tell the
     -- wallet to start watching the address for transaction outputs (because
     -- the wallet does not keep track of the UTXO set of the entire chain).
-    collectFromScript defaultSlotRange gameValidator (mkRedeemerScript word)
+    collectFromScript defaultSlotRange gameValidator redeemer
 
 -- | The "startGame" contract endpoint, telling the wallet to start watching
 --   the address of the game script. See note [Contract endpoints]

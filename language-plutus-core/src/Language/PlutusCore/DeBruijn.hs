@@ -185,7 +185,6 @@ deBruijnTyM = \case
     TyIFix x pat arg -> TyIFix x <$> deBruijnTyM pat <*> deBruijnTyM arg
     -- boring non-recursive cases
     TyBuiltin x bn -> pure $ TyBuiltin x bn
-    TyInt x nat -> pure $ TyInt x nat
 
 deBruijnTermM
     :: (MonadReader Levels m, MonadError FreeVariableError m)
@@ -243,7 +242,6 @@ unDeBruijnTyM = \case
     TyIFix x pat arg -> TyIFix x <$> unDeBruijnTyM pat <*> unDeBruijnTyM arg
     -- boring non-recursive cases
     TyBuiltin x bn -> pure $ TyBuiltin x bn
-    TyInt x nat -> pure $ TyInt x nat
 
 unDeBruijnTermM
     :: (MonadReader Levels m, MonadQuote m, MonadError FreeVariableError m)

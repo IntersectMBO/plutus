@@ -32,6 +32,8 @@ common lang
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
+                 -- See Plutus Tx readme
+                 -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
 
 library
     import: lang
@@ -47,9 +49,6 @@ library
         Language.PlutusTx.Lift.Class,
         Language.PlutusTx.Builtins,
         Language.PlutusTx.Plugin
-    other-modules:
-        Language.PlutusTx.Prelude.Stage0
-        Language.PlutusTx.Prelude.Stage1
     build-tool-depends: doctest:doctest
     build-depends:
         base >=4.9 && <5,
@@ -89,6 +88,7 @@ library plutus-tx-compiler
         base >=4.9 && <5,
         bytestring -any,
         containers -any,
+        extra -any,
         ghc >=8.6 && <8.7,
         language-plutus-core -any,
         lens -any,
@@ -97,7 +97,7 @@ library plutus-tx-compiler
         prettyprinter -any,
         serialise -any,
         template-haskell -any,
-        th-abstraction -any,
+        th-abstraction <0.3.0.0,
         text -any,
         transformers -any
 
@@ -107,8 +107,15 @@ test-suite plutus-tx-tests
     main-is: Spec.hs
     other-modules:
         Lift.Spec
-        Plugin.ReadValue
         Plugin.Spec
+        Plugin.Basic.Spec
+        Plugin.Data.Spec
+        Plugin.Errors.Spec
+        Plugin.Functions.Spec
+        Plugin.Laziness.Spec
+        Plugin.Primitives.Spec
+        Plugin.ReadValue.Spec
+        Plugin.Lib
         TH.Spec
         TH.TestTH
     default-language: Haskell2010
@@ -124,3 +131,5 @@ test-suite plutus-tx-tests
         template-haskell -any,
         tasty -any,
         tasty-hunit -any
+    -- this makes the plugin give better errors
+    ghc-options: -g

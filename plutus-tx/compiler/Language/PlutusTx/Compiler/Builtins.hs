@@ -42,8 +42,6 @@ import qualified Language.PlutusCore.StdLib.Data.Unit        as Unit
 
 import qualified GhcPlugins                                  as GHC
 
-import           GHC.Natural
-
 import qualified Language.Haskell.TH.Syntax                  as TH
 
 import           Control.Monad
@@ -84,38 +82,38 @@ whereas when we compile them from Haskell they will end up as abstract types, an
 won't line up at the call site.
 
 That is, we generate something like this:
-(/\ (Int :: *) .
-  (\ addInteger : Int -> Int -> Int .
+(/\ (Integer :: *) .
+  (\ addInteger : Integer -> Integer -> Integer .
       <use addInteger>
   )
-  (\ x,y : Int . <builtin addInteger> x y) -- Uh oh, type error, can't show that Int = <builtin int>!
+  (\ x,y : Integer . <builtin addInteger> x y) -- Uh oh, type error, can't show that Integer = <builtin int>!
 )
 {<builtin int>}
 
 We handle this in two different ways:
 - For the types like Bool and Unit which are really algebraic types, and which have constructors etc.
 that we care about elsewhere, we insert adaptor code into the definition of the builtin (see note [Mapping builtins]).
-- For types like Int and Bytestring which don't have visible constructors, we can treat them as completely opaque,
+- For types like Integer and Bytestring which don't have visible constructors, we can treat them as completely opaque,
 and we use a transparent type alias. (Actually we fake the alias by actually just substituting the definition in
 everywhere until we have aliases in PIR. Bear this in mind for the examples below.)
 
-Here's how that looks for a primitive that takes Ints and returns a Boolean, assuming we have bound Int and Bool
+Here's how that looks for a primitive that takes Ints and returns a Boolean, assuming we have bound Integer and Bool
 already as an alias and an abstract type respectively:
-(\ equalsInteger : Int -> Int -> Bool .
+(\ equalsInteger : Integer -> Integer -> Bool .
   <use equalsInteger>
 )
-(\ x, y : Int . -- No need to do anything to the arguments, since we're using a transparent alias for Int
+(\ x, y : Integer . -- No need to do anything to the arguments, since we're using a transparent alias for Int
   (<builtin equalsInteger> x y) {Bool} True False -- Immediately match the builtin bool into an abstract Bool
 )
 
 We *could* do something like the interleaved definitions that we do for datatypes in PIR. Morally this is perhaps the
-right thing to do: we should think of Int and its builtins as a "module" that goes together and where all the definitions
+right thing to do: we should think of Integer and its builtins as a "module" that goes together and where all the definitions
 have access to the internals of the other definitions. A datatype definition is then a special case of a module definition.
 However, for the moment this would be quite a bit more design work and so we leave it for future work.
 
 For an example of how the "abstract module" approach would look:
-(/\ (Int :: *) .
-  (\ addInteger : Int -> Int -> Int . -- Type signature is fine inside the abstraction
+(/\ (Integer :: *) .
+  (\ addInteger : Integer -> Integer -> Integer . -- Type signature is fine inside the abstraction
       <use addInteger>
   )
 )
@@ -126,8 +124,8 @@ For an example of how the "abstract module" approach would look:
 -- | The 'TH.Name's for which 'BuiltinNameInfo' needs to be provided.
 builtinNames :: [TH.Name]
 builtinNames = [
-      ''Builtins.SizedByteString
-    , ''Int
+      ''Builtins.ByteString
+    , ''Integer
     , ''Bool
     , ''()
 
@@ -165,33 +163,33 @@ builtinNames = [
 
 -- | Get the 'GHC.TyThing' for a given 'TH.Name' which was stored in the builtin name info,
 -- failing if it is missing.
-getThing :: Converting m => TH.Name -> m GHC.TyThing
+getThing :: Compiling m => TH.Name -> m GHC.TyThing
 getThing name = do
-    ConvertingContext{ccBuiltinNameInfo=names} <- ask
+    CompileContext{ccBuiltinNameInfo=names} <- ask
     case Map.lookup name names of
         Nothing    -> throwSd CompilationError $ "Missing builtin name:" GHC.<+> (GHC.text $ show name)
         Just thing -> pure thing
 
-defineBuiltinTerm :: Converting m => TH.Name -> PIRTerm -> [GHC.Name] -> m ()
+defineBuiltinTerm :: Compiling m => TH.Name -> PIRTerm -> [GHC.Name] -> m ()
 defineBuiltinTerm name term deps = do
     ghcId <- GHC.tyThingId <$> getThing name
-    var <- convVarFresh ghcId
-    PIR.defineTerm (GHC.getName ghcId) (PIR.Def var term) (Set.fromList deps)
+    var <- compileVarFresh ghcId
+    PIR.defineTerm (LexName $ GHC.getName ghcId) (PIR.Def var term) (Set.fromList $ LexName <$> deps)
 
 -- | Add definitions for all the builtin types to the environment.
-defineBuiltinType :: Converting m => TH.Name -> PIRType -> [GHC.Name] -> m ()
+defineBuiltinType :: Compiling m => TH.Name -> PIRType -> [GHC.Name] -> m ()
 defineBuiltinType name ty deps = do
     tc <- GHC.tyThingTyCon <$> getThing name
-    var <- convTcTyVarFresh tc
-    PIR.defineType (GHC.getName tc) (PIR.Def var ty) (Set.fromList deps)
+    var <- compileTcTyVarFresh tc
+    PIR.defineType (LexName $ GHC.getName tc) (PIR.Def var ty) (Set.fromList $ LexName <$> deps)
     -- these are all aliases for now
-    PIR.recordAlias @GHC.Name @() (GHC.getName tc)
+    PIR.recordAlias @LexName @() (LexName $ GHC.getName tc)
 
 -- | Add definitions for all the builtin terms to the environment.
-defineBuiltinTerms :: Converting m => m ()
+defineBuiltinTerms :: Compiling m => m ()
 defineBuiltinTerms = do
-    bs <- GHC.getName <$> getThing ''Builtins.SizedByteString
-    int <- GHC.getName <$> getThing ''Int
+    bs <- GHC.getName <$> getThing ''Builtins.ByteString
+    int <- GHC.getName <$> getThing ''Integer
     bool <- GHC.getName <$> getThing ''Bool
     unit <- GHC.getName <$> getThing ''()
     str <- GHC.getName <$> getThing ''Builtins.String
@@ -202,10 +200,10 @@ defineBuiltinTerms = do
         let term = mkBuiltin PLC.Concatenate
         defineBuiltinTerm 'Builtins.concatenate term [bs]
     do
-        let term = instSize haskellIntSize $ mkBuiltin PLC.TakeByteString
+        let term = mkBuiltin PLC.TakeByteString
         defineBuiltinTerm 'Builtins.takeByteString term [int, bs]
     do
-        let term = instSize haskellIntSize $ mkBuiltin PLC.DropByteString
+        let term = mkBuiltin PLC.DropByteString
         defineBuiltinTerm 'Builtins.dropByteString term [int]
     do
         let term = mkBuiltin PLC.SHA2
@@ -218,24 +216,24 @@ defineBuiltinTerms = do
         defineBuiltinTerm 'Builtins.equalsByteString term [bs, bool]
 
     do
-        let term = PIR.Constant () $ PLC.BuiltinBS () 32 BSL.empty
+        let term = PIR.Constant () $ PLC.BuiltinBS () BSL.empty
         defineBuiltinTerm 'Builtins.emptyByteString term [bs]
 
     -- Integer builtins
     do
-        let term = mkIntFun PLC.AddInteger
+        let term = mkBuiltin PLC.AddInteger
         defineBuiltinTerm 'Builtins.addInteger term [int]
     do
-        let term = mkIntFun PLC.SubtractInteger
+        let term = mkBuiltin PLC.SubtractInteger
         defineBuiltinTerm 'Builtins.subtractInteger term [int]
     do
-        let term = mkIntFun PLC.MultiplyInteger
+        let term = mkBuiltin PLC.MultiplyInteger
         defineBuiltinTerm 'Builtins.multiplyInteger term [int]
     do
-        let term = mkIntFun PLC.DivideInteger
+        let term = mkBuiltin PLC.DivideInteger
         defineBuiltinTerm 'Builtins.divideInteger term [int]
     do
-        let term = mkIntFun PLC.RemainderInteger
+        let term = mkBuiltin PLC.RemainderInteger
         defineBuiltinTerm 'Builtins.remainderInteger term [int]
     do
         term <- mkIntRel PLC.GreaterThanInteger
@@ -255,7 +253,7 @@ defineBuiltinTerms = do
 
     -- Blockchain builtins
     do
-        term <- wrapSizedBsrel [32, 32, 64] $ instSize haskellBS64Size $ instSize haskellBS32Size $ instSize haskellBS32Size $ mkBuiltin PLC.VerifySignature
+        term <- wrapBsRel 3 $ mkBuiltin PLC.VerifySignature
         defineBuiltinTerm 'Builtins.verifySignature term [bs, bool]
 
     -- Error
@@ -278,50 +276,50 @@ defineBuiltinTerms = do
         term <- wrapUnitFun strTy $ mkDynBuiltin PLC.dynamicTraceName
         defineBuiltinTerm 'Builtins.trace term [str, unit]
 
-defineBuiltinTypes :: Converting m => m ()
+defineBuiltinTypes :: Compiling m => m ()
 defineBuiltinTypes = do
     do
         let ty = PLC.TyBuiltin () PLC.TyByteString
-        defineBuiltinType ''Builtins.SizedByteString ty []
+        defineBuiltinType ''Builtins.ByteString ty []
     do
-        let ty = appSize haskellIntSize (PLC.TyBuiltin () PLC.TyInteger)
-        defineBuiltinType ''Int ty []
+        let ty = PLC.TyBuiltin () PLC.TyInteger
+        defineBuiltinType ''Integer ty []
 
     -- Strings and chars
     do
-        let ty = PLC.toTypeEncoding $ Proxy @String
+        let ty = PLC.toTypeAst $ Proxy @String
         defineBuiltinType ''Builtins.String ty []
     do
-        let ty = PLC.toTypeEncoding $ Proxy @Char
+        let ty = PLC.toTypeAst $ Proxy @Char
         defineBuiltinType ''Char ty []
 
 -- | Lookup a builtin term by its TH name. These are assumed to be present, so fails if it cannot find it.
-lookupBuiltinTerm :: Converting m => TH.Name -> m PIRTerm
+lookupBuiltinTerm :: Compiling m => TH.Name -> m PIRTerm
 lookupBuiltinTerm name = do
     ghcName <- GHC.getName <$> getThing name
-    maybeTerm <- PIR.lookupTerm () ghcName
+    maybeTerm <- PIR.lookupTerm () (LexName ghcName)
     case maybeTerm of
         Just t  -> pure t
         Nothing -> throwSd CompilationError $ "Missing builtin definition:" GHC.<+> (GHC.text $ show name)
 
 -- | Lookup a builtin type by its TH name. These are assumed to be present, so fails if it is cannot find it.
-lookupBuiltinType :: Converting m => TH.Name -> m PIRType
+lookupBuiltinType :: Compiling m => TH.Name -> m PIRType
 lookupBuiltinType name = do
     ghcName <- GHC.getName <$> getThing name
-    maybeType <- PIR.lookupType () ghcName
+    maybeType <- PIR.lookupType () (LexName ghcName)
     case maybeType of
         Just t  -> pure t
         Nothing -> throwSd CompilationError $ "Missing builtin definition:" GHC.<+> (GHC.text $ show name)
 
 -- | The function 'error :: forall a . () -> a'.
-errorFunc :: Converting m => m PIRTerm
+errorFunc :: Compiling m => m PIRTerm
 errorFunc = do
     n <- safeFreshTyName () "e"
     -- see Note [Value restriction]
     mangleTyAbs $ PIR.TyAbs () n (PIR.Type ()) (PIR.Error () (PIR.TyVar () n))
 
 -- | The type 'forall a. () -> a'.
-errorTy :: Converting m => m PIRType
+errorTy :: Compiling m => m PIRType
 errorTy = do
     tyname <- safeFreshTyName () "a"
     mangleTyForall $ PIR.TyForall () tyname (PIR.Type ()) (PIR.TyVar () tyname)
@@ -330,25 +328,25 @@ errorTy = do
 -- it, since that's what our definitions are hung off. Also the type wouldn't
 -- be a simple conversion of the Haskell type, because it takes a Scott boolean.
 -- | Convert a Scott-encoded Boolean into a Haskell Boolean.
-scottBoolToHaskellBool :: Converting m => m PIRTerm
+scottBoolToHaskellBool :: Compiling m => m PIRTerm
 scottBoolToHaskellBool = do
     let scottBoolTy = Bool.bool
-    haskellBoolTy <- convType GHC.boolTy
+    haskellBoolTy <- compileType GHC.boolTy
 
     arg <- liftQuote $ freshName () "b"
     let match = PIR.Var () arg
     let instantiatedMatch = PIR.TyInst () match haskellBoolTy
 
-    haskellTrue <- convDataConRef GHC.trueDataCon
-    haskellFalse <- convDataConRef GHC.falseDataCon
+    haskellTrue <- compileDataConRef GHC.trueDataCon
+    haskellFalse <- compileDataConRef GHC.falseDataCon
     pure $
         PIR.LamAbs () arg scottBoolTy $
         PIR.mkIterApp () instantiatedMatch [ haskellTrue, haskellFalse ]
 
 -- | Wrap an integer relation of arity @n@ that produces a Scott boolean.
-wrapIntRel :: Converting m => Int -> PIRTerm -> m PIRTerm
+wrapIntRel :: Compiling m => Int -> PIRTerm -> m PIRTerm
 wrapIntRel arity term = do
-    intTy <- lookupBuiltinType ''Int
+    intTy <- lookupBuiltinType ''Integer
     args <- replicateM arity $ do
         name <- safeFreshName () "arg"
         pure $ PIR.VarDecl () name intTy
@@ -360,17 +358,13 @@ wrapIntRel arity term = do
         PIR.mkIterLamAbs args $
         PIR.Apply () converter (PIR.mkIterApp () term (fmap (PIR.mkVar ()) args))
 
-mkIntRel :: Converting m => PLC.BuiltinName -> m PIRTerm
-mkIntRel name = wrapIntRel 2 $ instSize haskellIntSize (mkBuiltin name)
+mkIntRel :: Compiling m => PLC.BuiltinName -> m PIRTerm
+mkIntRel name = wrapIntRel 2 $ mkBuiltin name
 
--- | Wrap an size-polymorphic bytestring relation of arity @n@ that produces a Scott
---   boolean.
-wrapBsRel :: Converting m => Int -> PIRTerm -> m PIRTerm
+-- | Wrap an bytestring relation of arity @n@ that produces a Scott boolean.
+wrapBsRel :: Compiling m => Int -> PIRTerm -> m PIRTerm
 wrapBsRel arity term = do
-    bsTy <- lookupBuiltinType ''Builtins.SizedByteString
-    szName <- safeFreshTyName () "size"
-    let tvd = PIR.TyVarDecl () szName (PIR.Size ())
-    let ty = PIR.TyApp () bsTy (PIR.mkTyVar () tvd)
+    ty <- lookupBuiltinType ''Builtins.ByteString
 
     args <- replicateM arity $ do
         name <- safeFreshName () "arg"
@@ -379,42 +373,23 @@ wrapBsRel arity term = do
     converter <- scottBoolToHaskellBool
 
     pure $
-        PIR.mkIterTyAbs [tvd] $
         PIR.mkIterLamAbs args $
         PIR.Apply ()
           converter
-          (PIR.mkIterApp () (PIR.TyInst () term (PIR.mkTyVar () tvd)) (fmap (PIR.mkVar ()) args))
-
-wrapSizedBsrel :: Converting m => [Natural] -> PIRTerm -> m PIRTerm
-wrapSizedBsrel bsls term = do
-    bsTy <- lookupBuiltinType ''Builtins.SizedByteString
-
-    let bsls' = (\s -> appSize s bsTy) <$> bsls
-
-        mkVarDecl ty = do
-            name <- safeFreshName () "arg"
-            pure $ PIR.VarDecl () name ty
-
-    args <- traverse mkVarDecl bsls'
-
-    converter <- scottBoolToHaskellBool
-
-    pure $
-        PIR.mkIterLamAbs args $
-        PIR.Apply () converter (PIR.mkIterApp () term (fmap (PIR.mkVar ()) args))
+          (PIR.mkIterApp () term (fmap (PIR.mkVar ()) args))
 
 -- | Convert a Scott-encoded Unit into a Haskell Unit.
-scottUnitToHaskellUnit :: Converting m => m PIRTerm
+scottUnitToHaskellUnit :: Compiling m => m PIRTerm
 scottUnitToHaskellUnit = do
     let scottUnitTy = Unit.unit
 
     arg <- liftQuote $ freshName () "b"
 
-    haskellUnitVal <- convDataConRef GHC.unitDataCon
+    haskellUnitVal <- compileDataConRef GHC.unitDataCon
     pure $ PIR.LamAbs () arg scottUnitTy haskellUnitVal
 
 -- | Wrap an function with the given argument type that produces a Scott unit.
-wrapUnitFun :: Converting m => PIRType -> PIRTerm -> m PIRTerm
+wrapUnitFun :: Compiling m => PIRType -> PIRTerm -> m PIRTerm
 wrapUnitFun argTy term = do
     arg <- do
         name <- safeFreshName () "arg"

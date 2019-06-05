@@ -1,0 +1,5 @@
+(abs
+  out_Bool_9
+  (type)
+  (lam case_True_10 out_Bool_9 (lam case_False_11 out_Bool_9 case_False_11))
+)

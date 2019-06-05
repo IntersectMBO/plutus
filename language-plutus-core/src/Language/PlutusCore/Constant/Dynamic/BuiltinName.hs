@@ -11,6 +11,8 @@ module Language.PlutusCore.Constant.Dynamic.BuiltinName
     , dynamicAppendDefinition
     , dynamicAppend
     , dynamicTraceName
+    , dynamicTraceMeaningMock
+    , dynamicTraceDefinitionMock
     ) where
 
 import           Language.PlutusCore.Constant.Dynamic.Instances ()
@@ -19,14 +21,17 @@ import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Type
 
+import           Data.Proxy
+import           Debug.Trace                                    (trace)
+
 dynamicCharToStringName :: DynamicBuiltinName
 dynamicCharToStringName = DynamicBuiltinName "charToString"
 
 dynamicCharToStringMeaning :: DynamicBuiltinNameMeaning
 dynamicCharToStringMeaning = DynamicBuiltinNameMeaning sch pure where
     sch =
-        TypeSchemeBuiltin (TypedBuiltinDyn @Char) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinDyn @String)
+        Proxy @Char `TypeSchemeArrow`
+        TypeSchemeResult (Proxy @String)
 
 dynamicCharToStringDefinition :: DynamicBuiltinNameDefinition
 dynamicCharToStringDefinition =
@@ -41,9 +46,9 @@ dynamicAppendName = DynamicBuiltinName "append"
 dynamicAppendMeaning :: DynamicBuiltinNameMeaning
 dynamicAppendMeaning = DynamicBuiltinNameMeaning sch (++) where
     sch =
-        TypeSchemeBuiltin (TypedBuiltinDyn @String) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinDyn @String) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinDyn @String)
+        Proxy @String `TypeSchemeArrow`
+        Proxy @String `TypeSchemeArrow`
+        TypeSchemeResult (Proxy @String)
 
 dynamicAppendDefinition :: DynamicBuiltinNameDefinition
 dynamicAppendDefinition =
@@ -54,3 +59,13 @@ dynamicAppend = dynamicBuiltinNameAsTerm dynamicAppendName
 
 dynamicTraceName :: DynamicBuiltinName
 dynamicTraceName = DynamicBuiltinName "trace"
+
+dynamicTraceMeaningMock :: DynamicBuiltinNameMeaning
+dynamicTraceMeaningMock = DynamicBuiltinNameMeaning sch (flip trace ()) where
+    sch =
+        Proxy @String `TypeSchemeArrow`
+        TypeSchemeResult (Proxy @())
+
+dynamicTraceDefinitionMock :: DynamicBuiltinNameDefinition
+dynamicTraceDefinitionMock =
+    DynamicBuiltinNameDefinition dynamicTraceName dynamicTraceMeaningMock

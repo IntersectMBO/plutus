@@ -22,7 +22,7 @@ data Gas : Set where
 When our evaluator returns a term `N`, it will either give evidence that
 `N` is a value or indicate that it ran out of gas.
 \begin{code}
-data Finished {Γ J}{A : ∥ Γ ∥ ⊢Nf⋆ J} :  (N : Γ ⊢ A) →  Set where
+data Finished {Φ Γ}{A : Φ ⊢Nf⋆ *} :  (N : Γ ⊢ A) →  Set where
 
    done : ∀ N → 
        Value N
@@ -32,34 +32,40 @@ data Finished {Γ J}{A : ∥ Γ ∥ ⊢Nf⋆ J} :  (N : Γ ⊢ A) →  Set where
    out-of-gas : ∀{N} → 
        ----------
        Finished N
+
+   error : {L : Γ ⊢ A} → Error L → Finished L
+
 \end{code}
 Given a term `L` of type `A`, the evaluator will, for some `N`, return
 a reduction sequence from `L` to `N` and an indication of whether
 reduction finished.
 \begin{code}
-data Steps : ∀ {J}{A : ∅ ⊢Nf⋆ J} → ∅ ⊢ A → Set where
+data Steps : ∀ {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set where
 
-  steps : ∀ {J}{A : ∅ ⊢Nf⋆ J} {L N : ∅ ⊢ A}
+  steps : {A : ∅ ⊢Nf⋆ *} {L N : ∅ ⊢ A}
     → L —↠ N
     → Finished N
       ----------
     → Steps L
 
-  error :  ∀ {J}{A : ∅ ⊢Nf⋆ J} {L : ∅ ⊢ A} → Steps L
 
 \end{code}
+
+\begin{code}
+eval—→  : ∀{A : ∅ ⊢Nf⋆ *} → {t t' : ∅ ⊢ A} → t —→ t' →
+  Steps t' → Steps t
+eval—→ p (steps ps q) = steps (trans—↠ p ps) q
+\end{code}
+
 The evaluator takes gas and a term and returns the corresponding steps.
 \begin{code}
-eval : ∀ {A : ∅ ⊢Nf⋆ *}
-  → Gas
-  → (M : ∅ ⊢ A)
-    -----------
-  → Steps M
+eval : ∀ {A : ∅ ⊢Nf⋆ *} → Gas → (M : ∅ ⊢ A) → Steps M
+evalProg : ∀{A : ∅ ⊢Nf⋆ *} → Gas → {t : ∅ ⊢ A} → Progress t → Steps t
+
 eval (gas zero) M = steps refl—↠ out-of-gas
-eval (gas (suc n)) M with progress M
-...                  | error p   = error
-eval (gas (suc n)) M | step {N} p  with eval (gas n) N
-...                               | error = error
-eval (gas (suc n)) M | step {N} p | steps ps q = steps (trans—↠ p ps) q
-eval (gas (suc n)) M | done vM = steps refl—↠ (done _ vM)
+eval (gas (suc n)) M = evalProg (gas n) (progress M)
+
+evalProg g (step {N = t'} p)  = eval—→ p (eval g t')
+evalProg g (done VM) = steps refl—↠ (done _ VM)
+evalProg g (error e) = steps refl—↠ (error e)
 \end{code}

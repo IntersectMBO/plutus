@@ -31,7 +31,7 @@ import           Data.Functor                           (void)
 lift :: (Lift.Lift a, AsError e (Provenance ()), MonadError e m, MonadQuote m) => a -> m (PLC.Term TyName Name ())
 lift x = do
     lifted <- runDefT () $ Lift.lift x
-    compiled <- flip runReaderT NoProvenance $ compileTerm lifted
+    compiled <- flip runReaderT defaultCompilationCtx $ compileTerm lifted
     pure $ void compiled
 
 -- | Get a Plutus Core program corresponding to the given value.

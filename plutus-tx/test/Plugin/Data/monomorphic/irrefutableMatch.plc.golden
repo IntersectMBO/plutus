@@ -1,0 +1,67 @@
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl MyMonoData (type))
+        
+        MyMonoData_match
+        (vardecl Mono1 (fun (con integer) (fun (con integer) MyMonoData)))
+        (vardecl Mono2 (fun (con integer) MyMonoData))
+        (vardecl Mono3 (fun (con integer) MyMonoData))
+      )
+    )
+    (let
+      (nonrec)
+      (datatypebind
+        (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+      )
+      (lam
+        ds
+        MyMonoData
+        [
+          [
+            [
+              [
+                { [ MyMonoData_match ds ] (fun Unit (con integer)) }
+                (lam
+                  default_arg0
+                  (con integer)
+                  (lam
+                    default_arg1
+                    (con integer)
+                    (lam
+                      thunk
+                      Unit
+                      [
+                        {
+                          (abs e (type) (lam thunk Unit (error e)))
+                          (con integer)
+                        }
+                        Unit
+                      ]
+                    )
+                  )
+                )
+              ]
+              (lam a (con integer) (lam thunk Unit a))
+            ]
+            (lam
+              default_arg0
+              (con integer)
+              (lam
+                thunk
+                Unit
+                [
+                  { (abs e (type) (lam thunk Unit (error e))) (con integer) }
+                  Unit
+                ]
+              )
+            )
+          ]
+          Unit
+        ]
+      )
+    )
+  )
+)

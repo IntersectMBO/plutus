@@ -18,8 +18,8 @@ import qualified GhcPlugins                          as GHC
 import qualified PrimOp                              as GHC
 
 -- These never seem to come up, rather we get the typeclass operations. Not sure if we need them.
-convPrimitiveOp :: (Converting m) => GHC.PrimOp -> m PIRTerm
-convPrimitiveOp = \case
+compilePrimitiveOp :: Compiling m => GHC.PrimOp -> m PIRTerm
+compilePrimitiveOp = \case
     GHC.IntAddOp  -> lookupBuiltinTerm 'Builtins.addInteger
     GHC.IntSubOp  -> lookupBuiltinTerm 'Builtins.subtractInteger
     GHC.IntMulOp  -> lookupBuiltinTerm 'Builtins.multiplyInteger

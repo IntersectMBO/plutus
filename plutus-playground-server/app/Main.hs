@@ -12,7 +12,7 @@ import           Control.Monad.Logger     (MonadLogger, logInfoN, runStderrLoggi
 import           Data.Monoid              ((<>))
 import qualified Data.Text                as Text
 import           Data.Yaml                (decodeFileThrow)
-import           Git                      (gitHead)
+import           Git                      (gitRev)
 import           Network.Wai.Handler.Warp (HostPreference, defaultSettings, setHost, setPort)
 import           Options.Applicative      (CommandFields, Mod, Parser, argument, auto, command, customExecParser,
                                            disambiguate, fullDesc, help, helper, idm, info, infoOption, long, metavar,
@@ -38,7 +38,7 @@ data Command
 versionOption :: Parser (a -> a)
 versionOption =
     infoOption
-        gitHead
+        (Text.unpack gitRev)
         (short 'v' <> long "version" <> help "Show the version")
 
 commandLineParser :: Parser (FilePath, Command)

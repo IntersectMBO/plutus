@@ -54,8 +54,7 @@ data UnbalancedTx = UnbalancedTx
         , utxOutputs :: [L.TxOut]
         , utxForge   :: V.Value
         }
-
-        deriving stock (Eq, Ord, Show, Generic)
+        deriving stock (Eq, Show, Generic)
         deriving anyclass (Aeson.FromJSON, Aeson.ToJSON)
 
 -- | Make an unbalanced transaction that does not forge any value.
@@ -134,7 +133,7 @@ data ContractOut =
       --   with this contract instance can be deleted. See note
       --   [ContractFinished event]
 
-      deriving stock (Eq, Ord, Show, Generic)
+      deriving stock (Eq, Show, Generic)
       deriving anyclass (Aeson.FromJSON, Aeson.ToJSON)
 
 -- | Events that inform the contract about changes to the ledger state.
@@ -159,5 +158,5 @@ data LedgerUpdate =
     | SlotChange L.Slot
     -- ^ The current slot has changed.
 
-    deriving stock (Eq, Ord, Show, Generic)
+    deriving stock (Eq, Show, Generic)
     deriving anyclass (Aeson.FromJSON, Aeson.ToJSON)

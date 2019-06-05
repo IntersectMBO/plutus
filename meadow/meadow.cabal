@@ -27,10 +27,7 @@ library
         API
         Interpreter
         Meadow.Contracts
-        Gist
-        Git
         Auth
-        Auth.Types
         Control.Monad.Now
         Control.Monad.Trace
         Control.Monad.Web
@@ -38,7 +35,6 @@ library
     default-language: Haskell2010
     build-depends:
         aeson -any,
-        aeson-casing -any,
         base >=4.7 && <5,
         bytestring -any,
         bytestring -any,
@@ -52,7 +48,7 @@ library
         http-client-tls -any,
         http-conduit -any,
         http-types -any,
-        interpreter -any,
+        playground-common -any,
         jwt <0.10.0,
         lens -any,
         marlowe -any,
@@ -91,7 +87,7 @@ executable meadow-exe
         directory -any,
         filepath -any,
         http-types -any,
-        interpreter -any,
+        playground-common -any,
         lens -any,
         meadow -any,
         monad-logger -any,
@@ -119,7 +115,7 @@ test-suite meadow-test
         base -any,
         bytestring -any,
         hspec -any,
-        interpreter -any,
+        playground-common -any,
         meadow -any,
         mtl -any,
         raw-strings-qq -any,
