@@ -489,7 +489,7 @@ refund.
 
 To contribute to a campaign we need to pay the desired amount to a
 script address, and provide our own public key as the data script. In
-the link:./02-validator-scripts.md[guessing game] we used
+the link:./02-validator-scripts#validator-scripts[guessing game] we used
 link:{wallet-api-haddock}/Wallet-API.html#v:payToScript_[`payToScript_`],
 which returns `()` instead of the transaction that was submitted. For
 the crowdfunding contribution we need to hold on the transaction. Why?
@@ -630,8 +630,8 @@ the same way as all other software we can use the same tools
 having to set up additional infrastructure.
 
 We plan to write a tutorial on this soon. Until then we would like to
-refer you to the test suite in
-link:../../../plutus-use-cases/test/Spec/Crowdfunding.hs[Crowdfunding.hs].
+refer you to the test suite in the `plutus-use-cases` project in the Plutus
+repository.
 
 You can run the test suite with
 `nix build -f default.nix localPackages.plutus-use-cases` or
