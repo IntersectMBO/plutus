@@ -111,7 +111,7 @@ union eq (Map ls) (Map rs) =
         rs'' :: [(k, These v r)]
         rs'' = P.map (\(c, b) -> (c, That b)) rs'
 
-    in Map (append ls' rs'')
+    in Map (ls' ++ rs'')
 
 {-# INLINABLE all #-}
 -- | See 'Data.Map.all'
