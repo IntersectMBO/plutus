@@ -50,7 +50,7 @@ by a variable of a given type.
 data Ctx : Ctx⋆ → Set where
   ∅    : Ctx ∅
   _,⋆_ : ∀{Φ} → Ctx Φ → (J : Kind) → Ctx (Φ ,⋆ J)
-  _,_  : ∀ {Φ J} (Γ : Ctx Φ) → Φ ⊢Nf⋆ J → Ctx Φ
+  _,_  : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Ctx Φ
 \end{code}
 Let `Γ` range over contexts.  In the last rule,
 the type is indexed by the erasure of the previous
@@ -73,7 +73,7 @@ data _∋_ : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
       ----------
     → Γ , A ∋ A
 
-  S : ∀ {Φ Γ K} {A : Φ ⊢Nf⋆ *} {B : Φ ⊢Nf⋆ K}
+  S : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} {B : Φ ⊢Nf⋆ *}
     → Γ ∋ A
       ----------
     → Γ , B ∋ A

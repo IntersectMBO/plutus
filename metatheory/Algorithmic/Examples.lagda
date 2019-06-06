@@ -9,8 +9,8 @@ open import Type
 open import Type.BetaNormal
 open import Type.BetaNBE.RenamingSubstitution
 import Type.RenamingSubstitution as ⋆
-open import Algorithmic.Term
-open import Algorithmic.Term.RenamingSubstitution
+open import Algorithmic
+open import Algorithmic.RenamingSubstitution
 open import Algorithmic.Evaluation
 
 open import Relation.Binary.PropositionalEquality renaming (subst to substEq)
@@ -40,6 +40,7 @@ case = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
 --
 
 \begin{code}
+-- bound variable names inserted below are not meaningful
 module Scott where
   open import Type.BetaNBE
   open import Type.BetaNBE.Stability
@@ -51,40 +52,40 @@ module Scott where
   f ·Nf a = nf (embNf f · embNf a)
 
   μ0 : ∀{Γ} → Γ ⊢Nf⋆ (* ⇒ *) ⇒ *
-  μ0 = ƛ (ne (μ1 · ƛ (ƛ (ne (` Z · ne (` (S Z) · ne (` Z))))) · ne (` Z)))
+  μ0 = ƛ "x" (ne (μ1 · ƛ "t" (ƛ "z" (ne (` Z · ne (` (S Z) · ne (` Z))))) · ne (` Z)))
 
-  wrap0 : ∀{Γ}
-    → (A : ∥ Γ ∥ ⊢Nf⋆ * ⇒ *)
+  wrap0 : ∀{Φ Γ}
+    → (A : Φ ⊢Nf⋆ * ⇒ *)
     → Γ ⊢ A ·Nf (μ0 ·Nf A)
     → Γ ⊢ μ0 ·Nf A
   wrap0 A X rewrite stability A = wrap1 _ A X
 
-  unwrap0 : ∀{Γ}
-    → (A : ∥ Γ ∥ ⊢Nf⋆ * ⇒ *)
+  unwrap0 : ∀{Φ Γ}
+    → (A : Φ ⊢Nf⋆ * ⇒ *)
     → Γ ⊢ μ0 ·Nf A
     → Γ ⊢ A ·Nf (μ0 ·Nf A)
   unwrap0 A X rewrite stability A = unwrap1 X
   
   G : ∀{Γ} → Γ ,⋆  * ⊢Nf⋆ *
-  G = Π (ne (` Z) ⇒ (ne (` (S Z)) ⇒ ne (` Z)) ⇒ ne (` Z))
+  G = Π "α" (ne (` Z) ⇒ (ne (` (S Z)) ⇒ ne (` Z)) ⇒ ne (` Z))
   
   M : ∀{Γ} → Γ ⊢Nf⋆ *
-  M = μ0 ·Nf ƛ G
+  M = μ0 ·Nf ƛ "x" G
 
   N : ∀{Γ} → Γ ⊢Nf⋆ *
   N  =  G [ M ]Nf
 
-  Zero : ∀{Γ} → Γ ⊢ N
-  Zero = Λ (ƛ (ƛ (` (S (Z )))))
+  Zero : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N
+  Zero = Λ "α" (ƛ "x" (ƛ "y" (` (S (Z )))))
 
 
-  Succ : ∀{Γ} → Γ ⊢ N ⇒ N
-  Succ = ƛ (Λ (ƛ (ƛ (` Z · wrap0 (ƛ G) (` (S (S (T Z))))))))
+  Succ :  ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ N
+  Succ = ƛ "x" (Λ "α" (ƛ "y" (ƛ "z" (` Z · wrap0 (ƛ "x" G) (` (S (S (T Z))))))))
 
-  One : ∀{Γ} → Γ ⊢ N
+  One :  ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N
   One = Succ · Zero
   
-  Two : ∀{Γ} → Γ ⊢ N
+  Two :  ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N
   Two = Succ · One
 
   Three : ∅ ⊢ N
@@ -93,28 +94,28 @@ module Scott where
   Four : ∅ ⊢ N
   Four = Succ · Three
 
-  case : ∀{Γ} → Γ ⊢ N ⇒ (Π (ne (` Z) ⇒ (N ⇒ ne (` Z)) ⇒ ne (` Z)))
-  case = ƛ (Λ (ƛ (ƛ ((` (S (S (T Z)))) ·⋆ ne (` Z) · (` (S Z)) · (ƛ (` (S Z) ·  unwrap0 (ƛ G) (` Z) ))))))
+  case :  ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ (Π "α" (ne (` Z) ⇒ (N ⇒ ne (` Z)) ⇒ ne (` Z)))
+  case = ƛ "x" (Λ "α" (ƛ "y" (ƛ "z" ((` (S (S (T Z)))) ·⋆ ne (` Z) · (` (S Z)) · (ƛ "a" (` (S Z) ·  unwrap0 (ƛ "x" G) (` Z) ))))))
 
 {-
   Y-comb : ∀{Γ} → Γ ⊢ Π ((ne (` Z) ⇒ ne (` Z)) ⇒ ne (` Z))
   Y-comb = Λ (ƛ ((ƛ (` (S Z) · (unwrap • refl (` Z) · (` Z)))) · wrap (ne (` Z) ⇒ ne (` (S Z))) • (ƛ (` (S Z) · (unwrap • refl (` Z) · (` Z)))) refl ))
 -}
-  Z-comb : ∀{Γ} →
-    Γ ⊢ Π {- a -} (Π {- b -} (((ne (` (S Z)) ⇒ ne (` Z)) ⇒ ne (` (S Z)) ⇒ ne (` Z)) ⇒ ne (` (S Z)) ⇒ ne (` Z)))
-  Z-comb = Λ {- a -} (Λ {- b -} (ƛ {- f -} (ƛ {- r -} (` (S Z) · ƛ {- x -} (unwrap0  (ƛ (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z))))  (` (S Z)) · ` (S Z) · ` Z)) · wrap0 (ƛ (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z)))) (ƛ {- r -} (` (S Z) · ƛ {- x -} (unwrap0 (ƛ (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z)))) (` (S Z)) · ` (S Z) · ` Z))))))
+  Z-comb :  ∀{Φ}{Γ : Ctx Φ} →
+    Γ ⊢ Π "α" (Π "β" (((ne (` (S Z)) ⇒ ne (` Z)) ⇒ ne (` (S Z)) ⇒ ne (` Z)) ⇒ ne (` (S Z)) ⇒ ne (` Z)))
+  Z-comb = Λ "α" (Λ "β" (ƛ "f" (ƛ "r" (` (S Z) · ƛ "x" (unwrap0  (ƛ "y" (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z))))  (` (S Z)) · ` (S Z) · ` Z)) · wrap0 (ƛ "y" (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z)))) (ƛ "r" (` (S Z) · ƛ "x" (unwrap0 (ƛ "y" (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z)))) (` (S Z)) · ` (S Z) · ` Z))))))
 
-  OnePlus : ∀{Γ} → Γ ⊢ (N ⇒ N) ⇒ N ⇒ N
-  OnePlus = ƛ (ƛ ((((case · (` Z)) ·⋆ N) · One) · (ƛ (Succ · (` (S (S Z)) · (` Z))))))
+  OnePlus :  ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ (N ⇒ N) ⇒ N ⇒ N
+  OnePlus = ƛ "x" (ƛ "y" ((((case · (` Z)) ·⋆ N) · One) · (ƛ "z" (Succ · (` (S (S Z)) · (` Z))))))
 
   OnePlusOne : ∅ ⊢ N
   OnePlusOne = (Z-comb ·⋆ N) ·⋆ N · OnePlus · One
 
  -- Roman's more efficient version
-  Plus : ∀ {Γ} → Γ ⊢ N ⇒ N ⇒ N
-  Plus = ƛ (ƛ ((Z-comb ·⋆ N) ·⋆ N · (ƛ (ƛ ((((case · ` Z) ·⋆ N) · ` (S (S (S Z)))) · (ƛ (Succ · (` (S (S Z)) · ` Z)))))) · ` (S Z)))
+  Plus : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ N ⇒ N
+  Plus = ƛ "x" (ƛ "y" ((Z-comb ·⋆ N) ·⋆ N · (ƛ "x" (ƛ "y" ((((case · ` Z) ·⋆ N) · ` (S (S (S Z)))) · (ƛ "x" (Succ · (` (S (S Z)) · ` Z)))))) · ` (S Z)))
 
-  TwoPlusTwo : ∅ ⊢ N
+  TwoPlusTwo : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N
   TwoPlusTwo = (Plus · Two) · Two
 \end{code}
 
@@ -164,17 +165,17 @@ eval (gas 10000000) Scott.Two
 \begin{code}
 module Church where
 
-  N : ∀{Γ} → Γ ⊢Nf⋆ *
-  N = Π ((ne (` Z)) ⇒ (ne (` Z) ⇒ ne (` Z)) ⇒ (ne (` Z)))
+  N :  ∀{Φ} → Φ ⊢Nf⋆ *
+  N = Π "α" ((ne (` Z)) ⇒ (ne (` Z) ⇒ ne (` Z)) ⇒ (ne (` Z)))
 
   Zero : ∅ ⊢ N
-  Zero = Λ (ƛ (ƛ (` (S Z))))
+  Zero = Λ "α" (ƛ "x" (ƛ "y" (` (S Z))))
 
   Succ : ∅ ⊢ N ⇒ N
-  Succ = ƛ (Λ (ƛ (ƛ (` Z · ((` (S (S (T Z)))) ·⋆ (ne (` Z)) · (` (S Z)) · (` Z))))))
+  Succ = ƛ "x" (Λ "α" (ƛ "y" (ƛ "z" (` Z · ((` (S (S (T Z)))) ·⋆ (ne (` Z)) · (` (S Z)) · (` Z))))))
   
-  Iter : ∅ ⊢ Π (ne (` Z) ⇒ (ne (` Z) ⇒ ne (` Z)) ⇒ N ⇒ ne (` Z))
-  Iter = Λ (ƛ (ƛ (ƛ ((` Z) ·⋆ ne (` Z) · (` (S (S Z))) · (` (S Z))))))
+  Iter : ∅ ⊢ Π "α" (ne (` Z) ⇒ (ne (` Z) ⇒ ne (` Z)) ⇒ N ⇒ ne (` Z))
+  Iter = Λ "α" (ƛ "x" (ƛ "y" (ƛ "z" ((` Z) ·⋆ ne (` Z) · (` (S (S Z))) · (` (S Z))))))
 
   -- two plus two
   One : ∅ ⊢ N

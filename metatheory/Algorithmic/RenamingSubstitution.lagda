@@ -34,10 +34,9 @@ open import Builtin.Signature
 ext : ∀ {Φ Ψ Γ Δ}
   → (ρ⋆ : ∀ {K} → Φ ∋⋆ K → Ψ ∋⋆ K)
   → (∀ {A : Φ ⊢Nf⋆ *} → Γ ∋ A → Δ ∋ renameNf ρ⋆ A)
-  → ∀ {K }
-    {A : Φ ⊢Nf⋆ *}
+  → {A : Φ ⊢Nf⋆ *}
     --------------------------------------------------------------
-  → {B : Φ ⊢Nf⋆ K} → Γ , B ∋ A → Δ , renameNf ρ⋆ B ∋ renameNf ρ⋆ A
+  → {B : Φ ⊢Nf⋆ *} → Γ , B ∋ A → Δ , renameNf ρ⋆ B ∋ renameNf ρ⋆ A
 ext ρ⋆ ρ Z     = Z
 ext ρ⋆ ρ (S x) = S (ρ x)
 \end{code}
@@ -163,11 +162,11 @@ renameTel {Φ}{Ψ}{Γ}{Δ} ρ⋆ ρ {σ} {As = A ∷ As} (M ,, Ms) =
 \end{code}
 
 \begin{code}
-weaken : ∀ {Φ Γ}{A : Φ ⊢Nf⋆ *}{K}{B : Φ ⊢Nf⋆ K}
+weaken : ∀ {Φ Γ}{A : Φ ⊢Nf⋆ *}{B : Φ ⊢Nf⋆ *}
   → Γ ⊢ A
     -------------
   → Γ , B ⊢ A
-weaken {Φ}{Γ}{A}{K}{B} x = 
+weaken {Φ}{Γ}{A}{B} x = 
   substEq (λ x → Γ , B ⊢ x)
           (renameNf-id A)
           (rename id
@@ -191,7 +190,7 @@ exts : ∀ {Φ Ψ Γ Δ}
   → (σ⋆ : ∀ {K} → Φ ∋⋆ K → Ψ ⊢Nf⋆ K)
   → ({A : Φ ⊢Nf⋆ *} → Γ ∋ A → Δ ⊢ substNf σ⋆ A)
     ---------------------------------------------------
-  → (∀ {K} {A : Φ ⊢Nf⋆ *} {B : Φ ⊢Nf⋆ K}
+  → (∀ {A : Φ ⊢Nf⋆ *} {B : Φ ⊢Nf⋆ *}
      → Γ , B ∋ A
      -------------------------------
      → Δ , substNf σ⋆ B ⊢ substNf σ⋆ A)

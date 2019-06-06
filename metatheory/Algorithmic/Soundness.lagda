@@ -38,7 +38,7 @@ lemT' A refl refl = sym (rename-embNf S A)
 \end{code}
 
 \begin{code}
-conv∋ : ∀ {Φ Γ K}{A : Φ ⊢⋆ K}{A' : Φ ⊢⋆ K}
+conv∋ : ∀ {Φ Γ}{A A' : Φ ⊢⋆ *}
  → A ≡ A' →
  (Γ Dec.∋ A) → Γ Dec.∋ A'
 conv∋ refl α = α
@@ -55,7 +55,7 @@ embVar {Γ = Γ Alg.,⋆ K} (Alg.T {A = A} α) =
 \end{code}
 
 \begin{code}
-conv⊢ : ∀ {Φ Γ K}{A : Φ ⊢⋆ K}{A' : Φ ⊢⋆ K}
+conv⊢ : ∀ {Φ Γ}{A A' : Φ ⊢⋆ *}
  → A ≡ A' →
  (Γ Dec.⊢ A) → Γ Dec.⊢ A'
 conv⊢ refl α = α

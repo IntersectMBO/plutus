@@ -23,7 +23,7 @@ open import Declarative
 ## Renaming
 \begin{code}
 Ren : ∀ {Φ Ψ}(Γ : Ctx Φ)(Δ : Ctx Ψ) → ⋆.Ren Φ Ψ → Set
-Ren {Φ} Γ Δ ρ = ∀ {J} {A : Φ ⊢⋆ J} → Γ ∋ A → Δ ∋ ⋆.rename ρ A
+Ren {Φ} Γ Δ ρ = {A : Φ ⊢⋆ *} → Γ ∋ A → Δ ∋ ⋆.rename ρ A
 \end{code}
 
 
@@ -31,7 +31,7 @@ Ren {Φ} Γ Δ ρ = ∀ {J} {A : Φ ⊢⋆ J} → Γ ∋ A → Δ ∋ ⋆.rename
 ext : ∀ {Φ Ψ Γ Δ}
   → (ρ⋆ : ⋆.Ren Φ Ψ)
   → Ren Γ Δ ρ⋆
-  → ∀{K}{B : Φ ⊢⋆ K}
+  → {B : Φ ⊢⋆ *}
     ----------------------------------
   → Ren (Γ , B) (Δ , ⋆.rename ρ⋆ B) ρ⋆
 ext _ ρ Z     = Z
@@ -68,7 +68,7 @@ rename : ∀ {Φ Ψ Γ Δ}
   → (ρ⋆ : ⋆.Ren Φ Ψ)
   → Ren Γ Δ ρ⋆
     ------------------------
-  → (∀ {J} {A : Φ ⊢⋆ J} → Γ ⊢ A → Δ ⊢ ⋆.rename ρ⋆ A )
+  → ({A : Φ ⊢⋆ *} → Γ ⊢ A → Δ ⊢ ⋆.rename ρ⋆ A)
 
 renameTel : ∀ {Φ Φ' Γ Γ' Δ}
  → (ρ⋆ : ⋆.Ren Φ Φ')
@@ -104,11 +104,11 @@ rename _ ρ (error A) = error (⋆.rename _ A)
 \end{code}
 
 \begin{code}
-weaken : ∀ {Φ Γ J}{A : Φ ⊢⋆ J}{K}{B : Φ ⊢⋆ K}
+weaken : ∀ {Φ Γ}{A B : Φ ⊢⋆ *}
   → Γ ⊢ A
     ---------
   → Γ , B ⊢ A
-weaken {Γ = Γ}{J}{A}{K}{B} x =
+weaken {Γ = Γ}{A}{B} x =
   substEq (λ x → Γ , B ⊢ x)
           (⋆.rename-id A)
           (rename _
@@ -117,7 +117,7 @@ weaken {Γ = Γ}{J}{A}{K}{B} x =
 \end{code}
 
 \begin{code}
-weaken⋆ : ∀ {Φ Γ J}{A : Φ ⊢⋆ J}{K}
+weaken⋆ : ∀ {Φ Γ}{A : Φ ⊢⋆ *}{K}
   → Γ ⊢ A
     -------------------
   → Γ ,⋆ K ⊢ ⋆.weaken A
@@ -128,16 +128,16 @@ weaken⋆ x = rename _ _∋_.T x
 \begin{code}
 
 Sub : ∀ {Φ}{Ψ} Γ Δ → ⋆.Sub Φ Ψ → Set
-Sub {Φ} Γ Δ σ = ∀ {J} {A : Φ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ A
+Sub {Φ} Γ Δ σ = {A : Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.subst σ A
 \end{code}
 
 
 \begin{code}
 exts : ∀ {Φ Ψ Γ Δ}
   → (σ⋆ : ∀ {K} → Φ ∋⋆ K → Ψ ⊢⋆ K)
-  → (∀ {J} {A :  Φ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
+  → ({A :  Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
     ---------------------------------------------------
-  → (∀ {J} {K} {A : Φ ⊢⋆ J} {B : Φ ⊢⋆ K}
+  → ({A B : Φ ⊢⋆ *}
      → Γ , B ∋ A
      -------------------------------
      → Δ , ⋆.subst σ⋆ B ⊢ ⋆.subst σ⋆ A)
@@ -148,13 +148,13 @@ exts σ⋆ σ (S x) = weaken (σ x)
 \begin{code}
 exts⋆ : ∀ {Φ Ψ Γ Δ}
   → (σ⋆ : ∀ {K} → Φ ∋⋆ K → Ψ ⊢⋆ K)
-  → (∀ {J} {A : Φ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
+  → ({A : Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
     ---------------------------------------------------
-  → (∀ {J K}{A : Φ ,⋆ K ⊢⋆ J}
+  → (∀ {K}{A : Φ ,⋆ K ⊢⋆ *}
      → Γ ,⋆ K ∋ A 
        -------------------------------
      → Δ ,⋆ K ⊢ ⋆.subst (⋆.exts σ⋆) A )
-exts⋆ {Δ = Δ} _ σ {J}{K}(T {A = A} x) =
+exts⋆ {Δ = Δ} _ σ {K}(T {A = A} x) =
   substEq (λ x → Δ ,⋆ K ⊢ x)
           (trans (sym (⋆.rename-subst A))
                  (⋆.subst-rename A))
@@ -175,9 +175,9 @@ substTermCon _ (bytestring b) = bytestring b
 \begin{code}
 subst : ∀ {Φ Ψ Γ Δ}
   → (σ⋆ : ∀ {K} → Φ ∋⋆ K → Ψ ⊢⋆ K)
-  → (∀ {J} {A : Φ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
+  → ({A : Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
     ---------------------------------------------------
-  → (∀ {J} {A : Φ ⊢⋆ J} → Γ ⊢ A → Δ ⊢ ⋆.subst σ⋆ A)
+  → ({A : Φ ⊢⋆ *} → Γ ⊢ A → Δ ⊢ ⋆.subst σ⋆ A)
 
 substTel : ∀ {Φ Ψ Γ Γ' Δ}
  → (σ⋆ : ⋆.Sub Φ Ψ)
@@ -216,22 +216,22 @@ subst _ σ (error A) = error (⋆.subst _ A)
 
 substcons : ∀{Φ Ψ Γ Δ} →
   (σ⋆ : ∀{K} → Φ  ∋⋆ K → Ψ ⊢⋆ K)
-  → (∀ {J}{A : Φ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
-  → ∀{J}{A : Φ ⊢⋆ J}
+  → ({A : Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
+  → {A : Φ ⊢⋆ *}
   → (t : Δ ⊢ ⋆.subst σ⋆ A)
     ---------------------
-  → (∀ {J} {B : Φ ⊢⋆ J} → Γ , A ∋ B → Δ ⊢ ⋆.subst σ⋆ B)
+  → ({B : Φ ⊢⋆ *} → Γ , A ∋ B → Δ ⊢ ⋆.subst σ⋆ B)
 substcons _ σ t Z     = t
 substcons _ σ t (S x) = σ x
 \end{code}
 
 \begin{code}
-_[_] : ∀ {J Φ Γ} {A B : Φ ⊢⋆ J}
+_[_] : ∀ {Φ Γ} {A B : Φ ⊢⋆ *}
         → Γ , B ⊢ A
         → Γ ⊢ B 
           ---------
         → Γ ⊢ A
-_[_]  {J} {Γ = Γ}{A}{B} t s =
+_[_]  {Γ = Γ}{A}{B} t s =
   substEq (Γ ⊢_)
           (⋆.subst-id A)
           (subst _
@@ -244,7 +244,7 @@ _[_]  {J} {Γ = Γ}{A}{B} t s =
 \end{code}
 
 \begin{code}
-_[_]⋆ : ∀ {J Φ Γ K} {B : Φ ,⋆ K ⊢⋆ J}
+_[_]⋆ : ∀ {Φ Γ K} {B : Φ ,⋆ K ⊢⋆ *}
         → Γ ,⋆ K ⊢ B
         → (A : Φ ⊢⋆ K)
           ---------
