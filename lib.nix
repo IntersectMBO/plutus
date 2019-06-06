@@ -40,6 +40,7 @@ let
   plutusPkgList = plutusPublicPkgList ++ [
     "plutus-playground-server"
     "plutus-tutorial"
+    "plutus-book"
     "plutus-use-cases"
     "playground-common"
     "marlowe"

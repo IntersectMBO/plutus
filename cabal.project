@@ -10,6 +10,7 @@ packages: language-plutus-core
           plutus-playground-server
           plutus-playground-lib
           plutus-tutorial
+          plutus-book
           playground-common
           meadow
           plutus-contract-exe
