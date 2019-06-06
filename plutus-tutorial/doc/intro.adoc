@@ -29,6 +29,3 @@ authors do not write Plutus Core directly. The Plutus Platform is a
 software development kit to enable smart contract authors to easily
 write smart contracts, including the logic that will eventually be run
 on the blockchain as Plutus Core.
-
-In the xref:01-plutus-tx.md#plutus-tx[first tutorial] we will
-go over the basics of using Plutus Tx to write smart contract logic.
