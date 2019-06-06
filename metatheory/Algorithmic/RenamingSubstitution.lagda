@@ -31,9 +31,12 @@ open import Builtin.Signature
 ## Renaming
 
 \begin{code}
+Ren : ∀{Φ Ψ} → ⋆.Ren Φ Ψ → Ctx Φ → Ctx Ψ → Set
+Ren ρ⋆ Γ Δ = (∀ {A : _ ⊢Nf⋆ *} → Γ ∋ A → Δ ∋ renameNf ρ⋆ A)
+
 ext : ∀ {Φ Ψ Γ Δ}
-  → (ρ⋆ : ∀ {K} → Φ ∋⋆ K → Ψ ∋⋆ K)
-  → (∀ {A : Φ ⊢Nf⋆ *} → Γ ∋ A → Δ ∋ renameNf ρ⋆ A)
+  → (ρ⋆ : ⋆.Ren Φ Ψ)
+  → (ρ : Ren ρ⋆ Γ Δ)
   → {A : Φ ⊢Nf⋆ *}
     --------------------------------------------------------------
   → {B : Φ ⊢Nf⋆ *} → Γ , B ∋ A → Δ , renameNf ρ⋆ B ∋ renameNf ρ⋆ A
@@ -43,8 +46,8 @@ ext ρ⋆ ρ (S x) = S (ρ x)
 
 \begin{code}
 ext⋆ : ∀ {Φ Ψ Γ Δ}
-  → (ρ⋆ : ∀ {K} → Φ ∋⋆ K → Ψ ∋⋆ K)
-  → (∀ {A : Φ ⊢Nf⋆ *} → Γ ∋ A → Δ ∋ renameNf ρ⋆ A)
+  → (ρ⋆ : ⋆.Ren Φ Ψ)
+  → (ρ : Ren ρ⋆ Γ Δ)
   → ∀ {K}
     ---------------------------------------------------
   → {A : Φ ,⋆ K ⊢Nf⋆ *} → Γ ,⋆ K ∋ A → Δ ,⋆ K ∋ renameNf (⋆.ext ρ⋆) A
@@ -72,7 +75,7 @@ rename-nf' A ρ⋆ = trans
 
 \begin{code}
 renameTermCon : ∀ {Φ Ψ}
-  → (ρ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
+  → (ρ⋆ : ⋆.Ren Φ Ψ)
     -----------------------------------------------------
   → ({A : Φ ⊢Nf⋆ *} → TermCon A → TermCon (renameNf ρ⋆ A ))
 renameTermCon ρ⋆ (integer i)    = integer i
@@ -82,14 +85,14 @@ renameTermCon ρ⋆ (bytestring b) = bytestring b
 \begin{code}
 
 rename : ∀ {Φ Ψ Γ Δ}
-  → (ρ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
-  → ({A : Φ ⊢Nf⋆ *} → Γ ∋ A → Δ ∋ renameNf ρ⋆ A)
+  → (ρ⋆ : ⋆.Ren Φ Ψ)
+  → (ρ : Ren ρ⋆ Γ Δ)
     ------------------------
   → ({A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Δ ⊢ renameNf ρ⋆ A )
 
 renameTel : ∀ {Φ Φ' Γ Γ' Δ}
  → (ρ⋆ : ⋆.Ren Φ Φ')
- → (ρ :  {A : Φ ⊢Nf⋆ *} → Γ ∋ A → Γ' ∋ renameNf ρ⋆ A)
+ → (ρ : Ren ρ⋆ Γ Γ')
  → {σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}
  → {As : List (Δ ⊢Nf⋆ *)}
  → Tel Γ Δ σ As
@@ -185,10 +188,12 @@ weaken⋆ x = rename _∋⋆_.S _∋_.T x
 ## Substitution
 
 \begin{code}
+Sub : ∀{Φ Ψ} → SubNf Φ Ψ → Ctx Φ → Ctx Ψ → Set
+Sub σ⋆ Γ Δ = (∀ {A : _ ⊢Nf⋆ *} → Γ ∋ A → Δ ⊢ substNf σ⋆ A)
 
 exts : ∀ {Φ Ψ Γ Δ}
-  → (σ⋆ : ∀ {K} → Φ ∋⋆ K → Ψ ⊢Nf⋆ K)
-  → ({A : Φ ⊢Nf⋆ *} → Γ ∋ A → Δ ⊢ substNf σ⋆ A)
+  → (σ⋆ : SubNf Φ Ψ)
+  → (σ : Sub σ⋆ Γ Δ)
     ---------------------------------------------------
   → (∀ {A : Φ ⊢Nf⋆ *} {B : Φ ⊢Nf⋆ *}
      → Γ , B ∋ A
@@ -200,8 +205,8 @@ exts σ⋆ σ (S x) = weaken (σ x)
 
 \begin{code}
 exts⋆ : ∀ {Φ Ψ Γ Δ}
-  → (σ⋆ : ∀ {K} → Φ ∋⋆ K → Ψ ⊢Nf⋆ K)
-  → ({A : Φ ⊢Nf⋆ *} → Γ ∋ A → Δ ⊢ substNf σ⋆ A)
+  → (σ⋆ : SubNf Φ Ψ)
+  → (σ : Sub σ⋆ Γ Δ)
     ---------------------------------------------------
   → (∀ {K}{A : Φ ,⋆ K ⊢Nf⋆ *}
      → Γ ,⋆ K ∋ A 
@@ -216,7 +221,7 @@ exts⋆ {Φ}{Ψ}{Γ}{Δ} σ⋆ σ {K}(T {A = A} x) =
 
 \begin{code}
 substTermCon : ∀ {Φ Ψ}
-  → (σ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢Nf⋆ J)
+  → (σ⋆ : SubNf Φ Ψ)
     ------------------------------------------------------
   → ({A : Φ ⊢Nf⋆ *} → TermCon A → TermCon (substNf σ⋆ A ))
 substTermCon σ⋆ (integer i)    = integer i
@@ -225,16 +230,16 @@ substTermCon σ⋆ (bytestring b) = bytestring b
 
 \begin{code}
 substTel : ∀ {Φ Φ' Γ Γ' Δ}
- → (σ⋆ : ∀ {J} → Φ ∋⋆ J → Φ' ⊢Nf⋆ J)
- → (σ :  ∀ {A : Φ ⊢Nf⋆ *} → Γ ∋ A → Γ' ⊢ substNf σ⋆ A)
- → {σ' : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J}
+ → (σ⋆ : SubNf Φ Φ')
+ → (σ : Sub σ⋆ Γ Γ')
+ → {σ' : SubNf Δ Φ}
  → {As : List (Δ ⊢Nf⋆ *)}
  → Tel Γ Δ σ' As
  → Tel Γ' Δ (substNf σ⋆ ∘ σ') As
 
 subst : ∀ {Φ Ψ Γ Δ}
-  → (σ⋆ : ∀ {K} → Φ ∋⋆ K → Ψ ⊢Nf⋆ K)
-  → ({A : Φ ⊢Nf⋆ *} → Γ ∋ A → Δ ⊢ substNf σ⋆ A)
+  → (σ⋆ : SubNf Φ Ψ)
+  → (σ : Sub σ⋆ Γ Δ)
     ---------------------------------------------------
   → ({A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Δ ⊢ substNf σ⋆ A)
 
@@ -294,9 +299,9 @@ subst σ⋆ x (error A) = error (substNf σ⋆ A)
 \end{code}
 
 \begin{code}
-substcons : ∀{Φ Ψ Γ Δ} →
-  (σ⋆ : ∀{K} → Φ  ∋⋆ K → Ψ ⊢Nf⋆ K)
-  → ({A : Φ ⊢Nf⋆ *} → Γ ∋ A → Δ ⊢ substNf σ⋆ A)
+substcons : ∀{Φ Ψ Γ Δ}
+  → (σ⋆ : SubNf Φ Ψ)
+  → (σ : Sub σ⋆ Γ Δ)
   → {A : Φ ⊢Nf⋆ *}
   → (t : Δ ⊢ substNf σ⋆ A)
     ---------------------
