@@ -48,10 +48,11 @@ data Value :  ∀ {J Φ Γ} {A : Φ ⊢Nf⋆ J} → Γ ⊢ A → Set where
       ----------------
     → Value (Λ x N)
 
-  V-wrap1 : ∀{Φ Γ K}
+  V-wrap : ∀{Φ Γ K}
    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
    → {arg : Φ ⊢Nf⋆ K}
    → {term : Γ ⊢  nf (embNf pat · (μ1 · embNf pat) · embNf arg)}
+   → Value term
    → Value (wrap1 pat arg term)
 
   V-con : ∀{Φ Γ}{tcn : TyCon}
@@ -63,7 +64,7 @@ data Value :  ∀ {J Φ Γ} {A : Φ ⊢Nf⋆ J} → Γ ⊢ A → Set where
 VTel : ∀ {Φ} Γ Δ → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)(As : List (Δ ⊢Nf⋆ *)) → Tel Γ Δ σ As → Set
 
 data Error :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
-  -- a genuine runtime error returned from a builtin
+  -- an actual error term
   E-error : ∀{Φ Γ }{A : Φ ⊢Nf⋆ *} → Error {Γ = Γ} (error {Φ} A)
 
   -- error inside somewhere
@@ -78,8 +79,15 @@ data Error :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
   E-unwrap : ∀{Φ Γ K}
     → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {arg : Φ ⊢Nf⋆ K}
-    → {L : Γ ⊢ ne (μ1 · pat · arg)} → Error L → Error (unwrap1 L)
-
+    → {L : Γ ⊢ ne (μ1 · pat · arg)}
+    → Error L
+    → Error (unwrap1 L)
+  E-wrap : ∀{Φ Γ K}
+    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {arg : Φ ⊢Nf⋆ K}
+    → {term : Γ ⊢  nf (embNf pat · (μ1 · embNf pat) · embNf arg)}
+    → Error term
+    → Error (wrap1 pat arg term) 
   E-builtin : ∀{Φ Γ}  → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
@@ -108,13 +116,18 @@ data Neutral :  ∀ {J Φ Γ} {A : Φ ⊢Nf⋆ J} → Γ ⊢ A → Set where
     (M : Γ ⊢ A) → Neutral (L · M)
   N-·⋆ : ∀{Φ Γ K x}{B : Φ ,⋆ K ⊢Nf⋆ *}{L : Γ ⊢ Π x B} → Neutral L →
     (A : Φ ⊢Nf⋆ K) → Neutral (L ·⋆ A)
-
   N-unwrap1 : ∀{Φ Γ K}
     → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {arg : Φ ⊢Nf⋆ K}
     → {term : Γ ⊢ ne (μ1 · pat · arg)}
     → Neutral term
     → Neutral (unwrap1 term)
+  N-wrap : ∀{Φ Γ K}
+    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {arg : Φ ⊢Nf⋆ K}
+    → {term : Γ ⊢  nf (embNf pat · (μ1 · embNf pat) · embNf arg)}
+    → Neutral term
+    → Neutral (wrap1 pat arg term)
 
   N-Λ : ∀ {Φ Γ K x}
     → {B : Φ ,⋆ K ⊢Nf⋆ *}
@@ -249,6 +262,13 @@ data _—→_ : ∀ {J Φ Γ} {A : Φ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ ⊢ A) 
     → M —→ M'
     → unwrap1 M —→ unwrap1 M'
 
+  ξ-wrap : ∀{Φ Γ K}
+    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {arg : Φ ⊢Nf⋆ K}
+    → {M M' : Γ ⊢  nf (embNf pat · (μ1 · embNf pat) · embNf arg)}
+    → M —→ M'
+    → wrap1 pat arg M —→ wrap1 pat arg M'
+
   β-builtin : ∀{Φ Γ}
     → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
@@ -348,26 +368,26 @@ data TelProgress
 \end{code}
 
 \begin{code}
-progress· :  ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}{t : Γ ⊢ A ⇒ B} → Progress t → (u : Γ ⊢ A)
+progress-· :  ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}{t : Γ ⊢ A ⇒ B} → Progress t → (u : Γ ⊢ A)
   → Progress (t · u)
-progress· (step p)         u = step (ξ-·₁ p)
-progress· (done V-ƛ)       u = step β-ƛ
-progress· (neutral p)      u = neutral (N-· p u)
-progress· (error e)        u = error (E-·₁ e)
+progress-· (step p)         u = step (ξ-·₁ p)
+progress-· (done V-ƛ)       u = step β-ƛ
+progress-· (neutral p)      u = neutral (N-· p u)
+progress-· (error e)        u = error (E-·₁ e)
 
-progress·⋆ :  ∀{Φ Γ}{K x B}{t : Γ ⊢ Π x B} → Progress t → (A : Φ ⊢Nf⋆ K)
+progress-·⋆ :  ∀{Φ Γ}{K x B}{t : Γ ⊢ Π x B} → Progress t → (A : Φ ⊢Nf⋆ K)
   → Progress (t ·⋆ A)
-progress·⋆ (step p)       A = step (ξ-·⋆ p)
-progress·⋆ (done (V-Λ p)) A = step β-Λ
-progress·⋆ (neutral p)    A = neutral (N-·⋆ p A)
-progress·⋆ (error e)      A = error (E-·⋆ e)
+progress-·⋆ (step p)       A = step (ξ-·⋆ p)
+progress-·⋆ (done (V-Λ p)) A = step β-Λ
+progress-·⋆ (neutral p)    A = neutral (N-·⋆ p A)
+progress-·⋆ (error e)      A = error (E-·⋆ e)
 
 progress-unwrap : ∀{Φ Γ K}{pat}{arg : Φ ⊢Nf⋆ K}{t : Γ ⊢ ne ((μ1 · pat) · arg)}
   → Progress t → Progress (unwrap1 t)
-progress-unwrap (step p)       = step (ξ-unwrap1 p)
-progress-unwrap (done V-wrap1) = step β-wrap1
-progress-unwrap (neutral p)    = neutral (N-unwrap1 p)
-progress-unwrap (error e)      = error (E-unwrap e)
+progress-unwrap (step p)           = step (ξ-unwrap1 p)
+progress-unwrap (done (V-wrap p)) = step β-wrap1
+progress-unwrap (neutral p)        = neutral (N-unwrap1 p)
+progress-unwrap (error e)          = error (E-unwrap e)
 
 progress-builtin : ∀{Φ Γ} bn
   (σ : ∀{J} → proj₁ (SIG bn) ∋⋆ J → Φ ⊢Nf⋆ J)
@@ -418,19 +438,29 @@ progressTel {As = []}     tt         = done tt
 progressTel {As = A ∷ As} (t ,, tel) =
   progressTelCons (progress t) (progressTel tel)
 
-progressΛ : ∀{Φ Γ K x}{B : Φ ,⋆ K ⊢Nf⋆ *}{M : Γ ,⋆ K ⊢ B} → Progress M →
-  Progress (Λ x M)
-progressΛ (step p)    = step (ξ-Λ p)
-progressΛ (done p)    = done (V-Λ p)
-progressΛ (neutral p) = neutral (N-Λ p)
-progressΛ (error e)   = error (E-Λ e)
+progress-Λ : ∀{Φ Γ K x}{B : Φ ,⋆ K ⊢Nf⋆ *}{M : Γ ,⋆ K ⊢ B}
+  → Progress M → Progress (Λ x M)
+progress-Λ (step p)    = step (ξ-Λ p)
+progress-Λ (done p)    = done (V-Λ p)
+progress-Λ (neutral p) = neutral (N-Λ p)
+progress-Λ (error e)   = error (E-Λ e)
+
+progress-wrap :  ∀{Φ Γ K}
+   → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+   → {arg : Φ ⊢Nf⋆ K}
+   → {term : Γ ⊢  nf (embNf pat · (μ1 · embNf pat) · embNf arg)}
+   → Progress term → Progress (wrap1 pat arg term)
+progress-wrap (step p)    = step (ξ-wrap p)
+progress-wrap (done v)    = done (V-wrap v)
+progress-wrap (neutral p) = neutral (N-wrap p)
+progress-wrap (error e)   = error (E-wrap e)
 
 progress (` x)                = neutral (N-` x)
 progress (ƛ x M)              = done V-ƛ
-progress (M · N)              = progress· (progress M) N
-progress (Λ _ M)              = progressΛ (progress M)
-progress (M ·⋆ A)             = progress·⋆ (progress M) A
-progress (wrap1 pat arg term) = done V-wrap1
+progress (M · N)              = progress-· (progress M) N
+progress (Λ _ M)              = progress-Λ (progress M)
+progress (M ·⋆ A)             = progress-·⋆ (progress M) A
+progress (wrap1 pat arg term) = progress-wrap (progress term)
 progress (unwrap1 M)          = progress-unwrap (progress M)
 progress (con c)              = done (V-con c)
 progress (builtin bn σ X)     = progress-builtin bn σ X (progressTel X)

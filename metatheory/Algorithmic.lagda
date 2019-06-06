@@ -48,9 +48,9 @@ a type variable of a given kind, or extends a context
 by a variable of a given type.
 \begin{code}
 data Ctx : Ctx⋆ → Set where
-  ∅ : Ctx ∅
+  ∅    : Ctx ∅
   _,⋆_ : ∀{Φ} → Ctx Φ → (J : Kind) → Ctx (Φ ,⋆ J)
-  _,_ : ∀ {Φ J} (Γ : Ctx Φ) → Φ ⊢Nf⋆ J → Ctx Φ
+  _,_  : ∀ {Φ J} (Γ : Ctx Φ) → Φ ⊢Nf⋆ J → Ctx Φ
 \end{code}
 Let `Γ` range over contexts.  In the last rule,
 the type is indexed by the erasure of the previous
