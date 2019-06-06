@@ -1,6 +1,7 @@
 module Simulation where
 
 import Marlowe.Semantics
+
 import API (RunResult(RunResult))
 import Ace.EditSession as Session
 import Ace.Editor as Editor
@@ -14,7 +15,7 @@ import Data.Either (Either(..))
 import Data.Eq ((==), (/=))
 import Data.Foldable (all)
 import Data.HeytingAlgebra ((&&))
-import Data.Lens (to, view)
+import Data.Lens (to, view, (^.))
 import Data.List (List(..))
 import Data.Map (Map)
 import Data.Map as Map
@@ -38,7 +39,7 @@ import LocalStorage as LocalStorage
 import Marlowe.Types (BlockNumber(BlockNumber), Person, IdOracle, Choice, IdAction, IdCommit, Timeout, WIdChoice(..), IdChoice(..))
 import Prelude (Unit, bind, const, discard, flip, identity, pure, show, class Show, unit, void, ($), (<$>), (<<<), (<>))
 import StaticData as StaticData
-import Types (ChildQuery, ChildSlot, FrontendState, InputData, MarloweEditorSlot(MarloweEditorSlot), MarloweError(MarloweError), MarloweState, OracleEntry, Query(..), TransactionValidity(..), _Head, _blockNum, _contract, _input, _marloweState, _moneyInContract, _outcomes, _signatures, _state, _transaction, _validity, cpMarloweEditor, isInvalidTransaction, isValidTransaction)
+import Types (ChildQuery, ChildSlot, FrontendState, InputData, MarloweEditorSlot(MarloweEditorSlot), MarloweError(MarloweError), MarloweState, OracleEntry, Query(..), TransactionValidity(..), _Head, _blockNum, _contract, _currentTransaction, _input, _marloweState, _moneyInContract, _outcomes, _signatures, _state, _transaction, _validity, cpMarloweEditor, isInvalidTransaction, isValidTransaction)
 
 paneHeader :: forall p. String -> HTML p Query
 paneHeader s = h2 [class_ $ ClassName "pane-header"] [text s]
@@ -61,8 +62,8 @@ simulationPane state =
         , stateTitle state
         , row_ [statePane state]
         ]
-      , transErrors
-      , contractParsingErr
+      , state ^. (_currentTransaction <<< _validity <<< to transactionErrors)
+      , contractParsingError (isContractValid state)
       , [ div
             [ classes
                 [ ClassName "demos"
@@ -86,10 +87,6 @@ simulationPane state =
       ]
     )
   where
-  transErrors = transactionErrors (view (_marloweState <<< _Head <<< _transaction <<< _validity) state)
-
-  contractParsingErr = contractParsingError (isContractValid state)
-
   errorList = case state.marloweCompileResult of
     Left errors -> listGroup_ (listGroupItem_ <<< pure <<< compilationErrorPane <$> errors)
     _ -> empty
@@ -112,15 +109,6 @@ initEditor editor =
           contents = fromMaybe "" (savedContents <|> defaultContents)
         void $ Editor.setValue contents (Just 1) editor
         Editor.setTheme "ace/theme/monokai" editor
-        --
-        --
-        --
-        --
-        --
-        --
-        --
-        --
-        --
         session <- Editor.getSession editor
         Session.setMode "ace/mode/haskell" session
 

@@ -178,4 +178,3 @@ parseGistUrl str = do
 
 firstMatch :: String -> Gist -> Maybe GistFile
 firstMatch filename = findOf (gistFiles <<< traversed) (\gistFile -> view gistFileFilename gistFile == filename)
- -- playgroundGistFile :: Gist -> Maybe GistFile -- playgroundGistFile = firstMatch gistSourceFilename

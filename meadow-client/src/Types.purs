@@ -22,7 +22,7 @@ import Language.Haskell.Interpreter (InterpreterError, InterpreterResult)
 import Marlowe.Semantics (DetachedPrimitiveWIA, AnyInput, State, ErrorResult, DynamicProblem)
 import Marlowe.Types (BlockNumber, Choice, Contract, IdChoice, IdOracle, Person)
 import Network.RemoteData (RemoteData)
-import Prelude (class Eq, class Ord, class Show, Unit)
+import Prelude (class Eq, class Ord, class Show, Unit, (<<<))
 import Servant.PureScript.Ajax (AjaxError)
 import Type.Data.Boolean (kind Boolean)
 import Web.HTML.Event.DragEvent (DragEvent)
@@ -239,3 +239,16 @@ _result = prop (SProxy :: SProxy "result")
 
 _warnings :: forall s a. Lens' {warnings :: a | s} a
 _warnings = prop (SProxy :: SProxy "warnings")
+
+_currentMarloweState :: forall a. Lens' { marloweState :: NonEmptyList MarloweState | a } MarloweState
+_currentMarloweState = _marloweState <<< _Head
+
+_currentContract :: forall a. Lens'  { marloweState :: NonEmptyList MarloweState | a } (Maybe Contract)
+_currentContract = _currentMarloweState <<< _contract
+
+_currentTransaction :: forall a. Lens'  { marloweState :: NonEmptyList MarloweState | a } TransactionData
+_currentTransaction = _currentMarloweState <<< _transaction
+
+_currentInput  :: forall a. Lens'  { marloweState :: NonEmptyList MarloweState | a } InputData
+_currentInput = _currentMarloweState <<< _input
+
