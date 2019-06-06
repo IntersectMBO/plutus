@@ -184,6 +184,16 @@ let
     };
 
     plutus-playground = rec {
+      documentation-site = let
+        # TODO: the playgroundUrl needs to be set to whatever will actually be appropriate when it's bundled
+        # with the playground
+        adjustedTutorial = docs.plutus-tutorial.override { playgroundUrl = "../.."; haddockUrl = "../haddock"; };
+      in pkgs.runCommand "documentation-site" {} ''
+        mkdir -p $out
+        cp -aR ${adjustedTutorial} $out/tutorial
+        cp -aR ${docs.public-combined-haddock}/share/doc $out/haddock
+      '';
+
       playground-exe = set-git-rev haskellPackages.plutus-playground-server;
       server-invoker = let
         # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
