@@ -403,7 +403,7 @@ updateState ::
   HalogenM FrontendState Query (Coproduct AceQuery AceQuery) (Either EditorSlot MarloweEditorSlot) Void m Unit
 updateState = do
   saveInitialState
-  modifying (_currentMarloweState) (updateStateP)
+  modifying _currentMarloweState updateStateP
 
 updateContractInStateP :: String -> MarloweState -> MarloweState
 updateContractInStateP text state = set (_contract) con state
@@ -414,7 +414,7 @@ updateContractInStateP text state = set (_contract) con state
 
 updateContractInState :: forall m. MonadState FrontendState m => String -> m Unit
 updateContractInState text = do
-  modifying (_currentMarloweState) (updateStateP <<< updateContractInStateP text)
+  modifying _currentMarloweState (updateStateP <<< updateContractInStateP text)
 
 saveInitialState ::
   forall m.
@@ -422,7 +422,7 @@ saveInitialState ::
   HalogenM FrontendState Query (Coproduct AceQuery AceQuery) (Either EditorSlot MarloweEditorSlot) Void m Unit
 saveInitialState = do
   oldContract <- withMarloweEditor Editor.getValue
-  modifying (_oldContract)
+  modifying _oldContract
     ( \x -> case x of
       Nothing ->
         Just
@@ -439,8 +439,8 @@ resetContract ::
   HalogenM FrontendState Query (Coproduct AceQuery AceQuery) (Either EditorSlot MarloweEditorSlot) Void m Unit
 resetContract = do
   newContract <- withMarloweEditor Editor.getValue
-  modifying (_marloweState) (const $ NEL.singleton emptyMarloweState)
-  modifying (_oldContract) (const Nothing)
+  assign _marloweState $ NEL.singleton emptyMarloweState
+  assign _oldContract Nothing
   updateContractInState
     ( case newContract of
       Nothing -> ""
@@ -582,7 +582,7 @@ evalF (SetSignature {person, isChecked} next) = do
 
 evalF (ApplyTransaction next) = do
   saveInitialState
-  modifying (_marloweState) (extendWith applyTransactionM)
+  modifying _marloweState (extendWith applyTransactionM)
   mCurrContract <- use _currentContract
   case mCurrContract of
     Just currContract -> do
@@ -629,7 +629,7 @@ evalF (SetOracleBn {idOracle, blockNumber} next) = do
   pure next
 
 evalF (ResetSimulator next) = do
-  oldContract <- use (_oldContract)
+  oldContract <- use _oldContract
   currContract <- withMarloweEditor Editor.getValue
   let
     newContract = case oldContract of
@@ -642,7 +642,7 @@ evalF (ResetSimulator next) = do
   pure next
 
 evalF (Undo next) = do
-  modifying (_marloweState) removeState
+  modifying _marloweState removeState
   mCurrContract <- use _currentContract
   case mCurrContract of
     Just currContract -> void <<< withMarloweEditor $ Editor.setValue (show $ pretty currContract) (Just 1)
