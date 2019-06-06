@@ -1,7 +1,6 @@
 module Marlowe.ContractTests where
 
 import Prelude
-
 import Data.Either (Either(..))
 import Data.Integral (fromIntegral)
 import Data.Lens (set)
@@ -21,38 +20,62 @@ import Test.Unit.Assert (assert)
 import Text.Parsing.Parser (runParser)
 
 all :: TestSuite
-all = suite "Contract Tests" do
-        test "Escrow" do
-          case runParser Contracts.escrow contract of
-            Left parseError -> failure "could not parse escrow contract"
-            Right escrow -> let choiceA = IdChoice {choice: (fromIntegral 1), person: Person (fromIntegral 1)} 
-                                choiceB = IdChoice {choice: (fromIntegral 1), person: Person (fromIntegral 2)}
-                                actions = [ ApplyTransaction (Tuple 
-                                                (List.fromFoldable [ Input (IChoice choiceA (fromIntegral 1))
-                                                                   , Input (IChoice choiceB (fromIntegral 1))
-                                                                   , Action (IdAction (fromIntegral 1))
-                                                                   , Action (IdAction (fromIntegral 2))
-                                                                   ]) 
-                                                (Set.fromFoldable [Person (fromIntegral 1), Person (fromIntegral 2)]))
-                                           ]
-                                finalState = run escrow actions 
-                                expectedState = State { choices: Map.fromFoldable [ Tuple (WIdChoice choiceA) (fromIntegral 1)
-                                                                                  , Tuple (WIdChoice choiceB) (fromIntegral 1)
-                                                                                  ]
-                                                      , commits: CommitInfo { currentCommitsById: Map.fromFoldable [Tuple (wrap (fromIntegral 1)) (CommitInfoRecord { amount: (fromIntegral 0)
-                                                                                                                                                                    , person: wrap (fromIntegral 1)
-                                                                                                                                                                    , timeout: wrap (fromIntegral 100)
-                                                                                                                                                                    })]
-                                                                            , expiredCommitIds: mempty
-                                                                            , redeemedPerPerson: mempty
-                                                                            , timeoutData: Map.fromFoldable [(Tuple (wrap (fromIntegral 100)) (Set.fromFoldable [IdCommit (fromIntegral 1)]))] 
-                                                                            }
-                                                      , oracles: mempty
-                                                      , usedIds: Set.fromFoldable [(wrap <<< fromIntegral $ 1), (wrap <<< fromIntegral $ 2)]
-                                                      }
-                                expectedTestState = set (_Newtype <<< _state) expectedState initialState
-                            in
-                                assertState expectedTestState finalState
+all =
+  suite "Contract Tests" do
+    test "Escrow" do
+      case runParser Contracts.escrow contract of
+        Left parseError -> failure "could not parse escrow contract"
+        Right escrow ->
+          let
+            choiceA = IdChoice {choice: (fromIntegral 1), person: Person (fromIntegral 1)}
+
+            choiceB = IdChoice {choice: (fromIntegral 1), person: Person (fromIntegral 2)}
+
+            actions =
+              [ ApplyTransaction
+                  ( Tuple
+                    ( List.fromFoldable
+                      [ Input (IChoice choiceA (fromIntegral 1))
+                      , Input (IChoice choiceB (fromIntegral 1))
+                      , Action (IdAction (fromIntegral 1))
+                      , Action (IdAction (fromIntegral 2))
+                      ]
+                    ) (Set.fromFoldable [Person (fromIntegral 1), Person (fromIntegral 2)])
+                  )
+              ]
+
+            finalState = run escrow actions
+
+            expectedState =
+              State
+                { choices:
+                  Map.fromFoldable
+                    [ Tuple (WIdChoice choiceA) (fromIntegral 1)
+                    , Tuple (WIdChoice choiceB) (fromIntegral 1)
+                    ]
+                , commits:
+                  CommitInfo
+                    { currentCommitsById:
+                      Map.fromFoldable
+                        [ Tuple (wrap (fromIntegral 1))
+                            ( CommitInfoRecord
+                              { amount: (fromIntegral 0)
+                              , person: wrap (fromIntegral 1)
+                              , timeout: wrap (fromIntegral 100)
+                              }
+                            )
+                        ]
+                    , expiredCommitIds: mempty
+                    , redeemedPerPerson: mempty
+                    , timeoutData: Map.fromFoldable [(Tuple (wrap (fromIntegral 100)) (Set.fromFoldable [IdCommit (fromIntegral 1)]))]
+                    }
+                , oracles: mempty
+                , usedIds: Set.fromFoldable [(wrap <<< fromIntegral $ 1), (wrap <<< fromIntegral $ 2)]
+                }
+
+            expectedTestState = set (_Newtype <<< _state) expectedState initialState
+          in
+            assertState expectedTestState finalState
 
 assertState :: TestState -> TestState -> Test
 assertState a b = assert ("TestState not equal, expected: \n\n" <> show a <> "\n\n but got:\n\n" <> show b) $ a == b

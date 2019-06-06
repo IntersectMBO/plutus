@@ -775,8 +775,7 @@ renderSmart = renderFits fitsR
 renderFits ::
   (Int -> Int -> Int -> SimpleDoc -> Boolean) ->
   Number -> Int -> Doc -> SimpleDoc
-renderFits fits rfrac w headNode -- I used to do a @SSGR [Reset]@ here, but if you do that it will result
- -- in any rendered @Doc@ containing at least some ANSI control codes. This
+renderFits fits rfrac w headNode -- I used to do a @SSGR [Reset]@ here, but if you do that it will result -- in any rendered @Doc@ containing at least some ANSI control codes. This
  -- may be undesirable if you want to render to non-ANSI devices by simply
  -- not making use of the ANSI color combinators I provide.
  --

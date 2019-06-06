@@ -8,25 +8,18 @@ import AjaxUtils (ajaxErrorPane)
 import Auth (AuthRole(..), AuthStatus, authStatusAuthRole)
 import Bootstrap (btn, btnBlock, btnDanger, btnInfo, btnPrimary, btnSmall, col12_, col6_, empty, formControl, isInvalid, isValid, nbsp, pullRight, row_)
 import DOM.HTML.Indexed.InputType (InputType(..))
-import Data.Array (catMaybes)
-import Data.Array as Array
 import Data.Array.NonEmpty as NonEmptyArray
 import Data.Either (Either(..), isRight, note)
-import Data.Generic.Rep (class Generic)
 import Data.Lens (findOf, traversed, view)
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Newtype (class Newtype, unwrap)
 import Data.String.Regex (Regex, match, regex)
 import Data.String.Regex.Flags (ignoreCase)
-import Foreign.Class (class Decode, class Encode)
-import Foreign.Generic (aesonSumEncoding, defaultOptions, encodeJSON, genericDecode, genericEncode)
-import Gist (Gist, GistFile, GistId(GistId), NewGist(NewGist), NewGistFile(NewGistFile), gistFileFilename, gistFiles, gistHtmlUrl)
+import Gist (Gist, GistFile, GistId(GistId), gistFileFilename, gistFiles, gistHtmlUrl)
 import Halogen.HTML (ClassName(ClassName), HTML, IProp, a, button, div, div_, input, text)
 import Halogen.HTML.Events (input_, onClick, onValueInput)
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties (class_, classes, disabled, href, id_, placeholder, target, type_, value)
 import Icons (Icon(..), icon)
-import Language.Haskell.Interpreter (SourceCode)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success))
 import Prelude (Unit, bind, ($), (<$>), (<<<), (<>), (=<<), (==))
 import Servant.PureScript.Ajax (AjaxError)
@@ -38,9 +31,14 @@ idPublishGist = id_ "publish-gist"
 idLoadGist :: forall r i. IProp (id :: String | r) i
 idLoadGist = id_ "load-gist"
 
-gistControls :: forall a p. { authStatus :: RemoteData AjaxError AuthStatus
+gistControls ::
+  forall a p.
+  { authStatus :: RemoteData AjaxError AuthStatus
   , createGistResult :: RemoteData AjaxError Gist
-  , gistUrl :: Maybe String | a } -> HTML p (Query Unit)
+  , gistUrl :: Maybe String
+  | a
+  } ->
+  HTML p (Query Unit)
 gistControls {authStatus, createGistResult, gistUrl} =
   div [classes [ClassName "gist-controls"]]
     [ authButton
@@ -180,6 +178,4 @@ parseGistUrl str = do
 
 firstMatch :: String -> Gist -> Maybe GistFile
 firstMatch filename = findOf (gistFiles <<< traversed) (\gistFile -> view gistFileFilename gistFile == filename)
-
--- playgroundGistFile :: Gist -> Maybe GistFile
--- playgroundGistFile = firstMatch gistSourceFilename
+ -- playgroundGistFile :: Gist -> Maybe GistFile -- playgroundGistFile = firstMatch gistSourceFilename

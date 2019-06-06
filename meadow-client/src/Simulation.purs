@@ -1,154 +1,50 @@
 module Simulation where
 
-import Data.BigInteger (BigInteger, fromString, fromInt)
-import Data.Ord ((>=))
 import Marlowe.Semantics
-import Data.Semiring ((+))
-import Data.Map (Map)
-import Data.List (List(..))
-import Data.Set as Set
 import API (RunResult(RunResult))
+import Ace.EditSession as Session
+import Ace.Editor as Editor
 import Ace.Halogen.Component (Autocomplete(Live), aceComponent)
 import Ace.Types (Editor)
-import Bootstrap
-  ( btn
-  , btnInfo
-  , btnPrimary
-  , btnSmall
-  , cardBody_
-  , card
-  , card_
-  , col6
-  , col_
-  , row_
-  , empty
-  , listGroupItem_
-  , listGroup_
-  )
+import Bootstrap (btn, btnInfo, btnPrimary, btnSmall, cardBody_, card, card_, col6, col_, row_, empty, listGroupItem_, listGroup_)
 import Control.Alternative (map, (<|>))
-import Effect.Aff.Class (class MonadAff)
-import Effect (Effect)
-import Effect.Class (liftEffect)
+import Data.Array as Array
+import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.Either (Either(..))
 import Data.Eq ((==), (/=))
 import Data.Foldable (all)
+import Data.HeytingAlgebra ((&&))
+import Data.Lens (to, view)
+import Data.List (List(..))
+import Data.Map (Map)
+import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
+import Data.Ord ((>=))
+import Data.Semiring ((+))
+import Data.Set as Set
 import Data.Tuple (Tuple(..))
-import Data.HeytingAlgebra ((&&))
+import Effect (Effect)
+import Effect.Aff.Class (class MonadAff)
+import Effect.Class (liftEffect)
 import Halogen (HTML, action)
 import Halogen.Component (ParentHTML)
-import Halogen.HTML
-  ( ClassName
-    ( ClassName
-    )
-  , b_
-  , br_
-  , button
-  , code_
-  , col
-  , colgroup
-  , div
-  , div_
-  , h2
-  , h3_
-  , input
-  , li_
-  , pre_
-  , slot'
-  , span
-  , span_
-  , strong_
-  , table_
-  , tbody_
-  , td
-  , td_
-  , text
-  , th
-  , th_
-  , thead_
-  , tr
-  , ul_
-  )
+import Halogen.HTML (ClassName(ClassName), b_, br_, button, code_, col, colgroup, div, div_, h2, h3_, input, li_, pre_, slot', span, span_, strong_, table_, tbody_, td, td_, text, th, th_, thead_, tr, ul_)
 import Halogen.HTML.Events (input_, onChecked, onClick, onDragOver, onDrop, onValueChange)
-import Halogen.HTML.Properties
-  ( InputType
-    ( InputCheckbox
-    , InputNumber
-    )
-  , checked
-  , class_
-  , classes
-  , enabled
-  , placeholder
-  , type_
-  , value
-  )
-import Prelude
-  ( Unit
-  , bind
-  , const
-  , discard
-  , flip
-  , identity
-  , pure
-  , show
-  , class Show
-  , unit
-  , void
-  , ($)
-  , (<$>)
-  , (<<<)
-  , (<>)
-  )
-import Marlowe.Types (BlockNumber(BlockNumber), Person, IdOracle, Choice, IdAction, IdCommit, Timeout, WIdChoice(..), IdChoice(..))
-import Types
-  ( ChildQuery
-  , ChildSlot
-  , FrontendState
-  , InputData
-  , MarloweEditorSlot
-    ( MarloweEditorSlot
-    )
-  , MarloweError
-    ( MarloweError
-    )
-  , MarloweState
-  , OracleEntry
-  , Query
-    ( SetSignature
-    , AddAnyInput
-    , RemoveAnyInput
-    , SetChoice
-    , SetOracleVal
-    , SetOracleBn
-    , ResetSimulator
-    , NextBlock
-    , ApplyTransaction
-    , LoadMarloweScript
-    , MarloweHandleEditorMessage
-    , MarloweHandleDropEvent
-    , MarloweHandleDragEvent
-    )
-  , TransactionValidity(..)
-  , cpMarloweEditor
-  , isValidTransaction
-  , isInvalidTransaction
-  )
-import Ace.EditSession as Session
-import Ace.Editor as Editor
-import Data.Array as Array
-import Data.Map as Map
 import Halogen.HTML.Events as Events
+import Halogen.HTML.Properties (InputType(InputCheckbox, InputNumber), checked, class_, classes, enabled, placeholder, type_, value)
 import Halogen.Query as HQ
 import LocalStorage as LocalStorage
+import Marlowe.Types (BlockNumber(BlockNumber), Person, IdOracle, Choice, IdAction, IdCommit, Timeout, WIdChoice(..), IdChoice(..))
+import Prelude (Unit, bind, const, discard, flip, identity, pure, show, class Show, unit, void, ($), (<$>), (<<<), (<>))
 import StaticData as StaticData
+import Types (ChildQuery, ChildSlot, FrontendState, InputData, MarloweEditorSlot(MarloweEditorSlot), MarloweError(MarloweError), MarloweState, OracleEntry, Query(..), TransactionValidity(..), _Head, _blockNum, _contract, _input, _marloweState, _moneyInContract, _outcomes, _signatures, _state, _transaction, _validity, cpMarloweEditor, isInvalidTransaction, isValidTransaction)
 
 paneHeader :: forall p. String -> HTML p Query
 paneHeader s = h2 [class_ $ ClassName "pane-header"] [text s]
 
 isContractValid :: FrontendState -> Boolean
-isContractValid x = (x.marloweState.contract /= Nothing)
+isContractValid state = view (_marloweState <<< _Head <<< _contract) state /= Nothing
 
 simulationPane ::
   forall m.
@@ -190,7 +86,7 @@ simulationPane state =
       ]
     )
   where
-  transErrors = transactionErrors state.marloweState.transaction.validity
+  transErrors = transactionErrors (view (_marloweState <<< _Head <<< _transaction <<< _validity) state)
 
   contractParsingErr = contractParsingError (isContractValid state)
 
@@ -264,7 +160,7 @@ inputComposerPane state =
         [ class_ $ ClassName "wallet"
         ]
         [ card_
-            [ cardBody_ (inputComposer isEnabled (state.marloweState.input))
+            [ cardBody_ (inputComposer isEnabled (view (_marloweState <<< _Head <<< _input) state))
             ]
         ]
     ]
@@ -490,14 +386,14 @@ transactionComposerPane state =
         ]
         [ div
             [ classes
-                ( ( if (isInvalidTransaction state.marloweState.transaction.validity)
+                ( ( if (isInvalidTransaction (view (_marloweState <<< _Head <<< _transaction <<< _validity) state))
                   then (flip Array.snoc) (ClassName "invalid-transaction")
                   else identity
                 ) [card]
                 )
             ]
-            [ cardBody_ $ transactionInputs state.marloweState
-                <> ( signatures state.marloweState.transaction.signatures (isContractValid state) state.marloweState.transaction.outcomes
+            [ cardBody_ $ transactionInputs (view (_marloweState <<< _Head) state)
+                <> ( signatures (view (_marloweState <<< _Head <<< _transaction <<< _signatures) state) (isContractValid state) (view (_marloweState <<< _Head <<< _transaction <<< _outcomes) state)
                   )
                 <> transactionButtons state
             ]
@@ -522,7 +418,7 @@ transactionButtons state =
               , ClassName "transaction-btn"
               ]
           , onClick $ Just <<< HQ.action <<< const ApplyTransaction
-          , enabled (isValidTransaction state.marloweState.transaction.validity && isContractValid state)
+          , enabled (isValidTransaction (view (_marloweState <<< _Head <<< _transaction <<< _validity) state) && isContractValid state)
           ] [text "Apply Transaction"]
       , button
           [ classes
@@ -542,6 +438,15 @@ transactionButtons state =
           , enabled (state.oldContract /= Nothing)
           , onClick $ Just <<< HQ.action <<< const ResetSimulator
           ] [text "Reset"]
+      , button
+          [ classes
+              [ btn
+              , btnPrimary
+              , ClassName "transaction-btn"
+              ]
+          -- , enabled (state.oldContract /= Nothing)
+          , onClick $ Just <<< HQ.action <<< const Undo
+          ] [text "Undo"]
       ]
   ]
 
@@ -775,7 +680,7 @@ stateTitle state =
         , span
             [ class_ $ ClassName "block-number"
             ]
-            [ text (show state.marloweState.blockNum)
+            [ view (_marloweState <<< _Head <<< _blockNum <<< to show <<< to text) state
             ]
         , strong_
             [ text "Money in contract:"
@@ -783,7 +688,7 @@ stateTitle state =
         , span
             [ class_ $ ClassName "money-in-contract"
             ]
-            [ text (show state.marloweState.moneyInContract)
+            [ view (_marloweState <<< _Head <<< _moneyInContract <<< to show <<< to text) state
             ]
         , strong_ [text "ADA"]
         ]
@@ -840,7 +745,7 @@ stateTable state =
         ]
     ]
   where
-  (State mState) = state.marloweState.state
+  (State mState) = view (_marloweState <<< _Head <<< _state) state
 
   (CommitInfo commits) = mState.commits
 
