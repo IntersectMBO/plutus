@@ -45,7 +45,7 @@ conv∋ refl α = α
 \end{code}
 
 \begin{code}
-embVar : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K}
+embVar : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}
   → Γ Alg.∋ A
   → embCtx Γ Dec.∋ embNf A
 embVar Alg.Z     = Dec.Z
@@ -208,7 +208,7 @@ embTel : ∀{Φ Γ Δ Δ'}(q : Δ' ≡ Δ)
   → Alg.Tel Γ Δ σ As
   → Dec.Tel (embCtx Γ) Δ' (λ {J} α → (embNf (σ (substEq (_∋⋆ J) q α)))) As'
 
-emb : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A
+emb : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A
 
 embTel refl [] [] p σ x = tt
 embTel refl [] (A' ∷ As') () σ x
@@ -241,6 +241,6 @@ emb (Alg.builtin bn σ tel) = let
       (embTel (nfTypeSIG≡₁ bn) As' As (lemList' bn) σ tel))
 emb (Alg.error A) = Dec.error (embNf A)
 
-soundnessT : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A
+soundnessT : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A
 soundnessT = emb
 \end{code}

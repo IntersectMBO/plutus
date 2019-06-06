@@ -30,7 +30,7 @@ len (Γ , A)  = suc (len Γ)
 \end{code}
 
 \begin{code}
-eraseVar : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K} → Γ ∋ A → Fin (len Γ)
+eraseVar : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ∋ A → Fin (len Γ)
 eraseVar Z     = zero
 eraseVar (S α) = suc (eraseVar α) 
 eraseVar (T α) = eraseVar α
@@ -44,7 +44,7 @@ open import Type.BetaNBE.RenamingSubstitution
 eraseTel : ∀{Φ Γ Δ}{σ : SubNf Δ Φ}{As : List (Δ ⊢Nf⋆ *)}
   → Tel Γ Δ σ As
   → List (len Γ ⊢)
-erase : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K} → Γ ⊢ A → len Γ ⊢
+erase : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → len Γ ⊢
 
 erase (` α)             = ` (eraseVar α)
 erase (ƛ x t)           = ƛ x (erase t) 
@@ -92,7 +92,7 @@ lemsuc : ∀{n n'}(p : suc n ≡ suc n')(q : n ≡ n')(i : Fin n) →
   suc (subst Fin q i) ≡ subst Fin p (suc i)
 lemsuc refl refl i = refl
 
-lemT : ∀{Φ J K}{Γ : Ctx Φ}{A A' : Φ ⊢Nf⋆ J}{A'' : Φ ,⋆ K ⊢Nf⋆ J}
+lemT : ∀{Φ K}{Γ : Ctx Φ}{A A' : Φ ⊢Nf⋆ *}{A'' : Φ ,⋆ K ⊢Nf⋆ *}
   → (p : weakenNf {K = K} A ≡ A'')(q : A ≡ A')(x : Γ ∋ A)
   → eraseVar x ≡ eraseVar (conv∋ p (T x))
 lemT refl refl x = refl
@@ -104,7 +104,7 @@ sameTC : ∀{Φ Γ}{A : Φ ⊢⋆ *}(tcn : DC.TyTermCon A)
 sameTC (DC.integer i)    = refl
 sameTC (DC.bytestring b) = refl
 
-sameVar : ∀{Φ Γ J}{A : Φ ⊢⋆ J}(x : Γ D.∋ A)
+sameVar : ∀{Φ Γ}{A : Φ ⊢⋆ *}(x : Γ D.∋ A)
   → D.eraseVar x ≡ subst Fin (lenLemma Γ) (eraseVar (nfTyVar x))
 sameVar {Γ = Γ D., _} D.Z = lemzero (cong suc (lenLemma Γ))
 sameVar {Γ = Γ D., _} (D.S x) = trans
@@ -146,7 +146,7 @@ open import Type.RenamingSubstitution renaming (subst to sub)
 open import Type.Equality
 open import Type.BetaNBE.Soundness
 
-same : ∀{Φ Γ J}{A : Φ ⊢⋆ J}(t : Γ D.⊢ A)
+same : ∀{Φ Γ}{A : Φ ⊢⋆ *}(t : Γ D.⊢ A)
   → D.erase t ≡ subst _⊢ (lenLemma Γ) (erase (nfType t)) 
 
 sameTel : ∀{Φ Γ Δ}(σ : Sub Δ Φ)(As : List (Δ ⊢⋆ *))(tel : D.Tel Γ Δ σ As)

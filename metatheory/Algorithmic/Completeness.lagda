@@ -18,19 +18,19 @@ nfCtx Syn.∅ = Norm.∅
 nfCtx (Γ Syn.,⋆ K) = nfCtx Γ Norm.,⋆ K
 nfCtx (Γ Syn., A) = nfCtx Γ Norm., nf A
 
-conv∋ : ∀ {Φ Γ K}{A : Φ ⊢Nf⋆ K}{A' : Φ ⊢Nf⋆ K}
+conv∋ : ∀ {Φ Γ}{A A' : Φ ⊢Nf⋆ *}
  → A ≡ A' →
  (Γ Norm.∋ A) → Γ Norm.∋ A'
 conv∋ refl α = α
 
 
-subst⊢ : ∀ {Φ Γ K}{A : Φ ⊢Nf⋆ K}{A' : Φ ⊢Nf⋆ K}
+subst⊢ : ∀ {Φ Γ}{A A' : Φ ⊢Nf⋆ *}
  → A ≡ A' →
  (Γ Norm.⊢ A) → Γ Norm.⊢ A'
 subst⊢ refl α = α
 
-nfTyVar : ∀{Φ Γ K}
-  → {A : Φ ⊢⋆ K}
+nfTyVar : ∀{Φ Γ}
+  → {A : Φ ⊢⋆ *}
   → Γ Syn.∋ A
   → nfCtx Γ Norm.∋ nf A
 nfTyVar Syn.Z = Norm.Z
@@ -186,8 +186,8 @@ lemList sha3-256 = refl
 lemList verifySignature = refl
 lemList equalsByteString = refl
 
-nfType : ∀{Φ Γ K}
-  → {A : Φ ⊢⋆ K}
+nfType : ∀{Φ Γ}
+  → {A : Φ ⊢⋆ *}
   → Γ Syn.⊢ A
   → nfCtx Γ Norm.⊢ nf A
   
@@ -244,7 +244,7 @@ nfType {Γ} (Syn.builtin bn σ tel) = let
       (nfTypeTel' σ As (sym (nfTypeSIG≡₁ bn)) As' (lemList bn) tel))
 nfType {Γ} (Syn.error A) = Norm.error (nf A)
 
-completenessT : ∀{Φ Γ K}{A : Φ ⊢⋆ K} → Γ Syn.⊢ A
+completenessT : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ Syn.⊢ A
   → nfCtx Γ Norm.⊢ nf A × (A ≡β embNf (nf A))
 completenessT {A = A} t = nfType t ,, soundness A
 \end{code}

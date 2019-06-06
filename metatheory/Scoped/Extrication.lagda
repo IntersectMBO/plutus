@@ -59,7 +59,7 @@ len (Γ , A) = S (len Γ)
 
 open import Relation.Binary.PropositionalEquality as Eq
 
-extricateVar : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K} → Γ ∋ A → WeirdFin (len Γ)
+extricateVar : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ∋ A → WeirdFin (len Γ)
 extricateVar Z = Z
 extricateVar (S x) = S (extricateVar x)
 extricateVar (T x) = T (extricateVar x)
@@ -84,7 +84,7 @@ extricateTyL (A ∷ As) = extricateNf⋆ A ∷ extricateTyL As
 extricateTel : ∀ {Φ Γ Δ}(σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)(as : List (Δ ⊢Nf⋆ *))
   → Tel Γ Δ σ as
   → List (ScopedTm (len Γ))
-extricate : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K} → Γ ⊢ A → ScopedTm (len Γ)
+extricate : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → ScopedTm (len Γ)
 
 extricateTel σ [] x = []
 extricateTel σ (A ∷ As) (t P., ts) = extricate t ∷ extricateTel σ As ts

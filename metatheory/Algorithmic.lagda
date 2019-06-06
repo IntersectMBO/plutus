@@ -67,18 +67,18 @@ The erasure of a context is a type context.
 
 A variable is indexed by its context and type.
 \begin{code}
-data _∋_ : ∀ {Φ J} (Γ : Ctx Φ) → Φ ⊢Nf⋆ J → Set where
+data _∋_ : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
 
-  Z : ∀ {Φ Γ J} {A : Φ ⊢Nf⋆ J}
+  Z : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *}
       ----------
     → Γ , A ∋ A
 
-  S : ∀ {Φ Γ J K} {A : Φ ⊢Nf⋆ J} {B : Φ ⊢Nf⋆ K}
+  S : ∀ {Φ Γ K} {A : Φ ⊢Nf⋆ *} {B : Φ ⊢Nf⋆ K}
     → Γ ∋ A
       ----------
     → Γ , B ∋ A
 
-  T : ∀ {Φ Γ J K} {A : Φ ⊢Nf⋆ J}
+  T : ∀ {Φ Γ K} {A : Φ ⊢Nf⋆ *}
     → Γ ∋ A
       -------------------
     → Γ ,⋆ K ∋ weakenNf A
@@ -95,9 +95,9 @@ open import Data.String
 
 Tel : ∀ {Φ} Γ Δ → (∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J) → List (Δ ⊢Nf⋆ *) → Set
 
-data _⊢_ : ∀ {Φ J} (Γ : Ctx Φ) → Φ ⊢Nf⋆ J → Set where
+data _⊢_ : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
 
-  ` : ∀ {Φ Γ J} {A : Φ ⊢Nf⋆ J}
+  ` : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *}
     → Γ ∋ A
       ------
     → Γ ⊢ A

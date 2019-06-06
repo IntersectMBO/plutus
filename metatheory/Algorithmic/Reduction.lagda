@@ -36,7 +36,7 @@ open import Data.String hiding (_++_; _≟_)
 ## Values
 
 \begin{code}
-data Value :  ∀ {J Φ Γ} {A : Φ ⊢Nf⋆ J} → Γ ⊢ A → Set where
+data Value :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
 
   V-ƛ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}{x : String}{N : Γ , A ⊢ B}
       ---------------------------
@@ -110,8 +110,8 @@ VTel Γ Δ σ (A ∷ As) (t ,, tel) = Value t × VTel Γ Δ σ As tel
 \end{code}
 
 \begin{code}
-data Neutral :  ∀ {J Φ Γ} {A : Φ ⊢Nf⋆ J} → Γ ⊢ A → Set where
-  N-` : ∀{J Φ Γ}{A : Φ ⊢Nf⋆ J}(x : Γ ∋ A) → Neutral (` x)
+data Neutral :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
+  N-` : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ ∋ A) → Neutral (` x)
   N-· : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}{L : Γ ⊢ A ⇒ B} → Neutral L →
     (M : Γ ⊢ A) → Neutral (L · M)
   N-·⋆ : ∀{Φ Γ K x}{B : Φ ,⋆ K ⊢Nf⋆ *}{L : Γ ⊢ Π x B} → Neutral L →
@@ -217,7 +217,7 @@ reconstTel (B ∷ Bs) Ds σ (X ,, telB) t' refl tel' =
 \begin{code}
 infix 2 _—→_
 
-data _—→_ : ∀ {J Φ Γ} {A : Φ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ ⊢ A) → Set where
+data _—→_ : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A) → Set where
 
   ξ-Λ : ∀ {Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}{x}{L L' : Γ ,⋆ K ⊢ B}
     → L —→ L'
@@ -294,14 +294,14 @@ data _—→_ : ∀ {J Φ Γ} {A : Φ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ ⊢ A) 
 \end{code}
 
 \begin{code}
-data _—↠_ {J Φ Γ} : {A : Φ ⊢Nf⋆ J}{A' : Φ ⊢Nf⋆ J} → Γ ⊢ A → Γ ⊢ A' → Set
+data _—↠_ {Φ Γ} : {A A' : Φ ⊢Nf⋆ *} → Γ ⊢ A → Γ ⊢ A' → Set
   where
 
   refl—↠ : ∀{A}{M : Γ ⊢ A}
       --------
     → M —↠ M
 
-  trans—↠ : {A : Φ ⊢Nf⋆ J}{M  M' M'' : Γ ⊢ A}
+  trans—↠ : {A : Φ ⊢Nf⋆ *}{M  M' M'' : Γ ⊢ A}
     → M —→ M'
     → M' —↠ M''
       ---------

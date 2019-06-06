@@ -19,6 +19,6 @@ backVar {Γ = Γ ,⋆ J} x = let
   A P., x = backVar {Γ = Γ} x
   in
   weakenNf A P., T x
-backVar {Γ = Γ , A} zero = {!A!} P., {!!}
+backVar {Γ = Γ , A} zero = {!!} P., {!!}
 backVar {Γ = Γ , A} (suc x) = {!!}
 \end{code}
