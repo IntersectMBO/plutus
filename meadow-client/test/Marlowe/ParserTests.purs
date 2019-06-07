@@ -1,7 +1,6 @@
 module Marlowe.ParserTests where
 
 import Prelude
-
 import Control.Alternative ((<|>))
 import Control.Lazy (class Lazy)
 import Control.Monad.Gen (class MonadGen)
@@ -36,12 +35,12 @@ valueParser :: forall m. MonadGen m => MonadRec m => Lazy (m Value) => m Result
 valueParser = do
   v <- genValue
   pure (runParser (show v) (parens value <|> value) === Right v)
-  
+
 prettyValueParser :: forall m. MonadGen m => MonadRec m => Lazy (m Value) => m Result
 prettyValueParser = do
   v <- genValue
   pure (runParser (show $ pretty v) (parens value <|> value) === Right v)
-  
+
 observationParser :: forall m. MonadGen m => MonadRec m => Lazy (m Value) => Lazy (m Observation) => m Result
 observationParser = do
   v <- genObservation

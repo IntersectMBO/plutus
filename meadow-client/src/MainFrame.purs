@@ -7,10 +7,10 @@ import Ace.Halogen.Component (AceMessage(TextChanged), AceQuery(GetEditor))
 import Ace.Types (Editor, Annotation)
 import AjaxUtils (runAjaxTo, runAjax)
 import Analytics (Event, defaultEvent, trackEvent)
-import Bootstrap (active, btn, btnGroup, btnInfo, btnPrimary, btnSmall, col_, colXs12, colSm6, colSm5, container, container_, empty, hidden, listGroupItem_, listGroup_, navItem_, navLink, navTabs_, noGutters, pullRight, row, justifyContentBetween)
+import Bootstrap (active, btn, btnGroup, btnInfo, btnPrimary, btnSmall, colXs12, colSm6, colSm5, container, container_, empty, hidden, listGroupItem_, listGroup_, navItem_, navLink, navTabs_, noGutters, pullRight, row, justifyContentBetween)
 import Control.Bind (bindFlipped)
 import Control.Monad.Reader.Class (class MonadAsk)
-import Control.Monad.State.Trans (class MonadState, get)
+import Control.Monad.State.Trans (class MonadState)
 import Data.Array (catMaybes, delete, snoc)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
@@ -19,7 +19,10 @@ import Data.Foldable (foldrDefault)
 import Data.Function (flip)
 import Data.Functor.Coproduct (Coproduct)
 import Data.Lens (_Just, assign, modifying, over, preview, set, use, view)
+import Data.Lens.Index (ix)
 import Data.List (List(..))
+import Data.List.NonEmpty (NonEmptyList)
+import Data.List.NonEmpty as NEL
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(Just, Nothing))
@@ -37,7 +40,6 @@ import Effect.Class (class MonadEffect, liftEffect)
 import FileEvents (preventDefault, readFileFromDragEvent)
 import Gist (gistFileContent, gistId)
 import Gists (parseGistUrl, gistControls)
-import Meadow.Gists (mkNewGist, playgroundGistFile)
 import Halogen (Component, action)
 import Halogen as H
 import Halogen.Component (ParentHTML)
@@ -50,9 +52,11 @@ import LocalStorage as LocalStorage
 import Marlowe.Parser (contract)
 import Marlowe.Pretty (pretty)
 import Marlowe.Semantics (ErrorResult(InvalidInput), IdInput(IdOracle, InputIdChoice), MApplicationResult(MCouldNotApply, MSuccessfullyApplied), OracleDataPoint(..), State(State), TransactionOutcomes, applyTransaction, collectNeededInputs, emptyState, peopleFromStateAndContract, reduce, scoutPrimitives)
+import Marlowe.Test (_blockNumber)
 import Marlowe.Types (BlockNumber, Choice, Contract(Null), IdChoice(IdChoice), IdOracle, Person, WIdChoice(WIdChoice))
 import Meadow (SPParams_, getOauthStatus, patchGistsByGistId, postGists, postContractHaskell)
 import Meadow as Meadow
+import Meadow.Gists (mkNewGist, playgroundGistFile)
 import Network.RemoteData (RemoteData(Success, NotAsked, Loading), _Success, isLoading, isSuccess)
 import Prelude (add, one, zero, not, (||), type (~>), Unit, Void, bind, const, discard, identity, pure, show, unit, void, (#), ($), (+), (-), (<$>), (<<<), (<>), (==))
 import Servant.PureScript.Settings (SPSettings_)
@@ -60,7 +64,47 @@ import Simulation (simulationPane)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Parsing.Parser (runParser)
-import Types (ChildQuery, ChildSlot, EditorSlot(EditorSlot), FrontendState, InputData, MarloweEditorSlot(MarloweEditorSlot), MarloweState, OracleEntry, Query(ChangeView, ResetSimulator, SetOracleBn, SetOracleVal, SetChoice, RemoveAnyInput, AddAnyInput, NextBlock, ApplyTransaction, SetSignature, ScrollTo, CompileProgram, LoadMarloweScript, LoadScript, PublishGist, SendResult, CheckAuthStatus, MarloweHandleDropEvent, MarloweHandleDragEvent, MarloweHandleEditorMessage, HandleDropEvent, HandleDragEvent, HandleEditorMessage, SetGistUrl, LoadGist), TransactionData, TransactionValidity(..), View(Simulation, Editor), _authStatus, _gistUrl, _blockNum, _choiceData, _contract, _createGistResult, _input, _inputs, _marloweState, _moneyInContract, _oldContract, _oracleData, _outcomes, _compilationResult, _signatures, _state, _transaction, _validity, _view, cpEditor, cpMarloweEditor, _result)
+import Types
+  ( ChildQuery
+  , ChildSlot
+  , EditorSlot(EditorSlot)
+  , FrontendState
+  , InputData
+  , MarloweEditorSlot(MarloweEditorSlot)
+  , MarloweState
+  , OracleEntry
+  , Query(ChangeView, ResetSimulator, SetOracleBn, SetOracleVal, SetChoice, RemoveAnyInput, AddAnyInput, NextBlock, ApplyTransaction, SetSignature, ScrollTo, CompileProgram, LoadMarloweScript, LoadScript, PublishGist, SendResult, CheckAuthStatus, MarloweHandleDropEvent, MarloweHandleDragEvent, MarloweHandleEditorMessage, HandleDropEvent, HandleDragEvent, HandleEditorMessage, SetGistUrl, LoadGist, Undo)
+  , TransactionData
+  , TransactionValidity(..)
+  , View(Simulation, Editor)
+  , _authStatus
+  , _blockNum
+  , _choiceData
+  , _compilationResult
+  , _contract
+  , _createGistResult
+  , _gistUrl
+  , _input
+  , _inputs
+  , _marloweState
+  , _moneyInContract
+  , _oldContract
+  , _oracleData
+  , _outcomes
+  , _result
+  , _signatures
+  , _state
+  , _transaction
+  , _validity
+  , _value
+  , _view
+  , cpEditor
+  , cpMarloweEditor
+  , _currentMarloweState
+  , _currentContract
+  , _currentInput
+  , _currentTransaction
+  )
 
 emptyInputData :: InputData
 emptyInputData =
@@ -94,7 +138,7 @@ initialState =
   , marloweCompileResult: Right unit
   , authStatus: NotAsked
   , createGistResult: NotAsked
-  , marloweState: emptyMarloweState
+  , marloweState: NEL.singleton emptyMarloweState
   , oldContract: Nothing
   , gistUrl: Nothing
   }
@@ -158,7 +202,7 @@ toEvent (PublishGist _) = Just $ (defaultEvent "Publish") {label = Just "Gist"}
 
 toEvent (SetGistUrl _ _) = Nothing
 
-toEvent (LoadGist _) = Just $ (defaultEvent "LoadGist") { category = Just "Gist" }
+toEvent (LoadGist _) = Just $ (defaultEvent "LoadGist") {category = Just "Gist"}
 
 toEvent (ChangeView view _) = Just $ (defaultEvent "View") {label = Just $ show view}
 
@@ -189,6 +233,8 @@ toEvent (SetOracleVal _ _) = Nothing
 toEvent (SetOracleBn _ _) = Nothing
 
 toEvent (ResetSimulator _) = Nothing
+
+toEvent (Undo _) = Just $ defaultEvent "Undo"
 
 saveBuffer ::
   String ->
@@ -347,13 +393,17 @@ updateStateP oldState = actState
     Just simulatedState -> updateActions sigState simulatedState
     Nothing -> sigState
 
+-- | Apply a function to the head of a non-empty list and cons the result on
+extendWith :: forall a. (a -> a) -> NonEmptyList a -> NonEmptyList a
+extendWith f l = NEL.cons ((f <<< NEL.head) l) l
+
 updateState ::
   forall m.
   MonadEffect m =>
   HalogenM FrontendState Query (Coproduct AceQuery AceQuery) (Either EditorSlot MarloweEditorSlot) Void m Unit
 updateState = do
   saveInitialState
-  modifying (_marloweState) (updateStateP)
+  modifying _currentMarloweState updateStateP
 
 updateContractInStateP :: String -> MarloweState -> MarloweState
 updateContractInStateP text state = set (_contract) con state
@@ -364,8 +414,7 @@ updateContractInStateP text state = set (_contract) con state
 
 updateContractInState :: forall m. MonadState FrontendState m => String -> m Unit
 updateContractInState text = do
-  modifying (_marloweState) (updateContractInStateP text)
-  modifying (_marloweState) (updateStateP)
+  modifying _currentMarloweState (updateStateP <<< updateContractInStateP text)
 
 saveInitialState ::
   forall m.
@@ -373,7 +422,7 @@ saveInitialState ::
   HalogenM FrontendState Query (Coproduct AceQuery AceQuery) (Either EditorSlot MarloweEditorSlot) Void m Unit
 saveInitialState = do
   oldContract <- withMarloweEditor Editor.getValue
-  modifying (_oldContract)
+  modifying _oldContract
     ( \x -> case x of
       Nothing ->
         Just
@@ -390,8 +439,8 @@ resetContract ::
   HalogenM FrontendState Query (Coproduct AceQuery AceQuery) (Either EditorSlot MarloweEditorSlot) Void m Unit
 resetContract = do
   newContract <- withMarloweEditor Editor.getValue
-  modifying (_marloweState) (const emptyMarloweState)
-  modifying (_oldContract) (const Nothing)
+  assign _marloweState $ NEL.singleton emptyMarloweState
+  assign _oldContract Nothing
   updateContractInState
     ( case newContract of
       Nothing -> ""
@@ -463,7 +512,6 @@ evalF (LoadGist next) = do
       assign _createGistResult Loading
       aGist <- getGistByGistId gistId
       assign _createGistResult aGist
-
       case aGist of
         Success gist -> do
           -- Load the source, if available.
@@ -476,7 +524,7 @@ evalF (LoadGist next) = do
               pure next
         _ -> pure next
   where
-    getGistByGistId gistId = runAjax $ Meadow.getGistsByGistId gistId
+  getGistByGistId gistId = runAjax $ Meadow.getGistsByGistId gistId
 
 evalF (ChangeView view next) = do
   assign _view view
@@ -505,9 +553,6 @@ evalF (CompileProgram next) = do
     Just contents -> do
       result <- runAjaxTo _compilationResult $ unwrap <$> (postContractHaskell $ SourceCode contents)
       -- Update the error display.
-      -- Update the error display.
-      -- Update the error display.
-      -- Update the error display.
       void $ withEditor $ showCompilationErrorAnnotations
         $ case result of
             Success (Left errors) -> toAnnotations errors
@@ -531,14 +576,14 @@ evalF (ScrollTo {row, column} next) = do
   pure next
 
 evalF (SetSignature {person, isChecked} next) = do
-  modifying (_marloweState <<< _transaction <<< _signatures) (Map.insert person isChecked)
+  modifying (_currentTransaction <<< _signatures) (Map.insert person isChecked)
   updateState
   pure next
 
 evalF (ApplyTransaction next) = do
   saveInitialState
-  modifying (_marloweState) applyTransactionM
-  mCurrContract <- use (_marloweState <<< _contract)
+  modifying _marloweState (extendWith applyTransactionM)
+  mCurrContract <- use _currentContract
   case mCurrContract of
     Just currContract -> do
       void $ withMarloweEditor $ Editor.setValue (show $ pretty currContract) (Just 1)
@@ -547,15 +592,16 @@ evalF (ApplyTransaction next) = do
     Nothing -> pure next
 
 evalF (NextBlock next) = do
-  modifying (_marloweState <<< _blockNum) (add one)
+  saveInitialState
+  modifying _marloweState (extendWith (updateStateP <<< (over _blockNum (add one))))
   updateState
   pure next
 
 evalF (AddAnyInput {person, anyInput} next) = do
-  modifying (_marloweState <<< _transaction <<< _inputs) ((flip snoc) anyInput)
+  modifying (_currentTransaction <<< _inputs) ((flip snoc) anyInput)
   case person of
     Just per -> do
-      modifying (_marloweState <<< _transaction <<< _signatures) (Map.insert per true)
+      modifying (_currentTransaction <<< _signatures) (Map.insert per true)
       updateState
       pure next
     Nothing -> do
@@ -563,27 +609,27 @@ evalF (AddAnyInput {person, anyInput} next) = do
       pure next
 
 evalF (RemoveAnyInput anyInput next) = do
-  modifying (_marloweState <<< _transaction <<< _inputs) (delete anyInput)
+  modifying (_currentTransaction <<< _inputs) (delete anyInput)
   updateState
   pure next
 
 evalF (SetChoice {idChoice: (IdChoice {choice, person}), value} next) = do
-  modifying (_marloweState <<< _input <<< _choiceData) (Map.update (Just <<< (Map.update (const $ Just value) choice)) person)
+  assign (_currentInput <<< _choiceData <<< ix person <<< ix choice) value
   updateState
   pure next
 
 evalF (SetOracleVal {idOracle, value} next) = do
-  modifying (_marloweState <<< _input <<< _oracleData) (Map.update (\x -> Just (x {value = value})) idOracle)
+  assign (_currentInput <<< _oracleData <<< ix idOracle <<< _value) value
   updateState
   pure next
 
 evalF (SetOracleBn {idOracle, blockNumber} next) = do
-  modifying (_marloweState <<< _input <<< _oracleData) (Map.update (\x -> Just (x {blockNumber = blockNumber})) idOracle)
+  assign (_currentInput <<< _oracleData <<< ix idOracle <<< _blockNumber) blockNumber
   updateState
   pure next
 
 evalF (ResetSimulator next) = do
-  oldContract <- use (_oldContract)
+  oldContract <- use _oldContract
   currContract <- withMarloweEditor Editor.getValue
   let
     newContract = case oldContract of
@@ -595,18 +641,22 @@ evalF (ResetSimulator next) = do
   resetContract
   pure next
 
---  mContents <- withMarloweEditor Editor.getValue
---  case mContents of
---    Nothing -> pure next
---    Just contents -> do
---      let contract = parse Parser.contract contents
---      case contract of
---        Right c -> do
---          assign _marloweCompileResult $ Left [MarloweError "oh no"]
---          pure next
---        Left err -> do
---          assign _marloweCompileResult $ Left [MarloweError err]
---          pure next
+evalF (Undo next) = do
+  modifying _marloweState removeState
+  mCurrContract <- use _currentContract
+  case mCurrContract of
+    Just currContract -> void <<< withMarloweEditor $ Editor.setValue (show $ pretty currContract) (Just 1)
+    Nothing -> pure unit
+  pure next
+  where
+  removeState ms =
+    let
+      {head, tail} = NEL.uncons ms
+    in
+      case NEL.fromList tail of
+        Nothing -> ms
+        Just netail -> netail
+
 ------------------------------------------------------------
 -- | Handles the messy business of running an editor command if the
 -- editor is up and running.
@@ -667,9 +717,9 @@ render state =
   div [class_ $ ClassName "main-frame"]
     [ container_
         [ mainHeader
-        , div [ classes [ row, noGutters, justifyContentBetween ] ]
-            [ div [ classes [ colXs12, colSm6 ] ] [ mainTabBar state.view ]
-            , div [ classes [ colXs12, colSm5 ] ] [ gistControls state ]
+        , div [classes [row, noGutters, justifyContentBetween]]
+            [ div [classes [colXs12, colSm6]] [mainTabBar state.view]
+            , div [classes [colXs12, colSm5]] [gistControls state]
             ]
         ]
     , viewContainer state.view Editor

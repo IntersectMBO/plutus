@@ -775,15 +775,15 @@ renderSmart = renderFits fitsR
 renderFits ::
   (Int -> Int -> Int -> SimpleDoc -> Boolean) ->
   Number -> Int -> Doc -> SimpleDoc
-renderFits fits rfrac w headNode -- I used to do a @SSGR [Reset]@ here, but if you do that it will result
- -- in any rendered @Doc@ containing at least some ANSI control codes. This
- -- may be undesirable if you want to render to non-ANSI devices by simply
- -- not making use of the ANSI color combinators I provide.
- --
- -- What I "really" want to do here is do an initial Reset iff there is some
- -- ANSI color within the Doc, but that's a bit fiddly. I'll fix it if someone
- -- complains!
- = best 0 0 (Cons 0 headNode Nil)
+renderFits fits rfrac w headNode = best 0 0 (Cons 0 headNode Nil)
+  -- I used to do a @SSGR [Reset]@ here, but if you do that it will result 
+  -- in any rendered @Doc@ containing at least some ANSI control codes. This
+  -- may be undesirable if you want to render to non-ANSI devices by simply
+  -- not making use of the ANSI color combinators I provide.
+  --
+  -- What I "really" want to do here is do an initial Reset iff there is some
+  -- ANSI color within the Doc, but that's a bit fiddly. I'll fix it if someone
+  -- complains!
   where
   -- r :: the ribbon width in characters
   r = max 0 (min w (Int.round (Int.toNumber w * rfrac)))

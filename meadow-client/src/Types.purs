@@ -3,30 +3,36 @@ module Types where
 import API (RunResult)
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
-import Web.HTML.Event.DragEvent (DragEvent)
 import Data.BigInteger (BigInteger)
 import Data.Either (Either)
 import Data.Functor.Coproduct (Coproduct)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Lens')
+import Data.Lens (Lens, Lens', lens)
 import Data.Lens.Record (prop)
 import Data.List (List)
+import Data.List.NonEmpty as NEL
+import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
 import Gist (Gist)
 import Halogen.Component.ChildPath (ChildPath, cpL, cpR)
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult)
+import Marlowe.Semantics (DetachedPrimitiveWIA, AnyInput, State, ErrorResult, DynamicProblem)
 import Marlowe.Types (BlockNumber, Choice, Contract, IdChoice, IdOracle, Person)
 import Network.RemoteData (RemoteData)
-import Prelude (class Eq, class Ord, class Show, Unit)
-import Marlowe.Semantics (DetachedPrimitiveWIA, AnyInput, State, ErrorResult, DynamicProblem)
+import Prelude (class Eq, class Ord, class Show, Unit, (<<<))
 import Servant.PureScript.Ajax (AjaxError)
 import Type.Data.Boolean (kind Boolean)
+import Web.HTML.Event.DragEvent (DragEvent)
+
+_Head :: forall a. Lens (NonEmptyList a) (NonEmptyList a) a a
+_Head = lens NEL.head (\l new -> let {head, tail} = NEL.uncons l in NEL.cons' new tail)
 
 ------------------------------------------------------------
 data Query a
+  -- Haskell Editor
   = HandleEditorMessage AceMessage a
   | HandleDragEvent DragEvent a
   | HandleDropEvent DragEvent a
@@ -38,12 +44,14 @@ data Query a
   | PublishGist a
   | SetGistUrl String a
   | LoadGist a
+  -- haskell actions
   | ChangeView View a
   | LoadScript String a
   | CompileProgram a
   | SendResult a
   | ScrollTo {row :: Int, column :: Int} a
   | LoadMarloweScript String a
+  -- marlowe actions
   | SetSignature {person :: Person, isChecked :: Boolean} a
   | ApplyTransaction a
   | NextBlock a
@@ -53,6 +61,7 @@ data Query a
   | SetOracleVal {idOracle :: IdOracle, value :: BigInteger} a
   | SetOracleBn {idOracle :: IdOracle, blockNumber :: BlockNumber} a
   | ResetSimulator a
+  | Undo a
 
 ------------------------------------------------------------
 type ChildQuery
@@ -100,7 +109,7 @@ type FrontendState
   , authStatus :: RemoteData AjaxError AuthStatus
   , createGistResult :: RemoteData AjaxError Gist
   , gistUrl :: Maybe String
-  , marloweState :: MarloweState
+  , marloweState :: NonEmptyList MarloweState
   , oldContract :: Maybe String
   }
 
@@ -198,7 +207,13 @@ _validity = prop (SProxy :: SProxy "validity")
 
 -- "Choice $IdChoice: Choose value [$Choice]"
 type MarloweState
-  = {input :: InputData, transaction :: TransactionData, state :: State, blockNum :: BlockNumber, moneyInContract :: BigInteger, contract :: Maybe Contract}
+  = { input :: InputData
+  , transaction :: TransactionData
+  , state :: State
+  , blockNum :: BlockNumber
+  , moneyInContract :: BigInteger
+  , contract :: Maybe Contract
+  }
 
 _input :: forall s a. Lens' {input :: a | s} a
 _input = prop (SProxy :: SProxy "input")
@@ -224,3 +239,16 @@ _result = prop (SProxy :: SProxy "result")
 
 _warnings :: forall s a. Lens' {warnings :: a | s} a
 _warnings = prop (SProxy :: SProxy "warnings")
+
+_currentMarloweState :: forall a. Lens' { marloweState :: NonEmptyList MarloweState | a } MarloweState
+_currentMarloweState = _marloweState <<< _Head
+
+_currentContract :: forall a. Lens'  { marloweState :: NonEmptyList MarloweState | a } (Maybe Contract)
+_currentContract = _currentMarloweState <<< _contract
+
+_currentTransaction :: forall a. Lens'  { marloweState :: NonEmptyList MarloweState | a } TransactionData
+_currentTransaction = _currentMarloweState <<< _transaction
+
+_currentInput  :: forall a. Lens'  { marloweState :: NonEmptyList MarloweState | a } InputData
+_currentInput = _currentMarloweState <<< _input
+
