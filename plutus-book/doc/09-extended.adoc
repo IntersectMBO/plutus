@@ -1,0 +1,5 @@
+= Extended UTxO Model
+
+
+… multisig
+… ECR-20 tokens

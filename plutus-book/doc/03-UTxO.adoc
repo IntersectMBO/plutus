@@ -1,0 +1,48 @@
+= UTxO Style Accounting
+:stem: latexmath
+
+In order to become proficient with all things Plutus, it is
+inevitable that the reader must first acquire a solid understanding of how
+accounting is done on the Cardano platform.
+
+We traditionally think of money transfers as being between two bank accounts,
+or perhaps internet addresses in the case of digital currency. The Cardano platform,
+like a number of other cryptocurrency platforms such as Bitcoin, uses instead
+an accounting approach known as UTxO-style.
+
+UTxO-style accounting documents the flow of money not from account to account,
+but rather from transaction to transaction. Each transaction has a list of inputs
+(where the money being spent this transaction is coming from) and outputs
+(where this money is going).
+
+Let us examine the outputs first. The outputs of a single transaction may distribute
+the money a transaction is moving to several different recipients.
+That is, the outputs of a transaction are a list,
+each element of which is a pair (c, a) of a coin value c, and an address a to which
+the the amount c will belong once the transaction is processed.
+
+The inputs are also a list, however, the elements of this list contain neither
+a coin value to be spent, nor the address which the money is coming from.
+This is the main distinction between traditional and UTxO accounting:
+the money being spent is only referred by the unspent outputs of
+previously processed transactions on the ledger currently on the blockchain. 
+
+
+.. reference to Edsko and Duncans Wallet spec
+
+stem:
+\begin{align*}
+\mathit{ins} \restrictdom \mathit{utxo}
+& = \{ i \mapsto o \mid i \mapsto o \in \mathit{utxo}, ~ i \in \mathit{ins} \}
+& \text{domain restriction}
+\\
+\mathit{ins} \subtractdom \mathit{utxo}
+& = \{ i \mapsto o \mid i \mapsto o \in \mathit{utxo}, ~ i \notin \mathit{ins} \}
+& \text{domain exclusion}
+\\
+\mathit{utxo} \restrictrange \mathit{outs}
+& = \{ i \mapsto o \mid i \mapsto o \in \mathit{utxo}, ~ o \in \mathit{outs} \}
+& \text{range restriction}
+\end{align*}
+
+...
