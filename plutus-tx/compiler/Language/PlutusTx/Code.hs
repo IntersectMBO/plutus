@@ -23,6 +23,9 @@ import qualified Data.ByteString.Lazy         as BSL
 -- | A compiled Plutus Tx program. The type parameter indicates
 -- the type of the Haskell expression that was compiled, and
 -- hence the type of the compiled code.
+--
+-- Note: the compiled PLC program does *not* have normalized types,
+-- if you want to put it on the chain you must normalize the types first.
 data CompiledCode a =
     -- | Serialized PLC code and possibly serialized PIR code.
     SerializedCode BS.ByteString (Maybe BS.ByteString)

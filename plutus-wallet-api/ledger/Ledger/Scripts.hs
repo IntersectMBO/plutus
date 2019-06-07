@@ -45,14 +45,25 @@ import qualified Language.PlutusCore                      as PLC
 import qualified Language.PlutusCore.Constant.Dynamic     as PLC
 import qualified Language.PlutusCore.Evaluation.Result    as PLC
 import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
-import           Language.PlutusTx.Lift                   (unsafeLiftProgram)
+import           Language.PlutusTx.Lift                   (unsafeLiftCode)
 import           Language.PlutusTx.Lift.Class             (Lift)
 import           Language.PlutusTx                        (CompiledCode, compile, getPlc)
 import           Language.PlutusTx.Prelude
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
+--
+-- Note: the program inside the 'Script' should have normalized types.
 newtype Script = Script { unScript :: PLC.Program PLC.TyName PLC.Name () }
   deriving newtype (Serialise)
+
+{- Note [Normalized types in Scripts]
+The Plutus Tx plugin and lifting machinery does not necessarily produce programs
+with normalized types, but we are supposed to put programs on the chain *with*
+normalized types.
+
+So we normalize types when we turn things into 'Script's. The only operation we
+do after that is applying 'Script's together, which preserves type normalization.
+-}
 
 {- Note [Eq and Ord for Scripts]
 We need `Eq` and `Ord` instances for `Script`s mostly so we can put them in `Set`s.
@@ -84,9 +95,10 @@ instance Ord Script where
 scriptSize :: Script -> Integer
 scriptSize (Script s) = PLC.programSize s
 
+-- See Note [Normalized types in Scripts]
 -- | Turn a 'CompiledCode' (usually produced by 'compile') into a 'Script' for use with this package.
 fromCompiledCode :: CompiledCode a -> Script
-fromCompiledCode = Script . getPlc
+fromCompiledCode = Script . PLC.runQuote . PLC.normalizeTypesFullInProgram . getPlc
 
 -- | Compile a quoted Haskell expression to a 'Script'.
 compileScript :: TH.Q (TH.TExp a) -> TH.Q (TH.TExp Script)
@@ -104,7 +116,9 @@ evaluateScript (unScript -> s) =
         plcChecks :: PLC.Program PLC.TyName PLC.Name () -> Either (PLC.Error ()) (PLC.Type PLC.TyName ())
         plcChecks p = PLC.runQuoteT $ do
             types <- PLC.getStringBuiltinTypes ()
-            let config = PLC.defOffChainConfig { PLC._tccDynamicBuiltinNameTypes = types }
+            -- We should be normalized, so we can use the on-chain config
+            -- See Note [Normalized types in Scripts]
+            let config = PLC.defOnChainConfig { PLC._tccDynamicBuiltinNameTypes = types }
             PLC.unNormalized <$> PLC.typecheckPipeline config p
     in case plcChecks s of
         -- TODO: do something with the error
@@ -118,10 +132,11 @@ instance ToJSON Script where
 instance FromJSON Script where
   parseJSON = JSON.decodeSerialise
 
+-- See Note [Normalized types in Scripts]
 -- | Lift a Haskell value into the corresponding 'Script'. This allows you to create
 -- 'Script's at runtime, whereas 'compileScript' allows you to do so at compile time.
 lifted :: Lift a => a -> Script
-lifted = Script . unsafeLiftProgram
+lifted = fromCompiledCode . unsafeLiftCode
 
 -- | 'ValidatorScript' is a wrapper around 'Script's which are used as validators in transaction outputs.
 newtype ValidatorScript = ValidatorScript { getValidator :: Script }

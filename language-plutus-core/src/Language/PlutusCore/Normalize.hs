@@ -7,6 +7,7 @@ module Language.PlutusCore.Normalize
     , normalizeTypesIn
     , normalizeTypesFullIn
     , normalizeTypesGasIn
+    , normalizeTypesFullInProgram
     ) where
 
 import           Language.PlutusCore.Name
@@ -58,3 +59,9 @@ normalizeTypesGasIn
     :: (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique, MonadQuote m)
     => Gas -> Term tyname name ann -> m (Maybe (Term tyname name ann))
 normalizeTypesGasIn gas = rename >=> runNormalizeTypeGasM gas . normalizeTypesInM
+
+-- | Normalize every 'Type' in a 'Program' without dealing with gas.
+normalizeTypesFullInProgram
+    :: (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique, MonadQuote m)
+    => Program tyname name ann -> m (Program tyname name ann)
+normalizeTypesFullInProgram (Program x v t) = Program x v <$> normalizeTypesFullIn t

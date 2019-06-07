@@ -55,6 +55,8 @@ module Language.PlutusCore
     , fileTypeCfg
     , printType
     , printNormalizeType
+    , normalizeTypesFullIn
+    , normalizeTypesFullInProgram
     , InternalTypeError (..)
     , TypeError (..)
     , AsTypeError (..)
@@ -111,6 +113,7 @@ import           Language.PlutusCore.Evaluation.CkMachine
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Parser
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
