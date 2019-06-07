@@ -4,8 +4,7 @@ import Prelude
 
 import Ace (Annotation, Editor)
 import Ace.EditSession as Session
-import Ace.Editor as Editor
-import Ace.Halogen.Component (AceQuery(..))
+import Ace.Editor as AceEditor
 import Auth (AuthStatus)
 import Control.Monad.Error.Class (class MonadThrow, throwError)
 import Control.Monad.Except.Trans (ExceptT, runExceptT)
@@ -16,12 +15,13 @@ import Data.Maybe (Maybe(..))
 import Data.MediaType (MediaType)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.RawJson (JsonEither)
+import Editor as Editor
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import FileEvents as FileEvents
 import Gist (Gist, GistId, NewGist)
-import Halogen (HalogenM, query', request)
+import Halogen (HalogenM)
 import Language.Haskell.Interpreter (InterpreterError, SourceCode(SourceCode), InterpreterResult)
 import LocalStorage as LocalStorage
 import Network.RemoteData as RemoteData
@@ -82,14 +82,14 @@ instance monadAppHalogenApp ::
   , MonadAff m
   )
   => MonadApp (HalogenApp m) where
-  editorGetContents = map SourceCode <$> withEditor Editor.getValue
-  editorSetContents contents cursor = void $ withEditor $ Editor.setValue contents cursor
+  editorGetContents = map SourceCode <$> withEditor AceEditor.getValue
+  editorSetContents contents cursor = void $ withEditor $ AceEditor.setValue contents cursor
 
   editorSetAnnotations annotations = void $ withEditor \editor -> do
-      session <- Editor.getSession editor
+      session <- AceEditor.getSession editor
       Session.setAnnotations annotations session
 
-  editorGotoLine row column = void $ withEditor $ Editor.gotoLine row column (Just true)
+  editorGotoLine row column = void $ withEditor $ AceEditor.gotoLine row column (Just true)
 
   preventDefault event = wrap $ liftEffect $ FileEvents.preventDefault event
 
@@ -114,8 +114,4 @@ runAjax :: forall m a.
 runAjax action = wrap $ RemoteData.fromEither <$> runExceptT action
 
 withEditor :: forall a m. MonadEffect m => (Editor -> Effect a) -> HalogenApp m (Maybe a)
-withEditor action = HalogenApp $ do
-    mEditor <- query' cpEditor EditorSlot $ request GetEditor
-    case join mEditor of
-      Just editor -> Just <$> (liftEffect $ action editor)
-      _ -> pure Nothing
+withEditor = HalogenApp <<< Editor.withEditor cpEditor EditorSlot

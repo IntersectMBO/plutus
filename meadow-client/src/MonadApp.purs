@@ -1,19 +1,20 @@
 module MonadApp where
 
 import Prelude
-import API (RunResult)
 import Ace (Editor, Annotation)
+import Ace.Editor as AceEditor
 import Ace.EditSession as Session
-import Ace.Editor as Editor
 import Ace.Halogen.Component (AceQuery(..))
+import API (RunResult)
 import Auth (AuthStatus)
-import Control.Monad.Except (class MonadTrans, ExceptT, lift, runExceptT)
-import Control.Monad.Reader (class MonadAsk, ask)
-import Control.Monad.State (class MonadState, state)
+import Control.Monad.Except (class MonadTrans, ExceptT, runExceptT)
+import Control.Monad.Reader (class MonadAsk)
+import Control.Monad.State (class MonadState)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
 import Data.Either (Either(..))
 import Data.Foldable (foldrDefault)
+import Data.Functor (mapFlipped)
 import Data.Functor.Coproduct (Coproduct)
 import Data.Lens (assign, modifying, over, set)
 import Data.List (List(..))
@@ -26,29 +27,18 @@ import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.RawJson (JsonEither)
 import Data.Set (Set)
 import Data.Set as Set
+import Editor as Editor
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
 import FileEvents as FileEvents
 import Gist (Gist, GistId, NewGist)
 import Halogen (HalogenM, liftAff, liftEffect, query', request)
+import Halogen.Component.ChildPath (ChildPath)
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode)
 import LocalStorage as LocalStorage
 import Marlowe.Parser (contract)
-import Marlowe.Semantics
-  ( ErrorResult(InvalidInput)
-  , IdInput(IdOracle, InputIdChoice)
-  , MApplicationResult(MCouldNotApply, MSuccessfullyApplied)
-  , OracleDataPoint(..)
-  , State(State)
-  , TransactionOutcomes
-  , applyTransaction
-  , collectNeededInputs
-  , emptyState
-  , peopleFromStateAndContract
-  , reduce
-  , scoutPrimitives
-  )
+import Marlowe.Semantics (ErrorResult(InvalidInput), IdInput(IdOracle, InputIdChoice), MApplicationResult(MCouldNotApply, MSuccessfullyApplied), OracleDataPoint(..), State(State), TransactionOutcomes, applyTransaction, collectNeededInputs, emptyState, peopleFromStateAndContract, reduce, scoutPrimitives)
 import Marlowe.Types (BlockNumber, Choice, Contract(Null), IdChoice(IdChoice), IdOracle, Person, WIdChoice(WIdChoice))
 import Meadow (SPParams_)
 import Meadow as Server
@@ -57,34 +47,7 @@ import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
 import Text.Parsing.Parser (runParser)
-import Types
-  ( ChildQuery
-  , ChildSlot
-  , EditorSlot(EditorSlot)
-  , FrontendState
-  , InputData
-  , MarloweEditorSlot(MarloweEditorSlot)
-  , MarloweState
-  , OracleEntry
-  , Query
-  , TransactionData
-  , TransactionValidity(..)
-  , WebData
-  , _choiceData
-  , _contract
-  , _currentMarloweState
-  , _input
-  , _inputs
-  , _marloweState
-  , _oldContract
-  , _oracleData
-  , _outcomes
-  , _signatures
-  , _transaction
-  , _validity
-  , cpEditor
-  , cpMarloweEditor
-  )
+import Types (ChildQuery, ChildSlot, EditorSlot(EditorSlot), FrontendState, InputData, MarloweEditorSlot(MarloweEditorSlot), MarloweState, OracleEntry, Query, TransactionData, TransactionValidity(..), WebData, _choiceData, _contract, _currentMarloweState, _input, _inputs, _marloweState, _oldContract, _oracleData, _outcomes, _signatures, _transaction, _validity, cpEditor, cpMarloweEditor)
 import Web.HTML.Event.DragEvent (DragEvent)
 
 class
@@ -115,32 +78,21 @@ newtype HalogenApp m a
 
 derive instance newtypeHalogenApp :: Newtype (HalogenApp m a) _
 
-instance functorHalogenApp :: Functor (HalogenApp m) where
-  map f m = wrap $ map f $ unwrap m
+derive newtype instance functorHalogenApp :: Functor (HalogenApp m)
 
-instance applicativeHalogenApp :: Applicative (HalogenApp m) where
-  pure = wrap <<< pure
+derive newtype instance applicativeHalogenApp :: Applicative (HalogenApp m)
 
-instance applyHalogenApp :: Apply (HalogenApp m) where
-  apply f v = wrap $ unwrap f <*> unwrap v
+derive newtype instance applyHalogenApp :: Apply (HalogenApp m)
 
-instance bindHalogenApp :: Bind (HalogenApp m) where
-  bind f action =
-    wrap
-      $ do
-          v <- unwrap f
-          unwrap $ action v
+derive newtype instance bindHalogenApp :: Bind (HalogenApp m)
 
-instance monadHalogenApp :: Monad (HalogenApp m)
+derive newtype instance monadHalogenApp :: Monad (HalogenApp m)
 
-instance monadTransHalogenApp :: MonadTrans HalogenApp where
-  lift = wrap <<< lift
+derive newtype instance monadTransHalogenApp :: MonadTrans HalogenApp
 
-instance monadAskHalogenApp :: MonadAsk env m => MonadAsk env (HalogenApp m) where
-  ask = lift ask
+derive newtype instance monadAskHalogenApp :: MonadAsk env m => MonadAsk env (HalogenApp m)
 
-instance monadStateHalogenApp :: MonadState FrontendState (HalogenApp m) where
-  state = wrap <<< state
+derive newtype instance monadStateHalogenApp :: MonadState FrontendState (HalogenApp m)
 
 instance monadAppHalogenApp ::
   ( MonadEffect m
@@ -148,16 +100,16 @@ instance monadAppHalogenApp ::
   , MonadAff m
   ) =>
   MonadApp (HalogenApp m) where
-  editorSetValue contents i = void $ withEditor $ Editor.setValue contents i
-  editorGetValue = withEditor Editor.getValue
+  editorSetValue contents i = void $ withEditor $ AceEditor.setValue contents i
+  editorGetValue = withEditor AceEditor.getValue
   editorSetAnnotations annotations =
     void
       $ withEditor \editor -> do
-          session <- Editor.getSession editor
+          session <- AceEditor.getSession editor
           Session.setAnnotations annotations session
-  editorGotoLine row column = void $ withEditor $ Editor.gotoLine row column (Just true)
-  marloweEditorSetValue contents i = void $ withMarloweEditor $ Editor.setValue contents i
-  marloweEditorGetValue = withMarloweEditor Editor.getValue
+  editorGotoLine row column = void $ withEditor $ AceEditor.gotoLine row column (Just true)
+  marloweEditorSetValue contents i = void $ withMarloweEditor $ AceEditor.setValue contents i
+  marloweEditorGetValue = withMarloweEditor AceEditor.getValue
   preventDefault event = wrap $ liftEffect $ FileEvents.preventDefault event
   readFileFromDragEvent event = wrap $ liftAff $ FileEvents.readFileFromDragEvent event
   updateContractInState contract = wrap $ modifying _currentMarloweState (updateStateP <<< updateContractInStateP contract)
@@ -204,34 +156,19 @@ runAjax ::
   HalogenApp m (WebData a)
 runAjax action = wrap $ RemoteData.fromEither <$> runExceptT action
 
--- | Handles the messy business of running an editor command if the
--- editor is up and running.
 withEditor ::
   forall m a.
   MonadEffect m =>
   (Editor -> Effect a) ->
   HalogenApp m (Maybe a)
-withEditor action =
-  HalogenApp
-    $ do
-        mEditor <- query' cpEditor EditorSlot $ request GetEditor
-        case join mEditor of
-          Just editor -> Just <$> (liftEffect $ action editor)
-          _ -> pure Nothing
+withEditor = HalogenApp <<< Editor.withEditor cpEditor EditorSlot
 
 withMarloweEditor ::
   forall m a.
   MonadEffect m =>
   (Editor -> Effect a) ->
   HalogenApp m (Maybe a)
-withMarloweEditor action =
-  HalogenApp
-    $ do
-        mEditor <- query' cpMarloweEditor MarloweEditorSlot $ request GetEditor
-        case mEditor of
-          Just (Just editor) -> do
-            liftEffect $ Just <$> action editor
-          _ -> pure Nothing
+withMarloweEditor = HalogenApp <<< Editor.withEditor cpMarloweEditor MarloweEditorSlot
 
 updateContractInStateP :: String -> MarloweState -> MarloweState
 updateContractInStateP text state = set _contract con state
@@ -257,37 +194,32 @@ updateSignatures oldState = case oldState.contract of
   Nothing -> oldState
 
 simulateState :: MarloweState -> Maybe {state :: State, contract :: Contract, outcome :: TransactionOutcomes, validity :: TransactionValidity}
-simulateState state = case state.contract of
-  Just c ->
-    Just
-      ( case applyTransaction inps sigs bn st c mic of
-        MSuccessfullyApplied {state: newState, contract: newContract, outcome: outcome} inputWarnings ->
-          { state: newState
-          , contract: newContract
-          , outcome: outcome
-          , validity: ValidTransaction inputWarnings
-          }
-        MCouldNotApply InvalidInput -> if (inps == Nil)
-          then
-            { state: st
-            , contract: reduce state.blockNum state.state c
-            , outcome: Map.empty
-            , validity: EmptyTransaction
-            }
-          else
-            { state: emptyState
-            , contract: Null
-            , outcome: Map.empty
-            , validity: InvalidTransaction InvalidInput
-            }
-        MCouldNotApply err ->
-          { state: emptyState
-          , contract: Null
-          , outcome: Map.empty
-          , validity: InvalidTransaction err
-          }
-      )
-  Nothing -> Nothing
+simulateState state =
+  mapFlipped state.contract \c -> case inps, applyTransaction inps sigs bn st c mic of
+    _, MSuccessfullyApplied {state: newState, contract: newContract, outcome: outcome} inputWarnings ->
+      { state: newState
+      , contract: newContract
+      , outcome: outcome
+      , validity: ValidTransaction inputWarnings
+      }
+    Nil, MCouldNotApply InvalidInput ->
+      { state: st
+      , contract: reduce state.blockNum state.state c
+      , outcome: Map.empty
+      , validity: EmptyTransaction
+      }
+    _, MCouldNotApply InvalidInput ->
+      { state: emptyState
+      , contract: Null
+      , outcome: Map.empty
+      , validity: InvalidTransaction InvalidInput
+      }
+    _, MCouldNotApply err ->
+      { state: emptyState
+      , contract: Null
+      , outcome: Map.empty
+      , validity: InvalidTransaction err
+      }
   where
   inps = Array.toUnfoldable (state.transaction.inputs)
 

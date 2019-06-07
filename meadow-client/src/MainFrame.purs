@@ -516,13 +516,13 @@ render state =
               ]
           ]
       , viewContainer stateView Editor
-          $ [ loadScriptsPane
-            , editorPane defaultContents (unwrap <$> (view _compilationResult state))
-            , resultPane state
-            ]
+          [ loadScriptsPane
+          , editorPane defaultContents (unwrap <$> (view _compilationResult state))
+          , resultPane state
+          ]
       , viewContainer stateView Simulation
-          $ [ simulationPane state
-            ]
+          [ simulationPane state
+          ]
       ]
   where
   defaultContents = Map.lookup "Escrow" StaticData.demoFiles
