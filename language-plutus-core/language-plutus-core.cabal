@@ -40,7 +40,8 @@ library
         Language.PlutusCore.Evaluation.CkMachine
         Language.PlutusCore.Evaluation.MachineException
         Language.PlutusCore.Evaluation.Result
-        Language.PlutusCore.Check.ValueRestriction
+        Language.PlutusCore.Check.Value
+        Language.PlutusCore.Check.Normal
         Language.PlutusCore.CBOR
         Language.PlutusCore.Constant
         Language.PlutusCore.Constant.Dynamic
@@ -96,7 +97,6 @@ library
         Language.PlutusCore.Constant.Make
         Language.PlutusCore.Constant.Name
         Language.PlutusCore.Constant.Typed
-        Language.PlutusCore.Check.Normal
         Language.PlutusCore.Pretty.Classic
         Language.PlutusCore.Pretty.Plc
         Language.PlutusCore.Pretty.Readable

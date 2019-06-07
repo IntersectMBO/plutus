@@ -8,6 +8,7 @@ import           Criterion.Main
 import           Crypto
 import qualified Data.ByteString.Lazy                     as BSL
 import           Language.PlutusCore
+import qualified Language.PlutusCore.Check.Normal     as Normal
 import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.Evaluation.CkMachine (runCk)
 import           Language.PlutusCore.Pretty
@@ -61,9 +62,11 @@ main =
 
                    bgroup "type-check" $ mkBench <$> [f, g, h]
                 , env largeTypeFiles $ \ ~(f, g, h) ->
-                   let mkBench = bench "check" . nf (fmap check) . parse
+                   let normalConcrete :: Program TyName Name AlexPosn -> Either (Error AlexPosn) ()
+                       normalConcrete = Normal.checkProgram
+                       mkBench = bench "normal-types check" . nf (normalConcrete =<<) . runQuoteT . parseScoped
                    in
-                   bgroup "normal-form check" $ mkBench <$> [f, g, h]
+                   bgroup "normal-types check" $ mkBench <$> [f, g, h]
 
                 , env sampleScript $ \ f ->
                     let renameConcrete :: Program TyName Name () -> Program TyName Name ()

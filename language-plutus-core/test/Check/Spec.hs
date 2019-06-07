@@ -3,13 +3,15 @@
 module Check.Spec (tests) where
 
 import           Language.PlutusCore
-import qualified Language.PlutusCore.Check.Uniques          as Uniques
-import qualified Language.PlutusCore.Check.ValueRestriction as VR
+import qualified Language.PlutusCore.Check.Normal   as Normal
+import qualified Language.PlutusCore.Check.Uniques  as Uniques
+import qualified Language.PlutusCore.Check.Value    as VR
+import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Generators.AST
 
 import           Control.Monad.Except
-import           Data.Foldable                              (traverse_)
-import           Hedgehog                                   hiding (Var)
+import           Data.Either
+import           Hedgehog                           hiding (Var)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
@@ -20,7 +22,10 @@ tests = testGroup "checks"
     , shadowed
     , multiplyDefined
     , incoherentUse
+    , values
     , valueRestriction
+    , normalTypes
+    , normalTypesCheck
     ]
 
 data Tag = Tag Int | Ignore deriving (Show, Eq, Ord)
@@ -86,26 +91,104 @@ propRenameCheck = property $ do
             checkUniques = Uniques.checkProgram (\case { FreeVariable{} -> False; IncoherentUsage {} -> False; _ -> True})
 
 valueRestriction :: TestTree
-valueRestriction =
-    let terms = runQuote $ do
-            aN <- freshTyName () "a"
-            bN <- freshTyName () "b"
-            x <- freshName () "x"
-            let typeAbs v = TyAbs () v (Type ())
-                aV = TyVar () aN
-                xV = Var () x
-            pure [ ( typeAbs aN $ Error () aV
-                   , Left $ ValueRestrictionViolation () aN
-                   )
-                 , ( typeAbs aN . typeAbs bN $ Error () aV
-                   , Left $ ValueRestrictionViolation () bN
-                   )
-                 , ( typeAbs aN $ LamAbs () x aV xV
-                   , Right ()
-                   )
-                 , ( typeAbs aN . typeAbs bN $ LamAbs () x aV xV
-                   , Right ()
-                   )
-                 ]
-        assertion = traverse_ (\(term, res) -> VR.checkTerm term @?= res) terms
-    in testCase "valueRestriction" assertion
+valueRestriction = runQuote $ do
+    aN <- freshTyName () "a"
+    bN <- freshTyName () "b"
+    xN <- freshName () "x"
+    let typeAbs v = TyAbs () v (Type ())
+        aV = TyVar () aN
+        xV = Var () xN
+    pure $ testGroup "value restriction" [
+        testCase "absError" $ isLeft (checkVR (typeAbs aN $ Error () aV)) @? "Value restriction"
+      , testCase "nestedAbsError" $ isLeft (checkVR (typeAbs aN . typeAbs bN $ Error () aV)) @? "Value restriction"
+      , testCase "wrapError" $ isLeft (checkVR (typeAbs aN $ IWrap () aV aV $ Error () aV)) @? "Value restriction"
+
+      , testCase "absLam" $ isRight (checkVR (typeAbs aN $ LamAbs () xN aV xV)) @? "Value restriction"
+      , testCase "nestedAbsLam" $ isRight (checkVR (typeAbs aN . typeAbs bN $ LamAbs () xN aV xV)) @? "Value restriction"
+      ]
+        where
+            checkVR :: Term TyName Name () -> Either (VR.ValueRestrictionError TyName ()) ()
+            checkVR = VR.checkTerm
+
+values :: TestTree
+values = runQuote $ do
+    aN <- freshTyName () "a"
+    let aV = TyVar () aN
+        val = makeIntConstant 2
+        nonVal = Error () aV
+    pure $ testGroup "values" [
+          testCase "wrapNonValue" $ VR.isTermValue (IWrap () aV aV nonVal) @?= False
+        , testCase "wrapValue" $ VR.isTermValue (IWrap () aV aV val) @?= True
+
+        , testCase "absNonValue" $ VR.isTermValue (TyAbs () aN (Type ()) nonVal) @?= False
+        , testCase "absValue" $ VR.isTermValue (TyAbs () aN (Type()) val) @?= True
+
+        , testCase "error" $ VR.isTermValue (Error () aV) @?= False
+        , testCase "lam" $ VR.isTermValue (LamAbs () (Var () aN) aV nonVal) @?= True
+        , testCase "app" $ VR.isTermValue (Apply () val val) @?= False
+        , testCase "unwrap" $ VR.isTermValue (Unwrap () val) @?= False
+        , testCase "inst" $ VR.isTermValue (TyInst () val aV) @?= False
+        , testCase "constant" $ VR.isTermValue (makeIntConstant 1) @?= True
+        , testCase "builtin" $ VR.isTermValue (builtinNameAsTerm AddInteger) @?= False
+      ]
+
+normalTypes :: TestTree
+normalTypes = runQuote $ do
+    aN <- freshTyName () "a"
+    let integer = TyBuiltin () TyInteger
+        aV = TyVar () aN
+        neutral = integer
+        normal = integer
+        nonNormal = TyApp () (TyLam () aN (Type ()) aV) normal
+    pure $ testGroup "normal types" [
+          testCase "var" $ Normal.isNormalType aV @?= True
+
+        , testCase "funNormal" $ Normal.isNormalType (TyFun () normal normal) @?= True
+        , testCase "funNotNormal" $ Normal.isNormalType (TyFun () normal nonNormal) @?= False
+
+        , testCase "lamNormal" $ Normal.isNormalType (TyLam () aN (Type ()) normal) @?= True
+        , testCase "lamNonNormal" $ Normal.isNormalType (TyLam () aN (Type ()) nonNormal) @?= False
+
+        , testCase "forallNormal" $ Normal.isNormalType (TyForall () aN (Type ()) normal) @?= True
+        , testCase "forallNonNormal" $ Normal.isNormalType (TyForall () aN (Type ()) nonNormal) @?= False
+
+        , testCase "ifixNormal" $ Normal.isNormalType (TyIFix () normal normal) @?= True
+        , testCase "ifixNonNormal" $ Normal.isNormalType (TyIFix () nonNormal normal) @?= False
+
+        , testCase "appNormal" $ Normal.isNormalType (TyApp () neutral normal) @?= True
+        , testCase "appNonNormal" $ Normal.isNormalType (TyApp () nonNormal normal) @?= False
+
+        , testCase "builtin" $ Normal.isNormalType integer @?= True
+      ]
+
+normalTypesCheck :: TestTree
+normalTypesCheck = runQuote $ do
+    aN <- freshTyName () "a"
+    xN <- freshName () "x"
+    let integer = TyBuiltin () TyInteger
+        aV = TyVar () aN
+        xV = Var () xN
+        normal = integer
+        nonNormal = TyApp () (TyLam () aN (Type ()) aV) normal
+    pure $ testGroup "normalized types check" [
+        testCase "lamNormal" $ isRight (checkNormal (LamAbs () xN normal xV)) @? "Normalization"
+        , testCase "lamNonNormal" $ isLeft (checkNormal (LamAbs () xN nonNormal xV)) @? "Normalization"
+
+        , testCase "abs" $ isRight (checkNormal (TyAbs () aN (Type ()) xV)) @? "Normalization"
+
+        , testCase "wrapNormal" $ isRight (checkNormal (IWrap () normal normal xV)) @? "Normalization"
+        , testCase "wrapNonNormal" $ isLeft (checkNormal (IWrap () nonNormal nonNormal xV)) @? "Normalization"
+
+        , testCase "unwrap" $ isRight (checkNormal (Unwrap () xV)) @? "Normalization"
+
+        , testCase "app" $ isRight (checkNormal (Apply () xV xV)) @? "Normalization"
+
+        , testCase "errorNormal" $ isRight (checkNormal (Error () normal)) @? "Normalization"
+        , testCase "errorNonNormal" $ isLeft (checkNormal (Error () nonNormal)) @? "Normalization"
+
+        , testCase "constant" $ isRight (checkNormal (makeIntConstant 2)) @? "Normalization"
+        , testCase "builtin" $ isRight (checkNormal (builtinNameAsTerm AddInteger)) @? "Normalization"
+      ]
+        where
+            checkNormal :: Term TyName Name () -> Either (Normal.NormalizationError TyName Name ()) ()
+            checkNormal = Normal.checkTerm
