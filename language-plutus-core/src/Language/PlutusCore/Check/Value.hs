@@ -5,6 +5,7 @@ module Language.PlutusCore.Check.Value
     , checkProgram
     , isTermValue
     , ValueRestrictionError(..)
+    , AsValueRestrictionError(..)
     ) where
 
 import           Language.PlutusCore.Error

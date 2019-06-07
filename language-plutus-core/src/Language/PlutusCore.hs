@@ -145,7 +145,6 @@ fileTypeCfg cfg = fmap (either prettyErr id . printType) . BSL.readFile
 -- | Print the type of a program contained in a 'ByteString'
 printType
     :: (AsParseError e AlexPosn,
-        AsValueRestrictionError e TyName AlexPosn,
         AsUniqueError e AlexPosn,
         AsTypeError e AlexPosn,
         MonadError e m)
@@ -156,7 +155,6 @@ printType = printNormalizeType False
 -- | Print the type of a program contained in a 'ByteString'
 printNormalizeType
     :: (AsParseError e AlexPosn,
-        AsValueRestrictionError e TyName AlexPosn,
         AsUniqueError e AlexPosn,
         AsTypeError e AlexPosn,
         MonadError e m)
@@ -171,18 +169,13 @@ printNormalizeType norm bs = runQuoteT $ prettyPlcDefText <$> do
 -- their scope.
 parseScoped
     :: (AsParseError e AlexPosn,
-        AsValueRestrictionError e TyName AlexPosn,
         AsUniqueError e AlexPosn,
         MonadError e m,
         MonadQuote m)
     => BSL.ByteString
     -> m (Program TyName Name AlexPosn)
 -- don't require there to be no free variables at this point, we might be parsing an open term
-parseScoped =
-    through VR.checkProgram
-    <=< through (Uniques.checkProgram (const True))
-    <=< rename
-    <=< parseProgram
+parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parseProgram
 
 -- | Parse a program and typecheck it.
 parseTypecheck
@@ -198,7 +191,8 @@ parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped
 
 -- | Typecheck a program.
 typecheckPipeline
-    :: (AsNormalizationError e TyName Name a,
+    :: (AsValueRestrictionError e TyName a,
+        AsNormalizationError e TyName Name a,
         AsTypeError e a,
         MonadError e m,
         MonadQuote m)
@@ -208,6 +202,7 @@ typecheckPipeline
 typecheckPipeline cfg =
     inferTypeOfProgram cfg
     <=< through (unless (_tccDoNormTypes cfg) . Normal.checkProgram)
+    <=< through VR.checkProgram
 
 formatDoc :: (AsParseError e AlexPosn, MonadError e m) => PrettyConfigPlc -> BSL.ByteString -> m (Doc a)
 -- don't use parseScoped since we don't bother running sanity checks when we format
