@@ -1,0 +1,15 @@
+= Example of using Literate Haskell
+
+I'm a Literate Haskell file, so I'll get compiled by the build.
+This works because I've been symlinked to a `.lhs` file and 
+included in the cabal file.
+
+[source,haskell]
+----
+module Example where
+
+anInteger :: Integer
+anInteger = 1
+----
+
+More text etc.

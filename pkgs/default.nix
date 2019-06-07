@@ -41428,6 +41428,7 @@ transformers
 benchmarkHaskellDepends = [
 base
 bytestring
+containers
 criterion
 serialise
 ];
@@ -53390,6 +53391,43 @@ doCheck = false;
 homepage = "https://github.com/diffusionkinetics/open/plotlyhs";
 description = "Haskell bindings to Plotly.js";
 license = stdenv.lib.licenses.mit;
+
+}) {};
+"plutus-book" = callPackage
+({
+  mkDerivation
+, base
+, containers
+, language-plutus-core
+, plutus-emulator
+, plutus-tx
+, plutus-wallet-api
+, prettyprinter
+, stdenv
+, template-haskell
+, unlit
+}:
+mkDerivation {
+
+pname = "plutus-book";
+version = "0.1.0.0";
+src = .././plutus-book;
+libraryHaskellDepends = [
+base
+containers
+language-plutus-core
+plutus-emulator
+plutus-tx
+plutus-wallet-api
+prettyprinter
+template-haskell
+];
+libraryToolDepends = [
+unlit
+];
+doHaddock = false;
+description = "The Plutus Book";
+license = stdenv.lib.licenses.asl20;
 
 }) {};
 "plutus-contract-exe" = callPackage
