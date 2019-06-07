@@ -1,27 +1,28 @@
 module Editor
   ( editorPane
   , demoScriptsPane
+  , withEditor
   ) where
 
-import Ace.EditSession as Session
 import Ace.Editor as Editor
-import Ace.Halogen.Component (Autocomplete(Live), aceComponent)
+import Ace.EditSession as Session
+import Ace.Halogen.Component (Autocomplete(Live), aceComponent, AceQuery(..))
 import Ace.Types (Editor)
 import AjaxUtils (ajaxErrorPane)
 import Bootstrap (btn, btnDanger, btnInfo, btnPrimary, btnSecondary, btnSmall, btnSuccess, empty, listGroupItem_, listGroup_, pullRight)
 import Control.Alternative ((<|>))
-import Effect.Aff.Class (class MonadAff)
-import Servant.PureScript.Ajax (AjaxError)
-import Effect (Effect)
-import Effect.Class (liftEffect)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Lens (_Right, preview, to, view)
 import Data.Map as Map
-import Data.Maybe (Maybe(Just), fromMaybe)
+import Data.Maybe (Maybe(Just, Nothing), fromMaybe)
 import Data.String as String
-import Halogen (HTML, action)
+import Effect (Effect)
+import Effect.Aff.Class (class MonadAff)
+import Effect.Class (class MonadEffect)
+import Halogen (HalogenM, HTML, action, liftEffect, query', request)
 import Halogen.Component (ParentHTML)
+import Halogen.Component.ChildPath (ChildPath)
 import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, h3_, pre_, slot', small, strong_, text)
 import Halogen.HTML.Events (input, input_, onClick, onDragOver, onDrop)
 import Halogen.HTML.Properties (class_, classes, disabled, id_)
@@ -29,7 +30,8 @@ import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), Warning, _Warning, InterpreterResult, _InterpreterResult)
 import LocalStorage as LocalStorage
 import Network.RemoteData (RemoteData(..), _Success, isLoading)
-import Prelude (Unit, bind, discard, pure, show, unit, void, ($), (<$>), (<<<), (<>), map)
+import Prelude (class Eq, Unit, Void, join, bind, discard, pure, show, unit, void, ($), (<$>), (<<<), (<>), map)
+import Servant.PureScript.Ajax (AjaxError)
 import StaticData as StaticData
 import Types (ChildQuery, ChildSlot, EditorSlot(EditorSlot), Query(ScrollTo, LoadScript, CompileProgram, HandleEditorMessage, HandleDropEvent, HandleDragEvent), cpEditor, _warnings)
 
@@ -140,9 +142,23 @@ compilationErrorPane (CompilationError error) =
     ]
 
 compilationWarningsPane :: forall p. Array Warning -> HTML p Query
-compilationWarningsPane warnings =
-  listGroup_ (listGroupItem_ <<< pure <<< compilationWarningPane <$> warnings)
+compilationWarningsPane warnings = listGroup_ (listGroupItem_ <<< pure <<< compilationWarningPane <$> warnings)
 
 compilationWarningPane :: forall p. Warning -> HTML p Query
-compilationWarningPane warning =
-  div [class_ $ ClassName "compilation-warning"] [text $ view _Warning warning]
+compilationWarningPane warning = div [class_ $ ClassName "compilation-warning"] [text $ view _Warning warning]
+
+-- | Handles the messy business of running an editor command if the
+-- editor is up and running.
+withEditor ::
+  forall m a cq slot cs query state.
+  Eq cs =>
+  MonadEffect m =>
+  ChildPath AceQuery cq slot cs ->
+  slot ->
+  (Editor -> Effect a) ->
+  HalogenM state query cq cs Void m (Maybe a)
+withEditor cp slot action = do
+  mEditor <- query' cp slot $ request GetEditor
+  case join mEditor of
+    Just editor -> Just <$> (liftEffect $ action editor)
+    _ -> pure Nothing
