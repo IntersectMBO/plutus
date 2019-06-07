@@ -26,7 +26,8 @@ import qualified Language.Haskell.TH.Syntax             as TH
 
 type BuiltinNameInfo = Map.Map TH.Name GHC.TyThing
 
-newtype CompileOptions = CompileOptions { coCheckValueRestriction :: Bool }
+-- | Compilation options. Empty currently.
+data CompileOptions = CompileOptions {}
 
 data CompileContext = CompileContext {
     ccOpts            :: CompileOptions,

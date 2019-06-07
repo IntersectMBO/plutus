@@ -92,7 +92,4 @@ mangleTyAbs = \case
     x -> pure x
 
 checkTyAbsBody :: Compiling m => PIRTerm -> m ()
-checkTyAbsBody t = do
-    CompileContext {ccOpts=opts} <- ask
-    -- we sometimes need to turn this off, as checking for term values also checks for normalized types at the moment
-    unless (not (coCheckValueRestriction opts) || PIR.isTermValue t) $ throwPlain ValueRestrictionError
+checkTyAbsBody t = unless (PIR.isTermValue t) $ throwPlain ValueRestrictionError
