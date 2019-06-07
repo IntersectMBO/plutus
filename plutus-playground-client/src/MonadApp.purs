@@ -9,8 +9,8 @@ import Ace.Halogen.Component (AceQuery(..))
 import Auth (AuthStatus)
 import Control.Monad.Error.Class (class MonadThrow, throwError)
 import Control.Monad.Except.Trans (ExceptT, runExceptT)
-import Control.Monad.Reader.Class (class MonadAsk, ask)
-import Control.Monad.State.Class (class MonadState, state)
+import Control.Monad.Reader.Class (class MonadAsk)
+import Control.Monad.State.Class (class MonadState)
 import Control.Monad.Trans.Class (class MonadTrans, lift)
 import Data.Maybe (Maybe(..))
 import Data.MediaType (MediaType)
@@ -59,30 +59,14 @@ newtype HalogenApp m a = HalogenApp (HalogenM State Query ChildQuery ChildSlot V
 
 derive instance newtypeHalogenApp :: Newtype (HalogenApp m a) _
 
-instance functorHalogenApp :: Functor m => Functor (HalogenApp m) where
-  map f m = wrap $ map f $ unwrap m
-
-instance applicativeHalogenApp :: Applicative m => Applicative (HalogenApp m) where
-  pure v = wrap $ pure v
-
-instance applyHalogenApp :: Apply m => Apply (HalogenApp m) where
-  apply f v = wrap $ unwrap f <*> unwrap v
-
-instance bindHalogenApp :: Bind m => Bind (HalogenApp m) where
-  bind m action = wrap $ do
-    v <- unwrap m
-    unwrap $ action v
-
-instance monadHalogenApp :: Monad m => Monad (HalogenApp m)
-
-instance monadTransHalogenApp :: MonadTrans HalogenApp where
-  lift = wrap <<< lift
-
-instance monadStateApp :: Monad m => MonadState State (HalogenApp m) where
-  state = wrap <<< state
-
-instance monadAskHalogenApp :: MonadAsk env m => MonadAsk env (HalogenApp m) where
-  ask = lift ask
+derive newtype instance functorHalogenApp :: Functor (HalogenApp m)
+derive newtype instance applicativeHalogenApp :: Applicative (HalogenApp m)
+derive newtype instance applyHalogenApp :: Apply (HalogenApp m)
+derive newtype instance bindHalogenApp :: Bind (HalogenApp m)
+derive newtype instance monadHalogenApp :: Monad (HalogenApp m)
+derive newtype instance monadTransHalogenApp :: MonadTrans HalogenApp
+derive newtype instance monadStateHalogenApp :: MonadState State (HalogenApp m)
+derive newtype instance monadAskHalogenApp :: MonadAsk env m => MonadAsk env (HalogenApp m)
 
 instance monadThrowHalogenApp :: MonadThrow e m => MonadThrow e (HalogenApp m) where
   throwError e = lift (throwError e)
