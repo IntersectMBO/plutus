@@ -1,7 +1,6 @@
 module Simulation where
 
 import Marlowe.Semantics
-
 import API (RunResult(RunResult))
 import Ace.EditSession as Session
 import Ace.Editor as Editor
@@ -17,6 +16,7 @@ import Data.Foldable (all)
 import Data.HeytingAlgebra ((&&))
 import Data.Lens (to, view, (^.))
 import Data.List (List(..))
+import Data.List.NonEmpty as NEL
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -37,7 +37,7 @@ import Halogen.HTML.Properties (InputType(InputCheckbox, InputNumber), checked, 
 import Halogen.Query as HQ
 import LocalStorage as LocalStorage
 import Marlowe.Types (BlockNumber(BlockNumber), Person, IdOracle, Choice, IdAction, IdCommit, Timeout, WIdChoice(..), IdChoice(..))
-import Prelude (Unit, bind, const, discard, flip, identity, pure, show, class Show, unit, void, ($), (<$>), (<<<), (<>))
+import Prelude (Unit, bind, const, discard, flip, identity, pure, show, class Show, unit, void, ($), (<$>), (<<<), (<>), (>))
 import StaticData as StaticData
 import Types (ChildQuery, ChildSlot, FrontendState, InputData, MarloweEditorSlot(MarloweEditorSlot), MarloweError(MarloweError), MarloweState, OracleEntry, Query(..), TransactionValidity(..), _Head, _blockNum, _contract, _currentTransaction, _input, _marloweState, _moneyInContract, _outcomes, _signatures, _state, _transaction, _validity, cpMarloweEditor, isInvalidTransaction, isValidTransaction)
 
@@ -432,11 +432,14 @@ transactionButtons state =
               , btnPrimary
               , ClassName "transaction-btn"
               ]
-          -- , enabled (state.oldContract /= Nothing)
+          , enabled (hasHistory state)
           , onClick $ Just <<< HQ.action <<< const Undo
           ] [text "Undo"]
       ]
   ]
+
+hasHistory :: FrontendState -> Boolean
+hasHistory state = NEL.length state.marloweState > 1
 
 printTransWarnings :: forall p. Int -> List DynamicProblem -> Array (HTML p Query)
 printTransWarnings _ Nil = []
