@@ -42,12 +42,13 @@ import qualified Data.ByteArray                           as BA
 import           GHC.Generics                             (Generic)
 import qualified Language.Haskell.TH                      as TH
 import qualified Language.PlutusCore                      as PLC
+import qualified Language.PlutusCore.Constant.Dynamic     as PLC
+import qualified Language.PlutusCore.Evaluation.Result    as PLC
 import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
 import           Language.PlutusTx.Lift                   (unsafeLiftProgram)
 import           Language.PlutusTx.Lift.Class             (Lift)
 import           Language.PlutusTx                        (CompiledCode, compile, getPlc)
 import           Language.PlutusTx.Prelude
-import           PlutusPrelude                            (reoption)
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 newtype Script = Script { unScript :: PLC.Program PLC.TyName PLC.Name () }
@@ -98,7 +99,18 @@ applyScript (unScript -> s1) (unScript -> s2) = Script $ s1 `PLC.applyProgram` s
 -- | Evaluate a script, returning the trace log and a boolean indicating whether
 -- evaluation was successful.
 evaluateScript :: Script -> ([String], Bool)
-evaluateScript (unScript -> s) = (isJust . reoption) <$> evaluateCekTrace s
+evaluateScript (unScript -> s) =
+    let
+        plcChecks :: PLC.Program PLC.TyName PLC.Name () -> Either (PLC.Error ()) (PLC.Type PLC.TyName ())
+        plcChecks p = PLC.runQuoteT $ do
+            types <- PLC.getStringBuiltinTypes ()
+            let config = PLC.defOffChainConfig { PLC._tccDynamicBuiltinNameTypes = types }
+            PLC.unNormalized <$> PLC.typecheckPipeline config p
+    in case plcChecks s of
+        -- TODO: do something with the error
+        Left _ -> ([], False)
+        -- we don't care about the inferred type, we just care that type inference succeeded
+        Right _ -> PLC.isEvaluationSuccess <$> evaluateCekTrace s
 
 instance ToJSON Script where
   toJSON = JSON.String . JSON.encodeSerialise
@@ -195,10 +207,7 @@ runScript (ValidationData valData) (ValidatorScript validator) (DataScript dataS
     let
         -- See Note [Scripts returning Bool]
         applied = checker `applyScript` (((validator `applyScript` dataScript) `applyScript` redeemer) `applyScript` valData)
-        -- TODO: do something with the error
     in evaluateScript applied
-        -- TODO: Enable type checking of the program
-        -- void typecheck
 
 {- Note [Scripts returning Bool]
 It used to be that the signal for validation failure was a script being `error`. This is nice for the validator, since
