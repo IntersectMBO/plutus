@@ -11,9 +11,6 @@ module Language.PlutusCore.Check.Normal ( checkProgram
 
 import           Control.Monad.Except
 
-import           Data.Functor.Foldable
-import           Data.Functor.Foldable.Monadic
-
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
@@ -25,19 +22,19 @@ checkProgram (Program _ _ t) = checkTerm t
 
 -- | Ensure that all types in the 'Term' are normalized.
 checkTerm :: (AsNormalizationError e TyName Name a, MonadError e m) => Term TyName Name a -> m ()
-checkTerm p = void $ throwingEither _NormalizationError $ checkT p
+checkTerm p = throwingEither _NormalizationError $ check p
 
-checkT :: Term tyname name a -> Either (NormalizationError tyname name a) (Term tyname name a)
-checkT (Error l ty)           = Error l <$> normalType ty
-checkT (TyInst l t ty)        = TyInst l <$> checkT t <*> normalType ty
-checkT (IWrap l pat arg term) = IWrap l <$> normalType pat <*> normalType arg <*> checkT term
-checkT (Unwrap l t)           = Unwrap l <$> checkT t
-checkT (LamAbs l n ty t)      = LamAbs l n <$> normalType ty <*> checkT t
-checkT (Apply l t1 t2)        = Apply l <$> checkT t1 <*> checkT t2
-checkT (TyAbs l tn k t)       = TyAbs l tn k <$> checkT t
-checkT t@Var{}                = pure t
-checkT t@Constant{}           = pure t
-checkT t@Builtin{}            = pure t
+check :: Term tyname name a -> Either (NormalizationError tyname name a) ()
+check (Error _ ty)           = normalType ty
+check (TyInst _ t ty)        = check t >> normalType ty
+check (IWrap _ pat arg term) = normalType pat >> normalType arg >> check term
+check (Unwrap _ t)           = check t
+check (LamAbs _ _ ty t)      = normalType ty >> check t
+check (Apply _ t1 t2)        = check t1 >> check t2
+check (TyAbs _ _ _ t)        = check t
+check Var{}                  = pure ()
+check Constant{}             = pure ()
+check Builtin{}              = pure ()
 
 {- Note [Builtin applications and values]
 An older version of the specification had a special case for builtin type applications being
@@ -53,16 +50,16 @@ but the implementation is not there. Consequently we consider builtin types to b
 isNormalType :: Type tyname a -> Bool
 isNormalType = isRight . normalType
 
-normalType :: Type tyname a -> Either (NormalizationError tyname name a) (Type tyname a)
-normalType (TyFun l i o)        = TyFun l <$> normalType i <*> normalType o
-normalType (TyForall l tn k ty) = TyForall l tn k <$> normalType ty
-normalType (TyIFix l pat arg)   = TyIFix l <$> normalType pat <*> normalType arg
-normalType (TyLam l tn k ty)    = TyLam l tn k <$> normalType ty
-normalType ty                   = neutralType ty
+normalType :: Type tyname a -> Either (NormalizationError tyname name a) ()
+normalType (TyFun _ i o)       = normalType i >> normalType o
+normalType (TyForall _ _ _ ty) = normalType ty
+normalType (TyIFix _ pat arg)  = normalType pat >> normalType arg
+normalType (TyLam _ _ _ ty)    = normalType ty
+normalType ty                  = neutralType ty
 
-neutralType :: Type tyname a -> Either (NormalizationError tyname name a) (Type tyname a)
-neutralType ty@TyVar{}        = pure ty
-neutralType (TyApp x ty1 ty2) = TyApp x <$> neutralType ty1 <*> normalType ty2
+neutralType :: Type tyname a -> Either (NormalizationError tyname name a) ()
+neutralType TyVar{}           = pure ()
+neutralType (TyApp _ ty1 ty2) = neutralType ty1 >> normalType ty2
 -- See note [Builtin applications and values]
-neutralType ty@TyBuiltin{}    = pure ty
+neutralType TyBuiltin{}       = pure ()
 neutralType ty                = Left (BadType (tyLoc ty) ty "neutral type")

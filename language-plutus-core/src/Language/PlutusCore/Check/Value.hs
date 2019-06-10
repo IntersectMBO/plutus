@@ -34,9 +34,9 @@ checkProgram (Program _ _ term) = checkTerm term
 isTermValue :: Term tyname name a -> Bool
 isTermValue = isRight . termValue
 
-termValue :: Term tyname name a -> Either (NormalizationError tyname name a) (Term tyname name a)
-termValue (IWrap l pat arg term) = IWrap l pat arg <$> termValue term
-termValue (TyAbs l tn k t)       = TyAbs l tn k <$> termValue t
-termValue l@LamAbs {}            = pure l
-termValue c@Constant {}          = pure c
-termValue t                      = Left $ BadTerm (termLoc t) t "term value"
+termValue :: Term tyname name a -> Either (NormalizationError tyname name a) ()
+termValue (IWrap _ _ _ term) = termValue term
+termValue (TyAbs _ _ _ t)    = termValue t
+termValue LamAbs {}          = pure ()
+termValue Constant {}        = pure ()
+termValue t                  = Left $ BadTerm (termLoc t) t "term value"
