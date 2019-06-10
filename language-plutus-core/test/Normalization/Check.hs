@@ -3,6 +3,7 @@
 module Normalization.Check ( test_normalizationCheck ) where
 
 import           Language.PlutusCore
+import           Language.PlutusCore.Check.Normal
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
@@ -15,7 +16,7 @@ test_applyToValue =
                     (KindArrow () (Type ()) (Type ()))
                     (TyApp () datVar aVar)
                 )
-    in isTypeValue ty @?= True
+    in isNormalType ty @?= True
 
     where recVar = TyVar () (TyName (Name () "rec" (Unique 0)))
           datVar = TyVar () datName

@@ -15,7 +15,7 @@ module Language.PlutusCore.Generators.Internal.TypeEvalCheck
     , unsafeTypeEvalCheck
     ) where
 
-import qualified Language.PlutusCore.Check.ValueRestriction              as VR
+import qualified Language.PlutusCore.Check.Value              as VR
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.CkMachine

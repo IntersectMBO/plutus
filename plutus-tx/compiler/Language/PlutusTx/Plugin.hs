@@ -249,7 +249,7 @@ compileCoreExpr opts locStr codeTy origE = do
     -- We need to do this out here, since it has to run in CoreM
     nameInfo <- makePrimitiveNameInfo builtinNames
     let context = CompileContext {
-            ccOpts=CompileOptions { coCheckValueRestriction=poDoTypecheck opts },
+            ccOpts=CompileOptions {},
             ccFlags=flags,
             ccBuiltinNameInfo=nameInfo,
             ccScopes=initialScopeStack,
@@ -301,8 +301,5 @@ runCompiler opts expr = do
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump
     when (poDoTypecheck opts) $ void $ do
         stringBuiltinTypes <- PLC.getStringBuiltinTypes ()
-        checkVr <- asks (coCheckValueRestriction.ccOpts)
-        if checkVr
-              then PLC.typecheckPipeline (PLC.offChainConfig stringBuiltinTypes) plcP
-              else PLC.inferTypeOfProgram (PLC.offChainConfig stringBuiltinTypes) plcP
+        PLC.typecheckPipeline (PLC.offChainConfig stringBuiltinTypes) plcP
     pure (pirP, plcP)

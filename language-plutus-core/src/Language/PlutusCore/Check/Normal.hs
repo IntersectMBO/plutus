@@ -2,105 +2,64 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
 
--- | This module makes sure terms and types are well-formed according to Fig. 2
-module Language.PlutusCore.Check.Normal ( check
-                                        , checkProgram
+-- | This module makes sure types are normalized inside programs.
+module Language.PlutusCore.Check.Normal ( checkProgram
                                         , checkTerm
-                                        , NormalizationError
-                                        , isTypeValue
-                                        , isTermValue
+                                        , NormalizationError (..)
+                                        , isNormalType
                                         ) where
 
 import           Control.Monad.Except
-
-import           Data.Functor.Foldable
-import           Data.Functor.Foldable.Monadic
 
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
--- | Ensure that all terms and types are well-formed accoring to Fig. 2
+-- | Ensure that all types in the 'Program' are normalized.
 checkProgram :: (AsNormalizationError e TyName Name a, MonadError e m) => Program TyName Name a -> m ()
-checkProgram p = void $ throwingEither _NormalizationError $ preCheck p
+checkProgram (Program _ _ t) = checkTerm t
 
--- | Ensure that all terms and types are well-formed accoring to Fig. 2
+-- | Ensure that all types in the 'Term' are normalized.
 checkTerm :: (AsNormalizationError e TyName Name a, MonadError e m) => Term TyName Name a -> m ()
-checkTerm p = void $ throwingEither _NormalizationError $ checkTerm p
+checkTerm p = throwingEither _NormalizationError $ check p
 
-check :: Program tyname name a -> Maybe (NormalizationError tyname name a)
-check = go . preCheck where
-    go Right{}  = Nothing
-    go (Left x) = Just x
-
--- | Ensure that all terms and types are well-formed accoring to Fig. 2
-preCheck :: Program tyname name a -> Either (NormalizationError tyname name a) (Program tyname name a)
-preCheck (Program l v t) = Program l v <$> checkT t
-
--- this basically ensures all type instatiations, etc. occur only with type *values*
-checkT :: Term tyname name a -> Either (NormalizationError tyname name a) (Term tyname name a)
-checkT (Error l ty)           = Error l <$> typeValue ty
-checkT (TyInst l t ty)        = TyInst l <$> checkT t <*> typeValue ty
-checkT (IWrap l pat arg term) = IWrap l <$> typeValue pat <*> typeValue arg <*> checkT term
-checkT (Unwrap l t)           = Unwrap l <$> checkT t
-checkT (LamAbs l n ty t)      = LamAbs l n <$> typeValue ty <*> checkT t
-checkT (Apply l t t')         = Apply l <$> checkT t <*> checkT t'
-checkT (TyAbs l tn k t)       = TyAbs l tn k <$> termValue t
-checkT t@Var{}                = pure t
-checkT t@Constant{}           = pure t
-checkT t@Builtin{}            = pure t
-
-isTermValue :: Term tyname name a -> Bool
-isTermValue = isRight . termValue
-
--- ensure a term is a value
-termValue :: Term tyname name a -> Either (NormalizationError tyname name a) (Term tyname name a)
-termValue (LamAbs l n ty t)      = LamAbs l n ty <$> checkT t
-termValue (IWrap l pat arg term) = IWrap l pat arg <$> termValue term
-termValue (TyAbs l tn k t)       = TyAbs l tn k <$> termValue t
-termValue t                      = builtinValue t
+check :: Term tyname name a -> Either (NormalizationError tyname name a) ()
+check (Error _ ty)           = normalType ty
+check (TyInst _ t ty)        = check t >> normalType ty
+check (IWrap _ pat arg term) = normalType pat >> normalType arg >> check term
+check (Unwrap _ t)           = check t
+check (LamAbs _ _ ty t)      = normalType ty >> check t
+check (Apply _ t1 t2)        = check t1 >> check t2
+check (TyAbs _ _ _ t)        = check t
+check Var{}                  = pure ()
+check Constant{}             = pure ()
+check Builtin{}              = pure ()
 
 {- Note [Builtin applications and values]
-An older version of the specification had a special case for builtin applications being
-term values. This is important, because they obviously can't be reduced before runtime.
-However, it was missing a corresponding case for builtin *type* applications, which
-resulted in types like `[(con integer) (con 64)]` not being considered normalized, which
-effectively prevents you using integers anywhere.
+An older version of the specification had a special case for builtin type applications being
+normal types. This is important, because they obviously can't be reduced before runtime.
+This resulted in types like `[(con integer) (con 64)]` not being considered normalized, which
+effectively prevents you using integers anywhere (note: this isn't so much of a problem now
+integers aren't parameterized, but it's still wrong).
 
-The current version of the specification has moved to fully saturated builtins and builtin types,
-but the implementation is not there. Consequently we include the special cases for builtin applications
-and also consider builtin types and type level integers to be neutral types.
+The current version of the specification has moved to fully saturated builtins,
+but the implementation is not there. Consequently we consider builtin types to be neutral types.
 -}
 
+isNormalType :: Type tyname a -> Bool
+isNormalType = isRight . normalType
+
+normalType :: Type tyname a -> Either (NormalizationError tyname name a) ()
+normalType (TyFun _ i o)       = normalType i >> normalType o
+normalType (TyForall _ _ _ ty) = normalType ty
+normalType (TyIFix _ pat arg)  = normalType pat >> normalType arg
+normalType (TyLam _ _ _ ty)    = normalType ty
+normalType ty                  = neutralType ty
+
+neutralType :: Type tyname a -> Either (NormalizationError tyname name a) ()
+neutralType TyVar{}           = pure ()
+neutralType (TyApp _ ty1 ty2) = neutralType ty1 >> normalType ty2
 -- See note [Builtin applications and values]
-builtinValue :: Term tyname name a -> Either (NormalizationError tyname name a) (Term tyname name a)
-builtinValue t@Constant{}    = pure t
-builtinValue (TyInst l t ty) = TyInst l <$> builtinValue t <*> pure ty
-builtinValue (Apply l t t')  = Apply l <$> builtinValue t <*> termValue t'
-builtinValue t               = Left $ BadTerm (termLoc t) t "builtin value"
-
-isTypeValue :: Type tyname a -> Bool
-isTypeValue = isRight . typeValue
-
--- ensure that a type is a type value
-typeValue :: Type tyname a -> Either (NormalizationError tyname name a) (Type tyname a)
-typeValue = cataM aM where
-
-    aM ty | isTyValue ty = pure (embed ty)
-          | otherwise    = neutralType (embed ty)
-
-    isTyValue TyFunF{}     = True
-    isTyValue TyForallF{}  = True
-    isTyValue TyIFixF{}    = True
-    isTyValue TyLamF{}     = True
-    isTyValue TyBuiltinF{} = True
-    isTyValue _            = False
-
--- ensure a type is a neutral type
-neutralType :: Type tyname a -> Either (NormalizationError tyname name a) (Type tyname a)
-neutralType ty@TyVar{}       = pure ty
-neutralType (TyApp x ty ty') = TyApp x <$> neutralType ty <*> typeValue ty'
--- See note [Builtin applications and values]
-neutralType ty@TyBuiltin{}   = pure ty
-neutralType ty               = Left (BadType (tyLoc ty) ty "neutral type")
+neutralType TyBuiltin{}       = pure ()
+neutralType ty                = Left (BadType (tyLoc ty) ty "neutral type")
