@@ -2,6 +2,7 @@
   (let
     (nonrec)
     (termbind
+      (strict)
       (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
       (builtin addInteger)
     )
@@ -20,7 +21,9 @@
         [[Tuple2 (con integer)] (con integer)]
         (let
           (nonrec)
-          (termbind (vardecl wild [[Tuple2 (con integer)] (con integer)]) t)
+          (termbind
+            (strict) (vardecl wild [[Tuple2 (con integer)] (con integer)]) t
+          )
           [
             {
               [ { { Tuple2_match (con integer) } (con integer) } t ]

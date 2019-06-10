@@ -20,6 +20,8 @@
         (nonrec
         )
         (termbind
+          (strict
+          )
           (vardecl
             build
             (all a (type) (fun (all b (type) (fun (fun a (fun b b)) (fun b b))) [List a]))
@@ -47,6 +49,7 @@
           (let
             (nonrec)
             (termbind
+              (strict)
               (vardecl nandDirect (fun Bool (fun Bool Bool)))
               (lam
                 ds
@@ -61,7 +64,18 @@
                         (lam thunk Unit False)
                       ]
                       (lam
-                        thunk Unit [ [ { [ Bool_match ds ] Bool } False ] True ]
+                        thunk
+                        Unit
+                        [
+                          [
+                            [
+                              { [ Bool_match ds ] (fun Unit Bool) }
+                              (lam thunk Unit False)
+                            ]
+                            (lam thunk Unit True)
+                          ]
+                          Unit
+                        ]
                       )
                     ]
                     Unit
@@ -72,6 +86,7 @@
             (let
               (nonrec)
               (termbind
+                (strict)
                 (vardecl andDirect (fun Bool (fun Bool Bool)))
                 (lam
                   ds
@@ -89,6 +104,7 @@
               (let
                 (rec)
                 (termbind
+                  (strict)
                   (vardecl
                     allDirect
                     (all a (type) (fun (fun a Bool) (fun [List a] Bool)))
@@ -103,19 +119,29 @@
                         l
                         [List a]
                         [
-                          [ { [ { Nil_match a } l ] Bool } True ]
-                          (lam
-                            h
-                            a
+                          [
+                            [
+                              { [ { Nil_match a } l ] (fun Unit Bool) }
+                              (lam thunk Unit True)
+                            ]
                             (lam
-                              t
-                              [List a]
-                              [
-                                [ andDirect [ p h ] ]
-                                [ [ { allDirect a } p ] t ]
-                              ]
+                              h
+                              a
+                              (lam
+                                t
+                                [List a]
+                                (lam
+                                  thunk
+                                  Unit
+                                  [
+                                    [ andDirect [ p h ] ]
+                                    [ [ { allDirect a } p ] t ]
+                                  ]
+                                )
+                              )
                             )
-                          )
+                          ]
+                          Unit
                         ]
                       )
                     )
@@ -124,6 +150,7 @@
                 (let
                   (nonrec)
                   (termbind
+                    (strict)
                     (vardecl
                       greaterThanInteger
                       (fun (con integer) (fun (con integer) Bool))

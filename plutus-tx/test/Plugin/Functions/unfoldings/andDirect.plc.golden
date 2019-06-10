@@ -17,6 +17,7 @@
       (let
         (nonrec)
         (termbind
+          (strict)
           (vardecl nandDirect (fun Bool (fun Bool Bool)))
           (lam
             ds
@@ -29,7 +30,20 @@
                   [
                     { [ Bool_match ds ] (fun Unit Bool) } (lam thunk Unit False)
                   ]
-                  (lam thunk Unit [ [ { [ Bool_match ds ] Bool } False ] True ])
+                  (lam
+                    thunk
+                    Unit
+                    [
+                      [
+                        [
+                          { [ Bool_match ds ] (fun Unit Bool) }
+                          (lam thunk Unit False)
+                        ]
+                        (lam thunk Unit True)
+                      ]
+                      Unit
+                    ]
+                  )
                 ]
                 Unit
               ]
@@ -39,6 +53,7 @@
         (let
           (nonrec)
           (termbind
+            (strict)
             (vardecl andDirect (fun Bool (fun Bool Bool)))
             (lam
               ds

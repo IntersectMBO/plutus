@@ -14,6 +14,7 @@
     (let
       (nonrec)
       (termbind
+        (strict)
         (vardecl mrA (fun MyMonoRecord (con integer)))
         (lam
           ds

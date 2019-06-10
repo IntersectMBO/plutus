@@ -2,6 +2,7 @@
   (let
     (nonrec)
     (termbind
+      (strict)
       (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
       (builtin addInteger)
     )
@@ -18,6 +19,7 @@
       (let
         (nonrec)
         (termbind
+          (strict)
           (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
           (lam
             arg
@@ -44,6 +46,7 @@
           (let
             (nonrec)
             (termbind
+              (strict)
               (vardecl
                 subtractInteger
                 (fun (con integer) (fun (con integer) (con integer)))
@@ -53,6 +56,7 @@
             (let
               (rec)
               (termbind
+                (strict)
                 (vardecl fib (fun (con integer) (con integer)))
                 (lam
                   n

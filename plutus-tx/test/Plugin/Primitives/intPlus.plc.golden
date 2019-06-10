@@ -2,6 +2,7 @@
   (let
     (nonrec)
     (termbind
+      (strict)
       (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
       (builtin addInteger)
     )
