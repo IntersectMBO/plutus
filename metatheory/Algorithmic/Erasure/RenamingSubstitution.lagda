@@ -30,31 +30,57 @@ backVar (Γ ,⋆ J) x      = T (backVar Γ x)
 backVar (Γ , A) zero    = Z
 backVar (Γ , A) (suc x) = S (backVar Γ x)
 
-{-
-backVar-eraseVar : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *}(x : Γ ∋ A)
-  → P.Σ (P.proj₁ (backVar {Γ = Γ} (eraseVar x)) ≡ A)
-        λ p → subst (Γ ∋_) p (P.proj₂ (backVar {Γ = Γ} (eraseVar x))) ≡ x
-backVar-eraseVar Z = refl P., refl
-backVar-eraseVar (S i) = let p P., q = backVar-eraseVar i in
-  p P., trans {!!} (cong S q)
-backVar-eraseVar (T i) = {!!}
+backVar⋆-eraseVar : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *}(x : Γ ∋ A) →
+  backVar⋆ Γ (eraseVar x) ≡ A
+backVar⋆-eraseVar Z = refl
+backVar⋆-eraseVar (S x) = backVar⋆-eraseVar x
+backVar⋆-eraseVar (T x) = cong weakenNf (backVar⋆-eraseVar x)
+
+subst-S : ∀{Φ}{Γ : Ctx Φ}{B A A' : Φ ⊢Nf⋆ *}(p : A ≡ A')(x : Γ ∋ A) →
+  subst (Γ , B ∋_) p (S x) ≡ S (subst (Γ ∋_) p x)
+subst-S refl x = refl
+
+subst-T : ∀{Φ}{Γ : Ctx Φ}{A A' : Φ ⊢Nf⋆ *}{K} →
+  (p : A ≡ A')(q : weakenNf {K = K} A ≡ weakenNf A') → (x : Γ ∋ A) →
+  subst (Γ ,⋆ K ∋_) q (T x) ≡ T (subst (Γ ∋_) p x) -- 
+subst-T refl refl x = refl
+
+
+backVar-eraseVar : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *}(x : Γ ∋ A) →
+  subst (Γ ∋_) (backVar⋆-eraseVar x) (backVar Γ (eraseVar x)) ≡ x
+backVar-eraseVar Z = refl
+backVar-eraseVar (S x) = trans
+  (subst-S (backVar⋆-eraseVar x) (backVar _ (eraseVar x)))
+  (cong S (backVar-eraseVar x))
+backVar-eraseVar (T x) = trans
+  (subst-T (backVar⋆-eraseVar x)
+           (cong weakenNf (backVar⋆-eraseVar x))
+           (backVar _ (eraseVar x)))
+  (cong T (backVar-eraseVar x))
 
 --
 
 erase-Ren : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}{ρ⋆ : ⋆.Ren Φ Ψ}
   → A.Ren ρ⋆ Γ Δ → U.Ren (len Γ) (len Δ) 
-erase-Ren ρ i = eraseVar (ρ (P.proj₂ (backVar i)))
+erase-Ren ρ i = eraseVar (ρ (backVar _ i))
 
 --
 
 erase-Sub : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
   → A.Sub σ⋆ Γ Δ → U.Sub (len Γ) (len Δ) 
-erase-Sub σ⋆ σ i = erase (σ (P.proj₂ (backVar i)))
+erase-Sub σ⋆ σ i = erase (σ (backVar _ i))
+
+cong-erase-sub : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
+  → (σ : A.Sub σ⋆ Γ Δ){A A' : Φ ⊢Nf⋆ *}(p : A' ≡ A)
+  → (x : Γ ∋ A)(x' : Γ ∋ A') → subst (Γ ∋_) p x' ≡ x
+  → erase (σ x) ≡ erase (σ x')
+cong-erase-sub σ⋆ σ refl x .x refl = refl
 
 sub-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
   → (σ : A.Sub σ⋆ Γ Δ){A : Φ ⊢Nf⋆ *} → (t : Γ ⊢ A)
   →  erase (A.subst σ⋆ σ t) ≡ U.sub (erase-Sub σ⋆ σ) (erase t) 
-sub-erase σ⋆ σ (` x) = {!cong (erase ∘ σ) ? !}
+sub-erase σ⋆ σ (` x) =
+  cong-erase-sub σ⋆ σ (backVar⋆-eraseVar x) x (backVar _ (eraseVar x)) (backVar-eraseVar x)
 sub-erase σ⋆ σ (ƛ x t) = cong (ƛ x)
   (trans (sub-erase σ⋆ (A.exts σ⋆ σ) t)
          {!!})
@@ -74,5 +100,4 @@ lem[]⋆ = {!!}
 lem[] : ∀{Φ}{Γ : Ctx Φ}{A B : Φ ⊢Nf⋆ *}{N : Γ , A ⊢ B}{W : Γ ⊢ A}
   → erase N U.[ erase W ] ≡ erase (N A.[ W ])
 lem[] = {!!}
--}
 \end{code}
