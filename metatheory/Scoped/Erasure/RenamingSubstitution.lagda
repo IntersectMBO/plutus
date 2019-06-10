@@ -34,10 +34,9 @@ eraseVar-backVar {w = S w} zero    = refl
 eraseVar-backVar {w = S w} (suc i) = cong suc (eraseVar-backVar {w = w} i)
 eraseVar-backVar {w = T w} i       = eraseVar-backVar {w = w} i
 
-
-
 erase-Ren : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}
-  → S.Ren w w' → U.Ren (len w) (len w')
+  → S.Ren w w'
+  → U.Ren (len w) (len w')
 erase-Ren ρ i = eraseVar (ρ (backVar i))
 
 lift-erase : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}
@@ -46,7 +45,6 @@ lift-erase : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}
  → U.lift (erase-Ren ρ) α ≡ erase-Ren (S.lift ρ) α
 lift-erase ρ zero    = refl
 lift-erase ρ (suc α) = refl
-
 
 ren-erase : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}
   → (ρ⋆ : S.Ren⋆ n n')
