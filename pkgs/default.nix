@@ -53481,7 +53481,9 @@ license = stdenv.lib.licenses.asl20;
 ({
   mkDerivation
 , base
+, bytestring
 , containers
+, criterion
 , hedgehog
 , language-plutus-core
 , lens
@@ -53490,6 +53492,7 @@ license = stdenv.lib.licenses.asl20;
 , tasty
 , tasty-hedgehog
 , tasty-hunit
+, weigh
 }:
 mkDerivation {
 
@@ -53511,6 +53514,13 @@ mtl
 tasty
 tasty-hedgehog
 tasty-hunit
+];
+benchmarkHaskellDepends = [
+base
+bytestring
+criterion
+language-plutus-core
+weigh
 ];
 doHaddock = false;
 description = "Virtual machine for Plutus Core";

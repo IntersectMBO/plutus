@@ -1,12 +1,22 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main (main) where
 
 import           Codec.Serialise
 import           Control.Monad
 import           Criterion.Main
-import qualified Data.ByteString.Lazy                 as BSL
+import           Crypto
+import qualified Data.ByteString.Lazy                     as BSL
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant.Dynamic
+import           Language.PlutusCore.Evaluation.CkMachine (runCk)
 import           Language.PlutusCore.Pretty
+
+
+pubKey, sig, msg :: BSL.ByteString
+sig = "e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b"
+pubKey = "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
+msg = ""
 
 traceBuiltins :: QuoteT (Either (Error ())) DynamicBuiltinNameTypes
 traceBuiltins = getStringBuiltinTypes ()
@@ -87,6 +97,27 @@ main =
 
                     bgroup "CBOR" $ mkBench <$> [f, g, h]
 
+                , env evalFiles $ \ ~(f, g) ->
+                    let processor :: BSL.ByteString -> Either (Error AlexPosn) (Program TyName Name ())
+                        processor contents = void <$> (runQuoteT $ parseScoped contents)
+                        f' = processor f
+                        g' = processor g
+                    in
+
+                    bgroup "runCk"
+                      [ bench "valid" $ nf (fmap runCk) f'
+                      , bench "invalid" $ nf (fmap runCk) g'
+                      ]
+
+                ,   bgroup "verifySignature" $
+                      let verify :: BSL.ByteString -> BSL.ByteString -> BSL.ByteString -> Maybe Bool
+                          verify = verifySignature
+                      in
+
+                      [ bench "valid" $ nf (verify pubKey msg) sig
+                      , bench "invalid" $ nf (verify msg pubKey) sig
+                      ]
+
                 ]
 
     where envFile = BSL.readFile "test/data/addInteger.plc"
@@ -99,4 +130,7 @@ main =
           typeCompare0 = BSL.readFile "test/types/example.plc"
           typeCompare1 = BSL.readFile "bench/example-compare.plc"
           typeCompare = (,) <$> typeCompare0 <*> typeCompare1
+          evalFile0 = BSL.readFile "test/Evaluation/Golden/verifySignature.plc"
+          evalFile1 = BSL.readFile "test/Evaluation/Golden/verifySignatureError.plc"
+          evalFiles = (,) <$> evalFile0 <*> evalFile1
           sampleScript = BSL.readFile "bench/script.plci"
