@@ -20,6 +20,7 @@ resource "aws_security_group" "public_alb" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ## inbound (world): http
   ingress {
     from_port   = "80"
     to_port     = "80"
@@ -28,15 +29,8 @@ resource "aws_security_group" "public_alb" {
   }
 
   egress {
-    from_port   = "80"
-    to_port     = "80"
-    protocol    = "TCP"
-    cidr_blocks = ["${var.private_subnet_cidrs}"]
-  }
-
-  egress {
-    from_port   = "3000"
-    to_port     = "3000"
+    from_port   = "${local.nixops_nginx_port}"
+    to_port     = "${local.nixops_nginx_port}"
     protocol    = "TCP"
     cidr_blocks = ["${var.private_subnet_cidrs}"]
   }
@@ -100,6 +94,7 @@ resource "aws_lb_listener_certificate" "monitoring" {
 
 # Playground
 resource "aws_alb_target_group" "playground" {
+  # ALB is taking care of SSL termination so we listen to port 80 here
   port     = "80"
   protocol = "HTTP"
   vpc_id   = "${aws_vpc.plutus.id}"
@@ -149,6 +144,7 @@ resource "aws_route53_record" "playground_alb" {
 
 # Meadow
 resource "aws_alb_target_group" "meadow" {
+  # ALB is taking care of SSL termination so we listen to port 80 here
   port     = "80"
   protocol = "HTTP"
   vpc_id   = "${aws_vpc.plutus.id}"
@@ -198,6 +194,7 @@ resource "aws_route53_record" "meadow_alb" {
 
 # Monitoring
 resource "aws_alb_target_group" "monitoring" {
+  # ALB is taking care of SSL termination so we listen to port 80 here
   port     = "80"
   protocol = "HTTP"
   vpc_id   = "${aws_vpc.plutus.id}"
@@ -208,7 +205,6 @@ resource "aws_alb_target_group" "monitoring" {
     type = "lb_cookie"
   }
 }
-
 
 resource "aws_alb_listener_rule" "monitoring" {
   depends_on   = ["aws_alb_target_group.monitoring"]
@@ -227,7 +223,7 @@ resource "aws_alb_listener_rule" "monitoring" {
 resource "aws_alb_target_group_attachment" "monitoring_a" {
   target_group_arn = "${aws_alb_target_group.monitoring.arn}"
   target_id        = "${aws_instance.nixops.id}"
-  port             = "3000"
+  port             = "${local.nixops_nginx_port}"
 }
 
 resource "aws_route53_record" "monitoring_alb" {
