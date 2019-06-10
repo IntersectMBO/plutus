@@ -42,6 +42,9 @@ genTyName = TyName <$> genName
 genRecursivity :: MonadGen m => m Recursivity
 genRecursivity = Gen.element [Rec, NonRec]
 
+genStrictness :: MonadGen m => m Strictness
+genStrictness = Gen.element [Strict, NonStrict]
+
 genVarDecl :: MonadGen m => m (VarDecl TyName Name ())
 genVarDecl = VarDecl () <$> genName <*> genType
 
@@ -54,7 +57,7 @@ genDatatype = Datatype () <$> genTyVarDecl <*> listOf genTyVarDecl <*> genName <
 
 genBinding :: MonadGen m => m (Binding TyName Name ())
 genBinding = Gen.choice [genTermBind, genTypeBind, genDatatypeBind]
-    where genTermBind = TermBind () <$> genVarDecl <*> genTerm
+    where genTermBind = TermBind () <$> genStrictness <*> genVarDecl <*> genTerm
           genTypeBind = TypeBind () <$> genTyVarDecl <*> genType
           genDatatypeBind = DatatypeBind () <$> genDatatype
 

@@ -38,6 +38,7 @@ library
         Language.PlutusIR.Transform.Substitute
         Language.PlutusIR.Transform.ThunkRecursions
         Language.PlutusIR.Transform.Rename
+        Language.PlutusIR.Transform.NonStrict
     hs-source-dirs: src
     other-modules:
         Language.PlutusIR.Analysis.Dependencies
