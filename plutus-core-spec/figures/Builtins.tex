@@ -2,7 +2,7 @@
 
 \begin{document}
 
-\newcommand{\builtinoffset}{-3cm} 
+\newcommand{\builtinoffset}{-3cm}
 % Shift things left in the big table of builtins to make it fit on the page properly
 
 \newcommand\sep{4pt}
@@ -24,7 +24,7 @@
         \hline
         $\forall \alpha :: K.\ B$ & \(\allT{\alpha}{K}{B}\) \rule{0mm}{4mm} \\[\sep]
         $\integer$ & \(\conT{\conIntegerType{}}\)\\[\sep]
-        
+
         $\bytestring$ & \(\conT{\conBytestringType{}}\)\\[\sep]
 
         $\str$ & \(\conT{\conBytestringType{}}\)\\[\sep]
@@ -116,9 +116,11 @@
         \texttt{concatenate}   &   \sig{}{\str,\str}{\str}   &   - & b_0 , b_1   & b_0\cdot  b_1 & \\
         %&&\\
 
-        \texttt{equalsByteString}  &   \sig{}{\str,\str}{\boolean}   &   - & b_0 , b_1   & b_0 == b_1\\
-        \texttt{takeByteString}    &   \sig{}{\integer,\str}{\str}   & - &   i, b     & \texttt{take} \ i \  b\\
-        \texttt{dropByteString}    &   \sig{}{\integer,\str}{\str}   & - &   i, b     & \texttt{drop} \ i \  b\\
+        \texttt{equalsByteString}       &   \sig{}{\str,\str}{\boolean}   & - & b_0 , b_1 & b_0 == b_1\\
+        \texttt{lessThanByteString}     &   \sig{}{\str,\str}{\boolean}   & - & b_0 , b_1 & b_0 < b_1\\
+        \texttt{greaterThanByteString}  &   \sig{}{\str,\str}{\boolean}   & - & b_0 , b_1 & b_0 > b_1\\
+        \texttt{takeByteString}         &   \sig{}{\integer,\str}{\str}   & - &   i, b    & \texttt{take} \ i \  b\\
+        \texttt{dropByteString}         &   \sig{}{\integer,\str}{\str}   & - &   i, b    & \texttt{drop} \ i \  b\\
         %&&\\
 
         \texttt{sha2$\_256$}         &  \sig{}{\str}{\str}  & - &   b           & sha2\_256 \  b\\

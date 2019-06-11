@@ -13,6 +13,8 @@ module Language.PlutusTx.Builtins (
                                 , dropByteString
                                 , emptyByteString
                                 , equalsByteString
+                                , lessThanByteString
+                                , greaterThanByteString
                                 , sha2_256
                                 , sha3_256
                                 , verifySignature
@@ -94,6 +96,16 @@ verifySignature pubKey message signature =
 -- | Check if two 'ByteString's are equal.
 equalsByteString :: ByteString -> ByteString -> Bool
 equalsByteString = (==)
+
+{-# NOINLINE lessThanByteString #-}
+-- | Check if one 'ByteString' is less than another.
+lessThanByteString :: ByteString -> ByteString -> Bool
+lessThanByteString = (<)
+
+{-# NOINLINE greaterThanByteString #-}
+-- | Check if one 'ByteString' is greater than another.
+greaterThanByteString :: ByteString -> ByteString -> Bool
+greaterThanByteString = (>)
 
 {-# NOINLINE addInteger #-}
 -- | Add two 'Integer's.

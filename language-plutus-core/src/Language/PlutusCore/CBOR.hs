@@ -73,6 +73,8 @@ instance Serialise BuiltinName where
                 EqByteString         -> 16
                 QuotientInteger      -> 17
                 ModInteger           -> 18
+                LtByteString         -> 19
+                GtByteString         -> 20
         in encodeTag i
 
     decode = go =<< decodeTag
@@ -95,6 +97,8 @@ instance Serialise BuiltinName where
               go 16 = pure EqByteString
               go 17 = pure QuotientInteger
               go 18 = pure ModInteger
+              go 19 = pure LtByteString
+              go 20 = pure GtByteString
               go _  = fail "Failed to decode BuiltinName"
 
 instance Serialise Unique where
