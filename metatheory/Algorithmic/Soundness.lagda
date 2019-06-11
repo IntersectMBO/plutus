@@ -33,8 +33,8 @@ lemT' : ∀{Γ Γ' J K}(A :  Γ ⊢Nf⋆ K)
  → (q : Γ ,⋆ J ≡ Γ' ,⋆ J)
   → weaken (substEq (_⊢⋆ K) p (embNf A))
     ≡
-    substEq (_⊢⋆ K) q (embNf (renameNf S A))
-lemT' A refl refl = sym (rename-embNf S A)
+    substEq (_⊢⋆ K) q (embNf (renNf S A))
+lemT' A refl refl = sym (ren-embNf S A)
 \end{code}
 
 \begin{code}
@@ -51,7 +51,7 @@ embVar : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}
 embVar Alg.Z     = Dec.Z
 embVar (Alg.S α) = Dec.S (embVar α)
 embVar {Γ = Γ Alg.,⋆ K} (Alg.T {A = A} α) =
-  conv∋ (sym (rename-embNf S A)) (Dec.T (embVar α))
+  conv∋ (sym (ren-embNf S A)) (Dec.T (embVar α))
 \end{code}
 
 \begin{code}

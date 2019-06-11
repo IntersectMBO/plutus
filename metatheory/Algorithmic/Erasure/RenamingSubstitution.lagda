@@ -13,6 +13,7 @@ open import Algorithmic.Erasure
 open import Untyped
 import Untyped.RenamingSubstitution as U
 
+open import Data.Nat
 open import Data.Fin
 import Data.Product as P
 open import Relation.Binary.PropositionalEquality
@@ -76,22 +77,35 @@ cong-erase-sub : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
   → erase (σ x) ≡ erase (σ x')
 cong-erase-sub σ⋆ σ refl x .x refl = refl
 
+lifts-erase : ∀ {Φ Ψ}{Γ Δ}{σ⋆ : SubNf Φ Ψ}(σ : A.Sub σ⋆ Γ Δ)
+  → (α : Fin (suc (len Γ)))
+  → {B : Φ ⊢Nf⋆ *}
+  → erase-Sub σ⋆ (A.exts σ⋆ σ {B}) α ≡ U.lifts (erase-Sub σ⋆ σ) α
+lifts-erase σ zero = refl
+lifts-erase σ (suc α) = {!!}
+
 sub-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
   → (σ : A.Sub σ⋆ Γ Δ){A : Φ ⊢Nf⋆ *} → (t : Γ ⊢ A)
   →  erase (A.subst σ⋆ σ t) ≡ U.sub (erase-Sub σ⋆ σ) (erase t) 
 sub-erase σ⋆ σ (` x) =
-  cong-erase-sub σ⋆ σ (backVar⋆-eraseVar x) x (backVar _ (eraseVar x)) (backVar-eraseVar x)
+  cong-erase-sub
+    σ⋆
+    σ
+    (backVar⋆-eraseVar x)
+    x
+    (backVar _ (eraseVar x))
+    (backVar-eraseVar x)
 sub-erase σ⋆ σ (ƛ x t) = cong (ƛ x)
   (trans (sub-erase σ⋆ (A.exts σ⋆ σ) t)
-         {!!})
-sub-erase σ⋆ σ (t · u) = {!!}
-sub-erase σ⋆ σ (Λ x t) = {!!}
-sub-erase σ⋆ σ (t ·⋆ A) = {!!}
-sub-erase σ⋆ σ (wrap1 pat arg t) = {!!}
+         (U.sub-cong {!!} (erase t)))
+sub-erase σ⋆ σ (t · u) = cong₂ _·_ (sub-erase σ⋆ σ t) (sub-erase σ⋆ σ u)
+sub-erase σ⋆ σ (Λ x t) = {!sub-erase ? ? t!}
+sub-erase σ⋆ σ (t ·⋆ A) = {!sub-erase σ⋆ σ t!}
+sub-erase σ⋆ σ (wrap1 pat arg t) = {!sub-erase σ⋆ σ t!}
 sub-erase σ⋆ σ (unwrap1 t) = {!!}
 sub-erase σ⋆ σ (con x) = {!!}
 sub-erase σ⋆ σ (builtin bn σ₁ ts) = {!!}
-sub-erase σ⋆ σ (error A) = {!!}
+sub-erase σ⋆ σ (error A) = refl
   
 lem[]⋆ : ∀{Φ}{Γ : Ctx Φ}{K}{B : Φ ,⋆ K ⊢Nf⋆ *}{N : Γ ,⋆ K ⊢ B}{A : Φ ⊢Nf⋆ K}
   → erase N ≡ erase (N A.[ A ]⋆)

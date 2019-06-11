@@ -18,17 +18,6 @@ nfCtx Syn.∅ = Norm.∅
 nfCtx (Γ Syn.,⋆ K) = nfCtx Γ Norm.,⋆ K
 nfCtx (Γ Syn., A) = nfCtx Γ Norm., nf A
 
-conv∋ : ∀ {Φ Γ}{A A' : Φ ⊢Nf⋆ *}
- → A ≡ A' →
- (Γ Norm.∋ A) → Γ Norm.∋ A'
-conv∋ refl α = α
-
-
-subst⊢ : ∀ {Φ Γ}{A A' : Φ ⊢Nf⋆ *}
- → A ≡ A' →
- (Γ Norm.⊢ A) → Γ Norm.⊢ A'
-subst⊢ refl α = α
-
 nfTyVar : ∀{Φ Γ}
   → {A : Φ ⊢⋆ *}
   → Γ Syn.∋ A
@@ -36,7 +25,7 @@ nfTyVar : ∀{Φ Γ}
 nfTyVar Syn.Z = Norm.Z
 nfTyVar (Syn.S α) =  Norm.S (nfTyVar α)
 nfTyVar {Γ = Γ Syn.,⋆ K} (Syn.T {A = A} α) =
-  conv∋ (rename-nf S A) (Norm.T (nfTyVar α))
+  Norm.conv∋ (ren-nf S A) (Norm.T (nfTyVar α))
 
 lemΠ : ∀{Γ K }(B : Γ ,⋆ K ⊢⋆ *){x} →
        nf (Π x B) ≡ Π x (nf B)
@@ -196,7 +185,7 @@ nfTypeTel : ∀{Φ Γ Δ}(σ : Sub Δ Φ)(As : List (Δ ⊢⋆ *))
   → Norm.Tel (nfCtx Γ) Δ (nf ∘ σ) (nfList As)
 
 nfTypeTel σ []        _ = _
-nfTypeTel {Γ} σ (A ∷ As) (M ,, Ms) = subst⊢
+nfTypeTel {Γ} σ (A ∷ As) (M ,, Ms) = Norm.conv⊢
   -- this should be a lemma in NBE/RenSubst
   -- substNf (nf ∘ σ) (nf C) ≡ nf (subst σ C)
   -- also it might go away if we simplify the builtins post size removal
@@ -224,19 +213,19 @@ nfTypeTel' σ As refl .(nfList As) refl tel = nfTypeTel σ As tel
 nfType (Syn.` α) = Norm.` (nfTyVar α)
 nfType {Γ} (Syn.ƛ x t) = Norm.ƛ x (nfType t)
 nfType {Γ} (t Syn.· u) = nfType t Norm.· nfType u
-nfType {Γ} (Syn.Λ {B = B} x t) = Norm.Λ x (subst⊢ (substNf-lemma' B) (nfType t))
+nfType {Γ} (Syn.Λ {B = B} x t) = Norm.Λ x (Norm.conv⊢ (substNf-lemma' B) (nfType t))
 nfType {Γ} (Syn._·⋆_ {B = B} t A) =
-  subst⊢ (lem[] A B) (subst⊢ (lemΠ B) (nfType t) Norm.·⋆ nf A)
+  Norm.conv⊢ (lem[] A B) (Norm.conv⊢ (lemΠ B) (nfType t) Norm.·⋆ nf A)
 nfType {Γ} (Syn.wrap1 pat arg t) =
-  Norm.wrap1 (nf pat) (nf arg) (subst⊢ (lemXX pat arg) (nfType t))
+  Norm.wrap1 (nf pat) (nf arg) (Norm.conv⊢ (lemXX pat arg) (nfType t))
 nfType {Γ} (Syn.unwrap1 {pat = pat}{arg} t) =
-  subst⊢ (sym (lemXX pat arg)) (Norm.unwrap1 (nfType t))
-nfType (Syn.conv p t) = subst⊢ (completeness p) (nfType t)
+  Norm.conv⊢ (sym (lemXX pat arg)) (Norm.unwrap1 (nfType t))
+nfType (Syn.conv p t) = Norm.conv⊢ (completeness p) (nfType t)
 nfType {Γ} (Syn.con {tcn = tcn} t) = Norm.con (nfTypeTC t)
 nfType {Γ} (Syn.builtin bn σ tel) = let
   Δ ,, As ,, C = SSig.SIG bn
   Δ' ,, As' ,, C' = NSig.SIG bn
-  in subst⊢
+  in Norm.conv⊢
     (lemσ σ C C' (sym (nfTypeSIG≡₁ bn)) (nfTypeSIG≡₂ bn))
     (Norm.builtin
       bn

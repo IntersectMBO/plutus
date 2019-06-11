@@ -171,3 +171,17 @@ true = Λ "α" (ƛ "t" (ƛ "f" (` (S Z))))
 false : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ booleanNf
 false = Λ "α" (ƛ "t" (ƛ "f" (` Z)))
 \end{code}
+
+Utility functions
+
+\begin{code}
+conv∋ : ∀ {Φ Γ}{A A' : Φ ⊢Nf⋆ *}
+ → A ≡ A' →
+ (Γ ∋ A) → Γ ∋ A'
+conv∋ refl α = α
+
+conv⊢ : ∀ {Φ Γ}{A A' : Φ ⊢Nf⋆ *}
+ → A ≡ A' →
+ (Γ ⊢ A) → Γ ⊢ A'
+conv⊢ refl α = α
+\end{code}
