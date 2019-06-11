@@ -26,7 +26,7 @@ either neutral or Kripke functions
 \begin{code}
 Val : Ctx⋆ → Kind → Set
 Val Φ *       = Φ ⊢Nf⋆ *
-Val Φ (σ ⇒ τ) = Φ ⊢NeN⋆ (σ ⇒ τ) ⊎ String × ∀ {Ψ} → Ren Φ Ψ → Val Ψ σ → Val Ψ τ
+Val Φ (σ ⇒ τ) = Φ ⊢Ne⋆ (σ ⇒ τ) ⊎ String × ∀ {Ψ} → Ren Φ Ψ → Val Ψ σ → Val Ψ τ
 \end{code}
 
 We can embed neutral terms into values at any kind using reflect.
@@ -34,7 +34,7 @@ reflect is quite simple in this version of NBE and not mutually
 defined with reify.
 
 \begin{code}
-reflect : ∀{Φ σ} → Φ ⊢NeN⋆ σ → Val Φ σ
+reflect : ∀{Φ σ} → Φ ⊢Ne⋆ σ → Val Φ σ
 reflect {σ = *}     n = ne n
 reflect {σ = σ ⇒ τ} n = inj₁ n
 \end{code}
@@ -52,7 +52,7 @@ Renaming for values
 \begin{code}
 renVal : ∀ {σ Φ Ψ} → Ren Φ Ψ → Val Φ σ → Val Ψ σ
 renVal {*}     ψ n        = renNf ψ n
-renVal {σ ⇒ τ} ψ (inj₁ n) = inj₁ (renNeN ψ n)
+renVal {σ ⇒ τ} ψ (inj₁ n) = inj₁ (renNe ψ n)
 renVal {σ ⇒ τ} ψ (inj₂ (x , f)) = inj₂ (x , λ ρ' →  f (ρ' ∘ ψ))
 \end{code}
 

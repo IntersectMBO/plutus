@@ -102,7 +102,7 @@ using reflectCR to build identify environments will give us the
 completeness result.
 
 \begin{code}
-reflectCR : ∀{Φ K} → {n n' : Φ ⊢NeN⋆ K}
+reflectCR : ∀{Φ K} → {n n' : Φ ⊢Ne⋆ K}
   → n ≡ n'
     -----------------------------
   → CR K (reflect n) (reflect n')
@@ -162,9 +162,9 @@ renVal commutes with reflect
 \begin{code}
 renVal-reflect : ∀{Φ Ψ K}
   → (ρ : Ren Φ Ψ)
-  → (n : Φ ⊢NeN⋆ K)
+  → (n : Φ ⊢Ne⋆ K)
     --------------------------------------------------------
-  → CR K (renVal ρ (reflect n)) (reflect (renNeN ρ n))
+  → CR K (renVal ρ (reflect n)) (reflect (renNe ρ n))
 renVal-reflect {K = *}     ρ n = refl
 renVal-reflect {K = K ⇒ J} ρ n = refl 
 \end{code}
@@ -193,7 +193,7 @@ renVal-id : ∀ {K Φ}{v v' : Val Φ K}
     ------------------------
   → CR K (renVal id v) v'
 renVal-id {*}                            refl = renNf-id _
-renVal-id {K ⇒ J} {v = inj₁ n} {inj₁ n'} refl = renNeN-id _
+renVal-id {K ⇒ J} {v = inj₁ n} {inj₁ n'} refl = renNe-id _
 renVal-id {K ⇒ J} {v = inj₁ n} {inj₂ f'} ()
 renVal-id {K ⇒ J} {v = inj₂ f} {inj₁ n'} () 
 renVal-id {K ⇒ J} {v = inj₂ f} {inj₂ f'} p    = p
@@ -211,7 +211,7 @@ renVal-comp : ∀ {K Φ Ψ Θ}
 renVal-comp {*}      ρ ρ'                    refl           =
   renNf-comp _
 renVal-comp {K ⇒ K₁} ρ ρ' {inj₁ n} {inj₁ n'} refl           =
-  renNeN-comp _
+  renNe-comp _
 renVal-comp {K ⇒ K₁} ρ ρ' {inj₁ x} {inj₂ y} ()
 renVal-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₁ x} ()
 renVal-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₂ y₁} (p , p' , p'' , p''') =
@@ -256,10 +256,10 @@ renVal·V : ∀{K J Φ Ψ}
     --------------------------------------------------------------
   → CR J (renVal ρ (f ·V v)) (renVal ρ f' ·V renVal ρ v')
 renVal·V {J = *} ρ {inj₁ n} {inj₁ .n} refl {v}{v'}  q =
-  cong (ne ∘ (renNeN ρ n ·_))
+  cong (ne ∘ (renNe ρ n ·_))
        (trans ( ren-reify (reflCR q) ρ ) (reifyCR (renCR ρ q)))
 renVal·V {J = J ⇒ K} ρ {inj₁ n} {inj₁ .n} refl      q =
-  cong (renNeN ρ n ·_)
+  cong (renNe ρ n ·_)
        (trans ( ren-reify (reflCR q) ρ ) (reifyCR (renCR ρ q)))
 renVal·V ρ {inj₁ n} {inj₂ f}  ()                    q
 renVal·V ρ {inj₂ f} {inj₁ n'} ()                    q

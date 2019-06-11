@@ -27,7 +27,7 @@ type is beta-eta-equal to the result of reifying the value.
 \begin{code}
 SR : ∀{Φ} K → Φ ⊢⋆ K → Val Φ K → Set
 SR *       A v        = A ≡β embNf v
-SR (K ⇒ J) A (inj₁ n) = A ≡β embNeN n
+SR (K ⇒ J) A (inj₁ n) = A ≡β embNe n
 SR (K ⇒ J) A (inj₂ (x , f)) = Σ (_ ,⋆ K ⊢⋆ J) λ B →
   (A ≡β ƛ x B) -- this bit of indirection is needed as we have only β not βη
   ×
@@ -41,8 +41,8 @@ SR (K ⇒ J) A (inj₂ (x , f)) = Σ (_ ,⋆ K ⊢⋆ J) λ B →
 \end{code}
 
 \begin{code}
-reflectSR : ∀{Φ K}{A : Φ ⊢⋆ K}{n : Φ ⊢NeN⋆ K}
-  → A ≡β embNeN n
+reflectSR : ∀{Φ K}{A : Φ ⊢⋆ K}{n : Φ ⊢Ne⋆ K}
+  → A ≡β embNe n
     ------------------
   → SR K A (reflect n)
 reflectSR {K = *}     p = p
@@ -92,7 +92,7 @@ renSR : ∀{Φ Ψ}(ρ : Ren Φ Ψ){K}{A : Φ ⊢⋆ K}{v : Val Φ K}
   → SR K (ren ρ A) (renVal ρ v)
 renSR ρ {*}{A}{n} p = 
   substEq (ren ρ A ≡β_) (sym (ren-embNf ρ n)) (ren≡β ρ p)
-renSR ρ {K ⇒ J} {A} {inj₁ n} p rewrite ren-embNeN ρ n = ren≡β ρ p  
+renSR ρ {K ⇒ J} {A} {inj₁ n} p rewrite ren-embNe ρ n = ren≡β ρ p  
 renSR ρ {K ⇒ J} {A} {inj₂ (x , f)} (A' , p , q) =
   ren (ext ρ) A'
   ,

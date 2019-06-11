@@ -21,7 +21,7 @@ NBE algorithm.
 reify ∘ reflect preserves the neutral term
 
 \begin{code}
-reify-reflect : ∀{K Φ}(n : Φ ⊢NeN⋆ K) → reify (reflect n) ≡ ne n
+reify-reflect : ∀{K Φ}(n : Φ ⊢Ne⋆ K) → reify (reflect n) ≡ ne n
 reify-reflect {*}     n = refl
 reify-reflect {K ⇒ J} n = refl
 \end{code}
@@ -50,7 +50,22 @@ ren-nf σ A = trans
         (symCR (ren-eval A idCR σ))  )))
 \end{code}
 
-\beg
+\begin{code}
+ren-nf-μ1 : ∀ {Φ Ψ}{K}
+  → (ρ⋆ : Ren Φ Ψ)
+  → (pat  : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)
+  → (arg  : Φ ⊢Nf⋆ K)
+  → renNf ρ⋆ (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
+    ≡
+    nf (embNf (renNf ρ⋆ pat)
+        · (μ1 · embNf (renNf ρ⋆ pat))
+        · embNf (renNf ρ⋆ arg))
+ren-nf-μ1 ρ⋆ pat arg = trans
+  (ren-nf ρ⋆ (embNf pat · (μ1 · embNf pat) · embNf arg))
+  (cong₂ (λ (p : _ ⊢⋆ _)(a : _ ⊢⋆ _) → nf (p · (μ1 · p) · a))
+         (sym (ren-embNf ρ⋆ pat))
+         (sym (ren-embNf ρ⋆ arg)))
+\end{code}
 
 \begin{code}
 SubNf : Ctx⋆ → Ctx⋆ → Set
@@ -235,12 +250,12 @@ Pushing a substitution through a renaming
 
 \begin{code}
 substNf-renNf : ∀{Φ Ψ Θ}
-  → {g : Ren Φ Ψ}
-  → {f : SubNf Ψ Θ}
+  → (g : Ren Φ Ψ)
+  → (f : SubNf Ψ Θ)
   → ∀{J}(A : Φ ⊢Nf⋆ J)
     --------------------------------------
   → substNf (f ∘ g) A ≡ substNf f (renNf g A)
-substNf-renNf {g = g}{f} A = reifyCR
+substNf-renNf g f A = reifyCR
   (transCR
     (subst-eval (embNf A) idCR (embNf ∘ f ∘ g))
     (transCR
@@ -268,7 +283,7 @@ ren[]Nf ρ t u = trans
       {g = substNf-cons (ne ∘ `) (renNf ρ u) ∘ ext ρ}
       (λ { Z → refl ; (S α) → refl})
       t)
-    (substNf-renNf {g = ext ρ}{f = substNf-cons (ne ∘ `) (renNf ρ u)} t))
+    (substNf-renNf (ext ρ)(substNf-cons (ne ∘ `) (renNf ρ u)) t))
 \end{code}
 
 Pushing a normal substitution through a one place normal substitution
@@ -290,8 +305,8 @@ subst[]Nf ρ A B = trans
          ; (S α) → trans
               (trans (substNf-∋ ρ α) (sym (substNf-id (ρ α))))
               (substNf-renNf
-                {g = S}
-                {f = substNf-cons (ne ∘ `) (substNf ρ A)}
+                S
+                (substNf-cons (ne ∘ `) (substNf ρ A))
                 (ρ α))})
       B)
     (substNf-comp  (extsNf ρ) (substNf-cons (ne ∘ `) (substNf ρ A)) B))
@@ -342,5 +357,65 @@ subst[]Nf' ρ A B =
                      (sym (substNf-lemma ρ (embNf B))))
                (cong (λ n → n [ substNf ρ A ]Nf)
                      (substNf-lemma' (subst (exts (embNf ∘ ρ)) (embNf B)))))
+\end{code}
+
+\begin{code}
+weakenNf-renNf : ∀ {Φ Ψ}
+  → (ρ⋆ : Ren Φ Ψ)
+  → ∀{K}
+  → (A : Φ ⊢Nf⋆ *)
+  → weakenNf (renNf ρ⋆ A) ≡ renNf (ext ρ⋆ {K = K}) (weakenNf A)
+weakenNf-renNf ρ⋆ A = trans (sym (renNf-comp _)) (renNf-comp _)
+
+weakenNf-substNf : ∀ {Φ Ψ}
+  → (σ⋆ : SubNf Φ Ψ)
+  → ∀{K}
+  → (A : Φ ⊢Nf⋆ *)
+  → weakenNf (substNf σ⋆ A) ≡ substNf (extsNf σ⋆ {K = K}) (weakenNf A)
+weakenNf-substNf σ⋆ A = trans
+  (sym (renNf-substNf σ⋆ S A))
+  (substNf-renNf S (extsNf σ⋆) A)
+
+weakenNf[] : ∀ {Φ K}(B : Φ ⊢Nf⋆ K)
+        → (A : Φ ⊢Nf⋆ *)
+        → A ≡ weakenNf A [ B ]Nf
+weakenNf[] B A = trans
+  (trans (sym (stability A))
+         (evalCRSubst idCR (sym (subst-id (embNf A)))))
+  (substNf-renNf S (substNf-cons (ne ∘ `) B) A)
+
+
+open import Data.Sum
+
+subst-nf-Π : ∀ {Φ Ψ}
+  → (σ⋆ : SubNf Φ Ψ)
+  → ∀{K}
+  → (B : Φ ,⋆ K ⊢Nf⋆ *)
+  → substNf (extsNf σ⋆) B
+    ≡
+    eval (subst (exts (embNf ∘ σ⋆)) (embNf B)) (exte (idEnv Ψ))
+subst-nf-Π σ⋆ B = trans
+  (evalCRSubst idCR (sym (substNf-lemma σ⋆ (embNf B))))
+  (substNf-lemma' (subst (exts (embNf ∘ σ⋆)) (embNf B)))
+
+subst-nf-μ : ∀ {Φ Ψ}{K}
+  → (σ⋆ : SubNf Φ Ψ)
+  → (pat  : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)
+  → (arg  : Φ ⊢Nf⋆ K)
+  → substNf σ⋆ (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
+    ≡
+    nf (embNf (substNf σ⋆ pat)
+        · (μ1 · embNf (substNf σ⋆ pat))
+        · embNf (substNf σ⋆ arg))
+subst-nf-μ σ⋆ pat arg = trans
+  (sym (substNf-nf σ⋆ (embNf pat · (μ1 · embNf pat) · embNf arg)))
+  (completeness
+     (·≡β
+       (·≡β
+         (soundness (subst (embNf ∘ σ⋆) (embNf pat)))
+         (·≡β
+           (refl≡β μ1)
+           (soundness (subst (embNf ∘ σ⋆) (embNf pat)))))
+       (soundness (subst (embNf ∘ σ⋆) (embNf arg)))))
 \end{code}
 
