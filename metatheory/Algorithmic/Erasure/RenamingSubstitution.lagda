@@ -38,19 +38,34 @@ backVar⋆-eraseVar (S x) = backVar⋆-eraseVar x
 backVar⋆-eraseVar (T x) = cong weakenNf (backVar⋆-eraseVar x)
 
 subst-S : ∀{Φ}{Γ : Ctx Φ}{B A A' : Φ ⊢Nf⋆ *}(p : A ≡ A')(x : Γ ∋ A) →
-  subst (Γ , B ∋_) p (S x) ≡ S (subst (Γ ∋_) p x)
+  conv∋ p (S {B = B} x) ≡ S (conv∋ p x)
 subst-S refl x = refl
 
 subst-T : ∀{Φ}{Γ : Ctx Φ}{A A' : Φ ⊢Nf⋆ *}{K} →
   (p : A ≡ A')(q : weakenNf {K = K} A ≡ weakenNf A') → (x : Γ ∋ A) →
-  subst (Γ ,⋆ K ∋_) q (T x) ≡ T (subst (Γ ∋_) p x) -- 
+  conv∋ q (T x) ≡ T (conv∋ p x) -- 
 subst-T refl refl x = refl
 
 
+subst-T' : ∀{Φ}{Γ : Ctx Φ}{A A' : Φ ⊢Nf⋆ *}{K}{A'' : Φ ,⋆ K ⊢Nf⋆ *}
+  → (p : A ≡ A')
+  → (q : weakenNf {K = K} A ≡ A'')
+  → (r : weakenNf  {K = K} A' ≡ A'')
+  → (x : Γ ∋ A) →
+  conv∋ q (T x) ≡ conv∋ r (T (conv∋ p x))
+subst-T' refl refl refl x = refl
+
+cong-erase-ren : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
+  → (ρ : A.Ren ρ⋆ Γ Δ){A A' : Φ ⊢Nf⋆ *}(p : A' ≡ A)
+  → (x : Γ ∋ A)(x' : Γ ∋ A') → conv∋ p x' ≡ x
+  → eraseVar (ρ x) ≡ eraseVar (ρ x')
+cong-erase-ren ρ⋆ ρ refl x .x refl = refl
+
+
 backVar-eraseVar : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *}(x : Γ ∋ A) →
-  subst (Γ ∋_) (backVar⋆-eraseVar x) (backVar Γ (eraseVar x)) ≡ x
+  conv∋ (backVar⋆-eraseVar x) (backVar Γ (eraseVar x)) ≡ x
 backVar-eraseVar Z = refl
-backVar-eraseVar (S x) = trans
+backVar-eraseVar {Γ = Γ , A} (S x) = trans
   (subst-S (backVar⋆-eraseVar x) (backVar _ (eraseVar x)))
   (cong S (backVar-eraseVar x))
 backVar-eraseVar (T x) = trans
@@ -61,9 +76,54 @@ backVar-eraseVar (T x) = trans
 
 --
 
-erase-Ren : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}{ρ⋆ : ⋆.Ren Φ Ψ}
+erase-Ren : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
   → A.Ren ρ⋆ Γ Δ → U.Ren (len Γ) (len Δ) 
-erase-Ren ρ i = eraseVar (ρ (backVar _ i))
+erase-Ren ρ⋆ ρ i = eraseVar (ρ (backVar _ i))
+
+ext-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
+  → (ρ : A.Ren ρ⋆ Γ Δ){A : Φ ⊢Nf⋆ *}(α : Fin (len (Γ , A)))
+  → erase-Ren ρ⋆ (A.ext ρ⋆ ρ {B = A}) α ≡ U.lift (erase-Ren ρ⋆ ρ) α
+ext-erase ρ⋆ ρ zero    = refl
+ext-erase ρ⋆ ρ (suc α) = refl
+
+conv∋-erase : ∀{Φ}{Γ : Ctx Φ}{A A' : Φ ⊢Nf⋆ *}(x : Γ ∋ A)
+  → (p : A ≡ A')
+  → eraseVar (conv∋ p x) ≡ eraseVar x
+conv∋-erase x refl = refl
+
+ext⋆-erase : ∀{Φ Ψ K}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
+  → (ρ : A.Ren ρ⋆ Γ Δ)(α : Fin (len Γ))
+  → erase-Ren (⋆.ext ρ⋆ {K = K}) (A.ext⋆ ρ⋆ ρ) α ≡ erase-Ren ρ⋆ ρ α
+ext⋆-erase {Γ = Γ} ρ⋆ ρ α = conv∋-erase
+  (T (ρ (backVar Γ α)))
+  (trans (sym (renNf-comp (backVar⋆ Γ α))) (renNf-comp (backVar⋆ Γ α)))
+
+ren-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
+  → (ρ : A.Ren ρ⋆ Γ Δ){A : Φ ⊢Nf⋆ *} → (t : Γ ⊢ A)
+  →  erase (A.ren ρ⋆ ρ t) ≡ U.ren (erase-Ren ρ⋆ ρ) (erase t)
+ren-erase ρ⋆ ρ (` x) = cong `
+ (cong-erase-ren
+   ρ⋆
+   ρ
+   (backVar⋆-eraseVar x)
+   x
+   (backVar _ (eraseVar x))
+   (backVar-eraseVar x))
+ren-erase ρ⋆ ρ (ƛ x t)            = cong (ƛ x)
+  (trans
+    (ren-erase ρ⋆ (A.ext ρ⋆ ρ) t)
+    (U.ren-cong (ext-erase ρ⋆ ρ) (erase t)))
+ren-erase ρ⋆ ρ (t · u)            =
+  cong₂ _·_ (ren-erase ρ⋆ ρ t) (ren-erase ρ⋆ ρ u)
+ren-erase ρ⋆ ρ (Λ x t)            = trans
+  (ren-erase (⋆.ext ρ⋆) (A.ext⋆ ρ⋆ ρ) t)
+  (U.ren-cong (ext⋆-erase ρ⋆ ρ) (erase t))
+ren-erase ρ⋆ ρ (t ·⋆ A)           = trans {!!} (ren-erase ρ⋆ ρ t)
+ren-erase ρ⋆ ρ (wrap1 pat arg t)  = trans {!!} (ren-erase ρ⋆ ρ t)
+ren-erase ρ⋆ ρ (unwrap1 t)        = trans {!!} (ren-erase ρ⋆ ρ t)
+ren-erase ρ⋆ ρ (con c)            = {!!}
+ren-erase ρ⋆ ρ (builtin bn σ tel) = {!!}
+ren-erase ρ⋆ ρ (error A)          = refl
 
 --
 
@@ -73,7 +133,7 @@ erase-Sub σ⋆ σ i = erase (σ (backVar _ i))
 
 cong-erase-sub : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
   → (σ : A.Sub σ⋆ Γ Δ){A A' : Φ ⊢Nf⋆ *}(p : A' ≡ A)
-  → (x : Γ ∋ A)(x' : Γ ∋ A') → subst (Γ ∋_) p x' ≡ x
+  → (x : Γ ∋ A)(x' : Γ ∋ A') → conv∋ p x' ≡ x
   → erase (σ x) ≡ erase (σ x')
 cong-erase-sub σ⋆ σ refl x .x refl = refl
 
