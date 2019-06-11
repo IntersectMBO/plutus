@@ -7,7 +7,7 @@ import           TestLib
 import           Language.PlutusCore.Quote
 
 import           Language.PlutusIR.Parser
-import qualified Language.PlutusIR.Transform.NonStrict as NonStrict
+import qualified Language.PlutusIR.Transform.NonStrict       as NonStrict
 import qualified Language.PlutusIR.Transform.ThunkRecursions as ThunkRec
 
 transform :: TestNested
