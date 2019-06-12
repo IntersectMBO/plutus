@@ -12,6 +12,7 @@
     (let
       (nonrec)
       (termbind
+        (strict)
         (vardecl lessThanInteger (fun (con integer) (fun (con integer) Bool)))
         (lam
           arg

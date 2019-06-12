@@ -255,7 +255,7 @@ compileCoreExpr opts locStr codeTy origE = do
             ccScopes=initialScopeStack,
             ccBlackholed=mempty
             }
-        initialState = CompileState mempty
+        initialState = CompileState {}
     res <- runExceptT . runQuoteT . flip evalStateT initialState . flip runReaderT context $
         withContextM 1 (sdToTxt $ "Compiling expr at" GHC.<+> GHC.text locStr) $ runCompiler opts origE
     case res of

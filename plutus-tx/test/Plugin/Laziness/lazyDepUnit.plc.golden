@@ -1,26 +1,22 @@
 (program
   (let
     (nonrec)
-    (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    (termbind
+      (strict)
+      (vardecl monoId (fun (con bytestring) (con bytestring)))
+      (lam x (con bytestring) x)
     )
     (let
       (nonrec)
-      (termbind
-        (vardecl monoId (fun (con bytestring) (con bytestring)))
-        (lam x (con bytestring) x)
-      )
+      (termbind (strict) (vardecl emptyByteString (con bytestring)) (con #))
       (let
         (nonrec)
-        (termbind (vardecl emptyByteString (con bytestring)) (con #))
-        (let
-          (nonrec)
-          (termbind
-            (vardecl aByteString (fun Unit (con bytestring)))
-            (lam thunk Unit [ monoId emptyByteString ])
-          )
-          [ aByteString Unit ]
+        (termbind
+          (nonstrict)
+          (vardecl aByteString (con bytestring))
+          [ monoId emptyByteString ]
         )
+        aByteString
       )
     )
   )

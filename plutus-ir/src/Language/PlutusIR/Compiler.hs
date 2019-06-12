@@ -23,6 +23,7 @@ import           Language.PlutusIR.Compiler.Lower
 import           Language.PlutusIR.Compiler.Provenance
 import           Language.PlutusIR.Compiler.Types
 import qualified Language.PlutusIR.Optimizer.DeadCode        as DeadCode
+import qualified Language.PlutusIR.Transform.NonStrict       as NonStrict
 import           Language.PlutusIR.Transform.Rename          ()
 import qualified Language.PlutusIR.Transform.ThunkRecursions as ThunkRec
 
@@ -40,7 +41,10 @@ compileTerm :: Compiling m e a => Term TyName Name a -> m (PLCTerm a)
 compileTerm =
     (pure . original)
     >=> simplifyTerm
-    >=> ThunkRec.thunkRecursionsTerm
+    >=> (pure . ThunkRec.thunkRecursions)
+    -- We need globally unique names for compiling non-strict bindings away
+    >=> PLC.rename
+    >=> NonStrict.compileNonStrictBindings
     >=> Let.compileLets Let.Types
     >=> Let.compileLets Let.RecTerms
     -- We introduce some non-recursive let bindings while eliminating recursive let-bindings, so we

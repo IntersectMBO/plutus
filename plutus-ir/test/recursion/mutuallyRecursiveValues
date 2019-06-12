@@ -1,6 +1,6 @@
 (let
   (rec)
-  (termbind (vardecl x (all a (type) (fun a a))) y)
-  (termbind (vardecl y (all a (type) (fun a a))) (abs a (type) (lam x a x)))
+  (termbind (strict) (vardecl x (all a (type) (fun a a))) y)
+  (termbind (strict) (vardecl y (all a (type) (fun a a))) (abs a (type) (lam x a x)))
   x
 )

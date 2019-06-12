@@ -176,7 +176,7 @@ defineBuiltinTerm :: Compiling m => TH.Name -> PIRTerm -> [GHC.Name] -> m ()
 defineBuiltinTerm name term deps = do
     ghcId <- GHC.tyThingId <$> getThing name
     var <- compileVarFresh ghcId
-    PIR.defineTerm (LexName $ GHC.getName ghcId) (PIR.Def var term) (Set.fromList $ LexName <$> deps)
+    PIR.defineTerm (LexName $ GHC.getName ghcId) (PIR.Def var (term, PIR.Strict)) (Set.fromList $ LexName <$> deps)
 
 -- | Add definitions for all the builtin types to the environment.
 defineBuiltinType :: Compiling m => TH.Name -> PIRType -> [GHC.Name] -> m ()

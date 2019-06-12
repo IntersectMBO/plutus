@@ -12,6 +12,7 @@
     (let
       (nonrec)
       (termbind
+        (strict)
         (vardecl myExternal (fun MyExternalRecord (con integer)))
         (lam
           ds

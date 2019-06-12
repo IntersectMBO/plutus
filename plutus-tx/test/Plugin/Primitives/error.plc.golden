@@ -7,6 +7,7 @@
     (let
       (nonrec)
       (termbind
+        (strict)
         (vardecl error (all a (type) (fun Unit a)))
         (abs e (type) (lam thunk Unit (error e)))
       )
