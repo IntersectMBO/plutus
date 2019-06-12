@@ -219,6 +219,9 @@ _[_] {A = A}{B} b a = conv⊢
 \end{code}
 
 \begin{code}
+lem : ∀ {Φ Γ K} {B : Φ ,⋆ K ⊢Nf⋆ *}{A : Φ ⊢Nf⋆ K} → (x : Γ ,⋆ K ∋ B) → 
+  Γ ⊢ substNf (substNf-cons (λ x₁ → ne (` x₁)) A) B
+lem (T x) = conv⊢ (weakenNf[] _ _) (` x)
 
 _[_]⋆ : ∀ {Φ Γ K} {B : Φ ,⋆ K ⊢Nf⋆ *}
         → Γ ,⋆ K ⊢ B
@@ -227,6 +230,6 @@ _[_]⋆ : ∀ {Φ Γ K} {B : Φ ,⋆ K ⊢Nf⋆ *}
         → Γ ⊢ B [ A ]Nf
 _[_]⋆ b A = subst
   (substNf-cons (ne ∘ `) A)
-  ((λ {(T {A = A'} x) → conv⊢ (weakenNf[] A A') (` x)}))
+  lem
   b
 \end{code}

@@ -277,11 +277,19 @@ sub-erase σ⋆ σ (builtin bn σ' tel) = let Φ P., As P., X = SIG bn in trans
   (cong (builtin bn) (subTel-erase σ⋆ σ Φ As σ' tel))
 sub-erase σ⋆ σ (error A) = refl
   
-lem[]⋆ : ∀{Φ}{Γ : Ctx Φ}{K}{B : Φ ,⋆ K ⊢Nf⋆ *}{N : Γ ,⋆ K ⊢ B}{A : Φ ⊢Nf⋆ K}
+lem[]⋆ : ∀{Φ}{Γ : Ctx Φ}{K}{B : Φ ,⋆ K ⊢Nf⋆ *}(N : Γ ,⋆ K ⊢ B)(A : Φ ⊢Nf⋆ K)
   → erase N ≡ erase (N A.[ A ]⋆)
-lem[]⋆ = {!!}
+lem[]⋆ {Γ = Γ} N A = trans
+  (trans
+    (U.sub-id (erase N))
+    (U.sub-cong
+      (λ α → trans
+        (cong ` (sym (eraseVar-backVar Γ α)))
+        (sym (conv⊢-erase (weakenNf[] _ _) (` (backVar Γ α)))))
+      (erase N)))
+  (sym (sub-erase (substNf-cons (ne ∘ `) A) A.lem N)) 
 
-lem[] : ∀{Φ}{Γ : Ctx Φ}{A B : Φ ⊢Nf⋆ *}{N : Γ , A ⊢ B}{W : Γ ⊢ A}
+lem[] : ∀{Φ}{Γ : Ctx Φ}{A B : Φ ⊢Nf⋆ *}(N : Γ , A ⊢ B)(W : Γ ⊢ A)
   → erase N U.[ erase W ] ≡ erase (N A.[ W ])
-lem[] = {!!}
+lem[] N W = {!!}
 \end{code}
