@@ -289,7 +289,28 @@ lem[]⋆ {Γ = Γ} N A = trans
       (erase N)))
   (sym (sub-erase (substNf-cons (ne ∘ `) A) A.lem N)) 
 
+open import Type.BetaNBE
+open import Type.BetaNBE.Stability
+
 lem[] : ∀{Φ}{Γ : Ctx Φ}{A B : Φ ⊢Nf⋆ *}(N : Γ , A ⊢ B)(W : Γ ⊢ A)
   → erase N U.[ erase W ] ≡ erase (N A.[ W ])
-lem[] N W = {!!}
+lem[] {Γ = Γ}{A = A}{B} N W = trans
+  (trans
+    (U.sub-cong
+      (λ{ zero    → sym (conv⊢-erase (sym (substNf-id A)) W)
+        ; (suc α) → trans
+               (cong ` (sym (eraseVar-backVar Γ α)))
+               (sym (conv⊢-erase (sym (substNf-id (backVar⋆ Γ α))) (` (backVar Γ α))))})
+      (erase N))
+    (sym (sub-erase (ne ∘ `) (A.substcons (ne ∘ `) (conv⊢ (sym (substNf-id _)) ∘ `) (conv⊢ (sym (substNf-id A)) W)) N)))
+  (sym
+    (conv⊢-erase
+      (substNf-id B)
+      (A.subst (ne ∘ `)
+         (A.substcons
+           (ne ∘ `)
+           (conv⊢ (sym (substNf-id _)) ∘ `)
+           (conv⊢ (sym (substNf-id A)) W))
+         N)))
+ 
 \end{code}

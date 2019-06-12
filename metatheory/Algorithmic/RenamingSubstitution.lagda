@@ -20,7 +20,6 @@ open import Type.BetaNormal
 open import Type.BetaNBE
 open import Type.BetaNBE.Soundness
 open import Type.BetaNBE.Completeness
-open import Type.BetaNBE.Stability
 open import Type.BetaNBE.RenamingSubstitution
 open import Algorithmic
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
