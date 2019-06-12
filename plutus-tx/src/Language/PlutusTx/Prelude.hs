@@ -52,6 +52,8 @@ module Language.PlutusTx.Prelude (
     -- * ByteStrings
     ByteString,
     equalsByteString,
+    lessThanByteString,
+    greaterThanByteString,
     takeByteString,
     dropByteString,
     concatenate,
@@ -64,7 +66,8 @@ module Language.PlutusTx.Prelude (
     ) where
 
 import           Language.PlutusTx.Builtins (ByteString, concatenate, dropByteString, emptyByteString, equalsByteString,
-                                             sha2_256, sha3_256, takeByteString, verifySignature)
+                                             greaterThanByteString, lessThanByteString, sha2_256, sha3_256,
+                                             takeByteString, verifySignature)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Prelude                    as Prelude hiding (all, any, error, filter, foldl, foldr, fst, length, map,
                                                         max, maybe, min, not, null, snd, (&&), (++), (||))

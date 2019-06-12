@@ -135,6 +135,8 @@ builtinNames = [
     , 'Builtins.sha2_256
     , 'Builtins.sha3_256
     , 'Builtins.equalsByteString
+    , 'Builtins.lessThanByteString
+    , 'Builtins.greaterThanByteString
     , 'Builtins.emptyByteString
 
     , 'Builtins.verifySignature
@@ -214,6 +216,12 @@ defineBuiltinTerms = do
     do
         term <- wrapBsRel 2 $ mkBuiltin PLC.EqByteString
         defineBuiltinTerm 'Builtins.equalsByteString term [bs, bool]
+    do
+        term <- wrapBsRel 2 $ mkBuiltin PLC.LtByteString
+        defineBuiltinTerm 'Builtins.lessThanByteString term [bs, bool]
+    do
+        term <- wrapBsRel 2 $ mkBuiltin PLC.GtByteString
+        defineBuiltinTerm 'Builtins.greaterThanByteString term [bs, bool]
 
     do
         let term = PIR.Constant () $ PLC.BuiltinBS () BSL.empty
