@@ -48,5 +48,9 @@ erase—→ A.β-wrap1                                       = inj₂ refl
 erase—→ (A.ξ-unwrap1 p)                                 = erase—→ p
 erase—→ (A.ξ-wrap p)                                    = erase—→ p
 erase—→ (A.β-builtin bn σ tel vtel)                     = {!U.β-builtin!}
-erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel x p) = {!U.ξ-builtin!}
+erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel p q) with erase—→ p
+erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel p q) | inj₁ x
+  = inj₁ {!U.ξ-builtin!}
+erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel p q) | inj₂ y
+  = {!refl!}
 \end{code}

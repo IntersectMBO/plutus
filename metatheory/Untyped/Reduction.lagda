@@ -42,7 +42,7 @@ BUILTIN : ∀{n}
     → (bn : Builtin)
     → (vs : List (Σ (n ⊢) (Value {n})))
       -----------------------------
-    → Maybe (n ⊢)
+    → n ⊢
 
 data _—→_ {n} : n ⊢ → n ⊢ → Set where
   ξ-·₁ : {L L' M : n ⊢} → L —→ L' → L · M —→ L' · M
@@ -70,7 +70,7 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
   β-builtin : {b : Builtin}
               {ts : List (n ⊢)}
               (vs : List (Σ (n ⊢) (Value {n})))
-            → builtin b ts —→ maybe id error (BUILTIN b vs)
+            → builtin b ts —→ BUILTIN b vs
 
 open import Data.Unit
 
@@ -85,11 +85,11 @@ data _—→⋆_ {n} : n ⊢ → n ⊢ → Set where
 
 \begin{code}
 BUILTIN addInteger      ((_ , V-con (integer x)) ∷ (_ , V-con (integer y)) ∷ []) =
-  just (con (integer (x + y)))
+  con (integer (x + y))
 BUILTIN subtractInteger ((_ , V-con (integer x)) ∷ (_ , V-con (integer y)) ∷ []) =
-  just (con (integer (x - y)))
+  con (integer (x - y))
 BUILTIN multiplyInteger ((_ , V-con (integer x)) ∷ (_ , V-con (integer y)) ∷ []) =
-  just (con (integer (x * y)))
+  con (integer (x * y))
 {-
 BUILTIN divideInteger vs = {!!}
 BUILTIN quotientInteger vs = {!!}
@@ -113,7 +113,7 @@ BUILTIN equalsByteString vs = {!!}
 BUILTIN txh vs = {!!}
 BUILTIN blocknum vs = {!!}
 -}
-BUILTIN _ _ = nothing -- wrong number or type of arguments...
+BUILTIN _ _ = error
 
 data ProgList {n} : Set where
   done : List (Σ (n ⊢) (Value {n})) → ProgList
@@ -145,7 +145,7 @@ progress (t · u)          | inr (t' , p) = inr (t' · u  , ξ-·₁ p)
 progress (con tcn)    = inl (inl (V-con tcn))
 progress (builtin b ts) with progressList ts
 progress (builtin b ts) | done  vs       =
-  inr (maybe id error (BUILTIN b vs) , β-builtin vs)
+  inr (BUILTIN b vs , β-builtin vs)
 progress (builtin b ts) | step  vs p ts' =
   inr (builtin b _ , ξ-builtin vs p ts')
 progress (builtin b ts) | error vs e ts' =
