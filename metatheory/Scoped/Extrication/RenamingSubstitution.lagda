@@ -71,8 +71,8 @@ ren-extricateNf⋆ :  ∀{Γ Δ J}
 
 ren-extricateNe⋆ :  ∀{Γ Δ J}
   → (ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)
-  → (A : Γ ⊢NeN⋆ J)
-  → ren⋆ (extricateRenNf⋆ ρ⋆) (extricateNe⋆ A) ≡ extricateNe⋆ (renNeN ρ⋆ A)
+  → (A : Γ ⊢Ne⋆ J)
+  → ren⋆ (extricateRenNf⋆ ρ⋆) (extricateNe⋆ A) ≡ extricateNe⋆ (renNe ρ⋆ A)
 ren-extricateNe⋆ ρ⋆ (` x)   = cong
   `
   (trans (lem-extricateVar⋆ ρ⋆ (proj₂ (backVar (extricateVar⋆ x))) (lem-backVar₁ x))

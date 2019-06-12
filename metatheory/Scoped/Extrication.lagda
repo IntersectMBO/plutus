@@ -31,7 +31,7 @@ extricateVar⋆ Z     = zero
 extricateVar⋆ (S α) = suc (extricateVar⋆ α)
 
 extricateNf⋆ : ∀{Γ K}(A : Γ ⊢Nf⋆ K) → ScopedTy (len⋆ Γ)
-extricateNe⋆ : ∀{Γ K}(A : Γ ⊢NeN⋆ K) → ScopedTy (len⋆ Γ)
+extricateNe⋆ : ∀{Γ K}(A : Γ ⊢Ne⋆ K) → ScopedTy (len⋆ Γ)
 
 -- intrinsically typed terms should also carry user chosen names as
 -- instructions to the pretty printer
