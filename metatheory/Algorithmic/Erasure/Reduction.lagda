@@ -5,7 +5,7 @@ module Algorithmic.Erasure.Reduction where
 \begin{code}
 open import Type
 open import Type.BetaNormal
-open import Algorithmic
+open import Algorithmic as A
 import Algorithmic.Reduction as A
 import Algorithmic.RenamingSubstitution as A
 open import Algorithmic.Erasure
@@ -16,6 +16,9 @@ open import Untyped
 
 open import Data.Sum
 open import Relation.Binary.PropositionalEquality
+open import Data.List hiding (map)
+open import Data.Product hiding (map) renaming (_,_ to _,,_)
+open import Data.Unit
 \end{code}
 
 \begin{code}
@@ -25,6 +28,16 @@ eraseVal (A.V-ƛ {N = t})      = U.V-ƛ (erase t)
 eraseVal (A.V-Λ v)            = eraseVal v
 eraseVal (A.V-wrap v)         = eraseVal v
 eraseVal (A.V-con {Γ = Γ} cn) = U.V-con (eraseTC {Γ = Γ} cn)
+
+eraseVTel : ∀ {Φ} Γ Δ
+  → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
+  → (As : List (Δ ⊢Nf⋆ *))
+  → (tel : A.Tel Γ Δ σ As)
+  → (vtel : A.VTel Γ Δ σ As tel)
+  → U.VTel (len Γ) (eraseTel tel)
+eraseVTel Γ Δ σ []       tel        vtel        = _ 
+eraseVTel Γ Δ σ (A ∷ As) (t ,, tel) (v ,, vtel) =
+  eraseVal v ,, eraseVTel Γ Δ σ As tel vtel 
 \end{code}
 
 \begin{code}
@@ -47,7 +60,7 @@ erase—→ (A.β-Λ {N = N}{A = A})                          =
 erase—→ A.β-wrap1                                       = inj₂ refl
 erase—→ (A.ξ-unwrap1 p)                                 = erase—→ p
 erase—→ (A.ξ-wrap p)                                    = erase—→ p
-erase—→ (A.β-builtin bn σ tel vtel)                     = {!U.β-builtin!}
+erase—→ (A.β-builtin bn σ tel vtel)                     = inj₁ ?
 erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel p q) with erase—→ p
 erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel p q) | inj₁ x
   = inj₁ {!U.ξ-builtin!}

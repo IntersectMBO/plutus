@@ -32,8 +32,8 @@ eraseTC (bytestring b) = bytestring b
 open import Type.RenamingSubstitution
 
 eraseTel : ∀{Φ Γ Δ}{σ : Sub Δ Φ}{As : List (Δ ⊢⋆ *)}
-  → Tel Γ Δ σ As
-  → List (len Γ ⊢)
+  → Declarative.Tel Γ Δ σ As
+  → Untyped.Tel (len Γ)
 erase : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ ⊢ A → len Γ ⊢
 
 erase (` α)             = ` (eraseVar α)

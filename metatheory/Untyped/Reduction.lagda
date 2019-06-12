@@ -13,7 +13,9 @@ open import Data.Product renaming (proj₁ to fst; proj₂ to snd)
 open import Data.Sum renaming (inj₁ to inl; inj₂ to inr)
 open import Data.Maybe
 open import Data.List hiding ([_])
+open import Data.Unit
 open import Function
+open import Relation.Binary.PropositionalEquality hiding ([_];trans)
 \end{code}
 
 \begin{code}
@@ -38,10 +40,15 @@ data Value {n} : n ⊢ → Set where
   V-ƛ : ∀{x}(t : suc n ⊢) → Value (ƛ x t)
   V-con : (tcn : TermCon) → Value (con {n} tcn)
 
+VTel : ∀ n → Tel n → Set
+VTel n []       = ⊤
+VTel n (t ∷ ts) = Value {n} t × VTel n ts
+
 BUILTIN : ∀{n}
     → (bn : Builtin)
-    → (vs : List (Σ (n ⊢) (Value {n})))
-      -----------------------------
+    → (tel : Tel n)
+    → VTel n tel
+      --------------
     → n ⊢
 
 data _—→_ {n} : n ⊢ → n ⊢ → Set where
@@ -53,24 +60,28 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
   β-ƛ : ∀{x}{L : suc n ⊢}{M : n ⊢} → ƛ x L · M —→ L [ M ]
 
   ξ-builtin : {b : Builtin}
-              {ts : List (n ⊢)}
-              (vs : List (Σ (n ⊢) (Value {n})))
+              {ts : Tel n}
+              {ts' : Tel n}
+              (vs : VTel n ts')
               {t t' : n ⊢}
             → t —→ t'
-            → (ts' : List (n ⊢))
+            → (ts'' : Tel n)
+            → (ts''' : Tel n)
+            → ts''' ≡ ts' ++ Data.List.[ t' ] ++ ts''
             → builtin b ts —→
-                builtin b (Data.List.map fst vs ++ Data.List.[ t' ] ++ ts')
+                builtin b ts'''
   E-builtin : {b : Builtin}
               {ts : List (n ⊢)}
-              (vs : List (Σ (n ⊢) (Value {n})))
+              {ts' : List (n ⊢)}
+              (vs : VTel n ts')
               {t : n ⊢}
             → Error t
-            → (ts' : List (n ⊢))
+            → (ts'' : Tel n)
             → builtin b ts —→ error
   β-builtin : {b : Builtin}
-              {ts : List (n ⊢)}
-              (vs : List (Σ (n ⊢) (Value {n})))
-            → builtin b ts —→ BUILTIN b vs
+              (ts : Tel n)
+              (vs : VTel n ts)
+            → builtin b ts —→ BUILTIN b ts vs
 
 open import Data.Unit
 
@@ -84,12 +95,12 @@ data _—→⋆_ {n} : n ⊢ → n ⊢ → Set where
 \end{code}
 
 \begin{code}
-BUILTIN addInteger      ((_ , V-con (integer x)) ∷ (_ , V-con (integer y)) ∷ []) =
+BUILTIN addInteger (_ ∷ _ ∷ []) (V-con (integer x) , V-con (integer y) , _) =
   con (integer (x + y))
-BUILTIN subtractInteger ((_ , V-con (integer x)) ∷ (_ , V-con (integer y)) ∷ []) =
-  con (integer (x - y))
-BUILTIN multiplyInteger ((_ , V-con (integer x)) ∷ (_ , V-con (integer y)) ∷ []) =
-  con (integer (x * y))
+BUILTIN subtractInteger (_ ∷ _ ∷ []) (V-con (integer x) , V-con (integer y) , _)
+  = con (integer (x - y))
+BUILTIN multiplyInteger (_ ∷ _ ∷ []) (V-con (integer x) , V-con (integer y) , _)
+  = con (integer (x * y))
 {-
 BUILTIN divideInteger vs = {!!}
 BUILTIN quotientInteger vs = {!!}
@@ -113,27 +124,27 @@ BUILTIN equalsByteString vs = {!!}
 BUILTIN txh vs = {!!}
 BUILTIN blocknum vs = {!!}
 -}
-BUILTIN _ _ = error
+BUILTIN _ _ _ = error
 
-data ProgList {n} : Set where
-  done : List (Σ (n ⊢) (Value {n})) → ProgList
-  step : (vs : List (Σ (n ⊢) (Value {n}))){t t' : n ⊢} → t —→ t' → List (n ⊢)
-       → ProgList
-  error : (vs : List (Σ (n ⊢) (Value {n}))){t : n ⊢} → Error t → List (n ⊢)
-        → ProgList
+data ProgList {n} (tel : Tel n) : Set where
+  done : VTel n tel → ProgList tel
+  step : (tel' : Tel n) → VTel n tel' → {t t' : n ⊢} → t —→ t' → Tel n
+    → ProgList tel 
+  error : (tel' : Tel n) → VTel n tel' → {t : n ⊢} → Error t → Tel n
+    → ProgList tel
 
 progress : (t : 0 ⊢) → (Value {0} t ⊎ Error t) ⊎ Σ (0 ⊢) λ t' → t —→ t'
-progressList : List (0 ⊢) → ProgList {0}
-progressList []       = done []
+progressList : (tel : Tel 0) → ProgList {0} tel
+progressList []       = done _
 progressList (t ∷ ts) with progress t
 progressList (t ∷ ts) | inl (inl vt) with progressList ts
-progressList (t ∷ ts) | inl (inl vt) | done  vs       = done ((t , vt) ∷ vs)
-progressList (t ∷ ts) | inl (inl vt) | step  vs p ts' =
-  step ((t , vt) ∷ vs) p ts'
-progressList (t ∷ ts) | inl (inl vt) | error vs e ts' =
-  error ((t , vt) ∷ vs) e ts'
-progressList (t ∷ ts) | inl (inr e) = error [] e ts
-progressList (t ∷ ts) | inr (t' , p) = step [] p ts
+progressList (t ∷ ts) | inl (inl vt) | done vs   = done (vt , vs)
+progressList (t ∷ ts) | inl (inl vt) | step  ts' vs p ts'' =
+  step (t ∷ ts') (vt , vs) p ts''
+progressList (t ∷ ts) | inl (inl vt) | error ts' vs e ts'' =
+  error (t ∷ ts') (vt , vs) e ts''
+progressList (t ∷ ts) | inl (inr e) = error [] _ e ts
+progressList (t ∷ ts) | inr (t' , p) = step [] _ p ts
 
 progress (` ())
 progress (ƛ x t)      = inl (inl (V-ƛ t))
@@ -145,12 +156,12 @@ progress (t · u)          | inr (t' , p) = inr (t' · u  , ξ-·₁ p)
 progress (con tcn)    = inl (inl (V-con tcn))
 progress (builtin b ts) with progressList ts
 progress (builtin b ts) | done  vs       =
-  inr (BUILTIN b vs , β-builtin vs)
-progress (builtin b ts) | step  vs p ts' =
-  inr (builtin b _ , ξ-builtin vs p ts')
-progress (builtin b ts) | error vs e ts' =
+  inr (BUILTIN b ts vs ,  β-builtin ts vs)
+progress (builtin b ts) | step  ts' vs p ts'' =
+  inr (builtin b _ ,  ξ-builtin vs p ts'' (ts' ++ _ ∷ ts'') refl)
+progress (builtin b ts) | error ts' vs e ts'' =
   inr (error     , E-builtin vs e ts')
-progress error        = inl (inr E-error)
+progress error       = inl (inr E-error)
 \end{code}
 
 \begin{code}

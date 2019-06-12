@@ -14,7 +14,7 @@ open import Type
 import Type.RenamingSubstitution as ⋆
 open import Type.BetaNormal
 open import Type.BetaNBE.RenamingSubstitution
-open import Algorithmic
+open import Algorithmic as A
 import Algorithmic.RenamingSubstitution as A
 open import Algorithmic.Erasure
 open import Untyped
@@ -133,7 +133,7 @@ renTel-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}
   → ∀ Φ'
   → (As : List (Φ' ⊢Nf⋆ *))
   → (σ : SubNf Φ' Φ)
-  → (tel : Tel Γ Φ' σ As)
+  → (tel : A.Tel Γ Φ' σ As)
   → eraseTel (A.renTel ρ⋆ ρ tel) ≡ U.renList (erase-Ren ρ⋆ ρ) (eraseTel tel)
 
 renTel-erase ρ⋆ ρ Φ' []       σ tel = refl
@@ -235,7 +235,7 @@ subTel-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}
   → ∀ Φ'
   → (As : List (Φ' ⊢Nf⋆ *))
   → (σ' : SubNf Φ' Φ)
-  → (tel : Tel Γ Φ' σ' As)
+  → (tel : A.Tel Γ Φ' σ' As)
   →  eraseTel (A.substTel σ⋆ σ tel) ≡ U.subList (erase-Sub σ⋆ σ) (eraseTel tel) 
 subTel-erase σ⋆ σ Φ' []       σ' tel = refl
 subTel-erase σ⋆ σ Φ' (A ∷ As) σ' (t P., tel) = cong₂ _∷_

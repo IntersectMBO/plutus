@@ -22,13 +22,17 @@ data TermCon : Set where
 \end{code}
 
 \begin{code}
+Tel : ℕ → Set
+
 data _⊢ : ℕ → Set where
   `       : ∀{n} → Fin n → n ⊢
   ƛ       : ∀{n} → String → suc n ⊢ → n ⊢
   _·_     : ∀{n} → n ⊢ → n ⊢ → n ⊢
   con     : ∀{n} → TermCon → n ⊢
-  builtin : ∀{n} → Builtin → List (n ⊢) → n ⊢
+  builtin : ∀{n} → Builtin → Tel n → n ⊢
   error   : ∀{n} → n ⊢
+
+Tel n = List (n ⊢)
 \end{code}
 
 
