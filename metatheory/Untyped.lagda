@@ -91,3 +91,12 @@ ugly (con c) = "(con " ++ uglyTermCon c ++ ")"
 ugly (builtin b ts) = "(builtin " ++ uglyBuiltin b ++ " " ++ showNat (Data.List.length ts) ++ ")"
 ugly error = "error"
 \end{code}
+
+\begin{code}
+true : ∀{n} → n ⊢
+true = ƛ "t" (ƛ "f" (` (suc zero)))
+
+false : ∀{n} → n ⊢
+false = ƛ "t" (ƛ "f" (` zero))
+
+\end{code}

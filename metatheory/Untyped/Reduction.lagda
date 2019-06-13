@@ -6,16 +6,18 @@ module Untyped.Reduction where
 open import Untyped
 open import Untyped.RenamingSubstitution
 open import Builtin
+open import Builtin.Constant.Type
 
-open import Data.Nat hiding (_+_; _*_)
+import Data.Bool as Bool
+open import Data.Nat hiding (_<_; _≤?_; _^_; _+_; _≟_; _*_)
 open import Data.Integer hiding (suc)
 open import Data.Product renaming (proj₁ to fst; proj₂ to snd)
 open import Data.Sum renaming (inj₁ to inl; inj₂ to inr)
-open import Data.Maybe
-open import Data.List hiding ([_])
-open import Data.Unit
+open import Data.List hiding ([_]; take; drop)
+open import Data.Unit hiding (_≤_; _≤?_; _≟_)
 open import Function
 open import Relation.Binary.PropositionalEquality hiding ([_];trans)
+open import Utils
 \end{code}
 
 \begin{code}
@@ -82,9 +84,6 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
               (ts : Tel n)
               (vs : VTel n ts)
             → builtin b ts —→ BUILTIN b ts vs
-
-open import Data.Unit
-
 \end{code}
 
 
@@ -95,35 +94,47 @@ data _—→⋆_ {n} : n ⊢ → n ⊢ → Set where
 \end{code}
 
 \begin{code}
-BUILTIN addInteger (_ ∷ _ ∷ []) (V-con (integer x) , V-con (integer y) , _) =
-  con (integer (x + y))
-BUILTIN subtractInteger (_ ∷ _ ∷ []) (V-con (integer x) , V-con (integer y) , _)
-  = con (integer (x - y))
-BUILTIN multiplyInteger (_ ∷ _ ∷ []) (V-con (integer x) , V-con (integer y) , _)
-  = con (integer (x * y))
-{-
-BUILTIN divideInteger vs = {!!}
-BUILTIN quotientInteger vs = {!!}
-BUILTIN remainderInteger vs = {!!}
-BUILTIN modInteger vs = {!!}
-BUILTIN lessThanInteger vs = {!!}
-BUILTIN lessThanEqualsInteger vs = {!!}
-BUILTIN greaterThanInteger vs = {!!}
-BUILTIN greaterThanEqualsInteger vs = {!!}
-BUILTIN equalsInteger vs = {!!}
-BUILTIN resizeInteger vs = {!!}
-BUILTIN sizeOfInteger vs = {!!}
-BUILTIN concatenate vs = {!!}
-BUILTIN takeByteString vs = {!!}
-BUILTIN dropByteString vs = {!!}
-BUILTIN sha2-256 vs = {!!}
-BUILTIN sha3-256 vs = {!!}
-BUILTIN verifySignature vs = {!!}
-BUILTIN resizeByteString vs = {!!}
-BUILTIN equalsByteString vs = {!!}
-BUILTIN txh vs = {!!}
-BUILTIN blocknum vs = {!!}
--}
+VERIFYSIG : ∀{n} → Maybe Bool.Bool → n ⊢
+VERIFYSIG (just Bool.false) = false 
+VERIFYSIG (just Bool.true)  = true 
+VERIFYSIG nothing           = error
+
+
+BUILTIN addInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
+  = con (integer (i + j))
+BUILTIN subtractInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
+  = con (integer (i - j))
+BUILTIN multiplyInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
+  = con (integer (i * j))
+BUILTIN divideInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
+  = decIf (∣ j ∣ Data.Nat.≟ zero) error (con (integer (div i j)))
+BUILTIN quotientInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
+  = decIf (∣ j ∣ Data.Nat.≟ zero) error (con (integer (quot i j)))
+BUILTIN remainderInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
+  = decIf (∣ j ∣ Data.Nat.≟ zero) error (con (integer (rem i j)))
+BUILTIN modInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
+  = decIf (∣ j ∣ Data.Nat.≟ zero) error (con (integer (mod i j)))
+BUILTIN lessThanInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
+  decIf (i Builtin.Constant.Type.<? j) true false 
+BUILTIN lessThanEqualsInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
+  decIf (i ≤? j) true false 
+BUILTIN greaterThanInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
+  decIf (i Builtin.Constant.Type.>? j) true false 
+BUILTIN greaterThanEqualsInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
+  decIf (i Builtin.Constant.Type.≥? j) true false 
+BUILTIN equalsInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
+  decIf (i ≟ j) true false 
+BUILTIN concatenate (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) =
+  con (bytestring (append b b'))
+BUILTIN takeByteString (_ ∷ _ ∷ []) (V-con (integer i) , V-con (bytestring b) , tt) =
+  con (bytestring (take i b))
+BUILTIN dropByteString (_ ∷ _ ∷ []) (V-con (integer i) , V-con (bytestring b) , tt) =
+  con (bytestring (drop i b))
+BUILTIN sha2-256 (_ ∷ []) (V-con (bytestring b) , tt) = con (bytestring (SHA2-256 b))
+BUILTIN sha3-256 (_ ∷ []) (V-con (bytestring b) , tt) = con (bytestring (SHA3-256 b))
+BUILTIN verifySignature (_ ∷ _ ∷ _ ∷ []) (V-con (bytestring k) , V-con (bytestring d) , V-con (bytestring c) , tt) = VERIFYSIG (verifySig k d c)
+BUILTIN equalsByteString (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) =
+  Bool.if (equals b b') then true else false 
 BUILTIN _ _ _ = error
 
 data ProgList {n} (tel : Tel n) : Set where
