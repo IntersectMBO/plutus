@@ -302,7 +302,7 @@ selectCoin fnds vl =
                     $ T.unwords
                         [ "Total:", T.pack $ show total
                         , "expected:", T.pack $ show vl]
-        in  if total `Value.lt` vl
+        in  if not (total `Value.geq` vl)
             then err
             else
                 let
