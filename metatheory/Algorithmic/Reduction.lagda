@@ -110,44 +110,6 @@ VTel Γ Δ σ (A ∷ As) (t ,, tel) = Value t × VTel Γ Δ σ As tel
 \end{code}
 
 \begin{code}
-data Neutral :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
-  N-` : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ ∋ A) → Neutral (` x)
-  N-· : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}{L : Γ ⊢ A ⇒ B} → Neutral L →
-    (M : Γ ⊢ A) → Neutral (L · M)
-  N-·⋆ : ∀{Φ Γ K x}{B : Φ ,⋆ K ⊢Nf⋆ *}{L : Γ ⊢ Π x B} → Neutral L →
-    (A : Φ ⊢Nf⋆ K) → Neutral (L ·⋆ A)
-  N-unwrap1 : ∀{Φ Γ K}
-    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-    → {arg : Φ ⊢Nf⋆ K}
-    → {term : Γ ⊢ ne (μ1 · pat · arg)}
-    → Neutral term
-    → Neutral (unwrap1 term)
-  N-wrap : ∀{Φ Γ K}
-    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-    → {arg : Φ ⊢Nf⋆ K}
-    → {term : Γ ⊢  nf (embNf pat · (μ1 · embNf pat) · embNf arg)}
-    → Neutral term
-    → Neutral (wrap1 pat arg term)
-
-  N-Λ : ∀ {Φ Γ K x}
-    → {B : Φ ,⋆ K ⊢Nf⋆ *}
-    → {t : Γ ,⋆ K ⊢ B}
-    → Neutral t
-    → Neutral (Λ x t)
-
-  N-builtin : ∀{Φ Γ}  → (bn : Builtin)
-    → let Δ ,, As ,, C = SIG bn in
-      (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
-    → (tel : Tel Γ Δ σ As)
-    → ∀ Bs Ds
-    → (telB : Tel Γ Δ σ Bs)
-    → (vtel : VTel Γ Δ σ Bs telB)
-    → ∀{C}{t : Γ ⊢ substNf σ C}
-    → Neutral t
-    → (p : Bs ++ (C ∷ Ds) ≡ As)
-    → (telD : Tel Γ Δ σ Ds)
-    → Neutral (builtin bn σ tel)
-
 VERIFYSIG : ∀{Φ}{Γ : Ctx Φ} → Maybe Bool.Bool → Γ ⊢ booleanNf
 VERIFYSIG (just Bool.false) = false
 VERIFYSIG (just Bool.true)  = true
@@ -195,7 +157,6 @@ BUILTIN equalsByteString _ _ (V-con (bytestring b) ,, V-con (bytestring b') ,, t
   Bool.if (equals b b') then true else false
 \end{code}
 
-
 # recontructing the telescope after a reduction step
 
 \begin{code}
@@ -209,6 +170,46 @@ reconstTel : ∀{Φ Γ Δ As} Bs Ds
 reconstTel [] Ds σ telB t' refl telD = t' ,, telD
 reconstTel (B ∷ Bs) Ds σ (X ,, telB) t' refl tel' =
   X ,, reconstTel Bs Ds σ telB t' refl tel'
+\end{code}
+
+\begin{code}
+data Neutral :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
+  N-` : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ ∋ A) → Neutral (` x)
+  N-· : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}{L : Γ ⊢ A ⇒ B} → Neutral L →
+    (M : Γ ⊢ A) → Neutral (L · M)
+  N-·⋆ : ∀{Φ Γ K x}{B : Φ ,⋆ K ⊢Nf⋆ *}{L : Γ ⊢ Π x B} → Neutral L →
+    (A : Φ ⊢Nf⋆ K) → Neutral (L ·⋆ A)
+  N-unwrap1 : ∀{Φ Γ K}
+    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {arg : Φ ⊢Nf⋆ K}
+    → {term : Γ ⊢ ne (μ1 · pat · arg)}
+    → Neutral term
+    → Neutral (unwrap1 term)
+  N-wrap : ∀{Φ Γ K}
+    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {arg : Φ ⊢Nf⋆ K}
+    → {term : Γ ⊢  nf (embNf pat · (μ1 · embNf pat) · embNf arg)}
+    → Neutral term
+    → Neutral (wrap1 pat arg term)
+  N-Λ : ∀ {Φ Γ K x}
+    → {B : Φ ,⋆ K ⊢Nf⋆ *}
+    → {t : Γ ,⋆ K ⊢ B}
+    → Neutral t
+    → Neutral (Λ x t)
+
+  N-builtin : ∀{Φ Γ}  → (bn : Builtin)
+    → let Δ ,, As ,, C = SIG bn in
+      (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
+    → (tel : Tel Γ Δ σ As)
+    → ∀ Bs Ds
+    → (telB : Tel Γ Δ σ Bs)
+    → (vtel : VTel Γ Δ σ Bs telB)
+    → ∀{C}{t : Γ ⊢ substNf σ C}
+    → Neutral t
+    → (p : Bs ++ (C ∷ Ds) ≡ As)
+    → (telD : Tel Γ Δ σ Ds)
+    → (q : reconstTel Bs Ds σ telB t p telD ≡ tel)
+    → Neutral (builtin bn σ tel)
 \end{code}
 
 ## Intrinsically Type Preserving Reduction
@@ -362,8 +363,9 @@ data TelProgress
     → VTel Γ Δ σ Bs telB
     → ∀{C}{t  : Γ ⊢ substNf σ C}
     → Neutral t
-    → Bs ++ (C ∷ Ds) ≡ As
-    → Tel Γ Δ σ Ds
+    → (p : Bs ++ (C ∷ Ds) ≡ As)
+    → (telD : Tel Γ Δ σ Ds)
+    → (q : reconstTel Bs Ds σ telB t p telD ≡ tel)
     → TelProgress tel
 \end{code}
 
@@ -400,8 +402,8 @@ progress-builtin bn σ tel (step Bs Ds telB vtel p telD q r)  =
   step (ξ-builtin bn σ tel Bs Ds telB telD vtel p q r)
 progress-builtin bn σ tel (error Bs Ds telB vtel e p telD) =
   error (E-builtin bn σ tel Bs Ds telB vtel e p telD)
-progress-builtin bn σ tel (neutral Bs Ds telB vtel e p telD) =
-  neutral (N-builtin bn σ tel Bs Ds telB vtel e p telD)
+progress-builtin bn σ tel (neutral Bs Ds telB vtel e p telD q) =
+  neutral (N-builtin bn σ tel Bs Ds telB vtel e p telD q)
 
 progress : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → (M : Γ ⊢ A) → Progress M
 
@@ -422,12 +424,12 @@ progressTelCons (done v)            (step Bs Ds telB vtel p telD refl r)  =
    step (_ ∷ Bs) Ds (_ ,, telB) (v ,, vtel) p telD refl (cong (_ ,,_) r) 
 progressTelCons (done v)            (error Bs Ds telB vtel e p telD) =
   error (_ ∷ Bs) Ds (_ ,, telB) (v ,, vtel) e (cong (_ ∷_) p) telD
-progressTelCons (done v)            (neutral Bs Ds telB vtel e p telD) =
-  neutral (_ ∷ Bs) Ds (_ ,, telB) (v ,, vtel) e (cong (_ ∷_) p) telD
+progressTelCons (done v)            (neutral Bs Ds telB vtel e refl telD q) =
+  neutral (_ ∷ Bs) Ds (_ ,, telB) (v ,, vtel) e refl telD (cong (_ ,,_) q)
 progressTelCons (error e) {As}{tel} q                                =
   error [] As tt tt e refl tel
 progressTelCons (neutral p) {As}{tel} q                              =
-  neutral [] As tt tt p refl tel
+  neutral [] As tt tt p refl tel refl
 
 progressTel : ∀ {Φ Γ Δ}
   → {σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}

@@ -18,6 +18,7 @@ open import Data.Unit hiding (_≤_; _≤?_; _≟_)
 open import Function
 open import Relation.Binary.PropositionalEquality hiding ([_];trans)
 open import Utils
+open import Data.Fin hiding (_+_; _-_; _≤?_; _≟_)
 \end{code}
 
 \begin{code}
@@ -31,6 +32,7 @@ infix 2 _—→_
 data Error {n} : n ⊢ → Set where
   E-error : Error error
 
+  -- this is wrong but error handling is about to change anyway...
   E-todo : ∀{t} → Error t
 
 \end{code}
@@ -42,6 +44,16 @@ data Value {n} : n ⊢ → Set where
   V-ƛ : ∀{x}(t : suc n ⊢) → Value (ƛ x t)
   V-con : (tcn : TermCon) → Value (con {n} tcn)
 
+data Neutral {n} : n ⊢ → Set where
+  N-` : (i : Fin n) → Neutral (` i)
+  N-· : {L : n ⊢} → Neutral L → (M : n ⊢) → Neutral (L · M)
+  N-builtin : ∀
+    bn
+    (telB : Tel n)
+    {t : n ⊢}
+    → Neutral t
+    → (telD : Tel n)
+    → Neutral (builtin bn (telB ++ t ∷ telD))  
 VTel : ∀ n → Tel n → Set
 VTel n []       = ⊤
 VTel n (t ∷ ts) = Value {n} t × VTel n ts
@@ -99,7 +111,6 @@ VERIFYSIG (just Bool.false) = false
 VERIFYSIG (just Bool.true)  = true 
 VERIFYSIG nothing           = error
 
-
 BUILTIN addInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
   = con (integer (i + j))
 BUILTIN subtractInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
@@ -144,6 +155,23 @@ data ProgList {n} (tel : Tel n) : Set where
   error : (tel' : Tel n) → VTel n tel' → {t : n ⊢} → Error t → Tel n
     → ProgList tel
 
+data Progress {n}(M : n ⊢) : Set where
+  step : ∀{N}
+    → M —→ N
+      -------------
+    → Progress M
+  done :
+      Value M
+      ----------
+    → Progress M
+  neutral :
+      Neutral M
+      ----------
+    → Progress M
+  error :
+      Error M
+      -------
+    → Progress M
 progress : (t : 0 ⊢) → (Value {0} t ⊎ Error t) ⊎ Σ (0 ⊢) λ t' → t —→ t'
 progressList : (tel : Tel 0) → ProgList {0} tel
 progressList []       = done _

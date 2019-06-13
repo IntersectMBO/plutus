@@ -42,6 +42,45 @@ eraseVal (A.V-Λ v)            = eraseVal v
 eraseVal (A.V-wrap v)         = eraseVal v
 eraseVal (A.V-con {Γ = Γ} cn) = U.V-con (eraseTC {Γ = Γ} cn)
 
+erase-reconstTel : ∀{Φ Γ Δ As} Bs Ds
+    → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
+    → (telB : A.Tel Γ Δ σ Bs)
+    → ∀{C}(t' : Γ ⊢ substNf σ C)
+    → (p : Bs ++ (C ∷ Ds) ≡ As)
+    → (tel' : A.Tel Γ Δ σ Ds)
+    → eraseTel (A.reconstTel Bs Ds σ telB t' p tel')
+      ≡
+      eraseTel telB ++ erase t' ∷ eraseTel tel'
+erase-reconstTel []       Ds σ telB        t' refl tel' = refl
+erase-reconstTel (B ∷ Bs) Ds σ (t ,, telB) t' refl tel' =
+  cong (erase t ∷_) (erase-reconstTel Bs Ds σ telB t' refl tel')
+
+eraseNe : ∀{Φ}{A : Φ ⊢Nf⋆ *}{Γ : Ctx Φ}{t : Γ ⊢ A}
+  → A.Neutral t → U.Neutral (erase t)
+eraseNe (A.N-` x) = U.N-` (eraseVar x)
+eraseNe (A.N-· N M) = U.N-· (eraseNe N) (erase M) 
+eraseNe (A.N-·⋆ N A) = eraseNe N
+eraseNe (A.N-unwrap1 N) = eraseNe N
+eraseNe (A.N-wrap N) = eraseNe N
+eraseNe (A.N-Λ N) = eraseNe N
+eraseNe (A.N-builtin bn σ tel Bs Ds telB vtel n p telD refl) = subst
+  (U.Neutral ∘ builtin bn)
+  (sym (erase-reconstTel Bs Ds σ telB _ p telD))
+  (U.N-builtin bn (eraseTel telB) (eraseNe n) (eraseTel telD))
+
+
+eraseErr : ∀{Φ}{A : Φ ⊢Nf⋆ *}{Γ : Ctx Φ}{e : Γ ⊢ A}
+  → A.Error e → U.Error (erase e)
+eraseErr A.E-error = U.E-error
+eraseErr (A.E-Λ e) = U.E-todo
+eraseErr (A.E-·₁ e) = U.E-todo
+eraseErr (A.E-·₂ e) = U.E-todo
+eraseErr (A.E-·⋆ e) = U.E-todo
+eraseErr (A.E-unwrap e) = U.E-todo
+eraseErr (A.E-wrap e) = U.E-todo
+eraseErr (A.E-builtin bn σ tel Bs Ds telB vtel e p telD) = U.E-todo
+
+
 eraseVTel : ∀ {Φ} Γ Δ
   → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
   → (As : List (Δ ⊢Nf⋆ *))
@@ -123,7 +162,6 @@ erase-BUILTIN equalsInteger Γ σ _
   erase-decIf (i ≟ j) _ _
 erase-BUILTIN concatenate Γ σ _
   (A.V-con (bytestring b) ,, A.V-con (bytestring b') ,, tt) = refl
-
 erase-BUILTIN takeByteString Γ σ _
   (A.V-con (integer i) ,, A.V-con (bytestring b) ,, tt) = refl
 erase-BUILTIN dropByteString Γ σ _
@@ -137,21 +175,7 @@ erase-BUILTIN verifySignature Γ σ _
   erase-VERIFYSIG _
 erase-BUILTIN equalsByteString Γ σ _
   (A.V-con (bytestring b) ,, A.V-con (bytestring b') ,, tt) =
-  erase-if (equals b b') _ _ 
-
-erase-reconstTel : ∀{Φ Γ Δ As} Bs Ds
-    → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
-    → (telB : A.Tel Γ Δ σ Bs)
-    → ∀{C}(t' : Γ ⊢ substNf σ C)
-    → (p : Bs ++ (C ∷ Ds) ≡ As)
-    → (tel' : A.Tel Γ Δ σ Ds)
-    → eraseTel (A.reconstTel Bs Ds σ telB t' p tel')
-      ≡
-      eraseTel telB ++ erase t' ∷ eraseTel tel'
-erase-reconstTel []       Ds σ telB        t' refl tel' = refl
-erase-reconstTel (B ∷ Bs) Ds σ (t ,, telB) t' refl tel' =
-  cong (erase t ∷_) (erase-reconstTel Bs Ds σ telB t' refl tel')
-    
+  erase-if (equals b b') _ _     
 \end{code}
 
 \begin{code}
@@ -191,4 +215,19 @@ erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel {t' = t'} p q r) | inj�
       (eraseTel telB ++ erase t' ∷ eraseTel telD) refl))
 erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel {t = t}{t' = t'} p q r) | inj₂ y
   = inj₂ (cong (builtin bn) (trans (trans (cong eraseTel (sym r)) (trans (erase-reconstTel Bs Ds σ telB t q telD) (cong (λ t → eraseTel telB ++ t ∷ eraseTel telD) y))) (sym (erase-reconstTel Bs Ds σ telB t' q telD))))
+\end{code}
+
+-- returning nothing means that the typed step vanishes
+
+\begin{code}
+eraseProgress : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(M : Γ ⊢ A)(p : A.Progress M)
+  → Util.Maybe (U.Progress (erase M))
+eraseProgress M (A.step p)    with erase—→ p
+... | inj₁ q = Util.just (U.step q)
+... | inj₂ q = Util.nothing
+eraseProgress M (A.done V)    = Util.just (U.done (eraseVal V))
+eraseProgress M (A.neutral N) = Util.just (U.neutral (eraseNe N))
+eraseProgress M (A.error e)   = Util.just (U.error (eraseErr e))
+  
+  
 \end{code}
