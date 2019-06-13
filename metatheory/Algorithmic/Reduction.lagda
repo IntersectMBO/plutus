@@ -211,7 +211,6 @@ reconstTel (B ∷ Bs) Ds σ (X ,, telB) t' refl tel' =
   X ,, reconstTel Bs Ds σ telB t' refl tel'
 \end{code}
 
-
 ## Intrinsically Type Preserving Reduction
 
 \begin{code}
@@ -261,7 +260,7 @@ data _—→_ : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A) �
     → {M M' : Γ ⊢ ne (μ1 · pat · arg)}
     → M —→ M'
     → unwrap1 M —→ unwrap1 M'
-
+    
   ξ-wrap : ∀{Φ Γ K}
     → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {arg : Φ ⊢Nf⋆ K}
@@ -289,7 +288,7 @@ data _—→_ : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A) �
     → ∀{C}{t t' : Γ ⊢ substNf σ C}
     → t —→ t'
     → (p : Bs ++ (C ∷ Ds) ≡ As)
---    → (q : telB ++ (t ∷ telD) ≡ tel) -- need to define ++ for tels
+    → (q : reconstTel Bs Ds σ telB t p telD ≡ tel)
     → builtin bn σ tel —→ builtin bn σ (reconstTel Bs Ds σ telB t' p telD)
 \end{code}
 
@@ -344,8 +343,9 @@ data TelProgress
     → VTel Γ Δ σ Bs telB
     → ∀{C}{t t' : Γ ⊢ substNf σ C}
     → t —→ t'
-    → Bs ++ (C ∷ Ds) ≡ As
-    → Tel Γ Δ σ Ds
+    → (telD : Tel Γ Δ σ Ds)
+    → (p : Bs ++ (C ∷ Ds) ≡ As)
+    → (q : reconstTel Bs Ds σ telB t p telD ≡ tel)
     → TelProgress tel
     
   error : ∀ Bs Ds
@@ -396,8 +396,8 @@ progress-builtin : ∀{Φ Γ} bn
   → Progress (builtin bn σ tel)
 progress-builtin bn σ tel (done vtel)                      =
   step (β-builtin bn σ tel vtel)
-progress-builtin bn σ tel (step Bs Ds telB vtel p q telD)  =
-  step (ξ-builtin bn σ tel Bs Ds telB telD vtel p q)
+progress-builtin bn σ tel (step Bs Ds telB vtel p telD q r)  =
+  step (ξ-builtin bn σ tel Bs Ds telB telD vtel p q r)
 progress-builtin bn σ tel (error Bs Ds telB vtel e p telD) =
   error (E-builtin bn σ tel Bs Ds telB vtel e p telD)
 progress-builtin bn σ tel (neutral Bs Ds telB vtel e p telD) =
@@ -415,11 +415,11 @@ progressTelCons : ∀ {Φ}{Γ : Ctx Φ}{Δ}
   → TelProgress tel
   → TelProgress {As = A ∷ As} (t ,, tel)
 progressTelCons (step p){As}{tel}   q                                =
-  step [] As tt tt p refl tel
+   step [] As tt tt p  tel refl refl 
 progressTelCons (done v)            (done vtel)                      =
   done (v ,, vtel)
-progressTelCons (done v)            (step Bs Ds telB vtel p q telD)  =
-  step (_ ∷ Bs) Ds (_ ,, telB) (v ,, vtel) p (cong (_ ∷_) q) telD
+progressTelCons (done v)            (step Bs Ds telB vtel p telD refl r)  =
+   step (_ ∷ Bs) Ds (_ ,, telB) (v ,, vtel) p telD refl (cong (_ ,,_) r) 
 progressTelCons (done v)            (error Bs Ds telB vtel e p telD) =
   error (_ ∷ Bs) Ds (_ ,, telB) (v ,, vtel) e (cong (_ ∷_) p) telD
 progressTelCons (done v)            (neutral Bs Ds telB vtel e p telD) =
