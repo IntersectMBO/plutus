@@ -112,7 +112,7 @@ selectCoinProp = property $ do
     let result = runExcept (selectCoin inputs target)
     case result of
         Left _ ->
-            Hedgehog.assert $ (fold $ snd <$> inputs) `Value.lt` target
+            Hedgehog.assert $ not $ (fold $ snd <$> inputs) `Value.geq` target
         Right (ins, change) ->
             Hedgehog.assert $ (fold $ snd <$> ins) `Value.eq` (target `Value.plus` change)
 

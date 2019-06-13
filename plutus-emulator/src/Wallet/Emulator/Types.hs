@@ -302,7 +302,11 @@ selectCoin fnds vl =
                     $ T.unwords
                         [ "Total:", T.pack $ show total
                         , "expected:", T.pack $ show vl]
-        in  if total `Value.lt` vl
+        -- Values are in a partial order: what we want to check is that the
+        -- total available funds are bigger than (or equal to) the required value.
+        -- It is *not* correct to replace this condition with 'total `Value.lt` vl' -
+        -- consider what happens if the amounts are incomparable.
+        in  if not (total `Value.geq` vl)
             then err
             else
                 let
