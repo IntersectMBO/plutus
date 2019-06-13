@@ -15,6 +15,7 @@ open import Algorithmic.Erasure.RenamingSubstitution
 import Untyped.Reduction as U
 import Untyped.RenamingSubstitution as U
 open import Builtin
+open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Untyped
 open import Builtin.Signature Ctx⋆ Kind
@@ -25,7 +26,12 @@ open import Data.Sum
 open import Relation.Binary.PropositionalEquality
 open import Data.List hiding (map)
 open import Data.Product hiding (map) renaming (_,_ to _,,_)
-open import Data.Unit
+open import Data.Unit hiding (_≤_; _≤?_; _≟_)
+import Utils as Util
+open import Relation.Nullary
+open import Data.Nat hiding (_<_; _≤?_; _^_; _+_; _≟_; _*_)
+open import Data.Integer hiding (suc)
+import Data.Bool as B
 \end{code}
 
 \begin{code}
@@ -48,6 +54,23 @@ eraseVTel Γ Δ σ (A ∷ As) (t ,, tel) (v ,, vtel) =
 \end{code}
 
 \begin{code}
+erase-decIf : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *}{X}(p : Dec X)(t f : Γ ⊢ A) →
+  Util.decIf p (erase t) (erase f) ≡ erase (Util.decIf p t f)
+erase-decIf (yes p) t f = refl
+erase-decIf (no ¬p) t f = refl
+
+erase-if : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *}(b : B.Bool)(t f : Γ ⊢ A) →
+  (B.if b then erase t else erase f) ≡ erase (B.if b then t else f)
+erase-if B.false t f = refl
+erase-if B.true  t f = refl
+
+erase-VERIFYSIG : ∀{Φ}{Γ : Ctx Φ}(mb : Util.Maybe B.Bool)
+  → U.VERIFYSIG mb ≡ erase {Φ}{Γ} (A.VERIFYSIG mb)
+erase-VERIFYSIG (Util.just B.false) = refl
+erase-VERIFYSIG (Util.just B.true)  = refl
+erase-VERIFYSIG Util.nothing = refl
+
+
 erase-BUILTIN : ∀ bn → let Δ ,, As ,, X = SIG bn in
   ∀{Φ}(Γ : Ctx Φ)
   → (σ : ∀{K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
@@ -70,22 +93,51 @@ erase-BUILTIN subtractInteger Γ σ _
   (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) = refl
 erase-BUILTIN multiplyInteger Γ σ _
   (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) = refl
-erase-BUILTIN divideInteger Γ σ tel vtel = {!!}
-erase-BUILTIN quotientInteger Γ σ tel vtel = {!!}
-erase-BUILTIN remainderInteger Γ σ tel vtel = {!!}
-erase-BUILTIN modInteger Γ σ tel vtel = {!!}
-erase-BUILTIN lessThanInteger Γ σ tel vtel = {!!}
-erase-BUILTIN lessThanEqualsInteger Γ σ tel vtel = {!!}
-erase-BUILTIN greaterThanInteger Γ σ tel vtel = {!!}
-erase-BUILTIN greaterThanEqualsInteger Γ σ tel vtel = {!!}
-erase-BUILTIN equalsInteger Γ σ tel vtel = {!!}
-erase-BUILTIN concatenate Γ σ tel vtel = {!!}
-erase-BUILTIN takeByteString Γ σ tel vtel = {!!}
-erase-BUILTIN dropByteString Γ σ tel vtel = {!!}
-erase-BUILTIN sha2-256 Γ σ tel vtel = {!!}
-erase-BUILTIN sha3-256 Γ σ tel vtel = {!!}
-erase-BUILTIN verifySignature Γ σ tel vtel = {!!}
-erase-BUILTIN equalsByteString Γ σ tel vtel = {!!}
+erase-BUILTIN divideInteger Γ σ _
+  (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) =
+  erase-decIf (∣ j ∣ Data.Nat.≟ zero) _ _
+erase-BUILTIN quotientInteger Γ σ _
+  (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) =
+  erase-decIf (∣ j ∣ Data.Nat.≟ zero) _ _
+erase-BUILTIN remainderInteger Γ σ _
+  (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) =
+  erase-decIf (∣ j ∣ Data.Nat.≟ zero) _ _
+
+erase-BUILTIN modInteger Γ σ _
+  (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) =
+  erase-decIf (∣ j ∣ Data.Nat.≟ zero) _ _
+erase-BUILTIN lessThanInteger Γ σ _
+  (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) =
+  erase-decIf (i Builtin.Constant.Type.<? j) _ _
+erase-BUILTIN lessThanEqualsInteger Γ σ _
+  (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) =
+  erase-decIf (i ≤? j) _ _
+erase-BUILTIN greaterThanInteger Γ σ _
+  (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) =
+    erase-decIf (i Builtin.Constant.Type.>? j) _ _
+erase-BUILTIN greaterThanEqualsInteger Γ σ _
+  (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) =
+  erase-decIf (i Builtin.Constant.Type.≥? j) _ _
+erase-BUILTIN equalsInteger Γ σ _
+  (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) =
+  erase-decIf (i ≟ j) _ _
+erase-BUILTIN concatenate Γ σ _
+  (A.V-con (bytestring b) ,, A.V-con (bytestring b') ,, tt) = refl
+
+erase-BUILTIN takeByteString Γ σ _
+  (A.V-con (integer i) ,, A.V-con (bytestring b) ,, tt) = refl
+erase-BUILTIN dropByteString Γ σ _
+  (A.V-con (integer i) ,, A.V-con (bytestring b) ,, tt) = refl
+erase-BUILTIN sha2-256 Γ σ _
+  (A.V-con (bytestring b) ,, tt) = refl
+erase-BUILTIN sha3-256 Γ σ _
+  (A.V-con (bytestring b) ,, tt) = refl
+erase-BUILTIN verifySignature Γ σ _
+  (A.V-con (bytestring b) ,, A.V-con (bytestring b') ,, A.V-con (bytestring b'') ,, tt) =
+  erase-VERIFYSIG _
+erase-BUILTIN equalsByteString Γ σ _
+  (A.V-con (bytestring b) ,, A.V-con (bytestring b') ,, tt) =
+  erase-if (equals b b') _ _ 
 
 erase-reconstTel : ∀{Φ Γ Δ As} Bs Ds
     → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
