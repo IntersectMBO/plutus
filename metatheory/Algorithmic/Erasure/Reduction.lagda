@@ -63,11 +63,13 @@ eraseNe (A.N-·⋆ N A) = eraseNe N
 eraseNe (A.N-unwrap1 N) = eraseNe N
 eraseNe (A.N-wrap N) = eraseNe N
 eraseNe (A.N-Λ N) = eraseNe N
-eraseNe (A.N-builtin bn σ tel Bs Ds telB vtel n p telD refl) = subst
-  (U.Neutral ∘ builtin bn)
-  (sym (erase-reconstTel Bs Ds σ telB _ p telD))
-  (U.N-builtin bn (eraseTel telB) (eraseNe n) (eraseTel telD))
-
+eraseNe (A.N-builtin bn σ tel Bs Ds telB vtel n p telD refl) = U.N-builtin
+  bn
+  (eraseTel tel)
+  (eraseTel telB)
+  (eraseNe n)
+  (eraseTel telD)
+  (erase-reconstTel Bs Ds σ telB _ p telD)
 
 eraseErr : ∀{Φ}{A : Φ ⊢Nf⋆ *}{Γ : Ctx Φ}{e : Γ ⊢ A}
   → A.Error e → U.Error (erase e)
@@ -228,6 +230,7 @@ eraseProgress M (A.step p)    with erase—→ p
 eraseProgress M (A.done V)    = Util.just (U.done (eraseVal V))
 eraseProgress M (A.neutral N) = Util.just (U.neutral (eraseNe N))
 eraseProgress M (A.error e)   = Util.just (U.error (eraseErr e))
-  
-  
+
+erase-progress : ∀{Φ}{Γ : Ctx Φ}{A}(t : Γ ⊢ A) → {! eraseProgress t (A.progress t) !} ≡ U.progress (erase t)
+erase-progress = {!!}
 \end{code}
