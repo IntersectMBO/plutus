@@ -59,8 +59,8 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
   E-con : {tcn : TermCon}{L : n ⊢} → con tcn · L —→ error
   β-ƛ : ∀{x}{L : suc n ⊢}{M : n ⊢} → ƛ x L · M —→ L [ M ]
 
-  ξ-builtin : {b : Builtin}
-              {ts : Tel n}
+  ξ-builtin : (b : Builtin)
+              (ts : Tel n)
               {ts' : Tel n}
               (vs : VTel n ts')
               {t t' : n ⊢}
@@ -158,7 +158,7 @@ progress (builtin b ts) with progressList ts
 progress (builtin b ts) | done  vs       =
   inr (BUILTIN b ts vs ,  β-builtin ts vs)
 progress (builtin b ts) | step  ts' vs p ts'' =
-  inr (builtin b _ ,  ξ-builtin vs p ts'' (ts' ++ _ ∷ ts'') refl)
+  inr (builtin b _ ,  ξ-builtin b ts vs p ts'' (ts' ++ _ ∷ ts'') refl)
 progress (builtin b ts) | error ts' vs e ts'' =
   inr (error     , E-builtin vs e ts')
 progress error       = inl (inr E-error)
