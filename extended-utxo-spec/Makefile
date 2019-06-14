@@ -20,7 +20,8 @@ all: pdf
 pdf: ${PDF}
 
 ${DOC}.pdf: ${SRC}
-	${LATEX}  ${DOC}
+	rm -f ${DOC}.bbl
+	${LATEX} ${DOC}
 	${BIBTEX} ${DOC}
 	${LATEX}  ${DOC}   # to make sure the (cross)references are correct
 	${LATEX}  ${DOC}
