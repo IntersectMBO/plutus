@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DeriveAnyClass      #-}
@@ -18,6 +19,10 @@ module Game where
 -- output. If the guess is correct, the validator script releases the funds.
 -- If it isn't, the funds stay locked.
 import qualified Language.PlutusTx            as PlutusTx
+import Data.Text (Text)
+import qualified Data.ByteString.Lazy as LBS
+import Data.Text.Encoding (decodeUtf8)
+import qualified Data.Text as Text
 import           Language.PlutusTx.Prelude
 import           Ledger
 import qualified Ledger.Value                 as Value
@@ -25,8 +30,14 @@ import           Ledger.Value                 (Value)
 import           Ledger.Validation
 import           Wallet
 import           Playground.Contract
-
+import           Playground.API
+import qualified Data.Aeson as Aeson
 import qualified Data.ByteString.Lazy.Char8   as C
+
+import Data.Morpheus (interpreter)
+import Data.Morpheus.Types (GQLArgs, GQLResponse, ResolveCon, Resolver(Resolver),MUTATION,GQLRootResolver(GQLRootResolver, queryResolver,mutationResolver,subscriptionResolver),withEffect)
+import Data.Morpheus.Kind (KIND, OBJECT)
+import Wallet.Emulator.Types
 
 data HashedString = HashedString ByteString
 
@@ -100,7 +111,50 @@ startGame =
     -- Player 2's wallet is aware of the game address.
     startWatching gameAddress
 
-$(mkFunctions ['lock, 'guess, 'startGame])
+data QueryAPI (m :: * -> *) =
+    QueryAPI {}
+    deriving (Generic)
+
+data LockArguments = LockArguments
+  { lockWord :: Text
+  , lockVl :: Value
+  } deriving (Generic)
+
+instance GQLArgs LockArguments
+
+data MutationAPI (m :: * -> *) =
+    MutationAPI
+        { mutationAPILock      :: Resolver m MUTATION LockArguments Bool
+        -- , mutationAPIGuess     :: Resolver m MUTATION Text          Bool
+        , mutationAPIStartGame :: Resolver m MUTATION ()            Bool
+        }
+    deriving (Generic)
+
+data SubscriptionAPI (m :: * -> *) =
+    SubscriptionAPI {}
+    deriving (Generic)
+
+rootResolver :: (ResolveCon m (QueryAPI m) (MutationAPI m) (SubscriptionAPI m), MonadWallet m) => GQLRootResolver m (QueryAPI m) (MutationAPI m) (SubscriptionAPI m)
+rootResolver =
+    GQLRootResolver
+        { queryResolver = QueryAPI {}
+        , mutationResolver =
+              MutationAPI
+                  { mutationAPILock = liftResolver $ (pure True <*) . (\LockArguments {..} -> lock (Text.unpack lockWord) lockVl)
+                  -- , mutationAPIGuess = liftResolver $ (pure True <*) . guess . Text.unpack
+                  , mutationAPIStartGame = liftResolver $ (pure True <*) . const startGame
+                  }
+        , subscriptionResolver = SubscriptionAPI {}
+        }
+
+liftResolver :: (Functor m) => (a -> m b) -> Resolver m MUTATION a b
+liftResolver f = Resolver $ \args -> withEffect [] . Right <$> f args
+
+schema :: SchemaText
+schema = toSchema rootResolver
+
+-- $(mkFunctions ['lock, 'guess, 'startGame])
+
 
 {- Note [Contract endpoints]
 

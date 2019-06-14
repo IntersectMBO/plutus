@@ -136,6 +136,7 @@ library
         bytestring -any,
         cryptonite -any,
         containers -any,
+        morpheus-graphql -any,
         bimap -any,
         array -any,
         mtl -any,

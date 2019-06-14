@@ -83,9 +83,11 @@ library
         hedgehog -any,
         hashable -any,
         lens -any,
+        language-plutus-core -any,
         memory -any,
         mtl -any,
         plutus-tx -any,
+        morpheus-graphql -any,
         plutus-ledger -any,
         serialise -any,
         template-haskell -any,
@@ -147,6 +149,7 @@ library plutus-ledger
         deriving-compat -any,
         newtype-generics,
         http-api-data,
+        morpheus-graphql -any,
         cardano-crypto
 
     if flag(defer-plugin-errors)

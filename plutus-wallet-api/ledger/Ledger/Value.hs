@@ -1,13 +1,16 @@
-{-# LANGUAGE OverloadedLists    #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE TypeApplications   #-}
-{-# LANGUAGE NoImplicitPrelude  #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DerivingVia           #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedLists       #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
 -- Prevent unboxing, which the plugin can't deal with
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
@@ -44,29 +47,38 @@ module Ledger.Value(
     , isZero
     ) where
 
-import           Codec.Serialise.Class        (Serialise)
-import           Data.Aeson                   (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
-import qualified Data.Aeson                   as JSON
-import qualified Data.Aeson.Extras            as JSON
-import qualified Data.ByteString.Lazy         as BSL
-import qualified Data.ByteString.Lazy.Char8   as C8
-import           Data.Hashable                (Hashable)
-import           Schema                       (ToSchema, toSchema, SimpleArgumentSchema(..))
-import           Data.Proxy                   (Proxy(Proxy))
-import           Data.String                  (IsString(fromString))
-import qualified Data.Text                    as Text
-import           GHC.Generics                 (Generic)
-import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.Lift       (makeLift)
-import           Language.PlutusTx.Prelude    hiding (eq, plus, minus, negate, multiply, leq, lt, geq, gt)
-import qualified Language.PlutusTx.Prelude    as P
-import qualified Ledger.Map                   as Map
-import           LedgerBytes                  (LedgerBytes(LedgerBytes))
+import           Codec.Serialise.Class       (Serialise)
+import           Data.Aeson                  (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
+import qualified Data.Aeson                  as JSON
+import qualified Data.Aeson.Extras           as JSON
+import           Data.Bifunctor              (bimap)
+import qualified Data.ByteString.Lazy        as BSL
+import qualified Data.ByteString.Lazy.Char8  as C8
+import           Data.Hashable               (Hashable)
+import           Data.Morpheus.Kind          (INPUT_OBJECT, KIND, OBJECT, SCALAR, WRAPPER)
+import           Data.Morpheus.Types         (GQLScalar (parseValue, serialize), GQLType (updateLib), InputTypeRouter,
+                                              asObjectType, field_, _decode, _field, _introspect)
+import qualified Data.Morpheus.Types         as Morpheus
+import           Data.Morpheus.Types.GQLArgs (GQLArgs (decode, introspect))
+import           Data.Proxy                  (Proxy (Proxy))
+import           Data.String                 (IsString (fromString))
+import           Data.Text                   (Text)
+import qualified Data.Text                   as Text
+import           GHC.Generics                (Generic)
+import qualified Language.PlutusTx.Builtins  as Builtins
+import           Language.PlutusTx.Lift      (makeLift)
+import           Language.PlutusTx.Prelude   hiding (eq, geq, gt, leq, lt, minus, multiply, negate, plus)
+import qualified Language.PlutusTx.Prelude   as P
+import qualified Ledger.Map                  as Map
+import           LedgerBytes                 (LedgerBytes (LedgerBytes))
+import           Schema                      (Label (Label), SimpleArgumentSchema (..), ToSchema, toSchema)
 
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteString }
     deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise) via LedgerBytes
     deriving stock (Eq, Ord, Generic)
-    deriving anyclass (Hashable)
+    deriving anyclass (Hashable, GQLType, GQLScalar)
+
+type instance KIND CurrencySymbol = SCALAR
 
 instance ToSchema CurrencySymbol where
   toSchema _ = SimpleHexSchema
@@ -101,7 +113,9 @@ currencySymbol = CurrencySymbol
 newtype TokenName = TokenName { unTokenName :: Builtins.ByteString }
     deriving (Serialise) via LedgerBytes
     deriving stock (Eq, Ord, Generic)
-    deriving anyclass (Hashable)
+    deriving anyclass (Hashable, GQLType, GQLScalar)
+
+type instance KIND TokenName = SCALAR
 
 instance IsString TokenName where
   fromString = TokenName . C8.pack
@@ -153,8 +167,27 @@ tokenName = TokenName
 -- See note [Currencies] for more details.
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
     deriving stock (Show, Generic)
-    deriving anyclass (ToJSON, FromJSON, Hashable)
+    deriving anyclass (ToJSON, FromJSON, Hashable, GQLType)
     deriving newtype (Serialise)
+
+type instance KIND Value = OBJECT
+
+data FlatValue =
+  FlatValue
+    { flatCurrencySymbol :: CurrencySymbol
+    , flatTokenName      :: TokenName
+    , flatBalance        :: Integer
+    }
+  deriving (Show, Generic)
+  deriving anyclass (ToJSON, FromJSON, Hashable, GQLType, GQLArgs)
+
+type instance KIND FlatValue = INPUT_OBJECT
+
+instance InputTypeRouter Value OBJECT where
+  __introspect proxyB proxyA = _introspect (Proxy @[FlatValue])
+  __decode proxyB value = pure $ Value { getValue = Map.empty () }
+  __field _ _ = _field (Proxy @[FlatValue])
+
 
 makeLift ''Value
 
@@ -173,8 +206,7 @@ instance Monoid Value where
 instance ToSchema Value where
   toSchema _ =
     ValueSchema
-      [ ( "getValue"
-        , toSchema (Proxy :: Proxy [(CurrencySymbol, [(TokenName, Integer)])]))
+      [ Label "getValue" (toSchema (Proxy :: Proxy [(CurrencySymbol, [(TokenName, Integer)])]))
       ]
 
 {- note [Currencies]

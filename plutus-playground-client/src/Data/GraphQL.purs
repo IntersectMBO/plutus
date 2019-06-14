@@ -57,3 +57,8 @@ foreign import buildSchemaImpl :: String -> Effect GraphQLSchema
 
 buildSchema :: String -> Effect (Either Error GraphQLSchema)
 buildSchema str = try $ buildSchemaImpl str
+
+foreign import buildClientSchemaImpl :: String -> Effect GraphQLSchema
+
+buildClientSchema :: String -> Effect (GraphQLSchema)
+buildClientSchema str = buildClientSchemaImpl str

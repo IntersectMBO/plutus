@@ -123,10 +123,10 @@ instance monadAppHalogenApp ::
                   }
                   (\obj -> ix obj "country" >>= decode))
 
-  getGreeting username = wrap $ liftAff $ RemoteData.fromEither <$>
+  getGreeting userName = wrap $ liftAff $ RemoteData.fromEither <$>
     runExceptT (GraphQL.runQuery
                   { baseURL: "/api/graphql"
-                  , query: greetingQuery username
+                  , query: greetingQuery userName
                   }
                   decode)
 
@@ -222,15 +222,17 @@ countryQuery code =
     """
 
 greetingQuery :: String -> GraphQLQuery Greeting
-greetingQuery username =
+greetingQuery userName =
   GraphQLQuery
     { operationName: Just "GreetingQuery"
     , query
-    , variables: [ "username" := username ]
+    , variables: [ "userName" := userName
+                 , "userAge" := 30
+                 ]
     }
   where
     query = """
-      query GreetingQuery ($username: String!) {
-        greeting(username: $username)
+      query GreetingQuery ($userName: String!, $userAge: Int!) {
+        greeting(userName: $userName, userAge: $userAge)
       }
     """

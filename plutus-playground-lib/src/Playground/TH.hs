@@ -10,12 +10,12 @@ module Playground.TH
     ) where
 
 import           Data.Proxy          (Proxy (Proxy))
-import           Schema              (toSchema)
 import           Data.Text           (pack)
 import           Language.Haskell.TH (Body (NormalB), Clause (Clause), Dec (FunD, SigD, ValD), Exp (ListE, VarE),
                                       Info (VarI), Name, Pat (VarP), Q,
                                       Type (AppT, ArrowT, ConT, ForallT, ListT, TupleT, VarT), mkName, nameBase, reify)
 import           Playground.API      (Fn (Fn), FunctionSchema (FunctionSchema), adaCurrency)
+import           Schema              (toSchema)
 
 mkFunctions :: [Name] -> Q [Dec]
 mkFunctions names = do
@@ -31,18 +31,20 @@ mkFunctions names = do
 mkFunction :: Name -> Q [Dec]
 mkFunction _ =
     error $
-    "" </> "mkFunction has been replaced by mkFunctions" </> " " </>
-    "replace all calls to mkFunction with a single call to mkFunctions, e.g." </>
-    " " </>
-    " | $(mkFunction 'functionOne)" </>
-    " | $(mkFunction 'functionTwo)" </>
-    " " </>
-    "becomes:" </>
-    " " </>
-    " | $(mkFunctions ['functionOne, 'functionTwo])" </>
-    " "
-  where
-    a </> b = a <> "\n" <> b
+    unlines $
+    [ ""
+    , "mkFunction has been replaced by mkFunctions"
+    , " "
+    , "replace all calls to mkFunction with a single call to mkFunctions, e.g."
+    , " "
+    , " | $(mkFunction 'functionOne)"
+    , " | $(mkFunction 'functionTwo)"
+    , " "
+    , "becomes:"
+    , " "
+    , " | $(mkFunctions ['functionOne, 'functionTwo])"
+    , " "
+    ]
 
 mkSingleFunction :: Name -> Q [Dec]
 mkSingleFunction name = do
@@ -69,11 +71,7 @@ mkFunctionExp name fn = do
 
 toSchemas :: Fn -> [Type] -> Q Exp
 toSchemas fn ts = do
-    es <-
-        foldr
-            (\t e -> [|toSchema (Proxy :: Proxy $(pure t)) : $e|])
-            [|[]|]
-            ts
+    es <- foldr (\t e -> [|toSchema (Proxy :: Proxy $(pure t)) : $e|]) [|[]|] ts
     [|FunctionSchema fn $(pure es)|]
 
 {-# ANN args ("HLint: ignore" :: String) #-}

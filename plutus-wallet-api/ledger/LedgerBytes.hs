@@ -5,6 +5,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TypeFamilies               #-}
 {-# OPTIONS_GHC -Wno-orphans            #-}
 
 module LedgerBytes ( LedgerBytes (..)
@@ -19,13 +20,16 @@ import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import           Data.Bifunctor             (bimap)
 import qualified Data.ByteString.Lazy       as BSL
+import           Data.Morpheus.Kind         (KIND, SCALAR)
+import           Data.Morpheus.Types        (GQLScalar (parseValue, serialize), GQLType)
+import qualified Data.Morpheus.Types        as Morpheus
 import           Data.String                (IsString (..))
-import           Schema                     (ToSchema, toSchema, SimpleArgumentSchema(SimpleStringSchema))
 import qualified Data.Text                  as Text
 import           Data.Word                  (Word8)
 import           GHC.Generics               (Generic)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift
+import           Schema                     (SimpleArgumentSchema (SimpleStringSchema), ToSchema, toSchema)
 import           Web.HttpApiData            (FromHttpApiData (..), ToHttpApiData (..))
 
 fromHex :: BSL.ByteString -> LedgerBytes
@@ -91,3 +95,13 @@ instance JSON.ToJSONKey LedgerBytes where
 instance JSON.FromJSONKey LedgerBytes where
 
 makeLift ''LedgerBytes
+
+type instance KIND Builtins.ByteString = SCALAR
+
+instance GQLType Builtins.ByteString where
+  typeID _ = "String"
+
+instance GQLScalar Builtins.ByteString where
+  parseValue (Morpheus.String raw) = bimap Text.pack BSL.fromStrict (JSON.tryDecode raw)
+  parseValue _                     = Left ""
+  serialize = Morpheus.String . JSON.encodeByteString . BSL.toStrict

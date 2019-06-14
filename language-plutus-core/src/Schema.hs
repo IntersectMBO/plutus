@@ -15,27 +15,36 @@ module Schema
     ( SimpleArgumentSchema(..)
     , toSchema
     , ToSchema
+    , Label(Label)
+    , Pair(Pair)
     ) where
 
-import           Data.Aeson   (FromJSON, ToJSON)
-import           Data.Monoid  ((<>))
-import           Data.Proxy   (Proxy (Proxy))
-import           Data.Text    (Text)
-import qualified Data.Text    as Text
-import           GHC.Generics ((:*:), C1, Constructor, D1, Generic, Rec0, Rep, S1, Selector, conIsRecord, conName, from,
-                               selName, unM1)
+import           Data.Aeson          (FromJSON, ToJSON)
+import           Data.Monoid         ((<>))
+import           Data.Proxy          (Proxy (Proxy))
+import           Data.Text           (Text)
+import qualified Data.Text           as Text
+import           GHC.Generics        ((:*:), C1, Constructor, D1, Generic, Rec0, Rep, S1, Selector, conIsRecord,
+                                      conName, from, selName, unM1)
+
+data Label = Label Text SimpleArgumentSchema
+    deriving (Eq, Ord, Show, Generic)
+    deriving anyclass (FromJSON, ToJSON)
+
+data Pair = Pair SimpleArgumentSchema SimpleArgumentSchema
+    deriving (Eq, Ord, Show, Generic)
+    deriving anyclass (FromJSON, ToJSON)
 
 data SimpleArgumentSchema
     = SimpleIntSchema
     | SimpleStringSchema
     | SimpleHexSchema
     | SimpleArraySchema SimpleArgumentSchema
-    | SimpleTupleSchema (SimpleArgumentSchema, SimpleArgumentSchema)
-    | SimpleObjectSchema [(Text, SimpleArgumentSchema)]
-    | ValueSchema [(Text, SimpleArgumentSchema)]
+    | SimpleTupleSchema Pair
+    | SimpleObjectSchema [Label]
+    | ValueSchema [Label]
     | UnknownSchema Text Text
-    deriving (Eq, Ord, Show)
-    deriving (Generic)
+    deriving (Eq, Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
 class ToSchema a where
@@ -47,7 +56,7 @@ class ToSchema a where
 instance (ToSchema a, ToSchema b) => ToSchema (a, b) where
     toSchema _ =
         SimpleTupleSchema
-            (toSchema (Proxy :: Proxy a), toSchema (Proxy :: Proxy b))
+          $ Pair (toSchema (Proxy :: Proxy a)) (toSchema (Proxy :: Proxy b))
 
 instance ToSchema Int where
     toSchema _ = SimpleIntSchema
@@ -106,14 +115,14 @@ instance (Constructor c, GenericSchemaField f) => GenericToSchema (C1 c f) where
         fields = genericToSchemaField $ unM1 c
 
 class GenericSchemaField f where
-    genericToSchemaField :: f a -> [(Text, SimpleArgumentSchema)]
+    genericToSchemaField :: f a -> [Label]
 
 instance ToSchema a => GenericToSchema (Rec0 a) where
     genericToSchema _ = toSchema (Proxy :: Proxy a)
 
 instance (Selector s, GenericToSchema a) => GenericSchemaField (S1 s a) where
     genericToSchemaField selector =
-        [(Text.pack (selName selector), genericToSchema (undefined :: a p))]
+        [Label (Text.pack (selName selector)) (genericToSchema (undefined :: a p))]
 
 instance (GenericSchemaField f, GenericSchemaField g) =>
          GenericSchemaField (f :*: g) where

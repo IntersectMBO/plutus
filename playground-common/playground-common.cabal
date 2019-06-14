@@ -2,7 +2,7 @@ cabal-version: 2.0
 name: playground-common
 version: 0.1.0.0
 license: Apache-2.0
-license-files: 
+license-files:
   LICENSE
   NOTICE
 author: David Smith
@@ -41,6 +41,7 @@ library
         monad-logger -any,
         mtl -any,
         newtype-generics -any,
+        morpheus-graphql -any,
         process -any,
         prometheus >=2,
         safe-exceptions -any,

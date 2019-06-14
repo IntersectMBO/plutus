@@ -51,11 +51,11 @@ import           Ledger.Interval                            (Interval)
 import           Ledger.Slot                                (Slot)
 import           Ledger.Value                               (CurrencySymbol, TokenName, Value)
 import           Playground.API                             (CompilationResult, Evaluation, EvaluationResult,
-                                                             Expression, Fn, FunctionSchema, KnownCurrency,
+                                                             Expression, Fn, FunctionSchema, KnownCurrency, SchemaText,
                                                              SimulatorWallet)
 import qualified Playground.API                             as API
 import           Playground.Usecases                        (crowdfunding, game, messages, vesting)
-import           Schema                                     (SimpleArgumentSchema)
+import           Schema                                     (Label, Pair, SimpleArgumentSchema)
 import           Servant                                    ((:<|>))
 import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
                                                              defaultSettings, languageBridge,
@@ -230,6 +230,9 @@ myTypes =
     [ (equal <*> mkSumType) (Proxy @SimpleArgumentSchema)
     , (equal <*> mkSumType) (Proxy @(FunctionSchema A))
     , mkSumType (Proxy @CompilationResult)
+    , (equal <*> mkSumType) (Proxy @Label)
+    , (equal <*> mkSumType) (Proxy @Pair)
+    , (equal <*> mkSumType) (Proxy @SchemaText)
     , mkSumType (Proxy @Warning)
     , (equal <*> mkSumType) (Proxy @Fn)
     , mkSumType (Proxy @SourceCode)
@@ -307,16 +310,16 @@ writeUsecases outputDir = do
 
 generate :: FilePath -> IO ()
 generate outputDir = do
-    writeAPIModuleWithSettings
-        mySettings
-        outputDir
-        myBridgeProxy
-        (Proxy
-             @(API.API
-               :<|> Auth.FrontendAPI))
-    writePSTypesWith
-        (genForeign (ForeignOptions {unwrapSingleConstructors = True}))
-        outputDir
-        (buildBridge myBridge)
-        myTypes
+    -- writeAPIModuleWithSettings
+    --     mySettings
+    --     outputDir
+    --     myBridgeProxy
+    --     (Proxy
+    --          @(API.API
+    --            :<|> Auth.FrontendAPI))
+    -- writePSTypesWith
+    --     (genForeign (ForeignOptions {unwrapSingleConstructors = True}))
+    --     outputDir
+    --     (buildBridge myBridge)
+    --     myTypes
     writeUsecases outputDir

@@ -107,6 +107,7 @@ library plutus-playground-usecases
         mtl -any,
         playground-common -any,
         plutus-emulator -any,
+        morpheus-graphql -any,
         plutus-playground-lib -any,
         plutus-tx -any,
         plutus-wallet-api -any,

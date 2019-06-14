@@ -55,6 +55,7 @@ library
         bytestring -any,
         template-haskell >=2.13.0.0,
         language-plutus-core -any,
+        morpheus-graphql -any,
         plutus-core-interpreter -any,
         plutus-tx-compiler -any
 
@@ -91,6 +92,7 @@ library plutus-tx-compiler
         extra -any,
         ghc >=8.6 && <8.7,
         language-plutus-core -any,
+        morpheus-graphql -any,
         lens -any,
         mtl -any,
         plutus-ir -any,

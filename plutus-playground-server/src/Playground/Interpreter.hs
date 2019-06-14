@@ -53,7 +53,7 @@ ensureMinimumImports script =
     let scriptString = Text.unpack . Newtype.unpack $ script
         regex =
             Regex.mkRegex
-                "^import[ \t]+Playground.Contract([ ]*$|[ \t]+\\(.*mkFunctions.*printSchemas.*\\)|[ \t]+\\(.*printSchemas.*mkFunctions.*\\))"
+                "^import[ \t]+Playground.Contract([ ]*$|[ \t]+\\(.*mkFunctions.*printSchema.*\\)|[ \t]+\\(.*printSchema.*mkFunctions.*\\))"
         mMatches = Regex.matchRegexAll regex scriptString
      in case mMatches of
             Just _ -> pure ()
@@ -62,10 +62,10 @@ ensureMinimumImports script =
                     row = 1
                     column = 1
                     text =
-                        [ "You need to import the `mkFunctions` and `printSchemas` in order to compile successfully, you can do this with either"
+                        [ "You need to import the `mkFunctions` and `printSchema` in order to compile successfully, you can do this with either"
                         , "`import Playground.Contract`"
                         , "or"
-                        , "`import Playground.Contract (mkFunctions, printSchemas)`"
+                        , "`import Playground.Contract (mkFunctions, printSchema)`"
                         ]
                     errors = [CompilationError filename row column text]
                  in throwError $ CompilationErrors errors
@@ -84,7 +84,7 @@ mkCompileScript script =
     (ensureKnownCurrenciesExists . ensureMkFunctionExists . replaceModuleName)
         script <>
     "\n\nmain :: IO ()" <>
-    "\nmain = printSchemas (schemas, registeredKnownCurrencies)"
+    "\nmain = printSchema (schema, registeredKnownCurrencies)"
 
 runscript ::
        ( Show t
@@ -127,13 +127,13 @@ compile timeout source
             Left err ->
                 throwError . CompilationErrors . pure . RawError $
                 "unable to decode compilation result" <> Text.pack err
-            Right ([schema], currencies) -> do
+            Right (schema, currencies) -> do
                 let warnings' =
                         Warning
                             "It looks like you have not made any functions available, use `$(mkFunctions ['functionA, 'functionB])` to be able to use `functionA` and `functionB`" :
                         warnings
                 pure . InterpreterResult warnings' $
-                    CompilationResult [schema] currencies
+                    CompilationResult schema currencies
             Right (schemas, currencies) ->
                 pure . InterpreterResult warnings $
                 CompilationResult schemas currencies
@@ -184,6 +184,7 @@ runghcOpts =
     , "-XExplicitForAll"
     , "-XFlexibleContexts"
     , "-XOverloadedStrings"
+    , "-XKindSignatures"
     , "-XRecordWildCards"
     , "-XStandaloneDeriving"
     , "-XTemplateHaskell"
@@ -194,7 +195,6 @@ runghcOpts =
     , "-fno-ignore-interface-pragmas"
     , "-fobject-code"
     -- FIXME: stupid GHC bug still
-    , "-package plutus-wallet-api"
     , "-package plutus-tx"
     ]
 

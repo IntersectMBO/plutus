@@ -12,7 +12,8 @@ license-files:
   LICENSE
   NOTICE
 build-type:     Simple
-extra-source-files:
+data-files:
+  data/introspection.gql
 
 source-repository head
   type: git
@@ -38,9 +39,13 @@ library
     -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wmissing-import-lists
   build-depends:
       aeson
+    , aeson-pretty
     , base >=4.7 && <5
     , bytestring
     , containers
+    , cryptonite
+    , file-embed
+    , operational
     , insert-ordered-containers
     , playground-common
     , unordered-containers
