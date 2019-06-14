@@ -45,6 +45,7 @@ let
     "playground-common"
     "marlowe"
     "meadow"
+    "deployment-server"
   ];
 
   isPlutus = name: builtins.elem name plutusPkgList;

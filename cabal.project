@@ -14,6 +14,7 @@ packages: language-plutus-core
           playground-common
           meadow
           plutus-contract-exe
+          deployment-server
 optimization: 2
 constraints: language-plutus-core +development
            , plutus-wallet-api +development
