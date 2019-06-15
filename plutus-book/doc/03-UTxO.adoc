@@ -11,26 +11,76 @@ like a number of other cryptocurrency platforms such as Bitcoin, uses instead
 an accounting approach known as UTxO-style.
 
 UTxO-style accounting documents the flow of money not from account to account,
-but rather from transaction to transaction. Each transaction has a list of inputs
+but rather from transaction to transaction. Each transaction has inputs
 (where the money being spent this transaction is coming from) and outputs
-(where this money is going).
+(where this money is going). Note that the body of a transaction may also
+contain other data, as we will see later when we examine the extended
+UTxO model in the <<_extended_utxo_model>> Chapter. For the basic transaction
+model we discuss here, refer to Figure <</images/UTxO.png>>.
 
-Let us examine the outputs first. The outputs of a single transaction may distribute
-the money a transaction is moving to several different recipients.
-That is, the outputs of a transaction are a list,
-each element of which is a pair (c, a) of a coin value c, and an address a to which
-the the amount c will belong once the transaction is processed.
+image::UTxO.png[]
+
+Before we examine the structure of transactions, let us look at how book keeping
+is done on the ledger. The record on the ledger that
+contains this information is called a UTxO, short of Unspent Transaction Outputs
+and denoted latexmath:[\mathsf{UTxO}] in the figure.
+This record is a finite map, where the key is a pair of transaction ID and
+an index, latexmath:[\mathsf{TxIn = TxId*Ix}]. The transaction ID (latexmath:[\mathsf{TxId}])
+ can be calculated from a complete transaction
+submitted for processing, and is a unique identifier of this transaction.
+The index latexmath:[\mathsf{Ix}] is necessary because there may be more than one output,
+and each must have a unique identifier within the set of outputs
+of a given transaction.
+The values in the UTxO finite map are pairs of a coin value and an
+address, whose type is by latexmath:[\mathsf{TxOut = Addr * Coin}].
+
+As for the structure of the transaction itself,
+let us examine the outputs first. The a single transaction may distribute
+the money it is spending to several different addresses.
+The outputs (values of type latexmath:[\mathsf{TxOut}]) are stored in a transaction as the values in a finite map.
+The keys of the finite map are distinct index values within the context
+of the finite map, such that the
+combination of a transaction ID and an index will be a globally unique
+identifier for the output of a transaction.
+In UTxO accounting scheme, we relate
+output values to the inputs from which they come by means of this composite
+global identifier.
 
 The inputs are also a list, however, the elements of this list contain neither
 a coin value to be spent, nor the address which the money is coming from.
 This is the main distinction between traditional and UTxO accounting:
 the money being spent is only referred by the unspent outputs of
-previously processed transactions on the ledger currently on the blockchain. 
+previously processed transactions on the ledger currently on the blockchain.
+Each element of the inputs list is a pair of a transaction ID and an index.
+Which, as explained above, uniquely identifies the unspent output in the UTxO
+which is to be spent.
+
+Processing a transaction involves updating the UTxO on the ledger in a way
+that makes the funds spent by the transaction being processed available to
+be spent by the owners of the addresses listed in the outputs. That is,
+all the entries corresponding to the inputs of the processed transaction are
+removed from the ledger UTxO. Additionally, all the latexmath:[\mathsf{TxOut}]) values in
+the finite map of the outputs of the transaction are added to the UTxO,
+with the key of the finite map consisting of the ID of transaction being processed,
+and the index value the same as in the the finite map of outputs of this transaction.
+That is, if latexmath:[tx = (ins, outs)] with ID latexmath:[id], and
+latexmath:[ix \mapsto (a,c)] is an entry in latexmath:[outs], the UTxO will
+have the entry latexmath:[(id, ix) \mapsto (a,c)] added.
+
+Note that a check that the sum of the
+ADA in the inputs being spent is the same as the sum of the outputs being
+appended to the UTxO must be done explicitly, before processing any
+transaction.
+
+Here we do not go into the details of the specific types and calculations
+used in the Cardano ledger implementation, bu now the reader should have a
+sufficient understanding of the structure of a transaction and how it is
+processed to be able to understand what goes on behind the
+scenes when Plutus code is used to generate a transaction.
 
 
 .. reference to Edsko and Duncans Wallet spec
 
-stem:
 \begin{align*}
 \mathit{ins} \restrictdom \mathit{utxo}
 & = \{ i \mapsto o \mid i \mapsto o \in \mathit{utxo}, ~ i \in \mathit{ins} \}

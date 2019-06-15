@@ -1,31 +1,32 @@
-= Glossary
+[glossary]
+== Glossary
 
-.Extended UTxO :
+Extended UTxO ::
 * The ledger model on which the Plutus Platform is based
 * In particular, transactions may contain Plutus scripts to be executed by the nodes
 
-.On-chain code :
+On-chain code ::
 * Code written as part of a smart contract which executes on the chain during transaction validation
 - This code is
 
-.Off-chain code
+Off-chain code ::
 * Code written as part of a smart contract which executes off the chain, usually in a user's wallet.
 
-.Plutus Core
+Plutus Core ::
 * A small functional programming language designed to run as on-chain code.
 
-.Plutus IR
+Plutus IR ::
 * An intermediate language that compiles to Plutus Core, for use as a target language for compiler writers.
 
-.Plutus Platform
+Plutus Platform ::
 * The combined software support for writing smart contracts, including:
 - Libraries for writing off-chain code in Haskell.
 - Libraries for writing on-chain code in Plutus Tx.
 - Emulator support for testing smart contracts.
 
-.Plutus Tx
+Plutus Tx ::
 * A subset of Haskell which is compiled into Plutus Core.
 
-.Non-fungible Token
+Non-fungible Token ::
 * A token that is not interchangeable with other tokens,
 - I.e. its value cannot be expressed in terms of other tokens, such as cryptocurrency, and thus has no fixed price
