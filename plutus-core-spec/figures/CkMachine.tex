@@ -42,7 +42,7 @@
         \cksteps{\ckforward{s&}{\error{A}}&} {&\ckerror{}}\\
         \\[-10pt] %% Put some vertical space between compute and return rules, but not a whole line
         \cksteps{\ckbackward{\cdot&}{V}&} {&\square V}\\
-        \cksteps{\ckbackward{s, \inInstLeftFrame{A}&}{\abs{\alpha}{K}{M}}&} {&\ckforward{s}{M}}\\
+        \cksteps{\ckbackward{s, \inInstLeftFrame{A}&}{\abs{\alpha}{K}{V}}&} {&\ckbackward{s}{V}}\\
         \cksteps{\ckbackward{s, \inWrapRightFrame{A}{B}&}{V}&} {&\ckbackward{s}{\wrap{A}{B}{V}}}\\
         \cksteps{\ckbackward{s, \inUnwrapFrame{}&}{\wrap{A}{B}{V}}&} {&\ckbackward{s}{V}}\\
         \cksteps{\ckbackward{s, \inAppLeftFrame{N}&}{V}&} {&\ckforward{s, \inAppRightFrame{V}}{N}}\\
