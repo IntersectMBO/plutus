@@ -297,21 +297,10 @@ notation established by \citep{Zahnentferner18-UTxO}.
   \item A cryptographic
     collision-resistant hash of a value $c$ is denoted $c^{\#}$.
 
-  % \item If any operation fails (for example, indexing a list out of
-  %   range or trying to spend an output which has already been spent)
-  %   then we assume that the containing script returns \false{}
-  %   immediately.
 \end{itemize}
 \caption{Basic notation}
 \label{fig:basic-notation}
 \end{ruledfigure}
-
-%% Jann: If I remember correctly there will be two phases: Validation
-%% of public key outputs, and script validation. The first phase also
-%% unlocks the gas cost, and if the second phase fails then the gas
-%% cannot be recovered, so the partially validated transaction has to
-%% stay on the chain.
-
 
 
 \noindent Throughout the document we assume a number of basic types.
@@ -553,31 +542,10 @@ then there is no lower bound on the transaction's validity.
 implementation it might be useful to include special cases for common
 transaction types such as pay-to-pukbey transactions in order to
 increase efficiency and decrease storage requirements (and hence
-reduce fees).  These have been ommitted from this model because it
+reduce fees).  These have been omitted from this model because it
 subsumes all of the other transaction types we're likely to encounter,
 and also because it's difficult to give a definitive list of such
 special cases.
-
-\paragraph{Signing scripts.}
-\ \\
-\todokwxm{Do we have to say anything about who signs the various scripts,
-  or is this specified elsewhere? If so, where?}
-% Before a smart contract is uploaded to
-% the blockchain, participants will examine it to satisfy themselves
-% that they are happy with its terms.  In particular, they should be
-% satisfied with the scripts involved in validation.  However, these
-% scripts are run on-chain, and the question arises of how one knows
-% that the scripts that run on-chain are the ones that were examined
-% beforehand.  This is dealt with by having users digitally sign the
-% scripts, with the signatures being verified prior to on-chain
-% execution.  In the EUTXO-1 model, the validator and datascript are
-% signed by the producer of an output, and the redeemer is signed by the
-% consumer.  The details of this are outside the scope of this document.
-% \todokwxm{So where are the details actually specified? Also, the
-%   producer and consumer aren't people, they're transactions.  There
-%   may not be any people involved at all.}
-% \todokwxm{Find a reference and cite it.}
-
 
 \paragraph{Ledger structure.} We model a ledger as a simple
 list of transactions: a real blockchain ledger will be more complex
@@ -1105,40 +1073,6 @@ again an issue with any multi-currency proposal.
   validate a transaction is spent doing cryptography things applies
   here as well.}
   
-% \subsection{Further generalisations}
-% We have assumed that our basic \qty{} type is the type of natural
-% numbers.  However, the models mostly carry over to the case where
-% \qty{} is an arbitrary abelian group.\footnote{In fact, this even
-%   works for non-abelian groups, but then things get tricky.  If we
-%   forge $a$ units of currency, then forge $b$ units, then destroy $a$
-%   units again, we're left with $aba^{-1}$ (or $a+b-a$) units, which
-%   won't be equal to $b$ in general: if your currency consists of
-%   elements of the free group on $\{a,b\}$ then things could get pretty
-%   interesting.  Similar things may happen if we need to split up an
-%   output to get some change. In the monoid case, we might get
-%   unexpected cancellation as well: $a+b=0$, but $a,b \ne 0$: consider
-%   $\mathbb{Z}_{24}$ or something. I suppose doing things like this
-%   would let us write weird papers to impress the cryptocurrency
-%   community. It could still be useful for something
-%   though...}\textsuperscript{,}%
-% \footnote{We mentioned earlier that the functor $\Map{K}{-}$ preserves
-%   the property of being a monoid; however, in general it does not
-%   preserve the property of being a group, abelian or otherwise.  Let
-%   $K=\{X,Y\}$ and consider the map $m = \{(X,1)\} \in \Map{K}{\Z}$:
-%   for every map $n$, we have $X \in \dom (m+n)$, so we cannot have
-%   $m+n = \emptymap$, the identity element of $\Map{K}{\Z}$. However,
-%   if $M$ is a monoid then the relation $m \equiv n$ if
-%   $\mu(m) = \mu(n)$ (ie, two maps are equivalent if they only differ by
-%   elements mapping to 0) is a congruence on the monoid $\Map{K}{M}$,
-%   and the quotient \textit{is} a group.}
-
-    
-%   We can even replace \qty{} with a commutative
-%   monoid as long as we relinquish the ability to destroy quantities of
-%   currencies (since we can no longer subtract in general). Whether
-%   these generalisations are useful in practice remains to be seen.
-
-
   \section{Examples}
   \todokwxm{Do we want some examples to illustrate how this stuff
     works in practice?  It would be particularly useful to have an
@@ -1171,119 +1105,10 @@ again an issue with any multi-currency proposal.
 
 
 
-%% \section{More stuff}
-
-%% When $T$ wants to unlock $O$,
-%% the redeemer for the appropriate input of $T$ is applied to three arguments:
-%% \begin{itemize}
-%% \item A \textit{datascript}, provided by the producer $S$.
-%% \item A \textit{validator} script, provided by the producer $S$. 
-%% \item A \textit{redeemer} script, provided by the consumer $T$.  
-%% \end{itemize}
-
-%% \blue{The GitHub page on Extended UTXO at
-%%   https://github.com/input-output-hk/plutus/tree/master/docs/extended-utxo
-%%   says ``The validator script must be submitted as part of the
-%%   consuming transaction's input, but its content is determined by the
-%%   producing transaction.''. I'm finding this difficult to explain.}
-
-
-%%  When $T$ wants to unlock $O$, the validator for $O$ of $T$ is applied
-%%  to three arguments: the redeemer script, the data script, and
-%%  information (supplied by the slot leader) about the current
-%%  transaction and the state of the blockchain, described by some type
-%%  $P$.
-
-%% If the result evaluates to anything other than the Plutus Core
-%% \texttt{error} term then validation succeeds and the output is unlocked.
-
-%% Every input of a transaction has an associated redeemer and for the
-%% transaction to proceed the redemption of every input must be validated
-%% successfully.
-
-%% In the current Plutus implementation, the type $P$ contains the
-%% following information:
-
-%% \begin{itemize}
-%% \item The validity interval of $T$.
-%% \item The hash of $T$.
-%% \item For every input of $T$, its value and the hashes of its
-%%   validator, data, and redeemer scripts (if the input refers to an output
-%%   locked by a script) or the public key and signature (if it refers to
-%%   an output locked by a public key)
-%% \item For every output of $T$, its value and the hash of its validator
-%%   and data script, or the public key that owns it
-%% %\item The sum of the values of all unspent outputs (of the current
-%%   %blockchain without $T$) which are locked by $O$'s validator script.
-%% \end{itemize}
-
-%% The expressivity of contracts depends on the choice of $P$, and $P$
-%% may be extended in future to include more information if required.
-
-%% \subsection{Extended UTXO and Standard UTXO}
-
-%% \blue{This is really feeble.}
-
-%% Our extended version of the UTXO model genuinely does offer more than
-%% the standard version, as implemented by Bitcoin.
-
-%% %% Duncan: Perhaps one approach to explaining this is to start by
-%% %% noting that classically we don't think of data values flowing along
-%% %% the edges of the utxo graph, but that this is very useful for
-%% %% scripts.
-
-%% \subsubsection{Datascripts}
-%% \label{sec:datascripts}
-%% Datascripts allow us to separate information about the state
-%% of the transaction from the validator script, meaning that we can
-%% have situations such as a single validator which refunds outputs
-%% to addresses contained in the data script (as in the crowdfunding
-%% example).  In the Bitcoin model, each output would require a
-%% specialised validator, increasing memory usage.
-    
-%% \subsubsection{Constraining outputs}
-%% \label{sec:constraining-outputs}
-%% The fact that the validator receives information about the
-%% state of the chain allows us to do things like restricting where
-%% the output of a transaction goes, so it's possible to construct
-%% graphs of transactions where values are constrained to flow down
-%% allowed paths. In the classic model if you can validate at all you
-%% can always take the money and keep it.
-
-%% \subsubsection{Deterministic Scripts}
-%% \label{sec:deterministic-scripts}
-%% When core nodes validate an input spending from a pay-to-script
-%% address, they supply two pieces of information to the validator
-%% script: The structure of the transaction that is being validated (in
-%% form of a list of hashes and signatures), and an indication of the
-%% current time (expressed in terms of the slot number: see
-%% \ref{subsection:blockchains}).  After a transaction has been submitted
-%% to the blockchain, it may linger in the transaction pool for some time
-%% before being processed by a core node. Allowing validator scripts to
-%% know the exact slot number of their validation would therefore make
-%% them non-deterministic, in the sense that their result depends on
-%% information that is not known at the time the transaction is
-%% submitted.  Non-determinism is a problem because it makes it
-%% impossible to accurately compute the gas cost of consuming a
-%% pay-to-script output, running counter to our stated goals of
-%% measurable and predictable resource consumption.
-
-%% In the Extended UTXO model we add a \emph{validity interval}, an
-%% interval of slots, to each transaction's metadata. Core nodes only
-%% attempt to validate transactions whose validity interval contains the
-%% current slot. When a scripted transaction input is validated, the
-%% transaction's validity interval is passed to the validator script,
-%% providing information about the current time. Since the validity
-%% interval is known at the time the transaction is submitted to the
-%% chain, transaction validation in Plutus is completely deterministic.
-
-%% As a result, the exact amount of gas that is required to run the script can be 
-%% calculated in advance (by running it), and users do not risk being surprised by 
-%% failed validations that still incur fees.    
-
-
 \bibliographystyle{plainnat} %% ... or whatever
 \bibliography{extended-utxo-specification}
 
 
 \end{document}
+
+
