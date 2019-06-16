@@ -6,7 +6,7 @@
   \red{\textsf{DRAFT}}}
 
 \pagestyle{plain}
-\date{5th June 2019}
+\date{14th June 2019}
 \author{}
 
 \documentclass[a4paper]{article}
@@ -214,8 +214,8 @@ The rationale for providing two separate specifications is that (1)
 introducing the extensions separately clarifies the structure of the
 models and makes it easier to explain the relevant design decisions,
 and (2) it is possible that a particular blockchain might not need the
-full power of EUTXO-2 and so could the simpler EUTXO-1 model, perhaps
-with less computational overhead.
+full power of EUTXO-2 and so could use the simpler EUTXO-1 model,
+perhaps with less computational overhead.
 
 \bigskip
 
@@ -394,24 +394,6 @@ signature using a known public key: if the public key corresponds to
 the private key then validation succeeds, otherwise it fails.  Thus
 the output can only be spent by the owner of the relevant private key
 
-% \paragraph{Blockchain terminology.}
-% \label{sec:blockchain-terminology}
-% We require a little blockchain background. A \textit{blockchain} is a
-% ledger consisting of a sequence of \textit{blocks}, each block
-% containing a number of transactions (and possibly other data).  A
-% typical blockchain will be maintained by a peer-to-peer network
-% consisting of \textit{core nodes} who compete to execute users'
-% transactions and create new blocks, generally receiving some monetary
-% reward for doing so (for example, in order to have a transaction
-% executed on the chain, users may have to pay a fee). After a
-% new block has been created, it will be propagated to the rest of the
-% network, which will eventually reach consensus on the current state of
-% the blockchain.  The opportunity to create a new block is known as a
-% \textit{slot}: slots occur at regular intervals (about once every 20
-% seconds on Cardano), and hence the current \textit{slot number} can be
-% used as a proxy for time on the blockchain (using real times would
-% lead to problems with accuracy and synchronisation).
-
 \paragraph{Fees and Costs.}
 \label{sec:costs} Users may have to pay a fee in order to have a
 transaction executed.  In a public blockchain an important reason for
@@ -433,12 +415,13 @@ proposed in~\citep{Zahnentferner18-UTxO}:
 
 \begin{itemize}
 \item Every transaction has a \textit{validity interval}, consisting
-  of two slot numbers:\footnote{A \textit{slot} is the opportunity to
-    create a new block, occurring approximately every 20 seconds in
-    Cardano.  The slot number is a useful measure of time on the
-    blockchain, avoiding difficulties with synchronisation and
-    accuracy.} a core node will only process the transaction if the
-  current slot number lies within the transaction's validity interval.
+  of a range of slot numbers:\footnote{A \textit{slot} is the
+    opportunity to create a new block, occurring approximately every
+    20 seconds in Cardano.  The slot number is a useful measure of
+    time on the blockchain, avoiding difficulties with synchronisation
+    and accuracy.} a core node will only process the transaction if
+  the current slot number lies within the transaction's validity
+  interval.
 
 \item We introduce a new script called a \i{data script}, and each
   unspent output has a (possibly empty) data script associated with
@@ -760,13 +743,13 @@ of $\llbracket ~ \rrbracket$ cannot take longer than one slot.
 
 \subsection{Validating the next data script}
 \label{sec:validating-next}
-\red{We need to talk about the problem of validating the next data script.}
+\red{(To follow)}
 
 \newpage
 \section{EUTXO-2: multicurrency support and non-fungible tokens}
 \label{sec:eutxo-2}
 We now extend the flexibility of the EUTXO-1 model by introducing
-features which allow (for example) the implementation of new
+features which allow, aomg other things,  the implementation of new
 currencies and \textit{non-fungible tokens} (NFTs).  We assume that the
 underlying blockchain has a unique \textit{native currency} which is
 the fundamental currency used for paying fees, for example.  The
@@ -849,7 +832,7 @@ negative quantities are allowed.
 \\
     \eutxotx_2 &= ( &\inputs: \FinSet{\s{Input}_2},\\
     &&\outputs: \List{\s{Output}_2},\\
-    &&\i{validityInterval}: \slotnum \times \slotnum,\\
+    &&\i{validityInterval}: \slotnum \times (\slotnum \cup \{\infty\}),\\
     &&\fee: \qty,\\
     &&\forge: \qty,\\
     &&\customforge: \qtymap^{\pm})\\
@@ -907,7 +890,7 @@ motivates the following definitions:
   \mu_1(M) = \{(t,v) \in M: v \ne 0\}\\
   \\
   \mu: \qtymap  \rightarrow \qtymap\\
-  \mu(Q) = \{(c,\mu_1(M)): (c,M) \in Q: \mu_1(M) \ne \{\}\}\\
+  \mu(Q) = \{(c,\mu_1(M)): (c,M) \in Q \mbox{ and } \mu_1(M) \ne \{\}\}\\
 \end{gather*}
 
 \newcommand{\mprime}{M^{\prime}}
@@ -966,7 +949,7 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
             whose address is $h$.
           \end{enumerate}
           \end{minipage}
-    \item \textbf{Value are preserved}\\
+    \item \textbf{Values are preserved}\\
       \begin{minipage}{0.85\textwidth}
           \begin{enumerate}
           \item\label{rule:native-value-is-preserved-2}
