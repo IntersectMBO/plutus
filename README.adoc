@@ -1,0 +1,142 @@
+= https://github.com/input-output-hk/plutus[Plutus Platform]
+:author: Input Output HK
+
+The Plutus Platform enables you to:
+
+* Work with Plutus Core, the smart
+contract language embedded in the Cardano ledger.
+* Write Haskell programs that create and use embedded Plutus Core programs.
+* Write smart contract executables which can be distributed for use with a
+Cardano wallet backend.
+
+You are free to copy, modify, and distribute the Plutus Platform with
+under the terms of the Apache 2.0 license. See the link:./LICENSE[LICENSE]
+and link:./NOTICE[NOTICE] files for details.
+
+== How to use the project
+
+[[prerequisites]]
+=== Prerequisites
+
+The Haskell libraries in the Plutus Platform can be built in a number of ways. The prerequisites depend
+on how you want to build the libraries. The other artifacts (docs etc.) are most easily built with Nix,
+so we recommend installing it regardless.
+
+* https://nixos.org/nix/[Nix] (recommended).
+** Install Nix following the instructions on the https://nixos.org/nix/[Nix website].
++
+[IMPORTANT]
+====
+Even if you already have Nix installed, make sure to set up the xref:iohk-binary-cache[IOHK binary cache].
+====
+** See the section on xref:nix[Nix] for further advice on using Nix.
+* https://www.haskell.org/cabal/[`cabal`] (if building Haskell packages with `cabal`).
+* https://haskellstack.org/[`stack`] (if building Haskell packages with `stack`).
+
+=== How to build the Haskell packages and other artifacts
+
+[[building-with-nix]]
+=== How to build Haskell packages and other artifacts with Nix
+
+Run `nix build -f default.nix localPackages.language-plutus-core`
+from the root to build the Plutus Core library.
+
+See the section on xref:nix-build-attributes[Nix build attributes] to find out
+what other attributes you can build.
+
+=== How to build Haskell packages with `cabal`
+
+Run `cabal v2-build language-plutus-core` from the root to build the
+Plutus Core library.
+
+See the link:./cabal.project[cabal project file] to see the other
+projects that you can build with `cabal`.
+
+=== How to build the Haskell packages with `stack`
+
+Run `stack build language-plutus-core` from the root to build the
+Plutus Core library.
+
+See the link:./stack.yaml[stack project file] to see the other
+projects that you can build with stack.
+
+== Where to go next
+
+=== Where to find tutorials
+
+The link:./plutus-tutorial/README{outfilesuffix}[plutus-tutorial] project contains a basic tutorial
+for using the Plutus Platform to write smart contracts.
+
+To build a full HTML version of the tutorial that you can view locally, build the `docs.plutus-tutorial` xref:building-with-nix[using Nix].
+
+=== Where to find the changelog
+
+The changelog is stored in link:./CHANGELOG.md[CHANGELOG].
+
+=== How to communicate with us
+
+We’re active on the https://forum.cardano.org/[Cardano
+forum]. Tag your post with the `plutus` tag so we’ll see it.
+
+Use the Github issue tracker for bugs and feature requests, but keep
+other discussions to the forum.
+
+=== How to contribute to the project
+
+See link:CONTRIBUTING{outfilesuffix}[CONTRIBUTING], which describes our processes in more detail.
+
+[[nix]]
+== Nix
+
+[[iohk-binary-cache]]
+=== How to set up the IOHK binary caches
+
+Adding the IOHK binary cache to your Nix configuration will speed up
+builds a lot, since many things will have been built already by our CI.
+
+If you find you are building packages that are not defined in this
+repository, or if the build seems to take a very long time then you may
+not have this set up properly.
+
+To set up the cache:
+
+. If you are a not a trusted user (or you do not
+know whether you are a trusted user), then edit `/etc/nix/nix.conf`. If
+you are not a trusted user, you may edit `~/.config/nix/nix.conf`
+instead.
+. Add the following lines:
++
+----
+substituters        = https://hydra.iohk.io https://cache.nixos.org/
+trusted-public-keys = hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+----
+
+=== How to get a development environment
+
+While developing the libraries, you probably will not want to use Nix to
+build all the libraries. If you want to use `cabal v2-build` to build
+the local projects only, then:
+. Run `nix-shell`.
+. Run `cabal v2-build` as normal.
+
+
+[[nix-build-attributes]]
+=== Which attributes to use to build different artifacts
+
+link:./default.nix[`default.nix`] defines a package set with attributes for all the
+artifacts you can build from this repository. These can be built
+using `nix build`. For example:
+
+----
+nix build -f default.nix localPackages.language-plutus-core
+----
+
+.Example attributes
+* Local packages: defined inside `localPackages`
+** e.g. `localPackages.language-plutus-core`
+* Documents: defined inside `docs`
+** e.g. `docs.plutus-core-spec`
+* Development scripts: defined inside `dev`
+** e.g. `dev.scripts.fixStylishHaskell`
+
+There are other attributes defined in link:./default.nix[`default.nix`].
