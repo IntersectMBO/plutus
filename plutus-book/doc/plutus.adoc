@@ -1,4 +1,4 @@
-= Plutus 
+= Plutus
 :authors: Some IOHK folk
 :email: plutus@iohk.io
 :orgname: IOHK
@@ -25,5 +25,13 @@
 :2c: ::
 
 // Include each chapter here
-include::01-intro.adoc[leveloffset=+ 1]
+include::01-preface.adoc[leveloffset=+ 1]
+include::02-glossary.adoc[leveloffset=+ 1]
+include::03-UTxO.adoc[leveloffset=+ 1]
+include::04-smartcont.adoc[leveloffset=+ 1]
+include::05-welcome.adoc[leveloffset=+ 1]
+include::06-lifecycle.adoc[leveloffset=+ 1]
+include::07-tour.adoc[leveloffset=+ 1]
+include::08-testing.adoc[leveloffset=+ 1]
+include::09-extended.adoc[leveloffset=+ 1]
 include::02-example-lhs.adoc[leveloffset=+ 1]

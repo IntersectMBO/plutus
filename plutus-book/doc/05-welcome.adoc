@@ -1,0 +1,59 @@
+= Welcome to Plutus - a new language for reliable smart contracts
+
+Plutus is a functional development and execution platform for distributed
+contract applications on the Cardano settlement and computational layers. It
+provides a platform on which you can develop and deploy your applications and
+has been designed with three major audiences in mind: developers, business
+experts, and academia. Plutus is embedded in Haskell, is familiar to Haskell
+programmers, while being easier to analyze than Haskell itself.
+
+By using Plutus you can be confident in the correct execution of your smart
+contracts. It draws from modern language research to provide a safe, full-stack
+programming environment based on Haskell, the leading purely functional
+programming language. Plutus provides considerable security advantages. It
+delivers an easier, more robust way to show that your smart contracts are
+correct and will not encounter the problems found in previous smart contract
+language design.
+
+Plutus enables a novel integrated approach to smart contract and distributed
+application development that is more convenient and safer than previous
+alternatives. Both the on-chain and off-chain code are based on the same
+language. The smart contract developer uses a uniform code base, which the
+Plutus toolchain then automatically separates into on-chain and off-chain code
+and packages for deployment.
+‌
+Plutus was conceived based on the idea that functional programming languages are
+much more suited to secure and verifiable programs than conventional imperative
+and object-oriented programming languages.
+‌
+It has been designed to be clear and concise, and the challenge was that it
+would fit onto a napkin. This streamlined code was achieved by the team as you
+can see in this image:
+
+.. napkin pic
+
+An SDK is provided for developers which includes the libraries, APIs, tools, and
+documentation needed to get started with Plutus. As part of this SDK, Plutus
+Playground is available to use to test your Plutus use cases and code. This is a
+lightweight, web-based test environment for exploratory Plutus development. Here
+you can easily write and deploy your contracts without the overhead of installing
+and maintaining a full development environment and blockchain. Once Plutus is
+fully integrated with Cardano, it will be possible to deploy contracts that you
+develop in the Plutus Playground to the settlement layer of the Cardano
+blockchain itself. Contracts that you develop in the Plutus Playground use the
+same programming language and library interfaces as those that are deployed to
+the Cardano mainnet.
+
+About the Plutus framework (DRAFT IN PROGRESS)
+‌
+Plutus is comprised of several component parts that work together cohesively.
+Plutus Platform is the term used to define the combined software support for
+writing smart contracts, including the libraries for writing off-chain code in
+Haskell, the libraries for writing on-chain code in Plutus Transaction, and
+emulator support for testing smart contracts.
+‌
+Plutus Core refers to the actual language, a small functional programming
+language designed to run as on-chain code. Plutus Transaction refers to a subset
+of Haskell which is compiled into Plutus Core, and Plutus IR is an intermediate
+language that compiles to Plutus Core for use as a target language for compiler
+writers.
