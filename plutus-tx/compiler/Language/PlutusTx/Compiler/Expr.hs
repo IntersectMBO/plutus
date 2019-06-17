@@ -20,6 +20,7 @@ import           Language.PlutusTx.Compiler.Types
 import           Language.PlutusTx.Compiler.Utils
 import           Language.PlutusTx.PIRTypes
 
+import qualified Class                                  as GHC
 import qualified FV                                     as GHC
 import qualified GhcPlugins                             as GHC
 import qualified MkId                                   as GHC
@@ -250,8 +251,9 @@ hoistExpr :: Compiling m => GHC.Var -> GHC.CoreExpr -> m PIRTerm
 hoistExpr var t =
     let
         name = GHC.getName var
+        lexName = LexName name
     in withContextM 1 (sdToTxt $ "Compiling definition of:" GHC.<+> GHC.ppr var) $ do
-        maybeDef <- PIR.lookupTerm () (LexName name)
+        maybeDef <- PIR.lookupTerm () lexName
         case maybeDef of
             Just term -> pure term
             Nothing -> do
@@ -262,7 +264,7 @@ hoistExpr var t =
                 var' <- compileVarFresh var
                 -- See Note [Occurrences of recursive names]
                 PIR.defineTerm
-                    (LexName name)
+                    lexName
                     (PIR.Def var' (PIR.mkVar () var', PIR.Strict))
                     mempty
 
@@ -278,7 +280,7 @@ hoistExpr var t =
                 let deps = Set.insert (GHC.getName GHC.unitTyCon) allFvs
 
                 PIR.defineTerm
-                    (LexName name)
+                    lexName
                     (PIR.Def var' (t', if nonStrict then PIR.NonStrict else PIR.Strict))
                     (Set.map LexName deps)
                 pure $ PIR.mkVar () var'
@@ -314,7 +316,21 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         GHC.Var (GHC.idDetails -> GHC.PrimOpId po) -> compilePrimitiveOp po
         GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> compileDataConRef dc
         -- See Note [Unfoldings]
-        GHC.Var n@(GHC.realIdUnfolding -> GHC.CoreUnfolding{GHC.uf_tmpl=unfolding}) -> hoistExpr n unfolding
+        -- The "unfolding template" includes things with normal unfoldings and also dictionary functions
+        GHC.Var n@(GHC.maybeUnfoldingTemplate . GHC.realIdUnfolding -> Just unfolding) -> hoistExpr n unfolding
+        -- Class ops don't have unfoldings in general (although they do if they're for one-method classes, so we
+        -- want to check the unfoldings case first), see the GHC Note [ClassOp/DFun selection] for why. That
+        -- means we have to reconstruct the RHS ourselves, though, which is a pain.
+        GHC.Var n@(GHC.idDetails -> GHC.ClassOpId cls) -> do
+            -- This code (mostly) lifted from MkId.mkDictSelId, which makes unfoldings for those dictionary
+            -- selectors that do have them
+            let sel_names = fmap GHC.getName (GHC.classAllSelIds cls)
+            val_index <- case elemIndex (GHC.getName n) sel_names of
+                Just i  -> pure i
+                Nothing -> throwPlain $ CompilationError "Id not in class method list"
+            let rhs = GHC.mkDictSelRhs cls val_index
+
+            hoistExpr n rhs
         GHC.Var n -> do
             -- Defined names, including builtin names
             maybeDef <- PIR.lookupTerm () (LexName $ GHC.getName n)

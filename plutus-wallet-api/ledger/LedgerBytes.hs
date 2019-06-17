@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -27,6 +28,7 @@ import           Data.Word                  (Word8)
 import           GHC.Generics               (Generic)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift
+import qualified Language.PlutusTx.Prelude  as P
 import           Web.HttpApiData            (FromHttpApiData (..), ToHttpApiData (..))
 
 fromHex :: BSL.ByteString -> LedgerBytes
@@ -59,6 +61,7 @@ fromHex = LedgerBytes . asBSLiteral
 --   type for PureScript.
 newtype LedgerBytes = LedgerBytes { getLedgerBytes :: Builtins.ByteString } -- TODO: use strict bytestring
     deriving (Eq, Ord, Serialise, Generic)
+    deriving newtype (P.Eq, P.Ord)
 
 bytes :: LedgerBytes -> BSL.ByteString
 bytes = getLedgerBytes

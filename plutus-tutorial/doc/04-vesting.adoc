@@ -23,6 +23,7 @@ xref:02-validator-scripts#validator-scripts[before]:
 module Tutorial.Vesting where
 
 import           Language.PlutusTx.Prelude
+import qualified Prelude                   as Haskell
 
 import qualified Language.PlutusTx         as PlutusTx
 
@@ -217,7 +218,7 @@ withdraw vst vl = do
 
     -- The transaction's validity range should begin with the current slot and
     -- last indefinitely.
-    range <- fmap WAPI.intervalFrom WAPI.slot
+    range <- Haskell.fmap WAPI.intervalFrom WAPI.slot
 
     -- The input should be the UTXO of the vesting scheme.
     utxos <- WAPI.outputsAt address -- <1>
@@ -253,7 +254,7 @@ that keeps the remaining value.
         currentlyLocked = Map.foldr (\txo vl' -> vl' `Value.plus` L.txOutValue txo) Value.zero utxos
         remaining = currentlyLocked `Value.minus` vl
 
-        otherOutputs = if Value.eq Value.zero remaining
+        otherOutputs = if Value.zero == remaining
                        then []
                        else [L.scriptTxOut remaining validator (DataScript (L.lifted ()))]
 

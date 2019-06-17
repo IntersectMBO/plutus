@@ -20,9 +20,8 @@ import           Ledger.Validation         (PendingTx)
 import qualified Ledger.Validation         as V
 
 -- | Specification of a state machine
-data StateMachine s i = StateMachine {
+newtype StateMachine s i = StateMachine {
       smTransition :: s -> i -> s
-    , smStateEq    :: s -> s -> Bool
     }
 
 {-# INLINABLE initialState #-}
@@ -39,22 +38,19 @@ transition newState input = (newState, Just input)
 
 {-# INLINABLE mkValidator #-}
 -- | Turn a transition function 's -> i -> s' into a validator script.
-mkValidator :: StateMachine s i -> (s, Maybe i) -> (s, Maybe i) -> PendingTx -> Bool
-mkValidator sm (currentState, _) (newState, Just input) p =
+mkValidator :: Eq s => StateMachine s i -> (s, Maybe i) -> (s, Maybe i) -> PendingTx -> Bool
+mkValidator (StateMachine trans) (currentState, _) (newState, Just input) p =
     let
-        StateMachine trans sEq = sm
         (vh, V.RedeemerHash rh) = V.ownHashes p
         expectedState = trans currentState input
 
         stateOk =
             traceIfFalseH "State transition invalid - 'expectedState' not equal to 'newState'"
-            (sEq expectedState newState)
+            (expectedState == newState)
 
         dataScriptHashOk =
-            let relevantOutputs =
-                    map fst
-                    (V.scriptOutputsAt vh p)
-                dsHashOk (V.DataScriptHash dh) = equalsByteString dh rh
+            let relevantOutputs = fst <$> V.scriptOutputsAt vh p
+                dsHashOk (V.DataScriptHash dh) = dh == rh
             in
                 traceIfFalseH "State transition invalid - data script hash not equal to redeemer hash"
                 (all dsHashOk relevantOutputs)

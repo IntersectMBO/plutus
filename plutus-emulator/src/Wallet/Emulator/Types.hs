@@ -273,7 +273,7 @@ instance WalletAPI MockWallet where
             pubK   =  toPublicKey privK
         (spend, change) <- selectCoin (second txOutValue <$> Map.toList fnds) vl
         let
-            txOutput = if Value.eq change Value.zero then Nothing else Just (pubKeyTxOut change pubK)
+            txOutput = if Value.isZero change then Nothing else Just (pubKeyTxOut change pubK)
             ins = Set.fromList (flip pubKeyTxIn pubK . fst <$> spend)
         pure (ins, txOutput)
 

@@ -32,6 +32,8 @@ module Ledger.Scripts(
     unitData
     ) where
 
+import qualified Prelude                                  as Haskell
+
 import qualified Codec.CBOR.Write                         as Write
 import           Codec.Serialise                          (serialise)
 import           Codec.Serialise.Class                    (Serialise, encode)
@@ -85,9 +87,17 @@ Here we have to serialize when we do `Eq` or `Ord` operations, but this happens 
 infrequently (I believe).
 -}
 instance Eq Script where
+    {-# INLINABLE (==) #-}
+    a == b = serialise a == serialise b
+
+instance Haskell.Eq Script where
     a == b = serialise a == serialise b
 
 instance Ord Script where
+    {-# INLINABLE compare #-}
+    a `compare` b = serialise a `compare` serialise b
+
+instance Haskell.Ord Script where
     a `compare` b = serialise a `compare` serialise b
 
 -- | The size of a 'Script'. No particular interpretation is given to this, other than that it is
@@ -119,12 +129,12 @@ evaluateScript (unScript -> s) =
             -- We should be normalized, so we can use the on-chain config
             -- See Note [Normalized types in Scripts]
             let config = PLC.defOnChainConfig { PLC._tccDynamicBuiltinNameTypes = types }
-            PLC.unNormalized <$> PLC.typecheckPipeline config p
+            PLC.unNormalized Haskell.<$> PLC.typecheckPipeline config p
     in case plcChecks s of
         -- TODO: do something with the error
         Left _ -> ([], False)
         -- we don't care about the inferred type, we just care that type inference succeeded
-        Right _ -> PLC.isEvaluationSuccess <$> evaluateCekTrace s
+        Right _ -> PLC.isEvaluationSuccess Haskell.<$> evaluateCekTrace s
 
 instance ToJSON Script where
   toJSON = JSON.String . JSON.encodeSerialise
@@ -141,19 +151,11 @@ lifted = fromCompiledCode . unsafeLiftCode
 -- | 'ValidatorScript' is a wrapper around 'Script's which are used as validators in transaction outputs.
 newtype ValidatorScript = ValidatorScript { getValidator :: Script }
   deriving stock (Generic)
-  deriving newtype (Serialise)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
   deriving anyclass (ToJSON, FromJSON)
 
 instance Show ValidatorScript where
     show = const "ValidatorScript { <script> }"
-
-instance Eq ValidatorScript where
-    (ValidatorScript l) == (ValidatorScript r) = -- TODO: Deriving via
-        l == r
-
-instance Ord ValidatorScript where
-    compare (ValidatorScript l) (ValidatorScript r) = -- TODO: Deriving via
-        l `compare` r
 
 instance BA.ByteArrayAccess ValidatorScript where
     length =
@@ -164,19 +166,11 @@ instance BA.ByteArrayAccess ValidatorScript where
 -- | 'DataScript' is a wrapper around 'Script's which are used as data scripts in transaction outputs.
 newtype DataScript = DataScript { getDataScript :: Script  }
   deriving stock (Generic)
-  deriving newtype (Serialise)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
   deriving anyclass (ToJSON, FromJSON)
 
 instance Show DataScript where
     show = const "DataScript { <script> }"
-
-instance Eq DataScript where
-    (DataScript l) == (DataScript r) = -- TODO: Deriving via
-        l == r
-
-instance Ord DataScript where
-    compare (DataScript l) (DataScript r) = -- TODO: Deriving via
-        l `compare` r
 
 instance BA.ByteArrayAccess DataScript where
     length =
@@ -187,19 +181,11 @@ instance BA.ByteArrayAccess DataScript where
 -- | 'RedeemerScript' is a wrapper around 'Script's that are used as redeemer scripts in transaction inputs.
 newtype RedeemerScript = RedeemerScript { getRedeemer :: Script }
   deriving stock (Generic)
-  deriving newtype (Serialise)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
   deriving anyclass (ToJSON, FromJSON)
 
 instance Show RedeemerScript where
     show = const "RedeemerScript { <script> }"
-
-instance Eq RedeemerScript where
-    (RedeemerScript l) == (RedeemerScript r) = -- TODO: Deriving via
-        l == r
-
-instance Ord RedeemerScript where
-    compare (RedeemerScript l) (RedeemerScript r) = -- TODO: Deriving via
-        l `compare` r
 
 instance BA.ByteArrayAccess RedeemerScript where
     length =

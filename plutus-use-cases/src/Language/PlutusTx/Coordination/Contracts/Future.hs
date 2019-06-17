@@ -210,7 +210,7 @@ mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pe
     let
 
         isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
-        isPubKeyOutput o k = maybe False (Validation.eqPubKey k) (Validation.pubKeyOutput o)
+        isPubKeyOutput o k = maybe False ((==) k) (Validation.pubKeyOutput o)
 
         --  | Check if a `PendingTxOut` is a public key output for the given pub. key and ada value
         paidOutTo :: Ada -> PubKey -> PendingTxOut -> Bool
@@ -218,11 +218,11 @@ mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pe
             let PendingTxOut vl' _ _ = txo
                 adaVl' = Ada.fromValue vl'
             in
-            isPubKeyOutput txo pk && Ada.eq vl adaVl'
+            isPubKeyOutput txo pk && vl == adaVl'
 
         verifyOracle :: OracleValue a -> (Slot, a)
         verifyOracle (OracleValue pk h t) =
-            if pk `Validation.eqPubKey` futurePriceOracle then (h, t) else error ()
+            if pk == futurePriceOracle then (h, t) else error ()
 
     in case r of
             -- Settling the contract is allowed if any of three conditions hold:
@@ -254,10 +254,10 @@ mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pe
                                 let
                                     totalMargin = Ada.plus futureDataMarginShort futureDataMarginLong
                                     reqMargin   = requiredMargin ft spotPrice
-                                    case2 = Ada.lt futureDataMarginLong reqMargin
+                                    case2 = futureDataMarginLong < reqMargin
                                             && paidOutTo totalMargin futureDataShort o1
 
-                                    case3 = Ada.lt futureDataMarginShort reqMargin
+                                    case3 = futureDataMarginShort < reqMargin
                                             && paidOutTo totalMargin futureDataLong o1
 
                                 in
@@ -275,7 +275,7 @@ mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pe
                     ownHash = fst (Validation.ownHashes p)
                     vl = Validation.adaLockedBy p ownHash
                 in
-                    vl `Ada.gt` (futureDataMarginShort `Ada.plus` futureDataMarginLong)
+                    vl > (futureDataMarginShort `Ada.plus` futureDataMarginLong)
 
 validatorScript :: Future -> ValidatorScript
 validatorScript ft = ValidatorScript $

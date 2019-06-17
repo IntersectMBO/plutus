@@ -115,6 +115,8 @@ test-suite plutus-tx-tests
         Plugin.Laziness.Spec
         Plugin.Primitives.Spec
         Plugin.ReadValue.Spec
+        Plugin.Typeclasses.Spec
+        Plugin.Typeclasses.Lib
         Plugin.Lib
         TH.Spec
         TH.TestTH

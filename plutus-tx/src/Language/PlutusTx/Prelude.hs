@@ -3,6 +3,14 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Language.PlutusTx.Prelude (
     -- $prelude
+    -- * Classes
+    Eq (..),
+    Ord (..),
+    Functor (..),
+    (<$>),
+    (<$),
+    -- * Functions
+    const,
     -- * String and tracing functions
     toPlutusString,
     trace,
@@ -18,19 +26,11 @@ module Language.PlutusTx.Prelude (
     (||),
     not,
     -- * Int operators
-    gt,
-    geq,
-    lt,
-    leq,
-    eq,
     plus,
     minus,
     multiply,
     divide,
     remainder,
-    -- * Numbers
-    min,
-    max,
     -- * Tuples
     fst,
     snd,
@@ -51,9 +51,6 @@ module Language.PlutusTx.Prelude (
     filter,
     -- * ByteStrings
     ByteString,
-    equalsByteString,
-    lessThanByteString,
-    greaterThanByteString,
     takeByteString,
     dropByteString,
     concatenate,
@@ -69,8 +66,9 @@ import           Language.PlutusTx.Builtins (ByteString, concatenate, dropByteSt
                                              greaterThanByteString, lessThanByteString, sha2_256, sha3_256,
                                              takeByteString, verifySignature)
 import qualified Language.PlutusTx.Builtins as Builtins
-import           Prelude                    as Prelude hiding (all, any, error, filter, foldl, foldr, fst, length, map,
-                                                        max, maybe, min, not, null, snd, (&&), (++), (||))
+import           Prelude                    as Prelude hiding (Eq (..), Functor (..), Ord (..), all, any, const, error,
+                                                        filter, foldl, foldr, fst, length, map, max, maybe, min, not,
+                                                        null, snd, (&&), (++), (<$>), (||))
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
@@ -87,6 +85,201 @@ import           Prelude                    as Prelude hiding (all, any, error, 
 -- $setup
 -- >>> :set -XNoImplicitPrelude
 -- >>> import Language.PlutusTx.Prelude
+
+-- Copied from the GHC definition
+-- | The 'Eq' class defines equality ('==') and inequality ('/=').
+--
+-- Minimal complete definition: either '==' or '/='.
+--
+class Eq a where
+    (==), (/=)           :: a -> a -> Bool
+
+    {-# INLINABLE (/=) #-}
+    x /= y               = not (x == y)
+    {-# INLINABLE (==) #-}
+    x == y               = not (x /= y)
+
+instance Eq Integer where
+    {-# INLINABLE (==) #-}
+    (==) = Builtins.equalsInteger
+
+instance Eq ByteString where
+    {-# INLINABLE (==) #-}
+    (==) = Builtins.equalsByteString
+
+instance Eq a => Eq [a] where
+    {-# INLINABLE (==) #-}
+    [] == [] = True
+    (x:xs) == (y:ys) = x == y && xs == ys
+    _ == _ = False
+
+instance Eq Bool where
+    {-# INLINABLE (==) #-}
+    True == True = True
+    False == False = True
+    _ == _ = False
+
+instance Eq a => Eq (Maybe a) where
+    {-# INLINABLE (==) #-}
+    (Just a1) == (Just a2) = a1 == a2
+    Nothing == Nothing = True
+    _ == _ = False
+
+instance (Eq a, Eq b) => Eq (Either a b) where
+    {-# INLINABLE (==) #-}
+    (Left a1) == (Left a2) = a1 == a2
+    (Right b1) == (Right b2) = b1 == b2
+    _ == _ = False
+
+instance Eq () where
+    {-# INLINABLE (==) #-}
+    _ == _ = True
+
+instance (Eq a, Eq b) => Eq (a, b) where
+    {-# INLINABLE (==) #-}
+    (a, b) == (a', b') = a == a' && b == b'
+
+-- Copied from the GHC definition
+-- | The 'Ord' class is used for totally ordered datatypes.
+--
+-- Minimal complete definition: either 'compare' or '<='.
+-- Using 'compare' can be more efficient for complex types.
+--
+class Eq a => Ord a where
+    compare              :: a -> a -> Ordering
+    (<), (<=), (>), (>=) :: a -> a -> Bool
+    max, min             :: a -> a -> a
+
+    {-# INLINABLE compare #-}
+    compare x y = if x == y then EQ
+                  -- NB: must be '<=' not '<' to validate the
+                  -- above claim about the minimal things that
+                  -- can be defined for an instance of Ord:
+                  else if x <= y then LT
+                  else GT
+
+    {-# INLINABLE (<) #-}
+    x <  y = case compare x y of { LT -> True;  _ -> False }
+    {-# INLINABLE (<=) #-}
+    x <= y = case compare x y of { GT -> False; _ -> True }
+    {-# INLINABLE (>) #-}
+    x >  y = case compare x y of { GT -> True;  _ -> False }
+    {-# INLINABLE (>=) #-}
+    x >= y = case compare x y of { LT -> False; _ -> True }
+
+    -- These two default methods use '<=' rather than 'compare'
+    -- because the latter is often more expensive
+    {-# INLINABLE max #-}
+    max x y = if x <= y then y else x
+    {-# INLINABLE min #-}
+    min x y = if x <= y then x else y
+
+instance Ord Integer where
+    {-# INLINABLE (<) #-}
+    (<) = Builtins.lessThanInteger
+    {-# INLINABLE (<=) #-}
+    (<=) = Builtins.lessThanEqInteger
+    {-# INLINABLE (>) #-}
+    (>) = Builtins.greaterThanInteger
+    {-# INLINABLE (>=) #-}
+    (>=) = Builtins.greaterThanEqInteger
+
+instance Ord ByteString where
+    {-# INLINABLE compare #-}
+    compare l r = if Builtins.lessThanByteString l r then LT else if Builtins.equalsByteString l r then EQ else GT
+
+instance Ord a => Ord [a] where
+    {-# INLINABLE compare #-}
+    compare []     []     = EQ
+    compare []     (_:_)  = LT
+    compare (_:_)  []     = GT
+    compare (x:xs) (y:ys) = case compare x y of
+                                EQ    -> compare xs ys
+                                other -> other
+
+instance Ord Bool where
+    {-# INLINABLE compare #-}
+    compare b1 b2 = case b1 of
+        False -> case b2 of
+            False -> EQ
+            True  -> LT
+        True -> case b2 of
+            False -> GT
+            True  -> EQ
+
+instance Ord a => Ord (Maybe a) where
+    {-# INLINABLE compare #-}
+    compare (Just a1) (Just a2) = compare a1 a2
+    compare Nothing (Just _)    = LT
+    compare (Just _) Nothing    = GT
+    compare Nothing Nothing     = EQ
+
+instance (Ord a, Ord b) => Ord (Either a b) where
+    {-# INLINABLE compare #-}
+    compare (Left a1) (Left a2)   = compare a1 a2
+    compare (Left _) (Right _)    = LT
+    compare (Right _) (Left _)    = GT
+    compare (Right b1) (Right b2) = compare b1 b2
+
+instance Ord () where
+    {-# INLINABLE compare #-}
+    compare _ _ = EQ
+
+instance (Ord a, Ord b) => Ord (a, b) where
+    {-# INLINABLE compare #-}
+    compare (a, b) (a', b') = case compare a a' of
+        LT -> LT
+        GT -> GT
+        EQ -> compare b b'
+
+{- | The 'Functor' class is used for types that can be mapped over.
+Instances of 'Functor' should satisfy the following laws:
+
+> fmap id  ==  id
+> fmap (f . g)  ==  fmap f . fmap g
+-}
+class Functor f where
+    fmap :: (a -> b) -> f a -> f b
+
+    -- <$ deliberately omitted, to make this a one-method class which has a
+    -- simpler representation
+
+infixl 4 <$>
+-- | An infix synonym for 'fmap'.
+{-# INLINABLE (<$>) #-}
+(<$>) :: Functor f => (a -> b) -> f a -> f b
+(<$>) f fa = fmap f fa
+
+infixl 4 <$
+{-# INLINABLE (<$) #-}
+-- | Replace all locations in the input with the same value.
+(<$) :: Functor f => a -> f b -> f a
+(<$) a fb = fmap (const a) fb
+
+instance Functor [] where
+    {-# INLINABLE fmap #-}
+    fmap f l = case l of
+            []   -> []
+            x:xs -> f x : fmap f xs
+
+instance Functor Maybe where
+    {-# INLINABLE fmap #-}
+    fmap f (Just a) = Just (f a)
+    fmap _ Nothing  = Nothing
+
+instance Functor (Either c) where
+    {-# INLINABLE fmap #-}
+    fmap f (Right a) = Right (f a)
+    fmap _ (Left c)  = Left c
+
+instance Functor ((,) c) where
+    {-# INLINABLE fmap #-}
+    fmap f (c, a) = (c, f a)
+
+{-# INLINABLE const #-}
+-- | Plutus Tx version of 'Prelude.const'.
+const                   :: a -> b -> a
+const x _               =  x
 
 {-# INLINABLE error #-}
 -- | Terminate the evaluation of the script with an error message.
@@ -162,51 +355,6 @@ infixr 2 ||
 not :: Bool -> Bool
 not a = if a then False else True
 
-{-# INLINABLE gt #-}
--- | Greater than
---
---   >>> gt 2 1
---   True
---
-gt :: Integer -> Integer -> Bool
-gt = Builtins.greaterThanInteger
-
-{-# INLINABLE geq #-}
--- | Greater than or equal to
---
---   >>> geq 2 2
---   True
---
-geq :: Integer -> Integer -> Bool
-geq = Builtins.greaterThanEqInteger
-
-{-# INLINABLE lt #-}
--- | Less than
---
---   >>> lt 2 1
---   False
---
-lt :: Integer -> Integer -> Bool
-lt = Builtins.lessThanInteger
-
-{-# INLINABLE leq #-}
--- | Less than or equal to
---
---   >>> leq 2 2
---   True
---
-leq :: Integer -> Integer -> Bool
-leq = Builtins.lessThanEqInteger
-
-{-# INLINABLE eq #-}
--- | Eq for 'Integer'
---
---   >>> eq 2 1
---   False
---
-eq :: Integer -> Integer -> Bool
-eq = Builtins.equalsInteger
-
 {-# INLINABLE plus #-}
 -- | Addition
 --
@@ -251,24 +399,6 @@ divide = Builtins.divideInteger
 --
 remainder :: Integer -> Integer -> Integer
 remainder = Builtins.remainderInteger
-
-{-# INLINABLE min #-}
--- | The smaller of two 'Integer's
---
---   >>> min 10 5
---   5
---
-min :: Integer -> Integer -> Integer
-min a b = if Builtins.lessThanInteger a b then a else b
-
-{-# INLINABLE max #-}
--- | The larger of two 'Integer's
---
---   >>> max 10 5
---   10
---
-max :: Integer -> Integer -> Integer
-max a b = if Builtins.greaterThanInteger a b then a else b
 
 {-# INLINABLE isJust #-}
 -- | Check if a 'Maybe' @a@ is @Just a@
