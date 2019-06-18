@@ -45,12 +45,14 @@ extricateE (E-·₁ p) = E-·₁ (extricateE p)
 extricateE (E-·₂ p) = E-·₂ (extricateE p)
 extricateE (E-·⋆ p) = E-·⋆ (extricateE p)
 extricateE (E-unwrap p) = E-unwrap (extricateE p)
+extricateE (E-Λ x) = {!!}
+extricateE (E-wrap x) = {!!}
 extricateE (E-builtin bn σ tel Bs Ds telB vtel e p telD) =
   E-builtin (extricateE e)
 
 extricateVal V-ƛ = V-ƛ _ _ _
-extricateVal V-Λ_ = SR.V-Λ _ _
-extricateVal V-wrap1 = V-wrap _ _ _
+extricateVal (V-Λ p) = {!!} -- SR.V-Λ _ _ _
+extricateVal (V-wrap p) = {!!} -- V-wrap _ _ _
 extricateVal (V-con cn) = V-con (extricateC cn)
 
 extricateVTel :  ∀ {Φ} Γ Δ (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
@@ -78,7 +80,9 @@ extricate-VERIFYSIG nothing           = refl
 
 extricate—→ (ξ-·₁ p)   = ξ-·₁ (extricate—→ p)
 extricate—→ (ξ-·₂ p q) = ξ-·₂ (extricateVal p) (extricate—→ q)
-extricate—→ (ξ-·⋆ p) = ξ-·⋆ (extricate—→ p)
+extricate—→ (ξ-·⋆ p)   = ξ-·⋆ (extricate—→ p)
+extricate—→ (ξ-Λ x)    = {!!}
+extricate—→ (ξ-wrap x) = {!!}
 extricate—→ (β-ƛ {A = A}{N = N}{W = W}) = Eq.subst
   (ƛ _ (extricateNf⋆ A) (extricate N) · extricate W  SR.—→_)
   (lem[] N W)
@@ -285,14 +289,18 @@ extricate—→⋆ : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K}{t t' : Γ ⊢ A}
 extricate—→⋆ refl—↠ = refl
 extricate—→⋆ (trans—↠ r p) = _—→⋆_.trans (extricate—→ r) (extricate—→⋆ p)
 
-lem-step : ∀{t t' t'' : ScopedTm Z}(p : t SR.—→ t')(r : t' ≡ t'') → SR.Progress.step (Eq.subst (SR._—→_ t) r p) ≡ step p
+lem-step : ∀{t t' t'' : ScopedTm Z}(p : t SR.—→ t')(r : t' ≡ t'')
+  → SR.Progress.step (Eq.subst (SR._—→_ t) r p) ≡ step p
 lem-step p refl = refl
 
 -- given the result of intrinsic progress this gives rise to extrinsic progress
-extricateProgress : ∀{A}{t : ∅ ⊢ A} → AR.Progress t  → SR.Progress (extricate t)
-extricateProgress (step p)  = step (extricate—→ p)
-extricateProgress (done v)  = done (extricateVal v)
-extricateProgress (error e) = error (extricateE e)
+extricateProgress : ∀{A}{t : ∅ ⊢ A} → AR.Progress t
+  → SR.Progress (extricate t)
+extricateProgress (step p)    = step (extricate—→ p)
+extricateProgress (done v)    = done (extricateVal v)
+extricateProgress (error e)   = error (extricateE e)
+extricateProgress (neutral p) = {!!}
+
 
 extricateProgressTel : ∀{Φ Ψ}{Γ : Ctx Φ}
   {σ : ∀{K} → Ψ ∋⋆ K → Φ ⊢Nf⋆ K}
@@ -316,26 +324,30 @@ extricateProgressTel tel (error Bs Ds telB vtelB e q telD) =
     (extricateVTel _ _ _ _ telB vtelB)
     (extricateE e)
     (extricateTel _ _ telD)
+extricateProgressTel tel (neutral Bs Ds telB vtelB e q telD) = {!!}
 
 -- proofs below
 
-extricate-progress· : ∀{A B}{t : ∅ ⊢ A ⇒ B}(p : AR.Progress t) → (u : ∅ ⊢ A)
-  → extricateProgress (AR.progress· p u) ≡ SR.progress· (extricateProgress p) (extricate u)
-extricate-progress· (step p)   u = refl
-extricate-progress· (done (V-ƛ {A = A}{x = x}{N = N})) u = lem-step β-ƛ (lem[] N u)
-extricate-progress· (error e)  u = refl
+extricate-progress-· : ∀{A B}{t : ∅ ⊢ A ⇒ B}(p : AR.Progress t) → (u : ∅ ⊢ A)
+  → extricateProgress (AR.progress-· p u) ≡ SR.progress· (extricateProgress p) (extricate u)
+extricate-progress-· (step p)   u = refl
+extricate-progress-· (done (V-ƛ {A = A}{x = x}{N = N})) u = lem-step β-ƛ (lem[] N u)
+extricate-progress-· (error e)  u = refl
+extricate-progress-· (neutral p) u = {!!}
 
-extricate-progress·⋆ : ∀{K x B}{t : ∅ ⊢ Π x B}(p : AR.Progress t) → (A : ∅ ⊢Nf⋆ K)
-  → extricateProgress (AR.progress·⋆ p A) ≡ SR.progress·⋆ (extricateProgress p) (extricateNf⋆ A)
-extricate-progress·⋆ (step p)    A = refl
-extricate-progress·⋆ (done (V-Λ_ {N = N})) A = lem-step β-Λ (lem[]⋆ N A)
-extricate-progress·⋆ (error e)   A = refl
+extricate-progress-·⋆ : ∀{K x B}{t : ∅ ⊢ Π x B}(p : AR.Progress t) → (A : ∅ ⊢Nf⋆ K)
+  → extricateProgress (AR.progress-·⋆ p A) ≡ SR.progress·⋆ (extricateProgress p) (extricateNf⋆ A)
+extricate-progress-·⋆ (step p)    A = refl
+extricate-progress-·⋆ (done (V-Λ {N = N} p)) A = {!!} -- lem-step β-Λ (lem[]⋆ N A)
+extricate-progress-·⋆ (error e)   A = refl
+extricate-progress-·⋆ (neutral p) A = {!!}
 
 extricate-progress-unwrap : ∀{K}{pat}{arg : ∅ ⊢Nf⋆ K}{t : ∅ ⊢ ne ((μ1 · pat) · arg)}(p : AR.Progress t)
   → extricateProgress (AR.progress-unwrap p) ≡ SR.progress-unwrap (extricateProgress p)
-extricate-progress-unwrap (step p)  = refl
-extricate-progress-unwrap (done V-wrap1) = refl
-extricate-progress-unwrap (error e) = refl
+extricate-progress-unwrap (step p)       = refl
+extricate-progress-unwrap (done V-wrap1) = {!!} -- refl
+extricate-progress-unwrap (error e)      = refl
+extricate-progress-unwrap (neutral p)    = {!!}
 
 extricate-progress-builtin : ∀ bn
   (σ : ∀{J} → proj₁ (SIG bn) ∋⋆ J → ∅ ⊢Nf⋆ J)
@@ -484,6 +496,25 @@ extricate-progress-builtin sha2-256 σ tel (error Bs Ds telB vtelB e q telD) = r
 extricate-progress-builtin sha3-256 σ tel (error Bs Ds telB vtelB e q telD) = refl
 extricate-progress-builtin verifySignature σ tel (error Bs Ds telB vtelB e q telD) = refl
 extricate-progress-builtin equalsByteString σ tel (error Bs Ds telB vtelB e q telD) = refl
+extricate-progress-builtin addInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
+extricate-progress-builtin subtractInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
+extricate-progress-builtin multiplyInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
+extricate-progress-builtin divideInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
+extricate-progress-builtin quotientInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
+extricate-progress-builtin remainderInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
+extricate-progress-builtin modInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
+extricate-progress-builtin lessThanInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
+extricate-progress-builtin lessThanEqualsInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
+extricate-progress-builtin greaterThanInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
+extricate-progress-builtin greaterThanEqualsInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
+extricate-progress-builtin equalsInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
+extricate-progress-builtin concatenate σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
+extricate-progress-builtin takeByteString σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
+extricate-progress-builtin dropByteString σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
+extricate-progress-builtin sha2-256 σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
+extricate-progress-builtin sha3-256 σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
+extricate-progress-builtin verifySignature σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
+extricate-progress-builtin equalsByteString σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
 
 open import Type.BetaNBE.RenamingSubstitution
 
@@ -496,11 +527,15 @@ extricateProgressTelCons-progressTelCons : ∀ Φ (A : Φ ⊢Nf⋆ *)(As : List 
  → extricateProgressTel {As = A ∷ As} (t ,, tel) (AR.progressTelCons tp telp)
    ≡
    SR.progressTelCons (extricateProgress tp) (extricateProgressTel tel telp)
-extricateProgressTelCons-progressTelCons Φ A As σ t (step p)  tel telp                              = refl
-extricateProgressTelCons-progressTelCons Φ A As σ t (done vt) tel (done vtel)                       = refl
-extricateProgressTelCons-progressTelCons Φ A As σ t (done vt) tel (step Bs Ds telB vtelB p q telD)  = refl
+extricateProgressTelCons-progressTelCons Φ A As σ t (step p)  tel telp = refl
+extricateProgressTelCons-progressTelCons Φ A As σ t (neutral x) tel telp = {!!}
+extricateProgressTelCons-progressTelCons Φ A As σ t (error e) tel telp = refl
+extricateProgressTelCons-progressTelCons Φ A As σ t (done vt) tel (done vtel) = refl
+extricateProgressTelCons-progressTelCons Φ A As σ t (done vt) tel (step Bs Ds telB vtelB p q telD) = refl
 extricateProgressTelCons-progressTelCons Φ A As σ t (done vt) tel (error Bs Ds telB vtelB e p telD) = refl
-extricateProgressTelCons-progressTelCons Φ A As σ t (error e) tel telp                              = refl
+extricateProgressTelCons-progressTelCons Φ A As σ t (done x) tel (neutral Bs Ds telB x₁ x₂ x₃ x₄) = {!!}
+
+
 
 cong₄ : ∀{A C : Set}{B : A → Set}{D : C → Set}{E : A → C → Set}(f : ∀{a} → B a → ∀{c} → D c → E a c)
   → (a : A)
@@ -529,13 +564,13 @@ extricateTel-progressTel Φ (A ∷ As) σ (t ,, tel) = Eq.trans
 
 extricate-progress (ƛ x t) = refl
 extricate-progress (t · u) = Eq.trans
-  (extricate-progress· (AR.progress t) u)
+  (extricate-progress-· (AR.progress t) u)
   (cong (λ p → SR.progress· p (extricate u)) (extricate-progress t))
-extricate-progress (Λ x t) = refl
+extricate-progress (Λ x t) = {!!} -- refl
 extricate-progress (t ·⋆ A) = Eq.trans
-  (extricate-progress·⋆ (AR.progress t) A)
+  (extricate-progress-·⋆ (AR.progress t) A)
   (cong (λ p → SR.progress·⋆ p (extricateNf⋆ A)) (extricate-progress t))
-extricate-progress (wrap1 pat arg t) = refl
+extricate-progress (wrap1 pat arg t) = {!!} -- refl
 extricate-progress (unwrap1 t) = Eq.trans
   (extricate-progress-unwrap (AR.progress t))
   (cong SR.progress-unwrap (extricate-progress t))
@@ -553,12 +588,14 @@ extricateSteps (steps p (done N VN)) =
   _ ,, extricate—→⋆ p ,, inj₁ (just (extricateVal VN))
 extricateSteps (steps p out-of-gas) = _ ,, extricate—→⋆ p ,, (inj₁ nothing)
 extricateSteps (steps p (error e)) = _ ,, extricate—→⋆ p ,, inj₂ (extricateE e)
+extricateSteps (steps x (neutral x₁)) = {!!}
 
 extricate-run—→ : ∀{A}{t t' : ∅ ⊢ A}(p : t AR.—→ t')(q : AE.Steps t') →
   extricateSteps (eval—→ p q) ≡ run—→ (extricate—→ p) (extricateSteps q)
 extricate-run—→ p (steps q (done N VN)) = refl
 extricate-run—→ p (steps q out-of-gas)  = refl
 extricate-run—→ p (steps q (error e))   = refl
+extricate-run—→ p (steps q (neutral n)) = {!!}
 
 extricate-run : ∀{A}(t : ∅ ⊢ A) n
   → extricateSteps (eval (gas n) t) ≡ SR.run (extricate t) n
@@ -571,6 +608,7 @@ extricate-runProg (step p)  n = Eq.trans
   (cong (run—→ (extricate—→ p)) (extricate-run _ n))
 extricate-runProg (done v)  n = refl
 extricate-runProg (error e) n = refl
+extricate-runProg (neutral p) n = {!!}
 
 extricate-run t zero = refl
 extricate-run t (ℕ.suc n) = Eq.trans

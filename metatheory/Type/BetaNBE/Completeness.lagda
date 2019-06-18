@@ -50,8 +50,8 @@ CR (K ⇒ J) (inj₂ (x , f)) (inj₂ (x' , f')) =
       → (v v' : Val Ψ K)
       → CR K v v'
         --------————————————————————————————————————————————————————————————————
-      → CR J (renameVal ρ' (f ρ v))
-             (f (ρ' ∘ ρ) (renameVal ρ' v'))
+      → CR J (renVal ρ' (f ρ v))
+             (f (ρ' ∘ ρ) (renVal ρ' v'))
 \end{code}
 
 CR is symmetric and transitive, it is not reflexive, but we if we
@@ -102,7 +102,7 @@ using reflectCR to build identify environments will give us the
 completeness result.
 
 \begin{code}
-reflectCR : ∀{Φ K} → {n n' : Φ ⊢NeN⋆ K}
+reflectCR : ∀{Φ K} → {n n' : Φ ⊢Ne⋆ K}
   → n ≡ n'
     -----------------------------
   → CR K (reflect n) (reflect n')
@@ -157,64 +157,64 @@ AppCR {f = inj₂ f} {inj₁ n}  ()             q
 AppCR {f = inj₂ f} {inj₂ f'} (p , p' , p'' , p''') q = p''' id q
 \end{code}
 
-renameVal commutes with reflect
+renVal commutes with reflect
 
 \begin{code}
-renameVal-reflect : ∀{Φ Ψ K}
+renVal-reflect : ∀{Φ Ψ K}
   → (ρ : Ren Φ Ψ)
-  → (n : Φ ⊢NeN⋆ K)
+  → (n : Φ ⊢Ne⋆ K)
     --------------------------------------------------------
-  → CR K (renameVal ρ (reflect n)) (reflect (renameNeN ρ n))
-renameVal-reflect {K = *}     ρ n = refl
-renameVal-reflect {K = K ⇒ J} ρ n = refl 
+  → CR K (renVal ρ (reflect n)) (reflect (renNe ρ n))
+renVal-reflect {K = *}     ρ n = refl
+renVal-reflect {K = K ⇒ J} ρ n = refl 
 \end{code}
 
 renaming commutes with reify
 
 \begin{code}
-rename-reify : ∀{K Φ Ψ}{v v' : Val Φ K}
+ren-reify : ∀{K Φ Ψ}{v v' : Val Φ K}
   → CR K v v'
   → (ρ : Ren Φ Ψ)
     ---------------------------------------------
-  → renameNf ρ (reify v) ≡ reify (renameVal ρ v')
-rename-reify {*}                            refl           ρ = refl
-rename-reify {K ⇒ J} {v = inj₁ n} {inj₁ .n} refl           ρ = refl
-rename-reify {K ⇒ J} {v = inj₁ n} {inj₂ f'} ()             ρ
-rename-reify {K ⇒ J} {v = inj₂ f} {inj₁ n'} ()             ρ
-rename-reify {K ⇒ J} {v = inj₂ f} {inj₂ f'} (p , p' , p'' , p''') ρ =
- cong₂ ƛ p'' (trans (rename-reify (p''' S (reflectCR (refl {x = ` Z}))) (ext ρ)) (reifyCR (transCR ( p' S (ext ρ) _ _ (reflectCR refl) ) (AppCR {f = renameVal (S ∘ ρ) (inj₂ f')}{renameVal (S ∘ ρ) (inj₂ f')} ((λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , (λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , refl , λ ρ' q → (proj₂ (proj₂ (proj₂ (reflCR (symCR (p , p' , p'' , p'''))))) (ρ' ∘ S ∘ ρ) q)) (renameVal-reflect (ext ρ) (` Z))))))
+  → renNf ρ (reify v) ≡ reify (renVal ρ v')
+ren-reify {*}                            refl           ρ = refl
+ren-reify {K ⇒ J} {v = inj₁ n} {inj₁ .n} refl           ρ = refl
+ren-reify {K ⇒ J} {v = inj₁ n} {inj₂ f'} ()             ρ
+ren-reify {K ⇒ J} {v = inj₂ f} {inj₁ n'} ()             ρ
+ren-reify {K ⇒ J} {v = inj₂ f} {inj₂ f'} (p , p' , p'' , p''') ρ =
+ cong₂ ƛ p'' (trans (ren-reify (p''' S (reflectCR (refl {x = ` Z}))) (ext ρ)) (reifyCR (transCR ( p' S (ext ρ) _ _ (reflectCR refl) ) (AppCR {f = renVal (S ∘ ρ) (inj₂ f')}{renVal (S ∘ ρ) (inj₂ f')} ((λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , (λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , refl , λ ρ' q → (proj₂ (proj₂ (proj₂ (reflCR (symCR (p , p' , p'' , p'''))))) (ρ' ∘ S ∘ ρ) q)) (renVal-reflect (ext ρ) (` Z))))))
 \end{code}
 
-first functor law for renameVal
+first functor law for renVal
 
 \begin{code}
-renameVal-id : ∀ {K Φ}{v v' : Val Φ K}
+renVal-id : ∀ {K Φ}{v v' : Val Φ K}
   → CR K v v'
     ------------------------
-  → CR K (renameVal id v) v'
-renameVal-id {*}                            refl = renameNf-id _
-renameVal-id {K ⇒ J} {v = inj₁ n} {inj₁ n'} refl = renameNeN-id _
-renameVal-id {K ⇒ J} {v = inj₁ n} {inj₂ f'} ()
-renameVal-id {K ⇒ J} {v = inj₂ f} {inj₁ n'} () 
-renameVal-id {K ⇒ J} {v = inj₂ f} {inj₂ f'} p    = p
+  → CR K (renVal id v) v'
+renVal-id {*}                            refl = renNf-id _
+renVal-id {K ⇒ J} {v = inj₁ n} {inj₁ n'} refl = renNe-id _
+renVal-id {K ⇒ J} {v = inj₁ n} {inj₂ f'} ()
+renVal-id {K ⇒ J} {v = inj₂ f} {inj₁ n'} () 
+renVal-id {K ⇒ J} {v = inj₂ f} {inj₂ f'} p    = p
 \end{code}
 
-second functor law for renameVal
+second functor law for renVal
 
 \begin{code}
-renameVal-comp : ∀ {K Φ Ψ Θ}
+renVal-comp : ∀ {K Φ Ψ Θ}
   → (ρ : Ren Φ Ψ)
   → (ρ' : Ren Ψ Θ)
   → {v v' : Val Φ K}
   → CR K v v'
-  → CR K (renameVal (ρ' ∘ ρ) v) (renameVal ρ' (renameVal ρ v'))
-renameVal-comp {*}      ρ ρ'                    refl           =
-  renameNf-comp _
-renameVal-comp {K ⇒ K₁} ρ ρ' {inj₁ n} {inj₁ n'} refl           =
-  renameNeN-comp _
-renameVal-comp {K ⇒ K₁} ρ ρ' {inj₁ x} {inj₂ y} ()
-renameVal-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₁ x} ()
-renameVal-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₂ y₁} (p , p' , p'' , p''') =
+  → CR K (renVal (ρ' ∘ ρ) v) (renVal ρ' (renVal ρ v'))
+renVal-comp {*}      ρ ρ'                    refl           =
+  renNf-comp _
+renVal-comp {K ⇒ K₁} ρ ρ' {inj₁ n} {inj₁ n'} refl           =
+  renNe-comp _
+renVal-comp {K ⇒ K₁} ρ ρ' {inj₁ x} {inj₂ y} ()
+renVal-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₁ x} ()
+renVal-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₂ y₁} (p , p' , p'' , p''') =
   (λ ρ'' ρ''' v → p (ρ'' ∘ ρ' ∘ ρ) ρ''' v)
   ,
   (λ ρ'' ρ''' v → p' (ρ'' ∘ ρ' ∘ ρ) ρ''' v)
@@ -230,8 +230,8 @@ CR is closed under renaming
 renCR : ∀{Φ Ψ K}{v v' : Val Φ K}
   → (ρ : Ren Φ Ψ)
   → CR K v v'
-  → CR K (renameVal ρ v) (renameVal ρ v')
-renCR {K = *}                         ρ p              = cong (renameNf ρ) p
+  → CR K (renVal ρ v) (renVal ρ v')
+renCR {K = *}                         ρ p              = cong (renNf ρ) p
 renCR {K = K ⇒ K₁} {inj₁ n} {inj₁ .n} ρ refl           = refl
 renCR {K = K ⇒ K₁} {inj₁ n} {inj₂ f'} ρ ()
 renCR {K = K ⇒ K₁} {inj₂ f} {inj₁ n'} ρ ()
@@ -247,23 +247,23 @@ renCR {K = K ⇒ K₁} {inj₂ f} {inj₂ f'} ρ (p , p' , p'' , p''') =
 
 CR is closed under application
 \begin{code}
-renameVal·V : ∀{K J Φ Ψ}
+renVal·V : ∀{K J Φ Ψ}
   → (ρ : Ren Φ Ψ)
   → {f f' : Val Φ (K ⇒ J)}
   → CR (K ⇒ J) f f'
   → {v v' : Val Φ K}
   → CR K v v'
     --------------------------------------------------------------
-  → CR J (renameVal ρ (f ·V v)) (renameVal ρ f' ·V renameVal ρ v')
-renameVal·V {J = *} ρ {inj₁ n} {inj₁ .n} refl {v}{v'}  q =
-  cong (ne ∘ (renameNeN ρ n ·_))
-       (trans ( rename-reify (reflCR q) ρ ) (reifyCR (renCR ρ q)))
-renameVal·V {J = J ⇒ K} ρ {inj₁ n} {inj₁ .n} refl      q =
-  cong (renameNeN ρ n ·_)
-       (trans ( rename-reify (reflCR q) ρ ) (reifyCR (renCR ρ q)))
-renameVal·V ρ {inj₁ n} {inj₂ f}  ()                    q
-renameVal·V ρ {inj₂ f} {inj₁ n'} ()                    q
-renameVal·V ρ {inj₂ f} {inj₂ f'} (p , p' , p'' , p''') q =
+  → CR J (renVal ρ (f ·V v)) (renVal ρ f' ·V renVal ρ v')
+renVal·V {J = *} ρ {inj₁ n} {inj₁ .n} refl {v}{v'}  q =
+  cong (ne ∘ (renNe ρ n ·_))
+       (trans ( ren-reify (reflCR q) ρ ) (reifyCR (renCR ρ q)))
+renVal·V {J = J ⇒ K} ρ {inj₁ n} {inj₁ .n} refl      q =
+  cong (renNe ρ n ·_)
+       (trans ( ren-reify (reflCR q) ρ ) (reifyCR (renCR ρ q)))
+renVal·V ρ {inj₁ n} {inj₂ f}  ()                    q
+renVal·V ρ {inj₂ f} {inj₁ n'} ()                    q
+renVal·V ρ {inj₂ f} {inj₂ f'} (p , p' , p'' , p''') q =
   transCR (p id ρ _ _ q) (p''' ρ (renCR ρ (reflCR (symCR q))))
 \end{code}
 
@@ -276,29 +276,29 @@ idext : ∀{Φ Ψ K}{η η' : Env Φ Ψ}
     ----------------------------
   → CR K (eval t η) (eval t η')
 
-renameVal-eval : ∀{Φ Ψ Θ K}
+renVal-eval : ∀{Φ Ψ Θ K}
   → (t : Ψ ⊢⋆ K)
   → {η η' : ∀{J} → Ψ ∋⋆ J → Val Φ J}
   → (p : EnvCR η η')
   → (ρ : Ren Φ Θ )
     ---------------------------------------------------------
-  → CR K (renameVal ρ (eval t η)) (eval t (renameVal ρ ∘ η'))
+  → CR K (renVal ρ (eval t η)) (eval t (renVal ρ ∘ η'))
   
 idext p (` x)       = p x
 idext p (Π x B)       = cong (Π x) (idext (CR,,⋆ (renCR S ∘ p) (reflectCR refl)) B)
 idext p (A ⇒ B)     = cong₂ _⇒_ (idext p A) (idext p B)
 idext p (ƛ x B)     =
   (λ ρ ρ' v v' q →
-    transCR (renameVal-eval B (CR,,⋆ (renCR ρ ∘ reflCR ∘ p) q) ρ')
+    transCR (renVal-eval B (CR,,⋆ (renCR ρ ∘ reflCR ∘ p) q) ρ')
             (idext (λ { Z     → renCR ρ' (reflCR (symCR q))
-                      ; (S x) → symCR (renameVal-comp ρ ρ' (reflCR (p x)))})
+                      ; (S x) → symCR (renVal-comp ρ ρ' (reflCR (p x)))})
                    B))
   ,
   (λ ρ ρ' v v' q →
     transCR
-      (renameVal-eval B (CR,,⋆ (renCR ρ ∘ reflCR ∘ symCR ∘ p) q) ρ')
+      (renVal-eval B (CR,,⋆ (renCR ρ ∘ reflCR ∘ symCR ∘ p) q) ρ')
       (idext (λ { Z  → renCR ρ' (reflCR (symCR q))
-                ; (S x) → symCR (renameVal-comp ρ ρ' (reflCR (symCR (p x))))})
+                ; (S x) → symCR (renVal-comp ρ ρ' (reflCR (symCR (p x))))})
              B)) -- first two terms are identical (except for symCR (p x))
   ,
   refl
@@ -308,86 +308,86 @@ idext p (A · B)     = AppCR (idext p A) (idext p B)
 idext p μ1          = refl
 idext p (con tcn)   = refl
 
-renameVal-eval (` x) p ρ = renCR ρ (p x)
-renameVal-eval (Π x B) p ρ =
+renVal-eval (` x) p ρ = renCR ρ (p x)
+renVal-eval (Π x B) p ρ =
   cong (Π x) (trans
-    (renameVal-eval B
+    (renVal-eval B
                     (CR,,⋆ (renCR S ∘ p) (reflectCR refl))
                     (ext ρ))
-    (idext (λ{ Z     → renameVal-reflect (ext ρ) (` Z)
+    (idext (λ{ Z     → renVal-reflect (ext ρ) (` Z)
              ; (S x) → transCR
-                  (symCR (renameVal-comp S (ext ρ) (reflCR (symCR (p x)))))
-                  (renameVal-comp ρ S (reflCR (symCR (p x))))})
+                  (symCR (renVal-comp S (ext ρ) (reflCR (symCR (p x)))))
+                  (renVal-comp ρ S (reflCR (symCR (p x))))})
              B))
-renameVal-eval (A ⇒ B) p ρ =
-  cong₂ _⇒_ (renameVal-eval A p ρ) (renameVal-eval B p ρ)
-renameVal-eval (ƛ _ B) {η}{η'} p ρ =
+renVal-eval (A ⇒ B) p ρ =
+  cong₂ _⇒_ (renVal-eval A p ρ) (renVal-eval B p ρ)
+renVal-eval (ƛ _ B) {η}{η'} p ρ =
   (λ ρ' ρ'' v v' q →
-    transCR (renameVal-eval B (CR,,⋆ (renCR (ρ' ∘ ρ) ∘ p) q) ρ'')
+    transCR (renVal-eval B (CR,,⋆ (renCR (ρ' ∘ ρ) ∘ p) q) ρ'')
             (idext (λ { Z     → renCR ρ'' (reflCR (symCR q))
-                      ; (S x) → symCR (renameVal-comp (ρ' ∘ ρ) ρ'' (p x))})
+                      ; (S x) → symCR (renVal-comp (ρ' ∘ ρ) ρ'' (p x))})
                    B))
   ,
   (λ ρ' ρ'' v v' q → transCR
-    (renameVal-eval
+    (renVal-eval
       B
       (CR,,⋆ (renCR ρ' ∘ renCR ρ ∘ reflCR ∘ symCR ∘ p) q) ρ'')
     (idext (λ { Z     → renCR ρ'' (reflCR (symCR q))
               ; (S x) → symCR
-                  (renameVal-comp ρ' ρ'' (renCR ρ (reflCR (symCR (p x)))))})
+                  (renVal-comp ρ' ρ'' (renCR ρ (reflCR (symCR (p x)))))})
            B)) -- again two almost identical terms
   ,
   refl
   ,
-  λ ρ' q → idext (λ { Z → q ; (S x) → renameVal-comp ρ ρ' (p x) }) B
-renameVal-eval (A · B) p ρ = transCR
-  (renameVal·V ρ (idext (reflCR ∘ p) A) (idext (reflCR ∘ p) B))
-  (AppCR (renameVal-eval A p ρ) (renameVal-eval B p ρ))
-renameVal-eval μ1          p ρ = refl
-renameVal-eval (con tcn)   p ρ = refl
+  λ ρ' q → idext (λ { Z → q ; (S x) → renVal-comp ρ ρ' (p x) }) B
+renVal-eval (A · B) p ρ = transCR
+  (renVal·V ρ (idext (reflCR ∘ p) A) (idext (reflCR ∘ p) B))
+  (AppCR (renVal-eval A p ρ) (renVal-eval B p ρ))
+renVal-eval μ1          p ρ = refl
+renVal-eval (con tcn)   p ρ = refl
 \end{code}
 
 (pre) renaming commutes with eval
 
 \begin{code}
-rename-eval : ∀{Φ Ψ Θ K}
+ren-eval : ∀{Φ Ψ Θ K}
   (t : Θ ⊢⋆ K)
   {η η' : ∀{J} → Ψ ∋⋆ J → Val Φ J}
   (p : EnvCR η η')
   (ρ : Ren Θ Ψ) →
-  CR K (eval (rename ρ t) η) (eval t (η' ∘ ρ))
-rename-eval (` x) p ρ = p (ρ x)
-rename-eval (Π x B) p ρ =
-  cong (Π x) (trans (rename-eval
+  CR K (eval (ren ρ t) η) (eval t (η' ∘ ρ))
+ren-eval (` x) p ρ = p (ρ x)
+ren-eval (Π x B) p ρ =
+  cong (Π x) (trans (ren-eval
                   B
                   (CR,,⋆ (renCR S ∘ p)
                           (reflectCR (refl {x = ` Z}))) (ext ρ))
        (idext (λ{ Z     → reflectCR refl
                 ; (S x) → (renCR S ∘ reflCR ∘ symCR ∘ p) (ρ x)}) B))
-rename-eval (A ⇒ B) p ρ = cong₂ _⇒_ (rename-eval A p ρ) (rename-eval B p ρ) 
-rename-eval (ƛ _ B) p ρ =
+ren-eval (A ⇒ B) p ρ = cong₂ _⇒_ (ren-eval A p ρ) (ren-eval B p ρ) 
+ren-eval (ƛ _ B) p ρ =
   (λ ρ' ρ'' v v' q → transCR
-     (renameVal-eval (rename (ext ρ) B) (CR,,⋆ (renCR ρ' ∘ reflCR ∘ p) q) ρ'')
+     (renVal-eval (ren (ext ρ) B) (CR,,⋆ (renCR ρ' ∘ reflCR ∘ p) q) ρ'')
      (idext (λ { Z → renCR ρ'' (reflCR (symCR q))
-               ; (S x) → symCR (renameVal-comp ρ' ρ'' (reflCR (p x)))})
-            (rename (ext ρ) B)))
+               ; (S x) → symCR (renVal-comp ρ' ρ'' (reflCR (p x)))})
+            (ren (ext ρ) B)))
   ,
   (λ ρ' ρ'' v v' q → transCR
-    (renameVal-eval B (CR,,⋆ (renCR ρ' ∘ reflCR ∘ symCR ∘ p ∘ ρ) q) ρ'')
+    (renVal-eval B (CR,,⋆ (renCR ρ' ∘ reflCR ∘ symCR ∘ p ∘ ρ) q) ρ'')
     (idext (λ { Z     →  renCR ρ'' (reflCR (symCR q))
               ; (S x) → symCR
-                   (renameVal-comp ρ' ρ'' (reflCR (symCR (p (ρ x)))))})
+                   (renVal-comp ρ' ρ'' (reflCR (symCR (p (ρ x)))))})
            B))
   ,
   refl
   ,
   λ ρ' q → transCR
-    (rename-eval B (CR,,⋆ (renCR ρ' ∘ p) q) (ext ρ))
+    (ren-eval B (CR,,⋆ (renCR ρ' ∘ p) q) (ext ρ))
     (idext (λ { Z     → reflCR (symCR q)
               ; (S x) → renCR ρ' (reflCR (symCR (p (ρ x)))) }) B)
-rename-eval (A · B) p ρ = AppCR (rename-eval A p ρ) (rename-eval B p ρ)
-rename-eval μ1          p ρ = refl
-rename-eval (con tcn)   p ρ = refl
+ren-eval (A · B) p ρ = AppCR (ren-eval A p ρ) (ren-eval B p ρ)
+ren-eval μ1          p ρ = refl
+ren-eval (con tcn)   p ρ = refl
 \end{code}
 
 Subsitution lemma
@@ -404,24 +404,24 @@ subst-eval (Π x B)    p σ = cong (Π x) (trans
   (subst-eval B (CR,,⋆ (renCR S ∘ p) (reflectCR (refl {x = ` Z}))) (exts σ))
   (idext (λ{ Z     → reflectCR (refl {x = ` Z})
            ; (S x) → transCR
-                (rename-eval
+                (ren-eval
                   (σ x)
                   (CR,,⋆ (renCR S ∘ reflCR ∘ symCR ∘ p) (reflectCR refl)) S)
-                (symCR (renameVal-eval (σ x)  (reflCR ∘ symCR ∘ p) S)) })
+                (symCR (renVal-eval (σ x)  (reflCR ∘ symCR ∘ p) S)) })
          B))
 subst-eval (A ⇒ B)    p σ = cong₂ _⇒_ (subst-eval A p σ) (subst-eval B p σ)
 subst-eval (ƛ _ B)      p σ =
   (λ ρ ρ' v v' q → transCR
-     (renameVal-eval (subst (exts σ) B) (CR,,⋆ (renCR ρ ∘ reflCR ∘ p) q) ρ')
+     (renVal-eval (subst (exts σ) B) (CR,,⋆ (renCR ρ ∘ reflCR ∘ p) q) ρ')
      (idext (λ { Z     → renCR ρ' (reflCR (symCR q))
-               ; (S x) → symCR (renameVal-comp ρ ρ' (reflCR (p x)))})
+               ; (S x) → symCR (renVal-comp ρ ρ' (reflCR (p x)))})
             (subst (exts σ) B)))
   ,
   (λ ρ ρ' v v' q → transCR
-    (renameVal-eval B (CR,,⋆ (renCR ρ ∘ idext (reflCR ∘ symCR ∘ p) ∘ σ) q) ρ')
+    (renVal-eval B (CR,,⋆ (renCR ρ ∘ idext (reflCR ∘ symCR ∘ p) ∘ σ) q) ρ')
     (idext (λ { Z → renCR ρ' (reflCR (symCR q))
               ; (S x) → symCR
-                   (renameVal-comp ρ ρ' (idext (reflCR ∘ symCR ∘ p) (σ x)))})
+                   (renVal-comp ρ ρ' (idext (reflCR ∘ symCR ∘ p) (σ x)))})
            B))
   ,
   refl
@@ -429,11 +429,11 @@ subst-eval (ƛ _ B)      p σ =
   λ ρ q → transCR (subst-eval B (CR,,⋆ (renCR ρ ∘ p) q) (exts σ))
     (idext (λ { Z     → reflCR (symCR q)
               ; (S x) → transCR
-                   (rename-eval
+                   (ren-eval
                      (σ x)
                      (CR,,⋆ (renCR ρ ∘ reflCR ∘ symCR ∘ p) (reflCR (symCR q)))
                      S)
-                   (symCR (renameVal-eval (σ x) (reflCR ∘ symCR ∘ p) ρ))})
+                   (symCR (renVal-eval (σ x) (reflCR ∘ symCR ∘ p) ρ))})
            B)
 subst-eval (A · B)    p σ = AppCR (subst-eval A p σ) (subst-eval B p σ)
 subst-eval μ1          p ρ = refl                 
@@ -455,15 +455,15 @@ fund p (Π≡β q)             =
   cong (Π _) (fund (CR,,⋆ (renCR S ∘ p) (reflectCR refl)) q)
 fund p (ƛ≡β {B = B}{B'} q) =
   (λ ρ ρ' v v' r → transCR
-    (renameVal-eval B (CR,,⋆ (renCR ρ ∘ reflCR ∘ p) r) ρ')
+    (renVal-eval B (CR,,⋆ (renCR ρ ∘ reflCR ∘ p) r) ρ')
     (idext (λ { Z → renCR ρ' (reflCR (symCR r))
-              ; (S x) → symCR (renameVal-comp ρ ρ' (reflCR (p x)))})
+              ; (S x) → symCR (renVal-comp ρ ρ' (reflCR (p x)))})
            B))
   ,
   (λ ρ ρ' v v' r → transCR
-     (renameVal-eval B' (CR,,⋆ (renCR ρ ∘ reflCR ∘ symCR ∘ p) r) ρ')
+     (renVal-eval B' (CR,,⋆ (renCR ρ ∘ reflCR ∘ symCR ∘ p) r) ρ')
      (idext (λ { Z → renCR ρ' (reflCR (symCR r))
-               ; (S x) → symCR (renameVal-comp ρ ρ' (reflCR (symCR (p x))))})
+               ; (S x) → symCR (renVal-comp ρ ρ' (reflCR (symCR (p x))))})
             B'))
   ,
   refl
@@ -472,7 +472,7 @@ fund p (ƛ≡β {B = B}{B'} q) =
 fund p (·≡β q r) = AppCR (fund p q) (fund p r)
 fund p (β≡β B A) =
   transCR (idext (λ { Z     → idext (reflCR ∘ p) A
-                    ; (S x) → renameVal-id (reflCR (p x))})
+                    ; (S x) → renVal-id (reflCR (p x))})
                  B)
           (symCR (subst-eval B (symCR ∘ p) (subst-cons ` A)))
 \end{code}

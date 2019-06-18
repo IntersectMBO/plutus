@@ -210,28 +210,28 @@ progress⋆ (con tcn) = done V-con
 # Renaming and Substitution
 
 \begin{code}
-renameNeutral⋆ : ∀ {Φ Ψ}
+renNeutral⋆ : ∀ {Φ Ψ}
   → (ρ : Ren Φ Ψ)
   → ∀ {J}{A : Φ ⊢⋆ J}
   → Neutral⋆ A
     ---------------------
-  → Neutral⋆ (rename ρ A)
+  → Neutral⋆ (ren ρ A)
 
-renameValue⋆ : ∀ {Φ Ψ}
+renValue⋆ : ∀ {Φ Ψ}
   → (ρ : Ren Φ Ψ)
   → ∀ {J}{A : Φ ⊢⋆ J}
   → Value⋆ A
     -------------------
-  → Value⋆ (rename ρ A)
-renameValue⋆ ρ (V-Π N)   = V-Π renameValue⋆ (ext ρ) N
-renameValue⋆ ρ (M V-⇒ N) = renameValue⋆ ρ M V-⇒ renameValue⋆ ρ N
-renameValue⋆ ρ (V-ƛ N)   = V-ƛ renameValue⋆ (ext ρ) N
-renameValue⋆ ρ (N- N)    = N- (renameNeutral⋆ ρ N)
-renameValue⋆ ρ V-con = V-con 
+  → Value⋆ (ren ρ A)
+renValue⋆ ρ (V-Π N)   = V-Π renValue⋆ (ext ρ) N
+renValue⋆ ρ (M V-⇒ N) = renValue⋆ ρ M V-⇒ renValue⋆ ρ N
+renValue⋆ ρ (V-ƛ N)   = V-ƛ renValue⋆ (ext ρ) N
+renValue⋆ ρ (N- N)    = N- (renNeutral⋆ ρ N)
+renValue⋆ ρ V-con = V-con 
 
-renameNeutral⋆ ρ N-`       = N-`
-renameNeutral⋆ ρ N-μ1      = N-μ1
-renameNeutral⋆ ρ (N-· N V) = N-· (renameNeutral⋆ ρ N) (renameValue⋆ ρ V)
+renNeutral⋆ ρ N-`       = N-`
+renNeutral⋆ ρ N-μ1      = N-μ1
+renNeutral⋆ ρ (N-· N V) = N-· (renNeutral⋆ ρ N) (renValue⋆ ρ V)
 \end{code}
 
 \begin{code}
@@ -263,23 +263,23 @@ substNeutral⋆ σ (N-· N V) = N-· (substNeutral⋆ σ N) (substValue⋆ σ V)
 \end{code}
 
 \begin{code}
-rename—→⋆ : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
+ren—→⋆ : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
   → (ρ : Ren Φ Ψ)
   → A —→⋆ B
     -------------------------
-  → rename ρ A —→⋆ rename ρ B
-rename—→⋆ ρ (ξ-⇒₁ p)               = ξ-⇒₁ (rename—→⋆ ρ p)
-rename—→⋆ ρ (ξ-⇒₂ VM p)            = ξ-⇒₂ (renameValue⋆ ρ VM) (rename—→⋆ ρ p)
-rename—→⋆ ρ (ξ-·₁ p)               = ξ-·₁ (rename—→⋆ ρ p)
-rename—→⋆ ρ (ξ-·₂ p)               = ξ-·₂ (rename—→⋆ ρ p)
-rename—→⋆ ρ (ξ-Π p)                = ξ-Π (rename—→⋆ (ext ρ) p)
-rename—→⋆ ρ (ξ-ƛ p)                = ξ-ƛ (rename—→⋆ (ext ρ) p)
-rename—→⋆ ρ (β-ƛ {N = M}{W = N})   =
-  substEq (λ X → rename ρ ((ƛ _ M) · N) —→⋆ X)
-          (trans (sym (subst-rename M))
-                 (trans (subst-cong (rename-subst-cons ρ N) M)
-                        (rename-subst M)))
-          (β-ƛ {N = rename (ext ρ) M}{W = rename ρ N})
+  → ren ρ A —→⋆ ren ρ B
+ren—→⋆ ρ (ξ-⇒₁ p)               = ξ-⇒₁ (ren—→⋆ ρ p)
+ren—→⋆ ρ (ξ-⇒₂ VM p)            = ξ-⇒₂ (renValue⋆ ρ VM) (ren—→⋆ ρ p)
+ren—→⋆ ρ (ξ-·₁ p)               = ξ-·₁ (ren—→⋆ ρ p)
+ren—→⋆ ρ (ξ-·₂ p)               = ξ-·₂ (ren—→⋆ ρ p)
+ren—→⋆ ρ (ξ-Π p)                = ξ-Π (ren—→⋆ (ext ρ) p)
+ren—→⋆ ρ (ξ-ƛ p)                = ξ-ƛ (ren—→⋆ (ext ρ) p)
+ren—→⋆ ρ (β-ƛ {N = M}{W = N})   =
+  substEq (λ X → ren ρ ((ƛ _ M) · N) —→⋆ X)
+          (trans (sym (subst-ren M))
+                 (trans (subst-cong (ren-subst-cons ρ N) M)
+                        (ren-subst M)))
+          (β-ƛ {N = ren (ext ρ) M}{W = ren ρ N})
 \end{code}
 
 \begin{code}
@@ -306,14 +306,14 @@ subst—→⋆ ρ (ξ-con p)              = ξ-con (subst—→⋆ ρ p)
 \end{code}
 
 \begin{code}
-rename—↠⋆ : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
+ren—↠⋆ : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
   → (ρ : Ren Φ Ψ)
   → A —↠⋆ B
     ------------------------------
-  → rename ρ A —↠⋆ rename ρ B
-rename—↠⋆ ρ refl—↠⋆          = refl—↠⋆
-rename—↠⋆ ρ (trans—↠⋆ p q) =
-  trans—↠⋆ (rename—→⋆ ρ p) (rename—↠⋆ ρ q)
+  → ren ρ A —↠⋆ ren ρ B
+ren—↠⋆ ρ refl—↠⋆          = refl—↠⋆
+ren—↠⋆ ρ (trans—↠⋆ p q) =
+  trans—↠⋆ (ren—→⋆ ρ p) (ren—↠⋆ ρ q)
 \end{code}
 
 \begin{code}

@@ -22,13 +22,17 @@ data TermCon : Set where
 \end{code}
 
 \begin{code}
+Tel : ℕ → Set
+
 data _⊢ : ℕ → Set where
   `       : ∀{n} → Fin n → n ⊢
   ƛ       : ∀{n} → String → suc n ⊢ → n ⊢
   _·_     : ∀{n} → n ⊢ → n ⊢ → n ⊢
   con     : ∀{n} → TermCon → n ⊢
-  builtin : ∀{n} → Builtin → List (n ⊢) → n ⊢
+  builtin : ∀{n} → Builtin → Tel n → n ⊢
   error   : ∀{n} → n ⊢
+
+Tel n = List (n ⊢)
 \end{code}
 
 
@@ -86,4 +90,13 @@ ugly (t · u) = "( " ++ ugly t ++ " · " ++ ugly u ++ ")"
 ugly (con c) = "(con " ++ uglyTermCon c ++ ")"
 ugly (builtin b ts) = "(builtin " ++ uglyBuiltin b ++ " " ++ showNat (Data.List.length ts) ++ ")"
 ugly error = "error"
+\end{code}
+
+\begin{code}
+true : ∀{n} → n ⊢
+true = ƛ "t" (ƛ "f" (` (suc zero)))
+
+false : ∀{n} → n ⊢
+false = ƛ "t" (ƛ "f" (` zero))
+
 \end{code}
