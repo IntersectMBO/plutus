@@ -12,6 +12,7 @@
     (let
       (nonrec)
       (termbind
+        (strict)
         (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
         (lam
           arg
@@ -42,6 +43,7 @@
             (let
               (nonrec)
               (termbind
+                (strict)
                 (vardecl fail (fun (all a (type) (fun Unit a)) Bool))
                 (lam ds (all a (type) (fun Unit a)) False)
               )

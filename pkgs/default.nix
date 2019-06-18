@@ -10151,6 +10151,53 @@ description = "Backport ieee754 float double combinators to older binary";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
+"binary-instances" = callPackage
+({
+  mkDerivation
+, aeson
+, base
+, binary
+, binary-orphans
+, case-insensitive
+, hashable
+, scientific
+, stdenv
+, tagged
+, text
+, text-binary
+, time-compat
+, unordered-containers
+, vector
+, vector-binary-instances
+}:
+mkDerivation {
+
+pname = "binary-instances";
+version = "1";
+sha256 = "e08fad1fc033dfde2bd462fa9811a6bc71e22a6ba34dc8919e2471bd052ac91f";
+libraryHaskellDepends = [
+aeson
+base
+binary
+binary-orphans
+case-insensitive
+hashable
+scientific
+tagged
+text
+text-binary
+time-compat
+unordered-containers
+vector
+vector-binary-instances
+];
+doHaddock = false;
+doCheck = false;
+homepage = "https://github.com/phadej/binary-orphans#readme";
+description = "Orphan instances for binary";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
 "binary-list" = callPackage
 ({
   mkDerivation
@@ -10184,47 +10231,24 @@ license = stdenv.lib.licenses.bsd3;
 "binary-orphans" = callPackage
 ({
   mkDerivation
-, aeson
 , base
 , binary
-, case-insensitive
-, hashable
-, scientific
 , stdenv
-, tagged
-, text
-, text-binary
-, time
-, unordered-containers
-, vector
-, vector-binary-instances
+, transformers
 }:
 mkDerivation {
 
 pname = "binary-orphans";
-version = "0.1.8.0";
-sha256 = "f17557ccd98931df2bea038f25e7f835f38019ea7d53bd763f71fe64f931c0cc";
-revision = "5";
-editedCabalFile = "1dny1jvwwcyrbzhqvymmn6n7ib48bpy0nasbrcrdrpzjypkmg500";
+version = "1.0.1";
+sha256 = "431ad40b8d812bada186c68935c0a69aa2904ca3bc57d957e1b0fb7d73b1753d";
 libraryHaskellDepends = [
-aeson
 base
 binary
-case-insensitive
-hashable
-scientific
-tagged
-text
-text-binary
-time
-unordered-containers
-vector
-vector-binary-instances
+transformers
 ];
 doHaddock = false;
 doCheck = false;
-homepage = "https://github.com/phadej/binary-orphans#readme";
-description = "Orphan instances for binary";
+description = "Compatibility package for binary; provides instances";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
@@ -19954,6 +19978,70 @@ description = "Template Haskell code to generate instances of classes in depende
 license = stdenv.lib.licenses.publicDomain;
 
 }) {};
+"deployment-server" = callPackage
+({
+  mkDerivation
+, aeson
+, base
+, bytestring
+, containers
+, github-webhooks
+, mtl
+, newtype-generics
+, optparse-generic
+, servant
+, servant-github-webhook
+, servant-server
+, slack-web
+, stdenv
+, temporary
+, text
+, typed-process
+, wai
+, warp
+}:
+mkDerivation {
+
+pname = "deployment-server";
+version = "0.1.0.0";
+src = .././deployment-server;
+isLibrary = true;
+isExecutable = true;
+libraryHaskellDepends = [
+base
+bytestring
+github-webhooks
+mtl
+newtype-generics
+optparse-generic
+servant
+servant-github-webhook
+servant-server
+slack-web
+temporary
+text
+typed-process
+wai
+];
+executableHaskellDepends = [
+aeson
+base
+bytestring
+containers
+newtype-generics
+optparse-generic
+servant-github-webhook
+slack-web
+text
+warp
+];
+testHaskellDepends = [
+base
+];
+doHaddock = false;
+license = stdenv.lib.licenses.asl20;
+
+}) {};
 "deque" = callPackage
 ({
   mkDerivation
@@ -28710,6 +28798,91 @@ doHaddock = false;
 doCheck = false;
 homepage = "https://github.com/snoyberg/githash#readme";
 description = "Compile git revision info into Haskell projects";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
+"github" = callPackage
+({
+  mkDerivation
+, aeson
+, base
+, base-compat
+, base16-bytestring
+, binary
+, binary-instances
+, bytestring
+, containers
+, cryptohash-sha1
+, deepseq
+, deepseq-generics
+, exceptions
+, fetchgit
+, hashable
+, http-client
+, http-client-tls
+, http-link-header
+, http-types
+, iso8601-time
+, mtl
+, network-uri
+, stdenv
+, tagged
+, text
+, time
+, tls
+, transformers
+, transformers-compat
+, unordered-containers
+, vector
+, vector-instances
+}:
+mkDerivation {
+
+pname = "github";
+version = "0.22";
+src = fetchgit {
+
+url = "https://github.com/shmish111/github.git";
+sha256 = "0jx65x4c8s561nbxa0hv7mp8fvndfhs8i8gzxng7ym808n4n538i";
+rev = "cc27b9de4d5d0939235fa9a8b418de3ea4807bab";
+fetchSubmodules = true;
+
+};
+libraryHaskellDepends = [
+aeson
+base
+base-compat
+base16-bytestring
+binary
+binary-instances
+bytestring
+containers
+cryptohash-sha1
+deepseq
+deepseq-generics
+exceptions
+hashable
+http-client
+http-client-tls
+http-link-header
+http-types
+iso8601-time
+mtl
+network-uri
+tagged
+text
+time
+tls
+transformers
+transformers-compat
+unordered-containers
+vector
+vector-instances
+];
+doHaddock = false;
+doCheck = false;
+homepage = "https://github.com/phadej/github";
+description = "Access to the GitHub API, v3";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
@@ -41428,6 +41601,7 @@ transformers
 benchmarkHaskellDepends = [
 base
 bytestring
+containers
 criterion
 serialise
 ];
@@ -53392,6 +53566,43 @@ description = "Haskell bindings to Plotly.js";
 license = stdenv.lib.licenses.mit;
 
 }) {};
+"plutus-book" = callPackage
+({
+  mkDerivation
+, base
+, containers
+, language-plutus-core
+, plutus-emulator
+, plutus-tx
+, plutus-wallet-api
+, prettyprinter
+, stdenv
+, template-haskell
+, unlit
+}:
+mkDerivation {
+
+pname = "plutus-book";
+version = "0.1.0.0";
+src = .././plutus-book;
+libraryHaskellDepends = [
+base
+containers
+language-plutus-core
+plutus-emulator
+plutus-tx
+plutus-wallet-api
+prettyprinter
+template-haskell
+];
+libraryToolDepends = [
+unlit
+];
+doHaddock = false;
+description = "The Plutus Book";
+license = stdenv.lib.licenses.asl20;
+
+}) {};
 "plutus-contract-exe" = callPackage
 ({
   mkDerivation
@@ -53443,7 +53654,9 @@ license = stdenv.lib.licenses.asl20;
 ({
   mkDerivation
 , base
+, bytestring
 , containers
+, criterion
 , hedgehog
 , language-plutus-core
 , lens
@@ -53452,6 +53665,7 @@ license = stdenv.lib.licenses.asl20;
 , tasty
 , tasty-hedgehog
 , tasty-hunit
+, weigh
 }:
 mkDerivation {
 
@@ -53473,6 +53687,13 @@ mtl
 tasty
 tasty-hedgehog
 tasty-hunit
+];
+benchmarkHaskellDepends = [
+base
+bytestring
+criterion
+language-plutus-core
+weigh
 ];
 doHaddock = false;
 description = "Virtual machine for Plutus Core";
@@ -53936,18 +54157,8 @@ mkDerivation {
 pname = "plutus-tutorial";
 version = "0.1.0.0";
 src = .././plutus-tutorial;
-libraryHaskellDepends = [
-base
-containers
-language-plutus-core
-plutus-emulator
-plutus-tx
-plutus-wallet-api
-template-haskell
-];
-libraryToolDepends = [
-doctest
-];
+isLibrary = false;
+isExecutable = false;
 testHaskellDepends = [
 base
 bytestring
@@ -62463,6 +62674,57 @@ doCheck = false;
 homepage = "http://haskell-servant.readthedocs.org/";
 description = "Helpers for generating clients for servant APIs in any programming language";
 license = stdenv.lib.licenses.bsd3;
+
+}) {};
+"servant-github-webhook" = callPackage
+({
+  mkDerivation
+, aeson
+, base
+, base16-bytestring
+, bytestring
+, cryptonite
+, github
+, github-webhooks
+, http-types
+, memory
+, servant
+, servant-server
+, stdenv
+, string-conversions
+, text
+, transformers
+, unordered-containers
+, wai
+}:
+mkDerivation {
+
+pname = "servant-github-webhook";
+version = "0.4.1.0";
+sha256 = "8bbe9bfe7b7f256fd3e40bcbf36ab9a11ba68aadacac85f5e8a850c8f569cf6c";
+libraryHaskellDepends = [
+aeson
+base
+base16-bytestring
+bytestring
+cryptonite
+github
+github-webhooks
+http-types
+memory
+servant
+servant-server
+string-conversions
+text
+transformers
+unordered-containers
+wai
+];
+doHaddock = false;
+doCheck = false;
+homepage = "https://github.com/tsani/servant-github-webhook";
+description = "Servant combinators to facilitate writing GitHub webhooks";
+license = stdenv.lib.licenses.mit;
 
 }) {};
 "servant-js" = callPackage
@@ -71538,24 +71800,28 @@ license = stdenv.lib.licenses.bsd3;
 ({
   mkDerivation
 , base
-, old-time
+, base-orphans
+, deepseq
 , stdenv
 , time
 }:
 mkDerivation {
 
 pname = "time-compat";
-version = "0.1.0.3";
-sha256 = "590711214510c0d2d09780c7fe3b21748bc4802e9053f78ccd6658e951fe0f7f";
+version = "1.9.2.2";
+sha256 = "a268613385d359274edf48fb2dad4af29874f58486b2d5625e3b95a371066a17";
+revision = "1";
+editedCabalFile = "0k8ph4sydaiqp8dav4if6hpiaq8h1xsr93khmdr7a1mmfwdxr64r";
 libraryHaskellDepends = [
 base
-old-time
+base-orphans
+deepseq
 time
 ];
 doHaddock = false;
 doCheck = false;
-homepage = "http://hub.darcs.net/dag/time-compat";
-description = "Compatibility with old-time for the time package";
+homepage = "https://github.com/phadej/time-compat";
+description = "Compatibility package for time";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};

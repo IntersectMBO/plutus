@@ -14,6 +14,7 @@
 -- | Support for generating PIR with global definitions with dependencies between them.
 module Language.PlutusIR.Compiler.Definitions (DefT
                                               , MonadDefs (..)
+                                              , TermDefWithStrictness
                                               , runDefT
                                               , defineTerm
                                               , defineType
@@ -52,8 +53,10 @@ type DefMap key def = Map.Map key (def, Set.Set key)
 mapDefs :: (a -> b) -> DefMap key a -> DefMap key b
 mapDefs f = Map.map (\(def, deps) -> (f def, deps))
 
+type TermDefWithStrictness ann = PLC.Def (VarDecl TyName Name ann) (Term TyName Name ann, Strictness)
+
 data DefState key ann = DefState {
-    _termDefs     :: DefMap key (TermDef (Term TyName Name) TyName Name ann),
+    _termDefs     :: DefMap key (TermDefWithStrictness ann),
     _typeDefs     :: DefMap key (TypeDef TyName ann),
     _datatypeDefs :: DefMap key (DatatypeDef TyName Name ann),
     _aliases      :: Set.Set key
@@ -77,7 +80,7 @@ runDefT x act = do
         where
             bindingDefs defs =
                 let
-                    terms = mapDefs (\d -> TermBind x (PLC.defVar d) (PLC.defVal d)) (_termDefs defs)
+                    terms = mapDefs (\d -> TermBind x (snd $ PLC.defVal d) (PLC.defVar d) (fst $ PLC.defVal d)) (_termDefs defs)
                     types = mapDefs (\d -> TypeBind x (PLC.defVar d) (PLC.defVal d)) (_typeDefs defs)
                     datatypes = mapDefs (\d -> DatatypeBind x (PLC.defVal d)) (_datatypeDefs defs)
                 in terms `Map.union` types `Map.union` datatypes
@@ -120,7 +123,7 @@ instance MonadDefs key ann m => MonadDefs key ann (StateT s m)
 instance MonadDefs key ann m => MonadDefs key ann (ExceptT e m)
 instance MonadDefs key ann m => MonadDefs key ann (ReaderT r m)
 
-defineTerm :: MonadDefs key ann m => key -> TermDef (Term TyName Name) TyName Name ann -> Set.Set key -> m ()
+defineTerm :: MonadDefs key ann m => key -> TermDefWithStrictness ann -> Set.Set key -> m ()
 defineTerm name def deps = liftDef $ DefT $ modify $ over termDefs $ Map.insert name (def, deps)
 
 defineType :: MonadDefs key ann m => key -> TypeDef TyName ann -> Set.Set key -> m ()
@@ -145,8 +148,8 @@ lookupTerm :: (MonadDefs key ann m) => ann -> key -> m (Maybe (Term TyName Name 
 lookupTerm x name = do
     DefState{_termDefs=ds,_aliases=as} <- liftDef $ DefT get
     pure $ case Map.lookup name ds of
-        Just (def, _) -> Just $ if Set.member name as then PLC.defVal def else mkVar x $ PLC.defVar def
-        Nothing       -> Nothing
+        Just (def, _) | not (Set.member name as) -> Just $ mkVar x $ PLC.defVar def
+        _                                        -> Nothing
 
 lookupConstructors :: (MonadDefs key ann m) => ann -> key -> m (Maybe [Term TyName Name ann])
 lookupConstructors x name = do

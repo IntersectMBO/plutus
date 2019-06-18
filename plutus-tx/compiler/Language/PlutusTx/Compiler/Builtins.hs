@@ -135,6 +135,8 @@ builtinNames = [
     , 'Builtins.sha2_256
     , 'Builtins.sha3_256
     , 'Builtins.equalsByteString
+    , 'Builtins.lessThanByteString
+    , 'Builtins.greaterThanByteString
     , 'Builtins.emptyByteString
 
     , 'Builtins.verifySignature
@@ -174,7 +176,7 @@ defineBuiltinTerm :: Compiling m => TH.Name -> PIRTerm -> [GHC.Name] -> m ()
 defineBuiltinTerm name term deps = do
     ghcId <- GHC.tyThingId <$> getThing name
     var <- compileVarFresh ghcId
-    PIR.defineTerm (LexName $ GHC.getName ghcId) (PIR.Def var term) (Set.fromList $ LexName <$> deps)
+    PIR.defineTerm (LexName $ GHC.getName ghcId) (PIR.Def var (term, PIR.Strict)) (Set.fromList $ LexName <$> deps)
 
 -- | Add definitions for all the builtin types to the environment.
 defineBuiltinType :: Compiling m => TH.Name -> PIRType -> [GHC.Name] -> m ()
@@ -214,6 +216,12 @@ defineBuiltinTerms = do
     do
         term <- wrapBsRel 2 $ mkBuiltin PLC.EqByteString
         defineBuiltinTerm 'Builtins.equalsByteString term [bs, bool]
+    do
+        term <- wrapBsRel 2 $ mkBuiltin PLC.LtByteString
+        defineBuiltinTerm 'Builtins.lessThanByteString term [bs, bool]
+    do
+        term <- wrapBsRel 2 $ mkBuiltin PLC.GtByteString
+        defineBuiltinTerm 'Builtins.greaterThanByteString term [bs, bool]
 
     do
         let term = PIR.Constant () $ PLC.BuiltinBS () BSL.empty

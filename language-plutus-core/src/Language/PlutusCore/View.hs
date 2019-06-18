@@ -12,7 +12,6 @@ module Language.PlutusCore.View
     , termAsBuiltin
     , termAsTermIterApp
     , termAsPrimIterApp
-    , isTermValue
     ) where
 
 import           Language.PlutusCore.Lexer.Type (StagedBuiltinName (..))
@@ -72,11 +71,3 @@ termAsPrimIterApp term = do
     -- TODO: resolve this.
     -- guard $ all isTermValue spine
     Just $ IterApp headName spine
-
--- | Check whether a 'Term' is a 'Value'. The term is assumed to be valid.
-isTermValue :: Term tyname name a -> Bool
-isTermValue (IWrap _ _ _ term) = isTermValue term
-isTermValue TyAbs{}            = True
-isTermValue LamAbs{}           = True
-isTermValue Constant{}         = True
-isTermValue term               = isJust $ termAsPrimIterApp term

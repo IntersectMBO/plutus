@@ -47,4 +47,4 @@ distinction between a running contract (contract instance) and the definition
 of the contract. If we add the notion of a "contract instance" we can
 
 * Display instance-specific status information to the user. For example if I enter a swap contract twice, with different parameters, then I would like to see how valuable each instance is.
-* Change the actions available to a users depending on the state of the instance. For example, if I am close to breaking my margin agreement in the sawp 
+* Change the actions available to a users depending on the state of the instance. For example, if I am close to breaking my margin agreement in the swap.

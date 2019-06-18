@@ -1,3 +1,7 @@
+locals {
+  nixops_nginx_port = "80"
+}
+
 # Security Group
 resource "aws_security_group" "nixops" {
   vpc_id = "${aws_vpc.plutus.id}"
@@ -19,8 +23,8 @@ resource "aws_security_group" "nixops" {
   }
 
   ingress {
-    from_port   = "3000"
-    to_port     = "3000"
+    from_port   = "${local.nixops_nginx_port}"
+    to_port     = "${local.nixops_nginx_port}"
     protocol    = "TCP"
     cidr_blocks = ["${var.public_subnet_cidrs}", "${var.private_subnet_cidrs}"]
   }

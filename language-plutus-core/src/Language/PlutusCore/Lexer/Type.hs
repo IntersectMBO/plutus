@@ -50,6 +50,8 @@ data BuiltinName = AddInteger
                  | SHA3
                  | VerifySignature
                  | EqByteString
+                 | LtByteString
+                 | GtByteString
                  deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Lift)
 
 -- | The type of dynamic built-in functions. I.e. functions that exist on certain chains and do
@@ -174,6 +176,8 @@ instance Pretty BuiltinName where
     pretty TakeByteString       = "takeByteString"
     pretty DropByteString       = "dropByteString"
     pretty EqByteString         = "equalsByteString"
+    pretty LtByteString         = "lessThanByteString"
+    pretty GtByteString         = "greaterThanByteString"
     pretty SHA2                 = "sha2_256"
     pretty SHA3                 = "sha3_256"
     pretty VerifySignature      = "verifySignature"

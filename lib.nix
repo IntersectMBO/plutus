@@ -40,10 +40,12 @@ let
   plutusPkgList = plutusPublicPkgList ++ [
     "plutus-playground-server"
     "plutus-tutorial"
+    "plutus-book"
     "plutus-use-cases"
     "playground-common"
     "marlowe"
     "meadow"
+    "deployment-server"
   ];
 
   isPlutus = name: builtins.elem name plutusPkgList;

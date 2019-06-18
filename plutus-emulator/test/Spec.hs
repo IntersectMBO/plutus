@@ -1,7 +1,8 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Main(main) where
@@ -111,7 +112,7 @@ selectCoinProp = property $ do
     let result = runExcept (selectCoin inputs target)
     case result of
         Left _ ->
-            Hedgehog.assert $ (fold $ snd <$> inputs) `Value.lt` target
+            Hedgehog.assert $ not $ (fold $ snd <$> inputs) `Value.geq` target
         Right (ins, change) ->
             Hedgehog.assert $ (fold $ snd <$> ins) `Value.eq` (target `Value.plus` change)
 
@@ -233,7 +234,9 @@ invalidScript = property $ do
 
     where
         failValidator :: ValidatorScript
-        failValidator = ValidatorScript $ $$(compileScript [|| \() () () -> PlutusTx.traceH "I always fail everything" (Builtins.error @()) ||])
+        failValidator = ValidatorScript $ $$(compileScript [|| validator ||])
+        validator :: () -> () -> PendingTx -> Bool
+        validator _ _ _ = PlutusTx.traceErrorH "I always fail everything"
 
 
 txnFlowsTest :: Property

@@ -1,0 +1,59 @@
+# The Plutus Book
+
+This is the Plutus Book. It is written using [asciidoctor](https://asciidoctor.org/),
+make sure to consult its excellent documentation.
+
+The book content is in the `doc` directory, and Literate Haskell sources
+are in the `src` directory.
+
+## Building the book
+
+### Using `nix`
+
+The book can be built in all its formats using `nix` (which is 
+what the CI uses). 
+
+- Run `nix build -f default.nix docs.plutus-book` in the root of
+  the repository.
+    - Make sure you've followed the [main README](../README.md#binary-caches).
+- Look inside the `result` directory.
+
+### Using `asciidoctor` directly
+
+This will just get you the html output, which is probably what
+you want during development.
+
+- Ensure you have the following installed:
+  - `asciidoctor`
+  - `python`
+- Run `asciidoctor plutus.adoc`.
+- Open the resulting `plutus.html` in a browser.
+ 
+## Building the Literate Haskell
+
+The Literate Haskell can be built with `nix`.
+- Run `nix build -f default.nix localPackages.plutus-book` in the root of
+  the repository.
+    - Make sure you've followed the [main README](../README.md#binary-caches).
+    - You can also use `cabal` or `stack`, see the [main README](../README.md) 
+      for more about building Haskell packages.
+
+## Book structure
+
+The entry point to the book is `plutus.adoc`. This defines the main document
+attributes and includes all the chapters in sequence.
+
+Chapters should be written in separate files (beginning the files with their
+sequence number is not essential but helpful), and included into `plutus.adoc`.
+
+To use Literate Haskell:
+- Write Haskell in asciidoc source blocks.
+- Symlink the file into the `src` directory as a `.lhs` file.
+- Add the module to `plutus-book.cabal`.
+
+## Miscellaneous
+
+Unfortunately due to a quirk of how `asciidoctor` parses double colons, it's
+tricky to write Haskell type signatures in the main text without them
+rendering wrong. To get around that, use an attribute reference `{2c}` 
+instead of the colons.

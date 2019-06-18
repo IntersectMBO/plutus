@@ -1,0 +1,37 @@
+= Plutus
+:authors: Some IOHK folk
+:email: plutus@iohk.io
+:orgname: IOHK
+:doctype: book
+:toc: left
+:sectnums:
+:source-highlighter: pygments
+// Considerations:
+// - Shouldn't mess up alignment (weirdly some of them do, including the default)
+// - Shouldn't have a dark background, otherwise callouts don't show up (otherwise I'd pick monokai)
+// - Should have a non-white background, to distinguish code blocks
+:pygments-style: tango
+:imagesdir: images
+// uses fontawesome, seems okay for now, could use real icons later
+:icons: font
+:favicon: {imagesdir}/favicon.ico
+:stylesdir: css
+:linkcss:
+// prevents setting the last-updated-label etc.
+:reproducible:
+
+// unfortunately, asciidoctor likes to parse these as definition lists :(
+// https://github.com/asciidoctor/asciidoctor/issues/1066
+:2c: ::
+
+// Include each chapter here
+include::01-preface.adoc[leveloffset=+ 1]
+include::02-glossary.adoc[leveloffset=+ 1]
+include::03-UTxO.adoc[leveloffset=+ 1]
+include::04-smartcont.adoc[leveloffset=+ 1]
+include::05-welcome.adoc[leveloffset=+ 1]
+include::06-lifecycle.adoc[leveloffset=+ 1]
+include::07-tour.adoc[leveloffset=+ 1]
+include::08-testing.adoc[leveloffset=+ 1]
+include::09-extended.adoc[leveloffset=+ 1]
+include::02-example-lhs.adoc[leveloffset=+ 1]

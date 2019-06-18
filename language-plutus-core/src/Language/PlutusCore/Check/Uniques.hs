@@ -1,4 +1,9 @@
-module Language.PlutusCore.Check.Uniques (checkProgram, checkTerm, checkType) where
+module Language.PlutusCore.Check.Uniques (
+    checkProgram
+    , checkTerm
+    , checkType
+    , UniqueError (..)
+    , AsUniqueError (..)) where
 
 import           Language.PlutusCore.Analysis.Definitions
 import           Language.PlutusCore.Error

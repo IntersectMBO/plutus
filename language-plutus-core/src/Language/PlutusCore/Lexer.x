@@ -87,6 +87,8 @@ tokens :-
     <0> takeByteString           { mkBuiltin TakeByteString }
     <0> dropByteString           { mkBuiltin DropByteString }
     <0> equalsByteString         { mkBuiltin EqByteString }
+    <0> lessThanByteString       { mkBuiltin LtByteString }
+    <0> greaterThanByteString    { mkBuiltin GtByteString }
     <0> "sha2_256"               { mkBuiltin SHA2 }
     <0> "sha3_256"               { mkBuiltin SHA3 }
     <0> verifySignature          { mkBuiltin VerifySignature }

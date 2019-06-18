@@ -18,12 +18,14 @@ module Language.PlutusIR (
     Datatype (..),
     datatypeNameString,
     Recursivity (..),
+    Strictness (..),
     Binding (..),
     bindingSubterms,
     bindingSubtypes,
     Term (..),
     termSubterms,
     termSubtypes,
+    termBindings,
     Program (..)
     ) where
 
@@ -35,7 +37,7 @@ import           Language.PlutusCore.CBOR   ()
 import           Language.PlutusCore.MkPlc  (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
 import qualified Language.PlutusCore.Pretty as PLC
 
-import           Control.Lens
+import           Control.Lens               hiding (Strict)
 
 import           Codec.Serialise            (Serialise)
 
@@ -74,7 +76,12 @@ data Recursivity = NonRec | Rec
 
 instance Serialise Recursivity
 
-data Binding tyname name a = TermBind a (VarDecl tyname name a) (Term tyname name a)
+data Strictness = NonStrict | Strict
+    deriving (Show, Eq, Generic)
+
+instance Serialise Strictness
+
+data Binding tyname name a = TermBind a Strictness (VarDecl tyname name a) (Term tyname name a)
                            | TypeBind a (TyVarDecl tyname a) (Type tyname a)
                            | DatatypeBind a (Datatype tyname name a)
     deriving (Functor, Show, Eq, Generic)
@@ -85,7 +92,7 @@ instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (B
 -- | Get all the direct child 'Term's of the given 'Binding'.
 bindingSubterms :: Traversal' (Binding tyname name a) (Term tyname name a)
 bindingSubterms f = \case
-    TermBind x d t -> TermBind x d <$> f t
+    TermBind x s d t -> TermBind x s d <$> f t
     b@TypeBind {} -> pure b
     d@DatatypeBind {} -> pure d
 
@@ -103,7 +110,7 @@ datatypeSubtypes f (Datatype a n vs m cs) = Datatype a n vs m <$> (traverse . va
 -- | Get all the direct child 'Type's of the given 'Binding'.
 bindingSubtypes :: Traversal' (Binding tyname name a) (Type tyname a)
 bindingSubtypes f = \case
-    TermBind x d t -> TermBind x <$> varDeclSubtypes f d <*> pure t
+    TermBind x s d t -> TermBind x s <$> varDeclSubtypes f d <*> pure t
     DatatypeBind x d -> DatatypeBind x <$> datatypeSubtypes f d
     TypeBind a d ty -> TypeBind a d <$> f ty
 
@@ -163,7 +170,7 @@ instance TermLike (Term tyname name) tyname name where
     unwrap   = Unwrap
     iWrap    = IWrap
     error    = Error
-    termLet x (Def vd bind) = Let x NonRec [TermBind x vd bind]
+    termLet x (Def vd bind) = Let x NonRec [TermBind x Strict vd bind]
     typeLet x (Def vd bind) = Let x NonRec [TypeBind x vd bind]
 
 {-# INLINE termSubterms #-}
@@ -198,6 +205,13 @@ termSubtypes f = \case
     c@Constant {} -> pure c
     b@Builtin {} -> pure b
 
+{-# INLINE termBindings #-}
+-- | Get all the direct child 'Binding's of the given 'Term'.
+termBindings :: Traversal' (Term tyname name a) (Binding tyname name a)
+termBindings f = \case
+    Let x r bs t -> Let x r <$> traverse f bs <*> pure t
+    t -> pure t
+
 -- no version as PIR is not versioned
 data Program tyname name a = Program a (Term tyname name a) deriving Generic
 
@@ -218,6 +232,11 @@ instance PrettyBy (PLC.PrettyConfigClassic configName) Recursivity where
         NonRec -> parens' "nonrec"
         Rec -> parens' "rec"
 
+instance PrettyBy (PLC.PrettyConfigClassic configName) Strictness where
+    prettyBy _ = \case
+        NonStrict -> parens' "nonstrict"
+        Strict -> parens' "strict"
+
 instance (PLC.PrettyClassicBy configName (tyname a), PLC.PrettyClassicBy configName (name a)) =>
         PrettyBy (PLC.PrettyConfigClassic configName) (Datatype tyname name a) where
     prettyBy config (Datatype _ ty tyvars destr constrs) = parens' ("datatype" </> vsep' [
@@ -229,7 +248,7 @@ instance (PLC.PrettyClassicBy configName (tyname a), PLC.PrettyClassicBy configN
 instance (PLC.PrettyClassicBy configName (tyname a), PLC.PrettyClassicBy configName (name a)) =>
         PrettyBy (PLC.PrettyConfigClassic configName) (Binding tyname name a) where
     prettyBy config = \case
-        TermBind _ d t -> parens' ("termbind" </> vsep' [prettyBy config d, prettyBy config t])
+        TermBind _ s d t -> parens' ("termbind" </> vsep' [prettyBy config s, prettyBy config d, prettyBy config t])
         TypeBind _ d ty -> parens' ("typebind" </> vsep' [prettyBy config d, prettyBy config ty])
         DatatypeBind _ d -> parens' ("datatypebind" </> prettyBy config d)
 

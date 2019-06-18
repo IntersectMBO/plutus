@@ -1,0 +1,28 @@
+= Smart Contracts
+
+From the smart contract author's perspective, the blockchain is a distributed
+bookkeeping system. It keeps track of who owns how much of a virtual resource
+(Bitcoin, Ada, etc.) and records when assets are transferred from one entity to
+another. The owners of digital assets are identified by their public keys, and
+they may be people or machines.
+
+Smart contracts are programs that control the transfer of resources on the
+blockchain. When two parties decide to enter a smart contract, they place some
+of their own assets under the control of the contract. Every time someone wants
+to take assets out of the contract, the program is run and only if its output is
+positive are the assets released.
+
+On the Cardano blockchain, the programs that run on the blockchain are written
+in a language called Plutus Core. However, smart contract authors do not write
+Plutus Core directly. The Plutus Platform (discussed in the next chapter) is a
+software development kit to enable smart contract authors to easily write smart
+contracts, including the logic that will eventually be run on the blockchain as
+Plutus Core.
+
+The purpose and the functionality of smart contracts is best illustrated by an
+example, which we will continue working with throughout this book. Consider a
+crowdfunding campaign. This type of setup can be interpreted as a smart contract.
+
+… actus
+
+… real-world and non fungible tokens

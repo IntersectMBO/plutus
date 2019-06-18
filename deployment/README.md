@@ -41,7 +41,7 @@ The individual machines now exist but have nothing installed on them. We configu
 6. Switch to the branch you want to work with e.g. `git checkout master`
 7. Move into the nixops directory `cd deployment/nixops/`
 8. Create a file called `secrets.json` that is based on [the example file](./nixops/secrets.json.example)
-9. Create a new deployment `nixops create ./default.nix ./network.nix -d plutus-playground`
+9. Create a new deployment `nixops create ./default.nix ./network.nix -d playgrounds`
 10. Deploy the new deployment `nixops deploy`
 11. You should now be able to reach the playground at [https://myname.plutus.iohkdev.io] (https://myname.plutus.iohkdev.io) and meadow at [https://myname.marlowe.iohkdev.io] (https://myname.marlowe.iohkdev.io)
 
@@ -56,3 +56,7 @@ Most of the time, an environment can be updated without touching terraform at al
 In the case that terraform code is altered in a way that re-created the nixops machine, you will need to go through the entire `Configure the machines` section above. If the nixops machine is not altered, you will be able to copy `machine.json` and just `nixops deploy` after applying terraform code.
 
 WARNING: altering some ssh keys in terraform instances can result in machines being recreated. Ensure with others using machines that it's okay to bring down everything before running any terraform commands. Also a close inspection of `terraform plan` can help assess the danger of running `terraform apply`. Usually you don't want to change these keys anyway as user keys are managed by nixops. As an example, changing `var.nixops_ssh_keys` will result in the nixops machine being re-created however changing `var.playground_ssh_keys` will only change the `machines.json` file that nixops uses.
+
+## Deployment Server
+
+If you wish to use the continuous delivery deployment server then please read the [Readme](../deployment-server/README.md).

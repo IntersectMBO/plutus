@@ -1,7 +1,20 @@
-{ mkInstance = { machines, defaultMachine, secrets, ... }: node: { config, pkgs, lib, ... }:
+{ mkInstance = { machines
+               , defaultMachine
+               , secrets
+               , deploymentServer
+               , configDir
+               , enableGithubHooks
+               , nixpkgsLocation
+               , slackChannel
+               , nixopsStateFile
+               , nixosLocation
+               , deploymentName
+               , ... }: node: { config, pkgs, lib, ... }:
 
 let
     servers = [machines.meadowA machines.meadowB machines.playgroundA machines.playgroundB];
+    nginxPort = 80;
+    deploymentServerPort = 8080;
     target = port: node:
         {
           targets = [
@@ -82,7 +95,7 @@ in
 
     networking.firewall = {
       enable = true;
-      allowedTCPPorts = [ 22 3000 ];
+      allowedTCPPorts = [ 22 nginxPort ];
     };
 
     users.users.nixops =
@@ -178,6 +191,53 @@ in
             ];
           }
         ];
+      };
+    };
+
+    systemd.services.deploymentServer = {
+      enable = enableGithubHooks;
+      path = ["${deploymentServer}" pkgs.git pkgs.nixops pkgs.nix pkgs.gnutar pkgs.gzip ];
+      script = ''deployment-server-exe \
+      --slackChannel ${slackChannel} \
+      --keyfile ${configDir}/secrets.json \
+      --port ${toString deploymentServerPort} \
+      --configDir ${configDir} \
+      --stateFile ${nixopsStateFile} \
+      --deploymentName ${deploymentName} \
+      --include nixos=${nixosLocation} \
+      --include nixpkgs=${nixpkgsLocation}
+      '';
+    };
+
+    services.nginx = {
+      enable = true;
+      statusPage = true;
+
+      recommendedGzipSettings = true;
+      recommendedProxySettings = true;
+      recommendedOptimisation = true;
+
+      upstreams.grafana.servers."127.0.0.1:${toString config.services.grafana.port}" = {};
+      upstreams.githubwebhooks.servers."127.0.0.1:${toString deploymentServerPort}" = {};
+
+      virtualHosts = {
+        "~." = {
+          listen = [{ addr = "0.0.0.0"; port = nginxPort; }];
+          locations = {
+            "/" = {
+              proxyPass = "http://grafana/";
+              proxyWebsockets = true;
+            };
+            "/github" = {
+              proxyPass = "http://githubwebhooks/github";
+              proxyWebsockets = true;
+            };
+            "/github/" = {
+              proxyPass = "http://githubwebhooks/github/";
+              proxyWebsockets = true;
+            };
+          };
+        };
       };
     };
 };

@@ -7,15 +7,13 @@
     (let
       (nonrec)
       (termbind
+        (strict)
         (vardecl error (all a (type) (fun Unit a)))
         (abs e (type) (lam thunk Unit (error e)))
       )
       (let
         (nonrec)
-        (termbind
-          (vardecl joinError1 (fun Unit Unit))
-          (lam thunk Unit [ { error Unit } Unit ])
-        )
+        (termbind (nonstrict) (vardecl joinError1 Unit) [ { error Unit } Unit ])
         (let
           (nonrec)
           (datatypebind
@@ -29,6 +27,7 @@
           (let
             (nonrec)
             (termbind
+              (strict)
               (vardecl joinError (fun Bool (fun Bool Unit)))
               (lam
                 x
@@ -47,7 +46,7 @@
                             [
                               [
                                 { [ Bool_match y ] (fun Unit Unit) }
-                                (lam thunk Unit [ joinError1 Unit ])
+                                (lam thunk Unit joinError1)
                               ]
                               (lam thunk Unit Unit)
                             ]

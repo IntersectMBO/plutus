@@ -4,24 +4,24 @@ import Prelude
 
 import Ace (Annotation, Editor)
 import Ace.EditSession as Session
-import Ace.Editor as Editor
-import Ace.Halogen.Component (AceQuery(..))
+import Ace.Editor as AceEditor
 import Auth (AuthStatus)
 import Control.Monad.Error.Class (class MonadThrow, throwError)
 import Control.Monad.Except.Trans (ExceptT, runExceptT)
-import Control.Monad.Reader.Class (class MonadAsk, ask)
-import Control.Monad.State.Class (class MonadState, state)
+import Control.Monad.Reader.Class (class MonadAsk)
+import Control.Monad.State.Class (class MonadState)
 import Control.Monad.Trans.Class (class MonadTrans, lift)
 import Data.Maybe (Maybe(..))
 import Data.MediaType (MediaType)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.RawJson (JsonEither)
+import Editor as Editor
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import FileEvents as FileEvents
 import Gist (Gist, GistId, NewGist)
-import Halogen (HalogenM, query', request)
+import Halogen (HalogenM)
 import Language.Haskell.Interpreter (InterpreterError, SourceCode(SourceCode), InterpreterResult)
 import LocalStorage as LocalStorage
 import Network.RemoteData as RemoteData
@@ -59,30 +59,14 @@ newtype HalogenApp m a = HalogenApp (HalogenM State Query ChildQuery ChildSlot V
 
 derive instance newtypeHalogenApp :: Newtype (HalogenApp m a) _
 
-instance functorHalogenApp :: Functor m => Functor (HalogenApp m) where
-  map f m = wrap $ map f $ unwrap m
-
-instance applicativeHalogenApp :: Applicative m => Applicative (HalogenApp m) where
-  pure v = wrap $ pure v
-
-instance applyHalogenApp :: Apply m => Apply (HalogenApp m) where
-  apply f v = wrap $ unwrap f <*> unwrap v
-
-instance bindHalogenApp :: Bind m => Bind (HalogenApp m) where
-  bind m action = wrap $ do
-    v <- unwrap m
-    unwrap $ action v
-
-instance monadHalogenApp :: Monad m => Monad (HalogenApp m)
-
-instance monadTransHalogenApp :: MonadTrans HalogenApp where
-  lift = wrap <<< lift
-
-instance monadStateApp :: Monad m => MonadState State (HalogenApp m) where
-  state = wrap <<< state
-
-instance monadAskHalogenApp :: MonadAsk env m => MonadAsk env (HalogenApp m) where
-  ask = lift ask
+derive newtype instance functorHalogenApp :: Functor (HalogenApp m)
+derive newtype instance applicativeHalogenApp :: Applicative (HalogenApp m)
+derive newtype instance applyHalogenApp :: Apply (HalogenApp m)
+derive newtype instance bindHalogenApp :: Bind (HalogenApp m)
+derive newtype instance monadHalogenApp :: Monad (HalogenApp m)
+derive newtype instance monadTransHalogenApp :: MonadTrans HalogenApp
+derive newtype instance monadStateHalogenApp :: MonadState State (HalogenApp m)
+derive newtype instance monadAskHalogenApp :: MonadAsk env m => MonadAsk env (HalogenApp m)
 
 instance monadThrowHalogenApp :: MonadThrow e m => MonadThrow e (HalogenApp m) where
   throwError e = lift (throwError e)
@@ -98,14 +82,14 @@ instance monadAppHalogenApp ::
   , MonadAff m
   )
   => MonadApp (HalogenApp m) where
-  editorGetContents = map SourceCode <$> withEditor Editor.getValue
-  editorSetContents contents cursor = void $ withEditor $ Editor.setValue contents cursor
+  editorGetContents = map SourceCode <$> withEditor AceEditor.getValue
+  editorSetContents contents cursor = void $ withEditor $ AceEditor.setValue contents cursor
 
   editorSetAnnotations annotations = void $ withEditor \editor -> do
-      session <- Editor.getSession editor
+      session <- AceEditor.getSession editor
       Session.setAnnotations annotations session
 
-  editorGotoLine row column = void $ withEditor $ Editor.gotoLine row column (Just true)
+  editorGotoLine row column = void $ withEditor $ AceEditor.gotoLine row column (Just true)
 
   preventDefault event = wrap $ liftEffect $ FileEvents.preventDefault event
 
@@ -130,8 +114,4 @@ runAjax :: forall m a.
 runAjax action = wrap $ RemoteData.fromEither <$> runExceptT action
 
 withEditor :: forall a m. MonadEffect m => (Editor -> Effect a) -> HalogenApp m (Maybe a)
-withEditor action = HalogenApp $ do
-    mEditor <- query' cpEditor EditorSlot $ request GetEditor
-    case join mEditor of
-      Just editor -> Just <$> (liftEffect $ action editor)
-      _ -> pure Nothing
+withEditor = HalogenApp <<< Editor.withEditor cpEditor EditorSlot

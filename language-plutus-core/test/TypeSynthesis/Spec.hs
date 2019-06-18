@@ -5,17 +5,17 @@ module TypeSynthesis.Spec
     ) where
 
 import           Language.PlutusCore
-import qualified Language.PlutusCore.Check.ValueRestriction as VR
-import           Language.PlutusCore.FsTree                 (foldPlcFolderContents)
+import qualified Language.PlutusCore.Check.Value         as VR
+import           Language.PlutusCore.FsTree              (foldPlcFolderContents)
 import           Language.PlutusCore.Pretty
 
-import           Language.PlutusCore.Examples.Everything    (examples)
-import           Language.PlutusCore.StdLib.Everything      (stdLib)
+import           Language.PlutusCore.Examples.Everything (examples)
+import           Language.PlutusCore.StdLib.Everything   (stdLib)
 
 import           Common
 
 import           Control.Monad.Except
-import           System.FilePath                            ((</>))
+import           System.FilePath                         ((</>))
 import           Test.Tasty
 import           Test.Tasty.HUnit
 

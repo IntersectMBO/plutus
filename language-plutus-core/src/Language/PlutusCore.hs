@@ -47,17 +47,7 @@ module Language.PlutusCore
     , formatDoc
     -- * Processing
     , Gas (..)
-    , ValueRestrictionError (..)
-    , AsValueRestrictionError (..)
     , rename
-    -- * Normalization
-    , check
-    , checkProgram
-    , checkTerm
-    , NormalizationError
-    , checkFile
-    , isTypeValue
-    , isTermValue
     -- * Type checking
     , module TypeCheck
     , fileType
@@ -65,6 +55,8 @@ module Language.PlutusCore
     , fileTypeCfg
     , printType
     , printNormalizeType
+    , normalizeTypesFullIn
+    , normalizeTypesFullInProgram
     , InternalTypeError (..)
     , TypeError (..)
     , AsTypeError (..)
@@ -109,18 +101,19 @@ module Language.PlutusCore
     ) where
 
 import           Control.Monad.Except
-import qualified Data.ByteString.Lazy                       as BSL
-import qualified Data.Text                                  as T
+import qualified Data.ByteString.Lazy                     as BSL
+import qualified Data.Text                                as T
 import           Data.Text.Prettyprint.Doc
-import           Language.PlutusCore.CBOR                   ()
-import           Language.PlutusCore.Check.Normal           hiding (isTermValue)
-import qualified Language.PlutusCore.Check.Uniques          as Uniques
-import qualified Language.PlutusCore.Check.ValueRestriction as VR (checkProgram)
+import           Language.PlutusCore.CBOR                 ()
+import qualified Language.PlutusCore.Check.Normal         as Normal
+import qualified Language.PlutusCore.Check.Uniques        as Uniques
+import qualified Language.PlutusCore.Check.Value          as VR
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.CkMachine
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Parser
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
@@ -128,7 +121,7 @@ import           Language.PlutusCore.Rename
 import           Language.PlutusCore.Size
 import           Language.PlutusCore.TH
 import           Language.PlutusCore.Type
-import           Language.PlutusCore.TypeCheck              as TypeCheck
+import           Language.PlutusCore.TypeCheck            as TypeCheck
 import           Language.PlutusCore.View
 import           PlutusPrelude
 
@@ -152,13 +145,9 @@ fileTypeCfg cfg = fmap (either prettyErr id . printType) . BSL.readFile
         prettyErr :: Error AlexPosn -> T.Text
         prettyErr = prettyTextBy cfg
 
-checkFile :: FilePath -> IO (Maybe T.Text)
-checkFile = fmap (either (pure . prettyText) id . fmap (fmap prettyPlcDefText . check) . parse) . BSL.readFile
-
 -- | Print the type of a program contained in a 'ByteString'
 printType
     :: (AsParseError e AlexPosn,
-        AsValueRestrictionError e TyName AlexPosn,
         AsUniqueError e AlexPosn,
         AsTypeError e AlexPosn,
         MonadError e m)
@@ -169,7 +158,6 @@ printType = printNormalizeType False
 -- | Print the type of a program contained in a 'ByteString'
 printNormalizeType
     :: (AsParseError e AlexPosn,
-        AsValueRestrictionError e TyName AlexPosn,
         AsUniqueError e AlexPosn,
         AsTypeError e AlexPosn,
         MonadError e m)
@@ -184,18 +172,13 @@ printNormalizeType norm bs = runQuoteT $ prettyPlcDefText <$> do
 -- their scope.
 parseScoped
     :: (AsParseError e AlexPosn,
-        AsValueRestrictionError e TyName AlexPosn,
         AsUniqueError e AlexPosn,
         MonadError e m,
         MonadQuote m)
     => BSL.ByteString
     -> m (Program TyName Name AlexPosn)
 -- don't require there to be no free variables at this point, we might be parsing an open term
-parseScoped =
-    through VR.checkProgram
-    <=< through (Uniques.checkProgram (const True))
-    <=< rename
-    <=< parseProgram
+parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parseProgram
 
 -- | Parse a program and typecheck it.
 parseTypecheck
@@ -211,7 +194,8 @@ parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped
 
 -- | Typecheck a program.
 typecheckPipeline
-    :: (AsNormalizationError e TyName Name a,
+    :: (AsValueRestrictionError e TyName a,
+        AsNormalizationError e TyName Name a,
         AsTypeError e a,
         MonadError e m,
         MonadQuote m)
@@ -220,7 +204,8 @@ typecheckPipeline
     -> m (Normalized (Type TyName ()))
 typecheckPipeline cfg =
     inferTypeOfProgram cfg
-    <=< through (unless (_tccDoNormTypes cfg) . checkProgram)
+    <=< through (unless (_tccDoNormTypes cfg) . Normal.checkProgram)
+    <=< through VR.checkProgram
 
 formatDoc :: (AsParseError e AlexPosn, MonadError e m) => PrettyConfigPlc -> BSL.ByteString -> m (Doc a)
 -- don't use parseScoped since we don't bother running sanity checks when we format

@@ -1,0 +1,9 @@
+(let
+  (nonrec)
+  (termbind
+    (strict)
+    (vardecl unitval (fun (all a (type) (fun a a)) (all a (type) (fun a a))))
+    (lam arg (all a (type) (fun a a)) (abs a (type) (lam x a x)))
+  )
+  [ unitval (abs a (type) (lam x a x)) ]
+)

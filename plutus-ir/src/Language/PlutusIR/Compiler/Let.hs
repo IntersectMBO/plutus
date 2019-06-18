@@ -15,7 +15,7 @@ import qualified Language.PlutusIR.MkPir               as PIR
 import           Control.Monad
 import           Control.Monad.Error.Lens
 
-import           Control.Lens
+import           Control.Lens                          hiding (Strict)
 
 import           Data.List
 
@@ -43,7 +43,7 @@ compileRecBindings kind body bs
 compileRecTermBindings :: Compiling m e a => LetKind -> PIRTerm a -> [Binding TyName Name (Provenance a)] -> m (PIRTerm a)
 compileRecTermBindings RecTerms body bs = do
     binds <- forM bs $ \case
-        TermBind _ vd rhs -> pure $ PIR.Def vd rhs
+        TermBind _ Strict vd rhs -> pure $ PIR.Def vd rhs
         _ -> getEnclosing >>= \p -> throwing _Error $ CompilationError p "Internal error: type binding in term binding group"
     compileRecTerms body binds
 compileRecTermBindings _ body bs = getEnclosing >>= \p -> pure $ Let p Rec bs body
@@ -57,7 +57,7 @@ compileRecTypeBindings Types body bs = do
 compileRecTypeBindings _ body bs = getEnclosing >>= \p -> pure $ Let p Rec bs body
 
 compileNonRecBinding :: Compiling m e a => LetKind -> PIRTerm a -> Binding TyName Name (Provenance a) -> m (PIRTerm a)
-compileNonRecBinding NonRecTerms body (TermBind x d rhs) = withEnclosing (const $ TermBinding (varDeclNameString d) x) $
+compileNonRecBinding NonRecTerms body (TermBind x Strict d rhs) = withEnclosing (const $ TermBinding (varDeclNameString d) x) $
    PIR.mkImmediateLamAbs <$> getEnclosing <*> pure (PIR.Def d rhs) <*> pure body
 compileNonRecBinding Types body (TypeBind x d rhs) = withEnclosing (const $ TypeBinding (tyVarDeclNameString d) x) $
    PIR.mkImmediateTyAbs <$> getEnclosing <*> pure (PIR.Def d rhs) <*> pure body

@@ -2,6 +2,7 @@
   (let
     (nonrec)
     (termbind
+      (strict)
       (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
       (builtin addInteger)
     )
@@ -18,6 +19,7 @@
       (let
         (rec)
         (termbind
+          (strict)
           (vardecl sum (fun [List (con integer)] (con integer)))
           (lam
             ds

@@ -12,6 +12,7 @@
     (let
       (nonrec)
       (termbind
+        (strict)
         (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
         (lam
           arg
@@ -36,6 +37,7 @@
         (let
           (nonrec)
           (termbind
+            (strict)
             (vardecl
               subtractInteger
               (fun (con integer) (fun (con integer) (con integer)))
@@ -45,6 +47,7 @@
           (let
             (rec)
             (termbind
+              (strict)
               (vardecl evenDirect (fun (con integer) Bool))
               (lam
                 n
@@ -67,6 +70,7 @@
               )
             )
             (termbind
+              (strict)
               (vardecl oddDirect (fun (con integer) Bool))
               (lam
                 n

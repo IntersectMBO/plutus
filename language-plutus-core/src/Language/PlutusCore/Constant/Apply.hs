@@ -213,6 +213,10 @@ applyBuiltinName VerifySignature      =
     applyTypedBuiltinName typedVerifySignature      verifySignature
 applyBuiltinName EqByteString         =
     applyTypedBuiltinName typedEqByteString         (==)
+applyBuiltinName LtByteString         =
+    applyTypedBuiltinName typedLtByteString         (<)
+applyBuiltinName GtByteString         =
+    applyTypedBuiltinName typedGtByteString         (>)
 
 -- | Apply a 'BuiltinName' to a list of 'Value's and evaluate the resulting computation usign the
 -- given evaluator.

@@ -20,6 +20,8 @@
         (nonrec
         )
         (termbind
+          (strict
+          )
           (vardecl
             build
             (all a (type) (fun (all b (type) (fun (fun a (fun b b)) (fun b b))) [List a]))
@@ -38,6 +40,8 @@
           (rec
           )
           (termbind
+            (strict
+            )
             (vardecl
               mapDirect
               (all a (type) (all b (type) (fun (fun a b) (fun [List a] [List b]))))
@@ -87,6 +91,7 @@
           (let
             (nonrec)
             (termbind
+              (strict)
               (vardecl
                 addInteger (fun (con integer) (fun (con integer) (con integer)))
               )

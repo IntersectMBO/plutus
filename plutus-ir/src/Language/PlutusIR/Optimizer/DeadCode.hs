@@ -58,7 +58,7 @@ liveBinding =
         liveVarDecl (VarDecl _ n _) = live n
         liveTyVarDecl (TyVarDecl _ n _) = live n
     in \case
-        TermBind _ d _ -> liveVarDecl d
+        TermBind _ _ d _ -> liveVarDecl d
         TypeBind _ d _ -> liveTyVarDecl d
         DatatypeBind _ (Datatype _ d _ destr constrs) -> or <$> (sequence $ [liveTyVarDecl d,  live destr] ++ fmap liveVarDecl constrs)
 

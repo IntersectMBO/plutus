@@ -47,11 +47,13 @@ module Language.PlutusTx.Prelude (
     length,
     all,
     any,
-    append,
+    (++),
     filter,
     -- * ByteStrings
     ByteString,
     equalsByteString,
+    lessThanByteString,
+    greaterThanByteString,
     takeByteString,
     dropByteString,
     concatenate,
@@ -64,10 +66,11 @@ module Language.PlutusTx.Prelude (
     ) where
 
 import           Language.PlutusTx.Builtins (ByteString, concatenate, dropByteString, emptyByteString, equalsByteString,
-                                             sha2_256, sha3_256, takeByteString, verifySignature)
+                                             greaterThanByteString, lessThanByteString, sha2_256, sha3_256,
+                                             takeByteString, verifySignature)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Prelude                    as Prelude hiding (all, any, error, filter, foldl, foldr, fst, length, map,
-                                                        max, maybe, min, not, null, snd, (&&), (||))
+                                                        max, maybe, min, not, null, snd, (&&), (++), (||))
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
@@ -376,14 +379,14 @@ all p = foldr (\a acc -> acc && p a) True
 any :: (a -> Bool) -> [a] -> Bool
 any p = foldr (\a acc -> acc || p a) False
 
-{-# INLINABLE append #-}
+{-# INLINABLE (++) #-}
 -- | PlutusTx version of 'Data.List.(++)'.
 --
---   >>> append [0, 1, 2] [1, 2, 3, 4]
+--   >>> [0, 1, 2] ++ [1, 2, 3, 4]
 --   [0,1,2,1,2,3,4]
 --
-append :: [a] -> [a] -> [a]
-append l r = foldr (:) r l
+(++) :: [a] -> [a] -> [a]
+(++) l r = foldr (:) r l
 
 {-# INLINABLE filter #-}
 -- | PlutusTx version of 'Data.List.filter'.
