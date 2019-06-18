@@ -182,12 +182,12 @@ data Progress {n}(M : n ⊢) : Set where
       -------
     → Progress M
 
-progress· : ∀{n}{t : n ⊢} → Progress t → (u : n ⊢) → Progress (t · u)
-progress· (step p)           u = step (ξ-·₁ p)
-progress· (done (V-ƛ t))     u = step β-ƛ
-progress· (done (V-con tcn)) u = error E-todo
-progress· (neutral n)        u = neutral (N-· n u)
-progress· (error e)          u = error E-todo
+progress-· : ∀{n}{t : n ⊢} → Progress t → (u : n ⊢) → Progress (t · u)
+progress-· (step p)           u = step (ξ-·₁ p)
+progress-· (done (V-ƛ t))     u = step β-ƛ
+progress-· (done (V-con tcn)) u = error E-todo
+progress-· (neutral n)        u = neutral (N-· n u)
+progress-· (error e)          u = error E-todo
 
 progress : ∀{n}(t : n ⊢) → Progress t
 progressList : ∀{n}(tel : Tel n) → ProgList {n} tel
@@ -207,7 +207,7 @@ progressList (t ∷ ts) | neutral n = neutral [] tt n ts refl
 
 progress (` x) = neutral (N-` x)
 progress (ƛ x t)      = done (V-ƛ t)
-progress (t · u)      = progress· (progress t) u
+progress (t · u)      = progress-· (progress t) u
 progress (con tcn)    = done (V-con tcn)
 progress (builtin b ts) with progressList ts
 progress (builtin b ts) | done  vs       =

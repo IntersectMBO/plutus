@@ -220,27 +220,3 @@ erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel {t = t}{t' = t'} p q r)
 \end{code}
 
 -- returning nothing means that the typed step vanishes
-
-\begin{code}
-eraseProgress : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(M : Γ ⊢ A)(p : A.Progress M)
-  → U.Progress (erase M) ⊎ Σ (Γ ⊢ A) λ M' → (M A.—→ M') × (erase M ≡ erase M')
-eraseProgress M (A.step p)    = map U.step (λ q → _ ,, p ,, q) (erase—→ p)
-eraseProgress M (A.done V)    = inj₁ (U.done (eraseVal V))
-eraseProgress M (A.neutral N) = inj₁ (U.neutral (eraseNe N))
-eraseProgress M (A.error e)   = inj₁ (U.error (eraseErr e))
-
-erase-progress : ∀{Φ}{Γ : Ctx Φ}{A}(t : Γ ⊢ A)
-  → eraseProgress t (A.progress t) ≡ inj₁ (U.progress (erase t))
-  ⊎ Σ (Γ ⊢ A) λ t' → Σ (t A.—→ t') λ p → Σ (erase t ≡ erase t') λ q
-    → eraseProgress t (A.progress t) ≡ inj₂ (t' ,, p ,, q)
-erase-progress (` x)   = inj₁ refl
-erase-progress (ƛ x t) = inj₁ refl
-erase-progress (t · u) = {!!}
-erase-progress (Λ x t) = {!!}
-erase-progress (t ·⋆ A) = {!!}
-erase-progress (wrap1 pat arg t) = {!!}
-erase-progress (unwrap1 t) = {!!}
-erase-progress (con x) = inj₁ refl
-erase-progress (builtin bn σ tel) = {!!}
-erase-progress (error A) = inj₁ refl
-\end{code}
