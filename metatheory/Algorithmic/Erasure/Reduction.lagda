@@ -21,7 +21,6 @@ open import Untyped
 open import Builtin.Signature Ctx⋆ Kind
   ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
 open import Type.BetaNBE.RenamingSubstitution
-
 open import Data.Sum as S
 open import Relation.Binary.PropositionalEquality
 open import Data.List hiding (map)
@@ -220,3 +219,67 @@ erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel {t = t}{t' = t'} p q r)
 \end{code}
 
 -- returning nothing means that the typed step vanishes
+\begin{code}
+
+data EP {Φ}{Γ}{A : Φ ⊢Nf⋆ *} (M : Γ ⊢ A) : Set where
+  -- this should be something like a proof there is progress and it agrees
+  -- or a proof that nothing happened and the progress disappeared...
+  step : ∀{N}
+    → (p : M A.—→ N)
+    → (q : erase M U.—→ erase N)
+    → erase—→ p ≡ inj₁ q
+      -------------
+    → EP M
+  done :
+      A.Value M
+      ----------
+    → EP M
+  neutral :
+      A.Neutral M
+      ----------
+    → EP M
+
+  error :
+      A.Error M
+      -------
+    → EP M
+
+  gone : ∀{N : Γ ⊢ A}
+    → erase M ≡ erase N
+      -----------------
+    → EP M
+\end{code}
+
+
+\begin{code}
+eraseProgress : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(M : Γ ⊢ A)(p : A.Progress M)
+  → U.Progress (erase M) ⊎ Σ (Γ ⊢ A) λ M' → (M A.—→ M') × (erase M ≡ erase M')
+eraseProgress M (A.step p)    = map U.step (λ q → _ ,, p ,, q) (erase—→ p)
+eraseProgress M (A.done V)    = inj₁ (U.done (eraseVal V))
+eraseProgress M (A.neutral N) = inj₁ (U.neutral (eraseNe N))
+eraseProgress M (A.error e)   = inj₁ (U.error (eraseErr e))
+
+erase-progress· : ∀{Φ}{Γ : Ctx Φ}{A B}(t : Γ ⊢ A ⇒ B)(p : A.Progress t)
+  → U.Progress (erase t) ⊎ (Σ (Γ ⊢ _) λ t' → (t A.—→ t') × (erase t ≡ erase t'))
+  → (u : Γ ⊢ A)
+  → ((q : U.Progress (erase t))
+   → eraseProgress (t · u) (A.progress-· p u) ≡ inj₁ (U.progress-· q (erase u)))
+  ⊎ 
+  (∀ t'u → (q : t · u A.—→ t'u)(r : erase t · erase u ≡ erase t'u) → eraseProgress (t · u) (A.progress-· p u) ≡ inj₂ (t'u ,, q ,, r))
+erase-progress· = {!U.Progress!}
+
+erase-progress : ∀{Φ}{Γ : Ctx Φ}{A}(t : Γ ⊢ A)
+  → eraseProgress t (A.progress t) ≡ inj₁ (U.progress (erase t))
+  ⊎ Σ (Γ ⊢ A) λ t' → Σ (t A.—→ t') λ p → Σ (erase t ≡ erase t') λ q
+    → eraseProgress t (A.progress t) ≡ inj₂ (t' ,, p ,, q)
+erase-progress (` x)   = inj₁ refl
+erase-progress (ƛ x t) = inj₁ refl
+erase-progress (t · u) = {!!}
+erase-progress (Λ x t) = {!!}
+erase-progress (t ·⋆ A) = {!!}
+erase-progress (wrap1 pat arg t) = {!!}
+erase-progress (unwrap1 t) = {!!}
+erase-progress (con x) = inj₁ refl
+erase-progress (builtin bn σ tel) = {!!}
+erase-progress (error A) = inj₁ refl
+\end{code}
