@@ -14,7 +14,7 @@ Instances of 'Functor' should satisfy the following laws:
 class Functor f where
     fmap :: (a -> b) -> f a -> f b
 
-    -- <$ deliberately omitted, to make this a one-method class which has a
+    -- (<$) deliberately omitted, to make this a one-method class which has a
     -- simpler representation
 
 infixl 4 <$>

@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module Language.PlutusTx.Eq (Eq(..)) where
+module Language.PlutusTx.Eq (Eq(..), (/=)) where
 
 import           Language.PlutusTx.Bool
 import qualified Language.PlutusTx.Builtins as Builtins
@@ -8,17 +8,16 @@ import           Prelude                    hiding (Eq (..), not, (&&))
 {-# ANN module ("HLint: ignore"::String) #-}
 
 -- Copied from the GHC definition
--- | The 'Eq' class defines equality ('==') and inequality ('/=').
---
--- Minimal complete definition: either '==' or '/='.
---
+-- | The 'Eq' class defines equality ('==').
 class Eq a where
-    (==), (/=)           :: a -> a -> Bool
+    (==) :: a -> a -> Bool
 
-    {-# INLINABLE (/=) #-}
-    x /= y               = not (x == y)
-    {-# INLINABLE (==) #-}
-    x == y               = not (x /= y)
+    -- (/=) deliberately omitted, to make this a one-method class which has a
+    -- simpler representation
+
+{-# INLINABLE (/=) #-}
+(/=) :: Eq a => a -> a -> Bool
+x /= y = not (x == y)
 
 instance Eq Integer where
     {-# INLINABLE (==) #-}
