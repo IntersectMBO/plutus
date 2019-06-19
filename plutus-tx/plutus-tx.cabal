@@ -43,6 +43,12 @@ library
         Language.PlutusTx.TH
         Language.PlutusTx.Prelude
         Language.PlutusTx.Evaluation
+        Language.PlutusTx.Bool
+        Language.PlutusTx.Eq
+        Language.PlutusTx.Functor
+        Language.PlutusTx.List
+        Language.PlutusTx.Ord
+        Language.PlutusTx.Maybe
     reexported-modules:
         Language.PlutusTx.Code,
         Language.PlutusTx.Lift,
