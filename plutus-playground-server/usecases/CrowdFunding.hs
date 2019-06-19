@@ -31,7 +31,7 @@ import           Wallet                       as W
 import qualified Wallet.Emulator              as EM
 import           Wallet.Emulator             (Wallet)
 import Data.Proxy
-import Schema (toSchema,SimpleArgumentSchema)
+
 -- | A crowdfunding campaign.
 data Campaign = Campaign
     { campaignDeadline           :: Slot
@@ -43,4 +43,4 @@ data Campaign = Campaign
     , campaignOwner              :: PubKey
     -- ^ Public key of the campaign owner. This key is entitled to retrieve the
     --   funds if the campaign is successful.
-    } deriving (Generic, ToJSON, FromJSON, ToSchema)
+    } deriving (Generic, ToJSON, FromJSON)

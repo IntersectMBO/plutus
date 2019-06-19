@@ -31,7 +31,6 @@ import           Data.Word                  (Word8)
 import           GHC.Generics               (Generic)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift
-import           Schema                     (SimpleArgumentSchema (SimpleStringSchema), ToSchema, toSchema)
 import           Web.HttpApiData            (FromHttpApiData (..), ToHttpApiData (..))
 
 fromHex :: BSL.ByteString -> LedgerBytes
@@ -79,9 +78,6 @@ instance IsString LedgerBytes where
 
 instance Show LedgerBytes where
     show = Text.unpack . JSON.encodeByteString . BSL.toStrict . bytes
-
-instance ToSchema LedgerBytes where
-    toSchema _ = SimpleStringSchema
 
 instance ToJSON LedgerBytes where
     toJSON = JSON.String . JSON.encodeByteString . BSL.toStrict . bytes

@@ -78,7 +78,6 @@ library
         PlutusPrelude
         Control.Monad.Trans.Inner
         Common
-        Schema
         Data.ByteString.Lazy.Hash
         PlcTestUtils
         Crypto

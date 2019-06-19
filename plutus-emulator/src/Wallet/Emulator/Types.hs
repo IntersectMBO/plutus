@@ -104,7 +104,6 @@ import           Data.Traversable          (for)
 import           GHC.Generics              (Generic)
 import qualified Ledger.Crypto             as Crypto
 import           Prelude                   as P
-import           Schema                    (ToSchema)
 import           Servant.API               (FromHttpApiData (..), ToHttpApiData (..))
 
 import           Data.Morpheus.Kind        (KIND, INPUT_OBJECT)
@@ -125,7 +124,7 @@ import qualified Wallet.API                as WAPI
 newtype Wallet = Wallet { getWallet :: Integer }
     deriving (Show, Eq, Ord, Generic)
     deriving newtype (ToHttpApiData, FromHttpApiData, Hashable, GQLType)
-    deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey, ToSchema)
+    deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey)
 
 type instance KIND Wallet = INPUT_OBJECT
 

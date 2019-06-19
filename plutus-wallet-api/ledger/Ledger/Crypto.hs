@@ -40,7 +40,6 @@ import qualified Data.ByteString            as BS
 import qualified Data.ByteString.Lazy       as BSL
 import           Data.Morpheus.Kind         (INPUT_OBJECT, KIND)
 import           Data.Morpheus.Types        (GQLType)
-import           Schema                     (ToSchema,toSchema,SimpleArgumentSchema(SimpleHexSchema))
 import           GHC.Generics               (Generic)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift     (makeLift)
@@ -53,7 +52,7 @@ import           Servant.API                (FromHttpApiData (parseUrlPiece), To
 newtype PubKey = PubKey { getPubKey :: LedgerBytes }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
-    deriving anyclass (ToSchema, ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, GQLType)
+    deriving anyclass (ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, GQLType)
     deriving newtype (Serialise)
 makeLift ''PubKey
 type instance KIND PubKey = INPUT_OBJECT
@@ -62,7 +61,7 @@ type instance KIND PubKey = INPUT_OBJECT
 newtype PrivateKey = PrivateKey { getPrivateKey :: LedgerBytes }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
-    deriving anyclass (ToSchema, ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey)
+    deriving anyclass (ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey)
     deriving newtype (Serialise)
 
 makeLift ''PrivateKey
@@ -78,9 +77,6 @@ newtype Signature = Signature { getSignature :: Builtins.ByteString }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
     deriving newtype (Serialise)
-
-instance ToSchema Signature where
-    toSchema _ = SimpleHexSchema
 
 instance ToJSON Signature where
   toJSON signature =

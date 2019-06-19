@@ -35,7 +35,6 @@ module Ledger.Ada(
 
 import           Codec.Serialise.Class        (Serialise)
 import           Data.Aeson                   (FromJSON, ToJSON)
-import           Schema                       (ToSchema)
 import           GHC.Generics                 (Generic)
 import           Language.PlutusTx.Lift       (makeLift)
 import           Language.PlutusTx.Prelude    hiding (divide, eq, geq, gt, leq, lt, minus, multiply, negate, plus)
@@ -59,7 +58,7 @@ adaToken = TH.tokenName emptyByteString
 newtype Ada = Ada { getAda :: Integer }
     deriving (Eq, Ord, Show, Enum)
     deriving stock (Generic)
-    deriving anyclass (ToSchema, ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON)
     deriving newtype (Num, Integral, Real, Serialise)
 
 makeLift ''Ada

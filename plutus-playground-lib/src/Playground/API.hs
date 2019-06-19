@@ -40,7 +40,6 @@ import qualified Ledger.Ada                   as Ada
 import           Ledger.Validation            (ValidatorHash, fromSymbol)
 import           Ledger.Value                 (TokenName)
 import qualified Ledger.Value                 as V
-import           Schema                       (Label (Label), Pair (Pair), SimpleArgumentSchema (SimpleArraySchema, SimpleHexSchema, SimpleIntSchema, SimpleObjectSchema, SimpleStringSchema, SimpleTupleSchema, UnknownSchema, ValueSchema))
 import           Servant.API                  ((:<|>), (:>), Get, JSON, Post, ReqBody)
 import           Text.Read                    (readMaybe)
 import           Wallet.Emulator.Types        (EmulatorEvent, Wallet, walletPubKey)
@@ -56,7 +55,7 @@ data KnownCurrency =
         { hash         :: ValidatorHash
         , friendlyName :: Text
         -- , knownTokens  :: NonEmpty TokenName
-        , knownTokens  :: [ TokenName] -- TODO Restore NonEmpty
+        , knownTokens  :: [TokenName] -- TODO Restore NonEmpty
         }
     deriving (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON, GQLType)
@@ -183,34 +182,6 @@ data FunctionSchema a =
         , argumentSchema :: [a]
         }
     deriving (Eq, Show, Generic, ToJSON, FromJSON, Functor)
-
-type instance KIND (FunctionSchema SimpleArgumentSchema) = OBJECT
-
-instance GQLType (FunctionSchema SimpleArgumentSchema)
-
-class SupportedByFrontend a where
-    isSupportedByFrontend :: a -> Bool
-
-instance SupportedByFrontend Label where
-    isSupportedByFrontend (Label _ subSchema) = isSupportedByFrontend subSchema
-
-instance SupportedByFrontend Pair where
-    isSupportedByFrontend (Pair subSchemaX subSchemaY) =
-        all isSupportedByFrontend [subSchemaX, subSchemaY]
-
-instance SupportedByFrontend SimpleArgumentSchema where
-    isSupportedByFrontend SimpleIntSchema = True
-    isSupportedByFrontend SimpleStringSchema = True
-    isSupportedByFrontend SimpleHexSchema = True
-    isSupportedByFrontend (ValueSchema subSchemas) =
-        all isSupportedByFrontend subSchemas
-    isSupportedByFrontend (SimpleObjectSchema subSchemas) =
-        all isSupportedByFrontend subSchemas
-    isSupportedByFrontend (SimpleArraySchema subSchema) =
-        isSupportedByFrontend subSchema
-    isSupportedByFrontend (SimpleTupleSchema subSchema) =
-        isSupportedByFrontend subSchema
-    isSupportedByFrontend (UnknownSchema _ _) = False
 
 ------------------------------------------------------------
 data PlaygroundError

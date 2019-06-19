@@ -70,7 +70,6 @@ import           Data.Map                     (Map)
 import qualified Data.Map                     as Map
 import           Data.Maybe                   (isJust)
 import qualified Data.Set                     as Set
-import           Schema                       (ToSchema)
 import           GHC.Generics                 (Generic)
 
 import           Ledger.Ada
@@ -213,7 +212,6 @@ type TxOutRef = TxOutRefOf (Digest SHA256)
 deriving instance Serialise TxOutRef
 deriving instance ToJSON TxOutRef
 deriving instance FromJSON TxOutRef
-deriving instance ToSchema TxOutRef
 
 -- | A list of a transaction's outputs paired with a 'TxOutRef's referring to them.
 txOutRefs :: Tx -> [(TxOut, TxOutRef)]

@@ -57,7 +57,7 @@ data VestingTranche = VestingTranche {
     -- ^ When this tranche is released
     vestingTrancheAmount :: Value
     -- ^ How much money is locked in this tranche
-    } deriving (Generic, ToJSON, FromJSON, ToSchema, GQLType)
+    } deriving (Generic, ToJSON, FromJSON, GQLType)
 
 PlutusTx.makeLift ''VestingTranche
 
@@ -75,7 +75,7 @@ data Vesting = Vesting {
     vestingOwner    :: PubKey
     -- ^ The recipient of the scheme (who is authorised to take out money once
     --   it has been released)
-    } deriving (Generic, ToJSON, FromJSON, ToSchema, GQLType)
+    } deriving (Generic, ToJSON, FromJSON, GQLType)
 
 PlutusTx.makeLift ''Vesting
 

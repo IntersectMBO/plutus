@@ -78,8 +78,6 @@ import           GHC.Generics               (Generic)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift     (makeLift)
 import           Language.PlutusTx.Prelude
-import           Schema                     (SimpleArgumentSchema (SimpleStringSchema), ToSchema, toSchema)
-
 import           Ledger.Ada                 (Ada)
 import qualified Ledger.Ada                 as Ada
 import           Ledger.Crypto              (PubKey (..), Signature (..))
@@ -214,9 +212,6 @@ type instance KIND ValidatorHash = SCALAR
 
 instance Show ValidatorHash where
   show = show . JSON.encodeSerialise
-
-instance ToSchema ValidatorHash where
-  toSchema _ = SimpleStringSchema
 
 instance ToJSON ValidatorHash where
   toJSON = JSON.String . JSON.encodeSerialise

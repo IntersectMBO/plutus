@@ -61,7 +61,6 @@ library
         http-conduit -any,
         http-types -any,
         jwt -any,
-        language-plutus-core -any,
         lens -any,
         monad-logger -any,
         morpheus-graphql -any,
@@ -111,7 +110,6 @@ library plutus-playground-usecases
         plutus-playground-lib -any,
         plutus-tx -any,
         plutus-wallet-api -any,
-        swagger2 -any,
         text -any,
         time-units -any,
         transformers -any
@@ -140,7 +138,6 @@ executable plutus-playground-server
         filepath -any,
         http-types -any,
         playground-common -any,
-        language-plutus-core -any,
         lens -any,
         morpheus-graphql -any,
         monad-logger -any,
@@ -171,7 +168,6 @@ test-suite plutus-playground-server-test
     build-tool-depends: hspec-discover:hspec-discover -any
     hs-source-dirs: test
     other-modules:
-        Playground.UsecasesSpec
         Paths_plutus_playground_server
         Auth.TypesSpec
         GistSpec
@@ -186,7 +182,6 @@ test-suite plutus-playground-server-test
         hspec -any,
         insert-ordered-containers -any,
         playground-common -any,
-        language-plutus-core -any,
         mtl -any,
         plutus-playground-lib -any,
         plutus-playground-server -any,

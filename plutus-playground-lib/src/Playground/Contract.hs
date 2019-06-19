@@ -10,11 +10,7 @@
 {-# OPTIONS_GHC -fno-warn-missing-import-lists #-}
 
 module Playground.Contract
-    ( mkFunctions
-    , mkFunction
-    , mkKnownCurrencies
-    , ToSchema
-    , SimpleArgumentSchema
+    ( mkKnownCurrencies
     , ToJSON
     , FromJSON
     , FunctionSchema
@@ -41,7 +37,6 @@ module Playground.Contract
     , PayToWalletArguments
     ) where
 
-import qualified Control.Monad.Operational   as Op
 import           Data.Aeson                  (FromJSON, ToJSON, encode)
 import qualified Data.Aeson                  as Aeson
 import           Data.ByteArray              (ByteArrayAccess)
@@ -50,17 +45,14 @@ import           Data.ByteString.Lazy        (ByteString)
 import qualified Data.ByteString.Lazy        as BSL
 import qualified Data.ByteString.Lazy        as LBS
 import qualified Data.ByteString.Lazy.Char8  as LBC8
-import           Data.Either                 (fromRight)
 import           Data.FileEmbed              (embedStringFile, makeRelativeToProject)
 import           Data.List.NonEmpty          (NonEmpty ((:|)))
 import           Data.Morpheus               ()
 import           Data.Morpheus               (interpreter)
 import           Data.Morpheus.Types         (GQLRequest (GQLRequest, operationName, query, variables))
 import           Data.Morpheus.Types         ()
-import           Data.Morpheus.Types         (GQLArgs, GQLResponse, GQLRootResolver (GQLRootResolver, mutationResolver, queryResolver, subscriptionResolver),
-                                              MUTATION, ResolveCon, Resolver (Resolver), withEffect)
-import           Data.Text                   (Text)
-import qualified Data.Text                   as Text
+import           Data.Morpheus.Types         (GQLArgs, GQLResponse, GQLRootResolver, MUTATION, ResolveCon,
+                                              Resolver (Resolver), withEffect)
 import           Data.Text.Encoding          (decodeUtf8)
 import           GHC.Generics                (Generic)
 import           Ledger.Interval             (always)
@@ -70,13 +62,12 @@ import           Ledger.Value                (TokenName (TokenName), Value)
 import           Playground.API              (FunctionSchema, KnownCurrency (KnownCurrency), SchemaText (SchemaText),
                                               adaCurrency)
 import           Playground.Interpreter.Util
-import           Playground.TH               (mkFunction, mkFunctions, mkKnownCurrencies, mkSingleFunction)
-import           Schema                      (SimpleArgumentSchema, ToSchema)
-import           Wallet.API                  (MonadWallet, WalletAPI, WalletAPIError, payToPublicKey_)
+import           Playground.TH               (mkKnownCurrencies)
+import           Wallet.API                  (WalletAPI, WalletAPIError, payToPublicKey_)
 import           Wallet.Emulator             (AssertionError, EmulatorState, addBlocksAndNotify,
                                               runTraceChainDefaultWallet, runWalletActionAndProcessPending,
                                               walletPubKey)
-import           Wallet.Emulator.Types       (MockWallet, Wallet (..), runTraceChain)
+import           Wallet.Emulator.Types       (MockWallet, Wallet (..))
 
 payToWallet_ :: (Monad m, WalletAPI m) => Value -> Wallet -> m ()
 payToWallet_ v = payToPublicKey_ always v . walletPubKey
@@ -88,8 +79,6 @@ payToWallet_ v = payToPublicKey_ always v . walletPubKey
 instance ByteArrayAccess ByteString where
     length = BA.length . BSL.toStrict
     withByteArray ba = BA.withByteArray (BSL.toStrict ba)
-
-$(mkSingleFunction 'payToWallet_)
 
 printSchema :: (SchemaText, [KnownCurrency]) -> IO ()
 printSchema (schema, currencies) =
@@ -126,7 +115,7 @@ liftUnitResolver :: (Monad m) => (a -> m ()) -> Resolver m MUTATION a Bool
 liftUnitResolver f = const True <$> liftResolver f
 
 data PayToWalletArguments = PayToWalletArguments
-  { payToWalletValue :: Value
+  { payToWalletValue  :: Value
   , payToWalletWallet :: Wallet
   } deriving (Generic, GQLArgs)
 

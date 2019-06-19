@@ -24,7 +24,6 @@ import           Data.Aeson                   (FromJSON, ToJSON)
 import           Data.Hashable                (Hashable)
 import           Data.Maybe                   (isNothing)
 import           Data.Semigroup               (Max (..), Min (..), Option (..), Semigroup ((<>)))
-import           Schema                       (ToSchema)
 import           GHC.Generics                 (Generic)
 import           Language.PlutusTx.Lift       (makeLift)
 
@@ -35,7 +34,7 @@ import           Language.PlutusTx.Lift       (makeLift)
 data Interval a = Interval { ivFrom :: Maybe a, ivTo :: Maybe a }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
-    deriving anyclass (ToSchema, FromJSON, ToJSON, Serialise, Hashable)
+    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable)
 
 makeLift ''Interval
 

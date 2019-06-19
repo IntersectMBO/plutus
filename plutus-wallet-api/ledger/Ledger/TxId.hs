@@ -20,7 +20,6 @@ import qualified Data.Aeson                   as JSON
 import qualified Data.Aeson.Extras            as JSON
 import qualified Data.ByteArray               as BA
 import qualified Data.ByteString              as BSS
-import           Schema                       (ToSchema, toSchema, SimpleArgumentSchema(SimpleHexSchema))
 import           GHC.Generics                 (Generic)
 import           Language.PlutusTx.Lift       (makeLift)
 
@@ -35,9 +34,6 @@ instance Serialise (Digest SHA256) where
 
 instance ToJSON (Digest SHA256) where
     toJSON = JSON.String . JSON.encodeSerialise
-
-instance ToSchema (Digest SHA256) where
-    toSchema _ = SimpleHexSchema
 
 instance FromJSON (Digest SHA256) where
     parseJSON = JSON.decodeSerialise
@@ -55,4 +51,3 @@ type TxId = TxIdOf (Digest SHA256)
 deriving newtype instance Serialise TxId
 deriving anyclass instance ToJSON a => ToJSON (TxIdOf a)
 deriving anyclass instance FromJSON a => FromJSON (TxIdOf a)
-deriving anyclass instance ToSchema a => ToSchema (TxIdOf a)

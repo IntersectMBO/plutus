@@ -28,11 +28,9 @@ module Ledger.Slot(
 import           Codec.Serialise.Class     (Serialise)
 import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Hashable             (Hashable)
-import           GHC.Generics              (Generic)
-import           Schema                    (ToSchema)
-
 import           Data.Morpheus.Kind        (INPUT_OBJECT, KIND)
 import           Data.Morpheus.Types       (GQLType)
+import           GHC.Generics              (Generic)
 import           Language.PlutusTx.Lift    (makeLift)
 import           Language.PlutusTx.Prelude hiding (eq)
 import qualified Language.PlutusTx.Prelude as P
@@ -46,7 +44,7 @@ import           Ledger.Interval
 newtype Slot = Slot { getSlot :: Integer }
     deriving (Eq, Ord, Show, Enum)
     deriving stock (Generic)
-    deriving anyclass (ToSchema, FromJSON, ToJSON, GQLType)
+    deriving anyclass (FromJSON, ToJSON, GQLType)
     deriving newtype (Num, Real, Integral, Serialise, Hashable)
 
 type instance KIND Slot = INPUT_OBJECT

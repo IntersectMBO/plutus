@@ -71,7 +71,6 @@ import           Language.PlutusTx.Prelude   hiding (eq, geq, gt, leq, lt, minus
 import qualified Language.PlutusTx.Prelude   as P
 import qualified Ledger.Map                  as Map
 import           LedgerBytes                 (LedgerBytes (LedgerBytes))
-import           Schema                      (Label (Label), SimpleArgumentSchema (..), ToSchema, toSchema)
 
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteString }
     deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise) via LedgerBytes
@@ -79,9 +78,6 @@ newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteStrin
     deriving anyclass (Hashable, GQLType, GQLScalar)
 
 type instance KIND CurrencySymbol = SCALAR
-
-instance ToSchema CurrencySymbol where
-  toSchema _ = SimpleHexSchema
 
 instance ToJSON CurrencySymbol where
   toJSON currencySymbol =
@@ -125,9 +121,6 @@ toString = C8.unpack . unTokenName
 
 instance Show TokenName where
   show = toString
-
-instance ToSchema TokenName where
-    toSchema _ = SimpleStringSchema
 
 instance ToJSON TokenName where
     toJSON tokenName =
@@ -202,12 +195,6 @@ instance Semigroup Value where
 
 instance Monoid Value where
     mempty = zero
-
-instance ToSchema Value where
-  toSchema _ =
-    ValueSchema
-      [ Label "getValue" (toSchema (Proxy :: Proxy [(CurrencySymbol, [(TokenName, Integer)])]))
-      ]
 
 {- note [Currencies]
 

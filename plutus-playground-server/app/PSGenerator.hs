@@ -55,7 +55,6 @@ import           Playground.API                             (CompilationResult, 
                                                              SimulatorWallet)
 import qualified Playground.API                             as API
 import           Playground.Usecases                        (crowdfunding, game, messages, vesting)
-import           Schema                                     (Label, Pair, SimpleArgumentSchema)
 import           Servant                                    ((:<|>))
 import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
                                                              defaultSettings, languageBridge,
@@ -227,11 +226,8 @@ instance HasBridge MyBridge where
 
 myTypes :: [SumType 'Haskell]
 myTypes =
-    [ (equal <*> mkSumType) (Proxy @SimpleArgumentSchema)
-    , (equal <*> mkSumType) (Proxy @(FunctionSchema A))
+    [ (equal <*> mkSumType) (Proxy @(FunctionSchema A))
     , mkSumType (Proxy @CompilationResult)
-    , (equal <*> mkSumType) (Proxy @Label)
-    , (equal <*> mkSumType) (Proxy @Pair)
     , (equal <*> mkSumType) (Proxy @SchemaText)
     , mkSumType (Proxy @Warning)
     , (equal <*> mkSumType) (Proxy @Fn)
