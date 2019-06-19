@@ -3,7 +3,6 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 module Messages where
 -- TRIM TO HERE
@@ -48,7 +47,7 @@ throwWalletAPIError = throwOtherError
 ------------------------------------------------------------
 -- TODO Template Haskellise.
 ------------------------------------------------------------
-data ThrowWalletAPIErrorArguments = ThrowWalletAPIErrorArguments
+newtype ThrowWalletAPIErrorArguments = ThrowWalletAPIErrorArguments
   { throwWalletAPIErrorMsg :: Text
   } deriving (Generic, GQLArgs)
 

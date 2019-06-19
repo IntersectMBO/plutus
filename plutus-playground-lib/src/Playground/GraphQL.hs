@@ -11,20 +11,16 @@
 
 module Playground.GraphQL where
 
-import           Control.Monad.IO.Class       (MonadIO, liftIO)
-import           Data.Aeson                   (encode)
-import           Data.Aeson.Encode.Pretty     (encodePretty)
-import qualified Data.ByteString.Lazy.Char8   as LBS
+import           Control.Monad.IO.Class       (liftIO)
 import           Data.Morpheus                (interpreter)
-import           Data.Morpheus.Kind           (KIND, OBJECT, UNION)
-import           Data.Morpheus.Types          ((::->), GQLArgs,
-                                               GQLRequest (GQLRequest, operationName, query, variables), GQLResponse,
-                                               GQLResponse (..),
+import           Data.Morpheus.Kind           (KIND, OBJECT)
+import           Data.Morpheus.Types          ( GQLArgs,
+                                               GQLRequest , GQLResponse,
+                                               GQLResponse ,
                                                GQLRootResolver (GQLRootResolver, mutationResolver, queryResolver, subscriptionResolver),
-                                               GQLType, MUTATION, QUERY, ResolveCon, Resolver (Resolver), withEffect)
+                                                MUTATION, QUERY,  Resolver (Resolver), withEffect)
 import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
-import qualified Data.Text.IO                 as Text
 import           GHC.Generics                 (Generic)
 import           Language.Haskell.Interpreter (SourceCode)
 import           Playground.API               (CompilationResult (CompilationResult), SchemaText (SchemaText),
@@ -51,13 +47,13 @@ data ContractArgs =
 
 instance GQLArgs ContractArgs
 
-data APIQuery m =
+newtype APIQuery m =
     APIQuery
         { greeting :: Resolver m QUERY User Text
         }
     deriving (Generic)
 
-data APIMutation m =
+newtype APIMutation m =
     APIMutation
         { contract :: Resolver m MUTATION ContractArgs CompilationResult
         -- , contract :: SourceCode ::-> Either HI.InterpreterError (InterpreterResult CompilationResult)
