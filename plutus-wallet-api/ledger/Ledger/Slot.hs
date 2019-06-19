@@ -5,6 +5,7 @@
 {-# LANGUAGE MonoLocalBinds       #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
 -- Otherwise we get a complaint about the 'fromIntegral' call in the generated instance of 'Integral' for 'Ada'
 {-# OPTIONS_GHC -Wno-identities #-}
@@ -24,15 +25,17 @@ module Ledger.Slot(
     , after
     ) where
 
-import           Codec.Serialise.Class        (Serialise)
-import           Data.Aeson                   (FromJSON, ToJSON)
-import           Data.Hashable                (Hashable)
-import           Schema                       (ToSchema)
-import           GHC.Generics                 (Generic)
+import           Codec.Serialise.Class     (Serialise)
+import           Data.Aeson                (FromJSON, ToJSON)
+import           Data.Hashable             (Hashable)
+import           GHC.Generics              (Generic)
+import           Schema                    (ToSchema)
 
-import           Language.PlutusTx.Lift       (makeLift)
-import           Language.PlutusTx.Prelude    hiding (eq)
-import qualified Language.PlutusTx.Prelude    as P
+import           Data.Morpheus.Kind        (INPUT_OBJECT, KIND)
+import           Data.Morpheus.Types       (GQLType)
+import           Language.PlutusTx.Lift    (makeLift)
+import           Language.PlutusTx.Prelude hiding (eq)
+import qualified Language.PlutusTx.Prelude as P
 
 import           Ledger.Interval
 
@@ -43,8 +46,10 @@ import           Ledger.Interval
 newtype Slot = Slot { getSlot :: Integer }
     deriving (Eq, Ord, Show, Enum)
     deriving stock (Generic)
-    deriving anyclass (ToSchema, FromJSON, ToJSON)
+    deriving anyclass (ToSchema, FromJSON, ToJSON, GQLType)
     deriving newtype (Num, Real, Integral, Serialise, Hashable)
+
+type instance KIND Slot = INPUT_OBJECT
 
 makeLift ''Slot
 

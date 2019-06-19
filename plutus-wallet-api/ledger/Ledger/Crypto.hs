@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
@@ -37,6 +38,8 @@ import qualified Data.Aeson.Extras          as JSON
 import qualified Data.ByteArray             as BA
 import qualified Data.ByteString            as BS
 import qualified Data.ByteString.Lazy       as BSL
+import           Data.Morpheus.Kind         (INPUT_OBJECT, KIND)
+import           Data.Morpheus.Types        (GQLType)
 import           Schema                     (ToSchema,toSchema,SimpleArgumentSchema(SimpleHexSchema))
 import           GHC.Generics               (Generic)
 import qualified Language.PlutusTx.Builtins as Builtins
@@ -50,9 +53,10 @@ import           Servant.API                (FromHttpApiData (parseUrlPiece), To
 newtype PubKey = PubKey { getPubKey :: LedgerBytes }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
-    deriving anyclass (ToSchema, ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey)
+    deriving anyclass (ToSchema, ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, GQLType)
     deriving newtype (Serialise)
 makeLift ''PubKey
+type instance KIND PubKey = INPUT_OBJECT
 
 -- | A cryptographic private key.
 newtype PrivateKey = PrivateKey { getPrivateKey :: LedgerBytes }

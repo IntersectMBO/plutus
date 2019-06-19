@@ -1,6 +1,9 @@
 -- | Re-export functions that are needed when creating a Contract for use in the playground
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
@@ -30,9 +33,12 @@ module Playground.Contract
     , TokenName(TokenName)
     , NonEmpty((:|))
     , adaCurrency
+    , SchemaText
     , toSchema
     , liftResolver
     , liftUnitResolver
+    , payToWalletResolver
+    , PayToWalletArguments
     ) where
 
 import qualified Control.Monad.Operational   as Op
@@ -92,6 +98,8 @@ printSchema (schema, currencies) =
 printJson :: ToJSON a => a -> IO ()
 printJson = LBC8.putStrLn . encode
 
+------------------------------------------------------------
+
 introspectionQuery :: GQLRequest
 introspectionQuery =
     GQLRequest
@@ -116,3 +124,11 @@ liftResolver f = Resolver $ \args -> withEffect [] . Right <$> f args
 
 liftUnitResolver :: (Monad m) => (a -> m ()) -> Resolver m MUTATION a Bool
 liftUnitResolver f = const True <$> liftResolver f
+
+data PayToWalletArguments = PayToWalletArguments
+  { payToWalletValue :: Value
+  , payToWalletWallet :: Wallet
+  } deriving (Generic, GQLArgs)
+
+payToWalletResolver :: (WalletAPI m, Monad m) => Resolver m MUTATION PayToWalletArguments Bool
+payToWalletResolver = liftUnitResolver (\PayToWalletArguments {..} -> payToWallet_ payToWalletValue payToWalletWallet)

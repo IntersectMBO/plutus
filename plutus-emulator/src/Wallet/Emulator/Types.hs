@@ -107,8 +107,8 @@ import           Prelude                   as P
 import           Schema                    (ToSchema)
 import           Servant.API               (FromHttpApiData (..), ToHttpApiData (..))
 
-import           Data.Morpheus.Kind        (KIND, OBJECT, INPUT_OBJECT)
-import           Data.Morpheus.Types       (GQLArgs, GQLType)
+import           Data.Morpheus.Kind        (KIND, INPUT_OBJECT)
+import           Data.Morpheus.Types       (GQLType)
 import           Ledger                    (Address, Block, Blockchain, PrivateKey (..), PubKey (..), Slot, Tx (..),
                                             TxId, TxOut, TxOutOf (..), TxOutRef, Value, addSignature, hashTx, lastSlot,
                                             pubKeyAddress, pubKeyTxIn, pubKeyTxOut, toPublicKey, txOutAddress)

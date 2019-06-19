@@ -1,14 +1,14 @@
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Game where
 -- TRIM TO HERE
@@ -18,26 +18,21 @@ module Game where
 -- Player 2 guesses the word by attempting to spend the transaction
 -- output. If the guess is correct, the validator script releases the funds.
 -- If it isn't, the funds stay locked.
-import qualified Language.PlutusTx            as PlutusTx
-import Data.Text (Text)
-import qualified Data.ByteString.Lazy as LBS
-import Data.Text.Encoding (decodeUtf8)
-import qualified Data.Text as Text
 import           Language.PlutusTx.Prelude
-import           Ledger
-import qualified Ledger.Value                 as Value
-import           Ledger.Value                 (Value)
-import           Ledger.Validation
-import           Wallet
 import           Playground.Contract
-import           Playground.API
-import qualified Data.Aeson as Aeson
-import qualified Data.ByteString.Lazy.Char8   as C
 
-import Data.Morpheus (interpreter)
-import Data.Morpheus.Types (GQLArgs, GQLResponse, ResolveCon, Resolver(Resolver),MUTATION,GQLRootResolver(GQLRootResolver, queryResolver,mutationResolver,subscriptionResolver),withEffect)
-import Data.Morpheus.Kind (KIND, OBJECT)
-import Wallet.Emulator.Types
+import qualified Data.ByteString.Lazy.Char8 as C
+import           Data.Morpheus.Types        (GQLArgs, GQLRootResolver (GQLRootResolver, mutationResolver, queryResolver, subscriptionResolver),
+                                             MUTATION, ResolveCon, Resolver)
+import           Data.Text                  (Text)
+import qualified Data.Text                  as Text
+import qualified Language.PlutusTx          as PlutusTx
+import           Ledger                     (Address, DataScript (DataScript), PendingTx,
+                                             RedeemerScript (RedeemerScript), ValidatorScript (ValidatorScript),
+                                             compileScript, lifted, plcSHA2_256, scriptAddress)
+import           Ledger.Value               (Value)
+import           Wallet                     (MonadWallet, WalletAPI, WalletDiagnostics, collectFromScript,
+                                             defaultSlotRange, payToScript_, startWatching)
 
 data HashedString = HashedString ByteString
 
@@ -150,11 +145,6 @@ data GuessArguments = GuessArguments
   { guessWord :: Text
   } deriving (Generic, GQLArgs)
 
-data PayToWalletArguments = PayToWalletArguments
-  { payToWalletValue :: Value
-  , payToWalletWallet :: Wallet
-  } deriving (Generic, GQLArgs)
-
 data MutationAPI m =
     MutationAPI
         { mutationAPILock        :: Resolver m MUTATION LockArguments        Bool
@@ -170,14 +160,13 @@ rootResolver =
         { queryResolver = ()
         , mutationResolver =
               MutationAPI
-                  { mutationAPILock = liftUnitResolver $ (\LockArguments {..} -> lock (Text.unpack lockWord) lockVl)
-                  , mutationAPIGuess = liftUnitResolver $ (\GuessArguments {..} -> guess (Text.unpack guessWord))
-                  , mutationAPIPayToWallet = liftUnitResolver $ (\PayToWalletArguments {..} -> payToWallet_ payToWalletValue payToWalletWallet)
-                  , mutationAPIStartGame = liftUnitResolver $ (\_ -> startGame)
+                  { mutationAPILock = liftUnitResolver (\LockArguments {..} -> lock (Text.unpack lockWord) lockVl)
+                  , mutationAPIGuess = liftUnitResolver (\GuessArguments {..} -> guess (Text.unpack guessWord))
+                  , mutationAPIStartGame = liftUnitResolver (const startGame)
+                  , mutationAPIPayToWallet = payToWalletResolver
                   }
         , subscriptionResolver = ()
         }
 
 schema :: SchemaText
 schema = toSchema rootResolver
-------------------------------------------------------------

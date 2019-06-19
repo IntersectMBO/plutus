@@ -127,16 +127,9 @@ compile timeout source
             Left err ->
                 throwError . CompilationErrors . pure . RawError $
                 "unable to decode compilation result" <> Text.pack err
-            Right (schema, currencies) -> do
-                let warnings' =
-                        Warning
-                            "It looks like you have not made any functions available, use `$(mkFunctions ['functionA, 'functionB])` to be able to use `functionA` and `functionB`" :
-                        warnings
-                pure . InterpreterResult warnings' $
-                    CompilationResult schema currencies
-            Right (schemas, currencies) ->
+            Right (schema, currencies) ->
                 pure . InterpreterResult warnings $
-                CompilationResult schemas currencies
+                CompilationResult schema currencies
 
 runFunction ::
        ( Show t
@@ -188,6 +181,7 @@ runghcOpts =
     , "-XRecordWildCards"
     , "-XStandaloneDeriving"
     , "-XTemplateHaskell"
+    , "-XTypeFamilies"
     , "-XScopedTypeVariables"
     , "-XNoImplicitPrelude"
     -- See Plutus Tx readme

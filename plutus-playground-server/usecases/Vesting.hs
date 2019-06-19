@@ -1,54 +1,55 @@
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Vesting where
 -- TRIM TO HERE
 -- Vesting scheme as a PLC contract
-import           Control.Monad             (void)
-import qualified Data.Map                  as Map
-import qualified Data.Set                  as Set
-
-import qualified Language.PlutusTx         as PlutusTx
 import           Language.PlutusTx.Prelude
-import           Ledger                    (Address, DataScript(..), RedeemerScript(..), Signature, Slot, TxOutRef, TxIn, ValidatorScript(..))
-import qualified Ledger                    as Ledger
-import           Ledger.Value              (Value)
-import qualified Ledger.Value              as Value
-import qualified Ledger.Value              as Value.TH
-import qualified Ledger.Interval           as Interval
-import qualified Ledger.Slot               as Slot
-import qualified Ledger.Validation         as V
-import           Ledger.Validation         (PendingTx(..))
-import qualified Ledger.Value              as Value
-import           Wallet                    (WalletAPI(..), WalletDiagnostics, PubKey)
-import qualified Wallet                    as W
-import qualified Wallet.API                as WAPI
-import qualified Wallet.Emulator.Types     as EM
 import           Playground.Contract
 
-{- |
-    A simple vesting scheme. Money is locked by a contract and may only be
-    retrieved after some time has passed.
+import qualified Data.Map                  as Map
+import           Data.Morpheus.Types       (GQLArgs, GQLRootResolver (GQLRootResolver, mutationResolver, queryResolver, subscriptionResolver),
+                                            GQLType, MUTATION, ResolveCon, Resolver)
+import           Data.Morpheus.Kind        (INPUT_OBJECT, KIND)
+import qualified Data.Set                  as Set
+import qualified Language.PlutusTx         as PlutusTx
+import           Ledger                    (Address, DataScript (DataScript), RedeemerScript (RedeemerScript), Slot, TxIn,
+                                            TxOutRef, ValidatorScript (ValidatorScript))
+import qualified Ledger                    as Ledger
+import qualified Ledger.Interval           as Interval
+import qualified Ledger.Slot               as Slot
+import           Ledger.Validation         (PendingTx (PendingTx))
+import qualified Ledger.Validation         as V
+import           Ledger.Value              (Value)
+import qualified Ledger.Value              as Value
+import           Wallet                    (MonadWallet, PubKey, WalletAPI(startWatching))
+import qualified Wallet                    as W
+import qualified Wallet.API                as WAPI
 
-    This is our first example of a contract that covers multiple transactions,
-    with a contract state that changes over time.
+-- {- |
+--     A simple vesting scheme. Money is locked by a contract and may only be
+--     retrieved after some time has passed.
 
-    In our vesting scheme the money will be released in two _tranches_ (parts):
-    A smaller part will be available after an initial number of slots have
-    passed, and the entire amount will be released at the end. The owner of the
-    vesting scheme does not have to take out all the money at once: They can take out any amount up to the total that has been released so far. The remaining funds stay locked and can be retrieved later.
+--     This is our first example of a contract that covers multiple transactions,
+--     with a contract state that changes over time.
 
-    Let's start with the data types.
+--     In our vesting scheme the money will be released in two _tranches_ (parts):
+--     A smaller part will be available after an initial number of slots have
+--     passed, and the entire amount will be released at the end. The owner of the
+--     vesting scheme does not have to take out all the money at once: They can take out any amount up to the total that has been released so far. The remaining funds stay locked and can be retrieved later.
 
--}
+--     Let's start with the data types.
+
+-- -}
 
 -- | Tranche of a vesting scheme.
 data VestingTranche = VestingTranche {
@@ -56,9 +57,11 @@ data VestingTranche = VestingTranche {
     -- ^ When this tranche is released
     vestingTrancheAmount :: Value
     -- ^ How much money is locked in this tranche
-    } deriving (Generic, ToJSON, FromJSON, ToSchema)
+    } deriving (Generic, ToJSON, FromJSON, ToSchema, GQLType)
 
 PlutusTx.makeLift ''VestingTranche
+
+type instance KIND VestingTranche = INPUT_OBJECT
 
 -- | A vesting scheme consisting of two tranches. Each tranche defines a date
 --   (slot) after which an additional amount of money can be spent.
@@ -72,9 +75,11 @@ data Vesting = Vesting {
     vestingOwner    :: PubKey
     -- ^ The recipient of the scheme (who is authorised to take out money once
     --   it has been released)
-    } deriving (Generic, ToJSON, FromJSON, ToSchema)
+    } deriving (Generic, ToJSON, FromJSON, ToSchema, GQLType)
 
 PlutusTx.makeLift ''Vesting
+
+type instance KIND Vesting = INPUT_OBJECT
 
 -- | The total value locked by a vesting scheme
 totalAmount :: Vesting -> Value
@@ -245,4 +250,44 @@ withdraw vst vl = do
 
     pure ()
 
-$(mkFunctions ['vestFunds, 'registerVestingScheme, 'withdraw])
+------------------------------------------------------------
+-- TODO Template Haskellise.
+------------------------------------------------------------
+data VestFundsArguments = VestFundsArguments
+  { vestFundsVesting :: Vesting
+  } deriving (Generic, GQLArgs)
+
+data RegisterVestingSchemeArguments = RegisterVestingSchemeArguments
+  { registerVestingSchemeVesting :: Vesting
+  } deriving (Generic, GQLArgs)
+
+data WithdrawArguments = WithdrawArguments
+  { withdrawVesting :: Vesting
+  , withdrawValue :: Value
+  } deriving (Generic, GQLArgs)
+
+data MutationAPI m =
+    MutationAPI
+        { mutationAPIVestFunds             :: Resolver m MUTATION VestFundsArguments             Bool
+        , mutationAPIRegisterVestingScheme :: Resolver m MUTATION RegisterVestingSchemeArguments Bool
+        , mutationAPIWithdraw              :: Resolver m MUTATION WithdrawArguments              Bool
+        , mutationAPIPayToWallet           :: Resolver m MUTATION PayToWalletArguments           Bool
+        }
+    deriving (Generic)
+
+rootResolver :: (ResolveCon m () (MutationAPI m) (), MonadWallet m) => GQLRootResolver m () (MutationAPI m) ()
+rootResolver =
+    GQLRootResolver
+        { queryResolver = ()
+        , mutationResolver =
+              MutationAPI
+                  { mutationAPIVestFunds = liftUnitResolver (\VestFundsArguments {..} -> vestFunds vestFundsVesting)
+                  , mutationAPIRegisterVestingScheme = liftUnitResolver (\RegisterVestingSchemeArguments {..} -> registerVestingScheme registerVestingSchemeVesting)
+                  , mutationAPIWithdraw = liftUnitResolver (\WithdrawArguments {..} -> withdraw withdrawVesting withdrawValue)
+                  , mutationAPIPayToWallet = payToWalletResolver
+                  }
+        , subscriptionResolver = ()
+        }
+
+schema :: SchemaText
+schema = toSchema rootResolver

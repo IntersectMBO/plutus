@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE FlexibleContexts           #-}
@@ -61,7 +63,10 @@ fromHex = LedgerBytes . asBSLiteral
 --   servant instances for the Playground, and a convenient bridge
 --   type for PureScript.
 newtype LedgerBytes = LedgerBytes { getLedgerBytes :: Builtins.ByteString } -- TODO: use strict bytestring
-    deriving (Eq, Ord, Serialise, Generic)
+    deriving (Eq, Ord, Generic)
+    deriving anyclass (Serialise, GQLType, GQLScalar)
+
+type instance KIND LedgerBytes = SCALAR
 
 bytes :: LedgerBytes -> BSL.ByteString
 bytes = getLedgerBytes
