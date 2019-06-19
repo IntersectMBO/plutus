@@ -1,0 +1,16 @@
+= Plutus Tx
+
+Plutus Tx is the name that we give to specially-delimited sections of a Haskell
+program which will be compiled into Plutus Core (usually to go in a transaction,
+hence the "Tx").
+
+This means that Plutus Tx is just Haskell. Strictly, only a subset of Haskell is
+supported, but most simple Haskell should work, and the compiler will tell you if
+you use something that is unsupported.
+
+The key technique that the Plutus Platform uses is called staged metaprogramming.
+What that means is that the main Haskell program generates another program, in
+this case the Plutus Core program that will run on the blockchain. Plutus Tx is
+the mechanism that we use to write those programs. But the fact that it is just
+Haskell means that we can use all the same techinques we use in the main program,
+and we can share types and defintions between the two.
