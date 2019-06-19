@@ -121,7 +121,7 @@
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{$tcn$ is a type constant in in Figure \ref{fig:type_constants}}
+        \AxiomC{$tcn$ is a type constant in in Figure~\ref{fig:type_constants}}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\sizeK{}}}\)}
         \RightLabel{tycon}
         \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\conT{tcn}{A}}{\typeK{}}}\)}
@@ -146,7 +146,7 @@
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{$cn$ has constant signature $\constsig{tcn}{s}$ in Figure \ref{fig:constants}}
+        \AxiomC{$cn$ has constant signature $\constsig{tcn}{s}$ in Figure~\ref{fig:constants}}
         \RightLabel{con}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{cn}{\conT{tcn}{s}}}\)}
     \end{prooftree}
@@ -202,7 +202,7 @@
 
     \begin{prooftree}
         \alwaysNoLine
-        \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in Figure \ref{fig:builtins}}
+        \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in Figure~\ref{fig:builtins}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M_i}{D_i}}\)}
         \UnaryInfC{\(\typeEquiv{D_i}{\subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{B_i}}\)}
         \alwaysSingleLine
@@ -215,7 +215,7 @@
         \RightLabel{error}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\error{A}}{A}}\)}
     \end{prooftree}
-    
+
     \begin{prooftree}
     	\AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{A}}\)}
 		\AxiomC{\(\typeEquiv{A}{A'}\)}
