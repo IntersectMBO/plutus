@@ -3,14 +3,10 @@
 
 var GraphQL = require('graphql');
 
-exports.buildSchemaImpl = function (str) {
-    return function () {
-        return GraphQL.buildSchema(str);
-    };
-};
-
-exports.buildClientSchemaImpl = function (str) {
-    return function () {
-        return GraphQL.buildClientSchema(JSON.parse(str));
-    };
+exports.buildClientSchemaImpl = function (onFailure, onSuccess, str) {
+    try {
+        return onSuccess(GraphQL.buildClientSchema(JSON.parse(str).data));
+    } catch (e) {
+        return onFailure(e);
+    }
 };

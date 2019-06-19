@@ -310,16 +310,16 @@ writeUsecases outputDir = do
 
 generate :: FilePath -> IO ()
 generate outputDir = do
-    -- writeAPIModuleWithSettings
-    --     mySettings
-    --     outputDir
-    --     myBridgeProxy
-    --     (Proxy
-    --          @(API.API
-    --            :<|> Auth.FrontendAPI))
-    -- writePSTypesWith
-    --     (genForeign (ForeignOptions {unwrapSingleConstructors = True}))
-    --     outputDir
-    --     (buildBridge myBridge)
-    --     myTypes
+    writeAPIModuleWithSettings
+        mySettings
+        outputDir
+        myBridgeProxy
+        (Proxy
+             @(API.API
+               :<|> Auth.FrontendAPI))
+    writePSTypesWith
+        (genForeign (ForeignOptions {unwrapSingleConstructors = True}))
+        outputDir
+        (buildBridge myBridge)
+        myTypes
     writeUsecases outputDir

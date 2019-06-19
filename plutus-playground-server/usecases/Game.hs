@@ -111,50 +111,6 @@ startGame =
     -- Player 2's wallet is aware of the game address.
     startWatching gameAddress
 
-data QueryAPI (m :: * -> *) =
-    QueryAPI {}
-    deriving (Generic)
-
-data LockArguments = LockArguments
-  { lockWord :: Text
-  , lockVl :: Value
-  } deriving (Generic)
-
-instance GQLArgs LockArguments
-
-data MutationAPI (m :: * -> *) =
-    MutationAPI
-        { mutationAPILock      :: Resolver m MUTATION LockArguments Bool
-        -- , mutationAPIGuess     :: Resolver m MUTATION Text          Bool
-        , mutationAPIStartGame :: Resolver m MUTATION ()            Bool
-        }
-    deriving (Generic)
-
-data SubscriptionAPI (m :: * -> *) =
-    SubscriptionAPI {}
-    deriving (Generic)
-
-rootResolver :: (ResolveCon m (QueryAPI m) (MutationAPI m) (SubscriptionAPI m), MonadWallet m) => GQLRootResolver m (QueryAPI m) (MutationAPI m) (SubscriptionAPI m)
-rootResolver =
-    GQLRootResolver
-        { queryResolver = QueryAPI {}
-        , mutationResolver =
-              MutationAPI
-                  { mutationAPILock = liftResolver $ (pure True <*) . (\LockArguments {..} -> lock (Text.unpack lockWord) lockVl)
-                  -- , mutationAPIGuess = liftResolver $ (pure True <*) . guess . Text.unpack
-                  , mutationAPIStartGame = liftResolver $ (pure True <*) . const startGame
-                  }
-        , subscriptionResolver = SubscriptionAPI {}
-        }
-
-liftResolver :: (Functor m) => (a -> m b) -> Resolver m MUTATION a b
-liftResolver f = Resolver $ \args -> withEffect [] . Right <$> f args
-
-schema :: SchemaText
-schema = toSchema rootResolver
-
--- $(mkFunctions ['lock, 'guess, 'startGame])
-
 
 {- Note [Contract endpoints]
 
@@ -181,3 +137,47 @@ Playground then uses this schema to present an HTML form to the user where the
 parameters can be entered.
 
 -}
+
+------------------------------------------------------------
+-- TODO Template Haskellise.
+------------------------------------------------------------
+data LockArguments = LockArguments
+  { lockWord :: Text
+  , lockVl :: Value
+  } deriving (Generic, GQLArgs)
+
+data GuessArguments = GuessArguments
+  { guessWord :: Text
+  } deriving (Generic, GQLArgs)
+
+data PayToWalletArguments = PayToWalletArguments
+  { payToWalletValue :: Value
+  , payToWalletWallet :: Wallet
+  } deriving (Generic, GQLArgs)
+
+data MutationAPI m =
+    MutationAPI
+        { mutationAPILock        :: Resolver m MUTATION LockArguments        Bool
+        , mutationAPIGuess       :: Resolver m MUTATION GuessArguments       Bool
+        , mutationAPIStartGame   :: Resolver m MUTATION ()                   Bool
+        , mutationAPIPayToWallet :: Resolver m MUTATION PayToWalletArguments Bool
+        }
+    deriving (Generic)
+
+rootResolver :: (ResolveCon m () (MutationAPI m) (), MonadWallet m) => GQLRootResolver m () (MutationAPI m) ()
+rootResolver =
+    GQLRootResolver
+        { queryResolver = ()
+        , mutationResolver =
+              MutationAPI
+                  { mutationAPILock = liftUnitResolver $ (\LockArguments {..} -> lock (Text.unpack lockWord) lockVl)
+                  , mutationAPIGuess = liftUnitResolver $ (\GuessArguments {..} -> guess (Text.unpack guessWord))
+                  , mutationAPIPayToWallet = liftUnitResolver $ (\PayToWalletArguments {..} -> payToWallet_ payToWalletValue payToWalletWallet)
+                  , mutationAPIStartGame = liftUnitResolver $ (\_ -> startGame)
+                  }
+        , subscriptionResolver = ()
+        }
+
+schema :: SchemaText
+schema = toSchema rootResolver
+------------------------------------------------------------

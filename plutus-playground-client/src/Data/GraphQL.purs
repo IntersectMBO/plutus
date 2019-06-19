@@ -1,19 +1,20 @@
 module Data.GraphQL where
 
 import Prelude
+
 import Affjax (defaultRequest) as Affjax
 import Affjax.RequestBody (json) as Affjax
 import Control.Monad.Error.Class (class MonadError)
 import Data.Argonaut.Core (Json, jsonEmptyObject)
 import Data.Argonaut.Encode (class EncodeJson, assoc, encodeJson, extend)
-import Data.Either (Either)
+import Data.Either (Either(..))
 import Data.Foldable (foldr)
+import Data.Function.Uncurried (Fn3, runFn3)
 import Data.HTTP.Method as Method
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple)
-import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
-import Effect.Exception (Error, try)
+import Effect.Exception (Error)
 import Foreign (F, Foreign)
 import Foreign.Index (ix)
 import Servant.PureScript.Ajax (AjaxError, ajax)
@@ -53,12 +54,13 @@ runQuery {baseURL, query} decoder = do
 
 foreign import data GraphQLSchema :: Type
 
-foreign import buildSchemaImpl :: String -> Effect GraphQLSchema
+foreign import buildClientSchemaImpl ::
+  forall e a.
+  Fn3
+    (e -> Either e a)
+    (a -> Either e a)
+    String
+    (Either Error GraphQLSchema)
 
-buildSchema :: String -> Effect (Either Error GraphQLSchema)
-buildSchema str = try $ buildSchemaImpl str
-
-foreign import buildClientSchemaImpl :: String -> Effect GraphQLSchema
-
-buildClientSchema :: String -> Effect (GraphQLSchema)
-buildClientSchema str = buildClientSchemaImpl str
+buildClientSchema :: String -> Either Error GraphQLSchema
+buildClientSchema = runFn3 buildClientSchemaImpl Left Right

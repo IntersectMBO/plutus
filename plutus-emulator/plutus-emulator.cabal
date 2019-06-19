@@ -55,6 +55,7 @@ library
     build-depends:
         base >=4.9 && <5,
         aeson -any,
+        morpheus-graphql -any,
         base16-bytestring -any,
         bytestring -any,
         cborg -any,

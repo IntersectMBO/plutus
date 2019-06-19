@@ -176,20 +176,15 @@ schemadoc = """
 
   # the schema allows the following query:
   type Query {
+  }
+
+  this schema allows the following mutation:
+  type Mutation {
     compile(source: SourceCode!): EvaluationResult
     evaluate(source: SourceCode!): CompilationResult
   }
-
-  # this schema allows the following mutation:
-  # type Mutation {
-  # }
 """
 
-
-logSpy :: forall m a. Monad m => String -> a -> m Unit
-logSpy msg x = do
-  let r = spy msg x
-  pure unit
 
 runAjax :: forall m a.
   ExceptT AjaxError (HalogenM State Query ChildQuery ChildSlot Void m) a

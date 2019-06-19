@@ -41,9 +41,10 @@ import Ledger.TxId (TxIdOf)
 import Ledger.Value (CurrencySymbol, TokenName, Value, _CurrencySymbol, _TokenName, _Value)
 import Matryoshka (class Corecursive, class Recursive, Algebra, cata)
 import Network.RemoteData (RemoteData)
-import Playground.API (CompilationResult, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency, SimulatorWallet, _FunctionSchema, _SimulatorWallet)
+import Playground.API (CompilationResult, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency, SchemaText(..), SimulatorWallet, _FunctionSchema, _SimulatorWallet)
 import Playground.API as API
-import Schema (SimpleArgumentSchema(..))
+import Prim.TypeError (class Warn, Text)
+import Schema (Label(..), Pair(..), SimpleArgumentSchema(..))
 import Servant.PureScript.Ajax (AjaxError)
 import Test.QuickCheck.Arbitrary (class Arbitrary)
 import Test.QuickCheck.Gen as Gen
@@ -465,9 +466,9 @@ toArgument initialValue = rec
     rec SimpleStringSchema = SimpleString Nothing
     rec SimpleHexSchema = SimpleHex Nothing
     rec (SimpleArraySchema field) = SimpleArray field []
-    rec (SimpleTupleSchema (JsonTuple (fieldA /\ fieldB))) = SimpleTuple (JsonTuple (rec fieldA /\ rec fieldB))
+    rec (SimpleTupleSchema (Pair fieldA fieldB)) = SimpleTuple (JsonTuple (rec fieldA /\ rec fieldB))
     rec schema@(SimpleObjectSchema fields) =
-        SimpleObject schema $ map JsonTuple $ over (traversed <<< _2) rec (map unwrap fields)
+        SimpleObject schema $ map JsonTuple $ over (traversed <<< _2) rec (map (\(Label key schema) -> key /\ schema) fields)
     rec schema@(ValueSchema fields) = ValueArgument schema initialValue
     rec (UnknownSchema context description) = Unknowable { context, description }
 

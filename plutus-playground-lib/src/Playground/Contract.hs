@@ -31,6 +31,8 @@ module Playground.Contract
     , NonEmpty((:|))
     , adaCurrency
     , toSchema
+    , liftResolver
+    , liftUnitResolver
     ) where
 
 import qualified Control.Monad.Operational   as Op
@@ -85,7 +87,6 @@ $(mkSingleFunction 'payToWallet_)
 
 printSchema :: (SchemaText, [KnownCurrency]) -> IO ()
 printSchema (schema, currencies) =
-    -- LBC8.putStrLn . encode $ (schemas <> [payToWallet_Schema], currencies) -- TODO Restore the addition of payToWallet
     LBC8.putStrLn . encode $ (schema, currencies)
 
 printJson :: ToJSON a => a -> IO ()
@@ -94,13 +95,10 @@ printJson = LBC8.putStrLn . encode
 introspectionQuery :: GQLRequest
 introspectionQuery =
     GQLRequest
-        { query =
-              $(embedStringFile =<< makeRelativeToProject "data/introspection.gql")
+        { query = $(embedStringFile =<< makeRelativeToProject "data/introspection.gql")
         , operationName = Nothing
         , variables = Nothing
         }
-
-
 toSchema :: (ResolveCon MockWallet q m s) => GQLRootResolver MockWallet q m s -> SchemaText
 toSchema rootResolver = extractSchemaText $ runTraceChainDefaultWallet schemaM
   where
@@ -111,5 +109,10 @@ toSchema rootResolver = extractSchemaText $ runTraceChainDefaultWallet schemaM
     schemaResponse :: MockWallet GQLResponse
     schemaResponse = interpreter rootResolver introspectionQuery
 
-    -- schemaM :: MonadWallet m => m SchemaText
     schemaM = SchemaText . decodeUtf8 . LBS.toStrict . Aeson.encode <$> schemaResponse
+
+liftResolver :: (Functor m) => (a -> m b) -> Resolver m MUTATION a b
+liftResolver f = Resolver $ \args -> withEffect [] . Right <$> f args
+
+liftUnitResolver :: (Monad m) => (a -> m ()) -> Resolver m MUTATION a Bool
+liftUnitResolver f = const True <$> liftResolver f

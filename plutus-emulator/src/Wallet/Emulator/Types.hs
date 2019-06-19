@@ -9,6 +9,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TupleSections         #-}
+{-# LANGUAGE TypeFamilies          #-}
 module Wallet.Emulator.Types(
     -- * Wallets
     Wallet(..),
@@ -98,14 +99,16 @@ import           Data.Map                  (Map)
 import qualified Data.Map                  as Map
 import           Data.Maybe
 import qualified Data.Set                  as Set
-import           Schema                    (ToSchema)
 import qualified Data.Text                 as T
 import           Data.Traversable          (for)
 import           GHC.Generics              (Generic)
 import qualified Ledger.Crypto             as Crypto
 import           Prelude                   as P
+import           Schema                    (ToSchema)
 import           Servant.API               (FromHttpApiData (..), ToHttpApiData (..))
 
+import           Data.Morpheus.Kind        (KIND, OBJECT, INPUT_OBJECT)
+import           Data.Morpheus.Types       (GQLArgs, GQLType)
 import           Ledger                    (Address, Block, Blockchain, PrivateKey (..), PubKey (..), Slot, Tx (..),
                                             TxId, TxOut, TxOutOf (..), TxOutRef, Value, addSignature, hashTx, lastSlot,
                                             pubKeyAddress, pubKeyTxIn, pubKeyTxOut, toPublicKey, txOutAddress)
@@ -121,8 +124,10 @@ import qualified Wallet.API                as WAPI
 -- | A wallet in the emulator model.
 newtype Wallet = Wallet { getWallet :: Integer }
     deriving (Show, Eq, Ord, Generic)
-    deriving newtype (ToHttpApiData, FromHttpApiData, Hashable)
+    deriving newtype (ToHttpApiData, FromHttpApiData, Hashable, GQLType)
     deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey, ToSchema)
+
+type instance KIND Wallet = INPUT_OBJECT
 
 -- | Get a wallet's public key.
 walletPubKey :: Wallet -> PubKey
