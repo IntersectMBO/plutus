@@ -13,8 +13,7 @@ import           Playground.API               (parseErrorText)
 import           Test.Hspec                   (Spec, describe, it, shouldBe)
 
 spec :: Spec
-spec = do
-    parseErrorTextSpec
+spec = parseErrorTextSpec
 
 parseErrorTextSpec :: Spec
 parseErrorTextSpec =

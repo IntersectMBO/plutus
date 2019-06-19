@@ -47,12 +47,10 @@ import qualified Data.ByteString.Lazy        as LBS
 import qualified Data.ByteString.Lazy.Char8  as LBC8
 import           Data.FileEmbed              (embedStringFile, makeRelativeToProject)
 import           Data.List.NonEmpty          (NonEmpty ((:|)))
-import           Data.Morpheus               ()
 import           Data.Morpheus               (interpreter)
-import           Data.Morpheus.Types         (GQLRequest (GQLRequest, operationName, query, variables))
-import           Data.Morpheus.Types         ()
-import           Data.Morpheus.Types         (GQLArgs, GQLResponse, GQLRootResolver, MUTATION, ResolveCon,
-                                              Resolver (Resolver), withEffect)
+import           Data.Morpheus.Types         (GQLArgs, GQLRequest (GQLRequest, operationName, query, variables),
+                                              GQLResponse, GQLRootResolver, MUTATION, ResolveCon, Resolver (Resolver),
+                                              withEffect)
 import           Data.Text.Encoding          (decodeUtf8)
 import           GHC.Generics                (Generic)
 import           Ledger.Interval             (always)
@@ -109,7 +107,7 @@ toSchema rootResolver = extractSchemaText $ runTraceChainDefaultWallet schemaM
     schemaM = SchemaText . decodeUtf8 . LBS.toStrict . Aeson.encode <$> schemaResponse
 
 liftResolver :: (Functor m) => (a -> m b) -> Resolver m MUTATION a b
-liftResolver f = Resolver $ \args -> withEffect [] . Right <$> f args
+liftResolver f = Resolver $ fmap (withEffect [] . Right) . f
 
 liftUnitResolver :: (Monad m) => (a -> m ()) -> Resolver m MUTATION a Bool
 liftUnitResolver f = const True <$> liftResolver f
