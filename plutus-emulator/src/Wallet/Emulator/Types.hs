@@ -106,7 +106,7 @@ import qualified Ledger.Crypto             as Crypto
 import           Prelude                   as P
 import           Servant.API               (FromHttpApiData (..), ToHttpApiData (..))
 
-import           Data.Morpheus.Kind        (KIND, INPUT_OBJECT)
+import           Data.Morpheus.Kind        (INPUT_OBJECT, KIND)
 import           Data.Morpheus.Types       (GQLType)
 import           Ledger                    (Address, Block, Blockchain, PrivateKey (..), PubKey (..), Slot, Tx (..),
                                             TxId, TxOut, TxOutOf (..), TxOutRef, Value, addSignature, hashTx, lastSlot,

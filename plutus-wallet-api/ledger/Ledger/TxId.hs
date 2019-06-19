@@ -13,15 +13,15 @@ module Ledger.TxId(
     , TxId
     ) where
 
-import           Codec.Serialise.Class        (Serialise, decode, encode)
-import           Crypto.Hash                  (Digest, SHA256, digestFromByteString)
-import           Data.Aeson                   (FromJSON (parseJSON), ToJSON (toJSON))
-import qualified Data.Aeson                   as JSON
-import qualified Data.Aeson.Extras            as JSON
-import qualified Data.ByteArray               as BA
-import qualified Data.ByteString              as BSS
-import           GHC.Generics                 (Generic)
-import           Language.PlutusTx.Lift       (makeLift)
+import           Codec.Serialise.Class  (Serialise, decode, encode)
+import           Crypto.Hash            (Digest, SHA256, digestFromByteString)
+import           Data.Aeson             (FromJSON (parseJSON), ToJSON (toJSON))
+import qualified Data.Aeson             as JSON
+import qualified Data.Aeson.Extras      as JSON
+import qualified Data.ByteArray         as BA
+import qualified Data.ByteString        as BSS
+import           GHC.Generics           (Generic)
+import           Language.PlutusTx.Lift (makeLift)
 
 instance Serialise (Digest SHA256) where
     encode = encode . BA.unpack

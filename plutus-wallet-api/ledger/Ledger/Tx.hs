@@ -57,20 +57,20 @@ module Ledger.Tx(
     inAddress
     ) where
 
-import qualified Codec.CBOR.Write             as Write
-import           Codec.Serialise.Class        (Serialise, encode)
-import           Control.Lens                 hiding (lifted)
-import           Crypto.Hash                  (Digest, SHA256, hash)
-import           Data.Aeson                   (FromJSON, FromJSONKey (..), ToJSON, ToJSONKey (..))
-import qualified Data.ByteArray               as BA
-import qualified Data.ByteString.Char8        as BS8
-import qualified Data.ByteString.Lazy         as BSL
-import           Data.Hashable                (Hashable, hashWithSalt)
-import           Data.Map                     (Map)
-import qualified Data.Map                     as Map
-import           Data.Maybe                   (isJust)
-import qualified Data.Set                     as Set
-import           GHC.Generics                 (Generic)
+import qualified Codec.CBOR.Write      as Write
+import           Codec.Serialise.Class (Serialise, encode)
+import           Control.Lens          hiding (lifted)
+import           Crypto.Hash           (Digest, SHA256, hash)
+import           Data.Aeson            (FromJSON, FromJSONKey (..), ToJSON, ToJSONKey (..))
+import qualified Data.ByteArray        as BA
+import qualified Data.ByteString.Char8 as BS8
+import qualified Data.ByteString.Lazy  as BSL
+import           Data.Hashable         (Hashable, hashWithSalt)
+import           Data.Map              (Map)
+import qualified Data.Map              as Map
+import           Data.Maybe            (isJust)
+import qualified Data.Set              as Set
+import           GHC.Generics          (Generic)
 
 import           Ledger.Ada
 import           Ledger.Crypto
@@ -78,8 +78,8 @@ import           Ledger.Scripts
 import           Ledger.Slot
 import           Ledger.TxId
 import           Ledger.Value
-import qualified Ledger.Value                 as V
-import qualified LedgerBytes                  as LB
+import qualified Ledger.Value          as V
+import qualified LedgerBytes           as LB
 
 {- Note [Serialisation and hashing]
 

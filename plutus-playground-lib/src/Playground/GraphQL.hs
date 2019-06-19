@@ -1,24 +1,21 @@
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE DeriveAnyClass             #-}
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE NamedFieldPuns             #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE RecordWildCards            #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE TypeOperators              #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module Playground.GraphQL where
 
 import           Control.Monad.IO.Class       (liftIO)
 import           Data.Morpheus                (interpreter)
 import           Data.Morpheus.Kind           (KIND, OBJECT)
-import           Data.Morpheus.Types          ( GQLArgs,
-                                               GQLRequest , GQLResponse,
-                                               GQLResponse ,
-                                               GQLRootResolver (GQLRootResolver, mutationResolver, queryResolver, subscriptionResolver),
-                                                MUTATION, QUERY,  Resolver (Resolver), withEffect)
+import           Data.Morpheus.Types          (GQLArgs, GQLRequest, GQLResponse, GQLResponse, GQLRootResolver (GQLRootResolver, mutationResolver, queryResolver, subscriptionResolver),
+                                               MUTATION, QUERY, Resolver (Resolver), withEffect)
 import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
 import           GHC.Generics                 (Generic)

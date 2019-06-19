@@ -1,4 +1,3 @@
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE DeriveAnyClass       #-}
 {-# LANGUAGE DeriveGeneric        #-}
@@ -10,6 +9,7 @@
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
@@ -70,8 +70,8 @@ import           Data.Bifunctor             (bimap)
 import qualified Data.ByteArray             as BA
 import qualified Data.ByteString.Lazy       as BSL
 import qualified Data.ByteString.Lazy.Hash  as Hash
-import           Data.Morpheus.Types        (GQLType, GQLScalar (parseValue, serialize))
 import           Data.Morpheus.Kind         (KIND, SCALAR)
+import           Data.Morpheus.Types        (GQLScalar (parseValue, serialize), GQLType)
 import qualified Data.Morpheus.Types        as Morpheus
 import qualified Data.Text                  as Text
 import           GHC.Generics               (Generic)

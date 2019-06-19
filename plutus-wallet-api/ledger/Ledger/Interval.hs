@@ -19,13 +19,13 @@ module Ledger.Interval(
     , overlaps
     ) where
 
-import           Codec.Serialise.Class        (Serialise)
-import           Data.Aeson                   (FromJSON, ToJSON)
-import           Data.Hashable                (Hashable)
-import           Data.Maybe                   (isNothing)
-import           Data.Semigroup               (Max (..), Min (..), Option (..), Semigroup ((<>)))
-import           GHC.Generics                 (Generic)
-import           Language.PlutusTx.Lift       (makeLift)
+import           Codec.Serialise.Class  (Serialise)
+import           Data.Aeson             (FromJSON, ToJSON)
+import           Data.Hashable          (Hashable)
+import           Data.Maybe             (isNothing)
+import           Data.Semigroup         (Max (..), Min (..), Option (..), Semigroup ((<>)))
+import           GHC.Generics           (Generic)
+import           Language.PlutusTx.Lift (makeLift)
 
 -- | An interval of @a@s. The interval is closed below and open above, meaning
 --   that @Interval (Just (10 :: Int)) (Just 11)@ contains a single value @11@.

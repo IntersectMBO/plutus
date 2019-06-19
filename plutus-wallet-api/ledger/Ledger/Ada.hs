@@ -33,15 +33,15 @@ module Ledger.Ada(
     , isZero
     ) where
 
-import           Codec.Serialise.Class        (Serialise)
-import           Data.Aeson                   (FromJSON, ToJSON)
-import           GHC.Generics                 (Generic)
-import           Language.PlutusTx.Lift       (makeLift)
-import           Language.PlutusTx.Prelude    hiding (divide, eq, geq, gt, leq, lt, minus, multiply, negate, plus)
-import qualified Language.PlutusTx.Prelude    as P
+import           Codec.Serialise.Class     (Serialise)
+import           Data.Aeson                (FromJSON, ToJSON)
+import           GHC.Generics              (Generic)
+import           Language.PlutusTx.Lift    (makeLift)
+import           Language.PlutusTx.Prelude hiding (divide, eq, geq, gt, leq, lt, minus, multiply, negate, plus)
+import qualified Language.PlutusTx.Prelude as P
 
-import           Ledger.Value                 (CurrencySymbol, TokenName, Value)
-import qualified Ledger.Value                 as TH
+import           Ledger.Value              (CurrencySymbol, TokenName, Value)
+import qualified Ledger.Value              as TH
 
 {-# INLINABLE adaSymbol #-}
 -- | The 'CurrencySymbol' of the 'Ada' currency.

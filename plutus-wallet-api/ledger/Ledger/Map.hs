@@ -29,13 +29,13 @@ module Ledger.Map(
     , these
     ) where
 
-import           Codec.Serialise.Class        (Serialise)
-import           Data.Aeson                   (FromJSON (parseJSON), ToJSON (toJSON))
-import           Data.Hashable                (Hashable)
-import           GHC.Generics                 (Generic)
-import           Language.PlutusTx.Lift       (makeLift)
-import           Language.PlutusTx.Prelude    hiding (all, lookup, map)
-import qualified Language.PlutusTx.Prelude    as P
+import           Codec.Serialise.Class     (Serialise)
+import           Data.Aeson                (FromJSON (parseJSON), ToJSON (toJSON))
+import           Data.Hashable             (Hashable)
+import           GHC.Generics              (Generic)
+import           Language.PlutusTx.Lift    (makeLift)
+import           Language.PlutusTx.Prelude hiding (all, lookup, map)
+import qualified Language.PlutusTx.Prelude as P
 
 import           Ledger.These
 
