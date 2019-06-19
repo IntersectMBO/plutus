@@ -52,6 +52,8 @@ module Wallet.Emulator.Types(
     assertion,
     assertOwnFundsEq,
     runEmulator,
+    runTraceChainDefault,
+    runTraceChainDefaultWallet,
     -- * Emulator internals
     MockWallet(..),
     handleNotifications,
@@ -631,10 +633,36 @@ evalTraceTxPool pl = fst . runTraceTxPool pl
 execTraceTxPool :: TxPool -> Trace MockWallet a -> EmulatorState
 execTraceTxPool pl = snd . runTraceTxPool pl
 
--- | Run an action as a wallet, subsequently process any pending transactions and
--- notify wallets.
+-- | Run an action as a wallet, subsequently process any pending transactions
+--   and notify wallets.
 runWalletActionAndProcessPending :: [Wallet] -> Wallet -> m () -> Trace m [Tx]
-runWalletActionAndProcessPending allWallets wallet action = do
+runWalletActionAndProcessPending wallets wallet action = do
   _ <- walletAction wallet action
   block <- processPending
-  walletsNotifyBlock allWallets block
+  walletsNotifyBlock wallets block
+
+allWallets :: [Wallet]
+allWallets = Wallet <$> [1..10]
+
+-- | Run an 'EmulatorAction' on a blockchain using a default initial
+--   distribution of 100 Ada for each of the wallets 1-10.
+runTraceChainDefault :: EmulatorAction a -> (Either AssertionError a, EmulatorState)
+runTraceChainDefault action =
+    let
+        dist = [(x, 100) | x <- allWallets]
+        s = emulatorStateInitialDist (Map.fromList (first walletPubKey . second Ada.toValue <$> dist))
+
+        -- make sure the wallets know about the initial transaction
+        notifyInitial = void (addBlocksAndNotify (fst <$> dist) 1)
+    in runEmulator s (processEmulated notifyInitial >> action)
+
+-- | Run an 'WalletAction' in the context of wallet 1, on a default blockchain
+--   with an initial distribution of 100 Ada, and then process all transactions
+--   produced by the 'WalletAction'. Returns the result of the action,
+--   transactions submitted by the action, and the final emulator state.
+runTraceChainDefaultWallet :: MockWallet a -> (Either AssertionError (Either WalletAPIError a, [Tx]), EmulatorState)
+runTraceChainDefaultWallet a = runTraceChainDefault (processEmulated a') where
+    a' = do
+        r <- runWalletAction (Wallet 1) a
+        _ <- processPending >>= walletsNotifyBlock allWallets
+        pure r
