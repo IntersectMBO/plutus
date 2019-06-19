@@ -320,7 +320,10 @@ may use the multi-argument forms.
 \todompj{The syntax for builtins is ambiguous: we can't tell where the list of
   types ends. There are a number of forms that could be either depending on
   context, e.g. variables!}
-
+\todokwxm{This is issue \#1143.}
+\medskip
+\todokwxm{There's also some debate about whether builtins should always be fully applied.
+  See issue \#1144.}
 \newcommand\fixtype[1]{\mu\,\alpha.#1}  % Just for talking about the fix operator in the notes.
 
 \subsection{Notes on the grammar}
@@ -826,6 +829,9 @@ standard operational semantics.
 
 \subfile{figures/TermReduction}
 
+\todokwxm{James says that the rule for \texttt{abs} breaks type preservation.
+  See issue \#1145.  This is also related to type erasure.}
+  
 \subsection{An abstract machine for evaluating Plutus Core programs}
 This section contains a description of an abstract machine for
 executing Plutus Core.  This is based on the CK machine of Felleisen
@@ -878,7 +884,7 @@ parsing or typechecking.
   \texttt{error} value has to have \textit{some} type, and it has to
   match whatever the enclosing term expects.  We'll have to state and
   prove something about type erasure at some point, but not right
-  now.}
+  now. See issue \#948.}
   
 \section{Built in types, functions, and values}
 \label{sec:builtins}
