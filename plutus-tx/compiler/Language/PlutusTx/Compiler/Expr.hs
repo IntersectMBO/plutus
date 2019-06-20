@@ -327,7 +327,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
             let sel_names = fmap GHC.getName (GHC.classAllSelIds cls)
             val_index <- case elemIndex (GHC.getName n) sel_names of
                 Just i  -> pure i
-                Nothing -> throwPlain $ CompilationError "Id not in class method list"
+                Nothing -> throwSd CompilationError $ "Id not in class method list:" GHC.<+> GHC.ppr n
             let rhs = GHC.mkDictSelRhs cls val_index
 
             hoistExpr n rhs
