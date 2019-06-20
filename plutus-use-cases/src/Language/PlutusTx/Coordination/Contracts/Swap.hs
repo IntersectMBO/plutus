@@ -20,7 +20,11 @@ import qualified Ledger.Ada                as Ada
 import           Ledger.Ada                (Ada)
 import           Ledger.Value              (Value)
 
-data Ratio a = a :% a  deriving Eq
+data Ratio a = a :% a
+
+instance Eq a => Eq (Ratio a) where
+    {-# INLINABLE (==) #-}
+    (n1 :% d1) == (n2 :% d2) = n1 == n2 && d1 == d2
 
 PlutusTx.makeLift ''Ratio
 
@@ -86,7 +90,7 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
         adaValueIn v = Ada.toInt (Ada.fromValue v)
 
         isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
-        isPubKeyOutput o k = maybe False (Validation.eqPubKey k) (Validation.pubKeyOutput o)
+        isPubKeyOutput o k = maybe False ((==) k) (Validation.pubKeyOutput o)
 
         -- Verify the authenticity of the oracle value and compute
         -- the payments.
@@ -134,12 +138,12 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
         -- True if the transaction input is the margin payment of the
         -- fixed leg
         iP1 :: PendingTxIn -> Bool
-        iP1 (PendingTxIn _ _ v) = Validation.txSignedBy p swapOwnersFixedLeg && eq (adaValueIn v) margin
+        iP1 (PendingTxIn _ _ v) = Validation.txSignedBy p swapOwnersFixedLeg && adaValueIn v == margin
 
         -- True if the transaction input is the margin payment of the
         -- floating leg
         iP2 :: PendingTxIn -> Bool
-        iP2 (PendingTxIn _ _ v) = Validation.txSignedBy p swapOwnersFloating && eq (adaValueIn v) margin
+        iP2 (PendingTxIn _ _ v) = Validation.txSignedBy p swapOwnersFloating && adaValueIn v == margin
 
         inConditions = (iP1 t1 && iP2 t2) || (iP1 t2 && iP2 t1)
 
@@ -149,11 +153,11 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
 
         -- True if the output is the payment of the fixed leg.
         ol1 :: PendingTxOut -> Bool
-        ol1 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFixedLeg && leq (adaValueIn v) fixedRemainder
+        ol1 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFixedLeg && adaValueIn v <= fixedRemainder
 
         -- True if the output is the payment of the floating leg.
         ol2 :: PendingTxOut -> Bool
-        ol2 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFloating && leq (adaValueIn v) floatRemainder
+        ol2 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFloating && adaValueIn v <= floatRemainder
 
         -- NOTE: I didn't include a check that the slot is greater
         -- than the observation time. This is because the slot is

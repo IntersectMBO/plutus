@@ -12,22 +12,21 @@
 module Vesting where
 -- TRIM TO HERE
 -- Vesting scheme as a PLC contract
+import qualified Prelude                   as Haskell
+import           Language.PlutusTx.Prelude
 import           Control.Monad             (void)
 import qualified Data.Map                  as Map
 import qualified Data.Set                  as Set
 
 import qualified Language.PlutusTx         as PlutusTx
-import           Language.PlutusTx.Prelude
 import           Ledger                    (Address, DataScript(..), RedeemerScript(..), Signature, Slot, TxOutRef, TxIn, ValidatorScript(..))
 import qualified Ledger                    as Ledger
 import           Ledger.Value              (Value)
 import qualified Ledger.Value              as Value
-import qualified Ledger.Value              as Value.TH
 import qualified Ledger.Interval           as Interval
 import qualified Ledger.Slot               as Slot
 import qualified Ledger.Validation         as V
 import           Ledger.Validation         (PendingTx(..))
-import qualified Ledger.Value              as Value
 import           Wallet                    (WalletAPI(..), WalletDiagnostics, PubKey)
 import qualified Wallet                    as W
 import qualified Wallet.API                as WAPI
@@ -202,7 +201,7 @@ withdraw vst vl = do
 
     -- The transaction's validity range should begin with the current slot and
     -- last indefinitely.
-    range <- fmap WAPI.intervalFrom WAPI.slot
+    range <- Haskell.fmap WAPI.intervalFrom WAPI.slot
 
     -- The input should be the UTXO of the vesting scheme. We can get the
     -- outputs at an address (as far as they are known by the wallet) with
@@ -236,7 +235,7 @@ withdraw vst vl = do
         currentlyLocked = Map.foldr (\txo vl' -> vl' `Value.plus` Ledger.txOutValue txo) Value.zero utxos
         remaining = currentlyLocked `Value.minus` vl
 
-        otherOutputs = if Value.eq Value.zero remaining
+        otherOutputs = if Value.isZero remaining
                        then []
                        else [Ledger.scriptTxOut remaining validator (DataScript (Ledger.lifted ()))]
 

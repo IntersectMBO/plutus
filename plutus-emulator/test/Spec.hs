@@ -114,7 +114,7 @@ selectCoinProp = property $ do
         Left _ ->
             Hedgehog.assert $ not $ (fold $ snd <$> inputs) `Value.geq` target
         Right (ins, change) ->
-            Hedgehog.assert $ (fold $ snd <$> ins) `Value.eq` (target `Value.plus` change)
+            Hedgehog.assert $ (fold $ snd <$> ins) == (target `Value.plus` change)
 
 -- | Submits a transaction that is valid in the future, then adds a number of
 --   slots, then verifies that the transaction has been validated.

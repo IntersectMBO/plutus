@@ -24,21 +24,18 @@ module Ledger.Ada(
     , multiply
     , divide
     , negate
-    , geq
-    , gt
-    , leq
-    , lt
-    , eq
     -- * Etc.
     , isZero
     ) where
+
+import qualified Prelude                      as Haskell
 
 import           Codec.Serialise.Class        (Serialise)
 import           Data.Aeson                   (FromJSON, ToJSON)
 import           Data.Swagger.Internal.Schema (ToSchema)
 import           GHC.Generics                 (Generic)
 import           Language.PlutusTx.Lift       (makeLift)
-import           Language.PlutusTx.Prelude    hiding (divide, eq, geq, gt, leq, lt, minus, multiply, negate, plus)
+import           Language.PlutusTx.Prelude    hiding (divide, minus, multiply, negate, plus)
 import qualified Language.PlutusTx.Prelude    as P
 
 import           Ledger.Value                 (CurrencySymbol, TokenName, Value)
@@ -57,10 +54,10 @@ adaToken = TH.tokenName emptyByteString
 -- | ADA, the special currency on the Cardano blockchain.
 --   See note [Currencies] in 'Ledger.Validation.Value.TH'.
 newtype Ada = Ada { getAda :: Integer }
-    deriving (Eq, Ord, Show, Enum)
-    deriving stock (Generic)
+    deriving (Enum)
+    deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
     deriving anyclass (ToSchema, ToJSON, FromJSON)
-    deriving newtype (Num, Integral, Real, Serialise)
+    deriving newtype (Eq, Ord, Num, Integral, Real, Serialise)
 
 makeLift ''Ada
 
@@ -125,29 +122,4 @@ negate (Ada i) = Ada (P.multiply (-1) i)
 {-# INLINABLE isZero #-}
 -- | Check whether an 'Ada' value is zero.
 isZero :: Ada -> Bool
-isZero (Ada i) = P.eq i 0
-
-{-# INLINABLE geq #-}
--- | Check whether one 'Ada' is greater than or equal to another.
-geq :: Ada -> Ada -> Bool
-geq (Ada i) (Ada j) = P.geq i j
-
-{-# INLINABLE gt #-}
--- | Check whether one 'Ada' is strictly greater than another.
-gt :: Ada -> Ada -> Bool
-gt (Ada i) (Ada j) = P.gt i j
-
-{-# INLINABLE leq #-}
--- | Check whether one 'Ada' is less than or equal to another.
-leq :: Ada -> Ada -> Bool
-leq (Ada i) (Ada j) = P.leq i j
-
-{-# INLINABLE lt #-}
--- | Check whether one 'Ada' is strictly less than another.
-lt :: Ada -> Ada -> Bool
-lt (Ada i) (Ada j) = P.lt i j
-
-{-# INLINABLE eq #-}
--- | Check whether one 'Ada' is equal to another.
-eq :: Ada -> Ada -> Bool
-eq (Ada i) (Ada j) = P.eq i j
+isZero (Ada i) = i == 0

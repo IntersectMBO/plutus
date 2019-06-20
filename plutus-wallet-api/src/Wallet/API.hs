@@ -491,7 +491,7 @@ member v (Interval.Interval f t) =
 -- | Emit a warning if the value at an address is zero.
 warnEmptyTransaction :: (WalletDiagnostics m) => Value -> Address -> m ()
 warnEmptyTransaction value addr =
-    when (Value.eq Value.zero value)
+    when (Value.isZero value)
         $ logMsg
         $ Text.unwords [
               "Attempting to collect transaction outputs from"

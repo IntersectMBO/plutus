@@ -12,6 +12,8 @@
 {-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+-- Big hammer, but helps
+{-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns -Wno-name-shadowing #-}
 
 {-# OPTIONS_GHC -fno-strictness #-}
@@ -89,6 +91,8 @@ Or, in case Bob didn't demand payment before timeout2, Alice can require a redee
 
 module Language.Marlowe.Common where
 
+import qualified Prelude                    as Haskell
+
 import           GHC.Generics               (Generic)
 import           Language.Marlowe.Pretty    (Pretty, prettyFragment)
 import qualified Language.PlutusTx.Builtins as Builtins
@@ -99,7 +103,6 @@ import           Ledger.Ada                 (Ada)
 import qualified Ledger.Ada                 as Ada
 import           Ledger.Interval            (Interval (..))
 import           Ledger.Validation
-import qualified Ledger.Validation          as Validation
 import           LedgerBytes                (LedgerBytes (..))
 import           Text.PrettyPrint.Leijen    (text)
 
@@ -123,15 +126,18 @@ they are unique.
 
 -}
 newtype IdentCC = IdentCC Integer
-               deriving stock (Eq, Ord, Show, Generic)
+               deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
+               deriving newtype (Eq, Ord)
                deriving anyclass (Pretty)
 
 newtype IdentChoice = IdentChoice Integer
-               deriving stock (Eq, Ord, Show, Generic)
+               deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
+               deriving newtype (Eq, Ord)
                deriving anyclass (Pretty)
 
 newtype IdentPay = IdentPay Integer
-               deriving stock (Eq, Ord, Show, Generic)
+               deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
+               deriving newtype (Eq, Ord)
                deriving anyclass (Pretty)
 
 type ConcreteChoice = Integer
@@ -139,8 +145,11 @@ type ConcreteChoice = Integer
 type CCStatus = (Person, CCRedeemStatus)
 
 data CCRedeemStatus = NotRedeemed Cash Timeout
-               deriving (Eq, Ord, Show)
+               deriving (Haskell.Eq, Haskell.Ord, Show)
 
+instance Eq CCRedeemStatus where
+    {-# INLINABLE (==) #-}
+    (NotRedeemed c1 t1) == (NotRedeemed c2 t2) = c1 == c2 && t1 == t2
 
 type Choice = ((IdentChoice, Person), ConcreteChoice)
 
@@ -163,8 +172,26 @@ data Value  = Committed IdentCC
             --   'Value' otherwise
             | ValueFromOracle PubKey Value
             -- ^ Oracle PubKey, default 'Value' when no Oracle Value provided
-               deriving stock (Eq, Show, Generic)
+               deriving stock (Haskell.Eq, Show, Generic)
                deriving anyclass (Pretty)
+
+instance Eq Value where
+    {-# INLINABLE (==) #-}
+    l == r = case (l, r) of
+        (Committed idl, Committed idr) -> idl == idr
+        (Value vl, Value vr) -> vl == vr
+        (AddValue v1l v2l, AddValue v1r v2r) -> v1l == v1r && v2l == v2r
+        (MulValue v1l v2l, MulValue v1r v2r) -> v1l == v1r && v2l == v2r
+        (DivValue v1l v2l v3l, DivValue v1r v2r v3r) ->
+            v1l == v1r
+            && v2l == v2r
+            && v3l == v3r
+        (ValueFromChoice (IdentChoice idl) pkl vl, ValueFromChoice (IdentChoice idr) pkr vr) ->
+            idl == idr
+            && pkl == pkr
+            && vl == vr
+        (ValueFromOracle pkl vl, ValueFromOracle pkr vr) -> pkl == pkr && vl == vr
+        _ -> False
 
 {-| Predicate on outer world and contract 'State'.
     'interpretObservation' evaluates 'Observation' to 'Bool'
@@ -180,8 +207,24 @@ data Observation = BelowTimeout Integer
             -- ^ is first amount is greater or equal than the second?
             | TrueObs
             | FalseObs
-               deriving stock (Eq, Show, Generic)
+               deriving stock (Haskell.Eq, Show, Generic)
                deriving anyclass (Pretty)
+
+instance Eq Observation where
+    {-# INLINABLE (==) #-}
+    l == r = case (l, r) of
+            (BelowTimeout tl, BelowTimeout tr) -> tl == tr
+            (AndObs o1l o2l, AndObs o1r o2r) -> o1l == o1r && o2l == o2r
+            (OrObs o1l o2l, OrObs o1r o2r) -> o1l == o1r && o2l == o2r
+            (NotObs ol, NotObs or) -> ol == or
+            (PersonChoseThis (IdentChoice idl) pkl cl, PersonChoseThis (IdentChoice idr) pkr cr) ->
+                idl == idr && pkl == pkr && cl == cr
+            (PersonChoseSomething (IdentChoice idl) pkl, PersonChoseSomething (IdentChoice idr) pkr) ->
+                idl == idr && pkl == pkr
+            (ValueGE v1l v2l, ValueGE v1r v2r) -> v1l == v1r && v2l == v2r
+            (TrueObs, TrueObs) -> True
+            (FalseObs, FalseObs) -> True
+            _ -> False
 
 {-| Marlowe Contract Data Type
 -}
@@ -201,8 +244,39 @@ data Contract = Null
             | When Observation Timeout Contract Contract
             -- ^ when observation evaluates to True evaluate first contract,
             --   evaluate second contract on timeout
-               deriving stock (Eq, Show, Generic)
+               deriving stock (Haskell.Eq, Show, Generic)
                deriving anyclass (Pretty)
+
+instance Eq Contract where
+    {-# INLINABLE (==) #-}
+    l == r = case (l, r) of
+            (Null, Null) -> True
+            (CommitCash (IdentCC idl) pkl vl t1l t2l c1l c2l, CommitCash (IdentCC idr) pkr vr t1r t2r c1r c2r) ->
+                idl == idr
+                && pkl == pkr
+                && vl == vr
+                && t1l == t1r && t2l == t2r
+                && c1l ==c1r && c2l == c2r
+            (RedeemCC (IdentCC idl) c1l, RedeemCC (IdentCC idr) c1r) -> idl == idr && c1l == c1r
+            (Pay (IdentPay idl) pk1l pk2l vl tl cl, Pay (IdentPay idr) pk1r pk2r vr tr cr) ->
+                idl == idr
+                && pk1l == pk1r
+                && pk2l == pk2r
+                && vl == vr
+                && tl == tr
+                && cl == cr
+            (Both c1l c2l, Both c1r c2r) -> c1l == c1r && c2l == c2r
+            (Choice ol c1l c2l, Choice or c1r c2r) ->
+                ol == or
+                && c1l == c1r
+                && c2l == c2r
+            (When ol tl c1l c2l, When or tr c1r c2r) ->
+                ol ==  or
+                && tl ==  tr
+                && c1l == c1r
+                && c2l == c2r
+            _ -> False
+
 
 {-|
     State of a contract validation function.
@@ -219,7 +293,12 @@ data ValidatorState = ValidatorState {
 data State = State {
         stateCommitted :: [Commit],
         stateChoices   :: [Choice]
-    } deriving (Eq, Ord, Show)
+    } deriving (Haskell.Eq, Haskell.Ord, Show)
+
+instance Eq State where
+    {-# INLINABLE (==) #-}
+    (State commits1 choices1) == (State commits2 choices2) =
+        commits1 == commits2 && choices1 == choices2
 
 {-# INLINABLE emptyState #-}
 emptyState :: State
@@ -270,96 +349,6 @@ makeLift ''MarloweData
 makeLift ''Input
 makeLift ''State
 
-{-# INLINABLE eqIdentCC #-}
--- | 'IdentCC' equality
-eqIdentCC :: IdentCC -> IdentCC -> Bool
-eqIdentCC (IdentCC a) (IdentCC b) = a `Builtins.equalsInteger` b
-
-{-# INLINABLE equalValue #-}
--- | 'Value' equality
-equalValue :: Value -> Value -> Bool
-equalValue = let
-    eq l r = case (l, r) of
-            (Committed idl, Committed idr) -> eqIdentCC idl idr
-            (Value vl, Value vr) -> vl `Builtins.equalsInteger` vr
-            (AddValue v1l v2l, AddValue v1r v2r) -> eq v1l v1r && eq v2l v2r
-            (MulValue v1l v2l, MulValue v1r v2r) -> eq v1l v1r && eq v2l v2r
-            (DivValue v1l v2l v3l, DivValue v1r v2r v3r) ->
-                eq v1l v1r
-                && eq v2l v2r
-                && eq v3l v3r
-            (ValueFromChoice (IdentChoice idl) pkl vl, ValueFromChoice (IdentChoice idr) pkr vr) ->
-                idl `Builtins.equalsInteger` idr
-                && pkl `Validation.eqPubKey` pkr
-                && eq vl vr
-            (ValueFromOracle pkl vl, ValueFromOracle pkr vr) -> pkl `Validation.eqPubKey` pkr && eq vl vr
-            _ -> False
-    in eq
-
-{-# INLINABLE equalObservation #-}
--- | 'Observation' equality
-equalObservation :: (Value -> Value -> Bool) -> Observation -> Observation -> Bool
-equalObservation eqValue = let
-    eq l r = case (l, r) of
-            (BelowTimeout tl, BelowTimeout tr) -> tl `Builtins.equalsInteger` tr
-            (AndObs o1l o2l, AndObs o1r o2r) -> o1l `eq` o1r && o2l `eq` o2r
-            (OrObs o1l o2l, OrObs o1r o2r) -> o1l `eq` o1r && o2l `eq` o2r
-            (NotObs ol, NotObs or) -> ol `eq` or
-            (PersonChoseThis (IdentChoice idl) pkl cl, PersonChoseThis (IdentChoice idr) pkr cr) ->
-                idl `Builtins.equalsInteger` idr && pkl `Validation.eqPubKey` pkr && cl `Builtins.equalsInteger` cr
-            (PersonChoseSomething (IdentChoice idl) pkl, PersonChoseSomething (IdentChoice idr) pkr) ->
-                idl `Builtins.equalsInteger` idr && pkl `Validation.eqPubKey` pkr
-            (ValueGE v1l v2l, ValueGE v1r v2r) -> v1l `eqValue` v1r && v2l `eqValue` v2r
-            (TrueObs, TrueObs) -> True
-            (FalseObs, FalseObs) -> True
-            _ -> False
-    in eq
-
-{-# INLINABLE equalContract #-}
--- | 'Contract' equality
-equalContract :: (Value -> Value -> Bool) -> (Observation -> Observation -> Bool) -> Contract -> Contract -> Bool
-equalContract eqValue eqObservation =
-    let eq l r = case (l, r) of
-            (Null, Null) -> True
-            (CommitCash (IdentCC idl) pkl vl t1l t2l c1l c2l, CommitCash (IdentCC idr) pkr vr t1r t2r c1r c2r) ->
-                idl `Builtins.equalsInteger` idr
-                && pkl `Validation.eqPubKey` pkr
-                && vl `eqValue` vr
-                && t1l `Builtins.equalsInteger` t1r && t2l `Builtins.equalsInteger` t2r
-                && eq c1l c1r && eq c2l c2r
-            (RedeemCC (IdentCC idl) c1l, RedeemCC (IdentCC idr) c1r) -> idl `Builtins.equalsInteger` idr && eq c1l c1r
-            (Pay (IdentPay idl) pk1l pk2l vl tl cl, Pay (IdentPay idr) pk1r pk2r vr tr cr) ->
-                idl `Builtins.equalsInteger` idr
-                && pk1l `Validation.eqPubKey` pk1r
-                && pk2l `Validation.eqPubKey` pk2r
-                && vl `eqValue` vr
-                && tl `Builtins.equalsInteger` tr
-                && eq cl cr
-            (Both c1l c2l, Both c1r c2r) -> eq c1l c1r && eq c2l c2r
-            (Choice ol c1l c2l, Choice or c1r c2r) ->
-                ol `eqObservation` or
-                && eq c1l c1r
-                && eq c2l c2r
-            (When ol tl c1l c2l, When or tr c1r c2r) ->
-                ol `eqObservation` or
-                && tl `Builtins.equalsInteger` tr
-                && eq c1l c1r
-                && eq c2l c2r
-            _ -> False
-   in eq
-
-{-# INLINABLE eqValue #-}
-eqValue :: Value -> Value -> Bool
-eqValue = equalValue
-
-{-# INLINABLE eqObservation #-}
-eqObservation :: Observation -> Observation -> Bool
-eqObservation = equalObservation eqValue
-
-{-# INLINABLE eqContract #-}
-eqContract :: Contract -> Contract -> Bool
-eqContract = equalContract eqValue eqObservation
-
 {-# INLINABLE validateContract #-}
 {-| Contract validation.
 
@@ -405,7 +394,7 @@ validateContract State{stateCommitted} contract (Slot bn) actualMoney' = let
         Choice _ c1 c2 -> checkBoth state c1 c2
         When _ _ c1 c2 -> checkBoth state c1 c2
 
-    enoughMoney = calcCommittedMoney stateCommitted 0 `Builtins.lessThanEqInteger` actualMoney
+    enoughMoney = calcCommittedMoney stateCommitted 0 <= actualMoney
 
     in if enoughMoney then
             let (_, validIds) = validateIds (ValidatorState 0 0) contract
@@ -420,22 +409,22 @@ evaluateValue :: Slot -> [OracleValue Integer] -> State -> Value -> Integer
 evaluateValue pendingTxSlot inputOracles state value = let
     findCommit :: IdentCC -> [Commit] -> Maybe CCStatus
     findCommit i@(IdentCC searchId) commits = case commits of
-        (IdentCC id, status) : _ | id `Builtins.equalsInteger` searchId -> Just status
-        _ : xs                                                          -> findCommit i xs
-        _                                                               -> Nothing
+        (IdentCC id, status) : _ | id == searchId -> Just status
+        _ : xs                                    -> findCommit i xs
+        _                                         -> Nothing
 
     fromOracle :: PubKey -> Slot -> [OracleValue Integer] -> Maybe Integer
     fromOracle pubKey h@(Slot blockNumber) oracles = case oracles of
         OracleValue pk (Slot bn) value : _
-            | pk `Validation.eqPubKey` pubKey && bn `Builtins.equalsInteger` blockNumber -> Just value
+            | pk == pubKey && bn == blockNumber -> Just value
         _ : rest -> fromOracle pubKey h rest
         _ -> Nothing
 
     fromChoices :: IdentChoice -> PubKey -> [Choice] -> Maybe ConcreteChoice
     fromChoices identChoice@(IdentChoice id) pubKey choices = case choices of
-        ((IdentChoice i, party), value) : _ | id `Builtins.equalsInteger` i && party `Validation.eqPubKey` pubKey -> Just value
-        _ : rest -> fromChoices identChoice pubKey rest
-        _ -> Nothing
+        ((IdentChoice i, party), value) : _ | id == i && party == pubKey -> Just value
+        _ : rest                                                         -> fromChoices identChoice pubKey rest
+        _                                                                -> Nothing
 
     evalValue :: State -> Value -> Integer
     evalValue state@(State committed choices) value = case value of
@@ -449,7 +438,7 @@ evaluateValue pendingTxSlot inputOracles state value = let
             let divident = evalValue state lhs
             let divisor  = evalValue state rhs
             let defVal   = evalValue state def
-            if divisor `Builtins.equalsInteger` 0 then defVal else divident `Builtins.divideInteger` divisor
+            if divisor == 0 then defVal else divident `Builtins.divideInteger` divisor
         ValueFromChoice ident pubKey def -> case fromChoices ident pubKey choices of
             Just v -> v
             _      -> evalValue state def
@@ -466,20 +455,20 @@ interpretObservation evalValue blockNumber state@(State _ choices) obs = let
     find :: IdentChoice -> Person -> [Choice] -> Maybe ConcreteChoice
     find choiceId@(IdentChoice cid) person choices = case choices of
         (((IdentChoice id, party), choice) : _)
-            | cid `Builtins.equalsInteger` id && party `Validation.eqPubKey` person -> Just choice
+            | cid == id && party == person -> Just choice
         (_ : cs) -> find choiceId person cs
         _ -> Nothing
 
     go :: Observation -> Bool
     go obs = case obs of
-        BelowTimeout n -> blockNumber `Builtins.lessThanEqInteger` n
+        BelowTimeout n -> blockNumber <= n
         AndObs obs1 obs2 -> go obs1 && go obs2
         OrObs obs1 obs2 -> go obs1 || go obs2
         NotObs obs -> not (go obs)
         PersonChoseThis choiceId person referenceChoice ->
-            maybe False (Builtins.equalsInteger referenceChoice) (find choiceId person choices)
+            maybe False ((==) referenceChoice) (find choiceId person choices)
         PersonChoseSomething choiceId person -> isJust (find choiceId person choices)
-        ValueGE a b -> evalValue state a `Builtins.greaterThanEqInteger` evalValue state b
+        ValueGE a b -> evalValue state a >= evalValue state b
         TrueObs -> True
         FalseObs -> False
     in go obs
@@ -494,7 +483,7 @@ insertCommit commit commits = let
         in case commits of
             [] -> [commit]
             (_, (pk, NotRedeemed _ t)) : _
-                | pk `Validation.eqPubKey` pubKey && endTimeout `Builtins.lessThanInteger` t -> commit : commits
+                | pk == pubKey && endTimeout < t -> commit : commits
             c : cs -> c : insert commit cs
     in insert commit commits
 
@@ -512,8 +501,8 @@ discountFromPairList from (Slot currentBlockNumber) value' commits = let
     discount :: Integer -> [Commit] -> Maybe [Commit]
     discount value commits = case commits of
         (ident, (party, NotRedeemed available expire)) : rest
-            | currentBlockNumber `Builtins.lessThanEqInteger` expire && Validation.eqPubKey from party ->
-            if available `Builtins.greaterThanInteger` value then let
+            | currentBlockNumber <= expire && from == party ->
+            if available > value then let
                 change = available `Builtins.subtractInteger` value
                 updatedCommit = (ident, (party, NotRedeemed change expire))
                 in Just (updatedCommit : rest)
@@ -521,7 +510,7 @@ discountFromPairList from (Slot currentBlockNumber) value' commits = let
         commit : rest -> case discount value rest of
                             Just acc -> Just (commit : acc)
                             Nothing  -> Nothing
-        [] -> if value `Builtins.equalsInteger` 0 then Just [] else Nothing
+        [] -> if value == 0 then Just [] else Nothing
     in discount value commits
 
 {-# INLINABLE findAndRemove #-}
@@ -590,7 +579,7 @@ evaluateContract
     eval :: InputCommand -> State -> Contract -> (State, Contract, Bool)
     eval input state@(State commits choices) contract = case (contract, input) of
         (When obs timeout con con2, _)
-            | currentBlockNumber `Builtins.greaterThanInteger` timeout -> eval input state con2
+            | currentBlockNumber > timeout -> eval input state con2
             | interpretObs currentBlockNumber state obs -> eval input state con
 
         (Choice obs conT conF, _) -> if interpretObs currentBlockNumber state obs
@@ -607,13 +596,13 @@ evaluateContract
 
         -- expired CommitCash
         (CommitCash _ _ _ startTimeout endTimeout _ con2, _)
-            | currentBlockNumber `Builtins.greaterThanInteger` startTimeout || currentBlockNumber `Builtins.greaterThanInteger` endTimeout -> eval input state con2
+            | currentBlockNumber > startTimeout || currentBlockNumber > endTimeout -> eval input state con2
 
-        (CommitCash id1 pubKey value _ endTimeout con1 _, Commit id2 signature) | id1 `eqIdentCC` id2 -> let
+        (CommitCash id1 pubKey value _ endTimeout con1 _, Commit id2 signature) | id1 == id2 -> let
             vv = evalValue state value
 
-            isValid = vv `Builtins.greaterThanInteger` 0
-                && scriptOutValue `Builtins.equalsInteger` (scriptInValue `Builtins.addInteger` vv)
+            isValid = vv > 0
+                && scriptOutValue == (scriptInValue `Builtins.addInteger` vv)
                 && signature `signedBy` pubKey
             in  if isValid then let
                     cns = (pubKey, NotRedeemed vv endTimeout)
@@ -623,14 +612,14 @@ evaluateContract
                 else (state, contract, False)
 
         (Pay _ _ _ _ timeout con, _)
-            | currentBlockNumber `Builtins.greaterThanInteger` timeout -> eval input state con
+            | currentBlockNumber > timeout -> eval input state con
 
         (Pay (IdentPay contractIdentPay) from to payValue _ con, Payment (IdentPay pid) signature) -> let
             pv = evalValue state payValue
 
-            isValid = pid `Builtins.equalsInteger` contractIdentPay
-                && pv `Builtins.greaterThanInteger` 0
-                && scriptOutValue `Builtins.equalsInteger` (scriptInValue `Builtins.subtractInteger` pv)
+            isValid = pid == contractIdentPay
+                && pv > 0
+                && scriptOutValue == (scriptInValue `Builtins.subtractInteger` pv)
                 && signature `signedBy` to
             in  if isValid then let
                 in case discountFromPairList from blockHeight (Ada.fromInt pv) commits of
@@ -640,11 +629,11 @@ evaluateContract
                     Nothing -> (state, contract, False)
             else (state, contract, False)
 
-        (RedeemCC id1 con, Redeem id2 signature) | id1 `eqIdentCC` id2 -> let
+        (RedeemCC id1 con, Redeem id2 signature) | id1 == id2 -> let
             predicate :: Commit -> Bool
             predicate (i, (pk, NotRedeemed val _)) =
-                i `eqIdentCC` id1
-                && scriptOutValue `Builtins.equalsInteger` (scriptInValue `Builtins.subtractInteger` val)
+                i == id1
+                && scriptOutValue == (scriptInValue `Builtins.subtractInteger` val)
                 && signature `signedBy` pk
             -- validate and remove a Commit
             in case findAndRemove predicate commits of
@@ -654,9 +643,9 @@ evaluateContract
         (_, Redeem identCC signature) -> let
             predicate :: Commit -> Bool
             predicate (i, (pk, NotRedeemed val expire)) =
-                    i `eqIdentCC` identCC
-                    && scriptOutValue `Builtins.equalsInteger` (scriptInValue `Builtins.subtractInteger` val)
-                    && currentBlockNumber `Builtins.greaterThanInteger` expire
+                    i == identCC
+                    && scriptOutValue == (scriptInValue `Builtins.subtractInteger` val)
+                    && currentBlockNumber > expire
                     && signature `signedBy` pk
             -- validate and remove a Commit
             in case findAndRemove predicate commits of
@@ -681,9 +670,9 @@ mergeChoices input choices = let
             [] -> [choice]
             current@((IdentChoice id, pk), _) : rest -> let
                 ((IdentChoice insId, insPK), _) = choice
-                in   if insId `Builtins.lessThanInteger` id then choice : choices
-                else if insId `Builtins.equalsInteger` id then
-                        if Validation.eqPubKey insPK pk
+                in   if insId < id then choice : choices
+                else if insId == id then
+                        if insPK == pk
                         then choices
                         else current : insert choice rest
                 else {- insId > id -} current : insert choice rest
@@ -708,24 +697,6 @@ validatorScript
             That makes it easier to watch for contrac actions inside a wallet. -}
         contractCreatorPK = creator
 
-        all :: () -> forall a. (a -> a -> Bool) -> [a] -> [a] -> Bool
-        all _ = go where
-            go _ [] []              = True
-            go eq (a : as) (b : bs) = eq a b && all () eq as bs
-            go _ _ _                = False
-
-        eqCommit :: Commit -> Commit -> Bool
-        eqCommit (id1, (pk1, NotRedeemed val1 t1)) (id2, (pk2, NotRedeemed val2 t2)) =
-            id1 `eqIdentCC` id2 && pk1 `Validation.eqPubKey` pk2 && val1 `Builtins.equalsInteger` val2 && t1 `Builtins.equalsInteger` t2
-
-        eqChoice :: Choice -> Choice -> Bool
-        eqChoice ((IdentChoice id1, pk1), c1) ((IdentChoice id2, pk2), c2) =
-            id1 `Builtins.equalsInteger` id2 && c1 `Builtins.equalsInteger` c2 && pk1 `Validation.eqPubKey` pk2
-
-        eqState :: State -> State -> Bool
-        eqState (State commits1 choices1) (State commits2 choices2) =
-            all () eqCommit commits1 commits2 && all () eqChoice choices1 choices2
-
         {-  We require Marlowe Tx to have a lower bound in 'SlotRange'.
             We use it as a current slot, basically. -}
         minSlot = case pendingTxValidRange of
@@ -747,8 +718,8 @@ validatorScript
                 {-  Check that TxOut is a valid continuation.
                     For that we need to ensure dataScriptHash == redeemerHash
                     and that TxOut has the same validator -}
-                 in if Builtins.equalsByteString dataScriptHash redeemerHash
-                        && Validation.eqValidator inputValidatorHash outputValidatorHash
+                 in if dataScriptHash == redeemerHash
+                        && inputValidatorHash == outputValidatorHash
                     then Ada.fromValue change else Builtins.error ()
 
         eval :: Input -> Slot -> Ada -> Ada -> State -> Contract -> (State, Contract, Bool)
@@ -773,8 +744,8 @@ validatorScript
                     marloweContract
 
             allowTransaction = validated
-                && newCont `eqContract` expectedContract
-                && newState `eqState` expectedState
+                && newCont == expectedContract
+                && newState == expectedState
 
             in if allowTransaction then () else Builtins.error ()
         {-  if the contract is invalid and there are no commit,

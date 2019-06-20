@@ -46,13 +46,18 @@ data CompileState = CompileState {}
 -- The 'Eq' instance we derive - it's also not stable across builds, but I believe this is only
 -- a problem if you compare things from different builds, which we don't do.
 newtype LexName = LexName GHC.Name
-    deriving Eq
+    deriving (Eq)
 
 instance Show LexName where
     show (LexName n) = GHC.occNameString $ GHC.occName n
 
 instance Ord LexName where
-    compare (LexName n1) (LexName n2) = GHC.stableNameCmp n1 n2
+    compare (LexName n1) (LexName n2) = case GHC.stableNameCmp n1 n2 of
+        -- This case is not sound if the names are generated, so fall back on the default sound comparison for
+        -- names. This *does* introduce some instability again, we'll need to fix this properly later, but we
+        -- need it to be sound!
+        EQ -> compare n1 n2
+        o  -> o
 
 -- See Note [Scopes]
 type Compiling m = (Monad m, MonadError CompileError m, MonadQuote m, MonadReader CompileContext m, MonadState CompileState m, MonadDefs LexName () m)

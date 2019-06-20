@@ -11,6 +11,7 @@ import           Plugin.Functions.Spec
 import           Plugin.Laziness.Spec
 import           Plugin.Primitives.Spec
 import           Plugin.ReadValue.Spec
+import           Plugin.Typeclasses.Spec
 
 tests :: TestNested
 tests = testNested "Plugin" [
@@ -21,4 +22,5 @@ tests = testNested "Plugin" [
   , pure readDyns
   , laziness
   , errors
+  , typeclasses
   ]

@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns
@@ -11,29 +12,31 @@ module Spec.Marlowe
     )
 where
 
-import           Control.Monad           (void, when)
-import qualified Data.List               as List
-import qualified Data.Map.Strict         as Map
-import           Data.Maybe
-import qualified Data.Set                as Set
+import           Language.PlutusTx.Prelude
+import qualified Prelude                   as Haskell
 
-import           Hedgehog                (Property, forAll, property)
+import           Control.Monad             (void, when)
+import qualified Data.List                 as List
+import qualified Data.Map.Strict           as Map
+import qualified Data.Set                  as Set
+
+import           Hedgehog                  (Property, forAll, property)
 import qualified Hedgehog
-import           Hedgehog.Gen            (list)
-import qualified Hedgehog.Range          as Range
+import           Hedgehog.Gen              (list)
+import qualified Hedgehog.Range            as Range
 import           Test.Tasty
-import           Test.Tasty.Hedgehog     (HedgehogTestLimit (..), testProperty)
+import           Test.Tasty.Hedgehog       (HedgehogTestLimit (..), testProperty)
 import           Test.Tasty.HUnit
 
 import           Language.Marlowe
-import           Ledger                  hiding (Value)
-import qualified Ledger.Ada              as Ada
-import           Ledger.Validation       (OracleValue (..))
-import           Wallet                  (PubKey (..), startWatching)
+import           Ledger                    hiding (Value)
+import qualified Ledger.Ada                as Ada
+import           Ledger.Validation         (OracleValue (..))
+import           Wallet                    (PubKey (..), startWatching)
 import           Wallet.Emulator
 
-import           Language.Marlowe.Client (commit, commit', interpretObs, marloweValidator, receivePayment, redeem)
-import           Language.Marlowe.Escrow as Escrow
+import           Language.Marlowe.Client   (commit, commit', interpretObs, marloweValidator, receivePayment, redeem)
+import           Language.Marlowe.Escrow   as Escrow
 import           Spec.Common
 
 {-# ANN module ("HLint: ignore"::String) #-}
@@ -78,7 +81,7 @@ money (_, (_, NotRedeemed m _)) = m
 slide :: [a] -> [(a, a)]
 slide [a, b]     = [(a, b)]
 slide (a:b:rest) = (a, b) : slide (b:rest)
-slide _          = error "at least 2 elements"
+slide _          = Haskell.error "at least 2 elements"
 
 pubKey1 :: PubKey
 pubKey1 = toPublicKey privateKey1
@@ -158,13 +161,12 @@ checkMergeChoicesProperties = property $ do
     let choices = mergeChoices input2 []
     let r = mergeChoices input choices
     let keys = map fst r
-    Hedgehog.assert (length r <= length input + length choices)
+    Hedgehog.assert (length r <= (length input `plus` length choices))
     when (length r >= 2) $ do
         -- check choices are partially ordered
         Hedgehog.assert $ all (\((lid, _), (rid, _)) -> lid <= rid) (slide keys)
         -- check choices are unique
         Hedgehog.assert $ List.nub keys == keys
-
 
 checkEqValue :: Property
 checkEqValue = property $ do
@@ -177,9 +179,9 @@ checkEqValue = property $ do
     a <- forAll value
     b <- forAll value
     c <- forAll value
-    Hedgehog.assert (eqValue a a)
-    Hedgehog.assert (eqValue a b == eqValue b a)
-    Hedgehog.assert (if eqValue a b && eqValue b c then eqValue a c else True)
+    Hedgehog.assert (a == a)
+    Hedgehog.assert ((a == b) == (b == a))
+    Hedgehog.assert (if a == b && b == c then a == c else True)
 
 checkEqObservation :: Property
 checkEqObservation = property $ do
@@ -192,9 +194,9 @@ checkEqObservation = property $ do
     a <- forAll observation
     b <- forAll observation
     c <- forAll observation
-    Hedgehog.assert (eqObservation a a)
-    Hedgehog.assert (eqObservation a b == eqObservation b a)
-    Hedgehog.assert (if eqObservation a b && eqObservation b c then eqObservation a c else True)
+    Hedgehog.assert (a == a)
+    Hedgehog.assert ((a == b) == (b == a))
+    Hedgehog.assert (if a == b && b == c then a == c else True)
 
 checkEqContract :: Property
 checkEqContract = property $ do
@@ -207,9 +209,9 @@ checkEqContract = property $ do
     a <- forAll contract
     b <- forAll contract
     c <- forAll contract
-    Hedgehog.assert (eqContract a a)
-    Hedgehog.assert (eqContract a b == eqContract b a)
-    Hedgehog.assert (if eqContract a b && eqContract b c then eqContract a c else True)
+    Hedgehog.assert (a == a)
+    Hedgehog.assert ((a == b) == (b == a))
+    Hedgehog.assert (if a == b && b == c then a == c else True)
 
 duplicateIdentCC :: Property
 duplicateIdentCC = property $ do

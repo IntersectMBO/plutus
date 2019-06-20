@@ -1,3 +1,5 @@
+{-# LANGUAGE DerivingStrategies  #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Plugin.Lib where
 
@@ -29,7 +31,6 @@ andExternal :: Bool -> Bool -> Bool
 andExternal a b = if a then b else False
 
 data MyExternalRecord = MyExternalRecord { myExternal :: Integer }
-    deriving (Show, Eq)
 
 {-# INLINABLE evenDirect #-}
 evenDirect :: Integer -> Bool

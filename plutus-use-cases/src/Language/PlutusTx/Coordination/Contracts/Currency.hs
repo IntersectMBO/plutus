@@ -73,7 +73,7 @@ validate c@(Currency (refHash, refIdx) _) () () p =
         -- True if the pending transaction forges the amount of
         -- currency that we expect
         forgeOK =
-            let v = Value.eq expected forged
+            let v = expected == forged
             in traceIfFalseH "Value forged different from expected" v
 
         -- True if the pending transaction spends the output

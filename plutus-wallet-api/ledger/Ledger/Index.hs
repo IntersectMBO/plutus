@@ -1,7 +1,8 @@
-{-# LANGUAGE ConstraintKinds  #-}
-{-# LANGUAGE DeriveGeneric    #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE ConstraintKinds    #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE LambdaCase         #-}
 -- | An index of unspent transaction outputs, and some functions for validating
 --   transactions using the index.
 module Ledger.Index(
@@ -21,6 +22,9 @@ module Ledger.Index(
     -- * Actual validation
     validateTransaction
     ) where
+
+import           Prelude              hiding (lookup)
+
 
 import           Control.Lens         (at, (^.))
 import           Control.Monad
@@ -43,7 +47,6 @@ import           Ledger.TxId
 import           Ledger.Validation    (PendingTx (..))
 import qualified Ledger.Validation    as Validation
 import qualified Ledger.Value         as V
-import           Prelude              hiding (lookup)
 
 -- | Context for validating transactions. We need access to the unspent
 --   transaction outputs of the blockchain, and we can throw 'ValidationError's.
@@ -51,7 +54,8 @@ type ValidationMonad m = (MonadReader UtxoIndex m, MonadError ValidationError m)
 
 -- | The UTxOs of a blockchain indexed by their references.
 newtype UtxoIndex = UtxoIndex { getIndex :: Map.Map TxOutRef TxOut }
-    deriving (Eq, Show, Semigroup, Monoid)
+    deriving (Show, Semigroup, Monoid)
+    deriving newtype (Eq)
 
 -- | Create an index of all UTxOs on the chain.
 initialise :: Blockchain -> UtxoIndex

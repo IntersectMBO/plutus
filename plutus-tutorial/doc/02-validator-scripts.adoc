@@ -144,12 +144,11 @@ the two don’t match. We can use functions from the Plutus prelude, imported as
 [source,haskell]
 ----
 validator (HashedText actual) (ClearText guessed) _ =
-    if equalsByteString actual (sha2_256 guessed) -- <1>
+    if actual == (sha2_256 guessed) -- <1>
     then traceH "RIGHT!" True -- <2>
     else traceH "WRONG!" False
 ----
-<1> `equalsByteString {2c} ByteString -> ByteString -> Bool`
-compares two `ByteString` values for equality.
+<1> We have an instance of `Eq` for `ByteString`, so we can just use `==` here to compare for equality.
 <2> `traceH {2c} String -> a -> a` returns its second argument after adding
 its first argument to the log output of this script. The log output is
 only available in the emulator and on the playground, and will be

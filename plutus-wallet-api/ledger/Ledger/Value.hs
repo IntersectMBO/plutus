@@ -16,11 +16,9 @@ module Ledger.Value(
     -- ** Currency symbols
       CurrencySymbol(..)
     , currencySymbol
-    , eqCurSymbol
     -- ** Token names
     , TokenName(..)
     , tokenName
-    , eqTokenName
     , toString
     -- ** Value
     , Value(..)
@@ -39,10 +37,11 @@ module Ledger.Value(
     , gt
     , leq
     , lt
-    , eq
       -- * Etc.
     , isZero
     ) where
+
+import qualified Prelude                      as Haskell
 
 import           Codec.Serialise.Class        (Serialise)
 import           Control.Lens                 (set,(.~))
@@ -62,7 +61,7 @@ import qualified Data.Text                    as Text
 import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift       (makeLift)
-import           Language.PlutusTx.Prelude    hiding (eq, plus, minus, negate, multiply, leq, lt, geq, gt)
+import           Language.PlutusTx.Prelude    hiding (plus, minus, negate, multiply)
 import qualified Language.PlutusTx.Prelude    as P
 import qualified Ledger.Map                   as Map
 import           LedgerBytes                  (LedgerBytes(LedgerBytes))
@@ -76,7 +75,8 @@ stringSchema = mempty & set S.type_ S.SwaggerString
 
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteString }
     deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise) via LedgerBytes
-    deriving stock (Eq, Ord, Generic)
+    deriving stock (Generic)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord)
     deriving anyclass (Hashable)
 
 instance ToSchema CurrencySymbol where
@@ -101,17 +101,14 @@ instance FromJSON CurrencySymbol where
 
 makeLift ''CurrencySymbol
 
-{-# INLINABLE eqCurSymbol #-}
-eqCurSymbol :: CurrencySymbol -> CurrencySymbol -> Bool
-eqCurSymbol (CurrencySymbol l) (CurrencySymbol r) = equalsByteString l r
-
 {-# INLINABLE currencySymbol #-}
 currencySymbol :: ByteString -> CurrencySymbol
 currencySymbol = CurrencySymbol
 
 newtype TokenName = TokenName { unTokenName :: Builtins.ByteString }
     deriving (Serialise) via LedgerBytes
-    deriving stock (Eq, Ord, Generic)
+    deriving stock (Generic)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord)
     deriving anyclass (Hashable)
 
 instance IsString TokenName where
@@ -139,10 +136,6 @@ instance FromJSON TokenName where
 
 makeLift ''TokenName
 
-{-# INLINABLE eqTokenName #-}
-eqTokenName :: TokenName -> TokenName -> Bool
-eqTokenName (TokenName l) (TokenName r) = equalsByteString l r
-
 {-# INLINABLE tokenName #-}
 tokenName :: ByteString -> TokenName
 tokenName = TokenName
@@ -169,7 +162,11 @@ newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName In
 
 makeLift ''Value
 
+instance Haskell.Eq Value where
+    (==) = eq
+
 instance Eq Value where
+    {-# INLINABLE (==) #-}
     (==) = eq
 
 -- No 'Ord Value' instance since 'Value' is only a partial order, so 'compare' can't
@@ -218,9 +215,9 @@ similar to 'Ledger.Ada' for their own currencies.
 -- | Get the quantity of the given currency in the 'Value'.
 valueOf :: Value -> CurrencySymbol -> TokenName -> Integer
 valueOf (Value mp) cur tn =
-    case Map.lookup eqCurSymbol cur mp of
+    case Map.lookup cur mp of
         Nothing -> 0 :: Integer
-        Just i  -> case Map.lookup eqTokenName tn i of
+        Just i  -> case Map.lookup tn i of
             Nothing -> 0
             Just v  -> v
 
@@ -239,12 +236,12 @@ singleton c tn i = Value (Map.singleton c (Map.singleton tn i))
 unionVal :: Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (Map.These Integer Integer))
 unionVal (Value l) (Value r) =
     let
-        combined = Map.union eqCurSymbol l r
+        combined = Map.union l r
         unThese k = case k of
-            Map.This a    -> Map.map Map.This a
-            Map.That b    -> Map.map Map.That b
-            Map.These a b -> Map.union eqTokenName a b
-    in Map.map unThese combined
+            Map.This a    -> Map.This <$> a
+            Map.That b    -> Map.That <$> b
+            Map.These a b -> Map.union a b
+    in unThese <$> combined
 
 {-# INLINABLE unionWith #-}
 unionWith :: (Integer -> Integer -> Integer) -> Value -> Value -> Value
@@ -255,12 +252,12 @@ unionWith f ls rs =
             Map.This a -> f a 0
             Map.That b -> f 0 b
             Map.These a b -> f a b
-    in Value (Map.map (Map.map unThese) combined)
+    in Value (fmap (fmap unThese) combined)
 
 {-# INLINABLE scale #-}
 -- | Multiply all the quantities in the 'Value' by the given scale factor.
 scale :: Integer -> Value -> Value
-scale i (Value xs) = Value (Map.map (Map.map (\i' -> P.multiply i i')) xs)
+scale i (Value xs) = Value (fmap (fmap (\i' -> P.multiply i i')) xs)
 
 -- Num operations
 
@@ -292,7 +289,7 @@ zero = Value (Map.empty ())
 {-# INLINABLE isZero #-}
 -- | Check whether a 'Value' is zero.
 isZero :: Value -> Bool
-isZero (Value xs) = Map.all (Map.all (\i -> P.eq 0 i)) xs
+isZero (Value xs) = Map.all (Map.all (\i -> 0 == i)) xs
 
 {-# INLINABLE checkPred #-}
 checkPred :: (Map.These Integer Integer -> Bool) -> Value -> Value -> Bool
@@ -319,28 +316,28 @@ checkBinRel f l r =
 -- | Check whether one 'Value' is greater than or equal to another. See 'Value' for an explanation of how operations on 'Value's work.
 geq :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true, but this is fine.
-geq = checkBinRel P.geq
+geq = checkBinRel (>=)
 
 {-# INLINABLE gt #-}
 -- | Check whether one 'Value' is strictly greater than another. See 'Value' for an explanation of how operations on 'Value's work.
 gt :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true. So we have a special case.
-gt l r = not (isZero l && isZero r) && checkBinRel P.gt l r
+gt l r = not (isZero l && isZero r) && checkBinRel (>) l r
 
 {-# INLINABLE leq #-}
 -- | Check whether one 'Value' is less than or equal to another. See 'Value' for an explanation of how operations on 'Value's work.
 leq :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true, but this is fine.
-leq = checkBinRel P.leq
+leq = checkBinRel (<=)
 
 {-# INLINABLE lt #-}
 -- | Check whether one 'Value' is strictly less than another. See 'Value' for an explanation of how operations on 'Value's work.
 lt :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true. So we have a special case.
-lt l r = not (isZero l && isZero r) && checkBinRel P.lt l r
+lt l r = not (isZero l && isZero r) && checkBinRel (<) l r
 
 {-# INLINABLE eq #-}
 -- | Check whether one 'Value' is equal to another. See 'Value' for an explanation of how operations on 'Value's work.
 eq :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true, but this is fine.
-eq = checkBinRel P.eq
+eq = checkBinRel (==)

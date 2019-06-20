@@ -42,7 +42,7 @@ PlutusTx.makeLift ''MultiSig
 validate :: MultiSig -> () -> () -> PendingTx -> Bool
 validate (MultiSig keys num) () () p =
     let present = length (filter (V.txSignedBy p) keys)
-    in present `geq` num
+    in present >= num
 
 msValidator :: MultiSig -> ValidatorScript
 msValidator sig = ValidatorScript $
