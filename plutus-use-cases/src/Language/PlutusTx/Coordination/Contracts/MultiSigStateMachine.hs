@@ -24,7 +24,7 @@ import           Data.Foldable                (foldMap)
 import qualified Data.Set                     as Set
 import           Ledger                       (DataScript(..), RedeemerScript(..), ValidatorScript(..))
 import qualified Ledger
-import qualified Ledger.Slot                  as Slot
+import qualified Ledger.Interval              as Interval
 import           Ledger.Validation            (PendingTx(..))
 import qualified Ledger.Validation            as Validation
 import           Ledger.Value                 (Value)
@@ -68,7 +68,7 @@ isValidProposal vl (Payment amt _ _) = amt `Value.leq` vl
 
 -- | Check whether a proposed 'Payment' has expired.
 proposalExpired :: PendingTx -> Payment -> Bool
-proposalExpired (PendingTx _ _ _ _ _ rng _ _) (Payment _ _ ddl) = Slot.before ddl rng
+proposalExpired (PendingTx _ _ _ _ _ rng _ _) (Payment _ _ ddl) = Interval.before ddl rng
 
 -- | Check whether enough signatories (represented as a list of public keys)
 --   have signed a proposed payment.

@@ -57,7 +57,14 @@ instance Functor (Map k) where
             go ((c, i):xs') = (c, f i) : go xs'
         in Map (go mp)
 
-makeLift ''Map
+-- This is the "better" instance for Maps that various people
+-- have suggested, which merges conflicting entries with
+-- the underlying semigroup for values.
+instance (Eq k, Semigroup v) => Semigroup (Map k v) where
+    (<>) = unionWith (<>)
+
+instance (Eq k, Semigroup v) => Monoid (Map k v) where
+    mempty = empty ()
 
 instance (ToJSON v, ToJSON k) => ToJSON (Map k v) where
     toJSON = toJSON . unMap
@@ -109,6 +116,24 @@ union (Map ls) (Map rs) =
 
     in Map (ls' ++ rs'')
 
+{-# INLINABLE unionWith #-}
+-- | Combine two 'Map's with the given combination function.
+unionWith :: forall k a . (Eq k) => (a -> a -> a) -> Map k a -> Map k a -> Map k a
+unionWith merge (Map ls) (Map rs) =
+    let
+        f :: a -> Maybe a -> a
+        f a b' = case b' of
+            Nothing -> a
+            Just b  -> merge a b
+
+        ls' :: [(k, a)]
+        ls' = P.fmap (\(c, i) -> (c, f i (lookup c (Map rs)))) ls
+
+        rs' :: [(k, a)]
+        rs' = filter (\(c, _) -> not (any (\(c', _) -> c' == c) ls)) rs
+
+    in Map (ls' ++ rs')
+
 {-# INLINABLE all #-}
 -- | See 'Data.Map.all'
 all :: (v -> Bool) -> Map k v -> Bool
@@ -128,3 +153,5 @@ singleton c i = Map [(c, i)]
 -- | An empty 'Map'.
 empty :: () -> Map k v
 empty _ = Map ([] :: [(k, v)])
+
+makeLift ''Map

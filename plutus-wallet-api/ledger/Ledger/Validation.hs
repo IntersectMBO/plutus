@@ -78,7 +78,7 @@ import           Ledger.Slot                  (Slot, SlotRange)
 import           Ledger.Tx                    (Address, getAddress, scriptAddress)
 import qualified Ledger.TxId                  as Tx
 import           Ledger.Value                 (CurrencySymbol (..), Value)
-import qualified Ledger.Value                 as VTH
+import qualified Ledger.Value                 as Value
 import           LedgerBytes                  (LedgerBytes (..))
 
 {- Note [Script types in pending transactions]
@@ -258,7 +258,7 @@ plcDigest = BSL.pack . BA.unpack
 {-# INLINABLE plcCurrencySymbol #-}
 -- | The 'CurrencySymbol' of an 'Address'
 plcCurrencySymbol :: Address -> CurrencySymbol
-plcCurrencySymbol = VTH.currencySymbol . plcDigest . getAddress
+plcCurrencySymbol = Value.currencySymbol . plcDigest . getAddress
 
 {-# INLINABLE txSignedBy #-}
 -- | Check if a transaction was signed by the given public key.
@@ -326,7 +326,7 @@ scriptOutputsAt h p =
 valueLockedBy :: PendingTx -> ValidatorHash -> Value
 valueLockedBy ptx h =
     let outputs = map snd (scriptOutputsAt h ptx)
-    in foldr VTH.plus VTH.zero outputs
+    in mconcat outputs
 
 {-# INLINABLE pubKeyOutputsAt #-}
 -- | Get the values paid to a public key address by a pending transaction.
@@ -344,7 +344,7 @@ pubKeyOutputsAt pk p =
 {-# INLINABLE valuePaidTo #-}
 -- | Get the total value paid to a public key address by a pending transaction.
 valuePaidTo :: PendingTx -> PubKey -> Value
-valuePaidTo ptx pk = foldr VTH.plus VTH.zero (pubKeyOutputsAt pk ptx)
+valuePaidTo ptx pk = mconcat (pubKeyOutputsAt pk ptx)
 
 {-# INLINABLE adaLockedBy #-}
 -- | Get the total amount of 'Ada' locked by the given validator in this transaction.
@@ -363,14 +363,14 @@ signsTransaction (Signature sig) (PubKey (LedgerBytes pk)) p =
 valueSpent :: PendingTx -> Value
 valueSpent p =
     let inputs' = map pendingTxInValue (pendingTxInputs p)
-    in foldr VTH.plus VTH.zero inputs'
+    in mconcat inputs'
 
 {-# INLINABLE ownCurrencySymbol #-}
 -- | The 'CurrencySymbol' of the current validator script.
 ownCurrencySymbol :: PendingTx -> CurrencySymbol
 ownCurrencySymbol p =
     let ValidatorHash h = fst (ownHashes p)
-    in  VTH.currencySymbol h
+    in  Value.currencySymbol h
 
 {-# INLINABLE spendsOutput #-}
 -- | Check if the pending transaction spends a specific transaction output

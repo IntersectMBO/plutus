@@ -127,8 +127,8 @@ intvlMember = property $ do
     (i1, i2) <- forAll $ (,) <$> Gen.integral (fromIntegral <$> Range.linearBounded @Int) <*> Gen.integral (fromIntegral <$> Range.linearBounded @Int)
     let (from, to) = (Slot $ min i1 i2, Slot $ max i1 i2)
         i          = W.interval from to
-    Hedgehog.assert $ W.member from i || W.empty i
-    Hedgehog.assert $ (not $ W.member to i) || W.empty i
+    Hedgehog.assert $ W.member from i || W.isEmpty i
+    Hedgehog.assert $ (not $ W.member to i) || W.isEmpty i
 
 intvlContains :: Property
 intvlContains = property $ do

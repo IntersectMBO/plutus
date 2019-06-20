@@ -68,10 +68,10 @@ import           LedgerBytes                  (LedgerBytes(LedgerBytes))
 import           Data.Function                ((&))
 
 hexSchema :: S.Schema
-hexSchema = mempty & set S.type_ S.SwaggerString & set S.format (Just "hex")
+hexSchema = Haskell.mempty & set S.type_ S.SwaggerString & set S.format (Just "hex")
 
 stringSchema :: S.Schema
-stringSchema = mempty & set S.type_ S.SwaggerString
+stringSchema = Haskell.mempty & set S.type_ S.SwaggerString
 
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteString }
     deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise) via LedgerBytes
@@ -172,8 +172,14 @@ instance Eq Value where
 -- No 'Ord Value' instance since 'Value' is only a partial order, so 'compare' can't
 -- do the right thing in some cases.
 
+instance Haskell.Semigroup Value where
+    (<>) = plus
+
 instance Semigroup Value where
     (<>) = plus
+
+instance Haskell.Monoid Value where
+    mempty = zero
 
 instance Monoid Value where
     mempty = zero
@@ -188,7 +194,7 @@ instance ToSchema Value where
     declareNamedSchema _ = do
         mapSchema <- declareSchemaRef (Proxy @(Map.Map CurrencySymbol InnerMap))
         return $
-                NamedSchema (Just "Value") $ mempty
+                NamedSchema (Just "Value") $ Haskell.mempty
                     & S.type_ .~ SwaggerObject
                     & S.properties .~ [ ("getValue", mapSchema) ]
                     & S.required .~ [ "getValue" ]

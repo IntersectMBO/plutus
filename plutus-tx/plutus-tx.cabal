@@ -49,6 +49,8 @@ library
         Language.PlutusTx.List
         Language.PlutusTx.Ord
         Language.PlutusTx.Maybe
+        Language.PlutusTx.Semigroup
+        Language.PlutusTx.Monoid
     reexported-modules:
         Language.PlutusTx.Code,
         Language.PlutusTx.Lift,

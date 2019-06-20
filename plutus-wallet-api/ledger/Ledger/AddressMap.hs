@@ -23,6 +23,7 @@ import           Control.Lens          (At (..), Index, IxValue, Ixed (..), lens
 import           Data.Aeson            (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson            as JSON
 import qualified Data.Aeson.Extras     as JSON
+import           Data.Foldable         (fold)
 import           Data.Map              (Map)
 import qualified Data.Map              as Map
 import           Data.Maybe            (mapMaybe)
@@ -33,7 +34,6 @@ import           GHC.Generics          (Generic)
 
 import           Ledger                (Address, Tx (..), TxInOf (..), TxOut, TxOutOf (..), TxOutRef, TxOutRefOf (..),
                                         Value, hashTx)
-import qualified Ledger.Value          as V
 
 -- | A map of 'Address'es and their unspent outputs.
 newtype AddressMap = AddressMap { getAddressMap :: Map Address (Map TxOutRef TxOut) }
@@ -86,7 +86,7 @@ addAddresses = flip (foldr addAddress)
 
 -- | The total value of unspent outputs (which the map knows about) at an address.
 values :: AddressMap -> Map Address Value
-values = Map.map (Map.foldl' V.plus V.zero . Map.map txOutValue) . getAddressMap
+values = Map.map (fold . Map.map txOutValue) . getAddressMap
 
 -- | Create an 'AddressMap' with the unspent outputs of a single transaction.
 fromTxOutputs :: Tx -> AddressMap
