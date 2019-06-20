@@ -25,7 +25,7 @@ import           Data.Aeson                   (FromJSON, ToJSON, Value)
 import           Data.Bifunctor               (second)
 import           Data.List.NonEmpty           (NonEmpty ((:|)))
 import           Data.Maybe                   (fromMaybe)
-import           Data.Morpheus.Kind           (KIND, OBJECT, SCALAR)
+import           Data.Morpheus.Kind           (KIND, OBJECT, SCALAR, WRAPPER)
 import           Data.Morpheus.Types          (GQLScalar (parseValue, serialize), GQLType)
 import qualified Data.Morpheus.Types          as Morpheus
 import           Data.Text                    (Text)
@@ -127,32 +127,11 @@ data EvaluationResult =
         , fundsDistribution :: [SimulatorWallet]
         , walletKeys        :: [(PubKey, Wallet)]
         }
-    deriving (Generic, ToJSON)
+    deriving (Generic, ToJSON, GQLType)
 
-note :: e -> Maybe a -> Either e a
-note msg Nothing    = Left msg
-note _ (Just value) = Right value
+type instance KIND EvaluationResult = OBJECT
+type instance KIND (TxId, Tx) = WRAPPER
 
--- type instance KIND (Digest SHA256) = SCALAR
--- type instance KIND (Map k v) = WRAPPER
--- instance (Introspect k (KIND k), Introspect v (KIND v)) =>
---          Introspect (Map k v) WRAPPER where
---     __introspect _ _ dtl =
---         foldr ($) dtl [_introspect (Proxy @k), _introspect (Proxy @v)]
---     __objectField _ _ name = _
---         where
---           kf = _objectField (Proxy @k) name
---         -- listField (_objectField (Proxy :: Proxy (k, v)) name)
--- instance GQLType (Digest SHA256) where
---     typeID _ = "Hash"
--- instance GQLScalar (Digest SHA256) where
---     parseValue (Morpheus.String str) =
---         note "Invalid SHA256 hash." $ digestFromByteString $ encodeUtf8 str
---     serialize value = Morpheus.String $ Text.pack $ show value
--- instance GQLQuery TxId
--- instance GQLQuery Tx
--- instance GQLQuery Signature
--- instance GQLQuery EvaluationResult
 newtype SchemaText =
     SchemaText Text
     deriving (Show, Generic, Eq, Ord)
@@ -168,7 +147,7 @@ instance GQLScalar SchemaText where
 
 data CompilationResult =
     CompilationResult
-        { functionSchema  :: SchemaText -- TODO [FunctionSchema SimpleArgumentSchema]
+        { functionSchema  :: SchemaText
         , knownCurrencies :: [KnownCurrency]
         }
     deriving (Show, Generic)

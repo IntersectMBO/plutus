@@ -39,6 +39,7 @@ flag defer-plugin-errors
 library
     exposed-modules:
         Playground.Server
+        Playground.GraphQL
         Playground.Interpreter
         Playground.Usecases
         Auth

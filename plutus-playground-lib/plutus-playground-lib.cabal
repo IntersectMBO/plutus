@@ -29,7 +29,6 @@ library
   exposed-modules:
       Playground.Contract
       Playground.API
-      Playground.GraphQL
       Playground.TH
       Playground.Interpreter.Util
   other-modules:

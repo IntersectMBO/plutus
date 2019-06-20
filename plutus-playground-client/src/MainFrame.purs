@@ -186,6 +186,7 @@ toEvent (PopulateAction _ _ _) = Just $ (defaultEvent "PopulateAction") { catego
 eval ::
   forall m.
   MonadState State m
+  => Warn (Text "Address TODO markers on new signature handling.")
   => MonadAsk (SPSettings_ SPParams_) m
   => MonadApp m
   => Query ~> m
@@ -342,6 +343,7 @@ eval (CompileProgram next) = do
       -- If we got a successful result, switch tab.
       case result of
         Success (JsonEither (Left _)) -> pure unit
+        Success (JsonEither (Right (InterpreterResult { result: CompilationResult { functionSchema: (SchemaText schemaText) }}))) -> traceM (buildClientSchema schemaText)
         _ -> replaceViewOnSuccess result Editor Simulations
 
       -- Update the error display.
@@ -356,14 +358,16 @@ eval (CompileProgram next) = do
       -- Same thing for currencies.
       -- Potentially we could be smarter about this. But for now,
       -- let's at least be correct.
-      case preview (_Success <<< _Newtype <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult) result of
-        Just { functionSchema: newSignatures, knownCurrencies: newCurrencies } -> do
-          oldSimulation <- peruse (_simulations <<< _current <<< _Newtype)
-          unless (((_.signatures <$> oldSimulation) `genericEq` Just newSignatures)
-                  &&
-                  ((_.currencies <$> oldSimulation) `genericEq` Just newCurrencies))
-            (assign _simulations $ Cursor.singleton $ mkSimulation newCurrencies newSignatures)
-        _ -> pure unit
+
+      -- TODO Restore this code.
+      -- case preview (_Success <<< _Newtype <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult) result of
+      --   Just { functionSchema: newSignatures, knownCurrencies: newCurrencies } -> do
+      --     oldSimulation <- peruse (_simulations <<< _current <<< _Newtype)
+      --     unless (((_.signatures <$> oldSimulation) `genericEq` Just newSignatures)
+      --             &&
+      --             ((_.currencies <$> oldSimulation) `genericEq` Just newCurrencies))
+      --       (assign _simulations $ Cursor.singleton $ mkSimulation newCurrencies newSignatures)
+      --   _ -> pure unit
 
       pure next
 
@@ -395,9 +399,11 @@ eval (AddSimulationSlot next) = do
   knownCurrencies <- getKnownCurrencies
   mSignatures <- peruse (_compilationResult <<< _Success <<< _Newtype <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult <<< _functionSchema)
 
-  case mSignatures of
-    Just signatures -> modifying _simulations (flip Cursor.snoc (mkSimulation knownCurrencies signatures))
-    Nothing -> pure unit
+  -- TODO Restore.
+  -- case mSignatures of
+  --   Just signatures -> modifying _simulations (flip Cursor.snoc (mkSimulation knownCurrencies ?signatures))
+  --   Nothing -> pure unit
+
   pure next
 
 eval (SetSimulationSlot index next) = do

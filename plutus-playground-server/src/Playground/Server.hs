@@ -8,10 +8,14 @@
 
 module Playground.Server
     ( mkHandlers
+    , acceptSourceCode
+    , acceptSourceCode2
+    , runFunction
+    , runFunction2
     ) where
 
 import           Control.Monad.Except         (MonadError, runExceptT, throwError)
-import           Control.Monad.IO.Class       (liftIO)
+import           Control.Monad.IO.Class       (liftIO, MonadIO)
 import           Control.Monad.Logger         (MonadLogger, logInfoN)
 import           Data.Aeson                   (ToJSON, encode)
 import qualified Data.ByteString.Lazy.Char8   as BSL
@@ -42,6 +46,15 @@ acceptSourceCode sourceCode = do
             pure . Left $ CompilationErrors errors
         Left e -> throwError $ err400 {errBody = BSL.pack . show $ e}
 
+acceptSourceCode2 ::
+  MonadIO m =>
+       SourceCode
+    -> m (Either InterpreterError (InterpreterResult CompilationResult))
+acceptSourceCode2 sourceCode = do
+    let maxInterpretationTime :: Microsecond =
+            fromMicroseconds (80 * 1000 * 1000)
+    liftIO . runExceptT $ PI.compile maxInterpretationTime sourceCode
+
 throwJSONError :: (MonadError ServantErr m, ToJSON a) => ServantErr -> a -> m b
 throwJSONError err json =
     throwError $ err {errBody = encode json, errHeaders = [jsonHeader]}
@@ -67,6 +80,25 @@ runFunction evaluation = do
                     walletAddresses
         Left (PA.InterpreterError errors) -> throwJSONError err400 errors
         Left err -> throwError $ err400 {errBody = BSL.pack . show $ err}
+
+runFunction2 :: MonadIO m => Evaluation -> m EvaluationResult
+runFunction2 evaluation = do
+    let maxInterpretationTime :: Microsecond =
+            fromMicroseconds (80 * 1000 * 1000)
+    result <-
+        liftIO . runExceptT $ PI.runFunction maxInterpretationTime evaluation
+    let pubKeys = PA.pubKeys evaluation
+    case result of
+        Right (InterpreterResult _ (blockchain, emulatorLog, fundsDistribution, walletAddresses)) -> do
+            let flowgraph = V.graph $ V.txnFlows pubKeys blockchain
+            pure $
+                EvaluationResult
+                    (fmap (\tx -> (hashTx tx, tx)) <$> blockchain)
+                    flowgraph
+                    emulatorLog
+                    fundsDistribution
+                    walletAddresses
+        -- Left (PA.InterpreterError errors) -> throwJSONError err400 errors
 
 checkHealth :: Handler ()
 checkHealth = do

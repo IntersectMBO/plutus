@@ -35,7 +35,7 @@ import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Bifunctor            (second)
 import           Data.Maybe                (fromMaybe)
 import           Data.Monoid               ((<>))
-import           Data.Morpheus.Kind        (KIND, OBJECT, SCALAR)
+import           Data.Morpheus.Kind        (KIND, OBJECT, SCALAR, UNION)
 import           Data.Morpheus.Types       (GQLArgs, GQLScalar (..), GQLType)
 import qualified Data.Morpheus.Types       as Morpheus
 import           Data.Text                 (Text)
@@ -62,14 +62,15 @@ data CompilationError
           , text     :: ![Text]
           }
     deriving (Show, Eq, Generic)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON, GQLType)
 
 data InterpreterError
     = CompilationErrors [CompilationError]
     | TimeoutError Text
     deriving (Show, Eq, Generic)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON, GQLType)
 
+type instance KIND InterpreterError = UNION
 newtype SourceCode =
     SourceCode Text
     deriving (Generic)
@@ -86,7 +87,14 @@ instance GQLScalar SourceCode where
 newtype Warning =
     Warning Text
     deriving (Eq, Show, Generic)
-    deriving newtype (ToJSON)
+    deriving newtype (ToJSON, GQLType)
+
+type instance KIND Warning = SCALAR
+
+instance GQLScalar Warning where
+    parseValue (Morpheus.String str) = Right $ Warning str
+    parseValue _                     = Left "Expected Warning string."
+    serialize (Warning str) = Morpheus.String str
 
 data InterpreterResult a =
     InterpreterResult
@@ -94,7 +102,7 @@ data InterpreterResult a =
         , result   :: a
         }
     deriving (Eq, Show, Generic, Functor)
-    deriving anyclass (ToJSON)
+    deriving anyclass (ToJSON, GQLType)
 
 -- | spawn an external process to runghc a file
 --
