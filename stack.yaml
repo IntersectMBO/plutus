@@ -19,35 +19,6 @@ packages:
 - plutus-emulator
 - deployment-server
 
-# Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
-- location:
-    git: https://github.com/shmish111/purescript-bridge.git
-    commit: a7069a515800135ce932742e995f3a96bc1c7129
-  extra-dep: true
-- location:
-    git: https://github.com/shmish111/servant-purescript.git
-    commit: ab14502279c92084f06aa6222a17873275279e63
-  extra-dep: true
-- location:
-    git: https://github.com/input-output-hk/cardano-crypto.git
-    commit: f5cecb6e424cc84f85b6a3e1f803517bb7b4cfb1
-  extra-dep: true
-# Needs a fix (https://github.com/wenkokke/unlit/pull/11) and a Hackage release
-- location:
-    git: https://github.com/michaelpj/unlit.git
-    commit: 9ca1112093c5ffd356fc99c7dafa080e686dd748
-  extra-dep: true
-# Needs looser containers bound, committed upstream but not released
-- location:
-    git: https://github.com/bitnomial/prometheus.git
-    commit: 69e4cefeb7d04d61a54cb0ae9fd57e2de134badb
-  extra-dep: true
-# Need https://github.com/phadej/github/pull/387 and to be added back in to stackage
-- location:
-    git: https://github.com/shmish111/github.git
-    commit: cc27b9de4d5d0939235fa9a8b418de3ea4807bab
-  extra-dep: true
-
 extra-deps:
 # Agda and deps
 - Agda-2.6.0
@@ -74,6 +45,22 @@ extra-deps:
 - binary-instances-1@sha256:e7768b92f34bc40cc5cabecc5c143dee6ab4bcb5eb441d58e15a0b000d64940b
 - binary-orphans-1.0.1@sha256:74d9a8e2c8c4dc8e11c9028ef103b930fc62f3943e45b1629f39114f2bfb5abb
 - time-compat-1.9.2.2@sha256:9998dc1b77b5067572ab708e94750f1061152f342e92ad1aba38aae63581174d
+# Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
+- git: https://github.com/shmish111/purescript-bridge.git
+  commit: a7069a515800135ce932742e995f3a96bc1c7129
+- git: https://github.com/shmish111/servant-purescript.git
+  commit: ab14502279c92084f06aa6222a17873275279e63
+- git: https://github.com/input-output-hk/cardano-crypto.git
+  commit: f5cecb6e424cc84f85b6a3e1f803517bb7b4cfb1
+# Needs a fix (https://github.com/wenkokke/unlit/pull/11) and a Hackage release
+- git: https://github.com/michaelpj/unlit.git
+  commit: 9ca1112093c5ffd356fc99c7dafa080e686dd748
+# Needs looser containers bound, committed upstream but not released
+- git: https://github.com/bitnomial/prometheus.git
+  commit: 69e4cefeb7d04d61a54cb0ae9fd57e2de134badb
+# Need https://github.com/phadej/github/pull/387 and to be added back in to stackage
+- git: https://github.com/shmish111/github.git
+  commit: cc27b9de4d5d0939235fa9a8b418de3ea4807bab
 flags:
   language-plutus-core:
     development: true

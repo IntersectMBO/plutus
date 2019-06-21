@@ -19985,6 +19985,7 @@ license = stdenv.lib.licenses.publicDomain;
 , base
 , bytestring
 , containers
+, directory
 , github-webhooks
 , mtl
 , newtype-generics
@@ -20008,8 +20009,10 @@ src = .././deployment-server;
 isLibrary = true;
 isExecutable = true;
 libraryHaskellDepends = [
+aeson
 base
 bytestring
+directory
 github-webhooks
 mtl
 newtype-generics
