@@ -371,22 +371,21 @@ may use the multi-argument forms.
 is the type of integers.  See Section~\ref{sec:builtins} for more information.
 \end{itemize}
 
-\paragraph{Type Values.} All types can be reduced to a type value (or
-  \emph{normalised type}) which cannot undergo any further
-  reduction: see section~\ref{sec:reduction}.  The type normalisation
-  process always terminates: the proof is similar to the proof of the
-  fact that reduction of terms in the simply typed lambda calculus
-  always terminates \citep[\S12]{Pierce:TAPL}.  The type-level
-  structure of Plutus Core is slightly more complicated than the
-  simply typed lambda calculus, but the extra forms (\texttt{ifix},
-  \texttt{all}, built-in base types) don't provide any new
-  opportunities for type reduction and thus have little effect on the
-  proof.
+\paragraph{Normalised Types.} All types can be reduced to a
+\emph{normalised type} which cannot undergo any further reduction: see
+section~\ref{sec:reduction}.  The type normalisation process always
+terminates: the proof is similar to the proof of the fact that
+reduction of terms in the simply typed lambda calculus always
+terminates \citep[\S12]{Pierce:TAPL}.  The type-level structure of
+Plutus Core is slightly more complicated than the simply typed lambda
+calculus, but the extra forms (\texttt{ifix}, \texttt{all}, built-in
+base types) don't provide any new opportunities for type reduction and
+thus have little effect on the proof.
 
   \medskip
   \todokwxm{I think we've agreed that the term ``type value'' isn't
-    very helpful and we're going to say ``normalised types'' or
-    ``normal types'' instead. We should change the document to reflect this.}
+    very helpful, so I've replaced it with ``normalised type'' everywhere.
+    It's possible that we might want to say ``normal type'' instead.}
   
 \paragraph{Kinds.} In Plutus Core we have a copy of the 
 simply typed lambda calculus at the type level. The types of the

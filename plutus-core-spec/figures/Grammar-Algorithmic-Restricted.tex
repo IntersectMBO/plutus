@@ -15,7 +15,7 @@
                                   &        &     & \app{M}{N}                 & \textrm{function application}\\
                                   &        &     & \builtin{bn}{S^*}{M^*}      & \textrm{builtin}\\
                                   &        &     & \error{S}                  & \textrm{error}\\
-        \textrm{Value}            & U, V   & ::= & \con{cn}                   & \textrm{contant}\\
+        \textrm{Normalised Type}  & U, V   & ::= & \con{cn}                   & \textrm{constant}\\
                                   &        &     & \abs{\alpha}{K}{V}         & \textrm{type abstraction}\\
                                   &        &     & \wrap{S}{T}{V}             & \textrm{fix type's wrap}\\
                                   &        &     & \lam{x}{S}{M}              & \textrm{$\lambda$ abstraction}\\
@@ -26,7 +26,7 @@
                                   &        &     & \lamT{\alpha}{K}{A}        & \textrm{$\lambda$ abstraction}\\
                                   &        &     & \appT{A}{B}                & \textrm{function application}\\
                                   &        &     & \conT{tcn}                 & \textrm{type constant}\\
-        \textrm{Type Value}       & R,S,T  & ::= & \funT{S}{T}                & \textrm{function type}\\
+        \textrm{Normalised Type}  & R,S,T  & ::= & \funT{S}{T}                & \textrm{function type}\\
                                   &        &     & \allT{\alpha}{K}{S}        & \textrm{polymorphic type}\\
                                   &        &     & \fixT{S}{T}                & \textrm{fixed point type}\\
                                   &        &     & \lamT{\alpha}{K}{S}        & \textrm{$\lambda$ abstraction}\\
