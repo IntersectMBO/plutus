@@ -19,7 +19,7 @@ import           Playground.Contract
 import qualified Data.Map                  as Map
 import           Data.Morpheus.Types       (GQLArgs, GQLRootResolver (GQLRootResolver, mutationResolver, queryResolver, subscriptionResolver),
                                             GQLType, MUTATION, ResolveCon, Resolver)
-import           Data.Morpheus.Kind        (INPUT_OBJECT, KIND)
+import           Data.Morpheus.Kind        (OBJECT, KIND)
 import qualified Data.Set                  as Set
 import qualified Language.PlutusTx         as PlutusTx
 import           Ledger                    (Address, DataScript (DataScript), RedeemerScript (RedeemerScript), Slot, TxIn,
@@ -61,7 +61,7 @@ data VestingTranche = VestingTranche {
 
 PlutusTx.makeLift ''VestingTranche
 
-type instance KIND VestingTranche = INPUT_OBJECT
+type instance KIND VestingTranche = OBJECT
 
 -- | A vesting scheme consisting of two tranches. Each tranche defines a date
 --   (slot) after which an additional amount of money can be spent.
@@ -79,7 +79,7 @@ data Vesting = Vesting {
 
 PlutusTx.makeLift ''Vesting
 
-type instance KIND Vesting = INPUT_OBJECT
+type instance KIND Vesting = OBJECT
 
 -- | The total value locked by a vesting scheme
 totalAmount :: Vesting -> Value
@@ -255,16 +255,16 @@ withdraw vst vl = do
 ------------------------------------------------------------
 data VestFundsArguments = VestFundsArguments
   { vestFundsVesting :: Vesting
-  } deriving (Generic, GQLArgs)
+  } deriving (Generic, GQLType)
 
 data RegisterVestingSchemeArguments = RegisterVestingSchemeArguments
   { registerVestingSchemeVesting :: Vesting
-  } deriving (Generic, GQLArgs)
+  } deriving (Generic, GQLType)
 
 data WithdrawArguments = WithdrawArguments
   { withdrawVesting :: Vesting
   , withdrawValue :: Value
-  } deriving (Generic, GQLArgs)
+  } deriving (Generic, GQLType)
 
 data MutationAPI m =
     MutationAPI

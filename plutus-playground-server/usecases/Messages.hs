@@ -49,7 +49,7 @@ throwWalletAPIError = throwOtherError
 ------------------------------------------------------------
 newtype ThrowWalletAPIErrorArguments = ThrowWalletAPIErrorArguments
   { throwWalletAPIErrorMsg :: Text
-  } deriving (Generic, GQLArgs)
+  } deriving (Generic, GQLType)
 
 data MutationAPI m =
     MutationAPI

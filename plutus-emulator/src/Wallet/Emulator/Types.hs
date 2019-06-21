@@ -106,7 +106,7 @@ import qualified Ledger.Crypto             as Crypto
 import           Prelude                   as P
 import           Servant.API               (FromHttpApiData (..), ToHttpApiData (..))
 
-import           Data.Morpheus.Kind        (INPUT_OBJECT, KIND)
+import           Data.Morpheus.Kind        (KIND, OBJECT)
 import           Data.Morpheus.Types       (GQLType)
 import           Ledger                    (Address, Block, Blockchain, PrivateKey (..), PubKey (..), Slot, Tx (..),
                                             TxId, TxOut, TxOutOf (..), TxOutRef, Value, addSignature, hashTx, lastSlot,
@@ -126,7 +126,7 @@ newtype Wallet = Wallet { getWallet :: Integer }
     deriving newtype (ToHttpApiData, FromHttpApiData, Hashable, GQLType)
     deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey)
 
-type instance KIND Wallet = INPUT_OBJECT
+type instance KIND Wallet = OBJECT
 
 -- | Get a wallet's public key.
 walletPubKey :: Wallet -> PubKey

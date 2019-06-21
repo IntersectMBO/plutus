@@ -3,6 +3,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TypeFamilies       #-}
 -- Otherwise we get a complaint about the 'fromIntegral' call in the generated instance of 'Integral' for 'Ada'
 {-# OPTIONS_GHC -Wno-identities #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
@@ -35,6 +36,8 @@ module Ledger.Ada(
 
 import           Codec.Serialise.Class     (Serialise)
 import           Data.Aeson                (FromJSON, ToJSON)
+import           Data.Morpheus.Kind        (KIND, OBJECT)
+import           Data.Morpheus.Types       (GQLType)
 import           GHC.Generics              (Generic)
 import           Language.PlutusTx.Lift    (makeLift)
 import           Language.PlutusTx.Prelude hiding (divide, eq, geq, gt, leq, lt, minus, multiply, negate, plus)
@@ -58,8 +61,10 @@ adaToken = TH.tokenName emptyByteString
 newtype Ada = Ada { getAda :: Integer }
     deriving (Eq, Ord, Show, Enum)
     deriving stock (Generic)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON, GQLType)
     deriving newtype (Num, Integral, Real, Serialise)
+
+type instance KIND Ada = OBJECT
 
 makeLift ''Ada
 

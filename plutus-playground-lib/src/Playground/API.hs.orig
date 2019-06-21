@@ -1,0 +1,454 @@
+{-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE DeriveAnyClass             #-}
+{-# LANGUAGE DeriveFunctor              #-}
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE DeriveLift                 #-}
+{-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GADTs                      #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE NamedFieldPuns             #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE RecordWildCards            #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE TypeOperators              #-}
+{-# LANGUAGE TypeSynonymInstances       #-}
+{-# LANGUAGE UndecidableInstances       #-}
+
+module Playground.API where
+
+<<<<<<< HEAD
+import           Control.Lens                    (view)
+import           Control.Monad.Trans.Class       (lift)
+import           Control.Monad.Trans.State       (StateT, evalStateT, get, put)
+import           Control.Newtype.Generics        (Newtype, pack, unpack)
+import           Data.Aeson                      (FromJSON, ToJSON, Value)
+import           Data.Bifunctor                  (second)
+import qualified Data.HashMap.Strict.InsOrd      as HM
+import           Data.Maybe                      (fromMaybe)
+import           Data.Swagger                    (ParamSchema (ParamSchema), Referenced (Inline, Ref), Schema (Schema),
+                                                  Schema (Schema), SwaggerItems (SwaggerItemsArray, SwaggerItemsObject),
+                                                  SwaggerType (SwaggerArray, SwaggerInteger, SwaggerObject, SwaggerString))
+import qualified Data.Swagger                    as Swagger
+import           Data.Swagger.Lens               (items, maxItems, minItems, properties)
+import           Data.Text                       (Text)
+import qualified Data.Text                       as Text
+import           GHC.Generics                    (Generic)
+import           Language.Haskell.Interpreter    (CompilationError (CompilationError, RawError), column, filename, row,
+                                                  text)
+import qualified Language.Haskell.TH.Syntax      as TH
+import           Ledger.Ada                      (Ada)
+import           Ledger.Types                    (Blockchain, PubKey, Tx, TxId)
+import           Options.Applicative.Help.Pretty (Doc, brackets, indent, linebreak, nest, renderPretty, vsep, (<+>))
+import qualified Options.Applicative.Help.Pretty as Pretty
+import           Servant.API                     ((:<|>), (:>), Get, JSON, Post, ReqBody)
+import           Text.Read                       (readMaybe)
+import           Wallet.Emulator.Types           (EmulatorEvent, Wallet)
+import           Wallet.Graph                    (FlowGraph)
+=======
+import           Control.Monad.Trans.Class    (lift)
+import           Control.Monad.Trans.State    (StateT, evalStateT, get, put)
+import           Data.Aeson                   (FromJSON, ToJSON, Value)
+import           Data.Bifunctor               (second)
+import           Data.List.NonEmpty           (NonEmpty ((:|)))
+import           Data.Maybe                   (fromMaybe)
+import           Data.Morpheus.Kind           (KIND, OBJECT, SCALAR)
+import           Data.Morpheus.Types          (GQLScalar (parseValue, serialize), GQLType)
+import qualified Data.Morpheus.Types          as Morpheus
+import           Data.Text                    (Text)
+import qualified Data.Text                    as Text
+import           GHC.Generics                 (Generic)
+import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), InterpreterResult,
+                                               SourceCode, column, filename, row, text)
+import qualified Language.Haskell.Interpreter as HI
+import qualified Language.Haskell.TH.Syntax   as TH
+import           Ledger                       (Blockchain, PubKey, Tx, TxId)
+import qualified Ledger.Ada                   as Ada
+import           Ledger.Validation            (ValidatorHash, fromSymbol)
+import           Ledger.Value                 (TokenName)
+import qualified Ledger.Value                 as V
+import           Schema                       (Label (Label), Pair (Pair), SimpleArgumentSchema (SimpleArraySchema, SimpleHexSchema, SimpleIntSchema, SimpleObjectSchema, SimpleStringSchema, SimpleTupleSchema, UnknownSchema, ValueSchema))
+import           Servant.API                  ((:<|>), (:>), Get, JSON, Post, ReqBody)
+import           Text.Read                    (readMaybe)
+import           Wallet.Emulator.Types        (EmulatorEvent, Wallet, walletPubKey)
+import           Wallet.Graph                 (FlowGraph)
+>>>>>>> origin/graphql
+
+type API
+     = "contract" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either HI.InterpreterError (InterpreterResult CompilationResult))
+       :<|> "evaluate" :> ReqBody '[ JSON] Evaluation :> Post '[ JSON] EvaluationResult
+       :<|> "health" :> Get '[ JSON] ()
+
+data KnownCurrency =
+    KnownCurrency
+        { hash         :: ValidatorHash
+        , friendlyName :: Text
+        -- , knownTokens  :: NonEmpty TokenName
+        , knownTokens  :: [ TokenName] -- TODO Restore NonEmpty
+        }
+    deriving (Eq, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON, GQLType)
+
+type instance KIND KnownCurrency = OBJECT
+
+adaCurrency :: KnownCurrency
+adaCurrency =
+    KnownCurrency
+        { hash = fromSymbol Ada.adaSymbol
+        , friendlyName = "Ada"
+        , knownTokens = [Ada.adaToken] -- TODO Restore NonEmpty
+        --, knownTokens = Ada.adaToken :| []
+        }
+
+--------------------------------------------------------------------------------
+newtype Fn =
+    Fn Text
+    deriving (Eq, Show, Generic, TH.Lift)
+    deriving anyclass (GQLType)
+    deriving newtype (ToJSON, FromJSON)
+
+type instance KIND Fn = SCALAR
+
+instance GQLScalar Fn where
+    parseValue (Morpheus.String str) = Right $ Fn str
+    parseValue scalar =
+        Left $ "Expected Fn string, got: " <> Text.pack (show scalar)
+    serialize (Fn str) = Morpheus.String str
+
+data Expression
+    = Action
+          { function  :: Fn
+          , wallet    :: Wallet
+          , arguments :: [Value]
+          }
+    | Wait
+          { blocks :: Int
+          }
+    deriving (Show, Generic, ToJSON, FromJSON)
+
+type Program = [Expression]
+
+data SimulatorWallet =
+    SimulatorWallet
+        { simulatorWalletWallet  :: Wallet
+        , simulatorWalletBalance :: V.Value
+        }
+    deriving (Show, Generic, Eq)
+    deriving anyclass (ToJSON, FromJSON)
+
+data Evaluation =
+    Evaluation
+        { wallets    :: [SimulatorWallet]
+        , program    :: Program
+        , sourceCode :: SourceCode
+        , blockchain :: Blockchain
+        }
+    deriving (Generic, ToJSON, FromJSON)
+
+pubKeys :: Evaluation -> [PubKey]
+<<<<<<< HEAD
+pubKeys Evaluation{..} = walletPubKey . simulatorWalletWallet <$> wallets
+
+data EvaluationResult = EvaluationResult
+  { resultBlockchain  :: [[(TxId, Tx)]] -- Blockchain annotated with hashes.
+  , resultGraph       :: FlowGraph
+  , emulatorLog       :: [EmulatorEvent]
+  , fundsDistribution :: [SimulatorWallet]
+  , walletKeys        :: [(PubKey,Wallet)]
+  }
+  deriving (Generic, ToJSON)
+
+data CompilationResult = CompilationResult
+  { functionSchema  :: [FunctionSchema SimpleArgumentSchema]
+  , knownCurrencies :: [KnownCurrency]
+  }
+  deriving (Show, Generic, ToJSON)
+
+data FunctionSchema a = FunctionSchema
+  { functionName   :: Fn
+  , argumentSchema :: [a]
+  } deriving (Eq, Show, Generic, ToJSON, FromJSON, Functor)
+
+vesting :: FunctionSchema SimpleArgumentSchema
+vesting =
+    FunctionSchema
+        { functionName = Fn "vestFunds"
+        , argumentSchema =
+              [ SimpleObjectSchema
+                    [ ( "vestingOwner"
+                      , SimpleObjectSchema [("getPubKey", SimpleArraySchema SimpleIntSchema)])
+                    , ( "vestingTranche2"
+                      , SimpleObjectSchema
+                            [ ( "vestingTrancheAmount"
+                              , SimpleObjectSchema [("getAda", SimpleIntSchema)])
+                            ])
+                    ]
+              ]
+        }
+argToGraphQLSchema :: SimpleArgumentSchema -> Doc
+argToGraphQLSchema SimpleIntSchema = Pretty.text "Int!"
+argToGraphQLSchema SimpleStringSchema = Pretty.text "String!"
+argToGraphQLSchema (SimpleArraySchema _type) =
+    brackets $ argToGraphQLSchema _type
+argToGraphQLSchema (SimpleObjectSchema fields) =
+    nestSurround "{" "}" $
+    vsep
+        ((\(name, arg) -> ptext name <> ptext ":" <+> argToGraphQLSchema arg) <$>
+         fields)
+argToGraphQLSchema _ = ptext "TODO"
+
+ptext :: Text -> Doc
+ptext = Pretty.text . Text.unpack
+
+nestSurround :: Text -> Text -> Doc -> Doc
+nestSurround before after doc =
+    ptext before <> linebreak <> nest 4 (indent 4 doc) <> linebreak <>
+    ptext after
+
+toGraphQLSchema :: FunctionSchema SimpleArgumentSchema -> Doc
+toGraphQLSchema FunctionSchema {functionName = Fn name, argumentSchema} =
+    ptext "query" <+>
+    nestSurround
+        "{"
+        "}"
+        (ptext name <> ptext ":" <+>
+         vsep (argToGraphQLSchema <$> argumentSchema))
+
+k :: IO ()
+k =
+    putStrLn $
+    Pretty.displayS (renderPretty 0.4 120 $ toGraphQLSchema vesting) ""
+-- | We could ship the Swagger Schema to the frontend and work with
+-- that directly. But it's verbose and pretty complicated, and
+-- supports expressions we have no intention of supporting. So, we
+-- convert from Swagger to a much simpler schema type.
+--
+-- But because the Swagger schema is more expressive, there will be
+-- cases where we can't convert. We don't give up. We don't just
+-- return an error. Instead we transfer a simplified version of, "We
+-- don't know what this Swagger schema represents." This way if
+-- there's a nested structure we don't understand, we can tell the
+-- frontend in detail. We can say, "We understood the whole object
+-- except for this particular field." Then there's some feedback for
+-- the user to change that field's type. Much more useful than
+-- rejecting the entire description.
+data SimpleArgumentSchema
+    = SimpleIntSchema
+    | SimpleStringSchema
+    | SimpleHexSchema
+    | SimpleArraySchema SimpleArgumentSchema
+    | SimpleTupleSchema (SimpleArgumentSchema, SimpleArgumentSchema)
+    | SimpleObjectSchema [(Text, SimpleArgumentSchema)]
+    | ValueSchema [(Text, SimpleArgumentSchema)]
+    | UnknownSchema Text
+                    Text
+    deriving (Show, Eq, Generic, ToJSON)
+
+toSimpleArgumentSchema :: Schema -> SimpleArgumentSchema
+toSimpleArgumentSchema schema@Schema {..} =
+    case _schemaParamSchema of
+        ParamSchema {..} ->
+            case _paramSchemaType of
+                SwaggerInteger -> SimpleIntSchema
+                SwaggerString ->
+                  case _paramSchemaFormat of
+                    Just "hex" -> SimpleHexSchema
+                    _          -> SimpleStringSchema
+                SwaggerArray ->
+                    case ( view minItems _schemaParamSchema
+                         , view maxItems _schemaParamSchema
+                         , view items schema) of
+                        (Nothing, Nothing, Just (SwaggerItemsObject x)) ->
+                            SimpleArraySchema $ extractReference x
+                        (Just 2, Just 2, Just (SwaggerItemsArray [x, y])) ->
+                            SimpleTupleSchema
+                                (extractReference x, extractReference y)
+                        _ ->
+                            UnknownSchema "While handling array." $
+                            Text.pack $ show schema
+                    -- We want to give a special response if the
+                    -- argument is the blessed type `Value`. That type
+                    -- gets magic treatment in the frontend. But
+                    -- Swagger doesn't give us the metadata we need to
+                    -- tell if we've got a `Value` object.
+                    --
+                    -- The correct solution is to replace Swagger with
+                    -- something that uses GHC Generics. But because
+                    -- of deadlines we're going with the quick
+                    -- solution: Duck typing. If a schema looks like a
+                    -- `Value` type, then assume it is a `Value` type.
+                SwaggerObject ->
+                    let fields =
+                            HM.toList $
+                            extractReference <$> view properties schema
+                     in if schema ==
+                           (toInlinedSchema (Proxy :: Proxy V.Value) :: Schema)
+                            then ValueSchema
+                                     [ ( "getValue"
+                                       , toSimpleArgumentSchema
+                                             (toInlinedSchema
+                                                  (Proxy :: Proxy (Map.Map V.CurrencySymbol (Map.Map V.TokenName Int))) :: Schema))
+                                     ]
+                            else SimpleObjectSchema fields
+                _ ->
+                    UnknownSchema "Unrecognised type." $ Text.pack $ show schema
+  where
+    extractReference :: Referenced Schema -> SimpleArgumentSchema
+    extractReference (Inline v) = toSimpleArgumentSchema v
+    extractReference (Ref ref) =
+        UnknownSchema
+            "Cannot handle Ref types, only Inline ones. (Try calling this function with `Data.Swagger.toInlinedSchema)." $
+        Text.pack $ show (ref, schema)
+
+isSupportedByFrontend :: SimpleArgumentSchema -> Bool
+isSupportedByFrontend SimpleIntSchema = True
+isSupportedByFrontend SimpleStringSchema = True
+isSupportedByFrontend SimpleHexSchema = True
+isSupportedByFrontend (ValueSchema subSchema) =
+    all isSupportedByFrontend (snd <$> subSchema)
+isSupportedByFrontend (SimpleObjectSchema subSchema) =
+    all isSupportedByFrontend (snd <$> subSchema)
+isSupportedByFrontend (SimpleArraySchema subSchema) =
+    isSupportedByFrontend subSchema
+isSupportedByFrontend (SimpleTupleSchema (subSchemaX, subSchemaY)) =
+    all isSupportedByFrontend [subSchemaX, subSchemaY]
+isSupportedByFrontend (UnknownSchema _ _) = False
+------------------------------------------------------------
+=======
+pubKeys Evaluation {..} = walletPubKey . simulatorWalletWallet <$> wallets
+
+data EvaluationResult =
+    EvaluationResult
+        { resultBlockchain  :: [[(TxId, Tx)]] -- Blockchain annotated with hashes.
+        , resultGraph       :: FlowGraph
+        , emulatorLog       :: [EmulatorEvent]
+        , fundsDistribution :: [SimulatorWallet]
+        , walletKeys        :: [(PubKey, Wallet)]
+        }
+    deriving (Generic, ToJSON)
+
+note :: e -> Maybe a -> Either e a
+note msg Nothing    = Left msg
+note _ (Just value) = Right value
+
+-- type instance KIND (Digest SHA256) = SCALAR
+-- type instance KIND (Map k v) = WRAPPER
+-- instance (Introspect k (KIND k), Introspect v (KIND v)) =>
+--          Introspect (Map k v) WRAPPER where
+--     __introspect _ _ dtl =
+--         foldr ($) dtl [_introspect (Proxy @k), _introspect (Proxy @v)]
+--     __objectField _ _ name = _
+--         where
+--           kf = _objectField (Proxy @k) name
+--         -- listField (_objectField (Proxy :: Proxy (k, v)) name)
+-- instance GQLType (Digest SHA256) where
+--     typeID _ = "Hash"
+-- instance GQLScalar (Digest SHA256) where
+--     parseValue (Morpheus.String str) =
+--         note "Invalid SHA256 hash." $ digestFromByteString $ encodeUtf8 str
+--     serialize value = Morpheus.String $ Text.pack $ show value
+-- instance GQLQuery TxId
+-- instance GQLQuery Tx
+-- instance GQLQuery Signature
+-- instance GQLQuery EvaluationResult
+newtype SchemaText =
+    SchemaText Text
+    deriving (Show, Generic)
+    deriving anyclass (FromJSON, ToJSON, GQLType)
+
+type instance KIND SchemaText = SCALAR
+
+instance GQLScalar SchemaText where
+    parseValue (Morpheus.String str) = Right $ SchemaText str
+    parseValue scalar =
+        Left $ "Expected SchemaText string, got: " <> Text.pack (show scalar)
+    serialize (SchemaText str) = Morpheus.String str
+
+data CompilationResult =
+    CompilationResult
+        { functionSchema  :: SchemaText -- TODO [FunctionSchema SimpleArgumentSchema]
+        , knownCurrencies :: [KnownCurrency]
+        }
+    deriving (Show, Generic)
+    deriving anyclass (FromJSON, ToJSON, GQLType)
+
+type instance KIND CompilationResult = OBJECT
+
+data FunctionSchema a =
+    FunctionSchema
+        { functionName   :: Fn
+        , argumentSchema :: [a]
+        }
+    deriving (Eq, Show, Generic, ToJSON, FromJSON, Functor)
+
+type instance KIND (FunctionSchema SimpleArgumentSchema) = OBJECT
+
+instance GQLType (FunctionSchema SimpleArgumentSchema)
+
+class SupportedByFrontend a where
+    isSupportedByFrontend :: a -> Bool
+
+instance SupportedByFrontend Label where
+    isSupportedByFrontend (Label _ subSchema) = isSupportedByFrontend subSchema
+
+instance SupportedByFrontend Pair where
+    isSupportedByFrontend (Pair subSchemaX subSchemaY) =
+        all isSupportedByFrontend [subSchemaX, subSchemaY]
+
+instance SupportedByFrontend SimpleArgumentSchema where
+    isSupportedByFrontend SimpleIntSchema = True
+    isSupportedByFrontend SimpleStringSchema = True
+    isSupportedByFrontend SimpleHexSchema = True
+    isSupportedByFrontend (ValueSchema subSchemas) =
+        all isSupportedByFrontend subSchemas
+    isSupportedByFrontend (SimpleObjectSchema subSchemas) =
+        all isSupportedByFrontend subSchemas
+    isSupportedByFrontend (SimpleArraySchema subSchema) =
+        isSupportedByFrontend subSchema
+    isSupportedByFrontend (SimpleTupleSchema subSchema) =
+        isSupportedByFrontend subSchema
+    isSupportedByFrontend (UnknownSchema _ _) = False
+>>>>>>> origin/graphql
+
+------------------------------------------------------------
+data PlaygroundError
+    = CompilationErrors [CompilationError]
+    | InterpreterError HI.InterpreterError
+    | FunctionSchemaError
+    | DecodeJsonTypeError String String
+    | PlaygroundTimeout
+    | OtherError String
+    deriving (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
+
+parseErrorsText :: Text -> [CompilationError]
+parseErrorsText input = parseErrorText <$> Text.splitOn "\n\n" input
+
+parseErrorText :: Text -> CompilationError
+parseErrorText input =
+    fromMaybe (RawError input) $
+    flip evalStateT input $ do
+        filename <- consumeTo ":"
+        rowStr <- consumeTo ":"
+        columnStr <- consumeTo ":"
+        text <- Text.lines <$> consume
+  --
+        row <- lift $ readMaybe $ Text.unpack rowStr
+        column <- lift $ readMaybe $ Text.unpack columnStr
+        pure CompilationError {..}
+
+consumeTo :: Monad m => Text -> StateT Text m Text
+consumeTo needle = do
+    (before, after) <- breakWith needle <$> get
+    put after
+    pure before
+
+consume :: (Monad m, Monoid s) => StateT s m s
+consume = get <* put mempty
+
+-- | Light `Data.Text.breakOn`, but consumes the breakpoint text (the 'needle').
+breakWith :: Text -> Text -> (Text, Text)
+breakWith needle = second (Text.drop 1) . Text.breakOn needle

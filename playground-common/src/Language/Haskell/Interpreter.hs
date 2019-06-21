@@ -71,13 +71,14 @@ data InterpreterError
     deriving anyclass (ToJSON, FromJSON, GQLType)
 
 type instance KIND InterpreterError = UNION
+
 newtype SourceCode =
     SourceCode Text
     deriving (Generic)
     deriving newtype (ToJSON, FromJSON)
-    deriving anyclass (Newtype, GQLType, GQLArgs)
+    deriving anyclass (Newtype, GQLType)
 
-type instance KIND SourceCode = SCALAR
+-- type instance KIND SourceCode = SCALAR
 
 instance GQLScalar SourceCode where
     parseValue (Morpheus.String str) = Right $ SourceCode str

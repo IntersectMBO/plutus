@@ -139,11 +139,11 @@ parameters can be entered.
 data LockArguments = LockArguments
   { lockWord :: Text
   , lockVl :: Value
-  } deriving (Generic, GQLArgs)
+  } deriving (Generic, GQLType)
 
 data GuessArguments = GuessArguments
   { guessWord :: Text
-  } deriving (Generic, GQLArgs)
+  } deriving (Generic, GQLType)
 
 data MutationAPI m =
     MutationAPI

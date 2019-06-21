@@ -24,9 +24,7 @@ packages:
     git: https://github.com/shmish111/purescript-bridge.git
     commit: a7069a515800135ce932742e995f3a96bc1c7129
   extra-dep: true
-- location:
-    git: https://github.com/input-output-hk/morpheus-graphql.git
-    commit: 588af7d4717fdec99724caf43311d93a85e70820
+- location: morpheus-graphql
   extra-dep: true
 - location:
     git: https://github.com/shmish111/servant-purescript.git

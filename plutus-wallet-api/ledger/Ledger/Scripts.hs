@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE TypeFamilies       #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
@@ -49,12 +50,19 @@ import           Language.PlutusTx.Lift                   (unsafeLiftCode)
 import           Language.PlutusTx.Lift.Class             (Lift)
 import           Language.PlutusTx                        (CompiledCode, compile, getPlc)
 import           Language.PlutusTx.Prelude
+import           Data.Morpheus.Types                      (GQLType(typeID))
+import           Data.Morpheus.Kind                       (KIND, OBJECT)
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 --
 -- Note: the program inside the 'Script' should have normalized types.
 newtype Script = Script { unScript :: PLC.Program PLC.TyName PLC.Name () }
   deriving newtype (Serialise)
+
+instance GQLType Script where
+  typeID _ = "Script"
+
+type instance KIND Script = OBJECT
 
 {- Note [Normalized types in Scripts]
 The Plutus Tx plugin and lifting machinery does not necessarily produce programs
@@ -142,7 +150,7 @@ lifted = fromCompiledCode . unsafeLiftCode
 newtype ValidatorScript = ValidatorScript { getValidator :: Script }
   deriving stock (Generic)
   deriving newtype (Serialise)
-  deriving anyclass (ToJSON, FromJSON)
+  deriving anyclass (ToJSON, FromJSON, GQLType)
 
 instance Show ValidatorScript where
     show = const "ValidatorScript { <script> }"
@@ -165,7 +173,7 @@ instance BA.ByteArrayAccess ValidatorScript where
 newtype DataScript = DataScript { getDataScript :: Script  }
   deriving stock (Generic)
   deriving newtype (Serialise)
-  deriving anyclass (ToJSON, FromJSON)
+  deriving anyclass (ToJSON, FromJSON, GQLType)
 
 instance Show DataScript where
     show = const "DataScript { <script> }"
@@ -188,7 +196,7 @@ instance BA.ByteArrayAccess DataScript where
 newtype RedeemerScript = RedeemerScript { getRedeemer :: Script }
   deriving stock (Generic)
   deriving newtype (Serialise)
-  deriving anyclass (ToJSON, FromJSON)
+  deriving anyclass (ToJSON, FromJSON, GQLType)
 
 instance Show RedeemerScript where
     show = const "RedeemerScript { <script> }"

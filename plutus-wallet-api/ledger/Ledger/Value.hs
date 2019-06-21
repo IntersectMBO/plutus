@@ -51,18 +51,12 @@ import           Codec.Serialise.Class       (Serialise)
 import           Data.Aeson                  (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
 import qualified Data.Aeson                  as JSON
 import qualified Data.Aeson.Extras           as JSON
-import           Data.Bifunctor              (bimap)
 import qualified Data.ByteString.Lazy        as BSL
 import qualified Data.ByteString.Lazy.Char8  as C8
 import           Data.Hashable               (Hashable)
-import           Data.Morpheus.Kind          (INPUT_OBJECT, KIND, OBJECT, SCALAR, WRAPPER)
-import           Data.Morpheus.Types         (GQLScalar (parseValue, serialize), GQLType (updateLib), InputTypeRouter,
-                                              asObjectType, field_, _decode, _field, _introspect)
-import qualified Data.Morpheus.Types         as Morpheus
-import           Data.Morpheus.Types.GQLArgs (GQLArgs (decode, introspect))
-import           Data.Proxy                  (Proxy (Proxy))
+import           Data.Morpheus.Kind          (KIND, OBJECT, WRAPPER)
+import           Data.Morpheus.Types         (GQLType)
 import           Data.String                 (IsString (fromString))
-import           Data.Text                   (Text)
 import qualified Data.Text                   as Text
 import           GHC.Generics                (Generic)
 import qualified Language.PlutusTx.Builtins  as Builtins
@@ -70,14 +64,15 @@ import           Language.PlutusTx.Lift      (makeLift)
 import           Language.PlutusTx.Prelude   hiding (eq, geq, gt, leq, lt, minus, multiply, negate, plus)
 import qualified Language.PlutusTx.Prelude   as P
 import qualified Ledger.Map                  as Map
+import Ledger.Map                  (Map)
 import           LedgerBytes                 (LedgerBytes (LedgerBytes))
 
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteString }
     deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise) via LedgerBytes
     deriving stock (Eq, Ord, Generic)
-    deriving anyclass (Hashable, GQLType, GQLScalar)
+    deriving anyclass (Hashable, GQLType)
 
-type instance KIND CurrencySymbol = SCALAR
+type instance KIND CurrencySymbol = OBJECT
 
 instance ToJSON CurrencySymbol where
   toJSON currencySymbol =
@@ -109,9 +104,9 @@ currencySymbol = CurrencySymbol
 newtype TokenName = TokenName { unTokenName :: Builtins.ByteString }
     deriving (Serialise) via LedgerBytes
     deriving stock (Eq, Ord, Generic)
-    deriving anyclass (Hashable, GQLType, GQLScalar)
+    deriving anyclass (Hashable, GQLType)
 
-type instance KIND TokenName = SCALAR
+type instance KIND TokenName = OBJECT
 
 instance IsString TokenName where
   fromString = TokenName . C8.pack
@@ -158,29 +153,14 @@ tokenName = TokenName
 -- taken to be zero.
 --
 -- See note [Currencies] for more details.
-newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
+newtype Value = Value { getValue :: Map CurrencySymbol (Map TokenName Integer) }
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON, Hashable, GQLType)
     deriving newtype (Serialise)
 
 type instance KIND Value = OBJECT
-
-data FlatValue =
-  FlatValue
-    { flatCurrencySymbol :: CurrencySymbol
-    , flatTokenName      :: TokenName
-    , flatBalance        :: Integer
-    }
-  deriving (Show, Generic)
-  deriving anyclass (ToJSON, FromJSON, Hashable, GQLType, GQLArgs)
-
-type instance KIND FlatValue = INPUT_OBJECT
-
-instance InputTypeRouter Value OBJECT where
-  __introspect proxyB proxyA = _introspect (Proxy @[FlatValue])
-  __decode proxyB value = pure $ Value { getValue = Map.empty () }
-  __field _ _ = _field (Proxy @[FlatValue])
-
+type instance KIND (Map TokenName Integer) = WRAPPER
+type instance KIND (Map CurrencySymbol (Map TokenName Integer)) = WRAPPER
 
 makeLift ''Value
 

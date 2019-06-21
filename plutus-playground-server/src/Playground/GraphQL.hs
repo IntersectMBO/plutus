@@ -36,7 +36,7 @@ data ContractArgs =
     ContractArgs
         { contractArgsSourceCode :: SourceCode
         }
-    deriving (Generic, GQLType, GQLArgs)
+    deriving (Generic, GQLType)
 
 data ContractResponse
     = InterpreterFailure HI.InterpreterError

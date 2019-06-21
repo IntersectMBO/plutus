@@ -1,12 +1,14 @@
-{-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE DerivingStrategies   #-}
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE LambdaCase           #-}
-{-# LANGUAGE MonoLocalBinds       #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MonoLocalBinds        #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 -- Prevent unboxing, which the plugin can't deal with
 {-# OPTIONS_GHC -fno-strictness #-}
@@ -29,13 +31,19 @@ module Ledger.Map(
     , these
     ) where
 
-import           Codec.Serialise.Class     (Serialise)
-import           Data.Aeson                (FromJSON (parseJSON), ToJSON (toJSON))
-import           Data.Hashable             (Hashable)
-import           GHC.Generics              (Generic)
-import           Language.PlutusTx.Lift    (makeLift)
-import           Language.PlutusTx.Prelude hiding (all, lookup, map)
-import qualified Language.PlutusTx.Prelude as P
+import           Codec.Serialise.Class            (Serialise)
+import           Data.Aeson                       (FromJSON (parseJSON), ToJSON (toJSON))
+import           Data.Hashable                    (Hashable)
+import           Data.Morpheus.Kind               (KIND, OBJECT, WRAPPER)
+import           Data.Morpheus.Resolve.Internal
+import           Data.Morpheus.Resolve.Introspect
+import           Data.Morpheus.Schema.TypeKind    (TypeKind (OBJECT))
+import           Data.Morpheus.Types.GQLType      (GQLType (..), asObjectType)
+import           Data.Proxy                       (Proxy (Proxy))
+import           GHC.Generics                     (Generic)
+import           Language.PlutusTx.Lift           (makeLift)
+import           Language.PlutusTx.Prelude        hiding (all, lookup, map)
+import qualified Language.PlutusTx.Prelude        as P
 
 import           Ledger.These
 
@@ -131,3 +139,14 @@ singleton c i = Map [(c, i)]
 -- | An empty 'Map'.
 empty :: () -> Map k v
 empty _ = Map ([] :: [(k, v)])
+
+instance (GQLType k, GQLType v) => GQLType (Map k v) where
+  typeID _ = "Map" <> typeID (Proxy :: Proxy k) <> typeID (Proxy :: Proxy v)
+
+instance (Introspect k (KIND k), Introspect v (KIND v), GQLType k, GQLType v) => Introspect (Map k v) WRAPPER where
+  __objectField _ _ = field_ OBJECT (Proxy :: Proxy (Map k v)) []
+  __introspect _ = updateLib (asObjectType fields') stack'
+    where
+      (fields', stack') = unzip [ (("key", _objectField (Proxy :: Proxy k) "key"), _introspect (Proxy :: Proxy k))
+                                , (("value", _objectField (Proxy :: Proxy v) "value"), _introspect (Proxy :: Proxy v))
+                                ]

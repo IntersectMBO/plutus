@@ -38,7 +38,7 @@ import qualified Data.Aeson.Extras          as JSON
 import qualified Data.ByteArray             as BA
 import qualified Data.ByteString            as BS
 import qualified Data.ByteString.Lazy       as BSL
-import           Data.Morpheus.Kind         (INPUT_OBJECT, KIND)
+import           Data.Morpheus.Kind         (KIND, OBJECT)
 import           Data.Morpheus.Types        (GQLType)
 import           GHC.Generics               (Generic)
 import qualified Language.PlutusTx.Builtins as Builtins
@@ -55,7 +55,7 @@ newtype PubKey = PubKey { getPubKey :: LedgerBytes }
     deriving anyclass (ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, GQLType)
     deriving newtype (Serialise)
 makeLift ''PubKey
-type instance KIND PubKey = INPUT_OBJECT
+type instance KIND PubKey = OBJECT
 
 -- | A cryptographic private key.
 newtype PrivateKey = PrivateKey { getPrivateKey :: LedgerBytes }
@@ -74,9 +74,11 @@ instance FromHttpApiData PrivateKey where
 
 -- | A message with a cryptographic signature.
 newtype Signature = Signature { getSignature :: Builtins.ByteString }
-    deriving (Eq, Ord, Show)
-    deriving stock (Generic)
+    deriving (Eq, Ord, Show, Generic)
     deriving newtype (Serialise)
+    deriving anyclass (GQLType)
+
+type instance KIND Signature = OBJECT
 
 instance ToJSON Signature where
   toJSON signature =

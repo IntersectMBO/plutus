@@ -19,7 +19,7 @@ module CrowdFunding where
 -- Note [Transactions in the crowdfunding campaign] explains the structure of
 -- this contract on the blockchain.
 
-import           Data.Morpheus.Kind        (INPUT_OBJECT, KIND)
+import           Data.Morpheus.Kind        (OBJECT, KIND)
 import           Data.Morpheus.Types       (GQLArgs, GQLRootResolver (GQLRootResolver, mutationResolver, queryResolver, subscriptionResolver),
                                             GQLType, MUTATION, ResolveCon, Resolver)
 import qualified Language.PlutusTx         as PlutusTx
@@ -56,7 +56,7 @@ data Campaign = Campaign
 
 PlutusTx.makeLift ''Campaign
 
-type instance KIND Campaign = INPUT_OBJECT
+type instance KIND Campaign = OBJECT
 
 -- | Construct a 'Campaign' value from the campaign parameters,
 --   using the wallet's public key.
@@ -256,7 +256,7 @@ data ScheduleCollectionArguments = ScheduleCollectionArguments
   , scheduleCollectionTarget             :: Value
   , scheduleCollectionCollectionDeadline :: Slot
   , scheduleCollectionOwnerWallet        :: Wallet
-  } deriving (Generic, GQLArgs)
+  } deriving (Generic, GQLType)
 
 data ContributeArguments = ContributeArguments
   { contributeDeadline           :: Slot
@@ -264,7 +264,7 @@ data ContributeArguments = ContributeArguments
   , contributeCollectionDeadline :: Slot
   , contributeOwnerWallet        :: Wallet
   , contributeValue              :: Value
-  } deriving (Generic, GQLArgs)
+  } deriving (Generic, GQLType)
 
 data MutationAPI m =
     MutationAPI

@@ -131,6 +131,7 @@ data EvaluationResult =
 
 type instance KIND EvaluationResult = OBJECT
 type instance KIND (TxId, Tx) = WRAPPER
+type instance KIND (PubKey, Wallet) = WRAPPER
 
 newtype SchemaText =
     SchemaText Text

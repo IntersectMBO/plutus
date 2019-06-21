@@ -1,7 +1,9 @@
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE RecordWildCards    #-}
+{-# LANGUAGE TypeFamilies       #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 
 -- | Support for visualisation of a blockchain as a graph.
@@ -15,15 +17,17 @@ module Wallet.Graph
   , UtxoLocation
   ) where
 
-import           Data.Aeson.Types  (ToJSON, toJSON)
-import           Data.List         (nub)
-import qualified Data.Map          as Map
-import           Data.Maybe        (catMaybes)
-import qualified Data.Set          as Set
-import qualified Data.Text         as Text
-import           GHC.Generics      (Generic)
+import           Data.Aeson.Types    (ToJSON, toJSON)
+import           Data.List           (nub)
+import qualified Data.Map            as Map
+import           Data.Maybe          (catMaybes)
+import           Data.Morpheus.Kind  (ENUM, KIND, OBJECT, UNION)
+import           Data.Morpheus.Types (GQLType)
+import qualified Data.Set            as Set
+import qualified Data.Text           as Text
+import           GHC.Generics        (Generic)
 
-import qualified Ledger.Ada        as Ada
+import qualified Ledger.Ada          as Ada
 import           Ledger.Blockchain
 import           Ledger.Crypto
 import           Ledger.Tx
@@ -38,6 +42,10 @@ data UtxOwner
   | OtherOwner
     -- ^ All other funds (that is, funds owned by a public key we are not interested in).
   deriving (Eq, Ord, Show, Generic, ToJSON)
+  deriving anyclass (GQLType)
+
+type instance KIND UtxOwner = ENUM
+
 
 -- | Given a set of known public keys, compute the owner of a given transaction output.
 owner :: Set.Set PubKey -> TxOutOf h -> UtxOwner
@@ -65,6 +73,9 @@ data UtxoLocation = UtxoLocation
   { utxoLocBlock    :: Integer
   , utxoLocBlockIdx :: Integer
   } deriving (Eq, Ord, Show, Generic, ToJSON)
+    deriving anyclass (GQLType)
+
+type instance KIND UtxoLocation = OBJECT
 
 -- | A link in the flow graph.
 data FlowLink = FlowLink
@@ -75,12 +86,18 @@ data FlowLink = FlowLink
   , flowLinkSourceLoc :: UtxoLocation -- ^ The location of the source transaction.
   , flowLinkTargetLoc :: Maybe UtxoLocation -- ^ The location of the target transaction, if 'Nothing' then it is unspent.
   } deriving (Show, Generic, ToJSON)
+    deriving anyclass (GQLType)
+
+type instance KIND FlowLink = OBJECT
 
 -- | The flow graph, consisting of a set of nodes ('TxRef's) and edges ('FlowLink's).
 data FlowGraph = FlowGraph
   { flowGraphLinks :: [FlowLink]
   , flowGraphNodes :: [TxRef]
   } deriving (Generic, ToJSON)
+    deriving anyclass (GQLType)
+
+type instance KIND FlowGraph = OBJECT
 
 -- | Construct a graph from a list of 'FlowLink's.
 graph :: [FlowLink] -> FlowGraph

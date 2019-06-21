@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE RecordWildCards    #-}
+{-# LANGUAGE TypeFamilies       #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Ledger.Tx(
     -- * Transactions
@@ -69,6 +70,9 @@ import           Data.Hashable         (Hashable, hashWithSalt)
 import           Data.Map              (Map)
 import qualified Data.Map              as Map
 import           Data.Maybe            (isJust)
+import           Data.Morpheus.Kind    (KIND, OBJECT, UNION, WRAPPER)
+import           Data.Morpheus.Types   (GQLType)
+import           Data.Set              (Set)
 import qualified Data.Set              as Set
 import           GHC.Generics          (Generic)
 
@@ -107,6 +111,9 @@ especially because we only need one direction (to binary).
 -- | A payment address using some id type. This corresponds to a Bitcoin pay-to-witness-script-hash.
 newtype AddressOf h = AddressOf { getAddress :: h }
     deriving stock (Eq, Ord, Show, Generic)
+    deriving anyclass (GQLType)
+
+type instance KIND (AddressOf h) = OBJECT
 
 -- | A payment address using a SHA256 hash as the address id type.
 type Address = AddressOf (Digest SHA256)
@@ -135,7 +142,12 @@ data Tx = Tx {
     txSignatures :: Map PubKey Signature
     -- ^ Signatures of this transaction
     } deriving stock (Show, Eq, Generic)
-      deriving anyclass (ToJSON, FromJSON, Serialise)
+      deriving anyclass (ToJSON, FromJSON, Serialise, GQLType)
+
+type instance KIND Tx = OBJECT
+type instance KIND TxIn = OBJECT
+type instance KIND (Set TxIn) = WRAPPER
+type instance KIND (Map PubKey Signature) = WRAPPER
 
 -- | The inputs of a transaction.
 inputs :: Lens' Tx (Set.Set TxIn)
@@ -205,6 +217,9 @@ data TxOutRefOf h = TxOutRefOf {
     txOutRefId  :: TxIdOf h,
     txOutRefIdx :: Integer -- ^ Index into the referenced transaction's outputs
     } deriving (Show, Eq, Ord, Generic)
+      deriving anyclass (GQLType)
+
+type instance KIND (TxOutRefOf h) = OBJECT
 
 -- | A reference to a transaction output, using a SHA256 hash.
 type TxOutRef = TxOutRefOf (Digest SHA256)
@@ -224,12 +239,16 @@ data TxInType =
       ConsumeScriptAddress !ValidatorScript !RedeemerScript -- ^ A transaction input that consumes a script address with the given validator and redeemer pair.
     | ConsumePublicKeyAddress !PubKey -- ^ A transaction input that consumes a public key address.
     deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON)
+    deriving anyclass (GQLType)
+
+type instance KIND TxInType = OBJECT
 
 -- | A transaction input using some transaction id type, consisting of a transaction output reference and an input type.
 data TxInOf h = TxInOf {
     txInRef  :: !(TxOutRefOf h),
     txInType :: !TxInType
     } deriving (Show, Eq, Ord, Generic)
+      deriving anyclass (GQLType)
 
 -- | A transaction input, using a SHA256 hash as the transaction id type.
 type TxIn = TxInOf (Digest SHA256)
@@ -286,6 +305,9 @@ data TxOutType =
     PayToScript !DataScript -- ^ A pay-to-script output with the given data script.
     | PayToPubKey !PubKey -- ^ A pay-to-pubkey output.
     deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON)
+    deriving anyclass (GQLType)
+
+type instance KIND TxOutType = UNION
 
 -- | A transaction output, using the given transaction id type, consisting of a target address,
 -- a value, and an output type.
@@ -293,8 +315,10 @@ data TxOutOf h = TxOutOf {
     txOutAddress :: !(AddressOf h),
     txOutValue   :: !Value,
     txOutType    :: !TxOutType
-    }
-    deriving (Show, Eq, Generic)
+    } deriving (Show, Eq, Generic)
+      deriving anyclass (GQLType)
+
+type instance KIND (TxOutOf h) = OBJECT
 
 -- | A transaction output, using a SHA256 hash as the transaction id type.
 type TxOut = TxOutOf (Digest SHA256)

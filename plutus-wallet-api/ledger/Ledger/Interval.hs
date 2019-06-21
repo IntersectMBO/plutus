@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE MonoLocalBinds       #-}
 {-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
@@ -23,6 +24,8 @@ import           Codec.Serialise.Class  (Serialise)
 import           Data.Aeson             (FromJSON, ToJSON)
 import           Data.Hashable          (Hashable)
 import           Data.Maybe             (isNothing)
+import           Data.Morpheus.Kind     (KIND, OBJECT)
+import           Data.Morpheus.Types    (GQLType)
 import           Data.Semigroup         (Max (..), Min (..), Option (..), Semigroup ((<>)))
 import           GHC.Generics           (Generic)
 import           Language.PlutusTx.Lift (makeLift)
@@ -32,9 +35,10 @@ import           Language.PlutusTx.Lift (makeLift)
 --   The interval is unbounded on either side: @Interval Nothing (Just 12)@
 --   contains all numbers smaller than @12@.
 data Interval a = Interval { ivFrom :: Maybe a, ivTo :: Maybe a }
-    deriving (Eq, Ord, Show)
-    deriving stock (Generic)
-    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable)
+    deriving (Eq, Ord, Show, Generic)
+    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, GQLType)
+
+type instance KIND (Interval a) = OBJECT
 
 makeLift ''Interval
 

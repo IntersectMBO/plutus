@@ -115,7 +115,7 @@ liftUnitResolver f = const True <$> liftResolver f
 data PayToWalletArguments = PayToWalletArguments
   { payToWalletValue  :: Value
   , payToWalletWallet :: Wallet
-  } deriving (Generic, GQLArgs)
+  } deriving (Generic)
 
 payToWalletResolver :: (WalletAPI m, Monad m) => Resolver m MUTATION PayToWalletArguments Bool
 payToWalletResolver = liftUnitResolver (\PayToWalletArguments {..} -> payToWallet_ payToWalletValue payToWalletWallet)
