@@ -168,6 +168,14 @@
 \begin{document}
 \maketitle
 
+\todokwxm{I'm in two minds about how to structure this. Interspersing
+  specification and explanation is a bit messy, since once you
+  understand what's going on you probably just want to read the
+  specification and ignore the explanation. However, we need
+  \textit{some} explanation somewhere, and I think it's probably best
+  to have it in the same document.  Maybe we could put the explanations
+  at the end?}
+
 \section{Introduction: The Extended UTXO Model}
 \label{sec:intro}
 The Cardano blockchain~\citep{Cardano, Cardano-ledger-spec} uses a
@@ -593,7 +601,7 @@ avoid the possibility of their transactions failing due to an
 insufficient fee having been paid (and also avoids overpayment due to
 overestimating the fees).
 
-\todokwxm{This can't be precisely true.  For example, in the
+\todokwxm{This may be a little optimistic.  For example, in the
   crowdfunding contract we don't know in advance how many
   contributions will be made, or whether a campaign will succeed or
   fail.  Thus we won't know how much the final transaction will cost
@@ -1047,17 +1055,20 @@ states'':
 \end{itemize}
 
 \paragraph{Performance.}
-\red{I'm just making random stuff up here.}  The UTXO-2 model will
-lose some efficiency in comparison to the UTXO-1 model, simply because
-the data structures are more complicated.  This would even apply to
-transactions which only involve to native currency, since it would be
-necessary to check whether the \qtymap{} contains anything that needs
-to be processed.  If this is a concern then one could implement a
-model with two types of transaction, essentially just the disjoint
-union of the EUTXO-1 and EUTXO-2 transaction types. A simple case
-distinction at the start of a transaction could then select either a
-fast native-currency-only computation or a slower multicurrency
-computation.  This would be harder to maintain though.
+\
+\medskip
+\todokwxm{Do we care about any of this?}
+The UTXO-2 model will lose some efficiency in comparison to the UTXO-1
+model, simply because the data structures are more complicated.  This
+would even apply to transactions which only involve to native
+currency, since it would be necessary to check whether the \qtymap{}
+contains anything that needs to be processed.  If this is a concern
+then one could implement a model with two types of transaction,
+essentially just the disjoint union of the EUTXO-1 and EUTXO-2
+transaction types. A simple case distinction at the start of a
+transaction could then select either a fast native-currency-only
+computation or a slower multicurrency computation.  This would be
+harder to maintain though.
 
 \smallskip  Another optimisation would be possible if one wished to
 implement custom currencies but not NFTs: since in this case every
