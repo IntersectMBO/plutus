@@ -71,14 +71,14 @@ let
   src = localLib.iohkNix.cleanSourceHaskell ./.;
   latex = pkgs.callPackage ./nix/latex.nix {};
 
-  pp2nSrc = pkgs.fetchFromGitHub {
+  pp2nSrc = pkgs.buildPackages.fetchFromGitHub {
     owner = "justinwoo";
     repo = "psc-package2nix";
     rev = "6e8f6dc6dea896c71b30cc88a2d95d6d1e48a6f0";
     sha256 = "0fa6zaxxmqxva1xmnap9ng7b90zr9a55x1l5xk8igdw2nldqfa46";
   };
 
-  yarn2nixSrc = pkgs.fetchFromGitHub {
+  yarn2nixSrc = pkgs.buildPackages.fetchFromGitHub {
     owner = "moretea";
     repo = "yarn2nix";
     rev = "780e33a07fd821e09ab5b05223ddb4ca15ac663f";
