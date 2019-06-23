@@ -1,4 +1,4 @@
--- | This module assigns types to built-ins.
+-- | This module assigns types to built-ins.Typed
 -- See the @plutus/language-plutus-core/docs/Constant application.md@
 -- article for how this emerged.
 
@@ -385,3 +385,39 @@ instance KnownType () where
         case res of
             Constant () (BuiltinInt () 1) -> pure ()
             _                             -> throwError "Not a builtin ()"
+
+
+
+-- -- | Typed 'TakeByteString'.
+-- typedTakeByteString :: TypedBuiltinName (Integer -> BSL.ByteString -> BSL.ByteString) BSL.ByteString
+-- typedTakeByteString =
+--     TypedBuiltinName TakeByteString $
+--         Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
+
+
+
+-- data Term tyname name ext ann
+--     = ...
+--     | Pure ext
+
+-- type ExtTerm tyname name uni ann = Term tyname name (exists a. (uni a, a)) ann
+
+-- evaluateCk :: GEq uni => ExtTerm tyname name uni ann -> ExtTerm tyname name uni ann
+
+-- data Typed uni a r where
+--     ...
+--     TypeSchemeResult :: uni `Includes` a => Proxy a -> TypeScheme a a
+--     TypeSchemeArrow  :: uni `Includes` a => Proxy a -> TypeScheme b r -> TypeScheme (a -> b) r
+
+-- -- We probably want to use that together with `fastsum`.
+-- -- But also allow @Either@ and use type families for computing the index of a type,
+-- -- because we want to extend @uni@ in order to unlift values.
+-- class uni `Includes` a where
+--     uniVal :: uni a
+
+-- typedTakeByteString
+--     :: (uni `Includes` Integer, uni `Includes` ByteString)
+--     => TypedBuiltinName uni (Integer -> ByteString -> ByteString)
+-- typedTakeByteString =
+--     TypedBuiltinName TakeByteString $
+--         Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
