@@ -60,6 +60,7 @@ variable "nixops_instance_type" {
 }
 variable "bastion_ssh_keys" {
   default {
+    alpha = ["david"]
     patrick = ["david", "kris"]
     david   = ["david"]
     kris    = ["kris"]
@@ -71,6 +72,7 @@ variable "bastion_ssh_keys" {
 
 variable "nixops_ssh_keys" {
   default {
+    alpha = ["david"]
     patrick = ["david", "kris"]
     david   = ["david"]
     kris    = ["kris"]
@@ -82,6 +84,7 @@ variable "nixops_ssh_keys" {
 
 variable "playground_ssh_keys" {
   default {
+    alpha = ["david"]
     patrick = ["david", "kris"]
     david   = ["david"]
     kris    = ["kris"]

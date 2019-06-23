@@ -35,17 +35,17 @@ ext ρ (S α)  =  S (ρ α)
 
 Apply a type renaming to a type.
 \begin{code}
-rename : ∀ {Φ Ψ}
+ren : ∀ {Φ Ψ}
   → Ren Φ Ψ
     -----------------------
   → ∀ {J} → Φ ⊢⋆ J → Ψ ⊢⋆ J
-rename ρ (` α)       = ` (ρ α)
-rename ρ (Π x B)     = Π x (rename (ext ρ) B)
-rename ρ (A ⇒ B)     = rename ρ A ⇒ rename ρ B
-rename ρ (ƛ x B)     = ƛ x (rename (ext ρ) B)
-rename ρ (A · B)     = rename ρ A · rename ρ B
-rename ρ μ1          = μ1
-rename ρ (con tcn) = con tcn
+ren ρ (` α)       = ` (ρ α)
+ren ρ (Π x B)     = Π x (ren (ext ρ) B)
+ren ρ (A ⇒ B)     = ren ρ A ⇒ ren ρ B
+ren ρ (ƛ x B)     = ƛ x (ren (ext ρ) B)
+ren ρ (A · B)     = ren ρ A · ren ρ B
+ren ρ μ1          = μ1
+ren ρ (con tcn) = con tcn
 \end{code}
 
 Weakening is a special case of renaming.
@@ -55,7 +55,7 @@ weaken : ∀ {Φ J K}
   → Φ ⊢⋆ J
     -----------
   → Φ ,⋆ K ⊢⋆ J
-weaken = rename S
+weaken = ren S
 \end{code}
 
 ## Renaming proofs
@@ -71,7 +71,7 @@ ext-id Z     = refl
 ext-id (S x) = refl
 \end{code}
 
-This congruence lemma and analogous ones for exts⋆, rename, and
+This congruence lemma and analogous ones for exts⋆, ren, and
 subst⋆ avoids the use of extensionality when reasoning about equal
 renamings/substitutions as we only need a pointwise version of
 equality. If we used the standard library's cong we would need to
@@ -92,35 +92,35 @@ ext-cong p (S x) = cong S (p x)
 Congruence lemma for renaming⋆
 
 \begin{code}
-rename-cong : ∀ {Φ Ψ}
+ren-cong : ∀ {Φ Ψ}
   → {f g : Ren Φ Ψ}
   → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
   → ∀{K}(A : Φ ⊢⋆ K)
     -------------------------------
-  → rename f A ≡ rename g A
-rename-cong p (` x)       = cong ` (p x)
-rename-cong p (Π x A)     = cong (Π x) (rename-cong (ext-cong p) A)
-rename-cong p (A ⇒ B)     = cong₂ _⇒_ (rename-cong p A) (rename-cong p B)
-rename-cong p (ƛ x A)     = cong (ƛ x) (rename-cong (ext-cong p) A)
-rename-cong p (A · B)     = cong₂ _·_ (rename-cong p A) (rename-cong p B)
-rename-cong p μ1          = refl
-rename-cong p (con tcn)   = refl
+  → ren f A ≡ ren g A
+ren-cong p (` x)       = cong ` (p x)
+ren-cong p (Π x A)     = cong (Π x) (ren-cong (ext-cong p) A)
+ren-cong p (A ⇒ B)     = cong₂ _⇒_ (ren-cong p A) (ren-cong p B)
+ren-cong p (ƛ x A)     = cong (ƛ x) (ren-cong (ext-cong p) A)
+ren-cong p (A · B)     = cong₂ _·_ (ren-cong p A) (ren-cong p B)
+ren-cong p μ1          = refl
+ren-cong p (con tcn)   = refl
 \end{code}
 
-First functor law for rename
+First functor law for ren
 
 \begin{code}
-rename-id : ∀{Φ J}
+ren-id : ∀{Φ J}
  → (t : Φ ⊢⋆ J)
    ---------------
- → rename id t ≡ t
-rename-id (` x)       = refl
-rename-id (Π x t)     = cong (Π x) (trans (rename-cong ext-id t) (rename-id t))
-rename-id (t ⇒ u)     = cong₂ _⇒_ (rename-id t) (rename-id u)
-rename-id (ƛ x t)     = cong (ƛ x) (trans (rename-cong ext-id t) (rename-id t))
-rename-id (t · u)     = cong₂ _·_ (rename-id t) (rename-id u)
-rename-id μ1          = refl
-rename-id (con tcn)   = refl
+ → ren id t ≡ t
+ren-id (` x)       = refl
+ren-id (Π x t)     = cong (Π x) (trans (ren-cong ext-id t) (ren-id t))
+ren-id (t ⇒ u)     = cong₂ _⇒_ (ren-id t) (ren-id u)
+ren-id (ƛ x t)     = cong (ƛ x) (trans (ren-cong ext-id t) (ren-id t))
+ren-id (t · u)     = cong₂ _·_ (ren-id t) (ren-id u)
+ren-id μ1          = refl
+ren-id (con tcn)   = refl
 \end{code}
 
 Second functor law for ext
@@ -136,24 +136,24 @@ ext-comp Z     = refl
 ext-comp (S x) = refl
 \end{code}
 
-Second functor law for rename
+Second functor law for ren
 
 \begin{code}
-rename-comp : ∀{Φ Ψ Θ}
+ren-comp : ∀{Φ Ψ Θ}
   → {g : Ren Φ Ψ}
   → {f : Ren Ψ Θ}
   → ∀{J}(A : Φ ⊢⋆ J)
     ----------------------------------------
-  → rename (f ∘ g) A ≡ rename f (rename g A)
-rename-comp (` x)       = refl
-rename-comp (Π x A)       =
-  cong (Π x) (trans (rename-cong ext-comp A) (rename-comp A))
-rename-comp (A ⇒ B)     = cong₂ _⇒_ (rename-comp A) (rename-comp B)
-rename-comp (ƛ x A)     =
-  cong (ƛ x) (trans (rename-cong ext-comp A) (rename-comp A))
-rename-comp (A · B)     = cong₂ _·_ (rename-comp A) (rename-comp B)
-rename-comp μ1          = refl
-rename-comp (con tcn)   = refl
+  → ren (f ∘ g) A ≡ ren f (ren g A)
+ren-comp (` x)       = refl
+ren-comp (Π x A)       =
+  cong (Π x) (trans (ren-cong ext-comp A) (ren-comp A))
+ren-comp (A ⇒ B)     = cong₂ _⇒_ (ren-comp A) (ren-comp B)
+ren-comp (ƛ x A)     =
+  cong (ƛ x) (trans (ren-cong ext-comp A) (ren-comp A))
+ren-comp (A · B)     = cong₂ _·_ (ren-comp A) (ren-comp B)
+ren-comp μ1          = refl
+ren-comp (con tcn)   = refl
 \end{code}
 
 ## Type substitution
@@ -291,57 +291,57 @@ exts-ext Z     = refl
 exts-ext (S x) = refl
 \end{code}
 
-Fusion for subst and rename
+Fusion for subst and ren
 
 \begin{code}
-subst-rename : ∀{Φ Ψ Θ}
+subst-ren : ∀{Φ Ψ Θ}
   → {g : Ren Φ Ψ}
   → {f : Sub Ψ Θ}
   → ∀{J}(A : Φ ⊢⋆ J)
     --------------------------------------
-  → subst (f ∘ g) A ≡ subst f (rename g A)
-subst-rename (` x)       = refl
-subst-rename (Π x A)     =
-  cong (Π x) (trans (subst-cong exts-ext A) (subst-rename A))
-subst-rename (A ⇒ B)     = cong₂ _⇒_ (subst-rename A) (subst-rename B)
-subst-rename (ƛ x A)     =
-  cong (ƛ x) (trans (subst-cong exts-ext A) (subst-rename A))
-subst-rename (A · B)     = cong₂ _·_ (subst-rename A) (subst-rename B)
-subst-rename μ1           = refl
-subst-rename (con tcn)   = refl
+  → subst (f ∘ g) A ≡ subst f (ren g A)
+subst-ren (` x)       = refl
+subst-ren (Π x A)     =
+  cong (Π x) (trans (subst-cong exts-ext A) (subst-ren A))
+subst-ren (A ⇒ B)     = cong₂ _⇒_ (subst-ren A) (subst-ren B)
+subst-ren (ƛ x A)     =
+  cong (ƛ x) (trans (subst-cong exts-ext A) (subst-ren A))
+subst-ren (A · B)     = cong₂ _·_ (subst-ren A) (subst-ren B)
+subst-ren μ1           = refl
+subst-ren (con tcn)   = refl
 \end{code}
 
 Fusion for exts and ext
 
 \begin{code}
-rename-ext-exts : ∀{Φ Ψ Θ}
+ren-ext-exts : ∀{Φ Ψ Θ}
   → {g : Sub Φ Ψ}
   → {f : Ren Ψ Θ}
   → ∀{J K}(x : Φ ,⋆ K ∋⋆ J)
     -------------------------------------------------
-  → exts (rename f ∘ g) x ≡ rename (ext f) (exts g x)
-rename-ext-exts Z     = refl
-rename-ext-exts (S x) = trans (sym (rename-comp _)) (rename-comp _)
+  → exts (ren f ∘ g) x ≡ ren (ext f) (exts g x)
+ren-ext-exts Z     = refl
+ren-ext-exts (S x) = trans (sym (ren-comp _)) (ren-comp _)
 \end{code}
 
-Fusion for rename and subst
+Fusion for ren and subst
 
 \begin{code}
-rename-subst : ∀{Φ Ψ Θ}
+ren-subst : ∀{Φ Ψ Θ}
   → {g : Sub Φ Ψ}
   → {f : Ren Ψ Θ}
   → ∀{J}(A : Φ ⊢⋆ J)
     ---------------------------------------------
-  → subst (rename f ∘ g) A ≡ rename f (subst g A)
-rename-subst (` x)       = refl
-rename-subst (Π x A)     =
-  cong (Π x) (trans (subst-cong rename-ext-exts A) (rename-subst A))
-rename-subst (A ⇒ B)     = cong₂ _⇒_ (rename-subst A) (rename-subst B)
-rename-subst (ƛ x A)     =
-  cong (ƛ x) (trans (subst-cong rename-ext-exts A) (rename-subst A))
-rename-subst (A · B)     = cong₂ _·_ (rename-subst A) (rename-subst B)
-rename-subst μ1          = refl
-rename-subst (con tcn)   = refl
+  → subst (ren f ∘ g) A ≡ ren f (subst g A)
+ren-subst (` x)       = refl
+ren-subst (Π x A)     =
+  cong (Π x) (trans (subst-cong ren-ext-exts A) (ren-subst A))
+ren-subst (A ⇒ B)     = cong₂ _⇒_ (ren-subst A) (ren-subst B)
+ren-subst (ƛ x A)     =
+  cong (ƛ x) (trans (subst-cong ren-ext-exts A) (ren-subst A))
+ren-subst (A · B)     = cong₂ _·_ (ren-subst A) (ren-subst B)
+ren-subst μ1          = refl
+ren-subst (con tcn)   = refl
 \end{code}
 
 Fusion of two exts
@@ -354,7 +354,7 @@ extscomp : ∀{Φ Ψ Θ}
     ------------------------------------------------
   → exts (subst f ∘ g) x ≡ subst (exts f) (exts g x)
 extscomp         Z     = refl
-extscomp {g = g} (S x) = trans (sym (rename-subst (g x))) (subst-rename (g x))
+extscomp {g = g} (S x) = trans (sym (ren-subst (g x))) (subst-ren (g x))
 \end{code}
 
 Fusion of substitutions/third relative monad law for subst
@@ -375,17 +375,17 @@ subst-comp μ1          = refl
 subst-comp (con tcn)   = refl
 \end{code}
 
-Commuting subst-cons and rename
+Commuting subst-cons and ren
 
 \begin{code}
-rename-subst-cons : ∀{Γ Δ}{J K} 
+ren-subst-cons : ∀{Γ Δ}{J K} 
   → (ρ : Ren Γ Δ)
   → (A : Γ ⊢⋆ K)
   → (x : Γ ,⋆ K ∋⋆ J)
     -----------------------------------------------------------------
-  → subst-cons ` (rename ρ A) (ext ρ x) ≡ rename ρ (subst-cons ` A x)
-rename-subst-cons ρ A Z     = refl
-rename-subst-cons ρ A (S x) = refl
+  → subst-cons ` (ren ρ A) (ext ρ x) ≡ ren ρ (subst-cons ` A x)
+ren-subst-cons ρ A Z     = refl
+ren-subst-cons ρ A (S x) = refl
 \end{code}
 
 Commuting subst-cons and subst
@@ -398,5 +398,5 @@ subst-subst-cons : ∀{Γ Δ}{J K}
     ------------------------------------------------------------------------
   → subst (subst-cons ` (subst σ M)) (exts σ x) ≡ subst σ (subst-cons ` M x)
 subst-subst-cons σ M Z     = refl
-subst-subst-cons σ M (S x) = trans (sym (subst-rename (σ x))) (subst-id (σ x))
+subst-subst-cons σ M (S x) = trans (sym (subst-ren (σ x))) (subst-id (σ x))
 \end{code}

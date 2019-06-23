@@ -67,18 +67,19 @@
 with pkgs.lib;
 
 let
+  nativePkgs = import pkgs.path { config = {}; overlays = []; };
   localLib = import ./lib.nix { inherit config system; } ;
   src = localLib.iohkNix.cleanSourceHaskell ./.;
   latex = pkgs.callPackage ./nix/latex.nix {};
 
-  pp2nSrc = pkgs.fetchFromGitHub {
+  pp2nSrc = nativePkgs.fetchFromGitHub {
     owner = "justinwoo";
     repo = "psc-package2nix";
     rev = "6e8f6dc6dea896c71b30cc88a2d95d6d1e48a6f0";
     sha256 = "0fa6zaxxmqxva1xmnap9ng7b90zr9a55x1l5xk8igdw2nldqfa46";
   };
 
-  yarn2nixSrc = pkgs.fetchFromGitHub {
+  yarn2nixSrc = nativePkgs.fetchFromGitHub {
     owner = "moretea";
     repo = "yarn2nix";
     rev = "780e33a07fd821e09ab5b05223ddb4ca15ac663f";
@@ -250,7 +251,7 @@ let
           --set GHC_BIN_DIR "${runtimeGhc}/bin" \
           --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d" \
           --set GHC_RTS "-M2G"
-      ''; 
+      '';
 
       client = let
         generated-purescript = pkgs.runCommand "meadow-purescript" {} ''
@@ -327,9 +328,9 @@ let
       agda = pkgs.agda.override { Agda = haskellPackages.Agda; };
 
       # We also rely on a newer version of the stdlib
-      AgdaStdlib = (pkgs.AgdaStdlib.override { 
+      AgdaStdlib = (pkgs.AgdaStdlib.override {
         # Need to override the builder arguments
-        inherit agda; ghcWithPackages = haskellPackages.ghcWithPackages; 
+        inherit agda; ghcWithPackages = haskellPackages.ghcWithPackages;
       }).overrideAttrs (oldAttrs: rec {
         # Need to override the source this way
         name = "agda-stdlib-${version}";
@@ -343,10 +344,10 @@ let
       });
     };
 
-    metatheory = import ./metatheory { 
-      inherit (agdaPackages) agda AgdaStdlib; 
-      inherit (localLib.iohkNix) cleanSourceHaskell; 
-      inherit pkgs haskellPackages; 
+    metatheory = import ./metatheory {
+      inherit (agdaPackages) agda AgdaStdlib;
+      inherit (localLib.iohkNix) cleanSourceHaskell;
+      inherit pkgs haskellPackages;
     };
 
     dev = rec {
@@ -398,7 +399,7 @@ let
 
       withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ packages.cabal-install ]; });
     };
-      
+
     shellTemplate = name: dev.withDevTools haskellPackages."${name}".env;
   });
 

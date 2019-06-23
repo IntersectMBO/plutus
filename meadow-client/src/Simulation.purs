@@ -39,7 +39,7 @@ import LocalStorage as LocalStorage
 import Marlowe.Types (BlockNumber(BlockNumber), Person, IdOracle, Choice, IdAction, IdCommit, Timeout, WIdChoice(..), IdChoice(..))
 import Prelude (Unit, bind, const, discard, flip, identity, pure, show, class Show, unit, void, ($), (<$>), (<<<), (<>), (>))
 import StaticData as StaticData
-import Types (ChildQuery, ChildSlot, FrontendState, InputData, MarloweEditorSlot(MarloweEditorSlot), MarloweError(MarloweError), MarloweState, OracleEntry, Query(..), TransactionValidity(..), _Head, _blockNum, _contract, _currentTransaction, _input, _marloweState, _moneyInContract, _outcomes, _signatures, _state, _transaction, _validity, cpMarloweEditor, isInvalidTransaction, isValidTransaction)
+import Types (ChildQuery, ChildSlot, FrontendState, InputData, MarloweEditorSlot(MarloweEditorSlot), MarloweError(MarloweError), MarloweState, OracleEntry, Query(..), TransactionValidity(..), _Head, _blockNum, _contract, _currentTransaction, _input, _marloweCompileResult, _marloweState, _moneyInContract, _oldContract, _outcomes, _signatures, _state, _transaction, _validity, cpMarloweEditor, isInvalidTransaction, isValidTransaction)
 
 paneHeader :: forall p. String -> HTML p Query
 paneHeader s = h2 [class_ $ ClassName "pane-header"] [text s]
@@ -87,7 +87,7 @@ simulationPane state =
       ]
     )
   where
-  errorList = case state.marloweCompileResult of
+  errorList = case view _marloweCompileResult state of
     Left errors -> listGroup_ (listGroupItem_ <<< pure <<< compilationErrorPane <$> errors)
     _ -> empty
 
@@ -423,7 +423,7 @@ transactionButtons state =
               , btnPrimary
               , ClassName "transaction-btn"
               ]
-          , enabled (state.oldContract /= Nothing)
+          , enabled (view _oldContract state /= Nothing)
           , onClick $ Just <<< HQ.action <<< const ResetSimulator
           ] [text "Reset"]
       , button
@@ -439,7 +439,7 @@ transactionButtons state =
   ]
 
 hasHistory :: FrontendState -> Boolean
-hasHistory state = NEL.length state.marloweState > 1
+hasHistory state = NEL.length (view _marloweState state) > 1
 
 printTransWarnings :: forall p. Int -> List DynamicProblem -> Array (HTML p Query)
 printTransWarnings _ Nil = []

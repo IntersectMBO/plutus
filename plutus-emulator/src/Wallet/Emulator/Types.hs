@@ -52,6 +52,8 @@ module Wallet.Emulator.Types(
     assertion,
     assertOwnFundsEq,
     runEmulator,
+    runTraceChainDefault,
+    runTraceChainDefaultWallet,
     -- * Emulator internals
     MockWallet(..),
     handleNotifications,
@@ -273,7 +275,7 @@ instance WalletAPI MockWallet where
             pubK   =  toPublicKey privK
         (spend, change) <- selectCoin (second txOutValue <$> Map.toList fnds) vl
         let
-            txOutput = if Value.eq change Value.zero then Nothing else Just (pubKeyTxOut change pubK)
+            txOutput = if Value.isZero change then Nothing else Just (pubKeyTxOut change pubK)
             ins = Set.fromList (flip pubKeyTxIn pubK . fst <$> spend)
         pure (ins, txOutput)
 
@@ -302,7 +304,11 @@ selectCoin fnds vl =
                     $ T.unwords
                         [ "Total:", T.pack $ show total
                         , "expected:", T.pack $ show vl]
-        in  if total `Value.lt` vl
+        -- Values are in a partial order: what we want to check is that the
+        -- total available funds are bigger than (or equal to) the required value.
+        -- It is *not* correct to replace this condition with 'total `Value.lt` vl' -
+        -- consider what happens if the amounts are incomparable.
+        in  if not (total `Value.geq` vl)
             then err
             else
                 let
@@ -627,10 +633,36 @@ evalTraceTxPool pl = fst . runTraceTxPool pl
 execTraceTxPool :: TxPool -> Trace MockWallet a -> EmulatorState
 execTraceTxPool pl = snd . runTraceTxPool pl
 
--- | Run an action as a wallet, subsequently process any pending transactions and
--- notify wallets.
+-- | Run an action as a wallet, subsequently process any pending transactions
+--   and notify wallets.
 runWalletActionAndProcessPending :: [Wallet] -> Wallet -> m () -> Trace m [Tx]
-runWalletActionAndProcessPending allWallets wallet action = do
+runWalletActionAndProcessPending wallets wallet action = do
   _ <- walletAction wallet action
   block <- processPending
-  walletsNotifyBlock allWallets block
+  walletsNotifyBlock wallets block
+
+allWallets :: [Wallet]
+allWallets = Wallet <$> [1..10]
+
+-- | Run an 'EmulatorAction' on a blockchain using a default initial
+--   distribution of 100 Ada for each of the wallets 1-10.
+runTraceChainDefault :: EmulatorAction a -> (Either AssertionError a, EmulatorState)
+runTraceChainDefault action =
+    let
+        dist = [(x, 100) | x <- allWallets]
+        s = emulatorStateInitialDist (Map.fromList (first walletPubKey . second Ada.toValue <$> dist))
+
+        -- make sure the wallets know about the initial transaction
+        notifyInitial = void (addBlocksAndNotify (fst <$> dist) 1)
+    in runEmulator s (processEmulated notifyInitial >> action)
+
+-- | Run an 'WalletAction' in the context of wallet 1, on a default blockchain
+--   with an initial distribution of 100 Ada, and then process all transactions
+--   produced by the 'WalletAction'. Returns the result of the action,
+--   transactions submitted by the action, and the final emulator state.
+runTraceChainDefaultWallet :: MockWallet a -> (Either AssertionError (Either WalletAPIError a, [Tx]), EmulatorState)
+runTraceChainDefaultWallet a = runTraceChainDefault (processEmulated a') where
+    a' = do
+        r <- runWalletAction (Wallet 1) a
+        _ <- processPending >>= walletsNotifyBlock allWallets
+        pure r

@@ -45,6 +45,7 @@ primitives = testNested "Primitives" [
   , goldenEval "bytestringApply" [ getPlc bytestring, unsafeLiftProgram ("hello"::Builtins.ByteString) ]
   , goldenEval "sha2_256" [ getPlc sha2, unsafeLiftProgram ("hello" :: Builtins.ByteString)]
   , goldenEval "equalsByteString" [ getPlc bsEquals, unsafeLiftProgram ("hello" :: Builtins.ByteString), unsafeLiftProgram ("hello" :: Builtins.ByteString)]
+  , goldenEval "ltByteString" [ getPlc bsLt, unsafeLiftProgram ("hello" :: Builtins.ByteString), unsafeLiftProgram ("world" :: Builtins.ByteString)]
   , goldenPir "verify" verify
   , goldenPir "trace" trace
   ]
@@ -106,6 +107,9 @@ sha2 = plc @"sha2" (\(x :: Builtins.ByteString) -> Builtins.sha2_256 x)
 
 bsEquals :: CompiledCode (Builtins.ByteString -> Builtins.ByteString -> Bool)
 bsEquals = plc @"bs32Equals" (\(x :: Builtins.ByteString) (y :: Builtins.ByteString) -> Builtins.equalsByteString x y)
+
+bsLt :: CompiledCode (Builtins.ByteString -> Builtins.ByteString -> Bool)
+bsLt = plc @"bsLt" (\(x :: Builtins.ByteString) (y :: Builtins.ByteString) -> Builtins.lessThanByteString x y)
 
 verify :: CompiledCode (Builtins.ByteString -> Builtins.ByteString -> Builtins.ByteString -> Bool)
 verify = plc @"verify" (\(x::Builtins.ByteString) (y::Builtins.ByteString) (z::Builtins.ByteString) -> Builtins.verifySignature x y z)

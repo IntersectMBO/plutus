@@ -9,12 +9,15 @@ import Data.Functor.Coproduct (Coproduct)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens, Lens', lens)
+import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.List (List)
 import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Maybe (Maybe)
+import Data.Newtype (class Newtype)
+import Data.RawJson (JsonEither)
 import Data.Symbol (SProxy(..))
 import Gist (Gist)
 import Halogen.Component.ChildPath (ChildPath, cpL, cpR)
@@ -102,43 +105,46 @@ derive instance genericView :: Generic View _
 instance showView :: Show View where
   show = genericShow
 
-type FrontendState
-  = { view :: View
-  , compilationResult :: RemoteData AjaxError (Either InterpreterError (InterpreterResult RunResult))
+newtype FrontendState
+  = FrontendState
+  { view :: View
+  , compilationResult :: WebData (JsonEither InterpreterError (InterpreterResult RunResult))
   , marloweCompileResult :: Either (Array MarloweError) Unit
-  , authStatus :: RemoteData AjaxError AuthStatus
-  , createGistResult :: RemoteData AjaxError Gist
+  , authStatus :: WebData AuthStatus
+  , createGistResult :: WebData Gist
   , gistUrl :: Maybe String
   , marloweState :: NonEmptyList MarloweState
   , oldContract :: Maybe String
   }
 
+derive instance newtypeFrontendState :: Newtype FrontendState _
+
 data MarloweError
   = MarloweError String
 
-_view :: forall s a. Lens' {view :: a | s} a
-_view = prop (SProxy :: SProxy "view")
+_view :: Lens' FrontendState View
+_view = _Newtype <<< prop (SProxy :: SProxy "view")
 
-_compilationResult :: forall s a. Lens' {compilationResult :: a | s} a
-_compilationResult = prop (SProxy :: SProxy "compilationResult")
+_compilationResult :: Lens' FrontendState (WebData (JsonEither InterpreterError (InterpreterResult RunResult)))
+_compilationResult = _Newtype <<< prop (SProxy :: SProxy "compilationResult")
 
-_marloweCompileResult :: forall s a. Lens' {marloweCompileResult :: a | s} a
-_marloweCompileResult = prop (SProxy :: SProxy "marloweCompileResult")
+_marloweCompileResult :: Lens' FrontendState (Either (Array MarloweError) Unit)
+_marloweCompileResult = _Newtype <<< prop (SProxy :: SProxy "marloweCompileResult")
 
-_authStatus :: forall s a. Lens' {authStatus :: a | s} a
-_authStatus = prop (SProxy :: SProxy "authStatus")
+_authStatus :: Lens' FrontendState (WebData AuthStatus)
+_authStatus = _Newtype <<< prop (SProxy :: SProxy "authStatus")
 
-_createGistResult :: forall s a. Lens' {createGistResult :: a | s} a
-_createGistResult = prop (SProxy :: SProxy "createGistResult")
+_createGistResult :: Lens' FrontendState (WebData Gist)
+_createGistResult = _Newtype <<< prop (SProxy :: SProxy "createGistResult")
 
-_gistUrl :: forall s a. Lens' {gistUrl :: a | s} a
-_gistUrl = prop (SProxy :: SProxy "gistUrl")
+_gistUrl :: Lens' FrontendState (Maybe String)
+_gistUrl = _Newtype <<< prop (SProxy :: SProxy "gistUrl")
 
-_marloweState :: forall s a. Lens' {marloweState :: a | s} a
-_marloweState = prop (SProxy :: SProxy "marloweState")
+_marloweState :: Lens' FrontendState (NonEmptyList MarloweState)
+_marloweState = _Newtype <<< prop (SProxy :: SProxy "marloweState")
 
-_oldContract :: forall s a. Lens' {oldContract :: a | s} a
-_oldContract = prop (SProxy :: SProxy "oldContract")
+_oldContract :: Lens' FrontendState (Maybe String)
+_oldContract = _Newtype <<< prop (SProxy :: SProxy "oldContract")
 
 -- Oracles should not be grouped (only one line per oracle) like:
 --    Oracle 3: Provide value [$value] for block [$timestamp]
@@ -240,15 +246,17 @@ _result = prop (SProxy :: SProxy "result")
 _warnings :: forall s a. Lens' {warnings :: a | s} a
 _warnings = prop (SProxy :: SProxy "warnings")
 
-_currentMarloweState :: forall a. Lens' { marloweState :: NonEmptyList MarloweState | a } MarloweState
+_currentMarloweState :: Lens' FrontendState MarloweState
 _currentMarloweState = _marloweState <<< _Head
 
-_currentContract :: forall a. Lens'  { marloweState :: NonEmptyList MarloweState | a } (Maybe Contract)
+_currentContract :: Lens' FrontendState (Maybe Contract)
 _currentContract = _currentMarloweState <<< _contract
 
-_currentTransaction :: forall a. Lens'  { marloweState :: NonEmptyList MarloweState | a } TransactionData
+_currentTransaction :: Lens' FrontendState TransactionData
 _currentTransaction = _currentMarloweState <<< _transaction
 
-_currentInput  :: forall a. Lens'  { marloweState :: NonEmptyList MarloweState | a } InputData
+_currentInput :: Lens' FrontendState InputData
 _currentInput = _currentMarloweState <<< _input
 
+type WebData
+  = RemoteData AjaxError

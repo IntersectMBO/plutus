@@ -20,7 +20,7 @@ len ∅ = 0
 len (Γ ,⋆ K) = len Γ
 len (Γ , A)  = suc (len Γ)
 
-eraseVar : ∀{Φ Γ K}{A : Φ ⊢⋆ K} → Γ ∋ A → Fin (len Γ)
+eraseVar : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ ∋ A → Fin (len Γ)
 eraseVar Z     = zero
 eraseVar (S α) = suc (eraseVar α) 
 eraseVar (T α) = eraseVar α
@@ -32,9 +32,9 @@ eraseTC (bytestring b) = bytestring b
 open import Type.RenamingSubstitution
 
 eraseTel : ∀{Φ Γ Δ}{σ : Sub Δ Φ}{As : List (Δ ⊢⋆ *)}
-  → Tel Γ Δ σ As
-  → List (len Γ ⊢)
-erase : ∀{Φ Γ K}{A : Φ ⊢⋆ K} → Γ ⊢ A → len Γ ⊢
+  → Declarative.Tel Γ Δ σ As
+  → Untyped.Tel (len Γ)
+erase : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ ⊢ A → len Γ ⊢
 
 erase (` α)             = ` (eraseVar α)
 erase (ƛ x t)           = ƛ x (erase t) 

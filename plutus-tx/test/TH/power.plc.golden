@@ -2,6 +2,7 @@
   (let
     (nonrec)
     (termbind
+      (strict)
       (vardecl
         multiplyInteger (fun (con integer) (fun (con integer) (con integer)))
       )
@@ -9,39 +10,30 @@
     )
     (let
       (nonrec)
-      (datatypebind
-        (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+      (termbind
+        (nonstrict)
+        (vardecl multiply (fun (con integer) (fun (con integer) (con integer))))
+        multiplyInteger
       )
-      (let
-        (nonrec)
-        (termbind
-          (vardecl
-            multiply (fun (con integer) (fun (con integer) (con integer)))
-          )
-          multiplyInteger
-        )
-        (lam
-          ds
-          (con integer)
-          (let
-            (nonrec)
-            (termbind
-              (vardecl y (fun Unit (con integer)))
-              (lam
-                thunk
-                Unit
-                (let
-                  (nonrec)
-                  (termbind
-                    (vardecl y (fun Unit (con integer)))
-                    (lam thunk Unit [ [ multiply ds ] (con 1) ])
-                  )
-                  [ [ multiply [ y Unit ] ] [ y Unit ] ]
-                )
+      (lam
+        ds
+        (con integer)
+        (let
+          (nonrec)
+          (termbind
+            (nonstrict)
+            (vardecl y (con integer))
+            (let
+              (nonrec)
+              (termbind
+                (nonstrict)
+                (vardecl y (con integer))
+                [ [ multiply ds ] (con 1) ]
               )
+              [ [ multiply y ] y ]
             )
-            [ [ multiply [ y Unit ] ] [ y Unit ] ]
           )
+          [ [ multiply y ] y ]
         )
       )
     )

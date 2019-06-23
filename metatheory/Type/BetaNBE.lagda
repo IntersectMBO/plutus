@@ -26,7 +26,7 @@ either neutral or Kripke functions
 \begin{code}
 Val : Ctx⋆ → Kind → Set
 Val Φ *       = Φ ⊢Nf⋆ *
-Val Φ (σ ⇒ τ) = Φ ⊢NeN⋆ (σ ⇒ τ) ⊎ String × ∀ {Ψ} → Ren Φ Ψ → Val Ψ σ → Val Ψ τ
+Val Φ (σ ⇒ τ) = Φ ⊢Ne⋆ (σ ⇒ τ) ⊎ String × ∀ {Ψ} → Ren Φ Ψ → Val Ψ σ → Val Ψ τ
 \end{code}
 
 We can embed neutral terms into values at any kind using reflect.
@@ -34,7 +34,7 @@ reflect is quite simple in this version of NBE and not mutually
 defined with reify.
 
 \begin{code}
-reflect : ∀{Φ σ} → Φ ⊢NeN⋆ σ → Val Φ σ
+reflect : ∀{Φ σ} → Φ ⊢Ne⋆ σ → Val Φ σ
 reflect {σ = *}     n = ne n
 reflect {σ = σ ⇒ τ} n = inj₁ n
 \end{code}
@@ -50,17 +50,17 @@ fresh = reflect (` Z)
 Renaming for values
 
 \begin{code}
-renameVal : ∀ {σ Φ Ψ} → Ren Φ Ψ → Val Φ σ → Val Ψ σ
-renameVal {*}     ψ n        = renameNf ψ n
-renameVal {σ ⇒ τ} ψ (inj₁ n) = inj₁ (renameNeN ψ n)
-renameVal {σ ⇒ τ} ψ (inj₂ (x , f)) = inj₂ (x , λ ρ' →  f (ρ' ∘ ψ))
+renVal : ∀ {σ Φ Ψ} → Ren Φ Ψ → Val Φ σ → Val Ψ σ
+renVal {*}     ψ n        = renNf ψ n
+renVal {σ ⇒ τ} ψ (inj₁ n) = inj₁ (renNe ψ n)
+renVal {σ ⇒ τ} ψ (inj₂ (x , f)) = inj₂ (x , λ ρ' →  f (ρ' ∘ ψ))
 \end{code}
 
 Weakening for values
 
 \begin{code}
 weakenVal : ∀ {σ Φ K} → Val Φ σ → Val (Φ ,⋆ K) σ
-weakenVal = renameVal S
+weakenVal = renVal S
 \end{code}
 
 Reify takes a value and yields a normal form.
@@ -126,7 +126,7 @@ eval : ∀{Φ Ψ K} → Ψ ⊢⋆ K → Env Ψ Φ → Val Φ K
 eval (` α)       η = η α
 eval (Π x B)     η = Π x (reify (eval B (exte η)))
 eval (A ⇒ B)     η = reify (eval A η) ⇒ reify (eval B η)
-eval (ƛ x B)     η = inj₂ (x , λ ρ v → eval B ((renameVal ρ ∘ η) ,,⋆ v))
+eval (ƛ x B)     η = inj₂ (x , λ ρ v → eval B ((renVal ρ ∘ η) ,,⋆ v))
 eval (A · B)     η = eval A η ·V eval B η
 eval μ1          η = inj₁ μ1
 eval (con tcn)   η = con tcn

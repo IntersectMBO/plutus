@@ -10,6 +10,7 @@
 --   * Uses a state machine to keep track of the current secret word
 --   * Uses a token to keep track of who is allowed to make a guess
 --
+
 module Language.PlutusTx.Coordination.Contracts.GameStateMachine(
       startGame
     , guess
@@ -37,37 +38,12 @@ import qualified Data.ByteString.Lazy.Char8   as C
 import qualified Language.PlutusTx.StateMachine as SM
 import           Language.PlutusTx.StateMachine ()
 
-data HashedString = HashedString ByteString
-
-PlutusTx.makeLift ''HashedString
-
-data ClearString = ClearString ByteString
-
-PlutusTx.makeLift ''ClearString
-
--- | State of the guessing game
-data GameState =
-    Initialised HashedString
-    -- ^ Initial state. In this state only the 'ForgeTokens' action is allowed.
-    | Locked TokenName HashedString
-    -- ^ Funds have been locked. In this state only the 'Guess' action is
-    --   allowed.
-
-PlutusTx.makeLift ''GameState
-
--- | Equality of 'GameState' valzes.
-stateEq :: GameState -> GameState -> Bool
-stateEq (Initialised (HashedString s)) (Initialised (HashedString s')) =
-    equalsByteString s s'
-stateEq (Locked (V.TokenName n) (HashedString s)) (Locked (V.TokenName n') (HashedString s')) =
-    equalsByteString s s' && equalsByteString n n'
-stateEq _ _ = traceIfFalseH "states not equal" False
+import           Language.PlutusTx.Coordination.Contracts.GameStateMachine.Types
 
 -- | Check whether a 'ClearString' is the preimage of a
 --   'HashedString'
 checkGuess :: HashedString -> ClearString -> Bool
-checkGuess (HashedString actual) (ClearString gss) =
-    equalsByteString actual (sha2_256 gss)
+checkGuess (HashedString actual) (ClearString gss) = actual == (sha2_256 gss)
 
 -- | Inputs (actions)
 data GameInput =
@@ -100,7 +76,7 @@ mkValidator ds vs p =
         -- | Check whether the value forged by the  pending transaction 'p' is
         --   equal to the argument.
         checkForge :: Value -> Bool
-        checkForge vl = V.eq vl (Validation.pendingTxForge p)
+        checkForge vl = vl == (Validation.pendingTxForge p)
 
         -- | The SM.transition function of the game's state machine
         trans :: GameState -> GameInput -> GameState
@@ -114,7 +90,7 @@ mkValidator ds vs p =
             else error ()
         trans _ _ = traceErrorH "Invalid SM.transition"
 
-        sm = SM.StateMachine trans stateEq
+        sm = SM.StateMachine trans
 
     in SM.mkValidator sm ds vs p
 

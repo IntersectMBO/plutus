@@ -26,7 +26,8 @@ import qualified Language.Haskell.TH.Syntax             as TH
 
 type BuiltinNameInfo = Map.Map TH.Name GHC.TyThing
 
-newtype CompileOptions = CompileOptions { coCheckValueRestriction :: Bool }
+-- | Compilation options. Empty currently.
+data CompileOptions = CompileOptions {}
 
 data CompileContext = CompileContext {
     ccOpts            :: CompileOptions,
@@ -36,10 +37,7 @@ data CompileContext = CompileContext {
     ccBlackholed      :: Set.Set GHC.Name
     }
 
-newtype CompileState = CompileState {
-    -- See Note [Lazy let-bindings]
-    csLazyNames :: Set.Set GHC.Name
-    }
+data CompileState = CompileState {}
 
 -- | A wrapper around 'GHC.Name' with a stable 'Ord' instance. Use this where the ordering
 -- will affect the output of the compiler, i.e. when sorting or so on. It's  fine to use
@@ -48,13 +46,18 @@ newtype CompileState = CompileState {
 -- The 'Eq' instance we derive - it's also not stable across builds, but I believe this is only
 -- a problem if you compare things from different builds, which we don't do.
 newtype LexName = LexName GHC.Name
-    deriving Eq
+    deriving (Eq)
 
 instance Show LexName where
     show (LexName n) = GHC.occNameString $ GHC.occName n
 
 instance Ord LexName where
-    compare (LexName n1) (LexName n2) = GHC.stableNameCmp n1 n2
+    compare (LexName n1) (LexName n2) = case GHC.stableNameCmp n1 n2 of
+        -- This case is not sound if the names are generated, so fall back on the default sound comparison for
+        -- names. This *does* introduce some instability again, we'll need to fix this properly later, but we
+        -- need it to be sound!
+        EQ -> compare n1 n2
+        o  -> o
 
 -- See Note [Scopes]
 type Compiling m = (Monad m, MonadError CompileError m, MonadQuote m, MonadReader CompileContext m, MonadState CompileState m, MonadDefs LexName () m)
@@ -66,14 +69,6 @@ blackholed :: MonadReader CompileContext m => GHC.Name -> m Bool
 blackholed name = do
     CompileContext {ccBlackholed=bh} <- ask
     pure $ Set.member name bh
-
-markLazyName :: MonadState CompileState m => GHC.Name -> m ()
-markLazyName name = modify (\s -> s {csLazyNames= Set.insert name (csLazyNames s)})
-
-isLazyName :: MonadState CompileState m => GHC.Name -> m Bool
-isLazyName name = do
-    CompileState {csLazyNames=ln} <- get
-    pure $ Set.member name ln
 
 {- Note [Scopes]
 We need a notion of scope, because we have to make sure that if we convert a GHC

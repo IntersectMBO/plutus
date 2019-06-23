@@ -274,7 +274,7 @@ predicate
                 contribTxOut o =
                   case V.pubKeyOutput o of
                     Nothing -> False
-                    Just pk -> V.eqPubKey pk pkCon
+                    Just pk -> pk == pkCon
 ----
 
 We check if `o` is a pay-to-pubkey output. If it isn’t, then the
@@ -317,7 +317,7 @@ has to be signed by the campaign owner.
 [source,haskell]
 ----
             S.contains (I.interval deadline collectionDeadline) txnValidRange && -- <1>
-            Ada.geq totalInputs target &&
+            totalInputs >= target &&
             p `V.txSignedBy` campaignOwner
 ----
 <1> We use

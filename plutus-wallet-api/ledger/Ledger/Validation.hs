@@ -39,11 +39,6 @@ module Ledger.Validation
     , pubKeyOutput
     , scriptOutputsAt
     , pubKeyOutputsAt
-    , eqPubKey
-    , eqDataScript
-    , eqRedeemer
-    , eqValidator
-    , eqTx
     , valueLockedBy
     , valuePaidTo
     , adaLockedBy
@@ -73,6 +68,7 @@ import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx.Builtins   as Builtins
 import           Language.PlutusTx.Lift       (makeLift)
 import           Language.PlutusTx.Prelude
+import qualified Prelude                      as Haskell
 
 import           Ledger.Ada                   (Ada)
 import qualified Ledger.Ada                   as Ada
@@ -193,8 +189,8 @@ them from the correct types in Haskell, and for comparing them (in
 -- | Script runtime representation of a @Digest SHA256@.
 newtype ValidatorHash =
     ValidatorHash Builtins.ByteString
-    deriving stock (Eq, Generic)
-    deriving newtype (Serialise)
+    deriving stock (Haskell.Eq, Generic)
+    deriving newtype (Eq, Serialise)
 
 instance Show ValidatorHash where
     show = show . JSON.encodeSerialise
@@ -211,17 +207,20 @@ instance FromJSON ValidatorHash where
 -- | Script runtime representation of a @Digest SHA256@.
 newtype DataScriptHash =
     DataScriptHash Builtins.ByteString
-    deriving (Eq, Generic)
+    deriving (Haskell.Eq, Generic)
+    deriving newtype (Eq)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype RedeemerHash =
     RedeemerHash Builtins.ByteString
-    deriving (Eq, Generic)
+    deriving (Haskell.Eq, Generic)
+    deriving newtype (Eq)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype TxHash =
     TxHash Builtins.ByteString
-    deriving (Eq, Generic)
+    deriving (Haskell.Eq, Generic)
+    deriving newtype (Eq)
 
 {-# INLINABLE plcDataScriptHash #-}
 plcDataScriptHash :: DataScript -> DataScriptHash
@@ -261,11 +260,6 @@ plcDigest = BSL.pack . BA.unpack
 plcCurrencySymbol :: Address -> CurrencySymbol
 plcCurrencySymbol = VTH.currencySymbol . plcDigest . getAddress
 
-{-# INLINABLE eqPubKey #-}
--- | Check if two public keys are equal.
-eqPubKey :: PubKey -> PubKey -> Bool
-eqPubKey (PubKey (LedgerBytes l)) (PubKey (LedgerBytes r)) = equalsByteString l r
-
 {-# INLINABLE txSignedBy #-}
 -- | Check if a transaction was signed by the given public key.
 txSignedBy :: PendingTx -> PubKey -> Bool
@@ -281,7 +275,7 @@ txSignedBy PendingTx{pendingTxSignatures=sigs, pendingTxHash=hash} k =
         go :: [(PubKey, Signature)] -> Bool
         go l = case l of
                     (pk, sig):r ->
-                        if eqPubKey k pk
+                        if k == pk
                         then  signedBy' sig
                               || traceH "matching pub key with invalid signature" (go r)
                         else go r
@@ -295,26 +289,6 @@ pubKeyOutput :: PendingTxOut -> Maybe PubKey
 pubKeyOutput o = case pendingTxOutData o of
     PubKeyTxOut pk -> Just pk
     _              -> Nothing
-
-{-# INLINABLE eqDataScript #-}
--- | Check if two data script hashes are equal.
-eqDataScript :: DataScriptHash -> DataScriptHash -> Bool
-eqDataScript (DataScriptHash l) (DataScriptHash r) = Builtins.equalsByteString l r
-
-{-# INLINABLE eqValidator #-}
--- | Check if two validator script hashes are equal.
-eqValidator :: ValidatorHash -> ValidatorHash -> Bool
-eqValidator (ValidatorHash l) (ValidatorHash r) = Builtins.equalsByteString l r
-
-{-# INLINABLE eqRedeemer #-}
--- | Check if two redeemer script hashes are equal.
-eqRedeemer :: RedeemerHash -> RedeemerHash -> Bool
-eqRedeemer (RedeemerHash l) (RedeemerHash r) = Builtins.equalsByteString l r
-
-{-# INLINABLE eqTx #-}
--- | Check if two transaction hashes are equal.
-eqTx :: TxHash -> TxHash -> Bool
-eqTx (TxHash l) (TxHash r) = Builtins.equalsByteString l r
 
 {-# INLINABLE ownHashes #-}
 -- | Get the hashes of validator script and redeemer script that are
@@ -341,7 +315,7 @@ scriptOutputsAt :: ValidatorHash -> PendingTx -> [(DataScriptHash, Value)]
 scriptOutputsAt h p =
     let flt ptxo =
             case pendingTxOutHashes ptxo of
-                Just (h', ds) -> if eqValidator h h'
+                Just (h', ds) -> if h == h'
                                  then Just (ds, pendingTxOutValue ptxo)
                                  else Nothing
                 Nothing -> Nothing
@@ -361,7 +335,7 @@ pubKeyOutputsAt pk p =
     let flt ptxo =
             case pendingTxOutData ptxo of
                 PubKeyTxOut pk' ->
-                    if eqPubKey pk' pk
+                    if pk' == pk
                     then Just (pendingTxOutValue ptxo)
                     else Nothing
                 _ -> Nothing
@@ -406,8 +380,8 @@ spendsOutput :: PendingTx -> TxHash -> Integer -> Bool
 spendsOutput p h i =
     let spendsOutRef inp =
             let outRef = pendingTxInRef inp
-            in eqTx h (pendingTxOutRefId outRef)
-                && eq i (pendingTxOutRefIdx outRef)
+            in h == pendingTxOutRefId outRef
+                && i == pendingTxOutRefIdx outRef
 
     in any spendsOutRef (pendingTxInputs p)
 

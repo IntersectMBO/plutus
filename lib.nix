@@ -45,6 +45,7 @@ let
     "playground-common"
     "marlowe"
     "meadow"
+    "deployment-server"
   ];
 
   isPlutus = name: builtins.elem name plutusPkgList;
@@ -53,15 +54,15 @@ let
 
   comp = f: g: (v: f(g v));
 in lib // {
-  inherit 
-  getPackages 
-  iohkNix 
-  isPlutus 
-  isPublicPlutus 
-  plutusPublicPkgList 
-  plutusPkgList 
-  regeneratePackages 
-  nixpkgs 
+  inherit
+  getPackages
+  iohkNix
+  isPlutus
+  isPublicPlutus
+  plutusPublicPkgList
+  plutusPkgList
+  regeneratePackages
+  nixpkgs
   pkgs
   comp;
 }

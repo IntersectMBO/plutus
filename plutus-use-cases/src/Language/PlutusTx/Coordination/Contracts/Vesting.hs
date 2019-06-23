@@ -19,8 +19,6 @@ module Language.PlutusTx.Coordination.Contracts.Vesting (
     validatorScript
     ) where
 
-import           Prelude                      hiding ((&&))
-
 import           Control.Monad.Error.Class    (MonadError (..))
 import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
@@ -75,7 +73,11 @@ availableFrom (VestingTranche d v) range =
 data VestingData = VestingData {
     vestingDataHash    :: ValidatorHash, -- ^ Hash of the validator script
     vestingDataPaidOut :: Value          -- ^ How much of the vested value has already been retrieved
-    } deriving (Eq, Generic)
+    } deriving (Generic)
+
+instance Eq VestingData where
+    {-# INLINABLE (==) #-}
+    (VestingData h1 v1) == (VestingData h2 v2) = h1 == h2 && v1 == v2
 
 PlutusTx.makeLift ''VestingData
 
@@ -152,7 +154,7 @@ mkValidator d@Vesting{..} VestingData{..} () p@PendingTx{pendingTxValidRange = r
         -- script
         txnOutputsValid =
             let remaining = Validation.valueLockedBy p (Validation.ownHash p) in
-            remaining `Value.eq` (totalAmount d `Value.minus` newAmount)
+            remaining == (totalAmount d `Value.minus` newAmount)
 
     in amountsValid && txnOutputsValid
 

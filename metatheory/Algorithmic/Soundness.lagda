@@ -33,29 +33,29 @@ lemT' : ∀{Γ Γ' J K}(A :  Γ ⊢Nf⋆ K)
  → (q : Γ ,⋆ J ≡ Γ' ,⋆ J)
   → weaken (substEq (_⊢⋆ K) p (embNf A))
     ≡
-    substEq (_⊢⋆ K) q (embNf (renameNf S A))
-lemT' A refl refl = sym (rename-embNf S A)
+    substEq (_⊢⋆ K) q (embNf (renNf S A))
+lemT' A refl refl = sym (ren-embNf S A)
 \end{code}
 
 \begin{code}
-conv∋ : ∀ {Φ Γ K}{A : Φ ⊢⋆ K}{A' : Φ ⊢⋆ K}
+conv∋ : ∀ {Φ Γ}{A A' : Φ ⊢⋆ *}
  → A ≡ A' →
  (Γ Dec.∋ A) → Γ Dec.∋ A'
 conv∋ refl α = α
 \end{code}
 
 \begin{code}
-embVar : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K}
+embVar : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}
   → Γ Alg.∋ A
   → embCtx Γ Dec.∋ embNf A
 embVar Alg.Z     = Dec.Z
 embVar (Alg.S α) = Dec.S (embVar α)
 embVar {Γ = Γ Alg.,⋆ K} (Alg.T {A = A} α) =
-  conv∋ (sym (rename-embNf S A)) (Dec.T (embVar α))
+  conv∋ (sym (ren-embNf S A)) (Dec.T (embVar α))
 \end{code}
 
 \begin{code}
-conv⊢ : ∀ {Φ Γ K}{A : Φ ⊢⋆ K}{A' : Φ ⊢⋆ K}
+conv⊢ : ∀ {Φ Γ}{A A' : Φ ⊢⋆ *}
  → A ≡ A' →
  (Γ Dec.⊢ A) → Γ Dec.⊢ A'
 conv⊢ refl α = α
@@ -208,7 +208,7 @@ embTel : ∀{Φ Γ Δ Δ'}(q : Δ' ≡ Δ)
   → Alg.Tel Γ Δ σ As
   → Dec.Tel (embCtx Γ) Δ' (λ {J} α → (embNf (σ (substEq (_∋⋆ J) q α)))) As'
 
-emb : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A
+emb : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A
 
 embTel refl [] [] p σ x = tt
 embTel refl [] (A' ∷ As') () σ x
@@ -241,6 +241,6 @@ emb (Alg.builtin bn σ tel) = let
       (embTel (nfTypeSIG≡₁ bn) As' As (lemList' bn) σ tel))
 emb (Alg.error A) = Dec.error (embNf A)
 
-soundnessT : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A
+soundnessT : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A
 soundnessT = emb
 \end{code}

@@ -15,7 +15,6 @@ module Ledger.Slot(
       Slot(..)
     , SlotRange
     , singleton
-    , Ledger.Slot.eq
     , empty
     , member
     , width
@@ -29,10 +28,10 @@ import           Data.Aeson                   (FromJSON, ToJSON)
 import           Data.Hashable                (Hashable)
 import           Data.Swagger.Internal.Schema (ToSchema)
 import           GHC.Generics                 (Generic)
+import qualified Prelude                      as Haskell
 
 import           Language.PlutusTx.Lift       (makeLift)
-import           Language.PlutusTx.Prelude    hiding (eq)
-import qualified Language.PlutusTx.Prelude    as P
+import           Language.PlutusTx.Prelude
 
 import           Ledger.Interval
 
@@ -41,10 +40,10 @@ import           Ledger.Interval
 -- | The slot number. This is a good proxy for time, since on the Cardano blockchain
 -- slots pass at a constant rate.
 newtype Slot = Slot { getSlot :: Integer }
-    deriving (Eq, Ord, Show, Enum)
+    deriving (Haskell.Eq, Haskell.Ord, Show, Enum)
     deriving stock (Generic)
     deriving anyclass (ToSchema, FromJSON, ToJSON)
-    deriving newtype (Num, Real, Integral, Serialise, Hashable)
+    deriving newtype (Num, Eq, Ord, Real, Integral, Serialise, Hashable)
 
 makeLift ''Slot
 
@@ -55,23 +54,19 @@ type SlotRange = Interval Slot
 singleton :: Slot -> SlotRange
 singleton (Slot s) = Interval (Just (Slot s)) (Just (Slot (plus s 1)))
 
--- | Equality of 'Slot' values
-eq :: Slot -> Slot -> Bool
-eq (Slot s) (Slot s') = P.eq s s'
-
 -- | Check if a 'SlotRange' is empty.
 empty :: SlotRange -> Bool
 empty (Interval f t) = case f of
     Nothing -> False
-    Just (Slot f') -> case t of
-        Nothing        -> False
-        Just (Slot t') -> geq f' t'
+    Just f' -> case t of
+        Nothing -> False
+        Just t' -> f' <= t'
 
 -- | Check if 'Slot' is contained in a 'SlotRange'.
 member :: Slot -> SlotRange -> Bool
-member (Slot s) (Interval f t) =
-    let lw = case f of { Nothing -> True; Just (Slot f') -> leq f' s; }
-        hg = case t of { Nothing -> True; Just (Slot t') -> gt t' s; }
+member s (Interval f t) =
+    let lw = case f of { Nothing -> True; Just f' -> f' <= s; }
+        hg = case t of { Nothing -> True; Just t' -> t' > s; }
     in
         if lw then hg else False
 
@@ -90,21 +85,21 @@ contains :: SlotRange -> SlotRange -> Bool
 contains (Interval af at) (Interval bf bt) =
     let lw = case af of
             Nothing -> True
-            Just (Slot af') -> case bf of
-                Nothing         -> False
-                Just (Slot bf') -> leq af' bf'
+            Just af' -> case bf of
+                Nothing  -> False
+                Just bf' -> af' <= bf'
         hg = case at of
             Nothing -> True
-            Just (Slot at') -> case bt of
-                Nothing         -> False
-                Just (Slot bt') -> geq at' bt'
+            Just at' -> case bt of
+                Nothing  -> False
+                Just bt' -> at' >= bt'
     in
         if lw then hg else False
 
 -- | Check if a 'Slot' is earlier than the beginning of a 'SlotRange'.
 before :: Slot -> SlotRange -> Bool
-before (Slot h) (Interval f _) = case f of { Nothing -> False; Just (Slot h') -> gt h' h; }
+before h (Interval f _) = case f of { Nothing -> False; Just h' -> h' > h; }
 
 -- | Check if a 'Slot' is later than the end of a 'SlotRange'
 after :: Slot -> SlotRange -> Bool
-after (Slot h) (Interval _ t) = case t of { Nothing -> False; Just (Slot t') -> geq h t'; }
+after h (Interval _ t) = case t of { Nothing -> False; Just t' -> h >= t'; }

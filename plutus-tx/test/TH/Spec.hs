@@ -2,23 +2,24 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
 {-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC   -g #-}
 
 module TH.Spec (tests) where
 
-import           Prelude                    hiding (all)
-
 import           Common
 import           PlcTestUtils
 
 import           TH.TestTH
 
+import qualified Prelude as Haskell
+
 import           Language.PlutusTx.TH
 import           Language.PlutusTx.Code
 import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.Prelude as P hiding (fst)
+import           Language.PlutusTx.Prelude
 import           Language.PlutusTx.Evaluation
 
 import qualified Language.PlutusIR          as PIR
@@ -51,10 +52,10 @@ runPlcCekTrace values = do
      ExceptT $ try @SomeException $ evaluate $ evaluateCekTrace p
 
 goldenEvalCek :: GetProgram a => String -> [a] -> TestNested
-goldenEvalCek name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug <$> (rethrow $ runPlcCek values)
+goldenEvalCek name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug Haskell.<$> (rethrow $ runPlcCek values)
 
 goldenEvalCekLog :: GetProgram a => String -> [a] -> TestNested
-goldenEvalCekLog name values = nestedGoldenVsDocM name $ (pretty . fst) <$> (rethrow $ runPlcCekTrace values)
+goldenEvalCekLog name values = nestedGoldenVsDocM name $ (pretty . fst) Haskell.<$> (rethrow $ runPlcCekTrace values)
 
 tests :: TestNested
 tests = testNested "TH" [
@@ -79,7 +80,7 @@ andPlc :: CompiledCode Bool
 andPlc = $$(compile [|| $$(andTH) True False ||])
 
 allPlc :: CompiledCode Bool
-allPlc = $$(compile [|| all (\(x::Integer) -> gt x 5) [7, 6] ||])
+allPlc = $$(compile [|| all (\(x::Integer) -> x > 5) [7, 6] ||])
 
 convertString :: CompiledCode Builtins.String
 convertString = $$(compile [|| toPlutusString "test" ||])

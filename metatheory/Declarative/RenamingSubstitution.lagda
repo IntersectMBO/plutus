@@ -23,7 +23,7 @@ open import Declarative
 ## Renaming
 \begin{code}
 Ren : ∀ {Φ Ψ}(Γ : Ctx Φ)(Δ : Ctx Ψ) → ⋆.Ren Φ Ψ → Set
-Ren {Φ} Γ Δ ρ = ∀ {J} {A : Φ ⊢⋆ J} → Γ ∋ A → Δ ∋ ⋆.rename ρ A
+Ren {Φ} Γ Δ ρ = {A : Φ ⊢⋆ *} → Γ ∋ A → Δ ∋ ⋆.ren ρ A
 \end{code}
 
 
@@ -31,9 +31,9 @@ Ren {Φ} Γ Δ ρ = ∀ {J} {A : Φ ⊢⋆ J} → Γ ∋ A → Δ ∋ ⋆.rename
 ext : ∀ {Φ Ψ Γ Δ}
   → (ρ⋆ : ⋆.Ren Φ Ψ)
   → Ren Γ Δ ρ⋆
-  → ∀{K}{B : Φ ⊢⋆ K}
+  → {B : Φ ⊢⋆ *}
     ----------------------------------
-  → Ren (Γ , B) (Δ , ⋆.rename ρ⋆ B) ρ⋆
+  → Ren (Γ , B) (Δ , ⋆.ren ρ⋆ B) ρ⋆
 ext _ ρ Z     = Z
 ext _ ρ (S x) = S (ρ x)
 \end{code}
@@ -47,97 +47,97 @@ ext⋆ : ∀ {Φ Ψ Γ Δ}
   → Ren (Γ ,⋆ K) (Δ ,⋆ K) (⋆.ext ρ⋆)
 ext⋆ {Δ = Δ} _ ρ {K}{A} (T x) =
   substEq (λ A → Δ ,⋆ K ∋ A)
-          (trans (sym (⋆.rename-comp _)) (⋆.rename-comp _))
+          (trans (sym (⋆.ren-comp _)) (⋆.ren-comp _))
           (T (ρ x))
 \end{code}
 
 \begin{code}
-renameTermCon : ∀ {Φ Ψ}
+renTermCon : ∀ {Φ Ψ}
   → (ρ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
     -----------------------------------------------------
-  → ({A : Φ ⊢⋆ *} → TermCon A → TermCon (⋆.rename ρ⋆ A ))
-renameTermCon ρ⋆ (integer i)    = integer i
-renameTermCon ρ⋆ (bytestring b) = bytestring b
+  → ({A : Φ ⊢⋆ *} → TermCon A → TermCon (⋆.ren ρ⋆ A ))
+renTermCon ρ⋆ (integer i)    = integer i
+renTermCon ρ⋆ (bytestring b) = bytestring b
 \end{code}
 
 \begin{code}
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.List
 
-rename : ∀ {Φ Ψ Γ Δ}
+ren : ∀ {Φ Ψ Γ Δ}
   → (ρ⋆ : ⋆.Ren Φ Ψ)
   → Ren Γ Δ ρ⋆
     ------------------------
-  → (∀ {J} {A : Φ ⊢⋆ J} → Γ ⊢ A → Δ ⊢ ⋆.rename ρ⋆ A )
+  → ({A : Φ ⊢⋆ *} → Γ ⊢ A → Δ ⊢ ⋆.ren ρ⋆ A)
 
-renameTel : ∀ {Φ Φ' Γ Γ' Δ}
+renTel : ∀ {Φ Φ' Γ Γ' Δ}
  → (ρ⋆ : ⋆.Ren Φ Φ')
  → Ren Γ Γ' ρ⋆
  → {σ : ⋆.Sub Δ Φ}
  → {As : List (Δ ⊢⋆ *)}
  → Tel Γ Δ σ As
- → Tel Γ' Δ (⋆.rename ρ⋆ ∘ σ) As
+ → Tel Γ' Δ (⋆.ren ρ⋆ ∘ σ) As
 
-renameTel _ ρ {As = []}     _         = _
-renameTel _ ρ {As = A ∷ As} (M ,, Ms) =
-  substEq (_ ⊢_) (sym (⋆.rename-subst A)) (rename _ ρ M) ,, renameTel _ ρ Ms
+renTel _ ρ {As = []}     _         = _
+renTel _ ρ {As = A ∷ As} (M ,, Ms) =
+  substEq (_ ⊢_) (sym (⋆.ren-subst A)) (ren _ ρ M) ,, renTel _ ρ Ms
 
-rename _ ρ (` x)    = ` (ρ x)
-rename _ ρ (ƛ x N)  = ƛ x (rename _ (ext _ ρ) N)
-rename _ ρ (L · M)  = rename _ ρ L · rename _ ρ M 
-rename _ ρ (Λ x N)  = Λ x (rename _ (ext⋆ _ ρ) N )
-rename {Δ = Δ} _ ρ (_·⋆_ {B = B} t A) =
+ren _ ρ (` x)    = ` (ρ x)
+ren _ ρ (ƛ x N)  = ƛ x (ren _ (ext _ ρ) N)
+ren _ ρ (L · M)  = ren _ ρ L · ren _ ρ M 
+ren _ ρ (Λ x N)  = Λ x (ren _ (ext⋆ _ ρ) N )
+ren {Δ = Δ} _ ρ (_·⋆_ {B = B} t A) =
   substEq (λ A → Δ ⊢ A)
-          (trans (sym (⋆.subst-rename B))
-                 (trans (⋆.subst-cong (⋆.rename-subst-cons _ A) B)
-                        (⋆.rename-subst B) ) )
-          (rename _ ρ t ·⋆ ⋆.rename _ A)
-rename _ ρ (wrap1 pat arg t) = wrap1 _ _ (rename _ ρ t)
-rename _ ρ (unwrap1 t)       = unwrap1 (rename _ ρ t)
-rename _ ρ (conv p t) = conv (rename≡β _ p) (rename _ ρ t)
-rename ρ⋆ ρ (con cn)   = con (renameTermCon ρ⋆ cn)
-rename {Δ = Δ} _ ρ (builtin bn σ X ) = substEq
+          (trans (sym (⋆.subst-ren B))
+                 (trans (⋆.subst-cong (⋆.ren-subst-cons _ A) B)
+                        (⋆.ren-subst B) ) )
+          (ren _ ρ t ·⋆ ⋆.ren _ A)
+ren _ ρ (wrap1 pat arg t) = wrap1 _ _ (ren _ ρ t)
+ren _ ρ (unwrap1 t)       = unwrap1 (ren _ ρ t)
+ren _ ρ (conv p t) = conv (ren≡β _ p) (ren _ ρ t)
+ren ρ⋆ ρ (con cn)   = con (renTermCon ρ⋆ cn)
+ren {Δ = Δ} _ ρ (builtin bn σ X ) = substEq
   (Δ ⊢_)
-  (⋆.rename-subst (proj₂ (proj₂ (SIG bn))))
-  (builtin bn (⋆.rename _ ∘ σ) (renameTel _ ρ X)) 
-rename _ ρ (error A) = error (⋆.rename _ A)
+  (⋆.ren-subst (proj₂ (proj₂ (SIG bn))))
+  (builtin bn (⋆.ren _ ∘ σ) (renTel _ ρ X)) 
+ren _ ρ (error A) = error (⋆.ren _ A)
 \end{code}
 
 \begin{code}
-weaken : ∀ {Φ Γ J}{A : Φ ⊢⋆ J}{K}{B : Φ ⊢⋆ K}
+weaken : ∀ {Φ Γ}{A B : Φ ⊢⋆ *}
   → Γ ⊢ A
     ---------
   → Γ , B ⊢ A
-weaken {Γ = Γ}{J}{A}{K}{B} x =
+weaken {Γ = Γ}{A}{B} x =
   substEq (λ x → Γ , B ⊢ x)
-          (⋆.rename-id A)
-          (rename _
-                  (λ x → substEq (λ A → Γ , B ∋ A) (sym (⋆.rename-id _)) (S x))
+          (⋆.ren-id A)
+          (ren _
+                  (λ x → substEq (λ A → Γ , B ∋ A) (sym (⋆.ren-id _)) (S x))
                   x)
 \end{code}
 
 \begin{code}
-weaken⋆ : ∀ {Φ Γ J}{A : Φ ⊢⋆ J}{K}
+weaken⋆ : ∀ {Φ Γ}{A : Φ ⊢⋆ *}{K}
   → Γ ⊢ A
     -------------------
   → Γ ,⋆ K ⊢ ⋆.weaken A
-weaken⋆ x = rename _ _∋_.T x
+weaken⋆ x = ren _ _∋_.T x
 \end{code}
 
 ## Substitution
 \begin{code}
 
 Sub : ∀ {Φ}{Ψ} Γ Δ → ⋆.Sub Φ Ψ → Set
-Sub {Φ} Γ Δ σ = ∀ {J} {A : Φ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ A
+Sub {Φ} Γ Δ σ = {A : Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.subst σ A
 \end{code}
 
 
 \begin{code}
 exts : ∀ {Φ Ψ Γ Δ}
   → (σ⋆ : ∀ {K} → Φ ∋⋆ K → Ψ ⊢⋆ K)
-  → (∀ {J} {A :  Φ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
+  → ({A :  Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
     ---------------------------------------------------
-  → (∀ {J} {K} {A : Φ ⊢⋆ J} {B : Φ ⊢⋆ K}
+  → ({A B : Φ ⊢⋆ *}
      → Γ , B ∋ A
      -------------------------------
      → Δ , ⋆.subst σ⋆ B ⊢ ⋆.subst σ⋆ A)
@@ -148,16 +148,16 @@ exts σ⋆ σ (S x) = weaken (σ x)
 \begin{code}
 exts⋆ : ∀ {Φ Ψ Γ Δ}
   → (σ⋆ : ∀ {K} → Φ ∋⋆ K → Ψ ⊢⋆ K)
-  → (∀ {J} {A : Φ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
+  → ({A : Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
     ---------------------------------------------------
-  → (∀ {J K}{A : Φ ,⋆ K ⊢⋆ J}
+  → (∀ {K}{A : Φ ,⋆ K ⊢⋆ *}
      → Γ ,⋆ K ∋ A 
        -------------------------------
      → Δ ,⋆ K ⊢ ⋆.subst (⋆.exts σ⋆) A )
-exts⋆ {Δ = Δ} _ σ {J}{K}(T {A = A} x) =
+exts⋆ {Δ = Δ} _ σ {K}(T {A = A} x) =
   substEq (λ x → Δ ,⋆ K ⊢ x)
-          (trans (sym (⋆.rename-subst A))
-                 (⋆.subst-rename A))
+          (trans (sym (⋆.ren-subst A))
+                 (⋆.subst-ren A))
           (weaken⋆ (σ x))
 
 \end{code}
@@ -175,9 +175,9 @@ substTermCon _ (bytestring b) = bytestring b
 \begin{code}
 subst : ∀ {Φ Ψ Γ Δ}
   → (σ⋆ : ∀ {K} → Φ ∋⋆ K → Ψ ⊢⋆ K)
-  → (∀ {J} {A : Φ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
+  → ({A : Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
     ---------------------------------------------------
-  → (∀ {J} {A : Φ ⊢⋆ J} → Γ ⊢ A → Δ ⊢ ⋆.subst σ⋆ A)
+  → ({A : Φ ⊢⋆ *} → Γ ⊢ A → Δ ⊢ ⋆.subst σ⋆ A)
 
 substTel : ∀ {Φ Ψ Γ Γ' Δ}
  → (σ⋆ : ⋆.Sub Φ Ψ)
@@ -216,22 +216,22 @@ subst _ σ (error A) = error (⋆.subst _ A)
 
 substcons : ∀{Φ Ψ Γ Δ} →
   (σ⋆ : ∀{K} → Φ  ∋⋆ K → Ψ ⊢⋆ K)
-  → (∀ {J}{A : Φ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
-  → ∀{J}{A : Φ ⊢⋆ J}
+  → ({A : Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
+  → {A : Φ ⊢⋆ *}
   → (t : Δ ⊢ ⋆.subst σ⋆ A)
     ---------------------
-  → (∀ {J} {B : Φ ⊢⋆ J} → Γ , A ∋ B → Δ ⊢ ⋆.subst σ⋆ B)
+  → ({B : Φ ⊢⋆ *} → Γ , A ∋ B → Δ ⊢ ⋆.subst σ⋆ B)
 substcons _ σ t Z     = t
 substcons _ σ t (S x) = σ x
 \end{code}
 
 \begin{code}
-_[_] : ∀ {J Φ Γ} {A B : Φ ⊢⋆ J}
+_[_] : ∀ {Φ Γ} {A B : Φ ⊢⋆ *}
         → Γ , B ⊢ A
         → Γ ⊢ B 
           ---------
         → Γ ⊢ A
-_[_]  {J} {Γ = Γ}{A}{B} t s =
+_[_]  {Γ = Γ}{A}{B} t s =
   substEq (Γ ⊢_)
           (⋆.subst-id A)
           (subst _
@@ -244,7 +244,7 @@ _[_]  {J} {Γ = Γ}{A}{B} t s =
 \end{code}
 
 \begin{code}
-_[_]⋆ : ∀ {J Φ Γ K} {B : Φ ,⋆ K ⊢⋆ J}
+_[_]⋆ : ∀ {Φ Γ K} {B : Φ ,⋆ K ⊢⋆ *}
         → Γ ,⋆ K ⊢ B
         → (A : Φ ⊢⋆ K)
           ---------
@@ -253,7 +253,7 @@ _[_]⋆ {J}{Γ = Γ}{K}{B} t A =
   subst _ -- (⋆.subst-cons ` A)
         (λ{(T {A = A'} x) → substEq (λ A → Γ ⊢ A)
                                      (trans (sym (⋆.subst-id A'))
-                                     (⋆.subst-rename A'))
+                                     (⋆.subst-ren A'))
                                      (` x)})
           t
 \end{code}

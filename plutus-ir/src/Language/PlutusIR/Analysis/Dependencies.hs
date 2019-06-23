@@ -81,7 +81,7 @@ bindingDeps
     => Binding tyname name a
     -> m g
 bindingDeps b = case b of
-    TermBind _ d@(VarDecl _ n _) rhs -> do
+    TermBind _ _ d@(VarDecl _ n _) rhs -> do
         vDeps <- varDeclDeps d
         tDeps <- withCurrent n $ termDeps rhs
         pure $ G.overlay vDeps tDeps

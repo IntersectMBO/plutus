@@ -61,7 +61,7 @@ import qualified Codec.CBOR.Write             as Write
 import           Codec.Serialise.Class        (Serialise, encode)
 import           Control.Lens                 hiding (lifted)
 import           Crypto.Hash                  (Digest, SHA256, hash)
-import           Data.Aeson                   (FromJSON, ToJSON)
+import           Data.Aeson                   (FromJSON, FromJSONKey (..), ToJSON, ToJSONKey (..))
 import qualified Data.ByteArray               as BA
 import qualified Data.ByteString.Char8        as BS8
 import qualified Data.ByteString.Lazy         as BSL
@@ -118,6 +118,8 @@ instance Hashable Address where
 deriving newtype instance Serialise Address
 deriving anyclass instance ToJSON Address
 deriving anyclass instance FromJSON Address
+deriving anyclass instance ToJSONKey Address
+deriving anyclass instance FromJSONKey Address
 
 -- | A transaction, including witnesses for its inputs.
 data Tx = Tx {

@@ -17,30 +17,7 @@ packages:
 - plutus-book
 - plutus-contract-exe
 - plutus-emulator
-
-# Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
-- location:
-    git: https://github.com/shmish111/purescript-bridge.git
-    commit: a7069a515800135ce932742e995f3a96bc1c7129
-  extra-dep: true
-- location:
-    git: https://github.com/shmish111/servant-purescript.git
-    commit: ab14502279c92084f06aa6222a17873275279e63
-  extra-dep: true
-- location:
-    git: https://github.com/input-output-hk/cardano-crypto.git
-    commit: f5cecb6e424cc84f85b6a3e1f803517bb7b4cfb1
-  extra-dep: true
-# Needs a fix (https://github.com/wenkokke/unlit/pull/11) and a Hackage release
-- location:
-    git: https://github.com/michaelpj/unlit.git
-    commit: 9ca1112093c5ffd356fc99c7dafa080e686dd748
-  extra-dep: true
-# Needs looser containers bound, committed upstream but not released
-- location:
-    git: https://github.com/bitnomial/prometheus.git
-    commit: 69e4cefeb7d04d61a54cb0ae9fd57e2de134badb
-  extra-dep: true
+- deployment-server
 
 extra-deps:
 # Agda and deps
@@ -64,6 +41,26 @@ extra-deps:
 - time-interval-0.1.1@sha256:7bfd3601853d1af7caa18248ec10b01701d035ac274a93bb4670fea52a14d4e8
 - time-units-1.0.0@sha256:27cf54091c4a0ca73d504fc11d5c31ab4041d17404fe3499945e2055697746c1
 - wl-pprint-1.2.1@sha256:aea676cff4a062d7d912149d270e33f5bb0c01b68a9db46ff13b438141ff4b7c
+- servant-github-webhook-0.4.1.0@sha256:6ac456ccc6a2a96b30a7b80cd91b121f1b7e9bd33635641a6afbd6137700a753
+- binary-instances-1@sha256:e7768b92f34bc40cc5cabecc5c143dee6ab4bcb5eb441d58e15a0b000d64940b
+- binary-orphans-1.0.1@sha256:74d9a8e2c8c4dc8e11c9028ef103b930fc62f3943e45b1629f39114f2bfb5abb
+- time-compat-1.9.2.2@sha256:9998dc1b77b5067572ab708e94750f1061152f342e92ad1aba38aae63581174d
+# Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
+- git: https://github.com/shmish111/purescript-bridge.git
+  commit: a7069a515800135ce932742e995f3a96bc1c7129
+- git: https://github.com/shmish111/servant-purescript.git
+  commit: ab14502279c92084f06aa6222a17873275279e63
+- git: https://github.com/input-output-hk/cardano-crypto.git
+  commit: f5cecb6e424cc84f85b6a3e1f803517bb7b4cfb1
+# Needs a fix (https://github.com/wenkokke/unlit/pull/11) and a Hackage release
+- git: https://github.com/michaelpj/unlit.git
+  commit: 9ca1112093c5ffd356fc99c7dafa080e686dd748
+# Needs looser containers bound, committed upstream but not released
+- git: https://github.com/bitnomial/prometheus.git
+  commit: 69e4cefeb7d04d61a54cb0ae9fd57e2de134badb
+# Need https://github.com/phadej/github/pull/387 and to be added back in to stackage
+- git: https://github.com/shmish111/github.git
+  commit: cc27b9de4d5d0939235fa9a8b418de3ea4807bab
 flags:
   language-plutus-core:
     development: true

@@ -3,6 +3,10 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Language.PlutusTx.Prelude (
     -- $prelude
+    -- * Classes
+    module Eq,
+    module Ord,
+    module Functor,
     -- * String and tracing functions
     toPlutusString,
     trace,
@@ -13,45 +17,23 @@ module Language.PlutusTx.Prelude (
     -- * Error
     error,
     check,
-    -- * Boolean operators
-    (&&),
-    (||),
-    not,
+    -- * Booleans
+    module Bool,
     -- * Int operators
-    gt,
-    geq,
-    lt,
-    leq,
-    eq,
     plus,
     minus,
     multiply,
     divide,
     remainder,
-    -- * Numbers
-    min,
-    max,
     -- * Tuples
     fst,
     snd,
     -- * Maybe
-    isJust,
-    isNothing,
-    maybe,
-    mapMaybe,
+    module Maybe,
     -- * Lists
-    null,
-    map,
-    foldr,
-    foldl,
-    length,
-    all,
-    any,
-    (++),
-    filter,
+    module List,
     -- * ByteStrings
     ByteString,
-    equalsByteString,
     takeByteString,
     dropByteString,
     concatenate,
@@ -63,11 +45,19 @@ module Language.PlutusTx.Prelude (
     module Prelude
     ) where
 
+import           Language.PlutusTx.Bool     as Bool
 import           Language.PlutusTx.Builtins (ByteString, concatenate, dropByteString, emptyByteString, equalsByteString,
-                                             sha2_256, sha3_256, takeByteString, verifySignature)
+                                             greaterThanByteString, lessThanByteString, sha2_256, sha3_256,
+                                             takeByteString, verifySignature)
 import qualified Language.PlutusTx.Builtins as Builtins
-import           Prelude                    as Prelude hiding (all, any, error, filter, foldl, foldr, fst, length, map,
-                                                        max, maybe, min, not, null, snd, (&&), (++), (||))
+import           Language.PlutusTx.Eq       as Eq
+import           Language.PlutusTx.Functor  as Functor
+import           Language.PlutusTx.List     as List
+import           Language.PlutusTx.Maybe    as Maybe
+import           Language.PlutusTx.Ord      as Ord
+import           Prelude                    as Prelude hiding (Eq (..), Functor (..), Ord (..), all, any, const, error,
+                                                        filter, foldl, foldr, fst, length, map, max, maybe, min, not,
+                                                        null, snd, (&&), (++), (<$>), (||))
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
@@ -130,80 +120,6 @@ traceIfFalseH str a = if a then True else traceH str False
 traceIfTrueH :: String -> Bool -> Bool
 traceIfTrueH str a = if a then traceH str True else False
 
-{-# INLINABLE (&&) #-}
--- | Logical AND
---
---   >>> True && False
---   False
---
-infixr 3 &&
-(&&) :: Bool -> Bool -> Bool
-(&&) l r = if l then r else False
-
-{-# INLINABLE (||) #-}
--- | Logical OR
---
---   >>> True || False
---   True
---
-infixr 2 ||
-(||) :: Bool -> Bool -> Bool
-(||) l r = if l then True else r
-
-{-# INLINABLE not #-}
--- | Logical negation
---
---   >>> not True
---   False
---
-not :: Bool -> Bool
-not a = if a then False else True
-
-{-# INLINABLE gt #-}
--- | Greater than
---
---   >>> gt 2 1
---   True
---
-gt :: Integer -> Integer -> Bool
-gt = Builtins.greaterThanInteger
-
-{-# INLINABLE geq #-}
--- | Greater than or equal to
---
---   >>> geq 2 2
---   True
---
-geq :: Integer -> Integer -> Bool
-geq = Builtins.greaterThanEqInteger
-
-{-# INLINABLE lt #-}
--- | Less than
---
---   >>> lt 2 1
---   False
---
-lt :: Integer -> Integer -> Bool
-lt = Builtins.lessThanInteger
-
-{-# INLINABLE leq #-}
--- | Less than or equal to
---
---   >>> leq 2 2
---   True
---
-leq :: Integer -> Integer -> Bool
-leq = Builtins.lessThanEqInteger
-
-{-# INLINABLE eq #-}
--- | Eq for 'Integer'
---
---   >>> eq 2 1
---   False
---
-eq :: Integer -> Integer -> Bool
-eq = Builtins.equalsInteger
-
 {-# INLINABLE plus #-}
 -- | Addition
 --
@@ -248,160 +164,6 @@ divide = Builtins.divideInteger
 --
 remainder :: Integer -> Integer -> Integer
 remainder = Builtins.remainderInteger
-
-{-# INLINABLE min #-}
--- | The smaller of two 'Integer's
---
---   >>> min 10 5
---   5
---
-min :: Integer -> Integer -> Integer
-min a b = if Builtins.lessThanInteger a b then a else b
-
-{-# INLINABLE max #-}
--- | The larger of two 'Integer's
---
---   >>> max 10 5
---   10
---
-max :: Integer -> Integer -> Integer
-max a b = if Builtins.greaterThanInteger a b then a else b
-
-{-# INLINABLE isJust #-}
--- | Check if a 'Maybe' @a@ is @Just a@
---
---   >>> isJust Nothing
---   False
---   >>> isJust (Just "plutus")
---   True
---
-isJust :: Maybe a -> Bool
-isJust m = case m of { Just _ -> True; _ -> False; }
-
-{-# INLINABLE isNothing #-}
--- | Check if a 'Maybe' @a@ is @Nothing@
---
---   >>> isNothing Nothing
---   True
---   >>> isNothing (Just "plutus")
---   False
---
-isNothing :: Maybe a -> Bool
-isNothing m = case m of { Just _ -> False; _ -> True; }
-
-{-# INLINABLE maybe #-}
--- | PlutusTx version of 'Prelude.maybe'.
---
---   >>> maybe "platypus" (\s -> s) (Just "plutus")
---   "plutus"
---   >>> maybe "platypus" (\s -> s) Nothing
---   "platypus"
---
-maybe :: b -> (a -> b) -> Maybe a -> b
-maybe b f m = case m of
-    Nothing -> b
-    Just a  -> f a
-
-{-# INLINABLE null #-}
--- | PlutusTx version of 'Data.List.null'.
---
---   >>> null [1]
---   False
---   >>> null []
---   True
---
-null :: [a] -> Bool
-null l = case l of
-    [] -> True
-    _  -> False
-
-{-# INLINABLE map #-}
--- | PlutusTx version of 'Data.List.map'.
---
---   >>> map (\i -> i + 1) [1, 2, 3]
---   [2,3,4]
---
-map :: (a -> b) -> [a] -> [b]
-map f l = case l of
-    []   -> []
-    x:xs -> f x : map f xs
-
-{-# INLINABLE foldr #-}
--- | PlutusTx version of 'Data.List.foldr'.
---
---   >>> foldr (\i s -> s + i) 0 [1, 2, 3, 4]
---   10
---
-foldr :: (a -> b -> b) -> b -> [a] -> b
-foldr f acc l = case l of
-    []   -> acc
-    x:xs -> f x (foldr f acc xs)
-
-{-# INLINABLE foldl #-}
--- | PlutusTx version of 'Data.List.foldl'.
---
---   >>> foldl (\s i -> s + i) 0 [1, 2, 3, 4]
---   10
---
-foldl :: (b -> a -> b) -> b -> [a] -> b
-foldl f acc l = case l of
-    []   -> acc
-    x:xs -> foldl f (f acc x) xs
-
-{-# INLINABLE length #-}
--- | 'length' @xs@ is the number of elements in @xs@.
---
---   >>> length [1, 2, 3, 4]
---   4
---
-length :: [a] -> Integer
--- eta-expanded to avoid the value restriction
-length as = foldr (\_ acc -> plus acc 1) 0 as
-
-{-# INLINABLE all #-}
--- | PlutusTx version of 'Data.List.all'.
---
---   >>> all (\i -> i > 5) [6, 8, 12]
---   True
---
-all :: (a -> Bool) -> [a] -> Bool
-all p = foldr (\a acc -> acc && p a) True
-
-{-# INLINABLE any #-}
--- | PlutusTx version of 'Data.List.any'.
---
---   >>> any (\i -> i > 5) [6, 2, 1]
---   True
---
-any :: (a -> Bool) -> [a] -> Bool
-any p = foldr (\a acc -> acc || p a) False
-
-{-# INLINABLE (++) #-}
--- | PlutusTx version of 'Data.List.(++)'.
---
---   >>> [0, 1, 2] ++ [1, 2, 3, 4]
---   [0,1,2,1,2,3,4]
---
-(++) :: [a] -> [a] -> [a]
-(++) l r = foldr (:) r l
-
-{-# INLINABLE filter #-}
--- | PlutusTx version of 'Data.List.filter'.
---
---   >>> filter (> 1) [1, 2, 3, 4]
---   [2,3,4]
---
-filter :: (a -> Bool) -> [a] -> [a]
-filter p = foldr (\e xs -> if p e then e:xs else xs) []
-
-{-# INLINABLE mapMaybe #-}
--- | PlutusTx version of 'Data.Maybe.mapMaybe'.
---
---   >>> mapMaybe (\i -> if i == 2 then Just '2' else Nothing) [1, 2, 3, 4]
---   "2"
---
-mapMaybe :: (a -> Maybe b) -> [a] -> [b]
-mapMaybe p = foldr (\e xs -> case p e of { Just e' -> e':xs; Nothing -> xs}) []
 
 {-# INLINABLE fst #-}
 -- | PlutusTx version of 'Data.Tuple.fst'

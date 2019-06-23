@@ -14,13 +14,11 @@
 -- A map implementation that can be used in on-chain and off-chain code.
 module Ledger.Map(
     Map
-    , IsEqual
     , singleton
     , empty
     , fromList
     , toList
     , keys
-    , map
     , lookup
     , union
     , all
@@ -29,13 +27,15 @@ module Ledger.Map(
     , these
     ) where
 
+import qualified Prelude                      as Haskell
+
 import           Codec.Serialise.Class        (Serialise)
 import           Data.Aeson                   (FromJSON (parseJSON), ToJSON (toJSON))
 import           Data.Hashable                (Hashable)
 import           Data.Swagger.Internal.Schema (ToSchema)
 import           GHC.Generics                 (Generic)
 import           Language.PlutusTx.Lift       (makeLift)
-import           Language.PlutusTx.Prelude    hiding (all, lookup, map)
+import           Language.PlutusTx.Prelude    hiding (all, lookup)
 import qualified Language.PlutusTx.Prelude    as P
 
 import           Ledger.These
@@ -43,10 +43,19 @@ import           Ledger.These
 {-# ANN module ("HLint: ignore Use newtype instead of data"::String) #-}
 
 -- | A 'Map' of key-value pairs.
-data Map k v = Map { unMap :: [(k, v)] }
+newtype Map k v = Map { unMap :: [(k, v)] }
     deriving (Show)
     deriving stock (Generic)
+    deriving newtype (Eq, Ord)
     deriving anyclass (ToSchema, Serialise, Hashable)
+
+instance Functor (Map k) where
+    {-# INLINABLE fmap #-}
+    fmap f (Map mp) =
+        let
+            go []           = []
+            go ((c, i):xs') = (c, f i) : go xs'
+        in Map (go mp)
 
 makeLift ''Map
 
@@ -54,7 +63,7 @@ instance (ToJSON v, ToJSON k) => ToJSON (Map k v) where
     toJSON = toJSON . unMap
 
 instance (FromJSON v, FromJSON k) => FromJSON (Map k v) where
-    parseJSON v = Map <$> parseJSON v
+    parseJSON v = Map Haskell.<$> parseJSON v
 
 {-# INLINABLE fromList #-}
 fromList :: [(k, v)] -> Map k v
@@ -64,38 +73,25 @@ fromList = Map
 toList :: Map k v -> [(k, v)]
 toList (Map l) = l
 
-{-# INLINABLE map #-}
--- | Apply a function to the values of a 'Map'.
-map :: forall k v w . (v -> w) -> Map k v -> Map k w
-map f (Map mp) =
-    let
-        go :: [(k, v)] -> [(k, w)]
-        go []           = []
-        go ((c, i):xs') = (c, f i) : go xs'
-    in Map (go mp)
-
--- | Compare two 'k's for equality.
-type IsEqual k = k -> k -> Bool
-
 {-# INLINABLE lookup #-}
 -- | Find an entry in a 'Map'.
-lookup :: forall k v . IsEqual k -> k -> Map k v -> Maybe v
-lookup eq c (Map xs) =
+lookup :: forall k v . (Eq k) => k -> Map k v -> Maybe v
+lookup c (Map xs) =
     let
         go :: [(k, v)] -> Maybe v
         go []            = Nothing
-        go ((c', i):xs') = if eq c' c then Just i else go xs'
+        go ((c', i):xs') = if c' == c then Just i else go xs'
     in go xs
 
 {-# INLINABLE keys #-}
 -- | The keys of a 'Map'.
 keys :: Map k v -> [k]
-keys (Map xs) = P.map (\(k, _ :: v) -> k) xs
+keys (Map xs) = P.fmap (\(k, _ :: v) -> k) xs
 
 {-# INLINABLE union #-}
 -- | Combine two 'Map's.
-union :: forall k v r . IsEqual k -> Map k v -> Map k r -> Map k (These v r)
-union eq (Map ls) (Map rs) =
+union :: forall k v r . (Eq k) => Map k v -> Map k r -> Map k (These v r)
+union (Map ls) (Map rs) =
     let
         f :: v -> Maybe r -> These v r
         f a b' = case b' of
@@ -103,13 +99,13 @@ union eq (Map ls) (Map rs) =
             Just b  -> These a b
 
         ls' :: [(k, These v r)]
-        ls' = P.map (\(c, i) -> (c, f i (lookup eq c (Map rs)))) ls
+        ls' = P.fmap (\(c, i) -> (c, f i (lookup c (Map rs)))) ls
 
         rs' :: [(k, r)]
-        rs' = filter (\(c, _) -> not (any (\(c', _) -> eq c' c) ls)) rs
+        rs' = filter (\(c, _) -> not (any (\(c', _) -> c' == c) ls)) rs
 
         rs'' :: [(k, These v r)]
-        rs'' = P.map (\(c, b) -> (c, That b)) rs'
+        rs'' = P.fmap (\(c, b) -> (c, That b)) rs'
 
     in Map (ls' ++ rs'')
 

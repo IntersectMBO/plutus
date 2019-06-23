@@ -48,9 +48,9 @@ a type variable of a given kind, or extends a context
 by a variable of a given type.
 \begin{code}
 data Ctx : Ctx⋆ → Set where
-  ∅ : Ctx ∅
+  ∅    : Ctx ∅
   _,⋆_ : ∀{Φ} → Ctx Φ → (J : Kind) → Ctx (Φ ,⋆ J)
-  _,_ : ∀ {Φ J} (Γ : Ctx Φ) → Φ ⊢Nf⋆ J → Ctx Φ
+  _,_  : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Ctx Φ
 \end{code}
 Let `Γ` range over contexts.  In the last rule,
 the type is indexed by the erasure of the previous
@@ -67,18 +67,18 @@ The erasure of a context is a type context.
 
 A variable is indexed by its context and type.
 \begin{code}
-data _∋_ : ∀ {Φ J} (Γ : Ctx Φ) → Φ ⊢Nf⋆ J → Set where
+data _∋_ : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
 
-  Z : ∀ {Φ Γ J} {A : Φ ⊢Nf⋆ J}
+  Z : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *}
       ----------
     → Γ , A ∋ A
 
-  S : ∀ {Φ Γ J K} {A : Φ ⊢Nf⋆ J} {B : Φ ⊢Nf⋆ K}
+  S : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} {B : Φ ⊢Nf⋆ *}
     → Γ ∋ A
       ----------
     → Γ , B ∋ A
 
-  T : ∀ {Φ Γ J K} {A : Φ ⊢Nf⋆ J}
+  T : ∀ {Φ Γ K} {A : Φ ⊢Nf⋆ *}
     → Γ ∋ A
       -------------------
     → Γ ,⋆ K ∋ weakenNf A
@@ -95,9 +95,9 @@ open import Data.String
 
 Tel : ∀ {Φ} Γ Δ → (∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J) → List (Δ ⊢Nf⋆ *) → Set
 
-data _⊢_ : ∀ {Φ J} (Γ : Ctx Φ) → Φ ⊢Nf⋆ J → Set where
+data _⊢_ : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
 
-  ` : ∀ {Φ Γ J} {A : Φ ⊢Nf⋆ J}
+  ` : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *}
     → Γ ∋ A
       ------
     → Γ ⊢ A
@@ -170,4 +170,18 @@ true = Λ "α" (ƛ "t" (ƛ "f" (` (S Z))))
 
 false : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ booleanNf
 false = Λ "α" (ƛ "t" (ƛ "f" (` Z)))
+\end{code}
+
+Utility functions
+
+\begin{code}
+conv∋ : ∀ {Φ Γ}{A A' : Φ ⊢Nf⋆ *}
+ → A ≡ A' →
+ (Γ ∋ A) → Γ ∋ A'
+conv∋ refl α = α
+
+conv⊢ : ∀ {Φ Γ}{A A' : Φ ⊢Nf⋆ *}
+ → A ≡ A' →
+ (Γ ⊢ A) → Γ ⊢ A'
+conv⊢ refl α = α
 \end{code}

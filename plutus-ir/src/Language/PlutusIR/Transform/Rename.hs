@@ -78,11 +78,11 @@ renameBindingCM
     => Binding tyname name ann
     -> ContT c PLC.ScopedRenameM (PLC.ScopedRenameM (Binding tyname name ann))
 renameBindingCM = \case
-    TermBind x var term -> do
+    TermBind x s var term -> do
         -- The first stage.
         varRen <- ContT $ PLC.withFreshenedVarDecl var
         -- The second stage (the type of the variable and the RHS get renamed).
-        pure $ TermBind x <$> varRen <*> renameTermM term
+        pure $ TermBind x s <$> varRen <*> renameTermM term
     TypeBind x var ty -> do
         -- The First stage.
         varFr <- ContT $ PLC.withFreshenedTyVarDecl var
@@ -114,9 +114,9 @@ renameTermM
     :: (PLC.HasUnique (tyname ann) PLC.TypeUnique, PLC.HasUnique (name ann) PLC.TermUnique)
     => Term tyname name ann -> PLC.ScopedRenameM (Term tyname name ann)
 renameTermM = \case
-    Let x recy binds term ->
-        withFreshenedBindings recy binds $ \bindsFr ->
-            Let x recy bindsFr <$> renameTermM term
+    Let x r binds term ->
+        withFreshenedBindings r binds $ \bindsFr ->
+            Let x r bindsFr <$> renameTermM term
     Var x name ->
         Var x <$> PLC.renameNameM name
     TyAbs x name kind body ->

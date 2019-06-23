@@ -24,7 +24,6 @@ import           Data.Foldable                (foldMap)
 import qualified Data.Set                     as Set
 import           Ledger                       (DataScript(..), RedeemerScript(..), ValidatorScript(..))
 import qualified Ledger
-import           Ledger.Slot                  (Slot)
 import qualified Ledger.Slot                  as Slot
 import           Ledger.Validation            (PendingTx(..))
 import qualified Ledger.Validation            as Validation
@@ -33,10 +32,11 @@ import qualified Ledger.Value                 as Value
 import           Wallet
 import qualified Wallet                       as WAPI
 
-import qualified Language.PlutusTx              as PlutusTx
 import           Language.PlutusTx.Prelude
 import           Language.PlutusTx.StateMachine (StateMachine(..))
 import qualified Language.PlutusTx.StateMachine as SM
+
+import           Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine.Types
 
 --   $multisig
 --   The n-out-of-m multisig contract works like a joint account of
@@ -53,71 +53,18 @@ import qualified Language.PlutusTx.StateMachine as SM
 --   state is kept on the chain so there is no need for off-chain communication.
 
 
--- | A proposal for making a payment under the multisig scheme.
-data Payment = Payment
-    { paymentAmount    :: Value
-    -- ^ How much to pay out
-    , paymentRecipient :: PubKey
-    -- ^ Address to pay the value to
-    , paymentDeadline  :: Slot
-    -- ^ Time until the required amount of signatures has to be collected.
-    }
-
-PlutusTx.makeLift ''Payment
-
-data Params = Params
-    { mspSignatories  :: [PubKey]
-    -- ^ Public keys that are allowed to authorise payments
-    , mspRequiredSigs :: Integer
-    -- ^ How many signatures are required for a payment
-    }
-
-PlutusTx.makeLift ''Params
-
--- | State of the multisig contract.
-data State =
-    InitialState Value
-    -- ^ Money is locked, anyone can make a proposal for a payment-
-
-    | CollectingSignatures Value Payment [PubKey]
-    -- ^ A payment has been proposed and is awaiting signatures.
-
-PlutusTx.makeLift ''State
-
-data Input =
-    ProposePayment Payment
-    -- ^ Propose a payment. The payment can be made as soon as enough
-    --   signatures have been collected.
-
-    | AddSignature PubKey
-    -- ^ Add a signature to the sigs. that have been collected for the
-    --   current proposal.
-
-    | Cancel
-    -- ^ Cancel the current proposal if the deadline has passed
-
-    | Pay
-    -- ^ Make the payment.
-
-PlutusTx.makeLift ''Input
-
 -- | Check if a public key is one of the signatories of the multisig contract.
 isSignatory :: PubKey -> Params -> Bool
-isSignatory pk (Params sigs _) = any (\pk' -> Validation.eqPubKey pk pk') sigs
+isSignatory pk (Params sigs _) = any (\pk' -> pk == pk') sigs
 
 -- | Check whether a list of public keys contains a given key.
 containsPk :: PubKey -> [PubKey] -> Bool
-containsPk pk = any (\pk' -> Validation.eqPubKey pk' pk)
-
-pkListEq :: [PubKey] -> [PubKey] -> Bool
-pkListEq [] []           = True
-pkListEq (k:ks) (k':ks') = Validation.eqPubKey k k' && pkListEq ks ks'
-pkListEq _ _             = False
+containsPk pk = any (\pk' -> pk' == pk)
 
 -- | Check whether a proposed 'Payment' is valid given the total
 --   amount of funds currently locked in the contract.
 isValidProposal :: Value -> Payment -> Bool
-isValidProposal vl (Payment amt _ _) = Value.leq amt vl
+isValidProposal vl (Payment amt _ _) = amt `Value.leq` vl
 
 -- | Check whether a proposed 'Payment' has expired.
 proposalExpired :: PendingTx -> Payment -> Bool
@@ -128,7 +75,7 @@ proposalExpired (PendingTx _ _ _ _ _ rng _ _) (Payment _ _ ddl) = Slot.before dd
 proposalAccepted :: Params -> [PubKey] -> Bool
 proposalAccepted (Params signatories numReq) pks =
     let numSigned = length (filter (\pk -> containsPk pk pks) signatories)
-    in geq numSigned numReq
+    in numSigned >= numReq
 
 -- | @valuePreserved v p@ is true if the pending transaction @p@ pays the amount
 --   @v@ to a single pay-to-script output at this script's address.
@@ -137,24 +84,12 @@ valuePreserved vl ptx =
     let ownHash = Validation.ownHash ptx
         numOutputs = length (Validation.scriptOutputsAt ownHash ptx)
         valueLocked = Validation.valueLockedBy ptx ownHash
-    in eq 1 numOutputs && Value.eq valueLocked vl
+    in 1 == numOutputs && valueLocked == vl
 
 -- | @valuePaid pm ptx@ is true if the pending transaction @ptx@ pays
 --   the amount specified in @pm@ to the public key address specified in @pm@
 valuePaid :: Payment -> PendingTx -> Bool
-valuePaid (Payment vl pk _) ptx = Value.eq vl (Validation.valuePaidTo ptx pk)
-
--- | Equality of 'Payment' values
-paymentEq :: Payment -> Payment -> Bool
-paymentEq (Payment vl pk sl) (Payment vl' pk' sl') =
-    Value.eq vl vl' && Validation.eqPubKey pk pk' && Slot.eq sl sl'
-
--- | Equality of 'State' values
-stateEq :: State -> State -> Bool
-stateEq (InitialState v) (InitialState v') = Value.eq v v'
-stateEq (CollectingSignatures vl pmt pks) (CollectingSignatures vl' pmt' pks') =
-    Value.eq vl vl' && paymentEq pmt pmt' && pkListEq pks pks'
-stateEq _ _ = False
+valuePaid (Payment vl pk _) ptx = vl == (Validation.valuePaidTo ptx pk)
 
 -- | @step params state input@ computes the next state given current state
 --   @state@ and the input.
@@ -210,7 +145,7 @@ stepWithChecks p ptx s i =
 
 mkValidator :: Params -> (State, Maybe Input) -> (State, Maybe Input) -> PendingTx -> Bool
 mkValidator p ds vs ptx =
-    let sm = StateMachine (stepWithChecks p ptx) stateEq in
+    let sm = StateMachine (stepWithChecks p ptx) in
     SM.mkValidator sm ds vs ptx
 
 validator :: Params -> ValidatorScript

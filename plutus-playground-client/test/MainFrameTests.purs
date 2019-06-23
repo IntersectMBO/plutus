@@ -8,7 +8,7 @@ import Auth (AuthRole(..), AuthStatus(..))
 import Control.Monad.Except (runExcept)
 import Control.Monad.Free (Free, foldFree, liftF)
 import Control.Monad.RWS.Trans (RWSResult(..), RWST(..), runRWST)
-import Control.Monad.Reader.Class (class MonadAsk, ask)
+import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM)
 import Control.Monad.State.Class (class MonadState, get)
 import Cursor as Cursor
@@ -24,7 +24,7 @@ import Data.List.NonEmpty (NonEmptyList(..))
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(Nothing, Just))
-import Data.Newtype (class Newtype, unwrap, wrap)
+import Data.Newtype (class Newtype, unwrap)
 import Data.NonEmpty ((:|))
 import Data.RawJson (JsonEither, JsonNonEmptyList(..))
 import Data.Symbol (SProxy(..))
@@ -83,28 +83,17 @@ newtype MockApp m a = MockApp (RWST (SPSettings_ SPParams_) Unit (Tuple World St
 
 derive instance newtypeMockApp :: Newtype (MockApp m a) _
 
-derive instance functorMockApp :: Functor m => Functor (MockApp m)
-
-instance applicativeMockApp :: Monad m => Applicative (MockApp m) where
-  pure v = wrap $ pure v
-
-instance applyMockApp :: Monad m => Apply (MockApp m) where
-  apply f v = wrap $ apply (unwrap f) (unwrap v)
-
-instance bindMockApp :: Monad m => Bind (MockApp m) where
-  bind m action = wrap $ do
-    v <- unwrap m
-    unwrap $ action v
-
-instance monadMockApp :: Monad m => Monad (MockApp m)
+derive newtype instance functorMockApp :: Functor m => Functor (MockApp m)
+derive newtype instance applicativeMockApp :: Monad m => Applicative (MockApp m)
+derive newtype instance applyMockApp :: Bind m => Apply (MockApp m)
+derive newtype instance bindMockApp :: Bind m => Bind (MockApp m)
+derive newtype instance monadMockApp :: Monad m => Monad (MockApp m)
+derive newtype instance monadAskMockApp :: Monad m => MonadAsk (SPSettings_ SPParams_) (MockApp m)
 
 instance monadStateMockApp :: Monad m => MonadState State (MockApp m) where
   state f = MockApp $ RWST \r (Tuple world appState) ->
     case f appState of
       (Tuple a appState') -> pure $ RWSResult (Tuple world appState') a unit
-
-instance monadAskMockApp :: Monad m => MonadAsk (SPSettings_ SPParams_) (MockApp m) where
-  ask = MockApp $ ask
 
 instance monadAppMockApp :: Monad m => MonadApp (MockApp m) where
   editorGetContents = MockApp do

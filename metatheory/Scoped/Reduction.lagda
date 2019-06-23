@@ -53,6 +53,8 @@ data Error {n}{w : Weirdℕ n} : ScopedTm w → Set where
 
    -- error inside somewhere
    E-·₁ : {L M : ScopedTm w} → Error L → Error (L · M)
+
+
    E-·₂ : {L M : ScopedTm w} → Error M → Error (L · M)
    E-·⋆ : {L : ScopedTm w}{A : ScopedTy n} → Error L → Error (L ·⋆ A)
    E-unwrap : {L : ScopedTm w} → Error L → Error (unwrap L)

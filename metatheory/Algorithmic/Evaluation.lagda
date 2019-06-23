@@ -22,7 +22,7 @@ data Gas : Set where
 When our evaluator returns a term `N`, it will either give evidence that
 `N` is a value or indicate that it ran out of gas.
 \begin{code}
-data Finished {Φ Γ}{A : Φ ⊢Nf⋆ *} :  (N : Γ ⊢ A) →  Set where
+data Finished {A : ∅ ⊢Nf⋆ *} :  (N : ∅ ⊢ A) →  Set where
 
    done : ∀ N → 
        Value N
@@ -33,8 +33,10 @@ data Finished {Φ Γ}{A : Φ ⊢Nf⋆ *} :  (N : Γ ⊢ A) →  Set where
        ----------
        Finished N
 
-   error : {L : Γ ⊢ A} → Error L → Finished L
+   error : {L : ∅ ⊢ A} → Error L → Finished L
 
+   -- is this actually possible?
+   neutral : {L : ∅ ⊢ A} → Neutral L → Finished L
 \end{code}
 Given a term `L` of type `A`, the evaluator will, for some `N`, return
 a reduction sequence from `L` to `N` and an indication of whether
@@ -68,4 +70,5 @@ eval (gas (suc n)) M = evalProg (gas n) (progress M)
 evalProg g (step {N = t'} p)  = eval—→ p (eval g t')
 evalProg g (done VM) = steps refl—↠ (done _ VM)
 evalProg g (error e) = steps refl—↠ (error e)
+evalProg g (neutral p) = steps refl—↠ (neutral p)
 \end{code}

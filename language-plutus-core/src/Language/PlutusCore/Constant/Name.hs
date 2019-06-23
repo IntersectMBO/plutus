@@ -21,6 +21,8 @@ module Language.PlutusCore.Constant.Name
     , typedSHA3
     , typedVerifySignature
     , typedEqByteString
+    , typedLtByteString
+    , typedGtByteString
     ) where
 
 import           Language.PlutusCore.Constant.Dynamic.Instances ()
@@ -52,6 +54,8 @@ withTypedBuiltinName SHA2                 k = k typedSHA2
 withTypedBuiltinName SHA3                 k = k typedSHA3
 withTypedBuiltinName VerifySignature      k = k typedVerifySignature
 withTypedBuiltinName EqByteString         k = k typedEqByteString
+withTypedBuiltinName LtByteString         k = k typedLtByteString
+withTypedBuiltinName GtByteString         k = k typedGtByteString
 
 intIntInt :: TypeScheme (Integer -> Integer -> Integer) Integer
 intIntInt = Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
@@ -154,4 +158,16 @@ typedVerifySignature =
 typedEqByteString :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> Bool) Bool
 typedEqByteString =
     TypedBuiltinName EqByteString $
+        Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
+
+-- | Typed 'LtByteString'.
+typedLtByteString :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> Bool) Bool
+typedLtByteString =
+    TypedBuiltinName LtByteString $
+        Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
+
+-- | Typed 'GtByteString'.
+typedGtByteString :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> Bool) Bool
+typedGtByteString =
+    TypedBuiltinName GtByteString $
         Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy

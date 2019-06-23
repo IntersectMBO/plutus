@@ -139,6 +139,8 @@ reservedWords =
     , "let"
     , "nonrec"
     , "rec"
+    , "nonstrict"
+    , "strict"
     , "termbind"
     , "typebind"
     , "datatypebind"
@@ -216,6 +218,9 @@ constant = do
 recursivity :: Parser Recursivity
 recursivity = inParens $ (reservedWord "rec" >> return Rec) <|> (reservedWord "nonrec" >> return NonRec)
 
+strictness :: Parser Strictness
+strictness = inParens $ (reservedWord "strict" >> return Strict) <|> (reservedWord "nonstrict" >> return NonStrict)
+
 funType :: Parser (Type TyName SourcePos)
 funType = TyFun <$> reservedWord "fun" <*> typ <*> typ
 
@@ -268,7 +273,7 @@ datatype = inParens $ Datatype <$> reservedWord "datatype"
 
 binding :: Parser (Binding TyName Name SourcePos)
 binding =  inParens $
-    (try $ reservedWord "termbind" >> TermBind <$> getSourcePos <*> varDecl <*> term)
+    (try $ reservedWord "termbind" >> TermBind <$> getSourcePos <*> strictness <*> varDecl <*> term)
     <|> (reservedWord "typebind" >> TypeBind <$> getSourcePos <*> tyVarDecl <*> typ)
     <|> (reservedWord "datatypebind" >> DatatypeBind <$> getSourcePos <*> datatype)
 

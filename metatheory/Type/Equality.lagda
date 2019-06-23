@@ -93,23 +93,23 @@ Let `p` and `q` range over proofs of type equality.
 ## Renaming for proofs of type equality
 
 \begin{code}
-rename≡β : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
+ren≡β : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
   → (ρ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
   → A ≡β B
     ----------------------------
-  → rename ρ A ≡β rename ρ B
-rename≡β ρ (refl≡β A)    = refl≡β (rename ρ A)
-rename≡β ρ (sym≡β p)     = sym≡β (rename≡β ρ p)
-rename≡β ρ (trans≡β p q) = trans≡β (rename≡β ρ p) (rename≡β ρ q)
-rename≡β ρ (⇒≡β p q)     = ⇒≡β (rename≡β ρ p) (rename≡β ρ q)
-rename≡β ρ (Π≡β p)       = Π≡β (rename≡β (ext ρ) p)
-rename≡β ρ (ƛ≡β p)       = ƛ≡β (rename≡β (ext ρ) p)
-rename≡β ρ (·≡β p q)     = ·≡β (rename≡β ρ p) (rename≡β ρ q)
-rename≡β ρ (β≡β B A)     =
-  substEq (rename ρ ((ƛ _ B) · A) ≡β_)
-          (trans (sym (subst-rename B))
-                 (trans (subst-cong (rename-subst-cons ρ A) B)
-                        (rename-subst B)))
+  → ren ρ A ≡β ren ρ B
+ren≡β ρ (refl≡β A)    = refl≡β (ren ρ A)
+ren≡β ρ (sym≡β p)     = sym≡β (ren≡β ρ p)
+ren≡β ρ (trans≡β p q) = trans≡β (ren≡β ρ p) (ren≡β ρ q)
+ren≡β ρ (⇒≡β p q)     = ⇒≡β (ren≡β ρ p) (ren≡β ρ q)
+ren≡β ρ (Π≡β p)       = Π≡β (ren≡β (ext ρ) p)
+ren≡β ρ (ƛ≡β p)       = ƛ≡β (ren≡β (ext ρ) p)
+ren≡β ρ (·≡β p q)     = ·≡β (ren≡β ρ p) (ren≡β ρ q)
+ren≡β ρ (β≡β B A)     =
+  substEq (ren ρ ((ƛ _ B) · A) ≡β_)
+          (trans (sym (subst-ren B))
+                 (trans (subst-cong (ren-subst-cons ρ A) B)
+                        (ren-subst B)))
           (β≡β _ _)
 \end{code}
 

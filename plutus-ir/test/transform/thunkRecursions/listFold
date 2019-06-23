@@ -10,7 +10,7 @@
   )
   (let
     (rec)
-    (termbind
+    (termbind (strict)
       (vardecl
         foldl
         (all a (type) (all b (type) (fun (fun a (fun b a)) (fun a (fun [List b] a)))))

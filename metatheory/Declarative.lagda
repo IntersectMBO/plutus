@@ -58,7 +58,7 @@ by a variable of a given type.
 data Ctx : Ctx⋆ → Set where
   ∅ : Ctx ∅
   _,⋆_ : ∀{Γ⋆} → Ctx Γ⋆ → (J : Kind) → Ctx (Γ⋆ ,⋆ J)
-  _,_ : ∀{Γ⋆ J}(Γ : Ctx Γ⋆) → Γ⋆ ⊢⋆ J → Ctx Γ⋆
+  _,_ : ∀{Γ⋆}(Γ : Ctx Γ⋆) → Γ⋆ ⊢⋆ * → Ctx Γ⋆
 \end{code}
 Let `Γ` range over contexts.  In the last rule,
 the type is indexed by the erasure of the previous
@@ -76,17 +76,17 @@ The erasure of a context is a type context.
 A variable is indexed by its context and type. Notice there is only
 one Z as a type variable cannot be a term.
 \begin{code}
-data _∋_ : ∀{Γ⋆ J}(Γ : Ctx Γ⋆) → Γ⋆ ⊢⋆ J → Set where
-  Z : ∀ {Γ⋆ Γ J}{A : Γ⋆ ⊢⋆ J}
+data _∋_ : ∀{Γ⋆}(Γ : Ctx Γ⋆) → Γ⋆ ⊢⋆ * → Set where
+  Z : ∀ {Γ⋆ Γ}{A : Γ⋆ ⊢⋆ *}
       ----------
     → Γ , A ∋ A
 
-  S : ∀ {Γ⋆ Γ J K} {A : Γ⋆ ⊢⋆ J} {B : Γ⋆ ⊢⋆ K}
+  S : ∀ {Γ⋆ Γ} {A B : Γ⋆ ⊢⋆ *}
     → Γ ∋ A
       ----------
     → Γ , B ∋ A
 
-  T : ∀ {Γ⋆ Γ J K} {A : Γ⋆ ⊢⋆ J}
+  T : ∀ {Γ⋆ Γ K} {A : Γ⋆ ⊢⋆ *}
     → Γ ∋ A
       -------------------
     → Γ ,⋆ K ∋ weaken A
@@ -102,9 +102,9 @@ application.
 \begin{code}
 Tel : ∀ {Γ⋆} Γ Δ → Sub Δ Γ⋆ → List (Δ ⊢⋆ *) → Set
 
-data _⊢_ {Γ⋆} (Γ : Ctx Γ⋆) : ∀{J} → Γ⋆ ⊢⋆ J → Set where
+data _⊢_ {Γ⋆} (Γ : Ctx Γ⋆) : Γ⋆ ⊢⋆ * → Set where
 
-  ` : ∀{J}{A : Γ⋆ ⊢⋆ J}
+  ` : {A : Γ⋆ ⊢⋆ *}
     → Γ ∋ A
       ------
     → Γ ⊢ A

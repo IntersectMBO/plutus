@@ -25,7 +25,7 @@ import qualified Ledger.Slot                  as Slot
 import           Ledger
 import           Ledger.Validation            as V
 import           Ledger.Value                 (Value)
-import qualified Ledger.Value                 as VTH
+import qualified Ledger.Value                 as Value
 import           Playground.Contract
 import           Wallet                       as W
 import qualified Wallet.Emulator              as EM
@@ -98,7 +98,7 @@ validCollection campaign p =
     (collectionRange campaign `Slot.contains` pendingTxValidRange p)
     -- Check that the transaction is trying to spend more money than the campaign
     -- target (and hence the target was reached)
-    && (valueSpent p `VTH.geq` campaignTarget campaign)
+    && (valueSpent p `Value.geq` campaignTarget campaign)
     -- Check that the transaction is signed by the campaign owner
     && (p `V.txSignedBy` campaignOwner campaign)
 

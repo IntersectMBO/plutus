@@ -30,7 +30,7 @@ len (Γ , A)  = suc (len Γ)
 \end{code}
 
 \begin{code}
-eraseVar : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K} → Γ ∋ A → Fin (len Γ)
+eraseVar : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ∋ A → Fin (len Γ)
 eraseVar Z     = zero
 eraseVar (S α) = suc (eraseVar α) 
 eraseVar (T α) = eraseVar α
@@ -42,9 +42,9 @@ eraseTC (AC.bytestring b) = bytestring b
 open import Type.BetaNBE.RenamingSubstitution
 
 eraseTel : ∀{Φ Γ Δ}{σ : SubNf Δ Φ}{As : List (Δ ⊢Nf⋆ *)}
-  → Tel Γ Δ σ As
-  → List (len Γ ⊢)
-erase : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K} → Γ ⊢ A → len Γ ⊢
+  → A.Tel Γ Δ σ As
+  → Untyped.Tel (len Γ)
+erase : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → len Γ ⊢
 
 erase (` α)             = ` (eraseVar α)
 erase (ƛ x t)           = ƛ x (erase t) 
@@ -92,7 +92,7 @@ lemsuc : ∀{n n'}(p : suc n ≡ suc n')(q : n ≡ n')(i : Fin n) →
   suc (subst Fin q i) ≡ subst Fin p (suc i)
 lemsuc refl refl i = refl
 
-lemT : ∀{Φ J K}{Γ : Ctx Φ}{A A' : Φ ⊢Nf⋆ J}{A'' : Φ ,⋆ K ⊢Nf⋆ J}
+lemT : ∀{Φ K}{Γ : Ctx Φ}{A A' : Φ ⊢Nf⋆ *}{A'' : Φ ,⋆ K ⊢Nf⋆ *}
   → (p : weakenNf {K = K} A ≡ A'')(q : A ≡ A')(x : Γ ∋ A)
   → eraseVar x ≡ eraseVar (conv∋ p (T x))
 lemT refl refl x = refl
@@ -104,7 +104,7 @@ sameTC : ∀{Φ Γ}{A : Φ ⊢⋆ *}(tcn : DC.TyTermCon A)
 sameTC (DC.integer i)    = refl
 sameTC (DC.bytestring b) = refl
 
-sameVar : ∀{Φ Γ J}{A : Φ ⊢⋆ J}(x : Γ D.∋ A)
+sameVar : ∀{Φ Γ}{A : Φ ⊢⋆ *}(x : Γ D.∋ A)
   → D.eraseVar x ≡ subst Fin (lenLemma Γ) (eraseVar (nfTyVar x))
 sameVar {Γ = Γ D., _} D.Z = lemzero (cong suc (lenLemma Γ))
 sameVar {Γ = Γ D., _} (D.S x) = trans
@@ -112,7 +112,7 @@ sameVar {Γ = Γ D., _} (D.S x) = trans
   (lemsuc (cong suc (lenLemma Γ)) (lenLemma Γ) (eraseVar (nfTyVar x)))
 sameVar {Γ = Γ D.,⋆ _} (D.T {A = A} x) = trans
   (sameVar x)
-  (cong (subst Fin (lenLemma Γ)) (lemT (rename-nf S A) refl (nfTyVar x)))
+  (cong (subst Fin (lenLemma Γ)) (lemT (ren-nf S A) refl (nfTyVar x)))
 
 lemVar : ∀{n n'}(p : n ≡ n')(i : Fin n) →  ` (subst Fin p i) ≡ subst _⊢ p (` i)
 lemVar refl i = refl
@@ -125,7 +125,7 @@ lem· : ∀{n n'}(p : n ≡ n')(t u : n ⊢) → subst _⊢ p t · subst _⊢ p 
 lem· refl t u = refl
 
 lem-erase : ∀{Φ Γ}{A A' : Φ ⊢Nf⋆ *}(p : A ≡ A')(t : Γ A.⊢ A)
-  → erase t ≡ erase (subst⊢ p t)
+  → erase t ≡ erase (conv⊢ p t)
 lem-erase refl t = refl
 
 lem[]' : ∀{n n'}(p : n ≡ n') →
@@ -146,7 +146,7 @@ open import Type.RenamingSubstitution renaming (subst to sub)
 open import Type.Equality
 open import Type.BetaNBE.Soundness
 
-same : ∀{Φ Γ J}{A : Φ ⊢⋆ J}(t : Γ D.⊢ A)
+same : ∀{Φ Γ}{A : Φ ⊢⋆ *}(t : Γ D.⊢ A)
   → D.erase t ≡ subst _⊢ (lenLemma Γ) (erase (nfType t)) 
 
 sameTel : ∀{Φ Γ Δ}(σ : Sub Δ Φ)(As : List (Δ ⊢⋆ *))(tel : D.Tel Γ Δ σ As)
@@ -155,7 +155,7 @@ sameTel : ∀{Φ Γ Δ}(σ : Sub Δ Φ)(As : List (Δ ⊢⋆ *))(tel : D.Tel Γ 
     subst (List ∘ _⊢) (lenLemma Γ) (eraseTel (nfTypeTel σ As tel)) 
 sameTel {Γ = Γ} σ [] tel = lem[]' (lenLemma Γ)
 -- if the proof in nfTypeTel was pulled out as a lemma this would be shorter
-sameTel {Γ = Γ} σ (A ∷ As) (t ,, ts) = trans (cong₂ _∷_ (trans (same t) (cong (subst _⊢ (lenLemma Γ)) (lem-erase (sym (trans (trans (subst-eval (embNf (nf A)) idCR (embNf ∘ nf ∘ σ)) (fund (λ α → fund idCR (sym≡β (soundness (σ α)))) (sym≡β (soundness A)))) (sym (subst-eval A idCR σ)))) (nfType t)))) (sameTel σ As ts)) (lem∷ (lenLemma Γ) (erase (subst⊢ (sym (trans (trans (subst-eval (embNf (nf A)) idCR (embNf ∘ nf ∘ σ)) (fund (λ α → fund idCR (sym≡β (soundness (σ α)))) (sym≡β (soundness A)))) (sym (subst-eval A idCR σ)))) (nfType t))) (eraseTel (nfTypeTel σ As ts)))
+sameTel {Γ = Γ} σ (A ∷ As) (t ,, ts) = trans (cong₂ _∷_ (trans (same t) (cong (subst _⊢ (lenLemma Γ)) (lem-erase (sym (trans (trans (subst-eval (embNf (nf A)) idCR (embNf ∘ nf ∘ σ)) (fund (λ α → fund idCR (sym≡β (soundness (σ α)))) (sym≡β (soundness A)))) (sym (subst-eval A idCR σ)))) (nfType t)))) (sameTel σ As ts)) (lem∷ (lenLemma Γ) (erase (conv⊢ (sym (trans (trans (subst-eval (embNf (nf A)) idCR (embNf ∘ nf ∘ σ)) (fund (λ α → fund idCR (sym≡β (soundness (σ α)))) (sym≡β (soundness A)))) (sym (subst-eval A idCR σ)))) (nfType t))) (eraseTel (nfTypeTel σ As ts)))
 
 open import Data.Unit
 
@@ -179,7 +179,7 @@ same {Γ = Γ} (D._·⋆_ {B = B} t A) = trans
   (same t)
   (cong (subst _⊢ (lenLemma Γ))
         (trans (lem-erase (lemΠ B) (nfType t))
-               (lem-erase (lem[] A B) (subst⊢ (lemΠ B) (nfType t) ·⋆ nf A))))
+               (lem-erase (lem[] A B) (conv⊢ (lemΠ B) (nfType t) ·⋆ nf A))))
 same {Γ = Γ} (D.wrap1 pat arg t) = trans
   (same t)
   (cong (subst _⊢ (lenLemma Γ)) (lem-erase (lemXX pat arg) (nfType t)))
@@ -235,7 +235,7 @@ same'Var {Γ = Γ , _} (S x) = trans
 same'Var {Γ = Γ ,⋆ _} (T {A = A} x) = trans
   (same'Var x)
   (cong (subst Fin (same'Len Γ))
-        (lemT'' (sym (rename-embNf S A)) refl (embVar x)))
+        (lemT'' (sym (ren-embNf S A)) refl (embVar x)))
 
 
 

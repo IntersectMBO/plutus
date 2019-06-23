@@ -1,0 +1,141 @@
+= How to contribute to the project
+
+== How to develop the code
+
+Make sure you have set up the link:./README{outfilesuffix}#prerequisites[prerequisities].
+
+You can get an environment for developing the entire project using
+`nix-shell` in the root directory. This will have all external
+dependencies present, so is suitable for building the packages with
+e.g. `cabal v2-build`.
+
+An environment for developing a particular package in isolation can be
+entered by using `nix-shell` in the package directory. This has all the
+dependencies, including local ones, provided. This shouldn’t be
+necessary any more, but is useful if you need to use an old-style
+`cabal` command that only works in a single package context.
+
+You can also use `cabal` and `stack` outside a Nix environment to build
+the project. _However_ there are two caveats:
+
+* You may get different
+versions of packages.
+** This is more of a problem for `cabal` than
+`stack`, since our Nix package set is based off the Stackage resolver.
+* We are not currently enabling the Nix integration for these tools, so
+they will use your system GHC and libraries, rather than that ones that
+will be used by Nix.
+** We sometimes patch the GHC that we use in Nix, so
+this can at least potentially cause problems or cause you to be missing
+bug workarounds.
+
+[[update-generated]]
+=== How to update the generated Haskell package set
+
+link:./pkgs/default.nix[`pkgs/default.nix`] contains a generated package set with all the
+dependencies for this project, based on the Stackage resolver in link:./stack.yaml[`stack.yaml`].
+
+Regenerate this file if you change any dependencies in cabal files
+or change the Stackage resolver. To regenerate the file, run link:./pkgs/generate.sh[`pkgs/generate.sh`].
+
+=== How to add a new package to the repository
+
+You need to do a few things when adding a new package, in the following
+order:
+
+. Add the cabal file for the new package.
+. Add the package to link:stack.yaml[`stack.yaml`].
+. Add the package to link:cabal.project[`cabal.project`].
+. Update the xref:update-generated[generated package set].
+. Add the project to `plutusPkgList` in link:./lib.nix[lib.nix].
+* This will ensure it gets built by CI and so on.
+
+You should at least be able to run
+`nix build -f default.nix localPackages.<package name>` successfully at
+the root. You can use
+`nix log -f default.nix localPackages.<package name>` if you want to
+check the build output.
+
+=== Code style
+
+We use `stylish-haskell` and `hlint`, and enable a large number of GHC
+warnings.
+
+* These are run by the CI, so if you don’t use them your PR will not go
+green. To avoid annoyance, set up your editor to run them automatically.
+* It’s fine to be aggressive about disabling `hlint` rules that don’t
+provide value, but check with the team before doing this. Err on the
+side of disabling them globally rather than for specific files, so we
+stay consistent.
+* The CI builds with `-Werror`, so will fail if there are any compiler
+warnings.
+
+== How to submit an issue
+
+We track our issues on the
+https://github.com/input-output-hk/plutus/issues[GitHub Issue tracker].
+
+== How to make and review changes
+
+=== How to submit a change
+
+All code changes go through pull requests (PRs).
+
+.Advice for submitting PRs:
+* Make your PR from the main repository if possible, this is necessary
+for the Buildkite CI to trust you.
+** Making a PR from a fork is acceptable, you will need to do this if
+you don’t have write access to the main repository.
+* PRs exist to be reviewed - design them with a reader in mind!
+** Include the ticket name in the PR title where possible.
+** Write a helpful PR description that explains what’s in the PR and
+why, and draws attention to anything of particular note, references
+related tickets etc.
+** Consider rebasing your PRs before submitting to structure them into a
+few logical commits that can be reviewed separately. Keep PRs to a
+single topic.
+** If you find yourself making unrelated changes, pull those commits out
+into another PR and submit them separately (i.e. do not include them in
+the original PR)
+** If you can’t remove unrelated changes from your PR (because you
+depend on them), then add a note that your PR depends on the other one
+and should not be merged before it. You can still put it up for review.
+** Take especial care to manage changes that are likely to have many
+conflicts (like formatting or refactoring changes) in their own PRs.
+* Submit PRs in a "finished" state. If you want to use a PR to let
+people review a WIP branch, make sure to label it obviously.
+* Use your judgment when requesting review
+* Force-pushing PRs is okay, this will mostly do the right thing in
+Github. Do this if you’re applying fixups, or you’ve done a series of
+additional commits that you want to squash down before merging.
+* Comment if you want attention from someone (e.g. a re-review after
+changes). Github does not make it easy to signal this state otherwise,
+and people may not be notified if you just push commits.
+
+=== How to do code reviews
+
+* Try to review PRs where your review is requested within a few days.
+This should be nearly-top-priority work.
+* If you don’t understand something then ask for an explanation.
+** For the author: this explanation should ideally be added as a comment - you’re
+going to write it anyway, and future readers are likely to be
+just as confused as the reviewer.
+
+== Continuous integration
+
+We have two pieces of CI at the moment: some tests are run using Nix on
+Hydra, and some are run on Buildkite.
+
+All the Haskell packages will be built and tested, as well as the tests in link:./default.nix[`default.nix`].
+
+The CI will report statuses on your PRs with links to the logs in case of
+failure. Pull requests cannot be merged without the CI going green.
+
+.Troubleshooting CI
+* Because the CI is not necessarily run on
+the merge commit that is created when the PR is merged, it is possible
+that merging a green PR can result in the CI being broken on master.
+This shouldn’t happen frequently, but be aware that it’s possible.
+* You can check on the status of your PR on Hydra _before_ it has finished
+by going to the https://hydra.iohk.io/project/Cardano[Hydra project page] and searching
+for `plutus-pr-<PR number>`.

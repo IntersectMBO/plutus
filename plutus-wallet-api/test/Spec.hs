@@ -99,19 +99,19 @@ splitVal = property $ do
 valueAddIdentity :: Property
 valueAddIdentity = property $ do
     vl1 <- forAll Gen.genValue
-    Hedgehog.assert $ Value.eq vl1 (vl1 `Value.plus` Value.zero)
-    Hedgehog.assert $ Value.eq vl1 (Value.zero `Value.plus` vl1)
+    Hedgehog.assert $ vl1 == (vl1 `Value.plus` Value.zero)
+    Hedgehog.assert $ vl1 == (Value.zero `Value.plus` vl1)
 
 valueAddInverse :: Property
 valueAddInverse = property $ do
     vl1 <- forAll Gen.genValue
     let vl1' = Value.negate vl1
-    Hedgehog.assert $ Value.eq Value.zero (vl1 `Value.plus` vl1')
+    Hedgehog.assert $ Value.zero == (vl1 `Value.plus` vl1')
 
 valueScalarIdentity :: Property
 valueScalarIdentity = property $ do
     vl1 <- forAll Gen.genValue
-    Hedgehog.assert $ Value.eq vl1 (Value.scale 1 vl1)
+    Hedgehog.assert $ vl1 == Value.scale 1 vl1
 
 valueScalarDistrib :: Property
 valueScalarDistrib = property $ do
@@ -120,7 +120,7 @@ valueScalarDistrib = property $ do
     scalar <- forAll (Gen.integral (fromIntegral <$> Range.linearBounded @Int))
     let r1 = Value.scale scalar (Value.plus vl1 vl2)
         r2 = Value.plus (Value.scale scalar vl1) (Value.scale scalar vl2)
-    Hedgehog.assert $ Value.eq r1 r2
+    Hedgehog.assert $ r1 == r2
 
 intvlMember :: Property
 intvlMember = property $ do

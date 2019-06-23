@@ -1,6 +1,6 @@
 % Plutus Core Specification
 \title{Formal Specification of\\the Plutus Core Language (version 2.0) }
-\date{24th April 2019}
+\date{15th June 2019}
 
 \documentclass[a4paper]{article}
 
@@ -448,16 +448,18 @@ The operator \texttt{ifix} allows one to define recursive types in
 Plutus Core: \texttt{ifix A B} is a type such that \texttt{ifix A B
   $\cong$ A (ifix A) B} where \texttt{A} is a \textit{pattern
   functor}~\citep[2.4]{backhouseetal98} and \texttt{B} is an
-index. Pattern functors that \texttt{ifix} receives bind two variables:
-one for building recursive occurrences and the other to act as an
-index. Indices can be used in order to get parameterised data types,
-but also in order to control the shape of the data type: depending on
-an index, recursive occurrences can be instantiated differently.  This
-allows us to encode a wide variety of data types, including non-regular and
-mutually recursive data types\blue{\footnote{\blue{We could do with more detail (or perhaps an example) here, since
-  it'll be much more difficult for the reader to work out what's going
-  on than with standard \texttt{fix}.  With luck we'll soon have a publication
-  to refer to.}}}.
+index. Pattern functors that \texttt{ifix} receives bind two
+variables: one for building recursive occurrences and the other to act
+as an index. Indices can be used in order to get parameterised data
+types, but also in order to control the shape of the data type:
+depending on an index, recursive occurrences can be instantiated
+differently.  This allows us to encode a wide variety of data types,
+including non-regular and mutually recursive data types.%
+\blue{\footnote{\blue{We could do with more detail (or perhaps an
+      example) here, since it'll be much more difficult for the reader
+      to work out what's going on than with standard \texttt{fix}.  Is
+      the compilation paper sufficient?}}}
+See~\cite{compiling-to-fomega-2019} for more details.
 
 Note that we have an \textit{isomporhism} of types here rather than
 equality: fixpoint types are
@@ -497,8 +499,10 @@ allowing general terms as bodies of type abstractions can cause a
 number of difficulties.  For example, Standard ML's value restriction
 is required to avoid a number of problems when (implicit) type
 abstractions include non-values; other issues are explored
-in~\citep[2.4]{Ahmed:2017}. Plutus Core's restriction to values avoids
-these problems and is not very onerous in practice.
+in~\citep[2.4]{Ahmed:2017}
+and~\citep[7.4.1]{Pitts:typed-operational-reasoning}. Plutus Core's
+restriction to values avoids these problems and is not very onerous in
+practice.
   
 \section{Type Correctness}
 

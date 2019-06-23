@@ -74,6 +74,6 @@ mkFixpoint bs = do
     funs <- forM bs $ \(PIR.Def (PIR.VarDecl p name ty) term) ->
         case PIR.mkFunctionDef p name ty term of
             Just fun -> pure fun
-            Nothing  -> throwing _Error $ CompilationError (PLC.tyLoc ty) "Recursive values must be of function type. You may need to manually add unit arguments."
+            Nothing  -> throwing _Error $ CompilationError (PLC.tyLoc ty) "Recursive values must be of function type"
 
     liftQuote $ Function.getMutualFixOf p0 funs
