@@ -1,13 +1,15 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE NamedFieldPuns      #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE RecordWildCards     #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies        #-}
-{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NamedFieldPuns        #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
 
 module Playground.GraphQL where
 
@@ -15,7 +17,7 @@ import           Control.Monad.IO.Class       (MonadIO, liftIO)
 import           Data.Either                  (either)
 import           Data.Morpheus                (interpreter)
 import           Data.Morpheus.Kind           (KIND, OBJECT, UNION)
-import           Data.Morpheus.Types          (GQLArgs, GQLRequest, GQLResponse, GQLRootResolver (GQLRootResolver, mutationResolver, queryResolver, subscriptionResolver),
+import           Data.Morpheus.Types          (GQLArgs, GQLQuery, GQLRequest, GQLResponse, GQLRootResolver (GQLRootResolver, mutationResolver, queryResolver, subscriptionResolver),
                                                GQLType, MUTATION, QUERY, Resolver (Resolver), WithEffect, withEffect)
 import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
@@ -50,7 +52,7 @@ data APIQuery m =
         { contract :: Resolver m QUERY ContractArgs ContractResponse
         , evaluate :: Resolver m QUERY Evaluation EvaluationResult
         }
-    deriving (Generic)
+    deriving (Generic, GQLQuery m)
 
 compileContract :: MonadIO m => Resolver m QUERY ContractArgs ContractResponse
 compileContract =

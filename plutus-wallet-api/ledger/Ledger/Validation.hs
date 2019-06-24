@@ -70,7 +70,7 @@ import           Data.Bifunctor             (bimap)
 import qualified Data.ByteArray             as BA
 import qualified Data.ByteString.Lazy       as BSL
 import qualified Data.ByteString.Lazy.Hash  as Hash
-import           Data.Morpheus.Kind         (KIND, SCALAR)
+import           Data.Morpheus.Kind         (KIND, SCALAR, OBJECT, WRAPPER)
 import           Data.Morpheus.Types        (GQLScalar (parseValue, serialize), GQLType)
 import qualified Data.Morpheus.Types        as Morpheus
 import qualified Data.Text                  as Text
@@ -206,9 +206,8 @@ newtype ValidatorHash =
   ValidatorHash Builtins.ByteString
   deriving  (Eq, Generic)
   deriving newtype (Serialise, GQLType)
-  deriving anyclass (GQLScalar)
 
-type instance KIND ValidatorHash = SCALAR
+type instance KIND ValidatorHash = WRAPPER
 
 instance Show ValidatorHash where
   show = show . JSON.encodeSerialise

@@ -23,7 +23,7 @@ import qualified Data.Aeson.Extras          as JSON
 import           Data.Bifunctor             (bimap)
 import qualified Data.ByteString.Lazy       as BSL
 import           Data.Morpheus.Kind         (KIND, SCALAR)
-import           Data.Morpheus.Types        (GQLScalar (parseValue, serialize), GQLType)
+import           Data.Morpheus.Types        (GQLScalar (parseValue, serialize), GQLType(..))
 import qualified Data.Morpheus.Types        as Morpheus
 import           Data.String                (IsString (..))
 import qualified Data.Text                  as Text
@@ -99,8 +99,7 @@ makeLift ''LedgerBytes
 
 type instance KIND Builtins.ByteString = SCALAR
 
-instance GQLType Builtins.ByteString where
-  typeID _ = "String"
+instance GQLType Builtins.ByteString
 
 instance GQLScalar Builtins.ByteString where
   parseValue (Morpheus.String raw) = bimap Text.pack BSL.fromStrict (JSON.tryDecode raw)

@@ -21,7 +21,7 @@ module CrowdFunding where
 
 import           Data.Morpheus.Kind        (OBJECT, KIND)
 import           Data.Morpheus.Types       (GQLArgs, GQLRootResolver (GQLRootResolver, mutationResolver, queryResolver, subscriptionResolver),
-                                            GQLType, MUTATION, ResolveCon, Resolver)
+                                            GQLType, MUTATION, Resolver, GQLMutation)
 import qualified Language.PlutusTx         as PlutusTx
 import           Language.PlutusTx.Prelude
 import           Ledger                    (Address, DataScript (DataScript), PubKey, RedeemerScript (RedeemerScript),
@@ -272,9 +272,9 @@ data MutationAPI m =
         , mutationAPIContribute         :: Resolver m MUTATION ContributeArguments         Bool
         , mutationAPIPayToWallet        :: Resolver m MUTATION PayToWalletArguments        Bool
         }
-    deriving (Generic)
+    deriving (Generic, GQLMutation m)
 
-rootResolver :: (ResolveCon m () (MutationAPI m) (), MonadWallet m) => GQLRootResolver m () (MutationAPI m) ()
+rootResolver :: (W.WalletAPI m) => GQLRootResolver m () (MutationAPI m) ()
 rootResolver =
     GQLRootResolver
         { queryResolver = ()

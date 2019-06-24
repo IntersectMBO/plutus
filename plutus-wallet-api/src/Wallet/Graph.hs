@@ -21,7 +21,7 @@ import           Data.Aeson.Types    (ToJSON, toJSON)
 import           Data.List           (nub)
 import qualified Data.Map            as Map
 import           Data.Maybe          (catMaybes)
-import           Data.Morpheus.Kind  (ENUM, KIND, OBJECT, UNION)
+import           Data.Morpheus.Kind  (KIND, WRAPPER, OBJECT, UNION)
 import           Data.Morpheus.Types (GQLType)
 import qualified Data.Set            as Set
 import qualified Data.Text           as Text
@@ -44,7 +44,7 @@ data UtxOwner
   deriving (Eq, Ord, Show, Generic, ToJSON)
   deriving anyclass (GQLType)
 
-type instance KIND UtxOwner = ENUM
+type instance KIND UtxOwner = UNION
 
 
 -- | Given a set of known public keys, compute the owner of a given transaction output.
@@ -60,6 +60,9 @@ owner keys TxOutOf {..} =
 newtype TxRef =
   TxRef Text.Text
   deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (GQLType)
+
+type instance KIND TxRef = WRAPPER
 
 instance ToJSON TxRef where
   toJSON (TxRef t) = toJSON t

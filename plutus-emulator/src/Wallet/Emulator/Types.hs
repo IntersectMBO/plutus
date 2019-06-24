@@ -106,7 +106,7 @@ import qualified Ledger.Crypto             as Crypto
 import           Prelude                   as P
 import           Servant.API               (FromHttpApiData (..), ToHttpApiData (..))
 
-import           Data.Morpheus.Kind        (KIND, OBJECT)
+import           Data.Morpheus.Kind        (UNION, KIND, OBJECT)
 import           Data.Morpheus.Types       (GQLType)
 import           Ledger                    (Address, Block, Blockchain, PrivateKey (..), PubKey (..), Slot, Tx (..),
                                             TxId, TxOut, TxOutOf (..), TxOutRef, Value, addSignature, hashTx, lastSlot,
@@ -212,15 +212,21 @@ data EmulatorEvent =
     -- ^ A transaction has been added to the pool of pending transactions.
     | TxnValidate TxId
     -- ^ A transaction has been validated and added to the blockchain.
-    | TxnValidationFail TxId Index.ValidationError
+    | TxnValidationFail (TxId, Index.ValidationError)
+    -- ^ TODO These tuples are temporary
     -- ^ A transaction failed  to validate.
     | SlotAdd Slot
     -- ^ A slot has passed, and a block was added to the blockchain.
-    | WalletError Wallet WalletAPIError
+    | WalletError (Wallet, WalletAPIError)
+    -- ^ TODO These tuples are temporary
     -- ^ A 'WalletAPI' action produced an error.
-    | WalletInfo Wallet T.Text
+    | WalletInfo (Wallet, T.Text)
+    -- ^ TODO These tuples are temporary
     -- ^ Debug information produced by a wallet.
     deriving (Eq, Show, Generic)
+    deriving anyclass (GQLType)
+
+type instance KIND EmulatorEvent = UNION
 
 instance FromJSON EmulatorEvent
 instance ToJSON EmulatorEvent
@@ -467,7 +473,7 @@ liftMockWallet wallet act = do
     emState <- get
     let walletState = fromMaybe (emptyWalletState wallet) $ Map.lookup wallet $ _walletStates emState
         ((out, newState), (msgs, txns)) = runWriter $ runStateT (runExceptT (runMockWallet act)) walletState
-        events = (TxnSubmit . hashTx <$> txns) ++ (WalletInfo wallet <$> getWalletLog msgs)
+        events = (TxnSubmit . hashTx <$> txns) ++ (WalletInfo . (wallet,) <$> getWalletLog msgs)
     put emState {
         _txPool = txns ++ _txPool emState,
         _walletStates = Map.insert wallet newState $ _walletStates emState,
@@ -483,7 +489,7 @@ evalEmulated = \case
         case result of
             Right a -> pure (Right a, txns)
             Left err -> do
-                _ <- modifying emulatorLog (WalletError wallet err :)
+                _ <- modifying emulatorLog (WalletError (wallet, err) :)
                 pure (Left err, txns)
     WalletRecvNotification wallet trigger -> fst <$> liftMockWallet wallet (handleNotifications trigger)
     BlockchainProcessPending -> do
@@ -551,7 +557,7 @@ mkEvent :: Tx -> Maybe Index.ValidationError -> EmulatorEvent
 mkEvent t result =
     case result of
         Nothing  -> TxnValidate (hashTx t)
-        Just err -> TxnValidationFail (hashTx t) err
+        Just err -> TxnValidationFail (hashTx t, err)
 
 processEmulated :: (MonadEmulator m) => Trace MockWallet a -> m a
 processEmulated = interpretWithMonad evalEmulated

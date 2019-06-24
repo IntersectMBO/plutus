@@ -113,7 +113,7 @@ newtype AddressOf h = AddressOf { getAddress :: h }
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (GQLType)
 
-type instance KIND (AddressOf h) = OBJECT
+type instance KIND (AddressOf h) = WRAPPER
 
 -- | A payment address using a SHA256 hash as the address id type.
 type Address = AddressOf (Digest SHA256)

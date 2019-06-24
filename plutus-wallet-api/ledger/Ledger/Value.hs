@@ -72,7 +72,7 @@ newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteStrin
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (Hashable, GQLType)
 
-type instance KIND CurrencySymbol = OBJECT
+type instance KIND CurrencySymbol = WRAPPER
 
 instance ToJSON CurrencySymbol where
   toJSON currencySymbol =
@@ -106,7 +106,7 @@ newtype TokenName = TokenName { unTokenName :: Builtins.ByteString }
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (Hashable, GQLType)
 
-type instance KIND TokenName = OBJECT
+type instance KIND TokenName = WRAPPER
 
 instance IsString TokenName where
   fromString = TokenName . C8.pack
@@ -158,7 +158,7 @@ newtype Value = Value { getValue :: Map CurrencySymbol (Map TokenName Integer) }
     deriving anyclass (ToJSON, FromJSON, Hashable, GQLType)
     deriving newtype (Serialise)
 
-type instance KIND Value = OBJECT
+type instance KIND Value = WRAPPER
 type instance KIND (Map TokenName Integer) = WRAPPER
 type instance KIND (Map CurrencySymbol (Map TokenName Integer)) = WRAPPER
 

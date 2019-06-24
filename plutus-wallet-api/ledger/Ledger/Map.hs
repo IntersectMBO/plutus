@@ -2,12 +2,14 @@
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 -- Prevent unboxing, which the plugin can't deal with
@@ -31,19 +33,19 @@ module Ledger.Map(
     , these
     ) where
 
-import           Codec.Serialise.Class            (Serialise)
-import           Data.Aeson                       (FromJSON (parseJSON), ToJSON (toJSON))
-import           Data.Hashable                    (Hashable)
-import           Data.Morpheus.Kind               (KIND, OBJECT, WRAPPER)
-import           Data.Morpheus.Resolve.Internal
-import           Data.Morpheus.Resolve.Introspect
-import           Data.Morpheus.Schema.TypeKind    (TypeKind (OBJECT))
-import           Data.Morpheus.Types.GQLType      (GQLType (..), asObjectType)
-import           Data.Proxy                       (Proxy (Proxy))
-import           GHC.Generics                     (Generic)
-import           Language.PlutusTx.Lift           (makeLift)
-import           Language.PlutusTx.Prelude        hiding (all, lookup, map)
-import qualified Language.PlutusTx.Prelude        as P
+import           Codec.Serialise.Class         (Serialise)
+import           Data.Aeson                    (FromJSON (parseJSON), ToJSON (toJSON))
+import           Data.Hashable                 (Hashable)
+import           Data.Morpheus.Kind            (KIND, OBJECT, WRAPPER)
+import           Data.Morpheus.Schema.TypeKind (TypeKind (OBJECT))
+import           Data.Morpheus.Types           (Context (Context), DataField (fieldTypeWrappers), DataTypeWrapper (..),
+                                                GQLType, InputType, Introspect (..), OutputType, updateLib)
+import           Data.Proxy                    (Proxy (Proxy))
+import           Data.Typeable                 (Typeable)
+import           GHC.Generics                  (Generic)
+import           Language.PlutusTx.Lift        (makeLift)
+import           Language.PlutusTx.Prelude     hiding (all, lookup, map)
+import qualified Language.PlutusTx.Prelude     as P
 
 import           Ledger.These
 
@@ -53,7 +55,7 @@ import           Ledger.These
 data Map k v = Map { unMap :: [(k, v)] }
     deriving (Show)
     deriving stock (Generic)
-    deriving anyclass (Serialise, Hashable)
+    deriving anyclass (Serialise, Hashable, GQLType)
 
 makeLift ''Map
 
@@ -140,13 +142,35 @@ singleton c i = Map [(c, i)]
 empty :: () -> Map k v
 empty _ = Map ([] :: [(k, v)])
 
-instance (GQLType k, GQLType v) => GQLType (Map k v) where
-  typeID _ = "Map" <> typeID (Proxy :: Proxy k) <> typeID (Proxy :: Proxy v)
 
-instance (Introspect k (KIND k), Introspect v (KIND v), GQLType k, GQLType v) => Introspect (Map k v) WRAPPER where
-  __objectField _ _ = field_ OBJECT (Proxy :: Proxy (Map k v)) []
-  __introspect _ = updateLib (asObjectType fields') stack'
+data Element k v = Element { key :: k, value :: v } deriving (Generic, GQLType)
+
+type instance KIND (Element k v) = OBJECT
+
+instance ( Introspect v (KIND v) f
+         , Introspect v (KIND v) f
+         , Introspect (Element k v) (KIND (Element k v)) f
+         , Typeable k
+         , Typeable v
+         ) =>
+         Introspect (Map k v) WRAPPER f where
+  __field _ name =
+    listField
+      (__field
+         (Context :: Context (Element k v) (KIND (Element k v)) f)
+         name)
     where
-      (fields', stack') = unzip [ (("key", _objectField (Proxy :: Proxy k) "key"), _introspect (Proxy :: Proxy k))
-                                , (("value", _objectField (Proxy :: Proxy v) "value"), _introspect (Proxy :: Proxy v))
-                                ]
+      listField :: DataField f -> DataField f
+      listField x =
+        x {fieldTypeWrappers = [NonNullType, ListType] ++ fieldTypeWrappers x}
+  introspect _ =
+    introspect
+      (Context :: Context (Element k v) (KIND (Element k v)) f)
+
+
+
+
+    -- where
+    --   (fields', stack') = unzip [ (("key", __field (Proxy :: Proxy k) "key"), introspect (Proxy :: Proxy k))
+    --                             , (("value", __field (Proxy :: Proxy v) "value"), introspect (Proxy :: Proxy v))
+    --                             ]

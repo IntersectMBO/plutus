@@ -36,7 +36,7 @@ module Ledger.Ada(
 
 import           Codec.Serialise.Class     (Serialise)
 import           Data.Aeson                (FromJSON, ToJSON)
-import           Data.Morpheus.Kind        (KIND, OBJECT)
+import           Data.Morpheus.Kind        (KIND, WRAPPER, OBJECT)
 import           Data.Morpheus.Types       (GQLType)
 import           GHC.Generics              (Generic)
 import           Language.PlutusTx.Lift    (makeLift)
@@ -64,7 +64,7 @@ newtype Ada = Ada { getAda :: Integer }
     deriving anyclass (ToJSON, FromJSON, GQLType)
     deriving newtype (Num, Integral, Real, Serialise)
 
-type instance KIND Ada = OBJECT
+type instance KIND Ada = WRAPPER
 
 makeLift ''Ada
 

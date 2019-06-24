@@ -23,7 +23,7 @@ import qualified Data.Aeson.Extras      as JSON
 import qualified Data.ByteArray         as BA
 import qualified Data.ByteString        as BSS
 import           Data.Morpheus.Kind     (KIND, OBJECT, SCALAR)
-import           Data.Morpheus.Types    (GQLScalar, GQLType, parseValue, serialize, typeID)
+import           Data.Morpheus.Types    (GQLScalar, GQLType, parseValue, serialize, __typeName)
 import qualified Data.Morpheus.Types    as Morpheus
 import qualified Data.Text              as Text
 import qualified Data.Text.Encoding     as Text
@@ -57,7 +57,7 @@ makeLift ''TxIdOf
 type instance KIND (Digest SHA256) = SCALAR
 
 instance GQLType (Digest SHA256) where
-  typeID _ = "DigestSHA256"
+  __typeName _ = "DigestSHA256"
 
 instance GQLScalar (Digest SHA256) where
   parseValue (Morpheus.String raw) =

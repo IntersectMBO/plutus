@@ -48,8 +48,8 @@ import qualified Data.ByteString.Lazy.Char8  as LBC8
 import           Data.FileEmbed              (embedStringFile, makeRelativeToProject)
 import           Data.List.NonEmpty          (NonEmpty ((:|)))
 import           Data.Morpheus               (interpreter)
-import           Data.Morpheus.Types         (GQLArgs, GQLRequest (GQLRequest, operationName, query, variables),
-                                              GQLResponse, GQLRootResolver, MUTATION, ResolveCon, Resolver (Resolver),
+import           Data.Morpheus.Types         (GQLSubscription, GQLMutation, GQLArgs, GQLRequest (GQLRequest, operationName, query, variables),GQLQuery,
+                                              GQLResponse, GQLRootResolver, MUTATION, Resolver (Resolver),
                                               withEffect)
 import           Data.Text.Encoding          (decodeUtf8)
 import           GHC.Generics                (Generic)
@@ -94,17 +94,26 @@ introspectionQuery =
         , operationName = Nothing
         , variables = Nothing
         }
-toSchema :: (ResolveCon MockWallet q m s) => GQLRootResolver MockWallet q m s -> SchemaText
+
+toSchema ::
+       ( GQLQuery MockWallet q
+       , GQLMutation MockWallet m
+       , GQLSubscription MockWallet s
+       )
+    => GQLRootResolver MockWallet q m s
+    -> SchemaText
 toSchema rootResolver = extractSchemaText $ runTraceChainDefaultWallet schemaM
   where
-    extractSchemaText :: (Either AssertionError (Either WalletAPIError SchemaText, [Tx]), EmulatorState) -> SchemaText
+    extractSchemaText ::
+           ( Either AssertionError (Either WalletAPIError SchemaText, [Tx])
+           , EmulatorState)
+        -> SchemaText
     extractSchemaText (Right (Right t, _), _) = t
-    extractSchemaText _                       = error "Fail"
-
+    extractSchemaText _ = error "Fail"
     schemaResponse :: MockWallet GQLResponse
     schemaResponse = interpreter rootResolver introspectionQuery
-
-    schemaM = SchemaText . decodeUtf8 . LBS.toStrict . Aeson.encode <$> schemaResponse
+    schemaM =
+        SchemaText . decodeUtf8 . LBS.toStrict . Aeson.encode <$> schemaResponse
 
 liftResolver :: (Functor m) => (a -> m b) -> Resolver m MUTATION a b
 liftResolver f = Resolver $ fmap (withEffect [] . Right) . f

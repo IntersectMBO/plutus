@@ -50,8 +50,8 @@ import           Language.PlutusTx.Lift                   (unsafeLiftCode)
 import           Language.PlutusTx.Lift.Class             (Lift)
 import           Language.PlutusTx                        (CompiledCode, compile, getPlc)
 import           Language.PlutusTx.Prelude
-import           Data.Morpheus.Types                      (GQLType(typeID))
-import           Data.Morpheus.Kind                       (KIND, OBJECT)
+import           Data.Morpheus.Types                      (GQLType(..))
+import           Data.Morpheus.Kind                       (KIND, OBJECT, WRAPPER)
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 --
@@ -60,9 +60,9 @@ newtype Script = Script { unScript :: PLC.Program PLC.TyName PLC.Name () }
   deriving newtype (Serialise)
 
 instance GQLType Script where
-  typeID _ = "Script"
+  __typeName = const "Script"
 
-type instance KIND Script = OBJECT
+type instance KIND Script = WRAPPER
 
 {- Note [Normalized types in Scripts]
 The Plutus Tx plugin and lifting machinery does not necessarily produce programs
