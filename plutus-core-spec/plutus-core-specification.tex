@@ -604,9 +604,9 @@ kind.
 \noindent Figure~\ref{fig:kind_synthesis} defines what
 it means for a type to synthesise a kind. Plutus Core is a
 higher-kinded version of System F, so we have a number of standard
-System F rules (tyvar,tyall,tyfun) together with some extensions with
-extensions to higher kinds (tylam,tyapp) and to indexed
-recursive types (tyfix). We also have the tycon rule to support builtin types.
+System F rules (\textsf{tyvar}, \textsf{tyall}, \textsf{tyfun}) together with some extensions with
+extensions to higher kinds (\textsf{tylam}, \textsf{tyapp}) and to indexed
+recursive types (\textsf{tyfix}). We also have the \textsf{tycon} rule to support builtin types.
 
 %% ---------------- Kind synthesis ---------------- %%
 
@@ -616,46 +616,46 @@ recursive types (tyfix). We also have the tycon rule to support builtin types.
 
     \begin{prooftree}
         \AxiomC{\(({\typeJ{\alpha}{K}}) \in \Gamma\)}
-        \RightLabel{tyvar}
+        \RightLabel{\,\textsf{tyvar}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\alpha}{K}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{K}}{\istypeJ{A}{\typeK{}}}\)}
-        \RightLabel{tyall}
+        \RightLabel{\,\textsf{tyall}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\allT{\alpha}{K}{A}}{\typeK{}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
 		\AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{K}}\)}
 		\AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\funK{\funK{K}{\typeK{}}}{\funK{K}{\typeK{}}}}}\)}
-        \RightLabel{tyfix}
+        \RightLabel{\,\textsf{tyfix}}
         \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\fixT{A}{B}}{\typeK{}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{\typeK{}}}\)}
-        \RightLabel{tyfun}
+        \RightLabel{\,\textsf{tyfun}}
         \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\funT{A}{B }}{\typeK{}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{J}}{\istypeJ{A}{K}}\)}
-        \RightLabel{tylam}
+        \RightLabel{\,\textsf{tylam}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\lamT{\alpha}{J}{A}}{\funK{J}{K}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\funK{J}{K}}}\)}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{J}}\)}
-        \RightLabel{tyapp}
+        \RightLabel{\,\textsf{tyapp}}
         \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\appT{A}{B}}{K}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{$tcn$ is a type constant in in Figure~\ref{fig:type_constants}}
-        \RightLabel{tycon}
+        \RightLabel{\,\textsf{tycon}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\conT{tcn}}{\typeK{}}}\)}
     \end{prooftree}
 
@@ -667,15 +667,14 @@ recursive types (tyfix). We also have the tycon rule to support builtin types.
 
 \noindent In Figure~\ref{fig:type_synthesis}, we define the type
 synthesis judgment, which explains how a term synthesises a type. We
-have rules analogous to those for the simply-typed lambda calculus (var,lam,app)
-and System F (abs,inst). 
-Higher kinds lead to computation in types so we need
-the rule conv. Iso-recursive types introduce terms for wrapping and
-unwrapping recursive values (wrap,unwrap), and to support constants
-and builtins we have con, builtin and error.
-\todokwxm{I'm unsettled by the fact that things like var, lam, wrap, builtin, and so on
-are just in the normal text font.}
-Type synthesis relies on type equivalence as defined in \ref{fig:type-equivalence}.
+have rules analogous to those for the simply-typed lambda calculus
+(\textsf{var}, \textsf{lam}, \textsf{app}) and System F (\textsf{abs},
+\textsf{inst}).  Higher kinds lead to computation in types so we need
+the rule \textsf{conv}. Iso-recursive types introduce terms for
+wrapping and unwrapping recursive values (wrap,unwrap), and to support
+constants and builtins we have \textsf{con}, \textsf{builtin} and
+\textsf{error}.  Type synthesis relies on type equivalence as defined
+in \ref{fig:type-equivalence}.
 
 %% ---------------- Type synthesis ---------------- %%
 
@@ -684,19 +683,19 @@ Type synthesis relies on type equivalence as defined in \ref{fig:type-equivalenc
 
     \begin{prooftree}
         \AxiomC{\(({\termJ{x}{A}}) \in \Gamma\)}
-        \RightLabel{var}
+        \RightLabel{\,\textsf{var}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{x}{A}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{$cn$ has constant signature $\constsig{tcn}$ in Figure~\ref{fig:constants}}
-        \RightLabel{con}
+        \RightLabel{\,\textsf{con}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{cn}{\conT{tcn}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{K}}{\istermJ{M}{B}}\)}
-        \RightLabel{abs}
+        \RightLabel{\,\textsf{abs}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\abs{\alpha}{K}{M}}{\allT{\alpha}{K}{B}}}\)}
     \end{prooftree}
 
@@ -704,7 +703,7 @@ Type synthesis relies on type equivalence as defined in \ref{fig:type-equivalenc
         \AxiomC{\(\hypJ{\Gamma}{\istermJ{L}{C}}\)}
         \AxiomC{\(\typeEquiv{C}{\allT{\alpha}{K}{B}}\)}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{K}}\)}
-        \RightLabel{inst}
+        \RightLabel{\,\textsf{inst}}
         \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\inst{L}{A}}{\subst{A}{\alpha}{B}}}\)}
     \end{prooftree}
 
@@ -715,7 +714,7 @@ Type synthesis relies on type equivalence as defined in \ref{fig:type-equivalenc
 		\UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M}{C}}\)}
 		\UnaryInfC{\(\typeEquiv{C}{\appT{\appT{A}{\lamT{\beta}{K}{\fixT{A}{\beta}}}}{B}}\)}
 		\alwaysSingleLine
-    	\RightLabel{wrap}
+    	\RightLabel{\,\textsf{wrap}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\wrap{A}{B}{M}}{\fixT{A}{B}}}\)}
     \end{prooftree}
 
@@ -723,14 +722,14 @@ Type synthesis relies on type equivalence as defined in \ref{fig:type-equivalenc
     	\AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{C}}\)}
 		\AxiomC{\(\typeEquiv{C}{\fixT{A}{B}}\)}
 		\AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{K}}\)}
-		\RightLabel{unwrap}
+		\RightLabel{\,\textsf{unwrap}}
         \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\unwrap{M}}{\appT{\appT{A}{\lamT{\beta}{K}{\fixT{A}{\beta}}}}{B}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
         \AxiomC{\(\hypJ{\Gamma, \termJ{y}{A}}{\istermJ{M}{B}}\)}
-        \RightLabel{lam}
+        \RightLabel{\,\textsf{lam}}
         \BinaryInfC{\(\hypJ{\Gamma}{\istermJ{\lam{y}{A}{M}}{\funT{A}{B}}}\)}
     \end{prooftree}
 
@@ -739,7 +738,7 @@ Type synthesis relies on type equivalence as defined in \ref{fig:type-equivalenc
         \AxiomC{\(\typeEquiv{C}{\funT{A}{B}}\)}
         \AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{A'}}\)}
         \AxiomC{\(\typeEquiv{A}{A'}\)}
-        \RightLabel{app}
+        \RightLabel{\,\textsf{app}}
         \QuaternaryInfC{\(\hypJ{\Gamma}{\istermJ{\app{L}{M}}{B}}\)}
     \end{prooftree}
 
@@ -749,20 +748,20 @@ Type synthesis relies on type equivalence as defined in \ref{fig:type-equivalenc
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M_i}{D_i}}\)}
         \UnaryInfC{\(\typeEquiv{D_i}{\subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{B_i}}\)}
         \alwaysSingleLine
-        \RightLabel{builtin}
+        \RightLabel{\,\textsf{builtin}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\builtin{bn}{A_0 ... A_m}{M_0 ... M_n}}{\subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{C}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
-        \RightLabel{error}
+        \RightLabel{\,\textsf{error}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\error{A}}{A}}\)}
     \end{prooftree}
 
     \begin{prooftree}
     	\AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{A}}\)}
 		\AxiomC{\(\typeEquiv{A}{A'}\)}
-		\RightLabel{conv}
+		\RightLabel{\,\textsf{conv}}
 		\BinaryInfC{\(\hypJ{\Gamma}{\istermJ{M}{A'}}\)}
     \end{prooftree}
 
