@@ -14,7 +14,7 @@ module Language.PlutusCore.Evaluation.Result
     ) where
 
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty
+-- import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Type
 
 import           Control.Applicative
@@ -29,7 +29,7 @@ data EvaluationResult a
     deriving (Show, Eq, Generic, Functor, Foldable, Traversable, NFData)
 
 -- | The default type of results various evaluation engines return.
-type EvaluationResultDef = EvaluationResult (Term TyName Name ())
+type EvaluationResultDef con = EvaluationResult (Term TyName Name con ())
 
 instance Applicative EvaluationResult where
     pure = EvaluationSuccess
@@ -51,8 +51,8 @@ instance PrettyBy config a => PrettyBy config (EvaluationResult a) where
     prettyBy config (EvaluationSuccess value) = prettyBy config value
     prettyBy _      EvaluationFailure         = "Failure"
 
-instance PrettyClassic a => Pretty (EvaluationResult a) where
-    pretty = prettyClassicDef
+-- instance PrettyClassic a => Pretty (EvaluationResult a) where
+--     pretty = prettyClassicDef
 
 -- | Check whether an 'EvaluationResult' is an 'EvaluationSuccess'.
 isEvaluationSuccess :: EvaluationResult a -> Bool

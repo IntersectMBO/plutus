@@ -16,7 +16,7 @@ import           Language.PlutusCore.Evaluation.MachineException
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
-import           Language.PlutusCore.View
+-- import           Language.PlutusCore.View
 import           PlutusPrelude
 
 import           Data.Functor.Identity
@@ -127,20 +127,20 @@ instantiateEvaluate stack ty fun
 -- depending on whether 'BuiltinName' is saturated or not.
 applyEvaluate :: Context -> Value TyName Name () -> Value TyName Name () -> EvaluationResultDef
 applyEvaluate stack (LamAbs _ name _ body) arg = stack |> substituteDb name arg body
-applyEvaluate stack fun                    arg =
-    let term = Apply () fun arg in
-        case termAsPrimIterApp term of
-            Nothing                                 ->
-                throwCkMachineException NonPrimitiveApplicationMachineError term
-            Just (IterApp DynamicStagedBuiltinName{}     _    ) ->
-                throwCkMachineException (OtherMachineError NoDynamicBuiltinNamesMachineError) term
-            Just (IterApp (StaticStagedBuiltinName name) spine) ->
-                case applyEvaluateCkBuiltinName name spine of
-                    ConstAppSuccess term' -> stack |> term'
-                    ConstAppFailure       -> EvaluationFailure
-                    ConstAppStuck         -> stack <| term
-                    ConstAppError err     ->
-                        throwCkMachineException (ConstAppMachineError err) term
+applyEvaluate stack fun                    arg = undefined
+--     let term = Apply () fun arg in
+--         case termAsPrimIterApp term of
+--             Nothing                                 ->
+--                 throwCkMachineException NonPrimitiveApplicationMachineError term
+--             Just (IterApp DynamicStagedBuiltinName{}     _    ) ->
+--                 throwCkMachineException (OtherMachineError NoDynamicBuiltinNamesMachineError) term
+--             Just (IterApp (StaticStagedBuiltinName name) spine) ->
+--                 case applyEvaluateCkBuiltinName name spine of
+--                     ConstAppSuccess term' -> stack |> term'
+--                     ConstAppFailure       -> EvaluationFailure
+--                     ConstAppStuck         -> stack <| term
+--                     ConstAppError err     ->
+--                         throwCkMachineException (ConstAppMachineError err) term
 
 applyEvaluateCkBuiltinName :: BuiltinName -> [Value TyName Name ()] -> ConstAppResultDef
 applyEvaluateCkBuiltinName name =

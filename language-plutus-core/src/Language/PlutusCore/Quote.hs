@@ -103,7 +103,7 @@ markNonFreshType = markNonFreshMax . collectTypeUniques
 -- have a term which was not generated in 'Quote'.
 markNonFreshTerm
     :: (HasUnique (tyname a) TypeUnique, HasUnique (name a) TermUnique, MonadQuote m)
-    => Term tyname name a
+    => Term tyname name con a
     -> m ()
 markNonFreshTerm = markNonFreshMax . collectTermUniques
 
@@ -111,7 +111,7 @@ markNonFreshTerm = markNonFreshMax . collectTermUniques
 -- have a program which was not generated in 'Quote'.
 markNonFreshProgram
     :: (HasUnique (tyname a) TypeUnique, HasUnique (name a) TermUnique, MonadQuote m)
-    => Program tyname name a
+    => Program tyname name con a
     -> m ()
 markNonFreshProgram (Program _ _ body) = markNonFreshTerm body
 
@@ -143,7 +143,7 @@ collectTypeUniques = cata f where
         TyIFixF _ pat arg  -> pat <> arg
         _                  -> mempty
 
-collectTermUniques :: (HasUnique (tyname a) TypeUnique, HasUnique (name a) TermUnique) => Term tyname name a -> Set.Set Unique
+collectTermUniques :: (HasUnique (tyname a) TypeUnique, HasUnique (name a) TermUnique) => Term tyname name con a -> Set.Set Unique
 collectTermUniques = cata f where
     f = \case
         VarF _ n           -> Set.singleton (n ^. unique . coerced)

@@ -10,9 +10,9 @@ module Language.PlutusCore.Evaluation.MachineException
     , MachineException (..)
     ) where
 
-import           Language.PlutusCore.Constant
+-- import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty.Plc
+-- import           Language.PlutusCore.Pretty.Plc
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -26,18 +26,19 @@ data MachineError err
       -- ^ An attempt to reduce a not immediately reducible application.
     | OpenTermEvaluatedMachineError
       -- ^ An attempt to evaluate an open term.
-    | ConstAppMachineError ConstAppError
+    | ConstAppMachineError () -- ConstAppError
       -- ^ An attempt to compute a constant application resulted in 'ConstAppError'.
     | OtherMachineError err
     deriving (Eq)
 
 -- | The type of exceptions an abstract machine can throw.
-data MachineException err = MachineException
-    { _machineExceptionError :: MachineError err     -- ^ An error.
-    , _machineExceptionCause :: Term TyName Name ()  -- ^ A 'Term' that caused the error.
+data MachineException con err = MachineException
+    { _machineExceptionError :: MachineError err         -- ^ An error.
+    , _machineExceptionCause :: Term TyName Name con ()  -- ^ A 'Term' that caused the error.
     } deriving (Eq)
 
-instance ( PrettyBy config (Term TyName Name ())
+instance -- ( PrettyBy config (Term TyName Name con ())
+         ( PrettyBy config ()
          , Pretty err
          ) => PrettyBy config (MachineError err) where
     prettyBy _      NonPrimitiveInstantiationMachineError =
@@ -53,10 +54,10 @@ instance ( PrettyBy config (Term TyName Name ())
     prettyBy _      (OtherMachineError err)               =
         pretty err
 
-instance Pretty err => Show (MachineException err) where
-    show (MachineException err cause) = fold
+instance Pretty err => Show (MachineException con err) where
+    show (MachineException err cause) = " " {- fold
         [ "An abstract machine failed: ", docString $ prettyPlcReadableDebug err, "\n"
         , "Caused by: ", docString $ prettyPlcReadableDebug cause
-        ]
+        ] -}
 
-instance (Pretty err, Typeable err) => Exception (MachineException err)
+instance (Pretty err, Typeable con, Typeable err) => Exception (MachineException con err)

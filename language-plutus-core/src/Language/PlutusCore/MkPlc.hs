@@ -40,13 +40,14 @@ import           Language.PlutusCore.Type
 import           Data.List                (foldl')
 import           GHC.Generics             (Generic)
 
+--- TODO: add @con@.
 -- | A final encoding for Term, to allow PLC terms to be used transparently as PIR terms.
-class TermLike term tyname name | term -> tyname, term -> name where
+class TermLike term tyname name con | term -> tyname, term -> name, term -> con where
     var      :: a -> name a -> term a
     tyAbs    :: a -> tyname a -> Kind a -> term a -> term a
     lamAbs   :: a -> name a -> Type tyname a -> term a -> term a
     apply    :: a -> term a -> term a -> term a
-    constant :: a -> Constant a -> term a
+    constant :: a -> con -> term a
     builtin  :: a -> Builtin a -> term a
     tyInst   :: a -> term a -> Type tyname a -> term a
     unwrap   :: a -> term a -> term a
@@ -55,7 +56,7 @@ class TermLike term tyname name | term -> tyname, term -> name where
     termLet  :: a -> TermDef term tyname name a -> term a -> term a
     typeLet  :: a -> TypeDef tyname a -> term a -> term a
 
-instance TermLike (Term tyname name) tyname name where
+instance TermLike (Term tyname name con) tyname name con where
     var      = Var
     tyAbs    = TyAbs
     lamAbs   = LamAbs
@@ -69,7 +70,7 @@ instance TermLike (Term tyname name) tyname name where
     termLet  = mkImmediateLamAbs
     typeLet  = mkImmediateTyAbs
 
-embed :: TermLike term tyname name => Term tyname name a -> term a
+embed :: TermLike term tyname name con => Term tyname name con a -> term a
 embed = \case
     Var a n           -> var a n
     TyAbs a tn k t    -> tyAbs a tn k (embed t)
@@ -87,7 +88,7 @@ data VarDecl tyname name a = VarDecl {varDeclAnn::a, varDeclName::name a, varDec
     deriving (Functor, Show, Eq, Generic)
 
 -- | Make a 'Var' referencing the given 'VarDecl'.
-mkVar :: TermLike term tyname name => a -> VarDecl tyname name a -> term a
+mkVar :: TermLike term tyname name con => a -> VarDecl tyname name a -> term a
 mkVar x = var x . varDeclName
 
 -- | A "type variable declaration", i.e. a name and a kind for a type variable.
@@ -156,7 +157,7 @@ mkFunctionDef _       _    _                     _    = Nothing
 
 -- | Make a "let-binding" for a term as an immediately applied lambda abstraction.
 mkImmediateLamAbs
-    :: TermLike term tyname name
+    :: TermLike term tyname name con
     => a
     -> TermDef term tyname name a
     -> term a -- ^ The body of the let, possibly referencing the name.
@@ -165,7 +166,7 @@ mkImmediateLamAbs x1 (Def (VarDecl x2 name ty) bind) body = apply x1 (lamAbs x2 
 
 -- | Make a "let-binding" for a type as an immediately instantiated type abstraction. Note: the body must be a value.
 mkImmediateTyAbs
-    :: TermLike term tyname name
+    :: TermLike term tyname name con
     => a
     -> TypeDef tyname a
     -> term a -- ^ The body of the let, possibly referencing the name.
@@ -174,7 +175,7 @@ mkImmediateTyAbs x1 (Def (TyVarDecl x2 name k) bind) body = tyInst x1 (tyAbs x2 
 
 -- | Make an iterated application.
 mkIterApp
-    :: TermLike term tyname name
+    :: TermLike term tyname name con
     => a
     -> term a -- ^ @f@
     -> [term a] -- ^@[ x0 ... xn ]@
@@ -183,7 +184,7 @@ mkIterApp x = foldl' (apply x)
 
 -- | Make an iterated instantiation.
 mkIterInst
-    :: TermLike term tyname name
+    :: TermLike term tyname name con
     => a
     -> term a -- ^ @a@
     -> [Type tyname a] -- ^ @ [ x0 ... xn ] @
@@ -192,7 +193,7 @@ mkIterInst x = foldl' (tyInst x)
 
 -- | Lambda abstract a list of names.
 mkIterLamAbs
-    :: TermLike term tyname name
+    :: TermLike term tyname name con
     => [VarDecl tyname name a]
     -> term a
     -> term a
@@ -200,7 +201,7 @@ mkIterLamAbs args body = foldr (\(VarDecl x n ty) acc -> lamAbs x n ty acc) body
 
 -- | Type abstract a list of names.
 mkIterTyAbs
-    :: TermLike term tyname name
+    :: TermLike term tyname name con
     => [TyVarDecl tyname a]
     -> term a
     -> term a
