@@ -311,9 +311,7 @@ class KnownType a where
 
 -- | Convert a PLC value to the corresponding Haskell value using the evaluator
 -- from the current context.
-readKnownM
-    :: (Monad m, KnownType a)
-    => Term TyName Name () -> EvaluateT ReflectT m a
+readKnownM :: (Monad m, KnownType a) => Term TyName Name () -> EvaluateT ReflectT m a
 readKnownM term = withEvaluator $ \eval -> readKnown eval term
 
 -- | A value that is supposed to be of a 'KnownType'. Needed in order to give a 'Pretty' instance

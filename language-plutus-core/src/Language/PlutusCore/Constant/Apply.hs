@@ -45,7 +45,7 @@ import           Data.Text                             (Text)
 import           Data.GADT.Compare
 
 -- | The type of constant applications errors.
-data ConstAppError ext
+data ConstAppError con
     = ExcessArgumentsConstAppError [Value TyName Name con ()]
       -- ^ A constant is applied to more arguments than needed in order to reduce.
       -- Note that this error occurs even if an expression is well-typed, because
@@ -63,11 +63,11 @@ data ConstAppResult con a
       -- ^ Not enough gas.
     | ConstAppStuck
       -- ^ Not enough arguments.
-    | ConstAppError (ConstAppError ext)
+    | ConstAppError (ConstAppError con)
       -- ^ An internal error occurred during evaluation.
     deriving (Show, Eq, Functor, Foldable, Traversable)
 
-instance Applicative (ConstAppResult ext) where
+instance Applicative (ConstAppResult con) where
     pure = ConstAppSuccess
 
     ConstAppSuccess f <*> a = fmap f a
@@ -75,7 +75,7 @@ instance Applicative (ConstAppResult ext) where
     ConstAppStuck     <*> _ = ConstAppStuck
     ConstAppError err <*> _ = ConstAppError err
 
-instance Monad (ConstAppResult ext) where
+instance Monad (ConstAppResult con) where
     ConstAppSuccess x >>= f = f x
     ConstAppFailure   >>= _ = ConstAppFailure
     ConstAppStuck     >>= _ = ConstAppStuck
@@ -83,7 +83,7 @@ instance Monad (ConstAppResult ext) where
 
 type ConstAppResultDef uni = ConstAppResult (ValueIn uni) (Term TyName Name (ValueIn uni) ())
 
-instance PrettyBy config (Term TyName Name con ()) => PrettyBy config (ConstAppError ext) where
+instance PrettyBy config (Term TyName Name con ()) => PrettyBy config (ConstAppError con) where
     prettyBy config (ExcessArgumentsConstAppError args)      = fold
         [ "A constant applied to too many arguments:", "\n"
         , "Excess ones are: ", prettyBy config args
@@ -107,13 +107,13 @@ instance ( PrettyBy config (Value TyName Name con ())
     prettyBy _      ConstAppStuck         = "Stuck constant applcation"
     prettyBy config (ConstAppError err)   = prettyBy config err
 
--- -- | Constant application computation runs in a monad @m@, requires an evaluator and
--- -- returns a 'ConstAppResult'.
--- type EvaluateConstApp uni m = EvaluateT uni (InnerT (ConstAppResult (ValueIn uni))) m
-
 -- | Constant application computation runs in a monad @m@, requires an evaluator and
 -- returns a 'ConstAppResult'.
-type EvaluateConstApp uni m = InnerT (ConstAppResult (ValueIn uni)) m
+type EvaluateConstApp uni m = EvaluateT uni (InnerT (ConstAppResult (ValueIn uni))) m
+
+-- -- | Constant application computation runs in a monad @m@, requires an evaluator and
+-- -- returns a 'ConstAppResult'.
+-- type EvaluateConstApp uni m = InnerT (ConstAppResult (ValueIn uni)) m
 
 -- | Default constant application computation that in case of 'ConstAppSuccess' returns
 -- a 'Value'.
@@ -129,33 +129,33 @@ nonZeroArg f x y = EvaluationSuccess $ f x y
 -- | Evaluate a constant application computation using the given evaluator.
 runEvaluateConstApp
     :: Evaluator uni Term m -> EvaluateConstApp uni m a -> m (ConstAppResult (ValueIn uni) a)
-runEvaluateConstApp eval = unInnerT -- . runEvaluateT eval
+runEvaluateConstApp eval = unInnerT . runEvaluateT eval
 
 -- | Lift the result of a constant application to a constant application computation.
 liftConstAppResult :: Monad m => ConstAppResult (ValueIn uni) a -> EvaluateConstApp uni m a
 -- Could it be @yield . yield@?
-liftConstAppResult = yield -- EvaluateT . lift . yield
+liftConstAppResult = EvaluateT . lift . yield
 
 -- | Same as 'makeBuiltin', but returns a 'ConstAppResult'.
 makeConstAppResult :: uni `Includes` a => a -> ConstAppResultDef uni
-makeConstAppResult = pure . Constant () . ValueIn uniVal
+makeConstAppResult = pure . Constant () . ValueIn knownUni
 
 -- | Convert a PLC constant (unwrapped from 'Value') into the corresponding Haskell value.
 -- Checks that the constant is of a given built-in type.
 extractBuiltin
     :: forall m uni a. (Monad m, GEq uni, uni `Includes` a)
     => Value TyName Name (ValueIn uni) () -> EvaluateConstApp uni m a
-extractBuiltin value@(Constant _ (ValueIn uni x)) = case geq uni $ uniVal @uni @a of
+extractBuiltin value@(Constant _ (ValueIn uni x)) = case geq uni $ knownUni @uni @a of
     -- TODO: add an 'IllTypedApplication' error or something like that.
     -- TODO: change errors in general.
-    Nothing   -> yield $ ConstAppError $ UnreadableBuiltinConstAppError value "blah-blah"
+    Nothing   -> liftConstAppResult $ ConstAppError $ UnreadableBuiltinConstAppError value "blah-blah"
     Just Refl -> pure x
--- extractBuiltin value =
---     thoist (InnerT . fmap nat . runReflectT) $ readKnownM value where
---         nat :: EvaluationResult (Either Text a) -> ConstAppResult (ValueIn uni) a
---         nat EvaluationFailure              = ConstAppFailure
---         nat (EvaluationSuccess (Left err)) = ConstAppError $ UnreadableBuiltinConstAppError value err
---         nat (EvaluationSuccess (Right x )) = ConstAppSuccess x
+extractBuiltin value                              =
+    thoist (InnerT . fmap nat . runReflectT) $ unliftDeepM value where
+        nat :: forall b. EvaluationResult (Either Text b) -> ConstAppResult (ValueIn uni) b
+        nat EvaluationFailure              = ConstAppFailure
+        nat (EvaluationSuccess (Left err)) = ConstAppError $ UnreadableBuiltinConstAppError value err
+        nat (EvaluationSuccess (Right x )) = ConstAppSuccess x
 
 -- | Apply a function with a known 'TypeScheme' to a list of 'Constant's (unwrapped from 'Value's).
 -- Checks that the constants are of expected types.
@@ -173,8 +173,8 @@ applyTypeSchemed = go where
         liftConstAppResult $ case args of
             [] -> makeConstAppResult y                               -- Computed the result.
             _  -> ConstAppError $ ExcessArgumentsConstAppError args  -- Too many arguments.
---     go (TypeSchemeAllType _ schK)  f args =
---         go (schK Proxy) f args
+    go (TypeSchemeAllType _ schK)  f args =
+        go (schK Proxy) f args
     go (TypeSchemeArrow _ schB)    f args = case args of
         []          -> liftConstAppResult ConstAppStuck   -- Not enough arguments to compute.
         arg : args' -> do                                 -- Peel off one argument.
