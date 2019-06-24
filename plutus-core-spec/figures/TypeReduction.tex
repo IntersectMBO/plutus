@@ -79,7 +79,7 @@
 	
 	\begin{prooftree}
 		\AxiomC{\(\typeEqual{A}{A'}\)}
-		\RightLabel{$\alpha$}
+		\RightLabel{\,$\alpha$}
 		\UnaryInfC{\(\typeEquiv{A}{A'}\)}
 	\end{prooftree}
 	
@@ -87,7 +87,7 @@
 	
 	\begin{prooftree}
 		\AxiomC{\(\typeEquiv{A}{A'}\)}
-		\RightLabel{sym}
+		\RightLabel{\,\textsf{sym}}
 		\UnaryInfC{\(\typeEquiv{A'}{A}\)}
 	\end{prooftree}
 	
@@ -96,7 +96,7 @@
 	\begin{prooftree}
 		\AxiomC{\(\typeEquiv{A}{A'}\)}
 		\AxiomC{\(\typeEquiv{A'}{A''}\)}
-		\RightLabel{trans}
+		\RightLabel{\,\textsf{trans}}
 		\BinaryInfC{\(\typeEquiv{A}{A''}\)}
 	\end{prooftree}
 	
@@ -104,7 +104,7 @@
 	
 	\begin{prooftree}
 		\AxiomC{\(\typeEquiv{A}{A'}\)}
-		\RightLabel{cong}
+		\RightLabel{\,\textsf{cong}}
 		\UnaryInfC{\(\typeEquiv{\ctxsubst{tf}{A}}{\ctxsubst{tf}{A'}}\)}
 	\end{prooftree}
 	
