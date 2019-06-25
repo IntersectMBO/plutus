@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DataKinds         #-}
 module Spec.Game(tests) where
 
 import           Control.Monad                                 (void)
@@ -7,10 +9,11 @@ import qualified Data.Map                                      as Map
 
 import           Hedgehog                                      (Property, forAll, property)
 import qualified Hedgehog
-import qualified Spec.Size                                     as Size
 import           Test.Tasty
 import           Test.Tasty.Hedgehog                           (testProperty)
 import qualified Test.Tasty.HUnit                              as HUnit
+
+import qualified Spec.Lib                                      as Lib
 
 import qualified Ledger
 import qualified Ledger.Ada                                    as Ada
@@ -19,7 +22,9 @@ import           Wallet.Emulator
 import qualified Wallet.Emulator.Generators                    as Gen
 import qualified Wallet.Generators                             as Gen
 
-import           Language.PlutusTx.Coordination.Contracts.Game (gameValidator, guess, lock, startGame)
+import qualified Language.PlutusTx as PlutusTx
+
+import           Language.PlutusTx.Coordination.Contracts.Game (gameValidator, validateGuess, guess, lock, startGame)
 
 w1, w2 :: Wallet
 w1 = Wallet 1
@@ -30,7 +35,8 @@ tests = testGroup "game" [
     testProperty "lock" lockProp,
     testProperty "guess right" guessRightProp,
     testProperty "guess wrong" guessWrongProp,
-    HUnit.testCase "script size is reasonable" (Size.reasonable gameValidator 25000)
+    Lib.goldenPir "test/Spec/game.pir" $$(PlutusTx.compile [|| validateGuess ||]),
+    HUnit.testCase "script size is reasonable" (Lib.reasonable gameValidator 25000)
     ]
 
 lockProp :: Property

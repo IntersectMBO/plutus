@@ -17,6 +17,7 @@ module Language.PlutusTx.Coordination.Contracts.GameStateMachine(
     , lock
     , gameTokenVal
     , gameValidator
+    , mkValidator
     ) where
 
 import qualified Data.Map                     as Map

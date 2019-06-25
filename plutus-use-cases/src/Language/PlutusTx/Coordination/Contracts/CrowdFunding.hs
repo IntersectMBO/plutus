@@ -23,6 +23,7 @@ module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     , campaignAddress
     -- * Validator script
     , contributionScript
+    , mkValidator
     , mkCampaign
     ) where
 

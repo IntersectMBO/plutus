@@ -3,7 +3,7 @@
   - {name: unsafePerformIO, within: [PlutusPrelude, Language.PlutusCore.Generators.Internal.Entity, Language.PlutusCore.Constant.Dynamic.Call, Language.PlutusCore.Constant.Dynamic.Emit, Language.PlutusCore.Constant.Dynamic.Instances, Language.PlutusCore.StdLib.Type, Language.PlutusTx.Plugin, Language.PlutusTx.Evaluation]}
   - {name: error}
   - {name: undefined, within: [Language.PlutusCore.Constant.Apply, Language.PlutusTx.Lift.Class, Language.PlutusTx.Lift.Instances]}
-  - {name: fromJust, within: [Language.PlutusTx.Lift]}
+  - {name: fromJust, within: [Language.PlutusTx.Lift, Spec.Lib]}
   - {name: foldl, within: []}
   - {name: traceShowId, within: []} # for debugging only, should not be merged to master
 

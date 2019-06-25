@@ -1,4 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE TemplateHaskell #-}
 module Spec.MultiSig(tests) where
 
 import           Control.Lens
@@ -8,8 +10,12 @@ import           Data.Either                                       (isLeft, isRi
 import qualified Data.Map                                          as Map
 import qualified Data.Text                                         as T
 
+import qualified Spec.Lib                                          as Lib
+
 import           Test.Tasty
 import qualified Test.Tasty.HUnit                                  as HUnit
+
+import qualified Language.PlutusTx as PlutusTx
 
 import           Language.PlutusTx.Coordination.Contracts.MultiSig as MS
 import           Ledger                                            (PrivateKey, Tx, hashTx, signatures, toPublicKey)
@@ -21,7 +27,8 @@ import qualified Wallet.Emulator                                   as EM
 tests :: TestTree
 tests = testGroup "multisig" [
     HUnit.testCase "three out of five" (nOutOfFiveTest 3),
-    HUnit.testCase "two out of five" (nOutOfFiveTest 2)
+    HUnit.testCase "two out of five" (nOutOfFiveTest 2),
+    Lib.goldenPir "test/Spec/multisig.pir" $$(PlutusTx.compile [|| MS.validate ||])
     ]
 
 nOutOfFiveTest :: Int -> HUnit.Assertion
