@@ -22,7 +22,8 @@ module Language.PlutusTx.Coordination.Contracts.Future(
     settleEarly,
     adjustMargin,
     -- * Script
-    validatorScript
+    validatorScript,
+    mkValidator
     ) where
 
 import           Control.Monad                (void)
@@ -205,6 +206,7 @@ requiredMargin Future{futureUnits=units, futureUnitPrice=unitPrice, futureMargin
     in
         Ada.plus pnlty delta
 
+{-# INLINABLE mkValidator #-}
 mkValidator :: Future -> FutureData -> FutureRedeemer -> PendingTx -> Bool
 mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pendingTxValidRange=range} =
     let

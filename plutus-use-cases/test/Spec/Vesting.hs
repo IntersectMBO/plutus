@@ -3,11 +3,11 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-unused-do-bind #-}
 module Spec.Vesting(tests) where
 
 import           Control.Monad                                    (void)
-import           Control.Monad.IO.Class
 import           Data.Either                                      (isRight)
 import           Data.Foldable                                    (traverse_)
 import qualified Data.Map                                         as Map
@@ -17,8 +17,12 @@ import           Test.Tasty
 import           Test.Tasty.Hedgehog                              (testProperty)
 import qualified Test.Tasty.HUnit                                 as HUnit
 
+import           Spec.Lib                                                      as Lib
+
+import qualified Language.PlutusTx as PlutusTx
+
 import           Language.PlutusTx.Coordination.Contracts.Vesting (Vesting (..), VestingData (..), VestingTranche (..),
-                                                                   retrieveFunds, totalAmount, validatorScript,
+                                                                   retrieveFunds, totalAmount, validatorScript, mkValidator,
                                                                    validatorScriptHash, vestFunds)
 import qualified Ledger
 import qualified Ledger.Ada                                       as Ada
@@ -40,16 +44,9 @@ tests = testGroup "vesting" [
     testProperty "retrieve some funds" canRetrieveFunds,
     testProperty "cannot retrieve more than allowed" cannotRetrieveTooMuch,
     testProperty "can retrieve everything at end" canRetrieveFundsAtEnd,
-    HUnit.testCase "script size is reasonable" size
+    Lib.goldenPir "test/Spec/vesting.pir" $$(PlutusTx.compile [|| mkValidator ||]),
+    HUnit.testCase "script size is reasonable" (Lib.reasonable (validatorScript $ vsVestingScheme scen1) 45000)
     ]
-
-size :: HUnit.Assertion
-size = do
-    let Ledger.ValidatorScript s = validatorScript (vsVestingScheme scen1)
-    let sz = Ledger.scriptSize s
-    -- so the actual size is visible in the log
-    liftIO $ putStrLn ("Script size: " ++ show sz)
-    HUnit.assertBool "script too big" (sz <= 45000)
 
 -- | The scenario used in the property tests. It sets up a vesting scheme for a
 --   total of 600 ada over 20 blocks (200 ada can be taken out before that, at

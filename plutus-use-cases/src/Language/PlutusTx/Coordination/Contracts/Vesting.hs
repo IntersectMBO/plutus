@@ -16,7 +16,8 @@ module Language.PlutusTx.Coordination.Contracts.Vesting (
     totalAmount,
     validatorScriptHash,
     -- * Script
-    validatorScript
+    validatorScript,
+    mkValidator
     ) where
 
 import           Control.Monad.Error.Class    (MonadError (..))
