@@ -88,6 +88,10 @@
     virtualHosts = {
       "~." = {
         listen = [{ addr = "0.0.0.0"; port = 80; }];
+        extraConfig = ''
+        rewrite ^/tutorial$ /tutorial/ permanent;
+        rewrite ^/haddock$ /haddock/ permanent;
+        '';
         locations = {
           "/" = {
             proxyPass = "http://${serviceName}/";
@@ -98,6 +102,12 @@
             add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
             expires off;
             '';
+          };
+          "/tutorial/" = {
+            root = "${plutus.plutus-playground.documentation-site}/";
+          };
+          "/haddock/" = {
+            root = "${plutus.plutus-playground.documentation-site}/";
           };
           "/+" = {
             proxyPass = "http://${serviceName}/";
