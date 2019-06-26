@@ -96,7 +96,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             template: '../web-common/static/index.html',
             favicon: 'static/favicon.ico',
-            title: 'Meadow',
+            title: 'Marlowe Playground',
             productName: 'meadow',
             googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-7'
         }),
