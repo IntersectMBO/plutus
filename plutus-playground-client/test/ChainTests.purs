@@ -8,7 +8,7 @@ import Chain (extractAmount)
 import Data.Array (mapWithIndex)
 import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested ((/\))
-import Ledger.Extra (LedgerMap(..))
+import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Playground.API (SimulatorWallet(..))
 import Test.Unit (TestSuite, suite, test)
@@ -47,19 +47,19 @@ wallets =
 
 values :: Array Value
 values =
-  [ Value { getValue: LedgerMap [ currencies /\ LedgerMap [ usdToken /\ 10
-                                                          , eurToken /\ 20
-                                                          ]
-                                ] }
-  , Value { getValue: LedgerMap [ ada /\ LedgerMap [ adaToken /\ 30 ]
-                                , currencies /\ LedgerMap [ usdToken /\ 40
-                                                          , eurToken /\ 50
-                                                          ]
-                                ] }
-  , Value { getValue: LedgerMap [ ada /\ LedgerMap [ adaToken /\ 60 ]
-                                , currencies /\ LedgerMap [ usdToken /\ 70
-                                                          ]
-                                ] }
+  [ Value { getValue: AssocMap.fromTuples [ currencies /\ AssocMap.fromTuples [ usdToken /\ 10
+                                                                              , eurToken /\ 20
+                                                                              ]
+                                          ] }
+  , Value { getValue: AssocMap.fromTuples [ ada /\ AssocMap.fromTuples [ adaToken /\ 30 ]
+                                          , currencies /\ AssocMap.fromTuples [ usdToken /\ 40
+                                                                              , eurToken /\ 50
+                                                                              ]
+                                          ] }
+  , Value { getValue: AssocMap.fromTuples [ ada /\ AssocMap.fromTuples [ adaToken /\ 60 ]
+                                          , currencies /\ AssocMap.fromTuples [ usdToken /\ 70
+                                                                              ]
+                                          ] }
   ]
 
 ada :: CurrencySymbol

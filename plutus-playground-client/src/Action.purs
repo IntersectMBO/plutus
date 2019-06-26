@@ -224,7 +224,10 @@ actionArgumentForm index arguments =
           arguments))
 
 actionArgumentField ::
-  forall p. Warn (Text "We're still not handling the Unknowable case.")
+  forall p.
+  Warn (Text "We're still not handling the Unknowable case.")
+  => Warn (Text "We're still not handling the SimpleMaybe case.")
+  => Warn (Text "The Hex fields should be forced to comply to [0-9a-fA-F].")
   => Array String
   -> Boolean
   -> SimpleArgument
@@ -297,7 +300,7 @@ actionArgumentField ancestors isNested (SimpleArray schema subFields) =
           ]
         ]
 
-actionArgumentField ancestors isNested (SimpleObject _ subFields) =
+actionArgumentField ancestors isNested (SimpleObject subFields) =
   div [ nesting isNested ]
     (mapWithIndex (\i (JsonTuple field) -> map (SetSubField i) (subForm field)) subFields)
   where
@@ -307,11 +310,17 @@ actionArgumentField ancestors isNested (SimpleObject _ subFields) =
          , actionArgumentField (Array.snoc ancestors name) true arg
          ]
       )
-actionArgumentField ancestors isNested (ValueArgument _ value) =
+actionArgumentField ancestors isNested (ValueArgument value) =
   div [ nesting isNested ]
     [ label [ for "value" ] [ text "Value" ]
     , valueForm SetValueField value
     ]
+actionArgumentField _ _ (SimpleMaybe dataType child) =
+  div_ [ text $ "Unsupported Maybe"
+       , code_ [ text $ show dataType ]
+       , code_ [ text $ show child ]
+       ]
+
 actionArgumentField _ _ (Unknowable { context, description }) =
   div_ [ text $ "Unsupported: " <>  context
        , code_ [ text description ]

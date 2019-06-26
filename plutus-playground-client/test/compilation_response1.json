@@ -2,6 +2,7 @@
   "Right": {
     "warnings": [],
     "result": {
+      "iotsSpec": "import * as t from 'io-ts'\n\n// Ledger.Slot.Slot\nconst Slot = t.type({\n    getSlot: t.Int\n});\n\n// Ledger.Value.CurrencySymbol\nconst CurrencySymbol = t.type({\n    unCurrencySymbol: t.string\n});\n\n// Ledger.Value.TokenName\nconst TokenName = t.type({\n    unTokenName: t.string\n});\n\n// Language.PlutusTx.AssocMap.Map\nconst MapTokenNameInteger = t.type({\n    unMap: t.array(t.tuple([\n        TokenName,\n        t.Int\n    ]))\n});\n\n// Language.PlutusTx.AssocMap.Map\nconst MapCurrencySymbolMapTokenNameInteger = t.type({\n    unMap: t.array(t.tuple([\n        CurrencySymbol,\n        MapTokenNameInteger\n    ]))\n});\n\n// Ledger.Value.Value\nconst Value = t.type({\n    getValue: MapCurrencySymbolMapTokenNameInteger\n});\n\n// Wallet.Emulator.Types.Wallet\nconst Wallet = t.type({\n    getWallet: t.Int\n});\n\nconst SomeFunctionArgA = Slot;\n\nconst SomeFunctionArgB = Value;\n\nconst SomeFunctionArgC = Slot;\n\nconst SomeFunctionArgD = Wallet;\n\nconst SomeFunctionArgReturn = t.null;\n\ntype SomeFunction = (\n    a: t.TypeOf<typeof SomeFunctionArgA>,\n    b: t.TypeOf<typeof SomeFunctionArgB>,\n    c: t.TypeOf<typeof SomeFunctionArgC>,\n    d: t.TypeOf<typeof SomeFunctionArgD>\n) => t.TypeOf<typeof SomeFunctionArgReturn>;",
       "knownCurrencies": [
         {
           "hash": "",
@@ -13,7 +14,7 @@
           ]
         },
         {
-          "hash": "5f4462306230ff",
+          "hash": "b0b0",
           "friendlyName": "MyCurrency",
           "knownTokens": [
             {
@@ -28,242 +29,604 @@
       "functionSchema": [
         {
           "argumentSchema": [
-            {
-              "tag": "SimpleObjectSchema",
-              "contents": [
-                [
-                  "campaignDeadline",
-                  {
-                    "tag": "SimpleObjectSchema",
-                    "contents": [
+            [
+              {
+                "constructorName": "Slot",
+                "moduleName": "Ledger.Slot",
+                "argumentSignatures": []
+              },
+              [
+                {
+                  "tag": "Record",
+                  "contents": [
+                    "Slot",
+                    [
                       [
                         "getSlot",
-                        {
-                          "tag": "SimpleIntSchema"
-                        }
+                        [
+                          {
+                            "constructorName": "Integer",
+                            "moduleName": "GHC.Integer.Type",
+                            "argumentSignatures": []
+                          },
+                          []
+                        ]
                       ]
                     ]
-                  }
-                ],
-                [
-                  "campaignTarget",
-                  {
-                    "tag": "SimpleObjectSchema",
-                    "contents": [
-                      [
-                        "getAda",
-                        {
-                          "tag": "SimpleIntSchema"
-                        }
-                      ]
-                    ]
-                  }
-                ],
-                [
-                  "campaignOwner",
-                  {
-                    "tag": "SimpleObjectSchema",
-                    "contents": [
-                      [
-                        "getPubKey",
-                        {
-                          "tag": "SimpleStringSchema"
-                        }
-                      ]
-                    ]
-                  }
-                ],
-                [
-                  "campaignCollectionDeadline",
-                  {
-                    "tag": "SimpleObjectSchema",
-                    "contents": [
-                      [
-                        "getSlot",
-                        {
-                          "tag": "SimpleIntSchema"
-                        }
-                      ]
-                    ]
-                  }
-                ]
+                  ]
+                }
               ]
-            }
+            ],
+            [
+              {
+                "constructorName": "Value",
+                "moduleName": "Ledger.Value",
+                "argumentSignatures": []
+              },
+              [
+                {
+                  "tag": "Record",
+                  "contents": [
+                    "Value",
+                    [
+                      [
+                        "getValue",
+                        [
+                          {
+                            "constructorName": "Map",
+                            "moduleName": "Language.PlutusTx.AssocMap",
+                            "argumentSignatures": [
+                              {
+                                "constructorName": "CurrencySymbol",
+                                "moduleName": "Ledger.Value",
+                                "argumentSignatures": []
+                              },
+                              {
+                                "constructorName": "Map",
+                                "moduleName": "Language.PlutusTx.AssocMap",
+                                "argumentSignatures": [
+                                  {
+                                    "constructorName": "TokenName",
+                                    "moduleName": "Ledger.Value",
+                                    "argumentSignatures": []
+                                  },
+                                  {
+                                    "constructorName": "Integer",
+                                    "moduleName": "GHC.Integer.Type",
+                                    "argumentSignatures": []
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          [
+                            {
+                              "tag": "Record",
+                              "contents": [
+                                "Map",
+                                [
+                                  [
+                                    "unMap",
+                                    [
+                                      {
+                                        "constructorName": "[]",
+                                        "moduleName": "GHC.Types",
+                                        "argumentSignatures": [
+                                          {
+                                            "constructorName": "(,)",
+                                            "moduleName": "GHC.Tuple",
+                                            "argumentSignatures": [
+                                              {
+                                                "constructorName": "CurrencySymbol",
+                                                "moduleName": "Ledger.Value",
+                                                "argumentSignatures": []
+                                              },
+                                              {
+                                                "constructorName": "Map",
+                                                "moduleName": "Language.PlutusTx.AssocMap",
+                                                "argumentSignatures": [
+                                                  {
+                                                    "constructorName": "TokenName",
+                                                    "moduleName": "Ledger.Value",
+                                                    "argumentSignatures": []
+                                                  },
+                                                  {
+                                                    "constructorName": "Integer",
+                                                    "moduleName": "GHC.Integer.Type",
+                                                    "argumentSignatures": []
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      []
+                                    ]
+                                  ]
+                                ]
+                              ]
+                            }
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                }
+              ]
+            ],
+            [
+              {
+                "constructorName": "Slot",
+                "moduleName": "Ledger.Slot",
+                "argumentSignatures": []
+              },
+              [
+                {
+                  "tag": "Record",
+                  "contents": [
+                    "Slot",
+                    [
+                      [
+                        "getSlot",
+                        [
+                          {
+                            "constructorName": "Integer",
+                            "moduleName": "GHC.Integer.Type",
+                            "argumentSignatures": []
+                          },
+                          []
+                        ]
+                      ]
+                    ]
+                  ]
+                }
+              ]
+            ],
+            [
+              {
+                "constructorName": "Wallet",
+                "moduleName": "Wallet.Emulator.Types",
+                "argumentSignatures": []
+              },
+              [
+                {
+                  "tag": "Record",
+                  "contents": [
+                    "Wallet",
+                    [
+                      [
+                        "getWallet",
+                        [
+                          {
+                            "constructorName": "Integer",
+                            "moduleName": "GHC.Integer.Type",
+                            "argumentSignatures": []
+                          },
+                          []
+                        ]
+                      ]
+                    ]
+                  ]
+                }
+              ]
+            ]
           ],
           "functionName": "scheduleCollection"
         },
         {
           "argumentSchema": [
-            {
-              "tag": "SimpleObjectSchema",
-              "contents": [
-                [
-                  "campaignDeadline",
-                  {
-                    "tag": "SimpleObjectSchema",
-                    "contents": [
+            [
+              {
+                "constructorName": "Slot",
+                "moduleName": "Ledger.Slot",
+                "argumentSignatures": []
+              },
+              [
+                {
+                  "tag": "Record",
+                  "contents": [
+                    "Slot",
+                    [
                       [
                         "getSlot",
-                        {
-                          "tag": "SimpleIntSchema"
-                        }
+                        [
+                          {
+                            "constructorName": "Integer",
+                            "moduleName": "GHC.Integer.Type",
+                            "argumentSignatures": []
+                          },
+                          []
+                        ]
                       ]
                     ]
-                  }
-                ],
-                [
-                  "campaignTarget",
-                  {
-                    "tag": "SimpleObjectSchema",
-                    "contents": [
+                  ]
+                }
+              ]
+            ],
+            [
+              {
+                "constructorName": "Value",
+                "moduleName": "Ledger.Value",
+                "argumentSignatures": []
+              },
+              [
+                {
+                  "tag": "Record",
+                  "contents": [
+                    "Value",
+                    [
                       [
-                        "getAda",
-                        {
-                          "tag": "SimpleIntSchema"
-                        }
+                        "getValue",
+                        [
+                          {
+                            "constructorName": "Map",
+                            "moduleName": "Language.PlutusTx.AssocMap",
+                            "argumentSignatures": [
+                              {
+                                "constructorName": "CurrencySymbol",
+                                "moduleName": "Ledger.Value",
+                                "argumentSignatures": []
+                              },
+                              {
+                                "constructorName": "Map",
+                                "moduleName": "Language.PlutusTx.AssocMap",
+                                "argumentSignatures": [
+                                  {
+                                    "constructorName": "TokenName",
+                                    "moduleName": "Ledger.Value",
+                                    "argumentSignatures": []
+                                  },
+                                  {
+                                    "constructorName": "Integer",
+                                    "moduleName": "GHC.Integer.Type",
+                                    "argumentSignatures": []
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          [
+                            {
+                              "tag": "Record",
+                              "contents": [
+                                "Map",
+                                [
+                                  [
+                                    "unMap",
+                                    [
+                                      {
+                                        "constructorName": "[]",
+                                        "moduleName": "GHC.Types",
+                                        "argumentSignatures": [
+                                          {
+                                            "constructorName": "(,)",
+                                            "moduleName": "GHC.Tuple",
+                                            "argumentSignatures": [
+                                              {
+                                                "constructorName": "CurrencySymbol",
+                                                "moduleName": "Ledger.Value",
+                                                "argumentSignatures": []
+                                              },
+                                              {
+                                                "constructorName": "Map",
+                                                "moduleName": "Language.PlutusTx.AssocMap",
+                                                "argumentSignatures": [
+                                                  {
+                                                    "constructorName": "TokenName",
+                                                    "moduleName": "Ledger.Value",
+                                                    "argumentSignatures": []
+                                                  },
+                                                  {
+                                                    "constructorName": "Integer",
+                                                    "moduleName": "GHC.Integer.Type",
+                                                    "argumentSignatures": []
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      []
+                                    ]
+                                  ]
+                                ]
+                              ]
+                            }
+                          ]
+                        ]
                       ]
                     ]
-                  }
-                ],
-                [
-                  "campaignOwner",
-                  {
-                    "tag": "SimpleObjectSchema",
-                    "contents": [
-                      [
-                        "getPubKey",
-                        {
-                          "tag": "SimpleStringSchema"
-                        }
-                      ]
-                    ]
-                  }
-                ],
-                [
-                  "campaignCollectionDeadline",
-                  {
-                    "tag": "SimpleObjectSchema",
-                    "contents": [
+                  ]
+                }
+              ]
+            ],
+            [
+              {
+                "constructorName": "Slot",
+                "moduleName": "Ledger.Slot",
+                "argumentSignatures": []
+              },
+              [
+                {
+                  "tag": "Record",
+                  "contents": [
+                    "Slot",
+                    [
                       [
                         "getSlot",
-                        {
-                          "tag": "SimpleIntSchema"
-                        }
+                        [
+                          {
+                            "constructorName": "Integer",
+                            "moduleName": "GHC.Integer.Type",
+                            "argumentSignatures": []
+                          },
+                          []
+                        ]
                       ]
                     ]
-                  }
-                ]
+                  ]
+                }
               ]
-            },
-            {
-              "tag": "SimpleObjectSchema",
-              "contents": [
-                [
-                  "getAda",
-                  {
-                    "tag": "SimpleIntSchema"
-                  }
-                ]
+            ],
+            [
+              {
+                "constructorName": "Wallet",
+                "moduleName": "Wallet.Emulator.Types",
+                "argumentSignatures": []
+              },
+              [
+                {
+                  "tag": "Record",
+                  "contents": [
+                    "Wallet",
+                    [
+                      [
+                        "getWallet",
+                        [
+                          {
+                            "constructorName": "Integer",
+                            "moduleName": "GHC.Integer.Type",
+                            "argumentSignatures": []
+                          },
+                          []
+                        ]
+                      ]
+                    ]
+                  ]
+                }
               ]
-            }
+            ],
+            [
+              {
+                "constructorName": "Value",
+                "moduleName": "Ledger.Value",
+                "argumentSignatures": []
+              },
+              [
+                {
+                  "tag": "Record",
+                  "contents": [
+                    "Value",
+                    [
+                      [
+                        "getValue",
+                        [
+                          {
+                            "constructorName": "Map",
+                            "moduleName": "Language.PlutusTx.AssocMap",
+                            "argumentSignatures": [
+                              {
+                                "constructorName": "CurrencySymbol",
+                                "moduleName": "Ledger.Value",
+                                "argumentSignatures": []
+                              },
+                              {
+                                "constructorName": "Map",
+                                "moduleName": "Language.PlutusTx.AssocMap",
+                                "argumentSignatures": [
+                                  {
+                                    "constructorName": "TokenName",
+                                    "moduleName": "Ledger.Value",
+                                    "argumentSignatures": []
+                                  },
+                                  {
+                                    "constructorName": "Integer",
+                                    "moduleName": "GHC.Integer.Type",
+                                    "argumentSignatures": []
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          [
+                            {
+                              "tag": "Record",
+                              "contents": [
+                                "Map",
+                                [
+                                  [
+                                    "unMap",
+                                    [
+                                      {
+                                        "constructorName": "[]",
+                                        "moduleName": "GHC.Types",
+                                        "argumentSignatures": [
+                                          {
+                                            "constructorName": "(,)",
+                                            "moduleName": "GHC.Tuple",
+                                            "argumentSignatures": [
+                                              {
+                                                "constructorName": "CurrencySymbol",
+                                                "moduleName": "Ledger.Value",
+                                                "argumentSignatures": []
+                                              },
+                                              {
+                                                "constructorName": "Map",
+                                                "moduleName": "Language.PlutusTx.AssocMap",
+                                                "argumentSignatures": [
+                                                  {
+                                                    "constructorName": "TokenName",
+                                                    "moduleName": "Ledger.Value",
+                                                    "argumentSignatures": []
+                                                  },
+                                                  {
+                                                    "constructorName": "Integer",
+                                                    "moduleName": "GHC.Integer.Type",
+                                                    "argumentSignatures": []
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      []
+                                    ]
+                                  ]
+                                ]
+                              ]
+                            }
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                }
+              ]
+            ]
           ],
           "functionName": "contribute"
         },
         {
           "argumentSchema": [
-            {
-              "tag": "SimpleObjectSchema",
-              "contents": [
-                [
-                  "ivTo",
-                  {
-                    "tag": "SimpleObjectSchema",
-                    "contents": [
+            [
+              {
+                "constructorName": "Value",
+                "moduleName": "Ledger.Value",
+                "argumentSignatures": []
+              },
+              [
+                {
+                  "tag": "Record",
+                  "contents": [
+                    "Value",
+                    [
                       [
-                        "getSlot",
-                        {
-                          "tag": "SimpleIntSchema"
-                        }
-                      ]
-                    ]
-                  }
-                ],
-                [
-                  "ivFrom",
-                  {
-                    "tag": "SimpleObjectSchema",
-                    "contents": [
-                      [
-                        "getSlot",
-                        {
-                          "tag": "SimpleIntSchema"
-                        }
-                      ]
-                    ]
-                  }
-                ]
-              ]
-            },
-            {
-              "tag": "ValueSchema",
-              "contents": [
-                [
-                  "getValue",
-                  {
-                    "tag": "SimpleObjectSchema",
-                    "contents": [
-                      [
-                        "unMap",
-                        {
-                          "tag": "SimpleArraySchema",
-                          "contents": {
-                            "tag": "SimpleTupleSchema",
-                            "contents": [
+                        "getValue",
+                        [
+                          {
+                            "constructorName": "Map",
+                            "moduleName": "Language.PlutusTx.AssocMap",
+                            "argumentSignatures": [
                               {
-                                "tag": "SimpleHexSchema"
+                                "constructorName": "CurrencySymbol",
+                                "moduleName": "Ledger.Value",
+                                "argumentSignatures": []
                               },
                               {
-                                "tag": "SimpleObjectSchema",
-                                "contents": [
-                                  [
-                                    "unMap",
-                                    {
-                                      "tag": "SimpleArraySchema",
-                                      "contents": {
-                                        "tag": "SimpleTupleSchema",
-                                        "contents": [
-                                          {
-                                            "tag": "SimpleStringSchema"
-                                          },
-                                          {
-                                            "tag": "SimpleIntSchema"
-                                          }
-                                        ]
-                                      }
-                                    }
-                                  ]
+                                "constructorName": "Map",
+                                "moduleName": "Language.PlutusTx.AssocMap",
+                                "argumentSignatures": [
+                                  {
+                                    "constructorName": "TokenName",
+                                    "moduleName": "Ledger.Value",
+                                    "argumentSignatures": []
+                                  },
+                                  {
+                                    "constructorName": "Integer",
+                                    "moduleName": "GHC.Integer.Type",
+                                    "argumentSignatures": []
+                                  }
                                 ]
                               }
                             ]
-                          }
-                        }
+                          },
+                          [
+                            {
+                              "tag": "Record",
+                              "contents": [
+                                "Map",
+                                [
+                                  [
+                                    "unMap",
+                                    [
+                                      {
+                                        "constructorName": "[]",
+                                        "moduleName": "GHC.Types",
+                                        "argumentSignatures": [
+                                          {
+                                            "constructorName": "(,)",
+                                            "moduleName": "GHC.Tuple",
+                                            "argumentSignatures": [
+                                              {
+                                                "constructorName": "CurrencySymbol",
+                                                "moduleName": "Ledger.Value",
+                                                "argumentSignatures": []
+                                              },
+                                              {
+                                                "constructorName": "Map",
+                                                "moduleName": "Language.PlutusTx.AssocMap",
+                                                "argumentSignatures": [
+                                                  {
+                                                    "constructorName": "TokenName",
+                                                    "moduleName": "Ledger.Value",
+                                                    "argumentSignatures": []
+                                                  },
+                                                  {
+                                                    "constructorName": "Integer",
+                                                    "moduleName": "GHC.Integer.Type",
+                                                    "argumentSignatures": []
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      []
+                                    ]
+                                  ]
+                                ]
+                              ]
+                            }
+                          ]
+                        ]
                       ]
                     ]
-                  }
-                ]
+                  ]
+                }
               ]
-            },
-            {
-              "tag": "SimpleObjectSchema",
-              "contents": [
-                [
-                  "getWallet",
-                  {
-                    "tag": "SimpleIntSchema"
-                  }
-                ]
+            ],
+            [
+              {
+                "constructorName": "Wallet",
+                "moduleName": "Wallet.Emulator.Types",
+                "argumentSignatures": []
+              },
+              [
+                {
+                  "tag": "Record",
+                  "contents": [
+                    "Wallet",
+                    [
+                      [
+                        "getWallet",
+                        [
+                          {
+                            "constructorName": "Integer",
+                            "moduleName": "GHC.Integer.Type",
+                            "argumentSignatures": []
+                          },
+                          []
+                        ]
+                      ]
+                    ]
+                  ]
+                }
               ]
-            }
+            ]
           ],
           "functionName": "payToWallet_"
         }

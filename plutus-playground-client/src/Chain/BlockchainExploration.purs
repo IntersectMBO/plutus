@@ -4,6 +4,7 @@ module Chain.BlockchainExploration
 
 import Prelude hiding (div)
 
+import Array.Extra (collapse)
 import Bootstrap (nbsp)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
@@ -23,10 +24,9 @@ import Data.Tuple.Nested (type (/\), tuple3, (/\))
 import Halogen (HTML)
 import Halogen.HTML (ClassName(ClassName), div, div_, h2, h2_, h3, strong_, table, tbody_, td, text, th, thead_, tr_)
 import Halogen.HTML.Properties (class_, classes, colSpan)
+import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Ada (Ada(..))
 import Ledger.Crypto (PubKey(PubKey))
-import Ledger.Extra (LedgerMap(..), collapse)
-import Ledger.Extra as Ledger
 import Ledger.Scripts (DataScript(..), RedeemerScript(..))
 import Ledger.Tx (Tx(Tx), TxInOf(TxInOf), TxInType(ConsumeScriptAddress, ConsumePublicKeyAddress), TxOutOf(TxOutOf), TxOutRefOf(TxOutRefOf), TxOutType(PayToScript, PayToPubKey))
 import Ledger.TxId (TxIdOf(TxIdOf))
@@ -136,13 +136,13 @@ blockchainExploration addressTargets blockchain =
     rows = Set.map snd $ Map.keys $ balanceMap
 
 data Balance
-  = CurrencyBalance (LedgerMap CurrencySymbol (LedgerMap TokenName Int))
+  = CurrencyBalance (AssocMap.Map CurrencySymbol (AssocMap.Map TokenName Int))
   | Remainder
 
 merge :: Balance -> Balance -> Maybe Balance
 merge Remainder Remainder = Just Remainder
 merge (CurrencyBalance x) (CurrencyBalance y)
-  = Just $ CurrencyBalance (Ledger.unionWith (Ledger.unionWith (+)) x y)
+  = Just $ CurrencyBalance (AssocMap.unionWith (AssocMap.unionWith (+)) x y)
 merge _ _ = Nothing
 
 toBalanceMap :: Blockchain -> Map (Tuple Column (Tuple Int Int)) Balance
@@ -166,7 +166,7 @@ toBalanceMap =
 
     feeTransactions :: Row -> JsonTuple (TxIdOf String) Tx -> Tuple (Tuple Column Row) Balance
     feeTransactions row (JsonTuple (Tuple _ (Tx {txFee: (Ada {getAda: adaBalance})}))) =
-      Tuple (Tuple FeeIx row) (CurrencyBalance $ LedgerMap [Tuple adaCurrencySymbol (LedgerMap [Tuple adaTokenName adaBalance])])
+      Tuple (Tuple FeeIx row) (CurrencyBalance $ AssocMap.fromTuples [Tuple adaCurrencySymbol (AssocMap.fromTuples [Tuple adaTokenName adaBalance])])
 
     inputTransactions :: Row -> JsonTuple (TxIdOf String) Tx -> Array (Tuple (Tuple Column Row) Balance)
     inputTransactions row (JsonTuple (Tuple _ (Tx {txInputs}))) =
@@ -207,7 +207,7 @@ balanceClassname = ClassName "balance"
 balanceView :: forall p i. Balance -> HTML p i
 balanceView (CurrencyBalance currencyBalances) =
   div [ classes [ balanceClassname
-                , if Ledger.null currencyBalances
+                , if AssocMap.null currencyBalances
                   then ClassName "balance-no-currencies"
                   else ClassName "balance-currencies"
                 ]

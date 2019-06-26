@@ -108,6 +108,7 @@ library plutus-ledger
         Ledger.AddressMap
         Ledger.Blockchain
         Ledger.Crypto
+        Ledger.Orphans
         Ledger.Slot
         Ledger.Scripts
         Ledger.Tx
@@ -128,6 +129,7 @@ library plutus-ledger
         cryptonite >=0.25,
         hashable -any,
         hedgehog -any,
+        iots-export -any,
         language-plutus-core -any,
         memory -any,
         mtl -any,
@@ -136,7 +138,6 @@ library plutus-ledger
         prettyprinter -any,
         serialise -any,
         servant -any,
-        swagger2 <2.4,
         template-haskell -any,
         text -any,
         transformers -any,
@@ -146,6 +147,7 @@ library plutus-ledger
         newtype-generics -any,
         http-api-data -any,
         cardano-crypto -any,
+        playground-common,
         deepseq -any
 
     if flag(defer-plugin-errors)

@@ -9,6 +9,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TupleSections         #-}
+{-# LANGUAGE TypeApplications      #-}
 module Wallet.Emulator.Types(
     -- * Wallets
     Wallet(..),
@@ -100,12 +101,13 @@ import           Data.Map                  (Map)
 import qualified Data.Map                  as Map
 import           Data.Maybe
 import qualified Data.Set                  as Set
-import           Data.Swagger              (ToSchema)
 import qualified Data.Text                 as T
 import           Data.Traversable          (for)
 import           GHC.Generics              (Generic)
+import           IOTS                      (IotsType (iotsDefinition))
 import qualified Ledger.Crypto             as Crypto
 import           Prelude                   as P
+import           Schema                    (ToSchema)
 import           Servant.API               (FromHttpApiData (..), ToHttpApiData (..))
 
 import           Ledger                    (Address, Block, Blockchain, PrivateKey (..), PubKey (..), Slot, Tx (..),
@@ -124,7 +126,7 @@ import qualified Wallet.API                as WAPI
 newtype Wallet = Wallet { getWallet :: Integer }
     deriving (Show, Eq, Ord, Generic)
     deriving newtype (ToHttpApiData, FromHttpApiData, Hashable)
-    deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey, ToSchema)
+    deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey, ToSchema, IotsType)
 
 -- | Get a wallet's public key.
 walletPubKey :: Wallet -> PubKey
@@ -155,6 +157,12 @@ newtype MockWallet a = MockWallet { runMockWallet :: (ExceptT WalletAPIError (St
 
 instance WalletDiagnostics MockWallet where
     logMsg t = tell (WalletLog [t], [])
+
+-- | JavaScript has no effect system, so we basically have to throw
+-- away the monadic context and trust that things will magically work
+-- out.
+instance IotsType a => IotsType (MockWallet a) where
+  iotsDefinition = iotsDefinition @a
 
 tellTx :: [Tx] -> MockWallet ()
 tellTx tx = MockWallet $ tell (mempty, tx)

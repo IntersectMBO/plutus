@@ -14,7 +14,7 @@ import Data.Tuple (Tuple(..))
 import Foreign (MultipleErrors)
 import Foreign.Class (class Decode, class Encode, decode, encode)
 import Language.Haskell.Interpreter (CompilationError, InterpreterError, InterpreterResult)
-import Ledger.Extra (LedgerMap(..))
+import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Playground.API (CompilationResult, EvaluationResult, KnownCurrency(..))
 import Test.QuickCheck (arbitrary, withHelp)
@@ -66,22 +66,22 @@ jsonHandlingTests = do
           (Proxy :: Proxy (Array CompilationError))
           "test/evaluation_error1.json"
       test "Decode/Encode a Value" do
-        let aValue = Value { getValue: LedgerMap [ Tuple (CurrencySymbol { unCurrencySymbol: "0"}) (LedgerMap [ Tuple (TokenName { unTokenName: "ADA" }) 10 ])
-                                                 , Tuple (CurrencySymbol { unCurrencySymbol: "1"}) (LedgerMap [ Tuple (TokenName { unTokenName: "USD" }) 20 ])
-                                                 ]}
+        let aValue = Value { getValue: AssocMap.fromTuples [ Tuple (CurrencySymbol { unCurrencySymbol: "0"}) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "ADA" }) 10 ])
+                                                           , Tuple (CurrencySymbol { unCurrencySymbol: "1"}) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "USD" }) 20 ])
+                                                           ]}
         equal
           (Right aValue)
           (runExcept (decode (encode aValue)))
       test "Encode a Value." do
-        let aValue = Value { getValue: LedgerMap [ Tuple (CurrencySymbol { unCurrencySymbol: "0" }) (LedgerMap [ Tuple (TokenName { unTokenName: "ADA" }) 100 ])
-                                                 , Tuple (CurrencySymbol { unCurrencySymbol: "1" }) (LedgerMap [ Tuple (TokenName { unTokenName: "USD" }) 40 ])
-                                                 , Tuple (CurrencySymbol { unCurrencySymbol: "2" }) (LedgerMap [ Tuple (TokenName { unTokenName: "EUR" }) 40 ])
-                                                 ]}
+        let aValue = Value { getValue: AssocMap.fromTuples [ Tuple (CurrencySymbol { unCurrencySymbol: "0" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "ADA" }) 100 ])
+                                                           , Tuple (CurrencySymbol { unCurrencySymbol: "1" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "USD" }) 40 ])
+                                                           , Tuple (CurrencySymbol { unCurrencySymbol: "2" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "EUR" }) 40 ])
+                                                           ]}
         assertEncodesTo
           aValue
           "test/value1.json"
       test "Encode Ada." do
-        let aValue = Value { getValue: LedgerMap [ Tuple (CurrencySymbol { unCurrencySymbol: ""}) (LedgerMap [ Tuple (TokenName { unTokenName: "" }) 50 ])]}
+        let aValue = Value { getValue: AssocMap.fromTuples [ Tuple (CurrencySymbol { unCurrencySymbol: ""}) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "" }) 50 ])]}
         assertEncodesTo
           aValue
           "test/value_ada.json"
@@ -122,16 +122,16 @@ arbitraryTokenName = do
   str <- arbitrary
   pure $ TokenName { unTokenName: str }
 
-arbitraryLedgerMap :: forall k v. Gen k -> Gen v -> Gen (LedgerMap k v)
-arbitraryLedgerMap genK genV = do
+arbitraryAssocMap :: forall k v. Gen k -> Gen v -> Gen (AssocMap.Map k v)
+arbitraryAssocMap genK genV = do
   n <- chooseInt 0 5
-  xs <- vectorOf n (Tuple <$> genK <*> genV)
-  pure $ LedgerMap xs
+  xs <- vectorOf n (JsonTuple <$> (Tuple <$> genK <*> genV))
+  pure $ AssocMap.Map xs
 
 arbitraryValue :: Gen Value
 arbitraryValue = do
-  ledgerMap <- arbitraryLedgerMap arbitraryCurrencySymbol (arbitraryLedgerMap arbitraryTokenName arbitrary)
-  pure $ Value { getValue: ledgerMap }
+  assocMap <- arbitraryAssocMap arbitraryCurrencySymbol (arbitraryAssocMap arbitraryTokenName arbitrary)
+  pure $ Value { getValue: assocMap }
 
 arbitraryKnownCurrency :: Gen KnownCurrency
 arbitraryKnownCurrency = do

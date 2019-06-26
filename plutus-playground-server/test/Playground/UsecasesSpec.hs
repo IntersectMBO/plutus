@@ -11,7 +11,6 @@ import qualified Data.Aeson.Text              as JSON
 import           Data.Aeson.Types             (object, (.=))
 import           Data.Either                  (isRight)
 import           Data.List.NonEmpty           (NonEmpty ((:|)))
-import           Data.Swagger                 ()
 import qualified Data.Text                    as Text
 import qualified Data.Text.Lazy               as TL
 import           Data.Time.Units              (Microsecond, fromMicroseconds)
@@ -23,13 +22,14 @@ import           Ledger.Value                 (TokenName (TokenName), Value)
 import           Playground.API               (CompilationResult (CompilationResult), Evaluation (Evaluation),
                                                Expression (Action, Wait), Fn (Fn), FunctionSchema (FunctionSchema),
                                                KnownCurrency (KnownCurrency), PlaygroundError,
-                                               SimpleArgumentSchema (SimpleArraySchema, SimpleHexSchema, SimpleIntSchema, SimpleObjectSchema, SimpleStringSchema, SimpleTupleSchema, ValueSchema),
                                                SimulatorWallet (SimulatorWallet), adaCurrency, argumentSchema,
-                                               functionName, isSupportedByFrontend, simulatorWalletBalance,
-                                               simulatorWalletWallet)
+                                               functionName, simulatorWalletBalance, simulatorWalletWallet)
 import qualified Playground.Interpreter       as PI
 import           Playground.Interpreter.Util  (TraceResult)
 import           Playground.Usecases          (crowdfunding, game, messages, vesting)
+import           Schema                       (Constructor (Record), ConstructorName (ConstructorName),
+                                               DataType (DataType), TypeSignature (TypeSignature), argumentSignatures,
+                                               constructorName, moduleName)
 import           Test.Hspec                   (Spec, describe, it, shouldBe, shouldSatisfy)
 import           Wallet.Emulator.Types        (Wallet (Wallet))
 
@@ -62,65 +62,149 @@ mkSimulatorWallet simulatorWalletWallet simulatorWalletBalance =
 vestingSpec :: Spec
 vestingSpec =
     describe "vesting" $ do
-        let vlSchema =
-                ValueSchema
-                    [ ( "getValue"
-                      , SimpleObjectSchema
-                            [ ( "unMap"
-                              , SimpleArraySchema
-                                    (SimpleTupleSchema
-                                         ( SimpleHexSchema
-                                         , SimpleObjectSchema
-                                               [ ( "unMap"
-                                                 , SimpleArraySchema
-                                                       (SimpleTupleSchema
-                                                            ( SimpleStringSchema
-                                                            , SimpleIntSchema)))
-                                               ])))
-                            ])
-                    ]
-            walletSchema = SimpleObjectSchema [("getWallet", SimpleIntSchema)]
-            vestingTrancheSchema =
-                SimpleObjectSchema
-                    [ ("vestingTrancheAmount", vlSchema)
-                    , ( "vestingTrancheDate"
-                        , SimpleObjectSchema [("getSlot", SimpleIntSchema)])
-                    ]
         compilationChecks vesting
         it "should compile with the expected schema" $ do
-            Right (InterpreterResult _ (CompilationResult result _)) <-
+            Right (InterpreterResult _ (CompilationResult result _ _)) <-
                 compile vesting
             result `shouldBe`
                 [ FunctionSchema
                       { functionName = Fn "vestFunds"
                       , argumentSchema =
-                            [ vestingTrancheSchema
-                            , vestingTrancheSchema
-                            , walletSchema
+                            [ DataType
+                                  (TypeSignature
+                                       { moduleName = "Main"
+                                       , constructorName = "VestingTranche"
+                                       , argumentSignatures = []
+                                       })
+                                  [ Record
+                                        (ConstructorName "VestingTranche")
+                                        [ ("vestingTrancheDate", slotDataType)
+                                        , ( "vestingTrancheAmount"
+                                          , valueDataType)
+                                        ]
+                                  ]
+                            , DataType
+                                  (TypeSignature
+                                       { moduleName = "Main"
+                                       , constructorName = "VestingTranche"
+                                       , argumentSignatures = []
+                                       })
+                                  [ Record
+                                        (ConstructorName "VestingTranche")
+                                        [ ("vestingTrancheDate", slotDataType)
+                                        , ( "vestingTrancheAmount"
+                                          , valueDataType)
+                                        ]
+                                  ]
+                            , DataType
+                                  (TypeSignature
+                                       { moduleName = "Wallet.Emulator.Types"
+                                       , constructorName = "Wallet"
+                                       , argumentSignatures = []
+                                       })
+                                  [ Record
+                                        (ConstructorName "Wallet")
+                                        [("getWallet", integerDataType)]
+                                  ]
                             ]
                       }
                 , FunctionSchema
                       { functionName = Fn "registerVestingScheme"
                       , argumentSchema =
-                            [ vestingTrancheSchema
-                            , vestingTrancheSchema
-                            , walletSchema
+                            [ DataType
+                                  (TypeSignature
+                                       { moduleName = "Main"
+                                       , constructorName = "VestingTranche"
+                                       , argumentSignatures = []
+                                       })
+                                  [ Record
+                                        (ConstructorName "VestingTranche")
+                                        [ ("vestingTrancheDate", slotDataType)
+                                        , ( "vestingTrancheAmount"
+                                          , valueDataType)
+                                        ]
+                                  ]
+                            , DataType
+                                  (TypeSignature
+                                       { moduleName = "Main"
+                                       , constructorName = "VestingTranche"
+                                       , argumentSignatures = []
+                                       })
+                                  [ Record
+                                        (ConstructorName "VestingTranche")
+                                        [ ("vestingTrancheDate", slotDataType)
+                                        , ( "vestingTrancheAmount"
+                                          , valueDataType)
+                                        ]
+                                  ]
+                            , DataType
+                                  (TypeSignature
+                                       { moduleName = "Wallet.Emulator.Types"
+                                       , constructorName = "Wallet"
+                                       , argumentSignatures = []
+                                       })
+                                  [ Record
+                                        (ConstructorName "Wallet")
+                                        [("getWallet", integerDataType)]
+                                  ]
                             ]
                       }
                 , FunctionSchema
                       { functionName = Fn "withdraw"
                       , argumentSchema =
-                            [ vestingTrancheSchema
-                            , vestingTrancheSchema
-                            , walletSchema
-                            , vlSchema
+                            [ DataType
+                                  (TypeSignature
+                                       { moduleName = "Main"
+                                       , constructorName = "VestingTranche"
+                                       , argumentSignatures = []
+                                       })
+                                  [ Record
+                                        (ConstructorName "VestingTranche")
+                                        [ ("vestingTrancheDate", slotDataType)
+                                        , ( "vestingTrancheAmount"
+                                          , valueDataType)
+                                        ]
+                                  ]
+                            , DataType
+                                  (TypeSignature
+                                       { moduleName = "Main"
+                                       , constructorName = "VestingTranche"
+                                       , argumentSignatures = []
+                                       })
+                                  [ Record
+                                        (ConstructorName "VestingTranche")
+                                        [ ("vestingTrancheDate", slotDataType)
+                                        , ( "vestingTrancheAmount"
+                                          , valueDataType)
+                                        ]
+                                  ]
+                            , DataType
+                                  (TypeSignature
+                                       { moduleName = "Wallet.Emulator.Types"
+                                       , constructorName = "Wallet"
+                                       , argumentSignatures = []
+                                       })
+                                  [ Record
+                                        (ConstructorName "Wallet")
+                                        [("getWallet", integerDataType)]
+                                  ]
+                            , valueDataType
                             ]
                       }
                 , FunctionSchema
                       { functionName = Fn "payToWallet_"
                       , argumentSchema =
-                            [ vlSchema
-                            , walletSchema
+                            [ valueDataType
+                            , DataType
+                                  (TypeSignature
+                                       { moduleName = "Wallet.Emulator.Types"
+                                       , constructorName = "Wallet"
+                                       , argumentSignatures = []
+                                       })
+                                  [ Record
+                                        (ConstructorName "Wallet")
+                                        [("getWallet", integerDataType)]
+                                  ]
                             ]
                       }
                 ]
@@ -139,7 +223,11 @@ vestingSpec =
     vestFundsEval =
         Evaluation
             [mkSimulatorWallet w1 ten]
-            [Action (Fn "vestFunds") w1 [theVestingTranche, theVestingTranche, theVestingOwner]]
+            [ Action
+                  (Fn "vestFunds")
+                  w1
+                  [theVestingTranche, theVestingTranche, theVestingOwner]
+            ]
             (SourceCode vesting)
             []
     theVestingTranche =
@@ -318,6 +406,7 @@ knownCurrencySpec =
         SourceCode $
         Text.unlines
             [ "import Playground.Contract"
+            , "import Data.Text"
             , "import Data.List.NonEmpty (NonEmpty ((:|)))"
             , "import Ledger.Value (TokenName(TokenName))"
             , "import Ledger.Scripts (ValidatorHash (..))"
@@ -326,8 +415,9 @@ knownCurrencySpec =
             , "myCurrency :: KnownCurrency"
             , "myCurrency = KnownCurrency (ValidatorHash \"\") \"MyCurrency\" (TokenName \"MyToken\" :| [])"
             , "$(mkKnownCurrencies ['myCurrency])"
+            , "iotsDefinitions = \"\""
             ]
-    hasKnownCurrency (Right (InterpreterResult _ (CompilationResult _ [cur1, cur2]))) =
+    hasKnownCurrency (Right (InterpreterResult _ (CompilationResult _ [cur1, cur2] _))) =
         cur1 == adaCurrency &&
         cur2 ==
         KnownCurrency
@@ -347,16 +437,8 @@ evaluate evaluation =
     runExceptT $ PI.runFunction maxInterpretationTime evaluation
 
 compilationChecks :: Text.Text -> Spec
-compilationChecks f = do
+compilationChecks f =
     it "should compile" $ compile f >>= (`shouldSatisfy` isRight)
-    it "should be representable on the frontend" $
-        compile f >>= (`shouldSatisfy` isSupportedCompilationResult)
-
-isSupportedCompilationResult ::
-       Either InterpreterError (InterpreterResult CompilationResult) -> Bool
-isSupportedCompilationResult (Left _) = False
-isSupportedCompilationResult (Right (InterpreterResult _ (CompilationResult functionSchemas _))) =
-    all (all isSupportedByFrontend . argumentSchema) functionSchemas
 
 mkI :: Int -> JSON.Value
 mkI = JSON.toJSON
@@ -364,3 +446,110 @@ mkI = JSON.toJSON
 -- | Encode a value in JSON, then make a JSON *string* from that
 toJSONString :: JSON.ToJSON a => a -> JSON.Value
 toJSONString = JSON.String . TL.toStrict . JSON.encodeToLazyText
+
+------------------------------------------------------------
+integerTypeSignature :: TypeSignature
+integerTypeSignature =
+    TypeSignature
+        { moduleName = "GHC.Integer.Type"
+        , constructorName = "Integer"
+        , argumentSignatures = []
+        }
+
+integerDataType :: DataType
+integerDataType = DataType integerTypeSignature []
+
+slotDataType :: DataType
+slotDataType =
+    DataType
+        (TypeSignature
+             { moduleName = "Ledger.Slot"
+             , constructorName = "Slot"
+             , argumentSignatures = []
+             })
+        [Record (ConstructorName "Slot") [("getSlot", integerDataType)]]
+
+valueDataType :: DataType
+valueDataType =
+    DataType
+        (TypeSignature
+             { moduleName = "Ledger.Value"
+             , constructorName = "Value"
+             , argumentSignatures = []
+             })
+        [ Record
+              (ConstructorName "Value")
+              [ ( "getValue"
+                , DataType
+                      (TypeSignature
+                           { moduleName = "Language.PlutusTx.AssocMap"
+                           , constructorName = "Map"
+                           , argumentSignatures =
+                                 [ TypeSignature
+                                       { moduleName = "Ledger.Value"
+                                       , constructorName = "CurrencySymbol"
+                                       , argumentSignatures = []
+                                       }
+                                 , TypeSignature
+                                       { moduleName =
+                                             "Language.PlutusTx.AssocMap"
+                                       , constructorName = "Map"
+                                       , argumentSignatures =
+                                             [ TypeSignature
+                                                   { moduleName = "Ledger.Value"
+                                                   , constructorName =
+                                                         "TokenName"
+                                                   , argumentSignatures = []
+                                                   }
+                                             , integerTypeSignature
+                                             ]
+                                       }
+                                 ]
+                           })
+                      [ Record
+                            (ConstructorName "Map")
+                            [ ( "unMap"
+                              , DataType
+                                    (TypeSignature
+                                         { moduleName = "GHC.Types"
+                                         , constructorName = "[]"
+                                         , argumentSignatures =
+                                               [ TypeSignature
+                                                     { moduleName = "GHC.Tuple"
+                                                     , constructorName = "(,)"
+                                                     , argumentSignatures =
+                                                           [ TypeSignature
+                                                                 { moduleName =
+                                                                       "Ledger.Value"
+                                                                 , constructorName =
+                                                                       "CurrencySymbol"
+                                                                 , argumentSignatures =
+                                                                       []
+                                                                 }
+                                                           , TypeSignature
+                                                                 { moduleName =
+                                                                       "Language.PlutusTx.AssocMap"
+                                                                 , constructorName =
+                                                                       "Map"
+                                                                 , argumentSignatures =
+                                                                       [ TypeSignature
+                                                                             { moduleName =
+                                                                                   "Ledger.Value"
+                                                                             , constructorName =
+                                                                                   "TokenName"
+                                                                             , argumentSignatures =
+                                                                                   [
+                                                                                   ]
+                                                                             }
+                                                                       , integerTypeSignature
+                                                                       ]
+                                                                 }
+                                                           ]
+                                                     }
+                                               ]
+                                         })
+                                    [])
+                            ]
+                      ])
+              ]
+        ]

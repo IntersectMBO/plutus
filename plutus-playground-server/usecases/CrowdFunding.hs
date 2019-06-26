@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE StandaloneDeriving  #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
@@ -206,6 +207,7 @@ refundHandler txid cmp = EventHandler (\_ -> do
     collectFromScriptTxn (refundRange cmp) validatorScript redeemerScript txid)
 
 $(mkFunctions ['scheduleCollection, 'contribute])
+$(mkIotsDefinitions ['scheduleCollection, 'contribute])
 
 {- note [Transactions in the crowdfunding campaign]
 
@@ -255,3 +257,7 @@ This part of the API (the PendingTx argument) is experimental and subject
 to change.
 
 -}
+
+myCurrency :: KnownCurrency
+myCurrency = KnownCurrency "b0b0" "MyCurrency" ( "USDToken" :| ["EURToken"])
+$(mkKnownCurrencies ['myCurrency])

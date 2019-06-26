@@ -1,6 +1,9 @@
 -- | Re-export functions that are needed when creating a Contract for use in the playground
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 {-# OPTIONS_GHC -fno-warn-missing-import-lists #-}
@@ -8,9 +11,10 @@
 module Playground.Contract
     ( mkFunctions
     , mkFunction
+    , mkIotsDefinitions
+    , ensureIotsDefinitions
     , mkKnownCurrencies
     , ToSchema
-    , Schema
     , ToJSON
     , FromJSON
     , FunctionSchema
@@ -29,6 +33,7 @@ module Playground.Contract
     , TokenName(TokenName)
     , NonEmpty((:|))
     , adaCurrency
+    , module IOTS
     ) where
 
 import           Data.Aeson                  (FromJSON, ToJSON, encode)
@@ -38,14 +43,18 @@ import           Data.ByteString.Lazy        (ByteString)
 import qualified Data.ByteString.Lazy        as BSL
 import qualified Data.ByteString.Lazy.Char8  as LBC8
 import           Data.List.NonEmpty          (NonEmpty ((:|)))
-import           Data.Swagger                (Schema, ToSchema)
+import           Data.Text                   (Text)
 import           GHC.Generics                (Generic)
+import           IOTS                        (IotsType (iotsDefinition))
 import           Ledger.Interval             (always)
 import           Ledger.Scripts              (ValidatorHash (ValidatorHash))
 import           Ledger.Value                (TokenName (TokenName), Value)
 import           Playground.API              (FunctionSchema, KnownCurrency (KnownCurrency), adaCurrency)
 import           Playground.Interpreter.Util
-import           Playground.TH               (mkFunction, mkFunctions, mkKnownCurrencies, mkSingleFunction)
+import           Playground.TH               (ensureIotsDefinitions, mkFunction, mkFunctions, mkIotsDefinitions,
+                                              mkKnownCurrencies, mkSingleFunction)
+import           Schema                      (ToSchema)
+import qualified Schema
 import           Wallet.API                  (WalletAPI, payToPublicKey_)
 import           Wallet.Emulator             (addBlocksAndNotify, runWalletActionAndProcessPending, walletPubKey)
 import           Wallet.Emulator.Types       (MockWallet, Wallet (..))
@@ -63,9 +72,13 @@ instance ByteArrayAccess ByteString where
 
 $(mkSingleFunction 'payToWallet_)
 
-printSchemas :: ([FunctionSchema Schema], [KnownCurrency]) -> IO ()
-printSchemas (schemas, currencies) =
-    LBC8.putStrLn . encode $ (schemas <> [payToWallet_Schema], currencies)
+printSchemas ::
+       ([FunctionSchema Schema.DataType], [KnownCurrency], Text) -> IO ()
+printSchemas (userSchemas, currencies, iotsDefinitions) =
+    LBC8.putStrLn . encode $ (allSchemas, currencies, iotsDefinitions)
+  where
+    allSchemas = userSchemas <> builtinSchemas
+    builtinSchemas = [payToWallet_Schema]
 
 printJson :: ToJSON a => a -> IO ()
 printJson = LBC8.putStrLn . encode

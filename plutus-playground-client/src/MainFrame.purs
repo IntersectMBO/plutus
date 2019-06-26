@@ -49,7 +49,6 @@ import Effect.Class (class MonadEffect, liftEffect)
 import Foreign.Generic (decodeJSON)
 import Gist (gistFileContent, gistId)
 import Gists (gistControls)
-import Playground.Gists (mkNewGist, playgroundGistFile, simulationGistFile)
 import Gists as Gists
 import Halogen (Component, action)
 import Halogen as H
@@ -60,14 +59,15 @@ import Halogen.HTML.Properties (class_, classes, href, id_)
 import Halogen.Query (HalogenM)
 import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), _InterpreterResult)
-import Ledger.Extra (LedgerMap(LedgerMap))
-import Ledger.Extra as LedgerMap
+import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Value (CurrencySymbol(CurrencySymbol), TokenName(TokenName), Value(Value))
 import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
 import Playground.API (KnownCurrency(..), SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
+import Playground.Gists (mkNewGist, playgroundGistFile, simulationGistFile)
 import Playground.Server (SPParams_)
 import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, map, pure, show, unit, unless, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
+import Prim.TypeError (class Warn, Text)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData as StaticData
 import Wallet.Emulator.Types (Wallet(Wallet))
@@ -85,14 +85,14 @@ mkInitialValue currencies initialBalance = Value { getValue: value }
   where
     value =
       foldl
-        (LedgerMap.unionWith (LedgerMap.unionWith (+)))
-        (LedgerMap [])
+        (AssocMap.unionWith (AssocMap.unionWith (+)))
+        (AssocMap.fromTuples [])
       $ Array.concat
       $ map (\(KnownCurrency {hash, knownTokens}) ->
                  map (\(TokenName tokenId) ->
-                         LedgerMap [ (CurrencySymbol { unCurrencySymbol: hash })
-                                     /\
-                                     LedgerMap [ TokenName tokenId /\ initialBalance ]])
+                         AssocMap.fromTuples [ CurrencySymbol { unCurrencySymbol: hash }
+                                               /\
+                                               AssocMap.fromTuples [ TokenName tokenId /\ initialBalance ]])
                  $ Array.fromFoldable knownTokens)
         currencies
 
@@ -442,7 +442,13 @@ evalActionEvent (AddWaitAction blocks) = flip Array.snoc (Wait { blocks })
 evalActionEvent (RemoveAction index) = fromMaybe <*> Array.deleteAt index
 evalActionEvent (SetWaitTime index time) = set (ix index <<< _Wait <<< _blocks) time
 
-evalForm :: forall a. Value -> FormEvent a -> SimpleArgument -> SimpleArgument
+evalForm ::
+  forall a.
+  Warn (Text "I wonder if this code would be simpler if we just abandoned SimpleArgument and used the Functor version everywhere.")
+  => Value
+  -> FormEvent a
+  -> SimpleArgument
+  -> SimpleArgument
 evalForm initialValue = rec
   where
     rec (SetIntField n next) (SimpleInt _) = SimpleInt n
@@ -454,8 +460,8 @@ evalForm initialValue = rec
     rec (SetHexField s next) (SimpleHex _) = SimpleHex (Just s)
     rec (SetHexField _ _) arg = arg
 
-    rec (SetValueField valueEvent _) (ValueArgument schema value) =
-      ValueArgument schema $ evalValueEvent valueEvent value
+    rec (SetValueField valueEvent _) (ValueArgument value) =
+      ValueArgument $ evalValueEvent valueEvent value
     rec (SetValueField _ _) arg = arg
 
     rec (SetSubField 1 subEvent) (SimpleTuple fields) = SimpleTuple $ over (_Newtype <<< _1) (rec subEvent) fields
@@ -464,7 +470,7 @@ evalForm initialValue = rec
     rec (SetSubField _ subEvent) arg@(SimpleString _) = arg
     rec (SetSubField _ subEvent) arg@(SimpleInt _) = arg
     rec (SetSubField _ subEvent) arg@(SimpleHex _) = arg
-    rec (SetSubField _ subEvent) arg@(ValueArgument _ _) = arg
+    rec (SetSubField _ subEvent) arg@(ValueArgument _) = arg
 
     rec (AddSubField _) (SimpleArray schema fields) =
       -- As the code stands, this is the only guarantee we get that every
@@ -476,11 +482,15 @@ evalForm initialValue = rec
       SimpleArray schema $ Array.snoc fields (toArgument initialValue schema)
     rec (AddSubField _) arg = arg
 
+    rec (SetSubField 0 subEvent) (SimpleMaybe schema field) =
+      SimpleMaybe schema $ over _Just (rec subEvent) field
+    rec (SetSubField _ subEvent) arg@(SimpleMaybe schema field) = arg
+
     rec (SetSubField n subEvent) (SimpleArray schema fields) =
       SimpleArray schema $ over (ix n) (rec subEvent) fields
 
-    rec (SetSubField n subEvent) s@(SimpleObject schema fields) =
-      SimpleObject schema $ over (ix n <<< _Newtype <<< _2) (rec subEvent) fields
+    rec (SetSubField n subEvent) s@(SimpleObject fields) =
+      SimpleObject $ over (ix n <<< _Newtype <<< _2) (rec subEvent) fields
     rec (SetSubField n subEvent) arg@(Unknowable _) = arg
 
     rec (RemoveSubField n subEvent) arg@(SimpleArray schema fields ) =

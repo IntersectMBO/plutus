@@ -5,22 +5,14 @@ module Playground.APISpec
     ) where
 
 import           Data.Aeson                   (encode, object, toJSON)
-import           Data.Proxy                   (Proxy (Proxy))
-import           Data.Swagger                 (toInlinedSchema)
 import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), column, filename, row,
                                                text)
-import           Ledger.Interval              (Interval)
-import           Ledger.Value                 (Value)
-import           Playground.API               (SimpleArgumentSchema (SimpleArraySchema, SimpleHexSchema, SimpleIntSchema, SimpleObjectSchema, SimpleStringSchema, SimpleTupleSchema, ValueSchema),
-                                               adaCurrency, isSupportedByFrontend, parseErrorText,
-                                               toSimpleArgumentSchema)
+import           Playground.API               (adaCurrency, parseErrorText)
 import           Test.Hspec                   (Spec, describe, it, shouldBe)
 
 spec :: Spec
 spec = do
     parseErrorTextSpec
-    toSimpleArgumentSchemaSpec
-    isSupportedByFrontendSpec
     knownCurrenciesSpec
 
 parseErrorTextSpec :: Spec
@@ -62,67 +54,16 @@ parseErrorTextSpec =
                        ]
                  })
 
-toSimpleArgumentSchemaSpec :: Spec
-toSimpleArgumentSchemaSpec =
-    describe "toSimpleArgumentSchema" $ do
-        it "SimpleIntSchema" $
-            toSimpleArgumentSchema (toInlinedSchema (Proxy :: Proxy Int)) `shouldBe`
-            SimpleIntSchema
-        it "SimpleStringSchema" $
-            toSimpleArgumentSchema (toInlinedSchema (Proxy :: Proxy String)) `shouldBe`
-            SimpleStringSchema
-        it "SimpleArraySchema" $
-            toSimpleArgumentSchema (toInlinedSchema (Proxy :: Proxy [Int])) `shouldBe`
-            SimpleArraySchema SimpleIntSchema
-        it "SimpleTupleSchema" $
-            toSimpleArgumentSchema
-                (toInlinedSchema (Proxy :: Proxy (Int, String))) `shouldBe`
-            SimpleTupleSchema (SimpleIntSchema, SimpleStringSchema)
-        it "SimpleObjectSchema" $
-            toSimpleArgumentSchema
-                (toInlinedSchema (Proxy :: Proxy (Interval Int))) `shouldBe`
-            SimpleObjectSchema
-                [("ivFrom", SimpleIntSchema), ("ivTo", SimpleIntSchema)]
-        it "ValueSchema" $
-            toSimpleArgumentSchema (toInlinedSchema (Proxy :: Proxy Value)) `shouldBe`
-            ValueSchema
-                [ ( "getValue"
-                  , SimpleObjectSchema
-                        [ ( "unMap"
-                          , SimpleArraySchema
-                                (SimpleTupleSchema
-                                     ( SimpleHexSchema
-                                     , SimpleObjectSchema
-                                           [ ( "unMap"
-                                             , SimpleArraySchema
-                                                   (SimpleTupleSchema
-                                                        ( SimpleStringSchema
-                                                        , SimpleIntSchema)))
-                                           ])))
-                        ])
-                ]
-
-isSupportedByFrontendSpec :: Spec
-isSupportedByFrontendSpec =
-    describe "isSupportedByFrontend" $
-    it "Should handle Value types." $
-    isSupportedByFrontend
-        (toSimpleArgumentSchema (toInlinedSchema (Proxy :: Proxy Value))) `shouldBe`
-    True
-
 knownCurrenciesSpec :: Spec
 knownCurrenciesSpec =
     describe "mkKnownCurrencies" $
     it "Should serialise Ada properly" $
-    encode adaCurrency
-        `shouldBe`
+    encode adaCurrency `shouldBe`
     -- note that the object is the same as
     -- plutus-playground-client\test\known_currency.json
-    encode (object
-                [ ("hash", "")
-                , ("friendlyName", "Ada")
-                , ("knownTokens"
-                  , toJSON [
-                    object [("unTokenName", "")]
-                    ])
-                ])
+    encode
+        (object
+             [ ("hash", "")
+             , ("friendlyName", "Ada")
+             , ("knownTokens", toJSON [object [("unTokenName", "")]])
+             ])

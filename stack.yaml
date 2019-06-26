@@ -48,7 +48,7 @@ extra-deps:
 - extensible-effects-5.0.0.1
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - git: https://github.com/shmish111/purescript-bridge.git
-  commit: a7069a515800135ce932742e995f3a96bc1c7129
+  commit: dc500a47c8330526a78c5cfac84ddb923cd5c8a5
 - git: https://github.com/shmish111/servant-purescript.git
   commit: ece5d1dad16a5731ac22040075615803796c7c21
 - git: https://github.com/input-output-hk/cardano-crypto.git
@@ -62,6 +62,8 @@ extra-deps:
 # Need https://github.com/phadej/github/pull/387 and to be added back in to stackage
 - git: https://github.com/shmish111/github.git
   commit: cc27b9de4d5d0939235fa9a8b418de3ea4807bab
+- git: https://github.com/input-output-hk/iots-export.git
+  commit: 6522c6a5914760f6e08be97b866e93ba8712424c
 flags:
   language-plutus-core:
     development: true

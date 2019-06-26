@@ -1,21 +1,27 @@
-{-# LANGUAGE DeriveAnyClass  #-}
-{-# LANGUAGE DeriveGeneric   #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveAnyClass   #-}
+{-# LANGUAGE DeriveGeneric    #-}
+{-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Playground.TH
     ( mkFunction
     , mkFunctions
+    , mkIotsDefinitions
+    , ensureIotsDefinitions
     , mkSingleFunction
     , mkKnownCurrencies
     ) where
 
-import           Data.Proxy          (Proxy (Proxy))
-import           Data.Swagger.Schema (toInlinedSchema)
-import           Data.Text           (pack)
-import           Language.Haskell.TH (Body (NormalB), Clause (Clause), Dec (FunD, SigD, ValD), Exp (ListE, VarE),
-                                      Info (VarI), Name, Pat (VarP), Q,
-                                      Type (AppT, ArrowT, ConT, ForallT, ListT, TupleT, VarT), mkName, nameBase, reify)
-import           Playground.API      (Fn (Fn), FunctionSchema (FunctionSchema), adaCurrency)
+import           Data.Text             (pack)
+import           IOTS                  (HList (HCons, HNil), Tagged (Tagged))
+import qualified IOTS
+import           Language.Haskell.TH   (Body (NormalB), Clause (Clause), Dec (FunD, SigD, ValD),
+                                        Exp (ListE, LitE, VarE), ExpQ, Info (VarI), Lit (StringL), Name, Pat (VarP), Q,
+                                        Type (AppT, ArrowT, ConT, ForallT, ListT, TupleT, VarT), appTypeE, conE, conT,
+                                        litT, lookupValueName, mkName, nameBase, reify, strTyLit, varE)
+import           Playground.API        (Fn (Fn), FunctionSchema (FunctionSchema), adaCurrency)
+import           Schema                (toSchema)
+import           Wallet.Emulator.Types (MockWallet)
 
 mkFunctions :: [Name] -> Q [Dec]
 mkFunctions names = do
@@ -25,6 +31,35 @@ mkFunctions names = do
     pure $ fns <> [schemas]
   where
     mkNewName name = VarE . mkName $ nameBase name ++ "Schema"
+
+iotsBindingName :: String
+iotsBindingName = "iotsDefinitions"
+
+mkIotsDefinitions :: [Name] -> Q [Dec]
+mkIotsDefinitions names = do
+    let applyMonadType :: ExpQ -> ExpQ
+        applyMonadType expr = appTypeE expr (conT ''MockWallet)
+    iotsDefinition <- [|IOTS.export $(mkTaggedList applyMonadType names)|]
+    pure [ValD (VarP (mkName iotsBindingName)) (NormalB iotsDefinition) []]
+
+ensureIotsDefinitions :: Q [Dec]
+ensureIotsDefinitions = do
+    bound <- lookupValueName iotsBindingName
+    case bound of
+        Just _ -> pure []
+        Nothing ->
+            pure
+                [ ValD
+                      (VarP (mkName iotsBindingName))
+                      (NormalB (LitE (StringL "")))
+                      []
+                ]
+
+mkTaggedList :: (ExpQ -> ExpQ) -> [Name] -> Q Exp
+mkTaggedList _ [] = [|HNil|]
+mkTaggedList f (x:xs) =
+    let nameTag = appTypeE (conE 'Tagged) (litT (strTyLit (nameBase x)))
+     in [|HCons ($nameTag $(f (varE x))) $(mkTaggedList f xs)|]
 
 {-# ANN mkFunction ("HLint: ignore" :: String) #-}
 
@@ -67,13 +102,11 @@ mkFunctionExp name fn = do
              in toSchemas fn ts
         _ -> error "Incorrect Name type provided to mkFunction"
 
+{-# ANN toSchemas ("HLint: ignore Redundant bracket" :: String) #-}
+
 toSchemas :: Fn -> [Type] -> Q Exp
 toSchemas fn ts = do
-    es <-
-        foldr
-            (\t e -> [|toInlinedSchema (Proxy :: Proxy $(pure t)) : $e|])
-            [|[]|]
-            ts
+    es <- foldr (\t e -> [|toSchema @($(pure t)) : $e|]) [|[]|] ts
     [|FunctionSchema fn $(pure es)|]
 
 {-# ANN args ("HLint: ignore" :: String) #-}

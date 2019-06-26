@@ -17,6 +17,7 @@ module Game where
 -- Player 2 guesses the word by attempting to spend the transaction
 -- output. If the guess is correct, the validator script releases the funds.
 -- If it isn't, the funds stay locked.
+
 import qualified Language.PlutusTx          as PlutusTx
 import           Language.PlutusTx.Prelude
 import           Ledger                     (Address, DataScript (DataScript), PendingTx,

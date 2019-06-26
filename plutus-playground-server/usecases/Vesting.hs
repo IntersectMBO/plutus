@@ -17,6 +17,7 @@ import           Language.PlutusTx.Prelude
 import qualified Data.Map                  as Map
 import qualified Data.Set                  as Set
 
+import           IOTS
 import qualified Language.PlutusTx         as PlutusTx
 import           Ledger                    (Address, DataScript(..),
                                             RedeemerScript(..),  Slot,
@@ -59,7 +60,7 @@ data VestingTranche = VestingTranche {
     -- ^ When this tranche is released
     vestingTrancheAmount :: Value
     -- ^ How much money is locked in this tranche
-    } deriving (Generic, ToJSON, FromJSON, ToSchema)
+    } deriving (Generic, ToJSON, FromJSON, ToSchema, IotsType)
 
 PlutusTx.makeLift ''VestingTranche
 
@@ -75,7 +76,7 @@ data Vesting = Vesting {
     vestingOwner    :: PubKey
     -- ^ The recipient of the scheme (who is authorised to take out money once
     --   it has been released)
-    } deriving (Generic, ToJSON, FromJSON, ToSchema)
+    } deriving (Generic, ToJSON, FromJSON, ToSchema, IotsType)
 
 PlutusTx.makeLift ''Vesting
 
@@ -264,3 +265,4 @@ withdraw tranche1 tranche2 ownerWallet vl = do
     pure ()
 
 $(mkFunctions ['vestFunds, 'registerVestingScheme, 'withdraw])
+$(mkIotsDefinitions ['vestFunds, 'registerVestingScheme, 'withdraw])
