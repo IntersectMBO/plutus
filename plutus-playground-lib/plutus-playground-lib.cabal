@@ -50,6 +50,7 @@ library
     , template-haskell
     , text
     , transformers
+    , plutus-tx
     , plutus-wallet-api
     , plutus-emulator
   default-language: Haskell2010

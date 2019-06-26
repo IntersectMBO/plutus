@@ -89,7 +89,7 @@ integerBridge = do
 ledgerMapBridge :: BridgePart
 ledgerMapBridge = do
     typeName ^== "Map"
-    typeModule ^== "Ledger.Map"
+    typeModule ^== "Language.PlutusTx.AssocMap"
     psLedgerMap
 
 ledgerBytesBridge :: BridgePart

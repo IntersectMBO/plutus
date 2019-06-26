@@ -11,8 +11,8 @@
 -- Prevent unboxing, which the plugin can't deal with
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
--- A map implementation that can be used in on-chain and off-chain code.
-module Ledger.Map(
+-- | A map represented as an "association list" of key-value pairs.
+module Language.PlutusTx.AssocMap (
     Map
     , singleton
     , empty
@@ -22,23 +22,13 @@ module Ledger.Map(
     , lookup
     , union
     , all
-    -- * These
-    , These(..)
-    , these
     ) where
 
-import qualified Prelude                      as Haskell
-
-import           Codec.Serialise.Class        (Serialise)
-import           Data.Aeson                   (FromJSON (parseJSON), ToJSON (toJSON))
-import           Data.Hashable                (Hashable)
-import           Data.Swagger.Internal.Schema (ToSchema)
-import           GHC.Generics                 (Generic)
-import           Language.PlutusTx.Lift       (makeLift)
-import           Language.PlutusTx.Prelude    hiding (all, lookup)
-import qualified Language.PlutusTx.Prelude    as P
-
-import           Ledger.These
+import           GHC.Generics              (Generic)
+import           Language.PlutusTx.Lift    (makeLift)
+import           Language.PlutusTx.Prelude hiding (all, lookup)
+import qualified Language.PlutusTx.Prelude as P
+import           Language.PlutusTx.These
 
 {-# ANN module ("HLint: ignore Use newtype instead of data"::String) #-}
 
@@ -47,7 +37,6 @@ newtype Map k v = Map { unMap :: [(k, v)] }
     deriving (Show)
     deriving stock (Generic)
     deriving newtype (Eq, Ord)
-    deriving anyclass (ToSchema, Serialise, Hashable)
 
 instance Functor (Map k) where
     {-# INLINABLE fmap #-}
@@ -65,12 +54,6 @@ instance (Eq k, Semigroup v) => Semigroup (Map k v) where
 
 instance (Eq k, Semigroup v) => Monoid (Map k v) where
     mempty = empty ()
-
-instance (ToJSON v, ToJSON k) => ToJSON (Map k v) where
-    toJSON = toJSON . unMap
-
-instance (FromJSON v, FromJSON k) => FromJSON (Map k v) where
-    parseJSON v = Map Haskell.<$> parseJSON v
 
 {-# INLINABLE fromList #-}
 fromList :: [(k, v)] -> Map k v

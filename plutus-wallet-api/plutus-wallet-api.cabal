@@ -61,8 +61,6 @@ library
         Ledger,
         Ledger.Ada,
         Ledger.AddressMap,
-        Ledger.Map,
-        Ledger.These,
         Ledger.Blockchain,
         Ledger.Crypto,
         Ledger.Slot,
@@ -108,8 +106,6 @@ library plutus-ledger
         Ledger
         Ledger.Ada
         Ledger.AddressMap
-        Ledger.Map
-        Ledger.These
         Ledger.Blockchain
         Ledger.Crypto
         Ledger.Slot
