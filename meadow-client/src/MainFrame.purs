@@ -553,7 +553,7 @@ mainHeader :: forall p. HTML p (Query Unit)
 mainHeader =
   div_
     [ div [classes [btnGroup, pullRight]] (makeLink <$> links)
-    , h1 [class_ $ ClassName "main-title"] [text "Meadow"]
+    , h1 [class_ $ ClassName "main-title"] [text "Marlowe Playground"]
     ]
   where
   links =

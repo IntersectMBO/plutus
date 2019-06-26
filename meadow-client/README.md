@@ -1,4 +1,4 @@
-# Meadow Client
+# Marlowe Playground Client
 
 ## Getting started
 
