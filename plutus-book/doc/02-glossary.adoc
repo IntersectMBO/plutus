@@ -7,7 +7,7 @@ Extended UTxO ::
 
 On-chain code ::
 * Code written as part of a smart contract which executes on the chain during transaction validation
-- This code is
+- The purpose of this type of code is to validate outputs of a transaction
 
 Off-chain code ::
 * Code written as part of a smart contract which executes off the chain, usually in a user's wallet.

@@ -10,6 +10,11 @@ forgoing relying on the actions of an individual, company, or government in favo
 relying on the execution of a (smart contract)
 program to control the transfer of funds between a contract's participants,
 immortalizing both the program and its outcome on the ledger on the blockchain.
+Specifically, participants engage in a smart contract exclusively
+via distributed cryptographic ledger. This ensures the entire history
+(including the current state of the contract) are immutably recorded with a
+high degree of reliability.
+
 
 From the smart contract author's perspective, the blockchain is a distributed
 bookkeeping system. The ledger on the blockchain is a record that keeps track of
@@ -197,7 +202,8 @@ upon by both parties.
 
 These types of tokens can be tracked on a blockchain by a unique ID, that
 would be associated with an address, and thus its owner, similar to a
-regular ownership document.
+regular ownership document. We will discuss how exactly such a unique ID
+can be constructed in the extended UTxO model. 
 
 == Loans
 
