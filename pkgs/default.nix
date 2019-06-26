@@ -54257,7 +54257,10 @@ license = stdenv.lib.licenses.asl20;
 , base
 , bytestring
 , containers
+, criterion
+, cryptonite
 , hedgehog
+, language-plutus-core
 , lens
 , mtl
 , plutus-emulator
@@ -54299,6 +54302,16 @@ tasty
 tasty-hedgehog
 tasty-hunit
 text
+];
+benchmarkHaskellDepends = [
+base
+bytestring
+criterion
+cryptonite
+language-plutus-core
+lens
+plutus-tx
+plutus-wallet-api
 ];
 doHaddock = false;
 description = "Collection of smart contracts to develop the plutus/wallet interface";

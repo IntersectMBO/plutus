@@ -238,7 +238,7 @@ checkMatch v = \case
             let v' = ValidationData
                     $ lifted
                     $ v { pendingTxIn = pTxIn }
-                (logOut, success) = runScript v' vl d r
+                (logOut, success) = runScript Typecheck v' vl d r
             if success
             then pure ()
             else throwError $ ScriptFailure logOut
