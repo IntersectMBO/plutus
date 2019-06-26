@@ -88,7 +88,7 @@ availableFrom (VestingTranche d v) range =
     -- If the valid range completely contains the argument range (meaning in particular
     -- that the start slot of the argument range is after the tranche vesting date), then
     -- the money in the tranche is available, otherwise nothing is available.
-    in if validRange `Slot.contains` range then v else Value.zero
+    in if validRange `Interval.contains` range then v else Value.zero
 
 {- |
 

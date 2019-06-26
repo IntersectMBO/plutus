@@ -32,7 +32,7 @@ import           Control.Monad.Except (MonadError (..))
 import           Control.Monad.Reader (MonadReader (..), ReaderT (..), ask)
 import           Crypto.Hash          (Digest, SHA256)
 import           Data.Aeson           (FromJSON, ToJSON)
-import           Data.Foldable        (foldl', traverse_)
+import           Data.Foldable        (fold, foldl', traverse_)
 import qualified Data.Map             as Map
 import           Data.Semigroup       (Semigroup)
 import qualified Data.Set             as Set
@@ -40,6 +40,7 @@ import           GHC.Generics         (Generic)
 import qualified Ledger.Ada           as Ada
 import           Ledger.Blockchain
 import           Ledger.Crypto
+import qualified Ledger.Interval      as Interval
 import           Ledger.Scripts
 import qualified Ledger.Slot          as Slot
 import           Ledger.Tx
@@ -142,7 +143,7 @@ validateTransaction h t = do
 -- | Check that a transaction can be validated in the given slot.
 checkSlotRange :: ValidationMonad m => Slot.Slot -> Tx -> m ()
 checkSlotRange sl tx =
-    if Slot.member sl (txValidRange tx)
+    if Interval.member sl (txValidRange tx)
     then pure ()
     else throwError $ CurrentSlotOutOfRange sl
 
@@ -249,9 +250,8 @@ checkMatch v = \case
 -- | Check if the value produced by a transaction equals the value consumed by it.
 checkValuePreserved :: ValidationMonad m => Tx -> m ()
 checkValuePreserved t = do
-    let sumVal = foldl' V.plus V.zero
-    inVal <- V.plus (txForge t) <$> fmap sumVal (traverse (lkpValue . txInRef) (Set.toList $ txInputs t))
-    let outVal = V.plus (Ada.toValue $ txFee t) (sumVal (map txOutValue (txOutputs t)))
+    inVal <- V.plus (txForge t) <$> fmap fold (traverse (lkpValue . txInRef) (Set.toList $ txInputs t))
+    let outVal = V.plus (Ada.toValue $ txFee t) (fold (map txOutValue (txOutputs t)))
     if outVal == inVal
     then pure ()
     else throwError $ ValueNotPreserved inVal outVal

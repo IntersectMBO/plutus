@@ -296,12 +296,12 @@ contributor.
 
 [source,haskell]
 ----
-            in S.before collectionDeadline txnValidRange && -- <1>
+            in I.before collectionDeadline txnValidRange && -- <1>
                contributorOnly &&
                p `V.txSignedBy` pkCon
 ----
 <1> To check whether the collection deadline has passed, we use
-`before {2c} Slot -> SlotRange -> Bool`.
+`before {2c} a -> Interval a -> Bool`.
 
 The second branch represents a successful campaign.
 
@@ -316,13 +316,13 @@ has to be signed by the campaign owner.
 
 [source,haskell]
 ----
-            S.contains (I.interval deadline collectionDeadline) txnValidRange && -- <1>
+            I.contains (I.interval deadline collectionDeadline) txnValidRange && -- <1>
             totalInputs >= target &&
             p `V.txSignedBy` campaignOwner
 ----
 <1> We use
 `interval {2c} Slot -> Slot -> SlotRange` and
-`contains {2c} SlotRange -> SlotRange -> Bool`
+`contains {2c} Interval a -> Interval a -> Bool`
 to ensure that the transaction's validity range,
 `txnValidRange`, is completely contained in the time between campaign
 deadline and collection deadline.

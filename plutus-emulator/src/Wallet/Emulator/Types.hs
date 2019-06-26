@@ -112,7 +112,7 @@ import           Ledger                    (Address, Block, Blockchain, PrivateK
 import qualified Ledger.Ada                as Ada
 import qualified Ledger.AddressMap         as AM
 import qualified Ledger.Index              as Index
-import qualified Ledger.Slot               as Slot
+import qualified Ledger.Interval           as Interval
 import qualified Ledger.Value              as Value
 import           Wallet.API                (EventHandler (..), EventTrigger, WalletAPI (..), WalletAPIError (..),
                                             WalletDiagnostics (..), WalletLog (..), addresses, annTruthValue, getAnnot)
@@ -541,7 +541,7 @@ validateBlock currentSlot idx txns =
 
 -- | Check whether the given transaction can be validated in the given slot.
 canValidateNow :: Slot -> Tx -> Bool
-canValidateNow currentSlot tx = Slot.member currentSlot (txValidRange tx)
+canValidateNow currentSlot tx = Interval.member currentSlot (txValidRange tx)
 
 mkEvent :: Tx -> Maybe Index.ValidationError -> EmulatorEvent
 mkEvent t result =

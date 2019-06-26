@@ -20,8 +20,8 @@ module CrowdFunding where
 
 import qualified Language.PlutusTx            as PlutusTx
 import           Language.PlutusTx.Prelude
+import qualified Ledger.Interval              as Interval
 import           Ledger.Slot                  (SlotRange)
-import qualified Ledger.Slot                  as Slot
 import           Ledger
 import           Ledger.Validation            as V
 import           Ledger.Value                 (Value)
@@ -88,14 +88,14 @@ type CrowdfundingValidator = PubKey -> CampaignAction -> PendingTx -> Bool
 validRefund :: Campaign -> PubKey -> PendingTx -> Bool
 validRefund campaign contributor ptx =
     -- Check that the transaction falls in the refund range of the campaign
-    Slot.contains (refundRange campaign) (pendingTxValidRange ptx)
+    Interval.contains (refundRange campaign) (pendingTxValidRange ptx)
     -- Check that the transaction is signed by the contributor
     && (ptx `V.txSignedBy` contributor)
 
 validCollection :: Campaign -> PendingTx -> Bool
 validCollection campaign p =
     -- Check that the transaction falls in the collection range of the campaign
-    (collectionRange campaign `Slot.contains` pendingTxValidRange p)
+    (collectionRange campaign `Interval.contains` pendingTxValidRange p)
     -- Check that the transaction is trying to spend more money than the campaign
     -- target (and hence the target was reached)
     && (valueSpent p `Value.geq` campaignTarget campaign)
