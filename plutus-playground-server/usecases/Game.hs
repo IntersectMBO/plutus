@@ -37,10 +37,12 @@ data ClearString = ClearString ByteString
 PlutusTx.makeLift ''ClearString
 
 correctGuess :: HashedString -> ClearString -> Bool
-correctGuess (HashedString actual) (ClearString guess') = actual == (sha2_256 guess')
+correctGuess (HashedString actual) (ClearString guess') =
+    actual == (sha2_256 guess')
 
 validateGuess :: HashedString -> ClearString -> PendingTx -> Bool
-validateGuess dataScript redeemerScript _ = correctGuess dataScript redeemerScript
+validateGuess dataScript redeemerScript _ =
+    correctGuess dataScript redeemerScript
 
 -- | The validator script of the game.
 gameValidator :: ValidatorScript

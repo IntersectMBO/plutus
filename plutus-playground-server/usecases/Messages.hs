@@ -5,8 +5,9 @@ module Messages where
 -- TRIM TO HERE
 -- Contract endpoints that generate different kinds of errors for the log:
 -- logAMessage produces a log message from a wallet
--- submitInvalidTxn submits an invalid txn which should result in a "Validation failed" message
--- throwWalletAPIError throws an error from a wallet (client)
+-- submitInvalidTxn submits an invalid txn which should result in a
+-- "Validation failed" message throwWalletAPIError throws an error from
+-- a wallet (client)
 import           Language.PlutusTx.Prelude
 
 import qualified Data.Map                  as Map

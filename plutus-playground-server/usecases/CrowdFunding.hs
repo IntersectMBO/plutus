@@ -77,11 +77,14 @@ data CampaignAction = Collect | Refund
 PlutusTx.makeLift ''CampaignAction
 
 -- | The validator script is a function of three arguments:
--- 1. A 'PubKey'. This is the data script. It is provided by the producing transaction (the contribution)
+-- 1. A 'PubKey'. This is the data script. It is provided by the producing
+--    transaction (the contribution)
 --
--- 2. A 'CampaignAction'. This is the redeemer script. It is provided by the redeeming transaction.
+-- 2. A 'CampaignAction'. This is the redeemer script. It is provided by the
+--    redeeming transaction.
 --
--- 3. A 'PendingTx value. It contains information about the current transaction and is provided by the slot leader.
+-- 3. A 'PendingTx value. It contains information about the current transaction
+--    and is provided by the slot leader.
 --    See note [PendingTx]
 type CrowdfundingValidator = PubKey -> CampaignAction -> PendingTx -> Bool
 
@@ -102,10 +105,13 @@ validCollection campaign p =
     -- Check that the transaction is signed by the campaign owner
     && (p `V.txSignedBy` campaignOwner campaign)
 
--- | The validator script is of type 'CrowdfundingValidator', and is additionally parameterized by a
--- 'Campaign' definition. This argument is provided by the Plutus client, using 'Ledger.applyScript'.
--- As a result, the 'Campaign' definition is part of the script address, and different campaigns have different addresses.
--- The Campaign{..} syntax means that all fields of the 'Campaign' value are in scope (for example 'campaignDeadline' in l. 70).
+-- | The validator script is of type 'CrowdfundingValidator', and is
+-- additionally parameterized by a 'Campaign' definition. This argument is
+-- provided by the Plutus client, using 'Ledger.applyScript'.
+-- As a result, the 'Campaign' definition is part of the script address,
+-- and different campaigns have different addresses. The Campaign{..} syntax
+-- means that all fields of the 'Campaign' value are in scope
+-- (for example 'campaignDeadline' in l. 70).
 mkValidator :: Campaign -> CrowdfundingValidator
 mkValidator c con act p = case act of
     -- the "refund" branch
@@ -165,7 +171,8 @@ scheduleCollection deadline target collectionDeadline ownerWallet = do
             range = collectionRange cmp
         collectFromScript range (contributionScript cmp) redeemerScript))
 
--- | An event trigger that fires when a refund of campaign contributions can be claimed
+-- | An event trigger that fires when a refund of campaign contributions
+-- can be claimed
 refundTrigger :: Value -> Campaign -> EventTrigger
 refundTrigger vl c = andT
     (fundsAtAddressGeqT (campaignAddress c) vl)
@@ -207,14 +214,18 @@ There are two outcomes for the campaign.
 1. Campaign owner collects the funds from both contributors. In this case
    the owner creates a single transaction with two inputs, referring to
    `t_1` and `t_2`. Each input contains the script `contributionScript c`
-   specialised to a contributor. The redeemer script of this transaction contains the value `Collect`, prompting the validator script to check the
+   specialised to a contributor. The redeemer script of this transaction
+   contains the value `Collect`, prompting the validator script to check the
    branch for `Collect`.
 
 2. Refund. In this case each contributor creates a transaction with a
    single input claiming back their part of the funds. This case is
-   covered by the `Refund` branch, and its redeemer script is the `Refund` action.
+   covered by the `Refund` branch, and its redeemer script is the
+   `Refund` action.
 
-In both cases, the validator script is run twice. In the first case there is a single transaction consuming both inputs. In the second case there are two different transactions that may happen at different times.
+In both cases, the validator script is run twice. In the first case
+there is a single transaction consuming both inputs. In the second case there
+are two different transactions that may happen at different times.
 
 -}
 
@@ -226,13 +237,15 @@ extension is enabled automatically by the Playground backend.
 The extension is documented here:
 * https://downloads.haskell.org/~ghc/7.2.1/docs/html/users_guide/syntax-extns.html
 
-A list of extensions that are enabled by default for the Playground can be found here:
+A list of extensions that are enabled by default for the Playground can be
+found here:
 * https://github.com/input-output-hk/plutus/blob/b0f49a0cc657cd1a4eaa4af72a6d69996b16d07a/plutus-playground/plutus-playground-server/src/Playground/Interpreter.hs#L44
 
 -}
 
 {- note [PendingTx]
 
-This part of the API (the PendingTx argument) is experimental and subject to change.
+This part of the API (the PendingTx argument) is experimental and subject
+to change.
 
 -}
