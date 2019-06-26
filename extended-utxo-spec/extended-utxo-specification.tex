@@ -6,7 +6,7 @@
   \red{\textsf{DRAFT}}}
 
 \pagestyle{plain}
-\date{14th June 2019}
+\date{26th June 2019}
 \author{}
 
 \documentclass[a4paper]{article}
@@ -324,6 +324,7 @@ These are shown in Figure~\ref{fig:basic-types}.
       $\qtypm = \Z$&: a possibly negative amount of currency\\
       $\s{SlotNumber} = \N$&: a slot number\\
       $\s{Address} = \N$&: the address of an object in the blockchain\\
+      $\s{ScriptHash} = \N$&: a collision-resistant hash of a script\\
       $\s{TxId} = \N$&: the identifier of a previous transaction on the chain\\
     \end{tabular}
   }
@@ -336,8 +337,9 @@ natural numbers and non-negative integers.
 
 \medskip
 \noindent In practice an \textsf{Address} will usually be a hash of
-some object (for example, a script), and the blockchain will provide
-an efficient way to retrieve the original object given its hash.
+some object, and the blockchain will provide an efficient way to
+retrieve the original object given its hash.  In this case, the
+\textsf{ScriptHash} of a script will coincide with its \textsf{Address}.
 
 % Accessing objects indirectly via addresses is helpful because it can
 % help to reduce memory and disk usage: for example, there may be
@@ -563,24 +565,69 @@ to be uniquely identified and retrieved.
 
 \subsubsection{The $\ptx$ type}
 \label{sec:pendingtx}
-For the current version of EUTXO-1 we define the $\ptx$ type
-to be
+Recall from the introduction to Section~\ref{sec:eutxo-1} that when a
+transaction input is being validated, the validator script is supplied
+with an object of type $\ptx$ which contains information about the
+pending transaction.  The $\ptx$ type for the current version of
+EUTXO-1 is defined in Figure~\ref{fig:ptx-1-types}, along with some
+related types.
+
 \begin{ruledfigure}{H}
-  $$
-  \ptx = \eutxotx \times \s{OutputRef}
-  $$
-  \caption{The $\ptx$ type}
-  \label{fig:pendingtx}
+  \[
+  \begin{arraydefs}{rll}
+    
+    \s{OutputInfo } &= (& \i{value}: \qty,\\
+    && \i{validatorHash}: \s{ScriptHash},\\
+    &&  \i{datascriptHash}: \s{ScriptHash})\\
+    \\
+    \s{InputInfo } & = (&\i{inputRef}: \s{OutputRef},\\
+                 && \i{validatorHash}: \s{ScriptHash},\\
+                 && \i{redeemerHash}: \s{ScriptHash}),\\
+                 && \i{value}: \qty)\\
+     \\
+     \ptx\s{ } &= (&\i{inputInfo}: \List{\s{InputInfo}},\\
+     &&\i{thisInput}: \N,\\
+     &&\i{outputInfo}: \List{\s{OutputInfo}},\\
+     &&\i{validityInterval}: \slotnum \times (\slotnum \cup \{\infty\}),\\
+     && \fee: \qty,\\
+     &&\forge: \qty)
+   \end{arraydefs}
+ \]
+  \caption{The $\ptx$ type for the EUTXO-1 model}
+  \label{fig:ptx-1-types}
 \end{ruledfigure}
-We also require a function
+%%
+\noindent The $\ptx$ type is essentially a summary of the information
+contained in the $\eutxotx$ type in
+Figure~\ref{fig:eutxo-1-types}. The \fee, \forge, and
+\i{validityInterval} fields are copied directly from the pending
+transaction.  The \i{outputInfo} field contains information about the
+outputs which will be produced if the pending transaction validates
+successfully, but only contains hashes of the relevant validator and
+data scripts, not the scripts themselves.
+
+Similarly the \i{inputInfo} field contains information about the
+inputs to the pending transaction, but provides only the hashes of the
+validator and redeemer scripts for the inputs.  The \i{thisInput}
+field is an index pointing to the element of \i{inputInfo}
+relating to the input currently undergoing validation.
+
+\medskip
+\noindent We also require a function
+$$
+\tau: \eutxotx \times \N \rightarrow \ptx
+$$
+which produces the relevant $\ptx$ for a transaction $t$ and an input
+$i$, and a function
 $$
 \sigma: \ptx \rightarrow \script
 $$
-which converts a $\ptx$ object into a script.
-
-As we will see below, when we are validating an input $i$ the
-$\ptx$ script will be constructed from the pending transaction and the
-output being spent by $i$.  
+which translates a $\ptx$ object into a script containing exactly the
+same information, encoded in some standard way enabling it to be accessed
+by a validator script .  Assuming we have an appropriate hashing
+function, it is straightforward to define $\tau$.  The function
+$\sigma$ is implementation-dependent and we will not discuss it
+further.
 
 \paragraph{Determinism.} The $\ptx$ type is the only information about
 the ``outside world'' available to a validator script at the time of
@@ -694,7 +741,7 @@ definition combines Definitions 6 and 14 from
     \item\label{rule:all-inputs-validate} \textbf{All inputs validate:}
     \[
     \textrm{For all } i \in t.\inputs,\enspace \llbracket
-    i.\validator(\txout(i, \lambda).\datascript,\, i.\redeemer,\,  \sigma(t,i)) \rrbracket = \true.
+    i.\validator(\txout(i, \lambda).\datascript,\, i.\redeemer,\,  \sigma(\tau(t,i))) \rrbracket = \true.
       \]
     \item\label{rule:validator-scripts-hash} \textbf{Validator scripts hash to their output addresses:}
     \[
@@ -831,6 +878,48 @@ amount of that currency.
 The fields \val, \fee, and \forge{} all represent quantities of the
 native currency, as in the EUTXO-1 model.
 
+\subsection{The $\ptx$ type for EUTXO-2}
+\label{sec:pendingtx-2}
+The $\ptx$ type must be also be updated for the EUTXO-2 model.  All
+that is required is to replace $\qty$ by $\tokenmap$ everywhere in
+Figure~\ref{fig:ptx-1-types} except for the $\fee$ field: for reference
+the details are given in Figure~\ref{fig:ptx-2-types}.
+\begin{ruledfigure}{H}
+  \[
+  \begin{arraydefs}{rll}
+    
+    \s{OutputInfo}_2\s{ } &= (& \i{value}: \tokenmap,\\
+    && \i{validatorHash}: \s{ScriptHash},\\
+    &&  \i{datascriptHash}: \s{ScriptHash})\\
+    \\
+    \s{InputInfo}_2\s{ }& = (&\i{inputRef}: \s{OutputRef},\\
+                 && \i{validatorHash}: \s{ScriptHash},\\
+                 && \i{redeemerHash}: \s{ScriptHash}),\\
+                 && \i{value}: \tokenmap)\\
+     \\
+     \ptx_2\s{ } &= (&\i{inputInfo}: \List{\s{InputInfo}_2},\\
+     &&\i{thisInput}: \N,\\
+     &&\i{outputInfo}: \List{\s{OutputInfo$_2$}},\\
+     &&\i{validityInterval}: \slotnum \times (\slotnum \cup \{\infty\}),\\
+     &&\fee: \qty,\\
+     &&\forge: \tokenmap)
+   \end{arraydefs}
+ \]
+  \caption{The $\ptx$ type for the EUTXO-2 model}
+  \label{fig:ptx-2-types}
+\end{ruledfigure}
+
+\noindent Again we require functions
+$$
+\tau: \eutxotx_2 \times \N \rightarrow \ptx_2
+$$
+and
+$$
+\sigma: \ptx_2 \rightarrow \script
+$$
+which can be used to produce an appropriate script from a transaction
+and the index of an input.
+
 \subsection{Validity of EUTXO-2 transactions}
 
 \bigskip
@@ -949,7 +1038,7 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
     \item\label{rule:all-inputs-validate-2} \textbf{All inputs validate:}
     \[
     \textrm{For all } i \in t.\inputs,\enspace \llbracket
-    i.\validator(\txout(i,\lambda).\datascript,\, i.\redeemer,\, \sigma(t, i))
+    i.\validator(\txout(i,\lambda).\datascript,\, i.\redeemer,\, \sigma_2(\tau_2(t, i)))
     \rrbracket = \true.
       \]
     \item\label{rule:validator-scripts-hash-2} \textbf{Validator scripts hash to their output addresses:}
