@@ -1,34 +1,35 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE PolyKinds #-}
+{-# OPTIONS_GHC -O0 #-}
+
 -- This ensures that we don't put *anything* about these functions into the interface
 -- file, otherwise GHC can be clever about the ones that are always error, even though
 -- they're NOINLINE!
-{-# OPTIONS_GHC -O0 #-}
 -- | Primitive names and functions for working with Plutus Core builtins.
-module Language.PlutusTx.Builtins (
+module Language.PlutusTx.Builtins
                                 -- * Bytestring builtins
-                                ByteString
-                                , concatenate
-                                , takeByteString
-                                , dropByteString
-                                , emptyByteString
-                                , equalsByteString
-                                , lessThanByteString
-                                , greaterThanByteString
-                                , sha2_256
-                                , sha3_256
-                                , verifySignature
+    ( ByteString
+    , concatenate
+    , takeByteString
+    , dropByteString
+    , emptyByteString
+    , equalsByteString
+    , lessThanByteString
+    , greaterThanByteString
+    , sha2_256
+    , sha3_256
+    , verifySignature
                                 -- * Integer builtins
-                                , addInteger
-                                , subtractInteger
-                                , multiplyInteger
-                                , divideInteger
-                                , remainderInteger
-                                , greaterThanInteger
-                                , greaterThanEqInteger
-                                , lessThanInteger
-                                , lessThanEqInteger
-                                , equalsInteger
+    , addInteger
+    , subtractInteger
+    , multiplyInteger
+    , divideInteger
+    , remainderInteger
+    , greaterThanInteger
+    , greaterThanEqInteger
+    , lessThanInteger
+    , lessThanEqInteger
+    , equalsInteger
                                 -- * Error
                                 , error
                                 -- * Sealed
@@ -36,13 +37,13 @@ module Language.PlutusTx.Builtins (
                                 , seal
                                 , unseal
                                 -- * Strings
-                                , String
-                                , appendString
-                                , emptyString
-                                , charToString
+    , String
+    , appendString
+    , emptyString
+    , charToString
                                 -- * Tracing
-                                , trace
-                                ) where
+    , trace
+    ) where
 
 import qualified Crypto
 import           Data.ByteString.Lazy      as BSL
@@ -52,6 +53,7 @@ import           Prelude                   hiding (String, error)
 
 import           Language.PlutusTx.Sealed
 import           Language.PlutusTx.Utils   (mustBeReplaced)
+import           Prelude                   hiding (String, error)
 
 {- Note [Builtin name definitions]
 The builtins here have definitions so they can be used in off-chain code too.
@@ -60,7 +62,6 @@ However they *must* be replaced by the compiler when used in Plutus Tx code, so
 in particular they must *not* be inlined, otherwise we can't spot them to replace
 them.
 -}
-
 {-# NOINLINE concatenate #-}
 -- | Concatenates two 'ByteString's.
 concatenate :: ByteString -> ByteString -> ByteString
@@ -95,7 +96,7 @@ sha3_256 = Hash.sha3
 -- | Verify that the signature is a signature of the message by the public key.
 verifySignature :: ByteString -> ByteString -> ByteString -> Bool
 verifySignature pubKey message signature =
-  fromMaybe False (Crypto.verifySignature pubKey message signature)
+    fromMaybe False (Crypto.verifySignature pubKey message signature)
 
 {-# NOINLINE equalsByteString #-}
 -- | Check if two 'ByteString's are equal.

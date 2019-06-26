@@ -37,6 +37,7 @@ newtype Map k v = Map { unMap :: [(k, v)] }
     deriving (Show)
     deriving stock (Generic)
     deriving newtype (Eq, Ord)
+    deriving anyclass (ToTypeName)
 
 instance Functor (Map k) where
     {-# INLINABLE fmap #-}

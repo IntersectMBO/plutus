@@ -73,7 +73,6 @@ library
         servant-client -any,
         servant-server -any,
         stm -any,
-        swagger2 -any,
         template-haskell -any,
         text -any,
         text -any,
@@ -83,6 +82,7 @@ library
         deriving-compat -any,
         newtype-generics,
         http-api-data,
+        playground-common,
         cardano-crypto
 
     if (flag(development) && impl(ghc <8.4))

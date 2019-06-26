@@ -11,7 +11,6 @@ import qualified Data.Aeson.Text              as JSON
 import           Data.Aeson.Types             (object, (.=))
 import           Data.Either                  (isRight)
 import           Data.List.NonEmpty           (NonEmpty ((:|)))
-import           Data.Swagger                 ()
 import qualified Data.Text                    as Text
 import qualified Data.Text.Lazy               as TL
 import           Data.Time.Units              (Microsecond, fromMicroseconds)
@@ -23,13 +22,13 @@ import           Ledger.Value                 (TokenName (TokenName), Value)
 import           Playground.API               (CompilationResult (CompilationResult), Evaluation (Evaluation),
                                                Expression (Action, Wait), Fn (Fn), FunctionSchema (FunctionSchema),
                                                KnownCurrency (KnownCurrency), PlaygroundError,
-                                               SimpleArgumentSchema (SimpleArraySchema, SimpleHexSchema, SimpleIntSchema, SimpleObjectSchema, SimpleStringSchema, SimpleTupleSchema, ValueSchema),
                                                SimulatorWallet (SimulatorWallet), adaCurrency, argumentSchema,
-                                               functionName, isSupportedByFrontend, simulatorWalletBalance,
-                                               simulatorWalletWallet)
+                                               functionName, simulatorWalletBalance, simulatorWalletWallet)
 import qualified Playground.Interpreter       as PI
 import           Playground.Interpreter.Util  (TraceResult)
 import           Playground.Usecases          (crowdfunding, game, messages, vesting)
+import           Schema                       (Constructor (Record), ConstructorName (ConstructorName),
+                                               DataType (DataType), Reference (Reference))
 import           Test.Hspec                   (Spec, describe, it, shouldBe, shouldSatisfy)
 import           Wallet.Emulator.Types        (Wallet (Wallet), walletPubKey)
 
@@ -62,23 +61,6 @@ mkSimulatorWallet simulatorWalletWallet simulatorWalletBalance =
 vestingSpec :: Spec
 vestingSpec =
     describe "vesting" $ do
-        let vlSchema =
-                ValueSchema
-                    [ ( "getValue"
-                      , SimpleObjectSchema
-                            [ ( "unMap"
-                              , SimpleArraySchema
-                                    (SimpleTupleSchema
-                                         ( SimpleHexSchema
-                                         , SimpleObjectSchema
-                                               [ ( "unMap"
-                                                 , SimpleArraySchema
-                                                       (SimpleTupleSchema
-                                                            ( SimpleStringSchema
-                                                            , SimpleIntSchema)))
-                                               ])))
-                            ])
-                    ]
         compilationChecks vesting
         it "should compile with the expected schema" $ do
             Right (InterpreterResult _ (CompilationResult result _)) <-
@@ -87,82 +69,87 @@ vestingSpec =
                 [ FunctionSchema
                       { functionName = Fn "vestFunds"
                       , argumentSchema =
-                            [ SimpleObjectSchema
-                                  [ ( "vestingOwner"
-                                    , SimpleObjectSchema
-                                          [("getPubKey", SimpleStringSchema)])
-                                  , ( "vestingTranche2"
-                                    , SimpleObjectSchema
-                                          [ ("vestingTrancheAmount", vlSchema)
-                                          , ( "vestingTrancheDate"
-                                            , SimpleObjectSchema
-                                                  [("getSlot", SimpleIntSchema)])
-                                          ])
-                                  , ( "vestingTranche1"
-                                    , SimpleObjectSchema
-                                          [ ("vestingTrancheAmount", vlSchema)
-                                          , ( "vestingTrancheDate"
-                                            , SimpleObjectSchema
-                                                  [("getSlot", SimpleIntSchema)])
-                                          ])
+                            [ DataType
+                                  "Main.Vesting"
+                                  []
+                                  [ Record
+                                        (ConstructorName "Vesting")
+                                        [ ( "vestingTranche1"
+                                          , Reference "Main.VestingTranche")
+                                        , ( "vestingTranche2"
+                                          , Reference "Main.VestingTranche")
+                                        , ( "vestingOwner"
+                                          , Reference "Ledger.Crypto.PubKey")
+                                        ]
                                   ]
                             ]
                       }
                 , FunctionSchema
                       { functionName = Fn "registerVestingScheme"
                       , argumentSchema =
-                            [ SimpleObjectSchema
-                                  [ ( "vestingOwner"
-                                    , SimpleObjectSchema
-                                          [("getPubKey", SimpleStringSchema)])
-                                  , ( "vestingTranche2"
-                                    , SimpleObjectSchema
-                                          [ ("vestingTrancheAmount", vlSchema)
-                                          , ( "vestingTrancheDate"
-                                            , SimpleObjectSchema
-                                                  [("getSlot", SimpleIntSchema)])
-                                          ])
-                                  , ( "vestingTranche1"
-                                    , SimpleObjectSchema
-                                          [ ("vestingTrancheAmount", vlSchema)
-                                          , ( "vestingTrancheDate"
-                                            , SimpleObjectSchema
-                                                  [("getSlot", SimpleIntSchema)])
-                                          ])
+                            [ DataType
+                                  "Main.Vesting"
+                                  []
+                                  [ Record
+                                        (ConstructorName "Vesting")
+                                        [ ( "vestingTranche1"
+                                          , Reference "Main.VestingTranche")
+                                        , ( "vestingTranche2"
+                                          , Reference "Main.VestingTranche")
+                                        , ( "vestingOwner"
+                                          , Reference "Ledger.Crypto.PubKey")
+                                        ]
                                   ]
                             ]
                       }
                 , FunctionSchema
                       { functionName = Fn "withdraw"
                       , argumentSchema =
-                            [ SimpleObjectSchema
-                                  [ ( "vestingOwner"
-                                    , SimpleObjectSchema
-                                          [("getPubKey", SimpleStringSchema)])
-                                  , ( "vestingTranche2"
-                                    , SimpleObjectSchema
-                                          [ ("vestingTrancheAmount", vlSchema)
-                                          , ( "vestingTrancheDate"
-                                            , SimpleObjectSchema
-                                                  [("getSlot", SimpleIntSchema)])
-                                          ])
-                                  , ( "vestingTranche1"
-                                    , SimpleObjectSchema
-                                          [ ("vestingTrancheAmount", vlSchema)
-                                          , ( "vestingTrancheDate"
-                                            , SimpleObjectSchema
-                                                  [("getSlot", SimpleIntSchema)])
-                                          ])
+                            [ DataType
+                                  "Main.Vesting"
+                                  []
+                                  [ Record
+                                        (ConstructorName "Vesting")
+                                        [ ( "vestingTranche1"
+                                          , Reference "Main.VestingTranche")
+                                        , ( "vestingTranche2"
+                                          , Reference "Main.VestingTranche")
+                                        , ( "vestingOwner"
+                                          , Reference "Ledger.Crypto.PubKey")
+                                        ]
                                   ]
-                            , vlSchema
+                            , DataType
+                                  "Ledger.Value.Value"
+                                  []
+                                  [ Record
+                                        (ConstructorName "Value")
+                                        [ ( "getValue"
+                                          , Reference
+                                                "Language.PlutusTx.AssocMap.Map")
+                                        ]
+                                  ]
                             ]
                       }
                 , FunctionSchema
                       { functionName = Fn "payToWallet_"
                       , argumentSchema =
-                            [ vlSchema
-                            , SimpleObjectSchema
-                                  [("getWallet", SimpleIntSchema)]
+                            [ DataType
+                                  "Ledger.Value.Value"
+                                  []
+                                  [ Record
+                                        (ConstructorName "Value")
+                                        [ ( "getValue"
+                                          , Reference
+                                                "Language.PlutusTx.AssocMap.Map")
+                                        ]
+                                  ]
+                            , DataType
+                                  "Wallet.Emulator.Types.Wallet"
+                                  []
+                                  [ Record
+                                        (ConstructorName "Wallet")
+                                        [("getWallet", Reference "Int")]
+                                  ]
                             ]
                       }
                 ]
@@ -397,16 +384,8 @@ evaluate evaluation =
     runExceptT $ PI.runFunction maxInterpretationTime evaluation
 
 compilationChecks :: Text.Text -> Spec
-compilationChecks f = do
+compilationChecks f =
     it "should compile" $ compile f >>= (`shouldSatisfy` isRight)
-    it "should be representable on the frontend" $
-        compile f >>= (`shouldSatisfy` isSupportedCompilationResult)
-
-isSupportedCompilationResult ::
-       Either InterpreterError (InterpreterResult CompilationResult) -> Bool
-isSupportedCompilationResult (Left _) = False
-isSupportedCompilationResult (Right (InterpreterResult _ (CompilationResult functionSchemas _))) =
-    all (all isSupportedByFrontend . argumentSchema) functionSchemas
 
 mkI :: Int -> JSON.Value
 mkI = JSON.toJSON

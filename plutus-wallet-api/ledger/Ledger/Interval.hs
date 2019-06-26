@@ -28,10 +28,9 @@ module Ledger.Interval(
 import           Codec.Serialise.Class        (Serialise)
 import           Data.Aeson                   (FromJSON, ToJSON)
 import           Data.Hashable                (Hashable)
-import           Data.Swagger.Internal.Schema (ToSchema)
+import           Schema                       (ToSchema, ToTypeName)
 import           GHC.Generics                 (Generic)
 import qualified Prelude                      as Haskell
-
 import           Language.PlutusTx.Lift       (makeLift)
 import           Language.PlutusTx.Prelude
 
@@ -41,7 +40,7 @@ import           Language.PlutusTx.Prelude
 --   contains all numbers smaller than @12@.
 data Interval a = Interval { ivFrom :: Maybe a, ivTo :: Maybe a }
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
-    deriving anyclass (ToSchema, FromJSON, ToJSON, Serialise, Hashable)
+    deriving anyclass (ToSchema, ToTypeName, FromJSON, ToJSON, Serialise, Hashable)
 
 makeLift ''Interval
 

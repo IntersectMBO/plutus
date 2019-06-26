@@ -10,7 +10,7 @@ module Playground.Contract
     , mkFunction
     , mkKnownCurrencies
     , ToSchema
-    , Schema
+    , ToTypeName
     , ToJSON
     , FromJSON
     , FunctionSchema
@@ -38,7 +38,6 @@ import           Data.ByteString.Lazy        (ByteString)
 import qualified Data.ByteString.Lazy        as BSL
 import qualified Data.ByteString.Lazy.Char8  as LBC8
 import           Data.List.NonEmpty          (NonEmpty ((:|)))
-import           Data.Swagger                (Schema, ToSchema)
 import           GHC.Generics                (Generic)
 import           Ledger.Interval             (always)
 import           Ledger.Validation           (ValidatorHash (ValidatorHash))
@@ -46,6 +45,8 @@ import           Ledger.Value                (TokenName (TokenName), Value)
 import           Playground.API              (FunctionSchema, KnownCurrency (KnownCurrency), adaCurrency)
 import           Playground.Interpreter.Util
 import           Playground.TH               (mkFunction, mkFunctions, mkKnownCurrencies, mkSingleFunction)
+import           Schema                      (ToSchema, ToTypeName)
+import qualified Schema
 import           Wallet.API                  (WalletAPI, payToPublicKey_)
 import           Wallet.Emulator             (addBlocksAndNotify, runWalletActionAndProcessPending, walletPubKey)
 import           Wallet.Emulator.Types       (MockWallet, Wallet (..))
@@ -63,7 +64,7 @@ instance ByteArrayAccess ByteString where
 
 $(mkSingleFunction 'payToWallet_)
 
-printSchemas :: ([FunctionSchema Schema], [KnownCurrency]) -> IO ()
+printSchemas :: ([FunctionSchema Schema.DataType], [KnownCurrency]) -> IO ()
 printSchemas (schemas, currencies) =
     LBC8.putStrLn . encode $ (schemas <> [payToWallet_Schema], currencies)
 

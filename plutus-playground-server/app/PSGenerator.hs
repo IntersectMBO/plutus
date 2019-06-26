@@ -52,9 +52,10 @@ import           Ledger.Slot                                (Slot)
 import           Ledger.Value                               (CurrencySymbol, TokenName, Value)
 import           Playground.API                             (CompilationResult, Evaluation, EvaluationResult,
                                                              Expression, Fn, FunctionSchema, KnownCurrency,
-                                                             SimpleArgumentSchema, SimulatorWallet)
+                                                             SimulatorWallet)
 import qualified Playground.API                             as API
 import           Playground.Usecases                        (crowdfunding, game, messages, vesting)
+import           Schema                                     (Constructor, DataType, Reference)
 import           Servant                                    ((:<|>))
 import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
                                                              defaultSettings, languageBridge,
@@ -226,7 +227,9 @@ instance HasBridge MyBridge where
 
 myTypes :: [SumType 'Haskell]
 myTypes =
-    [ (equal <*> mkSumType) (Proxy @SimpleArgumentSchema)
+    [ (equal <*> mkSumType) (Proxy @Constructor)
+    , (equal <*> mkSumType) (Proxy @DataType)
+    , (equal <*> mkSumType) (Proxy @Reference)
     , (equal <*> mkSumType) (Proxy @(FunctionSchema A))
     , mkSumType (Proxy @CompilationResult)
     , mkSumType (Proxy @Warning)

@@ -67,6 +67,7 @@ library
         plutus-emulator -any,
         plutus-playground-lib -any,
         plutus-wallet-api -any,
+        plutus-tx -any,
         process -any,
         regex-compat -any,
         servant <0.16,
@@ -109,7 +110,6 @@ library plutus-playground-usecases
         plutus-playground-lib -any,
         plutus-tx -any,
         plutus-wallet-api -any,
-        swagger2 -any,
         text -any,
         time-units -any,
         transformers -any
@@ -185,7 +185,6 @@ test-suite plutus-playground-server-test
         plutus-playground-lib -any,
         plutus-playground-server -any,
         plutus-emulator -any,
-        swagger2 -any,
         text -any,
         time-units -any,
         transformers -any,

@@ -45,18 +45,13 @@ module Ledger.Value(
 import qualified Prelude                      as Haskell
 
 import           Codec.Serialise.Class        (Serialise)
-import           Control.Lens                 (set,(.~))
 import           Data.Aeson                   (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
 import qualified Data.Aeson                   as JSON
 import qualified Data.Aeson.Extras            as JSON
 import qualified Data.ByteString.Lazy         as BSL
 import qualified Data.ByteString.Lazy.Char8   as C8
+import           Schema                       (ToSchema, ToTypeName)
 import           Data.Hashable                (Hashable)
-import qualified Data.Swagger.Internal        as S
-import           Data.Swagger.Schema          (ToSchema(declareNamedSchema))
-import qualified Data.Swagger.Lens            as S
-import           Data.Swagger                 (SwaggerType(SwaggerObject), NamedSchema(NamedSchema), declareSchemaRef)
-import           Data.Proxy                   (Proxy(Proxy))
 import           Data.String                  (IsString(fromString))
 import qualified Data.Text                    as Text
 import           GHC.Generics                 (Generic)
@@ -67,22 +62,12 @@ import qualified Language.PlutusTx.Prelude    as P
 import qualified Language.PlutusTx.AssocMap   as Map
 import           Language.PlutusTx.These
 import           LedgerBytes                  (LedgerBytes(LedgerBytes))
-import           Data.Function                ((&))
-
-hexSchema :: S.Schema
-hexSchema = Haskell.mempty & set S.type_ S.SwaggerString & set S.format (Just "hex")
-
-stringSchema :: S.Schema
-stringSchema = Haskell.mempty & set S.type_ S.SwaggerString
 
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteString }
     deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord)
-    deriving anyclass (Hashable)
-
-instance ToSchema CurrencySymbol where
-  declareNamedSchema _ = pure $ S.NamedSchema (Just "CurrencySymbol") hexSchema
+    deriving anyclass (Hashable, ToSchema, ToTypeName)
 
 instance ToJSON CurrencySymbol where
   toJSON currencySymbol =
@@ -122,9 +107,6 @@ toString = C8.unpack . unTokenName
 instance Show TokenName where
   show = toString
 
-instance ToSchema TokenName where
-    declareNamedSchema _ = pure $ S.NamedSchema (Just "TokenName") stringSchema
-
 instance ToJSON TokenName where
     toJSON tokenName =
         JSON.object
@@ -159,7 +141,7 @@ tokenName = TokenName
 -- See note [Currencies] for more details.
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
     deriving stock (Show, Generic)
-    deriving anyclass (ToJSON, FromJSON, Hashable)
+    deriving anyclass (ToJSON, FromJSON, Hashable, ToSchema, ToTypeName)
     deriving newtype (Serialise)
 
 -- Orphan instances for 'Map' to make this work
@@ -171,7 +153,6 @@ instance (FromJSON v, FromJSON k) => FromJSON (Map.Map k v) where
 
 deriving anyclass instance (Hashable k, Hashable v) => Hashable (Map.Map k v)
 deriving anyclass instance (Serialise k, Serialise v) => Serialise (Map.Map k v)
-deriving anyclass instance (ToSchema k, ToSchema v) => ToSchema (Map.Map k v)
 
 makeLift ''Value
 
@@ -196,21 +177,6 @@ instance Haskell.Monoid Value where
 
 instance Monoid Value where
     mempty = zero
-
--- 'InnerMap' exists only to trick swagger's generic deriving mechanism
--- into not looping indefinitely when it encounters a nested map.
-newtype InnerMap = InnerMap { unMap :: [(TokenName, Integer)] }
-    deriving stock (Generic)
-    deriving anyclass (ToJSON, FromJSON, ToSchema)
-
-instance ToSchema Value where
-    declareNamedSchema _ = do
-        mapSchema <- declareSchemaRef (Proxy @(Map.Map CurrencySymbol InnerMap))
-        return $
-                NamedSchema (Just "Value") $ Haskell.mempty
-                    & S.type_ .~ SwaggerObject
-                    & S.properties .~ [ ("getValue", mapSchema) ]
-                    & S.required .~ [ "getValue" ]
 
 {- note [Currencies]
 

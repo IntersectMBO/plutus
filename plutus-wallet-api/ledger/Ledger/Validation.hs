@@ -64,8 +64,8 @@ import qualified Data.ByteString.Lazy         as BSL
 import qualified Data.ByteString.Lazy.Hash    as Hash
 import           Data.Hashable                (Hashable)
 import           Data.Proxy                   (Proxy (Proxy))
-import           Data.Swagger.Internal.Schema (ToSchema (declareNamedSchema), paramSchemaToSchema, plain)
 import           Data.String                  (IsString)
+import           Schema                       (ToSchema)
 import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx.Builtins   as Builtins
 import           Language.PlutusTx.Lift       (makeLift)
@@ -194,9 +194,8 @@ newtype ValidatorHash =
     deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable)
+    deriving anyclass (ToSchema)
 
-instance ToSchema ValidatorHash where
-    declareNamedSchema _ = plain . paramSchemaToSchema $ (Proxy :: Proxy String)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype DataScriptHash =

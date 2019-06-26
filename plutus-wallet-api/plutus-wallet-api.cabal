@@ -136,7 +136,6 @@ library plutus-ledger
         prettyprinter -any,
         serialise -any,
         servant -any,
-        swagger2 <2.4,
         template-haskell -any,
         text -any,
         transformers -any,
@@ -146,6 +145,7 @@ library plutus-ledger
         newtype-generics -any,
         http-api-data -any,
         cardano-crypto -any,
+        playground-common,
         deepseq -any
 
     if flag(defer-plugin-errors)

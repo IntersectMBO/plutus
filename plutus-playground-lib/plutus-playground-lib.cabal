@@ -46,8 +46,8 @@ library
     , lens
     , memory
     , mtl
+    , newtype-generics
     , servant
-    , swagger2
     , template-haskell
     , text
     , transformers
@@ -71,7 +71,6 @@ test-suite plutus-playground-lib-test
         containers -any,
         hedgehog -any,
         playground-common -any,
-        swagger2 -any,
         tasty -any,
         tasty-hunit -any,
         text -any,

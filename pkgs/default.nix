@@ -53459,6 +53459,7 @@ license = stdenv.lib.licenses.bsd3;
 , bytestring
 , containers
 , cookie
+, cryptonite
 , directory
 , exceptions
 , file-embed
@@ -53477,6 +53478,7 @@ license = stdenv.lib.licenses.bsd3;
 , newtype-generics
 , process
 , prometheus
+, recursion-schemes
 , safe-exceptions
 , servant
 , servant-client
@@ -53506,6 +53508,7 @@ base
 bytestring
 containers
 cookie
+cryptonite
 directory
 exceptions
 file-embed
@@ -53522,6 +53525,7 @@ mtl
 newtype-generics
 process
 prometheus
+recursion-schemes
 safe-exceptions
 servant
 servant-client
@@ -53541,7 +53545,9 @@ testHaskellDepends = [
 aeson
 base
 bytestring
+cryptonite
 hspec
+text
 ];
 testToolDepends = [
 hspec-discover
@@ -53761,6 +53767,7 @@ license = stdenv.lib.licenses.asl20;
 , natural-transformation
 , newtype-generics
 , operational
+, playground-common
 , plutus-tx
 , plutus-wallet-api
 , recursion-schemes
@@ -53770,7 +53777,6 @@ license = stdenv.lib.licenses.asl20;
 , servant-server
 , stdenv
 , stm
-, swagger2
 , tasty
 , tasty-hedgehog
 , tasty-hunit
@@ -53807,6 +53813,7 @@ mtl
 natural-transformation
 newtype-generics
 operational
+playground-common
 plutus-tx
 plutus-wallet-api
 recursion-schemes
@@ -53815,7 +53822,6 @@ servant
 servant-client
 servant-server
 stm
-swagger2
 template-haskell
 text
 transformers
@@ -53960,6 +53966,7 @@ license = stdenv.lib.licenses.asl20;
 , lens
 , memory
 , mtl
+, newtype-generics
 , playground-common
 , plutus-emulator
 , plutus-tx
@@ -53967,7 +53974,6 @@ license = stdenv.lib.licenses.asl20;
 , QuickCheck
 , servant
 , stdenv
-, swagger2
 , tasty
 , tasty-hunit
 , template-haskell
@@ -53988,12 +53994,12 @@ insert-ordered-containers
 lens
 memory
 mtl
+newtype-generics
 playground-common
 plutus-emulator
 plutus-tx
 plutus-wallet-api
 servant
-swagger2
 template-haskell
 text
 transformers
@@ -54008,7 +54014,6 @@ playground-common
 plutus-emulator
 plutus-wallet-api
 QuickCheck
-swagger2
 tasty
 tasty-hunit
 template-haskell
@@ -54064,7 +54069,6 @@ license = stdenv.lib.licenses.asl20;
 , servant-purescript
 , servant-server
 , stdenv
-, swagger2
 , template-haskell
 , temporary
 , text
@@ -54117,7 +54121,6 @@ servant-client
 servant-client-core
 servant-purescript
 servant-server
-swagger2
 template-haskell
 temporary
 text
@@ -54167,7 +54170,6 @@ playground-common
 plutus-emulator
 plutus-playground-lib
 plutus-wallet-api
-swagger2
 text
 time-units
 transformers
@@ -54235,6 +54237,7 @@ license = stdenv.lib.licenses.asl20;
 , language-plutus-core
 , lens
 , mtl
+, playground-common
 , plutus-core-interpreter
 , plutus-ir
 , prettyprinter
@@ -54261,6 +54264,7 @@ ghc
 language-plutus-core
 lens
 mtl
+playground-common
 plutus-core-interpreter
 plutus-ir
 prettyprinter
@@ -54384,12 +54388,12 @@ license = stdenv.lib.licenses.asl20;
 , natural-transformation
 , newtype-generics
 , operational
+, playground-common
 , plutus-tx
 , recursion-schemes
 , serialise
 , servant
 , stdenv
-, swagger2
 , tasty
 , tasty-hedgehog
 , tasty-hunit
@@ -54422,11 +54426,11 @@ mtl
 natural-transformation
 newtype-generics
 operational
+playground-common
 plutus-tx
 recursion-schemes
 serialise
 servant
-swagger2
 template-haskell
 text
 transformers

@@ -10,12 +10,12 @@ module Playground.TH
     ) where
 
 import           Data.Proxy          (Proxy (Proxy))
-import           Data.Swagger.Schema (toInlinedSchema)
 import           Data.Text           (pack)
 import           Language.Haskell.TH (Body (NormalB), Clause (Clause), Dec (FunD, SigD, ValD), Exp (ListE, VarE),
                                       Info (VarI), Name, Pat (VarP), Q,
                                       Type (AppT, ArrowT, ConT, ForallT, ListT, TupleT, VarT), mkName, nameBase, reify)
 import           Playground.API      (Fn (Fn), FunctionSchema (FunctionSchema), adaCurrency)
+import           Schema              (toSchema)
 
 mkFunctions :: [Name] -> Q [Dec]
 mkFunctions names = do
@@ -69,11 +69,7 @@ mkFunctionExp name fn = do
 
 toSchemas :: Fn -> [Type] -> Q Exp
 toSchemas fn ts = do
-    es <-
-        foldr
-            (\t e -> [|toInlinedSchema (Proxy :: Proxy $(pure t)) : $e|])
-            [|[]|]
-            ts
+    es <- foldr (\t e -> [|toSchema (Proxy :: Proxy $(pure t)) : $e|]) [|[]|] ts
     [|FunctionSchema fn $(pure es)|]
 
 {-# ANN args ("HLint: ignore" :: String) #-}

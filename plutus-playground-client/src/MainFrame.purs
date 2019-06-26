@@ -476,6 +476,10 @@ evalForm initialValue = rec
       SimpleArray schema $ Array.snoc fields (toArgument initialValue schema)
     rec (AddSubField _) arg = arg
 
+    rec (SetSubField 0 subEvent) (SimpleMaybe schema field) =
+      SimpleMaybe schema $ over _Just (rec subEvent) field
+    rec (SetSubField _ subEvent) arg@(SimpleMaybe schema field) = arg
+
     rec (SetSubField n subEvent) (SimpleArray schema fields) =
       SimpleArray schema $ over (ix n) (rec subEvent) fields
 

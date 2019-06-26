@@ -39,7 +39,8 @@ import Ledger.TxId (TxIdOf)
 import Ledger.Value (CurrencySymbol, TokenName, Value, _CurrencySymbol, _TokenName, _Value)
 import Matryoshka (class Corecursive, class Recursive, Algebra, cata)
 import Network.RemoteData (RemoteData)
-import Playground.API (CompilationResult, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency, SimpleArgumentSchema(..), SimulatorWallet, _FunctionSchema, _SimulatorWallet)
+import Playground.API (CompilationResult, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency, SimulatorWallet, _FunctionSchema, _SimulatorWallet)
+import Schema (SimpleArgumentSchema(..))
 import Playground.API as API
 import Servant.PureScript.Ajax (AjaxError)
 import Test.QuickCheck.Arbitrary (class Arbitrary)
@@ -371,6 +372,7 @@ data SimpleArgument
   | SimpleString (Maybe String)
   | SimpleHex (Maybe String)
   | SimpleArray SimpleArgumentSchema (Array SimpleArgument)
+  | SimpleMaybe SimpleArgumentSchema (Maybe SimpleArgument)
   | SimpleTuple (JsonTuple SimpleArgument SimpleArgument)
   | SimpleObject SimpleArgumentSchema (Array (JsonTuple String SimpleArgument))
   | ValueArgument SimpleArgumentSchema Value
@@ -398,8 +400,9 @@ toArgument initialValue = rec
     rec SimpleStringSchema = SimpleString Nothing
     rec SimpleHexSchema = SimpleHex Nothing
     rec (SimpleArraySchema field) = SimpleArray field []
+    rec (SimpleMaybeSchema field) = SimpleMaybe field Nothing
     rec (SimpleTupleSchema (JsonTuple (fieldA /\ fieldB))) = SimpleTuple (JsonTuple (rec fieldA /\ rec fieldB))
-    rec schema@(SimpleObjectSchema fields) =
+    rec schema@(SimpleObjectSchema _ fields) =
         SimpleObject schema $ map JsonTuple $ over (traversed <<< _2) rec (map unwrap fields)
     rec schema@(ValueSchema fields) = ValueArgument schema initialValue
     rec (UnknownSchema context description) = Unknowable { context, description }
@@ -419,6 +422,7 @@ data SimpleArgumentF a
   | SimpleHexF (Maybe String)
   | SimpleTupleF (JsonTuple a a)
   | SimpleArrayF SimpleArgumentSchema (Array a)
+  | SimpleMaybeF SimpleArgumentSchema (Maybe a)
   | SimpleObjectF SimpleArgumentSchema (Array (JsonTuple String a))
   | ValueArgumentF SimpleArgumentSchema Value
   | UnknowableF { context :: String, description :: String }
@@ -429,6 +433,7 @@ instance functorSimpleArgumentF :: Functor SimpleArgumentF where
   map f (SimpleHexF x) = SimpleHexF x
   map f (SimpleTupleF (JsonTuple (Tuple x y))) = SimpleTupleF (JsonTuple (Tuple (f x) (f y)))
   map f (SimpleArrayF schema xs) = SimpleArrayF schema (map f xs)
+  map f (SimpleMaybeF schema x) = SimpleMaybeF schema (map f x)
   map f (SimpleObjectF schema xs) = SimpleObjectF schema (map (map f) xs)
   map f (ValueArgumentF schema x) = ValueArgumentF schema x
   map f (UnknowableF x) = UnknowableF x
@@ -441,6 +446,7 @@ instance recursiveSimpleArgument :: Recursive SimpleArgument SimpleArgumentF whe
   project (SimpleHex x) = SimpleHexF x
   project (SimpleTuple x) = SimpleTupleF x
   project (SimpleArray schema xs) = SimpleArrayF schema xs
+  project (SimpleMaybe schema x) = SimpleMaybeF schema x
   project (SimpleObject schema xs) = SimpleObjectF schema xs
   project (ValueArgument schema x) = ValueArgumentF schema x
   project (Unknowable x) = UnknowableF x
@@ -451,6 +457,7 @@ instance corecursiveSimpleArgument :: Corecursive SimpleArgument SimpleArgumentF
   embed (SimpleHexF x) = SimpleHex x
   embed (SimpleTupleF xs) = SimpleTuple xs
   embed (SimpleArrayF schema xs) = SimpleArray schema xs
+  embed (SimpleMaybeF schema x) = SimpleMaybe schema x
   embed (SimpleObjectF schema xs) = SimpleObject schema xs
   embed (ValueArgumentF schema x) = ValueArgument schema x
   embed (UnknowableF x) = Unknowable x
@@ -475,6 +482,10 @@ instance validationSimpleArgument :: Validation SimpleArgument where
                      , addPath "_2" <$> ys
                      ]
 
+      algebra (SimpleMaybeF schema Nothing) = [ noPath Required ]
+      algebra (SimpleMaybeF schema (Just x)) =
+        addPath "_Just" <$> x
+
       algebra (SimpleArrayF schema xs) =
         Array.concat $ mapWithIndex (\i values-> addPath (show i) <$> values) xs
 
@@ -497,6 +508,7 @@ simpleArgumentToJson arg = cata algebra arg
     algebra (SimpleHexF Nothing) = Nothing
     algebra (SimpleTupleF (JsonTuple (Just fieldA /\ Just fieldB))) = Just $ encode [ fieldA, fieldB ]
     algebra (SimpleTupleF _) = Nothing
+    algebra (SimpleMaybeF _ field) = encode <$> field
     algebra (SimpleArrayF _ fields) = Just $ encode fields
     algebra (SimpleObjectF _ fields) = encodeFields fields
       where
