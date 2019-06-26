@@ -53926,6 +53926,7 @@ license = stdenv.lib.licenses.asl20;
 , mtl
 , playground-common
 , plutus-emulator
+, plutus-tx
 , plutus-wallet-api
 , QuickCheck
 , servant
@@ -53953,6 +53954,7 @@ memory
 mtl
 playground-common
 plutus-emulator
+plutus-tx
 plutus-wallet-api
 servant
 swagger2

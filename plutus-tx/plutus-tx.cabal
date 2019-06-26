@@ -51,6 +51,8 @@ library
         Language.PlutusTx.Maybe
         Language.PlutusTx.Semigroup
         Language.PlutusTx.Monoid
+        Language.PlutusTx.AssocMap
+        Language.PlutusTx.These
     reexported-modules:
         Language.PlutusTx.Code,
         Language.PlutusTx.Lift,

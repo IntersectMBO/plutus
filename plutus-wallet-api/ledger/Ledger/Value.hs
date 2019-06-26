@@ -8,6 +8,7 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 -- Prevent unboxing, which the plugin can't deal with
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
@@ -63,7 +64,8 @@ import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift       (makeLift)
 import           Language.PlutusTx.Prelude    hiding (plus, minus, negate, multiply)
 import qualified Language.PlutusTx.Prelude    as P
-import qualified Ledger.Map                   as Map
+import qualified Language.PlutusTx.AssocMap   as Map
+import           Language.PlutusTx.These
 import           LedgerBytes                  (LedgerBytes(LedgerBytes))
 import           Data.Function                ((&))
 
@@ -160,6 +162,17 @@ newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName In
     deriving anyclass (ToJSON, FromJSON, Hashable)
     deriving newtype (Serialise)
 
+-- Orphan instances for 'Map' to make this work
+instance (ToJSON v, ToJSON k) => ToJSON (Map.Map k v) where
+    toJSON = JSON.toJSON . Map.toList
+
+instance (FromJSON v, FromJSON k) => FromJSON (Map.Map k v) where
+    parseJSON v = Map.fromList Haskell.<$> JSON.parseJSON v
+
+deriving anyclass instance (Hashable k, Hashable v) => Hashable (Map.Map k v)
+deriving anyclass instance (Serialise k, Serialise v) => Serialise (Map.Map k v)
+deriving anyclass instance (ToSchema k, ToSchema v) => ToSchema (Map.Map k v)
+
 makeLift ''Value
 
 instance Haskell.Eq Value where
@@ -239,14 +252,14 @@ singleton c tn i = Value (Map.singleton c (Map.singleton tn i))
 
 {-# INLINABLE unionVal #-}
 -- | Combine two 'Value' maps
-unionVal :: Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (Map.These Integer Integer))
+unionVal :: Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (These Integer Integer))
 unionVal (Value l) (Value r) =
     let
         combined = Map.union l r
         unThese k = case k of
-            Map.This a    -> Map.This <$> a
-            Map.That b    -> Map.That <$> b
-            Map.These a b -> Map.union a b
+            This a    -> This <$> a
+            That b    -> That <$> b
+            These a b -> Map.union a b
     in unThese <$> combined
 
 {-# INLINABLE unionWith #-}
@@ -255,9 +268,9 @@ unionWith f ls rs =
     let
         combined = unionVal ls rs
         unThese k' = case k' of
-            Map.This a -> f a 0
-            Map.That b -> f 0 b
-            Map.These a b -> f a b
+            This a -> f a 0
+            That b -> f 0 b
+            These a b -> f a b
     in Value (fmap (fmap unThese) combined)
 
 {-# INLINABLE scale #-}
@@ -298,10 +311,10 @@ isZero :: Value -> Bool
 isZero (Value xs) = Map.all (Map.all (\i -> 0 == i)) xs
 
 {-# INLINABLE checkPred #-}
-checkPred :: (Map.These Integer Integer -> Bool) -> Value -> Value -> Bool
+checkPred :: (These Integer Integer -> Bool) -> Value -> Value -> Bool
 checkPred f l r =
     let
-      inner :: Map.Map TokenName (Map.These Integer Integer) -> Bool
+      inner :: Map.Map TokenName (These Integer Integer) -> Bool
       inner = Map.all f
     in
       Map.all inner (unionVal l r)
@@ -313,9 +326,9 @@ checkBinRel :: (Integer -> Integer -> Bool) -> Value -> Value -> Bool
 checkBinRel f l r =
     let
         unThese k' = case k' of
-            Map.This a    -> f a 0
-            Map.That b    -> f 0 b
-            Map.These a b -> f a b
+            This a    -> f a 0
+            That b    -> f 0 b
+            These a b -> f a b
     in checkPred unThese l r
 
 {-# INLINABLE geq #-}
