@@ -21,10 +21,9 @@ open import Untyped
 open import Builtin.Signature Ctx⋆ Kind
   ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
 open import Type.BetaNBE.RenamingSubstitution
-
 open import Data.Sum as S
-open import Relation.Binary.PropositionalEquality
-open import Data.List hiding (map)
+open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Data.List hiding (map; [_])
 open import Data.Product hiding (map) renaming (_,_ to _,,_)
 open import Data.Unit hiding (_≤_; _≤?_; _≟_)
 import Utils as Util
@@ -81,7 +80,6 @@ eraseErr (A.E-·⋆ e) = U.E-todo
 eraseErr (A.E-unwrap e) = U.E-todo
 eraseErr (A.E-wrap e) = U.E-todo
 eraseErr (A.E-builtin bn σ tel Bs Ds telB vtel e p telD) = U.E-todo
-
 
 eraseVTel : ∀ {Φ} Γ Δ
   → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
@@ -220,3 +218,19 @@ erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel {t = t}{t' = t'} p q r)
 \end{code}
 
 -- returning nothing means that the typed step vanishes
+
+\begin{code}
+eraseProgress : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(M : Γ ⊢ A)(p : A.Progress M)
+  → U.Progress (erase M)
+  ⊎ Σ (Γ ⊢ A) λ N →  (M A.—→ N) × (erase M ≡ erase N)
+eraseProgress M (A.step {N = N} p) =
+  map U.step (λ q → N ,, p ,, q) (erase—→ p)
+eraseProgress M (A.done V)    = inj₁ (U.done (eraseVal V))
+eraseProgress M (A.neutral N) = inj₁ (U.neutral (eraseNe N))
+eraseProgress M (A.error e)   = inj₁ (U.error (eraseErr e))
+
+erase-progress : ∀{Φ}{Γ : Ctx Φ}{A}(M : Γ ⊢ A)
+  → U.Progress (erase M)
+  ⊎ Σ (Γ ⊢ A) λ N →  (M A.—→ N) × (erase M ≡ erase N)
+erase-progress t = eraseProgress t (A.progress t)
+\end{code}
