@@ -28,6 +28,7 @@ module Ledger.Validation
     , plcValidatorDigest
     , plcRedeemerHash
     , plcTxHash
+    , plcDigest
     , plcCurrencySymbol
     , validatorScriptHash
     -- * Oracles

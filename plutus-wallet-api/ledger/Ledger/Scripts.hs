@@ -20,6 +20,7 @@ module Ledger.Scripts(
     compileScript,
     lifted,
     applyScript,
+    Checking (..),
     evaluateScript,
     runScript,
     -- * Script wrappers
@@ -100,6 +101,8 @@ instance Ord Script where
 instance Haskell.Ord Script where
     a `compare` b = serialise a `compare` serialise b
 
+data Checking = Typecheck | DontCheck
+
 -- | The size of a 'Script'. No particular interpretation is given to this, other than that it is
 -- proportional to the serialized size of the script.
 scriptSize :: Script -> Integer
@@ -120,8 +123,8 @@ applyScript (unScript -> s1) (unScript -> s2) = Script $ s1 `PLC.applyProgram` s
 
 -- | Evaluate a script, returning the trace log and a boolean indicating whether
 -- evaluation was successful.
-evaluateScript :: Script -> ([String], Bool)
-evaluateScript (unScript -> s) =
+evaluateScript :: Checking -> Script -> ([String], Bool)
+evaluateScript checking (unScript -> s) =
     let
         plcChecks :: PLC.Program PLC.TyName PLC.Name () -> Either (PLC.Error ()) (PLC.Type PLC.TyName ())
         plcChecks p = PLC.runQuoteT $ do
@@ -130,11 +133,13 @@ evaluateScript (unScript -> s) =
             -- See Note [Normalized types in Scripts]
             let config = PLC.defOnChainConfig { PLC._tccDynamicBuiltinNameTypes = types }
             PLC.unNormalized Haskell.<$> PLC.typecheckPipeline config p
-    in case plcChecks s of
-        -- TODO: do something with the error
-        Left _ -> ([], False)
-        -- we don't care about the inferred type, we just care that type inference succeeded
-        Right _ -> PLC.isEvaluationSuccess Haskell.<$> evaluateCekTrace s
+    in case checking of
+        DontCheck -> PLC.isEvaluationSuccess Haskell.<$> evaluateCekTrace s
+        Typecheck -> case plcChecks s of
+            -- TODO: do something with the error
+            Left _ -> ([], False)
+            -- we don't care about the inferred type, we just care that type inference succeeded
+            Right _ -> PLC.isEvaluationSuccess Haskell.<$> evaluateCekTrace s
 
 instance ToJSON Script where
   toJSON = JSON.String . JSON.encodeSerialise
@@ -203,12 +208,12 @@ instance Show ValidationData where
     show = const "ValidationData { <script> }"
 
 -- | Evaluate a validator script with the given arguments, returning the log and a boolean indicating whether evaluation was successful.
-runScript :: ValidationData -> ValidatorScript -> DataScript -> RedeemerScript -> ([String], Bool)
-runScript (ValidationData valData) (ValidatorScript validator) (DataScript dataScript) (RedeemerScript redeemer) =
+runScript :: Checking -> ValidationData -> ValidatorScript -> DataScript -> RedeemerScript -> ([String], Bool)
+runScript checking (ValidationData valData) (ValidatorScript validator) (DataScript dataScript) (RedeemerScript redeemer) =
     let
         -- See Note [Scripts returning Bool]
         applied = checker `applyScript` (((validator `applyScript` dataScript) `applyScript` redeemer) `applyScript` valData)
-    in evaluateScript applied
+    in evaluateScript checking applied
 
 {- Note [Scripts returning Bool]
 It used to be that the signal for validation failure was a script being `error`. This is nice for the validator, since
