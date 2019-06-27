@@ -76,4 +76,4 @@ flags:
     development: true
 extra-package-dbs: []
 nix:
-  packages: [gmp, openssl]
+  packages: [zlib, gmp, openssl]
