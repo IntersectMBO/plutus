@@ -1,7 +1,11 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeOperators       #-}
+-- Set -O0 to make it a fairer fight
+{-# OPTIONS_GHC -O0 #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Main (main) where
 
@@ -20,12 +24,18 @@ import           Ledger.Value                                      as Value
 import           LedgerBytes
 import           Wallet
 
-main :: IO ()
-main = defaultMain [ expensive, plutus ]
+import qualified Language.PlutusTx                                 as PlutusTx
+import           Language.PlutusTx.Evaluation                      (evaluateCek)
 
--- | Execution of some expensive operations that we can relevantly compare ourselves against.
-expensive :: Benchmark
-expensive = bgroup "expensive" [ verifySignatureB, hashB ]
+import qualified Recursion                                         as Rec
+import qualified Scott                                             as Scott
+
+main :: IO ()
+main = defaultMain [ functions, validators ]
+
+-- | Execution of some interesting functions.
+functions :: Benchmark
+functions = bgroup "functions" [ verifySignatureB, hashB, fibB, sumB, tailB ]
 
 -- | Execution of signature verification, which is something that the validating nodes will have
 -- to do frequently, and typically >1 time per transaction.
@@ -48,25 +58,19 @@ hashB = bgroup "hash" (imap (\i d -> bench ("hash-" <> show i) $ nf hashit d) ha
         hashData :: [BS.ByteString]
         hashData = ["", "looooooooooooooooooooooooooooooooooooooooooooooooong"]
 
--- | Execution of some Plutus programs.
-plutus :: Benchmark
-plutus = bgroup "plutus" [ trivial, fibB, sumB, tailB, multisig ]
-
--- | The trivial validator script that just returns 'True'.
-trivial :: Benchmark
-trivial = bgroup "trivial" [
-        bench "nocheck" $ nf runScriptNoCheck (validationData1, validator, unitData, unitRedeemer),
-        bench "typecheck" $ nf runScriptCheck (validationData1, validator, unitData, unitRedeemer)
-    ]
-    where
-        validator = ValidatorScript $$(Ledger.compileScript [|| \() () (_::PendingTx) -> True ||])
-
 -- | The fibonnaci function.
 fibB :: Benchmark
 fibB = bgroup "fib" [
-        bench "5" $ nf runScriptNoCheck (validationData1, validator5, unitData, unitRedeemer),
-        bench "10" $ nf runScriptNoCheck (validationData1, validator10, unitData, unitRedeemer),
-        bench "typecheck" $ nf runScriptCheck (validationData1, validator5, unitData, unitRedeemer)
+        bgroup "5" [
+            bench "plutus" $ nf evaluateCek script5,
+            bench "native" $ nf fib 5,
+            bench "combinator" $ nf fibRec 5
+        ],
+        bgroup "10" [
+            bench "plutus" $ nf evaluateCek script10,
+            bench "native" $ nf fib 10,
+            bench "combinator" $ nf fibRec 10
+        ]
     ]
     where
         fib :: Integer -> Integer
@@ -76,17 +80,30 @@ fibB = bgroup "fib" [
             else if n P.== 1
             then 1
             else fib (n `P.minus` 1) `P.plus` fib (n `P.minus` 2)
-        validator5 = ValidatorScript $$(Ledger.compileScript
-                                         [|| \() () (_::PendingTx) -> fib 5 P.== 5 ||])
-        validator10 = ValidatorScript $$(Ledger.compileScript
-                                         [|| \() () (_::PendingTx) -> fib 10 P.== 55 ||])
+
+        fibRec :: Integer -> Integer
+        fibRec = Rec.fix1zSimple $ \r n -> if n == 0 then 0 else if n == 1 then 1 else r (n-1) + r (n-2)
+
+        script5 = PlutusTx.getPlc $$(PlutusTx.compile [|| fib 5 ||])
+        script10 = PlutusTx.getPlc $$(PlutusTx.compile [|| fib 10 ||])
 
 -- | Summing a list.
 sumB :: Benchmark
 sumB = bgroup "sum" [
-        bench "5" $ nf runScriptNoCheck (validationData1, validator5, unitData, unitRedeemer),
-        bench "20" $ nf runScriptNoCheck (validationData1, validator20, unitData, unitRedeemer),
-        bench "typecheck" $ nf runScriptCheck (validationData1, validator5, unitData, unitRedeemer)
+        bgroup "5" [
+            bench "plutus" $ nf evaluateCek script5,
+            bench "native" $ nf haskellNative 5,
+            bench "scott" $ nf haskellScott 5,
+            bench "combinator" $ nf haskellRec 5,
+            bench "scott-combinator" $ nf haskellRecScott 5
+        ],
+        bgroup "20" [
+            bench "plutus" $ nf evaluateCek script20,
+            bench "native" $ nf haskellNative 20,
+            bench "scott" $ nf haskellScott 20,
+            bench "combinator" $ nf haskellRec 20,
+            bench "scott-combinator" $ nf haskellRecScott 20
+        ]
     ]
     where
         fromTo :: Integer -> Integer -> [Integer]
@@ -94,30 +111,90 @@ sumB = bgroup "sum" [
             if f P.== t then [f]
             else f:(fromTo (f `P.plus` 1) t)
 
-        validator5 = ValidatorScript $$(Ledger.compileScript
-                                         [|| \() () (_::PendingTx) -> P.foldr P.plus 0 (fromTo 1 5) P.== 15 ||])
-        validator20 = ValidatorScript $$(Ledger.compileScript
-                                         [|| \() () (_::PendingTx) -> P.foldr P.plus 0 (fromTo 1 20) P.== 210 ||])
+        foldrRec :: (a -> b -> b) -> b -> [a] -> b
+        foldrRec f z = go
+            where go = Rec.fix1zSimple $ \r -> \case
+                      [] -> z
+                      (h:t) -> f h (r t)
+
+        foldrScott :: (a -> b -> b) -> b -> Scott.ScottList a -> b
+        foldrScott f z = go
+            where go l = Scott.matchList l z (\h t -> f h (go t))
+
+        foldrRecScott :: (a -> b -> b) -> b -> Scott.ScottList a -> b
+        foldrRecScott f z = go
+            where go = Rec.fix1zSimple $ \r l -> Scott.matchList l z (\h t -> f h (r t))
+
+        haskellNative :: Integer -> Integer
+        haskellNative i = foldr (+) 0 [1..i]
+
+        haskellScott :: Integer -> Integer
+        haskellScott i = foldrScott (+) 0 (Scott.fromTo 1 i)
+
+        haskellRec :: Integer -> Integer
+        haskellRec i = foldrRec (+) 0 [1..i]
+
+        haskellRecScott :: Integer -> Integer
+        haskellRecScott i = foldrRecScott (+) 0 (Scott.fromTo 1 i)
+
+        script5 = PlutusTx.getPlc $$(PlutusTx.compile [|| P.foldr P.plus 0 (fromTo 1 5) ||])
+        script20 = PlutusTx.getPlc $$(PlutusTx.compile [|| P.foldr P.plus 0 (fromTo 1 20) ||])
 
 -- | This aims to exercise some reasonably substantial computation *without* using any builtins.
 -- Hence we also provide explicitly constructed lists, rather than writing 'replicate', which would
 -- require integers.
 tailB :: Benchmark
 tailB = bgroup "tail" [
-        bench "5" $ nf runScriptNoCheck (validationData1, validator5, unitData, unitRedeemer),
-        bench "20" $ nf runScriptNoCheck (validationData1, validator20, unitData, unitRedeemer),
-        bench "typecheck" $ nf runScriptCheck (validationData1, validator5, unitData, unitRedeemer)
+        bgroup "5" [
+            bench "plutus" $ nf evaluateCek script5,
+            bench "native" $ nf tail (replicate 5 ()),
+            bench "scott" $ nf tailScott (Scott.replicate 5 ()),
+            bench "combinator" $ nf tailRec (replicate 5 ()),
+            bench "scott-combinator" $ nf tailRecScott (Scott.replicate 5 ())
+        ],
+        bgroup "20" [
+            bench "plutus" $ nf evaluateCek script20,
+            bench "native" $ nf tail (replicate 20 ()),
+            bench "scott" $ nf tailScott (Scott.replicate 20 ()),
+            bench "combinator" $ nf tailRec (replicate 20 ()),
+            bench "scott-combinator" $ nf tailRecScott (Scott.replicate 20 ())
+        ]
     ]
     where
         tail :: [a] -> Maybe a
-        tail [] = Nothing
-        tail (x:[]) = Just x
-        tail (_:xs) = tail xs
+        tail = \case
+            [] -> Nothing
+            (x:[]) -> Just x
+            (_:xs) -> tail xs
 
-        validator5 = ValidatorScript $$(Ledger.compileScript
-                                         [|| \() () (_::PendingTx) -> tail [(), (), (), (), ()] P.== Just () ||])
-        validator20 = ValidatorScript $$(Ledger.compileScript
-                                         [|| \() () (_::PendingTx) -> tail [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()] P.== Just () ||])
+        tailRec :: [a] -> Maybe a
+        tailRec = Rec.fix1zSimple $ \r -> \case
+                [] -> Nothing
+                (x:[]) -> Just x
+                (_:xs) -> r xs
+
+        tailScott :: Scott.ScottList a -> Maybe a
+        tailScott l = Scott.matchList l Nothing (\h t -> Scott.matchList t (Just h) (\_h t' -> tailScott t'))
+
+        tailRecScott :: Scott.ScottList a -> Maybe a
+        tailRecScott = Rec.fix1zSimple $ \r l ->
+            Scott.matchList l Nothing (\h t -> Scott.matchList t (Just h) (\_h t' -> r t'))
+
+        script5 = PlutusTx.getPlc $$(PlutusTx.compile [|| \() () (_::PendingTx) -> tail [(), (), (), (), ()] ||])
+        script20 = PlutusTx.getPlc $$(PlutusTx.compile [|| \() () (_::PendingTx) -> tail [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()] ||])
+
+-- | Execution of some Plutus validators.
+validators :: Benchmark
+validators = bgroup "validators" [ trivial, multisig ]
+
+-- | The trivial validator script that just returns 'True'.
+trivial :: Benchmark
+trivial = bgroup "trivial" [
+        bench "nocheck" $ nf runScriptNoCheck (validationData1, validator, unitData, unitRedeemer),
+        bench "typecheck" $ nf runScriptCheck (validationData1, validator, unitData, unitRedeemer)
+    ]
+    where
+        validator = ValidatorScript $$(Ledger.compileScript [|| \() () (_::PendingTx) -> True ||])
 
 -- | The multisig contract is one of the simplest ones that we have. This runs a number of different scenarios.
 -- Note that multisig also does some signature verification!

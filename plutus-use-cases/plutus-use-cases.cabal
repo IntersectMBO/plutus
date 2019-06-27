@@ -101,6 +101,10 @@ benchmark plutus-use-cases-bench
     type: exitcode-stdio-1.0
     main-is: Bench.hs
     hs-source-dirs: bench
+    other-modules:
+        Scott
+        Recursion
+        IFix
     default-language: Haskell2010
     ghc-options: -Wall -Wincomplete-uni-patterns
                  -Wincomplete-record-updates -Wredundant-constraints -Widentities
