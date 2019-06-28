@@ -24,6 +24,7 @@ TAGS
 *#
 *.prof
 .stack-work
+stack.yaml.lock
 
 .uuid
 
