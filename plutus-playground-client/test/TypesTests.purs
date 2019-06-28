@@ -163,7 +163,7 @@ simpleArgumentToJsonTests = do
             ]
       equalJson
         (Just (encodeJSON (FO.singleton "getValue" [
-                              [ encode (FO.singleton "unCurrencySymbol" "5fff")
+                              [ encode (FO.singleton "unCurrencySymbol" "")
                               , encode [
                                    [ encode (FO.singleton "unTokenName" "")
                                    , encode 4
@@ -174,7 +174,7 @@ simpleArgumentToJsonTests = do
         (simpleArgumentToJson
           (ValueArgument
              valueSchema
-             (Value { getValue: (LedgerMap [CurrencySymbol { unCurrencySymbol: "5fff" } /\ LedgerMap [TokenName { unTokenName: "" } /\ 4]]) })))
+             (Value { getValue: (LedgerMap [CurrencySymbol { unCurrencySymbol: "" } /\ LedgerMap [TokenName { unTokenName: "" } /\ 4]]) })))
 
     test "Objects" $ do
       let objectSchema = SimpleObjectSchema [ JsonTuple $ Tuple "name" SimpleStringSchema
