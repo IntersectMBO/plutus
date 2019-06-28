@@ -1,6 +1,8 @@
 = UTxO Style Accounting
 :stem: latexmath
 
+.. reference to Edsko and Duncans Wallet spec
+
 In order to become proficient with all things Plutus, it is
 inevitable that the reader must first acquire a solid understanding of how
 accounting is done on the Cardano platform.
@@ -15,7 +17,61 @@ but rather from transaction to transaction. Each transaction has inputs
 (where the money being spent this transaction is coming from) and outputs
 (where this money is going). Note that the body of a transaction may also
 contain other data, as we will see later when we examine the extended
-UTxO model in the <<_extended_utxo_model>> Chapter. For the basic transaction
+UTxO model in the <<_extended_utxo_model>> Chapter.
+
+Consider the data flow graph below. The black lines represent unspent outputs
+of transactions, and the red lines represent these outputs being used as inputs
+to subsequent transactions. The vertical unlabelled box represents a single
+transaction having several inputs and several outputs. The blue certificates
+denote remaining unspent outputs in our illustration.
+Note that here, at the start of the data flow graph, Alice has 100 Ada in
+unspent outputs from before the start time of this graph -
+this money comes from one or more transactions outside the scope of this picture.
+We abstract this with a single box (labelled with her name and the 100 Ada).
+This box has two black (output) lines coming out of it, with the total value
+of these outputs adding up to 100 Ada):
+
+* a 58 Ada output from earlier remains unspent by Alice and is part of her
+final unspent outputs
+* a 42 Ada unspent output of Alice's becomes part of the new transaction
+
+Now, Bob has 10 Ada from previous unspent outputs. He spends them as follows:
+
+* all 10 Ada goes to the new transaction
+
+This new transaction we illustrate here has two inputs, 42 from Alice and 10
+from Bob. This transaction has two outputs, 2 Ada to Bob and 50 to Charlie.
+We also see that Charlie has 52 Ada from a previously unspent output, for
+a total of 102 Ada he can spend in future transactions. Bob is left with
+only one output of 2 Ada, and Alice, a total of 58 Ada in unspent outputs
+from other transactions.
+
+image::UTxO_pic.png[]
+
+The above model is strictly showing the flow of currency between several
+participants. In this simplified version, the transactions illustrated are not
+paying fees, etc.
+Even in this somewhat simplified model, we see that an output must always be spent
+in full. That is, a record of an unspent output cannot be modified (this would
+be essentially account-based bookkeeping), only used entirely. In order to maintain
+the ledger bookkeeping integrity, we must have in our new transaction unspent outputs totaling
+the correct amount of all the unspent outputs that are being used up by it. In the
+example above, our new transaction removes (i.e. uses as inputs) unspent outputs of value
+42 from Alice and 10 from Bob, for a total of 52 Ada. We must then have
+52 Ada of outputs from this transaction (2 to Bob and 50 to Charlie).
+Note here that Bob both had an unspent output used by this transaction and
+an unspent output produced by this transaction. That is, he got, so to say,
+change (of 2 Ada) from this transaction. Since there is no true way to spend
+part of an output, this is how UTxO accounting deals with partial spending -
+by adding a "change" output.
+
+Notice here that this style of accounting makes it convenient, if not intuitive,
+to distribute the flow of cash from several contributors to several recipients by
+having it flow into a common pot, i.e. the transaction, before being sent to
+the intended payees.
+This is, in a very general sense, the goal of smart contracts.
+Let us explore what is going on during a UTxO transaction processing event more formally.
+For the basic transaction
 model we discuss here, refer to Figure <</images/UTxO.png>>.
 
 image::UTxO.png[]
@@ -59,40 +115,93 @@ Processing a transaction involves updating the UTxO on the ledger in a way
 that makes the funds spent by the transaction being processed available to
 be spent by the owners of the addresses listed in the outputs. That is,
 all the entries corresponding to the inputs of the processed transaction are
-removed from the ledger UTxO. Additionally, all the latexmath:[\mathsf{TxOut}]) values in
+removed from the ledger UTxO.
+
+Additionally, all the latexmath:[\mathsf{TxOut}]) values in
 the finite map of the outputs of the transaction are added to the UTxO,
 with the key of the finite map consisting of the ID of transaction being processed,
 and the index value the same as in the the finite map of outputs of this transaction.
-That is, if latexmath:[tx = (ins, outs)] with ID latexmath:[id], and
+That is, if latexmath:[tx] contains a pair of a list of inputs and a finite map
+of inputs latexmath:[(ins, outs)] with ID latexmath:[id], and
 latexmath:[ix \mapsto (a,c)] is an entry in latexmath:[outs], the UTxO will
 have the entry latexmath:[(id, ix) \mapsto (a,c)] added.
 
-Note that a check that the sum of the
-ADA in the inputs being spent is the same as the sum of the outputs being
-appended to the UTxO must be done explicitly, before processing any
-transaction.
-
-Here we do not go into the details of the specific types and calculations
-used in the Cardano ledger implementation, bu now the reader should have a
-sufficient understanding of the structure of a transaction and how it is
-processed to be able to understand what goes on behind the
-scenes when Plutus code is used to generate a transaction.
-
-
-.. reference to Edsko and Duncans Wallet spec
+Now, we would like to capture this update concisely in terms of mathematical
+notation (which is rather human-readable), but can be translated directly into
+code. We will adhere to the use of this notation in our explanation of
+the inclusion of Plutus Tx scrips inside transactions as well. The following
+definitions are three ways to filter a UTxO finite map. The first one is
+filtering the UTxO by a subset latexmath:[ins] of the keys. The second filter
+gives the compliment of the result of the first filter (i.e. all the UTxO
+entries not indexed by keys in the list of inputs). The third filer
+filters UTxO entries by the values.
 
 \begin{align*}
-\mathit{ins} \restrictdom \mathit{utxo}
+\mathit{ins} \lhd \mathit{utxo}
 & = \{ i \mapsto o \mid i \mapsto o \in \mathit{utxo}, ~ i \in \mathit{ins} \}
 & \text{domain restriction}
 \\
-\mathit{ins} \subtractdom \mathit{utxo}
+\mathit{ins} \mathbin{\slashed{\lhd}} \mathit{utxo}
 & = \{ i \mapsto o \mid i \mapsto o \in \mathit{utxo}, ~ i \notin \mathit{ins} \}
 & \text{domain exclusion}
 \\
-\mathit{utxo} \restrictrange \mathit{outs}
+\mathit{utxo} \rhd \mathit{outs}
 & = \{ i \mapsto o \mid i \mapsto o \in \mathit{utxo}, ~ o \in \mathit{outs} \}
 & \text{range restriction}
 \end{align*}
 
-...
+We would like to use this notation to process a new transaction. That is,
+remove the spent outputs, and build the
+set of new outputs a transaction is adding to the UTxO (as we described above).
+We may compute the outputs as follows:
+
+\begin{align*}
+& \mathsf{txins} \in \mathbb{P}{(\mathsf{Tx})} \to \mathbb{P}{(\mathsf{TxIn})} \\
+& \mathsf{txins} ~ \mathit{txs} = \bigcup \{ \mathit{inputs} \mid (\mathit{inputs}, \,\underline{\phantom{a}}\,) \in \mathit{txs} \}
+\\
+& \mathsf{txouts} \in \mathbb{P}{(\mathsf{Tx})} \to \mathsf{UTxO} \\
+\end{align*}
+
+& \mathsf{txouts} ~ \mathit{txs} =
+  \left\{ (\mathsf{txid} ~ \mathit{tx}, \mathit{ix}) \mapsto \mathit{txout} ~
+  \middle| \begin{array}{l@{~}c@{~}l}
+             \mathit{tx} & \in & \mathit{txs} \\
+             (\,\underline{\phantom{a}}\,,\, \mathit{outputs}) & = & \mathit{tx} \\
+             \mathit{ix} \mapsto \mathit{txout} & \in & \mathit{outputs}
+           \end{array}
+  \right\}
+
+Using this notation, we can define the UTxO update due to a transaction
+latexmath:[tx] as follows:
+
+\begin{align*}
+& (\mathsf{txins}~tx􏰗 \slashed{\lhd}~ utxo) \cup \mathsf{outs}~tx
+\end{align*}
+
+Note that an explicit calculation of the total amount of ADA in the outputs and
+the total ADA in all the inputs of a transaction must be performed as part of
+validating a transaction. There are destinations for the ADA being spent in the inputs
+besides being added as UTxO entries. The main one is the treasury, which is kept
+track of as a value on the ledger. Transaction fees and
+deposits are paid into the treasury, for example. There could also be output entries
+in a transaction without
+corresponding inputs - these are due to collecting rewards from reward
+addresses.
+
+Now, in order to validate a transaction, there are a number of
+calculations performed involving the ADA in the transaction and the ADA
+in other accounts on the ledger to make sure ADA is neither created nor destroyed,
+so to say. This is known as the generalized accounting property. It is the enforcement
+of this property,
+and not an inherent invariant of the UTxO transaction processing scheme, that
+ensures that no dishonest spending is allowed to occur. This is a crucial property
+for the Cardano ledger bookkeeping system, in particular because there is a
+set amount of Ada in existence, which can never change.
+
+Note also that a transaction includes a host of other data, such as
+witnesses, certificates, and scripts along with their hashes.
+Here we have not gone into the details of the specific types and calculations
+used in the Cardano ledger implementation, but now the reader should have a
+sufficient understanding of the structure of a transaction and how it is
+processed to be able to understand what goes on behind the
+scenes when Plutus code is used to generate a transaction.
