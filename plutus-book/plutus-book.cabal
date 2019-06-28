@@ -48,13 +48,14 @@ library
     default-language: Haskell2010
     hs-source-dirs: src
     exposed-modules:
-      Example
+        Dumb
     ghc-options: -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc
     build-tool-depends: unlit:unlit -any
     build-depends:
       base >=4.9 && <5,
       template-haskell >=2.13.0.0,
       language-plutus-core -any,
+      plutus-playground-lib -any,
       plutus-tx -any,
       plutus-wallet-api -any,
       plutus-emulator -any,

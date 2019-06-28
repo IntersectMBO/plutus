@@ -1,5 +1,5 @@
 = Plutus
-:authors: Some IOHK folk
+:authors: Lars Bruenjes, Polina Vinogradova
 :email: plutus@iohk.io
 :orgname: IOHK
 :doctype: book
@@ -35,4 +35,4 @@ include::06-lifecycle.adoc[leveloffset=+ 1]
 include::07-tour.adoc[leveloffset=+ 1]
 include::08-testing.adoc[leveloffset=+ 1]
 include::09-extended.adoc[leveloffset=+ 1]
-include::02-example-lhs.adoc[leveloffset=+ 1]
+include::off-chain/off-chain.adoc[leveloffset=+ 1]

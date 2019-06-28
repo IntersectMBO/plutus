@@ -1,0 +1,14 @@
+= Writing off-chain code
+
+Working with Plutus requires writing on-chain code and off-chain
+code with both parts working well together.
+
+Instead of diving right in,
+let us start simple with an example that has no on-chain
+code at all and exclusively uses off-chain code running in the wallet!
+
+Let us reimplement the `payToWallet_` function from the
+Playground, which allows transferring Ada from one
+wallet to another without involving any smart contracts!
+
+include::dumb.adoc[leveloffset=+ 1]
