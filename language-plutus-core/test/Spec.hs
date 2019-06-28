@@ -23,7 +23,6 @@ import           Normalization.Check
 import           Normalization.Type
 import           PlutusPrelude
 import           Pretty.Readable
-import qualified Quotation.Spec                             as Quotation
 import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
@@ -126,7 +125,6 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles evalFiles 
     , test_constant
     , test_evaluateCk
     , test_normalizationCheck
-    , Quotation.tests
     , Check.tests
     ]
 
