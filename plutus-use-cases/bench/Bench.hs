@@ -29,6 +29,7 @@ import           Language.PlutusTx.Evaluation                      (evaluateCek)
 
 import qualified Recursion                                         as Rec
 import qualified Scott                                             as Scott
+import Opt
 
 main :: IO ()
 main = defaultMain [ functions, validators ]
@@ -62,12 +63,14 @@ hashB = bgroup "hash" (imap (\i d -> bench ("hash-" <> show i) $ nf hashit d) ha
 fibB :: Benchmark
 fibB = bgroup "fib" [
         bgroup "5" [
-            bench "plutus" $ nf evaluateCek script5,
+            bench "plutus" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fib 5 ||])),
+            bench "plutus-opt" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fibOpt 5 ||])),
             bench "native" $ nf fib 5,
             bench "combinator" $ nf fibRec 5
         ],
         bgroup "10" [
-            bench "plutus" $ nf evaluateCek script10,
+            bench "plutus" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fib 10 ||])),
+            bench "plutusOpt" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fibOpt 10 ||])),
             bench "native" $ nf fib 10,
             bench "combinator" $ nf fibRec 10
         ]
@@ -84,14 +87,12 @@ fibB = bgroup "fib" [
         fibRec :: Integer -> Integer
         fibRec = Rec.fix1zSimple $ \r n -> if n == 0 then 0 else if n == 1 then 1 else r (n-1) + r (n-2)
 
-        script5 = PlutusTx.getPlc $$(PlutusTx.compile [|| fib 5 ||])
-        script10 = PlutusTx.getPlc $$(PlutusTx.compile [|| fib 10 ||])
-
 -- | Summing a list.
 sumB :: Benchmark
 sumB = bgroup "sum" [
         bgroup "5" [
             bench "plutus" $ nf evaluateCek script5,
+            bench "plutus-opt" $ nf evaluateCek script5Opt,
             bench "native" $ nf haskellNative 5,
             bench "scott" $ nf haskellScott 5,
             bench "combinator" $ nf haskellRec 5,
@@ -99,6 +100,7 @@ sumB = bgroup "sum" [
         ],
         bgroup "20" [
             bench "plutus" $ nf evaluateCek script20,
+            bench "plutus-opt" $ nf evaluateCek script20Opt,
             bench "native" $ nf haskellNative 20,
             bench "scott" $ nf haskellScott 20,
             bench "combinator" $ nf haskellRec 20,
@@ -138,7 +140,9 @@ sumB = bgroup "sum" [
         haskellRecScott i = foldrRecScott (+) 0 (Scott.fromTo 1 i)
 
         script5 = PlutusTx.getPlc $$(PlutusTx.compile [|| P.foldr P.plus 0 (fromTo 1 5) ||])
+        script5Opt = PlutusTx.getPlc $$(PlutusTx.compile [|| foldrOpt P.plus 0 (fromToOpt 1 5) ||])
         script20 = PlutusTx.getPlc $$(PlutusTx.compile [|| P.foldr P.plus 0 (fromTo 1 20) ||])
+        script20Opt = PlutusTx.getPlc $$(PlutusTx.compile [|| foldrOpt P.plus 0 (fromToOpt 1 20) ||])
 
 -- | This aims to exercise some reasonably substantial computation *without* using any builtins.
 -- Hence we also provide explicitly constructed lists, rather than writing 'replicate', which would
@@ -146,14 +150,16 @@ sumB = bgroup "sum" [
 tailB :: Benchmark
 tailB = bgroup "tail" [
         bgroup "5" [
-            bench "plutus" $ nf evaluateCek script5,
+            bench "plutus" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () (_::PendingTx) -> tail [(), (), (), (), ()] ||])),
+            bench "plutus-opt" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () (_::PendingTx) -> tailOpt [(), (), (), (), ()] ||])),
             bench "native" $ nf tail (replicate 5 ()),
             bench "scott" $ nf tailScott (Scott.replicate 5 ()),
             bench "combinator" $ nf tailRec (replicate 5 ()),
             bench "scott-combinator" $ nf tailRecScott (Scott.replicate 5 ())
         ],
         bgroup "20" [
-            bench "plutus" $ nf evaluateCek script20,
+            bench "plutus" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () (_::PendingTx) -> tail [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()] ||])),
+            bench "plutus-opt" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () (_::PendingTx) -> tailOpt [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()] ||])),
             bench "native" $ nf tail (replicate 20 ()),
             bench "scott" $ nf tailScott (Scott.replicate 20 ()),
             bench "combinator" $ nf tailRec (replicate 20 ()),
@@ -179,9 +185,6 @@ tailB = bgroup "tail" [
         tailRecScott :: Scott.ScottList a -> Maybe a
         tailRecScott = Rec.fix1zSimple $ \r l ->
             Scott.matchList l Nothing (\h t -> Scott.matchList t (Just h) (\_h t' -> r t'))
-
-        script5 = PlutusTx.getPlc $$(PlutusTx.compile [|| \() () (_::PendingTx) -> tail [(), (), (), (), ()] ||])
-        script20 = PlutusTx.getPlc $$(PlutusTx.compile [|| \() () (_::PendingTx) -> tail [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()] ||])
 
 -- | Execution of some Plutus validators.
 validators :: Benchmark

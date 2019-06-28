@@ -108,6 +108,7 @@ benchmark plutus-use-cases-bench
         Scott
         Recursion
         IFix
+        Opt
     default-language: Haskell2010
     ghc-options: -Wall -Wincomplete-uni-patterns
                  -Wincomplete-record-updates -Wredundant-constraints -Widentities
