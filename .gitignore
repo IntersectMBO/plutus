@@ -1,34 +1,7 @@
-.history/
+# Latex
 *.dvi
 *.fls
 *.ptb
-.ghc.environment*
-tags
-dist-newstyle
-dist
-cabal-dev
-*.o
-*.hi
-*.chi
-*.chs.h
-.virtualenv
-.hsenv
-.cabal-sandbox/
-cabal.sandbox.config
-cabal.config
-pkgs/.cabal
-pkgs/.stack
-TAGS
-.DS_Store
-*~
-*#
-*.prof
-.stack-work
-stack.yaml.lock
-
-.uuid
-
-result*
 *.aux
 *.log
 *.pdf
@@ -38,11 +11,46 @@ result*
 *.fdb_latexmk
 *.blg
 
-.terraform
-*.tfvars
+# Cabal
+.ghc.environment*
+tags
+dist-newstyle
+dist
+cabal-dev
+.cabal-sandbox/
+cabal.sandbox.config
+cabal.config
 
-gh-pages
+# Stack
+.stack-work
+stack.yaml.lock
+
+# Haskell output files
+*.o
+*.hi
+*.chi
+*.chs.h
+*.prof
+
+# Nix
+result*
+pkgs/.cabal
+pkgs/.stack
+
+# Editor files
+*~
+*#
 .psc-ide-port
 
+# Misc
+.history/
+.virtualenv
+.hsenv
+TAGS
+.DS_Store
+.uuid
+.terraform
+*.tfvars
+gh-pages
 .importify/
 meadow/meadow.yaml
