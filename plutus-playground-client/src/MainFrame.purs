@@ -67,7 +67,6 @@ import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnn
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
 import Playground.API (KnownCurrency(..), SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
 import Playground.Server (SPParams_)
-import Playground.Usecases (gitRev)
 import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, map, pure, show, unit, unless, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData as StaticData
@@ -574,7 +573,7 @@ bannerMessage =
     ]
     [ text "Plutus Beta - Updated 11th April 2019 - See the "
     , a
-        [ href ("https://github.com/input-output-hk/plutus/blob/" <> gitRev <> "/CHANGELOG.md") ]
+        [ href ("https://github.com/input-output-hk/plutus/blob/master/CHANGELOG.md") ]
         [ text "CHANGELOG" ]
     ]
 
