@@ -83,10 +83,6 @@ module Language.PlutusCore
     , freshUnique
     , freshName
     , freshTyName
-    -- * Quasi-Quoters
-    , plcType
-    , plcTerm
-    , plcProgram
     -- * Evaluation
     , EvaluationResult (..)
     , EvaluationResultDef
@@ -119,7 +115,6 @@ import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Rename
 import           Language.PlutusCore.Size
-import           Language.PlutusCore.TH
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeCheck            as TypeCheck
 import           Language.PlutusCore.View

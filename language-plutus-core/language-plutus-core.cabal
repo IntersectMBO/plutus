@@ -36,7 +36,6 @@ library
         Language.PlutusCore
         Language.PlutusCore.Quote
         Language.PlutusCore.MkPlc
-        Language.PlutusCore.TH
         Language.PlutusCore.Evaluation.CkMachine
         Language.PlutusCore.Evaluation.MachineException
         Language.PlutusCore.Evaluation.Result
@@ -199,7 +198,6 @@ test-suite language-plutus-core-test
         Pretty.Readable
         Check.Spec
         TypeSynthesis.Spec
-        Quotation.Spec
     default-language: Haskell2010
     default-extensions: FlexibleContexts
     other-extensions: OverloadedStrings
