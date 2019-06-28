@@ -12,6 +12,7 @@ module Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine(
     , Payment(..)
     , State
     , validator
+    , mkValidator
     , initialise
     , lock
     , proposePayment
@@ -108,6 +109,7 @@ step s i = case (s, i) of
         InitialState vl'
     _ -> error (traceH "invalid transition" ())
 
+{-# INLINABLE stepWithChecks #-}
 -- | @stepWithChecks params ptx state input@ computes the next state given
 --   current state @state@ and the input. It checks whether the pending
 --   transaction @ptx@ pays the expected amounts to script and public key
@@ -143,6 +145,7 @@ stepWithChecks p ptx s i =
             else traceErrorH "Pay invalid"
         _ -> traceErrorH "invalid transition"
 
+{-# INLINABLE mkValidator #-}
 mkValidator :: Params -> (State, Maybe Input) -> (State, Maybe Input) -> PendingTx -> Bool
 mkValidator p ds vs ptx =
     let sm = StateMachine (stepWithChecks p ptx) in

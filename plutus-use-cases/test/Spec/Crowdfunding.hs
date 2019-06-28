@@ -3,6 +3,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-unused-do-bind #-}
 module Spec.Crowdfunding(tests) where
 
@@ -12,15 +13,18 @@ import           Data.Foldable                                         (traverse
 import qualified Data.Map                                              as Map
 import           Hedgehog                                              (Property, forAll, property)
 import qualified Hedgehog
-import qualified Spec.Size                                             as Size
 import           Test.Tasty
 import           Test.Tasty.Hedgehog                                   (testProperty)
 import qualified Test.Tasty.HUnit                                      as HUnit
+
+import qualified Spec.Lib                                              as Lib
 
 import           Wallet                                                (PubKey (..))
 import           Wallet.Emulator
 import qualified Wallet.Emulator.Generators                            as Gen
 import qualified Wallet.Generators                                     as Gen
+
+import qualified Language.PlutusTx as PlutusTx
 
 import qualified Language.PlutusTx.Coordination.Contracts.CrowdFunding as CF
 import qualified Ledger
@@ -41,13 +45,14 @@ tests = testGroup "crowdfunding" [
         testProperty "cannot collect money too late" cantCollectLate,
         testProperty "cannot collect unless notified" cantCollectUnlessNotified,
         testProperty "can claim a refund" canRefund,
+        Lib.goldenPir "test/Spec/crowdfunding.pir" $$(PlutusTx.compile [|| CF.mkValidator ||]),
         let
             deadline = 10
             target = Ada.adaValueOf 1000
             collectionDeadline = 15
             owner = w1
             cmp = CF.mkCampaign deadline target collectionDeadline owner
-        in HUnit.testCase "script size is reasonable" (Size.reasonable (CF.contributionScript cmp) 50000)
+        in HUnit.testCase "script size is reasonable" (Lib.reasonable (CF.contributionScript cmp) 50000)
         ]
 
 -- | Make a contribution to the campaign from a wallet. Returns the reference

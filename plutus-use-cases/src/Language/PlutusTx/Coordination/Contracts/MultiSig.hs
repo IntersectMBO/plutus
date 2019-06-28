@@ -11,6 +11,7 @@
 module Language.PlutusTx.Coordination.Contracts.MultiSig
     ( MultiSig(..)
     , msValidator
+    , validate
     , msDataScript
     , msRedeemer
     , msAddress

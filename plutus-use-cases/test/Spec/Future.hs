@@ -1,4 +1,6 @@
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 module Spec.Future(tests) where
 
@@ -8,10 +10,11 @@ import           Data.Foldable                                   (traverse_)
 import qualified Data.Map                                        as Map
 import           Hedgehog                                        (Property, forAll, property)
 import qualified Hedgehog
-import qualified Spec.Size                                       as Size
 import           Test.Tasty
 import           Test.Tasty.Hedgehog                             (testProperty)
 import qualified Test.Tasty.HUnit                                as HUnit
+
+import qualified Spec.Lib                                        as Lib
 
 import qualified Ledger
 import           Ledger.Ada                                      (Ada)
@@ -23,6 +26,8 @@ import           Wallet.API                                      (PubKey (..))
 import           Wallet.Emulator
 import qualified Wallet.Emulator.Generators                      as Gen
 import qualified Wallet.Generators                               as Gen
+
+import qualified Language.PlutusTx as PlutusTx
 
 import           Language.PlutusTx.Coordination.Contracts.Future (Future (..), FutureData (..))
 import qualified Language.PlutusTx.Coordination.Contracts.Future as F
@@ -41,7 +46,8 @@ tests = testGroup "futures" [
     testProperty "close the position" settle,
     testProperty "close early if margin payment was missed" settleEarly,
     testProperty "increase the margin" increaseMargin,
-    HUnit.testCase "script size is reasonable" (Size.reasonable (F.validatorScript contract) 50000)
+    Lib.goldenPir "test/Spec/future.pir" $$(PlutusTx.compile [|| F.mkValidator ||]),
+    HUnit.testCase "script size is reasonable" (Lib.reasonable (F.validatorScript contract) 50000)
     ]
 
 init :: Wallet -> Trace MockWallet Ledger.TxOutRef
