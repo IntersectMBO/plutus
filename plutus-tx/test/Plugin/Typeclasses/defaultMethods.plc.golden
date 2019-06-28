@@ -4,8 +4,7 @@
     )
     (termbind
       (strict)
-      (vardecl fDefaultMethodsInteger_cmethod1 (fun (con integer) (con integer))
-      )
+      (vardecl fDefaultMethodsInteger_cmethod (fun (con integer) (con integer)))
       (lam a (con integer) a)
     )
     (let
@@ -24,7 +23,7 @@
         (termbind
           (strict)
           (vardecl
-            fDefaultMethodsInteger_cmethod2 (fun (con integer) (con integer))
+            fDefaultMethodsInteger_cmethod (fun (con integer) (con integer))
           )
           (lam a (con integer) [ [ addInteger a ] (con 1) ])
         )
@@ -53,9 +52,9 @@
               [
                 [
                   { CConsDefaultMethods (con integer) }
-                  fDefaultMethodsInteger_cmethod1
+                  fDefaultMethodsInteger_cmethod
                 ]
-                fDefaultMethodsInteger_cmethod2
+                fDefaultMethodsInteger_cmethod
               ]
             )
             (let
@@ -64,7 +63,7 @@
               (termbind
                 (strict)
                 (vardecl
-                  method2
+                  method
                   (all a (type) (fun [DefaultMethods a] (fun a (con integer))))
                 )
                 (abs
@@ -98,7 +97,7 @@
                     (lam
                       dDefaultMethods
                       [DefaultMethods a]
-                      (lam a a [ [ { method2 a } dDefaultMethods ] a ])
+                      (lam a a [ [ { method a } dDefaultMethods ] a ])
                     )
                   )
                 )

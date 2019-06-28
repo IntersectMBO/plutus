@@ -29,8 +29,9 @@ import qualified TysPrim                                as GHC
 
 import qualified Language.PlutusIR                      as PIR
 import qualified Language.PlutusIR.Compiler.Definitions as PIR
-import           Language.PlutusIR.Compiler.Names
 import qualified Language.PlutusIR.MkPir                as PIR
+
+import qualified Language.PlutusCore.Name               as PLC
 
 import           Control.Monad.Extra
 import           Control.Monad.Reader
@@ -38,7 +39,6 @@ import           Control.Monad.Reader
 import           Data.List                              (reverse, sortBy)
 import qualified Data.List.NonEmpty                     as NE
 import qualified Data.Set                               as Set
-import qualified Data.Text                              as T
 import           Data.Traversable
 
 -- Types
@@ -108,7 +108,7 @@ compileTyCon tc
                     PIR.recordAlias @LexName @() (LexName tcName)
                     pure alias
                 Nothing -> do
-                    matchName <- safeFreshName () $ (T.pack $ GHC.getOccString $ GHC.getName tc) <> "_match"
+                    matchName <- PLC.mapNameString (<> "_match") <$> (compileNameFresh $ GHC.getName tc)
 
                     -- See Note [Occurrences of recursive names]
                     let fakeDatatype = PIR.Datatype () tvd [] matchName []

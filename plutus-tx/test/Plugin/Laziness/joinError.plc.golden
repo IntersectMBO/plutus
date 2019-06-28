@@ -13,7 +13,7 @@
       )
       (let
         (nonrec)
-        (termbind (nonstrict) (vardecl joinError1 Unit) [ { error Unit } Unit ])
+        (termbind (nonstrict) (vardecl joinError Unit) [ { error Unit } Unit ])
         (let
           (nonrec)
           (datatypebind
@@ -46,7 +46,7 @@
                             [
                               [
                                 { [ Bool_match y ] (fun Unit Unit) }
-                                (lam thunk Unit joinError1)
+                                (lam thunk Unit joinError)
                               ]
                               (lam thunk Unit Unit)
                             ]
