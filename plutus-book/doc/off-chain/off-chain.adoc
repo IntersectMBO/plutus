@@ -1,11 +1,77 @@
 = Writing off-chain code
 
-Working with Plutus requires writing on-chain code and off-chain
-code with both parts working well together.
+Working with Plutus requires writing on-chain code and off-chain code, 
+with both parts working well together.
 
-Instead of diving right in,
-let us start simple with an example that has no on-chain
-code at all and exclusively uses off-chain code running in the wallet!
+Let us start by looking at the off-chain part of this interplay,
+code that will be executed by the wallet!
+
+Such code is represented by a monadic computation in any monad
+implementing `MonadWallet`:
+
+[source,haskell]
+----
+type MonadWallet (m :: * -> *) = (WalletAPI m, WalletDiagnostics m) :: Constraint
+----
+
+By writing code independent of the specific choice of monad,
+we make sure that it will run in different wallet implementations,
+in particular the mock wallet of the Plutus Payground and
+the actual Cardano wallet.
+
+So what are those constraints `WalletAPI` and `WalletDiagnostics`?
+
+[source,haskell]
+----
+class MonadError WalletAPIError m => WalletDiagnostics (m :: * -> *) where
+  logMsg :: Text -> m ()
+----
+
+So this allows us to throw and catch errors (of type `WalletAPIError`)
+and to log diagnostic messages.
+
+Let us try this and write the "Hello, world!" of off-chain Plutus code:
+
+include::hello.adoc[leveloffset=+ 1]
+
+Pasting this code into the "Editor"-tab of the Playground and compiling it
+will make function "hello" available in the "Simulation"-tab, so we can
+add it as an action for one of the wallets. 
+After evaluation, we will see the expected message
+in the "Logs"-section of the "Transactions"-tab.
+
+Class `WalletAPI` is a bit more involved:
+
+[source,haskell]
+----
+class WalletAPI (m :: * -> *) where
+  submitTxn :: Tx -> m ()                                       -- <1>
+  ownPubKey :: m PubKey                                         -- <2>
+  sign :: ByteString -> m Signature                             -- <3>
+  createPaymentWithChange :: Value -> m (Set TxIn, Maybe TxOut) -- <4>
+  registerOnce :: EventTrigger -> EventHandler m -> m ()        -- <5>
+  watchedAddresses :: m AddressMap                              -- <6>
+  startWatching :: Address -> m ()                              -- <7>
+  slot :: m Slot                                                -- <8>
+----
+
+<1> Submit a transaction.
+
+<2> Get the public key belonging to the wallet.
+
+<3> Cryptographically sign an arbitrary string.
+
+<4> Create a set of transaction inputs and optionally a transaction output for change,
+suitable to make a payment of the given value from the wallet.
+
+<5> Register an event trigger, so that a specified action will be performed
+as soon as the trigger condition becomes true.
+
+<6> Get the addresses being watched by the wallet.
+
+<7> Start watching an address for changes.
+
+<8> Get the current time (slot).
 
 Let us reimplement the `payToWallet_` function from the
 Playground, which allows transferring Ada from one

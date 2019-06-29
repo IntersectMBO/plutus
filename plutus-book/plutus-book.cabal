@@ -49,7 +49,8 @@ library
     hs-source-dirs: src
     exposed-modules:
         Dumb
-    ghc-options: -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc
+      , Hello
+    ghc-options: -Wall -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc
     build-tool-depends: unlit:unlit -any
     build-depends:
       base >=4.9 && <5,
