@@ -32,7 +32,7 @@ and to log diagnostic messages.
 
 Let us try this and write the "Hello, world!" of off-chain Plutus code:
 
-include::hello.adoc[leveloffset=+ 1]
+include::hello.adoc[]
 
 Pasting this code into the "Editor"-tab of the Playground and compiling it
 will make function "hello" available in the "Simulation"-tab, so we can
