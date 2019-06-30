@@ -62,3 +62,16 @@ library
       plutus-emulator -any,
       prettyprinter -any,
       containers -any
+
+test-suite plutus-book-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  other-modules:       Spec.HelloSpec
+  build-depends:       base >= 4.9 && <5
+                     , hspec -any
+                     , plutus-book -any
+                     , plutus-emulator -any
+                     , plutus-wallet-api -any
+  ghc-options:         -Wall
+  default-language:    Haskell2010
