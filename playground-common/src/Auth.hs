@@ -72,8 +72,6 @@ import           Servant                     ((:<|>) ((:<|>)), (:>), Get, Header
                                               addHeader, err401, err500, errBody, throwError)
 import           Servant.API.BrowserHeader   (BrowserHeader)
 import           Servant.Client              (BaseUrl, ClientM, mkClientEnv, parseBaseUrl, runClientM)
-
-import           Servant.Extra               ()
 import           Web.Cookie                  (SetCookie, defaultSetCookie, parseCookies, setCookieExpires,
                                               setCookieHttpOnly, setCookieMaxAge, setCookieName, setCookiePath,
                                               setCookieSecure, setCookieValue)
@@ -102,16 +100,19 @@ data AuthRole
     | GithubUser
     deriving (Show, Eq, Generic, FromJSON, ToJSON)
 
-newtype AuthStatus = AuthStatus
-    { _authStatusAuthRole :: AuthRole
-    } deriving (Show, Eq, Generic, FromJSON, ToJSON)
+newtype AuthStatus =
+    AuthStatus
+        { _authStatusAuthRole :: AuthRole
+        }
+    deriving (Show, Eq, Generic, FromJSON, ToJSON)
 
-data GithubEndpoints = GithubEndpoints
-    { _githubEndpointsAuthLocation        :: !Request
-    , _githubEndpointsAccessTokenLocation :: !Request
-    , _githubEndpointsApiBaseUrl          :: !BaseUrl
-    , _githubEndpointsCallbackUri         :: !Text
-    }
+data GithubEndpoints =
+    GithubEndpoints
+        { _githubEndpointsAuthLocation        :: !Request
+        , _githubEndpointsAccessTokenLocation :: !Request
+        , _githubEndpointsApiBaseUrl          :: !BaseUrl
+        , _githubEndpointsCallbackUri         :: !Text
+        }
 
 makeLenses 'GithubEndpoints
 
@@ -127,12 +128,13 @@ mkGithubEndpoints = do
     pure GithubEndpoints {..}
 
 -- | Config supplied at runtime.
-data Config = Config
-    { _configJWTSignature       :: !JWT.Signer
-    , _configRedirectUrl        :: !Text
-    , _configGithubClientId     :: !OAuthClientId
-    , _configGithubClientSecret :: !OAuthClientSecret
-    }
+data Config =
+    Config
+        { _configJWTSignature       :: !JWT.Signer
+        , _configRedirectUrl        :: !Text
+        , _configGithubClientId     :: !OAuthClientId
+        , _configGithubClientSecret :: !OAuthClientSecret
+        }
 
 makeLenses 'Config
 
