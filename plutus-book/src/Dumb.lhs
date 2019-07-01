@@ -1,1 +1,0 @@
-../doc/off-chain/dumb.adoc

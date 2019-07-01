@@ -1,6 +1,6 @@
 = Writing off-chain code
 
-Working with Plutus requires writing on-chain code and off-chain code, 
+Working with Plutus requires writing on-chain code and off-chain code,
 with both parts working well together.
 
 Let us start by looking at the off-chain part of this interplay,
@@ -36,7 +36,7 @@ include::hello.adoc[]
 
 Pasting this code into the "Editor"-tab of the Playground and compiling it
 will make function "hello" available in the "Simulation"-tab, so we can
-add it as an action for one of the wallets. 
+add it as an action for one of the wallets.
 After evaluation, we will see the expected message
 in the "Logs"-section of the "Transactions"-tab.
 
@@ -85,7 +85,7 @@ Playground when the function is added as an action to the simulation.
 
 Note how we use `createPaymentWithChange` to help us build a transaction: Given
 a value, this function will select suitable unspent transaction outputs
-belonging to the wallet, which we can use as inputs. 
+belonging to the wallet, which we can use as inputs.
 It will also optionally create a
 new transaction output, where the change can go to,
 if the sum of the inputs exceeds the value we want to transfer.
@@ -93,7 +93,7 @@ if the sum of the inputs exceeds the value we want to transfer.
 Incidentally, paying some value to a public key
 is so common that there are helper functions `payToPublicKey` and
 `payToPublicKey_` for this (`payToPublicKey` returns the generated transaction,
-`payToPublicKey_` does not). 
+`payToPublicKey_` does not).
 
 [source,haskell]
 ----
@@ -104,3 +104,58 @@ payToPublicKey_ :: (Monad m, WalletAPI m) => SlotRange -> Value -> PubKey -> m (
 Using `payToPublicKey_`, we can write `myPayToWallet` simpler as follows:
 
 include::payToWallet2.adoc[]
+
+Now that we have seen how to create and submit transactions,
+let us use `registerOnce` to register a _trigger_.
+A wallet can register one or more triggers by specifying an `EventTrigger` and
+an `EventHandler`.
+The event trigger defines a condition, the event handler describes what to do
+once the condition becomes true.
+
+The following functions allow us to construct triggers:
+
+[source,haskell]
+----
+neverT             :: EventTrigger                                 -- <1>
+alwaysT            :: EventTrigger                                 -- <2>
+notT               :: EventTrigger -> EventTrigger                 -- <3>
+andT               :: EventTrigger -> EventTrigger -> EventTrigger -- <4>
+orT                :: EventTrigger -> EventTrigger -> EventTrigger -- <5>
+slotRangeT         :: SlotRange -> EventTrigger                    -- <6>
+fundsAtAddressGeqT :: Address -> Value -> EventTrigger             -- <7>
+fundsAtAddressGtT  :: Address -> Value -> EventTrigger             -- <8>
+----
+
+<1> This will never be true.
+<2> This will always be true.
+<3> Logical negation of the given trigger.
+<4> Logical conjunction: True when _both_ triggers are true.
+<5> Logical disjunction: True when _at least one_ of the triggers is true.
+<6> Checks whether the current slot is in the given range.
+<7> Is true if the funds at the address are _at least_ the specified value.
+<8> Is true if the funds at the address are _greater than_ the specified value.
+
+CAUTION: The triggers `fundsAtAddressGeqT` and `fundsAtAddressGtT` will only take those
+unspent transaction outputs into account that are created _after_ the trigger
+has been registered!
+
+An event handler is defined with:
+
+[source,haskell]
+----
+EventHandler :: (AnnotatedEventTrigger Bool -> m ()) -> EventHandler m
+----
+
+The argument of type `AnnotatedEventTrigger` allows the handler to inspect _which part_ of a
+compound trigger (one built with `andT` and/or `orT`) has actually become true.
+
+As an example, we can write a function that will wait for a specified slot
+until performing a transaction:
+
+include::trigger1.adoc[]
+
+This is actually a somewhat silly example:
+We do not really need a trigger to achieve this effect,
+because we can simply use the transaction's _slot range_ instead:
+
+include::trigger2.adoc[]

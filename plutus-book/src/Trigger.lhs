@@ -1,0 +1,1 @@
+../doc/off-chain/trigger1.adoc

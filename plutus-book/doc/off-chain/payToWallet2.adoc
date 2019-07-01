@@ -5,7 +5,7 @@
 {-# LANGUAGE TemplateHaskell                 #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
-module PayToWallet2 where
+module PayToWalletSimple where
 
 import Language.PlutusTx.Prelude
 import Ledger
