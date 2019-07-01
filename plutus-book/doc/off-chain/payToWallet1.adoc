@@ -22,7 +22,7 @@ myPayToWallet wallet ada = do
         val    = toValue ada
         o      = pubKeyTxOut val pubKey
     (ins, mo) <- createPaymentWithChange val
-    void $ createTxAndSubmit 
+    void $ createTxAndSubmit
         defaultSlotRange                                -- <3>
         ins
         (o : maybeToList mo)

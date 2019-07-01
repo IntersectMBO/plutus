@@ -1,8 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Spec.PayToWallet1Spec (spec) where
+module Spec.PayToWalletSpec (spec) where
 
-import           PayToWallet1               (myPayToWallet)
+import qualified PayToWallet1               as P1
+import qualified PayToWallet2               as P2
 
 import           Ledger
 import           Ledger.Ada
@@ -17,7 +18,12 @@ import qualified Data.Map.Strict            as Map
 import           Test.Hspec
 
 spec :: Spec
-spec = describe "payToWallet" $
+spec = do
+    describe "payToWallet (version 1)" $ mkSpec P1.myPayToWallet
+    describe "payToWallet (version 2)" $ mkSpec P2.myPayToWallet
+
+mkSpec :: (Wallet -> Ada -> MockWallet ()) -> SpecWith ()
+mkSpec payToWallet =
     it "transfers funds as expected" $
         isRight (fst res) `shouldBe` True
   where
@@ -35,7 +41,7 @@ spec = describe "payToWallet" $
     tr :: Trace MockWallet ()
     tr = void $ do
         update
-        void $ walletAction w1 $ myPayToWallet w2 ada
+        void $ walletAction w1 $ payToWallet w2 ada
         update
         assertOwnFundsEq w1 $ toValue $ adaInit `minus` ada
         assertOwnFundsEq w2 $ toValue $ adaInit `plus` ada

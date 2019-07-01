@@ -90,4 +90,17 @@ It will also optionally create a
 new transaction output, where the change can go to,
 if the sum of the inputs exceeds the value we want to transfer.
 
-include::dumb.adoc[]
+Incidentally, paying some value to a public key
+is so common that there are helper functions `payToPublicKey` and
+`payToPublicKey_` for this (`payToPublicKey` returns the generated transaction,
+`payToPublicKey_` does not). 
+
+[source,haskell]
+----
+payToPublicKey  :: (Monad m, WalletAPI m) => SlotRange -> Value -> PubKey -> m Tx
+payToPublicKey_ :: (Monad m, WalletAPI m) => SlotRange -> Value -> PubKey -> m ()
+----
+
+Using `payToPublicKey_`, we can write `myPayToWallet` simpler as follows:
+
+include::payToWallet2.adoc[]
