@@ -355,7 +355,7 @@ evalF (LoadMarloweScript key next) = do
   case Map.lookup key StaticData.marloweContracts of
     Nothing -> pure next
     Just contents -> do
-      editorSetValue contents (Just 1)
+      marloweEditorSetValue contents (Just 1)
       updateContractInState contents
       resetContract
       pure next
@@ -381,7 +381,7 @@ evalF (SendResult next) = do
     contract = case mContract of
       Success (JsonEither (Right x)) -> view (_InterpreterResult <<< _result <<< _RunResult) x
       _ -> ""
-  editorSetValue contract (Just 1)
+  marloweEditorSetValue contract (Just 1)
   updateContractInState contract
   resetContract
   assign _view (Simulation)
