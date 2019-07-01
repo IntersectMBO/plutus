@@ -1,7 +1,7 @@
-= The Plutus Book
+= The Plutus eBook: Writing Reliable Smart Contracts in Plutus
 
-This is the Plutus Book. It is written using https://asciidoctor.org/[asciidoctor],
-make sure to consult its excellent documentation.
+Welcome to the Plutus eBook project. This ebook is written using https://asciidoctor.org/[asciidoctor],
+we encourage you to consult its excellent documentation for more details.
 
 The book content is in the `doc` directory, and Literate Haskell sources
 are in the `src` directory.
