@@ -1,3 +1,4 @@
 pkgs/default.nix linguist-generated=true
 meadow-client/yarn.nix linguist-generated=true
 plutus-playground-client/yarn.nix linguist-generated=true
+*.pir linguist-detectable=false
