@@ -42,8 +42,8 @@ mkSpec waitUntil =
 
     assertFunds :: Ada -> Ada -> Trace MockWallet ()
     assertFunds ada1 ada2 = do
-        assertOwnFundsEq w1 $ toValue $ ada1
-        assertOwnFundsEq w2 $ toValue $ ada2
+        assertOwnFundsEq w1 $ toValue ada1
+        assertOwnFundsEq w2 $ toValue ada2
 
     res :: (Either AssertionError (), EmulatorState)
     res = runTrace initialChain tr
