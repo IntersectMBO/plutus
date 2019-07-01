@@ -52,10 +52,10 @@ import Web.HTML.Event.DragEvent (DragEvent)
 
 class
   Monad m <= MonadApp m where
-  editorSetValue :: String -> Maybe Int -> m Unit
-  editorGetValue :: m (Maybe String)
-  editorSetAnnotations :: Array Annotation -> m Unit
-  editorGotoLine :: Int -> Maybe Int -> m Unit
+  haskellEditorSetValue :: String -> Maybe Int -> m Unit
+  haskellEditorGetValue :: m (Maybe String)
+  haskellEditorSetAnnotations :: Array Annotation -> m Unit
+  haskellEditorGotoLine :: Int -> Maybe Int -> m Unit
   marloweEditorSetValue :: String -> Maybe Int -> m Unit
   marloweEditorGetValue :: m (Maybe String)
   preventDefault :: DragEvent -> m Unit
@@ -100,14 +100,14 @@ instance monadAppHalogenApp ::
   , MonadAff m
   ) =>
   MonadApp (HalogenApp m) where
-  editorSetValue contents i = void $ withEditor $ AceEditor.setValue contents i
-  editorGetValue = withEditor AceEditor.getValue
-  editorSetAnnotations annotations =
+  haskellEditorSetValue contents i = void $ withHaskellEditor $ AceEditor.setValue contents i
+  haskellEditorGetValue = withHaskellEditor AceEditor.getValue
+  haskellEditorSetAnnotations annotations =
     void
-      $ withEditor \editor -> do
+      $ withHaskellEditor \editor -> do
           session <- AceEditor.getSession editor
           Session.setAnnotations annotations session
-  editorGotoLine row column = void $ withEditor $ AceEditor.gotoLine row column (Just true)
+  haskellEditorGotoLine row column = void $ withHaskellEditor $ AceEditor.gotoLine row column (Just true)
   marloweEditorSetValue contents i = void $ withMarloweEditor $ AceEditor.setValue contents i
   marloweEditorGetValue = withMarloweEditor AceEditor.getValue
   preventDefault event = wrap $ liftEffect $ FileEvents.preventDefault event
@@ -159,12 +159,12 @@ runAjax ::
   HalogenApp m (WebData a)
 runAjax action = wrap $ RemoteData.fromEither <$> runExceptT action
 
-withEditor ::
+withHaskellEditor ::
   forall m a.
   MonadEffect m =>
   (Editor -> Effect a) ->
   HalogenApp m (Maybe a)
-withEditor = HalogenApp <<< Editor.withEditor cpEditor EditorSlot
+withHaskellEditor = HalogenApp <<< Editor.withEditor cpEditor EditorSlot
 
 withMarloweEditor ::
   forall m a.
