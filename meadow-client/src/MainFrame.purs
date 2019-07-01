@@ -80,10 +80,10 @@ import MonadApp
   , runHalogenApp
   , marloweEditorGetValue
   , marloweEditorSetValue
-  , editorGetValue
-  , editorGotoLine
-  , editorSetAnnotations
-  , editorSetValue
+  , haskellEditorGetValue
+  , haskellEditorGotoLine
+  , haskellEditorSetAnnotations
+  , haskellEditorSetValue
   , emptyMarloweState
   , extendWith
   , preventDefault
@@ -275,7 +275,7 @@ evalF (HandleDragEvent event next) = do
 evalF (HandleDropEvent event next) = do
   preventDefault event
   contents <- readFileFromDragEvent event
-  editorSetValue contents (Just 1)
+  haskellEditorSetValue contents (Just 1)
   pure next
 
 evalF (MarloweHandleEditorMessage (TextChanged text) next) = do
@@ -290,7 +290,7 @@ evalF (MarloweHandleDragEvent event next) = do
 evalF (MarloweHandleDropEvent event next) = do
   preventDefault event
   contents <- readFileFromDragEvent event
-  editorSetValue contents (Just 1)
+  marloweEditorSetValue contents (Just 1)
   updateContractInState contents
   pure next
 
@@ -301,7 +301,7 @@ evalF (CheckAuthStatus next) = do
   pure next
 
 evalF (PublishGist next) = do
-  mContents <- editorGetValue
+  mContents <- haskellEditorGetValue
   case mkNewGist (SourceCode <$> mContents) of
     Nothing -> pure next
     Just newGist -> do
@@ -334,7 +334,7 @@ evalF (LoadGist next) = do
           case preview (_Just <<< gistFileContent <<< _Just) (playgroundGistFile gist) of
             Nothing -> pure next
             Just contents -> do
-              editorSetValue contents (Just 1)
+              haskellEditorSetValue contents (Just 1)
               saveBuffer contents
               assign _compilationResult NotAsked
               pure next
@@ -348,20 +348,20 @@ evalF (LoadScript key next) = do
   case Map.lookup key StaticData.demoFiles of
     Nothing -> pure next
     Just contents -> do
-      editorSetValue contents (Just 1)
+      haskellEditorSetValue contents (Just 1)
       pure next
 
 evalF (LoadMarloweScript key next) = do
   case Map.lookup key StaticData.marloweContracts of
     Nothing -> pure next
     Just contents -> do
-      editorSetValue contents (Just 1)
+      marloweEditorSetValue contents (Just 1)
       updateContractInState contents
       resetContract
       pure next
 
 evalF (CompileProgram next) = do
-  mContents <- editorGetValue
+  mContents <- haskellEditorGetValue
   case mContents of
     Nothing -> pure next
     Just contents -> do
@@ -369,7 +369,7 @@ evalF (CompileProgram next) = do
       result <- postContractHaskell $ SourceCode contents
       assign _compilationResult result
       -- Update the error display.
-      editorSetAnnotations
+      haskellEditorSetAnnotations
         $ case result of
             Success (JsonEither (Left errors)) -> toAnnotations errors
             _ -> []
@@ -381,14 +381,14 @@ evalF (SendResult next) = do
     contract = case mContract of
       Success (JsonEither (Right x)) -> view (_InterpreterResult <<< _result <<< _RunResult) x
       _ -> ""
-  editorSetValue contract (Just 1)
+  marloweEditorSetValue contract (Just 1)
   updateContractInState contract
   resetContract
   assign _view (Simulation)
   pure next
 
 evalF (ScrollTo {row, column} next) = do
-  editorGotoLine row (Just column)
+  haskellEditorGotoLine row (Just column)
   pure next
 
 evalF (SetSignature {person, isChecked} next) = do
@@ -402,7 +402,7 @@ evalF (ApplyTransaction next) = do
   mCurrContract <- use _currentContract
   case mCurrContract of
     Just currContract -> do
-      editorSetValue (show $ pretty currContract) (Just 1)
+      marloweEditorSetValue (show $ pretty currContract) (Just 1)
       updateState
       pure next
     Nothing -> pure next
