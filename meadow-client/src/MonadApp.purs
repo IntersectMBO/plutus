@@ -1,11 +1,12 @@
 module MonadApp where
 
 import Prelude
-import Ace (Editor, Annotation)
-import Ace.Editor as AceEditor
-import Ace.EditSession as Session
-import Ace.Halogen.Component (AceQuery(..))
+
 import API (RunResult)
+import Ace (Editor, Annotation)
+import Ace.EditSession as Session
+import Ace.Editor as AceEditor
+import Ace.Halogen.Component (AceQuery)
 import Auth (AuthStatus)
 import Control.Monad.Except (class MonadTrans, ExceptT, runExceptT)
 import Control.Monad.Reader (class MonadAsk)
@@ -22,7 +23,7 @@ import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.RawJson (JsonEither)
 import Data.Set (Set)
@@ -33,8 +34,7 @@ import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
 import FileEvents as FileEvents
 import Gist (Gist, GistId, NewGist)
-import Halogen (HalogenM, liftAff, liftEffect, query', request)
-import Halogen.Component.ChildPath (ChildPath)
+import Halogen (HalogenM, liftAff, liftEffect)
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode)
 import LocalStorage as LocalStorage
 import Marlowe.Parser (contract)
@@ -112,33 +112,17 @@ instance monadAppHalogenApp ::
   marloweEditorGetValue = withMarloweEditor AceEditor.getValue
   preventDefault event = wrap $ liftEffect $ FileEvents.preventDefault event
   readFileFromDragEvent event = wrap $ liftAff $ FileEvents.readFileFromDragEvent event
-  updateContractInState contract = wrap $ modifying _currentMarloweState (updateStateP <<< updateContractInStateP contract)
+  updateContractInState contract = updateContractInStateImpl contract
   updateState = do
-    saveInitialState
+    saveInitialStateImpl
     wrap $ modifying _currentMarloweState updateStateP
-  saveInitialState = do
-    oldContract <- editorGetValue
-    wrap
-      $ modifying _oldContract
-          ( \x -> case x of
-            Nothing ->
-              Just
-                ( case oldContract of
-                  Nothing -> ""
-                  Just y -> y
-                )
-            _ -> x
-          )
+  saveInitialState = saveInitialStateImpl
   updateMarloweState f = wrap $ modifying _marloweState (extendWith (updateStateP <<< f))
   resetContract = do
-    newContract <- editorGetValue
+    newContract <- marloweEditorGetValueImpl
     wrap $ assign _marloweState $ NEL.singleton emptyMarloweState
     wrap $ assign _oldContract Nothing
-    updateContractInState
-      ( case newContract of
-        Nothing -> ""
-        Just x -> x
-      )
+    updateContractInStateImpl $ fromMaybe "" newContract
   saveBuffer text = wrap $ liftEffect $ LocalStorage.setItem bufferLocalStorageKey text
   saveMarloweBuffer text = wrap $ liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey text
   getOauthStatus = runAjax Server.getOauthStatus
@@ -146,6 +130,25 @@ instance monadAppHalogenApp ::
   postGist newGist = runAjax $ Server.postGists newGist
   patchGistByGistId newGist gistId = runAjax $ Server.patchGistsByGistId newGist gistId
   postContractHaskell source = runAjax $ Server.postContractHaskell source
+
+-- I don't quite understand why but if you try to use MonadApp methods in HalogenApp methods you
+-- blow the stack so we have 3 methods pulled out here. I think this just ensures they are run
+-- in the HalogenApp monad and that's all that's required although a type annotation inside the
+-- monad doesn't seem to help, neither does `wrap . runHalogenApp`
+saveInitialStateImpl :: forall m. MonadEffect m => HalogenApp m Unit
+saveInitialStateImpl = do
+  oldContract <- marloweEditorGetValueImpl
+  modifying _oldContract
+    ( \x -> case x of
+      Nothing -> Just $ fromMaybe "" oldContract
+      _ -> x
+    )
+
+marloweEditorGetValueImpl :: forall m. MonadEffect m => HalogenApp m (Maybe String)
+marloweEditorGetValueImpl = withMarloweEditor AceEditor.getValue
+
+updateContractInStateImpl :: forall m. String -> HalogenApp m Unit
+updateContractInStateImpl contract = modifying _currentMarloweState (updateStateP <<< updateContractInStateP contract)
 
 runHalogenApp :: forall m a. HalogenApp m a -> HalogenM FrontendState Query (Coproduct AceQuery AceQuery) (Either EditorSlot MarloweEditorSlot) Void m a
 runHalogenApp = unwrap
