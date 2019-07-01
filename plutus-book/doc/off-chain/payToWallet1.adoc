@@ -31,7 +31,7 @@ $(mkFunctions ['myPayToWallet])
 ----
 
 <1> Function `myPayToWallet` takes two arguments,
-the wallet to send funds to and the amount (in Ada) to send.
+the wallet to send funds to and the amount to send.
 
 <2> We can look up the public key belonging to a wallet with
 `walletPubKey`.

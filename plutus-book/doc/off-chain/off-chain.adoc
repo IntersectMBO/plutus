@@ -81,7 +81,7 @@ include::payToWallet1.adoc[]
 
 In contrast to our first `hello` example, function `myPayToWallet`
 takes _arguments_. The user will be prompted to enter values for these in the
-playground when the function is added as an action to the simulation.
+Playground when the function is added as an action to the simulation.
 
 Note how we use `createPaymentWithChange` to help us build a transaction: Given
 a value, this function will select suitable unspent transaction outputs
