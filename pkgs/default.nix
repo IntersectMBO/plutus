@@ -53464,8 +53464,14 @@ license = stdenv.lib.licenses.bsd3;
 , file-embed
 , filepath
 , hashable
+, hspec
+, hspec-discover
+, http-client
+, http-client-tls
 , http-conduit
 , http-types
+, jwt
+, lens
 , monad-logger
 , mtl
 , newtype-generics
@@ -53492,6 +53498,7 @@ mkDerivation {
 pname = "playground-common";
 version = "0.1.0.0";
 src = .././playground-common;
+enableSeparateDataOutput = true;
 libraryHaskellDepends = [
 aeson
 aeson-casing
@@ -53504,8 +53511,12 @@ exceptions
 file-embed
 filepath
 hashable
+http-client
+http-client-tls
 http-conduit
 http-types
+jwt
+lens
 monad-logger
 mtl
 newtype-generics
@@ -53525,6 +53536,15 @@ time-units
 transformers
 unordered-containers
 wai
+];
+testHaskellDepends = [
+aeson
+base
+bytestring
+hspec
+];
+testToolDepends = [
+hspec-discover
 ];
 doHaddock = false;
 license = stdenv.lib.licenses.asl20;
