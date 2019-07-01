@@ -107,6 +107,10 @@ include::payToWallet2.adoc[]
 
 Now that we have seen how to create and submit transactions,
 let us use `registerOnce` to register a _trigger_.
+
+.Triggers
+[NOTE]
+========
 A wallet can register one or more triggers by specifying an `EventTrigger` and
 an `EventHandler`.
 The event trigger defines a condition, the event handler describes what to do
@@ -148,6 +152,7 @@ EventHandler :: (AnnotatedEventTrigger Bool -> m ()) -> EventHandler m
 
 The argument of type `AnnotatedEventTrigger` allows the handler to inspect _which part_ of a
 compound trigger (one built with `andT` and/or `orT`) has actually become true.
+========
 
 As an example, we can write a function that will wait for a specified slot
 until performing a transaction:
@@ -159,3 +164,78 @@ We do not really need a trigger to achieve this effect,
 because we can simply use the transaction's _slot range_ instead:
 
 include::trigger2.adoc[]
+
+.Slot Ranges
+[NOTE]
+========
+The _slot range_ of a transaction determines for which slots the transaction is
+valid. We can construct slot ranges with the following functions:
+
+[source,haskell]
+----
+always           :: SlotRange                                 -- <1>
+defaultSlotRange :: SlotRange                                 -- <2>
+singleton        :: Slot -> SlotRange                         -- <3>
+interval         :: Slot -> Slot -> SlotRange                 -- <4>
+intervalFrom     :: Slot -> SlotRange                         -- <5>
+intervalTo       :: Slot -> SlotRange                         -- <6>
+intersection     :: SlotRange -> SlotRange -> Maybe SlotRange -- <7>
+hull             :: SlotRange -> SlotRange -> SlotRange       -- <8>
+----
+
+<1> The range of _all_ slots; a transaction using this range will always be
+valid.
+
+<2> The default slot range, a synonym for `always`.
+
+<3> The range consisting exclusively of the specified slot.
+
+<4> Given two slots `a` and `b`, `interval a b` is the range that starts at `a`
+and ends _one slot before_ `b`, so the range contains `a`, but does not contain
+`b`.
+
+<5> The range starting at the given slot (which is included)
+and never ending.
+
+<6> The range ending _one slot before_ the given one, which is not included.
+
+<7> The intersection of the two given ranges, provided they overlap.
+
+<8> The smallest range containing _both_ given ranges.
+
+Slot ranges can be inspected using these functions:
+
+[source,haskell]
+----
+member   :: Slot -> SlotRange -> Bool      -- <1>
+overlaps :: SlotRange -> SlotRange -> Bool -- <2>
+contains :: SlotRange -> SlotRange -> Bool -- <3>
+isEmpty  :: SlotRange -> Bool              -- <4>
+before   :: Slot -> SlotRange -> Bool      -- <5>
+after    :: Slot -> SlotRange -> Bool      -- <6>
+----
+
+<1> Checks whether the given slot is contained in the given range.
+
+<2> Checks whether the two given ranges overlap, i.e. have at least one slot in
+common.
+
+<3> Checks whether the first range completely contains the second range, i.e.
+whether all members of the second range are members of the first range.
+
+<4> Is this range empty, i.e. does not contain any slots?
+
+<5> Check if the given slot is _earlier_ than the beginning of the given range.
+
+<6> Check if the given slot is _later_ than the end of the given range.
+========
+
+This concludes our short tour through the Wallet API.
+We have seen how to log messages,
+how to create and submit simple transactions,
+how to use triggers to wait for a condition to become true before performing
+a certain action
+and how to create, inspect and use slot ranges.
+
+In the next chapter,
+we will dive into _on-chain_ code and create our first smart contract.
