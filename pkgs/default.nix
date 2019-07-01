@@ -54266,8 +54266,10 @@ license = stdenv.lib.licenses.asl20;
 , plutus-emulator
 , plutus-tx
 , plutus-wallet-api
+, prettyprinter
 , stdenv
 , tasty
+, tasty-golden
 , tasty-hedgehog
 , tasty-hunit
 , template-haskell
@@ -54297,8 +54299,11 @@ hedgehog
 lens
 mtl
 plutus-emulator
+plutus-tx
 plutus-wallet-api
+prettyprinter
 tasty
+tasty-golden
 tasty-hedgehog
 tasty-hunit
 text
@@ -63001,8 +63006,8 @@ version = "0.9.0.2";
 src = fetchgit {
 
 url = "https://github.com/shmish111/servant-purescript.git";
-sha256 = "1a7d301p6sr2wcxr4lfilk1f2wam66cp7qcvhf5zbc02x9qkjxc9";
-rev = "ab14502279c92084f06aa6222a17873275279e63";
+sha256 = "1axcbsaym64q67hvjc7b3izd48cgqwi734l7f7m22jpdc80li5f6";
+rev = "ece5d1dad16a5731ac22040075615803796c7c21";
 fetchSubmodules = true;
 
 };

@@ -49,7 +49,7 @@ extra-deps:
 - git: https://github.com/shmish111/purescript-bridge.git
   commit: a7069a515800135ce932742e995f3a96bc1c7129
 - git: https://github.com/shmish111/servant-purescript.git
-  commit: 6f17281567152c11c9368ed1861b6d421b258863
+  commit: ece5d1dad16a5731ac22040075615803796c7c21
 - git: https://github.com/input-output-hk/cardano-crypto.git
   commit: f5cecb6e424cc84f85b6a3e1f803517bb7b4cfb1
 # Needs a fix (https://github.com/wenkokke/unlit/pull/11) and a Hackage release
