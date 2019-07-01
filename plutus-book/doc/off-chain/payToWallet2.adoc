@@ -13,9 +13,6 @@ import Ledger.Ada
 import Playground.Contract
 import Wallet
 import Wallet.Emulator.Types     (walletPubKey)
-
-import Control.Monad             (void)
-import Data.Maybe                (maybeToList)
 ----
 ////
 
