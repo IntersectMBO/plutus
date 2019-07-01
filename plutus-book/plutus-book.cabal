@@ -50,6 +50,7 @@ library
     exposed-modules:
         Dumb
       , Hello
+      , PayToWallet1
     ghc-options: -Wall -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc
     build-tool-depends: unlit:unlit -any
     build-depends:
@@ -68,7 +69,9 @@ test-suite plutus-book-test
   hs-source-dirs:      test
   main-is:             Spec.hs
   other-modules:       Spec.HelloSpec
+                     , Spec.PayToWallet1Spec
   build-depends:       base >= 4.9 && <5
+                     , containers -any
                      , hspec -any
                      , plutus-book -any
                      , plutus-emulator -any

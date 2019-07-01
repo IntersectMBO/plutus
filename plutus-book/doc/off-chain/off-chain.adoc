@@ -73,8 +73,21 @@ as soon as the trigger condition becomes true.
 
 <8> Get the current time (slot).
 
-Let us reimplement the `payToWallet_` function from the
-Playground, which allows transferring Ada from one
-wallet to another without involving any smart contracts!
+Let us start exploring `WalletAPI` by reimplementing function `payToWallet_`
+from the playground, which simply pays a certain amount of Ada to another
+wallet!
 
-include::dumb.adoc[leveloffset=+ 1]
+include::payToWallet1.adoc[]
+
+In contrast to our first `hello` example, function `myPayToWallet`
+takes _arguments_. The user will be prompted to enter values for these in the
+playground when the function is added as an action to the simulation.
+
+Note how we use `createPaymentWithChange` to help us build a transaction: Given
+a value, this function will select suitable unspent transaction outputs
+belonging to the wallet, which we can use as inputs. 
+It will also optionally create a
+new transaction output, where the change can go to,
+if the sum of the inputs exceeds the value we want to transfer.
+
+include::dumb.adoc[]
