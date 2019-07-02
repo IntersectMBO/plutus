@@ -22,17 +22,16 @@ import           Language.Haskell.Interpreter (CompilationError (CompilationErro
                                                InterpreterError (CompilationErrors),
                                                InterpreterResult (InterpreterResult), SourceCode, Warning (Warning),
                                                avoidUnsafe, runghc)
-import           Ledger                       (Blockchain)
 import           Playground.API               (CompilationResult (CompilationResult), Evaluation (sourceCode),
                                                Expression (Action, Wait), Fn (Fn),
-                                               PlaygroundError (DecodeJsonTypeError, OtherError), SimulatorWallet,
-                                               program, simulatorWalletWallet, toSimpleArgumentSchema, wallets)
+                                               PlaygroundError (DecodeJsonTypeError, OtherError), program,
+                                               simulatorWalletWallet, toSimpleArgumentSchema, wallets)
 import qualified Playground.API               as API
 import           Playground.Interpreter.Util  (TraceResult)
 import           System.IO                    (Handle, hFlush)
 import           System.IO.Temp.Extras        (withSystemTempFile)
 import qualified Text.Regex                   as Regex
-import           Wallet.Emulator.Types        (EmulatorEvent, Wallet)
+import           Wallet.Emulator.Types        (Wallet)
 
 replaceModuleName :: Text -> Text
 replaceModuleName script =

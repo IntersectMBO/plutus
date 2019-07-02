@@ -1,13 +1,13 @@
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module CrowdFunding where
 -- TRIM TO HERE
@@ -18,18 +18,24 @@ module CrowdFunding where
 -- Note [Transactions in the crowdfunding campaign] explains the structure of
 -- this contract on the blockchain.
 
-import qualified Language.PlutusTx            as PlutusTx
+import qualified Language.PlutusTx         as PlutusTx
 import           Language.PlutusTx.Prelude
-import qualified Ledger.Interval              as Interval
-import           Ledger.Slot                  (SlotRange)
-import           Ledger
-import           Ledger.Validation            as V
-import           Ledger.Value                 (Value)
-import qualified Ledger.Value                 as Value
+import           Ledger                    (Address, DataScript (DataScript), PendingTx, PubKey,
+                                            RedeemerScript (RedeemerScript), TxId, ValidatorScript (ValidatorScript),
+                                            applyScript, compileScript, hashTx, lifted, pendingTxValidRange,
+                                            scriptAddress, valueSpent)
+import qualified Ledger.Interval           as Interval
+import           Ledger.Slot               (Slot, SlotRange)
+import qualified Ledger.Validation         as V
+import           Ledger.Value              (Value)
+import qualified Ledger.Value              as Value
 import           Playground.Contract
-import           Wallet                       as W
-import qualified Wallet.Emulator              as EM
-import           Wallet.Emulator             (Wallet)
+import           Wallet                    (EventHandler (EventHandler), EventTrigger, MonadWallet, andT,
+                                            collectFromScript, collectFromScriptTxn, fundsAtAddressGeqT, logMsg,
+                                            ownPubKey, payToScript, register, slotRangeT)
+import qualified Wallet                    as W
+import           Wallet.Emulator           (Wallet)
+import qualified Wallet.Emulator           as EM
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign

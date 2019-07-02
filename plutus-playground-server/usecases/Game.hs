@@ -1,13 +1,13 @@
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Game where
 -- TRIM TO HERE
@@ -17,16 +17,17 @@ module Game where
 -- Player 2 guesses the word by attempting to spend the transaction
 -- output. If the guess is correct, the validator script releases the funds.
 -- If it isn't, the funds stay locked.
-import qualified Language.PlutusTx            as PlutusTx
+import qualified Language.PlutusTx          as PlutusTx
 import           Language.PlutusTx.Prelude
-import           Ledger
-import qualified Ledger.Value                 as Value
-import           Ledger.Value                 (Value)
-import           Ledger.Validation
-import           Wallet
+import           Ledger                     (Address, DataScript (DataScript), PendingTx,
+                                             RedeemerScript (RedeemerScript), ValidatorScript (ValidatorScript),
+                                             compileScript, lifted, plcSHA2_256, scriptAddress)
+import           Ledger.Value               (Value)
 import           Playground.Contract
+import           Wallet                     (MonadWallet, WalletAPI, WalletDiagnostics, collectFromScript,
+                                             defaultSlotRange, payToScript_, startWatching)
 
-import qualified Data.ByteString.Lazy.Char8   as C
+import qualified Data.ByteString.Lazy.Char8 as C
 
 data HashedString = HashedString ByteString
 

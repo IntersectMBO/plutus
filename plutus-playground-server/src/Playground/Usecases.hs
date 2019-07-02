@@ -3,8 +3,6 @@
 
 module Playground.Usecases where
 
-import           Data.ByteString    (ByteString)
-import qualified Data.ByteString    as BS
 import           Data.FileEmbed     (embedFile, makeRelativeToProject)
 import qualified Data.Text          as T
 import qualified Data.Text.Encoding as T
