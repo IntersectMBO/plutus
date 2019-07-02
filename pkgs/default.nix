@@ -53594,13 +53594,16 @@ license = stdenv.lib.licenses.mit;
   mkDerivation
 , base
 , containers
+, hspec
 , language-plutus-core
 , plutus-emulator
+, plutus-playground-lib
 , plutus-tx
 , plutus-wallet-api
 , prettyprinter
 , stdenv
 , template-haskell
+, text
 , unlit
 }:
 mkDerivation {
@@ -53613,13 +53616,22 @@ base
 containers
 language-plutus-core
 plutus-emulator
+plutus-playground-lib
 plutus-tx
 plutus-wallet-api
 prettyprinter
 template-haskell
+text
 ];
 libraryToolDepends = [
 unlit
+];
+testHaskellDepends = [
+base
+containers
+hspec
+plutus-emulator
+plutus-wallet-api
 ];
 doHaddock = false;
 description = "The Plutus Book";
