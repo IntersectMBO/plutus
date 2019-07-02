@@ -6,11 +6,11 @@
 module Deploy.Types where
 
 import           Control.Newtype.Generics (Newtype, unpack)
-import           Data.Aeson               (FromJSON, eitherDecodeFileStrict, parseJSON, withObject, (.:))
+import           Data.Aeson               (FromJSON, parseJSON, withObject, (.:))
 import           Data.Text                (Text)
 import qualified Data.Text                as Text
 import           GHC.Generics             (Generic)
-import           Options.Generic          (ParseField, ParseFields, ParseRecord, getRecord)
+import           Options.Generic          (ParseField, ParseFields, ParseRecord)
 
 newtype SlackToken = SlackToken Text
     deriving (Generic, Newtype)
@@ -59,4 +59,3 @@ instance Read Deployment where
 
 instance Show Deployment where
     show = Text.unpack . unpack
-
