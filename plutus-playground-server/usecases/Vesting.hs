@@ -14,13 +14,12 @@ module Vesting where
 -- Vesting scheme as a PLC contract
 import qualified Prelude                   as Haskell
 import           Language.PlutusTx.Prelude
-import           Control.Monad             (void)
 import qualified Data.Map                  as Map
 import qualified Data.Set                  as Set
 
 import qualified Language.PlutusTx         as PlutusTx
 import           Ledger                    (Address, DataScript(..),
-                                            RedeemerScript(..), Signature, Slot,
+                                            RedeemerScript(..),  Slot,
                                             TxOutRef, TxIn, ValidatorScript(..))
 import qualified Ledger                    as Ledger
 import           Ledger.Value              (Value)
@@ -29,11 +28,10 @@ import qualified Ledger.Interval           as Interval
 import qualified Ledger.Slot               as Slot
 import qualified Ledger.Validation         as V
 import           Ledger.Validation         (PendingTx(..))
-import           Wallet                    (WalletAPI(..), WalletDiagnostics,
+import           Wallet                    (WalletAPI(..),
                                             PubKey)
 import qualified Wallet                    as W
 import qualified Wallet.API                as WAPI
-import qualified Wallet.Emulator.Types     as EM
 import           Playground.Contract
 
 {- |

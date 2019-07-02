@@ -11,7 +11,6 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
-
 module Gist
     ( API
     , GistAPI
@@ -28,8 +27,8 @@ module Gist
     ) where
 
 import           Auth.Types        (Token, TokenProvider (Github))
-import           Data.Aeson        (FromJSON, GFromJSON, GToJSON, ToJSON, Value, Zero, genericParseJSON, genericToJSON,
-                                    object, parseJSON, toJSON, withObject, (.:), (.:?), (.=))
+import           Data.Aeson        (FromJSON, GFromJSON, ToJSON, Value, Zero, genericParseJSON, object, parseJSON,
+                                    toJSON, withObject, (.:), (.:?), (.=))
 import           Data.Aeson.Casing (aesonPrefix, snakeCase)
 import           Data.Aeson.Types  (Parser)
 import           Data.Bifunctor    (bimap)
@@ -168,6 +167,3 @@ instance FromJSON GistFile where
 ------------------------------------------------------------
 githubParseJSON :: (Generic a, GFromJSON Zero (Rep a)) => Value -> Parser a
 githubParseJSON = genericParseJSON $ aesonPrefix snakeCase
-
-githubToJSON :: (Generic a, GToJSON Zero (Rep a)) => a -> Value
-githubToJSON = genericToJSON $ aesonPrefix snakeCase
