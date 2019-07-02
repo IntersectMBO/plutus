@@ -54,10 +54,11 @@ library
       , OffChain.PayToWalletSimple
       , OffChain.Trigger
       , OffChain.TriggerSimple
-    ghc-options: -Wall -Wno-unused-imports -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc
+    ghc-options: -Wall -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc
     build-tool-depends: unlit:unlit -any
     build-depends:
       base >=4.9 && <5,
+      bytestring -any,
       template-haskell >=2.13.0.0,
       text -any,
       language-plutus-core -any,
