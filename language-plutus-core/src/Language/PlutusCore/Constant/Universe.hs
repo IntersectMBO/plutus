@@ -34,7 +34,7 @@ data ValueIn uni = forall a. ValueIn (uni a) a
 
 class Deep a where
     toTypeAst  :: proxy a -> Type TyName ()
-    liftDeep   :: a -> Term TyName Name (ValueIn uni) ()
+    liftDeep   :: a -> Term TyName Name con ()
     unliftDeep :: Monad m => Evaluator uni Term m -> Term TyName Name (ValueIn uni) () -> ReflectT m a
 
 unliftDeepM :: (Monad m, Deep a) => Term TyName Name (ValueIn uni) () -> EvaluateT uni ReflectT m a
@@ -110,7 +110,6 @@ newtype DynamicBuiltinNameMeanings uni = DynamicBuiltinNameMeanings
     { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName (DynamicBuiltinNameMeaning uni)
     } deriving (Semigroup, Monoid)
 
--- TODO: @forall uni. <...>@
 type Evaluator uni f m
     =  DynamicBuiltinNameMeanings uni
     -> f TyName Name (ValueIn uni) ()

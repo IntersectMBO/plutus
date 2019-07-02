@@ -14,4 +14,3 @@ getStringBuiltinTypes ann =
        insertDynamicBuiltinNameDefinition dynamicTraceDefinitionMock $
        insertDynamicBuiltinNameDefinition dynamicCharToStringDefinition $
        insertDynamicBuiltinNameDefinition dynamicAppendDefinition mempty
-

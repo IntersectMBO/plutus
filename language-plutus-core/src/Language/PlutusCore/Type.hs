@@ -3,7 +3,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
@@ -34,72 +33,76 @@ module Language.PlutusCore.Type ( Term (..)
                                 , Normalized (..)
                                 ) where
 
+import           Language.PlutusCore.Lexer.Type
+import           Language.PlutusCore.Universe
+import           PlutusPrelude
+
 import           Control.Lens
 import           Data.Functor.Foldable
+import           Data.GADT.Compare
 import qualified Data.Map                       as M
-import           Instances.TH.Lift              ()
-import           Language.Haskell.TH.Syntax     (Lift)
-import           Language.PlutusCore.Lexer.Type
-import           PlutusPrelude
+
 
 newtype Gas = Gas
     { unGas :: Natural
     }
 
 -- | A 'Type' assigned to expressions.
-data Type tyname a = TyVar a (tyname a)
-                   | TyFun a (Type tyname a) (Type tyname a)
-                   | TyIFix a (Type tyname a) (Type tyname a)
-                     -- ^ Fix-point type, for constructing self-recursive types
-                   | TyForall a (tyname a) (Kind a) (Type tyname a)
-                   | TyBuiltin a TypeBuiltin -- ^ Builtin type
-                   | TyLam a (tyname a) (Kind a) (Type tyname a)
-                   | TyApp a (Type tyname a) (Type tyname a)
-                   deriving (Functor, Show, Generic, NFData, Lift)
+data Type tyname uni a
+    = TyCon a (Some uni)
+    | TyVar a (tyname a)
+    | TyFun a (Type tyname uni a) (Type tyname uni a)
+    | TyIFix a (Type tyname uni a) (Type tyname uni a)
+      -- ^ Fix-point type, for constructing self-recursive types
+    | TyForall a (tyname a) (Kind a) (Type tyname uni a)
+    | TyLam a (tyname a) (Kind a) (Type tyname uni a)
+    | TyApp a (Type tyname uni a) (Type tyname uni a)
+    deriving (Functor, Show, Generic, NFData)
 
-data TypeF tyname a x = TyVarF a (tyname a)
-                      | TyFunF a x x
-                      | TyIFixF a x x
-                      | TyForallF a (tyname a) (Kind a) x
-                      | TyBuiltinF a TypeBuiltin
-                      | TyLamF a (tyname a) (Kind a) x
-                      | TyAppF a x x
-                      deriving (Functor, Traversable, Foldable)
+data TypeF tyname uni a x
+    = TyConF a (Some uni)
+    | TyVarF a (tyname a)
+    | TyFunF a x x
+    | TyIFixF a x x
+    | TyForallF a (tyname a) (Kind a) x
+    | TyLamF a (tyname a) (Kind a) x
+    | TyAppF a x x
+    deriving (Functor, Traversable, Foldable)
 
-type instance Base (Type tyname a) = TypeF tyname a
+type instance Base (Type tyname uni a) = TypeF tyname uni a
 
-instance Recursive (Type tyname a) where
+instance Recursive (Type tyname uni a) where
+    project (TyCon l con)        = TyConF l con
     project (TyVar l tn)         = TyVarF l tn
     project (TyFun l ty ty')     = TyFunF l ty ty'
     project (TyIFix l pat arg)   = TyIFixF l pat arg
     project (TyForall l tn k ty) = TyForallF l tn k ty
-    project (TyBuiltin l b)      = TyBuiltinF l b
     project (TyLam l tn k ty)    = TyLamF l tn k ty
     project (TyApp l ty ty')     = TyAppF l ty ty'
 
-instance Corecursive (Type tyname a) where
+instance Corecursive (Type tyname uni a) where
+    embed (TyConF l con)        = TyCon l con
     embed (TyVarF l tn)         = TyVar l tn
     embed (TyFunF l ty ty')     = TyFun l ty ty'
     embed (TyIFixF l pat arg)   = TyIFix l pat arg
     embed (TyForallF l tn k ty) = TyForall l tn k ty
-    embed (TyBuiltinF l b)      = TyBuiltin l b
     embed (TyLamF l tn k ty)    = TyLam l tn k ty
     embed (TyAppF l ty ty')     = TyApp l ty ty'
 
 {-# INLINE typeSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'Type'.
-typeSubtypes :: Traversal' (Type tyname a) (Type tyname a)
+typeSubtypes :: Traversal' (Type tyname uni a) (Type tyname uni a)
 typeSubtypes f = \case
     TyFun x ty1 ty2 -> TyFun x <$> f ty1 <*> f ty2
     TyIFix x pat arg -> TyIFix x <$> f pat <*> f arg
     TyForall x tn k ty -> TyForall x tn k <$> f ty
     TyLam x tn k ty -> TyLam x tn k <$> f ty
     TyApp x ty1 ty2 -> TyApp x <$> f ty1 <*> f ty2
-    b@TyBuiltin {} -> pure b
     v@TyVar {} -> pure v
+    c@TyCon {} -> pure c
 
 -- | Get all the direct child 'tyname a's of the given 'Type' from 'TyVar's.
-typeTyVars :: Traversal' (Type tyname a) (tyname a)
+typeTyVars :: Traversal' (Type tyname uni a) (tyname a)
 typeTyVars f = \case
     TyVar a n -> TyVar a <$> f n
     x -> pure x
@@ -108,10 +111,10 @@ typeTyVars f = \case
 -- the Eq instance
 type EqTyState tyname a = M.Map (tyname a) (tyname a)
 
-rebindAndEqTy :: (Eq a, Ord (tyname a))
+rebindAndEqTy :: (Eq a, Ord (tyname a), GEq uni)
               => EqTyState tyname a
-              -> Type tyname a
-              -> Type tyname a
+              -> Type tyname uni a
+              -> Type tyname uni a
               -> tyname a
               -> tyname a
               -> Bool
@@ -120,16 +123,15 @@ rebindAndEqTy eqSt tyLeft tyRight tnLeft tnRight =
         in eqTypeSt intermediateSt tyLeft tyRight
 
 -- This tests for equality of names inside a monad that allows substitution.
-eqTypeSt :: (Ord (tyname a), Eq a)
+eqTypeSt :: (Ord (tyname a), Eq a, GEq uni)
         => EqTyState tyname a
-        -> Type tyname a
-        -> Type tyname a
+        -> Type tyname uni a
+        -> Type tyname uni a
         -> Bool
+eqTypeSt _ (TyCon _ conLeft) (TyCon _ conRight) = conLeft == conRight
 
 eqTypeSt eqSt (TyFun _ domLeft codLeft) (TyFun _ domRight codRight) = eqTypeSt eqSt domLeft domRight && eqTypeSt eqSt codLeft codRight
 eqTypeSt eqSt (TyApp _ fLeft aLeft) (TyApp _ fRight aRight) = eqTypeSt eqSt fLeft fRight && eqTypeSt eqSt aLeft aRight
-
-eqTypeSt _ (TyBuiltin _ bLeft) (TyBuiltin _ bRight)      = bLeft == bRight
 
 eqTypeSt eqSt (TyIFix _ patLeft argLeft) (TyIFix _ patRight argRight) =
     eqTypeSt eqSt patLeft patRight && eqTypeSt eqSt argLeft argRight
@@ -147,7 +149,7 @@ eqTypeSt eqSt (TyVar _ tnRight) (TyVar _ tnLeft) =
 
 eqTypeSt _ _ _ = False
 
-instance (Ord (tyname a), Eq a) => Eq (Type tyname a) where
+instance (Ord (tyname a), Eq a, GEq uni) => Eq (Type tyname uni a) where
     (==) = eqTypeSt mempty
 
 data EqState tyname name a = EqState { _tyMap :: M.Map (tyname a) (tyname a), _termMap :: M.Map (name a) (name a) }
@@ -161,10 +163,10 @@ termMap f s = fmap (\x -> s { _termMap = x }) (f (_termMap s))
 tyMap :: Lens' (EqState tyname name a) (M.Map (tyname a) (tyname a))
 tyMap f s = fmap (\x -> s { _tyMap = x }) (f (_tyMap s))
 
-rebindAndEq :: (Ord (name a), Ord (tyname a), Eq con, Eq a)
+rebindAndEq :: (Ord (name a), Ord (tyname a), EqUni uni, Eq a)
             => EqState tyname name a
-            -> Term tyname name con a
-            -> Term tyname name con a
+            -> Term tyname name uni a
+            -> Term tyname name uni a
             -> name a
             -> name a
             -> Bool
@@ -172,10 +174,10 @@ rebindAndEq eqSt tLeft tRight nLeft nRight =
     let intermediateSt = over termMap (M.insert nRight nLeft) eqSt
         in eqTermSt intermediateSt tLeft tRight
 
-eqTermSt :: (Ord (name a), Ord (tyname a), Eq con, Eq a)
+eqTermSt :: (Ord (name a), Ord (tyname a), EqUni uni, Eq a)
          => EqState tyname name a
-         -> Term tyname name con a
-         -> Term tyname name con a
+         -> Term tyname name uni a
+         -> Term tyname name uni a
          -> Bool
 
 eqTermSt eqSt (TyAbs _ tnLeft kLeft tLeft) (TyAbs _ tnRight kRight tRight) =
@@ -216,20 +218,19 @@ eqTermSt eqSt (Var _ nRight) (Var _ nLeft) =
 
 eqTermSt _ _ _ = False
 
-instance (Ord (tyname a), Ord (name a), Eq con, Eq a) => Eq (Term tyname name con a) where
+instance (Ord (tyname a), Ord (name a), EqUni uni, Eq a) => Eq (Term tyname name uni a) where
     (==) = eqTermSt emptyEqState
 
-
-tyLoc :: Type tyname a -> a
+tyLoc :: Type tyname uni a -> a
+tyLoc (TyCon l _)        = l
 tyLoc (TyVar l _)        = l
 tyLoc (TyFun l _ _)      = l
 tyLoc (TyIFix l _ _)     = l
 tyLoc (TyForall l _ _ _) = l
-tyLoc (TyBuiltin l _)    = l
 tyLoc (TyLam l _ _ _)    = l
 tyLoc (TyApp l _ _)      = l
 
-termLoc :: Term tyname name con a -> a
+termLoc :: Term tyname name uni a -> a
 termLoc (Constant l _)   = l
 termLoc (Var l _)        = l
 termLoc (TyAbs l _ _ _)  = l
@@ -244,41 +245,40 @@ termLoc (LamAbs l _ _ _) = l
 data Builtin a
     = BuiltinName a BuiltinName
     | DynBuiltinName a DynamicBuiltinName
-    deriving (Functor, Show, Eq, Generic, NFData, Lift)
+    deriving (Functor, Show, Eq, Generic, NFData)
 
--- TODO make this parametric in tyname as well
 -- | A 'Term' is a value.
-data Term tyname name con a
-    = Constant a con
+data Term tyname name uni a
+    = Constant a (SomeOf uni)
     | Var a (name a) -- ^ A named variable
-    | TyAbs a (tyname a) (Kind a) (Term tyname name con a)
-    | LamAbs a (name a) (Type tyname a) (Term tyname name con a)
-    | Apply a (Term tyname name con a) (Term tyname name con a)
+    | TyAbs a (tyname a) (Kind a) (Term tyname name uni a)
+    | LamAbs a (name a) (Type tyname uni a) (Term tyname name uni a)
+    | Apply a (Term tyname name uni a) (Term tyname name uni a)
     | Builtin a (Builtin a)
-    | TyInst a (Term tyname name con a) (Type tyname a)
-    | Unwrap a (Term tyname name con a)
-    | IWrap a (Type tyname a) (Type tyname a) (Term tyname name con a)
-    | Error a (Type tyname a)
-    deriving (Functor, Show, Generic, NFData, Lift)
+    | TyInst a (Term tyname name uni a) (Type tyname uni a)
+    | Unwrap a (Term tyname name uni a)
+    | IWrap a (Type tyname uni a) (Type tyname uni a) (Term tyname name uni a)
+    | Error a (Type tyname uni a)
+    deriving (Functor, Show, Generic, NFData)
 
-data TermF tyname name con a x
-    = ConstantF a con
+data TermF tyname name uni a x
+    = ConstantF a (SomeOf uni)
     | VarF a (name a)
     | TyAbsF a (tyname a) (Kind a) x
-    | LamAbsF a (name a) (Type tyname a) x
+    | LamAbsF a (name a) (Type tyname uni a) x
     | ApplyF a x x
     | BuiltinF a (Builtin a)
-    | TyInstF a x (Type tyname a)
+    | TyInstF a x (Type tyname uni a)
     | UnwrapF a x
-    | IWrapF a (Type tyname a) (Type tyname a) x
-    | ErrorF a (Type tyname a)
+    | IWrapF a (Type tyname uni a) (Type tyname uni a) x
+    | ErrorF a (Type tyname uni a)
     deriving (Functor, Traversable, Foldable)
 
-type instance Base (Term tyname name con a) = TermF tyname name con a
+type instance Base (Term tyname name uni a) = TermF tyname name uni a
 
 type Value = Term
 
-instance Recursive (Term tyname name con a) where
+instance Recursive (Term tyname name uni a) where
     project (Constant x con)    = ConstantF x con
     project (Var x n)           = VarF x n
     project (TyAbs x n k t)     = TyAbsF x n k t
@@ -290,7 +290,7 @@ instance Recursive (Term tyname name con a) where
     project (IWrap x pat arg t) = IWrapF x pat arg t
     project (Error x ty)        = ErrorF x ty
 
-instance Corecursive (Term tyname name con a) where
+instance Corecursive (Term tyname name uni a) where
     embed (ConstantF x con)    = Constant x con
     embed (VarF x n)           = Var x n
     embed (TyAbsF x n k t)     = TyAbs x n k t
@@ -304,7 +304,7 @@ instance Corecursive (Term tyname name con a) where
 
 {-# INLINE termSubterms #-}
 -- | Get all the direct child 'Term's of the given 'Term'.
-termSubterms :: Traversal' (Term tyname name con a) (Term tyname name con a)
+termSubterms :: Traversal' (Term tyname name uni a) (Term tyname name uni a)
 termSubterms f = \case
     LamAbs x n ty t -> LamAbs x n ty <$> f t
     TyInst x t ty -> TyInst x <$> f t <*> pure ty
@@ -319,7 +319,7 @@ termSubterms f = \case
 
 {-# INLINE termSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'Term'.
-termSubtypes :: Traversal' (Term tyname name con a) (Type tyname a)
+termSubtypes :: Traversal' (Term tyname name uni a) (Type tyname uni a)
 termSubtypes f = \case
     LamAbs x n ty t -> LamAbs x n <$> f ty <*> pure t
     TyInst x t ty -> TyInst x t <$> f ty
@@ -333,7 +333,7 @@ termSubtypes f = \case
     c@Constant {} -> pure c
 
 -- | Get all the direct child 'name a's of the given 'Term' from 'Var's.
-termVars :: Traversal' (Term tyname name con a) (name a)
+termVars :: Traversal' (Term tyname name uni a) (name a)
 termVars f = \case
     Var a n -> Var a <$> f n
     x -> pure x
@@ -341,7 +341,7 @@ termVars f = \case
 -- | Kinds. Each type has an associated kind.
 data Kind a = Type a
             | KindArrow a (Kind a) (Kind a)
-            deriving (Functor, Eq, Show, Generic, NFData, Lift)
+            deriving (Functor, Eq, Show, Generic, NFData)
 
 data KindF a x = TypeF a
                | KindArrowF a x x
@@ -355,8 +355,8 @@ instance Recursive (Kind a) where
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core
 -- language.
-data Program tyname name con a = Program a (Version a) (Term tyname name con a)
-                 deriving (Show, Eq, Functor, Generic, NFData, Lift)
+data Program tyname name uni a = Program a (Version a) (Term tyname name uni a)
+                 deriving (Show, Eq, Functor, Generic, NFData)
 
 newtype Normalized a = Normalized { unNormalized :: a }
     deriving (Show, Eq, Functor, Foldable, Traversable, Generic)
