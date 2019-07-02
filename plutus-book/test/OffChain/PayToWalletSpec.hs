@@ -8,7 +8,6 @@ import qualified OffChain.PayToWalletSimple as P2
 import           Ledger
 import           Ledger.Ada
 import           Wallet.Emulator
-import           Wallet.Emulator.Generators
 
 import           Control.Monad              (void)
 import           Data.Either                (isRight)
@@ -22,7 +21,7 @@ spec = do
 mkSpec :: (Wallet -> Ada -> MockWallet ()) -> SpecWith ()
 mkSpec payToWallet =
     it "transfers funds as expected" $
-        isRight (fst res) `shouldBe` True
+        isRight (fst $ getResult tr) `shouldBe` True
   where
     ada :: Ada
     ada = fromInt 8
@@ -32,8 +31,4 @@ mkSpec payToWallet =
         updateWallets
         void $ walletAction w1 $ payToWallet w2 ada
         updateWallets
-        assertOwnFundsEq w1 $ toValue $ initialAda `minus` ada
-        assertOwnFundsEq w2 $ toValue $ initialAda `plus` ada
-
-    res :: (Either AssertionError (), EmulatorState)
-    res = runTrace initialChain tr
+        assertFunds (initialAda `minus` ada) (initialAda `plus` ada)

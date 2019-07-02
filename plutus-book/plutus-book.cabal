@@ -73,7 +73,8 @@ test-suite plutus-book-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
-  other-modules:       OffChain.HelloSpec
+  other-modules:       Game.GuessSpec
+                     , OffChain.HelloSpec
                      , OffChain.PayToWalletSpec
                      , OffChain.TriggerSpec
                      , Utils
