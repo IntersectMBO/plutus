@@ -29,3 +29,20 @@ authors do not write Plutus Core directly. The Plutus Platform is a
 software development kit to enable smart contract authors to easily
 write smart contracts, including the logic that will eventually be run
 on the blockchain as Plutus Core.
+
+To code a smart contract in Plutus, you can code directly in the 
+{playground}[Plutus Playground]. 
+The Plutus Playground is a lightweight, web-based environment 
+for exploratory Plutus development. Here you can easily write and deploy your 
+contracts without the overhead of installing and maintaining a full development 
+environment and blockchain. 
+
+You can also use your preferred code editor and save the 
+files in Haskell format (`.hs`) to get the syntax highlighting, 
+and most important, you can write on-chain and off-chain code in the same file, 
+with the same syntax. You can use the same data types on both sides, 
+and they will be converted automatically.
+
+Once you have coded your smart contract, you can copy it in the 
+Plutus Playground where you will be able to compile it to Plutus Core 
+and test its behavior.
