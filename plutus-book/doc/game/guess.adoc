@@ -5,7 +5,7 @@
 {-# LANGUAGE TemplateHaskell                 #-} -- <2>
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-} -- <3>
 
-module OffChain.Hello where
+module Game.Guess where
 
 import Language.PlutusTx.Prelude                 -- <4>
 import Playground.Contract

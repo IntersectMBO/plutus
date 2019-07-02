@@ -1,0 +1,3 @@
+= A guessing game - our first on-chain code
+
+include::guess.adoc[]

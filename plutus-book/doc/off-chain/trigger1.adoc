@@ -5,7 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables             #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
-module Trigger where
+module OffChain.Trigger where
 
 import           Language.PlutusTx.Prelude
 import           Ledger

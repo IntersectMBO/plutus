@@ -1,9 +1,9 @@
-module Spec.TriggerSpec (spec) where
+module OffChain.TriggerSpec (spec) where
 
 import           Utils
 
-import qualified Trigger                    as T1
-import qualified TriggerSimple              as T2
+import qualified OffChain.Trigger           as T1
+import qualified OffChain.TriggerSimple     as T2
 
 import           Ledger
 import           Ledger.Ada

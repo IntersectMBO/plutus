@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Spec.HelloSpec (spec) where
+module OffChain.HelloSpec (spec) where
 
-import           Hello                      (hello)
+import           OffChain.Hello             (hello)
 
 import           Wallet.Emulator
 import           Wallet.Emulator.Generators

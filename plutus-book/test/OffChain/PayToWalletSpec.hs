@@ -1,9 +1,9 @@
-module Spec.PayToWalletSpec (spec) where
+module OffChain.PayToWalletSpec (spec) where
 
 import           Utils
 
-import qualified PayToWallet                as P1
-import qualified PayToWalletSimple          as P2
+import qualified OffChain.PayToWallet       as P1
+import qualified OffChain.PayToWalletSimple as P2
 
 import           Ledger
 import           Ledger.Ada
