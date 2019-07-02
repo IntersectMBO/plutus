@@ -1,3 +1,61 @@
 = Our first on-chain code
 
+Now that we are somewhat comfortable with the Wallet API and know how to write
+off-chain code, let us look at a first example of _on-chain_ code,
+a simple guessing game.
+
+The idea of the game is that one player can think of a secret word
+and then donate some Ada as reward for anybody who correctly guesses the secret.
+
+As always when writing Haskell code, we should start by thinking about _types_.
+In particular, we have to figure out the types wrapped in the _data scripts_
+and _redeemer scripts_.
+
+The redeemer script will unlock the reward in case of a successful guess,
+so it must contain that guess.
+
+For the _validator script_ to be able to do its job and validate a guess,
+it needs to be able to decide whether the guess is correct.
+An obvious choice for the data script would therefore be the secret word,
+but seeing as the data script is visible for all on the public ledger,
+this would make it trivial for players to guess correctly.
+Instead of using the secret word directly, we therefore use its _hash_
+for the data script, making it impossible (or at least very hard) to
+reconstruct the secret from looking at the data script on the ledger.
+
+Words and their hashes can both be represented by a `ByteString`,
+one of the primitive types available to Plutus Core,
+but as in "normal" Haskell, it will be better to create distinct types
+for those two, so that there will be no danger of confusing them.
+
+Once defined, those types can be made available on-chain by using the
+Template Haskell function `makeLift`, which will create `Lift` instances
+and therefore enable us to use the crucial
+
+[source,haskell]
+----
+lifted :: Lift a => a -> Script
+----
+
+to convert plain old values into Plutus scripts.
+
+So let's get started!
+
 include::guess.adoc[]
+
+We can test this in the Playground: If wallet #1 wants to think of the secret
+word and wallets #2 and #3 want to try and guess it, our simulation might
+contain the following actions:
+
+- Wallet #2 starts.
+- Wallet #3 starts.
+- Wallet #1 challenges the others with the secret word _Haskell_ and a reward of
+  5 Ada.
+- Wallet #2 incorrectly guesses _Scala_.
+- Wallet #3 guesses correctly.
+
+image:../images/guessing-game-actions.png[]
+
+As a result, wallet #3 would end up with the reward.
+
+image:../images/guessing-game-result.png[]
