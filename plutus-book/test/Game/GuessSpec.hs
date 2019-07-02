@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Game.GuessSpec (spec) where
 
 import           Utils
@@ -10,8 +11,10 @@ import           Wallet.Emulator
 
 import           Control.Monad   (void)
 import           Data.Either     (isRight)
+import           Data.Text       (Text)
 import           Test.Hspec
 
+{-# ANN spec ("HLint: ignore Reduce duplication" :: Text) #-}
 spec :: Spec
 spec = describe "guess" $ do
     it "works for a correct guess" $
