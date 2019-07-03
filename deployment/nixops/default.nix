@@ -8,7 +8,7 @@ let
   enableGithubHooks = plutus.pkgs.lib.hasAttr "githubWebhookKey" secrets;
   deploymentConfigDir = plutus.pkgs.copyPathToStore ../nixops ;
   deploymentServer = plutus.haskellPackages.deployment-server;
-  mkConfig = redirectUrl: name: plutus.pkgs.writeTextFile {
+  mkConfig = ghsecrets: redirectUrl: name: plutus.pkgs.writeTextFile {
     name = name;
     text = ''
     auth:
@@ -17,14 +17,14 @@ let
       #    github.
       # 2) If you change the JWT signature, it will break all existing logins.
       #    Don't change it unless that's something you specifically want!
-      github-client-id: ${secrets.githubClientId}
-      github-client-secret: ${secrets.githubClientSecret}
-      jwt-signature: ${secrets.jwtSignature}
+      github-client-id: ${ghsecrets.githubClientId}
+      github-client-secret: ${ghsecrets.githubClientSecret}
+      jwt-signature: ${ghsecrets.jwtSignature}
       redirect-url: ${redirectUrl}
     '';
   };
-  playgroundConfig = mkConfig "https://${machines.environment}.${machines.plutusTld}" "playground.yaml";
-  meadowConfig = mkConfig "https://${machines.environment}.${machines.marloweTld}" "marlowe.yaml";
+  playgroundConfig = mkConfig secrets.plutus "https://${machines.environment}.${machines.plutusTld}" "playground.yaml";
+  meadowConfig = mkConfig secrets.marlowe "https://${machines.environment}.${machines.marloweTld}" "marlowe.yaml";
   stdOverlays = [ overlays.journalbeat ];
   # FIXME: https://github.com/NixOS/nixpkgs/pull/57910
   # Changes from jbgi have been squashed into my repo as jbgi/prometheus2 wasn't working for unrelated reasons
