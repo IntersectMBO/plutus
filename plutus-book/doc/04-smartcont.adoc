@@ -203,7 +203,7 @@ upon by both parties.
 These types of tokens can be tracked on a blockchain by a unique ID, that
 would be associated with an address, and thus its owner, similar to a
 regular ownership document. We will discuss how exactly such a unique ID
-can be constructed in the extended UTxO model. 
+can be constructed in the extended UTxO model.
 
 == Loans
 
@@ -221,6 +221,86 @@ if there is a party willing to risk the full value of the loan (interest
 included), and is not benefitting from the contract, why is this loan even
 necessary?
 
-There is another approach to making loans into smart contracts as well.
+There is another approach to building smart contract loans and variations thereof.
+One may introduce a non-fungible token on the blockchain that the entity acquiring the loan
+exchanges for the total value that must be paid to the lending party
+(i.e. the money loaned plus interest). This would even allow the terms of a loan
+to be renegotiated, perhaps changing the value of the loan token.
+This a very promising approach for managing loans on a smart contract platform that
+supports non-monetary tokens, provided there is some real-world legal assurance
+to back up the lender in case of non-payment.
 
 == ACTUS
+
+ACTUS is an ongoing project started with the aim to define a taxonomy, or
+classification, of all (or nearly all) financial contracts into a small
+number of groups. Several major financial companies have come together
+to create this common standard, including Ariadne, Deloitte, and Stevens Institute
+of Technology. The project can be found at
+
+https://www.actusfrf.org/
+
+A financial contract, as defined in Securities law, is
+
+* An arrangement that takes
+the form of an individually
+negotiated contract, agreement, or option to buy, sell, lend, swap, or
+repurchase, or other similar individually negotiated transaction commonly
+entered into by participants in the financial markets.
+
+ACTUS recognizes that there are two different ways to view financial contracts,
+as described by two different disciplines:
+
+.ACTUS data standard
+* The Data Standard defines a universal set of legal terms – or CT Attributes –
+used as parameters throughout the different financial agreements. It is
+implemented in form of a Data Dictionary with Attribute Applicability by
+Contract Type.
+
+.ACTUS algorithmic standard
+* The Algorithmic Standard defines the logic embedded in legal agreements that
+eventually turn the contract terms into actual cash flows, or more generally
+business events.
+
+Both standards have the tools to describe nearly all financial contracts, and
+ACTUS aims to ensure that the semantics of what is described by both standards are
+identical.
+The ACTUS classification divides the contracts into groups by basic algorithmic structure.
+For contracts within the same classification group, roughly the same
+calculations are done to determine execution of the contract. The differences
+between contracts within the same group are usually in the values of certain
+parameters in the algorithm. A formal specification of the contracts within
+each group is available on the ACTUS site.
+
+The reason we discuss the ACTUS taxonomy approach here is that
+the idea of implementing ACTUS contracts in Plutus is very exciting both
+conceptually as a major real-world practical advancement. From the ACTUS
+website,
+
+[quote]
+____
+"Recent financial crises laid bare serious shortcomings in risk management and
+financial regulation. In retrospect, the lack of timely granular data reported
+in a data standard capable of supporting financial analysis contributed much
+to the crises. The ACTUS project aims to remedy this weakness by creating a
+global standard for the consistent representation of financial instruments."
+____
+
+Financial contracts include things like futures, loans bonds, mortgages, etc.
+In essence, financial contracts are contracts that only deal with the
+transfer of money and promises made about future money transfers.
+These types of contracts are influenced by outside events, like market values
+of stocks, etc. They are also often the result of a real world change of ownership,
+such a a mortgage would be for the purchase of a house.
+However, there are two main types of tokens they deal with,
+
+* currency,
+* and the contracts or financial products themselves (e.g. stocks or futures)
+
+This makes financial contracts perfect candidates for smart contract implementation.
+Currency is already the superstar of the types of token that can be tracked by
+the blockchain - Cardano is a cryptocurrency platform after all. Trading contracts
+and financial products,
+too, can be modeled on a ledger with smart contract support.
+We are very excited to explore ways of representing all ACTUS contracts
+as smart contract implementations in the upcoming chapters of this book.
