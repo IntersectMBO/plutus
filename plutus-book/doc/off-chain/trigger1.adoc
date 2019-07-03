@@ -30,12 +30,12 @@ waitUntil sl wallet ada = registerOnce trigger handler                -- <2>
 $(mkFunctions ['waitUntil])
 ----
 
-<1> We give three arguments, the slot we want to wait for, the wallet to send
-funds to and the amount to send.
+<1> We give three arguments, the slot we want to wait for, the wallet to which we are sending
+funds, and the amount to send.
 
 <2> Here we register the trigger.
 
-<3> This will trigger once the current slot is the specified one or later.
+<3> This will trigger once the current slot is the specified one, or later.
 
 <4> The handler uses `const` to ignore the `AnnotatedEventTrigger` and
 performs the transaction.
