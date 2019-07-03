@@ -82,3 +82,15 @@ In this case, the contributors wallet #2 and wallet #3 get their money back in
 slot #20:
 
 image:../images/crowd-result2.png[]
+
+And what happens on the blockchain? - In case of the successful campaign,
+the graph of transactions looks like this:
+
+image:../images/crowd-txn1.png[]
+
+Finally, the campaign that missed its funding target looks like this:
+
+image:../images/crowd-txn2.png[]
+
+This concludes this chapter on how to write parameterized contracts to implement
+a quite realistic crowdsourcing campaign.
