@@ -4,7 +4,7 @@ Working with Plutus requires writing on-chain code and off-chain code,
 with both parts working well together.
 
 Let us start by looking at the off-chain part of this interplay,
-code that will be executed by the wallet!
+code that will be executed by the wallet.
 
 Such code is represented by a monadic computation in any monad
 implementing `MonadWallet`:
@@ -14,8 +14,8 @@ implementing `MonadWallet`:
 type MonadWallet (m :: * -> *) = (WalletAPI m, WalletDiagnostics m) :: Constraint
 ----
 
-By writing code independent of the specific choice of monad,
-we make sure that it will run in different wallet implementations,
+By writing code that is independent of the specific choice of monad,
+we make sure that it runa in different wallet implementations,
 in particular the mock wallet of the Plutus Payground and
 the actual Cardano wallet.
 
@@ -79,8 +79,8 @@ as soon as the trigger condition becomes true.
 <8> Get the current time (slot).
 
 Let us start exploring `WalletAPI` by reimplementing function `payToWallet_`
-from the playground, which simply pays a certain amount of Ada to another
-wallet!
+from the Playground, which simply pays a certain amount of Ada to another
+wallet.
 
 include::payToWallet1.adoc[]
 
@@ -96,7 +96,7 @@ Note how we use `createPaymentWithChange` to help us build a transaction: Given
 a value, this function will select suitable unspent transaction outputs
 belonging to the wallet, which we can use as inputs.
 It will also optionally create a
-new transaction output, where the change can go to,
+new transaction output, to where the change can go,
 if the sum of the inputs exceeds the value we want to transfer.
 
 Incidentally, paying some value to a public key
@@ -106,7 +106,7 @@ is so common that there are helper functions `payToPublicKey` and
 
 [source,haskell]
 ----
-payToPublicKey  :: (Monad m, WalletAPI m) => SlotRange -> Value -> PubKey -> m Tx
+payToPuto blicKey  :: (Monad m, WalletAPI m) => SlotRange -> Value -> PubKey -> m Tx
 payToPublicKey_ :: (Monad m, WalletAPI m) => SlotRange -> Value -> PubKey -> m ()
 ----
 
@@ -145,12 +145,12 @@ fundsAtAddressGtT  :: Address -> Value -> EventTrigger             -- <8>
 <4> Logical conjunction: True when _both_ triggers are true.
 <5> Logical disjunction: True when _at least one_ of the triggers is true.
 <6> Checks whether the current slot is in the given range.
-<7> Is true if the funds at the address are _at least_ the specified value.
-<8> Is true if the funds at the address are _greater than_ the specified value.
+<7> Is true, if the funds at the address are _at least_ the specified value.
+<8> Is true, if the funds at the address are _greater than_ the specified value.
 
 CAUTION: The triggers `fundsAtAddressGeqT` and `fundsAtAddressGtT` will only take those
 unspent transaction outputs into account that are created _after_ the trigger
-has been registered!
+has been registered.
 
 An event handler is defined with:
 
@@ -172,7 +172,7 @@ image:../images/trigger-actions.png[]
 
 image:../images/trigger-result.png[]
 
-This is actually a somewhat silly example:
+This is actually a somewhat unusual example
 We do not really need a trigger to achieve this effect,
 because we can simply use the transaction's _slot range_ instead:
 
@@ -181,7 +181,7 @@ include::trigger2.adoc[]
 .Slot Ranges
 [NOTE]
 ========
-The _slot range_ of a transaction determines for which slots the transaction is
+The _slot range_ of a transaction determines the slots within which the transaction is
 valid. We can construct slot ranges with the following functions:
 
 [source,haskell]
@@ -207,7 +207,7 @@ valid.
 and ends _one slot before_ `b`, so the range contains `a`, but does not contain
 `b`.
 
-<5> The range starting at the given slot (which is included)
+<5> The range starting at the given slot (which is included),
 and never ending.
 
 <6> The range ending _one slot before_ the given one, which is not included.
@@ -247,8 +247,7 @@ This concludes our short tour through the Wallet API.
 We have seen how to log messages,
 how to create and submit simple transactions,
 how to use triggers to wait for a condition to become true before performing
-a certain action
-and how to create, inspect and use slot ranges.
+a certain action,
+and how to create, inspect, and use slot ranges.
 
-In the next chapter,
-we will dive into _on-chain_ code and create our first smart contract.
+In the next chapter, we will dive into _on-chain_ code and create our first smart contract.
