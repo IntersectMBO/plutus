@@ -119,7 +119,8 @@ a boolean value to represent the result of validation. Specifically,
 * Contains state information about a given smart contract, e.g.
 - the public key of the contributor of a crowdfunding campaign, or
 - the hash of the word participants must guess to win money locked by the contract
-* Stored in full on the ledger as part of a UTxO entry
+* Stored in full on the ledger as part of a UTxO entry (i.e. associated with a
+specific pair latexmath:[(txid, ix)])
 * Hash computed if and when it is necessary for script validation, not stored on-chain
 
 Recall that in the classic model, UTxO entries are of the form
@@ -173,11 +174,12 @@ pay to the script), and consume entries associated with that script. In order
 to pay to a script, a transaction must have an output
 
 \begin{align*}
-ix \mapsto (a,c,dsc)
+ix \mapsto (a,c)
 \end{align*}
 
-Where the address is the hash of the validator script, and the value in this
-finite map contains the full data script. There is no need to perform
+Where the address is the hash of the validator script, and additionally carry
+the data script explicitly associated with this same index latexmath:[ix].
+There is no need to perform
 script validation using the validator that hashes to latexmath:[a] here,
 unless this same transaction is also spending from the same script.
 
@@ -228,6 +230,25 @@ addresses that do not belong to the wallet that generated the transaction.
 This is because instead of a private key, a validator script must be
 provided to spend from such an address, and scripts are publicly available.
 
+The reader will also note later on, as we discuss writing a complete Plutus contract,
+the off-chain function that returns a PlutusTx validator script takes a parameter.
+This parameter is of a different type for each kind of contract. For example,
+it will be a term of type `Campaign` for a crowdfunder contract:
+
+`contributionScript :: Campaign -> ValidatorScript`
+
+This parameter for any kind of contract is a
+data structure containing necessary non-state, immutable data about the contract
+(e.g. the public key of the owner of the campaign).
+The values passed to the validator via this data structure parameter are not only used in
+defining some of the contract's functions within
+the validator, but they serve also a contract identification purpose.
+Generally it is also a good idea to define the type of this state-less contract
+structure parameter in such a way that it necessarily makes the resulting
+contract unique, thus making its validator-hash address unique also.
+Then the user is able to, for example, pay exactly to the instance of the
+crowdfunder they intended, and not accidentally end up with top hat instead of
+a Plutus textbook!
 
 == Additional Extended Model Notes
 
@@ -260,14 +281,12 @@ to have sufficient understanding of Plutus code to trust the contract is doing
 what they expect it to do. Cryptographic security is powerless in this case -
 this is where this book comes in!
 
-.Rollbacks
+.Rollbacks and Other Extended UTxO Model Considerations
 
 Given that blockchain events, such as the confirmation of a transaction, can
 trigger the execution of off-chain coordination code, we need to carefully
 consider the implications of needing to rollback any action that depends on a
-rolled back transaction.
-
-.Other Extended UTxO Model Considerations
+rolled back transaction. We do not give the details of this functionality here.
 
 There are other features of the extended UTxO system that are less relevant to
-a Plutus user, which we will not explain in detail in this chapter.
+a Plutus user, which we will also not explain in detail in this chapter.
