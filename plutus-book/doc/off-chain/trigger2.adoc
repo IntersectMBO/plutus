@@ -5,7 +5,7 @@
 {-# LANGUAGE TemplateHaskell                 #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
-module TriggerSimple where
+module OffChain.TriggerSimple where
 
 import           Language.PlutusTx.Prelude
 import           Ledger

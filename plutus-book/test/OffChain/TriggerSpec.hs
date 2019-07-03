@@ -1,17 +1,16 @@
-module Spec.TriggerSpec (spec) where
+module OffChain.TriggerSpec (spec) where
 
 import           Utils
 
-import qualified Trigger                    as T1
-import qualified TriggerSimple              as T2
+import qualified OffChain.Trigger       as T1
+import qualified OffChain.TriggerSimple as T2
 
 import           Ledger
 import           Ledger.Ada
 import           Wallet.Emulator
-import           Wallet.Emulator.Generators
 
-import           Control.Monad              (void)
-import           Data.Either                (isRight)
+import           Control.Monad          (void)
+import           Data.Either            (isRight)
 import           Test.Hspec
 
 spec :: Spec
@@ -22,7 +21,7 @@ spec = do
 mkSpec :: (Slot -> Wallet -> Ada -> MockWallet ()) -> SpecWith ()
 mkSpec waitUntil =
     it "behaves as expected" $
-        isRight (fst res) `shouldBe` True
+        isRight (fst $ getResult tr) `shouldBe` True
 
   where
     ada :: Ada
@@ -39,11 +38,3 @@ mkSpec waitUntil =
         assertFunds initialAda initialAda
         updateWallets
         assertFunds (initialAda `minus` ada) (initialAda `plus` ada)
-
-    assertFunds :: Ada -> Ada -> Trace MockWallet ()
-    assertFunds ada1 ada2 = do
-        assertOwnFundsEq w1 $ toValue ada1
-        assertOwnFundsEq w2 $ toValue ada2
-
-    res :: (Either AssertionError (), EmulatorState)
-    res = runTrace initialChain tr

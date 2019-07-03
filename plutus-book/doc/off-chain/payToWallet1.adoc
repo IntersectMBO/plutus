@@ -4,7 +4,7 @@
 {-# LANGUAGE TemplateHaskell                 #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
-module PayToWallet where
+module OffChain.PayToWallet where
 
 import Language.PlutusTx.Prelude
 import Ledger

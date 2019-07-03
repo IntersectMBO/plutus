@@ -3,18 +3,20 @@ module Utils
     , w2
     , w3
     , initialAda
-    , initialChain
+    , getResult
     , updateWallets
+    , assertFunds
     ) where
 
 import           Ledger
 import           Ledger.Ada
 import           Wallet.Emulator
+import           Wallet.Emulator.Generators
 import           Wallet.Generators
 
-import           Control.Arrow     (first)
-import           Control.Monad     (void)
-import qualified Data.Map.Strict   as Map
+import           Control.Arrow              (first)
+import           Control.Monad              (void)
+import qualified Data.Map.Strict            as Map
 
 w1, w2, w3 :: Wallet
 w1 = Wallet 1
@@ -35,3 +37,11 @@ initialChain =
 
 updateWallets :: Trace MockWallet ()
 updateWallets = void $ processPending >>= walletsNotifyBlock [w1, w2, w3]
+
+getResult :: Trace MockWallet () -> (Either AssertionError (), EmulatorState)
+getResult = runTrace initialChain
+
+assertFunds :: Ada -> Ada -> Trace MockWallet ()
+assertFunds ada1 ada2 = do
+    assertOwnFundsEq w1 $ toValue ada1
+    assertOwnFundsEq w2 $ toValue ada2

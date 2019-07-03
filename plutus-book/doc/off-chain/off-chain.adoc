@@ -37,8 +37,13 @@ include::hello.adoc[]
 Pasting this code into the "Editor"-tab of the Playground and compiling it
 will make function "hello" available in the "Simulation"-tab, so we can
 add it as an action for one of the wallets.
+
+image:../images/hello-action.png[]
+
 After evaluation, we will see the expected message
 in the "Logs"-section of the "Transactions"-tab.
+
+image:../images/hello-result.png[]
 
 Class `WalletAPI` is a bit more involved:
 
@@ -82,6 +87,10 @@ include::payToWallet1.adoc[]
 In contrast to our first `hello` example, function `myPayToWallet`
 takes _arguments_. The user will be prompted to enter values for these in the
 Playground when the function is added as an action to the simulation.
+
+image:../images/myPayToWallet-action.png[]
+
+image:../images/myPayToWallet-result.png[]
 
 Note how we use `createPaymentWithChange` to help us build a transaction: Given
 a value, this function will select suitable unspent transaction outputs
@@ -158,6 +167,10 @@ As an example, we can write a function that will wait for a specified slot
 until performing a transaction:
 
 include::trigger1.adoc[]
+
+image:../images/trigger-actions.png[]
+
+image:../images/trigger-result.png[]
 
 This is actually a somewhat silly example:
 We do not really need a trigger to achieve this effect,

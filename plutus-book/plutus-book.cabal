@@ -48,15 +48,17 @@ library
     default-language: Haskell2010
     hs-source-dirs: src
     exposed-modules:
-        Hello
-      , PayToWallet
-      , PayToWalletSimple
-      , Trigger
-      , TriggerSimple
-    ghc-options: -Wall -Wno-unused-imports -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc
+        Game.Guess
+      , OffChain.Hello
+      , OffChain.PayToWallet
+      , OffChain.PayToWalletSimple
+      , OffChain.Trigger
+      , OffChain.TriggerSimple
+    ghc-options: -Wall -fno-warn-unused-imports -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc
     build-tool-depends: unlit:unlit -any
     build-depends:
       base >=4.9 && <5,
+      bytestring -any,
       template-haskell >=2.13.0.0,
       text -any,
       language-plutus-core -any,
@@ -71,9 +73,10 @@ test-suite plutus-book-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
-  other-modules:       Spec.HelloSpec
-                     , Spec.PayToWalletSpec
-                     , Spec.TriggerSpec
+  other-modules:       Game.GuessSpec
+                     , OffChain.HelloSpec
+                     , OffChain.PayToWalletSpec
+                     , OffChain.TriggerSpec
                      , Utils
   build-depends:       base >= 4.9 && <5
                      , containers -any
@@ -81,5 +84,6 @@ test-suite plutus-book-test
                      , plutus-book -any
                      , plutus-emulator -any
                      , plutus-wallet-api -any
+                     , text
   ghc-options:         -Wall
   default-language:    Haskell2010
