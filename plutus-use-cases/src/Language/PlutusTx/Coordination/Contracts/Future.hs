@@ -33,7 +33,7 @@ import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
 import           Language.PlutusTx.Prelude
 import qualified Language.PlutusTx            as PlutusTx
-import           Ledger                       (DataScript (..), Slot(..), PubKey, TxOutRef, ValidatorScript (..), scriptTxIn, scriptTxOut)
+import           Ledger                       (DataScript (..), Slot(..), PubKey, TxOutRef, RedeemerScript (..), ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
 import qualified Ledger.Interval              as Interval
 import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxOut (..))
@@ -110,7 +110,7 @@ settle refs ft fd ov = do
         delta = Ada.multiply (Ada.fromInt $ futureUnits ft) (Ada.minus spotPrice forwardPrice)
         longOut = Ada.toValue (Ada.plus (futureDataMarginLong fd) delta)
         shortOut = Ada.toValue (Ada.minus (futureDataMarginShort fd) delta)
-        red = Ledger.RedeemerScript $ Ledger.lifted $ Settle ov
+        red = redeemerScript0 $ Settle ov
         outs = [
             Ledger.pubKeyTxOut longOut (futureDataLong fd),
             Ledger.pubKeyTxOut shortOut (futureDataShort fd)
@@ -132,7 +132,7 @@ settleEarly refs ft fd ov = do
     let totalVal = Ada.toValue (Ada.plus (futureDataMarginLong fd) (futureDataMarginShort fd))
         outs = [Ledger.pubKeyTxOut totalVal (futureDataLong fd)]
         inp = (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
-        red = Ledger.RedeemerScript $ Ledger.lifted $ Settle ov
+        red = redeemerScript0 $ Settle ov
     void $ createTxAndSubmit defaultSlotRange (Set.fromList inp) outs
 
 adjustMargin :: (
@@ -152,7 +152,7 @@ adjustMargin refs ft fd vl = do
                 | otherwise = throwOtherError "Private key is not part of futures contrat"
             in fd''
     let
-        red = Ledger.RedeemerScript $ Ledger.lifted AdjustMargin
+        red = redeemerScript AdjustMargin
         ds  = DataScript $ Ledger.lifted fd'
         o = scriptTxOut outVal (validatorScript ft) ds
         outVal = Ada.toValue (Ada.plus vl (Ada.plus (futureDataMarginLong fd) (futureDataMarginShort fd)))
@@ -205,6 +205,15 @@ requiredMargin Future{futureUnits=units, futureUnitPrice=unitPrice, futureMargin
         delta  = Ada.multiply (Ada.fromInt units) (Ada.minus spotPrice unitPrice)
     in
         Ada.plus pnlty delta
+
+redeemerScript :: FutureRedeemer -> RedeemerScript
+redeemerScript fr = RedeemerScript $
+    $$(Ledger.compileScript [|| \(d :: FutureRedeemer) -> \(_ :: Sealed FutureData) -> d ||])
+        `Ledger.applyScript`
+            Ledger.lifted fr
+
+redeemerScript0 :: FutureRedeemer -> RedeemerScript
+redeemerScript0 fr = RedeemerScript $ Ledger.lifted fr
 
 {-# INLINABLE mkValidator #-}
 mkValidator :: Future -> FutureData -> FutureRedeemer -> PendingTx -> Bool

@@ -133,6 +133,7 @@ library plutus-ledger
         mtl -any,
         natural-transformation -any,
         operational -any,
+        prettyprinter -any,
         serialise -any,
         servant -any,
         swagger2 <2.4,
@@ -142,9 +143,10 @@ library plutus-ledger
         recursion-schemes -any,
         lens -any,
         deriving-compat -any,
-        newtype-generics,
-        http-api-data,
-        cardano-crypto
+        newtype-generics -any,
+        http-api-data -any,
+        cardano-crypto -any,
+        deepseq -any
 
     if flag(defer-plugin-errors)
         ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
