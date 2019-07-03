@@ -2,7 +2,7 @@
 == Glossary
 
 Extended UTxO ::
-* The ledger model on which the Plutus Platform is based
+* The ledger model on which the Plutus platform is based
 * In particular, transactions may contain Plutus scripts to be executed by the nodes
 
 On-chain code ::
@@ -23,9 +23,9 @@ Plutus IR ::
 
 Plutus Platform ::
 * The combined software support for writing smart contracts, including:
-- Libraries for writing off-chain code in Haskell.
-- Libraries for writing on-chain code in Plutus Tx.
-- Emulator support for testing smart contracts.
+- libraries for writing off-chain code in Haskell.
+- libraries for writing on-chain code in Plutus Tx.
+- emulator support for testing smart contracts.
 
 Plutus Tx ::
 * A subset of Haskell which is compiled into Plutus Core.
