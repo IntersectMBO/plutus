@@ -31,4 +31,4 @@ mkSpec payToWallet =
         updateWallets
         void $ walletAction w1 $ payToWallet w2 ada
         updateWallets
-        assertFunds (initialAda `minus` ada) (initialAda `plus` ada)
+        assertFunds2 (initialAda `minus` ada) (initialAda `plus` ada)

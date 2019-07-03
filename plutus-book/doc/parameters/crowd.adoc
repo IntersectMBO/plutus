@@ -281,6 +281,7 @@ contribute campaign ada = do
   where
     range :: SlotRange
     range = refundRange campaign
+
     trigger :: EventTrigger
     trigger =
         fundsAtAddressGtT (campaignAddress campaign) mempty      -- <2>
@@ -289,11 +290,13 @@ contribute campaign ada = do
 
     handler :: Tx -> EventHandler m
     handler tx = EventHandler $ const $ do
-        logMsg $ pack $ "claiming refund from " ++ show campaign
-        collectFromScriptTxn                                     -- <4>
+        let txId = hashTx tx                                     -- <4>
+        logMsg $ pack $ "Reclaiming contribution " ++ show txId
+            ++ " from " ++ show campaign
+        collectFromScriptTxn                                     -- <5>
             range
             (mkValidatorScript campaign)
-            (mkRedeemerScript Refund)                            -- <5>
+            (mkRedeemerScript Refund)                            -- <6>
             (hashTx tx)
 
 
@@ -307,10 +310,10 @@ funds from the right transaction output.
 <2> Are there contributions to reclaim?
 
 <3> Has the collection deadline been reached?
+<4> We get the transaction identifier of a transaction with `hashTx`.
 
-<4> Function `collectFromScriptTxn` is similar to `collectFromScript`,
+<5> Function `collectFromScriptTxn` is similar to `collectFromScript`,
 but it additionally takes a transaction identifier to only collect from script
-outputs created by the transaction with that identifier. We can compute the
-identifier of a transaction with `hashTx`.
+outputs created by the transaction with that identifier
 
-<5> We demand a _refund_.
+<6> We demand a _refund_.

@@ -35,6 +35,6 @@ mkSpec waitUntil =
         updateWallets
         updateWallets
         updateWallets
-        assertFunds initialAda initialAda
+        assertFunds2 initialAda initialAda
         updateWallets
-        assertFunds (initialAda `minus` ada) (initialAda `plus` ada)
+        assertFunds2 (initialAda `minus` ada) (initialAda `plus` ada)

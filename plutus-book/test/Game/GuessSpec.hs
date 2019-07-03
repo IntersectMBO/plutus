@@ -34,7 +34,7 @@ spec = describe "guess" $ do
         updateWallets
         void $ walletAction w2 $ guess "Haskell"
         updateWallets
-        assertFunds (initialAda - ada) (initialAda + ada)
+        assertFunds2 (initialAda - ada) (initialAda + ada)
     tr2 = void $ do
         updateWallets
         void $ walletAction w2 startGame
@@ -43,4 +43,4 @@ spec = describe "guess" $ do
         updateWallets
         void $ walletAction w2 $ guess "Scala"
         updateWallets
-        assertFunds (initialAda - ada) initialAda
+        assertFunds2 (initialAda - ada) initialAda
