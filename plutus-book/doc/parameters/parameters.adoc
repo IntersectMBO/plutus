@@ -44,3 +44,41 @@ parameters:
 include::crowd.adoc[]
 
 And that is it! We are now ready to test our code in the Playground.
+One slight problem is that in order to provide the `Campaign` argument for the
+`contribute` endpoint, we need to know the campaign owner's public key. 
+The following table of all Playground wallets and their public keys will be
+helpful:
+
+[options="header"]
+|====
+|Wallet|Public Key
+| 1    |3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c
+| 2    |fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025
+| 3    |98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
+| 4    |f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
+| 5    |c1a49c66e617f9ef5ec66bc4c6564ca33de2a5fb5e1464062e6d6c6219155efd
+| 6    |44b57ee30cdb55829d0a5d4f046baef078f1e97a7f21b62d75f8e96ea139c35f
+| 7    |cf3af898467a5b7a52d33d53bc037e2642a8da996903fc252217e9c033e2f291
+| 8    |fd2a565723163e29f53c9de3d5e8fbe36a7ab66e1439ec4eae9c0a604af291a5
+| 9    |34e5a8508c4743746962c066e4badea2201b8ab484de5c4f94476ccd2143955b
+|10    |d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a
+|====
+
+We begin with a successful campaign owned by wallet #1 with a funding target of
+12 Ada, an end date of slot #10 and a collection deadline of slot #20.
+
+image:../images/crowd-actions1.png[]
+
+As expected, wallet #1 can collect the contributions of 13 Ada at the end date:
+
+image:../images/crowd-result1.png[]
+
+Let us now simulate the same campaign when it fails, because wallet #3 only
+contributes 4 Ada:
+
+image:../images/crowd-actions2.png[]
+
+In this case, the contributors wallet #2 and wallet #3 get their money back in
+slot #20:
+
+image:../images/crowd-result2.png[]

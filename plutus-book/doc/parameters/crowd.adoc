@@ -297,8 +297,7 @@ contribute campaign ada = do
             range
             (mkValidatorScript campaign)
             (mkRedeemerScript Refund)                            -- <6>
-            (hashTx tx)
-
+            txId
 
 $(mkFunctions ['startCampaign, 'contribute])
 ----
