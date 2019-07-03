@@ -1,0 +1,46 @@
+= A contract with parameters
+
+After our working, but simple example of a little game in the last chapter,
+let us now try ourselves at something more ambitious and realistic,
+running a _crowdsourcing campaign_.
+
+In such a campaign, the _owner_ of the campaign sets a _funding target_,
+an _end date_ and a _collection deadline_.
+
+_Contributors_ can then give funds to his campaign til the end date.
+If the total of all contributions reaches the funding target,
+the owner has time to collect all contributions before the collection deadline.
+If the target has not been reached or if the owner fails to collect the funds
+before the deadline, contributors can reclaim their contributions after the
+deadline.
+
+So for example, let us say that the owner of wallet #1 runs a campaign with
+funding target 12 Ada, end date slot #10 and collection deadline #20.
+Let us further assume that wallet #2 contributes 7 Ada to this campaign
+and that wallet #3 contributes 6 Ada
+and that both make their contributions before slot #10.
+
+Then the campaign was successful, and wallet #1 has time to collect
+the total of 7 + 6 = 13 Ada before slot #20.
+
+If wallet #1 does _not_ claim these funds before slot #20, wallet #2 can reclaim
+7 Ada, wallet #3 can reclaim 6 Ada.
+
+If on the other hand only wallet #2 contributes 7 Ada and wallet #3 does
+not contribute at all, the funding target is not reached, and the campaign is a
+failure. In this case, wallet #1 can not collect any funds, and wallet #2 can
+reclaim 7 Ada in slot #20 or later.
+
+So how to we run such a campaign using Plutus?
+
+First we notice that we want to be our script to be _parameterizable_ by
+the configuration data explained above, namely the _owner_, _funding target_,
+_end date_ and _collection deadline_. This way the script will be reusable
+for many different campaigns.
+
+So the first thing we will do is define a type which represents these
+parameters:
+
+include::crowd.adoc[]
+
+And that is it! We are now ready to test our code in the Playground.

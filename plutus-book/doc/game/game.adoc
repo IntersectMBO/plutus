@@ -65,8 +65,8 @@ What will happen on the blockchain when these actions are performed?
 When wallet #1 executes `lock`, a transaction `tx 1` will be submitted to the
 blockchain, successfully be validated (provided Wallet #1 owns at least 5 Ada)
 and incorporated into a block. As input, the transaction will have one or more
-utxo's belonging to Wallet #1 with total value at least 5 Ada. As output,
-the transaction will have one utxo at the game script address with value 5 Ada
+UTxO's belonging to Wallet #1 with total value at least 5 Ada. As output,
+the transaction will have one UTxO at the game script address with value 5 Ada
 and data script containing the hash of "Haskell". There might also be another output
 for the change.
 
@@ -83,4 +83,4 @@ image:../images/guessing-game-txs.png[]
 This concludes our first example of a Plutus smart contract combining on-chain
 with off-chain code. We have seen how to lift types and values to Plutus Core,
 how to write a validator script and how to interact with a script address in the
-wallet.
+iwallet.
