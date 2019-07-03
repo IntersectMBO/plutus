@@ -79,3 +79,8 @@ outputs its own public key, and this transaction will be successfully validated,
 because it uses the correct redeemer "Haskell":
 
 image:../images/guessing-game-txs.png[]
+
+This concludes our first example of a Plutus smart contract combining on-chain
+with off-chain code. We have seen how to lift types and values to Plutus Core,
+how to write a validator script and how to interact with a script address in the
+wallet.
