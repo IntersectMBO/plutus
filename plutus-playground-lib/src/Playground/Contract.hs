@@ -10,7 +10,6 @@ module Playground.Contract
     , mkFunction
     , mkKnownCurrencies
     , ToSchema
-    , ToTypeName
     , ToJSON
     , FromJSON
     , FunctionSchema
@@ -45,7 +44,7 @@ import           Ledger.Value                (TokenName (TokenName), Value)
 import           Playground.API              (FunctionSchema, KnownCurrency (KnownCurrency), adaCurrency)
 import           Playground.Interpreter.Util
 import           Playground.TH               (mkFunction, mkFunctions, mkKnownCurrencies, mkSingleFunction)
-import           Schema                      (ToSchema, ToTypeName)
+import           Schema                      (ToSchema)
 import qualified Schema
 import           Wallet.API                  (WalletAPI, payToPublicKey_)
 import           Wallet.Emulator             (addBlocksAndNotify, runWalletActionAndProcessPending, walletPubKey)

@@ -10,6 +10,11 @@ category: Web
 build-type: Simple
 data-files:
     test/oAuthToken1.json
+    test/Schema/IOTS/user.ts
+    test/Schema/IOTS/singleFieldless.ts
+    test/Schema/IOTS/simpleSum.ts
+    test/Schema/IOTS/response.ts
+    test/Schema/IOTS/vestingTranche.ts
 
 library
     exposed-modules:
@@ -23,6 +28,7 @@ library
         Git
         Language.Haskell.Interpreter
         Schema
+        Schema.IOTS
         Servant.Extra
         Servant.Prometheus
         System.IO.Extras
@@ -72,7 +78,8 @@ library
         time-units -any,
         transformers -any,
         unordered-containers -any,
-        wai -any
+        wai -any,
+        wl-pprint-text -any
 
 test-suite playground-common-test
     type: exitcode-stdio-1.0
@@ -83,6 +90,7 @@ test-suite playground-common-test
         Paths_playground_common
         Auth.TypesSpec
         SchemaSpec
+        Schema.IOTSSpec
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
@@ -91,7 +99,11 @@ test-suite playground-common-test
         aeson -any,
         base >=4.7 && <5,
         bytestring -any,
+        containers -any,
         cryptonite -any,
+        Diff -any,
         hspec -any,
         playground-common -any,
-        text -any
+        text -any,
+        HUnit -any,
+        wl-pprint-text -any

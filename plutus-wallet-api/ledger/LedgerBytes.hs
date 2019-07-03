@@ -29,7 +29,7 @@ import           GHC.Generics               (Generic)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift
 import qualified Language.PlutusTx.Prelude  as P
-import           Schema                     (ToSchema, ToTypeName, toSchema, toTypeName)
+import           Schema                     (ToSchema, toSchema)
 import           Web.HttpApiData            (FromHttpApiData (..), ToHttpApiData (..))
 
 fromHex :: BSL.ByteString -> LedgerBytes
@@ -78,9 +78,6 @@ instance Show LedgerBytes where
 
 instance ToSchema LedgerBytes where
   toSchema _ = toSchema (Proxy :: Proxy String)
-
-instance ToTypeName LedgerBytes where
-  toTypeName _ = toTypeName (Proxy :: Proxy String)
 
 instance ToJSON LedgerBytes where
   toJSON = JSON.String . JSON.encodeByteString . BSL.toStrict . bytes

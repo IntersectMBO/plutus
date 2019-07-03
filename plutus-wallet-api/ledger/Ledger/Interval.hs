@@ -25,14 +25,14 @@ module Ledger.Interval(
     , after
     ) where
 
-import           Codec.Serialise.Class        (Serialise)
-import           Data.Aeson                   (FromJSON, ToJSON)
-import           Data.Hashable                (Hashable)
-import           Schema                       (ToSchema, ToTypeName)
-import           GHC.Generics                 (Generic)
-import qualified Prelude                      as Haskell
-import           Language.PlutusTx.Lift       (makeLift)
+import           Codec.Serialise.Class     (Serialise)
+import           Data.Aeson                (FromJSON, ToJSON)
+import           Data.Hashable             (Hashable)
+import           GHC.Generics              (Generic)
+import           Language.PlutusTx.Lift    (makeLift)
 import           Language.PlutusTx.Prelude
+import qualified Prelude                   as Haskell
+import           Schema                    (ToSchema)
 
 -- | An interval of @a@s. The interval is closed below and open above, meaning
 --   that @Interval (Just (10 :: Int)) (Just 11)@ contains a single value @11@.
@@ -40,7 +40,7 @@ import           Language.PlutusTx.Prelude
 --   contains all numbers smaller than @12@.
 data Interval a = Interval { ivFrom :: Maybe a, ivTo :: Maybe a }
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
-    deriving anyclass (ToSchema, ToTypeName, FromJSON, ToJSON, Serialise, Hashable)
+    deriving anyclass (ToSchema, FromJSON, ToJSON, Serialise, Hashable)
 
 makeLift ''Interval
 

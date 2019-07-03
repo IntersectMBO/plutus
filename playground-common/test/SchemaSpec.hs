@@ -7,54 +7,75 @@
 
 module SchemaSpec where
 
-import           Crypto.Hash  (Digest, SHA256)
 import           Data.Proxy   (Proxy (Proxy))
 import           Data.Text    (Text)
 import           GHC.Generics (Generic)
 import           Schema       (Constructor (Constructor, Record), ConstructorName (ConstructorName),
-                               DataType (DataType), Reference (Reference), ToSchema, ToTypeName, toSchema)
-import           Test.Hspec   (Spec, describe, hspec, it, shouldBe)
-
-k :: IO ()
-k = hspec spec
+                               DataType (DataType), ToSchema, TypeSignature (TypeSignature), argumentSignatures,
+                               constructorName, moduleName, toSchema, toTypeSignature)
+import           Test.Hspec   (Spec, describe, it, shouldBe)
 
 spec :: Spec
 spec = toSchemaSpec
 
 toSchemaSpec :: Spec
 toSchemaSpec =
-    describe "To schema" $ do
-        it "Int" $ toSchema (Proxy :: Proxy Int) `shouldBe` DataType "Int" [] []
-        it "Integer" $
-            toSchema (Proxy :: Proxy Int) `shouldBe` DataType "Int" [] []
-        it "String" $
-            toSchema (Proxy :: Proxy String) `shouldBe` DataType "String" [] []
+    describe "toSchema" $ do
+        it "Int" $ toSchema (Proxy @Int) `shouldBe` intType
+        it "Integer" $ toSchema (Proxy @Integer) `shouldBe` integerType
+        it "String" $ toSchema (Proxy @String) `shouldBe` stringType
         it "Text" $
-            toSchema (Proxy :: Proxy Text) `shouldBe` DataType "String" [] []
-        it "Hash" $
-            toSchema (Proxy @(Digest SHA256)) `shouldBe`
-            DataType "Crypto.Hash.Digest" [] []
-        it "Array Int" $
-            toSchema (Proxy :: Proxy [Int]) `shouldBe`
-            DataType "List" [] [Constructor "List" [Reference "Int"]]
-        it "Maybe String" $
-            toSchema (Proxy :: Proxy (Maybe String)) `shouldBe`
+            toSchema (Proxy @Text) `shouldBe`
             DataType
-                "GHC.Maybe.Maybe"
+                (TypeSignature
+                     { moduleName = "Data.Text.Internal"
+                     , constructorName = "Text"
+                     , argumentSignatures = []
+                     })
                 []
-                [ Constructor "Nothing" []
-                , Constructor "Just" [Reference "String"]
+        it "[Int]" $
+            toSchema (Proxy @[Int]) `shouldBe`
+            DataType
+                (TypeSignature
+                     { moduleName = "GHC.Types"
+                     , constructorName = "[]"
+                     , argumentSignatures = [toTypeSignature intType]
+                     })
+                []
+        it "(Int, String)" $
+            toSchema (Proxy @(Int, String)) `shouldBe`
+            DataType
+                (TypeSignature
+                     { moduleName = "GHC.Tuple"
+                     , constructorName = "(,)"
+                     , argumentSignatures =
+                           toTypeSignature <$> [intType, stringType]
+                     })
+                [Constructor (ConstructorName "Tuple") [intType, stringType]]
+        it "Maybe String" $
+            toSchema (Proxy @(Maybe String)) `shouldBe`
+            DataType
+                (TypeSignature
+                     { moduleName = "GHC.Maybe"
+                     , constructorName = "Maybe"
+                     , argumentSignatures = [toTypeSignature stringType]
+                     })
+                [ Constructor (ConstructorName "Nothing") []
+                , Constructor (ConstructorName "Just") [stringType]
                 ]
         it "User" $
-            toSchema (Proxy :: Proxy User) `shouldBe`
+            toSchema (Proxy @User) `shouldBe`
             DataType
-                "SchemaSpec.User"
-                []
+                (TypeSignature
+                     { moduleName = "SchemaSpec"
+                     , constructorName = "User"
+                     , argumentSignatures = []
+                     })
                 [ Record
                       (ConstructorName "User")
-                      [ ("userName", Reference "String")
-                      , ("userAge", Reference "Int")
-                      , ("userAlive", Reference "Bool")
+                      [ ("userName", textType)
+                      , ("userAge", intType)
+                      , ("userAlive", boolType)
                       ]
                 ]
 
@@ -64,4 +85,54 @@ data User =
         , userAge   :: Int
         , userAlive :: Bool
         }
-    deriving (Show, Eq, Generic, ToSchema, ToTypeName)
+    deriving (Show, Eq, Generic, ToSchema)
+
+intType :: DataType
+intType =
+    DataType
+        (TypeSignature
+             { moduleName = "GHC.Types"
+             , constructorName = "Int"
+             , argumentSignatures = []
+             })
+        []
+
+integerType :: DataType
+integerType =
+    DataType
+        (TypeSignature
+             { moduleName = "GHC.Integer.Type"
+             , constructorName = "Integer"
+             , argumentSignatures = []
+             })
+        []
+
+stringType :: DataType
+stringType =
+    DataType
+        (TypeSignature
+             { moduleName = "GHC.Types"
+             , constructorName = "String"
+             , argumentSignatures = []
+             })
+        []
+
+textType :: DataType
+textType =
+    DataType
+        (TypeSignature
+             { moduleName = "Data.Text.Internal"
+             , constructorName = "Text"
+             , argumentSignatures = []
+             })
+        []
+
+boolType :: DataType
+boolType =
+    DataType
+        (TypeSignature
+             { moduleName = "GHC.Types"
+             , constructorName = "Bool"
+             , argumentSignatures = []
+             })
+        []

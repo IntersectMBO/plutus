@@ -5,12 +5,9 @@ module Playground.APISpec
     ) where
 
 import           Data.Aeson                   (encode, object, toJSON)
-import           Data.Proxy                   (Proxy (Proxy))
 import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), column, filename, row,
                                                text)
-import           Ledger.Interval              (Interval)
-import           Ledger.Value                 (Value)
-import           Playground.API               (parseErrorText, adaCurrency)
+import           Playground.API               (adaCurrency, parseErrorText)
 import           Test.Hspec                   (Spec, describe, it, shouldBe)
 
 spec :: Spec
@@ -61,15 +58,12 @@ knownCurrenciesSpec :: Spec
 knownCurrenciesSpec =
     describe "mkKnownCurrencies" $
     it "Should serialise Ada properly" $
-    encode adaCurrency
-        `shouldBe`
+    encode adaCurrency `shouldBe`
     -- note that the object is the same as
     -- plutus-playground-client\test\known_currency.json
-    encode (object
-                [ ("hash", "")
-                , ("friendlyName", "Ada")
-                , ("knownTokens"
-                  , toJSON [
-                    object [("unTokenName", "")]
-                    ])
-                ])
+    encode
+        (object
+             [ ("hash", "")
+             , ("friendlyName", "Ada")
+             , ("knownTokens", toJSON [object [("unTokenName", "")]])
+             ])

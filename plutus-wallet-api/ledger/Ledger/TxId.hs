@@ -21,7 +21,7 @@ import qualified Data.ByteArray         as BA
 import qualified Data.ByteString        as BSS
 import           GHC.Generics           (Generic)
 import           Language.PlutusTx.Lift (makeLift)
-import           Schema                 (ToSchema, ToTypeName)
+import           Schema                 (ToSchema)
 
 instance Serialise (Digest SHA256) where
   encode = encode . BA.unpack
@@ -44,7 +44,7 @@ newtype TxIdOf h =
     { getTxId :: h
     }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (ToSchema, ToTypeName)
+  deriving anyclass (ToSchema)
 
 makeLift ''TxIdOf
 

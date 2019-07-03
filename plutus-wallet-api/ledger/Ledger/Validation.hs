@@ -63,7 +63,6 @@ import qualified Data.ByteArray               as BA
 import qualified Data.ByteString.Lazy         as BSL
 import qualified Data.ByteString.Lazy.Hash    as Hash
 import           Data.Hashable                (Hashable)
-import           Data.Proxy                   (Proxy (Proxy))
 import           Data.String                  (IsString)
 import           Schema                       (ToSchema)
 import           GHC.Generics                 (Generic)

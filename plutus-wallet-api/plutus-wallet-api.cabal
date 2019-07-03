@@ -108,6 +108,7 @@ library plutus-ledger
         Ledger.AddressMap
         Ledger.Blockchain
         Ledger.Crypto
+        Ledger.Orphans
         Ledger.Slot
         Ledger.Scripts
         Ledger.Tx

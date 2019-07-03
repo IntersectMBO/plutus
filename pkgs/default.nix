@@ -53460,6 +53460,7 @@ license = stdenv.lib.licenses.bsd3;
 , containers
 , cookie
 , cryptonite
+, Diff
 , directory
 , exceptions
 , file-embed
@@ -53471,6 +53472,7 @@ license = stdenv.lib.licenses.bsd3;
 , http-client-tls
 , http-conduit
 , http-types
+, HUnit
 , jwt
 , lens
 , monad-logger
@@ -53494,6 +53496,7 @@ license = stdenv.lib.licenses.bsd3;
 , transformers
 , unordered-containers
 , wai
+, wl-pprint-text
 }:
 mkDerivation {
 
@@ -53540,14 +53543,18 @@ time-units
 transformers
 unordered-containers
 wai
+wl-pprint-text
 ];
 testHaskellDepends = [
 aeson
 base
 bytestring
 cryptonite
+Diff
 hspec
+HUnit
 text
+wl-pprint-text
 ];
 testToolDepends = [
 hspec-discover
