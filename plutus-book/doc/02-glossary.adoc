@@ -12,6 +12,9 @@ On-chain code ::
 Off-chain code ::
 * Code written as part of a smart contract which executes off the chain, usually in a user's wallet.
 
+Mockchain::
+* 
+
 Plutus Core ::
 * A small functional programming language designed to run as on-chain code.
 
@@ -30,3 +33,6 @@ Plutus Tx ::
 Non-fungible Token ::
 * A token that is not interchangeable with other tokens,
 - I.e. its value cannot be expressed in terms of other tokens, such as cryptocurrency, and thus has no fixed price
+
+Contract Endpoints ::
+* Off-chain functions a wallet uses to interact with a smart contract
