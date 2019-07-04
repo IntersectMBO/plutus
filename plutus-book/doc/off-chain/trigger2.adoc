@@ -25,6 +25,8 @@ waitUntil sl wallet ada =
         (Ada.toValue ada)
         (walletPubKey wallet)
 ----
+<1> Instead of using `defaultSlotRange` as before, we say that this transaction
+will only be valid once slot `sl` has been reached.
 
 ////
 [source,haskell]
@@ -32,6 +34,3 @@ waitUntil sl wallet ada =
 $(mkFunctions ['waitUntil])
 ----
 ////
-
-<1> Instead of using `defaultSlotRange` as before, we say that this transaction
-will only be valid once slot `sl` has been reached.

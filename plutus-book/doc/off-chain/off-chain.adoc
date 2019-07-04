@@ -1,3 +1,4 @@
+[#off-chain]
 = Writing off-chain code
 
 Working with Plutus requires writing on-chain code and off-chain code,
@@ -38,12 +39,12 @@ Pasting this code into the "Editor"-tab of the Playground and compiling it
 will make function "hello" available in the "Simulation"-tab, so we can
 add it as an action for one of the wallets.
 
-image:../images/hello-action.png[]
+image:hello-action.png[]
 
 After evaluation, we will see the expected message
 in the "Logs"-section of the "Transactions"-tab.
 
-image:../images/hello-result.png[]
+image:hello-result.png[]
 
 Class `WalletAPI` is a bit more involved:
 
@@ -88,9 +89,9 @@ In contrast to our first `hello` example, function `myPayToWallet`
 takes _arguments_. The user will be prompted to enter values for these in the
 Playground when the function is added as an action to the simulation.
 
-image:../images/myPayToWallet-action.png[]
+image:myPayToWallet-action.png[]
 
-image:../images/myPayToWallet-result.png[]
+image:myPayToWallet-result.png[]
 
 Note how we use `createPaymentWithChange` to help us build a transaction: Given
 a value, this function will select suitable unspent transaction outputs
@@ -168,9 +169,9 @@ until performing a transaction:
 
 include::trigger1.adoc[]
 
-image:../images/trigger-actions.png[]
+image:trigger-actions.png[]
 
-image:../images/trigger-result.png[]
+image:trigger-result.png[]
 
 This is actually a somewhat unusual example
 We do not really need a trigger to achieve this effect,
