@@ -49,13 +49,14 @@ library
     hs-source-dirs: src
     exposed-modules:
           Game.Guess
+        , Multi.Vesting
         , OffChain.Hello
         , OffChain.PayToWallet
         , OffChain.PayToWalletSimple
         , OffChain.Trigger
         , OffChain.TriggerSimple
         , Parameters.Crowd
-    ghc-options: -Wall -fno-warn-unused-imports -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc
+    ghc-options: -Wall -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc
     build-tool-depends: unlit:unlit -any
     build-depends:
       base >=4.9 && <5,
