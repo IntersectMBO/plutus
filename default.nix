@@ -25,7 +25,7 @@
 ########################################################################
 
 { system ? builtins.currentSystem
-, config ? { allowUnfree = true; }  # The nixpkgs configuration file
+, config ? { allowUnfreePredicate = (import ./lib.nix {}).unfreePredicate; }  # The nixpkgs configuration file
 
 # Use a pinned version nixpkgs.
 , pkgs ? (import ./lib.nix { inherit config system; }).pkgs
