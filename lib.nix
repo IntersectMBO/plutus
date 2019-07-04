@@ -52,6 +52,8 @@ let
 
   regeneratePackages = iohkNix.stack2nix.regeneratePackages { hackageSnapshot = "2019-05-28T09:58:14Z"; };
 
+  unfreePredicate = pkg: (builtins.parseDrvName pkg.name).name == "kindlegen";
+
   comp = f: g: (v: f(g v));
 in lib // {
   inherit
@@ -62,6 +64,7 @@ in lib // {
   plutusPublicPkgList
   plutusPkgList
   regeneratePackages
+  unfreePredicate
   nixpkgs
   pkgs
   comp;
