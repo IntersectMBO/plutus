@@ -11,7 +11,8 @@ in
   , fasterBuild ? false
   , skipPackages ? []
   , nixpkgsArgs ? {
-      config = { allowUnfree = false; inHydra = true; };
+      # we need unfree for kindlegen
+      config = { allowUnfree = true; inHydra = true; };
       inherit fasterBuild;
     }
   # Passed in by Hydra depending on the configuration, contains the revision and the out path
