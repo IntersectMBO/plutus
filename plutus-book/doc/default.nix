@@ -1,19 +1,16 @@
-{ stdenv, lib, asciidoctor, python2, pandoc }:
+{ stdenv, lib, asciidoctor, python2 }:
 
 stdenv.mkDerivation {
   name = "plutus-book";
   src = lib.sourceFilesBySuffices ./. [ ".adoc" ".png" ".PNG" ".gif" ".ico" ".css" ];
-  buildInputs = [ asciidoctor python2 pandoc ];
+  buildInputs = [ asciidoctor python2 ];
   buildPhase = ''
     asciidoctor plutus.adoc -b html5 -o plutus.html
 
     asciidoctor-pdf plutus.adoc -o plutus.pdf
 
-    # TODO: run epubcheck on the epub (it's not in our nixpkgs yet)
-    asciidoctor plutus.adoc -b docbook5 -o plutus.docbook
-    pandoc -f docbook -t epub plutus.docbook -o plutus.epub
-
-    # TODO: run kindlegen (it has an unfree license, is that okay?)
+    asciidoctor-epub3 plutus.adoc -o plutus.epub
+    asciidoctor-epub3 plutus.adoc -a ebook-format=kf8 -o plutus.mobi
   '';
   installPhase = ''
     install -D -t $out/html plutus.html 
@@ -23,5 +20,7 @@ stdenv.mkDerivation {
     install -D -t $out/pdf plutus.pdf
 
     install -D -t $out/epub plutus.epub
+
+    install -D -t $out/mobi plutus.mobi
   '';
 }

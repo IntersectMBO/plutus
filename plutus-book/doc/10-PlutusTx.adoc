@@ -1,3 +1,4 @@
+[#10-PlutusTx]
 = Plutus Tx
 
 .. formal specification of the typed plutus core language

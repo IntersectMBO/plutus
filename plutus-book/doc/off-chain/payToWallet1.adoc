@@ -29,12 +29,9 @@ myPayToWallet wallet ada = do
 
 $(mkFunctions ['myPayToWallet])
 ----
-
 <1>The `myPayToWallet` function takes two arguments,
 the wallet for sending funds, and the amount to send.
-
 <2> We can look up the public key of a wallet with
 `walletPubKey`.
-
 <3> We use `defaultSlotRange` here to indicate that the transaction will
 _always_ be valid.

@@ -1,3 +1,4 @@
+[#04-smartcont]
 = Smart Contracts
 
 Traditional contracts are legally-binding agreements concerning loans, sales,
@@ -99,7 +100,7 @@ The execution of some part of a crowdfunding smart contract, like all
 smart contracts, is generally triggered by events of two types: the passage of time
 and the actions of the participants involved, and only in the case that any relevant
 preconditions in the contract also hold true. In Chapter
-<<_lifecycle_of_a_plutus_contract>>,
+<<06-lifecycle#06-lifecycle>>,
 we discuss the specifics of Plutus event triggers in detail.
 
 == Real-world and Non Fungible Tokens

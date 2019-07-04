@@ -1,3 +1,4 @@
+[#03-UTxO]
 = UTxO Style Accounting
 :stem: latexmath
 
@@ -17,7 +18,7 @@ but rather from transaction to transaction. Each transaction has inputs
 (where the money being spent is coming from), and outputs
 (where this money is going). Note that the body of a transaction may also
 contain other data, as we will see later when we examine the extended
-UTxO model in the <<_extended_utxo_model>> Chapter.
+UTxO model in the <<09-extended#09-extended>>.
 
 Consider the data flow graph below. The black lines represent unspent outputs
 of transactions, and the red lines represent these outputs being used as inputs
@@ -72,8 +73,9 @@ the intended payees.
 This is, in a very general sense, the goal of smart contracts.
 Let us explore what is going on during the processing of a UTxO transaction event more formally.
 For the basic transaction
-model we discuss here, refer to Figure <</images/UTxO.png>>.
+model we discuss here, refer to <<utxo-definitions, the figure>>.
 
+[#utxo-definitions]
 image::UTxO.png[]
 
 Before we examine the structure of transactions, let us look at how book keeping
@@ -190,7 +192,7 @@ addresses.
 
 Now, in order to validate a transaction, there are a number of
 calculations performed involving the ADA in the transaction and the ADA
-in other accounts on the ledger to make sure ADA is neither created nor destroyed. This is known as 
+in other accounts on the ledger to make sure ADA is neither created nor destroyed. This is known as
 the generalized accounting property. It is the enforcement
 of this property, and not an inherent invariant of the UTxO transaction processing scheme, that
 ensures that no dishonest spending is allowed to occur. This is a crucial property
