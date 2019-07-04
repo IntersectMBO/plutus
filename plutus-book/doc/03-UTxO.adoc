@@ -4,7 +4,7 @@
 .. reference to Edsko and Duncans Wallet spec
 
 In order to become proficient with all things Plutus, it is
-inevitable that the reader must first acquire a solid understanding of how
+inevitable that you must first acquire a solid understanding of how
 accounting is done on the Cardano platform.
 
 We traditionally think of money transfers as being between two bank accounts,
