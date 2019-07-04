@@ -25,7 +25,7 @@
 ########################################################################
 
 { system ? builtins.currentSystem
-, config ? {}  # The nixpkgs configuration file
+, config ? { allowUnfree = true; }  # The nixpkgs configuration file
 
 # Use a pinned version nixpkgs.
 , pkgs ? (import ./lib.nix { inherit config system; }).pkgs
@@ -91,6 +91,10 @@ let
 
   packages = self: (rec {
     inherit pkgs localLib;
+
+    # Upstream nixpkgs has the asciidoctor-epub3 gem, ours doesn't. So I've backported it here.
+    # Our nixpkgs is so old it doesn't have epubcheck.
+    asciidoctorWithEpub3 = pkgs.callPackage ./nix/asciidoctor { epubcheck = null; };
 
     # The git revision comes from `rev` if available (Hydra), otherwise
     # it is read using IFD and git, which is avilable on local builds.
