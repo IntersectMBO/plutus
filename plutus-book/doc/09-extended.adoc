@@ -1,11 +1,11 @@
-[#09-extended]
 = Shelley Script-Extended UTxO Model
 
 This chapter is geared towards the reader that wants to have a clearer picture
 of just where Plutus fits in on Cardano Shelley
 blockchain ledger. Here we present a high-level explanation of the extended
 UTxO model and introduce the reader into the idea of using scripts as
-tools for making smart contracts on the blockchain.
+tools for making smart contracts on the blockchain. In this chapter,
+we use and build on concepts and notation from the <<_utxo_style_accounting>> chapter.
 
 In the basic UTxO model, the scheme for authorizing transactions
 is reliable, but somewhat basic. It is also limited to strictly Ada accounting.
@@ -27,12 +27,13 @@ rule essentially consists of two steps (both of which are, of course, computatio
 performed by nodes, and are on-chain):
 
 1. Check that a transaction is valid, which includes verifying the following:
-* it is live
+* it is live (the transactions time to live has not passed yet)
 * the Ada values being spent are non-negative
 * generalized accounting property holds
 * the size of the transaction does not exceed the maximum
 * the fee is being paid
 * etc.
+
 2. Check that the every action the transaction is performing is witnessed
 by the holder of the appropriate private key for
 * the spending of every output (witnessed by the key holder for the address
@@ -42,6 +43,8 @@ the reward address)
 * the application of every certificate (witnessed by certificate author)
 * genesis key delegations
 
+For a detailed formal description of
+this type of accounting, we refer the reader again to <<deleg>>.
 A major way to extend the functionality of the Cardano ledger is by adding
 script capability to the second step.
 
@@ -52,6 +55,8 @@ a transaction. Scripts are a way to add smart contract functionality
 to the extended UTxO model. Many of the subsequent chapters of this book discuss building and
 executing scripts that define specific smart contracts. In this section, however,
 we discuss in general how scripts are used in the extended UTxO model.
+For a draft of the formal specification of the extended UTxO model with
+scripts, see <<scripts>>.
 
 Scripts, like witnesses, are another
 tool to make sure a transaction is performing only authorized actions.
@@ -61,13 +66,13 @@ in the corresponding UTxO entry (i.e. the address from which it is spending the
 money) by checking that it was indeed signed (witnessed)
 by that key.
 
-A script latexmath:[s : \mathsf{Script}] has its own address
-latexmath:[a : \mathsf{Addr_{script}}], to which it
+A script `s {two-colons} Script` has its own address
+`a {two-colons} Addr_script`, to which it
 is possible to pay. This script address is the hash of the script.
 Thus, for scripts, we want to check that a transaction (and the wallet that
 generated it) has the original script of which this address is the hash.
 The whole validator script itself is never stored on the ledger, only its hash,
-and only as part of the unspent UTxO entries belonging to that script.
+and only as the address of the unspent UTxO entries belonging to that script.
 
 The role of a script is not to generate additional inputs or outputs in
 the current transaction (or make new transactions). Scripts are only used to
@@ -80,12 +85,11 @@ belong to a script.
 For example, recall the crowdfunding campaign scheme. If it is time for
 the owner of the campaign to collect the contributions, his wallet
 should produce a transaction with inputs which correspond to the contributions of the
-funders (i.e. the entries in the ledger UTxO which have the script address of the
-validator of the
-crowdfunding contract in the latexmath:[\mathsf{Addr}] field). The outputs of
-this transaction must be totaling the same amount as the funders'
+funders (i.e. the entries in the ledger UTxO which have the script address of that
+crowdfunding contract in the `Addr` field). The outputs of
+this transaction must be totaling the same amount as the contributors'
 inputs plus the transaction fee, presumably with the owner's own address in the
-latexmath:[\mathsf{Addr}] field.
+`Addr` field of each.
 The purpose of the scripts carried by such a transaction would be to prove that
 this consumption of UTxO entries is authorized, e.g. the campaign goal has
 been reached and in this current interval of time, the owner is allowed to
@@ -110,31 +114,46 @@ explain the use of each in every example we present later on.
 
 == Validator, Redeemer, and Data Scripts
 
-Validator scripts are functions Plutus Core functions that take several input
-arguments, which are also Plutus Core expressions. Validator scripts return
-a boolean value to represent the result of validation. Specifically,
+Validator scripts are Plutus Core functions that take several input
+arguments, which are also Plutus Core expressions.
 
-1. Data script
+1. Validator script
+* Carried by a transaction spending funds from a script address
+- inside a transaction, validator scripts are stored as a finite map indexed by
+the hash of this script
+* Is a function of the following 3 types discussed below
+- data script
+- redeemer script
+- transaction and ledger data
+* returns a boolean value to represent the result of validation.
+
+2. Data script
 * Carried by a transaction which is paying to a script
+- inside a transaction, data scripts are indexed by the index `ix`
+of the output which is being used to pay to the script
 * Contains state information about a given smart contract, e.g.
 - the public key of the contributor of a crowdfunding campaign, or
 - the hash of the word participants must guess to win money locked by the contract
-* Stored in full on the ledger as part of a UTxO entry (i.e. associated with a
-specific pair latexmath:[(txid, ix)])
+* Stored in full on the ledger
 * Hash computed if and when it is necessary for script validation, not stored on-chain
 
 Recall that in the classic model, UTxO entries are of the form
+`(txid, ix) |-> (a,c)`.
 
-\begin{align*}
-(txid, ix) \mapsto (a,c)
-\end{align*}
+For the extended model, if `a {two-colons} Addr_script` is a script
+address, we must store additional data on the ledger which
+associates the key `(txid, ix)` of that UTxO
+entry with the data script carried by the transaction paying to that script.
+Note that inside a transaction, the data script can be looked up using only
+the index value. On the UTxO, the transaction ID which is also included
+in the key used for looking up the data script. This is the ID of the
+transaction which was carrying it.
 
-For the extended model, if latexmath:[a : \mathsf{Addr_{script}}] is a script
-address, the key remains the same, but value of this finite map must also
-contain the data script.
-
-1. Redeemer script
-* Carried by a transaction which is spending funds at a script address
+[start=3]
+3. Redeemer script
+* Carried by a transaction which is spending funds from a script address
+- inside a transaction, redeemer scripts are indexed by the hash of the
+validator (not the redeemer itself) for which they are intended
 * Usually represents the action a wallet chooses to take,
 such as
 - collect funds from a script
@@ -154,7 +173,8 @@ It is the responsibility of the developer of the contract to make sure
 the event triggers, endpoints and validator script are defined in such a way
 that this is true.
 
-1. A latexmath:[\mathsf{PendingTx}] value.
+[start=4]
+4. A `PendingTx` value.
 * Contains information about the current transaction
 - inputs and outputs
 - validity interval, etc.
@@ -163,67 +183,69 @@ specific node doing the transaction validation
 
 When we say an output is locked by a script, or belongs to a script address,
 this means that the address of this UTxO entry is the hash of some validator
-script (not redeemer, and not data script). Recall, however, that the data script
-is stored in the value of the UTxO finite map. This address model is not far off from
+script (not redeemer, and not data script).
+This address model of using a hash is not far off from
 addresses in the classic UTxO model, which are a datatype
-containing the paying and the staking (public, i.e. verification).
+containing the paying and staking (public, i.e. verification) keys.
 
 As with regular addresses, there are really two things that can be done with
 a script address. One can one can create UTxO entries associated with it (i.e.
-pay to the script), and consume entries associated with that script. In order
-to pay to a script, a transaction must have an output
-
-\begin{align*}
-ix \mapsto (a,c)
-\end{align*}
-
-Where the address is the hash of the validator script, and additionally carry
-the data script explicitly associated with this same index latexmath:[ix].
+pay to the script), and consume entries associated with that script. A transaction
+which pays to a script must have an output
+`ix |-> (a,c)`
+such that the address `a` is the hash of the validator script to which it is paying
+(computed off-chain by the wallet).
+It must additionally carry
+the data script associated with this index `ix`.
+It may even carry several data scripts and pay into several different
+states of the same contract (with distinct output, of course).
 There is no need to perform
-script validation using the validator that hashes to latexmath:[a] here,
-unless this same transaction is also spending from the same script.
+script validation using the validator that hashes to `a` here.
+In fact, a node processing such a transaction does need to see the original
+validator here at all, unless this same transaction is also spending from the same
+script address.
 
-Now, in order to prove that a transaction latexmath:[tx] is indeed authorized to spend outputs
+Now, in order to prove that a transaction `ix` is indeed authorized to spend outputs
 locked by a validator script, the node doing the validation must apply
-a latexmath:[\mathsf{validateScript}] function to that validator script, and the three arguments above,
+a `validateScript` function to that validator script, and the three arguments above,
 which effectively is the computation applying the validator to the three arguments.
 It is necessary to use such a generic evaluator function here due to
 the typing of the three scripts.
-As pointed out in the <<10-PlutusTx#10-PlutusTx>> chapter, the data and redeemer scripts can be very different types
+As pointed out in the <<_plutus_tx>> chapter, the data and redeemer scripts can be very different types
 of Plutus Core expressions generated by template Haskell, so all that is known
-to the generic latexmath:[\mathsf{validateScript}] function is that these are the three types of
+to the generic `validateScript` function is that these are the three types of
 scripts. The validator itself, however, is expecting a term of the exact type it
-must compute on, e.g. a public key type as the data script argument.
+must compute on, e.g. a public key-type term as the data script argument.
 
 To summarize, the node computes
 
-\begin{align*}
-\mathsf{validateScript} ~ vld ~ dsc ~ rdm
-\end{align*}
+----
+validateScript vld dsc rdm
+----
 
 where
 
-* the validator latexmath:[vld] comes from the transaction itself and
+* the validator `vld` comes from the transaction data and
 hashes to the value equal to the address of the ledger UTxO entry the transaction is spending
-* the data script latexmath:[dsc] is stored on the ledger and is associated
+* the data script `dsc` is stored on the ledger and is associated
 with the UTxO entry the transaction is spending (it can be looked up by this
 entry as a key)
-* the redeemer latexmath:[rdm] is the choice of action the wallet (or its
+* the redeemer `rdm` is the choice of action the wallet (or its
 owner) has made when generating the transaction, and comes directly from
 transaction data
 
 For the validation to be successful, the choice of action must be allowed by
-the contract (validator) in the context of its current state. Note that,
+the contract (validator) in the context of a given state. Note that,
 in the spirit of UTxO style accounting, the contract state is never updated in
 the UTxO entry. One can only spend that entry, and create a new one with a
-different contract state.
+different data script.
 
 If this `validateScript` computation returns true, the validation process proceeds.
 Otherwise, the entire transaction is scrapped. Essentially, given the context
 of the ledger state and carrying transaction data,
 the validator is used to show that the provided action (redeemer), indeed
 results in the correct state (data script), which means that the smart
-contract functionality defined by the code in the validator should allow for the spending
+contract functionality defined by the code in the validator allows the spending
 of script-owned funds.
 
 Note that with this model, as with the classic UTxO
@@ -238,7 +260,7 @@ the off-chain function that returns a PlutusTx validator script takes a paramete
 This parameter is of a different type for each kind of contract. For example,
 it will be a term of type `Campaign` for a crowdfunder contract:
 
-`contributionScript :: Campaign -> ValidatorScript`
+`contributionScript {two-colons} Campaign -> ValidatorScript`
 
 This parameter for any kind of contract is a
 data structure containing necessary non-state, immutable data about the contract
@@ -246,7 +268,7 @@ data structure containing necessary non-state, immutable data about the contract
 The values passed to the validator via this data structure parameter are not only used in
 defining some of the contract's functions within
 the validator, but they serve also a contract identification purpose.
-Generally it is also a good idea to define the type of this state-less contract
+Generally, it is a good idea to define the type of this state-less contract
 structure parameter in such a way that it necessarily makes the resulting
 contract unique, thus making its validator-hash address unique also.
 Then the user is able to, for example, pay exactly to the instance of the
@@ -255,10 +277,10 @@ a Plutus textbook!
 
 == Additional Extended Model Notes
 
-.Off-Chain Code
+.Sharing Plutus Code
 
 The off-chain code, explored in detail in
-the next chapter, <<>>, is run by the users wallet (or, in the Playground simulation,
+the next chapter, is run by the users' wallet (or, in the Playground simulation,
 the mock wallet). The main goal of the off-chain code is to generate
 the correct script at the correct time and to build a transaction carrying it.
 
@@ -267,8 +289,8 @@ to simulate smart contract functionality on
 the mockchain. All the code written in the Playground
 is shared by the mock wallets during the simulation, and can be used by
 any of them.
-In the real Cardano blockchain environment, the endpoints defined in the
-off-chain code are also meant to be used by all wallets participating in the contract,
+In the real Cardano blockchain environment, on- and off-chain
+contract code is meant to be used by all wallets participating in the contract,
 distributed over the network. This means there needs to be another reliable way
 to share Plutus code. The the on-chain code is hashed, and the hash is stored in the
 UTxO, giving the participants a way to verify that it is indeed the right code
@@ -293,3 +315,17 @@ rolled back transaction. We do not give the details of this functionality here.
 
 There are other features of the extended UTxO system that are less relevant to
 a Plutus user, which we will also not explain in detail in this chapter.
+
+.Adding Ledger Functionality Using Scripts
+
+In the upcoming examples in this book we walk the reader through the process
+of building, testing and using Plutus contracts. For examples of work on using
+scripts to add specific functionality to the UTxO ledger, we would like to
+point the reader to the following documents,
+
+* Multi-currency on the UTXO Ledger, see <<multicur>>
+- A implementation of a script-based model for different types of
+currency as well as non-fungible tokens on the mockchain
+* A Formal Specification of a Multi-Signature Scheme Using Scripts, see <<multisig>>
+- A formal specification of enforcing a custom witnessing policy for spending
+outputs

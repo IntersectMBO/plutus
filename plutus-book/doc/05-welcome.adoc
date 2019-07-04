@@ -1,5 +1,4 @@
-[#05-welcome]
-= Welcome to Plutus - a new language for reliable smart contracts
+= Welcome to Plutus - A New Language for Reliable Smart Contracts
 
 == Why Plutus?
 
@@ -98,8 +97,6 @@ At this address the reader will see a window for developing Plutus Tx code.
 The code within the window is a single Haskell module which the user may edit.
 There are two other tabs, `Simulation` and `Transactions`,
 both of which are used for testing the code written in the editor.
-We will go into detail about using these in the <<06-lifecycle#06-lifecycle>>
-Chapter.
 
 There are also several demos listed underneath the tabs, the code of which one
 may load into the editor:
@@ -136,9 +133,29 @@ You should see a similar editor window to the one at the PP web address provided
 Note that the PP version (and thus, of course, some of the functionality and
 appearance) may be different than the web version.
 
-=== Playground Compilation Instructions
 
-To run PP from source code, the reader will need to first download it from
-the GitHub repository at
+=== Using the libraries locally
 
-https://github.com/input-output-hk/plutus
+To use the libraries (not the Playground) locally, follow these steps.
+
+.Linux/macOS
+
+[arabic]
+. Install the nix package manager following the instructions on
+https://nixos.org/nix/.
++
+IMPORTANT: Make sure to add the IOHK binary cache to your Nix configuration. See
+link:../README.md#binary-caches[the repository README] for details.
+. Clone https://github.com/input-output-hk/plutus.
+. Move to the plutus-tutorial folder.
+. Type `nix-shell`. This will download all of the dependencies and
+populate the PATH with a correctly configured cabal. If `nix-shell`
+results in nix attempting to compile a lot of dependencies then
+something went wrong earlier and you should go back to step 4.
+. Type `cabal repl plutus-tutorial`.
+
+.Windows
+
+[arabic]
+. Install the "Ubuntu 18.04" app from the app store
+. Open the "Ubuntu 18.04" terminal by clicking on the icon

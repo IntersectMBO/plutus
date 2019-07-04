@@ -1,8 +1,8 @@
 [glossary]
-= Glossary
+== Glossary
 
 Extended UTxO ::
-* The ledger model on which the Plutus platform is based
+* The ledger model on which the Plutus Platform is based
 * In particular, transactions may contain Plutus scripts to be executed by the nodes
 
 On-chain code ::
@@ -12,8 +12,11 @@ On-chain code ::
 Off-chain code ::
 * Code written as part of a smart contract which executes off the chain, usually in a user's wallet.
 
-Mockchain::
-* 
+Mockchain ::
+* A Cardano blockchain emulator which faithfully Plutus smart contract behaviour
+
+Mock Wallet ::
+* A wallet emulator which is used to interact with the mockchain
 
 Plutus Core ::
 * A small functional programming language designed to run as on-chain code.
@@ -23,9 +26,9 @@ Plutus IR ::
 
 Plutus Platform ::
 * The combined software support for writing smart contracts, including:
-- libraries for writing off-chain code in Haskell.
-- libraries for writing on-chain code in Plutus Tx.
-- emulator support for testing smart contracts.
+- Libraries for writing off-chain code in Haskell.
+- Libraries for writing on-chain code in Plutus Tx.
+- Emulator support for testing smart contracts.
 
 Plutus Tx ::
 * A subset of Haskell which is compiled into Plutus Core.

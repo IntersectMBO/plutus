@@ -1,4 +1,3 @@
-[#04-smartcont]
 = Smart Contracts
 
 Traditional contracts are legally-binding agreements concerning loans, sales,
@@ -96,12 +95,15 @@ that it will provide the contributors with the product in the case the goal
 amount was reached, and refund the contributed money otherwise.
 With a smart contract, this is possible to enforce.
 
-The execution of some part of a crowdfunding smart contract, like all
-smart contracts, is generally triggered by events of two types: the passage of time
-and the actions of the participants involved, and only in the case that any relevant
-preconditions in the contract also hold true. In Chapter
-<<06-lifecycle#06-lifecycle>>,
-we discuss the specifics of Plutus event triggers in detail.
+The execution of a contract refers to the changing of the state of the contract
+as a result of being triggered by by events of two types:
+
+* changes in the environment external to the contract, such as the passage of time, and
+* actions of the participants involved.
+
+At different points in the lifetime of a contract throughout its execution,
+different parties may be allowed to collect funds from the contract or
+be expected to pay into the contract.
 
 == Real-world and Non Fungible Tokens
 
@@ -280,11 +282,11 @@ website,
 
 [quote]
 ____
-"Recent financial crises laid bare serious shortcomings in risk management and
+Recent financial crises laid bare serious shortcomings in risk management and
 financial regulation. In retrospect, the lack of timely granular data reported
 in a data standard capable of supporting financial analysis contributed much
 to the crises. The ACTUS project aims to remedy this weakness by creating a
-global standard for the consistent representation of financial instruments."
+global standard for the consistent representation of financial instruments.
 ____
 
 Financial contracts include things like futures, loans bonds, mortgages, etc.

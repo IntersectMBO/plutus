@@ -1,0 +1,22 @@
+[bibliography]
+== References
+
+- [[[deleg,1]]] Jared Corduan, Polina Vinogradova, and Matthias Gudemann.
+A formal specification of the Cardano ledger. Technical report, IOHK, 2019.
+Available at https://github.com/input-output-hk/cardano-ledger-specs.
+
+- [[[scripts,2]]] Kenneth MacKenzie.
+An Abstract Model of UTXO-based Cryptocurrencies with Scripts, IOHK, 2019.
+Available at https://github.com/input-output-hk/plutus/tree/master/extended-utxo-spec.
+
+- [[[multisig,3]]] Jared Corduan and Matthias Gudemann.
+A Formal Specification of a Multi-Signature Scheme Using Scripts. Technical report, IOHK, 2019.
+Available at https://github.com/input-output-hk/cardano-ledger-specs.
+
+- [[[multicur,4]]] Jann Müller and Michael Peyton Jones.
+Multi-currency on the UTXO Ledger. Technical report, IOHK, 2019.
+Available at https://github.com/input-output-hk/plutus/tree/master/docs/multi-currency.
+
+- [[[plutuscore,4]]] Darryl McAdams.
+Formal Specification of the Plutus Core Language. Technical report, IOHK, 2019.
+Available at https://github.com/input-output-hk/plutus/tree/master/plutus-core-spec.

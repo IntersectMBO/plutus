@@ -1,24 +1,22 @@
-[#03-UTxO]
 = UTxO Style Accounting
-:stem: latexmath
-
-.. reference to Edsko and Duncans Wallet spec
 
 In order to become proficient with all things Plutus, it is
-inevitable that you must first acquire a solid understanding of how
+inevitable that the reader must first acquire a solid understanding of how
 accounting is done on the Cardano platform.
 
 We traditionally think of money transfers as being between two bank accounts,
-or internet addresses, in the case of digital currency. The Cardano platform,
-like a number of other cryptocurrency platforms, such as Bitcoin, uses
-an accounting approach known as UTxO-style.
+or perhaps internet addresses in the case of digital currency. The Cardano platform,
+like a number of other cryptocurrency platforms such as Bitcoin, uses instead
+an accounting approach known as UTxO-style. A full formal description of
+this type of accounting can be found as part of the Cardano ledger
+formal specification, see <<deleg>>.
 
 UTxO-style accounting documents the flow of money not from account to account,
 but rather from transaction to transaction. Each transaction has inputs
-(where the money being spent is coming from), and outputs
+(where the money being spent this transaction is coming from) and outputs
 (where this money is going). Note that the body of a transaction may also
 contain other data, as we will see later when we examine the extended
-UTxO model in the <<09-extended#09-extended>>.
+UTxO model in the <<_shelley_script_extended_utxo_model>> Chapter.
 
 Consider the data flow graph below. The black lines represent unspent outputs
 of transactions, and the red lines represent these outputs being used as inputs
@@ -40,8 +38,8 @@ Now, Bob has 10 Ada from previous unspent outputs. He spends them as follows:
 
 * all 10 Ada goes to the new transaction
 
-This new transaction we illustrate here has two inputs, 42 from Alice, and 10
-from Bob. This transaction has two outputs, 2 Ada to Bob, and 50 to Charlie.
+This new transaction we illustrate here has two inputs, 42 from Alice and 10
+from Bob. This transaction has two outputs, 2 Ada to Bob and 50 to Charlie.
 We also see that Charlie has 52 Ada from a previously unspent output, for
 a total of 102 Ada he can spend in future transactions. Bob is left with
 only one output of 2 Ada, and Alice, a total of 58 Ada in unspent outputs
@@ -54,13 +52,13 @@ participants. In this simplified version, the transactions illustrated are not
 paying fees, etc.
 Even in this somewhat simplified model, we see that an output must always be spent
 in full. That is, a record of an unspent output cannot be modified (this would
-be account-based bookkeeping), only used entirely. In order to maintain
-the ledger bookkeeping integrity, the new transaction must have all the unspent outputs (totaling
-the correct amount of all the unspent outputs) that are being used up by it. In the
+be essentially account-based bookkeeping), only used entirely. In order to maintain
+the ledger bookkeeping integrity, we must have in our new transaction unspent outputs totaling
+the correct amount of all the unspent outputs that are being used up by it. In the
 example above, our new transaction removes (i.e. uses as inputs) unspent outputs of value
 42 from Alice and 10 from Bob, for a total of 52 Ada. We must then have
 52 Ada of outputs from this transaction (2 to Bob and 50 to Charlie).
-Note here that Bob had both an unspent output used by this transaction and
+Note here that Bob both had an unspent output used by this transaction and
 an unspent output produced by this transaction. That is, he got, so to say,
 change (of 2 Ada) from this transaction. Since there is no true way to spend
 part of an output, this is how UTxO accounting deals with partial spending -
@@ -71,31 +69,33 @@ to distribute the flow of cash from several contributors to several recipients b
 having it flow into a common pot, i.e. the transaction, before being sent to
 the intended payees.
 This is, in a very general sense, the goal of smart contracts.
-Let us explore what is going on during the processing of a UTxO transaction event more formally.
+Let us explore what is going on during a UTxO transaction processing event more formally.
 For the basic transaction
-model we discuss here, refer to <<utxo-definitions, the figure>>.
+model we discuss here, consider the following figure:
 
-[#utxo-definitions]
 image::UTxO.png[]
 
 Before we examine the structure of transactions, let us look at how book keeping
 is done on the ledger. The record on the ledger that
 contains this information is called a UTxO, short of Unspent Transaction Outputs
-and denoted latexmath:[\mathsf{UTxO}] in the figure.
+and denoted `UTxO` in the figure.
 This record is a finite map, where the key is a pair of transaction ID and
-an index, latexmath:[\mathsf{TxIn = TxId*Ix}]. The transaction ID (latexmath:[\mathsf{TxId}])
+an index, `TxIn = TxId*Ix`. The transaction ID `TxId`
  can be calculated from a complete transaction
 submitted for processing, and is a unique identifier of this transaction.
-The index latexmath:[\mathsf{Ix}] is necessary because there may be more than one output,
+The index `Ix` is necessary because there may be more than one output,
 and each must have a unique identifier within the set of outputs
 of a given transaction.
 The values in the UTxO finite map are pairs of a coin value and an
-address, whose type is by latexmath:[\mathsf{TxOut = Addr * Coin}].
+address, whose type is by `TxOut = Addr * Coin`.
+Note that users' addresses are always public keys, and the funds at them
+belong to the entity who is able to prove that they possess they corresponding
+private key. Script (or smart contract) addresses are slightly different, as we will see later.
 
 As for the structure of the transaction itself,
-let us examine the outputs first. The single transaction may distribute
+let us examine the outputs first. The a single transaction may distribute
 the money it is spending to several different addresses.
-The outputs (values of type latexmath:[\mathsf{TxOut}]) are stored in a transaction as the values in a finite map.
+The outputs (values of type `TxOut`) are stored in a transaction as the values in a finite map.
 The keys of the finite map are distinct index values within the context
 of the finite map, such that the
 combination of a transaction ID and an index will be a globally unique
@@ -106,9 +106,9 @@ global identifier.
 
 The inputs are also a list, however, the elements of this list contain neither
 a coin value to be spent, nor the address which the money is coming from.
-This is the main distinction between traditional accounting and UTxO accounting:
+This is the main distinction between traditional and UTxO accounting:
 the money being spent is only referred by the unspent outputs of
-previously processed transactions on the ledger that reside currently on the blockchain.
+previously processed transactions on the ledger currently on the blockchain.
 Each element of the inputs list is a pair of a transaction ID and an index.
 Which, as explained above, uniquely identifies the unspent output in the UTxO
 which is to be spent.
@@ -119,66 +119,39 @@ be spent by the owners of the addresses listed in the outputs. That is,
 all the entries corresponding to the inputs of the processed transaction are
 removed from the ledger UTxO.
 
-Additionally, all the latexmath:[\mathsf{TxOut}]) values in
+Additionally, all the `TxOut` values in
 the finite map of the outputs of the transaction are added to the UTxO,
 with the key of the finite map consisting of the ID of transaction being processed,
 and the index value the same as in the the finite map of outputs of this transaction.
-That is, if latexmath:[tx] contains a pair of a list of inputs and a finite map
-of inputs latexmath:[(ins, outs)] with ID latexmath:[id], and
-latexmath:[ix \mapsto (a,c)] is an entry in latexmath:[outs], the UTxO will
-have the entry latexmath:[(id, ix) \mapsto (a,c)] added.
+That is, if `tx` contains a pair of a list of inputs and a finite map
+of inputs `(ins, outs)` with ID `id`, and
+`ix |-> (a,c)` is an entry in `outs`, the UTxO will
+have the entry `(id, ix) |-> (a,c)` added. Here, we use the notation `k |-> v`
+to refer to an entry in a finite map which has the key `k` and the value `v`.
 
 Now, we would like to capture this update concisely in terms of mathematical
 notation (which is rather human-readable), but can be translated directly into
 code. We will adhere to the use of this notation in our explanation of
 the inclusion of Plutus Tx scrips inside transactions as well. The following
 definitions are three ways to filter a UTxO finite map. The first one is
-filtering the UTxO by a subset latexmath:[ins] of the keys. The second filter
+filtering the UTxO by a subset `ins` of the keys. The second filter
 gives the compliment of the result of the first filter (i.e. all the UTxO
 entries not indexed by keys in the list of inputs). The third filer
 filters UTxO entries by the values.
 
-\begin{align*}
-\mathit{ins} \lhd \mathit{utxo}
-& = \{ i \mapsto o \mid i \mapsto o \in \mathit{utxo}, ~ i \in \mathit{ins} \}
-& \text{domain restriction}
-\\
-\mathit{ins} \mathbin{\slashed{\lhd}} \mathit{utxo}
-& = \{ i \mapsto o \mid i \mapsto o \in \mathit{utxo}, ~ i \notin \mathit{ins} \}
-& \text{domain exclusion}
-\\
-\mathit{utxo} \rhd \mathit{outs}
-& = \{ i \mapsto o \mid i \mapsto o \in \mathit{utxo}, ~ o \in \mathit{outs} \}
-& \text{range restriction}
-\end{align*}
+image::restrnotation.png[]
 
-We would like to use this notation to process a new transaction. That is, to
+We would like to use this notation to process a new transaction. That is,
 remove the spent outputs, and build the
 set of new outputs a transaction is adding to the UTxO (as we described above).
 We may compute the outputs as follows:
 
-\begin{align*}
-& \mathsf{txins} \in \mathbb{P}{(\mathsf{Tx})} \to \mathbb{P}{(\mathsf{TxIn})} \\
-& \mathsf{txins} ~ \mathit{txs} = \bigcup \{ \mathit{inputs} \mid (\mathit{inputs}, \,\underline{\phantom{a}}\,) \in \mathit{txs} \}
-\\
-& \mathsf{txouts} \in \mathbb{P}{(\mathsf{Tx})} \to \mathsf{UTxO} \\
-\end{align*}
-
-& \mathsf{txouts} ~ \mathit{txs} =
-  \left\{ (\mathsf{txid} ~ \mathit{tx}, \mathit{ix}) \mapsto \mathit{txout} ~
-  \middle| \begin{array}{l@{~}c@{~}l}
-             \mathit{tx} & \in & \mathit{txs} \\
-             (\,\underline{\phantom{a}}\,,\, \mathit{outputs}) & = & \mathit{tx} \\
-             \mathit{ix} \mapsto \mathit{txout} & \in & \mathit{outputs}
-           \end{array}
-  \right\}
+image::outputs.png[]
 
 Using this notation, we can define the UTxO update due to a transaction
-latexmath:[tx] as follows:
+`tx` as follows:
 
-\begin{align*}
-& (\mathsf{txins}~tx􏰗 \slashed{\lhd}~ utxo) \cup \mathsf{outs}~tx
-\end{align*}
+image::utxoupd.png[]
 
 Note that an explicit calculation of the total amount of ADA in the outputs and
 the total ADA in all the inputs of a transaction must be performed as part of
@@ -192,17 +165,18 @@ addresses.
 
 Now, in order to validate a transaction, there are a number of
 calculations performed involving the ADA in the transaction and the ADA
-in other accounts on the ledger to make sure ADA is neither created nor destroyed. This is known as
-the generalized accounting property. It is the enforcement
-of this property, and not an inherent invariant of the UTxO transaction processing scheme, that
+in other accounts on the ledger to make sure ADA is neither created nor destroyed,
+so to say. This is known as the generalized accounting property. It is the enforcement
+of this property,
+and not an inherent invariant of the UTxO transaction processing scheme, that
 ensures that no dishonest spending is allowed to occur. This is a crucial property
-of the Cardano ledger bookkeeping system, in particular because there is a
+for the Cardano ledger bookkeeping system, in particular because there is a
 set amount of Ada in existence, which can never change.
 
 Note also that a transaction includes a host of other data, such as
 witnesses, certificates, and scripts along with their hashes.
 Here we have not gone into the details of the specific types and calculations
-used in the Cardano ledger implementation, but you should now have a
+used in the Cardano ledger implementation, but now the reader should have a
 sufficient understanding of the structure of a transaction and how it is
 processed to be able to understand what goes on behind the
 scenes when Plutus code is used to generate a transaction.
