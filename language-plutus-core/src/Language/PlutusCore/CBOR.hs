@@ -44,11 +44,13 @@ instance Serialise TypeBuiltin where
         TyByteString -> encodeTag 0
         TyInteger    -> encodeTag 1
         TyString     -> encodeTag 2
+        TySealed     -> encodeTag 3
 
     decode = go =<< decodeTag
         where go 0 = pure TyByteString
               go 1 = pure TyInteger
               go 2 = pure TyString
+              go 3 = pure TySealed
               go _ = fail "Failed to decode TypeBuiltin"
 
 instance Serialise BuiltinName where

@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
@@ -13,14 +14,19 @@ module Language.PlutusCore.Constant.Dynamic.BuiltinName
     , dynamicTraceName
     , dynamicTraceMeaningMock
     , dynamicTraceDefinitionMock
+    , dynamicSealMeaning
+    , dynamicSealDefinition
+    , dynamicUnsealMeaning
+    , dynamicUnsealDefinition
     ) where
 
-import           Language.PlutusCore.Constant.Dynamic.Instances ()
+import           Language.PlutusCore.Constant.Dynamic.Instances
 import           Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Type
 
+import           Data.Coerce
 import           Data.Proxy
 import           Debug.Trace                                    (trace)
 
@@ -69,3 +75,25 @@ dynamicTraceMeaningMock = DynamicBuiltinNameMeaning sch (flip trace ()) where
 dynamicTraceDefinitionMock :: DynamicBuiltinNameDefinition
 dynamicTraceDefinitionMock =
     DynamicBuiltinNameDefinition dynamicTraceName dynamicTraceMeaningMock
+
+dynamicSealMeaning :: DynamicBuiltinNameMeaning
+dynamicSealMeaning = DynamicBuiltinNameMeaning sch Sealed where
+    sch =
+        TypeSchemeAllType @"a" @0 Proxy $ \a@(_ :: Proxy a) ->
+        a `TypeSchemeArrow`
+        TypeSchemeResult (Proxy @(Sealed a))
+
+dynamicSealDefinition :: DynamicBuiltinNameDefinition
+dynamicSealDefinition =
+    DynamicBuiltinNameDefinition dynamicSealName dynamicSealMeaning
+
+dynamicUnsealMeaning :: DynamicBuiltinNameMeaning
+dynamicUnsealMeaning = DynamicBuiltinNameMeaning sch coerce where
+    sch =
+        TypeSchemeAllType @"a" @0 Proxy $ \a@(_ :: Proxy a) ->
+        Proxy @(CrossSealed a) `TypeSchemeArrow`
+        TypeSchemeResult a
+
+dynamicUnsealDefinition :: DynamicBuiltinNameDefinition
+dynamicUnsealDefinition =
+    DynamicBuiltinNameDefinition dynamicUnsealName dynamicUnsealMeaning

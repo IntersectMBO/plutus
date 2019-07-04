@@ -176,7 +176,12 @@ applyEvaluate funVarEnv _         con fun                    arg =
             Just (IterApp headName spine) -> do
                 constAppResult <- applyStagedBuiltinName headName spine
                 withVarEnv funVarEnv $ case constAppResult of
-                    ConstAppSuccess res -> computeCek con res
+                    ConstAppSuccess res
+                        -- If an application computes to itself, then this is a saturated dynamic
+                        -- builtin name treated as a saturated constructor and we do not attempt
+                        -- to evaluate the application again to avoid looping.
+                        | res == term -> returnCek  con res
+                        | otherwise   -> computeCek con res
                     ConstAppFailure     -> pure EvaluationFailure
                     ConstAppStuck       -> returnCek con term
                     ConstAppError   err ->

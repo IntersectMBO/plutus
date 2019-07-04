@@ -27,9 +27,10 @@ import           Test.Tasty.HUnit
 
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of a different type.
-readMakeHetero :: (KnownType a, KnownType b) => a -> EvaluationResult b
-readMakeHetero x =
-    case typecheckReadKnownCek mempty $ makeKnown x of
+readMakeHetero
+    :: (KnownType a, KnownType b) => DynamicBuiltinNameMeanings -> a -> EvaluationResult b
+readMakeHetero means x =
+    case typecheckReadKnownCek means $ makeKnown x of
         Left err          ->
             error $ "Type error" ++ prettyPlcCondensedErrorClassicString err
         Right (Left err)  -> error $ "Evaluation error" ++ show err
@@ -37,46 +38,60 @@ readMakeHetero x =
 
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of the same type.
-readMake :: KnownType a => a -> EvaluationResult a
+readMake
+    :: KnownType a => DynamicBuiltinNameMeanings -> a -> EvaluationResult a
 readMake = readMakeHetero
 
-dynamicBuiltinRoundtrip :: (KnownType a, Show a, Eq a) => Gen a -> Property
-dynamicBuiltinRoundtrip genX = property $ do
+dynamicBuiltinRoundtrip
+    :: (KnownType a, Show a, Eq a) => DynamicBuiltinNameMeanings -> Gen a -> Property
+dynamicBuiltinRoundtrip means genX = property $ do
     x <- forAll genX
-    case readMake x of
+    case readMake means x of
         EvaluationFailure    -> fail "EvaluationFailure"
         EvaluationSuccess x' -> x === x'
 
 test_eitherRoundtrip :: TestTree
 test_eitherRoundtrip =
-    testProperty "eitherRoundtrip" . dynamicBuiltinRoundtrip $
+    testProperty "eitherRoundtrip" . dynamicBuiltinRoundtrip mempty $
         Gen.choice [Left <$> Gen.unicode, Right <$> Gen.bool]
 
 test_stringRoundtrip :: TestTree
 test_stringRoundtrip =
-    testProperty "stringRoundtrip" . dynamicBuiltinRoundtrip $
+    testProperty "stringRoundtrip" . dynamicBuiltinRoundtrip mempty $
         Gen.string (Range.linear 0 20) Gen.unicode
 
 test_plcListOfStringsRoundtrip :: TestTree
 test_plcListOfStringsRoundtrip =
-    testProperty "listOfStringsRoundtrip" . dynamicBuiltinRoundtrip $
+    testProperty "listOfStringsRoundtrip" . dynamicBuiltinRoundtrip mempty $
         fmap PlcList . Gen.list (Range.linear 0 10) $
             Gen.string (Range.linear 0 10) Gen.unicode
 
 test_plcListOfPairsRoundtrip :: TestTree
 test_plcListOfPairsRoundtrip =
-    testProperty "listOfPairsRoundtrip" . dynamicBuiltinRoundtrip $
+    testProperty "listOfPairsRoundtrip" . dynamicBuiltinRoundtrip mempty $
         fmap PlcList . Gen.list (Range.linear 0 10) $
             (,) . PlcList <$> Gen.list (Range.linear 0 10) Gen.unicode <*> Gen.unicode
 
 test_plcListOfSumsRoundtrip :: TestTree
 test_plcListOfSumsRoundtrip =
-    testProperty "listOfSumsRoundtrip" . dynamicBuiltinRoundtrip $
+    testProperty "listOfSumsRoundtrip" . dynamicBuiltinRoundtrip mempty $
         fmap PlcList . Gen.list (Range.linear 0 10) $
             Gen.choice
                 [ Left . PlcList <$> Gen.list (Range.linear 0 10) Gen.unicode
                 , Right <$> Gen.unicode
                 ]
+
+test_plcListOfSealedPairs :: TestTree
+test_plcListOfSealedPairs =
+    testProperty "listOfSealedPairs" . dynamicBuiltinRoundtrip means $
+        fmap PlcList . Gen.list (Range.linear 0 10) $
+            fmap Sealed $ (,) <$> Gen.bool <*> Gen.unicode
+  where
+    -- TODO: we clearly need a function that just takes a list of definitions.
+    means
+        = insertDynamicBuiltinNameDefinition dynamicSealDefinition
+        . insertDynamicBuiltinNameDefinition dynamicUnsealDefinition
+        $ mempty
 
 -- | Generate a bunch of 'Char's, put each of them into a 'Term', apply a dynamic built-in name over
 -- each of these terms such that being evaluated it calls a Haskell function that appends a char to
@@ -104,24 +119,23 @@ test_noticeEvaluationFailure :: TestTree
 test_noticeEvaluationFailure =
     testCase "noticeEvaluationFailure" . assertBool "'EvaluationFailure' ignored" $
         isEvaluationFailure $ do
-            _ <- readMake True
-            _ <- readMakeHetero @(EvaluationResult ()) @() EvaluationFailure
-            readMake 'a'
+            _ <- readMake mempty True
+            _ <- readMakeHetero @(EvaluationResult ()) @() mempty EvaluationFailure
+            readMake mempty 'a'
 
 test_ignoreEvaluationFailure :: TestTree
 test_ignoreEvaluationFailure =
     testCase "ignoreEvaluationFailure" . assertBool "'EvaluationFailure' not ignored" $
         isEvaluationSuccess $ do
-            _ <- readMake True
-            -- 'readMakeHetero' is used here instead of 'readMake' for clarity.
-            _ <- readMakeHetero @(EvaluationResult ()) @(EvaluationResult ()) EvaluationFailure
-            readMake 'a'
+            _ <- readMake mempty True
+            _ <- readMake @(EvaluationResult ()) mempty EvaluationFailure
+            readMake mempty 'a'
 
 test_delayEvaluationFailure :: TestTree
 test_delayEvaluationFailure =
     testCase "delayEvaluationFailure" . assertBool "'EvaluationFailure' not delayed" $
         isEvaluationSuccess $ do
-            f <- readMake $ \() -> EvaluationFailure
+            f <- readMake mempty $ \() -> EvaluationFailure
             case f () of
                 EvaluationFailure    -> EvaluationSuccess ()
                 EvaluationSuccess () -> EvaluationFailure
@@ -142,6 +156,7 @@ test_dynamicMakeRead =
         , test_plcListOfStringsRoundtrip
         , test_plcListOfPairsRoundtrip
         , test_plcListOfSumsRoundtrip
+        , test_plcListOfSealedPairs
         , test_collectChars
         , test_EvaluationFailure
         ]

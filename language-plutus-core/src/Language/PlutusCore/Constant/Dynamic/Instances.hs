@@ -4,10 +4,16 @@
 
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms   #-}
 {-# LANGUAGE TypeApplications  #-}
 
 module Language.PlutusCore.Constant.Dynamic.Instances
-    ( PlcList (..)
+    ( TypedTerm (..)
+    , Sealed (..)
+    , CrossSealed (..)
+    , PlcList (..)
+    , dynamicSealName
+    , dynamicUnsealName
     ) where
 
 import           Language.PlutusCore.Constant.Make
@@ -20,7 +26,7 @@ import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Bool
 import qualified Language.PlutusCore.StdLib.Data.Function   as Plc
-import           Language.PlutusCore.StdLib.Data.List
+import           Language.PlutusCore.StdLib.Data.List       hiding (cons)
 import           Language.PlutusCore.StdLib.Data.Sum        as Plc
 import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.StdLib.Meta
@@ -32,6 +38,7 @@ import           Control.Monad.Except
 import           Data.Bifunctor
 import qualified Data.ByteString.Lazy                       as BSL
 import           Data.Char
+import           Data.Coerce
 import           Data.Proxy
 import qualified Data.Text                                  as Text
 import qualified Data.Text.Prettyprint.Doc                  as Doc
@@ -46,6 +53,108 @@ try to call 'eval' over something that already was 'eval'ed, that second 'eval' 
 updated state that the first 'eval' finished with. This may cause all kinds of weird error messages,
 for example, an error message saying that there is a free variable and evaluation cannot proceed.
 -}
+
+-- | A wrapper around 'Term' parameterized by a phantom type variable representing the Haskell
+-- counterpart of the type of that term.
+newtype TypedTerm a = TypedTerm
+    { unTypedTerm :: Term TyName Name ()
+    }
+
+{- Note [Dynamic builtins as constructors]
+We can use dynamic builtins as improvised constructors of data types.
+Consider the 'Sealed' example, we have:
+
+1. the hardcoded @sealed@ PLC type of kind @* -> *@
+2. the @seal@ dynamic builtin of type @all a. a -> sealed a@
+3. the @unseal@ dynamic builtin of type @all a. sealed a -> a@
+
+The Haskell meanings of these things are:
+
+1. 'Sealed' (data type)
+2. 'Sealed' (constructor)
+3. 'unSealed' (field selector)
+
+I.e.
+
+    seal {Integer} 1
+
+is a value of type @sealed integer@, i.e. @seal@ plays the role of a constructor here,
+even though it's really a dynamic builtin.
+
+We immediately run into problems, though. As a dynamic builtin, @seal@ has a meaning and thus
+computes. So @seal@ becomes @Sealed@ on the Haskell side, but we also need to go in the other
+direction, meaning that @Sealed@ becomes @seal@ back. I.e. the
+
+    seal {Integer} 1
+
+application evaluates to itself, which means that the previous version of the CEK machine was
+looping while trying to evaluate that application over and over again. The hack that we added
+to handle this is trivial: if an application evaluates to itself, do not attempt to evaluate it
+again.
+
+The other difficulty that we have is related to unlifting of values that look like that.
+Normally, during evaluation we get one of these:
+
+- an actual constructor (via 'IWrap')
+- a ground value (via 'Constant')
+- a function (via 'Lam')
+
+We handle all of these in distinct ways, but with dynamic-builtins-as-constructor we have a fourth
+option and it's not that clear how to handle it. With 'IWrap' we can apply 'Unwrap' to the term and
+compute further thus reducing the size of the term. With 'Constant' we can return it immediately.
+With 'Lam' we can apply the term to an argument and compute (so just like with 'IWrap'). But for a
+dynamic builtin constructor we can neither return the value immediately, nor reduce it using the
+evaluation engine, because the evaluation engine relies on the constant application machinery,
+which always unlifts all arguments before passing them to a builtin, and so if unlifting of a value
+is required for unlifting of that value, then we have a loop, and thus can't use another dynamic
+builtin for unlifting of a dynamic builtin constructor.
+
+It seems, the only thing that we can do here is simply stripping out the constructor syntactically.
+But then we're left with a PLC term rather than a Haskell value and can't unlift it further due to
+Note [Sequencing]. So what we really need is a dynamic builtin that expects a term that we got
+after stripping out the constructor, which allows us to unlift further, because this way we do not
+break the evaluation flow anywhere. This is the reason we have 'CrossSealed'. It is a very special
+thing: normally `KnownType` connects a PLC type and its corresponding Haskell type, but in this
+case we instead change the type while crossing language boundaries: what is sealed on the PLC side,
+essentially becomes unsealed (we strip out the constructor) on the Haskell side and in order to
+maintain isomorphism between 'readKnown' and 'makeKnown', we are forced to do the exact opposite
+in the other direction.
+
+Hence we have
+
+    unseal :: forall a. CrossSealed a -> a
+
+This function does not unseal anything by itself. Instead, it receives something that has already
+been unsealed, so the unsealing happens behind the scenes in the @KnownType (CrossSealed a)@
+instance.
+
+Now if you think that this is a terrible hack, you haven't seen the actual implementation. There we
+patameterize 'CrossSealed' by 'OpaqueTerm' and coerce this monster to 'OpaqueTerm'. But it works.
+-}
+
+-- TODO: add a note explaining what that is and why we need it.
+newtype Sealed a = Sealed
+    { unSealed :: a
+    } deriving (Eq, Show)
+
+newtype CrossSealed a = CrossSealed
+    { unCrossSealed :: Term TyName Name ()
+    }
+
+instance Pretty a => Pretty (Sealed a) where
+    pretty (Sealed a) = pretty a
+
+dynamicSealName :: DynamicBuiltinName
+dynamicSealName = DynamicBuiltinName "seal"
+
+dynamicSeal :: Term tyname name ()
+dynamicSeal = dynamicBuiltinNameAsTerm dynamicSealName
+
+dynamicUnsealName :: DynamicBuiltinName
+dynamicUnsealName = DynamicBuiltinName "unseal"
+
+dynamicUnseal :: Term tyname name ()
+dynamicUnseal = dynamicBuiltinNameAsTerm dynamicUnsealName
 
 instance KnownType a => KnownType (EvaluationResult a) where
     toTypeAst _ = toTypeAst @a Proxy
@@ -74,6 +183,42 @@ instance (KnownSymbol text, KnownNat uniq) => KnownType (OpaqueTerm text uniq) w
     makeKnown = unOpaqueTerm
 
     readKnown eval = fmap OpaqueTerm . makeRightReflectT . eval mempty
+
+instance KnownType a => KnownType (TypedTerm a) where
+    toTypeAst _ = toTypeAst @a Proxy
+
+    makeKnown = unTypedTerm
+
+    readKnown eval = fmap TypedTerm . makeRightReflectT . eval mempty
+
+    prettyKnown = pretty . unTypedTerm
+
+-- See Note [Dynamic builtins as constructors].
+instance KnownType a => KnownType (Sealed a) where
+    toTypeAst _ = TyApp () (TyBuiltin () TySealed) $ toTypeAst @a Proxy
+
+    makeKnown =
+        Apply () (TyInst () dynamicSeal $ toTypeAst @a Proxy) . makeKnown . unSealed
+
+    readKnown eval term = fmap Sealed . readKnown eval $ Apply () unseal term where
+        unseal = TyInst () dynamicUnseal $ toTypeAst @a Proxy
+
+    prettyKnown (Sealed a) = prettyKnown a
+
+-- See Note [Dynamic builtins as constructors].
+instance KnownType a => KnownType (CrossSealed a) where
+    toTypeAst _ = toTypeAst @(Sealed a) Proxy
+
+    makeKnown = makeKnown @(Sealed (TypedTerm a)) . coerce
+
+    readKnown eval term = do
+        res <- makeRightReflectT $ eval mempty term
+        -- Syntactically stripping out the constructor.
+        case res of
+            Apply () (TyInst () cons _) val | cons == dynamicSeal -> pure $ CrossSealed val
+            _                                                     -> throwError "Not a sealed value"
+
+    prettyKnown = pretty . unCrossSealed
 
 instance KnownType Integer where
     toTypeAst _ = TyBuiltin () TyInteger

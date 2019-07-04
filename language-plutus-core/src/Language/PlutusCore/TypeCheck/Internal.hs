@@ -241,6 +241,7 @@ kindOfTypeBuiltin = \case
     TyInteger    -> Type ()
     TyByteString -> Type ()
     TyString     -> Type ()
+    TySealed     -> KindArrow () (Type ()) $ Type ()
 
 -- | Infer the kind of a type.
 inferKindM :: Type TyName ann -> TypeCheckM ann (Kind ())
