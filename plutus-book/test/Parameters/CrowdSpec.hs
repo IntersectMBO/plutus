@@ -19,7 +19,7 @@ spec :: Spec
 spec = describe "crowd" $ do
     it "works for a successful campaign" $
         isRight (fst $ getResult tr1) `shouldBe` True
-    it "works for a failed campaign" $ do
+    it "works for a failed campaign" $
         isRight (fst $ getResult tr2) `shouldBe` True
   where
     ft, ada2, ada3 :: Ada
