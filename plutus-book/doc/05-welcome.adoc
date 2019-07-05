@@ -98,6 +98,8 @@ At this address the reader will see a window for developing Plutus Tx code.
 The code within the window is a single Haskell module which the user may edit.
 There are two other tabs, `Simulation` and `Transactions`,
 both of which are used for testing the code written in the editor.
+We will go into detail about using these in the <<06-lifecycle#06-lifecycle>>
+Chapter.
 
 There are also several demos listed underneath the tabs, the code of which one
 may load into the editor:
