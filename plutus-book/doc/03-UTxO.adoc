@@ -17,7 +17,7 @@ but rather from transaction to transaction. Each transaction has inputs
 (where the money being spent is coming from), and outputs
 (where this money is going). Note that the body of a transaction may also
 contain other data, as we will see later when we examine the extended
-UTxO model in the <<_shelley_script_extended_utxo_model>> Chapter.
+UTxO model in the <<_shelley_script_extended_utxo_model>> chapter.
 
 Consider the data flow graph below. The black lines represent unspent outputs
 of transactions, and the red lines represent these outputs being used as inputs
@@ -53,7 +53,7 @@ participants. In this simplified version, the transactions illustrated are not
 paying fees, etc.
 Even in this somewhat simplified model, we see that an output must always be spent
 in full. That is, a record of an unspent output cannot be modified (this would
-be essentially account-based bookkeeping), only used entirely. In order to maintain
+be account-based bookkeeping), only used entirely. In order to maintain
 the ledger bookkeeping integrity, the new transaction must have all the unspent outputs (totaling
 the correct amount of all the unspent outputs) that are being used up by it. In the
 example above, our new transaction removes (i.e. uses as inputs) unspent outputs of value
@@ -72,7 +72,7 @@ the intended payees.
 This is, in a very general sense, the goal of smart contracts.
 Let us explore what is going on during the processing of a UTxO transaction event more formally.
 For the basic transaction
-model we discuss here, refer to <<utxo-definitions, the figure>>.:
+model we discuss here, refer to <<utxo-definitions, the figure>>:
 
 [#utxo-definitions]
 image::UTxO.png[]
@@ -138,7 +138,7 @@ the inclusion of Plutus Tx scrips inside transactions as well. The following
 definitions are three ways to filter a UTxO finite map. The first one is
 filtering the UTxO by a subset `ins` of the keys. The second filter
 gives the compliment of the result of the first filter (i.e. all the UTxO
-entries not indexed by keys in the list of inputs). The third filer
+entries not indexed by keys in the list of inputs). The third filter
 filters UTxO entries by the values.
 
 image::restrnotation.png[]
