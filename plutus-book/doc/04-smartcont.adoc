@@ -2,14 +2,13 @@
 = Smart Contracts
 
 Traditional contracts are legally-binding agreements concerning loans, sales,
-tenancy, etc. Smart contracts seek to eliminate
+tenancy, and so on. Smart contracts seek to eliminate
 this element of "agreement" from the concept of a contract, replacing it with a
 software-ensured guarantee that no parties involved are able to sabotage the contract
 through negligence or nefarious action.
-This is achieved is by
-forgoing relying on the actions of an individual, company, or government in favour of
-relying on the execution of a (smart contract)
-program to control the transfer of funds between a contract's participants,
+This is achieved by
+forgoing the reliance on the actions of an individual, company, or government in favour of
+reliance on the execution of a program, or smart contract, to control the transfer of funds between a contract's participants. 
 immortalizing both the program and its outcome on the ledger on the blockchain.
 Specifically, participants engage in a smart contract exclusively
 via distributed cryptographic ledger. This ensures the entire history
@@ -27,7 +26,7 @@ they may be people or machines.
 On the Cardano blockchain, the smart contract programs that run on the blockchain are written
 in a language called Plutus Core. However, smart contract authors do not write
 Plutus Core directly. The Plutus Platform (discussed in the next chapter) is a
-software development kit to enable smart contract authors to easily write smart
+software development kit (SDK) to enable you to easily write smart
 contracts, including the logic that will eventually be run on the blockchain as
 Plutus Core.
 We now give some heuristics, considerations and limitations of smart contracts
