@@ -1,3 +1,4 @@
+[#04-smartcont]
 = Smart Contracts
 
 Traditional contracts are legally-binding agreements concerning loans, sales,

@@ -1,7 +1,8 @@
+[#03-UTxO]
 = UTxO Style Accounting
 
 In order to become proficient with all things Plutus, it is
-inevitable that the reader must first acquire a solid understanding of how
+inevitable that you must first acquire a solid understanding of how
 accounting is done on the Cardano platform.
 
 We traditionally think of money transfers as being between two bank accounts,
@@ -38,8 +39,8 @@ Now, Bob has 10 Ada from previous unspent outputs. He spends them as follows:
 
 * all 10 Ada goes to the new transaction
 
-This new transaction we illustrate here has two inputs, 42 from Alice and 10
-from Bob. This transaction has two outputs, 2 Ada to Bob and 50 to Charlie.
+This new transaction we illustrate here has two inputs, 42 from Alice, and 10
+from Bob. This transaction has two outputs, 2 Ada to Bob, and 50 to Charlie.
 We also see that Charlie has 52 Ada from a previously unspent output, for
 a total of 102 Ada he can spend in future transactions. Bob is left with
 only one output of 2 Ada, and Alice, a total of 58 Ada in unspent outputs
@@ -93,7 +94,7 @@ belong to the entity who is able to prove that they possess they corresponding
 private key. Script (or smart contract) addresses are slightly different, as we will see later.
 
 As for the structure of the transaction itself,
-let us examine the outputs first. The a single transaction may distribute
+let us examine the outputs first. A single transaction may distribute
 the money it is spending to several different addresses.
 The outputs (values of type `TxOut`) are stored in a transaction as the values in a finite map.
 The keys of the finite map are distinct index values within the context
@@ -176,7 +177,7 @@ set amount of Ada in existence, which can never change.
 Note also that a transaction includes a host of other data, such as
 witnesses, certificates, and scripts along with their hashes.
 Here we have not gone into the details of the specific types and calculations
-used in the Cardano ledger implementation, but now the reader should have a
+used in the Cardano ledger implementation, but you should now should have a
 sufficient understanding of the structure of a transaction and how it is
 processed to be able to understand what goes on behind the
 scenes when Plutus code is used to generate a transaction.

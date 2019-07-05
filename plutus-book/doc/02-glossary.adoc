@@ -1,5 +1,5 @@
 [glossary]
-== Glossary
+= Glossary
 
 Extended UTxO ::
 * The ledger model on which the Plutus Platform is based

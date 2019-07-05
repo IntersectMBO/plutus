@@ -1,3 +1,4 @@
+[#05-welcome]
 = Welcome to Plutus - A New Language for Reliable Smart Contracts
 
 == Why Plutus?
