@@ -1,5 +1,8 @@
 [#05-welcome]
-= Welcome to Plutus - a new language for reliable smart contracts
+= Welcome to the _Writing Reliable Smart Contracts in Plutus_ book 
+
+This is an introductory book about Plutus. We hope you enjoy reading it and find it useful.
+
 
 == Why Plutus?
 
