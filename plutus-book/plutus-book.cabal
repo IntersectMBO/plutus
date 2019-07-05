@@ -56,7 +56,7 @@ library
         , OffChain.Trigger
         , OffChain.TriggerSimple
         , Parameters.Crowd
-    ghc-options: -Wall -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc
+    ghc-options: -Wall -fno-warn-unused-imports -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc
     build-tool-depends: unlit:unlit -any
     build-depends:
       base >=4.9 && <5,
