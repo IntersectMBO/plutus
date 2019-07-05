@@ -5,3 +5,4 @@ generated/
 generated-docs/
 .psc-package
 .psc-package2nix
+.psci_modules/

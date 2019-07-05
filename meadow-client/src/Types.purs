@@ -3,9 +3,11 @@ module Types where
 import API (RunResult)
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
+import Blockly.Types (BlocklyState)
 import Data.BigInteger (BigInteger)
 import Data.Either (Either)
-import Data.Functor.Coproduct (Coproduct)
+import Data.Either.Nested (Either3)
+import Data.Functor.Coproduct.Nested (Coproduct3)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens, Lens', lens)
@@ -20,7 +22,8 @@ import Data.Newtype (class Newtype)
 import Data.RawJson (JsonEither)
 import Data.Symbol (SProxy(..))
 import Gist (Gist)
-import Halogen.Component.ChildPath (ChildPath, cpL, cpR)
+import Halogen.Blockly (BlocklyQuery, BlocklyMessage)
+import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult)
 import Marlowe.Semantics (DetachedPrimitiveWIA, AnyInput, State, ErrorResult, DynamicProblem)
 import Marlowe.Types (BlockNumber, Choice, Contract, IdChoice, IdOracle, Person)
@@ -65,13 +68,16 @@ data Query a
   | SetOracleBn {idOracle :: IdOracle, blockNumber :: BlockNumber} a
   | ResetSimulator a
   | Undo a
+  -- blockly
+  | HandleBlocklyMessage BlocklyMessage a
+  | SetBlocklyCode a
 
 ------------------------------------------------------------
 type ChildQuery
-  = Coproduct AceQuery AceQuery
+  = Coproduct3 AceQuery AceQuery BlocklyQuery
 
 type ChildSlot
-  = Either EditorSlot MarloweEditorSlot
+  = Either3 EditorSlot MarloweEditorSlot BlocklySlot
 
 data EditorSlot
   = EditorSlot
@@ -87,16 +93,25 @@ derive instance eqComponentMarloweEditorSlot :: Eq MarloweEditorSlot
 
 derive instance ordComponentMarloweEditorSlot :: Ord MarloweEditorSlot
 
+data BlocklySlot = BlocklySlot
+
+derive instance eqBlocklySlot :: Eq BlocklySlot
+derive instance ordBlocklySlot :: Ord BlocklySlot
+
 cpEditor :: ChildPath AceQuery ChildQuery EditorSlot ChildSlot
-cpEditor = cpL
+cpEditor = cp1
 
 cpMarloweEditor :: ChildPath AceQuery ChildQuery MarloweEditorSlot ChildSlot
-cpMarloweEditor = cpR
+cpMarloweEditor = cp2
+
+cpBlockly :: ChildPath BlocklyQuery ChildQuery BlocklySlot ChildSlot
+cpBlockly = cp3
 
 -----------------------------------------------------------
 data View
-  = Editor
+  = HaskellEditor
   | Simulation
+  | BlocklyEditor
 
 derive instance eqView :: Eq View
 
@@ -115,6 +130,7 @@ newtype FrontendState
   , gistUrl :: Maybe String
   , marloweState :: NonEmptyList MarloweState
   , oldContract :: Maybe String
+  , blocklyState :: Maybe BlocklyState
   }
 
 derive instance newtypeFrontendState :: Newtype FrontendState _
@@ -145,6 +161,9 @@ _marloweState = _Newtype <<< prop (SProxy :: SProxy "marloweState")
 
 _oldContract :: Lens' FrontendState (Maybe String)
 _oldContract = _Newtype <<< prop (SProxy :: SProxy "oldContract")
+
+_blocklyState :: Lens' FrontendState (Maybe BlocklyState)
+_blocklyState = _Newtype <<< prop (SProxy :: SProxy "blocklyState")
 
 -- Oracles should not be grouped (only one line per oracle) like:
 --    Oracle 3: Provide value [$value] for block [$timestamp]

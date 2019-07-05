@@ -968,6 +968,18 @@ let
       installPhase = "ln -s $src $out";
     };
 
+    "simple-json" = pkgs.stdenv.mkDerivation {
+      name = "simple-json";
+      version = "v5.1.0";
+      src = pkgs.fetchgit {
+        url = "https://github.com/justinwoo/purescript-simple-json.git";
+        rev = "v5.1.0";
+        sha256 = "0mqsf089sslvjdl02ml4iq36hphazg16hzydm384qg8j2j347h5r";
+      };
+      phases = "installPhase";
+      installPhase = "ln -s $src $out";
+    };
+
     "st" = pkgs.stdenv.mkDerivation {
       name = "st";
       version = "v4.0.0";
@@ -1131,6 +1143,18 @@ let
         url = "https://github.com/purescript-contrib/purescript-unsafe-reference";
         rev = "v3.0.1";
         sha256 = "0q758dz59qz0li4s3w1qcg921xp5i5rh6i1l611iv7rr8cbj11al";
+      };
+      phases = "installPhase";
+      installPhase = "ln -s $src $out";
+    };
+
+    "variant" = pkgs.stdenv.mkDerivation {
+      name = "variant";
+      version = "v6.0.0";
+      src = pkgs.fetchgit {
+        url = "https://github.com/natefaubion/purescript-variant.git";
+        rev = "v6.0.0";
+        sha256 = "0dsg80143byrssf0dr69vdwi5w74clgjl8nrmn7djknh75gfaqnp";
       };
       phases = "installPhase";
       installPhase = "ln -s $src $out";
