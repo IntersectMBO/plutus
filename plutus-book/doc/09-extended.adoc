@@ -6,7 +6,7 @@ of just where Plutus fits in on Cardano Shelley
 blockchain ledger. Here we present a high-level explanation of the extended
 UTxO model and introduce the reader into the idea of using scripts as
 tools for making smart contracts on the blockchain. In this chapter,
-we use and build on concepts and notation from the <<_utxo_style_accounting>> chapter.
+we use and build on concepts and notation from the <<03-UTxO>> chapter.
 
 In the basic UTxO model, the scheme for authorizing transactions
 is reliable, but somewhat basic. It is also limited to strictly Ada accounting.
@@ -118,17 +118,16 @@ explain the use of each in every example we present later on.
 Validator scripts are Plutus Core functions that take several input
 arguments, which are also Plutus Core expressions.
 
-1. Validator script
+. Validator script
 * Carried by a transaction spending funds from a script address
-- inside a transaction, validator scripts are stored as a finite map indexed by
-the hash of this script
+- inside a transaction, validator scripts are stored as a finite map indexed by the hash of this script
 * Is a function of the following 3 types discussed below
 - data script
 - redeemer script
 - transaction and ledger data
 * returns a boolean value to represent the result of validation.
 
-2. Data script
+. Data script
 * Carried by a transaction which is paying to a script
 - inside a transaction, data scripts are indexed by the index `ix`
 of the output which is being used to pay to the script
@@ -151,7 +150,7 @@ in the key used for looking up the data script. This is the ID of the
 transaction which was carrying it.
 
 [start=3]
-3. Redeemer script
+. Redeemer script
 * Carried by a transaction which is spending funds from a script address
 - inside a transaction, redeemer scripts are indexed by the hash of the
 validator (not the redeemer itself) for which they are intended
@@ -175,7 +174,7 @@ the event triggers, endpoints and validator script are defined in such a way
 that this is true.
 
 [start=4]
-4. A `PendingTx` value.
+. A `PendingTx` value.
 * Contains information about the current transaction
 - inputs and outputs
 - validity interval, etc.
