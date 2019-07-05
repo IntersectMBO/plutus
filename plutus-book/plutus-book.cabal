@@ -76,6 +76,7 @@ test-suite plutus-book-test
   hs-source-dirs:      test
   main-is:             Spec.hs
   other-modules:       Game.GuessSpec
+                     , Multi.VestingSpec
                      , OffChain.HelloSpec
                      , OffChain.PayToWalletSpec
                      , OffChain.TriggerSpec
