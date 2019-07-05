@@ -12,8 +12,11 @@ On-chain code ::
 Off-chain code ::
 * Code written as part of a smart contract which executes off the chain, usually in a user's wallet.
 
-Mockchain::
-* 
+Mockchain ::
+* A Cardano blockchain emulator which faithfully Plutus smart contract behaviour
+
+Mock Wallet ::
+* A wallet emulator which is used to interact with the mockchain
 
 Plutus Core ::
 * A small functional programming language designed to run as on-chain code.
