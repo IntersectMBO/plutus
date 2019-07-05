@@ -160,3 +160,4 @@ something went wrong earlier and you should go back to step 4.
 [arabic]
 . Install the "Ubuntu 18.04" app from the app store
 . Open the "Ubuntu 18.04" terminal by clicking on the icon
+

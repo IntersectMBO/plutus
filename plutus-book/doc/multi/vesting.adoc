@@ -1,0 +1,228 @@
+[source,haskell]
+----
+{-# LANGUAGE DataKinds                       #-}
+{-# LANGUAGE DeriveAnyClass                  #-}
+{-# LANGUAGE NoImplicitPrelude               #-}
+{-# LANGUAGE ScopedTypeVariables             #-}
+{-# LANGUAGE TemplateHaskell                 #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+
+module Multi.Vesting where
+
+import           Language.PlutusTx
+import           Language.PlutusTx.Builtins (greaterThanEqInteger)
+import           Language.PlutusTx.Prelude  hiding (plus, minus)
+import           Ledger
+import           Ledger.Ada
+import           Playground.Contract
+import           Wallet
+
+import           Control.Monad              (void)
+import           Data.Map                   (Map)
+import qualified Data.Map                   as Map
+import           Data.Set                   (Set)
+import qualified Data.Set                   as Set
+import           Data.Text                  (pack)
+
+data Tranche = Tranche
+    { date   :: Slot
+    , amount :: Ada
+    } deriving (Show, Generic, ToJSON, FromJSON, ToSchema)
+
+makeLift ''Tranche
+
+data Vesting = Vesting
+    { tranche1 :: Tranche
+    , tranche2 :: Tranche
+    , owner    :: PubKey
+    } deriving (Show, Generic, ToJSON, FromJSON, ToSchema)
+
+makeLift ''Vesting
+----
+
+Let us also write two helper functions to work with tranches and
+vesting schemes:
+
+[source,haskell]
+----
+-- The total amount locked in the scheme.
+totalAmount :: Vesting -> Ada
+totalAmount v = amount (tranche1 v) `plus` amount (tranche2 v)
+
+-- Funds guaranteed to be available in that range.
+availableFrom:: Vesting -> SlotRange -> Ada
+availableFrom v r =
+           availableFromTranche (tranche1 v)
+    `plus` availableFromTranche (tranche2 v)
+  where
+    availableFromTranche :: Tranche -> Ada
+    availableFromTranche t =
+        if intervalFrom (date t) `contains` r
+            then amount t
+            else 0
+----
+
+Now it is time to think about suitable types for data- and redeemer scripts.
+The only thing changing during the lifetime of a vesting scheme
+is how much money has already been collected,
+and that information can be observed without any additional data.
+This means we can use the unit type `()` for our data scripts.
+
+The role of the redeemer script is to indicate the intent of collecting from the
+script, but in this example, there is only one intent: withdrawing funds.
+So we can choose `()` for the redeemer scripts, too.
+
+[source,haskell]
+----
+dataScript :: DataScript
+dataScript = DataScript $ lifted ()
+
+redeemerScript :: RedeemerScript
+redeemerScript = RedeemerScript $ lifted ()
+----
+
+We are now in a position to define the validator script.
+Once more we will define an ordinary Haskell function `validate` first
+that does all the work, and we will parameterize the validator script by
+the vesting scheme with the technique that we learned in the last chapter.
+
+Function `validate` has to check that we do not collect more from the script
+than is allowed at that time, i.e. that we lock enough money back into the
+script, and that the transaction is signed by the vesting scheme owner.
+
+[source,haskell]
+----
+type VestingValidator = () -> () -> PendingTx -> Bool
+
+validate :: Vesting -> VestingValidator
+validate v () () tx =
+    let hash       = ownHash tx                                      -- <1>
+        available  = availableFrom v (pendingTxValidRange tx)        -- <2>
+        unreleased = totalAmount v `minus` available                 -- <3>
+        remaining  = adaLockedBy tx hash                             -- <4>
+    in     (toInt remaining `greaterThanEqInteger` toInt unreleased)
+        && (tx `txSignedBy` owner v)
+
+mkValidatorScript :: Vesting -> ValidatorScript
+mkValidatorScript = ValidatorScript
+                  . applyScript $$(compileScript [|| validate ||])
+                  . lifted
+----
+
+<1> Our validator hash.
+
+<2> The funds that have already been released.
+
+<3> The funds have not yet been released.
+
+<4> The funds this transaction leaves in the contract.
+
+Now we are ready to define our wallet endpoints. We need three:
+
+* `registerScheme`, used by the owner to start watching his vesting scheme,
+* `vest` for somebody to lock funds in a vesting scheme and
+* `withdraw` for the owner to withdraw funds from his vesting scheme.
+
+[source,haskell]
+----
+vestingAddress :: Vesting -> Address
+vestingAddress = scriptAddress . mkValidatorScript
+
+registerScheme :: MonadWallet m => Tranche -> Tranche -> m ()
+registerScheme t1 t2 = do
+    key <- ownPubKey
+    let v = Vesting
+            { tranche1 = t1
+            , tranche2 = t2
+            , owner    = key
+            }
+    logMsg $ pack $ "registering " ++ show v
+    startWatching $ vestingAddress v
+
+vest :: MonadWallet m => Vesting -> m ()
+vest v = do
+    logMsg $ pack $ "vesting in " ++ show v
+    payToScript_
+        defaultSlotRange
+        (vestingAddress v)
+        (toValue $ totalAmount v)
+        dataScript
+----
+
+Function `withdraw` is the most interesting and complicated one:
+Unless we want to withdraw all remaining funds,
+we must construct a transaction with two outputs, one to our public key for the
+withdrawn funds and one to the script to lock the remaining amount.
+The inputs of this transaction will be all UTxO's belonging to the script
+(although under normal circumstances, there will always be exactly one such
+output).
+
+As mentioned in the introduction to this chapter, we will use
+`createTxAndSubmit` for this purpose.
+
+[source,haskell]
+----
+withdraw :: MonadWallet m => Tranche -> Tranche -> Ada -> m ()
+withdraw t1 t2 ada = do
+
+    key <- ownPubKey
+    let v = Vesting
+            { tranche1 = t1
+            , tranche2 = t2
+            , owner    = key
+            }
+    logMsg $ pack $ 
+        "withdrawing " ++ show ada ++ 
+        " from " ++ show v
+
+    utxos <- outputsAt $ vestingAddress v         -- <1>
+
+    sl <- slot
+    let range = intervalFrom sl
+
+    let o = pubKeyTxOut (toValue ada) key
+
+    let change = locked utxos `minus` ada         -- <2>
+        outs = if change > 0
+            then [ o
+                 , scriptTxOut                   
+                    (toValue change) 
+                    (mkValidatorScript v)
+                    dataScript
+                 ]
+            else [o]
+
+    void $ createTxAndSubmit
+        range
+        (ins v utxos)
+        outs
+
+  where
+    ins :: Vesting                                -- <3>
+        -> Map TxOutRef TxOut 
+        -> Set TxIn
+    ins v utxos = Set.fromList
+        [ scriptTxIn 
+            r 
+            (mkValidatorScript v) 
+            redeemerScript 
+        | r <- Map.keys utxos
+        ]
+
+    locked :: Map TxOutRef TxOut -> Ada           -- <4>
+    locked = Map.foldl' f zero
+      where
+        f :: Ada -> TxOut -> Ada
+        f a o = a `plus` fromValue (txOutValue o)
+
+$(mkFunctions ['registerScheme, 'vest, 'withdraw])
+----
+
+<1> We use `outputsAt` to get all UTxO's locked by our script.
+
+<2> How much change to we have to lock back into the script?
+
+<3> The inputs for our transaction, one for each UTxO locked by our script.
+
+<4> How much money is still locked in the script?
+

@@ -85,3 +85,4 @@ This concludes our first example of a Plutus smart contract combining on-chain
 with off-chain code. We have seen how to lift types and values to Plutus Core,
 how to write a validator script and how to interact with a script address in the
 iwallet.
+

@@ -16,8 +16,8 @@ type MonadWallet (m :: * -> *) = (WalletAPI m, WalletDiagnostics m) :: Constrain
 ----
 
 By writing code that is independent of the specific choice of monad,
-we make sure that it runa in different wallet implementations,
-in particular the mock wallet of the Plutus Payground and
+we make sure that it runs in different wallet implementations,
+in particular the mock wallet of the Plutus Playground and
 the actual Cardano wallet.
 
 So what are those constraints `WalletAPI` and `WalletDiagnostics`?
@@ -252,3 +252,4 @@ a certain action,
 and how to create, inspect, and use slot ranges.
 
 In the next chapter, we will dive into _on-chain_ code and create our first smart contract.
+

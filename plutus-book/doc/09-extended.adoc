@@ -330,3 +330,4 @@ currency as well as non-fungible tokens on the mockchain
 * A Formal Specification of a Multi-Signature Scheme Using Scripts, see <<multisig>>
 - A formal specification of enforcing a custom witnessing policy for spending
 outputs
+
