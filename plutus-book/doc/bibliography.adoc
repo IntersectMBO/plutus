@@ -1,5 +1,5 @@
 [bibliography]
-== References
+= References
 
 - [[[deleg,1]]] Jared Corduan, Polina Vinogradova, and Matthias Gudemann.
 A formal specification of the Cardano ledger. Technical report, IOHK, 2019.

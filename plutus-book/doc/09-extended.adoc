@@ -6,7 +6,7 @@ of just where Plutus fits in on Cardano Shelley
 blockchain ledger. Here we present a high-level explanation of the extended
 UTxO model and introduce the reader into the idea of using scripts as
 tools for making smart contracts on the blockchain. In this chapter,
-we use and build on concepts and notation from the <<_utxo_style_accounting>> chapter.
+we use and build on concepts and notation from the <<03-UTxO#03-UTxO>> chapter.
 
 In the basic UTxO model, the scheme for authorizing transactions
 is reliable, but somewhat basic. It is also limited to strictly Ada accounting.
@@ -15,9 +15,9 @@ Ethereum’s account-based scripting model to the UTxO-based Cardano blockchain,
 including smart contract support.
 The extension has two components:
 
-1. an extension to the data carried by
+. an extension to the data carried by
 transactions and the corresponding processing scheme performed by the nodes
-2. an
+. an
 extension to the wallet backend to facilitate off-chain code that coordinates
 the execution of on-chain computations.
 
@@ -27,7 +27,7 @@ validate a transaction. Without scripts, the Shelley ledger UTxO state update
 rule essentially consists of two steps (both of which are, of course, computations
 performed by nodes, and are on-chain):
 
-1. Check that a transaction is valid, which includes verifying the following:
+. Check that a transaction is valid, which includes verifying the following:
 * it is live (the transactions time to live has not passed yet)
 * the Ada values being spent are non-negative
 * generalized accounting property holds
@@ -35,7 +35,7 @@ performed by nodes, and are on-chain):
 * the fee is being paid
 * etc.
 
-2. Check that the every action the transaction is performing is witnessed
+. Check that the every action the transaction is performing is witnessed
 by the holder of the appropriate private key for
 * the spending of every output (witnessed by the key holder for the address
 from which the funds are being spent)
@@ -118,7 +118,7 @@ explain the use of each in every example we present later on.
 Validator scripts are Plutus Core functions that take several input
 arguments, which are also Plutus Core expressions.
 
-1. Validator script
+. Validator script
 * Carried by a transaction spending funds from a script address
 - inside a transaction, validator scripts are stored as a finite map indexed by
 the hash of this script
@@ -128,7 +128,7 @@ the hash of this script
 - transaction and ledger data
 * returns a boolean value to represent the result of validation.
 
-2. Data script
+. Data script
 * Carried by a transaction which is paying to a script
 - inside a transaction, data scripts are indexed by the index `ix`
 of the output which is being used to pay to the script
@@ -151,7 +151,7 @@ in the key used for looking up the data script. This is the ID of the
 transaction which was carrying it.
 
 [start=3]
-3. Redeemer script
+. Redeemer script
 * Carried by a transaction which is spending funds from a script address
 - inside a transaction, redeemer scripts are indexed by the hash of the
 validator (not the redeemer itself) for which they are intended
@@ -175,7 +175,7 @@ the event triggers, endpoints and validator script are defined in such a way
 that this is true.
 
 [start=4]
-4. A `PendingTx` value.
+. A `PendingTx` value.
 * Contains information about the current transaction
 - inputs and outputs
 - validity interval, etc.
