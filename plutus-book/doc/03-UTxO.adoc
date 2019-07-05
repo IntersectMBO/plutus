@@ -17,7 +17,7 @@ but rather from transaction to transaction. Each transaction has inputs
 (where the money being spent is coming from), and outputs
 (where this money is going). Note that the body of a transaction may also
 contain other data, as we will see later when we examine the extended
-UTxO model in the <<_shelley_script_extended_utxo_model>> chapter.
+UTxO model in the <<09-extended#09-extended>> chapter.
 
 Consider the data flow graph below. The black lines represent unspent outputs
 of transactions, and the red lines represent these outputs being used as inputs
@@ -72,7 +72,7 @@ the intended payees.
 This is, in a very general sense, the goal of smart contracts.
 Let us explore what is going on during the processing of a UTxO transaction event more formally.
 For the basic transaction
-model we discuss here, refer to <<utxo-definitions, the figure>>:
+model we discuss here, refer to Figure <<utxo-definitions, the figure>>.
 
 [#utxo-definitions]
 image::UTxO.png[]
