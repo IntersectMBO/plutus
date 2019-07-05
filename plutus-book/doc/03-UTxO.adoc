@@ -14,7 +14,7 @@ formal specification, see <<deleg>>.
 
 UTxO-style accounting documents the flow of money not from account to account,
 but rather from transaction to transaction. Each transaction has inputs
-(where the money being spent this transaction is coming from) and outputs
+(where the money being spent is coming from), and outputs
 (where this money is going). Note that the body of a transaction may also
 contain other data, as we will see later when we examine the extended
 UTxO model in the <<_shelley_script_extended_utxo_model>> Chapter.
@@ -54,12 +54,12 @@ paying fees, etc.
 Even in this somewhat simplified model, we see that an output must always be spent
 in full. That is, a record of an unspent output cannot be modified (this would
 be essentially account-based bookkeeping), only used entirely. In order to maintain
-the ledger bookkeeping integrity, we must have in our new transaction unspent outputs totaling
-the correct amount of all the unspent outputs that are being used up by it. In the
+the ledger bookkeeping integrity, the new transaction must have all the unspent outputs (totaling
+the correct amount of all the unspent outputs) that are being used up by it. In the
 example above, our new transaction removes (i.e. uses as inputs) unspent outputs of value
 42 from Alice and 10 from Bob, for a total of 52 Ada. We must then have
 52 Ada of outputs from this transaction (2 to Bob and 50 to Charlie).
-Note here that Bob both had an unspent output used by this transaction and
+Note here that Bob had both an unspent output used by this transaction and
 an unspent output produced by this transaction. That is, he got, so to say,
 change (of 2 Ada) from this transaction. Since there is no true way to spend
 part of an output, this is how UTxO accounting deals with partial spending -
@@ -70,10 +70,11 @@ to distribute the flow of cash from several contributors to several recipients b
 having it flow into a common pot, i.e. the transaction, before being sent to
 the intended payees.
 This is, in a very general sense, the goal of smart contracts.
-Let us explore what is going on during a UTxO transaction processing event more formally.
+Let us explore what is going on during the processing of a UTxO transaction event more formally.
 For the basic transaction
-model we discuss here, consider the following figure:
+model we discuss here, refer to <<utxo-definitions, the figure>>.:
 
+[#utxo-definitions]
 image::UTxO.png[]
 
 Before we examine the structure of transactions, let us look at how book keeping
@@ -107,9 +108,9 @@ global identifier.
 
 The inputs are also a list, however, the elements of this list contain neither
 a coin value to be spent, nor the address which the money is coming from.
-This is the main distinction between traditional and UTxO accounting:
+This is the main distinction between traditional accounting and UTxO accounting:
 the money being spent is only referred by the unspent outputs of
-previously processed transactions on the ledger currently on the blockchain.
+previously processed transactions on the ledger that reside currently on the blockchain.
 Each element of the inputs list is a pair of a transaction ID and an index.
 Which, as explained above, uniquely identifies the unspent output in the UTxO
 which is to be spent.
@@ -171,13 +172,13 @@ so to say. This is known as the generalized accounting property. It is the enfor
 of this property,
 and not an inherent invariant of the UTxO transaction processing scheme, that
 ensures that no dishonest spending is allowed to occur. This is a crucial property
-for the Cardano ledger bookkeeping system, in particular because there is a
+of the Cardano ledger bookkeeping system, in particular because there is a
 set amount of Ada in existence, which can never change.
 
 Note also that a transaction includes a host of other data, such as
 witnesses, certificates, and scripts along with their hashes.
 Here we have not gone into the details of the specific types and calculations
-used in the Cardano ledger implementation, but you should now should have a
+used in the Cardano ledger implementation, but you should now have a
 sufficient understanding of the structure of a transaction and how it is
 processed to be able to understand what goes on behind the
 scenes when Plutus code is used to generate a transaction.

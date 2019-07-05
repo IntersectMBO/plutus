@@ -1,3 +1,4 @@
+[#09-extended]
 = Shelley Script-Extended UTxO Model
 
 This chapter is geared towards the reader that wants to have a clearer picture
