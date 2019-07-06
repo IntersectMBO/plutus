@@ -39,5 +39,6 @@ include::off-chain/off-chain.adoc[]
 include::game/game.adoc[]
 include::parameters/parameters.adoc[]
 include::multi/multi.adoc[]
+include::token/token.adoc[]
 include::bibliography.adoc[]
 
