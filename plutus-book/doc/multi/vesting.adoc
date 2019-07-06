@@ -62,8 +62,8 @@ availableFrom v r =
             else 0
 ----
 
-Now it is time to think about suitable types for data- and redeemer scripts.
-The only thing changing during the lifetime of a vesting scheme
+Now it is time to think about suitable types for the data- and redeemer scripts.
+The only thing that changes during the lifetime of a vesting scheme
 is how much money has already been collected,
 and that information can be observed without any additional data.
 This means we can use the unit type `()` for our data scripts.
@@ -117,11 +117,11 @@ mkValidatorScript = ValidatorScript
 
 <4> The funds this transaction leaves in the contract.
 
-Now we are ready to define our wallet endpoints. We need three:
+Now we are ready to define our wallet endpoints, of which we need three:
 
-* `registerScheme`, used by the owner to start watching his vesting scheme,
-* `vest` for somebody to lock funds in a vesting scheme and
-* `withdraw` for the owner to withdraw funds from his vesting scheme.
+* `registerScheme` - used by the owner to start watching his vesting scheme
+* `vest` - for somebody to lock funds in a vesting scheme
+* `withdraw` - for the owner to withdraw funds from his vesting scheme
 
 [source,haskell]
 ----
@@ -152,8 +152,8 @@ vest v = do
 Function `withdraw` is the most interesting and complicated one:
 Unless we want to withdraw all remaining funds,
 we must construct a transaction with two outputs, one to our public key for the
-withdrawn funds and one to the script to lock the remaining amount.
-The inputs of this transaction will be all UTxO's belonging to the script
+withdrawn funds, and one to the script to lock the remaining amount.
+The inputs of this transaction will be all the UTxOs that belong to the script
 (although under normal circumstances, there will always be exactly one such
 output).
 
@@ -218,9 +218,9 @@ withdraw t1 t2 ada = do
 $(mkFunctions ['registerScheme, 'vest, 'withdraw])
 ----
 
-<1> We use `outputsAt` to get all UTxO's locked by our script.
+<1> We use `outputsAt` to get all UTxOs locked by our script.
 
-<2> How much change to we have to lock back into the script?
+<2> How much change do we have to lock back into the script?
 
 <3> The inputs for our transaction, one for each UTxO locked by our script.
 
