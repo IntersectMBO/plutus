@@ -106,6 +106,7 @@ At different points in the lifetime of a contract throughout its execution,
 different parties may be allowed to collect funds from the contract or
 be expected to pay into the contract.
 
+[#tokens]
 == Real-world and Non Fungible Tokens
 
 While we can enforce the correct transfer of funds between participants in a
@@ -208,6 +209,9 @@ These types of tokens can be tracked on a blockchain by a unique ID, that
 would be associated with an address, and thus its owner, similar to a
 regular ownership document. We will discuss how exactly such a unique ID
 can be constructed in the extended UTxO model.
+
+We will look at how to handle custom tokens in chapter
+<<token/token.adoc#token>>.
 
 == Loans
 

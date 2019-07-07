@@ -56,6 +56,7 @@ library
         , OffChain.Trigger
         , OffChain.TriggerSimple
         , Parameters.Crowd
+        , Token.Fungible
     ghc-options: -Wall -fno-warn-unused-imports -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc
     build-tool-depends: unlit:unlit -any
     build-depends:
@@ -81,8 +82,10 @@ test-suite plutus-book-test
                      , OffChain.PayToWalletSpec
                      , OffChain.TriggerSpec
                      , Parameters.CrowdSpec
+                     , Token.FungibleSpec
                      , Utils
   build-depends:       base >= 4.9 && <5
+                     , bytestring -any
                      , containers -any
                      , hspec -any
                      , plutus-book -any
