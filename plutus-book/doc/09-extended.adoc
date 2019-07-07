@@ -19,7 +19,10 @@ The extension has two components:
 transactions and the corresponding processing scheme performed by the nodes
 . an
 extension to the wallet backend to facilitate off-chain code that coordinates
-the execution of on-chain computations.
+the execution of on-chain computations
+- Note that an extended UTxO wallet must have access to ledger data in
+order to be able to watch (or to look up) outputs at specified addresses
+at any time
 
 In this chapter, we focus on the first component.
 In the extended UTxO model, additional on-chain computations must be done to
@@ -51,10 +54,16 @@ script capability to the second step.
 
 == Scripts
 
-Scripts (specifically, Plutus scripts) are Plutus Core expressions carried by
-a transaction. Scripts are a way to add smart contract functionality
-to the extended UTxO model. Many of the subsequent chapters of this book discuss building and
-executing scripts that define specific smart contracts. In this section, however,
+Recall from the <<10-PlutusTx#10-PlutusTx>> chapter that
+scripts (specifically, Plutus scripts) are Plutus Core expressions carried by
+a transaction (or stored on the ledger). They are defined inside a specially-delimited
+sections of a Haskell program, called Plutus Tx, which are then compiled into
+Plutus Core.
+
+Scripts are a way to add smart contract functionality
+to the extended UTxO model.
+Many of the subsequent chapters of this book discuss building scripts
+that define specific smart contracts. In this section, however,
 we discuss in general how scripts are used in the extended UTxO model.
 For a draft of the formal specification of the extended UTxO model with
 scripts, see <<scripts>>.
@@ -316,18 +325,3 @@ rolled back transaction. We do not give the details of this functionality here.
 
 There are other features of the extended UTxO system that are less relevant to
 a Plutus user, which we will also not explain in detail in this chapter.
-
-.Adding Ledger Functionality Using Scripts
-
-In the upcoming examples in this book we walk the reader through the process
-of building, testing and using Plutus contracts. For examples of work on using
-scripts to add specific functionality to the UTxO ledger, we would like to
-point the reader to the following documents,
-
-* Multi-currency on the UTXO Ledger, see <<multicur>>
-- A implementation of a script-based model for different types of
-currency as well as non-fungible tokens on the mockchain
-* A Formal Specification of a Multi-Signature Scheme Using Scripts, see <<multisig>>
-- A formal specification of enforcing a custom witnessing policy for spending
-outputs
-
