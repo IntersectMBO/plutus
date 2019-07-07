@@ -82,8 +82,10 @@ test-suite plutus-book-test
                      , OffChain.PayToWalletSpec
                      , OffChain.TriggerSpec
                      , Parameters.CrowdSpec
+                     , Token.FungibleSpec
                      , Utils
   build-depends:       base >= 4.9 && <5
+                     , bytestring -any
                      , containers -any
                      , hspec -any
                      , plutus-book -any
