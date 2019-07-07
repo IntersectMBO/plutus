@@ -2,9 +2,59 @@
 = Writing off-chain code
 
 Working with Plutus requires writing on-chain code and off-chain code,
-with both parts working well together.
+with both parts working well together. Before diving into writing our code,
+we give a brief summary of
+what a complete Plutus contract consists of, and the role of on- and
+off-chain code in it.
 
-Let us start by looking at the off-chain part of this interplay,
+.The Plutus Contract
+[NOTE]
+====
+* A Plutus contract is a Haskell program which
+- runs in a user's wallet
+- also submits code (scripts) to the blockchain to be run by the nodes
+
+* Inside a Plutus smart contract definition, we have _endpoints_
+- endpoints are functions executed by the wallet to engage in the smart contract
+being defined (often parametrized by user-input data)
+- endpoints are _off-chain_ functions
+- endpoints are used to build transactions and submit them to be processed
+- endpoints call functions which generate Plutus
+Tx code (specifically the validator, redeemer, and data scripts)
+to be included in a transaction and executed by _on-chain_ by nodes
+
+* Besides endpoints, a Plutus contract definition may contain
+- all the necessary imports
+- a datatype definition, representing immutable information about a specific
+instance of a contract,
+such as the owner of the contract and any deadlines involved in the contract,
+e.g. `Campaign` or `Game`
+- functions which build a validator, redeemer and data scripts for the contract,
+usually parametrized by a term of that type (`Campaign`, `Game`, etc.)
+- event trigger and handler definitions for the execution of the endpoints
+- any auxiliary functions needed for the computations
+
+* Off-chain (endpoint) code can be executed by any wallet implementing a specific API
+via a wallet monad (as discussed below)
+- this allows the wallet the perform wallet-specific computations, including
+building transactions, catching and throwing errors, logging messages, etc.
+
+* On-chain (Plutus Tx) code is generated at compile time
+- defined inside a Plutus contract and included in transactions generated
+by the endpoints
+- executed by nodes to authorize spending script outputs by a transaction
+
+* A Plutus contract should, at the very least, contain endpoints which, by using the
+validator, redeemer and data scripts, generate transactions
+which allow the user to
+- _pay into_ a contract (this involves using the validator and redeemer scripts to create
+an unspent output belonging to the contract)
+- _spend_ from a contract (this will require a node to perform on-chain computation on the
+specific validator, redeemer and data scripts to unlock the output being spent)
+
+====
+
+Let us start by looking at the off-chain part of a Plutus contract,
 code that will be executed by the wallet.
 
 Such code is represented by a monadic computation in any monad
@@ -252,4 +302,3 @@ a certain action,
 and how to create, inspect, and use slot ranges.
 
 In the next chapter, we will dive into _on-chain_ code and create our first smart contract.
-
