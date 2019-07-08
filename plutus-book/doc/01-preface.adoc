@@ -18,12 +18,3 @@ and understand the basics of Haskell programming prior to reading this book.
 
 Come and explore the world of Plutus and learn our new language through
 real life scenarios and sample code snippets!
-
-== Disclaimer
-
-The '{doctitle}' eBook is the property of {orgname}. All content and materials have 
-been produced by {orgname} and can be reused in accordance with the Apache 2.0 license. 
-The exercises and code samples included in this book are examples and are used 
-as learning aids. The source files for this eBook are stored in the 
-{repo}[Plutus GitHub repository] and are covered by our open source license agreement. 
-

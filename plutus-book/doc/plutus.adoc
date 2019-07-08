@@ -1,8 +1,10 @@
+[#plutus]
 = Plutus: Writing Reliable Smart Contracts
 :authors: Lars Brünjes, Polina Vinogradova
 :email: plutus@iohk.io
 :orgname: Input Output HK Limited
-:copyright: Copyright 2019 {orgname}
+:copyright-year: 2019
+:copyright: Copyright {copyright-year} {orgname}
 :doctype: book
 :toc: left
 :sectnums:
@@ -26,6 +28,10 @@
 // https://github.com/asciidoctor/asciidoctor/issues/1066
 :2c: ::
 
+:license: Apache 2.0
+// save this to another attribute here, since the chapters have level 0 headings, so
+// 'doctitle' will get reset.
+:book-title: {doctitle}
 :repo: https://github.com/input-output-hk/plutus
 :playgrounds: https://prod.playground.plutus.iohkdev.io/
 :alpha-playgrounds: https://alpha.plutus.iohkdev.io/
@@ -38,6 +44,8 @@ ifndef::ebook-format[:leveloffset: +1]
 include::authors.adoc[]
 
 include::dedication.adoc[]
+
+include::colophon.adoc[]
 
 include::01-preface.adoc[]
 
