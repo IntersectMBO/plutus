@@ -1,5 +1,7 @@
 [#05-welcome]
-= Welcome to Plutus - A New Language for Reliable Smart Contracts
+= Welcome to Plutus
+
+Plutus is a new language for reliable smart contracts
 
 == Why Plutus?
 
@@ -30,13 +32,8 @@ and packages for deployment.
 ‌
 Plutus was conceived based on the idea that functional programming languages are
 much more suited to secure and verifiable programs than conventional imperative
-and object-oriented programming languages.
-‌
-It has been designed to be clear and concise, and the challenge was that it
-would fit onto a napkin. This streamlined code was achieved by the team as you
-can see in this image:
-
-image::plutus_core_napkin.png[]
+and object-oriented programming languages. It has been designed to be clear and concise, 
+and the challenge was that it would fit onto a napkin. 
 
 An SDK is provided for developers which includes the libraries, APIs, tools, and
 documentation needed to get started with Plutus. As part of this SDK, Plutus
