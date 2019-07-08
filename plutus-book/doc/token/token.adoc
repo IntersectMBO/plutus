@@ -1,5 +1,6 @@
 [#token]
-= Beyond Ada
+= Looking beyond Ada and using
+arbitrary custom tokens
 
 In previous examples, whenever a `Value` was required,
 we have exclusively used Ada.
@@ -7,7 +8,7 @@ This makes a lot of sense,
 seeing as Ada is the fundamental currency supported by Cardano.
 
 Plutus offers a more general concept of _value_, though,
-supporting custom fungible, non-fungible and mixed tokens
+supporting custom fungible, non-fungible, and mixed tokens
 (see <<04-smartcont.adoc#tokens>>),
 and in this chapter, we want to demonstrate how to go beyond Ada
 and work with other tokens.
@@ -23,23 +24,23 @@ newtype Value = Value
 Types `CurrencySymbol` and `TokenName` are both simple wrappers around
 `ByteString`.
 
-This notion of _value_ encompasses Ada, fungible tokens, non-fungible tokens and
+This notion of _value_ encompasses Ada, fungible tokens, non-fungible tokens, and
 more exotic mixed cases:
 
 * Ada has the _empty bytestring_ as `CurrencySymbol` and `TokenName`.
 * A _fungible_ token is represented by a `CurrencySymbol` for which there is
-  exactly one `TokenSymbol` which can have an arbitrary non-negative quantity (so Ada is a
-  special case of this).
+  exactly one `TokenSymbol` which can have an arbitrary non-negative quantity (of which Ada is a
+  special case).
 * A class of _non-fungible_ tokens is a `CurrencySymbol` with several ``TokenName``s,
-  each of which has quantity one. Each of these names than corresponds to one
+  each of which has a quantity of one. Each of these names corresponds to one
   unique non-fungible token.
 * Mixed tokens are those with several ``TokenName``s _and_ quantities greater
   than one.
 
-We will look at the example of a _fungible_ token in this chapter.
+In this chapter, we look at the example of a _fungible_ token.
 In fact, we will forge our own currency, _Plutus_, and show how to trade with it.
 
-For custom tokens, the question arises of how to _forge_ them:
+For custom tokens, the question of how to _forge_ them arises:
 How do such tokens come into existence in the first place?
 
 Technically, this happens with the `txForge` field of the `Tx` type:
@@ -61,13 +62,13 @@ must equal the sum of output values and `txFee`,
 so by having a transaction with a positive value for `txForge`,
 we "create" value.
 
-Obviously, we can not allow an arbitrary transaction to have a positive
+Obviously, we cannot allow an arbitrary transaction to have a positive
 `txForge` value. If we did, everybody could create value out of thin air at any
 time.
 
 The forging of
-Ada is governed by the rules of the Cardano blockchain (the genesis block and
-rules about monetary expansion).
+Ada is governed by the rules of the Cardano blockchain, specifically the genesis block and
+rules about monetary expansion.
 
 But how do we forge tokens other than Ada?
 
@@ -78,7 +79,7 @@ symbol.
 
 This allows us to encode a _monetary policy_ for custom tokens,
 where the validator script defines this policy,
-by using the hash of that script as currency symbol for our token.
+by using the hash of that script as the currency symbol for our token.
 
 In our example, we want a very simple monetary policy: The _issuer_ of the token
 can forge as many tokens as she likes, but nobody else can.
@@ -87,7 +88,7 @@ Let us start by defining the type `Fungible` representing this policy:
 
 include::fungible.adoc[]
 
-Finally we can test all of this in the Playground: We have wallet #1 forge
+Finally, we can test all of this in the Playground: We have wallet #1 forge
 twenty units of a new currency called "Plutus", then trade ten of those for 5
 Ada with wallet #2:
 
@@ -102,8 +103,8 @@ image:../images/token-result2.png[]
 image:../images/token-result3.png[]
 
 As expected, wallet #1 ends up with 15 Ada and 10 Plutus,
-wallet #2 ends up with 5 Ada and 10 Plutus.
+and wallet #2 ends up with 5 Ada and 10 Plutus.
 
 This concludes this chapter. We have learned how to go beyond Ada and use
-arbitrary custom tokens, how forging new tokens works and how we can trade them
-without having to fear being cheated.
+arbitrary custom tokens, how forging new tokens works, and how we can trade them
+securely.
