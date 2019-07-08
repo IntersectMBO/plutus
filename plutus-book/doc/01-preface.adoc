@@ -1,4 +1,4 @@
-[#02-preface]
+[#01-preface]
 = Preface
 
 This book teaches you how to write reliable smart contracts with Plutus, the

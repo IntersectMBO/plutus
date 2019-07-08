@@ -2,40 +2,38 @@
 = Glossary
 
 Extended UTxO ::
-* The ledger model on which the Plutus platform is based
-* In particular, transactions may contain Plutus scripts to be executed by the nodes
+The ledger model on which the Plutus platform is based. Extends the traditional UTxO model
+with data scripts and transaction information
 
 On-chain code ::
-* Code written as part of a smart contract which executes on the chain during transaction validation
-- The purpose of this type of code is to validate outputs of a transaction
+Code written as part of a smart contract which executes on the chain during transaction validation.
 
 Off-chain code ::
-* Code written as part of a smart contract which executes off the chain, usually in a user's wallet.
+Code written as part of a smart contract which executes off the chain, usually in a user's wallet.
 
 Mockchain ::
-* A Cardano blockchain emulator which faithfully Plutus smart contract behaviour
+A Cardano blockchain emulator which faithfully implements the Extended UTxO model.
 
-Mock Wallet ::
-* A wallet emulator which is used to interact with the mockchain
+Mock wallet ::
+A wallet emulator which is used to interact with the mockchain
 
 Plutus Core ::
-* A small functional programming language designed to run as on-chain code.
+A small functional programming language designed to run as on-chain code.
 
 Plutus IR ::
-* An intermediate language that compiles to Plutus Core, for use as a target language for compiler writers.
+An intermediate language that compiles to Plutus Core, for use as a target language for compiler writers.
 
 Plutus Platform ::
-* The combined software support for writing smart contracts, including:
+The combined software support for writing smart contracts, including:
 - libraries for writing off-chain code in Haskell.
 - libraries for writing on-chain code in Plutus Tx.
 - emulator support for testing smart contracts.
 
 Plutus Tx ::
-* A subset of Haskell which is compiled into Plutus Core.
+A subset of Haskell which is compiled into Plutus Core.
 
 Non-fungible Token ::
-* A token that is not interchangeable with other tokens,
-- I.e. its value cannot be expressed in terms of other tokens, such as cryptocurrency, and thus has no fixed price
+A token that is not interchangeable with other tokens.
 
 Contract Endpoints ::
-* Off-chain functions a wallet uses to interact with a smart contract
+Off-chain functions used by a wallet to interact with a smart contract.

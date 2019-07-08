@@ -1,7 +1,8 @@
-= Plutus
+= Plutus: Writing reliable smart contracts
 :authors: Lars Brünjes, Polina Vinogradova
 :email: plutus@iohk.io
-:orgname: IOHK
+:orgname: Input Output HK Limited
+:copyright: Copyright 2019 {orgname}
 :doctype: book
 :toc: left
 :sectnums:
@@ -25,12 +26,13 @@
 // https://github.com/asciidoctor/asciidoctor/issues/1066
 :2c: ::
 
+:repo: https://github.com/input-output-hk/plutus
+
 // If we're not producing a book, then we want to offset the levels so the
 // headings are level 1 headings. For the book they need to be level 0 headings.
 ifndef::ebook-format[:leveloffset: +1]
 // Include each chapter here
 include::01-preface.adoc[]
-include::02-glossary.adoc[]
 include::03-UTxO.adoc[]
 include::04-smartcont.adoc[]
 include::05-welcome.adoc[]
@@ -41,5 +43,5 @@ include::game/game.adoc[]
 include::parameters/parameters.adoc[]
 include::multi/multi.adoc[]
 include::token/token.adoc[]
+include::02-glossary.adoc[]
 include::bibliography.adoc[]
-
