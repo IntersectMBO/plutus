@@ -19,7 +19,7 @@ but rather from transaction to transaction. Each transaction has inputs
 contain other data, as we will see later when we examine the extended
 UTxO model in the <<09-extended#09-extended>> chapter.
 
-Consider the data flow graph below. The black lines represent unspent outputs
+Consider the data flow graph below, <<tx-flow>>. The black lines represent unspent outputs
 of transactions, and the red lines represent these outputs being used as inputs
 to subsequent transactions. The vertical unlabelled box represents a single
 transaction having several inputs and several outputs. The blue certificates
@@ -46,6 +46,7 @@ a total of 102 Ada he can spend in future transactions. Bob is left with
 only one output of 2 Ada, and Alice, a total of 58 Ada in unspent outputs
 from other transactions.
 
+[#tx-flow]
 image::UTxO_pic.png[]
 
 The above model is strictly showing the flow of currency between several
@@ -75,7 +76,7 @@ For the basic transaction
 model we discuss here, refer to <<utxo-definitions>>.
 
 [#utxo-definitions]
-.Basic UTxO definitions
+// .Basic UTxO definitions
 image::UTxO.png[]
 
 Before we examine the structure of transactions, let us look at how book keeping
