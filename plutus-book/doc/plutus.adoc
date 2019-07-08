@@ -19,6 +19,7 @@
 :linkcss:
 // prevents setting the last-updated-label etc.
 :reproducible:
+:front-cover-image: image:cover.jpg[Front Cover,1050,1600]
 
 // unfortunately, asciidoctor likes to parse these as definition lists :(
 // https://github.com/asciidoctor/asciidoctor/issues/1066

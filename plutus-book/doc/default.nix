@@ -2,7 +2,7 @@
 
 stdenv.mkDerivation {
   name = "plutus-book";
-  src = lib.sourceFilesBySuffices ./. [ ".adoc" ".png" ".PNG" ".gif" ".ico" ".css" ];
+  src = lib.sourceFilesBySuffices ./. [ ".adoc" ".png" ".PNG" ".gif" ".jpg" ".ico" ".css" ];
   buildInputs = [ asciidoctor python2 ];
   buildPhase = ''
     asciidoctor plutus.adoc -b html5 -o plutus.html
