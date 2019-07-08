@@ -1,4 +1,4 @@
-[glossary]
+[glossary#glossary]
 = Glossary
 
 Extended UTxO ::

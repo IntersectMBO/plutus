@@ -1,4 +1,4 @@
-[bibliography]
+[bibliography#bibliography]
 = References
 
 - [[[deleg,1]]] Jared Corduan, Polina Vinogradova, and Matthias Gudemann.
@@ -17,6 +17,6 @@ Available at https://github.com/input-output-hk/cardano-ledger-specs.
 Multi-currency on the UTXO Ledger. Technical report, IOHK, 2019.
 Available at https://github.com/input-output-hk/plutus/tree/master/docs/multi-currency.
 
-- [[[plutuscore,4]]] Rebecca Valentine, Kenneth MacKenzie, James Chapman, Philip Wadler, Michael Peyton Jones, and Manuel Chakravarty.
+- [[[plutuscore,5]]] Rebecca Valentine, Kenneth MacKenzie, James Chapman, Philip Wadler, Michael Peyton Jones, and Manuel Chakravarty.
 Formal Specification of the Plutus Core Language. Technical report, IOHK, 2019.
 Available at https://github.com/input-output-hk/plutus/tree/master/plutus-core-spec.
