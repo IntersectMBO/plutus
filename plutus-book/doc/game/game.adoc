@@ -1,5 +1,5 @@
 [#game]
-= Our first on-chain code
+= Our First On-Chain Code
 
 Now that we are somewhat comfortable with the Wallet API and know how to write
 off-chain code, let us look at a first example of _on-chain_ code,
