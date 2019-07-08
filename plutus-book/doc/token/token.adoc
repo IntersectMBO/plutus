@@ -8,7 +8,9 @@ seeing as Ada is the fundamental currency supported by Cardano.
 
 Plutus offers a more general concept of _value_, though,
 supporting custom fungible, non-fungible, and mixed tokens
-(see <<04-smartcont#tokens>>),
+// TODO: this link should be to the section inside the chapter,
+// but see https://github.com/asciidoctor/asciidoctor-epub3/issues/202
+(see <<04-smartcont#04-smartcont>>),
 and in this chapter, we want to demonstrate how to go beyond Ada
 and work with other tokens.
 
