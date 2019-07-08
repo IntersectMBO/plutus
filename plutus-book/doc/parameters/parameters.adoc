@@ -1,5 +1,5 @@
 [#parameters]
-= A contract with parameters
+= A Contract with Parameters
 
 After our simple working example of a short game in the last chapter,
 let us now try something more ambitious and realistic, to

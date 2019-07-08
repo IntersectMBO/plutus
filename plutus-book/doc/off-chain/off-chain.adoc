@@ -1,5 +1,5 @@
 [#off-chain]
-= Writing off-chain code
+= Writing Off-Chain Code
 
 Working with Plutus requires writing on-chain code and off-chain code,
 with both parts working well together. Before diving into writing our code,
