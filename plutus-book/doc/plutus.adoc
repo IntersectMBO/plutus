@@ -25,6 +25,8 @@
 // https://github.com/asciidoctor/asciidoctor/issues/1066
 :2c: ::
 
+:repo: https://github.com/input-output-hk/plutus
+
 // If we're not producing a book, then we want to offset the levels so the
 // headings are level 1 headings. For the book they need to be level 0 headings.
 ifndef::ebook-format[:leveloffset: +1]
