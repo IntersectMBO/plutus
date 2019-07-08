@@ -23,3 +23,5 @@ examples regularly to enhance learning and illustrate the code in practice.
 
 Come and explore the world of Plutus and learn our new language through
 real life scenarios and sample code snippets!
+
+Lars Brünjes and Polina Vinogradova
