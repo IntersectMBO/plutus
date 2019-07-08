@@ -46,8 +46,8 @@ So we get:
 type FungibleValidator = () -> Integer -> PendingTx -> Bool
 ----
 
-We are now ready to write down the validation logic, i.e. our currency's
-monetary policy:
+We are now ready to write down the validation logic, i.e. the
+monetary policy of our currency:
 
 [source,haskell]
 ----
@@ -112,9 +112,9 @@ fungibleValue f = V.singleton (fungibleSymbol f) (name f)
 Now we can turn our attention to writing the wallet endpoint `forge`,
 which will allow the wallet owner to forge new money (provided she is the issuer
 of the currency). In order to do this, we first have to create an UTxO (with
-zero value) at the
+zero value), at the
 script address representing the monetary policy. We have to wait until that UTxO
-is visible on the blockchain and can then issue the forging transaction, which
+is visible on the blockchain and then we can issue the forging transaction, which
 will use the previous UTxO as input to validate its forging.
 
 [source,haskell]
@@ -179,7 +179,7 @@ forge n s = do
 <1> The wallet owner must be the currency issuer.
 
 <2> We need to watch the "monetary policy"-address of our currency in order to
-be able to detect when the first transaction has been accepted into the
+be able to detect when the first transaction has been accepted onto the
 blockchain.
 
 <3> The first transaction has no inputs and zero value. All we need is a script
@@ -187,7 +187,7 @@ output at the "monetary policy"-address.
 
 <4> We simply wait for one slot.
 
-<5> The UtxO we need as input is on the blockchain.
+<5> The UTxO we need as input is on the blockchain.
 
 <6> We use the UTxO created in the first step as input for the forging
 transaction.
@@ -199,11 +199,11 @@ transaction.
 <9> If the transaction from the first step is not yet on the blockchain,
 we keep waiting.
 
-It we are done! Now everybody can use `forge` to forge her own currency!
+Once it is we are finished! Now everybody can use `forge` to forge her own currency!
 
 This raises another question, though: How can we trade this new currency? -
-Sure, we can send and receive the new currency in the same way that we can send
-and receive Ada. But what if we want to sell some tokens of the new
+We know that we can send and receive the new currency in the same way that we can send
+and receive Ada. However, what if we want to sell some tokens of the new
 currency for some Ada? Do we simply send the tokens and hope the buyer will send
 Ada back? Do we expect the buyer to trust us and send the Ada first?
 
@@ -225,7 +225,7 @@ makeLift ''Trade
 ----
 
 We will write a script parameterized by a value of type `Trade` to
-make sure that either seller and buyer both pay what they promised before the
+make sure that the seller and buyer both pay what they promised before the
 deadline or both can get their money back.
 
 This script will again be stateless, so the data script can again be `()`.
@@ -283,7 +283,7 @@ validateTrade t () Reclaim tx = case pendingTxOutputs tx of
 
 <8> The buyer gets the sold value.
 
-We write the usual helper functions and are done with the on-chain part:
+We write the usual helper functions and have completed the on-chain part:
 
 [source,haskell]
 ----
@@ -304,7 +304,7 @@ tradeAddress = scriptAddress . mkTradeValidator
 ----
 
 We need two endpoints, one for the seller, one for the buyer.
-for simplicity, we will not trade arbitrary values, but only consider the case
+For simplicity, we will not trade arbitrary values, but only consider the case
 where the seller sells some quantity of a single currency.
 
 The seller will lock the currency she wants to sell at the script address
@@ -402,7 +402,7 @@ sell i c n v2 p2 dl = do
 
 <2> Has the buyer paid before the deadline?
 
-<3> Has the deadline passed and my funds are still locked?
+<3> Has the deadline passed and are my funds are still locked?
 
 <4> Execute the trade.
 
@@ -468,7 +468,7 @@ $(mkFunctions ['forge, 'sell, 'buy])
 
 <1> Lock the payment at the trade script.
 
-<2> Has the deadline passed, and my payment is still locked?
+<2> Has the deadline passed, and is my payment is still locked?
 
 <3> Reclaim the payment.
 
