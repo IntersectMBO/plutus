@@ -226,7 +226,7 @@ is again to rely on a third party. This time, the contract relies on this
 party for providing the loan money ahead of time. This is not exactly a
 perfectly sensible solution, partially defeating the purpose of the loan -
 if there is a party willing to risk the full value of the loan (interest
-included), and is not benefitting from the contract, why is this loan even
+included), and is not benefiting from the contract, why is this loan even
 necessary?
 
 There is another approach to building smart contract loans and variations thereof.
@@ -299,7 +299,7 @@ In essence, financial contracts are contracts that only deal with the
 transfer of money and promises made about future money transfers.
 These types of contracts are influenced by outside events, like market values
 of stocks, etc. They are also often the result of a real world change of ownership,
-such a a mortgage would be for the purchase of a house.
+such a mortgage would be for the purchase of a house.
 However, there are two main types of tokens they deal with,
 
 * currency,

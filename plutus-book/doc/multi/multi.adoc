@@ -58,7 +58,7 @@ outputsAt :: MonadWallet m => Address -> m (Map TxOutRef TxOut)
 ----
 
 Note that `outputsAt` will only return those outputs which are _known
-to the wallet_, i.e. those residing at an adress that is either _watched_
+to the wallet_, i.e. those residing at an address that is either _watched_
 or for which a trigger has been registered.
 ====
 
