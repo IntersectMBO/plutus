@@ -287,7 +287,7 @@ a Plutus textbook!
 
 == Additional Extended Model Notes
 
-.Sharing Plutus Code
+=== Sharing Plutus Code
 
 The off-chain code, explored in detail in
 the next chapter, is run by the users' wallet (or, in the Playground simulation,
@@ -316,7 +316,7 @@ to have sufficient understanding of Plutus code to trust the contract is doing
 what they expect it to do. Cryptographic security is powerless in this case -
 this is where this book comes in!
 
-.Rollbacks and Other Extended UTxO Model Considerations
+=== Rollbacks and Other Extended UTxO Model Considerations
 
 Given that blockchain events, such as the confirmation of a transaction, can
 trigger the execution of off-chain coordination code, we need to carefully

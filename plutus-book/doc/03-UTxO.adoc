@@ -72,9 +72,10 @@ the intended payees.
 This is, in a very general sense, the goal of smart contracts.
 Let us explore what is going on during the processing of a UTxO transaction event more formally.
 For the basic transaction
-model we discuss here, refer to Figure <<utxo-definitions, the figure>>.
+model we discuss here, refer to <<utxo-definitions>>.
 
 [#utxo-definitions]
+.Basic UTxO definitions
 image::UTxO.png[]
 
 Before we examine the structure of transactions, let us look at how book keeping
@@ -82,7 +83,7 @@ is done on the ledger. The record on the ledger that
 contains this information is called a UTxO, short of Unspent Transaction Outputs
 and denoted `UTxO` in the figure.
 This record is a finite map, where the key is a pair of transaction ID and
-an index, `TxIn = TxId*Ix`. The transaction ID `TxId`
+an index, `TxIn = TxId * Ix`. The transaction ID `TxId`
  can be calculated from a complete transaction
 submitted for processing, and is a unique identifier of this transaction.
 The index `Ix` is necessary because there may be more than one output,

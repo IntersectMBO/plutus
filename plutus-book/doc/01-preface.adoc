@@ -15,11 +15,6 @@ A general understanding of smart contracts would be useful to learn about and
 work with Plutus, but is not essential for starting out. For general functional
 programmers with blockchain domain knowledge, we recommend that you read about
 and understand the basics of Haskell programming prior to reading this book.
-‌
-We begin with a glossary, and advise you to refer to it frequently for
-clarity when trying to make sense of a new concept. A more thorough explanation
-of each term will be given as it is introduced in the main text. This book references
-examples regularly to enhance learning and illustrate the code in practice.
 
 Come and explore the world of Plutus and learn our new language through
 real life scenarios and sample code snippets!

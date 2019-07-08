@@ -16,7 +16,6 @@ via distributed cryptographic ledger. This ensures the entire history
 (including the current state of the contract) are immutably recorded with a
 high degree of reliability.
 
-
 From the smart contract author's perspective, the blockchain is a distributed
 bookkeeping system. The ledger on the blockchain is a record that keeps track of
 who owns how much of a virtual resource
@@ -250,8 +249,7 @@ https://www.actusfrf.org/
 
 A financial contract, as defined in Securities law, is
 
-* An arrangement that takes
-the form of an individually
+* An arrangement that takes the form of an individually
 negotiated contract, agreement, or option to buy, sell, lend, swap, or
 repurchase, or other similar individually negotiated transaction commonly
 entered into by participants in the financial markets.
@@ -259,14 +257,14 @@ entered into by participants in the financial markets.
 ACTUS recognizes that there are two different ways to view financial contracts,
 as described by two different disciplines:
 
-.ACTUS data standard
-* The Data Standard defines a universal set of legal terms – or CT Attributes –
+ACTUS Data Standard::
+The Data Standard defines a universal set of legal terms – or CT Attributes –
 used as parameters throughout the different financial agreements. It is
 implemented in form of a Data Dictionary with Attribute Applicability by
 Contract Type.
 
-.ACTUS algorithmic standard
-* The Algorithmic Standard defines the logic embedded in legal agreements that
+ACTUS Algorithmic Standard::
+The Algorithmic Standard defines the logic embedded in legal agreements that
 eventually turn the contract terms into actual cash flows, or more generally
 business events.
 
