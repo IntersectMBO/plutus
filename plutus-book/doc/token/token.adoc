@@ -1,6 +1,5 @@
 [#token]
-= Looking beyond Ada and using
-arbitrary custom tokens
+= Looking beyond Ada and using arbitrary custom tokens
 
 In previous examples, whenever a `Value` was required,
 we have exclusively used Ada.
