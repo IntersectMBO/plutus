@@ -5,13 +5,18 @@
 
 Plutus Tx is the name that we give to specially-delimited sections of a Haskell
 program which will be compiled into Plutus Core (that usually go in a transaction,
-hence the "Tx").
+hence the "Tx"). So, the resulting Plutus Core expressions can be part of transaction
+data, or data stored on the ledger. These pieces of code require special processing
+on the blockchain and are referred to as Plutus scripts. We will discuss the
+mechanism by which they are used to control the transfer of funds in the
+next chapter, <<09-extended#09-extended>>.
 
-This means that Plutus Tx is just Haskell. Strictly speaking, only a subset of Haskell is
+These special Plutus Tx sections in a Haskell program are themselves just Haskell.
+Strictly speaking, only a subset of Haskell is
 supported, but the majority of simple Haskell should work, and the compiler will tell you if
 you use something that is unsupported.
-This chapter is an explanation of the the PlutusTx language. For an in-depth
-discussion of the nature of Plutus Core, which Plutus Tx compiles to, see <<bibliography#bibliography>>.
+This chapter is an explanation of the the Plutus Tx language. For an in-depth
+discussion of the nature of Plutus Core, which Plutus Tx compiles to, see <<plutuscore>>.
 
 The key technique that the Plutus Platform uses is called staged metaprogramming.
 What that means is that the main Haskell program generates another program, in
@@ -88,7 +93,7 @@ the integer `1`.
 
 NOTE: The Plutus Core syntax will look unfamiliar. This is fine, since it is
 the "assembly language" and you won’t need to inspect the output of
-the compiler. However, for the purposes of this tutorial it’s
+the compiler. However, for the purposes of this chapter it’s
 instructive to look at it to get a vague idea of what’s going on.
 
 [source,haskell]
