@@ -16,7 +16,7 @@ Strictly speaking, only a subset of Haskell is
 supported, but the majority of simple Haskell should work, and the compiler will tell you if
 you use something that is unsupported.
 This chapter is an explanation of the the Plutus Tx language. For an in-depth
-discussion of the nature of Plutus Core, which Plutus Tx compiles to, see <<plutuscore>>.
+discussion of the nature of Plutus Core, which Plutus Tx compiles to, see <<bibliography#bibliography>>.
 
 The key technique that the Plutus Platform uses is called staged metaprogramming.
 What that means is that the main Haskell program generates another program, in

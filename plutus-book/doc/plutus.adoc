@@ -61,6 +61,6 @@ include::multi/multi.adoc[]
 
 include::token/token.adoc[]
 
-include::02-glossary.adoc[]
+include::glossary.adoc[]
 
 include::bibliography.adoc[]
