@@ -45,6 +45,7 @@ pkgs/.stack
 # Misc
 .history/
 .virtualenv
+.vscode/
 .hsenv
 TAGS
 .DS_Store
@@ -53,4 +54,4 @@ TAGS
 *.tfvars
 gh-pages
 .importify/
-meadow/meadow.yaml
+marlowe-playground-server/playground.yaml

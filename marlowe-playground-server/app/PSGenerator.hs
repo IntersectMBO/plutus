@@ -42,7 +42,7 @@ import           Language.PureScript.Bridge.Builder         (BridgeData)
 import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), defaultSwitch, genForeign)
 import           Language.PureScript.Bridge.PSTypes         (psArray, psInt)
 import           Language.PureScript.Bridge.TypeParameters  (A)
-import           Meadow.Contracts                           (couponBondGuaranteed, escrow, zeroCouponBond)
+import           Marlowe.Contracts                           (couponBondGuaranteed, escrow, zeroCouponBond)
 import           Servant                                    ((:<|>))
 import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
                                                              defaultSettings, languageBridge,
@@ -153,7 +153,7 @@ myTypes =
 
 mySettings :: Settings
 mySettings =
-    (defaultSettings & set apiModuleName "Meadow")
+    (defaultSettings & set apiModuleName "Marlowe")
         {_generateSubscriberAPI = False}
 
 multilineString :: BS.ByteString -> BS.ByteString -> BS.ByteString
@@ -170,9 +170,9 @@ writeUsecases outputDir = do
          <> multilineString "escrow" escrow
          <> multilineString "zeroCouponBond" zeroCouponBond
          <> multilineString "couponBondGuaranteed" couponBondGuaranteed
-        usecasesModule = psModule "Meadow.Contracts" usecases
-    createDirectoryIfMissing True (outputDir </> "Meadow")
-    BS.writeFile (outputDir </> "Meadow" </> "Contracts.purs") usecasesModule
+        usecasesModule = psModule "Haskell.Contracts" usecases
+    createDirectoryIfMissing True (outputDir </> "Haskell")
+    BS.writeFile (outputDir </> "Haskell" </> "Contracts.purs") usecasesModule
     putStrLn outputDir
 
 generate :: FilePath -> IO ()

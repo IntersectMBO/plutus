@@ -28,7 +28,7 @@ import Test.QuickCheck (class Testable, Result, (===))
 import Test.QuickCheck.Gen (Gen)
 import Test.Unit (Test, TestSuite, suite, test)
 import Test.Unit.QuickCheck (quickCheck)
-import Text.Parsing.Parser (ParseError, runParser)
+import Text.Parsing.Parser (runParser)
 import Text.Parsing.Parser.Basic (parens)
 
 all :: TestSuite

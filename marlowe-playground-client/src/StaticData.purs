@@ -3,7 +3,7 @@ module StaticData (bufferLocalStorageKey, demoFiles, marloweBufferLocalStorageKe
 import Data.Map (Map)
 import Data.Tuple.Nested ((/\))
 import Marlowe.Contracts (crowdFunding, depositIncentive, escrow) as S
-import Meadow.Contracts (escrow, zeroCouponBond, couponBondGuaranteed) as E
+import Haskell.Contracts (escrow, zeroCouponBond, couponBondGuaranteed) as E
 import Data.Map as Map
 import LocalStorage as LocalStorage
 

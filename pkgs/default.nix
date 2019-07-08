@@ -44351,6 +44351,134 @@ description = "Marlowe: financial contracts on Cardano Computation Layer";
 license = stdenv.lib.licenses.asl20;
 
 }) {};
+"marlowe-playground-server" = callPackage
+({
+  mkDerivation
+, aeson
+, base
+, bytestring
+, containers
+, cookie
+, data-default-class
+, directory
+, exceptions
+, file-embed
+, filepath
+, hspec
+, http-client
+, http-client-tls
+, http-conduit
+, http-types
+, jwt
+, lens
+, marlowe
+, monad-logger
+, mtl
+, newtype-generics
+, optparse-applicative
+, playground-common
+, process
+, prometheus
+, purescript-bridge
+, raw-strings-qq
+, servant
+, servant-client
+, servant-client-core
+, servant-foreign
+, servant-purescript
+, servant-server
+, stdenv
+, temporary
+, text
+, time
+, time-units
+, transformers
+, wai
+, wai-cors
+, wai-extra
+, warp
+, yaml
+}:
+mkDerivation {
+
+pname = "marlowe-playground-server";
+version = "0.1.0.0";
+src = .././marlowe-playground-server;
+isLibrary = true;
+isExecutable = true;
+libraryHaskellDepends = [
+aeson
+base
+bytestring
+containers
+cookie
+directory
+exceptions
+file-embed
+filepath
+http-client
+http-client-tls
+http-conduit
+http-types
+jwt
+lens
+marlowe
+monad-logger
+mtl
+newtype-generics
+playground-common
+process
+servant
+servant-client
+servant-client-core
+servant-purescript
+servant-server
+temporary
+text
+time
+time-units
+transformers
+];
+executableHaskellDepends = [
+aeson
+base
+bytestring
+containers
+data-default-class
+directory
+filepath
+http-types
+lens
+monad-logger
+mtl
+optparse-applicative
+playground-common
+prometheus
+purescript-bridge
+servant-foreign
+servant-purescript
+servant-server
+text
+wai
+wai-cors
+wai-extra
+warp
+yaml
+];
+testHaskellDepends = [
+base
+bytestring
+hspec
+mtl
+playground-common
+raw-strings-qq
+text
+time-units
+];
+doHaddock = false;
+license = stdenv.lib.licenses.asl20;
+
+}) {};
 "massiv" = callPackage
 ({
   mkDerivation
@@ -44820,134 +44948,6 @@ doCheck = false;
 homepage = "http://github.com/jtobin/mcmc-types";
 description = "Common types for sampling";
 license = stdenv.lib.licenses.mit;
-
-}) {};
-"meadow" = callPackage
-({
-  mkDerivation
-, aeson
-, base
-, bytestring
-, containers
-, cookie
-, data-default-class
-, directory
-, exceptions
-, file-embed
-, filepath
-, hspec
-, http-client
-, http-client-tls
-, http-conduit
-, http-types
-, jwt
-, lens
-, marlowe
-, monad-logger
-, mtl
-, newtype-generics
-, optparse-applicative
-, playground-common
-, process
-, prometheus
-, purescript-bridge
-, raw-strings-qq
-, servant
-, servant-client
-, servant-client-core
-, servant-foreign
-, servant-purescript
-, servant-server
-, stdenv
-, temporary
-, text
-, time
-, time-units
-, transformers
-, wai
-, wai-cors
-, wai-extra
-, warp
-, yaml
-}:
-mkDerivation {
-
-pname = "meadow";
-version = "0.1.0.0";
-src = .././meadow;
-isLibrary = true;
-isExecutable = true;
-libraryHaskellDepends = [
-aeson
-base
-bytestring
-containers
-cookie
-directory
-exceptions
-file-embed
-filepath
-http-client
-http-client-tls
-http-conduit
-http-types
-jwt
-lens
-marlowe
-monad-logger
-mtl
-newtype-generics
-playground-common
-process
-servant
-servant-client
-servant-client-core
-servant-purescript
-servant-server
-temporary
-text
-time
-time-units
-transformers
-];
-executableHaskellDepends = [
-aeson
-base
-bytestring
-containers
-data-default-class
-directory
-filepath
-http-types
-lens
-monad-logger
-mtl
-optparse-applicative
-playground-common
-prometheus
-purescript-bridge
-servant-foreign
-servant-purescript
-servant-server
-text
-wai
-wai-cors
-wai-extra
-warp
-yaml
-];
-testHaskellDepends = [
-base
-bytestring
-hspec
-mtl
-playground-common
-raw-strings-qq
-text
-time-units
-];
-doHaddock = false;
-license = stdenv.lib.licenses.asl20;
 
 }) {};
 "median-stream" = callPackage

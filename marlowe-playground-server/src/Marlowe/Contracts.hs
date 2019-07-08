@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Meadow.Contracts where
+module Marlowe.Contracts where
 
 import           Data.ByteString (ByteString)
 import           Data.FileEmbed  (embedFile, makeRelativeToProject)

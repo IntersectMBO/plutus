@@ -49,7 +49,7 @@ configFileParser =
     option
         str
         (long "config" <> metavar "CONFIG_FILE" <> help "Config file location." <>
-         value "meadow.yaml")
+         value "playground.yaml")
 
 commandParser :: Parser Command
 commandParser = subparser $ webserverCommandParser <> psGeneratorCommandParser

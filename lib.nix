@@ -44,7 +44,7 @@ let
     "plutus-use-cases"
     "playground-common"
     "marlowe"
-    "meadow"
+    "marlowe-playground-server"
     "deployment-server"
   ];
 

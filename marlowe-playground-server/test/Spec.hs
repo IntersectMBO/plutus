@@ -12,7 +12,7 @@ import           Data.Time.Units              (Microsecond, fromMicroseconds)
 import qualified Interpreter
 import           Language.Haskell.Interpreter (InterpreterError, InterpreterResult (InterpreterResult),
                                                SourceCode (SourceCode))
-import           Meadow.Contracts             (escrow)
+import           Marlowe.Contracts             (escrow)
 import           Test.Hspec                   (Spec, describe, hspec, it, shouldBe)
 import           Text.RawString.QQ            (r)
 
