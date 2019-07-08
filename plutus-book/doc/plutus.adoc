@@ -37,6 +37,8 @@ ifndef::ebook-format[:leveloffset: +1]
 // together when they're included.
 include::authors.adoc[]
 
+include::dedication.adoc[]
+
 include::01-preface.adoc[]
 
 include::03-UTxO.adoc[]
