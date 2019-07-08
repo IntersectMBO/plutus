@@ -326,7 +326,7 @@ rolled back transaction. We do not give the details of this functionality here.
 There are other features of the extended UTxO system that are less relevant to
 a Plutus user, which we will also not explain in detail in this chapter.
 
-.Adding Ledger Functionality Using Scripts
+=== Adding Ledger Functionality Using Scripts
 
 In the upcoming examples in this book we walk the reader through the process
 of building, testing and using Plutus contracts. For examples of work on using
