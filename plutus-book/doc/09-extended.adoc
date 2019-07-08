@@ -325,3 +325,17 @@ rolled back transaction. We do not give the details of this functionality here.
 
 There are other features of the extended UTxO system that are less relevant to
 a Plutus user, which we will also not explain in detail in this chapter.
+
+.Adding Ledger Functionality Using Scripts
+
+In the upcoming examples in this book we walk the reader through the process
+of building, testing and using Plutus contracts. For examples of work on using
+scripts to add specific functionality to the UTxO ledger, we would like to
+point the reader to the following documents,
+
+* Multi-currency on the UTXO Ledger, see <<bibliography#bibliography>>
+- An implementation of a script-based model for different types of
+currency as well as non-fungible tokens on the mockchain
+* A Formal Specification of a Multi-Signature Scheme Using Scripts, see <<bibliography#bibliography>>
+- A formal specification of enforcing a custom witnessing policy for spending
+outputs
