@@ -24,7 +24,7 @@ makeLift ''HashedText
 makeLift ''ClearText
 ----
 
-<1> Nedded for on-chain code.
+<1> Needed for on-chain code.
 
 So we define one type, `HashedText`, for the hashed secret word
 and another type, `ClearText`, for guesses.

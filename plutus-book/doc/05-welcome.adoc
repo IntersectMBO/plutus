@@ -84,15 +84,10 @@ between the two versions.
 
 == Running Plutus Playground
 
-The simplest way to use Plutus Playground is by going to
+The simplest way to use Plutus Playground is to use the {playgrounds}[stable version].
 
-https://prod.playground.plutus.iohkdev.io/
-
-This is the most recent stable version of the Playground environment.
 To use the version we discuss in this book and will keep the contents
-of the book in sync with, see
-
-https://alpha.plutus.iohkdev.io/
+of the book in sync with, see the {alpha-playgrounds}[alpha version].
 
 At this address the reader will see a window for developing Plutus Tx code.
 The code within the window is a single Haskell module which the user may edit.
