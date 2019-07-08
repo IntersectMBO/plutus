@@ -19,7 +19,7 @@ but rather from transaction to transaction. Each transaction has inputs
 contain other data, as we will see later when we examine the extended
 UTxO model in the <<09-extended#09-extended>> chapter.
 
-Consider the data flow graph below. The black lines represent unspent outputs
+Consider the data flow graph below, <<tx-flow>>. The black lines represent unspent outputs
 of transactions, and the red lines represent these outputs being used as inputs
 to subsequent transactions. The vertical unlabelled box represents a single
 transaction having several inputs and several outputs. The blue certificates
@@ -46,6 +46,8 @@ a total of 102 Ada he can spend in future transactions. Bob is left with
 only one output of 2 Ada, and Alice, a total of 58 Ada in unspent outputs
 from other transactions.
 
+[#tx-flow]
+.UTxO Funds Flow Example
 image::UTxO_pic.png[]
 
 The above model is strictly showing the flow of currency between several
@@ -169,9 +171,11 @@ addresses.
 Now, in order to validate a transaction, there are a number of
 calculations performed involving the ADA in the transaction and the ADA
 in other accounts on the ledger to make sure ADA is neither created nor destroyed,
-so to say. This is known as the generalized accounting property. It is the enforcement
-of this property,
-and not an inherent invariant of the UTxO transaction processing scheme, that
+so to say. This is known as the _generalized accounting property_.
+The UTxO accounting scheme provides built-in protection against double spending
+of a given output.
+This inherent protection, together with the enforcement of the generalized
+accounting property,
 ensures that no dishonest spending is allowed to occur. This is a crucial property
 of the Cardano ledger bookkeeping system, in particular because there is a
 set amount of Ada in existence, which can never change.
