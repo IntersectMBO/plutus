@@ -36,7 +36,7 @@ Next, let us figure our which types to use for data- and redeemer scripts!
 
 There are two scenarios where people will want to _claim funds from the
 script: The campaign owner _collection_ after a successful campaign
-and the conitrubutors demanding a _refund_ after a failed one.
+and the contributors demanding a _refund_ after a failed one.
 
 For the validator script to decide whether such a claim is valid,
 it has to know which of the two scenarios applies,
@@ -275,7 +275,7 @@ startCampaign ft ed cd = do
 <3> We _collect_ funds.
 
 The second endpoint is for contributors. It allows them to contribute to a
-campaign and wil also register a trigger that checks whether the collection
+campaign and will also register a trigger that checks whether the collection
 deadline has been reached and the funds have not been collected by the owner,
 in which case the contribution is reclaimed:
 

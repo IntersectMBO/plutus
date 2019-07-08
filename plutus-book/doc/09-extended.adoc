@@ -293,7 +293,7 @@ any of them.
 In the real Cardano blockchain environment, on- and off-chain
 contract code is meant to be used by all wallets participating in the contract,
 distributed over the network. This means there needs to be another reliable way
-to share Plutus code. The the on-chain code is hashed, and the hash is stored in the
+to share Plutus code. The on-chain code is hashed, and the hash is stored in the
 UTxO, giving the participants a way to verify that it is indeed the right code
 for the right contract. The off-chain code is simply a way to generate
 scripts and transactions, which then get validated and authenticated as
