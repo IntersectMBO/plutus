@@ -1,4 +1,0 @@
-[#01-intro]
-= Introduction
-
-I'm an introduction, put text here.
