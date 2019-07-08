@@ -1,21 +1,30 @@
 [glossary#glossary]
 = Glossary
 
+Contract Endpoints ::
+Off-chain functions used by a wallet to interact with a smart contract.
+
 Extended UTxO ::
 The ledger model on which the Plutus platform is based. Extends the traditional UTxO model
 with data scripts and transaction information
 
-On-chain code ::
-Code written as part of a smart contract which executes on the chain during transaction validation.
-
-Off-chain code ::
-Code written as part of a smart contract which executes off the chain, usually in a user's wallet.
+Fungible Token ::
+A token that is interchangeable with other tokens.
 
 Mockchain ::
 A Cardano blockchain emulator which faithfully implements the Extended UTxO model.
 
 Mock wallet ::
 A wallet emulator which is used to interact with the mockchain
+
+Non-fungible Token ::
+A token that is not interchangeable with other tokens.
+
+Off-chain code ::
+Code written as part of a smart contract which executes off the chain, usually in a user's wallet.
+
+On-chain code ::
+Code written as part of a smart contract which executes on the chain during transaction validation.
 
 Plutus Core ::
 A small functional programming language designed to run as on-chain code.
@@ -29,11 +38,8 @@ The combined software support for writing smart contracts, including:
 - libraries for writing on-chain code in Plutus Tx.
 - emulator support for testing smart contracts.
 
+Plutus Playground ::
+A browser based environment for writing and testing Plutus contracts.
+
 Plutus Tx ::
 A subset of Haskell which is compiled into Plutus Core.
-
-Non-fungible Token ::
-A token that is not interchangeable with other tokens.
-
-Contract Endpoints ::
-Off-chain functions used by a wallet to interact with a smart contract.
