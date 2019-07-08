@@ -1,4 +1,4 @@
-= Plutus: Writing reliable smart contracts
+= Plutus: Writing Reliable Smart Contracts
 :authors: Lars Brünjes, Polina Vinogradova
 :email: plutus@iohk.io
 :orgname: Input Output HK Limited

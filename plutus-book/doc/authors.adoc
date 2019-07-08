@@ -1,4 +1,5 @@
 [#authors]
+:sectnums!:
 = About the Authors
 
 [.float-group]
