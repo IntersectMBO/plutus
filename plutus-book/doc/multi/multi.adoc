@@ -68,15 +68,15 @@ include::vesting.adoc[]
 
 Let us try the example from the beginning of this chapter in the Playground!
 
-image::../images/vesting-actions1.png[]
+image::vesting-actions1.png[]
 
-image::../images/vesting-actions2.png[]
+image::vesting-actions2.png[]
 
-image::../images/vesting-actions3.png[]
+image::vesting-actions3.png[]
 
-image::../images/vesting-result1.png[]
+image::vesting-result1.png[]
 
-image::../images/vesting-result2.png[]
+image::vesting-result2.png[]
 
 We leave it as an exercise for the reader to check that validation will fail if
 wallet #2 tries to withdraw too much money too early.

@@ -68,30 +68,30 @@ helpful:
 We begin with a successful campaign owned by wallet #1 with a funding target of
 12 Ada, an end date of slot #10 and a collection deadline of slot #20.
 
-image:../images/crowd-actions1.png[]
+image:crowd-actions1.png[]
 
 As expected, wallet #1 can collect the contributions of 13 Ada at the end date:
 
-image:../images/crowd-result1.png[]
+image:crowd-result1.png[]
 
 Let us now simulate the same campaign when it fails, because wallet #3 only
 contributes 4 Ada:
 
-image:../images/crowd-actions2.png[]
+image:crowd-actions2.png[]
 
 In this case, the contributor's wallet #2 and wallet #3 get their money back in
 slot #20:
 
-image:../images/crowd-result2.png[]
+image:crowd-result2.png[]
 
 And what happens on the blockchain? In the case of the successful campaign,
 the graph of transactions looks like this:
 
-image:../images/crowd-txn1.png[]
+image:crowd-txn1.png[]
 
 Finally, the campaign that missed its funding target looks like this:
 
-image:../images/crowd-txn2.png[]
+image:crowd-txn2.png[]
 
 This concludes this chapter on how to write parameterized contracts to implement
 a quite realistic crowdsourcing campaign. We hope you found this informative and useful.

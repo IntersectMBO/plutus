@@ -91,15 +91,15 @@ Finally we can test all of this in the Playground: We have wallet #1 forge
 twenty units of a new currency called "Plutus", then trade ten of those for 5
 Ada with wallet #2:
 
-image:../images/token-actions1.png[]
+image:token-actions1.png[]
 
-image:../images/token-actions2.png[]
+image:token-actions2.png[]
 
-image:../images/token-result1.png[]
+image:token-result1.png[]
 
-image:../images/token-result2.png[]
+image:token-result2.png[]
 
-image:../images/token-result3.png[]
+image:token-result3.png[]
 
 As expected, wallet #1 ends up with 15 Ada and 10 Plutus,
 wallet #2 ends up with 5 Ada and 10 Plutus.
