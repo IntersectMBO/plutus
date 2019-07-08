@@ -48,7 +48,7 @@ the reward address)
 * genesis key delegations
 
 For a detailed formal description of
-this type of accounting, we refer the reader again to <<deleg>>.
+this type of accounting, we refer the reader again to <<bibliography#bibliography>>.
 A major way to extend the functionality of the Cardano ledger is by adding
 script capability to the second step.
 
@@ -66,7 +66,7 @@ Many of the subsequent chapters of this book discuss building scripts
 that define specific smart contracts. In this section, however,
 we discuss in general how scripts are used in the extended UTxO model.
 For a draft of the formal specification of the extended UTxO model with
-scripts, see <<scripts>>.
+scripts, see <<bibliography#bibliography>>.
 
 Scripts, like witnesses, are another
 tool to make sure a transaction is performing only authorized actions.
