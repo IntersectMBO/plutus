@@ -35,6 +35,8 @@
 ifndef::ebook-format[:leveloffset: +1]
 // Include each chapter here. The line breaks ensure that things don't get glued
 // together when they're included.
+include::authors.adoc[]
+
 include::01-preface.adoc[]
 
 include::03-UTxO.adoc[]
