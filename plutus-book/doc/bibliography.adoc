@@ -1,22 +1,38 @@
 [bibliography#bibliography]
 = References
 
-- [[[deleg,1]]] Jared Corduan, Polina Vinogradova, and Matthias Gudemann.
-A formal specification of the Cardano ledger. Technical report, IOHK, 2019.
-Available at https://github.com/input-output-hk/cardano-ledger-specs.
+- [[[devtools,1]]] Plutus Team. 2019. The Plutus language implementation and
+tools. https://github.com/input-output-hk/plutus.
 
-- [[[scripts,2]]] Kenneth MacKenzie.
-An Abstract Model of UTXO-based Cryptocurrencies with Scripts, IOHK, 2019.
-Available at https://github.com/input-output-hk/plutus/tree/master/extended-utxo-spec.
+- [[[plutuscore,2]]] Rebecca Valentine, Kenneth MacKenzie, James Chapman, Philip Wadler,
+Michael Peyton Jones, and Manuel Chakravarty.
+Formal Specification of the Plutus Core Language. Technical report, IOHK, 2019.
+Available at https://github.com/input-output-hk/plutus/tree/master/plutus-core-spec.
 
-- [[[multisig,3]]] Jared Corduan and Matthias Gudemann.
-A Formal Specification of a Multi-Signature Scheme Using Scripts. Technical report, IOHK, 2019.
-Available at https://github.com/input-output-hk/cardano-ledger-specs.
+- [[[bitcoin,3]]] Massimo Bartoletti and Roberto Zunino. 2018. BitML: A Calculus for Bitcoin Smart
+Contracts. In Proceedings of the 2018
+ACM SIGSAC Conference on Computer and Communications Security (CCS ’18). ACM, 83–100.
 
 - [[[multicur,4]]] Jann Müller and Michael Peyton Jones.
 Multi-currency on the UTXO Ledger. Technical report, IOHK, 2019.
 Available at https://github.com/input-output-hk/plutus/tree/master/docs/multi-currency.
 
-- [[[plutuscore,5]]] Rebecca Valentine, Kenneth MacKenzie, James Chapman, Philip Wadler, Michael Peyton Jones, and Manuel Chakravarty.
-Formal Specification of the Plutus Core Language. Technical report, IOHK, 2019.
-Available at https://github.com/input-output-hk/plutus/tree/master/plutus-core-spec.
+- [[[marlowe,5]]] (Anonymous). 2018. Marlowe: Financial Contracts on Blockchain. In Leveraging
+Applications of Formal Methods, Verification
+and Validation. Industrial Practice. ISoLA 2018. (LNCS), Vol. 11247.
+
+- [[[hybrid,6]]] Joachim Zahnentferner. 2018. Chimeric Ledgers: Translating and
+Unifying UTxO-based and Account-based Cryptocurrencies.
+IACR Cryptology ePrint Archive 2018 (2018), 262. http://eprint.iacr.org/2018/262
+
+- [[[deleg,7]]] Jared Corduan, Polina Vinogradova, and Matthias Gudemann.
+A formal specification of the Cardano ledger. Technical report, IOHK, 2019.
+Available at https://github.com/input-output-hk/cardano-ledger-specs.
+
+- [[[scripts,8]]] Kenneth MacKenzie.
+An Abstract Model of UTXO-based Cryptocurrencies with Scripts, IOHK, 2019.
+Available at https://github.com/input-output-hk/plutus/tree/master/extended-utxo-spec.
+
+- [[[multisig,9]]] Jared Corduan and Matthias Gudemann.
+A Formal Specification of a Multi-Signature Scheme Using Scripts. Technical report, IOHK, 2019.
+Available at https://github.com/input-output-hk/cardano-ledger-specs.
