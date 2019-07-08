@@ -1,7 +1,5 @@
-[#dedication]
-[dedication]
+[dedication#dedication]
 = Dedication
 
-The authors thank Niamh Ahern, Michael Peyton Jones, Alejandro Garcia and the IOHK Plutus Team, 
+The authors thank Niamh Ahern, Michael Peyton Jones, Alejandro Garcia and the IOHK Plutus Team,
 without whose hard work and dedication this book would not have been possible.
-
