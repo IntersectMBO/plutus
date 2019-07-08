@@ -106,6 +106,15 @@ image:token-result3.png[]
 As expected, wallet #1 ends up with 15 Ada and 10 Plutus,
 and wallet #2 ends up with 5 Ada and 10 Plutus.
 
+And here is what the whole sequence looks like on the blockchain: The first
+transaction by Alice, owner of wallet #1, creates to script output with the
+monetary policy for Plutus. Her second transaction forges 20 Plutus. Then she
+locks 10 Plutus in the trade script with Bob, owner of wallet #2, who locks the
+price of 5 Ada into that script as well. The final transaction executes the
+trade.
+
+image:token-txn.png[]
+
 This concludes this chapter. We have learned how to go beyond Ada and use
 arbitrary custom tokens, how forging new tokens works, and how we can trade them
 securely.
