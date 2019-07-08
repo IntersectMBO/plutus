@@ -1,4 +1,5 @@
 [#dedication]
+[dedication]
 = Dedication
 
 The authors thank Niamh Ahern, Michael Peyton Jones, Alejandro Garcia and the IOHK Plutus Team, 

@@ -1,4 +1,5 @@
 [#01-preface]
+:sectnums:
 = Preface
 
 This book teaches you how to write reliable smart contracts with Plutus, the

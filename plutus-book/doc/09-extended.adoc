@@ -15,14 +15,14 @@ Ethereum’s account-based scripting model to the UTxO-based Cardano blockchain,
 including smart contract support.
 The extension has two components:
 
-. an extension to the data carried by
-transactions and the corresponding processing scheme performed by the nodes
-. an
+. An extension to the data carried by
+transactions and the corresponding processing scheme performed by the nodes.
+. An
 extension to the wallet backend to facilitate off-chain code that coordinates
-the execution of on-chain computations
+the execution of on-chain computations.
 - Note that an extended UTxO wallet must have access to ledger data in
 order to be able to watch (or to look up) outputs at specified addresses
-at any time
+at any time.
 
 In this chapter, we focus on the first component.
 In the extended UTxO model, additional on-chain computations must be done to
