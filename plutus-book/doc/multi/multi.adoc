@@ -81,6 +81,13 @@ image::vesting-result2.png[]
 We leave it as an exercise for the reader to check that validation will fail if
 wallet #2 tries to withdraw too much money too early.
 
+Let us visualize what happens on the blockchain when all goes well! In the first
+transaction Alice, owner of wallet #1, registers the scheme. In the following
+transactions Bob, owner of wallet #2, withdraws the funds in accordance with the
+vesting scheme:
+
+image::vesting-txs.png[]
+
 In this chapter, we have seen how to write multi-stage contracts, contracts
 which go through several stages before finally all money has been collected.
 We have also seen how to construct complicated transactions with several inputs
