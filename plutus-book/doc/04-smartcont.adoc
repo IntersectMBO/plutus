@@ -211,7 +211,7 @@ regular ownership document. We will discuss how exactly such a unique ID
 can be constructed in the extended UTxO model.
 
 We will look at how to handle custom tokens in chapter
-<<token/token.adoc#token>>.
+<<token#token>>.
 
 == Loans
 

@@ -8,7 +8,7 @@ seeing as Ada is the fundamental currency supported by Cardano.
 
 Plutus offers a more general concept of _value_, though,
 supporting custom fungible, non-fungible, and mixed tokens
-(see <<04-smartcont.adoc#tokens>>),
+(see <<04-smartcont#tokens>>),
 and in this chapter, we want to demonstrate how to go beyond Ada
 and work with other tokens.
 
@@ -16,7 +16,7 @@ What is a `Value` in Plutus?
 
 [source,haskell]
 ----
-newtype Value = Value 
+newtype Value = Value
     {getValue :: Map CurrencySymbol (Map TokenName Integer)}
 ----
 
