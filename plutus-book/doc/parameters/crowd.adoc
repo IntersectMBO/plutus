@@ -132,16 +132,29 @@ inRefundRange campaign tx =
 
 In order to check whether the funding target has been reached,
 we must calculate the total amount of Ada contained in all inputs of a pending
-transaction, so we write a helper function `totalInput` to do just that:
+transaction that belong to our script, 
+so we write a helper function `totalInput` to do just that:
 
 [source,haskell]
 ----
 totalInput :: PendingTx -> Ada
-totalInput = foldl f zero . pendingTxInputs
+totalInput tx = foldl f zero (pendingTxInputs tx)
   where
     f :: Ada -> PendingTxIn -> Ada
-    f ada i = ada `plus` fromValue (pendingTxInValue i)
+    f ada i
+        | fromScript i = ada `plus` fromValue (pendingTxInValue i)
+        | otherwise    = ada
+
+    fromScript :: PendingTxIn -> Bool                              -- <1>
+    fromScript i = case pendingTxInWitness i of
+        Nothing     -> False
+        Just (h, _) -> h == ownHash tx                             -- <2>
 ----
+
+<1> Does this transaction input correspond to an output of "our" script?
+
+<2> Function `ownHash :: PendingTx -> ValidatorHash` gives us the hash
+of the validator script we are currently evaluating.
 
 For refunding, we must check whether all outputs of the pending transaction go
 to the original contributor, so we write a function `toContributor` to check

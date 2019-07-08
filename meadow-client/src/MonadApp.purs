@@ -6,7 +6,6 @@ import API (RunResult)
 import Ace (Editor, Annotation)
 import Ace.EditSession as Session
 import Ace.Editor as AceEditor
-import Ace.Halogen.Component (AceQuery)
 import Auth (AuthStatus)
 import Control.Monad.Except (class MonadTrans, ExceptT, runExceptT)
 import Control.Monad.Reader (class MonadAsk)
@@ -16,7 +15,6 @@ import Data.BigInteger (BigInteger)
 import Data.Either (Either(..))
 import Data.Foldable (foldrDefault)
 import Data.Functor (mapFlipped)
-import Data.Functor.Coproduct (Coproduct)
 import Data.Lens (assign, modifying, over, set)
 import Data.List (List(..))
 import Data.List.NonEmpty as NEL
@@ -34,7 +32,8 @@ import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
 import FileEvents as FileEvents
 import Gist (Gist, GistId, NewGist)
-import Halogen (HalogenM, liftAff, liftEffect)
+import Halogen (HalogenM, liftAff, liftEffect, query')
+import Halogen.Blockly (BlocklyQuery(..))
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode)
 import LocalStorage as LocalStorage
 import Marlowe.Parser (contract)
@@ -47,7 +46,7 @@ import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
 import Text.Parsing.Parser (runParser)
-import Types (ChildQuery, ChildSlot, EditorSlot(EditorSlot), FrontendState, InputData, MarloweEditorSlot(MarloweEditorSlot), MarloweState, OracleEntry, Query, TransactionData, TransactionValidity(..), WebData, _choiceData, _contract, _currentMarloweState, _input, _inputs, _marloweState, _oldContract, _oracleData, _outcomes, _signatures, _transaction, _validity, cpEditor, cpMarloweEditor)
+import Types (BlocklySlot(..), ChildQuery, ChildSlot, EditorSlot(EditorSlot), FrontendState, InputData, MarloweEditorSlot(MarloweEditorSlot), MarloweState, OracleEntry, Query, TransactionData, TransactionValidity(..), WebData, _choiceData, _contract, _currentMarloweState, _input, _inputs, _marloweState, _oldContract, _oracleData, _outcomes, _signatures, _transaction, _validity, cpBlockly, cpEditor, cpMarloweEditor)
 import Web.HTML.Event.DragEvent (DragEvent)
 
 class
@@ -72,6 +71,8 @@ class
   postGist :: NewGist -> m (WebData Gist)
   patchGistByGistId :: NewGist -> GistId -> m (WebData Gist)
   postContractHaskell :: SourceCode -> m (WebData (JsonEither InterpreterError (InterpreterResult RunResult)))
+  resizeBlockly :: m (Maybe Unit)
+  setBlocklyCode :: String -> m Unit
 
 newtype HalogenApp m a
   = HalogenApp (HalogenM FrontendState Query ChildQuery ChildSlot Void m a)
@@ -130,6 +131,32 @@ instance monadAppHalogenApp ::
   postGist newGist = runAjax $ Server.postGists newGist
   patchGistByGistId newGist gistId = runAjax $ Server.patchGistsByGistId newGist gistId
   postContractHaskell source = runAjax $ Server.postContractHaskell source
+  resizeBlockly = wrap $ query' cpBlockly BlocklySlot (Resize unit)
+  setBlocklyCode source = wrap $ void $ query' cpBlockly BlocklySlot (SetCode source unit)
+
+-- I don't quite understand why but if you try to use MonadApp methods in HalogenApp methods you
+-- blow the stack so we have 3 methods pulled out here. I think this just ensures they are run
+-- in the HalogenApp monad and that's all that's required although a type annotation inside the
+-- monad doesn't seem to help, neither does `wrap . runHalogenApp`
+saveInitialState' :: forall m. MonadEffect m => HalogenApp m Unit
+saveInitialState' = do
+  oldContract <- marloweEditorGetValue'
+  modifying _oldContract
+    ( \x -> case x of
+      Nothing ->
+        Just
+          ( case oldContract of
+            Nothing -> ""
+            Just y -> y
+          )
+      _ -> x
+    )
+
+marloweEditorGetValue' :: forall m. MonadEffect m => HalogenApp m (Maybe String)
+marloweEditorGetValue' = withMarloweEditor AceEditor.getValue
+
+updateContractInState' :: forall m. String -> HalogenApp m Unit
+updateContractInState' contract = modifying _currentMarloweState (updateStateP <<< updateContractInStateP contract)
 
 -- I don't quite understand why but if you try to use MonadApp methods in HalogenApp methods you
 -- blow the stack so we have 3 methods pulled out here. I think this just ensures they are run
@@ -150,12 +177,12 @@ marloweEditorGetValueImpl = withMarloweEditor AceEditor.getValue
 updateContractInStateImpl :: forall m. String -> HalogenApp m Unit
 updateContractInStateImpl contract = modifying _currentMarloweState (updateStateP <<< updateContractInStateP contract)
 
-runHalogenApp :: forall m a. HalogenApp m a -> HalogenM FrontendState Query (Coproduct AceQuery AceQuery) (Either EditorSlot MarloweEditorSlot) Void m a
+runHalogenApp :: forall m a. HalogenApp m a -> HalogenM FrontendState Query ChildQuery ChildSlot Void m a
 runHalogenApp = unwrap
 
 runAjax ::
   forall m a.
-  ExceptT AjaxError (HalogenM FrontendState Query (Coproduct AceQuery AceQuery) (Either EditorSlot MarloweEditorSlot) Void m) a ->
+  ExceptT AjaxError (HalogenM FrontendState Query ChildQuery ChildSlot Void m) a ->
   HalogenApp m (WebData a)
 runAjax action = wrap $ RemoteData.fromEither <$> runExceptT action
 

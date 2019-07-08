@@ -6,31 +6,10 @@ import Ace.Editor as Editor
 import Ace.Halogen.Component (AceMessage(TextChanged))
 import Ace.Types (Editor, Annotation)
 import Analytics (Event, defaultEvent, trackEvent)
-import Bootstrap
-  ( active
-  , btn
-  , btnGroup
-  , btnInfo
-  , btnPrimary
-  , btnSmall
-  , colXs12
-  , colSm6
-  , colSm5
-  , container
-  , container_
-  , empty
-  , hidden
-  , listGroupItem_
-  , listGroup_
-  , navItem_
-  , navLink
-  , navTabs_
-  , noGutters
-  , pullRight
-  , row
-  , justifyContentBetween
-  )
-import Control.Bind (bindFlipped)
+import Bootstrap (active, btn, btnGroup, btnInfo, btnPrimary, btnSmall, colXs12, colSm6, colSm5, container, container_, empty, hidden, listGroupItem_, listGroup_, navItem_, navLink, navTabs_, noGutters, pullRight, row, justifyContentBetween)
+import Control.Bind (bindFlipped, void)
+import Control.Monad ((*>))
+import Control.Monad.Maybe.Trans (MaybeT(..), lift, runMaybeT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State.Trans (class MonadState)
 import Data.Array (catMaybes, delete, snoc)
@@ -56,83 +35,32 @@ import Gist (gistFileContent, gistId)
 import Gists (parseGistUrl, gistControls)
 import Halogen (Component, action)
 import Halogen as H
+import Halogen.Blockly (BlocklyMessage(..), blockly)
 import Halogen.Component (ParentHTML)
-import Halogen.HTML (ClassName(ClassName), HTML, a, button, code_, div, div_, h1, pre, strong_, text)
-import Halogen.HTML.Events (onClick, input_)
-import Halogen.HTML.Properties (class_, classes, href, disabled)
+import Halogen.HTML (ClassName(ClassName), HTML, a, button, code_, div, div_, h1, pre, slot', strong_, text)
+import Halogen.HTML.Events (input, input_, onClick)
+import Halogen.HTML.Properties (class_, classes, disabled, href)
 import Halogen.Query (HalogenM)
 import Language.Haskell.Interpreter (SourceCode(SourceCode), InterpreterError(CompilationErrors, TimeoutError), CompilationError(CompilationError, RawError), InterpreterResult(InterpreterResult), _InterpreterResult)
+import Marlowe.Blockly as MB
 import Marlowe.Pretty (pretty)
 import Marlowe.Semantics (MApplicationResult(MCouldNotApply, MSuccessfullyApplied), applyTransaction)
 import Marlowe.Test (_blockNumber)
 import Marlowe.Types (IdChoice(IdChoice))
 import Meadow (SPParams_)
 import Meadow.Gists (mkNewGist, playgroundGistFile)
-import MonadApp
-  ( class MonadApp
-  , saveMarloweBuffer
-  , getGistByGistId
-  , patchGistByGistId
-  , postGist
-  , postContractHaskell
-  , getOauthStatus
-  , saveBuffer
-  , runHalogenApp
-  , marloweEditorGetValue
-  , marloweEditorSetValue
-  , haskellEditorGetValue
-  , haskellEditorGotoLine
-  , haskellEditorSetAnnotations
-  , haskellEditorSetValue
-  , emptyMarloweState
-  , extendWith
-  , preventDefault
-  , readFileFromDragEvent
-  , resetContract
-  , saveInitialState
-  , updateContractInState
-  , updateMarloweState
-  , updateState
-  )
+import MonadApp (class MonadApp, haskellEditorGetValue, haskellEditorGotoLine, haskellEditorSetAnnotations, haskellEditorSetValue, emptyMarloweState, extendWith, getGistByGistId, getOauthStatus, marloweEditorGetValue, marloweEditorSetValue, patchGistByGistId, postContractHaskell, postGist, preventDefault, readFileFromDragEvent, resetContract, resizeBlockly, runHalogenApp, saveBuffer, saveInitialState, saveMarloweBuffer, updateContractInState, updateMarloweState, updateState, setBlocklyCode)
 import Network.RemoteData (RemoteData(Success, Loading, NotAsked), _Success, isLoading, isSuccess)
 import Prelude (type (~>), Unit, Void, add, bind, const, discard, identity, not, one, pure, show, unit, (#), ($), (-), (<$>), (<<<), (<>), (==), (||))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation (simulationPane)
 import StaticData as StaticData
-import Types
-  ( ChildQuery
-  , ChildSlot
-  , FrontendState(FrontendState)
-  , MarloweState
-  , Query(SendResult, ChangeView, LoadScript, Undo, ResetSimulator, SetOracleBn, SetOracleVal, SetChoice, RemoveAnyInput, AddAnyInput, NextBlock, ApplyTransaction, SetSignature, ScrollTo, CompileProgram, LoadMarloweScript, LoadGist, SetGistUrl, PublishGist, CheckAuthStatus, MarloweHandleDropEvent, MarloweHandleDragEvent, MarloweHandleEditorMessage, HandleDropEvent, HandleDragEvent, HandleEditorMessage)
-  , View(Simulation, Editor)
-  , _authStatus
-  , _blockNum
-  , _choiceData
-  , _compilationResult
-  , _contract
-  , _createGistResult
-  , _currentContract
-  , _currentInput
-  , _currentTransaction
-  , _gistUrl
-  , _inputs
-  , _marloweState
-  , _moneyInContract
-  , _oldContract
-  , _oracleData
-  , _result
-  , _signatures
-  , _state
-  , _transaction
-  , _value
-  , _view
-  )
+import Types (BlocklySlot(BlocklySlot), ChildQuery, ChildSlot, FrontendState(FrontendState), MarloweState, Query(..), View(..), _authStatus, _blockNum, _choiceData, _compilationResult, _contract, _createGistResult, _currentContract, _currentInput, _currentTransaction, _gistUrl, _inputs, _marloweState, _moneyInContract, _oldContract, _oracleData, _result, _signatures, _state, _transaction, _value, _view, cpBlockly)
 
 initialState :: FrontendState
 initialState =
   FrontendState
-    { view: Editor
+    { view: HaskellEditor
     , compilationResult: NotAsked
     , marloweCompileResult: Right unit
     , authStatus: NotAsked
@@ -140,6 +68,7 @@ initialState =
     , marloweState: NEL.singleton emptyMarloweState
     , oldContract: Nothing
     , gistUrl: Nothing
+    , blocklyState: Nothing
     }
 
 ------------------------------------------------------------
@@ -234,6 +163,10 @@ toEvent (SetOracleBn _ _) = Nothing
 toEvent (ResetSimulator _) = Nothing
 
 toEvent (Undo _) = Just $ defaultEvent "Undo"
+
+toEvent (HandleBlocklyMessage _ _) = Nothing
+
+toEvent (SetBlocklyCode _) = Nothing
 
 applyTransactionM :: MarloweState -> MarloweState
 applyTransactionM oldState = case oldState.contract of
@@ -342,6 +275,7 @@ evalF (LoadGist next) = do
 
 evalF (ChangeView view next) = do
   assign _view view
+  void resizeBlockly
   pure next
 
 evalF (LoadScript key next) = do
@@ -473,6 +407,22 @@ evalF (Undo next) = do
         Nothing -> ms
         Just netail -> netail
 
+evalF (HandleBlocklyMessage Initialized next) = pure next
+
+evalF (HandleBlocklyMessage (CurrentCode code) next) = do
+      marloweEditorSetValue code (Just 1)
+      assign _view Simulation
+      pure next
+
+evalF (SetBlocklyCode next) = runMaybeT f *> pure next
+  where
+  f = do
+    source <- MaybeT marloweEditorGetValue
+    lift do
+      setBlocklyCode source
+      assign _view BlocklyEditor 
+    MaybeT resizeBlockly
+
 ------------------------------------------------------------
 showCompilationErrorAnnotations ::
   Array Annotation ->
@@ -515,7 +465,7 @@ render state =
               , div [classes [colXs12, colSm5]] [gistControls (unwrap state)]
               ]
           ]
-      , viewContainer stateView Editor
+      , viewContainer stateView HaskellEditor
           [ loadScriptsPane
           , editorPane defaultContents (unwrap <$> (view _compilationResult state))
           , resultPane state
@@ -523,9 +473,16 @@ render state =
       , viewContainer stateView Simulation
           [ simulationPane state
           ]
+      , viewContainer stateView BlocklyEditor
+          [ slot' cpBlockly BlocklySlot (blockly blockDefinitions) unit (input HandleBlocklyMessage)
+          , MB.toolbox
+          , MB.workspaceBlocks
+          ]
       ]
   where
   defaultContents = Map.lookup "Escrow" StaticData.demoFiles
+
+  blockDefinitions = MB.blockDefinitions
 
 loadScriptsPane :: forall p. HTML p (Query Unit)
 loadScriptsPane =
@@ -576,8 +533,9 @@ mainTabBar :: forall p. View -> HTML p (Query Unit)
 mainTabBar activeView = navTabs_ (mkTab <$> tabs)
   where
   tabs =
-    [ Editor /\ "Haskell Editor"
+    [ HaskellEditor /\ "Haskell Editor"
     , Simulation /\ "Simulation"
+    , BlocklyEditor /\ "Blockly"
     ]
 
   mkTab (link /\ title) =

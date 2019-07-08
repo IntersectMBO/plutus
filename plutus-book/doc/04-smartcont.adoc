@@ -96,13 +96,17 @@ that it will provide the contributors with the product in the case the goal
 amount was reached, and refund the contributed money otherwise.
 With a smart contract, this is possible to enforce.
 
-The execution of some part of a crowdfunding smart contract, like all
-smart contracts, is generally triggered by events of two types: the passage of time
-and the actions of the participants involved, and only in the case that any relevant
-preconditions in the contract also hold true. In Chapter
-<<06-lifecycle#06-lifecycle>>,
-we discuss the specifics of Plutus event triggers in detail.
+The execution of a contract refers to the changing of the state of the contract
+as a result of being triggered by by events of two types:
 
+* changes in the environment external to the contract, such as the passage of time, and
+* actions of the participants involved.
+
+At different points in the lifetime of a contract throughout its execution,
+different parties may be allowed to collect funds from the contract or
+be expected to pay into the contract.
+
+[#tokens]
 == Real-world and Non Fungible Tokens
 
 While we can enforce the correct transfer of funds between participants in a
@@ -206,6 +210,9 @@ would be associated with an address, and thus its owner, similar to a
 regular ownership document. We will discuss how exactly such a unique ID
 can be constructed in the extended UTxO model.
 
+We will look at how to handle custom tokens in chapter
+<<token/token.adoc#token>>.
+
 == Loans
 
 Items existing in the real world and not solely on the blockchain are not the
@@ -280,11 +287,11 @@ website,
 
 [quote]
 ____
-"Recent financial crises laid bare serious shortcomings in risk management and
+Recent financial crises laid bare serious shortcomings in risk management and
 financial regulation. In retrospect, the lack of timely granular data reported
 in a data standard capable of supporting financial analysis contributed much
 to the crises. The ACTUS project aims to remedy this weakness by creating a
-global standard for the consistent representation of financial instruments."
+global standard for the consistent representation of financial instruments.
 ____
 
 Financial contracts include things like futures, loans bonds, mortgages, etc.

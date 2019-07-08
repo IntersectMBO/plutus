@@ -1,0 +1,1 @@
+../../doc/token/fungible.adoc

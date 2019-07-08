@@ -4,6 +4,7 @@
     [ "prelude"
         , "halogen"
         , "effect"
+        , "functions"
         , "parsing"
         , "test-unit"
         , "node-fs"
@@ -17,6 +18,8 @@
         , "undefinable"
         , "matryoshka"
         , "numerics"
+        , "simple-json"
+        , "psci-support"
         ],
     "name": "meadow-client",
     "source": ""
