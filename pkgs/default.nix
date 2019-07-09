@@ -53549,6 +53549,7 @@ testHaskellDepends = [
 aeson
 base
 bytestring
+containers
 cryptonite
 Diff
 hspec
@@ -54151,6 +54152,7 @@ optparse-applicative
 playground-common
 plutus-emulator
 plutus-playground-lib
+plutus-tx
 plutus-wallet-api
 prometheus
 purescript-bridge
@@ -54244,7 +54246,6 @@ license = stdenv.lib.licenses.asl20;
 , language-plutus-core
 , lens
 , mtl
-, playground-common
 , plutus-core-interpreter
 , plutus-ir
 , prettyprinter
@@ -54271,7 +54272,6 @@ ghc
 language-plutus-core
 lens
 mtl
-playground-common
 plutus-core-interpreter
 plutus-ir
 prettyprinter
@@ -56978,8 +56978,8 @@ version = "0.13.0.0";
 src = fetchgit {
 
 url = "https://github.com/shmish111/purescript-bridge.git";
-sha256 = "0qx1fgaqsx503cpya2qnw68zybi3bg73fhay8f2chvx1h0pcvc6d";
-rev = "a7069a515800135ce932742e995f3a96bc1c7129";
+sha256 = "196bpmzjvfgvzrp620d3da0f10mdjpw8vppyqxpx8j5bv904cizx";
+rev = "dc500a47c8330526a78c5cfac84ddb923cd5c8a5";
 fetchSubmodules = true;
 
 };

@@ -34,7 +34,7 @@ import Effect.Class (class MonadEffect, liftEffect)
 import Foreign.Generic (decodeJSON)
 import Gist (Gist, GistId, gistId)
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode(SourceCode))
-import Ledger.Extra (LedgerMap(..))
+import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import MainFrame (eval, initialState, mkInitialValue)
 import MonadApp (class MonadApp)
@@ -222,11 +222,11 @@ evalTests =
         loadCompilationResponse1 >>= case _ of
           Left err -> failure err
           Right compilationResult -> do
-            Tuple _ finalState <- execMockApp (mockWorld { compilationResult = compilationResult }) do
+            Tuple _ intermediateState <- execMockApp (mockWorld { compilationResult = compilationResult }) do
               send $ ChangeView Simulations
               send $ LoadScript "Game"
               send $ CompileProgram
-            assert "Simulations are non-empty." $ not $ Cursor.null $ view _simulations finalState
+            assert "Simulations are non-empty." $ not $ Cursor.null $ view _simulations intermediateState
             Tuple _ finalState <- execMockApp (mockWorld { compilationResult = compilationResult }) do
               send $ LoadScript "Game"
               send $ CompileProgram
@@ -259,11 +259,11 @@ mkInitialValueTests =
   suite "mkInitialValue" do
     test "balance" do
       equalGenericShow
-        (Value { getValue: LedgerMap [ ada /\ LedgerMap [ adaToken /\ 10 ]
-                                      , currencies /\ LedgerMap [ usdToken /\ 10
-                                                                , eurToken /\ 10
-                                                                ]
-                                      ] })
+        (Value { getValue: AssocMap.fromTuples [ ada /\ AssocMap.fromTuples [ adaToken /\ 10 ]
+                                               , currencies /\ AssocMap.fromTuples [ usdToken /\ 10
+                                                                                   , eurToken /\ 10
+                                                                                   ]
+                                               ] })
         (mkInitialValue
            [ KnownCurrency { hash: "", friendlyName: "Ada", knownTokens: (JsonNonEmptyList (pure (TokenName { unTokenName : "" }))) }
            , KnownCurrency { hash: "Currency", friendlyName: "Currencies", knownTokens: JsonNonEmptyList( NonEmptyList ((TokenName { unTokenName: "USDToken" }) :| (Cons (TokenName { unTokenName:  "EURToken" }) Nil))) }

@@ -65,9 +65,9 @@ import           Wallet.API                                 (WalletAPIError)
 import           Wallet.Emulator.Types                      (EmulatorEvent, Wallet)
 import           Wallet.Graph                               (FlowGraph, FlowLink, TxRef, UtxOwner, UtxoLocation)
 
-psLedgerMap :: MonadReader BridgeData m => m PSType
-psLedgerMap =
-    TypeInfo "plutus-playground-client" "Ledger.Extra" "LedgerMap" <$>
+psAssocMap :: MonadReader BridgeData m => m PSType
+psAssocMap =
+    TypeInfo "plutus-playground-client" "Language.PlutusTx.AssocMap" "Map" <$>
     psTypeParameters
 
 psNonEmpty :: MonadReader BridgeData m => m PSType
@@ -87,11 +87,11 @@ integerBridge = do
     typeName ^== "Integer"
     pure psInt
 
-ledgerMapBridge :: BridgePart
-ledgerMapBridge = do
+assocMapBridge :: BridgePart
+assocMapBridge = do
     typeName ^== "Map"
     typeModule ^== "Language.PlutusTx.AssocMap"
-    psLedgerMap
+    psAssocMap
 
 ledgerBytesBridge :: BridgePart
 ledgerBytesBridge = do
@@ -195,12 +195,12 @@ mapBridge :: BridgePart
 mapBridge = do
     typeName ^== "Map"
     typeModule ^== "Data.Map.Internal"
-    psLedgerMap
+    psAssocMap
 
 myBridge :: BridgePart
 myBridge =
     eitherBridge <|> tupleBridge <|> defaultBridge <|> integerBridge <|>
-    ledgerMapBridge <|>
+    assocMapBridge <|>
     scientificBridge <|>
     aesonBridge <|>
     setBridge <|>
@@ -227,10 +227,10 @@ instance HasBridge MyBridge where
 
 myTypes :: [SumType 'Haskell]
 myTypes =
-    [ (equal <*> mkSumType) (Proxy @DataType)
-    , (equal <*> mkSumType) (Proxy @Constructor)
-    , (equal <*> mkSumType) (Proxy @ConstructorName)
-    , (equal <*> mkSumType) (Proxy @TypeSignature)
+    [ (genericShow <*> (equal <*> mkSumType)) (Proxy @DataType)
+    , (genericShow <*> (equal <*> mkSumType)) (Proxy @Constructor)
+    , (genericShow <*> (equal <*> mkSumType)) (Proxy @ConstructorName)
+    , (genericShow <*> (equal <*> mkSumType)) (Proxy @TypeSignature)
     , (equal <*> mkSumType) (Proxy @(FunctionSchema A))
     , mkSumType (Proxy @CompilationResult)
     , mkSumType (Proxy @Warning)

@@ -101,11 +101,7 @@ instance showJsonNonEmptyList :: Show a => Show (JsonNonEmptyList a) where
   show = genericShow
 
 instance encodeJsonNonEmptyList :: Encode a => Encode (JsonNonEmptyList a) where
-  encode (JsonNonEmptyList x) = b
-    where
-    a = Array.fromFoldable x
-
-    b = encode a
+  encode (JsonNonEmptyList x) = encode $ Array.fromFoldable x
 
 instance decodeJsonNonEmptyList :: Decode a => Decode (JsonNonEmptyList a) where
   decode value = do

@@ -30,7 +30,8 @@ import Halogen.Component (ParentHTML)
 import Halogen.HTML (ClassName(ClassName), br_, div, div_, h2_, slot', text)
 import Halogen.HTML.Events (input)
 import Halogen.HTML.Properties (class_)
-import Ledger.Extra (LedgerMap, collapse)
+import Language.PlutusTx.AssocMap as AssocMap
+import Array.Extra (collapse)
 import Ledger.Index (ValidationError(..))
 import Ledger.Slot (Slot(..))
 import Ledger.Tx (TxInOf(..), TxOutOf(..), TxOutRefOf(..))
@@ -132,7 +133,7 @@ balancesToChartistData wallets = toChartistData $ toChartistItem <$> wallets
       , value: Int.toNumber $ fromMaybe zero $ extractAmount key wallet
       }
 
-    allValues :: List (LedgerMap CurrencySymbol (LedgerMap TokenName Int))
+    allValues :: List (AssocMap.Map CurrencySymbol (AssocMap.Map TokenName Int))
     allValues =
       toListOf (traversed
                 <<< _simulatorWalletBalance
