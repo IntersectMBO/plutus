@@ -1,161 +1,114 @@
-{-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE DerivingVia #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE KindSignatures #-}
 
-module Language.PlutusCore.Constant.Universe where
+module Language.PlutusCore.Constant.Universe
+    ( Some (..)
+    , SomeOf (..)
+    , Extend (..)
+    , shiftSome
+    , shiftSomeOf
+    , Includes (..)
+    , knownUniOf
+    , Closed (..)
+    , bringApply
+    , GShow (..)
+    , EqUni
+    ) where
 
-import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Lexer.Type
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
-import           PlutusPrelude
-
-import           Control.Monad.Except
-import           Control.Monad.Morph                         as Morph
-import           Control.Monad.Reader
-import           Control.Monad.Trans.Inner
-import           Data.Map                                    (Map)
+import           Control.DeepSeq
 import           Data.Proxy
-import           Data.Text                                   (Text)
-import           Control.Monad.Trans.Compose                 (ComposeT (..))
-import           GHC.TypeLits
-import qualified Data.ByteString.Lazy as BSL
+import           Data.GADT.Compare
+import           Data.List
+import           GHC.Exts
+import           Data.Text.Prettyprint.Doc (Pretty (..))
 
-infixr 9 `TypeSchemeArrow`
+data Some f = forall a. Some (f a)
+data SomeOf f = forall a. SomeOf (f a) a
 
-data ValueIn uni = forall a. ValueIn (uni a) a
+data Extend b uni a where
+    Extension :: Extend b uni b
+    Original  :: uni a -> Extend b uni a
 
-class Deep a where
-    toTypeAst  :: proxy a -> Type TyName ()
-    liftDeep   :: a -> Term TyName Name con ()
-    unliftDeep :: Monad m => Evaluator uni Term m -> Term TyName Name (ValueIn uni) () -> ReflectT m a
+instance GEq uni => GEq (Extend b uni) where
+    geq Extension       Extension       = Just Refl
+    geq (Original uni1) (Original uni2) = geq uni1 uni2
+    geq _               _               = Nothing
 
-unliftDeepM :: (Monad m, Deep a) => Term TyName Name (ValueIn uni) () -> EvaluateT uni ReflectT m a
-unliftDeepM term = withEvaluator $ \eval -> unliftDeep eval term
+shiftSome :: Some uni -> Some (Extend b uni)
+shiftSome (Some uni) = Some (Original uni)
 
-instance Deep a => Deep (EvaluationResult a) where
-    toTypeAst _ = toTypeAst @a Proxy
-
-    liftDeep EvaluationFailure     = Error () $ toTypeAst @a Proxy
-    liftDeep (EvaluationSuccess x) = liftDeep x
-
-    unliftDeep eval = mapDeepReflectT (fmap $ EvaluationSuccess . sequence) . unliftDeep eval
-
-
-
-newtype ReflectT m a = ReflectT
-    { unReflectT :: ExceptT Text (InnerT EvaluationResult m) a
-    } deriving
-        ( Functor, Applicative, Monad
-        , MonadError Text
-        )
-      deriving MonadTrans via ComposeT (ExceptT Text) (InnerT EvaluationResult)
-
--- Uses the 'Alternative' instance of 'EvaluationResult'.
-instance Monad m => Alternative (ReflectT m) where
-    empty = ReflectT . lift $ yield empty
-    ReflectT (ExceptT (InnerT m)) <|> ReflectT (ExceptT (InnerT n)) =
-        ReflectT . ExceptT . InnerT $ (<|>) <$> m <*> n
-
-runReflectT :: ReflectT m a -> m (EvaluationResult (Either Text a))
-runReflectT = unInnerT . runExceptT . unReflectT
-
-mapReflectT
-    :: (ExceptT Text (InnerT EvaluationResult m) a -> ExceptT Text (InnerT EvaluationResult n) b)
-    -> ReflectT m a
-    -> ReflectT n b
-mapReflectT f (ReflectT a) = ReflectT (f a)
-
-mapDeepReflectT
-    :: (m (EvaluationResult (Either Text a)) -> n (EvaluationResult (Either Text b)))
-    -> ReflectT m a
-    -> ReflectT n b
-mapDeepReflectT = mapReflectT . mapExceptT . mapInnerT
-
-
+shiftSomeOf :: SomeOf uni -> SomeOf (Extend b uni)
+shiftSomeOf (SomeOf uni x) = SomeOf (Original uni) x
 
 -- We probably want to use that together with `fastsum`.
 -- But also allow @Either@ and use type families for computing the index of a type,
 -- because we want to extend @uni@ in order to unlift values.
-class Deep a => uni `Includes` a where
+class uni `Includes` a where
     knownUni :: uni a
 
-newtype OpaqueTerm uni (text :: Symbol) (unique :: Nat) = OpaqueTerm
-    { unOpaqueTerm :: Term TyName Name (ValueIn uni) ()
-    }
+instance uni `Includes` a => Extend b uni `Includes` a where
+    knownUni = Original knownUni
 
-data TypeScheme uni a r where
-    TypeSchemeResult :: uni `Includes` a => Proxy a -> TypeScheme uni a a
-    TypeSchemeArrow  :: uni `Includes` a => Proxy a -> TypeScheme uni b r -> TypeScheme uni (a -> b) r
-    TypeSchemeAllType
-        :: (KnownSymbol text, KnownNat uniq)
-        => Proxy '(text, uniq)
-        -> (forall ot. ot ~ OpaqueTerm uni text uniq => Proxy ot -> TypeScheme uni a r)
-        -> TypeScheme uni a r
+knownUniOf :: uni `Includes` a => proxy a -> uni a
+knownUniOf _ = knownUni
 
--- | A 'BuiltinName' with an associated 'TypeScheme'.
-data TypedBuiltinName uni a r = TypedBuiltinName BuiltinName (TypeScheme uni a r)
+class Closed uni where
+    type Everywhere uni (constr :: * -> Constraint) :: Constraint
+    bring :: uni `Everywhere` constr => proxy constr -> uni a -> (constr a => r) -> r
 
-data DynamicBuiltinNameMeaning uni =
-    forall a r. DynamicBuiltinNameMeaning (TypeScheme uni a r) a
+bringApply
+    :: (Closed uni, uni `Everywhere` constr)
+    => Proxy constr -> (forall a. constr a => a -> r) -> SomeOf uni -> r
+bringApply proxy f (SomeOf uni x) = bring proxy uni $ f x
 
-newtype DynamicBuiltinNameMeanings uni = DynamicBuiltinNameMeanings
-    { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName (DynamicBuiltinNameMeaning uni)
-    } deriving (Semigroup, Monoid)
+parens :: String -> String
+parens str = "(" ++ str ++ ")"
 
-type Evaluator uni f m
-    =  DynamicBuiltinNameMeanings uni
-    -> f TyName Name (ValueIn uni) ()
-    -> m (EvaluationResultDef (ValueIn uni))
+-- There is 'Show1', but it requires @Show a@, which we don't need and can't satisfy in
+-- the @Show (Some uni)@ instance for example.
+class GShow f where
+    gshow :: f a -> String
 
-newtype EvaluateT uni t m a = EvaluateT
-    { unEvaluateT :: ReaderT (Evaluator uni Term m) (t m) a
-    } deriving
-        ( Functor, Applicative, Monad, Alternative, MonadPlus
-        , MonadError e
-        )
+instance GShow uni => Show (Some uni) where
+   show (Some uni) = "Some " ++ parens (gshow uni)
 
--- | Run an 'EvaluateT' computation using the given 'Evaluator'.
-runEvaluateT :: Evaluator uni Term m -> EvaluateT uni t m a -> t m a
-runEvaluateT eval (EvaluateT a) = runReaderT a eval
+instance GShow uni => Pretty (Some uni) where
+    pretty (Some uni) = pretty $ gshow uni
 
--- | Wrap a computation binding an 'Evaluator' as a 'EvaluateT'.
-withEvaluator :: (Evaluator uni Term m -> t m a) -> EvaluateT uni t m a
-withEvaluator = EvaluateT . ReaderT
+instance (GShow uni, Closed uni, uni `Everywhere` Show) => Show (SomeOf uni) where
+    show (SomeOf uni x) =
+        intercalate " "
+            [ "SomeOf"
+            , parens $ gshow uni
+            , parens $ bring (Proxy @Show) uni (show x)
+            ]
 
--- | 'thoist' for monad transformer transformers is what 'hoist' for monad transformers.
-thoist :: Monad (t m) => (forall b. t m b -> s m b) -> EvaluateT uni t m a -> EvaluateT uni s m a
-thoist f (EvaluateT a) = EvaluateT $ Morph.hoist f a
+instance (Closed uni, uni `Everywhere` Pretty) => Pretty (SomeOf uni) where
+    pretty = bringApply (Proxy @Pretty) pretty
 
+instance GEq uni => Eq (Some uni) where
+    Some uni1 == Some uni2 = uni1 `defaultEq` uni2
 
+type EqUni uni = (GEq uni, Closed uni, uni `Everywhere` Eq)
 
-typedTakeByteString
-    :: (uni `Includes` Integer, uni `Includes` BSL.ByteString)
-    => TypedBuiltinName uni (Integer -> BSL.ByteString -> BSL.ByteString) BSL.ByteString
-typedTakeByteString =
-    TypedBuiltinName TakeByteString $
-        Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
+instance EqUni uni => Eq (SomeOf uni) where
+    SomeOf uni1 x1 == SomeOf uni2 x2 =
+        case uni1 `geq` uni2 of
+            Nothing   -> False
+            Just Refl -> bring (Proxy @Eq) uni1 (x1 == x2)
 
+-- We could use 'NFData1' here, but we don't really need it for our particular case.
+instance NFData (Some f) where
+    rnf (Some a) = a `seq` ()
 
-
--- unlift :: Evaluator -> Term uni -> a
-
--- unliftList list = unwrap list $[] (\{_} x xs -> $(:) x (unliftList xs))
--- @unliftList@ turns the deep embedding of @[]@ into the shallow embedding and from there we can
--- just perform a single pattern match.
--- NO LONGER NEED @Evaluator@???
--- But with @Evaluator@ we could unlift values lazily, right? Is that important, though?
-
--- Should we be able to apply Haskell's @reverse :: forall a. [a] -> [a]@ to a PLC's list?
--- [a] -> list a  -- does not require an evaluator
--- list a -> [a]  -- requires an evaluator currently
--- Do we only need evaluators for implicit conversions?
-
--- User provides PLC->Haskell, we derive Haskell->PLC?
+instance (Closed uni, uni `Everywhere` NFData) => NFData (SomeOf uni) where
+    rnf = bringApply (Proxy @NFData) rnf

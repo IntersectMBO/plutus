@@ -18,7 +18,7 @@ import           Language.PlutusCore.Examples.Data.InterList
 import           Language.PlutusCore.Examples.Data.TreeForest
 
 -- | All examples exported as a single value.
-examples :: PlcFolderContents
+examples :: PlcFolderContents uni
 examples =
     FolderContents
       [ treeFolderContents "Examples"

@@ -10,14 +10,14 @@ module Language.PlutusCore.Evaluation.MachineException
     , MachineException (..)
     ) where
 
--- import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Constant.Apply
 import           Language.PlutusCore.Name
 -- import           Language.PlutusCore.Pretty.Plc
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 -- | Errors which can occur during a run of an abstract machine.
-data MachineError err
+data MachineError uni err
     = NonPrimitiveInstantiationMachineError
       -- ^ An attempt to reduce a not immediately reducible type instantiation.
     | NonWrapUnwrappedMachineError
@@ -26,21 +26,20 @@ data MachineError err
       -- ^ An attempt to reduce a not immediately reducible application.
     | OpenTermEvaluatedMachineError
       -- ^ An attempt to evaluate an open term.
-    | ConstAppMachineError () -- ConstAppError
+    | ConstAppMachineError (ConstAppError uni)
       -- ^ An attempt to compute a constant application resulted in 'ConstAppError'.
     | OtherMachineError err
     deriving (Eq)
 
 -- | The type of exceptions an abstract machine can throw.
-data MachineException con err = MachineException
-    { _machineExceptionError :: MachineError err         -- ^ An error.
-    , _machineExceptionCause :: Term TyName Name con ()  -- ^ A 'Term' that caused the error.
+data MachineException uni err = MachineException
+    { _machineExceptionError :: MachineError uni err     -- ^ An error.
+    , _machineExceptionCause :: Term TyName Name uni ()  -- ^ A 'Term' that caused the error.
     } deriving (Eq)
 
-instance -- ( PrettyBy config (Term TyName Name con ())
-         ( PrettyBy config ()
+instance ( PrettyBy config (Term TyName Name uni ())
          , Pretty err
-         ) => PrettyBy config (MachineError err) where
+         ) => PrettyBy config (MachineError uni err) where
     prettyBy _      NonPrimitiveInstantiationMachineError =
         "Cannot reduce a not immediately reducible type instantiation."
     prettyBy _      NonWrapUnwrappedMachineError          =
@@ -54,10 +53,10 @@ instance -- ( PrettyBy config (Term TyName Name con ())
     prettyBy _      (OtherMachineError err)               =
         pretty err
 
-instance Pretty err => Show (MachineException con err) where
+instance Pretty err => Show (MachineException uni err) where
     show (MachineException err cause) = " " {- fold
         [ "An abstract machine failed: ", docString $ prettyPlcReadableDebug err, "\n"
         , "Caused by: ", docString $ prettyPlcReadableDebug cause
         ] -}
 
-instance (Pretty err, Typeable con, Typeable err) => Exception (MachineException con err)
+instance (Pretty err, Typeable uni, Typeable err) => Exception (MachineException uni err)

@@ -4,6 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Pretty.Classic
@@ -14,7 +15,7 @@ module Language.PlutusCore.Pretty.Classic
     , prettyClassicDebug
     ) where
 
-import           Language.PlutusCore.Lexer.Type
+import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
@@ -39,32 +40,34 @@ instance PrettyBy (PrettyConfigClassic configName) (Kind a) where
         a TypeF{}             = "(type)"
         a (KindArrowF _ k k') = parens ("fun" <+> k <+> k')
 
-instance PrettyBy (PrettyConfigClassic configName) (Constant a) where
-    prettyBy _ (BuiltinInt _ i) = pretty i
-    prettyBy _ (BuiltinBS _ b)  = prettyBytes b
-    prettyBy _ (BuiltinStr _ s) = pretty s
+-- instance PrettyBy (PrettyConfigClassic configName) (Constant a) where
+--     prettyBy _ (BuiltinInt _ i) = pretty i
+--     prettyBy _ (BuiltinBS _ b)  = prettyBytes b
+--     prettyBy _ (BuiltinStr _ s) = pretty s
 
 instance PrettyBy (PrettyConfigClassic configName) (Builtin a) where
     prettyBy _ (BuiltinName    _ n) = pretty n
     prettyBy _ (DynBuiltinName _ n) = pretty n
 
-instance PrettyClassicBy configName (tyname a) =>
-        PrettyBy (PrettyConfigClassic configName) (Type tyname a) where
+instance (PrettyClassicBy configName (tyname a), GShow uni) =>
+        PrettyBy (PrettyConfigClassic configName) (Type tyname uni a) where
     prettyBy config = cata a where
         a (TyAppF _ t t')     = brackets (t <+> t')
         a (TyVarF _ n)        = prettyName n
         a (TyFunF _ t t')     = parens ("fun" <+> t <+> t')
         a (TyIFixF _ pat arg) = parens ("ifix" <+> pat <+> arg)
         a (TyForallF _ n k t) = parens ("all" <+> prettyName n <+> prettyBy config k <+> t)
-        a (TyBuiltinF _ n)    = parens ("con" <+> pretty n)
+        a (TyConstantF _ n)   = parens ("con" <+> pretty n)
         a (TyLamF _ n k t)    = parens ("lam" <+> prettyName n <+> prettyBy config k <+> t)
 
         prettyName = prettyBy config
 
-instance (PrettyClassicBy configName (tyname a), PrettyClassicBy configName (name a)) =>
-        PrettyBy (PrettyConfigClassic configName) (Term tyname name a) where
+instance ( PrettyClassicBy configName (tyname a)
+         , PrettyClassicBy configName (name a)
+         , GShow uni, Closed uni, uni `Everywhere` Pretty
+         ) => PrettyBy (PrettyConfigClassic configName) (Term tyname name uni a) where
     prettyBy config = cata a where
-        a (ConstantF _ b)      = parens' ("con" </> prettyBy config b)
+        a (ConstantF _ b)      = parens' ("con" </> pretty b)
         a (BuiltinF _ bi)      = parens' ("builtin" </> prettyBy config bi)
         a (ApplyF _ t t')      = brackets' (vsep' [t, t'])
         a (VarF _ n)           = prettyName n
@@ -79,8 +82,8 @@ instance (PrettyClassicBy configName (tyname a), PrettyClassicBy configName (nam
         prettyName :: PrettyClassicBy configName n => n -> Doc ann
         prettyName = prettyBy config
 
-instance PrettyClassicBy configName (Term tyname name a) =>
-        PrettyBy (PrettyConfigClassic configName) (Program tyname name a) where
+instance PrettyClassicBy configName (Term tyname name uni a) =>
+        PrettyBy (PrettyConfigClassic configName) (Program tyname name uni a) where
     prettyBy config (Program _ version term) =
         parens' $ "program" <+> pretty version <//> prettyBy config term
 

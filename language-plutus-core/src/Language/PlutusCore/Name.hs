@@ -5,33 +5,34 @@
 {-# LANGUAGE GADTs                  #-}
 {-# LANGUAGE OverloadedStrings      #-}
 
-module Language.PlutusCore.Name ( -- * Types
-                                  IdentifierState
-                                , Name (..)
-                                , TyName (..)
-                                , Unique (..)
-                                , TypeUnique (..)
-                                , TermUnique (..)
-                                , HasUnique (..)
-                                , UniqueMap (..)
-                                , insertByUnique
-                                , insertByName
-                                , insertByNameIndex
-                                , lookupUnique
-                                , lookupName
-                                , lookupNameIndex
-                                -- * Functions
-                                , newIdentifier
-                                , emptyIdentifierState
-                                , identifierStateFrom
-                                , mapNameString
-                                , mapTyNameString
-                                , newtypeUnique
-                                , PrettyConfigName (..)
-                                , HasPrettyConfigName (..)
-                                , defPrettyConfigName
-                                , debugPrettyConfigName
-                                ) where
+module Language.PlutusCore.Name
+    ( -- * Types
+      IdentifierState
+    , Name (..)
+    , TyName (..)
+    , Unique (..)
+    , TypeUnique (..)
+    , TermUnique (..)
+    , HasUnique (..)
+    , UniqueMap (..)
+    , insertByUnique
+    , insertByName
+    , insertByNameIndex
+    , lookupUnique
+    , lookupName
+    , lookupNameIndex
+    -- * Functions
+    , newIdentifier
+    , emptyIdentifierState
+    , identifierStateFrom
+    , mapNameString
+    , mapTyNameString
+    , newtypeUnique
+    , PrettyConfigName (..)
+    , HasPrettyConfigName (..)
+    , defPrettyConfigName
+    , debugPrettyConfigName
+    ) where
 
 import           PlutusPrelude
 
@@ -44,31 +45,31 @@ import           Instances.TH.Lift          ()
 import           Language.Haskell.TH.Syntax (Lift)
 
 -- | A 'Name' represents variables/names in Plutus Core.
-data Name a = Name { nameAttribute :: a
-                   , nameString    :: T.Text -- ^ The identifier name, for use in error messages.
-                   , nameUnique    :: Unique -- ^ A 'Unique' assigned to the name, allowing for cheap comparisons in the compiler.
-                   }
-            deriving (Show, Functor, Generic, NFData, Lift)
+data Name ann = Name
+    { nameAttribute :: ann
+    , nameString    :: T.Text -- ^ The identifier name, for use in error messages.
+    , nameUnique    :: Unique -- ^ A 'Unique' assigned to the name, allowing for cheap comparisons in the compiler.
+    } deriving (Show, Functor, Generic, NFData, Lift)
 
 -- | We use a @newtype@ to enforce separation between names used for types and
 -- those used for terms.
-newtype TyName a = TyName { unTyName :: Name a }
+newtype TyName ann = TyName { unTyName :: Name ann }
     deriving (Show, Generic, Lift)
     deriving newtype (Eq, Ord, Functor, NFData)
-instance Wrapped (TyName a)
+instance Wrapped (TyName ann)
 
 -- | Apply a function to the string representation of a 'Name'.
-mapNameString :: (T.Text -> T.Text) -> Name a -> Name a
+mapNameString :: (T.Text -> T.Text) -> Name ann -> Name ann
 mapNameString f name = name { nameString = f $ nameString name }
 
 -- | Apply a function to the string representation of a 'TyName'.
-mapTyNameString :: (T.Text -> T.Text) -> TyName a -> TyName a
+mapTyNameString :: (T.Text -> T.Text) -> TyName ann -> TyName ann
 mapTyNameString f (TyName name) = TyName $ mapNameString f name
 
-instance Eq (Name a) where
+instance Eq (Name ann) where
     (==) = (==) `on` nameUnique
 
-instance Ord (Name a) where
+instance Ord (Name ann) where
     (<=) = (<=) `on` nameUnique
 
 -- N.B. the constructors for 'Unique' are exported for the sake of the test
@@ -98,12 +99,12 @@ newtypeUnique = _Wrapped' . unique . coerced
 class Coercible Unique unique => HasUnique a unique | a -> unique where
     unique :: Lens' a unique
 
-instance HasUnique (Name a) TermUnique where
+instance HasUnique (Name ann) TermUnique where
     unique = lens g s where
         g = TermUnique . nameUnique
         s n (TermUnique u) = n{nameUnique=u}
 
-instance HasUnique (TyName a) TypeUnique where
+instance HasUnique (TyName ann) TypeUnique where
     unique = newtypeUnique
 
 -- | A mapping from uniques to values of type @a@.
@@ -164,7 +165,6 @@ newIdentifier str = do
             pure nextU
 
 {- Note [PLC names pretty-printing]
-
 There are several possible designs on how to pretty-print PLC names. We choose the simplest one
 which leads to less boilerplate on the implementation side and more concise API. The trade-off is
 that it's completely inextensible and the pretty-printer configuration for PLC names is hardcoded
@@ -237,7 +237,7 @@ pretty-printing strategy used), so we do the following twist: for any pretty-pri
 we require that it must contain a PLC names pretty-printing config and then define a single instance
 for each of the PLC names. E.g. for 'Name' it looks like this:
 
-    instance HasPrettyConfigName config => PrettyBy config (Name a) where
+    instance HasPrettyConfigName config => PrettyBy config (Name ann) where
 
 i.e. "you can pretty-print a 'Name' using any config as long as a 'PrettyConfigName' can be
 extracted from it". This results in O(n + m) number of instances, with 'HasPrettyConfigName'
@@ -263,13 +263,13 @@ data PrettyConfigName = PrettyConfigName
 class HasPrettyConfigName config where
     toPrettyConfigName :: config -> PrettyConfigName
 
-instance HasPrettyConfigName config => PrettyBy config (Name a) where
+instance HasPrettyConfigName config => PrettyBy config (Name ann) where
     prettyBy config (Name _ txt (Unique uniq))
         | showsUnique = pretty txt <> "_" <> pretty uniq
         | otherwise   = pretty txt
         where PrettyConfigName showsUnique _ = toPrettyConfigName config
 
-deriving newtype instance HasPrettyConfigName config => PrettyBy config (TyName a)
+deriving newtype instance HasPrettyConfigName config => PrettyBy config (TyName ann)
 
 -- | The 'PrettyConfigName' used by default: print neither 'Unique's, nor name attachments.
 defPrettyConfigName :: PrettyConfigName

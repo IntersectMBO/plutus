@@ -122,8 +122,8 @@ withFreshenedTyVarDecl (TyVarDecl ann name kind) cont =
 -- This situation arises when we want to rename a bunch of mutually recursive bindings.
 withFreshenedVarDecl
     :: (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique)
-    => VarDecl tyname name ann
-    -> (ScopedRenameM (VarDecl tyname name ann) -> ScopedRenameM c)
+    => VarDecl tyname name uni ann
+    -> (ScopedRenameM (VarDecl tyname name uni ann) -> ScopedRenameM c)
     -> ScopedRenameM c
 withFreshenedVarDecl (VarDecl ann name ty) cont =
     withFreshenedName name $ \nameFr -> cont $ VarDecl ann nameFr <$> renameTypeM ty
@@ -141,7 +141,7 @@ renameNameM name = do
 -- | Rename a 'Type' in the 'RenameM' monad.
 renameTypeM
     :: (HasUniquesRenaming renaming TypeUnique, HasUnique (tyname ann) TypeUnique)
-    => Type tyname ann -> RenameM renaming (Type tyname ann)
+    => Type tyname uni ann -> RenameM renaming (Type tyname uni ann)
 renameTypeM (TyLam ann name kind ty)    =
     withFreshenedName name $ \nameFr -> TyLam ann nameFr kind <$> renameTypeM ty
 renameTypeM (TyForall ann name kind ty) =
@@ -150,12 +150,12 @@ renameTypeM (TyIFix ann pat arg)        = TyIFix ann <$> renameTypeM pat <*> ren
 renameTypeM (TyApp ann fun arg)         = TyApp ann <$> renameTypeM fun <*> renameTypeM arg
 renameTypeM (TyFun ann dom cod)         = TyFun ann <$> renameTypeM dom <*> renameTypeM cod
 renameTypeM (TyVar ann name)            = TyVar ann <$> renameNameM name
-renameTypeM ty@TyBuiltin{}              = pure ty
+renameTypeM ty@TyConstant{}             = pure ty
 
 -- | Rename a 'Term' in the 'RenameM' monad.
 renameTermM
     :: (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique)
-    => Term tyname name ann -> ScopedRenameM (Term tyname name ann)
+    => Term tyname name uni ann -> ScopedRenameM (Term tyname name uni ann)
 renameTermM (LamAbs ann name ty body)  =
     withFreshenedName name $ \nameFr -> LamAbs ann nameFr <$> renameTypeM ty <*> renameTermM body
 renameTermM (TyAbs ann name kind body) =
@@ -173,5 +173,5 @@ renameTermM bi@Builtin{}               = pure bi
 -- | Rename a 'Program' in the 'RenameM' monad.
 renameProgramM
     :: (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique)
-    => Program tyname name ann -> ScopedRenameM (Program tyname name ann)
+    => Program tyname name uni ann -> ScopedRenameM (Program tyname name uni ann)
 renameProgramM (Program ann ver term) = Program ann ver <$> renameTermM term

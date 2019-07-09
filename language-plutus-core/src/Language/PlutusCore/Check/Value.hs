@@ -4,8 +4,8 @@ module Language.PlutusCore.Check.Value
     ( checkTerm
     , checkProgram
     , isTermValue
-    , ValueRestrictionError(..)
-    , AsValueRestrictionError(..)
+    , ValueRestrictionError (..)
+    , AsValueRestrictionError (..)
     ) where
 
 import           Language.PlutusCore.Error
@@ -19,22 +19,23 @@ import           Data.Functor.Foldable
 
 -- | Check whether a term satisfies the value restriction.
 checkTerm
-    :: (AsValueRestrictionError e tyname ann, MonadError e m) => Term tyname name ann -> m ()
+    :: (AsValueRestrictionError e tyname ann, MonadError e m) => Term tyname name uni ann -> m ()
 checkTerm = para $ \case
     TyAbsF ann name _ (body, rest) -> do
-        unless (isTermValue body) $ throwing _ValueRestrictionError $ ValueRestrictionViolation ann name
+        unless (isTermValue body) $
+            throwing _ValueRestrictionError $ ValueRestrictionViolation ann name
         rest
     termF                          -> traverse_ snd termF
 
 -- | Check whether a program satisfies the value restriction.
 checkProgram
-    :: (AsValueRestrictionError e tyname ann, MonadError e m) => Program tyname name ann -> m ()
+    :: (AsValueRestrictionError e tyname ann, MonadError e m) => Program tyname name uni ann -> m ()
 checkProgram (Program _ _ term) = checkTerm term
 
-isTermValue :: Term tyname name a -> Bool
+isTermValue :: Term tyname name uni ann -> Bool
 isTermValue = isRight . termValue
 
-termValue :: Term tyname name a -> Either (NormalizationError tyname name a) ()
+termValue :: Term tyname name uni ann -> Either (NormCheckError tyname name uni ann) ()
 termValue (IWrap _ _ _ term) = termValue term
 termValue (TyAbs _ _ _ t)    = termValue t
 termValue LamAbs {}          = pure ()

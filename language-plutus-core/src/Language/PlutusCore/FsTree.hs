@@ -37,23 +37,23 @@ newtype FolderContents a = FolderContents
     } deriving (Semigroup, Monoid)
 
 -- | A 'PlcEntity' is either a 'Type' or a 'Term'.
-data PlcEntity
-    = PlcType (Type TyName ())
-    | PlcTerm (Term TyName Name ())
+data PlcEntity uni
+    = PlcType (Type TyName uni ())
+    | PlcTerm (Term TyName Name uni ())
 
-type PlcFsTree         = FsTree         PlcEntity
-type PlcFolderContents = FolderContents PlcEntity
+type PlcFsTree         uni = FsTree         (PlcEntity uni)
+type PlcFolderContents uni = FolderContents (PlcEntity uni)
 
 -- | Construct an 'FsTree' out of the name of a folder and a list of 'FsTree's.
 treeFolderContents :: String -> [FsTree a] -> FsTree a
 treeFolderContents name = FsFolder name . FolderContents
 
 -- | Construct a single-file 'PlcFsTree' out of a type.
-plcTypeFile :: String -> Type TyName () -> PlcFsTree
+plcTypeFile :: String -> Type TyName uni () -> PlcFsTree uni
 plcTypeFile name = FsFile name . PlcType
 
 -- | Construct a single-file 'PlcFsTree' out of a term.
-plcTermFile :: String -> Term TyName Name () -> PlcFsTree
+plcTermFile :: String -> Term TyName Name uni () -> PlcFsTree uni
 plcTermFile name = FsFile name . PlcTerm
 
 -- | Fold a 'FsTree'.
@@ -68,10 +68,10 @@ foldFsTree onFolder onFile = go where
 
 -- | Fold a 'PlcFsTree'.
 foldPlcFsTree
-    :: (String -> [b] -> b)                  -- ^ What to do on a folder.
-    -> (String -> Type TyName ()      -> b)  -- ^ What to do on a type.
-    -> (String -> Term TyName Name () -> b)  -- ^ What to do on a term.
-    -> PlcFsTree
+    :: (String -> [b] -> b)                      -- ^ What to do on a folder.
+    -> (String -> Type TyName uni ()      -> b)  -- ^ What to do on a type.
+    -> (String -> Term TyName Name uni () -> b)  -- ^ What to do on a term.
+    -> PlcFsTree uni
     -> b
 foldPlcFsTree onFolder onType onTerm = foldFsTree onFolder onFile where
     onFile name (PlcType getTy)   = onType name getTy
@@ -79,10 +79,10 @@ foldPlcFsTree onFolder onType onTerm = foldFsTree onFolder onFile where
 
 -- | Fold the contents of a PLC folder.
 foldPlcFolderContents
-    :: (String -> [b] -> b)                  -- ^ What to do on a folder.
-    -> (String -> Type TyName ()      -> b)  -- ^ What to do on a type.
-    -> (String -> Term TyName Name () -> b)  -- ^ What to do on a term.
-    -> PlcFolderContents
+    :: (String -> [b] -> b)                      -- ^ What to do on a folder.
+    -> (String -> Type TyName uni ()      -> b)  -- ^ What to do on a type.
+    -> (String -> Term TyName Name uni () -> b)  -- ^ What to do on a term.
+    -> PlcFolderContents uni
     -> [b]
 foldPlcFolderContents onFolder onType onTerm (FolderContents trees) =
     map (foldPlcFsTree onFolder onType onTerm) trees

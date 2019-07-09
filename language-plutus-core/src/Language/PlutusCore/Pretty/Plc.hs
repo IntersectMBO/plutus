@@ -80,15 +80,14 @@ instance DefaultPrettyPlcStrategy a => DefaultPrettyBy PrettyConfigPlcStrategy a
 instance DefaultPrettyPlcStrategy a => DefaultPrettyBy PrettyConfigPlc a where
     defaultPrettyBy = defaultPrettyBy . _pcpStrategy
 
-instance PrettyBy PrettyConfigPlc (Kind a)
-instance PrettyBy PrettyConfigPlc (Constant a)
-instance PrettyBy PrettyConfigPlc (Builtin a)
-instance DefaultPrettyPlcStrategy (Type tyname a) =>
-    PrettyBy PrettyConfigPlc (Type tyname a)
-instance DefaultPrettyPlcStrategy (Term tyname name a) =>
-    PrettyBy PrettyConfigPlc (Term tyname name a)
-instance DefaultPrettyPlcStrategy (Program tyname name a) =>
-    PrettyBy PrettyConfigPlc (Program tyname name a)
+instance PrettyBy PrettyConfigPlc (Kind ann)
+instance PrettyBy PrettyConfigPlc (Builtin ann)
+instance DefaultPrettyPlcStrategy (Type tyname uni ann) =>
+    PrettyBy PrettyConfigPlc (Type tyname uni ann)
+instance DefaultPrettyPlcStrategy (Term tyname name uni ann) =>
+    PrettyBy PrettyConfigPlc (Term tyname name uni ann)
+instance DefaultPrettyPlcStrategy (Program tyname name uni ann) =>
+    PrettyBy PrettyConfigPlc (Program tyname name uni ann)
 
 instance PrettyBy PrettyConfigPlc BuiltinName where
     prettyBy _ = pretty

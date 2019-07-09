@@ -5,12 +5,14 @@
 -- defined below and all the tests see it automatically.
 
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module Language.PlutusCore.StdLib.Everything
     ( stdLib
     ) where
 
 import           Language.PlutusCore.FsTree
+import           Language.PlutusCore.Constant.Universe
 
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.ChurchNat
@@ -24,7 +26,7 @@ import           Language.PlutusCore.StdLib.Meta.Data.Tuple
 import           Language.PlutusCore.StdLib.Type
 
 -- | The entire stdlib exported as a single value.
-stdLib :: PlcFolderContents
+stdLib :: uni `Includes` Integer => PlcFolderContents uni
 stdLib =
     FolderContents
       [ treeFolderContents "StdLib"

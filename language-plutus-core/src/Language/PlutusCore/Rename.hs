@@ -34,17 +34,17 @@ class Rename a where
     -- so that @rename@ can be used for alpha-renaming as well.
     rename :: MonadQuote m => a -> m a
 
-instance HasUnique (tyname ann) TypeUnique => Rename (Type tyname ann) where
+instance HasUnique (tyname ann) TypeUnique => Rename (Type tyname uni ann) where
     -- See Note [Marking].
     rename = through markNonFreshType >=> runDirectRenameM . renameTypeM
 
 instance (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique) =>
-        Rename (Term tyname name ann) where
+        Rename (Term tyname name uni ann) where
     -- See Note [Marking].
     rename = through markNonFreshTerm >=> runScopedRenameM . renameTermM
 
 instance (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique) =>
-        Rename (Program tyname name ann) where
+        Rename (Program tyname name uni ann) where
     -- See Note [Marking].
     rename = through markNonFreshProgram >=> runScopedRenameM . renameProgramM
 
@@ -58,7 +58,7 @@ instance Rename a => Rename (Normalized a) where
 -- 2. some value may be used multiple times
 --
 -- so we annotate such a value with 'Dupable' and call 'liftDupable' at each usage, which ensures
--- global conditions is preserved.
+-- global uniqueness is preserved.
 newtype Dupable a = Dupable
     { unDupable :: Identity a  -- 'Identity' is for deriving 'Applicative' and 'Monad'.
     } deriving (Show, Eq, Functor, Foldable, Traversable, Applicative, Monad)

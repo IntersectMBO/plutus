@@ -22,9 +22,9 @@ import           GHC.TypeLits
 
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
 -- Basically, a map from the PHOAS representation to the FOAS one.
-typeSchemeToType :: TypeScheme a r -> Type TyName ()
+typeSchemeToType :: TypeScheme uni a r -> Type TyName uni ()
 typeSchemeToType = runQuote . go 0 where
-    go :: Int -> TypeScheme a r -> Quote (Type TyName ())
+    go :: Int -> TypeScheme uni a r -> Quote (Type TyName uni ())
     go _ (TypeSchemeResult pR)          = pure $ toTypeAst pR
     go i (TypeSchemeArrow pA schB)    =
         TyFun () (toTypeAst pA) <$> go i schB
@@ -37,16 +37,18 @@ typeSchemeToType = runQuote . go 0 where
 
 -- | Extract the 'TypeScheme' from a 'DynamicBuiltinNameMeaning' and
 -- convert it to the corresponding 'Type'.
-dynamicBuiltinNameMeaningToType :: DynamicBuiltinNameMeaning -> Type TyName ()
+dynamicBuiltinNameMeaningToType :: DynamicBuiltinNameMeaning uni -> Type TyName uni ()
 dynamicBuiltinNameMeaningToType (DynamicBuiltinNameMeaning sch _) = typeSchemeToType sch
 
 -- | Insert a 'DynamicBuiltinNameDefinition' into a 'DynamicBuiltinNameMeanings'.
 insertDynamicBuiltinNameDefinition
-    :: DynamicBuiltinNameDefinition -> DynamicBuiltinNameMeanings -> DynamicBuiltinNameMeanings
+    :: DynamicBuiltinNameDefinition uni
+    -> DynamicBuiltinNameMeanings uni
+    -> DynamicBuiltinNameMeanings uni
 insertDynamicBuiltinNameDefinition
     (DynamicBuiltinNameDefinition name mean) (DynamicBuiltinNameMeanings nameMeans) =
         DynamicBuiltinNameMeanings $ Map.insert name mean nameMeans
 
 -- | Return the 'Type' of a 'TypedBuiltinName'.
-typeOfTypedBuiltinName :: TypedBuiltinName a r -> Type TyName ()
+typeOfTypedBuiltinName :: TypedBuiltinName uni a r -> Type TyName uni ()
 typeOfTypedBuiltinName (TypedBuiltinName _ scheme) = typeSchemeToType scheme

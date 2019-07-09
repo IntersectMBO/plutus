@@ -361,7 +361,7 @@ inferTypeOfBuiltinM (DynBuiltinName ann name) = lookupDynamicBuiltinNameM ann na
 
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Synthesize the type of a term, returning a normalized type.
-inferTypeM :: Term TyName Name ann -> TypeCheckM ann (Normalized (Type TyName ()))
+inferTypeM :: Term tyname name uni ann -> TypeCheckM ann (Normalized (Type TyName ()))
 
 -- c : vTy
 -- -------------------------
@@ -453,7 +453,7 @@ inferTypeM (Error ann ty)           = do
 
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Check a 'Term' against a 'NormalizedType'.
-checkTypeM :: ann -> Term TyName Name ann -> Normalized (Type TyName ()) -> TypeCheckM ann ()
+checkTypeM :: ann -> Term tyname name uni ann -> Normalized (Type TyName ()) -> TypeCheckM ann ()
 
 -- [infer| G !- term : vTermTy]    vTermTy ~ vTy
 -- ---------------------------------------------

@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeApplications  #-}
 -- | The CK machine.
 
 {-# LANGUAGE OverloadedStrings #-}
@@ -7,19 +8,23 @@ module Language.PlutusCore.Evaluation.CkMachine
     , EvaluationResult (..)
     , EvaluationResultDef
     , applyEvaluateCkBuiltinName
+    , evaluatorCk
+    , readKnownCk
     , evaluateCk
     , runCk
     ) where
 
 import           Language.PlutusCore.Constant.Apply
+import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Evaluation.MachineException
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
--- import           Language.PlutusCore.View
+import           Language.PlutusCore.View
 import           PlutusPrelude
 
 import           Data.Functor.Identity
+import           Data.Text                                       (Text)
 
 infix 4 |>, <|
 
@@ -27,16 +32,16 @@ infix 4 |>, <|
 data NoDynamicBuiltinNamesMachineError = NoDynamicBuiltinNamesMachineError
 
 -- | The CK machine-specific 'MachineException'.
-type CkMachineException = MachineException NoDynamicBuiltinNamesMachineError
+type CkMachineException uni = MachineException uni NoDynamicBuiltinNamesMachineError
 
-data Frame
-    = FrameApplyFun (Value TyName Name ())             -- ^ @[V _]@
-    | FrameApplyArg (Term TyName Name ())              -- ^ @[_ N]@
-    | FrameTyInstArg (Type TyName ())                  -- ^ @{_ A}@
-    | FrameUnwrap                                      -- ^ @(unwrap _)@
-    | FrameIWrap () (Type TyName ()) (Type TyName ())  -- ^ @(iwrap A B _)@
+data Frame uni
+    = FrameApplyFun (Value TyName Name uni ())                 -- ^ @[V _]@
+    | FrameApplyArg (Term TyName Name uni ())                  -- ^ @[_ N]@
+    | FrameTyInstArg (Type TyName uni ())                      -- ^ @{_ A}@
+    | FrameUnwrap                                              -- ^ @(unwrap _)@
+    | FrameIWrap () (Type TyName uni ()) (Type TyName uni ())  -- ^ @(iwrap A B _)@
 
-type Context = [Frame]
+type Context uni = [Frame uni]
 
 instance Pretty NoDynamicBuiltinNamesMachineError where
     pretty NoDynamicBuiltinNamesMachineError =
@@ -46,13 +51,15 @@ instance Pretty NoDynamicBuiltinNamesMachineError where
 -- to be parametrized by a 'NoDynamicBuiltinNamesError' which is required in order to disambiguate
 -- @throw .* MachineException@.
 throwCkMachineException
-    :: MachineError NoDynamicBuiltinNamesMachineError -> Term TyName Name () -> a
+    :: Typeable uni
+    => MachineError uni NoDynamicBuiltinNamesMachineError -> Term TyName Name uni () -> a
 throwCkMachineException = throw .* MachineException
 
 -- | Substitute a 'Value' for a variable in a 'Term' that can contain duplicate binders.
 -- Do not descend under binders that bind the same variable as the one we're substituting for.
 substituteDb
-    :: Eq (name a) => name a -> Value tyname name a -> Term tyname name a -> Term tyname name a
+    :: Eq (name a)
+    => name a -> Value tyname name uni a -> Term tyname name uni a -> Term tyname name uni a
 substituteDb varFor new = go where
     go (Var ann var)            = if var == varFor then new else Var ann var
     go (TyAbs ann tyn ty body)  = TyAbs ann tyn ty (go body)
@@ -77,7 +84,9 @@ substituteDb varFor new = go where
 -- > s ▷ lam x A M  ↦ s ◁ lam x A M
 -- > s ▷ con cn     ↦ s ◁ con cn
 -- > s ▷ error A    ↦ ◆
-(|>) :: Context -> Term TyName Name () -> EvaluationResultDef
+(|>)
+    :: Evaluable uni
+    => Context uni -> Term TyName Name uni () -> EvaluationResultDef uni
 stack |> TyInst _ fun ty        = FrameTyInstArg ty : stack |> fun
 stack |> Apply _ fun arg        = FrameApplyArg arg : stack |> fun
 stack |> IWrap ann pat arg term = FrameIWrap ann pat arg : stack |> term
@@ -99,7 +108,9 @@ _     |> var@Var{}              = throwCkMachineException OpenTermEvaluatedMachi
 -- > s , [F _]           ◁ V          ↦ s ◁ W      -- Fully saturated constant, [F V] ~> W.
 -- > s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
 -- > s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
-(<|) :: Context -> Value TyName Name () -> EvaluationResultDef
+(<|)
+    :: Evaluable uni
+    => Context uni -> Value TyName Name uni () -> EvaluationResultDef uni
 []                             <| term    = EvaluationSuccess term
 FrameTyInstArg ty      : stack <| fun     = instantiateEvaluate stack ty fun
 FrameApplyArg arg      : stack <| fun     = FrameApplyFun fun : stack |> arg
@@ -113,7 +124,9 @@ FrameUnwrap            : stack <| wrapped = case wrapped of
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
 -- iterated application of a 'BuiltinName' to a list of 'Value's and, if succesful,
 -- apply the term to the type via 'TyInst'.
-instantiateEvaluate :: Context -> Type TyName () -> Term TyName Name () -> EvaluationResultDef
+instantiateEvaluate
+    :: Evaluable uni
+    => Context uni -> Type TyName uni () -> Term TyName Name uni () -> EvaluationResultDef uni
 instantiateEvaluate stack _  (TyAbs _ _ _ body) = stack |> body
 instantiateEvaluate stack ty fun
     | isJust $ termAsPrimIterApp fun = stack <| TyInst () fun ty
@@ -125,26 +138,34 @@ instantiateEvaluate stack ty fun
 -- as an iterated application of a 'BuiltinName' to a list of 'Value's.
 -- If succesful, proceed with either this same term or with the result of the computation
 -- depending on whether 'BuiltinName' is saturated or not.
-applyEvaluate :: Context -> Value TyName Name () -> Value TyName Name () -> EvaluationResultDef
+applyEvaluate
+    :: Evaluable uni
+    => Context uni -> Value TyName Name uni () -> Value TyName Name uni () -> EvaluationResultDef uni
 applyEvaluate stack (LamAbs _ name _ body) arg = stack |> substituteDb name arg body
-applyEvaluate stack fun                    arg = undefined
---     let term = Apply () fun arg in
---         case termAsPrimIterApp term of
---             Nothing                                 ->
---                 throwCkMachineException NonPrimitiveApplicationMachineError term
---             Just (IterApp DynamicStagedBuiltinName{}     _    ) ->
---                 throwCkMachineException (OtherMachineError NoDynamicBuiltinNamesMachineError) term
---             Just (IterApp (StaticStagedBuiltinName name) spine) ->
---                 case applyEvaluateCkBuiltinName name spine of
---                     ConstAppSuccess term' -> stack |> term'
---                     ConstAppFailure       -> EvaluationFailure
---                     ConstAppStuck         -> stack <| term
---                     ConstAppError err     ->
---                         throwCkMachineException (ConstAppMachineError err) term
+applyEvaluate stack fun                    arg =
+    let term = Apply () fun arg in
+        case termAsPrimIterApp term of
+            Nothing                                 ->
+                throwCkMachineException NonPrimitiveApplicationMachineError term
+            Just (IterApp DynamicStagedBuiltinName{}     _    ) ->
+                throwCkMachineException (OtherMachineError NoDynamicBuiltinNamesMachineError) term
+            Just (IterApp (StaticStagedBuiltinName name) spine) ->
+                case applyEvaluateCkBuiltinName name spine of
+                    ConstAppSuccess term' -> stack |> term'
+                    ConstAppFailure       -> EvaluationFailure
+                    ConstAppStuck         -> stack <| term
+                    ConstAppError err     ->
+                        throwCkMachineException (ConstAppMachineError err) term
 
-applyEvaluateCkBuiltinName :: BuiltinName -> [Value TyName Name ()] -> ConstAppResultDef
-applyEvaluateCkBuiltinName name =
-    runIdentity . runApplyBuiltinName (const $ Identity . evaluateCk) name
+applyEvaluateCkBuiltinName
+    :: Evaluable uni => BuiltinName -> [Value TyName Name uni ()] -> ConstAppResultDef uni
+applyEvaluateCkBuiltinName name = runIdentity . runApplyBuiltinName evaluatorCk name
+
+evaluatorCk :: Evaluator Term Identity
+evaluatorCk = Evaluator $ \_ -> Identity . evaluateCk
+
+readKnownCk :: KnownType a uni => Term TyName Name uni () -> EvaluationResult (Either Text a)
+readKnownCk = runIdentity . runReflectT . readKnown evaluatorCk
 
 -- | Evaluate a term using the CK machine. May throw a 'CkMachineException'.
 -- This differs from the spec version: we do not have the following rule:
@@ -154,10 +175,10 @@ applyEvaluateCkBuiltinName name =
 -- The reason for that is that the operational semantics of constant applications is
 -- unaffected by types as it supports full type erasure, hence @{F A}@ can never compute
 -- if @F@ does not compute, so we simply do not introduce a rule that can't possibly fire.
-evaluateCk :: Term TyName Name () -> EvaluationResultDef
+evaluateCk :: Evaluable uni => Term TyName Name uni () -> EvaluationResultDef uni
 evaluateCk = ([] |>)
 
 -- | Run a program using the CK machine. May throw a 'CkMachineException'.
 -- Calls 'evaluateCk' under the hood, so the same caveats apply.
-runCk :: Program TyName Name () -> EvaluationResultDef
+runCk :: Evaluable uni => Program TyName Name uni () -> EvaluationResultDef uni
 runCk (Program _ _ term) = evaluateCk term

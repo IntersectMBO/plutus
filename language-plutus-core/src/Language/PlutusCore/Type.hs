@@ -6,42 +6,41 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Type ( Term (..)
-                                , termSubterms
-                                , termSubtypes
-                                , termVars
-                                , Value
-                                , Type (..)
-                                , typeSubtypes
-                                , typeTyVars
-                                , Kind (..)
-                                , Program (..)
-                                , Builtin (..)
-                                , BuiltinName (..)
-                                , DynamicBuiltinName (..)
-                                , StagedBuiltinName (..)
-                                , TypeBuiltin (..)
-                                , Gas (..)
-                                -- * Base functors
-                                , TermF (..)
-                                , TypeF (..)
-                                , KindF (..)
-                                -- * Helper functions
-                                , tyLoc
-                                , termLoc
-                                -- * Normalized
-                                , Normalized (..)
-                                ) where
+module Language.PlutusCore.Type
+    ( Term (..)
+    , termSubterms
+    , termSubtypes
+    , termVars
+    , Value
+    , Type (..)
+    , typeSubtypes
+    , typeTyVars
+    , Kind (..)
+    , Program (..)
+    , Builtin (..)
+    , BuiltinName (..)
+    , DynamicBuiltinName (..)
+    , StagedBuiltinName (..)
+    , Gas (..)
+    -- * Base functors
+    , TermF (..)
+    , TypeF (..)
+    , KindF (..)
+    -- * Helper functions
+    , tyLoc
+    , termLoc
+    -- * Normalized
+    , Normalized (..)
+    ) where
 
+import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.Lexer.Type
-import           Language.PlutusCore.Universe
 import           PlutusPrelude
 
 import           Control.Lens
 import           Data.Functor.Foldable
 import           Data.GADT.Compare
-import qualified Data.Map                       as M
-
+import qualified Data.Map                              as M
 
 newtype Gas = Gas
     { unGas :: Natural
@@ -49,7 +48,7 @@ newtype Gas = Gas
 
 -- | A 'Type' assigned to expressions.
 data Type tyname uni a
-    = TyCon a (Some uni)
+    = TyConstant a (Some uni)
     | TyVar a (tyname a)
     | TyFun a (Type tyname uni a) (Type tyname uni a)
     | TyIFix a (Type tyname uni a) (Type tyname uni a)
@@ -60,7 +59,7 @@ data Type tyname uni a
     deriving (Functor, Show, Generic, NFData)
 
 data TypeF tyname uni a x
-    = TyConF a (Some uni)
+    = TyConstantF a (Some uni)
     | TyVarF a (tyname a)
     | TyFunF a x x
     | TyIFixF a x x
@@ -72,7 +71,7 @@ data TypeF tyname uni a x
 type instance Base (Type tyname uni a) = TypeF tyname uni a
 
 instance Recursive (Type tyname uni a) where
-    project (TyCon l con)        = TyConF l con
+    project (TyConstant l con)   = TyConstantF l con
     project (TyVar l tn)         = TyVarF l tn
     project (TyFun l ty ty')     = TyFunF l ty ty'
     project (TyIFix l pat arg)   = TyIFixF l pat arg
@@ -81,7 +80,7 @@ instance Recursive (Type tyname uni a) where
     project (TyApp l ty ty')     = TyAppF l ty ty'
 
 instance Corecursive (Type tyname uni a) where
-    embed (TyConF l con)        = TyCon l con
+    embed (TyConstantF l con)   = TyConstant l con
     embed (TyVarF l tn)         = TyVar l tn
     embed (TyFunF l ty ty')     = TyFun l ty ty'
     embed (TyIFixF l pat arg)   = TyIFix l pat arg
@@ -99,7 +98,7 @@ typeSubtypes f = \case
     TyLam x tn k ty -> TyLam x tn k <$> f ty
     TyApp x ty1 ty2 -> TyApp x <$> f ty1 <*> f ty2
     v@TyVar {} -> pure v
-    c@TyCon {} -> pure c
+    c@TyConstant {} -> pure c
 
 -- | Get all the direct child 'tyname a's of the given 'Type' from 'TyVar's.
 typeTyVars :: Traversal' (Type tyname uni a) (tyname a)
@@ -128,7 +127,7 @@ eqTypeSt :: (Ord (tyname a), Eq a, GEq uni)
         -> Type tyname uni a
         -> Type tyname uni a
         -> Bool
-eqTypeSt _ (TyCon _ conLeft) (TyCon _ conRight) = conLeft == conRight
+eqTypeSt _ (TyConstant _ conLeft) (TyConstant _ conRight) = conLeft == conRight
 
 eqTypeSt eqSt (TyFun _ domLeft codLeft) (TyFun _ domRight codRight) = eqTypeSt eqSt domLeft domRight && eqTypeSt eqSt codLeft codRight
 eqTypeSt eqSt (TyApp _ fLeft aLeft) (TyApp _ fRight aRight) = eqTypeSt eqSt fLeft fRight && eqTypeSt eqSt aLeft aRight
@@ -222,7 +221,7 @@ instance (Ord (tyname a), Ord (name a), EqUni uni, Eq a) => Eq (Term tyname name
     (==) = eqTermSt emptyEqState
 
 tyLoc :: Type tyname uni a -> a
-tyLoc (TyCon l _)        = l
+tyLoc (TyConstant l _)   = l
 tyLoc (TyVar l _)        = l
 tyLoc (TyFun l _ _)      = l
 tyLoc (TyIFix l _ _)     = l
