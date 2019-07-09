@@ -34,38 +34,38 @@ data "template_file" "ssh_config_section_playground_b" {
   }
 }
 
-data "template_file" "ssh_config_section_meadow_a" {
+data "template_file" "ssh_config_section_marlowe_a" {
   template = "${file("${path.module}/templates/ssh-config")}"
 
   vars {
-    full_hostname    = "meadow-a.${aws_route53_zone.plutus_private_zone.name}"
-    short_hostname   = "meadow-a.${var.project}"
-    ip               = "${aws_instance.meadow_a.private_ip}"
+    full_hostname    = "marlowe-a.${aws_route53_zone.plutus_private_zone.name}"
+    short_hostname   = "marlowe-a.${var.project}"
+    ip               = "${aws_instance.marlowe_a.private_ip}"
     bastion_hostname = "${aws_instance.bastion.*.public_ip[0]}"
     user_name        = "plutus"
   }
 }
 
-data "template_file" "ssh_config_section_meadow_b" {
+data "template_file" "ssh_config_section_marlowe_b" {
   template = "${file("${path.module}/templates/ssh-config")}"
 
   vars {
-    full_hostname    = "meadow-b.${aws_route53_zone.plutus_private_zone.name}"
-    short_hostname   = "meadow-b.${var.project}"
-    ip               = "${aws_instance.meadow_b.private_ip}"
+    full_hostname    = "marlowe-b.${aws_route53_zone.plutus_private_zone.name}"
+    short_hostname   = "marlowe-b.${var.project}"
+    ip               = "${aws_instance.marlowe_b.private_ip}"
     bastion_hostname = "${aws_instance.bastion.*.public_ip[0]}"
     user_name        = "plutus"
   }
 }
 data "template_file" "ssh_config" {
-  template = "\n$${nixops_node}\n$${playground_a}\n$${playground_b}\n$${meadow_a}\n$${meadow_b}"
+  template = "\n$${nixops_node}\n$${playground_a}\n$${playground_b}\n$${marlowe_a}\n$${marlowe_b}"
 
   vars {
     nixops_node      = "${data.template_file.ssh_config_section_nixops.rendered}"
     playground_a     = "${data.template_file.ssh_config_section_playground_a.rendered}"
     playground_b     = "${data.template_file.ssh_config_section_playground_b.rendered}"
-    meadow_a         = "${data.template_file.ssh_config_section_meadow_a.rendered}"
-    meadow_b         = "${data.template_file.ssh_config_section_meadow_b.rendered}"
+    marlowe_a         = "${data.template_file.ssh_config_section_marlowe_a.rendered}"
+    marlowe_b         = "${data.template_file.ssh_config_section_marlowe_b.rendered}"
   }
 }
 

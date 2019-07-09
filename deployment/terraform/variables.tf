@@ -24,15 +24,15 @@ variable "plutus_public_zone" {
   default = "ZBC2AQBA8QH4G"
 }
 
-variable "meadow_tld" {
+variable "marlowe_tld" {
   default = "marlowe.iohkdev.io"
 }
 
-variable "meadow_full_domain" {
+variable "marlowe_full_domain" {
   default = ""
 }
 
-variable "meadow_public_zone" {
+variable "marlowe_public_zone" {
   default = "Z1VIYCTCY8RMLZ"
 }
 
@@ -47,7 +47,7 @@ variable "monitoring_full_domain" {
 variable "monitoring_public_zone" {
   default = "Z2Y3TWJMJ0Q6Z7"
 }
-variable "meadow_instance_type" {
+variable "marlowe_instance_type" {
   default = "t2.large"
 }
 
