@@ -24,7 +24,7 @@ library
         Language.Haskell.Interpreter
         Servant.Extra
         Servant.Prometheus
-        System.IO.Temp.Extras
+        System.IO.Extras
     other-modules:
         Git.TH
     hs-source-dirs: src

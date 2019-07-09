@@ -24,9 +24,9 @@ import           Language.Haskell.Interpreter (CompilationError (RawError), Inte
                                                InterpreterResult (InterpreterResult), SourceCode, avoidUnsafe, runghc)
 import           System.Directory             (removeFile)
 import           System.FilePath              ((</>))
-import           System.IO                    (Handle, hFlush)
-import           System.IO.Temp               (getCanonicalTemporaryDirectory, openTempFile)
-import           System.IO.Temp.Extras        (withSystemTempFile)
+import           System.IO                    (Handle, IOMode (ReadWriteMode), hFlush)
+import           System.IO.Extras             (withFile)
+import           System.IO.Temp               (getCanonicalTemporaryDirectory, openTempFile, withSystemTempDirectory)
 import           System.Process               (cwd, proc, readProcessWithExitCode)
 
 runscript
@@ -46,10 +46,12 @@ runHaskell :: (Show t, TimeUnit t, MonadIO m, MonadError InterpreterError m, Mon
     -> m (InterpreterResult RunResult)
 runHaskell t source = do
     avoidUnsafe source
-    withSystemTempFile "Main.hs" $ \file handle ->
-        (fmap . fmap) (RunResult . Text.pack)
-        . runscript handle file t
-        . Newtype.unpack $ source
+    withSystemTempDirectory "playgroundrun" $ \dir -> do
+        let file = dir </> "Main.hs"
+        withFile file ReadWriteMode $ \handle ->
+          (fmap . fmap) (RunResult . Text.pack)
+          . runscript handle file t
+          . Newtype.unpack $ source
 
 -- Not implemented yet but this will turn a marlowe script into Haskell code
 mkRunMarlowe :: Text -> Text

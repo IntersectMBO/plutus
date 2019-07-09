@@ -53593,6 +53593,7 @@ license = stdenv.lib.licenses.mit;
 ({
   mkDerivation
 , base
+, bytestring
 , containers
 , hspec
 , language-plutus-core
@@ -53613,6 +53614,7 @@ version = "0.1.0.0";
 src = .././plutus-book;
 libraryHaskellDepends = [
 base
+bytestring
 containers
 language-plutus-core
 plutus-emulator
@@ -53628,10 +53630,12 @@ unlit
 ];
 testHaskellDepends = [
 base
+bytestring
 containers
 hspec
 plutus-emulator
 plutus-wallet-api
+text
 ];
 doHaddock = false;
 description = "The Plutus Book";
@@ -54062,6 +54066,7 @@ license = stdenv.lib.licenses.asl20;
 , stdenv
 , swagger2
 , template-haskell
+, temporary
 , text
 , time
 , time-units
@@ -54088,6 +54093,7 @@ containers
 cookie
 exceptions
 file-embed
+filepath
 hspec
 http-client
 http-client-tls
@@ -54113,6 +54119,7 @@ servant-purescript
 servant-server
 swagger2
 template-haskell
+temporary
 text
 time
 time-units
