@@ -28,8 +28,10 @@ import           Playground.API               (CompilationResult (CompilationRes
                                                simulatorWalletWallet, toSimpleArgumentSchema, wallets)
 import qualified Playground.API               as API
 import           Playground.Interpreter.Util  (TraceResult)
-import           System.IO                    (Handle, hFlush)
-import           System.IO.Temp.Extras        (withSystemTempFile)
+import           System.FilePath              ((</>))
+import           System.IO                    (Handle, IOMode (ReadWriteMode), hFlush)
+import           System.IO.Extras             (withFile)
+import           System.IO.Temp               (withSystemTempDirectory)
 import qualified Text.Regex                   as Regex
 import           Wallet.Emulator.Types        (Wallet)
 
@@ -118,29 +120,31 @@ compile timeout source
  = do
     avoidUnsafe source
     ensureMinimumImports source
-    withSystemTempFile "Main.hs" $ \file handle -> do
-        (InterpreterResult warnings result) <-
-            runscript handle file timeout . mkCompileScript . Newtype.unpack $
-            source
-        let eSchema = JSON.eitherDecodeStrict . BS8.pack $ result
-        case eSchema of
-            Left err ->
-                throwError . CompilationErrors . pure . RawError $
-                "unable to decode compilation result" <> Text.pack err
-            Right ([schema], currencies) -> do
-                let warnings' =
-                        Warning
-                            "It looks like you have not made any functions available, use `$(mkFunctions ['functionA, 'functionB])` to be able to use `functionA` and `functionB`" :
-                        warnings
-                pure . InterpreterResult warnings' $
-                    CompilationResult
-                        [toSimpleArgumentSchema <$> schema]
-                        currencies
-            Right (schemas, currencies) ->
-                pure . InterpreterResult warnings $
-                CompilationResult
-                    (fmap toSimpleArgumentSchema <$> schemas)
-                    currencies
+    withSystemTempDirectory "playgroundcompile" $ \dir -> do
+        let file = dir </> "Main.hs"
+        withFile file ReadWriteMode $ \handle -> do
+          (InterpreterResult warnings result) <-
+              runscript handle file timeout . mkCompileScript . Newtype.unpack $
+              source
+          let eSchema = JSON.eitherDecodeStrict . BS8.pack $ result
+          case eSchema of
+              Left err ->
+                  throwError . CompilationErrors . pure . RawError $
+                  "unable to decode compilation result" <> Text.pack err
+              Right ([schema], currencies) -> do
+                  let warnings' =
+                          Warning
+                              "It looks like you have not made any functions available, use `$(mkFunctions ['functionA, 'functionB])` to be able to use `functionA` and `functionB`" :
+                          warnings
+                  pure . InterpreterResult warnings' $
+                      CompilationResult
+                          [toSimpleArgumentSchema <$> schema]
+                          currencies
+              Right (schemas, currencies) ->
+                  pure . InterpreterResult warnings $
+                  CompilationResult
+                      (fmap toSimpleArgumentSchema <$> schemas)
+                      currencies
 
 runFunction ::
        ( Show t
@@ -156,20 +160,22 @@ runFunction timeout evaluation = do
     let source = sourceCode evaluation
     mapError API.InterpreterError $ avoidUnsafe source
     expr <- mkExpr evaluation
-    withSystemTempFile "Main.hs" $ \file handle -> do
-        (InterpreterResult warnings result) <-
-            mapError API.InterpreterError . runscript handle file timeout $
-            mkRunScript (Newtype.unpack source) (Text.pack . BS8.unpack $ expr)
-        let decodeResult =
-                JSON.eitherDecodeStrict . BS8.pack $ result :: Either String (Either PlaygroundError TraceResult)
-        case decodeResult of
-            Left err ->
-                throwError . OtherError $
-                "unable to decode compilation result" <> err
-            Right eResult ->
-                case eResult of
-                    Left err      -> throwError err
-                    Right result' -> pure $ InterpreterResult warnings result'
+    withSystemTempDirectory "playgroundrun" $ \dir -> do
+        let file = dir </> "Main.hs"
+        withFile file ReadWriteMode $ \handle -> do
+          (InterpreterResult warnings result) <-
+              mapError API.InterpreterError . runscript handle file timeout $
+              mkRunScript (Newtype.unpack source) (Text.pack . BS8.unpack $ expr)
+          let decodeResult =
+                  JSON.eitherDecodeStrict . BS8.pack $ result :: Either String (Either PlaygroundError TraceResult)
+          case decodeResult of
+              Left err ->
+                  throwError . OtherError $
+                  "unable to decode compilation result" <> err
+              Right eResult ->
+                  case eResult of
+                      Left err      -> throwError err
+                      Right result' -> pure $ InterpreterResult warnings result'
 
 mkRunScript :: Text -> Text -> Text
 mkRunScript script expr =
