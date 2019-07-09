@@ -3,8 +3,8 @@
 
 The Plutus Platform enables you to:
 
-* Work with Plutus Core, the smart
-contract language embedded in the Cardano ledger.
+* Work with Plutus Core, the smart contract language embedded in the Cardano
+ledger.
 * Write Haskell programs that create and use embedded Plutus Core programs.
 * Write smart contract executables which can be distributed for use with a
 Cardano wallet backend.
