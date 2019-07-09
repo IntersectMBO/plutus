@@ -24,7 +24,7 @@ import           Data.Time.Units              (Microsecond, fromMicroseconds)
 import qualified Interpreter
 import           Language.Haskell.Interpreter (InterpreterError (CompilationErrors), InterpreterResult,
                                                SourceCode (SourceCode))
-import           Marlowe.Contracts             (escrow)
+import           Marlowe.Contracts            (escrow)
 import           Network.HTTP.Types           (hContentType)
 import           Servant                      (ServantErr, err400, errBody, errHeaders)
 import           Servant.API                  ((:<|>) ((:<|>)), (:>), JSON, Post, ReqBody)

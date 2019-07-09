@@ -42,7 +42,7 @@ import           Language.PureScript.Bridge.Builder         (BridgeData)
 import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), defaultSwitch, genForeign)
 import           Language.PureScript.Bridge.PSTypes         (psArray, psInt)
 import           Language.PureScript.Bridge.TypeParameters  (A)
-import           Marlowe.Contracts                           (couponBondGuaranteed, escrow, zeroCouponBond)
+import           Marlowe.Contracts                          (couponBondGuaranteed, escrow, zeroCouponBond)
 import           Servant                                    ((:<|>))
 import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
                                                              defaultSettings, languageBridge,

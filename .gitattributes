@@ -1,4 +1,4 @@
 pkgs/default.nix linguist-generated=true
-marlowe-playground-client-client/yarn.nix linguist-generated=true
+marlowe-playground-client/yarn.nix linguist-generated=true
 plutus-playground-client/yarn.nix linguist-generated=true
 *.pir linguist-detectable=false
