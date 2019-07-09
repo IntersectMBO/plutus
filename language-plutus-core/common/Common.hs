@@ -46,7 +46,9 @@ goldenVsText name ref = goldenVsTextM name ref . pure
 
 -- | Check the contents of a file against a 'Text'.
 goldenVsTextM :: TestName -> FilePath -> IO Text -> TestTree
-goldenVsTextM name ref val = goldenVsString name ref $ BSL.fromStrict . encodeUtf8 <$> val
+goldenVsTextM name ref val =
+    goldenVsStringDiff name (\expected actual -> ["diff", "-u", expected, actual]) ref $
+    BSL.fromStrict . encodeUtf8 <$> val
 
 -- | Check the contents of a file against a 'Doc'.
 goldenVsDoc :: TestName -> FilePath -> Doc ann -> TestTree
