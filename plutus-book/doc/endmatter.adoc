@@ -8,48 +8,165 @@
 [glossary#glossary]
 == Glossary
 
+[[ada]]Ada ::
+Currency provided by the Cardano blockchain.
+Special <<custom-token,token>> whose <<currency-symbol,currency symbol>>
+is the empty bytestring and does _not_ correspond to a monetary policy.
+
+[[address]]Address ::
+Part of a <<transaction-output,transaction output>>,
+determines how the <<value,value>> from that output can be unlocked.
+There are two kinds of addresses, <<pubkey-address,public key addresses>>
+and <<script-address,script addresses>>.
+
 Contract Endpoints ::
-Off-chain functions used by a wallet to interact with a smart contract.
+<<off-chain1,Off-chain>> functions used by a wallet to interact with the blockchain
+and in particular with smart contracts.
 
-Extended UTxO ::
-The ledger model on which the Plutus platform is based. Extends the traditional UTxO model
-with data scripts and transaction information
+[[currency-symbol]]Currency Symbol ::
+A bytestring representing a custom currency (class of <<custom-token,tokens>>).
+For <<ada,Ada>>, it is the empty bytestring, for custom currencies, it is the
+hash of the <<validator-script,validator script>> representing the monetary
+policy that controlls forging new tokens of that currency.
 
-Fungible Token ::
-A token that is interchangeable with other tokens.
+[[data-script]]Data Script ::
+Piece of <<plutus-core,Plutus Core>> code which is part of a
+<<script-output,script output>> and will be passed to the
+<<validator-script,validator script>> to check the validity of a
+<<script-input,script input>>.
 
-Mockchain ::
-A Cardano blockchain emulator which faithfully implements the Extended UTxO model.
+[[extended-utxo]]Extended UTXO ::
+The ledger model on which the <<plutus-platform,Plutus platform>> is based. 
+Extends the traditional <<utxo,UTXO>> model
+with <<data-script,data scripts>> and <<tx,transaction>> information
+
+[[fungible-token]]Fungible Token ::
+A <<custom-token,token>> that is interchangeable with other tokens.
+
+[[mockchain]]Mockchain ::
+A Cardano blockchain emulator which faithfully implements the 
+<<extended-utxo,Extended UTXO model>>.
 
 Mock wallet ::
-A wallet emulator which is used to interact with the mockchain
+A wallet emulator which is used to interact with the <<mockchain,mockchain>>.
 
-Non-fungible Token ::
-A token that is not interchangeable with other tokens.
+[[non-fungible-token]]Non-fungible Token ::
+A <<custom-token,token>> that is not interchangeable with other tokens.
 
-Off-chain code ::
+[[off-chain1]]Off-chain code ::
 Code written as part of a smart contract which executes off the chain, usually in a user's wallet.
 
-On-chain code ::
-Code written as part of a smart contract which executes on the chain during transaction validation.
+[[on-chain]]On-chain code ::
+Code written as part of a smart contract which executes on the chain during
+<<tx,transaction>> <<validator-script,validation>>.
 
+[#plutus-core]
 Plutus Core ::
-A small functional programming language designed to run as on-chain code.
+A small functional programming language designed to run as <<on-chain,on-chain>> code.
 
 Plutus IR ::
-An intermediate language that compiles to Plutus Core, for use as a target language for compiler writers.
+An intermediate language that compiles to <<plutus-core,Plutus Core>>, 
+for use as a target language for compiler writers.
 
-Plutus Platform ::
+[[plutus-platform]]Plutus Platform ::
 The combined software support for writing smart contracts, including:
-- libraries for writing off-chain code in Haskell.
-- libraries for writing on-chain code in Plutus Tx.
-- emulator support for testing smart contracts.
+- Libraries for writing <<off-chain1,off-chain>> code in Haskell.
+- Libraries for writing <<on-chain,on-chain>> code in <<plutus-tx,Plutus Tx>>.
+- Emulator support for testing smart contracts.
 
 Plutus Playground ::
 A browser based environment for writing and testing Plutus contracts.
 
-Plutus Tx ::
-A subset of Haskell which is compiled into Plutus Core.
+[[plutus-tx]]Plutus Tx ::
+A subset of Haskell which is compiled into <<plutus-core,Plutus Core>>.
+
+[[pubkey-address]]Public Key Address ::
+Possible address type for a <<transaction-output,transaction output>>.
+In order to unlock funds at such an <<address,address>>, one has to prove owning the
+corresponding private key.
+
+[[pubkey-input]]Public Key Input ::
+Type of <<transaction-input,transaction input>> collecting <<value,value>>
+from a <<pubkey-output,public key output>>.
+<<tx,Transactions>> with such an input must be signed by the owner
+of the corresponding private key in order to be valid.
+
+[[pubkey-output]]Public Key Output ::
+A <<transaction-output,transaction output>>
+which locks value at a <<pubkey-address,public key address>>:
+A pair consisting of the <<pubkey-address,public key address>>
+and the <<value,value>>.
+
+[[redeemer-script]]Redeemer Script ::
+Piece of <<plutus-core,Plutus Core>> code which is part of a
+<<script-input,script input>> and used by the 
+<<validator-script,validation script>> to validate that input.
+
+[[script-address]]Script Address ::
+Possible <<address,address>> type for a <<transaction-output,transaction output>>:
+Hash of a <<validator-script,validator script>>.
+
+[[script-input]]Script Input ::
+Type of <<transaction-input,transaction input>> collecting <<value,value>>
+from a <<script-output,script output>>.
+Contains a <<redeemer-script,redeemer script>>.
+
+[[script-output]]Script Output ::
+A <<transaction-output,transaction output>>
+which locks value at a <<script-address,script address>>: 
+A triple consisting of the <<script-address,script address>>,
+the <<value,value>>
+and the <<data-script,data script>>.
+
+[[custom-token]]Token ::
+A custom <<value,value>> defined by a <<currency-symbol,currency symbol>> and a 
+<<token-name,token name>>.
+Can be <<fungible-token,fungible>>, <<non-fungible-token,non-fungible>>
+or mixed. <<ada,Ada>> is a special kind of token, where both 
+<<currency-symbol,currency symbol>> 
+and <<token-name,token name>>
+are the empty bytestring.
+
+[[token-name]]Token Name ::
+Bytestring representing a <<custom-token,token>> (the empty bytestring in case
+of <<ada,Ada>>).
+
+[[tx]]Transaction ::
+Collects <<value,value>> from zero or more <<transaction-input,transaction inputs>>
+and redistributes that value to zero or more <<transaction-output,transaction outputs>>.
+Can optionally forge new value.
+
+[[transaction-input]]Transaction Input ::
+Determines from where the <<value,value>>
+redistributed by a <<tx,transaction>> is taken. 
+Corresponding to the two <<transaction-output,output types>>,
+there are two input types,
+<<pubkey-input,public key inputs>> and
+<<script-input,script inputs>>.
+
+[[transaction-output]]Transaction Output ::
+Determines how a <<tx,transaction>> distributes its 
+<<transaction-input,inputs>>. There are two types,
+<<pubkey-output,public key outputs>> and
+<<script-output,script outputs>>.
+
+[[utxo]]Unspent Transaction Output ::
+A <<transaction-output,transaction output>> which has not yet
+been collected by a <<transaction-input,transaction input>>
+for use in another <<tx,transaction>>.
+
+UTXO ::
+See <<utxo,Unspend Transaction Output>>!
+
+[[validator-script]]Validator Script ::
+Piece of <<plutus-core,Plutus Core>> code
+used to validate whether a <<tx,transaction>> is allowed to use a
+<<script-output,script output>> as <<transaction-input,input>>.
+
+[[value]]Value ::
+Technically a map from currency symbols to maps from token symbols to integers.
+Represents a collection of Ada and <<custom-token,tokens>> and is the "substance" being
+redistributed by <<tx,transactions>>.
 
 [bibliography#bibliography]
 == References
@@ -75,7 +192,7 @@ Applications of Formal Methods, Verification
 and Validation. Industrial Practice. ISoLA 2018. (LNCS), Vol. 11247.
 
 - [[[hybrid,6]]] Joachim Zahnentferner. 2018. Chimeric Ledgers: Translating and
-Unifying UTxO-based and Account-based Cryptocurrencies.
+Unifying UTXO-based and Account-based Cryptocurrencies.
 IACR Cryptology ePrint Archive 2018 (2018), 262. http://eprint.iacr.org/2018/262
 
 - [[[deleg,7]]] Jared Corduan, Polina Vinogradova, and Matthias Gudemann.
