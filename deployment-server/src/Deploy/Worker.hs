@@ -6,27 +6,28 @@
 
 module Deploy.Worker where
 
-import           Control.Concurrent.Chan     (Chan, readChan)
-import           Control.Exception           (SomeException, displayException, handle)
-import           Control.Monad               (forever, void)
-import           Control.Monad.Except        (MonadError, runExceptT, throwError)
-import           Control.Monad.IO.Class      (MonadIO, liftIO)
-import           Control.Monad.Reader        (runReaderT)
-import           Control.Newtype.Generics    (unpack)
-import qualified Data.ByteString.Lazy.Char8  as BS
-import           Data.Char                   (isSpace)
-import           Data.List                   (dropWhileEnd, isSuffixOf)
-import           Data.Text                   (Text)
-import qualified Data.Text                   as Text
-import           Deploy.Types                (Options (Options, configDir, deploymentName, environment, include, slackChannel, stateFile),
-                                              SlackChannel)
-import           GitHub.Data.Webhooks.Events (PullRequestEvent)
-import           System.Directory            (listDirectory)
-import           System.Exit                 (ExitCode (ExitFailure, ExitSuccess))
-import           System.IO.Temp              (withSystemTempDirectory)
-import           System.Process.Typed        (proc, readProcess, setWorkingDir)
-import           Web.Slack                   (SlackConfig, chatPostMessage)
-import           Web.Slack.Chat              (mkPostMsgReq)
+import           Control.Concurrent.Chan      (Chan, readChan)
+import           Control.Exception            (SomeException, displayException, handle)
+import           Control.Monad                (forever, void)
+import           Control.Monad.Except         (MonadError, runExceptT, throwError)
+import           Control.Monad.IO.Class       (MonadIO, liftIO)
+import           Control.Monad.Reader         (runReaderT)
+import           Control.Newtype.Generics     (unpack)
+import qualified Data.ByteString.Lazy.Char8   as BS
+import           Data.Char                    (isSpace)
+import           Data.List                    (dropWhileEnd, isSuffixOf)
+import           Data.Text                    (Text)
+import qualified Data.Text                    as Text
+import           Deploy.Types                 (Options (Options, configDir, deploymentName, environment, include, slackChannel, stateFile),
+                                               SlackChannel)
+import           GitHub.Data.Webhooks.Events  (PullRequestEvent (evPullReqPayload))
+import           GitHub.Data.Webhooks.Payload (HookPullRequest (whPullReqBase), PullRequestTarget (whPullReqTargetRef))
+import           System.Directory             (listDirectory)
+import           System.Exit                  (ExitCode (ExitFailure, ExitSuccess))
+import           System.IO.Temp               (withSystemTempDirectory)
+import           System.Process.Typed         (proc, readProcess, setWorkingDir)
+import           Web.Slack                    (SlackConfig, chatPostMessage)
+import           Web.Slack.Chat               (mkPostMsgReq)
 
 newtype DeploymentError
     = CommandError Text
@@ -41,7 +42,7 @@ runWorker chan options slackConfig =
         deploy event options slackConfig
 
 deploy :: PullRequestEvent -> Options -> SlackConfig -> IO ()
-deploy _ Options {..} slackConfig =
+deploy event Options {..} slackConfig =
     withSystemTempDirectory "deployment" $ \tempDir -> do
             let plutusDir = tempDir <> "/plutus"
                 nixopsDir = plutusDir <> "/deployment/nixops"
@@ -53,10 +54,11 @@ deploy _ Options {..} slackConfig =
                       , "-d"
                       , (Text.unpack . unpack) deploymentName
                       ]
-            putStrLn "Deploy origin/master"
+                ref = Text.unpack . whPullReqTargetRef . whPullReqBase . evPullReqPayload $ event
+            putStrLn $ "Deploy origin/" <> ref
             result <- runExceptT $ do
               void $ runIn tempDir "git" ["clone", "https://github.com/input-output-hk/plutus.git"]
-              void $ runIn plutusDir "git" ["checkout", "origin/master"]
+              void $ runIn plutusDir "git" ["checkout", "origin/" <> ref]
               (_, gitHeadStdout, _) <- runIn plutusDir "git" ["rev-parse", "HEAD"]
               let gitHead = Text.pack . rstrip . BS.unpack $ gitHeadStdout
               jsonFiles <- filter isJson <$> liftIO (listDirectory configDir)
@@ -105,8 +107,8 @@ runIn dir bin args = do
         otherErrors e = pure (ExitFailure 1, mempty, BS.pack (displayException e))
 
 showResult :: Either DeploymentError Text -> Text
-showResult (Left (CommandError err)) = "failed to deploy origin/master with error: " <> err
-showResult (Right gitHead)           = "origin/master (" <> gitHead <> ") deployed successfully"
+showResult (Left (CommandError err)) = "failed to deploy with error: " <> err
+showResult (Right gitHead)           = "git ref " <> gitHead <> " deployed successfully"
 
 alert :: SlackConfig -> SlackChannel -> Text -> IO ()
 alert config channel message = do

@@ -7,10 +7,13 @@ module Deploy.Server
 
 import           Control.Concurrent.Chan      (Chan, writeChan)
 import           Control.Monad.IO.Class       (liftIO)
+import           Control.Newtype.Generics     (unpack)
 import           Data.Maybe                   (isJust)
 import           Data.Proxy                   (Proxy (Proxy))
+import           Deploy.Types                 (Ref)
 import           GitHub.Data.Webhooks.Events  (PullRequestEvent (evPullReqPayload))
-import           GitHub.Data.Webhooks.Payload (HookPullRequest (whPullReqMergedAt))
+import           GitHub.Data.Webhooks.Payload (HookPullRequest (whPullReqBase, whPullReqMergedAt),
+                                               PullRequestTarget (whPullReqTargetRef))
 import           Network.Wai                  (Application)
 import           Servant                      (Context ((:.), EmptyContext), Handler, serveWithContext)
 import           Servant.API                  ((:<|>) ((:<|>)), (:>), Get, JSON, Post)
@@ -24,19 +27,25 @@ type Api
 isMergePullRequestEvent :: PullRequestEvent -> Bool
 isMergePullRequestEvent = isJust . whPullReqMergedAt . evPullReqPayload
 
+hasTargetRef :: Ref -> PullRequestEvent -> Bool
+hasTargetRef ref = (==) (unpack ref) . whPullReqTargetRef . whPullReqBase . evPullReqPayload
+
 prEventAction ::
-       Chan PullRequestEvent
+       Ref
+    -> Chan PullRequestEvent
     -> RepoWebhookEvent
     -> ((), PullRequestEvent)
     -> Handler ()
-prEventAction chan _ (_, event)
-    | isMergePullRequestEvent event = liftIO $ writeChan chan event
-prEventAction _ _ _ = liftIO $ putStrLn "non-merge PullRequestEvent"
+prEventAction ref chan _ (_, event)
+    | isMergePullRequestEvent event && hasTargetRef ref event = liftIO $ writeChan chan event
+prEventAction _ _ _ (_, event)
+    | isMergePullRequestEvent event = liftIO $ putStrLn "PullRequestEvent not for target ref"
+prEventAction _ _ _ _ = liftIO $ putStrLn "non-merge PullRequestEvent"
 
 healthCheck :: Handler ()
 healthCheck = pure ()
 
-app :: Chan PullRequestEvent -> GitHubKey PullRequestEvent -> Application
-app chan key =
+app :: Ref -> Chan PullRequestEvent -> GitHubKey PullRequestEvent -> Application
+app ref chan key =
     serveWithContext (Proxy :: Proxy Api) (key :. EmptyContext) $
-    prEventAction chan :<|> healthCheck
+    prEventAction ref chan :<|> healthCheck
