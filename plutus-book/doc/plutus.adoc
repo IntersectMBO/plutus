@@ -1,6 +1,7 @@
 [#plutus]
 = Plutus: Writing Reliable Smart Contracts
 :authors: Lars Brünjes, Polina Vinogradova
+:revnumber: 1.0
 :email: plutus@iohk.io
 :orgname: Input Output HK Limited
 :copyright-year: 2019
