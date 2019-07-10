@@ -5,6 +5,7 @@ module Main where
 
 import           Control.Concurrent       (forkIO)
 import           Control.Concurrent.Chan  (newChan)
+import           Control.Monad            (void)
 import           Control.Newtype.Generics (unpack)
 import           Data.Aeson               (eitherDecodeFileStrict)
 import qualified Data.ByteString.Char8    as BS
@@ -33,6 +34,6 @@ main = do
         Right Secrets {..} -> do
             chan <- newChan
             slackConfig <- mkSlackConfig (unpack slackToken)
-            forkIO $ runWorker chan options slackConfig
+            void . forkIO $ runWorker chan options slackConfig
             putStrLn $ "start listening on port " <> show port
             run port $ app chan (gitHubKey . pure . BS.pack . Text.unpack . unpack $ githubWebhookKey)
