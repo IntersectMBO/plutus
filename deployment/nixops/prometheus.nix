@@ -107,7 +107,7 @@ in
         };
 
     environment.systemPackages = with pkgs;
-                    [ nixops vim tmux git ];
+                    [ nixops vim tmux git curl ];
 
     services.grafana = {
       enable = true;
@@ -196,7 +196,7 @@ in
 
     systemd.services.deploymentServer = {
       enable = enableGithubHooks;
-      path = ["${deploymentServer}" pkgs.git pkgs.nixops pkgs.nix pkgs.gnutar pkgs.gzip ];
+      path = ["${deploymentServer}" pkgs.git pkgs.nixops pkgs.nix pkgs.gnutar pkgs.gzip pkgs.curl ];
       script = ''deployment-server-exe \
       --slackChannel ${slackChannel} \
       --keyfile ${configDir}/secrets.json \
@@ -204,6 +204,7 @@ in
       --configDir ${configDir} \
       --stateFile ${nixopsStateFile} \
       --deploymentName ${deploymentName} \
+      --environment ${machines.environment} \
       --include nixos=${nixosLocation} \
       --include nixpkgs=${nixpkgsLocation}
       '';

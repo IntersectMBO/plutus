@@ -26,6 +26,7 @@ data Options = Options
     , keyfile        :: FilePath
     , slackChannel   :: SlackChannel
     , deploymentName :: Deployment
+    , environment    :: String
     } deriving (Generic, Show, ParseRecord)
 
 data Secrets = Secrets
