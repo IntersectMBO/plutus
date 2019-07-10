@@ -46,7 +46,7 @@ let
     # At least the client is broken on darwin for some yarn reason
     plutus-playground = lib.mapAttrs (_: _: linux) packageSet.plutus-playground;
     # At least the client is broken on darwin for some yarn reason
-    meadow = lib.mapAttrs (_: _: linux) packageSet.meadow;
+    marlowe-playground = lib.mapAttrs (_: _: linux) packageSet.marlowe-playground;
     # texlive is broken on darwin at our nixpkgs pin
     docs = lib.mapAttrs (_: _: linux) packageSet.docs;  
     tests = lib.mapAttrs (_: _: supportedSystems) packageSet.tests;  
@@ -68,7 +68,7 @@ in lib.fix (jobsets: testJobsets // {
       ++ (allJobs jobsets.tests)
       ++ (allJobs jobsets.docs) 
       ++ (allJobs jobsets.plutus-playground)
-      ++ (allJobs jobsets.meadow)
+      ++ (allJobs jobsets.marlowe-playground)
       ++ (allJobs jobsets.dev.scripts);
   });
 })

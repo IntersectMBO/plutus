@@ -3,7 +3,7 @@
 ## Getting started
 
 ```bash
-cd meadow-client
+cd marlowe-playground-client
 $(nix-build -A dev.scripts.updateClientDeps ../default.nix)
 yarn run webpack
 ```

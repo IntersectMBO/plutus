@@ -1,4 +1,4 @@
-# Plutus Playground and Meadow Infrastructure
+# Plutus and Marlowe Playgrounds Infrastructure
 
 The infrastructure is comprised of 2 parts, terraform and nixops:
 
@@ -43,7 +43,7 @@ The individual machines now exist but have nothing installed on them. We configu
 8. Create a file called `secrets.json` that is based on [the example file](./nixops/secrets.json.example)
 9. Create a new deployment `nixops create ./default.nix ./network.nix -d playgrounds`
 10. Deploy the new deployment `nixops deploy`
-11. You should now be able to reach the playground at [https://myname.plutus.iohkdev.io] (https://myname.plutus.iohkdev.io) and meadow at [https://myname.marlowe.iohkdev.io] (https://myname.marlowe.iohkdev.io)
+11. You should now be able to reach the plutus playground at [https://myname.plutus.iohkdev.io] (https://myname.plutus.iohkdev.io) and marlowe playground at [https://myname.marlowe.iohkdev.io] (https://myname.marlowe.iohkdev.io)
 
 ## Updating an environment
 

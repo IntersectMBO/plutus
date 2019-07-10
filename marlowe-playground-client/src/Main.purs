@@ -16,7 +16,7 @@ import Halogen.VDom.Driver (runUI)
 import LocalStorage (RawStorageEvent)
 import LocalStorage as LocalStorage
 import MainFrame (mainFrame)
-import Meadow (SPParams_(SPParams_))
+import Marlowe (SPParams_(SPParams_))
 import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettingsEncodeJson_(..), SPSettings_(..), defaultSettings)
 
 ajaxSettings :: SPSettings_ SPParams_

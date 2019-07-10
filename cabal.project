@@ -12,7 +12,7 @@ packages: language-plutus-core
           plutus-tutorial
           plutus-book
           playground-common
-          meadow
+          marlowe-playground-server
           plutus-contract-exe
           deployment-server
 optimization: 2

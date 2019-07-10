@@ -39,8 +39,8 @@ import LocalStorage as LocalStorage
 import Marlowe.Parser (contract)
 import Marlowe.Semantics (ErrorResult(InvalidInput), IdInput(IdOracle, InputIdChoice), MApplicationResult(MCouldNotApply, MSuccessfullyApplied), OracleDataPoint(..), State(State), TransactionOutcomes, applyTransaction, collectNeededInputs, emptyState, peopleFromStateAndContract, reduce, scoutPrimitives)
 import Marlowe.Types (BlockNumber, Choice, Contract(Null), IdChoice(IdChoice), IdOracle, Person, WIdChoice(WIdChoice))
-import Meadow (SPParams_)
-import Meadow as Server
+import Marlowe (SPParams_)
+import Marlowe as Server
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)

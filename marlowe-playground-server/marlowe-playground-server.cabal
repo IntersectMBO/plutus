@@ -1,5 +1,5 @@
 cabal-version: >=1.10
-name: meadow
+name: marlowe-playground-server
 version: 0.1.0.0
 license: Apache-2.0
 license-files: 
@@ -26,7 +26,7 @@ library
         Server
         API
         Interpreter
-        Meadow.Contracts
+        Marlowe.Contracts
     hs-source-dirs: src
     default-language: Haskell2010
     build-depends:
@@ -63,7 +63,7 @@ library
         time-units -any,
         transformers -any
 
-executable meadow-exe
+executable marlowe-playground-server
     main-is: Main.hs
     other-modules:
         Webserver
@@ -85,7 +85,7 @@ executable meadow-exe
         http-types -any,
         playground-common -any,
         lens -any,
-        meadow -any,
+        marlowe-playground-server -any,
         monad-logger -any,
         mtl -any,
         prometheus >=2,
@@ -101,7 +101,7 @@ executable meadow-exe
         warp -any,
         yaml -any
 
-test-suite meadow-test
+test-suite marlowe-playground-server-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     hs-source-dirs: test
@@ -112,7 +112,7 @@ test-suite meadow-test
         bytestring -any,
         hspec -any,
         playground-common -any,
-        meadow -any,
+        marlowe-playground-server -any,
         mtl -any,
         raw-strings-qq -any,
         text -any,

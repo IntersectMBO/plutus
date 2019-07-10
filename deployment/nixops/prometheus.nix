@@ -12,7 +12,7 @@
                , ... }: node: { config, pkgs, lib, ... }:
 
 let
-    servers = [machines.meadowA machines.meadowB machines.playgroundA machines.playgroundB];
+    servers = [machines.marlowePlaygroundA machines.marlowePlaygroundB machines.playgroundA machines.playgroundB];
     nginxPort = 80;
     deploymentServerPort = 8080;
     target = port: node:

@@ -1,4 +1,4 @@
-module Meadow.Gists
+module Marlowe.Gists
   ( mkNewGist
   , gistSourceFilename
   , playgroundGistFile
@@ -38,7 +38,7 @@ mkNewGist source = if Array.null gistFiles
       }
 
 gistSourceFilename :: String
-gistSourceFilename = "Meadow.hs"
+gistSourceFilename = "Marlowe.hs"
 
 playgroundGistFile :: Gist -> Maybe GistFile
 playgroundGistFile = firstMatch gistSourceFilename

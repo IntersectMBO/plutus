@@ -136,7 +136,7 @@ let
             "plutus-tutorial"
             # Broken for things which pick up other files at test runtime
             "plutus-playground-server"
-            "meadow"
+            "marlowe-playground-server"
           ];
         haddock = localButNot [
             # Haddock is broken for things with internal libraries
@@ -238,19 +238,19 @@ let
         };
     };
 
-    meadow = rec {
-      meadow-exe = set-git-rev haskellPackages.meadow;
+    marlowe-playground = rec {
+      playground-exe = set-git-rev haskellPackages.marlowe-playground-server;
       server-invoker = let
-        # meadow uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
+        # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
         runtimeGhc = haskellPackages.ghcWithPackages (ps: [
           haskellPackages.marlowe
-          meadow-exe
+          playground-exe
         ]);
-      in pkgs.runCommand "meadow-server-invoker" { buildInputs = [pkgs.makeWrapper]; } ''
+      in pkgs.runCommand "marlowe-server-invoker" { buildInputs = [pkgs.makeWrapper]; } ''
         # We need to provide the ghc interpreter with the location of the ghc lib dir and the package db
         mkdir -p $out/bin
-        ln -s ${haskellPackages.meadow}/bin/meadow-exe $out/bin/meadow
-        wrapProgram $out/bin/meadow \
+        ln -s ${playground-exe}/bin/marlowe-playground-server $out/bin/marlowe-playground
+        wrapProgram $out/bin/marlowe-playground \
           --set GHC_LIB_DIR "${runtimeGhc}/lib/ghc-${runtimeGhc.version}" \
           --set GHC_BIN_DIR "${runtimeGhc}/bin" \
           --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d" \
@@ -258,20 +258,20 @@ let
       '';
 
       client = let
-        generated-purescript = pkgs.runCommand "meadow-purescript" {} ''
+        generated-purescript = pkgs.runCommand "marlowe-playground-purescript" {} ''
           mkdir $out
-          ${meadow-exe}/bin/meadow-exe psgenerator $out
+          ${playground-exe}/bin/marlowe-playground-server psgenerator $out
         '';
         in
         pkgs.callPackage ./nix/purescript.nix rec {
           inherit pkgs yarn2nix pp2nSrc haskellPackages;
           psSrc = generated-purescript;
-          src = ./meadow-client;
+          src = ./marlowe-playground-client;
           webCommonPath = ./web-common;
-          packageJSON = ./meadow-client/package.json;
-          yarnLock = ./meadow-client/yarn.lock;
-          yarnNix = ./meadow-client/yarn.nix;
-          packages = pkgs.callPackage ./meadow-client/packages.nix {};
+          packageJSON = ./marlowe-playground-client/package.json;
+          yarnLock = ./marlowe-playground-client/yarn.lock;
+          yarnNix = ./marlowe-playground-client/yarn.nix;
+          packages = pkgs.callPackage ./marlowe-playground-client/packages.nix {};
           name = (pkgs.lib.importJSON packageJSON).name;
         };
     };
@@ -295,11 +295,11 @@ let
           Cmd = ["${server-invoker}/bin/plutus-playground" "--config" "${defaultPlaygroundConfig}/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
         };
       };
-      meadowImage = with meadow; pkgs.dockerTools.buildImage {
-        name = "meadow";
+      marlowePlaygroundImage = with marlowe-playground; pkgs.dockerTools.buildImage {
+        name = "marlowe-playground";
         contents = [ client server-invoker defaultPlaygroundConfig ];
         config = {
-          Cmd = ["${server-invoker}/bin/meadow" "--config" "${defaultPlaygroundConfig}/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
+          Cmd = ["${server-invoker}/bin/marlowe-playground" "--config" "${defaultPlaygroundConfig}/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
         };
       };
     };

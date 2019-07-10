@@ -1,7 +1,7 @@
 # Security Group
-resource "aws_security_group" "meadow" {
+resource "aws_security_group" "marlowe" {
   vpc_id = "${aws_vpc.plutus.id}"
-  name   = "${var.project}_${var.env}_meadow"
+  name   = "${var.project}_${var.env}_marlowe"
 
   ingress {
     from_port   = 22
@@ -49,13 +49,13 @@ resource "aws_security_group" "meadow" {
   }
 
   tags = {
-    Name        = "${var.project}_${var.env}_meadow"
+    Name        = "${var.project}_${var.env}_marlowe"
     Project     = "${var.project}"
     Environment = "${var.env}"
   }
 }
 
-data "template_file" "meadow_user_data" {
+data "template_file" "marlowe_user_data" {
   template = "${file("${path.module}/templates/default_configuration.nix")}"
 
   vars {
@@ -63,15 +63,15 @@ data "template_file" "meadow_user_data" {
   }
 }
 
-resource "aws_instance" "meadow_a" {
+resource "aws_instance" "marlowe_a" {
   ami = "${lookup(var.aws_amis, var.aws_region)}"
 
-  instance_type        = "${var.meadow_instance_type}"
+  instance_type        = "${var.marlowe_instance_type}"
   subnet_id            = "${aws_subnet.private.*.id[0]}"
-  user_data            = "${data.template_file.meadow_user_data.rendered}"
+  user_data            = "${data.template_file.marlowe_user_data.rendered}"
 
   vpc_security_group_ids = [
-    "${aws_security_group.meadow.id}",
+    "${aws_security_group.marlowe.id}",
   ]
 
   root_block_device = {
@@ -79,29 +79,29 @@ resource "aws_instance" "meadow_a" {
   }
 
   tags {
-    Name        = "${var.project}_${var.env}_meadow_a"
+    Name        = "${var.project}_${var.env}_marlowe_a"
     Project     = "${var.project}"
     Environment = "${var.env}"
   }
 }
 
-resource "aws_route53_record" "meadow_internal_a" {
+resource "aws_route53_record" "marlowe_internal_a" {
   zone_id = "${aws_route53_zone.plutus_private_zone.zone_id}"
   type    = "A"
-  name    = "meadow-a.${aws_route53_zone.plutus_private_zone.name}"
+  name    = "marlowe-a.${aws_route53_zone.plutus_private_zone.name}"
   ttl     = 300
-  records = ["${aws_instance.meadow_a.private_ip}"]
+  records = ["${aws_instance.marlowe_a.private_ip}"]
 }
 
-resource "aws_instance" "meadow_b" {
+resource "aws_instance" "marlowe_b" {
   ami = "${lookup(var.aws_amis, var.aws_region)}"
 
-  instance_type        = "${var.meadow_instance_type}"
+  instance_type        = "${var.marlowe_instance_type}"
   subnet_id            = "${aws_subnet.private.*.id[1]}"
-  user_data            = "${data.template_file.meadow_user_data.rendered}"
+  user_data            = "${data.template_file.marlowe_user_data.rendered}"
 
   vpc_security_group_ids = [
-    "${aws_security_group.meadow.id}",
+    "${aws_security_group.marlowe.id}",
   ]
 
   root_block_device = {
@@ -109,16 +109,16 @@ resource "aws_instance" "meadow_b" {
   }
 
   tags {
-    Name        = "${var.project}_${var.env}_meadow_b"
+    Name        = "${var.project}_${var.env}_marlowe_b"
     Project     = "${var.project}"
     Environment = "${var.env}"
   }
 }
 
-resource "aws_route53_record" "meadow_internal_b" {
+resource "aws_route53_record" "marlowe_internal_b" {
   zone_id = "${aws_route53_zone.plutus_private_zone.zone_id}"
   type    = "A"
-  name    = "meadow-b.${aws_route53_zone.plutus_private_zone.name}"
+  name    = "marlowe-b.${aws_route53_zone.plutus_private_zone.name}"
   ttl     = 300
-  records = ["${aws_instance.meadow_b.private_ip}"]
+  records = ["${aws_instance.marlowe_b.private_ip}"]
 }
