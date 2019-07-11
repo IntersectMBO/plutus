@@ -14,6 +14,7 @@ module Language.PlutusCore.Constant.Dynamic.Instances where
 --     ( PlcList (..)
 --     ) where
 
+import           Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Constant.Universe
@@ -32,6 +33,7 @@ import           Language.PlutusCore.StdLib.Meta
 import           Language.PlutusCore.StdLib.Meta.Data.Tuple
 import           Language.PlutusCore.StdLib.Type
 import           Language.PlutusCore.Type
+import           PlutusPrelude                              hiding (bool)
 
 import           Control.Monad.Except
 import           Data.Bifunctor
@@ -183,8 +185,65 @@ makeTypeAndKnown x = (da, dx) where
     da = toTypeAst @a Proxy
     dx = makeKnown x
 
--- TODO: change me.
-instance (KnownType a uni, KnownType b uni) => KnownType (a, b) uni where
+-- tuple a b = all r. (a -> b -> r) -> r
+-- tupleval x y = \{r} k -> k x y
+-- r = (a, b)
+-- k = (,)
+
+data Meta a = Meta
+    { unMeta :: a
+    } deriving (Show, Generic, Typeable)
+
+-- TODO: derive all the 'Integer', 'ByteString' and other instances in term of this one.
+instance (Evaluable uni, uni `Includes` a) => KnownType (Meta a) uni where
+    toTypeAst _ = constantType @a Proxy ()
+
+    makeKnown (Meta x) = constantTerm () x
+
+    readKnown (Evaluator eval) term = do
+        res <- makeRightReflectT $ eval mempty term
+        case extractValue res of
+            Just x -> pure $ Meta x
+            _      -> throwError "Not an integer-encoded Char"
+instance PrettyKnown (Meta a) where
+    prettyKnown = undefined
+
+-- instance (KnownType a uni, a ~ b) => KnownType (InExtended a) (Extend b uni)
+
+newtype AsExtension (uni :: * -> *) a = AsExtension
+    { unAsExtension :: a
+    }
+
+newtype InExtended b (uni :: * -> *) a = InExtended
+    { unInExtended :: a
+    }
+
+instance (Evaluable uni, euni ~ Extend a uni, Typeable a) => KnownType (AsExtension uni a) euni where
+    toTypeAst _ = TyConstant () $ Some Extension
+
+    makeKnown (AsExtension x) = Constant () $ SomeOf Extension x
+
+    readKnown (Evaluator eval) term = do
+        res <- makeRightReflectT $ eval mempty term
+        case extractExtension res of
+            Just x -> pure $ AsExtension x
+            _      -> throwError "Not an integer-encoded Char"
+instance PrettyKnown (AsExtension uni a) where
+    prettyKnown = undefined
+
+-- A type known in a universe is known in an extended version of that universe.
+instance (Evaluable uni, KnownType a uni, euni ~ Extend b uni, Typeable b) =>
+            KnownType (InExtended b uni a) euni where
+    toTypeAst _ = shiftConstantsType $ toTypeAst @a @uni Proxy
+
+    makeKnown (InExtended x) = shiftConstantsTerm $ makeKnown @a x
+
+    -- @unshiftConstantType@ :-(
+    readKnown eval term = _ $ readKnown @a eval term  -- makeRightReflectT $ eval mempty term
+instance PrettyKnown (InExtended b uni a) where
+    prettyKnown = undefined
+
+instance (Evaluable uni, KnownType a uni, KnownType b uni, Typeable a, Typeable b) => KnownType (a, b) uni where
     toTypeAst _ =
         mkIterTyApp () (prodN 2)
             [ toTypeAst @a Proxy
@@ -195,14 +254,28 @@ instance (KnownType a uni, KnownType b uni) => KnownType (a, b) uni where
         dax = makeTypeAndKnown x
         dby = makeTypeAndKnown y
 
-    readKnown eval dxy = do
-        let da = toTypeAst @a Proxy
-            db = toTypeAst @b Proxy
-            prodNAccessorInst i = mkIterInst () (prodNAccessor 2 i) [da, db]
-        -- Read elements of the tuple separately.
-        x <- readKnown eval $ Apply () (prodNAccessorInst 0) dxy
-        y <- readKnown eval $ Apply () (prodNAccessorInst 1) dxy
-        pure (x, y)
+    readKnown (Evaluator eval) term = do
+        let metaTuple = TyConstant () $ Some Extension
+            metaCommaName = DynamicBuiltinName "append"
+
+            metaCommaMeaning :: DynamicBuiltinNameMeaning (Extend (a, b) uni)
+            metaCommaMeaning = DynamicBuiltinNameMeaning sch def where
+                sch =
+                    Proxy @(InExtended (a, b) uni a) `TypeSchemeArrow`
+                    Proxy @(InExtended (a, b) uni b) `TypeSchemeArrow`
+                    TypeSchemeResult (Proxy @(AsExtension uni (a, b)))
+                def (InExtended x) (InExtended y) = AsExtension (x, y)
+
+            metaCommaDef = DynamicBuiltinNameDefinition metaCommaName metaCommaMeaning
+            metaComma = dynamicBuiltinNameAsTerm metaCommaName
+
+            env = insertDynamicBuiltinNameDefinition metaCommaDef mempty
+            applied = Apply () (TyInst () (shiftConstantsTerm term) metaTuple) metaComma
+        res <- makeRightReflectT $ eval env applied
+        case extractExtension res of
+            Just p  -> pure p
+            Nothing -> throwError "Not a builtin ()"
+
 instance (PrettyKnown a, PrettyKnown b) => PrettyKnown (a, b) where
     prettyKnown = pretty . bimap KnownTypeValue KnownTypeValue
 

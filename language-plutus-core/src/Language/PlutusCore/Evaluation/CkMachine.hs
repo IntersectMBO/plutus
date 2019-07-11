@@ -26,6 +26,15 @@ import           PlutusPrelude
 import           Data.Functor.Identity
 import           Data.Text                                       (Text)
 
+import           Language.PlutusCore.Constant.DefaultUni
+
+test1 :: EvaluationResult (Either Text (Integer, Bool))
+test1 = readKnownCk @_ @DefaultUni $ makeKnown (5 :: Integer, True)
+
+-- test2 :: EvaluationResult (Either Text ())
+-- test2 = readKnownCk @() @DefaultUni unitval
+
+
 infix 4 |>, <|
 
 -- | The CK machine throws this error when it encounters a 'DynBuiltinName'.
