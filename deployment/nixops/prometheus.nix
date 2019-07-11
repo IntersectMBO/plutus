@@ -206,7 +206,8 @@ in
       --deploymentName ${deploymentName} \
       --environment ${machines.environment} \
       --include nixos=${nixosLocation} \
-      --include nixpkgs=${nixpkgsLocation}
+      --include nixpkgs=${nixpkgsLocation} \
+      --ref ${secrets.deploymentRef}
       '';
     };
 

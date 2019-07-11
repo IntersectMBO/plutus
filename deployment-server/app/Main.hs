@@ -36,4 +36,4 @@ main = do
             slackConfig <- mkSlackConfig (unpack slackToken)
             void . forkIO $ runWorker chan options slackConfig
             putStrLn $ "start listening on port " <> show port
-            run port $ app chan (gitHubKey . pure . BS.pack . Text.unpack . unpack $ githubWebhookKey)
+            run port $ app ref chan (gitHubKey . pure . BS.pack . Text.unpack . unpack $ githubWebhookKey)

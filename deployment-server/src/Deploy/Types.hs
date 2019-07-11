@@ -27,6 +27,7 @@ data Options = Options
     , slackChannel   :: SlackChannel
     , deploymentName :: Deployment
     , environment    :: String
+    , ref            :: Ref
     } deriving (Generic, Show, ParseRecord)
 
 data Secrets = Secrets
@@ -59,4 +60,14 @@ instance Read Deployment where
     readsPrec _ s = [(Deployment . Text.pack $ s, "")]
 
 instance Show Deployment where
+    show = Text.unpack . unpack
+
+newtype Ref = Ref Text
+    deriving stock (Generic)
+    deriving anyclass (Newtype, ParseFields, ParseRecord, ParseField)
+
+instance Read Ref where
+    readsPrec _ s = [(Ref . Text.pack $ s, "")]
+
+instance Show Ref where
     show = Text.unpack . unpack
