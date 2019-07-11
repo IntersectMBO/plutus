@@ -225,6 +225,7 @@ actionArgumentField ::
   forall p.
   Warn (Text "We're still not handling the Unknowable case.")
   => Warn (Text "We're still not handling the SimpleMaybe case.")
+  => Warn (Text "The Hex fields should be forced to comply to [0-9a-fA-F].")
   => Array String
   -> Boolean
   -> SimpleArgument
