@@ -18,6 +18,7 @@ module Schema
     , toSchema
     , TypeSignature(..)
     , toTypeSignature
+    , typeSignatureOf
     , DataType(..)
     , Constructor(..)
     , ConstructorName(..)

@@ -9,12 +9,15 @@ author: David Smith
 category: Web
 build-type: Simple
 data-files:
-    test/oAuthToken1.json
-    test/Schema/IOTS/user.ts
-    test/Schema/IOTS/singleFieldless.ts
-    test/Schema/IOTS/simpleSum.ts
+    test/Schema/IOTS/functionTuple.ts
+    test/Schema/IOTS/functionMaybe.ts
+    test/Schema/IOTS/functionList.ts
     test/Schema/IOTS/response.ts
+    test/Schema/IOTS/simpleSum.ts
+    test/Schema/IOTS/singleFieldless.ts
+    test/Schema/IOTS/user.ts
     test/Schema/IOTS/vestingTranche.ts
+    test/oAuthToken1.json
 
 library
     exposed-modules:
@@ -95,6 +98,7 @@ test-suite playground-common-test
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wmissing-import-lists -Wredundant-constraints
+                 -fprint-potential-instances
     build-depends:
         aeson -any,
         base >=4.7 && <5,

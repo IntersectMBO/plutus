@@ -111,6 +111,7 @@ data CompilationResult =
     CompilationResult
         { functionSchema  :: [FunctionSchema DataType]
         , knownCurrencies :: [KnownCurrency]
+        , iotsSpec        :: Text
         }
     deriving (Show, Generic, ToJSON)
 

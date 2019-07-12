@@ -1,17 +1,19 @@
 import * as t from 'io-ts'
 
-
-// Schema.IOTSSpec
+// Schema.IOTSSpec.Response
 const ResponseString = t.union([
-    t.type({UnknownError: t.tuple([
+    t.type({"UnknownError": t.tuple([
         t.Int,
         t.string
     ])}),
-    t.type({StatusError: t.type({
+    t.type({"StatusError": t.type({
         code: t.Int,
         message: t.string,
-        metrics: t.record(t.string, t.Int)
+        headers: t.record(
+            t.string,
+            t.Int
+        )
     })}),
-    t.type({Response: t.string}),
-    t.literal('EmptyResponse')
+    t.literal('EmptyResponse'),
+    t.type({"Response": t.string})
 ]);

@@ -64,7 +64,7 @@ vestingSpec =
     describe "vesting" $ do
         compilationChecks vesting
         it "should compile with the expected schema" $ do
-            Right (InterpreterResult _ (CompilationResult result _)) <-
+            Right (InterpreterResult _ (CompilationResult result _ _)) <-
                 compile vesting
             result `shouldBe`
                 [ FunctionSchema
@@ -1603,7 +1603,7 @@ knownCurrencySpec =
             , "myCurrency = KnownCurrency (ValidatorHash \"\") \"MyCurrency\" (TokenName \"MyToken\" :| [])"
             , "$(mkKnownCurrencies ['myCurrency])"
             ]
-    hasKnownCurrency (Right (InterpreterResult _ (CompilationResult _ [cur1, cur2]))) =
+    hasKnownCurrency (Right (InterpreterResult _ (CompilationResult _ [cur1, cur2] _))) =
         cur1 == adaCurrency &&
         cur2 ==
         KnownCurrency

@@ -6,3 +6,11 @@ const User = t.type({
     name: t.string,
     children: t.array(User)
 });
+
+class Type {
+    constructor(
+        readonly someFunction: (
+            a: t.array(User)
+        ) => t.string
+    ) {}
+}

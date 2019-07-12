@@ -3,6 +3,7 @@
 {-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DataKinds          #-}
+
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE TemplateHaskell    #-}
@@ -45,6 +46,7 @@ module Ledger.Value(
 import qualified Prelude                      as Haskell
 
 import           Codec.Serialise.Class        (Serialise)
+import Data.Proxy(Proxy(Proxy))
 import           Data.Aeson                   (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
 import qualified Data.Aeson                   as JSON
 import qualified Data.Aeson.Extras            as JSON
@@ -53,6 +55,8 @@ import qualified Data.ByteString.Lazy.Char8   as C8
 import           Data.Hashable                (Hashable)
 import           Data.String                  (IsString(fromString))
 import qualified Data.Text                    as Text
+import           Data.Typeable                (Typeable)
+import qualified Data.Map
 import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift       (makeLift)
@@ -61,7 +65,8 @@ import qualified Language.PlutusTx.Prelude    as P
 import qualified Language.PlutusTx.AssocMap   as Map
 import           Language.PlutusTx.These
 import           LedgerBytes                  (LedgerBytes(LedgerBytes))
-import           Schema                       (ToSchema)
+import           Schema                       (ToSchema,toSchema)
+import           Schema.IOTS                  (IOTSField,iotsField)
 import           Ledger.Orphans               ()
 
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteString }
@@ -151,6 +156,12 @@ instance (ToJSON v, ToJSON k) => ToJSON (Map.Map k v) where
 
 instance (FromJSON v, FromJSON k) => FromJSON (Map.Map k v) where
     parseJSON v = Map.fromList Haskell.<$> JSON.parseJSON v
+
+instance (Typeable k, Typeable v) => ToSchema (Map.Map k v) where
+  toSchema _ = toSchema (Proxy :: Proxy (Data.Map.Map k v))
+
+instance (IOTSField k, IOTSField v) => IOTSField (Map.Map k v) where
+  iotsField _ = iotsField (Proxy :: Proxy (Data.Map.Map k v))
 
 deriving anyclass instance (Hashable k, Hashable v) => Hashable (Map.Map k v)
 deriving anyclass instance (Serialise k, Serialise v) => Serialise (Map.Map k v)

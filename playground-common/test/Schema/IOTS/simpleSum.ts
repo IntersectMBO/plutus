@@ -1,8 +1,8 @@
 import * as t from 'io-ts'
 
-
-// Schema.IOTSSpec
+// Schema.IOTSSpec.SimpleSum
 const SimpleSum = t.union([
     t.literal('This'),
-    t.literal('That')
+    t.literal('That'),
+    t.literal('TheOther')
 ]);

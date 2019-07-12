@@ -109,25 +109,18 @@ valueDataType =
         [ JsonTuple
             ( Tuple "getValue"
                 ( DataType
-                    ( assocMapSignature
-                        currencySymbolSignature
-                        (assocMapSignature tokenNameSignature integerSignature)
+                    ( TypeSignature
+                        { argumentSignatures:
+                          [ currencySymbolSignature
+                          , assocMapSignature
+                              tokenNameSignature
+                              integerSignature
+                          ]
+                        , constructorName: "Map"
+                        , moduleName: "Data.Map.Internal"
+                        }
                     )
-                    [ Record (ConstructorName "Map")
-                        [ JsonTuple
-                            ( Tuple "unMap"
-                                ( DataType
-                                    ( listSignature
-                                        ( tupleSignature
-                                            currencySymbolSignature
-                                            (assocMapSignature tokenNameSignature integerSignature)
-                                        )
-                                    )
-                                    []
-                                )
-                            )
-                        ]
-                    ]
+                    []
                 )
             )
         ]

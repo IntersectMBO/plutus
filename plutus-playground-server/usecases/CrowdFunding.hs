@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE StandaloneDeriving  #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
@@ -18,6 +19,8 @@ module CrowdFunding where
 -- Note [Transactions in the crowdfunding campaign] explains the structure of
 -- this contract on the blockchain.
 
+import           Data.Proxy                (Proxy (Proxy))
+import           Data.Text                 (Text)
 import qualified Language.PlutusTx         as PlutusTx
 import           Language.PlutusTx.Prelude
 import           Ledger                    (Address, DataScript (DataScript), PendingTx, PubKey,
@@ -27,9 +30,12 @@ import           Ledger                    (Address, DataScript (DataScript), Pe
 import qualified Ledger.Interval           as Interval
 import           Ledger.Slot               (Slot, SlotRange)
 import qualified Ledger.Validation         as V
-import           Ledger.Value              (Value)
+import           Ledger.Value              (CurrencySymbol, TokenName, Value)
 import qualified Ledger.Value              as Value
+import           LedgerBytes               (LedgerBytes)
 import           Playground.Contract
+import           Schema.IOTS               (ExportIOTS, IOTSField, iotsField, exportIOTS)
+import qualified Schema.IOTS               as IOTS
 import           Wallet                    (EventHandler (EventHandler), EventTrigger, MonadWallet, andT,
                                             collectFromScript, collectFromScriptTxn, fundsAtAddressGeqT, logMsg,
                                             ownPubKey, payToScript, register, slotRangeT)
@@ -255,3 +261,35 @@ This part of the API (the PendingTx argument) is experimental and subject
 to change.
 
 -}
+
+myCurrency :: KnownCurrency
+myCurrency = KnownCurrency "b0b0" "MyCurrency" ( "USDToken" :| ["EURToken"])
+$(mkKnownCurrencies ['myCurrency])
+
+deriving instance ExportIOTS CampaignAction
+deriving instance ExportIOTS Campaign
+deriving instance ExportIOTS Slot
+deriving instance ExportIOTS Value
+deriving instance ExportIOTS CurrencySymbol
+deriving instance ExportIOTS TokenName
+deriving instance ExportIOTS PubKey
+deriving instance IOTSField Slot
+deriving instance IOTSField Value
+deriving instance IOTSField CurrencySymbol
+deriving instance IOTSField TokenName
+instance IOTSField ByteString where
+  iotsField _ = "t.string"
+instance IOTSField LedgerBytes where
+  iotsField _ = "t.string"
+deriving instance IOTSField PubKey
+
+iotsDefinitions :: Text
+iotsDefinitions =
+  IOTS.export [ exportIOTS (Proxy :: Proxy CurrencySymbol)
+              , exportIOTS (Proxy :: Proxy Slot)
+              , exportIOTS (Proxy :: Proxy PubKey)
+              , exportIOTS (Proxy :: Proxy TokenName)
+              , exportIOTS (Proxy :: Proxy Value)
+              , exportIOTS (Proxy :: Proxy Campaign)
+              , exportIOTS (Proxy :: Proxy CampaignAction)
+              ]

@@ -86,7 +86,7 @@ mkCompileScript script =
     (ensureKnownCurrenciesExists . ensureMkFunctionExists . replaceModuleName)
         script <>
     "\n\nmain :: IO ()" <>
-    "\nmain = printSchemas (schemas, registeredKnownCurrencies)"
+    "\nmain = printSchemas (schemas, registeredKnownCurrencies, iotsDefinitions)"
 
 runscript ::
        ( Show t
@@ -123,24 +123,24 @@ compile timeout source
     withSystemTempDirectory "playgroundcompile" $ \dir -> do
         let file = dir </> "Main.hs"
         withFile file ReadWriteMode $ \handle -> do
-          (InterpreterResult warnings result) <-
-              runscript handle file timeout . mkCompileScript . Newtype.unpack $
-              source
-          let eSchema = JSON.eitherDecodeStrict . BS8.pack $ result
-          case eSchema of
-              Left err ->
-                  throwError . CompilationErrors . pure . RawError $
-                  "unable to decode compilation result" <> Text.pack err
-              Right ([schema], currencies) -> do
-                  let warnings' =
-                          Warning
-                              "It looks like you have not made any functions available, use `$(mkFunctions ['functionA, 'functionB])` to be able to use `functionA` and `functionB`" :
-                          warnings
-                  pure . InterpreterResult warnings' $
-                      CompilationResult [schema] currencies
-              Right (schemas, currencies) ->
-                  pure . InterpreterResult warnings $
-                  CompilationResult schemas currencies
+            (InterpreterResult warnings result) <-
+                runscript handle file timeout . mkCompileScript . Newtype.unpack $
+                source
+            let eSchema = JSON.eitherDecodeStrict . BS8.pack $ result
+            case eSchema of
+                Left err ->
+                    throwError . CompilationErrors . pure . RawError $
+                    "unable to decode compilation result" <> Text.pack err
+                Right ([schema], currencies, iots) -> do
+                    let warnings' =
+                            Warning
+                                "It looks like you have not made any functions available, use `$(mkFunctions ['functionA, 'functionB])` to be able to use `functionA` and `functionB`" :
+                            warnings
+                    pure . InterpreterResult warnings' $
+                        CompilationResult [schema] currencies iots
+                Right (schemas, currencies, iots) ->
+                    pure . InterpreterResult warnings $
+                    CompilationResult schemas currencies iots
 
 runFunction ::
        ( Show t
@@ -159,19 +159,22 @@ runFunction timeout evaluation = do
     withSystemTempDirectory "playgroundrun" $ \dir -> do
         let file = dir </> "Main.hs"
         withFile file ReadWriteMode $ \handle -> do
-          (InterpreterResult warnings result) <-
-              mapError API.InterpreterError . runscript handle file timeout $
-              mkRunScript (Newtype.unpack source) (Text.pack . BS8.unpack $ expr)
-          let decodeResult =
-                  JSON.eitherDecodeStrict . BS8.pack $ result :: Either String (Either PlaygroundError TraceResult)
-          case decodeResult of
-              Left err ->
-                  throwError . OtherError $
-                  "unable to decode compilation result" <> err
-              Right eResult ->
-                  case eResult of
-                      Left err      -> throwError err
-                      Right result' -> pure $ InterpreterResult warnings result'
+            (InterpreterResult warnings result) <-
+                mapError API.InterpreterError . runscript handle file timeout $
+                mkRunScript
+                    (Newtype.unpack source)
+                    (Text.pack . BS8.unpack $ expr)
+            let decodeResult =
+                    JSON.eitherDecodeStrict . BS8.pack $ result :: Either String (Either PlaygroundError TraceResult)
+            case decodeResult of
+                Left err ->
+                    throwError . OtherError $
+                    "unable to decode compilation result" <> err
+                Right eResult ->
+                    case eResult of
+                        Left err -> throwError err
+                        Right result' ->
+                            pure $ InterpreterResult warnings result'
 
 mkRunScript :: Text -> Text -> Text
 mkRunScript script expr =
