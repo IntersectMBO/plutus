@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeOperators         #-}
 -- | The exceptions that an abstract machine can throw.
 
 {-# LANGUAGE FlexibleInstances     #-}
@@ -11,8 +12,9 @@ module Language.PlutusCore.Evaluation.MachineException
     ) where
 
 import           Language.PlutusCore.Constant.Apply
+import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.Name
--- import           Language.PlutusCore.Pretty.Plc
+import           Language.PlutusCore.Pretty.Plc
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -53,10 +55,11 @@ instance ( PrettyBy config (Term TyName Name uni ())
     prettyBy _      (OtherMachineError err)               =
         pretty err
 
-instance Pretty err => Show (MachineException uni err) where
-    show (MachineException err cause) = " " {- fold
+instance (Pretty err, GShow uni, Closed uni, uni `Everywhere` Pretty) =>
+            Show (MachineException uni err) where
+    show (MachineException err cause) = fold
         [ "An abstract machine failed: ", docString $ prettyPlcReadableDebug err, "\n"
         , "Caused by: ", docString $ prettyPlcReadableDebug cause
-        ] -}
+        ]
 
-instance (Pretty err, Typeable uni, Typeable err) => Exception (MachineException uni err)
+instance (Pretty err, GShow uni, Closed uni, uni `Everywhere` Pretty, Typeable uni, Typeable err) => Exception (MachineException uni err)

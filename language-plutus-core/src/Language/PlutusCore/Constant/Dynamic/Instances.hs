@@ -229,7 +229,7 @@ instance (Evaluable uni, euni ~ Extend a uni, Typeable a) => KnownType (AsExtens
             Just x -> pure $ AsExtension x
             _      -> throwError "Not an integer-encoded Char"
 instance PrettyKnown (AsExtension uni a) where
-    prettyKnown = undefined
+    prettyKnown = Prelude.error "ololo2"
 
 -- A type known in a universe is known in an extended version of that universe.
 instance (Evaluable uni, KnownType a uni, euni ~ Extend b uni, Typeable b) =>
@@ -238,10 +238,9 @@ instance (Evaluable uni, KnownType a uni, euni ~ Extend b uni, Typeable b) =>
 
     makeKnown (InExtended x) = shiftConstantsTerm $ makeKnown @a x
 
-    -- @unshiftConstantType@ :-(
-    readKnown eval term = _ $ readKnown @a eval term  -- makeRightReflectT $ eval mempty term
+    readKnown eval term = InExtended <$> readKnown @a eval (unshiftConstantsTerm term)
 instance PrettyKnown (InExtended b uni a) where
-    prettyKnown = undefined
+    prettyKnown = Prelude.error "ololo1"
 
 instance (Evaluable uni, KnownType a uni, KnownType b uni, Typeable a, Typeable b) => KnownType (a, b) uni where
     toTypeAst _ =
@@ -256,7 +255,7 @@ instance (Evaluable uni, KnownType a uni, KnownType b uni, Typeable a, Typeable 
 
     readKnown (Evaluator eval) term = do
         let metaTuple = TyConstant () $ Some Extension
-            metaCommaName = DynamicBuiltinName "append"
+            metaCommaName = DynamicBuiltinName "comma"
 
             metaCommaMeaning :: DynamicBuiltinNameMeaning (Extend (a, b) uni)
             metaCommaMeaning = DynamicBuiltinNameMeaning sch def where

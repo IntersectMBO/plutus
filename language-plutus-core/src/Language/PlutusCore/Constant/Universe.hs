@@ -65,6 +65,11 @@ class Closed uni where
     type Everywhere uni (constr :: * -> Constraint) :: Constraint
     bring :: uni `Everywhere` constr => proxy constr -> uni a -> (constr a => r) -> r
 
+instance Closed uni => Closed (Extend b uni) where
+    type Extend b uni `Everywhere` constr = (constr b, uni `Everywhere` constr)
+    bring _     Extension      r = r
+    bring proxy (Original uni) r = bring proxy uni r
+
 bringApply
     :: (Closed uni, uni `Everywhere` constr)
     => Proxy constr -> (forall a. constr a => a -> r) -> SomeOf uni -> r
@@ -81,9 +86,6 @@ class GShow f where
 instance GShow uni => Show (Some uni) where
    show (Some uni) = "Some " ++ parens (gshow uni)
 
-instance GShow uni => Pretty (Some uni) where
-    pretty (Some uni) = pretty $ gshow uni
-
 instance (GShow uni, Closed uni, uni `Everywhere` Show) => Show (SomeOf uni) where
     show (SomeOf uni x) =
         intercalate " "
@@ -91,6 +93,13 @@ instance (GShow uni, Closed uni, uni `Everywhere` Show) => Show (SomeOf uni) whe
             , parens $ gshow uni
             , parens $ bring (Proxy @Show) uni (show x)
             ]
+
+instance GShow uni => GShow (Extend b uni) where
+    gshow Extension      = "Extension"
+    gshow (Original uni) = gshow uni
+
+instance GShow uni => Pretty (Some uni) where
+    pretty (Some uni) = pretty $ gshow uni
 
 instance (Closed uni, uni `Everywhere` Pretty) => Pretty (SomeOf uni) where
     pretty = bringApply (Proxy @Pretty) pretty

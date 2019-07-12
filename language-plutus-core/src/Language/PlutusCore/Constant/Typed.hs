@@ -41,6 +41,7 @@ module Language.PlutusCore.Constant.Typed
     , readKnownM
     , shiftConstantsType
     , shiftConstantsTerm
+    , unshiftConstantsTerm
     , extractValueOf
     , extractValue
     , extractExtension
@@ -138,7 +139,7 @@ newtype DynamicBuiltinNameMeanings uni = DynamicBuiltinNameMeanings
     { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName (DynamicBuiltinNameMeaning uni)
     } deriving (Semigroup, Monoid)
 
-type Evaluable uni = (GEq uni, Typeable uni, HasDefaultUni uni)
+type Evaluable uni = (GEq uni, Typeable uni, HasDefaultUni uni, GShow uni, Closed uni, uni `Everywhere` Pretty)
 
 -- | A thing that evaluates @f@ in monad @m@ and allows to extend the set of
 -- dynamic built-in names.
@@ -389,9 +390,16 @@ instance (GShow uni, Closed uni, uni `Everywhere` Pretty) =>
             Pretty (OpaqueTerm uni text unique) where
     pretty = pretty . unOpaqueTerm
 
-shiftConstantsType :: Type tyname uni ann -> Type tyname (Extend b uni) ann
-shiftConstantsType = go where
-    go (TyConstant ann con)        = TyConstant ann $ shiftSome con
+mapSome :: (forall a. f a -> g a) -> Some f -> Some g
+mapSome h (Some a) = Some (h a)
+
+mapSomeOf :: (forall a. f a -> g a) -> SomeOf f -> SomeOf g
+mapSomeOf h (SomeOf a x) = SomeOf (h a) x
+
+substConstantsType
+    :: (forall a. uni1 a -> uni2 a) -> Type tyname uni1 ann -> Type tyname uni2 ann
+substConstantsType h = go where
+    go (TyConstant ann con)        = TyConstant ann $ mapSome h con
     go (TyLam ann name kind ty)    = TyLam ann name kind (go ty)
     go (TyForall ann name kind ty) = TyForall ann name kind (go ty)
     go (TyIFix ann pat arg)        = TyIFix ann (go pat) (go arg)
@@ -400,9 +408,10 @@ shiftConstantsType = go where
     go (TyVar ann name)            = TyVar ann name
 
 -- Any clever implementation using 'Plated' or something?
-shiftConstantsTerm :: Term tyname name uni ann -> Term tyname name (Extend b uni) ann
-shiftConstantsTerm = goTerm where
-    goType = shiftConstantsType
+substConstantsTerm
+    :: (forall a. uni1 a -> uni2 a) -> Term tyname name uni1 ann -> Term tyname name uni2 ann
+substConstantsTerm h = goTerm where
+    goType = substConstantsType h
 
     goTerm (LamAbs ann name ty body)  = LamAbs ann name (goType ty) (goTerm body)
     goTerm (TyAbs ann name kind body) = TyAbs ann name kind (goTerm body)
@@ -412,8 +421,19 @@ shiftConstantsTerm = goTerm where
     goTerm (Error ann ty)             = Error ann (goType ty)
     goTerm (TyInst ann term ty)       = TyInst ann (goTerm term) (goType ty)
     goTerm (Var ann name)             = Var ann name
-    goTerm (Constant ann con)         = Constant ann $ shiftSomeOf con
+    goTerm (Constant ann con)         = Constant ann $ mapSomeOf h con
     goTerm (Builtin ann bi)           = Builtin ann bi
+
+shiftConstantsType :: Type tyname uni ann -> Type tyname (Extend b uni) ann
+shiftConstantsType = substConstantsType Original
+
+shiftConstantsTerm :: Term tyname name uni ann -> Term tyname name (Extend b uni) ann
+shiftConstantsTerm = substConstantsTerm Original
+
+unshiftConstantsTerm :: Term tyname name (Extend b uni) ann -> Term tyname name uni ann
+unshiftConstantsTerm = substConstantsTerm $ \euni -> case euni of
+    Extension    -> error "Don't ljasbd lhbd lbdsf lkbbdaf lbbads fkb"
+    Original uni -> uni
 
 extractValueOf :: GEq uni  => uni a -> Term tyname name uni ann -> Maybe a
 extractValueOf uni1 (Constant _ (SomeOf uni2 x)) = fmap (\Refl -> x) $ geq uni1 uni2

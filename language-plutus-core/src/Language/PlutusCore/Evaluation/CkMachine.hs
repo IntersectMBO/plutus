@@ -1,4 +1,5 @@
 {-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeOperators     #-}
 -- | The CK machine.
 
 {-# LANGUAGE OverloadedStrings #-}
@@ -16,6 +17,7 @@ module Language.PlutusCore.Evaluation.CkMachine
 
 import           Language.PlutusCore.Constant.Apply
 import           Language.PlutusCore.Constant.Typed
+import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.Evaluation.MachineException
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
@@ -26,7 +28,11 @@ import           PlutusPrelude
 import           Data.Functor.Identity
 import           Data.Text                                       (Text)
 
+import qualified Data.ByteString.Lazy                            as BSL
 import           Language.PlutusCore.Constant.DefaultUni
+
+instance Pretty BSL.ByteString where
+    pretty _ = "some bytesting"
 
 test1 :: EvaluationResult (Either Text (Integer, Bool))
 test1 = readKnownCk @_ @DefaultUni $ makeKnown (5 :: Integer, True)
@@ -60,7 +66,7 @@ instance Pretty NoDynamicBuiltinNamesMachineError where
 -- to be parametrized by a 'NoDynamicBuiltinNamesError' which is required in order to disambiguate
 -- @throw .* MachineException@.
 throwCkMachineException
-    :: Typeable uni
+    :: Evaluable uni
     => MachineError uni NoDynamicBuiltinNamesMachineError -> Term TyName Name uni () -> a
 throwCkMachineException = throw .* MachineException
 
