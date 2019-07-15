@@ -18,10 +18,9 @@ languages.
 
 ## Installation
 
-The formalisation requires a [pre-release of Agda
-2.6.0](https://hackage.haskell.org/package/Agda-2.5.4.2.20190330/candidate)
-and, the latest version of the Agda standard library, and a version of
-ghc that is supported by Agda.
+The formalisation requires version 2.6 or higher of Agda, the latest
+version of the Agda standard library, and a version of ghc that is
+supported by Agda (e.g., 8.0.2, 8.2.2, 8.4.4, 8.6.5).
 
 It also it contains a command line tool called `plc-agda` for
 executing plutus core programs. The command line tool is an Agda
@@ -40,19 +39,33 @@ $ cabal install
 
 The formalisation currently covers the full language of Plutus Core:
 System F omega with (deep) iso-recursive types, and builtin-types for
-sized integers and sized bytestrings. Progress and preservation have
-been shown to hold for the small-step semantics. An evaluator can be
-used to execute small examples in Agda and also compile them to
-Haskell.
+integers and bytestrings. Progress and preservation have been shown to
+hold for the small-step operational semantics. An evaluator can be used to execute
+small examples in Agda and also compile them to Haskell.
 
-The command line tool `plc-agda` does not include a
-typechecker. Instead it uses a separate extrinsically typed
-evaluator. It is future work to prove that this gives the same results
-as the intrinsically typed evaluator on well typed programs.
+There are three versions of the operational semantics:
 
-## Structure
+1. The intrinsically typed semantics which is the most high-assurance
+and described in the paper "System F for Fun and Profit" which will be
+presented at the International Conference on the Mathematics of
+Program Construction in Porto, Portugal in Autum 2019.
 
-The formalisation is split into three sections. Firstly,
+2. The extrinsically typed version which the `plc-agda` tool uses.
+
+3. The untyped version. The computational meaning of System F is given
+by the untyped semantics and this version allows us to check that this
+is the case. It also provides a check that other versions of the
+syntax and semantics match by seeing if they erase to the same untyped
+syntax/semantics.
+
+The command line tool `plc-agda` does not include a typechecker. So,
+it currently uses a separate extrinsically typed evaluator.
+
+We have proved that the three versions of the syntax/semantics match.
+
+## Structure of the intrinsically typed formalisation
+
+The intrinsic formalisation is split into three sections. Firstly,
 
 1. Types.
 
@@ -126,13 +139,12 @@ level programs computing.
 
 ## Builtins
 
-There are builtin types of integers and bytestrings. They are both
-sized: max/min values for integers and max length for bytestrings.
+There are builtin types of integers and bytestrings.
 
 1. [Builtin.Constant.Type](https://input-output-hk.github.io/plutus-metatheory/Builtin.Constant.Type.html)
 contains the enumeration of the type constants.
 2. [Builtin.Constant.Term](https://input-output-hk.github.io/plutus-metatheory/Builtin.Constant.Term.html)
-contains the enumeration of the sized term constants at the bottom.
+contains the enumeration of the term constants at the bottom.
 3. [Builtin.Signature](https://input-output-hk.github.io/plutus-metatheory/Builtin.Signature.html)
 contains the list of builtin operations and their type signatures. In
 the specification this information is contained in the large builtin
@@ -185,6 +197,8 @@ version of evaluation doesn't handle type conversions in terms.
 contains some examples of Church and Scott Numerals. Currently it is
 very memory intensive to type check this file and/or run examples.
 
+4. [Erasure](https://input-output-hk.github.io/plutus-metatheory/Declarative.Erasure.html)
+
 ## Terms indexed by normal types
 
 This version is able to handle type conversion by using the normalizer
@@ -233,6 +247,45 @@ occurs in a type.
 
 4. [Algorithmic.Completeness](https://input-output-hk.github.io/plutus-metatheory/Algorithmic.Completeness.html)
 
+5. [Erasure](https://input-output-hk.github.io/plutus-metatheory/Algorithmic.Erasure.html) contains erasure to untyped lambda calculus.
+
 Programmatically this correponds to taking a term with a syntactic
 type that may contain conversions and normalising its type by
 collapsing all the conversions.
+
+# Extrinsically typed version
+
+1. [Syntax](https://input-output-hk.github.io/plutus-metatheory/Scoped.html)
+contains the intrinsically scoped but extrinsically typed terms, and
+intrinsically scoped but extrinscically kinded types.
+
+2. [Renaming and
+Substitution](https://input-output-hk.github.io/plutus-metatheory/Scoped.RenamingSubstitution.html)
+contains the operations of renaming and substitution for extrinsically
+typed terms, and extrinsically kinded types.
+
+3. [Reduction](https://input-output-hk.github.io/plutus-metatheory/Scoped.Reduction.html) contains the reduction rules, progress and evaluation.
+
+4. [Extrication](https://input-output-hk.github.io/plutus-metatheory/Scoped.Extrication.html)
+contains the operations to convert from intrinsically typed to
+extrinscally typed syntax.
+
+5. [Erasure](https://input-output-hk.github.io/plutus-metatheory/Scoped.Erasure.html)
+contains operations to erase the types yielding untyped terms.
+  
+  1. [Renaming and
+  Substitution](https://input-output-hk.github.io/plutus-metatheory/Scoped.Erasure.RenamingSubstitution.html)
+  contains operations to erase the types in extrinsic renamings and
+  substitutions yielding untyped renamings and substitutions.
+
+# Untyped version
+
+1. [Syntax](https://input-output-hk.github.io/plutus-metatheory/Untyped.html)
+contains intrinsically scoped but untyped lambda calculus extended
+with builtins.
+
+2. [Renaming and
+Substitution](https://input-output-hk.github.io/plutus-metatheory/Untyped.RenamingSubstitution.html)
+contains operations for untyped renaming and substitution.
+
+3. [Reduction](https://input-output-hk.github.io/plutus-metatheory/Untyped.Reduction.html) contains the untyped reduction rules.
