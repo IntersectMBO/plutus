@@ -65,7 +65,7 @@ We have proved that the three versions of the syntax/semantics match.
 
 ## Structure of the intrinsically typed formalisation
 
-The formalisation is split into three sections. Firstly,
+The intrinsic formalisation is split into three sections. Firstly,
 
 1. Types.
 
@@ -139,13 +139,12 @@ level programs computing.
 
 ## Builtins
 
-There are builtin types of integers and bytestrings. They are both
-sized: max/min values for integers and max length for bytestrings.
+There are builtin types of integers and bytestrings.
 
 1. [Builtin.Constant.Type](https://input-output-hk.github.io/plutus-metatheory/Builtin.Constant.Type.html)
 contains the enumeration of the type constants.
 2. [Builtin.Constant.Term](https://input-output-hk.github.io/plutus-metatheory/Builtin.Constant.Term.html)
-contains the enumeration of the sized term constants at the bottom.
+contains the enumeration of the term constants at the bottom.
 3. [Builtin.Signature](https://input-output-hk.github.io/plutus-metatheory/Builtin.Signature.html)
 contains the list of builtin operations and their type signatures. In
 the specification this information is contained in the large builtin
@@ -257,21 +256,36 @@ collapsing all the conversions.
 # Extrinsically typed version
 
 1. [Syntax](https://input-output-hk.github.io/plutus-metatheory/Scoped.html)
+contains the intrinsically scoped but extrinsically typed terms, and
+intrinsically scoped but extrinscically kinded types.
 
-2. [Renaming and Substitution](https://input-output-hk.github.io/plutus-metatheory/Scoped.RenamingSubstitution.html)
+2. [Renaming and
+Substitution](https://input-output-hk.github.io/plutus-metatheory/Scoped.RenamingSubstitution.html)
+contains the operations of renaming and substitution for extrinsically
+typed terms, and extrinsically kinded types.
 
-3. [Reduction](https://input-output-hk.github.io/plutus-metatheory/Scoped.Reduction.html)
+3. [Reduction](https://input-output-hk.github.io/plutus-metatheory/Scoped.Reduction.html) contains the reduction rules, progress and evaluation.
 
 4. [Extrication](https://input-output-hk.github.io/plutus-metatheory/Scoped.Extrication.html)
+contains the operations to convert from intrinsically typed to
+extrinscally typed syntax.
 
 5. [Erasure](https://input-output-hk.github.io/plutus-metatheory/Scoped.Erasure.html)
+contains operations to erase the types yielding untyped terms.
   
-  1. [Renaming and Substitution](https://input-output-hk.github.io/plutus-metatheory/Scoped.Erasure.RenamingSubstitution.html)
+  1. [Renaming and
+  Substitution](https://input-output-hk.github.io/plutus-metatheory/Scoped.Erasure.RenamingSubstitution.html)
+  contains operations to erase the types in extrinsic renamings and
+  substitutions yielding untyped renamings and substitutions.
 
 # Untyped version
 
 1. [Syntax](https://input-output-hk.github.io/plutus-metatheory/Untyped.html)
+contains intrinsically scoped but untyped lambda calculus extended
+with builtins.
 
-2. [Renaming and Substitution](https://input-output-hk.github.io/plutus-metatheory/Untyped.RenamingSubstitution.html)
+2. [Renaming and
+Substitution](https://input-output-hk.github.io/plutus-metatheory/Untyped.RenamingSubstitution.html)
+contains operations for untyped renaming and substitution.
 
-3. [Reduction](https://input-output-hk.github.io/plutus-metatheory/Untyped.Reduction.html)
+3. [Reduction](https://input-output-hk.github.io/plutus-metatheory/Untyped.Reduction.html) contains the untyped reduction rules.
