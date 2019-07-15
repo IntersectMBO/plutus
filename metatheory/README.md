@@ -198,6 +198,8 @@ version of evaluation doesn't handle type conversions in terms.
 contains some examples of Church and Scott Numerals. Currently it is
 very memory intensive to type check this file and/or run examples.
 
+4. Erasure.
+
 ## Terms indexed by normal types
 
 This version is able to handle type conversion by using the normalizer
@@ -246,6 +248,28 @@ occurs in a type.
 
 4. [Algorithmic.Completeness](https://input-output-hk.github.io/plutus-metatheory/Algorithmic.Completeness.html)
 
+5. Erasure.
+
 Programmatically this correponds to taking a term with a syntactic
 type that may contain conversions and normalising its type by
 collapsing all the conversions.
+
+# Extrinsically typed version
+
+1. Syntax
+
+2. Renaming and Substitution
+
+3. Reduction
+
+4. Extrication
+
+5. Erasure
+
+# Untyped version
+
+1. Syntax
+
+2. Renaming and Substitution
+
+3. Reduction
