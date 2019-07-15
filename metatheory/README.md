@@ -256,20 +256,22 @@ collapsing all the conversions.
 
 # Extrinsically typed version
 
-1. Syntax
+1. [Syntax](https://input-output-hk.github.io/plutus-metatheory/Scoped.html)
 
-2. Renaming and Substitution
+2. [Renaming and Substitution](https://input-output-hk.github.io/plutus-metatheory/Scoped.RenamingSubstitution.html)
 
-3. Reduction
+3. [Reduction](https://input-output-hk.github.io/plutus-metatheory/Scoped.Reduction.html)
 
-4. Extrication
+4. [Extrication](https://input-output-hk.github.io/plutus-metatheory/Scoped.Extrication.html)
 
-5. Erasure
+5. [Erasure](https://input-output-hk.github.io/plutus-metatheory/Scoped.Erasure.html)
+  
+  1. [Renaming and Substitution](https://input-output-hk.github.io/plutus-metatheory/Scoped.Erasure.RenamingSubstitution.html)
 
 # Untyped version
 
-1. Syntax
+1. [Syntax](https://input-output-hk.github.io/plutus-metatheory/Untyped.html)
 
-2. Renaming and Substitution
+2. [Renaming and Substitution](https://input-output-hk.github.io/plutus-metatheory/Untyped.RenamingSubstitution.html)
 
-3. Reduction
+3. [Reduction](https://input-output-hk.github.io/plutus-metatheory/Untyped.Reduction.html)
