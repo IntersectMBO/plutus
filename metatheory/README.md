@@ -18,10 +18,9 @@ languages.
 
 ## Installation
 
-The formalisation requires a [pre-release of Agda
-2.6.0](https://hackage.haskell.org/package/Agda-2.5.4.2.20190330/candidate)
-and, the latest version of the Agda standard library, and a version of
-ghc that is supported by Agda.
+The formalisation requires version 2.6 or higher of Agda, the latest
+version of the Agda standard library, and a version of ghc that is
+supported by Agda (e.g., 8.0.2, 8.2.2, 8.4.4, 8.6.5).
 
 It also it contains a command line tool called `plc-agda` for
 executing plutus core programs. The command line tool is an Agda
@@ -40,17 +39,31 @@ $ cabal install
 
 The formalisation currently covers the full language of Plutus Core:
 System F omega with (deep) iso-recursive types, and builtin-types for
-sized integers and sized bytestrings. Progress and preservation have
-been shown to hold for the small-step semantics. An evaluator can be
-used to execute small examples in Agda and also compile them to
-Haskell.
+integers and bytestrings. Progress and preservation have been shown to
+hold for the small-step operational semantics. An evaluator can be used to execute
+small examples in Agda and also compile them to Haskell.
 
-The command line tool `plc-agda` does not include a
-typechecker. Instead it uses a separate extrinsically typed
-evaluator. It is future work to prove that this gives the same results
-as the intrinsically typed evaluator on well typed programs.
+There are three versions of the operational semantics:
 
-## Structure
+1. The intrinsically typed semantics which is the most high-assurance
+and described in the paper "System F for Fun and Profit" which will be
+presented at the International Conference on the Mathematics of
+Program Construction in Porto, Portugal in Autum 2019.
+
+2. The extrinsically typed version which the `plc-agda` tool uses.
+
+3. The untyped version. The computational meaning of System F is given
+by the untyped semantics and this version allows us to check that this
+is the case. It also provides a check that other versions of the
+syntax and semantics match by seeing if they erase to the same untyped
+syntax/semantics.
+
+The command line tool `plc-agda` does not include a typechecker. So,
+it currently uses a separate extrinsically typed evaluator.
+
+We have proved that the three versions of the syntax/semantics match.
+
+## Structure of the intrinsically typed formalisation
 
 The formalisation is split into three sections. Firstly,
 
