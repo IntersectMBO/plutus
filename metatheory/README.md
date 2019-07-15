@@ -247,7 +247,7 @@ occurs in a type.
 
 4. [Algorithmic.Completeness](https://input-output-hk.github.io/plutus-metatheory/Algorithmic.Completeness.html)
 
-5. [Erasure](https://input-output-hk.github.io/plutus-metatheory/Algorithmic.Erasure.html)
+5. [Erasure](https://input-output-hk.github.io/plutus-metatheory/Algorithmic.Erasure.html) contains erasure to untyped lambda calculus.
 
 Programmatically this correponds to taking a term with a syntactic
 type that may contain conversions and normalising its type by
