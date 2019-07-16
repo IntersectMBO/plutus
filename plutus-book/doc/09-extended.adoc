@@ -48,7 +48,7 @@ the reward address)
 * genesis key delegations
 
 For a detailed formal description of
-this type of accounting, we refer the reader again to <<bibliography#bibliography>>.
+this type of accounting, we refer the reader again to <<endmatter#deleg>>.
 A major way to extend the functionality of the Cardano ledger is by adding
 script capability to the second step.
 
@@ -66,7 +66,7 @@ Many of the subsequent chapters of this book discuss building scripts
 that define specific smart contracts. In this section, however,
 we discuss in general how scripts are used in the extended UTxO model.
 For a draft of the formal specification of the extended UTxO model with
-scripts, see <<bibliography#bibliography>>.
+scripts, see <<endmatter#scripts>>.
 
 Scripts, like witnesses, are another
 tool to make sure a transaction is performing only authorized actions.
@@ -333,9 +333,9 @@ of building, testing and using Plutus contracts. For examples of work on using
 scripts to add specific functionality to the UTxO ledger, we would like to
 point the reader to the following documents,
 
-* Multi-currency on the UTXO Ledger, see <<bibliography#bibliography>>
+* Multi-currency on the UTXO Ledger, see <<endmatter#multicur>>
 - An implementation of a script-based model for different types of
 currency as well as non-fungible tokens on the mockchain
-* A Formal Specification of a Multi-Signature Scheme Using Scripts, see <<bibliography#bibliography>>
+* A Formal Specification of a Multi-Signature Scheme Using Scripts, see <<endmatter#multisig>>
 - A formal specification of enforcing a custom witnessing policy for spending
 outputs
