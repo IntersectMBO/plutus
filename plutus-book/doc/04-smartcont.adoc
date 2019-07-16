@@ -193,7 +193,7 @@ execution of the contract) is often a most natural choice.
 
 Another solution is to make use of non fungible tokens on the blockchain.
 Non fungible tokens are tokens whose value is not tied directly to the value
-of a specific currency (in our case, ADA). One of the many possible examples
+of a specific currency (in our case, Ada). One of the many possible examples
 of such tokens would be coffee. Even a specific type of coffee, roasted to
 aromatic perfection, is
 not guaranteed to have the same price at different times, or from different
