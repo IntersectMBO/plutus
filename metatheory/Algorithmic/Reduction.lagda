@@ -172,46 +172,6 @@ reconstTel (B ∷ Bs) Ds σ (X ,, telB) t' refl tel' =
   X ,, reconstTel Bs Ds σ telB t' refl tel'
 \end{code}
 
-\begin{code}
-data Neutral :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
-  N-` : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ ∋ A) → Neutral (` x)
-  N-· : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}{L : Γ ⊢ A ⇒ B} → Neutral L →
-    (M : Γ ⊢ A) → Neutral (L · M)
-  N-·⋆ : ∀{Φ Γ K x}{B : Φ ,⋆ K ⊢Nf⋆ *}{L : Γ ⊢ Π x B} → Neutral L →
-    (A : Φ ⊢Nf⋆ K) → Neutral (L ·⋆ A)
-  N-unwrap1 : ∀{Φ Γ K}
-    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-    → {arg : Φ ⊢Nf⋆ K}
-    → {term : Γ ⊢ ne (μ1 · pat · arg)}
-    → Neutral term
-    → Neutral (unwrap1 term)
-  N-wrap : ∀{Φ Γ K}
-    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-    → {arg : Φ ⊢Nf⋆ K}
-    → {term : Γ ⊢  nf (embNf pat · (μ1 · embNf pat) · embNf arg)}
-    → Neutral term
-    → Neutral (wrap1 pat arg term)
-  N-Λ : ∀ {Φ Γ K x}
-    → {B : Φ ,⋆ K ⊢Nf⋆ *}
-    → {t : Γ ,⋆ K ⊢ B}
-    → Neutral t
-    → Neutral (Λ x t)
-
-  N-builtin : ∀{Φ Γ}  → (bn : Builtin)
-    → let Δ ,, As ,, C = SIG bn in
-      (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
-    → (tel : Tel Γ Δ σ As)
-    → ∀ Bs Ds
-    → (telB : Tel Γ Δ σ Bs)
-    → (vtel : VTel Γ Δ σ Bs telB)
-    → ∀{C}{t : Γ ⊢ substNf σ C}
-    → Neutral t
-    → (p : Bs ++ (C ∷ Ds) ≡ As)
-    → (telD : Tel Γ Δ σ Ds)
-    → (q : reconstTel Bs Ds σ telB t p telD ≡ tel)
-    → Neutral (builtin bn σ tel)
-\end{code}
-
 ## Intrinsically Type Preserving Reduction
 
 \begin{code}
@@ -318,10 +278,6 @@ data Progress {Φ}{Γ}{A : Φ ⊢Nf⋆ *} (M : Γ ⊢ A) : Set where
       Value M
       ----------
     → Progress M
-  neutral :
-      Neutral M
-      ----------
-    → Progress M
 
   error :
       Error M
@@ -357,16 +313,6 @@ data TelProgress
     → Bs ++ (C ∷ Ds) ≡ As
     → Tel Γ Δ σ Ds
     → TelProgress tel
-
-  neutral : ∀ Bs Ds
-    → (telB : Tel Γ Δ σ Bs)
-    → VTel Γ Δ σ Bs telB
-    → ∀{C}{t  : Γ ⊢ substNf σ C}
-    → Neutral t
-    → (p : Bs ++ (C ∷ Ds) ≡ As)
-    → (telD : Tel Γ Δ σ Ds)
-    → (q : reconstTel Bs Ds σ telB t p telD ≡ tel)
-    → TelProgress tel
 \end{code}
 
 \begin{code}
@@ -374,21 +320,18 @@ progress-· :  ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}{t : Γ ⊢ A ⇒ B} → Progress 
   → Progress (t · u)
 progress-· (step p)         u = step (ξ-·₁ p)
 progress-· (done V-ƛ)       u = step β-ƛ
-progress-· (neutral p)      u = neutral (N-· p u)
 progress-· (error e)        u = error (E-·₁ e)
 
 progress-·⋆ :  ∀{Φ Γ}{K x B}{t : Γ ⊢ Π x B} → Progress t → (A : Φ ⊢Nf⋆ K)
   → Progress (t ·⋆ A)
 progress-·⋆ (step p)       A = step (ξ-·⋆ p)
 progress-·⋆ (done (V-Λ p)) A = step β-Λ
-progress-·⋆ (neutral p)    A = neutral (N-·⋆ p A)
 progress-·⋆ (error e)      A = error (E-·⋆ e)
 
 progress-unwrap : ∀{Φ Γ K}{pat}{arg : Φ ⊢Nf⋆ K}{t : Γ ⊢ ne ((μ1 · pat) · arg)}
   → Progress t → Progress (unwrap1 t)
 progress-unwrap (step p)           = step (ξ-unwrap1 p)
 progress-unwrap (done (V-wrap p)) = step β-wrap1
-progress-unwrap (neutral p)        = neutral (N-unwrap1 p)
 progress-unwrap (error e)          = error (E-unwrap e)
 
 progress-builtin : ∀{Φ Γ} bn
@@ -402,12 +345,18 @@ progress-builtin bn σ tel (step Bs Ds telB vtel p telD q r)  =
   step (ξ-builtin bn σ tel Bs Ds telB telD vtel p q r)
 progress-builtin bn σ tel (error Bs Ds telB vtel e p telD) =
   error (E-builtin bn σ tel Bs Ds telB vtel e p telD)
-progress-builtin bn σ tel (neutral Bs Ds telB vtel e p telD q) =
-  neutral (N-builtin bn σ tel Bs Ds telB vtel e p telD q)
 
-progress : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → (M : Γ ⊢ A) → Progress M
+NoVar : ∀{Φ} → Ctx Φ → Set 
+NoVar ∅        = ⊤
+NoVar (Γ ,⋆ J) = NoVar Γ
+NoVar (Γ ,  A) = ⊥
 
-progressTelCons : ∀ {Φ}{Γ : Ctx Φ}{Δ}
+noVar : ∀{Φ}{Γ : Ctx Φ} → NoVar Γ → {A : Φ ⊢Nf⋆ *} → Γ ∋ A → ⊥
+noVar p (T x) = noVar p x
+
+progress : ∀{Φ Γ} → NoVar Γ → {A : Φ ⊢Nf⋆ *} → (M : Γ ⊢ A) → Progress M
+
+progressTelCons : ∀ {Φ}{Γ : Ctx Φ} → NoVar Γ → ∀{Δ}
   → {σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}
   → {A : Δ ⊢Nf⋆ *}
   → {t : Γ ⊢ substNf σ A}
@@ -416,54 +365,48 @@ progressTelCons : ∀ {Φ}{Γ : Ctx Φ}{Δ}
   → {tel : Tel  Γ Δ σ As}
   → TelProgress tel
   → TelProgress {As = A ∷ As} (t ,, tel)
-progressTelCons (step p){As}{tel}   q                                =
+progressTelCons n (step p){As}{tel}   q                                =
    step [] As tt tt p  tel refl refl 
-progressTelCons (done v)            (done vtel)                      =
+progressTelCons n (done v)            (done vtel)                      =
   done (v ,, vtel)
-progressTelCons (done v)            (step Bs Ds telB vtel p telD refl r)  =
+progressTelCons n (done v)            (step Bs Ds telB vtel p telD refl r)  =
    step (_ ∷ Bs) Ds (_ ,, telB) (v ,, vtel) p telD refl (cong (_ ,,_) r) 
-progressTelCons (done v)            (error Bs Ds telB vtel e p telD) =
+progressTelCons n (done v)            (error Bs Ds telB vtel e p telD) =
   error (_ ∷ Bs) Ds (_ ,, telB) (v ,, vtel) e (cong (_ ∷_) p) telD
-progressTelCons (done v)            (neutral Bs Ds telB vtel e refl telD q) =
-  neutral (_ ∷ Bs) Ds (_ ,, telB) (v ,, vtel) e refl telD (cong (_ ,,_) q)
-progressTelCons (error e) {As}{tel} q                                =
+progressTelCons n (error e) {As}{tel} q                                =
   error [] As tt tt e refl tel
-progressTelCons (neutral p) {As}{tel} q                              =
-  neutral [] As tt tt p refl tel refl
 
-progressTel : ∀ {Φ Γ Δ}
+progressTel : ∀ {Φ Γ} → NoVar Γ → ∀{Δ}
   → {σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}
   → {As : List (Δ ⊢Nf⋆ *)}
   → (tel : Tel Γ Δ σ As)
   → TelProgress tel
-progressTel {As = []}     tt         = done tt
-progressTel {As = A ∷ As} (t ,, tel) =
-  progressTelCons (progress t) (progressTel tel)
+progressTel p {As = []}     tt         = done tt
+progressTel p {As = A ∷ As} (t ,, tel) =
+  progressTelCons p (progress p t) (progressTel p tel)
 
-progress-Λ : ∀{Φ Γ K x}{B : Φ ,⋆ K ⊢Nf⋆ *}{M : Γ ,⋆ K ⊢ B}
+progress-Λ : ∀{Φ Γ} → NoVar Γ → ∀{K x}{B : Φ ,⋆ K ⊢Nf⋆ *}{M : Γ ,⋆ K ⊢ B}
   → Progress M → Progress (Λ x M)
-progress-Λ (step p)    = step (ξ-Λ p)
-progress-Λ (done p)    = done (V-Λ p)
-progress-Λ (neutral p) = neutral (N-Λ p)
-progress-Λ (error e)   = error (E-Λ e)
+progress-Λ n (step p)    = step (ξ-Λ p)
+progress-Λ n (done p)    = done (V-Λ p)
+progress-Λ n (error e)   = error (E-Λ e)
 
-progress-wrap :  ∀{Φ Γ K}
+progress-wrap :  ∀{Φ Γ} → NoVar Γ  → ∀{K}
    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
    → {arg : Φ ⊢Nf⋆ K}
    → {term : Γ ⊢  nf (embNf pat · (μ1 · embNf pat) · embNf arg)}
    → Progress term → Progress (wrap1 pat arg term)
-progress-wrap (step p)    = step (ξ-wrap p)
-progress-wrap (done v)    = done (V-wrap v)
-progress-wrap (neutral p) = neutral (N-wrap p)
-progress-wrap (error e)   = error (E-wrap e)
+progress-wrap n (step p)    = step (ξ-wrap p)
+progress-wrap n (done v)    = done (V-wrap v)
+progress-wrap n (error e)   = error (E-wrap e)
 
-progress (` x)                = neutral (N-` x)
-progress (ƛ x M)              = done V-ƛ
-progress (M · N)              = progress-· (progress M) N
-progress (Λ _ M)              = progress-Λ (progress M)
-progress (M ·⋆ A)             = progress-·⋆ (progress M) A
-progress (wrap1 pat arg term) = progress-wrap (progress term)
-progress (unwrap1 M)          = progress-unwrap (progress M)
-progress (con c)              = done (V-con c)
-progress (builtin bn σ X)     = progress-builtin bn σ X (progressTel X)
-progress (error A)            = error E-error
+progress p (` x)                = ⊥-elim (noVar p x)
+progress p (ƛ x M)              = done V-ƛ
+progress p (M · N)              = progress-· (progress p M) N
+progress p (Λ _ M)              = progress-Λ p (progress p M)
+progress p (M ·⋆ A)             = progress-·⋆ (progress p M) A
+progress p (wrap1 pat arg term) = progress-wrap p (progress p term)
+progress p (unwrap1 M)          = progress-unwrap (progress p M)
+progress p (con c)              = done (V-con c)
+progress p (builtin bn σ X)     = progress-builtin bn σ X (progressTel p X)
+progress p (error A)            = error E-error
