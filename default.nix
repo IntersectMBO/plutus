@@ -355,6 +355,9 @@ let
     };
 
     dev = rec {
+      purty = (import ./purty {
+        inherit pkgs;
+      });
       packages = localLib.getPackages {
         inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "stylish-haskell" ];
       };
@@ -377,6 +380,26 @@ let
             echo "No stylish changes were made."
           fi
           rm pre-stylish.diff post-stylish.diff
+          exit
+        '';
+
+        fixPurty = pkgs.writeScript "fix-purty" ''
+          ${pkgs.git}/bin/git diff > pre-purty.diff
+          ${pkgs.fd}/bin/fd \
+            --extension purs \
+            --exclude '*/.psc-package/*' \
+            --exclude '*/node_modules/*' \
+            --exclude '*/generated/*' \
+            --exec ${purty}/bin/purty --write {}
+          ${pkgs.git}/bin/git diff > post-purty.diff
+          diff pre-purty.diff post-purty.diff > /dev/null
+          if [ $? != 0 ]
+          then
+            echo "Changes by purty have been made. Please commit them."
+          else
+            echo "No purty changes were made."
+          fi
+          rm pre-purty.diff post-purty.diff
           exit
         '';
 
