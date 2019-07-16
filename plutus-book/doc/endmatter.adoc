@@ -8,165 +8,164 @@
 [glossary#glossary]
 == Glossary
 
-[[ada]]Ada ::
+[[ada, Ada]]Ada ::
 Currency provided by the Cardano blockchain.
-Special <<custom-token,token>> whose <<currency-symbol,currency symbol>>
+Special <<custom-token>> whose <<currency-symbol>>
 is the empty bytestring and does _not_ correspond to a monetary policy.
 
-[[address]]Address ::
-Part of a <<transaction-output,transaction output>>,
-determines how the <<value,value>> from that output can be unlocked.
-There are two kinds of addresses, <<pubkey-address,public key addresses>>
-and <<script-address,script addresses>>.
+[[address, address]]Address ::
+Part of a <<transaction-output>>,
+determines how the <<value>> from that output can be unlocked.
+There are two kinds of addresses, <<pubkey-address>>es
+and <<script-address>>es.
 
 Contract Endpoints ::
 <<off-chain1,Off-chain>> functions used by a wallet to interact with the blockchain
 and in particular with smart contracts.
 
-[[currency-symbol]]Currency Symbol ::
-A bytestring representing a custom currency (class of <<custom-token,tokens>>).
-For <<ada,Ada>>, it is the empty bytestring, for custom currencies, it is the
-hash of the <<validator-script,validator script>> representing the monetary
+[[currency-symbol, currency symbol]]Currency Symbol ::
+A bytestring representing a custom currency (class of <<custom-token>>s).
+For <<ada>>, it is the empty bytestring, for custom currencies, it is the
+hash of the <<validator-script>> representing the monetary
 policy that controlls forging new tokens of that currency.
 
-[[data-script]]Data Script ::
+[[data-script, data script]]Data Script ::
 Piece of <<plutus-core,Plutus Core>> code which is part of a
-<<script-output,script output>> and will be passed to the
-<<validator-script,validator script>> to check the validity of a
-<<script-input,script input>>.
+<<script-output>> and will be passed to the
+<<validator-script>> to check the validity of a
+<<script-input>>.
 
-[[extended-utxo]]Extended UTXO ::
-The ledger model on which the <<plutus-platform,Plutus platform>> is based. 
-Extends the traditional <<utxo,UTXO>> model
-with <<data-script,data scripts>> and <<tx,transaction>> information
+[[extended-utxo, Extended UTXO]]Extended UTXO ::
+The ledger model on which the <<plutus-platform>> is based.
+Extends the traditional <<utxo>> model
+with <<data-script>> and <<tx>> information
 
-[[fungible-token]]Fungible Token ::
-A <<custom-token,token>> that is interchangeable with other tokens.
+[[fungible-token, fungible token]]Fungible Token ::
+A <<custom-token>> that is interchangeable with other tokens.
 
-[[mockchain]]Mockchain ::
-A Cardano blockchain emulator which faithfully implements the 
-<<extended-utxo,Extended UTXO model>>.
+[[mockchain, mockchain]]Mockchain ::
+A Cardano blockchain emulator which faithfully implements the
+<<extended-utxo>> model.
 
-Mock wallet ::
-A wallet emulator which is used to interact with the <<mockchain,mockchain>>.
+[[mock-wallet, mock wallet]]Mock wallet ::
+A wallet emulator which is used to interact with the <<mockchain>>.
 
-[[non-fungible-token]]Non-fungible Token ::
-A <<custom-token,token>> that is not interchangeable with other tokens.
+[[non-fungible-token, non-fungible token]]Non-fungible Token ::
+A <<custom-token>> that is not interchangeable with other tokens.
 
-[[off-chain1]]Off-chain code ::
+[[off-chain1, off-chain code]]Off-chain code ::
 Code written as part of a smart contract which executes off the chain, usually in a user's wallet.
 
-[[on-chain]]On-chain code ::
+[[on-chain, on-chain code]]On-chain code ::
 Code written as part of a smart contract which executes on the chain during
-<<tx,transaction>> <<validator-script,validation>>.
+<<tx>> validation.
 
-[#plutus-core]
-Plutus Core ::
-A small functional programming language designed to run as <<on-chain,on-chain>> code.
+[[plutus-core, Plutus Core]]Plutus Core ::
+A small functional programming language designed to run as <<on-chain>>.
 
-Plutus IR ::
-An intermediate language that compiles to <<plutus-core,Plutus Core>>, 
+[[plutus-ir, Plutus IR]]Plutus IR ::
+An intermediate language that compiles to <<plutus-core>>,
 for use as a target language for compiler writers.
 
-[[plutus-platform]]Plutus Platform ::
+[[plutus-platform, Plutus Platform]]Plutus Platform ::
 The combined software support for writing smart contracts, including:
-- Libraries for writing <<off-chain1,off-chain>> code in Haskell.
-- Libraries for writing <<on-chain,on-chain>> code in <<plutus-tx,Plutus Tx>>.
+- Libraries for writing <<off-chain1>> in Haskell.
+- Libraries for writing <<on-chain>> in <<plutus-tx>>.
 - Emulator support for testing smart contracts.
 
-Plutus Playground ::
+[[plutus-playground, Plutus Playground]]Plutus Playground ::
 A browser based environment for writing and testing Plutus contracts.
 
-[[plutus-tx]]Plutus Tx ::
-A subset of Haskell which is compiled into <<plutus-core,Plutus Core>>.
+[[plutus-tx, Plutus Tx]]Plutus Tx ::
+A subset of Haskell which is compiled into <<plutus-core>>.
 
-[[pubkey-address]]Public Key Address ::
-Possible address type for a <<transaction-output,transaction output>>.
-In order to unlock funds at such an <<address,address>>, one has to prove owning the
+[[pubkey-address, public key address]]Public Key Address ::
+Possible address type for a <<transaction-output>>.
+In order to unlock funds at such an <<address>>, one has to prove owning the
 corresponding private key.
 
-[[pubkey-input]]Public Key Input ::
-Type of <<transaction-input,transaction input>> collecting <<value,value>>
-from a <<pubkey-output,public key output>>.
-<<tx,Transactions>> with such an input must be signed by the owner
+[[pubkey-input, public key input]]Public Key Input ::
+Type of <<transaction-input>> collecting <<value>>
+from a <<pubkey-output>>.
+A <<tx>> with such an input must be signed by the owner
 of the corresponding private key in order to be valid.
 
-[[pubkey-output]]Public Key Output ::
-A <<transaction-output,transaction output>>
-which locks value at a <<pubkey-address,public key address>>:
-A pair consisting of the <<pubkey-address,public key address>>
-and the <<value,value>>.
+[[pubkey-output, public key output]]Public Key Output ::
+A <<transaction-output>>
+which locks value at a <<pubkey-address>>:
+A pair consisting of the <<pubkey-address>>
+and the <<value>>.
 
-[[redeemer-script]]Redeemer Script ::
-Piece of <<plutus-core,Plutus Core>> code which is part of a
-<<script-input,script input>> and used by the 
-<<validator-script,validation script>> to validate that input.
+[[redeemer-script, redeemer script]]Redeemer Script ::
+Piece of <<plutus-core>> code which is part of a
+<<script-input>> and used by the
+<<validator-script>> to validate that input.
 
-[[script-address]]Script Address ::
-Possible <<address,address>> type for a <<transaction-output,transaction output>>:
-Hash of a <<validator-script,validator script>>.
+[[script-address, script address]]Script Address ::
+Possible <<address>> type for a <<transaction-output>>:
+hash of a <<validator-script>>.
 
-[[script-input]]Script Input ::
-Type of <<transaction-input,transaction input>> collecting <<value,value>>
-from a <<script-output,script output>>.
-Contains a <<redeemer-script,redeemer script>>.
+[[script-input, script input]]Script Input ::
+Type of <<transaction-input>> collecting <<value>>
+from a <<script-output>>.
+Contains a <<redeemer-script>>.
 
-[[script-output]]Script Output ::
-A <<transaction-output,transaction output>>
-which locks value at a <<script-address,script address>>: 
-A triple consisting of the <<script-address,script address>>,
-the <<value,value>>
-and the <<data-script,data script>>.
+[[script-output, script output]]Script Output ::
+A <<transaction-output>>
+which locks value at a <<script-address>>:
+a triple consisting of the <<script-address>>,
+the <<value>>
+and the <<data-script>>.
 
-[[custom-token]]Token ::
-A custom <<value,value>> defined by a <<currency-symbol,currency symbol>> and a 
-<<token-name,token name>>.
-Can be <<fungible-token,fungible>>, <<non-fungible-token,non-fungible>>
-or mixed. <<ada,Ada>> is a special kind of token, where both 
-<<currency-symbol,currency symbol>> 
-and <<token-name,token name>>
+[[custom-token, token]]Token ::
+A custom <<value>> defined by a <<currency-symbol>> and a
+<<token-name>>.
+Can be a <<fungible-token>>, a <<non-fungible-token>>
+or mixed. <<ada>> is a special kind of token, where both
+<<currency-symbol>>
+and <<token-name>>
 are the empty bytestring.
 
-[[token-name]]Token Name ::
-Bytestring representing a <<custom-token,token>> (the empty bytestring in case
-of <<ada,Ada>>).
+[[token-name, token name]]Token Name ::
+Bytestring representing a <<custom-token>> (the empty bytestring in case
+of <<ada>>).
 
-[[tx]]Transaction ::
-Collects <<value,value>> from zero or more <<transaction-input,transaction inputs>>
-and redistributes that value to zero or more <<transaction-output,transaction outputs>>.
+[[tx, transaction]]Transaction ::
+Collects <<value>> from zero or more <<transaction-input>>
+and redistributes that value to zero or more <<transaction-output>>.
 Can optionally forge new value.
 
-[[transaction-input]]Transaction Input ::
-Determines from where the <<value,value>>
-redistributed by a <<tx,transaction>> is taken. 
-Corresponding to the two <<transaction-output,output types>>,
+[[transaction-input, transaction input]]Transaction Input ::
+Determines from where the <<value>>
+redistributed by a <<tx>> is taken.
+Corresponding to the two <<transaction-output>>s,
 there are two input types,
-<<pubkey-input,public key inputs>> and
-<<script-input,script inputs>>.
+<<pubkey-input>>s and
+<<script-input>>s.
 
-[[transaction-output]]Transaction Output ::
-Determines how a <<tx,transaction>> distributes its 
+[[transaction-output, transaction output]]Transaction Output ::
+Determines how a <<tx>> distributes its
 <<transaction-input,inputs>>. There are two types,
-<<pubkey-output,public key outputs>> and
-<<script-output,script outputs>>.
+<<pubkey-output>>s and
+<<script-output>>s.
 
-[[utxo]]Unspent Transaction Output ::
-A <<transaction-output,transaction output>> which has not yet
-been collected by a <<transaction-input,transaction input>>
-for use in another <<tx,transaction>>.
+[[unspent-transaction-output, Unspent Transaction Output]]Unspent Transaction Output ::
+A <<transaction-output>> which has not yet
+been collected by a <<transaction-input>>
+for use in another <<tx>>.
 
-UTXO ::
-See <<utxo,Unspend Transaction Output>>!
+[[utxo, UTXO]]UTXO ::
+See <<unspent-transaction-output>>.
 
-[[validator-script]]Validator Script ::
-Piece of <<plutus-core,Plutus Core>> code
-used to validate whether a <<tx,transaction>> is allowed to use a
-<<script-output,script output>> as <<transaction-input,input>>.
+[[validator-script, validator script]]Validator Script ::
+Piece of <<plutus-core>> code
+used to validate whether a <<tx>> is allowed to use a
+<<script-output>> as a <<transaction-input>>.
 
-[[value]]Value ::
+[[value, value]]Value ::
 Technically a map from currency symbols to maps from token symbols to integers.
-Represents a collection of Ada and <<custom-token,tokens>> and is the "substance" being
-redistributed by <<tx,transactions>>.
+Represents a collection of Ada and <<custom-token>>s and is the "substance" being
+redistributed by <<tx>>s.
 
 [bibliography#bibliography]
 == References
