@@ -6,7 +6,7 @@ in stdenv.mkDerivation {
   name = "plutus-tutorial";
   src = lib.sourceFilesBySuffices ./. [ ".adoc" ".png" ".PNG" ".gif" ".ico" ".css" ];
   buildInputs = [ asciidoctor python2 ];
-  buildPhase = "asciidoctor ${toString extraArgs} index.adoc";
+  buildPhase = "asciidoctor --failure-level ERROR ${toString extraArgs} index.adoc";
   installPhase = ''
     mkdir -p $out
     install -t $out *.html 
