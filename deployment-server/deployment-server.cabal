@@ -28,6 +28,7 @@ library
       , aeson
       , bytestring
       , directory
+      , github
       , github-webhooks
       , mtl
       , newtype-generics
@@ -35,7 +36,6 @@ library
       , servant
       , servant-github-webhook
       , servant-server
-      , slack-web
       , temporary
       , typed-process
       , text
