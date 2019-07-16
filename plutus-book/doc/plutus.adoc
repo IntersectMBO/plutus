@@ -70,6 +70,4 @@ include::multi/multi.adoc[]
 
 include::token/token.adoc[]
 
-include::glossary.adoc[]
-
-include::bibliography.adoc[]
+include::endmatter.adoc[]

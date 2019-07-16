@@ -10,7 +10,7 @@ or perhaps internet addresses in the case of digital currency. The Cardano platf
 like a number of other cryptocurrency platforms such as Bitcoin, uses instead
 an accounting approach known as UTxO-style. A full formal description of
 this type of accounting can be found as part of the Cardano ledger
-formal specification, see <<bibliography#bibliography>>.
+formal specification, see <<endmatter#deleg>>.
 
 UTxO-style accounting documents the flow of money not from account to account,
 but rather from transaction to transaction. Each transaction has inputs
