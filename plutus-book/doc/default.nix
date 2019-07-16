@@ -5,12 +5,12 @@ stdenv.mkDerivation {
   src = lib.sourceFilesBySuffices ./. [ ".adoc" ".png" ".PNG" ".gif" ".jpg" ".ico" ".css" ];
   buildInputs = [ asciidoctor python2 ];
   buildPhase = ''
-    asciidoctor plutus.adoc -b html5 -o plutus.html
+    asciidoctor --failure-level ERROR plutus.adoc -b html5 -o plutus.html
 
-    asciidoctor-pdf plutus.adoc -o plutus.pdf
+    asciidoctor-pdf --failure-level ERROR plutus.adoc -o plutus.pdf
 
-    asciidoctor-epub3 plutus.adoc -o plutus.epub
-    asciidoctor-epub3 plutus.adoc -a ebook-format=kf8 -o plutus.mobi
+    asciidoctor-epub3 --failure-level ERROR plutus.adoc -o plutus.epub
+    asciidoctor-epub3 --failure-level ERROR plutus.adoc -a ebook-format=kf8 -o plutus.mobi
   '';
   installPhase = ''
     install -D -t $out/html plutus.html 
