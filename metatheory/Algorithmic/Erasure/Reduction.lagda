@@ -54,22 +54,6 @@ erase-reconstTel []       Ds σ telB        t' refl tel' = refl
 erase-reconstTel (B ∷ Bs) Ds σ (t ,, telB) t' refl tel' =
   cong (erase t ∷_) (erase-reconstTel Bs Ds σ telB t' refl tel')
 
-eraseNe : ∀{Φ}{A : Φ ⊢Nf⋆ *}{Γ : Ctx Φ}{t : Γ ⊢ A}
-  → A.Neutral t → U.Neutral (erase t)
-eraseNe (A.N-` x) = U.N-` (eraseVar x)
-eraseNe (A.N-· N M) = U.N-· (eraseNe N) (erase M) 
-eraseNe (A.N-·⋆ N A) = eraseNe N
-eraseNe (A.N-unwrap1 N) = eraseNe N
-eraseNe (A.N-wrap N) = eraseNe N
-eraseNe (A.N-Λ N) = eraseNe N
-eraseNe (A.N-builtin bn σ tel Bs Ds telB vtel n p telD refl) = U.N-builtin
-  bn
-  (eraseTel tel)
-  (eraseTel telB)
-  (eraseNe n)
-  (eraseTel telD)
-  (erase-reconstTel Bs Ds σ telB _ p telD)
-
 eraseErr : ∀{Φ}{A : Φ ⊢Nf⋆ *}{Γ : Ctx Φ}{e : Γ ⊢ A}
   → A.Error e → U.Error (erase e)
 eraseErr A.E-error = U.E-error
@@ -226,11 +210,10 @@ eraseProgress : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(M : Γ ⊢ A)(p : A.Progress M)
 eraseProgress M (A.step {N = N} p) =
   map U.step (λ q → N ,, p ,, q) (erase—→ p)
 eraseProgress M (A.done V)    = inj₁ (U.done (eraseVal V))
-eraseProgress M (A.neutral N) = inj₁ (U.neutral (eraseNe N))
 eraseProgress M (A.error e)   = inj₁ (U.error (eraseErr e))
 
-erase-progress : ∀{Φ}{Γ : Ctx Φ}{A}(M : Γ ⊢ A)
+erase-progress : ∀{Φ}{Γ : Ctx Φ} → A.NoVar Γ → ∀{A}(M : Γ ⊢ A)
   → U.Progress (erase M)
   ⊎ Σ (Γ ⊢ A) λ N →  (M A.—→ N) × (erase M ≡ erase N)
-erase-progress t = eraseProgress t (A.progress t)
+erase-progress p t = eraseProgress t (A.progress p t)
 \end{code}

@@ -44,18 +44,6 @@ data Value {n} : n ⊢ → Set where
   V-ƛ : ∀{x}(t : suc n ⊢) → Value (ƛ x t)
   V-con : (tcn : TermCon) → Value (con {n} tcn)
 
-data Neutral {n} : n ⊢ → Set where
-  N-` : (i : Fin n) → Neutral (` i)
-  N-· : {L : n ⊢} → Neutral L → (M : n ⊢) → Neutral (L · M)
-  N-builtin : ∀
-    bn
-    (tel : Tel n)
-    (telB : Tel n)
-    {t : n ⊢}
-    → Neutral t
-    → (telD : Tel n)
-    → tel ≡ telB ++ t ∷ telD
-    → Neutral (builtin bn tel)
 VTel : ∀ n → Tel n → Set
 VTel n []       = ⊤
 VTel n (t ∷ ts) = Value {n} t × VTel n ts
@@ -156,13 +144,6 @@ data ProgList {n} (tel : Tel n) : Set where
     → ProgList tel 
   error : (tel' : Tel n) → VTel n tel' → {t : n ⊢} → Error t → Tel n
     → ProgList tel
-  neutral : (telB : Tel n)
-    → VTel n telB
-    → {t : n ⊢}
-    → Neutral t
-    → (telD : Tel n)
-    → tel ≡ telB ++ t ∷ telD
-    → ProgList tel
 
 data Progress {n}(M : n ⊢) : Set where
   step : ∀{N}
@@ -171,10 +152,6 @@ data Progress {n}(M : n ⊢) : Set where
     → Progress M
   done :
       Value M
-      ----------
-    → Progress M
-  neutral :
-      Neutral M
       ----------
     → Progress M
   error :
@@ -186,11 +163,10 @@ progress-· : ∀{n}{t : n ⊢} → Progress t → (u : n ⊢) → Progress (t �
 progress-· (step p)           u = step (ξ-·₁ p)
 progress-· (done (V-ƛ t))     u = step β-ƛ
 progress-· (done (V-con tcn)) u = error E-todo
-progress-· (neutral n)        u = neutral (N-· n u)
 progress-· (error e)          u = error E-todo
 
-progress : ∀{n}(t : n ⊢) → Progress t
-progressList : ∀{n}(tel : Tel n) → ProgList {n} tel
+progress : (t : 0 ⊢) → Progress t
+progressList : (tel : Tel 0) → ProgList {0} tel
 progressList []       = done _
 progressList (t ∷ ts) with progress t
 progressList (t ∷ ts) | done vt with progressList ts
@@ -199,13 +175,10 @@ progressList (t ∷ ts) | done vt | step  ts' vs p ts'' =
   step (t ∷ ts') (vt , vs) p ts''
 progressList (t ∷ ts) | done vt | error ts' vs e ts'' =
   error (t ∷ ts') (vt , vs) e ts''
-progressList (t ∷ ts) | done vt | neutral ts' vs n ts'' p =
-  neutral (t ∷ ts') (vt , vs) n ts'' (cong (t ∷_) p)
 progressList (t ∷ ts) | error e = error [] _ e ts
 progressList (t ∷ ts) | step p = step [] _ p ts
-progressList (t ∷ ts) | neutral n = neutral [] tt n ts refl
 
-progress (` x) = neutral (N-` x)
+progress (` ())
 progress (ƛ x t)      = done (V-ƛ t)
 progress (t · u)      = progress-· (progress t) u
 progress (con tcn)    = done (V-con tcn)
@@ -216,19 +189,16 @@ progress (builtin b ts) | step  ts' vs p ts'' =
   step (ξ-builtin b ts vs p ts'' (ts' ++ _ ∷ ts'') refl)
 progress (builtin b ts) | error ts' vs e ts'' =
   error E-todo
-progress (builtin b ts) | neutral ts' vs p ts'' q =
-  neutral (N-builtin b ts ts' p ts'' q)
 progress error       = error E-error
 \end{code}
 
 \begin{code}
-run : ∀{n}(t : n ⊢) → ℕ
-  → Σ (n ⊢) λ t' → t —→⋆ t' × (Maybe (Value t') ⊎ Error t' ⊎ Neutral t')
+run : ∀(t : 0 ⊢) → ℕ
+  → Σ (0 ⊢) λ t' → t —→⋆ t' × (Maybe (Value t') ⊎ Error t')
 run t 0       = t , refl , inl nothing
 run t (suc n) with progress t
 run t (suc n) | done vt = t , refl , inl (just vt)
-run t (suc n) | error et = t , refl , inr (inl et)
-run t (suc n) | neutral nt = t , refl , inr (inr nt)
+run t (suc n) | error et = t , refl , inr et
 run t (suc n) | step {N = t'} p with run t' n
 run t (suc n) | step p | t'' , q , mvt'' = t'' , trans p q , mvt''
 \end{code}
