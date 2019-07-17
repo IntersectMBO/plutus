@@ -12,9 +12,6 @@ import qualified Data.Text                as Text
 import           GHC.Generics             (Generic)
 import           Options.Generic          (ParseField, ParseFields, ParseRecord)
 
-newtype SlackToken = SlackToken Text
-    deriving (Generic, Newtype)
-
 newtype WebhookKey = WebhookKey Text
     deriving (Generic, Newtype)
 
@@ -24,33 +21,21 @@ data Options = Options
     , stateFile      :: FilePath
     , include        :: [String]
     , keyfile        :: FilePath
-    , slackChannel   :: SlackChannel
     , deploymentName :: Deployment
     , environment    :: String
     , ref            :: Ref
+    , githubToken    :: GithubAuthorizationToken
     } deriving (Generic, Show, ParseRecord)
 
-data Secrets = Secrets
+newtype Secrets = Secrets
     { githubWebhookKey :: WebhookKey
-    , slackToken       :: SlackToken
     }
 
 instance FromJSON Secrets where
     parseJSON =
         withObject "Secrets" $ \v -> do
             githubWebhookKey <- WebhookKey <$> v .: "githubWebhookKey"
-            slackToken <- SlackToken <$> v .: "slackToken"
             pure Secrets{..}
-
-newtype SlackChannel = SlackChannel Text
-            deriving stock (Generic)
-            deriving anyclass (Newtype, ParseFields, ParseRecord, ParseField)
-
-instance Read SlackChannel where
-    readsPrec _ s = [(SlackChannel . Text.pack $ s, "")]
-
-instance Show SlackChannel where
-    show = Text.unpack . unpack
 
 newtype Deployment = Deployment Text
     deriving stock (Generic)
@@ -70,4 +55,14 @@ instance Read Ref where
     readsPrec _ s = [(Ref . Text.pack $ s, "")]
 
 instance Show Ref where
+    show = Text.unpack . unpack
+
+newtype GithubAuthorizationToken = GithubAuthorizationToken Text
+    deriving stock (Generic)
+    deriving anyclass (Newtype, ParseFields, ParseRecord, ParseField)
+
+instance Read GithubAuthorizationToken where
+    readsPrec _ s = [(GithubAuthorizationToken . Text.pack $ s, "")]
+
+instance Show GithubAuthorizationToken where
     show = Text.unpack . unpack
