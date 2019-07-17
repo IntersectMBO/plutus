@@ -50,7 +50,7 @@ genIdChoice :: forall m. MonadGen m => MonadRec m => m IdChoice
 genIdChoice = do
   choice <- genBigInteger
   person <- genPerson
-  pure $ wrap {choice, person}
+  pure $ wrap { choice, person }
 
 genValue :: forall m. MonadGen m => MonadRec m => Lazy (m Value) => m Value
 genValue = genValue' 5
@@ -175,4 +175,4 @@ genContract' size
     where
     genLeaf ::
       m Contract
-    genLeaf = oneOf $ pure Null :| [Use <$> genBigInteger]
+    genLeaf = oneOf $ pure Null :| [ Use <$> genBigInteger ]

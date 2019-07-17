@@ -39,20 +39,20 @@ all =
 quickCheckGen :: forall prop. Testable prop => Gen prop -> Test
 quickCheckGen = quickCheck
 
-mkTestState :: forall m. MonadEffect m => m {blocklyState :: BlocklyState, generator :: Generator}
+mkTestState :: forall m. MonadEffect m => m { blocklyState :: BlocklyState, generator :: Generator }
 mkTestState = do
   blocklyState <- liftEffect $ Headless.createBlocklyInstance
   let
     _ =
       ST.run
         ( do
-          blocklyRef <- STRef.new blocklyState.blockly
-          Blockly.addBlockTypes blocklyRef blockDefinitions
+            blocklyRef <- STRef.new blocklyState.blockly
+            Blockly.addBlockTypes blocklyRef blockDefinitions
         )
   liftEffect $ Headless.initializeWorkspace blocklyState
   let
     generator = buildGenerator blocklyState
-  pure {blocklyState: blocklyState, generator: generator}
+  pure { blocklyState: blocklyState, generator: generator }
 
 c2b2c :: forall m. MonadGen m => MonadRec m => Lazy (m Value) => Lazy (m Observation) => Lazy (m Contract) => m Result
 c2b2c = do

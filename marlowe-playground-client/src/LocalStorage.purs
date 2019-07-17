@@ -26,7 +26,7 @@ instance showKey ::
   show = genericShow
 
 newtype RawStorageEvent
-  = RawStorageEvent {key :: Maybe Key, oldValue :: Maybe String, newValue :: Maybe String}
+  = RawStorageEvent { key :: Maybe Key, oldValue :: Maybe String, newValue :: Maybe String }
 
 derive instance genericRawStorageEvent ::
   Generic RawStorageEvent _
@@ -51,21 +51,17 @@ toEvent key oldValue newValue =
     }
 
 ------------------------------------------------------------
-foreign import
-  _setItem ::
-    Fn2 Key String (Effect Unit)
+foreign import _setItem ::
+  Fn2 Key String (Effect Unit)
 
-foreign import
-  _getItem ::
-    Fn1 Key (Effect (Nullable String))
+foreign import _getItem ::
+  Fn1 Key (Effect (Nullable String))
 
-foreign import
-  _listen ::
-    Fn2 (Fn3 (Nullable String) (Nullable String) (Nullable String) RawStorageEvent) (RawStorageEvent -> Effect Unit) (Effect Canceler)
+foreign import _listen ::
+  Fn2 (Fn3 (Nullable String) (Nullable String) (Nullable String) RawStorageEvent) (RawStorageEvent -> Effect Unit) (Effect Canceler)
 
-foreign import
-  _getItems ::
-    Fn1 (Fn3 (Nullable String) (Nullable String) (Nullable String) RawStorageEvent) (Effect (Array RawStorageEvent))
+foreign import _getItems ::
+  Fn1 (Fn3 (Nullable String) (Nullable String) (Nullable String) RawStorageEvent) (Effect (Array RawStorageEvent))
 
 setItem ::
   Key ->

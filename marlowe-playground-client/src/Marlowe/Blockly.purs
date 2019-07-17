@@ -194,12 +194,13 @@ toDefinition BaseContractType =
         , message0: "%1 CONTRACT %2 %3"
         , args0:
           [ DummyRight
-          , Statement {name: (show BaseContractType), check: (show BaseContractType), align: Right}
+          , Statement { name: (show BaseContractType), check: (show BaseContractType), align: Right }
           , DummyRight
           ]
         , colour: "0"
         , inputsInline: Just false
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ContractType NullContractType) =
   BlockDefinition
@@ -208,7 +209,8 @@ toDefinition (ContractType NullContractType) =
         , message0: "Null"
         , colour: "0"
         , previousStatement: Just (show BaseContractType)
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ContractType CommitContractType) =
   BlockDefinition
@@ -217,24 +219,25 @@ toDefinition (ContractType CommitContractType) =
         , message0: "Commit %1 with action id %2 %3 and commit id %4 %5 person with id %6 %7 may deposit %8 redeemable on block %9 %10 or after, if money is committed before block %11 %12 continue as %13 otherwise continue as %14"
         , args0:
           [ DummyCentre
-          , Number {name: "action_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing}
+          , Number { name: "action_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing }
           , DummyRight
-          , Number {name: "commit_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing}
+          , Number { name: "commit_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing }
           , DummyRight
-          , Number {name: "person_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing}
+          , Number { name: "person_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing }
           , DummyRight
-          , Value {name: "ammount", check: "value", align: Right}
-          , Number {name: "end_expiration", value: 0.0, min: Just 0.0, max: Nothing, precision: Nothing}
+          , Value { name: "ammount", check: "value", align: Right }
+          , Number { name: "end_expiration", value: 0.0, min: Just 0.0, max: Nothing, precision: Nothing }
           , DummyRight
-          , Number {name: "start_expiration", value: 0.0, min: Just 0.0, max: Nothing, precision: Nothing}
+          , Number { name: "start_expiration", value: 0.0, min: Just 0.0, max: Nothing, precision: Nothing }
           , DummyRight
-          , Statement {name: "contract1", check: (show BaseContractType), align: Right}
-          , Statement {name: "contract2", check: (show BaseContractType), align: Right}
+          , Statement { name: "contract1", check: (show BaseContractType), align: Right }
+          , Statement { name: "contract2", check: (show BaseContractType), align: Right }
           ]
         , colour: "0"
         , previousStatement: Just (show BaseContractType)
         , inputsInline: Just false
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ContractType PayContractType) =
   BlockDefinition
@@ -243,21 +246,22 @@ toDefinition (ContractType PayContractType) =
         , message0: "Pay %1 with id %2 %3 use money from commit %4 %5 to pay person %6 %7 the amount of %8 if claimed before block %9 continue as %10 else continue as %11"
         , args0:
           [ DummyCentre
-          , Number {name: "action_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing}
+          , Number { name: "action_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing }
           , DummyRight
-          , Number {name: "commit_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing}
+          , Number { name: "commit_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing }
           , DummyRight
-          , Number {name: "payee_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing}
+          , Number { name: "payee_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing }
           , DummyRight
-          , Value {name: "ammount", check: "value", align: Right}
-          , Number {name: "timeout", value: 0.0, min: Just 0.0, max: Nothing, precision: Nothing}
-          , Statement {name: "contract1", check: (show BaseContractType), align: Right}
-          , Statement {name: "contract2", check: (show BaseContractType), align: Right}
+          , Value { name: "ammount", check: "value", align: Right }
+          , Number { name: "timeout", value: 0.0, min: Just 0.0, max: Nothing, precision: Nothing }
+          , Statement { name: "contract1", check: (show BaseContractType), align: Right }
+          , Statement { name: "contract2", check: (show BaseContractType), align: Right }
           ]
         , colour: "0"
         , previousStatement: Just (show BaseContractType)
         , inputsInline: Just false
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ContractType BothContractType) =
   BlockDefinition
@@ -266,12 +270,13 @@ toDefinition (ContractType BothContractType) =
         , message0: "Both %1 enforce both %2 and %3"
         , args0:
           [ DummyCentre
-          , Statement {name: "contract1", check: (show BaseContractType), align: Right}
-          , Statement {name: "contract2", check: (show BaseContractType), align: Right}
+          , Statement { name: "contract1", check: (show BaseContractType), align: Right }
+          , Statement { name: "contract2", check: (show BaseContractType), align: Right }
           ]
         , colour: "0"
         , previousStatement: Just (show BaseContractType)
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ContractType ChoiceContractType) =
   BlockDefinition
@@ -280,14 +285,15 @@ toDefinition (ContractType ChoiceContractType) =
         , message0: "Choice %1 if observation %2 then continue as %3 otherwise continue as %4"
         , args0:
           [ DummyCentre
-          , Value {name: "observation", check: "observation", align: Right}
-          , Statement {name: "contract1", check: (show BaseContractType), align: Right}
-          , Statement {name: "contract2", check: (show BaseContractType), align: Right}
+          , Value { name: "observation", check: "observation", align: Right }
+          , Statement { name: "contract1", check: (show BaseContractType), align: Right }
+          , Statement { name: "contract2", check: (show BaseContractType), align: Right }
           ]
         , colour: "0"
         , previousStatement: Just (show BaseContractType)
         , inputsInline: Just false
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ContractType WhenContractType) =
   BlockDefinition
@@ -295,15 +301,16 @@ toDefinition (ContractType WhenContractType) =
         { type: show WhenContractType
         , message0: "When observation %1 continue as %2 if block is %3 or higher continue as %4"
         , args0:
-          [ Value {name: "observation", check: "observation", align: Right}
-          , Statement {name: "contract1", check: (show BaseContractType), align: Right}
-          , Number {name: "timeout", value: 0.0, min: Just 0.0, max: Nothing, precision: Nothing}
-          , Statement {name: "contract2", check: (show BaseContractType), align: Right}
+          [ Value { name: "observation", check: "observation", align: Right }
+          , Statement { name: "contract1", check: (show BaseContractType), align: Right }
+          , Number { name: "timeout", value: 0.0, min: Just 0.0, max: Nothing, precision: Nothing }
+          , Statement { name: "contract2", check: (show BaseContractType), align: Right }
           ]
         , colour: "0"
         , previousStatement: Just (show BaseContractType)
         , inputsInline: Just false
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ContractType WhileContractType) =
   BlockDefinition
@@ -311,15 +318,16 @@ toDefinition (ContractType WhileContractType) =
         { type: show WhileContractType
         , message0: "While observation %1 enforce %2 when block is %3 or higher continue as %4"
         , args0:
-          [ Value {name: "observation", check: "observation", align: Right}
-          , Statement {name: "contract1", check: (show BaseContractType), align: Right}
-          , Number {name: "timeout", value: 0.0, min: Just 0.0, max: Nothing, precision: Nothing}
-          , Statement {name: "contract2", check: (show BaseContractType), align: Right}
+          [ Value { name: "observation", check: "observation", align: Right }
+          , Statement { name: "contract1", check: (show BaseContractType), align: Right }
+          , Number { name: "timeout", value: 0.0, min: Just 0.0, max: Nothing, precision: Nothing }
+          , Statement { name: "contract2", check: (show BaseContractType), align: Right }
           ]
         , colour: "0"
         , previousStatement: Just (show BaseContractType)
         , inputsInline: Just false
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ContractType ScaleContractType) =
   BlockDefinition
@@ -327,14 +335,15 @@ toDefinition (ContractType ScaleContractType) =
         { type: show ScaleContractType
         , message0: "Scale %1 %2 %3 with %4"
         , args0:
-          [ Value {name: "scale1", check: "value", align: Right}
-          , Value {name: "scale2", check: "value", align: Right}
-          , Value {name: "scale3", check: "value", align: Right}
-          , Statement {name: "contract", check: (show BaseContractType), align: Right}
+          [ Value { name: "scale1", check: "value", align: Right }
+          , Value { name: "scale2", check: "value", align: Right }
+          , Value { name: "scale3", check: "value", align: Right }
+          , Statement { name: "contract", check: (show BaseContractType), align: Right }
           ]
         , colour: "0"
         , previousStatement: Just (show BaseContractType)
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ContractType LetContractType) =
   BlockDefinition
@@ -342,13 +351,14 @@ toDefinition (ContractType LetContractType) =
         { type: show LetContractType
         , message0: "Let %1 be %2 continue as %3"
         , args0:
-          [ Number {name: "let_label", value: 0.0, min: Just 0.0, max: Nothing, precision: Nothing}
-          , Statement {name: "contract1", check: (show BaseContractType), align: Right}
-          , Statement {name: "contract2", check: (show BaseContractType), align: Right}
+          [ Number { name: "let_label", value: 0.0, min: Just 0.0, max: Nothing, precision: Nothing }
+          , Statement { name: "contract1", check: (show BaseContractType), align: Right }
+          , Statement { name: "contract2", check: (show BaseContractType), align: Right }
           ]
         , colour: "0"
         , previousStatement: Just (show BaseContractType)
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ContractType UseContractType) =
   BlockDefinition
@@ -356,11 +366,12 @@ toDefinition (ContractType UseContractType) =
         { type: show UseContractType
         , message0: "Use %1"
         , args0:
-          [ Number {name: "let_label", value: 0.0, min: Just 0.0, max: Nothing, precision: Nothing}
+          [ Number { name: "let_label", value: 0.0, min: Just 0.0, max: Nothing, precision: Nothing }
           ]
         , colour: "0"
         , previousStatement: Just (show BaseContractType)
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ObservationType BelowTimeoutObservationType) =
   BlockDefinition
@@ -368,12 +379,13 @@ toDefinition (ObservationType BelowTimeoutObservationType) =
         { type: show BelowTimeoutObservationType
         , message0: "Below Timeout %1"
         , args0:
-          [ Number {name: "timeout", value: 0.0, min: Just 0.0, max: Nothing, precision: Nothing}
+          [ Number { name: "timeout", value: 0.0, min: Just 0.0, max: Nothing, precision: Nothing }
           ]
         , colour: "230"
         , output: Just "observation"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ObservationType AndObservationType) =
   BlockDefinition
@@ -381,13 +393,14 @@ toDefinition (ObservationType AndObservationType) =
         { type: show AndObservationType
         , message0: "%1 and %2"
         , args0:
-          [ Value {name: "observation1", check: "observation", align: Right}
-          , Value {name: "observation2", check: "observation", align: Right}
+          [ Value { name: "observation1", check: "observation", align: Right }
+          , Value { name: "observation2", check: "observation", align: Right }
           ]
         , colour: "230"
         , output: Just "observation"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ObservationType OrObservationType) =
   BlockDefinition
@@ -395,13 +408,14 @@ toDefinition (ObservationType OrObservationType) =
         { type: show OrObservationType
         , message0: "%1 or %2"
         , args0:
-          [ Value {name: "observation1", check: "observation", align: Right}
-          , Value {name: "observation2", check: "observation", align: Right}
+          [ Value { name: "observation1", check: "observation", align: Right }
+          , Value { name: "observation2", check: "observation", align: Right }
           ]
         , colour: "230"
         , output: Just "observation"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ObservationType NotObservationType) =
   BlockDefinition
@@ -409,12 +423,13 @@ toDefinition (ObservationType NotObservationType) =
         { type: show NotObservationType
         , message0: "Not %1"
         , args0:
-          [ Value {name: "observation", check: "observation", align: Right}
+          [ Value { name: "observation", check: "observation", align: Right }
           ]
         , colour: "230"
         , output: Just "observation"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ObservationType ChoseThisObservationType) =
   BlockDefinition
@@ -422,14 +437,15 @@ toDefinition (ObservationType ChoseThisObservationType) =
         { type: show ChoseThisObservationType
         , message0: "chose id %1 for person %2 choice %3"
         , args0:
-          [ Number {name: "choice_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing}
-          , Number {name: "person_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing}
-          , Number {name: "choice", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing}
+          [ Number { name: "choice_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing }
+          , Number { name: "person_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing }
+          , Number { name: "choice", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing }
           ]
         , colour: "230"
         , output: Just "observation"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ObservationType ChoseObservationType) =
   BlockDefinition
@@ -437,13 +453,14 @@ toDefinition (ObservationType ChoseObservationType) =
         { type: show ChoseObservationType
         , message0: "chose id %1 for person %2"
         , args0:
-          [ Number {name: "choice_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing}
-          , Number {name: "person_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing}
+          [ Number { name: "choice_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing }
+          , Number { name: "person_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing }
           ]
         , colour: "230"
         , output: Just "observation"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ObservationType ValueGEObservationType) =
   BlockDefinition
@@ -451,13 +468,14 @@ toDefinition (ObservationType ValueGEObservationType) =
         { type: show ValueGEObservationType
         , message0: "value %1 is greater than or equal to %2"
         , args0:
-          [ Value {name: "value1", check: "value", align: Right}
-          , Value {name: "value2", check: "value", align: Right}
+          [ Value { name: "value1", check: "value", align: Right }
+          , Value { name: "value2", check: "value", align: Right }
           ]
         , colour: "230"
         , output: Just "observation"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ObservationType ValueGObservationType) =
   BlockDefinition
@@ -465,13 +483,14 @@ toDefinition (ObservationType ValueGObservationType) =
         { type: show ValueGObservationType
         , message0: "value %1 is greater than %2"
         , args0:
-          [ Value {name: "value1", check: "value", align: Right}
-          , Value {name: "value2", check: "value", align: Right}
+          [ Value { name: "value1", check: "value", align: Right }
+          , Value { name: "value2", check: "value", align: Right }
           ]
         , colour: "230"
         , output: Just "observation"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ObservationType ValueLEObservationType) =
   BlockDefinition
@@ -479,13 +498,14 @@ toDefinition (ObservationType ValueLEObservationType) =
         { type: show ValueLEObservationType
         , message0: "value %1 is less than or equal to %2"
         , args0:
-          [ Value {name: "value1", check: "value", align: Right}
-          , Value {name: "value2", check: "value", align: Right}
+          [ Value { name: "value1", check: "value", align: Right }
+          , Value { name: "value2", check: "value", align: Right }
           ]
         , colour: "230"
         , output: Just "observation"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ObservationType ValueLObservationType) =
   BlockDefinition
@@ -493,13 +513,14 @@ toDefinition (ObservationType ValueLObservationType) =
         { type: show ValueLObservationType
         , message0: "value %1 is less than %2"
         , args0:
-          [ Value {name: "value1", check: "value", align: Right}
-          , Value {name: "value2", check: "value", align: Right}
+          [ Value { name: "value1", check: "value", align: Right }
+          , Value { name: "value2", check: "value", align: Right }
           ]
         , colour: "230"
         , output: Just "observation"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ObservationType ValueEqObservationType) =
   BlockDefinition
@@ -507,13 +528,14 @@ toDefinition (ObservationType ValueEqObservationType) =
         { type: show ValueEqObservationType
         , message0: "value %1 is equal to %2"
         , args0:
-          [ Value {name: "value1", check: "value", align: Right}
-          , Value {name: "value2", check: "value", align: Right}
+          [ Value { name: "value1", check: "value", align: Right }
+          , Value { name: "value2", check: "value", align: Right }
           ]
         , colour: "230"
         , output: Just "observation"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ObservationType TrueObservationType) =
   BlockDefinition
@@ -524,7 +546,8 @@ toDefinition (ObservationType TrueObservationType) =
         , colour: "230"
         , output: Just "observation"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ObservationType FalseObservationType) =
   BlockDefinition
@@ -535,7 +558,8 @@ toDefinition (ObservationType FalseObservationType) =
         , colour: "230"
         , output: Just "observation"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ValueType CurrentBlockType) =
   BlockDefinition
@@ -546,7 +570,8 @@ toDefinition (ValueType CurrentBlockType) =
         , colour: "135"
         , output: Just "value"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ValueType CommittedValueType) =
   BlockDefinition
@@ -554,12 +579,13 @@ toDefinition (ValueType CommittedValueType) =
         { type: show CommittedValueType
         , message0: "Committed Value %1"
         , args0:
-          [ Number {name: "commit_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing}
+          [ Number { name: "commit_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing }
           ]
         , colour: "135"
         , output: Just "value"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ValueType ConstValueType) =
   BlockDefinition
@@ -567,12 +593,13 @@ toDefinition (ValueType ConstValueType) =
         { type: show ConstValueType
         , message0: "Constant Value %1 ADA"
         , args0:
-          [ Number {name: "constant", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing}
+          [ Number { name: "constant", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing }
           ]
         , colour: "135"
         , output: Just "value"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ValueType NegValueType) =
   BlockDefinition
@@ -580,12 +607,13 @@ toDefinition (ValueType NegValueType) =
         { type: show NegValueType
         , message0: "Negate Value %1"
         , args0:
-          [ Value {name: "value", check: "value", align: Right}
+          [ Value { name: "value", check: "value", align: Right }
           ]
         , colour: "135"
         , output: Just "value"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ValueType AddValueType) =
   BlockDefinition
@@ -593,13 +621,14 @@ toDefinition (ValueType AddValueType) =
         { type: show AddValueType
         , message0: "%1 + %2"
         , args0:
-          [ Value {name: "value1", check: "value", align: Right}
-          , Value {name: "value2", check: "value", align: Right}
+          [ Value { name: "value1", check: "value", align: Right }
+          , Value { name: "value2", check: "value", align: Right }
           ]
         , colour: "135"
         , output: Just "value"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ValueType SubValueType) =
   BlockDefinition
@@ -607,13 +636,14 @@ toDefinition (ValueType SubValueType) =
         { type: show SubValueType
         , message0: "%1 - %2"
         , args0:
-          [ Value {name: "value1", check: "value", align: Right}
-          , Value {name: "value2", check: "value", align: Right}
+          [ Value { name: "value1", check: "value", align: Right }
+          , Value { name: "value2", check: "value", align: Right }
           ]
         , colour: "135"
         , output: Just "value"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ValueType MulValueType) =
   BlockDefinition
@@ -621,13 +651,14 @@ toDefinition (ValueType MulValueType) =
         { type: show MulValueType
         , message0: "%1 * %2"
         , args0:
-          [ Value {name: "value1", check: "value", align: Right}
-          , Value {name: "value2", check: "value", align: Right}
+          [ Value { name: "value1", check: "value", align: Right }
+          , Value { name: "value2", check: "value", align: Right }
           ]
         , colour: "135"
         , output: Just "value"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ValueType DivValueType) =
   BlockDefinition
@@ -635,14 +666,15 @@ toDefinition (ValueType DivValueType) =
         { type: show DivValueType
         , message0: "%1 / %2 with default %3"
         , args0:
-          [ Value {name: "value1", check: "value", align: Right}
-          , Value {name: "value2", check: "value", align: Right}
-          , Value {name: "value3", check: "value", align: Right}
+          [ Value { name: "value1", check: "value", align: Right }
+          , Value { name: "value2", check: "value", align: Right }
+          , Value { name: "value3", check: "value", align: Right }
           ]
         , colour: "135"
         , output: Just "value"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ValueType ModValueType) =
   BlockDefinition
@@ -650,14 +682,15 @@ toDefinition (ValueType ModValueType) =
         { type: show ModValueType
         , message0: "%1 % %2 with default %3"
         , args0:
-          [ Value {name: "value1", check: "value", align: Right}
-          , Value {name: "value2", check: "value", align: Right}
-          , Value {name: "value3", check: "value", align: Right}
+          [ Value { name: "value1", check: "value", align: Right }
+          , Value { name: "value2", check: "value", align: Right }
+          , Value { name: "value3", check: "value", align: Right }
           ]
         , colour: "135"
         , output: Just "value"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ValueType FromChoiceValueType) =
   BlockDefinition
@@ -665,14 +698,15 @@ toDefinition (ValueType FromChoiceValueType) =
         { type: show FromChoiceValueType
         , message0: "use value of choice with id: %1 chosen by participant with id: %2 if no choice was made use: %3"
         , args0:
-          [ Number {name: "choice_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing}
-          , Number {name: "person_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing}
-          , Value {name: "value", check: "value", align: Right}
+          [ Number { name: "choice_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing }
+          , Number { name: "person_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing }
+          , Value { name: "value", check: "value", align: Right }
           ]
         , colour: "135"
         , output: Just "value"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toDefinition (ValueType FromOracleValueType) =
   BlockDefinition
@@ -680,29 +714,30 @@ toDefinition (ValueType FromOracleValueType) =
         { type: show FromOracleValueType
         , message0: "use value of oracle with id: %1 if no oracle exists use: %2"
         , args0:
-          [ Number {name: "oracle_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing}
-          , Value {name: "value", check: "value", align: Right}
+          [ Number { name: "oracle_id", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing }
+          , Value { name: "value", check: "value", align: Right }
           ]
         , colour: "135"
         , output: Just "value"
         , inputsInline: Just true
-        } defaultBlockDefinition
+        }
+        defaultBlockDefinition
 
 toolbox :: forall a b. HTML a b
 toolbox =
-  xml [id_ "blocklyToolbox", style "display:none"]
-    [ category [name "Contracts", colour "0"] (map mkBlock contractTypes)
-    , category [name "Observations", colour "230"] (map mkBlock observationTypes)
-    , category [name "Values", colour "135"] (map mkBlock valueTypes)
+  xml [ id_ "blocklyToolbox", style "display:none" ]
+    [ category [ name "Contracts", colour "0" ] (map mkBlock contractTypes)
+    , category [ name "Observations", colour "230" ] (map mkBlock observationTypes)
+    , category [ name "Values", colour "135" ] (map mkBlock valueTypes)
     ]
   where
   mkBlock :: forall t. Show t => t -> _
-  mkBlock t = block [blockType (show t)] []
+  mkBlock t = block [ blockType (show t) ] []
 
 workspaceBlocks :: forall a b. HTML a b
 workspaceBlocks =
-  xml [id_ "workspaceBlocks", style "display:none"]
-    [ block [blockType (show BaseContractType), x "13", y "187", id_ "root_contract"] []
+  xml [ id_ "workspaceBlocks", style "display:none" ]
+    [ block [ blockType (show BaseContractType), x "13", y "187", id_ "root_contract" ] []
     ]
 
 parse :: forall a. Parser String a -> String -> Either String a
@@ -712,13 +747,13 @@ buildGenerator :: BlocklyState -> Generator
 buildGenerator blocklyState =
   ST.run
     ( do
-      gRef <- mkGenerator blocklyState "Marlowe"
-      g <- STRef.read gRef
-      traverse_ (\t -> mkGenFun gRef t (baseContractDefinition g)) [BaseContractType]
-      traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) contractTypes
-      traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) observationTypes
-      traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) valueTypes
-      STRef.read gRef
+        gRef <- mkGenerator blocklyState "Marlowe"
+        g <- STRef.read gRef
+        traverse_ (\t -> mkGenFun gRef t (baseContractDefinition g)) [ BaseContractType ]
+        traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) contractTypes
+        traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) observationTypes
+        traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) valueTypes
+        STRef.read gRef
     )
 
 mkGenFun :: forall a r t. Show a => Show t => STRef r Generator -> t -> (Block -> Either String a) -> ST r Unit
@@ -807,13 +842,13 @@ instance hasBlockDefinitionObservation :: HasBlockDefinition ObservationType Obs
     personId <- parse Parser.person =<< getFieldValue block "person_id"
     choice <- parse Parser.choice =<< getFieldValue block "choice"
     let
-      idChoice = IdChoice {choice: choiceId, person: personId}
+      idChoice = IdChoice { choice: choiceId, person: personId }
     pure (ChoseThis idChoice choice)
   blockDefinition ChoseObservationType g block = do
     choiceId <- parse Parser.bigInteger =<< getFieldValue block "choice_id"
     personId <- parse Parser.person =<< getFieldValue block "person_id"
     let
-      idChoice = IdChoice {choice: choiceId, person: personId}
+      idChoice = IdChoice { choice: choiceId, person: personId }
     pure (ChoseSomething idChoice)
   blockDefinition ValueGEObservationType g block = do
     value1 <- parse Parser.value =<< statementToCode g block "value1"
@@ -876,7 +911,7 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ValueType Value where
     personId <- parse Parser.person =<< getFieldValue block "person_id"
     value <- parse Parser.value =<< statementToCode g block "value"
     let
-      idChoice = IdChoice {choice: choiceId, person: personId}
+      idChoice = IdChoice { choice: choiceId, person: personId }
     pure (ValueFromChoice idChoice value)
   blockDefinition FromOracleValueType g block = do
     oracleId <- parse Parser.idOracle =<< getFieldValue block "oracle_id"

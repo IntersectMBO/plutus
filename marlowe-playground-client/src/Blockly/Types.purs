@@ -11,4 +11,5 @@ foreign import data Workspace :: Type
 
 foreign import data Block :: Type
 
-type BlocklyState = { blockly :: Blockly, workspace :: Workspace }
+type BlocklyState
+  = { blockly :: Blockly, workspace :: Workspace }

@@ -20,11 +20,11 @@ import Marlowe (SPParams_(SPParams_))
 import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettingsEncodeJson_(..), SPSettings_(..), defaultSettings)
 
 ajaxSettings :: SPSettings_ SPParams_
-ajaxSettings = SPSettings_ $ (settings {decodeJson = decodeJson, encodeJson = encodeJson})
+ajaxSettings = SPSettings_ $ (settings { decodeJson = decodeJson, encodeJson = encodeJson })
   where
-  SPSettings_ settings = defaultSettings $ SPParams_ {baseURL: "/api/"}
+  SPSettings_ settings = defaultSettings $ SPParams_ { baseURL: "/api/" }
 
-  jsonOptions = defaultOptions {unwrapSingleConstructors = true}
+  jsonOptions = defaultOptions { unwrapSingleConstructors = true }
 
   decodeJson = SPSettingsDecodeJson_ jsonOptions
 

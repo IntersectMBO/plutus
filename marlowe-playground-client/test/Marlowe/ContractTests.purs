@@ -27,20 +27,21 @@ all =
         Left parseError -> failure "could not parse escrow contract"
         Right escrow ->
           let
-            choiceA = IdChoice {choice: (fromIntegral 1), person: Person (fromIntegral 1)}
+            choiceA = IdChoice { choice: (fromIntegral 1), person: Person (fromIntegral 1) }
 
-            choiceB = IdChoice {choice: (fromIntegral 1), person: Person (fromIntegral 2)}
+            choiceB = IdChoice { choice: (fromIntegral 1), person: Person (fromIntegral 2) }
 
             actions =
               [ ApplyTransaction
                   ( Tuple
-                    ( List.fromFoldable
-                      [ Input (IChoice choiceA (fromIntegral 1))
-                      , Input (IChoice choiceB (fromIntegral 1))
-                      , Action (IdAction (fromIntegral 1))
-                      , Action (IdAction (fromIntegral 2))
-                      ]
-                    ) (Set.fromFoldable [Person (fromIntegral 1), Person (fromIntegral 2)])
+                      ( List.fromFoldable
+                          [ Input (IChoice choiceA (fromIntegral 1))
+                          , Input (IChoice choiceB (fromIntegral 1))
+                          , Action (IdAction (fromIntegral 1))
+                          , Action (IdAction (fromIntegral 2))
+                          ]
+                      )
+                      (Set.fromFoldable [ Person (fromIntegral 1), Person (fromIntegral 2) ])
                   )
               ]
 
@@ -59,18 +60,18 @@ all =
                       Map.fromFoldable
                         [ Tuple (wrap (fromIntegral 1))
                             ( CommitInfoRecord
-                              { amount: (fromIntegral 0)
-                              , person: wrap (fromIntegral 1)
-                              , timeout: wrap (fromIntegral 100)
-                              }
+                                { amount: (fromIntegral 0)
+                                , person: wrap (fromIntegral 1)
+                                , timeout: wrap (fromIntegral 100)
+                                }
                             )
                         ]
                     , expiredCommitIds: mempty
                     , redeemedPerPerson: mempty
-                    , timeoutData: Map.fromFoldable [(Tuple (wrap (fromIntegral 100)) (Set.fromFoldable [IdCommit (fromIntegral 1)]))]
+                    , timeoutData: Map.fromFoldable [ (Tuple (wrap (fromIntegral 100)) (Set.fromFoldable [ IdCommit (fromIntegral 1) ])) ]
                     }
                 , oracles: mempty
-                , usedIds: Set.fromFoldable [(wrap <<< fromIntegral $ 1), (wrap <<< fromIntegral $ 2)]
+                , usedIds: Set.fromFoldable [ (wrap <<< fromIntegral $ 1), (wrap <<< fromIntegral $ 2) ]
                 }
 
             expectedTestState = set (_Newtype <<< _state) expectedState initialState
