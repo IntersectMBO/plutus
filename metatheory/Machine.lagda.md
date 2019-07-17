@@ -1,3 +1,5 @@
+# CK machine
+
 ```
 module Machine where
 ```
@@ -41,26 +43,31 @@ data State{Φ}(Γ : Ctx Φ) : Set where
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Empty
 
+-- this function, apart from making a step, also determines the contexts and provides a proof.
+-- These things could be done seperately.
+
+-- this could also be presented as a relation and then there would be more function rather like progress
+
 step : ∀{Φ}{Γ : Ctx Φ} → NoVar Γ → State Γ → Σ Ctx⋆ λ Φ' → Σ (Ctx Φ') λ Γ → NoVar Γ × State Γ
-step {Φ}{Γ} p (s ▻ ` x)              = ⊥-elim (noVar p x)
-step {Φ}{Γ} p (s ▻ ƛ x L)            = Φ      ,, Γ      ,, p ,, s ◅ V-ƛ {x = x}{N = L}
-step {Φ}{Γ} p (s ▻ (L · M))          = Φ      ,, Γ      ,, p ,, (s , (-· M)) ▻ L
-step {Φ}{Γ} p (s ▻ Λ x L)            = Φ ,⋆ _ ,, Γ ,⋆ _ ,, p ,, (s , Λ-) ▻ L
-step {Φ}{Γ} p (s ▻ (L ·⋆ A))         = Φ      ,, Γ      ,, p ,, (s , (-·⋆ A)) ▻ L
-step {Φ}{Γ} p (s ▻ wrap1 pat arg L)  = Φ      ,, Γ      ,, p ,, (s , wrap-) ▻ L
-step {Φ}{Γ} p (s ▻ unwrap1 L)        = Φ      ,, Γ      ,, p ,, (s , unwrap-) ▻ L
-step {Φ}{Γ} p (s ▻ con {Γ = Γ} cn)   = Φ      ,, Γ      ,, p ,, s ◅ V-con {Γ = Γ} cn
-step {Φ}{Γ} p (s ▻ builtin bn σ tel) = Φ      ,, Γ      ,, p ,, ◆ (substNf σ (proj₂ (proj₂ (SIG bn))))
-step {Φ}{Γ} p (s ▻ error A)          = Φ      ,, Γ      ,, p ,, ◆ A
-step {Φ}{Γ} p (ε ◅ V)                = Φ      ,, Γ      ,, p ,, □ V
-step {Φ}{Γ} p ((s , (-· M)) ◅ V)     = _      ,, _      ,, p ,, ((s , V ·-) ▻ M)
-step p (_◅_ (s , (V-ƛ {N = t} ·-)) {u} V) = _ ,, _      ,, p ,, s ▻ (t [ u ])
-step {.(_ ,⋆ _)}{Γ} p ((s , Λ-) ◅ V) = _      ,, _      ,, p ,, s ◅ V-Λ V
-step {Φ}{Γ} p ((s , (-·⋆ A)) ◅ V-Λ {N = t} V) = _ ,, _ ,, p ,, s ▻ (t [ A ]⋆)
-step {Φ}{Γ} p ((s , wrap-) ◅ V)               = _ ,, _ ,, p ,, s ◅ (V-wrap V)
-step {Φ}{Γ} p ((s , unwrap-) ◅ V-wrap V)      = _ ,, _ ,, p ,, s ◅ V
-step {Φ}{Γ} p (□ V)                           = _ ,, _ ,, p ,, □ V
-step {Φ}{Γ} p (◆ A)                           = _ ,, Γ ,, p ,, ◆ A
+step p (s ▻ ` x)                          = ⊥-elim (noVar p x)
+step p (s ▻ ƛ x L)                        = _ ,, _ ,, p ,, s ◅ V-ƛ {x = x}{N = L}
+step p (s ▻ (L · M))                      = _ ,, _ ,, p ,, (s , -· M) ▻ L
+step p (s ▻ Λ x L)                        = _ ,, _ ,, p ,, (s , Λ-) ▻ L
+step p (s ▻ (L ·⋆ A))                     = _ ,, _ ,, p ,, (s , -·⋆ A) ▻ L
+step p (s ▻ wrap1 pat arg L)              = _ ,, _ ,, p ,, (s , wrap-) ▻ L
+step p (s ▻ unwrap1 L)                    = _ ,, _ ,, p ,, (s , unwrap-) ▻ L
+step {Γ = Γ} p (s ▻ con cn)               = _ ,, Γ ,, p ,, s ◅ V-con cn
+step {Γ = Γ} p (s ▻ builtin bn σ tel)     = _ ,, Γ ,, p ,, ◆ (substNf σ (proj₂ (proj₂ (SIG bn))))
+step {Γ = Γ} p (s ▻ error A)              = _ ,, Γ ,, p ,, ◆ A
+step p (ε ◅ V)                            = _ ,, _ ,, p ,, □ V
+step p ((s , (-· M)) ◅ V)                 = _ ,, _ ,, p ,, ((s , V ·-) ▻ M)
+step p (_◅_ (s , (V-ƛ {N = t} ·-)) {u} V) = _ ,, _ ,, p ,, s ▻ (t [ u ])
+step p ((s , Λ-) ◅ V)                     = _ ,, _ ,, p ,, s ◅ V-Λ V
+step p ((s , (-·⋆ A)) ◅ V-Λ {N = t} V)    = _ ,, _ ,, p ,, s ▻ (t [ A ]⋆)
+step p ((s , wrap-) ◅ V)                  = _ ,, _ ,, p ,, s ◅ (V-wrap V)
+step p ((s , unwrap-) ◅ V-wrap V)         = _ ,, _ ,, p ,, s ◅ V
+step p (□ V)                              = _ ,, _ ,, p ,, □ V
+step {Γ = Γ} p (◆ A)                      = _ ,, Γ ,, p ,, ◆ A
 ```
 
 ```
