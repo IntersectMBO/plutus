@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -46,13 +47,15 @@ deploy event Options {..} =
             let ref = Text.unpack . whPullReqTargetRef . whPullReqBase . evPullReqPayload $ event
                 auth = mkToken githubToken
             putStrLn $ "Deploy origin/" <> ref
-            deploymentResult <- runExceptT $ do
-                  deployment <- ExceptT $ createGithubDeployment ref environment auth
+            overallResult <- runExceptT $ do
+                  deployment <- ExceptT . GitHub.executeRequest auth $ createGithubDeploymentRequest ref environment
                   deploymentResult <- runExceptT $ runDeployment tempDir ref
-                  ExceptT $ completeGithubDeployment auth deployment deploymentResult
-            case deploymentResult of
-                    Left err -> putStrLn $ "deployment failed with: " <> show err
-                    Right _  -> putStrLn "deployment finished without errors"
+                  void $ ExceptT . GitHub.executeRequest auth $ completeGithubDeploymentRequest deployment deploymentResult
+                  pure deploymentResult
+            putStrLn $ case overallResult of
+                    Left err              -> "github request failed with: " <> show err
+                    Right (Left err)      -> "deployment failed with: " <> show err
+                    Right (Right gitHead) -> Text.unpack $ "successfully deployed: " <> gitHead
   where
     mkToken = GitHub.OAuth . BS.pack . Text.unpack . unpack
     rstrip = dropWhileEnd isSpace
@@ -112,8 +115,8 @@ runIn dir bin args = do
         otherErrors :: SomeException -> IO (ExitCode, LBS.ByteString, LBS.ByteString)
         otherErrors e = pure (ExitFailure 1, mempty, LBS.pack (displayException e))
 
-createGithubDeployment :: String -> String -> GitHub.Auth -> IO (Either GitHub.Error (GitHub.Deployment String))
-createGithubDeployment ref environment auth = do
+createGithubDeploymentRequest :: String -> String -> GitHub.Request 'GitHub.RW (GitHub.Deployment String)
+createGithubDeploymentRequest ref environment =
     let deployment = GitHub.CreateDeployment
             { createDeploymentRef = Text.pack ref
             , createDeploymentTask = Nothing
@@ -124,11 +127,12 @@ createGithubDeployment ref environment auth = do
             , createDeploymentEnvironment = Just $ Text.pack environment
             , createDeploymentDescription = Just "Deploy Playgrounds"
             }
-        req = GitHub.createDeploymentR "input-output-hk" "plutus" deployment
-    GitHub.executeRequest auth req
+    in
+        GitHub.createDeploymentR "input-output-hk" "plutus" deployment
 
-completeGithubDeployment :: GitHub.Auth -> GitHub.Deployment String -> Either DeploymentError b -> IO (Either GitHub.Error GitHub.DeploymentStatus)
-completeGithubDeployment auth deployment result = do
+
+completeGithubDeploymentRequest :: GitHub.Deployment String -> Either DeploymentError b -> GitHub.Request 'GitHub.RW GitHub.DeploymentStatus
+completeGithubDeploymentRequest deployment result =
     let dId = GitHub.deploymentId deployment
         deploymentStatus = case result of
                             Right _ -> GitHub.CreateDeploymentStatus
@@ -138,6 +142,7 @@ completeGithubDeployment auth deployment result = do
                             Left err -> GitHub.CreateDeploymentStatus
                                             GitHub.DeploymentStatusFailure
                                             Nothing
+                                            -- description is limited to 140 characters
                                             (Just . Text.pack $ "Deployment failed with " <> take 117 (show err))
-        req = GitHub.createDeploymentStatusR "input-output-hk" "plutus" dId deploymentStatus
-    GitHub.executeRequest auth req
+    in
+        GitHub.createDeploymentStatusR "input-output-hk" "plutus" dId deploymentStatus
