@@ -1,7 +1,6 @@
 module Blockly.Headless where
 
 import Prelude
-
 import Blockly.Generator (NewSTRefFunction)
 import Blockly.Types (Block, Blockly, BlocklyState, Workspace)
 import Control.Monad.ST.Internal (ST, STRef)
@@ -25,7 +24,7 @@ createBlocklyInstance :: Effect BlocklyState
 createBlocklyInstance = do
   blockly <- createBlocklyInstance_
   workspace <- runEffectFn1 createWorkspace_ blockly
-  pure { blockly, workspace } 
+  pure { blockly, workspace }
 
 newBlock :: forall r. STRef r Workspace -> String -> ST r (STRef r Block)
 newBlock = runFn3 newBlock_ STRef.new

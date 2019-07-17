@@ -1,7 +1,6 @@
 module MonadApp where
 
 import Prelude
-
 import API (RunResult)
 import Ace (Editor, Annotation)
 import Ace.EditSession as Session
@@ -143,13 +142,13 @@ saveInitialState' = do
   oldContract <- marloweEditorGetValue'
   modifying _oldContract
     ( \x -> case x of
-      Nothing ->
-        Just
-          ( case oldContract of
-            Nothing -> ""
-            Just y -> y
-          )
-      _ -> x
+        Nothing ->
+          Just
+            ( case oldContract of
+                Nothing -> ""
+                Just y -> y
+            )
+        _ -> x
     )
 
 marloweEditorGetValue' :: forall m. MonadEffect m => HalogenApp m (Maybe String)
@@ -167,8 +166,8 @@ saveInitialStateImpl = do
   oldContract <- marloweEditorGetValueImpl
   modifying _oldContract
     ( \x -> case x of
-      Nothing -> Just $ fromMaybe "" oldContract
-      _ -> x
+        Nothing -> Just $ fromMaybe "" oldContract
+        _ -> x
     )
 
 marloweEditorGetValueImpl :: forall m. MonadEffect m => HalogenApp m (Maybe String)
@@ -223,10 +222,10 @@ updateSignatures oldState = case oldState.contract of
   Just oldContract -> over (_transaction <<< _signatures) (resizeSigs (peopleFromStateAndContract (oldState.state) oldContract)) oldState
   Nothing -> oldState
 
-simulateState :: MarloweState -> Maybe {state :: State, contract :: Contract, outcome :: TransactionOutcomes, validity :: TransactionValidity}
+simulateState :: MarloweState -> Maybe { state :: State, contract :: Contract, outcome :: TransactionOutcomes, validity :: TransactionValidity }
 simulateState state =
   mapFlipped state.contract \c -> case inps, applyTransaction inps sigs bn st c mic of
-    _, MSuccessfullyApplied {state: newState, contract: newContract, outcome: outcome} inputWarnings ->
+    _, MSuccessfullyApplied { state: newState, contract: newContract, outcome: outcome } inputWarnings ->
       { state: newState
       , contract: newContract
       , outcome: outcome
@@ -261,8 +260,8 @@ simulateState state =
 
   mic = state.moneyInContract
 
-updateActions :: MarloweState -> {state :: State, contract :: Contract, outcome :: TransactionOutcomes, validity :: TransactionValidity} -> MarloweState
-updateActions oldState {state, contract, outcome, validity} =
+updateActions :: MarloweState -> { state :: State, contract :: Contract, outcome :: TransactionOutcomes, validity :: TransactionValidity } -> MarloweState
+updateActions oldState { state, contract, outcome, validity } =
   set (_transaction <<< _validity) validity oldState
     # set (_transaction <<< _outcomes) outcome
     # over (_input <<< _oracleData) (updateOracles oldState.blockNum state neededInputs)
@@ -275,14 +274,16 @@ updateOracles :: BlockNumber -> State -> Set IdInput -> Map IdOracle OracleEntry
 updateOracles cbn (State state) inputs omap = foldrDefault addOracle Map.empty inputs
   where
   addOracle (IdOracle idOracle) a = case Map.lookup idOracle omap, Map.lookup idOracle state.oracles of
-    Nothing, Nothing -> Map.insert idOracle {blockNumber: cbn, value: zero} a
-    Just {blockNumber: bn, value}, Just (OracleDataPoint {blockNumber: lbn}) -> if (lbn >= cbn)
-      then a
-      else Map.insert idOracle {blockNumber: max (lbn + one) bn, value} a
-    Just {blockNumber, value}, Nothing -> Map.insert idOracle {blockNumber: min blockNumber cbn, value} a
-    Nothing, Just (OracleDataPoint {blockNumber, value}) -> if (blockNumber >= cbn)
-      then a
-      else Map.insert idOracle {blockNumber: cbn, value} a
+    Nothing, Nothing -> Map.insert idOracle { blockNumber: cbn, value: zero } a
+    Just { blockNumber: bn, value }, Just (OracleDataPoint { blockNumber: lbn }) -> if (lbn >= cbn) then
+      a
+    else
+      Map.insert idOracle { blockNumber: max (lbn + one) bn, value } a
+    Just { blockNumber, value }, Nothing -> Map.insert idOracle { blockNumber: min blockNumber cbn, value } a
+    Nothing, Just (OracleDataPoint { blockNumber, value }) -> if (blockNumber >= cbn) then
+      a
+    else
+      Map.insert idOracle { blockNumber: cbn, value } a
 
   addOracle _ a = a
 
@@ -296,7 +297,7 @@ updateChoices ::
   Map Person (Map BigInteger Choice)
 updateChoices (State state) inputs cmap = foldrDefault addChoice Map.empty inputs
   where
-  addChoice (InputIdChoice (IdChoice {choice: idChoice, person})) a =
+  addChoice (InputIdChoice (IdChoice { choice: idChoice, person })) a =
     let
       pmap = case Map.lookup person a of
         Nothing -> Map.empty
@@ -309,9 +310,10 @@ updateChoices (State state) inputs cmap = foldrDefault addChoice Map.empty input
             Nothing -> zero
             Just v -> v
       in
-        if Map.member (WIdChoice (IdChoice {choice: idChoice, person})) state.choices
-          then a
-          else Map.insert person (Map.insert idChoice dval pmap) a
+        if Map.member (WIdChoice (IdChoice { choice: idChoice, person })) state.choices then
+          a
+        else
+          Map.insert person (Map.insert idChoice dval pmap) a
 
   addChoice _ a = a
 

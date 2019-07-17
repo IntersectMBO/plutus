@@ -34,7 +34,7 @@ import Type.Data.Boolean (kind Boolean)
 import Web.HTML.Event.DragEvent (DragEvent)
 
 _Head :: forall a. Lens (NonEmptyList a) (NonEmptyList a) a a
-_Head = lens NEL.head (\l new -> let {head, tail} = NEL.uncons l in NEL.cons' new tail)
+_Head = lens NEL.head (\l new -> let { head, tail } = NEL.uncons l in NEL.cons' new tail)
 
 ------------------------------------------------------------
 data Query a
@@ -55,17 +55,17 @@ data Query a
   | LoadScript String a
   | CompileProgram a
   | SendResult a
-  | ScrollTo {row :: Int, column :: Int} a
+  | ScrollTo { row :: Int, column :: Int } a
   | LoadMarloweScript String a
   -- marlowe actions
-  | SetSignature {person :: Person, isChecked :: Boolean} a
+  | SetSignature { person :: Person, isChecked :: Boolean } a
   | ApplyTransaction a
   | NextBlock a
-  | AddAnyInput {person :: Maybe Person, anyInput :: AnyInput} a
+  | AddAnyInput { person :: Maybe Person, anyInput :: AnyInput } a
   | RemoveAnyInput AnyInput a
-  | SetChoice {idChoice :: IdChoice, value :: Choice} a
-  | SetOracleVal {idOracle :: IdOracle, value :: BigInteger} a
-  | SetOracleBn {idOracle :: IdOracle, blockNumber :: BlockNumber} a
+  | SetChoice { idChoice :: IdChoice, value :: Choice } a
+  | SetOracleVal { idOracle :: IdOracle, value :: BigInteger } a
+  | SetOracleBn { idOracle :: IdOracle, blockNumber :: BlockNumber } a
   | ResetSimulator a
   | Undo a
   -- blockly
@@ -93,9 +93,11 @@ derive instance eqComponentMarloweEditorSlot :: Eq MarloweEditorSlot
 
 derive instance ordComponentMarloweEditorSlot :: Ord MarloweEditorSlot
 
-data BlocklySlot = BlocklySlot
+data BlocklySlot
+  = BlocklySlot
 
 derive instance eqBlocklySlot :: Eq BlocklySlot
+
 derive instance ordBlocklySlot :: Ord BlocklySlot
 
 cpEditor :: ChildPath AceQuery ChildQuery EditorSlot ChildSlot
@@ -168,32 +170,32 @@ _blocklyState = _Newtype <<< prop (SProxy :: SProxy "blocklyState")
 -- Oracles should not be grouped (only one line per oracle) like:
 --    Oracle 3: Provide value [$value] for block [$timestamp]
 type OracleEntry
-  = {blockNumber :: BlockNumber, value :: BigInteger}
+  = { blockNumber :: BlockNumber, value :: BigInteger }
 
 -- editable
 _timestamp ::
   forall s a.
-  Lens' {timestamp :: a | s} a
+  Lens' { timestamp :: a | s } a
 _timestamp = prop (SProxy :: SProxy "timestamp")
 
-_value :: forall s a. Lens' {value :: a | s} a
+_value :: forall s a. Lens' { value :: a | s } a
 _value = prop (SProxy :: SProxy "value")
 
 type InputData
   = { inputs :: Map Person (List DetachedPrimitiveWIA)
-  , choiceData :: Map Person (Map BigInteger Choice)
-  , oracleData :: Map IdOracle OracleEntry
-  }
+    , choiceData :: Map Person (Map BigInteger Choice)
+    , oracleData :: Map IdOracle OracleEntry
+    }
 
-_inputs :: forall s a. Lens' {inputs :: a | s} a
+_inputs :: forall s a. Lens' { inputs :: a | s } a
 _inputs = prop (SProxy :: SProxy "inputs")
 
-_choiceData :: forall s a. Lens' {choiceData :: a | s} a
+_choiceData :: forall s a. Lens' { choiceData :: a | s } a
 _choiceData = prop (SProxy :: SProxy "choiceData")
 
 _oracleData ::
   forall s a.
-  Lens' {oracleData :: a | s} a
+  Lens' { oracleData :: a | s } a
 _oracleData = prop (SProxy :: SProxy "oracleData")
 
 data TransactionValidity
@@ -216,53 +218,53 @@ isInvalidTransaction (InvalidTransaction _) = true
 isInvalidTransaction _ = false
 
 type TransactionData
-  = {inputs :: Array AnyInput, signatures :: Map Person Boolean, outcomes :: Map Person BigInteger, validity :: TransactionValidity}
+  = { inputs :: Array AnyInput, signatures :: Map Person Boolean, outcomes :: Map Person BigInteger, validity :: TransactionValidity }
 
 -- table under checkboxes
 _signatures ::
   forall s a.
-  Lens' {signatures :: a | s} a
+  Lens' { signatures :: a | s } a
 _signatures = prop (SProxy :: SProxy "signatures")
 
-_outcomes :: forall s a. Lens' {outcomes :: a | s} a
+_outcomes :: forall s a. Lens' { outcomes :: a | s } a
 _outcomes = prop (SProxy :: SProxy "outcomes")
 
-_validity :: forall s a. Lens' {validity :: a | s} a
+_validity :: forall s a. Lens' { validity :: a | s } a
 _validity = prop (SProxy :: SProxy "validity")
 
 -- "Choice $IdChoice: Choose value [$Choice]"
 type MarloweState
   = { input :: InputData
-  , transaction :: TransactionData
-  , state :: State
-  , blockNum :: BlockNumber
-  , moneyInContract :: BigInteger
-  , contract :: Maybe Contract
-  }
+    , transaction :: TransactionData
+    , state :: State
+    , blockNum :: BlockNumber
+    , moneyInContract :: BigInteger
+    , contract :: Maybe Contract
+    }
 
-_input :: forall s a. Lens' {input :: a | s} a
+_input :: forall s a. Lens' { input :: a | s } a
 _input = prop (SProxy :: SProxy "input")
 
-_transaction :: forall s a. Lens' {transaction :: a | s} a
+_transaction :: forall s a. Lens' { transaction :: a | s } a
 _transaction = prop (SProxy :: SProxy "transaction")
 
-_state :: forall s a. Lens' {state :: a | s} a
+_state :: forall s a. Lens' { state :: a | s } a
 _state = prop (SProxy :: SProxy "state")
 
-_blockNum :: forall s a. Lens' {blockNum :: a | s} a
+_blockNum :: forall s a. Lens' { blockNum :: a | s } a
 _blockNum = prop (SProxy :: SProxy "blockNum")
 
-_moneyInContract :: forall s a. Lens' {moneyInContract :: a | s} a
+_moneyInContract :: forall s a. Lens' { moneyInContract :: a | s } a
 _moneyInContract = prop (SProxy :: SProxy "moneyInContract")
 
-_contract :: forall s a. Lens' {contract :: a | s} a
+_contract :: forall s a. Lens' { contract :: a | s } a
 _contract = prop (SProxy :: SProxy "contract")
 
 --- Language.Haskell.Interpreter ---
-_result :: forall s a. Lens' {result :: a | s} a
+_result :: forall s a. Lens' { result :: a | s } a
 _result = prop (SProxy :: SProxy "result")
 
-_warnings :: forall s a. Lens' {warnings :: a | s} a
+_warnings :: forall s a. Lens' { warnings :: a | s } a
 _warnings = prop (SProxy :: SProxy "warnings")
 
 _currentMarloweState :: Lens' FrontendState MarloweState

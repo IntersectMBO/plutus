@@ -72,7 +72,7 @@ semiBraces = encloseSep lbrace rbrace semi
 encloseSep :: Doc -> Doc -> Doc -> Array Doc -> Doc
 encloseSep left right sep' ds = case ds of
   [] -> left <> right
-  [d] -> left <> d <> right
+  [ d ] -> left <> d <> right
   _ -> align (cat (LL.toUnfoldable $ LL.zipWith (<>) (left LL.: LL.repeat sep') (LL.fromFoldable ds)) <> right)
 
 -----------------------------------------------------------
@@ -124,7 +124,7 @@ foldr1 f =
   Array.unsnoc
     >>> case _ of
         Nothing -> mempty
-        Just {init, last} -> foldr f last init
+        Just { init, last } -> foldr f last init
 
 -- | The document @(fillSep xs)@ concatenates documents @xs@
 -- horizontally with @(\<+\>)@ as long as its fits the page, than
@@ -443,9 +443,10 @@ number f = text (show f)
 fillBreak :: Int -> Doc -> Doc
 fillBreak f x =
   width x
-    ( \w -> if (w > f)
-      then nest f linebreak
-      else text (spaces (f - w))
+    ( \w -> if (w > f) then
+        nest f linebreak
+      else
+        text (spaces (f - w))
     )
 
 -- | The document @(fill i x)@ renders document @x@. It than appends
@@ -473,9 +474,10 @@ fillBreak f x =
 fill :: Int -> Doc -> Doc
 fill f d =
   width d
-    ( \w -> if (w >= f)
-      then empty
-      else text (spaces (f - w))
+    ( \w -> if (w >= f) then
+        empty
+      else
+        text (spaces (f - w))
     )
 
 width :: Doc -> (Int -> Doc) -> Doc
@@ -914,7 +916,7 @@ displayS SFail = unsafeCrashWith $ "@SFail@ can not appear uncaught in a rendere
 
 displayS SEmpty = ""
 
-displayS (SChar c x) = fromCharArray [c] <> displayS x
+displayS (SChar c x) = fromCharArray [ c ] <> displayS x
 
 displayS (SText l s x) = s <> displayS x
 

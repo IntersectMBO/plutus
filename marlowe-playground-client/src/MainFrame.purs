@@ -126,17 +126,17 @@ toEvent (MarloweHandleDropEvent _ _) = Just $ defaultEvent "MarloweDropScript"
 
 toEvent (CheckAuthStatus _) = Nothing
 
-toEvent (PublishGist _) = Just $ (defaultEvent "Publish") {label = Just "Gist"}
+toEvent (PublishGist _) = Just $ (defaultEvent "Publish") { label = Just "Gist" }
 
 toEvent (SetGistUrl _ _) = Nothing
 
-toEvent (LoadGist _) = Just $ (defaultEvent "LoadGist") {category = Just "Gist"}
+toEvent (LoadGist _) = Just $ (defaultEvent "LoadGist") { category = Just "Gist" }
 
-toEvent (ChangeView view _) = Just $ (defaultEvent "View") {label = Just $ show view}
+toEvent (ChangeView view _) = Just $ (defaultEvent "View") { label = Just $ show view }
 
-toEvent (LoadScript script a) = Just $ (defaultEvent "LoadScript") {label = Just script}
+toEvent (LoadScript script a) = Just $ (defaultEvent "LoadScript") { label = Just script }
 
-toEvent (LoadMarloweScript script a) = Just $ (defaultEvent "LoadMarloweScript") {label = Just script}
+toEvent (LoadMarloweScript script a) = Just $ (defaultEvent "LoadMarloweScript") { label = Just script }
 
 toEvent (CompileProgram a) = Just $ defaultEvent "CompileProgram"
 
@@ -172,7 +172,7 @@ applyTransactionM :: MarloweState -> MarloweState
 applyTransactionM oldState = case oldState.contract of
   Nothing -> oldState
   Just c -> case applyTransaction inps sigs bn st c mic of
-    MSuccessfullyApplied {funds, state, contract} _ ->
+    MSuccessfullyApplied { funds, state, contract } _ ->
       oldState
         # set (_transaction <<< _inputs) []
         # set (_transaction <<< _signatures) Map.empty
@@ -321,11 +321,11 @@ evalF (SendResult next) = do
   assign _view (Simulation)
   pure next
 
-evalF (ScrollTo {row, column} next) = do
+evalF (ScrollTo { row, column } next) = do
   haskellEditorGotoLine row (Just column)
   pure next
 
-evalF (SetSignature {person, isChecked} next) = do
+evalF (SetSignature { person, isChecked } next) = do
   modifying (_currentTransaction <<< _signatures) (Map.insert person isChecked)
   updateState
   pure next
@@ -347,7 +347,7 @@ evalF (NextBlock next) = do
   updateState
   pure next
 
-evalF (AddAnyInput {person, anyInput} next) = do
+evalF (AddAnyInput { person, anyInput } next) = do
   modifying (_currentTransaction <<< _inputs) ((flip snoc) anyInput)
   case person of
     Just per -> do
@@ -363,17 +363,17 @@ evalF (RemoveAnyInput anyInput next) = do
   updateState
   pure next
 
-evalF (SetChoice {idChoice: (IdChoice {choice, person}), value} next) = do
+evalF (SetChoice { idChoice: (IdChoice { choice, person }), value } next) = do
   assign (_currentInput <<< _choiceData <<< ix person <<< ix choice) value
   updateState
   pure next
 
-evalF (SetOracleVal {idOracle, value} next) = do
+evalF (SetOracleVal { idOracle, value } next) = do
   assign (_currentInput <<< _oracleData <<< ix idOracle <<< _value) value
   updateState
   pure next
 
-evalF (SetOracleBn {idOracle, blockNumber} next) = do
+evalF (SetOracleBn { idOracle, blockNumber } next) = do
   assign (_currentInput <<< _oracleData <<< ix idOracle <<< _blockNumber) blockNumber
   updateState
   pure next
@@ -401,7 +401,7 @@ evalF (Undo next) = do
   where
   removeState ms =
     let
-      {head, tail} = NEL.uncons ms
+      { head, tail } = NEL.uncons ms
     in
       case NEL.fromList tail of
         Nothing -> ms
@@ -410,9 +410,9 @@ evalF (Undo next) = do
 evalF (HandleBlocklyMessage Initialized next) = pure next
 
 evalF (HandleBlocklyMessage (CurrentCode code) next) = do
-      marloweEditorSetValue code (Just 1)
-      assign _view Simulation
-      pure next
+  marloweEditorSetValue code (Just 1)
+  assign _view Simulation
+  pure next
 
 evalF (SetBlocklyCode next) = runMaybeT f *> pure next
   where
@@ -420,7 +420,7 @@ evalF (SetBlocklyCode next) = runMaybeT f *> pure next
     source <- MaybeT marloweEditorGetValue
     lift do
       setBlocklyCode source
-      assign _view BlocklyEditor 
+      assign _view BlocklyEditor
     MaybeT resizeBlockly
 
 ------------------------------------------------------------
@@ -440,7 +440,7 @@ toAnnotations (CompilationErrors errors) = catMaybes (toAnnotation <$> errors)
 toAnnotation :: CompilationError -> Maybe Annotation
 toAnnotation (RawError _) = Nothing
 
-toAnnotation (CompilationError {row, column, text}) =
+toAnnotation (CompilationError { row, column, text }) =
   Just
     { "type": "error"
     , row: row - 1
@@ -457,12 +457,12 @@ render state =
   let
     stateView = view _view state
   in
-    div [class_ $ ClassName "main-frame"]
+    div [ class_ $ ClassName "main-frame" ]
       [ container_
           [ mainHeader
-          , div [classes [row, noGutters, justifyContentBetween]]
-              [ div [classes [colXs12, colSm6]] [mainTabBar stateView]
-              , div [classes [colXs12, colSm5]] [gistControls (unwrap state)]
+          , div [ classes [ row, noGutters, justifyContentBetween ] ]
+              [ div [ classes [ colXs12, colSm6 ] ] [ mainTabBar stateView ]
+              , div [ classes [ colXs12, colSm5 ] ] [ gistControls (unwrap state) ]
               ]
           ]
       , viewContainer stateView HaskellEditor
@@ -486,31 +486,34 @@ render state =
 
 loadScriptsPane :: forall p. HTML p (Query Unit)
 loadScriptsPane =
-  div [class_ $ ClassName "mb-3"]
+  div [ class_ $ ClassName "mb-3" ]
     ( Array.cons
-      ( strong_
-        [ text "Demos: "
-        ]
-      ) (loadScriptButton <$> Array.fromFoldable (Map.keys StaticData.demoFiles))
+        ( strong_
+            [ text "Demos: "
+            ]
+        )
+        (loadScriptButton <$> Array.fromFoldable (Map.keys StaticData.demoFiles))
     )
 
 loadScriptButton :: forall p. String -> HTML p (Query Unit)
 loadScriptButton key =
   button
-    [ classes [btn, btnInfo, btnSmall]
+    [ classes [ btn, btnInfo, btnSmall ]
     , onClick $ input_ $ LoadScript key
-    ] [text key]
+    ]
+    [ text key ]
 
 viewContainer :: forall p i. View -> View -> Array (HTML p i) -> HTML p i
-viewContainer currentView targetView = if currentView == targetView
-  then div [classes [container]]
-  else div [classes [container, hidden]]
+viewContainer currentView targetView = if currentView == targetView then
+  div [ classes [ container ] ]
+else
+  div [ classes [ container, hidden ] ]
 
 mainHeader :: forall p. HTML p (Query Unit)
 mainHeader =
   div_
-    [ div [classes [btnGroup, pullRight]] (makeLink <$> links)
-    , h1 [class_ $ ClassName "main-title"] [text "Marlowe Playground"]
+    [ div [ classes [ btnGroup, pullRight ] ] (makeLink <$> links)
+    , h1 [ class_ $ ClassName "main-title" ] [ text "Marlowe Playground" ]
     ]
   where
   links =
@@ -551,11 +554,11 @@ mainTabBar activeView = navTabs_ (mkTab <$> tabs)
           ]
       ]
     where
-    activeClass = if link == activeView
-      then
-        [ active
-        ]
-      else []
+    activeClass = if link == activeView then
+      [ active
+      ]
+    else
+      []
 
 resultPane :: forall p. FrontendState -> HTML p (Query Unit)
 resultPane state =
@@ -575,9 +578,10 @@ resultPane state =
                           ]
                       , onClick $ input_ SendResult
                       , disabled (isLoading compilationResult || (not isSuccess) compilationResult)
-                      ] [text "Send to Simulator"]
+                      ]
+                      [ text "Send to Simulator" ]
                   , code_
-                      [ pre [class_ $ ClassName "success-code"] [text (unwrap result.result)]
+                      [ pre [ class_ $ ClassName "success-code" ] [ text (unwrap result.result) ]
                       ]
                   ]
               ]

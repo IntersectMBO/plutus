@@ -104,7 +104,7 @@ derive newtype instance ordIdCommit :: Ord IdCommit
 derive instance newtypeIdCommit :: Newtype IdCommit _
 
 newtype IdChoice
-  = IdChoice {choice :: BigInteger, person :: Person}
+  = IdChoice { choice :: BigInteger, person :: Person }
 
 derive instance eqIdChoice :: Eq IdChoice
 
@@ -115,7 +115,7 @@ derive instance genericIdChoice :: Generic IdChoice _
 derive instance newtypeIdChoice :: Newtype IdChoice _
 
 instance showIdChoice :: Show IdChoice where
-  show (IdChoice {choice, person}) =
+  show (IdChoice { choice, person }) =
     joinWith ""
       [ "("
       , show choice

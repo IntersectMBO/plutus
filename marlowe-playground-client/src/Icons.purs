@@ -23,7 +23,8 @@ icon iconType =
         [ ClassName "fa"
         , iconClass iconType
         ]
-    ] []
+    ]
+    []
 
 iconClass ::
   Icon ->

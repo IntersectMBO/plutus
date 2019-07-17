@@ -9,9 +9,8 @@ import Prelude (Unit, ($), (<<<))
 
 foreign import preventDefault :: DragEvent -> Effect Unit
 
-foreign import
-  _readFileFromDragEvent ::
-    Fn3 (String -> Effect Unit) (Error -> Effect Unit) DragEvent (Effect Canceler)
+foreign import _readFileFromDragEvent ::
+  Fn3 (String -> Effect Unit) (Error -> Effect Unit) DragEvent (Effect Canceler)
 
 readFileFromDragEvent :: DragEvent -> Aff String
 readFileFromDragEvent event =

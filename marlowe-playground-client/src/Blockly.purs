@@ -22,41 +22,40 @@ import Web.HTML (HTMLElement)
 
 type GridConfig
   = { spacing :: Int
-  , length :: Int
-  , colour :: String
-  , snap :: Boolean
-  }
+    , length :: Int
+    , colour :: String
+    , snap :: Boolean
+    }
 
 type ZoomConfig
   = { controls :: Boolean
-  , wheel :: Boolean
-  , startScale :: Number
-  , maxScale :: Number
-  , minScale :: Number
-  , scaleSpeed :: Number
-  }
+    , wheel :: Boolean
+    , startScale :: Number
+    , maxScale :: Number
+    , minScale :: Number
+    , scaleSpeed :: Number
+    }
 
 type WorkspaceConfig
   = { toolbox :: HTMLElement
-  , collapse :: Boolean
-  , comments :: Boolean
-  , disable :: Boolean
-  , maxBlocks :: Number
-  , trashcan :: Boolean
-  , horizontalLayout :: Boolean
-  , toolboxPosition :: String
-  , css :: Boolean
-  , media :: String
-  , rtl :: Boolean
-  , scrollbars :: Boolean
-  , sounds :: Boolean
-  , oneBasedIndex :: Boolean
-  , zoom :: ZoomConfig
-  , grid :: GridConfig
-  }
+    , collapse :: Boolean
+    , comments :: Boolean
+    , disable :: Boolean
+    , maxBlocks :: Number
+    , trashcan :: Boolean
+    , horizontalLayout :: Boolean
+    , toolboxPosition :: String
+    , css :: Boolean
+    , media :: String
+    , rtl :: Boolean
+    , scrollbars :: Boolean
+    , sounds :: Boolean
+    , oneBasedIndex :: Boolean
+    , zoom :: ZoomConfig
+    , grid :: GridConfig
+    }
 
 -- Functions that mutate values always work on STRefs rather than regular values
-
 foreign import getElementById_ :: EffectFn1 String HTMLElement
 
 foreign import createBlocklyInstance_ :: Effect Blockly
@@ -83,7 +82,7 @@ createBlocklyInstance workspaceElementId toolboxElementId = do
   blockly <- createBlocklyInstance_
   toolbox <- runEffectFn1 getElementById_ (unwrap toolboxElementId)
   workspace <- runEffectFn3 createWorkspace_ blockly (unwrap workspaceElementId) (config toolbox)
-  pure {blockly, workspace}
+  pure { blockly, workspace }
   where
   config toolbox =
     { toolbox: toolbox
@@ -144,21 +143,21 @@ data Pair
   = Pair String String
 
 instance writeForeignPair :: WriteForeign Pair where
-  writeImpl (Pair first second) = JSON.write [first, second]
+  writeImpl (Pair first second) = JSON.write [ first, second ]
 
 data Arg
-  = Input {name :: String, text :: String, spellcheck :: Boolean}
-  | Dropdown {name :: String, options :: Array Pair}
-  | Checkbox {name :: String, checked :: Boolean}
-  | Colour {name :: String, colour :: String}
-  | Number {name :: String, value :: Number, min :: Maybe Number, max :: Maybe Number, precision :: Maybe Number}
-  | Angle {name :: String, angle :: Number}
-  | Variable {name :: String, variable :: String}
-  | Date {name :: String, date :: String}
-  | Label {text :: Maybe String, class :: Maybe String}
-  | Image {src :: String, width :: Number, height :: Number, alt :: String}
-  | Value {name :: String, check :: String, align :: AlignDirection}
-  | Statement {name :: String, check :: String, align :: AlignDirection}
+  = Input { name :: String, text :: String, spellcheck :: Boolean }
+  | Dropdown { name :: String, options :: Array Pair }
+  | Checkbox { name :: String, checked :: Boolean }
+  | Colour { name :: String, colour :: String }
+  | Number { name :: String, value :: Number, min :: Maybe Number, max :: Maybe Number, precision :: Maybe Number }
+  | Angle { name :: String, angle :: Number }
+  | Variable { name :: String, variable :: String }
+  | Date { name :: String, date :: String }
+  | Label { text :: Maybe String, class :: Maybe String }
+  | Image { src :: String, width :: Number, height :: Number, alt :: String }
+  | Value { name :: String, check :: String, align :: AlignDirection }
+  | Statement { name :: String, check :: String, align :: AlignDirection }
   | DummyRight
   | DummyLeft
   | DummyCentre
@@ -179,9 +178,9 @@ instance writeForeignArg :: WriteForeign Arg where
   writeImpl (Image fields) = JSON.write $ Record.insert type_ "field_image" fields
   writeImpl (Value fields) = JSON.write $ Record.insert type_ "input_value" fields
   writeImpl (Statement fields) = JSON.write $ Record.insert type_ "input_statement" fields
-  writeImpl DummyRight = JSON.write $ {type: "input_dummy", align: Right}
-  writeImpl DummyLeft = JSON.write $ {type: "input_dummy", align: Left}
-  writeImpl DummyCentre = JSON.write $ {type: "input_dummy", align: Centre}
+  writeImpl DummyRight = JSON.write $ { type: "input_dummy", align: Right }
+  writeImpl DummyLeft = JSON.write $ { type: "input_dummy", align: Left }
+  writeImpl DummyCentre = JSON.write $ { type: "input_dummy", align: Centre }
 
 data AlignDirection
   = Left
@@ -195,23 +194,23 @@ instance writeForeignAlignDirection :: WriteForeign AlignDirection where
 
 type BasicBlockDefinition r
   = ( message0 :: String
-  , args0 :: Array Arg
-  , lastDummyAlign0 :: AlignDirection
-  , colour :: String
-  , fieldValue :: Maybe Pair
-  , helpUrl :: String
-  , inputsInline :: Maybe Boolean
-  , nextStatement :: Maybe String
-  , output :: Maybe String
-  , previousStatement :: Maybe String
-  , tooltip :: Maybe String
-  , extensions :: Array String
-  , mutator :: Maybe String
-  | r
-  )
+    , args0 :: Array Arg
+    , lastDummyAlign0 :: AlignDirection
+    , colour :: String
+    , fieldValue :: Maybe Pair
+    , helpUrl :: String
+    , inputsInline :: Maybe Boolean
+    , nextStatement :: Maybe String
+    , output :: Maybe String
+    , previousStatement :: Maybe String
+    , tooltip :: Maybe String
+    , extensions :: Array String
+    , mutator :: Maybe String
+    | r
+    )
 
 newtype BlockDefinition
-  = BlockDefinition (Record (BasicBlockDefinition (type :: String)))
+  = BlockDefinition (Record (BasicBlockDefinition ( type :: String )))
 
 derive instance newtypeBlockDefinition :: Newtype BlockDefinition _
 
@@ -245,29 +244,29 @@ defaultBlockDefinition =
   , mutator: Nothing
   }
 
-xml :: forall p i. Node (id :: String, style :: String) p i
+xml :: forall p i. Node ( id :: String, style :: String ) p i
 xml = element (ElemName "xml")
 
-category :: forall p i. Node (name :: String, colour :: String) p i
+category :: forall p i. Node ( name :: String, colour :: String ) p i
 category = element (ElemName "category")
 
-block :: forall p i. Node (id :: String, type :: String, x :: String, y :: String) p i
+block :: forall p i. Node ( id :: String, type :: String, x :: String, y :: String ) p i
 block = element (ElemName "block")
 
-blockType :: forall i r. String -> IProp (type :: String | r) i
+blockType :: forall i r. String -> IProp ( type :: String | r ) i
 blockType = attr (AttrName "type")
 
-style :: forall i r. String -> IProp (style :: String | r) i
+style :: forall i r. String -> IProp ( style :: String | r ) i
 style = attr (AttrName "style")
 
-colour :: forall i r. String -> IProp (colour :: String | r) i
+colour :: forall i r. String -> IProp ( colour :: String | r ) i
 colour = attr (AttrName "colour")
 
-name :: forall i r. String -> IProp (name :: String | r) i
+name :: forall i r. String -> IProp ( name :: String | r ) i
 name = attr (AttrName "name")
 
-x :: forall i r. String -> IProp (x :: String | r) i
+x :: forall i r. String -> IProp ( x :: String | r ) i
 x = attr (AttrName "x")
 
-y :: forall i r. String -> IProp (y :: String | r) i
+y :: forall i r. String -> IProp ( y :: String | r ) i
 y = attr (AttrName "y")
