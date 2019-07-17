@@ -16,15 +16,15 @@ import Prelude (($), (<$>), (<<<))
 mkNewGist ::
   Maybe SourceCode ->
   Maybe NewGist
-mkNewGist source = if Array.null gistFiles then
-  Nothing
-else
-  Just
-    $ NewGist
-        { _newGistDescription: "Marlowe Smart Contract"
-        , _newGistPublic: true
-        , _newGistFiles: gistFiles
-        }
+mkNewGist source = if Array.null gistFiles
+  then Nothing
+  else
+    Just
+      $ NewGist
+          { _newGistDescription: "Marlowe Smart Contract"
+          , _newGistPublic: true
+          , _newGistFiles: gistFiles
+          }
   where
   gistFiles =
     catMaybes
