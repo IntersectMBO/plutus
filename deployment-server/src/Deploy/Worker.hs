@@ -121,7 +121,12 @@ createGithubDeploymentRequest ref environment =
             { createDeploymentRef = Text.pack ref
             , createDeploymentTask = Nothing
             , createDeploymentAutoMerge = Just False
-            , createDeploymentRequiredContexts = Nothing
+            -- our CI is set up so that after a PR is merged Hydra and buildkite run again on master
+            -- these jobs are effictively no-ops but it means that creating a deployment fails because
+            -- they are in the 'pending' state right after the merge when this request is sent
+            -- we therefore ignore all contexts and rely on not being allowed to merge until the statuses
+            -- are green
+            , createDeploymentRequiredContexts = Just mempty
             -- despite being `Maybe a` this fails if the value is `Nothing`
             , createDeploymentPayload = Just ""
             , createDeploymentEnvironment = Just $ Text.pack environment
