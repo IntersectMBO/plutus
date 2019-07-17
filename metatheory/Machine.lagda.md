@@ -41,24 +41,36 @@ data State{Φ}(Γ : Ctx Φ) : Set where
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Empty
 
-step : ∀{Φ}{Γ : Ctx Φ} → NoVar Γ → State Γ → Σ Ctx⋆ λ Φ' → Σ (Ctx Φ') State
+step : ∀{Φ}{Γ : Ctx Φ} → NoVar Γ → State Γ → Σ Ctx⋆ λ Φ' → Σ (Ctx Φ') λ Γ → NoVar Γ × State Γ
 step {Φ}{Γ} p (s ▻ ` x)              = ⊥-elim (noVar p x)
-step {Φ}{Γ} p (s ▻ ƛ x L)            = Φ      ,, Γ      ,, s ◅ V-ƛ {x = x}{N = L}
-step {Φ}{Γ} p (s ▻ (L · M))          = Φ      ,, Γ      ,, (s , (-· M)) ▻ L
-step {Φ}{Γ} p (s ▻ Λ x L)            = Φ ,⋆ _ ,, Γ ,⋆ _ ,, (s , Λ-) ▻ L
-step {Φ}{Γ} p (s ▻ (L ·⋆ A))         = Φ      ,, Γ      ,, (s , (-·⋆ A)) ▻ L
-step {Φ}{Γ} p (s ▻ wrap1 pat arg L)  = Φ      ,, Γ      ,, (s , wrap-) ▻ L
-step {Φ}{Γ} p (s ▻ unwrap1 L)        = Φ      ,, Γ      ,, (s , unwrap-) ▻ L
-step {Φ}{Γ} p (s ▻ con {Γ = Γ} cn)   = Φ      ,, Γ      ,, s ◅ V-con {Γ = Γ} cn
-step {Φ}{Γ} p (s ▻ builtin bn σ tel) = Φ      ,, Γ      ,, ◆ (substNf σ (proj₂ (proj₂ (SIG bn))))
-step {Φ}{Γ} p (s ▻ error A)          = Φ      ,, Γ      ,, ◆ A
-step {Φ}{Γ} p (ε ◅ V)                = Φ      ,, Γ      ,, □ V
-step {Φ}{Γ} p ((s , (-· M)) ◅ V)     = _      ,, _      ,, ((s , V ·-) ▻ M)
-step p (_◅_ (s , (V-ƛ {N = t} ·-)) {u} V) = _ ,, _ ,, s ▻ (t [ u ])
-step {.(_ ,⋆ _)}{Γ} p ((s , Λ-) ◅ V) = _ ,, _ ,, s ◅ V-Λ V
-step {Φ}{Γ} p ((s , (-·⋆ A)) ◅ V-Λ {N = t} V) = _ ,, _ ,, (s ▻ (t [ A ]⋆))
-step {Φ}{Γ} p ((s , wrap-) ◅ V) = _ ,, _ ,, s ◅ (V-wrap V)
-step {Φ}{Γ} p ((s , unwrap-) ◅ V-wrap V) = _ ,, _ ,, s ◅ V
-step {Φ}{Γ} p (□ V)   = _ ,, _ ,, □ V
-step {Φ}{Γ} p (◆ A)   = _ ,, Γ ,, ◆ A
+step {Φ}{Γ} p (s ▻ ƛ x L)            = Φ      ,, Γ      ,, p ,, s ◅ V-ƛ {x = x}{N = L}
+step {Φ}{Γ} p (s ▻ (L · M))          = Φ      ,, Γ      ,, p ,, (s , (-· M)) ▻ L
+step {Φ}{Γ} p (s ▻ Λ x L)            = Φ ,⋆ _ ,, Γ ,⋆ _ ,, p ,, (s , Λ-) ▻ L
+step {Φ}{Γ} p (s ▻ (L ·⋆ A))         = Φ      ,, Γ      ,, p ,, (s , (-·⋆ A)) ▻ L
+step {Φ}{Γ} p (s ▻ wrap1 pat arg L)  = Φ      ,, Γ      ,, p ,, (s , wrap-) ▻ L
+step {Φ}{Γ} p (s ▻ unwrap1 L)        = Φ      ,, Γ      ,, p ,, (s , unwrap-) ▻ L
+step {Φ}{Γ} p (s ▻ con {Γ = Γ} cn)   = Φ      ,, Γ      ,, p ,, s ◅ V-con {Γ = Γ} cn
+step {Φ}{Γ} p (s ▻ builtin bn σ tel) = Φ      ,, Γ      ,, p ,, ◆ (substNf σ (proj₂ (proj₂ (SIG bn))))
+step {Φ}{Γ} p (s ▻ error A)          = Φ      ,, Γ      ,, p ,, ◆ A
+step {Φ}{Γ} p (ε ◅ V)                = Φ      ,, Γ      ,, p ,, □ V
+step {Φ}{Γ} p ((s , (-· M)) ◅ V)     = _      ,, _      ,, p ,, ((s , V ·-) ▻ M)
+step p (_◅_ (s , (V-ƛ {N = t} ·-)) {u} V) = _ ,, _      ,, p ,, s ▻ (t [ u ])
+step {.(_ ,⋆ _)}{Γ} p ((s , Λ-) ◅ V) = _      ,, _      ,, p ,, s ◅ V-Λ V
+step {Φ}{Γ} p ((s , (-·⋆ A)) ◅ V-Λ {N = t} V) = _ ,, _ ,, p ,, s ▻ (t [ A ]⋆)
+step {Φ}{Γ} p ((s , wrap-) ◅ V)               = _ ,, _ ,, p ,, s ◅ (V-wrap V)
+step {Φ}{Γ} p ((s , unwrap-) ◅ V-wrap V)      = _ ,, _ ,, p ,, s ◅ V
+step {Φ}{Γ} p (□ V)                           = _ ,, _ ,, p ,, □ V
+step {Φ}{Γ} p (◆ A)                           = _ ,, Γ ,, p ,, ◆ A
 ```
+
+```
+open import Data.Nat
+open import Data.Maybe
+
+stepper : ℕ → ∀{Φ}{Γ : Ctx Φ} → NoVar Γ → State Γ → Σ Ctx⋆ λ Φ' → Σ (Ctx Φ') λ Γ → NoVar Γ × Maybe (State Γ)
+stepper zero {Γ = Γ} p st = _ ,, Γ ,, p ,, nothing 
+stepper (suc n) p st with step p st
+stepper (suc n) p st | Φ ,, Γ ,, q ,, (s ▻ M) = stepper n q (s ▻ M)
+stepper (suc n) p st | Φ ,, Γ ,, q ,, (s ◅ V) = stepper n q (s ◅ V)
+stepper (suc n) p st | Φ ,, Γ ,, q ,, (□ V)   = Φ ,, Γ ,, q ,, just (□ V)
+stepper (suc n) p st | Φ ,, Γ ,, q ,, ◆ A     = Φ ,, Γ ,, q ,, just (◆ A)
