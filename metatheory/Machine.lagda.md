@@ -81,3 +81,14 @@ stepper (suc n) p st | Φ ,, Γ ,, q ,, (s ▻ M) = stepper n q (s ▻ M)
 stepper (suc n) p st | Φ ,, Γ ,, q ,, (s ◅ V) = stepper n q (s ◅ V)
 stepper (suc n) p st | Φ ,, Γ ,, q ,, (□ V)   = Φ ,, Γ ,, q ,, just (□ V)
 stepper (suc n) p st | Φ ,, Γ ,, q ,, ◆ A     = Φ ,, Γ ,, q ,, just (◆ A)
+```
+
+This is the property I would like to have, but it cannot be proved directly like this:
+
+```
+open import Relation.Binary.PropositionalEquality
+
+preservation : ∀ n {Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *}(p : NoVar Γ)(t : Γ ⊢ A)
+  → Σ (Φ ⊢Nf⋆ *) λ A' → Σ (Γ ⊢ A') λ t' → Σ (Value t') λ v → stepper n p (ε ▻ t) ≡ (Φ ,, Γ ,, p ,, just (□ v)) → A ≡ A'
+
+```
