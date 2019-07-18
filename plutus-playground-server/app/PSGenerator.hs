@@ -29,7 +29,6 @@ import qualified Data.Text                                  as T ()
 import qualified Data.Text.Encoding                         as T (encodeUtf8)
 import qualified Data.Text.IO                               as T ()
 import           Gist                                       (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
-import           Git                                        (gitRev)
 import           Language.Haskell.Interpreter               (CompilationError, InterpreterError, InterpreterResult,
                                                              SourceCode, Warning)
 import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), PSType, SumType,
@@ -294,7 +293,7 @@ psModule name body = "module " <> name <> " where" <> body
 writeUsecases :: FilePath -> IO ()
 writeUsecases outputDir = do
     let usecases =
-            multilineString "gitRev" gitRev <> multilineString "vesting" vesting <>
+            multilineString "vesting" vesting <>
             multilineString "game" game <>
             multilineString "crowdfunding" crowdfunding <>
             multilineString "messages" messages
