@@ -107,7 +107,7 @@ in
         };
 
     environment.systemPackages = with pkgs;
-                    [ nixops vim tmux git curl ];
+                    [ nixops vim tmux git curl jq ];
 
     services.grafana = {
       enable = true;
