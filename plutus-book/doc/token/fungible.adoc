@@ -55,11 +55,11 @@ validateFungible :: Fungible -> FungibleValidator
 validateFungible f () n tx = 
     case pendingTxOutputs tx of
         [o] -> case pendingTxOutData o of
+            DataTxOut       -> False
             PubKeyTxOut key ->
                    key == issuer f          -- <1>
                 && txSignedBy tx (issuer f) -- <2>
                 && pendingTxOutValue o == v -- <3>
-            DataTxOut     -> False
         _   -> False                        -- <4>
   where
     v :: Value                              -- <5>
@@ -111,11 +111,11 @@ fungibleValue f = V.singleton (fungibleSymbol f) (name f)
 
 Now we can turn our attention to writing the wallet endpoint `forge`,
 which will allow the wallet owner to forge new money (provided she is the issuer
-of the currency). In order to do this, we first have to create an UTxO (with
+of the currency). In order to do this, we first have to create an UTXO (with
 zero value), at the
-script address representing the monetary policy. We have to wait until that UTxO
+script address representing the monetary policy. We have to wait until that UTXO
 is visible on the blockchain and then we can issue the forging transaction, which
-will use the previous UTxO as input to validate its forging.
+will use the previous UTXO as input to validate its forging.
 
 [source,haskell]
 ----
@@ -187,9 +187,9 @@ output at the "monetary policy"-address.
 
 <4> We simply wait for one slot.
 
-<5> The UTxO we need as input is on the blockchain.
+<5> The UTXO we need as input is on the blockchain.
 
-<6> We use the UTxO created in the first step as input for the forging
+<6> We use the UTXO created in the first step as input for the forging
 transaction.
 
 <7> The forged value goes to the wallet owner.

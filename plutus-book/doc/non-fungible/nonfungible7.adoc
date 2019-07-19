@@ -1,0 +1,178 @@
+////
+[source,haskell]
+----
+{-# LANGUAGE DataKinds                       #-}
+{-# LANGUAGE DeriveAnyClass                  #-}
+{-# LANGUAGE NoImplicitPrelude               #-}
+{-# LANGUAGE ScopedTypeVariables             #-}
+{-# LANGUAGE TemplateHaskell                 #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+
+module NonFungible.NonFungible7 where
+
+import           Language.PlutusTx
+import qualified Language.PlutusTx.AssocMap as AM
+import           Language.PlutusTx.Prelude  hiding (plus, minus)
+import           Ledger
+import qualified Ledger.Ada                 as A
+import qualified Ledger.Value               as V
+import           Playground.Contract
+import           Wallet
+
+import           Control.Monad (void)
+import           Control.Monad.Except       (MonadError (..))
+import qualified Data.ByteString.Lazy.Char8 as C
+import           Data.List                  (find)
+import qualified Data.Map.Strict            as Map
+import qualified Data.Set                   as Set
+import qualified Data.Text                  as T
+
+data NonFungible = NonFungible
+    { issuer :: PubKey
+    } deriving (Show, Generic, ToJSON, FromJSON, ToSchema)
+
+makeLift ''NonFungible
+
+type NonFungibleValidator =
+       ()
+    -> TokenName
+    -> PendingTx
+    -> Bool
+
+validateNonFungible :: NonFungible -> NonFungibleValidator
+validateNonFungible nf () name tx =
+       txSignedBy tx (issuer nf)
+    && case (pendingTxInputs tx, pendingTxOutputs tx) of
+        ([i], os@(o : _)) ->
+            let inValue = pendingTxInValue i
+            in     foldl f V.zero os
+                    == (inValue `V.plus` v3)
+                && pendingTxOutValue o
+                    == (inValue `V.plus` v2)
+                && V.valueOf inValue s name == 0
+                && case pendingTxOutHashes o of
+                    Just (vh, _) -> vh == ownHash tx
+                    Nothing      -> False
+        _                 -> False
+  where
+    s :: CurrencySymbol
+    s = ownCurrencySymbol tx
+
+    v, v2, v3 :: Value
+    v  = V.singleton s name 1
+    v2 = v `V.plus` v
+    v3 = v2 `V.plus` v
+
+    f :: Value -> PendingTxOut -> Value
+    f w o = w `V.plus` pendingTxOutValue o
+
+mkNonFungibleRedeemer :: String -> RedeemerScript
+mkNonFungibleRedeemer name =
+    let s = $$(compileScript [|| \(t :: TokenName) (_ :: Sealed ()) -> t ||])
+    in  RedeemerScript $ applyScript s $ lifted $ TokenName $ C.pack name
+
+mkNonFungibleValidator :: NonFungible -> ValidatorScript
+mkNonFungibleValidator = ValidatorScript
+                       . applyScript $$(compileScript [|| validateNonFungible ||])
+                       . lifted
+
+nonFungibleAddress :: NonFungible -> Address
+nonFungibleAddress = scriptAddress . mkNonFungibleValidator
+
+nonFungibleSymbol :: NonFungible -> CurrencySymbol
+nonFungibleSymbol nf = case validatorScriptHash $ mkNonFungibleValidator nf of
+    ValidatorHash h -> V.currencySymbol h
+
+nonFungibleValue :: NonFungible -> String -> Value
+nonFungibleValue nf name = V.singleton
+    (nonFungibleSymbol nf)
+    (TokenName $ C.pack name)
+    1
+
+mkNonFungibleTxOut :: NonFungible -> Value -> TxOut
+mkNonFungibleTxOut nf v =
+    scriptTxOut
+        v
+        (mkNonFungibleValidator nf)
+        unitData
+
+start :: MonadWallet m => m ()
+start = do
+
+    key <- ownPubKey
+    let nf = NonFungible {issuer = key}
+    logMsg $ T.pack $
+        "starting " ++ show nf
+    startWatching $ nonFungibleAddress nf
+
+    void $ createTxAndSubmit
+        defaultSlotRange
+        Set.empty
+        [mkNonFungibleTxOut nf V.zero]
+----
+////
+
+[source,haskell,highlight='40-42']
+----
+forge :: forall m. MonadWallet m
+      => String -- token name
+      -> m ()
+forge n = do
+
+    key <- ownPubKey
+    let nf = NonFungible {issuer = key}
+    logMsg $ T.pack $
+        "forging " ++ n ++ " of " ++ show nf
+
+    outs <- outputsAt $ nonFungibleAddress nf
+    case findOut (nonFungibleSymbol nf) $ Map.toList outs of
+        Just (ref, o) -> do
+            let v    = nonFungibleValue nf n
+                v2   = v `V.plus` v
+                v3   = v2 `V.plus` v
+                vIn  = txOutValue o
+                vOut = vIn `V.plus` v2
+            signTxAndSubmit_ Tx
+                { txInputs     = Set.singleton $ scriptTxIn
+                                    ref
+                                    (mkNonFungibleValidator nf)
+                                    (mkNonFungibleRedeemer n)
+                , txOutputs    = [ mkNonFungibleTxOut nf vOut
+                                 , pubKeyTxOut v key
+                                 ]
+                , txFee        = A.zero
+                , txForge      = v3
+                , txValidRange = defaultSlotRange
+                , txSignatures = Map.empty
+                }
+        _         -> throwError $
+                        OtherError $ T.pack "'start' has not run"
+  where
+    findOut :: CurrencySymbol
+            -> [(TxOutRef, TxOut)]
+            -> Maybe (TxOutRef, TxOut)
+    findOut s xs =
+        let ys = filter f xs
+        in  case find (zero . snd) ys of                            -- <1>
+                Just x  -> Just x
+                Nothing -> find (ours s . snd) ys
+
+    f :: (TxOutRef, TxOut) -> Bool
+    f (_, o) = case txOutType o of
+        PayToPubKey _  -> False
+        PayToScript ds -> ds == unitData
+
+    ours :: CurrencySymbol -> TxOut -> Bool
+    ours s o = case AM.lookup s $ V.getValue $ txOutValue o of
+        Nothing -> False
+        Just m  -> any (>= 2) [i | (_, i) <- AM.toList m]
+
+    zero :: TxOut -> Bool
+    zero o = txOutValue o == V.zero
+
+$(mkFunctions ['start, 'forge])
+----
+
+<1> Before we _first_ looked for an output that contains one token at least
+twice, _then_ looked for one with zero value. We simple swap these two here, so
+now we will pick an output with value zero if there is one.

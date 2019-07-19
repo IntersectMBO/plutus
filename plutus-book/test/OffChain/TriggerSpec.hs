@@ -21,7 +21,7 @@ spec = do
 mkSpec :: (Slot -> Wallet -> Ada -> MockWallet ()) -> SpecWith ()
 mkSpec waitUntil =
     it "behaves as expected" $
-        isRight (fst $ getResult tr) `shouldBe` True
+        fst (getResult tr) `shouldSatisfy` isRight
 
   where
     ada :: Ada

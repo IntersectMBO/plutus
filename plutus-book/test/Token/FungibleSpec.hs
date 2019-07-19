@@ -21,14 +21,14 @@ spec :: Spec
 spec = do
     describe "forge" $
         it "forges" $
-            isRight (fst $ getResult tr1) `shouldBe` True
+            fst (getResult tr1) `shouldSatisfy` isRight
     describe "buy/sell" $ do
         it "works if both parties pay" $
-            isRight (fst $ getResult tr2) `shouldBe` True
+            fst (getResult tr2) `shouldSatisfy` isRight
         it "works if buyer doesn't pay" $
-            isRight (fst $ getResult tr3) `shouldBe` True
+            fst (getResult tr3) `shouldSatisfy` isRight
         it "works if seller doesn't pay" $
-            isRight (fst $ getResult tr4) `shouldBe` True
+            fst (getResult tr4) `shouldSatisfy` isRight
   where
     plutus :: String
     plutus = "Plutus"
@@ -46,7 +46,7 @@ spec = do
     sl :: Slot
     sl = Slot 15
 
-    tr1, tr2 :: Trace MockWallet ()
+    tr1, tr2, tr3, tr4 :: Trace MockWallet ()
     tr1 = void $ do
         updateWallets
         void $ walletAction w1 $ forge plutus p1

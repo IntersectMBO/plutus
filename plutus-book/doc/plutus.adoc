@@ -70,4 +70,6 @@ include::multi/multi.adoc[]
 
 include::token/token.adoc[]
 
+include::non-fungible/non-fungible.adoc[]
+
 include::endmatter.adoc[]
