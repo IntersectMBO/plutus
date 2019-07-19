@@ -34,7 +34,7 @@ data Stack : ∀{n}(i : Weirdℕ n) → Set where
 data State{n}(i : Weirdℕ n) : Set where
   _▻_ : Stack i → ScopedTm i → State i
   _◅_ : Stack i → {t : ScopedTm i} →  Value t → State i
-  □_  : {t : ScopedTm i} →  Value t → State i
+  □  : {t : ScopedTm i} →  Value t → State i
   ◆   : State i
 
 open import Data.Product renaming (_,_ to _,,_)
@@ -84,7 +84,7 @@ step {i = i} p ◆              = _ ,, i ,, p ,, ◆
 ```
 
 ```
-open import Data.Maybe
+open import Utils
 stepper : ℕ → ∀{n}{i : Weirdℕ n} → NoVar i → State i → Σ ℕ λ n' → Σ (Weirdℕ n') λ i' → NoVar i' × Maybe (State i')
 stepper zero {i = i} p st = _ ,, i ,, p ,, nothing 
 stepper (suc n) p st with step p st

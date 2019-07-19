@@ -103,14 +103,21 @@ postulate prettyPrint : RawTm → String
 
 open import Data.Vec hiding (_>>=_)
 
+open import Scoped.CK
+
 -- extrinsically typed evaluation
 stestPLC : ByteString → String
 stestPLC plc with parse plc
 stestPLC plc | just t with deBruijnifyTm nil (convP t)
 stestPLC plc | just t | just t' with S.run (saturate t') 1000000
-stestPLC plc | just t | just t' | t'' ,, p ,, inj₁ (just v) =
---  prettyPrint (unDeBruijnify zero Z (unsaturate t''))
- prettyPrint (deDeBruijnify [] nil (unsaturate t''))
+stestPLC plc | just t | just t' | t'' ,, _ ,, inj₁ (just _) =
+  prettyPrint (deDeBruijnify [] nil (unsaturate t''))
+{- we need to know that n and i are both 0 for this: 
+stestPLC plc | just t | just t' with stepper 1000000 _ (ε ▻ saturate t')
+stestPLC plc | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
+-}
+
+
 stestPLC plc | just t | just t' | t'' ,, p ,, inj₁ nothing = "out of fuel"
 stestPLC plc | just t | just t' | t'' ,, p ,, inj₂ e =
   "runtime error" Data.String.++
