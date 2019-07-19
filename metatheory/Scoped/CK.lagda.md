@@ -85,15 +85,13 @@ step {i = i} p ◆              = _ ,, i ,, p ,, ◆
 
 ```
 open import Data.Maybe
-{-
-stepper : ℕ → ∀{Φ}{Γ : Ctx Φ} → NoVar Γ → State Γ → Σ Ctx⋆ λ Φ' → Σ (Ctx Φ') λ Γ → NoVar Γ × Maybe (State Γ)
-stepper zero {Γ = Γ} p st = _ ,, Γ ,, p ,, nothing 
+stepper : ℕ → ∀{n}{i : Weirdℕ n} → NoVar i → State i → Σ ℕ λ n' → Σ (Weirdℕ n') λ i' → NoVar i' × Maybe (State i')
+stepper zero {i = i} p st = _ ,, i ,, p ,, nothing 
 stepper (suc n) p st with step p st
-stepper (suc n) p st | Φ ,, Γ ,, q ,, (s ▻ M) = stepper n q (s ▻ M)
-stepper (suc n) p st | Φ ,, Γ ,, q ,, (s ◅ V) = stepper n q (s ◅ V)
-stepper (suc n) p st | Φ ,, Γ ,, q ,, (□ V)   = Φ ,, Γ ,, q ,, just (□ V)
-stepper (suc n) p st | Φ ,, Γ ,, q ,, ◆ A     = Φ ,, Γ ,, q ,, just (◆ A)
--}
+stepper (suc n) p st | Φ ,, i ,, q ,, (s ▻ M) = stepper n q (s ▻ M)
+stepper (suc n) p st | Φ ,, i ,, q ,, (s ◅ V) = stepper n q (s ◅ V)
+stepper (suc n) p st | Φ ,, i ,, q ,, (□ V)   = Φ ,, i ,, q ,, just (□ V)
+stepper (suc n) p st | Φ ,, i ,, q ,, ◆       = Φ ,, i ,, q ,, just ◆
 ```
 
 This is the property I would like to have, but it cannot be proved directly like this:
