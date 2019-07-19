@@ -1,7 +1,7 @@
 # CK machine
 
 ```
-module Machine where
+module Algorithmic.CK where
 ```
 
 ```
@@ -88,7 +88,8 @@ This is the property I would like to have, but it cannot be proved directly like
 ```
 open import Relation.Binary.PropositionalEquality
 
+{-
 preservation : ∀ n {Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *}(p : NoVar Γ)(t : Γ ⊢ A)
   → Σ (Φ ⊢Nf⋆ *) λ A' → Σ (Γ ⊢ A') λ t' → Σ (Value t') λ v → stepper n p (ε ▻ t) ≡ (Φ ,, Γ ,, p ,, just (□ v)) → A ≡ A'
-
+-}
 ```

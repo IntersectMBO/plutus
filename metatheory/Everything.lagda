@@ -56,7 +56,7 @@ import Algorithmic.Soundness
 import Algorithmic.Completeness
 import Algorithmic.Erasure
 import Algorithmic.Erasure.Reduction
-
+import Algorithmic.CK
 -- Terms, that carry witnesses of their type's reduction to normal form
 
 import AlgorithmicRed.Term
@@ -79,4 +79,5 @@ import Scoped.Extrication.RenamingSubstitution
 import Scoped.Erasure
 import Scoped.Erasure.RenamingSubstitution
 --import Scoped.Erasure.Reduction
+import Scoped.CK
 \end{code}
