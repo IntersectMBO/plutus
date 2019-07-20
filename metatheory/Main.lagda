@@ -105,23 +105,38 @@ open import Data.Vec hiding (_>>=_)
 
 open import Scoped.CK
 
+tvars : ∀{n} → Vec String n
+tvars {zero}      = []
+tvars {Nat.suc n} =
+  ("tvar" Data.String.++ Data.Integer.show (pos n)) ∷ tvars {n}
+
+-- this is not very useful but I am expecting that it won't be used
+vars : ∀{n}{i : Weirdℕ n} → WeirdVec String i
+vars {i = Z} = nil
+vars {i = S i} = consS "varS" (vars {i = i})
+vars {i = T i} = consT "varT" (vars {i = i})
+
 -- extrinsically typed evaluation
 stestPLC : ByteString → String
 stestPLC plc with parse plc
 stestPLC plc | just t with deBruijnifyTm nil (convP t)
+{-
 stestPLC plc | just t | just t' with S.run (saturate t') 1000000
 stestPLC plc | just t | just t' | t'' ,, _ ,, inj₁ (just _) =
   prettyPrint (deDeBruijnify [] nil (unsaturate t''))
-{- we need to know that n and i are both 0 for this: 
+-}
 stestPLC plc | just t | just t' with stepper 1000000 _ (ε ▻ saturate t')
 stestPLC plc | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
--}
-
-
+  prettyPrint (deDeBruijnify tvars vars (unsaturate t''))
+stestPLC plc | just t | just t' | _ ,, _ ,, _ ,,  just _ =
+  "this shouldn't happen"
+stestPLC plc | just t | just t' | _ ,, _ ,, _ ,,  nothing = "out of fuel"
+{-
 stestPLC plc | just t | just t' | t'' ,, p ,, inj₁ nothing = "out of fuel"
 stestPLC plc | just t | just t' | t'' ,, p ,, inj₂ e =
   "runtime error" Data.String.++
   prettyPrint (deDeBruijnify [] nil (unsaturate t''))
+-}
 stestPLC plc | just t | nothing = "scope error"
 stestPLC plc | nothing = "parse error"
 
