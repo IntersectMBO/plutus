@@ -12,6 +12,7 @@ module Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine(
     , Payment(..)
     , State
     , validator
+    , mkValidator
     , initialise
     , lock
     , proposePayment
@@ -24,7 +25,7 @@ import           Data.Foldable                (foldMap)
 import qualified Data.Set                     as Set
 import           Ledger                       (DataScript(..), RedeemerScript(..), ValidatorScript(..))
 import qualified Ledger
-import qualified Ledger.Slot                  as Slot
+import qualified Ledger.Interval              as Interval
 import           Ledger.Validation            (PendingTx(..))
 import qualified Ledger.Validation            as Validation
 import           Ledger.Value                 (Value)
@@ -68,7 +69,7 @@ isValidProposal vl (Payment amt _ _) = amt `Value.leq` vl
 
 -- | Check whether a proposed 'Payment' has expired.
 proposalExpired :: PendingTx -> Payment -> Bool
-proposalExpired (PendingTx _ _ _ _ _ rng _ _) (Payment _ _ ddl) = Slot.before ddl rng
+proposalExpired (PendingTx _ _ _ _ _ rng _ _) (Payment _ _ ddl) = Interval.before ddl rng
 
 -- | Check whether enough signatories (represented as a list of public keys)
 --   have signed a proposed payment.
@@ -108,6 +109,7 @@ step s i = case (s, i) of
         InitialState vl'
     _ -> error (traceH "invalid transition" ())
 
+{-# INLINABLE stepWithChecks #-}
 -- | @stepWithChecks params ptx state input@ computes the next state given
 --   current state @state@ and the input. It checks whether the pending
 --   transaction @ptx@ pays the expected amounts to script and public key
@@ -143,6 +145,7 @@ stepWithChecks p ptx s i =
             else traceErrorH "Pay invalid"
         _ -> traceErrorH "invalid transition"
 
+{-# INLINABLE mkValidator #-}
 mkValidator :: Params -> (State, Maybe Input) -> (State, Maybe Input) -> PendingTx -> Bool
 mkValidator p ds vs ptx =
     let sm = StateMachine (stepWithChecks p ptx) in

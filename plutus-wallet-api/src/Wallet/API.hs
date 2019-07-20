@@ -10,8 +10,8 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeFamilies       #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
-{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- | The interface between the wallet and Plutus client code.
 module Wallet.API(
     WalletAPI(..),
@@ -43,7 +43,7 @@ module Wallet.API(
     intervalFrom,
     intervalTo,
     singleton,
-    empty,
+    isEmpty,
     always,
     member,
     width,
@@ -101,9 +101,9 @@ import           Ledger                    (Address, DataScript, PubKey (..), Re
                                             TxOutType (..), ValidatorScript, Value, getTxId, hashTx, outValue,
                                             pubKeyTxOut, scriptAddress, scriptTxIn, signatures, txOutRefId)
 import           Ledger.AddressMap         (AddressMap)
-import           Ledger.Interval           (Interval (..), always, interval)
+import           Ledger.Interval           (Interval (..), after, always, before, contains, interval, isEmpty, member)
 import qualified Ledger.Interval           as Interval
-import           Ledger.Slot               (after, before, contains, empty, singleton, width)
+import           Ledger.Slot               (singleton, width)
 import qualified Ledger.Value              as Value
 import           Text.Show.Deriving        (deriveShow1)
 
@@ -479,14 +479,6 @@ intervalFrom = Interval.from
 -- | See 'Interval.to'.
 intervalTo :: a -> Interval a
 intervalTo = Interval.to
-
--- | Check whether an 'Interval' @a@ includes an @a@.
-member :: Ord a => a -> Interval a -> Bool
-member v (Interval.Interval f t) =
-    let lw = case f of { Nothing -> True; Just v' -> v >= v'; }
-        hg = case t of { Nothing -> True; Just v' -> v < v';  }
-    in
-        lw && hg
 
 -- | Emit a warning if the value at an address is zero.
 warnEmptyTransaction :: (WalletDiagnostics m) => Value -> Address -> m ()

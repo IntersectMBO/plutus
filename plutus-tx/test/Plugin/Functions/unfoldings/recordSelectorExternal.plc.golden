@@ -19,7 +19,7 @@
           MyExternalRecord
           [
             { [ MyExternalRecord_match ds ] (con integer) }
-            (lam ds1 (con integer) ds1)
+            (lam ds (con integer) ds)
           ]
         )
       )

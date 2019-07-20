@@ -12,7 +12,8 @@ module Language.PlutusTx.Coordination.Contracts.Game(
     gameDataScript,
     gameRedeemerScript,
     -- * Address
-    gameAddress
+    gameAddress,
+    validateGuess
     ) where
 
 import qualified Language.PlutusTx            as PlutusTx

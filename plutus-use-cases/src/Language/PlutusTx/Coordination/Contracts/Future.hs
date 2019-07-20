@@ -22,7 +22,8 @@ module Language.PlutusTx.Coordination.Contracts.Future(
     settleEarly,
     adjustMargin,
     -- * Script
-    validatorScript
+    validatorScript,
+    mkValidator
     ) where
 
 import           Control.Monad                (void)
@@ -34,7 +35,7 @@ import           Language.PlutusTx.Prelude
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       (DataScript (..), Slot(..), PubKey, TxOutRef, ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
-import qualified Ledger.Slot                  as Slot
+import qualified Ledger.Interval              as Interval
 import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxOut (..))
 import qualified Ledger.Validation            as Validation
 import qualified Ledger.Ada                   as Ada
@@ -205,6 +206,7 @@ requiredMargin Future{futureUnits=units, futureUnitPrice=unitPrice, futureMargin
     in
         Ada.plus pnlty delta
 
+{-# INLINABLE mkValidator #-}
 mkValidator :: Future -> FutureData -> FutureRedeemer -> PendingTx -> Bool
 mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pendingTxValidRange=range} =
     let
@@ -240,7 +242,7 @@ mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pe
                     delta  = Ada.multiply (Ada.fromInt futureUnits) (Ada.minus spotPrice futureUnitPrice)
                     expShort = Ada.minus futureDataMarginShort delta
                     expLong  = Ada.plus futureDataMarginLong delta
-                    slotvalid = Slot.member futureDeliveryDate range
+                    slotvalid = Interval.member futureDeliveryDate range
 
                     canSettle =
                         case outs of

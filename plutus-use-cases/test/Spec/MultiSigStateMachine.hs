@@ -1,4 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE TemplateHaskell #-}
 module Spec.MultiSigStateMachine(tests) where
 
 import           Control.Monad                                                 (foldM, void, (>=>))
@@ -7,15 +9,18 @@ import           Data.Either                                                   (
 import           Data.Foldable                                                 (traverse_)
 import qualified Data.Map                                                      as Map
 import qualified Data.Text                                                     as Text
-import qualified Spec.Size                                                     as Size
 import           Test.Tasty                                                    (TestTree, testGroup)
 import qualified Test.Tasty.HUnit                                              as HUnit
+
+import           Spec.Lib                                                      as Lib
 
 import qualified Ledger.Ada                                                    as Ada
 import           Ledger.Value                                                  (Value)
 import           Wallet.API                                                    (WalletAPI,
                                                                                 WalletDiagnostics)
 import qualified Wallet.Emulator                                               as EM
+
+import qualified Language.PlutusTx as PlutusTx
 
 import           Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine (Payment, State)
 import qualified Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine as MS
@@ -24,7 +29,8 @@ tests :: TestTree
 tests = testGroup "multi sig state machine tests" [
     HUnit.testCaseSteps "lock, propose, sign 3x, pay - SUCCESS" (runTrace (lockProposeSignPay 3) isRight),
     HUnit.testCaseSteps "lock, propose, sign 2x, pay - FAILURE" (runTrace (lockProposeSignPay 2) isLeft),
-    HUnit.testCase "script size is reasonable" (Size.reasonable (MS.validator params) 350000)
+    Lib.goldenPir "test/Spec/multisigStateMachine.pir" $$(PlutusTx.compile [|| MS.mkValidator ||]),
+    HUnit.testCase "script size is reasonable" (Lib.reasonable (MS.validator params) 350000)
     ]
 
 runTrace :: EM.EmulatorAction a -> (Either EM.AssertionError a -> Bool) -> (String -> IO ()) -> IO ()

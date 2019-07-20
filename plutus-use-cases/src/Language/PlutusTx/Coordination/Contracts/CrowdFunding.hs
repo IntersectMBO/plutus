@@ -12,6 +12,7 @@
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
 module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     -- * Campaign parameters
     Campaign(..)
@@ -22,12 +23,13 @@ module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     , campaignAddress
     -- * Validator script
     , contributionScript
+    , mkValidator
     , mkCampaign
     ) where
 
 import qualified Language.PlutusTx           as PlutusTx
+import qualified Ledger.Interval             as Interval
 import           Ledger.Slot                 (SlotRange)
-import qualified Ledger.Slot                 as Slot
 import           Language.PlutusTx.Prelude
 import           Ledger
 import           Ledger.Validation           as V
@@ -85,12 +87,12 @@ type CrowdfundingValidator = PubKey -> CampaignAction -> PendingTx -> Bool
 
 validRefund :: Campaign -> PubKey -> PendingTx -> Bool
 validRefund campaign contributor ptx =
-    Slot.contains (refundRange campaign) (pendingTxValidRange ptx)
+    Interval.contains (refundRange campaign) (pendingTxValidRange ptx)
     && (ptx `V.txSignedBy` contributor)
 
 validCollection :: Campaign -> PendingTx -> Bool
 validCollection campaign p =
-    (collectionRange campaign `Slot.contains` pendingTxValidRange p)
+    (collectionRange campaign `Interval.contains` pendingTxValidRange p)
     && (valueSpent p `VTH.geq` campaignTarget campaign)
     && (p `V.txSignedBy` campaignOwner campaign)
 

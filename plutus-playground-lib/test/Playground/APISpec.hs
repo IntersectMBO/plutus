@@ -4,6 +4,7 @@ module Playground.APISpec
     ( spec
     ) where
 
+import           Data.Aeson                   (encode, object, toJSON)
 import           Data.Proxy                   (Proxy (Proxy))
 import           Data.Swagger                 (toInlinedSchema)
 import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), column, filename, row,
@@ -11,7 +12,8 @@ import           Language.Haskell.Interpreter (CompilationError (CompilationErro
 import           Ledger.Interval              (Interval)
 import           Ledger.Value                 (Value)
 import           Playground.API               (SimpleArgumentSchema (SimpleArraySchema, SimpleHexSchema, SimpleIntSchema, SimpleObjectSchema, SimpleStringSchema, SimpleTupleSchema, ValueSchema),
-                                               isSupportedByFrontend, parseErrorText, toSimpleArgumentSchema)
+                                               adaCurrency, isSupportedByFrontend, parseErrorText,
+                                               toSimpleArgumentSchema)
 import           Test.Hspec                   (Spec, describe, it, shouldBe)
 
 spec :: Spec
@@ -19,6 +21,7 @@ spec = do
     parseErrorTextSpec
     toSimpleArgumentSchemaSpec
     isSupportedByFrontendSpec
+    knownCurrenciesSpec
 
 parseErrorTextSpec :: Spec
 parseErrorTextSpec =
@@ -106,3 +109,20 @@ isSupportedByFrontendSpec =
     isSupportedByFrontend
         (toSimpleArgumentSchema (toInlinedSchema (Proxy :: Proxy Value))) `shouldBe`
     True
+
+knownCurrenciesSpec :: Spec
+knownCurrenciesSpec =
+    describe "mkKnownCurrencies" $
+    it "Should serialise Ada properly" $
+    encode adaCurrency
+        `shouldBe`
+    -- note that the object is the same as
+    -- plutus-playground-client\test\known_currency.json
+    encode (object
+                [ ("hash", "")
+                , ("friendlyName", "Ada")
+                , ("knownTokens"
+                  , toJSON [
+                    object [("unTokenName", "")]
+                    ])
+                ])

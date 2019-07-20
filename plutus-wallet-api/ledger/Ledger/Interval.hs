@@ -3,13 +3,15 @@
 {-# LANGUAGE DerivingStrategies   #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE MonoLocalBinds       #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- | A type for intervals and associated functions.
 module Ledger.Interval(
       Interval(..)
+    , member
     , interval
     , from
     , to
@@ -17,43 +19,46 @@ module Ledger.Interval(
     , hull
     , intersection
     , overlaps
+    , contains
+    , isEmpty
+    , before
+    , after
     ) where
 
 import           Codec.Serialise.Class        (Serialise)
 import           Data.Aeson                   (FromJSON, ToJSON)
 import           Data.Hashable                (Hashable)
-import           Data.Maybe                   (isNothing)
-import           Data.Semigroup               (Max (..), Min (..), Option (..), Semigroup ((<>)))
 import           Data.Swagger.Internal.Schema (ToSchema)
 import           GHC.Generics                 (Generic)
+import qualified Prelude                      as Haskell
 
 import           Language.PlutusTx.Lift       (makeLift)
+import           Language.PlutusTx.Prelude
 
 -- | An interval of @a@s. The interval is closed below and open above, meaning
 --   that @Interval (Just (10 :: Int)) (Just 11)@ contains a single value @11@.
 --   The interval is unbounded on either side: @Interval Nothing (Just 12)@
 --   contains all numbers smaller than @12@.
 data Interval a = Interval { ivFrom :: Maybe a, ivTo :: Maybe a }
-    deriving (Eq, Ord, Show)
-    deriving stock (Generic)
+    deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
     deriving anyclass (ToSchema, FromJSON, ToJSON, Serialise, Hashable)
 
 makeLift ''Interval
 
 -- | Check whether a value is covered by an interval.
-member :: (a -> a -> Ordering) -> a -> Interval a -> Bool
-member comp a i =
-    let lw = case ivFrom i of { Nothing -> True; Just f' -> comp f' a /= GT }
-        hg = case ivTo i of { Nothing -> True; Just t' -> comp t' a == GT }
+member :: Ord a => a -> Interval a -> Bool
+member a i =
+    let lw = case ivFrom i of { Nothing -> True; Just f' -> f' <= a }
+        hg = case ivTo i of { Nothing -> True; Just t' -> t' > a }
     in lw && hg
 
 -- | Check whether two intervals overlap, that is, whether there is a value that
 --   is a member of both intervals.
-overlaps :: (a -> a -> Ordering) -> Interval a -> Interval a -> Bool
-overlaps comp l r =
+overlaps :: Ord a => Interval a -> Interval a -> Bool
+overlaps l r =
     let inLow a i = case a of
             Nothing -> isNothing (ivFrom i)
-            Just a' -> member comp a' i
+            Just a' -> member a' i
     in
         inLow (ivFrom l) r || inLow (ivFrom r) l
 
@@ -61,11 +66,11 @@ overlaps comp l r =
 --   'b', if it exists.
 intersection :: Ord a => Interval a -> Interval a -> Maybe (Interval a)
 intersection l r =
-    if not (overlaps compare l r)
+    if not (overlaps l r)
     then Nothing
     else Just (Interval fr t) where
-            fr = fmap getMax $ getOption $ (Max <$> Option (ivFrom l)) <> (Max <$> Option (ivFrom r))
-            t  = fmap getMin $ getOption $ (Min <$> Option (ivTo l)) <> (Min <$> Option (ivTo r))
+            fr = fmap getMax $ (Max <$> ivFrom l) <> (Max <$> ivFrom r)
+            t  = fmap getMin $ (Min <$> ivTo l) <> (Min <$> ivTo r)
 
 -- | 'hull a b' is the smallest interval containing 'a' and 'b'.
 hull :: Ord a => Interval a -> Interval a -> Interval a
@@ -73,17 +78,31 @@ hull l r = Interval fr t where
         fr = fmap getMin $ (Min <$> ivFrom l) <> (Min <$> ivFrom r)
         t = fmap getMax $ (Max <$> ivTo l) <> (Max <$> ivTo r)
 
-{- note [Definition of Interval]
+-- | @a `contains` b@ is true if the 'Interval' @b@ is entirely contained in
+--   @a@. That is, @a `contains` b@ if for every entry @s@, if @member s b@ then
+--   @member s a@.
+contains :: Ord a => Interval a -> Interval a -> Bool
+contains (Interval af at) (Interval bf bt) =
+    let lw = case af of
+            Nothing -> True
+            Just af' -> case bf of
+                Nothing  -> False
+                Just bf' -> af' <= bf'
+        hg = case at of
+            Nothing -> True
+            Just at' -> case bt of
+                Nothing  -> False
+                Just bt' -> at' >= bt'
+    in
+        lw && hg
 
-The purpose of this module is to provide an interval data type that
-can be used in on-chain and off-chain code alike. Its two main uses in the
-'plutus-wallet-api' module are the validity range of transactions, and the ranges of
-funds and slot numbers for wallet triggers.
-
-To ensure that 'Interval' can be used in on-chain code, the functions in this
-module do not use type classes or functions from the Haskell Prelude. There are
-query functions specialized to 'Interval Slot' exported from 'Ledger.Slot'.
--}
+-- | Check if an 'Interval' is empty.
+isEmpty :: Ord a => Interval a -> Bool
+isEmpty (Interval f t) = case f of
+    Nothing -> False
+    Just f' -> case t of
+        Nothing -> False
+        Just t' -> f' <= t'
 
 -- | An 'Interval' that covers every slot.
 always :: Interval a
@@ -104,3 +123,11 @@ to s = Interval Nothing (Just s)
 --   does not include @b@.
 interval :: a -> a -> Interval a
 interval s s' = Interval (Just s) (Just s')
+
+-- | Check if a value is earlier than the beginning of an 'Interval'.
+before :: Ord a => a -> Interval a -> Bool
+before h (Interval f _) = case f of { Nothing -> False; Just h' -> h' > h; }
+
+-- | Check if a value is later than the end of a 'Interval'.
+after :: Ord a => a -> Interval a -> Bool
+after h (Interval _ t) = case t of { Nothing -> False; Just t' -> h >= t'; }

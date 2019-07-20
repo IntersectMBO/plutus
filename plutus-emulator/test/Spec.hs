@@ -30,10 +30,10 @@ import qualified Hedgehog.Gen               as Gen
 import qualified Hedgehog.Range             as Range
 import qualified Language.PlutusTx.Builtins as Builtins
 import qualified Language.PlutusTx.Prelude  as PlutusTx
+import           Language.PlutusTx.AssocMap as AssocMap
 import           Ledger
 import qualified Ledger.Ada                 as Ada
 import qualified Ledger.Index               as Index
-import qualified Ledger.Map
 import qualified Ledger.Value               as Value
 import           Ledger.Value               (CurrencySymbol, Value (Value))
 import           LedgerBytes                as LedgerBytes

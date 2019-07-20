@@ -18,6 +18,7 @@ import           Language.PlutusCore.Quote
 
 import           Language.PlutusIR.Compiler.Names
 
+import           Data.Char
 import           Data.List
 import qualified Data.List.NonEmpty               as NE
 import qualified Data.Map                         as Map
@@ -26,8 +27,28 @@ import qualified Data.Text                        as T
 lookupName :: Scope -> GHC.Name -> Maybe PLCVar
 lookupName (Scope ns _) n = Map.lookup n ns
 
+{- |
+Reverses the OccName tidying that GHC does, see 'tidyOccEnv'
+and accompanying Notes.
+
+This is bad, because it makes it much harder to read since the
+disambiguating numbers are gone. However, these appear to be
+non-deterministic (possibly depending on the order in which
+modules are processed?), so we can't rely on them.
+
+Essentially, we just strip off trailing digits.
+This might remove "real" digits added by the user, but
+there's not much we can do about that.
+
+Note that this only affects the *textual* name, not the underlying
+unique, so it has no effect on the behaviour of the program, merely
+on how it is printed.
+-}
+getUntidiedOccString :: GHC.Name -> String
+getUntidiedOccString n = dropWhileEnd isDigit (GHC.getOccString n)
+
 compileNameFresh :: MonadQuote m => GHC.Name -> m (PLC.Name ())
-compileNameFresh n = safeFreshName () $ T.pack $ GHC.getOccString n
+compileNameFresh n = safeFreshName () $ T.pack $ getUntidiedOccString n
 
 compileVarFresh :: Compiling m => GHC.Var -> m PLCVar
 compileVarFresh v = do
@@ -39,7 +60,7 @@ lookupTyName :: Scope -> GHC.Name -> Maybe PLCTyVar
 lookupTyName (Scope _ tyns) n = Map.lookup n tyns
 
 compileTyNameFresh :: MonadQuote m => GHC.Name -> m (PLC.TyName ())
-compileTyNameFresh n = safeFreshTyName () $ T.pack $ GHC.getOccString n
+compileTyNameFresh n = safeFreshTyName () $ T.pack $ getUntidiedOccString n
 
 compileTyVarFresh :: Compiling m => GHC.TyVar -> m PLCTyVar
 compileTyVarFresh v = do

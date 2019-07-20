@@ -197,7 +197,7 @@ toBalanceMap =
           = Tuple (Tuple (ScriptIx owner hash) row) (CurrencyBalance currencyBalances)
 
 adaCurrencySymbol :: CurrencySymbol
-adaCurrencySymbol = CurrencySymbol { unCurrencySymbol: "5fff" }
+adaCurrencySymbol = CurrencySymbol { unCurrencySymbol: "" }
 
 adaTokenName :: TokenName
 adaTokenName = TokenName { unTokenName: "" }

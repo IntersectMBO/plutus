@@ -1,0 +1,1 @@
+../../doc/game/guess.adoc

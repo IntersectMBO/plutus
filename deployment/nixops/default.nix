@@ -8,7 +8,7 @@ let
   enableGithubHooks = plutus.pkgs.lib.hasAttr "githubWebhookKey" secrets;
   deploymentConfigDir = plutus.pkgs.copyPathToStore ../nixops ;
   deploymentServer = plutus.haskellPackages.deployment-server;
-  mkConfig = redirectUrl: name: plutus.pkgs.writeTextFile {
+  mkConfig = ghsecrets: redirectUrl: name: plutus.pkgs.writeTextFile {
     name = name;
     text = ''
     auth:
@@ -17,14 +17,14 @@ let
       #    github.
       # 2) If you change the JWT signature, it will break all existing logins.
       #    Don't change it unless that's something you specifically want!
-      github-client-id: ${secrets.githubClientId}
-      github-client-secret: ${secrets.githubClientSecret}
-      jwt-signature: ${secrets.jwtSignature}
+      github-client-id: ${ghsecrets.githubClientId}
+      github-client-secret: ${ghsecrets.githubClientSecret}
+      jwt-signature: ${ghsecrets.jwtSignature}
       redirect-url: ${redirectUrl}
     '';
   };
-  playgroundConfig = mkConfig "https://${machines.environment}.${machines.plutusTld}" "playground.yaml";
-  meadowConfig = mkConfig "https://${machines.environment}.${machines.marloweTld}" "marlowe.yaml";
+  playgroundConfig = mkConfig secrets.plutus "https://${machines.environment}.${machines.plutusTld}" "playground.yaml";
+  marlowePlaygroundConfig = mkConfig secrets.marlowe "https://${machines.environment}.${machines.marloweTld}" "marlowe.yaml";
   stdOverlays = [ overlays.journalbeat ];
   # FIXME: https://github.com/NixOS/nixpkgs/pull/57910
   # Changes from jbgi have been squashed into my repo as jbgi/prometheus2 wasn't working for unrelated reasons
@@ -36,10 +36,10 @@ let
   deploymentName = "playgrounds";
   options = { inherit stdOverlays machines defaultMachine plutus secrets nixpkgsLocation nixosLocation slackChannel nixopsStateFile deploymentName; };
   defaultMachine = (import ./default-machine.nix) options;
-  meadowOptions = options // { serviceConfig = meadowConfig;
-                               serviceName = "meadow";
-                               server-invoker = plutus.meadow.server-invoker;
-                               client = plutus.meadow.client;
+  marlowePlaygroundOptions = options // { serviceConfig = marlowePlaygroundConfig;
+                               serviceName = "marlowe-playground";
+                               server-invoker = plutus.marlowe-playground.server-invoker;
+                               client = plutus.marlowe-playground.client;
                                };
   playgroundOptions = options // { serviceConfig = playgroundConfig;
                                    serviceName = "plutus-playground";
@@ -48,12 +48,12 @@ let
                                    };
   playgroundA = serverTemplate.mkInstance playgroundOptions machines.playgroundA;
   playgroundB = serverTemplate.mkInstance playgroundOptions machines.playgroundB;
-  meadowA = serverTemplate.mkInstance meadowOptions machines.meadowA;
-  meadowB = serverTemplate.mkInstance meadowOptions machines.meadowB;
+  marlowePlaygroundA = serverTemplate.mkInstance marlowePlaygroundOptions machines.marlowePlaygroundA;
+  marlowePlaygroundB = serverTemplate.mkInstance marlowePlaygroundOptions machines.marlowePlaygroundB;
   nixops = prometheusTemplate.mkInstance 
             (options // {configDir = deploymentConfigDir; inherit deploymentServer enableGithubHooks;}) 
             {dns = "nixops.internal.${machines.environment}.${machines.plutusTld}";
              ip = "127.0.0.1";
              name = "nixops"; };
 in
-  { inherit playgroundA playgroundB meadowA meadowB nixops; }
+  { inherit playgroundA playgroundB marlowePlaygroundA marlowePlaygroundB nixops; }

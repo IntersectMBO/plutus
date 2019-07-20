@@ -5,19 +5,19 @@ module Main where
 
 import           Control.Concurrent       (forkIO)
 import           Control.Concurrent.Chan  (newChan)
+import           Control.Monad            (void)
 import           Control.Newtype.Generics (unpack)
 import           Data.Aeson               (eitherDecodeFileStrict)
 import qualified Data.ByteString.Char8    as BS
 import qualified Data.Text                as Text
 import           Deploy.Server            (app)
-import           Deploy.Types             (Deployment, Options (..), Secrets (..), SlackChannel)
+import           Deploy.Types             (Options (..), Secrets (..))
 import           Deploy.Worker            (runWorker)
 import           Network.Wai.Handler.Warp (run)
 import           Options.Generic          (getRecord)
 import           Servant.GitHub.Webhook   (gitHubKey)
 import           System.Exit              (ExitCode (ExitFailure), exitWith)
 import           System.IO                (BufferMode (LineBuffering), hPutStrLn, hSetBuffering, stderr, stdout)
-import           Web.Slack                (mkSlackConfig)
 
 main :: IO ()
 main = do
@@ -32,7 +32,6 @@ main = do
             exitWith $ ExitFailure 2
         Right Secrets {..} -> do
             chan <- newChan
-            slackConfig <- mkSlackConfig (unpack slackToken)
-            forkIO $ runWorker chan options slackConfig
+            void . forkIO $ runWorker chan options
             putStrLn $ "start listening on port " <> show port
-            run port $ app chan (gitHubKey . pure . BS.pack . Text.unpack . unpack $ githubWebhookKey)
+            run port $ app ref chan (gitHubKey . pure . BS.pack . Text.unpack . unpack $ githubWebhookKey)

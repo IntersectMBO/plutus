@@ -1,13 +1,13 @@
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module CrowdFunding where
 -- TRIM TO HERE
@@ -18,18 +18,24 @@ module CrowdFunding where
 -- Note [Transactions in the crowdfunding campaign] explains the structure of
 -- this contract on the blockchain.
 
-import qualified Language.PlutusTx            as PlutusTx
+import qualified Language.PlutusTx         as PlutusTx
 import           Language.PlutusTx.Prelude
-import           Ledger.Slot                  (SlotRange)
-import qualified Ledger.Slot                  as Slot
-import           Ledger
-import           Ledger.Validation            as V
-import           Ledger.Value                 (Value)
-import qualified Ledger.Value                 as Value
+import           Ledger                    (Address, DataScript (DataScript), PendingTx, PubKey,
+                                            RedeemerScript (RedeemerScript), TxId, ValidatorScript (ValidatorScript),
+                                            applyScript, compileScript, hashTx, lifted, pendingTxValidRange,
+                                            scriptAddress, valueSpent)
+import qualified Ledger.Interval           as Interval
+import           Ledger.Slot               (Slot, SlotRange)
+import qualified Ledger.Validation         as V
+import           Ledger.Value              (Value)
+import qualified Ledger.Value              as Value
 import           Playground.Contract
-import           Wallet                       as W
-import qualified Wallet.Emulator              as EM
-import           Wallet.Emulator             (Wallet)
+import           Wallet                    (EventHandler (EventHandler), EventTrigger, MonadWallet, andT,
+                                            collectFromScript, collectFromScriptTxn, fundsAtAddressGeqT, logMsg,
+                                            ownPubKey, payToScript, register, slotRangeT)
+import qualified Wallet                    as W
+import           Wallet.Emulator           (Wallet)
+import qualified Wallet.Emulator           as EM
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
@@ -77,35 +83,41 @@ data CampaignAction = Collect | Refund
 PlutusTx.makeLift ''CampaignAction
 
 -- | The validator script is a function of three arguments:
--- 1. A 'PubKey'. This is the data script. It is provided by the producing transaction (the contribution)
+-- 1. A 'PubKey'. This is the data script. It is provided by the producing
+--    transaction (the contribution)
 --
--- 2. A 'CampaignAction'. This is the redeemer script. It is provided by the redeeming transaction.
+-- 2. A 'CampaignAction'. This is the redeemer script. It is provided by the
+--    redeeming transaction.
 --
--- 3. A 'PendingTx value. It contains information about the current transaction and is provided by the slot leader.
+-- 3. A 'PendingTx value. It contains information about the current transaction
+--    and is provided by the slot leader.
 --    See note [PendingTx]
 type CrowdfundingValidator = PubKey -> CampaignAction -> PendingTx -> Bool
 
 validRefund :: Campaign -> PubKey -> PendingTx -> Bool
 validRefund campaign contributor ptx =
     -- Check that the transaction falls in the refund range of the campaign
-    Slot.contains (refundRange campaign) (pendingTxValidRange ptx)
+    Interval.contains (refundRange campaign) (pendingTxValidRange ptx)
     -- Check that the transaction is signed by the contributor
     && (ptx `V.txSignedBy` contributor)
 
 validCollection :: Campaign -> PendingTx -> Bool
 validCollection campaign p =
     -- Check that the transaction falls in the collection range of the campaign
-    (collectionRange campaign `Slot.contains` pendingTxValidRange p)
+    (collectionRange campaign `Interval.contains` pendingTxValidRange p)
     -- Check that the transaction is trying to spend more money than the campaign
     -- target (and hence the target was reached)
     && (valueSpent p `Value.geq` campaignTarget campaign)
     -- Check that the transaction is signed by the campaign owner
     && (p `V.txSignedBy` campaignOwner campaign)
 
--- | The validator script is of type 'CrowdfundingValidator', and is additionally parameterized by a
--- 'Campaign' definition. This argument is provided by the Plutus client, using 'Ledger.applyScript'.
--- As a result, the 'Campaign' definition is part of the script address, and different campaigns have different addresses.
--- The Campaign{..} syntax means that all fields of the 'Campaign' value are in scope (for example 'campaignDeadline' in l. 70).
+-- | The validator script is of type 'CrowdfundingValidator', and is
+-- additionally parameterized by a 'Campaign' definition. This argument is
+-- provided by the Plutus client, using 'Ledger.applyScript'.
+-- As a result, the 'Campaign' definition is part of the script address,
+-- and different campaigns have different addresses. The Campaign{..} syntax
+-- means that all fields of the 'Campaign' value are in scope
+-- (for example 'campaignDeadline' in l. 70).
 mkValidator :: Campaign -> CrowdfundingValidator
 mkValidator c con act p = case act of
     -- the "refund" branch
@@ -165,7 +177,8 @@ scheduleCollection deadline target collectionDeadline ownerWallet = do
             range = collectionRange cmp
         collectFromScript range (contributionScript cmp) redeemerScript))
 
--- | An event trigger that fires when a refund of campaign contributions can be claimed
+-- | An event trigger that fires when a refund of campaign contributions
+-- can be claimed
 refundTrigger :: Value -> Campaign -> EventTrigger
 refundTrigger vl c = andT
     (fundsAtAddressGeqT (campaignAddress c) vl)
@@ -207,14 +220,18 @@ There are two outcomes for the campaign.
 1. Campaign owner collects the funds from both contributors. In this case
    the owner creates a single transaction with two inputs, referring to
    `t_1` and `t_2`. Each input contains the script `contributionScript c`
-   specialised to a contributor. The redeemer script of this transaction contains the value `Collect`, prompting the validator script to check the
+   specialised to a contributor. The redeemer script of this transaction
+   contains the value `Collect`, prompting the validator script to check the
    branch for `Collect`.
 
 2. Refund. In this case each contributor creates a transaction with a
    single input claiming back their part of the funds. This case is
-   covered by the `Refund` branch, and its redeemer script is the `Refund` action.
+   covered by the `Refund` branch, and its redeemer script is the
+   `Refund` action.
 
-In both cases, the validator script is run twice. In the first case there is a single transaction consuming both inputs. In the second case there are two different transactions that may happen at different times.
+In both cases, the validator script is run twice. In the first case
+there is a single transaction consuming both inputs. In the second case there
+are two different transactions that may happen at different times.
 
 -}
 
@@ -226,13 +243,15 @@ extension is enabled automatically by the Playground backend.
 The extension is documented here:
 * https://downloads.haskell.org/~ghc/7.2.1/docs/html/users_guide/syntax-extns.html
 
-A list of extensions that are enabled by default for the Playground can be found here:
+A list of extensions that are enabled by default for the Playground can be
+found here:
 * https://github.com/input-output-hk/plutus/blob/b0f49a0cc657cd1a4eaa4af72a6d69996b16d07a/plutus-playground/plutus-playground-server/src/Playground/Interpreter.hs#L44
 
 -}
 
 {- note [PendingTx]
 
-This part of the API (the PendingTx argument) is experimental and subject to change.
+This part of the API (the PendingTx argument) is experimental and subject
+to change.
 
 -}

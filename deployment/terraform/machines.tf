@@ -19,16 +19,16 @@ locals {
     ip   = "${element(concat(aws_instance.playground_b.*.private_ip, list("")), 0)}"
     dns  = "playground-b.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
   }
-  meadowA = {
-    name = "meadowA"
-    ip   = "${element(concat(aws_instance.meadow_a.*.private_ip, list("")), 0)}"
-    dns  = "meadow-a.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
+  marlowePlaygroundA = {
+    name = "marlowePlaygroundA"
+    ip   = "${element(concat(aws_instance.marlowe_a.*.private_ip, list("")), 0)}"
+    dns  = "marlowe-a.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
   }
 
-  meadowB = {
-    name = "meadowB"
-    ip   = "${element(concat(aws_instance.meadow_b.*.private_ip, list("")), 0)}"
-    dns  = "meadow-b.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
+  marlowePlaygroundB = {
+    name = "marlowePlaygroundB"
+    ip   = "${element(concat(aws_instance.marlowe_b.*.private_ip, list("")), 0)}"
+    dns  = "marlowe-b.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
   }
 
   nixops = {
@@ -47,8 +47,8 @@ locals {
   machines = {
     playgroundA       = "${local.playgroundA}"
     playgroundB       = "${local.playgroundB}"
-    meadowA       = "${local.meadowA}"
-    meadowB       = "${local.meadowB}"
+    marlowePlaygroundA       = "${local.marlowePlaygroundA}"
+    marlowePlaygroundB       = "${local.marlowePlaygroundB}"
     nixops         = "${local.nixops}"
     playgroundSshKeys = "${data.template_file.playground_ssh_keys.*.rendered}"
     rootSshKeys = "${data.template_file.nixops_ssh_keys.*.rendered}"
@@ -57,7 +57,7 @@ locals {
     project        = "${var.project}"
     tld            = "${var.plutus_tld}"
     plutusTld     = "${var.plutus_tld}"
-    marloweTld     = "${var.meadow_tld}"
+    marloweTld     = "${var.marlowe_tld}"
   }
 
   bastionMachines = {

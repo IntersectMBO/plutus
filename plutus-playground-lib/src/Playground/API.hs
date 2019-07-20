@@ -35,9 +35,9 @@ import           Language.Haskell.Interpreter (CompilationError (CompilationErro
                                                SourceCode, column, filename, row, text)
 import qualified Language.Haskell.Interpreter as HI
 import qualified Language.Haskell.TH.Syntax   as TH
+import qualified Language.PlutusTx.AssocMap   as Map
 import           Ledger                       (Blockchain, PubKey, Tx, TxId)
 import qualified Ledger.Ada                   as Ada
-import qualified Ledger.Map                   as Map
 import           Ledger.Validation            (ValidatorHash, fromSymbol)
 import           Ledger.Value                 (TokenName)
 import qualified Ledger.Value                 as V

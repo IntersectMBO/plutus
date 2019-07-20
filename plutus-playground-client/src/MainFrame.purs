@@ -67,7 +67,6 @@ import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnn
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
 import Playground.API (KnownCurrency(..), SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
 import Playground.Server (SPParams_)
-import Playground.Usecases (gitRev)
 import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, map, pure, show, unit, unless, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData as StaticData
@@ -574,7 +573,7 @@ bannerMessage =
     ]
     [ text "Plutus Beta - Updated 11th April 2019 - See the "
     , a
-        [ href ("https://github.com/input-output-hk/plutus/blob/" <> gitRev <> "/CHANGELOG.md") ]
+        [ href ("https://github.com/input-output-hk/plutus/blob/master/CHANGELOG.md") ]
         [ text "CHANGELOG" ]
     ]
 
@@ -595,8 +594,8 @@ mainHeader =
     ]
   where
     links = [ Tuple "Getting Started" "https://testnet.iohkdev.io/plutus/get-started/writing-contracts-in-plutus/"
-            , Tuple "Tutorial" ("https://github.com/input-output-hk/plutus/blob/" <> gitRev <> "/plutus-tutorial/tutorial/Intro.md")
-            , Tuple "API" "https://input-output-hk.github.io/plutus/"
+            , Tuple "Tutorial" "./tutorial"
+            , Tuple "API" "./haddock"
             , Tuple "Privacy" "https://static.iohk.io/docs/data-protection/iohk-data-protection-gdpr-policy.pdf"
             ]
     makeLink (Tuple name link) =

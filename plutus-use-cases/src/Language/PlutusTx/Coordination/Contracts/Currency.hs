@@ -13,25 +13,25 @@ module Language.PlutusTx.Coordination.Contracts.Currency(
     , forgedValue
     ) where
 
-import           Control.Lens              ((^.), at, to)
-import           Data.Bifunctor            (Bifunctor(first))
-import qualified Data.Set                  as Set
-import qualified Data.Map                  as Map
-import           Data.Maybe                (fromMaybe)
-import           Data.String               (IsString(fromString))
-import qualified Data.Text                 as Text
+import           Control.Lens               ((^.), at, to)
+import           Data.Bifunctor             (Bifunctor(first))
+import qualified Data.Set                   as Set
+import qualified Data.Map                   as Map
+import           Data.Maybe                 (fromMaybe)
+import           Data.String                (IsString(fromString))
+import qualified Data.Text                  as Text
 
 import           Language.PlutusTx.Prelude
-import qualified Language.PlutusTx         as PlutusTx
+import qualified Language.PlutusTx          as PlutusTx
 
-import qualified Ledger.Ada                as Ada
-import qualified Ledger.Map                as LMap
-import           Ledger.Scripts            (ValidatorScript(..))
-import qualified Ledger.Validation         as V
-import qualified Ledger.Value              as Value
-import           Ledger                    as Ledger hiding (to)
-import           Ledger.Value              (TokenName, Value)
-import           Wallet.API                as WAPI
+import qualified Ledger.Ada                 as Ada
+import qualified Language.PlutusTx.AssocMap as AssocMap
+import           Ledger.Scripts             (ValidatorScript(..))
+import qualified Ledger.Validation          as V
+import qualified Ledger.Value               as Value
+import           Ledger                     as Ledger hiding (to)
+import           Ledger.Value               (TokenName, Value)
+import           Wallet.API                 as WAPI
 
 import qualified Language.PlutusTx.Coordination.Contracts.PubKey as PK
 
@@ -41,7 +41,7 @@ data Currency = Currency
   { curRefTransactionOutput :: (TxHash, Integer)
   -- ^ Transaction input that must be spent when
   --   the currency is forged.
-  , curAmounts              :: LMap.Map TokenName Integer
+  , curAmounts              :: AssocMap.Map TokenName Integer
   -- ^ How many units of each 'TokenName' are to
   --   be forged.
   }
@@ -51,14 +51,14 @@ PlutusTx.makeLift ''Currency
 currencyValue :: CurrencySymbol -> Currency -> Value
 currencyValue s Currency{curAmounts = amts} =
     let
-        values = map (\(tn, i) -> (Value.singleton s tn i)) (LMap.toList amts)
+        values = map (\(tn, i) -> (Value.singleton s tn i)) (AssocMap.toList amts)
     in foldr Value.plus Value.zero values
 
 mkCurrency :: TxOutRef -> [(String, Integer)] -> Currency
 mkCurrency (TxOutRefOf h i) amts =
     Currency
         { curRefTransactionOutput = (V.plcTxHash h, i)
-        , curAmounts              = LMap.fromList (fmap (first fromString) amts)
+        , curAmounts              = AssocMap.fromList (fmap (first fromString) amts)
         }
 
 validate :: Currency -> () -> () -> V.PendingTx -> Bool

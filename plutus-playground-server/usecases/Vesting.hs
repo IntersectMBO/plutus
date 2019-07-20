@@ -14,12 +14,13 @@ module Vesting where
 -- Vesting scheme as a PLC contract
 import qualified Prelude                   as Haskell
 import           Language.PlutusTx.Prelude
-import           Control.Monad             (void)
 import qualified Data.Map                  as Map
 import qualified Data.Set                  as Set
 
 import qualified Language.PlutusTx         as PlutusTx
-import           Ledger                    (Address, DataScript(..), RedeemerScript(..), Signature, Slot, TxOutRef, TxIn, ValidatorScript(..))
+import           Ledger                    (Address, DataScript(..),
+                                            RedeemerScript(..),  Slot,
+                                            TxOutRef, TxIn, ValidatorScript(..))
 import qualified Ledger                    as Ledger
 import           Ledger.Value              (Value)
 import qualified Ledger.Value              as Value
@@ -27,10 +28,10 @@ import qualified Ledger.Interval           as Interval
 import qualified Ledger.Slot               as Slot
 import qualified Ledger.Validation         as V
 import           Ledger.Validation         (PendingTx(..))
-import           Wallet                    (WalletAPI(..), WalletDiagnostics, PubKey)
+import           Wallet                    (WalletAPI(..),
+                                            PubKey)
 import qualified Wallet                    as W
 import qualified Wallet.API                as WAPI
-import qualified Wallet.Emulator.Types     as EM
 import           Playground.Contract
 
 {- |
@@ -43,7 +44,9 @@ import           Playground.Contract
     In our vesting scheme the money will be released in two _tranches_ (parts):
     A smaller part will be available after an initial number of slots have
     passed, and the entire amount will be released at the end. The owner of the
-    vesting scheme does not have to take out all the money at once: They can take out any amount up to the total that has been released so far. The remaining funds stay locked and can be retrieved later.
+    vesting scheme does not have to take out all the money at once: They can
+    take out any amount up to the total that has been released so far. The
+    remaining funds stay locked and can be retrieved later.
 
     Let's start with the data types.
 
@@ -77,18 +80,22 @@ PlutusTx.makeLift ''Vesting
 
 -- | The total value locked by a vesting scheme
 totalAmount :: Vesting -> Value
-totalAmount (Vesting l r _) = (vestingTrancheAmount l) `Value.plus` (vestingTrancheAmount r)
+totalAmount (Vesting l r _) =
+    (vestingTrancheAmount l) `Value.plus` (vestingTrancheAmount r)
 
--- | The amount guaranteed to be available from a given tranche in a given slot range.
+-- | The amount guaranteed to be available from a given tranche in a
+-- given slot range.
 {-# INLINABLE availableFrom #-}
 availableFrom :: VestingTranche -> Slot.SlotRange -> Value
 availableFrom (VestingTranche d v) range =
-    -- The valid range is an open-ended range starting from the tranche vesting date
+    -- The valid range is an open-ended range starting from the tranche
+    -- vesting date
     let validRange = Interval.from d
-    -- If the valid range completely contains the argument range (meaning in particular
-    -- that the start slot of the argument range is after the tranche vesting date), then
-    -- the money in the tranche is available, otherwise nothing is available.
-    in if validRange `Slot.contains` range then v else Value.zero
+    -- If the valid range completely contains the argument range (meaning
+    -- in particular that the start slot of the argument range is after the
+    -- tranche vesting date), then the money in the tranche is available,
+    -- otherwise nothing is available.
+    in if validRange `Interval.contains` range then v else Value.zero
 
 {- |
 
@@ -162,7 +169,8 @@ contractAddress vst = Ledger.scriptAddress (validatorScript vst)
     We need three endpoints:
 
     * 'vestFunds' to lock the funds in a vesting scheme
-    * 'registerVestingScheme', used by the owner to start watching the scheme's address
+    * 'registerVestingScheme', used by the owner to start watching the
+      scheme's address
     * 'withdraw', used by the owner to take out some funds.
 
     The first two are very similar to endpoints we defined for earlier
@@ -232,12 +240,18 @@ withdraw vst vl = do
     -- Now to compute the difference between 'vl' and what is currently in the
     -- scheme:
     let
-        currentlyLocked = Map.foldr (\txo vl' -> vl' `Value.plus` Ledger.txOutValue txo) Value.zero utxos
+        currentlyLocked = Map.foldr
+            (\txo vl' -> vl' `Value.plus` Ledger.txOutValue txo)
+            Value.zero
+            utxos
         remaining = currentlyLocked `Value.minus` vl
 
-        otherOutputs = if Value.isZero remaining
-                       then []
-                       else [Ledger.scriptTxOut remaining validator (DataScript (Ledger.lifted ()))]
+        lockedOutput =
+            Ledger.scriptTxOut remaining validator (DataScript (Ledger.lifted ()))
+        otherOutputs =
+            if Value.isZero remaining
+            then []
+            else [lockedOutput]
 
     -- Finally we have everything we need for `createTxAndSubmit`
     _ <- WAPI.createTxAndSubmit range ins (ownOutput:otherOutputs)

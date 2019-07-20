@@ -135,7 +135,6 @@ sub-cong p (con c)         = refl
 sub-cong p (builtin bn ts) = cong (builtin bn) (subList-cong p ts)
 sub-cong p error           = refl
 
-
 lifts-id : ∀{n} → (α : Fin (suc n)) → ` α ≡ lifts ` α
 lifts-id zero    = refl
 lifts-id (suc α) = refl

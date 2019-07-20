@@ -3,8 +3,8 @@
 
 The Plutus Platform enables you to:
 
-* Work with Plutus Core, the smart
-contract language embedded in the Cardano ledger.
+* Work with Plutus Core, the smart contract language embedded in the Cardano
+ledger.
 * Write Haskell programs that create and use embedded Plutus Core programs.
 * Write smart contract executables which can be distributed for use with a
 Cardano wallet backend.
@@ -59,6 +59,16 @@ Plutus Core library.
 
 See the link:./stack.yaml[stack project file] to see the other
 projects that you can build with stack.
+
+=== How to run a local Plutus Playground in a Docker container
+
+1. Install Docker following the instructions on the https://docs.docker.com/[Docker website].
+2. Run `nix build -f default.nix docker.plutusPlaygroundImage`, to build
+3. Run `docker load < docker-image-plutus-playgrounds.tar.gz` - this will
+print out the image name at the end, e.g. `Loaded image: plutus-playgrounds:yn7h7m5qdjnnj9rxv8cgkvvwjkkcdnvp`
+4. Run `docker run -p 8080:8080 plutus-playgrounds:yn7h7m5qdjnnj9rxv8cgkvvwjkkcdnvp`
+using the image name from the previous step.
+5. Open http://localhost:8080/ in a web browser.
 
 == Where to go next
 

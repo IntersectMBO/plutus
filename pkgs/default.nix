@@ -44351,6 +44351,134 @@ description = "Marlowe: financial contracts on Cardano Computation Layer";
 license = stdenv.lib.licenses.asl20;
 
 }) {};
+"marlowe-playground-server" = callPackage
+({
+  mkDerivation
+, aeson
+, base
+, bytestring
+, containers
+, cookie
+, data-default-class
+, directory
+, exceptions
+, file-embed
+, filepath
+, hspec
+, http-client
+, http-client-tls
+, http-conduit
+, http-types
+, jwt
+, lens
+, marlowe
+, monad-logger
+, mtl
+, newtype-generics
+, optparse-applicative
+, playground-common
+, process
+, prometheus
+, purescript-bridge
+, raw-strings-qq
+, servant
+, servant-client
+, servant-client-core
+, servant-foreign
+, servant-purescript
+, servant-server
+, stdenv
+, temporary
+, text
+, time
+, time-units
+, transformers
+, wai
+, wai-cors
+, wai-extra
+, warp
+, yaml
+}:
+mkDerivation {
+
+pname = "marlowe-playground-server";
+version = "0.1.0.0";
+src = .././marlowe-playground-server;
+isLibrary = true;
+isExecutable = true;
+libraryHaskellDepends = [
+aeson
+base
+bytestring
+containers
+cookie
+directory
+exceptions
+file-embed
+filepath
+http-client
+http-client-tls
+http-conduit
+http-types
+jwt
+lens
+marlowe
+monad-logger
+mtl
+newtype-generics
+playground-common
+process
+servant
+servant-client
+servant-client-core
+servant-purescript
+servant-server
+temporary
+text
+time
+time-units
+transformers
+];
+executableHaskellDepends = [
+aeson
+base
+bytestring
+containers
+data-default-class
+directory
+filepath
+http-types
+lens
+monad-logger
+mtl
+optparse-applicative
+playground-common
+prometheus
+purescript-bridge
+servant-foreign
+servant-purescript
+servant-server
+text
+wai
+wai-cors
+wai-extra
+warp
+yaml
+];
+testHaskellDepends = [
+base
+bytestring
+hspec
+mtl
+playground-common
+raw-strings-qq
+text
+time-units
+];
+doHaddock = false;
+license = stdenv.lib.licenses.asl20;
+
+}) {};
 "massiv" = callPackage
 ({
   mkDerivation
@@ -44820,134 +44948,6 @@ doCheck = false;
 homepage = "http://github.com/jtobin/mcmc-types";
 description = "Common types for sampling";
 license = stdenv.lib.licenses.mit;
-
-}) {};
-"meadow" = callPackage
-({
-  mkDerivation
-, aeson
-, base
-, bytestring
-, containers
-, cookie
-, data-default-class
-, directory
-, exceptions
-, file-embed
-, filepath
-, hspec
-, http-client
-, http-client-tls
-, http-conduit
-, http-types
-, jwt
-, lens
-, marlowe
-, monad-logger
-, mtl
-, newtype-generics
-, optparse-applicative
-, playground-common
-, process
-, prometheus
-, purescript-bridge
-, raw-strings-qq
-, servant
-, servant-client
-, servant-client-core
-, servant-foreign
-, servant-purescript
-, servant-server
-, stdenv
-, temporary
-, text
-, time
-, time-units
-, transformers
-, wai
-, wai-cors
-, wai-extra
-, warp
-, yaml
-}:
-mkDerivation {
-
-pname = "meadow";
-version = "0.1.0.0";
-src = .././meadow;
-isLibrary = true;
-isExecutable = true;
-libraryHaskellDepends = [
-aeson
-base
-bytestring
-containers
-cookie
-directory
-exceptions
-file-embed
-filepath
-http-client
-http-client-tls
-http-conduit
-http-types
-jwt
-lens
-marlowe
-monad-logger
-mtl
-newtype-generics
-playground-common
-process
-servant
-servant-client
-servant-client-core
-servant-purescript
-servant-server
-temporary
-text
-time
-time-units
-transformers
-];
-executableHaskellDepends = [
-aeson
-base
-bytestring
-containers
-data-default-class
-directory
-filepath
-http-types
-lens
-monad-logger
-mtl
-optparse-applicative
-playground-common
-prometheus
-purescript-bridge
-servant-foreign
-servant-purescript
-servant-server
-text
-wai
-wai-cors
-wai-extra
-warp
-yaml
-];
-testHaskellDepends = [
-base
-bytestring
-hspec
-mtl
-playground-common
-raw-strings-qq
-text
-time-units
-];
-doHaddock = false;
-license = stdenv.lib.licenses.asl20;
 
 }) {};
 "median-stream" = callPackage
@@ -53464,8 +53464,14 @@ license = stdenv.lib.licenses.bsd3;
 , file-embed
 , filepath
 , hashable
+, hspec
+, hspec-discover
+, http-client
+, http-client-tls
 , http-conduit
 , http-types
+, jwt
+, lens
 , monad-logger
 , mtl
 , newtype-generics
@@ -53492,6 +53498,7 @@ mkDerivation {
 pname = "playground-common";
 version = "0.1.0.0";
 src = .././playground-common;
+enableSeparateDataOutput = true;
 libraryHaskellDepends = [
 aeson
 aeson-casing
@@ -53504,8 +53511,12 @@ exceptions
 file-embed
 filepath
 hashable
+http-client
+http-client-tls
 http-conduit
 http-types
+jwt
+lens
 monad-logger
 mtl
 newtype-generics
@@ -53525,6 +53536,15 @@ time-units
 transformers
 unordered-containers
 wai
+];
+testHaskellDepends = [
+aeson
+base
+bytestring
+hspec
+];
+testToolDepends = [
+hspec-discover
 ];
 doHaddock = false;
 license = stdenv.lib.licenses.asl20;
@@ -53573,14 +53593,18 @@ license = stdenv.lib.licenses.mit;
 ({
   mkDerivation
 , base
+, bytestring
 , containers
+, hspec
 , language-plutus-core
 , plutus-emulator
+, plutus-playground-lib
 , plutus-tx
 , plutus-wallet-api
 , prettyprinter
 , stdenv
 , template-haskell
+, text
 , unlit
 }:
 mkDerivation {
@@ -53590,16 +53614,28 @@ version = "0.1.0.0";
 src = .././plutus-book;
 libraryHaskellDepends = [
 base
+bytestring
 containers
 language-plutus-core
 plutus-emulator
+plutus-playground-lib
 plutus-tx
 plutus-wallet-api
 prettyprinter
 template-haskell
+text
 ];
 libraryToolDepends = [
 unlit
+];
+testHaskellDepends = [
+base
+bytestring
+containers
+hspec
+plutus-emulator
+plutus-wallet-api
+text
 ];
 doHaddock = false;
 description = "The Plutus Book";
@@ -53926,6 +53962,7 @@ license = stdenv.lib.licenses.asl20;
 , mtl
 , playground-common
 , plutus-emulator
+, plutus-tx
 , plutus-wallet-api
 , QuickCheck
 , servant
@@ -53953,6 +53990,7 @@ memory
 mtl
 playground-common
 plutus-emulator
+plutus-tx
 plutus-wallet-api
 servant
 swagger2
@@ -54028,6 +54066,7 @@ license = stdenv.lib.licenses.asl20;
 , stdenv
 , swagger2
 , template-haskell
+, temporary
 , text
 , time
 , time-units
@@ -54054,6 +54093,7 @@ containers
 cookie
 exceptions
 file-embed
+filepath
 hspec
 http-client
 http-client-tls
@@ -54079,6 +54119,7 @@ servant-purescript
 servant-server
 swagger2
 template-haskell
+temporary
 text
 time
 time-units
@@ -54255,14 +54296,19 @@ license = stdenv.lib.licenses.asl20;
 , base
 , bytestring
 , containers
+, criterion
+, cryptonite
 , hedgehog
+, language-plutus-core
 , lens
 , mtl
 , plutus-emulator
 , plutus-tx
 , plutus-wallet-api
+, prettyprinter
 , stdenv
 , tasty
+, tasty-golden
 , tasty-hedgehog
 , tasty-hunit
 , template-haskell
@@ -54292,11 +54338,24 @@ hedgehog
 lens
 mtl
 plutus-emulator
+plutus-tx
 plutus-wallet-api
+prettyprinter
 tasty
+tasty-golden
 tasty-hedgehog
 tasty-hunit
 text
+];
+benchmarkHaskellDepends = [
+base
+bytestring
+criterion
+cryptonite
+language-plutus-core
+lens
+plutus-tx
+plutus-wallet-api
 ];
 doHaddock = false;
 description = "Collection of smart contracts to develop the plutus/wallet interface";
@@ -62986,8 +63045,8 @@ version = "0.9.0.2";
 src = fetchgit {
 
 url = "https://github.com/shmish111/servant-purescript.git";
-sha256 = "1a7d301p6sr2wcxr4lfilk1f2wam66cp7qcvhf5zbc02x9qkjxc9";
-rev = "ab14502279c92084f06aa6222a17873275279e63";
+sha256 = "1axcbsaym64q67hvjc7b3izd48cgqwi734l7f7m22jpdc80li5f6";
+rev = "ece5d1dad16a5731ac22040075615803796c7c21";
 fetchSubmodules = true;
 
 };

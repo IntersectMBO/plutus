@@ -25,7 +25,7 @@
 ########################################################################
 
 { system ? builtins.currentSystem
-, config ? {}  # The nixpkgs configuration file
+, config ? { allowUnfreePredicate = (import ./lib.nix {}).unfreePredicate; }  # The nixpkgs configuration file
 
 # Use a pinned version nixpkgs.
 , pkgs ? (import ./lib.nix { inherit config system; }).pkgs
@@ -92,6 +92,10 @@ let
   packages = self: (rec {
     inherit pkgs localLib;
 
+    # Upstream nixpkgs has the asciidoctor-epub3 gem, ours doesn't. So I've backported it here.
+    # Our nixpkgs is so old it doesn't have epubcheck.
+    asciidoctorWithEpub3 = pkgs.callPackage ./nix/asciidoctor { epubcheck = null; };
+
     # The git revision comes from `rev` if available (Hydra), otherwise
     # it is read using IFD and git, which is avilable on local builds.
     git-rev = if isNull rev then localLib.iohkNix.commitIdFromGitRepo ./.git else rev;
@@ -132,7 +136,7 @@ let
             "plutus-tutorial"
             # Broken for things which pick up other files at test runtime
             "plutus-playground-server"
-            "meadow"
+            "marlowe-playground-server"
           ];
         haddock = localButNot [
             # Haddock is broken for things with internal libraries
@@ -164,7 +168,7 @@ let
 
     docs = {
       plutus-tutorial = pkgs.callPackage ./plutus-tutorial/doc {};
-      plutus-book = pkgs.callPackage ./plutus-book/doc {};
+      plutus-book = pkgs.callPackage ./plutus-book/doc { asciidoctor = asciidoctorWithEpub3; };
 
       plutus-core-spec = pkgs.callPackage ./plutus-core-spec { inherit latex; };
       multi-currency = pkgs.callPackage ./docs/multi-currency { inherit latex; };
@@ -234,19 +238,19 @@ let
         };
     };
 
-    meadow = rec {
-      meadow-exe = set-git-rev haskellPackages.meadow;
+    marlowe-playground = rec {
+      playground-exe = set-git-rev haskellPackages.marlowe-playground-server;
       server-invoker = let
-        # meadow uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
+        # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
         runtimeGhc = haskellPackages.ghcWithPackages (ps: [
           haskellPackages.marlowe
-          meadow-exe
+          playground-exe
         ]);
-      in pkgs.runCommand "meadow-server-invoker" { buildInputs = [pkgs.makeWrapper]; } ''
+      in pkgs.runCommand "marlowe-server-invoker" { buildInputs = [pkgs.makeWrapper]; } ''
         # We need to provide the ghc interpreter with the location of the ghc lib dir and the package db
         mkdir -p $out/bin
-        ln -s ${haskellPackages.meadow}/bin/meadow-exe $out/bin/meadow
-        wrapProgram $out/bin/meadow \
+        ln -s ${playground-exe}/bin/marlowe-playground-server $out/bin/marlowe-playground
+        wrapProgram $out/bin/marlowe-playground \
           --set GHC_LIB_DIR "${runtimeGhc}/lib/ghc-${runtimeGhc.version}" \
           --set GHC_BIN_DIR "${runtimeGhc}/bin" \
           --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d" \
@@ -254,20 +258,20 @@ let
       '';
 
       client = let
-        generated-purescript = pkgs.runCommand "meadow-purescript" {} ''
+        generated-purescript = pkgs.runCommand "marlowe-playground-purescript" {} ''
           mkdir $out
-          ${meadow-exe}/bin/meadow-exe psgenerator $out
+          ${playground-exe}/bin/marlowe-playground-server psgenerator $out
         '';
         in
         pkgs.callPackage ./nix/purescript.nix rec {
           inherit pkgs yarn2nix pp2nSrc haskellPackages;
           psSrc = generated-purescript;
-          src = ./meadow-client;
+          src = ./marlowe-playground-client;
           webCommonPath = ./web-common;
-          packageJSON = ./meadow-client/package.json;
-          yarnLock = ./meadow-client/yarn.lock;
-          yarnNix = ./meadow-client/yarn.nix;
-          packages = pkgs.callPackage ./meadow-client/packages.nix {};
+          packageJSON = ./marlowe-playground-client/package.json;
+          yarnLock = ./marlowe-playground-client/yarn.lock;
+          yarnNix = ./marlowe-playground-client/yarn.nix;
+          packages = pkgs.callPackage ./marlowe-playground-client/packages.nix {};
           name = (pkgs.lib.importJSON packageJSON).name;
         };
     };
@@ -291,11 +295,11 @@ let
           Cmd = ["${server-invoker}/bin/plutus-playground" "--config" "${defaultPlaygroundConfig}/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
         };
       };
-      meadowImage = with meadow; pkgs.dockerTools.buildImage {
-        name = "meadow";
+      marlowePlaygroundImage = with marlowe-playground; pkgs.dockerTools.buildImage {
+        name = "marlowe-playground";
         contents = [ client server-invoker defaultPlaygroundConfig ];
         config = {
-          Cmd = ["${server-invoker}/bin/meadow" "--config" "${defaultPlaygroundConfig}/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
+          Cmd = ["${server-invoker}/bin/marlowe-playground" "--config" "${defaultPlaygroundConfig}/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
         };
       };
     };
@@ -351,6 +355,9 @@ let
     };
 
     dev = rec {
+      purty = (import ./purty {
+        inherit pkgs;
+      });
       packages = localLib.getPackages {
         inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "stylish-haskell" ];
       };
@@ -373,6 +380,26 @@ let
             echo "No stylish changes were made."
           fi
           rm pre-stylish.diff post-stylish.diff
+          exit
+        '';
+
+        fixPurty = pkgs.writeScript "fix-purty" ''
+          ${pkgs.git}/bin/git diff > pre-purty.diff
+          ${pkgs.fd}/bin/fd \
+            --extension purs \
+            --exclude '*/.psc-package/*' \
+            --exclude '*/node_modules/*' \
+            --exclude '*/generated/*' \
+            --exec ${purty}/bin/purty --write {}
+          ${pkgs.git}/bin/git diff > post-purty.diff
+          diff pre-purty.diff post-purty.diff > /dev/null
+          if [ $? != 0 ]
+          then
+            echo "Changes by purty have been made. Please commit them."
+          else
+            echo "No purty changes were made."
+          fi
+          rm pre-purty.diff post-purty.diff
           exit
         '';
 

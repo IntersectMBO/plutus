@@ -21,10 +21,9 @@ open import Untyped
 open import Builtin.Signature Ctx⋆ Kind
   ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
 open import Type.BetaNBE.RenamingSubstitution
-
 open import Data.Sum as S
-open import Relation.Binary.PropositionalEquality
-open import Data.List hiding (map)
+open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Data.List hiding (map; [_])
 open import Data.Product hiding (map) renaming (_,_ to _,,_)
 open import Data.Unit hiding (_≤_; _≤?_; _≟_)
 import Utils as Util
@@ -55,22 +54,6 @@ erase-reconstTel []       Ds σ telB        t' refl tel' = refl
 erase-reconstTel (B ∷ Bs) Ds σ (t ,, telB) t' refl tel' =
   cong (erase t ∷_) (erase-reconstTel Bs Ds σ telB t' refl tel')
 
-eraseNe : ∀{Φ}{A : Φ ⊢Nf⋆ *}{Γ : Ctx Φ}{t : Γ ⊢ A}
-  → A.Neutral t → U.Neutral (erase t)
-eraseNe (A.N-` x) = U.N-` (eraseVar x)
-eraseNe (A.N-· N M) = U.N-· (eraseNe N) (erase M) 
-eraseNe (A.N-·⋆ N A) = eraseNe N
-eraseNe (A.N-unwrap1 N) = eraseNe N
-eraseNe (A.N-wrap N) = eraseNe N
-eraseNe (A.N-Λ N) = eraseNe N
-eraseNe (A.N-builtin bn σ tel Bs Ds telB vtel n p telD refl) = U.N-builtin
-  bn
-  (eraseTel tel)
-  (eraseTel telB)
-  (eraseNe n)
-  (eraseTel telD)
-  (erase-reconstTel Bs Ds σ telB _ p telD)
-
 eraseErr : ∀{Φ}{A : Φ ⊢Nf⋆ *}{Γ : Ctx Φ}{e : Γ ⊢ A}
   → A.Error e → U.Error (erase e)
 eraseErr A.E-error = U.E-error
@@ -81,7 +64,6 @@ eraseErr (A.E-·⋆ e) = U.E-todo
 eraseErr (A.E-unwrap e) = U.E-todo
 eraseErr (A.E-wrap e) = U.E-todo
 eraseErr (A.E-builtin bn σ tel Bs Ds telB vtel e p telD) = U.E-todo
-
 
 eraseVTel : ∀ {Φ} Γ Δ
   → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
@@ -220,3 +202,18 @@ erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel {t = t}{t' = t'} p q r)
 \end{code}
 
 -- returning nothing means that the typed step vanishes
+
+\begin{code}
+eraseProgress : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(M : Γ ⊢ A)(p : A.Progress M)
+  → U.Progress (erase M)
+  ⊎ Σ (Γ ⊢ A) λ N →  (M A.—→ N) × (erase M ≡ erase N)
+eraseProgress M (A.step {N = N} p) =
+  map U.step (λ q → N ,, p ,, q) (erase—→ p)
+eraseProgress M (A.done V)    = inj₁ (U.done (eraseVal V))
+eraseProgress M (A.error e)   = inj₁ (U.error (eraseErr e))
+
+erase-progress : ∀{Φ}{Γ : Ctx Φ} → A.NoVar Γ → ∀{A}(M : Γ ⊢ A)
+  → U.Progress (erase M)
+  ⊎ Σ (Γ ⊢ A) λ N →  (M A.—→ N) × (erase M ≡ erase N)
+erase-progress p t = eraseProgress t (A.progress p t)
+\end{code}
