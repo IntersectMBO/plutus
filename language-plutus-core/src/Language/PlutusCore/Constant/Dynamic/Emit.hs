@@ -40,20 +40,22 @@ globalUniqueVar = unsafePerformIO $ newIORef 0
 nextGlobalUnique :: IO Int
 nextGlobalUnique = atomicModifyIORef' globalUniqueVar $ \i -> (succ i, i)
 
-newtype EmitHandler r = EmitHandler
-    { unEmitHandler :: DynamicBuiltinNameMeanings -> Term TyName Name () -> IO r
+newtype EmitHandler uni r = EmitHandler
+    { unEmitHandler :: DynamicBuiltinNameMeanings uni -> Term TyName Name uni () -> IO r
     }
 
-feedEmitHandler :: Term TyName Name () -> EmitHandler r -> IO r
+feedEmitHandler :: Term TyName Name uni () -> EmitHandler uni r -> IO r
 feedEmitHandler term (EmitHandler handler) = handler mempty term
 
-withEmitHandler :: Evaluator Term m -> (EmitHandler (m EvaluationResultDef) -> IO r2) -> IO r2
-withEmitHandler eval k = k . EmitHandler $ \env -> evaluate . eval env
+withEmitHandler
+    :: Evaluable uni
+    => Evaluator Term m -> (EmitHandler uni (m (EvaluationResultDef uni)) -> IO r2) -> IO r2
+withEmitHandler (Evaluator eval) k = k . EmitHandler $ \env -> evaluate . eval env
 
 withEmitTerm
-    :: KnownType a
-    => (Term TyName Name () -> EmitHandler r1 -> IO r2)
-    -> EmitHandler r1
+    :: (KnownType a uni, Evaluable uni)
+    => (Term TyName Name uni () -> EmitHandler uni r1 -> IO r2)
+    -> EmitHandler uni r1
     -> IO ([a], r2)
 withEmitTerm cont (EmitHandler handler) =
     withEmit $ \emit -> do
@@ -64,9 +66,9 @@ withEmitTerm cont (EmitHandler handler) =
         cont dynEmitTerm . EmitHandler $ handler . insertDynamicBuiltinNameDefinition dynEmitDef
 
 withEmitEvaluateBy
-    :: KnownType a
+    :: (KnownType a uni, Evaluable uni)
     => Evaluator Term m
-    -> (Term TyName Name () -> Term TyName Name ())
-    -> IO ([a], m EvaluationResultDef)
+    -> (Term TyName Name uni () -> Term TyName Name uni ())
+    -> IO ([a], m (EvaluationResultDef uni))
 withEmitEvaluateBy eval toTerm =
     withEmitHandler eval . withEmitTerm $ feedEmitHandler . toTerm

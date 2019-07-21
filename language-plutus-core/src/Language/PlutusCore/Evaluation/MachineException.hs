@@ -62,4 +62,5 @@ instance (Pretty err, GShow uni, Closed uni, uni `Everywhere` Pretty) =>
         , "Caused by: ", docString $ prettyPlcReadableDebug cause
         ]
 
-instance (Pretty err, GShow uni, Closed uni, uni `Everywhere` Pretty, Typeable uni, Typeable err) => Exception (MachineException uni err)
+instance (Pretty err, GShow uni, Closed uni, uni `Everywhere` Pretty, Typeable uni, Typeable err) =>
+            Exception (MachineException uni err)

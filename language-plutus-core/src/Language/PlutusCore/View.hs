@@ -36,7 +36,7 @@ instance (PrettyBy config head, PrettyBy config arg) => PrettyBy config (IterApp
         parens $ foldl' (\fun arg -> fun <+> prettyBy config arg) (prettyBy config appHead) appSpine
 
 -- | View a 'Constant' as a 'StagedBuiltinName'.
-constantAsStagedBuiltinName :: Builtin a -> StagedBuiltinName
+constantAsStagedBuiltinName :: Builtin ann -> StagedBuiltinName
 constantAsStagedBuiltinName (BuiltinName    _ name) = StaticStagedBuiltinName  name
 constantAsStagedBuiltinName (DynBuiltinName _ name) = DynamicStagedBuiltinName name
 

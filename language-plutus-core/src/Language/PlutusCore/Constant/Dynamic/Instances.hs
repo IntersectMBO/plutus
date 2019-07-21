@@ -218,7 +218,7 @@ newtype InExtended b (uni :: * -> *) a = InExtended
     { unInExtended :: a
     }
 
-instance (Evaluable uni, euni ~ Extend a uni, Typeable a) => KnownType (AsExtension uni a) euni where
+instance (Evaluable uni, euni ~ Extend a uni, Typeable a, Pretty a) => KnownType (AsExtension uni a) euni where
     toTypeAst _ = TyConstant () $ Some Extension
 
     makeKnown (AsExtension x) = Constant () $ SomeOf Extension x
@@ -242,7 +242,7 @@ instance (Evaluable uni, KnownType a uni, euni ~ Extend b uni, Typeable b) =>
 instance PrettyKnown (InExtended b uni a) where
     prettyKnown = Prelude.error "ololo1"
 
-instance (Evaluable uni, KnownType a uni, KnownType b uni, Typeable a, Typeable b) => KnownType (a, b) uni where
+instance (Evaluable uni, KnownType a uni, KnownType b uni, Typeable a, Typeable b, Pretty a, Pretty b) => KnownType (a, b) uni where
     toTypeAst _ =
         mkIterTyApp () (prodN 2)
             [ toTypeAst @a Proxy

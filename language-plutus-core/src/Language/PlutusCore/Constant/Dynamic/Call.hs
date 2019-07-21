@@ -7,25 +7,26 @@ module Language.PlutusCore.Constant.Dynamic.Call
     , dynamicCall
     ) where
 
+import           Language.PlutusCore.Constant.Dynamic.Instances ()
 import           Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Lexer.Type     hiding (name)
+import           Language.PlutusCore.Lexer.Type                 hiding (name)
 import           Language.PlutusCore.Type
 
 import           Data.Proxy
 import           System.IO.Unsafe
 
-dynamicCallTypeScheme :: KnownType a => TypeScheme (a -> ()) ()
+dynamicCallTypeScheme :: (KnownType a uni, Evaluable uni) => TypeScheme uni (a -> ()) ()
 dynamicCallTypeScheme = Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
 
 dynamicCallAssign
-    :: KnownType a
+    :: (KnownType a uni, Evaluable uni)
     => DynamicBuiltinName
     -> (a -> IO ())
-    -> DynamicBuiltinNameDefinition
+    -> DynamicBuiltinNameDefinition uni
 dynamicCallAssign name f =
     DynamicBuiltinNameDefinition name $
         DynamicBuiltinNameMeaning dynamicCallTypeScheme (unsafePerformIO . f)
 
-dynamicCall :: DynamicBuiltinName -> Term tyname name ()
+dynamicCall :: DynamicBuiltinName -> Term tyname name uni ()
 dynamicCall = dynamicBuiltinNameAsTerm

@@ -139,7 +139,14 @@ newtype DynamicBuiltinNameMeanings uni = DynamicBuiltinNameMeanings
     { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName (DynamicBuiltinNameMeaning uni)
     } deriving (Semigroup, Monoid)
 
-type Evaluable uni = (GEq uni, Typeable uni, HasDefaultUni uni, GShow uni, Closed uni, uni `Everywhere` Pretty)
+type Evaluable uni =
+    ( HasDefaultUni uni
+    , GEq uni
+    , GShow uni
+    , Closed uni
+    , uni `Everywhere` Pretty
+    , Typeable uni
+    )
 
 -- | A thing that evaluates @f@ in monad @m@ and allows to extend the set of
 -- dynamic built-in names.

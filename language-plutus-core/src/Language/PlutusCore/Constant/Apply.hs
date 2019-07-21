@@ -26,11 +26,10 @@ module Language.PlutusCore.Constant.Apply
     , runApplyBuiltinName
     ) where
 
-import           Language.PlutusCore.Constant.DefaultUni
 import           Language.PlutusCore.Constant.Name
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Lexer.Type          (BuiltinName (..))
+import           Language.PlutusCore.Lexer.Type        (BuiltinName (..))
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
@@ -38,11 +37,11 @@ import           PlutusPrelude
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Inner
 import           Crypto
-import qualified Data.ByteString.Lazy                    as BSL
-import qualified Data.ByteString.Lazy.Hash               as Hash
+import qualified Data.ByteString.Lazy                  as BSL
+import qualified Data.ByteString.Lazy.Hash             as Hash
 import           Data.GADT.Compare
 import           Data.Proxy
-import           Data.Text                               (Text)
+import           Data.Text                             (Text)
 
 -- | The type of constant applications errors.
 data ConstAppError con
@@ -199,7 +198,7 @@ applyTypedBuiltinName (TypedBuiltinName _ schema) = applyTypeSchemed schema
 -- | Apply a 'TypedBuiltinName' to a list of 'Value's.
 -- Checks that the values are of expected types.
 applyBuiltinName
-    :: (Monad m, GEq uni, HasDefaultUni uni)
+    :: (Monad m, Evaluable uni)
     => BuiltinName -> [Value TyName Name uni ()] -> EvaluateConstAppDef uni m
 applyBuiltinName AddInteger           =
     applyTypedBuiltinName typedAddInteger           (+)
@@ -247,7 +246,7 @@ applyBuiltinName GtByteString         =
 -- | Apply a 'BuiltinName' to a list of 'Value's and evaluate the resulting computation usign the
 -- given evaluator.
 runApplyBuiltinName
-    :: (Monad m, GEq uni, HasDefaultUni uni)
+    :: (Monad m, Evaluable uni)
     => Evaluator Term m
     -> BuiltinName
     -> [Value TyName Name uni ()]
