@@ -12,7 +12,7 @@ box things up, or unbox things. This lets us enforce security properties
 such as "this script can only pass Sealed values around but cannot create
 or modify them".
 
-To do this properly, we need to make 'Sealed' and its associated (extensible)
+To do this properly, we need to make 'Sealed' and its associated functions (extensible)
 builtins. But this isn't working yet, so for now we fake it in userspace so
 we can make the interface changes.
 -}
