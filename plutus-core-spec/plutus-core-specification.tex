@@ -335,7 +335,7 @@ may use the multi-argument forms.
 \item $\lam{x}{A}{M}$ is standard lambda-abstraction, $\lambda{}x{:}{A}.{M}$.
 \item $\app{M}{N}$ is standard function application.
 \item $\builtin{bn}{A^*}{M^*}$ is application of a built-in function: see Section~\ref{sec:builtins} for more information.
-\item $\error{A}$ causes an error, terminating computation immediately.
+\item $\error{A}$ causes an error, terminating computation.
 \end{itemize}
 
 %% Re the value restriction:  Phil says
@@ -814,11 +814,13 @@ typed lambda calculus, complex computations can take place at the
 level of types.  Reductions in the type system always transform a
 given type into an equivalent type, and so have no effect on the term
 level.  In conjunction with the fact that type reduction always
-terminates, this allows us to perform normalisation (i.e., reduction to
-a form which cannot undergo any further reduction) statically, before
-execution begins.  Figure~\ref{fig:type-reduction} contains the rules
-for type reduction, and Figure~\ref{fig:type-equivalence} contains
-rules for type equivalence.
+terminates, this allows us to perform normalisation (i.e., reduction
+to a form which cannot undergo any further reduction) statically,
+before execution begins.  Figure~\ref{fig:type-reduction} contains the
+rules for type reduction, and Figure~\ref{fig:type-equivalence}
+contains rules for type equivalence.  We use $[A/\alpha]V$ to denote
+the result of substituting a type $A$ for a type variable $\alpha$ in
+a value $V$.
 
 \subfile{figures/TypeReduction}
 
@@ -828,7 +830,10 @@ rules for type equivalence.
 Execution of Plutus Core programs is performed by (possibly
 non-terminating) reduction of well-typed terms.  The reduction rules
 are contained in Figure~\ref{fig:term-reduction}, and give us a fairly
-standard operational semantics.  
+standard operational semantics.  We use $[V/x]M$ to denote
+substitution of a value for a variable in a term, and $\{A/\alpha\}V$
+to denote instantation of a polymorphic value (or term) $V$ at a
+particular type $A$. All substitutions are capture-avoiding, as usual.
 
 \subfile{figures/TermReduction}
 
@@ -865,7 +870,7 @@ returns a value to the outside world.
 To evaluate a program $\texttt{(program } v\ M \texttt{)}$, we first
 check that the version number $v$ is valid, then start the machine in
 the state $\cdot \triangleright M$.  It can be proved that the
-transitions in Figure~\ref{fig:ck_machine} always preserve
+transitions in Figure~\ref{fig:ck-machine} always preserve
 validity of states, so that the machine can never enter a state such as
   $\cdot \triangleleft M$
 or
@@ -875,6 +880,27 @@ situation were to occur in an implementation then it would indicate
 that the machine was incorrectly implemented or that it was attempting
 to evaluate an invalid program which should have been detected during
 parsing or typechecking.
+
+For efficiency reasons the semantics of the machine defined in
+Figure~\ref{fig:ck-machine} differ in two respects from the semantics
+defined in Figure~\ref{fig:term-reduction}:
+\begin{itemize}
+\item The CK machine does not perform type instantiation since this
+  is irrelevant at run time.
+\item When it encounters an \texttt{error} term the machine terminates
+  immediately.  In Figure~\ref{fig:term-reduction} the \texttt{error}
+  term propagates to the top of the stack of reduction frames,
+  changing its type to match the surrounding context as it does so:
+  this is to ensure that the program has a well-defined type.
+\end{itemize}
+\noindent It can be proved that when the CK machine as defined in
+Figure~\ref{fig:ck-machine} evaluates a program $P$, the machine
+terminates in the $\blacklozenge$ state if and only if $P$ terminates
+with an \texttt{error} value according to the rules of
+Figure~\ref{fig:term-reduction}, and that the machine terminates with
+a non-error value $V$ if and only if $P$ terminates according to the
+reduction rules with a value $V^{\prime}$ which is equal to $V$
+modulo erasure of type annotations.
 
 
 \section{Built in types, functions, and values}
@@ -906,25 +932,27 @@ at some time in the future.
   the value \texttt{(error)}.
 \item We provide two versions of the division and remainder operations
   for integers.  These differ in their treatment of negative
-  arguments\footnote{The standard mathematical definition (the
-    so-called \textit{division algorithm}, or \textit{Euclidean
-      division}) is as follows: if $n,d \in \mathbb{Z}$ and $d \ne 0$
-    then there exist unique integers $q, r \in \mathbb{Z}$ such that
-    $n=qb+r$ and $0 \le r < \lvert d \rvert$; $q$ is the
-    \textit{quotient} and $r$ is the \textit{remainder}.  Neither of
-    our sets of operations implements this definition! For $d > 0$,
-    \texttt{divideInteger} and \texttt{modInteger} give the correct
-    results, but they can give negative remainders for $d<0$.  In any sensible
-  computation we'd probably have $d>0$, but it's worth being careful.}:
+  arguments.
+
+%%\footnote{The standard mathematical definition (the so-called
+%%\textit{division algorithm}, or \textit{Euclidean division}) is as
+%%follows: if $n,d \in \mathbb{Z}$ and $d \ne 0$ then there exist
+%%unique integers $q, r \in \mathbb{Z}$ such that $n=qb+r$ and
+%%$0 \le r < \lvert d \rvert$; $q$ is the \textit{quotient} and $r$
+%%is the \textit{remainder}.  Neither of our sets of operations
+%%implements this definition! For $d > 0$, \texttt{divideInteger}
+%%and \texttt{modInteger} give the correct results, but they can
+%%give negative remainders for $d<0$.  In any sensible computation
+%%we'd probably have $d>0$, but it's worth being careful.}:
 
   \begin{itemize}
   
   \item \texttt{divideInteger} and \texttt{modInteger} implement the
-    standard mathematical integer division
-    operations: \texttt{divideInteger} rounds downwards and the sign
-    of \texttt{modInteger} $n$ $d$ is the same as the sign of $d$.
-    These correspond to Haskell's \texttt{div} and \texttt{mod}
-    operators.
+    standard mathematical integer division operations (at least for
+    divisors greater than zero): \texttt{divideInteger}
+    rounds downwards and the sign of \texttt{modInteger} $n$ $d$ is
+    the same as the sign of $d$.  These correspond to Haskell's
+    \texttt{div} and \texttt{mod} operators.
 
   \item \texttt{quotientInteger} and \texttt{remainderInteger}
     represent the operations found in many computer languages and

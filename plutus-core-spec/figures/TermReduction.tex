@@ -31,7 +31,7 @@
 
     \begin{prooftree}
         \AxiomC{}
-        \UnaryInfC{\(\step{\inst{\abs{\alpha}{K}{V}}{A}}{V}\)}
+        \UnaryInfC{\(\step{\inst{\abs{\alpha}{K}{V}}{A}}{\{A/\alpha\}V}\)}
     \end{prooftree}
 
     \begin{prooftree}
@@ -57,7 +57,7 @@
     \begin{prooftree}
         \AxiomC{\(\step{M}{M'}\)}
         \AxiomC{\(M' = \error{B}\)}
-        \RightLabel{\footnotesize\textit{($A$ is the type of the frame, $B$ is the type of its hole)}}
+        \RightLabel{\footnotesize(\textit{$A$ is the type of the frame, $B$ is the type of its hole})}
         \BinaryInfC{\(\step{\ctxsubst{f}{M}}{\error{A}}\)}
     \end{prooftree}
 
