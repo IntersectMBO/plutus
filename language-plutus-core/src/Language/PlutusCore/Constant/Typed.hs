@@ -77,8 +77,8 @@ infixr 9 `TypeSchemeArrow`
 data TypeScheme uni a r where
     -- TODO: replace @KnownType a@ with @uni `Includes` a@ in both the constructors
     -- once implicit unlifting is gone.
-    TypeSchemeResult :: KnownType a uni => Proxy a -> TypeScheme uni a a
-    TypeSchemeArrow  :: KnownType a uni => Proxy a -> TypeScheme uni b r -> TypeScheme uni (a -> b) r
+    TypeSchemeResult  :: KnownType a uni => Proxy a -> TypeScheme uni a a
+    TypeSchemeArrow   :: KnownType a uni => Proxy a -> TypeScheme uni b r -> TypeScheme uni (a -> b) r
     TypeSchemeAllType
         :: (KnownSymbol text, KnownNat uniq)
            -- Here we require the user to manually provide the unique of a type variable.
