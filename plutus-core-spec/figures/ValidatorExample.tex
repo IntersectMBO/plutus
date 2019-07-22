@@ -10,13 +10,13 @@ for instance, we write
    |\one| : |\unit|
    |\one| = (abs $a$ (type) (lam $x$ $a$ $x$))
 \end{lstlisting}
-for the element of the type $unit$ (defined Figure~\ref{fig:type_abbreviations}).
+for the element of the type $unit$ (defined in Figure~\ref{fig:type_abbreviations}).
 
 We stress that declarations in this style are not part of the Plutus
 Core language. We merely use the familiar syntax to present our
 example. If the high-level definitions in our example were compiled to
-a Plutus Core expression, it would result in something like Figure
-\ref{fig:Continuized_Let_Example}.
+a Plutus Core expression, it would result in something like
+Figure~\ref{fig:Continuized_Let_Example}.
 
 We proceed by defining the booleans. Like \textit{unit}, the type \textit{boolean}
 below is an abbreviation in the specification. Some built-in constants
@@ -48,24 +48,21 @@ and similarly
 \begin{lstlisting}
   |\case| : (all $a$ (type)
           (fun |\boolean|
-          (fun (fun |\unit| $a$) (fun (fun |\unit| $a$) $a$))))
+          (fun $a$ (fun $a$ $a$))))
   |\case| = (abs $a$ (type)
           (lam $b$ |\boolean|
-          (lam $t$ (fun |\unit| $a$)
-          (lam $f$ (fun |\unit| $a$)
-             [
-               [ {$b$ (fun |\unit| $a$)} $t$ $f$ ]
-               |\one|
-             ]
+          (lam $t$ $a$
+          (lam $f$ $a$
+            [ {$b$ $a$} $t$ $f$ ]
           ))))
 \end{lstlisting}
 The reader is encouraged to verify that
 \begin{lstlisting}
-  [{|\case| a} |\true| (lam |\unit| u x) (lam |\unit| u y)] $\stackrel{*}{\rightarrow}$ x
+  [{|\case| a} |\true| x y ] $\stackrel{*}{\rightarrow}$ x
 \end{lstlisting}
 and
 \begin{lstlisting}
-  [{|\case| a} |\false| (lam |\unit| u x) (lam |\unit| u y)] $\stackrel{*}{\rightarrow}$ y
+  [{|\case| a} |\false| x y ] $\stackrel{*}{\rightarrow}$ y
 \end{lstlisting}
 
 \noindent We can use \case{} to define the following function:
@@ -75,53 +72,42 @@ and
   verifyIdentity =
     (lam |\pubkey| (con bytestring)
     (lam |\signed| (con bytestring)
-  [ { |\case| |\unit| } [ (builtin verifySignature) |\signed| |\txhash| |\pubkey| ]
-        (lam u |\unit| |\one|)
-        (lam u |\unit| (error |\unit|))
-      ]))
+  [
+    { |\case| (fun |\unit| |\unit|) }
+    [ (builtin verifySignature) |\signed| |\txhash| |\pubkey| ]
+    (lam u |\unit| |\one|)
+    (lam u |\unit| (error |\unit|))
+    |\one|
+  ]))
 \end{lstlisting}
-the idea being that the first argument is a public key, and the second
-argument is the result of signing the hash of the current transaction
-(contained in $\mathit{txhash} : \texttt{(con bytestring)}$) with
-the corresponding private key\footnote{In practice $\mathit{txhash}$
-  is contained in a data structure supplied as an extra parameter to
-  the validator script at the start of the validation process.  The
-  Plutus Core code required to access $\mathit{txhash}$ is a (rather
-  complicated) implementation detail: we omit it here, regarding
-  $\mathit{txhash}$ as a value contained in some enclosing
-  environment.}.  The function terminates normally if and only if the
+ Note that although we are producing a value of
+type \unit{} we instantiate \case{} at the type \texttt{(fun \unit \unit)} and
+pass the branches as functions from \unit{}. This
+is because Plutus Core is eagerly evaluated, so if we did not delay the
+branches of the case in this way, then the \texttt{(error)} in the second branch
+would be evaluated unconditionally, which is not what we want. This way the
+branch of the case is selected first, and then the body of the branch is
+evaluated.
+
+The idea is that first argument of \texttt{verifyIdentity} is a public
+key, and the second argument is the result of signing the hash of the
+current transaction (contained in
+$\mathit{txhash} : \texttt{(con bytestring)}$) with the corresponding
+private key.  The function terminates normally if and only if the
 signature is valid, returning \texttt{error} otherwise. Now, given
 Alice's public key we can apply our function to obtain one that
 verifies whether or not its input is the result of Alice signing the
 current block number. Again, we stress that the Plutus Core expression
 corresponding to \texttt{verifyIdentity} is going to look something
 like Figure \ref{fig:Continuized_Let_Example}.
+\todompj{This is out of date. Not sure how useful it is.}
 
-% The next bit no longer makes a lot of sense because 
-
-%% With minimal modification we might turn our function into one that
-%% verifies a signature of the current block number; specifically, we
-%% could replace \txhash{} with
-%% \begin{lstlisting}
-%%   [ {intToByteString (con 16) (con 32)}
-%%     256
-%%     [{|\blocknum| (con 16)} 16]
-%%   ]
-%% \end{lstlisting}
-
-%% Notice that we must supply \blocknum{} with the size we wish to use to
-%% store the result twice, once at the type level and again at the term
-%% level. This is necessary because we want to have the size information
-%% available both at the type level, to facilitate gas calculations, and
-%% at the term level, so that once types are erased the runtime will know
-%% how much memory to allocate. This quirk is present in a number of the
-%% built in functions.
-
+\newpage
 \begin{figure*}[h]  % Using H here causes undefined references to this figure
 \begin{lstlisting}
 (lam |\pubkey| (con bytestring)
 (lam |\signed| (con bytestring)
-    [ 
+    [
     {
         (abs $a$ (type)
         (lam $b$ (all $a$ (type) (fun $a$ (fun $a$ $a$)))
@@ -153,4 +139,3 @@ like Figure \ref{fig:Continuized_Let_Example}.
 \end{figure*}
 
 \end{document}
-

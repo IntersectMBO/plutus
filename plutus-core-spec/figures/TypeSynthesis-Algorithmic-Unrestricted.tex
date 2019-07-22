@@ -24,7 +24,7 @@
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{$cn$ has constant signature $\constsig{tcn}$ in Figure \ref{fig:constants}}
+        \AxiomC{$cn$ has constant signature $\constsig{tcn}$ in Figure~\ref{fig:constants}}
         \RightLabel{con}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{cn}{\conT{tcn}}}\)}
     \end{prooftree}
@@ -63,6 +63,13 @@
         \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\unwrap{M}}{\diffbox{R}}}\)}
     \end{prooftree}
 
+    \caption{Type Synthesis (Algorithmic, Unrestricted)}
+\end{figure}
+
+%% Break to improve figure layout
+
+\begin{figure}[H]
+  \ContinuedFloat
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
     	\AxiomC{\(\diffbox{\typeMultistep{A}{S}}\)}
@@ -78,13 +85,7 @@
         \RightLabel{app}
         \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\app{L}{M}}{T}}\)}
     \end{prooftree}
-    \caption{Type Synthesis (Algorithmic, Unrestricted)}
-\end{figure}
 
-%% Break to improve figure layout
-
-\begin{figure}[H]
-  \ContinuedFloat
     \begin{prooftree}
         \alwaysNoLine
         \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in Figure \ref{fig:builtins}}
