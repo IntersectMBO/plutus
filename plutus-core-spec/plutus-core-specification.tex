@@ -837,9 +837,6 @@ particular type $A$. All substitutions are capture-avoiding, as usual.
 
 \subfile{figures/TermReduction}
 
-\todokwxm{James says that the rule for \texttt{abs} breaks type preservation.
-  See issue \#1145.  This is also related to type erasure.}
-  
 \subsection{An abstract machine for evaluating Plutus Core programs}
 This section contains a description of an abstract machine for
 executing Plutus Core.  This is based on the CK machine of Felleisen
@@ -884,8 +881,8 @@ that the machine was incorrectly implemented or that it was attempting
 to evaluate an invalid program which should have been detected during
 parsing or typechecking.
 
-For efficiency reasons the semantics of the machine defined in
-Figure~\ref{fig:ck-machine} differ in two respects from the semantics
+For efficiency reasons the behaviour of the machine defined in
+Figure~\ref{fig:ck-machine} differs in two respects from the semantics
 defined in Figure~\ref{fig:term-reduction}:
 \begin{itemize}
 \item The CK machine does not perform type instantiation since this
