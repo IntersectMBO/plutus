@@ -17,6 +17,8 @@ open import Data.String
 ```
 
 ```
+open import Data.List hiding ([_])
+
 data Frame : ∀{n n'} → Weirdℕ n → Weirdℕ n' → Set where
   -·_ : ∀{n}{i : Weirdℕ n} → ScopedTm i → Frame i i
   _·- : ∀{n}{i : Weirdℕ n}{t : ScopedTm i } → Value t → Frame i i
@@ -26,6 +28,9 @@ data Frame : ∀{n n'} → Weirdℕ n → Weirdℕ n' → Set where
 
   wrap- :  ∀{n} → ScopedTy n → ScopedTy n → {i : Weirdℕ n} → Frame i i
   unwrap- : ∀{n}{i : Weirdℕ n} → Frame i i
+
+  builtin- : ∀{n}{i : Weirdℕ n} → Builtin → List (ScopedTy n)
+    → {tel : Tel i} → VTel i tel → Tel i →  Frame i i
 
 data Stack : ∀{n}(i : Weirdℕ n) → Set where
   ε   : ∀{n}{i : Weirdℕ n} → Stack i
@@ -47,6 +52,11 @@ open import Data.Empty
 
 open import Data.Nat
 
+VTel-extend : ∀{n}{i : Weirdℕ n} → {tel : Tel i} → VTel i tel → {t : ScopedTm i} → Value t → VTel i (tel Data.List.++ Data.List.[ t ])
+VTel-extend {tel = []} vs {t} v = v ,, _
+VTel-extend {tel = x ∷ tel} (v' ,, vs) {t} v = v' ,, VTel-extend vs v
+
+
 step : ∀{n}{i : Weirdℕ n} →  NoVar i → State i → Σ ℕ λ n' → Σ (Weirdℕ n') λ i → NoVar i × State i
 step p (s ▻ ` x)              = ⊥-elim (noVar p x)
 step p (s ▻ Λ x K L)          = _ ,, _ ,, p ,, (s , Λ- x K) ▻ L
@@ -56,8 +66,9 @@ step p (s ▻ (L · M))          = _ ,, _ ,, p ,, (s , (-· M)) ▻ L
 step p (s ▻ con cn)           = _ ,, _ ,, p ,, s ◅ V-con cn
   -- ^ why is i inferrable?
 step {i = i} p (s ▻ error A)           = _ ,, i ,, p ,, ◆
-step {i = i} p (s ▻ builtin bn As tel) = _ ,, i ,, p ,, ◆
-  -- ^ don't have access to the return type
+step {i = i} p (s ▻ builtin bn As []) = _ ,, _ ,, p ,, (s ▻ BUILTIN bn As [] _)
+step {i = i} p (s ▻ builtin bn As (t ∷ tel)) =
+  _ ,, _ ,, p ,, (s , builtin- bn As {[]} _ tel) ▻ t
 step p (s ▻ wrap pat arg L)   = _ ,, _ ,, p ,, (s , wrap- pat arg) ▻ L
 step p (s ▻ unwrap L)         = _ ,, _ ,, p ,, (s , unwrap-) ▻ L
 step p (ε ◅ V)                = _ ,, _ ,, p ,, □ V
@@ -81,6 +92,10 @@ step p ((s , unwrap-) ◅ V-wrap A B V) = _ ,, _ ,, p ,, (s ◅ V)
 step {i = i} p ((s , unwrap-) ◅ V-builtin b As ts) = _ ,, i ,, p ,, ◆
 step p (□ V)                  = _ ,, _ ,, p ,, □ V
 step {i = i} p ◆              = _ ,, i ,, p ,, ◆
+step p (_◅_ (s , builtin- b As {tel} vtel []) {t} V) =
+  _ ,, _ ,, p ,, (s ▻ BUILTIN b As (tel Data.List.++ Data.List.[ t ]) (VTel-extend vtel V))
+step p (_◅_ (s , builtin- b As {tel} vtel (t' ∷ tel')) {t} V) =
+  _ ,, _ ,, p ,, (s , builtin- b As {tel Data.List.++ Data.List.[ t ]} (VTel-extend vtel V) tel') ▻ t'
 ```
 
 ```

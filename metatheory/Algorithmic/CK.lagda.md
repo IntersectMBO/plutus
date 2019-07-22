@@ -30,10 +30,11 @@ data Frame : ∀{Φ Φ'} → Ctx Φ → (T : Φ ⊢Nf⋆ *) → Ctx Φ' → (H :
     → Frame Γ (ne (μ1 · pat · arg)) Γ (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
   unwrap- : ∀{Φ Γ K}{pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{arg : Φ ⊢Nf⋆ K}
     → Frame Γ (nf (embNf pat · (μ1 · embNf pat) · embNf arg))  Γ (ne (μ1 · pat · arg))
+
 data Stack : ∀{Φ}(Γ : Ctx Φ) (A : Φ ⊢Nf⋆ *) → Set where
   ε   : ∀{Φ}{Γ}{A : Φ ⊢Nf⋆ *} → Stack Γ A
   _,_ : ∀{Φ Φ'}{Γ Γ'}{T : Φ ⊢Nf⋆ *}{H : Φ' ⊢Nf⋆ *} → Stack Γ T → Frame Γ T Γ' H → Stack Γ' H
-  
+
 data State{Φ}(Γ : Ctx Φ) : Set where
   _▻_ : {A : Φ ⊢Nf⋆ *} → Stack Γ A → Γ ⊢ A → State Γ
   _◅_ : {A : Φ ⊢Nf⋆ *} → Stack Γ A → {t : Γ ⊢ A} →  Value t → State Γ
