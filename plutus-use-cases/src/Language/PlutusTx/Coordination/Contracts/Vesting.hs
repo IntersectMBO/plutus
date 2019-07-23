@@ -27,7 +27,7 @@ import           GHC.Generics                 (Generic)
 import           Language.PlutusTx.Prelude
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Ledger                       as Ledger
-import           Ledger                       (DataScript (..), Slot(..), PubKey (..), TxOutRef, ValidatorScript (..), scriptTxIn, scriptTxOut)
+import           Ledger                       (DataScript (..), Slot(..), PubKey (..), TxOutRef, RedeemerScript (..), ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger.Interval              as Interval
 import qualified Ledger.Slot                  as Slot
 import           Ledger.Value                 (Value)
@@ -99,6 +99,9 @@ vestFunds vst value = do
     _ <- createTxAndSubmit defaultSlotRange payment (o : maybeToList change)
     pure vd
 
+redeemerScript :: RedeemerScript
+redeemerScript = RedeemerScript $ $$(Ledger.compileScript [|| \(_ :: Sealed VestingData) -> () ||])
+
 -- | Retrieve some of the vested funds.
 retrieveFunds :: (
     Monad m,
@@ -119,7 +122,7 @@ retrieveFunds vs vd r vnow = do
         o   = scriptTxOut remaining val (DataScript $ Ledger.lifted vd')
         remaining = totalAmount vs `Value.minus` vnow
         vd' = vd {vestingDataPaidOut = vnow `Value.plus` vestingDataPaidOut vd }
-        inp = scriptTxIn r val Ledger.unitRedeemer
+        inp = scriptTxIn r val redeemerScript
         range = W.intervalFrom currentSlot
     _ <- createTxAndSubmit range (Set.singleton inp) [oo, o]
     pure vd'

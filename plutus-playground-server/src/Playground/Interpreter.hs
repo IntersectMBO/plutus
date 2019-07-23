@@ -204,7 +204,6 @@ runghcOpts =
     , "-fno-ignore-interface-pragmas"
     , "-fobject-code"
     -- FIXME: stupid GHC bug still
-    , "-package plutus-wallet-api"
     , "-package plutus-tx"
     ]
 

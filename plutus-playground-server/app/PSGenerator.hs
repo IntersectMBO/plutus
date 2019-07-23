@@ -47,6 +47,7 @@ import           Ledger                                     (AddressOf, DataScri
 import           Ledger.Ada                                 (Ada)
 import           Ledger.Index                               (ValidationError)
 import           Ledger.Interval                            (Interval)
+import           Ledger.Scripts                             (ScriptError)
 import           Ledger.Slot                                (Slot)
 import           Ledger.Value                               (CurrencySymbol, TokenName, Value)
 import           Playground.API                             (CompilationResult, Evaluation, EvaluationResult,
@@ -243,6 +244,7 @@ myTypes =
     , mkSumType (Proxy @EvaluationResult)
     , mkSumType (Proxy @EmulatorEvent)
     , mkSumType (Proxy @ValidationError)
+    , mkSumType (Proxy @ScriptError)
     , mkSumType (Proxy @Slot)
     , mkSumType (Proxy @WalletAPIError)
     , mkSumType (Proxy @Tx)

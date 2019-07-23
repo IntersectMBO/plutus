@@ -1,5 +1,4 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-{-# OPTIONS_GHC -ddump-simpl #-}
 module Plugin.Typeclasses.Lib where
 
 import qualified Language.PlutusTx.Builtins as Builtins

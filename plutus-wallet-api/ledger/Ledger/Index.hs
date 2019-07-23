@@ -28,12 +28,13 @@ import           Prelude              hiding (lookup)
 
 import           Control.Lens         (at, (^.))
 import           Control.Monad
-import           Control.Monad.Except (MonadError (..))
+import           Control.Monad.Except (MonadError (..), runExcept)
 import           Control.Monad.Reader (MonadReader (..), ReaderT (..), ask)
 import           Crypto.Hash          (Digest, SHA256)
 import           Data.Aeson           (FromJSON, ToJSON)
 import           Data.Foldable        (fold, foldl', traverse_)
 import qualified Data.Map             as Map
+import           Data.Maybe           (mapMaybe)
 import           Data.Semigroup       (Semigroup)
 import qualified Data.Set             as Set
 import           GHC.Generics         (Generic)
@@ -91,7 +92,7 @@ data ValidationError =
     -- ^ The amount spent by the transaction differs from the amount consumed by it.
     | NegativeValue Tx
     -- ^ The transaction produces an output with a negative value.
-    | ScriptFailure [String]
+    | ScriptFailure ScriptError
     -- ^ For pay-to-script outputs: evaluation of the validator script failed.
     | CurrentSlotOutOfRange Slot.Slot
     -- ^ The current slot is not covered by the transaction's validity slot range.
@@ -228,20 +229,19 @@ matchInputOutput txid mp i txo = case (txInType i, txOutType txo) of
 --   correct and script evaluation has to terminate successfully. If this is a
 --   pay-to-pubkey output then the signature needs to match the public key that
 --   locks it.
-checkMatch :: ValidationMonad m => PendingTx -> InOutMatch -> m ()
-checkMatch v = \case
+checkMatch :: ValidationMonad m => (PendingTx, [DataScript]) -> InOutMatch -> m ()
+checkMatch (pendingTx, dataScripts) = \case
     ScriptMatch txin vl r d a
         | a /= scriptAddress vl ->
                 throwError $ InvalidScriptHash d
         | otherwise -> do
             pTxIn <- mkIn txin
-            let v' = ValidationData
+            let vd = ValidationData
                     $ lifted
-                    $ v { pendingTxIn = pTxIn }
-                (logOut, success) = runScript Typecheck v' vl d r
-            if success
-            then pure ()
-            else throwError $ ScriptFailure logOut
+                    $ pendingTx { pendingTxIn = pTxIn }
+            case runExcept $ runScript Typecheck vd dataScripts vl d r of
+                Left e  -> throwError $ ScriptFailure e
+                Right _ -> pure ()
     PubKeyMatch msg pk sig ->
         if signedBy sig pk msg
         then pure ()
@@ -264,21 +264,21 @@ checkPositiveValues t =
     else throwError $ NegativeValue t
 
 -- | Create the data about the transaction which will be passed to a validator script.
-validationData :: ValidationMonad m => Tx -> m PendingTx
-validationData tx = rump <$> ins where
-    ins = traverse mkIn $ Set.toList $ txInputs tx
-    txHash = Validation.plcTxHash $ hashTx tx
-
-    rump txins = PendingTx
-        { pendingTxInputs = txins
-        , pendingTxOutputs = mkOut <$> txOutputs tx
-        , pendingTxForge = txForge tx
-        , pendingTxFee = txFee tx
-        , pendingTxIn = head txins -- this is changed accordingly in `checkMatch` during validation
-        , pendingTxValidRange = txValidRange tx
-        , pendingTxSignatures = Map.toList (tx ^. signatures)
-        , pendingTxHash = txHash
-        }
+validationData :: ValidationMonad m => Tx -> m (PendingTx, DataScripts)
+validationData tx = do
+    txins <- traverse mkIn $ Set.toList $ txInputs tx
+    let ptx = PendingTx
+            { pendingTxInputs = txins
+            , pendingTxOutputs = mkOut <$> txOutputs tx
+            , pendingTxForge = txForge tx
+            , pendingTxFee = txFee tx
+            , pendingTxIn = head txins -- this is changed accordingly in `checkMatch` during validation
+            , pendingTxValidRange = txValidRange tx
+            , pendingTxSignatures = Map.toList (tx ^. signatures)
+            , pendingTxHash = Validation.plcTxHash $ hashTx tx
+            }
+        ds = mapMaybe txOutData $ txOutputs tx
+    pure (ptx, ds)
 
 -- | Create the data about a transaction output which will be passed to a validator script.
 mkOut :: TxOut -> Validation.PendingTxOut

@@ -227,7 +227,7 @@ invalidScript = property $ do
     Hedgehog.assert (not (null $ _emulatorLog st))
     Hedgehog.annotateShow (_emulatorLog st)
     Hedgehog.assert $ case _emulatorLog st of
-        SlotAdd{} : TxnValidationFail _ (ScriptFailure ["I always fail everything"]) : _
+        SlotAdd{} : TxnValidationFail _ (ScriptFailure (EvaluationError ["I always fail everything"])) : _
             -> True
         _
             -> False
