@@ -48,7 +48,7 @@ import           Playground.Interpreter.Util
 import           Playground.TH               (mkFunction, mkFunctions, mkKnownCurrencies, mkSingleFunction)
 import           Schema                      (ToSchema)
 import qualified Schema
-import qualified Schema.IOTS                 as IOTS (render , export)
+import qualified Schema.IOTS                 as IOTS (export, render)
 import           Wallet.API                  (WalletAPI, payToPublicKey_)
 import           Wallet.Emulator             (addBlocksAndNotify, runWalletActionAndProcessPending, walletPubKey)
 import           Wallet.Emulator.Types       (MockWallet, Wallet (..))
