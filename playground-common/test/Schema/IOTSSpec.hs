@@ -92,8 +92,8 @@ data SimpleSum
 
 data User =
     User
-        { userId :: Int
-        , name   :: String
+        { userId   :: Int
+        , name     :: String
         , children :: [User]
         }
     deriving (Show, Eq, Generic)

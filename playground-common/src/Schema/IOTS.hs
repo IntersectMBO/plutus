@@ -18,7 +18,7 @@
 {-# LANGUAGE UndecidableInstances  #-}
 
 module Schema.IOTS
-    ( HasReps
+    ( HasReps(typeReps)
     , MyTypeable
     , render
     , export
@@ -38,8 +38,8 @@ import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
 import           Data.Tree                    (Tree (Node), rootLabel, subForest)
 import           GHC.Exts                     (RuntimeRep, TYPE)
-import           GHC.Generics                 ((:*:) ((:*:)), (:+:), C1, Constructor, D1, Datatype, Generic, Generic,
-                                               M1 (M1), Rec0, Rep, S1, Selector, U1, conIsRecord, conName, selName)
+import           GHC.Generics                 ((:*:) ((:*:)), (:+:), C1, Constructor, D1, Datatype, Generic, M1 (M1),
+                                               Rec0, Rep, S1, Selector, U1, conIsRecord, conName, selName)
 import qualified GHC.Generics                 as Generics
 import           Text.PrettyPrint.Leijen.Text (Doc, braces, brackets, char, comma, displayTStrict, dquotes, indent,
                                                linebreak, parens, punctuate, renderPretty, space, squotes, textStrict,
@@ -69,36 +69,41 @@ export _ = vsep . punctuate linebreak . toList $ preamble <| definitions
         flip evalState Set.empty . depthfirstM appendUnseenDefinitions [] $
         flip evalState Set.empty . treeWalk $ myTypeRep @a
     appendUnseenDefinitions ::
-           Seq Doc -> Gather -> State (Set SomeTypeRep) (Seq Doc)
-    appendUnseenDefinitions acc Gather {..} = do
-        seen <- gets (Set.member gatherRep)
-        modify (Set.insert gatherRep)
+           Seq Doc -> Iots -> State (Set SomeTypeRep) (Seq Doc)
+    appendUnseenDefinitions acc Iots {..} = do
+        seen <- gets (Set.member iotsRep)
+        modify (Set.insert iotsRep)
         pure $
-            case (seen, gatherDef) of
-                (False, Just _) -> acc |> gatherRef
-                _               -> acc
+            if iotsOutput && not seen
+                then acc |> iotsRef
+                else acc
 
 ------------------------------------------------------------
 type Visited = Set SomeTypeRep
 
-data Gather =
-    Gather
-        { gatherRep :: SomeTypeRep
-        , gatherRef :: Doc
-        , gatherDef :: Maybe Doc
+data Iots =
+    Iots
+        { iotsRep    :: SomeTypeRep
+        -- ^ The type this record describes.
+        , iotsRef    :: Doc
+        -- ^ How we refer to this type. For IOTS builtins this is
+        -- probably `t.something`. For our definitions it will the the
+        -- type name (eg. `User`).
+        , iotsOutput :: Bool
+        -- ^ Should we write this type out in the final export?
         }
     deriving (Show)
 
-gatherReps :: forall a. MyTypeRep a -> State Visited (NonEmpty (Tree Gather))
-gatherReps Atom          = pure <$> typeReps (Proxy @a)
-gatherReps (Fun from to) = (<>) <$> gatherReps from <*> gatherReps to
+iotsReps :: forall a. MyTypeRep a -> State Visited (NonEmpty (Tree Iots))
+iotsReps Atom          = pure <$> typeReps (Proxy @a)
+iotsReps (Fun from to) = (<>) <$> iotsReps from <*> iotsReps to
 
-treeWalk :: forall a. MyTypeRep a -> State Visited (Tree Gather)
+treeWalk :: forall a. MyTypeRep a -> State Visited (Tree Iots)
 treeWalk Atom = typeReps (Proxy @a)
 treeWalk rep@(Fun from to) = do
     lefts <- treeWalk from
     rights <- treeWalk to
-    childReps <- gatherReps rep
+    childReps <- iotsReps rep
     let children = lefts : subForest rights
         typeSignature =
             (if NEL.length childReps == 1
@@ -109,9 +114,9 @@ treeWalk rep@(Fun from to) = do
             toRef (NEL.last childReps)
         labelledParameters = zipWith labelledParameter (char <$> ['a' .. 'z'])
         labelledParameter name tree = name <> ":" <+> toRef tree
-        gatherRep = someTypeRep (Proxy @a)
-        gatherDef = Just functionName
-        gatherRef =
+        iotsRep = someTypeRep (Proxy @a)
+        iotsOutput = True
+        iotsRef =
             "class" <+>
             "Type" <+>
             braces
@@ -123,7 +128,7 @@ treeWalk rep@(Fun from to) = do
                                 functionName <> ":" <+> typeSignature)) <+>
                       braces mempty))
         functionName = "someFunction" -- TODO Wrong
-    pure $ Node (Gather {..}) children
+    pure $ Node (Iots {..}) children
 
 ------------------------------------------------------------
 -- Create our own universe of types.
@@ -154,38 +159,38 @@ instance {-# OVERLAPPING #-} forall a b. ( MyTypeable a
 
 ------------------------------------------------------------
 class HasReps a where
-    typeReps :: a -> State Visited (Tree Gather)
+    typeReps :: a -> State Visited (Tree Iots)
     default typeReps :: (Typeable a, Generic a, GenericHasReps (Rep a)) =>
-        a -> State Visited (Tree Gather)
+        a -> State Visited (Tree Iots)
     typeReps = genericTypeReps (someTypeRep (Proxy @a)) . Generics.from
 
 instance HasReps Text where
-    typeReps _ = pure $ Node (Gather {..}) []
+    typeReps _ = pure $ Node (Iots {..}) []
       where
-        gatherRep = someTypeRep (Proxy @Text)
-        gatherDef = Nothing
-        gatherRef = "t.string"
+        iotsRep = someTypeRep (Proxy @Text)
+        iotsOutput = False
+        iotsRef = "t.string"
 
 instance HasReps Char where
-    typeReps _ = pure $ Node (Gather {..}) []
+    typeReps _ = pure $ Node (Iots {..}) []
       where
-        gatherRep = someTypeRep (Proxy @Char)
-        gatherDef = Nothing
-        gatherRef = "t.string"
+        iotsRep = someTypeRep (Proxy @Char)
+        iotsOutput = False
+        iotsRef = "t.string"
 
 instance HasReps Integer where
-    typeReps _ = pure $ Node (Gather {..}) []
+    typeReps _ = pure $ Node (Iots {..}) []
       where
-        gatherRep = someTypeRep (Proxy @Integer)
-        gatherDef = Nothing
-        gatherRef = "t.Int"
+        iotsRep = someTypeRep (Proxy @Integer)
+        iotsOutput = False
+        iotsRef = "t.Int"
 
 instance HasReps Int where
-    typeReps _ = pure $ Node (Gather {..}) []
+    typeReps _ = pure $ Node (Iots {..}) []
       where
-        gatherRep = someTypeRep (Proxy @Int)
-        gatherDef = Nothing
-        gatherRef = "t.Int"
+        iotsRep = someTypeRep (Proxy @Int)
+        iotsOutput = False
+        iotsRef = "t.Int"
 
 instance HasReps a => HasReps (Proxy a) where
     typeReps _ = typeReps (undefined :: a)
@@ -195,10 +200,10 @@ instance (HasReps a, HasReps b, Typeable a, Typeable b) => HasReps (a, b) where
         leftReps <- typeReps (Proxy @a)
         rightReps <- typeReps (Proxy @b)
         let children = [leftReps, rightReps]
-            gatherRep = someTypeRep (Proxy @(a, b))
-            gatherDef = Nothing
-            gatherRef = "t.tuple" <> parens (jsArray (toRef <$> children))
-        pure $ Node (Gather {..}) children
+            iotsRep = someTypeRep (Proxy @(a, b))
+            iotsOutput = False
+            iotsRef = "t.tuple" <> parens (jsArray (toRef <$> children))
+        pure $ Node (Iots {..}) children
 
 instance (HasReps k, HasReps v, Typeable k, Typeable v) =>
          HasReps (Map k v) where
@@ -206,18 +211,27 @@ instance (HasReps k, HasReps v, Typeable k, Typeable v) =>
         keyReps <- typeReps (Proxy @k)
         valueReps <- typeReps (Proxy @v)
         let children = [keyReps, valueReps]
-            gatherRep = someTypeRep (Proxy @(Map k v))
-            gatherDef = Nothing
-            gatherRef = "t.record" <> jsParams (toRef <$> children)
-        pure $ Node (Gather {..}) children
+            iotsRep = someTypeRep (Proxy @(Map k v))
+            iotsOutput = False
+            iotsRef = "t.record" <> jsParams (toRef <$> children)
+        pure $ Node (Iots {..}) children
+
+instance HasReps () where
+    typeReps _ = do
+        let iotsRep = someTypeRep (Proxy @())
+            iotsOutput = False
+            iotsRef = "t.null"
+        pure $ Node (Iots {..}) []
 
 instance (HasReps a, Typeable a) => HasReps (Maybe a) where
     typeReps _ = do
-        child <- typeReps (Proxy @a)
-        let gatherRep = someTypeRep (Proxy @(Maybe a))
-            gatherDef = Nothing
-            gatherRef = "t.union" <> parens (jsArray [toRef child, "t.null"])
-        pure $ Node (Gather {..}) [child]
+        aChildren <- typeReps (Proxy @a)
+        nothingChildren <- typeReps (Proxy @())
+        let children = [aChildren, nothingChildren]
+            iotsRep = someTypeRep (Proxy @(Maybe a))
+            iotsOutput = False
+            iotsRef = "t.union" <> parens (jsArray (toRef <$> children))
+        pure $ Node (Iots {..}) children
 
 ------------------------------------------------------------
 type family IsSpecialListElement a where
@@ -229,68 +243,68 @@ instance (ListTypeReps flag a, flag ~ IsSpecialListElement a) =>
     typeReps _ = listTypeReps (Proxy @flag) (Proxy @a)
 
 class ListTypeReps flag a where
-    listTypeReps :: Proxy flag -> Proxy a -> State Visited (Tree Gather)
+    listTypeReps :: Proxy flag -> Proxy a -> State Visited (Tree Iots)
 
 instance ListTypeReps 'True Char where
-    listTypeReps _ _ = pure $ Node (Gather {..}) []
+    listTypeReps _ _ = pure $ Node (Iots {..}) []
       where
-        gatherRep = someTypeRep (Proxy @String)
-        gatherDef = Nothing
-        gatherRef = "t.string"
+        iotsRep = someTypeRep (Proxy @String)
+        iotsOutput = False
+        iotsRef = "t.string"
 
 instance (HasReps a, Typeable a) => ListTypeReps 'False a where
     listTypeReps _ _ = do
         child <- typeReps (Proxy @a)
-        let gatherRep = someTypeRep (Proxy @[a])
-            gatherDef = Nothing
-            gatherRef = "t.array" <> parens (toRef child)
-        pure $ Node (Gather {..}) [child]
+        let iotsRep = someTypeRep (Proxy @[a])
+            iotsOutput = False
+            iotsRef = "t.array" <> parens (toRef child)
+        pure $ Node (Iots {..}) [child]
 
 ------------------------------------------------------------
 class GenericHasReps f where
-    genericTypeReps :: SomeTypeRep -> f a -> State Visited (Tree Gather)
+    genericTypeReps :: SomeTypeRep -> f a -> State Visited (Tree Iots)
 
 instance (GenericToBody p, Datatype f) => GenericHasReps (D1 f p) where
     genericTypeReps rep d = do
         child <- genericToDef rep d
-        let gatherRep = rep
-            gatherDef = Nothing
-            gatherRef = repName rep
-        pure $ Node (Gather {..}) [child]
+        let iotsRep = rep
+            iotsOutput = False
+            iotsRef = repName rep
+        pure $ Node (Iots {..}) [child]
+
+data Cardinality
+    = SoleConstructor
+    | ManyConstructors
 
 class GenericToDef f where
-    genericToDef :: SomeTypeRep -> f a -> State Visited (Tree Gather)
+    genericToDef :: SomeTypeRep -> f a -> State Visited (Tree Iots)
 
 instance (GenericToBody p, Datatype f) => GenericToDef (D1 f p) where
     genericToDef rep datatype@(M1 constructors) = do
         (childDef, childRefs) <- genericToBody rep constructors
-        let gatherRep = rep
-            moduleName = stringDoc $ Generics.moduleName datatype
+        let moduleName = stringDoc $ Generics.moduleName datatype
             datatypeName = stringDoc $ Generics.datatypeName datatype
+            ref = repName rep
+            iotsRep = rep
+            iotsOutput = True
+            iotsRef =
+                vsep
+                    [ "//" <+> moduleName <> "." <> datatypeName
+                    , "const" <+> ref <+> "=" <+> body <> ";"
+                    ]
             body =
                 case childDef of
                     [x] -> x SoleConstructor
                     xs ->
                         "t.union" <>
                         parens (jsArray (($ ManyConstructors) <$> xs))
-            gatherRef =
-                vsep
-                    [ "//" <+> moduleName <> "." <> datatypeName
-                    , "const" <+> ref <+> "=" <+> body <> ";"
-                    ]
-            gatherDef = Just ref
-            ref = repName rep
-        pure $ Node (Gather {..}) childRefs
+        pure $ Node (Iots {..}) childRefs
 
 class GenericToBody f where
     genericToBody ::
            SomeTypeRep
         -> f a
-        -> State Visited ([Cardinality -> Doc], [Tree Gather])
-
-data Cardinality
-    = SoleConstructor
-    | ManyConstructors
+        -> State Visited ([Cardinality -> Doc], [Tree Iots])
 
 instance (Constructor f, GenericToFields p) => GenericToBody (C1 f p) where
     genericToBody rep constructor@(M1 selectors) = do
@@ -318,11 +332,10 @@ instance (GenericToBody f, GenericToBody g) => GenericToBody (f :+: g) where
         genericToBody rep (undefined :: g a)
 
 class GenericToFields f where
-    genericToFields ::
-           SomeTypeRep -> f a -> State Visited ([Doc], [Tree Gather])
+    genericToFields :: SomeTypeRep -> f a -> State Visited ([Doc], [Tree Iots])
 
 instance GenericToFields U1 where
-    genericToFields _ _ = pure ([], [])
+    genericToFields _ _ = pure mempty
 
 instance (Selector s, HasReps p, Typeable p) =>
          GenericToFields (S1 s (Rec0 p)) where
@@ -344,7 +357,7 @@ instance (Selector s, HasReps p, Typeable p) =>
 instance (GenericToFields f, GenericToFields g) =>
          GenericToFields (f :*: g) where
     genericToFields rep ~(f :*: g) =
-        mappend <$> genericToFields rep f <*> genericToFields rep g
+        (<>) <$> genericToFields rep f <*> genericToFields rep g
 
 ------------------------------------------------------------
 repName :: SomeTypeRep -> Doc
@@ -353,16 +366,16 @@ repName = stringDoc . fold . go
     go :: SomeTypeRep -> [String]
     go rep@(SomeTypeRep someRep)
         | rep == R.someTypeRep (Proxy @String) = ["String"]
-        | otherwise =
-            let (tyCon, params) = R.splitApps someRep
-                headName =
-                    case R.tyConName tyCon of
-                        "[]"  -> "List"
-                        other -> other
-             in headName : foldMap go params
+        | otherwise = headName : foldMap go params
+      where
+        (tyCon, params) = R.splitApps someRep
+        headName =
+            case R.tyConName tyCon of
+                "[]"  -> "List"
+                other -> other
 
-toRef :: Tree Gather -> Doc
-toRef = gatherRef . rootLabel
+toRef :: Tree Iots -> Doc
+toRef = iotsRef . rootLabel
 
 ------------------------------------------------------------
 depthfirstM ::

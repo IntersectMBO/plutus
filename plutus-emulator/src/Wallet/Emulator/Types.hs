@@ -104,6 +104,7 @@ import           GHC.Generics              (Generic)
 import qualified Ledger.Crypto             as Crypto
 import           Prelude                   as P
 import           Schema                    (ToSchema)
+import           Schema.IOTS               (HasReps)
 import           Servant.API               (FromHttpApiData (..), ToHttpApiData (..))
 
 import           Ledger                    (Address, Block, Blockchain, PrivateKey (..), PubKey (..), Slot, Tx (..),
@@ -122,7 +123,7 @@ import qualified Wallet.API                as WAPI
 newtype Wallet = Wallet { getWallet :: Integer }
     deriving (Show, Eq, Ord, Generic)
     deriving newtype (ToHttpApiData, FromHttpApiData, Hashable)
-    deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey, ToSchema)
+    deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey, ToSchema, HasReps)
 
 -- | Get a wallet's public key.
 walletPubKey :: Wallet -> PubKey

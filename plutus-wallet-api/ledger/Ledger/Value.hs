@@ -66,14 +66,14 @@ import qualified Language.PlutusTx.AssocMap   as Map
 import           Language.PlutusTx.These
 import           LedgerBytes                  (LedgerBytes(LedgerBytes))
 import           Schema                       (ToSchema,toSchema)
-import           Schema.IOTS                  (IOTSField,iotsField)
+import           Schema.IOTS                  (HasReps(typeReps))
 import           Ledger.Orphans               ()
 
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteString }
     deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord)
-    deriving anyclass (Hashable, ToSchema)
+    deriving anyclass (Hashable, ToSchema, HasReps)
 
 instance ToJSON CurrencySymbol where
   toJSON currencySymbol =
@@ -102,7 +102,7 @@ newtype TokenName = TokenName { unTokenName :: Builtins.ByteString }
     deriving (Serialise) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord)
-    deriving anyclass (Hashable, ToSchema)
+    deriving anyclass (Hashable, ToSchema, HasReps)
 
 instance IsString TokenName where
   fromString = TokenName . C8.pack
@@ -147,7 +147,7 @@ tokenName = TokenName
 -- See note [Currencies] for more details.
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
     deriving stock (Show, Generic)
-    deriving anyclass (ToJSON, FromJSON, Hashable, ToSchema)
+    deriving anyclass (ToJSON, FromJSON, Hashable, ToSchema, HasReps)
     deriving newtype (Serialise)
 
 -- Orphan instances for 'Map' to make this work
@@ -160,8 +160,8 @@ instance (FromJSON v, FromJSON k) => FromJSON (Map.Map k v) where
 instance (Typeable k, Typeable v) => ToSchema (Map.Map k v) where
   toSchema _ = toSchema (Proxy :: Proxy (Data.Map.Map k v))
 
-instance (IOTSField k, IOTSField v) => IOTSField (Map.Map k v) where
-  iotsField _ = iotsField (Proxy :: Proxy (Data.Map.Map k v))
+instance (Typeable k, Typeable v, HasReps k, HasReps v) => HasReps (Map.Map k v) where
+  typeReps _ = typeReps (Proxy :: Proxy (Data.Map.Map k v))
 
 deriving anyclass instance (Hashable k, Hashable v) => Hashable (Map.Map k v)
 deriving anyclass instance (Serialise k, Serialise v) => Serialise (Map.Map k v)
