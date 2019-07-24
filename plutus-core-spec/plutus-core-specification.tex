@@ -818,9 +818,10 @@ terminates, this allows us to perform normalisation (i.e., reduction
 to a form which cannot undergo any further reduction) statically,
 before execution begins.  Figure~\ref{fig:type-reduction} contains the
 rules for type reduction, and Figure~\ref{fig:type-equivalence}
-contains rules for type equivalence.  We use $[A/\alpha]V$ to denote
-the result of substituting a type $A$ for a type variable $\alpha$ in
-a value $V$.
+contains rules for type equivalence.  Here and elsewhere we use syntax
+of the form $[X/x]Y$ to denote (capture-avoiding) substitution of
+some entity (a type, term, or value) $X$ for all occurrences of a name
+$x$ within some other entity $Y$.
 
 \subfile{figures/TypeReduction}
 
@@ -830,10 +831,7 @@ a value $V$.
 Execution of Plutus Core programs is performed by (possibly
 non-terminating) reduction of well-typed terms.  The reduction rules
 are contained in Figure~\ref{fig:term-reduction}, and give us a fairly
-standard operational semantics.  We use $[V/x]M$ to denote
-substitution of a value for a variable in a term, and $\{A/\alpha\}V$
-to denote instantation of a polymorphic value (or term) $V$ at a
-particular type $A$. All substitutions are capture-avoiding, as usual.
+standard operational semantics.
 
 \subfile{figures/TermReduction}
 
@@ -969,7 +967,7 @@ at some time in the future.
 %   -41  5 | -9   4  |  -8  -1  | -9   4
 %    41 -5 | -9  -4  |  -8   1  | -8   1
 %   -41 -5 |  8  -1  |   8  -1  |  9   4 
-
+%
 
   \item We use fixed Scott encodings for certain types and values,
     specifically for the \textit{unit} and \textit{boolean} types.
