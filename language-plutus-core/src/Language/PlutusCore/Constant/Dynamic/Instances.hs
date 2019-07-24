@@ -1,3 +1,4 @@
+{-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 -- | Instances of the 'KnownType' class.
@@ -80,7 +81,7 @@ instance (KnownSymbol text, KnownNat uniq, uni1 ~ uni2, Evaluable uni1) =>
 
     makeKnown = unOpaqueTerm
 
-    readKnown (Evaluator eval) = fmap OpaqueTerm . makeRightReflectT . eval mempty
+    readKnown (Evaluator eval) = fmap OpaqueTerm . makeRightReflectT . eval id mempty
 instance PrettyKnown (OpaqueTerm uni text uniq) where
     prettyKnown = undefined
 
@@ -92,7 +93,7 @@ instance Evaluable uni => KnownType Integer uni where
     readKnown (Evaluator eval) term = do
         -- 'term' is supposed to be already evaluated, but calling 'eval' is the easiest way
         -- to turn 'Error' into 'EvaluationFailure', which we later 'lift' to 'Convert'.
-        res <- makeRightReflectT $ eval mempty term
+        res <- makeRightReflectT $ eval id mempty term
         case extractValue res of
             Just i  -> pure i
             Nothing -> throwError "Not a builtin Integer"
@@ -104,7 +105,7 @@ instance Evaluable uni => KnownType Int uni where
     makeKnown = constantTerm @Integer () . fromIntegral
 
     readKnown (Evaluator eval) term = do
-        res <- makeRightReflectT $ eval mempty term
+        res <- makeRightReflectT $ eval id mempty term
         case extractValue res of
             -- TODO: check that 'i' is in bounds.
             Just i -> pure $ fromIntegral @Integer i
@@ -117,7 +118,7 @@ instance Evaluable uni => KnownType BSL.ByteString uni where
     makeKnown = constantTerm ()
 
     readKnown (Evaluator eval) term = do
-        res <- makeRightReflectT $ eval mempty term
+        res <- makeRightReflectT $ eval id mempty term
         case extractValue res of
             Just bs -> pure bs
             Nothing -> throwError "Not a builtin ByteString"
@@ -130,7 +131,7 @@ instance Evaluable uni => KnownType [Char] uni where
     makeKnown = constantTerm ()
 
     readKnown (Evaluator eval) term = do
-        res <- makeRightReflectT $ eval mempty term
+        res <- makeRightReflectT $ eval id mempty term
         case extractValue res of
             Just s  -> pure s
             Nothing -> throwError "Not a builtin String"
@@ -148,7 +149,7 @@ instance Evaluable uni => KnownType Bool uni where
             applied =
                 mkIterApp () (TyInst () (shiftConstantsTerm term) metaBool)
                     [metaTrue, metaFalse]
-        res <- makeRightReflectT $ eval mempty applied
+        res <- makeRightReflectT $ eval Original mempty applied
         case extractExtension res of
             Just b  -> pure b
             Nothing -> throwError "Not a Bool"
@@ -161,7 +162,7 @@ instance Evaluable uni => KnownType Char uni where
     makeKnown = constantTerm @Integer () . fromIntegral . ord
 
     readKnown (Evaluator eval) term = do
-        res <- makeRightReflectT $ eval mempty term
+        res <- makeRightReflectT $ eval id mempty term
         case extractValue res of
             Just i -> pure . chr $ fromIntegral @Integer i
             _      -> throwError "Not an integer-encoded Char"
@@ -201,7 +202,7 @@ instance (Evaluable uni, uni `Includes` a) => KnownType (Meta a) uni where
     makeKnown (Meta x) = constantTerm () x
 
     readKnown (Evaluator eval) term = do
-        res <- makeRightReflectT $ eval mempty term
+        res <- makeRightReflectT $ eval id mempty term
         case extractValue res of
             Just x -> pure $ Meta x
             _      -> throwError "Not an integer-encoded Char"
@@ -224,12 +225,20 @@ instance (Evaluable uni, euni ~ Extend a uni, Typeable a, Pretty a) => KnownType
     makeKnown (AsExtension x) = Constant () $ SomeOf Extension x
 
     readKnown (Evaluator eval) term = do
-        res <- makeRightReflectT $ eval mempty term
+        res <- makeRightReflectT $ eval id mempty term
         case extractExtension res of
             Just x -> pure $ AsExtension x
             _      -> throwError "Not an integer-encoded Char"
 instance PrettyKnown (AsExtension uni a) where
     prettyKnown = Prelude.error "ololo2"
+
+unshiftEmbedding :: uni <: uni' -> Extend b uni <: uni'
+unshiftEmbedding emb (Original uni) = emb uni
+unshiftEmbedding _   Extension      = Prelude.error "Can't unshift 'Extension'"
+
+unshiftEvaluator :: Evaluator f (Extend b uni) m-> Evaluator f uni m
+unshiftEvaluator (Evaluator eval) =
+    Evaluator $ \emb means -> eval (unshiftEmbedding emb) means
 
 -- A type known in a universe is known in an extended version of that universe.
 instance (Evaluable uni, KnownType a uni, euni ~ Extend b uni, Typeable b) =>
@@ -238,7 +247,9 @@ instance (Evaluable uni, KnownType a uni, euni ~ Extend b uni, Typeable b) =>
 
     makeKnown (InExtended x) = shiftConstantsTerm $ makeKnown @a x
 
-    readKnown eval term = InExtended <$> readKnown @a eval (unshiftConstantsTerm term)
+    readKnown eval term =
+        InExtended <$> readKnown @a (unshiftEvaluator eval) (unshiftConstantsTerm term)
+
 instance PrettyKnown (InExtended b uni a) where
     prettyKnown = Prelude.error "ololo1"
 
@@ -270,7 +281,7 @@ instance (Evaluable uni, KnownType a uni, KnownType b uni, Typeable a, Typeable 
 
             env = insertDynamicBuiltinNameDefinition metaCommaDef mempty
             applied = Apply () (TyInst () (shiftConstantsTerm term) metaTuple) metaComma
-        res <- makeRightReflectT $ eval env applied
+        res <- makeRightReflectT $ eval Original env applied
         case extractExtension res of
             Just p  -> pure p
             Nothing -> throwError "Not a builtin ()"

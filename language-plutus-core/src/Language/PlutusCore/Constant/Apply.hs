@@ -4,11 +4,9 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
@@ -108,7 +106,7 @@ instance ( PrettyBy config (Value TyName Name uni ())
 
 -- | Constant application computation runs in a monad @m@, requires an evaluator and
 -- returns a 'ConstAppResult'.
-type EvaluateConstApp uni m = EvaluateT (InnerT (ConstAppResult uni)) m
+type EvaluateConstApp uni m = EvaluateT uni (InnerT (ConstAppResult uni)) m
 
 -- -- | Constant application computation runs in a monad @m@, requires an evaluator and
 -- -- returns a 'ConstAppResult'.
@@ -126,7 +124,7 @@ nonZeroArg _ _ 0 = EvaluationFailure
 nonZeroArg f x y = EvaluationSuccess $ f x y
 
 -- | Evaluate a constant application computation using the given evaluator.
-runEvaluateConstApp :: Evaluator Term m -> EvaluateConstApp uni m a -> m (ConstAppResult uni a)
+runEvaluateConstApp :: Evaluator Term uni m -> EvaluateConstApp uni m a -> m (ConstAppResult uni a)
 runEvaluateConstApp eval = unInnerT . runEvaluateT eval
 
 -- | Lift the result of a constant application to a constant application computation.
@@ -247,7 +245,7 @@ applyBuiltinName GtByteString         =
 -- given evaluator.
 runApplyBuiltinName
     :: (Monad m, Evaluable uni)
-    => Evaluator Term m
+    => Evaluator Term uni m
     -> BuiltinName
     -> [Value TyName Name uni ()]
     -> m (ConstAppResultDef uni)

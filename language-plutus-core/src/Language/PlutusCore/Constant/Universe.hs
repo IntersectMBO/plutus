@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -16,6 +17,7 @@ module Language.PlutusCore.Constant.Universe
     , Extend (..)
     , shiftSome
     , shiftSomeOf
+    , type (<:)
     , Includes (..)
     , knownUniOf
     , Closed (..)
@@ -48,6 +50,8 @@ shiftSome (Some uni) = Some (Original uni)
 
 shiftSomeOf :: SomeOf uni -> SomeOf (Extend b uni)
 shiftSomeOf (SomeOf uni x) = SomeOf (Original uni) x
+
+type uni <: uni' = forall a. uni a -> uni' a
 
 -- We probably want to use that together with `fastsum`.
 -- But also allow @Either@ and use type families for computing the index of a type,

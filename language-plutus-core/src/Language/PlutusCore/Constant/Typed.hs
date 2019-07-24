@@ -150,12 +150,13 @@ type Evaluable uni =
 
 -- | A thing that evaluates @f@ in monad @m@ and allows to extend the set of
 -- dynamic built-in names.
-newtype Evaluator f m = Evaluator
+newtype Evaluator f uni m = Evaluator
     { unEvaluator
-        :: forall uni. Evaluable uni
-        => DynamicBuiltinNameMeanings uni
-        -> f TyName Name uni ()
-        -> m (EvaluationResultDef uni)
+        :: forall uni'. Evaluable uni'
+        => uni <: uni'
+        -> DynamicBuiltinNameMeanings uni'
+        -> f TyName Name uni' ()
+        -> m (EvaluationResultDef uni')
     }
 
 -- | A computation that runs in @t m@ and has access to an 'Evaluator' that runs in @m@.
@@ -168,23 +169,23 @@ newtype Evaluator f m = Evaluator
 --
 -- 'EvaluateT' is a monad transformer transfomer. I.e. it turns one monad transformer
 -- into another one.
-newtype EvaluateT t m a = EvaluateT
-    { unEvaluateT :: ReaderT (Evaluator Term m) (t m) a
+newtype EvaluateT uni t m a = EvaluateT
+    { unEvaluateT :: ReaderT (Evaluator Term uni m) (t m) a
     } deriving
         ( Functor, Applicative, Monad, Alternative, MonadPlus
         , MonadError e
         )
 
 -- | Run an 'EvaluateT' computation using the given 'Evaluator'.
-runEvaluateT :: Evaluator Term m -> EvaluateT t m a -> t m a
+runEvaluateT :: Evaluator Term uni m -> EvaluateT uni t m a -> t m a
 runEvaluateT eval (EvaluateT a) = runReaderT a eval
 
 -- | Wrap a computation binding an 'Evaluator' as a 'EvaluateT'.
-withEvaluator :: (Evaluator Term m -> t m a) -> EvaluateT t m a
+withEvaluator :: (Evaluator Term uni m -> t m a) -> EvaluateT uni t m a
 withEvaluator = EvaluateT . ReaderT
 
 -- | 'thoist' for monad transformer transformers is what 'hoist' for monad transformers.
-thoist :: Monad (t m) => (forall b. t m b -> s m b) -> EvaluateT t m a -> EvaluateT s m a
+thoist :: Monad (t m) => (forall b. t m b -> s m b) -> EvaluateT uni t m a -> EvaluateT uni s m a
 thoist f (EvaluateT a) = EvaluateT $ Morph.hoist f a
 
 {- Note [Semantics of dynamic built-in types]
@@ -267,7 +268,7 @@ evaluate built-in applications. The type of evaluators is this then:
 
     type Evaluator f m = DynamicBuiltinNameMeanings -> f TyName Name () -> m EvaluationResult
 
-so @Evaluator Term m@ receives a map with meanings of dynamic built-in names which extends the map the
+so @Evaluator Term uni m@ receives a map with meanings of dynamic built-in names which extends the map the
 evaluator already has (this is needed, because we may add new dynamic built-in names during conversion
 of PLC values to Haskell values), a 'Term' to evaluate and returns an @m EvaluationResult@.
 Thus, whenever we want to resume evaluation during computation of a dynamic built-in application,
@@ -333,7 +334,7 @@ class PrettyKnown a => KnownType a uni where
 
     -- See Note [Evaluators].
     -- | Convert a PLC value to the corresponding Haskell value using an explicit evaluator.
-    readKnown :: Monad m => Evaluator Term m -> Term TyName Name uni () -> ReflectT m a
+    readKnown :: Monad m => Evaluator Term uni m -> Term TyName Name uni () -> ReflectT m a
 
 class PrettyKnown a where
     -- | Pretty-print a value of a 'KnownType' in a PLC-specific way
@@ -344,7 +345,9 @@ class PrettyKnown a where
 
 -- | Convert a PLC value to the corresponding Haskell value using the evaluator
 -- from the current context.
-readKnownM :: (Monad m, KnownType a uni) => Term TyName Name uni () -> EvaluateT ReflectT m a
+readKnownM
+    :: (Monad m, KnownType a uni)
+    => Term TyName Name uni () -> EvaluateT uni ReflectT m a
 readKnownM term = withEvaluator $ \eval -> readKnown eval term
 
 -- | A value that is supposed to be of a 'KnownType'. Needed in order to give a 'Pretty' instance
@@ -439,7 +442,7 @@ shiftConstantsTerm = substConstantsTerm Original
 
 unshiftConstantsTerm :: Term tyname name (Extend b uni) ann -> Term tyname name uni ann
 unshiftConstantsTerm = substConstantsTerm $ \euni -> case euni of
-    Extension    -> error "Don't ljasbd lhbd lbdsf lkbbdaf lbbads fkb"
+    Extension    -> error "Can't unshift an 'Extension'"
     Original uni -> uni
 
 extractValueOf :: GEq uni  => uni a -> Term tyname name uni ann -> Maybe a
@@ -469,7 +472,7 @@ instance Evaluable uni => KnownType () uni where
         let metaUnit = TyConstant () $ Some Extension
             metaUnitval = Constant () $ SomeOf Extension ()
             applied = Apply () (TyInst () (shiftConstantsTerm term) metaUnit) metaUnitval
-        res <- makeRightReflectT $ eval mempty applied
+        res <- makeRightReflectT $ eval Original mempty applied
         case extractExtension res of
             Just () -> pure ()
             Nothing -> throwError "Not a builtin ()"

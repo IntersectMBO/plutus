@@ -1,3 +1,5 @@
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 -- | The CK machine.
@@ -35,10 +37,10 @@ import qualified Data.ByteString.Lazy                            as BSL
 import           Language.PlutusCore.Constant.DefaultUni
 
 instance Pretty BSL.ByteString where
-    pretty _ = "some bytesting"
+    pretty _ = "<bytesting>"
 
-test1 :: EvaluationResult (Either Text (Integer, Bool))
-test1 = readKnownCk @_ @DefaultUni $ makeKnown (5 :: Integer, True)
+-- test1 :: EvaluationResult (Either Text (Integer, Bool))
+-- test1 = readKnownCk @_ @DefaultUni $ makeKnown (5 :: Integer, True)
 
 -- test2 :: EvaluationResult (Either Text ())
 -- test2 = readKnownCk @() @DefaultUni unitval
@@ -118,10 +120,10 @@ substituteDb varFor new = go where
 (|>)
     :: Evaluable uni
     => Context uni -> Term TyName Name uni () -> CkM uni (EvaluationResultDef uni)
-stack |> TyInst _ fun ty        = FrameTyInstArg ty : stack |> fun
-stack |> Apply _ fun arg        = FrameApplyArg arg : stack |> fun
+stack |> TyInst _ fun ty        = FrameTyInstArg ty      : stack |> fun
+stack |> Apply _ fun arg        = FrameApplyArg arg      : stack |> fun
 stack |> IWrap ann pat arg term = FrameIWrap ann pat arg : stack |> term
-stack |> Unwrap _ term          = FrameUnwrap : stack |> term
+stack |> Unwrap _ term          = FrameUnwrap            : stack |> term
 stack |> tyAbs@TyAbs{}          = stack <| tyAbs
 stack |> lamAbs@LamAbs{}        = stack <| lamAbs
 stack |> bi@Builtin{}           = stack <| bi
@@ -193,10 +195,27 @@ applyEvaluate stack fun                    arg =
                     ConstAppError err     ->
                         throwCkMachineException (ConstAppMachineError err) term
 
-evaluateInCkM :: EvaluateConstApp uni Identity a -> CkM uni (ConstAppResult uni a)
-evaluateInCkM a =
-    ReaderT $ \means ->
-        runEvaluateConstApp (Evaluator $ unEvaluator evaluatorCk . mappend means) a
+embedTypeScheme :: uni <: uni' -> TypeScheme uni a r -> TypeScheme uni' a r
+embedTypeScheme emb (TypeSchemeResult res)       = _
+embedTypeScheme emb (TypeSchemeArrow  arg schB)  = _
+embedTypeScheme emb (TypeSchemeAllType var schK) = _
+
+
+embedDynamicBuiltinNameMeaning
+    :: uni <: uni' -> DynamicBuiltinNameMeaning uni -> DynamicBuiltinNameMeaning uni'
+embedDynamicBuiltinNameMeaning emb (DynamicBuiltinNameMeaning sch x) =
+    DynamicBuiltinNameMeaning (embedTypeScheme emb sch) x
+
+embedDynamicBuiltinNameMeanings
+    :: uni <: uni' -> DynamicBuiltinNameMeanings uni -> DynamicBuiltinNameMeanings uni'
+embedDynamicBuiltinNameMeanings emb (DynamicBuiltinNameMeanings means) =
+    DynamicBuiltinNameMeanings $ fmap (embedDynamicBuiltinNameMeaning emb) means
+
+evaluateInCkM :: forall uni a. EvaluateConstApp uni (CkM uni) a -> CkM uni (ConstAppResult uni a)
+evaluateInCkM =
+    runEvaluateConstApp $ Evaluator $ \emb meansExt term -> do
+        let extend means = embedDynamicBuiltinNameMeanings emb means <> meansExt
+        withReader extend $ [] |> term
 
 -- | Apply a 'StagedBuiltinName' to a list of 'Value's.
 applyStagedBuiltinName
@@ -212,8 +231,8 @@ applyEvaluateCkBuiltinName
     :: Evaluable uni => BuiltinName -> [Value TyName Name uni ()] -> ConstAppResultDef uni
 applyEvaluateCkBuiltinName name = runIdentity . runApplyBuiltinName evaluatorCk name
 
-evaluatorCk :: Evaluator Term Identity
-evaluatorCk = Evaluator $ Identity .* evaluateCk
+evaluatorCk :: Evaluator Term uni Identity
+evaluatorCk = Evaluator $ \_ -> Identity .* evaluateCk
 
 readKnownCk :: KnownType a uni => Term TyName Name uni () -> EvaluationResult (Either Text a)
 readKnownCk = runIdentity . runReflectT . readKnown evaluatorCk
