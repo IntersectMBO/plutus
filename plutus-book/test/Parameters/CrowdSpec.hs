@@ -18,9 +18,9 @@ import           Test.Hspec
 spec :: Spec
 spec = describe "crowd" $ do
     it "works for a successful campaign" $
-        isRight (fst $ getResult tr1) `shouldBe` True
+        fst (getResult tr1) `shouldSatisfy` isRight
     it "works for a failed campaign" $
-        isRight (fst $ getResult tr2) `shouldBe` True
+        fst (getResult tr2) `shouldSatisfy` isRight
   where
     ft, ada2, ada3 :: Ada
     ft   = fromInt 10000

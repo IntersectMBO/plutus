@@ -1,0 +1,1 @@
+../../doc/non-fungible/nonfungible8.adoc

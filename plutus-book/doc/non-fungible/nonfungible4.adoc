@@ -1,0 +1,159 @@
+////
+[source,haskell]
+----
+{-# LANGUAGE DataKinds                       #-}
+{-# LANGUAGE DeriveAnyClass                  #-}
+{-# LANGUAGE NoImplicitPrelude               #-}
+{-# LANGUAGE ScopedTypeVariables             #-}
+{-# LANGUAGE TemplateHaskell                 #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+
+module NonFungible.NonFungible4 where
+
+import           Language.PlutusTx
+import           Language.PlutusTx.Prelude  hiding (plus, minus)
+import           Ledger
+import qualified Ledger.Ada                 as A
+import qualified Ledger.Value               as V
+import           Playground.Contract
+import           Wallet
+import           Wallet.Emulator            (walletPubKey)
+
+import           Control.Monad (void)
+import           Control.Monad.Except       (MonadError (..))
+import qualified Data.ByteString.Lazy.Char8 as C
+import qualified Data.Map.Strict            as Map
+import           Data.Maybe                 (maybeToList)
+import qualified Data.Set                   as Set
+import qualified Data.Text                  as T
+
+data NonFungible = NonFungible
+    { issuer :: PubKey
+    } deriving (Show, Generic, ToJSON, FromJSON, ToSchema)
+
+makeLift ''NonFungible
+
+type NonFungibleValidator =
+       ()
+    -> TokenName
+    -> PendingTx
+    -> Bool
+
+validateNonFungible :: NonFungible -> NonFungibleValidator
+validateNonFungible nf () name tx =
+       txSignedBy tx (issuer nf)
+    && foldl f V.zero (pendingTxOutputs tx) == v
+  where
+    v :: Value
+    v = V.singleton
+            (ownCurrencySymbol tx)
+            name
+            1
+
+    f :: Value -> PendingTxOut -> Value
+    f w o = w `V.plus` pendingTxOutValue o
+
+mkNonFungibleRedeemer :: String -> RedeemerScript
+mkNonFungibleRedeemer name =
+    let s = $$(compileScript [|| \(t :: TokenName) (_ :: Sealed ()) -> t ||])
+    in  RedeemerScript $ applyScript s $ lifted $ TokenName $ C.pack name
+
+mkNonFungibleValidator :: NonFungible -> ValidatorScript
+mkNonFungibleValidator = ValidatorScript
+                       . applyScript $$(compileScript [|| validateNonFungible ||])
+                       . lifted
+
+nonFungibleAddress :: NonFungible -> Address
+nonFungibleAddress = scriptAddress . mkNonFungibleValidator
+
+nonFungibleSymbol :: NonFungible -> CurrencySymbol
+nonFungibleSymbol nf = case validatorScriptHash $ mkNonFungibleValidator nf of
+    ValidatorHash h -> V.currencySymbol h
+
+nonFungibleValue :: NonFungible -> String -> Value
+nonFungibleValue nf name = V.singleton
+    (nonFungibleSymbol nf)
+    (TokenName $ C.pack name)
+    1
+
+mkNonFungibleTxOut :: NonFungible -> TxOut
+mkNonFungibleTxOut nf =
+    scriptTxOut
+        V.zero
+        (mkNonFungibleValidator nf)
+        unitData
+
+start :: MonadWallet m => m ()
+start = do
+
+    key <- ownPubKey
+    let nf = NonFungible {issuer = key}
+    logMsg $ T.pack $
+        "starting " ++ show nf
+    startWatching $ nonFungibleAddress nf
+
+    void $ createTxAndSubmit
+        defaultSlotRange
+        Set.empty
+        [mkNonFungibleTxOut nf]
+
+forge :: forall m. MonadWallet m
+      => String -- token name
+      -> m ()
+forge n = do
+
+    key <- ownPubKey
+    let nf = NonFungible {issuer = key}
+    logMsg $ T.pack $
+        "forging " ++ n ++ " of " ++ show nf
+
+    outs <- outputsAt $ nonFungibleAddress nf
+    case Map.keys outs of
+        (ref : _) -> do
+            let v = nonFungibleValue nf n
+            signTxAndSubmit_ Tx
+                { txInputs     = Set.singleton $ scriptTxIn
+                                    ref
+                                    (mkNonFungibleValidator nf)
+                                    (mkNonFungibleRedeemer n)
+                , txOutputs    = [ pubKeyTxOut v $ issuer nf
+                                 , mkNonFungibleTxOut nf
+                                 ]
+                , txFee        = A.zero
+                , txForge      = v
+                , txValidRange = defaultSlotRange
+                , txSignatures = Map.empty
+                }
+        _         -> throwError $
+                        OtherError $ T.pack "'start' has not run"
+----
+////
+
+[source, haskell,highlight='18-18']
+----
+-- This will be run by a different wallet.
+prank :: MonadWallet m => Wallet -> m ()
+prank w = do
+
+    let nf = NonFungible {issuer = walletPubKey w}
+    logMsg $ T.pack $
+        "playing prank on " ++ show nf
+
+    let v = A.toValue 1
+    (ins, mout) <- createPaymentWithChange v
+    pk          <- ownPubKey
+    void $ createTxAndSubmit
+        defaultSlotRange
+        ins
+        ( scriptTxOut
+            V.zero
+            (mkNonFungibleValidator nf)
+            (DataScript $ lifted (42 :: Integer)) -- <1>
+        : pubKeyTxOut v pk
+        : maybeToList mout)
+
+$(mkFunctions ['start, 'forge, 'prank])
+----
+
+<1> Instead of passing in `()` as data script, the prankster passes in `42`
+of type `Integer`, i.e. the "wrong" type!

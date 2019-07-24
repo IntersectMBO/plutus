@@ -21,7 +21,7 @@ spec = do
 mkSpec :: (Wallet -> Ada -> MockWallet ()) -> SpecWith ()
 mkSpec payToWallet =
     it "transfers funds as expected" $
-        isRight (fst $ getResult tr) `shouldBe` True
+        fst (getResult tr) `shouldSatisfy` isRight
   where
     ada :: Ada
     ada = fromInt 8

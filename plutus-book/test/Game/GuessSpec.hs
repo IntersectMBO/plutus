@@ -18,9 +18,9 @@ import           Test.Hspec
 spec :: Spec
 spec = describe "guess" $ do
     it "works for a correct guess" $
-        isRight (fst $ getResult tr1) `shouldBe` True
+        fst (getResult tr1) `shouldSatisfy` isRight
     it "works for an incorrect guess" $
-        isRight (fst $ getResult tr2) `shouldBe` True
+        fst (getResult tr2) `shouldSatisfy` isRight
   where
     ada :: Ada
     ada = fromInt 10000
