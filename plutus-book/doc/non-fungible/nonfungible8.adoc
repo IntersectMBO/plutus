@@ -68,7 +68,7 @@ We add some standard helpers:
 [source,haskell]
 ----
 adminRedeemer :: RedeemerScript
-adminRedeemer = RedeemerScript $$(compileScript [|| \(_ :: Sealed ()) -> () ||])
+adminRedeemer = RedeemerScript $$(compileScript [|| \(_ :: Sealed (HashedDataScript ())) -> () ||])
 
 mkAdminValidator :: Admin -> ValidatorScript
 mkAdminValidator = ValidatorScript
@@ -155,7 +155,7 @@ validateNonFungible nf () name tx =
 ----
 mkNonFungibleRedeemer :: String -> RedeemerScript
 mkNonFungibleRedeemer name =
-    let s = $$(compileScript [|| \(t :: TokenName) (_ :: Sealed ()) -> t ||])
+    let s = $$(compileScript [|| \(t :: TokenName) (_ :: Sealed (HashedDataScript ())) -> t ||])
     in  RedeemerScript $ applyScript s $ lifted $ TokenName $ C.pack name
 
 mkNonFungibleValidator :: NonFungible -> ValidatorScript

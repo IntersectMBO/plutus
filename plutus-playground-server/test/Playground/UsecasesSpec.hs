@@ -18,7 +18,7 @@ import           Data.Time.Units              (Microsecond, fromMicroseconds)
 import           Language.Haskell.Interpreter (InterpreterError, InterpreterResult (InterpreterResult),
                                                SourceCode (SourceCode))
 import qualified Ledger.Ada                   as Ada
-import           Ledger.Validation            (ValidatorHash (ValidatorHash))
+import           Ledger.Scripts               (ValidatorHash (ValidatorHash))
 import           Ledger.Value                 (TokenName (TokenName), Value)
 import           Playground.API               (CompilationResult (CompilationResult), Evaluation (Evaluation),
                                                Expression (Action, Wait), Fn (Fn), FunctionSchema (FunctionSchema),
@@ -320,7 +320,7 @@ knownCurrencySpec =
             [ "import Playground.Contract"
             , "import Data.List.NonEmpty (NonEmpty ((:|)))"
             , "import Ledger.Value (TokenName(TokenName))"
-            , "import Ledger.Validation (ValidatorHash (..))"
+            , "import Ledger.Scripts (ValidatorHash (..))"
             , "import Playground.API (KnownCurrency (..))"
             , "import Language.PlutusTx.Prelude"
             , "myCurrency :: KnownCurrency"

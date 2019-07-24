@@ -92,7 +92,7 @@ PlutusTx.makeLift ''ClearText -- <2>
 
 mkDataScript :: String -> DataScript
 mkDataScript word =
-    let hashedWord = V.plcSHA2_256 (C.pack word)
+    let hashedWord = L.plcSHA2_256 (C.pack word)
     in  DataScript (L.lifted (HashedText hashedWord)) -- <3>
 
 mkRedeemerScript :: String -> RedeemerScript

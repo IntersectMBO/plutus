@@ -1,9 +1,11 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module Language.PlutusTx.List (null, map, foldr, foldl, length, all, any, filter, (++)) where
+module Language.PlutusTx.List (null, map, foldr, foldl, length, all, any, elem, filter, listToMaybe, uniqueElement, findIndices, findIndex, (++)) where
 
 import           Language.PlutusTx.Bool
 import qualified Language.PlutusTx.Builtins as Builtins
-import           Prelude                    hiding (all, any, filter, foldl, foldr, length, map, null, (&&), (++), (||))
+import           Language.PlutusTx.Eq
+import           Prelude                    hiding (Eq (..), all, any, elem, filter, foldl, foldr, length, map, null,
+                                             (&&), (++), (||))
 
 {-# ANN module ("HLint: ignore"::String) #-}
 
@@ -81,6 +83,13 @@ all p = foldr (\a acc -> acc && p a) True
 any :: (a -> Bool) -> [a] -> Bool
 any p = foldr (\a acc -> acc || p a) False
 
+{-# INLINABLE elem #-}
+-- | PlutusTx version of 'Data.List.elem'.
+elem :: Eq a => a -> [a] -> Bool
+elem needle haystack = case haystack of
+    []   -> False
+    x:xs -> if x == needle then True else needle `elem` xs
+
 {-# INLINABLE (++) #-}
 -- | PlutusTx version of 'Data.List.(++)'.
 --
@@ -98,3 +107,29 @@ any p = foldr (\a acc -> acc || p a) False
 --
 filter :: (a -> Bool) -> [a] -> [a]
 filter p = foldr (\e xs -> if p e then e:xs else xs) []
+
+{-# INLINABLE listToMaybe #-}
+-- | PlutusTx version of 'Data.List.listToMaybe'.
+listToMaybe :: [a] -> Maybe a
+listToMaybe []    = Nothing
+listToMaybe (x:_) = Just x
+
+{-# INLINABLE uniqueElement #-}
+-- | Return the element in the list, if there is precisely one.
+uniqueElement :: [a] -> Maybe a
+uniqueElement [x] = Just x
+uniqueElement _   = Nothing
+
+{-# INLINABLE findIndices #-}
+-- | PlutusTx version of 'Data.List.findIndices'.
+findIndices :: (a -> Bool) -> [a] -> [Integer]
+findIndices p = go 0
+    where
+        go i l = case l of
+            []     -> []
+            (x:xs) -> let indices = go (Builtins.addInteger i 1) xs in if p x then i:indices else indices
+
+{-# INLINABLE findIndex #-}
+-- | PlutusTx version of 'Data.List.findIndex'.
+findIndex :: (a -> Bool) -> [a] -> Maybe Integer
+findIndex p l = listToMaybe (findIndices p l)

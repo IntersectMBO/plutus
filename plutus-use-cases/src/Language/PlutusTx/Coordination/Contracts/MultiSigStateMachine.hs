@@ -146,7 +146,7 @@ stepWithChecks p ptx s i =
         _ -> traceErrorH "invalid transition"
 
 {-# INLINABLE mkValidator #-}
-mkValidator :: Params -> State -> (Input, Sealed State) -> PendingTx -> Bool
+mkValidator :: Params -> SM.StateMachineValidator State Input
 mkValidator p ds vs ptx =
     let sm = StateMachine (stepWithChecks p ptx) in
     SM.mkValidator sm ds vs ptx

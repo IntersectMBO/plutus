@@ -36,6 +36,7 @@ import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       (DataScript (..), Slot(..), PubKey, TxOutRef, RedeemerScript (..), ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
 import qualified Ledger.Interval              as Interval
+import           Ledger.Scripts               (HashedDataScript)
 import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxOut (..))
 import qualified Ledger.Validation            as Validation
 import qualified Ledger.Ada                   as Ada
@@ -208,7 +209,7 @@ requiredMargin Future{futureUnits=units, futureUnitPrice=unitPrice, futureMargin
 
 redeemerScript :: FutureRedeemer -> RedeemerScript
 redeemerScript fr = RedeemerScript $
-    $$(Ledger.compileScript [|| \(d :: FutureRedeemer) -> \(_ :: Sealed FutureData) -> d ||])
+    $$(Ledger.compileScript [|| \(d :: FutureRedeemer) -> \(_ :: Sealed (HashedDataScript FutureData)) -> d ||])
         `Ledger.applyScript`
             Ledger.lifted fr
 

@@ -26,7 +26,7 @@ import           Language.PlutusTx.Coordination.Contracts.Vesting (Vesting (..),
                                                                    validatorScriptHash, vestFunds)
 import qualified Ledger
 import qualified Ledger.Ada                                       as Ada
-import qualified Ledger.Validation                                as Validation
+import qualified Ledger.Scripts                                   as Scripts
 import           Ledger.Value                                     (Value)
 import qualified Ledger.Value                                     as Value
 import           Wallet                                           (PubKey (..))
@@ -141,7 +141,7 @@ canRetrieveFundsAtEnd = checkVestingTrace scen1 $ do
 data VestingScenario = VestingScenario {
     vsVestingScheme   :: Vesting,
     vsInitialBalances :: Map.Map PubKey Ledger.Value,
-    vsScriptHash      :: Validation.ValidatorHash -- Hash of validator script for this scenario
+    vsScriptHash      :: Scripts.ValidatorHash -- Hash of validator script for this scenario
     }
 
 -- | Funds available to each wallet after the initial transaction on the

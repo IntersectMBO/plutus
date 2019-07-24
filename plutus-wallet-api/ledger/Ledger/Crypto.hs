@@ -13,6 +13,10 @@ module Ledger.Crypto(
     , signTx
     , fromHex
     , toPublicKey
+    -- * Hashes
+    , plcSHA2_256
+    , plcSHA3_256
+    , plcDigest
     -- $privateKeys
     , knownPrivateKeys
     , privateKey1
@@ -31,12 +35,14 @@ import           Codec.Serialise.Class      (Serialise)
 import           Control.Newtype.Generics   (Newtype)
 import qualified Crypto.ECC.Ed25519Donna    as ED25519
 import           Crypto.Error               (throwCryptoError)
+import           Crypto.Hash                (Digest, SHA256)
 import           Data.Aeson                 (FromJSON (parseJSON), FromJSONKey, ToJSON (toJSON), ToJSONKey, (.:))
 import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import qualified Data.ByteArray             as BA
 import qualified Data.ByteString            as BS
 import qualified Data.ByteString.Lazy       as BSL
+import qualified Data.ByteString.Lazy.Hash  as Hash
 import           Data.Swagger               (ToSchema (declareNamedSchema), byteSchema)
 import           Data.Swagger.Internal
 import           GHC.Generics               (Generic)
@@ -123,6 +129,21 @@ fromHex = PrivateKey . KB.fromHex
 toPublicKey :: PrivateKey -> PubKey
 toPublicKey = PubKey . KB.fromBytes . BSL.pack . BA.unpack . ED25519.toPublic . f . KB.bytes . getPrivateKey where
     f = throwCryptoError . ED25519.secretKey . BSL.toStrict
+
+{-# INLINABLE plcSHA2_256 #-}
+-- | PLC-compatible SHA-256 hash of a hashable value
+plcSHA2_256 :: Builtins.ByteString -> Builtins.ByteString
+plcSHA2_256 = Hash.sha2
+
+{-# INLINABLE plcSHA3_256 #-}
+-- | PLC-compatible SHA3-256 hash of a hashable value
+plcSHA3_256 :: Builtins.ByteString -> Builtins.ByteString
+plcSHA3_256 = Hash.sha3
+
+{-# INLINABLE plcDigest #-}
+-- | Convert a `Digest SHA256` to a PLC `Hash`
+plcDigest :: Digest SHA256 -> Builtins.ByteString
+plcDigest = BSL.pack . BA.unpack
 
 -- $privateKeys
 -- 'privateKey1', 'privateKey2', ... 'privateKey10' are ten predefined 'PrivateKey' values.

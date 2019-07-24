@@ -56,7 +56,7 @@ data GameInput =
 PlutusTx.makeLift ''GameInput
 
 {-# INLINABLE mkValidator #-}
-mkValidator :: GameState -> (GameInput, Sealed GameState) -> PendingTx -> Bool
+mkValidator :: SM.StateMachineValidator GameState GameInput
 mkValidator ds vs p =
     let
 

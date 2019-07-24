@@ -102,6 +102,7 @@ import           Ledger                     (PubKey (..), Signature (..), Slot (
 import           Ledger.Ada                 (Ada)
 import qualified Ledger.Ada                 as Ada
 import           Ledger.Interval            (Interval (..))
+import           Ledger.Scripts             (DataScriptHash (..), RedeemerHash (..))
 import           Ledger.Validation
 import           LedgerBytes                (LedgerBytes (..))
 import           Text.PrettyPrint.Leijen    (text)

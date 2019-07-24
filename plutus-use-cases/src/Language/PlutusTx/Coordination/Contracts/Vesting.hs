@@ -30,10 +30,12 @@ import qualified Ledger                       as Ledger
 import           Ledger                       (DataScript (..), Slot(..), PubKey (..), TxOutRef, RedeemerScript (..), ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger.Interval              as Interval
 import qualified Ledger.Slot                  as Slot
+import           Ledger.Scripts               (ValidatorHash, HashedDataScript)
+import qualified Ledger.Scripts               as Scripts
 import           Ledger.Value                 (Value)
 import qualified Ledger.Value                 as Value
 import qualified Ledger.Validation            as Validation
-import           Ledger.Validation            (PendingTx (..), ValidatorHash)
+import           Ledger.Validation            (PendingTx (..))
 import qualified Wallet                       as W
 import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, ownPubKeyTxOut, createTxAndSubmit, defaultSlotRange)
 
@@ -100,7 +102,7 @@ vestFunds vst value = do
     pure vd
 
 redeemerScript :: RedeemerScript
-redeemerScript = RedeemerScript $ $$(Ledger.compileScript [|| \(_ :: Sealed VestingData) -> () ||])
+redeemerScript = RedeemerScript $ $$(Ledger.compileScript [|| \(_ :: Sealed (HashedDataScript VestingData)) -> () ||])
 
 -- | Retrieve some of the vested funds.
 retrieveFunds :: (
@@ -129,7 +131,7 @@ retrieveFunds vs vd r vnow = do
 
 validatorScriptHash :: Vesting -> ValidatorHash
 validatorScriptHash =
-    Validation.plcValidatorDigest
+    Scripts.plcValidatorDigest
     . Ledger.getAddress
     . Ledger.scriptAddress
     . validatorScript

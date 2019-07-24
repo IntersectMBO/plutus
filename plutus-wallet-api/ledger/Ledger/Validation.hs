@@ -20,14 +20,10 @@ module Ledger.Validation
     , PendingTxOutRef(..)
     , PendingTxIn(..)
     , PendingTxOutType(..)
+    , findDataScriptOutputs
+    , findContinuingOutputs
     -- ** Hashes (see note [Hashes in validator scripts])
-    , DataScriptHash(..)
-    , RedeemerHash(..)
-    , ValidatorHash(..)
     , TxHash(..)
-    , plcDataScriptHash
-    , plcValidatorDigest
-    , plcRedeemerHash
     , plcTxHash
     , plcDigest
     , plcCurrencySymbol
@@ -50,21 +46,12 @@ module Ledger.Validation
     , ownCurrencySymbol
     , ownHashes
     , ownHash
-    -- * Hashes
-    , plcSHA2_256
-    , plcSHA3_256
     , fromSymbol
     ) where
 
 import           Codec.Serialise              (Serialise)
-import           Crypto.Hash                  (Digest, SHA256)
 import           Data.Aeson                   (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
-import qualified Data.ByteArray               as BA
-import qualified Data.ByteString.Lazy         as BSL
-import qualified Data.ByteString.Lazy.Hash    as Hash
 import           Data.Hashable                (Hashable)
-import           Data.Proxy                   (Proxy (Proxy))
-import           Data.Swagger.Internal.Schema (ToSchema (declareNamedSchema), paramSchemaToSchema, plain)
 import           Data.String                  (IsString)
 import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx.Builtins   as Builtins
@@ -74,7 +61,7 @@ import qualified Prelude                      as Haskell
 
 import           Ledger.Ada                   (Ada)
 import qualified Ledger.Ada                   as Ada
-import           Ledger.Crypto                (PubKey (..), Signature (..))
+import           Ledger.Crypto                (PubKey (..), Signature (..), plcDigest)
 import           Ledger.Scripts
 import           Ledger.Slot                  (Slot, SlotRange)
 import           Ledger.Tx                    (Address, getAddress, scriptAddress)
@@ -135,6 +122,25 @@ data PendingTx = PendingTx
     -- ^ Hash of the pending transaction (excluding witnesses)
     } deriving (Generic)
 
+{-# INLINABLE findDataScriptOutputs #-}
+-- | Look up a 'DataScriptHash' in the transaction outputs, returning the indexs of the outputs that have
+-- that hash, if there are any.
+findDataScriptOutputs :: DataScriptHash -> PendingTx -> [Integer]
+findDataScriptOutputs hsh PendingTx{pendingTxOutputs=outs} = findIndices f outs
+    where
+        f PendingTxOut{pendingTxOutHashes=(Just (_, dsh))} = dsh == hsh
+        f _ = False
+
+{-# INLINABLE findContinuingOutputs #-}
+-- | Finds all the outputs that pay to the same script address that we are currently spending from, if any.
+findContinuingOutputs :: PendingTx -> [Integer]
+findContinuingOutputs PendingTx{pendingTxIn=PendingTxIn{pendingTxInWitness=Just(inpHsh, _)}, pendingTxOutputs=outs} = findIndices f outs
+    where
+        f PendingTxOut{pendingTxOutHashes=(Just (outHsh, _))} = outHsh == inpHsh
+        f _ = False
+-- Not spending a script output
+findContinuingOutputs _ = []
+
 {- Note [Oracles]
 I'm not sure how oracles are going to work eventually, so I'm going to use this
 definition for now:
@@ -188,29 +194,6 @@ them from the correct types in Haskell, and for comparing them (in
 `Language.Plutus.Runtime.TH`).
 
 -}
--- | Script runtime representation of a @Digest SHA256@.
-newtype ValidatorHash =
-    ValidatorHash Builtins.ByteString
-    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON) via LedgerBytes
-    deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable)
-
-instance ToSchema ValidatorHash where
-    declareNamedSchema _ = plain . paramSchemaToSchema $ (Proxy :: Proxy String)
-
--- | Script runtime representation of a @Digest SHA256@.
-newtype DataScriptHash =
-    DataScriptHash Builtins.ByteString
-    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON) via LedgerBytes
-    deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable)
-
--- | Script runtime representation of a @Digest SHA256@.
-newtype RedeemerHash =
-    RedeemerHash Builtins.ByteString
-    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON) via LedgerBytes
-    deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype TxHash =
@@ -219,38 +202,10 @@ newtype TxHash =
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable)
 
-{-# INLINABLE plcDataScriptHash #-}
-plcDataScriptHash :: DataScript -> DataScriptHash
-plcDataScriptHash = DataScriptHash . plcSHA2_256 . BSL.pack . BA.unpack
-
-{-# INLINABLE plcValidatorDigest #-}
--- | Compute the hash of a validator script.
-plcValidatorDigest :: Digest SHA256 -> ValidatorHash
-plcValidatorDigest = ValidatorHash . BSL.pack . BA.unpack
-
-{-# INLINABLE plcRedeemerHash #-}
-plcRedeemerHash :: RedeemerScript -> RedeemerHash
-plcRedeemerHash = RedeemerHash . plcSHA2_256 . BSL.pack . BA.unpack
-
 {-# INLINABLE plcTxHash #-}
 -- | Compute the hash of a redeemer script.
 plcTxHash :: Tx.TxId -> TxHash
 plcTxHash = TxHash . plcDigest . Tx.getTxId
-
-{-# INLINABLE plcSHA2_256 #-}
--- | PLC-compatible SHA-256 hash of a hashable value
-plcSHA2_256 :: Builtins.ByteString -> Builtins.ByteString
-plcSHA2_256 = Hash.sha2
-
-{-# INLINABLE plcSHA3_256 #-}
--- | PLC-compatible SHA3-256 hash of a hashable value
-plcSHA3_256 :: Builtins.ByteString -> Builtins.ByteString
-plcSHA3_256 = Hash.sha3
-
-{-# INLINABLE plcDigest #-}
--- | Convert a `Digest SHA256` to a PLC `Hash`
-plcDigest :: Digest SHA256 -> ByteString
-plcDigest = BSL.pack . BA.unpack
 
 {-# INLINABLE plcCurrencySymbol #-}
 -- | The 'CurrencySymbol' of an 'Address'
@@ -401,11 +356,5 @@ makeLift ''PendingTxIn
 makeLift ''PendingTx
 
 makeLift ''OracleValue
-
-makeLift ''ValidatorHash
-
-makeLift ''DataScriptHash
-
-makeLift ''RedeemerHash
 
 makeLift ''TxHash
