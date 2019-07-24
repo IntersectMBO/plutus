@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleInstances  #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
