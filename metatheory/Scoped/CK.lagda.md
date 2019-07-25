@@ -14,6 +14,7 @@ open import Scoped.Reduction hiding (step)
 open import Builtin
 open import Scoped.RenamingSubstitution
 open import Data.String
+open import Relation.Nullary
 ```
 
 ```
@@ -66,7 +67,12 @@ step p (s ▻ (L · M))          = _ ,, _ ,, p ,, (s , (-· M)) ▻ L
 step p (s ▻ con cn)           = _ ,, _ ,, p ,, s ◅ V-con cn
   -- ^ why is i inferrable?
 step {i = i} p (s ▻ error A)           = _ ,, i ,, p ,, ◆
-step {i = i} p (s ▻ builtin bn As []) = _ ,, _ ,, p ,, (s ▻ BUILTIN bn As [] _)
+
+
+step {i = i} p (s ▻ builtin bn As []) with arity bn Data.Nat.≟ 0
+... | yes q = _ ,, _ ,, p ,, (s ▻ BUILTIN bn As [] _)
+... | no  q = _ ,, _ ,, p ,, (s ◅ V-builtin bn As [])
+
 step {i = i} p (s ▻ builtin bn As (t ∷ tel)) =
   _ ,, _ ,, p ,, (s , builtin- bn As {[]} _ tel) ▻ t
 step p (s ▻ wrap pat arg L)   = _ ,, _ ,, p ,, (s , wrap- pat arg) ▻ L
@@ -77,7 +83,8 @@ step p (_◅_ (s , (V-ƛ x A L ·-)) {M} W)         = _ ,, _ ,, p ,, s ▻ (L [ 
 step {i = i} p ((s , (V-Λ x V ·-)) ◅ W)           = _ ,, i ,, p ,, ◆
 step {i = i} p ((s , (V-con tcn ·-)) ◅ W)         = _ ,, i ,, p ,, ◆
 step {i = i} p ((s , (V-wrap A B V ·-)) ◅ W)      = _ ,, i ,, p ,, ◆
-step {i = i} p ((s , (V-builtin b As ts ·-)) ◅ W) = _ ,, i ,, p ,, ◆
+step {i = i} p (_◅_ (s , (V-builtin b As tel ·-)) {t} W) =
+  _ ,, i ,, p ,, (s ▻ builtin b As (tel Data.List.++ Data.List.[ t ]) )
 step p ((s , Λ- x K) ◅ V) = _ ,, _ ,, p ,, (s ◅ V-Λ x {K = K} V)
 step {i = i} p ((s , (-·⋆ A)) ◅ V-ƛ x A' L) = _ ,, i ,, p ,, ◆
 step p ((s , (-·⋆ A)) ◅ V-Λ x {t = t} V)  = _ ,, _ ,, p ,, s ▻ (t [ A ]⋆)
@@ -92,8 +99,11 @@ step p ((s , unwrap-) ◅ V-wrap A B V) = _ ,, _ ,, p ,, (s ◅ V)
 step {i = i} p ((s , unwrap-) ◅ V-builtin b As ts) = _ ,, i ,, p ,, ◆
 step p (□ V)                  = _ ,, _ ,, p ,, □ V
 step {i = i} p ◆              = _ ,, i ,, p ,, ◆
-step p (_◅_ (s , builtin- b As {tel} vtel []) {t} V) =
-  _ ,, _ ,, p ,, (s ▻ BUILTIN b As (tel Data.List.++ Data.List.[ t ]) (VTel-extend vtel V))
+step p (_◅_ (s , builtin- b As {tel} vtel []) {t} V) with arity b Data.Nat.≟ Data.List.length tel + 1
+... | yes q = _ ,, _ ,, p ,, (s ▻ BUILTIN b As (tel Data.List.++ Data.List.[ t ]) (VTel-extend vtel V))
+... | no q = _ ,, _ ,, p ,, (s ◅ V-builtin b As (tel Data.List.++ Data.List.[ t ]))
+ -- check for length here and return V-builtin if not?
+
 step p (_◅_ (s , builtin- b As {tel} vtel (t' ∷ tel')) {t} V) =
   _ ,, _ ,, p ,, (s , builtin- b As {tel Data.List.++ Data.List.[ t ]} (VTel-extend vtel V) tel') ▻ t'
 ```
