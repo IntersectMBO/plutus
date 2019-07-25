@@ -1,0 +1,79 @@
+[#marlowe]
+= Marlowe: Financial Contracts on Cardano Computation Layer
+
+Now that you have become comfortable with the idea of smart contracts and have
+(we hope) gotten the hang of writing basic Plutus contract code, we
+present a more powerful universal smart contract that can be used to model
+a whole class of contracts - financial contracts. Recall, from the
+<<04-smartcont#04-smartcont>> chapter, that financial contracts encompass those
+contracts dealing exclusively with currency and financial products changing
+ownership.
+
+The Peyton Jones et al have created a domain-specific
+language (DSL) to express every possible contract in this type, called Marlowe
+(see <bibliography#bibliography). Every expression in this DSL is a term
+of type `Contract`, which is a Haskell data structure. This DSL is expressive
+enough to build every kind of contract found in the ACTUS classification
+of financial contracts (we shall see examples of building some of these later
+on).
+
+The Marlowe DSL is a tool for building smart contracts.
+We would strongly suggest you read the aforementioned paper about it, and
+try using the Meadow platform for testing and building Marlowe contracts at
+
+https://input-output-hk.github.io/marlowe/
+
+For the curious reader, the full code repositories for both Meadow and Marlowe
+itself are found at
+
+https://github.com/input-output-hk/marlowe/
+
+Note that as a DSL, Marlowe is specifically built to have only the functionality
+needed for its intended purpose, and be maximally restrict expressiveness
+otherwise. In particular, Marlowe contract evaluation is guaranteed to terminate
+in a finite amount of time, and the funds at a contract address are never
+locked there indefinitely, so they become available to be spent (by who depends on
+the contract) or redeemed by the original payer after a finite amount of time.
+
+This chapter focuses on explaining the details of the implementation
+of the Marlowe DSL in Plutus, which allows users
+to make use of Marlowe functionality within the
+Cardano system. We will, of course, clarify the relevant Marlowe details
+along the way.
+The semantics of Marlowe are changing regularly as the software takes its
+final form, and at this time the Plutus implementation is not completely in sync with
+the current version of Marlowe, but this does not affect the lessons
+to be learned from interpreting a whole class of contracts on the Plutus
+platform.
+
+As with building any smart contract, in order to implement Marlowe, we
+must interpret the language in the validator-redeemer-data script model.
+It is important to note here that in Marlowe, the time unit in use is a `Block`.
+However, in the Cardano system, time in measured in terms of `Slot`. A `Block`
+explicitly refers to the piece of data that is produced by a slot leader,
+containing transactions submitted in the preceding time slot, as well
+as other information used in updating the ledger. Currently, the block creation
+is done exactly once per slot, so that that timekeeping can be done in terms of
+either one. In the future, however, this will not be the case, due to changes
+to the Cardano consensus algorithms (see <<bibliography#bibliography>>), and
+there may be none or several blocks produced in one slot.
+However, in this Plutus implementation of Marlowe, all timekeeping is done
+in terms of `Slot` numbers. Thus, independent of the evolution of the system,
+the timekeeping in this interpretation will remain consistent with the passage
+of actual time.
+
+The idea of the Plutus interpretation of a Marlowe contract is that the
+validator is passed:
+
+* the whole contract and extra state information
+as the data script. It evaluates the contract
+
+We also make the following assumptions in this Marlowe interpreter:
+
+* The transaction fees are zero
+* Every contract is created by the contract
+
+We will dive right in to studying the code to see what a Marlowe `Contract`
+looks like, and how to interpret its state
+
+include::Language/Marlowe/common.adoc[]
