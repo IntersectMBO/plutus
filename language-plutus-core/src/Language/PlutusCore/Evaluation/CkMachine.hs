@@ -56,7 +56,7 @@ infix 4 |>, <|
 type CkMachineException uni = MachineException uni UnknownDynamicBuiltinNameError
 
 -- | The environment the CEK machine runs in.
-type CkEnv uni = DynamicBuiltinNameMeanings uni
+type CkEnv uni = NameMeanings uni
 
 -- | The monad the CEK machine runs in.
 type CkM uni = Reader (CkEnv uni)
@@ -70,7 +70,7 @@ data Frame uni
 
 type Context uni = [Frame uni]
 
-runCkM :: DynamicBuiltinNameMeanings uni -> CkM uni a -> a
+runCkM :: NameMeanings uni -> CkM uni a -> a
 runCkM = flip runReader
 
 -- | Throw a 'CkMachineException'. This function is needed, because it constrains 'MachinerError'
@@ -83,9 +83,9 @@ throwCkMachineException = throw .* MachineException
 
 -- | Look up a 'DynamicBuiltinName' in the environment.
 lookupDynamicBuiltinName
-    :: forall uni. Evaluable uni => DynamicBuiltinName -> CkM uni (DynamicBuiltinNameMeaning uni)
+    :: forall uni. Evaluable uni => DynamicBuiltinName -> CkM uni (NameMeaning uni)
 lookupDynamicBuiltinName dynName = do
-    DynamicBuiltinNameMeanings means <- ask
+    NameMeanings means <- ask
     case Map.lookup dynName means of
         Nothing   -> throw $ MachineException @uni err term where
             err  = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
@@ -202,7 +202,7 @@ applyEvaluate stack fun                    arg =
 evaluateInCkM :: forall uni a. EvaluateConstApp uni (CkM uni) a -> CkM uni (ConstAppResult uni a)
 evaluateInCkM =
     runEvaluateConstApp $ Evaluator $ \emb meansExt term -> do
-        let extend means = embedDynamicBuiltinNameMeanings emb means <> meansExt
+        let extend means = embedNameMeanings emb means <> meansExt
         withReader extend $ [] |> term
 
 -- | Apply a 'StagedBuiltinName' to a list of 'Value's.
@@ -210,7 +210,7 @@ applyStagedBuiltinName
     :: Evaluable uni
     => StagedBuiltinName -> [Value TyName Name uni ()] -> CkM uni (ConstAppResultDef uni)
 applyStagedBuiltinName (DynamicStagedBuiltinName name) args = do
-    DynamicBuiltinNameMeaning sch x <- lookupDynamicBuiltinName name
+    NameMeaning sch x <- lookupDynamicBuiltinName name
     evaluateInCkM $ applyTypeSchemed sch x args
 applyStagedBuiltinName (StaticStagedBuiltinName  name) args =
     evaluateInCkM $ applyBuiltinName name args
@@ -235,12 +235,12 @@ readKnownCk = runIdentity . runReflectT . readKnown evaluatorCk
 -- if @F@ does not compute, so we simply do not introduce a rule that can't possibly fire.
 evaluateCk
     :: Evaluable uni
-    => DynamicBuiltinNameMeanings uni -> Term TyName Name uni () -> EvaluationResultDef uni
+    => NameMeanings uni -> Term TyName Name uni () -> EvaluationResultDef uni
 evaluateCk means term = runCkM means $ [] |> term
 
 -- | Run a program using the CK machine. May throw a 'CkMachineException'.
 -- Calls 'evaluateCk' under the hood, so the same caveats apply.
 runCk
     :: Evaluable uni
-    => DynamicBuiltinNameMeanings uni -> Program TyName Name uni () -> EvaluationResultDef uni
+    => NameMeanings uni -> Program TyName Name uni () -> EvaluationResultDef uni
 runCk means (Program _ _ term) = evaluateCk means term

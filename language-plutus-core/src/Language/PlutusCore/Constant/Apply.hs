@@ -161,12 +161,12 @@ extractBuiltin value                             =
 -- Checks that the constants are of expected types.
 applyTypeSchemed
     :: (Monad m, GEq uni)
-    => TypeScheme uni a r -> a -> [Value TyName Name uni ()] -> EvaluateConstAppDef uni m
+    => TypeScheme uni as r -> FoldType as r -> [Value TyName Name uni ()] -> EvaluateConstAppDef uni m
 applyTypeSchemed = go where
     go
         :: (Monad m, GEq uni)
-        => TypeScheme uni a r
-        -> a
+        => TypeScheme uni as r
+        -> FoldType as r
         -> [Value TyName Name uni ()]
         -> EvaluateConstAppDef uni m
     go (TypeSchemeResult _)        y args =
@@ -187,8 +187,8 @@ applyTypeSchemed = go where
 -- Checks that the constants are of expected types.
 applyTypedBuiltinName
     :: (Monad m, GEq uni)
-    => TypedBuiltinName uni a r
-    -> a
+    => TypedBuiltinName uni as r
+    -> FoldType as r
     -> [Value TyName Name uni ()]
     -> EvaluateConstAppDef uni m
 applyTypedBuiltinName (TypedBuiltinName _ schema) = applyTypeSchemed schema

@@ -151,7 +151,7 @@ instance Evaluable uni => KnownType Bool uni where
             applied =
                 mkIterApp () (TyInst () (shiftConstantsTerm term) metaBool)
                     [metaTrue, metaFalse]
-        res <- makeRightReflectT $ eval shiftTypeScheme mempty applied
+        res <- makeRightReflectT $ eval shiftNameMeaning mempty applied
         case extractExtension res of
             Just b  -> pure b
             Nothing -> throwError "Not a Bool"
@@ -250,20 +250,20 @@ instance (Evaluable uni, KnownType a uni, KnownType b uni, Typeable a, Typeable 
                 , showText $ typeRep (Proxy :: Proxy b)
                 ]
 
-            metaCommaMeaning :: DynamicBuiltinNameMeaning (Extend (a, b) uni)
-            metaCommaMeaning = DynamicBuiltinNameMeaning sch def where
+            metaCommaMeaning :: NameMeaning (Extend (a, b) uni)
+            metaCommaMeaning = NameMeaning sch def where
                 sch =
                     Proxy @(InExtended (a, b) uni a) `TypeSchemeArrow`
                     Proxy @(InExtended (a, b) uni b) `TypeSchemeArrow`
                     TypeSchemeResult (Proxy @(AsExtension uni (a, b)))
                 def (InExtended x) (InExtended y) = AsExtension (x, y)
 
-            metaCommaDef = DynamicBuiltinNameDefinition metaCommaName metaCommaMeaning
+            metaCommaDef = NameDefinition metaCommaName metaCommaMeaning
             metaComma = dynamicBuiltinNameAsTerm metaCommaName
 
-            env = insertDynamicBuiltinNameDefinition metaCommaDef mempty
+            env = insertNameDefinition metaCommaDef mempty
             applied = Apply () (TyInst () (shiftConstantsTerm term) metaTuple) metaComma
-        res <- makeRightReflectT $ eval shiftTypeScheme env applied
+        res <- makeRightReflectT $ eval shiftNameMeaning env applied
         case extractExtension res of
             Just p  -> pure p
             Nothing -> throwError $ "Not a builtin tuple: " <> prettyText applied

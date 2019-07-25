@@ -5,8 +5,8 @@
 
 module Language.PlutusCore.Constant.Function
     ( typeSchemeToType
-    , dynamicBuiltinNameMeaningToType
-    , insertDynamicBuiltinNameDefinition
+    , nameMeaningToType
+    , insertNameDefinition
     , typeOfTypedBuiltinName
     ) where
 
@@ -35,19 +35,15 @@ typeSchemeToType = runQuote . go 0 where
                 a    = TyName $ Name () text $ Unique uniq
             TyForall () a (Type ()) <$> go i (schK Proxy)
 
--- | Extract the 'TypeScheme' from a 'DynamicBuiltinNameMeaning' and
+-- | Extract the 'TypeScheme' from a 'NameMeaning' and
 -- convert it to the corresponding 'Type'.
-dynamicBuiltinNameMeaningToType :: DynamicBuiltinNameMeaning uni -> Type TyName uni ()
-dynamicBuiltinNameMeaningToType (DynamicBuiltinNameMeaning sch _) = typeSchemeToType sch
+nameMeaningToType :: NameMeaning uni -> Type TyName uni ()
+nameMeaningToType (NameMeaning sch _) = typeSchemeToType sch
 
--- | Insert a 'DynamicBuiltinNameDefinition' into a 'DynamicBuiltinNameMeanings'.
-insertDynamicBuiltinNameDefinition
-    :: DynamicBuiltinNameDefinition uni
-    -> DynamicBuiltinNameMeanings uni
-    -> DynamicBuiltinNameMeanings uni
-insertDynamicBuiltinNameDefinition
-    (DynamicBuiltinNameDefinition name mean) (DynamicBuiltinNameMeanings nameMeans) =
-        DynamicBuiltinNameMeanings $ Map.insert name mean nameMeans
+-- | Insert a 'NameDefinition' into a 'NameMeanings'.
+insertNameDefinition :: NameDefinition uni -> NameMeanings uni -> NameMeanings uni
+insertNameDefinition (NameDefinition name mean) (NameMeanings nameMeans) =
+    NameMeanings $ Map.insert name mean nameMeans
 
 -- | Return the 'Type' of a 'TypedBuiltinName'.
 typeOfTypedBuiltinName :: TypedBuiltinName uni a r -> Type TyName uni ()

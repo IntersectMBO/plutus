@@ -20,10 +20,11 @@
 
 module Language.PlutusCore.Constant.Typed
     ( TypeScheme (..)
+    , FoldType
     , TypedBuiltinName (..)
-    , DynamicBuiltinNameMeaning (..)
-    , DynamicBuiltinNameDefinition (..)
-    , DynamicBuiltinNameMeanings (..)
+    , NameMeaning (..)
+    , NameDefinition (..)
+    , NameMeanings (..)
     , Evaluable
     , Evaluator (..)
     , EvaluateT (..)
@@ -46,12 +47,12 @@ module Language.PlutusCore.Constant.Typed
     , shiftConstantsType
     , shiftConstantsTerm
     , unshiftConstantsTerm
-    , shiftTypeScheme
+    , shiftNameMeaning
+    , unshiftNameMeaning
     , extractValueOf
     , extractValue
     , extractExtension
-    , embedDynamicBuiltinNameMeaning
-    , embedDynamicBuiltinNameMeanings
+    , embedNameMeanings
     ) where
 
 import           Language.PlutusCore.Evaluation.Result
@@ -119,7 +120,7 @@ data TypeScheme uni as r where
 -- | A 'BuiltinName' with an associated 'TypeScheme'.
 data TypedBuiltinName uni as r = TypedBuiltinName BuiltinName (TypeScheme uni as r)
 
-{- Note [DynamicBuiltinNameMeaning]
+{- Note [NameMeaning]
 We represent the meaning of a 'DynamicBuiltinName' as a 'TypeScheme' and a Haskell denotation.
 We need both while evaluting a 'DynamicBuiltinName', because 'TypeScheme' is required for
 well-typedness to avoid using 'unsafeCoerce' and similar junk, while the denotation is what
@@ -128,26 +129,25 @@ is required, however analogously to static built-ins, we compute the types of dy
 their 'TypeScheme's. This way we only define a 'TypeScheme', which we anyway need, and then compute
 the corresponding 'Type' from it. And we can't go the other way around -- from untyped to typed --
 of course. Therefore a typed thing has to go before the corresponding untyped thing and in the
-final pipeline one has to supply a 'DynamicBuiltinNameMeaning' for each of the 'DynamicBuiltinName's.
+final pipeline one has to supply a 'NameMeaning' for each of the 'DynamicBuiltinName's.
 -}
 
 type family FoldType as r where
     FoldType '[]       r = r
     FoldType (a ': as) r = a -> FoldType as r
 
--- See Note [DynamicBuiltinNameMeaning].
+-- See Note [NameMeaning].
 -- | The meaning of a dynamic built-in name consists of its 'Type' represented as a 'TypeScheme'
 -- and its Haskell denotation.
-data DynamicBuiltinNameMeaning uni =
-    forall as r. DynamicBuiltinNameMeaning (TypeScheme uni as r) (FoldType as r)
+data NameMeaning uni =
+    forall as r. NameMeaning (TypeScheme uni as r) (FoldType as r)
 
 -- | The definition of a dynamic built-in consists of its name and meaning.
-data DynamicBuiltinNameDefinition uni =
-    DynamicBuiltinNameDefinition DynamicBuiltinName (DynamicBuiltinNameMeaning uni)
+data NameDefinition uni = NameDefinition DynamicBuiltinName (NameMeaning uni)
 
--- | Mapping from 'DynamicBuiltinName's to their 'DynamicBuiltinNameMeaning's.
-newtype DynamicBuiltinNameMeanings uni = DynamicBuiltinNameMeanings
-    { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName (DynamicBuiltinNameMeaning uni)
+-- | Mapping from 'DynamicBuiltinName's to their 'NameMeaning's.
+newtype NameMeanings uni = NameMeanings
+    { unNameMeanings :: Map DynamicBuiltinName (NameMeaning uni)
     } deriving (Semigroup, Monoid)
 
 type Evaluable uni =
@@ -159,15 +159,15 @@ type Evaluable uni =
     , Typeable uni
     )
 
-data SomeTypeScheme uni = forall as r. SomeTypeScheme (TypeScheme uni as r)
+-- data SomeTypeScheme uni = forall as r. SomeTypeScheme (TypeScheme uni as r)
 
 -- | A thing that evaluates @f@ in monad @m@ and allows to extend the set of
 -- dynamic built-in names.
 newtype Evaluator f uni m = Evaluator
     { unEvaluator
         :: forall uni'. Evaluable uni'
-        => (SomeTypeScheme uni -> SomeTypeScheme uni')
-        -> DynamicBuiltinNameMeanings uni'
+        => (NameMeaning uni -> NameMeaning uni')
+        -> NameMeanings uni'
         -> f TyName Name uni' ()
         -> m (EvaluationResultDef uni')
     }
@@ -279,7 +279,7 @@ of all possible evaluators beforehand
 3. or we can just require to pass the current evaluator with its encapsulated state to functions that
 evaluate built-in applications. The type of evaluators is this then:
 
-    type Evaluator f m = DynamicBuiltinNameMeanings -> f TyName Name () -> m EvaluationResult
+    type Evaluator f m = NameMeanings -> f TyName Name () -> m EvaluationResult
 
 so @Evaluator Term uni m@ receives a map with meanings of dynamic built-in names which extends the map the
 evaluator already has (this is needed, because we may add new dynamic built-in names during conversion
@@ -479,78 +479,55 @@ shiftEvaluator
     :: (Evaluable uni, Typeable b)
     => Evaluator f uni m -> Evaluator f (Extend b uni) m
 shiftEvaluator (Evaluator eval) =
-    Evaluator $ \emb means -> eval (emb . shiftTypeScheme) means
+    Evaluator $ \emb means -> eval (emb . shiftNameMeaning) means
 
 unshiftEvaluator
     :: (Evaluable uni, Typeable b)
     => Evaluator f (Extend b uni) m -> Evaluator f uni m
 unshiftEvaluator (Evaluator eval) =
-    Evaluator $ \emb means -> eval (emb . unshiftTypeScheme) means
+    Evaluator $ \emb means -> eval (emb . unshiftNameMeaning) means
 
-type family MapList f as where
-    MapList f '[]       = '[]
-    MapList f (a ': as) = f a ': MapList f as
-
-mapProxy :: forall f a. Proxy a -> Proxy (f a)
-mapProxy _ = Proxy
-
-coerceTypeScheme
-    :: (Coercible as as', Coercible r r') => TypeScheme uni as r -> TypeScheme uni as' r'
-coerceTypeScheme = unsafeCoerce
-
-shiftTypeScheme'
-    :: forall b uni as r. (Evaluable uni, Typeable b)
-    => TypeScheme uni as r -> TypeScheme (Extend b uni) as r
-shiftTypeScheme' sch = go sch coerceTypeScheme where
-    go
-        :: forall c.
-           TypeScheme uni as r
-        -> (forall as' r'. (Coercible as as', Coercible r r') => TypeScheme (Extend b uni) as' r' -> c)
-        -> c
-    go (TypeSchemeResult  res)      k =
-        k $ TypeSchemeResult $ mapProxy @(InExtended b uni) res
-    go (TypeSchemeArrow   _   schB) k = undefined -- TypeSchemeArrow Proxy $ go schB
-    go (TypeSchemeAllType var schK) k = undefined -- TypeSchemeAllType var $ \_ -> go $ schK Proxy
-
---  inE ~ InExtended b uni
-
-shiftTypeScheme
+shiftNameMeaning
     :: forall b uni. (Evaluable uni, Typeable b)
-    => SomeTypeScheme uni -> SomeTypeScheme (Extend b uni)
-shiftTypeScheme (SomeTypeScheme sch) = SomeTypeScheme $ go sch where
-    go
-        :: inE ~ InExtended b uni
-        => TypeScheme uni as r -> TypeScheme (Extend b uni) (MapList inE as) (inE r)
-    go (TypeSchemeResult  _)        = TypeSchemeResult Proxy
-    go (TypeSchemeArrow   _   schB) = TypeSchemeArrow Proxy $ go schB
-    go (TypeSchemeAllType var schK) = TypeSchemeAllType var $ \_ -> go $ schK Proxy
+    => NameMeaning uni -> NameMeaning (Extend b uni)
+shiftNameMeaning (NameMeaning sch x) =
+    go sch $ \sch' inj -> NameMeaning sch' $ inj x where
+        go
+            :: TypeScheme uni as r
+            -> (forall as' r'.
+                    TypeScheme (Extend b uni) as' r' -> (FoldType as r -> FoldType as' r') -> c)
+            -> c
+        go (TypeSchemeResult _)         k =
+            k (TypeSchemeResult Proxy) $ InExtended @b
+        go (TypeSchemeArrow _ schB)     k =
+            go schB $ \schB' inj -> k
+                (TypeSchemeArrow Proxy schB')
+                (\f -> inj . f . unInExtended @b)
+        go (TypeSchemeAllType var schK) k =
+            go (schK Proxy) $ \schB' inj -> k (TypeSchemeAllType var $ \_ -> schB') inj
 
-unshiftTypeScheme
+unshiftNameMeaning
     :: forall b uni. (Evaluable uni, Typeable b)
-    => SomeTypeScheme (Extend b uni) -> SomeTypeScheme uni
-unshiftTypeScheme (SomeTypeScheme sch) = SomeTypeScheme $ go sch where
-    go
-        :: inU ~ InUnextended (Extend b uni)
-        => TypeScheme (Extend b uni) as r -> TypeScheme uni (MapList inU as) (inU r)
-    go (TypeSchemeResult  _)        = TypeSchemeResult Proxy
-    go (TypeSchemeArrow   _   schB) = TypeSchemeArrow Proxy $ go schB
-    go (TypeSchemeAllType var schK) = TypeSchemeAllType var $ \_ -> go $ schK Proxy
+    => NameMeaning (Extend b uni) -> NameMeaning uni
+unshiftNameMeaning (NameMeaning sch x) =
+    go sch $ \sch' inj -> NameMeaning sch' $ inj x where
+        go
+            :: TypeScheme (Extend b uni) as r
+            -> (forall as' r'.
+                    TypeScheme uni as' r' -> (FoldType as r -> FoldType as' r') -> c)
+            -> c
+        go (TypeSchemeResult _)         k =
+            k (TypeSchemeResult Proxy) $ InUnextended @(Extend b uni)
+        go (TypeSchemeArrow _ schB)     k =
+            go schB $ \schB' inj -> k
+                (TypeSchemeArrow Proxy schB')
+                (\f -> inj . f . unInUnextended @(Extend b uni))
+        go (TypeSchemeAllType var schK) k =
+            go (schK Proxy) $ \schB' inj -> k (TypeSchemeAllType var $ \_ -> schB') inj
 
-embedDynamicBuiltinNameMeaning
-    :: (SomeTypeScheme uni -> SomeTypeScheme uni')
-    -> DynamicBuiltinNameMeaning uni
-    -> DynamicBuiltinNameMeaning uni'
-embedDynamicBuiltinNameMeaning emb (DynamicBuiltinNameMeaning sch x) =
-    case emb $ SomeTypeScheme sch of
-        SomeTypeScheme sch' -> DynamicBuiltinNameMeaning sch' $ _ x
-
-embedDynamicBuiltinNameMeanings
-    :: (SomeTypeScheme uni -> SomeTypeScheme uni')
-    -> DynamicBuiltinNameMeanings uni
-    -> DynamicBuiltinNameMeanings uni'
-embedDynamicBuiltinNameMeanings emb (DynamicBuiltinNameMeanings means) =
-    DynamicBuiltinNameMeanings $ fmap (embedDynamicBuiltinNameMeaning emb) means
-
+embedNameMeanings
+    :: (NameMeaning uni -> NameMeaning uni') -> NameMeanings uni -> NameMeanings uni'
+embedNameMeanings emb (NameMeanings means) = NameMeanings $ fmap emb means
 
 -- Encode '()' from Haskell as @all r. r -> r@ from PLC.
 -- This is a very special instance, because it's used to define functions that are needed for
@@ -567,13 +544,13 @@ instance Evaluable uni => KnownType () uni where
         let metaUnit = TyConstant () $ Some Extension
             metaUnitval = Constant () $ SomeOf Extension ()
             applied = Apply () (TyInst () (shiftConstantsTerm term) metaUnit) metaUnitval
-        res <- makeRightReflectT $ eval shiftTypeScheme mempty applied
+        res <- makeRightReflectT $ eval shiftNameMeaning mempty applied
         case extractExtension res of
             Just () -> pure ()
             Nothing -> throwError "Not a builtin ()"
 instance PrettyKnown ()
 
-newtype InExtended b (uni :: * -> *) a = InExtended
+newtype InExtended (b :: *) (uni :: * -> *) a = InExtended
     { unInExtended :: a
     }
 
