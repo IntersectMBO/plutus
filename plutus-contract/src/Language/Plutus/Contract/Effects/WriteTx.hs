@@ -7,10 +7,10 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 -- | Write an 'UnbalancedTx' to be transferred to the wallet for
---   balancing and signing
+--   balancing and signing.
 module Language.Plutus.Contract.Effects.WriteTx where
 
-import           Language.Plutus.Contract.Transaction
+import           Language.Plutus.Contract.Tx
 
 import           Control.Eff
 import           Control.Eff.Exception
@@ -35,7 +35,7 @@ runWriteTx = fix (handle_relay pure)
 
 promptTx :: (Member (Reader (Maybe Event)) r, Member (Exc (Hook ())) r) => UnbalancedTx -> Eff r ()
 promptTx t = do
-  sl <- ask @(Maybe Event)
+  sl <- reader (>>= Event.txSubmissionEvent)
   case sl of
-    Just TxSubmission -> pure ()
-    _                 -> throwError @(Hook ()) (Hooks.txHook t)
+    Just () -> pure ()
+    _       -> throwError @(Hook ()) (Hooks.txHook t)

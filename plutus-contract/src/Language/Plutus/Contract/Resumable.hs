@@ -6,9 +6,10 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes            #-}
 -- | A version of 'Language.Plutus.Contract.Contract' that
---   writes checkpoints
+--   writes checkpoints.
 module Language.Plutus.Contract.Resumable(
     Resumable
+    , ResumableError(..)
     , Step(..)
     , step
     , checkpoint
@@ -25,58 +26,60 @@ module Language.Plutus.Contract.Resumable(
 
 import           Control.Applicative
 import           Control.Monad.Except
+import           Control.Monad.Morph
 import           Control.Monad.Writer
-import qualified Data.Aeson                            as Aeson
-import qualified Data.Aeson.Types                      as Aeson
-import           Data.Bifunctor                        (Bifunctor (..))
+import qualified Data.Aeson                      as Aeson
+import qualified Data.Aeson.Types                as Aeson
+import           Data.Bifunctor                  (Bifunctor (..))
 
 import           Language.Plutus.Contract.Record
 
 {- Note [Handling state in contracts]
 
-The 'Resumable' type encodes programs with a serialisable state that operate on 
-event streams. 'Resumable (Step i o)' consumes inputs of type 'i' and produces 
-requests (describing the inputs that are expected next) of type 'o'. As such, 
-'Resumable (Step i o)' is similar to the @Prompt i o@ type found in the 
-@prompt@ package. 
+The 'Resumable' type encodes programs with a serialisable state that operate on
+event streams. 'Resumable (Step i o)' consumes inputs of type 'i' and produces
+requests (describing the inputs that are expected next) of type 'o'. As such,
+'Resumable (Step i o)' is similar to the @Prompt i o@ type found in the
+@prompt@ package.
 
-Unlike the 'Prompt' type however, 'Resumabe (Step i o)' programs have a builtin 
-way of serialising their state *efficiently*: While we can always take the state
-of a stream-consuming program to be the list of events it has seen so far, we 
-have to replay all the previous events every time a new event is received, 
-making the complexity of adding a new event quadratic in the number of events.
+Unlike the 'Prompt' type however, 'Resumable (Step i o)' programs have a
+builtin way of serialising their state *efficiently*: While we can always take
+the state of a stream-consuming program to be the list of events it has seen so
+far, we have to replay all the previous events every time a new event is
+received, making the complexity of recovering the current state from the event
+list quadratic.
 
-We avoid this in 'Resumable (Step i o)' by adding checkpoints at which the state can be serialised and resumed without having to replay all the previous 
-events. 
+We avoid this in 'Resumable (Step i o)' by adding checkpoints at which the state can be serialised and resumed without having to replay all the previous
+events.
 
-The current state of 'Resumable (Step i o)' programs is capturey by the 'Record 
-i' type. Every 'Record' is a tree with branches that match the structure the 
-'Resumable' program whose state it represents. 
+The current state of 'Resumable (Step i o)' programs is captured by the 'Record
+i' type. Every 'Record' is a tree with branches that match the structure of the
+'Resumable' program whose state it represents.
 
-Given a 'Resumable (Step i o)'  we can use 'initialise' to get the initial 
-'Record' that captures the state after zero events have been consumed. 
-'initialise' uses the writer to collect all 'o' values that describe the inputs 
-the progam is waiting for. When we have a new input, we call 
-'insertAndUpdate' with our resumable program, the previous 'Record', and the 
-input to get the 'Record'. 
+Given a 'Resumable (Step i o)'  we can use 'initialise' to get the initial
+'Record' that captures the state after zero events have been consumed.
+'initialise' uses the writer to collect all 'o' values that describe the inputs
+the progam is waiting for. When we have a new input, we call
+'insertAndUpdate' with our resumable program, the previous 'Record', and the
+input to get the 'Record'.
 
-How does the checkpointing work? Note the 'CJSONCheckpoint' constructor of 
-'Resumable'. This constructor is used to insert a checkpoint into the resumable 
-program. Whenever as part of a call to 'insertAndUpdate' we encounter a 
+How does the checkpointing work? Note the 'CJSONCheckpoint' constructor of
+'Resumable'. This constructor is used to insert a checkpoint into the resumable
+program. Whenever as part of a call to 'insertAndUpdate' we encounter a
 'CJSONCheckpoint n' node, we throw away the sub-tree of the old 'Record' that
-contained the state of 'n', and replace it with the serialised value of the 
-result of 'n'. From now on, whenever we want to restore the state of 
-'CJSONCheckpoint' n, we use the serialised value in the 'Record', so we don't 
+contained the state of 'n', and replace it with the serialised value of the
+result of 'n'. From now on, whenever we want to restore the state of
+'CJSONCheckpoint' n, we use the serialised value in the 'Record', so we don't
 ever need to evaluate 'n' again.
 
 -}
 
 -- | 'Step i o a' is a single step in a resumable program, consuming an input
---   of type 'i' and producing either a result of type 'a', or a request 'o' 
+--   of type 'i' and producing either a result of type 'a', or a request 'o'
 --   asking for a different input value. 'Step i o' is like an inverted request-
---   response pair: We offer the response (in form of 'Maybe i'), and only if it
---   is the wrong response do we record the request in form of 'o'. 
-newtype Step i o a = Step { runStep :: Maybe i -> Either o a }
+--   response pair: We offer the response (in form of 'i'), and only if it
+--   is the wrong response do we record the request in form of 'o'.
+newtype Step i o a = Step { runStep :: i -> Either o a }
 
 -- | A resumable program made up of 'Step's.
 data Resumable f a where
@@ -89,6 +92,31 @@ data Resumable f a where
     CStep :: f a -> Resumable f a
     CJSONCheckpoint :: (Aeson.FromJSON a, Aeson.ToJSON a) => Resumable f a -> Resumable f a
 
+instance MFunctor Resumable where
+    hoist = mapStep
+
+-- | An error that can occur when updating a 'Record' using a
+--   'Resumable (Step i o)'.
+data ResumableError =
+    RecordMismatch String
+    -- ^ The structure of the record does not match the structure of the
+    --   'Resumable'.
+    | AesonError String
+    -- ^ Something went wrong while decoding a JSON value
+    deriving (Eq, Ord, Show)
+
+throwRecordmismatchError :: MonadError ResumableError m => String -> m a
+throwRecordmismatchError = throwError . RecordMismatch
+
+throwAesonError :: MonadError ResumableError m => String -> m a
+throwAesonError = throwError . AesonError
+
+runStepWriter :: (MonadWriter o m, MonadError ResumableError m) => Step i (Either String o) a -> i -> m (Maybe a)
+runStepWriter s i = case runStep s i of
+    Left (Left e)  -> throwAesonError e
+    Left (Right o) -> writer (Nothing, o)
+    Right a        -> pure (Just a)
+
 mapStep :: (forall b. f b -> g b) -> Resumable f a -> Resumable g a
 mapStep f = \case
     CMap f' c -> CMap f' (mapStep f c)
@@ -100,8 +128,9 @@ mapStep f = \case
     CJSONCheckpoint c -> CJSONCheckpoint (mapStep f c)
 
 initialise
-    :: ( MonadWriter o m )
-    => Resumable (Step i o) a
+    :: ( MonadError ResumableError m
+       , MonadWriter o m )
+    => Resumable (Step (Maybe i) (Either String o)) a
     -> m (Either (OpenRecord i) (ClosedRecord i, a))
 initialise = \case
     CMap f con -> fmap (fmap f) <$> initialise con
@@ -130,10 +159,11 @@ initialise = \case
                     Left r'       -> pure $ Left $ OpenRight l' r'
                     Right (r', b) -> pure $ Right (ClosedBin l' r', b)
     CEmpty -> pure (Left $ OpenLeaf Nothing)
-    CStep con -> 
-        case runStep con Nothing of
-            Left o -> writer (Left $ OpenLeaf Nothing, o)
-            Right a -> pure $ Right (ClosedLeaf (FinalEvents Nothing), a)
+    CStep con -> do
+        con' <- runStepWriter con Nothing
+        case con' of
+            Nothing -> pure $ Left $ OpenLeaf Nothing
+            Just a  -> pure $ Right (ClosedLeaf (FinalEvents Nothing), a)
     CJSONCheckpoint con -> do
         r <- initialise con
         case r of
@@ -194,8 +224,8 @@ lowerM fj fc = \case
 --   constraint. This reflects the fact that a finished program is not waiting
 --   for any inputs.
 runClosed
-    :: ( MonadError String m )
-    => Resumable (Step i o) a
+    :: ( MonadError ResumableError m )
+    => Resumable (Step (Maybe i) (Either String o)) a
     -> ClosedRecord i
     -> m a
 runClosed con rc =
@@ -207,34 +237,37 @@ runClosed con rc =
                         CStep con' -> do
                             let r = runStep con' evt
                             case r of
-                                Left _-> throwError "ClosedLeaf, contract not finished"
+                                Left (Left err) ->
+                                    throwAesonError err
+                                Left (Right _) ->
+                                    throwRecordmismatchError "ClosedLeaf, contract not finished"
                                 Right a  -> pure a
-                        _ -> throwError "ClosedLeaf, expected CStep "
+                        _ -> throwRecordmismatchError "ClosedLeaf, expected CStep "
                 ClosedLeaf (FinalJSON vl) ->
                     case con of
                         CJSONCheckpoint _ ->
                             case Aeson.parseEither Aeson.parseJSON vl of
-                                Left e    -> throwError e
+                                Left e    -> throwAesonError e
                                 Right vl' -> pure vl'
-                        _ -> throwError ("Expected JSON checkpoint, got " ++ pretty con)
+                        _ -> throwRecordmismatchError ("Expected JSON checkpoint, got " ++ pretty con)
                 ClosedAlt e ->
                     case con of
                         CAlt conL conR -> either (runClosed conL) (runClosed conR) e
-                        _              -> throwError ("ClosedAlt with wrong contract type: " ++ pretty con)
+                        _              -> throwRecordmismatchError ("ClosedAlt with wrong contract type: " ++ pretty con)
 
                 ClosedBin l r ->
                     case con of
                         CMap f con' -> fmap f (runClosed con' (ClosedBin l r))
                         CAp l' r'   -> runClosed l' l <*> runClosed r' l
                         CBind l' f  -> runClosed l' l >>= flip runClosed r . f
-                        o           -> throwError ("ClosedBin with wrong contract type: " ++ pretty o)
+                        o           -> throwRecordmismatchError ("ClosedBin with wrong contract type: " ++ pretty o)
 
 -- | Run an unfinished resumable program on an open record. Returns the updated
 --   record.
 runOpen
     :: ( MonadWriter o m
-       , MonadError String m)
-    => Resumable (Step i o) a
+       , MonadError ResumableError m)
+    => Resumable (Step (Maybe i) (Either String o)) a
     -> OpenRecord i
     -> m (Either (OpenRecord i) (ClosedRecord i, a))
 runOpen con opr =
@@ -264,7 +297,7 @@ runOpen con opr =
                     pure (Left (OpenLeft oL cR))
                 (Left oL, Left oR) ->
                     pure (Left (OpenBoth oL oR))
-        (CAp{}, OpenLeaf _) -> throwError "CAp OpenLeaf"
+        (CAp{}, OpenLeaf _) -> throwRecordmismatchError "CAp OpenLeaf"
 
         (CAlt l r, OpenBoth orL orR) -> do
             -- If one of the two branches is done then we need to
@@ -276,7 +309,7 @@ runOpen con opr =
                 (Right (crL, a), _) -> pure (Right (ClosedAlt (Left crL), a))
                 (_, Right (crR, a)) -> pure (Right (ClosedAlt (Right crR), a))
                 (Left oL, Left oR)  -> writer (Left (OpenBoth oL oR), wl <> wr)
-        (CAlt{}, OpenLeaf _) -> throwError "CAlt OpenLeaf"
+        (CAlt{}, OpenLeaf _) -> throwRecordmismatchError "CAlt OpenLeaf"
 
         (CBind c f, OpenBind bnd) -> do
             lr <- runOpen c bnd
@@ -295,32 +328,32 @@ runOpen con opr =
             case rr of
                 Left opr''     -> pure (Left (OpenRight cr opr''))
                 Right (cr', a) -> pure (Right (ClosedBin cr cr', a))
-        (CBind{}, _) -> throwError "CBind"
+        (CBind{}, _) -> throwRecordmismatchError "CBind"
 
         (CStep con', OpenLeaf evt) -> do
-                let r = runStep con' evt
+                r <- runStepWriter con' evt
                 case r of
-                    Right a  -> pure (Right (ClosedLeaf (FinalEvents evt), a))
-                    Left o -> writer (Left (OpenLeaf evt), o)
-        (CStep{}, _) -> throwError "CStep non leaf "
+                    Just a  -> pure $ Right (ClosedLeaf (FinalEvents evt), a)
+                    Nothing -> pure $ Left (OpenLeaf evt)
+        (CStep{}, _) -> throwRecordmismatchError "CStep non leaf "
 
         (CJSONCheckpoint con', opr') ->
             fmap (\(_, a) -> (jsonLeaf a, a)) <$> runOpen con' opr'
-        _ -> throwError "runOpen"
+        _ -> throwRecordmismatchError "runOpen"
 
 insertAndUpdate
-    :: Monoid o 
-    => Resumable (Step i o) a
+    :: Monoid o
+    => Resumable (Step (Maybe i) (Either String o)) a
     -> Record i
     -> i
-    -> Either String (Record i, o)
+    -> Either ResumableError (Record i, o)
 insertAndUpdate con rc e = updateRecord con (insert e rc)
 
 updateRecord
     :: Monoid o
-    => Resumable (Step i o) a
+    => Resumable (Step (Maybe i) (Either String o)) a
     -> Record i
-    -> Either String (Record i, o)
+    -> Either ResumableError (Record i, o)
 updateRecord con rc =
     case rc of
         Right cl ->
@@ -334,15 +367,16 @@ updateRecord con rc =
             $ runWriterT
             $ runOpen con cl
 
-execResumable :: Monoid o => [i] -> Resumable (Step i o) a -> Either String o
+execResumable :: Monoid o => [i] -> Resumable (Step (Maybe i) (Either String o)) a -> Either ResumableError o
 execResumable es = fmap snd . runResumable es
 
-runResumable :: Monoid o => [i] -> Resumable (Step i o) a -> Either String (Either (OpenRecord i) (ClosedRecord i, a), o)
-runResumable es con = foldM go initial es where
-    initial = runWriter (initialise con)
-    go r e =
-        let r' = insert e (fst <$> fst r)
-            result = case r' of
-                        Left open -> runExcept $ runWriterT $ runOpen con open
-                        Right closed -> fmap (\(a, h) -> (Right (closed, a), h)) $ runExcept $ runWriterT $ runClosed con closed
-        in result
+runResumable :: Monoid o => [i] -> Resumable (Step (Maybe i) (Either String o)) a -> Either ResumableError (Either (OpenRecord i) (ClosedRecord i, a), o)
+runResumable es con = do
+    initial <- runExcept $ runWriterT (initialise con)
+    foldM go initial es where
+        go r e =
+            let r' = insert e (fst <$> fst r)
+                result = case r' of
+                            Left open -> runExcept $ runWriterT $ runOpen con open
+                            Right closed -> fmap (\(a, h) -> (Right (closed, a), h)) $ runExcept $ runWriterT $ runClosed con closed
+            in result

@@ -12,8 +12,8 @@ import           Data.Aeson     (Value)
 import qualified Data.Aeson     as Aeson
 
 -- | The serialisable state of a contract instance, containing a mix of raw
---   input events and serisalised checkpoints.
---   See note [Handling state in contracts] in 'Language.Plutus.Contract.State'.
+--   input events and serialised checkpoints.
+--   See note [Handling state in contracts] in 'Language.Plutus.Contract.Resumable'.
 type Record i = Either (OpenRecord i) (ClosedRecord i)
 
 data FinalValue i = FinalJSON Value | FinalEvents (Maybe i)

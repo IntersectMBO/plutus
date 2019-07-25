@@ -1,4 +1,5 @@
--- | Run a plutus contract as a servant application
+{-# LANGUAGE DataKinds #-}
+-- | Run a Plutus contract as a servant application.
 module Language.Plutus.Contract.App(
       run
     , runWithTraces
@@ -11,7 +12,7 @@ import qualified Data.ByteString.Lazy.Char8        as BSL
 import           Data.Foldable                     (traverse_)
 import qualified Data.Map                          as Map
 import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Effects  (PlutusEffects)
+import           Language.Plutus.Contract.Effects  (ContractEffects)
 import           Language.Plutus.Contract.Emulator (ContractTrace, EmulatorAction, execTrace)
 import           Language.Plutus.Contract.Servant  (Request (..), Response (..), contractApp, initialResponse,
                                                     runUpdate)
@@ -20,13 +21,13 @@ import           System.Environment                (getArgs)
 import           Wallet.Emulator                   (Wallet (..))
 
 -- | Run the contract as an HTTP server with servant/warp
-run :: Contract PlutusEffects () -> IO ()
+run :: Contract (ContractEffects '[]) () -> IO ()
 run st = runWithTraces st []
 
 -- | Run the contract as an HTTP server with servant/warp, and
 --   print the 'Request' values for the given traces.
 runWithTraces
-    :: Contract PlutusEffects ()
+    :: Contract (ContractEffects '[]) ()
     -> [(String, (Wallet, ContractTrace EmulatorAction () ()))]
     -> IO ()
 runWithTraces con traces = do
@@ -48,11 +49,15 @@ printTracesAndExit mp = do
 
 -- | Run a trace on the mockchain and print the 'Request' JSON objects
 --   for each intermediate state to stdout.
-printTrace :: Contract PlutusEffects () -> Wallet -> ContractTrace EmulatorAction () () -> IO ()
-printTrace con wllt ctr = foldM_ go (initialResponse con) events where
-    events = Map.findWithDefault [] wllt $ execTrace con ctr
-    go previous evt = do
-        let st = newState previous
-            newRequest = Request { oldState = st, event = evt }
-        BSL.putStrLn (Aeson.encode newRequest)
-        either error pure (runUpdate con newRequest)
+printTrace :: Contract (ContractEffects '[]) () -> Wallet -> ContractTrace EmulatorAction () () -> IO ()
+printTrace con wllt ctr = do
+    let events = Map.findWithDefault [] wllt $ execTrace con ctr
+        go previous evt = do
+            let st = newState previous
+                newRequest = Request { oldState = st, event = evt }
+            BSL.putStrLn (Aeson.encode newRequest)
+            either (error . show) pure (runUpdate con newRequest)
+
+    initial <- either (error . show) pure (initialResponse con)
+    foldM_ go initial events
+

@@ -21,20 +21,20 @@ module Language.Plutus.Contract.Prompt.Hooks(
     ) where
 
 import           Control.Lens
-import qualified Data.Aeson                           as Aeson
-import           Data.Semigroup                       (Min (..))
-import           Data.Sequence                        (Seq)
-import qualified Data.Sequence                        as Seq
-import           Data.Set                             (Set)
-import qualified Data.Set                             as Set
-import           GHC.Generics                         (Generic)
+import qualified Data.Aeson                  as Aeson
+import           Data.Semigroup              (Min (..))
+import           Data.Sequence               (Seq)
+import qualified Data.Sequence               as Seq
+import           Data.Set                    (Set)
+import qualified Data.Set                    as Set
+import           GHC.Generics                (Generic)
 
-import           Language.Plutus.Contract.Transaction (UnbalancedTx)
-import           Ledger.Slot                          (Slot (..))
-import           Ledger.Tx                            (Address)
+import           Language.Plutus.Contract.Tx (UnbalancedTx)
+import           Ledger.Slot                 (Slot (..))
+import           Ledger.Tx                   (Address)
 
 -- | A condition that the contract is waiting for. See note [Hooks and Events]
---   in 'Language.Plutus.Contract.Request'.
+--   in 'Language.Plutus.Contract.Effects'.
 data Hook a =
     TxHook UnbalancedTx
     | AddrHook Address

@@ -17,7 +17,7 @@ import           Control.Lens                                          ((&), (.~
 import           Control.Monad                                         (void)
 
 import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Transaction                  (collectFromScript, collectFromScriptFilter,
+import           Language.Plutus.Contract.Tx                           (collectFromScript, collectFromScriptFilter,
                                                                         inputs, payToScript, validityRange)
 import           Language.PlutusTx.Coordination.Contracts.CrowdFunding (Campaign (..))
 import qualified Language.PlutusTx.Coordination.Contracts.CrowdFunding as CF
@@ -29,7 +29,7 @@ import           Ledger.Scripts                                        (DataScri
 
 import qualified Wallet.Emulator                                       as Emulator
 
-crowdfunding :: Plutus r => Contract r ()
+crowdfunding :: ContractActions r => Contract r ()
 crowdfunding = contribute theCampaign <|> scheduleCollection theCampaign
 
 theCampaign :: Campaign
@@ -40,7 +40,7 @@ theCampaign = Campaign
     , campaignOwner = Emulator.walletPubKey (Emulator.Wallet 1)
     }
 
-contribute :: Plutus r => Campaign -> Contract r ()
+contribute :: ContractActions r => Campaign -> Contract r ()
 contribute cmp = do
     (ownPK :: PubKey, contribution :: Value) <- endpoint "contribute"
     let ds = DataScript (L.lifted ownPK)
@@ -61,7 +61,7 @@ contribute cmp = do
     then void (writeTx tx')
     else pure ()
 
-scheduleCollection :: Plutus r => Campaign -> Contract r ()
+scheduleCollection :: ContractActions r => Campaign -> Contract r ()
 scheduleCollection cmp = do
     () <- endpoint "schedule collection"
     let trg = fst <$> both

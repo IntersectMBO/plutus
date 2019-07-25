@@ -1,6 +1,8 @@
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE KindSignatures   #-}
 {-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE TupleSections    #-}
 -- | Some conveniences for running Plutus contracts
 --   in the emulator.
 module Language.Plutus.Contract.Emulator(
@@ -43,13 +45,14 @@ import qualified Data.Sequence                         as Seq
 import qualified Data.Set                              as Set
 
 import           Language.Plutus.Contract              (Contract, convertContract)
-import           Language.Plutus.Contract.Effects      (PlutusEffects)
+import           Language.Plutus.Contract.Effects      (ContractEffects)
 import           Language.Plutus.Contract.Prompt.Event (Event)
 import qualified Language.Plutus.Contract.Prompt.Event as Event
 import           Language.Plutus.Contract.Prompt.Hooks (Hooks (..))
 import qualified Language.Plutus.Contract.Prompt.Hooks as Hooks
+import           Language.Plutus.Contract.Resumable    (ResumableError)
 import qualified Language.Plutus.Contract.Resumable    as State
-import           Language.Plutus.Contract.Transaction  (UnbalancedTx)
+import           Language.Plutus.Contract.Tx           (UnbalancedTx)
 import qualified Language.Plutus.Contract.Wallet       as Wallet
 
 import           Ledger.Ada                            (Ada)
@@ -67,14 +70,16 @@ type ContractTrace m a = StateT (ContractTraceState a) m
 data ContractTraceState a =
     ContractTraceState
         { _ctsEvents   :: Map Wallet (Seq Event)
-        -- ^ Events that were fed to the contract
-        , _ctsContract :: Contract PlutusEffects a
+        -- ^ The state of the contract instance (per wallet). To get
+        --   the 'Record' of a sequence of events, use
+        --   'Language.Plutus.Contract.Resumable.runResumable'.
+        , _ctsContract :: Contract (ContractEffects '[]) a
         -- ^ Current state of the contract
         }
 
 makeLenses ''ContractTraceState
 
-initState :: [Wallet] -> Contract PlutusEffects a -> ContractTraceState a
+initState :: [Wallet] -> Contract (ContractEffects '[]) a -> ContractTraceState a
 initState wllts = ContractTraceState wallets where
     wallets = Map.fromList $ fmap (,mempty) wllts
 
@@ -84,7 +89,7 @@ addEvent w e = ctsEvents %= Map.alter go w where
     go = Just . maybe (Seq.singleton e) (|> e)
 
 -- | Get the hooks that a contract is currently waiting for
-getHooks :: Monad m => Wallet -> ContractTrace m a (Either String Hooks)
+getHooks :: Monad m => Wallet -> ContractTrace m a (Either ResumableError Hooks)
 getHooks w = do
     contract <- use ctsContract
     evts <- gets (foldMap toList . view (at w) . _ctsEvents)
@@ -110,7 +115,7 @@ addEventAll e = traverse_ (flip addEvent e) allWallets
 -- | Run a trace in the emulator and return the
 --   final events for each wallet.
 execTrace
-    :: Contract PlutusEffects a
+    :: Contract (ContractEffects '[]) a
     -> ContractTrace EmulatorAction a ()
     -> Map Wallet [Event]
 execTrace con action =
@@ -121,7 +126,7 @@ execTrace con action =
 -- | Run a trace in the emulator and return the final state alongside the
 --   result
 runTrace
-    :: Contract PlutusEffects a
+    :: Contract (ContractEffects '[]) a
     -> ContractTrace EmulatorAction a ()
     -> (Either AssertionError ((), ContractTraceState a), EmulatorState)
 runTrace con action =

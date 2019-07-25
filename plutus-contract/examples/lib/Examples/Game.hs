@@ -28,7 +28,7 @@ import           GHC.Generics                                  (Generic)
 
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Emulator
-import           Language.Plutus.Contract.Transaction          (unbalancedTx)
+import           Language.Plutus.Contract.Tx                   (unbalancedTx)
 import           Language.PlutusTx.Coordination.Contracts.Game (gameAddress, gameDataScript, gameRedeemerScript,
                                                                 gameValidator)
 import           Wallet.Emulator                               (MonadEmulator)
@@ -54,7 +54,7 @@ newtype GuessParams = GuessParams
     deriving stock (Eq, Ord, Show, Generic)
     deriving newtype (Aeson.FromJSON, Aeson.ToJSON)
 
-guess :: Plutus r => Contract r ()
+guess :: ContractActions r => Contract r ()
 guess = do
     st <- nextTransactionAt gameAddress
     let mp = AM.fromTxOutputs st
@@ -66,7 +66,7 @@ guess = do
         tx       = unbalancedTx inp []
     void (writeTx tx)
 
-lock :: Plutus r => Contract r ()
+lock :: ContractActions r => Contract r ()
 lock = do
     LockParams secret amt <- endpoint "lock"
     let
@@ -76,7 +76,7 @@ lock = do
         tx     = unbalancedTx [] [output]
     void (writeTx tx)
 
-game :: Plutus r => Contract r ()
+game :: ContractActions r => Contract r ()
 game = guess <|> lock
 
 lockTrace

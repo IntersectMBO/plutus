@@ -35,8 +35,8 @@ runWatchAddress = fix (handle_relay pure)
 
 promptAddress :: (Member (Reader (Maybe Event)) r, Member (Exc (Hook ())) r) => Address -> Eff r Tx
 promptAddress addr = do
-  sl <- ask @(Maybe Event)
+  sl <- reader (>>= Event.ledgerUpdate)
   case sl of
-    Just (LedgerUpdate addr' tx)
+    Just (addr', tx)
       | addr' == addr -> pure tx
     _ -> throwError @(Hook ()) (Hooks.addrHook addr)

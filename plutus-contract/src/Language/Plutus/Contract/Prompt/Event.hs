@@ -14,6 +14,7 @@ module Language.Plutus.Contract.Prompt.Event(
     , ledgerUpdate
     , slotChange
     , endpointEvent
+    , txSubmissionEvent
     ) where
 
 import qualified Data.Aeson        as Aeson
@@ -27,7 +28,7 @@ import           Ledger.Slot       (Slot)
 import           Ledger.Tx         (Address, Tx)
 
 -- | An event that happened on the blockchain or as a result of a user action.
---   See note [Hooks and Events] in 'Language.Plutus.Contract.Request'.
+--   See note [Hooks and Events] in 'Language.Plutus.Contract.Effects'.
 data Event =
     LedgerUpdate Address Tx
     | TxSubmission -- TODO: add more events about specific transactions (namely, tx submitted, tx rejected, tx rolled back, etc.)
@@ -64,4 +65,9 @@ slotChange = \case
 endpointEvent :: Event -> Maybe (String, Aeson.Value)
 endpointEvent = \case
     Endpoint s v -> Just (s, v)
+    _ -> Nothing
+
+txSubmissionEvent :: Event -> Maybe ()
+txSubmissionEvent = \case
+    TxSubmission -> Just ()
     _ -> Nothing

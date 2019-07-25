@@ -2,9 +2,11 @@
 module Spec.State where
 
 import           Control.Applicative
-import           Control.Monad.Writer
+import           Control.Monad                         (foldM)
+import           Control.Monad.Except                  (runExcept)
+import           Control.Monad.Writer                  (runWriterT)
 import qualified Data.Aeson                            as Aeson
-import           Data.Either                           (isRight)
+import           Data.Either                           (fromRight, isRight)
 import           Language.Plutus.Contract              as Con
 import qualified Language.Plutus.Contract.Prompt.Event as Event
 import           Language.Plutus.Contract.Record
@@ -16,7 +18,7 @@ import qualified Language.Plutus.Contract.Resumable    as S
 tests :: TestTree
 tests =
     let ep = Con.endpoint @String "endpoint"
-        initRecord = fmap fst . fst . runWriter . S.initialise
+        initRecord = fmap fst . fst . fromRight (error "initialise failed") . runExcept . runWriterT . S.initialise
         inp = Event.endpoint "endpoint" (Aeson.toJSON "asd")
         run con =
             let con' = Con.convertContract con in

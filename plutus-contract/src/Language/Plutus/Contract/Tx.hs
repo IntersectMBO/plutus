@@ -5,7 +5,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE TemplateHaskell        #-}
-module Language.Plutus.Contract.Transaction(
+module Language.Plutus.Contract.Tx(
       UnbalancedTx
     , emptyTx
     , inputs
@@ -27,6 +27,7 @@ import qualified Control.Lens.TH   as Lens.TH
 import qualified Data.Aeson        as Aeson
 import qualified Data.Map          as Map
 import           Data.Maybe        (fromMaybe)
+import           Data.Set          (Set)
 import qualified Data.Set          as Set
 import           GHC.Generics      (Generic)
 
@@ -39,9 +40,9 @@ import qualified Ledger.Tx         as Tx
 import           Ledger.Value      as V
 
 -- | An unsigned and potentially unbalanced transaction, as produced by
---   a contract endpoint. See note [Unbalanced transactions]
+--   a contract endpoint. See note [Unbalanced transactions].
 data UnbalancedTx = UnbalancedTx
-        { _inputs             :: [L.TxIn]
+        { _inputs             :: Set L.TxIn
         , _outputs            :: [L.TxOut]
         , _forge              :: V.Value
         , _requiredSignatures :: [PubKey]
@@ -56,14 +57,14 @@ Lens.TH.makeLenses ''UnbalancedTx
 --   validity range.
 --
 emptyTx :: UnbalancedTx
-emptyTx = UnbalancedTx [] [] mempty [] I.always
+emptyTx = UnbalancedTx mempty mempty mempty mempty I.always
 
 -- | The ledger transaction of the 'UnbalancedTx'. Note that the result
 --   does not have any signatures, and is potentially unbalanced (ie. invalid).
---   To produce a balanced 'Tx', use 'Language.Plutus.Contract.Wallet.balance'.
+--   To produce a balanced 'Tx', use 'Language.Plutus.Contract.Wallet.balanceTx'.
 toLedgerTx :: UnbalancedTx -> L.Tx
 toLedgerTx utx = L.Tx
-            { L.txInputs = Set.fromList (_inputs utx)
+            { L.txInputs = _inputs utx
             , L.txOutputs = _outputs utx
             , L.txForge = _forge utx
             , L.txFee = 0
@@ -87,18 +88,19 @@ mergeWith f l r = UnbalancedTx
         , _validityRange = f (_validityRange l) (_validityRange r)
         }
 
--- | Make an unbalanced transaction that does not forge any value.
+-- | Make an unbalanced transaction that does not forge any value. Note that duplicate inputs
+--   will be ignored.
 unbalancedTx :: [L.TxIn] -> [L.TxOut] -> UnbalancedTx
-unbalancedTx ins outs = UnbalancedTx ins outs V.zero [] I.always
+unbalancedTx ins outs = UnbalancedTx (Set.fromList ins) outs V.zero mempty I.always
 
 -- | Create an `UnbalancedTx` that pays money to a script address.
 payToScript :: Value -> Address -> DataScript -> UnbalancedTx
-payToScript v a ds = unbalancedTx [] [outp] where
+payToScript v a ds = unbalancedTx mempty [outp] where
     outp = Tx.scriptTxOut' v a ds
 
 -- | Create an `UnbalancedTx` that collects script outputs from the
 --   address of the given validator script, using the same redeemer script
---   for all outputs. See 'Wallet.API.collectFromScript'
+--   for all outputs. See 'Wallet.API.collectFromScript'.
 collectFromScript
     :: AddressMap
     -> ValidatorScript
@@ -106,7 +108,7 @@ collectFromScript
     -> UnbalancedTx
 collectFromScript = collectFromScriptFilter (\_ -> const True)
 
--- | See 'Wallet.API.collectFromScriptFilter'
+-- | See 'Wallet.API.collectFromScriptFilter'.
 collectFromScriptFilter
     :: (TxOutRef -> TxOut -> Bool)
     -> AddressMap
@@ -119,7 +121,7 @@ collectFromScriptFilter flt am vls red =
         mkTxIn ref = Tx.scriptTxIn ref vls red
         txInputs   = mkTxIn . fst  <$> ourUtxo
     in
-    unbalancedTx txInputs []
+    unbalancedTx txInputs mempty
 
 {- Note [Unbalanced transactions]
 
@@ -133,7 +135,7 @@ network, the contract backend needs to
   to the wallet (probably configurable).
   If the total balance `utxInputs` + the `txForge` field is less than
   the total value of `utxOutput`, then one or more public key inputs need
-  to be added (and potentially some outputs for the change)
+  to be added (and potentially some outputs for the change).
 
 * Compute fees.
   Once the final size of the transaction is known, the fees for the transaction

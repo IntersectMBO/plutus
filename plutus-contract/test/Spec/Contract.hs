@@ -7,7 +7,7 @@ import           Test.Tasty
 import           Examples.Game
 import           Language.Plutus.Contract              as Con
 import qualified Language.Plutus.Contract.Prompt.Event as Event
-import qualified Language.Plutus.Contract.Transaction  as Tx
+import qualified Language.Plutus.Contract.Tx           as Tx
 import           Language.Plutus.Contract.Util         (loopM)
 import qualified Ledger.Ada                            as Ada
 import           Prelude                               hiding (not)

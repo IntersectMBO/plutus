@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 -- | Balance  `UnbalancedTx` values using the
---   wallet API
+--   wallet API.
 module Language.Plutus.Contract.Wallet(
       balanceWallet
     , balanceTx
@@ -10,32 +10,32 @@ module Language.Plutus.Contract.Wallet(
     ) where
 
 import           Control.Lens
-import           Control.Monad                        ((>=>))
 import           Control.Monad.Except
-import           Data.Bifunctor                       (second)
-import           Data.Map                             (Map)
-import qualified Data.Map                             as Map
-import           Data.Maybe                           (fromMaybe)
-import qualified Data.Set                             as Set
-import           Data.String                          (IsString (fromString))
-import           Language.Plutus.Contract.Transaction (UnbalancedTx)
-import qualified Language.Plutus.Contract.Transaction as T
-import qualified Ledger.AddressMap                    as AM
-import           Ledger.Tx                            (Tx, TxOut, TxOutRef)
-import qualified Ledger.Tx                            as Tx
-import           Ledger.Value                         (Value)
-import qualified Ledger.Value                         as Value
-import           Wallet.API                           (MonadWallet, PubKey, WalletAPIError)
-import qualified Wallet.API                           as WAPI
-import qualified Wallet.Emulator                      as E
+import           Data.Bifunctor              (second)
+import           Data.Map                    (Map)
+import qualified Data.Map                    as Map
+import           Data.Maybe                  (fromMaybe)
+import qualified Data.Set                    as Set
+import           Data.String                 (IsString (fromString))
+import           Language.Plutus.Contract.Tx (UnbalancedTx)
+import qualified Language.Plutus.Contract.Tx as T
+import qualified Ledger.AddressMap           as AM
+import           Ledger.Tx                   (Tx, TxOut, TxOutRef)
+import qualified Ledger.Tx                   as Tx
+import           Ledger.Value                (Value)
+import qualified Ledger.Value                as Value
+import           Wallet.API                  (MonadWallet, PubKey, WalletAPIError)
+import qualified Wallet.API                  as WAPI
+import qualified Wallet.Emulator             as E
 
--- | Balance an unbalanced transaction in a 'MonadWallet' context.
+-- | Balance an unbalanced transaction in a 'MonadWallet' context. See note
+--   [Unbalanced transactions].
 balanceWallet
     :: (WAPI.MonadWallet m)
     => UnbalancedTx
     -> m Tx
 balanceWallet utx = do
-    WAPI.logMsg "Balancing an unbalanced transaction."
+    WAPI.logMsg $ "Balancing an unbalanced transaction: " <> fromString (show utx)
     pk <- WAPI.ownPubKey
     addr <- WAPI.watchedAddresses
     let utxo = addr ^. at (Tx.pubKeyAddress pk) . to (fromMaybe mempty)
@@ -45,7 +45,7 @@ balanceWallet utx = do
 --   value of the outputs produced by the transaction. If the result is zero
 --   then the transaction is balanced.
 --
---   Fails if the unbalanced transaction contains an input the spends an output
+--   Fails if the unbalanced transaction contains an input that spends an output
 --   unknown to the wallet.
 computeBalance :: WAPI.MonadWallet m => UnbalancedTx -> m Value
 computeBalance utx = Value.minus <$> left <*> pure right  where
@@ -59,11 +59,8 @@ computeBalance utx = Value.minus <$> left <*> pure right  where
             Nothing ->
                 WAPI.throwOtherError $ "Unable to find TxOut for " <> fromString (show inp)
 
-    -- right `V.minus` left where
-    -- left = (utx ^. forge) `V.plus` foldMap snd (utx ^. inputs)
-
 -- | Balance an unbalanced transaction by adding public key inputs
---   and outputs
+--   and outputs.
 balanceTx
     :: ( WAPI.MonadWallet m )
     => Map TxOutRef TxOut
@@ -77,10 +74,16 @@ balanceTx
     -> m Tx
 balanceTx utxo pk tx = do
     (neg, pos) <- Value.split <$> computeBalance tx
-    let tx' = addOutputs pk pos (T.toLedgerTx tx)
+    tx' <-  if Value.isZero pos
+            then pure $ T.toLedgerTx tx
+            else do
+                    WAPI.logMsg $ "Adding public key output for " <> fromString (show pos)
+                    pure $ addOutputs pk pos (T.toLedgerTx tx)
     if Value.isZero neg
     then pure tx'
-    else addInputs utxo pk neg tx'
+    else do
+        WAPI.logMsg $ "Adding inputs for " <> fromString (show neg)
+        addInputs utxo pk neg tx'
 
 -- | @addInputs mp pk vl tx@ selects transaction outputs worth at least
 --   @vl@ from the UTXO map @mp@ and adds them as inputs to @tx@. A public
@@ -111,9 +114,13 @@ addOutputs pk vl tx = tx & over Tx.outputs (pko :) where
     pko = Tx.pubKeyTxOut vl pk
 
 -- | Balance an unabalanced transaction, sign it, and submit
---   it to the chain in the context of a wallet. Note that this
---   only attaches a single signature to the transaction before
---   submitting it. Hence the `requiredSignatures` field of the
---   unbalanced transaction is ignored.
+--   it to the chain in the context of a wallet.
 handleTx :: MonadWallet m => UnbalancedTx -> m ()
-handleTx = balanceWallet >=> WAPI.signTxAndSubmit_
+handleTx utx =
+    balanceWallet utx >>= addSignatures (view T.requiredSignatures utx) >>= WAPI.signTxAndSubmit_
+
+-- | Add signatures of the private keys belonging to the given
+--   public keys to the transaction, provided that they are
+--   known to the wallet.
+addSignatures :: MonadWallet m => [PubKey] -> Tx -> m Tx
+addSignatures pks tx = foldM WAPI.signTxnWithKey tx pks

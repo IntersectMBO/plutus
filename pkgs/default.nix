@@ -19986,6 +19986,7 @@ license = stdenv.lib.licenses.publicDomain;
 , bytestring
 , containers
 , directory
+, github
 , github-webhooks
 , mtl
 , newtype-generics
@@ -20013,6 +20014,7 @@ aeson
 base
 bytestring
 directory
+github
 github-webhooks
 mtl
 newtype-generics
@@ -20020,7 +20022,6 @@ optparse-generic
 servant
 servant-github-webhook
 servant-server
-slack-web
 temporary
 text
 typed-process
@@ -24075,6 +24076,33 @@ doCheck = false;
 homepage = "http://www.haskell.org/haskellwiki/Exception";
 description = "Exceptions which are explicit in the type signature";
 license = stdenv.lib.licenses.bsd3;
+
+}) {};
+"extensible-effects" = callPackage
+({
+  mkDerivation
+, base
+, monad-control
+, stdenv
+, transformers-base
+}:
+mkDerivation {
+
+pname = "extensible-effects";
+version = "5.0.0.1";
+sha256 = "c3b3165893d3738c5ec7ffd0d8c46a7af855b7d3087e159d6da516e78880c039";
+revision = "1";
+editedCabalFile = "1ihcxj58a3ca80zfyxgbzjzgps9izy96vnj7h4sk9wwb9khbxl1f";
+libraryHaskellDepends = [
+base
+monad-control
+transformers-base
+];
+doHaddock = false;
+doCheck = false;
+homepage = "https://github.com/suhailshergill/extensible-effects";
+description = "An Alternative to Monad Transformers";
+license = stdenv.lib.licenses.mit;
 
 }) {};
 "extensible-exceptions" = callPackage
@@ -54407,6 +54435,7 @@ license = stdenv.lib.licenses.asl20;
 , cborg
 , containers
 , cryptonite
+, deepseq
 , deriving-compat
 , hashable
 , hedgehog
@@ -54419,6 +54448,7 @@ license = stdenv.lib.licenses.asl20;
 , newtype-generics
 , operational
 , plutus-tx
+, prettyprinter
 , recursion-schemes
 , serialise
 , servant
@@ -54445,6 +54475,7 @@ cardano-crypto
 cborg
 containers
 cryptonite
+deepseq
 deriving-compat
 hashable
 hedgehog
@@ -54457,6 +54488,7 @@ natural-transformation
 newtype-generics
 operational
 plutus-tx
+prettyprinter
 recursion-schemes
 serialise
 servant
@@ -63079,8 +63111,8 @@ version = "0.9.0.2";
 src = fetchgit {
 
 url = "https://github.com/shmish111/servant-purescript.git";
-sha256 = "09nyxv1j4igda45r4fjamxmhh0h0nxi1ix4jz26yvswjprhm3qa6";
-rev = "6f17281567152c11c9368ed1861b6d421b258863";
+sha256 = "1axcbsaym64q67hvjc7b3izd48cgqwi734l7f7m22jpdc80li5f6";
+rev = "ece5d1dad16a5731ac22040075615803796c7c21";
 fetchSubmodules = true;
 
 };

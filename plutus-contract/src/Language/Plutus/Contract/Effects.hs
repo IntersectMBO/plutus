@@ -4,8 +4,8 @@
 {-# LANGUAGE TypeOperators    #-}
 module Language.Plutus.Contract.Effects(
     module X
-    , Plutus
-    , PlutusEffects
+    , ContractActions
+    , ContractEffects
     , runEffects
     ) where
 
@@ -27,9 +27,9 @@ We model effects of Plutus contracts using 'Control.Eff'. The ones
 exported here are the basic effects that we need for our use cases (wait for a
 slot, expose an endpoint, watch an address on the blockchain, and submit
 transactions). To make these easier to use we export them as the
-'App' constraint.
+'ContractActions' constraint.
 
-To our users, the signatures of our contracts look like '(Plutus r) =>
+To our users, the signatures of our contracts look like '(ContractActions r) =>
 Contract r ()'.
 
 Internally, all effects are interpreted as request-response pairs. The four
@@ -42,26 +42,26 @@ in '[Reader (Maybe Event), Exc (Hook ())]]' -- effectively 'Maybe Event -> Eithe
 -}
 
 -- | Basic interactions with the app platform (write transactions, wait for
---   slot changes, watch addresses, and expose endpoints).
-type Plutus r = [WriteTx, AwaitSlot, WatchAddress, ExposeEndpoint] <:: r
+--   slot changes, watch addresses, expose endpoints).
+type ContractActions r = [WriteTx, AwaitSlot, WatchAddress, ExposeEndpoint] <:: r
 
 -- | List of effects that this interpreter ('Maybe Event -> Either Hooks a')
 --   supports.
-type PlutusEffects =
-    WriteTx ': AwaitSlot ': WatchAddress ': ExposeEndpoint ': PromptEffects
+type ContractEffects r =
+    WriteTx ': AwaitSlot ': WatchAddress ': ExposeEndpoint ': PromptEffects r
 
-type PromptEffects = '[Reader (Maybe Event), Exc (Hook ())]
+type PromptEffects r = Reader (Maybe Event) ': Exc (Hook ()) ': Exc String ': r
 
--- | Interpret the 'ContractEffects' in 'Reader' and 'Exc'. See note [Contract
+-- | Interpret the 'PlutusEffects' in 'Reader' and 'Exc'. See note [Contract
 --   Effects]
-runEffects :: Eff PlutusEffects a -> Eff PromptEffects a
+runEffects :: Eff (ContractEffects r) a -> Eff (PromptEffects r) a
 runEffects =
         runExposeEndpoint
         . runWatchAddress
         . runAwaitSlot
         . runWriteTx
 
-{- note  [Hooks and Events]
+{- Note [Hooks and Events]
 
 The three types 'Hook', 'Hooks' and 'Event' are closely related.
 

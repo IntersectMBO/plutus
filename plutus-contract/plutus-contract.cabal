@@ -54,7 +54,7 @@ library
         Language.Plutus.Contract.Record
         Language.Plutus.Contract.Servant
         Language.Plutus.Contract.Resumable
-        Language.Plutus.Contract.Transaction
+        Language.Plutus.Contract.Tx
         Language.Plutus.Contract.Util
         Language.Plutus.Contract.Wallet
     hs-source-dirs: src
@@ -77,7 +77,8 @@ library
         warp -any,
         extensible-effects -any,
         transformers-base -any,
-        monad-control -any
+        monad-control -any,
+        mmorph -any
 
 library examples
     import: lang

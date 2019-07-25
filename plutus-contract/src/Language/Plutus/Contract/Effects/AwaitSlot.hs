@@ -32,9 +32,9 @@ instance (Member (Reader (Maybe Event)) r, Member (Exc (Hook ())) r) => Handle A
 
 promptSlot :: (Member (Reader (Maybe Event)) r, Member (Exc (Hook ())) r) => Slot -> Eff r Slot
 promptSlot sl' = do
-  sl <- ask @(Maybe Event)
+  sl <- reader (>>= Event.slotChange)
   case sl of
-    Just (SlotChange s)
+    Just s
       | s >= sl' -> pure s
     _ -> throwError @(Hook ()) (Hooks.slotHook sl')
 

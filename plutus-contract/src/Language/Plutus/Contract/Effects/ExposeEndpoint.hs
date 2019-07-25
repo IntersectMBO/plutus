@@ -35,20 +35,20 @@ data ExposeEndpoint v where
 exposeEndpoint :: FromJSON a => Member ExposeEndpoint r => String -> Eff r a
 exposeEndpoint = send . ExposeEndpoint
 
-instance (Member (Reader (Maybe Event)) r, Member (Exc (Hook ())) r) => Handle ExposeEndpoint r a k where
+instance (Member (Reader (Maybe Event)) r, Member (Exc (Hook ())) r, Member (Exc String) r) => Handle ExposeEndpoint r a k where
   handle step cor req = case req of
     ExposeEndpoint ep -> step (comp (singleK promptEndpoint) cor ^$ ep)
 
-promptEndpoint :: (FromJSON a, Member (Reader (Maybe Event)) r, Member (Exc (Hook ())) r) => String -> Eff r a
+promptEndpoint :: (FromJSON a, Member (Reader (Maybe Event)) r, Member (Exc (Hook ())) r, Member (Exc String) r) => String -> Eff r a
 promptEndpoint ep = do
-  sl <- ask @(Maybe Event)
+  sl <- reader (>>= Event.endpointEvent)
   case sl of
-    Just (Endpoint ep' vl)
+    Just (ep', vl)
       | ep' == ep ->
         case Aeson.fromJSON vl of
-                    Aeson.Success r -> pure r
-                    _               -> throwError @(Hook ()) (Hooks.endpointHook ep)
+                    Aeson.Success r   -> pure r
+                    Aeson.Error   err -> throwError @String err
     _ -> throwError @(Hook ()) (Hooks.endpointHook ep)
 
-runExposeEndpoint :: (Member (Reader (Maybe Event)) r, Member (Exc (Hook ())) r) => Eff (ExposeEndpoint ': r) a -> Eff r a
+runExposeEndpoint :: (Member (Reader (Maybe Event)) r, Member (Exc (Hook ())) r, Member (Exc String) r) => Eff (ExposeEndpoint ': r) a -> Eff r a
 runExposeEndpoint = fix (handle_relay pure)
