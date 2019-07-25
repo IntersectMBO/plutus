@@ -1,3 +1,5 @@
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -31,6 +33,7 @@ module Language.PlutusCore.Constant.Typed
     , KnownTypeValue (..)
     , OpaqueTerm (..)
     , InExtended (..)
+    , InUnextended (..)
     , thoist
     , runEvaluateT
     , withEvaluator
@@ -71,7 +74,6 @@ import           Data.Map                                    (Map)
 import           Data.Proxy
 import           Data.Text                                   (Text)
 import           GHC.TypeLits
-import Unsafe.Coerce
 
 infixr 9 `TypeSchemeArrow`
 
@@ -79,11 +81,11 @@ infixr 9 `TypeSchemeArrow`
 -- @a@ is the Haskell denotation of a PLC type represented as a 'TypeScheme'.
 -- @r@ is the resulting type in @a@, e.g. the resulting type in
 -- @ByteString -> Size -> Integer@ is @Integer@.
-data TypeScheme uni a r where
+data TypeScheme uni as r where
     -- TODO: replace @KnownType a@ with @uni `Includes` a@ in both the constructors
     -- once implicit unlifting is gone.
-    TypeSchemeResult  :: KnownType a uni => Proxy a -> TypeScheme uni a a
-    TypeSchemeArrow   :: KnownType a uni => Proxy a -> TypeScheme uni b r -> TypeScheme uni (a -> b) r
+    TypeSchemeResult  :: KnownType a uni => Proxy a -> TypeScheme uni '[] a
+    TypeSchemeArrow   :: KnownType a uni => Proxy a -> TypeScheme uni as r -> TypeScheme uni (a ': as) r
     TypeSchemeAllType
         :: (KnownSymbol text, KnownNat uniq)
            -- Here we require the user to manually provide the unique of a type variable.
@@ -107,15 +109,15 @@ data TypeScheme uni a r where
            -- a type constructor to the variable, like in
            --
            -- > reverse : all a. list a -> list a
-        -> (forall ot. ot ~ OpaqueTerm uni text uniq => Proxy ot -> TypeScheme uni a r)
-        -> TypeScheme uni a r
+        -> (forall ot. ot ~ OpaqueTerm uni text uniq => Proxy ot -> TypeScheme uni as r)
+        -> TypeScheme uni as r
 
     -- The @r@ is rather ad hoc and needed only for tests.
     -- We could use type families to compute it instead of storing as an index.
     -- That's a TODO perhaps.
 
 -- | A 'BuiltinName' with an associated 'TypeScheme'.
-data TypedBuiltinName uni a r = TypedBuiltinName BuiltinName (TypeScheme uni a r)
+data TypedBuiltinName uni as r = TypedBuiltinName BuiltinName (TypeScheme uni as r)
 
 {- Note [DynamicBuiltinNameMeaning]
 We represent the meaning of a 'DynamicBuiltinName' as a 'TypeScheme' and a Haskell denotation.
@@ -129,11 +131,15 @@ of course. Therefore a typed thing has to go before the corresponding untyped th
 final pipeline one has to supply a 'DynamicBuiltinNameMeaning' for each of the 'DynamicBuiltinName's.
 -}
 
+type family FoldType as r where
+    FoldType '[]       r = r
+    FoldType (a ': as) r = a -> FoldType as r
+
 -- See Note [DynamicBuiltinNameMeaning].
 -- | The meaning of a dynamic built-in name consists of its 'Type' represented as a 'TypeScheme'
 -- and its Haskell denotation.
 data DynamicBuiltinNameMeaning uni =
-    forall a r. DynamicBuiltinNameMeaning (TypeScheme uni a r) a
+    forall as r. DynamicBuiltinNameMeaning (TypeScheme uni as r) (FoldType as r)
 
 -- | The definition of a dynamic built-in consists of its name and meaning.
 data DynamicBuiltinNameDefinition uni =
@@ -153,12 +159,14 @@ type Evaluable uni =
     , Typeable uni
     )
 
+data SomeTypeScheme uni = forall as r. SomeTypeScheme (TypeScheme uni as r)
+
 -- | A thing that evaluates @f@ in monad @m@ and allows to extend the set of
 -- dynamic built-in names.
 newtype Evaluator f uni m = Evaluator
     { unEvaluator
         :: forall uni'. Evaluable uni'
-        => (forall a r. TypeScheme uni a r -> TypeScheme uni' a r)
+        => (SomeTypeScheme uni -> SomeTypeScheme uni')
         -> DynamicBuiltinNameMeanings uni'
         -> f TyName Name uni' ()
         -> m (EvaluationResultDef uni')
@@ -479,41 +487,42 @@ unshiftEvaluator
 unshiftEvaluator (Evaluator eval) =
     Evaluator $ \emb means -> eval (emb . unshiftTypeScheme) means
 
-mapProxy :: forall f a. Proxy a -> Proxy (f a)
-mapProxy _ = Proxy
+type family MapList f as where
+    MapList f '[]       = '[]
+    MapList f (a ': as) = f a ': MapList f as
 
 shiftTypeScheme
-    :: forall b uni a r. (Evaluable uni, Typeable b)
-    => TypeScheme uni a r -> TypeScheme (Extend b uni) a r
-shiftTypeScheme (TypeSchemeResult res)       =
-    unsafeCoerce $ TypeSchemeResult $ mapProxy @(InExtended b uni) res
-shiftTypeScheme (TypeSchemeArrow  arg schB)  =
-    unsafeCoerce $ TypeSchemeArrow (mapProxy @(InExtended b uni) arg) $ shiftTypeScheme schB
-shiftTypeScheme (TypeSchemeAllType var schK) =
-    TypeSchemeAllType var $ \_ -> shiftTypeScheme $ schK Proxy
-
--- TypeSchemeResult  :: KnownType a (Extend b uni), Proxy a
--- TypeSchemeResult  :: KnownType a uni, Proxy a
+    :: forall b uni. (Evaluable uni, Typeable b)
+    => SomeTypeScheme uni -> SomeTypeScheme (Extend b uni)
+shiftTypeScheme (SomeTypeScheme sch) = SomeTypeScheme $ go sch where
+    go
+        :: inE ~ InExtended b uni
+        => TypeScheme uni as r -> TypeScheme (Extend b uni) (MapList inE as) (inE r)
+    go (TypeSchemeResult  _)        = TypeSchemeResult Proxy
+    go (TypeSchemeArrow   _   schB) = TypeSchemeArrow Proxy $ go schB
+    go (TypeSchemeAllType var schK) = TypeSchemeAllType var $ \_ -> go $ schK Proxy
 
 unshiftTypeScheme
-    :: forall b uni a r. (Evaluable uni, Typeable b)
-    => TypeScheme (Extend b uni) a r -> TypeScheme uni a r
-unshiftTypeScheme (TypeSchemeResult res)       =
-    unsafeCoerce $ TypeSchemeResult $ mapProxy @(InUnextended (Extend b uni)) res
-unshiftTypeScheme (TypeSchemeArrow  arg schB)  =
-    unsafeCoerce $ TypeSchemeArrow (mapProxy @(InUnextended (Extend b uni)) arg) $ unshiftTypeScheme schB
-unshiftTypeScheme (TypeSchemeAllType var schK) =
-    TypeSchemeAllType var $ \_ -> unshiftTypeScheme $ schK Proxy
+    :: forall b uni. (Evaluable uni, Typeable b)
+    => SomeTypeScheme (Extend b uni) -> SomeTypeScheme uni
+unshiftTypeScheme (SomeTypeScheme sch) = SomeTypeScheme $ go sch where
+    go
+        :: inU ~ InUnextended (Extend b uni)
+        => TypeScheme (Extend b uni) as r -> TypeScheme uni (MapList inU as) (inU r)
+    go (TypeSchemeResult  _)        = TypeSchemeResult Proxy
+    go (TypeSchemeArrow   _   schB) = TypeSchemeArrow Proxy $ go schB
+    go (TypeSchemeAllType var schK) = TypeSchemeAllType var $ \_ -> go $ schK Proxy
 
 embedDynamicBuiltinNameMeaning
-    :: (forall a r. TypeScheme uni a r -> TypeScheme uni' a r)
+    :: (SomeTypeScheme uni -> SomeTypeScheme uni')
     -> DynamicBuiltinNameMeaning uni
     -> DynamicBuiltinNameMeaning uni'
 embedDynamicBuiltinNameMeaning emb (DynamicBuiltinNameMeaning sch x) =
-    DynamicBuiltinNameMeaning (emb sch) x
+    case emb $ SomeTypeScheme sch of
+        SomeTypeScheme sch' -> DynamicBuiltinNameMeaning sch' $ _ x
 
 embedDynamicBuiltinNameMeanings
-    :: (forall a r. TypeScheme uni a r -> TypeScheme uni' a r)
+    :: (SomeTypeScheme uni -> SomeTypeScheme uni')
     -> DynamicBuiltinNameMeanings uni
     -> DynamicBuiltinNameMeanings uni'
 embedDynamicBuiltinNameMeanings emb (DynamicBuiltinNameMeanings means) =
