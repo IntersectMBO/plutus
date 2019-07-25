@@ -50,7 +50,7 @@ include::colophon.adoc[]
 
 include::01-preface.adoc[]
 
-include::03-UTxO.adoc[]
+include::03-UTXO.adoc[]
 
 include::04-smartcont.adoc[]
 
@@ -70,6 +70,6 @@ include::multi/multi.adoc[]
 
 include::token/token.adoc[]
 
-include::glossary.adoc[]
+include::non-fungible/non-fungible.adoc[]
 
-include::bibliography.adoc[]
+include::endmatter.adoc[]

@@ -18,9 +18,9 @@ import           Test.Hspec
 spec :: Spec
 spec = describe "vesting" $ do
     it "works for legal withdrawels" $
-        isRight (fst $ getResult $ tr 8 9 $ ada1 `plus` ada2) `shouldBe` True
+        fst (getResult $ tr 8 9 $ ada1 `plus` ada2) `shouldSatisfy` isRight
     it "works for too early withdrawels" $
-        isRight (fst $ getResult $ tr 8 7 ada1) `shouldBe` True
+        fst (getResult $ tr 8 7 ada1) `shouldSatisfy` isRight
   where
     ada1, ada2 :: Ada
     ada1 = fromInt  4000

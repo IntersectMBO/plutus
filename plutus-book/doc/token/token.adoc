@@ -68,9 +68,7 @@ Obviously, we cannot allow an arbitrary transaction to have a positive
 time.
 
 The forging of
-Ada is governed by the rules of the Cardano blockchain, specifically the genesis block and
-rules about monetary expansion.
-
+Ada on the Cardano blockchain was done in the genesis block.
 But how do we forge tokens other than Ada?
 
 IMPORTANT: The rule is that if a transaction has a non-zero `txForge` value,

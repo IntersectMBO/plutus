@@ -1,58 +1,47 @@
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ViewPatterns        #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 -- | On-chain code fragments for creating a state machine. First
 --   define a @StateMachine s i@ with input type @i@ and state type @s@. Then
 --   use 'mkValidator' in on-chain code to check the required hashes and
---   validate the transition, and 'initialState' and 'transition' in off-chain
---   code to obtain the values for data and redeemer scripts.
+--   validate the transition, and 'mkRedeemer' to make redeemer scripts.
 module Language.PlutusTx.StateMachine(
       StateMachine(..)
     , mkValidator
-    , initialState
-    , transition
+    , StateMachineRedeemer
+    , mkRedeemer
     ) where
-
 
 import           Language.PlutusTx.Prelude
 
 import           Ledger.Validation         (PendingTx)
-import qualified Ledger.Validation         as V
 
+-- TODO: This should probably take the pending tx too.
 -- | Specification of a state machine
 newtype StateMachine s i = StateMachine {
       smTransition :: s -> i -> s
     }
 
-{-# INLINABLE initialState #-}
--- | Create a transition script from an initial state of type
---   @s@.
-initialState :: forall s i. s -> (s, Maybe i)
-initialState s = (s, Nothing)
+-- | A state machine redeemer takes the data
+-- script for the new state, and pairs it with the input.
+type StateMachineRedeemer s i = Sealed s -> (i, Sealed s)
 
-{-# INLINABLE transition #-}
--- | Create a transition script from a new state of type @s@ and
---   an input of type @i@.
-transition :: forall s i. s -> i -> (s, Maybe i)
-transition newState input = (newState, Just input)
+-- | A state machine validator takes the old state (the data script), and a pair of the
+-- input and the new state (the redeemer output).
+type StateMachineValidator s i = s -> (i, Sealed s) -> PendingTx -> Bool
+
+{-# INLINABLE mkRedeemer #-}
+mkRedeemer :: forall s i . i -> StateMachineRedeemer s i
+mkRedeemer i ss = (i, ss)
 
 {-# INLINABLE mkValidator #-}
 -- | Turn a transition function 's -> i -> s' into a validator script.
-mkValidator :: Eq s => StateMachine s i -> (s, Maybe i) -> (s, Maybe i) -> PendingTx -> Bool
-mkValidator (StateMachine trans) (currentState, _) (newState, Just input) p =
+mkValidator :: Eq s => StateMachine s i -> StateMachineValidator s i
+mkValidator (StateMachine trans) currentState (input, unseal -> newState) _ =
     let
-        (vh, V.RedeemerHash rh) = V.ownHashes p
         expectedState = trans currentState input
-
         stateOk =
             traceIfFalseH "State transition invalid - 'expectedState' not equal to 'newState'"
             (expectedState == newState)
-
-        dataScriptHashOk =
-            let relevantOutputs = fst <$> V.scriptOutputsAt vh p
-                dsHashOk (V.DataScriptHash dh) = dh == rh
-            in
-                traceIfFalseH "State transition invalid - data script hash not equal to redeemer hash"
-                (all dsHashOk relevantOutputs)
-    in stateOk && dataScriptHashOk
-mkValidator _ _ _ _ = False
+    in stateOk

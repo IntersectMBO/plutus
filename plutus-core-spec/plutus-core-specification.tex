@@ -1,6 +1,6 @@
 % Plutus Core Specification
 \title{Formal Specification of\\the Plutus Core Language (version 2.0) }
-\date{15th June 2019}
+\date{22nd July 2019}
 
 \documentclass[a4paper]{article}
 
@@ -335,7 +335,7 @@ may use the multi-argument forms.
 \item $\lam{x}{A}{M}$ is standard lambda-abstraction, $\lambda{}x{:}{A}.{M}$.
 \item $\app{M}{N}$ is standard function application.
 \item $\builtin{bn}{A^*}{M^*}$ is application of a built-in function: see Section~\ref{sec:builtins} for more information.
-\item $\error{A}$ causes an error, terminating computation immediately.
+\item $\error{A}$ causes an error, terminating computation.
 \end{itemize}
 
 %% Re the value restriction:  Phil says
@@ -814,11 +814,14 @@ typed lambda calculus, complex computations can take place at the
 level of types.  Reductions in the type system always transform a
 given type into an equivalent type, and so have no effect on the term
 level.  In conjunction with the fact that type reduction always
-terminates, this allows us to perform normalisation (i.e., reduction to
-a form which cannot undergo any further reduction) statically, before
-execution begins.  Figure~\ref{fig:type-reduction} contains the rules
-for type reduction, and Figure~\ref{fig:type-equivalence} contains
-rules for type equivalence.
+terminates, this allows us to perform normalisation (i.e., reduction
+to a form which cannot undergo any further reduction) statically,
+before execution begins.  Figure~\ref{fig:type-reduction} contains the
+rules for type reduction, and Figure~\ref{fig:type-equivalence}
+contains rules for type equivalence.  Here and elsewhere we use syntax
+of the form $[X/x]Y$ to denote (capture-avoiding) substitution of
+some entity (a type, term, or value) $X$ for all occurrences of a name
+$x$ within some other entity $Y$.
 
 \subfile{figures/TypeReduction}
 
@@ -828,7 +831,7 @@ rules for type equivalence.
 Execution of Plutus Core programs is performed by (possibly
 non-terminating) reduction of well-typed terms.  The reduction rules
 are contained in Figure~\ref{fig:term-reduction}, and give us a fairly
-standard operational semantics.  
+standard operational semantics.
 
 \subfile{figures/TermReduction}
 
@@ -865,7 +868,7 @@ returns a value to the outside world.
 To evaluate a program $\texttt{(program } v\ M \texttt{)}$, we first
 check that the version number $v$ is valid, then start the machine in
 the state $\cdot \triangleright M$.  It can be proved that the
-transitions in Figure~\ref{fig:ck_machine} always preserve
+transitions in Figure~\ref{fig:ck-machine} always preserve
 validity of states, so that the machine can never enter a state such as
   $\cdot \triangleleft M$
 or
@@ -875,6 +878,27 @@ situation were to occur in an implementation then it would indicate
 that the machine was incorrectly implemented or that it was attempting
 to evaluate an invalid program which should have been detected during
 parsing or typechecking.
+
+For efficiency reasons the behaviour of the machine defined in
+Figure~\ref{fig:ck-machine} differs in two respects from the semantics
+defined in Figure~\ref{fig:term-reduction}:
+\begin{itemize}
+\item The CK machine does not perform type instantiation since this
+  is computationally irrelevant.
+\item When it encounters an \texttt{error} term the machine terminates
+  immediately.  In Figure~\ref{fig:term-reduction} the \texttt{error}
+  term propagates to the top of the stack of reduction frames,
+  changing its type to match the surrounding context as it does so:
+  this is to ensure that the program has a well-defined type.
+\end{itemize}
+\noindent It can be proved that when the CK machine as defined in
+Figure~\ref{fig:ck-machine} evaluates a program $P$, the machine
+terminates in the $\blacklozenge$ state if and only if $P$ terminates
+with an \texttt{error} value according to the rules of
+Figure~\ref{fig:term-reduction}, and that the machine terminates with
+a non-error value $V$ if and only if $P$ terminates according to the
+reduction rules with a value $V^{\prime}$ which is equal to $V$
+modulo erasure of type annotations.
 
 
 \section{Built in types, functions, and values}
@@ -906,25 +930,16 @@ at some time in the future.
   the value \texttt{(error)}.
 \item We provide two versions of the division and remainder operations
   for integers.  These differ in their treatment of negative
-  arguments\footnote{The standard mathematical definition (the
-    so-called \textit{division algorithm}, or \textit{Euclidean
-      division}) is as follows: if $n,d \in \mathbb{Z}$ and $d \ne 0$
-    then there exist unique integers $q, r \in \mathbb{Z}$ such that
-    $n=qb+r$ and $0 \le r < \lvert d \rvert$; $q$ is the
-    \textit{quotient} and $r$ is the \textit{remainder}.  Neither of
-    our sets of operations implements this definition! For $d > 0$,
-    \texttt{divideInteger} and \texttt{modInteger} give the correct
-    results, but they can give negative remainders for $d<0$.  In any sensible
-  computation we'd probably have $d>0$, but it's worth being careful.}:
+  arguments.
 
   \begin{itemize}
   
   \item \texttt{divideInteger} and \texttt{modInteger} implement the
-    standard mathematical integer division
-    operations: \texttt{divideInteger} rounds downwards and the sign
-    of \texttt{modInteger} $n$ $d$ is the same as the sign of $d$.
-    These correspond to Haskell's \texttt{div} and \texttt{mod}
-    operators.
+    standard mathematical integer division operations (at least when
+    the divisor is positive): \texttt{divideInteger} rounds
+    downwards and the sign of \texttt{modInteger} $n$ $d$ is the same
+    as the sign of $d$.  These correspond to Haskell's \texttt{div}
+    and \texttt{mod} operators.
 
   \item \texttt{quotientInteger} and \texttt{remainderInteger}
     represent the operations found in many computer languages and
@@ -933,11 +948,31 @@ at some time in the future.
     $n$.  These correspond to Haskell's \texttt{rem} and \texttt{quot}
     operators.  \end{itemize}
 
-  
-\item We use fixed Scott encodings for certain types and values, specifically for
-  the \textit{unit} and \textit{boolean} types.  Compilers targeting
-  Plutus Core must be aware of these encodings and use them
-  appropriately.
+% NOTE. The standard mathematical definition of integer
+% division/remainder (the so-called _division algorithm_, or
+% _Euclidean division_) is as follows: if n, d \in Z and d != 0
+% then there exist unique integers q, r \in Z such that n=qb+r and
+% 0 <= r < |d|; q is the _quotient_ and r is the _remainder_.
+% Neither of our sets of operations implements this definition!
+% For d>0, divideInteger and modInteger give the correct results,
+% but they can give negative remainders for d<0.  In any sensible
+% computation we'd probably have d>0, but it's worth being careful.
+
+% For comparison, here are the results for some sample inputs.
+% The last two columns give the results for Euclidean division.
+%
+%     n  d | div mod | quot rem |  q   r
+%   --------------------------------------
+%    41  5 |  8   1  |   8   1  |  8   1
+%   -41  5 | -9   4  |  -8  -1  | -9   4
+%    41 -5 | -9  -4  |  -8   1  | -8   1
+%   -41 -5 |  8  -1  |   8  -1  |  9   4 
+%
+
+  \item We use fixed Scott encodings for certain types and values,
+    specifically for the \textit{unit} and \textit{boolean} types.
+    Compilers targeting Plutus Core must be aware of these encodings and
+    use them appropriately.
 \end{itemize}
 \subfile{figures/Builtins}
 

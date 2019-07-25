@@ -125,10 +125,17 @@ to a 'CompiledCode', not the Haskell expression we started with!
 
 Currently we look for calls to the 'plc :: a -> CompiledCode' function, and we replace the whole application with the
 generated code object, which will still be well-typed.
+-}
 
-However, if we do this with a polymorphic expression as the argument to 'plc', we have problems
-where GHC gives unconstrained type variables the type `Any` rather than leaving them abstracted as we require (see
-note [System FC and system FW]). I don't currently know how to resolve this.
+{- Note [Polymorphic values and Any]
+If you try and use the plugin on a polymorphic expression, then GHC will replace the quantified types
+with 'Any' and remove the type lambdas. This is pretty annoying, and I don't entirely understand
+why it happens, despite poking around in GHC a fair bit.
+
+Possibly it has to do with the type that is given to 'plc' being unconstrained, resulting in GHC
+putting 'Any' there, and that then propagating into the type of the quote. It's tricky to experiment
+with this, since you can't really specify a polymorphic type in a type application or in the resulting
+'CompiledCode' because that's impredicative polymorphism.
 -}
 
 getMarkerName :: GHC.CoreM (Maybe GHC.Name)

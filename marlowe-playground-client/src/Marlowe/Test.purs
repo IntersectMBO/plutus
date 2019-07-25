@@ -62,26 +62,26 @@ initialState =
     , errorResults: []
     }
 
-_blockNumber :: forall s a. Lens' {blockNumber :: a | s} a
+_blockNumber :: forall s a. Lens' { blockNumber :: a | s } a
 _blockNumber = prop (SProxy :: SProxy "blockNumber")
 
-_moneyInContract :: forall s a. Lens' {moneyInContract :: a | s} a
+_moneyInContract :: forall s a. Lens' { moneyInContract :: a | s } a
 _moneyInContract = prop (SProxy :: SProxy "moneyInContract")
 
-_contract :: forall s a. Lens' {contract :: a | s} a
+_contract :: forall s a. Lens' { contract :: a | s } a
 _contract = prop (SProxy :: SProxy "contract")
 
-_state :: forall s a. Lens' {state :: a | s} a
+_state :: forall s a. Lens' { state :: a | s } a
 _state = prop (SProxy :: SProxy "state")
 
-_errorResults :: forall s a. Lens' {errorResults :: a | s} a
+_errorResults :: forall s a. Lens' { errorResults :: a | s } a
 _errorResults = prop (SProxy :: SProxy "errorResults")
 
 applyAction :: TestState -> Action -> TestState
 applyAction testState (AdvanceBlocks n) = over (_Newtype <<< _blockNumber) (add n) testState
 
 applyAction (TestState testState) (ApplyTransaction (Tuple inputs signatures)) = case applyTransaction inputs signatures testState.blockNumber testState.state testState.contract testState.moneyInContract of
-  MSuccessfullyApplied {funds, state, contract} _ ->
+  MSuccessfullyApplied { funds, state, contract } _ ->
     TestState $ testState
       # set _state state
       # set _moneyInContract funds

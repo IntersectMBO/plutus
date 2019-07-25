@@ -55,7 +55,8 @@ data GameInput =
 
 PlutusTx.makeLift ''GameInput
 
-mkValidator :: (GameState, Maybe GameInput) -> (GameState, Maybe GameInput) -> PendingTx -> Bool
+{-# INLINABLE mkValidator #-}
+mkValidator :: GameState -> (GameInput, Sealed GameState) -> PendingTx -> Bool
 mkValidator ds vs p =
     let
 
@@ -98,6 +99,12 @@ mkValidator ds vs p =
 gameValidator :: ValidatorScript
 gameValidator = ValidatorScript $$(Ledger.compileScript [|| mkValidator ||])
 
+mkRedeemer :: GameInput -> RedeemerScript
+mkRedeemer i = RedeemerScript $
+    $$(Ledger.compileScript [|| SM.mkRedeemer @GameState @GameInput ||])
+        `Ledger.applyScript`
+            (Ledger.lifted i)
+
 gameToken :: TokenName
 gameToken = "guess"
 
@@ -123,16 +130,18 @@ guess ::
     -> Value
     -- ^ How much to put back into the contract
     -> m ()
-guess gss newSecret keepVal restVal = do
+guess gss new keepVal restVal = do
 
-    let clear = ClearString (C.pack gss)
-        addr = Ledger.scriptAddress gameValidator
-        scr   = HashedString (plcSHA2_256 (C.pack newSecret))
-    let step = SM.transition (Locked gameToken scr) (Guess clear scr)
-    ins <- WAPI.spendScriptOutputs addr gameValidator (RedeemerScript (Ledger.lifted step))
+    let addr = Ledger.scriptAddress gameValidator
+        guessedSecret = ClearString (C.pack gss)
+        newSecret = HashedString (plcSHA2_256 (C.pack new))
+        input = Guess guessedSecret newSecret
+        newState = Locked gameToken newSecret
+        redeemer = mkRedeemer input
+    ins <- WAPI.spendScriptOutputs addr gameValidator redeemer
     ownOutput <- WAPI.ownPubKeyTxOut (keepVal <> gameTokenVal)
 
-    let scriptOut = scriptTxOut restVal gameValidator (DataScript (Ledger.lifted step))
+    let scriptOut = scriptTxOut restVal gameValidator (DataScript (Ledger.lifted newState))
 
     (i, own) <- createPaymentWithChange gameTokenVal
 
@@ -153,7 +162,7 @@ lock :: (WalletAPI m, WalletDiagnostics m) => String -> Value -> m ()
 lock initialWord vl = do
     let secret = HashedString (plcSHA2_256 (C.pack initialWord))
         addr = Ledger.scriptAddress gameValidator
-        state = SM.initialState @GameState @GameInput (Initialised secret)
+        state = Initialised secret
         ds   = DataScript (Ledger.lifted state)
 
     -- 1. Create a transaction output with the value and the secret
@@ -168,9 +177,10 @@ lock initialWord vl = do
     let forge :: (WalletAPI m, WalletDiagnostics m) => m ()
         forge = do
             ownOutput <- WAPI.ownPubKeyTxOut gameTokenVal
-            let step = SM.transition (Locked gameToken secret) (ForgeToken gameToken)
-                scriptOut = scriptTxOut vl gameValidator (DataScript (Ledger.lifted step))
-                redeemer = RedeemerScript (Ledger.lifted step)
+            let input = ForgeToken gameToken
+                newState = Locked gameToken secret
+                redeemer = mkRedeemer input
+                scriptOut = scriptTxOut vl gameValidator (DataScript (Ledger.lifted newState))
             ins <- WAPI.spendScriptOutputs addr gameValidator redeemer
 
             let tx = Ledger.Tx

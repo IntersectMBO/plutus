@@ -61,7 +61,7 @@ idChoice =
     void maybeSpaces
     second <- person
     void maybeSpaces
-    pure $ wrap {choice: first, person: second}
+    pure $ wrap { choice: first, person: second }
 
 choice :: Parser String Choice
 choice = bigInteger
@@ -140,21 +140,21 @@ atomContract = pure Null <* string "Null"
 recContract :: Parser String Contract
 recContract =
   ( Commit <$> (string "Commit" **> idAction)
-    <**> idCommit
-    <**> person
-    <**> value'
-    <**> timeout
-    <**> timeout
-    <**> contract'
-    <**> contract'
+      <**> idCommit
+      <**> person
+      <**> value'
+      <**> timeout
+      <**> timeout
+      <**> contract'
+      <**> contract'
   )
     <|> ( Pay <$> (string "Pay" **> idAction)
-        <**> idCommit
-        <**> person
-        <**> value'
-        <**> timeout
-        <**> contract'
-        <**> contract'
+          <**> idCommit
+          <**> person
+          <**> value'
+          <**> timeout
+          <**> contract'
+          <**> contract'
       )
     <|> (Both <$> (string "Both" **> contract') <**> contract')
     <|> (Choice <$> (string "Choice" **> observation') <**> contract' <**> contract')

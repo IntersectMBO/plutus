@@ -107,7 +107,7 @@ in
         };
 
     environment.systemPackages = with pkgs;
-                    [ nixops vim tmux git curl ];
+                    [ nixops vim tmux git curl jq ];
 
     services.grafana = {
       enable = true;
@@ -198,7 +198,6 @@ in
       enable = enableGithubHooks;
       path = ["${deploymentServer}" pkgs.git pkgs.nixops pkgs.nix pkgs.gnutar pkgs.gzip pkgs.curl ];
       script = ''deployment-server-exe \
-      --slackChannel ${slackChannel} \
       --keyfile ${configDir}/secrets.json \
       --port ${toString deploymentServerPort} \
       --configDir ${configDir} \
@@ -207,7 +206,8 @@ in
       --environment ${machines.environment} \
       --include nixos=${nixosLocation} \
       --include nixpkgs=${nixpkgsLocation} \
-      --ref ${secrets.deploymentRef}
+      --ref ${secrets.deploymentRef} \
+      --githubToken ${secrets.githubToken}
       '';
     };
 

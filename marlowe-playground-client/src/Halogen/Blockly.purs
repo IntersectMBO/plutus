@@ -32,7 +32,7 @@ import Text.Parsing.Parser (runParser)
 import Text.Parsing.Parser.Basic (parens)
 
 type BlocklyState
-  = {blocklyState :: Maybe BT.BlocklyState, generator :: Maybe Generator, errorMessage :: Maybe String}
+  = { blocklyState :: Maybe BT.BlocklyState, generator :: Maybe Generator, errorMessage :: Maybe String }
 
 _blocklyState :: Lens' BlocklyState (Maybe BT.BlocklyState)
 _blocklyState = prop (SProxy :: SProxy "blocklyState")
@@ -63,7 +63,7 @@ type DSL m
 blockly :: forall m. MonadEffect m => Array BlockDefinition -> Component HH.HTML BlocklyQuery Unit BlocklyMessage m
 blockly blockDefinitions =
   lifecycleComponent
-    { initialState: \_ -> {blocklyState: Nothing, generator: Nothing, errorMessage: Nothing}
+    { initialState: \_ -> { blocklyState: Nothing, generator: Nothing, errorMessage: Nothing }
     , render
     , eval
     , initializer: Just $ action (Inject blockDefinitions)
@@ -78,14 +78,14 @@ eval (Inject blockDefinitions next) = do
     _ =
       ST.run
         ( do
-          blocklyRef <- STRef.new blocklyState.blockly
-          workspaceRef <- STRef.new blocklyState.workspace
-          Blockly.addBlockTypes blocklyRef blockDefinitions
-          Blockly.initializeWorkspace blocklyState.blockly workspaceRef
+            blocklyRef <- STRef.new blocklyState.blockly
+            workspaceRef <- STRef.new blocklyState.workspace
+            Blockly.addBlockTypes blocklyRef blockDefinitions
+            Blockly.initializeWorkspace blocklyState.blockly workspaceRef
         )
 
     generator = buildGenerator blocklyState
-  _ <- modify _ {blocklyState = Just blocklyState, generator = Just generator}
+  _ <- modify _ { blocklyState = Just blocklyState, generator = Just generator }
   pure next
 
 eval (Resize next) = do
@@ -95,8 +95,8 @@ eval (Resize next) = do
       pure
         $ ST.run
             ( do
-              workspaceRef <- STRef.new state.workspace
-              Blockly.resize state.blockly workspaceRef
+                workspaceRef <- STRef.new state.workspace
+                Blockly.resize state.blockly workspaceRef
             )
     Nothing -> pure unit
   pure next
@@ -119,7 +119,7 @@ eval (GetCode next) = do
   unexpected s = "An unexpected error has occurred, please raise a support issue: " <> s
 
 eval (SetCode code next) = do
-  {blocklyState} <- get
+  { blocklyState } <- get
   let
     contract = case runParser code Parser.contract of
       Right c -> c
@@ -139,7 +139,7 @@ render state =
     [ div
         [ ref blocklyRef
         , id_ "blocklyWorkspace"
-        , classes [ClassName "blockly-workspace", ClassName "container-fluid"]
+        , classes [ ClassName "blockly-workspace", ClassName "container-fluid" ]
         ]
         [ toCodeButton "To Code"
         , errorMessage state.errorMessage
@@ -149,11 +149,12 @@ render state =
 toCodeButton :: String -> HTML
 toCodeButton key =
   button
-    [ classes [btn, btnInfo, btnSmall]
+    [ classes [ btn, btnInfo, btnSmall ]
     , onClick $ input_ GetCode
-    ] [text key]
+    ]
+    [ text key ]
 
 errorMessage :: Maybe String -> HTML
-errorMessage (Just error) = div [class_ (ClassName "blocklyError")] [text error]
+errorMessage (Just error) = div [ class_ (ClassName "blocklyError") ] [ text error ]
 
-errorMessage Nothing = div [class_ (ClassName "blocklyError")] []
+errorMessage Nothing = div [ class_ (ClassName "blocklyError") ] []

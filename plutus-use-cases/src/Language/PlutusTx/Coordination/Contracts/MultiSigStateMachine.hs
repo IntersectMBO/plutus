@@ -146,7 +146,7 @@ stepWithChecks p ptx s i =
         _ -> traceErrorH "invalid transition"
 
 {-# INLINABLE mkValidator #-}
-mkValidator :: Params -> (State, Maybe Input) -> (State, Maybe Input) -> PendingTx -> Bool
+mkValidator :: Params -> State -> (Input, Sealed State) -> PendingTx -> Bool
 mkValidator p ds vs ptx =
     let sm = StateMachine (stepWithChecks p ptx) in
     SM.mkValidator sm ds vs ptx
@@ -174,7 +174,7 @@ lock prms vl = do
     let
         addr = Ledger.scriptAddress (validator prms)
         state = InitialState vl
-        dataScript = DataScript (Ledger.lifted (SM.initialState @State @Input state))
+        dataScript = DataScript (Ledger.lifted state)
 
     WAPI.payToScript_ WAPI.defaultSlotRange addr vl dataScript
 
@@ -212,19 +212,19 @@ makePayment
     => Params
     -> State
     -> m State
-makePayment prms st = do
+makePayment prms currentState = do
     -- we can't use 'mkStep' because the outputs of the transaction are
     -- different from the other transitions: We need two outputs, a public
     -- key output with the payment, and the script output with the remaining
     -- funds.
-    (currentValue, valuePaid', recipient) <- case st of
+    (currentValue, valuePaid', recipient) <- case currentState of
         CollectingSignatures vl (Payment pd pk _) _ -> pure (vl, pd, pk)
         _ -> WAPI.throwOtherError "Cannot make payment because no payment has been proposed. Run the 'proposePayment' action first."
 
-    let newState = step st Pay
+    let newState = step currentState Pay
         vl       = validator prms
-        redeemer = RedeemerScript (Ledger.lifted (SM.transition newState Pay))
-        dataScript = DataScript (Ledger.lifted (SM.transition newState Pay))
+        redeemer = mkRedeemer Pay
+        dataScript = DataScript (Ledger.lifted newState)
 
     inputs <- WAPI.spendScriptOutputs (Ledger.scriptAddress vl) vl redeemer
     let valueLeft = currentValue `Value.minus` valuePaid'
@@ -232,6 +232,12 @@ makePayment prms st = do
         pkOut     = Ledger.pubKeyTxOut valuePaid' recipient
     _ <- WAPI.createTxAndSubmit WAPI.defaultSlotRange (Set.fromList $ fmap fst inputs) [scriptOut, pkOut]
     pure newState
+
+mkRedeemer :: Input -> RedeemerScript
+mkRedeemer i = RedeemerScript $
+    $$(Ledger.compileScript [|| SM.mkRedeemer @State @Input ||])
+        `Ledger.applyScript`
+            (Ledger.lifted i)
 
 -- | Advance a running multisig contract. This applies the transition function
 --   'SM.transition' to the current contract state and uses the result to unlock
@@ -248,11 +254,11 @@ mkStep
     -- ^ Input to be applied to the contract
     -> m State
     -- ^ New state after applying the input
-mkStep prms st input = do
-    let newState = step st input
+mkStep prms currentState input = do
+    let newState = step currentState input
         vl       = validator prms
-        redeemer = RedeemerScript (Ledger.lifted (SM.transition newState input))
-        dataScript = DataScript (Ledger.lifted (SM.transition newState input))
+        redeemer = mkRedeemer input
+        dataScript = DataScript (Ledger.lifted newState)
 
     inputs <- WAPI.spendScriptOutputs (Ledger.scriptAddress vl) vl redeemer
     let totalVal = foldMap snd inputs

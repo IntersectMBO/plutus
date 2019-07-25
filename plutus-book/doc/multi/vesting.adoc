@@ -77,8 +77,13 @@ So we can choose `()` for the redeemer scripts, too.
 dataScript :: DataScript
 dataScript = DataScript $ lifted ()
 
-redeemerScript :: RedeemerScript
-redeemerScript = RedeemerScript $ lifted ()
+redeemerScript1 :: RedeemerScript
+redeemerScript1 = RedeemerScript $
+    -- The redeemer is passed the data script (unit), which it just ignores.
+    $$(Ledger.compileScript [|| \(_ :: Sealed ()) -> () ||])
+
+redeemerScript0 :: RedeemerScript
+redeemerScript0 = RedeemerScript $ $$(Ledger.compileScript [|| () ||])
 ----
 
 We are now in a position to define the validator script.
@@ -171,8 +176,8 @@ withdraw t1 t2 ada = do
             , tranche2 = t2
             , owner    = key
             }
-    logMsg $ pack $ 
-        "withdrawing " ++ show ada ++ 
+    logMsg $ pack $
+        "withdrawing " ++ show ada ++
         " from " ++ show v
 
     utxos <- outputsAt $ vestingAddress v         -- <1>
@@ -183,10 +188,11 @@ withdraw t1 t2 ada = do
     let o = pubKeyTxOut (toValue ada) key
 
     let change = locked utxos `minus` ada         -- <2>
-        outs = if change > 0
+        fundsRemaining = change > 0
+        outs = if fundsRemaining
             then [ o
-                 , scriptTxOut                   
-                    (toValue change) 
+                 , scriptTxOut
+                    (toValue change)
                     (mkValidatorScript v)
                     dataScript
                  ]
@@ -194,18 +200,19 @@ withdraw t1 t2 ada = do
 
     void $ createTxAndSubmit
         range
-        (ins v utxos)
+        (ins v utxos fundsRemaining)
         outs
 
   where
     ins :: Vesting                                -- <3>
-        -> Map TxOutRef TxOut 
+        -> Map TxOutRef TxOut
+        -> Bool
         -> Set TxIn
-    ins v utxos = Set.fromList
-        [ scriptTxIn 
-            r 
-            (mkValidatorScript v) 
-            redeemerScript 
+    ins v utxos outputsUseDataScript = Set.fromList
+        [ scriptTxIn
+            r
+            (mkValidatorScript v)
+            (if outputsUseDataScript then redeemerScript1 else redeemerScript0)
         | r <- Map.keys utxos
         ]
 
@@ -225,4 +232,3 @@ $(mkFunctions ['registerScheme, 'vest, 'withdraw])
 <3> The inputs for our transaction, one for each UTxO locked by our script.
 
 <4> How much money is still locked in the script?
-

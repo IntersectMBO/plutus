@@ -1,6 +1,6 @@
 { stdenv, lib, ruby, bundlerApp, makeWrapper, defaultGemConfig,
   # Optional dependencies, can be null
-  epubcheck, kindlegen, 
+  epubcheck, kindlegen,
   # For the update shell
   mkShell, bundix,
   # For mathematical
@@ -28,6 +28,11 @@ bundlerApp {
     '';
 
   gemConfig = defaultGemConfig // {
+    asciidoctor-epub3 = attrs: {
+      patches = [./pr-201.patch];
+      # as per the source comments in nixpkgs, we need this to apply patches
+      dontBuild = false;
+    };
     mathematical = attrs: {
       buildInputs = [
         cmake
