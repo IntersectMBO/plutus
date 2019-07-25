@@ -491,6 +491,29 @@ type family MapList f as where
     MapList f '[]       = '[]
     MapList f (a ': as) = f a ': MapList f as
 
+mapProxy :: forall f a. Proxy a -> Proxy (f a)
+mapProxy _ = Proxy
+
+coerceTypeScheme
+    :: (Coercible as as', Coercible r r') => TypeScheme uni as r -> TypeScheme uni as' r'
+coerceTypeScheme = unsafeCoerce
+
+shiftTypeScheme'
+    :: forall b uni as r. (Evaluable uni, Typeable b)
+    => TypeScheme uni as r -> TypeScheme (Extend b uni) as r
+shiftTypeScheme' sch = go sch coerceTypeScheme where
+    go
+        :: forall c.
+           TypeScheme uni as r
+        -> (forall as' r'. (Coercible as as', Coercible r r') => TypeScheme (Extend b uni) as' r' -> c)
+        -> c
+    go (TypeSchemeResult  res)      k =
+        k $ TypeSchemeResult $ mapProxy @(InExtended b uni) res
+    go (TypeSchemeArrow   _   schB) k = undefined -- TypeSchemeArrow Proxy $ go schB
+    go (TypeSchemeAllType var schK) k = undefined -- TypeSchemeAllType var $ \_ -> go $ schK Proxy
+
+--  inE ~ InExtended b uni
+
 shiftTypeScheme
     :: forall b uni. (Evaluable uni, Typeable b)
     => SomeTypeScheme uni -> SomeTypeScheme (Extend b uni)
