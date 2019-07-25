@@ -35,15 +35,19 @@ import           Data.Text                                       (Text)
 
 import qualified Data.ByteString.Lazy                            as BSL
 import           Language.PlutusCore.Constant.DefaultUni
+import           Language.PlutusCore.StdLib.Data.Unit
 
 instance Pretty BSL.ByteString where
     pretty _ = "<bytesting>"
 
--- test1 :: EvaluationResult (Either Text (Integer, Bool))
--- test1 = readKnownCk @_ @DefaultUni $ makeKnown (5 :: Integer, True)
+test1 :: EvaluationResult (Either Text (Integer, Bool))
+test1 = readKnownCk @_ @DefaultUni $ makeKnown (5 :: Integer, True)
 
--- test2 :: EvaluationResult (Either Text ())
--- test2 = readKnownCk @() @DefaultUni unitval
+test :: EvaluationResult (Either Text ((Integer, ()), (Char, Bool)))
+test = readKnownCk @_ @DefaultUni $ makeKnown ((5 :: Integer, ()), ('a', True))
+
+test2 :: EvaluationResult (Either Text ())
+test2 = readKnownCk @() @DefaultUni unitval
 
 
 infix 4 |>, <|
@@ -194,22 +198,6 @@ applyEvaluate stack fun                    arg =
                     ConstAppStuck         -> stack <| term
                     ConstAppError err     ->
                         throwCkMachineException (ConstAppMachineError err) term
-
-embedTypeScheme :: uni <: uni' -> TypeScheme uni a r -> TypeScheme uni' a r
-embedTypeScheme emb (TypeSchemeResult res)       = _
-embedTypeScheme emb (TypeSchemeArrow  arg schB)  = _
-embedTypeScheme emb (TypeSchemeAllType var schK) = _
-
-
-embedDynamicBuiltinNameMeaning
-    :: uni <: uni' -> DynamicBuiltinNameMeaning uni -> DynamicBuiltinNameMeaning uni'
-embedDynamicBuiltinNameMeaning emb (DynamicBuiltinNameMeaning sch x) =
-    DynamicBuiltinNameMeaning (embedTypeScheme emb sch) x
-
-embedDynamicBuiltinNameMeanings
-    :: uni <: uni' -> DynamicBuiltinNameMeanings uni -> DynamicBuiltinNameMeanings uni'
-embedDynamicBuiltinNameMeanings emb (DynamicBuiltinNameMeanings means) =
-    DynamicBuiltinNameMeanings $ fmap (embedDynamicBuiltinNameMeaning emb) means
 
 evaluateInCkM :: forall uni a. EvaluateConstApp uni (CkM uni) a -> CkM uni (ConstAppResult uni a)
 evaluateInCkM =

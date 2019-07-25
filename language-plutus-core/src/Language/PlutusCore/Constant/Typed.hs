@@ -30,6 +30,7 @@ module Language.PlutusCore.Constant.Typed
     , PrettyKnown (..)
     , KnownTypeValue (..)
     , OpaqueTerm (..)
+    , InExtended (..)
     , thoist
     , runEvaluateT
     , withEvaluator
@@ -42,9 +43,12 @@ module Language.PlutusCore.Constant.Typed
     , shiftConstantsType
     , shiftConstantsTerm
     , unshiftConstantsTerm
+    , shiftTypeScheme
     , extractValueOf
     , extractValue
     , extractExtension
+    , embedDynamicBuiltinNameMeaning
+    , embedDynamicBuiltinNameMeanings
     ) where
 
 import           Language.PlutusCore.Evaluation.Result
@@ -67,6 +71,7 @@ import           Data.Map                                    (Map)
 import           Data.Proxy
 import           Data.Text                                   (Text)
 import           GHC.TypeLits
+import Unsafe.Coerce
 
 infixr 9 `TypeSchemeArrow`
 
@@ -153,7 +158,7 @@ type Evaluable uni =
 newtype Evaluator f uni m = Evaluator
     { unEvaluator
         :: forall uni'. Evaluable uni'
-        => uni <: uni'
+        => (forall a r. TypeScheme uni a r -> TypeScheme uni' a r)
         -> DynamicBuiltinNameMeanings uni'
         -> f TyName Name uni' ()
         -> m (EvaluationResultDef uni')
@@ -440,10 +445,15 @@ shiftConstantsType = substConstantsType Original
 shiftConstantsTerm :: Term tyname name uni ann -> Term tyname name (Extend b uni) ann
 shiftConstantsTerm = substConstantsTerm Original
 
+unextend :: Extend b uni a -> uni a
+unextend (Original uni) = uni
+unextend Extension      = error "Can't unshift an 'Extension'"
+
+unshiftConstantsType :: Type tyname (Extend b uni) ann -> Type tyname uni ann
+unshiftConstantsType = substConstantsType unextend
+
 unshiftConstantsTerm :: Term tyname name (Extend b uni) ann -> Term tyname name uni ann
-unshiftConstantsTerm = substConstantsTerm $ \euni -> case euni of
-    Extension    -> error "Can't unshift an 'Extension'"
-    Original uni -> uni
+unshiftConstantsTerm = substConstantsTerm unextend
 
 extractValueOf :: GEq uni  => uni a -> Term tyname name uni ann -> Maybe a
 extractValueOf uni1 (Constant _ (SomeOf uni2 x)) = fmap (\Refl -> x) $ geq uni1 uni2
@@ -456,6 +466,59 @@ extractValue = extractValueOf knownUni
 extractExtension :: Term tyname name (Extend b uni) ann -> Maybe b
 extractExtension (Constant _ (SomeOf Extension x)) = Just x
 extractExtension _                                 = Nothing
+
+shiftEvaluator
+    :: (Evaluable uni, Typeable b)
+    => Evaluator f uni m -> Evaluator f (Extend b uni) m
+shiftEvaluator (Evaluator eval) =
+    Evaluator $ \emb means -> eval (emb . shiftTypeScheme) means
+
+unshiftEvaluator
+    :: (Evaluable uni, Typeable b)
+    => Evaluator f (Extend b uni) m -> Evaluator f uni m
+unshiftEvaluator (Evaluator eval) =
+    Evaluator $ \emb means -> eval (emb . unshiftTypeScheme) means
+
+mapProxy :: forall f a. Proxy a -> Proxy (f a)
+mapProxy _ = Proxy
+
+shiftTypeScheme
+    :: forall b uni a r. (Evaluable uni, Typeable b)
+    => TypeScheme uni a r -> TypeScheme (Extend b uni) a r
+shiftTypeScheme (TypeSchemeResult res)       =
+    unsafeCoerce $ TypeSchemeResult $ mapProxy @(InExtended b uni) res
+shiftTypeScheme (TypeSchemeArrow  arg schB)  =
+    unsafeCoerce $ TypeSchemeArrow (mapProxy @(InExtended b uni) arg) $ shiftTypeScheme schB
+shiftTypeScheme (TypeSchemeAllType var schK) =
+    TypeSchemeAllType var $ \_ -> shiftTypeScheme $ schK Proxy
+
+-- TypeSchemeResult  :: KnownType a (Extend b uni), Proxy a
+-- TypeSchemeResult  :: KnownType a uni, Proxy a
+
+unshiftTypeScheme
+    :: forall b uni a r. (Evaluable uni, Typeable b)
+    => TypeScheme (Extend b uni) a r -> TypeScheme uni a r
+unshiftTypeScheme (TypeSchemeResult res)       =
+    unsafeCoerce $ TypeSchemeResult $ mapProxy @(InUnextended (Extend b uni)) res
+unshiftTypeScheme (TypeSchemeArrow  arg schB)  =
+    unsafeCoerce $ TypeSchemeArrow (mapProxy @(InUnextended (Extend b uni)) arg) $ unshiftTypeScheme schB
+unshiftTypeScheme (TypeSchemeAllType var schK) =
+    TypeSchemeAllType var $ \_ -> unshiftTypeScheme $ schK Proxy
+
+embedDynamicBuiltinNameMeaning
+    :: (forall a r. TypeScheme uni a r -> TypeScheme uni' a r)
+    -> DynamicBuiltinNameMeaning uni
+    -> DynamicBuiltinNameMeaning uni'
+embedDynamicBuiltinNameMeaning emb (DynamicBuiltinNameMeaning sch x) =
+    DynamicBuiltinNameMeaning (emb sch) x
+
+embedDynamicBuiltinNameMeanings
+    :: (forall a r. TypeScheme uni a r -> TypeScheme uni' a r)
+    -> DynamicBuiltinNameMeanings uni
+    -> DynamicBuiltinNameMeanings uni'
+embedDynamicBuiltinNameMeanings emb (DynamicBuiltinNameMeanings means) =
+    DynamicBuiltinNameMeanings $ fmap (embedDynamicBuiltinNameMeaning emb) means
+
 
 -- Encode '()' from Haskell as @all r. r -> r@ from PLC.
 -- This is a very special instance, because it's used to define functions that are needed for
@@ -472,8 +535,41 @@ instance Evaluable uni => KnownType () uni where
         let metaUnit = TyConstant () $ Some Extension
             metaUnitval = Constant () $ SomeOf Extension ()
             applied = Apply () (TyInst () (shiftConstantsTerm term) metaUnit) metaUnitval
-        res <- makeRightReflectT $ eval Original mempty applied
+        res <- makeRightReflectT $ eval shiftTypeScheme mempty applied
         case extractExtension res of
             Just () -> pure ()
             Nothing -> throwError "Not a builtin ()"
 instance PrettyKnown ()
+
+newtype InExtended b (uni :: * -> *) a = InExtended
+    { unInExtended :: a
+    }
+
+-- A type known in a universe is known in an extended version of that universe.
+instance (Evaluable uni, KnownType a uni, euni ~ Extend b uni, Typeable b) =>
+            KnownType (InExtended b uni a) euni where
+    toTypeAst _ = shiftConstantsType $ toTypeAst @a @uni Proxy
+
+    makeKnown (InExtended x) = shiftConstantsTerm $ makeKnown @a x
+
+    readKnown eval term =
+        InExtended <$> readKnown @a (unshiftEvaluator eval) (unshiftConstantsTerm term)
+
+instance PrettyKnown (InExtended b uni a) where
+    prettyKnown = Prelude.error "ololo1"
+
+newtype InUnextended (euni :: * -> *) a = InUnextended
+    { unInUnextended :: a
+    }
+
+instance (Evaluable uni, KnownType a euni, euni ~ Extend b uni, Typeable b) =>
+            KnownType (InUnextended euni a) uni where
+    toTypeAst _ = unshiftConstantsType $ toTypeAst @a @euni Proxy
+
+    makeKnown (InUnextended x) = unshiftConstantsTerm $ makeKnown @a @euni x
+
+    readKnown eval term =
+        InUnextended <$> readKnown @a @euni (shiftEvaluator eval) (shiftConstantsTerm term)
+
+instance PrettyKnown (InUnextended euni a) where
+    prettyKnown = Prelude.error "ololo1"

@@ -40,9 +40,11 @@ import           Control.Monad.Except
 import           Data.Bifunctor
 import qualified Data.ByteString.Lazy                       as BSL
 import           Data.Char
+import           Data.IORef
 import           Data.Proxy
 import qualified Data.Text                                  as Text
 import qualified Data.Text.Prettyprint.Doc                  as Doc
+import           Data.Typeable
 import           GHC.TypeLits
 
 {- Note [Sequencing]
@@ -149,7 +151,7 @@ instance Evaluable uni => KnownType Bool uni where
             applied =
                 mkIterApp () (TyInst () (shiftConstantsTerm term) metaBool)
                     [metaTrue, metaFalse]
-        res <- makeRightReflectT $ eval Original mempty applied
+        res <- makeRightReflectT $ eval shiftTypeScheme mempty applied
         case extractExtension res of
             Just b  -> pure b
             Nothing -> throwError "Not a Bool"
@@ -215,10 +217,6 @@ newtype AsExtension (uni :: * -> *) a = AsExtension
     { unAsExtension :: a
     }
 
-newtype InExtended b (uni :: * -> *) a = InExtended
-    { unInExtended :: a
-    }
-
 instance (Evaluable uni, euni ~ Extend a uni, Typeable a, Pretty a) => KnownType (AsExtension uni a) euni where
     toTypeAst _ = TyConstant () $ Some Extension
 
@@ -231,27 +229,6 @@ instance (Evaluable uni, euni ~ Extend a uni, Typeable a, Pretty a) => KnownType
             _      -> throwError "Not an integer-encoded Char"
 instance PrettyKnown (AsExtension uni a) where
     prettyKnown = Prelude.error "ololo2"
-
-unshiftEmbedding :: uni <: uni' -> Extend b uni <: uni'
-unshiftEmbedding emb (Original uni) = emb uni
-unshiftEmbedding _   Extension      = Prelude.error "Can't unshift 'Extension'"
-
-unshiftEvaluator :: Evaluator f (Extend b uni) m-> Evaluator f uni m
-unshiftEvaluator (Evaluator eval) =
-    Evaluator $ \emb means -> eval (unshiftEmbedding emb) means
-
--- A type known in a universe is known in an extended version of that universe.
-instance (Evaluable uni, KnownType a uni, euni ~ Extend b uni, Typeable b) =>
-            KnownType (InExtended b uni a) euni where
-    toTypeAst _ = shiftConstantsType $ toTypeAst @a @uni Proxy
-
-    makeKnown (InExtended x) = shiftConstantsTerm $ makeKnown @a x
-
-    readKnown eval term =
-        InExtended <$> readKnown @a (unshiftEvaluator eval) (unshiftConstantsTerm term)
-
-instance PrettyKnown (InExtended b uni a) where
-    prettyKnown = Prelude.error "ololo1"
 
 instance (Evaluable uni, KnownType a uni, KnownType b uni, Typeable a, Typeable b, Pretty a, Pretty b) => KnownType (a, b) uni where
     toTypeAst _ =
@@ -266,7 +243,12 @@ instance (Evaluable uni, KnownType a uni, KnownType b uni, Typeable a, Typeable 
 
     readKnown (Evaluator eval) term = do
         let metaTuple = TyConstant () $ Some Extension
-            metaCommaName = DynamicBuiltinName "comma"
+            metaCommaName = DynamicBuiltinName $ fold
+                [ "comma_"
+                , showText $ typeRep (Proxy :: Proxy a)
+                , "_"
+                , showText $ typeRep (Proxy :: Proxy b)
+                ]
 
             metaCommaMeaning :: DynamicBuiltinNameMeaning (Extend (a, b) uni)
             metaCommaMeaning = DynamicBuiltinNameMeaning sch def where
@@ -281,10 +263,10 @@ instance (Evaluable uni, KnownType a uni, KnownType b uni, Typeable a, Typeable 
 
             env = insertDynamicBuiltinNameDefinition metaCommaDef mempty
             applied = Apply () (TyInst () (shiftConstantsTerm term) metaTuple) metaComma
-        res <- makeRightReflectT $ eval Original env applied
+        res <- makeRightReflectT $ eval shiftTypeScheme env applied
         case extractExtension res of
             Just p  -> pure p
-            Nothing -> throwError "Not a builtin ()"
+            Nothing -> throwError $ "Not a builtin tuple: " <> prettyText applied
 
 instance (PrettyKnown a, PrettyKnown b) => PrettyKnown (a, b) where
     prettyKnown = pretty . bimap KnownTypeValue KnownTypeValue
