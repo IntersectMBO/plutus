@@ -31,7 +31,7 @@ import qualified Playground.Interpreter       as PI
 import           Playground.Interpreter.Util  (TraceResult)
 import           Playground.Usecases          (crowdfunding, game, messages, vesting)
 import           Test.Hspec                   (Spec, describe, it, shouldBe, shouldSatisfy)
-import           Wallet.Emulator.Types        (Wallet (Wallet), walletPubKey)
+import           Wallet.Emulator.Types        (Wallet (Wallet))
 
 spec :: Spec
 spec = do
@@ -79,6 +79,13 @@ vestingSpec =
                                                ])))
                             ])
                     ]
+            walletSchema = SimpleObjectSchema [("getWallet", SimpleIntSchema)]
+            vestingTrancheSchema =
+                SimpleObjectSchema
+                    [ ("vestingTrancheAmount", vlSchema)
+                    , ( "vestingTrancheDate"
+                        , SimpleObjectSchema [("getSlot", SimpleIntSchema)])
+                    ]
         compilationChecks vesting
         it "should compile with the expected schema" $ do
             Right (InterpreterResult _ (CompilationResult result _)) <-
@@ -87,73 +94,25 @@ vestingSpec =
                 [ FunctionSchema
                       { functionName = Fn "vestFunds"
                       , argumentSchema =
-                            [ SimpleObjectSchema
-                                  [ ( "vestingOwner"
-                                    , SimpleObjectSchema
-                                          [("getPubKey", SimpleStringSchema)])
-                                  , ( "vestingTranche2"
-                                    , SimpleObjectSchema
-                                          [ ("vestingTrancheAmount", vlSchema)
-                                          , ( "vestingTrancheDate"
-                                            , SimpleObjectSchema
-                                                  [("getSlot", SimpleIntSchema)])
-                                          ])
-                                  , ( "vestingTranche1"
-                                    , SimpleObjectSchema
-                                          [ ("vestingTrancheAmount", vlSchema)
-                                          , ( "vestingTrancheDate"
-                                            , SimpleObjectSchema
-                                                  [("getSlot", SimpleIntSchema)])
-                                          ])
-                                  ]
+                            [ vestingTrancheSchema
+                            , vestingTrancheSchema
+                            , walletSchema
                             ]
                       }
                 , FunctionSchema
                       { functionName = Fn "registerVestingScheme"
                       , argumentSchema =
-                            [ SimpleObjectSchema
-                                  [ ( "vestingOwner"
-                                    , SimpleObjectSchema
-                                          [("getPubKey", SimpleStringSchema)])
-                                  , ( "vestingTranche2"
-                                    , SimpleObjectSchema
-                                          [ ("vestingTrancheAmount", vlSchema)
-                                          , ( "vestingTrancheDate"
-                                            , SimpleObjectSchema
-                                                  [("getSlot", SimpleIntSchema)])
-                                          ])
-                                  , ( "vestingTranche1"
-                                    , SimpleObjectSchema
-                                          [ ("vestingTrancheAmount", vlSchema)
-                                          , ( "vestingTrancheDate"
-                                            , SimpleObjectSchema
-                                                  [("getSlot", SimpleIntSchema)])
-                                          ])
-                                  ]
+                            [ vestingTrancheSchema
+                            , vestingTrancheSchema
+                            , walletSchema
                             ]
                       }
                 , FunctionSchema
                       { functionName = Fn "withdraw"
                       , argumentSchema =
-                            [ SimpleObjectSchema
-                                  [ ( "vestingOwner"
-                                    , SimpleObjectSchema
-                                          [("getPubKey", SimpleStringSchema)])
-                                  , ( "vestingTranche2"
-                                    , SimpleObjectSchema
-                                          [ ("vestingTrancheAmount", vlSchema)
-                                          , ( "vestingTrancheDate"
-                                            , SimpleObjectSchema
-                                                  [("getSlot", SimpleIntSchema)])
-                                          ])
-                                  , ( "vestingTranche1"
-                                    , SimpleObjectSchema
-                                          [ ("vestingTrancheAmount", vlSchema)
-                                          , ( "vestingTrancheDate"
-                                            , SimpleObjectSchema
-                                                  [("getSlot", SimpleIntSchema)])
-                                          ])
-                                  ]
+                            [ vestingTrancheSchema
+                            , vestingTrancheSchema
+                            , walletSchema
                             , vlSchema
                             ]
                       }
@@ -161,8 +120,7 @@ vestingSpec =
                       { functionName = Fn "payToWallet_"
                       , argumentSchema =
                             [ vlSchema
-                            , SimpleObjectSchema
-                                  [("getWallet", SimpleIntSchema)]
+                            , walletSchema
                             ]
                       }
                 ]
@@ -181,24 +139,16 @@ vestingSpec =
     vestFundsEval =
         Evaluation
             [mkSimulatorWallet w1 ten]
-            [Action (Fn "vestFunds") w1 [theVesting]]
+            [Action (Fn "vestFunds") w1 [theVestingTranche, theVestingTranche, theVestingOwner]]
             (SourceCode vesting)
             []
-    theVesting =
+    theVestingTranche =
         toJSONString $
         object
-            [ "vestingTranche1" .=
-              object
-                  [ "vestingTrancheDate" .= object ["getSlot" .= mkI 1]
-                  , "vestingTrancheAmount" .= JSON.toJSON (Ada.adaValueOf 1)
-                  ]
-            , "vestingTranche2" .=
-              object
-                  [ "vestingTrancheDate" .= object ["getSlot" .= mkI 1]
-                  , "vestingTrancheAmount" .= JSON.toJSON (Ada.adaValueOf 1)
-                  ]
-            , "vestingOwner" .= JSON.toJSON (walletPubKey w1)
+            [ "vestingTrancheDate" .= object ["getSlot" .= mkI 1]
+            , "vestingTrancheAmount" .= JSON.toJSON (Ada.adaValueOf 1)
             ]
+    theVestingOwner = toJSONString $ JSON.toJSON w1
 
 gameSpec :: Spec
 gameSpec =
