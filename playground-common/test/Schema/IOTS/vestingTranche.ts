@@ -55,19 +55,29 @@ const VestingTranche = t.type({
     validity: IntervalSlot
 });
 
-class Type {
-    constructor(
-        readonly someFunction: (
-            a: t.tuple([
-                CurrencySymbol,
-                TokenName
-            ]),
-            b: t.union([
-                Value,
-                t.null
-            ]),
-            c: IntervalSlot,
-            d: t.array(VestingTranche)
-        ) => t.string
-    ) {}
-}
+// io-ts methods return values, not TS type definitions.
+// This is by design, values have the `decode` property for
+// runtime validation, and allows the values to be useful in
+// JS land. This is what we'll run on the client
+const functionArgA = t.tuple([
+    CurrencySymbol,
+    TokenName
+])
+
+const functionArgB = t.union([
+    Value,
+    t.null
+])
+
+const functionArgC = IntervalSlot
+const functionArgD = t.array(VestingTranche)
+const functionReturnType = t.string
+
+// We can use the above values for runtime validation,
+// but for TS users during development, we do the following:
+type SomeFunction = (
+    a: t.TypeOf<typeof functionArgA>,
+    b: t.TypeOf<typeof functionArgB>,
+    c: t.TypeOf<typeof functionArgC>,
+    d: t.TypeOf<typeof functionArgD>,
+) => t.TypeOf<typeof functionReturnType>
