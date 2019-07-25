@@ -70,7 +70,7 @@ library
         , Marlowe.Language.Marlowe.Escrow
         , Marlowe.Language.Marlowe.Actus
         , Marlowe.Language.Marlowe.Pretty
-  other-modules:
+    other-modules:
           Marlowe.Language.Marlowe.Common
     ghc-options: -Wall -fno-warn-unused-imports -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc
     build-tool-depends: unlit:unlit -any
