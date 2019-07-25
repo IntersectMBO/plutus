@@ -50,7 +50,7 @@ Are we done? Can we deploy these scripts and be in business?
 We made sure that our monetary policy guarantees that only _we_ can forge
 tokens, so what else could possibly go wrong?
 
-We should remember that scipts only validate using script outputs as _input_,
+We should remember that scripts only validate using script outputs as _input_,
 but that anybody can create transactions with arbitrary script _outputs_.
 In our case this means that some prankster (or business rival) can throw a
 spanner in the works by creating another output at our monetary policy:
