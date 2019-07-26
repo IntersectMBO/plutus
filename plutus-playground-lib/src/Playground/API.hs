@@ -251,6 +251,6 @@ consumeTo needle = do
 consume :: (Monad m, Monoid s) => StateT s m s
 consume = get <* put mempty
 
--- | Light `Data.Text.breakOn`, but consumes the breakpoint text (the 'needle').
+-- | Like `Data.Text.breakOn`, but consumes the breakpoint text (the 'needle').
 breakWith :: Text -> Text -> (Text, Text)
 breakWith needle = second (Text.drop 1) . Text.breakOn needle
