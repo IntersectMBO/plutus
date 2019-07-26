@@ -17,7 +17,7 @@ open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
 open import Builtin
 open import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf 
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con 
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.List hiding ([_])
 open import Relation.Binary.PropositionalEquality hiding ([_])
