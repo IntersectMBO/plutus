@@ -4,18 +4,19 @@
 {-# LANGUAGE ViewPatterns       #-}
 module Language.PlutusTx.Code where
 
-import qualified Language.PlutusTx.Lift.Class as Lift
+import qualified Language.PlutusTx.Lift.Class     as Lift
+import           Language.PlutusTx.Lift.Instances ()
 
-import qualified Language.PlutusIR            as PIR
-import qualified Language.PlutusIR.MkPir      as PIR
+import qualified Language.PlutusIR                as PIR
+import qualified Language.PlutusIR.MkPir          as PIR
 
-import qualified Language.PlutusCore          as PLC
+import qualified Language.PlutusCore              as PLC
 
-import           Codec.Serialise              (DeserialiseFailure, deserialiseOrFail)
+import           Codec.Serialise                  (DeserialiseFailure, deserialiseOrFail)
 import           Control.Exception
 
-import qualified Data.ByteString              as BS
-import qualified Data.ByteString.Lazy         as BSL
+import qualified Data.ByteString                  as BS
+import qualified Data.ByteString.Lazy             as BSL
 
 -- NOTE: any changes to this type must be paralleled by changes
 -- in the plugin code that generates values of this type. That is

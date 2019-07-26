@@ -53778,6 +53778,7 @@ mmorph
 monad-control
 mtl
 plutus-emulator
+plutus-tx
 plutus-wallet-api
 profunctors
 semigroupoids
@@ -54531,6 +54532,7 @@ license = stdenv.lib.licenses.asl20;
 , recursion-schemes
 , serialise
 , servant
+, singletons
 , stdenv
 , tasty
 , tasty-hedgehog
@@ -54572,6 +54574,7 @@ prettyprinter
 recursion-schemes
 serialise
 servant
+singletons
 template-haskell
 text
 transformers

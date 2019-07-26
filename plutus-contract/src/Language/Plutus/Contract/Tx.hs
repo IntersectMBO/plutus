@@ -1,10 +1,13 @@
+{-# LANGUAGE DataKinds              #-}
 {-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE DeriveGeneric          #-}
 {-# LANGUAGE DerivingStrategies     #-}
+{-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE TypeApplications       #-}
 module Language.Plutus.Contract.Tx(
       UnbalancedTx
     , emptyTx
@@ -15,6 +18,7 @@ module Language.Plutus.Contract.Tx(
     , validityRange
     , mergeWith
     , toLedgerTx
+    , fromLedgerTx
     -- * Constructing transactions
     , unbalancedTx
     , payToScript
@@ -52,6 +56,16 @@ data UnbalancedTx = UnbalancedTx
         deriving anyclass (Aeson.FromJSON, Aeson.ToJSON)
 
 Lens.TH.makeLenses ''UnbalancedTx
+
+-- TODO: this is a bit of a hack, I'm not sure quite what the best way to avoid this is
+fromLedgerTx :: L.Tx -> UnbalancedTx
+fromLedgerTx tx = UnbalancedTx
+            { _inputs = L.txInputs tx
+            , _outputs = L.txOutputs tx
+            , _forge = L.txForge tx
+            , _validityRange = L.txValidRange tx
+            , _requiredSignatures = mempty
+            }
 
 -- | An unbalanced transaction wiht no inputs and outputs, and an unbounded
 --   validity range.

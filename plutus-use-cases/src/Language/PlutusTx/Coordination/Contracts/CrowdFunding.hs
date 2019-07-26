@@ -11,6 +11,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeFamilies    #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
 module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
@@ -40,6 +41,7 @@ import           Control.Lens                   ((&), (.~), (^.))
 import           Control.Monad                  (void)
 import qualified Data.Set                       as Set
 import           Language.Plutus.Contract
+import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import           Language.Plutus.Contract.Trace (ContractTrace, MonadEmulator)
 import qualified Language.Plutus.Contract.Trace as Trace
 import qualified Language.PlutusTx              as PlutusTx
@@ -49,6 +51,7 @@ import qualified Ledger                         as Ledger
 import qualified Ledger.Ada                     as Ada
 import qualified Ledger.Interval                as Interval
 import           Ledger.Slot                    (SlotRange)
+import qualified Ledger.Typed.Tx                as Typed
 import           Ledger.Validation              as V
 import           Ledger.Value                   (Value)
 import qualified Ledger.Value                   as VTH
@@ -99,7 +102,13 @@ data CampaignAction = Collect | Refund
 
 PlutusTx.makeLift ''CampaignAction
 
-type CrowdfundingValidator = PubKey -> CampaignAction -> PendingTx -> Bool
+data CrowdFunding
+instance Typed.ScriptType CrowdFunding where
+    type instance RedeemerType CrowdFunding = CampaignAction
+    type instance DataType CrowdFunding = PubKey
+
+scriptInstance :: Campaign -> Typed.ScriptInstance CrowdFunding
+scriptInstance cmp = Typed.Validator $ $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.unsafeLiftCode cmp
 
 validRefund :: Campaign -> PubKey -> PendingTx -> Bool
 validRefund campaign contributor ptx =
@@ -112,7 +121,7 @@ validCollection campaign p =
     && (valueSpent p `VTH.geq` campaignTarget campaign)
     && (p `V.txSignedBy` campaignOwner campaign)
 
-mkValidator :: Campaign -> CrowdfundingValidator
+mkValidator :: Campaign -> (PubKey -> CampaignAction -> PendingTx -> Bool)
 mkValidator c con act p = case act of
     Refund  -> validRefund c con p
     Collect -> validCollection c p
@@ -121,14 +130,11 @@ mkValidator c con act p = case act of
 --   retrieve the funds or the contributors can claim a refund.
 --
 contributionScript :: Campaign -> ValidatorScript
-contributionScript cmp  = Ledger.ValidatorScript $
-    $$(Ledger.compileScript [|| mkValidator ||])
-        `Ledger.applyScript`
-            Ledger.lifted cmp
+contributionScript = Typed.validatorScript . scriptInstance
 
 -- | The address of a [[Campaign]]
 campaignAddress :: Campaign -> Ledger.Address
-campaignAddress = Ledger.scriptAddress . contributionScript
+campaignAddress = Typed.scriptAddress . scriptInstance
 
 -- | The crowdfunding contract for the 'Campaign'.
 crowdfunding :: ContractActions r => Campaign -> Contract r ()
@@ -143,9 +149,9 @@ theCampaign = Campaign
     , campaignOwner = Emulator.walletPubKey (Emulator.Wallet 1)
     }
 
--- | The "contribute" branch of the contract for a specific 'Campaign'. Exposes 
---   an endpoint that allows the user to enter their public key and the 
---   contribution. Then waits until the campaign is over, and collects the 
+-- | The "contribute" branch of the contract for a specific 'Campaign'. Exposes
+--   an endpoint that allows the user to enter their public key and the
+--   contribution. Then waits until the campaign is over, and collects the
 --   refund if the funding target was not met.
 contribute :: ContractActions r => Campaign -> Contract r ()
 contribute cmp = do
@@ -154,29 +160,29 @@ contribute cmp = do
         tx = payToScript contribution (campaignAddress cmp) ds
                 & validityRange .~ Ledger.interval 1 (campaignDeadline cmp)
     writeTx tx
-    
+
     utxo <- watchAddressUntil (campaignAddress cmp) (campaignCollectionDeadline cmp)
     -- 'utxo' is the set of unspent outputs at the campaign address at the
     -- collection deadline. If 'utxo' still contains our own contribution
     -- then we can claim a refund.
-    
-    -- Finding "our" output is a bit fiddly since we don't know the transaction 
-    -- ID of 'tx'. So we use `collectFromScriptFilter` to collect only those 
+
+    -- Finding "our" output is a bit fiddly since we don't know the transaction
+    -- ID of 'tx'. So we use `collectFromScriptFilter` to collect only those
     -- outputs whose data script is our own public key (in 'ds')
     let flt _ txOut = Ledger.txOutData txOut == Just ds
-        tx' = collectFromScriptFilter flt utxo (contributionScript cmp) (Ledger.RedeemerScript (Ledger.lifted Refund))
+        tx' = Typed.collectFromScriptFilter flt utxo (scriptInstance cmp) (PlutusTx.unsafeLiftCode Refund)
                 & validityRange .~ refundRange cmp
     if not . Set.null $ tx' ^. inputs
     then void (writeTx tx')
     else pure ()
 
--- | The campaign owner's branch of the contract for a given 'Campaign'. It 
+-- | The campaign owner's branch of the contract for a given 'Campaign'. It
 --   watches the campaign address for contributions and collects them if
 --   the funding goal was reached in time.
 scheduleCollection :: ContractActions r => Campaign -> Contract r ()
 scheduleCollection cmp = do
 
-    -- Expose an endpoint that lets the user fire the starting gun on the 
+    -- Expose an endpoint that lets the user fire the starting gun on the
     -- campaign. (This endpoint isn't technically necessary, we could just
     -- run the 'trg' action right away)
     () <- endpoint "schedule collection"
@@ -192,13 +198,11 @@ scheduleCollection cmp = do
     -- campaign collection deadline, so we use the 'timeout' combinator.
     void $ timeout (campaignCollectionDeadline cmp) $ do
         (outxo, _) <- trg
-        let
-            redeemerScript = Ledger.RedeemerScript (Ledger.lifted Collect)
-            tx = collectFromScript outxo (contributionScript cmp) redeemerScript
+        let tx = Typed.collectFromScriptFilter (\_ _ -> True) outxo (scriptInstance cmp) (PlutusTx.unsafeLiftCode Collect)
                     & validityRange .~ collectionRange cmp
         writeTx tx
 
--- | Call the "schedule collection" endpoint and instruct the campaign owner's 
+-- | Call the "schedule collection" endpoint and instruct the campaign owner's
 --   wallet (wallet 1) to start watching the campaign address.
 startCampaign
     :: ( MonadEmulator m )

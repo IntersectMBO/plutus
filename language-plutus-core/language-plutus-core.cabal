@@ -66,6 +66,7 @@ library
         Language.PlutusCore.StdLib.Everything
         Language.PlutusCore.StdLib.Meta
         Language.PlutusCore.StdLib.Meta.Data.Tuple
+        Language.PlutusCore.StdLib.Meta.Data.Function
         Language.PlutusCore.StdLib.Type
         Language.PlutusCore.Examples.Everything
         Language.PlutusCore.Generators

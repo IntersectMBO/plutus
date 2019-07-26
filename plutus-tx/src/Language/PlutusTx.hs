@@ -4,10 +4,14 @@ module Language.PlutusTx (
     getPlc,
     getPir,
     applyCode,
+    Lift,
+    Typeable,
     makeLift,
     liftCode,
-    unsafeLiftCode) where
+    unsafeLiftCode,
+    unsafeConstCode) where
 
-import           Language.PlutusTx.Code (CompiledCode, applyCode, getPir, getPlc)
-import           Language.PlutusTx.Lift (liftCode, makeLift, unsafeLiftCode)
-import           Language.PlutusTx.TH   as Export
+import           Language.PlutusTx.Code       (CompiledCode, applyCode, getPir, getPlc)
+import           Language.PlutusTx.Lift       (liftCode, makeLift, unsafeConstCode, unsafeLiftCode)
+import           Language.PlutusTx.Lift.Class (Lift, Typeable)
+import           Language.PlutusTx.TH         as Export
