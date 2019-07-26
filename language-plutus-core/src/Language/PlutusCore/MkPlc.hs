@@ -6,6 +6,8 @@
 
 module Language.PlutusCore.MkPlc
     ( TermLike (..)
+    , extensionType
+    , extensionTerm
     , constantType
     , constantTerm
     , VarDecl (..)
@@ -60,6 +62,15 @@ class TermLike term tyname name uni | term -> tyname, term -> name, term -> uni 
     error    :: ann -> Type tyname uni ann -> term ann
     termLet  :: ann -> TermDef term tyname name uni ann -> term ann -> term ann
     typeLet  :: ann -> TypeDef tyname uni ann -> term ann -> term ann
+
+extensionType
+    :: forall b uni proxy tyname ann. ann -> Type tyname (Extend b uni) ann
+extensionType ann = TyConstant ann $ Some Extension
+
+extensionTerm
+    :: forall b uni term proxy tyname name ann. TermLike term tyname name (Extend b uni)
+    => ann -> b -> term ann
+extensionTerm ann = constant ann . SomeOf Extension
 
 constantType
     :: forall a uni proxy tyname ann. uni `Includes` a

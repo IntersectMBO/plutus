@@ -59,6 +59,7 @@ import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Lexer.Type hiding (name)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
+import qualified Language.PlutusCore.MkPlc as Mk
 import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.Type
@@ -139,8 +140,7 @@ type family FoldType as r where
 -- See Note [NameMeaning].
 -- | The meaning of a dynamic built-in name consists of its 'Type' represented as a 'TypeScheme'
 -- and its Haskell denotation.
-data NameMeaning uni =
-    forall as r. NameMeaning (TypeScheme uni as r) (FoldType as r)
+data NameMeaning uni = forall as r. NameMeaning (TypeScheme uni as r) (FoldType as r)
 
 -- | The definition of a dynamic built-in consists of its name and meaning.
 data NameDefinition uni = NameDefinition DynamicBuiltinName (NameMeaning uni)
@@ -541,8 +541,8 @@ instance Evaluable uni => KnownType () uni where
     makeKnown () = unitval
 
     readKnown (Evaluator eval) term = do
-        let metaUnit = TyConstant () $ Some Extension
-            metaUnitval = Constant () $ SomeOf Extension ()
+        let metaUnit = Mk.extensionType ()
+            metaUnitval = Mk.extensionTerm () ()
             applied = Apply () (TyInst () (shiftConstantsTerm term) metaUnit) metaUnitval
         res <- makeRightReflectT $ eval shiftNameMeaning mempty applied
         case extractExtension res of

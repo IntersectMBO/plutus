@@ -145,9 +145,9 @@ instance Evaluable uni => KnownType Bool uni where
     makeKnown b = if b then true else false
 
     readKnown (Evaluator eval) term = do
-        let metaBool  = TyConstant () $ Some Extension
-            metaTrue  = Constant () $ SomeOf Extension True
-            metaFalse = Constant () $ SomeOf Extension False
+        let metaBool  = extensionType ()
+            metaTrue  = extensionTerm () True
+            metaFalse = extensionTerm () False
             applied =
                 mkIterApp () (TyInst () (shiftConstantsTerm term) metaBool)
                     [metaTrue, metaFalse]
@@ -188,11 +188,6 @@ makeTypeAndKnown x = (da, dx) where
     da = toTypeAst @a Proxy
     dx = makeKnown x
 
--- tuple a b = all r. (a -> b -> r) -> r
--- tupleval x y = \{r} k -> k x y
--- r = (a, b)
--- k = (,)
-
 data Meta a = Meta
     { unMeta :: a
     } deriving (Show, Generic, Typeable)
@@ -211,16 +206,15 @@ instance (Evaluable uni, uni `Includes` a) => KnownType (Meta a) uni where
 instance PrettyKnown (Meta a) where
     prettyKnown = undefined
 
--- instance (KnownType a uni, a ~ b) => KnownType (InExtended a) (Extend b uni)
-
 newtype AsExtension (uni :: * -> *) a = AsExtension
     { unAsExtension :: a
     }
 
-instance (Evaluable uni, euni ~ Extend a uni, Typeable a, Pretty a) => KnownType (AsExtension uni a) euni where
-    toTypeAst _ = TyConstant () $ Some Extension
+instance (Evaluable uni, euni ~ Extend a uni, Typeable a, Pretty a) =>
+            KnownType (AsExtension uni a) euni where
+    toTypeAst _ = extensionType ()
 
-    makeKnown (AsExtension x) = Constant () $ SomeOf Extension x
+    makeKnown = extensionTerm () . unAsExtension
 
     readKnown (Evaluator eval) term = do
         res <- makeRightReflectT $ eval id mempty term
@@ -230,7 +224,8 @@ instance (Evaluable uni, euni ~ Extend a uni, Typeable a, Pretty a) => KnownType
 instance PrettyKnown (AsExtension uni a) where
     prettyKnown = Prelude.error "ololo2"
 
-instance (Evaluable uni, KnownType a uni, KnownType b uni, Typeable a, Typeable b, Pretty a, Pretty b) => KnownType (a, b) uni where
+instance (Evaluable uni, KnownType a uni, KnownType b uni, Typeable a, Typeable b, Pretty a, Pretty b) =>
+            KnownType (a, b) uni where
     toTypeAst _ =
         mkIterTyApp () (prodN 2)
             [ toTypeAst @a Proxy
@@ -242,7 +237,7 @@ instance (Evaluable uni, KnownType a uni, KnownType b uni, Typeable a, Typeable 
         dby = makeTypeAndKnown y
 
     readKnown (Evaluator eval) term = do
-        let metaTuple = TyConstant () $ Some Extension
+        let metaTuple = extensionType ()
             metaCommaName = DynamicBuiltinName $ fold
                 [ "comma_"
                 , showText $ typeRep (Proxy :: Proxy a)
