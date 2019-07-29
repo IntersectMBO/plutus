@@ -1,7 +1,5 @@
-{-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE ViewPatterns        #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 -- | On-chain code fragments for creating a state machine. First
@@ -14,15 +12,12 @@ module Language.PlutusTx.StateMachine(
     , mkValidator
     , StateMachineRedeemer
     , mkRedeemer
-    , mkData
     ) where
 
-import           Language.PlutusTx.Lift.Class (Lift)
-import           Language.PlutusTx.Prelude    hiding (check)
+import           Language.PlutusTx.Prelude hiding (check)
 
-import           Ledger.Scripts               (DataScript (..), HashedDataScript (..))
-import qualified Ledger.Scripts               as Scripts
-import           Ledger.Validation            (PendingTx, findContinuingOutputs, findDataScriptOutputs)
+import           Ledger.Scripts            (HashedDataScript (..))
+import           Ledger.Validation         (PendingTx, findContinuingOutputs, findDataScriptOutputs)
 
 -- | Specification of a state machine, consisting of a transition function that determines the
 -- next state from the current state and an input, and a checking function that checks the validity
@@ -71,14 +66,3 @@ mkValidator (StateMachine step check) currentState (input, unseal -> HashedDataS
             traceIfFalseH "State transition invalid - checks failed"
             (check currentState input ptx)
     in dataScriptOk && stateOk && checkOk
-
--- | Given a state machine, take a data script wrapping the old state and an
--- input and compute the data script wrapping the new state.
-mkData :: Lift i => StateMachine s i -> DataScript -> i -> DataScript
-mkData sm (DataScript script) input = DataScript $
-    $$(Scripts.compileScript [|| \(s :: s) (i :: i) ->
-        case smTransition sm s i of
-            Nothing -> traceErrorH "invalid input"
-            Just s' -> s' ||])
-    `Scripts.applyScript` script
-    `Scripts.applyScript` Scripts.lifted input

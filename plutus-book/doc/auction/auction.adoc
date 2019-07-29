@@ -1,0 +1,68 @@
+[#auction]
+= State Machines - Building an Auction System
+
+While waiting for our negotiations with the Louvre to come to a satisfactory
+conclusion, we run a bit short on funds. We consider selling one of the other
+tokens in our possession, the _Guernica_ token.
+In the <<token#token,chapter on custom tokens>>
+we have seen to securely sell a token,
+but we think that we might get a better price
+if we run an _auction_ instead. So let us build an auction system!
+
+We want to implement a simple _English auction_ with fixed deadline: After the
+start of the auction, people can make _bids_. Once the deadline has been
+reached, the token owner gets the highest bid, and the highest bidder gets the
+token.
+
+Of course we want to enforce all auction rules automatically with Plutus.
+We want to make sure that each bid is guaranteed (so that the highest bidder will
+have to pay) and that the owner of the token will have to transfer ownership of
+the token to the highest bidder once the auction has ended.
+
+The auction will _start_ when the token owner sends the token to the auction
+contract. Bidders can then _bid_ by sending ada to the same contract. If a bidder is
+outbid by a higher bid, she can _reclaim_ her previous bid(s). When the auction
+ends, the token owner can take the highest bid out of the contract, finally the
+highest bidder can take the token.
+
+One problem we discussed in the last chapter was the problem of how to deal with
+several outputs to a contract. We want to keep the state in one output, but
+nobody can prevent others from creating arbitrarily many more outputs.
+
+We solved the problem by creating a unique "admin token" and using its
+uniqueness to identify the "right" contract output.
+
+For our auction, we are in the fortunate situation that the token we want to
+auction is unique by assumption. We can therefore always identify the "right"
+output as the one containing this token, as long as we make sure that the token
+remains locked in the contract till the very end.
+
+This is the reason why the last action in a successful auction will be the
+highest bidder taking the token out of the contract.
+
+Can there be unsuccessful auctions? Well, yes, nobody can force anybody to place
+a bid, so if the deadline arrives without any bids having been made, the token
+owner must be able to _reclaim_ his token from the contract.
+
+In both cases, the auction starts when potential bidders start watching the
+contract address and when the token owner locks the token into the
+contract, and it ends when the highest bidder or the token owner take the token
+back out of the contract again.
+
+We therefore need the following wallet endpoints:
+
+* `watchAuction` for bidders to start watching the auction contract, which is
+  necessary for them to be able to find the right output,
+* `startAuction` for the token owner to start the auction,
+* `bid` for bidders to place bids,
+* `reclaimBid` for bidders who have been outbid to reclaim their bids,
+* `claimBid` for the token owner to claim the highest bid after the auction has
+  ended,
+* `claimToken` for the highest bidder to claim the token in the end and
+* `reclaimToken` for the token owner to reclaim the token if the auction ends
+  without any bid having been placed.
+
+We start with a type `EnglishAuction` to define an auction:
+
+include::english.adoc[]
+

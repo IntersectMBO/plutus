@@ -200,7 +200,7 @@ we now first have to forge the admin token before we can start our policy:
 
 [source,haskell]
 ----
-start :: forall m. MonadWallet m => m (CurrencySymbol)
+start :: forall m. MonadWallet m => m CurrencySymbol
 start = do
 
     key  <- ownPubKey
