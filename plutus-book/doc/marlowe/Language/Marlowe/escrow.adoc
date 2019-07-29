@@ -1,3 +1,5 @@
+[source,haskell]
+----
 module Marlowe.Language.Marlowe.Escrow where
 
 import           Marlowe.Language.Marlowe
@@ -73,3 +75,4 @@ carol = toPublicKey privateKey3
 
 carolId :: IdentChoice
 carolId = IdentChoice 3
+----
