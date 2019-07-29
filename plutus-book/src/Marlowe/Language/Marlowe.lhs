@@ -1,1 +1,1 @@
-./doc/marlowe/Language/Marlowe.lhs
+./doc/marlowe/Language/marlowe.adoc
