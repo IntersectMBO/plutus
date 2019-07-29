@@ -1,3 +1,5 @@
+[source,haskell]
+----
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DefaultSignatures  #-}
 {-# LANGUAGE DeriveAnyClass     #-}
@@ -299,3 +301,4 @@ spendDeposit tx validator state = do
     marloweTx redeemer txOut validator $ \ contractTxIn _ contractValue -> do
         oo <- ownPubKeyTxOut (Ada.adaValueOf contractValue)
         void $ createTxAndSubmit (intervalFrom slot) (Set.singleton contractTxIn) [oo]
+----        
