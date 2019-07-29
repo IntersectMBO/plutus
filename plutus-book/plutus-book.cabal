@@ -87,7 +87,7 @@ library
       plutus-emulator -any,
       prettyprinter -any,
       containers -any,
-      wl-pprint -any
+      wl-pprint -any 
 
 test-suite plutus-book-test
   type:                exitcode-stdio-1.0
@@ -121,5 +121,6 @@ test-suite plutus-book-test
                      , plutus-emulator -any
                      , plutus-wallet-api -any
                      , text
+                     , wl-pprint -any
   ghc-options:         -Wall
   default-language:    Haskell2010
