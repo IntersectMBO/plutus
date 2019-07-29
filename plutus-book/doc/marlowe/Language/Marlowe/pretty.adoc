@@ -1,3 +1,5 @@
+[source,haskell]
+----
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -82,3 +84,4 @@ instance (Pretty a, Pretty b) => Pretty (a, b) where
 
 instance (Pretty a) => Pretty [a] where
   prettyFragment a = encloseSep lbracket rbracket comma (map prettyFragment a)
+----
