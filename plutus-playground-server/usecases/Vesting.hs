@@ -31,6 +31,7 @@ import           Ledger.Validation         (PendingTx(..))
 import           Wallet                    (WalletAPI(..),
                                             PubKey)
 import qualified Wallet                    as W
+import Wallet.Emulator (walletPubKey)
 import qualified Wallet.API                as WAPI
 import           Playground.Contract
 
@@ -178,15 +179,18 @@ contractAddress vst = Ledger.scriptAddress (validatorScript vst)
 
 -}
 
-vestFunds :: (Monad m, WalletAPI m) => Vesting -> m ()
-vestFunds vst = do
-    let amt = totalAmount vst
+vestFunds :: (Monad m, WalletAPI m) => VestingTranche -> VestingTranche -> Wallet -> m ()
+vestFunds tranche1 tranche2 ownerWallet = do
+    let vst = Vesting tranche1 tranche2 (walletPubKey ownerWallet)
+        amt = totalAmount vst
         adr = contractAddress vst
         dataScript = DataScript (Ledger.lifted ())
     W.payToScript_ W.defaultSlotRange adr amt dataScript
 
-registerVestingScheme :: (WalletAPI m) =>  Vesting -> m ()
-registerVestingScheme vst = startWatching (contractAddress vst)
+registerVestingScheme :: (WalletAPI m) => VestingTranche -> VestingTranche -> Wallet -> m ()
+registerVestingScheme tranche1 tranche2 ownerWallet = 
+    let vst = Vesting tranche1 tranche2 (walletPubKey ownerWallet)
+    in startWatching (contractAddress vst)
 
 {- |
 
@@ -195,10 +199,11 @@ registerVestingScheme vst = startWatching (contractAddress vst)
     *and* puts the value that remains back at the script address.
 
 -}
-withdraw :: (Monad m, WalletAPI m) => Vesting -> Value -> m ()
-withdraw vst vl = do
+withdraw :: (Monad m, WalletAPI m) => VestingTranche -> VestingTranche -> Wallet -> Value -> m ()
+withdraw tranche1 tranche2 ownerWallet vl = do
 
-    let address = contractAddress vst
+    let vst = Vesting tranche1 tranche2 (walletPubKey ownerWallet)
+        address = contractAddress vst
         validator = validatorScript vst
 
     -- We are going to use the wallet API to build the transaction "by hand",
