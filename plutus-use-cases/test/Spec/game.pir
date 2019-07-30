@@ -10,97 +10,90 @@
       )
     )
     (let
-      (rec)
+      (nonrec)
       (datatypebind
         (datatype
-          (tyvardecl List (fun (type) (type)))
-          (tyvardecl a (type))
-          Nil_match
-          (vardecl Nil [List a]) (vardecl Cons (fun a (fun [List a] [List a])))
+          (tyvardecl Bool (type))
+          
+          Bool_match
+          (vardecl True Bool) (vardecl False Bool)
         )
       )
       (let
         (nonrec)
         (datatypebind
           (datatype
-            (tyvardecl Bool (type))
+            (tyvardecl ClearString (type))
             
-            Bool_match
-            (vardecl True Bool) (vardecl False Bool)
+            ClearString_match
+            (vardecl ClearString (fun (con bytestring) ClearString))
           )
         )
         (let
           (nonrec)
-          (termbind
-            (strict)
-            (vardecl
-              equalsByteString
-              (fun (con bytestring) (fun (con bytestring) Bool))
-            )
-            (lam
-              arg
-              (con bytestring)
-              (lam
-                arg
-                (con bytestring)
-                [
-                  (lam
-                    b
-                    (all a (type) (fun a (fun a a)))
-                    [ [ { b Bool } True ] False ]
-                  )
-                  [ [ (builtin equalsByteString) arg ] arg ]
-                ]
-              )
+          (datatypebind
+            (datatype
+              (tyvardecl HashedString (type))
+              
+              HashedString_match
+              (vardecl HashedString (fun (con bytestring) HashedString))
             )
           )
           (let
             (nonrec)
-            (termbind
-              (strict)
-              (vardecl sha2_ (fun (con bytestring) (con bytestring)))
-              (builtin sha2_256)
+            (datatypebind
+              (datatype
+                (tyvardecl Maybe (fun (type) (type)))
+                (tyvardecl a (type))
+                Maybe_match
+                (vardecl Just (fun a [Maybe a])) (vardecl Nothing [Maybe a])
+              )
             )
             (let
               (nonrec)
               (datatypebind
                 (datatype
-                  (tyvardecl ClearString (type))
-                  
-                  ClearString_match
-                  (vardecl ClearString (fun (con bytestring) ClearString))
+                  (tyvardecl Interval (fun (type) (type)))
+                  (tyvardecl a (type))
+                  Interval_match
+                  (vardecl Interval (fun [Maybe a] (fun [Maybe a] [Interval a]))
+                  )
                 )
               )
               (let
-                (nonrec)
+                (rec)
                 (datatypebind
                   (datatype
-                    (tyvardecl HashedString (type))
-                    
-                    HashedString_match
-                    (vardecl HashedString (fun (con bytestring) HashedString))
+                    (tyvardecl List (fun (type) (type)))
+                    (tyvardecl a (type))
+                    Nil_match
+                    (vardecl Nil [List a])
+                    (vardecl Cons (fun a (fun [List a] [List a])))
                   )
                 )
                 (let
                   (nonrec)
                   (datatypebind
                     (datatype
-                      (tyvardecl Maybe (fun (type) (type)))
-                      (tyvardecl a (type))
-                      Maybe_match
-                      (vardecl Just (fun a [Maybe a]))
-                      (vardecl Nothing [Maybe a])
+                      (tyvardecl PendingTxOutRef (type))
+                      
+                      PendingTxOutRef_match
+                      (vardecl
+                        PendingTxOutRef
+                        (fun (con bytestring) (fun (con integer) PendingTxOutRef))
+                      )
                     )
                   )
                   (let
                     (nonrec)
                     (datatypebind
                       (datatype
-                        (tyvardecl Interval (fun (type) (type)))
-                        (tyvardecl a (type))
-                        Interval_match
+                        (tyvardecl PendingTxIn (type))
+                        
+                        PendingTxIn_match
                         (vardecl
-                          Interval (fun [Maybe a] (fun [Maybe a] [Interval a]))
+                          PendingTxIn
+                          (fun PendingTxOutRef (fun [Maybe [[Tuple2 (con bytestring)] (con bytestring)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] PendingTxIn)))
                         )
                       )
                     )
@@ -108,12 +101,12 @@
                       (nonrec)
                       (datatypebind
                         (datatype
-                          (tyvardecl PendingTxOutRef (type))
+                          (tyvardecl PendingTxOutType (type))
                           
-                          PendingTxOutRef_match
+                          PendingTxOutType_match
+                          (vardecl DataTxOut PendingTxOutType)
                           (vardecl
-                            PendingTxOutRef
-                            (fun (con bytestring) (fun (con integer) PendingTxOutRef))
+                            PubKeyTxOut (fun (con bytestring) PendingTxOutType)
                           )
                         )
                       )
@@ -121,12 +114,12 @@
                         (nonrec)
                         (datatypebind
                           (datatype
-                            (tyvardecl PendingTxIn (type))
+                            (tyvardecl PendingTxOut (type))
                             
-                            PendingTxIn_match
+                            PendingTxOut_match
                             (vardecl
-                              PendingTxIn
-                              (fun PendingTxOutRef (fun [Maybe [[Tuple2 (con bytestring)] (con bytestring)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] PendingTxIn)))
+                              PendingTxOut
+                              (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [Maybe [[Tuple2 (con bytestring)] (con bytestring)]] (fun PendingTxOutType PendingTxOut)))
                             )
                           )
                         )
@@ -134,41 +127,48 @@
                           (nonrec)
                           (datatypebind
                             (datatype
-                              (tyvardecl PendingTxOutType (type))
+                              (tyvardecl PendingTx (type))
                               
-                              PendingTxOutType_match
-                              (vardecl DataTxOut PendingTxOutType)
+                              PendingTx_match
                               (vardecl
-                                PubKeyTxOut
-                                (fun (con bytestring) PendingTxOutType)
+                                PendingTx
+                                (fun [List PendingTxIn] (fun [List PendingTxOut] (fun (con integer) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun PendingTxIn (fun [Interval (con integer)] (fun [List [[Tuple2 (con bytestring)] (con bytestring)]] (fun (con bytestring) PendingTx))))))))
                               )
                             )
                           )
                           (let
                             (nonrec)
-                            (datatypebind
-                              (datatype
-                                (tyvardecl PendingTxOut (type))
-                                
-                                PendingTxOut_match
-                                (vardecl
-                                  PendingTxOut
-                                  (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [Maybe [[Tuple2 (con bytestring)] (con bytestring)]] (fun PendingTxOutType PendingTxOut)))
+                            (termbind
+                              (strict)
+                              (vardecl
+                                equalsByteString
+                                (fun (con bytestring) (fun (con bytestring) Bool))
+                              )
+                              (lam
+                                arg
+                                (con bytestring)
+                                (lam
+                                  arg
+                                  (con bytestring)
+                                  [
+                                    (lam
+                                      b
+                                      (all a (type) (fun a (fun a a)))
+                                      [ [ { b Bool } True ] False ]
+                                    )
+                                    [ [ (builtin equalsByteString) arg ] arg ]
+                                  ]
                                 )
                               )
                             )
                             (let
                               (nonrec)
-                              (datatypebind
-                                (datatype
-                                  (tyvardecl PendingTx (type))
-                                  
-                                  PendingTx_match
-                                  (vardecl
-                                    PendingTx
-                                    (fun [List PendingTxIn] (fun [List PendingTxOut] (fun (con integer) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun PendingTxIn (fun [Interval (con integer)] (fun [List [[Tuple2 (con bytestring)] (con bytestring)]] (fun (con bytestring) PendingTx))))))))
-                                  )
+                              (termbind
+                                (strict)
+                                (vardecl
+                                  sha2_ (fun (con bytestring) (con bytestring))
                                 )
+                                (builtin sha2_256)
                               )
                               (let
                                 (nonrec)
