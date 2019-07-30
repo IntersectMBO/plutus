@@ -254,7 +254,7 @@ myTypes =
     , mkSumType (Proxy @(TxOutOf A))
     , mkSumType (Proxy @(TxIdOf A))
     , (equal <*> (order <*> mkSumType)) (Proxy @TxInType)
-    , (equal <*> (order <*> mkSumType)) (Proxy @PubKey)
+    , (genericShow <*> (equal <*> (order <*> mkSumType))) (Proxy @PubKey)
     , mkSumType (Proxy @(AddressOf A))
     , mkSumType (Proxy @FlowLink)
     , mkSumType (Proxy @TxRef)

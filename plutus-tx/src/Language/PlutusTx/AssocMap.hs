@@ -22,6 +22,7 @@ module Language.PlutusTx.AssocMap (
     , lookup
     , union
     , all
+    , mapThese
     ) where
 
 import           GHC.Generics              (Generic)
@@ -126,7 +127,16 @@ all p (Map mps) =
             (_ :: k, x):xs' -> p x && go xs'
     in go mps
 
-{-# INLINABLE singleton #-}
+-- | A version of 'Data.Map.Lazy.mapEither' that works with 'These'.
+mapThese :: (v -> These a b) -> Map k v -> (Map k a, Map k b)
+mapThese f mps = (Map mpl, Map mpr)  where
+    (mpl, mpr) = P.foldr f' ([], []) mps'
+    Map mps'  = fmap f mps
+    f' (k, v) (as, bs) = case v of
+        This a    -> ((k, a):as, bs)
+        That b    -> (as, (k, b):bs)
+        These a b -> ((k, a):as, (k, b):bs)
+
 -- | A singleton map.
 singleton :: k -> v -> Map k v
 singleton c i = Map [(c, i)]

@@ -15,7 +15,7 @@ packages:
 - plutus-playground-lib
 - plutus-tutorial
 - plutus-book
-- plutus-contract-exe
+- plutus-contract
 - plutus-emulator
 - deployment-server
 
@@ -45,6 +45,7 @@ extra-deps:
 - binary-instances-1@sha256:e7768b92f34bc40cc5cabecc5c143dee6ab4bcb5eb441d58e15a0b000d64940b
 - binary-orphans-1.0.1@sha256:74d9a8e2c8c4dc8e11c9028ef103b930fc62f3943e45b1629f39114f2bfb5abb
 - time-compat-1.9.2.2@sha256:9998dc1b77b5067572ab708e94750f1061152f342e92ad1aba38aae63581174d
+- extensible-effects-5.0.0.1
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - git: https://github.com/shmish111/purescript-bridge.git
   commit: a7069a515800135ce932742e995f3a96bc1c7129
@@ -72,7 +73,7 @@ flags:
     development: true
   plutus-playground-server:
     development: true
-  plutus-contract-exe:
+  plutus-contract:
     development: true
 extra-package-dbs: []
 nix:

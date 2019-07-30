@@ -143,8 +143,8 @@ let
             "plutus-tx"
 
             # Also broken for the sample contracts that are put in a docker
-            # image (cf. plutus-contract-exe.docker below)
-            "plutus-contract-exe"
+            # image (cf. plutus-contract.docker below)
+            "plutus-contract"
         ];
       };
       requiredOverlay = ./nix/overlays/required.nix;
@@ -304,21 +304,21 @@ let
       };
     };
 
-    plutus-contract-exe = rec {
+    plutus-contract = rec {
 
       # justStaticExecutables results in a much smaller docker image
       # (16MB vs 588MB)
       static = pkgs.haskell.lib.justStaticExecutables;
 
       pid1 =  static haskellPackages.pid1;
-      contract = static haskellPackages.plutus-contract-exe;
+      contract = static haskellPackages.plutus-contract;
 
       docker = pkgs.dockerTools.buildImage {
-          name = "plutus-contract-exe";
+          name = "plutus-contract";
           contents = [pid1 contract];
           config = {
             Entrypoint = ["/bin/pid1"];
-            Cmd = ["/bin/contract-exe-guessing-game"];
+            Cmd = ["/bin/contract-guessing-game"];
             ExposedPorts = {
               "8080/tcp" = {};
           };

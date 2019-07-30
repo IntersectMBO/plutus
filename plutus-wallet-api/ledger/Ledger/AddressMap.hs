@@ -12,14 +12,18 @@ module Ledger.AddressMap(
     addAddress,
     addAddresses,
     values,
+    singleton,
     fromTxOutputs,
+    fromUtxoIndex,
     knownAddresses,
     updateAddresses,
-    restrict
+    restrict,
+    addressesTouched,
+    outRefMap
     ) where
 
 import           Codec.Serialise.Class (Serialise)
-import           Control.Lens          (At (..), Index, IxValue, Ixed (..), lens, (&), (.~), (^.))
+import           Control.Lens          (At (..), Index, IxValue, Ixed (..), lens, view, (&), (.~), (^.))
 import           Data.Aeson            (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson            as JSON
 import qualified Data.Aeson.Extras     as JSON
@@ -34,12 +38,22 @@ import           GHC.Generics          (Generic)
 
 import           Ledger                (Address, Tx (..), TxInOf (..), TxOut, TxOutOf (..), TxOutRef, TxOutRefOf (..),
                                         Value, hashTx)
+import           Ledger.Index          (UtxoIndex)
+import qualified Ledger.Index          as Index
+import           Ledger.Tx             (outAddress)
 
 -- | A map of 'Address'es and their unspent outputs.
 newtype AddressMap = AddressMap { getAddressMap :: Map Address (Map TxOutRef TxOut) }
     deriving Show
     deriving stock (Generic)
     deriving newtype (Serialise)
+
+-- | An address map with a single unspent transaction output.
+singleton :: (Address, TxOutRef, TxOut) -> AddressMap
+singleton (addr, ref, ot) = AddressMap $ Map.singleton addr (Map.singleton ref ot)
+
+outRefMap :: AddressMap -> Map TxOutRef TxOut
+outRefMap (AddressMap am) = Map.unions (snd <$> Map.toList am)
 
 -- NB: The ToJSON and FromJSON instance for AddressMap use the `Serialise`
 -- instance with a base16 encoding, similar to the instances in Types.hs.
@@ -73,8 +87,8 @@ instance At AddressMap where
         g (AddressMap mp) = mp ^. at idx
         s (AddressMap mp) utxo = AddressMap $ mp & at idx .~ utxo
 
--- | Add an address with no unspent outputs to a map. If the address already exists, do
---   nothing.
+-- | Add an address with no unspent outputs to a map. If the address already
+--   exists, do nothing.
 addAddress :: Address -> AddressMap -> AddressMap
 addAddress adr (AddressMap mp) = AddressMap $ Map.alter upd adr mp where
     upd :: Maybe (Map TxOutRef TxOut) -> Maybe (Map TxOutRef TxOut)
@@ -95,8 +109,15 @@ fromTxOutputs tx =
     mkUtxo (i, t) = (txOutAddress t, Map.singleton (TxOutRefOf h i) t)
     h = hashTx tx
 
--- | Create a map of unspent transaction outputs to their addresses (the "inverse" of
--- an 'AddressMap', without the values.
+-- | Take all unspent outputs from the 'UtxoIndex' and put them in
+--   an 'AddressMap'.
+fromUtxoIndex :: UtxoIndex -> AddressMap
+fromUtxoIndex utxo = foldMap (singleton . addr) mp' where
+    mp' = Map.toList (Index.getIndex utxo)
+    addr (ref, ot) = (view outAddress ot, ref, ot)
+
+-- | Create a map of unspent transaction outputs to their addresses (the
+-- "inverse" of an 'AddressMap', without the values)
 knownAddresses :: AddressMap -> Map TxOutRef Address
 knownAddresses = Map.fromList . unRef . Map.toList . getAddressMap where
     unRef :: [(Address, Map TxOutRef TxOut)] -> [(TxOutRef, Address)]
@@ -121,9 +142,9 @@ updateAddresses tx utxo = AddressMap $ Map.mapWithKey upd (getAddressMap utxo) w
     consumedFrom :: Address -> Map TxOutRef ()
     consumedFrom adr = maybe Map.empty (Map.fromSet (const ())) $ Map.lookup adr consumedInputs
 
-    consumedInputs = inputs (knownAddresses utxo) tx
-
     AddressMap outputs = fromTxOutputs tx
+
+    consumedInputs = inputs (knownAddresses utxo) tx
 
 -- | The inputs consumed by a transaction, indexed by address.
 inputs ::
@@ -143,3 +164,10 @@ restrict (AddressMap mp) = AddressMap . Map.restrictKeys mp
 
 swap :: (a, b) -> (b, a)
 swap (x, y) = (y, x)
+
+-- | Get the set of all addresses that the transaction spends outputs from
+--   or produces outputs to
+addressesTouched :: AddressMap -> Tx -> Set.Set Address
+addressesTouched utxo t = ins <> outs where
+    ins = Map.keysSet (inputs (knownAddresses utxo) t)
+    outs = Map.keysSet (getAddressMap (fromTxOutputs t))

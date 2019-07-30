@@ -20,6 +20,7 @@ module Wallet.API(
     EventHandler(..),
     PubKey(..),
     signTxn,
+    signTxnWithKey,
     createTxAndSubmit,
     signTxAndSubmit,
     signTxAndSubmit_,
@@ -70,6 +71,7 @@ module Wallet.API(
     annTruthValue,
     -- * Error handling
     WalletAPIError(..),
+    throwPrivateKeyNotFoundError,
     throwInsufficientFundsError,
     throwOtherError,
     -- * Logging
@@ -238,10 +240,12 @@ instance Monad m => Monoid (EventHandler m) where
 
 -- | An error thrown by wallet interactions.
 data WalletAPIError =
-    -- | There were insufficient funds to perform the desired operation.
     InsufficientFunds Text
-    -- | Some other error occurred.
+    -- ^ There were insufficient funds to perform the desired operation.
+    | PrivateKeyNotFound PubKey
+    -- ^ The private key of this public key is not known to the wallet.
     | OtherError Text
+    -- ^ Some other error occurred.
     deriving (Show, Eq, Ord, Generic)
 
 instance FromJSON WalletAPIError
@@ -326,12 +330,26 @@ throwInsufficientFundsError = throwError . InsufficientFunds
 throwOtherError :: MonadError WalletAPIError m => Text -> m a
 throwOtherError = throwError . OtherError
 
+throwPrivateKeyNotFoundError :: MonadError WalletAPIError m => PubKey -> m a
+throwPrivateKeyNotFoundError = throwError . PrivateKeyNotFound
+
 -- | A variant of 'register' that registers the trigger again immediately after
 --   running the action. This is useful if you want to run the same action every
 --   time the condition holds, instead of only the first time.
 register :: (WalletAPI m, Monad m) => EventTrigger -> EventHandler m -> m ()
 register t h = registerOnce t h' where
     h' = h <> (EventHandler $ \_ -> register t h)
+
+-- | Sign the transaction with the private key of the given public
+--   key. Fails if the wallet doesn't have the private key.
+signTxnWithKey :: (WalletAPI m, MonadError WalletAPIError m) => Tx -> PubKey -> m Tx
+signTxnWithKey tx pubK = do
+    -- at the moment we only know a single private key: the one
+    -- belonging to 'ownPubKey'.
+    ownPubK <- ownPubKey
+    if ownPubK == pubK
+    then signTxn tx
+    else throwPrivateKeyNotFoundError pubK
 
 -- | Sign the transaction with the wallet's private key and add
 --   the signature to the transaction's list of signatures.
@@ -340,8 +358,8 @@ register t h = registerOnce t h' where
 --   signing to be handled by a different process
 signTxn   :: (WalletAPI m, Monad m) => Tx -> m Tx
 signTxn tx = do
-    sig <- sign (BSL.pack $ BA.unpack $ getTxId $ hashTx tx)
     pubK <- ownPubKey
+    sig <- sign (BSL.pack $ BA.unpack $ getTxId $ hashTx tx)
     pure $ tx & signatures . at pubK ?~ sig
 
 -- | Transfer some funds to a number of script addresses, returning the

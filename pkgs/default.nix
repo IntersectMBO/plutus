@@ -19986,6 +19986,7 @@ license = stdenv.lib.licenses.publicDomain;
 , bytestring
 , containers
 , directory
+, github
 , github-webhooks
 , mtl
 , newtype-generics
@@ -20013,6 +20014,7 @@ aeson
 base
 bytestring
 directory
+github
 github-webhooks
 mtl
 newtype-generics
@@ -20020,7 +20022,6 @@ optparse-generic
 servant
 servant-github-webhook
 servant-server
-slack-web
 temporary
 text
 typed-process
@@ -24075,6 +24076,33 @@ doCheck = false;
 homepage = "http://www.haskell.org/haskellwiki/Exception";
 description = "Exceptions which are explicit in the type signature";
 license = stdenv.lib.licenses.bsd3;
+
+}) {};
+"extensible-effects" = callPackage
+({
+  mkDerivation
+, base
+, monad-control
+, stdenv
+, transformers-base
+}:
+mkDerivation {
+
+pname = "extensible-effects";
+version = "5.0.0.1";
+sha256 = "c3b3165893d3738c5ec7ffd0d8c46a7af855b7d3087e159d6da516e78880c039";
+revision = "1";
+editedCabalFile = "1ihcxj58a3ca80zfyxgbzjzgps9izy96vnj7h4sk9wwb9khbxl1f";
+libraryHaskellDepends = [
+base
+monad-control
+transformers-base
+];
+doHaddock = false;
+doCheck = false;
+homepage = "https://github.com/suhailshergill/extensible-effects";
+description = "An Alternative to Monad Transformers";
+license = stdenv.lib.licenses.mit;
 
 }) {};
 "extensible-exceptions" = callPackage
@@ -53642,47 +53670,81 @@ description = "The Plutus Book";
 license = stdenv.lib.licenses.asl20;
 
 }) {};
-"plutus-contract-exe" = callPackage
+"plutus-contract" = callPackage
 ({
   mkDerivation
 , aeson
 , base
+, bytestring
 , containers
+, extensible-effects
+, hedgehog
 , lens
+, monad-control
+, mtl
 , plutus-emulator
 , plutus-use-cases
 , plutus-wallet-api
+, profunctors
+, semigroupoids
 , servant
 , servant-server
 , stdenv
+, tasty
+, tasty-hedgehog
+, tasty-hunit
 , text
+, transformers
+, transformers-base
 , warp
 }:
 mkDerivation {
 
-pname = "plutus-contract-exe";
+pname = "plutus-contract";
 version = "0.1.0.0";
-src = .././plutus-contract-exe;
+src = .././plutus-contract;
 isLibrary = true;
 isExecutable = true;
 libraryHaskellDepends = [
 aeson
 base
-plutus-emulator
-plutus-wallet-api
-text
-];
-executableHaskellDepends = [
-aeson
-base
+bytestring
 containers
+extensible-effects
 lens
+monad-control
+mtl
+plutus-emulator
 plutus-use-cases
 plutus-wallet-api
+profunctors
+semigroupoids
 servant
 servant-server
 text
+transformers
+transformers-base
 warp
+];
+executableHaskellDepends = [
+base
+];
+testHaskellDepends = [
+aeson
+base
+containers
+extensible-effects
+hedgehog
+lens
+mtl
+plutus-emulator
+plutus-use-cases
+plutus-wallet-api
+tasty
+tasty-hedgehog
+tasty-hunit
+text
+transformers
 ];
 doHaddock = false;
 homepage = "https://github.com/iohk/plutus#readme";
@@ -54373,6 +54435,7 @@ license = stdenv.lib.licenses.asl20;
 , cborg
 , containers
 , cryptonite
+, deepseq
 , deriving-compat
 , hashable
 , hedgehog
@@ -54385,6 +54448,7 @@ license = stdenv.lib.licenses.asl20;
 , newtype-generics
 , operational
 , plutus-tx
+, prettyprinter
 , recursion-schemes
 , serialise
 , servant
@@ -54411,6 +54475,7 @@ cardano-crypto
 cborg
 containers
 cryptonite
+deepseq
 deriving-compat
 hashable
 hedgehog
@@ -54423,6 +54488,7 @@ natural-transformation
 newtype-generics
 operational
 plutus-tx
+prettyprinter
 recursion-schemes
 serialise
 servant
