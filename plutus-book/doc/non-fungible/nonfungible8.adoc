@@ -200,7 +200,7 @@ we now first have to forge the admin token before we can start our policy:
 
 [source,haskell]
 ----
-start :: forall m. MonadWallet m => m ()
+start :: forall m. MonadWallet m => m (CurrencySymbol)
 start = do
 
     key  <- ownPubKey
@@ -221,6 +221,7 @@ start = do
                     (mkAdminValidator admin)
                     unitData]
             go1 ref $ txOutValue o                         -- <3>
+            pure (adminSymbol admin)
 
   where
     go1 :: TxOutRef -> Value -> m ()
