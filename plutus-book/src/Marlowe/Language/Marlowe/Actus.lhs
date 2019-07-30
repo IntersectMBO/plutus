@@ -1,1 +1,1 @@
-./doc/marlowe/Language/Marlowe/actus.adoc
+../../../../doc/marlowe/Language/Marlowe/actus.adoc

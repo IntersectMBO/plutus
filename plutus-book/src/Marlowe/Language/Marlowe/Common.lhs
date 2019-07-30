@@ -1,1 +1,1 @@
-./doc/marlowe/Language/Marlowe/common.adoc
+../../../../doc/marlowe/Language/Marlowe/common.adoc

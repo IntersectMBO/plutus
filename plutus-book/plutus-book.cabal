@@ -87,7 +87,7 @@ library
       plutus-emulator -any,
       prettyprinter -any,
       containers -any,
-      wl-pprint -any 
+      wl-pprint -any
 
 test-suite plutus-book-test
   type:                exitcode-stdio-1.0

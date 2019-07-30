@@ -1,1 +1,1 @@
-./doc/marlowe/Language/Marlowe/pretty.adoc
+../../../../doc/marlowe/Language/Marlowe/pretty.adoc

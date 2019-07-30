@@ -29,7 +29,7 @@ module Marlowe.Language.Marlowe.Common where
 import qualified Prelude                    as Haskell
 
 import           GHC.Generics               (Generic)
-import           Language.Marlowe.Pretty    (Pretty, prettyFragment)
+import           Marlowe.Language.Marlowe.Pretty    (Pretty, prettyFragment)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift     (makeLift)
 import           Language.PlutusTx.Prelude
@@ -840,3 +840,4 @@ validatorScript
         {-  if the contract is invalid and there are no commit,
             allow to spend contract's money. It's likely to be created by mistake -}
         else if null currentCommits then () else Builtins.error ()
+----

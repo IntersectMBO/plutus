@@ -1,1 +1,1 @@
-./doc/marlowe/marlowe.adoc
+../../doc/marlowe/marlowe.adoc

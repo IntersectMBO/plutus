@@ -23,7 +23,7 @@
     This implementation uses Plutus Mockchain, but it's expected to have quite similar API
     for the actual wallet implementation.
 -}
-module Language.Marlowe.Client where
+module Marlowe.Language.Marlowe.Client where
 import           Control.Applicative            ( Applicative(..) )
 import           Control.Monad                  ( Monad(..)
                                                 , void
@@ -54,7 +54,7 @@ import           Ledger                         ( DataScript(..)
 import qualified Ledger                         as Ledger
 import qualified Ledger.Ada                     as Ada
 import           Ledger.Validation
-import           Language.Marlowe
+import           Marlowe.Language.Marlowe
 
 {- Mockchain instantiation of Marlowe Interpreter functions. -}
 
@@ -301,4 +301,4 @@ spendDeposit tx validator state = do
     marloweTx redeemer txOut validator $ \ contractTxIn _ contractValue -> do
         oo <- ownPubKeyTxOut (Ada.adaValueOf contractValue)
         void $ createTxAndSubmit (intervalFrom slot) (Set.singleton contractTxIn) [oo]
-----        
+----

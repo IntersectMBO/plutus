@@ -2,7 +2,7 @@
 ----
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DerivingStrategies #-}
-module Marlowe.Marlowe.Marlowe where
+module Marlowe.Marlowe where
 
 import           GHC.Generics            (Generic)
 -- Marlowe has its own pretty printer

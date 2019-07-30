@@ -1,1 +1,1 @@
-./doc/marlowe/Language/Marlowe/client.adoc
+../../../../doc/marlowe/Language/Marlowe/client.adoc
