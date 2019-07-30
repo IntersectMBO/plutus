@@ -26,6 +26,8 @@ module Language.Plutus.Contract(
     , fundsAtAddressGt
     -- * Conveniences
     , module X
+    -- * Re-exports from extensible-effects
+    , Member
     -- * Etc
     , convertContract
     ) where

@@ -168,6 +168,7 @@ let
 
     docs = {
       plutus-tutorial = pkgs.callPackage ./plutus-tutorial/doc {};
+      plutus-contract = pkgs.callPackage ./plutus-contract/doc {};
       plutus-book = pkgs.callPackage ./plutus-book/doc { asciidoctor = asciidoctorWithEpub3; };
 
       plutus-core-spec = pkgs.callPackage ./plutus-core-spec { inherit latex; };

@@ -53625,6 +53625,7 @@ license = stdenv.lib.licenses.mit;
 , containers
 , hspec
 , language-plutus-core
+, mtl
 , plutus-emulator
 , plutus-playground-lib
 , plutus-tx
@@ -53645,6 +53646,7 @@ base
 bytestring
 containers
 language-plutus-core
+mtl
 plutus-emulator
 plutus-playground-lib
 plutus-tx
@@ -53677,14 +53679,18 @@ license = stdenv.lib.licenses.asl20;
 , base
 , bytestring
 , containers
+, doctest
 , extensible-effects
 , hedgehog
+, language-plutus-core
 , lens
+, mmorph
 , monad-control
 , mtl
 , plutus-emulator
 , plutus-use-cases
 , plutus-wallet-api
+, prettyprinter
 , profunctors
 , semigroupoids
 , servant
@@ -53693,9 +53699,11 @@ license = stdenv.lib.licenses.asl20;
 , tasty
 , tasty-hedgehog
 , tasty-hunit
+, template-haskell
 , text
 , transformers
 , transformers-base
+, unlit
 , warp
 }:
 mkDerivation {
@@ -53712,6 +53720,7 @@ bytestring
 containers
 extensible-effects
 lens
+mmorph
 monad-control
 mtl
 plutus-emulator
@@ -53732,19 +53741,27 @@ base
 testHaskellDepends = [
 aeson
 base
+bytestring
 containers
 extensible-effects
 hedgehog
+language-plutus-core
 lens
 mtl
 plutus-emulator
 plutus-use-cases
 plutus-wallet-api
+prettyprinter
 tasty
 tasty-hedgehog
 tasty-hunit
+template-haskell
 text
 transformers
+];
+testToolDepends = [
+doctest
+unlit
 ];
 doHaddock = false;
 homepage = "https://github.com/iohk/plutus#readme";
