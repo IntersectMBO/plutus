@@ -16,7 +16,8 @@ import           Data.Either                (isRight)
 import           Data.Text                  (Text)
 import           Test.Hspec
 
-{-# ANN spec ("HLint: ignore Reduce duplication" :: Text) #-}
+{-# ANN spec ("HLint: ignore" :: Text) #-}
+
 spec :: Spec
 spec =
     describe "start/forge" $
@@ -27,22 +28,22 @@ spec =
     monaLisa = "Mona Lisa"
     starryNight = "The Starry Night"
 
-    adSymbol :: CurrencySymbol
-    adSymbol = "2c7c99a4f09e98aae7b8d213814ffa60b9b737adaef1ba244cde0a04a7e8e128"
-
-    nfSymbol :: CurrencySymbol
-    nfSymbol = nonFungibleSymbol $ NonFungible
-        { issuer        = key1
-        , adminCurrency = adSymbol
-        }
-
-    tokenValue :: String -> Value
-    tokenValue name = V.singleton nfSymbol (V.TokenName $ C.pack name) 1
 
     tr :: Trace MockWallet ()
     tr = void $ do
         updateWallets
-        void $ walletAction w1 start
+        (maybeAdSymbol, _) <- runWalletAction w1 start
+        let adSymbol :: CurrencySymbol
+            adSymbol = case maybeAdSymbol of
+                Right s -> s
+                Left _  -> error "Error creating admin symbol"
+            nfSymbol :: CurrencySymbol
+            nfSymbol = nonFungibleSymbol $ NonFungible
+                { issuer        = key1
+                , adminCurrency = adSymbol
+                }
+            tokenValue :: String -> Value
+            tokenValue name = V.singleton nfSymbol (V.TokenName $ C.pack name) 1
         replicateM_ 5 updateWallets
         void $ walletAction w1 $ forge adSymbol monaLisa
         updateWallets
