@@ -2,813 +2,177 @@
   (let
     (nonrec)
     (datatypebind
-      (datatype
-        (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
-        (tyvardecl a (type)) (tyvardecl b (type))
-        Tuple2_match
-        (vardecl Tuple2 (fun a (fun b [[Tuple2 a] b])))
-      )
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
     )
     (let
-      (rec)
+      (nonrec)
       (datatypebind
         (datatype
-          (tyvardecl List (fun (type) (type)))
-          (tyvardecl a (type))
-          Nil_match
-          (vardecl Nil [List a]) (vardecl Cons (fun a (fun [List a] [List a])))
+          (tyvardecl Bool (type))
+          
+          Bool_match
+          (vardecl True Bool) (vardecl False Bool)
         )
       )
       (let
         (nonrec)
         (datatypebind
           (datatype
-            (tyvardecl Bool (type))
+            (tyvardecl GameState (type))
             
-            Bool_match
-            (vardecl True Bool) (vardecl False Bool)
+            GameState_match
+            (vardecl Initialised (fun (con bytestring) GameState))
+            (vardecl
+              Locked (fun (con bytestring) (fun (con bytestring) GameState))
+            )
           )
         )
         (let
-          (nonrec)
+          (rec)
           (datatypebind
-            (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+            (datatype
+              (tyvardecl List (fun (type) (type)))
+              (tyvardecl a (type))
+              Nil_match
+              (vardecl Nil [List a])
+              (vardecl Cons (fun a (fun [List a] [List a])))
+            )
           )
           (let
-            (rec)
+            (nonrec)
             (termbind
               (strict)
               (vardecl
-                fFunctorNil_cfmap
-                (all a (type) (all b (type) (fun (fun a b) (fun [List a] [List b]))))
+                equalsByteString
+                (fun (con bytestring) (fun (con bytestring) Bool))
               )
-              (abs
-                a
-                (type)
-                (abs
-                  b
-                  (type)
-                  (lam
-                    f
-                    (fun a b)
+              (lam
+                arg
+                (con bytestring)
+                (lam
+                  arg
+                  (con bytestring)
+                  [
                     (lam
-                      l
-                      [List a]
-                      [
-                        [
-                          [
-                            { [ { Nil_match a } l ] (fun Unit [List b]) }
-                            (lam thunk Unit { Nil b })
-                          ]
-                          (lam
-                            x
-                            a
-                            (lam
-                              xs
-                              [List a]
-                              (lam
-                                thunk
-                                Unit
-                                [
-                                  [ { Cons b } [ f x ] ]
-                                  [ [ { { fFunctorNil_cfmap a } b } f ] xs ]
-                                ]
-                              )
-                            )
-                          )
-                        ]
-                        Unit
-                      ]
+                      b
+                      (all a (type) (fun a (fun a a)))
+                      [ [ { b Bool } True ] False ]
                     )
-                  )
+                    [ [ (builtin equalsByteString) arg ] arg ]
+                  ]
                 )
               )
             )
             (let
-              (rec)
+              (nonrec)
               (termbind
                 (strict)
                 (vardecl
-                  foldr
-                  (all a (type) (all b (type) (fun (fun a (fun b b)) (fun b (fun [List a] b)))))
+                  appendString
+                  (fun (con string) (fun (con string) (con string)))
                 )
-                (abs
-                  a
-                  (type)
-                  (abs
-                    b
-                    (type)
-                    (lam
-                      f
-                      (fun a (fun b b))
-                      (lam
-                        acc
-                        b
-                        (lam
-                          l
-                          [List a]
-                          [
-                            [
-                              [
-                                { [ { Nil_match a } l ] (fun Unit b) }
-                                (lam thunk Unit acc)
-                              ]
-                              (lam
-                                x
-                                a
-                                (lam
-                                  xs
-                                  [List a]
-                                  (lam
-                                    thunk
-                                    Unit
-                                    [
-                                      [ f x ]
-                                      [ [ [ { { foldr a } b } f ] acc ] xs ]
-                                    ]
-                                  )
-                                )
-                              )
-                            ]
-                            Unit
-                          ]
-                        )
-                      )
-                    )
-                  )
-                )
+                (builtin append)
               )
               (let
                 (nonrec)
-                (datatypebind
-                  (datatype
-                    (tyvardecl These (fun (type) (fun (type) (type))))
-                    (tyvardecl a (type)) (tyvardecl b (type))
-                    These_match
-                    (vardecl That (fun b [[These a] b]))
-                    (vardecl These (fun a (fun b [[These a] b])))
-                    (vardecl This (fun a [[These a] b]))
-                  )
+                (termbind
+                  (strict)
+                  (vardecl charToString (fun (con integer) (con string)))
+                  (builtin charToString)
                 )
                 (let
                   (nonrec)
-                  (termbind
-                    (strict)
-                    (vardecl
-                      union
-                      (all k (type) (all v (type) (all r (type) (fun [(lam a (type) (fun a (fun a Bool))) k] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) k] v] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) k] r] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) k] [[These v] r]]))))))
-                    )
-                    (abs
-                      k
-                      (type)
-                      (abs
-                        v
-                        (type)
-                        (abs
-                          r
-                          (type)
-                          (lam
-                            dEq
-                            [(lam a (type) (fun a (fun a Bool))) k]
-                            (lam
-                              ds
-                              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) k] v]
-                              (lam
-                                ds
-                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) k] r]
-                                [
-                                  [
-                                    [
-                                      {
-                                        { foldr [[Tuple2 k] [[These v] r]] }
-                                        [List [[Tuple2 k] [[These v] r]]]
-                                      }
-                                      { Cons [[Tuple2 k] [[These v] r]] }
-                                    ]
-                                    [
-                                      [
-                                        {
-                                          { fFunctorNil_cfmap [[Tuple2 k] r] }
-                                          [[Tuple2 k] [[These v] r]]
-                                        }
-                                        (lam
-                                          ds
-                                          [[Tuple2 k] r]
-                                          [
-                                            {
-                                              [ { { Tuple2_match k } r } ds ]
-                                              [[Tuple2 k] [[These v] r]]
-                                            }
-                                            (lam
-                                              c
-                                              k
-                                              (lam
-                                                b
-                                                r
-                                                [
-                                                  [
-                                                    {
-                                                      { Tuple2 k } [[These v] r]
-                                                    }
-                                                    c
-                                                  ]
-                                                  [ { { That v } r } b ]
-                                                ]
-                                              )
-                                            )
-                                          ]
-                                        )
-                                      ]
-                                      [
-                                        [
-                                          [
-                                            {
-                                              { foldr [[Tuple2 k] r] }
-                                              [List [[Tuple2 k] r]]
-                                            }
-                                            (lam
-                                              e
-                                              [[Tuple2 k] r]
-                                              (lam
-                                                xs
-                                                [List [[Tuple2 k] r]]
-                                                (let
-                                                  (nonrec)
-                                                  (termbind
-                                                    (strict)
-                                                    (vardecl wild [[Tuple2 k] r]
-                                                    )
-                                                    e
-                                                  )
-                                                  [
-                                                    {
-                                                      [
-                                                        { { Tuple2_match k } r }
-                                                        e
-                                                      ]
-                                                      [List [[Tuple2 k] r]]
-                                                    }
-                                                    (lam
-                                                      c
-                                                      k
-                                                      (lam
-                                                        ds
-                                                        r
-                                                        [
-                                                          [
-                                                            [
-                                                              {
-                                                                [
-                                                                  Bool_match
-                                                                  [
-                                                                    [
-                                                                      [
-                                                                        {
-                                                                          {
-                                                                            foldr
-                                                                            [[Tuple2 k] v]
-                                                                          }
-                                                                          Bool
-                                                                        }
-                                                                        (lam
-                                                                          a
-                                                                          [[Tuple2 k] v]
-                                                                          (lam
-                                                                            acc
-                                                                            Bool
-                                                                            [
-                                                                              [
-                                                                                [
-                                                                                  {
-                                                                                    [
-                                                                                      Bool_match
-                                                                                      acc
-                                                                                    ]
-                                                                                    (fun Unit Bool)
-                                                                                  }
-                                                                                  (lam
-                                                                                    thunk
-                                                                                    Unit
-                                                                                    True
-                                                                                  )
-                                                                                ]
-                                                                                (lam
-                                                                                  thunk
-                                                                                  Unit
-                                                                                  [
-                                                                                    {
-                                                                                      [
-                                                                                        {
-                                                                                          {
-                                                                                            Tuple2_match
-                                                                                            k
-                                                                                          }
-                                                                                          v
-                                                                                        }
-                                                                                        a
-                                                                                      ]
-                                                                                      Bool
-                                                                                    }
-                                                                                    (lam
-                                                                                      c
-                                                                                      k
-                                                                                      (lam
-                                                                                        ds
-                                                                                        v
-                                                                                        [
-                                                                                          [
-                                                                                            dEq
-                                                                                            c
-                                                                                          ]
-                                                                                          c
-                                                                                        ]
-                                                                                      )
-                                                                                    )
-                                                                                  ]
-                                                                                )
-                                                                              ]
-                                                                              Unit
-                                                                            ]
-                                                                          )
-                                                                        )
-                                                                      ]
-                                                                      False
-                                                                    ]
-                                                                    ds
-                                                                  ]
-                                                                ]
-                                                                (fun Unit [List [[Tuple2 k] r]])
-                                                              }
-                                                              (lam thunk Unit xs
-                                                              )
-                                                            ]
-                                                            (lam
-                                                              thunk
-                                                              Unit
-                                                              [
-                                                                [
-                                                                  {
-                                                                    Cons
-                                                                    [[Tuple2 k] r]
-                                                                  }
-                                                                  wild
-                                                                ]
-                                                                xs
-                                                              ]
-                                                            )
-                                                          ]
-                                                          Unit
-                                                        ]
-                                                      )
-                                                    )
-                                                  ]
-                                                )
-                                              )
-                                            )
-                                          ]
-                                          { Nil [[Tuple2 k] r] }
-                                        ]
-                                        ds
-                                      ]
-                                    ]
-                                  ]
-                                  [
-                                    [
-                                      {
-                                        { fFunctorNil_cfmap [[Tuple2 k] v] }
-                                        [[Tuple2 k] [[These v] r]]
-                                      }
-                                      (lam
-                                        ds
-                                        [[Tuple2 k] v]
-                                        [
-                                          {
-                                            [ { { Tuple2_match k } v } ds ]
-                                            [[Tuple2 k] [[These v] r]]
-                                          }
-                                          (lam
-                                            c
-                                            k
-                                            (lam
-                                              i
-                                              v
-                                              [
-                                                [
-                                                  { { Tuple2 k } [[These v] r] }
-                                                  c
-                                                ]
-                                                (let
-                                                  (rec)
-                                                  (termbind
-                                                    (strict)
-                                                    (vardecl
-                                                      go
-                                                      (fun [List [[Tuple2 k] r]] [[These v] r])
-                                                    )
-                                                    (lam
-                                                      ds
-                                                      [List [[Tuple2 k] r]]
-                                                      [
-                                                        [
-                                                          [
-                                                            {
-                                                              [
-                                                                {
-                                                                  Nil_match
-                                                                  [[Tuple2 k] r]
-                                                                }
-                                                                ds
-                                                              ]
-                                                              (fun Unit [[These v] r])
-                                                            }
-                                                            (lam
-                                                              thunk
-                                                              Unit
-                                                              [
-                                                                { { This v } r }
-                                                                i
-                                                              ]
-                                                            )
-                                                          ]
-                                                          (lam
-                                                            ds
-                                                            [[Tuple2 k] r]
-                                                            (lam
-                                                              xs
-                                                              [List [[Tuple2 k] r]]
-                                                              (lam
-                                                                thunk
-                                                                Unit
-                                                                [
-                                                                  {
-                                                                    [
-                                                                      {
-                                                                        {
-                                                                          Tuple2_match
-                                                                          k
-                                                                        }
-                                                                        r
-                                                                      }
-                                                                      ds
-                                                                    ]
-                                                                    [[These v] r]
-                                                                  }
-                                                                  (lam
-                                                                    c
-                                                                    k
-                                                                    (lam
-                                                                      i
-                                                                      r
-                                                                      [
-                                                                        [
-                                                                          [
-                                                                            {
-                                                                              [
-                                                                                Bool_match
-                                                                                [
-                                                                                  [
-                                                                                    dEq
-                                                                                    c
-                                                                                  ]
-                                                                                  c
-                                                                                ]
-                                                                              ]
-                                                                              (fun Unit [[These v] r])
-                                                                            }
-                                                                            (lam
-                                                                              thunk
-                                                                              Unit
-                                                                              [
-                                                                                [
-                                                                                  {
-                                                                                    {
-                                                                                      These
-                                                                                      v
-                                                                                    }
-                                                                                    r
-                                                                                  }
-                                                                                  i
-                                                                                ]
-                                                                                i
-                                                                              ]
-                                                                            )
-                                                                          ]
-                                                                          (lam
-                                                                            thunk
-                                                                            Unit
-                                                                            [
-                                                                              go
-                                                                              xs
-                                                                            ]
-                                                                          )
-                                                                        ]
-                                                                        Unit
-                                                                      ]
-                                                                    )
-                                                                  )
-                                                                ]
-                                                              )
-                                                            )
-                                                          )
-                                                        ]
-                                                        Unit
-                                                      ]
-                                                    )
-                                                  )
-                                                  [ go ds ]
-                                                )
-                                              ]
-                                            )
-                                          )
-                                        ]
-                                      )
-                                    ]
-                                    ds
-                                  ]
-                                ]
-                              )
-                            )
-                          )
-                        )
-                      )
-                    )
-                  )
+                  (termbind (strict) (vardecl emptyString (con string)) (con ))
                   (let
                     (rec)
                     (termbind
                       (strict)
                       (vardecl
-                        map
-                        (all a (type) (all b (type) (fun (fun a b) (fun [List a] [List b]))))
+                        toPlutusString (fun [List (con integer)] (con string))
                       )
-                      (abs
-                        a
-                        (type)
-                        (abs
-                          b
-                          (type)
-                          (lam
-                            f
-                            (fun a b)
+                      (lam
+                        str
+                        [List (con integer)]
+                        [
+                          [
+                            [
+                              {
+                                [ { Nil_match (con integer) } str ]
+                                (fun Unit (con string))
+                              }
+                              (lam thunk Unit emptyString)
+                            ]
                             (lam
-                              l
-                              [List a]
-                              [
-                                [
+                              c
+                              (con integer)
+                              (lam
+                                rest
+                                [List (con integer)]
+                                (lam
+                                  thunk
+                                  Unit
                                   [
-                                    {
-                                      [ { Nil_match a } l ] (fun Unit [List b])
-                                    }
-                                    (lam thunk Unit { Nil b })
+                                    [ appendString [ charToString c ] ]
+                                    [ toPlutusString rest ]
                                   ]
-                                  (lam
-                                    x
-                                    a
-                                    (lam
-                                      xs
-                                      [List a]
-                                      (lam
-                                        thunk
-                                        Unit
-                                        [
-                                          [ { Cons b } [ f x ] ]
-                                          [ [ { { map a } b } f ] xs ]
-                                        ]
-                                      )
-                                    )
-                                  )
-                                ]
-                                Unit
-                              ]
+                                )
+                              )
                             )
-                          )
-                        )
+                          ]
+                          Unit
+                        ]
                       )
                     )
                     (let
                       (nonrec)
                       (termbind
                         (strict)
-                        (vardecl
-                          appendString
-                          (fun (con string) (fun (con string) (con string)))
+                        (vardecl trace (fun (con string) Unit))
+                        (lam
+                          arg
+                          (con string)
+                          [
+                            (lam b (all a (type) (fun a a)) Unit)
+                            [ (builtin trace) arg ]
+                          ]
                         )
-                        (builtin append)
                       )
                       (let
                         (nonrec)
                         (termbind
                           (strict)
-                          (vardecl charToString (fun (con integer) (con string))
+                          (vardecl
+                            fEqGameState_c (fun GameState (fun GameState Bool))
                           )
-                          (builtin charToString)
-                        )
-                        (let
-                          (nonrec)
-                          (termbind
-                            (strict) (vardecl emptyString (con string)) (con )
-                          )
-                          (let
-                            (rec)
-                            (termbind
-                              (strict)
-                              (vardecl
-                                toPlutusString
-                                (fun [List (con integer)] (con string))
-                              )
-                              (lam
-                                str
-                                [List (con integer)]
-                                [
-                                  [
-                                    [
-                                      {
-                                        [ { Nil_match (con integer) } str ]
-                                        (fun Unit (con string))
-                                      }
-                                      (lam thunk Unit emptyString)
-                                    ]
-                                    (lam
-                                      c
-                                      (con integer)
-                                      (lam
-                                        rest
-                                        [List (con integer)]
-                                        (lam
-                                          thunk
-                                          Unit
-                                          [
-                                            [ appendString [ charToString c ] ]
-                                            [ toPlutusString rest ]
-                                          ]
-                                        )
-                                      )
-                                    )
-                                  ]
-                                  Unit
-                                ]
-                              )
-                            )
-                            (let
-                              (nonrec)
-                              (termbind
-                                (strict)
-                                (vardecl
-                                  addInteger
-                                  (fun (con integer) (fun (con integer) (con integer)))
-                                )
-                                (builtin addInteger)
-                              )
+                          (lam
+                            ds
+                            GameState
+                            (lam
+                              ds
+                              GameState
                               (let
                                 (nonrec)
                                 (termbind
                                   (strict)
                                   (vardecl
-                                    equalsByteString
-                                    (fun (con bytestring) (fun (con bytestring) Bool))
+                                    fail (fun (all a (type) (fun Unit a)) Bool)
                                   )
                                   (lam
-                                    arg
-                                    (con bytestring)
-                                    (lam
-                                      arg
-                                      (con bytestring)
+                                    ds
+                                    (all a (type) (fun Unit a))
+                                    [
                                       [
-                                        (lam
-                                          b
-                                          (all a (type) (fun a (fun a a)))
-                                          [ [ { b Bool } True ] False ]
-                                        )
-                                        [
-                                          [ (builtin equalsByteString) arg ] arg
-                                        ]
-                                      ]
-                                    )
-                                  )
-                                )
-                                (let
-                                  (nonrec)
-                                  (termbind
-                                    (strict)
-                                    (vardecl
-                                      equalsInteger
-                                      (fun (con integer) (fun (con integer) Bool))
-                                    )
-                                    (lam
-                                      arg
-                                      (con integer)
-                                      (lam
-                                        arg
-                                        (con integer)
-                                        [
-                                          (lam
-                                            b
-                                            (all a (type) (fun a (fun a a)))
-                                            [ [ { b Bool } True ] False ]
-                                          )
+                                        {
                                           [
-                                            [ (builtin equalsInteger) arg ] arg
-                                          ]
-                                        ]
-                                      )
-                                    )
-                                  )
-                                  (let
-                                    (nonrec)
-                                    (termbind
-                                      (strict)
-                                      (vardecl error (all a (type) (fun Unit a))
-                                      )
-                                      (abs e (type) (lam thunk Unit (error e)))
-                                    )
-                                    (let
-                                      (nonrec)
-                                      (termbind
-                                        (strict)
-                                        (vardecl
-                                          greaterThanEqInteger
-                                          (fun (con integer) (fun (con integer) Bool))
-                                        )
-                                        (lam
-                                          arg
-                                          (con integer)
-                                          (lam
-                                            arg
-                                            (con integer)
+                                            Unit_match
                                             [
-                                              (lam
-                                                b
-                                                (all a (type) (fun a (fun a a)))
-                                                [ [ { b Bool } True ] False ]
-                                              )
+                                              trace
                                               [
-                                                [
-                                                  (builtin
-                                                    greaterThanEqualsInteger
-                                                  )
-                                                  arg
-                                                ]
-                                                arg
-                                              ]
-                                            ]
-                                          )
-                                        )
-                                      )
-                                      (let
-                                        (nonrec)
-                                        (termbind
-                                          (strict)
-                                          (vardecl
-                                            sha2_
-                                            (fun (con bytestring) (con bytestring))
-                                          )
-                                          (builtin sha2_256)
-                                        )
-                                        (let
-                                          (nonrec)
-                                          (termbind
-                                            (strict)
-                                            (vardecl
-                                              trace (fun (con string) Unit)
-                                            )
-                                            (lam
-                                              arg
-                                              (con string)
-                                              [
-                                                (lam
-                                                  b
-                                                  (all a (type) (fun a a))
-                                                  Unit
-                                                )
-                                                [ (builtin trace) arg ]
-                                              ]
-                                            )
-                                          )
-                                          (let
-                                            (nonrec)
-                                            (datatypebind
-                                              (datatype
-                                                (tyvardecl
-                                                  Sealed (fun (type) (type))
-                                                )
-                                                (tyvardecl a (type))
-                                                Sealed_match
-                                                (vardecl Seal (fun a [Sealed a])
-                                                )
-                                              )
-                                            )
-                                            (let
-                                              (nonrec)
-                                              (termbind
-                                                (nonstrict)
-                                                (vardecl
-                                                  swmkValidator
-                                                  [List (con integer)]
-                                                )
+                                                toPlutusString
                                                 [
                                                   [
                                                     { Cons (con integer) }
-                                                    (con 83)
+                                                    (con 115)
                                                   ]
                                                   [
                                                     [
@@ -838,7 +202,7 @@
                                                                 Cons
                                                                 (con integer)
                                                               }
-                                                              (con 32)
+                                                              (con 115)
                                                             ]
                                                             [
                                                               [
@@ -846,7 +210,7 @@
                                                                   Cons
                                                                   (con integer)
                                                                 }
-                                                                (con 116)
+                                                                (con 32)
                                                               ]
                                                               [
                                                                 [
@@ -854,7 +218,7 @@
                                                                     Cons
                                                                     (con integer)
                                                                   }
-                                                                  (con 114)
+                                                                  (con 110)
                                                                 ]
                                                                 [
                                                                   [
@@ -862,7 +226,349 @@
                                                                       Cons
                                                                       (con integer)
                                                                     }
-                                                                    (con 97)
+                                                                    (con 111)
+                                                                  ]
+                                                                  [
+                                                                    [
+                                                                      {
+                                                                        Cons
+                                                                        (con integer)
+                                                                      }
+                                                                      (con 116)
+                                                                    ]
+                                                                    [
+                                                                      [
+                                                                        {
+                                                                          Cons
+                                                                          (con integer)
+                                                                        }
+                                                                        (con 32)
+                                                                      ]
+                                                                      [
+                                                                        [
+                                                                          {
+                                                                            Cons
+                                                                            (con integer)
+                                                                          }
+                                                                          (con
+                                                                            101
+                                                                          )
+                                                                        ]
+                                                                        [
+                                                                          [
+                                                                            {
+                                                                              Cons
+                                                                              (con integer)
+                                                                            }
+                                                                            (con
+                                                                              113
+                                                                            )
+                                                                          ]
+                                                                          [
+                                                                            [
+                                                                              {
+                                                                                Cons
+                                                                                (con integer)
+                                                                              }
+                                                                              (con
+                                                                                117
+                                                                              )
+                                                                            ]
+                                                                            [
+                                                                              [
+                                                                                {
+                                                                                  Cons
+                                                                                  (con integer)
+                                                                                }
+                                                                                (con
+                                                                                  97
+                                                                                )
+                                                                              ]
+                                                                              [
+                                                                                [
+                                                                                  {
+                                                                                    Cons
+                                                                                    (con integer)
+                                                                                  }
+                                                                                  (con
+                                                                                    108
+                                                                                  )
+                                                                                ]
+                                                                                {
+                                                                                  Nil
+                                                                                  (con integer)
+                                                                                }
+                                                                              ]
+                                                                            ]
+                                                                          ]
+                                                                        ]
+                                                                      ]
+                                                                    ]
+                                                                  ]
+                                                                ]
+                                                              ]
+                                                            ]
+                                                          ]
+                                                        ]
+                                                      ]
+                                                    ]
+                                                  ]
+                                                ]
+                                              ]
+                                            ]
+                                          ]
+                                          (fun Unit Bool)
+                                        }
+                                        (lam thunk Unit False)
+                                      ]
+                                      Unit
+                                    ]
+                                  )
+                                )
+                                [
+                                  [
+                                    { [ GameState_match ds ] Bool }
+                                    (lam
+                                      ds
+                                      (con bytestring)
+                                      [
+                                        [
+                                          { [ GameState_match ds ] Bool }
+                                          (lam
+                                            ds
+                                            (con bytestring)
+                                            [ [ equalsByteString ds ] ds ]
+                                          )
+                                        ]
+                                        (lam
+                                          ipv
+                                          (con bytestring)
+                                          (lam
+                                            ipv
+                                            (con bytestring)
+                                            [
+                                              fail
+                                              (abs
+                                                e
+                                                (type)
+                                                (lam thunk Unit (error e))
+                                              )
+                                            ]
+                                          )
+                                        )
+                                      ]
+                                    )
+                                  ]
+                                  (lam
+                                    ds
+                                    (con bytestring)
+                                    (lam
+                                      ds
+                                      (con bytestring)
+                                      [
+                                        [
+                                          { [ GameState_match ds ] Bool }
+                                          (lam
+                                            ipv
+                                            (con bytestring)
+                                            [
+                                              fail
+                                              (abs
+                                                e
+                                                (type)
+                                                (lam thunk Unit (error e))
+                                              )
+                                            ]
+                                          )
+                                        ]
+                                        (lam
+                                          ds
+                                          (con bytestring)
+                                          (lam
+                                            ds
+                                            (con bytestring)
+                                            [
+                                              [
+                                                [
+                                                  {
+                                                    [
+                                                      Bool_match
+                                                      [
+                                                        [ equalsByteString ds ]
+                                                        ds
+                                                      ]
+                                                    ]
+                                                    (fun Unit Bool)
+                                                  }
+                                                  (lam
+                                                    thunk
+                                                    Unit
+                                                    [
+                                                      [ equalsByteString ds ] ds
+                                                    ]
+                                                  )
+                                                ]
+                                                (lam thunk Unit False)
+                                              ]
+                                              Unit
+                                            ]
+                                          )
+                                        )
+                                      ]
+                                    )
+                                  )
+                                ]
+                              )
+                            )
+                          )
+                        )
+                        (let
+                          (rec)
+                          (termbind
+                            (strict)
+                            (vardecl
+                              fFunctorNil_cfmap
+                              (all a (type) (all b (type) (fun (fun a b) (fun [List a] [List b]))))
+                            )
+                            (abs
+                              a
+                              (type)
+                              (abs
+                                b
+                                (type)
+                                (lam
+                                  f
+                                  (fun a b)
+                                  (lam
+                                    l
+                                    [List a]
+                                    [
+                                      [
+                                        [
+                                          {
+                                            [ { Nil_match a } l ]
+                                            (fun Unit [List b])
+                                          }
+                                          (lam thunk Unit { Nil b })
+                                        ]
+                                        (lam
+                                          x
+                                          a
+                                          (lam
+                                            xs
+                                            [List a]
+                                            (lam
+                                              thunk
+                                              Unit
+                                              [
+                                                [ { Cons b } [ f x ] ]
+                                                [
+                                                  [
+                                                    {
+                                                      { fFunctorNil_cfmap a } b
+                                                    }
+                                                    f
+                                                  ]
+                                                  xs
+                                                ]
+                                              ]
+                                            )
+                                          )
+                                        )
+                                      ]
+                                      Unit
+                                    ]
+                                  )
+                                )
+                              )
+                            )
+                          )
+                          (let
+                            (nonrec)
+                            (termbind
+                              (nonstrict)
+                              (vardecl swmkValidator [List (con integer)])
+                              [
+                                [ { Cons (con integer) } (con 83) ]
+                                [
+                                  [ { Cons (con integer) } (con 116) ]
+                                  [
+                                    [ { Cons (con integer) } (con 97) ]
+                                    [
+                                      [ { Cons (con integer) } (con 116) ]
+                                      [
+                                        [ { Cons (con integer) } (con 101) ]
+                                        [
+                                          [ { Cons (con integer) } (con 32) ]
+                                          [
+                                            [ { Cons (con integer) } (con 116) ]
+                                            [
+                                              [
+                                                { Cons (con integer) } (con 114)
+                                              ]
+                                              [
+                                                [
+                                                  { Cons (con integer) }
+                                                  (con 97)
+                                                ]
+                                                [
+                                                  [
+                                                    { Cons (con integer) }
+                                                    (con 110)
+                                                  ]
+                                                  [
+                                                    [
+                                                      { Cons (con integer) }
+                                                      (con 115)
+                                                    ]
+                                                    [
+                                                      [
+                                                        { Cons (con integer) }
+                                                        (con 105)
+                                                      ]
+                                                      [
+                                                        [
+                                                          { Cons (con integer) }
+                                                          (con 116)
+                                                        ]
+                                                        [
+                                                          [
+                                                            {
+                                                              Cons (con integer)
+                                                            }
+                                                            (con 105)
+                                                          ]
+                                                          [
+                                                            [
+                                                              {
+                                                                Cons
+                                                                (con integer)
+                                                              }
+                                                              (con 111)
+                                                            ]
+                                                            [
+                                                              [
+                                                                {
+                                                                  Cons
+                                                                  (con integer)
+                                                                }
+                                                                (con 110)
+                                                              ]
+                                                              [
+                                                                [
+                                                                  {
+                                                                    Cons
+                                                                    (con integer)
+                                                                  }
+                                                                  (con 32)
+                                                                ]
+                                                                [
+                                                                  [
+                                                                    {
+                                                                      Cons
+                                                                      (con integer)
+                                                                    }
+                                                                    (con 105)
                                                                   ]
                                                                   [
                                                                     [
@@ -878,7 +584,7 @@
                                                                           Cons
                                                                           (con integer)
                                                                         }
-                                                                        (con 115
+                                                                        (con 118
                                                                         )
                                                                       ]
                                                                       [
@@ -888,7 +594,7 @@
                                                                             (con integer)
                                                                           }
                                                                           (con
-                                                                            105
+                                                                            97
                                                                           )
                                                                         ]
                                                                         [
@@ -898,7 +604,7 @@
                                                                               (con integer)
                                                                             }
                                                                             (con
-                                                                              116
+                                                                              108
                                                                             )
                                                                           ]
                                                                           [
@@ -918,7 +624,7 @@
                                                                                   (con integer)
                                                                                 }
                                                                                 (con
-                                                                                  111
+                                                                                  100
                                                                                 )
                                                                               ]
                                                                               [
@@ -928,7 +634,7 @@
                                                                                     (con integer)
                                                                                   }
                                                                                   (con
-                                                                                    110
+                                                                                    32
                                                                                   )
                                                                                 ]
                                                                                 [
@@ -938,7 +644,7 @@
                                                                                       (con integer)
                                                                                     }
                                                                                     (con
-                                                                                      32
+                                                                                      45
                                                                                     )
                                                                                   ]
                                                                                   [
@@ -948,7 +654,7 @@
                                                                                         (con integer)
                                                                                       }
                                                                                       (con
-                                                                                        105
+                                                                                        32
                                                                                       )
                                                                                     ]
                                                                                     [
@@ -958,7 +664,7 @@
                                                                                           (con integer)
                                                                                         }
                                                                                         (con
-                                                                                          110
+                                                                                          39
                                                                                         )
                                                                                       ]
                                                                                       [
@@ -968,7 +674,7 @@
                                                                                             (con integer)
                                                                                           }
                                                                                           (con
-                                                                                            118
+                                                                                            101
                                                                                           )
                                                                                         ]
                                                                                         [
@@ -978,7 +684,7 @@
                                                                                               (con integer)
                                                                                             }
                                                                                             (con
-                                                                                              97
+                                                                                              120
                                                                                             )
                                                                                           ]
                                                                                           [
@@ -988,7 +694,7 @@
                                                                                                 (con integer)
                                                                                               }
                                                                                               (con
-                                                                                                108
+                                                                                                112
                                                                                               )
                                                                                             ]
                                                                                             [
@@ -998,7 +704,7 @@
                                                                                                   (con integer)
                                                                                                 }
                                                                                                 (con
-                                                                                                  105
+                                                                                                  101
                                                                                                 )
                                                                                               ]
                                                                                               [
@@ -1008,7 +714,7 @@
                                                                                                     (con integer)
                                                                                                   }
                                                                                                   (con
-                                                                                                    100
+                                                                                                    99
                                                                                                   )
                                                                                                 ]
                                                                                                 [
@@ -1018,7 +724,7 @@
                                                                                                       (con integer)
                                                                                                     }
                                                                                                     (con
-                                                                                                      32
+                                                                                                      116
                                                                                                     )
                                                                                                   ]
                                                                                                   [
@@ -1028,7 +734,7 @@
                                                                                                         (con integer)
                                                                                                       }
                                                                                                       (con
-                                                                                                        45
+                                                                                                        101
                                                                                                       )
                                                                                                     ]
                                                                                                     [
@@ -1038,7 +744,7 @@
                                                                                                           (con integer)
                                                                                                         }
                                                                                                         (con
-                                                                                                          32
+                                                                                                          100
                                                                                                         )
                                                                                                       ]
                                                                                                       [
@@ -1048,7 +754,7 @@
                                                                                                             (con integer)
                                                                                                           }
                                                                                                           (con
-                                                                                                            39
+                                                                                                            83
                                                                                                           )
                                                                                                         ]
                                                                                                         [
@@ -1058,7 +764,7 @@
                                                                                                               (con integer)
                                                                                                             }
                                                                                                             (con
-                                                                                                              101
+                                                                                                              116
                                                                                                             )
                                                                                                           ]
                                                                                                           [
@@ -1068,7 +774,7 @@
                                                                                                                 (con integer)
                                                                                                               }
                                                                                                               (con
-                                                                                                                120
+                                                                                                                97
                                                                                                               )
                                                                                                             ]
                                                                                                             [
@@ -1078,7 +784,7 @@
                                                                                                                   (con integer)
                                                                                                                 }
                                                                                                                 (con
-                                                                                                                  112
+                                                                                                                  116
                                                                                                                 )
                                                                                                               ]
                                                                                                               [
@@ -1098,7 +804,7 @@
                                                                                                                       (con integer)
                                                                                                                     }
                                                                                                                     (con
-                                                                                                                      99
+                                                                                                                      39
                                                                                                                     )
                                                                                                                   ]
                                                                                                                   [
@@ -1108,7 +814,7 @@
                                                                                                                         (con integer)
                                                                                                                       }
                                                                                                                       (con
-                                                                                                                        116
+                                                                                                                        32
                                                                                                                       )
                                                                                                                     ]
                                                                                                                     [
@@ -1118,7 +824,7 @@
                                                                                                                           (con integer)
                                                                                                                         }
                                                                                                                         (con
-                                                                                                                          101
+                                                                                                                          110
                                                                                                                         )
                                                                                                                       ]
                                                                                                                       [
@@ -1128,7 +834,7 @@
                                                                                                                             (con integer)
                                                                                                                           }
                                                                                                                           (con
-                                                                                                                            100
+                                                                                                                            111
                                                                                                                           )
                                                                                                                         ]
                                                                                                                         [
@@ -1138,7 +844,7 @@
                                                                                                                               (con integer)
                                                                                                                             }
                                                                                                                             (con
-                                                                                                                              83
+                                                                                                                              116
                                                                                                                             )
                                                                                                                           ]
                                                                                                                           [
@@ -1148,7 +854,7 @@
                                                                                                                                 (con integer)
                                                                                                                               }
                                                                                                                               (con
-                                                                                                                                116
+                                                                                                                                32
                                                                                                                               )
                                                                                                                             ]
                                                                                                                             [
@@ -1158,7 +864,7 @@
                                                                                                                                   (con integer)
                                                                                                                                 }
                                                                                                                                 (con
-                                                                                                                                  97
+                                                                                                                                  101
                                                                                                                                 )
                                                                                                                               ]
                                                                                                                               [
@@ -1168,7 +874,7 @@
                                                                                                                                     (con integer)
                                                                                                                                   }
                                                                                                                                   (con
-                                                                                                                                    116
+                                                                                                                                    113
                                                                                                                                   )
                                                                                                                                 ]
                                                                                                                                 [
@@ -1178,7 +884,7 @@
                                                                                                                                       (con integer)
                                                                                                                                     }
                                                                                                                                     (con
-                                                                                                                                      101
+                                                                                                                                      117
                                                                                                                                     )
                                                                                                                                   ]
                                                                                                                                   [
@@ -1188,7 +894,7 @@
                                                                                                                                         (con integer)
                                                                                                                                       }
                                                                                                                                       (con
-                                                                                                                                        39
+                                                                                                                                        97
                                                                                                                                       )
                                                                                                                                     ]
                                                                                                                                     [
@@ -1198,7 +904,7 @@
                                                                                                                                           (con integer)
                                                                                                                                         }
                                                                                                                                         (con
-                                                                                                                                          32
+                                                                                                                                          108
                                                                                                                                         )
                                                                                                                                       ]
                                                                                                                                       [
@@ -1208,7 +914,7 @@
                                                                                                                                             (con integer)
                                                                                                                                           }
                                                                                                                                           (con
-                                                                                                                                            110
+                                                                                                                                            32
                                                                                                                                           )
                                                                                                                                         ]
                                                                                                                                         [
@@ -1218,7 +924,7 @@
                                                                                                                                               (con integer)
                                                                                                                                             }
                                                                                                                                             (con
-                                                                                                                                              111
+                                                                                                                                              116
                                                                                                                                             )
                                                                                                                                           ]
                                                                                                                                           [
@@ -1228,7 +934,7 @@
                                                                                                                                                 (con integer)
                                                                                                                                               }
                                                                                                                                               (con
-                                                                                                                                                116
+                                                                                                                                                111
                                                                                                                                               )
                                                                                                                                             ]
                                                                                                                                             [
@@ -1248,7 +954,7 @@
                                                                                                                                                     (con integer)
                                                                                                                                                   }
                                                                                                                                                   (con
-                                                                                                                                                    101
+                                                                                                                                                    39
                                                                                                                                                   )
                                                                                                                                                 ]
                                                                                                                                                 [
@@ -1258,7 +964,7 @@
                                                                                                                                                       (con integer)
                                                                                                                                                     }
                                                                                                                                                     (con
-                                                                                                                                                      113
+                                                                                                                                                      110
                                                                                                                                                     )
                                                                                                                                                   ]
                                                                                                                                                   [
@@ -1268,7 +974,7 @@
                                                                                                                                                         (con integer)
                                                                                                                                                       }
                                                                                                                                                       (con
-                                                                                                                                                        117
+                                                                                                                                                        101
                                                                                                                                                       )
                                                                                                                                                     ]
                                                                                                                                                     [
@@ -1278,7 +984,7 @@
                                                                                                                                                           (con integer)
                                                                                                                                                         }
                                                                                                                                                         (con
-                                                                                                                                                          97
+                                                                                                                                                          119
                                                                                                                                                         )
                                                                                                                                                       ]
                                                                                                                                                       [
@@ -1288,7 +994,7 @@
                                                                                                                                                             (con integer)
                                                                                                                                                           }
                                                                                                                                                           (con
-                                                                                                                                                            108
+                                                                                                                                                            83
                                                                                                                                                           )
                                                                                                                                                         ]
                                                                                                                                                         [
@@ -1298,7 +1004,7 @@
                                                                                                                                                               (con integer)
                                                                                                                                                             }
                                                                                                                                                             (con
-                                                                                                                                                              32
+                                                                                                                                                              116
                                                                                                                                                             )
                                                                                                                                                           ]
                                                                                                                                                           [
@@ -1308,7 +1014,7 @@
                                                                                                                                                                 (con integer)
                                                                                                                                                               }
                                                                                                                                                               (con
-                                                                                                                                                                116
+                                                                                                                                                                97
                                                                                                                                                               )
                                                                                                                                                             ]
                                                                                                                                                             [
@@ -1318,7 +1024,7 @@
                                                                                                                                                                   (con integer)
                                                                                                                                                                 }
                                                                                                                                                                 (con
-                                                                                                                                                                  111
+                                                                                                                                                                  116
                                                                                                                                                                 )
                                                                                                                                                               ]
                                                                                                                                                               [
@@ -1328,7 +1034,7 @@
                                                                                                                                                                     (con integer)
                                                                                                                                                                   }
                                                                                                                                                                   (con
-                                                                                                                                                                    32
+                                                                                                                                                                    101
                                                                                                                                                                   )
                                                                                                                                                                 ]
                                                                                                                                                                 [
@@ -1341,109 +1047,10 @@
                                                                                                                                                                       39
                                                                                                                                                                     )
                                                                                                                                                                   ]
-                                                                                                                                                                  [
-                                                                                                                                                                    [
-                                                                                                                                                                      {
-                                                                                                                                                                        Cons
-                                                                                                                                                                        (con integer)
-                                                                                                                                                                      }
-                                                                                                                                                                      (con
-                                                                                                                                                                        110
-                                                                                                                                                                      )
-                                                                                                                                                                    ]
-                                                                                                                                                                    [
-                                                                                                                                                                      [
-                                                                                                                                                                        {
-                                                                                                                                                                          Cons
-                                                                                                                                                                          (con integer)
-                                                                                                                                                                        }
-                                                                                                                                                                        (con
-                                                                                                                                                                          101
-                                                                                                                                                                        )
-                                                                                                                                                                      ]
-                                                                                                                                                                      [
-                                                                                                                                                                        [
-                                                                                                                                                                          {
-                                                                                                                                                                            Cons
-                                                                                                                                                                            (con integer)
-                                                                                                                                                                          }
-                                                                                                                                                                          (con
-                                                                                                                                                                            119
-                                                                                                                                                                          )
-                                                                                                                                                                        ]
-                                                                                                                                                                        [
-                                                                                                                                                                          [
-                                                                                                                                                                            {
-                                                                                                                                                                              Cons
-                                                                                                                                                                              (con integer)
-                                                                                                                                                                            }
-                                                                                                                                                                            (con
-                                                                                                                                                                              83
-                                                                                                                                                                            )
-                                                                                                                                                                          ]
-                                                                                                                                                                          [
-                                                                                                                                                                            [
-                                                                                                                                                                              {
-                                                                                                                                                                                Cons
-                                                                                                                                                                                (con integer)
-                                                                                                                                                                              }
-                                                                                                                                                                              (con
-                                                                                                                                                                                116
-                                                                                                                                                                              )
-                                                                                                                                                                            ]
-                                                                                                                                                                            [
-                                                                                                                                                                              [
-                                                                                                                                                                                {
-                                                                                                                                                                                  Cons
-                                                                                                                                                                                  (con integer)
-                                                                                                                                                                                }
-                                                                                                                                                                                (con
-                                                                                                                                                                                  97
-                                                                                                                                                                                )
-                                                                                                                                                                              ]
-                                                                                                                                                                              [
-                                                                                                                                                                                [
-                                                                                                                                                                                  {
-                                                                                                                                                                                    Cons
-                                                                                                                                                                                    (con integer)
-                                                                                                                                                                                  }
-                                                                                                                                                                                  (con
-                                                                                                                                                                                    116
-                                                                                                                                                                                  )
-                                                                                                                                                                                ]
-                                                                                                                                                                                [
-                                                                                                                                                                                  [
-                                                                                                                                                                                    {
-                                                                                                                                                                                      Cons
-                                                                                                                                                                                      (con integer)
-                                                                                                                                                                                    }
-                                                                                                                                                                                    (con
-                                                                                                                                                                                      101
-                                                                                                                                                                                    )
-                                                                                                                                                                                  ]
-                                                                                                                                                                                  [
-                                                                                                                                                                                    [
-                                                                                                                                                                                      {
-                                                                                                                                                                                        Cons
-                                                                                                                                                                                        (con integer)
-                                                                                                                                                                                      }
-                                                                                                                                                                                      (con
-                                                                                                                                                                                        39
-                                                                                                                                                                                      )
-                                                                                                                                                                                    ]
-                                                                                                                                                                                    {
-                                                                                                                                                                                      Nil
-                                                                                                                                                                                      (con integer)
-                                                                                                                                                                                    }
-                                                                                                                                                                                  ]
-                                                                                                                                                                                ]
-                                                                                                                                                                              ]
-                                                                                                                                                                            ]
-                                                                                                                                                                          ]
-                                                                                                                                                                        ]
-                                                                                                                                                                      ]
-                                                                                                                                                                    ]
-                                                                                                                                                                  ]
+                                                                                                                                                                  {
+                                                                                                                                                                    Nil
+                                                                                                                                                                    (con integer)
+                                                                                                                                                                  }
                                                                                                                                                                 ]
                                                                                                                                                               ]
                                                                                                                                                             ]
@@ -1501,60 +1108,268 @@
                                                     ]
                                                   ]
                                                 ]
+                                              ]
+                                            ]
+                                          ]
+                                        ]
+                                      ]
+                                    ]
+                                  ]
+                                ]
+                              ]
+                            )
+                            (let
+                              (nonrec)
+                              (termbind
+                                (nonstrict)
+                                (vardecl swmkValidator (con string))
+                                [ toPlutusString swmkValidator ]
+                              )
+                              (let
+                                (nonrec)
+                                (termbind
+                                  (nonstrict)
+                                  (vardecl swmkValidator Unit)
+                                  [ trace swmkValidator ]
+                                )
+                                (let
+                                  (nonrec)
+                                  (datatypebind
+                                    (datatype
+                                      (tyvardecl
+                                        Tuple2 (fun (type) (fun (type) (type)))
+                                      )
+                                      (tyvardecl a (type)) (tyvardecl b (type))
+                                      Tuple2_match
+                                      (vardecl
+                                        Tuple2 (fun a (fun b [[Tuple2 a] b]))
+                                      )
+                                    )
+                                  )
+                                  (let
+                                    (nonrec)
+                                    (datatypebind
+                                      (datatype
+                                        (tyvardecl GameInput (type))
+                                        
+                                        GameInput_match
+                                        (vardecl
+                                          ForgeToken
+                                          (fun (con bytestring) GameInput)
+                                        )
+                                        (vardecl
+                                          Guess
+                                          (fun (con bytestring) (fun (con bytestring) GameInput))
+                                        )
+                                      )
+                                    )
+                                    (let
+                                      (nonrec)
+                                      (datatypebind
+                                        (datatype
+                                          (tyvardecl Maybe (fun (type) (type)))
+                                          (tyvardecl a (type))
+                                          Maybe_match
+                                          (vardecl Just (fun a [Maybe a]))
+                                          (vardecl Nothing [Maybe a])
+                                        )
+                                      )
+                                      (let
+                                        (nonrec)
+                                        (datatypebind
+                                          (datatype
+                                            (tyvardecl
+                                              Interval (fun (type) (type))
+                                            )
+                                            (tyvardecl a (type))
+                                            Interval_match
+                                            (vardecl
+                                              Interval
+                                              (fun [Maybe a] (fun [Maybe a] [Interval a]))
+                                            )
+                                          )
+                                        )
+                                        (let
+                                          (nonrec)
+                                          (datatypebind
+                                            (datatype
+                                              (tyvardecl PendingTxOutRef (type))
+                                              
+                                              PendingTxOutRef_match
+                                              (vardecl
+                                                PendingTxOutRef
+                                                (fun (con bytestring) (fun (con integer) PendingTxOutRef))
+                                              )
+                                            )
+                                          )
+                                          (let
+                                            (nonrec)
+                                            (datatypebind
+                                              (datatype
+                                                (tyvardecl PendingTxIn (type))
+                                                
+                                                PendingTxIn_match
+                                                (vardecl
+                                                  PendingTxIn
+                                                  (fun PendingTxOutRef (fun [Maybe [[Tuple2 (con bytestring)] (con bytestring)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] PendingTxIn)))
+                                                )
+                                              )
+                                            )
+                                            (let
+                                              (nonrec)
+                                              (datatypebind
+                                                (datatype
+                                                  (tyvardecl
+                                                    PendingTxOutType (type)
+                                                  )
+                                                  
+                                                  PendingTxOutType_match
+                                                  (vardecl
+                                                    DataTxOut PendingTxOutType
+                                                  )
+                                                  (vardecl
+                                                    PubKeyTxOut
+                                                    (fun (con bytestring) PendingTxOutType)
+                                                  )
+                                                )
                                               )
                                               (let
                                                 (nonrec)
-                                                (termbind
-                                                  (nonstrict)
-                                                  (vardecl
-                                                    swmkValidator (con string)
+                                                (datatypebind
+                                                  (datatype
+                                                    (tyvardecl
+                                                      PendingTxOut (type)
+                                                    )
+                                                    
+                                                    PendingTxOut_match
+                                                    (vardecl
+                                                      PendingTxOut
+                                                      (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [Maybe [[Tuple2 (con bytestring)] (con bytestring)]] (fun PendingTxOutType PendingTxOut)))
+                                                    )
                                                   )
-                                                  [
-                                                    toPlutusString swmkValidator
-                                                  ]
                                                 )
                                                 (let
                                                   (nonrec)
-                                                  (termbind
-                                                    (nonstrict)
-                                                    (vardecl swmkValidator Unit)
-                                                    [ trace swmkValidator ]
+                                                  (datatypebind
+                                                    (datatype
+                                                      (tyvardecl
+                                                        PendingTx (type)
+                                                      )
+                                                      
+                                                      PendingTx_match
+                                                      (vardecl
+                                                        PendingTx
+                                                        (fun [List PendingTxIn] (fun [List PendingTxOut] (fun (con integer) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun PendingTxIn (fun [Interval (con integer)] (fun [List [[Tuple2 (con bytestring)] (con bytestring)]] (fun (con bytestring) PendingTx))))))))
+                                                      )
+                                                    )
                                                   )
                                                   (let
                                                     (nonrec)
                                                     (datatypebind
                                                       (datatype
                                                         (tyvardecl
-                                                          GameInput (type)
+                                                          These
+                                                          (fun (type) (fun (type) (type)))
                                                         )
-                                                        
-                                                        GameInput_match
+                                                        (tyvardecl a (type))
+                                                        (tyvardecl b (type))
+                                                        These_match
                                                         (vardecl
-                                                          ForgeToken
-                                                          (fun (con bytestring) GameInput)
+                                                          That
+                                                          (fun b [[These a] b])
                                                         )
                                                         (vardecl
-                                                          Guess
-                                                          (fun (con bytestring) (fun (con bytestring) GameInput))
+                                                          These
+                                                          (fun a (fun b [[These a] b]))
+                                                        )
+                                                        (vardecl
+                                                          This
+                                                          (fun a [[These a] b])
                                                         )
                                                       )
                                                     )
                                                     (let
-                                                      (nonrec)
-                                                      (datatypebind
-                                                        (datatype
-                                                          (tyvardecl
-                                                            GameState (type)
-                                                          )
-                                                          
-                                                          GameState_match
-                                                          (vardecl
-                                                            Initialised
-                                                            (fun (con bytestring) GameState)
-                                                          )
-                                                          (vardecl
-                                                            Locked
-                                                            (fun (con bytestring) (fun (con bytestring) GameState))
+                                                      (rec)
+                                                      (termbind
+                                                        (strict)
+                                                        (vardecl
+                                                          foldr
+                                                          (all a (type) (all b (type) (fun (fun a (fun b b)) (fun b (fun [List a] b)))))
+                                                        )
+                                                        (abs
+                                                          a
+                                                          (type)
+                                                          (abs
+                                                            b
+                                                            (type)
+                                                            (lam
+                                                              f
+                                                              (fun a (fun b b))
+                                                              (lam
+                                                                acc
+                                                                b
+                                                                (lam
+                                                                  l
+                                                                  [List a]
+                                                                  [
+                                                                    [
+                                                                      [
+                                                                        {
+                                                                          [
+                                                                            {
+                                                                              Nil_match
+                                                                              a
+                                                                            }
+                                                                            l
+                                                                          ]
+                                                                          (fun Unit b)
+                                                                        }
+                                                                        (lam
+                                                                          thunk
+                                                                          Unit
+                                                                          acc
+                                                                        )
+                                                                      ]
+                                                                      (lam
+                                                                        x
+                                                                        a
+                                                                        (lam
+                                                                          xs
+                                                                          [List a]
+                                                                          (lam
+                                                                            thunk
+                                                                            Unit
+                                                                            [
+                                                                              [
+                                                                                f
+                                                                                x
+                                                                              ]
+                                                                              [
+                                                                                [
+                                                                                  [
+                                                                                    {
+                                                                                      {
+                                                                                        foldr
+                                                                                        a
+                                                                                      }
+                                                                                      b
+                                                                                    }
+                                                                                    f
+                                                                                  ]
+                                                                                  acc
+                                                                                ]
+                                                                                xs
+                                                                              ]
+                                                                            ]
+                                                                          )
+                                                                        )
+                                                                      )
+                                                                    ]
+                                                                    Unit
+                                                                  ]
+                                                                )
+                                                              )
+                                                            )
                                                           )
                                                         )
                                                       )
@@ -1563,786 +1378,316 @@
                                                         (termbind
                                                           (strict)
                                                           (vardecl
-                                                            fEqGameState_c
-                                                            (fun GameState (fun GameState Bool))
+                                                            union
+                                                            (all k (type) (all v (type) (all r (type) (fun [(lam a (type) (fun a (fun a Bool))) k] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) k] v] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) k] r] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) k] [[These v] r]]))))))
                                                           )
-                                                          (lam
-                                                            ds
-                                                            GameState
-                                                            (lam
-                                                              ds
-                                                              GameState
-                                                              (let
-                                                                (nonrec)
-                                                                (termbind
-                                                                  (strict)
-                                                                  (vardecl
-                                                                    fail
-                                                                    (fun (all a (type) (fun Unit a)) Bool)
-                                                                  )
+                                                          (abs
+                                                            k
+                                                            (type)
+                                                            (abs
+                                                              v
+                                                              (type)
+                                                              (abs
+                                                                r
+                                                                (type)
+                                                                (lam
+                                                                  dEq
+                                                                  [(lam a (type) (fun a (fun a Bool))) k]
                                                                   (lam
                                                                     ds
-                                                                    (all a (type) (fun Unit a))
-                                                                    [
+                                                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) k] v]
+                                                                    (lam
+                                                                      ds
+                                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) k] r]
                                                                       [
-                                                                        {
+                                                                        [
                                                                           [
-                                                                            Unit_match
+                                                                            {
+                                                                              {
+                                                                                foldr
+                                                                                [[Tuple2 k] [[These v] r]]
+                                                                              }
+                                                                              [List [[Tuple2 k] [[These v] r]]]
+                                                                            }
+                                                                            {
+                                                                              Cons
+                                                                              [[Tuple2 k] [[These v] r]]
+                                                                            }
+                                                                          ]
+                                                                          [
                                                                             [
-                                                                              trace
-                                                                              [
-                                                                                toPlutusString
+                                                                              {
+                                                                                {
+                                                                                  fFunctorNil_cfmap
+                                                                                  [[Tuple2 k] r]
+                                                                                }
+                                                                                [[Tuple2 k] [[These v] r]]
+                                                                              }
+                                                                              (lam
+                                                                                ds
+                                                                                [[Tuple2 k] r]
                                                                                 [
-                                                                                  [
-                                                                                    {
-                                                                                      Cons
-                                                                                      (con integer)
-                                                                                    }
-                                                                                    (con
-                                                                                      115
-                                                                                    )
-                                                                                  ]
-                                                                                  [
+                                                                                  {
                                                                                     [
                                                                                       {
-                                                                                        Cons
-                                                                                        (con integer)
-                                                                                      }
-                                                                                      (con
-                                                                                        116
-                                                                                      )
-                                                                                    ]
-                                                                                    [
-                                                                                      [
                                                                                         {
-                                                                                          Cons
-                                                                                          (con integer)
+                                                                                          Tuple2_match
+                                                                                          k
                                                                                         }
-                                                                                        (con
-                                                                                          97
-                                                                                        )
-                                                                                      ]
+                                                                                        r
+                                                                                      }
+                                                                                      ds
+                                                                                    ]
+                                                                                    [[Tuple2 k] [[These v] r]]
+                                                                                  }
+                                                                                  (lam
+                                                                                    c
+                                                                                    k
+                                                                                    (lam
+                                                                                      b
+                                                                                      r
                                                                                       [
                                                                                         [
                                                                                           {
-                                                                                            Cons
-                                                                                            (con integer)
+                                                                                            {
+                                                                                              Tuple2
+                                                                                              k
+                                                                                            }
+                                                                                            [[These v] r]
                                                                                           }
-                                                                                          (con
-                                                                                            116
-                                                                                          )
+                                                                                          c
                                                                                         ]
                                                                                         [
-                                                                                          [
+                                                                                          {
                                                                                             {
-                                                                                              Cons
-                                                                                              (con integer)
+                                                                                              That
+                                                                                              v
                                                                                             }
-                                                                                            (con
-                                                                                              101
-                                                                                            )
-                                                                                          ]
-                                                                                          [
+                                                                                            r
+                                                                                          }
+                                                                                          b
+                                                                                        ]
+                                                                                      ]
+                                                                                    )
+                                                                                  )
+                                                                                ]
+                                                                              )
+                                                                            ]
+                                                                            [
+                                                                              [
+                                                                                [
+                                                                                  {
+                                                                                    {
+                                                                                      foldr
+                                                                                      [[Tuple2 k] r]
+                                                                                    }
+                                                                                    [List [[Tuple2 k] r]]
+                                                                                  }
+                                                                                  (lam
+                                                                                    e
+                                                                                    [[Tuple2 k] r]
+                                                                                    (lam
+                                                                                      xs
+                                                                                      [List [[Tuple2 k] r]]
+                                                                                      (let
+                                                                                        (nonrec
+                                                                                        )
+                                                                                        (termbind
+                                                                                          (strict
+                                                                                          )
+                                                                                          (vardecl
+                                                                                            wild
+                                                                                            [[Tuple2 k] r]
+                                                                                          )
+                                                                                          e
+                                                                                        )
+                                                                                        [
+                                                                                          {
                                                                                             [
                                                                                               {
-                                                                                                Cons
-                                                                                                (con integer)
-                                                                                              }
-                                                                                              (con
-                                                                                                115
-                                                                                              )
-                                                                                            ]
-                                                                                            [
-                                                                                              [
                                                                                                 {
-                                                                                                  Cons
-                                                                                                  (con integer)
+                                                                                                  Tuple2_match
+                                                                                                  k
                                                                                                 }
-                                                                                                (con
-                                                                                                  32
-                                                                                                )
-                                                                                              ]
+                                                                                                r
+                                                                                              }
+                                                                                              e
+                                                                                            ]
+                                                                                            [List [[Tuple2 k] r]]
+                                                                                          }
+                                                                                          (lam
+                                                                                            c
+                                                                                            k
+                                                                                            (lam
+                                                                                              ds
+                                                                                              r
                                                                                               [
-                                                                                                [
-                                                                                                  {
-                                                                                                    Cons
-                                                                                                    (con integer)
-                                                                                                  }
-                                                                                                  (con
-                                                                                                    110
-                                                                                                  )
-                                                                                                ]
                                                                                                 [
                                                                                                   [
                                                                                                     {
-                                                                                                      Cons
-                                                                                                      (con integer)
+                                                                                                      [
+                                                                                                        Bool_match
+                                                                                                        [
+                                                                                                          [
+                                                                                                            [
+                                                                                                              {
+                                                                                                                {
+                                                                                                                  foldr
+                                                                                                                  [[Tuple2 k] v]
+                                                                                                                }
+                                                                                                                Bool
+                                                                                                              }
+                                                                                                              (lam
+                                                                                                                a
+                                                                                                                [[Tuple2 k] v]
+                                                                                                                (lam
+                                                                                                                  acc
+                                                                                                                  Bool
+                                                                                                                  [
+                                                                                                                    [
+                                                                                                                      [
+                                                                                                                        {
+                                                                                                                          [
+                                                                                                                            Bool_match
+                                                                                                                            acc
+                                                                                                                          ]
+                                                                                                                          (fun Unit Bool)
+                                                                                                                        }
+                                                                                                                        (lam
+                                                                                                                          thunk
+                                                                                                                          Unit
+                                                                                                                          True
+                                                                                                                        )
+                                                                                                                      ]
+                                                                                                                      (lam
+                                                                                                                        thunk
+                                                                                                                        Unit
+                                                                                                                        [
+                                                                                                                          {
+                                                                                                                            [
+                                                                                                                              {
+                                                                                                                                {
+                                                                                                                                  Tuple2_match
+                                                                                                                                  k
+                                                                                                                                }
+                                                                                                                                v
+                                                                                                                              }
+                                                                                                                              a
+                                                                                                                            ]
+                                                                                                                            Bool
+                                                                                                                          }
+                                                                                                                          (lam
+                                                                                                                            c
+                                                                                                                            k
+                                                                                                                            (lam
+                                                                                                                              ds
+                                                                                                                              v
+                                                                                                                              [
+                                                                                                                                [
+                                                                                                                                  dEq
+                                                                                                                                  c
+                                                                                                                                ]
+                                                                                                                                c
+                                                                                                                              ]
+                                                                                                                            )
+                                                                                                                          )
+                                                                                                                        ]
+                                                                                                                      )
+                                                                                                                    ]
+                                                                                                                    Unit
+                                                                                                                  ]
+                                                                                                                )
+                                                                                                              )
+                                                                                                            ]
+                                                                                                            False
+                                                                                                          ]
+                                                                                                          ds
+                                                                                                        ]
+                                                                                                      ]
+                                                                                                      (fun Unit [List [[Tuple2 k] r]])
                                                                                                     }
-                                                                                                    (con
-                                                                                                      111
+                                                                                                    (lam
+                                                                                                      thunk
+                                                                                                      Unit
+                                                                                                      xs
                                                                                                     )
                                                                                                   ]
-                                                                                                  [
-                                                                                                    [
-                                                                                                      {
-                                                                                                        Cons
-                                                                                                        (con integer)
-                                                                                                      }
-                                                                                                      (con
-                                                                                                        116
-                                                                                                      )
-                                                                                                    ]
+                                                                                                  (lam
+                                                                                                    thunk
+                                                                                                    Unit
                                                                                                     [
                                                                                                       [
                                                                                                         {
                                                                                                           Cons
-                                                                                                          (con integer)
+                                                                                                          [[Tuple2 k] r]
                                                                                                         }
-                                                                                                        (con
-                                                                                                          32
-                                                                                                        )
+                                                                                                        wild
                                                                                                       ]
-                                                                                                      [
-                                                                                                        [
-                                                                                                          {
-                                                                                                            Cons
-                                                                                                            (con integer)
-                                                                                                          }
-                                                                                                          (con
-                                                                                                            101
-                                                                                                          )
-                                                                                                        ]
-                                                                                                        [
-                                                                                                          [
-                                                                                                            {
-                                                                                                              Cons
-                                                                                                              (con integer)
-                                                                                                            }
-                                                                                                            (con
-                                                                                                              113
-                                                                                                            )
-                                                                                                          ]
-                                                                                                          [
-                                                                                                            [
-                                                                                                              {
-                                                                                                                Cons
-                                                                                                                (con integer)
-                                                                                                              }
-                                                                                                              (con
-                                                                                                                117
-                                                                                                              )
-                                                                                                            ]
-                                                                                                            [
-                                                                                                              [
-                                                                                                                {
-                                                                                                                  Cons
-                                                                                                                  (con integer)
-                                                                                                                }
-                                                                                                                (con
-                                                                                                                  97
-                                                                                                                )
-                                                                                                              ]
-                                                                                                              [
-                                                                                                                [
-                                                                                                                  {
-                                                                                                                    Cons
-                                                                                                                    (con integer)
-                                                                                                                  }
-                                                                                                                  (con
-                                                                                                                    108
-                                                                                                                  )
-                                                                                                                ]
-                                                                                                                {
-                                                                                                                  Nil
-                                                                                                                  (con integer)
-                                                                                                                }
-                                                                                                              ]
-                                                                                                            ]
-                                                                                                          ]
-                                                                                                        ]
-                                                                                                      ]
+                                                                                                      xs
                                                                                                     ]
-                                                                                                  ]
+                                                                                                  )
                                                                                                 ]
+                                                                                                Unit
                                                                                               ]
-                                                                                            ]
-                                                                                          ]
-                                                                                        ]
-                                                                                      ]
-                                                                                    ]
-                                                                                  ]
-                                                                                ]
-                                                                              ]
-                                                                            ]
-                                                                          ]
-                                                                          (fun Unit Bool)
-                                                                        }
-                                                                        (lam
-                                                                          thunk
-                                                                          Unit
-                                                                          False
-                                                                        )
-                                                                      ]
-                                                                      Unit
-                                                                    ]
-                                                                  )
-                                                                )
-                                                                [
-                                                                  [
-                                                                    {
-                                                                      [
-                                                                        GameState_match
-                                                                        ds
-                                                                      ]
-                                                                      Bool
-                                                                    }
-                                                                    (lam
-                                                                      ds
-                                                                      (con bytestring)
-                                                                      [
-                                                                        [
-                                                                          {
-                                                                            [
-                                                                              GameState_match
-                                                                              ds
-                                                                            ]
-                                                                            Bool
-                                                                          }
-                                                                          (lam
-                                                                            ds
-                                                                            (con bytestring)
-                                                                            [
-                                                                              [
-                                                                                equalsByteString
-                                                                                ds
-                                                                              ]
-                                                                              ds
-                                                                            ]
-                                                                          )
-                                                                        ]
-                                                                        (lam
-                                                                          ipv
-                                                                          (con bytestring)
-                                                                          (lam
-                                                                            ipv
-                                                                            (con bytestring)
-                                                                            [
-                                                                              fail
-                                                                              (abs
-                                                                                e
-                                                                                (type)
-                                                                                (lam
-                                                                                  thunk
-                                                                                  Unit
-                                                                                  (error
-                                                                                    e
-                                                                                  )
-                                                                                )
-                                                                              )
-                                                                            ]
-                                                                          )
-                                                                        )
-                                                                      ]
-                                                                    )
-                                                                  ]
-                                                                  (lam
-                                                                    ds
-                                                                    (con bytestring)
-                                                                    (lam
-                                                                      ds
-                                                                      (con bytestring)
-                                                                      [
-                                                                        [
-                                                                          {
-                                                                            [
-                                                                              GameState_match
-                                                                              ds
-                                                                            ]
-                                                                            Bool
-                                                                          }
-                                                                          (lam
-                                                                            ipv
-                                                                            (con bytestring)
-                                                                            [
-                                                                              fail
-                                                                              (abs
-                                                                                e
-                                                                                (type)
-                                                                                (lam
-                                                                                  thunk
-                                                                                  Unit
-                                                                                  (error
-                                                                                    e
-                                                                                  )
-                                                                                )
-                                                                              )
-                                                                            ]
-                                                                          )
-                                                                        ]
-                                                                        (lam
-                                                                          ds
-                                                                          (con bytestring)
-                                                                          (lam
-                                                                            ds
-                                                                            (con bytestring)
-                                                                            [
-                                                                              [
-                                                                                [
-                                                                                  {
-                                                                                    [
-                                                                                      Bool_match
-                                                                                      [
-                                                                                        [
-                                                                                          equalsByteString
-                                                                                          ds
-                                                                                        ]
-                                                                                        ds
-                                                                                      ]
-                                                                                    ]
-                                                                                    (fun Unit Bool)
-                                                                                  }
-                                                                                  (lam
-                                                                                    thunk
-                                                                                    Unit
-                                                                                    [
-                                                                                      [
-                                                                                        equalsByteString
-                                                                                        ds
-                                                                                      ]
-                                                                                      ds
-                                                                                    ]
-                                                                                  )
-                                                                                ]
-                                                                                (lam
-                                                                                  thunk
-                                                                                  Unit
-                                                                                  False
-                                                                                )
-                                                                              ]
-                                                                              Unit
-                                                                            ]
-                                                                          )
-                                                                        )
-                                                                      ]
-                                                                    )
-                                                                  )
-                                                                ]
-                                                              )
-                                                            )
-                                                          )
-                                                        )
-                                                        (let
-                                                          (nonrec)
-                                                          (datatypebind
-                                                            (datatype
-                                                              (tyvardecl
-                                                                Maybe
-                                                                (fun (type) (type))
-                                                              )
-                                                              (tyvardecl
-                                                                a (type)
-                                                              )
-                                                              Maybe_match
-                                                              (vardecl
-                                                                Just
-                                                                (fun a [Maybe a])
-                                                              )
-                                                              (vardecl
-                                                                Nothing
-                                                                [Maybe a]
-                                                              )
-                                                            )
-                                                          )
-                                                          (let
-                                                            (nonrec)
-                                                            (datatypebind
-                                                              (datatype
-                                                                (tyvardecl
-                                                                  Interval
-                                                                  (fun (type) (type))
-                                                                )
-                                                                (tyvardecl
-                                                                  a (type)
-                                                                )
-                                                                Interval_match
-                                                                (vardecl
-                                                                  Interval
-                                                                  (fun [Maybe a] (fun [Maybe a] [Interval a]))
-                                                                )
-                                                              )
-                                                            )
-                                                            (let
-                                                              (nonrec)
-                                                              (datatypebind
-                                                                (datatype
-                                                                  (tyvardecl
-                                                                    PendingTxOutRef
-                                                                    (type)
-                                                                  )
-                                                                  
-                                                                  PendingTxOutRef_match
-                                                                  (vardecl
-                                                                    PendingTxOutRef
-                                                                    (fun (con bytestring) (fun (con integer) PendingTxOutRef))
-                                                                  )
-                                                                )
-                                                              )
-                                                              (let
-                                                                (nonrec)
-                                                                (datatypebind
-                                                                  (datatype
-                                                                    (tyvardecl
-                                                                      PendingTxIn
-                                                                      (type)
-                                                                    )
-                                                                    
-                                                                    PendingTxIn_match
-                                                                    (vardecl
-                                                                      PendingTxIn
-                                                                      (fun PendingTxOutRef (fun [Maybe [[Tuple2 (con bytestring)] (con bytestring)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] PendingTxIn)))
-                                                                    )
-                                                                  )
-                                                                )
-                                                                (let
-                                                                  (nonrec)
-                                                                  (datatypebind
-                                                                    (datatype
-                                                                      (tyvardecl
-                                                                        PendingTxOutType
-                                                                        (type)
-                                                                      )
-                                                                      
-                                                                      PendingTxOutType_match
-                                                                      (vardecl
-                                                                        DataTxOut
-                                                                        PendingTxOutType
-                                                                      )
-                                                                      (vardecl
-                                                                        PubKeyTxOut
-                                                                        (fun (con bytestring) PendingTxOutType)
-                                                                      )
-                                                                    )
-                                                                  )
-                                                                  (let
-                                                                    (nonrec)
-                                                                    (datatypebind
-                                                                      (datatype
-                                                                        (tyvardecl
-                                                                          PendingTxOut
-                                                                          (type)
-                                                                        )
-                                                                        
-                                                                        PendingTxOut_match
-                                                                        (vardecl
-                                                                          PendingTxOut
-                                                                          (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [Maybe [[Tuple2 (con bytestring)] (con bytestring)]] (fun PendingTxOutType PendingTxOut)))
-                                                                        )
-                                                                      )
-                                                                    )
-                                                                    (let
-                                                                      (nonrec)
-                                                                      (datatypebind
-                                                                        (datatype
-                                                                          (tyvardecl
-                                                                            PendingTx
-                                                                            (type)
-                                                                          )
-                                                                          
-                                                                          PendingTx_match
-                                                                          (vardecl
-                                                                            PendingTx
-                                                                            (fun [List PendingTxIn] (fun [List PendingTxOut] (fun (con integer) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun PendingTxIn (fun [Interval (con integer)] (fun [List [[Tuple2 (con bytestring)] (con bytestring)]] (fun (con bytestring) PendingTx))))))))
-                                                                          )
-                                                                        )
-                                                                      )
-                                                                      (let
-                                                                        (nonrec)
-                                                                        (termbind
-                                                                          (strict
-                                                                          )
-                                                                          (vardecl
-                                                                            wownCurrencySymbol
-                                                                            (fun [Maybe [[Tuple2 (con bytestring)] (con bytestring)]] (con bytestring))
-                                                                          )
-                                                                          (lam
-                                                                            ww
-                                                                            [Maybe [[Tuple2 (con bytestring)] (con bytestring)]]
-                                                                            [
-                                                                              [
-                                                                                [
-                                                                                  {
-                                                                                    [
-                                                                                      {
-                                                                                        Maybe_match
-                                                                                        [[Tuple2 (con bytestring)] (con bytestring)]
-                                                                                      }
-                                                                                      ww
-                                                                                    ]
-                                                                                    (fun Unit (con bytestring))
-                                                                                  }
-                                                                                  (lam
-                                                                                    h
-                                                                                    [[Tuple2 (con bytestring)] (con bytestring)]
-                                                                                    (lam
-                                                                                      thunk
-                                                                                      Unit
-                                                                                      [
-                                                                                        {
-                                                                                          [
-                                                                                            {
-                                                                                              {
-                                                                                                Tuple2_match
-                                                                                                (con bytestring)
-                                                                                              }
-                                                                                              (con bytestring)
-                                                                                            }
-                                                                                            h
-                                                                                          ]
-                                                                                          (con bytestring)
-                                                                                        }
-                                                                                        (lam
-                                                                                          a
-                                                                                          (con bytestring)
-                                                                                          (lam
-                                                                                            ds
-                                                                                            (con bytestring)
-                                                                                            a
+                                                                                            )
                                                                                           )
-                                                                                        )
-                                                                                      ]
-                                                                                    )
-                                                                                  )
-                                                                                ]
-                                                                                (lam
-                                                                                  thunk
-                                                                                  Unit
-                                                                                  [
-                                                                                    {
-                                                                                      [
-                                                                                        {
-                                                                                          {
-                                                                                            Tuple2_match
-                                                                                            (con bytestring)
-                                                                                          }
-                                                                                          (con bytestring)
-                                                                                        }
-                                                                                        [
-                                                                                          {
-                                                                                            error
-                                                                                            [[Tuple2 (con bytestring)] (con bytestring)]
-                                                                                          }
-                                                                                          Unit
                                                                                         ]
-                                                                                      ]
-                                                                                      (con bytestring)
-                                                                                    }
-                                                                                    (lam
-                                                                                      a
-                                                                                      (con bytestring)
-                                                                                      (lam
-                                                                                        ds
-                                                                                        (con bytestring)
-                                                                                        a
                                                                                       )
                                                                                     )
-                                                                                  ]
-                                                                                )
+                                                                                  )
+                                                                                ]
+                                                                                {
+                                                                                  Nil
+                                                                                  [[Tuple2 k] r]
+                                                                                }
                                                                               ]
-                                                                              Unit
+                                                                              ds
                                                                             ]
-                                                                          )
-                                                                        )
-                                                                        (let
-                                                                          (nonrec
-                                                                          )
-                                                                          (termbind
-                                                                            (strict
-                                                                            )
-                                                                            (vardecl
-                                                                              ownCurrencySymbol
-                                                                              (fun PendingTx (con bytestring))
-                                                                            )
+                                                                          ]
+                                                                        ]
+                                                                        [
+                                                                          [
+                                                                            {
+                                                                              {
+                                                                                fFunctorNil_cfmap
+                                                                                [[Tuple2 k] v]
+                                                                              }
+                                                                              [[Tuple2 k] [[These v] r]]
+                                                                            }
                                                                             (lam
-                                                                              w
-                                                                              PendingTx
+                                                                              ds
+                                                                              [[Tuple2 k] v]
                                                                               [
                                                                                 {
                                                                                   [
-                                                                                    PendingTx_match
-                                                                                    w
+                                                                                    {
+                                                                                      {
+                                                                                        Tuple2_match
+                                                                                        k
+                                                                                      }
+                                                                                      v
+                                                                                    }
+                                                                                    ds
                                                                                   ]
-                                                                                  (con bytestring)
+                                                                                  [[Tuple2 k] [[These v] r]]
                                                                                 }
                                                                                 (lam
-                                                                                  ww
-                                                                                  [List PendingTxIn]
+                                                                                  c
+                                                                                  k
                                                                                   (lam
-                                                                                    ww
-                                                                                    [List PendingTxOut]
-                                                                                    (lam
-                                                                                      ww
-                                                                                      (con integer)
-                                                                                      (lam
-                                                                                        ww
-                                                                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                        (lam
-                                                                                          ww
-                                                                                          PendingTxIn
-                                                                                          (lam
-                                                                                            ww
-                                                                                            [Interval (con integer)]
-                                                                                            (lam
-                                                                                              ww
-                                                                                              [List [[Tuple2 (con bytestring)] (con bytestring)]]
-                                                                                              (lam
-                                                                                                ww
-                                                                                                (con bytestring)
-                                                                                                [
-                                                                                                  {
-                                                                                                    [
-                                                                                                      PendingTxIn_match
-                                                                                                      ww
-                                                                                                    ]
-                                                                                                    (con bytestring)
-                                                                                                  }
-                                                                                                  (lam
-                                                                                                    ww
-                                                                                                    PendingTxOutRef
-                                                                                                    (lam
-                                                                                                      ww
-                                                                                                      [Maybe [[Tuple2 (con bytestring)] (con bytestring)]]
-                                                                                                      (lam
-                                                                                                        ww
-                                                                                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                        [
-                                                                                                          wownCurrencySymbol
-                                                                                                          ww
-                                                                                                        ]
-                                                                                                      )
-                                                                                                    )
-                                                                                                  )
-                                                                                                ]
-                                                                                              )
-                                                                                            )
-                                                                                          )
-                                                                                        )
-                                                                                      )
-                                                                                    )
-                                                                                  )
-                                                                                )
-                                                                              ]
-                                                                            )
-                                                                          )
-                                                                          (let
-                                                                            (nonrec
-                                                                            )
-                                                                            (termbind
-                                                                              (strict
-                                                                              )
-                                                                              (vardecl
-                                                                                pendingTxForge
-                                                                                (fun PendingTx [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]])
-                                                                              )
-                                                                              (lam
-                                                                                ds
-                                                                                PendingTx
-                                                                                [
-                                                                                  {
+                                                                                    i
+                                                                                    v
                                                                                     [
-                                                                                      PendingTx_match
-                                                                                      ds
-                                                                                    ]
-                                                                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                  }
-                                                                                  (lam
-                                                                                    ds
-                                                                                    [List PendingTxIn]
-                                                                                    (lam
-                                                                                      ds
-                                                                                      [List PendingTxOut]
-                                                                                      (lam
-                                                                                        ds
-                                                                                        (con integer)
-                                                                                        (lam
-                                                                                          ds
-                                                                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                          (lam
-                                                                                            ds
-                                                                                            PendingTxIn
-                                                                                            (lam
-                                                                                              ds
-                                                                                              [Interval (con integer)]
-                                                                                              (lam
-                                                                                                ds
-                                                                                                [List [[Tuple2 (con bytestring)] (con bytestring)]]
-                                                                                                (lam
-                                                                                                  ds
-                                                                                                  (con bytestring)
-                                                                                                  ds
-                                                                                                )
-                                                                                              )
-                                                                                            )
-                                                                                          )
-                                                                                        )
-                                                                                      )
-                                                                                    )
-                                                                                  )
-                                                                                ]
-                                                                              )
-                                                                            )
-                                                                            (let
-                                                                              (nonrec
-                                                                              )
-                                                                              (termbind
-                                                                                (strict
-                                                                                )
-                                                                                (vardecl
-                                                                                  pendingTxInValue
-                                                                                  (fun PendingTxIn [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]])
-                                                                                )
-                                                                                (lam
-                                                                                  ds
-                                                                                  PendingTxIn
-                                                                                  [
-                                                                                    {
                                                                                       [
-                                                                                        PendingTxIn_match
-                                                                                        ds
+                                                                                        {
+                                                                                          {
+                                                                                            Tuple2
+                                                                                            k
+                                                                                          }
+                                                                                          [[These v] r]
+                                                                                        }
+                                                                                        c
                                                                                       ]
-                                                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                    }
-                                                                                    (lam
-                                                                                      ds
-                                                                                      PendingTxOutRef
-                                                                                      (lam
-                                                                                        ds
-                                                                                        [Maybe [[Tuple2 (con bytestring)] (con bytestring)]]
-                                                                                        (lam
-                                                                                          ds
-                                                                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                          ds
-                                                                                        )
-                                                                                      )
-                                                                                    )
-                                                                                  ]
-                                                                                )
-                                                                              )
-                                                                              (let
-                                                                                (nonrec
-                                                                                )
-                                                                                (termbind
-                                                                                  (strict
-                                                                                  )
-                                                                                  (vardecl
-                                                                                    unionVal
-                                                                                    (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]))
-                                                                                  )
-                                                                                  (lam
-                                                                                    ds
-                                                                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                    (lam
-                                                                                      ds
-                                                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                                                                                       (let
                                                                                         (rec
                                                                                         )
@@ -2351,11 +1696,11 @@
                                                                                           )
                                                                                           (vardecl
                                                                                             go
-                                                                                            (fun [List [[Tuple2 (con bytestring)] [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]] [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]])
+                                                                                            (fun [List [[Tuple2 k] r]] [[These v] r])
                                                                                           )
                                                                                           (lam
                                                                                             ds
-                                                                                            [List [[Tuple2 (con bytestring)] [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]]
+                                                                                            [List [[Tuple2 k] r]]
                                                                                             [
                                                                                               [
                                                                                                 [
@@ -2363,27 +1708,33 @@
                                                                                                     [
                                                                                                       {
                                                                                                         Nil_match
-                                                                                                        [[Tuple2 (con bytestring)] [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
+                                                                                                        [[Tuple2 k] r]
                                                                                                       }
                                                                                                       ds
                                                                                                     ]
-                                                                                                    (fun Unit [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]])
+                                                                                                    (fun Unit [[These v] r])
                                                                                                   }
                                                                                                   (lam
                                                                                                     thunk
                                                                                                     Unit
-                                                                                                    {
-                                                                                                      Nil
-                                                                                                      [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]
-                                                                                                    }
+                                                                                                    [
+                                                                                                      {
+                                                                                                        {
+                                                                                                          This
+                                                                                                          v
+                                                                                                        }
+                                                                                                        r
+                                                                                                      }
+                                                                                                      i
+                                                                                                    ]
                                                                                                   )
                                                                                                 ]
                                                                                                 (lam
                                                                                                   ds
-                                                                                                  [[Tuple2 (con bytestring)] [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
+                                                                                                  [[Tuple2 k] r]
                                                                                                   (lam
                                                                                                     xs
-                                                                                                    [List [[Tuple2 (con bytestring)] [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]]
+                                                                                                    [List [[Tuple2 k] r]]
                                                                                                     (lam
                                                                                                       thunk
                                                                                                       Unit
@@ -2393,325 +1744,64 @@
                                                                                                             {
                                                                                                               {
                                                                                                                 Tuple2_match
-                                                                                                                (con bytestring)
+                                                                                                                k
                                                                                                               }
-                                                                                                              [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                              r
                                                                                                             }
                                                                                                             ds
                                                                                                           ]
-                                                                                                          [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]]
+                                                                                                          [[These v] r]
                                                                                                         }
                                                                                                         (lam
                                                                                                           c
-                                                                                                          (con bytestring)
+                                                                                                          k
                                                                                                           (lam
                                                                                                             i
-                                                                                                            [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                            r
                                                                                                             [
                                                                                                               [
-                                                                                                                {
-                                                                                                                  Cons
-                                                                                                                  [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]
-                                                                                                                }
                                                                                                                 [
-                                                                                                                  [
-                                                                                                                    {
-                                                                                                                      {
-                                                                                                                        Tuple2
-                                                                                                                        (con bytestring)
-                                                                                                                      }
-                                                                                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]
-                                                                                                                    }
-                                                                                                                    c
-                                                                                                                  ]
-                                                                                                                  [
+                                                                                                                  {
+                                                                                                                    [
+                                                                                                                      Bool_match
+                                                                                                                      [
+                                                                                                                        [
+                                                                                                                          dEq
+                                                                                                                          c
+                                                                                                                        ]
+                                                                                                                        c
+                                                                                                                      ]
+                                                                                                                    ]
+                                                                                                                    (fun Unit [[These v] r])
+                                                                                                                  }
+                                                                                                                  (lam
+                                                                                                                    thunk
+                                                                                                                    Unit
                                                                                                                     [
                                                                                                                       [
                                                                                                                         {
-                                                                                                                          [
-                                                                                                                            {
-                                                                                                                              {
-                                                                                                                                These_match
-                                                                                                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
-                                                                                                                              }
-                                                                                                                              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
-                                                                                                                            }
-                                                                                                                            i
-                                                                                                                          ]
-                                                                                                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]
+                                                                                                                          {
+                                                                                                                            These
+                                                                                                                            v
+                                                                                                                          }
+                                                                                                                          r
                                                                                                                         }
-                                                                                                                        (lam
-                                                                                                                          b
-                                                                                                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
-                                                                                                                          (let
-                                                                                                                            (rec
-                                                                                                                            )
-                                                                                                                            (termbind
-                                                                                                                              (strict
-                                                                                                                              )
-                                                                                                                              (vardecl
-                                                                                                                                go
-                                                                                                                                (fun [List [[Tuple2 (con bytestring)] (con integer)]] [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]])
-                                                                                                                              )
-                                                                                                                              (lam
-                                                                                                                                ds
-                                                                                                                                [List [[Tuple2 (con bytestring)] (con integer)]]
-                                                                                                                                [
-                                                                                                                                  [
-                                                                                                                                    [
-                                                                                                                                      {
-                                                                                                                                        [
-                                                                                                                                          {
-                                                                                                                                            Nil_match
-                                                                                                                                            [[Tuple2 (con bytestring)] (con integer)]
-                                                                                                                                          }
-                                                                                                                                          ds
-                                                                                                                                        ]
-                                                                                                                                        (fun Unit [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]])
-                                                                                                                                      }
-                                                                                                                                      (lam
-                                                                                                                                        thunk
-                                                                                                                                        Unit
-                                                                                                                                        {
-                                                                                                                                          Nil
-                                                                                                                                          [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
-                                                                                                                                        }
-                                                                                                                                      )
-                                                                                                                                    ]
-                                                                                                                                    (lam
-                                                                                                                                      ds
-                                                                                                                                      [[Tuple2 (con bytestring)] (con integer)]
-                                                                                                                                      (lam
-                                                                                                                                        xs
-                                                                                                                                        [List [[Tuple2 (con bytestring)] (con integer)]]
-                                                                                                                                        (lam
-                                                                                                                                          thunk
-                                                                                                                                          Unit
-                                                                                                                                          [
-                                                                                                                                            {
-                                                                                                                                              [
-                                                                                                                                                {
-                                                                                                                                                  {
-                                                                                                                                                    Tuple2_match
-                                                                                                                                                    (con bytestring)
-                                                                                                                                                  }
-                                                                                                                                                  (con integer)
-                                                                                                                                                }
-                                                                                                                                                ds
-                                                                                                                                              ]
-                                                                                                                                              [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]]
-                                                                                                                                            }
-                                                                                                                                            (lam
-                                                                                                                                              c
-                                                                                                                                              (con bytestring)
-                                                                                                                                              (lam
-                                                                                                                                                i
-                                                                                                                                                (con integer)
-                                                                                                                                                [
-                                                                                                                                                  [
-                                                                                                                                                    {
-                                                                                                                                                      Cons
-                                                                                                                                                      [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
-                                                                                                                                                    }
-                                                                                                                                                    [
-                                                                                                                                                      [
-                                                                                                                                                        {
-                                                                                                                                                          {
-                                                                                                                                                            Tuple2
-                                                                                                                                                            (con bytestring)
-                                                                                                                                                          }
-                                                                                                                                                          [[These (con integer)] (con integer)]
-                                                                                                                                                        }
-                                                                                                                                                        c
-                                                                                                                                                      ]
-                                                                                                                                                      [
-                                                                                                                                                        {
-                                                                                                                                                          {
-                                                                                                                                                            That
-                                                                                                                                                            (con integer)
-                                                                                                                                                          }
-                                                                                                                                                          (con integer)
-                                                                                                                                                        }
-                                                                                                                                                        i
-                                                                                                                                                      ]
-                                                                                                                                                    ]
-                                                                                                                                                  ]
-                                                                                                                                                  [
-                                                                                                                                                    go
-                                                                                                                                                    xs
-                                                                                                                                                  ]
-                                                                                                                                                ]
-                                                                                                                                              )
-                                                                                                                                            )
-                                                                                                                                          ]
-                                                                                                                                        )
-                                                                                                                                      )
-                                                                                                                                    )
-                                                                                                                                  ]
-                                                                                                                                  Unit
-                                                                                                                                ]
-                                                                                                                              )
-                                                                                                                            )
-                                                                                                                            [
-                                                                                                                              go
-                                                                                                                              b
-                                                                                                                            ]
-                                                                                                                          )
-                                                                                                                        )
+                                                                                                                        i
                                                                                                                       ]
-                                                                                                                      (lam
-                                                                                                                        a
-                                                                                                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
-                                                                                                                        (lam
-                                                                                                                          b
-                                                                                                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
-                                                                                                                          [
-                                                                                                                            [
-                                                                                                                              [
-                                                                                                                                {
-                                                                                                                                  {
-                                                                                                                                    {
-                                                                                                                                      union
-                                                                                                                                      (con bytestring)
-                                                                                                                                    }
-                                                                                                                                    (con integer)
-                                                                                                                                  }
-                                                                                                                                  (con integer)
-                                                                                                                                }
-                                                                                                                                equalsByteString
-                                                                                                                              ]
-                                                                                                                              a
-                                                                                                                            ]
-                                                                                                                            b
-                                                                                                                          ]
-                                                                                                                        )
-                                                                                                                      )
+                                                                                                                      i
                                                                                                                     ]
-                                                                                                                    (lam
-                                                                                                                      a
-                                                                                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
-                                                                                                                      (let
-                                                                                                                        (rec
-                                                                                                                        )
-                                                                                                                        (termbind
-                                                                                                                          (strict
-                                                                                                                          )
-                                                                                                                          (vardecl
-                                                                                                                            go
-                                                                                                                            (fun [List [[Tuple2 (con bytestring)] (con integer)]] [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]])
-                                                                                                                          )
-                                                                                                                          (lam
-                                                                                                                            ds
-                                                                                                                            [List [[Tuple2 (con bytestring)] (con integer)]]
-                                                                                                                            [
-                                                                                                                              [
-                                                                                                                                [
-                                                                                                                                  {
-                                                                                                                                    [
-                                                                                                                                      {
-                                                                                                                                        Nil_match
-                                                                                                                                        [[Tuple2 (con bytestring)] (con integer)]
-                                                                                                                                      }
-                                                                                                                                      ds
-                                                                                                                                    ]
-                                                                                                                                    (fun Unit [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]])
-                                                                                                                                  }
-                                                                                                                                  (lam
-                                                                                                                                    thunk
-                                                                                                                                    Unit
-                                                                                                                                    {
-                                                                                                                                      Nil
-                                                                                                                                      [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
-                                                                                                                                    }
-                                                                                                                                  )
-                                                                                                                                ]
-                                                                                                                                (lam
-                                                                                                                                  ds
-                                                                                                                                  [[Tuple2 (con bytestring)] (con integer)]
-                                                                                                                                  (lam
-                                                                                                                                    xs
-                                                                                                                                    [List [[Tuple2 (con bytestring)] (con integer)]]
-                                                                                                                                    (lam
-                                                                                                                                      thunk
-                                                                                                                                      Unit
-                                                                                                                                      [
-                                                                                                                                        {
-                                                                                                                                          [
-                                                                                                                                            {
-                                                                                                                                              {
-                                                                                                                                                Tuple2_match
-                                                                                                                                                (con bytestring)
-                                                                                                                                              }
-                                                                                                                                              (con integer)
-                                                                                                                                            }
-                                                                                                                                            ds
-                                                                                                                                          ]
-                                                                                                                                          [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]]
-                                                                                                                                        }
-                                                                                                                                        (lam
-                                                                                                                                          c
-                                                                                                                                          (con bytestring)
-                                                                                                                                          (lam
-                                                                                                                                            i
-                                                                                                                                            (con integer)
-                                                                                                                                            [
-                                                                                                                                              [
-                                                                                                                                                {
-                                                                                                                                                  Cons
-                                                                                                                                                  [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
-                                                                                                                                                }
-                                                                                                                                                [
-                                                                                                                                                  [
-                                                                                                                                                    {
-                                                                                                                                                      {
-                                                                                                                                                        Tuple2
-                                                                                                                                                        (con bytestring)
-                                                                                                                                                      }
-                                                                                                                                                      [[These (con integer)] (con integer)]
-                                                                                                                                                    }
-                                                                                                                                                    c
-                                                                                                                                                  ]
-                                                                                                                                                  [
-                                                                                                                                                    {
-                                                                                                                                                      {
-                                                                                                                                                        This
-                                                                                                                                                        (con integer)
-                                                                                                                                                      }
-                                                                                                                                                      (con integer)
-                                                                                                                                                    }
-                                                                                                                                                    i
-                                                                                                                                                  ]
-                                                                                                                                                ]
-                                                                                                                                              ]
-                                                                                                                                              [
-                                                                                                                                                go
-                                                                                                                                                xs
-                                                                                                                                              ]
-                                                                                                                                            ]
-                                                                                                                                          )
-                                                                                                                                        )
-                                                                                                                                      ]
-                                                                                                                                    )
-                                                                                                                                  )
-                                                                                                                                )
-                                                                                                                              ]
-                                                                                                                              Unit
-                                                                                                                            ]
-                                                                                                                          )
-                                                                                                                        )
-                                                                                                                        [
-                                                                                                                          go
-                                                                                                                          a
-                                                                                                                        ]
-                                                                                                                      )
-                                                                                                                    )
-                                                                                                                  ]
+                                                                                                                  )
                                                                                                                 ]
+                                                                                                                (lam
+                                                                                                                  thunk
+                                                                                                                  Unit
+                                                                                                                  [
+                                                                                                                    go
+                                                                                                                    xs
+                                                                                                                  ]
+                                                                                                                )
                                                                                                               ]
-                                                                                                              [
-                                                                                                                go
-                                                                                                                xs
-                                                                                                              ]
+                                                                                                              Unit
                                                                                                             ]
                                                                                                           )
                                                                                                         )
@@ -2726,28 +1816,1249 @@
                                                                                         )
                                                                                         [
                                                                                           go
+                                                                                          ds
+                                                                                        ]
+                                                                                      )
+                                                                                    ]
+                                                                                  )
+                                                                                )
+                                                                              ]
+                                                                            )
+                                                                          ]
+                                                                          ds
+                                                                        ]
+                                                                      ]
+                                                                    )
+                                                                  )
+                                                                )
+                                                              )
+                                                            )
+                                                          )
+                                                        )
+                                                        (let
+                                                          (nonrec)
+                                                          (termbind
+                                                            (strict)
+                                                            (vardecl
+                                                              unionVal
+                                                              (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]))
+                                                            )
+                                                            (lam
+                                                              ds
+                                                              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                              (lam
+                                                                ds
+                                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                (let
+                                                                  (rec)
+                                                                  (termbind
+                                                                    (strict)
+                                                                    (vardecl
+                                                                      go
+                                                                      (fun [List [[Tuple2 (con bytestring)] [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]] [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]])
+                                                                    )
+                                                                    (lam
+                                                                      ds
+                                                                      [List [[Tuple2 (con bytestring)] [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]]
+                                                                      [
+                                                                        [
+                                                                          [
+                                                                            {
+                                                                              [
+                                                                                {
+                                                                                  Nil_match
+                                                                                  [[Tuple2 (con bytestring)] [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
+                                                                                }
+                                                                                ds
+                                                                              ]
+                                                                              (fun Unit [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]])
+                                                                            }
+                                                                            (lam
+                                                                              thunk
+                                                                              Unit
+                                                                              {
+                                                                                Nil
+                                                                                [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]
+                                                                              }
+                                                                            )
+                                                                          ]
+                                                                          (lam
+                                                                            ds
+                                                                            [[Tuple2 (con bytestring)] [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
+                                                                            (lam
+                                                                              xs
+                                                                              [List [[Tuple2 (con bytestring)] [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]]
+                                                                              (lam
+                                                                                thunk
+                                                                                Unit
+                                                                                [
+                                                                                  {
+                                                                                    [
+                                                                                      {
+                                                                                        {
+                                                                                          Tuple2_match
+                                                                                          (con bytestring)
+                                                                                        }
+                                                                                        [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                      }
+                                                                                      ds
+                                                                                    ]
+                                                                                    [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]]
+                                                                                  }
+                                                                                  (lam
+                                                                                    c
+                                                                                    (con bytestring)
+                                                                                    (lam
+                                                                                      i
+                                                                                      [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                      [
+                                                                                        [
+                                                                                          {
+                                                                                            Cons
+                                                                                            [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]
+                                                                                          }
                                                                                           [
                                                                                             [
-                                                                                              [
+                                                                                              {
                                                                                                 {
-                                                                                                  {
-                                                                                                    {
-                                                                                                      union
-                                                                                                      (con bytestring)
-                                                                                                    }
-                                                                                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
-                                                                                                  }
-                                                                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                                                                                                  Tuple2
+                                                                                                  (con bytestring)
                                                                                                 }
-                                                                                                equalsByteString
-                                                                                              ]
-                                                                                              ds
+                                                                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]
+                                                                                              }
+                                                                                              c
                                                                                             ]
-                                                                                            ds
+                                                                                            [
+                                                                                              [
+                                                                                                [
+                                                                                                  {
+                                                                                                    [
+                                                                                                      {
+                                                                                                        {
+                                                                                                          These_match
+                                                                                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                                                                                                        }
+                                                                                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                                                                                                      }
+                                                                                                      i
+                                                                                                    ]
+                                                                                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]
+                                                                                                  }
+                                                                                                  (lam
+                                                                                                    b
+                                                                                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                                                                                                    (let
+                                                                                                      (rec
+                                                                                                      )
+                                                                                                      (termbind
+                                                                                                        (strict
+                                                                                                        )
+                                                                                                        (vardecl
+                                                                                                          go
+                                                                                                          (fun [List [[Tuple2 (con bytestring)] (con integer)]] [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]])
+                                                                                                        )
+                                                                                                        (lam
+                                                                                                          ds
+                                                                                                          [List [[Tuple2 (con bytestring)] (con integer)]]
+                                                                                                          [
+                                                                                                            [
+                                                                                                              [
+                                                                                                                {
+                                                                                                                  [
+                                                                                                                    {
+                                                                                                                      Nil_match
+                                                                                                                      [[Tuple2 (con bytestring)] (con integer)]
+                                                                                                                    }
+                                                                                                                    ds
+                                                                                                                  ]
+                                                                                                                  (fun Unit [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]])
+                                                                                                                }
+                                                                                                                (lam
+                                                                                                                  thunk
+                                                                                                                  Unit
+                                                                                                                  {
+                                                                                                                    Nil
+                                                                                                                    [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
+                                                                                                                  }
+                                                                                                                )
+                                                                                                              ]
+                                                                                                              (lam
+                                                                                                                ds
+                                                                                                                [[Tuple2 (con bytestring)] (con integer)]
+                                                                                                                (lam
+                                                                                                                  xs
+                                                                                                                  [List [[Tuple2 (con bytestring)] (con integer)]]
+                                                                                                                  (lam
+                                                                                                                    thunk
+                                                                                                                    Unit
+                                                                                                                    [
+                                                                                                                      {
+                                                                                                                        [
+                                                                                                                          {
+                                                                                                                            {
+                                                                                                                              Tuple2_match
+                                                                                                                              (con bytestring)
+                                                                                                                            }
+                                                                                                                            (con integer)
+                                                                                                                          }
+                                                                                                                          ds
+                                                                                                                        ]
+                                                                                                                        [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]]
+                                                                                                                      }
+                                                                                                                      (lam
+                                                                                                                        c
+                                                                                                                        (con bytestring)
+                                                                                                                        (lam
+                                                                                                                          i
+                                                                                                                          (con integer)
+                                                                                                                          [
+                                                                                                                            [
+                                                                                                                              {
+                                                                                                                                Cons
+                                                                                                                                [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
+                                                                                                                              }
+                                                                                                                              [
+                                                                                                                                [
+                                                                                                                                  {
+                                                                                                                                    {
+                                                                                                                                      Tuple2
+                                                                                                                                      (con bytestring)
+                                                                                                                                    }
+                                                                                                                                    [[These (con integer)] (con integer)]
+                                                                                                                                  }
+                                                                                                                                  c
+                                                                                                                                ]
+                                                                                                                                [
+                                                                                                                                  {
+                                                                                                                                    {
+                                                                                                                                      That
+                                                                                                                                      (con integer)
+                                                                                                                                    }
+                                                                                                                                    (con integer)
+                                                                                                                                  }
+                                                                                                                                  i
+                                                                                                                                ]
+                                                                                                                              ]
+                                                                                                                            ]
+                                                                                                                            [
+                                                                                                                              go
+                                                                                                                              xs
+                                                                                                                            ]
+                                                                                                                          ]
+                                                                                                                        )
+                                                                                                                      )
+                                                                                                                    ]
+                                                                                                                  )
+                                                                                                                )
+                                                                                                              )
+                                                                                                            ]
+                                                                                                            Unit
+                                                                                                          ]
+                                                                                                        )
+                                                                                                      )
+                                                                                                      [
+                                                                                                        go
+                                                                                                        b
+                                                                                                      ]
+                                                                                                    )
+                                                                                                  )
+                                                                                                ]
+                                                                                                (lam
+                                                                                                  a
+                                                                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                                                                                                  (lam
+                                                                                                    b
+                                                                                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                                                                                                    [
+                                                                                                      [
+                                                                                                        [
+                                                                                                          {
+                                                                                                            {
+                                                                                                              {
+                                                                                                                union
+                                                                                                                (con bytestring)
+                                                                                                              }
+                                                                                                              (con integer)
+                                                                                                            }
+                                                                                                            (con integer)
+                                                                                                          }
+                                                                                                          equalsByteString
+                                                                                                        ]
+                                                                                                        a
+                                                                                                      ]
+                                                                                                      b
+                                                                                                    ]
+                                                                                                  )
+                                                                                                )
+                                                                                              ]
+                                                                                              (lam
+                                                                                                a
+                                                                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                                                                                                (let
+                                                                                                  (rec
+                                                                                                  )
+                                                                                                  (termbind
+                                                                                                    (strict
+                                                                                                    )
+                                                                                                    (vardecl
+                                                                                                      go
+                                                                                                      (fun [List [[Tuple2 (con bytestring)] (con integer)]] [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]])
+                                                                                                    )
+                                                                                                    (lam
+                                                                                                      ds
+                                                                                                      [List [[Tuple2 (con bytestring)] (con integer)]]
+                                                                                                      [
+                                                                                                        [
+                                                                                                          [
+                                                                                                            {
+                                                                                                              [
+                                                                                                                {
+                                                                                                                  Nil_match
+                                                                                                                  [[Tuple2 (con bytestring)] (con integer)]
+                                                                                                                }
+                                                                                                                ds
+                                                                                                              ]
+                                                                                                              (fun Unit [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]])
+                                                                                                            }
+                                                                                                            (lam
+                                                                                                              thunk
+                                                                                                              Unit
+                                                                                                              {
+                                                                                                                Nil
+                                                                                                                [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
+                                                                                                              }
+                                                                                                            )
+                                                                                                          ]
+                                                                                                          (lam
+                                                                                                            ds
+                                                                                                            [[Tuple2 (con bytestring)] (con integer)]
+                                                                                                            (lam
+                                                                                                              xs
+                                                                                                              [List [[Tuple2 (con bytestring)] (con integer)]]
+                                                                                                              (lam
+                                                                                                                thunk
+                                                                                                                Unit
+                                                                                                                [
+                                                                                                                  {
+                                                                                                                    [
+                                                                                                                      {
+                                                                                                                        {
+                                                                                                                          Tuple2_match
+                                                                                                                          (con bytestring)
+                                                                                                                        }
+                                                                                                                        (con integer)
+                                                                                                                      }
+                                                                                                                      ds
+                                                                                                                    ]
+                                                                                                                    [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]]
+                                                                                                                  }
+                                                                                                                  (lam
+                                                                                                                    c
+                                                                                                                    (con bytestring)
+                                                                                                                    (lam
+                                                                                                                      i
+                                                                                                                      (con integer)
+                                                                                                                      [
+                                                                                                                        [
+                                                                                                                          {
+                                                                                                                            Cons
+                                                                                                                            [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
+                                                                                                                          }
+                                                                                                                          [
+                                                                                                                            [
+                                                                                                                              {
+                                                                                                                                {
+                                                                                                                                  Tuple2
+                                                                                                                                  (con bytestring)
+                                                                                                                                }
+                                                                                                                                [[These (con integer)] (con integer)]
+                                                                                                                              }
+                                                                                                                              c
+                                                                                                                            ]
+                                                                                                                            [
+                                                                                                                              {
+                                                                                                                                {
+                                                                                                                                  This
+                                                                                                                                  (con integer)
+                                                                                                                                }
+                                                                                                                                (con integer)
+                                                                                                                              }
+                                                                                                                              i
+                                                                                                                            ]
+                                                                                                                          ]
+                                                                                                                        ]
+                                                                                                                        [
+                                                                                                                          go
+                                                                                                                          xs
+                                                                                                                        ]
+                                                                                                                      ]
+                                                                                                                    )
+                                                                                                                  )
+                                                                                                                ]
+                                                                                                              )
+                                                                                                            )
+                                                                                                          )
+                                                                                                        ]
+                                                                                                        Unit
+                                                                                                      ]
+                                                                                                    )
+                                                                                                  )
+                                                                                                  [
+                                                                                                    go
+                                                                                                    a
+                                                                                                  ]
+                                                                                                )
+                                                                                              )
+                                                                                            ]
                                                                                           ]
+                                                                                        ]
+                                                                                        [
+                                                                                          go
+                                                                                          xs
+                                                                                        ]
+                                                                                      ]
+                                                                                    )
+                                                                                  )
+                                                                                ]
+                                                                              )
+                                                                            )
+                                                                          )
+                                                                        ]
+                                                                        Unit
+                                                                      ]
+                                                                    )
+                                                                  )
+                                                                  [
+                                                                    go
+                                                                    [
+                                                                      [
+                                                                        [
+                                                                          {
+                                                                            {
+                                                                              {
+                                                                                union
+                                                                                (con bytestring)
+                                                                              }
+                                                                              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                                                                            }
+                                                                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                                                                          }
+                                                                          equalsByteString
+                                                                        ]
+                                                                        ds
+                                                                      ]
+                                                                      ds
+                                                                    ]
+                                                                  ]
+                                                                )
+                                                              )
+                                                            )
+                                                          )
+                                                          (let
+                                                            (nonrec)
+                                                            (termbind
+                                                              (strict)
+                                                              (vardecl
+                                                                checkBinRel
+                                                                (fun (fun (con integer) (fun (con integer) Bool)) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] Bool)))
+                                                              )
+                                                              (lam
+                                                                f
+                                                                (fun (con integer) (fun (con integer) Bool))
+                                                                (lam
+                                                                  l
+                                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                  (lam
+                                                                    r
+                                                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                    (let
+                                                                      (rec)
+                                                                      (termbind
+                                                                        (strict)
+                                                                        (vardecl
+                                                                          go
+                                                                          (fun [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]] Bool)
+                                                                        )
+                                                                        (lam
+                                                                          xs
+                                                                          [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]]
+                                                                          [
+                                                                            [
+                                                                              [
+                                                                                {
+                                                                                  [
+                                                                                    {
+                                                                                      Nil_match
+                                                                                      [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]
+                                                                                    }
+                                                                                    xs
+                                                                                  ]
+                                                                                  (fun Unit Bool)
+                                                                                }
+                                                                                (lam
+                                                                                  thunk
+                                                                                  Unit
+                                                                                  True
+                                                                                )
+                                                                              ]
+                                                                              (lam
+                                                                                ds
+                                                                                [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]
+                                                                                (lam
+                                                                                  xs
+                                                                                  [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]]
+                                                                                  (lam
+                                                                                    thunk
+                                                                                    Unit
+                                                                                    [
+                                                                                      {
+                                                                                        [
+                                                                                          {
+                                                                                            {
+                                                                                              Tuple2_match
+                                                                                              (con bytestring)
+                                                                                            }
+                                                                                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]
+                                                                                          }
+                                                                                          ds
+                                                                                        ]
+                                                                                        Bool
+                                                                                      }
+                                                                                      (lam
+                                                                                        ds
+                                                                                        (con bytestring)
+                                                                                        (lam
+                                                                                          x
+                                                                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]
+                                                                                          (let
+                                                                                            (rec
+                                                                                            )
+                                                                                            (termbind
+                                                                                              (strict
+                                                                                              )
+                                                                                              (vardecl
+                                                                                                go
+                                                                                                (fun [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]] Bool)
+                                                                                              )
+                                                                                              (lam
+                                                                                                xs
+                                                                                                [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]]
+                                                                                                [
+                                                                                                  [
+                                                                                                    [
+                                                                                                      {
+                                                                                                        [
+                                                                                                          {
+                                                                                                            Nil_match
+                                                                                                            [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
+                                                                                                          }
+                                                                                                          xs
+                                                                                                        ]
+                                                                                                        (fun Unit Bool)
+                                                                                                      }
+                                                                                                      (lam
+                                                                                                        thunk
+                                                                                                        Unit
+                                                                                                        [
+                                                                                                          go
+                                                                                                          xs
+                                                                                                        ]
+                                                                                                      )
+                                                                                                    ]
+                                                                                                    (lam
+                                                                                                      ds
+                                                                                                      [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
+                                                                                                      (lam
+                                                                                                        xs
+                                                                                                        [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]]
+                                                                                                        (lam
+                                                                                                          thunk
+                                                                                                          Unit
+                                                                                                          [
+                                                                                                            {
+                                                                                                              [
+                                                                                                                {
+                                                                                                                  {
+                                                                                                                    Tuple2_match
+                                                                                                                    (con bytestring)
+                                                                                                                  }
+                                                                                                                  [[These (con integer)] (con integer)]
+                                                                                                                }
+                                                                                                                ds
+                                                                                                              ]
+                                                                                                              Bool
+                                                                                                            }
+                                                                                                            (lam
+                                                                                                              ds
+                                                                                                              (con bytestring)
+                                                                                                              (lam
+                                                                                                                x
+                                                                                                                [[These (con integer)] (con integer)]
+                                                                                                                [
+                                                                                                                  [
+                                                                                                                    [
+                                                                                                                      {
+                                                                                                                        [
+                                                                                                                          {
+                                                                                                                            {
+                                                                                                                              These_match
+                                                                                                                              (con integer)
+                                                                                                                            }
+                                                                                                                            (con integer)
+                                                                                                                          }
+                                                                                                                          x
+                                                                                                                        ]
+                                                                                                                        Bool
+                                                                                                                      }
+                                                                                                                      (lam
+                                                                                                                        b
+                                                                                                                        (con integer)
+                                                                                                                        [
+                                                                                                                          [
+                                                                                                                            [
+                                                                                                                              {
+                                                                                                                                [
+                                                                                                                                  Bool_match
+                                                                                                                                  [
+                                                                                                                                    [
+                                                                                                                                      f
+                                                                                                                                      (con
+                                                                                                                                        0
+                                                                                                                                      )
+                                                                                                                                    ]
+                                                                                                                                    b
+                                                                                                                                  ]
+                                                                                                                                ]
+                                                                                                                                (fun Unit Bool)
+                                                                                                                              }
+                                                                                                                              (lam
+                                                                                                                                thunk
+                                                                                                                                Unit
+                                                                                                                                [
+                                                                                                                                  go
+                                                                                                                                  xs
+                                                                                                                                ]
+                                                                                                                              )
+                                                                                                                            ]
+                                                                                                                            (lam
+                                                                                                                              thunk
+                                                                                                                              Unit
+                                                                                                                              False
+                                                                                                                            )
+                                                                                                                          ]
+                                                                                                                          Unit
+                                                                                                                        ]
+                                                                                                                      )
+                                                                                                                    ]
+                                                                                                                    (lam
+                                                                                                                      a
+                                                                                                                      (con integer)
+                                                                                                                      (lam
+                                                                                                                        b
+                                                                                                                        (con integer)
+                                                                                                                        [
+                                                                                                                          [
+                                                                                                                            [
+                                                                                                                              {
+                                                                                                                                [
+                                                                                                                                  Bool_match
+                                                                                                                                  [
+                                                                                                                                    [
+                                                                                                                                      f
+                                                                                                                                      a
+                                                                                                                                    ]
+                                                                                                                                    b
+                                                                                                                                  ]
+                                                                                                                                ]
+                                                                                                                                (fun Unit Bool)
+                                                                                                                              }
+                                                                                                                              (lam
+                                                                                                                                thunk
+                                                                                                                                Unit
+                                                                                                                                [
+                                                                                                                                  go
+                                                                                                                                  xs
+                                                                                                                                ]
+                                                                                                                              )
+                                                                                                                            ]
+                                                                                                                            (lam
+                                                                                                                              thunk
+                                                                                                                              Unit
+                                                                                                                              False
+                                                                                                                            )
+                                                                                                                          ]
+                                                                                                                          Unit
+                                                                                                                        ]
+                                                                                                                      )
+                                                                                                                    )
+                                                                                                                  ]
+                                                                                                                  (lam
+                                                                                                                    a
+                                                                                                                    (con integer)
+                                                                                                                    [
+                                                                                                                      [
+                                                                                                                        [
+                                                                                                                          {
+                                                                                                                            [
+                                                                                                                              Bool_match
+                                                                                                                              [
+                                                                                                                                [
+                                                                                                                                  f
+                                                                                                                                  a
+                                                                                                                                ]
+                                                                                                                                (con
+                                                                                                                                  0
+                                                                                                                                )
+                                                                                                                              ]
+                                                                                                                            ]
+                                                                                                                            (fun Unit Bool)
+                                                                                                                          }
+                                                                                                                          (lam
+                                                                                                                            thunk
+                                                                                                                            Unit
+                                                                                                                            [
+                                                                                                                              go
+                                                                                                                              xs
+                                                                                                                            ]
+                                                                                                                          )
+                                                                                                                        ]
+                                                                                                                        (lam
+                                                                                                                          thunk
+                                                                                                                          Unit
+                                                                                                                          False
+                                                                                                                        )
+                                                                                                                      ]
+                                                                                                                      Unit
+                                                                                                                    ]
+                                                                                                                  )
+                                                                                                                ]
+                                                                                                              )
+                                                                                                            )
+                                                                                                          ]
+                                                                                                        )
+                                                                                                      )
+                                                                                                    )
+                                                                                                  ]
+                                                                                                  Unit
+                                                                                                ]
+                                                                                              )
+                                                                                            )
+                                                                                            [
+                                                                                              go
+                                                                                              x
+                                                                                            ]
+                                                                                          )
+                                                                                        )
+                                                                                      )
+                                                                                    ]
+                                                                                  )
+                                                                                )
+                                                                              )
+                                                                            ]
+                                                                            Unit
+                                                                          ]
+                                                                        )
+                                                                      )
+                                                                      [
+                                                                        go
+                                                                        [
+                                                                          [
+                                                                            unionVal
+                                                                            l
+                                                                          ]
+                                                                          r
+                                                                        ]
+                                                                      ]
+                                                                    )
+                                                                  )
+                                                                )
+                                                              )
+                                                            )
+                                                            (let
+                                                              (nonrec)
+                                                              (termbind
+                                                                (strict)
+                                                                (vardecl
+                                                                  equalsInteger
+                                                                  (fun (con integer) (fun (con integer) Bool))
+                                                                )
+                                                                (lam
+                                                                  arg
+                                                                  (con integer)
+                                                                  (lam
+                                                                    arg
+                                                                    (con integer)
+                                                                    [
+                                                                      (lam
+                                                                        b
+                                                                        (all a (type) (fun a (fun a a)))
+                                                                        [
+                                                                          [
+                                                                            {
+                                                                              b
+                                                                              Bool
+                                                                            }
+                                                                            True
+                                                                          ]
+                                                                          False
+                                                                        ]
+                                                                      )
+                                                                      [
+                                                                        [
+                                                                          (builtin
+                                                                            equalsInteger
+                                                                          )
+                                                                          arg
+                                                                        ]
+                                                                        arg
+                                                                      ]
+                                                                    ]
+                                                                  )
+                                                                )
+                                                              )
+                                                              (let
+                                                                (nonrec)
+                                                                (termbind
+                                                                  (strict)
+                                                                  (vardecl
+                                                                    error
+                                                                    (all a (type) (fun Unit a))
+                                                                  )
+                                                                  (abs
+                                                                    e
+                                                                    (type)
+                                                                    (lam
+                                                                      thunk
+                                                                      Unit
+                                                                      (error e)
+                                                                    )
+                                                                  )
+                                                                )
+                                                                (let
+                                                                  (nonrec)
+                                                                  (termbind
+                                                                    (strict)
+                                                                    (vardecl
+                                                                      greaterThanEqInteger
+                                                                      (fun (con integer) (fun (con integer) Bool))
+                                                                    )
+                                                                    (lam
+                                                                      arg
+                                                                      (con integer)
+                                                                      (lam
+                                                                        arg
+                                                                        (con integer)
+                                                                        [
+                                                                          (lam
+                                                                            b
+                                                                            (all a (type) (fun a (fun a a)))
+                                                                            [
+                                                                              [
+                                                                                {
+                                                                                  b
+                                                                                  Bool
+                                                                                }
+                                                                                True
+                                                                              ]
+                                                                              False
+                                                                            ]
+                                                                          )
+                                                                          [
+                                                                            [
+                                                                              (builtin
+                                                                                greaterThanEqualsInteger
+                                                                              )
+                                                                              arg
+                                                                            ]
+                                                                            arg
+                                                                          ]
+                                                                        ]
+                                                                      )
+                                                                    )
+                                                                  )
+                                                                  (let
+                                                                    (nonrec)
+                                                                    (termbind
+                                                                      (strict)
+                                                                      (vardecl
+                                                                        wownCurrencySymbol
+                                                                        (fun [Maybe [[Tuple2 (con bytestring)] (con bytestring)]] (con bytestring))
+                                                                      )
+                                                                      (lam
+                                                                        ww
+                                                                        [Maybe [[Tuple2 (con bytestring)] (con bytestring)]]
+                                                                        [
+                                                                          [
+                                                                            [
+                                                                              {
+                                                                                [
+                                                                                  {
+                                                                                    Maybe_match
+                                                                                    [[Tuple2 (con bytestring)] (con bytestring)]
+                                                                                  }
+                                                                                  ww
+                                                                                ]
+                                                                                (fun Unit (con bytestring))
+                                                                              }
+                                                                              (lam
+                                                                                h
+                                                                                [[Tuple2 (con bytestring)] (con bytestring)]
+                                                                                (lam
+                                                                                  thunk
+                                                                                  Unit
+                                                                                  [
+                                                                                    {
+                                                                                      [
+                                                                                        {
+                                                                                          {
+                                                                                            Tuple2_match
+                                                                                            (con bytestring)
+                                                                                          }
+                                                                                          (con bytestring)
+                                                                                        }
+                                                                                        h
+                                                                                      ]
+                                                                                      (con bytestring)
+                                                                                    }
+                                                                                    (lam
+                                                                                      a
+                                                                                      (con bytestring)
+                                                                                      (lam
+                                                                                        ds
+                                                                                        (con bytestring)
+                                                                                        a
+                                                                                      )
+                                                                                    )
+                                                                                  ]
+                                                                                )
+                                                                              )
+                                                                            ]
+                                                                            (lam
+                                                                              thunk
+                                                                              Unit
+                                                                              [
+                                                                                {
+                                                                                  [
+                                                                                    {
+                                                                                      {
+                                                                                        Tuple2_match
+                                                                                        (con bytestring)
+                                                                                      }
+                                                                                      (con bytestring)
+                                                                                    }
+                                                                                    [
+                                                                                      {
+                                                                                        error
+                                                                                        [[Tuple2 (con bytestring)] (con bytestring)]
+                                                                                      }
+                                                                                      Unit
+                                                                                    ]
+                                                                                  ]
+                                                                                  (con bytestring)
+                                                                                }
+                                                                                (lam
+                                                                                  a
+                                                                                  (con bytestring)
+                                                                                  (lam
+                                                                                    ds
+                                                                                    (con bytestring)
+                                                                                    a
+                                                                                  )
+                                                                                )
+                                                                              ]
+                                                                            )
+                                                                          ]
+                                                                          Unit
+                                                                        ]
+                                                                      )
+                                                                    )
+                                                                    (let
+                                                                      (nonrec)
+                                                                      (termbind
+                                                                        (strict)
+                                                                        (vardecl
+                                                                          ownCurrencySymbol
+                                                                          (fun PendingTx (con bytestring))
+                                                                        )
+                                                                        (lam
+                                                                          w
+                                                                          PendingTx
+                                                                          [
+                                                                            {
+                                                                              [
+                                                                                PendingTx_match
+                                                                                w
+                                                                              ]
+                                                                              (con bytestring)
+                                                                            }
+                                                                            (lam
+                                                                              ww
+                                                                              [List PendingTxIn]
+                                                                              (lam
+                                                                                ww
+                                                                                [List PendingTxOut]
+                                                                                (lam
+                                                                                  ww
+                                                                                  (con integer)
+                                                                                  (lam
+                                                                                    ww
+                                                                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                    (lam
+                                                                                      ww
+                                                                                      PendingTxIn
+                                                                                      (lam
+                                                                                        ww
+                                                                                        [Interval (con integer)]
+                                                                                        (lam
+                                                                                          ww
+                                                                                          [List [[Tuple2 (con bytestring)] (con bytestring)]]
+                                                                                          (lam
+                                                                                            ww
+                                                                                            (con bytestring)
+                                                                                            [
+                                                                                              {
+                                                                                                [
+                                                                                                  PendingTxIn_match
+                                                                                                  ww
+                                                                                                ]
+                                                                                                (con bytestring)
+                                                                                              }
+                                                                                              (lam
+                                                                                                ww
+                                                                                                PendingTxOutRef
+                                                                                                (lam
+                                                                                                  ww
+                                                                                                  [Maybe [[Tuple2 (con bytestring)] (con bytestring)]]
+                                                                                                  (lam
+                                                                                                    ww
+                                                                                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                    [
+                                                                                                      wownCurrencySymbol
+                                                                                                      ww
+                                                                                                    ]
+                                                                                                  )
+                                                                                                )
+                                                                                              )
+                                                                                            ]
+                                                                                          )
+                                                                                        )
+                                                                                      )
+                                                                                    )
+                                                                                  )
+                                                                                )
+                                                                              )
+                                                                            )
+                                                                          ]
+                                                                        )
+                                                                      )
+                                                                      (let
+                                                                        (nonrec)
+                                                                        (termbind
+                                                                          (strict
+                                                                          )
+                                                                          (vardecl
+                                                                            pendingTxForge
+                                                                            (fun PendingTx [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]])
+                                                                          )
+                                                                          (lam
+                                                                            ds
+                                                                            PendingTx
+                                                                            [
+                                                                              {
+                                                                                [
+                                                                                  PendingTx_match
+                                                                                  ds
+                                                                                ]
+                                                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                              }
+                                                                              (lam
+                                                                                ds
+                                                                                [List PendingTxIn]
+                                                                                (lam
+                                                                                  ds
+                                                                                  [List PendingTxOut]
+                                                                                  (lam
+                                                                                    ds
+                                                                                    (con integer)
+                                                                                    (lam
+                                                                                      ds
+                                                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                      (lam
+                                                                                        ds
+                                                                                        PendingTxIn
+                                                                                        (lam
+                                                                                          ds
+                                                                                          [Interval (con integer)]
+                                                                                          (lam
+                                                                                            ds
+                                                                                            [List [[Tuple2 (con bytestring)] (con bytestring)]]
+                                                                                            (lam
+                                                                                              ds
+                                                                                              (con bytestring)
+                                                                                              ds
+                                                                                            )
+                                                                                          )
+                                                                                        )
+                                                                                      )
+                                                                                    )
+                                                                                  )
+                                                                                )
+                                                                              )
+                                                                            ]
+                                                                          )
+                                                                        )
+                                                                        (let
+                                                                          (nonrec
+                                                                          )
+                                                                          (termbind
+                                                                            (strict
+                                                                            )
+                                                                            (vardecl
+                                                                              sha2_
+                                                                              (fun (con bytestring) (con bytestring))
+                                                                            )
+                                                                            (builtin
+                                                                              sha2_256
+                                                                            )
+                                                                          )
+                                                                          (let
+                                                                            (nonrec
+                                                                            )
+                                                                            (termbind
+                                                                              (strict
+                                                                              )
+                                                                              (vardecl
+                                                                                addInteger
+                                                                                (fun (con integer) (fun (con integer) (con integer)))
+                                                                              )
+                                                                              (builtin
+                                                                                addInteger
+                                                                              )
+                                                                            )
+                                                                            (let
+                                                                              (rec
+                                                                              )
+                                                                              (termbind
+                                                                                (strict
+                                                                                )
+                                                                                (vardecl
+                                                                                  map
+                                                                                  (all a (type) (all b (type) (fun (fun a b) (fun [List a] [List b]))))
+                                                                                )
+                                                                                (abs
+                                                                                  a
+                                                                                  (type)
+                                                                                  (abs
+                                                                                    b
+                                                                                    (type)
+                                                                                    (lam
+                                                                                      f
+                                                                                      (fun a b)
+                                                                                      (lam
+                                                                                        l
+                                                                                        [List a]
+                                                                                        [
+                                                                                          [
+                                                                                            [
+                                                                                              {
+                                                                                                [
+                                                                                                  {
+                                                                                                    Nil_match
+                                                                                                    a
+                                                                                                  }
+                                                                                                  l
+                                                                                                ]
+                                                                                                (fun Unit [List b])
+                                                                                              }
+                                                                                              (lam
+                                                                                                thunk
+                                                                                                Unit
+                                                                                                {
+                                                                                                  Nil
+                                                                                                  b
+                                                                                                }
+                                                                                              )
+                                                                                            ]
+                                                                                            (lam
+                                                                                              x
+                                                                                              a
+                                                                                              (lam
+                                                                                                xs
+                                                                                                [List a]
+                                                                                                (lam
+                                                                                                  thunk
+                                                                                                  Unit
+                                                                                                  [
+                                                                                                    [
+                                                                                                      {
+                                                                                                        Cons
+                                                                                                        b
+                                                                                                      }
+                                                                                                      [
+                                                                                                        f
+                                                                                                        x
+                                                                                                      ]
+                                                                                                    ]
+                                                                                                    [
+                                                                                                      [
+                                                                                                        {
+                                                                                                          {
+                                                                                                            map
+                                                                                                            a
+                                                                                                          }
+                                                                                                          b
+                                                                                                        }
+                                                                                                        f
+                                                                                                      ]
+                                                                                                      xs
+                                                                                                    ]
+                                                                                                  ]
+                                                                                                )
+                                                                                              )
+                                                                                            )
+                                                                                          ]
+                                                                                          Unit
                                                                                         ]
                                                                                       )
                                                                                     )
+                                                                                  )
+                                                                                )
+                                                                              )
+                                                                              (let
+                                                                                (nonrec
+                                                                                )
+                                                                                (termbind
+                                                                                  (strict
+                                                                                  )
+                                                                                  (vardecl
+                                                                                    pendingTxInValue
+                                                                                    (fun PendingTxIn [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]])
+                                                                                  )
+                                                                                  (lam
+                                                                                    ds
+                                                                                    PendingTxIn
+                                                                                    [
+                                                                                      {
+                                                                                        [
+                                                                                          PendingTxIn_match
+                                                                                          ds
+                                                                                        ]
+                                                                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                      }
+                                                                                      (lam
+                                                                                        ds
+                                                                                        PendingTxOutRef
+                                                                                        (lam
+                                                                                          ds
+                                                                                          [Maybe [[Tuple2 (con bytestring)] (con bytestring)]]
+                                                                                          (lam
+                                                                                            ds
+                                                                                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                            ds
+                                                                                          )
+                                                                                        )
+                                                                                      )
+                                                                                    ]
                                                                                   )
                                                                                 )
                                                                                 (let
@@ -3211,473 +3522,159 @@
                                                                                           (strict
                                                                                           )
                                                                                           (vardecl
-                                                                                            checkBinRel
-                                                                                            (fun (fun (con integer) (fun (con integer) Bool)) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] Bool)))
+                                                                                            wmkValidator
+                                                                                            (fun GameState (fun GameInput (fun GameState (fun PendingTx Bool))))
                                                                                           )
                                                                                           (lam
-                                                                                            f
-                                                                                            (fun (con integer) (fun (con integer) Bool))
+                                                                                            w
+                                                                                            GameState
                                                                                             (lam
-                                                                                              l
-                                                                                              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                              ww
+                                                                                              GameInput
                                                                                               (lam
-                                                                                                r
-                                                                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                (let
-                                                                                                  (rec
-                                                                                                  )
-                                                                                                  (termbind
-                                                                                                    (strict
+                                                                                                ww
+                                                                                                GameState
+                                                                                                (lam
+                                                                                                  w
+                                                                                                  PendingTx
+                                                                                                  (let
+                                                                                                    (nonrec
                                                                                                     )
-                                                                                                    (vardecl
-                                                                                                      go
-                                                                                                      (fun [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]] Bool)
+                                                                                                    (termbind
+                                                                                                      (strict
+                                                                                                      )
+                                                                                                      (vardecl
+                                                                                                        tokenVal
+                                                                                                        (fun (con bytestring) [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]])
+                                                                                                      )
+                                                                                                      (lam
+                                                                                                        tn
+                                                                                                        (con bytestring)
+                                                                                                        [
+                                                                                                          [
+                                                                                                            {
+                                                                                                              Cons
+                                                                                                              [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                            }
+                                                                                                            [
+                                                                                                              [
+                                                                                                                {
+                                                                                                                  {
+                                                                                                                    Tuple2
+                                                                                                                    (con bytestring)
+                                                                                                                  }
+                                                                                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                                                                                                                }
+                                                                                                                [
+                                                                                                                  ownCurrencySymbol
+                                                                                                                  w
+                                                                                                                ]
+                                                                                                              ]
+                                                                                                              [
+                                                                                                                [
+                                                                                                                  {
+                                                                                                                    Cons
+                                                                                                                    [[Tuple2 (con bytestring)] (con integer)]
+                                                                                                                  }
+                                                                                                                  [
+                                                                                                                    [
+                                                                                                                      {
+                                                                                                                        {
+                                                                                                                          Tuple2
+                                                                                                                          (con bytestring)
+                                                                                                                        }
+                                                                                                                        (con integer)
+                                                                                                                      }
+                                                                                                                      tn
+                                                                                                                    ]
+                                                                                                                    (con
+                                                                                                                      1
+                                                                                                                    )
+                                                                                                                  ]
+                                                                                                                ]
+                                                                                                                {
+                                                                                                                  Nil
+                                                                                                                  [[Tuple2 (con bytestring)] (con integer)]
+                                                                                                                }
+                                                                                                              ]
+                                                                                                            ]
+                                                                                                          ]
+                                                                                                          {
+                                                                                                            Nil
+                                                                                                            [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                          }
+                                                                                                        ]
+                                                                                                      )
                                                                                                     )
-                                                                                                    (lam
-                                                                                                      xs
-                                                                                                      [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]]
-                                                                                                      [
+                                                                                                    (let
+                                                                                                      (nonrec
+                                                                                                      )
+                                                                                                      (termbind
+                                                                                                        (nonstrict
+                                                                                                        )
+                                                                                                        (vardecl
+                                                                                                          j
+                                                                                                          Bool
+                                                                                                        )
                                                                                                         [
                                                                                                           [
                                                                                                             {
                                                                                                               [
-                                                                                                                {
-                                                                                                                  Nil_match
-                                                                                                                  [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]
-                                                                                                                }
-                                                                                                                xs
+                                                                                                                Unit_match
+                                                                                                                swmkValidator
                                                                                                               ]
                                                                                                               (fun Unit Bool)
                                                                                                             }
                                                                                                             (lam
                                                                                                               thunk
                                                                                                               Unit
-                                                                                                              True
+                                                                                                              False
                                                                                                             )
                                                                                                           ]
-                                                                                                          (lam
-                                                                                                            ds
-                                                                                                            [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]
-                                                                                                            (lam
-                                                                                                              xs
-                                                                                                              [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]]
-                                                                                                              (lam
-                                                                                                                thunk
-                                                                                                                Unit
-                                                                                                                [
-                                                                                                                  {
-                                                                                                                    [
-                                                                                                                      {
-                                                                                                                        {
-                                                                                                                          Tuple2_match
-                                                                                                                          (con bytestring)
-                                                                                                                        }
-                                                                                                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]
-                                                                                                                      }
-                                                                                                                      ds
-                                                                                                                    ]
-                                                                                                                    Bool
-                                                                                                                  }
-                                                                                                                  (lam
-                                                                                                                    ds
-                                                                                                                    (con bytestring)
-                                                                                                                    (lam
-                                                                                                                      x
-                                                                                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]
-                                                                                                                      (let
-                                                                                                                        (rec
-                                                                                                                        )
-                                                                                                                        (termbind
-                                                                                                                          (strict
-                                                                                                                          )
-                                                                                                                          (vardecl
-                                                                                                                            go
-                                                                                                                            (fun [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]] Bool)
-                                                                                                                          )
-                                                                                                                          (lam
-                                                                                                                            xs
-                                                                                                                            [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]]
-                                                                                                                            [
-                                                                                                                              [
-                                                                                                                                [
-                                                                                                                                  {
-                                                                                                                                    [
-                                                                                                                                      {
-                                                                                                                                        Nil_match
-                                                                                                                                        [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
-                                                                                                                                      }
-                                                                                                                                      xs
-                                                                                                                                    ]
-                                                                                                                                    (fun Unit Bool)
-                                                                                                                                  }
-                                                                                                                                  (lam
-                                                                                                                                    thunk
-                                                                                                                                    Unit
-                                                                                                                                    [
-                                                                                                                                      go
-                                                                                                                                      xs
-                                                                                                                                    ]
-                                                                                                                                  )
-                                                                                                                                ]
-                                                                                                                                (lam
-                                                                                                                                  ds
-                                                                                                                                  [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
-                                                                                                                                  (lam
-                                                                                                                                    xs
-                                                                                                                                    [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]]
-                                                                                                                                    (lam
-                                                                                                                                      thunk
-                                                                                                                                      Unit
-                                                                                                                                      [
-                                                                                                                                        {
-                                                                                                                                          [
-                                                                                                                                            {
-                                                                                                                                              {
-                                                                                                                                                Tuple2_match
-                                                                                                                                                (con bytestring)
-                                                                                                                                              }
-                                                                                                                                              [[These (con integer)] (con integer)]
-                                                                                                                                            }
-                                                                                                                                            ds
-                                                                                                                                          ]
-                                                                                                                                          Bool
-                                                                                                                                        }
-                                                                                                                                        (lam
-                                                                                                                                          ds
-                                                                                                                                          (con bytestring)
-                                                                                                                                          (lam
-                                                                                                                                            x
-                                                                                                                                            [[These (con integer)] (con integer)]
-                                                                                                                                            [
-                                                                                                                                              [
-                                                                                                                                                [
-                                                                                                                                                  {
-                                                                                                                                                    [
-                                                                                                                                                      {
-                                                                                                                                                        {
-                                                                                                                                                          These_match
-                                                                                                                                                          (con integer)
-                                                                                                                                                        }
-                                                                                                                                                        (con integer)
-                                                                                                                                                      }
-                                                                                                                                                      x
-                                                                                                                                                    ]
-                                                                                                                                                    Bool
-                                                                                                                                                  }
-                                                                                                                                                  (lam
-                                                                                                                                                    b
-                                                                                                                                                    (con integer)
-                                                                                                                                                    [
-                                                                                                                                                      [
-                                                                                                                                                        [
-                                                                                                                                                          {
-                                                                                                                                                            [
-                                                                                                                                                              Bool_match
-                                                                                                                                                              [
-                                                                                                                                                                [
-                                                                                                                                                                  f
-                                                                                                                                                                  (con
-                                                                                                                                                                    0
-                                                                                                                                                                  )
-                                                                                                                                                                ]
-                                                                                                                                                                b
-                                                                                                                                                              ]
-                                                                                                                                                            ]
-                                                                                                                                                            (fun Unit Bool)
-                                                                                                                                                          }
-                                                                                                                                                          (lam
-                                                                                                                                                            thunk
-                                                                                                                                                            Unit
-                                                                                                                                                            [
-                                                                                                                                                              go
-                                                                                                                                                              xs
-                                                                                                                                                            ]
-                                                                                                                                                          )
-                                                                                                                                                        ]
-                                                                                                                                                        (lam
-                                                                                                                                                          thunk
-                                                                                                                                                          Unit
-                                                                                                                                                          False
-                                                                                                                                                        )
-                                                                                                                                                      ]
-                                                                                                                                                      Unit
-                                                                                                                                                    ]
-                                                                                                                                                  )
-                                                                                                                                                ]
-                                                                                                                                                (lam
-                                                                                                                                                  a
-                                                                                                                                                  (con integer)
-                                                                                                                                                  (lam
-                                                                                                                                                    b
-                                                                                                                                                    (con integer)
-                                                                                                                                                    [
-                                                                                                                                                      [
-                                                                                                                                                        [
-                                                                                                                                                          {
-                                                                                                                                                            [
-                                                                                                                                                              Bool_match
-                                                                                                                                                              [
-                                                                                                                                                                [
-                                                                                                                                                                  f
-                                                                                                                                                                  a
-                                                                                                                                                                ]
-                                                                                                                                                                b
-                                                                                                                                                              ]
-                                                                                                                                                            ]
-                                                                                                                                                            (fun Unit Bool)
-                                                                                                                                                          }
-                                                                                                                                                          (lam
-                                                                                                                                                            thunk
-                                                                                                                                                            Unit
-                                                                                                                                                            [
-                                                                                                                                                              go
-                                                                                                                                                              xs
-                                                                                                                                                            ]
-                                                                                                                                                          )
-                                                                                                                                                        ]
-                                                                                                                                                        (lam
-                                                                                                                                                          thunk
-                                                                                                                                                          Unit
-                                                                                                                                                          False
-                                                                                                                                                        )
-                                                                                                                                                      ]
-                                                                                                                                                      Unit
-                                                                                                                                                    ]
-                                                                                                                                                  )
-                                                                                                                                                )
-                                                                                                                                              ]
-                                                                                                                                              (lam
-                                                                                                                                                a
-                                                                                                                                                (con integer)
-                                                                                                                                                [
-                                                                                                                                                  [
-                                                                                                                                                    [
-                                                                                                                                                      {
-                                                                                                                                                        [
-                                                                                                                                                          Bool_match
-                                                                                                                                                          [
-                                                                                                                                                            [
-                                                                                                                                                              f
-                                                                                                                                                              a
-                                                                                                                                                            ]
-                                                                                                                                                            (con
-                                                                                                                                                              0
-                                                                                                                                                            )
-                                                                                                                                                          ]
-                                                                                                                                                        ]
-                                                                                                                                                        (fun Unit Bool)
-                                                                                                                                                      }
-                                                                                                                                                      (lam
-                                                                                                                                                        thunk
-                                                                                                                                                        Unit
-                                                                                                                                                        [
-                                                                                                                                                          go
-                                                                                                                                                          xs
-                                                                                                                                                        ]
-                                                                                                                                                      )
-                                                                                                                                                    ]
-                                                                                                                                                    (lam
-                                                                                                                                                      thunk
-                                                                                                                                                      Unit
-                                                                                                                                                      False
-                                                                                                                                                    )
-                                                                                                                                                  ]
-                                                                                                                                                  Unit
-                                                                                                                                                ]
-                                                                                                                                              )
-                                                                                                                                            ]
-                                                                                                                                          )
-                                                                                                                                        )
-                                                                                                                                      ]
-                                                                                                                                    )
-                                                                                                                                  )
-                                                                                                                                )
-                                                                                                                              ]
-                                                                                                                              Unit
-                                                                                                                            ]
-                                                                                                                          )
-                                                                                                                        )
-                                                                                                                        [
-                                                                                                                          go
-                                                                                                                          x
-                                                                                                                        ]
-                                                                                                                      )
-                                                                                                                    )
-                                                                                                                  )
-                                                                                                                ]
-                                                                                                              )
-                                                                                                            )
-                                                                                                          )
+                                                                                                          Unit
                                                                                                         ]
-                                                                                                        Unit
-                                                                                                      ]
-                                                                                                    )
-                                                                                                  )
-                                                                                                  [
-                                                                                                    go
-                                                                                                    [
-                                                                                                      [
-                                                                                                        unionVal
-                                                                                                        l
-                                                                                                      ]
-                                                                                                      r
-                                                                                                    ]
-                                                                                                  ]
-                                                                                                )
-                                                                                              )
-                                                                                            )
-                                                                                          )
-                                                                                        )
-                                                                                        (let
-                                                                                          (nonrec
-                                                                                          )
-                                                                                          (termbind
-                                                                                            (strict
-                                                                                            )
-                                                                                            (vardecl
-                                                                                              wmkValidator
-                                                                                              (fun GameState (fun GameInput (fun GameState (fun PendingTx Bool))))
-                                                                                            )
-                                                                                            (lam
-                                                                                              w
-                                                                                              GameState
-                                                                                              (lam
-                                                                                                ww
-                                                                                                GameInput
-                                                                                                (lam
-                                                                                                  ww
-                                                                                                  GameState
-                                                                                                  (lam
-                                                                                                    w
-                                                                                                    PendingTx
-                                                                                                    (let
-                                                                                                      (nonrec
-                                                                                                      )
-                                                                                                      (termbind
-                                                                                                        (strict
-                                                                                                        )
-                                                                                                        (vardecl
-                                                                                                          tokenVal
-                                                                                                          (fun (con bytestring) [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]])
-                                                                                                        )
-                                                                                                        (lam
-                                                                                                          tn
-                                                                                                          (con bytestring)
-                                                                                                          [
-                                                                                                            [
-                                                                                                              {
-                                                                                                                Cons
-                                                                                                                [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                              }
-                                                                                                              [
-                                                                                                                [
-                                                                                                                  {
-                                                                                                                    {
-                                                                                                                      Tuple2
-                                                                                                                      (con bytestring)
-                                                                                                                    }
-                                                                                                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
-                                                                                                                  }
-                                                                                                                  [
-                                                                                                                    ownCurrencySymbol
-                                                                                                                    w
-                                                                                                                  ]
-                                                                                                                ]
-                                                                                                                [
-                                                                                                                  [
-                                                                                                                    {
-                                                                                                                      Cons
-                                                                                                                      [[Tuple2 (con bytestring)] (con integer)]
-                                                                                                                    }
-                                                                                                                    [
-                                                                                                                      [
-                                                                                                                        {
-                                                                                                                          {
-                                                                                                                            Tuple2
-                                                                                                                            (con bytestring)
-                                                                                                                          }
-                                                                                                                          (con integer)
-                                                                                                                        }
-                                                                                                                        tn
-                                                                                                                      ]
-                                                                                                                      (con
-                                                                                                                        1
-                                                                                                                      )
-                                                                                                                    ]
-                                                                                                                  ]
-                                                                                                                  {
-                                                                                                                    Nil
-                                                                                                                    [[Tuple2 (con bytestring)] (con integer)]
-                                                                                                                  }
-                                                                                                                ]
-                                                                                                              ]
-                                                                                                            ]
-                                                                                                            {
-                                                                                                              Nil
-                                                                                                              [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                            }
-                                                                                                          ]
-                                                                                                        )
                                                                                                       )
                                                                                                       (let
                                                                                                         (nonrec
                                                                                                         )
                                                                                                         (termbind
-                                                                                                          (nonstrict
+                                                                                                          (strict
                                                                                                           )
                                                                                                           (vardecl
-                                                                                                            j
-                                                                                                            Bool
+                                                                                                            fail
+                                                                                                            (fun (all a (type) (fun Unit a)) Bool)
                                                                                                           )
-                                                                                                          [
+                                                                                                          (lam
+                                                                                                            ds
+                                                                                                            (all a (type) (fun Unit a))
                                                                                                             [
-                                                                                                              {
-                                                                                                                [
-                                                                                                                  Unit_match
-                                                                                                                  swmkValidator
-                                                                                                                ]
-                                                                                                                (fun Unit Bool)
-                                                                                                              }
-                                                                                                              (lam
-                                                                                                                thunk
-                                                                                                                Unit
-                                                                                                                False
-                                                                                                              )
-                                                                                                            ]
-                                                                                                            Unit
-                                                                                                          ]
-                                                                                                        )
-                                                                                                        (let
-                                                                                                          (nonrec
-                                                                                                          )
-                                                                                                          (termbind
-                                                                                                            (strict
-                                                                                                            )
-                                                                                                            (vardecl
-                                                                                                              fail
-                                                                                                              (fun (all a (type) (fun Unit a)) Bool)
-                                                                                                            )
-                                                                                                            (lam
-                                                                                                              ds
-                                                                                                              (all a (type) (fun Unit a))
                                                                                                               [
                                                                                                                 [
-                                                                                                                  [
-                                                                                                                    {
+                                                                                                                  {
+                                                                                                                    [
+                                                                                                                      Bool_match
                                                                                                                       [
-                                                                                                                        Bool_match
                                                                                                                         [
+                                                                                                                          fEqGameState_c
                                                                                                                           [
-                                                                                                                            fEqGameState_c
+                                                                                                                            {
+                                                                                                                              error
+                                                                                                                              GameState
+                                                                                                                            }
                                                                                                                             [
-                                                                                                                              {
-                                                                                                                                error
-                                                                                                                                GameState
-                                                                                                                              }
+                                                                                                                              trace
                                                                                                                               [
-                                                                                                                                trace
+                                                                                                                                toPlutusString
                                                                                                                                 [
-                                                                                                                                  toPlutusString
+                                                                                                                                  [
+                                                                                                                                    {
+                                                                                                                                      Cons
+                                                                                                                                      (con integer)
+                                                                                                                                    }
+                                                                                                                                    (con
+                                                                                                                                      73
+                                                                                                                                    )
+                                                                                                                                  ]
                                                                                                                                   [
                                                                                                                                     [
                                                                                                                                       {
@@ -3685,7 +3682,7 @@
                                                                                                                                         (con integer)
                                                                                                                                       }
                                                                                                                                       (con
-                                                                                                                                        73
+                                                                                                                                        110
                                                                                                                                       )
                                                                                                                                     ]
                                                                                                                                     [
@@ -3695,7 +3692,7 @@
                                                                                                                                           (con integer)
                                                                                                                                         }
                                                                                                                                         (con
-                                                                                                                                          110
+                                                                                                                                          118
                                                                                                                                         )
                                                                                                                                       ]
                                                                                                                                       [
@@ -3705,7 +3702,7 @@
                                                                                                                                             (con integer)
                                                                                                                                           }
                                                                                                                                           (con
-                                                                                                                                            118
+                                                                                                                                            97
                                                                                                                                           )
                                                                                                                                         ]
                                                                                                                                         [
@@ -3715,7 +3712,7 @@
                                                                                                                                               (con integer)
                                                                                                                                             }
                                                                                                                                             (con
-                                                                                                                                              97
+                                                                                                                                              108
                                                                                                                                             )
                                                                                                                                           ]
                                                                                                                                           [
@@ -3725,7 +3722,7 @@
                                                                                                                                                 (con integer)
                                                                                                                                               }
                                                                                                                                               (con
-                                                                                                                                                108
+                                                                                                                                                105
                                                                                                                                               )
                                                                                                                                             ]
                                                                                                                                             [
@@ -3735,7 +3732,7 @@
                                                                                                                                                   (con integer)
                                                                                                                                                 }
                                                                                                                                                 (con
-                                                                                                                                                  105
+                                                                                                                                                  100
                                                                                                                                                 )
                                                                                                                                               ]
                                                                                                                                               [
@@ -3745,7 +3742,7 @@
                                                                                                                                                     (con integer)
                                                                                                                                                   }
                                                                                                                                                   (con
-                                                                                                                                                    100
+                                                                                                                                                    32
                                                                                                                                                   )
                                                                                                                                                 ]
                                                                                                                                                 [
@@ -3755,7 +3752,7 @@
                                                                                                                                                       (con integer)
                                                                                                                                                     }
                                                                                                                                                     (con
-                                                                                                                                                      32
+                                                                                                                                                      83
                                                                                                                                                     )
                                                                                                                                                   ]
                                                                                                                                                   [
@@ -3765,7 +3762,7 @@
                                                                                                                                                         (con integer)
                                                                                                                                                       }
                                                                                                                                                       (con
-                                                                                                                                                        83
+                                                                                                                                                        77
                                                                                                                                                       )
                                                                                                                                                     ]
                                                                                                                                                     [
@@ -3775,7 +3772,7 @@
                                                                                                                                                           (con integer)
                                                                                                                                                         }
                                                                                                                                                         (con
-                                                                                                                                                          77
+                                                                                                                                                          46
                                                                                                                                                         )
                                                                                                                                                       ]
                                                                                                                                                       [
@@ -3785,7 +3782,7 @@
                                                                                                                                                             (con integer)
                                                                                                                                                           }
                                                                                                                                                           (con
-                                                                                                                                                            46
+                                                                                                                                                            116
                                                                                                                                                           )
                                                                                                                                                         ]
                                                                                                                                                         [
@@ -3795,7 +3792,7 @@
                                                                                                                                                               (con integer)
                                                                                                                                                             }
                                                                                                                                                             (con
-                                                                                                                                                              116
+                                                                                                                                                              114
                                                                                                                                                             )
                                                                                                                                                           ]
                                                                                                                                                           [
@@ -3805,7 +3802,7 @@
                                                                                                                                                                 (con integer)
                                                                                                                                                               }
                                                                                                                                                               (con
-                                                                                                                                                                114
+                                                                                                                                                                97
                                                                                                                                                               )
                                                                                                                                                             ]
                                                                                                                                                             [
@@ -3815,7 +3812,7 @@
                                                                                                                                                                   (con integer)
                                                                                                                                                                 }
                                                                                                                                                                 (con
-                                                                                                                                                                  97
+                                                                                                                                                                  110
                                                                                                                                                                 )
                                                                                                                                                               ]
                                                                                                                                                               [
@@ -3825,7 +3822,7 @@
                                                                                                                                                                     (con integer)
                                                                                                                                                                   }
                                                                                                                                                                   (con
-                                                                                                                                                                    110
+                                                                                                                                                                    115
                                                                                                                                                                   )
                                                                                                                                                                 ]
                                                                                                                                                                 [
@@ -3835,7 +3832,7 @@
                                                                                                                                                                       (con integer)
                                                                                                                                                                     }
                                                                                                                                                                     (con
-                                                                                                                                                                      115
+                                                                                                                                                                      105
                                                                                                                                                                     )
                                                                                                                                                                   ]
                                                                                                                                                                   [
@@ -3845,7 +3842,7 @@
                                                                                                                                                                         (con integer)
                                                                                                                                                                       }
                                                                                                                                                                       (con
-                                                                                                                                                                        105
+                                                                                                                                                                        116
                                                                                                                                                                       )
                                                                                                                                                                     ]
                                                                                                                                                                     [
@@ -3855,7 +3852,7 @@
                                                                                                                                                                           (con integer)
                                                                                                                                                                         }
                                                                                                                                                                         (con
-                                                                                                                                                                          116
+                                                                                                                                                                          105
                                                                                                                                                                         )
                                                                                                                                                                       ]
                                                                                                                                                                       [
@@ -3865,7 +3862,7 @@
                                                                                                                                                                             (con integer)
                                                                                                                                                                           }
                                                                                                                                                                           (con
-                                                                                                                                                                            105
+                                                                                                                                                                            111
                                                                                                                                                                           )
                                                                                                                                                                         ]
                                                                                                                                                                         [
@@ -3875,24 +3872,13 @@
                                                                                                                                                                               (con integer)
                                                                                                                                                                             }
                                                                                                                                                                             (con
-                                                                                                                                                                              111
+                                                                                                                                                                              110
                                                                                                                                                                             )
                                                                                                                                                                           ]
-                                                                                                                                                                          [
-                                                                                                                                                                            [
-                                                                                                                                                                              {
-                                                                                                                                                                                Cons
-                                                                                                                                                                                (con integer)
-                                                                                                                                                                              }
-                                                                                                                                                                              (con
-                                                                                                                                                                                110
-                                                                                                                                                                              )
-                                                                                                                                                                            ]
-                                                                                                                                                                            {
-                                                                                                                                                                              Nil
-                                                                                                                                                                              (con integer)
-                                                                                                                                                                            }
-                                                                                                                                                                          ]
+                                                                                                                                                                          {
+                                                                                                                                                                            Nil
+                                                                                                                                                                            (con integer)
+                                                                                                                                                                          }
                                                                                                                                                                         ]
                                                                                                                                                                       ]
                                                                                                                                                                     ]
@@ -3917,117 +3903,77 @@
                                                                                                                               ]
                                                                                                                             ]
                                                                                                                           ]
-                                                                                                                          ww
                                                                                                                         ]
+                                                                                                                        ww
                                                                                                                       ]
-                                                                                                                      (fun Unit Bool)
-                                                                                                                    }
-                                                                                                                    (lam
-                                                                                                                      thunk
-                                                                                                                      Unit
-                                                                                                                      True
-                                                                                                                    )
-                                                                                                                  ]
+                                                                                                                    ]
+                                                                                                                    (fun Unit Bool)
+                                                                                                                  }
                                                                                                                   (lam
                                                                                                                     thunk
                                                                                                                     Unit
-                                                                                                                    j
+                                                                                                                    True
                                                                                                                   )
                                                                                                                 ]
-                                                                                                                Unit
+                                                                                                                (lam
+                                                                                                                  thunk
+                                                                                                                  Unit
+                                                                                                                  j
+                                                                                                                )
                                                                                                               ]
-                                                                                                            )
+                                                                                                              Unit
+                                                                                                            ]
                                                                                                           )
+                                                                                                        )
+                                                                                                        [
                                                                                                           [
-                                                                                                            [
-                                                                                                              {
+                                                                                                            {
+                                                                                                              [
+                                                                                                                GameState_match
+                                                                                                                w
+                                                                                                              ]
+                                                                                                              Bool
+                                                                                                            }
+                                                                                                            (lam
+                                                                                                              s
+                                                                                                              (con bytestring)
+                                                                                                              [
                                                                                                                 [
-                                                                                                                  GameState_match
-                                                                                                                  w
-                                                                                                                ]
-                                                                                                                Bool
-                                                                                                              }
-                                                                                                              (lam
-                                                                                                                s
-                                                                                                                (con bytestring)
-                                                                                                                [
-                                                                                                                  [
-                                                                                                                    {
-                                                                                                                      [
-                                                                                                                        GameInput_match
-                                                                                                                        ww
-                                                                                                                      ]
-                                                                                                                      Bool
-                                                                                                                    }
-                                                                                                                    (lam
-                                                                                                                      tn
-                                                                                                                      (con bytestring)
+                                                                                                                  {
+                                                                                                                    [
+                                                                                                                      GameInput_match
+                                                                                                                      ww
+                                                                                                                    ]
+                                                                                                                    Bool
+                                                                                                                  }
+                                                                                                                  (lam
+                                                                                                                    tn
+                                                                                                                    (con bytestring)
+                                                                                                                    [
                                                                                                                       [
                                                                                                                         [
-                                                                                                                          [
-                                                                                                                            {
-                                                                                                                              [
-                                                                                                                                Bool_match
-                                                                                                                                [
-                                                                                                                                  [
-                                                                                                                                    [
-                                                                                                                                      checkBinRel
-                                                                                                                                      equalsInteger
-                                                                                                                                    ]
-                                                                                                                                    [
-                                                                                                                                      tokenVal
-                                                                                                                                      tn
-                                                                                                                                    ]
-                                                                                                                                  ]
-                                                                                                                                  [
-                                                                                                                                    pendingTxForge
-                                                                                                                                    w
-                                                                                                                                  ]
-                                                                                                                                ]
-                                                                                                                              ]
-                                                                                                                              (fun Unit Bool)
-                                                                                                                            }
-                                                                                                                            (lam
-                                                                                                                              thunk
-                                                                                                                              Unit
+                                                                                                                          {
+                                                                                                                            [
+                                                                                                                              Bool_match
                                                                                                                               [
                                                                                                                                 [
                                                                                                                                   [
-                                                                                                                                    {
-                                                                                                                                      [
-                                                                                                                                        Bool_match
-                                                                                                                                        [
-                                                                                                                                          [
-                                                                                                                                            fEqGameState_c
-                                                                                                                                            [
-                                                                                                                                              [
-                                                                                                                                                Locked
-                                                                                                                                                tn
-                                                                                                                                              ]
-                                                                                                                                              s
-                                                                                                                                            ]
-                                                                                                                                          ]
-                                                                                                                                          ww
-                                                                                                                                        ]
-                                                                                                                                      ]
-                                                                                                                                      (fun Unit Bool)
-                                                                                                                                    }
-                                                                                                                                    (lam
-                                                                                                                                      thunk
-                                                                                                                                      Unit
-                                                                                                                                      True
-                                                                                                                                    )
+                                                                                                                                    checkBinRel
+                                                                                                                                    equalsInteger
                                                                                                                                   ]
-                                                                                                                                  (lam
-                                                                                                                                    thunk
-                                                                                                                                    Unit
-                                                                                                                                    j
-                                                                                                                                  )
+                                                                                                                                  [
+                                                                                                                                    tokenVal
+                                                                                                                                    tn
+                                                                                                                                  ]
                                                                                                                                 ]
-                                                                                                                                Unit
+                                                                                                                                [
+                                                                                                                                  pendingTxForge
+                                                                                                                                  w
+                                                                                                                                ]
                                                                                                                               ]
-                                                                                                                            )
-                                                                                                                          ]
+                                                                                                                            ]
+                                                                                                                            (fun Unit Bool)
+                                                                                                                          }
                                                                                                                           (lam
                                                                                                                             thunk
                                                                                                                             Unit
@@ -4041,11 +3987,11 @@
                                                                                                                                         [
                                                                                                                                           fEqGameState_c
                                                                                                                                           [
-                                                                                                                                            {
-                                                                                                                                              error
-                                                                                                                                              GameState
-                                                                                                                                            }
-                                                                                                                                            Unit
+                                                                                                                                            [
+                                                                                                                                              Locked
+                                                                                                                                              tn
+                                                                                                                                            ]
+                                                                                                                                            s
                                                                                                                                           ]
                                                                                                                                         ]
                                                                                                                                         ww
@@ -4069,191 +4015,191 @@
                                                                                                                             ]
                                                                                                                           )
                                                                                                                         ]
-                                                                                                                        Unit
+                                                                                                                        (lam
+                                                                                                                          thunk
+                                                                                                                          Unit
+                                                                                                                          [
+                                                                                                                            [
+                                                                                                                              [
+                                                                                                                                {
+                                                                                                                                  [
+                                                                                                                                    Bool_match
+                                                                                                                                    [
+                                                                                                                                      [
+                                                                                                                                        fEqGameState_c
+                                                                                                                                        [
+                                                                                                                                          {
+                                                                                                                                            error
+                                                                                                                                            GameState
+                                                                                                                                          }
+                                                                                                                                          Unit
+                                                                                                                                        ]
+                                                                                                                                      ]
+                                                                                                                                      ww
+                                                                                                                                    ]
+                                                                                                                                  ]
+                                                                                                                                  (fun Unit Bool)
+                                                                                                                                }
+                                                                                                                                (lam
+                                                                                                                                  thunk
+                                                                                                                                  Unit
+                                                                                                                                  True
+                                                                                                                                )
+                                                                                                                              ]
+                                                                                                                              (lam
+                                                                                                                                thunk
+                                                                                                                                Unit
+                                                                                                                                j
+                                                                                                                              )
+                                                                                                                            ]
+                                                                                                                            Unit
+                                                                                                                          ]
+                                                                                                                        )
                                                                                                                       ]
-                                                                                                                    )
-                                                                                                                  ]
+                                                                                                                      Unit
+                                                                                                                    ]
+                                                                                                                  )
+                                                                                                                ]
+                                                                                                                (lam
+                                                                                                                  ipv
+                                                                                                                  (con bytestring)
                                                                                                                   (lam
                                                                                                                     ipv
                                                                                                                     (con bytestring)
-                                                                                                                    (lam
-                                                                                                                      ipv
-                                                                                                                      (con bytestring)
-                                                                                                                      [
-                                                                                                                        fail
-                                                                                                                        (abs
-                                                                                                                          e
-                                                                                                                          (type)
-                                                                                                                          (lam
-                                                                                                                            thunk
-                                                                                                                            Unit
-                                                                                                                            (error
-                                                                                                                              e
-                                                                                                                            )
+                                                                                                                    [
+                                                                                                                      fail
+                                                                                                                      (abs
+                                                                                                                        e
+                                                                                                                        (type)
+                                                                                                                        (lam
+                                                                                                                          thunk
+                                                                                                                          Unit
+                                                                                                                          (error
+                                                                                                                            e
                                                                                                                           )
                                                                                                                         )
-                                                                                                                      ]
-                                                                                                                    )
+                                                                                                                      )
+                                                                                                                    ]
+                                                                                                                  )
+                                                                                                                )
+                                                                                                              ]
+                                                                                                            )
+                                                                                                          ]
+                                                                                                          (lam
+                                                                                                            tn
+                                                                                                            (con bytestring)
+                                                                                                            (lam
+                                                                                                              currentSecret
+                                                                                                              (con bytestring)
+                                                                                                              [
+                                                                                                                [
+                                                                                                                  {
+                                                                                                                    [
+                                                                                                                      GameInput_match
+                                                                                                                      ww
+                                                                                                                    ]
+                                                                                                                    Bool
+                                                                                                                  }
+                                                                                                                  (lam
+                                                                                                                    ipv
+                                                                                                                    (con bytestring)
+                                                                                                                    [
+                                                                                                                      fail
+                                                                                                                      (abs
+                                                                                                                        e
+                                                                                                                        (type)
+                                                                                                                        (lam
+                                                                                                                          thunk
+                                                                                                                          Unit
+                                                                                                                          (error
+                                                                                                                            e
+                                                                                                                          )
+                                                                                                                        )
+                                                                                                                      )
+                                                                                                                    ]
                                                                                                                   )
                                                                                                                 ]
-                                                                                                              )
-                                                                                                            ]
-                                                                                                            (lam
-                                                                                                              tn
-                                                                                                              (con bytestring)
-                                                                                                              (lam
-                                                                                                                currentSecret
-                                                                                                                (con bytestring)
-                                                                                                                [
-                                                                                                                  [
-                                                                                                                    {
+                                                                                                                (lam
+                                                                                                                  theGuess
+                                                                                                                  (con bytestring)
+                                                                                                                  (lam
+                                                                                                                    nextSecret
+                                                                                                                    (con bytestring)
+                                                                                                                    [
                                                                                                                       [
-                                                                                                                        GameInput_match
-                                                                                                                        ww
-                                                                                                                      ]
-                                                                                                                      Bool
-                                                                                                                    }
-                                                                                                                    (lam
-                                                                                                                      ipv
-                                                                                                                      (con bytestring)
-                                                                                                                      [
-                                                                                                                        fail
-                                                                                                                        (abs
-                                                                                                                          e
-                                                                                                                          (type)
+                                                                                                                        [
+                                                                                                                          {
+                                                                                                                            [
+                                                                                                                              Bool_match
+                                                                                                                              [
+                                                                                                                                [
+                                                                                                                                  equalsByteString
+                                                                                                                                  currentSecret
+                                                                                                                                ]
+                                                                                                                                [
+                                                                                                                                  sha2_
+                                                                                                                                  theGuess
+                                                                                                                                ]
+                                                                                                                              ]
+                                                                                                                            ]
+                                                                                                                            (fun Unit Bool)
+                                                                                                                          }
                                                                                                                           (lam
                                                                                                                             thunk
                                                                                                                             Unit
-                                                                                                                            (error
-                                                                                                                              e
-                                                                                                                            )
-                                                                                                                          )
-                                                                                                                        )
-                                                                                                                      ]
-                                                                                                                    )
-                                                                                                                  ]
-                                                                                                                  (lam
-                                                                                                                    theGuess
-                                                                                                                    (con bytestring)
-                                                                                                                    (lam
-                                                                                                                      nextSecret
-                                                                                                                      (con bytestring)
-                                                                                                                      [
-                                                                                                                        [
-                                                                                                                          [
-                                                                                                                            {
-                                                                                                                              [
-                                                                                                                                Bool_match
-                                                                                                                                [
-                                                                                                                                  [
-                                                                                                                                    equalsByteString
-                                                                                                                                    currentSecret
-                                                                                                                                  ]
-                                                                                                                                  [
-                                                                                                                                    sha2_
-                                                                                                                                    theGuess
-                                                                                                                                  ]
-                                                                                                                                ]
-                                                                                                                              ]
-                                                                                                                              (fun Unit Bool)
-                                                                                                                            }
-                                                                                                                            (lam
-                                                                                                                              thunk
-                                                                                                                              Unit
+                                                                                                                            [
                                                                                                                               [
                                                                                                                                 [
-                                                                                                                                  [
-                                                                                                                                    {
+                                                                                                                                  {
+                                                                                                                                    [
+                                                                                                                                      Bool_match
                                                                                                                                       [
-                                                                                                                                        Bool_match
                                                                                                                                         [
                                                                                                                                           [
-                                                                                                                                            [
-                                                                                                                                              checkBinRel
-                                                                                                                                              greaterThanEqInteger
-                                                                                                                                            ]
-                                                                                                                                            [
-                                                                                                                                              valueSpent
-                                                                                                                                              w
-                                                                                                                                            ]
+                                                                                                                                            checkBinRel
+                                                                                                                                            greaterThanEqInteger
                                                                                                                                           ]
                                                                                                                                           [
-                                                                                                                                            tokenVal
-                                                                                                                                            tn
+                                                                                                                                            valueSpent
+                                                                                                                                            w
                                                                                                                                           ]
                                                                                                                                         ]
+                                                                                                                                        [
+                                                                                                                                          tokenVal
+                                                                                                                                          tn
+                                                                                                                                        ]
                                                                                                                                       ]
-                                                                                                                                      (fun Unit Bool)
-                                                                                                                                    }
-                                                                                                                                    (lam
-                                                                                                                                      thunk
-                                                                                                                                      Unit
+                                                                                                                                    ]
+                                                                                                                                    (fun Unit Bool)
+                                                                                                                                  }
+                                                                                                                                  (lam
+                                                                                                                                    thunk
+                                                                                                                                    Unit
+                                                                                                                                    [
                                                                                                                                       [
                                                                                                                                         [
-                                                                                                                                          [
-                                                                                                                                            {
-                                                                                                                                              [
-                                                                                                                                                Bool_match
-                                                                                                                                                [
-                                                                                                                                                  [
-                                                                                                                                                    [
-                                                                                                                                                      checkBinRel
-                                                                                                                                                      equalsInteger
-                                                                                                                                                    ]
-                                                                                                                                                    {
-                                                                                                                                                      Nil
-                                                                                                                                                      [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                                                                    }
-                                                                                                                                                  ]
-                                                                                                                                                  [
-                                                                                                                                                    pendingTxForge
-                                                                                                                                                    w
-                                                                                                                                                  ]
-                                                                                                                                                ]
-                                                                                                                                              ]
-                                                                                                                                              (fun Unit Bool)
-                                                                                                                                            }
-                                                                                                                                            (lam
-                                                                                                                                              thunk
-                                                                                                                                              Unit
+                                                                                                                                          {
+                                                                                                                                            [
+                                                                                                                                              Bool_match
                                                                                                                                               [
                                                                                                                                                 [
                                                                                                                                                   [
-                                                                                                                                                    {
-                                                                                                                                                      [
-                                                                                                                                                        Bool_match
-                                                                                                                                                        [
-                                                                                                                                                          [
-                                                                                                                                                            fEqGameState_c
-                                                                                                                                                            [
-                                                                                                                                                              [
-                                                                                                                                                                Locked
-                                                                                                                                                                tn
-                                                                                                                                                              ]
-                                                                                                                                                              nextSecret
-                                                                                                                                                            ]
-                                                                                                                                                          ]
-                                                                                                                                                          ww
-                                                                                                                                                        ]
-                                                                                                                                                      ]
-                                                                                                                                                      (fun Unit Bool)
-                                                                                                                                                    }
-                                                                                                                                                    (lam
-                                                                                                                                                      thunk
-                                                                                                                                                      Unit
-                                                                                                                                                      True
-                                                                                                                                                    )
+                                                                                                                                                    checkBinRel
+                                                                                                                                                    equalsInteger
                                                                                                                                                   ]
-                                                                                                                                                  (lam
-                                                                                                                                                    thunk
-                                                                                                                                                    Unit
-                                                                                                                                                    j
-                                                                                                                                                  )
+                                                                                                                                                  {
+                                                                                                                                                    Nil
+                                                                                                                                                    [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                                                                  }
                                                                                                                                                 ]
-                                                                                                                                                Unit
+                                                                                                                                                [
+                                                                                                                                                  pendingTxForge
+                                                                                                                                                  w
+                                                                                                                                                ]
                                                                                                                                               ]
-                                                                                                                                            )
-                                                                                                                                          ]
+                                                                                                                                            ]
+                                                                                                                                            (fun Unit Bool)
+                                                                                                                                          }
                                                                                                                                           (lam
                                                                                                                                             thunk
                                                                                                                                             Unit
@@ -4267,11 +4213,11 @@
                                                                                                                                                         [
                                                                                                                                                           fEqGameState_c
                                                                                                                                                           [
-                                                                                                                                                            {
-                                                                                                                                                              error
-                                                                                                                                                              GameState
-                                                                                                                                                            }
-                                                                                                                                                            Unit
+                                                                                                                                                            [
+                                                                                                                                                              Locked
+                                                                                                                                                              tn
+                                                                                                                                                            ]
+                                                                                                                                                            nextSecret
                                                                                                                                                           ]
                                                                                                                                                         ]
                                                                                                                                                         ww
@@ -4295,109 +4241,170 @@
                                                                                                                                             ]
                                                                                                                                           )
                                                                                                                                         ]
-                                                                                                                                        Unit
-                                                                                                                                      ]
-                                                                                                                                    )
-                                                                                                                                  ]
-                                                                                                                                  (lam
-                                                                                                                                    thunk
-                                                                                                                                    Unit
-                                                                                                                                    [
-                                                                                                                                      [
-                                                                                                                                        [
-                                                                                                                                          {
-                                                                                                                                            [
-                                                                                                                                              Bool_match
-                                                                                                                                              [
-                                                                                                                                                [
-                                                                                                                                                  fEqGameState_c
-                                                                                                                                                  [
-                                                                                                                                                    {
-                                                                                                                                                      error
-                                                                                                                                                      GameState
-                                                                                                                                                    }
-                                                                                                                                                    Unit
-                                                                                                                                                  ]
-                                                                                                                                                ]
-                                                                                                                                                ww
-                                                                                                                                              ]
-                                                                                                                                            ]
-                                                                                                                                            (fun Unit Bool)
-                                                                                                                                          }
-                                                                                                                                          (lam
-                                                                                                                                            thunk
-                                                                                                                                            Unit
-                                                                                                                                            True
-                                                                                                                                          )
-                                                                                                                                        ]
                                                                                                                                         (lam
                                                                                                                                           thunk
                                                                                                                                           Unit
-                                                                                                                                          j
+                                                                                                                                          [
+                                                                                                                                            [
+                                                                                                                                              [
+                                                                                                                                                {
+                                                                                                                                                  [
+                                                                                                                                                    Bool_match
+                                                                                                                                                    [
+                                                                                                                                                      [
+                                                                                                                                                        fEqGameState_c
+                                                                                                                                                        [
+                                                                                                                                                          {
+                                                                                                                                                            error
+                                                                                                                                                            GameState
+                                                                                                                                                          }
+                                                                                                                                                          Unit
+                                                                                                                                                        ]
+                                                                                                                                                      ]
+                                                                                                                                                      ww
+                                                                                                                                                    ]
+                                                                                                                                                  ]
+                                                                                                                                                  (fun Unit Bool)
+                                                                                                                                                }
+                                                                                                                                                (lam
+                                                                                                                                                  thunk
+                                                                                                                                                  Unit
+                                                                                                                                                  True
+                                                                                                                                                )
+                                                                                                                                              ]
+                                                                                                                                              (lam
+                                                                                                                                                thunk
+                                                                                                                                                Unit
+                                                                                                                                                j
+                                                                                                                                              )
+                                                                                                                                            ]
+                                                                                                                                            Unit
+                                                                                                                                          ]
                                                                                                                                         )
                                                                                                                                       ]
                                                                                                                                       Unit
                                                                                                                                     ]
                                                                                                                                   )
                                                                                                                                 ]
-                                                                                                                                Unit
-                                                                                                                              ]
-                                                                                                                            )
-                                                                                                                          ]
-                                                                                                                          (lam
-                                                                                                                            thunk
-                                                                                                                            Unit
-                                                                                                                            [
-                                                                                                                              [
-                                                                                                                                [
-                                                                                                                                  {
-                                                                                                                                    [
-                                                                                                                                      Bool_match
-                                                                                                                                      [
-                                                                                                                                        [
-                                                                                                                                          fEqGameState_c
-                                                                                                                                          [
-                                                                                                                                            {
-                                                                                                                                              error
-                                                                                                                                              GameState
-                                                                                                                                            }
-                                                                                                                                            Unit
-                                                                                                                                          ]
-                                                                                                                                        ]
-                                                                                                                                        ww
-                                                                                                                                      ]
-                                                                                                                                    ]
-                                                                                                                                    (fun Unit Bool)
-                                                                                                                                  }
-                                                                                                                                  (lam
-                                                                                                                                    thunk
-                                                                                                                                    Unit
-                                                                                                                                    True
-                                                                                                                                  )
-                                                                                                                                ]
                                                                                                                                 (lam
                                                                                                                                   thunk
                                                                                                                                   Unit
-                                                                                                                                  j
+                                                                                                                                  [
+                                                                                                                                    [
+                                                                                                                                      [
+                                                                                                                                        {
+                                                                                                                                          [
+                                                                                                                                            Bool_match
+                                                                                                                                            [
+                                                                                                                                              [
+                                                                                                                                                fEqGameState_c
+                                                                                                                                                [
+                                                                                                                                                  {
+                                                                                                                                                    error
+                                                                                                                                                    GameState
+                                                                                                                                                  }
+                                                                                                                                                  Unit
+                                                                                                                                                ]
+                                                                                                                                              ]
+                                                                                                                                              ww
+                                                                                                                                            ]
+                                                                                                                                          ]
+                                                                                                                                          (fun Unit Bool)
+                                                                                                                                        }
+                                                                                                                                        (lam
+                                                                                                                                          thunk
+                                                                                                                                          Unit
+                                                                                                                                          True
+                                                                                                                                        )
+                                                                                                                                      ]
+                                                                                                                                      (lam
+                                                                                                                                        thunk
+                                                                                                                                        Unit
+                                                                                                                                        j
+                                                                                                                                      )
+                                                                                                                                    ]
+                                                                                                                                    Unit
+                                                                                                                                  ]
                                                                                                                                 )
                                                                                                                               ]
                                                                                                                               Unit
                                                                                                                             ]
                                                                                                                           )
                                                                                                                         ]
-                                                                                                                        Unit
+                                                                                                                        (lam
+                                                                                                                          thunk
+                                                                                                                          Unit
+                                                                                                                          [
+                                                                                                                            [
+                                                                                                                              [
+                                                                                                                                {
+                                                                                                                                  [
+                                                                                                                                    Bool_match
+                                                                                                                                    [
+                                                                                                                                      [
+                                                                                                                                        fEqGameState_c
+                                                                                                                                        [
+                                                                                                                                          {
+                                                                                                                                            error
+                                                                                                                                            GameState
+                                                                                                                                          }
+                                                                                                                                          Unit
+                                                                                                                                        ]
+                                                                                                                                      ]
+                                                                                                                                      ww
+                                                                                                                                    ]
+                                                                                                                                  ]
+                                                                                                                                  (fun Unit Bool)
+                                                                                                                                }
+                                                                                                                                (lam
+                                                                                                                                  thunk
+                                                                                                                                  Unit
+                                                                                                                                  True
+                                                                                                                                )
+                                                                                                                              ]
+                                                                                                                              (lam
+                                                                                                                                thunk
+                                                                                                                                Unit
+                                                                                                                                j
+                                                                                                                              )
+                                                                                                                            ]
+                                                                                                                            Unit
+                                                                                                                          ]
+                                                                                                                        )
                                                                                                                       ]
-                                                                                                                    )
+                                                                                                                      Unit
+                                                                                                                    ]
                                                                                                                   )
-                                                                                                                ]
-                                                                                                              )
+                                                                                                                )
+                                                                                                              ]
                                                                                                             )
-                                                                                                          ]
-                                                                                                        )
+                                                                                                          )
+                                                                                                        ]
                                                                                                       )
                                                                                                     )
                                                                                                   )
                                                                                                 )
+                                                                                              )
+                                                                                            )
+                                                                                          )
+                                                                                        )
+                                                                                        (let
+                                                                                          (nonrec
+                                                                                          )
+                                                                                          (datatypebind
+                                                                                            (datatype
+                                                                                              (tyvardecl
+                                                                                                Sealed
+                                                                                                (fun (type) (type))
+                                                                                              )
+                                                                                              (tyvardecl
+                                                                                                a
+                                                                                                (type)
+                                                                                              )
+                                                                                              Sealed_match
+                                                                                              (vardecl
+                                                                                                Seal
+                                                                                                (fun a [Sealed a])
                                                                                               )
                                                                                             )
                                                                                           )
