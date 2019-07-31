@@ -86,7 +86,7 @@ library
       plutus-wallet-api -any,
       plutus-emulator -any,
       prettyprinter -any,
-      containers -any--,
+      containers -any
 --      wl-pprint -any
 
 test-suite plutus-book-test
