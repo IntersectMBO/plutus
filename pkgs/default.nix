@@ -39229,8 +39229,9 @@ license = stdenv.lib.licenses.bsd3;
   mkDerivation
 , base
 , containers
-, fetchgit
-, hpack
+, Diff
+, hspec
+, HUnit
 , mtl
 , stdenv
 , text
@@ -39240,14 +39241,7 @@ mkDerivation {
 
 pname = "iots-export";
 version = "0.1.0.0";
-src = fetchgit {
-
-url = "https://github.com/input-output-hk/iots-export.git";
-sha256 = "1z1008qivlr3payc3rw575jhx5qwpbwpgz20v7ll46hillaasi3l";
-rev = "6522c6a5914760f6e08be97b866e93ba8712424c";
-fetchSubmodules = true;
-
-};
+src = .././iots-export;
 enableSeparateDataOutput = true;
 libraryHaskellDepends = [
 base
@@ -39256,12 +39250,17 @@ mtl
 text
 wl-pprint-text
 ];
-libraryToolDepends = [
-hpack
+testHaskellDepends = [
+base
+containers
+Diff
+hspec
+HUnit
+mtl
+text
+wl-pprint-text
 ];
 doHaddock = false;
-doCheck = false;
-preConfigure = "hpack";
 homepage = "https://github.com/iohk/iots-export#readme";
 description = "Tools to export Haskell to IOTS";
 license = stdenv.lib.licenses.bsd3;

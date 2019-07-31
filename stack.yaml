@@ -18,6 +18,7 @@ packages:
 - plutus-contract
 - plutus-emulator
 - deployment-server
+- iots-export
 
 extra-deps:
 # Agda and deps
@@ -62,8 +63,6 @@ extra-deps:
 # Need https://github.com/phadej/github/pull/387 and to be added back in to stackage
 - git: https://github.com/shmish111/github.git
   commit: cc27b9de4d5d0939235fa9a8b418de3ea4807bab
-- git: https://github.com/input-output-hk/iots-export.git
-  commit: 6522c6a5914760f6e08be97b866e93ba8712424c
 flags:
   language-plutus-core:
     development: true
