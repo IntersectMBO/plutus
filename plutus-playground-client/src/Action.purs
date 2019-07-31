@@ -15,7 +15,7 @@ import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Halogen (HTML)
 import Halogen.Component (ParentHTML)
-import Halogen.HTML (ClassName(ClassName), IProp, br_, button, code_, div, div_, h2_, h3_, input, label, p_, small_, strong_, text)
+import Halogen.HTML (ClassName(ClassName), IProp, br_, button, code_, div, div_, h2_, h3_, hr_, input, label, p_, small_, strong_, text)
 import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (input_, onClick, onDragEnd, onDragEnter, onDragLeave, onDragOver, onDragStart, onDrop, onValueInput)
 import Halogen.HTML.Events as HE
@@ -217,9 +217,11 @@ actionArgumentClass ancestors =
 actionArgumentForm :: forall p. Int -> Array SimpleArgument -> HTML p Query
 actionArgumentForm index arguments =
   div [ class_ wasValidated ]
-    (Array.mapWithIndex
-       (\i argument -> PopulateAction index i <$> actionArgumentField [ show i ] false argument)
-       arguments)
+    (Array.intercalate
+       [ hr_ ]
+       (Array.mapWithIndex
+          (\i argument -> [PopulateAction index i <$> actionArgumentField [ show i ] false argument])
+          arguments))
 
 actionArgumentField ::
   forall p. Warn (Text "We're still not handling the Unknowable case.")
