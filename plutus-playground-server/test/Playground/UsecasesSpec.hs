@@ -27,9 +27,7 @@ import           Playground.API               (CompilationResult (CompilationRes
 import qualified Playground.Interpreter       as PI
 import           Playground.Interpreter.Util  (TraceResult)
 import           Playground.Usecases          (crowdfunding, game, messages, vesting)
-import           Schema                       (Constructor (Record), ConstructorName (ConstructorName),
-                                               DataType (DataType), TypeSignature (TypeSignature), argumentSignatures,
-                                               constructorName, moduleName)
+import           Schema                       (FormSchema (FormSchemaInt, FormSchemaObject, FormSchemaValue))
 import           Test.Hspec                   (Spec, describe, it, shouldBe, shouldSatisfy)
 import           Wallet.Emulator.Types        (Wallet (Wallet))
 
@@ -70,141 +68,63 @@ vestingSpec =
                 [ FunctionSchema
                       { functionName = Fn "vestFunds"
                       , argumentSchema =
-                            [ DataType
-                                  (TypeSignature
-                                       { moduleName = "Main"
-                                       , constructorName = "VestingTranche"
-                                       , argumentSignatures = []
-                                       })
-                                  [ Record
-                                        (ConstructorName "VestingTranche")
-                                        [ ("vestingTrancheDate", slotDataType)
-                                        , ( "vestingTrancheAmount"
-                                          , valueDataType)
-                                        ]
+                            [ FormSchemaObject
+                                  [ ( "vestingTrancheDate"
+                                    , FormSchemaObject
+                                          [("getSlot", FormSchemaInt)])
+                                  , ("vestingTrancheAmount", FormSchemaValue)
                                   ]
-                            , DataType
-                                  (TypeSignature
-                                       { moduleName = "Main"
-                                       , constructorName = "VestingTranche"
-                                       , argumentSignatures = []
-                                       })
-                                  [ Record
-                                        (ConstructorName "VestingTranche")
-                                        [ ("vestingTrancheDate", slotDataType)
-                                        , ( "vestingTrancheAmount"
-                                          , valueDataType)
-                                        ]
+                            , FormSchemaObject
+                                  [ ( "vestingTrancheDate"
+                                    , FormSchemaObject
+                                          [("getSlot", FormSchemaInt)])
+                                  , ("vestingTrancheAmount", FormSchemaValue)
                                   ]
-                            , DataType
-                                  (TypeSignature
-                                       { moduleName = "Wallet.Emulator.Types"
-                                       , constructorName = "Wallet"
-                                       , argumentSignatures = []
-                                       })
-                                  [ Record
-                                        (ConstructorName "Wallet")
-                                        [("getWallet", integerDataType)]
-                                  ]
+                            , FormSchemaObject [("getWallet", FormSchemaInt)]
                             ]
                       }
                 , FunctionSchema
                       { functionName = Fn "registerVestingScheme"
                       , argumentSchema =
-                            [ DataType
-                                  (TypeSignature
-                                       { moduleName = "Main"
-                                       , constructorName = "VestingTranche"
-                                       , argumentSignatures = []
-                                       })
-                                  [ Record
-                                        (ConstructorName "VestingTranche")
-                                        [ ("vestingTrancheDate", slotDataType)
-                                        , ( "vestingTrancheAmount"
-                                          , valueDataType)
-                                        ]
+                            [ FormSchemaObject
+                                  [ ( "vestingTrancheDate"
+                                    , FormSchemaObject
+                                          [("getSlot", FormSchemaInt)])
+                                  , ("vestingTrancheAmount", FormSchemaValue)
                                   ]
-                            , DataType
-                                  (TypeSignature
-                                       { moduleName = "Main"
-                                       , constructorName = "VestingTranche"
-                                       , argumentSignatures = []
-                                       })
-                                  [ Record
-                                        (ConstructorName "VestingTranche")
-                                        [ ("vestingTrancheDate", slotDataType)
-                                        , ( "vestingTrancheAmount"
-                                          , valueDataType)
-                                        ]
+                            , FormSchemaObject
+                                  [ ( "vestingTrancheDate"
+                                    , FormSchemaObject
+                                          [("getSlot", FormSchemaInt)])
+                                  , ("vestingTrancheAmount", FormSchemaValue)
                                   ]
-                            , DataType
-                                  (TypeSignature
-                                       { moduleName = "Wallet.Emulator.Types"
-                                       , constructorName = "Wallet"
-                                       , argumentSignatures = []
-                                       })
-                                  [ Record
-                                        (ConstructorName "Wallet")
-                                        [("getWallet", integerDataType)]
-                                  ]
+                            , FormSchemaObject [("getWallet", FormSchemaInt)]
                             ]
                       }
                 , FunctionSchema
                       { functionName = Fn "withdraw"
                       , argumentSchema =
-                            [ DataType
-                                  (TypeSignature
-                                       { moduleName = "Main"
-                                       , constructorName = "VestingTranche"
-                                       , argumentSignatures = []
-                                       })
-                                  [ Record
-                                        (ConstructorName "VestingTranche")
-                                        [ ("vestingTrancheDate", slotDataType)
-                                        , ( "vestingTrancheAmount"
-                                          , valueDataType)
-                                        ]
+                            [ FormSchemaObject
+                                  [ ( "vestingTrancheDate"
+                                    , FormSchemaObject
+                                          [("getSlot", FormSchemaInt)])
+                                  , ("vestingTrancheAmount", FormSchemaValue)
                                   ]
-                            , DataType
-                                  (TypeSignature
-                                       { moduleName = "Main"
-                                       , constructorName = "VestingTranche"
-                                       , argumentSignatures = []
-                                       })
-                                  [ Record
-                                        (ConstructorName "VestingTranche")
-                                        [ ("vestingTrancheDate", slotDataType)
-                                        , ( "vestingTrancheAmount"
-                                          , valueDataType)
-                                        ]
+                            , FormSchemaObject
+                                  [ ( "vestingTrancheDate"
+                                    , FormSchemaObject
+                                          [("getSlot", FormSchemaInt)])
+                                  , ("vestingTrancheAmount", FormSchemaValue)
                                   ]
-                            , DataType
-                                  (TypeSignature
-                                       { moduleName = "Wallet.Emulator.Types"
-                                       , constructorName = "Wallet"
-                                       , argumentSignatures = []
-                                       })
-                                  [ Record
-                                        (ConstructorName "Wallet")
-                                        [("getWallet", integerDataType)]
-                                  ]
-                            , valueDataType
+                            , FormSchemaObject [("getWallet", FormSchemaInt)]
+                            , FormSchemaValue
                             ]
                       }
                 , FunctionSchema
                       { functionName = Fn "payToWallet_"
                       , argumentSchema =
-                            [ valueDataType
-                            , DataType
-                                  (TypeSignature
-                                       { moduleName = "Wallet.Emulator.Types"
-                                       , constructorName = "Wallet"
-                                       , argumentSignatures = []
-                                       })
-                                  [ Record
-                                        (ConstructorName "Wallet")
-                                        [("getWallet", integerDataType)]
-                                  ]
+                            [ FormSchemaValue
+                            , FormSchemaObject [("getWallet", FormSchemaInt)]
                             ]
                       }
                 ]
@@ -446,110 +366,3 @@ mkI = JSON.toJSON
 -- | Encode a value in JSON, then make a JSON *string* from that
 toJSONString :: JSON.ToJSON a => a -> JSON.Value
 toJSONString = JSON.String . TL.toStrict . JSON.encodeToLazyText
-
-------------------------------------------------------------
-integerTypeSignature :: TypeSignature
-integerTypeSignature =
-    TypeSignature
-        { moduleName = "GHC.Integer.Type"
-        , constructorName = "Integer"
-        , argumentSignatures = []
-        }
-
-integerDataType :: DataType
-integerDataType = DataType integerTypeSignature []
-
-slotDataType :: DataType
-slotDataType =
-    DataType
-        (TypeSignature
-             { moduleName = "Ledger.Slot"
-             , constructorName = "Slot"
-             , argumentSignatures = []
-             })
-        [Record (ConstructorName "Slot") [("getSlot", integerDataType)]]
-
-valueDataType :: DataType
-valueDataType =
-    DataType
-        (TypeSignature
-             { moduleName = "Ledger.Value"
-             , constructorName = "Value"
-             , argumentSignatures = []
-             })
-        [ Record
-              (ConstructorName "Value")
-              [ ( "getValue"
-                , DataType
-                      (TypeSignature
-                           { moduleName = "Language.PlutusTx.AssocMap"
-                           , constructorName = "Map"
-                           , argumentSignatures =
-                                 [ TypeSignature
-                                       { moduleName = "Ledger.Value"
-                                       , constructorName = "CurrencySymbol"
-                                       , argumentSignatures = []
-                                       }
-                                 , TypeSignature
-                                       { moduleName =
-                                             "Language.PlutusTx.AssocMap"
-                                       , constructorName = "Map"
-                                       , argumentSignatures =
-                                             [ TypeSignature
-                                                   { moduleName = "Ledger.Value"
-                                                   , constructorName =
-                                                         "TokenName"
-                                                   , argumentSignatures = []
-                                                   }
-                                             , integerTypeSignature
-                                             ]
-                                       }
-                                 ]
-                           })
-                      [ Record
-                            (ConstructorName "Map")
-                            [ ( "unMap"
-                              , DataType
-                                    (TypeSignature
-                                         { moduleName = "GHC.Types"
-                                         , constructorName = "[]"
-                                         , argumentSignatures =
-                                               [ TypeSignature
-                                                     { moduleName = "GHC.Tuple"
-                                                     , constructorName = "(,)"
-                                                     , argumentSignatures =
-                                                           [ TypeSignature
-                                                                 { moduleName =
-                                                                       "Ledger.Value"
-                                                                 , constructorName =
-                                                                       "CurrencySymbol"
-                                                                 , argumentSignatures =
-                                                                       []
-                                                                 }
-                                                           , TypeSignature
-                                                                 { moduleName =
-                                                                       "Language.PlutusTx.AssocMap"
-                                                                 , constructorName =
-                                                                       "Map"
-                                                                 , argumentSignatures =
-                                                                       [ TypeSignature
-                                                                             { moduleName =
-                                                                                   "Ledger.Value"
-                                                                             , constructorName =
-                                                                                   "TokenName"
-                                                                             , argumentSignatures =
-                                                                                   [
-                                                                                   ]
-                                                                             }
-                                                                       , integerTypeSignature
-                                                                       ]
-                                                                 }
-                                                           ]
-                                                     }
-                                               ]
-                                         })
-                                    [])
-                            ]
-                      ])
-              ]
-        ]

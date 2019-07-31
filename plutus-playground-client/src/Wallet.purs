@@ -17,7 +17,7 @@ import Icons (Icon(..), icon)
 import Ledger.Value (Value)
 import Playground.API (FunctionSchema, SimulatorWallet(..), _Fn, _FunctionSchema)
 import Prelude (show, ($), (<$>), (<<<), (<>))
-import Schema (DataType)
+import Schema (FormSchema)
 import ValueEditor (valueForm)
 import Wallet.Emulator.Types (Wallet)
 
@@ -94,7 +94,7 @@ actionButton ::
   forall p.
   Value
   -> SimulatorWallet
-  -> FunctionSchema DataType
+  -> FunctionSchema FormSchema
   -> HTML p Query
 actionButton initialValue simulatorWallet functionSchema =
   button

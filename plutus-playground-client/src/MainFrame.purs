@@ -454,11 +454,17 @@ evalForm initialValue = rec
     rec (SetIntField n next) (FormInt _) = FormInt n
     rec (SetIntField _ _) arg = arg
 
+    rec (SetBoolField n next) (FormBool _) = FormBool n
+    rec (SetBoolField _ _) arg = arg
+
     rec (SetStringField s next) (FormString _) = FormString (Just s)
     rec (SetStringField _ _) arg = arg
 
     rec (SetHexField s next) (FormHex _) = FormHex (Just s)
     rec (SetHexField _ _) arg = arg
+
+    rec (SetRadioField s next) (FormRadio options _) = FormRadio options (Just s)
+    rec (SetRadioField _ _) arg = arg
 
     rec (SetValueField valueEvent _) (FormValue value) =
       FormValue $ evalValueEvent valueEvent value
@@ -469,7 +475,9 @@ evalForm initialValue = rec
     rec (SetSubField _ subEvent) arg@(FormTuple _) = arg
     rec (SetSubField _ subEvent) arg@(FormString _) = arg
     rec (SetSubField _ subEvent) arg@(FormInt _) = arg
+    rec (SetSubField _ subEvent) arg@(FormBool _) = arg
     rec (SetSubField _ subEvent) arg@(FormHex _) = arg
+    rec (SetSubField _ subEvent) arg@(FormRadio _ _) = arg
     rec (SetSubField _ subEvent) arg@(FormValue _) = arg
 
     rec (AddSubField _) (FormArray schema fields) =
@@ -491,7 +499,7 @@ evalForm initialValue = rec
 
     rec (SetSubField n subEvent) s@(FormObject fields) =
       FormObject $ over (ix n <<< _Newtype <<< _2) (rec subEvent) fields
-    rec (SetSubField n subEvent) arg@(FormUnknowable _) = arg
+    rec (SetSubField n subEvent) arg@(FormUnsupported _) = arg
 
     rec (RemoveSubField n subEvent) arg@(FormArray schema fields ) =
       (FormArray schema (fromMaybe fields (Array.deleteAt n fields)))

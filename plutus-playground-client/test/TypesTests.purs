@@ -3,6 +3,7 @@ module TypesTests
   ) where
 
 import Prelude
+
 import Data.Maybe (Maybe(..))
 import Data.RawJson (JsonTuple(..))
 import Data.Tuple (Tuple(..))
@@ -15,8 +16,7 @@ import Foreign.Object as FO
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Playground.API (Fn(Fn), FunctionSchema(FunctionSchema), SimulatorWallet(SimulatorWallet))
-import Schema (DataType(..), TypeSignature(..))
-import Schema.Types (intDataType, integerDataType, valueDataType)
+import Schema (FormSchema(..))
 import Test.Unit (TestSuite, Test, suite, test)
 import Test.Unit.Assert (equal)
 import Types (Action(Action, Wait), FormArgument(..), formArgumentToJson, toArgument)
@@ -37,24 +37,24 @@ validateTests = do
     isValid $ makeTestAction [ FormInt (Just 5) ]
     isValid $ makeTestAction [ FormString (Just "TEST") ]
     isValid $ makeTestAction [ FormTuple (JsonTuple (Tuple (FormInt (Just 5)) (FormInt (Just 6)))) ]
-    isValid $ makeTestAction [ FormArray integerDataType [] ]
+    isValid $ makeTestAction [ FormArray FormSchemaInt [] ]
     isValid $ makeTestAction [ FormObject [] ]
   --
   test "Validation errors" do
-    equal [ withPath [ "0" ] Unsupported ] $ validate (makeTestAction [ FormUnknowable { context: "TEST", description: "Test case." } ])
+    equal [ withPath [ "0" ] Unsupported ] $ validate (makeTestAction [ FormUnsupported { description: "Test case." } ])
     equal [ withPath [ "0" ] Required ] $ validate (makeTestAction [ FormInt Nothing ])
     equal [ withPath [ "0" ] Required ] $ validate (makeTestAction [ FormString Nothing ])
     equal
       [ withPath [ "0", "_1" ] Required
       , withPath [ "0", "_2" ] Unsupported
       ]
-      (validate (makeTestAction [ FormTuple (JsonTuple (Tuple (FormInt Nothing) (FormUnknowable { context: "TEST", description: "Test." }))) ]))
+      (validate (makeTestAction [ FormTuple (JsonTuple (Tuple (FormInt Nothing) (FormUnsupported { description: "Test." }))) ]))
     equal [ withPath [ "0", "_1" ] Required ] $ validate (makeTestAction [ FormTuple (JsonTuple (Tuple (FormInt Nothing) (FormInt (Just 5)))) ])
     equal [ withPath [ "0", "_2" ] Required ] $ validate (makeTestAction [ FormTuple (JsonTuple (Tuple (FormInt (Just 5)) (FormInt Nothing))) ])
     equal [ withPath [ "0", "2" ] Required ]
       $ validate
           ( makeTestAction
-              [ FormArray intDataType
+              [ FormArray FormSchemaInt
                   [ FormInt (Just 5)
                   , FormInt (Just 6)
                   , FormInt Nothing
@@ -96,21 +96,11 @@ toArgumentTests = do
           }
     test "FormInt" do
       equal
-        ( toArgument initialValue
-            ( DataType
-                ( TypeSignature
-                    { argumentSignatures: []
-                    , constructorName: "Int"
-                    , moduleName: "GHC.Types"
-                    }
-                )
-                []
-            )
-        )
+        (toArgument initialValue FormSchemaInt)
         (FormInt Nothing)
     test "Value" do
       equal
-        (toArgument initialValue valueDataType)
+        (toArgument initialValue FormSchemaValue)
         (FormValue initialValue)
 
 makeTestAction :: Array FormArgument -> Action
@@ -173,7 +163,7 @@ formArgumentToJsonTests = do
       equalJson
         (Just (encodeJSON [ 1.0, 2.0, 3.0 ]))
         ( formArgumentToJson
-            ( FormArray intDataType
+            ( FormArray FormSchemaInt
                 [ FormInt (Just 1)
                 , FormInt (Just 2)
                 , FormInt (Just 3)

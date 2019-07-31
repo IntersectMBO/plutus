@@ -11,6 +11,7 @@ class Validation a where
 
 data ValidationError
   = Required
+  | Invalid
   | Unsupported
 
 derive instance eqValidationError :: Eq ValidationError
@@ -18,6 +19,7 @@ derive instance genericValidationError :: Generic ValidationError _
 
 instance showValidationError :: Show ValidationError where
   show Required = "Required"
+  show Invalid = "Invalid"
   show Unsupported = "Unsupported"
 
 ------------------------------------------------------------

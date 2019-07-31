@@ -53,8 +53,7 @@ import           Playground.API              (FunctionSchema, KnownCurrency (Kno
 import           Playground.Interpreter.Util
 import           Playground.TH               (ensureIotsDefinitions, mkFunction, mkFunctions, mkIotsDefinitions,
                                               mkKnownCurrencies, mkSingleFunction)
-import           Schema                      (ToSchema)
-import qualified Schema
+import           Schema                      (FormSchema, ToSchema)
 import           Wallet.API                  (WalletAPI, payToPublicKey_)
 import           Wallet.Emulator             (addBlocksAndNotify, runWalletActionAndProcessPending, walletPubKey)
 import           Wallet.Emulator.Types       (MockWallet, Wallet (..))
@@ -73,7 +72,7 @@ instance ByteArrayAccess ByteString where
 $(mkSingleFunction 'payToWallet_)
 
 printSchemas ::
-       ([FunctionSchema Schema.DataType], [KnownCurrency], Text) -> IO ()
+       ([FunctionSchema FormSchema], [KnownCurrency], Text) -> IO ()
 printSchemas (userSchemas, currencies, iotsDefinitions) =
     LBC8.putStrLn . encode $ (allSchemas, currencies, iotsDefinitions)
   where

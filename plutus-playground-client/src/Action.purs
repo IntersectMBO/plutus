@@ -2,7 +2,7 @@ module Action
        ( simulationPane
        ) where
 
-import Bootstrap (badge, badgePrimary, btn, btnDanger, btnGroup, btnGroupSmall, btnInfo, btnLink, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, col10_, col2_, col_, formControl, formGroup_, invalidFeedback_, nbsp, pullRight, responsiveThird, row, row_, validFeedback_, wasValidated)
+import Bootstrap (badge, badgePrimary, btn, btnDanger, btnGroup, btnGroupSmall, btnInfo, btnLink, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, col10_, col2_, col_, formCheckInput, formCheckLabel, formCheck_, formControl, formGroup_, invalidFeedback_, nbsp, pullRight, responsiveThird, row, row_, validFeedback_, wasValidated)
 import Cursor (Cursor, current)
 import Cursor as Cursor
 import Data.Array (mapWithIndex)
@@ -11,15 +11,16 @@ import Data.Int as Int
 import Data.Lens (preview, view)
 import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
 import Data.RawJson (JsonTuple(..))
+import Data.String as String
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Halogen (HTML)
 import Halogen.Component (ParentHTML)
 import Halogen.HTML (ClassName(ClassName), IProp, br_, button, code_, div, div_, h2_, h3_, hr_, input, label, p_, small_, strong_, text)
 import Halogen.HTML.Elements.Keyed as Keyed
-import Halogen.HTML.Events (input_, onClick, onDragEnd, onDragEnter, onDragLeave, onDragOver, onDragStart, onDrop, onValueInput)
+import Halogen.HTML.Events (input_, onChecked, onClick, onDragEnd, onDragEnter, onDragLeave, onDragOver, onDragStart, onDrop, onValueInput)
 import Halogen.HTML.Events as HE
-import Halogen.HTML.Properties (InputType(InputText, InputNumber), class_, classes, disabled, draggable, for, id_, placeholder, required, type_, value)
+import Halogen.HTML.Properties (InputType(..), checked, class_, classes, disabled, draggable, for, id_, name, placeholder, required, type_, value)
 import Halogen.Query as HQ
 import Icons (Icon(..), icon)
 import Ledger.Value (Value)
@@ -27,7 +28,7 @@ import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
 import Playground.API (EvaluationResult, _Fn, _FunctionSchema)
 import Prelude (Unit, map, pure, show, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==))
 import Prim.TypeError (class Warn, Text)
-import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, DragAndDropEventType(..), FormEvent(..), Query(..), FormArgument(..), Simulation(Simulation), WebData, _Action, _argumentSchema, _functionName, _resultBlockchain, _simulatorWallet, _simulatorWalletWallet, _walletId)
+import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, DragAndDropEventType(..), FormArgument(..), FormEvent(..), Query(..), Simulation(Simulation), WebData, _Action, _argumentSchema, _functionName, _resultBlockchain, _simulatorWallet, _simulatorWalletWallet, _walletId)
 import Validation (ValidationError, WithPath, joinPath, showPathValue, validate)
 import ValueEditor (valueForm)
 import Wallet (walletIdPane, walletsPane)
@@ -225,7 +226,7 @@ actionArgumentForm index arguments =
 
 actionArgumentField ::
   forall p.
-  Warn (Text "We're still not handling the Unknowable case.")
+  Warn (Text "We're still not handling the Unsupported case.")
   => Warn (Text "We're still not handling the FormMaybe case.")
   => Warn (Text "The Hex fields should be forced to comply to [0-9a-fA-F].")
   => Array String
@@ -244,6 +245,24 @@ actionArgumentField ancestors _ arg@(FormInt n) =
       ]
     , validationFeedback (joinPath ancestors <$> validate arg)
   ]
+actionArgumentField ancestors _ arg@(FormBool b) =
+  formCheck_
+    [ input
+       [ type_ InputCheckbox
+       , id_ elementId
+       , classes (Array.cons formCheckInput (actionArgumentClass ancestors))
+       , checked b
+       , onChecked (Just <<< HQ.action <<< SetBoolField)
+       ]
+    , label
+       [ class_ formCheckLabel
+       , for elementId
+       ]
+       [ text (if b then "True" else "False") ]
+    , validationFeedback (joinPath ancestors <$> validate arg)
+    ]
+  where
+    elementId = String.joinWith "-" ancestors
 actionArgumentField ancestors _ arg@(FormString s) =
   div_ [
     input
@@ -256,6 +275,32 @@ actionArgumentField ancestors _ arg@(FormString s) =
       ]
     , validationFeedback (joinPath ancestors <$> validate arg)
   ]
+actionArgumentField ancestors _ arg@(FormRadio options s) =
+  formGroup_
+    [ div_ (radioItem <$> options)
+    , validationFeedback (joinPath ancestors <$> validate arg)
+    ]
+  where
+    radioItem :: String -> HTML p FormEvent
+    radioItem option =
+      let elementId = String.joinWith "-" (ancestors <> [option])
+      in formCheck_
+           [ input
+               [ type_ InputRadio
+               , id_ elementId
+               , classes (Array.cons formCheckInput (actionArgumentClass ancestors))
+               , name option
+               , value option
+               , required (s == Nothing)
+               , onValueInput $ HE.input $ SetRadioField
+               , checked (Just option == s)
+               ]
+           , label
+               [ class_ formCheckLabel
+               , for elementId
+               ]
+               [ text option ]
+           ]
 actionArgumentField ancestors _ arg@(FormHex s) =
   div_ [
     input
@@ -321,8 +366,8 @@ actionArgumentField _ _ (FormMaybe dataType child) =
        , code_ [ text $ show child ]
        ]
 
-actionArgumentField _ _ (FormUnknowable { context, description }) =
-  div_ [ text $ "Unsupported: " <>  context
+actionArgumentField _ _ (FormUnsupported { description }) =
+  div_ [ text $ "Unsupported"
        , code_ [ text description ]
        ]
 

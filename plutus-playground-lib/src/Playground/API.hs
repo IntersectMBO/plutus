@@ -32,7 +32,7 @@ import           Ledger.Scripts               (ValidatorHash)
 import           Ledger.Validation            (fromSymbol)
 import           Ledger.Value                 (TokenName)
 import qualified Ledger.Value                 as V
-import           Schema                       (DataType)
+import           Schema                       (FormSchema)
 import           Servant.API                  ((:<|>), (:>), Get, JSON, Post, ReqBody)
 import           Text.Read                    (readMaybe)
 import           Wallet.Emulator.Types        (EmulatorEvent, Wallet, walletPubKey)
@@ -110,7 +110,7 @@ data EvaluationResult =
 
 data CompilationResult =
     CompilationResult
-        { functionSchema  :: [FunctionSchema DataType]
+        { functionSchema  :: [FunctionSchema FormSchema]
         , knownCurrencies :: [KnownCurrency]
         , iotsSpec        :: Text
         }

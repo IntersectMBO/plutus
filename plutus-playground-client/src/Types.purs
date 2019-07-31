@@ -7,7 +7,7 @@ import Auth (AuthStatus)
 import Control.Comonad (class Comonad, extract)
 import Control.Extend (class Extend, extend)
 import Cursor (Cursor)
-import Data.Array (mapWithIndex)
+import Data.Array (elem, mapWithIndex)
 import Data.Array as Array
 import Data.Either.Nested (Either2)
 import Data.Functor.Coproduct.Nested (Coproduct2)
@@ -43,9 +43,7 @@ import Matryoshka (class Corecursive, class Recursive, Algebra, ana, cata)
 import Network.RemoteData (RemoteData)
 import Playground.API (CompilationResult, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency, SimulatorWallet, _FunctionSchema, _SimulatorWallet)
 import Playground.API as API
-import Prim.TypeError (class Warn, Text)
-import Schema (Constructor(..), ConstructorName(..), DataType(..), TypeSignature(..))
-import Schema.Types (intDataType, intSignature, integerDataType, maybeDataType, stringDataType, textDataType, valueDataType)
+import Schema (FormSchema(..))
 import Servant.PureScript.Ajax (AjaxError)
 import Test.QuickCheck.Arbitrary (class Arbitrary)
 import Test.QuickCheck.Gen as Gen
@@ -231,8 +229,10 @@ instance showDragAndDropEventType :: Show DragAndDropEventType where
 
 data FormEvent a
   = SetIntField (Maybe Int) a
+  | SetBoolField Boolean a
   | SetStringField String a
   | SetHexField String a
+  | SetRadioField String a
   | SetValueField ValueEvent a
   | AddSubField a
   | SetSubField Int (FormEvent a)
@@ -242,8 +242,10 @@ derive instance functorFormEvent :: Functor FormEvent
 
 instance extendFormEvent :: Extend FormEvent where
   extend f event@(SetIntField n _) = SetIntField n $ f event
+  extend f event@(SetBoolField n _) = SetBoolField n $ f event
   extend f event@(SetStringField s _) = SetStringField s $ f event
   extend f event@(SetHexField s _) = SetHexField s $ f event
+  extend f event@(SetRadioField s _) = SetRadioField s $ f event
   extend f event@(SetValueField e _) = SetValueField e $ f event
   extend f event@(AddSubField _) = AddSubField $ f event
   extend f event@(SetSubField n _) = SetSubField n $ extend f event
@@ -251,8 +253,10 @@ instance extendFormEvent :: Extend FormEvent where
 
 instance comonadFormEvent :: Comonad FormEvent where
   extract (SetIntField _ a) = a
+  extract (SetBoolField _ a) = a
   extract (SetStringField _ a) = a
   extract (SetHexField _ a) = a
+  extract (SetRadioField _ a) = a
   extract (SetValueField _ a) = a
   extract (AddSubField a) = a
   extract (SetSubField _ e) = extract e
@@ -280,7 +284,7 @@ cpBalancesChart = cp2
 -----------------------------------------------------------
 
 type Blockchain = Array (Array (JsonTuple (TxIdOf String) Tx))
-type Signatures = Array (FunctionSchema DataType)
+type Signatures = Array (FunctionSchema FormSchema)
 newtype Simulation = Simulation
   { signatures :: Signatures
   , actions :: Array Action
@@ -371,14 +375,16 @@ instance showView :: Show View where
 
 data FormArgument
   = FormInt (Maybe Int)
+  | FormBool Boolean
   | FormString (Maybe String)
   | FormHex (Maybe String)
-  | FormArray DataType (Array FormArgument)
-  | FormMaybe DataType (Maybe FormArgument)
+  | FormRadio (Array String) (Maybe String)
+  | FormArray FormSchema (Array FormArgument)
+  | FormMaybe FormSchema (Maybe FormArgument)
   | FormTuple (JsonTuple FormArgument FormArgument)
   | FormObject (Array (JsonTuple String FormArgument))
   | FormValue Value
-  | FormUnknowable { context :: String, description :: String }
+  | FormUnsupported { description :: String }
 
 derive instance genericFormArgument :: Generic FormArgument _
 derive instance eqFormArgument :: Eq FormArgument
@@ -391,29 +397,24 @@ instance encodeFormArgument :: Encode FormArgument where
 instance decodeFormArgument :: Decode FormArgument where
   decode value = genericDecode defaultJsonOptions value
 
-toArgument ::
-  Warn (Text "FormHex support.")
-  => Warn (Text "At the moment we only support arrays and maybes of ints. :-/")
-  => Value -> DataType -> FormArgument
+toArgument :: Value -> FormSchema -> FormArgument
 toArgument initialValue = ana algebra
   where
-  algebra :: DataType -> FormArgumentF DataType
-  algebra dataType
-    | dataType == valueDataType = FormValueF initialValue
-    | dataType == textDataType = FormStringF Nothing
-    | dataType == stringDataType = FormStringF Nothing
-    | dataType == intDataType = FormIntF Nothing
-    | dataType == integerDataType = FormIntF Nothing
-
-    | dataType == maybeDataType intDataType = FormMaybeF intDataType Nothing
-    | dataType == DataType (TypeSignature { argumentSignatures: [ intSignature ], constructorName: "[]", moduleName: "GHC.Types" }) [] = FormArrayF intDataType []
-
-    | DataType typeSignature [ Record _ fields ] <- dataType = FormObjectF fields
-    | DataType tupleSignature [ Constructor (ConstructorName "Tuple") [ a, b ] ] <- dataType = FormTupleF (JsonTuple (Tuple a b))
-    | otherwise = FormUnknowableF { context: show initialValue, description: show dataType }
+    algebra :: FormSchema -> FormArgumentF FormSchema
+    algebra FormSchemaInt = FormIntF Nothing
+    algebra FormSchemaBool = FormBoolF false
+    algebra FormSchemaString = FormStringF Nothing
+    algebra FormSchemaHex = FormHexF Nothing
+    algebra (FormSchemaRadio xs) = FormRadioF xs Nothing
+    algebra (FormSchemaArray xs) = FormArrayF xs []
+    algebra (FormSchemaMaybe x) = FormMaybeF x Nothing
+    algebra FormSchemaValue = FormValueF initialValue
+    algebra (FormSchemaTuple a b) = FormTupleF (JsonTuple (Tuple a b))
+    algebra (FormSchemaObject xs) = FormObjectF xs
+    algebra (FormSchemaUnsupported x) = FormUnsupportedF x
 
 -- | This should just be `map` but we can't put an orphan instance on FunctionSchema. :-(
-toFormArgumentLevel :: Value -> FunctionSchema DataType -> FunctionSchema FormArgument
+toFormArgumentLevel :: Value -> FunctionSchema FormSchema -> FunctionSchema FormArgument
 toFormArgumentLevel initialValue = over (_Newtype <<< _argumentSchema <<< traversed) (toArgument initialValue)
 
 ------------------------------------------------------------
@@ -422,49 +423,57 @@ toFormArgumentLevel initialValue = over (_Newtype <<< _argumentSchema <<< traver
 -- the transformation with the iteration.
 data FormArgumentF a
   = FormIntF (Maybe Int)
+  | FormBoolF Boolean
   | FormStringF (Maybe String)
   | FormHexF (Maybe String)
+  | FormRadioF (Array String) (Maybe String)
   | FormTupleF (JsonTuple a a)
-  | FormArrayF DataType (Array a)
-  | FormMaybeF DataType (Maybe a)
+  | FormArrayF FormSchema (Array a)
+  | FormMaybeF FormSchema (Maybe a)
   | FormObjectF (Array (JsonTuple String a))
   | FormValueF Value
-  | FormUnknowableF { context :: String, description :: String }
+  | FormUnsupportedF { description :: String }
 
 instance functorFormArgumentF :: Functor FormArgumentF where
   map f (FormIntF x) = FormIntF x
+  map f (FormBoolF x) = FormBoolF x
   map f (FormStringF x) = FormStringF x
   map f (FormHexF x) = FormHexF x
+  map f (FormRadioF options x) = FormRadioF options x
   map f (FormTupleF (JsonTuple (Tuple x y))) = FormTupleF (JsonTuple (Tuple (f x) (f y)))
   map f (FormArrayF schema xs) = FormArrayF schema (map f xs)
   map f (FormMaybeF schema x) = FormMaybeF schema (map f x)
   map f (FormObjectF xs) = FormObjectF (map (map f) xs)
   map f (FormValueF x) = FormValueF x
-  map f (FormUnknowableF x) = FormUnknowableF x
+  map f (FormUnsupportedF x) = FormUnsupportedF x
 
 derive instance eqFormArgumentF :: Eq a => Eq (FormArgumentF a)
 
 instance recursiveFormArgument :: Recursive FormArgument FormArgumentF where
   project (FormInt x) = FormIntF x
+  project (FormBool x) = FormBoolF x
   project (FormString x) = FormStringF x
   project (FormHex x) = FormHexF x
+  project (FormRadio options x) = FormRadioF options x
   project (FormTuple x) = FormTupleF x
   project (FormArray schema xs) = FormArrayF schema xs
   project (FormMaybe schema x) = FormMaybeF schema x
   project (FormObject xs) = FormObjectF xs
   project (FormValue x) = FormValueF x
-  project (FormUnknowable x) = FormUnknowableF x
+  project (FormUnsupported x) = FormUnsupportedF x
 
 instance corecursiveFormArgument :: Corecursive FormArgument FormArgumentF where
   embed (FormIntF x) = FormInt x
+  embed (FormBoolF x) = FormBool x
   embed (FormStringF x) = FormString x
   embed (FormHexF x) = FormHex x
+  embed (FormRadioF options x) = FormRadio options x
   embed (FormTupleF xs) = FormTuple xs
   embed (FormArrayF schema xs) = FormArray schema xs
   embed (FormMaybeF schema x) = FormMaybe schema x
   embed (FormObjectF xs) = FormObject xs
   embed (FormValueF x) = FormValue x
-  embed (FormUnknowableF x) = FormUnknowable x
+  embed (FormUnsupportedF x) = FormUnsupported x
 
 ------------------------------------------------------------
 
@@ -475,11 +484,19 @@ instance validationFormArgument :: Validation FormArgument where
       algebra (FormIntF (Just _)) = []
       algebra (FormIntF Nothing) = [ noPath Required ]
 
+      algebra (FormBoolF _) = []
+
       algebra (FormStringF (Just _)) = []
       algebra (FormStringF Nothing) = [ noPath Required ]
 
       algebra (FormHexF (Just _)) = []
       algebra (FormHexF Nothing) = [ noPath Required ]
+
+      algebra (FormRadioF options (Just x)) =
+        if x `elem` options
+        then []
+        else [ noPath Invalid ]
+      algebra (FormRadioF _ Nothing) = [ noPath Required ]
 
       algebra (FormTupleF (JsonTuple (Tuple xs ys))) =
         Array.concat [ addPath "_1" <$> xs
@@ -498,7 +515,7 @@ instance validationFormArgument :: Validation FormArgument where
 
       algebra (FormValueF x) = []
 
-      algebra (FormUnknowableF _) = [ noPath Unsupported ]
+      algebra (FormUnsupportedF _) = [ noPath Unsupported ]
 
 formArgumentToJson :: FormArgument -> Maybe Foreign
 formArgumentToJson arg = cata algebra arg
@@ -506,8 +523,11 @@ formArgumentToJson arg = cata algebra arg
     algebra :: Algebra FormArgumentF (Maybe Foreign)
     algebra (FormIntF (Just n)) = Just $ encode n
     algebra (FormIntF Nothing) = Nothing
+    algebra (FormBoolF b) = Just $ encode b
     algebra (FormStringF (Just str)) = Just $ encode str
     algebra (FormStringF Nothing) = Nothing
+    algebra (FormRadioF _ (Just option)) = Just $ encode option
+    algebra (FormRadioF _ Nothing) = Nothing
     algebra (FormHexF (Just str)) = Just $ encode $ String.toHex str
     algebra (FormHexF Nothing) = Nothing
     algebra (FormTupleF (JsonTuple (Just fieldA /\ Just fieldB))) = Just $ encode [ fieldA, fieldB ]
@@ -523,7 +543,7 @@ formArgumentToJson arg = cata algebra arg
         processTuples :: JsonTuple String (Maybe Foreign) -> Maybe (Tuple String Foreign)
         processTuples = unwrap >>> sequence
     algebra (FormValueF x) = Just $ encode x
-    algebra (FormUnknowableF _) = Nothing
+    algebra (FormUnsupportedF _) = Nothing
 
 --- Language.Haskell.Interpreter ---
 

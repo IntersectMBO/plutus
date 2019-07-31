@@ -63,7 +63,7 @@ import qualified Language.PlutusTx.Prelude    as P
 import qualified Language.PlutusTx.AssocMap   as Map
 import           Language.PlutusTx.These
 import           LedgerBytes                  (LedgerBytes(LedgerBytes))
-import           Schema                       (ToSchema)
+import           Schema                       (ToSchema(toSchema), FormSchema(FormSchemaValue))
 import           IOTS                         (IotsType)
 import           Ledger.Orphans               ()
 
@@ -145,8 +145,11 @@ tokenName = TokenName
 -- See note [Currencies] for more details.
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
     deriving stock (Show, Generic)
-    deriving anyclass (ToJSON, FromJSON, Hashable, ToSchema, IotsType)
+    deriving anyclass (ToJSON, FromJSON, Hashable,  IotsType)
     deriving newtype (Serialise)
+
+instance ToSchema Value where
+    toSchema = FormSchemaValue
 
 -- Orphan instances for 'Map' to make this work
 instance (ToJSON v, ToJSON k) => ToJSON (Map.Map k v) where

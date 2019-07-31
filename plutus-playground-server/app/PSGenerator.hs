@@ -55,7 +55,7 @@ import           Playground.API                             (CompilationResult, 
                                                              SimulatorWallet)
 import qualified Playground.API                             as API
 import           Playground.Usecases                        (crowdfunding, game, messages, vesting)
-import           Schema                                     (Constructor, ConstructorName, DataType, TypeSignature)
+import           Schema                                     (FormSchema)
 import           Servant                                    ((:<|>))
 import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
                                                              defaultSettings, languageBridge,
@@ -227,10 +227,7 @@ instance HasBridge MyBridge where
 
 myTypes :: [SumType 'Haskell]
 myTypes =
-    [ (genericShow <*> (equal <*> mkSumType)) (Proxy @DataType)
-    , (genericShow <*> (equal <*> mkSumType)) (Proxy @Constructor)
-    , (genericShow <*> (equal <*> mkSumType)) (Proxy @ConstructorName)
-    , (genericShow <*> (equal <*> mkSumType)) (Proxy @TypeSignature)
+    [ (genericShow <*> (equal <*> mkSumType)) (Proxy @FormSchema)
     , (equal <*> mkSumType) (Proxy @(FunctionSchema A))
     , mkSumType (Proxy @CompilationResult)
     , mkSumType (Proxy @Warning)
