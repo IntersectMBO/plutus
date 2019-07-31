@@ -5,17 +5,19 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
 module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     -- * Campaign parameters
     Campaign(..)
+    , crowdfunding
+    , theCampaign
     -- * Functionality for campaign contributors
     , contribute
     -- * Functionality for campaign owners
@@ -28,19 +30,30 @@ module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     , CampaignAction(..)
     , collectionRange
     , refundRange
+    -- * Traces
+    , startCampaign
+    , makeContribution
+    , successfulCampaign
     ) where
 
-import qualified Language.PlutusTx           as PlutusTx
-import qualified Ledger.Interval             as Interval
-import           Ledger.Slot                 (SlotRange)
+import           Control.Lens                   ((&), (.~), (^.))
+import           Control.Monad                  (void)
+import qualified Data.Set                       as Set
+import           Language.Plutus.Contract
+import           Language.Plutus.Contract.Trace (ContractTrace, MonadEmulator)
+import qualified Language.Plutus.Contract.Trace as Trace
+import qualified Language.PlutusTx              as PlutusTx
 import           Language.PlutusTx.Prelude
-import           Ledger
-import           Ledger.Validation           as V
-import           Ledger.Value                (Value)
-import qualified Ledger.Value                as VTH
-import           Wallet                      as W
-import qualified Wallet.Emulator             as EM
-import           Wallet.Emulator             (Wallet)
+import           Ledger                         (Address, PendingTx, PubKey, Slot, ValidatorScript)
+import qualified Ledger                         as Ledger
+import qualified Ledger.Ada                     as Ada
+import qualified Ledger.Interval                as Interval
+import           Ledger.Slot                    (SlotRange)
+import           Ledger.Validation              as V
+import           Ledger.Value                   (Value)
+import qualified Ledger.Value                   as VTH
+import           Wallet.Emulator                (Wallet)
+import qualified Wallet.Emulator                as Emulator
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
@@ -65,18 +78,18 @@ mkCampaign ddl target collectionDdl ownerWallet =
         { campaignDeadline = ddl
         , campaignTarget   = target
         , campaignCollectionDeadline = collectionDdl
-        , campaignOwner = EM.walletPubKey ownerWallet
+        , campaignOwner = Emulator.walletPubKey ownerWallet
         }
 
 -- | The 'SlotRange' during which the funds can be collected
 collectionRange :: Campaign -> SlotRange
 collectionRange cmp =
-    W.interval (campaignDeadline cmp) (campaignCollectionDeadline cmp)
+    Interval.interval (campaignDeadline cmp) (campaignCollectionDeadline cmp)
 
 -- | The 'SlotRange' during which a refund may be claimed
 refundRange :: Campaign -> SlotRange
 refundRange cmp =
-    W.intervalFrom (campaignCollectionDeadline cmp)
+    Interval.from (campaignCollectionDeadline cmp)
 
 -- | Action that can be taken by the participants in this contract. A value of
 --   `CampaignAction` is provided as the redeemer. The validator script then
@@ -101,14 +114,14 @@ validCollection campaign p =
 
 mkValidator :: Campaign -> CrowdfundingValidator
 mkValidator c con act p = case act of
-    Refund -> validRefund c con p
+    Refund  -> validRefund c con p
     Collect -> validCollection c p
 
 -- | The validator script that determines whether the campaign owner can
 --   retrieve the funds or the contributors can claim a refund.
 --
 contributionScript :: Campaign -> ValidatorScript
-contributionScript cmp  = ValidatorScript $
+contributionScript cmp  = Ledger.ValidatorScript $
     $$(Ledger.compileScript [|| mkValidator ||])
         `Ledger.applyScript`
             Ledger.lifted cmp
@@ -117,48 +130,80 @@ contributionScript cmp  = ValidatorScript $
 campaignAddress :: Campaign -> Ledger.Address
 campaignAddress = Ledger.scriptAddress . contributionScript
 
--- | Contribute funds to the campaign (contributor)
---
-contribute :: MonadWallet m => Slot -> Value -> Slot -> Wallet -> Value -> m ()
-contribute deadline target collectionDeadline ownerWallet contribution = do
-    let cmp = mkCampaign deadline target collectionDeadline ownerWallet
-    ownPK <- ownPubKey
-    let ds = DataScript (Ledger.lifted ownPK)
-        range = W.interval 1 (campaignDeadline cmp)
-    tx <- payToScript range (campaignAddress cmp) contribution ds
-    logMsg "Submitted contribution"
+-- | The crowdfunding contract for the 'Campaign'.
+crowdfunding :: ContractActions r => Campaign -> Contract r ()
+crowdfunding c = contribute c <|> scheduleCollection c
 
-    register (refundTrigger contribution cmp) (refundHandler (Ledger.hashTx tx) cmp)
-    logMsg "Registered refund trigger"
+-- | A sample campaign with a target of 20 Ada by slot 20
+theCampaign :: Campaign
+theCampaign = Campaign
+    { campaignDeadline = 20
+    , campaignTarget   = Ada.adaValueOf 20
+    , campaignCollectionDeadline = 30
+    , campaignOwner = Emulator.walletPubKey (Emulator.Wallet 1)
+    }
 
--- | Register a [[EventHandler]] to collect all the funds of a campaign
---
-scheduleCollection :: MonadWallet m => Slot -> Value -> Slot -> Wallet -> m ()
-scheduleCollection deadline target collectionDeadline ownerWallet = do
-    let cmp = mkCampaign deadline target collectionDeadline ownerWallet
-    register (collectFundsTrigger cmp) (EventHandler (\_ -> do
-        logMsg "Collecting funds"
-        let redeemerScript = Ledger.RedeemerScript (Ledger.lifted Collect)
-            range = collectionRange cmp
-        collectFromScript range (contributionScript cmp) redeemerScript))
+contribute :: ContractActions r => Campaign -> Contract r ()
+contribute cmp = do
+    (ownPK :: PubKey, contribution :: Value) <- endpoint "contribute"
+    let ds = Ledger.DataScript (Ledger.lifted ownPK)
+        tx = payToScript contribution (campaignAddress cmp) ds
+                & validityRange .~ Ledger.interval 1 (campaignDeadline cmp)
+    writeTx tx
 
--- | An event trigger that fires when a refund of campaign contributions can be claimed
-refundTrigger :: Value -> Campaign -> EventTrigger
-refundTrigger vl c = andT
-    (fundsAtAddressGeqT (campaignAddress c) vl)
-    (slotRangeT (refundRange c))
+    utxo <- watchAddressUntil (campaignAddress cmp) (campaignCollectionDeadline cmp)
+    -- check if we are eligible for a refund
 
--- | An event trigger that fires when the funds for a campaign can be collected
-collectFundsTrigger :: Campaign -> EventTrigger
-collectFundsTrigger c = andT
-    (fundsAtAddressGeqT (campaignAddress c) (campaignTarget c))
-    (slotRangeT (collectionRange c))
+    -- This is a bit fiddly since we don't know the transaction ID of 'tx'.
+    -- So we use `collectFromScriptFilter` to collect only those outputs
+    -- whose data script is our own public key (in 'ds')
+    let flt _ txOut = Ledger.txOutData txOut == Just ds
+        tx' = collectFromScriptFilter flt utxo (contributionScript cmp) (Ledger.RedeemerScript (Ledger.lifted Refund))
+                & validityRange .~ refundRange cmp
+    if not . Set.null $ tx' ^. inputs
+    then void (writeTx tx')
+    else pure ()
 
--- | Claim a refund of our campaign contribution
-refundHandler :: MonadWallet m => TxId -> Campaign -> EventHandler m
-refundHandler txid cmp = EventHandler (\_ -> do
-    logMsg "Claiming refund"
-    let validatorScript = contributionScript cmp
-        redeemerScript  = Ledger.RedeemerScript (Ledger.lifted Refund)
+scheduleCollection :: ContractActions r => Campaign -> Contract r ()
+scheduleCollection cmp = do
+    () <- endpoint "schedule collection"
+    let trg = both
+                (fundsAtAddressGt (campaignAddress cmp) (campaignTarget cmp))
+                (awaitSlot (campaignDeadline cmp))
+    void $ timeout (campaignCollectionDeadline cmp) $ do
+        (outxo, _) <- trg
+        let
+            redeemerScript = Ledger.RedeemerScript (Ledger.lifted Collect)
+            tx = collectFromScript outxo (contributionScript cmp) redeemerScript
+                    & validityRange .~ collectionRange cmp
+        writeTx tx
 
-    collectFromScriptTxn (refundRange cmp) validatorScript redeemerScript txid)
+startCampaign
+    :: ( MonadEmulator m )
+    => ContractTrace m a ()
+startCampaign =
+    Trace.callEndpoint (Trace.Wallet 1) "schedule collection" ()
+    >> Trace.notifyInterestingAddresses (Trace.Wallet 1)
+
+-- | Call the "contribute" endpoint, contributing the amount from the wallet
+makeContribution
+    :: ( MonadEmulator m )
+    => Wallet
+    -> Value
+    -> ContractTrace m a ()
+makeContribution w v =
+    Trace.callEndpoint w "contribute" (Trace.walletPubKey w, v)
+        >> Trace.handleBlockchainEvents w
+
+-- | Run a successful campaign with contributions from wallets 2, 3 and 4.
+successfulCampaign
+    :: ( MonadEmulator m )
+    => ContractTrace m a ()
+successfulCampaign =
+    startCampaign
+        >> makeContribution (Trace.Wallet 2) (Ada.adaValueOf 10)
+        >> makeContribution (Trace.Wallet 3) (Ada.adaValueOf 10)
+        >> makeContribution (Trace.Wallet 4) (Ada.adaValueOf 1)
+        >> Trace.addBlocks 18
+        >> Trace.notifySlot (Trace.Wallet 1)
+        >> Trace.handleBlockchainEvents (Trace.Wallet 1)

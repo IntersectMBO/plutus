@@ -1,6 +1,6 @@
 # plutus-contract
 
-A library for writing Plutus contracts (with tests) and transforming them into executables that run on the app platform. The high-level workflow is this:
+A library for writing Plutus contracts and transforming them into executables that run on the app platform. The high-level workflow is this:
 
 * Write a contract using the `Language.Plutus.Contract` module. The type of contracts is `ContractActions r => Contract r ()`, where `PlutusContract r` describes the actions it can perform. `ContractActions` is a list of common contract actions that includes waiting for blockchain events, exposing endpoints, and waiting for user actions. See the definition of `Examples.Crowdfunding.crowdfunding` for an example.
 * (optional) Write traces for the contract using the `Language.Plutus.Contract.Emulator` module. Traces are sequences of actions by simulated wallets that use the contract. Their signature is `(MonadEmulator m) => ContractTrace m a ()`. See `Examples.Game.lockTrace` for an example.

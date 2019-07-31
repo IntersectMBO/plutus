@@ -6,19 +6,18 @@ module Language.Plutus.Contract.App(
     , Wallet(..)
     ) where
 
-import           Control.Monad                     (foldM_)
-import qualified Data.Aeson                        as Aeson
-import qualified Data.ByteString.Lazy.Char8        as BSL
-import           Data.Foldable                     (traverse_)
-import qualified Data.Map                          as Map
+import           Control.Monad                    (foldM_)
+import qualified Data.Aeson                       as Aeson
+import qualified Data.ByteString.Lazy.Char8       as BSL
+import           Data.Foldable                    (traverse_)
+import qualified Data.Map                         as Map
 import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Effects  (ContractEffects)
-import           Language.Plutus.Contract.Emulator (ContractTrace, EmulatorAction, execTrace)
-import           Language.Plutus.Contract.Servant  (Request (..), Response (..), contractApp, initialResponse,
-                                                    runUpdate)
-import qualified Network.Wai.Handler.Warp          as Warp
-import           System.Environment                (getArgs)
-import           Wallet.Emulator                   (Wallet (..))
+import           Language.Plutus.Contract.Effects (ContractEffects)
+import           Language.Plutus.Contract.Servant (Request (..), Response (..), contractApp, initialResponse, runUpdate)
+import           Language.Plutus.Contract.Trace   (ContractTrace, EmulatorAction, execTrace)
+import qualified Network.Wai.Handler.Warp         as Warp
+import           System.Environment               (getArgs)
+import           Wallet.Emulator                  (Wallet (..))
 
 -- | Run the contract as an HTTP server with servant/warp
 run :: Contract (ContractEffects '[]) () -> IO ()

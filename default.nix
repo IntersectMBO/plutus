@@ -142,9 +142,6 @@ let
             # Haddock is broken for things with internal libraries
             "plutus-tx"
 
-            # Also broken for the sample contracts that are put in a docker
-            # image (cf. plutus-contract.docker below)
-            "plutus-contract"
         ];
       };
       requiredOverlay = ./nix/overlays/required.nix;

@@ -1,19 +1,30 @@
+{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeApplications #-}
 module Spec.Contract(tests) where
 
 import           Data.Either                           (isLeft)
 import           Test.Tasty
 
-import           Examples.Game
 import           Language.Plutus.Contract              as Con
+import           Language.Plutus.Contract.Tx           as Tx
 import qualified Language.Plutus.Contract.Prompt.Event as Event
-import qualified Language.Plutus.Contract.Tx           as Tx
+import           Language.Plutus.Contract.Test
 import           Language.Plutus.Contract.Util         (loopM)
+import           Ledger                                (Address)
+import qualified Ledger                                as Ledger
 import qualified Ledger.Ada                            as Ada
 import           Prelude                               hiding (not)
 import qualified Wallet.Emulator                       as EM
 
-import           Spec.HUnit
+
+someAddress :: Address
+someAddress =
+    -- this isn't the address of a valid validator script,
+    -- but it doesn't matter because we only need the address,
+    -- not the script
+    Ledger.scriptAddress $
+        Ledger.ValidatorScript $$(Ledger.compileScript [|| \(i :: Integer) -> i ||])
 
 tests :: TestTree
 tests = testGroup "contracts"
@@ -43,13 +54,13 @@ tests = testGroup "contracts"
         $ addEvent w1 (Event.changeSlot 10)
 
     , checkPredicate "fundsAtAddressGt"
-        (fundsAtAddressGt gameAddress (Ada.adaValueOf 10))
-        (interestingAddress w1 gameAddress)
+        (fundsAtAddressGt someAddress (Ada.adaValueOf 10))
+        (interestingAddress w1 someAddress)
         $ pure ()
 
     , checkPredicate "watchAddressUntil"
-        (watchAddressUntil gameAddress 5)
-        (interestingAddress w1 gameAddress <> waitingForSlot w1 5)
+        (watchAddressUntil someAddress 5)
+        (interestingAddress w1 someAddress <> waitingForSlot w1 5)
         $ pure ()
 
     , checkPredicate "endpoint"
@@ -73,8 +84,8 @@ tests = testGroup "contracts"
         (callEndpoint w1 "1" (1::Int) >> callEndpoint w1 "2" (1::Int))
 
     , checkPredicate "submit tx"
-        (writeTx Tx.emptyTx >> watchAddressUntil gameAddress 20)
-        (waitingForSlot w1 20 <> interestingAddress w1 gameAddress)
+        (writeTx Tx.emptyTx >> watchAddressUntil someAddress 20)
+        (waitingForSlot w1 20 <> interestingAddress w1 someAddress)
         (handleBlockchainEvents w1)
 
     , checkPredicate "select either"

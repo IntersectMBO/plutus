@@ -53688,7 +53688,7 @@ license = stdenv.lib.licenses.asl20;
 , monad-control
 , mtl
 , plutus-emulator
-, plutus-use-cases
+, plutus-tx
 , plutus-wallet-api
 , prettyprinter
 , profunctors
@@ -53697,7 +53697,6 @@ license = stdenv.lib.licenses.asl20;
 , servant-server
 , stdenv
 , tasty
-, tasty-hedgehog
 , tasty-hunit
 , template-haskell
 , text
@@ -53711,8 +53710,6 @@ mkDerivation {
 pname = "plutus-contract";
 version = "0.1.0.0";
 src = .././plutus-contract;
-isLibrary = true;
-isExecutable = true;
 libraryHaskellDepends = [
 aeson
 base
@@ -53724,19 +53721,17 @@ mmorph
 monad-control
 mtl
 plutus-emulator
-plutus-use-cases
 plutus-wallet-api
 profunctors
 semigroupoids
 servant
 servant-server
+tasty
+tasty-hunit
 text
 transformers
 transformers-base
 warp
-];
-executableHaskellDepends = [
-base
 ];
 testHaskellDepends = [
 aeson
@@ -53749,11 +53744,10 @@ language-plutus-core
 lens
 mtl
 plutus-emulator
-plutus-use-cases
+plutus-tx
 plutus-wallet-api
 prettyprinter
 tasty
-tasty-hedgehog
 tasty-hunit
 template-haskell
 text
@@ -54364,6 +54358,7 @@ license = stdenv.lib.licenses.asl20;
 "plutus-use-cases" = callPackage
 ({
   mkDerivation
+, aeson
 , base
 , bytestring
 , containers
@@ -54373,6 +54368,7 @@ license = stdenv.lib.licenses.asl20;
 , language-plutus-core
 , lens
 , mtl
+, plutus-contract
 , plutus-emulator
 , plutus-tx
 , plutus-wallet-api
@@ -54390,17 +54386,25 @@ mkDerivation {
 pname = "plutus-use-cases";
 version = "0.1.0.0";
 src = .././plutus-use-cases;
+isLibrary = true;
+isExecutable = true;
 libraryHaskellDepends = [
+aeson
 base
 bytestring
 containers
 lens
 mtl
+plutus-contract
 plutus-emulator
 plutus-tx
 plutus-wallet-api
 template-haskell
 text
+];
+executableHaskellDepends = [
+base
+plutus-contract
 ];
 testHaskellDepends = [
 base
@@ -54408,6 +54412,7 @@ containers
 hedgehog
 lens
 mtl
+plutus-contract
 plutus-emulator
 plutus-tx
 plutus-wallet-api
