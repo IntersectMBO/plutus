@@ -101,7 +101,7 @@ actionButton initialValue simulatorWallet functionSchema =
     [ classes [ btn, btnSecondary, btnSmall, ClassName "action-button" ]
     , onClick $ input_ $ ModifyActions $ AddAction $
         Action
-          { functionSchema: toArgumentLevel initialValue functionSchema
+          { functionSchema: toFormArgumentLevel initialValue functionSchema
           , simulatorWallet
           }
     ]

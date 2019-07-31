@@ -27,7 +27,7 @@ import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
 import Playground.API (EvaluationResult, _Fn, _FunctionSchema)
 import Prelude (Unit, map, pure, show, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==))
 import Prim.TypeError (class Warn, Text)
-import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, DragAndDropEventType(..), FormEvent(..), Query(..), SimpleArgument(..), Simulation(Simulation), WebData, _Action, _argumentSchema, _functionName, _resultBlockchain, _simulatorWallet, _simulatorWalletWallet, _walletId)
+import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, DragAndDropEventType(..), FormEvent(..), Query(..), FormArgument(..), Simulation(Simulation), WebData, _Action, _argumentSchema, _functionName, _resultBlockchain, _simulatorWallet, _simulatorWalletWallet, _walletId)
 import Validation (ValidationError, WithPath, joinPath, showPathValue, validate)
 import ValueEditor (valueForm)
 import Wallet (walletIdPane, walletsPane)
@@ -202,7 +202,7 @@ actionPane isValidWallet actionDrag index action =
 
 validationClasses ::
   forall a.
-  SimpleArgument
+  FormArgument
   -> Maybe a
   -> Array ClassName
 validationClasses arg Nothing = [ ClassName "error" ]
@@ -214,7 +214,7 @@ actionArgumentClass ancestors =
   , ClassName $ "action-argument-" <> Array.intercalate "-" ancestors
   ]
 
-actionArgumentForm :: forall p. Int -> Array SimpleArgument -> HTML p Query
+actionArgumentForm :: forall p. Int -> Array FormArgument -> HTML p Query
 actionArgumentForm index arguments =
   div [ class_ wasValidated ]
     (Array.intercalate
@@ -226,13 +226,13 @@ actionArgumentForm index arguments =
 actionArgumentField ::
   forall p.
   Warn (Text "We're still not handling the Unknowable case.")
-  => Warn (Text "We're still not handling the SimpleMaybe case.")
+  => Warn (Text "We're still not handling the FormMaybe case.")
   => Warn (Text "The Hex fields should be forced to comply to [0-9a-fA-F].")
   => Array String
   -> Boolean
-  -> SimpleArgument
+  -> FormArgument
   -> HTML p FormEvent
-actionArgumentField ancestors _ arg@(SimpleInt n) =
+actionArgumentField ancestors _ arg@(FormInt n) =
   div_ [
     input
       [ type_ InputNumber
@@ -244,7 +244,7 @@ actionArgumentField ancestors _ arg@(SimpleInt n) =
       ]
     , validationFeedback (joinPath ancestors <$> validate arg)
   ]
-actionArgumentField ancestors _ arg@(SimpleString s) =
+actionArgumentField ancestors _ arg@(FormString s) =
   div_ [
     input
       [ type_ InputText
@@ -256,7 +256,7 @@ actionArgumentField ancestors _ arg@(SimpleString s) =
       ]
     , validationFeedback (joinPath ancestors <$> validate arg)
   ]
-actionArgumentField ancestors _ arg@(SimpleHex s) =
+actionArgumentField ancestors _ arg@(FormHex s) =
   div_ [
     input
       [ type_ InputText
@@ -268,12 +268,12 @@ actionArgumentField ancestors _ arg@(SimpleHex s) =
       ]
     , validationFeedback (joinPath ancestors <$> validate arg)
   ]
-actionArgumentField ancestors isNested (SimpleTuple (JsonTuple (Tuple subFieldA subFieldB))) =
+actionArgumentField ancestors isNested (FormTuple (JsonTuple (Tuple subFieldA subFieldB))) =
   row_
     [ col_ [ SetSubField 1 <$> actionArgumentField (Array.snoc ancestors "_1") true subFieldA ]
     , col_ [ SetSubField 2 <$> actionArgumentField (Array.snoc ancestors "_2") true subFieldB ]
     ]
-actionArgumentField ancestors isNested (SimpleArray schema subFields) =
+actionArgumentField ancestors isNested (FormArray schema subFields) =
     div_ [ Keyed.div [ nesting isNested ]
              (mapWithIndex subFormContainer subFields)
          , button
@@ -300,7 +300,7 @@ actionArgumentField ancestors isNested (SimpleArray schema subFields) =
           ]
         ]
 
-actionArgumentField ancestors isNested (SimpleObject subFields) =
+actionArgumentField ancestors isNested (FormObject subFields) =
   div [ nesting isNested ]
     (mapWithIndex (\i (JsonTuple field) -> map (SetSubField i) (subForm field)) subFields)
   where
@@ -310,18 +310,18 @@ actionArgumentField ancestors isNested (SimpleObject subFields) =
          , actionArgumentField (Array.snoc ancestors name) true arg
          ]
       )
-actionArgumentField ancestors isNested (ValueArgument value) =
+actionArgumentField ancestors isNested (FormValue value) =
   div [ nesting isNested ]
     [ label [ for "value" ] [ text "Value" ]
     , valueForm SetValueField value
     ]
-actionArgumentField _ _ (SimpleMaybe dataType child) =
+actionArgumentField _ _ (FormMaybe dataType child) =
   div_ [ text $ "Unsupported Maybe"
        , code_ [ text $ show dataType ]
        , code_ [ text $ show child ]
        ]
 
-actionArgumentField _ _ (Unknowable { context, description }) =
+actionArgumentField _ _ (FormUnknowable { context, description }) =
   div_ [ text $ "Unsupported: " <>  context
        , code_ [ text description ]
        ]

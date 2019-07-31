@@ -444,57 +444,57 @@ evalActionEvent (SetWaitTime index time) = set (ix index <<< _Wait <<< _blocks) 
 
 evalForm ::
   forall a.
-  Warn (Text "I wonder if this code would be simpler if we just abandoned SimpleArgument and used the Functor version everywhere.")
+  Warn (Text "I wonder if this code would be simpler if we just abandoned FormArgument and used the Functor version everywhere.")
   => Value
   -> FormEvent a
-  -> SimpleArgument
-  -> SimpleArgument
+  -> FormArgument
+  -> FormArgument
 evalForm initialValue = rec
   where
-    rec (SetIntField n next) (SimpleInt _) = SimpleInt n
+    rec (SetIntField n next) (FormInt _) = FormInt n
     rec (SetIntField _ _) arg = arg
 
-    rec (SetStringField s next) (SimpleString _) = SimpleString (Just s)
+    rec (SetStringField s next) (FormString _) = FormString (Just s)
     rec (SetStringField _ _) arg = arg
 
-    rec (SetHexField s next) (SimpleHex _) = SimpleHex (Just s)
+    rec (SetHexField s next) (FormHex _) = FormHex (Just s)
     rec (SetHexField _ _) arg = arg
 
-    rec (SetValueField valueEvent _) (ValueArgument value) =
-      ValueArgument $ evalValueEvent valueEvent value
+    rec (SetValueField valueEvent _) (FormValue value) =
+      FormValue $ evalValueEvent valueEvent value
     rec (SetValueField _ _) arg = arg
 
-    rec (SetSubField 1 subEvent) (SimpleTuple fields) = SimpleTuple $ over (_Newtype <<< _1) (rec subEvent) fields
-    rec (SetSubField 2 subEvent) (SimpleTuple fields) = SimpleTuple $ over (_Newtype <<< _2) (rec subEvent) fields
-    rec (SetSubField _ subEvent) arg@(SimpleTuple _) = arg
-    rec (SetSubField _ subEvent) arg@(SimpleString _) = arg
-    rec (SetSubField _ subEvent) arg@(SimpleInt _) = arg
-    rec (SetSubField _ subEvent) arg@(SimpleHex _) = arg
-    rec (SetSubField _ subEvent) arg@(ValueArgument _) = arg
+    rec (SetSubField 1 subEvent) (FormTuple fields) = FormTuple $ over (_Newtype <<< _1) (rec subEvent) fields
+    rec (SetSubField 2 subEvent) (FormTuple fields) = FormTuple $ over (_Newtype <<< _2) (rec subEvent) fields
+    rec (SetSubField _ subEvent) arg@(FormTuple _) = arg
+    rec (SetSubField _ subEvent) arg@(FormString _) = arg
+    rec (SetSubField _ subEvent) arg@(FormInt _) = arg
+    rec (SetSubField _ subEvent) arg@(FormHex _) = arg
+    rec (SetSubField _ subEvent) arg@(FormValue _) = arg
 
-    rec (AddSubField _) (SimpleArray schema fields) =
+    rec (AddSubField _) (FormArray schema fields) =
       -- As the code stands, this is the only guarantee we get that every
       -- value in the array will conform to the schema: the fact that we
       -- create the 'empty' version from the same schema template.
       --
       -- Is more type safety than that possible? Probably.
       -- Is it worth the research effort? Perhaps. :thinking_face:
-      SimpleArray schema $ Array.snoc fields (toArgument initialValue schema)
+      FormArray schema $ Array.snoc fields (toArgument initialValue schema)
     rec (AddSubField _) arg = arg
 
-    rec (SetSubField 0 subEvent) (SimpleMaybe schema field) =
-      SimpleMaybe schema $ over _Just (rec subEvent) field
-    rec (SetSubField _ subEvent) arg@(SimpleMaybe schema field) = arg
+    rec (SetSubField 0 subEvent) (FormMaybe schema field) =
+      FormMaybe schema $ over _Just (rec subEvent) field
+    rec (SetSubField _ subEvent) arg@(FormMaybe schema field) = arg
 
-    rec (SetSubField n subEvent) (SimpleArray schema fields) =
-      SimpleArray schema $ over (ix n) (rec subEvent) fields
+    rec (SetSubField n subEvent) (FormArray schema fields) =
+      FormArray schema $ over (ix n) (rec subEvent) fields
 
-    rec (SetSubField n subEvent) s@(SimpleObject fields) =
-      SimpleObject $ over (ix n <<< _Newtype <<< _2) (rec subEvent) fields
-    rec (SetSubField n subEvent) arg@(Unknowable _) = arg
+    rec (SetSubField n subEvent) s@(FormObject fields) =
+      FormObject $ over (ix n <<< _Newtype <<< _2) (rec subEvent) fields
+    rec (SetSubField n subEvent) arg@(FormUnknowable _) = arg
 
-    rec (RemoveSubField n subEvent) arg@(SimpleArray schema fields ) =
-      (SimpleArray schema (fromMaybe fields (Array.deleteAt n fields)))
+    rec (RemoveSubField n subEvent) arg@(FormArray schema fields ) =
+      (FormArray schema (fromMaybe fields (Array.deleteAt n fields)))
     rec (RemoveSubField n subEvent) arg = arg
 
 replaceViewOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> View -> View -> m Unit

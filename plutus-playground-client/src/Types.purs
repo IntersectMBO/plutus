@@ -87,7 +87,7 @@ defaultJsonOptions =
 data Action
   = Action
       { simulatorWallet :: SimulatorWallet
-      , functionSchema :: FunctionSchema SimpleArgument
+      , functionSchema :: FunctionSchema FormArgument
       }
   | Wait { blocks :: Int }
 
@@ -104,7 +104,7 @@ _Action ::
   Prism'
     Action
     { simulatorWallet :: SimulatorWallet
-    , functionSchema :: FunctionSchema SimpleArgument
+    , functionSchema :: FunctionSchema FormArgument
     }
 _Action = prism' Action f
   where
@@ -138,7 +138,7 @@ instance actionValidation :: Validation Action where
   validate (Action action) =
     Array.concat $ Array.mapWithIndex (\i v -> addPath (show i) <$> validate v) args
     where
-      args :: Array SimpleArgument
+      args :: Array FormArgument
       args = view (_functionSchema <<< _FunctionSchema <<< _argumentSchema) action
 
 ------------------------------------------------------------
@@ -157,7 +157,7 @@ toExpression (Action action) = do
     argumentSchema = view (_functionSchema <<< to unwrap <<< _argumentSchema) action
 
     jsonArguments =
-      traverse (map (RawJson <<< encodeJSON) <<< simpleArgumentToJson) argumentSchema
+      traverse (map (RawJson <<< encodeJSON) <<< formArgumentToJson) argumentSchema
 
 toEvaluation :: SourceCode -> Simulation -> Maybe Evaluation
 toEvaluation sourceCode (Simulation {actions, wallets}) = do
@@ -369,152 +369,152 @@ instance showView :: Show View where
 
 ------------------------------------------------------------
 
-data SimpleArgument
-  = SimpleInt (Maybe Int)
-  | SimpleString (Maybe String)
-  | SimpleHex (Maybe String)
-  | SimpleArray DataType (Array SimpleArgument)
-  | SimpleMaybe DataType (Maybe SimpleArgument)
-  | SimpleTuple (JsonTuple SimpleArgument SimpleArgument)
-  | SimpleObject (Array (JsonTuple String SimpleArgument))
-  | ValueArgument Value
-  | Unknowable { context :: String, description :: String }
+data FormArgument
+  = FormInt (Maybe Int)
+  | FormString (Maybe String)
+  | FormHex (Maybe String)
+  | FormArray DataType (Array FormArgument)
+  | FormMaybe DataType (Maybe FormArgument)
+  | FormTuple (JsonTuple FormArgument FormArgument)
+  | FormObject (Array (JsonTuple String FormArgument))
+  | FormValue Value
+  | FormUnknowable { context :: String, description :: String }
 
-derive instance genericSimpleArgument :: Generic SimpleArgument _
-derive instance eqSimpleArgument :: Eq SimpleArgument
-instance showSimpleArgument :: Show SimpleArgument where
+derive instance genericFormArgument :: Generic FormArgument _
+derive instance eqFormArgument :: Eq FormArgument
+instance showFormArgument :: Show FormArgument where
   show x = genericShow x
 
-instance encodeSimpleArgument :: Encode SimpleArgument where
+instance encodeFormArgument :: Encode FormArgument where
   encode value = genericEncode defaultJsonOptions value
 
-instance decodeSimpleArgument :: Decode SimpleArgument where
+instance decodeFormArgument :: Decode FormArgument where
   decode value = genericDecode defaultJsonOptions value
 
 toArgument ::
-  Warn (Text "SimpleHex support.")
+  Warn (Text "FormHex support.")
   => Warn (Text "At the moment we only support arrays and maybes of ints. :-/")
-  => Value -> DataType -> SimpleArgument
+  => Value -> DataType -> FormArgument
 toArgument initialValue = ana algebra
   where
-  algebra :: DataType -> SimpleArgumentF DataType
+  algebra :: DataType -> FormArgumentF DataType
   algebra dataType
-    | dataType == valueDataType = ValueArgumentF initialValue
-    | dataType == textDataType = SimpleStringF Nothing
-    | dataType == stringDataType = SimpleStringF Nothing
-    | dataType == intDataType = SimpleIntF Nothing
-    | dataType == integerDataType = SimpleIntF Nothing
+    | dataType == valueDataType = FormValueF initialValue
+    | dataType == textDataType = FormStringF Nothing
+    | dataType == stringDataType = FormStringF Nothing
+    | dataType == intDataType = FormIntF Nothing
+    | dataType == integerDataType = FormIntF Nothing
 
-    | dataType == maybeDataType intDataType = SimpleMaybeF intDataType Nothing
-    | dataType == DataType (TypeSignature { argumentSignatures: [ intSignature ], constructorName: "[]", moduleName: "GHC.Types" }) [] = SimpleArrayF intDataType []
+    | dataType == maybeDataType intDataType = FormMaybeF intDataType Nothing
+    | dataType == DataType (TypeSignature { argumentSignatures: [ intSignature ], constructorName: "[]", moduleName: "GHC.Types" }) [] = FormArrayF intDataType []
 
-    | DataType typeSignature [ Record _ fields ] <- dataType = SimpleObjectF fields
-    | DataType tupleSignature [ Constructor (ConstructorName "Tuple") [ a, b ] ] <- dataType = SimpleTupleF (JsonTuple (Tuple a b))
-    | otherwise = UnknowableF { context: show initialValue, description: show dataType }
+    | DataType typeSignature [ Record _ fields ] <- dataType = FormObjectF fields
+    | DataType tupleSignature [ Constructor (ConstructorName "Tuple") [ a, b ] ] <- dataType = FormTupleF (JsonTuple (Tuple a b))
+    | otherwise = FormUnknowableF { context: show initialValue, description: show dataType }
 
 -- | This should just be `map` but we can't put an orphan instance on FunctionSchema. :-(
-toArgumentLevel :: Value -> FunctionSchema DataType -> FunctionSchema SimpleArgument
-toArgumentLevel initialValue = over (_Newtype <<< _argumentSchema <<< traversed) (toArgument initialValue)
+toFormArgumentLevel :: Value -> FunctionSchema DataType -> FunctionSchema FormArgument
+toFormArgumentLevel initialValue = over (_Newtype <<< _argumentSchema <<< traversed) (toArgument initialValue)
 
 ------------------------------------------------------------
--- | This type serves as a functorised version of `SimpleArgument` so
+-- | This type serves as a functorised version of `FormArgument` so
 -- we can do some recursive processing of the data without cluttering
 -- the transformation with the iteration.
-data SimpleArgumentF a
-  = SimpleIntF (Maybe Int)
-  | SimpleStringF (Maybe String)
-  | SimpleHexF (Maybe String)
-  | SimpleTupleF (JsonTuple a a)
-  | SimpleArrayF DataType (Array a)
-  | SimpleMaybeF DataType (Maybe a)
-  | SimpleObjectF (Array (JsonTuple String a))
-  | ValueArgumentF Value
-  | UnknowableF { context :: String, description :: String }
+data FormArgumentF a
+  = FormIntF (Maybe Int)
+  | FormStringF (Maybe String)
+  | FormHexF (Maybe String)
+  | FormTupleF (JsonTuple a a)
+  | FormArrayF DataType (Array a)
+  | FormMaybeF DataType (Maybe a)
+  | FormObjectF (Array (JsonTuple String a))
+  | FormValueF Value
+  | FormUnknowableF { context :: String, description :: String }
 
-instance functorSimpleArgumentF :: Functor SimpleArgumentF where
-  map f (SimpleIntF x) = SimpleIntF x
-  map f (SimpleStringF x) = SimpleStringF x
-  map f (SimpleHexF x) = SimpleHexF x
-  map f (SimpleTupleF (JsonTuple (Tuple x y))) = SimpleTupleF (JsonTuple (Tuple (f x) (f y)))
-  map f (SimpleArrayF schema xs) = SimpleArrayF schema (map f xs)
-  map f (SimpleMaybeF schema x) = SimpleMaybeF schema (map f x)
-  map f (SimpleObjectF xs) = SimpleObjectF (map (map f) xs)
-  map f (ValueArgumentF x) = ValueArgumentF x
-  map f (UnknowableF x) = UnknowableF x
+instance functorFormArgumentF :: Functor FormArgumentF where
+  map f (FormIntF x) = FormIntF x
+  map f (FormStringF x) = FormStringF x
+  map f (FormHexF x) = FormHexF x
+  map f (FormTupleF (JsonTuple (Tuple x y))) = FormTupleF (JsonTuple (Tuple (f x) (f y)))
+  map f (FormArrayF schema xs) = FormArrayF schema (map f xs)
+  map f (FormMaybeF schema x) = FormMaybeF schema (map f x)
+  map f (FormObjectF xs) = FormObjectF (map (map f) xs)
+  map f (FormValueF x) = FormValueF x
+  map f (FormUnknowableF x) = FormUnknowableF x
 
-derive instance eqSimpleArgumentF :: Eq a => Eq (SimpleArgumentF a)
+derive instance eqFormArgumentF :: Eq a => Eq (FormArgumentF a)
 
-instance recursiveSimpleArgument :: Recursive SimpleArgument SimpleArgumentF where
-  project (SimpleInt x) = SimpleIntF x
-  project (SimpleString x) = SimpleStringF x
-  project (SimpleHex x) = SimpleHexF x
-  project (SimpleTuple x) = SimpleTupleF x
-  project (SimpleArray schema xs) = SimpleArrayF schema xs
-  project (SimpleMaybe schema x) = SimpleMaybeF schema x
-  project (SimpleObject xs) = SimpleObjectF xs
-  project (ValueArgument x) = ValueArgumentF x
-  project (Unknowable x) = UnknowableF x
+instance recursiveFormArgument :: Recursive FormArgument FormArgumentF where
+  project (FormInt x) = FormIntF x
+  project (FormString x) = FormStringF x
+  project (FormHex x) = FormHexF x
+  project (FormTuple x) = FormTupleF x
+  project (FormArray schema xs) = FormArrayF schema xs
+  project (FormMaybe schema x) = FormMaybeF schema x
+  project (FormObject xs) = FormObjectF xs
+  project (FormValue x) = FormValueF x
+  project (FormUnknowable x) = FormUnknowableF x
 
-instance corecursiveSimpleArgument :: Corecursive SimpleArgument SimpleArgumentF where
-  embed (SimpleIntF x) = SimpleInt x
-  embed (SimpleStringF x) = SimpleString x
-  embed (SimpleHexF x) = SimpleHex x
-  embed (SimpleTupleF xs) = SimpleTuple xs
-  embed (SimpleArrayF schema xs) = SimpleArray schema xs
-  embed (SimpleMaybeF schema x) = SimpleMaybe schema x
-  embed (SimpleObjectF xs) = SimpleObject xs
-  embed (ValueArgumentF x) = ValueArgument x
-  embed (UnknowableF x) = Unknowable x
+instance corecursiveFormArgument :: Corecursive FormArgument FormArgumentF where
+  embed (FormIntF x) = FormInt x
+  embed (FormStringF x) = FormString x
+  embed (FormHexF x) = FormHex x
+  embed (FormTupleF xs) = FormTuple xs
+  embed (FormArrayF schema xs) = FormArray schema xs
+  embed (FormMaybeF schema x) = FormMaybe schema x
+  embed (FormObjectF xs) = FormObject xs
+  embed (FormValueF x) = FormValue x
+  embed (FormUnknowableF x) = FormUnknowable x
 
 ------------------------------------------------------------
 
-instance validationSimpleArgument :: Validation SimpleArgument where
+instance validationFormArgument :: Validation FormArgument where
   validate = cata algebra
     where
-      algebra :: Algebra SimpleArgumentF (Array (WithPath ValidationError))
-      algebra (SimpleIntF (Just _)) = []
-      algebra (SimpleIntF Nothing) = [ noPath Required ]
+      algebra :: Algebra FormArgumentF (Array (WithPath ValidationError))
+      algebra (FormIntF (Just _)) = []
+      algebra (FormIntF Nothing) = [ noPath Required ]
 
-      algebra (SimpleStringF (Just _)) = []
-      algebra (SimpleStringF Nothing) = [ noPath Required ]
+      algebra (FormStringF (Just _)) = []
+      algebra (FormStringF Nothing) = [ noPath Required ]
 
-      algebra (SimpleHexF (Just _)) = []
-      algebra (SimpleHexF Nothing) = [ noPath Required ]
+      algebra (FormHexF (Just _)) = []
+      algebra (FormHexF Nothing) = [ noPath Required ]
 
-      algebra (SimpleTupleF (JsonTuple (Tuple xs ys))) =
+      algebra (FormTupleF (JsonTuple (Tuple xs ys))) =
         Array.concat [ addPath "_1" <$> xs
                      , addPath "_2" <$> ys
                      ]
 
-      algebra (SimpleMaybeF _ Nothing) = [ noPath Required ]
-      algebra (SimpleMaybeF _ (Just x)) =
+      algebra (FormMaybeF _ Nothing) = [ noPath Required ]
+      algebra (FormMaybeF _ (Just x)) =
         addPath "_Just" <$> x
 
-      algebra (SimpleArrayF _ xs) =
+      algebra (FormArrayF _ xs) =
         Array.concat $ mapWithIndex (\i values-> addPath (show i) <$> values) xs
 
-      algebra (SimpleObjectF xs) =
+      algebra (FormObjectF xs) =
         Array.concat $ map (\(JsonTuple (Tuple name values)) -> addPath name <$> values) xs
 
-      algebra (ValueArgumentF x) = []
+      algebra (FormValueF x) = []
 
-      algebra (UnknowableF _) = [ noPath Unsupported ]
+      algebra (FormUnknowableF _) = [ noPath Unsupported ]
 
-simpleArgumentToJson :: SimpleArgument -> Maybe Foreign
-simpleArgumentToJson arg = cata algebra arg
+formArgumentToJson :: FormArgument -> Maybe Foreign
+formArgumentToJson arg = cata algebra arg
   where
-    algebra :: Algebra SimpleArgumentF (Maybe Foreign)
-    algebra (SimpleIntF (Just n)) = Just $ encode n
-    algebra (SimpleIntF Nothing) = Nothing
-    algebra (SimpleStringF (Just str)) = Just $ encode str
-    algebra (SimpleStringF Nothing) = Nothing
-    algebra (SimpleHexF (Just str)) = Just $ encode $ String.toHex str
-    algebra (SimpleHexF Nothing) = Nothing
-    algebra (SimpleTupleF (JsonTuple (Just fieldA /\ Just fieldB))) = Just $ encode [ fieldA, fieldB ]
-    algebra (SimpleTupleF _) = Nothing
-    algebra (SimpleMaybeF _ field) = encode <$> field
-    algebra (SimpleArrayF _ fields) = Just $ encode fields
-    algebra (SimpleObjectF fields) = encodeFields fields
+    algebra :: Algebra FormArgumentF (Maybe Foreign)
+    algebra (FormIntF (Just n)) = Just $ encode n
+    algebra (FormIntF Nothing) = Nothing
+    algebra (FormStringF (Just str)) = Just $ encode str
+    algebra (FormStringF Nothing) = Nothing
+    algebra (FormHexF (Just str)) = Just $ encode $ String.toHex str
+    algebra (FormHexF Nothing) = Nothing
+    algebra (FormTupleF (JsonTuple (Just fieldA /\ Just fieldB))) = Just $ encode [ fieldA, fieldB ]
+    algebra (FormTupleF _) = Nothing
+    algebra (FormMaybeF _ field) = encode <$> field
+    algebra (FormArrayF _ fields) = Just $ encode fields
+    algebra (FormObjectF fields) = encodeFields fields
       where
         encodeFields :: Array (JsonTuple String (Maybe Foreign)) -> Maybe Foreign
         encodeFields xs = map (encode <<< FO.fromFoldable) $ prepareObject xs
@@ -522,8 +522,8 @@ simpleArgumentToJson arg = cata algebra arg
         prepareObject = traverse processTuples
         processTuples :: JsonTuple String (Maybe Foreign) -> Maybe (Tuple String Foreign)
         processTuples = unwrap >>> sequence
-    algebra (ValueArgumentF x) = Just $ encode x
-    algebra (UnknowableF _) = Nothing
+    algebra (FormValueF x) = Just $ encode x
+    algebra (FormUnknowableF _) = Nothing
 
 --- Language.Haskell.Interpreter ---
 
