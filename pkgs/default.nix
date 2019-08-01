@@ -19986,6 +19986,7 @@ license = stdenv.lib.licenses.publicDomain;
 , bytestring
 , containers
 , directory
+, github
 , github-webhooks
 , mtl
 , newtype-generics
@@ -20013,6 +20014,7 @@ aeson
 base
 bytestring
 directory
+github
 github-webhooks
 mtl
 newtype-generics
@@ -20020,7 +20022,6 @@ optparse-generic
 servant
 servant-github-webhook
 servant-server
-slack-web
 temporary
 text
 typed-process
@@ -53597,6 +53598,7 @@ license = stdenv.lib.licenses.mit;
 , containers
 , hspec
 , language-plutus-core
+, mtl
 , plutus-emulator
 , plutus-playground-lib
 , plutus-tx
@@ -53606,6 +53608,7 @@ license = stdenv.lib.licenses.mit;
 , template-haskell
 , text
 , unlit
+, wl-pprint
 }:
 mkDerivation {
 
@@ -53617,6 +53620,7 @@ base
 bytestring
 containers
 language-plutus-core
+mtl
 plutus-emulator
 plutus-playground-lib
 plutus-tx
@@ -53624,6 +53628,7 @@ plutus-wallet-api
 prettyprinter
 template-haskell
 text
+wl-pprint
 ];
 libraryToolDepends = [
 unlit
@@ -54373,6 +54378,7 @@ license = stdenv.lib.licenses.asl20;
 , cborg
 , containers
 , cryptonite
+, deepseq
 , deriving-compat
 , hashable
 , hedgehog
@@ -54385,6 +54391,7 @@ license = stdenv.lib.licenses.asl20;
 , newtype-generics
 , operational
 , plutus-tx
+, prettyprinter
 , recursion-schemes
 , serialise
 , servant
@@ -54411,6 +54418,7 @@ cardano-crypto
 cborg
 containers
 cryptonite
+deepseq
 deriving-compat
 hashable
 hedgehog
@@ -54423,6 +54431,7 @@ natural-transformation
 newtype-generics
 operational
 plutus-tx
+prettyprinter
 recursion-schemes
 serialise
 servant
