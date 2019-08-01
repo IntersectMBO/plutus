@@ -575,7 +575,7 @@ runSuccessfulWalletAction :: Wallet -> m a -> Trace m (a, [Tx])
 runSuccessfulWalletAction w act = do
     (maybeOut, txs) <- runWalletAction w act
     case maybeOut of
-        Left e -> failure $ T.pack $ show e
+        Left e  -> failure $ T.pack $ show e
         Right a -> pure (a, txs)
 
 -- | Notify the given 'Wallet' of some blockchain events.
