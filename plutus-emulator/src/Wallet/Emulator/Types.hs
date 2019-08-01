@@ -43,7 +43,7 @@ module Wallet.Emulator.Types(
     walletAction,
     runWalletAction,
     runSuccessfulWalletAction,
-    execWalletAction,
+    runFailingWalletAction,
     walletRecvNotifications,
     walletNotifyBlock,
     walletsNotifyBlock,
@@ -557,14 +557,9 @@ mkEvent t result =
 processEmulated :: (MonadEmulator m) => Trace MockWallet a -> m a
 processEmulated = interpretWithMonad evalEmulated
 
--- | A synonym for 'execWalletAction'.
-walletAction :: Wallet -> m a -> Trace m [Tx]
-walletAction = execWalletAction
-
--- | Perform a wallet action as the given 'Wallet', returning
---   the transactions that were submitted.
-execWalletAction :: Wallet -> m a -> Trace m [Tx]
-execWalletAction w = fmap snd . runWalletAction w
+-- | A synonym for 'runSuccessfulWalletAction'. Runs a wallet action and asserts that it was a success.
+walletAction :: Wallet -> m a -> Trace m (a, [Tx])
+walletAction = runSuccessfulWalletAction
 
 -- | Peform a wallet action as the given 'Wallet'.
 runWalletAction :: Wallet -> m a -> Trace m (Either WalletAPIError a, [Tx])
@@ -577,6 +572,14 @@ runSuccessfulWalletAction w act = do
     case maybeOut of
         Left e  -> failure $ T.pack $ show e
         Right a -> pure (a, txs)
+
+-- | Peform a wallet action as the given 'Wallet', asserting that the result was a failure.
+runFailingWalletAction :: Wallet -> m a -> Trace m [Tx]
+runFailingWalletAction w act = do
+    (maybeOut, txs) <- runWalletAction w act
+    case maybeOut of
+        Left _  -> pure txs
+        Right _ -> failure "Wallet action succeeded unexpectedly"
 
 -- | Notify the given 'Wallet' of some blockchain events.
 walletRecvNotifications :: Wallet -> [Notification] -> Trace m [Tx]

@@ -52,12 +52,12 @@ tests = testGroup "futures" [
 
 init :: Wallet -> Trace MockWallet Ledger.TxOutRef
 init w = outp <$> walletAction w (F.initialise (walletPubKey wallet1) (walletPubKey wallet2) contract) where
-    outp = snd . head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs . head
+    outp = snd . head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs . head . snd
 
 adjustMargin :: Wallet -> [Ledger.TxOutRef] -> FutureData -> Ada -> Trace MockWallet Ledger.TxOutRef
 adjustMargin w refs fd vl =
     outp <$> walletAction w (F.adjustMargin refs contract fd vl) where
-        outp = snd . head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs . head
+        outp = snd . head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs . head . snd
 
 -- | Initialise the futures contract with contributions from wallets 1 and 2,
 --   and update all wallets. Running `initBoth` will increase the slot number

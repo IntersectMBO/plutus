@@ -67,7 +67,7 @@ scen1 = VestingScenario{..} where
 --   script (and can be collected by the scheme's owner)
 commit :: Wallet -> Vesting -> Value -> Trace MockWallet Ledger.TxOutRef
 commit w vv vl = exScriptOut <$> walletAction w (void $ vestFunds vv vl) where
-    exScriptOut = snd . head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs . head
+    exScriptOut = snd . head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs . head . snd
 
 secureFunds :: Property
 secureFunds = checkVestingTrace scen1 $ do
