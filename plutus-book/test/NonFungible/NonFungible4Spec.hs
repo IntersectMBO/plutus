@@ -34,7 +34,7 @@ spec =
         updateWallets
         void $ walletAction w2 $ prank $ Wallet 1
         updateWallets
-        void $ walletAction w1 $ forge starryNight
+        void $ runFailingWalletAction w1 $ forge starryNight
         updateWallets
         assertOwnFundsEq w1 $
                A.toValue initialAda

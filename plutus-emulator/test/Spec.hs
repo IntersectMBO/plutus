@@ -156,7 +156,7 @@ txnIndexValid = property $ do
 --   validated
 simpleTrace :: Tx -> Trace MockWallet ()
 simpleTrace txn = do
-    txn' <- head <$> (walletAction wallet1 $ signTxAndSubmit_ txn)
+    txn' <- head . snd <$> (walletAction wallet1 $ signTxAndSubmit_ txn)
     block <- processPending
     assertIsValidated txn'
 
@@ -273,7 +273,7 @@ eventTrace = property $ do
 
             -- schedule the `mkPayment` action to run when slot 3 is
             -- reached.
-            b1 <- walletAction wallet1 $ register trigger mkPayment
+            b1 <- snd <$> (walletAction wallet1 $ register trigger mkPayment)
             walletNotifyBlock w b1
 
             -- advance the clock to trigger `mkPayment`
@@ -342,9 +342,9 @@ watchFundsAtAddress = property $ do
                 t1 = slotRangeT (W.interval 3 4)
                 t2 = fundsAtAddressGtT (pubKeyAddress pkTarget) Value.zero
             walletNotifyBlock w =<<
-                (walletAction wallet1 $ do
+                (snd <$> (walletAction wallet1 $ do
                     register t1 mkPayment
-                    register t2 mkPayment)
+                    register t2 mkPayment))
 
             -- after 3 blocks, t1 should fire, triggering the first payment of 100 to PubKey 2
             -- after 4 blocks, t2 should fire, triggering the second payment of 100
