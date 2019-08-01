@@ -42,6 +42,7 @@ module Wallet.Emulator.Types(
     execTraceTxPool,
     walletAction,
     runWalletAction,
+    runSuccessfulWalletAction,
     execWalletAction,
     walletRecvNotifications,
     walletNotifyBlock,
@@ -353,6 +354,8 @@ data Event n a where
     BlockchainProcessPending :: Event n Block
     -- | An assertion in the event stream, which can inspect the current state.
     Assertion :: Assertion -> Event n ()
+    -- | Failure.
+    Failure :: T.Text -> Event n a
 
 -- Program is like Free, except it makes the Functor for us so we can have a nice GADT
 -- | A series of 'Event's.
@@ -500,6 +503,7 @@ evalEmulated = \case
             }
         pure block
     Assertion a -> assert a
+    Failure message -> throwError $ AssertionError message
 
 -- | The result of validating a block.
 data ValidatedBlock = ValidatedBlock
@@ -566,6 +570,14 @@ execWalletAction w = fmap snd . runWalletAction w
 runWalletAction :: Wallet -> m a -> Trace m (Either WalletAPIError a, [Tx])
 runWalletAction w = Op.singleton . WalletAction w
 
+-- | Peform a wallet action as the given 'Wallet', asserting that the result was a success.
+runSuccessfulWalletAction :: Wallet -> m a -> Trace m (a, [Tx])
+runSuccessfulWalletAction w act = do
+    (maybeOut, txs) <- runWalletAction w act
+    case maybeOut of
+        Left e  -> failure $ T.pack $ show e
+        Right a -> pure (a, txs)
+
 -- | Notify the given 'Wallet' of some blockchain events.
 walletRecvNotifications :: Wallet -> [Notification] -> Trace m [Tx]
 walletRecvNotifications w = Op.singleton . WalletRecvNotification w
@@ -603,6 +615,10 @@ assertOwnFundsEq wallet = assertion . OwnFundsEqual wallet
 -- | Issue an assertion that the given transaction has been validated.
 assertIsValidated :: Tx -> Trace m ()
 assertIsValidated = assertion . IsValidated
+
+-- | Fail.
+failure :: T.Text -> Trace m a
+failure = Op.singleton . Failure
 
 newtype EmulatorAction a = EmulatorAction { unEmulatorAction :: ExceptT AssertionError (State EmulatorState) a }
     deriving newtype (Functor, Applicative, Monad, MonadState EmulatorState, MonadError AssertionError)

@@ -32,12 +32,8 @@ spec =
     tr :: Trace MockWallet ()
     tr = void $ do
         updateWallets
-        (maybeAdSymbol, _) <- runWalletAction w1 start
-        let adSymbol :: CurrencySymbol
-            adSymbol = case maybeAdSymbol of
-                Right s -> s
-                Left _  -> error "Error creating admin symbol"
-            nfSymbol :: CurrencySymbol
+        (adSymbol, _) <- runSuccessfulWalletAction w1 start
+        let nfSymbol :: CurrencySymbol
             nfSymbol = nonFungibleSymbol $ NonFungible
                 { issuer        = key1
                 , adminCurrency = adSymbol

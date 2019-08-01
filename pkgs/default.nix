@@ -53857,15 +53857,12 @@ license = stdenv.lib.licenses.asl20;
 , text
 , transformers
 , unordered-containers
-, warp
 }:
 mkDerivation {
 
 pname = "plutus-emulator";
 version = "0.1.0.0";
 src = .././plutus-emulator;
-isLibrary = true;
-isExecutable = true;
 libraryHaskellDepends = [
 aeson
 base
@@ -53899,11 +53896,6 @@ template-haskell
 text
 transformers
 unordered-containers
-];
-executableHaskellDepends = [
-base
-plutus-wallet-api
-warp
 ];
 testHaskellDepends = [
 aeson

@@ -43,8 +43,6 @@ library
     import: lang
     exposed-modules:
         Wallet.Emulator
-        Wallet.Emulator.Client
-        Wallet.Emulator.Http
         Wallet.Emulator.Types
         Wallet.Emulator.Generators
     hs-source-dirs: src
@@ -87,16 +85,6 @@ library
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
-
-executable emulator
-    import: lang
-    main-is: Main.hs
-    hs-source-dirs: emulator
-    build-depends:
-        base <5,
-        plutus-wallet-api -any,
-        plutus-emulator -any,
-        warp -any
 
 test-suite plutus-emulator-test
     type: exitcode-stdio-1.0
