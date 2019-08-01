@@ -19,10 +19,9 @@ import           Language.PlutusTx.Prelude
 import           Ledger.Scripts            (HashedDataScript (..))
 import           Ledger.Validation         (PendingTx, findContinuingOutputs, findDataScriptOutputs)
 
--- TODO: This should probably take the pending tx too.
 -- | Specification of a state machine
 newtype StateMachine s i = StateMachine {
-      smTransition :: s -> i -> s
+      smTransition :: s -> i -> PendingTx -> s
     }
 
 -- | A state machine redeemer takes the data
@@ -55,7 +54,7 @@ mkValidator (StateMachine trans) currentState (input, unseal -> HashedDataScript
             -- that the unique continuing output is one of the ones with this data script.
             Just i  -> traceIfFalseH "The data script must be attached to the ongoing output" (i `elem` dsOutputs)
 
-        expectedState = trans currentState input
+        expectedState = trans currentState input ptx
         stateOk =
             traceIfFalseH "State transition invalid - 'expectedState' not equal to 'newState'"
             (expectedState == newState)

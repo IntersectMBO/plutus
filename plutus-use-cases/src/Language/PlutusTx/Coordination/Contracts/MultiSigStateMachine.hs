@@ -114,8 +114,8 @@ step s i = case (s, i) of
 --   current state @state@ and the input. It checks whether the pending
 --   transaction @ptx@ pays the expected amounts to script and public key
 --   addresses. Fails with 'error' if an invalid transition is attempted.
-stepWithChecks :: Params -> PendingTx -> State -> Input -> State
-stepWithChecks p ptx s i =
+stepWithChecks :: Params -> State -> Input -> PendingTx -> State
+stepWithChecks p s i ptx =
     let newState = step s i in
     case (s, i) of
         (InitialState vl, ProposePayment pmt) ->
@@ -147,9 +147,7 @@ stepWithChecks p ptx s i =
 
 {-# INLINABLE mkValidator #-}
 mkValidator :: Params -> SM.StateMachineValidator State Input
-mkValidator p ds vs ptx =
-    let sm = StateMachine (stepWithChecks p ptx) in
-    SM.mkValidator sm ds vs ptx
+mkValidator p = SM.mkValidator $ StateMachine (stepWithChecks p)
 
 validator :: Params -> ValidatorScript
 validator params = ValidatorScript $
