@@ -111,7 +111,6 @@ test-suite plutus-book-test
                      , Utils
                      , Marlowe.Spec.Common
                      , Marlowe.Spec.Marlowe
-                     , Marlowe.Spec.Actus
 
   build-depends:       base >= 4.9 && <5
                      , bytestring -any
