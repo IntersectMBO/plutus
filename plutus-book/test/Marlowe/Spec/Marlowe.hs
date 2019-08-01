@@ -35,9 +35,9 @@ import           Ledger.Validation         (OracleValue (..))
 import           Wallet                    (PubKey (..), startWatching)
 import           Wallet.Emulator
 
-import           Language.Marlowe.Client   (commit, commit', interpretObs, marloweValidator, receivePayment, redeem)
-import           Language.Marlowe.Escrow   as Escrow
-import           Spec.Common
+import           Marlowe.Language.Marlowe.Client   (commit, commit', interpretObs, marloweValidator, receivePayment, redeem)
+import           Marlowe.Language.Marlowe.Escrow   as Escrow
+import           Marlowe.Spec.Common
 
 {-# ANN module ("HLint: ignore"::String) #-}
 
