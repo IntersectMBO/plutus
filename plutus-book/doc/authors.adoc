@@ -10,7 +10,7 @@ image:lars.png[role="related thumb right", width=300, scaledwidth=30%, pdfwidth=
 holds a Ph. D. in Pure Mathematics from the University of Regensburg
 (Germany) and has been a postdoc at the universities of Cambridge (UK) and Regensburg.
 After working as a Software Architect for ten years, he joined IOHK in 2016. As Director of
-Education for IOHK he gives talks and delivers trainings and Haskell courses all over the world,
+Education for IOHK he gives talks and delivers training and Haskell courses all over the world,
 but is also involved in IOHK research projects.
 --
 
