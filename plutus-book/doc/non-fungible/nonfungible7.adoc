@@ -68,7 +68,7 @@ validateNonFungible nf () name tx =
 
 mkNonFungibleRedeemer :: String -> RedeemerScript
 mkNonFungibleRedeemer name =
-    let s = $$(compileScript [|| \(t :: TokenName) (_ :: Sealed ()) -> t ||])
+    let s = $$(compileScript [|| \(t :: TokenName) (_ :: Sealed (HashedDataScript ())) -> t ||])
     in  RedeemerScript $ applyScript s $ lifted $ TokenName $ C.pack name
 
 mkNonFungibleValidator :: NonFungible -> ValidatorScript

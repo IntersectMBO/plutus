@@ -38,7 +38,8 @@ import qualified Language.Haskell.TH.Syntax   as TH
 import qualified Language.PlutusTx.AssocMap   as Map
 import           Ledger                       (Blockchain, PubKey, Tx, TxId)
 import qualified Ledger.Ada                   as Ada
-import           Ledger.Validation            (ValidatorHash, fromSymbol)
+import           Ledger.Scripts               (ValidatorHash)
+import           Ledger.Validation            (fromSymbol)
 import           Ledger.Value                 (TokenName)
 import qualified Ledger.Value                 as V
 import           Servant.API                  ((:<|>), (:>), Get, JSON, Post, ReqBody)

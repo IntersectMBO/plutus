@@ -80,7 +80,7 @@ dataScript = DataScript $ lifted ()
 redeemerScript1 :: RedeemerScript
 redeemerScript1 = RedeemerScript $
     -- The redeemer is passed the data script (unit), which it just ignores.
-    $$(Ledger.compileScript [|| \(_ :: Sealed ()) -> () ||])
+    $$(Ledger.compileScript [|| \(_ :: Sealed (HashedDataScript ())) -> () ||])
 
 redeemerScript0 :: RedeemerScript
 redeemerScript0 = RedeemerScript $ $$(Ledger.compileScript [|| () ||])

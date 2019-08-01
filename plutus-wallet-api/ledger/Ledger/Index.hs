@@ -43,6 +43,7 @@ import           Ledger.Blockchain
 import           Ledger.Crypto
 import qualified Ledger.Interval      as Interval
 import           Ledger.Scripts
+import qualified Ledger.Scripts       as Scripts
 import qualified Ledger.Slot          as Slot
 import           Ledger.Tx
 import           Ledger.TxId
@@ -98,7 +99,7 @@ data ValidationError =
     -- ^ The current slot is not covered by the transaction's validity slot range.
     | SignatureMissing PubKey
     -- ^ The transaction is missing a signature
-    | ForgeWithoutScript Validation.ValidatorHash
+    | ForgeWithoutScript Scripts.ValidatorHash
     -- ^ The transaction attempts to forge value of a currency without spending
     --   a script output from the address of the currency's monetary policy.
     deriving (Eq, Show, Generic)
@@ -190,7 +191,7 @@ checkForgingAuthorised tx =
         forgedWithoutScript = filter (not . spendsOutput) forgedCurrencies
 
     in
-        traverse_ (throwError . ForgeWithoutScript . Validation.ValidatorHash) forgedWithoutScript
+        traverse_ (throwError . ForgeWithoutScript . Scripts.ValidatorHash) forgedWithoutScript
 
 -- | A matching pair of transaction input and transaction output, ensuring that they are of matching types also.
 data InOutMatch =
@@ -286,8 +287,8 @@ mkOut t = Validation.PendingTxOut (txOutValue t) d tp where
     (d, tp) = case txOutType t of
         PayToScript scrpt ->
             let
-                dataScriptHash = Validation.plcDataScriptHash scrpt
-                validatorHash  = Validation.plcValidatorDigest (getAddress $ txOutAddress t)
+                dataScriptHash = Scripts.plcDataScriptHash scrpt
+                validatorHash  = Scripts.plcValidatorDigest (getAddress $ txOutAddress t)
             in
                 (Just (validatorHash, dataScriptHash), Validation.DataTxOut)
         PayToPubKey pk -> (Nothing, Validation.PubKeyTxOut pk)
@@ -303,7 +304,7 @@ mkIn i = Validation.PendingTxIn <$> pure ref <*> pure red <*> vl where
     red = case txInType i of
         ConsumeScriptAddress v r  ->
             let h = getAddress $ scriptAddress v in
-            Just (Validation.plcValidatorDigest h, Validation.plcRedeemerHash r)
+            Just (Scripts.plcValidatorDigest h, Scripts.plcRedeemerHash r)
         ConsumePublicKeyAddress _ ->
             Nothing
     vl = valueOf i

@@ -41,7 +41,7 @@ import           Data.List.NonEmpty          (NonEmpty ((:|)))
 import           Data.Swagger                (Schema, ToSchema)
 import           GHC.Generics                (Generic)
 import           Ledger.Interval             (always)
-import           Ledger.Validation           (ValidatorHash (ValidatorHash))
+import           Ledger.Scripts              (ValidatorHash (ValidatorHash))
 import           Ledger.Value                (TokenName (TokenName), Value)
 import           Playground.API              (FunctionSchema, KnownCurrency (KnownCurrency), adaCurrency)
 import           Playground.Interpreter.Util

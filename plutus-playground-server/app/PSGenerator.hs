@@ -160,7 +160,7 @@ validatorBridge = do
 validatorHashBridge :: BridgePart
 validatorHashBridge = do
     typeName ^== "ValidatorHash"
-    typeModule ^== "Ledger.Validation"
+    typeModule ^== "Ledger.Scripts"
     pure psString
 
 headersBridge :: BridgePart
