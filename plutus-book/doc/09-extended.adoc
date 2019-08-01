@@ -211,7 +211,7 @@ It may even carry several data scripts and pay into several different
 states of the same contract (with distinct output, of course).
 There is no need to perform
 script validation using the validator that hashes to `a` here.
-In fact, a node processing such a transaction does need to see the original
+In fact, a node processing such a transaction does not need to see the original
 validator here at all, unless this same transaction is also spending from the same
 script address.
 
