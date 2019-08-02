@@ -27,7 +27,7 @@ and in particular with smart contracts.
 A bytestring representing a custom currency (class of <<custom-token>>s).
 For <<ada>>, it is the empty bytestring, for custom currencies, it is the
 hash of the <<validator-script>> representing the monetary
-policy that controlls forging new tokens of that currency.
+policy that controls forging new tokens of that currency.
 
 [[data-script, data script]]Data Script ::
 Piece of <<plutus-core,Plutus Core>> code which is part of a

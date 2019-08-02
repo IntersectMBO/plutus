@@ -128,7 +128,7 @@ removed from the ledger UTXO.
 Additionally, all the `TxOut` values in
 the finite map of the outputs of the transaction are added to the UTXO,
 with the key of the finite map consisting of the ID of the transaction being processed,
-and the index value the same as in the the finite map of outputs of this transaction.
+and the index value the same as in the finite map of outputs of this transaction.
 That is, if `tx` contains a pair of a set of inputs and a finite map
 of outputs `(ins, outs)` with ID `id`, and
 `ix |-> (a,c)` is an entry in `outs`, the UTXO will

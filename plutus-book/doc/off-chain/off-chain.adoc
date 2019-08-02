@@ -157,7 +157,7 @@ is so common that there are helper functions `payToPublicKey` and
 
 [source,haskell]
 ----
-payToPuto blicKey  :: (Monad m, WalletAPI m) => SlotRange -> Value -> PubKey -> m Tx
+payToPublicKey  :: (Monad m, WalletAPI m) => SlotRange -> Value -> PubKey -> m Tx
 payToPublicKey_ :: (Monad m, WalletAPI m) => SlotRange -> Value -> PubKey -> m ()
 ----
 

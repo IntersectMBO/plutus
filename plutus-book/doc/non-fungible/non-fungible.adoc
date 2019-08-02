@@ -197,7 +197,7 @@ As long as we use the wallet endpoints in their present form, there will never
 be two _Mona Lisa_ tokens.
 
 Unfortunately, this will not convince sceptics that it is _impossible_ to forge
-the same token twice. Indeed, we can do so by changing the `forge` enpoint as
+the same token twice. Indeed, we can do so by changing the `forge` endpoint as
 follows:
 
 include::nonfungible7.adoc[]
