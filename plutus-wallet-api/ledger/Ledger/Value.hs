@@ -334,7 +334,7 @@ eq :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true, but this is fine.
 eq = checkBinRel (==)
 
--- | Split a value into its positive and negative parts. The first element of 
+-- | Split a value into its positive and negative parts. The first element of
 --   the tuple contains the negative parts of the value, the second element
 --   contains the positive parts.
 --
