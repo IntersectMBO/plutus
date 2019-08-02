@@ -1,7 +1,6 @@
 module TestUtils where
 
 import Prelude
-
 import Control.Monad.Except (runExcept)
 import Control.Monad.Gen (class MonadGen, chooseInt, oneOf)
 import Data.Bifoldable (class Bifoldable, bifoldMap)
@@ -26,6 +25,7 @@ import Type.Proxy (Proxy)
 
 assertRight :: forall e a. Show e => Either e a -> Test
 assertRight (Left err) = failure $ show err
+
 assertRight (Right _) = success
 
 assertDecodesTo :: forall a. Decode a => Proxy a -> String -> Test
@@ -39,27 +39,32 @@ assertDecodesTo proxy filename = do
 assertEncodesTo :: forall a. Encode a => a -> String -> Test
 assertEncodesTo value filename = do
   file <- liftEffect (FS.readTextFile UTF8 filename)
-  let encoded = encodeJSON value
-  let reformatted = runExcept (encodeJSON <$> parseJSON file)
+  let
+    encoded = encodeJSON value
+  let
+    reformatted = runExcept (encodeJSON <$> parseJSON file)
   case reformatted of
     Left err -> failure $ "Input file is not valid JSON"
     Right expected -> equal expected encoded
 
-decodeFile :: forall m a.
-  MonadEffect m
-  => Decode a
-  => String
-  -> m (Either MultipleErrors a)
+decodeFile ::
+  forall m a.
+  MonadEffect m =>
+  Decode a =>
+  String ->
+  m (Either MultipleErrors a)
 decodeFile filename = do
   contents <- liftEffect $ FS.readTextFile UTF8 filename
   pure $ runExcept $ decodeJSON contents
 
 equalWithFormatter :: forall a. Eq a => (a -> String) -> a -> a -> Test
 equalWithFormatter f expected actual =
-  if expected == actual then success
-
-  else failure $ "expected " <> f expected <>
-       ", got " <> f actual
+  if expected == actual then
+    success
+  else
+    failure $ "expected " <> f expected
+      <> ", got "
+      <> f actual
 
 -- | Similar to `equalWithFormatter`, but this instance tends to come in handy when comparing things like `Either`s.
 equalWithBiformatter :: forall p a b. Bifoldable p => Eq (p a b) => (a -> String) -> (b -> String) -> p a b -> p a b -> Test
@@ -81,9 +86,10 @@ genLooseIndex xs = chooseInt (-2) (length xs + 2)
 
 arbitraryEither :: forall m a b. MonadGen m => m a -> m b -> m (Either a b)
 arbitraryEither genLeft genRight =
-  oneOf $ NonEmpty
-            (Left <$> genLeft)
-            [ (Right <$> genRight) ]
+  oneOf
+    $ NonEmpty
+        (Left <$> genLeft)
+        [ (Right <$> genRight) ]
 
 arbitraryNonEmptyList :: forall a. Gen a -> Gen (NonEmptyList a)
 arbitraryNonEmptyList genX = do

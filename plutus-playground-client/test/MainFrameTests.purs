@@ -1,9 +1,8 @@
 module MainFrameTests
-       ( all
-       ) where
+  ( all
+  ) where
 
 import Prelude
-
 import Auth (AuthRole(..), AuthStatus(..))
 import Control.Monad.Except (runExcept)
 import Control.Monad.Free (Free, foldFree, liftF)
@@ -60,74 +59,78 @@ all =
     mkInitialValueTests
 
 ------------------------------------------------------------
+type World
+  = { gists :: Map GistId Gist
+    , editorContents :: Maybe String
+    , localStorage :: Map String String
+    , evaluationResult :: WebData EvaluationResult
+    , compilationResult :: (WebData (JsonEither InterpreterError (InterpreterResult CompilationResult)))
+    }
 
-type World =
-  { gists :: Map GistId Gist
-  , editorContents :: Maybe String
-  , localStorage :: Map String String
-  , evaluationResult :: WebData EvaluationResult
-  , compilationResult :: (WebData (JsonEither InterpreterError (InterpreterResult CompilationResult)))
-  }
-
-_gists :: forall r a. Lens' {gists :: a | r} a
+_gists :: forall r a. Lens' { gists :: a | r } a
 _gists = prop (SProxy :: SProxy "gists")
 
-_editorContents :: forall r a. Lens' {editorContents :: a | r} a
+_editorContents :: forall r a. Lens' { editorContents :: a | r } a
 _editorContents = prop (SProxy :: SProxy "editorContents")
 
-_localStorage :: forall r a. Lens' {localStorage :: a | r} a
+_localStorage :: forall r a. Lens' { localStorage :: a | r } a
 _localStorage = prop (SProxy :: SProxy "localStorage")
 
 -- | A dummy implementation of `MonadApp`, for testing the main eval loop.
-newtype MockApp m a = MockApp (RWST (SPSettings_ SPParams_) Unit (Tuple World State) m a)
+newtype MockApp m a
+  = MockApp (RWST (SPSettings_ SPParams_) Unit (Tuple World State) m a)
 
 derive instance newtypeMockApp :: Newtype (MockApp m a) _
 
 derive newtype instance functorMockApp :: Functor m => Functor (MockApp m)
+
 derive newtype instance applicativeMockApp :: Monad m => Applicative (MockApp m)
+
 derive newtype instance applyMockApp :: Bind m => Apply (MockApp m)
+
 derive newtype instance bindMockApp :: Bind m => Bind (MockApp m)
+
 derive newtype instance monadMockApp :: Monad m => Monad (MockApp m)
+
 derive newtype instance monadAskMockApp :: Monad m => MonadAsk (SPSettings_ SPParams_) (MockApp m)
 
 instance monadStateMockApp :: Monad m => MonadState State (MockApp m) where
-  state f = MockApp $ RWST \r (Tuple world appState) ->
-    case f appState of
-      (Tuple a appState') -> pure $ RWSResult (Tuple world appState') a unit
+  state f =
+    MockApp
+      $ RWST \r (Tuple world appState) -> case f appState of
+          (Tuple a appState') -> pure $ RWSResult (Tuple world appState') a unit
 
 instance monadAppMockApp :: Monad m => MonadApp (MockApp m) where
-  editorGetContents = MockApp do
-    editorContents <- use (_1 <<< _editorContents)
-    pure $ SourceCode <$> editorContents
-
-  editorSetContents contents cursor = MockApp $
-    assign (_1 <<< _editorContents) (Just contents)
-
+  editorGetContents =
+    MockApp do
+      editorContents <- use (_1 <<< _editorContents)
+      pure $ SourceCode <$> editorContents
+  editorSetContents contents cursor =
+    MockApp
+      $ assign (_1 <<< _editorContents) (Just contents)
   editorSetAnnotations annotations = pure unit
   editorGotoLine row column = pure unit
   --
-  saveBuffer contents = MockApp $
-    assign (_1 <<< _localStorage <<< at (unwrap bufferLocalStorageKey)) (Just contents)
-
+  saveBuffer contents =
+    MockApp
+      $ assign (_1 <<< _localStorage <<< at (unwrap bufferLocalStorageKey)) (Just contents)
   preventDefault event = pure unit
   setDropEffect effectType event = pure unit
   setDataTransferData event mimeType value = pure unit
   readFileFromDragEvent event = pure "TEST"
   --
-  getOauthStatus =
-    pure $ Success $ AuthStatus { _authStatusAuthRole: GithubUser }
-
-  getGistByGistId gistId = MockApp do
-    Tuple {gists} _ <- get
-    pure $ RemoteData.fromMaybe $ Map.lookup gistId gists
-
+  getOauthStatus = pure $ Success $ AuthStatus { _authStatusAuthRole: GithubUser }
+  getGistByGistId gistId =
+    MockApp do
+      Tuple { gists } _ <- get
+      pure $ RemoteData.fromMaybe $ Map.lookup gistId gists
   postEvaluation evaluation = pure NotAsked
-
   postGist newGist = pure NotAsked
   patchGistByGistId newGist gistId = pure NotAsked
-  postContract sourceCode = MockApp do
-    Tuple {compilationResult} _ <- get
-    pure compilationResult
+  postContract sourceCode =
+    MockApp do
+      Tuple { compilationResult } _ <- get
+      pure compilationResult
 
 instance monadRecMockApp :: Monad m => MonadRec (MockApp m) where
   tailRecM step a = do
@@ -138,10 +141,11 @@ instance monadRecMockApp :: Monad m => MonadRec (MockApp m) where
 
 execMockApp :: forall m a. Monad m => World -> Free Query a -> m (Tuple World State)
 execMockApp world query = do
-  RWSResult state result writer <- runRWST
-    (unwrap (foldFree eval query :: MockApp m a))
-    (defaultSettings (SPParams_ {baseURL: "/"}))
-    (Tuple world initialState)
+  RWSResult state result writer <-
+    runRWST
+      (unwrap (foldFree eval query :: MockApp m a))
+      (defaultSettings (SPParams_ { baseURL: "/" }))
+      (Tuple world initialState)
   pure state
 
 -- | Simulate dispatching a Query.
@@ -149,7 +153,6 @@ send :: forall f a. (Unit -> f a) -> Free f a
 send f = liftF $ f unit
 
 ------------------------------------------------------------
-
 mockWorld :: World
 mockWorld =
   { gists: Map.empty
@@ -162,29 +165,28 @@ mockWorld =
 evalTests :: TestSuite
 evalTests =
   suite "eval" do
-
     test "CheckAuthStatus" do
       Tuple _ finalState <- execMockApp mockWorld $ send CheckAuthStatus
-      assert "Auth Status loaded." $ isSuccess (view  _authStatus finalState)
-
+      assert "Auth Status loaded." $ isSuccess (view _authStatus finalState)
     test "ChangeView" do
       quickCheck \aView -> do
-        let Tuple _ finalState = unwrap (execMockApp mockWorld (send $ ChangeView aView) :: Identity (Tuple World State))
+        let
+          Tuple _ finalState = unwrap (execMockApp mockWorld (send $ ChangeView aView) :: Identity (Tuple World State))
         aView == view _currentView finalState
-
     suite "LoadGist" do
       test "Bad URL" do
-        Tuple _ finalState <- execMockApp mockWorld do
-          send $ SetGistUrl "9cfe"
-          send $ LoadGist
-        assert "Gist not loaded." $ isNotAsked (view  _createGistResult finalState)
-
+        Tuple _ finalState <-
+          execMockApp mockWorld do
+            send $ SetGistUrl "9cfe"
+            send $ LoadGist
+        assert "Gist not loaded." $ isNotAsked (view _createGistResult finalState)
       test "Invalid URL" do
-        Tuple _ finalState <- execMockApp mockWorld $ do
-          send $ SetGistUrl "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-          send $ LoadGist
-        assert "Gist not loaded." $ isNotAsked (view  _createGistResult finalState)
-
+        Tuple _ finalState <-
+          execMockApp mockWorld
+            $ do
+                send $ SetGistUrl "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                send $ LoadGist
+        assert "Gist not loaded." $ isNotAsked (view _createGistResult finalState)
       test "Successfully" do
         contents <- liftEffect $ FS.readTextFile UTF8 "test/gist1.json"
         case runExcept $ decodeJSON contents of
@@ -192,62 +194,65 @@ evalTests =
           Right gist -> do
             Tuple finalWorld finalState <-
               execMockApp
-                (set (_gists <<< at (view gistId gist)) (Just gist) mockWorld) $ do
-                  send $ SetGistUrl (unwrap (view gistId gist))
-                  send $ LoadGist
-
-            assert "Gist gets loaded." $ isSuccess (view  _createGistResult finalState)
+                (set (_gists <<< at (view gistId gist)) (Just gist) mockWorld)
+                $ do
+                    send $ SetGistUrl (unwrap (view gistId gist))
+                    send $ LoadGist
+            assert "Gist gets loaded." $ isSuccess (view _createGistResult finalState)
             equal'
               "Simulation gets loaded."
               1
-              (Cursor.length (view  _simulations finalState))
+              (Cursor.length (view _simulations finalState))
             case Array.head (unwrap gist)._gistFiles >>= (unwrap >>> _._gistFileContent) of
               Nothing -> failure "Could not read gist content. Sample test data may be incorrect."
-              Just sourceFile ->  do
+              Just sourceFile -> do
                 equal' "Editor gets update."
                   (Just sourceFile)
                   (view _editorContents finalWorld)
                 equal' "Source gets stored."
                   (Just sourceFile)
                   (preview (_localStorage <<< ix (unwrap bufferLocalStorageKey)) finalWorld)
-
     test "Loading a script works." do
-        Tuple finalWorld finalState <- execMockApp (set _editorContents Nothing mockWorld) do
+      Tuple finalWorld finalState <-
+        execMockApp (set _editorContents Nothing mockWorld) do
           send $ LoadScript "Game"
-        equal' "Script gets loaded."
-          (Map.lookup "Game" StaticData.demoFiles)
-          finalWorld.editorContents
-
+      equal' "Script gets loaded."
+        (Map.lookup "Game" StaticData.demoFiles)
+        finalWorld.editorContents
     test "Loading a script clears out some state." do
-        loadCompilationResponse1 >>= case _ of
-          Left err -> failure err
-          Right compilationResult -> do
-            Tuple _ intermediateState <- execMockApp (mockWorld { compilationResult = compilationResult }) do
-              send $ ChangeView Simulations
-              send $ LoadScript "Game"
-              send $ CompileProgram
-            assert "Simulations are non-empty." $ not $ Cursor.null $ view _simulations intermediateState
-            Tuple _ finalState <- execMockApp (mockWorld { compilationResult = compilationResult }) do
-              send $ LoadScript "Game"
-              send $ CompileProgram
-              send $ LoadScript "Game"
-            assert "Simulations are empty." $ Cursor.null $ view _simulations finalState
-            assert "Evaluation is cleared." $ isNotAsked $ view _evaluationResult finalState
-            assert "Compilation is cleared." $ isNotAsked $ view _compilationResult finalState
-
+      loadCompilationResponse1
+        >>= case _ of
+            Left err -> failure err
+            Right compilationResult -> do
+              Tuple _ intermediateState <-
+                execMockApp (mockWorld { compilationResult = compilationResult }) do
+                  send $ ChangeView Simulations
+                  send $ LoadScript "Game"
+                  send $ CompileProgram
+              assert "Simulations are non-empty." $ not $ Cursor.null $ view _simulations intermediateState
+              Tuple _ finalState <-
+                execMockApp (mockWorld { compilationResult = compilationResult }) do
+                  send $ LoadScript "Game"
+                  send $ CompileProgram
+                  send $ LoadScript "Game"
+              assert "Simulations are empty." $ Cursor.null $ view _simulations finalState
+              assert "Evaluation is cleared." $ isNotAsked $ view _evaluationResult finalState
+              assert "Compilation is cleared." $ isNotAsked $ view _compilationResult finalState
     test "Loading a script switches back to the editor." do
-        loadCompilationResponse1 >>= case _ of
-          Left err -> failure err
-          Right compilationResult -> do
-            Tuple _ finalState <- execMockApp (mockWorld { compilationResult = compilationResult }) do
-              send $ ChangeView Simulations
-              send $ LoadScript "Game"
-            equal' "View is reset." Editor $ view _currentView finalState
+      loadCompilationResponse1
+        >>= case _ of
+            Left err -> failure err
+            Right compilationResult -> do
+              Tuple _ finalState <-
+                execMockApp (mockWorld { compilationResult = compilationResult }) do
+                  send $ ChangeView Simulations
+                  send $ LoadScript "Game"
+              equal' "View is reset." Editor $ view _currentView finalState
 
 loadCompilationResponse1 ::
   forall m.
-  MonadEffect m
-  => m (Either String (WebData (JsonEither InterpreterError (InterpreterResult CompilationResult))))
+  MonadEffect m =>
+  m (Either String (WebData (JsonEither InterpreterError (InterpreterResult CompilationResult))))
 loadCompilationResponse1 = do
   contents <- liftEffect $ FS.readTextFile UTF8 "test/compilation_response1.json"
   case runExcept $ decodeJSON contents of
@@ -259,28 +264,36 @@ mkInitialValueTests =
   suite "mkInitialValue" do
     test "balance" do
       equalGenericShow
-        (Value { getValue: AssocMap.fromTuples [ ada /\ AssocMap.fromTuples [ adaToken /\ 10 ]
-                                               , currencies /\ AssocMap.fromTuples [ usdToken /\ 10
-                                                                                   , eurToken /\ 10
-                                                                                   ]
-                                               ] })
-        (mkInitialValue
-           [ KnownCurrency { hash: "", friendlyName: "Ada", knownTokens: (JsonNonEmptyList (pure (TokenName { unTokenName : "" }))) }
-           , KnownCurrency { hash: "Currency", friendlyName: "Currencies", knownTokens: JsonNonEmptyList( NonEmptyList ((TokenName { unTokenName: "USDToken" }) :| (Cons (TokenName { unTokenName:  "EURToken" }) Nil))) }
-           ]
-           10)
+        ( Value
+            { getValue:
+              AssocMap.fromTuples
+                [ ada /\ AssocMap.fromTuples [ adaToken /\ 10 ]
+                , currencies
+                    /\ AssocMap.fromTuples
+                        [ usdToken /\ 10
+                        , eurToken /\ 10
+                        ]
+                ]
+            }
+        )
+        ( mkInitialValue
+            [ KnownCurrency { hash: "", friendlyName: "Ada", knownTokens: (JsonNonEmptyList (pure (TokenName { unTokenName: "" }))) }
+            , KnownCurrency { hash: "Currency", friendlyName: "Currencies", knownTokens: JsonNonEmptyList (NonEmptyList ((TokenName { unTokenName: "USDToken" }) :| (Cons (TokenName { unTokenName: "EURToken" }) Nil))) }
+            ]
+            10
+        )
 
 ada :: CurrencySymbol
-ada = CurrencySymbol { unCurrencySymbol: ""}
+ada = CurrencySymbol { unCurrencySymbol: "" }
 
 currencies :: CurrencySymbol
-currencies = CurrencySymbol { unCurrencySymbol: "Currency"}
+currencies = CurrencySymbol { unCurrencySymbol: "Currency" }
 
 adaToken :: TokenName
-adaToken = TokenName { unTokenName: ""}
+adaToken = TokenName { unTokenName: "" }
 
 usdToken :: TokenName
-usdToken = TokenName { unTokenName: "USDToken"}
+usdToken = TokenName { unTokenName: "USDToken" }
 
 eurToken :: TokenName
-eurToken = TokenName { unTokenName: "EURToken"}
+eurToken = TokenName { unTokenName: "EURToken" }

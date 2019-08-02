@@ -3,26 +3,25 @@
 --
 -- * Mostly guaranteed by using smart constructors and judicious exports.
 module Cursor
-       ( Cursor
-       , current
-       , first
-       , last
-       , empty
-       , singleton
-       , snoc
-       , deleteAt
-       , fromArray
-       , toArray
-       , mapWithIndex
-       , null
-       , length
-       , _current
-       , setIndex
-       , getIndex
-       , left
-       , right
-       )
-       where
+  ( Cursor
+  , current
+  , first
+  , last
+  , empty
+  , singleton
+  , snoc
+  , deleteAt
+  , fromArray
+  , toArray
+  , mapWithIndex
+  , null
+  , length
+  , _current
+  , setIndex
+  , getIndex
+  , left
+  , right
+  ) where
 
 import Control.Monad.Gen.Class (chooseInt)
 import Data.Array as Array
@@ -38,11 +37,15 @@ import Prelude (class Eq, class Functor, class Ord, class Show, bind, map, other
 import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
 import Test.QuickCheck.Gen (arrayOf)
 
-data Cursor a = Cursor Int (Array a)
+data Cursor a
+  = Cursor Int (Array a)
 
 derive instance eqCursor :: Eq a => Eq (Cursor a)
+
 derive instance ordCursor :: Ord a => Ord (Cursor a)
+
 derive instance functorCursor :: Functor Cursor
+
 derive instance genericCursor :: Generic (Cursor a) _
 
 instance foldableCursor :: Foldable Cursor where
@@ -60,13 +63,17 @@ instance arbitraryCursor :: Arbitrary a => Arbitrary (Cursor a) where
     pure $ Cursor index xs
 
 instance indexCursor :: Index (Cursor a) Int a where
-  ix n = wander \coalg (Cursor index xs) ->
-    Array.index xs n
-    # maybe
-        (pure xs)
-        (let f x = fromMaybe xs $ Array.updateAt n x xs
-         in coalg >>> map f)
-    # map (Cursor index)
+  ix n =
+    wander \coalg (Cursor index xs) ->
+      Array.index xs n
+        # maybe
+            (pure xs)
+            ( let
+                f x = fromMaybe xs $ Array.updateAt n x xs
+              in
+                coalg >>> map f
+            )
+        # map (Cursor index)
 
 instance encodeCursor :: Encode a => Encode (Cursor a) where
   encode (Cursor n xs) = encode [ encode n, encode xs ]
@@ -75,20 +82,24 @@ instance decodeCursor :: Decode a => Decode (Cursor a) where
   decode value = do
     xs <- readArray value
     case xs of
-      [x, y] -> do index <- readInt x
-                   elements <- decode y
-                   pure $ Cursor index elements
+      [ x, y ] -> do
+        index <- readInt x
+        elements <- decode y
+        pure $ Cursor index elements
       _ -> fail $ ForeignError "Decoding a Cursor, expected to see an array with exactly 2 elements."
 
 _current :: forall a. Traversal' (Cursor a) a
 _current =
-   wander \coalg (Cursor index xs) ->
+  wander \coalg (Cursor index xs) ->
     Array.index xs index
-    # maybe
-        (pure xs)
-        (let f x = fromMaybe xs $ Array.updateAt index x xs
-         in coalg >>> map f)
-    # map (Cursor index)
+      # maybe
+          (pure xs)
+          ( let
+              f x = fromMaybe xs $ Array.updateAt index x xs
+            in
+              coalg >>> map f
+          )
+      # map (Cursor index)
 
 clamp :: forall a. Cursor a -> Cursor a
 clamp (Cursor index xs) =
@@ -106,11 +117,14 @@ snoc :: forall a. Cursor a -> a -> Cursor a
 snoc (Cursor index xs) x = last $ Cursor index (Array.snoc xs x)
 
 deleteAt :: forall a. Int -> Cursor a -> Cursor a
-deleteAt n cursor@(Cursor index xs) = fromMaybe cursor do
-  let newIndex | n >= index = index
-               | otherwise = index - 1
-  newXs <- Array.deleteAt n xs
-  pure $ clamp $ Cursor newIndex newXs
+deleteAt n cursor@(Cursor index xs) =
+  fromMaybe cursor do
+    let
+      newIndex
+        | n >= index = index
+        | otherwise = index - 1
+    newXs <- Array.deleteAt n xs
+    pure $ clamp $ Cursor newIndex newXs
 
 fromArray :: forall a. Array a -> Cursor a
 fromArray xs = Cursor 0 xs

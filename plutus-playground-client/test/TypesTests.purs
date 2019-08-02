@@ -3,7 +3,6 @@ module TypesTests
   ) where
 
 import Prelude
-
 import Data.Maybe (Maybe(..))
 import Data.RawJson (JsonTuple(..))
 import Data.Tuple (Tuple(..))

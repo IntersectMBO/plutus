@@ -1,8 +1,8 @@
 module Halogen.Chartist
-       ( chartist
-       , ChartistQuery(..)
-       , ChartistMessage(..)
-       ) where
+  ( chartist
+  , ChartistQuery(..)
+  , ChartistMessage(..)
+  ) where
 
 import Chartist (Chart, ChartistData, ChartistOptions, updateData)
 import Chartist as Chartist
@@ -22,9 +22,9 @@ import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties (classes)
 import Halogen.HTML.Properties as HP
 
-type ChartistState =
-  { chart :: Maybe Chart
-  }
+type ChartistState
+  = { chart :: Maybe Chart
+    }
 
 data ChartistQuery a
   = Init ChartistOptions a
@@ -33,42 +33,46 @@ data ChartistQuery a
 data ChartistMessage
   = Initialized
 
-type HTML = H.ComponentHTML ChartistQuery
+type HTML
+  = H.ComponentHTML ChartistQuery
 
-type DSL m = H.ComponentDSL ChartistState ChartistQuery ChartistMessage m
+type DSL m
+  = H.ComponentDSL ChartistState ChartistQuery ChartistMessage m
 
 chartist ::
   forall m.
-  MonadAff m
-  => ChartistOptions
-  -> H.Component HH.HTML ChartistQuery ChartistData ChartistMessage m
-chartist options = H.lifecycleComponent
-  { initialState: \_ -> { chart: Nothing }
-  , render
-  , eval
-  , initializer: Just $ H.action $ Init options
-  , finalizer: Nothing
-  , receiver: HE.input SetData
-  }
+  MonadAff m =>
+  ChartistOptions ->
+  H.Component HH.HTML ChartistQuery ChartistData ChartistMessage m
+chartist options =
+  H.lifecycleComponent
+    { initialState: \_ -> { chart: Nothing }
+    , render
+    , eval
+    , initializer: Just $ H.action $ Init options
+    , finalizer: Nothing
+    , receiver: HE.input SetData
+    }
 
 eval ::
   forall m.
-  MonadAff m
-  => ChartistQuery ~> DSL m
+  MonadAff m =>
+  ChartistQuery ~> DSL m
 eval (Init options next) = do
   mElement <- H.getHTMLElementRef chartRefLabel
   case mElement of
     Nothing -> pure unit
     Just element -> do
       chart <- liftEffect $ Chartist.barChart element options
-      _ <- H.modify _{ chart = Just chart }
+      _ <- H.modify _ { chart = Just chart }
       H.raise Initialized
   pure next
 
 eval (SetData chartistData next) = do
-  H.gets _.chart >>= case _ of
-    Nothing -> pure unit
-    Just chart -> liftEffect $ updateData chart chartistData
+  H.gets _.chart
+    >>= case _ of
+        Nothing -> pure unit
+        Just chart -> liftEffect $ updateData chart chartistData
   pure next
 
 chartRefLabel :: RefLabel
@@ -77,9 +81,10 @@ chartRefLabel = RefLabel "chartist"
 render ∷ ChartistState → HTML
 render state =
   HH.div
-    [ classes [ ClassName "ct-chart"
-              , ClassName "ct-major-twelfth"
-              ]
+    [ classes
+        [ ClassName "ct-chart"
+        , ClassName "ct-major-twelfth"
+        ]
     , HP.ref chartRefLabel
     ]
     []
