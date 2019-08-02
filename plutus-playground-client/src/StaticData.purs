@@ -9,8 +9,11 @@ import Data.Tuple.Nested ((/\))
 import LocalStorage as LocalStorage
 import Playground.Usecases (vesting, game, crowdfunding, messages)
 
-type Label = String
-type Contents = String
+type Label
+  = String
+
+type Contents
+  = String
 
 demoFiles :: Map Label Contents
 demoFiles =
@@ -22,4 +25,4 @@ demoFiles =
     ]
 
 bufferLocalStorageKey :: LocalStorage.Key
-bufferLocalStorageKey  = LocalStorage.Key "PlutusPlaygroundBuffer"
+bufferLocalStorageKey = LocalStorage.Key "PlutusPlaygroundBuffer"

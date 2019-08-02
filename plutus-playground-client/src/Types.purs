@@ -1,7 +1,6 @@
 module Types where
 
 import Prelude
-
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
 import Control.Comonad (class Comonad, extract)
@@ -84,12 +83,13 @@ defaultJsonOptions =
 
 data Action
   = Action
-      { simulatorWallet :: SimulatorWallet
-      , functionSchema :: FunctionSchema FormArgument
-      }
+    { simulatorWallet :: SimulatorWallet
+    , functionSchema :: FunctionSchema FormArgument
+    }
   | Wait { blocks :: Int }
 
 derive instance genericAction :: Generic Action _
+
 derive instance eqAction :: Eq Action
 
 instance encodeAction :: Encode Action where
@@ -106,8 +106,9 @@ _Action ::
     }
 _Action = prism' Action f
   where
-    f (Action r) = Just r
-    f _ = Nothing
+  f (Action r) = Just r
+
+  f _ = Nothing
 
 _Wait ::
   Prism'
@@ -116,58 +117,60 @@ _Wait ::
     }
 _Wait = prism' Wait f
   where
-    f (Wait r) = Just r
-    f _ = Nothing
+  f (Wait r) = Just r
 
-_functionSchema :: forall a b r. Lens { functionSchema :: a | r} { functionSchema :: b | r} a b
+  f _ = Nothing
+
+_functionSchema :: forall a b r. Lens { functionSchema :: a | r } { functionSchema :: b | r } a b
 _functionSchema = prop (SProxy :: SProxy "functionSchema")
 
-_argumentSchema :: forall a b r. Lens {argumentSchema :: a | r} {argumentSchema :: b | r} a b
+_argumentSchema :: forall a b r. Lens { argumentSchema :: a | r } { argumentSchema :: b | r } a b
 _argumentSchema = prop (SProxy :: SProxy "argumentSchema")
 
-_functionName :: forall a b r. Lens {functionName :: a | r} {functionName :: b | r} a b
+_functionName :: forall a b r. Lens { functionName :: a | r } { functionName :: b | r } a b
 _functionName = prop (SProxy :: SProxy "functionName")
 
-_blocks :: forall a b r. Lens { blocks :: a | r} { blocks :: b | r} a b
+_blocks :: forall a b r. Lens { blocks :: a | r } { blocks :: b | r } a b
 _blocks = prop (SProxy :: SProxy "blocks")
 
 instance actionValidation :: Validation Action where
   validate (Wait _) = []
-  validate (Action action) =
-    Array.concat $ Array.mapWithIndex (\i v -> addPath (show i) <$> validate v) args
+  validate (Action action) = Array.concat $ Array.mapWithIndex (\i v -> addPath (show i) <$> validate v) args
     where
-      args :: Array FormArgument
-      args = view (_functionSchema <<< _FunctionSchema <<< _argumentSchema) action
+    args :: Array FormArgument
+    args = view (_functionSchema <<< _FunctionSchema <<< _argumentSchema) action
 
 ------------------------------------------------------------
-
 -- | TODO: It should always be true that either toExpression returns a
 -- `Just value` OR validate returns a non-empty array.
 -- This suggests they should be the same function, returning either a group of error messages, or a valid expression.
 toExpression :: Action -> Maybe API.Expression
 toExpression (Wait wait) = Just $ API.Wait wait
+
 toExpression (Action action) = do
-  let wallet = view _simulatorWalletWallet action.simulatorWallet
+  let
+    wallet = view _simulatorWalletWallet action.simulatorWallet
   arguments <- jsonArguments
   pure $ API.Action { wallet, function, arguments }
   where
-    function = view (_functionSchema <<< to unwrap <<< _functionName) action
-    argumentSchema = view (_functionSchema <<< to unwrap <<< _argumentSchema) action
+  function = view (_functionSchema <<< to unwrap <<< _functionName) action
 
-    jsonArguments =
-      traverse (map (RawJson <<< encodeJSON) <<< formArgumentToJson) argumentSchema
+  argumentSchema = view (_functionSchema <<< to unwrap <<< _argumentSchema) action
+
+  jsonArguments = traverse (map (RawJson <<< encodeJSON) <<< formArgumentToJson) argumentSchema
 
 toEvaluation :: SourceCode -> Simulation -> Maybe Evaluation
-toEvaluation sourceCode (Simulation {actions, wallets}) = do
-    program <- traverse toExpression actions
-    pure $ Evaluation { wallets
-                      , program
-                      , sourceCode
-                      , blockchain: []
-                      }
+toEvaluation sourceCode (Simulation { actions, wallets }) = do
+  program <- traverse toExpression actions
+  pure
+    $ Evaluation
+        { wallets
+        , program
+        , sourceCode
+        , blockchain: []
+        }
 
 ------------------------------------------------------------
-
 data Query a
   -- SubEvents.
   = HandleEditorMessage AceMessage a
@@ -263,16 +266,24 @@ instance comonadFormEvent :: Comonad FormEvent where
   extract (RemoveSubField _ e) = e
 
 ------------------------------------------------------------
+type ChildQuery
+  = Coproduct2 AceQuery ChartistQuery
 
-type ChildQuery = Coproduct2 AceQuery ChartistQuery
-type ChildSlot = Either2 EditorSlot BalancesChartSlot
+type ChildSlot
+  = Either2 EditorSlot BalancesChartSlot
 
-data EditorSlot = EditorSlot
+data EditorSlot
+  = EditorSlot
+
 derive instance eqComponentEditorSlot :: Eq EditorSlot
+
 derive instance ordComponentEditorSlot :: Ord EditorSlot
 
-data BalancesChartSlot = BalancesChartSlot
+data BalancesChartSlot
+  = BalancesChartSlot
+
 derive instance eqComponentBalancesChartSlot :: Eq BalancesChartSlot
+
 derive instance ordComponentBalancesChartSlot :: Ord BalancesChartSlot
 
 cpEditor :: ChildPath AceQuery ChildQuery EditorSlot ChildSlot
@@ -282,10 +293,14 @@ cpBalancesChart :: ChildPath ChartistQuery ChildQuery BalancesChartSlot ChildSlo
 cpBalancesChart = cp2
 
 -----------------------------------------------------------
+type Blockchain
+  = Array (Array (JsonTuple (TxIdOf String) Tx))
 
-type Blockchain = Array (Array (JsonTuple (TxIdOf String) Tx))
-type Signatures = Array (FunctionSchema FormSchema)
-newtype Simulation = Simulation
+type Signatures
+  = Array (FunctionSchema FormSchema)
+
+newtype Simulation
+  = Simulation
   { signatures :: Signatures
   , actions :: Array Action
   , wallets :: Array SimulatorWallet
@@ -293,6 +308,7 @@ newtype Simulation = Simulation
   }
 
 derive instance newtypeSimulation :: Newtype Simulation _
+
 derive instance genericSimulation :: Generic Simulation _
 
 instance encodeSimulation :: Encode Simulation where
@@ -301,9 +317,11 @@ instance encodeSimulation :: Encode Simulation where
 instance decodeSimulation :: Decode Simulation where
   decode value = genericDecode defaultJsonOptions value
 
-type WebData = RemoteData AjaxError
+type WebData
+  = RemoteData AjaxError
 
-newtype State = State
+newtype State
+  = State
   { currentView :: View
   , compilationResult :: WebData (JsonEither InterpreterError (InterpreterResult CompilationResult))
   , simulations :: Cursor Simulation
@@ -361,6 +379,7 @@ data View
   | Transactions
 
 derive instance eqView :: Eq View
+
 derive instance genericView :: Generic View _
 
 instance arbitraryView :: Arbitrary View where
@@ -372,7 +391,6 @@ instance showView :: Show View where
   show Transactions = "Transactions"
 
 ------------------------------------------------------------
-
 data FormArgument
   = FormInt (Maybe Int)
   | FormBool Boolean
@@ -387,7 +405,9 @@ data FormArgument
   | FormUnsupported { description :: String }
 
 derive instance genericFormArgument :: Generic FormArgument _
+
 derive instance eqFormArgument :: Eq FormArgument
+
 instance showFormArgument :: Show FormArgument where
   show x = genericShow x
 
@@ -400,18 +420,28 @@ instance decodeFormArgument :: Decode FormArgument where
 toArgument :: Value -> FormSchema -> FormArgument
 toArgument initialValue = ana algebra
   where
-    algebra :: FormSchema -> FormArgumentF FormSchema
-    algebra FormSchemaInt = FormIntF Nothing
-    algebra FormSchemaBool = FormBoolF false
-    algebra FormSchemaString = FormStringF Nothing
-    algebra FormSchemaHex = FormHexF Nothing
-    algebra (FormSchemaRadio xs) = FormRadioF xs Nothing
-    algebra (FormSchemaArray xs) = FormArrayF xs []
-    algebra (FormSchemaMaybe x) = FormMaybeF x Nothing
-    algebra FormSchemaValue = FormValueF initialValue
-    algebra (FormSchemaTuple a b) = FormTupleF (JsonTuple (Tuple a b))
-    algebra (FormSchemaObject xs) = FormObjectF xs
-    algebra (FormSchemaUnsupported x) = FormUnsupportedF x
+  algebra :: FormSchema -> FormArgumentF FormSchema
+  algebra FormSchemaInt = FormIntF Nothing
+
+  algebra FormSchemaBool = FormBoolF false
+
+  algebra FormSchemaString = FormStringF Nothing
+
+  algebra FormSchemaHex = FormHexF Nothing
+
+  algebra (FormSchemaRadio xs) = FormRadioF xs Nothing
+
+  algebra (FormSchemaArray xs) = FormArrayF xs []
+
+  algebra (FormSchemaMaybe x) = FormMaybeF x Nothing
+
+  algebra FormSchemaValue = FormValueF initialValue
+
+  algebra (FormSchemaTuple a b) = FormTupleF (JsonTuple (Tuple a b))
+
+  algebra (FormSchemaObject xs) = FormObjectF xs
+
+  algebra (FormSchemaUnsupported x) = FormUnsupportedF x
 
 -- | This should just be `map` but we can't put an orphan instance on FunctionSchema. :-(
 toFormArgumentLevel :: Value -> FunctionSchema FormSchema -> FunctionSchema FormArgument
@@ -476,79 +506,98 @@ instance corecursiveFormArgument :: Corecursive FormArgument FormArgumentF where
   embed (FormUnsupportedF x) = FormUnsupported x
 
 ------------------------------------------------------------
-
 instance validationFormArgument :: Validation FormArgument where
   validate = cata algebra
     where
-      algebra :: Algebra FormArgumentF (Array (WithPath ValidationError))
-      algebra (FormIntF (Just _)) = []
-      algebra (FormIntF Nothing) = [ noPath Required ]
+    algebra :: Algebra FormArgumentF (Array (WithPath ValidationError))
+    algebra (FormIntF (Just _)) = []
 
-      algebra (FormBoolF _) = []
+    algebra (FormIntF Nothing) = [ noPath Required ]
 
-      algebra (FormStringF (Just _)) = []
-      algebra (FormStringF Nothing) = [ noPath Required ]
+    algebra (FormBoolF _) = []
 
-      algebra (FormHexF (Just _)) = []
-      algebra (FormHexF Nothing) = [ noPath Required ]
+    algebra (FormStringF (Just _)) = []
 
-      algebra (FormRadioF options (Just x)) =
-        if x `elem` options
-        then []
-        else [ noPath Invalid ]
-      algebra (FormRadioF _ Nothing) = [ noPath Required ]
+    algebra (FormStringF Nothing) = [ noPath Required ]
 
-      algebra (FormTupleF (JsonTuple (Tuple xs ys))) =
-        Array.concat [ addPath "_1" <$> xs
-                     , addPath "_2" <$> ys
-                     ]
+    algebra (FormHexF (Just _)) = []
 
-      algebra (FormMaybeF _ Nothing) = [ noPath Required ]
-      algebra (FormMaybeF _ (Just x)) =
-        addPath "_Just" <$> x
+    algebra (FormHexF Nothing) = [ noPath Required ]
 
-      algebra (FormArrayF _ xs) =
-        Array.concat $ mapWithIndex (\i values-> addPath (show i) <$> values) xs
+    algebra (FormRadioF options (Just x)) =
+      if x `elem` options then
+        []
+      else
+        [ noPath Invalid ]
 
-      algebra (FormObjectF xs) =
-        Array.concat $ map (\(JsonTuple (Tuple name values)) -> addPath name <$> values) xs
+    algebra (FormRadioF _ Nothing) = [ noPath Required ]
 
-      algebra (FormValueF x) = []
+    algebra (FormTupleF (JsonTuple (Tuple xs ys))) =
+      Array.concat
+        [ addPath "_1" <$> xs
+        , addPath "_2" <$> ys
+        ]
 
-      algebra (FormUnsupportedF _) = [ noPath Unsupported ]
+    algebra (FormMaybeF _ Nothing) = [ noPath Required ]
+
+    algebra (FormMaybeF _ (Just x)) = addPath "_Just" <$> x
+
+    algebra (FormArrayF _ xs) = Array.concat $ mapWithIndex (\i values -> addPath (show i) <$> values) xs
+
+    algebra (FormObjectF xs) = Array.concat $ map (\(JsonTuple (Tuple name values)) -> addPath name <$> values) xs
+
+    algebra (FormValueF x) = []
+
+    algebra (FormUnsupportedF _) = [ noPath Unsupported ]
 
 formArgumentToJson :: FormArgument -> Maybe Foreign
 formArgumentToJson arg = cata algebra arg
   where
-    algebra :: Algebra FormArgumentF (Maybe Foreign)
-    algebra (FormIntF (Just n)) = Just $ encode n
-    algebra (FormIntF Nothing) = Nothing
-    algebra (FormBoolF b) = Just $ encode b
-    algebra (FormStringF (Just str)) = Just $ encode str
-    algebra (FormStringF Nothing) = Nothing
-    algebra (FormRadioF _ (Just option)) = Just $ encode option
-    algebra (FormRadioF _ Nothing) = Nothing
-    algebra (FormHexF (Just str)) = Just $ encode $ String.toHex str
-    algebra (FormHexF Nothing) = Nothing
-    algebra (FormTupleF (JsonTuple (Just fieldA /\ Just fieldB))) = Just $ encode [ fieldA, fieldB ]
-    algebra (FormTupleF _) = Nothing
-    algebra (FormMaybeF _ field) = encode <$> field
-    algebra (FormArrayF _ fields) = Just $ encode fields
-    algebra (FormObjectF fields) = encodeFields fields
-      where
-        encodeFields :: Array (JsonTuple String (Maybe Foreign)) -> Maybe Foreign
-        encodeFields xs = map (encode <<< FO.fromFoldable) $ prepareObject xs
-        prepareObject :: Array (JsonTuple String (Maybe Foreign)) -> Maybe (Array (Tuple String Foreign))
-        prepareObject = traverse processTuples
-        processTuples :: JsonTuple String (Maybe Foreign) -> Maybe (Tuple String Foreign)
-        processTuples = unwrap >>> sequence
-    algebra (FormValueF x) = Just $ encode x
-    algebra (FormUnsupportedF _) = Nothing
+  algebra :: Algebra FormArgumentF (Maybe Foreign)
+  algebra (FormIntF (Just n)) = Just $ encode n
+
+  algebra (FormIntF Nothing) = Nothing
+
+  algebra (FormBoolF b) = Just $ encode b
+
+  algebra (FormStringF (Just str)) = Just $ encode str
+
+  algebra (FormStringF Nothing) = Nothing
+
+  algebra (FormRadioF _ (Just option)) = Just $ encode option
+
+  algebra (FormRadioF _ Nothing) = Nothing
+
+  algebra (FormHexF (Just str)) = Just $ encode $ String.toHex str
+
+  algebra (FormHexF Nothing) = Nothing
+
+  algebra (FormTupleF (JsonTuple (Just fieldA /\ Just fieldB))) = Just $ encode [ fieldA, fieldB ]
+
+  algebra (FormTupleF _) = Nothing
+
+  algebra (FormMaybeF _ field) = encode <$> field
+
+  algebra (FormArrayF _ fields) = Just $ encode fields
+
+  algebra (FormObjectF fields) = encodeFields fields
+    where
+    encodeFields :: Array (JsonTuple String (Maybe Foreign)) -> Maybe Foreign
+    encodeFields xs = map (encode <<< FO.fromFoldable) $ prepareObject xs
+
+    prepareObject :: Array (JsonTuple String (Maybe Foreign)) -> Maybe (Array (Tuple String Foreign))
+    prepareObject = traverse processTuples
+
+    processTuples :: JsonTuple String (Maybe Foreign) -> Maybe (Tuple String Foreign)
+    processTuples = unwrap >>> sequence
+
+  algebra (FormValueF x) = Just $ encode x
+
+  algebra (FormUnsupportedF _) = Nothing
 
 --- Language.Haskell.Interpreter ---
-
-_result :: forall s a. Lens' {result :: a | s} a
+_result :: forall s a. Lens' { result :: a | s } a
 _result = prop (SProxy :: SProxy "result")
 
-_warnings :: forall s a. Lens' {warnings :: a | s} a
+_warnings :: forall s a. Lens' { warnings :: a | s } a
 _warnings = prop (SProxy :: SProxy "warnings")

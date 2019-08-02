@@ -1,8 +1,8 @@
 module Chain
-       ( balancesChartOptions
-       , evaluationPane
-       , extractAmount
-       ) where
+  ( balancesChartOptions
+  , evaluationPane
+  , extractAmount
+  ) where
 
 import Bootstrap (empty, nbsp)
 import Chain.BlockchainExploration (blockchainExploration)
@@ -42,12 +42,12 @@ import Prelude (map, show, ($), (<$>), (<<<), (<>))
 import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, Query(HandleBalancesChartMessage), _pubKey, _simulatorWalletBalance, _simulatorWalletWallet, _tokenName, _value, _walletId, cpBalancesChart)
 import Wallet.Emulator.Types (EmulatorEvent(..), Wallet(..))
 
-evaluationPane::
+evaluationPane ::
   forall m.
-  MonadAff m
-  => EvaluationResult
-  -> ParentHTML Query ChildQuery ChildSlot m
-evaluationPane e@(EvaluationResult {emulatorLog, resultBlockchain, fundsDistribution, walletKeys}) =
+  MonadAff m =>
+  EvaluationResult ->
+  ParentHTML Query ChildQuery ChildSlot m
+evaluationPane e@(EvaluationResult { emulatorLog, resultBlockchain, fundsDistribution, walletKeys }) =
   div_
     [ blockchainExploration
         (foldMap (\(JsonTuple (Tuple key wallet)) -> Map.singleton (view _pubKey key) wallet) walletKeys)
@@ -104,45 +104,47 @@ emulatorEventPane (WalletInfo (Wallet walletId) info) =
     [ text $ "Message from wallet #" <> show walletId.getWallet <> ": " <> info ]
 
 ------------------------------------------------------------
-
 formatWalletId :: SimulatorWallet -> String
 formatWalletId wallet = "Wallet #" <> show (view (_simulatorWalletWallet <<< _walletId) wallet)
 
 extractAmount :: Tuple CurrencySymbol TokenName -> SimulatorWallet -> Maybe Int
 extractAmount (Tuple currencySymbol tokenName) =
   preview
-    (_simulatorWalletBalance
-     <<< _value
-     <<< at currencySymbol
-     <<< _Just
-     <<< at tokenName
-     <<< _Just)
+    ( _simulatorWalletBalance
+        <<< _value
+        <<< at currencySymbol
+        <<< _Just
+        <<< at tokenName
+        <<< _Just
+    )
 
 balancesToChartistData :: Array SimulatorWallet -> ChartistData
 balancesToChartistData wallets = toChartistData $ toChartistItem <$> wallets
   where
-    toChartistItem :: SimulatorWallet -> ChartistItem
-    toChartistItem wallet =
-      { label: formatWalletId wallet
-      , points: toChartistPoint wallet <$> Set.toUnfoldable allCurrencies
-      }
+  toChartistItem :: SimulatorWallet -> ChartistItem
+  toChartistItem wallet =
+    { label: formatWalletId wallet
+    , points: toChartistPoint wallet <$> Set.toUnfoldable allCurrencies
+    }
 
-    toChartistPoint :: SimulatorWallet -> Tuple CurrencySymbol TokenName -> ChartistPoint
-    toChartistPoint wallet key =
-      { meta: view (_2 <<< _tokenName) key
-      , value: Int.toNumber $ fromMaybe zero $ extractAmount key wallet
-      }
+  toChartistPoint :: SimulatorWallet -> Tuple CurrencySymbol TokenName -> ChartistPoint
+  toChartistPoint wallet key =
+    { meta: view (_2 <<< _tokenName) key
+    , value: Int.toNumber $ fromMaybe zero $ extractAmount key wallet
+    }
 
-    allValues :: List (AssocMap.Map CurrencySymbol (AssocMap.Map TokenName Int))
-    allValues =
-      toListOf (traversed
-                <<< _simulatorWalletBalance
-                <<< _value)
-        wallets
+  allValues :: List (AssocMap.Map CurrencySymbol (AssocMap.Map TokenName Int))
+  allValues =
+    toListOf
+      ( traversed
+          <<< _simulatorWalletBalance
+          <<< _value
+      )
+      wallets
 
-    allCurrencies :: Set (Tuple CurrencySymbol TokenName)
-    allCurrencies =
-      Set.fromFoldable
+  allCurrencies :: Set (Tuple CurrencySymbol TokenName)
+  allCurrencies =
+    Set.fromFoldable
       $ map (\(c /\ t /\ _) -> c /\ t)
       $ Array.concat
       $ map collapse
@@ -152,42 +154,56 @@ balancesChartOptions :: ChartistOptions
 balancesChartOptions =
   { seriesBarDistance: 45
   , chartPadding:
-      { top: 30
-      , bottom: 30
-      , right: 30
-      , left: 30
-      }
+    { top: 30
+    , bottom: 30
+    , right: 30
+    , left: 30
+    }
   , axisY: Chartist.intAutoScaleAxis
-  , plugins: [ Chartist.tooltipPlugin
-             , Chartist.axisTitlePlugin
-                 { axisX: { axisTitle: "Wallet"
-                          , axisClass: "ct-x-axis-title"
-                          , offset: { x: 0
-                                    , y: 40
-                                    }
-                          , textAnchor: "middle"
-                          , flipTitle: false
-                          }
-                 , axisY: { axisTitle: "Final Balance"
-                          , axisClass: "ct-y-axis-title"
-                          , offset: { x: 0
-                                    , y: (30)
-                                    }
-                          , textAnchor: "middle"
-                          , flipTitle: true
-                          }
-                 }
-             ]
+  , plugins:
+    [ Chartist.tooltipPlugin
+    , Chartist.axisTitlePlugin
+        { axisX:
+          { axisTitle: "Wallet"
+          , axisClass: "ct-x-axis-title"
+          , offset:
+            { x: 0
+            , y: 40
+            }
+          , textAnchor: "middle"
+          , flipTitle: false
+          }
+        , axisY:
+          { axisTitle: "Final Balance"
+          , axisClass: "ct-y-axis-title"
+          , offset:
+            { x: 0
+            , y: (30)
+            }
+          , textAnchor: "middle"
+          , flipTitle: true
+          }
+        }
+    ]
   }
 
 showValidationError :: ValidationError -> String
 showValidationError (InOutTypeMismatch (TxInOf txIn) (TxOutOf txOut)) = "InOutTypeMismatch"
+
 showValidationError (TxOutRefNotFound (TxOutRefOf txOut)) = "TxOutRefNotFound"
+
 showValidationError (InvalidScriptHash hash) = "InvalidScriptHash"
+
 showValidationError (InvalidSignature key signature) = "InvalidSignature"
+
 showValidationError (ValueNotPreserved before after) = "ValueNotPreserved"
+
 showValidationError (NegativeValue tx) = "NegativeValue"
+
 showValidationError (ScriptFailure xs) = "ScriptFailure"
+
 showValidationError (CurrentSlotOutOfRange slot) = "CurrentSlotOutOfRange"
+
 showValidationError (SignatureMissing key) = "SignatureMissing"
+
 showValidationError (ForgeWithoutScript str) = "ForgeWithoutScript"

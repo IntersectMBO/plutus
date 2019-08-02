@@ -1,9 +1,8 @@
 module Data.String.ExtraTests
-       ( all
-       ) where
+  ( all
+  ) where
 
 import Prelude
-
 import Data.String as String
 import Data.String.Extra (abbreviate, leftPadTo, repeat, toHex)
 import Test.Unit (TestSuite, suite, test)
@@ -25,8 +24,8 @@ abbreviateTests = do
       quickCheck \str -> String.length (abbreviate str) <= 10
     test "Never affects the start of the string" do
       quickCheck \str ->
-        String.take 5 str ==
-        String.take 5 (abbreviate str)
+        String.take 5 str
+          == String.take 5 (abbreviate str)
 
 toHexTests :: TestSuite
 toHexTests = do

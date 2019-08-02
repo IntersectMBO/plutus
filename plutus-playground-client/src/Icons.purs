@@ -22,12 +22,21 @@ icon iconType =
 
 iconClass :: Icon -> ClassName
 iconClass CreditCard = ClassName "fa-credit-card"
+
 iconClass LongArrowDown = ClassName "fa-long-arrow-down"
+
 iconClass Close = ClassName "fa-close"
+
 iconClass Check = ClassName "fa-check"
+
 iconClass Bitcoin = ClassName "fa-bitcoin"
+
 iconClass Github = ClassName "fa-github"
+
 iconClass Plus = ClassName "fa-plus"
+
 iconClass Trash = ClassName "fa-trash"
+
 iconClass Spinner = ClassName "fa-spinner fa-pulse"
+
 iconClass SignIn = ClassName "fa-sign-in"

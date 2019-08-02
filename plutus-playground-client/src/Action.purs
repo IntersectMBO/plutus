@@ -1,6 +1,6 @@
 module Action
-       ( simulationPane
-       ) where
+  ( simulationPane
+  ) where
 
 import Bootstrap (badge, badgePrimary, btn, btnDanger, btnGroup, btnGroupSmall, btnInfo, btnLink, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, col10_, col2_, col_, formCheckInput, formCheckLabel, formCheck_, formControl, formGroup_, invalidFeedback_, nbsp, pullRight, responsiveThird, row, row_, validFeedback_, wasValidated)
 import Cursor (Cursor, current)
@@ -37,48 +37,49 @@ import Web.HTML.Event.DragEvent (DragEvent)
 
 simulationPane ::
   forall m.
-  Value
-  -> Maybe Int
-  -> Cursor Simulation
-  -> WebData EvaluationResult
-  -> ParentHTML Query ChildQuery ChildSlot m
-simulationPane initialValue actionDrag simulations evaluationResult =
-  case current simulations of
-    Just (Simulation simulation) ->
-      let
-        isValidWallet :: Wallet -> Boolean
-        isValidWallet target =
-          isJust $ Array.find (\wallet -> view _walletId target
-                                          ==
-                                          view (_simulatorWalletWallet <<< _walletId) wallet)
-                     simulation.wallets
-      in
-        div_
-          [ simulationsNav simulations
-          , walletsPane simulation.signatures initialValue simulation.wallets
-          , br_
-          , actionsPane isValidWallet actionDrag simulation.actions (view _resultBlockchain <$> evaluationResult)
-          ]
-    Nothing ->
+  Value ->
+  Maybe Int ->
+  Cursor Simulation ->
+  WebData EvaluationResult ->
+  ParentHTML Query ChildQuery ChildSlot m
+simulationPane initialValue actionDrag simulations evaluationResult = case current simulations of
+  Just (Simulation simulation) ->
+    let
+      isValidWallet :: Wallet -> Boolean
+      isValidWallet target =
+        isJust
+          $ Array.find
+              ( \wallet ->
+                  view _walletId target
+                    == view (_simulatorWalletWallet <<< _walletId) wallet
+              )
+              simulation.wallets
+    in
       div_
-        [ text "Click the "
-        , strong_ [ text "Editor" ]
-        , text " tab above and compile a contract to get started."
+        [ simulationsNav simulations
+        , walletsPane simulation.signatures initialValue simulation.wallets
+        , br_
+        , actionsPane isValidWallet actionDrag simulation.actions (view _resultBlockchain <$> evaluationResult)
         ]
+  Nothing ->
+    div_
+      [ text "Click the "
+      , strong_ [ text "Editor" ]
+      , text " tab above and compile a contract to get started."
+      ]
 
-simulationsNav :: forall p . Cursor Simulation -> HTML p Query
+simulationsNav :: forall p. Cursor Simulation -> HTML p Query
 simulationsNav simulations =
   div
     [ id_ "simulation-nav"
     , classes [ btnGroup, btnGroupSmall ]
     ]
-    ((simulations
-      # Cursor.mapWithIndex (simulationNavItem (Cursor.getIndex simulations))
-      # Cursor.toArray
-      # Array.concat
-     )
-     <>
-     [ addSimulationControl ]
+    ( ( simulations
+          # Cursor.mapWithIndex (simulationNavItem (Cursor.getIndex simulations))
+          # Cursor.toArray
+          # Array.concat
+      )
+        <> [ addSimulationControl ]
     )
 
 simulationNavItem :: forall p. Int -> Int -> Simulation -> Array (HTML p Query)
@@ -97,10 +98,9 @@ simulationNavItem activeIndex index simulation =
       [ icon Close ]
   ]
   where
-    buttonClasses =
-        [ btn, simulationNavItemClass ]
-        <>
-        if activeIndex == index then [ btnPrimary ] else [ btnInfo ]
+  buttonClasses =
+    [ btn, simulationNavItemClass ]
+      <> if activeIndex == index then [ btnPrimary ] else [ btnInfo ]
 
 simulationNavItemClass :: ClassName
 simulationNavItemClass = ClassName "simulation-nav-item"
@@ -127,14 +127,15 @@ actionsPane isValidWallet actionDrag actions evaluationResult =
     , p_ [ text "This is your action sequence. Click 'Evaluate' to run these actions against a simulated blockchain." ]
     , Keyed.div
         [ classes $ [ row, ClassName "actions" ]
-                    <>
-                    if actionDrag == Nothing
-                    then []
-                    else [ ClassName "actions-being-dragged" ]
+            <> if actionDrag == Nothing then
+                []
+              else
+                [ ClassName "actions-being-dragged" ]
         ]
-        (Array.snoc
-           (mapWithIndex (actionPane isValidWallet actionDrag) actions)
-           (addWaitActionPane (Array.length actions)))
+        ( Array.snoc
+            (mapWithIndex (actionPane isValidWallet actionDrag) actions)
+            (addWaitActionPane (Array.length actions))
+        )
     , br_
     , row_ [ evaluateActionsPane evaluationResult actions ]
     , br_
@@ -143,70 +144,78 @@ actionsPane isValidWallet actionDrag actions evaluationResult =
 
 actionPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Int -> Action -> Tuple String (HTML p Query)
 actionPane isValidWallet actionDrag index action =
-  Tuple (show index) $
-    responsiveThird
-      [ div ([ classes ([ ClassName "action"
-                        , ClassName ("action-" <> show index)
-                        , ClassName ("action-" <> (case isValidWallet <$> (preview (_Action <<< _simulatorWallet <<< _simulatorWalletWallet) action) of
-                                                      Nothing -> "valid-wallet"
-                                                      Just true ->  "valid-wallet"
-                                                      Just false ->  "invalid-wallet"))
-                        ]
-                        <> if actionDrag == Just index
-                           then [ ClassName "drag-source" ]
-                           else []
-                       )
-             ]
-             <> dragSourceProperties index
-             <> dragTargetProperties index
+  Tuple (show index)
+    $ responsiveThird
+        [ div
+            ( [ classes
+                  ( [ ClassName "action"
+                    , ClassName ("action-" <> show index)
+                    , ClassName
+                        ( "action-"
+                            <> ( case isValidWallet <$> (preview (_Action <<< _simulatorWallet <<< _simulatorWalletWallet) action) of
+                                  Nothing -> "valid-wallet"
+                                  Just true -> "valid-wallet"
+                                  Just false -> "invalid-wallet"
+                              )
+                        )
+                    ]
+                      <> if actionDrag == Just index then
+                          [ ClassName "drag-source" ]
+                        else
+                          []
+                  )
+              ]
+                <> dragSourceProperties index
+                <> dragTargetProperties index
             )
-        [ div [ class_ card ]
-          [ cardBody_
-            [ div
-                [ classes [ badge, badgePrimary, ClassName "badge-action" ] ]
-                [ text $ show (index + 1) ]
-            , button
-                [ classes [ btn, btnInfo, pullRight ]
-                , onClick $ input_ $ ModifyActions $ RemoveAction index
+            [ div [ class_ card ]
+                [ cardBody_
+                    [ div
+                        [ classes [ badge, badgePrimary, ClassName "badge-action" ] ]
+                        [ text $ show (index + 1) ]
+                    , button
+                        [ classes [ btn, btnInfo, pullRight ]
+                        , onClick $ input_ $ ModifyActions $ RemoveAction index
+                        ]
+                        [ icon Close ]
+                    , case action of
+                        Action { simulatorWallet, functionSchema } ->
+                          div_
+                            [ h3_
+                                [ walletIdPane (view _simulatorWalletWallet simulatorWallet)
+                                , text ": "
+                                , text $ view (_FunctionSchema <<< _functionName <<< _Fn) functionSchema
+                                ]
+                            , actionArgumentForm index $ view (_FunctionSchema <<< _argumentSchema) functionSchema
+                            ]
+                        Wait { blocks } ->
+                          div_
+                            [ h3_ [ text "Wait" ]
+                            , row_
+                                [ col_ [ text "Time" ]
+                                , col_
+                                    [ input
+                                        [ type_ InputNumber
+                                        , classes [ formControl, ClassName $ "action-argument-0-blocks" ]
+                                        , value $ show blocks
+                                        , placeholder "Int"
+                                        , onValueInput $ map (HQ.action <<< ModifyActions <<< SetWaitTime index) <<< Int.fromString
+                                        ]
+                                    ]
+                                ]
+                            ]
+                    ]
                 ]
-                [ icon Close ]
-            , case action of
-                Action {simulatorWallet, functionSchema} ->
-                  div_
-                    [ h3_
-                        [ walletIdPane (view _simulatorWalletWallet simulatorWallet)
-                        , text ": "
-                        , text $ view (_FunctionSchema <<< _functionName <<< _Fn) functionSchema
-                        ]
-                    , actionArgumentForm index $ view (_FunctionSchema <<< _argumentSchema) functionSchema
-                    ]
-                Wait {blocks} ->
-                  div_
-                    [ h3_ [ text "Wait" ]
-                    , row_
-                        [ col_ [ text "Time" ]
-                        , col_ [
-                            input
-                              [ type_ InputNumber
-                              , classes [ formControl, ClassName $ "action-argument-0-blocks" ]
-                              , value $ show blocks
-                              , placeholder "Int"
-                              , onValueInput $ map (HQ.action <<< ModifyActions <<< SetWaitTime index) <<< Int.fromString
-                              ]
-                          ]
-                        ]
-                    ]
             ]
-          ]
         ]
-      ]
 
 validationClasses ::
   forall a.
-  FormArgument
-  -> Maybe a
-  -> Array ClassName
+  FormArgument ->
+  Maybe a ->
+  Array ClassName
 validationClasses arg Nothing = [ ClassName "error" ]
+
 validationClasses arg (Just _) = []
 
 actionArgumentClass :: Array String -> Array ClassName
@@ -218,224 +227,247 @@ actionArgumentClass ancestors =
 actionArgumentForm :: forall p. Int -> Array FormArgument -> HTML p Query
 actionArgumentForm index arguments =
   div [ class_ wasValidated ]
-    (Array.intercalate
-       [ hr_ ]
-       (Array.mapWithIndex
-          (\i argument -> [PopulateAction index i <$> actionArgumentField [ show i ] false argument])
-          arguments))
+    ( Array.intercalate
+        [ hr_ ]
+        ( Array.mapWithIndex
+            (\i argument -> [ PopulateAction index i <$> actionArgumentField [ show i ] false argument ])
+            arguments
+        )
+    )
 
 actionArgumentField ::
   forall p.
-  Warn (Text "We're still not handling the Unsupported case.")
-  => Warn (Text "We're still not handling the FormMaybe case.")
-  => Warn (Text "The Hex fields should be forced to comply to [0-9a-fA-F].")
-  => Array String
-  -> Boolean
-  -> FormArgument
-  -> HTML p FormEvent
+  Warn (Text "We're still not handling the Unsupported case.") =>
+  Warn (Text "We're still not handling the FormMaybe case.") =>
+  Warn (Text "The Hex fields should be forced to comply to [0-9a-fA-F].") =>
+  Array String ->
+  Boolean ->
+  FormArgument ->
+  HTML p FormEvent
 actionArgumentField ancestors _ arg@(FormInt n) =
-  div_ [
-    input
-      [ type_ InputNumber
-      , classes (Array.cons formControl (actionArgumentClass ancestors))
-      , value $ maybe "" show n
-      , required true
-      , placeholder "Int"
-      , onValueInput $ (Just <<< HQ.action <<< SetIntField <<< Int.fromString)
-      ]
+  div_
+    [ input
+        [ type_ InputNumber
+        , classes (Array.cons formControl (actionArgumentClass ancestors))
+        , value $ maybe "" show n
+        , required true
+        , placeholder "Int"
+        , onValueInput $ (Just <<< HQ.action <<< SetIntField <<< Int.fromString)
+        ]
     , validationFeedback (joinPath ancestors <$> validate arg)
-  ]
+    ]
+
 actionArgumentField ancestors _ arg@(FormBool b) =
   formCheck_
     [ input
-       [ type_ InputCheckbox
-       , id_ elementId
-       , classes (Array.cons formCheckInput (actionArgumentClass ancestors))
-       , checked b
-       , onChecked (Just <<< HQ.action <<< SetBoolField)
-       ]
+        [ type_ InputCheckbox
+        , id_ elementId
+        , classes (Array.cons formCheckInput (actionArgumentClass ancestors))
+        , checked b
+        , onChecked (Just <<< HQ.action <<< SetBoolField)
+        ]
     , label
-       [ class_ formCheckLabel
-       , for elementId
-       ]
-       [ text (if b then "True" else "False") ]
+        [ class_ formCheckLabel
+        , for elementId
+        ]
+        [ text (if b then "True" else "False") ]
     , validationFeedback (joinPath ancestors <$> validate arg)
     ]
   where
-    elementId = String.joinWith "-" ancestors
+  elementId = String.joinWith "-" ancestors
+
 actionArgumentField ancestors _ arg@(FormString s) =
-  div_ [
-    input
-      [ type_ InputText
-      , classes (Array.cons formControl (actionArgumentClass ancestors))
-      , value $ fromMaybe "" s
-      , required true
-      , placeholder "String"
-      , onValueInput $ HE.input SetStringField
-      ]
+  div_
+    [ input
+        [ type_ InputText
+        , classes (Array.cons formControl (actionArgumentClass ancestors))
+        , value $ fromMaybe "" s
+        , required true
+        , placeholder "String"
+        , onValueInput $ HE.input SetStringField
+        ]
     , validationFeedback (joinPath ancestors <$> validate arg)
-  ]
+    ]
+
 actionArgumentField ancestors _ arg@(FormRadio options s) =
   formGroup_
     [ div_ (radioItem <$> options)
     , validationFeedback (joinPath ancestors <$> validate arg)
     ]
   where
-    radioItem :: String -> HTML p FormEvent
-    radioItem option =
-      let elementId = String.joinWith "-" (ancestors <> [option])
-      in formCheck_
-           [ input
-               [ type_ InputRadio
-               , id_ elementId
-               , classes (Array.cons formCheckInput (actionArgumentClass ancestors))
-               , name option
-               , value option
-               , required (s == Nothing)
-               , onValueInput $ HE.input $ SetRadioField
-               , checked (Just option == s)
-               ]
-           , label
-               [ class_ formCheckLabel
-               , for elementId
-               ]
-               [ text option ]
-           ]
+  radioItem :: String -> HTML p FormEvent
+  radioItem option =
+    let
+      elementId = String.joinWith "-" (ancestors <> [ option ])
+    in
+      formCheck_
+        [ input
+            [ type_ InputRadio
+            , id_ elementId
+            , classes (Array.cons formCheckInput (actionArgumentClass ancestors))
+            , name option
+            , value option
+            , required (s == Nothing)
+            , onValueInput $ HE.input $ SetRadioField
+            , checked (Just option == s)
+            ]
+        , label
+            [ class_ formCheckLabel
+            , for elementId
+            ]
+            [ text option ]
+        ]
+
 actionArgumentField ancestors _ arg@(FormHex s) =
-  div_ [
-    input
-      [ type_ InputText
-      , classes (Array.cons formControl (actionArgumentClass ancestors))
-      , value $ fromMaybe "" s
-      , required true
-      , placeholder "String"
-      , onValueInput $ HE.input SetHexField
-      ]
+  div_
+    [ input
+        [ type_ InputText
+        , classes (Array.cons formControl (actionArgumentClass ancestors))
+        , value $ fromMaybe "" s
+        , required true
+        , placeholder "String"
+        , onValueInput $ HE.input SetHexField
+        ]
     , validationFeedback (joinPath ancestors <$> validate arg)
-  ]
+    ]
+
 actionArgumentField ancestors isNested (FormTuple (JsonTuple (Tuple subFieldA subFieldB))) =
   row_
     [ col_ [ SetSubField 1 <$> actionArgumentField (Array.snoc ancestors "_1") true subFieldA ]
     , col_ [ SetSubField 2 <$> actionArgumentField (Array.snoc ancestors "_2") true subFieldB ]
     ]
+
 actionArgumentField ancestors isNested (FormArray schema subFields) =
-    div_ [ Keyed.div [ nesting isNested ]
-             (mapWithIndex subFormContainer subFields)
-         , button
-             [ classes [ btn, btnInfo ]
-             , onClick $ input_ AddSubField
-             ]
-             [ icon Plus ]
-         ]
-  where
-    subFormContainer i field =
-      show i
-      /\
-      formGroup_ [
-        row_
-          [ col10_
-              [ SetSubField i <$> actionArgumentField (Array.snoc ancestors (show i)) true field ]
-          , col2_
-            [ button
-              [ classes [ btn, btnLink ]
-              , onClick $ input_ (RemoveSubField i)
-              ]
-              [ icon Trash ]
-            ]
-          ]
+  div_
+    [ Keyed.div [ nesting isNested ]
+        (mapWithIndex subFormContainer subFields)
+    , button
+        [ classes [ btn, btnInfo ]
+        , onClick $ input_ AddSubField
         ]
+        [ icon Plus ]
+    ]
+  where
+  subFormContainer i field =
+    show i
+      /\ formGroup_
+          [ row_
+              [ col10_
+                  [ SetSubField i <$> actionArgumentField (Array.snoc ancestors (show i)) true field ]
+              , col2_
+                  [ button
+                      [ classes [ btn, btnLink ]
+                      , onClick $ input_ (RemoveSubField i)
+                      ]
+                      [ icon Trash ]
+                  ]
+              ]
+          ]
 
 actionArgumentField ancestors isNested (FormObject subFields) =
   div [ nesting isNested ]
     (mapWithIndex (\i (JsonTuple field) -> map (SetSubField i) (subForm field)) subFields)
   where
-    subForm (name /\ arg) =
-      (formGroup_
-         [ label [ for name ] [ text name ]
-         , actionArgumentField (Array.snoc ancestors name) true arg
-         ]
-      )
+  subForm (name /\ arg) =
+    ( formGroup_
+        [ label [ for name ] [ text name ]
+        , actionArgumentField (Array.snoc ancestors name) true arg
+        ]
+    )
+
 actionArgumentField ancestors isNested (FormValue value) =
   div [ nesting isNested ]
     [ label [ for "value" ] [ text "Value" ]
     , valueForm SetValueField value
     ]
+
 actionArgumentField _ _ (FormMaybe dataType child) =
-  div_ [ text $ "Unsupported Maybe"
-       , code_ [ text $ show dataType ]
-       , code_ [ text $ show child ]
-       ]
+  div_
+    [ text $ "Unsupported Maybe"
+    , code_ [ text $ show dataType ]
+    , code_ [ text $ show child ]
+    ]
 
 actionArgumentField _ _ (FormUnsupported { description }) =
-  div_ [ text $ "Unsupported"
-       , code_ [ text description ]
-       ]
+  div_
+    [ text $ "Unsupported"
+    , code_ [ text description ]
+    ]
 
-nesting :: forall r i. Boolean -> IProp ("class" :: String | r) i
+nesting :: forall r i. Boolean -> IProp ( "class" :: String | r ) i
 nesting true = classes [ ClassName "nested" ]
+
 nesting false = classes []
 
 validationFeedback :: forall p i. Array (WithPath ValidationError) -> HTML p i
-validationFeedback [] =
-  validFeedback_ [ nbsp ]
-validationFeedback errors =
-  invalidFeedback_ (div_ <<< pure <<< text <<< showPathValue <$> errors)
+validationFeedback [] = validFeedback_ [ nbsp ]
+
+validationFeedback errors = invalidFeedback_ (div_ <<< pure <<< text <<< showPathValue <$> errors)
 
 addWaitActionPane :: forall p. Int -> Tuple String (HTML p Query)
 addWaitActionPane index =
-  Tuple "add-wait" $
-    responsiveThird
-      [ div
-          [ class_ $ ClassName "add-wait-action" ]
-          [ div ([ class_ card
-                , onClick $ input_ $ ModifyActions $ AddWaitAction 10
-                ]
-                 <> dragTargetProperties index)
-              [ cardBody_
-                  [ icon Plus
-                  , div_ [ text "Add Wait Action" ]
+  Tuple "add-wait"
+    $ responsiveThird
+        [ div
+            [ class_ $ ClassName "add-wait-action" ]
+            [ div
+                ( [ class_ card
+                  , onClick $ input_ $ ModifyActions $ AddWaitAction 10
                   ]
-              ]
-          ]
-      ]
+                    <> dragTargetProperties index
+                )
+                [ cardBody_
+                    [ icon Plus
+                    , div_ [ text "Add Wait Action" ]
+                    ]
+                ]
+            ]
+        ]
 
 evaluateActionsPane :: forall p. WebData Blockchain -> Array Action -> HTML p Query
 evaluateActionsPane evaluationResult actions =
   col_
     [ button
-      [ id_ "evaluate"
-      , classes [ btn, btnClass evaluationResult hasErrors ]
-      , disabled hasErrors
-      , onClick $ input_ EvaluateActions
-      ]
-      [ btnText evaluationResult hasErrors ]
+        [ id_ "evaluate"
+        , classes [ btn, btnClass evaluationResult hasErrors ]
+        , disabled hasErrors
+        , onClick $ input_ EvaluateActions
+        ]
+        [ btnText evaluationResult hasErrors ]
     ]
   where
-    btnClass Loading _ = btnSecondary
-    btnClass _ true = btnWarning
-    btnClass (Success _) _ = btnSuccess
-    btnClass (Failure _) _ = btnDanger
-    btnClass NotAsked _ = btnPrimary
+  btnClass Loading _ = btnSecondary
 
-    btnText Loading _ = icon Spinner
-    btnText _ true = text "Fix Errors"
-    btnText _ _ = text "Evaluate"
+  btnClass _ true = btnWarning
 
-    validationErrors = Array.concat $ validate <$> actions
+  btnClass (Success _) _ = btnSuccess
 
-    hasErrors = validationErrors /= []
+  btnClass (Failure _) _ = btnDanger
 
-dragSourceProperties :: forall i.
-  Int
-  -> Array
-       (IProp
-          ( draggable :: Boolean
-          , onDragStart :: DragEvent
-          , onDragEnd :: DragEvent
-          | i
-          )
-          (Query Unit)
-       )
+  btnClass NotAsked _ = btnPrimary
+
+  btnText Loading _ = icon Spinner
+
+  btnText _ true = text "Fix Errors"
+
+  btnText _ _ = text "Evaluate"
+
+  validationErrors = Array.concat $ validate <$> actions
+
+  hasErrors = validationErrors /= []
+
+dragSourceProperties ::
+  forall i.
+  Int ->
+  Array
+    ( IProp
+        ( draggable :: Boolean
+        , onDragStart :: DragEvent
+        , onDragEnd :: DragEvent
+        | i
+        )
+        (Query Unit)
+    )
 dragSourceProperties index =
   [ draggable true
   , onDragStart $ dragAndDropAction index DragStart
@@ -444,17 +476,17 @@ dragSourceProperties index =
 
 dragTargetProperties ::
   forall i.
-  Int
-  -> Array
-       (IProp
-          ( onDragEnter :: DragEvent
-          , onDragOver :: DragEvent
-          , onDragLeave :: DragEvent
-          , onDrop :: DragEvent
-          | i
-          )
-          (Query Unit)
-       )
+  Int ->
+  Array
+    ( IProp
+        ( onDragEnter :: DragEvent
+        , onDragOver :: DragEvent
+        , onDragLeave :: DragEvent
+        , onDrop :: DragEvent
+        | i
+        )
+        (Query Unit)
+    )
 dragTargetProperties index =
   [ onDragEnter $ dragAndDropAction index DragEnter
   , onDragOver $ dragAndDropAction index DragOver
@@ -463,5 +495,4 @@ dragTargetProperties index =
   ]
 
 dragAndDropAction :: Int -> DragAndDropEventType -> DragEvent -> Maybe (Query Unit)
-dragAndDropAction index eventType =
-  Just <<< HQ.action <<< ActionDragAndDrop index eventType
+dragAndDropAction index eventType = Just <<< HQ.action <<< ActionDragAndDrop index eventType

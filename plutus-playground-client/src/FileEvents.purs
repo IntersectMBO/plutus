@@ -1,7 +1,7 @@
 module FileEvents
-       ( preventDefault
-       , readFileFromDragEvent
-       ) where
+  ( preventDefault
+  , readFileFromDragEvent
+  ) where
 
 import Effect.Aff (Aff, Canceler, Error, makeAff)
 import Effect (Effect)
@@ -20,5 +20,4 @@ foreign import _readFileFromDragEvent ::
     (Effect Canceler)
 
 readFileFromDragEvent :: DragEvent -> Aff String
-readFileFromDragEvent event =
-  makeAff $ \callback -> runFn3 _readFileFromDragEvent (callback <<< Right) (callback <<< Left) event
+readFileFromDragEvent event = makeAff $ \callback -> runFn3 _readFileFromDragEvent (callback <<< Right) (callback <<< Left) event

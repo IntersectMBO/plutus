@@ -1,9 +1,8 @@
 module Data.Array.ExtraTests
-       ( all
-       ) where
+  ( all
+  ) where
 
 import Prelude
-
 import Data.Array (length)
 import Data.Array.Extra (move)
 import Test.QuickCheck (arbitrary)
@@ -27,14 +26,13 @@ moveTests = do
         source <- genLooseIndex xs
         destination <- genLooseIndex xs
         pure $ length xs == length (move source destination xs)
-
     test "identity move" do
       quickCheck do
         before <- arbitrary :: Gen (Array String)
         source <- genIndex before
-        let after = move source source before
+        let
+          after = move source source before
         pure $ before == after
-
     test "Concrete example - source to left of destination" do
       equal
         [ 1, 0, 2, 3, 4 ]

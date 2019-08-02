@@ -1,7 +1,6 @@
 module Language.PlutusTx.AssocMap where
 
 import Prelude
-
 import Data.Array as Array
 import Data.Foldable (class Foldable, foldMap, foldl, foldr)
 import Data.FoldableWithIndex (class FoldableWithIndex)
@@ -70,7 +69,7 @@ instance foldableWithIndexMap :: FoldableWithIndex k (Map k) where
 
 instance indexMap :: Eq k => Index (Map k a) k a where
   ix key =
-    wander \f (Map values ) ->
+    wander \f (Map values) ->
       map Map
         $ sequence
         $ map
@@ -94,21 +93,22 @@ instance atMap :: Eq k => At (Map k a) k a where
 
     set (Map xs) Nothing = Map $ Array.filter (not matching) $ xs
 
-    set (Map xs ) (Just new) =
-      Map $ case Array.findIndex matching xs of
-        Nothing -> Array.snoc xs (JsonTuple (Tuple key new))
-        _ ->
-          map
-            ( \(JsonTuple (Tuple k v)) ->
-                JsonTuple
-                  $ Tuple k
-                      ( if k == key then
-                          new
-                        else
-                          v
-                      )
-            )
-            xs
+    set (Map xs) (Just new) =
+      Map
+        $ case Array.findIndex matching xs of
+            Nothing -> Array.snoc xs (JsonTuple (Tuple key new))
+            _ ->
+              map
+                ( \(JsonTuple (Tuple k v)) ->
+                    JsonTuple
+                      $ Tuple k
+                          ( if k == key then
+                              new
+                            else
+                              v
+                          )
+                )
+                xs
 
 toTuples :: forall k v. Map k v -> Array (Tuple k v)
 toTuples = map unwrap <<< unwrap
@@ -130,6 +130,7 @@ null = Array.null <<< unwrap
 unionWith :: forall k v. Ord k => (v -> v -> v) -> Map k v -> Map k v -> Map k v
 unionWith f a b =
   fromTuples
-  $ Map.toUnfoldable
-  $ on (Map.unionWith f) (Map.fromFoldableWith f <<< toTuples)
-     a b
+    $ Map.toUnfoldable
+    $ on (Map.unionWith f) (Map.fromFoldableWith f <<< toTuples)
+        a
+        b

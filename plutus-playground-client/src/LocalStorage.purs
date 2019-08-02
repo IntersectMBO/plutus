@@ -1,12 +1,11 @@
 module LocalStorage
-       ( setItem
-       , getItem
-       , listen
-       , getItems
-       , Key(Key)
-       , RawStorageEvent
-       )
-       where
+  ( setItem
+  , getItem
+  , listen
+  , getItems
+  , Key(Key)
+  , RawStorageEvent
+  ) where
 
 import Control.Coroutine (Producer, producer)
 import Data.Either (Either(..))
@@ -20,37 +19,43 @@ import Effect (Effect)
 import Effect.Aff (Aff, Canceler, makeAff)
 import Prelude (class Show, Unit, map, (<$>), (<<<))
 
-newtype Key = Key String
+newtype Key
+  = Key String
 
 derive instance genericKey :: Generic Key _
+
 derive instance newtypeKey :: Newtype Key _
 
 instance showKey :: Show Key where
   show = genericShow
 
-newtype RawStorageEvent = RawStorageEvent
+newtype RawStorageEvent
+  = RawStorageEvent
   { key :: Maybe Key
   , oldValue :: Maybe String
   , newValue :: Maybe String
   }
 
 derive instance genericRawStorageEvent :: Generic RawStorageEvent _
+
 derive instance newtypeRawStorageEvent :: Newtype RawStorageEvent _
 
 instance showRawStorageEvent :: Show RawStorageEvent where
   show = genericShow
 
 toEvent :: Nullable String -> Nullable String -> Nullable String -> RawStorageEvent
-toEvent key oldValue newValue = RawStorageEvent
-  { key: Key <$> toMaybe key
-  , oldValue: toMaybe oldValue
-  , newValue: toMaybe newValue
-  }
+toEvent key oldValue newValue =
+  RawStorageEvent
+    { key: Key <$> toMaybe key
+    , oldValue: toMaybe oldValue
+    , newValue: toMaybe newValue
+    }
 
 ------------------------------------------------------------
-
 foreign import _setItem :: Fn2 Key String (Effect Unit)
+
 foreign import _getItem :: Fn1 Key (Effect (Nullable String))
+
 foreign import _listen ::
   Fn2
     (Fn3 (Nullable String) (Nullable String) (Nullable String) RawStorageEvent)
@@ -69,8 +74,7 @@ getItem :: Key -> Effect (Maybe String)
 getItem = map toMaybe <$> runFn1 _getItem
 
 listen :: Producer RawStorageEvent Aff Unit
-listen =
-  producer (makeAff \callback -> runFn2 _listen (mkFn3 toEvent) (callback <<< Right <<< Left))
+listen = producer (makeAff \callback -> runFn2 _listen (mkFn3 toEvent) (callback <<< Right <<< Left))
 
 getItems :: Effect (Array RawStorageEvent)
 getItems = runFn1 _getItems (mkFn3 toEvent)

@@ -1,7 +1,6 @@
 module MonadApp where
 
 import Prelude
-
 import Ace (Annotation, Editor)
 import Ace.EditSession as Session
 import Ace.Editor as AceEditor
@@ -36,7 +35,8 @@ import Web.HTML.Event.DataTransfer (DropEffect)
 import Web.HTML.Event.DataTransfer as DataTransfer
 import Web.HTML.Event.DragEvent (DragEvent, dataTransfer)
 
-class Monad m <= MonadApp m where
+class
+  Monad m <= MonadApp m where
   editorGetContents :: m (Maybe SourceCode)
   editorSetContents :: String -> Maybe Int -> m Unit
   editorSetAnnotations :: Array Annotation -> m Unit
@@ -55,24 +55,31 @@ class Monad m <= MonadApp m where
   patchGistByGistId :: NewGist -> GistId -> m (WebData Gist)
   postContract :: SourceCode -> m (WebData (JsonEither InterpreterError (InterpreterResult CompilationResult)))
 
-newtype HalogenApp m a = HalogenApp (HalogenM State Query ChildQuery ChildSlot Void m a)
+newtype HalogenApp m a
+  = HalogenApp (HalogenM State Query ChildQuery ChildSlot Void m a)
 
 derive instance newtypeHalogenApp :: Newtype (HalogenApp m a) _
 
 derive newtype instance functorHalogenApp :: Functor (HalogenApp m)
+
 derive newtype instance applicativeHalogenApp :: Applicative (HalogenApp m)
+
 derive newtype instance applyHalogenApp :: Apply (HalogenApp m)
+
 derive newtype instance bindHalogenApp :: Bind (HalogenApp m)
+
 derive newtype instance monadHalogenApp :: Monad (HalogenApp m)
+
 derive newtype instance monadTransHalogenApp :: MonadTrans HalogenApp
+
 derive newtype instance monadStateHalogenApp :: MonadState State (HalogenApp m)
+
 derive newtype instance monadAskHalogenApp :: MonadAsk env m => MonadAsk env (HalogenApp m)
 
 instance monadThrowHalogenApp :: MonadThrow e m => MonadThrow e (HalogenApp m) where
   throwError e = lift (throwError e)
 
 ------------------------------------------------------------
-
 runHalogenApp :: forall m a. HalogenApp m a -> HalogenM State Query ChildQuery ChildSlot Void m a
 runHalogenApp = unwrap
 
@@ -80,27 +87,21 @@ instance monadAppHalogenApp ::
   ( MonadAsk (SPSettings_ SPParams_) m
   , MonadEffect m
   , MonadAff m
-  )
-  => MonadApp (HalogenApp m) where
+  ) =>
+  MonadApp (HalogenApp m) where
   editorGetContents = map SourceCode <$> withEditor AceEditor.getValue
   editorSetContents contents cursor = void $ withEditor $ AceEditor.setValue contents cursor
-
-  editorSetAnnotations annotations = void $ withEditor \editor -> do
-      session <- AceEditor.getSession editor
-      Session.setAnnotations annotations session
-
+  editorSetAnnotations annotations =
+    void
+      $ withEditor \editor -> do
+          session <- AceEditor.getSession editor
+          Session.setAnnotations annotations session
   editorGotoLine row column = void $ withEditor $ AceEditor.gotoLine row column (Just true)
-
   preventDefault event = wrap $ liftEffect $ FileEvents.preventDefault event
-
   setDropEffect dropEffect event = wrap $ liftEffect $ DataTransfer.setDropEffect dropEffect $ dataTransfer event
-  setDataTransferData event mimeType value =
-    wrap $ liftEffect $ DataTransfer.setData mimeType value $ dataTransfer event
-
+  setDataTransferData event mimeType value = wrap $ liftEffect $ DataTransfer.setData mimeType value $ dataTransfer event
   readFileFromDragEvent event = wrap $ liftAff $ FileEvents.readFileFromDragEvent event
-
   saveBuffer text = wrap $ liftEffect $ LocalStorage.setItem bufferLocalStorageKey text
-
   getOauthStatus = runAjax Server.getOauthStatus
   getGistByGistId gistId = runAjax $ Server.getGistsByGistId gistId
   postEvaluation evaluation = runAjax $ Server.postEvaluate evaluation
@@ -108,9 +109,10 @@ instance monadAppHalogenApp ::
   patchGistByGistId newGist gistId = runAjax $ Server.patchGistsByGistId newGist gistId
   postContract source = runAjax $ Server.postContract source
 
-runAjax :: forall m a.
-  ExceptT AjaxError (HalogenM State Query ChildQuery ChildSlot Void m) a
-  -> HalogenApp m (WebData a)
+runAjax ::
+  forall m a.
+  ExceptT AjaxError (HalogenM State Query ChildQuery ChildSlot Void m) a ->
+  HalogenApp m (WebData a)
 runAjax action = wrap $ RemoteData.fromEither <$> runExceptT action
 
 withEditor :: forall a m. MonadEffect m => (Editor -> Effect a) -> HalogenApp m (Maybe a)

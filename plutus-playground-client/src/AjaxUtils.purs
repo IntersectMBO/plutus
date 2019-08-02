@@ -9,16 +9,16 @@ import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), runAjaxError)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 
 ajaxSettings :: SPSettings_ SPParams_
-ajaxSettings =
-  defaultSettings $ SPParams_ { baseURL: "/api/" }
+ajaxSettings = defaultSettings $ SPParams_ { baseURL: "/api/" }
 
 showAjaxError :: forall p i. AjaxError -> HTML p i
-showAjaxError =
-  runAjaxError >>> _.description >>> showErrorDescription
+showAjaxError = runAjaxError >>> _.description >>> showErrorDescription
 
 showErrorDescription :: forall p i. ErrorDescription -> HTML p i
 showErrorDescription (DecodingError err) = text $ "DecodingError: " <> err
+
 showErrorDescription (ResponseFormatError err) = text $ "ResponseFormatError: " <> err
+
 showErrorDescription (ConnectionError err) = text $ "ConnectionError: " <> err
 
 ajaxErrorPane :: forall p i. AjaxError -> HTML p i
