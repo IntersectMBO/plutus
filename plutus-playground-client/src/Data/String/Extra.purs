@@ -3,6 +3,7 @@ module Data.String.Extra
   , toHex
   , leftPadTo
   , repeat
+  , unlines
   ) where
 
 import Data.Array (intercalate)
@@ -39,3 +40,6 @@ repeat :: forall m. Monoid m => Int -> m -> m
 repeat 0 str = mempty
 
 repeat n str = str <> repeat (n - 1) str
+
+unlines :: Array String -> String
+unlines = String.joinWith "\n"
