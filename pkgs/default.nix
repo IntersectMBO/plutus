@@ -39261,9 +39261,8 @@ text
 wl-pprint-text
 ];
 doHaddock = false;
-homepage = "https://github.com/iohk/iots-export#readme";
 description = "Tools to export Haskell to IOTS";
-license = stdenv.lib.licenses.bsd3;
+license = stdenv.lib.licenses.asl20;
 
 }) {};
 "ip" = callPackage
