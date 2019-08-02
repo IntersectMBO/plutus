@@ -57,44 +57,39 @@ PlutusTx.makeLift ''GameInput
 
 {-# INLINABLE mkValidator #-}
 mkValidator :: SM.StateMachineValidator GameState GameInput
-mkValidator ds vs p =
+mkValidator =
     let
-
-        -- | Given a 'TokeName', get the value that contains
-        --   exactly one token of that name in the contract's
-        --   currency.
-        tokenVal :: TokenName -> V.Value
-        tokenVal tn =
-            let ownSymbol = Validation.ownCurrencySymbol p
-            in V.singleton ownSymbol tn 1
-
-        -- | Check whether the token that was forged at the beginning of the
-        --   contract is present in the pending transaction
-        tokenPresent :: TokenName -> Bool
-        tokenPresent tn =
-            let vSpent = Validation.valueSpent p
-            in  V.geq vSpent (tokenVal tn)
-
-        -- | Check whether the value forged by the  pending transaction 'p' is
-        --   equal to the argument.
-        checkForge :: Value -> Bool
-        checkForge vl = vl == (Validation.pendingTxForge p)
-
         -- | The SM.transition function of the game's state machine
-        trans :: GameState -> GameInput -> GameState
-        trans (Initialised s) (ForgeToken tn) =
-            if checkForge (tokenVal tn)
-            then Locked tn s
-            else error ()
-        trans (Locked tn currentSecret) (Guess theGuess nextSecret) =
-            if checkGuess currentSecret theGuess && tokenPresent tn && checkForge V.zero
-            then Locked tn nextSecret
-            else error ()
-        trans _ _ = traceErrorH "Invalid SM.transition"
-
-        sm = SM.StateMachine trans
-
-    in SM.mkValidator sm ds vs p
+        trans :: GameState -> GameInput -> PendingTx -> GameState
+        trans state input p = case (state, input) of
+            (Initialised s, ForgeToken tn) ->
+                if checkForge (tokenVal tn)
+                then Locked tn s
+                else error ()
+            (Locked tn currentSecret, Guess theGuess nextSecret) ->
+                if checkGuess currentSecret theGuess && tokenPresent tn && checkForge V.zero
+                then Locked tn nextSecret
+                else error ()
+            _ -> traceErrorH "Invalid SM.transition"
+            where
+                -- | Given a 'TokeName', get the value that contains
+                --   exactly one token of that name in the contract's
+                --   currency.
+                tokenVal :: TokenName -> V.Value
+                tokenVal tn =
+                    let ownSymbol = Validation.ownCurrencySymbol p
+                    in V.singleton ownSymbol tn 1
+                -- | Check whether the token that was forged at the beginning of the
+                --   contract is present in the pending transaction
+                tokenPresent :: TokenName -> Bool
+                tokenPresent tn =
+                    let vSpent = Validation.valueSpent p
+                    in  V.geq vSpent (tokenVal tn)
+                -- | Check whether the value forged by the  pending transaction 'p' is
+                --   equal to the argument.
+                checkForge :: Value -> Bool
+                checkForge vl = vl == (Validation.pendingTxForge p)
+    in SM.mkValidator (SM.StateMachine trans)
 
 gameValidator :: ValidatorScript
 gameValidator = ValidatorScript $$(Ledger.compileScript [|| mkValidator ||])
