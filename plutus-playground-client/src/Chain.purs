@@ -4,6 +4,7 @@ module Chain
   , extractAmount
   ) where
 
+import Array.Extra (collapse)
 import Bootstrap (empty, nbsp)
 import Chain.BlockchainExploration (blockchainExploration)
 import Chartist (ChartistData, ChartistItem, ChartistOptions, ChartistPoint, toChartistData)
@@ -31,10 +32,7 @@ import Halogen.HTML (ClassName(ClassName), br_, div, div_, h2_, slot', text)
 import Halogen.HTML.Events (input)
 import Halogen.HTML.Properties (class_)
 import Language.PlutusTx.AssocMap as AssocMap
-import Array.Extra (collapse)
-import Ledger.Index (ValidationError(..))
 import Ledger.Slot (Slot(..))
-import Ledger.Tx (TxInOf(..), TxOutOf(..), TxOutRefOf(..))
 import Ledger.TxId (TxIdOf(TxIdOf))
 import Ledger.Value (CurrencySymbol, TokenName)
 import Playground.API (EvaluationResult(EvaluationResult), SimulatorWallet)
@@ -85,10 +83,10 @@ emulatorEventPane (TxnValidate (TxIdOf txId)) =
 
 emulatorEventPane (TxnValidationFail (TxIdOf txId) error) =
   div [ class_ $ ClassName "error" ]
-    [ text $ "Validation failed for transaction: " <> txId.getTxId
+    [ text $ "Validation failed: " <> txId.getTxId
     , br_
     , nbsp
-    , text $ showValidationError error
+    , text $ show error
     ]
 
 emulatorEventPane (SlotAdd (Slot slot)) =
@@ -186,24 +184,3 @@ balancesChartOptions =
         }
     ]
   }
-
-showValidationError :: ValidationError -> String
-showValidationError (InOutTypeMismatch (TxInOf txIn) (TxOutOf txOut)) = "InOutTypeMismatch"
-
-showValidationError (TxOutRefNotFound (TxOutRefOf txOut)) = "TxOutRefNotFound"
-
-showValidationError (InvalidScriptHash hash) = "InvalidScriptHash"
-
-showValidationError (InvalidSignature key signature) = "InvalidSignature"
-
-showValidationError (ValueNotPreserved before after) = "ValueNotPreserved"
-
-showValidationError (NegativeValue tx) = "NegativeValue"
-
-showValidationError (ScriptFailure xs) = "ScriptFailure"
-
-showValidationError (CurrentSlotOutOfRange slot) = "CurrentSlotOutOfRange"
-
-showValidationError (SignatureMissing key) = "SignatureMissing"
-
-showValidationError (ForgeWithoutScript str) = "ForgeWithoutScript"
