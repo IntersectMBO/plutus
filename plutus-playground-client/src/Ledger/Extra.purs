@@ -4,7 +4,7 @@ import Prelude
 
 import Data.Array as Array
 import Data.Foldable (class Foldable, foldMap, foldl, foldr)
-import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndex)
+import Data.FoldableWithIndex (class FoldableWithIndex)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens', lens, wander)
@@ -17,7 +17,6 @@ import Data.Newtype (class Newtype, unwrap)
 import Data.RawJson (JsonTuple(..))
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst, snd, uncurry)
-import Data.Tuple.Nested (type (/\), (/\))
 import Foreign.Class (class Decode, class Encode, decode, encode)
 
 newtype LedgerMap k v = LedgerMap (Array (Tuple k v))
@@ -89,15 +88,6 @@ instance atLedgerMap :: Eq k => At (LedgerMap k a) k a where
                         Tuple k (if k == key
                                  then new
                                  else v)) xs
-
-collapse ::
-  forall m n i j a.
-  FoldableWithIndex i m
-  => FoldableWithIndex j n
-  => m (n a)
-  -> Array (i /\ j /\ a)
-collapse =
-  foldMapWithIndex (\i -> foldMapWithIndex (\j a -> [ i /\ j /\ a ]))
 
 instance encodeLedgerMap :: (Encode k, Encode v) => Encode (LedgerMap k v) where
   encode value = encode (map JsonTuple (unwrap value))

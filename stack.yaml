@@ -18,6 +18,7 @@ packages:
 - plutus-contract
 - plutus-emulator
 - deployment-server
+- iots-export
 
 extra-deps:
 # Agda and deps
@@ -48,7 +49,7 @@ extra-deps:
 - extensible-effects-5.0.0.1
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - git: https://github.com/shmish111/purescript-bridge.git
-  commit: a7069a515800135ce932742e995f3a96bc1c7129
+  commit: dc500a47c8330526a78c5cfac84ddb923cd5c8a5
 - git: https://github.com/shmish111/servant-purescript.git
   commit: ece5d1dad16a5731ac22040075615803796c7c21
 - git: https://github.com/input-output-hk/cardano-crypto.git

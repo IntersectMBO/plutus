@@ -24,7 +24,7 @@ When reacting to a blockchain event (in the event handler) we need access to the
 ### Endpoints
 
 * Contract endpoints are functions that take a number of parameters (to be supplied by the user) and return an action on the WalletAPI monad
-* The types of the parameters depend on the contract. But we can generate schema information about them. Currently the schema is provided in the Swagger format but that will change to GraphQL.
+* The types of the parameters depend on the contract. But we can generate schema information about them. Currently the schema is provided in a custom format but that will change to GraphQL.
 * The set of endpoints for a given contract stays the same during the entire operation of the contract.
 
 ## Future

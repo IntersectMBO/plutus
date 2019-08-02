@@ -43,21 +43,22 @@ import qualified Data.ByteArray             as BA
 import qualified Data.ByteString            as BS
 import qualified Data.ByteString.Lazy       as BSL
 import qualified Data.ByteString.Lazy.Hash  as Hash
-import           Data.Swagger               (ToSchema (declareNamedSchema), byteSchema)
-import           Data.Swagger.Internal
 import           GHC.Generics               (Generic)
+import           IOTS                       (IotsType)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift     (makeLift)
 import qualified Language.PlutusTx.Prelude  as P
+import           Ledger.Orphans             ()
 import           Ledger.TxId
 import           LedgerBytes                (LedgerBytes)
 import qualified LedgerBytes                as KB
+import           Schema                     (ToSchema)
 import           Servant.API                (FromHttpApiData (parseUrlPiece), ToHttpApiData (toUrlPiece))
 
 -- | A cryptographic public key.
 newtype PubKey = PubKey { getPubKey :: LedgerBytes }
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (ToSchema, ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey)
+    deriving anyclass (ToSchema, ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, IotsType)
     deriving newtype (P.Eq, P.Ord, Serialise)
 makeLift ''PubKey
 
@@ -78,10 +79,8 @@ instance FromHttpApiData PrivateKey where
 -- | A message with a cryptographic signature.
 newtype Signature = Signature { getSignature :: Builtins.ByteString }
     deriving stock (Show, Eq, Ord, Generic)
+    deriving anyclass (ToSchema)
     deriving newtype (P.Eq, P.Ord, Serialise)
-
-instance ToSchema Signature where
-    declareNamedSchema _ = pure $ NamedSchema (Just "Signature") byteSchema
 
 instance ToJSON Signature where
   toJSON signature =

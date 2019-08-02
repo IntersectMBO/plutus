@@ -2,7 +2,7 @@ cabal-version: 2.0
 name: playground-common
 version: 0.1.0.0
 license: Apache-2.0
-license-files: 
+license-files:
   LICENSE
   NOTICE
 author: David Smith
@@ -22,6 +22,7 @@ library
         Gist
         Git
         Language.Haskell.Interpreter
+        Schema
         Servant.Extra
         Servant.Prometheus
         System.IO.Extras
@@ -39,6 +40,7 @@ library
         bytestring -any,
         bytestring -any,
         cookie -any,
+        cryptonite -any,
         containers -any,
         directory -any,
         exceptions -any,
@@ -56,6 +58,7 @@ library
         newtype-generics -any,
         process -any,
         prometheus >=2,
+        recursion-schemes -any,
         safe-exceptions -any,
         servant <0.16,
         servant-client -any,
@@ -69,7 +72,8 @@ library
         time-units -any,
         transformers -any,
         unordered-containers -any,
-        wai -any
+        wai -any,
+        wl-pprint-text -any
 
 test-suite playground-common-test
     type: exitcode-stdio-1.0
@@ -79,13 +83,21 @@ test-suite playground-common-test
     other-modules:
         Paths_playground_common
         Auth.TypesSpec
+        SchemaSpec
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wmissing-import-lists -Wredundant-constraints
+                 -fprint-potential-instances
     build-depends:
         aeson -any,
         base >=4.7 && <5,
         bytestring -any,
+        containers -any,
+        cryptonite -any,
+        Diff -any,
         hspec -any,
-        playground-common -any
+        playground-common -any,
+        text -any,
+        HUnit -any,
+        wl-pprint-text -any

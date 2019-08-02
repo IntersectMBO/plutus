@@ -15,23 +15,23 @@ import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (onValueInput)
 import Halogen.HTML.Properties (InputType(InputNumber), classes, placeholder, required, type_, value)
 import Halogen.Query as HQ
-import Ledger.Extra (LedgerMap(..))
+import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Value (CurrencySymbol, TokenName, Value(Value))
 import Types (ValueEvent(SetBalance), _currencySymbol, _tokenName)
 
 valueForm :: forall p i. (ValueEvent -> HQ.Action i) -> Value -> HTML p i
-valueForm handler (Value { getValue: LedgerMap balances }) =
+valueForm handler (Value { getValue: balances }) =
   Keyed.div_
-    (Array.concat (mapWithIndex (currencyRow handler) (Array.sortWith fst balances)))
+    (Array.concat (mapWithIndex (currencyRow handler) (Array.sortWith fst $ AssocMap.toTuples balances)))
 
 currencyRow ::
   forall p i.
   (ValueEvent -> HQ.Action i)
   -> Int
-  -> Tuple CurrencySymbol (LedgerMap TokenName Int)
+  -> Tuple CurrencySymbol (AssocMap.Map TokenName Int)
   -> Array (Tuple String (HTML p i))
-currencyRow handler currencyIndex (Tuple currencySymbol (LedgerMap tokenBalances)) =
-  mapWithIndex (balanceRow handler currencyIndex currencySymbol) (Array.sortWith fst tokenBalances)
+currencyRow handler currencyIndex (Tuple currencySymbol tokenBalances) =
+  mapWithIndex (balanceRow handler currencyIndex currencySymbol) (Array.sortWith fst $ AssocMap.toTuples tokenBalances)
 
 balanceRow ::
   forall p i.

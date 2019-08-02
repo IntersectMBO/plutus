@@ -28,18 +28,18 @@ module Ledger.Ada(
     , isZero
     ) where
 
-import qualified Prelude                      as Haskell
+import qualified Prelude                   as Haskell
 
-import           Codec.Serialise.Class        (Serialise)
-import           Data.Aeson                   (FromJSON, ToJSON)
-import           Data.Swagger.Internal.Schema (ToSchema)
-import           GHC.Generics                 (Generic)
-import           Language.PlutusTx.Lift       (makeLift)
-import           Language.PlutusTx.Prelude    hiding (divide, minus, multiply, negate, plus)
-import qualified Language.PlutusTx.Prelude    as P
+import           Codec.Serialise.Class     (Serialise)
+import           Data.Aeson                (FromJSON, ToJSON)
+import           GHC.Generics              (Generic)
+import           Language.PlutusTx.Lift    (makeLift)
+import           Language.PlutusTx.Prelude hiding (divide, minus, multiply, negate, plus)
+import qualified Language.PlutusTx.Prelude as P
+import           Schema                    (ToSchema)
 
-import           Ledger.Value                 (CurrencySymbol, TokenName, Value)
-import qualified Ledger.Value                 as TH
+import           Ledger.Value              (CurrencySymbol, TokenName, Value)
+import qualified Ledger.Value              as TH
 
 {-# INLINABLE adaSymbol #-}
 -- | The 'CurrencySymbol' of the 'Ada' currency.

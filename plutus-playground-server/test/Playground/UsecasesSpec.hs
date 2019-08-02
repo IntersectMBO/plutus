@@ -11,7 +11,6 @@ import qualified Data.Aeson.Text              as JSON
 import           Data.Aeson.Types             (object, (.=))
 import           Data.Either                  (isRight)
 import           Data.List.NonEmpty           (NonEmpty ((:|)))
-import           Data.Swagger                 ()
 import qualified Data.Text                    as Text
 import qualified Data.Text.Lazy               as TL
 import           Data.Time.Units              (Microsecond, fromMicroseconds)
@@ -23,13 +22,12 @@ import           Ledger.Value                 (TokenName (TokenName), Value)
 import           Playground.API               (CompilationResult (CompilationResult), Evaluation (Evaluation),
                                                Expression (Action, Wait), Fn (Fn), FunctionSchema (FunctionSchema),
                                                KnownCurrency (KnownCurrency), PlaygroundError,
-                                               SimpleArgumentSchema (SimpleArraySchema, SimpleHexSchema, SimpleIntSchema, SimpleObjectSchema, SimpleStringSchema, SimpleTupleSchema, ValueSchema),
                                                SimulatorWallet (SimulatorWallet), adaCurrency, argumentSchema,
-                                               functionName, isSupportedByFrontend, simulatorWalletBalance,
-                                               simulatorWalletWallet)
+                                               functionName, simulatorWalletBalance, simulatorWalletWallet)
 import qualified Playground.Interpreter       as PI
 import           Playground.Interpreter.Util  (TraceResult)
 import           Playground.Usecases          (crowdfunding, game, messages, vesting)
+import           Schema                       (FormSchema (FormSchemaInt, FormSchemaObject, FormSchemaValue))
 import           Test.Hspec                   (Spec, describe, it, shouldBe, shouldSatisfy)
 import           Wallet.Emulator.Types        (Wallet (Wallet))
 
@@ -62,65 +60,71 @@ mkSimulatorWallet simulatorWalletWallet simulatorWalletBalance =
 vestingSpec :: Spec
 vestingSpec =
     describe "vesting" $ do
-        let vlSchema =
-                ValueSchema
-                    [ ( "getValue"
-                      , SimpleObjectSchema
-                            [ ( "unMap"
-                              , SimpleArraySchema
-                                    (SimpleTupleSchema
-                                         ( SimpleHexSchema
-                                         , SimpleObjectSchema
-                                               [ ( "unMap"
-                                                 , SimpleArraySchema
-                                                       (SimpleTupleSchema
-                                                            ( SimpleStringSchema
-                                                            , SimpleIntSchema)))
-                                               ])))
-                            ])
-                    ]
-            walletSchema = SimpleObjectSchema [("getWallet", SimpleIntSchema)]
-            vestingTrancheSchema =
-                SimpleObjectSchema
-                    [ ("vestingTrancheAmount", vlSchema)
-                    , ( "vestingTrancheDate"
-                        , SimpleObjectSchema [("getSlot", SimpleIntSchema)])
-                    ]
         compilationChecks vesting
         it "should compile with the expected schema" $ do
-            Right (InterpreterResult _ (CompilationResult result _)) <-
+            Right (InterpreterResult _ (CompilationResult result _ _)) <-
                 compile vesting
             result `shouldBe`
                 [ FunctionSchema
                       { functionName = Fn "vestFunds"
                       , argumentSchema =
-                            [ vestingTrancheSchema
-                            , vestingTrancheSchema
-                            , walletSchema
+                            [ FormSchemaObject
+                                  [ ( "vestingTrancheDate"
+                                    , FormSchemaObject
+                                          [("getSlot", FormSchemaInt)])
+                                  , ("vestingTrancheAmount", FormSchemaValue)
+                                  ]
+                            , FormSchemaObject
+                                  [ ( "vestingTrancheDate"
+                                    , FormSchemaObject
+                                          [("getSlot", FormSchemaInt)])
+                                  , ("vestingTrancheAmount", FormSchemaValue)
+                                  ]
+                            , FormSchemaObject [("getWallet", FormSchemaInt)]
                             ]
                       }
                 , FunctionSchema
                       { functionName = Fn "registerVestingScheme"
                       , argumentSchema =
-                            [ vestingTrancheSchema
-                            , vestingTrancheSchema
-                            , walletSchema
+                            [ FormSchemaObject
+                                  [ ( "vestingTrancheDate"
+                                    , FormSchemaObject
+                                          [("getSlot", FormSchemaInt)])
+                                  , ("vestingTrancheAmount", FormSchemaValue)
+                                  ]
+                            , FormSchemaObject
+                                  [ ( "vestingTrancheDate"
+                                    , FormSchemaObject
+                                          [("getSlot", FormSchemaInt)])
+                                  , ("vestingTrancheAmount", FormSchemaValue)
+                                  ]
+                            , FormSchemaObject [("getWallet", FormSchemaInt)]
                             ]
                       }
                 , FunctionSchema
                       { functionName = Fn "withdraw"
                       , argumentSchema =
-                            [ vestingTrancheSchema
-                            , vestingTrancheSchema
-                            , walletSchema
-                            , vlSchema
+                            [ FormSchemaObject
+                                  [ ( "vestingTrancheDate"
+                                    , FormSchemaObject
+                                          [("getSlot", FormSchemaInt)])
+                                  , ("vestingTrancheAmount", FormSchemaValue)
+                                  ]
+                            , FormSchemaObject
+                                  [ ( "vestingTrancheDate"
+                                    , FormSchemaObject
+                                          [("getSlot", FormSchemaInt)])
+                                  , ("vestingTrancheAmount", FormSchemaValue)
+                                  ]
+                            , FormSchemaObject [("getWallet", FormSchemaInt)]
+                            , FormSchemaValue
                             ]
                       }
                 , FunctionSchema
                       { functionName = Fn "payToWallet_"
                       , argumentSchema =
-                            [ vlSchema
-                            , walletSchema
+                            [ FormSchemaValue
+                            , FormSchemaObject [("getWallet", FormSchemaInt)]
                             ]
                       }
                 ]
@@ -139,7 +143,11 @@ vestingSpec =
     vestFundsEval =
         Evaluation
             [mkSimulatorWallet w1 ten]
-            [Action (Fn "vestFunds") w1 [theVestingTranche, theVestingTranche, theVestingOwner]]
+            [ Action
+                  (Fn "vestFunds")
+                  w1
+                  [theVestingTranche, theVestingTranche, theVestingOwner]
+            ]
             (SourceCode vesting)
             []
     theVestingTranche =
@@ -318,6 +326,7 @@ knownCurrencySpec =
         SourceCode $
         Text.unlines
             [ "import Playground.Contract"
+            , "import Data.Text"
             , "import Data.List.NonEmpty (NonEmpty ((:|)))"
             , "import Ledger.Value (TokenName(TokenName))"
             , "import Ledger.Scripts (ValidatorHash (..))"
@@ -326,8 +335,9 @@ knownCurrencySpec =
             , "myCurrency :: KnownCurrency"
             , "myCurrency = KnownCurrency (ValidatorHash \"\") \"MyCurrency\" (TokenName \"MyToken\" :| [])"
             , "$(mkKnownCurrencies ['myCurrency])"
+            , "iotsDefinitions = \"\""
             ]
-    hasKnownCurrency (Right (InterpreterResult _ (CompilationResult _ [cur1, cur2]))) =
+    hasKnownCurrency (Right (InterpreterResult _ (CompilationResult _ [cur1, cur2] _))) =
         cur1 == adaCurrency &&
         cur2 ==
         KnownCurrency
@@ -347,16 +357,8 @@ evaluate evaluation =
     runExceptT $ PI.runFunction maxInterpretationTime evaluation
 
 compilationChecks :: Text.Text -> Spec
-compilationChecks f = do
+compilationChecks f =
     it "should compile" $ compile f >>= (`shouldSatisfy` isRight)
-    it "should be representable on the frontend" $
-        compile f >>= (`shouldSatisfy` isSupportedCompilationResult)
-
-isSupportedCompilationResult ::
-       Either InterpreterError (InterpreterResult CompilationResult) -> Bool
-isSupportedCompilationResult (Left _) = False
-isSupportedCompilationResult (Right (InterpreterResult _ (CompilationResult functionSchemas _))) =
-    all (all isSupportedByFrontend . argumentSchema) functionSchemas
 
 mkI :: Int -> JSON.Value
 mkI = JSON.toJSON

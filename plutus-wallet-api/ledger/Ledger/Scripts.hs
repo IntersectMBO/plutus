@@ -64,8 +64,6 @@ import qualified Data.ByteArray                           as BA
 import qualified Data.ByteString.Lazy                     as BSL
 import           Data.Functor                             (void)
 import           Data.Hashable                            (Hashable)
-import           Data.Proxy
-import           Data.Swagger.Internal.Schema             (ToSchema (declareNamedSchema), paramSchemaToSchema, plain)
 import           Data.String
 import           Data.Traversable
 import           GHC.Generics                             (Generic)
@@ -82,6 +80,7 @@ import           Language.PlutusTx.Prelude
 import           Language.PlutusTx.Builtins               as Builtins
 import           LedgerBytes                              (LedgerBytes (..))
 import           Ledger.Crypto
+import           Schema                                   (ToSchema)
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 --
@@ -246,9 +245,7 @@ newtype ValidatorHash =
     deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable)
-
-instance ToSchema ValidatorHash where
-    declareNamedSchema _ = plain . paramSchemaToSchema $ (Proxy :: Proxy Haskell.String)
+    deriving anyclass (ToSchema)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype DataScriptHash =

@@ -25,14 +25,14 @@ module Ledger.Interval(
     , after
     ) where
 
-import           Codec.Serialise.Class        (Serialise)
-import           Data.Aeson                   (FromJSON, ToJSON)
-import           Data.Hashable                (Hashable)
-import           Data.Swagger.Internal.Schema (ToSchema)
-import           GHC.Generics                 (Generic)
-import qualified Prelude                      as Haskell
+import           Codec.Serialise.Class     (Serialise)
+import           Data.Aeson                (FromJSON, ToJSON)
+import           Data.Hashable             (Hashable)
+import           GHC.Generics              (Generic)
+import qualified Prelude                   as Haskell
+import           Schema                    (ToSchema)
 
-import           Language.PlutusTx.Lift       (makeLift)
+import           Language.PlutusTx.Lift    (makeLift)
 import           Language.PlutusTx.Prelude
 
 -- | An interval of @a@s. The interval is closed below and open above, meaning

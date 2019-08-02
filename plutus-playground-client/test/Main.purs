@@ -11,6 +11,7 @@ import Effect (Effect)
 import GistsTests as GistsTests
 import Ledger.ExtraTests as Ledger.ExtraTests
 import MainFrameTests as MainFrameTests
+import Language.PlutusTx.AssocMapTests as Language.PlutusTx.AssocMapTests
 import Test.Unit.Main (runTest)
 import TypesTests as TypesTests
 
@@ -24,6 +25,7 @@ main = runTest do
   Data.Array.ExtraTests.all
   Data.String.ExtraTests.all
   GistsTests.all
+  Language.PlutusTx.AssocMapTests.all
   Ledger.ExtraTests.all
   MainFrameTests.all
   TypesTests.all

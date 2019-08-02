@@ -39224,6 +39224,48 @@ description = "HAProxy protocol 1.5 support for io-streams";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
+"iots-export" = callPackage
+({
+  mkDerivation
+, base
+, containers
+, Diff
+, hspec
+, HUnit
+, mtl
+, stdenv
+, text
+, wl-pprint-text
+}:
+mkDerivation {
+
+pname = "iots-export";
+version = "0.1.0.0";
+src = .././iots-export;
+enableSeparateDataOutput = true;
+libraryHaskellDepends = [
+base
+containers
+mtl
+text
+wl-pprint-text
+];
+testHaskellDepends = [
+base
+containers
+Diff
+hspec
+HUnit
+mtl
+text
+wl-pprint-text
+];
+doHaddock = false;
+homepage = "https://github.com/iohk/iots-export#readme";
+description = "Tools to export Haskell to IOTS";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
 "ip" = callPackage
 ({
   mkDerivation
@@ -53487,6 +53529,8 @@ license = stdenv.lib.licenses.bsd3;
 , bytestring
 , containers
 , cookie
+, cryptonite
+, Diff
 , directory
 , exceptions
 , file-embed
@@ -53498,6 +53542,7 @@ license = stdenv.lib.licenses.bsd3;
 , http-client-tls
 , http-conduit
 , http-types
+, HUnit
 , jwt
 , lens
 , monad-logger
@@ -53505,6 +53550,7 @@ license = stdenv.lib.licenses.bsd3;
 , newtype-generics
 , process
 , prometheus
+, recursion-schemes
 , safe-exceptions
 , servant
 , servant-client
@@ -53520,6 +53566,7 @@ license = stdenv.lib.licenses.bsd3;
 , transformers
 , unordered-containers
 , wai
+, wl-pprint-text
 }:
 mkDerivation {
 
@@ -53534,6 +53581,7 @@ base
 bytestring
 containers
 cookie
+cryptonite
 directory
 exceptions
 file-embed
@@ -53550,6 +53598,7 @@ mtl
 newtype-generics
 process
 prometheus
+recursion-schemes
 safe-exceptions
 servant
 servant-client
@@ -53564,12 +53613,19 @@ time-units
 transformers
 unordered-containers
 wai
+wl-pprint-text
 ];
 testHaskellDepends = [
 aeson
 base
 bytestring
+containers
+cryptonite
+Diff
 hspec
+HUnit
+text
+wl-pprint-text
 ];
 testToolDepends = [
 hspec-discover
@@ -53833,6 +53889,7 @@ license = stdenv.lib.licenses.asl20;
 , hashable
 , hedgehog
 , http-api-data
+, iots-export
 , language-plutus-core
 , lens
 , memory
@@ -53840,6 +53897,7 @@ license = stdenv.lib.licenses.asl20;
 , natural-transformation
 , newtype-generics
 , operational
+, playground-common
 , plutus-tx
 , plutus-wallet-api
 , recursion-schemes
@@ -53849,7 +53907,6 @@ license = stdenv.lib.licenses.asl20;
 , servant-server
 , stdenv
 , stm
-, swagger2
 , tasty
 , tasty-hedgehog
 , tasty-hunit
@@ -53876,6 +53933,7 @@ deriving-compat
 hashable
 hedgehog
 http-api-data
+iots-export
 language-plutus-core
 lens
 memory
@@ -53883,6 +53941,7 @@ mtl
 natural-transformation
 newtype-generics
 operational
+playground-common
 plutus-tx
 plutus-wallet-api
 recursion-schemes
@@ -53891,7 +53950,6 @@ servant
 servant-client
 servant-server
 stm
-swagger2
 template-haskell
 text
 transformers
@@ -54028,9 +54086,11 @@ license = stdenv.lib.licenses.asl20;
 , hspec
 , hspec-discover
 , insert-ordered-containers
+, iots-export
 , lens
 , memory
 , mtl
+, newtype-generics
 , playground-common
 , plutus-emulator
 , plutus-tx
@@ -54038,12 +54098,12 @@ license = stdenv.lib.licenses.asl20;
 , QuickCheck
 , servant
 , stdenv
-, swagger2
 , tasty
 , tasty-hunit
 , template-haskell
 , text
 , transformers
+, wl-pprint-text
 }:
 mkDerivation {
 
@@ -54056,18 +54116,20 @@ base
 bytestring
 containers
 insert-ordered-containers
+iots-export
 lens
 memory
 mtl
+newtype-generics
 playground-common
 plutus-emulator
 plutus-tx
 plutus-wallet-api
 servant
-swagger2
 template-haskell
 text
 transformers
+wl-pprint-text
 ];
 testHaskellDepends = [
 aeson
@@ -54075,11 +54137,11 @@ base
 containers
 hedgehog
 hspec
+iots-export
 playground-common
 plutus-emulator
 plutus-wallet-api
 QuickCheck
-swagger2
 tasty
 tasty-hunit
 template-haskell
@@ -54113,6 +54175,7 @@ license = stdenv.lib.licenses.asl20;
 , http-conduit
 , http-types
 , insert-ordered-containers
+, iots-export
 , jwt
 , lens
 , monad-logger
@@ -54135,7 +54198,6 @@ license = stdenv.lib.licenses.asl20;
 , servant-purescript
 , servant-server
 , stdenv
-, swagger2
 , template-haskell
 , temporary
 , text
@@ -54171,6 +54233,7 @@ http-client-tls
 http-conduit
 http-types
 insert-ordered-containers
+iots-export
 jwt
 lens
 monad-logger
@@ -54188,7 +54251,6 @@ servant-client
 servant-client-core
 servant-purescript
 servant-server
-swagger2
 template-haskell
 temporary
 text
@@ -54233,12 +54295,12 @@ base
 bytestring
 hspec
 insert-ordered-containers
+iots-export
 mtl
 playground-common
 plutus-emulator
 plutus-playground-lib
 plutus-wallet-api
-swagger2
 text
 time-units
 transformers
@@ -54449,6 +54511,7 @@ license = stdenv.lib.licenses.asl20;
 , hashable
 , hedgehog
 , http-api-data
+, iots-export
 , language-plutus-core
 , lens
 , memory
@@ -54456,13 +54519,13 @@ license = stdenv.lib.licenses.asl20;
 , natural-transformation
 , newtype-generics
 , operational
+, playground-common
 , plutus-tx
 , prettyprinter
 , recursion-schemes
 , serialise
 , servant
 , stdenv
-, swagger2
 , tasty
 , tasty-hedgehog
 , tasty-hunit
@@ -54489,6 +54552,7 @@ deriving-compat
 hashable
 hedgehog
 http-api-data
+iots-export
 language-plutus-core
 lens
 memory
@@ -54496,12 +54560,12 @@ mtl
 natural-transformation
 newtype-generics
 operational
+playground-common
 plutus-tx
 prettyprinter
 recursion-schemes
 serialise
 servant
-swagger2
 template-haskell
 text
 transformers
@@ -57042,8 +57106,8 @@ version = "0.13.0.0";
 src = fetchgit {
 
 url = "https://github.com/shmish111/purescript-bridge.git";
-sha256 = "0qx1fgaqsx503cpya2qnw68zybi3bg73fhay8f2chvx1h0pcvc6d";
-rev = "a7069a515800135ce932742e995f3a96bc1c7129";
+sha256 = "196bpmzjvfgvzrp620d3da0f10mdjpw8vppyqxpx8j5bv904cizx";
+rev = "dc500a47c8330526a78c5cfac84ddb923cd5c8a5";
 fetchSubmodules = true;
 
 };

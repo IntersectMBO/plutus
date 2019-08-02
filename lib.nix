@@ -32,6 +32,7 @@ let
     "plutus-tx"
     "plutus-wallet-api"
     "plutus-emulator"
+    "iots-export"
   ];
 
   isPublicPlutus = name: builtins.elem name plutusPublicPkgList;

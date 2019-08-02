@@ -15,8 +15,9 @@ import Halogen.HTML.Events (input_, onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
 import Ledger.Value (Value)
-import Playground.API (FunctionSchema, SimpleArgumentSchema, SimulatorWallet(..), _Fn, _FunctionSchema)
+import Playground.API (FunctionSchema, SimulatorWallet(..), _Fn, _FunctionSchema)
 import Prelude (show, ($), (<$>), (<<<), (<>))
+import Schema (FormSchema)
 import ValueEditor (valueForm)
 import Wallet.Emulator.Types (Wallet)
 
@@ -93,14 +94,14 @@ actionButton ::
   forall p.
   Value
   -> SimulatorWallet
-  -> FunctionSchema SimpleArgumentSchema
+  -> FunctionSchema FormSchema
   -> HTML p Query
 actionButton initialValue simulatorWallet functionSchema =
   button
     [ classes [ btn, btnSecondary, btnSmall, ClassName "action-button" ]
     , onClick $ input_ $ ModifyActions $ AddAction $
         Action
-          { functionSchema: toArgumentLevel initialValue functionSchema
+          { functionSchema: toFormArgumentLevel initialValue functionSchema
           , simulatorWallet
           }
     ]

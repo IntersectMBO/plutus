@@ -352,6 +352,18 @@ formGroup = ClassName "form-group"
 formGroup_ :: forall p i. Array (HTML p i) -> HTML p i
 formGroup_ = div [class_ formGroup]
 
+formCheck :: ClassName
+formCheck = ClassName "form-check"
+
+formCheck_ :: forall p i. Array (HTML p i) -> HTML p i
+formCheck_ = div [class_ formCheck]
+
+formCheckInput :: ClassName
+formCheckInput = ClassName "form-check-input"
+
+formCheckLabel :: ClassName
+formCheckLabel = ClassName "form-check-label"
+
 validFeedback :: ClassName
 validFeedback = ClassName "valid-feedback"
 
