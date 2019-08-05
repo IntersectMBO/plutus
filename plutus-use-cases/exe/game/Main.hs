@@ -1,8 +1,8 @@
 -- | Contract interface for the guessing game
 module Main where
 
-import           Examples.Game                (game, guessTrace, lockTrace)
-import qualified Language.Plutus.Contract.App as App
+import qualified Language.Plutus.Contract.App                  as App
+import           Language.PlutusTx.Coordination.Contracts.Game (game, guessTrace, lockTrace)
 
 main :: IO ()
 main = App.runWithTraces game

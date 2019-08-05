@@ -25,13 +25,18 @@ module Language.Plutus.Contract(
     , watchAddressUntil
     , fundsAtAddressGt
     -- * Conveniences
-    , module X
-    -- * Re-exports from extensible-effects
+    , module Util
+    -- * Transactions
+    , module Tx
+    -- * Re-exports from 'Control.Eff'
     , Member
+    -- * Re-export from 'Control.Applicative'
+    , Alternative(..)
     -- * Etc
     , convertContract
     ) where
 
+import           Control.Applicative                             (Alternative (..))
 import           Control.Eff
 import           Control.Eff.Exception
 import           Control.Eff.Reader.Lazy
@@ -44,16 +49,18 @@ import           Language.Plutus.Contract.Effects                (AwaitSlot, Con
 import qualified Language.Plutus.Contract.Effects.AwaitSlot      as Slot
 import qualified Language.Plutus.Contract.Effects.ExposeEndpoint as Endpoint
 import qualified Language.Plutus.Contract.Effects.WatchAddress   as Addr
-import qualified Language.Plutus.Contract.Effects.WriteTx        as Tx
+import qualified Language.Plutus.Contract.Effects.WriteTx        as WriteTx
 import           Language.Plutus.Contract.Prompt.Event           (Event)
 import           Language.Plutus.Contract.Prompt.Hooks           (Hooks, hooks)
 import           Language.Plutus.Contract.Resumable              (Resumable, Step (..), mapStep, step)
 import           Language.Plutus.Contract.Tx                     (UnbalancedTx)
-import           Language.Plutus.Contract.Util                   as X
+import           Language.Plutus.Contract.Tx                     as Tx
+import           Language.Plutus.Contract.Util                   as Util
+import           Ledger                                          (Address)
+import qualified Ledger
 import           Ledger.AddressMap                               (AddressMap)
 import qualified Ledger.AddressMap                               as AM
 import           Ledger.Slot                                     (Slot)
-import           Ledger.Tx                                       (Address, Tx)
 import           Ledger.Value                                    (Value)
 import qualified Ledger.Value                                    as V
 
@@ -61,6 +68,8 @@ import           Prelude                                         hiding (until)
 
 type Contract r a = Resumable (Eff r) a
 
+-- | A contract that waits until the slot is reached, then returns the
+--   current slot.
 awaitSlot :: (Member AwaitSlot r) => Slot -> Contract r Slot
 awaitSlot = step . Slot.awaitSlot
 
@@ -97,10 +106,10 @@ endpoint = step . Endpoint.exposeEndpoint
 
 --  | Send an unbalanced transaction to the wallet.
 writeTx :: (Member WriteTx r) => UnbalancedTx -> Contract r ()
-writeTx = step . Tx.writeTx
+writeTx = step . WriteTx.writeTx
 
 -- | Wait for the next transaction that changes an address.
-nextTransactionAt :: (Member WatchAddress r) => Address -> Contract r Tx
+nextTransactionAt :: (Member WatchAddress r) => Address -> Contract r Ledger.Tx
 nextTransactionAt = step . Addr.nextTransactionAt
 
 -- | Watch an address until the given slot, then return all known outputs
@@ -118,7 +127,7 @@ fundsAtAddressGt addr' vl = loopM go mempty where
         let cur' = cur <> delta
             presentVal = fromMaybe mempty (AM.values cur' ^. at addr')
         if presentVal `V.gt` vl
-        then pure (Left cur') else pure (Right cur')
+        then pure (Right cur') else pure (Left cur')
 
 -- | Take a single step in form of 'Eff (ContractEffects []) a' and attempt to
 --   run it on the given 'Event' (or 'Nothing'). If it fails, return a

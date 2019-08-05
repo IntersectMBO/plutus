@@ -1,10 +1,10 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE FlexibleContexts #-}
--- | Testing contracts with HUnit
-module Spec.HUnit(
+-- | Testing contracts with HUnit and Tasty
+module Language.Plutus.Contract.Test(
       module X
     , TracePredicate
-    , Spec.HUnit.not
+    , Language.Plutus.Contract.Test.not
     , endpointAvailable
     , interestingAddress
     , assertResult
@@ -50,7 +50,7 @@ import qualified Ledger.Value                          as V
 import           Wallet.Emulator                       (EmulatorAction, EmulatorEvent, Wallet)
 import qualified Wallet.Emulator                       as EM
 
-import           Language.Plutus.Contract.Emulator     as X
+import           Language.Plutus.Contract.Trace        as X
 
 type TracePredicate a = InitialDistribution -> Predicate (ContractTraceResult a)
 

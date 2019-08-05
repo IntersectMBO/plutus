@@ -203,7 +203,6 @@ instance Applicative f => Monad (Resumable f) where
 -- | Interpret a 'Resumable' program in some other monad.
 lowerM
     :: (Monad m, Alternative m)
-    -- ^ What to do with map, ap, bind
     => (forall a'. (Aeson.FromJSON a', Aeson.ToJSON a') => m a' -> m a')
     -- ^ What to do with JSON checkpoints
     -> (forall a'. f a' -> m a')

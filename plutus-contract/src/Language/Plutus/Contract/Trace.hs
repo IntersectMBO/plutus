@@ -3,9 +3,10 @@
 {-# LANGUAGE KindSignatures   #-}
 {-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TupleSections    #-}
--- | Some conveniences for running Plutus contracts
---   in the emulator.
-module Language.Plutus.Contract.Emulator(
+-- | A trace is a sequence of actions by simulated wallets that can be run
+--   on the mockchain. This module contains the functions needed to build
+--   traces.
+module Language.Plutus.Contract.Trace(
     ContractTraceState
     , ContractTrace
     , EmulatorAction
@@ -21,13 +22,20 @@ module Language.Plutus.Contract.Emulator(
     , getHooks
     , callEndpoint
     , handleBlockchainEvents
+    , addBlocks
     , addEvent
     , addEventAll
     , notifyInterestingAddresses
+    , notifySlot
     -- * Running 'MonadEmulator' actions
+    , MonadEmulator
     , InitialDistribution
     , withInitialDistribution
     , defaultDist
+    -- * Wallets
+    , EM.Wallet(..)
+    , EM.walletPubKey
+    , allWallets
     ) where
 
 import           Control.Lens
@@ -59,6 +67,7 @@ import           Ledger.Ada                            (Ada)
 import qualified Ledger.Ada                            as Ada
 import qualified Ledger.AddressMap                     as AM
 import           Ledger.Tx                             (Address, Tx)
+
 import           Wallet.Emulator                       (AssertionError, EmulatorAction, EmulatorState, MonadEmulator,
                                                         Wallet)
 import qualified Wallet.Emulator                       as EM
@@ -201,7 +210,26 @@ interestingAddresses
     :: ( MonadEmulator m )
     => Wallet
     -> ContractTrace m a [Address]
-interestingAddresses =  fmap (Set.toList . Hooks.addresses . either mempty id) . getHooks
+interestingAddresses =
+    fmap (Set.toList . Hooks.addresses . either mempty id) . getHooks
+
+-- | Add a 'SlotChange' event to the wallet's event trace, informing the
+--   contract of the current slot
+notifySlot
+    :: ( MonadEmulator m )
+    => Wallet
+    -> ContractTrace m a ()
+notifySlot w = do
+    st <- lift $ gets (view (EM.walletStates . at w))
+    addEvent w $ Event.changeSlot (maybe 0 (view EM.walletSlot) st)
+
+-- | Add a number of empty blocks to the blockchain.
+addBlocks
+    :: ( MonadEmulator m )
+    => Integer
+    -> ContractTrace m a ()
+addBlocks i =
+    void $ lift $ EM.processEmulated (EM.addBlocksAndNotify allWallets i)
 
 -- | Submit the wallet's pending transactions to the blockchain
 --   and inform all wallets about new transactions

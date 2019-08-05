@@ -8,6 +8,7 @@ module Language.Plutus.Contract.Prompt.Event(
     , updateLedger
     , changeSlot
     , endpoint
+    , endpointJson
     , txSubmission
     , txEvents
     -- * Consume events
@@ -48,6 +49,9 @@ changeSlot = SlotChange
 
 endpoint :: String -> Aeson.Value -> Event
 endpoint = Endpoint
+
+endpointJson :: Aeson.ToJSON a => String -> a -> Event
+endpointJson n = Endpoint n . Aeson.toJSON
 
 txSubmission :: Event
 txSubmission = TxSubmission
