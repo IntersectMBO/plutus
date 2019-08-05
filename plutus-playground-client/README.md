@@ -1,11 +1,8 @@
 # Building
 
-### nix
+## Server
 
-```sh
-nix build -f default.nix plutus-playground.client
-result/bin/plutus-server-invoker webserver -p 4000 ./plutus-playground/plutus-playground-client/dist
-```
+Please view the instructions for building the server [here](../plutus-playground-server/README.md).
 
 ## Client
 
@@ -33,6 +30,8 @@ Whenever you change any of these files you should rerun `$(nix-build -A dev.scri
 Fair warning before we start: You may struggle with PureScript on Nix on OSX.
 
 The client and server can be built from the top-level of this repo with:
+
+When building the client make sure that the generated directory is removed completely or you will get _Duplicate module_ errors.
 
 ```sh
 nix-build \
