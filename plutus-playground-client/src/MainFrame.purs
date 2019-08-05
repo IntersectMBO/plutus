@@ -517,7 +517,8 @@ evalForm initialValue = rec
 
   rec (SetSubField _ subEvent) arg@(FormValue _) = arg
 
-  rec (AddSubField _) (FormArray schema fields) = -- As the code stands, this is the only guarantee we get that every
+  rec (AddSubField _) (FormArray schema fields) =
+    -- As the code stands, this is the only guarantee we get that every
     -- value in the array will conform to the schema: the fact that we
     -- create the 'empty' version from the same schema template.
     --
