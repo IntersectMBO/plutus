@@ -135,7 +135,7 @@ the hash of this script
 - data script
 - redeemer script
 - transaction and ledger data
-* returns a boolean value to represent the result of validation.
+* returns `()` or an error if validation fails
 
 . Data script
 * Carried by a transaction which is paying to a script

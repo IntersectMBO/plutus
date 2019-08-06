@@ -65,6 +65,13 @@ library
         , OffChain.TriggerSimple
         , Parameters.Crowd
         , Token.Fungible
+        , Marlowe.Language.Marlowe
+        , Marlowe.Language.Marlowe.Client
+        , Marlowe.Language.Marlowe.Escrow
+        , Marlowe.Language.Marlowe.Actus
+        , Marlowe.Language.Marlowe.Pretty
+    other-modules:
+          Marlowe.Language.Marlowe.Common
     ghc-options: -Wall -fno-warn-unused-imports -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc
     build-tool-depends: unlit:unlit -any
     build-depends:
@@ -79,7 +86,8 @@ library
       plutus-wallet-api -any,
       plutus-emulator -any,
       prettyprinter -any,
-      containers -any
+      containers -any,
+      wl-pprint -any
 
 test-suite plutus-book-test
   type:                exitcode-stdio-1.0
@@ -101,6 +109,7 @@ test-suite plutus-book-test
                      , Parameters.CrowdSpec
                      , Token.FungibleSpec
                      , Utils
+
   build-depends:       base >= 4.9 && <5
                      , bytestring -any
                      , containers -any

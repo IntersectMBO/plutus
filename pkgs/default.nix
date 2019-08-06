@@ -53690,6 +53690,7 @@ license = stdenv.lib.licenses.mit;
 , template-haskell
 , text
 , unlit
+, wl-pprint
 }:
 mkDerivation {
 
@@ -53709,6 +53710,7 @@ plutus-wallet-api
 prettyprinter
 template-haskell
 text
+wl-pprint
 ];
 libraryToolDepends = [
 unlit
