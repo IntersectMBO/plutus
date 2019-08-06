@@ -92,7 +92,7 @@ tests = testGroup "contracts"
         (let l = endpoint @() "1" >> endpoint @() "2"
              r = endpoint @() "3" >> endpoint @() "4"
         in selectEither l r)
-        (assertResult w1 $ maybe False isLeft)
+        (assertResult w1 (maybe False isLeft) "left branch should finish")
         (callEndpoint w1 "3" () >> callEndpoint w1 "1" () >> callEndpoint w1 "2" ())
 
     , checkPredicate "loopM"
