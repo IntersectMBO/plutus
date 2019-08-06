@@ -62,6 +62,11 @@ in terms of `Slot` numbers. Thus, independent of the evolution of the system,
 the timekeeping in this interpretation will remain consistent with the passage
 of actual time.
 
+The approach this Marlowe implementation takes is similar to state machine
+approach described in Chapter <<statemachine#statemachine>>. The idea in
+both cases is that the validator must compute, given a a contract state,
+the next state 
+
 The idea of the Plutus interpretation of a Marlowe contract is that the
 validator is passed:
 

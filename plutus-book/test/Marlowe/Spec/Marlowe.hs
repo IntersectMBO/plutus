@@ -13,30 +13,31 @@ module Marlowe.Spec.Marlowe
 where
 
 import           Language.PlutusTx.Prelude
-import qualified Prelude                   as Haskell
+import qualified Prelude                         as Haskell
 
-import           Control.Monad             (void, when)
-import qualified Data.List                 as List
-import qualified Data.Map.Strict           as Map
-import qualified Data.Set                  as Set
+import           Control.Monad                   (void, when)
+import qualified Data.List                       as List
+import qualified Data.Map.Strict                 as Map
+import qualified Data.Set                        as Set
 
-import           Hedgehog                  (Property, forAll, property)
+import           Hedgehog                        (Property, forAll, property)
 import qualified Hedgehog
-import           Hedgehog.Gen              (list)
-import qualified Hedgehog.Range            as Range
+import           Hedgehog.Gen                    (list)
+import qualified Hedgehog.Range                  as Range
 import           Test.Tasty
-import           Test.Tasty.Hedgehog       (HedgehogTestLimit (..), testProperty)
+import           Test.Tasty.Hedgehog             (HedgehogTestLimit (..), testProperty)
 import           Test.Tasty.HUnit
 
 import           Language.Marlowe
-import           Ledger                    hiding (Value)
-import qualified Ledger.Ada                as Ada
-import           Ledger.Validation         (OracleValue (..))
-import           Wallet                    (PubKey (..), startWatching)
+import           Ledger                          hiding (Value)
+import qualified Ledger.Ada                      as Ada
+import           Ledger.Validation               (OracleValue (..))
+import           Wallet                          (PubKey (..), startWatching)
 import           Wallet.Emulator
 
-import           Marlowe.Language.Marlowe.Client   (commit, commit', interpretObs, marloweValidator, receivePayment, redeem)
-import           Marlowe.Language.Marlowe.Escrow   as Escrow
+import           Marlowe.Language.Marlowe.Client (commit, commit', interpretObs, marloweValidator, receivePayment,
+                                                  redeem)
+import           Marlowe.Language.Marlowe.Escrow as Escrow
 import           Marlowe.Spec.Common
 
 {-# ANN module ("HLint: ignore"::String) #-}
