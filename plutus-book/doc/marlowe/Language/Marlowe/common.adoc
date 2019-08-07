@@ -38,6 +38,7 @@ import           Ledger.Ada                 (Ada)
 import qualified Ledger.Ada                 as Ada
 import           Ledger.Interval            (Interval (..))
 import           Ledger.Validation
+import           Ledger.Scripts             (DataScriptHash (..), RedeemerHash (..))
 import           LedgerBytes                (LedgerBytes (..))
 import           Text.PrettyPrint.Leijen    (text)
 
