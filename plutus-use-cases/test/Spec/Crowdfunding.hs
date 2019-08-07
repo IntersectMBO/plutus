@@ -17,6 +17,7 @@ import           Language.Plutus.Contract.Test
 import qualified Language.Plutus.Contract.Trace                        as Trace
 import qualified Language.PlutusTx                                     as PlutusTx
 import qualified Language.PlutusTx.Prelude                             as PlutusTx
+import           Language.PlutusTx.Lattice
 import           Language.PlutusTx.Coordination.Contracts.CrowdFunding
 import qualified Ledger.Ada                                            as Ada
 
@@ -30,7 +31,7 @@ tests :: TestTree
 tests = testGroup "crowdfunding"
     [ checkPredicate "Expose 'contribute' and 'scheduleCollection' endpoints"
         (crowdfunding theCampaign)
-        (endpointAvailable w1 "contribute" <> endpointAvailable w1 "schedule collection")
+        (endpointAvailable w1 "contribute" /\ endpointAvailable w1 "schedule collection")
         $ pure ()
 
     , checkPredicate "make contribution"
@@ -90,7 +91,7 @@ tests = testGroup "crowdfunding"
     , checkPredicate "can claim a refund"
         (crowdfunding theCampaign)
         (walletFundsChange w2 (2 `timesFeeAdjust` 0)
-            <> walletFundsChange w3 (2 `timesFeeAdjust` 0))
+            /\ walletFundsChange w3 (2 `timesFeeAdjust` 0))
         $ startCampaign
             >> makeContribution w2 (Ada.lovelaceValueOf 5)
             >> makeContribution w3 (Ada.lovelaceValueOf 5)

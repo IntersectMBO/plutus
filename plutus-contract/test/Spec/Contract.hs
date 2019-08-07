@@ -7,10 +7,10 @@ import           Data.Either                           (isLeft)
 import           Test.Tasty
 
 import           Language.Plutus.Contract              as Con
-import           Language.Plutus.Contract.Tx           as Tx
 import qualified Language.Plutus.Contract.Prompt.Event as Event
 import           Language.Plutus.Contract.Test
 import           Language.Plutus.Contract.Util         (loopM)
+import           Language.PlutusTx.Lattice
 import           Ledger                                (Address)
 import qualified Ledger                                as Ledger
 import qualified Ledger.Ada                            as Ada
@@ -60,7 +60,7 @@ tests = testGroup "contracts"
 
     , checkPredicate "watchAddressUntil"
         (watchAddressUntil someAddress 5)
-        (interestingAddress w1 someAddress <> waitingForSlot w1 5)
+        (interestingAddress w1 someAddress /\ waitingForSlot w1 5)
         $ pure ()
 
     , checkPredicate "endpoint"
@@ -75,17 +75,17 @@ tests = testGroup "contracts"
 
     , checkPredicate "call endpoint (2)"
         (endpoint @Int "1" >> endpoint @Int "2")
-          (endpointAvailable w1 "2" <> not (endpointAvailable w1 "1"))
+          (endpointAvailable w1 "2" /\ not (endpointAvailable w1 "1"))
         (callEndpoint w1 "1" (1::Int))
 
     , checkPredicate "call endpoint (3)"
         (endpoint @Int "1" >> endpoint @Int "2")
-          (not (endpointAvailable w1 "2") <> not (endpointAvailable w1 "1"))
+          (not (endpointAvailable w1 "2") /\ not (endpointAvailable w1 "1"))
         (callEndpoint w1 "1" (1::Int) >> callEndpoint w1 "2" (1::Int))
 
     , checkPredicate "submit tx"
-        (writeTx Tx.emptyTx >> watchAddressUntil someAddress 20)
-        (waitingForSlot w1 20 <> interestingAddress w1 someAddress)
+        (writeTx mempty >> watchAddressUntil someAddress 20)
+        (waitingForSlot w1 20 /\ interestingAddress w1 someAddress)
         (handleBlockchainEvents w1)
 
     , checkPredicate "select either"
@@ -102,7 +102,7 @@ tests = testGroup "contracts"
 
     , checkPredicate "collect until"
         (collectUntil (+) 0 (endpoint @Int "1") 10)
-        (endpointAvailable w1 "1" <> waitingForSlot w1 10)
+        (endpointAvailable w1 "1" /\ waitingForSlot w1 10)
         (callEndpoint w1 "1" (1::Int))
     ]
 

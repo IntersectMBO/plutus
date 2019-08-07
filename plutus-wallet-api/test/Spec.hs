@@ -125,10 +125,12 @@ valueScalarDistrib = property $ do
 intvlMember :: Property
 intvlMember = property $ do
     (i1, i2) <- forAll $ (,) <$> Gen.integral (fromIntegral <$> Range.linearBounded @Int) <*> Gen.integral (fromIntegral <$> Range.linearBounded @Int)
-    let (from, to) = (Slot $ min i1 i2, Slot $ max i1 i2)
-        i          = W.interval from to
-    Hedgehog.assert $ W.member from i || W.isEmpty i
-    Hedgehog.assert $ (not $ W.member to i) || W.isEmpty i
+    let (from, to) = (min i1 i2, max i1 i2)
+        i          = W.interval (Slot from) (Slot to)
+    Hedgehog.assert $ W.member (Slot from) i || W.isEmpty i
+    Hedgehog.assert $ not (W.member (Slot (from-1)) i) || W.isEmpty i
+    Hedgehog.assert $ W.member (Slot to) i || W.isEmpty i
+    Hedgehog.assert $ not (W.member (Slot (to+1)) i) || W.isEmpty i
 
 intvlContains :: Property
 intvlContains = property $ do

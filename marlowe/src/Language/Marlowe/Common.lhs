@@ -36,7 +36,7 @@ import           Language.PlutusTx.Prelude
 import           Ledger                     (PubKey (..), Signature (..), Slot (..))
 import           Ledger.Ada                 (Ada)
 import qualified Ledger.Ada                 as Ada
-import           Ledger.Interval            (Interval (..))
+import           Ledger.Interval            (Interval (..), LowerBound (..), Extended (..))
 import           Ledger.Scripts             (DataScriptHash (..), RedeemerHash (..))
 import           Ledger.Validation
 import           LedgerBytes                (LedgerBytes (..))
@@ -807,7 +807,7 @@ validatorScript
         {-  We require Marlowe Tx to have a lower bound in 'SlotRange'.
             We use it as a current slot, basically. -}
         minSlot = case pendingTxValidRange of
-            Interval (Just slot) _ -> slot
+            Interval (LowerBound (Finite slot) True) _ -> slot
             _                      -> traceH "Tx valid slot must have lower bound" Builtins.error ()
 
         -- TxIn we're validating is obviously a Script TxIn.

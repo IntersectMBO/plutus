@@ -14,7 +14,6 @@
 module Ledger.Slot(
       Slot(..)
     , SlotRange
-    , singleton
     , width
     ) where
 
@@ -45,14 +44,16 @@ makeLift ''Slot
 -- | An 'Interval' of 'Slot's.
 type SlotRange = Interval Slot
 
--- | A 'SlotRange' that covers only a single slot.
-singleton :: Slot -> SlotRange
-singleton (Slot s) = Interval (Just (Slot s)) (Just (Slot (s + 1)))
-
--- | Number of 'Slot's covered by the interval. @width (from x) == Nothing@.
+{-# INLINABLE width #-}
+-- | Number of 'Slot's covered by the interval, if finite. @width (from x) == Nothing@.
 width :: SlotRange -> Maybe Integer
-width (Interval f t) = case f of
-    Nothing -> Nothing
-    Just (Slot f') -> case t of
-        Nothing        -> Nothing
-        Just (Slot t') -> Just (t' - f')
+width (Interval (LowerBound (Finite (Slot s1)) in1) (UpperBound (Finite (Slot s2)) in2)) =
+    let lowestValue = if in1 then s1 else s1 + 1
+        highestValue = if in2 then s2 else s2 - 1
+    in if lowestValue <= highestValue
+    -- +1 avoids fencepost error: width of [2,4] is 3.
+    then Just $ (highestValue - lowestValue) + 1
+    -- low > high, i.e. empty interval
+    else Nothing
+-- Infinity is involved!
+width _ = Nothing

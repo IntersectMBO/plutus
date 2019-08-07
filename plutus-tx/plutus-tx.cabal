@@ -46,6 +46,7 @@ library
         Language.PlutusTx.Bool
         Language.PlutusTx.Eq
         Language.PlutusTx.Functor
+        Language.PlutusTx.Lattice
         Language.PlutusTx.List
         Language.PlutusTx.Ord
         Language.PlutusTx.Maybe
