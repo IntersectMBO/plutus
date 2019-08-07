@@ -11,7 +11,7 @@ ownership.
 
 The Peyton Jones et al have created a domain-specific
 language (DSL) to express every possible contract in this type, called Marlowe
-(see <bibliography#bibliography). Every expression in this DSL is a term
+(see <<bibliography#bibliography>>). Every expression in this DSL is a term
 of type `Contract`, which is a Haskell data structure. This DSL is expressive
 enough to build every kind of contract found in the ACTUS classification
 of financial contracts (we shall see examples of building some of these later
@@ -62,23 +62,63 @@ in terms of `Slot` numbers. Thus, independent of the evolution of the system,
 the timekeeping in this interpretation will remain consistent with the passage
 of actual time.
 
-The approach this Marlowe implementation takes is similar to state machine
+The approach this Marlowe implementation takes is somewhat similar to state machine
 approach described in Chapter <<statemachine#statemachine>>. The idea in
-both cases is that the validator must compute, given a a contract state,
-the next state 
+is that the validator compares the following:
 
-The idea of the Plutus interpretation of a Marlowe contract is that the
-validator is passed:
+* the contract and state which the wallet submitting a transaction includes
+in the redeemer script (i.e. the `expectedContract` and `expectedState`), and the
 
-* the whole contract and extra state information
-as the data script. It evaluates the contract
+* the result of applying the input (which may be external data such as time,
+or participant actions) to the contract and state contained in the data script
+- this is called _evaluating_ the contract
+
+The input is also provided as part of the redeemer script.
+If the state and contract in both cases are the same, the contract-locked
+funds may be spent. Additionally, validation of the contract and state
+in the data script is performed - more on this topic in a note following the
+code explanations. Once the validator approves the spending of the
+contract-locked funds, the state and contract used as the data script
+for the remaining or newly contributed funds must be the new state and contract
+submitted in the redeemer script.
 
 We also make the following assumptions in this Marlowe interpreter:
 
 * The transaction fees are zero
-* Every contract is created by the contract
+* Every contract is created by the contract owner (and issuer of the carrying transaction)
 
-We will dive right in to studying the code to see what a Marlowe `Contract`
-looks like, and how to interpret its state
+== Marlowe Primitives and Validation
+
+We will now dive right in to studying the code to see what a Marlowe `Contract`
+looks like, and how to interpret its state. In the `Common` module, all the
+primitives for building and validating a Marlowe contract are found.
 
 include::Language/Marlowe/common.adoc[]
+
+== Marlowe Endpoints
+
+Next, we will discuss the endpoints to engage with a Marlowe contract, which
+are in the `Client` module.
+
+include::Language/Marlowe/client.adoc[]
+
+== Escrow Example
+
+Now it is time to look at how to use the Marlowe interpreter
+to build some real-world contract examples. First, let us
+consider an escrow contract.
+
+include::Language/Marlowe/escrow.adoc[]
+
+== ACTUS Examples
+
+An main application of Marlowe is the implementation of
+financial contracts. Recall that financial contracts have been classified
+by the ACTUS project (see the <<04-smartcont#04-smartcont>> Chapter).
+We can look at the algorithmic description of
+each type and use our Marlowe interpreter to model this behaviour.
+In the `Actus` module, we give an example of implementing contracts of the
+the zero coupon bond type, which are part of the PAM (Principal at Maturity)
+class. We include a basic, a trusted, and a guaranteed version.
+
+include::Language/Marlowe/actus.adoc[]
