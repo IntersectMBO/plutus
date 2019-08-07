@@ -64,5 +64,5 @@ runBasicSpec = describe "Basic Contract" $
 |]
 
 runHaskell :: ByteString -> IO (Either InterpreterError (InterpreterResult RunResult))
-runHaskell = let maxInterpretationTime :: Microsecond = fromMicroseconds 5000000 in
+runHaskell = let maxInterpretationTime :: Microsecond = fromMicroseconds 10000000 in
                 runExceptT . Interpreter.runHaskell maxInterpretationTime . SourceCode . Text.pack . BSC.unpack
