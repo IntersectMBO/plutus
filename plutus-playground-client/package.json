@@ -7,7 +7,7 @@
     "webpack:server": "webpack-dev-server --progress --inline --hot --mode=development",
     "webpack:server:debug": "DEBUG=purs-loader* DEBUG_DEPTH=100 webpack-dev-server --progress --inline --hot",
     "purs:compile": "psc-package build 'generated/**/*.purs' '../web-common/src/**/*.purs'",
-    "purs:ide": "purs ide server --log-level=debug ' .psc-package/*/*/*/src/**/*.purs' 'generated/**/*.purs' '../web-common/src/**/*.purs' 'test/**/*.purs'",
+    "purs:ide": "purs ide server --log-level=debug '.psc-package/*/*/*/src/**/*.purs' 'generated/**/*.purs' '../web-common/src/**/*.purs' 'test/**/*.purs'",
     "purs:bundle": "purs bundle output/**/*.js",
     "start": "node bundle.js",
     "test": "pulp test -I generated:../web-common",
