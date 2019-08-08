@@ -116,7 +116,7 @@ createContract validator contract value = do
 ----
 
 Prepare 'TxIn' and 'TxOut' generator for Marlowe style wallet actions.
-Explain more.
+Explain more. A transaction that builds the set of TxIns and TxOuts.
 
 [source,haskell]
 ----
