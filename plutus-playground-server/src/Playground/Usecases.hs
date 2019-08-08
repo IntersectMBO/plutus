@@ -24,3 +24,6 @@ messages = strip $ T.decodeUtf8 $(makeRelativeToProject "usecases/Messages.hs" >
 
 crowdfunding :: T.Text
 crowdfunding = strip $ T.decodeUtf8 $(makeRelativeToProject "usecases/CrowdFunding.hs" >>= embedFile)
+
+starter :: T.Text
+starter = strip $ T.decodeUtf8 $(makeRelativeToProject "usecases/Starter.hs" >>= embedFile)
