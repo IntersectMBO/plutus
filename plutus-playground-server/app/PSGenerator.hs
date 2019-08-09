@@ -54,7 +54,7 @@ import           Playground.API                             (CompilationResult, 
                                                              Expression, Fn, FunctionSchema, KnownCurrency,
                                                              SimulatorWallet)
 import qualified Playground.API                             as API
-import           Playground.Usecases                        (crowdfunding, game, messages, vesting)
+import           Playground.Usecases                        (crowdfunding, game, messages, starter, vesting)
 import           Schema                                     (FormSchema)
 import           Servant                                    ((:<|>))
 import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
@@ -301,7 +301,8 @@ writeUsecases outputDir = do
             multilineString "vesting" vesting <>
             multilineString "game" game <>
             multilineString "crowdfunding" crowdfunding <>
-            multilineString "messages" messages
+            multilineString "messages" messages <>
+            multilineString "starter" starter
         usecasesModule = psModule "Playground.Usecases" usecases
     BS.writeFile
         (outputDir </> "Playground" </> "Usecases.purs")

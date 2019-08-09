@@ -7,7 +7,7 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Tuple.Nested ((/\))
 import LocalStorage as LocalStorage
-import Playground.Usecases (vesting, game, crowdfunding, messages)
+import Playground.Usecases (vesting, game, crowdfunding, messages, starter)
 
 type Label
   = String
@@ -22,6 +22,7 @@ demoFiles =
     , "Game" /\ game
     , "Messages" /\ messages
     , "Vesting" /\ vesting
+    , "Starter" /\ starter
     ]
 
 bufferLocalStorageKey :: LocalStorage.Key
