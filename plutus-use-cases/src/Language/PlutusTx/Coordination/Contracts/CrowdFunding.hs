@@ -11,7 +11,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE TypeFamilies    #-}
+{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE TypeOperators #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
 module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
@@ -37,15 +39,16 @@ module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     , successfulCampaign
     ) where
 
+import           Control.Applicative            (Alternative(..))
 import           Control.Lens                   ((&), (.~), (^.))
-import           Control.Monad                  (void)
+import           Control.Monad                  (Monad((>>)), void)
 import qualified Data.Set                       as Set
 import           Language.Plutus.Contract
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import           Language.Plutus.Contract.Trace (ContractTrace, MonadEmulator)
 import qualified Language.Plutus.Contract.Trace as Trace
 import qualified Language.PlutusTx              as PlutusTx
-import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Prelude hiding ((>>), return, (>>=))
 import           Ledger                         (Address, PendingTx, PubKey, Slot, ValidatorScript)
 import qualified Ledger                         as Ledger
 import qualified Ledger.Ada                     as Ada
@@ -73,6 +76,19 @@ data Campaign = Campaign
 
 PlutusTx.makeLift ''Campaign
 
+-- | Action that can be taken by the participants in this contract. A value of
+--   `CampaignAction` is provided as the redeemer. The validator script then
+--   checks if the conditions for performing this action are met.
+--
+data CampaignAction = Collect | Refund
+
+PlutusTx.makeLift ''CampaignAction
+
+type CrowdfundingSchema =
+    BlockchainActions
+        .\/ Endpoint "schedule collection" ()
+        .\/ Endpoint "contribute" (PubKey, Value)
+
 -- | Construct a 'Campaign' value from the campaign parameters,
 --   using the wallet's public key.
 mkCampaign :: Slot -> Value -> Slot -> Wallet -> Campaign
@@ -94,13 +110,6 @@ refundRange :: Campaign -> SlotRange
 refundRange cmp =
     Interval.from (campaignCollectionDeadline cmp)
 
--- | Action that can be taken by the participants in this contract. A value of
---   `CampaignAction` is provided as the redeemer. The validator script then
---   checks if the conditions for performing this action are met.
---
-data CampaignAction = Collect | Refund
-
-PlutusTx.makeLift ''CampaignAction
 
 data CrowdFunding
 instance Typed.ScriptType CrowdFunding where
@@ -140,7 +149,7 @@ campaignAddress :: Campaign -> Ledger.Address
 campaignAddress = Typed.scriptAddress . scriptInstance
 
 -- | The crowdfunding contract for the 'Campaign'.
-crowdfunding :: ContractActions r => Campaign -> Contract r ()
+crowdfunding :: Campaign -> Contract CrowdfundingSchema ()
 crowdfunding c = contribute c <|> scheduleCollection c
 
 -- | A sample campaign with a target of 20 Ada by slot 20
@@ -156,9 +165,9 @@ theCampaign = Campaign
 --   an endpoint that allows the user to enter their public key and the
 --   contribution. Then waits until the campaign is over, and collects the
 --   refund if the funding target was not met.
-contribute :: ContractActions r => Campaign -> Contract r ()
+contribute :: Campaign -> Contract CrowdfundingSchema ()
 contribute cmp = do
-    (ownPK :: PubKey, contribution :: Value) <- endpoint "contribute"
+    (ownPK, contribution) <- endpoint @"contribute"
     let ds = Ledger.DataScript (Ledger.lifted ownPK)
         tx = payToScript contribution (campaignAddress cmp) ds
                 & validityRange .~ Ledger.interval 1 (campaignDeadline cmp)
@@ -182,13 +191,13 @@ contribute cmp = do
 -- | The campaign owner's branch of the contract for a given 'Campaign'. It
 --   watches the campaign address for contributions and collects them if
 --   the funding goal was reached in time.
-scheduleCollection :: ContractActions r => Campaign -> Contract r ()
+scheduleCollection :: Campaign -> Contract CrowdfundingSchema ()
 scheduleCollection cmp = do
 
     -- Expose an endpoint that lets the user fire the starting gun on the
     -- campaign. (This endpoint isn't technically necessary, we could just
     -- run the 'trg' action right away)
-    () <- endpoint "schedule collection"
+    () <- endpoint @"schedule collection"
 
     -- 'trg' describes the conditions for a successful campaign. It returns a
     -- tuple with the unspent outputs at the campaign address, and the current
@@ -208,26 +217,26 @@ scheduleCollection cmp = do
 -- | Call the "schedule collection" endpoint and instruct the campaign owner's
 --   wallet (wallet 1) to start watching the campaign address.
 startCampaign
-    :: ( MonadEmulator m )
-    => ContractTrace m a ()
+    :: ( MonadEmulator m  )
+    => ContractTrace CrowdfundingSchema m a ()
 startCampaign =
-    Trace.callEndpoint (Trace.Wallet 1) "schedule collection" ()
-    >> Trace.notifyInterestingAddresses (Trace.Wallet 1)
+    Trace.callEndpoint @"schedule collection" (Trace.Wallet 1)  ()
+        >> Trace.notifyInterestingAddresses (Trace.Wallet 1)
 
 -- | Call the "contribute" endpoint, contributing the amount from the wallet
 makeContribution
     :: ( MonadEmulator m )
     => Wallet
     -> Value
-    -> ContractTrace m a ()
+    -> ContractTrace CrowdfundingSchema m a ()
 makeContribution w v =
-    Trace.callEndpoint w "contribute" (Trace.walletPubKey w, v)
+    Trace.callEndpoint @"contribute" w (Trace.walletPubKey w, v)
         >> Trace.handleBlockchainEvents w
 
 -- | Run a successful campaign with contributions from wallets 2, 3 and 4.
 successfulCampaign
     :: ( MonadEmulator m )
-    => ContractTrace m a ()
+    => ContractTrace CrowdfundingSchema m a ()
 successfulCampaign =
     startCampaign
         >> makeContribution (Trace.Wallet 2) (Ada.lovelaceValueOf 10)

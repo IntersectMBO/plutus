@@ -53744,6 +53744,7 @@ license = stdenv.lib.licenses.asl20;
 , doctest
 , extensible-effects
 , hedgehog
+, iots-export
 , language-plutus-core
 , lens
 , mmorph
@@ -53754,6 +53755,7 @@ license = stdenv.lib.licenses.asl20;
 , plutus-wallet-api
 , prettyprinter
 , profunctors
+, row-types
 , semigroupoids
 , servant
 , servant-server
@@ -53777,7 +53779,7 @@ aeson
 base
 bytestring
 containers
-extensible-effects
+iots-export
 lens
 mmorph
 monad-control
@@ -53786,6 +53788,7 @@ plutus-emulator
 plutus-tx
 plutus-wallet-api
 profunctors
+row-types
 semigroupoids
 servant
 servant-server
@@ -60458,6 +60461,48 @@ description = "Correctly-rounded arbitrary-precision floating-point arithmetic";
 license = stdenv.lib.licenses.bsd3;
 
 }) {inherit (pkgs) gmp; inherit (pkgs) mpfr;};
+"row-types" = callPackage
+({
+  mkDerivation
+, base
+, constraints
+, deepseq
+, fetchgit
+, generic-lens
+, hashable
+, profunctors
+, stdenv
+, text
+, unordered-containers
+}:
+mkDerivation {
+
+pname = "row-types";
+version = "0.3.0.0";
+src = fetchgit {
+
+url = "https://github.com/target/row-types";
+sha256 = "0ly5m4r8wkm8gdqyrqzsjfmp189yxsd4qp0zi3idrbgfaf45sk9k";
+rev = "1e8d5e084ffd46f6c7842826a1f62c60820885df";
+fetchSubmodules = true;
+
+};
+libraryHaskellDepends = [
+base
+constraints
+deepseq
+generic-lens
+hashable
+profunctors
+text
+unordered-containers
+];
+doHaddock = false;
+doCheck = false;
+description = "Open Records and Variants";
+license = stdenv.lib.licenses.mit;
+
+}) {};
 "rpmbuild-order" = callPackage
 ({
   mkDerivation

@@ -43,16 +43,16 @@ library
     exposed-modules:
         Language.Plutus.Contract
         Language.Plutus.Contract.App
-        Language.Plutus.Contract.Effects
         Language.Plutus.Contract.Effects.AwaitSlot
         Language.Plutus.Contract.Effects.ExposeEndpoint
         Language.Plutus.Contract.Effects.WatchAddress
         Language.Plutus.Contract.Effects.WriteTx
+        Language.Plutus.Contract.Request
+        Language.Plutus.Contract.Schema
         Language.Plutus.Contract.Test
         Language.Plutus.Contract.Trace
-        Language.Plutus.Contract.Prompt.Event
-        Language.Plutus.Contract.Prompt.Hooks
         Language.Plutus.Contract.Record
+        Language.Plutus.Contract.IOTS
         Language.Plutus.Contract.Servant
         Language.Plutus.Contract.Resumable
         Language.Plutus.Contract.Tx
@@ -63,7 +63,8 @@ library
     build-depends:
         plutus-wallet-api -any,
         plutus-emulator -any,
-        plutus-tx -any
+        plutus-tx -any,
+        iots-export -any
     build-depends:
         aeson -any,
         base >=4.7 && <5,
@@ -78,12 +79,12 @@ library
         profunctors -any,
         transformers -any,
         warp -any,
-        extensible-effects -any,
         transformers-base -any,
         monad-control -any,
         mmorph -any,
         tasty -any,
-        tasty-hunit -any
+        tasty-hunit -any,
+        row-types -any
 
 test-suite contract-doctests
     type: exitcode-stdio-1.0

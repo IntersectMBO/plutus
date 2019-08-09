@@ -11,6 +11,8 @@ When you have a `PlutusContract` you can compile it to a contract bundle (a form
 ----
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE TypeOperators    #-}
 {-# LANGUAGE MonoLocalBinds   #-}
 module ContractAPI where
 import           Language.Plutus.Contract
@@ -20,16 +22,16 @@ import           Ledger.Crypto               (PubKey)
 import           Ledger.Slot                 (Slot)
 ----
 
-The type of contracts is `Contract r a`. It has two type parameters: `r` describes the effects that the contract has, and `a` is the return type of the contract. You can think of `r` as a list of capabilities, or permissions, that the contract must be allowed to do in order to function. Commonly `r` contains effects such as producing transactions, collecting input from users, and watching the blockchain for changes.
+The type of contracts is `Contract s a`. It has two type parameters: `s` describes the interactions between the contract and the outside world (the contract's schema), and `a` is the return type of the contract. You can think of `s` as a list of capabilities, or permissions, that the contract must be allowed to do in order to function. Commonly `s` contains effects such as producing transactions, collecting input from users, and watching the blockchain for changes.
 
 The simplest contract is the one that produces no transactions, and does not interact with the user or the wallet at all:
 
 [source,haskell]
 ----
-c1 :: Contract r () -- <1>
+c1 :: Contract Empty () -- <1>
 c1 = return () -- <2>
 ----
-<1> The type of `c1` is a Plutus contract that produces a unit value when it's finished. The fact that `r` is free tells us that `c1` does not have any effects.
+<1> The type of `c1` is a Plutus contract that produces a unit value when it's finished. The fact that `s` is `Empty` tells us that `c1` does not have any effects.
 <2> The implementation of `c1` returns the unit immediately.
 
 == Common effects
@@ -38,26 +40,26 @@ If we compiled `c1` and deployed it, it would finish right away without doing an
 
 === Waiting
 
- For example, `awaitSlot {2c} (Member AwaitSlot r) => Slot -> PlutusContract r Slot` is a function that takes a `Slot` argument and produces a contract that waits until the slot has been reached. The `Member AwaitSlot r` constraint tells us that `awaitSlot` has the `AwaitSlot` effect. If we want to make use of `awaitSlot` in our own contract, we need to include the `Member AwaitSlot r` constraint in our contract's signature. This ensures that we can see all the effects that a contract may have just from its type signature, without having to look at its implementation.
+For example, `awaitSlot {2c} (HasAwaitSlot s) => Slot -> Contract s Slot` is a function that takes a `Slot` argument and produces a contract that waits until the slot has been reached. The `HasAwaitSlot s` constraint tells us that `awaitSlot` requires the contract's schema to contain the 'AwaitSlot' effect. This ensures that we can see all the effects that a contract may have just from the contract's type signature, without having to look at its implementation.
 
 [source,haskell]
 ----
-c2 :: (Member AwaitSlot r) => Contract r Slot
+c2 :: (HasAwaitSlot s) => Contract s Slot
 c2 = awaitSlot 2765 -- <1>
 ----
-<1> `c2` waits until slot 2765 and then returns the current slot.
+<1> `c2` waits until slot 2765 and then returns the current slot. The value returns may be greater than 2765, for example if execution of the contract was suspended for a while.
 
 === Blockchain Events
 
 Smart contracts often involve multiple participants that synchronise their actions over the blockchain. To be notified of changes to the contract state we need the `WatchAddress` effect. It lets us watch any address on the blockchain for transactions that modify them. `Language.Plutus.Contract` contains a couple of basic functions for watching addresses.
 
-`nextTransactionAt {2c} (Member WatchAddress r) => Address -> Contract r Tx` waits for the next transaction that changes the outputs at the given address, either by spending an output or by producing a new output. It returns the entire transaction.
+`nextTransactionAt {2c} (HasWatchAddress s) => Address -> Contract s Tx` waits for the next transaction that changes the outputs at the given address, either by spending an output or by producing a new output. It returns the entire transaction.
 
-Sometimes we want to see what outputs accumulate at an address, and spend all of them after a while. `watchAddressUntil {2c} (Member AwaitSlot r, Member WatchAddress r) => Address -> Slot -> Contract r AddressMap` keeps track of all changes to the address that happen between now and the given slot. It returns a value of `AddressMap` - a collection of outputs that can be used in transactions of the contract.
+Sometimes we want to see what outputs accumulate at an address, and spend all of them after a while. `watchAddressUntil {2c} (HasAwaitSlot s, HasWatchAddress s) => Address -> Slot -> Contract s AddressMap` keeps track of all changes to the address that happen between now and the given slot. It returns a value of `AddressMap` - a collection of outputs that can be used in transactions of the contract.
 
 === Transactions
 
-Contracts write transactions using `writeTx {2c} (Member WriteTx r) => UnbalancedTx -> Contract r ()`. The transactions produced that way are unbalanced and unsigned. When executing a `writeTx` instruction, the app platform forwards the transaction to the user's wallet to balance it (by adding appropriate public key inputs or outputs) and compute the gas cost of any scripts involved. The finished transaction is then signed by the signing process, and submitted to the wallet which sends it to the blockchain. `writeTx` returns when the transaction has been submitted to the blockchain.
+Contracts write transactions using `writeTx {2c} (HasWriteTx s) => UnbalancedTx -> Contract s ()`. The transactions produced that way are unbalanced and unsigned. When executing a `writeTx` instruction, the app platform forwards the transaction to the user's wallet to balance it (by adding appropriate public key inputs or outputs) and compute the gas cost of any scripts involved. The finished transaction is then signed by the signing process, and submitted to the wallet which sends it to the blockchain. `writeTx` returns when the transaction has been submitted to the blockchain.
 
 NOTE: In the future, `writeTx` will return some information about the transaction (status, gas fee, etc).
 
@@ -71,28 +73,11 @@ Let's say we write a contract that expects the user to enter an `Int` using an e
 
 [source,haskell]
 ----
-c3 :: (Member ExposeEndpoint r) => Contract r Int -- <1>
-c3 = endpoint "amount" -- <2>
+c3 :: (HasEndpoint "amount" Int s) => Contract s Int -- <1>
+c3 = endpoint @"amount" -- <2>
 ----
-<1> Endpoints are governed by the `ExposeEndpoint` effect. 
-<2> When using `endpoint` we need to provide a value of `String`, identifying the endpoint.
-
-How does the `endpoint` function know what type of data the user is supposed to enter here? In the example `c3`, the return type (`Int`) helps the Haskell compiler to infer the type of the endpoint. Sometimes the compiler cannot figure out the type on its own. In that case we can provide a type annotation directly at the `endpoint` call:
-
-[source,haskell]
-----
-c4 :: (Member ExposeEndpoint r) => Contract r Int
-c4 = endpoint @Int "amount" -- <1>
-----
-<1> The `@Int` argument tells the compiler that an `Int` is expected by this endpoint. This notation is enabled by the `TypeApplications` language extension.
-
-WARNING: The type of the `endpoint` function is going to change in order to reflect the schema (all endpoints of a contract will be known at compile time, and the schema is a representation of their types in a format that can be consumed by the app platform).
-
-=== The `ContractActions` constraint
-
-By writing out the endpoints that our contracts have we ensure that our contracts are predictable - even if we don't know what a concrete instance of the contract will look like, we know for certain that it is never going to ask you for something that isn't specified in the type.
-
-We've seen the four effects that most smart contracts need - `AwaitSlot`, `WatchAddress`, `WriteTx` and `ExposeEndpoint`. To avoid having to write out the complete list of effects on the type signatures of our contracts, we can use the `ContractActions` constraint from `Language.Plutus.Contract`. It groups the four basic effects together, so we can write `ContractActions r => Contract r ()` . 
+<1> The `HasEndpoint` constraint describes user-defined endpoints. In this case, the contract exposes an endpoint called "amount" that requires the user to enter an 'Int'.
+<2> The `endpoint` function itself only requires a type argument (the name of the endpoint). This contract returns the number entered by the user.
 
 == Combining contracts
 
@@ -106,13 +91,13 @@ Let's say we have two contracts `collect {2c} Contract r AddressMap` and `recipi
 
 [source,haskell]
 ----
-collect :: ContractActions r => Contract r AddressMap
+collect :: HasBlockchainActions s => Contract s AddressMap
 collect = undefined
 
-recipient :: ContractActions r => Contract r PubKey
+recipient :: HasBlockchainActions s => Contract s PubKey
 recipient = undefined
 
-collectRec :: ContractActions r => Contract r (AddressMap, PubKey) -- <1>
+collectRec :: HasBlockchainActions s => Contract s (AddressMap, PubKey) -- <1>
 collectRec = both collect recipient -- <2>
 ----
 <1> `collectRec` is a contract that may use an endpoint asking for a public key. It returns two things: A list of transaction inputs and a public key.
@@ -129,7 +114,7 @@ After having obtained the inputs and the public key we can proceed to produce th
 mkTx :: AddressMap -> PubKey -> UnbalancedTx
 mkTx = undefined
 
-spend :: ContractActions r => Contract r ()
+spend :: HasBlockchainActions s => Contract s ()
 spend = do -- <1>
     (ins, pk) <- collectRec
     writeTx (mkTx ins pk)
@@ -154,13 +139,13 @@ Then we define two contracts, `buy {2c} Contract r Buy` and `sell {2c} Contract 
 
 [source, haskell]
 ----
-buy :: ContractActions r => Contract r Buy
+buy :: HasBlockchainActions s => Contract s Buy
 buy = undefined
 
-sell :: ContractActions r => Contract r Sell
+sell :: HasBlockchainActions s => Contract s Sell
 sell = undefined
 
-buyOrSell :: ContractActions r => Contract r (Either Buy Sell)
+buyOrSell :: HasBlockchainActions r => Contract r (Either Buy Sell)
 buyOrSell = selectEither buy sell
 ----
 
@@ -168,13 +153,18 @@ The `selectEither` combinator takes two contracts with return types `a` and `b`,
 
 NOTE: The `Alternative` instance of `Contract` is used to select one of two branches.
 
-== Contract instances
+== Compiling Contracts
 
-Each `PlutusContract` describes a large set of possible paths that the contract can take. Each of those paths is an _instance_ of that contract. Instances are sequences of events that the contract reacts to, and the transactions it produces. For example, if you offer a loan to somebody in exchange for collateral, then that loan would be an instance of the `loan` contract.
+Once we've written our conract we can compile it into a form that can be run by the application platform. To this end the `Language.Plutus.Contract.App` module exposes a `run` function, which takes a `Contract s ()` and turns it into an `IO ()` action. The contracts we've seen so far have been parameterised over the schema (that is, they were of the form `contract {2c} c s => Contract s ()` for some set of constraints `s`). When we call `run contract` we need to commit to a specific value for the schema `s`, because it can't be inferred by the compiler. As the schema describes all possible interactions between the contract and the outside world, it usually consists of two parts: Interactions with the blockchain (via the wallet), and interactions with the user (via endpoints). The first part of the schema is always the same: The `BlockchainActions` type found in `Language.Plutus.Contract`. The second part depends on the specific set of user-facing endpoints that the contract has. We use the `Endpoint` type constructor to describe the name and type of each endpoint. The `.\/ ` operator combines two schemas. So a contract with a single endpoint called "amount" of type `Int` would have the following schema type:
 
-Instances are client-specific. There is one instance of `loan` running on your machine, going through the lender branch, and another instance on the recipient's machine, following the borrower's side of the contract.
+[source, haskell]
+----
 
-The app platform that executes contract bundle keeps track of the running instances.
+type MySchema = BlockchainActions .\/ Endpoint "amount" Int
+
+----
+
+We can then run the contract with `run @MySchema contract`.
 
 == State
 

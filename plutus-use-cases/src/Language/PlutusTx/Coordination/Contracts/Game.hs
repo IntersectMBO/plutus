@@ -5,6 +5,11 @@
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE TypeOperators      #-}
+{-# LANGUAGE PartialTypeSignatures #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE MonoLocalBinds #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Language.PlutusTx.Coordination.Contracts.Game(
     lock,
@@ -25,13 +30,13 @@ module Language.PlutusTx.Coordination.Contracts.Game(
     lockTrace
     ) where
 
-import           Control.Applicative            (Alternative (..))
 import           Control.Lens                   (at, (^.))
 import           Control.Monad                  (void)
 import qualified Data.Aeson                     as Aeson
 import qualified Data.Map                       as Map
 import           Data.Maybe                     (fromMaybe)
 import           GHC.Generics                   (Generic)
+import           Language.Plutus.Contract.IOTS                      (IotsType)
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Trace (ContractTrace, MonadEmulator)
 import qualified Language.Plutus.Contract.Trace as Trace
@@ -53,6 +58,11 @@ PlutusTx.makeLift ''HashedString
 newtype ClearString = ClearString ByteString
 
 PlutusTx.makeLift ''ClearString
+
+type GameSchema =
+    BlockchainActions
+        .\/ Endpoint "lock" LockParams
+        .\/ Endpoint "guess" GuessParams
 
 correctGuess :: HashedString -> ClearString -> Bool
 correctGuess (HashedString actual) (ClearString guess') = actual == sha2_256 guess'
@@ -82,20 +92,20 @@ data LockParams = LockParams
     , amount     :: Ada
     }
     deriving stock (Prelude.Eq, Prelude.Ord, Prelude.Show, Generic)
-    deriving anyclass (Aeson.FromJSON, Aeson.ToJSON)
+    deriving anyclass (Aeson.FromJSON, Aeson.ToJSON, IotsType)
 
 --  | Parameters for the "guess" endpoint
 newtype GuessParams = GuessParams
     { guessWord :: String
     }
     deriving stock (Prelude.Eq, Prelude.Ord, Prelude.Show, Generic)
-    deriving newtype (Aeson.FromJSON, Aeson.ToJSON)
+    deriving anyclass (Aeson.FromJSON, Aeson.ToJSON, IotsType)
 
-guess :: ContractActions r => Contract r ()
+guess :: Contract GameSchema ()
 guess = do
     st <- nextTransactionAt gameAddress
     let mp = AM.fromTxOutputs st
-    GuessParams theGuess <- endpoint "guess"
+    GuessParams theGuess <- endpoint @"guess" @GuessParams
     let
         txOutputs  = Map.toList . fromMaybe Map.empty $ mp ^. at gameAddress
         redeemer   = gameRedeemerScript theGuess
@@ -103,9 +113,9 @@ guess = do
         tx         = unbalancedTx inp []
     void (writeTx tx)
 
-lock :: ContractActions r => Contract r ()
+lock :: Contract GameSchema ()
 lock = do
-    LockParams secret amt <- endpoint "lock"
+    LockParams secret amt <- endpoint @"lock" @LockParams
     let
         vl         = Ada.toValue amt
         dataScript = gameDataScript secret
@@ -113,33 +123,33 @@ lock = do
         tx         = unbalancedTx [] [output]
     void (writeTx tx)
 
-game :: ContractActions r => Contract r ()
+game :: Contract GameSchema ()
 game = guess <|> lock
 
 lockTrace
     :: ( MonadEmulator m )
-    => ContractTrace m a ()
+    => ContractTrace GameSchema m a ()
 lockTrace =
     let w1 = Trace.Wallet 1 
         w2 = Trace.Wallet 2 in
-    Trace.callEndpoint w1 "lock" (LockParams "secret" 10) 
+    Trace.callEndpoint @"lock" w1 (LockParams "secret" 10) 
         >> Trace.notifyInterestingAddresses w2
         >> Trace.handleBlockchainEvents w1
 
 guessTrace
     :: ( MonadEmulator m )
-    => ContractTrace m a ()
+    => ContractTrace GameSchema m a ()
 guessTrace =
     let w2 = Trace.Wallet 2 in
     lockTrace 
-        >> Trace.callEndpoint w2 "guess" (GuessParams "secret") 
+        >> Trace.callEndpoint @"guess" w2 (GuessParams "secret") 
         >> Trace.handleBlockchainEvents w2
 
 guessWrongTrace
     :: ( MonadEmulator m )
-    => ContractTrace m a ()
+    => ContractTrace GameSchema m a ()
 guessWrongTrace =
     let w2 = Trace.Wallet 2 in
     lockTrace 
-        >> Trace.callEndpoint w2 "guess" (GuessParams "SECRET") 
+        >> Trace.callEndpoint @"guess" w2 (GuessParams "SECRET") 
         >> Trace.handleBlockchainEvents w2
