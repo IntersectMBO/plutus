@@ -424,8 +424,6 @@ let
 
       withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ packages.cabal-install ]; });
     };
-
-    shellTemplate = name: dev.withDevTools haskellPackages."${name}".env;
   });
 
 
