@@ -27,3 +27,6 @@ crowdfunding = strip $ T.decodeUtf8 $(makeRelativeToProject "usecases/CrowdFundi
 
 starter :: T.Text
 starter = strip $ T.decodeUtf8 $(makeRelativeToProject "usecases/Starter.hs" >>= embedFile)
+
+auctionEnglish :: T.Text
+auctionEnglish = strip $ T.decodeUtf8 $(makeRelativeToProject "usecases/Auction/English.hs" >>= embedFile)

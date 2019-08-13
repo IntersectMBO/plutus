@@ -44,7 +44,11 @@ replaceModuleName script =
 ensureMkFunctionExists :: Text -> Text
 ensureMkFunctionExists script =
     let scriptString = Text.unpack script
-        regex = Regex.mkRegex "^\\$\\(mkFunctions \\[.*])"
+        -- I don't really like this regex as it doesn't require properly formed mkFunctions
+        -- however I couldn't find a better regex that worked for all current usecases
+        -- additionally I think this check is strong enough to decide whether to add the
+        -- empty $(mkFunctions [])
+        regex = Regex.mkRegex "^\\$\\(mkFunctions[ \n\t].*"
         mMatches = Regex.matchRegexAll regex scriptString
      in case mMatches of
             Nothing -> script <> "\n$(mkFunctions [])"

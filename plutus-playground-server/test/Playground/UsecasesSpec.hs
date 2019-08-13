@@ -26,7 +26,7 @@ import           Playground.API               (CompilationResult (CompilationRes
                                                functionName, simulatorWalletBalance, simulatorWalletWallet)
 import qualified Playground.Interpreter       as PI
 import           Playground.Interpreter.Util  (TraceResult)
-import           Playground.Usecases          (crowdfunding, game, messages, vesting)
+import           Playground.Usecases          (auctionEnglish, crowdfunding, game, messages, vesting)
 import           Schema                       (FormSchema (FormSchemaInt, FormSchemaObject, FormSchemaValue))
 import           Test.Hspec                   (Spec, describe, it, shouldBe, shouldSatisfy)
 import           Wallet.Emulator.Types        (Wallet (Wallet))
@@ -38,6 +38,7 @@ spec = do
     messagesSpec
     crowdfundingSpec
     knownCurrencySpec
+    auctionEnglishSpec
 
 maxInterpretationTime :: Microsecond
 maxInterpretationTime = fromMicroseconds 100000000
@@ -233,6 +234,9 @@ hasFundsDistribution requiredDistribution (Right (InterpreterResult _ (_, _, act
 
 messagesSpec :: Spec
 messagesSpec = describe "messages" $ compilationChecks messages
+
+auctionEnglishSpec :: Spec
+auctionEnglishSpec = describe "Auction.English" $ compilationChecks auctionEnglish
 
 crowdfundingSpec :: Spec
 crowdfundingSpec =
