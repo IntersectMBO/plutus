@@ -2,14 +2,15 @@ module Opts where
 
 import Options.Applicative
 import Data.Semigroup ((<>))
-
-data Config = Config
-  { file      :: String
-  , quiet      :: Bool}
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
+data Config = Conf
+  { file  :: T.Text
+  , quiet :: Bool}
 
 
 config :: Parser Config
-config = Config
+config = Conf
       <$> strOption
           ( long "file"
          <> metavar "FILENAME"
@@ -28,7 +29,7 @@ execP = execParser opts
       ( fullDesc
      <> progDesc "run a Plutus Core program"
      <> header "plc-agda - a Plutus Core implementation written in Agda" )
-
+ 
 greet :: Config -> IO ()
-greet (Config h False) = putStrLn $ "Hello, " ++ h ++  "!"
+greet (Conf h False) = T.putStrLn h
 greet _ = return ()

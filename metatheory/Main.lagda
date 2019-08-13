@@ -157,11 +157,28 @@ postulate getArgs : IO (List String)
 
 {-# COMPILE GHC getArgs = (fmap . fmap) T.pack $ getArgs #-}
 
+{-# FOREIGN GHC import Opts #-}
+
+open import Data.Bool
+
+data Config : Set where
+  Conf : String → Bool → Config
+
+postulate execP : IO Config
+
+{-# COMPILE GHC Config = data Config (Conf) #-}
+{-# COMPILE GHC execP = execP #-}
+
+main' : Config → IO ⊤
+main' (Conf filename b) = testFile filename >>= putStrLn
+
 main : IO ⊤
-main = do
+main = execP >>= main'
+
+{- do
   (arg ∷ args) ← getArgs
     where [] → return _
-  testFile arg >>= putStrLn
+  testFile arg >>= putStrLn -}
 
 ex0 : RawTm
 ex0 = con (integer (pos 1))
