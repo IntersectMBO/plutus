@@ -171,7 +171,8 @@ term `PayToScript datascript`.
 
 Inside a
 transaction, the input which is used to pay to the script contains, again,
-the information `(txid, ix)`.
+the information `(txid, ix)`. It is the input structure that contains this data
+along with the data script.
 
 This part of the extended `TxIn` term in a
 transaction is used to look up the UTxO entry being
