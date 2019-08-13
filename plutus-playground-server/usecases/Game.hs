@@ -103,7 +103,11 @@ startGame =
     -- Player 2's wallet is aware of the game address.
     startWatching gameAddress
 
-$(mkFunctions ['lock, 'guess, 'startGame])
+$(mkFunctions 
+    ['lock
+    , 'guess
+    , 'startGame
+    ])
 
 {- Note [Contract endpoints]
 
