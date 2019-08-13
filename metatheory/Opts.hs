@@ -1,12 +1,13 @@
 module Opts where
 
-import Options.Applicative
-import Data.Semigroup ((<>))
+import           Data.Semigroup ((<>))
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
+import           Options.Applicative
+
 data Config = Conf
   { file  :: T.Text
-  , quiet :: Bool}
+  , ck    :: Bool}
 
 
 config :: Parser Config
@@ -32,4 +33,4 @@ execP = execParser opts
  
 greet :: Config -> IO ()
 greet (Conf h False) = T.putStrLn h
-greet _ = return ()
+greet _              = return ()
