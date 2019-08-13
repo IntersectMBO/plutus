@@ -147,16 +147,16 @@ postulate getArgs : IO (List String)
 
 {-# FOREIGN GHC import Opts #-}
 
-data Config : Set where
-  Conf : String → Bool → Config
+data EvalOptions : Set where
+  EvalOpts : String → Bool → EvalOptions
 
-postulate execP : IO Config
+postulate execP : IO EvalOptions
 
-{-# COMPILE GHC Config = data Config (Conf) #-}
+{-# COMPILE GHC EvalOptions = data EvalOptions (EvalOpts) #-}
 {-# COMPILE GHC execP = execP #-}
 
-main' : Config → IO ⊤
-main' (Conf filename b) = testFile b filename >>= putStrLn
+main' : EvalOptions → IO ⊤
+main' (EvalOpts filename b) = testFile b filename >>= putStrLn
 
 main : IO ⊤
 main = execP >>= main'

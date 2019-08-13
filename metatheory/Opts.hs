@@ -5,13 +5,12 @@ import qualified Data.Text           as T
 import qualified Data.Text.IO        as T
 import           Options.Applicative
 
-data Config = Conf
+data EvalOptions = EvalOpts
   { file :: T.Text
   , ck   :: Bool}
 
-
-config :: Parser Config
-config = Conf
+evalOpts:: Parser EvalOptions
+evalOpts = EvalOpts
       <$> strOption
           ( long "file"
          <> metavar "FILENAME"
@@ -23,14 +22,19 @@ config = Conf
 main :: IO ()
 main = greet =<< execP
 
-execP :: IO Config
-execP = execParser opts
+execP :: IO EvalOptions
+execP = execParser (info (opts <**> helper)
+                    (fullDesc
+                     <> progDesc "Plutus Core tool"
+                     <> header "plc-agda - a Plutus Core implementation written in Agda"))
+                    
   where
-    opts = info (config <**> helper)
+    opts = hsubparser (command "evaluate" (info (evalOpts <**> helper)
       ( fullDesc
-     <> progDesc "run a Plutus Core program"
-     <> header "plc-agda - a Plutus Core implementation written in Agda" )
+     <> progDesc "run a Plutus Core program")))
+     
 
-greet :: Config -> IO ()
-greet (Conf h False) = T.putStrLn h
-greet _              = return ()
+greet :: EvalOptions -> IO ()
+greet (EvalOpts h False) = T.putStrLn h
+greet _                  = return ()
+
