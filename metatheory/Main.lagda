@@ -112,30 +112,33 @@ vars {i = Z} = nil
 vars {i = S i} = consS "varS" (vars {i = i})
 vars {i = T i} = consT "varT" (vars {i = i})
 
+data EvalMode : Set where
+  CK L : EvalMode
+
 -- extrinsically typed evaluation
-stestPLC : Bool → ByteString → String
-stestPLC b plc with parse plc
-stestPLC b plc | just t with deBruijnifyTm nil (convP t)
-stestPLC Bool.false plc | just t | just t' with S.run (saturate t') 1000000
-stestPLC Bool.false plc | just t | just t' | t'' ,, _ ,, inj₁ (just _) =
+stestPLC : EvalMode → ByteString → String
+stestPLC m plc with parse plc
+stestPLC m plc | just t with deBruijnifyTm nil (convP t)
+stestPLC L plc | just t | just t' with S.run (saturate t') 1000000
+stestPLC L plc | just t | just t' | t'' ,, _ ,, inj₁ (just _) =
   prettyPrint (deDeBruijnify [] nil (unsaturate t''))
-stestPLC Bool.false plc | just t | just t' | t'' ,, p ,, inj₁ nothing = "out of fuel"
-stestPLC Bool.false plc | just t | just t' | t'' ,, p ,, inj₂ e =
+stestPLC L plc | just t | just t' | t'' ,, p ,, inj₁ nothing = "out of fuel"
+stestPLC L plc | just t | just t' | t'' ,, p ,, inj₂ e =
   "runtime error" Data.String.++
   prettyPrint (deDeBruijnify [] nil (unsaturate t''))
-stestPLC Bool.true plc | just t | just t' with stepper 1000000000 _ (ε ▻ saturate t')
-stestPLC Bool.true plc | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
+stestPLC CK plc | just t | just t' with stepper 1000000000 _ (ε ▻ saturate t')
+stestPLC CK plc | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
   prettyPrint (deDeBruijnify tvars vars (unsaturate t''))
-stestPLC Bool.true plc | just t | just t' | _ ,, _ ,, _ ,,  just _ =
+stestPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  just _ =
   "this shouldn't happen"
-stestPLC Bool.true plc | just t | just t' | _ ,, _ ,, _ ,,  nothing = "out of fuel"
-stestPLC b plc | just t | nothing = "scope error"
-stestPLC b plc | nothing = "parse error"
+stestPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  nothing = "out of fuel"
+stestPLC m plc | just t | nothing = "scope error"
+stestPLC m plc | nothing = "parse error"
 
-testFile : Bool → String → IO String
-testFile b fn = do
+testFile : EvalMode → String → IO String
+testFile m fn = do
   t ← readFile fn
-  return (stestPLC b t)
+  return (stestPLC m t)
 
 {-# FOREIGN GHC import System.Environment #-}
 
@@ -148,15 +151,16 @@ postulate getArgs : IO (List String)
 {-# FOREIGN GHC import Opts #-}
 
 data EvalOptions : Set where
-  EvalOpts : String → Bool → EvalOptions
+  EvalOpts : String → EvalMode → EvalOptions
 
 postulate execP : IO EvalOptions
 
 {-# COMPILE GHC EvalOptions = data EvalOptions (EvalOpts) #-}
+{-# COMPILE GHC EvalMode = data EvalMode (CK | L) #-}
 {-# COMPILE GHC execP = execP #-}
 
 main' : EvalOptions → IO ⊤
-main' (EvalOpts filename b) = testFile b filename >>= putStrLn
+main' (EvalOpts filename m) = testFile m filename >>= putStrLn
 
 main : IO ⊤
 main = execP >>= main'

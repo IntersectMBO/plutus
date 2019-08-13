@@ -5,19 +5,29 @@ import qualified Data.Text           as T
 import qualified Data.Text.IO        as T
 import           Options.Applicative
 
+data EvalMode = CK | L deriving (Show, Read)
+
 data EvalOptions = EvalOpts
   { file :: T.Text
-  , ck   :: Bool}
+  , mode :: EvalMode}
 
-evalOpts:: Parser EvalOptions
+
+evalMode :: Parser EvalMode
+evalMode = option auto
+  (  long "mode"
+  <> short 'm'
+  <> metavar "MODE"
+  <> value CK
+  <> showDefault
+  <> help "Evaluation mode (one of CK or L)" )
+
+evalOpts :: Parser EvalOptions
 evalOpts = EvalOpts
       <$> strOption
           ( long "file"
          <> metavar "FILENAME"
          <> help "Plutus Core source file" )
-      <*> switch
-          ( long "ck"
-         <> help "Whether to execute using the CK machine" )
+      <*> evalMode
 
 main :: IO ()
 main = greet =<< execP
@@ -29,12 +39,13 @@ execP = execParser (info (opts <**> helper)
                      <> header "plc-agda - a Plutus Core implementation written in Agda"))
                     
   where
-    opts = hsubparser (command "evaluate" (info (evalOpts <**> helper)
+    opts = hsubparser (command "evaluate" (info evalOpts
       ( fullDesc
      <> progDesc "run a Plutus Core program")))
      
 
 greet :: EvalOptions -> IO ()
-greet (EvalOpts h False) = T.putStrLn h
-greet _                  = return ()
+greet (EvalOpts h CK) = T.putStr h >> T.putStrLn (T.pack "CK")
+greet (EvalOpts h L)  = T.putStr h >> T.putStrLn (T.pack "L")
+--greet _               = return ()
 
