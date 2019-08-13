@@ -1,13 +1,13 @@
 module Opts where
 
-import           Data.Semigroup ((<>))
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import           Data.Semigroup      ((<>))
+import qualified Data.Text           as T
+import qualified Data.Text.IO        as T
 import           Options.Applicative
 
 data Config = Conf
-  { file  :: T.Text
-  , ck    :: Bool}
+  { file :: T.Text
+  , ck   :: Bool}
 
 
 config :: Parser Config
@@ -30,7 +30,7 @@ execP = execParser opts
       ( fullDesc
      <> progDesc "run a Plutus Core program"
      <> header "plc-agda - a Plutus Core implementation written in Agda" )
- 
+
 greet :: Config -> IO ()
 greet (Conf h False) = T.putStrLn h
 greet _              = return ()
