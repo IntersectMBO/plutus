@@ -37,8 +37,8 @@ import           Ledger                     (PubKey (..), Signature (..), Slot (
 import           Ledger.Ada                 (Ada)
 import qualified Ledger.Ada                 as Ada
 import           Ledger.Interval            (Interval (..))
-import           Ledger.Validation
 import           Ledger.Scripts             (DataScriptHash (..), RedeemerHash (..))
+import           Ledger.Validation
 import           LedgerBytes                (LedgerBytes (..))
 import           Text.PrettyPrint.Leijen    (text)
 
@@ -603,6 +603,11 @@ are no commits left in the contract. When contract evaluation is unable to
 progress, `(state, contract, False)` is returned with the input
 values unchanged.
 
+An example of when contract evaluation may not progress according to the input
+command is when a participant attempts to input the `Redeem` command to collect
+funds from the contract, but the contract is not defined by the `RedeemCC`
+constructor. In this case, `False` is returned as the validation result.
+
 [source,haskell]
 ----
 {-# INLINABLE evaluateContract #-}
@@ -766,7 +771,19 @@ mergeChoices input choices = let
     in merge input choices
 ----
 
-Now for the final piece of the puzzle, we look at what the validator does.
+Now for the final piece of the puzzle: building the validator script.
+The function below is not a map to type `ValidatorScript`, but it will be used
+in the `Client` module to define the validator script. The first argument
+will be passed the `PubKey` of the transaction author, the second argument
+is the data script (i.e. the current state and contract), and third is
+the redeemer (i.e. the input and the expected result of the evaluation of the
+current contract according to this input).
+
+The validation procedure consists of validating both the state and contract
+in the data script using the `validateContract` check described above, and
+the evaluating it with `evaluateContract`. This function must return `True` as the
+validation result, along with state and contract values which are the same
+as those passed as the data script parameter (first argument) to `validatorScript`.
 
 
 [source,haskell]
@@ -842,3 +859,32 @@ validatorScript
             allow to spend contract's money. It's likely to be created by mistake -}
         else if null currentCommits then () else Builtins.error ()
 ----
+
+[NOTE]
+====
+.Invalid Initial Data Scripts Are Possible
+
+The `contractIsValid` boolean value is computed on-chain as part of script validation.
+When the validator script defined using the above code is applied to the appropriate
+arguments (data script, redeemer, transaction and ledger data), this value is true if
+the _current_ data script at the UTxO entry the transaction
+is attempting to spend is a valid contract and state. The validity of the
+evaluated state and contract (i.e. the new data script values which will lock the
+funds associated with this contract once the carrying transaction is validated)
+is computed by `evaluateContract`.
+
+If this function does not return true,
+the transaction is not validated. This means that only valid new data scripts
+can end up on the ledger as a result of evaluating existing Marlowe contracts.
+However, when paying into a contract initially, _any_ valid Plutus data script can be
+submitted in the transaction, even one that is not valid Marlowe.
+It does not directly benefit anyone to pay into a contract
+where the funds remain locked forever due to an invalid data script. It is
+possible, however, that one can potentially be disruptive to the operation
+of the blockchain in some way by making unspendable UTxO entries.
+
+This issue of invalid data scripts is not unique to Marlowe contracts. In
+general, it is a good idea to define contracts to perform initial data script
+validation off-chain, but it is not straightforward to enforce this.
+
+====

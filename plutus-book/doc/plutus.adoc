@@ -74,4 +74,6 @@ include::non-fungible/non-fungible.adoc[]
 
 include::auction/auction.adoc[]
 
+include::marlowe/marlowe_doc.adoc[]
+
 include::endmatter.adoc[]
