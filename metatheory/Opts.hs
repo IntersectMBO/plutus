@@ -57,5 +57,4 @@ execP = execParser (info (opts <**> helper)
 greet :: EvalOptions -> IO ()
 greet (EvalOpts (FileInput h) CK) = T.putStr h >> T.putStrLn (T.pack "CK")
 greet (EvalOpts (FileInput h) L)  = T.putStr h >> T.putStrLn (T.pack "L")
-greet _               = return ()
 
