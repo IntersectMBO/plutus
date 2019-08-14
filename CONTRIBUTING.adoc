@@ -10,9 +10,9 @@ dependencies present, so is suitable for building the packages with
 e.g. `cabal v2-build`.
 
 An environment for developing a particular package in isolation can be
-entered by using `nix-shell` in the package directory. This has all the
-dependencies, including local ones, provided. This shouldn’t be
-necessary any more, but is useful if you need to use an old-style
+entered by using `nix-shell default.nix -A localPackages.<package name>.env`. 
+This has all the dependencies, *including* local ones, provided. 
+This shouldn’t be necessary unless you need to use an old-style
 `cabal` command that only works in a single package context.
 
 You can also use `cabal` and `stack` outside a Nix environment to build
