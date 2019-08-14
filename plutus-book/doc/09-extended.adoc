@@ -156,28 +156,86 @@ the output to which the carrying transaction pays
 - each output belonging to a (validator) script address must have an associated data script
 * Hash computed as part of transaction validation
 
+[start=3]
+. Redeemer script
+* Carried by a transaction which is spending funds from a script address
+* A piece of information the wallet must provide in order for a
+transaction to spend from a
+script address, and can be thought of as an action, such as a
+- guessing a secret word (the guess can be verified using the _data_ script)
+- an input command which is interpreted by the validator
+as spending money from a script (this changes the data script of the contract)
+* Validator evaluates to `True` if a suitable redeemer script is provided in
+the context of other conditions being met by
+- the data script, ledger state, and carrying transaction data
+* Value is never stored on-chain, and only appears as part of transaction data
+* Hash computed if and when it is necessary for script validation, not stored on-chain
+
+There is one more argument that the validator data script takes which is put
+together out of transaction and ledger data,
+
+[start=4]
+. A `PendingTx` value.
+* Contains information about the current transaction
+- inputs and outputs
+- validity interval, etc.
+* Also contains information about the ledger state, which is provided by the
+specific node doing the transaction validation
+
+
+Now, let us look more closely at how these scripts fit into the extended model
+transaction and UTxO structure.
+
 Recall that in the classic model, UTxO entries are of the form
-`(txid, ix) |-> (a,c)`, where `a` is the address of the owner of the funds
-(the paying or staking key, usually), and `c` is the value of Ada in the output.
+`(txid, ix) |-> (a,c)`. The pair `(a,c)` has type `TxOut` and is called an output,
+where `a` is the address of the owner of the funds
+(the paying or staking public key, usually), and `c` is the value of Ada in the output.
 
 For the extended model, if `a` is a script
 address (hash of the validator script), we must store additional data on the
-ledger alongside - the data script. It must be stored in full, not just the
+ledger in the `TxOut` - the data script. It must be stored in full, not just the
 hash, since it will be passed as an argument to the validator during
 validation of a transaction which is trying to spend this output.
-consists of the (validator hash) address
-of the script and the coin value, defined as a structure which also includes a
-term `PayToScript datascript`.
+The extended `TxOut` for a script address contains
 
-Inside a
-transaction, the input which is used to pay to the script contains, again,
-the information `(txid, ix)`. It is the input structure that contains this data
-along with the data script.
+- an address `a`, which is the hash of the validator
+- the value `c` of funds at this address
+- the type of the output, and the data script, expressed as `PayToScript datascript`:
 
-This part of the extended `TxIn` term in a
-transaction is used to look up the UTxO entry being
-spent to pay to the script (which may itself be a script or a public key
-type address). This `(txid, ix)` data is bundled inside the `TxIn` structure
+A `TxOut` which belongs to a public key address contains only the address and the value.
+Thus, a term of the `TxOut` data structure type includes a term of the type:
+
+`data TxOutType =`
+`    PayToScript !DataScript -- A pay-to-script output with the given data script.`
+`    | PayToPubKey !PubKey -- A pay-to-pubkey output.`
+
+This is how the outputs are structured both inside the carrying transaction
+and the UTxO. In the extended model, the position in the outputs list
+carried by a transaction is the reference index `ix` of that output.
+that will be use `[TxOut]`. In the UTxO, the outputs are stored as a finite
+map with the keys of the form `(txid, ix)`. Once a transaction is validated,
+the update mechanism
+of the UTxO is the same for both the the extended and classic model (with the
+extended model storing the additional `TxOutType` data described above).
+For a reminder, see the <<03-UTXO#03-UTXO>> chapter.
+
+In the classic model, the inputs of a transaction are simply references to
+the UTxO entries which the transaction is spending, so they are
+of the form `(txid, ix)` - just like the keys of the UTxO finite map.
+In the extended model, we call this pair
+`TxOutRef` in the code, and it makes up only a part of the `TxIn`.
+Additionally, for an `TxOutRef` which references a script address (i.e. is
+spending from a script), the full validator and redeemer script must be included
+in the `TxIn` data. So, in the `TxIn` data type, we add a term of the following
+type:
+
+`data TxInType =`
+`      ConsumeScriptAddress !ValidatorScript !RedeemerScript `
+`    -- ^ A transaction input that consumes a script address with the given validator and redeemer pair.`
+`    | ConsumePublicKeyAddress !PubKey `
+`    -- ^ A transaction input that consumes a public key address.`
+
+=== The Seal Mechanism
 
 A transaction may be paying to a particular (validator) script address by creating
 several different entries in the ledger UTxO associated this address, but each with
@@ -187,50 +245,9 @@ these are Plutus Core programs).
 In order to spend an output with a specific data script, the validator may need
 to know the other data script values for this validator address. It may also
 want the option to throw away the data scripts that validation does not care about.
-To accommodate this, the `Sealed` mechanism is used, which we discuss below.
-
-Recall that in the classical UTxO model, when a transaction paying to a script
-gets validated, the resulting `TxOut` entry is the same as the output inside
-the transaction output finite map, `Ix |-> TxOut`
-entry (or entries) added to the UTxO are the same as the output entries pa
+To accommodate this, the `Sealed` mechanism is used.
 
 
-
-`data TxOutType =`
-`    PayToScript !DataScript -- A pay-to-script output with the given data script.`
-`    | PayToPubKey !PubKey -- A pay-to-pubkey output.`
-
-data TxInType =
-      ConsumeScriptAddress !ValidatorScript !RedeemerScript -- ^ A transaction input that consumes a script address with the given validator and redeemer pair.
-    | ConsumePublicKeyAddress !PubKey -- ^ A transaction input that consumes a public key address.
-
-
-This allows an output to contain quantities of multiple custom currencies
-in addition to some quantity (possibly zero) of the native currency.
-
-[start=3]
-. Redeemer script
-* Carried by a transaction which is spending funds from a script address
-- inside a transaction, redeemer scripts are indexed by the hash of the
-validator (not the redeemer itself) for which they are intended
-* Usually represents the action a wallet chooses to take,
-such as
-- collect funds from a script
-- refund payments made to a script
-- guess a word
-* Only a unique value of
-the redeemer script will cause the validator to evaluate to true, given
-the other input data, i.e. data script, ledger state, and carrying transaction data
-* Value is never stored on-chain, and only appears as part of transaction data
-* Hash computed if and when it is necessary for script validation, not stored on-chain
-
-This
-script value must be deterministically generated by the wallet when the conditions
-to take a particular action have been met (e.g. a user takes a specific action
-or a certain time is reached).
-It is the responsibility of the developer of the contract to make sure
-the event triggers, endpoints and validator script are defined in such a way
-that this is true.
 
 [NOTE]
 ====
@@ -261,13 +278,7 @@ ones from the pending transaction under scrutiny.
 
 ====
 
-[start=4]
-. A `PendingTx` value.
-* Contains information about the current transaction
-- inputs and outputs
-- validity interval, etc.
-* Also contains information about the ledger state, which is provided by the
-specific node doing the transaction validation
+
 
 When we say an output is locked by a script, or belongs to a script address,
 this means that the address of this UTxO entry is the hash of some validator
