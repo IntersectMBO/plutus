@@ -52,7 +52,8 @@ postulate
   readFile : String → IO ByteString
   parse : ByteString → Maybe Program
   showTerm : RawTm → String
-
+  getContents : IO ByteString
+  
 {-# FOREIGN GHC import Language.PlutusCore.Name #-}
 {-# FOREIGN GHC import Language.PlutusCore.Lexer #-}
 {-# FOREIGN GHC import Language.PlutusCore.Parser #-}
@@ -62,6 +63,7 @@ postulate
 {-# FOREIGN GHC import Raw #-}
 {-# COMPILE GHC convP = convP #-}
 {-# FOREIGN GHC import qualified Data.ByteString.Lazy as BSL #-}
+{-# COMPILE GHC getContents = BSL.getContents #-}
 {-# COMPILE GHC imap = \_ _ -> fmap #-}
 {-# COMPILE GHC mmap = \_ _ -> fmap #-}
 {-# COMPILE GHC mbind = \_ _ f a -> f =<< a #-}
@@ -135,11 +137,6 @@ stestPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  nothing = "out of fuel"
 stestPLC m plc | just t | nothing = "scope error"
 stestPLC m plc | nothing = "parse error"
 
-testFile : EvalMode → String → IO String
-testFile m fn = do
-  t ← readFile fn
-  return (stestPLC m t)
-
 {-# FOREIGN GHC import System.Environment #-}
 
 open import Data.List
@@ -150,8 +147,14 @@ postulate getArgs : IO (List String)
 
 {-# FOREIGN GHC import Opts #-}
 
+data Input : Set where
+  FileInput : String → Input
+  StdInput : Input
+
+{-# COMPILE GHC Input = data Input (FileInput | StdInput) #-}
+
 data EvalOptions : Set where
-  EvalOpts : String → EvalMode → EvalOptions
+  EvalOpts : Input → EvalMode → EvalOptions
 
 postulate execP : IO EvalOptions
 
@@ -159,8 +162,12 @@ postulate execP : IO EvalOptions
 {-# COMPILE GHC EvalMode = data EvalMode (CK | L) #-}
 {-# COMPILE GHC execP = execP #-}
 
+testFile : EvalMode → Input → IO String
+testFile m (FileInput fn) = imap (stestPLC m) (readFile fn)
+testFile m StdInput       = imap (stestPLC m) getContents 
+
 main' : EvalOptions → IO ⊤
-main' (EvalOpts filename m) = testFile m filename >>= putStrLn
+main' (EvalOpts i m) = testFile m i >>= putStrLn
 
 main : IO ⊤
 main = execP >>= main'
