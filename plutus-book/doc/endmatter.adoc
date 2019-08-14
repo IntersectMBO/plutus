@@ -186,7 +186,7 @@ ACM SIGSAC Conference on Computer and Communications Security (CCS ’18). ACM, 
 Multi-currency on the UTXO Ledger. Technical report, IOHK, 2019.
 Available at https://github.com/input-output-hk/plutus/tree/master/docs/multi-currency.
 
-- [[[marlowe,5]]] (Anonymous). 2018. Marlowe: Financial Contracts on Blockchain. In Leveraging
+- [[[marlowepaper,5]]] (Anonymous). 2018. Marlowe: Financial Contracts on Blockchain. In Leveraging
 Applications of Formal Methods, Verification
 and Validation. Industrial Practice. ISoLA 2018. (LNCS), Vol. 11247.
 
