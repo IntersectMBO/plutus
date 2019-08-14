@@ -179,10 +179,30 @@ together out of transaction and ledger data,
 * Contains information about the current transaction
 - inputs and outputs
 - validity interval, etc.
-* Also contains information about the ledger state, which is provided by the
-specific node doing the transaction validation
 
+The following function is used to perform the validation (i.e. apply the
+validator to the relevant inputs) using the
+scripts described above:
 
+----
+runScript
+    :: (MonadError ScriptError m)
+    => Checking
+    -> ValidationData
+    -- ^ contains the PendingTx data
+    -> DataScripts
+    -- ^ a list of data scripts that may be used in the validation computation
+    -- ^ more on these in the note below
+    -> ValidatorScript
+    -- ^ the validator
+    -> DataScript
+    -- ^ the specific data script locking the input for which the validation is being performed
+    -> RedeemerScript
+    -- ^ the redeemer
+    -> m [String]
+----
+
+We will explain the purpose of the argument of type `DataScripts` in the note below.
 Now, let us look more closely at how these scripts fit into the extended model
 transaction and UTxO structure.
 
@@ -210,9 +230,9 @@ Thus, a term of the `TxOut` data structure type includes a term of the type:
 `    | PayToPubKey !PubKey -- A pay-to-pubkey output.`
 
 This is how the outputs are structured both inside the carrying transaction
-and the UTxO. In the extended model, the position in the outputs list
-carried by a transaction is the reference index `ix` of that output.
-that will be use `[TxOut]`. In the UTxO, the outputs are stored as a finite
+and the UTxO. In the extended model, the position of an output in the outputs list
+carried by a transaction is its reference index `ix`.
+In the UTxO, the outputs are stored as a finite
 map with the keys of the form `(txid, ix)`. Once a transaction is validated,
 the update mechanism
 of the UTxO is the same for both the the extended and classic model (with the
@@ -235,7 +255,31 @@ type:
 `    | ConsumePublicKeyAddress !PubKey `
 `    -- ^ A transaction input that consumes a public key address.`
 
-=== The Seal Mechanism
+To recap the paying and spending process in a different way,
+
+. Paying to a script address
+* Transaction contains an output `o` where the address in it is the hash of the
+validator script
+* `o` also contains the corresponding data script
+* `o` becomes a value in the UTxO map once the carrying transaction is processed
+* No validation occurs
+- Neither the full validator nor the redeemer are part of this payment process
+
+. Spending from a script address
+* Transaction contains an input `i` which
+- references the output in the UTxO it is spending
+- contains the full validator and redeemer scripts
+* The UTxO entry which `i` references is a script address, and thus has a
+data script stored in the output
+- the validator script `i` provides must hash to this script address
+* Validation is done at this point for the spending of the specific output
+`i` references
+- we have the validator, redeemer and data script all available 
+- if it succeeds, the transaction is allowed to spend the UTxO output `i` references
+
+[NOTE]
+====
+. The Seal Mechanism
 
 A transaction may be paying to a particular (validator) script address by creating
 several different entries in the ledger UTxO associated this address, but each with
@@ -247,10 +291,6 @@ to know the other data script values for this validator address. It may also
 want the option to throw away the data scripts that validation does not care about.
 To accommodate this, the `Sealed` mechanism is used.
 
-
-
-[NOTE]
-====
 
 Let's say your "actual" redeemer script (the one expected by the validator script)
 has type r.
@@ -318,17 +358,7 @@ must compute on, e.g. a public key-type term as the data script argument.
 
 To summarize, the node computes
 
-----
-runScript
-    :: (MonadError ScriptError m)
-    => Checking
-    -> ValidationData
-    -> DataScripts
-    -> ValidatorScript
-    -> DataScript
-    -> RedeemerScript
-    -> m [String]
-----
+
 
 where
 
