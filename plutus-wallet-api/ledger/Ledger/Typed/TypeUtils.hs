@@ -22,6 +22,8 @@ hfOut :: forall o f (ts :: [Type]) . (forall a . f a -> o) -> HListF f ts -> [o]
 hfOut _ HNilF = []
 hfOut f (HConsF e es) = f e : hfOut f es
 
+-- Type-level lists
+
 -- | Assert that a constraint holds for all types in a type-level list.
 type family All (c :: Type -> Constraint) (ts :: [Type]) :: Constraint where
     All c '[] = ()
@@ -31,3 +33,31 @@ type family All (c :: Type -> Constraint) (ts :: [Type]) :: Constraint where
 type family Uncurry (l :: [Type]) r where
     Uncurry '[] r = r
     Uncurry (x ': xs) r = x -> Uncurry xs r
+
+-- Defunctionalization
+-- Mostly lifted from singletons
+
+data TyFun :: Type -> Type -> Type
+
+type a ~> b = TyFun a b -> Type
+
+type family Apply (f :: k1 ~> k2) (x :: k1) :: k2
+
+type family Map (f :: k1 ~> k2) (l :: [k1]) :: [k2] where
+    Map f '[] = '[]
+    Map f (x ': xs) = Apply f x ': Map f xs
+
+-- List witnesses
+
+data ListWitness (ts :: [Type]) where
+    NilWit :: ListWitness '[]
+    ConsWit :: ListWitness xs -> ListWitness (x ': xs)
+
+class HasListWitness (ts :: [Type]) where
+    listWit :: ListWitness ts
+
+instance HasListWitness '[] where
+    listWit = NilWit
+
+instance HasListWitness xs => HasListWitness (x ': xs) where
+    listWit = ConsWit listWit

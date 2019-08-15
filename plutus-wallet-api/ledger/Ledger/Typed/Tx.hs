@@ -51,9 +51,6 @@ import qualified Data.Set                     as Set
 
 import           Control.Monad.Except
 
-import qualified Data.Singletons              as Sing
-import qualified Data.Singletons.Prelude.List as Sing
-
 -- | A class that associates a type standing for a connection type with two types, the type of the redeemer
 -- and the data script for that connection type.
 class ScriptType (a :: Type) where
@@ -82,38 +79,24 @@ validatorScript :: ScriptInstance a -> ValidatorScript
 validatorScript (Validator vc) = ValidatorScript $ fromCompiledCode vc
 
 -- | Defunctionalized symbol for use with 'Apply'.
-data SealedDataTypeSym :: Type Sing.~> Type
-type instance Sing.Apply SealedDataTypeSym a = PlutusTx.Sealed (HashedDataScript (DataType a))
+data SealedDataTypeSym :: Type ~> Type
+type instance Apply SealedDataTypeSym a = PlutusTx.Sealed (HashedDataScript (DataType a))
 -- | Defunctionalized symbol for use with 'Apply'.
-data DataTypeSym :: Type Sing.~> Type
-type instance Sing.Apply DataTypeSym a = DataType a
+data DataTypeSym :: Type ~> Type
+type instance Apply DataTypeSym a = DataType a
 
 -- | The type of a redeemer function for the given output types and input type.
-type RedeemerFunctionType (outs :: [Type]) (inn :: Type) = Uncurry (Sing.Map SealedDataTypeSym outs) (RedeemerType inn)
-
--- | A wrapper around lists. The main difference is that we define singletons for this that only witness the shape, not
--- the values inside.
-data Shallow (xs :: [a]) = Shallow
-
-data instance Sing.Sing (Shallow xs) where
-    SNil :: Sing.Sing (Shallow '[])
-    SCons :: Sing.Sing (Shallow xs) -> Sing.Sing (Shallow (x ': xs))
-
-instance Sing.SingI (Shallow '[]) where
-    sing = SNil
-
-instance Sing.SingI (Shallow xs) => Sing.SingI (Shallow (x ': xs)) where
-    sing = SCons Sing.sing
+type RedeemerFunctionType (outs :: [Type]) (inn :: Type) = Uncurry (Map SealedDataTypeSym outs) (RedeemerType inn)
 
 ignoreDataScripts
     :: forall (outs :: [Type]) (inn :: Type)
-    . (All Typeable (Sing.Map SealedDataTypeSym outs))
-    => Sing.Sing (Shallow outs)
+    . (All Typeable (Map SealedDataTypeSym outs))
+    => ListWitness outs
     -> Proxy inn
     -> CompiledCode (RedeemerType inn)
     -> CompiledCode (RedeemerFunctionType outs inn)
-ignoreDataScripts SNil _ c = c
-ignoreDataScripts (SCons tsing) _ c =
+ignoreDataScripts NilWit _ c = c
+ignoreDataScripts (ConsWit tsing) _ c =
         Lift.unsafeConstCode Proxy $
             ignoreDataScripts tsing (Proxy @inn) c
 

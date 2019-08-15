@@ -154,7 +154,6 @@ library plutus-ledger
         http-api-data -any,
         cardano-crypto -any,
         playground-common -any,
-        singletons -any,
         deepseq -any
 
     ghc-options: -fprint-potential-instances

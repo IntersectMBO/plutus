@@ -53721,6 +53721,7 @@ bytestring
 containers
 hspec
 plutus-emulator
+plutus-tx
 plutus-wallet-api
 text
 ];
@@ -54527,12 +54528,12 @@ license = stdenv.lib.licenses.asl20;
 , newtype-generics
 , operational
 , playground-common
+, plutus-ir
 , plutus-tx
 , prettyprinter
 , recursion-schemes
 , serialise
 , servant
-, singletons
 , stdenv
 , tasty
 , tasty-hedgehog
@@ -54569,12 +54570,12 @@ natural-transformation
 newtype-generics
 operational
 playground-common
+plutus-ir
 plutus-tx
 prettyprinter
 recursion-schemes
 serialise
 servant
-singletons
 template-haskell
 text
 transformers
