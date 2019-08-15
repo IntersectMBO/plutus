@@ -28,7 +28,6 @@ spec =
     monaLisa = "Mona Lisa"
     starryNight = "The Starry Night"
 
-
     tr :: Trace MockWallet ()
     tr = void $ do
         updateWallets

@@ -248,6 +248,12 @@ Let us look at the code for this:
 
 include::nonfungible8.adoc[]
 
+The transaction graph for first starting our non-fungible token and then
+creating a _Monad Lisa_ token and _The Starry Night_ token looks as follows -
+trying to forge the _Mona Lisa_ token a second time fails.
+
+image:non-fungible-txs.png[]
+
 Finally we have reached our goal: By systematically closing loophole after
 loophole, we now have a contract that is reliable and secure. Nobody can
 interfere with us, and everybody can be certain that no matter what we do, there

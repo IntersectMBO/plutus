@@ -1,0 +1,1 @@
+../../doc/auction/english.adoc

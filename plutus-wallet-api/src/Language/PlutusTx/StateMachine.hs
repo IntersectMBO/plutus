@@ -14,14 +14,17 @@ module Language.PlutusTx.StateMachine(
     , mkRedeemer
     ) where
 
-import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Prelude hiding (check)
 
 import           Ledger.Scripts            (HashedDataScript (..))
 import           Ledger.Validation         (PendingTx, findContinuingOutputs, findDataScriptOutputs)
 
--- | Specification of a state machine
-newtype StateMachine s i = StateMachine {
-      smTransition :: s -> i -> PendingTx -> s
+-- | Specification of a state machine, consisting of a transition function that determines the
+-- next state from the current state and an input, and a checking function that checks the validity
+-- of the transition in the context of the current transaction.
+data StateMachine s i = StateMachine {
+      smTransition :: s -> i -> Maybe s,
+      smCheck      :: s -> i -> PendingTx -> Bool
     }
 
 -- | A state machine redeemer takes the data
@@ -39,7 +42,7 @@ mkRedeemer i ss = (i, ss)
 {-# INLINABLE mkValidator #-}
 -- | Turn a transition function 's -> i -> s' into a validator script.
 mkValidator :: Eq s => StateMachine s i -> StateMachineValidator s i
-mkValidator (StateMachine trans) currentState (input, unseal -> HashedDataScript newState hsh) ptx =
+mkValidator (StateMachine step check) currentState (input, unseal -> HashedDataScript newState hsh) ptx =
     let
         vsOutput = uniqueElement (findContinuingOutputs ptx)
         dsOutputs = findDataScriptOutputs hsh ptx
@@ -54,8 +57,12 @@ mkValidator (StateMachine trans) currentState (input, unseal -> HashedDataScript
             -- that the unique continuing output is one of the ones with this data script.
             Just i  -> traceIfFalseH "The data script must be attached to the ongoing output" (i `elem` dsOutputs)
 
-        expectedState = trans currentState input ptx
-        stateOk =
-            traceIfFalseH "State transition invalid - 'expectedState' not equal to 'newState'"
-            (expectedState == newState)
-    in dataScriptOk && stateOk
+        stateOk = case step currentState input of
+            Just expectedState ->
+                traceIfFalseH "State transition invalid - 'expectedState' not equal to 'newState'"
+                (expectedState == newState)
+            Nothing -> traceH "State transition invalid - input is not a valid transition at the current state" False
+        checkOk =
+            traceIfFalseH "State transition invalid - checks failed"
+            (check currentState input ptx)
+    in dataScriptOk && stateOk && checkOk

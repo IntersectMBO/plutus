@@ -25,7 +25,7 @@ import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
 import qualified Data.Text                    as Text
 import qualified Language.PlutusTx            as PlutusTx
-import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Prelude    hiding (check)
 import           Ledger                       hiding (to)
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Value                 (TokenName)
@@ -55,41 +55,41 @@ data GameInput =
 
 PlutusTx.makeLift ''GameInput
 
+{-# INLINABLE step #-}
+step :: GameState -> GameInput -> Maybe GameState
+step state input = case (state, input) of
+    (Initialised s, ForgeToken tn) -> Just $ Locked tn s
+    (Locked tn _, Guess _ nextSecret) -> Just $ Locked tn nextSecret
+    _ -> Nothing
+
+{-# INLINABLE check #-}
+check :: GameState -> GameInput -> PendingTx -> Bool
+check state input ptx = case (state, input) of
+    (Initialised _, ForgeToken tn) -> checkForge (tokenVal tn)
+    (Locked tn currentSecret, Guess theGuess _) -> checkGuess currentSecret theGuess && tokenPresent tn && checkForge V.zero
+    _ -> False
+    where
+        -- | Given a 'TokeName', get the value that contains
+        --   exactly one token of that name in the contract's
+        --   currency.
+        tokenVal :: TokenName -> V.Value
+        tokenVal tn =
+            let ownSymbol = Validation.ownCurrencySymbol ptx
+            in V.singleton ownSymbol tn 1
+        -- | Check whether the token that was forged at the beginning of the
+        --   contract is present in the pending transaction
+        tokenPresent :: TokenName -> Bool
+        tokenPresent tn =
+            let vSpent = Validation.valueSpent ptx
+            in  V.geq vSpent (tokenVal tn)
+        -- | Check whether the value forged by the  pending transaction 'p' is
+        --   equal to the argument.
+        checkForge :: Value -> Bool
+        checkForge vl = vl == (Validation.pendingTxForge ptx)
+
 {-# INLINABLE mkValidator #-}
 mkValidator :: SM.StateMachineValidator GameState GameInput
-mkValidator =
-    let
-        -- | The SM.transition function of the game's state machine
-        trans :: GameState -> GameInput -> PendingTx -> GameState
-        trans state input p = case (state, input) of
-            (Initialised s, ForgeToken tn) ->
-                if checkForge (tokenVal tn)
-                then Locked tn s
-                else error ()
-            (Locked tn currentSecret, Guess theGuess nextSecret) ->
-                if checkGuess currentSecret theGuess && tokenPresent tn && checkForge V.zero
-                then Locked tn nextSecret
-                else error ()
-            _ -> traceErrorH "Invalid SM.transition"
-            where
-                -- | Given a 'TokeName', get the value that contains
-                --   exactly one token of that name in the contract's
-                --   currency.
-                tokenVal :: TokenName -> V.Value
-                tokenVal tn =
-                    let ownSymbol = Validation.ownCurrencySymbol p
-                    in V.singleton ownSymbol tn 1
-                -- | Check whether the token that was forged at the beginning of the
-                --   contract is present in the pending transaction
-                tokenPresent :: TokenName -> Bool
-                tokenPresent tn =
-                    let vSpent = Validation.valueSpent p
-                    in  V.geq vSpent (tokenVal tn)
-                -- | Check whether the value forged by the  pending transaction 'p' is
-                --   equal to the argument.
-                checkForge :: Value -> Bool
-                checkForge vl = vl == (Validation.pendingTxForge p)
-    in SM.mkValidator (SM.StateMachine trans)
+mkValidator = SM.mkValidator (SM.StateMachine step check)
 
 gameValidator :: ValidatorScript
 gameValidator = ValidatorScript $$(Ledger.compileScript [|| mkValidator ||])

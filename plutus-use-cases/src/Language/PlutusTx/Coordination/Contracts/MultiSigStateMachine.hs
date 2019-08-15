@@ -33,7 +33,7 @@ import qualified Ledger.Value                 as Value
 import           Wallet
 import qualified Wallet                       as WAPI
 
-import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Prelude     hiding (check)
 import           Language.PlutusTx.StateMachine (StateMachine(..))
 import qualified Language.PlutusTx.StateMachine as SM
 
@@ -92,62 +92,50 @@ valuePreserved vl ptx =
 valuePaid :: Payment -> PendingTx -> Bool
 valuePaid (Payment vl pk _) ptx = vl == (Validation.valuePaidTo ptx pk)
 
+{-# INLINABLE step #-}
 -- | @step params state input@ computes the next state given current state
 --   @state@ and the input.
 --   'step' does not perform any checks of the preconditions. This is done in
---   'stepWithChecks' below.
-step :: State -> Input -> State
+--   'check' below.
+step :: State -> Input -> Maybe State
 step s i = case (s, i) of
     (InitialState vl, ProposePayment pmt) ->
-        CollectingSignatures vl pmt []
+        Just $ CollectingSignatures vl pmt []
     (CollectingSignatures vl pmt pks, AddSignature pk) ->
-        CollectingSignatures vl pmt (pk:pks)
+        Just $ CollectingSignatures vl pmt (pk:pks)
     (CollectingSignatures vl _ _, Cancel) ->
-        InitialState vl
+        Just $ InitialState vl
     (CollectingSignatures vl (Payment vp _ _) _, Pay) ->
         let vl' = Value.minus vl vp in
-        InitialState vl'
-    _ -> error (traceH "invalid transition" ())
+        Just $ InitialState vl'
+    _ -> Nothing
 
-{-# INLINABLE stepWithChecks #-}
--- | @stepWithChecks params ptx state input@ computes the next state given
---   current state @state@ and the input. It checks whether the pending
+{-# INLINABLE check #-}
+-- | @check params ptx state input@ checks whether the pending
 --   transaction @ptx@ pays the expected amounts to script and public key
---   addresses. Fails with 'error' if an invalid transition is attempted.
-stepWithChecks :: Params -> State -> Input -> PendingTx -> State
-stepWithChecks p s i ptx =
-    let newState = step s i in
-    case (s, i) of
-        (InitialState vl, ProposePayment pmt) ->
-            if isValidProposal vl pmt &&
-                valuePreserved vl ptx
-            then newState
-            else traceErrorH "ProposePayment invalid"
-        (CollectingSignatures vl _ pks, AddSignature pk) ->
-            if Validation.txSignedBy ptx pk &&
-                isSignatory pk p &&
-                not (containsPk pk pks) &&
-                valuePreserved vl ptx
-            then newState
-            else traceErrorH "AddSignature invalid"
-        (CollectingSignatures vl pmt _, Cancel) ->
-            if proposalExpired ptx pmt &&
-                valuePreserved vl ptx
-            then InitialState vl
-            else traceErrorH "Cancel invalid"
-        (CollectingSignatures vl pmt@(Payment vp _ _) pks, Pay) ->
-            let vl' = Value.minus vl vp in
-            if not (proposalExpired ptx pmt) &&
-                proposalAccepted p pks &&
-                valuePreserved vl' ptx &&
-                valuePaid pmt ptx
-            then newState
-            else traceErrorH "Pay invalid"
-        _ -> traceErrorH "invalid transition"
+--   addresses.
+check :: Params -> State -> Input -> PendingTx -> Bool
+check p s i ptx = case (s, i) of
+    (InitialState vl, ProposePayment pmt) ->
+        isValidProposal vl pmt && valuePreserved vl ptx
+    (CollectingSignatures vl _ pks, AddSignature pk) ->
+        Validation.txSignedBy ptx pk &&
+            isSignatory pk p &&
+            not (containsPk pk pks) &&
+            valuePreserved vl ptx
+    (CollectingSignatures vl pmt _, Cancel) ->
+        proposalExpired ptx pmt && valuePreserved vl ptx
+    (CollectingSignatures vl pmt@(Payment vp _ _) pks, Pay) ->
+        let vl' = Value.minus vl vp in
+        not (proposalExpired ptx pmt) &&
+            proposalAccepted p pks &&
+            valuePreserved vl' ptx &&
+            valuePaid pmt ptx
+    _ -> False
 
 {-# INLINABLE mkValidator #-}
 mkValidator :: Params -> SM.StateMachineValidator State Input
-mkValidator p = SM.mkValidator $ StateMachine (stepWithChecks p)
+mkValidator p = SM.mkValidator $ StateMachine step (check p)
 
 validator :: Params -> ValidatorScript
 validator params = ValidatorScript $
@@ -219,8 +207,11 @@ makePayment prms currentState = do
         CollectingSignatures vl (Payment pd pk _) _ -> pure (vl, pd, pk)
         _ -> WAPI.throwOtherError "Cannot make payment because no payment has been proposed. Run the 'proposePayment' action first."
 
-    let newState = step currentState Pay
-        vl       = validator prms
+    newState <- case step currentState Pay of
+        Just s -> pure s
+        Nothing -> WAPI.throwOtherError "Payment is invalid transition"
+
+    let vl       = validator prms
         redeemer = mkRedeemer Pay
         dataScript = DataScript (Ledger.lifted newState)
 
@@ -253,8 +244,10 @@ mkStep
     -> m State
     -- ^ New state after applying the input
 mkStep prms currentState input = do
-    let newState = step currentState input
-        vl       = validator prms
+    newState <- case step currentState input of
+        Just s -> pure s
+        Nothing -> WAPI.throwOtherError "Invalid transition"
+    let vl       = validator prms
         redeemer = mkRedeemer input
         dataScript = DataScript (Ledger.lifted newState)
 
