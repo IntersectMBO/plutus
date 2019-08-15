@@ -64,7 +64,7 @@ fromLedgerTx tx = UnbalancedTx
             , _outputs = L.txOutputs tx
             , _forge = L.txForge tx
             , _validityRange = L.txValidRange tx
-            , _requiredSignatures = mempty
+            , _requiredSignatures = Map.keys $ L.txSignatures tx
             }
 
 -- | An unbalanced transaction wiht no inputs and outputs, and an unbounded
