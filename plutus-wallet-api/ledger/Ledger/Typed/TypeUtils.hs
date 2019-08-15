@@ -11,6 +11,7 @@
 module Ledger.Typed.TypeUtils where
 
 import           Data.Kind
+import           Data.Proxy
 
 -- | A heterogeneous list where every element is wrapped with the given functor.
 data HListF (f :: Type -> Type) (l :: [Type]) where
@@ -52,6 +53,10 @@ type family Map (f :: k1 ~> k2) (l :: [k1]) :: [k2] where
 data ListWitness (ts :: [Type]) where
     NilWit :: ListWitness '[]
     ConsWit :: ListWitness xs -> ListWitness (x ': xs)
+
+mapWit :: Proxy f -> ListWitness ts -> ListWitness (Map f ts)
+mapWit _ NilWit = NilWit
+mapWit p (ConsWit wit) = ConsWit (mapWit p wit)
 
 class HasListWitness (ts :: [Type]) where
     listWit :: ListWitness ts

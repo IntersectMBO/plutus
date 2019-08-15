@@ -88,17 +88,43 @@ type instance Apply DataTypeSym a = DataType a
 -- | The type of a redeemer function for the given output types and input type.
 type RedeemerFunctionType (outs :: [Type]) (inn :: Type) = Uncurry (Map SealedDataTypeSym outs) (RedeemerType inn)
 
+-- | Given code for a value of the simple redeemer type, constructs code of the redeemer function type by
+-- ignoring all the data script arguments.
+--
+-- Requires a witness for the list of outputs. This should be automatically provided if it is a concrete list.
 ignoreDataScripts
+    :: forall (outs :: [Type]) (inn :: Type)
+    . (All Typeable (Map SealedDataTypeSym outs), HasListWitness outs)
+    => Proxy outs
+    -> Proxy inn
+    -> CompiledCode (RedeemerType inn)
+    -> CompiledCode (RedeemerFunctionType outs inn)
+ignoreDataScripts _ = ignoreDataScripts' (listWit @outs)
+
+-- | As 'ignoreDataScripts', but takes the witness explicitly.
+ignoreDataScripts'
     :: forall (outs :: [Type]) (inn :: Type)
     . (All Typeable (Map SealedDataTypeSym outs))
     => ListWitness outs
     -> Proxy inn
     -> CompiledCode (RedeemerType inn)
     -> CompiledCode (RedeemerFunctionType outs inn)
-ignoreDataScripts NilWit _ c = c
-ignoreDataScripts (ConsWit tsing) _ c =
-        Lift.unsafeConstCode Proxy $
-            ignoreDataScripts tsing (Proxy @inn) c
+ignoreDataScripts' wit _ =
+    ignoreArgs
+    (mapWit (Proxy @SealedDataTypeSym) wit)
+    (Proxy @(RedeemerType inn))
+
+-- | Given code for a value of a result type, constructs code for a function that ignores
+-- a list of arguments of the given types to produce the original code.
+ignoreArgs
+    :: forall (args :: [Type]) (r :: Type)
+    . (All Typeable args)
+    => ListWitness args
+    -> Proxy r
+    -> CompiledCode r
+    -> CompiledCode (Uncurry args r)
+ignoreArgs NilWit _ c = c
+ignoreArgs (ConsWit tsing) p c = Lift.unsafeConstCode Proxy $ ignoreArgs tsing p c
 
 -- | A 'TxIn' tagged by two phantom types: a list of the types of the data scripts in the transaction; and the connection type of the input.
 newtype TypedScriptTxIn (outs :: [Type]) a = TypedScriptTxIn { unTypedScriptTxIn :: TxIn }
