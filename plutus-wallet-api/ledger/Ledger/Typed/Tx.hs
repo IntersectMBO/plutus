@@ -15,6 +15,7 @@
 {-# LANGUAGE TypeOperators             #-}
 {-# LANGUAGE UndecidableInstances      #-}
 {-# LANGUAGE ViewPatterns              #-}
+{-# LANGUAGE Rank2Types              #-}
 -- | Typed transactions. This module defines typed versions of various ledger types. The ultimate
 -- goal is to make sure that the script types attached to inputs and outputs line up, to avoid
 -- type errors at validation time.
@@ -249,16 +250,6 @@ addManyTypedTxIns
     -> TypedTxSomeIns outs
 addManyTypedTxIns ins tx = foldl' (\someTx inn -> addSomeTypedTxIn inn someTx) (TypedTxSomeIns tx) ins
 
--- I'm sure I should be able to write these generically, but I think I would need quantified constraints?
--- i.e. forall a . Coercible (f a) o
-hfCoerceIns :: forall d (ins :: [Type]) . HListF (TypedScriptTxIn d) ins -> [TxIn]
-hfCoerceIns HNilF         = []
-hfCoerceIns (HConsF e es) = coerce e : hfCoerceIns es
-
-hfCoerceOuts :: forall (outs :: [Type]) . HListF TypedScriptTxOut outs -> [TxOut]
-hfCoerceOuts HNilF         = []
-hfCoerceOuts (HConsF e es) = coerce e : hfCoerceOuts es
-
 -- | Convert a 'TypedTx' to a 'Tx'.
 toUntypedTx
     :: forall (ins :: [Type]) (outs :: [Type])
@@ -271,8 +262,8 @@ toUntypedTx TypedTx{
     tyTxPubKeyTxIns,
     tyTxForge,
     tyTxValidRange } = Tx {
-    txOutputs = hfCoerceOuts tyTxTypedTxOuts ++ coerce tyTxPubKeyTxOuts,
-    txInputs = Set.fromList (hfCoerceIns tyTxTypedTxIns ++ coerce tyTxPubKeyTxIns),
+    txOutputs = hfOut coerce tyTxTypedTxOuts ++ coerce tyTxPubKeyTxOuts,
+    txInputs = Set.fromList (hfOut coerce tyTxTypedTxIns ++ coerce tyTxPubKeyTxIns),
     txForge = tyTxForge,
     txFee = Ada.zero,
     txValidRange = tyTxValidRange,
