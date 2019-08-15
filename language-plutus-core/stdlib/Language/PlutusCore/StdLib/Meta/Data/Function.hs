@@ -1,8 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 -- | Meta-functions relating to functions.
-module Language.PlutusCore.StdLib.Meta.Data.Function where
-
-import           PlutusPrelude
+module Language.PlutusCore.StdLib.Meta.Data.Function (constPartial) where
 
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
