@@ -12,6 +12,8 @@
 module Wallet.Typed.API where
 
 import qualified Language.PlutusTx    as PlutusTx
+import qualified Ledger               as L
+import           Ledger.AddressMap
 import           Ledger.Tx
 import qualified Ledger.Typed.Tx      as Typed
 import           Ledger.Value
@@ -98,3 +100,30 @@ spendScriptOutputs ct red = do
         typedIns = (\(ref, v) -> (Typed.makeTypedScriptTxIn @a @outs ct red ref, v)) <$> typedRefs
 
     pure typedIns
+
+-- | Given the pay to script address of the 'ValidatorScript', collect from it
+--   all the outputs that match a predicate, using the 'RedeemerScript'.
+collectFromScriptFilter ::
+    forall a
+    . (PlutusTx.Typeable (Typed.DataType a))
+    => (TxOutRef -> TxOut -> Bool)
+    -> AddressMap
+    -> Typed.ScriptInstance a
+    -> PlutusTx.CompiledCode (Typed.RedeemerType a)
+    -> Typed.TypedTxSomeIns '[]
+collectFromScriptFilter flt am si@(Typed.Validator vls) red =
+    let adr     = L.scriptAddress $ L.ValidatorScript $ L.fromCompiledCode vls
+        utxo :: Map.Map TxOutRef TxOut
+        utxo    = fromMaybe Map.empty $ am ^. at adr
+        ourUtxo :: [(TxOutRef, TxOut)]
+        ourUtxo = Map.toList $ Map.filterWithKey flt utxo
+        refs :: [TxOutRef]
+        refs = fst <$> ourUtxo
+        -- We just throw away any outputs at this script address that don't typecheck.
+        -- TODO: we should log this, it would make debugging much easier
+        typedRefs :: [Typed.TypedScriptTxOutRef a]
+        typedRefs = rights $ Typed.typeScriptTxOutRef @a (\ref -> Map.lookup ref utxo) si <$> refs
+        typedIns :: [Typed.TypedScriptTxIn '[] a]
+        typedIns = Typed.makeTypedScriptTxIn @a @'[] si red <$> typedRefs
+    -- We need to add many txins and we've done as much checking as we care to, so we switch to TypedTxSomeIns
+    in Typed.addManyTypedTxIns typedIns Typed.baseTx
