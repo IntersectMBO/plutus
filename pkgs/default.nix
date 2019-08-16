@@ -53681,9 +53681,6 @@ license = stdenv.lib.licenses.mit;
 , hspec
 , language-plutus-core
 , mtl
-, optparse-generic
-, pipes
-, pipes-safe
 , plutus-emulator
 , plutus-playground-lib
 , plutus-tx
@@ -53700,8 +53697,6 @@ mkDerivation {
 pname = "plutus-book";
 version = "0.1.0.0";
 src = .././plutus-book;
-isLibrary = true;
-isExecutable = true;
 libraryHaskellDepends = [
 base
 bytestring
@@ -53720,19 +53715,12 @@ wl-pprint
 libraryToolDepends = [
 unlit
 ];
-executableHaskellDepends = [
-base
-optparse-generic
-pipes
-pipes-safe
-];
 testHaskellDepends = [
 base
 bytestring
 containers
 hspec
 plutus-emulator
-plutus-tx
 plutus-wallet-api
 text
 ];

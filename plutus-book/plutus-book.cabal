@@ -124,13 +124,3 @@ test-suite plutus-book-test
                      , text
   ghc-options:         -Wall
   default-language:    Haskell2010
-
-executable adoc2hs
-  hs-source-dirs:      tools/adoc2hs
-  main-is:             main.hs
-  build-depends:       base >= 4.7 && < 5
-                     , optparse-generic -any
-                     , pipes -any
-                     , pipes-safe -any
-  ghc-options:         -Wall -O2
-  default-language:    Haskell2010
