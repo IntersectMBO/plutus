@@ -22,15 +22,19 @@ import qualified Auth
 import           Control.Applicative                        (empty, (<|>))
 import           Control.Lens                               (set, (&))
 import           Control.Monad.Reader                       (MonadReader)
+import qualified CouponBondGuaranteed
 import qualified Data.ByteString                            as BS
+import qualified Data.ByteString.Char8                      as BS8
 import           Data.Monoid                                ()
 import           Data.Proxy                                 (Proxy (Proxy))
 import qualified Data.Set                                   as Set ()
 import qualified Data.Text.Encoding                         as T ()
 import qualified Data.Text.IO                               as T ()
+import qualified Escrow
 import           Gist                                       (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
 import           Language.Haskell.Interpreter               (CompilationError, InterpreterError, InterpreterResult,
                                                              SourceCode, Warning)
+import           Language.Marlowe.Pretty                    (pretty)
 import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), PSType, SumType,
                                                              TypeInfo (TypeInfo), buildBridge, doCheck, equal, haskType,
                                                              isTuple, mkSumType, order, psTypeParameters, typeModule,
@@ -39,13 +43,15 @@ import           Language.PureScript.Bridge.Builder         (BridgeData)
 import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), defaultSwitch, genForeign)
 import           Language.PureScript.Bridge.PSTypes         (psArray, psInt)
 import           Language.PureScript.Bridge.TypeParameters  (A)
-import           Marlowe.Contracts                          (couponBondGuaranteed, escrow, zeroCouponBond)
+import           Marlowe.Contracts                          (couponBondGuaranteed, escrow, swap, zeroCouponBond)
 import           Servant                                    ((:<|>))
 import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
                                                              defaultSettings, languageBridge,
                                                              writeAPIModuleWithSettings, _generateSubscriberAPI)
+import qualified Swap
 import           System.Directory                           (createDirectoryIfMissing)
 import           System.FilePath                            ((</>))
+import qualified ZeroCouponBond
 
 psNonEmpty :: MonadReader BridgeData m => m PSType
 psNonEmpty = TypeInfo "" "Data.RawJson" "JsonNonEmptyList" <$> psTypeParameters
@@ -162,13 +168,23 @@ psModule name body = "module " <> name <> " where" <> body
 
 writeUsecases :: FilePath -> IO ()
 writeUsecases outputDir = do
-    let usecases =
+    let haskellUsecases =
             multilineString "escrow" escrow
          <> multilineString "zeroCouponBond" zeroCouponBond
          <> multilineString "couponBondGuaranteed" couponBondGuaranteed
-        usecasesModule = psModule "Haskell.Contracts" usecases
-    createDirectoryIfMissing True (outputDir </> "Haskell")
-    BS.writeFile (outputDir </> "Haskell" </> "Contracts.purs") usecasesModule
+         <> multilineString "swap" swap
+        haskellUsecasesModule = psModule "Examples.Haskell.Contracts" haskellUsecases
+    createDirectoryIfMissing True (outputDir </> "Examples" </> "Haskell")
+    BS.writeFile (outputDir </> "Examples" </> "Haskell" </> "Contracts.purs") haskellUsecasesModule
+    let contractToString = BS8.pack . show . pretty
+        marloweUsecases =
+            multilineString "escrow" (contractToString Escrow.contract)
+         <> multilineString "zeroCouponBond" (contractToString ZeroCouponBond.contract)
+         <> multilineString "couponBondGuaranteed" (contractToString CouponBondGuaranteed.contract)
+         <> multilineString "swap" (contractToString Swap.contract)
+        marloweUsecasesModule = psModule "Examples.Marlowe.Contracts" marloweUsecases
+    createDirectoryIfMissing True (outputDir </> "Examples" </> "Marlowe")
+    BS.writeFile (outputDir </> "Examples" </> "Marlowe" </> "Contracts.purs") marloweUsecasesModule
     putStrLn outputDir
 
 generate :: FilePath -> IO ()

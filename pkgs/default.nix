@@ -44369,18 +44369,10 @@ license = "GPL";
 ({
   mkDerivation
 , base
-, bytestring
 , containers
-, hedgehog
-, memory
-, mtl
-, plutus-emulator
 , plutus-tx
 , plutus-wallet-api
 , stdenv
-, tasty
-, tasty-hedgehog
-, tasty-hunit
 , template-haskell
 , text
 , unlit
@@ -44394,7 +44386,6 @@ src = .././marlowe;
 libraryHaskellDepends = [
 base
 containers
-mtl
 plutus-tx
 plutus-wallet-api
 template-haskell
@@ -44403,21 +44394,6 @@ wl-pprint
 ];
 libraryToolDepends = [
 unlit
-];
-testHaskellDepends = [
-base
-bytestring
-containers
-hedgehog
-memory
-plutus-emulator
-plutus-tx
-plutus-wallet-api
-tasty
-tasty-hedgehog
-tasty-hunit
-template-haskell
-text
 ];
 doHaddock = false;
 description = "Marlowe: financial contracts on Cardano Computation Layer";
@@ -44522,6 +44498,7 @@ directory
 filepath
 http-types
 lens
+marlowe
 monad-logger
 mtl
 optparse-applicative

@@ -212,6 +212,18 @@ let
       installPhase = "ln -s $src $out";
     };
 
+    "debug" = pkgs.stdenv.mkDerivation {
+      name = "debug";
+      version = "v4.0.0";
+      src = pkgs.fetchgit {
+        url = "https://github.com/garyb/purescript-debug.git";
+        rev = "v4.0.0";
+        sha256 = "0gwjj80akys0h111i74n429fmny992gx0r4rk1n98gqlqm5cmi21";
+      };
+      phases = "installPhase";
+      installPhase = "ln -s $src $out";
+    };
+
     "distributive" = pkgs.stdenv.mkDerivation {
       name = "distributive";
       version = "v4.0.0";

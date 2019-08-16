@@ -3,20 +3,19 @@ module MonadApp where
 import Prelude
 
 import API (RunResult)
-import Ace (Editor, Annotation)
+import Ace (Annotation, Editor)
 import Ace.EditSession as Session
 import Ace.Editor as AceEditor
 import Auth (AuthStatus)
 import Control.Monad.Except (class MonadTrans, ExceptT, runExceptT)
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.State (class MonadState)
+import Data.Array (fromFoldable)
 import Data.Array as Array
-import Data.BigInteger (BigInteger)
 import Data.Either (Either(..))
-import Data.Foldable (foldrDefault)
-import Data.Functor (mapFlipped)
-import Data.Lens (assign, modifying, over, set)
-import Data.List (List(..))
+import Data.Foldable (foldl)
+import Data.Lens (assign, modifying, over, set, to, use, (^.))
+import Data.List as List
 import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
@@ -24,8 +23,7 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.RawJson (JsonEither)
-import Data.Set (Set)
-import Data.Set as Set
+import Data.Tuple (Tuple(..), fst)
 import Editor as Editor
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
@@ -36,17 +34,17 @@ import Halogen (HalogenM, liftAff, liftEffect, query')
 import Halogen.Blockly (BlocklyQuery(..))
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode)
 import LocalStorage as LocalStorage
-import Marlowe.Parser (contract)
-import Marlowe.Semantics (ErrorResult(InvalidInput), IdInput(IdOracle, InputIdChoice), MApplicationResult(MCouldNotApply, MSuccessfullyApplied), OracleDataPoint(..), State(State), TransactionOutcomes, applyTransaction, collectNeededInputs, emptyState, peopleFromStateAndContract, reduce, scoutPrimitives)
-import Marlowe.Types (BlockNumber, Choice, Contract(Null), IdChoice(IdChoice), IdOracle, Person, WIdChoice(WIdChoice))
 import Marlowe (SPParams_)
 import Marlowe as Server
+import Marlowe.Parser (contract)
+import Marlowe.Semantics (Contract(..), PubKey, SlotInterval(..), TransactionInput(..), TransactionOutput(..), accountOwner, choiceOwner, computeTransaction, extractRequiredActionsWithTxs, moneyInContract)
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
-import Text.Parsing.Parser (runParser)
-import Types (BlocklySlot(..), ChildQuery, ChildSlot, EditorSlot(EditorSlot), FrontendState, InputData, MarloweEditorSlot(MarloweEditorSlot), MarloweState, OracleEntry, Query, TransactionData, TransactionValidity(..), WebData, _choiceData, _contract, _currentMarloweState, _input, _inputs, _marloweState, _oldContract, _oracleData, _outcomes, _signatures, _transaction, _validity, cpBlockly, cpEditor, cpMarloweEditor)
+import Text.Parsing.Parser (ParseError(..), runParser)
+import Text.Parsing.Parser.Pos (Position(..))
+import Types (ActionInput(..), BlocklySlot(..), ChildQuery, ChildSlot, EditorSlot(EditorSlot), FrontendState, MarloweEditorSlot(MarloweEditorSlot), MarloweState, Query, WebData, _Head, _contract, _currentMarloweState, _editorErrors, _marloweState, _moneyInContract, _oldContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, actionToActionInput, cpBlockly, cpEditor, cpMarloweEditor, emptyMarloweState)
 import Web.HTML.Event.DragEvent (DragEvent)
 
 class
@@ -57,12 +55,14 @@ class
   haskellEditorGotoLine :: Int -> Maybe Int -> m Unit
   marloweEditorSetValue :: String -> Maybe Int -> m Unit
   marloweEditorGetValue :: m (Maybe String)
+  marloweEditorSetAnnotations :: Array Annotation -> m Unit
   preventDefault :: DragEvent -> m Unit
   readFileFromDragEvent :: DragEvent -> m String
   updateContractInState :: String -> m Unit
   updateState :: m Unit
   saveInitialState :: m Unit
   updateMarloweState :: (MarloweState -> MarloweState) -> m Unit
+  applyTransactions :: m Unit
   resetContract :: m Unit
   saveBuffer :: String -> m Unit
   saveMarloweBuffer :: String -> m Unit
@@ -111,17 +111,26 @@ instance monadAppHalogenApp ::
   haskellEditorGotoLine row column = void $ withHaskellEditor $ AceEditor.gotoLine row column (Just true)
   marloweEditorSetValue contents i = void $ withMarloweEditor $ AceEditor.setValue contents i
   marloweEditorGetValue = withMarloweEditor AceEditor.getValue
+  marloweEditorSetAnnotations annotations =
+    void
+      $ withMarloweEditor \editor -> do
+          session <- AceEditor.getSession editor
+          Session.setAnnotations annotations session
   preventDefault event = wrap $ liftEffect $ FileEvents.preventDefault event
   readFileFromDragEvent event = wrap $ liftAff $ FileEvents.readFileFromDragEvent event
-  updateContractInState contract = updateContractInStateImpl contract
+  updateContractInState contract = do
+    updateContractInStateImpl contract
+    annotations <- use (_marloweState <<< _Head <<< _editorErrors)
+    marloweEditorSetAnnotations annotations
   updateState = do
     saveInitialStateImpl
     wrap $ modifying _currentMarloweState updateStateP
   saveInitialState = saveInitialStateImpl
-  updateMarloweState f = wrap $ modifying _marloweState (extendWith (updateStateP <<< f))
+  updateMarloweState f = wrap $ modifying _marloweState (extendWith f)
+  applyTransactions = wrap $ modifying _marloweState (extendWith updateStateP)
   resetContract = do
     newContract <- marloweEditorGetValueImpl
-    wrap $ assign _marloweState $ NEL.singleton emptyMarloweState
+    wrap $ assign _marloweState $ NEL.singleton (emptyMarloweState zero)
     wrap $ assign _oldContract Nothing
     updateContractInStateImpl $ fromMaybe "" newContract
   saveBuffer text = wrap $ liftEffect $ LocalStorage.setItem bufferLocalStorageKey text
@@ -175,7 +184,7 @@ marloweEditorGetValueImpl :: forall m. MonadEffect m => HalogenApp m (Maybe Stri
 marloweEditorGetValueImpl = withMarloweEditor AceEditor.getValue
 
 updateContractInStateImpl :: forall m. String -> HalogenApp m Unit
-updateContractInStateImpl contract = modifying _currentMarloweState (updateStateP <<< updateContractInStateP contract)
+updateContractInStateImpl contract = modifying _currentMarloweState (updatePossibleActions <<< updateContractInStateP contract)
 
 runHalogenApp :: forall m a. HalogenApp m a -> HalogenM FrontendState Query ChildQuery ChildSlot Void m a
 runHalogenApp = unwrap
@@ -201,156 +210,62 @@ withMarloweEditor ::
 withMarloweEditor = HalogenApp <<< Editor.withEditor cpMarloweEditor MarloweEditorSlot
 
 updateContractInStateP :: String -> MarloweState -> MarloweState
-updateContractInStateP text state = set _contract con state
+updateContractInStateP text state = case runParser text contract of
+    Right pcon -> set _editorErrors [] <<< set _contract (Just pcon) $ state
+    Left error -> set _editorErrors [errorToAnnotation error] state
+    where
+      errorToAnnotation (ParseError msg (Position { line, column })) = { column: column, row: (line - 1), text: msg, "type": "error" }
+
+updatePossibleActions :: MarloweState -> MarloweState
+updatePossibleActions oldState =
+  let contract = oldState ^. (_contract <<< to (fromMaybe Refund))
+      state = oldState ^. _state
+      txInput = stateToTxInput oldState
+      (Tuple nextState actions) = extractRequiredActionsWithTxs txInput state contract
+      actionInputs = map (actionToActionInput nextState) actions
+      actionInputsMap = splitActionsByPerson actionInputs
+  in set _possibleActions actionInputsMap oldState
   where
-  con = case runParser text contract of
-    Right pcon -> Just pcon
-    Left _ -> Nothing
+
+  splitActionsByPerson :: Array ActionInput -> Map PubKey (Array ActionInput)
+  splitActionsByPerson actionInputs = foldl (\m actionInput -> appendValue m (actionPerson actionInput) actionInput) mempty actionInputs
+
+  actionPerson :: ActionInput -> PubKey
+  actionPerson (DepositInput accountId _ _) = (accountOwner accountId)
+  actionPerson (ChoiceInput choiceId _ _) = (choiceOwner choiceId)
+  -- We have a special person for notifications
+  actionPerson (NotifyInput _) = "Notifications"
+  
+  appendValue :: forall k v. Ord k => Map k (Array v) -> k -> v -> Map k (Array v)
+  appendValue m k v = Map.alter (alterMap v) k m
+
+  alterMap :: forall v. v -> Maybe (Array v) -> Maybe (Array v)
+  alterMap v Nothing = Just $ Array.singleton v
+  alterMap v (Just vs) = Just $ Array.snoc vs v
 
 updateStateP :: MarloweState -> MarloweState
 updateStateP oldState = actState
   where
-  sigState = updateSignatures oldState
+  txInput = stateToTxInput oldState
+  actState = case computeTransaction txInput (oldState ^. _state) (oldState ^. _contract <<< to (fromMaybe Refund)) of
 
-  mSimulatedState = simulateState sigState
+    (TransactionOutput {txOutWarnings, txOutPayments, txOutState, txOutContract}) ->
+      (set _transactionError Nothing 
+      <<< set _pendingInputs mempty 
+      <<< set _state txOutState
+      <<< set _contract (Just txOutContract)
+      <<< set _moneyInContract (moneyInContract txOutState)
+      <<< over _payments (append (fromFoldable txOutPayments))
+      ) oldState
+    (Error txError) -> set _transactionError (Just txError) oldState
 
-  actState = case mSimulatedState of
-    Just simulatedState -> updateActions sigState simulatedState
-    Nothing -> sigState
-
-updateSignatures :: MarloweState -> MarloweState
-updateSignatures oldState = case oldState.contract of
-  Just oldContract -> over (_transaction <<< _signatures) (resizeSigs (peopleFromStateAndContract (oldState.state) oldContract)) oldState
-  Nothing -> oldState
-
-simulateState :: MarloweState -> Maybe {state :: State, contract :: Contract, outcome :: TransactionOutcomes, validity :: TransactionValidity}
-simulateState state =
-  mapFlipped state.contract \c -> case inps, applyTransaction inps sigs bn st c mic of
-    _, MSuccessfullyApplied {state: newState, contract: newContract, outcome: outcome} inputWarnings ->
-      { state: newState
-      , contract: newContract
-      , outcome: outcome
-      , validity: ValidTransaction inputWarnings
-      }
-    Nil, MCouldNotApply InvalidInput ->
-      { state: st
-      , contract: reduce state.blockNum state.state c
-      , outcome: Map.empty
-      , validity: EmptyTransaction
-      }
-    _, MCouldNotApply InvalidInput ->
-      { state: emptyState
-      , contract: Null
-      , outcome: Map.empty
-      , validity: InvalidTransaction InvalidInput
-      }
-    _, MCouldNotApply err ->
-      { state: emptyState
-      , contract: Null
-      , outcome: Map.empty
-      , validity: InvalidTransaction err
-      }
-  where
-  inps = Array.toUnfoldable (state.transaction.inputs)
-
-  sigs = Set.fromFoldable (Map.keys (Map.filter identity (state.transaction.signatures)))
-
-  bn = state.blockNum
-
-  st = state.state
-
-  mic = state.moneyInContract
-
-updateActions :: MarloweState -> {state :: State, contract :: Contract, outcome :: TransactionOutcomes, validity :: TransactionValidity} -> MarloweState
-updateActions oldState {state, contract, outcome, validity} =
-  set (_transaction <<< _validity) validity oldState
-    # set (_transaction <<< _outcomes) outcome
-    # over (_input <<< _oracleData) (updateOracles oldState.blockNum state neededInputs)
-    # over (_input <<< _choiceData) (updateChoices state neededInputs)
-    # set (_input <<< _inputs) (scoutPrimitives oldState.blockNum state contract)
-  where
-  neededInputs = collectNeededInputs contract
-
-updateOracles :: BlockNumber -> State -> Set IdInput -> Map IdOracle OracleEntry -> Map IdOracle OracleEntry
-updateOracles cbn (State state) inputs omap = foldrDefault addOracle Map.empty inputs
-  where
-  addOracle (IdOracle idOracle) a = case Map.lookup idOracle omap, Map.lookup idOracle state.oracles of
-    Nothing, Nothing -> Map.insert idOracle {blockNumber: cbn, value: zero} a
-    Just {blockNumber: bn, value}, Just (OracleDataPoint {blockNumber: lbn}) -> if (lbn >= cbn)
-      then a
-      else Map.insert idOracle {blockNumber: max (lbn + one) bn, value} a
-    Just {blockNumber, value}, Nothing -> Map.insert idOracle {blockNumber: min blockNumber cbn, value} a
-    Nothing, Just (OracleDataPoint {blockNumber, value}) -> if (blockNumber >= cbn)
-      then a
-      else Map.insert idOracle {blockNumber: cbn, value} a
-
-  addOracle _ a = a
-
-resizeSigs :: List Person -> Map Person Boolean -> Map Person Boolean
-resizeSigs li ma = resizeSigsAux ma Map.empty li
-
-updateChoices ::
-  State ->
-  Set IdInput ->
-  Map Person (Map BigInteger Choice) ->
-  Map Person (Map BigInteger Choice)
-updateChoices (State state) inputs cmap = foldrDefault addChoice Map.empty inputs
-  where
-  addChoice (InputIdChoice (IdChoice {choice: idChoice, person})) a =
-    let
-      pmap = case Map.lookup person a of
-        Nothing -> Map.empty
-        Just y -> y
-    in
-      let
-        dval = case Map.lookup person cmap of
-          Nothing -> zero
-          Just z -> case Map.lookup idChoice z of
-            Nothing -> zero
-            Just v -> v
-      in
-        if Map.member (WIdChoice (IdChoice {choice: idChoice, person})) state.choices
-          then a
-          else Map.insert person (Map.insert idChoice dval pmap) a
-
-  addChoice _ a = a
-
-resizeSigsAux ::
-  Map Person Boolean ->
-  Map Person Boolean ->
-  List Person ->
-  Map Person Boolean
-resizeSigsAux ma ma2 Nil = ma2
-
-resizeSigsAux ma ma2 (Cons x y) = case Map.lookup x ma of
-  Just z -> resizeSigsAux ma (Map.insert x z ma2) y
-  Nothing -> resizeSigsAux ma (Map.insert x false ma2) y
+stateToTxInput :: MarloweState -> TransactionInput
+stateToTxInput ms = let slot = ms ^. _slot
+                        interval = SlotInterval slot (slot + one)
+                        inputs = map fst (ms ^. _pendingInputs)
+                    in TransactionInput { interval: interval, inputs: (List.fromFoldable inputs)}
 
 -- | Apply a function to the head of a non-empty list and cons the result on
 extendWith :: forall a. (a -> a) -> NonEmptyList a -> NonEmptyList a
 extendWith f l = NEL.cons ((f <<< NEL.head) l) l
 
-emptyInputData :: InputData
-emptyInputData =
-  { inputs: Map.empty
-  , choiceData: Map.empty
-  , oracleData: Map.empty
-  }
-
-emptyTransactionData :: TransactionData
-emptyTransactionData =
-  { inputs: []
-  , signatures: Map.empty
-  , outcomes: Map.empty
-  , validity: EmptyTransaction
-  }
-
-emptyMarloweState :: MarloweState
-emptyMarloweState =
-  { input: emptyInputData
-  , transaction: emptyTransactionData
-  , state: emptyState
-  , blockNum: zero
-  , moneyInContract: zero
-  , contract: Nothing
-  }
