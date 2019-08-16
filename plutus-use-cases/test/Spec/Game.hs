@@ -37,14 +37,14 @@ tests = testGroup "game"
 
     , checkPredicate "guess right (unlock funds)"
         game
-        (walletFundsChange w2 (Ada.adaValueOf 10)
-            <> walletFundsChange w1 (Ada.adaValueOf (-10)))
+        (walletFundsChange w2 (Ada.lovelaceValueOf 10)
+            <> walletFundsChange w1 (Ada.lovelaceValueOf (-10)))
         guessTrace
 
     , checkPredicate "guess wrong"
         game
         (walletFundsChange w2 Value.zero
-            <> walletFundsChange w1 (Ada.adaValueOf (-10)))
+            <> walletFundsChange w1 (Ada.lovelaceValueOf (-10)))
         guessWrongTrace
     , Lib.goldenPir "test/Spec/game.pir" $$(PlutusTx.compile [|| validateGuess ||])
     , HUnit.testCase "script size is reasonable" (Lib.reasonable gameValidator 25000)

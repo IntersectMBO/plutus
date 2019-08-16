@@ -24,7 +24,7 @@ mkSpec payToWallet =
         fst (getResult tr) `shouldSatisfy` isRight
   where
     ada :: Ada
-    ada = fromInt 8
+    ada = lovelaceOf 8
 
     tr :: Trace MockWallet ()
     tr = void $ do

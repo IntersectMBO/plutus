@@ -34,24 +34,24 @@ tests = testGroup "crowdfunding"
 
     , checkPredicate "make contribution"
         (crowdfunding theCampaign)
-        (walletFundsChange w1 (Ada.adaValueOf (-10)))
-        $ let contribution = Ada.adaValueOf 10
+        (walletFundsChange w1 (Ada.lovelaceValueOf (-10)))
+        $ let contribution = Ada.lovelaceValueOf 10
           in makeContribution w1 contribution
 
     , checkPredicate "make contributions and collect"
         (crowdfunding theCampaign)
-        (walletFundsChange w1 (Ada.adaValueOf 21))
+        (walletFundsChange w1 (Ada.lovelaceValueOf 21))
         $ successfulCampaign
 
     , checkPredicate "cannot collect money too early"
         (crowdfunding theCampaign)
         (walletFundsChange w1 Value.zero)
         $ startCampaign
-            >> makeContribution w2 (Ada.adaValueOf 10)
-            >> makeContribution w3 (Ada.adaValueOf 10)
-            >> makeContribution w4 (Ada.adaValueOf 1)
+            >> makeContribution w2 (Ada.lovelaceValueOf 10)
+            >> makeContribution w3 (Ada.lovelaceValueOf 10)
+            >> makeContribution w4 (Ada.lovelaceValueOf 1)
             -- Tell the contract we're at slot 21, causing the transaction to be submitted
-            >> Trace.addEvent w1 (Event.changeSlot 21) 
+            >> Trace.addEvent w1 (Event.changeSlot 21)
             -- This submits the transaction to the blockchain. Normally, the transaction would
             -- be validated right away and the funds of wallet 1 would increase. In this case
             -- the transaction is not validated because it has a validity interval that begins
@@ -62,9 +62,9 @@ tests = testGroup "crowdfunding"
         (crowdfunding theCampaign)
         (walletFundsChange w1 Value.zero)
         $ startCampaign
-            >> makeContribution w2 (Ada.adaValueOf 10)
-            >> makeContribution w3 (Ada.adaValueOf 10)
-            >> makeContribution w4 (Ada.adaValueOf 1)
+            >> makeContribution w2 (Ada.lovelaceValueOf 10)
+            >> makeContribution w3 (Ada.lovelaceValueOf 10)
+            >> makeContribution w4 (Ada.lovelaceValueOf 1)
             -- Add some blocks to bring the total up to 31
             -- (that is, above the collection deadline)
             >> Trace.addBlocks 25
@@ -77,9 +77,9 @@ tests = testGroup "crowdfunding"
         (crowdfunding theCampaign)
         (walletFundsChange w1 Value.zero)
         $ startCampaign
-            >> makeContribution w2 (Ada.adaValueOf 10)
-            >> makeContribution w3 (Ada.adaValueOf 10)
-            >> makeContribution w4 (Ada.adaValueOf 1)
+            >> makeContribution w2 (Ada.lovelaceValueOf 10)
+            >> makeContribution w3 (Ada.lovelaceValueOf 10)
+            >> makeContribution w4 (Ada.lovelaceValueOf 1)
             >> Trace.addBlocks 18
             -- The contributions could be collected now, but without the
             -- call to 'Trace.notifySlot' wallet 1 is not aware that the
@@ -91,8 +91,8 @@ tests = testGroup "crowdfunding"
         (walletFundsChange w2 Value.zero
             <> walletFundsChange w3 Value.zero)
         $ startCampaign
-            >> makeContribution w2 (Ada.adaValueOf 5)
-            >> makeContribution w3 (Ada.adaValueOf 5)
+            >> makeContribution w2 (Ada.lovelaceValueOf 5)
+            >> makeContribution w3 (Ada.lovelaceValueOf 5)
             >> Trace.addBlocks 25
             >> Trace.notifySlot w2
             >> Trace.notifySlot w3
@@ -101,7 +101,7 @@ tests = testGroup "crowdfunding"
     , Lib.goldenPir "test/Spec/crowdfunding.pir" $$(PlutusTx.compile [|| mkValidator ||])
     ,   let
             deadline = 10
-            target = Ada.adaValueOf 1000
+            target = Ada.lovelaceValueOf 1000
             collectionDeadline = 15
             owner = w1
             cmp = mkCampaign deadline target collectionDeadline owner

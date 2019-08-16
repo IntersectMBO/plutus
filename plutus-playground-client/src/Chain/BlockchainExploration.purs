@@ -198,7 +198,7 @@ toBalanceMap =
   forgeTransactions row (JsonTuple (Tuple _ (Tx { txForge: (Value { getValue: balances }) }))) = Tuple (Tuple ForgeIx row) (CurrencyBalance balances)
 
   feeTransactions :: Row -> JsonTuple (TxIdOf String) Tx -> Tuple (Tuple Column Row) Balance
-  feeTransactions row (JsonTuple (Tuple _ (Tx { txFee: (Ada { getAda: adaBalance }) }))) = Tuple (Tuple FeeIx row) (CurrencyBalance $ AssocMap.fromTuples [ Tuple adaCurrencySymbol (AssocMap.fromTuples [ Tuple adaTokenName adaBalance ]) ])
+  feeTransactions row (JsonTuple (Tuple _ (Tx { txFee: (Lovelace { getLovelace: adaBalance }) }))) = Tuple (Tuple FeeIx row) (CurrencyBalance $ AssocMap.fromTuples [ Tuple adaCurrencySymbol (AssocMap.fromTuples [ Tuple adaTokenName adaBalance ]) ])
 
   inputTransactions :: Row -> JsonTuple (TxIdOf String) Tx -> Array (Tuple (Tuple Column Row) Balance)
   inputTransactions row (JsonTuple (Tuple _ (Tx { txInputs }))) = fromTxIn <$> txInputs

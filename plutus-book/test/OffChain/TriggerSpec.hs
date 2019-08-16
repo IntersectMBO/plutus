@@ -25,7 +25,7 @@ mkSpec waitUntil =
 
   where
     ada :: Ada
-    ada = fromInt 10000
+    ada = lovelaceOf 10000
 
     tr :: Trace MockWallet ()
     tr = void $ do

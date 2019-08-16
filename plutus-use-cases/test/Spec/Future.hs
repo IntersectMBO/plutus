@@ -175,7 +175,7 @@ contract = Future {
     futurePriceOracle   = oracle,
     futureMarginPenalty = penalty
     } where
-        im = penalty + (Ada.fromInt units * forwardPrice `div` 20) -- 5%
+        im = penalty + (Ada.lovelaceOf units * forwardPrice `div` 20) -- 5%
 
 -- | Margin penalty
 penalty :: Ada

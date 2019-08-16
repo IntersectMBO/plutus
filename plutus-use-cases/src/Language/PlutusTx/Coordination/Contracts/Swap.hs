@@ -87,7 +87,7 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
         fromInt = error ()
 
         adaValueIn :: Value -> Integer
-        adaValueIn v = Ada.toInt (Ada.fromValue v)
+        adaValueIn v = Ada.getLovelace (Ada.fromValue v)
 
         isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
         isPubKeyOutput o k = maybe False ((==) k) (Validation.pubKeyOutput o)
@@ -99,8 +99,8 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
         rtDiff :: Ratio Integer
         rtDiff = rt `minusR` swapFixedRate
 
-        amt    = Ada.toInt swapNotionalAmt
-        margin = Ada.toInt swapMargin
+        amt    = Ada.getLovelace swapNotionalAmt
+        margin = Ada.getLovelace swapMargin
 
         amt' :: Ratio Integer
         amt' = fromInt amt
