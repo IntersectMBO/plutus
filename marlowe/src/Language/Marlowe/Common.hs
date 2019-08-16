@@ -365,7 +365,7 @@ makeLift ''State
 validateContract :: State -> Contract -> Slot -> Ada -> Bool
 validateContract State{stateCommitted} contract (Slot bn) actualMoney' = let
 
-    actualMoney = Ada.toInt actualMoney'
+    actualMoney = Ada.getLovelace actualMoney'
 
     calcCommittedMoney :: [Commit] -> Cash -> Cash
     calcCommittedMoney [] r = r
@@ -497,7 +497,7 @@ discountFromPairList ::
     -> [Commit]
     -> Maybe [Commit]
 discountFromPairList from (Slot currentBlockNumber) value' commits = let
-    value = Ada.toInt value'
+    value = Ada.getLovelace value'
 
     discount :: Integer -> [Commit] -> Maybe [Commit]
     discount value commits = case commits of
@@ -557,8 +557,8 @@ evaluateContract
     state
     contract = let
 
-    scriptInValue  = Ada.toInt scriptInValue'
-    scriptOutValue = Ada.toInt scriptOutValue'
+    scriptInValue  = Ada.getLovelace scriptInValue'
+    scriptOutValue = Ada.getLovelace scriptOutValue'
 
     Slot currentBlockNumber = blockHeight
 
@@ -623,7 +623,7 @@ evaluateContract
                 && scriptOutValue == (scriptInValue `Builtins.subtractInteger` pv)
                 && signature `signedBy` to
             in  if isValid then let
-                in case discountFromPairList from blockHeight (Ada.fromInt pv) commits of
+                in case discountFromPairList from blockHeight (Ada.lovelaceOf pv) commits of
                     Just updatedCommits -> let
                         updatedState = State updatedCommits choices
                         in (updatedState, con, True)
@@ -713,7 +713,7 @@ validatorScript
 
         -- Expected amount of money in TxOut Marlowe Contract
         scriptOutValue = case inputCommand of
-            SpendDeposit _ -> Ada.fromInt 0
+            SpendDeposit _ -> Ada.zero
             _ -> let (PendingTxOut change
                         (Just (outputValidatorHash, DataScriptHash dataScriptHash)) DataTxOut : _) = pendingTxOutputs
                 {-  Check that TxOut is a valid continuation.

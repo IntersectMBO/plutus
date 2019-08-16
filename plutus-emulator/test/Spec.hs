@@ -122,7 +122,7 @@ validFromTransaction :: Trace MockWallet ()
 validFromTransaction = do
     let [w1, w2] = [wallet1, wallet2]
         updateAll = processPending >>= walletsNotifyBlock [w1, w2]
-        five = Ada.adaValueOf 5
+        five = Ada.lovelaceValueOf 5
     updateAll
 
     -- Set the validation interval to (5, 5] for the
@@ -268,7 +268,7 @@ eventTrace = property $ do
         $ do
             processPending >>= walletNotifyBlock w
             let mkPayment =
-                    EventHandler $ \_ -> payToPublicKey_ W.always (Ada.adaValueOf 100) pubKey2
+                    EventHandler $ \_ -> payToPublicKey_ W.always (Ada.lovelaceValueOf 100) pubKey2
                 trigger = slotRangeT (W.intervalFrom 3)
 
             -- schedule the `mkPayment` action to run when slot 3 is
@@ -279,7 +279,7 @@ eventTrace = property $ do
             -- advance the clock to trigger `mkPayment`
             addBlocks 2 >>= traverse_ (walletNotifyBlock w)
             void (processPending >>= walletNotifyBlock w)
-            assertOwnFundsEq w (initialBalance `Value.minus` Ada.adaValueOf 100)
+            assertOwnFundsEq w (initialBalance `Value.minus` Ada.lovelaceValueOf 100)
 
     Hedgehog.assert $ isRight e
 
@@ -287,8 +287,8 @@ payToPubKeyScript2 :: Property
 payToPubKeyScript2 = property $ do
     let [w1, w2, w3] = [wallet1, wallet2, wallet3]
         updateAll = processPending >>= walletsNotifyBlock [w1, w2, w3]
-        payment1 = initialBalance `Value.minus` Ada.adaValueOf 1
-        payment2 = initialBalance `Value.plus` Ada.adaValueOf 1
+        payment1 = initialBalance `Value.minus` Ada.lovelaceValueOf 1
+        payment2 = initialBalance `Value.plus` Ada.lovelaceValueOf 1
     (e, _) <- forAll
         $ Gen.runTraceOn Gen.generatorModel
         $ do
@@ -299,7 +299,7 @@ payToPubKeyScript2 = property $ do
             updateAll
             walletAction wallet3 $ payToPublicKey_ W.always payment2 pubKey1
             updateAll
-            walletAction wallet1 $ payToPublicKey_ W.always (Ada.adaValueOf 2) pubKey2
+            walletAction wallet1 $ payToPublicKey_ W.always (Ada.lovelaceValueOf 2) pubKey2
             updateAll
             traverse_ (uncurry assertOwnFundsEq) [
                 (w1, initialBalance),
@@ -311,7 +311,7 @@ pubKeyTransactions :: Trace MockWallet ()
 pubKeyTransactions = do
     let [w1, w2, w3] = [wallet1, wallet2, wallet3]
         updateAll = processPending >>= walletsNotifyBlock [w1, w2, w3]
-        five = Ada.adaValueOf 5
+        five = Ada.lovelaceValueOf 5
     updateAll
     walletAction wallet1 $ payToPublicKey_ W.always five pubKey2
     updateAll
@@ -338,7 +338,7 @@ watchFundsAtAddress = property $ do
         $ do
             processPending >>= walletNotifyBlock w
             let mkPayment =
-                    EventHandler $ \_ -> payToPublicKey_ W.always (Ada.adaValueOf 100) pubKey2
+                    EventHandler $ \_ -> payToPublicKey_ W.always (Ada.lovelaceValueOf 100) pubKey2
                 t1 = slotRangeT (W.interval 3 4)
                 t2 = fundsAtAddressGtT (pubKeyAddress pkTarget) Value.zero
             walletNotifyBlock w =<<
@@ -350,7 +350,7 @@ watchFundsAtAddress = property $ do
             -- after 4 blocks, t2 should fire, triggering the second payment of 100
             addBlocks 3 >>= traverse_ (walletNotifyBlock w)
             void (processPending >>= walletNotifyBlock w)
-            assertOwnFundsEq w (initialBalance `Value.minus` Ada.adaValueOf 200)
+            assertOwnFundsEq w (initialBalance `Value.minus` Ada.lovelaceValueOf 200)
 
     Hedgehog.assert $ isRight e
 
@@ -362,4 +362,4 @@ genChainTxn = do
 
 
 initialBalance :: Value
-initialBalance = Ada.adaValueOf 100000
+initialBalance = Ada.lovelaceValueOf 100000

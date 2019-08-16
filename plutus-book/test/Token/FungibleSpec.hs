@@ -38,7 +38,7 @@ spec = do
     p2 = 100000
 
     ada :: Ada
-    ada = A.fromInt 50000
+    ada = A.lovelaceOf 50000
 
     price :: Value
     price = A.toValue ada

@@ -108,7 +108,7 @@ settle refs ft fd ov = do
         delDate = futureDeliveryDate ft
         forwardPrice = futureUnitPrice ft
         OracleValue _ _ spotPrice = ov
-        delta = Ada.multiply (Ada.fromInt $ futureUnits ft) (Ada.minus spotPrice forwardPrice)
+        delta = Ada.multiply (Ada.lovelaceOf $ futureUnits ft) (Ada.minus spotPrice forwardPrice)
         longOut = Ada.toValue (Ada.plus (futureDataMarginLong fd) delta)
         shortOut = Ada.toValue (Ada.minus (futureDataMarginShort fd) delta)
         red = redeemerScript0 $ Settle ov
@@ -203,7 +203,7 @@ data FutureRedeemer =
 requiredMargin :: Future -> Ada -> Ada
 requiredMargin Future{futureUnits=units, futureUnitPrice=unitPrice, futureMarginPenalty=pnlty} spotPrice =
     let
-        delta  = Ada.multiply (Ada.fromInt units) (Ada.minus spotPrice unitPrice)
+        delta  = Ada.multiply (Ada.lovelaceOf units) (Ada.minus spotPrice unitPrice)
     in
         Ada.plus pnlty delta
 
@@ -249,7 +249,7 @@ mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pe
             Settle ov ->
                 let
                     spotPrice = snd (verifyOracle ov)
-                    delta  = Ada.multiply (Ada.fromInt futureUnits) (Ada.minus spotPrice futureUnitPrice)
+                    delta  = Ada.multiply (Ada.lovelaceOf futureUnits) (Ada.minus spotPrice futureUnitPrice)
                     expShort = Ada.minus futureDataMarginShort delta
                     expLong  = Ada.plus futureDataMarginLong delta
                     slotvalid = Interval.member futureDeliveryDate range

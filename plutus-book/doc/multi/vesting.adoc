@@ -10,7 +10,6 @@
 module Multi.Vesting where
 
 import           Language.PlutusTx
-import           Language.PlutusTx.Builtins (greaterThanEqInteger)
 import           Language.PlutusTx.Prelude  hiding (plus, minus)
 import           Ledger
 import           Ledger.Ada
@@ -105,7 +104,7 @@ validate v () () tx =
         available  = availableFrom v (pendingTxValidRange tx)        -- <2>
         unreleased = totalAmount v `minus` available                 -- <3>
         remaining  = adaLockedBy tx hash                             -- <4>
-    in     (toInt remaining `greaterThanEqInteger` toInt unreleased)
+    in     (remaining >= unreleased)
         && (tx `txSignedBy` owner v)
 
 mkValidatorScript :: Vesting -> ValidatorScript

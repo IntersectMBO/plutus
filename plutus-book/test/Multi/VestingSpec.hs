@@ -23,8 +23,8 @@ spec = describe "vesting" $ do
         fst (getResult $ tr 8 7 ada1) `shouldSatisfy` isRight
   where
     ada1, ada2 :: Ada
-    ada1 = fromInt  4000
-    ada2 = fromInt  6000
+    ada1 = lovelaceOf  4000
+    ada2 = lovelaceOf  6000
 
     s1, s2 :: Slot
     s1 = Slot 10
@@ -54,13 +54,13 @@ spec = describe "vesting" $ do
         updateWallets
         void $ walletAction w1 $ vest v
         replicateM_ d1 updateWallets
-        void $ walletAction w2 $ withdraw t1 t2 $ fromInt 2000
+        void $ walletAction w2 $ withdraw t1 t2 $ lovelaceOf 2000
         updateWallets
-        void $ walletAction w2 $ withdraw t1 t2 $ fromInt 2000
+        void $ walletAction w2 $ withdraw t1 t2 $ lovelaceOf 2000
         replicateM_ d2 updateWallets
-        void $ walletAction w2 $ withdraw t1 t2 $ fromInt 5000
+        void $ walletAction w2 $ withdraw t1 t2 $ lovelaceOf 5000
         updateWallets
-        void $ walletAction w2 $ withdraw t1 t2 $ fromInt 1000
+        void $ walletAction w2 $ withdraw t1 t2 $ lovelaceOf 1000
         updateWallets
         assertFunds2
             (initialAda `minus` (ada1 `plus` ada2))

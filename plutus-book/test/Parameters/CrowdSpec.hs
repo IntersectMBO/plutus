@@ -23,9 +23,9 @@ spec = describe "crowd" $ do
         fst (getResult tr2) `shouldSatisfy` isRight
   where
     ft, ada2, ada3 :: Ada
-    ft   = fromInt 10000
-    ada2 = fromInt  4000
-    ada3 = fromInt  7000
+    ft   = lovelaceOf 10000
+    ada2 = lovelaceOf  4000
+    ada3 = lovelaceOf  7000
 
     ed, cd :: Slot
     ed = Slot 10

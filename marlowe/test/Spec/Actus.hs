@@ -69,36 +69,36 @@ checkZeroCouponBond = do
         eval = evaluateContract issuerPk testTxHash
     -- investor commits money for a bond with discount
     let (state1, con1, v) = eval (input $ Commit (IdentCC 1) signature2) (Slot 10)
-                                    (Ada.fromInt deposit)
-                                    (Ada.fromInt (notional - discount + deposit))
+                                    (Ada.lovelaceOf deposit)
+                                    (Ada.lovelaceOf (notional - discount + deposit))
                                     state
                                     contract
     v @?= True
     -- issuer commits money for a bond redeem
     let (state2, con2, v) = eval (input $ Commit (IdentCC 2) signature1) (Slot 20)
-                                    (Ada.fromInt (notional - discount + deposit))
-                                    (Ada.fromInt (2*notional - discount + deposit))
+                                    (Ada.lovelaceOf (notional - discount + deposit))
+                                    (Ada.lovelaceOf (2*notional - discount + deposit))
                                     state1
                                     con1
     v @?= True
     -- issuer receives payment for a bond
     let (state3, con3, v) = eval (input $ Payment (IdentPay 1) signature1) (Slot 60)
-                                    (Ada.fromInt (2*notional - discount + deposit))
-                                    (Ada.fromInt (notional + deposit))
+                                    (Ada.lovelaceOf (2*notional - discount + deposit))
+                                    (Ada.lovelaceOf (notional + deposit))
                                     state2
                                     con2
     v @?= True
     -- investor redeems a bond
     let (_, _, v) = eval (input $ Payment (IdentPay 2) signature2) (Slot 510)
-                                    (Ada.fromInt (notional + deposit))
-                                    (Ada.fromInt deposit)
+                                    (Ada.lovelaceOf (notional + deposit))
+                                    (Ada.lovelaceOf deposit)
                                     state3
                                     con3
     v @?= True
     -- issuer can't receive payment for a bond before start date
     let (_, _, v) = eval (input $ Payment (IdentPay 1) signature1) (Slot 49)
-                                    (Ada.fromInt (2*notional - discount + deposit))
-                                    (Ada.fromInt (notional + deposit))
+                                    (Ada.lovelaceOf (2*notional - discount + deposit))
+                                    (Ada.lovelaceOf (notional + deposit))
                                     state2
                                     con2
     v @?= False
@@ -125,37 +125,37 @@ checkTrustedZeroCouponBond = do
         eval = evaluateContract issuerPk testTxHash
     -- investor commits money for a bond with discount
     let (state1, con1, v) = eval (input $ Commit (IdentCC 1) signature2) (Slot 10)
-                                    (Ada.fromInt deposit)
-                                    (Ada.fromInt (notional - discount + deposit))
+                                    (Ada.lovelaceOf deposit)
+                                    (Ada.lovelaceOf (notional - discount + deposit))
                                     state
                                     contract
     v @?= True
     -- issuer receives payment for a bond
     let (state2, con2, v) = eval (input $ Payment (IdentPay 1) signature1) (Slot 60)
-                                    (Ada.fromInt (notional - discount + deposit))
-                                    (Ada.fromInt deposit)
+                                    (Ada.lovelaceOf (notional - discount + deposit))
+                                    (Ada.lovelaceOf deposit)
                                     state1
                                     con1
     v @?= True
     -- issuer commits money for a bond redeem
     let (state3, con3, v) = eval (input $ Commit (IdentCC 2) signature1) (Slot 450)
-                                    (Ada.fromInt deposit)
-                                    (Ada.fromInt (notional + deposit))
+                                    (Ada.lovelaceOf deposit)
+                                    (Ada.lovelaceOf (notional + deposit))
                                     state2
                                     con2
     v @?= True
 
     -- investor redeems a bond
     let (_, _, v) = eval (input $ Payment (IdentPay 2) signature2) (Slot 510)
-                                    (Ada.fromInt (notional + deposit))
-                                    (Ada.fromInt deposit)
+                                    (Ada.lovelaceOf (notional + deposit))
+                                    (Ada.lovelaceOf deposit)
                                     state3
                                     con3
     v @?= True
     -- issuer can't receive payment for a bond before start date
     let (_, _, v) = eval (input $ Payment (IdentPay 1) signature1) (Slot 49)
-                                    (Ada.fromInt (2*notional - discount + deposit))
-                                    (Ada.fromInt (notional + deposit))
+                                    (Ada.lovelaceOf (2*notional - discount + deposit))
+                                    (Ada.lovelaceOf (notional + deposit))
                                     state1
                                     con1
     v @?= False

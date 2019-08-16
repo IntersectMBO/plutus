@@ -138,14 +138,14 @@ crowdfunding c = contribute c <|> scheduleCollection c
 theCampaign :: Campaign
 theCampaign = Campaign
     { campaignDeadline = 20
-    , campaignTarget   = Ada.adaValueOf 20
+    , campaignTarget   = Ada.lovelaceValueOf 20
     , campaignCollectionDeadline = 30
     , campaignOwner = Emulator.walletPubKey (Emulator.Wallet 1)
     }
 
--- | The "contribute" branch of the contract for a specific 'Campaign'. Exposes 
---   an endpoint that allows the user to enter their public key and the 
---   contribution. Then waits until the campaign is over, and collects the 
+-- | The "contribute" branch of the contract for a specific 'Campaign'. Exposes
+--   an endpoint that allows the user to enter their public key and the
+--   contribution. Then waits until the campaign is over, and collects the
 --   refund if the funding target was not met.
 contribute :: ContractActions r => Campaign -> Contract r ()
 contribute cmp = do
@@ -154,14 +154,14 @@ contribute cmp = do
         tx = payToScript contribution (campaignAddress cmp) ds
                 & validityRange .~ Ledger.interval 1 (campaignDeadline cmp)
     writeTx tx
-    
+
     utxo <- watchAddressUntil (campaignAddress cmp) (campaignCollectionDeadline cmp)
     -- 'utxo' is the set of unspent outputs at the campaign address at the
     -- collection deadline. If 'utxo' still contains our own contribution
     -- then we can claim a refund.
-    
-    -- Finding "our" output is a bit fiddly since we don't know the transaction 
-    -- ID of 'tx'. So we use `collectFromScriptFilter` to collect only those 
+
+    -- Finding "our" output is a bit fiddly since we don't know the transaction
+    -- ID of 'tx'. So we use `collectFromScriptFilter` to collect only those
     -- outputs whose data script is our own public key (in 'ds')
     let flt _ txOut = Ledger.txOutData txOut == Just ds
         tx' = collectFromScriptFilter flt utxo (contributionScript cmp) (Ledger.RedeemerScript (Ledger.lifted Refund))
@@ -170,13 +170,13 @@ contribute cmp = do
     then void (writeTx tx')
     else pure ()
 
--- | The campaign owner's branch of the contract for a given 'Campaign'. It 
+-- | The campaign owner's branch of the contract for a given 'Campaign'. It
 --   watches the campaign address for contributions and collects them if
 --   the funding goal was reached in time.
 scheduleCollection :: ContractActions r => Campaign -> Contract r ()
 scheduleCollection cmp = do
 
-    -- Expose an endpoint that lets the user fire the starting gun on the 
+    -- Expose an endpoint that lets the user fire the starting gun on the
     -- campaign. (This endpoint isn't technically necessary, we could just
     -- run the 'trg' action right away)
     () <- endpoint "schedule collection"
@@ -198,7 +198,7 @@ scheduleCollection cmp = do
                     & validityRange .~ collectionRange cmp
         writeTx tx
 
--- | Call the "schedule collection" endpoint and instruct the campaign owner's 
+-- | Call the "schedule collection" endpoint and instruct the campaign owner's
 --   wallet (wallet 1) to start watching the campaign address.
 startCampaign
     :: ( MonadEmulator m )
@@ -223,9 +223,9 @@ successfulCampaign
     => ContractTrace m a ()
 successfulCampaign =
     startCampaign
-        >> makeContribution (Trace.Wallet 2) (Ada.adaValueOf 10)
-        >> makeContribution (Trace.Wallet 3) (Ada.adaValueOf 10)
-        >> makeContribution (Trace.Wallet 4) (Ada.adaValueOf 1)
+        >> makeContribution (Trace.Wallet 2) (Ada.lovelaceValueOf 10)
+        >> makeContribution (Trace.Wallet 3) (Ada.lovelaceValueOf 10)
+        >> makeContribution (Trace.Wallet 4) (Ada.lovelaceValueOf 1)
         >> Trace.addBlocks 18
         >> Trace.notifySlot (Trace.Wallet 1)
         >> Trace.handleBlockchainEvents (Trace.Wallet 1)

@@ -90,7 +90,7 @@ createContract validator contract value = do
     let ds = DataScript $ Ledger.lifted (Input CreateContract [] [], MarloweData {
             marloweContract = contract,
             marloweState = emptyState })
-    let v' = Ada.adaValueOf value
+    let v' = Ada.lovelaceValueOf value
     (payment, change) <- createPaymentWithChange v'
     let o = scriptTxOut v' validator ds
 
@@ -111,11 +111,11 @@ marloweTx ::
     -> m ()
 marloweTx inputState txOut validator f = let
     (TxOutOf _ vl _, ref) = txOut
-    contractValue = Ada.toInt $ Ada.fromValue vl
+    contractValue = Ada.getLovelace $ Ada.fromValue vl
     lifted = Ledger.lifted inputState
     scriptIn = scriptTxIn ref validator $ Ledger.RedeemerScript lifted
     dataScript = DataScript lifted
-    scritOut v = scriptTxOut (Ada.adaValueOf v) validator dataScript
+    scritOut v = scriptTxOut (Ada.lovelaceValueOf v) validator dataScript
     in f scriptIn scritOut contractValue
 
 
@@ -158,7 +158,7 @@ commit tx validator oracles choices identCC value expectedState expectedCont = d
     let redeemer = createRedeemer (Commit identCC sig) oracles choices expectedState expectedCont
     let txOut = getScriptOutFromTx tx
     marloweTx redeemer txOut validator $ \ contractTxIn getTxOut contractValue -> do
-        (payment, change) <- createPaymentWithChange (Ada.adaValueOf value)
+        (payment, change) <- createPaymentWithChange (Ada.lovelaceValueOf value)
         void $ createTxAndSubmit
             (intervalFrom slot)
             (Set.insert contractTxIn payment)
@@ -200,7 +200,7 @@ commit' contractCreatorPK tx validator oracles choices identCC value inputState 
     let input = Input inputCommand oracles choices
     let txOut = getScriptOutFromTx tx
     let scriptInValue = Ada.fromValue . txOutValue . fst $ txOut
-    let scriptOutValue = scriptInValue + Ada.fromInt value
+    let scriptOutValue = scriptInValue + Ada.lovelaceOf value
     let (expectedState, expectedCont, isValid) =
             evaluateContract contractCreatorPK txHash
             input bh scriptInValue scriptOutValue inputState inputContract
@@ -239,7 +239,7 @@ receivePayment tx validator oracles choices identPay value expectedState expecte
     let redeemer = createRedeemer (Payment identPay sig) oracles choices expectedState expectedCont
     marloweTx redeemer txOut validator $ \ contractTxIn getTxOut contractValue -> do
         let out = getTxOut (contractValue - value)
-        oo <- ownPubKeyTxOut (Ada.adaValueOf value)
+        oo <- ownPubKeyTxOut (Ada.lovelaceValueOf value)
         void $ createTxAndSubmit (intervalFrom slot) (Set.singleton contractTxIn) [out, oo]
 
 
@@ -274,7 +274,7 @@ redeem tx validator oracles choices identCC value expectedState expectedCont = d
     let redeemer = createRedeemer (Redeem identCC sig) oracles choices expectedState expectedCont
     marloweTx redeemer txOut validator $ \ contractTxIn getTxOut contractValue -> do
         let out = getTxOut (contractValue - value)
-        oo <- ownPubKeyTxOut (Ada.adaValueOf value)
+        oo <- ownPubKeyTxOut (Ada.lovelaceValueOf value)
         void $ createTxAndSubmit (intervalFrom slot) (Set.singleton contractTxIn) [out, oo]
 
 
@@ -297,5 +297,5 @@ spendDeposit tx validator state = do
     let txOut = getScriptOutFromTx tx
     let redeemer = createRedeemer (SpendDeposit sig) [] [] state Null
     marloweTx redeemer txOut validator $ \ contractTxIn _ contractValue -> do
-        oo <- ownPubKeyTxOut (Ada.adaValueOf contractValue)
+        oo <- ownPubKeyTxOut (Ada.lovelaceValueOf contractValue)
         void $ createTxAndSubmit (intervalFrom slot) (Set.singleton contractTxIn) [oo]
