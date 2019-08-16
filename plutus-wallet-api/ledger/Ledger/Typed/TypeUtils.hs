@@ -4,7 +4,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PolyKinds             #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE Rank2Types            #-}
@@ -18,7 +17,7 @@ data HListF (f :: Type -> Type) (l :: [Type]) where
     HNilF  :: HListF f '[]
     HConsF :: f e -> HListF f l -> HListF f (e ': l)
 
--- | Turn a 'HListF' into a homogeneous list. Requires a very polymorphic function, likely something like 'id' or 'coerce'.
+-- | Turn a 'HListF' into a homogeneous list. Requires a very polymorphic function, likely something like 'coerce'.
 hfOut :: forall o f (ts :: [Type]) . (forall a . f a -> o) -> HListF f ts -> [o]
 hfOut _ HNilF = []
 hfOut f (HConsF e es) = f e : hfOut f es
@@ -48,21 +47,21 @@ type family Map (f :: k1 ~> k2) (l :: [k1]) :: [k2] where
     Map f '[] = '[]
     Map f (x ': xs) = Apply f x ': Map f xs
 
--- List witnesses
+-- List spine witnesses
 
-data ListWitness (ts :: [Type]) where
-    NilWit :: ListWitness '[]
-    ConsWit :: ListWitness xs -> ListWitness (x ': xs)
+data Spine (ts :: [Type]) where
+    NilSpine :: Spine '[]
+    ConsSpine :: Spine xs -> Spine (x ': xs)
 
-mapWit :: Proxy f -> ListWitness ts -> ListWitness (Map f ts)
-mapWit _ NilWit = NilWit
-mapWit p (ConsWit wit) = ConsWit (mapWit p wit)
+mapSpine :: Proxy f -> Spine ts -> Spine (Map f ts)
+mapSpine _ NilSpine = NilSpine
+mapSpine p (ConsSpine sp) = ConsSpine (mapSpine p sp)
 
-class HasListWitness (ts :: [Type]) where
-    listWit :: ListWitness ts
+class KnownSpine (ts :: [Type]) where
+    spine :: Spine ts
 
-instance HasListWitness '[] where
-    listWit = NilWit
+instance KnownSpine '[] where
+    spine = NilSpine
 
-instance HasListWitness xs => HasListWitness (x ': xs) where
-    listWit = ConsWit listWit
+instance KnownSpine xs => KnownSpine (x ': xs) where
+    spine = ConsSpine spine

@@ -94,24 +94,24 @@ type RedeemerFunctionType (outs :: [Type]) (inn :: Type) = Uncurry (Map SealedDa
 -- Requires a witness for the list of outputs. This should be automatically provided if it is a concrete list.
 ignoreDataScripts
     :: forall (outs :: [Type]) (inn :: Type)
-    . (All Typeable (Map SealedDataTypeSym outs), HasListWitness outs)
+    . (All Typeable (Map SealedDataTypeSym outs), KnownSpine outs)
     => Proxy outs
     -> Proxy inn
     -> CompiledCode (RedeemerType inn)
     -> CompiledCode (RedeemerFunctionType outs inn)
-ignoreDataScripts _ = ignoreDataScripts' (listWit @outs)
+ignoreDataScripts _ = ignoreDataScripts' (spine @outs)
 
 -- | As 'ignoreDataScripts', but takes the witness explicitly.
 ignoreDataScripts'
     :: forall (outs :: [Type]) (inn :: Type)
     . (All Typeable (Map SealedDataTypeSym outs))
-    => ListWitness outs
+    => Spine outs
     -> Proxy inn
     -> CompiledCode (RedeemerType inn)
     -> CompiledCode (RedeemerFunctionType outs inn)
 ignoreDataScripts' wit _ =
     ignoreArgs
-    (mapWit (Proxy @SealedDataTypeSym) wit)
+    (mapSpine (Proxy @SealedDataTypeSym) wit)
     (Proxy @(RedeemerType inn))
 
 -- | Given code for a value of a result type, constructs code for a function that ignores
@@ -119,12 +119,12 @@ ignoreDataScripts' wit _ =
 ignoreArgs
     :: forall (args :: [Type]) (r :: Type)
     . (All Typeable args)
-    => ListWitness args
+    => Spine args
     -> Proxy r
     -> CompiledCode r
     -> CompiledCode (Uncurry args r)
-ignoreArgs NilWit _ c = c
-ignoreArgs (ConsWit tsing) p c = Lift.unsafeConstCode Proxy $ ignoreArgs tsing p c
+ignoreArgs NilSpine _ c = c
+ignoreArgs (ConsSpine tspine) p c = Lift.unsafeConstCode Proxy $ ignoreArgs tspine p c
 
 -- | A 'TxIn' tagged by two phantom types: a list of the types of the data scripts in the transaction; and the connection type of the input.
 newtype TypedScriptTxIn (outs :: [Type]) a = TypedScriptTxIn { unTypedScriptTxIn :: TxIn }
