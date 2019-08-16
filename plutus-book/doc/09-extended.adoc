@@ -165,13 +165,10 @@ script address, and can be thought of as an action, such as a
 - guessing a secret word (the guess can be verified using the _data_ script)
 - an input command which is interpreted by the validator
 as spending money from a script (this changes the data script of the contract)
-* Validator evaluates to `True` if a suitable redeemer script is provided in
-the context of other conditions being met by
-- the data script, ledger state, and carrying transaction data
 * Value is never stored on-chain, and only appears as part of transaction data
 * Hash computed if and when it is necessary for script validation, not stored on-chain
 
-There is one more argument that the validator data script takes which is put
+Another argument that the validator data script takes which is put
 together out of transaction and ledger data,
 
 [start=4]
@@ -203,6 +200,8 @@ runScript
 ----
 
 We will explain the purpose of the argument of type `DataScripts` in the note below.
+These are data scripts that are associated with script addresses the carrying
+transaction is paying _to_.
 Now, let us look more closely at how these scripts fit into the extended model
 transaction and UTxO structure.
 
@@ -211,8 +210,9 @@ Recall that in the classic model, UTxO entries are of the form
 where `a` is the address of the owner of the funds
 (the paying or staking public key, usually), and `c` is the value of Ada in the output.
 
-For the extended model, if `a` is a script
-address (hash of the validator script), we must store additional data on the
+For the extended model, we say that an output is locked by (or belongs to)
+a script if `a` is a script address (hash of the validator script). In this
+case, we must store additional data on the
 ledger in the `TxOut` - the data script. It must be stored in full, not just the
 hash, since it will be passed as an argument to the validator during
 validation of a transaction which is trying to spend this output.
@@ -225,9 +225,11 @@ The extended `TxOut` for a script address contains
 A `TxOut` which belongs to a public key address contains only the address and the value.
 Thus, a term of the `TxOut` data structure type includes a term of the type:
 
-`data TxOutType =`
-`    PayToScript !DataScript -- A pay-to-script output with the given data script.`
-`    | PayToPubKey !PubKey -- A pay-to-pubkey output.`
+----
+data TxOutType =
+    PayToScript !DataScript -- A pay-to-script output with the given data script.
+    | PayToPubKey !PubKey -- A pay-to-pubkey output.
+----
 
 This is how the outputs are structured both inside the carrying transaction
 and the UTxO. In the extended model, the position of an output in the outputs list
@@ -249,17 +251,20 @@ spending from a script), the full validator and redeemer script must be included
 in the `TxIn` data. So, in the `TxIn` data type, we add a term of the following
 type:
 
-`data TxInType =`
-`      ConsumeScriptAddress !ValidatorScript !RedeemerScript `
-`    -- ^ A transaction input that consumes a script address with the given validator and redeemer pair.`
-`    | ConsumePublicKeyAddress !PubKey `
-`    -- ^ A transaction input that consumes a public key address.`
+----
+data TxInType =
+      ConsumeScriptAddress !ValidatorScript !RedeemerScript
+    -- ^ A transaction input that consumes a script address with the given validator and redeemer pair.
+    | ConsumePublicKeyAddress !PubKey
+    -- ^ A transaction input that consumes a public key address.
+----
 
 To recap the paying and spending process in a different way,
 
 . Paying to a script address
 * Transaction contains an output `o` where the address in it is the hash of the
 validator script
+- this hash is computed off-chain by the wallet
 * `o` also contains the corresponding data script
 * `o` becomes a value in the UTxO map once the carrying transaction is processed
 * No validation occurs
@@ -274,116 +279,131 @@ data script stored in the output
 - the validator script `i` provides must hash to this script address
 * Validation is done at this point for the spending of the specific output
 `i` references
-- we have the validator, redeemer and data script all available 
+- we have the validator, redeemer and data script all available
 - if it succeeds, the transaction is allowed to spend the UTxO output `i` references
+- validation is performed on-chain
 
-[NOTE]
-====
-. The Seal Mechanism
-
-A transaction may be paying to a particular (validator) script address by creating
-several different entries in the ledger UTxO associated this address, but each with
-a different data script, which may also have arbitrary different types (since
-these are Plutus Core programs).
-
-In order to spend an output with a specific data script, the validator may need
-to know the other data script values for this validator address. It may also
-want the option to throw away the data scripts that validation does not care about.
-To accommodate this, the `Sealed` mechanism is used.
-
-
-Let's say your "actual" redeemer script (the one expected by the validator script)
-has type r.
-Now the type of the script that you use to create an input is no longer always r,
-but depends on how many script outputs the pending transaction has!
-If the pending tx has no script output, you still use r to create a script input.
-If the pending tx has one script output with datascript type d1, you instead use
-type Sealed (HashedDataScript d) -> r.
-If the pending tx has two script outputs with datascript types d1, d2, you must
-use Sealed (HashedDataScript d1) -> Sealed (HashedDataScript d2) -> r.
-And so on...
-So the system will take that script, apply it to the (hashed) datascripts of all
-the script transaction output, get an r and then pass that r to the validator.
-The Sealed thing is just something like a newtype-wrapper, so you have
-seal :: a -> Seal a and unseal :: Seal a -> a, but there will be some security
-restrictions, so not everybody can use both. No idea who can or can't. I think
-in offchain code, when you construct the redeemer, you can not unseal, but the validator can.
-Anyway, what your "pre-"-redeemer script (the funny function type) actually does
-with the new arguments is up to you, the creator of the transaction. You can for
-example simply ignore them.
-The HashedDataScript thingie is more or less a pair of DataScript and its hash -
-somehow that can be used by the validator to check that the HashedDataScript s it
-gets (if it gets them, i.e. if the redeemer doesn't throw them away) are the "real"
-ones from the pending transaction under scrutiny.
-
-====
-
-
-
-When we say an output is locked by a script, or belongs to a script address,
-this means that the address of this UTxO entry is the hash of some validator
-script (not redeemer, and not data script).
-This address model of using a hash is not far off from
-addresses in the classic UTxO model, which are a datatype
-containing the paying and the staking (public, i.e. verification) keys.
-
-As with regular addresses, there are really two things that can be done with
-a script address. One can create UTxO entries associated with it (i.e.
-pay to the script), and consume entries associated with that script. A transaction
-which pays to a script must have an output
-`ix |-> (a,c)`
-such that the address `a` is the hash of the validator script to which it is paying
-(computed off-chain by the wallet).
-It must additionally carry
-the data script associated with this index `ix`.
-It may even carry several data scripts and pay into several different
-states of the same contract (with distinct output, of course).
-There is no need to perform
-script validation using the validator that hashes to `a` here.
-In fact, a node processing such a transaction does not need to see the original
-validator here at all, unless this same transaction is also spending from the same
-script address.
-
-Now, in order to prove that a transaction `tx` is indeed authorized to spend outputs
-locked by a validator script, the node doing the validation must apply
-a `runScript` function to that validator script, and the three arguments above,
-which effectively is the computation applying the validator to the three arguments.
-It is necessary to use such a generic evaluator function here due to
-the typing of the three scripts.
-As pointed out in the <<10-PlutusTx#10-PlutusTx>> chapter, the data and redeemer scripts can be very different types
-of Plutus Core expressions generated by template Haskell, so all that is known
-to the generic `runScript` function is that these are the three types of
-scripts. The validator itself, however, is expecting a term of the exact type it
-must compute on, e.g. a public key-type term as the data script argument.
-
-To summarize, the node computes
-
-
-
-where
-
-* the validator `vld` comes from the transaction data and
-hashes to the value equal to the address of the ledger UTxO entry the transaction is spending
-* the data script `dsc` is stored on the ledger and is associated
-with the UTxO entry the transaction is spending (it can be looked up by this
-entry as a key)
-* the redeemer `rdm` is the choice of action the wallet (or its
-owner) has made when generating the transaction, and comes directly from
-transaction data
-
-For the validation to be successful, the choice of action must be allowed by
-the contract (validator) in the context of a given state. Note that,
+If the `runScript` computation returns true for a specific output being spent,
+the validation process proceeds.
+Otherwise, the entire transaction is scrapped. Essentially, given the context
+of the ledger state and carrying transaction data,
+the validator is used to show that the provided action (redeemer), is allowed
+to be performed given the current contract state (data script).
+In other words, the smart
+contract functionality defined by the code in the validator allows the spending
+of script-owned output funds by the carrying transaction.
+Note that,
 in the spirit of UTxO style accounting, the contract state is never updated in
 the UTxO entry. One can only spend that entry, and create a new one with a
 different data script.
 
-If this `runScript` computation returns true, the validation process proceeds.
-Otherwise, the entire transaction is scrapped. Essentially, given the context
-of the ledger state and carrying transaction data,
-the validator is used to show that the provided action (redeemer), indeed
-results in the correct state (data script), which means that the smart
-contract functionality defined by the code in the validator allows the spending
-of script-owned funds.
+.The Seal Mechanism
+[NOTE]
+====
+
+Having access to the data scripts of a script address a transaction
+is paying _to_ for the purposes of validation significantly expands the expressivity
+of the validator-redeemer-data script model for locking outputs.
+This additional functionality is useful when two or more contracts
+interact, where both contracts have some resources that they need to control
+across a chain of transactions.
+
+In such cases, the types of the data scripts
+associated with a script address to which a transaction is paying
+are arbitrary and not necessarily known ahead of time. This does not impact
+typing transaction data itself, as they will all still have type `DataScript`,
+but without knowing the underlying Plutus Core types of these terms,
+adding such functionality creates a typing
+challenge for performing Plutus Core computations in the validation process.
+
+Suppose there is a UTxO entry on the ledger with the validator script hash
+address `v1`, and the associated data script `ds1`. If a transaction `t` is
+trying to spend this entry and move the funds to an address `v2` of a
+different validator script, but produce multiple outputs for this,
+locked with different data scripts. For example, it wants to create two outputs
+in the UTxO with data scripts `v2_ds1` and `v2_ds2` (at the address `v2`).
+
+Now, in order to spend the funds at script address `v1`, our transaction `t` must
+provide the validator that hashes to `v1`, along with the redeemer. Suppose
+we want the validation result to depend on the contents of
+the data scripts of the script outputs to which a transaction is paying (as well as
+likely their script address as well).
+
+In our example, this means that whether `t` is validated or not will depend
+on `v2_ds1` and `v2_ds2`.
+The validator which hashes to `v1` cannot know ahead of time the real types of the
+Plutus Core terms hiding inside the two data scripts, since `v1` was defined
+prior to `v2_ds1` and `v2_ds2` being defined. Thus, we must find
+a way to have access to these during validation without being explicit about their
+types anywhere in the code of the validator (which hashes to `v1`).
+
+Now, the data script at `v1` is predefined and does not know anything about the
+types of `v2_ds1` and `v2_ds2` either. The `PendingTx` argument has a set type
+as well. The redeemer `r1`, however, is a piece of Plutus Core code we can work
+with to navigate this typing issue. It is carried by `t`, which is built
+by off-chain code in a wallet. As part of building `t`, this off-chain code
+defines both the redeemer `r1`
+for the validator with script address `v1` and also the data scripts
+`v2_ds1` and `v2_ds2` for script address `v2`. So this code _can_ have access to
+the information about the data scripts' types.
+
+Let us see how we can make use of these unpredictably typed scripts in the
+`runScript` validation by defining the redeemer in a special way.
+Recall that `runScript` has an argument of type `DataScripts`. This
+is how the data scripts are passed, `v2_ds1` and `v2_ds2` in our example.
+The function `runScript` _seals_ these data scripts using
+
+----
+newtype Sealer = Sealer (forall a . a -> DataScriptHash -> Sealed (HashedDataScript a))
+----
+
+For the moment, ignore the hashing of the data script - we will elabourate
+on this below.
+The resulting terms are then
+passed to the redeemer script `r1`, which in our example would have the
+underlying type
+
+----
+Sealed (HashedDataScript t1) -> Sealed (HashedDataScript t2) -> r
+----
+
+Here, `t1` and `t2` correspond to the underlying types of `v2_ds1` and `v2_ds2`.
+So, this `Sealer` type wrapper is actually never unwrapped, but instead compiled
+directly into a term of the underlying type of the Plutus Core expression.
+The redeemer is defined to have the type above by the same wallet that also
+defined `v2_ds1` and `v2_ds2`, so it is aware of `t1` and `t2`. The redeemer
+is also defined to be in charge of performing
+any relevant computations involving the two data scripts. In most
+simpler contract examples, the redeemer simply throws them away because
+the data scripts of the script address
+the funds are being paid to are irrelevant during validation for the purposes
+of the contract.
+
+We do not actually pass the two argument function `r1` directly to the
+validator - the types would not make sense. Instead, we apply this function
+to the sealed data scripts, and pass an argument of type `r` (i.e. the
+type of an `appliedRedeemer`) to the validator `v1` instead. This type `r` is
+fixed when the validator `v1` is defined, but we have the freedom to choose
+the (necessarily `Sealed`) hashed data script argument types of the full redeemer.
+Next, the following computation is performed as part of the validation, which
+is done inside `runScript`. It is the centerpiece of the script validation model,
+where the validator is applied to the (applied) redeemer, data script, and `PendingTx`,
+
+----
+((v1 `applyScript` ds1) `applyScript` appliedRedeemer) `applyScript` valData
+----
+
+Because the redeemer `r1` is untrusted, but we rely on it to compute with
+or simply forward the data inside `v2_ds1` and `v2_ds2` to the validator `v1`,
+we have a problem.
+This is where the `HashedDataScript` comes in. The hash of a data script
+is part of the sealed value, and the data scripts themselves are part of the transaction
+data of `t`. So, the validator
+can check (by comparing hashes) that it is being passed the sealed values that do indeed correspond
+to the data scripts in the outputs of `t`, and the redeemer did not swap them.
+
+====
+
 
 Note that with this model, as with the classic UTxO
 model, a transaction which was not validated does not incur fees. Unlike
@@ -404,7 +424,8 @@ data structure containing necessary non-state, immutable data about the contract
 (e.g. the public key of the owner of the campaign).
 The values passed to the validator via this data structure parameter are not only used in
 defining some of the contract's functions within
-the validator, but they serve also a contract identification purpose.
+the validator, but they serve to uniquely identify a specific contract (e.g. a
+specific crowdfunding campaign or guessing game).
 Generally, it is a good idea to define the type of this state-less contract
 structure parameter in such a way that it necessarily makes the resulting
 contract unique, thus making its validator-hash address unique also.
