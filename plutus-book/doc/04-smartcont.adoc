@@ -8,7 +8,7 @@ software-ensured guarantee that no parties involved are able to sabotage the con
 through negligence or nefarious action.
 This is achieved by
 forgoing the reliance on the actions of an individual, company, or government in favour of
-reliance on the execution of a program, or smart contract, to control the transfer of funds between a contract's participants. 
+reliance on the execution of a program, or smart contract, to control the transfer of funds between a contract's participants.
 immortalizing both the program and its outcome on the ledger on the blockchain.
 Specifically, participants engage in a smart contract exclusively
 via distributed cryptographic ledger. This ensures the entire history
@@ -199,15 +199,12 @@ aromatic perfection, is
 not guaranteed to have the same price at different times, or from different
 sellers. Its price will habitually fluctuate due to supply and demand changes.
 These types of tokens are not automatically interchangeable with each other or
-a set amount of money. With the sale or exchange of each such token, a price
-(or, in the case of exchange, another non fungible token) must be agreed
-upon by both parties.
+a set amount of money. With the addition of each such token to the ledger, a
+price is set.
 
 These types of tokens can be tracked on a blockchain by a unique ID, that
 would be associated with an address, and thus its owner, similar to a
-regular ownership document. We will discuss how exactly such a unique ID
-can be constructed in the extended UTxO model.
-
+regular ownership document.
 We will look at how to handle custom tokens in chapter
 <<token#token>>.
 
