@@ -48,9 +48,36 @@ data State {Φ}(Γ : Ctx Φ)(T : Φ ⊢Nf⋆ *) : ∀{Φ'}(Γ' : Ctx Φ')(H : Φ
   _▻_ : ∀{Φ' Γ'}{H : Φ' ⊢Nf⋆ *} → Stack Γ T Γ' H → Γ' ⊢ H → State Γ T Γ' H
   _◅_ : ∀{Φ' Γ'}{H : Φ' ⊢Nf⋆ *} → Stack Γ T Γ' H → {t : Γ' ⊢ H} → Value t
     → State Γ T Γ' H 
-  □_  : {t : Γ ⊢ T} →  Value t → State Γ T Γ T
+  □  : {t : Γ ⊢ T} →  Value t → State Γ T Γ T
   ◆   : ∀ {Φ'} Γ' (A : Φ' ⊢Nf⋆ *)  →  State Γ T Γ' A
 
+
+-- Plugging a term of suitable type into a frame yields a term again
+
+closeFrame : ∀{Φ}{Γ : Ctx Φ}{T : Φ ⊢Nf⋆ *} → ∀{Φ'}{Γ' : Ctx Φ'}{H : Φ' ⊢Nf⋆ *}
+  → Frame Γ T Γ' H → Γ' ⊢ H →  Γ ⊢ T
+closeFrame (-· u)          t = t · u
+closeFrame (_·- {t = t} v) u = t · u
+closeFrame (Λ- {x = x})    t = Λ x t
+closeFrame (-·⋆ A)         t = t ·⋆ A
+closeFrame wrap-           t = wrap1 _ _ t
+closeFrame unwrap-         t = unwrap1 t
+
+-- Plugging a term into a stack yields a term again
+
+closeStack : ∀{Φ}{Γ : Ctx Φ}{T : Φ ⊢Nf⋆ *} → ∀{Φ'}{Γ' : Ctx Φ'}{H : Φ' ⊢Nf⋆ *}
+  → Stack Γ T Γ' H → Γ' ⊢ H → Γ ⊢ T
+closeStack ε       t = t
+closeStack (s , f) t = closeStack s (closeFrame f t)
+
+-- a state can be closed to yield a term again
+
+closeState : ∀{Φ}{Γ : Ctx Φ}{T : Φ ⊢Nf⋆ *} → ∀{Φ'}{Γ' : Ctx Φ'}{H : Φ' ⊢Nf⋆ *}
+  → State Γ T Γ' H → Γ ⊢ T
+closeState (s ▻ t)           = closeStack s t
+closeState (_◅_ s {t = t} v) = closeStack s t
+closeState (□ {t = t} v)     = t
+closeState (◆ Γ' A)          = error _
 
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Empty
