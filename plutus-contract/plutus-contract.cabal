@@ -2,7 +2,7 @@ cabal-version: 2.2
 name: plutus-contract
 version: 0.1.0.0
 license: Apache-2.0
-license-files: 
+license-files:
   LICENSE
   NOTICE
 maintainer: jann.mueller@iohk.io
@@ -58,10 +58,12 @@ library
         Language.Plutus.Contract.Tx
         Language.Plutus.Contract.Util
         Language.Plutus.Contract.Wallet
+        Language.Plutus.Contract.Typed.Tx
     hs-source-dirs: src
     build-depends:
         plutus-wallet-api -any,
-        plutus-emulator -any
+        plutus-emulator -any,
+        plutus-tx -any
     build-depends:
         aeson -any,
         base >=4.7 && <5,

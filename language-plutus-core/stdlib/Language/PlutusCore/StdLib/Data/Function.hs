@@ -4,6 +4,7 @@
 
 module Language.PlutusCore.StdLib.Data.Function
     ( const
+    , idFun
     , applyFun
     , selfData
     , unroll
@@ -26,6 +27,18 @@ import           Language.PlutusCore.StdLib.Type
 
 import           Control.Lens.Indexed                       (ifor)
 import           Control.Monad
+
+-- | 'id' as a PLC term.
+--
+-- > /\(A :: *) -> \(x : A) -> x
+idFun :: TermLike term TyName Name => term ()
+idFun = runQuote $ do
+    a <- freshTyName () "a"
+    x <- freshName () "x"
+    return
+        . tyAbs () a (Type ())
+        . lamAbs () x (TyVar () a)
+        $ var () x
 
 -- | 'const' as a PLC term.
 --

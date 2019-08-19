@@ -53721,6 +53721,7 @@ bytestring
 containers
 hspec
 plutus-emulator
+plutus-tx
 plutus-wallet-api
 text
 ];
@@ -53778,6 +53779,7 @@ mmorph
 monad-control
 mtl
 plutus-emulator
+plutus-tx
 plutus-wallet-api
 profunctors
 semigroupoids
@@ -54526,6 +54528,7 @@ license = stdenv.lib.licenses.asl20;
 , newtype-generics
 , operational
 , playground-common
+, plutus-ir
 , plutus-tx
 , prettyprinter
 , recursion-schemes
@@ -54567,6 +54570,7 @@ natural-transformation
 newtype-generics
 operational
 playground-common
+plutus-ir
 plutus-tx
 prettyprinter
 recursion-schemes

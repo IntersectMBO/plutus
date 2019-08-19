@@ -556,7 +556,7 @@ redeemer scripts.
 mkEARedeemer :: EAAction -> RedeemerScript
 mkEARedeemer a = RedeemerScript $
     $$(compileScript [||
-        (mkRedeemer :: EAAction -> StateMachineRedeemer EAState EAAction) ||])
+        (mkRedeemer :: EAAction -> StateMachineRedeemerFunction EAState EAAction) ||])
     `applyScript`
     lifted a
 ----

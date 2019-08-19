@@ -15,6 +15,7 @@ import qualified Test.Tasty.HUnit                                              a
 import           Spec.Lib                                                      as Lib
 
 import qualified Ledger.Ada                                                    as Ada
+import qualified Ledger.Typed.Tx                                               as Typed
 import           Ledger.Value                                                  (Value)
 import           Wallet.API                                                    (WalletAPI,
                                                                                 WalletDiagnostics)
@@ -30,7 +31,7 @@ tests = testGroup "multi sig state machine tests" [
     HUnit.testCaseSteps "lock, propose, sign 3x, pay - SUCCESS" (runTrace (lockProposeSignPay 3) isRight),
     HUnit.testCaseSteps "lock, propose, sign 2x, pay - FAILURE" (runTrace (lockProposeSignPay 2) isLeft),
     Lib.goldenPir "test/Spec/multisigStateMachine.pir" $$(PlutusTx.compile [|| MS.mkValidator ||]),
-    HUnit.testCase "script size is reasonable" (Lib.reasonable (MS.validator params) 350000)
+    HUnit.testCase "script size is reasonable" (Lib.reasonable (Typed.validatorScript $ MS.scriptInstance params) 350000)
     ]
 
 runTrace :: EM.EmulatorAction a -> (Either EM.AssertionError a -> Bool) -> (String -> IO ()) -> IO ()

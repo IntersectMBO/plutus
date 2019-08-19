@@ -221,8 +221,8 @@ compileTypeableType ty name = do
 -- Typeable
 
 -- TODO: try and make this work with type applications
--- | Class for types which have a corresponding Plutus IR type. Instances should usually be declared
--- for type constructors, instances for applied types will be derived.
+-- | Class for types which have a corresponding Plutus IR type. Instances should always be derived, do not write
+-- your own instance!
 class Typeable (a :: k) where
     -- | Get the Plutus IR type corresponding to this type.
     typeRep :: (RTCompiling m) => Proxy a -> m (Type TyName ())
@@ -318,7 +318,8 @@ makeTypeable name = do
 
 -- Lift
 
--- | Class for types which can be lifted into Plutus IR.
+-- | Class for types which can be lifted into Plutus IR. Instances should be derived, do not write your
+-- own instance!
 class Lift a where
     -- | Get a Plutus IR term corresponding to the given value.
     lift :: (RTCompiling m) => a -> m (Term TyName Name ())

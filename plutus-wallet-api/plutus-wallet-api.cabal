@@ -53,6 +53,8 @@ library
     exposed-modules:
         Wallet
         Wallet.API
+        Wallet.Typed.API
+        Wallet.Typed.StateMachine
         Wallet.Generators
         Wallet.Graph
         Language.PlutusTx.StateMachine
@@ -71,6 +73,7 @@ library
         Ledger.Index,
         Ledger.Interval,
         Ledger.Value,
+        Ledger.Typed.Tx,
         LedgerBytes
     default-language: Haskell2010
     build-depends:
@@ -118,6 +121,8 @@ library plutus-ledger
         Ledger.Interval
         Ledger.Value
         LedgerBytes
+        Ledger.Typed.Tx
+        Ledger.Typed.TypeUtils
     build-depends:
         base >=4.9 && <5,
         aeson -any,
@@ -126,6 +131,7 @@ library plutus-ledger
         cborg -any,
         containers -any,
         plutus-tx -any,
+        plutus-ir -any,
         cryptonite >=0.25,
         hashable -any,
         hedgehog -any,
@@ -147,8 +153,10 @@ library plutus-ledger
         newtype-generics -any,
         http-api-data -any,
         cardano-crypto -any,
-        playground-common,
+        playground-common -any,
         deepseq -any
+
+    ghc-options: -fprint-potential-instances
 
     if flag(defer-plugin-errors)
         ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
