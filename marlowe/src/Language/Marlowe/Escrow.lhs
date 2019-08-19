@@ -1,12 +1,11 @@
+[source,haskell]
+----
 module Language.Marlowe.Escrow where
 
 import           Language.Marlowe
 import           Ledger
 
 {-
-------------------------------------------
--- Implementation of an escrow contract --
-------------------------------------------
 
    The contract allows person 1 to pay 450 ADA
    to person 2 by using person 3 as an escrow.
@@ -73,3 +72,4 @@ carol = toPublicKey privateKey3
 
 carolId :: IdentChoice
 carolId = IdentChoice 3
+----
