@@ -1,1 +1,1 @@
-/Users/polina/Documents/IOHK/plutus/marlowe/src/Language/Marlowe/Escrow.lhs
+../../../../../marlowe/src/Language/Marlowe/Escrow.lhs
