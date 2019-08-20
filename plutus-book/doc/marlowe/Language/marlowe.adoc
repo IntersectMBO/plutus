@@ -1,1 +1,0 @@
-/Users/polina/Documents/IOHK/plutus/marlowe/src/Language/marlowe.lhs
