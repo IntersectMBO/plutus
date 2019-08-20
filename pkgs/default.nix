@@ -44383,6 +44383,7 @@ license = "GPL";
 , tasty-hunit
 , template-haskell
 , text
+, unlit
 , wl-pprint
 }:
 mkDerivation {
@@ -44399,6 +44400,9 @@ plutus-wallet-api
 template-haskell
 text
 wl-pprint
+];
+libraryToolDepends = [
+unlit
 ];
 testHaskellDepends = [
 base
@@ -53721,6 +53725,7 @@ bytestring
 containers
 hspec
 plutus-emulator
+plutus-tx
 plutus-wallet-api
 text
 ];
