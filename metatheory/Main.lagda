@@ -103,17 +103,6 @@ open import Data.Vec hiding (_>>=_)
 
 open import Scoped.CK
 
-tvars : ∀{n} → Vec String n
-tvars {zero}      = []
-tvars {Nat.suc n} =
-  ("tvar" Data.String.++ Data.Integer.show (pos n)) ∷ tvars {n}
-
--- this is not very useful but I am expecting that it won't be used
-vars : ∀{n}{i : Weirdℕ n} → WeirdVec String i
-vars {i = Z} = nil
-vars {i = S i} = consS "varS" (vars {i = i})
-vars {i = T i} = consT "varT" (vars {i = i})
-
 data EvalMode : Set where
   CK L : EvalMode
 
