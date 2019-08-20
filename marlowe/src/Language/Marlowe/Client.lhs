@@ -16,13 +16,14 @@
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
-{-|
-    Marlowe Mockchain client code.
+----
+Below functions emulate executing Malrowe off-chain code on a client side.
+This implementation uses Plutus Mockchain, but it's expected to have quite similar API
+for the actual wallet implementation.
 
-    Below functions emulate executing Malrowe off-chain code on a client side.
-    This implementation uses Plutus Mockchain, but it's expected to have quite similar API
-    for the actual wallet implementation.
--}
+[source,haskell]
+----
+
 module Language.Marlowe.Client where
 import           Control.Applicative            ( Applicative(..) )
 import           Control.Monad                  ( Monad(..)
@@ -123,6 +124,7 @@ Explain more. A transaction that builds the set of TxIns and TxOuts.
 
 marloweTx ::
     (Input, MarloweData)
+    -- ^ redeemer is passed here
     -> (TxOut, TxOutRef)
     -- ^ reference to Marlowe contract UTxO
     -> ValidatorScript

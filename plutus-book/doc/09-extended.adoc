@@ -297,6 +297,13 @@ in the spirit of UTxO style accounting, the contract state is never updated in
 the UTxO entry. One can only spend that entry, and create a new one with a
 different data script.
 
+We now go on to explain the sealing mechanism mentioned above
+as it is currently implemented on the Plutus mockchain. Its
+purpose is to add additional functionality to the script model, but
+implementation places different requirements on the type of the redeemer script as
+a consequence. We will see how to build redeemer scripts that conform to
+these in the upcoming chapters discussing concrete examples.
+
 .The Seal Mechanism
 [NOTE]
 ====
