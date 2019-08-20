@@ -130,7 +130,7 @@ stestPLC L plc | just t | just t' | t'' ,, p ,, inj₂ e =
   prettyPrint (deDeBruijnify [] nil (unsaturate t''))
 stestPLC CK plc | just t | just t' with stepper 1000000000 _ (ε ▻ saturate t')
 stestPLC CK plc | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
-  prettyPrint (deDeBruijnify tvars vars (unsaturate t''))
+  prettyPrint (deDeBruijnify [] nil (unsaturate t''))
 stestPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  just _ =
   "this shouldn't happen"
 stestPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  nothing = "out of fuel"
