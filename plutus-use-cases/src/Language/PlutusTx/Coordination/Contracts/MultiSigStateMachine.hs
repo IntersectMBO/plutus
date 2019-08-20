@@ -11,8 +11,8 @@ module Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine(
       Params(..)
     , Payment(..)
     , State
-    , validator
     , mkValidator
+    , scriptInstance
     , initialise
     , lock
     , proposePayment
@@ -21,21 +21,22 @@ module Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine(
     , makePayment
     ) where
 
-import           Data.Foldable                (foldMap)
-import qualified Data.Set                     as Set
-import           Ledger                       (DataScript(..), RedeemerScript(..), ValidatorScript(..))
-import qualified Ledger
+import           Data.Functor                 (void)
 import qualified Ledger.Interval              as Interval
 import           Ledger.Validation            (PendingTx(..))
 import qualified Ledger.Validation            as Validation
+import qualified Ledger.Typed.Tx              as Typed
 import           Ledger.Value                 (Value)
 import qualified Ledger.Value                 as Value
 import           Wallet
 import qualified Wallet                       as WAPI
+import qualified Wallet.Typed.API             as WAPITyped
 
+import qualified Language.PlutusTx            as PlutusTx
 import           Language.PlutusTx.Prelude     hiding (check)
 import           Language.PlutusTx.StateMachine (StateMachine(..))
 import qualified Language.PlutusTx.StateMachine as SM
+import qualified Wallet.Typed.StateMachine as SM
 
 import           Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine.Types
 
@@ -137,15 +138,23 @@ check p s i ptx = case (s, i) of
 mkValidator :: Params -> SM.StateMachineValidator State Input
 mkValidator p = SM.mkValidator $ StateMachine step (check p)
 
-validator :: Params -> ValidatorScript
-validator params = ValidatorScript $
-    $$(Ledger.compileScript [|| mkValidator ||])
-        `Ledger.applyScript`
-            Ledger.lifted params
+validatorCode :: Params -> PlutusTx.CompiledCode (Typed.ValidatorType MultiSigSym)
+validatorCode params = $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.unsafeLiftCode params
+
+type MultiSigSym = StateMachine State Input
+scriptInstance :: Params -> Typed.ScriptInstance MultiSigSym
+scriptInstance params = Typed.Validator $ validatorCode params
+
+machineInstance :: Params -> SM.StateMachineInstance State Input
+machineInstance params =
+    SM.StateMachineInstance
+    (StateMachine step (check params))
+    (scriptInstance params)
+    redeemerCode
 
 -- | Start watching the contract address
 initialise :: WalletAPI m => Params -> m ()
-initialise = WAPI.startWatching . Ledger.scriptAddress . validator
+initialise = WAPI.startWatching . Typed.scriptAddress . scriptInstance
 
 -- | Lock some funds in a multisig contract.
 lock
@@ -157,12 +166,9 @@ lock
     -> m State
     -- ^ The initial state of the contract
 lock prms vl = do
-    let
-        addr = Ledger.scriptAddress (validator prms)
-        state = InitialState vl
-        dataScript = DataScript (Ledger.lifted state)
+    (tx, state) <- SM.initialise (machineInstance prms) (InitialState vl) vl
 
-    WAPI.payToScript_ WAPI.defaultSlotRange addr vl dataScript
+    void $ WAPITyped.signTxAndSubmit tx
 
     pure state
 
@@ -174,7 +180,7 @@ proposePayment
     -> State
     -> Payment
     -> m State
-proposePayment prms st = mkStep prms st . ProposePayment
+proposePayment prms st = runStep prms st . ProposePayment
 
 -- | Cancel a proposed payment
 cancelPayment
@@ -182,7 +188,7 @@ cancelPayment
     => Params
     -> State
     -> m State
-cancelPayment prms st = mkStep prms st Cancel
+cancelPayment prms st = runStep prms st Cancel
 
 -- | Add a signature to a proposed payment
 addSignature
@@ -190,7 +196,7 @@ addSignature
     => Params
     -> State
     -> m State
-addSignature prms st = WAPI.ownPubKey >>= mkStep prms st . AddSignature
+addSignature prms st = WAPI.ownPubKey >>= runStep prms st . AddSignature
 
 -- | Make a payment after enough signatures have been collected.
 makePayment
@@ -199,41 +205,35 @@ makePayment
     -> State
     -> m State
 makePayment prms currentState = do
-    -- we can't use 'mkStep' because the outputs of the transaction are
+    -- we can't use 'runStep' because the outputs of the transaction are
     -- different from the other transitions: We need two outputs, a public
     -- key output with the payment, and the script output with the remaining
     -- funds.
     (currentValue, valuePaid', recipient) <- case currentState of
         CollectingSignatures vl (Payment pd pk _) _ -> pure (vl, pd, pk)
         _ -> WAPI.throwOtherError "Cannot make payment because no payment has been proposed. Run the 'proposePayment' action first."
-
-    newState <- case step currentState Pay of
-        Just s -> pure s
-        Nothing -> WAPI.throwOtherError "Payment is invalid transition"
-
-    let vl       = validator prms
-        redeemer = mkRedeemer Pay
-        dataScript = DataScript (Ledger.lifted newState)
-
-    inputs <- WAPI.spendScriptOutputs (Ledger.scriptAddress vl) vl redeemer
     let valueLeft = currentValue `Value.minus` valuePaid'
-        scriptOut = Ledger.scriptTxOut valueLeft vl dataScript
-        pkOut     = Ledger.pubKeyTxOut valuePaid' recipient
-    _ <- WAPI.createTxAndSubmit WAPI.defaultSlotRange (Set.fromList $ fmap fst inputs) [scriptOut, pkOut]
+
+    (scriptTx, newState) <- SM.mkStep (machineInstance prms) currentState Pay (const valueLeft)
+
+    -- Need to match to get the existential type out
+    case scriptTx of
+        (Typed.TypedTxSomeIns tx) -> do
+            let pkOut = Typed.makePubKeyTxOut valuePaid' recipient
+                withPubKeyOut = tx { Typed.tyTxPubKeyTxOuts = [pkOut] }
+            void $ WAPITyped.signTxAndSubmit withPubKeyOut
+
     pure newState
 
-mkRedeemer :: Input -> RedeemerScript
-mkRedeemer i = RedeemerScript $
-    $$(Ledger.compileScript [|| SM.mkRedeemer @State @Input ||])
-        `Ledger.applyScript`
-            (Ledger.lifted i)
+redeemerCode :: PlutusTx.CompiledCode (Input -> Typed.RedeemerFunctionType '[MultiSigSym] MultiSigSym)
+redeemerCode = $$(PlutusTx.compile [|| SM.mkRedeemer @State @Input ||])
 
 -- | Advance a running multisig contract. This applies the transition function
 --   'SM.transition' to the current contract state and uses the result to unlock
 --   the funds currently in the contract, and lock them again with a data script
 --   containing the new state.
 --
-mkStep
+runStep
     :: (WalletAPI m, WalletDiagnostics m)
     => Params
     -- ^ The parameters of the contract instance
@@ -243,18 +243,13 @@ mkStep
     -- ^ Input to be applied to the contract
     -> m State
     -- ^ New state after applying the input
-mkStep prms currentState input = do
-    newState <- case step currentState input of
-        Just s -> pure s
-        Nothing -> WAPI.throwOtherError "Invalid transition"
-    let vl       = validator prms
-        redeemer = mkRedeemer input
-        dataScript = DataScript (Ledger.lifted newState)
+runStep prms currentState input = do
+    (scriptTx, newState) <- SM.mkStep (machineInstance prms) currentState input id
 
-    inputs <- WAPI.spendScriptOutputs (Ledger.scriptAddress vl) vl redeemer
-    let totalVal = foldMap snd inputs
-        output = Ledger.scriptTxOut totalVal vl dataScript
-    _ <- WAPI.createTxAndSubmit WAPI.defaultSlotRange (Set.fromList $ fmap fst inputs) [output]
+    -- Need to match to get the existential type out
+    case scriptTx of
+        (Typed.TypedTxSomeIns tx) -> void $ WAPITyped.signTxAndSubmit tx
+
     pure newState
 
 {- Note [Current state of the contract]

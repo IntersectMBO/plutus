@@ -55,7 +55,7 @@
             }
           ],
           "txFee": {
-            "getAda": 0
+            "getLovelace": 0
           },
           "txValidRange": {
             "ivTo": null,
@@ -181,7 +181,7 @@
         {
           "txInputs": [],
           "txFee": {
-            "getAda": 0
+            "getLovelace": 0
           },
           "txValidRange": {
             "ivTo": null,

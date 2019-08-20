@@ -1,6 +1,8 @@
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns        #-}
+{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE DataKinds        #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 -- | On-chain code fragments for creating a state machine. First
 --   define a @StateMachine s i@ with input type @i@ and state type @s@. Then
@@ -8,15 +10,19 @@
 --   validate the transition, and 'mkRedeemer' to make redeemer scripts.
 module Language.PlutusTx.StateMachine(
       StateMachine(..)
+    , StateMachineInstance (..)
     , StateMachineValidator
-    , mkValidator
     , StateMachineRedeemer
+    , StateMachineRedeemerFunction
+    , mkValidator
     , mkRedeemer
     ) where
 
 import           Language.PlutusTx.Prelude hiding (check)
+import qualified Language.PlutusTx as PlutusTx
 
 import           Ledger.Scripts            (HashedDataScript (..))
+import           Ledger.Typed.Tx
 import           Ledger.Validation         (PendingTx, findContinuingOutputs, findDataScriptOutputs)
 
 -- | Specification of a state machine, consisting of a transition function that determines the
@@ -24,19 +30,26 @@ import           Ledger.Validation         (PendingTx, findContinuingOutputs, fi
 -- of the transition in the context of the current transaction.
 data StateMachine s i = StateMachine {
       smTransition :: s -> i -> Maybe s,
-      smCheck      :: s -> i -> PendingTx -> Bool
+      smCheck :: s -> i -> PendingTx -> Bool
     }
 
--- | A state machine redeemer takes the data
--- script for the new state, and pairs it with the input.
-type StateMachineRedeemer s i = Sealed (HashedDataScript s) -> (i, Sealed (HashedDataScript s))
+instance ScriptType (StateMachine s i) where
+    type instance RedeemerType (StateMachine s i) = StateMachineRedeemer s i
+    type instance DataType (StateMachine s i) = s
 
--- | A state machine validator takes the old state (the data script), and a pair of the
--- input and the new state (the redeemer output).
-type StateMachineValidator s i = s -> (i, Sealed (HashedDataScript s)) -> PendingTx -> Bool
+data StateMachineInstance s i = StateMachineInstance {
+    stateMachine :: StateMachine s i,
+    validatorInstance :: ScriptInstance (StateMachine s i),
+    redeemerInstance :: PlutusTx.CompiledCode (i -> RedeemerFunctionType '[(StateMachine s i)] (StateMachine s i))
+    }
+
+-- Type synonyms that don't require TypeFamilies
+type StateMachineValidator s i = (s -> (i, Sealed (HashedDataScript s)) -> PendingTx -> Bool)
+type StateMachineRedeemer s i = (i, Sealed (HashedDataScript s))
+type StateMachineRedeemerFunction s i = Sealed (HashedDataScript s) -> (i, Sealed (HashedDataScript s))
 
 {-# INLINABLE mkRedeemer #-}
-mkRedeemer :: forall s i . i -> StateMachineRedeemer s i
+mkRedeemer :: forall s i . i -> StateMachineRedeemerFunction s i
 mkRedeemer i ss = (i, ss)
 
 {-# INLINABLE mkValidator #-}

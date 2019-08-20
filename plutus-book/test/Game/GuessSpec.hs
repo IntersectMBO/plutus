@@ -23,7 +23,7 @@ spec = describe "guess" $ do
         fst (getResult tr2) `shouldSatisfy` isRight
   where
     ada :: Ada
-    ada = fromInt 10000
+    ada = lovelaceOf 10000
 
     tr1, tr2 :: Trace MockWallet ()
     tr1 = void $ do

@@ -18,7 +18,7 @@ import qualified Data.Text                        as T
 sdToTxt :: MonadReader CompileContext m => GHC.SDoc -> m T.Text
 sdToTxt sd = do
   CompileContext { ccFlags=flags } <- ask
-  pure $ T.pack $ GHC.showSDoc flags sd
+  pure $ T.pack $ GHC.showSDocForUser flags GHC.alwaysQualify sd
 
 throwSd :: (MonadError CompileError m, MonadReader CompileContext m) => (T.Text -> Error ()) -> GHC.SDoc -> m a
 throwSd constr = (throwPlain . constr) <=< sdToTxt

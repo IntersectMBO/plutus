@@ -40,7 +40,7 @@ key3 = walletPubKey w3
 key4 = walletPubKey w4
 
 initialAda :: Ada
-initialAda = fromInt 100000
+initialAda = lovelaceOf 100000
 
 initialChain :: Mockchain
 initialChain =

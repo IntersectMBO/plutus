@@ -67,7 +67,7 @@ data GeneratorModel = GeneratorModel {
 -- | A generator model with some sensible defaults.
 generatorModel :: GeneratorModel
 generatorModel =
-    let vl = Ada.toValue $ Ada.fromInt 100000
+    let vl = Ada.lovelaceValueOf 100000
         pubKeys = toPublicKey <$> knownPrivateKeys
 
     in
@@ -198,7 +198,7 @@ genValidTransactionSpending' g f ins totalVal = do
         else Gen.discard
 
 genAda :: MonadGen m => m Ada
-genAda = Ada.fromInt <$> Gen.integral (Range.linear 0 (100000 :: Integer))
+genAda = Ada.lovelaceOf <$> Gen.integral (Range.linear 0 (100000 :: Integer))
 
 -- | Generate a 'ByteString s' of up to @s@ bytes.
 genSizedByteString :: forall m. MonadGen m => Int -> m P.ByteString

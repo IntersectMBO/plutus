@@ -334,7 +334,7 @@ eaTransit _ ([], _) EAClaimToken = traceH "no bid made" Nothing
 eaTransit _ s       EAClaimToken = Just s
 
 eaTransit _ ([], _)     (EAReclaimBid _ _)    = traceH "no bid made" Nothing
-eaTransit _ (y : ys, c) (EAReclaimBid pk ada) = 
+eaTransit _ (y : ys, c) (EAReclaimBid pk ada) =
     fmapMaybe (\ys' -> (y : ys', c)) (go ys)                                 -- <4>
   where
     fmapMaybe :: (a -> b) -> Maybe a -> Maybe b
@@ -361,7 +361,7 @@ eaTransit _ ([], _)    EAReclaimToken = Just ([], False)
 <4> We use the local function `go` to delete the bid from the _tail_ of the list
     of bids. The _head_ contains the highest bid, which can not be reclaimed.
 
-In addition to defining our state machine, we can also utilize `eaTransit` 
+In addition to defining our state machine, we can also utilize `eaTransit`
 to write a function that takes
 the auction, the action and the data script of the unique script input as
 arguments and computes the correct data script for the unique script output:
@@ -382,10 +382,10 @@ updateEAData ea a (DataScript script) = DataScript $
     `applyScript` lifted a
 ----
 
-Next we write the checking part of our state machine.  
+Next we write the checking part of our state machine.
 Everything just depending on the input
 data script and the action is already contained in `eaTransit`
-(via returning `Nothing`), 
+(via returning `Nothing`),
 so in `eaCheck`, we have to check those conditions that depend on the pending
 transaction:
 
@@ -532,7 +532,7 @@ and then the actual validator:
 [source,haskell]
 ----
 eaStateMachine :: EnglishAuction -> StateMachine EAState EAAction
-eaStateMachine ea = StateMachine 
+eaStateMachine ea = StateMachine
     { smTransition = eaTransit ea
     , smCheck      = eaCheck ea
     }
@@ -556,7 +556,7 @@ redeemer scripts.
 mkEARedeemer :: EAAction -> RedeemerScript
 mkEARedeemer a = RedeemerScript $
     $$(compileScript [||
-        (mkRedeemer :: EAAction -> StateMachineRedeemer EAState EAAction) ||])
+        (mkRedeemer :: EAAction -> StateMachineRedeemerFunction EAState EAAction) ||])
     `applyScript`
     lifted a
 ----
@@ -1086,11 +1086,7 @@ trackAuction ea initS action = do
         (wait sl highest total s) $                   -- <5>
         \_ o ds -> do                                 -- <6>
             let v        = txOutValue o
-                total'   = A.fromInt $                -- <7>
-                            V.valueOf
-                                v
-                                A.adaSymbol
-                                A.adaToken
+                total'   = A.fromValue v              -- <7>
                 highest' = if total' > total
                                 then total' - total
                                 else highest          -- <8>

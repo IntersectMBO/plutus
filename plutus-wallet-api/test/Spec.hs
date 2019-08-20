@@ -79,7 +79,7 @@ tests = testGroup "all tests" [
                 in byteStringJson vlJson vlValue)
           ++ (let   vlJson :: BSL.ByteString
                     vlJson = "{\"getValue\":[[{\"unCurrencySymbol\":\"\"},[[{\"unTokenName\":\"\"},50]]]]}"
-                    vlValue = Ada.adaValueOf 50
+                    vlValue = Ada.lovelaceValueOf 50
                 in byteStringJson vlJson vlValue))
     ]
 

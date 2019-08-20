@@ -17,7 +17,7 @@
 -- | Functions for working with scripts on the ledger.
 module Ledger.Scripts(
     -- * Scripts
-    Script,
+    Script (..),
     scriptSize,
     fromCompiledCode,
     compileScript,
@@ -39,6 +39,7 @@ module Ledger.Scripts(
     ValidatorHash(..),
     plcDataScriptHash,
     plcValidatorDigest,
+    plcValidatorHash,
     plcRedeemerHash,
     -- * Data script evidence
     HashedDataScript (..),
@@ -270,6 +271,12 @@ plcDataScriptHash = DataScriptHash . plcSHA2_256 . BSL.pack . BA.unpack
 plcValidatorDigest :: Digest SHA256 -> ValidatorHash
 plcValidatorDigest = ValidatorHash . BSL.pack . BA.unpack
 
+-- TODO: Is this right? Make it obvious
+{-# INLINABLE plcValidatorHash #-}
+-- | Compute the hash of a validator script.
+plcValidatorHash :: ValidatorScript -> ValidatorHash
+plcValidatorHash = ValidatorHash . plcSHA2_256 . BSL.pack . BA.unpack
+
 {-# INLINABLE plcRedeemerHash #-}
 plcRedeemerHash :: RedeemerScript -> RedeemerHash
 plcRedeemerHash = RedeemerHash . plcSHA2_256 . BSL.pack . BA.unpack
@@ -382,3 +389,5 @@ makeLift ''ValidatorHash
 makeLift ''DataScriptHash
 
 makeLift ''RedeemerHash
+
+makeLift ''HashedDataScript

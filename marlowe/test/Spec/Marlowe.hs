@@ -115,17 +115,17 @@ checkDiscountFromPairList = property $ do
     let funds = List.foldl' mergeFunds Map.empty commits
     case Map.toList funds of
         [] -> do
-            let r = discountFromPairList pubKey1 (Slot 2) (Ada.fromInt 10) []
+            let r = discountFromPairList pubKey1 (Slot 2) (Ada.lovelaceOf 10) []
             Hedgehog.assert (isNothing r)
         (pk, amount) : _ -> do
             -- we are able to spend all the money for a person, when nothing is timedout yet
-            let r = discountFromPairList pk (Slot 1) (Ada.fromInt amount) commits
+            let r = discountFromPairList pk (Slot 1) (Ada.lovelaceOf amount) commits
             Hedgehog.assert (isJust r)
             let Just after = r
             Hedgehog.assert (length after < length commits)
             Hedgehog.assert (availableMoney after < availableMoney commits)
             -- we are not able to spend anything after timeouts
-            let r = discountFromPairList pk (Slot 55) (Ada.fromInt amount) commits
+            let r = discountFromPairList pk (Slot 55) (Ada.lovelaceOf amount) commits
             Hedgehog.assert (isNothing r)
 
 checkFindAndRemove :: IO ()
@@ -219,7 +219,7 @@ duplicateIdentCC = property $ do
             (CommitCash (IdentCC 1) (pubKey1) (Value 100) 128 256 Null Null)
             Null
 
-        contractIsValid = validateContract (State [] []) contract (Slot 1) (Ada.fromInt 12)
+        contractIsValid = validateContract (State [] []) contract (Slot 1) (Ada.lovelaceOf 12)
     Hedgehog.assert (not contractIsValid)
 
 checkValidateContract :: Property
@@ -231,7 +231,7 @@ checkValidateContract = property $ do
 
     let contract = boundedContract (Set.fromList [pubKey1, pubKey2]) (Set.fromList [IdentCC 1]) bounds
     a <- forAll contract
-    let r = validateContract (State [] []) a (Slot 1) (Ada.fromInt 12)
+    let r = validateContract (State [] []) a (Slot 1) (Ada.lovelaceOf 12)
     Hedgehog.assert (r || not r)
 
 notEnoughMoney :: IO ()
@@ -239,10 +239,10 @@ notEnoughMoney = do
     let commits =   [(IdentCC 1, (pubKey1, NotRedeemed 60 100))
                     , (IdentCC 1, (pubKey1, NotRedeemed 40 200))]
     let test = validateContract (State commits []) Null
-    let enoughOk = test (Slot 100) (Ada.fromInt 100)
-    let enoughFail = test (Slot 1) (Ada.fromInt 99)
-    let firstCommitTimedOutOk = test (Slot 101) (Ada.fromInt 45)
-    let firstCommitTimedOutFail = test (Slot 101) (Ada.fromInt 39)
+    let enoughOk = test (Slot 100) (Ada.lovelaceOf 100)
+    let enoughFail = test (Slot 1) (Ada.lovelaceOf 99)
+    let firstCommitTimedOutOk = test (Slot 101) (Ada.lovelaceOf 45)
+    let firstCommitTimedOutFail = test (Slot 101) (Ada.lovelaceOf 39)
     enoughOk @?= True
     enoughFail @?= False
     firstCommitTimedOutOk @?= True

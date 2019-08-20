@@ -8607,41 +8607,11 @@
                                                                                                                                                   (strict
                                                                                                                                                   )
                                                                                                                                                   (vardecl
-                                                                                                                                                    greaterThanInteger
-                                                                                                                                                    (fun (con integer) (fun (con integer) Bool))
-                                                                                                                                                  )
-                                                                                                                                                  (lam
-                                                                                                                                                    arg
+                                                                                                                                                    addSignature
                                                                                                                                                     (con integer)
-                                                                                                                                                    (lam
-                                                                                                                                                      arg
-                                                                                                                                                      (con integer)
-                                                                                                                                                      [
-                                                                                                                                                        (lam
-                                                                                                                                                          b
-                                                                                                                                                          (all a (type) (fun a (fun a a)))
-                                                                                                                                                          [
-                                                                                                                                                            [
-                                                                                                                                                              {
-                                                                                                                                                                b
-                                                                                                                                                                Bool
-                                                                                                                                                              }
-                                                                                                                                                              True
-                                                                                                                                                            ]
-                                                                                                                                                            False
-                                                                                                                                                          ]
-                                                                                                                                                        )
-                                                                                                                                                        [
-                                                                                                                                                          [
-                                                                                                                                                            (builtin
-                                                                                                                                                              greaterThanInteger
-                                                                                                                                                            )
-                                                                                                                                                            arg
-                                                                                                                                                          ]
-                                                                                                                                                          arg
-                                                                                                                                                        ]
-                                                                                                                                                      ]
-                                                                                                                                                    )
+                                                                                                                                                  )
+                                                                                                                                                  (con
+                                                                                                                                                    1
                                                                                                                                                   )
                                                                                                                                                 )
                                                                                                                                                 (let
@@ -8651,39 +8621,18 @@
                                                                                                                                                     (strict
                                                                                                                                                     )
                                                                                                                                                     (vardecl
-                                                                                                                                                      isSignatory
-                                                                                                                                                      (fun (con bytestring) (fun Params Bool))
+                                                                                                                                                      error
+                                                                                                                                                      (all a (type) (fun Unit a))
                                                                                                                                                     )
-                                                                                                                                                    (lam
-                                                                                                                                                      w
-                                                                                                                                                      (con bytestring)
+                                                                                                                                                    (abs
+                                                                                                                                                      e
+                                                                                                                                                      (type)
                                                                                                                                                       (lam
-                                                                                                                                                        w
-                                                                                                                                                        Params
-                                                                                                                                                        [
-                                                                                                                                                          {
-                                                                                                                                                            [
-                                                                                                                                                              Params_match
-                                                                                                                                                              w
-                                                                                                                                                            ]
-                                                                                                                                                            Bool
-                                                                                                                                                          }
-                                                                                                                                                          (lam
-                                                                                                                                                            ww
-                                                                                                                                                            [List (con bytestring)]
-                                                                                                                                                            (lam
-                                                                                                                                                              ww
-                                                                                                                                                              (con integer)
-                                                                                                                                                              [
-                                                                                                                                                                [
-                                                                                                                                                                  wisSignatory
-                                                                                                                                                                  w
-                                                                                                                                                                ]
-                                                                                                                                                                ww
-                                                                                                                                                              ]
-                                                                                                                                                            )
-                                                                                                                                                          )
-                                                                                                                                                        ]
+                                                                                                                                                        thunk
+                                                                                                                                                        Unit
+                                                                                                                                                        (error
+                                                                                                                                                          e
+                                                                                                                                                        )
                                                                                                                                                       )
                                                                                                                                                     )
                                                                                                                                                   )
@@ -8691,45 +8640,19 @@
                                                                                                                                                     (nonrec
                                                                                                                                                     )
                                                                                                                                                     (termbind
-                                                                                                                                                      (strict
+                                                                                                                                                      (nonstrict
                                                                                                                                                       )
                                                                                                                                                       (vardecl
-                                                                                                                                                        lessThanEqInteger
-                                                                                                                                                        (fun (con integer) (fun (con integer) Bool))
+                                                                                                                                                        addSignature
+                                                                                                                                                        [[Tuple2 (con bytestring)] (con bytestring)]
                                                                                                                                                       )
-                                                                                                                                                      (lam
-                                                                                                                                                        arg
-                                                                                                                                                        (con integer)
-                                                                                                                                                        (lam
-                                                                                                                                                          arg
-                                                                                                                                                          (con integer)
-                                                                                                                                                          [
-                                                                                                                                                            (lam
-                                                                                                                                                              b
-                                                                                                                                                              (all a (type) (fun a (fun a a)))
-                                                                                                                                                              [
-                                                                                                                                                                [
-                                                                                                                                                                  {
-                                                                                                                                                                    b
-                                                                                                                                                                    Bool
-                                                                                                                                                                  }
-                                                                                                                                                                  True
-                                                                                                                                                                ]
-                                                                                                                                                                False
-                                                                                                                                                              ]
-                                                                                                                                                            )
-                                                                                                                                                            [
-                                                                                                                                                              [
-                                                                                                                                                                (builtin
-                                                                                                                                                                  lessThanEqualsInteger
-                                                                                                                                                                )
-                                                                                                                                                                arg
-                                                                                                                                                              ]
-                                                                                                                                                              arg
-                                                                                                                                                            ]
-                                                                                                                                                          ]
-                                                                                                                                                        )
-                                                                                                                                                      )
+                                                                                                                                                      [
+                                                                                                                                                        {
+                                                                                                                                                          error
+                                                                                                                                                          [[Tuple2 (con bytestring)] (con bytestring)]
+                                                                                                                                                        }
+                                                                                                                                                        Unit
+                                                                                                                                                      ]
                                                                                                                                                     )
                                                                                                                                                     (let
                                                                                                                                                       (nonrec
@@ -8738,41 +8661,39 @@
                                                                                                                                                         (strict
                                                                                                                                                         )
                                                                                                                                                         (vardecl
-                                                                                                                                                          proposalAccepted
-                                                                                                                                                          (fun Params (fun [List (con bytestring)] Bool))
+                                                                                                                                                          greaterThanInteger
+                                                                                                                                                          (fun (con integer) (fun (con integer) Bool))
                                                                                                                                                         )
                                                                                                                                                         (lam
-                                                                                                                                                          w
-                                                                                                                                                          Params
+                                                                                                                                                          arg
+                                                                                                                                                          (con integer)
                                                                                                                                                           (lam
-                                                                                                                                                            w
-                                                                                                                                                            [List (con bytestring)]
+                                                                                                                                                            arg
+                                                                                                                                                            (con integer)
                                                                                                                                                             [
-                                                                                                                                                              {
-                                                                                                                                                                [
-                                                                                                                                                                  Params_match
-                                                                                                                                                                  w
-                                                                                                                                                                ]
-                                                                                                                                                                Bool
-                                                                                                                                                              }
                                                                                                                                                               (lam
-                                                                                                                                                                ww
-                                                                                                                                                                [List (con bytestring)]
-                                                                                                                                                                (lam
-                                                                                                                                                                  ww
-                                                                                                                                                                  (con integer)
+                                                                                                                                                                b
+                                                                                                                                                                (all a (type) (fun a (fun a a)))
+                                                                                                                                                                [
                                                                                                                                                                   [
-                                                                                                                                                                    [
-                                                                                                                                                                      [
-                                                                                                                                                                        wproposalAccepted
-                                                                                                                                                                        ww
-                                                                                                                                                                      ]
-                                                                                                                                                                      ww
-                                                                                                                                                                    ]
-                                                                                                                                                                    w
+                                                                                                                                                                    {
+                                                                                                                                                                      b
+                                                                                                                                                                      Bool
+                                                                                                                                                                    }
+                                                                                                                                                                    True
                                                                                                                                                                   ]
-                                                                                                                                                                )
+                                                                                                                                                                  False
+                                                                                                                                                                ]
                                                                                                                                                               )
+                                                                                                                                                              [
+                                                                                                                                                                [
+                                                                                                                                                                  (builtin
+                                                                                                                                                                    greaterThanInteger
+                                                                                                                                                                  )
+                                                                                                                                                                  arg
+                                                                                                                                                                ]
+                                                                                                                                                                arg
+                                                                                                                                                              ]
                                                                                                                                                             ]
                                                                                                                                                           )
                                                                                                                                                         )
@@ -8784,11 +8705,40 @@
                                                                                                                                                           (strict
                                                                                                                                                           )
                                                                                                                                                           (vardecl
-                                                                                                                                                            subtractInteger
-                                                                                                                                                            (fun (con integer) (fun (con integer) (con integer)))
+                                                                                                                                                            isSignatory
+                                                                                                                                                            (fun (con bytestring) (fun Params Bool))
                                                                                                                                                           )
-                                                                                                                                                          (builtin
-                                                                                                                                                            subtractInteger
+                                                                                                                                                          (lam
+                                                                                                                                                            w
+                                                                                                                                                            (con bytestring)
+                                                                                                                                                            (lam
+                                                                                                                                                              w
+                                                                                                                                                              Params
+                                                                                                                                                              [
+                                                                                                                                                                {
+                                                                                                                                                                  [
+                                                                                                                                                                    Params_match
+                                                                                                                                                                    w
+                                                                                                                                                                  ]
+                                                                                                                                                                  Bool
+                                                                                                                                                                }
+                                                                                                                                                                (lam
+                                                                                                                                                                  ww
+                                                                                                                                                                  [List (con bytestring)]
+                                                                                                                                                                  (lam
+                                                                                                                                                                    ww
+                                                                                                                                                                    (con integer)
+                                                                                                                                                                    [
+                                                                                                                                                                      [
+                                                                                                                                                                        wisSignatory
+                                                                                                                                                                        w
+                                                                                                                                                                      ]
+                                                                                                                                                                      ww
+                                                                                                                                                                    ]
+                                                                                                                                                                  )
+                                                                                                                                                                )
+                                                                                                                                                              ]
+                                                                                                                                                            )
                                                                                                                                                           )
                                                                                                                                                         )
                                                                                                                                                         (let
@@ -8798,65 +8748,39 @@
                                                                                                                                                             (strict
                                                                                                                                                             )
                                                                                                                                                             (vardecl
-                                                                                                                                                              txSignedBy
-                                                                                                                                                              (fun PendingTx (fun (con bytestring) Bool))
+                                                                                                                                                              lessThanEqInteger
+                                                                                                                                                              (fun (con integer) (fun (con integer) Bool))
                                                                                                                                                             )
                                                                                                                                                             (lam
-                                                                                                                                                              w
-                                                                                                                                                              PendingTx
+                                                                                                                                                              arg
+                                                                                                                                                              (con integer)
                                                                                                                                                               (lam
-                                                                                                                                                                w
-                                                                                                                                                                (con bytestring)
+                                                                                                                                                                arg
+                                                                                                                                                                (con integer)
                                                                                                                                                                 [
-                                                                                                                                                                  {
-                                                                                                                                                                    [
-                                                                                                                                                                      PendingTx_match
-                                                                                                                                                                      w
-                                                                                                                                                                    ]
-                                                                                                                                                                    Bool
-                                                                                                                                                                  }
                                                                                                                                                                   (lam
-                                                                                                                                                                    ww
-                                                                                                                                                                    [List PendingTxIn]
-                                                                                                                                                                    (lam
-                                                                                                                                                                      ww
-                                                                                                                                                                      [List PendingTxOut]
-                                                                                                                                                                      (lam
-                                                                                                                                                                        ww
-                                                                                                                                                                        (con integer)
-                                                                                                                                                                        (lam
-                                                                                                                                                                          ww
-                                                                                                                                                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                                                                                          (lam
-                                                                                                                                                                            ww
-                                                                                                                                                                            PendingTxIn
-                                                                                                                                                                            (lam
-                                                                                                                                                                              ww
-                                                                                                                                                                              [Interval (con integer)]
-                                                                                                                                                                              (lam
-                                                                                                                                                                                ww
-                                                                                                                                                                                [List [[Tuple2 (con bytestring)] (con bytestring)]]
-                                                                                                                                                                                (lam
-                                                                                                                                                                                  ww
-                                                                                                                                                                                  (con bytestring)
-                                                                                                                                                                                  [
-                                                                                                                                                                                    [
-                                                                                                                                                                                      [
-                                                                                                                                                                                        wtxSignedBy
-                                                                                                                                                                                        ww
-                                                                                                                                                                                      ]
-                                                                                                                                                                                      ww
-                                                                                                                                                                                    ]
-                                                                                                                                                                                    w
-                                                                                                                                                                                  ]
-                                                                                                                                                                                )
-                                                                                                                                                                              )
-                                                                                                                                                                            )
-                                                                                                                                                                          )
-                                                                                                                                                                        )
-                                                                                                                                                                      )
-                                                                                                                                                                    )
+                                                                                                                                                                    b
+                                                                                                                                                                    (all a (type) (fun a (fun a a)))
+                                                                                                                                                                    [
+                                                                                                                                                                      [
+                                                                                                                                                                        {
+                                                                                                                                                                          b
+                                                                                                                                                                          Bool
+                                                                                                                                                                        }
+                                                                                                                                                                        True
+                                                                                                                                                                      ]
+                                                                                                                                                                      False
+                                                                                                                                                                    ]
                                                                                                                                                                   )
+                                                                                                                                                                  [
+                                                                                                                                                                    [
+                                                                                                                                                                      (builtin
+                                                                                                                                                                        lessThanEqualsInteger
+                                                                                                                                                                      )
+                                                                                                                                                                      arg
+                                                                                                                                                                    ]
+                                                                                                                                                                    arg
+                                                                                                                                                                  ]
                                                                                                                                                                 ]
                                                                                                                                                               )
                                                                                                                                                             )
@@ -8868,60 +8792,39 @@
                                                                                                                                                               (strict
                                                                                                                                                               )
                                                                                                                                                               (vardecl
-                                                                                                                                                                valuePaidTo
-                                                                                                                                                                (fun PendingTx (fun (con bytestring) [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]))
+                                                                                                                                                                proposalAccepted
+                                                                                                                                                                (fun Params (fun [List (con bytestring)] Bool))
                                                                                                                                                               )
                                                                                                                                                               (lam
                                                                                                                                                                 w
-                                                                                                                                                                PendingTx
+                                                                                                                                                                Params
                                                                                                                                                                 (lam
                                                                                                                                                                   w
-                                                                                                                                                                  (con bytestring)
+                                                                                                                                                                  [List (con bytestring)]
                                                                                                                                                                   [
                                                                                                                                                                     {
                                                                                                                                                                       [
-                                                                                                                                                                        PendingTx_match
+                                                                                                                                                                        Params_match
                                                                                                                                                                         w
                                                                                                                                                                       ]
-                                                                                                                                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                                                                                      Bool
                                                                                                                                                                     }
                                                                                                                                                                     (lam
                                                                                                                                                                       ww
-                                                                                                                                                                      [List PendingTxIn]
+                                                                                                                                                                      [List (con bytestring)]
                                                                                                                                                                       (lam
                                                                                                                                                                         ww
-                                                                                                                                                                        [List PendingTxOut]
-                                                                                                                                                                        (lam
-                                                                                                                                                                          ww
-                                                                                                                                                                          (con integer)
-                                                                                                                                                                          (lam
-                                                                                                                                                                            ww
-                                                                                                                                                                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                                                                                            (lam
+                                                                                                                                                                        (con integer)
+                                                                                                                                                                        [
+                                                                                                                                                                          [
+                                                                                                                                                                            [
+                                                                                                                                                                              wproposalAccepted
                                                                                                                                                                               ww
-                                                                                                                                                                              PendingTxIn
-                                                                                                                                                                              (lam
-                                                                                                                                                                                ww
-                                                                                                                                                                                [Interval (con integer)]
-                                                                                                                                                                                (lam
-                                                                                                                                                                                  ww
-                                                                                                                                                                                  [List [[Tuple2 (con bytestring)] (con bytestring)]]
-                                                                                                                                                                                  (lam
-                                                                                                                                                                                    ww
-                                                                                                                                                                                    (con bytestring)
-                                                                                                                                                                                    [
-                                                                                                                                                                                      [
-                                                                                                                                                                                        wvaluePaidTo
-                                                                                                                                                                                        ww
-                                                                                                                                                                                      ]
-                                                                                                                                                                                      w
-                                                                                                                                                                                    ]
-                                                                                                                                                                                  )
-                                                                                                                                                                                )
-                                                                                                                                                                              )
-                                                                                                                                                                            )
-                                                                                                                                                                          )
-                                                                                                                                                                        )
+                                                                                                                                                                            ]
+                                                                                                                                                                            ww
+                                                                                                                                                                          ]
+                                                                                                                                                                          w
+                                                                                                                                                                        ]
                                                                                                                                                                       )
                                                                                                                                                                     )
                                                                                                                                                                   ]
@@ -8935,11 +8838,11 @@
                                                                                                                                                                 (strict
                                                                                                                                                                 )
                                                                                                                                                                 (vardecl
-                                                                                                                                                                  mkValidator
-                                                                                                                                                                  (con integer)
+                                                                                                                                                                  subtractInteger
+                                                                                                                                                                  (fun (con integer) (fun (con integer) (con integer)))
                                                                                                                                                                 )
-                                                                                                                                                                (con
-                                                                                                                                                                  1
+                                                                                                                                                                (builtin
+                                                                                                                                                                  subtractInteger
                                                                                                                                                                 )
                                                                                                                                                               )
                                                                                                                                                               (let
@@ -8949,18 +8852,66 @@
                                                                                                                                                                   (strict
                                                                                                                                                                   )
                                                                                                                                                                   (vardecl
-                                                                                                                                                                    error
-                                                                                                                                                                    (all a (type) (fun Unit a))
+                                                                                                                                                                    txSignedBy
+                                                                                                                                                                    (fun PendingTx (fun (con bytestring) Bool))
                                                                                                                                                                   )
-                                                                                                                                                                  (abs
-                                                                                                                                                                    e
-                                                                                                                                                                    (type)
+                                                                                                                                                                  (lam
+                                                                                                                                                                    w
+                                                                                                                                                                    PendingTx
                                                                                                                                                                     (lam
-                                                                                                                                                                      thunk
-                                                                                                                                                                      Unit
-                                                                                                                                                                      (error
-                                                                                                                                                                        e
-                                                                                                                                                                      )
+                                                                                                                                                                      w
+                                                                                                                                                                      (con bytestring)
+                                                                                                                                                                      [
+                                                                                                                                                                        {
+                                                                                                                                                                          [
+                                                                                                                                                                            PendingTx_match
+                                                                                                                                                                            w
+                                                                                                                                                                          ]
+                                                                                                                                                                          Bool
+                                                                                                                                                                        }
+                                                                                                                                                                        (lam
+                                                                                                                                                                          ww
+                                                                                                                                                                          [List PendingTxIn]
+                                                                                                                                                                          (lam
+                                                                                                                                                                            ww
+                                                                                                                                                                            [List PendingTxOut]
+                                                                                                                                                                            (lam
+                                                                                                                                                                              ww
+                                                                                                                                                                              (con integer)
+                                                                                                                                                                              (lam
+                                                                                                                                                                                ww
+                                                                                                                                                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                                                                                                (lam
+                                                                                                                                                                                  ww
+                                                                                                                                                                                  PendingTxIn
+                                                                                                                                                                                  (lam
+                                                                                                                                                                                    ww
+                                                                                                                                                                                    [Interval (con integer)]
+                                                                                                                                                                                    (lam
+                                                                                                                                                                                      ww
+                                                                                                                                                                                      [List [[Tuple2 (con bytestring)] (con bytestring)]]
+                                                                                                                                                                                      (lam
+                                                                                                                                                                                        ww
+                                                                                                                                                                                        (con bytestring)
+                                                                                                                                                                                        [
+                                                                                                                                                                                          [
+                                                                                                                                                                                            [
+                                                                                                                                                                                              wtxSignedBy
+                                                                                                                                                                                              ww
+                                                                                                                                                                                            ]
+                                                                                                                                                                                            ww
+                                                                                                                                                                                          ]
+                                                                                                                                                                                          w
+                                                                                                                                                                                        ]
+                                                                                                                                                                                      )
+                                                                                                                                                                                    )
+                                                                                                                                                                                  )
+                                                                                                                                                                                )
+                                                                                                                                                                              )
+                                                                                                                                                                            )
+                                                                                                                                                                          )
+                                                                                                                                                                        )
+                                                                                                                                                                      ]
                                                                                                                                                                     )
                                                                                                                                                                   )
                                                                                                                                                                 )
@@ -8968,19 +8919,68 @@
                                                                                                                                                                   (nonrec
                                                                                                                                                                   )
                                                                                                                                                                   (termbind
-                                                                                                                                                                    (nonstrict
+                                                                                                                                                                    (strict
                                                                                                                                                                     )
                                                                                                                                                                     (vardecl
-                                                                                                                                                                      mkValidator
-                                                                                                                                                                      [[Tuple2 (con bytestring)] (con bytestring)]
+                                                                                                                                                                      valuePaidTo
+                                                                                                                                                                      (fun PendingTx (fun (con bytestring) [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]))
                                                                                                                                                                     )
-                                                                                                                                                                    [
-                                                                                                                                                                      {
-                                                                                                                                                                        error
-                                                                                                                                                                        [[Tuple2 (con bytestring)] (con bytestring)]
-                                                                                                                                                                      }
-                                                                                                                                                                      Unit
-                                                                                                                                                                    ]
+                                                                                                                                                                    (lam
+                                                                                                                                                                      w
+                                                                                                                                                                      PendingTx
+                                                                                                                                                                      (lam
+                                                                                                                                                                        w
+                                                                                                                                                                        (con bytestring)
+                                                                                                                                                                        [
+                                                                                                                                                                          {
+                                                                                                                                                                            [
+                                                                                                                                                                              PendingTx_match
+                                                                                                                                                                              w
+                                                                                                                                                                            ]
+                                                                                                                                                                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                                                                                          }
+                                                                                                                                                                          (lam
+                                                                                                                                                                            ww
+                                                                                                                                                                            [List PendingTxIn]
+                                                                                                                                                                            (lam
+                                                                                                                                                                              ww
+                                                                                                                                                                              [List PendingTxOut]
+                                                                                                                                                                              (lam
+                                                                                                                                                                                ww
+                                                                                                                                                                                (con integer)
+                                                                                                                                                                                (lam
+                                                                                                                                                                                  ww
+                                                                                                                                                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                                                                                                  (lam
+                                                                                                                                                                                    ww
+                                                                                                                                                                                    PendingTxIn
+                                                                                                                                                                                    (lam
+                                                                                                                                                                                      ww
+                                                                                                                                                                                      [Interval (con integer)]
+                                                                                                                                                                                      (lam
+                                                                                                                                                                                        ww
+                                                                                                                                                                                        [List [[Tuple2 (con bytestring)] (con bytestring)]]
+                                                                                                                                                                                        (lam
+                                                                                                                                                                                          ww
+                                                                                                                                                                                          (con bytestring)
+                                                                                                                                                                                          [
+                                                                                                                                                                                            [
+                                                                                                                                                                                              wvaluePaidTo
+                                                                                                                                                                                              ww
+                                                                                                                                                                                            ]
+                                                                                                                                                                                            w
+                                                                                                                                                                                          ]
+                                                                                                                                                                                        )
+                                                                                                                                                                                      )
+                                                                                                                                                                                    )
+                                                                                                                                                                                  )
+                                                                                                                                                                                )
+                                                                                                                                                                              )
+                                                                                                                                                                            )
+                                                                                                                                                                          )
+                                                                                                                                                                        ]
+                                                                                                                                                                      )
+                                                                                                                                                                    )
                                                                                                                                                                   )
                                                                                                                                                                   (let
                                                                                                                                                                     (nonrec
@@ -9183,7 +9183,7 @@
                                                                                                                                                                                                                         }
                                                                                                                                                                                                                         (con bytestring)
                                                                                                                                                                                                                       }
-                                                                                                                                                                                                                      mkValidator
+                                                                                                                                                                                                                      addSignature
                                                                                                                                                                                                                     ]
                                                                                                                                                                                                                     (con bytestring)
                                                                                                                                                                                                                   }
@@ -9224,7 +9224,7 @@
                                                                                                                                                                                         [
                                                                                                                                                                                           [
                                                                                                                                                                                             equalsInteger
-                                                                                                                                                                                            mkValidator
+                                                                                                                                                                                            addSignature
                                                                                                                                                                                           ]
                                                                                                                                                                                           [
                                                                                                                                                                                             {
