@@ -103,17 +103,6 @@ open import Data.Vec hiding (_>>=_)
 
 open import Scoped.CK
 
-tvars : ∀{n} → Vec String n
-tvars {zero}      = []
-tvars {Nat.suc n} =
-  ("tvar" Data.String.++ Data.Integer.show (pos n)) ∷ tvars {n}
-
--- this is not very useful but I am expecting that it won't be used
-vars : ∀{n}{i : Weirdℕ n} → WeirdVec String i
-vars {i = Z} = nil
-vars {i = S i} = consS "varS" (vars {i = i})
-vars {i = T i} = consT "varT" (vars {i = i})
-
 data EvalMode : Set where
   CK L : EvalMode
 
@@ -130,7 +119,7 @@ stestPLC L plc | just t | just t' | t'' ,, p ,, inj₂ e =
   prettyPrint (deDeBruijnify [] nil (unsaturate t''))
 stestPLC CK plc | just t | just t' with stepper 1000000000 _ (ε ▻ saturate t')
 stestPLC CK plc | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
-  prettyPrint (deDeBruijnify tvars vars (unsaturate t''))
+  prettyPrint (deDeBruijnify [] nil (unsaturate t''))
 stestPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  just _ =
   "this shouldn't happen"
 stestPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  nothing = "out of fuel"
