@@ -561,8 +561,8 @@ mkEARedeemer a = RedeemerScript $
 ////
 [source,haskell]
 ----
-start :: forall m. MonadWallet m => m CurrencySymbol
-start = do
+start' :: forall m. MonadWallet m => m CurrencySymbol
+start' = do
 
     key  <- ownPubKey
     outs <- outputsAt $ pubKeyAddress key
@@ -656,6 +656,9 @@ start = do
                     defaultSlotRange
                     (Set.singleton i)
                     [o1, o2]
+
+start :: MonadWallet m => m ()
+start = void start'
 
 forge :: forall m. MonadWallet m
       => CurrencySymbol -- admin token symbol

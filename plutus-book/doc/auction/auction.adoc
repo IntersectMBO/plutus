@@ -66,3 +66,9 @@ We start with a type `EnglishAuction` to define an auction:
 
 include::english.adoc[]
 
+The transaction graph for a simple example looks as follows:
+
+image:auction-txn.png[]
+
+Alice is the token owner and runs the auction. Bob bids 1000 ada, then gets outbid by Charlie, who bids 1100 ada. Bob reclaims his 1000 ada,
+then Alice claims the highest bid of 1100 ada, and finally Charlie claims the token.
