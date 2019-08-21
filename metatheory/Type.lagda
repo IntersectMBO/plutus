@@ -37,6 +37,10 @@ a kind called `#` which is used for sized integers and bytestrings.
 data Kind : Set where
   *   : Kind               -- type
   _⇒_ : Kind → Kind → Kind -- function kind
+
+{-# FOREIGN GHC import Scoped #-}
+{-# COMPILE GHC Kind = data ScKind (ScKiStar | ScKiFun) #-}
+
 \end{code}
 
 Let `J`, `K` range over kinds.

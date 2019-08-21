@@ -24,7 +24,7 @@ data Frame : ∀{n n'} → Weirdℕ n → Weirdℕ n' → Set where
   -·_ : ∀{n}{i : Weirdℕ n} → ScopedTm i → Frame i i
   _·- : ∀{n}{i : Weirdℕ n}{t : ScopedTm i } → Value t → Frame i i
 
-  Λ-  : ∀{n} → String → ScopedKind → {i : Weirdℕ n} → Frame i (T i)
+  Λ-  : ∀{n} → String → Kind → {i : Weirdℕ n} → Frame i (T i)
   -·⋆_ :  ∀ {n}{i : Weirdℕ n}(A : ScopedTy n) → Frame i i
 
   wrap- :  ∀{n} → ScopedTy n → ScopedTy n → {i : Weirdℕ n} → Frame i i
