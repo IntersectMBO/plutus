@@ -57,9 +57,11 @@ library
     -Wall -Wnoncanonical-monad-instances
     -Wincomplete-uni-patterns -Wincomplete-record-updates
     -Wredundant-constraints -Widentities
+    -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc
 
   if flag(defer-plugin-errors)
     ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
+  build-tool-depends: unlit:unlit -any
 
 test-suite marlowe-test
     default-language: Haskell2010

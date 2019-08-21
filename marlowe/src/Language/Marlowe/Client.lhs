@@ -1,3 +1,5 @@
+[source,haskell]
+----
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DefaultSignatures  #-}
 {-# LANGUAGE DeriveAnyClass     #-}
@@ -14,13 +16,14 @@
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
-{-|
-    Marlowe Mockchain client code.
+----
+Below functions emulate executing Malrowe off-chain code on a client side.
+This implementation uses Plutus Mockchain, but it's expected to have quite similar API
+for the actual wallet implementation.
 
-    Below functions emulate executing Malrowe off-chain code on a client side.
-    This implementation uses Plutus Mockchain, but it's expected to have quite similar API
-    for the actual wallet implementation.
--}
+[source,haskell]
+----
+
 module Language.Marlowe.Client where
 import           Control.Applicative            ( Applicative(..) )
 import           Control.Monad                  ( Monad(..)
@@ -63,20 +66,35 @@ interpretObs inputOracles blockNumber state obs = let
 
 getScriptOutFromTx :: Tx -> (TxOut, TxOutRef)
 getScriptOutFromTx = head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs
+----
 
-{-| Create Marlowe 'ValidatorScript' that remembers its owner.
+The function `marloweValidator`, given the `PubKey` of the owner (and creator)
+of a Marlowe contract, defines a validator. Note that his function is
+universal in the sense that for every Marlowe contract, the _same_ validator
+(modulo the creator's public key) is used, and the contract itself, as well
+as its state, is found in the data script.  The public key is used in the
+validation process.
+Here we use the `validatorScript` function defined in the `Common` module.
+At the end of a contract execution owner can spend an initial deposit
+    providing a `Signature` for owner's public key.
 
-    At the end of a contract execution owner can spend an initial deposit
-    providing a 'Signature' for owner's public key.
- -}
+[source,haskell]
+----
 marloweValidator :: PubKey -> ValidatorScript
 marloweValidator creator = ValidatorScript result where
     result = Ledger.applyScript inner (Ledger.lifted creator)
     inner  = $$(Ledger.compileScript [|| validatorScript ||])
+----
 
-{-| Create and submit a transaction that creates a Marlowe Contract @contract@
-    using @validator@ script, and put @value@ Ada as a deposit.
--}
+The `createContract` function is used by the wallet to create and submit a
+transaction that puts a deposit of `value` locked by the given `validator` and
+the data script `contract`, which is a Marlowe contract. Note that when
+used, this function must be passed the Marlowe validator with the correct
+public key. The initial input is the `CreateContract` command, and the
+initial state is empty.
+
+[source,haskell]
+----
 createContract :: (
     MonadError WalletAPIError m,
     WalletAPI m)
@@ -96,11 +114,17 @@ createContract validator contract value = do
 
     void $ createTxAndSubmit (intervalFrom slot) payment (o : maybeToList change)
 
+----
 
-{-| Prepare 'TxIn' and 'TxOut' generator for Marlowe style wallet actions.
--}
+Prepare 'TxIn' and 'TxOut' generator for Marlowe style wallet actions.
+Explain more. A transaction that builds the set of TxIns and TxOuts.
+
+[source,haskell]
+----
+
 marloweTx ::
     (Input, MarloweData)
+    -- ^ redeemer is passed here
     -> (TxOut, TxOutRef)
     -- ^ reference to Marlowe contract UTxO
     -> ValidatorScript
@@ -299,3 +323,4 @@ spendDeposit tx validator state = do
     marloweTx redeemer txOut validator $ \ contractTxIn _ contractValue -> do
         oo <- ownPubKeyTxOut (Ada.lovelaceValueOf contractValue)
         void $ createTxAndSubmit (intervalFrom slot) (Set.singleton contractTxIn) [oo]
+----

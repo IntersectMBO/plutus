@@ -2,9 +2,16 @@
 
 stdenv.mkDerivation {
   name = "plutus-book";
-  src = lib.sourceFilesBySuffices ./. [ ".adoc" ".png" ".PNG" ".gif" ".jpg" ".ico" ".css" ];
+  # The plutus book includes symlinks to literate Haskell files from the Marlowe package, 
+  # so we need to includ those in our source, which awkwardly requires building up
+  # a filtered source from the root instead. 
+  src = lib.sourceFilesBySuffices 
+    (lib.sourceByRegex ../../. ["^plutus-book.*" "^marlowe.*"]) 
+    [ ".adoc" ".png" ".PNG" ".gif" ".jpg" ".ico" ".css" ".lhs" ];
   buildInputs = [ asciidoctor python2 ];
   buildPhase = ''
+    cd plutus-book/doc
+
     asciidoctor --failure-level ERROR plutus.adoc -b html5 -o plutus.html
 
     asciidoctor-pdf --failure-level ERROR plutus.adoc -o plutus.pdf

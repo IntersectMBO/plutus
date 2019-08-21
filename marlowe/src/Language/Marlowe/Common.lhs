@@ -1,3 +1,7 @@
+First, the language extensions and imports.
+
+[source,haskell]
+----
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DefaultSignatures  #-}
 {-# LANGUAGE DeriveAnyClass     #-}
@@ -20,75 +24,6 @@
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
-{-| = Marlowe: financial contracts on Cardano Computation Layer
-
-Here we present a reference implementation of Marlowe, domain-specific language targeted at
-the execution of financial contracts in the style of Peyton Jones et al
-on Cardano Computation Layer.
-
-The implementation is based on semantics described in paper
-<https://iohk.io/research/papers/#2WHKDRA8 'Marlowe: financial contracts on blockchain'>
-by Simon Thompson and Pablo Lamela Seijas
-
-== Semantics
-
-Semantics is based on <https://github.com/input-output-hk/marlowe/blob/stable/src/Semantics.hs>
-
-Marlowe Contract execution is a chain of transactions,
-where remaining contract and its state is passed through /Data Script/,
-and actions (i.e. /Choices/ and /Oracle Values/) are passed as
-/Redeemer Script/
-
-/Validation Script/ is always the same Marlowe interpreter implementation, available below.
-
-Both /Redeemer Script/ and /Data Script/ have the same structure:
-@(Input, MarloweData)@
-
-where
-
-* 'Input' contains contract actions (i.e. /Pay/, /Redeem/), /Choices/ and /Oracle Values/,
-* 'MarloweData' contains remaining 'Contract' and its 'State'
-* 'State' is a set of 'Commit's plus a set of made 'Choice's
-
-To spend 'TxOut' secured by Marlowe /Validator Script/, a user must provide /Redeemer Script/
-that is a tuple of an 'Input' and expected output of Marlowe 'Contract' interpretation for
-the given 'Input', i.e. 'Contract' and 'State'.
-
-To ensure that user provides valid remainig 'Contract' and 'State'
-Marlowe /Validator Script/ compares evaluated contract and state with provided by user,
-and rejects a transaction if those don't match.
-
-To ensure that remaining contract's /Data Script/ has the same 'Contract' and 'State'
-as was passed with /Redeemer Script/, we check that /Data Script/ hash is
-the same as /Redeemer Script/.
-That's why those are of the same structure @(Input, MarloweData)@.
-
-== Example
-
-Consider simple payment contract, where Alice commits to pay 100 Ada to Bob before timeout1.
-She can get back committed money if Bob didn't ask for payment before timeout2.
-
-> let Alice = PubKey 1
-> let Bob   = PubKey 2
-> let timeout1 = 23
-> let timeout2 = 50
-> let contract = CommitCash (IdentCC 1) Alice (Value 100) timeout1 timeout2
->             (Pay (IdentPay 1) Alice Bob (Committed (IdentCC 1)) timeout2 Null)
->             Null
-
-Alice commits:
-
-> let input = Input (Commit (IdentCC 1) (txHash `signedBy` Alice)) [] []
-
-Bob demands payment:
-
-> let input = Input (Payment (IdentPay 1) (txHash `signedBy` Bob)) [] []
-
-Or, in case Bob didn't demand payment before timeout2, Alice can require a redeem of her commit:
-
-> let input = Input (Redeem (IdentCC 1) (txHash `signedBy` Alice)) [] []
--}
-
 module Language.Marlowe.Common where
 
 import qualified Prelude                    as Haskell
@@ -109,6 +44,7 @@ import           Text.PrettyPrint.Leijen    (text)
 
 {-# ANN module ("HLint: ignore"::String) #-}
 
+-- type synonyms for timeouts, cash, and the public key identifier of a contract participant
 type Timeout = Integer
 type Cash = Integer
 
@@ -116,25 +52,38 @@ type Person = PubKey
 
 instance Pretty PubKey where
     prettyFragment = text . show
+----
 
-{-|
-== Identifiers
+Below we give the data types we use as the unique identifiers for cash commits,
+payments and choices made by participants. These are not automatically generated,
+but the uniqueness condition is checked as part of validation.
 
-Commitments, choices and payments are all identified by identifiers.
-Their types are given here. In a more sophisticated model these would
-be generated automatically (and so uniquely); here we simply assume that
-they are unique.
+[source,haskell]
+----
 
+
+{-
+This is the identifier for a commit cash action, which can be used to refer to this
+particular committed cash throughout the rest of the contract
 -}
+
 newtype IdentCC = IdentCC Integer
                deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
                deriving newtype (Eq, Ord)
                deriving anyclass (Pretty)
 
+{-|
+This is identifier for a choice made by a participant, which can be used
+throughout the rest of the contract to look up
+the particular value chosen, and the identifier for the person who made the choice
+-}
+
 newtype IdentChoice = IdentChoice Integer
                deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
                deriving newtype (Eq, Ord)
                deriving anyclass (Pretty)
+
+-- the identifier for a payment (i.e. funds released from the contract to a participant)
 
 newtype IdentPay = IdentPay Integer
                deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
@@ -143,6 +92,9 @@ newtype IdentPay = IdentPay Integer
 
 type ConcreteChoice = Integer
 
+-- CCStatus gives the status for a commit, specifically
+-- the person who made the commit, the amount of cash left in the commit
+-- and the time the commit expires and is refunded
 type CCStatus = (Person, CCRedeemStatus)
 
 data CCRedeemStatus = NotRedeemed Cash Timeout
@@ -157,9 +109,13 @@ type Choice = ((IdentChoice, Person), ConcreteChoice)
 type Commit = (IdentCC, CCStatus)
 
 {-|
-    Value is a set of contract primitives that represent constants,
-    functions, and variables that can be evaluated as an amount
-    of money.
+Value is a set of contract primitives that represent constants,
+functions, and variables that can be evaluated as an amount
+of money.
+
+An oracle value is a value provided (and signed by) a `PubKey` that represents
+a piece of data sourced from the "real world". For example, the price of a product
+at a given point in time.
 -}
 data Value  = Committed IdentCC
             -- ^ available amount by 'IdentCC'
@@ -175,6 +131,7 @@ data Value  = Committed IdentCC
             -- ^ Oracle PubKey, default 'Value' when no Oracle Value provided
                deriving stock (Haskell.Eq, Show, Generic)
                deriving anyclass (Pretty)
+
 
 instance Eq Value where
     {-# INLINABLE (==) #-}
@@ -194,18 +151,23 @@ instance Eq Value where
         (ValueFromOracle pkl vl, ValueFromOracle pkr vr) -> pkl == pkr && vl == vr
         _ -> False
 
-{-| Predicate on outer world and contract 'State'.
-    'interpretObservation' evaluates 'Observation' to 'Bool'
--}
+----
+
+    Observation is a constructor for predicates on outer world and contract 'State'.
+    It represents the subset of predicates
+    which can be evaluated within a contract.
+
+[source,haskell]
+----
 data Observation = BelowTimeout Integer
-            -- ^ are we still on time for something that expires on Timeout?
+            -- ^ the current time is less than or equal to the given integer
             | AndObs Observation Observation
             | OrObs Observation Observation
             | NotObs Observation
             | PersonChoseThis IdentChoice Person ConcreteChoice
             | PersonChoseSomething IdentChoice Person
             | ValueGE Value Value
-            -- ^ is first amount is greater or equal than the second?
+            -- ^ first amount is greater than or equal to the second
             | TrueObs
             | FalseObs
                deriving stock (Haskell.Eq, Show, Generic)
@@ -229,25 +191,54 @@ instance Eq Observation where
 
 {-| Marlowe Contract Data Type
 -}
-data Contract = Null
-            | CommitCash IdentCC PubKey Value Timeout Timeout Contract Contract
-            -- ^ commit identifier, owner, amount,
-            --   start timeout, end timeout, OK contract, timed out contract
-            | RedeemCC IdentCC Contract
-            -- ^ commit identifier to redeem, continuation contract
-            | Pay IdentPay Person Person Value Timeout Contract
-            -- ^ pay identifier, from, to, amount, payment timeout,
-            --   continuation (either timeout or successful payment)
-            | Both Contract Contract
-            -- ^ evaluate both contracts
-            | Choice Observation Contract Contract
-            -- ^ if observation evaluates to True evaluates first contract, second otherwise
-            | When Observation Timeout Contract Contract
-            -- ^ when observation evaluates to True evaluate first contract,
-            --   evaluate second contract on timeout
+data Contract = Null                                                             -- <1>
+            | CommitCash IdentCC PubKey Value Timeout Timeout Contract Contract  -- <2>
+            | RedeemCC IdentCC Contract                                          -- <3>
+            | Pay IdentPay Person Person Value Timeout Contract                  -- <4>
+            | Both Contract Contract                                             -- <5>
+            | Choice Observation Contract Contract                               -- <6>
+            | When Observation Timeout Contract Contract                         -- <7>
                deriving stock (Haskell.Eq, Show, Generic)
                deriving anyclass (Pretty)
+----
+<1> `Null` is the trivial contract, where no participants can perform any actions
+and there is no more program to execute. This contract is always fulfilled!
 
+<2> `CommitCash idC pk v t1 t2 c1 c2` constructor allows a participant to commit cash
+to a contract, taking the following arguments
+
+* `idC` - unique identifier of this cash commit
+* `pk`  - the (public key) ID of the person who is expected to commit the cash
+* `v`   - the amount of cash to be committed
+* `t1`  - the block (slot) number after which the commit can no longer be made,
+and the contract continues as `c2`
+* `t2`  - the block (slot) number after which the cash committed by `pk` to this
+contract will be returned to `pk` at this time, and every other commit belonging to
+the contract at that time will also be returned to the participant who made it
+* `c1`  - the contract as which `CommitCash idC pk v t1 t2 c1 c2` continues
+when `p` makes the commit (of value `v` before time `t1`)
+* `c2`  - the contract as which `CommitCash idC pk v t1 t2 c1 c2` continues
+when `p` does not make the correct cash commit before the timeout
+
+<3> `Redeem idC c` constructor represents the contract which refunds the cash
+from commit with identity `idC` and proceeds as contract `c`
+
+<4> `Pay idC pk1 pk2 v t c` constructor represents the contract paying
+the cash amount `v` committed by person `pk1` to `pk2`, which must be done
+before timeout time `t`, and then continue as contract `c`
+
+<5> `Both c1 c2` constructor represents a contract that requires both
+`c1` and `c2` to be fulfilled
+
+<6> `Choice obs c1 c2` constructor represents the contract which is equivalent
+to (evaluates to) `c1` when `obs` is true, and `c2` otherwise
+
+<7> `When obs t c1 c2` constructor represents the contract that evaluates to
+`c1` as soon as `obs` becomes true, provided it is at or before timeout `t`,
+otherwise, it evaluates to `c2`
+
+[source,haskell]
+----
 instance Eq Contract where
     {-# INLINABLE (==) #-}
     l == r = case (l, r) of
@@ -280,17 +271,24 @@ instance Eq Contract where
 
 
 {-|
-    State of a contract validation function.
+    This data structure stores the maximum value among the commit IDs,
+    and the maximum value among the pay IDs for a given contract. It is
+    used in the validation process.
 -}
 data ValidatorState = ValidatorState {
         maxCCId  :: Integer,
         maxPayId :: Integer
     }
+----
 
-{-|
-    Internal Marlowe Contract state.
-    Persisted in Data Script.
--}
+The `State` data structure consists of information about the past actions of
+contract participants. Specifically, the cash commits and the choices they
+have made. This data is also needed to evaluate a term `c :: Contract`, in
+addition to external factors such as the current time. The commits are sorted
+by ascending expiration time.
+
+[source,haskell]
+----
 data State = State {
         stateCommitted :: [Commit],
         stateChoices   :: [Choice]
@@ -304,8 +302,10 @@ instance Eq State where
 {-# INLINABLE emptyState #-}
 emptyState :: State
 emptyState = State { stateCommitted = [], stateChoices = [] }
+----
 
-{-|
+The `InputCommand` data structure is a set of actions that can be performed
+on a contract.
     Contract input command.
     'Commit', 'Payment', and 'Redeem' all require a proof
     that the transaction is issued by a particular party identified with /Public Key/.
@@ -316,7 +316,9 @@ emptyState = State { stateCommitted = [], stateChoices = [] }
     then we require
     @ Commit ident signature(pubKey) @
     to validate that transaction.
--}
+
+[source,haskell]
+----
 data InputCommand = Commit IdentCC Signature
     | Payment IdentPay Signature
     | Redeem IdentCC Signature
@@ -326,13 +328,20 @@ makeLift ''InputCommand
 
 {-|
     Marlowe Contract Input.
-    May contain oracle values, and newly made choices.
+    May contain oracle values and choices.
 -}
 data Input = Input InputCommand [OracleValue Integer] [Choice]
+----
 
-{-|
-    This data type is a content of a contract's /Data Script/
--}
+As we have discussed before, the data script of a contract represents its state.
+This state must contain all the information necessary to determine what
+funds belonging to the script can be unlocked at this time.
+and the state of a Marlowe contract is the combination of what the `Contract`
+data structure has been evaluated to be at this time, and the commits
+and choices that have been made by participants up to this point.
+
+[source,haskell]
+----
 data MarloweData = MarloweData {
         marloweState    :: State,
         marloweContract :: Contract
@@ -349,7 +358,18 @@ makeLift ''ValidatorState
 makeLift ''MarloweData
 makeLift ''Input
 makeLift ''State
+----
 
+The following function, `validateContract`, is _not_ the validator script for
+Marlowe contracts. Rather, it is used to check the current validity of a `Contract`
+given its `State`, and does not perform contract evaluation.
+This validity check consists of making sure the IDs of the
+commit and pay actions are valid (unique and stored in the correct order),
+and that there is at least as much money locked
+by the script (the `actualMoney'` argument) as the sum of the commits.
+
+[source,haskell]
+----
 {-# INLINABLE validateContract #-}
 {-| Contract validation.
 
@@ -401,19 +421,29 @@ validateContract State{stateCommitted} contract (Slot bn) actualMoney' = let
             let (_, validIds) = validateIds (ValidatorState 0 0) contract
             in validIds
        else False
+----
 
+Given a value, this function interprets the `Value` constructors and calculates the result
+as an integer. All the other parameters of the function are relevant to interpreting
+one or several particular `Value` constructors, as explained in the comments.
+
+[source,haskell]
+----
 {-# INLINABLE evaluateValue #-}
-{-|
-    Evaluates 'Value' given current block number 'Slot', oracle values, and current 'State'.
--}
 evaluateValue :: Slot -> [OracleValue Integer] -> State -> Value -> Integer
 evaluateValue pendingTxSlot inputOracles state value = let
+
+    -- this returns the commit status of a given commit ID if it exists
+    -- i.e. whether the commit has already been spent
+    -- the commits are passed via the `State` argument of `evaluateValue`
     findCommit :: IdentCC -> [Commit] -> Maybe CCStatus
     findCommit i@(IdentCC searchId) commits = case commits of
         (IdentCC id, status) : _ | id == searchId -> Just status
         _ : xs                                    -> findCommit i xs
         _                                         -> Nothing
 
+    -- this returns an oracle value signed by the owner of a given `PubKey` in a given `Slot`
+    -- the oracle values are passed via the `[OracleValue Integer]` of `evaluateValue`
     fromOracle :: PubKey -> Slot -> [OracleValue Integer] -> Maybe Integer
     fromOracle pubKey h@(Slot blockNumber) oracles = case oracles of
         OracleValue pk (Slot bn) value : _
@@ -421,12 +451,16 @@ evaluateValue pendingTxSlot inputOracles state value = let
         _ : rest -> fromOracle pubKey h rest
         _ -> Nothing
 
+    -- this returns the choice with a given choice ID if it exists
+    -- the choices are passed via the `State` argument of `evaluateValue`s
     fromChoices :: IdentChoice -> PubKey -> [Choice] -> Maybe ConcreteChoice
     fromChoices identChoice@(IdentChoice id) pubKey choices = case choices of
         ((IdentChoice i, party), value) : _ | id == i && party == pubKey -> Just value
         _ : rest                                                         -> fromChoices identChoice pubKey rest
         _                                                                -> Nothing
 
+    -- the function used to interpret and evaluate the given Value
+    -- uses above auxiliary functions
     evalValue :: State -> Value -> Integer
     evalValue state@(State committed choices) value = case value of
         Committed ident -> case findCommit ident committed of
@@ -448,11 +482,24 @@ evaluateValue pendingTxSlot inputOracles state value = let
             _      -> evalValue state def
 
         in evalValue state value
+----
+
+Given an observation, this function interprets the `Observation` constructors and calculates the result
+as a `Bool`. All the other parameters of the function are relevant to interpreting
+one or several particular `Observation` constructors, as explained in the comments.
+The `evalValue` argument, when passed to this function, will be a partial application
+of `evaluateValue`, that will be fully applied inside `interpretObservation`.
+
+[source,haskell]
+----
 
 {-# INLINABLE interpretObservation #-}
 -- | Interpret 'Observation' as 'Bool'.
 interpretObservation :: (State -> Value -> Integer) -> Integer -> State -> Observation -> Bool
 interpretObservation evalValue blockNumber state@(State _ choices) obs = let
+
+    -- this returns the choice corresponding to a given choice ID, made by a specific person, if it exists
+    -- the choices are passed via the `State` argument of `interpretObservation`
     find :: IdentChoice -> Person -> [Choice] -> Maybe ConcreteChoice
     find choiceId@(IdentChoice cid) person choices = case choices of
         (((IdentChoice id, party), choice) : _)
@@ -460,6 +507,7 @@ interpretObservation evalValue blockNumber state@(State _ choices) obs = let
         (_ : cs) -> find choiceId person cs
         _ -> Nothing
 
+    -- this function used to interpret and evaluate a given `Observation`
     go :: Observation -> Bool
     go obs = case obs of
         BelowTimeout n -> blockNumber <= n
@@ -532,7 +580,36 @@ findAndRemove predicate commits = let
                 Nothing  -> Nothing
 
     in findAndRemove False commits
+----
 
+The `evaluateContract` function below computes the updated `State` (i.e. commits
+and choices) and `Contract`
+resulting from both executing the input command (the `Input` parameter) and the
+passage of time.
+The two `Ada` arguments to the function are used to check that the amount of cash
+committed or collected from the contract address as indicated in the contract
+itself (via a `Commit`, `RedeemCC` or `Pay` constructor) is the same
+amount (as calculated by examining the inputs and outputs of the transaction
+carrying the script) passed to this function by `scriptInValue'` and `scriptOutValue'`.
+This check must be done as part of the generalized accounting property, which
+describes the total system money flow resulting from a transaction.
+The `txHash` and `contractCreatorPK` arguments are used to check signatures, so that
+participant actions are authorized by those participants.
+
+The `Bool` in the output
+is `True` if contract evaluation is able to progress. It is also `True` when
+the contract is evaluated to null, and there
+are no commits left in the contract. When contract evaluation is unable to
+progress, `(state, contract, False)` is returned with the input
+values unchanged.
+
+An example of when contract evaluation may not progress according to the input
+command is when a participant attempts to input the `Redeem` command to collect
+funds from the contract, but the contract is not defined by the `RedeemCC`
+constructor. In this case, `False` is returned as the validation result.
+
+[source,haskell]
+----
 {-# INLINABLE evaluateContract #-}
 {-|
     Evaluates Marlowe Contract
@@ -577,6 +654,10 @@ evaluateContract
         TxHash msg = txHash
         in verifySignature pk msg sig
 
+    -- the evaluation function
+    -- for each of the Contract constructors, only need to cover cases
+    -- where evaluation progresses
+    -- catch-all case at the end for the rest
     eval :: InputCommand -> State -> Contract -> (State, Contract, Bool)
     eval input state@(State commits choices) contract = case (contract, input) of
         (When obs timeout con con2, _)
@@ -592,7 +673,10 @@ evaluateContract
                 result  | nullContract res1 = res2
                         | nullContract res2 = res1
                         | True =  Both res1 res2
+                -- note that full state is accessible in evaluating con1
                 (st1, res1, isValid1) = eval input state con1
+                -- state resulting from con1 evaluation passed to evaluate con2
+                -- this includes any new choices and commits
                 (st2, res2, isValid2) = eval input st1 con2
 
         -- expired CommitCash
@@ -653,9 +737,13 @@ evaluateContract
                 Just updatedCommits -> (State updatedCommits choices, contract, True)
                 Nothing             -> (state, contract, False)
 
+        -- case when the contract has finished evaluating (is Null)
+        -- all commits must have been spent
+        -- and check signature
         (Null, SpendDeposit sig) | null commits
             && sig `signedBy` contractCreatorPK -> (state, Null, True)
 
+        -- catch-all for all cases where contract evaluation can't progress
         _ -> (state, Null, False)
     in eval inputCommand state contract
 
@@ -681,7 +769,25 @@ mergeChoices input choices = let
     merge [] choices       = choices
     merge (i:rest) choices = merge rest (insert i choices)
     in merge input choices
+----
 
+Now for the final piece of the puzzle: building the validator script.
+The function below is not a map to type `ValidatorScript`, but it will be used
+in the `Client` module to define the validator script. The first argument
+will be passed the `PubKey` of the transaction author, the second argument
+is the data script (i.e. the current state and contract), and third is
+the redeemer (i.e. the input and the expected result of the evaluation of the
+current contract according to this input).
+
+The validation procedure consists of validating both the state and contract
+in the data script using the `validateContract` check described above, and
+the evaluating it with `evaluateContract`. This function must return `True` as the
+validation result, along with state and contract values which are the same
+as those passed as the data script parameter (first argument) to `validatorScript`.
+
+
+[source,haskell]
+----
 {-# INLINABLE validatorScript #-}
 {-|
     Marlowe main Validator Script
@@ -695,7 +801,7 @@ validatorScript
 
         {-  Embed contract creator public key. This makes validator script unique,
             which makes a particular contract to have a unique script address.
-            That makes it easier to watch for contrac actions inside a wallet. -}
+            That makes it easier to watch for contract actions inside a wallet. -}
         contractCreatorPK = creator
 
         {-  We require Marlowe Tx to have a lower bound in 'SlotRange'.
@@ -752,3 +858,33 @@ validatorScript
         {-  if the contract is invalid and there are no commit,
             allow to spend contract's money. It's likely to be created by mistake -}
         else if null currentCommits then () else Builtins.error ()
+----
+
+[NOTE]
+====
+.Invalid Initial Data Scripts Are Possible
+
+The `contractIsValid` boolean value is computed on-chain as part of script validation.
+When the validator script defined using the above code is applied to the appropriate
+arguments (data script, redeemer, transaction and ledger data), this value is true if
+the _current_ data script at the UTxO entry the transaction
+is attempting to spend is a valid contract and state. The validity of the
+evaluated state and contract (i.e. the new data script values which will lock the
+funds associated with this contract once the carrying transaction is validated)
+is computed by `evaluateContract`.
+
+If this function does not return true,
+the transaction is not validated. This means that only valid new data scripts
+can end up on the ledger as a result of evaluating existing Marlowe contracts.
+However, when paying into a contract initially, _any_ valid Plutus data script can be
+submitted in the transaction, even one that is not valid Marlowe.
+It does not directly benefit anyone to pay into a contract
+where the funds remain locked forever due to an invalid data script. It is
+possible, however, that one can potentially be disruptive to the operation
+of the blockchain in some way by making unspendable UTxO entries.
+
+This issue of invalid data scripts is not unique to Marlowe contracts. In
+general, it is a good idea to define contracts to perform initial data script
+validation off-chain, but it is not straightforward to enforce this.
+
+====

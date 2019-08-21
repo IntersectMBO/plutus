@@ -1,3 +1,5 @@
+[source,haskell]
+----
 module Language.Marlowe.Actus where
 import           Language.Marlowe
 import           Wallet.API       (PubKey (..))
@@ -80,3 +82,4 @@ zeroCouponBondGuaranteed issuer investor guarantor notional discount startDate m
             Null
         )
         Null
+----

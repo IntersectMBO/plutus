@@ -49,11 +49,6 @@ library
     hs-source-dirs: src
     exposed-modules:
           Auction.English
-        , Marlowe.Language.Marlowe
-        , Marlowe.Language.Marlowe.Client
-        , Marlowe.Language.Marlowe.Escrow
-        , Marlowe.Language.Marlowe.Actus
-        , Marlowe.Language.Marlowe.Pretty
         , NonFungible.NonFungible1
         , NonFungible.NonFungible2
         , NonFungible.NonFungible3
@@ -71,8 +66,6 @@ library
         , OffChain.TriggerSimple
         , Parameters.Crowd
         , Token.Fungible
-    other-modules:
-          Marlowe.Language.Marlowe.Common
     ghc-options: -Wall -fno-warn-unused-imports -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc
     build-tool-depends: unlit:unlit -any
 
