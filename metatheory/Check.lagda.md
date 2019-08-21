@@ -5,7 +5,8 @@ module Check where
 ```
 open import Scoped
 open import Type
-open import Scoped.Erasure
+--open import Scoped.Extrication hiding (len;len⋆)
+open import Declarative
 open import Utils
 open import Data.Nat
 open import Data.Fin
@@ -16,11 +17,11 @@ len⋆ : Ctx⋆ → ℕ
 len⋆ ∅        = 0
 len⋆ (Φ ,⋆ K) = suc (len⋆ Φ)
 
-lookup : ∀ Φ → Fin (len⋆ Φ) → Kind
-lookup (Φ ,⋆ K) zero    = K
-lookup (Φ ,⋆ _) (suc i) = lookup Φ i
+inferTyVar : ∀ Φ → Fin (len⋆ Φ) → Kind
+inferTyVar (Φ ,⋆ K) zero    = K
+inferTyVar (Φ ,⋆ _) (suc i) = inferTyVar Φ i
 
-lookup' : ∀ Φ (i : Fin (len⋆ Φ)) → Φ ∋⋆ lookup Φ i
+lookup' : ∀ Φ (i : Fin (len⋆ Φ)) → Φ ∋⋆ inferTyVar Φ i
 lookup' (Φ ,⋆ K) zero    = Z
 lookup' (Φ ,⋆ K) (suc i) = S (lookup' Φ i)
 
@@ -40,7 +41,7 @@ eqKind (K ⇒ J) (K' ⇒ J') = eqKind K K' ∧ eqKind J J'
 
 open import Relation.Nullary
 open import Relation.Binary.Core using (Decidable)
-open import Relation.Binary.PropositionalEquality
+open import Relation.Binary.PropositionalEquality hiding ([_])
 eqKind' : Decidable {A = Kind} _≡_
 eqKind' * *       = yes refl
 eqKind' * (_ ⇒ _) = no λ()
@@ -65,7 +66,7 @@ meqKind (K ⇒ J) (K' ⇒ J') with meqKind K K'
 -- and producing a typed term, so `inferKind` is here only as a warmup
 
 inferKind : (Φ : Ctx⋆) → ScopedTy (len⋆ Φ) → Maybe Kind
-inferKind Φ (` α)       = return (lookup Φ α)
+inferKind Φ (` α)       = return (inferTyVar Φ α)
 inferKind Φ (A ⇒ B)     = do
   * ← inferKind Φ A
     where _ → nothing
@@ -91,34 +92,77 @@ inferKind Φ (μ pat arg) = do
   K'' ← inferKind Φ arg
   if eqKind K K' ∧ eqKind K' K'' then return * else nothing
 
-open import Data.Product
+open import Data.Product renaming (_,_ to _,,_)
 bondKind : (Φ : Ctx⋆)(A : ScopedTy (len⋆ Φ)) → Maybe (Σ Kind (Φ ⊢⋆_))
-bondKind Φ (` α)   = return (lookup Φ α , ` (lookup' Φ α))
+bondKind Φ (` α)   = return (inferTyVar Φ α ,, ` (lookup' Φ α))
 bondKind Φ (A ⇒ B) = do
-  * , A ← bondKind Φ A
+  * ,, A ← bondKind Φ A
     where _ → nothing
-  * , B ← bondKind Φ B
+  * ,, B ← bondKind Φ B
     where _ → nothing
-  return (* , A ⇒ B)
+  return (* ,, A ⇒ B)
 bondKind Φ (Π x K A) = do
-  * , A ← bondKind (Φ ,⋆ K) A
+  * ,, A ← bondKind (Φ ,⋆ K) A
     where _ → nothing
-  return (* , Π x A)
+  return (* ,, Π x A)
 bondKind Φ (ƛ x K A) = do
-  J , A ← bondKind (Φ ,⋆ K) A
-  return (K ⇒ J , ƛ x A)
+  J ,, A ← bondKind (Φ ,⋆ K) A
+  return (K ⇒ J ,, ƛ x A)
 bondKind Φ (A · B) = do
-  K ⇒ J , A ← bondKind Φ A
+  K ⇒ J ,, A ← bondKind Φ A
     where _ → nothing
-  K' , B ← bondKind Φ B
+  K' ,, B ← bondKind Φ B
   refl ← meqKind K K'
-  return (J , A · B)
-bondKind Φ (con tc)     = just (* , con tc)
+  return (J ,, A · B)
+bondKind Φ (con tc)     = just (* ,, con tc)
 bondKind Φ (μ pat arg) = do
-  (K ⇒ *) ⇒ K' ⇒ * , pat ← bondKind Φ pat
+  (K ⇒ *) ⇒ K' ⇒ * ,, pat ← bondKind Φ pat
     where _ → nothing
-  K'' , arg ← bondKind Φ arg
+  K'' ,, arg ← bondKind Φ arg
   refl ← meqKind K K'
   refl ← meqKind K' K''
-  return (* , (μ1 · pat · arg))
+  return (* ,, (μ1 · pat · arg))
+
+len : ∀{Φ} → Ctx Φ → Weirdℕ (len⋆ Φ)
+len ∅        = Z
+len (Γ ,⋆ J) = Weirdℕ.T (len Γ)
+len (Γ , A)  = Weirdℕ.S (len Γ)
+
+
+open import Type.RenamingSubstitution
+inferVarType : ∀{Φ}(Γ : Ctx Φ) → WeirdFin (len Γ) → Maybe (Σ (Φ ⊢⋆ *) λ A → Γ ∋ A)
+inferVarType (Γ ,⋆ J) (WeirdFin.T x) = Utils.map (λ {(A ,, x) → weaken A ,, _∋_.T x}) (inferVarType Γ x)
+inferVarType (Γ , A)  Z              = just (A ,, Z)
+inferVarType (Γ , A)  (S x)          = Utils.map (λ {(A ,, x) → A ,, S x}) (inferVarType Γ x)
+
+inferType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ) → Maybe (Σ (Φ ⊢⋆ *) λ A → Γ ⊢ A)
+inferType Γ (` x)             = Utils.map (λ{(A ,, x) → A ,, ` x}) (inferVarType Γ x)
+inferType Γ (Λ x K L)         = do
+  A ,, L ← inferType (Γ ,⋆ K) L
+  return (Π x A ,, Λ x L)
+inferType Γ (L ·⋆ A)          = do
+  Π {K = K} x B ,, L ← inferType Γ L
+    where _ → nothing
+  K' ,, A ← bondKind _ A
+  refl ← meqKind K K'
+  return (B [ A ] ,, L ·⋆ A)
+inferType Γ (ƛ x A L)         = do
+  * ,, A ← bondKind _ A
+    where _ → nothing
+  B ,, L ← inferType (Γ , A) L 
+  return (A ⇒ B ,, ƛ x L)
+inferType Γ (L · M)           = do
+  A ⇒ B ,, L ← inferType Γ L
+    where _ → nothing
+  A' ,, M ← inferType Γ M
+  -- check that A and A' are equal
+  nothing -- TODO
+inferType Γ (con c)           = nothing -- TODO
+inferType Γ (error A)         = do
+  * ,, A ← bondKind _ A
+    where _ → nothing
+  return (A ,, error A)
+inferType Γ (builtin bn x x₁) = nothing -- TODO
+inferType Γ (wrap pat arg L)  = nothing -- TODO
+inferType Γ (unwrap L)        = nothing -- TODO
 ```
