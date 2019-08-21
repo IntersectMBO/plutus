@@ -38,6 +38,7 @@ eraseVar (T α) = eraseVar α
 eraseTC : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *} → AC.TyTermCon A → TermCon
 eraseTC (AC.integer i)    = integer i
 eraseTC (AC.bytestring b) = bytestring b
+eraseTC (AC.string s)     = string s
 
 open import Type.BetaNBE.RenamingSubstitution
 
@@ -103,6 +104,7 @@ sameTC : ∀{Φ Γ}{A : Φ ⊢⋆ *}(tcn : DC.TyTermCon A)
   → D.eraseTC {Γ = Γ} tcn ≡ eraseTC {Γ = nfCtx Γ} (nfTypeTC tcn)
 sameTC (DC.integer i)    = refl
 sameTC (DC.bytestring b) = refl
+sameTC (DC.string s)     = refl
 
 sameVar : ∀{Φ Γ}{A : Φ ⊢⋆ *}(x : Γ D.∋ A)
   → D.eraseVar x ≡ subst Fin (lenLemma Γ) (eraseVar (nfTyVar x))
@@ -243,6 +245,7 @@ same'TC : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(tcn : AC.TyTermCon A)
   → eraseTC {Γ = Γ} tcn ≡ D.eraseTC {Φ}{Γ = embCtx Γ} (embTC tcn)
 same'TC (AC.integer i)    = refl
 same'TC (AC.bytestring b) = refl
+same'TC (AC.string s)     = refl
 
 same' : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ A.⊢ A)
   →  erase x ≡ subst _⊢ (same'Len Γ) (D.erase (emb x))

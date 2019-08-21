@@ -60,8 +60,9 @@ extricateVar (S x) = S (extricateVar x)
 extricateVar (T x) = T (extricateVar x)
 
 extricateC : ∀{Γ}{A : Γ ⊢Nf⋆ *} → B.TermCon A → Scoped.TermCon
-extricateC (integer i) = integer i
+extricateC (integer i)    = integer i
 extricateC (bytestring b) = bytestring b
+extricateC (string s)     = string s
 
 open import Data.List as L
 open import Data.Product as P

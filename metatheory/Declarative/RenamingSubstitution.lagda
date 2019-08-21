@@ -58,6 +58,7 @@ renTermCon : ∀ {Φ Ψ}
   → ({A : Φ ⊢⋆ *} → TermCon A → TermCon (⋆.ren ρ⋆ A ))
 renTermCon ρ⋆ (integer i)    = integer i
 renTermCon ρ⋆ (bytestring b) = bytestring b
+renTermCon ρ⋆ (string s)     = string s
 \end{code}
 
 \begin{code}
@@ -169,6 +170,7 @@ substTermCon : ∀ {Φ Ψ}
   → ({A : Φ ⊢⋆ *} → TermCon A → TermCon (⋆.subst σ⋆ A ))
 substTermCon _ (integer i)    = integer i
 substTermCon _ (bytestring b) = bytestring b
+substTermCon _ (string b)     = string b
 \end{code}
 
 

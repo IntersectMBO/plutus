@@ -149,6 +149,14 @@ meqTyVar (S α) (S α') = do
   return refl
 meqTyVar _     _      = nothing
 
+open import Builtin.Constant.Type
+
+meqTyCon : (c c' : TyCon) → Maybe (c ≡ c')
+meqTyCon integer    integer    = just refl
+meqTyCon bytestring bytestring = just refl
+meqTyCon string     string     = just refl
+meqTyCon _          _          = nothing
+
 meqNfTy : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → Maybe (A ≡ A')
 meqNeTy : ∀{Φ K}(A A' : Φ ⊢Ne⋆ K) → Maybe (A ≡ A')
 
@@ -160,7 +168,9 @@ meqNfTy (ƛ x A) (ƛ x' A') = do
   refl ← dec2maybe (x Data.String.Properties.≟ x') 
   refl ← meqNfTy A A'
   return refl
-meqNfTy (con c) (con c')  = nothing -- TODO
+meqNfTy (con c) (con c')  = do
+  refl ← meqTyCon c c'
+  return refl
 meqNfTy (ne n)  (ne n')   = do
   refl ← meqNeTy n n'
   return refl
@@ -187,6 +197,13 @@ inv-complete {A = A}{A' = A'} p = trans≡β
   (trans≡β (subst (λ A → embNf (nf A') ≡β A) (cong embNf (sym p)) (refl≡β (embNf (nf A'))))
            (sym≡β (soundness A)))
 
+import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as D
+
+inferTypeCon : ∀{Φ} → TermCon → Σ TyCon λ c → D.TermCon {Φ} (con c) 
+inferTypeCon (integer i)    = integer ,, D.integer i
+inferTypeCon (bytestring b) = bytestring ,, D.bytestring b
+inferTypeCon (string s)     = string ,, D.string s
+
 inferType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ) → Maybe (Σ (Φ ⊢⋆ *) λ A → Γ ⊢ A)
 inferType Γ (` x)             = Utils.map (λ{(A ,, x) → A ,, ` x}) (inferVarType Γ x)
 inferType Γ (Λ x K L)         = do
@@ -209,7 +226,8 @@ inferType Γ (L · M)           = do
   A' ,, M ← inferType Γ M
   p ← meqNfTy (nf A) (nf A') 
   return (B ,, (L · conv (inv-complete p) M))
-inferType Γ (con c)           = nothing -- TODO
+inferType {Φ} Γ (con c)           = let
+  tc ,, c = inferTypeCon {Φ} c in just (con tc ,, con c)
 inferType Γ (error A)         = do
   * ,, A ← bondKind _ A
     where _ → nothing
