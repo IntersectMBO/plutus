@@ -233,6 +233,23 @@ inferType Γ (error A)         = do
     where _ → nothing
   return (A ,, error A)
 inferType Γ (builtin bn x x₁) = nothing -- TODO
-inferType Γ (wrap pat arg L)  = nothing -- TODO
-inferType Γ (unwrap L)        = nothing -- TODO
+inferType Γ (wrap pat arg L)  = do
+  (K ⇒ *) ⇒ K' ⇒ * ,, pat ← bondKind _ pat
+    where _ → nothing
+  K'' ,, arg ← bondKind _ arg
+  refl ← meqKind K K'
+  refl ← meqKind K' K''
+  X ,, L ← inferType Γ L
+  --v why is this eta expanded in the spec?
+  p ← meqNfTy (nf (pat · (μ1 · pat) · arg)) (nf X)
+  return
+    (μ1 · pat · arg
+    ,,
+    wrap1 pat arg (conv (inv-complete p) L))
+inferType Γ (unwrap L)        = do
+  μ1 · pat · arg ,, L ← inferType Γ L
+    where _ → nothing
+  --v why is this eta expanded in the spec?
+  return ((pat · (μ1 · pat) · arg) ,, unwrap1 L)
+  
 ```
