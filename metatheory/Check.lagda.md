@@ -128,12 +128,64 @@ len ∅        = Z
 len (Γ ,⋆ J) = Weirdℕ.T (len Γ)
 len (Γ , A)  = Weirdℕ.S (len Γ)
 
-
-open import Type.RenamingSubstitution
+open import Type.RenamingSubstitution hiding (subst)
 inferVarType : ∀{Φ}(Γ : Ctx Φ) → WeirdFin (len Γ) → Maybe (Σ (Φ ⊢⋆ *) λ A → Γ ∋ A)
 inferVarType (Γ ,⋆ J) (WeirdFin.T x) = Utils.map (λ {(A ,, x) → weaken A ,, _∋_.T x}) (inferVarType Γ x)
 inferVarType (Γ , A)  Z              = just (A ,, Z)
 inferVarType (Γ , A)  (S x)          = Utils.map (λ {(A ,, x) → A ,, S x}) (inferVarType Γ x)
+
+open import Relation.Binary hiding (_⇒_)
+dec2maybe : {A : Set}{a a' : A} → Dec (a ≡ a') → Maybe (a ≡ a')
+dec2maybe (yes p) = just p
+dec2maybe (no ¬p) = nothing
+
+open import Type.BetaNormal
+open import Data.String.Properties
+
+meqTyVar : ∀{Φ K}(α α' : Φ ∋⋆ K) → Maybe (α ≡ α')
+meqTyVar Z     Z      = just refl
+meqTyVar (S α) (S α') = do
+  refl ← meqTyVar α α'
+  return refl
+meqTyVar _     _      = nothing
+
+meqNfTy : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → Maybe (A ≡ A')
+meqNeTy : ∀{Φ K}(A A' : Φ ⊢Ne⋆ K) → Maybe (A ≡ A')
+
+meqNfTy (A ⇒ B) (A' ⇒ B') = do
+ refl ← meqNfTy A A'
+ refl ← meqNfTy B B'
+ return refl
+meqNfTy (ƛ x A) (ƛ x' A') = do
+  refl ← dec2maybe (x Data.String.Properties.≟ x') 
+  refl ← meqNfTy A A'
+  return refl
+meqNfTy (con c) (con c')  = nothing -- TODO
+meqNfTy (ne n)  (ne n')   = do
+  refl ← meqNeTy n n'
+  return refl
+meqNfTy _      _          = nothing
+
+meqNeTy (` α) (` α')      = do
+  refl ← meqTyVar α α'
+  return refl
+meqNeTy (_·_ {K = K} A B) (_·_ {K = K'} A' B') = do
+  refl ← meqKind K K'
+  refl ← meqNeTy A A'
+  refl ← meqNfTy B B'
+  return refl
+meqNeTy μ1 μ1 = just refl
+meqNeTy _  _  = nothing
+
+open import Type.Equality
+open import Type.BetaNBE
+open import Type.BetaNBE.Soundness
+
+inv-complete : ∀{Φ K}{A A' : Φ ⊢⋆ K} → nf A ≡ nf A' → A' ≡β A
+inv-complete {A = A}{A' = A'} p = trans≡β
+  (soundness A')
+  (trans≡β (subst (λ A → embNf (nf A') ≡β A) (cong embNf (sym p)) (refl≡β (embNf (nf A'))))
+           (sym≡β (soundness A)))
 
 inferType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ) → Maybe (Σ (Φ ⊢⋆ *) λ A → Γ ⊢ A)
 inferType Γ (` x)             = Utils.map (λ{(A ,, x) → A ,, ` x}) (inferVarType Γ x)
@@ -155,8 +207,8 @@ inferType Γ (L · M)           = do
   A ⇒ B ,, L ← inferType Γ L
     where _ → nothing
   A' ,, M ← inferType Γ M
-  -- check that A and A' are equal
-  nothing -- TODO
+  p ← meqNfTy (nf A) (nf A') 
+  return (B ,, (L · conv (inv-complete p) M))
 inferType Γ (con c)           = nothing -- TODO
 inferType Γ (error A)         = do
   * ,, A ← bondKind _ A
