@@ -28,10 +28,6 @@ _>>=_ : {A B : Set} → Maybe A → (A → Maybe B) → Maybe B
 just a  >>= f = f a
 nothing >>= f = nothing
 
-_>>='_ : ∀{α β}{A : Set α}{B : Set β} → Maybe A → (A → Maybe B) → Maybe B
-just a  >>=' f = f a
-nothing >>=' f = nothing
-
 return : {A : Set} → A → Maybe A
 return = just
 
