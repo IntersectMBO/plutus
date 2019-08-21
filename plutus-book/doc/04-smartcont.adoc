@@ -1,6 +1,8 @@
 [#04-smartcont]
 = Smart Contracts
-
+// Throughout: I think we should prefer talking about the "ledger" to the "blockchain".
+// Almost everything we say is generic over how the ledger is implemented, in many ways
+// the blockchain is an implementation detail. Hooray for abstraction!
 Traditional contracts are legally-binding agreements concerning loans, sales,
 tenancy, and so on. Smart contracts seek to eliminate
 this element of "agreement" from the concept of a contract, replacing it with a
@@ -8,10 +10,11 @@ software-ensured guarantee that no parties involved are able to sabotage the con
 through negligence or nefarious action.
 This is achieved by
 forgoing the reliance on the actions of an individual, company, or government in favour of
-reliance on the execution of a program, or smart contract, to control the transfer of funds between a contract's participants.
+reliance on the execution of a program, or smart contract, to control the transfer of funds
+between a contract's participants,
 immortalizing both the program and its outcome on the ledger on the blockchain.
 Specifically, participants engage in a smart contract exclusively
-via distributed cryptographic ledger. This ensures the entire history
+via a distributed cryptographic ledger. This ensures the entire history
 (including the current state of the contract) are immutably recorded with a
 high degree of reliability.
 
@@ -22,12 +25,14 @@ who owns how much of a virtual resource
 another. The owners of digital assets are identified by their public keys, and
 they may be people or machines.
 
+// This covers some very similar material to the Welcome chapter.
 On the Cardano blockchain, the smart contract programs that run on the blockchain are written
 in a language called Plutus Core. However, smart contract authors do not write
 Plutus Core directly. The Plutus Platform (discussed in the next chapter) is a
 software development kit (SDK) to enable you to easily write smart
 contracts, including the logic that will eventually be run on the blockchain as
 Plutus Core.
+
 We now give some heuristics, considerations and limitations of smart contracts
 as a concept, as well as discuss an exhaustive classification of financial
 contract use cases known as ACTUS.
@@ -36,6 +41,9 @@ and executing a smart contract in the next chapter.
 
 == The Power of the Smart Contract
 
+// Generally in this section I feel unclear about whether you're talking about
+// Plutus or about some higher-level notion of a "smart contract" which we will
+// implement with Plutus.
 Let us begin by discussing in broad terms what a smart contract is able to do. The
 goal in building the Plutus smart contract platform is to be able to model the
 broadest possible range of types of contracts, so we aim to make it as
@@ -50,11 +58,15 @@ The power of a smart contract lies in
 its ability to serve as a trusted entity to which all other actors can transfer some of their
 assets, as required to participate in a contract. In the way a smart contract's
 execution is carried out,
-participants can only ever contribute money or other tokens to
+participants can only ever contribute assets to
 this program directly rather than to other participants, thus denying them
 the opportunity to misuse the funds and violate the agreement represented by
 the contract.
 
+// If we're talking about Plutus then you certainly can lock things indefinitely!
+// Marlowe guarantees that you can't, but that takes work. It seems odd to make this
+// part of your definition of a smart contract, given that there is really nothing
+// that guarantees that things people write with Plutus will have this property.
 The resources then get
 redistributed according to the rules of the contract, but are never
 locked in possession of the contract for an indefinite amount of time.
@@ -71,7 +83,7 @@ entering a contract, thus enabling them to make an informed decision about wheth
 to participate in it. These are some of the ways smart contracts
 ensure that it is very difficult for human actors to perform dishonest actions.
 
-Using this idea of a trusted program being in charge of tokens involved
+Using this idea of a trusted program being in charge of assets involved
 in a contract as a basis for ensuring predictable outcomes, it is easy to envision a
 variety of use cases for applying this paradigm to existing problems.
 The purpose and the functionality of smart contracts is best illustrated by an
@@ -79,23 +91,23 @@ example, which we will continue working with throughout this book. Let us consid
 crowdfunding campaign. This type of resource transfer schedule can be interpreted
 as a smart contract program.
 
-The overall scheme for any basic crowd funder is usually the same.
+The overall scheme for any basic crowdfunder is usually the same.
 The participants are able to contribute
 to the cause in the hopes that the total money raised by a certain date is more than the
-minimum amount set by the entity offering the crowd-funded product.
+minimum amount set by the entity offering the crowdfunded product.
 If enough money is raised, the product gets made and sent out to those
 who contributed. If not, no product is built and all of the money is
 refunded to the contributors.
 
 Here, we can immediately make note of the role of agreement in the functionality of
-the crowd funder. The purpose of this type of contract is that the entity
+the crowdfunder. The purpose of this type of contract is that the entity
 running the campaign must agree
 that it will provide the contributors with the product in the case the goal
 amount was reached, and refund the contributed money otherwise.
 With a smart contract, this is possible to enforce.
 
 The execution of a contract refers to the changing of the state of the contract
-as a result of being triggered by by events of two types:
+as a result of being triggered by events of two types:
 
 * changes in the environment external to the contract, such as the passage of time, and
 * actions of the participants involved.
@@ -105,7 +117,7 @@ different parties may be allowed to collect funds from the contract or
 be expected to pay into the contract.
 
 [#tokens]
-== Real-world and Non Fungible Tokens
+== Real-world and Non-fungible Tokens
 
 While we can enforce the correct transfer of funds between participants in a
 contract by simply executing it on the
@@ -121,7 +133,7 @@ associated with them (such as most small-scale items, e.g. cats, furniture, etc.
 
 The first one is having a trusted third party witness confirm that the
 item in question has indeed reached the intended recipient.
-This party is expected to be privy of the true fate
+This party is expected to be privy to the true fate
 of the item, and is trusted by both the original owner and the intended
 new owner. This introduces an element of trust into the execution of a contract,
 which is exactly the thing that blockchain technology is meant to eliminate
@@ -144,11 +156,12 @@ if the original owner and the recipient disagree on whether the item has
 successfully changed hands, the trusted third party is there to resolve the
 disagreement by casting its vote.
 
+// Do we have an escrow example yet? We should link to it when we do.
 This scheme
 can be useful in implementing, for example, an escrow contract (we will see
 a smart contract example of this using Plutus in the upcoming chapters).
 In the case that the third party confirms the successful reception of
-the item in escrow, the seller of the item gets the money. If the
+the item, the seller of the item gets the escrowed money. If the
 reception was not confirmed by the third party, the money in the escrow contract
 gets refunded. Note that if both the buyer and the seller confirm the
 receipt of the item by the buyer, and the trusted third party does not,
@@ -159,7 +172,7 @@ A trusted third party scheme could also
 be useful in confirming that all the contributors to a crowdfunding campaign
 have received the funded product.
 In this case, the successful transfer branch would be
-releasing the funds to the seller of the item in escrow.
+releasing the escrowed funds to the seller of the item.
 However, this would be rather difficult
 in reality - would this trusted party have to travel around confirming that
 the correct and non-defective item was delivered to every intended recipient?
@@ -168,6 +181,8 @@ This situation may require a more creative token tracking solution, or
 be integrated with a true contract that can result in legal consequences for
 failing to distribute the crowdfunding item.
 
+// The two options both say to refund everyone! Maybe one is supposed to be "refund
+// the particular person"?
 Now, in the case that one of the
 contributors did not receive the item they funded, the creator of the
 contract would be faced with a decision. One option would be to
@@ -188,24 +203,22 @@ refund for every participant upon failure of some party to fulfill their
 expected duty to the contract within a given timeframe (thus impeding the
 execution of the contract) is often a most natural choice.
 
+=== Non-fungible Tokens on the Blockchain
 
-=== Non Fungible Tokens on the Blockchain
-
-Another solution is to make use of non fungible tokens on the blockchain.
-Non fungible tokens are tokens whose value is not tied directly to the value
-of a specific currency (in our case, Ada). One of the many possible examples
+Another solution is to make use of non-fungible tokens on the blockchain.
+Non-fungible tokens are tokens which are not interchangeable
+with tokens of other kinds (in particular, the most common token kind is Ada itself).
+This makes them suitable for representing distinct assets. One of the many possible examples
 of such tokens would be coffee. Even a specific type of coffee, roasted to
 aromatic perfection, is
 not guaranteed to have the same price at different times, or from different
 sellers. Its price will habitually fluctuate due to supply and demand changes.
 These types of tokens are not automatically interchangeable with each other or
-a set amount of money. With the addition of each such token to the ledger, a
-price is set.
+a set amount of money.
 
 These types of tokens can be tracked on a blockchain by a unique ID, that
-would be associated with an address, and thus its owner, similar to a
-regular ownership document.
-We will look at how to handle custom tokens in chapter
+is associated with an address which identifies the script that controls the
+supply of that token. We will look at how to handle custom tokens in chapter
 <<token#token>>.
 
 == Loans
@@ -215,17 +228,23 @@ only problem that presents itself in the effort to build the broadest range
 of smart contracts. Loans are another type of contract where the element of
 trust is hard to replace without resorting to the threat of legal action.
 
-A loan, by its very nature, is a contract where a party promises to pay (in the
+// What is the problem? I take it that the
+// problem is assuring that the money is guaranteed to be repaid.
+// This paragraph is generally a bit unclear.
+A loan is a contract where a party promises to pay (in the
 future) money that it does not currently have. One solution to this problem
 is again to rely on a third party. This time, the contract relies on this
-party for providing the loan money ahead of time. This is not exactly a
-perfectly sensible solution, partially defeating the purpose of the loan -
+party for providing the loan money ahead of time. This is not a
+very good solution, partially defeating the purpose of the loan -
 if there is a party willing to risk the full value of the loan (interest
 included), and is not benefiting from the contract, why is this loan even
 necessary?
 
+// I don't understand this paragraph. I think you're suggesting issuing
+// a debt token, but how does that provide any more guarantee that the loan
+// will be paid back?
 There is another approach to building smart contract loans and variations thereof.
-One may introduce a non-fungible token on the blockchain that the entity acquiring the loan
+One may introduce a non-fungible token which the entity acquiring the loan
 exchanges for the total value that must be paid to the lending party
 (i.e. the money loaned plus interest). This would even allow the terms of a loan
 to be renegotiated, perhaps changing the value of the loan token.
@@ -235,15 +254,13 @@ to back up the lender in case of non-payment.
 
 == ACTUS
 
-ACTUS is an ongoing project started with the aim to define a taxonomy, or
-classification, of all (or nearly all) financial contracts into a small
+https://www.actusfrf.org/[ACTUS] is an ongoing project which started with the aim to define a taxonomy
+of all (or nearly all) financial contracts into a small
 number of groups. Several major financial companies have come together
 to create this common standard, including Ariadne, Deloitte, and Stevens Institute
-of Technology. The project can be found at
+of Technology.
 
-https://www.actusfrf.org/
-
-A financial contract, as defined in Securities law, is
+A financial contract, as defined in securities law, is
 
 * An arrangement that takes the form of an individually
 negotiated contract, agreement, or option to buy, sell, lend, swap, or
@@ -253,8 +270,10 @@ entered into by participants in the financial markets.
 ACTUS recognizes that there are two different ways to view financial contracts,
 as described by two different disciplines:
 
+// The implementation sentence doesn't add much to my eye, since it's just
+// using more terms that the reader won't know.
 ACTUS Data Standard::
-The Data Standard defines a universal set of legal terms – or CT Attributes –
+The Data Standard defines a universal set of legal terms
 used as parameters throughout the different financial agreements. It is
 implemented in form of a Data Dictionary with Attribute Applicability by
 Contract Type.
@@ -276,7 +295,7 @@ each group is available on the ACTUS site.
 
 The reason we discuss the ACTUS taxonomy approach here is that
 the idea of implementing ACTUS contracts in Plutus is very exciting both
-conceptually as a major real-world practical advancement. From the ACTUS
+conceptually and as a major real-world practical advancement. From the ACTUS
 website,
 
 [quote]
@@ -303,6 +322,6 @@ This makes financial contracts perfect candidates for smart contract implementat
 Currency is already the superstar of the types of token that can be tracked by
 the blockchain - Cardano is a cryptocurrency platform after all. Trading contracts
 and financial products,
-too, can be modeled on a ledger with smart contract support.
+too, can be modeled on a ledger with smart contract and non-fungible token support.
 We are very excited to explore ways of representing all ACTUS contracts
 as smart contract implementations in the upcoming chapters of this book.
