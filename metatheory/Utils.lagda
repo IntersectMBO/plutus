@@ -1,7 +1,7 @@
 \begin{code}
 module Utils where
 
-data Maybe (A : Set) : Set where
+data Maybe {α}(A : Set α) : Set α where
   just : A → Maybe A
   nothing : Maybe A
 
