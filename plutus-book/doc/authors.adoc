@@ -9,9 +9,9 @@
 image:lars.png[role="related thumb right", width=300, scaledwidth=30%, pdfwidth=30%] Dr. Lars Brünjes
 holds a Ph. D. in Pure Mathematics from the University of Regensburg
 (Germany) and has been a postdoc at the universities of Cambridge (UK) and Regensburg.
-After working as a Software Architect for ten years, he joined IOHK in 2016. As Director of
-Education for IOHK he gives talks and delivers training and Haskell courses all over the world,
-but is also involved in IOHK research projects.
+After working as a Software Architect for ten years, he joined {orgname} in 2016. As Director of
+Education for {orgname} he gives talks and delivers training and Haskell courses all over the world,
+but is also involved in {orgname} research projects.
 --
 
 [.float-group]
