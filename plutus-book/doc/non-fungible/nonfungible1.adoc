@@ -37,6 +37,7 @@ The <<endmatter#data-script>> can be `()` again,
 the <<endmatter#redeemer-script>> should contain the name of the token we want
 to forge. This leads to the following validation logic:
 
+// Why aren't we looking at txForge? I guess this is just the same question as last time.
 [source,haskell]
 ----
 type NonFungibleValidator =

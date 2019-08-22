@@ -8,7 +8,7 @@ previous one.
 Along the way we will learn some new and interesting design techniques
 and dive deeper into the custom-token system introduced in the <<token#token,last chapter>>.
 
-Imagine that we just had a brilliant idea: We want to tokenize works of art by
+Imagine that we just had a brilliant idea: we want to tokenize works of art by
 linking them to unique, _<<endmatter#non-fungible-token,non-fungible tokens>>_ on the blockchain. Each of these
 tokens will be linked to one particular work of art, so it will be easy to trade
 ownership of, say, a painting, by simply trading the corresponding token.
@@ -121,6 +121,8 @@ which depends on the hash of the transaction that created the output. By calling
 outputs will be the first one our wallet sees, which in turn will lead to a
 failure of `forge` during validation.
 
+// If you like you can try out the typed transaction interface which should handle
+// this filtering for you.
 How can we defend ourselves against this devious and subtle attack? - It is
 actually quite simple: Instead of picking the first script output we find, we
 simply _filter_ the outputs and check their data scripts:
@@ -161,6 +163,15 @@ _cryptographic proofs_. Smart contracts have been invented to mechanically
 enforce just such types of properties, allowing everybody to check the code for
 themselves and not being forced to trust anybody.
 
+// I don't see the problem here:
+// - Make the data script be a set of issued tokens.
+// - Make the validator a state machine, where issuing a token checks that it
+// is not in the existing set (this is done in Plutus so no inspection problems),
+// and will forge that token as well as have a continuing output with the updated
+// state (including the new token).
+// That seems a *lot* nicer than this approach! You don't even need the admin token:
+// you just need to use the unique transaction output to start the machine and then
+// the machine output functions as the admin token.
 So how can we adjust the contract to force ourselves to be honest? We need some
 way of tracking which tokens have already been forged. Such _contract state_ intuitively
 belongs into the <<endmatter#data-script>>, but the present version of Plutus
