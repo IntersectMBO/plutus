@@ -107,24 +107,37 @@ data EvalMode : Set where
   CK L : EvalMode
 
 -- extrinsically typed evaluation
-stestPLC : EvalMode → ByteString → String
-stestPLC m plc with parse plc
-stestPLC m plc | just t with deBruijnifyTm nil (convP t)
-stestPLC L plc | just t | just t' with S.run (saturate t') 1000000
-stestPLC L plc | just t | just t' | t'' ,, _ ,, inj₁ (just _) =
+evalPLC : EvalMode → ByteString → String
+evalPLC m plc with parse plc
+evalPLC m plc | just t with deBruijnifyTm nil (convP t)
+evalPLC L plc | just t | just t' with S.run (saturate t') 1000000
+evalPLC L plc | just t | just t' | t'' ,, _ ,, inj₁ (just _) =
   prettyPrint (deDeBruijnify [] nil (unsaturate t''))
-stestPLC L plc | just t | just t' | t'' ,, p ,, inj₁ nothing = "out of fuel"
-stestPLC L plc | just t | just t' | t'' ,, p ,, inj₂ e =
+evalPLC L plc | just t | just t' | t'' ,, p ,, inj₁ nothing = "out of fuel"
+evalPLC L plc | just t | just t' | t'' ,, p ,, inj₂ e =
   "runtime error" Data.String.++
   prettyPrint (deDeBruijnify [] nil (unsaturate t''))
-stestPLC CK plc | just t | just t' with stepper 1000000000 _ (ε ▻ saturate t')
-stestPLC CK plc | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
+evalPLC CK plc | just t | just t' with stepper 1000000000 _ (ε ▻ saturate t')
+evalPLC CK plc | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
   prettyPrint (deDeBruijnify [] nil (unsaturate t''))
-stestPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  just _ =
+evalPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  just _ =
   "this shouldn't happen"
-stestPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  nothing = "out of fuel"
-stestPLC m plc | just t | nothing = "scope error"
-stestPLC m plc | nothing = "parse error"
+evalPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  nothing = "out of fuel"
+evalPLC m plc | just t | nothing = "scope error"
+evalPLC m plc | nothing = "parse error"
+
+open import Check hiding (_>>=_)
+
+tcPLC : ByteString → String
+tcPLC plc with parse plc
+... | nothing = "parse error"
+... | just t with deBruijnifyTm nil (convP t)
+... | nothing = "scope error"
+... | just t' with inferType _ t'
+... | just (K ,, t'') = "type correct"
+... | nothing = "type error"
+
+
 
 {-# FOREIGN GHC import System.Environment #-}
 
@@ -145,18 +158,32 @@ data Input : Set where
 data EvalOptions : Set where
   EvalOpts : Input → EvalMode → EvalOptions
 
-postulate execP : IO EvalOptions
+data TCOptions : Set where
+  TCOpts : Input → TCOptions
+  
+data Command : Set where
+  Evaluate  : EvalOptions → Command
+  TypeCheck : TCOptions → Command
+
+postulate execP : IO Command
 
 {-# COMPILE GHC EvalOptions = data EvalOptions (EvalOpts) #-}
+{-# COMPILE GHC TCOptions = data TCOptions (TCOpts) #-}
+{-# COMPILE GHC Command = data Command (Evaluate | TypeCheck) #-}
 {-# COMPILE GHC EvalMode = data EvalMode (CK | L) #-}
 {-# COMPILE GHC execP = execP #-}
 
-testFile : EvalMode → Input → IO String
-testFile m (FileInput fn) = imap (stestPLC m) (readFile fn)
-testFile m StdInput       = imap (stestPLC m) getContents 
+evalInput : EvalMode → Input → IO String
+evalInput m (FileInput fn) = imap (evalPLC m) (readFile fn)
+evalInput m StdInput       = imap (evalPLC m) getContents 
 
-main' : EvalOptions → IO ⊤
-main' (EvalOpts i m) = testFile m i >>= putStrLn
+tcInput : Input → IO String
+tcInput (FileInput fn) = imap tcPLC (readFile fn)
+tcInput StdInput       = imap tcPLC getContents
+
+main' : Command → IO ⊤
+main' (Evaluate (EvalOpts i m)) = evalInput m i >>= putStrLn
+main' (TypeCheck (TCOpts i))    = tcInput i >>= putStrLn
 
 main : IO ⊤
 main = execP >>= main'
