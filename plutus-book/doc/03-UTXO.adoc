@@ -85,7 +85,7 @@ having it flow into a common pot, i.e. the transaction, before being sent to
 the intended payees.
 This is, in a very general sense, the goal of smart contracts.
 
-Let us explore what is going on during the processing of a UTxO transaction event more formally.
+Let us explore what is going on during the processing of a UTXO transaction event more formally.
 For the basic transaction model we discuss here, refer to <<utxo-definitions>>.
 
 [#utxo-definitions]
@@ -95,7 +95,7 @@ image::UTXO.png[]
 Before we examine the structure of transactions, let us look at how bookkeeping
 is done on the ledger. The record on the ledger that
 contains this information is called a UTXO
-and denoted `UTxO` in the figure.
+and denoted `UTXO` in the figure.
 This record is a finite map, where the key is a pair of transaction ID and
 an index, `TxIn = TxId * Ix`. The transaction ID `TxId`
  can be calculated from a complete transaction
@@ -129,7 +129,7 @@ This is the main distinction between traditional accounting and UTXO accounting:
 money can only be spent by using a specific unspent output of
 a previously processed transaction on the ledger.
 Each element of the input sets is a pair of a transaction ID and an index,
-which, as explained above, uniquely identifies the unspent output in the UTxO
+which, as explained above, uniquely identifies the unspent output in the UTXO
 that is to be spent.
 
 Processing a transaction involves updating the UTXO on the ledger in a way

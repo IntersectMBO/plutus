@@ -165,7 +165,7 @@ Function `withdraw` is the most interesting and complicated one:
 Unless we want to withdraw all remaining funds,
 we must construct a transaction with two outputs, one to our public key for the
 withdrawn funds, and one to the script to lock the remaining amount.
-The inputs of this transaction will be all the UTxOs that belong to the script
+The inputs of this transaction will be all the UTXOs that belong to the script
 (although under normal circumstances, there will always be exactly one such
 output).
 
@@ -232,10 +232,10 @@ withdraw t1 t2 ada = do
 $(mkFunctions ['registerScheme, 'vest, 'withdraw])
 ----
 
-<1> We use `outputsAt` to get all UTxOs locked by our script.
+<1> We use `outputsAt` to get all UTXOs locked by our script.
 
 <2> How much change do we have to lock back into the script?
 
-<3> The inputs for our transaction, one for each UTxO locked by our script.
+<3> The inputs for our transaction, one for each UTXO locked by our script.
 
 <4> How much money is still locked in the script?

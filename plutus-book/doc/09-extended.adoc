@@ -8,7 +8,7 @@ of just where Plutus fits in to the Cardano ledger.
 Here we present a high-level explanation of the Extended
 UTXO model used in Cardano and introduce the reader to the idea of using scripts as
 tools for making smart contracts on the blockchain. In this chapter,
-we build on concepts and notation from the <<03-UTxO#03-UTxO>> chapter.
+we build on concepts and notation from the <<03-UTXw#03-UTXO>> chapter.
 
 The basic UTXO model is adequate for accounting for transactions using Ada, but little more.
 The extended UTXO model brings a significant portion of the expressiveness of
@@ -17,7 +17,7 @@ including smart contract support.
 The extension has two components:
 
 . An extension to the data carried by transactions and the validation performed by the nodes
-. An extension to the data stored in the chain UTxO
+. An extension to the data stored in the chain UTXO
 . An extension to the wallet backend to facilitate off-chain code that coordinates
 the execution of on-chain computations
 
@@ -80,7 +80,7 @@ Scripts, like witnesses, are another
 tool to make sure a transaction only performs authorized actions.
 The purpose of witnessing for (non-script) spending of outputs is to verify
 that the wallet spending the output has the private key associated with the address
-in the corresponding UTxO entry (i.e. the address from which it is spending the
+in the corresponding UTXO entry (i.e. the address from which it is spending the
 money) by checking that it was indeed signed (witnessed)
 by that key.
 
@@ -157,7 +157,7 @@ scripts and their arguments on the blockchain.
 
 . Validator script
 * Carried by a transaction input spending funds from a script address
-* Not stored in full in the ledger UTxO
+* Not stored in full in the ledger UTXO
 - only the hash is stored as the address of
 the output to which the carrying transaction pays
 * Is a function taking the following 3 types of scripts as parameters
@@ -171,7 +171,7 @@ the output to which the carrying transaction pays
 * Can be used to carry state information about a given smart contract, e.g.
 - the public key of the contributor of a crowdfunding campaign, or
 - the hash of the word participants must guess to win money locked by the contract
-* Stored in full in the UTxO
+* Stored in full in the UTXO
 - each output belonging to a (validator) script address must have an associated data script
 // I don't think this is true? Or what would it be used for?
 * Hash computed as part of transaction validation
@@ -224,9 +224,9 @@ We will explain the purpose of the argument of type `DataScripts` in the note be
 These are data scripts that are associated with script addresses the carrying
 transaction is paying _to_.
 Now, let us look more closely at how these scripts fit into the extended model
-transaction and UTxO structure.
+transaction and UTXO structure.
 
-Recall that in the classic model, UTxO entries are of the form
+Recall that in the classic model, UTXO entries are of the form
 `(txid, ix) |-> (a,c)`. The pair `(a,c)` has type `TxOut` and is called an output,
 where `a` is the address of the owner of the funds
 (the paying or staking public key, usually), and `c` is the value of Ada in the output.
@@ -263,13 +263,13 @@ carried by a transaction is its reference index `ix`.
 In the UTXO, the outputs are stored as a finite
 map with the keys of the form `(txid, ix)`. Once a transaction is validated,
 the update mechanism
-of the UTxO is the same for both the the extended and classic model (with the
+of the UTXO is the same for both the the extended and classic model (with the
 extended model storing the additional `TxOutType` data described above).
 For a reminder, see the <<03-UTXO#03-UTXO>> chapter.
 
 In the classic model, the inputs of a transaction are simply references to
-the UTxO entries which the transaction is spending, so they are
-of the form `(txid, ix)` - just like the keys of the UTxO finite map.
+the UTXO entries which the transaction is spending, so they are
+of the form `(txid, ix)` - just like the keys of the UTXO finite map.
 In the extended model, we call this pair
 `TxOutRef` in the code, and it makes up only a part of the `TxIn`.
 Additionally, for an `TxOutRef` which references a script address (i.e. is
@@ -292,21 +292,21 @@ To recap the paying and spending process in a different way,
 validator script
 - this hash is computed off-chain by the wallet
 * `o` also contains the corresponding data script
-* `o` becomes a value in the UTxO map once the carrying transaction is processed
+* `o` becomes a value in the UTXO map once the carrying transaction is processed
 * No validation occurs
 - Neither the full validator nor the redeemer are part of this payment process
 
 . Spending from a script address
 * Transaction contains an input `i` which
-- references the output in the UTxO it is spending
+- references the output in the UTXO it is spending
 - contains the full validator and redeemer scripts
-* The UTxO entry which `i` references is a script address, and thus has a
+* The UTXO entry which `i` references is a script address, and thus has a
 data script stored in the output
 - the validator script `i` provides must hash to this script address
 * Validation is done at this point for the spending of the specific output
 `i` references
 - we have the validator, redeemer and data script all available
-- if it succeeds, the transaction is allowed to spend the UTxO output `i` references
+- if it succeeds, the transaction is allowed to spend the UTXO output `i` references
 - validation is performed on-chain
 
 If the `runScript` computation returns true for a specific output being spent,
@@ -319,8 +319,8 @@ In other words, the smart
 contract functionality defined by the code in the validator allows the spending
 of script-owned output funds by the carrying transaction.
 Note that,
-in the spirit of UTxO style accounting, the contract state is never updated in
-the UTxO entry. One can only spend that entry, and create a new one with a
+in the spirit of UTXO style accounting, the contract state is never updated in
+the UTXO entry. One can only spend that entry, and create a new one with a
 different data script.
 
 // Sealing is not mentioned above
@@ -357,12 +357,12 @@ challenge for performing Plutus Core computations in the validation process.
 // could also use that to motivate the need to look at the data scripts in the
 // first place - at the moment you just have abstractly said it makes things
 // "more powerful".
-Suppose there is a UTxO entry on the ledger with the validator script hash
+Suppose there is a UTXO entry on the ledger with the validator script hash
 address `v1`, and the associated data script `ds1`. If a transaction `t` is
 trying to spend this entry and move the funds to an address `v2` of a
 different validator script, but produce multiple outputs for this,
 locked with different data scripts. For example, it wants to create two outputs
-in the UTxO with data scripts `v2_ds1` and `v2_ds2` (at the address `v2`).
+in the UTXO with data scripts `v2_ds1` and `v2_ds2` (at the address `v2`).
 
 Now, in order to spend the funds at script address `v1`, our transaction `t` must
 provide the validator that hashes to `v1`, along with the redeemer. Suppose
@@ -446,7 +446,7 @@ to the data scripts in the outputs of `t`, and the redeemer did not swap them.
 
 // These sentences seem unrelated? Also, in the future it may be that transactions
 // whose scripts fail may still pay fees, but this isn't decided yet.
-Note that with this model, as with the classic UTxO
+Note that with this model, as with the classic UTXO
 model, a transaction which was not validated does not incur fees. Unlike
 the classic model, however, the extended model allows for spending from script
 addresses that do not belong to the wallet that generated the transaction.
@@ -520,7 +520,7 @@ a Plutus user, which we will also not explain in detail in this chapter.
 
 In the upcoming examples in this book we walk the reader through the process
 of building, testing and using Plutus contracts. For examples of work on using
-scripts to add specific functionality to the UTxO ledger, we would like to
+scripts to add specific functionality to the UTXO ledger, we would like to
 point the reader to the following documents,
 
 * Multi-currency on the UTXO Ledger, see <<endmatter#multicur>>
