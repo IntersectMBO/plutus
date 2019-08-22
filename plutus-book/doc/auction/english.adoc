@@ -1,3 +1,4 @@
+// There's quite a lot of commented out code in these modules. I'd get rid of it, personally.
 ////
 [source,haskell]
 ----
@@ -155,6 +156,9 @@ hasAdminToken s (_, o) =
 ----
 ////
 
+// Why not just auction a Value? The only thing you do with eaSymbol and
+// eaName are immediately convert them to a Value, so why not simplify
+// it by just having it be a Value?
 [source,haskell]
 ----
 data EnglishAuction = EnglishAuction
@@ -191,6 +195,11 @@ makeLift ''EnglishAuction
 
 include::statemachine.adoc[]
 
+// I can't remember if we already discussed this, but you could do this
+// whereby someone making a new highest bid must also transfer the previous
+// bid to the person who made it. That way the amount in the machine is always
+// the highest bid, and there's less bookkeeping required.
+// Possibly illustrating lots of bookkeeping is the point!
 What state do we need to keep track of an auction? We will need to record
 who made which bids, which suggests using a list `[(PubKey, Ada)]`
 of key-ada pairs. When a new bid is
@@ -251,7 +260,7 @@ end, when the highest bidder takes the token for herself).
 
 Function `eaOutput` will give us the unique output at the script address,
 given the pending transaction,
-and it will just log a message and do not do anythiny if there is not exactly one such output.
+and it will just log a message and do not do anything if there is not exactly one such output.
 
 [source,haskell]
 ----
@@ -417,6 +426,9 @@ eaCheck ea _ (EABid _ ada) tx
     from above. In this case, we check that the script output value equals the
     script input value plus the bid.
 
+// I don't understand this. I think we should do that. If the person reclaiming
+// the bid wants to send the output to a different public key, that seems fine,
+// but I would expect them to need to sign the transaction reclaiming the money.
 Note that we do _not_ check whether the transaction has been signed by the
 public key mentioned in the action. We do this on purpose: If the person making
 the bid allows it to later be reclaimed by somebody else, then that is up to
@@ -860,6 +872,8 @@ bid ea ada = do
 The next endpoint will be `claimBid`, used by the token owner after a successful
 auction to claim the highest bid.
 
+// Again, there's a fair bit of inconsistency between which endpoints take all the parameters
+// separately and which get an EnglishAuction. My preference would be to just always do the latter.
 [source, haskell]
 ----
 claimBid :: MonadWallet m
@@ -1205,6 +1219,7 @@ Luckily, even though unlifting of scripts has not yet been implemented in
 Plutus, we can define a very limited version of it directly, a version that
 allows us to unlift `Bool`:
 
+// You can use `check` from the PlutusTx Prelude
 [source,haskell]
 ----
 unliftedBool :: Script -> Bool
