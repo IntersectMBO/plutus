@@ -64,7 +64,8 @@ availableFrom v r =
 Now it is time to think about suitable types for the data- and redeemer scripts.
 The only thing that changes during the lifetime of a vesting scheme
 is how much money has already been collected,
-and that information can be observed without any additional data.
+and that information can be observed without any additional data by simply looking
+at the value still locked by the script.
 This means we can use the unit type `()` for our data scripts.
 
 The role of the redeemer script is to indicate the intent of collecting from the
@@ -90,10 +91,14 @@ Once more we will define an ordinary Haskell function `validate` first
 that does all the work, and we will parameterize the validator script by
 the vesting scheme with the technique that we learned in the last chapter.
 
-Function `validate` has to check that we do not collect more from the script
+The function `validate` has to check that we do not collect more from the script
 than is allowed at that time, i.e. that we lock enough money back into the
 script, and that the transaction is signed by the vesting scheme owner.
 
+// An interesting feature of this validator is that it allows splitting the
+// vesting scheme, since adaLockedBy looks at *all* outputs with the right hash.
+// In this case that only makes life harder for the owner, but I think it's worth
+// pointing out because this is the sort of thing you should be careful about!
 [source,haskell]
 ----
 type VestingValidator = () -> () -> PendingTx -> Bool
@@ -127,6 +132,9 @@ Now we are ready to define our wallet endpoints, of which we need three:
 * `vest` - for somebody to lock funds in a vesting scheme
 * `withdraw` - for the owner to withdraw funds from his vesting scheme
 
+// It seems a little inconsistent that one endpoint takes the Vesting and one
+// has to construct it - to call the second one you need to construct the same
+// Vesting externally! I think they should either both take it or neither.
 [source,haskell]
 ----
 vestingAddress :: Vesting -> Address
