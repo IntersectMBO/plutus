@@ -19,24 +19,26 @@ What is a `Value` in Plutus?
 [source,haskell]
 ----
 newtype Value = Value
-    {getValue :: Map CurrencySymbol (Map TokenName Integer)}
+    { getValue :: Map CurrencySymbol (Map TokenName Integer) }
 ----
 
 Types `CurrencySymbol` and `TokenName` are both simple wrappers around
 `ByteString`.
 
+// Slightly repeating yourself here
 This notion of _value_ encompasses Ada, fungible tokens, non-fungible tokens, and
 more exotic mixed cases:
 
-* Ada has the _empty bytestring_ as `CurrencySymbol` and `TokenName`.
 * A _fungible_ token is represented by a `CurrencySymbol` for which there is
   exactly one `TokenSymbol` which can have an arbitrary non-negative quantity (of which Ada is a
   special case).
+- Ada is the prime example of a fungible token, and has the _empty bytestring_
+  as its `CurrencySymbol` and `TokenName`.
 * A class of _non-fungible_ tokens is a `CurrencySymbol` with several ``TokenName``s,
   each of which has a quantity of one. Each of these names corresponds to one
   unique non-fungible token.
-* Mixed tokens are those with several ``TokenName``s _and_ quantities greater
-  than one.
+* Mixed tokens are those with several ``TokenName``s _and_ arbitrary quantities, which might
+  be one or not.
 
 In this chapter, we look at the example of a _fungible_ token.
 In fact, we will forge our own currency, _Plutus_, and show how to trade with it.
@@ -72,13 +74,14 @@ Ada on the Cardano blockchain was done in the genesis block.
 But how do we forge tokens other than Ada?
 
 IMPORTANT: The rule is that if a transaction has a non-zero `txForge` value,
-then for _every currency symbol in that value_,
+then for _every currency symbol in the forged value_,
 there must be a script input whose validator script hash equals that currency
 symbol.
 
-This allows us to encode a _monetary policy_ for custom tokens,
-where the validator script defines this policy,
-by using the hash of that script as the currency symbol for our token.
+What this means is that the currency name picks out a script which will always be run
+whenever values of that currency are forged. That script can permit or deny the
+transaction as it wishes. The script thus represents a _monetary policy_
+(a policy that controls the supply of a currency) for custom tokens.
 
 In our example, we want a very simple monetary policy: The _issuer_ of the token
 can forge as many tokens as she likes, but nobody else can.

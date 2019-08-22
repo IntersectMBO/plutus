@@ -11,11 +11,11 @@ module Token.Fungible where
 
 import           Language.PlutusTx
 import           Language.PlutusTx.Prelude  hiding (plus, minus)
-import           Ledger   
+import           Ledger
 import qualified Ledger.Ada                 as A
 import qualified Ledger.Value               as V
 import           Playground.Contract
-import           Wallet    
+import           Wallet
 
 import           Control.Monad              (void)
 import qualified Data.ByteString.Lazy.Char8 as C
@@ -37,6 +37,8 @@ makeLift ''Fungible
 The policy will never change, so for its _data scripts_,
 we can use the unit type `()`.
 
+// This isn't necessary, right? We can just look at the txForge field in
+// the PendingTx.
 For _redeemer scripts_, we want to include the information of
 _how much money_ we want to forge, so let us use `Integer` for those.
 So we get:
@@ -49,10 +51,13 @@ type FungibleValidator = () -> Integer -> PendingTx -> Bool
 We are now ready to write down the validation logic, i.e. the
 monetary policy of our currency:
 
+// This validator seems strange to me. If we just looked at the txForge field
+// I think it would correspond more closely to how we've described things so
+// far, and we wouldn't have to restrict it to a single output.
 [source,haskell]
 ----
 validateFungible :: Fungible -> FungibleValidator
-validateFungible f () n tx = 
+validateFungible f () n tx =
     case pendingTxOutputs tx of
         [o] -> case pendingTxOutData o of
             DataTxOut       -> False
@@ -63,7 +68,7 @@ validateFungible f () n tx =
         _   -> False                        -- <4>
   where
     v :: Value                              -- <5>
-    v = V.singleton 
+    v = V.singleton
             (ownCurrencySymbol tx)          -- <6>
             (name f)
             n
@@ -94,7 +99,7 @@ mkFungibleRedeemerScript :: Integer -> RedeemerScript
 mkFungibleRedeemerScript = RedeemerScript . lifted
 
 mkFungibleValidator :: Fungible -> ValidatorScript
-mkFungibleValidator = ValidatorScript 
+mkFungibleValidator = ValidatorScript
                     . applyScript $$(compileScript [|| validateFungible ||])
                     . lifted
 
@@ -117,9 +122,12 @@ script address representing the monetary policy. We have to wait until that UTXO
 is visible on the blockchain and then we can issue the forging transaction, which
 will use the previous UTXO as input to validate its forging.
 
+// Why not use payToScript in forge?
+// For the triggers, I think it would be simpler to do what the plutus-use-cases example does: send
+// 1 Ada to the address, and wait for the funds at the address to be greater than zero.
 [source,haskell]
 ----
-forge :: forall m. MonadWallet m 
+forge :: forall m. MonadWallet m
       => String  -- token name
       -> Integer -- quantity to forge
       -> m ()
@@ -130,16 +138,16 @@ forge n s = do
             { name   = TokenName $ C.pack n
             , issuer = key                                           -- <1>
             }
-    logMsg $ T.pack $ 
+    logMsg $ T.pack $
         "forging " ++ show s ++ " of " ++ show f
     startWatching $ fungibleAddress f                                -- <2>
 
     void $ createTxAndSubmit                                         -- <3>
         defaultSlotRange
         Set.empty
-        [ scriptTxOut 
-            V.zero                                                 
-            (mkFungibleValidator f) 
+        [ scriptTxOut
+            V.zero
+            (mkFungibleValidator f)
             fungibleDataScript
         ]
 
@@ -150,7 +158,7 @@ forge n s = do
     go f = do
         t <- trigger
         registerOnce t $ handler f
-        
+
     trigger :: m EventTrigger
     trigger = do
         sl <- slot
@@ -201,6 +209,8 @@ we keep waiting.
 
 Once it is we are finished! Now everybody can use `forge` to forge her own currency!
 
+// I wonder if this should be in a separate chapter? Atomic swaps are a pretty interesting topic
+// in themselves!
 This raises another question, though: How can we trade this new currency? -
 We know that we can send and receive the new currency in the same way that we can send
 and receive Ada. However, what if we want to sell some tokens of the new
@@ -228,17 +238,27 @@ We will write a script parameterized by a value of type `Trade` to
 make sure that the seller and buyer both pay what they promised before the
 deadline or both can get their money back.
 
+// As you've written it, you can drop the redeemer script too - the action
+// is implied by whether the deadline has passed or not. If you wanted to
+// allow people to reclaim before the deadline (i.e. back out) then you
+// would need the action.
 This script will again be stateless, so the data script can again be `()`.
 For the redeemer script, we distinguish between two possible actions,
 _executing_ a successful trade or _reclaiming_ once funds in case of a failed
 trade:
 
+// Why not use `valuePaidTo` to get the total value paid to the two keys? I think
+// it would make the code a lot simpler.
+// In general, I think we should avoid explicitly matching on the set of outputs
+// in transactions as it makes the validators very inflexible.
+// Also, I'm not sure the reclaim case is right. What happens to person 2's funds
+// when person 1 reclaims? The trade output has been consumed!
 [source,haskell]
 ----
 data TradeAction = Execute | Reclaim
     deriving Show
 
-makeLift ''TradeAction 
+makeLift ''TradeAction
 
 type TradeValidator = () -> TradeAction -> PendingTx -> Bool
 
@@ -257,7 +277,7 @@ validateTrade t () Execute tx = case pendingTxOutputs tx of        -- <1>
 validateTrade t () Reclaim tx = case pendingTxOutputs tx of
     [o] -> case pendingTxOutData o of
         PubKeyTxOut key ->
-               intervalFrom (deadline t) 
+               intervalFrom (deadline t)
                     `contains` pendingTxValidRange tx
             && (   (   key == party1 t
                     && pendingTxOutValue o == value1 t)
@@ -288,7 +308,7 @@ We write the usual helper functions and have completed the on-chain part:
 [source,haskell]
 ----
 mkTradeValidator :: Trade -> ValidatorScript
-mkTradeValidator = 
+mkTradeValidator =
       ValidatorScript
     . applyScript $$(compileScript [|| validateTrade ||])
     . lifted
@@ -303,6 +323,9 @@ tradeAddress :: Trade -> Address
 tradeAddress = scriptAddress . mkTradeValidator
 ----
 
+// If anything, this case seems more complicated, because you have to include all the
+// code for setting up Fungible everywhere. If you just had the endpoints take two Values
+// to trade it would be simpler IMO.
 We need two endpoints, one for the seller, one for the buyer.
 For simplicity, we will not trade arbitrary values, but only consider the case
 where the seller sells some quantity of a single currency.
@@ -317,9 +340,10 @@ gives the payment to herself and the currency to the buyer.
 funds are still there.
 When this happens, the trade has failed, and the seller will reclaim her currency.
 
+// handler1 could use spendScriptOutputs
 [source,haskell]
 ----
-sell :: forall m. MonadWallet m 
+sell :: forall m. MonadWallet m
      => PubKey  -- currency issuer
      -> String  -- currency name
      -> Integer -- currency quantity
@@ -354,15 +378,15 @@ sell i c n v2 p2 dl = do
   where
     trigger1 :: Trade -> EventTrigger               -- <2>
     trigger1 t =
-        fundsAtAddressGeqT 
-            (tradeAddress t) 
+        fundsAtAddressGeqT
+            (tradeAddress t)
             (value1 t <> value2 t)
         `andT`
         slotRangeT
             (intervalTo $ deadline t)
     trigger2 t =                                    -- <3>
-        fundsAtAddressGeqT 
-            (tradeAddress t) 
+        fundsAtAddressGeqT
+            (tradeAddress t)
             (value1 t)
         `andT`
         slotRangeT
@@ -414,7 +438,7 @@ reclaiming her payment in case of a failed trade:
 
 [source,haskell]
 ----
-buy :: forall m. MonadWallet m 
+buy :: forall m. MonadWallet m
     => PubKey  -- currency issuer
     -> String  -- currency name
     -> Integer -- currency quantity
@@ -447,8 +471,8 @@ buy i c n p1 v2 dl = do
 
   where
     trigger t =                                    -- <2>
-        fundsAtAddressGeqT 
-            (tradeAddress t) 
+        fundsAtAddressGeqT
+            (tradeAddress t)
             (value2 t)
         `andT`
         slotRangeT
@@ -471,4 +495,3 @@ $(mkFunctions ['forge, 'sell, 'buy])
 <2> Has the deadline passed, and is my payment is still locked?
 
 <3> Reclaim the payment.
-
