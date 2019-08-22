@@ -3,7 +3,7 @@
 
 After our simple working example of a short game in the last chapter,
 let us now try something more ambitious and realistic, to
-run a _crowdsourcing campaign_.
+run a _crowdfunding campaign_.
 
 In such a campaign, the _owner_ of the campaign sets a _funding target_,
 an _end date_ and a _collection deadline_.
@@ -24,13 +24,13 @@ and that both make their contributions before slot #10.
 Then the campaign was successful, and wallet #1 has time to collect
 the total of 7 + 6 = 13 Ada before slot #20.
 
-If wallet #1 does _not_ claim these funds before slot #20, wallet #2 can reclaim
-7 Ada, wallet #3 can reclaim 6 Ada.
+If wallet #1 does _not_ claim these funds before slot #20, then wallet #2 can reclaim
+7 Ada, and wallet #3 can reclaim 6 Ada.
 
-If, on the other hand only wallet #2 contributes 7 Ada, and wallet #3 does
+If, on the other hand, only wallet #2 contributes 7 Ada, and wallet #3 does
 not contribute at all, the funding target is not reached, and the campaign is a
 failure. In this case, wallet #1 cannot collect any funds, and wallet #2 can
-reclaim 7 Ada in slot #20, or later.
+reclaim 7 Ada after slot #20.
 
 So how do we run such a campaign using Plutus?
 
@@ -46,7 +46,7 @@ include::crowd.adoc[]
 
 And that is it! We are now ready to test our code in the Playground.
 One slight problem is that in order to provide the `Campaign` argument for the
-`contribute` endpoint, we need to know the campaign owner's public key. 
+`contribute` endpoint, we need to know the campaign owner's public key.
 The following table of all Playground wallets and their public keys will be
 helpful:
 

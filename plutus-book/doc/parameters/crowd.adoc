@@ -10,7 +10,7 @@
 module Parameters.Crowd where
 
 import Language.PlutusTx
-import Language.PlutusTx.Prelude hiding (plus)
+import Language.PlutusTx.Prelude hiding (plus) -- <2>
 import Ledger
 import Ledger.Ada
 import Playground.Contract
@@ -23,19 +23,22 @@ data Campaign = Campaign {
     , fundingTarget      :: Ada
     , endDate            :: Slot
     , collectionDeadline :: Slot
-} deriving (Show, Generic, ToJSON, FromJSON, ToSchema) -- <2>
+} deriving (Show, Generic, ToJSON, FromJSON, ToSchema) -- <3>
 makeLift ''Campaign
 ----
 
 <1> We need this to be able to derive `Generic` and `ToSchema` instances.
 
-<2> We need `ToJSON`, `FromJSON` and `ToSchema` instances
+<2> The `plus` function in the `Prelude` works on `Integer`s, but we want to use
+the one from the `Ada` module that works on `Ada` values.
+
+<3> We need `ToJSON`, `FromJSON` and `ToSchema` instances
 to be able to use `Campaign` as an argument to wallet endpoints in the Playground.
 
-Next, let us figure our which types to use for data- and redeemer scripts!
+Next, let us figure our which types to use for data and redeemer scripts!
 
-There are two scenarios where people will want to _claim funds from the
-script: The campaign owner _collection_ after a successful campaign
+There are two scenarios where people will want to claim funds from the
+script: The campaign owner _collecting_ after a successful campaign
 and the contributors demanding a _refund_ after a failed one.
 
 For the validator script to decide whether such a claim is valid,
@@ -58,24 +61,24 @@ we need to know whether the funding target has been reached and
 whether the current slot is between end date and collection deadline, but those
 are things we can find out without any additional information.
 
-To decide about a `refund` claim, however, we have to known that the deadline
+To decide about a `Refund` claim, however, we have to know that the deadline
 has passed and whether the
-contribution being reclaimed has indeed originally been made by the person
-claiming the refund, so we need this information, where a contribution is coming
-from, attached to each script output.
+contribution being reclaimed was indeed originally made by the person
+claiming the refund. So we need information about where a contribution came
+from attached to each script output.
 
 So for our data scripts we will use:
 
 [source,haskell]
 ----
-newtype Contributor = Contributor {getContributor :: PubKey} -- <1>
+newtype Contributor = Contributor { getContributor :: PubKey } -- <1>
 makeLift ''Contributor
 ----
 
 <1> We could simply use `PubKey` instead, but as mentioned in the last chapter,
 it is always safer to use `newtype` to avoid confusion.
 
-As before, we write simple helper functions to create data- and redeemer
+As before, we write simple helper functions to create data and redeemer
 scripts:
 
 [source,haskell]
@@ -132,7 +135,7 @@ inRefundRange campaign tx =
 
 In order to check whether the funding target has been reached,
 we must calculate the total amount of Ada contained in all inputs of a pending
-transaction that belong to our script, 
+transaction that belong to our script,
 so we write a helper function `totalInput` to do just that:
 
 [source,haskell]
@@ -156,6 +159,9 @@ totalInput tx = foldl f zero (pendingTxInputs tx)
 <2> Function `ownHash :: PendingTx -> ValidatorHash` gives us the hash
 of the validator script we are currently evaluating.
 
+// Why? If we check that the transaction is signed by them, which we do, shouldn't
+// they be able to do what they want with the funds? That's what the crowdfunder in
+// plutus-use-cases does.
 For refunding, we must check whether all outputs of the pending transaction go
 to the original contributor, so we write a function `toContributor` to check
 this:
@@ -185,7 +191,7 @@ validate campaign _ Collect tx           =
        (tx `txSignedBy` campaignOwner campaign)              -- <1>
     && (totalInput tx >= fundingTarget campaign)             -- <2>
     && inCollectionRange campaign tx                         -- <3>
-validate campaign  contributor Refund tx =
+validate campaign contributor Refund tx =
        all (toContributor contributor) (pendingTxOutputs tx) -- <4>
     && inRefundRange campaign tx                             -- <5>
     && (tx `txSignedBy` getContributor contributor)          -- <6>
@@ -203,10 +209,10 @@ validate campaign  contributor Refund tx =
 <6> The refund claim must be made by the contributor.
 
 In order to use `validate` to create our validator script for a campaign,
-it is not enough to simply lift the function as we did in the last chapter.
+it is not enough to simply compile the function as we did in the last chapter.
 This would result in the wrong type, because we still have the additional
 `Campaign` argument. Instead we can use `applyScript` to turn a script of type
-`Campaign -> CampaignValidator` into one of type `CampaignValidator`:
+`Campaign -> CampaignValidator` into one of type `CampaignValidator`.
 
 The issue here is that the specific campaign we use will only be known at
 _run time_, whereas `compileScript` works at _compile time_. Function
