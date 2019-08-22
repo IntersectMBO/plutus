@@ -665,7 +665,7 @@ execTraceTxPool pl = snd . runTraceTxPool pl
 --   and notify wallets. Returns the new block
 runWalletActionAndProcessPending :: [Wallet] -> Wallet -> m () -> Trace m [Tx]
 runWalletActionAndProcessPending wallets wallet action = do
-    _ <- walletAction wallet action
+    _ <- runWalletAction wallet action
     block <- processPending
     _ <- walletsNotifyBlock wallets block
     pure block

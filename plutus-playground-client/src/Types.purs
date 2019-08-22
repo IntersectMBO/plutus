@@ -1,6 +1,7 @@
 module Types where
 
 import Prelude
+
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
 import Control.Comonad (class Comonad, extract)
@@ -40,7 +41,7 @@ import Ledger.TxId (TxIdOf)
 import Ledger.Value (CurrencySymbol, TokenName, Value, _CurrencySymbol, _TokenName, _Value)
 import Matryoshka (class Corecursive, class Recursive, Algebra, ana, cata)
 import Network.RemoteData (RemoteData)
-import Playground.API (CompilationResult, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency, SimulatorWallet, _FunctionSchema, _SimulatorWallet)
+import Playground.API (CompilationResult, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency, PlaygroundError, SimulatorWallet, _FunctionSchema, _SimulatorWallet)
 import Playground.API as API
 import Schema (FormSchema(..))
 import Servant.PureScript.Ajax (AjaxError)
@@ -326,7 +327,7 @@ newtype State
   , compilationResult :: WebData (JsonEither InterpreterError (InterpreterResult CompilationResult))
   , simulations :: Cursor Simulation
   , actionDrag :: Maybe Int
-  , evaluationResult :: WebData EvaluationResult
+  , evaluationResult :: WebData (JsonEither PlaygroundError EvaluationResult)
   , authStatus :: WebData AuthStatus
   , createGistResult :: WebData Gist
   , gistUrl :: Maybe String
@@ -352,7 +353,7 @@ _actions = _Newtype <<< prop (SProxy :: SProxy "actions")
 _wallets :: Lens' Simulation (Array SimulatorWallet)
 _wallets = _Newtype <<< prop (SProxy :: SProxy "wallets")
 
-_evaluationResult :: Lens' State (WebData EvaluationResult)
+_evaluationResult :: Lens' State (WebData (JsonEither PlaygroundError EvaluationResult))
 _evaluationResult = _Newtype <<< prop (SProxy :: SProxy "evaluationResult")
 
 _compilationResult :: Lens' State (WebData (JsonEither InterpreterError (InterpreterResult CompilationResult)))

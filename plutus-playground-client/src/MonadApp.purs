@@ -1,6 +1,7 @@
 module MonadApp where
 
 import Prelude
+
 import Ace (Annotation, Editor)
 import Ace.EditSession as Session
 import Ace.Editor as AceEditor
@@ -24,7 +25,7 @@ import Halogen (HalogenM)
 import Language.Haskell.Interpreter (InterpreterError, SourceCode(SourceCode), InterpreterResult)
 import LocalStorage as LocalStorage
 import Network.RemoteData as RemoteData
-import Playground.API (CompilationResult, Evaluation, EvaluationResult)
+import Playground.API (CompilationResult, Evaluation, EvaluationResult, PlaygroundError)
 import Playground.Server (SPParams_)
 import Playground.Server as Server
 import Servant.PureScript.Ajax (AjaxError)
@@ -50,7 +51,7 @@ class
   --
   getOauthStatus :: m (WebData AuthStatus)
   getGistByGistId :: GistId -> m (WebData Gist)
-  postEvaluation :: Evaluation -> m (WebData EvaluationResult)
+  postEvaluation :: Evaluation -> m (WebData (JsonEither PlaygroundError EvaluationResult))
   postGist :: NewGist -> m (WebData Gist)
   patchGistByGistId :: NewGist -> GistId -> m (WebData Gist)
   postContract :: SourceCode -> m (WebData (JsonEither InterpreterError (InterpreterResult CompilationResult)))

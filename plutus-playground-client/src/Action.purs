@@ -1,16 +1,19 @@
 module Action
   ( simulationPane
+  , actionsErrorPane
   ) where
 
-import Bootstrap (badge, badgePrimary, btn, btnDanger, btnGroup, btnGroupSmall, btnInfo, btnLink, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, col10_, col2_, col_, formCheckInput, formCheckLabel, formCheck_, formControl, formGroup_, invalidFeedback_, nbsp, pullRight, responsiveThird, row, row_, validFeedback_, wasValidated)
+import Bootstrap (alertDanger_, badge, badgePrimary, btn, btnDanger, btnGroup, btnGroupSmall, btnInfo, btnLink, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, col10_, col2_, col_, formCheckInput, formCheckLabel, formCheck_, formControl, formGroup_, invalidFeedback_, nbsp, pullRight, responsiveThird, row, row_, validFeedback_, wasValidated)
 import Cursor (Cursor, current)
 import Cursor as Cursor
 import Data.Array (mapWithIndex)
 import Data.Array as Array
+import Data.Either (Either(..))
+import Data.Generic.Rep.Show (genericShow)
 import Data.Int as Int
 import Data.Lens (preview, view)
 import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
-import Data.RawJson (JsonTuple(..))
+import Data.RawJson (JsonEither(..), JsonTuple(..))
 import Data.String as String
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
@@ -25,10 +28,10 @@ import Halogen.Query as HQ
 import Icons (Icon(..), icon)
 import Ledger.Value (Value)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
-import Playground.API (EvaluationResult, _Fn, _FunctionSchema)
+import Playground.API (EvaluationResult, PlaygroundError(..), _Fn, _FunctionSchema)
 import Prelude (Unit, map, pure, show, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==))
 import Prim.TypeError (class Warn, Text)
-import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, DragAndDropEventType(..), FormArgument(..), FormEvent(..), Query(..), Simulation(Simulation), WebData, _Action, _argumentSchema, _functionName, _resultBlockchain, _simulatorWallet, _simulatorWalletWallet, _walletId)
+import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), ChildQuery, ChildSlot, DragAndDropEventType(..), FormArgument(..), FormEvent(..), Query(..), Simulation(Simulation), WebData, _Action, _argumentSchema, _functionName, _simulatorWallet, _simulatorWalletWallet, _walletId)
 import Validation (ValidationError, WithPath, joinPath, showPathValue, validate)
 import ValueEditor (valueForm)
 import Wallet (walletIdPane, walletsPane)
@@ -40,7 +43,7 @@ simulationPane ::
   Value ->
   Maybe Int ->
   Cursor Simulation ->
-  WebData EvaluationResult ->
+  WebData (JsonEither PlaygroundError EvaluationResult) ->
   ParentHTML Query ChildQuery ChildSlot m
 simulationPane initialValue actionDrag simulations evaluationResult = case current simulations of
   Just (Simulation simulation) ->
@@ -59,7 +62,7 @@ simulationPane initialValue actionDrag simulations evaluationResult = case curre
         [ simulationsNav simulations
         , walletsPane simulation.signatures initialValue simulation.wallets
         , br_
-        , actionsPane isValidWallet actionDrag simulation.actions (view _resultBlockchain <$> evaluationResult)
+        , actionsPane isValidWallet actionDrag simulation.actions evaluationResult
         ]
   Nothing ->
     div_
@@ -120,7 +123,7 @@ addSimulationControl =
     ]
     [ icon Plus ]
 
-actionsPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Array Action -> WebData Blockchain -> HTML p Query
+actionsPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Array Action -> WebData (JsonEither PlaygroundError EvaluationResult) -> HTML p Query
 actionsPane isValidWallet actionDrag actions evaluationResult =
   div_
     [ h2_ [ text "Actions" ]
@@ -424,7 +427,7 @@ addWaitActionPane index =
             ]
         ]
 
-evaluateActionsPane :: forall p. WebData Blockchain -> Array Action -> HTML p Query
+evaluateActionsPane :: forall p. WebData (JsonEither PlaygroundError EvaluationResult) -> Array Action -> HTML p Query
 evaluateActionsPane evaluationResult actions =
   col_
     [ button
@@ -439,6 +442,8 @@ evaluateActionsPane evaluationResult actions =
   btnClass Loading _ = btnSecondary
 
   btnClass _ true = btnWarning
+
+  btnClass (Success (JsonEither (Left _))) _ = btnDanger
 
   btnClass (Success _) _ = btnSuccess
 
@@ -496,3 +501,21 @@ dragTargetProperties index =
 
 dragAndDropAction :: Int -> DragAndDropEventType -> DragEvent -> Maybe (Query Unit)
 dragAndDropAction index eventType = Just <<< HQ.action <<< ActionDragAndDrop index eventType
+
+actionsErrorPane :: forall p i. PlaygroundError -> HTML p i
+actionsErrorPane error =
+  div
+    [ class_ $ ClassName "ajax-error" ]
+    [ alertDanger_
+        [ text (showPlaygroundError error)
+        , br_
+        , text "Please try again or contact support for assistance."
+        ]
+    ]
+
+-- | There's a few errors that make sense to display nicely, others should not occur so lets
+-- | not deal with them.
+showPlaygroundError :: PlaygroundError -> String
+showPlaygroundError PlaygroundTimeout = "Evaluation timed out"
+showPlaygroundError (OtherError error) = error
+showPlaygroundError _ = "Unexpected interpreter error"
