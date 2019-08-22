@@ -95,9 +95,12 @@ open import Untyped
 
 open import Data.Fin
 
-postulate prettyPrint : RawTm → String
+postulate
+  prettyPrintTm : RawTm → String
+  prettyPrintTy : RawTy → String
 
-{-# COMPILE GHC prettyPrint = prettyText . unconv #-}
+{-# COMPILE GHC prettyPrintTm = prettyText . unconv #-}
+{-# COMPILE GHC prettyPrintTy = prettyText . unconvT #-}
 
 open import Data.Vec hiding (_>>=_)
 
@@ -112,14 +115,14 @@ evalPLC m plc with parse plc
 evalPLC m plc | just t with deBruijnifyTm nil (convP t)
 evalPLC L plc | just t | just t' with S.run (saturate t') 1000000
 evalPLC L plc | just t | just t' | t'' ,, _ ,, inj₁ (just _) =
-  prettyPrint (deDeBruijnify [] nil (unsaturate t''))
+  prettyPrintTm (deDeBruijnify [] nil (unsaturate t''))
 evalPLC L plc | just t | just t' | t'' ,, p ,, inj₁ nothing = "out of fuel"
 evalPLC L plc | just t | just t' | t'' ,, p ,, inj₂ e =
   "runtime error" Data.String.++
-  prettyPrint (deDeBruijnify [] nil (unsaturate t''))
+  prettyPrintTm (deDeBruijnify [] nil (unsaturate t''))
 evalPLC CK plc | just t | just t' with stepper 1000000000 _ (ε ▻ saturate t')
 evalPLC CK plc | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
-  prettyPrint (deDeBruijnify [] nil (unsaturate t''))
+  prettyPrintTm (deDeBruijnify [] nil (unsaturate t''))
 evalPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  just _ =
   "this shouldn't happen"
 evalPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  nothing = "out of fuel"
@@ -127,6 +130,8 @@ evalPLC m plc | just t | nothing = "scope error"
 evalPLC m plc | nothing = "parse error"
 
 open import Check hiding (_>>=_)
+open import Scoped.Extrication
+open import Type.BetaNBE
 
 tcPLC : ByteString → String
 tcPLC plc with parse plc
@@ -134,7 +139,7 @@ tcPLC plc with parse plc
 ... | just t with deBruijnifyTm nil (convP t)
 ... | nothing = "scope error"
 ... | just t' with inferType _ t'
-... | just (K ,, t'') = "type correct"
+... | just (A ,, t'') = prettyPrintTy (deDeBruijnify⋆ [] (extricateNf⋆ (nf A)))
 ... | nothing = "type error"
 
 
