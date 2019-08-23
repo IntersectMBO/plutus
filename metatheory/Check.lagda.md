@@ -182,15 +182,11 @@ inferTypeBuiltin : ∀{Φ}{Γ : Ctx Φ}(bn : Builtin) → List (ScopedTy (len⋆
   → Maybe (Σ (Φ ⊢⋆ *) (Γ ⊢_))
 inferTypeBuiltin addInteger [] [] = just ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin addInteger (λ()) (` (S Z) ,, ` Z ,, _))))
 inferTypeBuiltin subtractInteger [] [] = just ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin subtractInteger (λ()) (` (S Z) ,, ` Z ,, _))))
-
-{-
-inferTypeBuiltin subtractInteger As ts = {!!}
-inferTypeBuiltin multiplyInteger As ts = {!!}
-inferTypeBuiltin divideInteger As ts = {!!}
-inferTypeBuiltin quotientInteger As ts = {!!}
-inferTypeBuiltin remainderInteger As ts = {!!}
-inferTypeBuiltin modInteger As ts = {!!}
--}
+inferTypeBuiltin multiplyInteger [] [] = just ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin multiplyInteger (λ()) (` (S Z) ,, ` Z ,, _))))
+inferTypeBuiltin divideInteger [] [] = just ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin divideInteger (λ()) (` (S Z) ,, ` Z ,, _))))
+inferTypeBuiltin quotientInteger [] [] = just ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin quotientInteger (λ()) (` (S Z) ,, ` Z ,, _))))
+inferTypeBuiltin remainderInteger [] [] = just ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin remainderInteger (λ()) (` (S Z) ,, ` Z ,, _))))
+inferTypeBuiltin modInteger [] []  = just ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin modInteger (λ()) (` (S Z) ,, ` Z ,, _))))
 inferTypeBuiltin lessThanInteger [] [] = just ((con integer ⇒ con integer ⇒ boolean) ,, ƛ "" (ƛ "" (builtin lessThanInteger (λ()) (` (S Z) ,, ` Z ,, _))))
 inferTypeBuiltin lessThanEqualsInteger [] [] = just ((con integer ⇒ con integer ⇒ boolean) ,, ƛ "" (ƛ "" (builtin lessThanEqualsInteger (λ()) (` (S Z) ,, ` Z ,, _))))
 
@@ -200,7 +196,9 @@ inferTypeBuiltin greaterThanEqualsInteger As ts = {!!}
 inferTypeBuiltin equalsInteger As ts = {!!}
 inferTypeBuiltin concatenate As ts = {!!}
 inferTypeBuiltin takeByteString As ts = {!!}
-inferTypeBuiltin dropByteString As ts = {!!}
+-}
+inferTypeBuiltin dropByteString [] [] = just ((con integer ⇒ con bytestring ⇒ con bytestring) ,, ƛ "" (ƛ "" (builtin dropByteString (λ()) (` (S Z) ,, ` Z ,, _))))
+{-
 inferTypeBuiltin sha2-256 As ts = {!!}
 inferTypeBuiltin sha3-256 As ts = {!!}
 inferTypeBuiltin verifySignature As ts = {!!}
