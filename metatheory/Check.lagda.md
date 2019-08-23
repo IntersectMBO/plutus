@@ -7,10 +7,12 @@ open import Scoped
 open import Type
 open import Declarative
 open import Utils
+open import Builtin
+
 open import Data.Nat
 open import Data.Fin
 open import Data.Product renaming (_,_ to _,,_)
-
+open import Data.List hiding ([_])
 ```
 
 ```
@@ -30,6 +32,7 @@ return : {A : Set} → A → Maybe A
 return = just
 
 open import Data.Bool
+
 eqKind : Kind → Kind → Bool
 eqKind * *       = Bool.true
 eqKind * (_ ⇒ _) = Bool.false
@@ -39,6 +42,7 @@ eqKind (K ⇒ J) (K' ⇒ J') = eqKind K K' ∧ eqKind J J'
 open import Relation.Nullary
 open import Relation.Binary.Core using (Decidable)
 open import Relation.Binary.PropositionalEquality hiding ([_])
+
 eqKind' : Decidable {A = Kind} _≡_
 eqKind' * *       = yes refl
 eqKind' * (_ ⇒ _) = no λ()
@@ -58,9 +62,6 @@ meqKind (K ⇒ J) (K' ⇒ J') with meqKind K K'
 ... | just p with meqKind J J'
 ... | nothing = nothing
 ... | just q = just (cong₂ _⇒_ p q)
-
--- it doesn't seem to be possible to seperate inferring the kind and
--- and producing a typed term, so `inferKind` is here only as a warmup
 
 inferKind : (Φ : Ctx⋆)(A : ScopedTy (len⋆ Φ)) → Maybe (Σ Kind (Φ ⊢⋆_))
 inferKind Φ (` α) = let K ,, β = inferTyVar Φ α in return (K ,, ` β)
@@ -167,6 +168,8 @@ inv-complete {A = A}{A' = A'} p = trans≡β
            (sym≡β (soundness A)))
 
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as D
+open import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con boolean
+open import Type.RenamingSubstitution
 
 inferTypeCon : ∀{Φ} → TermCon → Σ TyCon λ c → D.TermCon {Φ} (con c) 
 inferTypeCon (integer i)    = integer ,, D.integer i
@@ -174,6 +177,37 @@ inferTypeCon (bytestring b) = bytestring ,, D.bytestring b
 inferTypeCon (string s)     = string ,, D.string s
 
 inferType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ) → Maybe (Σ (Φ ⊢⋆ *) λ A → Γ ⊢ A)
+
+inferTypeBuiltin : ∀{Φ}{Γ : Ctx Φ}(bn : Builtin) → List (ScopedTy (len⋆ Φ)) → List (ScopedTm (len Γ))
+  → Maybe (Σ (Φ ⊢⋆ *) (Γ ⊢_))
+inferTypeBuiltin addInteger [] [] = just ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin addInteger (λ()) (` (S Z) ,, ` Z ,, _))))
+inferTypeBuiltin subtractInteger [] [] = just ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin subtractInteger (λ()) (` (S Z) ,, ` Z ,, _))))
+
+{-
+inferTypeBuiltin subtractInteger As ts = {!!}
+inferTypeBuiltin multiplyInteger As ts = {!!}
+inferTypeBuiltin divideInteger As ts = {!!}
+inferTypeBuiltin quotientInteger As ts = {!!}
+inferTypeBuiltin remainderInteger As ts = {!!}
+inferTypeBuiltin modInteger As ts = {!!}
+-}
+inferTypeBuiltin lessThanInteger [] [] = just ((con integer ⇒ con integer ⇒ boolean) ,, ƛ "" (ƛ "" (builtin lessThanInteger (λ()) (` (S Z) ,, ` Z ,, _))))
+inferTypeBuiltin lessThanEqualsInteger [] [] = just ((con integer ⇒ con integer ⇒ boolean) ,, ƛ "" (ƛ "" (builtin lessThanEqualsInteger (λ()) (` (S Z) ,, ` Z ,, _))))
+
+{-
+inferTypeBuiltin greaterThanInteger As ts = {!!}
+inferTypeBuiltin greaterThanEqualsInteger As ts = {!!}
+inferTypeBuiltin equalsInteger As ts = {!!}
+inferTypeBuiltin concatenate As ts = {!!}
+inferTypeBuiltin takeByteString As ts = {!!}
+inferTypeBuiltin dropByteString As ts = {!!}
+inferTypeBuiltin sha2-256 As ts = {!!}
+inferTypeBuiltin sha3-256 As ts = {!!}
+inferTypeBuiltin verifySignature As ts = {!!}
+inferTypeBuiltin equalsByteString As ts = {!!}
+-}
+inferTypeBuiltin _ _ _ = nothing
+
 inferType Γ (` x)             = Utils.map (λ{(A ,, x) → A ,, ` x}) (inferVarType Γ x)
 inferType Γ (Λ x K L)         = do
   A ,, L ← inferType (Γ ,⋆ K) L
@@ -201,7 +235,7 @@ inferType Γ (error A)         = do
   * ,, A ← inferKind _ A
     where _ → nothing
   return (A ,, error A)
-inferType Γ (builtin bn x x₁) = nothing -- TODO
+inferType Γ (builtin bn As ts) = inferTypeBuiltin bn As ts
 inferType Γ (wrap pat arg L)  = do
   (K ⇒ *) ⇒ K' ⇒ * ,, pat ← inferKind _ pat
     where _ → nothing

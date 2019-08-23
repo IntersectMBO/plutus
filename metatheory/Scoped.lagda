@@ -228,7 +228,10 @@ arity sha3-256 = 1
 arity verifySignature = 3
 arity equalsByteString = 2
 
+-- is this currently redundant due to the removal of sizes?
 arity⋆ : Builtin → ℕ
+arity⋆ _ = 0
+{-
 arity⋆ addInteger = 1
 arity⋆ subtractInteger = 1
 arity⋆ multiplyInteger = 1
@@ -248,7 +251,7 @@ arity⋆ sha2-256 = 1
 arity⋆ sha3-256 = 1
 arity⋆ verifySignature = 3
 arity⋆ equalsByteString = 1
-
+-}
 open import Relation.Nullary
 
 builtinEater : ∀{n}{w : Weirdℕ n} → Builtin
