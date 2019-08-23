@@ -189,13 +189,9 @@ inferTypeBuiltin remainderInteger [] [] = just ((con integer ⇒ con integer ⇒
 inferTypeBuiltin modInteger [] []  = just ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin modInteger (λ()) (` (S Z) ,, ` Z ,, _))))
 inferTypeBuiltin lessThanInteger [] [] = just ((con integer ⇒ con integer ⇒ boolean) ,, ƛ "" (ƛ "" (builtin lessThanInteger (λ()) (` (S Z) ,, ` Z ,, _))))
 inferTypeBuiltin lessThanEqualsInteger [] [] = just ((con integer ⇒ con integer ⇒ boolean) ,, ƛ "" (ƛ "" (builtin lessThanEqualsInteger (λ()) (` (S Z) ,, ` Z ,, _))))
-
-{-
-inferTypeBuiltin greaterThanInteger As ts = {!!}
-inferTypeBuiltin greaterThanEqualsInteger As ts = {!!}
-inferTypeBuiltin equalsInteger As ts = {!!}
--}
-
+inferTypeBuiltin greaterThanInteger [] [] = just ((con integer ⇒ con integer ⇒ boolean) ,, ƛ "" (ƛ "" (builtin greaterThanInteger (λ()) (` (S Z) ,, ` Z ,, _))))
+inferTypeBuiltin greaterThanEqualsInteger As ts = just ((con integer ⇒ con integer ⇒ boolean) ,, ƛ "" (ƛ "" (builtin greaterThanEqualsInteger (λ()) (` (S Z) ,, ` Z ,, _))))
+inferTypeBuiltin equalsInteger As ts = just ((con integer ⇒ con integer ⇒ boolean) ,, ƛ "" (ƛ "" (builtin equalsInteger (λ()) (` (S Z) ,, ` Z ,, _))))
 inferTypeBuiltin concatenate [] [] = just ((con bytestring ⇒ con bytestring ⇒ con bytestring) ,, ƛ "" (ƛ "" (builtin concatenate (λ()) (` (S Z) ,, ` Z ,, _))))
 inferTypeBuiltin takeByteString [] [] = just ((con integer ⇒ con bytestring ⇒ con bytestring) ,, ƛ "" (ƛ "" (builtin takeByteString (λ()) (` (S Z) ,, ` Z ,, _))))
 inferTypeBuiltin dropByteString [] [] = just ((con integer ⇒ con bytestring ⇒ con bytestring) ,, ƛ "" (ƛ "" (builtin dropByteString (λ()) (` (S Z) ,, ` Z ,, _))))
