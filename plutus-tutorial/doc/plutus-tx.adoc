@@ -1,114 +1,131 @@
 == What is Plutus Tx?
 
-Plutus Tx is the name that we give to specially-delimited sections of a Haskell
-program which will be compiled into Plutus Core (that usually go in a transaction,
-hence the "Tx").
+Plutus applications are written as a single Haskell program, which describes
+both the code that runs off the chain (on a user's computer, or in their
+wallet), and on the chain (as part of transaction validation).
 
-These special Plutus Tx sections in a Haskell program are themselves just Haskell.
-Strictly speaking, only a subset of Haskell is
-supported, but the majority of simple Haskell should work, and the compiler will tell you if
-you use something that is unsupported.
+The parts of the program that describe the on-chain code are still just Haskell,
+but they are compiled into Plutus Core (instead of into the normal compilation
+target language) and we refer to them as "Plutus Tx" ("Tx" since they usually
+go into transactions.
+
+WARNING: Strictly speaking, only a subset of Haskell is
+supported inside Plutus Tx blocks, but the majority of simple Haskell will work,
+and the Plutus Tx compiler will tell you if you use something that is unsupported.
 
 The key technique that we use to implement Plutus Tx is called _staged metaprogramming_.
 What that means is that the main Haskell program generates _another_ program, in
 this case the Plutus Core program that will run on the blockchain. Plutus Tx is
-the mechanism that we use to write those programs. The fact that Plutus Tx is just
-Haskell means that we can use the same programming techniques that we use in the main program,
-and we can share types and definitions between the two.
-ou use something that is unsupported.
+the mechanism that we use to write those programs. But because Plutus Tx is just
+part of the main Haskell program we can share types and definitions between the two.
 
-== Writing basic PlutusTx programs
+== Template Haskell preliminaries
 
-[source,haskell]
-----
--- Necessary language extensions for the Plutus Tx compiler to work.
-{-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-module Tutorial.PlutusTx where
-
-import Language.PlutusTx -- <1>
-import Language.PlutusTx.Lift -- <2>
-import Language.PlutusTx.Builtins -- <3>
-
-import Language.PlutusCore
-import Language.PlutusCore.Pretty
-import Language.PlutusCore.Quote
-import Language.PlutusCore.Evaluation.CkMachine
-import Data.Text.Prettyprint.Doc -- <4>
-----
-<1> Main Plutus Tx module.
-<2> Additional support for lifting.
-<3> Builtin functions.
-<4> Used for examples.
-
-Plutus Tx makes some use of Template Haskell. There are a few reasons
-for this:
+Plutus Tx makes use of Template Haskell, Haskell's built-in metaprogramming support.
+There are a few reasons for this:
 
 . Template Haskell allows us to do work at compile time, which
 is when we do Plutus Tx compilation.
 . It allows us to wire up the machinery that actually invokes the Plutus Tx compiler.
 
-Consequently, we will see some use of Template Haskell quotes. A
-Template Haskell quote is introduced with the special brackets `[||` and
-`||]`, and will have type `Q (TExp a)`. This means it represents an
-expression of type `a`, which lives in the `Q` type of quotes. You can
-splice a definition with this type into your program using the `$$`
-operator.
+There are a lot of things you can do with Template Haskell, but we only make
+very light usage of it, so we will just cover the basics here.
+
+Template Haskell begins with _quotes_. A
+Template Haskell quote is a Haskell expression `e` inside special brackets
+`[|| e ||]`. It has type `Q (TExp a)` where `e` has type `a`.
+`TExp a` is a _representation_ an expression of type `a`, i.e. the syntax of the
+actual Haskell expression which was quoted. The quote lives in the
+type `Q` of quotes, which isn't very interesting for us.
 
 NOTE: There is also an abbreviation `TExpQ a` for `Q (TExp a)`, which avoids
 some parentheses.
 
-The key function we will use is the `compile` function. `compile` has
-type `TExpQ a -> TExpQ (CompiledCode a)`. What does this mean?
+You can _splice_ a quote into your program using the `$$`
+operator. This inserts the syntax represented by the quote into the program at
+the point where the splice is written.
 
-- `TExpQ` we have already seen
-- `CompiledCode a` is a compiled Plutus Core program corresponding
-to a Haskell program of type `a`
+The effect of this is that quote allow us to talk about Haskell programs as values.
 
-What this means is that `compile` lets you take a (quoted) Haskell
-program and turn it into a (quoted) Plutus Core program, which you can
-then splice into the main program. This happens when you _compile_ the
-main Haskell program (since that’s when Template Haskell runs).
+The Plutus Tx compiler compiles Haskell _expressions_ (not values!), so
+naturally it takes a quote (representing an expression) as an argument. The
+result is a new quote, this time for a Haskell program
+that represents the _compiled_ program. In Haskell, the type of  `compile` is
+`TExpQ a -> TExpQ (CompiledCode a)`. This is just what we already said:
 
-If you know about staged metaprogramming already you may be confused.
-Shouldn’t we be generating the Plutus Core program at _runtime_, not at
-compile time? That would be convenient, but we need the Haskell compiler
-to help us compile arbitrary Haskell, so we have do this at compile
-time. We will see later that we _can_ lift some values from Haskell to
-Plutus Core at runtime, and this turns out to be enough to allow us to
-write programs that depend on runtime values.
+- `TExpQ a` is a quoted representing a program of type `a`.
+- `TExprQ (CompiledCode a)` is quote representing a compiled Plutus Core
+program.
 
-To reiterate: `compile` takes a Template Haskell quote, so what you
-write inside the quote is just normal Haskell.
+NOTE: `CompiledCode` has a type parameter `a` as well, which corresponds to the
+type of the original expression. This lets us "remember" what the original type
+of the Haskell program that we compiled was.
+
+Since `compile` produces a quote, to use the result we need to splice it back
+into our program. When you compile the main program, the Plutus Tx compiler will
+run and the compiled program will be inserted into the main program.
+
+This is all the Template Haskell you need to know! We almost always use the
+same, very simple pattern, which is to make a quote, immediately call `compile`
+and then splice the result back in, so once you are used to that you can mostly
+ignore it.
+
+== Writing basic PlutusTx programs
+
+[source,haskell]
+----
+{-# LANGUAGE TemplateHaskell     #-} -- <.>
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+module Tutorial.PlutusTx where
+
+import Language.PlutusTx -- <.>
+import Language.PlutusTx.Lift -- <.>
+import Language.PlutusTx.Builtins -- <.>
+import Language.PlutusTx.Prelude -- <.>
+
+-- $setup -- <.>
+-- >>> import Tutorial.PlutusTx
+-- >>> import Language.PlutusTx
+-- >>> import Language.PlutusCore
+-- >>> import Language.PlutusCore.Evaluation.CkMachine
+-- >>> import Data.Text.Prettyprint.Doc
+
+----
+<.> Necessary language extensions for the Plutus Tx compiler to work.
+<.> Main Plutus Tx module.
+<.> Additional support for lifting.
+<.> Builtin functions.
+<.> Setup for doctest examples.
 
 Here’s the most basic program we can write: one that just evaluates to
 the integer `1`.
 
-NOTE: The Plutus Core syntax will look unfamiliar. This is fine, since it is
+NOTE: We've included doctests to the examples that show the Plutus Core that is
+generated from compilation. The syntax of Plutus Core will look unfamiliar. This is fine, since it is
 the "assembly language" and you won’t need to inspect the output of
 the compiler. However, for our purposes it’s
 instructive to look at it to get a vague idea of what’s going on.
 
 [source,haskell]
 ----
+integerOne :: CompiledCode Integer
+integerOne = $$(compile -- <.>
+    [|| (1 :: Integer) ||]) -- <.> <.>
+
 {- |
 >>> pretty $ getPlc integerOne
 (program 1.0.0
-  (con 8 ! 1)
+  (con 1)
 )
 -}
-integerOne :: CompiledCode Integer
-integerOne = $$(compile -- <3> <4>
-    [|| -- <2>
-        (1 :: Integer) -- <1>
-    ||])
 ----
-<1> We always use unbounded integers in Plutus Core, so we have to pin
+<.> `compile` turns the `TExpQ Integer` into a `TExpQ (CompiledCode Integer)`,
+and the splice inserts the `TExpQ (CompiledCode Integer)` into the program.
+<.> The quote has type `TExpQ Integer`.
+<.> We always use unbounded integers in Plutus Core, so we have to pin
 down this numeric literal to an `Integer` rather than an `Int`.
-<2> The quote has type `TExpQ Integer`.
-<3> `compile` turns the `TExpQ Integer` into a `TExpQ (CompiledCode Integer)`.
-<4> The splice inserts the `TExpQ (CompiledCode Integer)` into the program.
 
 We can see how the metaprogramming works here: the Haskell program `1`
 was turned into a `CompiledCode Integer` at compile time, which we
@@ -116,8 +133,7 @@ spliced into our Haskell program, and which we can then inspect at
 runtime to see the generated Plutus Core (or to put it on the
 blockchain).
 
-The most important thing to get comfortable with here is the pattern we
-saw in the first example: a TH quote, wrapped in a call to `compile`,
+We also see the standard usage pattern here: a TH quote, wrapped in a call to `compile`,
 wrapped in a `$$` splice. This is how we write all of our Plutus Tx
 programs.
 
@@ -126,52 +142,59 @@ integers.
 
 [source,haskell]
 ----
+integerIdentity :: CompiledCode (Integer -> Integer)
+integerIdentity = $$(compile [|| \(x:: Integer) -> x ||])
+
 {- |
 >>> pretty $ getPlc integerIdentity
 (program 1.0.0
-  (lam ds [(con integer) (con 8)] ds)
+  (lam ds (con integer) ds)
 )
 -}
-integerIdentity :: CompiledCode (Integer -> Integer)
-integerIdentity = $$(compile [|| \(x:: Integer) -> x ||])
 ----
-
-So far, so familiar: we compiled a lambda into a lambda (the `lam`).
 
 == Functions and datatypes
 
-You can also use functions inside your expression. In practice, you
+You can use functions inside your expression. In practice, you
 will usually want to define the entirety of your Plutus Tx program as a
 definition outside the quote, and then simply call it inside the quote.
 
 [source,haskell]
 ----
-{-# INLINABLE plusOne #-} -- <2>
+{-# INLINABLE plusOne #-} -- <.>
 plusOne :: Integer -> Integer
-plusOne x = x `addInteger` 1 -- <1>
+plusOne x = x `addInteger` 1 -- <.>
 
-{-# INLINABLE myProgram #-} -- <2>
+{-# INLINABLE myProgram #-}
 myProgram :: Integer
 myProgram =
     let
-        plusOneLocal :: Integer -> Integer
-        plusOneLocal x = x `addInteger` 1 -- <1>
+        plusOneLocal :: Integer -> Integer -- <.>
+        plusOneLocal x = x `addInteger` 1
 
-        localPlus = plusOneLocal 1
-        externalPlus = plusOne 1
-    in localPlus `addInteger` externalPlus -- <1>
+        localTwo = plusOneLocal 1
+        externalTwo = plusOne 1
+    in localTwo `addInteger` externalTwo
 
 functions :: CompiledCode Integer
 functions = $$(compile [|| myProgram ||])
+
+{- |
+>>> pretty $ runCk $ getPlc functions -- <.>
+(con 4)
+-}
 ----
-<1> `addInteger` comes from `Language.PlutusTx.Builtins`, and is
-which is mapped to the builtin integer addition in Plutus Core.
-<2> Functions for reuse are marked with GHC’s `INLINABLE` pragma.
+<.> Functions which will be used in Plutus Tx programs should be
+marked with GHC’s `INLINABLE` pragma.
 This is usually necessary for non-local functions to
 be usable in Plutus Tx blocks, as it instructs GHC to keep the
-information that the Plutus Tx compiler needs. While this is not always
-necessary, it is a good idea to simply mark all such functions as
-`INLINABLE`.
+information that the Plutus Tx compiler needs. While you may be able
+to get away with omitting it, it is good practice to always include it.
+<.> Local functions do not need to be marked as `INLINABLE`.
+<.> `addInteger` comes from `Language.PlutusTx.Builtins`, and is
+mapped to the builtin integer addition function in Plutus Core.
+<.> We’ve used the CK evaluator for Plutus Core to evaluate the program
+and check that the result was what we expected
 
 We can use normal Haskell datatypes and pattern matching freely:
 
@@ -185,8 +208,8 @@ matchMaybe = $$(compile [|| \(x:: Maybe Integer) -> case x of
 ----
 
 Unlike functions, datatypes do not need any kind of special annotation to be
-used inside the
-expression, hence we can use types like `Maybe` from the `Prelude`.
+used inside a
+quote, hence we can use types like `Maybe` from the Haskell `Prelude`.
 This works for your own datatypes too!
 
 Here’s a small example with a datatype of our own representing a
@@ -205,13 +228,47 @@ pastEnd = $$(compile [|| \(end::EndDate) (current::Integer) -> case end of
    ||])
 ----
 
-== The Plutus Tx Prelude and Plutus Tx Builtins
+We could also have defined the `pastEnd` function as a separate `INLINABLE`
+binding and just referred to it in the quote, but in this case it's small enough
+to just write in place.
+
+== Typeclasses
+
+So far we have used functions like `lessThanEqInteger` for comparing `Integer` s,
+which is much less convenient than `<` from the standard Haskell `Ord` typeclass.
+
+Fortunately, Plutus Tx does support typeclasses. Unfortunately, we need to
+redefine the standard typeclasses do so, since we require the class methods to
+be `INLINABLE`, and the implementations for types such as `Integer` use the
+Plutus Tx builtins.
+
+Redefined versions of many standard typeclasses are available in the Plutus Tx
+Prelude. As such you should be able to use typeclass functions in your Plutus Tx
+programs successfully.
+
+For example, here is a version of the `pastEnd` function using `<`. This will be
+compiled to exactly the same code as the previous definition.
+
+[source,haskell]
+----
+-- | Check whether a given time is past the end date.
+pastEnd' :: CompiledCode (EndDate -> Integer -> Bool)
+pastEnd' = $$(compile [|| \(end::EndDate) (current::Integer) -> case end of
+    Fixed n -> n < current
+    Never -> False
+   ||])
+----
+
+== The Plutus Tx Prelude
 
 The `Language.PlutusTx.Prelude` module is a drop-in replacement for the
-normal Haskell Prelude, but with some functions redefined to be easier
-for the Plutus Tx compiler to handle. You should use the Plutus Tx
-Prelude whenever you are writing code that you expect to compile with
-the Plutus Tx compiler.
+normal Haskell Prelude, but with some functions and typeclasses redefined to be easier
+for the Plutus Tx compiler to handle (i.e. `INLINABLE`).
+
+You should use the Plutus Tx Prelude whenever you are writing code that you expect to compile with
+the Plutus Tx compiler. All of the definitions in the Plutus Tx Prelude have
+working Haskell definitions, so you can use them in normal Haskell code too,
+although the Haskell Prelude versions will probably perform better.
 
 To use the Plutus Tx Prelude, use the `NoImplicitPrelude` language
 pragma, and import `Language.PlutusTx.Prelude`.
@@ -227,15 +284,23 @@ validation failure.
 == Lifting values
 
 So far we’ve seen how to define pieces of code _statically_ (when you
-compile your main Haskell program), but you are likely to want to do so
-_dynamically_ (when you run your main Haskell program). For example, you
+_compile_ your main Haskell program), but you are likely to want to generate code
+_dynamically_ (when you _run_ your main Haskell program). For example, you
 might be writing the body of a transaction to initiate a crowdfunding
-smart contract, which would need to be parameterized by user input
+smart contract, which would need to be parameterized by data
 determining the size of the goal, the campaign start and end times, etc.
 
-You can do this by writing the static code as a _function_, and then
-passing an argument at runtime by _lifting_ it and then applying the two
-programs together. As a very simple example, let’s write an add-one
+We can do this in the same way that we normally parameterize code in functional
+programming: we write the static code as a _function_, and we provide the
+argument later to configure it.
+
+In our case we have a complication, in that we want to make the argument and
+apply the function to it at runtime. Plutus Tx provides a mechanism to do this
+called _lifting_. Lifting makes it easy to use the same types
+both inside your Plutus Tx program and in the external code that uses
+it.
+
+As a very simple example, let’s write an add-one
 function.
 
 [source,haskell]
@@ -245,70 +310,60 @@ addOne = $$(compile [|| \(x:: Integer) -> x `addInteger` 1 ||])
 ----
 
 Now, suppose we want to apply this to `4` at runtime, giving us a
-program that computes to `5`. Well, we need to _lift_ the argument (`4`)
+program that computes to `5`. We need to _lift_ the argument (`4`)
 from Haskell to Plutus Core, and then we need to apply the function to
 it.
 
 [source,haskell]
 ----
+addOneToN :: Integer -> CompiledCode Integer
+addOneToN n =
+    addOne
+    `applyCode` -- <.>
+    unsafeLiftCode n -- <.>
+
 {- |
->>> let program = addOneToN 4
+>>> let program = getPlc $ addOneToN 4
 >>> pretty program
 (program 1.0.0
   [
     [
       (lam
         addInteger
-        (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] [(con integer) (con 8)]))
-        (lam ds [(con integer) (con 8)] [ [ addInteger ds ] (con 8 ! 1) ])
+        (fun (con integer) (fun (con integer) (con integer)))
+        (lam ds (con integer) [ [ addInteger ds ] (con 1) ])
       )
-      { (builtin addInteger) (con 8) }
+      (builtin addInteger)
     ]
-    (con 8 ! 4)
+    (con 4)
   ]
 )
 >>> pretty $ runCk program
-(con 8 ! 5)
+(con 5)
 -}
-addOneToN :: Integer -> CompiledCode Integer
-addOneToN n =
-    addOne
-    `applyCode` -- <1>
-    unsafeLiftCode n -- <2>
 ----
-<1> `applyCode` applies one `CompiledCode` to another.
-<2> `unsafeLiftCode` lifts the argument `n` into a `CompiledCode Integer`.
+<.> `applyCode` applies one `CompiledCode` to another.
+<.> `unsafeLiftCode` lifts the argument `n` into a `CompiledCode Integer`.
 
 We lifted the argument using the `unsafeLiftCode` function. In order to use this, a type
 must have an instance of the `Lift` class. In practice, you should
 generate these with the `makeLift` TH function from
-`Language.PlutusTx.Lift`. Lifting makes it easy to use the same types
-both inside your Plutus Tx program and in the external code that uses
-it.
+`Language.PlutusTx.Lift`.
 
 NOTE: `unsafeLiftCode` is "unsafe" because it ignores any errors that might occur from
 lifting something that isn't supported.
 
 The combined program applies the original compiled lambda to the lifted
 value (notice that the lambda is a bit complicated now since we have
-compiled the addition into a builtin). We’ve then used the CK evaluator
-for Plutus Core to evaluate the program and check that the result was
-what we expected
+compiled the addition into a builtin).
 
 Here’s an example with our custom datatype. The output is the encoded
 version of `False`.
 
 [source,haskell]
 ----
-makeLift ''EndDate
+makeLift ''EndDate -- <.>
 
-{- |
->>> let program = pastEndAt Never 5
->>> pretty $ runCk program
-(abs
-  out_Bool (type) (lam case_True out_Bool (lam case_False out_Bool case_False))
-)
--}
 pastEndAt :: EndDate -> Integer -> CompiledCode Bool
 pastEndAt end current =
     pastEnd
@@ -316,4 +371,13 @@ pastEndAt end current =
     unsafeLiftCode end
     `applyCode`
     unsafeLiftCode current
+
+{- |
+>>> let program = getPlc $ pastEndAt Never 5
+>>> pretty $ runCk program
+(abs
+  out_Bool (type) (lam case_True out_Bool (lam case_False out_Bool case_False))
+)
+-}
 ----
+<.> `makeLift` generates instances of `Lift` automatically.

@@ -164,7 +164,8 @@ let
     };
 
     docs = {
-      plutus-tutorial = pkgs.callPackage ./plutus-tutorial/doc {};
+      # this version of asciidoctor is also more recent, although we don't care about the epub bit
+      plutus-tutorial = pkgs.callPackage ./plutus-tutorial/doc { asciidoctor = asciidoctorWithEpub3; };
       plutus-contract = pkgs.callPackage ./plutus-contract/doc {};
       plutus-book = pkgs.callPackage ./plutus-book/doc { asciidoctor = asciidoctorWithEpub3; };
 
