@@ -194,9 +194,10 @@ inferTypeBuiltin lessThanEqualsInteger [] [] = just ((con integer ⇒ con intege
 inferTypeBuiltin greaterThanInteger As ts = {!!}
 inferTypeBuiltin greaterThanEqualsInteger As ts = {!!}
 inferTypeBuiltin equalsInteger As ts = {!!}
-inferTypeBuiltin concatenate As ts = {!!}
-inferTypeBuiltin takeByteString As ts = {!!}
 -}
+
+inferTypeBuiltin concatenate [] [] = just ((con bytestring ⇒ con bytestring ⇒ con bytestring) ,, ƛ "" (ƛ "" (builtin concatenate (λ()) (` (S Z) ,, ` Z ,, _))))
+inferTypeBuiltin takeByteString [] [] = just ((con integer ⇒ con bytestring ⇒ con bytestring) ,, ƛ "" (ƛ "" (builtin takeByteString (λ()) (` (S Z) ,, ` Z ,, _))))
 inferTypeBuiltin dropByteString [] [] = just ((con integer ⇒ con bytestring ⇒ con bytestring) ,, ƛ "" (ƛ "" (builtin dropByteString (λ()) (` (S Z) ,, ` Z ,, _))))
 {-
 inferTypeBuiltin sha2-256 As ts = {!!}
