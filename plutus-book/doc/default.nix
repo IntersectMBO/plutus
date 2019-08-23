@@ -2,11 +2,11 @@
 
 stdenv.mkDerivation {
   name = "plutus-book";
-  # The plutus book includes symlinks to literate Haskell files from the Marlowe package, 
+  # The plutus book includes symlinks to literate Haskell files other packages, 
   # so we need to includ those in our source, which awkwardly requires building up
   # a filtered source from the root instead. 
   src = lib.sourceFilesBySuffices 
-    (lib.sourceByRegex ../../. ["^plutus-book.*" "^marlowe.*"]) 
+    (lib.sourceByRegex ../../. ["^plutus-book.*" "^marlowe.*" "^plutus-tutorial.*" ]) 
     [ ".adoc" ".png" ".PNG" ".gif" ".jpg" ".ico" ".css" ".lhs" ];
   buildInputs = [ asciidoctor python2 ];
   buildPhase = ''
