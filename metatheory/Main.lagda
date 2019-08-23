@@ -139,7 +139,7 @@ tcPLC plc with parse plc
 ... | just t with deBruijnifyTm nil (convP t)
 ... | nothing = "scope error"
 ... | just t' with inferType _ t'
-... | just (A ,, t'') = prettyPrintTy (deDeBruijnify⋆ [] (extricateNf⋆ (nf A)))
+... | just (A ,, t'') = prettyPrintTy (deDeBruijnify⋆ [] (extricateNf⋆ A))
 ... | nothing = "type error"
 
 

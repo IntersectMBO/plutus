@@ -5,9 +5,12 @@ module Check where
 ```
 open import Scoped
 open import Type
-open import Declarative
+open import Type.BetaNormal
 open import Utils
 open import Builtin
+open import Type.Equality
+open import Type.BetaNBE
+open import Type.BetaNBE.Soundness
 
 open import Data.Nat
 open import Data.Fin
@@ -63,8 +66,8 @@ meqKind (K ⇒ J) (K' ⇒ J') with meqKind K K'
 ... | nothing = nothing
 ... | just q = just (cong₂ _⇒_ p q)
 
-inferKind : (Φ : Ctx⋆)(A : ScopedTy (len⋆ Φ)) → Maybe (Σ Kind (Φ ⊢⋆_))
-inferKind Φ (` α) = let K ,, β = inferTyVar Φ α in return (K ,, ` β)
+inferKind : (Φ : Ctx⋆)(A : ScopedTy (len⋆ Φ)) → Maybe (Σ Kind (Φ ⊢Nf⋆_))
+inferKind Φ (` α) = let K ,, β = inferTyVar Φ α in return (K ,, ne (` β))
 inferKind Φ (A ⇒ B) = do
   * ,, A ← inferKind Φ A
     where _ → nothing
@@ -83,7 +86,7 @@ inferKind Φ (A · B) = do
     where _ → nothing
   K' ,, B ← inferKind Φ B
   refl ← meqKind K K'
-  return (J ,, A · B)
+  return (J ,, nf (embNf A · embNf B))
 inferKind Φ (con tc)     = just (* ,, con tc)
 inferKind Φ (μ pat arg) = do
   (K ⇒ *) ⇒ K' ⇒ * ,, pat ← inferKind Φ pat
@@ -91,16 +94,19 @@ inferKind Φ (μ pat arg) = do
   K'' ,, arg ← inferKind Φ arg
   refl ← meqKind K K'
   refl ← meqKind K' K''
-  return (* ,, (μ1 · pat · arg))
+  return (* ,, ne (μ1 · pat · arg))
+
+open import Algorithmic
 
 len : ∀{Φ} → Ctx Φ → Weirdℕ (len⋆ Φ)
 len ∅        = Z
 len (Γ ,⋆ J) = Weirdℕ.T (len Γ)
 len (Γ , A)  = Weirdℕ.S (len Γ)
 
-open import Type.RenamingSubstitution hiding (subst)
-inferVarType : ∀{Φ}(Γ : Ctx Φ) → WeirdFin (len Γ) → Maybe (Σ (Φ ⊢⋆ *) λ A → Γ ∋ A)
-inferVarType (Γ ,⋆ J) (WeirdFin.T x) = Utils.map (λ {(A ,, x) → weaken A ,, _∋_.T x}) (inferVarType Γ x)
+open import Type.BetaNBE.RenamingSubstitution
+
+inferVarType : ∀{Φ}(Γ : Ctx Φ) → WeirdFin (len Γ) → Maybe (Σ (Φ ⊢Nf⋆ *) λ A → Γ ∋ A)
+inferVarType (Γ ,⋆ J) (WeirdFin.T x) = Utils.map (λ {(A ,, x) → weakenNf A ,, _∋_.T x}) (inferVarType Γ x)
 inferVarType (Γ , A)  Z              = just (A ,, Z)
 inferVarType (Γ , A)  (S x)          = Utils.map (λ {(A ,, x) → A ,, S x}) (inferVarType Γ x)
 
@@ -157,9 +163,6 @@ meqNeTy (_·_ {K = K} A B) (_·_ {K = K'} A' B') = do
 meqNeTy μ1 μ1 = just refl
 meqNeTy _  _  = nothing
 
-open import Type.Equality
-open import Type.BetaNBE
-open import Type.BetaNBE.Soundness
 
 inv-complete : ∀{Φ K}{A A' : Φ ⊢⋆ K} → nf A ≡ nf A' → A' ≡β A
 inv-complete {A = A}{A' = A'} p = trans≡β
@@ -167,19 +170,20 @@ inv-complete {A = A}{A' = A'} p = trans≡β
   (trans≡β (subst (λ A → embNf (nf A') ≡β A) (cong embNf (sym p)) (refl≡β (embNf (nf A'))))
            (sym≡β (soundness A)))
 
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as D
-open import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con boolean
+open import Function
+import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as A
+open import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
 open import Type.RenamingSubstitution
 
-inferTypeCon : ∀{Φ} → TermCon → Σ TyCon λ c → D.TermCon {Φ} (con c) 
-inferTypeCon (integer i)    = integer ,, D.integer i
-inferTypeCon (bytestring b) = bytestring ,, D.bytestring b
-inferTypeCon (string s)     = string ,, D.string s
+inferTypeCon : ∀{Φ} → TermCon → Σ TyCon λ c → A.TermCon {Φ} (con c) 
+inferTypeCon (integer i)    = integer ,, A.integer i
+inferTypeCon (bytestring b) = bytestring ,, A.bytestring b
+inferTypeCon (string s)     = string ,, A.string s
 
-inferType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ) → Maybe (Σ (Φ ⊢⋆ *) λ A → Γ ⊢ A)
+inferType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ) → Maybe (Σ (Φ ⊢Nf⋆ *) λ A → Γ ⊢ A)
 
 inferTypeBuiltin : ∀{Φ}{Γ : Ctx Φ}(bn : Builtin) → List (ScopedTy (len⋆ Φ)) → List (ScopedTm (len Γ))
-  → Maybe (Σ (Φ ⊢⋆ *) (Γ ⊢_))
+  → Maybe (Σ (Φ ⊢Nf⋆ *) (Γ ⊢_))
 inferTypeBuiltin addInteger [] [] = just ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin addInteger (λ()) (` (S Z) ,, ` Z ,, _))))
 inferTypeBuiltin subtractInteger [] [] = just ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin subtractInteger (λ()) (` (S Z) ,, ` Z ,, _))))
 inferTypeBuiltin multiplyInteger [] [] = just ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin multiplyInteger (λ()) (` (S Z) ,, ` Z ,, _))))
@@ -187,11 +191,11 @@ inferTypeBuiltin divideInteger [] [] = just ((con integer ⇒ con integer ⇒ co
 inferTypeBuiltin quotientInteger [] [] = just ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin quotientInteger (λ()) (` (S Z) ,, ` Z ,, _))))
 inferTypeBuiltin remainderInteger [] [] = just ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin remainderInteger (λ()) (` (S Z) ,, ` Z ,, _))))
 inferTypeBuiltin modInteger [] []  = just ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin modInteger (λ()) (` (S Z) ,, ` Z ,, _))))
-inferTypeBuiltin lessThanInteger [] [] = just ((con integer ⇒ con integer ⇒ boolean) ,, ƛ "" (ƛ "" (builtin lessThanInteger (λ()) (` (S Z) ,, ` Z ,, _))))
-inferTypeBuiltin lessThanEqualsInteger [] [] = just ((con integer ⇒ con integer ⇒ boolean) ,, ƛ "" (ƛ "" (builtin lessThanEqualsInteger (λ()) (` (S Z) ,, ` Z ,, _))))
-inferTypeBuiltin greaterThanInteger [] [] = just ((con integer ⇒ con integer ⇒ boolean) ,, ƛ "" (ƛ "" (builtin greaterThanInteger (λ()) (` (S Z) ,, ` Z ,, _))))
-inferTypeBuiltin greaterThanEqualsInteger As ts = just ((con integer ⇒ con integer ⇒ boolean) ,, ƛ "" (ƛ "" (builtin greaterThanEqualsInteger (λ()) (` (S Z) ,, ` Z ,, _))))
-inferTypeBuiltin equalsInteger As ts = just ((con integer ⇒ con integer ⇒ boolean) ,, ƛ "" (ƛ "" (builtin equalsInteger (λ()) (` (S Z) ,, ` Z ,, _))))
+inferTypeBuiltin lessThanInteger [] [] = just ((con integer ⇒ con integer ⇒ booleanNf) ,, ƛ "" (ƛ "" (builtin lessThanInteger (λ()) (` (S Z) ,, ` Z ,, _))))
+inferTypeBuiltin lessThanEqualsInteger [] [] = just ((con integer ⇒ con integer ⇒ booleanNf) ,, ƛ "" (ƛ "" (builtin lessThanEqualsInteger (λ()) (` (S Z) ,, ` Z ,, _))))
+inferTypeBuiltin greaterThanInteger [] [] = just ((con integer ⇒ con integer ⇒ booleanNf) ,, ƛ "" (ƛ "" (builtin greaterThanInteger (λ()) (` (S Z) ,, ` Z ,, _))))
+inferTypeBuiltin greaterThanEqualsInteger As ts = just ((con integer ⇒ con integer ⇒ booleanNf) ,, ƛ "" (ƛ "" (builtin greaterThanEqualsInteger (λ()) (` (S Z) ,, ` Z ,, _))))
+inferTypeBuiltin equalsInteger As ts = just ((con integer ⇒ con integer ⇒ booleanNf) ,, ƛ "" (ƛ "" (builtin equalsInteger (λ()) (` (S Z) ,, ` Z ,, _))))
 inferTypeBuiltin concatenate [] [] = just ((con bytestring ⇒ con bytestring ⇒ con bytestring) ,, ƛ "" (ƛ "" (builtin concatenate (λ()) (` (S Z) ,, ` Z ,, _))))
 inferTypeBuiltin takeByteString [] [] = just ((con integer ⇒ con bytestring ⇒ con bytestring) ,, ƛ "" (ƛ "" (builtin takeByteString (λ()) (` (S Z) ,, ` Z ,, _))))
 inferTypeBuiltin dropByteString [] [] = just ((con integer ⇒ con bytestring ⇒ con bytestring) ,, ƛ "" (ƛ "" (builtin dropByteString (λ()) (` (S Z) ,, ` Z ,, _))))
@@ -212,7 +216,7 @@ inferType Γ (L ·⋆ A)          = do
     where _ → nothing
   K' ,, A ← inferKind _ A
   refl ← meqKind K K'
-  return (B [ A ] ,, L ·⋆ A)
+  return (B [ A ]Nf ,, (L ·⋆ A))
 inferType Γ (ƛ x A L)         = do
   * ,, A ← inferKind _ A
     where _ → nothing
@@ -222,8 +226,8 @@ inferType Γ (L · M)           = do
   A ⇒ B ,, L ← inferType Γ L
     where _ → nothing
   A' ,, M ← inferType Γ M
-  p ← meqNfTy (nf A) (nf A') 
-  return (B ,, (L · conv (inv-complete p) M))
+  refl ← meqNfTy A A'
+  return (B ,, (L · M))
 inferType {Φ} Γ (con c)           = let
   tc ,, c = inferTypeCon {Φ} c in just (con tc ,, con c)
 inferType Γ (error A)         = do
@@ -239,15 +243,15 @@ inferType Γ (wrap pat arg L)  = do
   refl ← meqKind K' K''
   X ,, L ← inferType Γ L
   --v why is this eta expanded in the spec?
-  p ← meqNfTy (nf (pat · (μ1 · pat) · arg)) (nf X)
+  refl ← meqNfTy (nf (embNf pat · (μ1 · embNf pat) · embNf arg)) X
   return
-    (μ1 · pat · arg
+    (ne (μ1 · pat · arg)
     ,,
-    wrap1 pat arg (conv (inv-complete p) L))
+    wrap1 pat arg L)
 inferType Γ (unwrap L)        = do
-  μ1 · pat · arg ,, L ← inferType Γ L
+  ne (μ1 · pat · arg) ,, L ← inferType Γ L
     where _ → nothing
   --v why is this eta expanded in the spec?
-  return ((pat · (μ1 · pat) · arg) ,, unwrap1 L)
+  return (nf (embNf pat · (μ1 · embNf pat) · embNf arg) ,, unwrap1 L)
   
 ```
