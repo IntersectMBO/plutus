@@ -116,15 +116,24 @@ createContract validator contract value = do
 
 ----
 
-Prepare 'TxIn' and 'TxOut' generator for Marlowe style wallet actions.
-Explain more. A transaction that builds the set of TxIns and TxOuts.
+This function builds the `TxIn` and `TxOut` values for a transaction which
+uses Marlowe scripts to lock and unlock outputs. Depending on the `f` value
+passed to this function, one can use it to both make input and output
+values for a transaciton that pays to a Marlowe script and make values for
+a transaction that spends from a Marlowe script. The transaction that is
+getting submitted when calling `marloweTx` is actually built and submitted by
+the code in this `f` argument.
+
+The first argument of `marloweTx`, `inputState`, is passed the _data_ script
+in the case of paying _to_ the given `validator`, and as the _redeemer_ script
+for collecting from the validator script address. We will see how to use
+this function for both purposes.
 
 [source,haskell]
 ----
 
 marloweTx ::
     (Input, MarloweData)
-    -- ^ redeemer is passed here
     -> (TxOut, TxOutRef)
     -- ^ reference to Marlowe contract UTxO
     -> ValidatorScript
@@ -150,17 +159,19 @@ createRedeemer inputCommand oracles choices expectedState expectedCont =
     let input = Input inputCommand oracles choices
         mdata = MarloweData { marloweContract = expectedCont, marloweState = expectedState }
     in  (input, mdata)
+----
 
+Create a Marlowe Commit input transaction given expected output 'Contract' and 'State'.
 
-{-| Create a Marlowe Commit input transaction given expected output 'Contract' and 'State'.
--}
+[source,haskell]
+----
 commit :: (
     MonadError WalletAPIError m,
     WalletAPI m)
     => Tx
     -- ^ reference to Marlowe contract UTxO
     -> ValidatorScript
-    -- ^ actuall contract script
+    -- ^ actual contract script
     -> [OracleValue Integer]
     -- ^ Oracles values
     -> [Choice]
