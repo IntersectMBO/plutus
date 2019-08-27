@@ -110,17 +110,20 @@ instance Typed.ScriptType CrowdFunding where
 scriptInstance :: Campaign -> Typed.ScriptInstance CrowdFunding
 scriptInstance cmp = Typed.Validator $ $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.unsafeLiftCode cmp
 
+{-# INLINABLE validRefund #-}
 validRefund :: Campaign -> PubKey -> PendingTx -> Bool
 validRefund campaign contributor ptx =
     Interval.contains (refundRange campaign) (pendingTxValidRange ptx)
     && (ptx `V.txSignedBy` contributor)
 
+{-# INLINABLE validCollection #-}
 validCollection :: Campaign -> PendingTx -> Bool
 validCollection campaign p =
     (collectionRange campaign `Interval.contains` pendingTxValidRange p)
     && (valueSpent p `VTH.geq` campaignTarget campaign)
     && (p `V.txSignedBy` campaignOwner campaign)
 
+{-# INLINABLE mkValidator #-}
 mkValidator :: Campaign -> (PubKey -> CampaignAction -> PendingTx -> Bool)
 mkValidator c con act p = case act of
     Refund  -> validRefund c con p

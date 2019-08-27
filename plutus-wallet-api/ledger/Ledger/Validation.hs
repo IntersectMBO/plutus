@@ -22,6 +22,7 @@ module Ledger.Validation
     , PendingTxOutType(..)
     , findDataScriptOutputs
     , findContinuingOutputs
+    , getContinuingOutputs
     -- ** Hashes (see note [Hashes in validator scripts])
     , TxHash(..)
     , plcTxHash
@@ -140,6 +141,17 @@ findContinuingOutputs PendingTx{pendingTxIn=PendingTxIn{pendingTxInWitness=Just(
         f _ = False
 -- Not spending a script output
 findContinuingOutputs _ = []
+
+{-# INLINABLE getContinuingOutputs #-}
+getContinuingOutputs :: PendingTx -> [PendingTxOut]
+getContinuingOutputs PendingTx{pendingTxIn=PendingTxIn{pendingTxInWitness=Just(inpHsh, _)}, pendingTxOutputs=outs} = filter f outs
+    where
+        f PendingTxOut{pendingTxOutHashes=(Just (outHsh, _))} = outHsh == inpHsh
+        f _ = False
+-- Not spending a script output
+getContinuingOutputs _ = []
+
+
 
 {- Note [Oracles]
 I'm not sure how oracles are going to work eventually, so I'm going to use this

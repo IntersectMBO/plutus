@@ -38,6 +38,7 @@ import           GHC.Generics      (Generic)
 import           Ledger            (Address, DataScript, PubKey, RedeemerScript, TxOut, TxOutRef, ValidatorScript)
 import qualified Ledger            as L
 import           Ledger.AddressMap (AddressMap)
+import           Ledger.Index      (minFee)
 import qualified Ledger.Interval   as I
 import           Ledger.Slot       (SlotRange)
 import qualified Ledger.Tx         as Tx
@@ -77,7 +78,8 @@ emptyTx = UnbalancedTx mempty mempty mempty mempty I.always
 --   does not have any signatures, and is potentially unbalanced (ie. invalid).
 --   To produce a balanced 'Tx', use 'Language.Plutus.Contract.Wallet.balanceTx'.
 toLedgerTx :: UnbalancedTx -> L.Tx
-toLedgerTx utx = L.Tx
+toLedgerTx utx =
+    let tx = L.Tx
             { L.txInputs = _inputs utx
             , L.txOutputs = _outputs utx
             , L.txForge = _forge utx
@@ -85,6 +87,7 @@ toLedgerTx utx = L.Tx
             , L.txValidRange = _validityRange utx
             , L.txSignatures = Map.empty
             }
+     in tx { L.txFee = minFee tx }
 
 -- | Combine two unbalanced transactions by appending their respective inputs,
 --   outputs, and signatures, adding their forged values, and applying the

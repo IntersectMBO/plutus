@@ -19,6 +19,7 @@ module Ledger.Index(
     lkpOutputs,
     ValidationError(..),
     InOutMatch(..),
+    minFee,
     -- * Actual validation
     validateTransaction
     ) where
@@ -102,6 +103,8 @@ data ValidationError =
     | ForgeWithoutScript Scripts.ValidatorHash
     -- ^ The transaction attempts to forge value of a currency without spending
     --   a script output from the address of the currency's monetary policy.
+    | TransactionFeeTooLow Ada.Ada Ada.Ada
+    -- ^ The transaction fee is lower than the minimum acceptable fee.
     deriving (Eq, Show, Generic)
 
 instance FromJSON ValidationError
@@ -138,6 +141,7 @@ validateTransaction h t = do
     -- see note [Forging of Ada]
     emptyUtxoSet <- reader (Map.null . getIndex)
     unless emptyUtxoSet (checkForgingAuthorised t)
+    unless emptyUtxoSet (checkTransactionFee t)
 
     _ <- checkValidInputs t
     insert t <$> ask
@@ -263,6 +267,18 @@ checkPositiveValues t =
     if validValuesTx t
     then pure ()
     else throwError $ NegativeValue t
+
+-- | Minimum transaction fee.
+minFee :: Tx -> Ada.Ada
+minFee = const (Ada.lovelaceOf 0)
+
+-- | Check that transaction fee is bigger than the minimum fee.
+--   Skip the check on the first transaction (no inputs).
+checkTransactionFee :: ValidationMonad m => Tx -> m ()
+checkTransactionFee tx =
+    if minFee tx <= txFee tx
+    then pure ()
+    else throwError $ TransactionFeeTooLow (txFee tx) (minFee tx)
 
 -- | Create the data about the transaction which will be passed to a validator script.
 validationData :: ValidationMonad m => Tx -> m (PendingTx, DataScripts)

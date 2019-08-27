@@ -98,7 +98,7 @@ canRetrieveFunds = checkVestingTrace scen1 $ do
     updateAll
     traverse_ (uncurry assertOwnFundsEq) [
         (w2, w2Funds),
-        (w1, Value.plus startingBalance amt)]
+        (w1, 1 `timesFeeAdjustV` Value.plus startingBalance amt)]
 
 cannotRetrieveTooMuch :: Property
 cannotRetrieveTooMuch = checkVestingTrace scen1 $ do
@@ -135,7 +135,7 @@ canRetrieveFundsAtEnd = checkVestingTrace scen1 $ do
     -- vesting scheme.
     traverse_ (uncurry assertOwnFundsEq) [
         (w2, w2Funds),
-        (w1, Value.plus startingBalance total)]
+        (w1, 1 `timesFeeAdjustV` Value.plus startingBalance total)]
 
 -- | Vesting scenario with test parameters
 data VestingScenario = VestingScenario {
@@ -152,7 +152,7 @@ startingBalance = Ada.adaValueOf 1000
 -- | Amount of money left in wallet `Wallet 2` after committing funds to the
 --   vesting scheme
 w2Funds :: Ledger.Value
-w2Funds = Value.minus startingBalance total
+w2Funds = 1 `timesFeeAdjustV` (startingBalance `Value.minus` total)
 
 -- | Total amount of money vested in the scheme `scen1`
 total :: Value
