@@ -60,15 +60,15 @@ data _≡β_ {Γ} : ∀{J} → Γ ⊢⋆ J → Γ ⊢⋆ J → Set where
       ---------------------
     → (A ⇒ B) ≡β (A' ⇒ B')
     
-  Π≡β : ∀{J}{B B' : Γ ,⋆ J ⊢⋆ *}{x}
+  Π≡β : ∀{J}{B B' : Γ ,⋆ J ⊢⋆ *} x x'
     → B ≡β B'
       -------
-    → Π x B ≡β Π x B'
+    → Π x B ≡β Π x' B'
     
-  ƛ≡β : ∀{K J}{B B' : Γ ,⋆ J ⊢⋆ K}{x}
+  ƛ≡β : ∀{K J}{B B' : Γ ,⋆ J ⊢⋆ K} x x'
     → B ≡β B'
       ---------------
-    → ƛ x B ≡β ƛ x B'
+    → ƛ x B ≡β ƛ x' B'
     
   ·≡β : ∀{K J}{A A' : Γ ⊢⋆ K ⇒ J}{B B' : Γ ⊢⋆ K}
     → A ≡β A'
@@ -80,7 +80,7 @@ data _≡β_ {Γ} : ∀{J} → Γ ⊢⋆ J → Γ ⊢⋆ J → Set where
 
   -- computation rule
 
-  β≡β : ∀{K J x}
+  β≡β : ∀{K J} x
     → (B : Γ ,⋆ J ⊢⋆ K)
     → (A : Γ ⊢⋆ J)
       ------------------------
@@ -102,15 +102,15 @@ ren≡β ρ (refl≡β A)    = refl≡β (ren ρ A)
 ren≡β ρ (sym≡β p)     = sym≡β (ren≡β ρ p)
 ren≡β ρ (trans≡β p q) = trans≡β (ren≡β ρ p) (ren≡β ρ q)
 ren≡β ρ (⇒≡β p q)     = ⇒≡β (ren≡β ρ p) (ren≡β ρ q)
-ren≡β ρ (Π≡β p)       = Π≡β (ren≡β (ext ρ) p)
-ren≡β ρ (ƛ≡β p)       = ƛ≡β (ren≡β (ext ρ) p)
+ren≡β ρ (Π≡β x x' p)  = Π≡β x x' (ren≡β (ext ρ) p)
+ren≡β ρ (ƛ≡β x x' p)  = ƛ≡β x x' (ren≡β (ext ρ) p)
 ren≡β ρ (·≡β p q)     = ·≡β (ren≡β ρ p) (ren≡β ρ q)
-ren≡β ρ (β≡β B A)     =
-  substEq (ren ρ ((ƛ _ B) · A) ≡β_)
+ren≡β ρ (β≡β x B A)     =
+  substEq (ren ρ ((ƛ x B) · A) ≡β_)
           (trans (sym (subst-ren B))
                  (trans (subst-cong (ren-subst-cons ρ A) B)
                         (ren-subst B)))
-          (β≡β _ _)
+          (β≡β x _ _)
 \end{code}
 
 ## Substitution for proofs of type equality
@@ -125,13 +125,13 @@ subst≡β σ (refl≡β A)    = refl≡β (subst σ A)
 subst≡β σ (sym≡β p)     = sym≡β (subst≡β σ p)
 subst≡β σ (trans≡β p q) = trans≡β (subst≡β σ p) (subst≡β σ q) 
 subst≡β σ (⇒≡β p q)     = ⇒≡β (subst≡β σ p) (subst≡β σ q)
-subst≡β σ (Π≡β p)       = Π≡β (subst≡β (exts σ) p)
-subst≡β σ (ƛ≡β p)       = ƛ≡β (subst≡β (exts σ) p)
+subst≡β σ (Π≡β x x' p)  = Π≡β x x' (subst≡β (exts σ) p)
+subst≡β σ (ƛ≡β x x' p)  = ƛ≡β x x' (subst≡β (exts σ) p)
 subst≡β σ (·≡β p q)     = ·≡β (subst≡β σ p) (subst≡β σ q)
-subst≡β σ (β≡β B A)     =
-  substEq (subst σ ((ƛ _ B) · A) ≡β_)
+subst≡β σ (β≡β x B A)   =
+  substEq (subst σ ((ƛ x B) · A) ≡β_)
           (trans (trans (sym (subst-comp B))
                         (subst-cong (subst-subst-cons σ A) B))
           (subst-comp B))
-          (β≡β _ _)
+          (β≡β x _ _)
 \end{code}

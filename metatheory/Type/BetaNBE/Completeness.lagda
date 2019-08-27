@@ -8,12 +8,13 @@ open import Type.Equality
 open import Type.RenamingSubstitution
 open import Type.BetaNormal
 open import Type.BetaNBE
-
+open _·×_
 open import Relation.Binary.PropositionalEquality hiding (subst)
 open import Data.Sum
 open import Data.Empty
 open import Data.Product
 open import Function
+open import Data.String
 \end{code}
 
 \begin{code}
@@ -28,13 +29,15 @@ CR *       n        n'        = n ≡ n'
 CR (K ⇒ J) (inj₁ n) (inj₁ n') = n ≡ n' -- reify (inj₁ n) ≡ reify (inj₁ n')
 CR (K ⇒ J) (inj₂ f) (inj₁ n') = ⊥
 CR (K ⇒ J) (inj₁ n) (inj₂ f)  = ⊥
-CR (K ⇒ J) (inj₂ (x , f)) (inj₂ (x' , f')) =
+CR (K ⇒ J) (inj₂ (x ·, f)) (inj₂ (x' ·, f')) =
   Unif f
   ×
   Unif f'
   ×
-  x ≡ x'
-  × 
+  String
+  ·×
+  String
+  ·× 
   ∀ {Ψ}
      → (ρ : Ren _ Ψ)
      → {v v' : Val Ψ K}
@@ -67,8 +70,8 @@ symCR {K = *}                        p              = sym p
 symCR {K = K ⇒ J} {inj₁ n} {inj₁ n'} p              = sym p
 symCR {K = K ⇒ J} {inj₁ n} {inj₂ f'} ()
 symCR {K = K ⇒ J} {inj₂ f} {inj₁ n'} ()
-symCR {K = K ⇒ J} {inj₂ f} {inj₂ f'} (p , p' , p'' , p''') =
-  p' , p , sym p'' , λ ρ q → symCR (p''' ρ (symCR q))
+symCR {K = K ⇒ J} {inj₂ f} {inj₂ f'} (p , p' , (x ·, x' ·, p''')) = 
+   p' , p , (x' ·, x ·, λ ρ q → symCR (p''' ρ (symCR q)))
 
 transCR : ∀{Φ K} {v v' v'' : Val Φ K}
   → CR K v v'
@@ -83,8 +86,8 @@ transCR {K = K ⇒ J} {inj₁ n} {inj₁ n'} {inj₂ f''} p              ()
 transCR {K = K ⇒ J} {inj₁ n} {inj₂ f'}            ()             q
 transCR {K = K ⇒ J} {inj₂ f} {inj₁ n'}            ()             q
 transCR {K = K ⇒ J} {inj₂ f} {inj₂ f'} {inj₁ n}   p              ()
-transCR {K = K ⇒ J} {inj₂ f} {inj₂ f'} {inj₂ f''} (p , p' , p'' , p''') (q , q' , q'' , q''')
- = p , q' , trans p'' q'' , λ ρ r → transCR (p''' ρ r) (q''' ρ (transCR (symCR r) r))
+transCR {K = K ⇒ J} {inj₂ f} {inj₂ f'} {inj₂ f''} (p , p' , (x ·, x' ·, p''')) (q , q' , (x'' ·, x''' ·, q'''))
+  = p , q' , (x ·, x''' ·, λ ρ r → transCR (p''' ρ r) (q''' ρ (transCR (symCR r) r)))
 
 reflCR : ∀{Φ K}{v v' : Val Φ K}
   → CR K v v'
@@ -117,8 +120,8 @@ reifyCR {K = *    }                    p              = p
 reifyCR {K = K ⇒ J} {inj₁ n} {inj₁ n'} p              = cong ne p
 reifyCR {K = K ⇒ J} {inj₁ n} {inj₂ f'} ()             
 reifyCR {K = K ⇒ J} {inj₂ f} {inj₁ n'} ()             
-reifyCR {K = K ⇒ J} {inj₂ (x , f)} {inj₂ (x' , f')} (p , p' , p'' , p''') =
-  cong₂ ƛ p'' (reifyCR (p''' S (reflectCR refl)))
+reifyCR {K = K ⇒ J} {inj₂ (_ ·, f)} {inj₂ (_ ·, f')} (p , p' , (_ ·, _ ·, p''))
+  = cong (ƛ _) (reifyCR (p'' S (reflectCR refl)))
 \end{code}
 
 'equality' for environements/CR lifted from values to environements
@@ -154,7 +157,7 @@ AppCR {f = inj₁ n} {inj₁ .n} refl           q =
   reflectCR (cong (n ·_) (reifyCR q))
 AppCR {f = inj₁ n} {inj₂ f'} ()             q
 AppCR {f = inj₂ f} {inj₁ n}  ()             q
-AppCR {f = inj₂ f} {inj₂ f'} (p , p' , p'' , p''') q = p''' id q
+AppCR {f = inj₂ f} {inj₂ f'} (p , p' , (_ ·, _ ·, p'')) q = p'' id q
 \end{code}
 
 renVal commutes with reflect
@@ -181,8 +184,10 @@ ren-reify {*}                            refl           ρ = refl
 ren-reify {K ⇒ J} {v = inj₁ n} {inj₁ .n} refl           ρ = refl
 ren-reify {K ⇒ J} {v = inj₁ n} {inj₂ f'} ()             ρ
 ren-reify {K ⇒ J} {v = inj₂ f} {inj₁ n'} ()             ρ
-ren-reify {K ⇒ J} {v = inj₂ f} {inj₂ f'} (p , p' , p'' , p''') ρ =
- cong₂ ƛ p'' (trans (ren-reify (p''' S (reflectCR (refl {x = ` Z}))) (ext ρ)) (reifyCR (transCR ( p' S (ext ρ) _ _ (reflectCR refl) ) (AppCR {f = renVal (S ∘ ρ) (inj₂ f')}{renVal (S ∘ ρ) (inj₂ f')} ((λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , (λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , refl , λ ρ' q → (proj₂ (proj₂ (proj₂ (reflCR (symCR (p , p' , p'' , p'''))))) (ρ' ∘ S ∘ ρ) q)) (renVal-reflect (ext ρ) (` Z))))))
+ren-reify {K ⇒ J} {v = inj₂ f} {inj₂ f'} (p , p' , (x ·, x' ·, p'')) ρ =
+  cong (ƛ _)
+       (trans (ren-reify (p'' S (reflectCR (refl {x = ` Z}))) (ext ρ))
+              (reifyCR (transCR (p' S (ext ρ) _ _ (reflectCR refl)) (AppCR {f = renVal (S ∘ ρ) (inj₂ f')}{renVal (S ∘ ρ) (inj₂ f')} ((λ ρ' ρ'' v v' q → p' (ρ' ∘ S ∘ ρ) ρ'' v v' q) , (λ ρ' ρ'' v v' q → p' (ρ' ∘ S ∘ ρ) ρ'' v v' q) , (x ·, (x' ·, λ ρ' q → snd (snd (proj₂ (proj₂ (reflCR {v = inj₂ f'}{v' = inj₂ f} (symCR {v = inj₂ f}{v' = inj₂ f'}(p , p' , (x ·, x' ·, p''))))))) (ρ' ∘ S ∘ ρ) q))) (renVal-reflect (ext ρ) (` Z)) ))))
 \end{code}
 
 first functor law for renVal
@@ -214,14 +219,16 @@ renVal-comp {K ⇒ K₁} ρ ρ' {inj₁ n} {inj₁ n'} refl           =
   renNe-comp _
 renVal-comp {K ⇒ K₁} ρ ρ' {inj₁ x} {inj₂ y} ()
 renVal-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₁ x} ()
-renVal-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₂ y₁} (p , p' , p'' , p''') =
+renVal-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₂ y₁} (p , p' , (x ·, x' ·, p''')) =
   (λ ρ'' ρ''' v → p (ρ'' ∘ ρ' ∘ ρ) ρ''' v)
   ,
   (λ ρ'' ρ''' v → p' (ρ'' ∘ ρ' ∘ ρ) ρ''' v)
   ,
-  p''
-  ,
-  λ ρ'' q → p''' (ρ'' ∘ ρ' ∘ ρ) q
+  (x
+  ·,
+  x'
+  ·,
+  λ ρ'' q → p''' (ρ'' ∘ ρ' ∘ ρ) q)
 \end{code}
 
 CR is closed under renaming
@@ -235,14 +242,15 @@ renCR {K = *}                         ρ p              = cong (renNf ρ) p
 renCR {K = K ⇒ K₁} {inj₁ n} {inj₁ .n} ρ refl           = refl
 renCR {K = K ⇒ K₁} {inj₁ n} {inj₂ f'} ρ ()
 renCR {K = K ⇒ K₁} {inj₂ f} {inj₁ n'} ρ ()
-renCR {K = K ⇒ K₁} {inj₂ f} {inj₂ f'} ρ (p , p' , p'' , p''') =
+renCR {K = K ⇒ K₁} {inj₂ f} {inj₂ f'} ρ (p , p' , (x ·, x' ·, p''')) =
   (λ ρ' ρ'' v → p (ρ' ∘ ρ) ρ'' v)
   ,
   (λ ρ' ρ'' v → p' (ρ' ∘ ρ) ρ'' v)
   ,
-  p''
-  ,
-  λ ρ' q → p''' (ρ' ∘ ρ) q
+  (x
+  ·, x'
+  ·,
+  λ ρ' q → p''' (ρ' ∘ ρ) q)
 \end{code}
 
 CR is closed under application
@@ -263,7 +271,7 @@ renVal·V {J = J ⇒ K} ρ {inj₁ n} {inj₁ .n} refl      q =
        (trans ( ren-reify (reflCR q) ρ ) (reifyCR (renCR ρ q)))
 renVal·V ρ {inj₁ n} {inj₂ f}  ()                    q
 renVal·V ρ {inj₂ f} {inj₁ n'} ()                    q
-renVal·V ρ {inj₂ f} {inj₂ f'} (p , p' , p'' , p''') q =
+renVal·V ρ {inj₂ f} {inj₂ f'} (p , p' , (x ·, x' ·, p''')) q =
   transCR (p id ρ _ _ q) (p''' ρ (renCR ρ (reflCR (symCR q))))
 \end{code}
 
@@ -301,9 +309,11 @@ idext p (ƛ x B)     =
                 ; (S x) → symCR (renVal-comp ρ ρ' (reflCR (symCR (p x))))})
              B)) -- first two terms are identical (except for symCR (p x))
   ,
-  refl
-  ,
-  λ ρ q → idext (CR,,⋆ (renCR ρ ∘ p) q) B
+  (x
+  ·,
+  x
+  ·,
+  λ ρ q → idext (CR,,⋆ (renCR ρ ∘ p) q) B)
 idext p (A · B)     = AppCR (idext p A) (idext p B)
 idext p μ1          = refl
 idext p (con tcn)   = refl
@@ -321,7 +331,7 @@ renVal-eval (Π x B) p ρ =
              B))
 renVal-eval (A ⇒ B) p ρ =
   cong₂ _⇒_ (renVal-eval A p ρ) (renVal-eval B p ρ)
-renVal-eval (ƛ _ B) {η}{η'} p ρ =
+renVal-eval (ƛ x B) {η}{η'} p ρ =
   (λ ρ' ρ'' v v' q →
     transCR (renVal-eval B (CR,,⋆ (renCR (ρ' ∘ ρ) ∘ p) q) ρ'')
             (idext (λ { Z     → renCR ρ'' (reflCR (symCR q))
@@ -337,9 +347,11 @@ renVal-eval (ƛ _ B) {η}{η'} p ρ =
                   (renVal-comp ρ' ρ'' (renCR ρ (reflCR (symCR (p x)))))})
            B)) -- again two almost identical terms
   ,
-  refl
-  ,
-  λ ρ' q → idext (λ { Z → q ; (S x) → renVal-comp ρ ρ' (p x) }) B
+  (x
+  ·,
+  x
+  ·,
+  λ ρ' q → idext (λ { Z → q ; (S x) → renVal-comp ρ ρ' (p x) }) B)
 renVal-eval (A · B) p ρ = transCR
   (renVal·V ρ (idext (reflCR ∘ p) A) (idext (reflCR ∘ p) B))
   (AppCR (renVal-eval A p ρ) (renVal-eval B p ρ))
@@ -365,7 +377,7 @@ ren-eval (Π x B) p ρ =
        (idext (λ{ Z     → reflectCR refl
                 ; (S x) → (renCR S ∘ reflCR ∘ symCR ∘ p) (ρ x)}) B))
 ren-eval (A ⇒ B) p ρ = cong₂ _⇒_ (ren-eval A p ρ) (ren-eval B p ρ) 
-ren-eval (ƛ _ B) p ρ =
+ren-eval (ƛ x B) p ρ =
   (λ ρ' ρ'' v v' q → transCR
      (renVal-eval (ren (ext ρ) B) (CR,,⋆ (renCR ρ' ∘ reflCR ∘ p) q) ρ'')
      (idext (λ { Z → renCR ρ'' (reflCR (symCR q))
@@ -379,12 +391,14 @@ ren-eval (ƛ _ B) p ρ =
                    (renVal-comp ρ' ρ'' (reflCR (symCR (p (ρ x)))))})
            B))
   ,
-  refl
-  ,
+  (x
+  ·,
+  x
+  ·,
   λ ρ' q → transCR
     (ren-eval B (CR,,⋆ (renCR ρ' ∘ p) q) (ext ρ))
     (idext (λ { Z     → reflCR (symCR q)
-              ; (S x) → renCR ρ' (reflCR (symCR (p (ρ x)))) }) B)
+              ; (S x) → renCR ρ' (reflCR (symCR (p (ρ x)))) }) B))
 ren-eval (A · B) p ρ = AppCR (ren-eval A p ρ) (ren-eval B p ρ)
 ren-eval μ1          p ρ = refl
 ren-eval (con tcn)   p ρ = refl
@@ -410,7 +424,7 @@ subst-eval (Π x B)    p σ = cong (Π x) (trans
                 (symCR (renVal-eval (σ x)  (reflCR ∘ symCR ∘ p) S)) })
          B))
 subst-eval (A ⇒ B)    p σ = cong₂ _⇒_ (subst-eval A p σ) (subst-eval B p σ)
-subst-eval (ƛ _ B)      p σ =
+subst-eval (ƛ x B)      p σ =
   (λ ρ ρ' v v' q → transCR
      (renVal-eval (subst (exts σ) B) (CR,,⋆ (renCR ρ ∘ reflCR ∘ p) q) ρ')
      (idext (λ { Z     → renCR ρ' (reflCR (symCR q))
@@ -424,8 +438,10 @@ subst-eval (ƛ _ B)      p σ =
                    (renVal-comp ρ ρ' (idext (reflCR ∘ symCR ∘ p) (σ x)))})
            B))
   ,
-  refl
-  ,
+  (x
+  ·,
+  x
+  ·,
   λ ρ q → transCR (subst-eval B (CR,,⋆ (renCR ρ ∘ p) q) (exts σ))
     (idext (λ { Z     → reflCR (symCR q)
               ; (S x) → transCR
@@ -434,7 +450,7 @@ subst-eval (ƛ _ B)      p σ =
                      (CR,,⋆ (renCR ρ ∘ reflCR ∘ symCR ∘ p) (reflCR (symCR q)))
                      S)
                    (symCR (renVal-eval (σ x) (reflCR ∘ symCR ∘ p) ρ))})
-           B)
+           B))
 subst-eval (A · B)    p σ = AppCR (subst-eval A p σ) (subst-eval B p σ)
 subst-eval μ1          p ρ = refl                 
 subst-eval (con tcn) p ρ   = refl
@@ -451,9 +467,9 @@ fund p (refl≡β A)          = idext p A
 fund p (sym≡β q)           = symCR (fund (symCR ∘ p) q)
 fund p (trans≡β q r)       = transCR (fund (reflCR ∘ p) q) (fund p r)
 fund p (⇒≡β q r)           = cong₂ _⇒_ (fund p q) (fund p r)
-fund p (Π≡β q)             =
+fund p (Π≡β x y q)         =
   cong (Π _) (fund (CR,,⋆ (renCR S ∘ p) (reflectCR refl)) q)
-fund p (ƛ≡β {B = B}{B'} q) =
+fund p (ƛ≡β {B = B}{B'}x y q) =
   (λ ρ ρ' v v' r → transCR
     (renVal-eval B (CR,,⋆ (renCR ρ ∘ reflCR ∘ p) r) ρ')
     (idext (λ { Z → renCR ρ' (reflCR (symCR r))
@@ -466,11 +482,13 @@ fund p (ƛ≡β {B = B}{B'} q) =
                ; (S x) → symCR (renVal-comp ρ ρ' (reflCR (symCR (p x))))})
             B'))
   ,
-  refl
-  ,
-  λ ρ r → fund (CR,,⋆ (renCR ρ ∘ p) r) q
+  (x
+  ·,
+  y
+  ·,
+  λ ρ r → fund (CR,,⋆ (renCR ρ ∘ p) r) q)
 fund p (·≡β q r) = AppCR (fund p q) (fund p r)
-fund p (β≡β B A) =
+fund p (β≡β x B A) =
   transCR (idext (λ { Z     → idext (reflCR ∘ p) A
                     ; (S x) → renVal-id (reflCR (p x))})
                  B)

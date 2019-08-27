@@ -104,7 +104,7 @@ data _⊢⋆_ : Ctx⋆ → Kind → Set where
     → Φ ⊢⋆ J
 
   Π : ∀ {Φ K}
-    → String
+    → .String
     → Φ ,⋆ K ⊢⋆ *
       -----------
     → Φ ⊢⋆ *
@@ -116,7 +116,7 @@ data _⊢⋆_ : Ctx⋆ → Kind → Set where
     → Φ ⊢⋆ *
 
   ƛ :  ∀ {Φ K J}
-    → String
+    → .String
     → Φ ,⋆ K ⊢⋆ J 
       -----------
     → Φ ⊢⋆ K ⇒ J
