@@ -133,6 +133,10 @@ open import Check hiding (_>>=_)
 open import Scoped.Extrication
 open import Type.BetaNBE
 
+junk : ∀{n} → Vec String n
+junk {zero}      = []
+junk {Nat.suc n} = Data.Integer.show (pos n) ∷ junk
+
 tcPLC : ByteString → String
 tcPLC plc with parse plc
 ... | nothing = "parse error"
@@ -146,12 +150,18 @@ tcPLC plc with parse plc
 ... | inj₂ notFunction = "notFunction"
 ... | inj₂ notPiError = "notPiError"
 ... | inj₂ notPat = "notPat"
-... | inj₂ nameError = "nameError"
-... | inj₂ typeEqError = "typeEqError"
+... | inj₂ (nameError x x') = x Data.String.++ " != " Data.String.++ x'
+... | inj₂ (typeEqError n n') =
+  prettyPrintTy (deDeBruijnify⋆ junk (extricateNf⋆ n))
+  Data.String.++
+  "\n != \n"
+  Data.String.++
+  prettyPrintTy (deDeBruijnify⋆ junk (extricateNf⋆ n'))
+  
 ... | inj₂ typeVarEqError = "typeVarEqError"
-... | inj₂ tyConError = "tyConError"
-... | inj₂ builtinError = "builtinError"
-... | inj₂ unwrapError = "unwrapError"
+... | inj₂ tyConError     = "tyConError"
+... | inj₂ builtinError   = "builtinError"
+... | inj₂ unwrapError    = "unwrapError"
 
 
 

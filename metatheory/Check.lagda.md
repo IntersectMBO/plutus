@@ -12,6 +12,7 @@ open import Type.Equality
 open import Type.BetaNBE
 open import Type.BetaNBE.Soundness
 
+open import Data.String
 open import Data.Nat
 open import Data.Fin
 open import Data.Product renaming (_,_ to _,,_)
@@ -36,8 +37,8 @@ data Error : Set where
   notFunction : Error
   notPiError : Error
   notPat : Error
-  nameError : Error 
-  typeEqError : Error
+  nameError : String → String → Error 
+  typeEqError : ∀{Φ K} → Φ ⊢Nf⋆ K → Φ ⊢Nf⋆ K → Error
   typeVarEqError : Error
   tyConError : Error
   builtinError : Error
@@ -128,13 +129,14 @@ inferVarType (Γ , A)  Z              = inj₁ (A ,, Z)
 inferVarType (Γ , A)  (S x)          =
   Data.Sum.map (λ {(A ,, x) → A ,, S x}) id (inferVarType Γ x)
 
+open import Data.String.Properties
+
 open import Relation.Binary hiding (_⇒_)
-dec2⊎Err : {A : Set}{a a' : A} → Dec (a ≡ a') → (a ≡ a') ⊎ Error
+dec2⊎Err : {a a' : String} → Dec (a ≡ a') → (a ≡ a') ⊎ Error
 dec2⊎Err (yes p) = inj₁ p
-dec2⊎Err (no ¬p) = inj₂ nameError
+dec2⊎Err {a}{a'}(no ¬p) = inj₂ (nameError a a')
 
 open import Type.BetaNormal
-open import Data.String.Properties
 
 
 meqTyVar : ∀{Φ K}(α α' : Φ ∋⋆ K) → (α ≡ α') ⊎ Error
@@ -163,13 +165,18 @@ meqNfTy (ƛ x A) (ƛ x' A') = do
   refl ← dec2⊎Err (x Data.String.Properties.≟ x') 
   refl ← meqNfTy A A'
   return refl
+meqNfTy (Π {K = K} x A) (Π {K = K'} x' A') = do
+  refl ← meqKind K K' 
+  refl ← dec2⊎Err (x Data.String.Properties.≟ x') 
+  refl ← meqNfTy A A'
+  return refl
 meqNfTy (con c) (con c')  = do
   refl ← meqTyCon c c'
   return refl
 meqNfTy (ne n)  (ne n')   = do
   refl ← meqNeTy n n'
   return refl
-meqNfTy _      _          = inj₂ typeEqError
+meqNfTy n      n'          = inj₂ (typeEqError n n')
 
 meqNeTy (` α) (` α')      = do
   refl ← meqTyVar α α'
@@ -180,7 +187,7 @@ meqNeTy (_·_ {K = K} A B) (_·_ {K = K'} A' B') = do
   refl ← meqNfTy B B'
   return refl
 meqNeTy μ1 μ1 = return refl
-meqNeTy _  _  = inj₂ typeEqError
+meqNeTy n  n'  = inj₂ (typeEqError (ne n) (ne n'))
 
 
 inv-complete : ∀{Φ K}{A A' : Φ ⊢⋆ K} → nf A ≡ nf A' → A' ≡β A
