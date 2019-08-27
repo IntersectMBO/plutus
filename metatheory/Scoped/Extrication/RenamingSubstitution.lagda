@@ -88,7 +88,7 @@ ren-extricateNf⋆ ρ⋆ (Π x A)  =
 ren-extricateNf⋆ ρ⋆ (A ⇒ B)  =
   cong₂ _⇒_ (ren-extricateNf⋆ ρ⋆ A) (ren-extricateNf⋆ ρ⋆ B)
 ren-extricateNf⋆ ρ⋆ (ƛ x A)  =
-  cong (ƛ x _)
+  cong (ƛ (irrAx x) _)
        (trans (ren⋆-cong (lift⋆-ext ρ⋆) (extricateNf⋆ A)) (ren-extricateNf⋆ (T.ext ρ⋆) A))
 ren-extricateNf⋆ ρ⋆ (ne A)   = ren-extricateNe⋆ ρ⋆ A
 ren-extricateNf⋆ ρ⋆ (con c)  = refl

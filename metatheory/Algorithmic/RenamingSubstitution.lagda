@@ -82,8 +82,8 @@ ren ρ⋆ ρ (` x)    = ` (ρ x)
 ren ρ⋆ ρ (ƛ x N)    = ƛ x (ren ρ⋆ (ext ρ⋆ ρ) N)
 ren ρ⋆ ρ (L · M)  = ren ρ⋆ ρ L · ren ρ⋆ ρ M 
 ren ρ⋆ ρ (Λ x N)    = Λ x (ren (⋆.ext ρ⋆) (ext⋆ ρ⋆ ρ) N)
-ren ρ⋆ ρ (_·⋆_ {B = B} t A) =
-  conv⊢ (sym (ren[]Nf ρ⋆ B A)) (ren ρ⋆ ρ t ·⋆ renNf ρ⋆ A)
+ren ρ⋆ ρ (_·⋆_ {x = x}{B = B} t A) =
+  conv⊢ (sym (ren[]Nf ρ⋆ B A)) (_·⋆_ {x = x} (ren ρ⋆ ρ t) (renNf ρ⋆ A))
 ren ρ⋆ ρ (wrap1 pat arg term) = wrap1
   (renNf ρ⋆ pat)
   (renNf ρ⋆ arg)

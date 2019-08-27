@@ -177,11 +177,11 @@ same {Γ = Γ} (t D.· u) = trans
 same {Γ = Γ} (D.Λ {B = B} x t) = trans
   (same t)
   (cong (subst _⊢ (lenLemma Γ)) (lem-erase (substNf-lemma' B) (nfType t)))
-same {Γ = Γ} (D._·⋆_ {B = B} t A) = trans
+same {Γ = Γ} (D._·⋆_ {B = B}{x = x} t A) = trans
   (same t)
   (cong (subst _⊢ (lenLemma Γ))
-        (trans (lem-erase (lemΠ B) (nfType t))
-               (lem-erase (lem[] A B) (conv⊢ (lemΠ B) (nfType t) ·⋆ nf A))))
+        (trans (lem-erase (lemΠ B x) (nfType t))
+               (lem-erase (lem[] A B) (conv⊢ (lemΠ B x) (nfType t) ·⋆ nf A))))
 same {Γ = Γ} (D.wrap1 pat arg t) = trans
   (same t)
   (cong (subst _⊢ (lenLemma Γ)) (lem-erase (lemXX pat arg) (nfType t)))

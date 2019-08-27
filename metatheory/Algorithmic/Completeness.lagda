@@ -27,9 +27,9 @@ nfTyVar (Syn.S α) =  Norm.S (nfTyVar α)
 nfTyVar {Γ = Γ Syn.,⋆ K} (Syn.T {A = A} α) =
   Norm.conv∋ (ren-nf S A) (Norm.T (nfTyVar α))
 
-lemΠ : ∀{Γ K }(B : Γ ,⋆ K ⊢⋆ *){x} →
+lemΠ : ∀{Γ K }(B : Γ ,⋆ K ⊢⋆ *) .x →
        nf (Π x B) ≡ Π x (nf B)
-lemΠ B = cong (Π _) (sym (substNf-lemma' B))
+lemΠ B x = cong (Π _) (sym (substNf-lemma' B))
 
 open import Type.Equality
 open import Type.BetaNBE.Soundness
@@ -215,8 +215,8 @@ nfType (Syn.` α) = Norm.` (nfTyVar α)
 nfType {Γ} (Syn.ƛ x t) = Norm.ƛ x (nfType t)
 nfType {Γ} (t Syn.· u) = nfType t Norm.· nfType u
 nfType {Γ} (Syn.Λ {B = B} x t) = Norm.Λ x (Norm.conv⊢ (substNf-lemma' B) (nfType t))
-nfType {Γ} (Syn._·⋆_ {B = B} t A) =
-  Norm.conv⊢ (lem[] A B) (Norm.conv⊢ (lemΠ B) (nfType t) Norm.·⋆ nf A)
+nfType {Γ} (Syn._·⋆_ {B = B}{x = x} t A) =
+  Norm.conv⊢ (lem[] A B) (Norm._·⋆_ {x = x} (Norm.conv⊢ (lemΠ B x) (nfType t))(nf A))
 nfType {Γ} (Syn.wrap1 pat arg t) =
   Norm.wrap1 (nf pat) (nf arg) (Norm.conv⊢ (lemXX pat arg) (nfType t))
 nfType {Γ} (Syn.unwrap1 {pat = pat}{arg} t) =

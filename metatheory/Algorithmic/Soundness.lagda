@@ -221,8 +221,8 @@ emb (Alg.` α) = Dec.` (embVar α)
 emb (Alg.ƛ {A = A}{B} x t) = Dec.ƛ x (emb t)
 emb (Alg._·_ {A = A}{B} t u) = emb t Dec.· emb u
 emb (Alg.Λ x {B = B} t) = Dec.Λ x (emb t)
-emb (Alg._·⋆_ {K = K}{B = B} t A) =
-  Dec.conv (lem[]'' A B) (emb t Dec.·⋆ embNf A)
+emb (Alg._·⋆_ {K = K}{x = x}{B = B} t A) =
+  Dec.conv (lem[]'' A B) (Dec._·⋆_ {x = x} (emb t) (embNf A))
 emb (Alg.wrap1 pat arg t) =
   Dec.wrap1
     (embNf pat)

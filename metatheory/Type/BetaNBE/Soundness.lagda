@@ -28,7 +28,7 @@ type is beta-eta-equal to the result of reifying the value.
 SR : ∀{Φ} K → Φ ⊢⋆ K → Val Φ K → Set
 SR *       A v        = A ≡β embNf v
 SR (K ⇒ J) A (inj₁ n) = A ≡β embNe n
-SR (K ⇒ J) A (inj₂ (x , f)) = Σ (_ ,⋆ K ⊢⋆ J) λ B →
+SR (K ⇒ J) A (inj₂ (x ·, f)) = Σ (_ ,⋆ K ⊢⋆ J) λ B →
   (A ≡β ƛ x B) -- this bit of indirection is needed as we have only β not βη
   ×
   ∀{Ψ}
@@ -37,7 +37,7 @@ SR (K ⇒ J) A (inj₂ (x , f)) = Σ (_ ,⋆ K ⊢⋆ J) λ B →
     → {v : Val Ψ K}
     → SR K u v
       -----------------------------------------------------
-    → SR J (ren ρ (ƛ x B) · u) (renVal ρ (inj₂ (x , f)) ·V v)
+    → SR J (ren ρ (ƛ x B) · u) (renVal ρ (inj₂ (x ·, f)) ·V v)
 \end{code}
 
 \begin{code}
@@ -54,13 +54,13 @@ reifySR : ∀{Φ K}{A : Φ ⊢⋆ K}{v : Val Φ K}
   → A ≡β embNf (reify v)
 reifySR {K = *}                  p            = p
 reifySR {K = K ⇒ J} {v = inj₁ n} p            = p
-reifySR {K = K ⇒ J} {v = inj₂ (x , f)} (A' , p , q) =
+reifySR {K = K ⇒ J} {v = inj₂ (x ·, f)} (A' , p , q) =
   trans≡β p (substEq (λ B → ƛ x B ≡β ƛ x (embNf (reify (f S fresh))))
                      (trans (sym (subst-ren A'))
                             (trans (subst-cong (λ { Z → refl
                                                   ; (S x) → refl}) A')
                                    (subst-id A')))
-                     (ƛ≡β (trans≡β (sym≡β (β≡β _ _))
+                     (ƛ≡β x x (trans≡β (sym≡β (β≡β x _ _))
                                    (reifySR (q S (reflectSR (refl≡β (` Z))))))))
 \end{code}
 
@@ -93,7 +93,7 @@ renSR : ∀{Φ Ψ}(ρ : Ren Φ Ψ){K}{A : Φ ⊢⋆ K}{v : Val Φ K}
 renSR ρ {*}{A}{n} p = 
   substEq (ren ρ A ≡β_) (sym (ren-embNf ρ n)) (ren≡β ρ p)
 renSR ρ {K ⇒ J} {A} {inj₁ n} p rewrite ren-embNe ρ n = ren≡β ρ p  
-renSR ρ {K ⇒ J} {A} {inj₂ (x , f)} (A' , p , q) =
+renSR ρ {K ⇒ J} {A} {inj₂ (x ·, f)} (A' , p , q) =
   ren (ext ρ) A'
   ,
   ren≡β ρ p
@@ -166,7 +166,7 @@ SRApp : ∀{Φ K J}
     ---------------------
   → SR J (A · u) (f ·V v)
 SRApp {f = inj₁ n} p            q = reflectSR (·≡β (reflectSR p) (reifySR q))
-SRApp {f = inj₂ (x , f)} (A' , p , q) r =
+SRApp {f = inj₂ (x ·, f)} (A' , p , q) r =
   substSR (·≡β (substEq
                  (λ B → _ ≡β ƛ x B)
                  (trans (sym (ren-id A')) (ren-cong (sym ∘ ext-id) A'))
@@ -182,7 +182,7 @@ evalSR : ∀{Φ Ψ K}(A : Φ ⊢⋆ K){σ : Sub Φ Ψ}{η : Env Φ Ψ}
   → SREnv σ η
   → SR K (subst σ A) (eval A η)
 evalSR (` α)                   p = p α
-evalSR (Π x B)                   p = Π≡β (evalSR B (SRweak p))
+evalSR (Π x B)                   p = Π≡β x x (evalSR B (SRweak p))
 evalSR (A ⇒ B)                 p = ⇒≡β (evalSR A p) (evalSR B p)
 evalSR (ƛ x B)   {σ}{η}          p =
   subst (exts σ) B
@@ -190,7 +190,7 @@ evalSR (ƛ x B)   {σ}{η}          p =
   refl≡β _
   ,
   λ ρ {u}{v} q → substSR
-    (β≡β _ _)
+    (β≡β x _ _)
     (substEq (λ A → SR _ A (eval B ((renVal ρ ∘ η) ,,⋆ v)))
              (trans (trans (subst-cong (λ
                { Z → refl

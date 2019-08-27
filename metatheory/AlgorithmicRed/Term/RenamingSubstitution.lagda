@@ -111,8 +111,8 @@ ren ρ⋆ ρ (ƛ {A' = A'} (A ,, p ,, q ,, r) N)    = ƛ (
   ,,
   trans (ren-embNf ρ⋆ A') (cong (⋆.ren ρ⋆) r)) (ren ρ⋆ (ext ρ⋆ ρ) N)
 ren ρ⋆ ρ (L · M)  = ren ρ⋆ ρ L · ren ρ⋆ ρ M 
-ren ρ⋆ ρ (Λ N)    = Λ (ren (⋆.ext ρ⋆) (ext⋆ ρ⋆ ρ) N )
-ren {Γ}{Δ} ρ⋆ ρ (_·⋆_ {B = B} t A {R} (p ,, q ,, r ,, s)) = _·⋆_
+ren ρ⋆ ρ (Λ {x = x} N)    = Λ {x = x} (ren (⋆.ext ρ⋆) (ext⋆ ρ⋆ ρ) N )
+ren {Γ}{Δ} ρ⋆ ρ (_·⋆_ {x = x}{B = B} t A {R} (p ,, q ,, r ,, s)) = _·⋆_ {x = x}
   (ren ρ⋆ ρ t)
   (renNf ρ⋆ A)
   (⋆.ren ρ⋆ p

@@ -89,6 +89,8 @@ open import Data.Empty
 -- this could also be presented as a relation and then there would be
 -- more function rather like progress
 
+open import Scoped -- for irrAx
+
 step : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'}{A : Φ ⊢Nf⋆ *}{H : Φ' ⊢Nf⋆ *}
   → NoVar Γ'
   → State Γ A Γ' H
@@ -98,8 +100,8 @@ step : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'}{A : Φ ⊢Nf⋆ *}{H : Φ' ⊢Nf�
 step p (s ▻ ` x)                          = ⊥-elim (noVar p x)
 step p (s ▻ ƛ x L)                        = _ ,, _ ,, p ,, _ ,, s ◅ V-ƛ {x = x}{N = L}
 step p (s ▻ (L · M))                      = _ ,, _ ,, p ,, _ ,, (s , -· M) ▻ L
-step p (s ▻ Λ x L)                        = _ ,, _ ,, p ,, _ ,, (s , Λ-) ▻ L
-step p (s ▻ (L ·⋆ A))                     = _ ,, _ ,, p ,, _ ,, (s , -·⋆ A) ▻ L
+step p (s ▻ Λ x L)                        = _ ,, _ ,, p ,, _ ,, (s , Λ- {x = x}) ▻ L
+step p (s ▻ (_·⋆_ {x = x} L A))                     = _ ,, _ ,, p ,, _ ,, (s , -·⋆_ {x = irrAx x} A) ▻ L
 step p (s ▻ wrap1 pat arg L)              = _ ,, _ ,, p ,, _ ,, (s , wrap-) ▻ L
 step p (s ▻ unwrap1 L)                    = _ ,, _ ,, p ,, _ ,, (s , unwrap-) ▻ L
 step {Γ' = Γ'} p (s ▻ con cn)               = _ ,, Γ' ,, p ,, _ ,, s ◅ V-con cn
@@ -109,7 +111,7 @@ step {Γ' = Γ'} p (s ▻ error A)              =  _ ,, Γ' ,, p ,, _ ,, ◆ Γ'
 step p (ε ◅ V)                            = _ ,, _ ,, p ,, _ ,, □ V
 step p ((s , (-· M)) ◅ V)                 = _ ,, _ ,, p ,, _ ,, ((s , V ·-) ▻ M)
 step p (_◅_ (s , (V-ƛ {N = t} ·-)) {u} V) = _ ,, _ ,, p ,, _ ,, s ▻ (t [ u ])
-step p ((s , Λ-) ◅ V)                     = _ ,, _ ,, p ,, _ ,, s ◅ V-Λ V
+step p ((s , Λ- {x = x}) ◅ V)                     = _ ,, _ ,, p ,, _ ,, s ◅ V-Λ {x = x} V
 step p ((s , (-·⋆ A)) ◅ V-Λ {N = t} V)    = _ ,, _ ,, p ,, _ ,, s ▻ (t [ A ]⋆)
 step p ((s , wrap-) ◅ V)                  = _ ,, _ ,, p ,, _ ,, s ◅ (V-wrap V)
 step p ((s , unwrap-) ◅ V-wrap V)         = _ ,, _ ,, p ,, _ ,, s ◅ V
