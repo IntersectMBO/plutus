@@ -1,5 +1,4 @@
 %% Extended UTXO Specification
-
 \newcommand\version{-1}
 
 \title{Formal Specification of the Extended UTXO Model\\--- \\
@@ -168,16 +167,6 @@
 \begin{document}
 \maketitle
 
-\todokwxm{I'm in two minds about how to structure this. Interspersing
-  specification and explanation is a bit messy, since once you
-  understand what's going on you probably just want to read the
-  specification and ignore the explanation. However, we need
-  \textit{some} explanation somewhere, and I think it's probably best
-  to have it in the same document.  Maybe we could put the explanations
-  in an appendix at the end?}
-
-\bigskip
-
 \todokwxm{Michael suggests (and I agree) that we should try to make
   clear the difference between the ledger layer and the script layer.
   It would be good if we could make the EUTXO model independent of the
@@ -241,6 +230,15 @@ models and makes it easier to explain the relevant design decisions,
 and (2) it is possible that a particular blockchain might not need the
 full power of EUTXO-2 and so could use the simpler EUTXO-1 model,
 perhaps with less computational overhead.
+
+\medskip
+
+For ease of reference we have kept exposition to a minimum in the main
+text.  Some aspects of the specification are explained in more detail
+in Appendix~\ref{appendix:comments}, with cross-references in the main
+text.  Further explanation and many examples are contained in the
+book~\citep{Plutus-book}.
+
 
 \bigskip
 
@@ -1219,7 +1217,9 @@ again an issue with any multi-currency proposal.
 \item Maybe we should make this more consistent with the ledger specification.
 \end{itemize}
   
-
+\appendix
+\section{Comments on the specification}
+\label{appendix:comments}
 
 
 \bibliographystyle{plainnat} %% ... or whatever
