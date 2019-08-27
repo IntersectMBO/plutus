@@ -139,8 +139,19 @@ tcPLC plc with parse plc
 ... | just t with deBruijnifyTm nil (convP t)
 ... | nothing = "scope error"
 ... | just t' with inferType _ t'
-... | just (A ,, t'') = prettyPrintTy (deDeBruijnify⋆ [] (extricateNf⋆ A))
-... | nothing = "type error"
+... | inj₁ (A ,, t'') = prettyPrintTy (deDeBruijnify⋆ [] (extricateNf⋆ A))
+... | inj₂ typeError = "typeError"
+... | inj₂ kindEqError = "kindEqError"
+... | inj₂ notTypeError = "notTypeError"
+... | inj₂ notFunction = "notFunction"
+... | inj₂ notPiError = "notPiError"
+... | inj₂ notPat = "notPat"
+... | inj₂ nameError = "nameError"
+... | inj₂ typeEqError = "typeEqError"
+... | inj₂ typeVarEqError = "typeVarEqError"
+... | inj₂ tyConError = "tyConError"
+... | inj₂ builtinError = "builtinError"
+... | inj₂ unwrapError = "unwrapError"
 
 
 
