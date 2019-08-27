@@ -10,14 +10,15 @@ module Language.PlutusCore.Evaluation.CkMachine
     ( CkMachineException
     , EvaluationResult (..)
     , EvaluationResultDef
-    , applyEvaluateCkBuiltinName
-    , evaluatorCk
-    , readKnownCk
+--     , applyEvaluateCkBuiltinName
+--     , evaluatorCk
+--     , readKnownCk
     , evaluateCk
     , runCk
     ) where
 
 import           Language.PlutusCore.Constant.Apply
+import           Language.PlutusCore.Constant.Dynamic.Instances
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.Error
@@ -199,11 +200,11 @@ applyEvaluate stack fun                    arg =
                     ConstAppError err     ->
                         throwCkMachineException (ConstAppMachineError err) term
 
-evaluateInCkM :: forall uni a. EvaluateConstApp uni (CkM uni) a -> CkM uni (ConstAppResult uni a)
-evaluateInCkM =
-    runEvaluateConstApp $ Evaluator $ \emb meansExt term -> do
-        let extend means = embedNameMeanings emb means <> meansExt
-        withReader extend $ [] |> term
+-- evaluateInCkM :: forall uni a. ConstAppResult uni (CkM uni) a -> CkM uni (ConstAppResult uni a)
+-- evaluateInCkM =
+--     runEvaluateConstApp $ Evaluator $ \emb meansExt term -> do
+--         let extend means = embedNameMeanings emb means <> meansExt
+--         withReader extend $ [] |> term
 
 -- | Apply a 'StagedBuiltinName' to a list of 'Value's.
 applyStagedBuiltinName
@@ -211,13 +212,15 @@ applyStagedBuiltinName
     => StagedBuiltinName -> [Value TyName Name uni ()] -> CkM uni (ConstAppResultDef uni)
 applyStagedBuiltinName (DynamicStagedBuiltinName name) args = do
     NameMeaning sch x <- lookupDynamicBuiltinName name
-    evaluateInCkM $ applyTypeSchemed sch x args
+    return $ applyTypeSchemed sch x args
+--     evaluateInCkM $ applyTypeSchemed sch x args
 applyStagedBuiltinName (StaticStagedBuiltinName  name) args =
-    evaluateInCkM $ applyBuiltinName name args
+    return $ applyBuiltinName name args
+--     evaluateInCkM $ applyBuiltinName name args
 
-applyEvaluateCkBuiltinName
-    :: Evaluable uni => BuiltinName -> [Value TyName Name uni ()] -> ConstAppResultDef uni
-applyEvaluateCkBuiltinName name = runIdentity . runApplyBuiltinName evaluatorCk name
+-- applyEvaluateCkBuiltinName
+--     :: Evaluable uni => BuiltinName -> [Value TyName Name uni ()] -> ConstAppResultDef uni
+-- applyEvaluateCkBuiltinName name = runIdentity . runApplyBuiltinName evaluatorCk name
 
 evaluatorCk :: Evaluator Term uni Identity
 evaluatorCk = Evaluator $ \_ -> Identity .* evaluateCk

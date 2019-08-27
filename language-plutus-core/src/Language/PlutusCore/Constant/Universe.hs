@@ -14,8 +14,11 @@
 {-# LANGUAGE QuantifiedConstraints #-}
 
 module Language.PlutusCore.Constant.Universe
-    ( Some (..)
+    ( GEq (..)
+    , Some (..)
     , SomeOf (..)
+    , mapSome
+    , mapSomeOf
     , Extend (..)
     , shiftSome
     , shiftSomeOf
@@ -36,6 +39,12 @@ import           Data.Text.Prettyprint.Doc (Pretty (..))
 
 data Some f = forall a. Some (f a)
 data SomeOf f = forall a. SomeOf (f a) a
+
+mapSome :: (forall a. f a -> g a) -> Some f -> Some g
+mapSome h (Some a) = Some (h a)
+
+mapSomeOf :: (forall a. f a -> g a) -> SomeOf f -> SomeOf g
+mapSomeOf h (SomeOf a x) = SomeOf (h a) x
 
 data Extend b uni a where
     Extension :: Extend b uni b
@@ -117,8 +126,13 @@ instance ( uni `Includes` a
 
 -}
 
+-- type family EverySlot (constr :: * -> Constraint) s :: Constraint
+-- type instance EverySlot constr [a] = constr a
+
 -- Eq a :=> Eq [a]
 -- Eq a => (Eq [a] => r) -> r
+
+-- b :=> h
 
 class Reflect uni where
     reflect :: uni a -> (uni `Includes` a => c) -> c

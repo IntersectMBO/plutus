@@ -18,76 +18,59 @@
 {-# LANGUAGE RankNTypes                #-}
 {-# LANGUAGE TypeApplications          #-}
 
-module Language.PlutusCore.Constant.Typed
-    ( TypeScheme (..)
-    , FoldType
-    , TypedBuiltinName (..)
-    , NameMeaning (..)
-    , NameDefinition (..)
-    , NameMeanings (..)
-    , Evaluable
-    , Evaluator (..)
-    , EvaluateT (..)
-    , ReflectT (..)
-    , KnownType (..)
-    , PrettyKnown (..)
-    , KnownTypeValue (..)
-    , OpaqueTerm (..)
-    , InExtended (..)
-    , InUnextended (..)
-    , thoist
-    , runEvaluateT
-    , withEvaluator
-    , runReflectT
-    , mapReflectT
-    , mapDeepReflectT
-    , makeReflectT
-    , makeRightReflectT
-    , readKnownM
-    , shiftConstantsType
-    , shiftConstantsTerm
-    , unshiftConstantsTerm
-    , shiftNameMeaning
-    , unshiftNameMeaning
-    , extractValueOf
-    , extractValue
-    , extractExtension
-    , embedNameMeanings
-    ) where
+module Language.PlutusCore.Constant.Typed where
+--     ( TypeGround (..)
+--     , TypeScheme (..)
+--     , FoldType
+--     , TypedBuiltinName (..)
+--     , NameMeaning (..)
+--     , NameDefinition (..)
+--     , NameMeanings (..)
+--     , OpaqueTerm (..)
+-- --     , InExtended (..)
+-- --     , InUnextended (..)
+--     , substConstantsType
+--     , substConstantsTerm
+--     , shiftConstantsType
+--     , shiftConstantsTerm
+--     , unshiftConstantsTerm
+--     , shiftNameMeaning
+-- --     , unshiftNameMeaning
+-- --     , extractValueOf
+-- --     , extractValue
+-- --     , extractExtension
+-- --     , embedNameMeanings
+--     ) where
 
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Lexer.Type hiding (name)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
-import qualified Language.PlutusCore.MkPlc as Mk
-import           Language.PlutusCore.Constant.Universe
-import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.Type
-import           Language.PlutusCore.Constant.DefaultUni
-import           PlutusPrelude
+import           Language.PlutusCore.Constant.Universe
 
-import           Control.Monad.Except
-import           Control.Monad.Morph                         as Morph
-import           Control.Monad.Reader
-import           Control.Monad.Trans.Compose                 (ComposeT (..))
-import           Control.Monad.Trans.Inner
 import           Data.GADT.Compare
 import           Data.Map                                    (Map)
 import           Data.Proxy
-import           Data.Text                                   (Text)
 import           GHC.TypeLits
 
 infixr 9 `TypeSchemeArrow`
+
+data TypeGround uni a where
+    TypeGroundValue  :: uni a -> TypeGround uni a
+    TypeGroundResult :: uni a -> TypeGround uni (EvaluationResult a)
+    TypeGroundTerm
+        :: (forall a. uni' a -> uni a)
+        -> (forall a. uni a -> uni' a)
+        -> TypeGround uni (OpaqueTerm uni' text uniq)
 
 -- | Type schemes of primitive operations.
 -- @a@ is the Haskell denotation of a PLC type represented as a 'TypeScheme'.
 -- @r@ is the resulting type in @a@, e.g. the resulting type in
 -- @ByteString -> Size -> Integer@ is @Integer@.
 data TypeScheme uni as r where
-    -- TODO: replace @KnownType a@ with @uni `Includes` a@ in both the constructors
-    -- once implicit unlifting is gone.
-    TypeSchemeResult  :: KnownType a uni => Proxy a -> TypeScheme uni '[] a
-    TypeSchemeArrow   :: KnownType a uni => Proxy a -> TypeScheme uni as r -> TypeScheme uni (a ': as) r
+    TypeSchemeResult  :: TypeGround uni a -> TypeScheme uni '[] a
+    TypeSchemeArrow   :: TypeGround uni a -> TypeScheme uni as r -> TypeScheme uni (a ': as) r
     TypeSchemeAllType
         :: (KnownSymbol text, KnownNat uniq)
            -- Here we require the user to manually provide the unique of a type variable.
@@ -111,7 +94,7 @@ data TypeScheme uni as r where
            -- a type constructor to the variable, like in
            --
            -- > reverse : all a. list a -> list a
-        -> (forall ot. ot ~ OpaqueTerm uni text uniq => Proxy ot -> TypeScheme uni as r)
+        -> (forall ot. ot ~ OpaqueTerm uni text uniq => TypeGround uni ot -> TypeScheme uni as r)
         -> TypeScheme uni as r
 
     -- The @r@ is rather ad hoc and needed only for tests.
@@ -150,254 +133,14 @@ newtype NameMeanings uni = NameMeanings
     { unNameMeanings :: Map DynamicBuiltinName (NameMeaning uni)
     } deriving (Semigroup, Monoid)
 
-type Evaluable uni =
-    ( HasDefaultUni uni
-    , GEq uni
-    , GShow uni
-    , Closed uni
-    , uni `Everywhere` Pretty
-    , Typeable uni
-    )
-
--- data SomeTypeScheme uni = forall as r. SomeTypeScheme (TypeScheme uni as r)
-
--- | A thing that evaluates @f@ in monad @m@ and allows to extend the set of
--- dynamic built-in names.
-newtype Evaluator f uni m = Evaluator
-    { unEvaluator
-        :: forall uni'. Evaluable uni'
-        => (NameMeaning uni -> NameMeaning uni')
-        -> NameMeanings uni'
-        -> f TyName Name uni' ()
-        -> m (EvaluationResultDef uni')
-    }
-
--- | A computation that runs in @t m@ and has access to an 'Evaluator' that runs in @m@.
--- The idea is that a computation that requires access to an evaluator may introduce new effects
--- even though the underlying evaluator does not have them.
---
--- For example reading of values (see 'readKnownM') runs in 'EvaluateT'
--- (because it needs access to an evaluator) and adds the 'ReflectT' effect on top of that
--- (see the docs of 'ReflectT' for what effects it consists of).
---
--- 'EvaluateT' is a monad transformer transfomer. I.e. it turns one monad transformer
--- into another one.
-newtype EvaluateT uni t m a = EvaluateT
-    { unEvaluateT :: ReaderT (Evaluator Term uni m) (t m) a
-    } deriving
-        ( Functor, Applicative, Monad, Alternative, MonadPlus
-        , MonadError e
-        )
-
--- | Run an 'EvaluateT' computation using the given 'Evaluator'.
-runEvaluateT :: Evaluator Term uni m -> EvaluateT uni t m a -> t m a
-runEvaluateT eval (EvaluateT a) = runReaderT a eval
-
--- | Wrap a computation binding an 'Evaluator' as a 'EvaluateT'.
-withEvaluator :: (Evaluator Term uni m -> t m a) -> EvaluateT uni t m a
-withEvaluator = EvaluateT . ReaderT
-
--- | 'thoist' for monad transformer transformers is what 'hoist' for monad transformers.
-thoist :: Monad (t m) => (forall b. t m b -> s m b) -> EvaluateT uni t m a -> EvaluateT uni s m a
-thoist f (EvaluateT a) = EvaluateT $ Morph.hoist f a
-
-{- Note [Semantics of dynamic built-in types]
-We only allow dynamic built-in types that
-
-1. can be represented using static types in PLC. For example Haskell's 'Char' can be represented as
-@integer@ in PLC. This restriction makes the dynamic built-in types machinery somewhat similar to
-type aliases in Haskell (defined via the @type@ keyword). The reason for this restriction is that
-storing values of arbitrary types of a host language in the AST of a target language is commonly far
-from being trivial, hence we do not support this right now, but we plan to figure out a way to allow
-such extensions to the AST
-2. are of kind @*@. Dynamic built-in types that are not of kind @*@ can be encoded via recursive
-instances. For example:
-
-    instance KnownType a => KnownType [a] where
-        ...
-
-The meaning of a free type variable is 'OpaqueTerm'.
-
-This is due to the fact that we use Haskell classes to assign semantics to dynamic built-in types and
-since it's anyway impossible to assign a meaning to an open PLC type, because you'd have to somehow
-interpret free variables, we're only interested in closed PLC types and those can be handled by
-recursive instances as shown above.
-
-Since type classes are globally coherent by design, we also have global coherence for dynamic built-in
-types for free. Any dynamic built-in type means the same thing regardless of the blockchain it's
-added to. It may prove to be restrictive, but it's a good property to start with, because less things
-can silently stab you in the back.
-
-An @KnownType a@ instance provides
-
-1. a way to encode @a@ as a PLC type ('toTypeAst')
-2. a function that encodes values of type @dyn@ as PLC terms ('makeKnown')
-3. a function that decodes PLC terms back to Haskell values ('readKnown')
-
-The last two are ought to constitute an isomorphism.
--}
-
-{- Note [Converting PLC values to Haskell values]
-The first thought that comes to mind when you asked to convert a PLC value to the corresponding Haskell
-value is "just match on the AST". This works nicely for simple things like 'Char's which we encode as
-@integer@s, see the @KnownType Char@ instance.
-
-But how to convert something more complicated like lists? A PLC list gets passed as argument to
-a built-in after it gets evaluated to WHNF. We can't just match on the AST here, because after
-the initial lambda it can be anything there: function applications, other built-ins, recursive data,
-anything. "Well, just normalize it" -- not so fast: for one, we did not have a term normalization
-procedure at the moment this note was written, for two, it's not something that can be easily done,
-because you have to carefully handle uniques (we generate new terms during evaluation) and perform
-type substitutions, because types must be preserved.
-
-Besides, matching on the AST becomes really complicated: you have to ensure that a term does have
-an expected semantics by looking at the term's syntax. Huge pattern matches followed by multiple
-checks that variables have equal names in right places and have distinct names otherwise. Making a
-mistake is absolutely trivial here. Of course, one could just omit checks and hope it'll work alright,
-but eventually it'll break and debugging won't be fun at all.
-
-So instead of dealing with syntax of terms, we deal with their semantics. Namely, we evaluate terms
-using some evaluator (normally, the CEK machine). For the temporary lack of ability to put values of
-arbitrary Haskell types into the Plutus Core AST, we have some ad hoc strategies for converting PLC
-values to Haskell values (ground, product, sum and recursive types are all handled distinctly,
-see the "Language.PlutusCore.Constant.Dynamic.Instances" module).
--}
-
-{- Note [Evaluators]
-A dynamic built-in name can be applied to something that contains uninstantiated variables. There are
-several possible ways to handle that:
-
-1. each evaluator is required to perform substitutions to instantiate all variables in arguments to
-built-ins. The drawback is that this can be inefficient in cases when there are many applications of
-built-ins and arguments are of non-primitive types. Besides, substitution is tricky and is trivial to
-screw up
-2. we can break encapsulation and pass environments to the built-ins application machinery, so that it
-knows how to instantiate variables. This would work for the strict CEK machine, but the lazy
-CEK machine also has a heap and there can be other evaluators that have their internal state that
-can't just be thrown away and it's impossible for the built-ins application machinery to handle states
-of all possible evaluators beforehand
-3. or we can just require to pass the current evaluator with its encapsulated state to functions that
-evaluate built-in applications. The type of evaluators is this then:
-
-    type Evaluator f m = NameMeanings -> f TyName Name () -> m EvaluationResult
-
-so @Evaluator Term uni m@ receives a map with meanings of dynamic built-in names which extends the map the
-evaluator already has (this is needed, because we may add new dynamic built-in names during conversion
-of PLC values to Haskell values), a 'Term' to evaluate and returns an @m EvaluationResult@.
-Thus, whenever we want to resume evaluation during computation of a dynamic built-in application,
-we just call the received evaluator
-
-(3) seems best, so it's what is implemented.
--}
-
--- | The monad in which we convert PLC terms to Haskell values.
--- Conversion can fail with
---
--- 1. 'EvaluationFailure' if evaluation fails with @error@.
--- 2. A textual error if a PLC term can't be converted to a Haskell value of a specified type.
-newtype ReflectT m a = ReflectT
-    { unReflectT :: ExceptT Text (InnerT EvaluationResult m) a
-    } deriving
-        ( Functor, Applicative, Monad
-        , MonadError Text
-        )
-      deriving MonadTrans via ComposeT (ExceptT Text) (InnerT EvaluationResult)
-
--- Uses the 'Alternative' instance of 'EvaluationResult'.
-instance Monad m => Alternative (ReflectT m) where
-    empty = ReflectT . lift $ yield empty
-    ReflectT (ExceptT (InnerT m)) <|> ReflectT (ExceptT (InnerT n)) =
-        ReflectT . ExceptT . InnerT $ (<|>) <$> m <*> n
-
--- | Run a 'ReflectT' computation.
-runReflectT :: ReflectT m a -> m (EvaluationResult (Either Text a))
-runReflectT = unInnerT . runExceptT . unReflectT
-
--- | Map over the underlying representation of 'ReflectT'.
-mapReflectT
-    :: (ExceptT Text (InnerT EvaluationResult m) a -> ExceptT Text (InnerT EvaluationResult n) b)
-    -> ReflectT m a
-    -> ReflectT n b
-mapReflectT f (ReflectT a) = ReflectT (f a)
-
--- | Map over the fully unwrapped underlying representation of a 'ReflectT' computation.
-mapDeepReflectT
-    :: (m (EvaluationResult (Either Text a)) -> n (EvaluationResult (Either Text b)))
-    -> ReflectT m a
-    -> ReflectT n b
-mapDeepReflectT = mapReflectT . mapExceptT . mapInnerT
-
--- | Fully wrap a computation into 'ReflectT'.
-makeReflectT :: m (EvaluationResult (Either Text a)) -> ReflectT m a
-makeReflectT = ReflectT . ExceptT . InnerT
-
--- | Wrap a non-throwing computation into 'ReflectT'.
-makeRightReflectT :: Monad m => m (EvaluationResult a) -> ReflectT m a
-makeRightReflectT = ReflectT . lift . InnerT
-
--- See Note [Semantics of dynamic built-in types].
--- See Note [Converting PLC values to Haskell values].
--- | Haskell types known to exist on the PLC side.
-class PrettyKnown a => KnownType a uni where
-    -- | The type representing @a@ used on the PLC side.
-    toTypeAst :: proxy a -> Type TyName uni ()
-
-    -- | Convert a Haskell value to the corresponding PLC value.
-    makeKnown :: a -> Term TyName Name uni ()
-
-    -- See Note [Evaluators].
-    -- | Convert a PLC value to the corresponding Haskell value using an explicit evaluator.
-    readKnown :: Monad m => Evaluator Term uni m -> Term TyName Name uni () -> ReflectT m a
-
-class PrettyKnown a where
-    -- | Pretty-print a value of a 'KnownType' in a PLC-specific way
-    -- (see e.g. the @ByteString@ instance).
-    prettyKnown :: a -> Doc ann
-    default prettyKnown :: Pretty a => a -> Doc ann
-    prettyKnown = pretty
-
--- | Convert a PLC value to the corresponding Haskell value using the evaluator
--- from the current context.
-readKnownM
-    :: (Monad m, KnownType a uni)
-    => Term TyName Name uni () -> EvaluateT uni ReflectT m a
-readKnownM term = withEvaluator $ \eval -> readKnown eval term
-
--- | A value that is supposed to be of a 'KnownType'. Needed in order to give a 'Pretty' instance
--- for any 'KnownType' via 'prettyKnown', which allows e.g. to pretty-print a list of 'KnownType'
--- values using the standard 'pretty' pretty-printer for the shape of the list and our specific
--- 'prettyKnown' pretty-printer for the elements of the list.
-newtype KnownTypeValue a = KnownTypeValue
-    { unKnownTypeValue :: a
-    }
-
-instance PrettyKnown a => Pretty (KnownTypeValue a) where
-    pretty = prettyKnown . unKnownTypeValue
-
-{- Note [The reverse example]
-Having a dynamic built-in with the following signature:
-
-    reverse : all a. list a -> list a
-
-that maps to Haskell's
-
-    reverse :: forall a. [a] -> [a]
-
-evaluation of
-
-    PLC.reverse {bool} (cons true (cons false nil))
-
-proceeds as follows:
-
-      PLC.reverse {bool} (cons true (cons false nil))
-    ~ makeKnown (Haskell.reverse (readKnown (cons true (cons false nil))))
-    ~ makeKnown (Haskell.reverse [OpaqueTerm true, OpaqueTerm false])
-    ~ makeKnown [OpaqueTerm false, OpaqueTerm true]
-    ~ cons false (cons true nil)
-
-Note how we use 'OpaqueTerm' in order to wrap a PLC term as a Haskell value using 'readKnown' and
-then unwrap the term back using 'makeKnown' without ever inspecting the term.
--}
+-- -- See Note [The reverse example] for an example.
+-- -- | The denotation of a term whose type is a bound variable.
+-- -- I.e. the denotation of such a term is the term itself.
+-- -- This is because we have parametricity in Haskell, so we can't inspect a value whose
+-- -- type is a bound variable, so we never need to convert such a term from Plutus Core to Haskell
+-- -- and back and instead can keep it intact.
+-- data OpaqueTerm uni (text :: Symbol) (unique :: Nat) =
+--     forall uni'. OpaqueTerm (forall a. uni' a -> uni a) (Term TyName Name uni' ())
 
 -- See Note [The reverse example] for an example.
 -- | The denotation of a term whose type is a bound variable.
@@ -411,13 +154,8 @@ newtype OpaqueTerm uni (text :: Symbol) (unique :: Nat) = OpaqueTerm
 
 instance (GShow uni, Closed uni, uni `Everywhere` Pretty) =>
             Pretty (OpaqueTerm uni text unique) where
-    pretty = pretty . unOpaqueTerm
-
-mapSome :: (forall a. f a -> g a) -> Some f -> Some g
-mapSome h (Some a) = Some (h a)
-
-mapSomeOf :: (forall a. f a -> g a) -> SomeOf f -> SomeOf g
-mapSomeOf h (SomeOf a x) = SomeOf (h a) x
+    pretty = undefined
+--     pretty = pretty . unOpaqueTerm
 
 substConstantsType
     :: (forall a. uni1 a -> uni2 a) -> Type tyname uni1 ann -> Type tyname uni2 ann
@@ -463,7 +201,7 @@ unshiftConstantsType = substConstantsType unextend
 unshiftConstantsTerm :: Term tyname name (Extend b uni) ann -> Term tyname name uni ann
 unshiftConstantsTerm = substConstantsTerm unextend
 
-extractValueOf :: GEq uni  => uni a -> Term tyname name uni ann -> Maybe a
+extractValueOf :: GEq uni => uni a -> Term tyname name uni ann -> Maybe a
 extractValueOf uni1 (Constant _ (SomeOf uni2 x)) = fmap (\Refl -> x) $ geq uni1 uni2
 extractValueOf _    _                            = Nothing
 
@@ -475,21 +213,17 @@ extractExtension :: Term tyname name (Extend b uni) ann -> Maybe b
 extractExtension (Constant _ (SomeOf Extension x)) = Just x
 extractExtension _                                 = Nothing
 
-shiftEvaluator
-    :: (Evaluable uni, Typeable b)
-    => Evaluator f uni m -> Evaluator f (Extend b uni) m
-shiftEvaluator (Evaluator eval) =
-    Evaluator $ \emb means -> eval (emb . shiftNameMeaning) means
+shiftTypeGround :: TypeGround uni a -> TypeGround (Extend b uni) a
+shiftTypeGround (TypeGroundValue  uni)  = TypeGroundValue  $ Original uni
+shiftTypeGround (TypeGroundResult uni)  = TypeGroundResult $ Original uni
+shiftTypeGround (TypeGroundTerm inj ej) = TypeGroundTerm (Original . inj) (ej . unextend)
 
-unshiftEvaluator
-    :: (Evaluable uni, Typeable b)
-    => Evaluator f (Extend b uni) m -> Evaluator f uni m
-unshiftEvaluator (Evaluator eval) =
-    Evaluator $ \emb means -> eval (emb . unshiftNameMeaning) means
+unshiftTypeGround :: TypeGround (Extend b uni) a -> TypeGround uni a
+unshiftTypeGround (TypeGroundValue  uni)  = TypeGroundValue  $ unextend uni
+unshiftTypeGround (TypeGroundResult uni)  = TypeGroundResult $ unextend uni
+unshiftTypeGround (TypeGroundTerm ej inj) = TypeGroundTerm (unextend . ej) (inj . Original)
 
-shiftNameMeaning
-    :: forall b uni. (Evaluable uni, Typeable b)
-    => NameMeaning uni -> NameMeaning (Extend b uni)
+shiftNameMeaning :: NameMeaning uni -> NameMeaning (Extend b uni)
 shiftNameMeaning (NameMeaning sch x) =
     go sch $ \sch' inj -> NameMeaning sch' $ inj x where
         go
@@ -497,18 +231,17 @@ shiftNameMeaning (NameMeaning sch x) =
             -> (forall as' r'.
                     TypeScheme (Extend b uni) as' r' -> (FoldType as r -> FoldType as' r') -> c)
             -> c
-        go (TypeSchemeResult _)         k =
-            k (TypeSchemeResult Proxy) $ InExtended @b
-        go (TypeSchemeArrow _ schB)     k =
+        go (TypeSchemeResult gt)        k =
+            k (TypeSchemeResult $ shiftTypeGround gt) id
+        go (TypeSchemeArrow gt schB)    k =
             go schB $ \schB' inj -> k
-                (TypeSchemeArrow Proxy schB')
-                (\f -> inj . f . unInExtended @b)
+                (TypeSchemeArrow (shiftTypeGround gt) schB')
+                (\f -> inj . f)
         go (TypeSchemeAllType var schK) k =
-            go (schK Proxy) $ \schB' inj -> k (TypeSchemeAllType var $ \_ -> schB') inj
+            go (schK $ TypeGroundTerm id id) $ \schB' inj ->
+                k (TypeSchemeAllType var $ \_ -> schB') inj
 
-unshiftNameMeaning
-    :: forall b uni. (Evaluable uni, Typeable b)
-    => NameMeaning (Extend b uni) -> NameMeaning uni
+unshiftNameMeaning :: NameMeaning (Extend b uni) -> NameMeaning uni
 unshiftNameMeaning (NameMeaning sch x) =
     go sch $ \sch' inj -> NameMeaning sch' $ inj x where
         go
@@ -516,69 +249,47 @@ unshiftNameMeaning (NameMeaning sch x) =
             -> (forall as' r'.
                     TypeScheme uni as' r' -> (FoldType as r -> FoldType as' r') -> c)
             -> c
-        go (TypeSchemeResult _)         k =
-            k (TypeSchemeResult Proxy) $ InUnextended @(Extend b uni)
-        go (TypeSchemeArrow _ schB)     k =
+        go (TypeSchemeResult gt)        k =
+            k (TypeSchemeResult $ unshiftTypeGround gt) id
+        go (TypeSchemeArrow gt schB)    k =
             go schB $ \schB' inj -> k
-                (TypeSchemeArrow Proxy schB')
-                (\f -> inj . f . unInUnextended @(Extend b uni))
+                (TypeSchemeArrow (unshiftTypeGround gt) schB')
+                (\f -> inj . f)
         go (TypeSchemeAllType var schK) k =
-            go (schK Proxy) $ \schB' inj -> k (TypeSchemeAllType var $ \_ -> schB') inj
+            go (schK $ TypeGroundTerm id id) $ \schB' inj ->
+                k (TypeSchemeAllType var $ \_ -> schB') inj
 
 embedNameMeanings
     :: (NameMeaning uni -> NameMeaning uni') -> NameMeanings uni -> NameMeanings uni'
 embedNameMeanings emb (NameMeanings means) = NameMeanings $ fmap emb means
 
--- Encode '()' from Haskell as @all r. r -> r@ from PLC.
--- This is a very special instance, because it's used to define functions that are needed for
--- other instances, so we keep it here.
-instance Evaluable uni => KnownType () uni where
-    toTypeAst _ = unit
 
-    -- We need this matching, because otherwise Haskell expressions are thrown away rather than being
-    -- evaluated and we use 'unsafePerformIO' for logging, so we want to compute the '()' just
-    -- for side effects that the evaluation may cause.
-    makeKnown () = unitval
+{-i\
+> I.e. instead of requiring each type to be liftable and unliftable we can require each type to be in the current universe. Then the burden of turning a term into an unliftable one is on the user, but the user can just use functions or a type class that we'll provide (i.e. we probably can make exactly the same API as with internal unlifting).
 
-    readKnown (Evaluator eval) term = do
-        let metaUnit = Mk.extensionType ()
-            metaUnitval = Mk.extensionTerm () ()
-            applied = Apply () (TyInst () (shiftConstantsTerm term) metaUnit) metaUnitval
-        res <- makeRightReflectT $ eval shiftNameMeaning mempty applied
-        case extractExtension res of
-            Just () -> pure ()
-            Nothing -> throwError "Not a builtin ()"
-instance PrettyKnown ()
+Unfortunately, this is troubling. Consider unlifting of products: we have a PLC's `pair integer bool` and need to get a Haskell's `(Integer, Bool)` from it. With unlifting that we have currently, the entire structure is unlifted at once: we do not need to require neither `Integer` nor `Bool` to be in the current universe. We just extend the universe with a single type, `(Integer, Bool)`, and unlift directly into it. But with explicit unlifting we'd have to unlift `Integer` and `Bool` separately and then combine the resulting values together into a tuple. But this means that we have to add not only `(Integer, Bool)` to the universe, but also both `Integer` and `Bool`.
 
-newtype InExtended (b :: *) (uni :: * -> *) a = InExtended
-    { unInExtended :: a
-    }
+And from what I see this is not only the problem of unlifting into specialized polymorphic types. For a type of trees with integers in leafs, we'll have to either require integers to be in the current universe or to hardcode the logic of "unlift an integer and immediately wrap it as a leaf, so that there is no need to add integers to the current universe". This monorphic case might be solvable, but the polymorphic one does look irritating.
 
--- A type known in a universe is known in an extended version of that universe.
-instance (Evaluable uni, KnownType a uni, euni ~ Extend b uni, Typeable b) =>
-            KnownType (InExtended b uni a) euni where
-    toTypeAst _ = shiftConstantsType $ toTypeAst @a @uni Proxy
+And note that adding several new types to the current universe is not something that can be done easily. In `(a, b)` the types, `a` and `b`, are independent of each other and so we want to unlift them separately, but that means that we extend the universe in two distinct incompatible ways: with the `a` type to unlift into `a` and with the `b` type to unlift into `b`. And then we need to unify those two differently extended universes, which is hard technically. Constraints might sometimes help in cases like that, but see the problems with `Includes` and `Extend` described above.
 
-    makeKnown (InExtended x) = shiftConstantsTerm $ makeKnown @a x
+In general, whenever the user wants to unlift a data structure, they do not really care about pieces of the data structure. "Just do the right thing".
 
-    readKnown eval term =
-        InExtended <$> readKnown @a (unshiftEvaluator eval) (unshiftConstantsTerm term)
+Except, as described above, there are now two ways to embed Haskell values: deeply into a Scott-encoded data structure and shallowly as a `Constant` wrapper around a Haskell value. And therefore we can unlift from a deeply or shallowly embedded value. So the user might actually want to specify which way to unlift values to use in each particular situation.
+-}
 
-instance PrettyKnown (InExtended b uni a) where
-    prettyKnown = Prelude.error "ololo1"
+{-
+One possible option is to continue using the current way to unlift things, but do not use it in the contant application machinery, where those implicit conversions between PLC and Haskell only complicate things and do not seem to be useful at all. Separating unlifting and evaluation makes perfect sense, but that also means that we'll have to define two distinct `TypeScheme` types: one for unlifting (with `KnownType` under the hood) and one for constant application machinery (with the recently described `TypeGround` under the hood), but what about dynamic builtin names then? We need to use them with both the `TypeScheme`s, because we need them generally (which covers the `TypeGround` case) and because we need to add new dynamic builtin types during unlifting (which covers the `KnownType` case).
 
-newtype InUnextended (euni :: * -> *) a = InUnextended
-    { unInUnextended :: a
-    }
+It is possible to unify the two `TypeScheme`s and make conversions between PLC and Haskell explicit, but then we're back into the realms of passing evaluators around, having monadic constant application machinery, etc. And back to the securiry problem of allowing users to amend how evaluation proceeds by providing `KnownType` instances.
 
-instance (Evaluable uni, KnownType a euni, euni ~ Extend b uni, Typeable b) =>
-            KnownType (InUnextended euni a) uni where
-    toTypeAst _ = unshiftConstantsType $ toTypeAst @a @euni Proxy
+Maybe two distinct `TypeScheme` types is not much of a problem. The one used for unlifting will only be available internally and not exposed to anybody. The other one will be relevant to the blockchain owner deciding what types to make available for the end user. And the end user will just use whatever they're given access to, as they would expect.
 
-    makeKnown (InUnextended x) = unshiftConstantsTerm $ makeKnown @a @euni x
+... but with two kinds of dynamic builtin names, we also have to keep two kinds of environments? And we have to handle both the kinds of dynamic builtin names in the constant application machinery? I.e.
 
-    readKnown eval term =
-        InUnextended <$> readKnown @a @euni (shiftEvaluator eval) (shiftConstantsTerm term)
+Need to think & play more.
+-}
 
-instance PrettyKnown (InUnextended euni a) where
-    prettyKnown = Prelude.error "ololo1"
+
+-- unlift . PLC.mapTuple unlift unlift
+-- Haskell.mapTuple unlift unlift . unlift

@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeApplications      #-}
 -- | Computing constant application.
 
 {-# LANGUAGE ConstraintKinds       #-}
@@ -14,32 +15,27 @@ module Language.PlutusCore.Constant.Apply
     ( ConstAppError (..)
     , ConstAppResult (..)
     , ConstAppResultDef
-    , EvaluateConstApp
-    , EvaluateConstAppDef
     , nonZeroArg
-    , makeConstAppResult
-    , runEvaluateConstApp
+    , makeBuiltin
     , applyTypeSchemed
     , applyBuiltinName
-    , runApplyBuiltinName
     ) where
 
+import           Language.PlutusCore.Constant.DefaultUni
 import           Language.PlutusCore.Constant.Name
 import           Language.PlutusCore.Constant.Typed
+import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Lexer.Type        (BuiltinName (..))
+import           Language.PlutusCore.Lexer.Type          (BuiltinName (..))
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
-import           Control.Monad.Trans.Class
-import           Control.Monad.Trans.Inner
 import           Crypto
-import qualified Data.ByteString.Lazy                  as BSL
-import qualified Data.ByteString.Lazy.Hash             as Hash
+import qualified Data.ByteString.Lazy                    as BSL
+import qualified Data.ByteString.Lazy.Hash               as Hash
 import           Data.GADT.Compare
-import           Data.Proxy
-import           Data.Text                             (Text)
+import           Data.Text                               (Text)
 
 -- | The type of constant applications errors.
 data ConstAppError uni
@@ -104,18 +100,6 @@ instance ( PrettyBy config (Value TyName Name uni ())
     prettyBy _      ConstAppStuck         = "Stuck constant applcation"
     prettyBy config (ConstAppError err)   = prettyBy config err
 
--- | Constant application computation runs in a monad @m@, requires an evaluator and
--- returns a 'ConstAppResult'.
-type EvaluateConstApp uni m = EvaluateT uni (InnerT (ConstAppResult uni)) m
-
--- -- | Constant application computation runs in a monad @m@, requires an evaluator and
--- -- returns a 'ConstAppResult'.
--- type EvaluateConstApp uni m = InnerT (ConstAppResult uni) m
-
--- | Default constant application computation that in case of 'ConstAppSuccess' returns
--- a 'Value'.
-type EvaluateConstAppDef uni m = EvaluateConstApp uni m (Value TyName Name uni ())
-
 -- | Turn a function into another function that returns 'EvaluationFailure' when its second argument
 -- is 0 or calls the original function otherwise and wraps the result in 'EvaluationSuccess'.
 -- Useful for correctly handling `div`, `mod`, etc.
@@ -123,81 +107,72 @@ nonZeroArg :: (Integer -> Integer -> Integer) -> Integer -> Integer -> Evaluatio
 nonZeroArg _ _ 0 = EvaluationFailure
 nonZeroArg f x y = EvaluationSuccess $ f x y
 
--- | Evaluate a constant application computation using the given evaluator.
-runEvaluateConstApp :: Evaluator Term uni m -> EvaluateConstApp uni m a -> m (ConstAppResult uni a)
-runEvaluateConstApp eval = unInnerT . runEvaluateT eval
+makeBuiltin :: TypeGround uni a -> a -> ConstAppResultDef uni
+makeBuiltin (TypeGroundValue  uni) x                     = pure . Constant () $ SomeOf uni x
+makeBuiltin (TypeGroundResult _  ) EvaluationFailure     = ConstAppFailure
+makeBuiltin (TypeGroundResult uni) (EvaluationSuccess x) = pure . Constant () $ SomeOf uni x
+makeBuiltin (TypeGroundTerm inj _) (OpaqueTerm term)     = pure $ substConstantsTerm inj term
 
--- | Lift the result of a constant application to a constant application computation.
-liftConstAppResult :: Monad m => ConstAppResult uni a -> EvaluateConstApp uni m a
--- Could it be @yield . yield@?
-liftConstAppResult = EvaluateT . lift . yield
-
--- | Same as 'makeBuiltin', but returns a 'ConstAppResult'.
--- makeConstAppResult :: uni `Includes` a => a -> ConstAppResultDef uni
--- makeConstAppResult = pure . Constant () . SomeOf knownUni
-makeConstAppResult :: KnownType a uni => a -> ConstAppResultDef uni
-makeConstAppResult = pure . makeKnown
+unliftConstant
+    :: forall uni a. GEq uni => uni a -> Value TyName Name uni () -> ConstAppResult uni a
+unliftConstant uni value@(Constant () (SomeOf uni' x)) = case geq uni uni' of
+    -- TODO: add an 'IllTypedApplication' error or something like that.
+    -- TODO: change errors in general.
+    Nothing   -> ConstAppError $ UnreadableBuiltinConstAppError value "blah-blah"
+    Just Refl -> pure x
+unliftConstant _   _                                   = error "blah-blah"
 
 -- | Convert a PLC constant (unwrapped from 'Value') into the corresponding Haskell value.
 -- Checks that the constant is of a given built-in type.
-extractBuiltin
-    :: forall m uni a. (Monad m, KnownType a uni)
-    => Value TyName Name uni () -> EvaluateConstApp uni m a
--- -- TODO: this code makes perfect sense and is what we're going to use in future,
--- -- but currently it's commented out, because we emulate the old machinery using the new one.
--- extractBuiltin value@(Constant _ (SomeOf uni x)) = case geq uni $ knownUni @uni @a of
---     -- TODO: add an 'IllTypedApplication' error or something like that.
---     -- TODO: change errors in general.
---     Nothing   -> liftConstAppResult $ ConstAppError $ UnreadableBuiltinConstAppError value "blah-blah"
---     Just Refl -> pure x
-extractBuiltin value                             =
-    thoist (InnerT . fmap nat . runReflectT) $ readKnownM value where
-        nat :: forall b. EvaluationResult (Either Text b) -> ConstAppResult uni b
-        nat EvaluationFailure              = ConstAppFailure
-        nat (EvaluationSuccess (Left err)) = ConstAppError $ UnreadableBuiltinConstAppError value err
-        nat (EvaluationSuccess (Right x )) = ConstAppSuccess x
+readBuiltin
+    :: forall uni a. GEq uni
+    => TypeGround uni a -> Value TyName Name uni () -> ConstAppResult uni a
+readBuiltin (TypeGroundTerm  _ ej) value   = pure . OpaqueTerm $ substConstantsTerm ej value
+readBuiltin (TypeGroundResult _  ) Error{} = pure EvaluationFailure
+readBuiltin (TypeGroundResult uni) value   = EvaluationSuccess <$> unliftConstant uni value
+readBuiltin (TypeGroundValue  uni) value   = unliftConstant uni value
 
 -- | Apply a function with a known 'TypeScheme' to a list of 'Constant's (unwrapped from 'Value's).
 -- Checks that the constants are of expected types.
 applyTypeSchemed
-    :: (Monad m, GEq uni)
-    => TypeScheme uni as r -> FoldType as r -> [Value TyName Name uni ()] -> EvaluateConstAppDef uni m
+    :: GEq uni
+    => TypeScheme uni as r -> FoldType as r -> [Value TyName Name uni ()] -> ConstAppResultDef uni
 applyTypeSchemed = go where
     go
-        :: (Monad m, GEq uni)
+        :: GEq uni
         => TypeScheme uni as r
         -> FoldType as r
         -> [Value TyName Name uni ()]
-        -> EvaluateConstAppDef uni m
-    go (TypeSchemeResult _)        y args =
-        liftConstAppResult $ case args of
-            [] -> makeConstAppResult y                               -- Computed the result.
+        -> ConstAppResultDef uni
+    go (TypeSchemeResult gr)       y args =
+        case args of
+            [] -> makeBuiltin gr y                            -- Computed the result.
             _  -> ConstAppError $ ExcessArgumentsConstAppError args  -- Too many arguments.
     go (TypeSchemeAllType _ schK)  f args =
-        go (schK Proxy) f args
-    go (TypeSchemeArrow _ schB)    f args = case args of
-        []          -> liftConstAppResult ConstAppStuck   -- Not enough arguments to compute.
+        go (schK $ TypeGroundTerm id id) f args
+    go (TypeSchemeArrow gr schB)   f args = case args of
+        []          -> ConstAppStuck                      -- Not enough arguments to compute.
         arg : args' -> do                                 -- Peel off one argument.
             -- Coerce the argument to a Haskell value.
-            x <- extractBuiltin arg
+            x <- readBuiltin gr arg
             -- Apply the function to the coerced argument and proceed recursively.
             go schB (f x) args'
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Constant's (unwrapped from 'Value's)
 -- Checks that the constants are of expected types.
 applyTypedBuiltinName
-    :: (Monad m, GEq uni)
+    :: GEq uni
     => TypedBuiltinName uni as r
     -> FoldType as r
     -> [Value TyName Name uni ()]
-    -> EvaluateConstAppDef uni m
+    -> ConstAppResultDef uni
 applyTypedBuiltinName (TypedBuiltinName _ schema) = applyTypeSchemed schema
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Value's.
 -- Checks that the values are of expected types.
 applyBuiltinName
-    :: (Monad m, Evaluable uni)
-    => BuiltinName -> [Value TyName Name uni ()] -> EvaluateConstAppDef uni m
+    :: (GEq uni, HasDefaultUni uni)
+    => BuiltinName -> [Value TyName Name uni ()] -> ConstAppResultDef uni
 applyBuiltinName AddInteger           =
     applyTypedBuiltinName typedAddInteger           (+)
 applyBuiltinName SubtractInteger      =
@@ -240,13 +215,3 @@ applyBuiltinName LtByteString         =
     applyTypedBuiltinName typedLtByteString         (<)
 applyBuiltinName GtByteString         =
     applyTypedBuiltinName typedGtByteString         (>)
-
--- | Apply a 'BuiltinName' to a list of 'Value's and evaluate the resulting computation usign the
--- given evaluator.
-runApplyBuiltinName
-    :: (Monad m, Evaluable uni)
-    => Evaluator Term uni m
-    -> BuiltinName
-    -> [Value TyName Name uni ()]
-    -> m (ConstAppResultDef uni)
-runApplyBuiltinName eval name = runEvaluateConstApp eval . applyBuiltinName name
