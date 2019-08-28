@@ -268,7 +268,6 @@ renVal·V ρ {inj₂ f} {inj₂ f'} (p , p' , p'') q =
 identity extension lemma, (post) renaming commutes with eval, defined mutually
 
 \begin{code}
-{-
 idext : ∀{Φ Ψ K}{η η' : Env Φ Ψ}
   → EnvCR η η'
   → (t : Φ ⊢⋆ K)
@@ -284,8 +283,9 @@ renVal-eval : ∀{Φ Ψ Θ K}
   → CR K (renVal ρ (eval t η)) (eval t (renVal ρ ∘ η'))
   
 idext p (` x)       = p x
-idext p (Π x B)       = cong (Π x) (idext (CR,,⋆ (renCR S ∘ p) (reflectCR refl)) B)
-idext p (A ⇒ B)     = cong₂ _⇒_ (idext p A) (idext p B)
+idext p (Π x B)     =
+  Π≡Nf (idext (CR,,⋆ (renCR S ∘ p) (reflectCR (var≡Ne refl))) B)
+idext p (A ⇒ B)     = ⇒≡Nf (idext p A) (idext p B)
 idext p (ƛ x B)     =
   (λ ρ ρ' v v' q →
     transCR (renVal-eval B (CR,,⋆ (renCR ρ ∘ reflCR ∘ p) q) ρ')
@@ -300,18 +300,15 @@ idext p (ƛ x B)     =
                 ; (S x) → symCR (renVal-comp ρ ρ' (reflCR (symCR (p x))))})
              B)) -- first two terms are identical (except for symCR (p x))
   ,
-  refl
-  ,
   λ ρ q → idext (CR,,⋆ (renCR ρ ∘ p) q) B
 idext p (A · B)     = AppCR (idext p A) (idext p B)
-idext p μ1          = refl
-idext p (con tcn)   = refl
+idext p μ1          = μ≡Ne
+idext p (con tcn)   = con≡Nf
 
 renVal-eval (` x) p ρ = renCR ρ (p x)
-renVal-eval (Π x B) p ρ =
-  cong (Π x) (trans
+renVal-eval (Π x B) p ρ = Π≡Nf (transNf
     (renVal-eval B
-                    (CR,,⋆ (renCR S ∘ p) (reflectCR refl))
+                    (CR,,⋆ (renCR S ∘ p) (reflectCR (var≡Ne refl)))
                     (ext ρ))
     (idext (λ{ Z     → renVal-reflect (ext ρ) (` Z)
              ; (S x) → transCR
@@ -319,7 +316,7 @@ renVal-eval (Π x B) p ρ =
                   (renVal-comp ρ S (reflCR (symCR (p x))))})
              B))
 renVal-eval (A ⇒ B) p ρ =
-  cong₂ _⇒_ (renVal-eval A p ρ) (renVal-eval B p ρ)
+  ⇒≡Nf (renVal-eval A p ρ) (renVal-eval B p ρ)
 renVal-eval (ƛ _ B) {η}{η'} p ρ =
   (λ ρ' ρ'' v v' q →
     transCR (renVal-eval B (CR,,⋆ (renCR (ρ' ∘ ρ) ∘ p) q) ρ'')
@@ -336,19 +333,18 @@ renVal-eval (ƛ _ B) {η}{η'} p ρ =
                   (renVal-comp ρ' ρ'' (renCR ρ (reflCR (symCR (p x)))))})
            B)) -- again two almost identical terms
   ,
-  refl
-  ,
   λ ρ' q → idext (λ { Z → q ; (S x) → renVal-comp ρ ρ' (p x) }) B
 renVal-eval (A · B) p ρ = transCR
   (renVal·V ρ (idext (reflCR ∘ p) A) (idext (reflCR ∘ p) B))
   (AppCR (renVal-eval A p ρ) (renVal-eval B p ρ))
-renVal-eval μ1          p ρ = refl
-renVal-eval (con tcn)   p ρ = refl
+renVal-eval μ1          p ρ = μ≡Ne
+renVal-eval (con tcn)   p ρ = con≡Nf
 \end{code}
 
 (pre) renaming commutes with eval
 
 \begin{code}
+{-
 ren-eval : ∀{Φ Ψ Θ K}
   (t : Θ ⊢⋆ K)
   {η η' : ∀{J} → Ψ ∋⋆ J → Val Φ J}
