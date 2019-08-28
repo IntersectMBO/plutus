@@ -32,6 +32,9 @@ stack.yaml.lock
 *.chs.h
 *.prof
 
+# Agda
+*.agdai
+
 # Nix
 result*
 pkgs/.cabal

@@ -1,0 +1,137 @@
+\subsection{Non-recursive datatype bindings}
+\label{sec:non-recursive-data}
+
+Non-recursive datatypes are fairly easy to compile. We will generalize the
+Scott-encoding approach described in \cref{sec:data-encoding}.
+
+We define the compilation scheme for non-recursive datatype bindings in
+\cref{fig:compile-datatypes}, along with a number of auxiliary functions in
+addition to those in \cref{fig:fir_aux}.
+
+\begin{figure}[!t]
+  \centering
+  \begin{displaymath}
+  \begin{array}{l@{\ }l@{\ }l}
+  \multicolumn{3}{l}{\textsf{Throughout this figure when $d$ or $c$ is an argument}}\\
+  \multicolumn{3}{l}{d = \datatype{X}{(\seq{Y :: K})}{x}{(\seq{c})}} \\
+  \multicolumn{3}{l}{c = x(\seq{T})}\\
+  \\
+  \multicolumn{3}{l}{\textsc{Auxiliary functions}}\\
+  \unveil{d}{t}
+  &=& \substIn{X}{\scottTy{d}}{t} \\
+  \constr{d}{c}{k}
+  &=& \unveil{d}{\Lambda (\seq{Y::K}) . 
+  \lambda (\seq{a : T}). 
+  \Lambda R . 
+  \lambda (\seq{b : \branchTy{c}{\fixed{R}}}) 
+  ~b_k ~ \seq{a}}\\
+  \constrs{d} &=& \seq{\constr{\fixed{d}}{c_j}{j}}^j\\
+  \match{d}
+  &=& \Lambda (\seq{Y::K}). \lambda (x : (\scottTy{d}\ \seq{Y}) . x\\
+  \\
+  \multicolumn{3}{l}{\textsc{Compilation function}}\\
+  \multicolumn{3}{l}{\compiledata(\tlet\, d\, \tin\, t)}\\
+  &=& (\Lambda (\dataBind{d}) . \lambda (\constrBinds{d}) . \lambda (\matchBind{d}) . t)\\
+  &&\{\scottTy{d}\}\ \\
+  &&\constrs{d}\\
+  &&\match{d}
+  \end{array}
+  \end{displaymath}
+
+  \captionof{figure}{Compilation of non-recursive datatype bindings}
+  \label{fig:compile-datatypes}
+\end{figure}
+
+\noindent Let's go through the auxiliary functions in turn (both those in \cref{fig:fir_aux} and
+\cref{fig:compile-datatypes}), using the Maybe datatype as an example.
+\begin{displaymath}
+d \defeq \datatype{\Maybe}{A}{\Match}{(\Nothing (), \Just (A))}
+\end{displaymath}
+\begin{itemize}
+\item $\branchTy{c}{R}$ computes the type of a function which consumes all the
+  arguments of the given constructor, producing a value of type $R$.
+  \begin{align*}
+  \branchTy{\Nothing ()}{R} &= R\\
+  \branchTy{\Just A}{R} &= A \rightarrow R
+  \end{align*}
+\item $\dataKind{d}$ computes the kind of the datatype type. This is a kind
+  arrow from the kinds of all the type arguments to $\Type$.
+  $$\dataKind{\Maybe} = \Type \kindArrow \Type$$
+\item $\scottTy{d}$ computes the Scott-encoded datatype. This binds the type
+  variables with a lambda and then constructs the pattern matching function type
+  using the branch types.
+  $$\scottTy{d} = \lambda A . \forall R . R \rightarrow (A \rightarrow R) \rightarrow R$$
+\item $\constrTy{c}{T}$ computes the type of a constructor of the datatype $d$.
+  \begin{align*}
+  \constrTy{\Nothing ()}{\Maybe} &= \forall A . \Maybe A\\
+  \constrTy{\Just A}{\Maybe} &= \forall A . A \rightarrow \Maybe A
+  \end{align*}
+\item $\unveil{d}{t}$ ``unveils'' the datatype inside a type or term, replacing
+  the abstract definition with the concrete, Scott-encoded one. We apply this to
+  the \emph{definition} of the constructors, for a reason we will see shortly.
+  This makes no difference for non-recursive datatypes, but will matter for
+  recursive ones.
+  $$\unveil{d}{t} = \substIn{\Maybe}{\lambda A . \forall R . R \rightarrow (A \rightarrow R) \rightarrow R}{t}$$
+\item $\constr{d}{c}{k}$ computes the definition of the $k$th constructor of a datatype. To match
+  the signature of the constructor, this is type abstracted over the type
+  variables and takes arguments corresponding to each of the constructor
+  arguments. Then it constructs a pattern matching function which takes branches
+  for each alternative and uses the $k$th branch on the constructor arguments.
+  \begin{align*}
+  \constr{d}{\Nothing ()}{1} &= \Lambda A . \Lambda R . \lambda (b_1 : R) (b_2 : A -> R) . b_1\\
+  \constr{d}{\Just (A)}{2} &= \Lambda A . \lambda (v : A) . \Lambda R . \lambda (b_1 : R) (b_2 : A -> R) . b_2\ v
+  \end{align*}
+\item $\matchTy{d}$ computes the type of the datatype matcher, which converts
+  from the abstract datatype to a pattern-matching function \textemdash{} that
+  is, precisely the Scott-encoded type.
+  $$\matchTy{d} = \forall A . \Maybe A \rightarrow (\forall R . R \rightarrow (A \rightarrow R) \rightarrow R)$$
+\item $\match{d}$ computes the definition of the matcher of the datatype, which is 
+  the identity.
+  $$\match{d} = \Lambda A . \lambda (v : \Maybe A) . v$$
+\end{itemize}
+
+\noindent The basic idea of the compilation scheme itself is straightforward:
+use type abstraction and lambda abstraction to bind names for the
+type itself, its constructors, and its match function.
+
+There is one quirk: usually when encoding let-bindings we create an
+\emph{immediately} applied type- or lambda-abstraction, but here they are
+\emph{interleaved}. The reason for this is that the datatype must be
+abstract inside the \emph{signature} of the constructors and the match
+function, since otherwise any uses of those functions inside the body will not
+typecheck. But inside the \emph{definitions} the datatype must be concrete, since
+the definitions make use of the concrete structure of the type.
+This explains why we needed to use $\unveil{d}{t}$ on the definitions of the
+constructors, since they appear outside the scope in which we define the
+abstract type. Note that this means we really must perform a
+substitution rather than creating a let-binding, since that would simply create
+another abstract type.\footnote{It is
+well-known that abstract datatypes can be encoded with existential types (\cite{mitchell1988abstract}). The
+presentation we give here is equivalent to using a value of existential type which is immediately
+unpacked, and where existential types are given the typical encoding using
+universal types.} 
+
+Consider the following example:
+\begin{align*}
+  &\compiledata(\tlet\, \datatype{\Maybe}{A}{\Match}{(\Nothing (), \Just (A))}\\
+  &\quad\quad \tin\, \Match\ \{\Int\}\ (\Just \{\Int\}1)\ 0\ (\lambda x: \Int . x+1))\\
+  =\ &(\Lambda (\Maybe :: \Type \kindArrow \Type) . \tag{signature of $\Maybe$}\\
+  &\lambda (\Nothing : \forall A . \Maybe A) . \tag{signature of $\Nothing$}\\
+  &\lambda (\Just : \forall A . A \rightarrow \Maybe A) . \tag{siganture of $\Just$}\\
+  &\lambda (\Match : \forall A . \Maybe A \rightarrow \forall R . R \rightarrow (A \rightarrow R) \rightarrow R). \tag{signature of $\Match$}\\
+  &\Match\ \{\Int\}\ (\Just \{\Int\}1)\ 0\ (\lambda x: \Int . x+1)) \tag{body of the let}\\
+  &(\lambda A . \forall R . R \rightarrow (A \rightarrow R) \rightarrow R) \tag{definition of $\Maybe$}\\
+  &(\Lambda A . \Lambda R . \lambda (b_1 : R)\ (b_2 : A \rightarrow R) . b_1) \tag{definition of $\Nothing$}\\
+  &(\Lambda A . \lambda (v_1 : A) . \Lambda R . \lambda (b_1 : R)\ (b_2 : A \rightarrow R) . b_2\ v_1) \tag{definition of $\Just$}\\
+  &(\Lambda A . \lambda (v : \forall R . R \rightarrow (A \rightarrow R) \rightarrow R) . v) \tag{definition of $\Match$}
+\end{align*}
+
+\noindent Here we can see that:
+\begin{itemize}
+  \item $\Just$ needs to produce the abstract type inside the body of the let, otherwise the
+    application of $\Match$ will be ill-typed.
+  \item The definition of $\Just$ produces the Scott-encoded type.
+  \item $\Match$ maps from the abstract type to the Scott-encoded type inside
+    the body of the let.
+  \item The definition of $\Match$ is the identity on the Scott-encoded type.
+\end{itemize}

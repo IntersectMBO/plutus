@@ -188,6 +188,10 @@ let
       };
     };
 
+    papers = {
+      unraveling-recursion = pkgs.callPackage ./papers/unraveling-recursion { Agda = haskellPackages.Agda; };
+    };
+
     plutus-playground = rec {
       documentation-site = let
         # TODO: the playgroundUrl needs to be set to whatever will actually be appropriate when it's bundled
